@@ -7,7 +7,9 @@
   <config>
 
     <!-- Onboard data logging. -->
-    <logging include="comms/log-overo.xml" />
+    <logging include="comms/log-overo.xml">                                 
+      <path n="0">/home/root/FlightData</path>                        
+    </logging>
 
     <!-- Remote operator communication. -->
     <remote-link include="comms/remote-link-xtend.xml" />
@@ -63,7 +65,7 @@
     </fcs>
 
     <!-- Primary mission selection and configuration. -->
-    <mission include="missions/demo1.xml" />
+    <mission include="missions/launch-res3.xml" />
 
     <!-- command augmentation system -->
     <!-- <cas include="cas.xml" /> -->
