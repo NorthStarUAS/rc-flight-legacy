@@ -1,13 +1,21 @@
-#noinst_PROGRAMS = dynamichome shadowpoint
-noinst_PROGRAMS = dynamichome
+noinst_PROGRAMS = dynamichome_old
+bin_PROGRAMS = dynamichome
+
+dynamichome_old_SOURCES = \
+	main.cxx
+
+dynamichome_old_LDADD = \
+	$(top_builddir)/src/comms/libcomms.a \
+	$(top_builddir)/src/math/libmath.a \
+	$(top_builddir)/src/util/libutil.a
 
 dynamichome_SOURCES = \
-	main.cxx
+	dynamichome.cxx
 
 dynamichome_LDADD = \
 	$(top_builddir)/src/comms/libcomms.a \
 	$(top_builddir)/src/math/libmath.a \
-	$(top_builddir)/src/util/libutil.a
+	$(top_builddir)/src/util/libutil.a -lgps
 
 #shadowpoint_SOURCES = \
 #	shadowpoint.cxx
