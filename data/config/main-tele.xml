@@ -8,7 +8,7 @@
 
     <!-- Onboard data logging. -->
     <logging include="comms/log-overo.xml">
-      <path n="0">/home/root/SeniorTelemaster</path>
+      <path n="0">/home/root/FlightData</path>
     </logging>
 
     <!-- Remote operator communication. -->
@@ -52,7 +52,7 @@
 
       <!-- select the autopilot configuration -->
       <!-- <autopilot include="autopilots/Resolution3.xml" /> -->
-      <autopilot include="autopilots/SeniorTelemaster.xml" />
+      <autopilot include="autopilots/SeniorTelemaster-pitch-speed.xml" />
       <!-- <autopilot include="autopilots/Malolo2-alt-thr.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-combined.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-wingleveler.xml" /> -->
@@ -62,7 +62,7 @@
     </fcs>
 
     <!-- Primary mission selection and configuration. -->
-    <mission include="missions/demo1.xml" />
+    <mission include="missions/launch-tele.xml" />
 
     <!-- command augmentation system -->
     <!-- <cas include="cas.xml" /> -->
