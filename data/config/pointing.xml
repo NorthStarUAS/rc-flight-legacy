@@ -5,6 +5,7 @@
   <!-- Pan/Tilt pointing, requires ATI's pointing module -->
 
   <enable type="bool">true</enable>
-  <mechanism>tilt-roll</mechanism>
+  <mechanism>pan-tilt</mechanism>
+  <!-- <mechanism>tilt-roll</mechanism> -->
 
 </PropertyList>
