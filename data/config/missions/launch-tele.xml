@@ -57,6 +57,8 @@
     <task>
       <name>route</name>
       <route include="../routes/bowtie-300m.xml" />
+      <altitude-agl-ft>500</altitude-agl-ft>
+      <speed-kt>45</speed-kt>
       <timed>0</timed>
       <loop>0</loop>
     </task>
@@ -71,8 +73,8 @@
       <coord-path>/navigation/startup</coord-path>
 
       <bank-deg>15</bank-deg>
-      <bank-limit-deg>30</bank-limit-deg>
-      <heading-error-gain>0.7</heading-error-gain>
+      <bank-limit-deg>25</bank-limit-deg>
+      <heading-error-gain>0.6</heading-error-gain>
 
       <altitude-agl-ft>500</altitude-agl-ft>
       <speed-kt>30</speed-kt>
