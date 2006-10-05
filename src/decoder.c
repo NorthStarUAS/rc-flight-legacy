@@ -12,15 +12,16 @@
 #include <pthread.h>
 #include "globaldefs.h"
 
-main()
+int main()
 {
    struct imu dta;
    struct gps gdta;
    struct nav ndta;
-   int i =0;
+   // int i = 0;
 
    FILE *fimu,*fgps,*fnav, *fwimu, *fwgps, *fwnav;
-   char *name,*wname, wbuffer[80];
+   /* FIXME: name used, but never set! */
+   char *name /*, *wname, wbuffer[80] */;
 
    //read file
    if((fimu = fopen("/mnt/cf1/imu.dat","r+b"))==NULL) {
@@ -72,4 +73,6 @@ main()
    fclose(fwnav);
 
    printf("data is now dumped in /mnt/cf1 \n");
+
+   return 0;
 }
