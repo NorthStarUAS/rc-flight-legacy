@@ -61,7 +61,7 @@ double get_time_interval(short id)
 	struct timespec		ts;
         static struct timespec  ts_p[5];
         double 			nsec,elapsed;
-        short i=0;
+        // short i=0;
 
         clock_gettime(CLOCK_REALTIME, &ts);
         nsec    = ts.tv_nsec- ts_p[id].tv_nsec;
@@ -78,7 +78,7 @@ double get_Time()
   	struct timespec t;
   	static struct timespec tset;
         double tnow;
-        static init=0;
+        static int init = 0;
    
         if(init==0) {
            init = 1;
@@ -117,8 +117,8 @@ static chtype use_colors(int pairs, chtype attrs)
 void display_message(struct imu *data, struct gps *gdata, struct nav *ndata, int disptime)
 {
    static int count=0;
-   static double r2d = 57.3;
-   char buf[100];
+   // static double r2d = 57.3;
+   // char buf[100];
 
 #ifdef NCURSE_DISPLAY_OPTION   
    if(++count == disptime) {

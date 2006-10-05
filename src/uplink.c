@@ -16,6 +16,8 @@
 #include <fcntl.h>
 #include <sys/time.h>
 #include <stdlib.h>
+#include <unistd.h>
+
 #include "globaldefs.h"
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -51,10 +53,9 @@ void *uplink_acq(void *thread_id)
    int ret,errFlag,i;
    char temp[20],tempr[20];
    unsigned long sum=0;
-   int     serv_addrlen = sizeof(serv_addr);
 
 #ifndef NCURSE_DISPLAY_OPTION
-   printf("[uplink_acq]::thread[%d] initiated...\n",thread_id);  
+   printf("[uplink_acq]::thread[%x] initiated...\n", (int)thread_id);  
 #else
    sprintf(uplinkstr,"[UPLINK  ]:Uplink Data has not been received!");   
 #endif
@@ -83,7 +84,7 @@ void *uplink_acq(void *thread_id)
               case 'W':
            		sscanf(bufs+2,"%d",&numofwaypoints);
            		for(i=0;i<numofwaypoints;i++) {
-	      			sscanf(bufs+3+i*23,"%s %s",&temp,&tempr);
+	      			sscanf(bufs+3+i*23,"%s %s",temp,tempr);
               			waypoints[i][0] = atof(temp);    
               			waypoints[i][1] = atof(tempr);
            		}
@@ -99,7 +100,7 @@ void *uplink_acq(void *thread_id)
 			#endif
 			break;
 	      case 'G':
- 			sscanf(bufs+2,"%d %f %f %f",&pid_mode, &pid_gain[0],&pid_gain[1],&pid_gain[2]);
+ 			sscanf(bufs+2,"%hd %f %f %f",&pid_mode, &pid_gain[0],&pid_gain[1],&pid_gain[2]);
  			#ifndef NCURSE_DISPLAY_OPTION
 				printf("[uplink]:[mode=%d]P=%4.2f I=%4.2f D=%4.2f\n",pid_mode,pid_gain[0],pid_gain[1],pid_gain[2]);
 			#else
@@ -136,7 +137,7 @@ void *uplink_acq(void *thread_id)
 			break;	
 	      case 'C':
 	      		//currently not available
-                        sscanf(bufs+2,"%d %d %d %d",&manual,&altholdc,&turnc,&waypointc);
+                        sscanf(bufs+2,"%hd %hd %hd %hd",&manual,&altholdc,&turnc,&waypointc);
 			printf("\n[uplink]:Manual=%d,AltHold=%d,Turn=%d,WayPoint=%d\n\n",manual,altholdc,turnc,waypointc);
                         break;
 	      default:

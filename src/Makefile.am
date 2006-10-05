@@ -1,5 +1,3 @@
-EXTRA_DIST = Makefile.orig
-
 bin_PROGRAMS = avionics decoder
 
 avionics_SOURCES = \
@@ -14,7 +12,7 @@ avionics_SOURCES = \
 	navmain.c \
 	serial.c serial.h \
 	uplink.c
-avionics_LDADD = -lrt -lm
+# avionics_LDADD = -lrt -lm
 
 decoder_SOURCES = decoder.c
 decoder_LDADD =
