@@ -1,12 +1,12 @@
 bin_PROGRAMS = avionics decoder
 
 avionics_SOURCES = \
-	ahrs_main.c \
-	avionics.c \
+	ahrs.c ahrs.h \
 	control.c \
 	globaldefs.h \
 	groundstation.c groundstation.h \
 	imugps.c \
+	main.c \
 	matrix.c matrix.h \
 	misc.c misc.h \
 	navfunc.c navfunc.h \

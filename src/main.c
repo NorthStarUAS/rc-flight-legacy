@@ -26,6 +26,7 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
+#include "ahrs.h"
 #include "globaldefs.h"
 #include "groundstation.h"
 #include "misc.h"
@@ -57,7 +58,6 @@ WINDOW  *win;
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //thread prototypes
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-extern void *ahrs_main(void *thread_id);
 extern void *imugps_acq(void *thread_id);
 extern void *navigation(void *thread_id);
 extern void *uplink_acq(void *thread_id);
@@ -154,7 +154,7 @@ int main(int argc, char **argv)
     pthread_attr_setschedparam(&attr, &param);
 
     printf("Creating threads...\n");
-    rc[0] = pthread_create(&threads[0], &attr, ahrs_main,  (void *)0);
+    rc[0] = pthread_create(&threads[0], &attr, ahrs_thread,  (void *)0);
    
     param.sched_priority -=  0;
     pthread_attr_setschedparam(&attr, &param);

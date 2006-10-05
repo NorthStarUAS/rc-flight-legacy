@@ -1,5 +1,5 @@
 /******************************************************************************
- * FILE: ahrs_main.c
+ * FILE: ahrs.c
  * DESCRIPTION: attitude heading reference system providing the attitude of
  *   	       the vehicle using an extended Kalman filter
  *   
@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "ahrs.h"
 #include "globaldefs.h"
 #include "matrix.h"
 #include "misc.h"
@@ -72,7 +73,7 @@ char   *cnt_status;
 extern short screen_on;
 
 
-void *ahrs_main(void *thread_id)
+void *ahrs_thread(void *thread_id)
 {
     short  i = 0 /*, j = 0 */;
     int    rc;
@@ -80,7 +81,7 @@ void *ahrs_main(void *thread_id)
     static short count = 0, enable=FALSE;
 
 #ifndef NCURSE_DISPLAY_OPTION
-    printf("[ahrs_main]::thread[%x] initiated...\n", (int)thread_id);
+    printf("[ahrs_thread]::thread[%x] initiated...\n", (int)thread_id);
 #endif
    
     //initialization of err, measurement, and process cov. matrices
@@ -117,7 +118,8 @@ void *ahrs_main(void *thread_id)
     mat66 = mat_creat(6,6,ZERO_MATRIX);
    
     sleep(1);
-    while (1) {
+
+    while ( 1 ) {
         //wait until data acquisition is done
         pthread_mutex_lock(&mutex_imu);
         rc  = pthread_cond_wait(&trigger_ahrs, &mutex_imu);
@@ -126,7 +128,8 @@ void *ahrs_main(void *thread_id)
             AHRS_Algorithm(&imupacket);	   
         }
         pthread_mutex_unlock(&mutex_imu);
-        if(!screen_on) snap_time_interval("ahrs",  100, 0);
+        if ( !screen_on )
+            snap_time_interval("ahrs",  100, 0);
            
         //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         //control logic: add delay on control trigger to minimize 
@@ -248,25 +251,36 @@ void AHRS_Algorithm(struct imu *data)
     mat_mul(tmp66,tmpr,aP);
     for(i=0;i<6;i++) aP[i][i] += aQ[i][i];
 
-    coeff[0] = xvar[1][0]*xvar[3][0]-xvar[0][0]*xvar[2][0];
-    coeff[1] = xvar[0][0]*xvar[1][0]+xvar[2][0]*xvar[3][0];
-    coeff[2] = xvar[0][0]*xvar[0][0]-xvar[1][0]*xvar[1][0]-xvar[2][0]*xvar[2][0]+xvar[3][0]*xvar[3][0];
+    coeff[0] = xvar[1][0]*xvar[3][0] - xvar[0][0]*xvar[2][0];
+    coeff[1] = xvar[0][0]*xvar[1][0] + xvar[2][0]*xvar[3][0];
+    coeff[2] = xvar[0][0]*xvar[0][0] - xvar[1][0]*xvar[1][0]
+        - xvar[2][0]*xvar[2][0] + xvar[3][0]*xvar[3][0];
 
-    if (sCheck) {
+    if ( sCheck ) {
         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         //correction steps
         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    
         //nonlinear measurement equation of h(x)
-      
         h[0]    = -g2*coeff[0];
         h[1]    = -g2*coeff[1];
         h[2]    =  -g*coeff[2];
         
         //compute Jacobian matrix of h(x)
-        Hj[0][0] = g2*xvar[2][0]; Hj[0][1] =-g2*xvar[3][0]; Hj[0][2] = g2*xvar[0][0]; Hj[0][3] = -g2*xvar[1][0]; 
-        Hj[1][0] =      Hj[0][3]; Hj[1][1] =     -Hj[0][2]; Hj[1][2] =      Hj[0][1]; Hj[1][3] =      -Hj[0][0]; 
-        Hj[2][0] =     -Hj[0][2]; Hj[2][1] =     -Hj[0][3]; Hj[2][2] =      Hj[0][0]; Hj[2][3] =       Hj[0][1]; 
+        Hj[0][0] =  g2*xvar[2][0];
+        Hj[0][1] = -g2*xvar[3][0];
+        Hj[0][2] =  g2*xvar[0][0];
+        Hj[0][3] = -g2*xvar[1][0]; 
+
+        Hj[1][0] =  Hj[0][3];
+        Hj[1][1] = -Hj[0][2];
+        Hj[1][2] =  Hj[0][1];
+        Hj[1][3] = -Hj[0][0];
+
+        Hj[2][0] = -Hj[0][2];
+        Hj[2][1] = -Hj[0][3];
+        Hj[2][2] =  Hj[0][0];
+        Hj[2][3] =  Hj[0][1]; 
    
         //gain matrix aK = aP*Hcobtr*(Hj*aP*Hcobtr + aR)^-1
         mat_tran(Hj,Jcobtr);
@@ -278,7 +292,9 @@ void AHRS_Algorithm(struct imu *data)
       
         //state update
         for(i=0;i<6;i++) {
-            xvar[i][0] += aK[i][0]*(data->ax - h[0]) + aK[i][1]*(data->ay - h[1]) + aK[i][2]*(data->az - h[2]);
+            xvar[i][0] += aK[i][0]*(data->ax - h[0])
+                + aK[i][1]*(data->ay - h[1])
+                + aK[i][2]*(data->az - h[2]);
         }
         
         //error covariance matrix update
@@ -292,8 +308,12 @@ void AHRS_Algorithm(struct imu *data)
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
     //scaling of quertonian,||q||^2 = 1
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    norm = 1.0/sqrt(xvar[0][0]*xvar[0][0]+xvar[1][0]*xvar[1][0]+xvar[2][0]*xvar[2][0]+xvar[3][0]*xvar[3][0]);
-    for(i=0;i<4;i++) xvar[i][0] = xvar[i][0]*norm;
+    norm = 1.0/sqrt(xvar[0][0]*xvar[0][0]
+                    + xvar[1][0]*xvar[1][0]
+                    + xvar[2][0]*xvar[2][0]
+                    + xvar[3][0]*xvar[3][0]);
+    for ( i = 0; i < 4; i++ )
+        xvar[i][0] = xvar[i][0]*norm;
 
     //obtain euler angles from quaternion
     data->the = asin(-2*coeff[0]);
@@ -311,12 +331,15 @@ void AHRS_Algorithm(struct imu *data)
         cPHI= cos(data->phi);
         sPHI= sin(data->phi);
    
-        Bxc = (data->hx)*cos(data->the)+((data->hy)*sPHI+(data->hz)*cPHI)*sin(data->the);
+        Bxc = (data->hx)*cos(data->the)
+            + ((data->hy)*sPHI+(data->hz)*cPHI)*sin(data->the);
         Byc = (data->hy)*cPHI-(data->hz)*sPHI;
 
         //heading angles
-        psim      = atan2(Byc,-Bxc);
-        psi_temp  = atan2(2*(xvar[1][0]*xvar[2][0]+xvar[3][0]*xvar[0][0]),xvar[0][0]*xvar[0][0]+xvar[1][0]*xvar[1][0]-xvar[2][0]*xvar[2][0]-xvar[3][0]*xvar[3][0]);
+        psim     = atan2(Byc,-Bxc);
+        psi_temp = atan2( 2*(xvar[1][0]*xvar[2][0] + xvar[3][0]*xvar[0][0]),
+                          xvar[0][0]*xvar[0][0] + xvar[1][0]*xvar[1][0]
+                          - xvar[2][0]*xvar[2][0] - xvar[3][0]*xvar[3][0] );
       
         //error covariance propagation
         PP[0][0] = PPup[0][0] + QQ[0][0];
@@ -328,7 +351,9 @@ void AHRS_Algorithm(struct imu *data)
         tmp22[0][0] = PP[0][0] + var_psiMag;
         tmp22[0][1] = PP[0][0] + time*PP[0][1];
         tmp22[1][0] = PP[0][0] + time*PP[1][0];
-        tmp22[1][1] = tmp22[1][0] + time*(PP[0][1] + time*PP[1][1]) + var_psiMag;
+        tmp22[1][1] = tmp22[1][0] + time*(PP[0][1] + time*PP[1][1])
+            + var_psiMag;
+
         //mat_inv(tmp22,RRinv);
         det = 1.0/(tmp22[0][0]*tmp22[1][1] - tmp22[0][1]*tmp22[1][0]);
         RRinv[0][0] = tmp22[1][1]*det;
@@ -361,18 +386,19 @@ void AHRS_Algorithm(struct imu *data)
         zvar[1][0] += Kpsi[1][0]*diff + Kpsi[1][1]*diff1;
 
         //bound heading angle between -180 and 180
-        if(zvar[0][0] >  pi) zvar[0][0] -= pi2;
-        if(zvar[0][0] < -pi) zvar[0][0] += pi2;
+        if ( zvar[0][0] >  pi )
+            zvar[0][0] -= pi2;
+        if ( zvar[0][0] < -pi )
+            zvar[0][0] += pi2;
 
         //heading angle
         data->psi  = zvar[0][0];  
     }
 
     //time update
-    time   = time + dt;
+    time = time + dt;
    
     sCheck = !sCheck;
-
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -382,8 +408,8 @@ double wraparound(double dta)
 {
     double temp=0;
    
-    if (fabs(dta) > pi) {
-        temp = dta - sign(dta)*pi2;
+    if ( fabs(dta) > pi ) {
+        temp = dta - sign(dta) * pi2;
         return temp;
     } else {
         return dta;
