@@ -1,0 +1,13 @@
+NOTES:
+
+1. Add the location of your arm cross compiler binaries to your path.
+   This will probably look something like:
+
+   export PATH=${PATH}:/usr/local/arm/3.3.2/bin
+
+2. Run "./autogen.sh"
+
+3. Run "./configure --host=arm-linux"
+
+4. Run "make"
+
