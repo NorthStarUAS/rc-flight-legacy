@@ -30,7 +30,7 @@
 //globals
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 extern short   open_client();
-extern int     sock_fd;		   //socket 
+extern int     gs_sock_fd;		   //socket 
 extern short   retvalsock;         //socket status
 extern struct  sockaddr_in serv_addr;
 
@@ -64,7 +64,7 @@ void *uplink_acq(void *thread_id)
    
     while (1) {
         if(retvalsock) {
-            if( (ret=recv(sock_fd,bufs,numofuplink,0)) < 0) {
+            if( (ret=recv(gs_sock_fd,bufs,numofuplink,0)) < 0) {
                 errFlag = 1;
                 retvalsock = open_client();
             } else {
