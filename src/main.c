@@ -29,6 +29,7 @@
 #include "ahrs.h"
 #include "globaldefs.h"
 #include "groundstation.h"
+#include "imugps.h"
 #include "misc.h"
 
 #ifdef NCURSE_DISPLAY_OPTION
@@ -58,7 +59,6 @@ WINDOW  *win;
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //thread prototypes
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-extern void *imugps_acq(void *thread_id);
 extern void *navigation(void *thread_id);
 extern void *uplink_acq(void *thread_id);
 
@@ -149,21 +149,26 @@ int main(int argc, char **argv)
 
     sleep(2);
 
-    // set thread priority
+    printf("Creating threads...\n");
+
+    // top priority
     param.sched_priority = sched_get_priority_max(SCHED_RR); 
     pthread_attr_setschedparam(&attr, &param);
+    rc[0] = pthread_create(&threads[0], &attr, imugps_acq,  (void *)0);
 
-    printf("Creating threads...\n");
-    rc[0] = pthread_create(&threads[0], &attr, ahrs_thread,  (void *)0);
-   
+    // top priority
     param.sched_priority -=  0;
     pthread_attr_setschedparam(&attr, &param);
-    rc[1] = pthread_create(&threads[1], &attr, imugps_acq, (void *)1);
-      
-    param.sched_priority -=  5; pthread_attr_setschedparam(&attr, &param);
+    rc[1] = pthread_create(&threads[1], &attr, ahrs_thread, (void *)1);
+
+    // priority - 5
+    param.sched_priority -=  5;
+    pthread_attr_setschedparam(&attr, &param);
     rc[2] = pthread_create(&threads[2], &attr, navigation, (void *)2);
 
-    param.sched_priority -=  5; pthread_attr_setschedparam(&attr, &param);
+    // priority - 10
+    param.sched_priority -=  5;
+    pthread_attr_setschedparam(&attr, &param);
     rc[3] = pthread_create(&threads[3], &attr, uplink_acq, (void *)3);
 
     for ( tnum = 0; tnum < NUM_THREADS; tnum++ ) {
