@@ -28,10 +28,11 @@ extern char   uplinkstr[80];
 
 //global variables
 double exe_rate[3];
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+//
 // snap time interval
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void snap_time_interval(char *threadname,int displaytime,short id)
+//
+void snap_time_interval( char *threadname, int displaytime, short id )
 {
     static int 		count[5]={0,};
     struct timespec		ts;
@@ -55,8 +56,8 @@ void snap_time_interval(char *threadname,int displaytime,short id)
                threadname, 1/elapsed, elapsed*1000);
 #endif		
         count[id] = 0;
-    }	
-}		
+    }
+}
 
 double get_time_interval(short id)
 {
