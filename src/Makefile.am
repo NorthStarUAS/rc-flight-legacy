@@ -5,12 +5,12 @@ avionics_SOURCES = \
 	control.c \
 	globaldefs.h \
 	groundstation.c groundstation.h \
-	imugps.c \
+	imugps.c imugps.h \
 	main.c \
 	matrix.c matrix.h \
 	misc.c misc.h \
 	navfunc.c navfunc.h \
-	navmain.c \
+	navigation.c \
 	serial.c serial.h \
 	uplink.c
 
