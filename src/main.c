@@ -31,6 +31,7 @@
 #include "groundstation.h"
 #include "imugps.h"
 #include "misc.h"
+#include "navigation.h"
 
 #ifdef NCURSE_DISPLAY_OPTION
 #include <ncurses/ncurses.h>
@@ -59,7 +60,6 @@ WINDOW  *win;
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //thread prototypes
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-extern void *navigation(void *thread_id);
 extern void *uplink_acq(void *thread_id);
 
 extern void display_message(struct imu *data, struct gps *gdata, struct nav *ndata, int id);
