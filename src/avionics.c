@@ -1,4 +1,4 @@
-/*****************************************************************************************
+/*******************************************************************************
 * FILE: avionics.c
 * DESCRIPTION:
 *   
@@ -7,19 +7,27 @@
 * SOURCE: 
 * REVISED: 9/02/05 Jung Soon Jang
 * REVISED: 4/07/06 Jung Soon Jang
-******************************************************************************************/
+*******************************************************************************/
+
 #include <stdio.h>
 #include <pthread.h>
 #include <sys/types.h>
+
 #include <sys/socket.h>
-#include <sys/stat.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/time.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <string.h>
 #include <sys/resource.h>
+#include <unistd.h>
+
 #include "globaldefs.h"
+#include "misc.h"
 
 #ifdef NCURSE_DISPLAY_OPTION
 #include <ncurses/ncurses.h>
@@ -60,10 +68,12 @@ short	    open_client();
 void        send_client();
 void	    timer_intr1(int sig);
 void	    help_message();
+
+
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //main here...
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
    pthread_t 		threads[NUM_THREADS];
    pthread_attr_t	attr;
@@ -221,12 +231,12 @@ main(int argc, char **argv)
    endwin();
 #endif
    
-   pthread_mutex_destory(&mutex_imu);
-   pthread_mutex_destory(&mutex_gps);
-   pthread_mutex_destory(&mutex_nav);
+   pthread_mutex_destroy(&mutex_imu);
+   pthread_mutex_destroy(&mutex_gps);
+   pthread_mutex_destroy(&mutex_nav);
    
-   pthread_attr_destory(&attr);
-   pthread_cond_destory(&trigger_ahrs);
+   pthread_attr_destroy(&attr);
+   pthread_cond_destroy(&trigger_ahrs);
    pthread_exit(NULL);
 }
 

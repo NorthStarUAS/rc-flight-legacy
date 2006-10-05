@@ -11,6 +11,8 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
+
 #include "globaldefs.h"
 
 void send_servo_cmd(word cnt_cmd[3]);
@@ -53,14 +55,14 @@ extern double waypoints[8][2];
 void control_uav(short init_done, short flight_mode)
 {
    word    cnt_cmd[3]={0,};		 	 //elevator,aileron,throttle command
-   double  de=0,da=0,dthr=0;                     //temp. variables
-   double  dthe,dphi,dpsi,dh;                    //perturbed variables
+   double  de = 0, da = 0 /*, dthr = 0*/;        //temp. variables
+   double  dthe, dphi, /* dpsi, */ dh;           //perturbed variables
    double  dthe_ref,dphi_ref,dpsi_ref=0,dh_ref=0;//perturbed reference variable
    double  tmpr=0,tmpr1=0,nav_psi=0;
    double  Ps_f=0;
    static  short anti_windup[4]={1,};
-   short   i=0;
-   static short count = 0,k=0; 
+   /* short   i=0; */
+   static short /* count = 0, */ k = 0; 
    static double Ps_f_p=0;
 
    if (init_done == FALSE) 		         //initialization:
@@ -131,7 +133,8 @@ void control_uav(short init_done, short flight_mode)
 
       dphi_ref = heading_gain[0]*tmpr1
                - heading_gain[2]*imupacket.r;
-               + heading_gain[1]*sum[3];
+               // FIXME: no affect in original code
+               /* + heading_gain[1]*sum[3]; */
 
       //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       //bound the command input
@@ -151,7 +154,8 @@ void control_uav(short init_done, short flight_mode)
        sum[2]  += (dh_ref - dh)*cdT*anti_windup[3];
        dthe_ref = alt_gain[0]*(dh_ref - dh) 
                 + alt_gain[2]*gpspacket.vd;
-                + alt_gain[1]*sum[2];
+                // FIXME: no affect in original code
+                /* + alt_gain[1]*sum[2]; */
       //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       //bound the command input
       //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -196,7 +200,7 @@ void control_uav(short init_done, short flight_mode)
    cnt_cmd[0] = servopos.chn[0] + (word)(deg2servo*(da-de)*57.3);
    //throttle
    cnt_cmd[2] = servopos.chn[2];
-   printf("cnt_cmd[2] = %d %d %d\n", cnt_cmd[2], servopos.chn[2], servopacket.chn[2]);
+   // printf("cnt_cmd[2] = %d %d %d\n", cnt_cmd[2], servopos.chn[2], servopacket.chn[2]);
 
 
    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

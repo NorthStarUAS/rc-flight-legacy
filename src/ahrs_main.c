@@ -12,18 +12,19 @@
 ******************************************************************************/
 #include <stdio.h>
 #include <math.h>
+#include <pthread.h>
 #include <time.h>
 #include <stdlib.h>
+#include <unistd.h>
+
 #include "globaldefs.h"
 #include "matrix.h"
+#include "misc.h"
 
 //prototype definition
 void 		AHRS_Algorithm(struct imu *data);
 double 		wraparound(double dta);
 extern void 	display_message(struct imu *data, int disptime);
-extern void 	snap_time_interval(char *threadname, int displaytime,short id);
-extern double 	get_time_interval(short id);
-extern double 	get_Time();
 extern void 	control_uav(short init_done, short flight_mode);
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -72,13 +73,13 @@ extern short screen_on;
 
 void *ahrs_main(void *thread_id)
 {
-   short  i=0,j=0;
+    short  i = 0 /*, j = 0 */;
    int    rc;
    static short control_init =FALSE;
    static short count = 0, enable=FALSE;
 
 #ifndef NCURSE_DISPLAY_OPTION
-   printf("[ahrs_main]::thread[%d] initiated...\n",thread_id);
+   printf("[ahrs_main]::thread[%x] initiated...\n", (int)thread_id);
 #endif
    
    //initialization of err, measurement, and process cov. matrices
@@ -188,11 +189,11 @@ void AHRS_Algorithm(struct imu *data)
    static double PPup[2][2],tnow,tprev=0;
    double pc,qc,rc;
    double h[3]={0.,},cPHI,sPHI; 
-   double norm,Bxc,Byc,psim,invR,diff,diff1,psi_temp;
+   double norm,Bxc,Byc,psim, /*invR,*/ diff,diff1,psi_temp;
    double dt,Hdt;
    double Kpsi[2][2],temp[4],det=0;
    double coeff[3]={0,};
-   short  i=0,j=0;
+   short  i = 0 /*, j = 0 */;
    static short sCheck=1;
 
    //snap the time interval, dt, of this routine

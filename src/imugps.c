@@ -16,7 +16,7 @@
 #include <math.h>
 #include <pthread.h>
 
-
+#include "misc.h"
 #include "serial.h"
 #include "globaldefs.h"
 
@@ -43,18 +43,16 @@
 
 
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //prototype definition
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 int  checksum(byte* buffer, int packet_len);
 void decode_imupacket(struct imu *data, byte* buffer);
 void decode_gpspacket(struct gps *data, byte* buffer);
-extern void snap_time_interval(char *threadname,int displaytime,short id);
-extern double get_Time();
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //global variables
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 extern short screen_on;
 extern char  buf_err[50];
 int   	     sPort0;
@@ -62,15 +60,15 @@ int   	     sPort0;
 
 void *imugps_acq(void *thread_id)
 {
-  int		count=0,nbytes=0,headerOK=0;
-  short		i=0;
-  static int    GPS_INIT=FALSE,GPS_FULL=0,err_cnt=0;
+    int		/* count = 0, */ nbytes = 0, headerOK = 0;
+    // short	      i=0;
+    // static int     GPS_INIT = FALSE, GPS_FULL = 0, err_cnt = 0;
   byte  	input_buffer[FULL_PACKET_SIZE]={0,};
   byte  	SCALED_MODE[11] ={0x55,0x55,0x53,0x46,0x01,0x00,0x03,0x00, 'S',0x00,0xF0};
   byte          CH_BAUD[11]     ={0x55,0x55,0x57,0x46,0x01,0x00,0x02,0x00,0x03,0x00,0xA3};
   byte		CH_SAMP[11]     ={0x55,0x55,0x53,0x46,0x01,0x00,0x01,0x00,0x02,0x00,0x9D};
   byte          CH_SERVO[7]     ={0x55,0x55,0x53,0x50,0x08,0x00,0xAB};
-  byte		temp;
+  // byte		temp;
   FILE   	*fimu,*fgps;
   
   /*********************************************************************
@@ -87,7 +85,7 @@ void *imugps_acq(void *thread_id)
          }
   }
 
-  printf("[imugps_acq]::thread[%d] initiated...\n",thread_id);
+  printf("[imugps_acq]::thread[%x] initiated...\n", (int)thread_id);
   /*********************************************************************
    *Open and configure Serial Port2 (com2)
    *********************************************************************/
@@ -230,9 +228,9 @@ void *imugps_acq(void *thread_id)
 
 } /* end void *imugps_acq() */
 
-/***************************************************************************************
+/*******************************************************************************
  *check the checksum of the data packet
- ***************************************************************************************/
+ ******************************************************************************/
 int checksum(byte* buffer, int packet_len)
 {
    word     	 i=0,rcvchecksum=0;
@@ -240,7 +238,7 @@ int checksum(byte* buffer, int packet_len)
    word          sum=0;
 
    for(i=2;i<packet_len-2;i++) sum = sum + buffer[i];
-   rcvchecksum = ((rcvchecksum = buffer[packet_len-2]) << 8) | buffer[packet_len-1];
+   rcvchecksum = (buffer[packet_len-2] << 8) | buffer[packet_len-1];
 
 // if (rcvchecksum == sum%0x10000)
    if (rcvchecksum == sum) //&0xFFFF)
@@ -345,7 +343,7 @@ void decode_imupacket(struct imu *data, byte* buffer)
                    printf("[imu]:fail to decode servo packet..!\n");
    }
 
-   printf("servo: %d %d %d %d %d\n", servopacket.chn[0], servopacket.chn[1], servopacket.chn[2], servopacket.chn[3], servopacket.chn[4] );
+   // printf("servo: %d %d %d %d %d\n", servopacket.chn[0], servopacket.chn[1], servopacket.chn[2], servopacket.chn[3], servopacket.chn[4] );
   
    data->time = get_Time();
    data->err_type = no_error;

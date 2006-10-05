@@ -2,9 +2,7 @@
  *global defintions used in the avionics program
  ******************************************************************************/
 #define TRUE			1
-#ifndef FALSE
-#define FALSE		       -1
-#endif
+#define FALSE                   0
 #define	byte			unsigned char
 #define word			unsigned short
 #define NSECS_PER_SEC		1000000000

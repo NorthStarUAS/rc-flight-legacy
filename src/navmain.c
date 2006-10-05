@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include "matrix.h"
+#include "misc.h"
 #include "navfunc.h"
 #include "globaldefs.h"
 
@@ -24,9 +25,7 @@
 //prototypes
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void 	      navigation_algorithm(struct imu *imudta,struct gps *gpsdta);
-extern void   snap_time_interval(char *threadname,int displaytime,short id);
-extern double get_time_interval(short id);
-extern double get_Time();
+
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //error characteristics of navigation parameters
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -56,7 +55,7 @@ void timer_intr(int sig)
 //thread main
 void *navigation(void *thread_id)
 {
-   short  		i=0,j=0;
+    short  		i = 0 /* , j = 0 */;
    struct imu		imulocal;
    struct gps		gpslocal;
    int    		rc;
@@ -229,7 +228,7 @@ void *navigation(void *thread_id)
 void navigation_algorithm(struct imu *imudta,struct gps *gpsdta)
 {
    double dt;       //sampling rate of navigation
-   short  i=0,j=0;
+   short  i = 0 /*, j = 0 */;
    double yd[6];  
    static double tnow,tprev=0; 
 
