@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include "globaldefs.h"
+#include "groundstation.h"
 #include "misc.h"
 
 #ifdef NCURSE_DISPLAY_OPTION
@@ -44,12 +45,10 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //global variables
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-int     sock_fd;
 short   wifi          = 1;		  //wifi is enabled
 short	retvalsock    = 0;
 short	screen_on     = 0;	          //data logging is disabled	
 char    *HOST_IP_ADDR = "192.168.11.101"; //default ground station IP address
-char    buf_err[50];
 
 #ifdef NCURSE_DISPLAY_OPTION
 WINDOW  *win;
@@ -64,8 +63,6 @@ extern void *navigation(void *thread_id);
 extern void *uplink_acq(void *thread_id);
 
 extern void display_message(struct imu *data, struct gps *gdata, struct nav *ndata, int id);
-short	    open_client();
-void        send_client();
 void	    timer_intr1(int sig);
 void	    help_message();
 
@@ -79,11 +76,11 @@ int main(int argc, char **argv)
     pthread_attr_t	attr;
     struct sched_param	param;
     struct timespec	timeout;
-    int 			rc[NUM_THREADS],tnum,rout,iarg;
-    static short		try = 0;
-    struct itimerval     it;
-    struct sigaction     sa;
-    sigset_t             allsigs;
+    int 		rc[NUM_THREADS], tnum, iarg;
+    static short	try = 0;
+    struct itimerval    it;
+    struct sigaction    sa;
+    sigset_t            allsigs;
     short		disp_on=1;
    
     /*********************************************************************
@@ -128,31 +125,35 @@ int main(int argc, char **argv)
     }		
 #endif
        
-    /*********************************************************************
-     *initialize mutex and conditional variables
-     *********************************************************************/
+    // initialize mutex and conditional variables
     pthread_mutex_init(&mutex_imu,NULL);
     pthread_mutex_init(&mutex_gps,NULL);
     pthread_mutex_init(&mutex_nav,NULL);
     pthread_cond_init(&trigger_ahrs,NULL);
     pthread_cond_init(&trigger_nav,NULL);
 
-    /*********************************************************************
-     *create multiple threads
-     *********************************************************************/
-    /*setup the nice value for higher process priority */
-    //setpriority(PRIO_PROCESS, getpid(), -10);
-    /*initialize and set thread detached attribute */
+    //
+    // create multiple threads
+    //
+
+    // setup the nice value for higher process priority
+    // setpriority(PRIO_PROCESS, getpid(), -10);
+
+    // initialize and set thread detached attribute
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    /*set scheduling policy */
+
+    // set scheduling policy
     pthread_attr_setinheritsched(&attr,PTHREAD_EXPLICIT_SCHED);
     pthread_attr_setschedpolicy(&attr, SCHED_RR);
-    /*set thread priority */
+
     sleep(2);
-    printf("Creating threads...\n");
+
+    // set thread priority
     param.sched_priority = sched_get_priority_max(SCHED_RR); 
     pthread_attr_setschedparam(&attr, &param);
+
+    printf("Creating threads...\n");
     rc[0] = pthread_create(&threads[0], &attr, ahrs_main,  (void *)0);
    
     param.sched_priority -=  0;
@@ -167,18 +168,19 @@ int main(int argc, char **argv)
 
     for ( tnum = 0; tnum < NUM_THREADS; tnum++ ) {
         if ( rc[tnum] ) {
-            printf("ERROR: return code from pthread_create() is %d\n", rc[tnum]);
+            printf("ERROR: return code from pthread_create() is %d\n",
+                   rc[tnum]);
             _exit(-1);
         }
     }
    
-    /*time interval setting */
+    // time interval setting
     timeout.tv_sec = 0;
-    timeout.tv_nsec= NSECS_PER_SEC/10;
+    timeout.tv_nsec = NSECS_PER_SEC / 10;
 
-    it.it_interval.tv_sec = 0;
-    it.it_interval.tv_usec= UPDATE_USECS;
-    it.it_value           = it.it_interval;
+    it.it_interval.tv_sec  = 0;
+    it.it_interval.tv_usec = UPDATE_USECS;
+    it.it_value            = it.it_interval;
 
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
@@ -188,41 +190,39 @@ int main(int argc, char **argv)
     setitimer(ITIMER_REAL, &it, NULL);
     sigemptyset(&allsigs);
 
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    //open client
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // open networked ground station client
     if (wifi == 1) retvalsock = open_client();
 
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    //main-loop
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //
+    // main loop
+    //
+
     while (1) {
-        //rout = nanosleep(&timeout,NULL);
-        sigsuspend(&allsigs); rout = 0;
+        sigsuspend(&allsigs);
   
-        if (rout == 0) {
-            //timout is expired ...
-            //telemetry
-            if (wifi == 1) {
-                if (retvalsock) {
-                    send_client(); snap_time_interval("TCP",  5, 2);
-                } else {
-                    //try connection every 2.0 sec
-                    if (try++ == 10) { 
-                        close(sock_fd); 
-                        retvalsock = open_client(); try = 0;
-                    }
-                }        
-            }
-            if (disp_on) display_message(&imupacket, &gpspacket, &navpacket, 5);
-        } else {
+        //telemetry
+        if ( wifi == 1 ) {
+            if ( retvalsock ) {
+                retvalsock = send_client();
+                snap_time_interval("TCP",  5, 2);
+            } else {
+                //try connection every 2.0 sec
+                if ( try++ == 10 ) { 
+                    close_client(); 
+                    retvalsock = open_client();
+                    try = 0;
+                }
+            }        
         }
+        if ( disp_on ) {
+            display_message(&imupacket, &gpspacket, &navpacket, 5);
+        }
+    } // end main loop
 
-    } //end while
+    //
+    // close
+    //
 
-    /**********************************************************************
-     * close
-     **********************************************************************/
 #ifdef NCURSE_DISPLAY_OPTION   
     endwin();
 #endif
@@ -236,99 +236,6 @@ int main(int argc, char **argv)
     pthread_exit(NULL);
 }
 
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * open client to transmit/receive the packet to/from ground station
- *+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-short open_client ()
-{
-    struct sockaddr_in serv_addr;
-    struct timeval     tval;
-    short  ret;
-    int    flags;
-    fd_set rset,wset;
-
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family      = AF_INET; 
-    serv_addr.sin_addr.s_addr = inet_addr(HOST_IP_ADDR);
-    serv_addr.sin_port        = htons(NETWORK_PORT); 
-    sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-  
-    //make a nonblocking connection
-    flags = fcntl(sock_fd,F_GETFL,0);
-    fcntl(sock_fd,F_SETFL,flags | O_NONBLOCK);
-  
-    //printf("uNAV CLIENT: Starting to connect to server.\n");
-    if (connect(sock_fd,(void *) &serv_addr,sizeof(serv_addr)) < 0) {
-      
-        FD_ZERO(&rset);
-        FD_SET(sock_fd,&rset); wset = rset;
-        //timeout
-        tval.tv_sec = 0;         
-        tval.tv_usec= 1e2;       
-
-        if(select(sock_fd+1,&rset,&wset,NULL, &tval) < 0) {
-#ifdef NCURSE_DISPLAY_OPTION
-            sprintf(buf_err,"Connection::Failed!   ");
-#else        	
-            printf("uNAV CLIENT: Connect Failed.\n");
-#endif        
-            close(sock_fd);
-            ret = 0;
-        } else {
-#ifdef NCURSE_DISPLAY_OPTION  
-            sprintf(buf_err,"Connection::Try!      ");
-#else     	
-            printf("uNAV CLIENT: Connected to server.\n");
-#endif        
-            //restore
-            fcntl(sock_fd,F_SETFL,flags);
-            ret = 1;
-        }
-    } else {
-#ifdef NCURSE_DISPLAY_OPTION
-        sprintf(buf_err,"Connection::Try!      ");
-#else     	
-        printf("uNAV CLIENT: Connected to server.\n");
-#endif    	
-     
-        //restore
-        fcntl(sock_fd,F_SETFL,flags);
-        ret = 1;
-    }
-    return ret;
-}
-
-void send_client (void)
-{
-    char buf[200]={0,};
-    short i = 0;
-    unsigned long  sum = 0;
-
-    sprintf(buf,"%7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %f %f %6.2f %d %d %d  end",
-            imupacket.p,  imupacket.q,  imupacket.r,
-            imupacket.ax, imupacket.ay, imupacket.az,
-            imupacket.phi,imupacket.the,imupacket.psi,
-            imupacket.hx, imupacket.hy, imupacket.hz,
-            imupacket.Ps, imupacket.Pt, 
-            gpspacket.lat,gpspacket.lon,gpspacket.alt,gpspacket.err_type,imupacket.err_type,navpacket.err_type);
-
-    for ( i = 0; i < 199; i++ ) sum += buf[i];
-    buf[199] = (char)(sum%256);
-  
-    sprintf(buf_err,"Sending Packet::OK!    ");
-     
-    if (send(sock_fd, buf, 200, 0) == -1) {
-#ifdef NCURSE_DISPLAY_OPTION
-        sprintf(buf_err,"Sending Packet::Failed!   ");
-#else  	
-        printf("uNAV CLIENT: Sending Packet Failed.\n");
-#endif     
-        close(sock_fd);
-        retvalsock = open_client();
-    }
-    
-}
-
 
 void timer_intr1(int sig)
 {
@@ -336,9 +243,9 @@ void timer_intr1(int sig)
 }
 
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//
 // help message
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//
 void help_message()
 {
     printf("\n./avionics -option1 -option2 ... \n");

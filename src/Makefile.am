@@ -5,14 +5,14 @@ avionics_SOURCES = \
 	avionics.c \
 	control.c \
 	globaldefs.h \
+	groundstation.c groundstation.h \
 	imugps.c \
 	matrix.c matrix.h \
-	misc.c \
+	misc.c misc.h \
 	navfunc.c navfunc.h \
 	navmain.c \
 	serial.c serial.h \
 	uplink.c
-# avionics_LDADD = -lrt -lm
 
 decoder_SOURCES = decoder.c
 decoder_LDADD =
