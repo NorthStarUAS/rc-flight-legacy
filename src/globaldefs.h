@@ -1,19 +1,25 @@
-/******************************************************************************
- *global defintions used in the avionics program
- ******************************************************************************/
+//
+// Global defintions used in the avionics program
+//
+
+#ifndef _UNAV_GLOBALDEFS_H
+#define _UNAV_GLOBALDEFS_H
+
+
 #define TRUE			1
 #define FALSE                   0
 #define	byte			unsigned char
 #define word			unsigned short
 #define NSECS_PER_SEC		1000000000
 
-//ncurses
+// ncurses
 // #define NCURSE_DISPLAY_OPTION
 
 //Stargate I or II
 //#define SG2
 
-enum   errdefs			{neveruse,neveruse1,no_error,got_invalid,checksum_err,gps_update,no_gps_update};
+enum errdefs { neveruse, neveruse1, no_error, got_invalid, checksum_err,
+               gps_update, no_gps_update };
 
 struct imu {
    double p,q,r;		/* angular velocities    */
@@ -47,10 +53,10 @@ struct servo {
    unsigned char status;
 };
 
-struct  imu   imupacket;
-struct  gps   gpspacket;
-struct  nav   navpacket;
-struct  servo servopacket;
+struct imu imupacket;
+struct gps gpspacket;
+struct nav navpacket;
+// extern struct servo servopacket; /* moved to imugps.h */
 
 //mutex and conditional variables
 pthread_mutex_t	mutex_imu;
@@ -59,3 +65,5 @@ pthread_mutex_t mutex_nav;
 pthread_cond_t  trigger_ahrs;
 pthread_cond_t  trigger_nav;
 
+
+#endif // _UNAV_GLOBALDEFS_H

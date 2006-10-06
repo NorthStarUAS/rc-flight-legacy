@@ -8,7 +8,18 @@
 #define _UNAV_IMUGPS_H
 
 
+#include "globaldefs.h"
+
+
+// global definitions
+extern struct servo servopacket;
+extern short autopilot_enable;
+extern short control_init;
+
+
+// function prototypes
 void *imugps_acq(void *thread_id);
+void send_servo_cmd(word cnt_cmd[9]);
 
 
 #endif // _UNAV_IMUGPS_H
