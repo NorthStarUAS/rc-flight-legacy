@@ -13,9 +13,9 @@
 #include <math.h>
 #include <unistd.h>
 
+#include "imugps.h"
 #include "globaldefs.h"
 
-void send_servo_cmd(word cnt_cmd[3]);
 extern double wraparound(double dta);
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -41,7 +41,6 @@ enum   	      modedefs {pitch_mode,roll_mode,heading_mode,altitude_mode,speed_mo
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //external global variables
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-extern int    sPort0;
 extern short  screen_on;
 extern short  whichmode[6];
 extern double pitch_gain[3],roll_gain[3];
@@ -55,7 +54,7 @@ extern double waypoints[8][2];
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void control_uav(short init_done, short flight_mode)
 {
-    word    cnt_cmd[3]={0,};		 	 //elevator,aileron,throttle command
+    word    cnt_cmd[9]={0,};		 	 //elevator,aileron,throttle command
     double  de = 0, da = 0 /*, dthr = 0*/;        //temp. variables
     double  dthe, dphi, /* dpsi, */ dh;           //perturbed variables
     double  dthe_ref,dphi_ref,dpsi_ref=0,dh_ref=0;//perturbed reference variable
@@ -65,6 +64,7 @@ void control_uav(short init_done, short flight_mode)
     /* short   i=0; */
     static short /* count = 0, */ k = 0; 
     static double Ps_f_p=0;
+    int i;
 
     if (init_done == FALSE) {
         // initialization:
@@ -210,50 +210,19 @@ void control_uav(short init_done, short flight_mode)
     //elervons:elevator and aileron mixing
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //elevator
-    cnt_cmd[1] = servopos.chn[1] + (word)(deg2servo*(de+da)*57.3);
+    cnt_cmd[5] = servopos.chn[1] + (word)(deg2servo*(de+da)*57.3);
     //aileron
-    cnt_cmd[0] = servopos.chn[0] + (word)(deg2servo*(da-de)*57.3);
+    cnt_cmd[4] = servopos.chn[0] + (word)(deg2servo*(da-de)*57.3);
     //throttle
-    cnt_cmd[2] = servopos.chn[2];
+    cnt_cmd[3] = servopos.chn[2];
     // printf("cnt_cmd[2] = %d %d %d\n", cnt_cmd[2], servopos.chn[2], servopacket.chn[2]);
 
+    for ( i = 0; i < 9; ++i ) {
+        cnt_cmd[i] = servopos.chn[2];
+    }
 
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //send commands
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     send_servo_cmd(cnt_cmd);
-}
-
-
-void send_servo_cmd(word cnt_cmd[3])
-{
-    //cnt_cmd[1] = ch1:elevator, cnt_cmd[0] = ch0:aileron, cnt_cmd[2] = ch2:throttle
-    byte  data[24]={0,};
-    short i = 0, nbytes = 0;
-    word  sum=0;
-
-    data[0] = 0x55; 
-    data[1] = 0x55;
-    data[2] = 0x53;
-    data[3] = 0x53;
-
-    //elevator
-    data[6] = (byte)(cnt_cmd[1] >> 8);
-    data[7] = (byte)cnt_cmd[1];
-    //throttle
-    data[8] = (byte)(cnt_cmd[2] >> 8);
-    data[9] = (byte)cnt_cmd[2];
-    //aileron
-    data[4] = (byte)(cnt_cmd[0] >> 8); 
-    data[5] = (byte)cnt_cmd[0];
-   
-    //checksum:need to be verified
-    sum = 0xa6;
-    for(i=4;i<22;i++) sum += data[i];
-  
-    data[22] = (byte)(sum >> 8);
-    data[23] = (byte)sum;
-
-    //sendout the command packet
-    while (nbytes != 24) nbytes = write(sPort0,(char*)data, 24); 
 }

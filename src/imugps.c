@@ -41,15 +41,20 @@
 
 
 //
-//prototype definition
+// prototype definition
 //
 int  checksum(byte* buffer, int packet_len);
 void decode_imupacket(struct imu *data, byte* buffer);
 void decode_gpspacket(struct gps *data, byte* buffer);
 
 //
-//global variables
+// global variables
 //
+struct servo servopacket;
+short autopilot_enable = FALSE;
+short control_init = FALSE;
+char *cnt_status;
+
 extern short screen_on;
 extern char  buf_err[50];
 int   	     sPort0;
@@ -63,7 +68,7 @@ int   	     sPort0;
 //
 void *imugps_acq(void *thread_id)
 {
-    int	 /* count = 0, */ nbytes = 0, headerOK = 0;
+    int	 nbytes = 0, headerOK = 0;
     byte input_buffer[FULL_PACKET_SIZE] = { 0, };
     byte SCALED_MODE[11]
         = { 0x55, 0x55, 0x53, 0x46, 0x01, 0x00, 0x03, 0x00, 'S', 0x00, 0xF0 };
@@ -75,6 +80,8 @@ void *imugps_acq(void *thread_id)
         = { 0x55, 0x55, 0x53, 0x50, 0x08, 0x00, 0xAB };
     FILE *fimu,*fgps;
   
+    static short count = 0;
+
     //
     // Open Files
     //
@@ -202,6 +209,53 @@ void *imugps_acq(void *thread_id)
 		  
         } // end case
 
+
+        //////////////////////////////////////////////////////////////
+        // NOTICE: MANUAL OVERRIDE
+        //////////////////////////////////////////////////////////////
+
+        // Manual override functionality for the uNAV is hardwired
+        // into the unit.  It is hardwired to the gear channel (CH5
+        // when counting from 1.)  This is not optional.  When you
+        // enter manual override mode, the servo commands you send to
+        // the uNAV are ignored and the unit passes through the
+        // transmited values directly.
+        //
+        // So all the code needs to do is monitor the manual override
+        // switch and not send autopilot commands in manual override
+        // mode (they would be ignored anyway.)  There is no need to
+        // copy the data through in software, it should all happen
+        // automatically.
+        //
+        // Also note that I call this a "manual override" and not a
+        // "fail safe".  If the uNAV fails for any reason, you will be
+        // picking up toothpicks.
+        //
+
+        if ( servopacket.chn[4] <= 12000 ) {
+            // if the autopilot is enabled, or signal is lost
+            if ( autopilot_enable == FALSE )
+                printf("[CONTROL]: switching to autopilot\n");
+            autopilot_enable = TRUE;  
+            count  = 15;
+            cnt_status = "MNAV in AutoPilot Mode";
+        } else if ( servopacket.chn[4] > 12000
+                    && servopacket.chn[4] < 60000 )
+        {
+            // add delay on control trigger to minimize mode confusion
+            // caused by the transmitter power off
+            if ( count < 0 ) {
+                if ( autopilot_enable == TRUE )
+                    printf("[CONTROL]: switching to manual pass through\n");
+                autopilot_enable = FALSE;
+                control_init = FALSE;
+                cnt_status = "MNAV in Manual Mode";
+            } else {
+                count--;
+            }
+
+        }
+		
     } // end while
 
     //close the serial port
@@ -270,8 +324,8 @@ void decode_gpspacket( struct gps *data, byte* buffer )
 //
 void decode_imupacket( struct imu *data, byte* buffer )
 {
-    signed short tmp=0;
-    unsigned short tmpr=0;
+    signed short tmp = 0;
+    unsigned short tmpr = 0;
 
     // acceleration in m/s^2
     data->ax = (double)(((tmp = (signed char)buffer[ 3])<<8)|buffer[ 4])*5.98754883e-04; tmp=0;
@@ -329,4 +383,55 @@ void decode_imupacket( struct imu *data, byte* buffer )
   
     data->time = get_Time();
     data->err_type = no_error;
+}
+
+
+void send_servo_cmd(word cnt_cmd[9])
+{
+    // cnt_cmd[1] = ch1:elevator
+    // cnt_cmd[0] = ch0:aileron
+    // cnt_cmd[2] = ch2:throttle
+
+    byte data[24];
+    short i = 0, nbytes = 0;
+    word sum = 0;
+
+    printf("sending servo data ");
+    for ( i = 0; i < 9; ++i ) printf("%d ", cnt_cmd[i]);
+    printf("\n");
+
+    data[0] = 0x55; 
+    data[1] = 0x55;
+    data[2] = 0x53;
+    data[3] = 0x53;
+
+    for ( i = 0; i < 9; ++i ) {
+        data[4+2*i] = (byte)(cnt_cmd[i] >> 8); 
+        data[5+2*i] = (byte)cnt_cmd[i];
+    }
+
+    // aileron
+    // data[4] = (byte)(cnt_cmd[0] >> 8); 
+    // data[5] = (byte)cnt_cmd[0];
+
+    // elevator
+    // data[6] = (byte)(cnt_cmd[1] >> 8);
+    // data[7] = (byte)cnt_cmd[1];
+
+    // throttle
+    // data[8] = (byte)(cnt_cmd[2] >> 8);
+    // data[9] = (byte)cnt_cmd[2];
+
+    //checksum: need to be verified
+    sum = 0xa6;
+    for (i = 4; i < 22; i++) sum += data[i];
+  
+    data[22] = (byte)(sum >> 8);
+    data[23] = (byte)sum;
+
+    //sendout the command packet
+    while (nbytes != 24) {
+        // printf("  writing servos ...\n");
+        nbytes = write(sPort0,(char*)data, 24);
+    }
 }

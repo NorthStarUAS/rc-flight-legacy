@@ -20,6 +20,7 @@
 
 #include "ahrs.h"
 #include "globaldefs.h"
+#include "imugps.h"
 #include "matrix.h"
 #include "misc.h"
 
@@ -67,7 +68,6 @@ MATRIX af,Jcobtr,tmp36,tmp63,tmp33,tmp66,tmpr,tmpr33,Rinv;
 MATRIX mat66;
 
 MATRIX RRinv,tmp22;
-char   *cnt_status;
 
 //external global variables
 extern short screen_on;
@@ -75,10 +75,14 @@ extern short screen_on;
 
 void *ahrs_thread(void *thread_id)
 {
+    static int counter = 10000;
+
     short  i = 0 /*, j = 0 */;
     int    rc;
-    static short control_init =FALSE;
-    static short count = 0, enable=FALSE;
+
+    int manual_override_cmd = 0;
+    static short count = 0;
+    char *cnt_status;
 
 #ifndef NCURSE_DISPLAY_OPTION
     printf("[ahrs_thread]::thread[%x] initiated...\n", (int)thread_id);
@@ -131,27 +135,8 @@ void *ahrs_thread(void *thread_id)
         if ( !screen_on )
             snap_time_interval("ahrs",  100, 0);
            
-        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        //control logic: add delay on control trigger to minimize 
-        //mode confusion caused by the transmitter power off
-        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        if (servopacket.chn[4] <= 12000) {
-            // if the autopilot is enabled
-            enable =  TRUE;  
-            count  =  15;
-            cnt_status = "MNAV in AutoPilot Mode";
-        } else if (servopacket.chn[4] > 12000 && servopacket.chn[4] < 60000) {
-            if (count <  0) {
-                enable = FALSE;
-                control_init = FALSE;
-                cnt_status = "MNAV in Manual Mode";
-            } else {
-                count--;
-            }
-        }		
-
-        if (enable == TRUE ) {
-            control_uav(control_init, 0);
+        if ( autopilot_enable == TRUE ) {
+            control_uav( control_init, 0 );
             control_init = TRUE;
         }
     }
