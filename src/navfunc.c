@@ -35,8 +35,8 @@ MATRIX EulerToDcm(MATRIX euler, double decA,MATRIX dcm)
     A = mat_creat(3,3,ZERO_MATRIX);
     B = mat_creat(3,3,UNDEFINED);
   
-    A[0][0] = cos(decA); A[0][1] = sin(decA);
-    A[1][0] =-sin(decA); A[1][1] = cos(decA);
+    A[0][0] = cos(decA); A[0][1] =-sin(decA);
+    A[1][0] = sin(decA); A[1][1] = cos(decA);
     A[2][2] = 1;
     
     B[0][0] = cTHE*cPSI; B[0][1] = sPHI*sTHE*cPSI-cPHI*sPSI; B[0][2] = cPHI*sTHE*cPSI+sPHI*sPSI;

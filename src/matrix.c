@@ -194,6 +194,24 @@ MATRIX mat_copy(MATRIX A, MATRIX C)
     return(C);
 }
 
+MATRIX mat_copy1(MATRIX A, MATRIX C)
+{
+    int		i, j;
+
+    // if dimensions of C is wrong
+    //if ( MatRow(A) != MatRow(C) || MatCol(A) != MatCol(C) ) {
+    //	printf("mat_copy error: incompatible output matrix size\n");
+    //	_exit(-1);
+    // if dimensions of C is correct
+    //} else {
+    for (i=0; i<MatRow(A); i++)
+        for (j=0; j<MatCol(A); j++) {
+            C[i][j] = -A[i][j];
+        }
+    //}
+    return(C);
+}
+
 
 MATRIX mat_colcopy1(MATRIX A,MATRIX B,int cola,int colb)
 {
@@ -680,6 +698,98 @@ MATRIX mat_mymul1(MATRIX A,MATRIX B, MATRIX C, short m)
                 C[i][j] += A[i][k] * B[k][j];
             }
     //}
+    return(C);
+}
+
+MATRIX mat_mymul2(MATRIX A,MATRIX B, MATRIX C, short m)
+{
+    int		i, j, k;
+
+    // if dimensions of C is wrong
+    //if ( MatRow(C) != MatRow(A) || MatCol(C) != MatCol(B) ) {
+    //	printf("mat_mul error: incompatible output matrix size\n");
+    //	_exit(-1);
+    // if dimensions of C is correct
+    //} else {
+
+    for (i=0; i<MatRow(A)-m; i++)
+        for (j=0; j<MatCol(B); j++)
+            for (k=0, C[i][j]=0.0; k<MatCol(A); k++) {
+                C[i][j] += A[i][k] * B[k][j];
+            }
+    //}
+	
+    for(i=4;i<7;i++) 
+        for(j=0;j<7;j++) 
+            C[i][j] = B[i][j];
+	
+    return(C);
+}
+
+MATRIX mat_mymul3(MATRIX A,MATRIX B, MATRIX C, short m)
+{
+    int		i, j, k;
+
+    // if dimensions of C is wrong
+    //if ( MatRow(C) != MatRow(A) || MatCol(C) != MatCol(B) ) {
+    //	printf("mat_mul error: incompatible output matrix size\n");
+    //	_exit(-1);
+    // if dimensions of C is correct
+    //} else {
+    for (i=0; i<MatRow(A); i++) 
+	for (j=0; j<MatCol(B)-m; j++) 
+            for (k=0, C[i][j]=0.0; k<MatCol(A); k++) {
+		C[i][j] += A[i][k] * B[j][k];
+            }		    
+    //}
+    for(i=0;i<7;i++) 
+        for(j=4;j<7;j++) 
+            C[i][j] = A[i][j];
+	      
+    return(C);
+}
+MATRIX mat_mymul4(MATRIX A,MATRIX B, MATRIX C, short m)
+{
+    int		i, j, k;
+
+    // if dimensions of C is wrong
+    //if ( MatRow(C) != MatRow(A) || MatCol(C) != MatCol(B) ) {
+    //	printf("mat_mul error: incompatible output matrix size\n");
+    //	_exit(-1);
+    // if dimensions of C is correct
+    //} else {
+
+    for (i=0; i<MatRow(A); i++)
+        for (j=0; j<MatRow(B); j++)
+            for (k=0, C[i][j]=0.0; k<MatCol(A)-m; k++) {
+                C[i][j] += A[i][k] * B[j][k];
+            }
+    //}
+    return(C);
+}
+
+MATRIX mat_mymul5(MATRIX A,MATRIX B, MATRIX C, short m)
+{
+    int		i, j, k;
+
+
+
+    // if dimensions of C is wrong
+    //if ( MatRow(C) != MatRow(A) || MatCol(C) != MatCol(B) ) {
+    //	printf("mat_mul error: incompatible output matrix size\n");
+    //	_exit(-1);
+    // if dimensions of C is correct
+    //} else {
+
+    for (i=0; i<MatRow(A); i++)
+        for (j=0; j<MatCol(B); j++)
+            for (k=0, C[i][j]=0.0; k<MatCol(A)-m; k++) {
+                C[i][j] += A[i][k] * B[k][j];
+            }
+    //}
+    for(i=m+1;i<MatRow(A);i++)
+        for(j=0;j<MatCol(B);j++)
+            C[i][j] += B[i][j];
     return(C);
 }
 

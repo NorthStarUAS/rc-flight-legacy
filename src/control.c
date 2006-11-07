@@ -191,6 +191,8 @@ void control_uav(short init_done, short flight_mode)
         + roll_gain[2]*(-imupacket.p)
         + roll_gain[1]*sum[1];
 
+    da = -dphi;
+
     // maximum deflection of control servos limited to 20 degrees
     if (fabs(de) > 0.34904) {
         de = sign(de)*0.34904;
@@ -210,16 +212,16 @@ void control_uav(short init_done, short flight_mode)
     //elervons:elevator and aileron mixing
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //elevator
-    cnt_cmd[5] = servopos.chn[1] + (word)(deg2servo*(de+da)*57.3);
+    cnt_cmd[1] = servopos.chn[1] + (word)(deg2servo*(de+da)*57.3);
     //aileron
-    cnt_cmd[4] = servopos.chn[0] + (word)(deg2servo*(da-de)*57.3);
+    cnt_cmd[0] = servopos.chn[0] + (word)(deg2servo*(da-de)*57.3);
     //throttle
-    cnt_cmd[3] = servopos.chn[2];
+    cnt_cmd[2] = servopos.chn[2];
     // printf("cnt_cmd[2] = %d %d %d\n", cnt_cmd[2], servopos.chn[2], servopacket.chn[2]);
 
-    for ( i = 0; i < 9; ++i ) {
-        cnt_cmd[i] = servopos.chn[2];
-    }
+    // for ( i = 0; i < 9; ++i ) {
+    //     cnt_cmd[i] = servopos.chn[2];
+    // }
 
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //send commands
