@@ -48,9 +48,9 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //global variables
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-short   wifi          = 1;		  //wifi is enabled
+short   wifi          = 1;		 //wifi is enabled
 short	retvalsock    = 0;
-short	screen_on     = 0;	          //data logging is disabled	
+short	log_to_file   = 0;	         //data lot to file is enabled/disabled	
 char    *HOST_IP_ADDR = "192.168.11.101"; //default ground station IP address
 
 #ifdef NCURSE_DISPLAY_OPTION
@@ -81,23 +81,23 @@ int main(int argc, char **argv)
     struct itimerval    it;
     struct sigaction    sa;
     sigset_t            allsigs;
-    short		disp_on=1;
+    short		display_on=1;
    
     /*********************************************************************
      *Parse the command line
      *********************************************************************/
     for ( iarg = 1; iarg < argc; iarg++ ) {
-        if ( !strcmp(argv[iarg], "-save" )  ) {
-            if ( !strcmp(argv[iarg+1], "on") ) screen_on = 1;
-            if ( !strcmp(argv[iarg+1], "off") ) screen_on = 0;
+        if ( !strcmp(argv[iarg], "-log-file" )  ) {
+            if ( !strcmp(argv[iarg+1], "on") ) log_to_file = 1;
+            if ( !strcmp(argv[iarg+1], "off") ) log_to_file = 0;
         }
         if ( !strcmp(argv[iarg], "-wifi") ) {
             if ( !strcmp(argv[iarg+1], "on") ) wifi = 1;
             if ( !strcmp(argv[iarg+1], "off") ) wifi = 0;
         }
-        if ( !strcmp(argv[iarg],"-screen") ) {
-            if ( !strcmp(argv[iarg+1], "on") ) disp_on = 1;
-            if ( !strcmp(argv[iarg+1], "off") ) disp_on = 0;
+        if ( !strcmp(argv[iarg],"-display") ) {
+            if ( !strcmp(argv[iarg+1], "on") ) display_on = 1;
+            if ( !strcmp(argv[iarg+1], "off") ) display_on = 0;
         }
         if ( !strcmp(argv[iarg], "-ip") ) HOST_IP_ADDR = argv[iarg+1];
         if ( !strcmp(argv[iarg], "-help") ) help_message();
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
                 }
             }        
         }
-        if ( disp_on ) {
+        if ( display_on ) {
             display_message(&imupacket, &gpspacket, &navpacket, 5);
         }
     } // end main loop
@@ -255,8 +255,8 @@ void help_message()
 {
     printf("\n./avionics -option1 -option2 ... \n");
     printf("-wifi on/off        : enable or disable WiFi communication with GS \n");
-    printf("-save on/off        : enable or disable datalogging in /mnt/cf1/ \n");	
-    printf("-screen on/off      : enable or disable dumping data to screen \n");	
+    printf("-log-file on/off        : enable or disable datalogging in /mnt/cf1/ \n");	
+    printf("-display on/off      : enable or disable dumping data to display \n");	
     printf("-ip xxx.xxx.xxx.xxx : set GS i.p. address for WiFi comm. \n");
     printf("-help               : display the help messages \n\n");
     

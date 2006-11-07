@@ -67,7 +67,7 @@ MATRIX Hpsi,Kpsi,tmp71;
 double xs[7]={1,0,0,0,0,0,0};
 char   *cnt_status;
 short  vgCheck=0,magCheck=0; 
-extern short screen_on;
+extern short log_to_file;
 
 
 void *ahrs_thread(void *thread_id)
@@ -111,41 +111,25 @@ void *ahrs_thread(void *thread_id)
     mat77 = mat_creat(7,7,ZERO_MATRIX);
    
     sleep(1);
-    while (1)
-        {
+    while (1) {
 
-            //wait until data acquisition is done
-            pthread_mutex_lock(&mutex_imu);
-            rc  = pthread_cond_wait(&trigger_ahrs, &mutex_imu);
-            //run attitude and heading estimation algorithm
-            if (rc == 0) { 	   
-                AHRS_Algorithm(&imupacket);	   
-            }
-            pthread_mutex_unlock(&mutex_imu);
-           
-	   
-            if(!screen_on) snap_time_interval("ahrs",  100, 0);
-           
-            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            //control logic: add delay on control trigger to minimize 
-            //mode confusion caused by the transmitter power off
-            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            if (servopacket.chn[4] <= 12000)     // if the autopilot is enabled
-                {
-                    enable =  TRUE;  
-                    count  =  15;
-                    cnt_status = "MNAV in AutoPilot Mode";
-                }
-            else if (servopacket.chn[4] > 12000 && servopacket.chn[4] < 60000)
-                {
-                    if (count <  0) { enable = FALSE;  control_init = FALSE; cnt_status = "MNAV in Manual Mode"; }
-                    else            { count--; }
-                }		
-
-            if (enable == TRUE && !vgCheck) { control_uav(control_init, 0); control_init = TRUE; }	   
-
-	   
+        //wait until data acquisition is done
+        pthread_mutex_lock(&mutex_imu);
+        rc  = pthread_cond_wait(&trigger_ahrs, &mutex_imu);
+        //run attitude and heading estimation algorithm
+        if (rc == 0) { 	   
+            AHRS_Algorithm(&imupacket);	   
         }
+        pthread_mutex_unlock(&mutex_imu);
+           
+        if(!log_to_file) snap_time_interval("ahrs",  100, 0);
+           
+        if (enable == TRUE && !vgCheck) {
+            control_uav(control_init, 0);
+            control_init = TRUE;
+        }
+
+    }
 
     //free memory space
     mat_free(aP);
@@ -224,89 +208,91 @@ void AHRS_Algorithm(struct imu *data)
     mat_mymul3(tmp77,Fsys,aP,3);
     for(i=0;i<7;i++) aP[i][i] += aQ[i][i];
 
-    if (vgCheck)   // Pitch and Roll Update at 25 Hz
-        {
-            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            //Extended Kalman filter: correction step for pitch and roll
-            //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            //nonlinear measurement equation of h(x)
-            h[0]    = -g2*(xs[1]*xs[3]-xs[0]*xs[2]);
-            h[1]    = -g2*(xs[0]*xs[1]+xs[2]*xs[3]);
-            h[2]    =  -g*(xs[0]*xs[0]-xs[1]*xs[1]-xs[2]*xs[2]+xs[3]*xs[3]);
+    if (vgCheck) {
+        // Pitch and Roll Update at 25 Hz
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //Extended Kalman filter: correction step for pitch and roll
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        //nonlinear measurement equation of h(x)
+        h[0]    = -g2*(xs[1]*xs[3]-xs[0]*xs[2]);
+        h[1]    = -g2*(xs[0]*xs[1]+xs[2]*xs[3]);
+        h[2]    =  -g*(xs[0]*xs[0]-xs[1]*xs[1]-xs[2]*xs[2]+xs[3]*xs[3]);
    
-            //compute Jacobian matrix of h(x)
-            Hj[0][0] = g2*xs[2]; Hj[0][1] =-g2*xs[3]; Hj[0][2] = g2*xs[0]; Hj[0][3] = -g2*xs[1]; 
-            Hj[1][0] = Hj[0][3]; Hj[1][1] =-Hj[0][2]; Hj[1][2] = Hj[0][1]; Hj[1][3] = -Hj[0][0]; 
-            Hj[2][0] =-Hj[0][2]; Hj[2][1] =-Hj[0][3]; Hj[2][2] = Hj[0][0]; Hj[2][3] =  Hj[0][1]; 
-   
-            //gain matrix aK = aP*Hj'*(Hj*aP*Hj' + aR)^-1
-            mat_mymul4(aP,Hj,tmp73,3);
-            mat_mymul(Hj,tmp73,tmp33,3);
-            for(i=0;i<3;i++) tmp33[i][i] += aR[i][i];
-            mat_inv(tmp33,Rinv);
-            mat_mul(tmp73,Rinv,aK);
-      
-            //state update
-            for(i=0;i<7;i++)
-                {
-                    xs[i] += aK[i][0]*(data->ax - h[0]) 
-                        +  aK[i][1]*(data->ay - h[1]) 
-                        +  aK[i][2]*(data->az - h[2]);
-                }
-      
-            //error covariance matrix update aP = (I - aK*Hj)*aP
-            mat_mymul1(aK,Hj,mat77,3); 
-            mat_sub(Iden,mat77,tmpr); 
-            mat_mymul5(tmpr,aP,tmp77,3);
-            mat_copy(tmp77,aP);
-        }
-   
-    if(++magCheck==5) // Heading update at 10 Hz
-        {  
-            if(vgCheck) --magCheck; //avoid both acc and mag updated at the same time:due to computational power
-            else {	  
-                magCheck = 0;	
-                //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                // second stage kalman filter update to estimate the heading angle
-                //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                //hard-iron calibration
-                data->hx = sfx*(data->hx) - bBx;
-                data->hy = sfy*(data->hy) - bBy;
-   
-                //magnetic heading correction due to roll and pitch angle
-                cPHI= cos(data->phi);
-                sPHI= sin(data->phi);
-                Bxc = (data->hx)*cos(data->the)+((data->hy)*sPHI+(data->hz)*cPHI)*sin(data->the);
-                Byc = (data->hy)*cPHI-(data->hz)*sPHI;
+        //compute Jacobian matrix of h(x)
+        Hj[0][0] = g2*xs[2]; Hj[0][1] =-g2*xs[3]; Hj[0][2] = g2*xs[0]; Hj[0][3] = -g2*xs[1]; 
+        Hj[1][0] = Hj[0][3]; Hj[1][1] =-Hj[0][2]; Hj[1][2] = Hj[0][1]; Hj[1][3] = -Hj[0][0]; 
+        Hj[2][0] =-Hj[0][2]; Hj[2][1] =-Hj[0][3]; Hj[2][2] = Hj[0][0]; Hj[2][3] =  Hj[0][1]; 
 
-                //Jacobian
-                coeff1[0]= 2*(xs[1]*xs[2]+xs[0]*xs[3]);
-                coeff1[1]= 1 - 2*(xs[2]*xs[2]+xs[3]*xs[3]);
-                coeff1[2]= 2/(coeff1[0]*coeff1[0]+coeff1[1]*coeff1[1]);
-   
-                temp[0] = coeff1[1]*coeff1[2];
-                temp[1] = coeff1[0]*coeff1[2];
+        //gain matrix aK = aP*Hj'*(Hj*aP*Hj' + aR)^-1
+        mat_mymul4(aP,Hj,tmp73,3);
+        mat_mymul(Hj,tmp73,tmp33,3);
+        for(i=0;i<3;i++) tmp33[i][i] += aR[i][i];
+        mat_inv(tmp33,Rinv);
+        mat_mul(tmp73,Rinv,aK);
       
-                Hpsi[0][0] = xs[3]*temp[0];
-                Hpsi[0][1] = xs[2]*temp[0];
-                Hpsi[0][2] = xs[1]*temp[0]+2*xs[2]*temp[1];
-                Hpsi[0][3] = xs[0]*temp[0]+2*xs[3]*temp[1];
-      
-                //gain matrix Kpsi = aP*Hpsi'*(Hpsi*aP*Hpsi' + Rpsi)^-1
-                mat_mymul4(aP,Hpsi,tmp71,3);
-                invR = 1/(Hpsi[0][0]*tmp71[0][0]+Hpsi[0][1]*tmp71[1][0]+Hpsi[0][2]*tmp71[2][0]+Hpsi[0][3]*tmp71[3][0]+var_psi);
-             
-                //state update
-                data->psi = atan2(coeff1[0],coeff1[1]);
-                for(i=0;i<7;i++) xs[i] += (invR*tmp71[i][0])*wraparound(atan2(Byc,-Bxc) - data->psi);
-      
-                //error covariance matrix update aP = (I - Kpsi*Hpsi)*aP
-                mat_mymul1(Kpsi,Hpsi,mat77,3); 
-                mat_sub(Iden,mat77,tmpr);
-                mat_mymul5(tmpr,aP, tmp77,3);
-                mat_copy(tmp77,aP);      
-            }
+        //state update
+        for(i=0;i<7;i++) {
+            xs[i] += aK[i][0]*(data->ax - h[0]) 
+                +  aK[i][1]*(data->ay - h[1]) 
+                +  aK[i][2]*(data->az - h[2]);
         }
+      
+        //error covariance matrix update aP = (I - aK*Hj)*aP
+        mat_mymul1(aK,Hj,mat77,3); 
+        mat_sub(Iden,mat77,tmpr); 
+        mat_mymul5(tmpr,aP,tmp77,3);
+        mat_copy(tmp77,aP);
+    }
+   
+    if(++magCheck==5) {  
+        // Heading update at 10 Hz
+        if(vgCheck)
+            //avoid both acc and mag updated at the same time:due to
+            //computational power
+            --magCheck;
+        else {	  
+            magCheck = 0;	
+            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            // second stage kalman filter update to estimate the heading angle
+            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            //hard-iron calibration
+            data->hx = sfx*(data->hx) - bBx;
+            data->hy = sfy*(data->hy) - bBy;
+   
+            //magnetic heading correction due to roll and pitch angle
+            cPHI= cos(data->phi);
+            sPHI= sin(data->phi);
+            Bxc = (data->hx)*cos(data->the)+((data->hy)*sPHI+(data->hz)*cPHI)*sin(data->the);
+            Byc = (data->hy)*cPHI-(data->hz)*sPHI;
+
+            //Jacobian
+            coeff1[0]= 2*(xs[1]*xs[2]+xs[0]*xs[3]);
+            coeff1[1]= 1 - 2*(xs[2]*xs[2]+xs[3]*xs[3]);
+            coeff1[2]= 2/(coeff1[0]*coeff1[0]+coeff1[1]*coeff1[1]);
+   
+            temp[0] = coeff1[1]*coeff1[2];
+            temp[1] = coeff1[0]*coeff1[2];
+      
+            Hpsi[0][0] = xs[3]*temp[0];
+            Hpsi[0][1] = xs[2]*temp[0];
+            Hpsi[0][2] = xs[1]*temp[0]+2*xs[2]*temp[1];
+            Hpsi[0][3] = xs[0]*temp[0]+2*xs[3]*temp[1];
+      
+            //gain matrix Kpsi = aP*Hpsi'*(Hpsi*aP*Hpsi' + Rpsi)^-1
+            mat_mymul4(aP,Hpsi,tmp71,3);
+            invR = 1/(Hpsi[0][0]*tmp71[0][0]+Hpsi[0][1]*tmp71[1][0]+Hpsi[0][2]*tmp71[2][0]+Hpsi[0][3]*tmp71[3][0]+var_psi);
+            
+            //state update
+            data->psi = atan2(coeff1[0],coeff1[1]);
+            for(i=0;i<7;i++) xs[i] += (invR*tmp71[i][0])*wraparound(atan2(Byc,-Bxc) - data->psi);
+      
+            //error covariance matrix update aP = (I - Kpsi*Hpsi)*aP
+            mat_mymul1(Kpsi,Hpsi,mat77,3); 
+            mat_sub(Iden,mat77,tmpr);
+            mat_mymul5(tmpr,aP, tmp77,3);
+            mat_copy(tmp77,aP);      
+        }
+    }
    
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
     //scaling of quertonian,||q||^2 = 1

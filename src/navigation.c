@@ -47,7 +47,7 @@ MATRIX euler,nIden;
 MATRIX ntmp99,ntmpr,ntmp91,ntmpr91,ntmprr;
 MATRIX ntmp66,ntmp96,ntmp33;
 
-extern short screen_on;
+extern short log_to_file;
 short	     gps_init_count=0;
 
 void timer_intr( int sig )
@@ -68,7 +68,7 @@ void *navigation( void *thread_id )
     sigset_t         allsigs;
    
     // open file
-    if(screen_on) {
+    if(log_to_file) {
 	if((fnav = fopen("/mnt/cf1/nav.dat","w+b"))==NULL) {
             printf("nav.dat cannot be created in /mnt/cf1 directory...error!\n");
             _exit(-1);
@@ -179,12 +179,12 @@ void *navigation( void *thread_id )
             navpacket.ve  = nxs[4][0];
             navpacket.vd  = nxs[5][0];
             navpacket.time= get_Time();
-            if (screen_on)
+            if (log_to_file)
                 fwrite(&navpacket, sizeof(struct nav),1,fnav);
             pthread_mutex_unlock(&mutex_nav);
 
-            if (!screen_on)
-                snap_time_interval("nav",20,1);
+            if (!log_to_file)
+                snap_time_interval("nav", 20, 1);
         }
     }
 

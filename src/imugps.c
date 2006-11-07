@@ -47,7 +47,7 @@ void decode_gpspacket(struct gps *data, byte* buffer);
 //
 // global variables
 //
-extern short screen_on;
+extern short log_to_file;
 extern char  buf_err[50];
 int   	     sPort0;
 
@@ -78,7 +78,7 @@ void *imugps_acq(void *thread_id)
     /*********************************************************************
      *Open Files
      *********************************************************************/
-    if (screen_on) {
+    if (log_to_file) {
         if((fimu = fopen("/mnt/cf1/imu.dat","w+b"))==NULL) {
             printf("imu.dat cannot be created in /mnt/cf1 directory...error!\n");
             _exit(-1);
@@ -135,7 +135,7 @@ void *imugps_acq(void *thread_id)
                 pthread_mutex_lock(&mutex_imu);
                 decode_imupacket(&imupacket, input_buffer);
                 pthread_cond_signal(&trigger_ahrs);
-                if(screen_on) fwrite(&imupacket, sizeof(struct imu),1,fimu);
+                if(log_to_file) fwrite(&imupacket, sizeof(struct imu),1,fimu);
                 pthread_mutex_unlock(&mutex_imu);  
             } else {
 #ifndef NCURSE_DISPLAY_OPTION 
@@ -157,14 +157,14 @@ void *imugps_acq(void *thread_id)
                 pthread_mutex_lock(&mutex_imu);
                 decode_imupacket(&imupacket, input_buffer);
                 pthread_cond_signal(&trigger_ahrs);
-                if(screen_on) fwrite(&imupacket, sizeof(struct imu),1,fimu);
+                if(log_to_file) fwrite(&imupacket, sizeof(struct imu),1,fimu);
                 pthread_mutex_unlock(&mutex_imu);  
 		     
                 // check GPS data packet
                 if(input_buffer[33]=='G') {
                     pthread_mutex_lock(&mutex_gps);
                     decode_gpspacket(&gpspacket, input_buffer);
-                    if(screen_on) fwrite(&gpspacket, sizeof(struct gps),1,fgps);
+                    if(log_to_file) fwrite(&gpspacket, sizeof(struct gps),1,fgps);
                     pthread_mutex_unlock(&mutex_gps);
                 } else {
 #ifndef NCURSE_DISPLAY_OPTION		     	
@@ -375,9 +375,9 @@ void send_servo_cmd(word cnt_cmd[9])
     short i = 0, nbytes = 0;
     word sum = 0;
 
-    printf("sending servo data ");
-    for ( i = 0; i < 9; ++i ) printf("%d ", cnt_cmd[i]);
-    printf("\n");
+    // printf("sending servo data ");
+    // for ( i = 0; i < 9; ++i ) printf("%d ", cnt_cmd[i]);
+    // printf("\n");
 
     data[0] = 0x55; 
     data[1] = 0x55;

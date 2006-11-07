@@ -41,7 +41,6 @@ enum   	      modedefs {pitch_mode,roll_mode,heading_mode,altitude_mode,speed_mo
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //external global variables
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-extern short  screen_on;
 extern short  whichmode[6];
 extern double pitch_gain[3],roll_gain[3];
 extern double heading_gain[3],alt_gain[3],pos_gain[3];
