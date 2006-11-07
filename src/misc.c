@@ -19,7 +19,8 @@
 extern WINDOW *win;
 #endif
 
-extern MATRIX xvar,zvar,nxs;
+extern MATRIX nxs;
+extern double xs[7];
 extern char   *HOST_IP_ADDR;
 extern char   *cnt_status;
 extern short  gps_init_count;
@@ -144,18 +145,18 @@ void display_message(struct imu *data, struct gps *gdata, struct nav *ndata, int
         mvwaddstr(win, 6, 4,buf);
         sprintf(buf,"[Press]:Pt  = %6.1f    Pv  = %6.2f",data->Ps,data->Pt);
         mvwaddstr(win, 7, 4,buf);
-        sprintf(buf,"[bias ]:bp  = %6.3f    bq  = %6.3f    br  = %6.3f",xvar[4][0]*r2d,xvar[5][0]*r2d,zvar[1][0]*r2d);
+        sprintf(buf,"[bias ]:bp  = %6.3f    bq  = %6.3f    br  = %6.3f ",xs[4]*r2d,xs[5]*r2d,xs[6]*r2d);
         mvwaddstr(win, 8, 4,buf);
         
 	if (ndata->err_type == TRUE) {
             set_colors(3,COLOR_GREEN,COLOR_BLACK);
             mvwaddstr(win, 10, 4,">> Strapdown Inertial Navigation System (S-INS):");   
             set_colors(2,COLOR_WHITE,COLOR_BLACK); 	
-            sprintf(buf,"[GPS  ]:lon = %f  lat = %f  alt = %5.2f",gdata->lon,gdata->lat,gdata->alt);
+            sprintf(buf,"[GPS  ]:lon = %f  lat = %f  alt = %6.2f",gdata->lon,gdata->lat,gdata->alt);
             mvwaddstr(win, 11, 4,buf);
-            sprintf(buf,"[nav  ]:lon = %f  lat = %f  alt = %5.2f",ndata->lon,ndata->lat,ndata->alt);
+            sprintf(buf,"[nav  ]:lon = %f  lat = %f  alt = %6.2f",ndata->lon,ndata->lat,ndata->alt);
             mvwaddstr(win, 12, 4,buf);
-            sprintf(buf,"[bias ]:bax = %6.3f       bay = %6.3f     baz = %5.3f",nxs[6][0],nxs[7][0],nxs[8][0]);
+            sprintf(buf,"[bias ]:bax = %6.3f       bay = %6.3f     baz = %6.3f",nxs[6][0],nxs[7][0],nxs[8][0]);
             mvwaddstr(win, 13, 4,buf);
 
             sprintf(buf,"[MNAV-NAV]:The cycles in %5.2f (Hz):%6.2f (ms)\t\t",1/exe_rate[1], exe_rate[1]*1000);
@@ -204,7 +205,7 @@ void display_message(struct imu *data, struct gps *gdata, struct nav *ndata, int
         printf("[deg  ]:phi = %6.2f the = %6.2f psi = %6.2f \n",data->phi*57.3,data->the*57.3,data->psi*57.3);
         printf("[Gauss]:hx  = %6.3f hy  = %6.3f hz  = %6.3f \n",data->hx,data->hy,data->hz);
         printf("[     ]:Ps  = %6.3f Pt  = %6.3f             \n",data->Ps,data->Pt);
-        printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n\n",xvar[4][0]*57.3,xvar[5][0]*57.3,zvar[1][0]*57.3);
+        printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n\n",xs[4]*57.3,xs[5]*57.3,xs[6]*57.3);
         if (ndata->err_type == TRUE) {
             printf("[GPS  ]:ITOW= %5d[ms], lon = %f[deg], lat = %f[deg], alt = %f[m]\n",gdata->ITOW,gdata->lon,gdata->lat,gdata->alt);	
             printf("[nav  ]:                 lon = %f[deg], lat = %f[deg], alt = %f[m]\n",            ndata->lon,ndata->lat,ndata->alt);	
