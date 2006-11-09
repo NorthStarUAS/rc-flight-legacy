@@ -53,6 +53,13 @@ short	retvalsock    = 0;
 short	log_to_file   = 0;	         //data lot to file is enabled/disabled	
 char    *HOST_IP_ADDR = "192.168.11.101"; //default ground station IP address
 
+//mutex and conditional variables
+pthread_mutex_t	mutex_imu;
+pthread_mutex_t	mutex_gps;
+pthread_mutex_t mutex_nav;
+pthread_cond_t  trigger_ahrs;
+pthread_cond_t  trigger_nav;
+
 #ifdef NCURSE_DISPLAY_OPTION
 WINDOW  *win;
 #endif
@@ -77,7 +84,7 @@ int main(int argc, char **argv)
     struct sched_param	param;
     struct timespec	timeout;
     int 		rc[NUM_THREADS], tnum, iarg;
-    static short	try = 0;
+    static short	attempt = 0;
     struct itimerval    it;
     struct sigaction    sa;
     sigset_t            allsigs;
@@ -102,7 +109,7 @@ int main(int argc, char **argv)
         if ( !strcmp(argv[iarg], "-ip") ) HOST_IP_ADDR = argv[iarg+1];
         if ( !strcmp(argv[iarg], "-help") ) help_message();
     }
-   
+
 #ifdef NCURSE_DISPLAY_OPTION    
     /*********************************************************************
      *ncurses setting for display
@@ -124,8 +131,8 @@ int main(int argc, char **argv)
   	_exit(-1);
     }		
 #endif
-       
-    // initialize mutex and conditional variables
+
+    // initialize mutex and condition variables
     pthread_mutex_init(&mutex_imu,NULL);
     pthread_mutex_init(&mutex_gps,NULL);
     pthread_mutex_init(&mutex_nav,NULL);
@@ -148,8 +155,6 @@ int main(int argc, char **argv)
     pthread_attr_setschedpolicy(&attr, SCHED_RR);
 
     sleep(2);
-
-    printf("Creating threads...\n");
 
     // top priority
     param.sched_priority = sched_get_priority_max(SCHED_RR); 
@@ -178,7 +183,7 @@ int main(int argc, char **argv)
             _exit(-1);
         }
     }
-   
+
     // time interval setting
     timeout.tv_sec = 0;
     timeout.tv_nsec = NSECS_PER_SEC / 10;
@@ -208,14 +213,14 @@ int main(int argc, char **argv)
         //telemetry
         if ( wifi == 1 ) {
             if ( retvalsock ) {
-                retvalsock = send_client();
+                send_client();
                 snap_time_interval("TCP",  5, 2);
             } else {
-                //try connection every 2.0 sec
-                if ( try++ == 10 ) { 
+                //attempt connection every 2.0 sec
+                if ( attempt++ == 10 ) { 
                     close_client(); 
                     retvalsock = open_client();
-                    try = 0;
+                    attempt = 0;
                 }
             }        
         }

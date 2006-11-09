@@ -14,6 +14,11 @@
 
 #ifndef _matrix_h
 #define _matrix_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 /*
 *-----------------------------------------------------------------------------
@@ -105,5 +110,10 @@ MATRIX mat_round (MATRIX X, MATRIX C);
 double mat_dot (MATRIX X, MATRIX Y);
 MATRIX mat_scalMult (MATRIX X,double A, MATRIX C);
 MATRIX mat_scalMul(MATRIX X,double A, MATRIX C);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
 #endif
 

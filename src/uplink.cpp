@@ -51,6 +51,7 @@ void *uplink_acq(void *thread_id)
     int ret,errFlag,i;
     char temp[20],tempr[20];
     unsigned long sum=0;
+    socklen_t  serv_addrlen = sizeof(serv_addr);
 
 #ifndef NCURSE_DISPLAY_OPTION
     printf("[uplink_acq]::thread[%x] initiated...\n", (int)thread_id);  
@@ -64,9 +65,8 @@ void *uplink_acq(void *thread_id)
    
     while (1) {
         if(retvalsock) {
-            if( (ret=recv(gs_sock_fd,bufs,numofuplink,0)) < 0) {
-                errFlag = 1;
-                retvalsock = open_client();
+            if( (ret=recvfrom(gs_sock_fd,bufs,numofuplink,0,(struct sockaddr *) &serv_addr,&serv_addrlen)) < 0) {
+   		errFlag = 1;
             } else {
                 if (ret == 0) {
                     //the connection is gracefully closed
@@ -79,7 +79,7 @@ void *uplink_acq(void *thread_id)
                 case 'W':
                     sscanf(bufs+2,"%d",&numofwaypoints);
                     for(i=0;i<numofwaypoints;i++) {
-                        sscanf(bufs+3+i*23,"%s %s",temp,tempr);
+                        sscanf(bufs+3+i*23,"%s %s",&temp,&tempr);
                         waypoints[i][0] = atof(temp);    
                         waypoints[i][1] = atof(tempr);
                     }

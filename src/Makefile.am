@@ -1,18 +1,22 @@
 bin_PROGRAMS = avionics decoder
 
 avionics_SOURCES = \
-	ahrs.c ahrs.h \
-	control.c \
+	ahrs.cpp ahrs.h \
+	control.cpp \
 	globaldefs.h \
-	groundstation.c groundstation.h \
-	imugps.c imugps.h \
-	main.c \
+	groundstation.cpp groundstation.h \
+	imugps.cpp imugps.h \
+	main.cpp \
 	matrix.c matrix.h \
-	misc.c misc.h \
-	navfunc.c navfunc.h \
-	navigation.c \
-	serial.c serial.h \
-	uplink.c
+	misc.cpp misc.h \
+	navfunc.cpp navfunc.h \
+	navigation.cpp \
+	serial.cpp serial.h \
+	uplink.cpp
 
 decoder_SOURCES = decoder.c
 decoder_LDADD =
+
+avionics_LDFLAGS = -nodefaultlibs
+avionics_LDADD = -lm -lgcc -lc
+
