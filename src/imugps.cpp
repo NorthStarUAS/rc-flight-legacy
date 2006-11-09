@@ -49,7 +49,7 @@ void decode_gpspacket(struct gps *data, byte* buffer);
 // global variables
 //
 extern char  buf_err[50];
-int   	     sPort0;
+int   	     sPort2;
 
 struct servo servopacket;
 bool         autopilot_enable = false;
@@ -82,16 +82,16 @@ void *imugps_acq(void *thread_id)
     /*********************************************************************
      *Open and configure Serial Port2 (com2)
      *********************************************************************/
-    sPort0 = open_serial(SERIAL_PORT2,BAUDRATE_38400); 
+    sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_38400); 
       
-    while (nbytes != 11) nbytes = write(sPort0,(char*)CH_BAUD, 11);     nbytes = 0;  
-    close(sPort0);
-    sPort0 = open_serial(SERIAL_PORT2,BAUDRATE_57600); 
+    while (nbytes != 11) nbytes = write(sPort2,(char*)CH_BAUD, 11);     nbytes = 0;  
+    close(sPort2);
+    sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_57600); 
   
     
-    while (nbytes != 11) nbytes = write(sPort0,(char*)CH_SAMP, 11);     nbytes = 0;  
-    while (nbytes != 11) nbytes = write(sPort0,(char*)SCALED_MODE, 11); nbytes = 0;
-    while (nbytes !=  7) nbytes = write(sPort0,(char*)CH_SERVO, 7);     nbytes = 0;  
+    while (nbytes != 11) nbytes = write(sPort2,(char*)CH_SAMP, 11);     nbytes = 0;  
+    while (nbytes != 11) nbytes = write(sPort2,(char*)SCALED_MODE, 11); nbytes = 0;
+    while (nbytes !=  7) nbytes = write(sPort2,(char*)CH_SERVO, 7);     nbytes = 0;  
   
     while (1) {
         /*********************************************************************
@@ -99,21 +99,21 @@ void *imugps_acq(void *thread_id)
          *********************************************************************/
   
         while ( headerOK != 2 ) {
-            while(1!=read(sPort0,input_buffer,1));
+            while(1!=read(sPort2,input_buffer,1));
             if (input_buffer[0] == 0x55)
                 headerOK++;
             else
                 headerOK = 0;
         }
      	
-        headerOK = 0; while(1!=read(sPort0,&input_buffer[2],1));
+        headerOK = 0; while(1!=read(sPort2,&input_buffer[2],1));
         nbytes = 3; 
   
         // Read packet contents
         switch (input_buffer[2]) {
         case 'S':               // IMU packet without GPS
             while ( nbytes < SENSOR_PACKET_LENGTH ) {
-                nbytes += read(sPort0, input_buffer+nbytes,
+                nbytes += read(sPort2, input_buffer+nbytes,
                                SENSOR_PACKET_LENGTH-nbytes); 
             }
 
@@ -135,7 +135,7 @@ void *imugps_acq(void *thread_id)
             break;
         case 'N':               // IMU packet with GPS
             while ( nbytes < FULL_PACKET_SIZE ) {
-                nbytes += read(sPort0, input_buffer+nbytes,
+                nbytes += read(sPort2, input_buffer+nbytes,
                                FULL_PACKET_SIZE-nbytes); 
             }
 
@@ -228,7 +228,7 @@ void *imugps_acq(void *thread_id)
     } // end while
 
     //close the serial port
-    close(sPort0);
+    close(sPort2);
 
     //close files
     logging_close();
@@ -396,6 +396,6 @@ void send_servo_cmd(word cnt_cmd[9])
     //sendout the command packet
     while (nbytes != 24) {
         // printf("  writing servos ...\n");
-        nbytes = write(sPort0,(char*)data, 24);
+        nbytes = write(sPort2,(char*)data, 24);
     }
 }

@@ -10,10 +10,10 @@
  *
  *--------------------------------------------------------------------*/
 
+#ifndef _UGEAR_NAVFUNC_H
+#define _UGEAR_NAVFUNC_H
+
 #include "matrix.h"
-#if defined (NAVFUNC_H)
-#else
-#define NAVFUNC_H
 
 /*     Define Constants   */
 
@@ -95,7 +95,7 @@ void eCntrans(MATRIX e_C_n, MATRIX LatLon);
  */
 void lCbtrans(MATRIX l_C_b, MATRIX YawPitchRoll); 
  
-#endif
+#endif // _UGEAR_NAVFUNC_H
 
 
 

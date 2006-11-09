@@ -2,8 +2,8 @@
 // Global defintions used in the avionics program
 //
 
-#ifndef _UNAV_GLOBALDEFS_H
-#define _UNAV_GLOBALDEFS_H
+#ifndef _UGEAR_GLOBALDEFS_H
+#define _UGEAR_GLOBALDEFS_H
 
 
 #include <pthread.h>
@@ -26,7 +26,7 @@ struct imu {
    double ax,ay,az;		/* acceleration          */
    double hx,hy,hz;             /* magnetic field     	 */
    double Ps,Pt;                /* static/pitot pressure */
-// double Tx,Ty,Tz;             /* temperature           */
+   // double Tx,Ty,Tz;          /* temperature           */
    double phi,the,psi;          /* attitudes             */
    short  err_type;		/* error type		 */
    double time;
@@ -56,7 +56,6 @@ struct servo {
 extern struct imu imupacket;
 extern struct gps gpspacket;
 extern struct nav navpacket;
-// extern struct servo servopacket; /* moved to imugps.h */
 
 //mutex and conditional variables
 extern pthread_mutex_t	mutex_imu;
@@ -66,4 +65,4 @@ extern pthread_cond_t  trigger_ahrs;
 extern pthread_cond_t  trigger_nav;
 
 
-#endif // _UNAV_GLOBALDEFS_H
+#endif // _UGEAR_GLOBALDEFS_H
