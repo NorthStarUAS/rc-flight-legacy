@@ -63,7 +63,6 @@ void control_uav(short init_done, short flight_mode)
     /* short   i=0; */
     static short /* count = 0, */ k = 0; 
     static double Ps_f_p=0;
-    int i;
 
     if (init_done == FALSE) {
         // initialization:

@@ -53,17 +53,17 @@ struct servo {
    unsigned char status;
 };
 
-struct imu imupacket;
-struct gps gpspacket;
-struct nav navpacket;
+extern struct imu imupacket;
+extern struct gps gpspacket;
+extern struct nav navpacket;
 // extern struct servo servopacket; /* moved to imugps.h */
 
 //mutex and conditional variables
-pthread_mutex_t	mutex_imu;
-pthread_mutex_t	mutex_gps;
-pthread_mutex_t mutex_nav;
-pthread_cond_t  trigger_ahrs;
-pthread_cond_t  trigger_nav;
+extern pthread_mutex_t	mutex_imu;
+extern pthread_mutex_t	mutex_gps;
+extern pthread_mutex_t mutex_nav;
+extern pthread_cond_t  trigger_ahrs;
+extern pthread_cond_t  trigger_nav;
 
 
 #endif // _UNAV_GLOBALDEFS_H

@@ -65,17 +65,15 @@ MATRIX aP,aQ,aR,aK,Fsys,Hj,Iden;
 MATRIX tmp73,tmp33,tmp77,tmpr,Rinv,mat77;
 MATRIX Hpsi,Kpsi,tmp71;
 double xs[7]={1,0,0,0,0,0,0};
-char   *cnt_status;
 short  vgCheck=0,magCheck=0; 
 extern short log_to_file;
 
 
 void *ahrs_thread(void *thread_id)
 {
-    short  i=0,j=0;
     int    rc;
     static short control_init =FALSE;
-    static short count = 0, enable=FALSE;
+    static short enable=FALSE;
 
 #ifndef NCURSE_DISPLAY_OPTION
     printf("[ahrs_thread]::thread[%d] initiated...\n",thread_id);
@@ -111,8 +109,8 @@ void *ahrs_thread(void *thread_id)
     mat77 = mat_creat(7,7,ZERO_MATRIX);
    
     sleep(1);
-    while (1) {
 
+    while (1) {
         //wait until data acquisition is done
         pthread_mutex_lock(&mutex_imu);
         rc  = pthread_cond_wait(&trigger_ahrs, &mutex_imu);
@@ -165,8 +163,7 @@ void AHRS_Algorithm(struct imu *data)
     double norm,Bxc,Byc,invR;
     double dt,Hdt;
     double coeff1[3]={0,},temp[2]={0,};
-    short  i=0,j=0;
-    static short sCheck=1;
+    short  i=0;
 
     //snap the time interval, dt, of this routine
     tnow = get_Time();

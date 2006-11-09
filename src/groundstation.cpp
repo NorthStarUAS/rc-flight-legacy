@@ -36,6 +36,7 @@
 int gs_sock_fd;
 extern char *HOST_IP_ADDR;
 char buf_err[50];
+struct  sockaddr_in serv_addr;
 
 #ifdef NCURSE_DISPLAY_OPTION
 WINDOW  *win;
@@ -47,71 +48,44 @@ WINDOW  *win;
 //
 short open_client ()
 {
-    struct sockaddr_in serv_addr;
-    struct timeval     tval;
+    //struct sockaddr_in serv_addr;
     short  ret;
-    int    flags;
-    fd_set rset,wset;
-
+  
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family      = AF_INET; 
     serv_addr.sin_addr.s_addr = inet_addr(HOST_IP_ADDR);
     serv_addr.sin_port        = htons(NETWORK_PORT); 
-    gs_sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    gs_sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
   
-    //make a nonblocking connection
-    flags = fcntl(gs_sock_fd,F_GETFL,0);
-    fcntl( gs_sock_fd, F_SETFL, flags | O_NONBLOCK);
   
-    //printf("uNAV CLIENT: Starting to connect to server.\n");
-    if (connect(gs_sock_fd,(void *) &serv_addr,sizeof(serv_addr)) < 0) {
-      
-        FD_ZERO(&rset);
-        FD_SET(gs_sock_fd,&rset); wset = rset;
-        //timeout
-        tval.tv_sec = 0;         
-        tval.tv_usec= 1e2;       
-
-        if(select(gs_sock_fd+1,&rset,&wset,NULL, &tval) < 0) {
+    if (connect(gs_sock_fd,(sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) {
 #ifdef NCURSE_DISPLAY_OPTION
-            sprintf(buf_err,"Connection::Failed!   ");
+        sprintf(buf_err,"Connection::Failed!   ");
 #else        	
-            printf("uNAV CLIENT: Connect Failed.\n");
+        printf("uNAV CLIENT: Connect Failed.\n");
 #endif        
-            close(gs_sock_fd);
-            ret = 0;
-        } else {
-#ifdef NCURSE_DISPLAY_OPTION  
-            sprintf(buf_err,"Connection::Try!      ");
+        close_client();
+        ret = 0;
+    }
+    else 
+        {
+#ifdef NCURSE_DISPLAY_OPTION
+            sprintf(buf_err,"Connection::Success!      ");
 #else     	
             printf("uNAV CLIENT: Connected to server.\n");
-#endif        
-            //restore
-            fcntl(gs_sock_fd,F_SETFL,flags);
-            ret = 1;
-        }
-    } else {
-#ifdef NCURSE_DISPLAY_OPTION
-        sprintf(buf_err,"Connection::Try!      ");
-#else     	
-        printf("uNAV CLIENT: Connected to server.\n");
 #endif    	
      
-        //restore
-        fcntl(gs_sock_fd, F_SETFL, flags);
-        ret = 1;
-    }
-
+            ret = 1;
+        }
+  
     return ret;
 }
 
-
-short send_client (void)
+void send_client ( )
 {
     char buf[200]={0,};
     short i = 0;
     unsigned long  sum = 0;
-    short ret = 0;
 
     sprintf(buf,"%7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %7.4f %f %f %6.2f %d %d %d  end",
             imupacket.p,  imupacket.q,  imupacket.r,
@@ -121,26 +95,23 @@ short send_client (void)
             imupacket.Ps, imupacket.Pt, 
             gpspacket.lat,gpspacket.lon,gpspacket.alt,gpspacket.err_type,imupacket.err_type,navpacket.err_type);
 
-    for ( i = 0; i < 199; i++ ) sum += buf[i];
+    for(i=0;i<199;i++) sum += buf[i];
     buf[199] = (char)(sum%256);
   
-    sprintf(buf_err,"Sending Packet::OK!    ");
+  
      
-    if (send(gs_sock_fd, buf, 200, 0) == -1) {
+    if (sendto(gs_sock_fd, buf, 200, 0,(struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1) {
 #ifdef NCURSE_DISPLAY_OPTION
         sprintf(buf_err,"Sending Packet::Failed!   ");
 #else  	
         printf("uNAV CLIENT: Sending Packet Failed.\n");
 #endif     
-        ret = 0;
-    } else {
-        ret = 1;
     }
-
-    return ret;
+    else
+        sprintf(buf_err,"Sending Packet::OK!    ");
+    
 }
 
-
-void close_client(void) {
+void close_client() {
     close(gs_sock_fd);
 }

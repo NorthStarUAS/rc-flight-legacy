@@ -56,6 +56,10 @@ short        autopilot_enable = FALSE;
 short        control_init = FALSE;
 char         *cnt_status;
 
+struct imu imupacket;
+struct gps gpspacket;
+struct nav navpacket;
+
 // Main IMU/GPS data aquisition thread.
 //
 // Note this thread runs as fast as IMU/GPS data is available.  It
@@ -65,15 +69,12 @@ char         *cnt_status;
 void *imugps_acq(void *thread_id)
 {
     int		count=0,nbytes=0,headerOK=0;
-    short		i=0;
-    static int    GPS_INIT=FALSE,GPS_FULL=0,err_cnt=0;
     byte  	input_buffer[FULL_PACKET_SIZE]={0,};
     byte  	SCALED_MODE[11] ={0x55,0x55,0x53,0x46,0x01,0x00,0x03,0x00, 'S',0x00,0xF0};
     byte          CH_BAUD[11]     ={0x55,0x55,0x57,0x46,0x01,0x00,0x02,0x00,0x03,0x00,0xA3};
     byte		CH_SAMP[11]     ={0x55,0x55,0x53,0x46,0x01,0x00,0x01,0x00,0x02,0x00,0x9D};
     byte          CH_SERVO[7]     ={0x55,0x55,0x53,0x50,0x08,0x00,0xAB};
-    byte		temp;
-    FILE   	*fimu,*fgps;
+    FILE   	*fimu=NULL, *fgps=NULL;
   
     /*********************************************************************
      *Open Files

@@ -8,10 +8,10 @@ dnl Require at least automake 2.52
 AC_PREREQ(2.52)
 
 dnl Sanity check of the distribution
-AC_CONFIG_SRCDIR([src/avionics.c])
+AC_CONFIG_SRCDIR([src/main.cpp])
 
 dnl Initialize the automake system (provide project name and version)
-AM_INIT_AUTOMAKE(MicroNav, 1.3)
+AM_INIT_AUTOMAKE(MicroGear, 1.0)
 
 dnl Checks for programs.
 AC_PROG_MAKE_SET

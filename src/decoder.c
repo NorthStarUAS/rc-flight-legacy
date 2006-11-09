@@ -21,7 +21,7 @@ int main()
 
     FILE *fimu,*fgps,*fnav, *fwimu, *fwgps, *fwnav;
     /* FIXME: name used, but never set! */
-    char *name /*, *wname, wbuffer[80] */;
+    char *name = NULL;
 
     //read file
     if((fimu = fopen("/mnt/cf1/imu.dat","r+b"))==NULL) {

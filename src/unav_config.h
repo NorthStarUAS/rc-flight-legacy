@@ -29,7 +29,7 @@
 #define HAVE_UNISTD_H 1
 
 /* Name of package */
-#define PACKAGE "MicroNav"
+#define PACKAGE "MicroGear"
 
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT ""
@@ -50,4 +50,4 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "1.3"
+#define VERSION "1.0"

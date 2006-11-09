@@ -58,11 +58,10 @@ void timer_intr( int sig )
 //thread main
 void *navigation( void *thread_id )
 {
-    short  	     i = 0;
     struct imu	     imulocal;
     struct gps	     gpslocal;
     int    	     rc;
-    FILE	     *fnav;
+    FILE	     *fnav=NULL;
     struct itimerval it;
     struct sigaction sa;
     sigset_t         allsigs;

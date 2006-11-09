@@ -15,9 +15,8 @@
 //
 // Ground station client communication routines
 //
-short open_client( void );
-short send_client( void );
-void close_client( void );
-
+short open_client( );
+void send_client( );
+void close_client( );
 
 #endif // _UNAV_GROUNDSTATION_H
