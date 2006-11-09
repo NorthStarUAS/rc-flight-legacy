@@ -6,8 +6,8 @@
 #define _UNAV_GLOBALDEFS_H
 
 
-#define TRUE			1
-#define FALSE                   0
+#include <pthread.h>
+
 #define	byte			unsigned char
 #define word			unsigned short
 #define NSECS_PER_SEC		1000000000
@@ -43,7 +43,7 @@ struct gps {
 struct nav {
    double lat,lon,alt;
    double ve,vn,vd;
-// float  t;
+   // float  t;
    short  err_type;
    double time;
 };

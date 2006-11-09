@@ -17,6 +17,7 @@
 #include <pthread.h>
 
 #include "imugps.h"
+#include "logging.h"
 #include "misc.h"
 #include "serial.h"
 #include "globaldefs.h"
@@ -40,7 +41,7 @@
 //
 // prototype definition
 //
-int  checksum(byte* buffer, int packet_len);
+bool checksum(byte* buffer, int packet_len);
 void decode_imupacket(struct imu *data, byte* buffer);
 void decode_gpspacket(struct gps *data, byte* buffer);
 
@@ -52,8 +53,8 @@ extern char  buf_err[50];
 int   	     sPort0;
 
 struct servo servopacket;
-short        autopilot_enable = FALSE;
-short        control_init = FALSE;
+bool         autopilot_enable = false;
+bool         control_init = false;
 char         *cnt_status;
 
 struct imu imupacket;
@@ -74,22 +75,7 @@ void *imugps_acq(void *thread_id)
     byte          CH_BAUD[11]     ={0x55,0x55,0x57,0x46,0x01,0x00,0x02,0x00,0x03,0x00,0xA3};
     byte		CH_SAMP[11]     ={0x55,0x55,0x53,0x46,0x01,0x00,0x01,0x00,0x02,0x00,0x9D};
     byte          CH_SERVO[7]     ={0x55,0x55,0x53,0x50,0x08,0x00,0xAB};
-    FILE   	*fimu=NULL, *fgps=NULL;
   
-    /*********************************************************************
-     *Open Files
-     *********************************************************************/
-    if (log_to_file) {
-        if((fimu = fopen("/mnt/cf1/imu.dat","w+b"))==NULL) {
-            printf("imu.dat cannot be created in /mnt/cf1 directory...error!\n");
-            _exit(-1);
-        }
-        if((fgps = fopen("/mnt/cf1/gps.dat","w+b"))==NULL) {
-            printf("gps.dat cannot be created in /mnt/cf1 directory...error!\n");
-            _exit(-1);
-        }
-    }
-
 #ifndef NCURSE_DISPLAY_OPTION
     printf("[imugps_acq]::thread[%d] initiated...\n",thread_id);
 #endif
@@ -113,12 +99,13 @@ void *imugps_acq(void *thread_id)
          *Find start of packet: the heade r (2 bytes) starts with 0x5555
          *********************************************************************/
   
-        while (headerOK !=2)
-            {
-                while(1!=read(sPort0,input_buffer,1));
-                if (input_buffer[0] == 0x55) headerOK++;
-                else		 	  headerOK = 0;
-            }
+        while ( headerOK != 2 ) {
+            while(1!=read(sPort0,input_buffer,1));
+            if (input_buffer[0] == 0x55)
+                headerOK++;
+            else
+                headerOK = 0;
+        }
      	
         headerOK = 0; while(1!=read(sPort0,&input_buffer[2],1));
         nbytes = 3; 
@@ -132,11 +119,11 @@ void *imugps_acq(void *thread_id)
             }
 
             // check checksum
-            if ( checksum(input_buffer,SENSOR_PACKET_LENGTH) == TRUE ) {
+            if ( checksum(input_buffer,SENSOR_PACKET_LENGTH) ) {
                 pthread_mutex_lock(&mutex_imu);
                 decode_imupacket(&imupacket, input_buffer);
                 pthread_cond_signal(&trigger_ahrs);
-                if(log_to_file) fwrite(&imupacket, sizeof(struct imu),1,fimu);
+                if ( log_to_file ) log_imu( &imupacket );
                 pthread_mutex_unlock(&mutex_imu);  
             } else {
 #ifndef NCURSE_DISPLAY_OPTION 
@@ -154,18 +141,18 @@ void *imugps_acq(void *thread_id)
             }
 
             // check checksum
-            if ( checksum(input_buffer,FULL_PACKET_SIZE) == TRUE ) {
+            if ( checksum(input_buffer,FULL_PACKET_SIZE) ) {
                 pthread_mutex_lock(&mutex_imu);
                 decode_imupacket(&imupacket, input_buffer);
                 pthread_cond_signal(&trigger_ahrs);
-                if(log_to_file) fwrite(&imupacket, sizeof(struct imu),1,fimu);
+                if ( log_to_file ) log_imu( &imupacket );
                 pthread_mutex_unlock(&mutex_imu);  
 		     
                 // check GPS data packet
                 if(input_buffer[33]=='G') {
                     pthread_mutex_lock(&mutex_gps);
                     decode_gpspacket(&gpspacket, input_buffer);
-                    if(log_to_file) fwrite(&gpspacket, sizeof(struct gps),1,fgps);
+                    if ( log_to_file ) log_gps( &gpspacket );
                     pthread_mutex_unlock(&mutex_gps);
                 } else {
 #ifndef NCURSE_DISPLAY_OPTION		     	
@@ -217,9 +204,9 @@ void *imugps_acq(void *thread_id)
 
         if ( servopacket.chn[4] <= 12000 ) {
             // if the autopilot is enabled, or signal is lost
-            if ( autopilot_enable == FALSE )
+            if ( !autopilot_enable )
                 printf("[CONTROL]: switching to autopilot\n");
-            autopilot_enable = TRUE;  
+            autopilot_enable = true;  
             count  = 15;
             cnt_status = "MNAV in AutoPilot Mode";
         } else if ( servopacket.chn[4] > 12000
@@ -228,10 +215,10 @@ void *imugps_acq(void *thread_id)
             // add delay on control trigger to minimize mode confusion
             // caused by the transmitter power off
             if ( count < 0 ) {
-                if ( autopilot_enable == TRUE )
+                if ( autopilot_enable )
                     printf("[CONTROL]: switching to manual pass through\n");
-                autopilot_enable = FALSE;
-                control_init = FALSE;
+                autopilot_enable = false;
+                control_init = false;
                 cnt_status = "MNAV in Manual Mode";
             } else {
                 count--;
@@ -245,8 +232,7 @@ void *imugps_acq(void *thread_id)
     close(sPort0);
 
     //close files
-    fclose(fimu);
-    fclose(fgps);
+    logging_close();
 
     //exit the thread
     pthread_exit(NULL);
@@ -257,8 +243,7 @@ void *imugps_acq(void *thread_id)
 //
 // check the checksum of the data packet
 //
-int checksum( byte* buffer, int packet_len )
-{
+bool checksum( byte* buffer, int packet_len ) {
     word i=0,rcvchecksum=0;
     word sum=0;
 
@@ -267,9 +252,9 @@ int checksum( byte* buffer, int packet_len )
 
     // if (rcvchecksum == sum%0x10000)
     if ( rcvchecksum == sum ) //&0xFFFF)
-	return TRUE;
+	return true;
     else
- 	return FALSE;
+ 	return false;
 }
 
 
@@ -293,7 +278,7 @@ void decode_gpspacket( struct gps *data, byte* buffer )
    
     // gps time
     data->ITOW = ((data->ITOW = buffer[59]) << 8)|buffer[58];
-    data->err_type = TRUE;
+    data->err_type = no_error;
     data->time = get_Time();
 }
 

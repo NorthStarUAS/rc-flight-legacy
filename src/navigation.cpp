@@ -1,5 +1,5 @@
 /******************************************************************************
- * FILE: navmain.c
+ * FILE: navigation.cpp
  * DESCRIPTION:
  *   
  *   
@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include "logging.h"
 #include "matrix.h"
 #include "misc.h"
 #include "navfunc.h"
@@ -61,19 +62,10 @@ void *navigation( void *thread_id )
     struct imu	     imulocal;
     struct gps	     gpslocal;
     int    	     rc;
-    FILE	     *fnav=NULL;
     struct itimerval it;
     struct sigaction sa;
     sigset_t         allsigs;
    
-    // open file
-    if(log_to_file) {
-	if((fnav = fopen("/mnt/cf1/nav.dat","w+b"))==NULL) {
-            printf("nav.dat cannot be created in /mnt/cf1 directory...error!\n");
-            _exit(-1);
-        }
-    }
-
     // matrix creation for navigation computation
     nxs   = mat_creat(9,1,ZERO_MATRIX);   //state x=[lat lon alt ve vn vup bax bay baz]'
     nF    = mat_creat(9,9,ZERO_MATRIX);   //system matrix
@@ -116,19 +108,19 @@ void *navigation( void *thread_id )
     printf("[nav]:thread[2] initiated ...\n");
 #endif
    
-    navpacket.err_type = FALSE;
+    navpacket.err_type = no_gps_update;
    
     while ( 1 ) {
         sleep(1);
         pthread_mutex_lock(&mutex_gps);
-        if (gpspacket.err_type == TRUE && ++gps_init_count > 20) {
+        if ( gpspacket.err_type == no_error && ++gps_init_count > 20) {
             pthread_mutex_unlock(&mutex_gps);	
             break;	
         }
         pthread_mutex_unlock(&mutex_gps);
         printf("[nav]:waiting for gps signal...\n");
     }
-    navpacket.err_type = TRUE;
+    navpacket.err_type = no_error;
    
     // initialize navigation state variables with GPS (Lat,Lon,Alt)
     pthread_mutex_lock(&mutex_gps);
@@ -178,8 +170,7 @@ void *navigation( void *thread_id )
             navpacket.ve  = nxs[4][0];
             navpacket.vd  = nxs[5][0];
             navpacket.time= get_Time();
-            if (log_to_file)
-                fwrite(&navpacket, sizeof(struct nav),1,fnav);
+            if ( log_to_file ) log_nav( &navpacket );
             pthread_mutex_unlock(&mutex_nav);
 
             if (!log_to_file)
@@ -208,8 +199,6 @@ void *navigation( void *thread_id )
     mat_free(ntmp96);
     mat_free(ntmp33);
 
-    //file close
-    fclose(fnav);
     pthread_exit(NULL);
 }
 
@@ -275,8 +264,8 @@ void navigation_algorithm(struct imu *imudta,struct gps *gpsdta)
     for(i=0;i<9;i++) nPn[i][i] += nQn[i][i];
 
     // update using GPS
-    if ( gpsdta->err_type == TRUE ) {
-        gpspacket.err_type = FALSE;
+    if ( gpsdta->err_type == no_error ) {
+        gpspacket.err_type = no_error;
        
         //gain matrix Kn = P*H'*(H*P*H' + R)^-1
         mat_subcopy(nPn, 6, 6, ntmp66);

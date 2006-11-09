@@ -13,8 +13,8 @@
 
 // global definitions
 extern struct servo servopacket;
-extern short autopilot_enable;
-extern short control_init;
+extern bool autopilot_enable;
+extern bool control_init;
 
 
 // function prototypes

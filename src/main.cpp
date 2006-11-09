@@ -30,6 +30,7 @@
 #include "globaldefs.h"
 #include "groundstation.h"
 #include "imugps.h"
+#include "logging.h"
 #include "misc.h"
 #include "navigation.h"
 
@@ -131,6 +132,15 @@ int main(int argc, char **argv)
   	_exit(-1);
     }		
 #endif
+
+    // open logging files if requested
+    if ( log_to_file ) {
+        bool result = logging_init();
+        if ( !result ) {
+            printf("Warning: error opening one or more data files, logging disabled\n");
+            log_to_file = false;
+        }
+    }
 
     // initialize mutex and condition variables
     pthread_mutex_init(&mutex_imu,NULL);

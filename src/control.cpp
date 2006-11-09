@@ -64,7 +64,7 @@ void control_uav(short init_done, short flight_mode)
     static short /* count = 0, */ k = 0; 
     static double Ps_f_p=0;
 
-    if (init_done == FALSE) {
+    if ( !init_done ) {
         // initialization:
         servopos = servopacket;  	         // save the last servo positions
         imuval   = imupacket;                    // save the last attitude

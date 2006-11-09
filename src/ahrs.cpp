@@ -72,8 +72,8 @@ extern short log_to_file;
 void *ahrs_thread(void *thread_id)
 {
     int    rc;
-    static short control_init =FALSE;
-    static short enable=FALSE;
+    bool control_init = false;
+    bool enable = false;
 
 #ifndef NCURSE_DISPLAY_OPTION
     printf("[ahrs_thread]::thread[%d] initiated...\n",thread_id);
@@ -122,9 +122,9 @@ void *ahrs_thread(void *thread_id)
            
         if(!log_to_file) snap_time_interval("ahrs",  100, 0);
            
-        if (enable == TRUE && !vgCheck) {
-            control_uav(control_init, 0);
-            control_init = TRUE;
+        if ( enable && !vgCheck) {
+            control_uav( control_init, 0 );
+            control_init = true;
         }
 
     }
