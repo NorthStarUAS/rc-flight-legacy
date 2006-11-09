@@ -48,7 +48,6 @@ void decode_gpspacket(struct gps *data, byte* buffer);
 //
 // global variables
 //
-extern short log_to_file;
 extern char  buf_err[50];
 int   	     sPort0;
 

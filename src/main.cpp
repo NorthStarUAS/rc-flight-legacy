@@ -51,7 +51,7 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 short   wifi          = 1;		 //wifi is enabled
 short	retvalsock    = 0;
-short	log_to_file   = 0;	         //data lot to file is enabled/disabled	
+bool	log_to_file   = 0;	         //data lot to file is enabled/disabled	
 char    *HOST_IP_ADDR = "192.168.11.101"; //default ground station IP address
 
 //mutex and conditional variables
@@ -95,20 +95,20 @@ int main(int argc, char **argv)
      *Parse the command line
      *********************************************************************/
     for ( iarg = 1; iarg < argc; iarg++ ) {
-        if ( !strcmp(argv[iarg], "-log-file" )  ) {
-            if ( !strcmp(argv[iarg+1], "on") ) log_to_file = 1;
-            if ( !strcmp(argv[iarg+1], "off") ) log_to_file = 0;
+        if ( !strcmp(argv[iarg], "--log-file" )  ) {
+            if ( !strcmp(argv[iarg+1], "on") ) log_to_file = true;
+            if ( !strcmp(argv[iarg+1], "off") ) log_to_file = false;
         }
-        if ( !strcmp(argv[iarg], "-wifi") ) {
+        if ( !strcmp(argv[iarg], "--wifi") ) {
             if ( !strcmp(argv[iarg+1], "on") ) wifi = 1;
             if ( !strcmp(argv[iarg+1], "off") ) wifi = 0;
         }
-        if ( !strcmp(argv[iarg],"-display") ) {
+        if ( !strcmp(argv[iarg],"--display") ) {
             if ( !strcmp(argv[iarg+1], "on") ) display_on = 1;
             if ( !strcmp(argv[iarg+1], "off") ) display_on = 0;
         }
-        if ( !strcmp(argv[iarg], "-ip") ) HOST_IP_ADDR = argv[iarg+1];
-        if ( !strcmp(argv[iarg], "-help") ) help_message();
+        if ( !strcmp(argv[iarg], "--ip") ) HOST_IP_ADDR = argv[iarg+1];
+        if ( !strcmp(argv[iarg], "--help") ) help_message();
     }
 
 #ifdef NCURSE_DISPLAY_OPTION    
@@ -269,11 +269,11 @@ void timer_intr1(int sig)
 void help_message()
 {
     printf("\n./avionics -option1 -option2 ... \n");
-    printf("-wifi on/off        : enable or disable WiFi communication with GS \n");
-    printf("-log-file on/off        : enable or disable datalogging in /mnt/cf1/ \n");	
-    printf("-display on/off      : enable or disable dumping data to display \n");	
-    printf("-ip xxx.xxx.xxx.xxx : set GS i.p. address for WiFi comm. \n");
-    printf("-help               : display the help messages \n\n");
+    printf("--wifi on/off        : enable or disable WiFi communication with GS \n");
+    printf("--log-file on/off    : enable or disable datalogging in /mnt/cf1/ \n");	
+    printf("--display on/off     : enable or disable dumping data to display \n");	
+    printf("--ip xxx.xxx.xxx.xxx : set GS i.p. address for WiFi comm. \n");
+    printf("--help               : display the help messages \n\n");
     
     _exit(0);	
 }	

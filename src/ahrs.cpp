@@ -20,6 +20,7 @@
 #include "ahrs.h"
 #include "globaldefs.h"
 #include "imugps.h"
+#include "logging.h"
 #include "matrix.h"
 #include "misc.h"
 
@@ -66,7 +67,6 @@ MATRIX tmp73,tmp33,tmp77,tmpr,Rinv,mat77;
 MATRIX Hpsi,Kpsi,tmp71;
 double xs[7]={1,0,0,0,0,0,0};
 short  vgCheck=0,magCheck=0; 
-extern short log_to_file;
 
 
 void *ahrs_thread(void *thread_id)
@@ -120,7 +120,7 @@ void *ahrs_thread(void *thread_id)
         }
         pthread_mutex_unlock(&mutex_imu);
            
-        if(!log_to_file) snap_time_interval("ahrs",  100, 0);
+        if ( !log_to_file ) snap_time_interval("ahrs",  100, 0);
            
         if ( enable && !vgCheck) {
             control_uav( control_init, 0 );
