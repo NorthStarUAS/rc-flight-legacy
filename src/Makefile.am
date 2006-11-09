@@ -6,6 +6,7 @@ avionics_SOURCES = \
 	globaldefs.h \
 	groundstation.cpp groundstation.h \
 	imugps.cpp imugps.h \
+	logging.cpp logging.h \
 	main.cpp \
 	matrix.c matrix.h \
 	misc.cpp misc.h \
