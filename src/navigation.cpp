@@ -48,7 +48,6 @@ MATRIX euler,nIden;
 MATRIX ntmp99,ntmpr,ntmp91,ntmpr91,ntmprr;
 MATRIX ntmp66,ntmp96,ntmp33;
 
-extern short log_to_file;
 short	     gps_init_count=0;
 
 void timer_intr( int sig )
@@ -173,8 +172,7 @@ void *navigation( void *thread_id )
             if ( log_to_file ) log_nav( &navpacket );
             pthread_mutex_unlock(&mutex_nav);
 
-            if (!log_to_file)
-                snap_time_interval("nav", 20, 1);
+            if ( !log_to_file ) snap_time_interval("nav", 20, 1);
         }
     }
 

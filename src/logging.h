@@ -5,7 +5,7 @@
 #include "globaldefs.h"
 
 
-extern short log_to_file;
+extern bool log_to_file;
 
 bool logging_init();
 bool logging_close();
