@@ -8,8 +8,8 @@
  * REVISED: 4/07/06 Jung Soon Jang
  ******************************************************************************/
 
-#ifndef _UNAV_GROUNDSTATION_H
-#define _UNAV_GROUNDSTATION_H
+#ifndef _UGEAR_GROUNDSTATION_H
+#define _UGEAR_GROUNDSTATION_H
 
 
 //
@@ -19,4 +19,5 @@ short open_client( );
 void send_client( );
 void close_client( );
 
-#endif // _UNAV_GROUNDSTATION_H
+
+#endif // _UGEAR_GROUNDSTATION_H

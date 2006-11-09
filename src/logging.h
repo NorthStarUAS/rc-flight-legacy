@@ -1,5 +1,5 @@
-#ifndef UNAV_LOGGING_H
-#define UNAV_LOGGING_H
+#ifndef _UGEAR_LOGGING_H
+#define _UGEAR_LOGGING_H
 
 
 #include "globaldefs.h"
@@ -15,4 +15,4 @@ void log_imu( struct imu *imupacket );
 void log_nav( struct nav *navpacket );
 
 
-#endif // UNAV_LOGGING_H
+#endif // _UGEAR_LOGGING_H

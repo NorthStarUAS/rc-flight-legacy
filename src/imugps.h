@@ -4,8 +4,8 @@
 //              inbound from the uNAV
 //
 
-#ifndef _UNAV_IMUGPS_H
-#define _UNAV_IMUGPS_H
+#ifndef _UGEAR_IMUGPS_H
+#define _UGEAR_IMUGPS_H
 
 
 #include "globaldefs.h"
@@ -22,4 +22,4 @@ void *imugps_acq(void *thread_id);
 void send_servo_cmd(word cnt_cmd[9]);
 
 
-#endif // _UNAV_IMUGPS_H
+#endif // _UGEAR_IMUGPS_H
