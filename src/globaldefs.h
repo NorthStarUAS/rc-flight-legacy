@@ -7,9 +7,8 @@
 
 
 #include <pthread.h>
+#include <stdint.h>
 
-#define	byte			unsigned char
-#define word			unsigned short
 #define NSECS_PER_SEC		1000000000
 
 // ncurses
@@ -35,7 +34,7 @@ struct imu {
 struct gps {
    double lat,lon,alt;          /* gps position          */
    double ve,vn,vd;             /* gps velocity          */
-   word   ITOW;
+   uint16_t ITOW;
    short  err_type;             /* error type            */
    double time;
 };

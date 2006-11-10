@@ -19,7 +19,7 @@ extern bool control_init;
 
 // function prototypes
 void *imugps_acq(void *thread_id);
-void send_servo_cmd(word cnt_cmd[9]);
+void send_servo_cmd(uint16_t cnt_cmd[9]);
 
 
 #endif // _UGEAR_IMUGPS_H

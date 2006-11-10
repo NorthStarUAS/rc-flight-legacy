@@ -41,9 +41,9 @@
 //
 // prototype definition
 //
-bool checksum(byte* buffer, int packet_len);
-void decode_imupacket(struct imu *data, byte* buffer);
-void decode_gpspacket(struct gps *data, byte* buffer);
+bool checksum(uint8_t* buffer, int packet_len);
+void decode_imupacket(struct imu *data, uint8_t* buffer);
+void decode_gpspacket(struct gps *data, uint8_t* buffer);
 
 //
 // global variables
@@ -69,11 +69,11 @@ struct nav navpacket;
 void *imugps_acq(void *thread_id)
 {
     int		count=0,nbytes=0,headerOK=0;
-    byte  	input_buffer[FULL_PACKET_SIZE]={0,};
-    byte  	SCALED_MODE[11] ={0x55,0x55,0x53,0x46,0x01,0x00,0x03,0x00, 'S',0x00,0xF0};
-    byte          CH_BAUD[11]     ={0x55,0x55,0x57,0x46,0x01,0x00,0x02,0x00,0x03,0x00,0xA3};
-    byte		CH_SAMP[11]     ={0x55,0x55,0x53,0x46,0x01,0x00,0x01,0x00,0x02,0x00,0x9D};
-    byte          CH_SERVO[7]     ={0x55,0x55,0x53,0x50,0x08,0x00,0xAB};
+    uint8_t  	input_buffer[FULL_PACKET_SIZE]={0,};
+    uint8_t  	SCALED_MODE[11] ={0x55,0x55,0x53,0x46,0x01,0x00,0x03,0x00, 'S',0x00,0xF0};
+    uint8_t          CH_BAUD[11]     ={0x55,0x55,0x57,0x46,0x01,0x00,0x02,0x00,0x03,0x00,0xA3};
+    uint8_t		CH_SAMP[11]     ={0x55,0x55,0x53,0x46,0x01,0x00,0x01,0x00,0x02,0x00,0x9D};
+    uint8_t          CH_SERVO[7]     ={0x55,0x55,0x53,0x50,0x08,0x00,0xAB};
   
 #ifndef NCURSE_DISPLAY_OPTION
     printf("[imugps_acq]::thread[%d] initiated...\n",thread_id);
@@ -248,9 +248,9 @@ void *imugps_acq(void *thread_id)
 //
 // check the checksum of the data packet
 //
-bool checksum( byte* buffer, int packet_len ) {
-    word i=0,rcvchecksum=0;
-    word sum=0;
+bool checksum( uint8_t* buffer, int packet_len ) {
+    uint16_t i = 0, rcvchecksum = 0;
+    uint16_t sum = 0;
 
     for ( i = 2; i < packet_len - 2; i++ ) sum = sum + buffer[i];
     rcvchecksum = ((rcvchecksum = buffer[packet_len-2]) << 8) | buffer[packet_len-1];
@@ -266,7 +266,7 @@ bool checksum( byte* buffer, int packet_len ) {
 //
 // decode the gps data packet
 //
-void decode_gpspacket( struct gps *data, byte* buffer )
+void decode_gpspacket( struct gps *data, uint8_t* buffer )
 {
     signed long tmp = 0;
 
@@ -291,7 +291,7 @@ void decode_gpspacket( struct gps *data, byte* buffer )
 //
 // decode the imu data packet
 //
-void decode_imupacket( struct imu *data, byte* buffer )
+void decode_imupacket( struct imu *data, uint8_t* buffer )
 {
     signed short tmp = 0;
     unsigned short tmpr = 0;
@@ -355,15 +355,15 @@ void decode_imupacket( struct imu *data, byte* buffer )
 }
 
 
-void send_servo_cmd(word cnt_cmd[9])
+void send_servo_cmd(uint16_t cnt_cmd[9])
 {
     // cnt_cmd[1] = ch1:elevator
     // cnt_cmd[0] = ch0:aileron
     // cnt_cmd[2] = ch2:throttle
 
-    byte data[24];
+    uint8_t data[24];
     short i = 0, nbytes = 0;
-    word sum = 0;
+    uint16_t sum = 0;
 
     // printf("sending servo data ");
     // for ( i = 0; i < 9; ++i ) printf("%d ", cnt_cmd[i]);
@@ -375,28 +375,28 @@ void send_servo_cmd(word cnt_cmd[9])
     data[3] = 0x53;
 
     for ( i = 0; i < 9; ++i ) {
-        data[4+2*i] = (byte)(cnt_cmd[i] >> 8); 
-        data[5+2*i] = (byte)cnt_cmd[i];
+        data[4+2*i] = (uint8_t)(cnt_cmd[i] >> 8); 
+        data[5+2*i] = (uint8_t)cnt_cmd[i];
     }
 
     // aileron
-    // data[4] = (byte)(cnt_cmd[0] >> 8); 
-    // data[5] = (byte)cnt_cmd[0];
+    // data[4] = (uint8_t)(cnt_cmd[0] >> 8); 
+    // data[5] = (uint8_t)cnt_cmd[0];
 
     // elevator
-    // data[6] = (byte)(cnt_cmd[1] >> 8);
-    // data[7] = (byte)cnt_cmd[1];
+    // data[6] = (uint8_t)(cnt_cmd[1] >> 8);
+    // data[7] = (uint8_t)cnt_cmd[1];
 
     // throttle
-    // data[8] = (byte)(cnt_cmd[2] >> 8);
-    // data[9] = (byte)cnt_cmd[2];
+    // data[8] = (uint8_t)(cnt_cmd[2] >> 8);
+    // data[9] = (uint8_t)cnt_cmd[2];
 
     //checksum: need to be verified
     sum = 0xa6;
     for (i = 4; i < 22; i++) sum += data[i];
   
-    data[22] = (byte)(sum >> 8);
-    data[23] = (byte)sum;
+    data[22] = (uint8_t)(sum >> 8);
+    data[23] = (uint8_t)sum;
 
     //sendout the command packet
     while (nbytes != 24) {

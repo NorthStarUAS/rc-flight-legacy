@@ -53,7 +53,7 @@ extern double waypoints[8][2];
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void control_uav(short init_done, short flight_mode)
 {
-    word    cnt_cmd[9]={0,};		 	 //elevator,aileron,throttle command
+    uint16_t cnt_cmd[9]={0,};		 	 //elevator,aileron,throttle command
     double  de = 0, da = 0 /*, dthr = 0*/;        //temp. variables
     double  dthe, dphi, /* dpsi, */ dh;           //perturbed variables
     double  dthe_ref,dphi_ref,dpsi_ref=0,dh_ref=0;//perturbed reference variable
@@ -210,9 +210,9 @@ void control_uav(short init_done, short flight_mode)
     //elervons:elevator and aileron mixing
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //elevator
-    cnt_cmd[1] = servopos.chn[1] + (word)(deg2servo*(de+da)*57.3);
+    cnt_cmd[1] = servopos.chn[1] + (uint16_t)(deg2servo*(de+da)*57.3);
     //aileron
-    cnt_cmd[0] = servopos.chn[0] + (word)(deg2servo*(da-de)*57.3);
+    cnt_cmd[0] = servopos.chn[0] + (uint16_t)(deg2servo*(da-de)*57.3);
     //throttle
     cnt_cmd[2] = servopos.chn[2];
     // printf("cnt_cmd[2] = %d %d %d\n", cnt_cmd[2], servopos.chn[2], servopacket.chn[2]);
