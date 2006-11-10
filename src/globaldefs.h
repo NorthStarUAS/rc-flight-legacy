@@ -48,8 +48,8 @@ struct nav {
 };
 
 struct servo {
-   unsigned short chn[8];
-   unsigned char status;
+   uint16_t chn[8];
+   uint8_t status;
    double time;
 };
 

@@ -15,6 +15,7 @@
 #include <math.h>
 #include <pthread.h>
 
+#include "console_link.h"
 #include "globaldefs.h"
 #include "imugps.h"
 #include "logging.h"
@@ -122,6 +123,10 @@ void *imugps_acq(void *thread_id)
                 pthread_mutex_lock(&mutex_imu);
                 decode_imupacket(&imupacket, input_buffer);
                 pthread_cond_signal(&trigger_ahrs);
+                if ( console_link_on ) {
+                    console_link_imu( &imupacket );
+                    console_link_servo( &servopacket );
+                }
                 if ( log_to_file ) {
                     log_imu( &imupacket );
                     log_servo( &servopacket );
@@ -147,6 +152,10 @@ void *imugps_acq(void *thread_id)
                 pthread_mutex_lock(&mutex_imu);
                 decode_imupacket(&imupacket, input_buffer);
                 pthread_cond_signal(&trigger_ahrs);
+                if ( console_link_on ) {
+                    console_link_imu( &imupacket );
+                    console_link_servo( &servopacket );
+                }
                 if ( log_to_file ) {
                     log_imu( &imupacket );
                     log_servo( &servopacket );
@@ -157,6 +166,7 @@ void *imugps_acq(void *thread_id)
                 if(input_buffer[33]=='G') {
                     pthread_mutex_lock(&mutex_gps);
                     decode_gpspacket(&gpspacket, input_buffer);
+                    if ( console_link_on ) console_link_gps( &gpspacket );
                     if ( log_to_file ) log_gps( &gpspacket );
                     pthread_mutex_unlock(&mutex_gps);
                 } else {

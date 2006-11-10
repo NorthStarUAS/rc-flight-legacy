@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include "console_link.h"
 #include "globaldefs.h"
 #include "logging.h"
 #include "matrix.h"
@@ -171,10 +172,11 @@ void *navigation( void *thread_id )
             navpacket.ve  = nxs[4][0];
             navpacket.vd  = nxs[5][0];
             navpacket.time= get_Time();
+            if ( console_link_on ) console_link_nav( &navpacket );
             if ( log_to_file ) log_nav( &navpacket );
             pthread_mutex_unlock(&mutex_nav);
 
-            if ( !log_to_file ) snap_time_interval("nav", 20, 1);
+            if ( display_on ) snap_time_interval("nav", 20, 1);
         }
     }
 

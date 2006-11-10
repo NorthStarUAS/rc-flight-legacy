@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 #include <unistd.h>
 
 #include "console_link.h"
@@ -14,7 +15,7 @@ static int sPort0;
 
 // open up the console port
 void console_link_init() {
-    sPort0 = open_serial( SERIAL_PORT0, BAUDRATE_57600 );
+    sPort0 = open_serial( SERIAL_PORT0, BAUDRATE_38400 );
 }
 
 
@@ -52,6 +53,16 @@ void console_link_gps( struct gps *gpspacket ) {
 
 
 void console_link_imu( struct imu *imupacket ) {
+    static const uint8_t skip_count = 5;
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return;
+    } else {
+        skip = skip_count;
+    }
+
     uint8_t buf[3];
     uint8_t size;
     uint8_t cksum0, cksum1;
@@ -108,6 +119,16 @@ void console_link_nav( struct nav *navpacket ) {
 
 
 void console_link_servo( struct servo *servopacket ) {
+    static const uint8_t skip_count = 5;
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return;
+    } else {
+        skip = skip_count;
+    }
+
     uint8_t buf[3];
     uint8_t size;
     uint8_t cksum0, cksum1;
@@ -123,6 +144,7 @@ void console_link_servo( struct servo *servopacket ) {
     // packet size (1 byte)
     size = sizeof(struct servo);
     buf[0] = size + 2; buf[1] = 0;
+    printf("servo size = %d\n", size+2);
     console_write( buf, 1 );
 
     // packet data

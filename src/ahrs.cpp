@@ -121,7 +121,7 @@ void *ahrs_thread(void *thread_id)
         }
         pthread_mutex_unlock(&mutex_imu);
            
-        if ( !log_to_file ) snap_time_interval("ahrs",  100, 0);
+        if ( display_on ) snap_time_interval("ahrs",  100, 0);
            
         if ( enable && !vgCheck) {
             control_uav( control_init, 0 );
