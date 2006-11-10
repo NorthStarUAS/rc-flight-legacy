@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <termios.h>
 #include <math.h>
 #include <pthread.h>
 
@@ -48,7 +47,7 @@ void decode_gpspacket(struct gps *data, uint8_t* buffer);
 //
 // global variables
 //
-int   	     sPort2;
+static int sPort2;
 
 struct servo servopacket;
 bool         autopilot_enable = false;
@@ -75,7 +74,9 @@ void *imugps_acq(void *thread_id)
     uint8_t          CH_SERVO[7]     ={0x55,0x55,0x53,0x50,0x08,0x00,0xAB};
   
 #ifndef NCURSE_DISPLAY_OPTION
-    printf("[imugps_acq]::thread[%d] initiated...\n",thread_id);
+    if ( display_on ) {
+        printf("[imugps_acq]::thread[%d] initiated...\n", thread_id);
+    }
 #endif
   
     /*********************************************************************
@@ -208,8 +209,9 @@ void *imugps_acq(void *thread_id)
 
         if ( servopacket.chn[4] <= 12000 ) {
             // if the autopilot is enabled, or signal is lost
-            if ( !autopilot_enable )
+            if ( !autopilot_enable && display_on ) {
                 printf("[CONTROL]: switching to autopilot\n");
+            }
             autopilot_enable = true;  
             count  = 15;
             cnt_status = "MNAV in AutoPilot Mode";
@@ -219,8 +221,9 @@ void *imugps_acq(void *thread_id)
             // add delay on control trigger to minimize mode confusion
             // caused by the transmitter power off
             if ( count < 0 ) {
-                if ( autopilot_enable )
+                if ( autopilot_enable && display_on ) {
                     printf("[CONTROL]: switching to manual pass through\n");
+                }
                 autopilot_enable = false;
                 control_init = false;
                 cnt_status = "MNAV in Manual Mode";

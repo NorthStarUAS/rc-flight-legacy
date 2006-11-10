@@ -8,9 +8,8 @@
 #include "globaldefs.h"
 
 
-void ugear_cksum( uint8_t size, unsigned char *buf,
+void ugear_cksum( uint8_t *buf, uint8_t size,
                   uint8_t *cksum0, uint8_t *cksum1 );
-
 
 
 // simple wrap around for -180 and + 180 

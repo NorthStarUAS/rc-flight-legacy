@@ -1,7 +1,7 @@
 #include "util.h"
 
 
-void ugear_cksum( uint8_t size, unsigned char *buf,
+void ugear_cksum( uint8_t *buf, uint8_t size,
                   uint8_t *cksum0, uint8_t *cksum1 )
 {
     uint8_t c0 = 0;

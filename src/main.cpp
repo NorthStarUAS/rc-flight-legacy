@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include "ahrs.h"
+#include "console_link.h"
 #include "globaldefs.h"
 #include "groundstation.h"
 #include "imugps.h"
@@ -51,8 +52,6 @@
 //global variables
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 bool wifi        = false;       // wifi connection enabled/disabled
-bool log_to_file = false;       // log to file is enabled/disabled
-bool log_to_serial = false;     // log to serial/console port
 
 //mutex and conditional variables
 pthread_mutex_t	mutex_imu;
@@ -83,7 +82,6 @@ int main(int argc, char **argv)
     struct itimerval    it;
     struct sigaction    sa;
     sigset_t            allsigs;
-    bool		display_on = false;
    
     /*********************************************************************
      *Parse the command line
@@ -93,10 +91,10 @@ int main(int argc, char **argv)
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) log_to_file = true;
             if ( !strcmp(argv[iarg], "off") ) log_to_file = false;
-        } else if ( !strcmp(argv[iarg], "--log-serial" )  ) {
+        } else if ( !strcmp(argv[iarg], "--console-link" )  ) {
             ++iarg;
-            if ( !strcmp(argv[iarg], "on") ) log_to_serial = true;
-            if ( !strcmp(argv[iarg], "off") ) log_to_serial = false;
+            if ( !strcmp(argv[iarg], "on") ) console_link_on = true;
+            if ( !strcmp(argv[iarg], "off") ) console_link_on = false;
         } else if ( !strcmp(argv[iarg], "--wifi") ) {
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) wifi = true;
@@ -276,6 +274,7 @@ void help_message()
     printf("\n./avionics -option1 -option2 ... \n");
     printf("--wifi on/off        : enable or disable WiFi communication with GS \n");
     printf("--log-file on/off    : enable or disable datalogging in /mnt/cf1/ \n");	
+    printf("--console-link on/off: enable or disable serial/console link\n");	
     printf("--display on/off     : enable or disable dumping data to display \n");	
     printf("--ip xxx.xxx.xxx.xxx : set GS i.p. address for WiFi comm. \n");
     printf("--help               : display the help messages \n\n");

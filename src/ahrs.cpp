@@ -75,7 +75,9 @@ void *ahrs_thread(void *thread_id)
     bool enable = false;
 
 #ifndef NCURSE_DISPLAY_OPTION
-    printf("[ahrs_thread]::thread[%d] initiated...\n",thread_id);
+    if ( display_on ) {
+        printf("[ahrs_thread]::thread[%d] initiated...\n", thread_id);
+    }
 #endif
    
     //initialization of err, measurement, and process cov. matrices
