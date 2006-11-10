@@ -16,11 +16,11 @@
 #include <math.h>
 #include <pthread.h>
 
+#include "globaldefs.h"
 #include "imugps.h"
 #include "logging.h"
-#include "misc.h"
 #include "serial.h"
-#include "globaldefs.h"
+#include "timing.h"
 
 //
 // uNAV packet length definition

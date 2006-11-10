@@ -22,7 +22,7 @@
 #include "imugps.h"
 #include "logging.h"
 #include "matrix.h"
-#include "misc.h"
+#include "timing.h"
 
 //prototype definition
 void 		AHRS_Algorithm(struct imu *data);
