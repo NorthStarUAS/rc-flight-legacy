@@ -17,9 +17,12 @@ int main()
     struct imu dta;
     struct gps gdta;
     struct nav ndta;
+    struct servo sdta;
+
     // int i = 0;
 
-    FILE *fimu,*fgps,*fnav, *fwimu, *fwgps, *fwnav;
+    FILE *fimu,*fgps,*fnav, *fservo, *fwimu, *fwgps, *fwnav, *fwservo;
+
     /* FIXME: name used, but never set! */
     char *name = NULL;
 
@@ -39,26 +42,47 @@ int main()
         exit(-1);
     }
 
+    if((fservo = fopen("/mnt/cf1/servo.dat","r+b"))==NULL) {
+        printf("%s does not exist...error!\n",name);
+        exit(-1);
+    }
+
     //create file to dump
     fwimu = fopen("/mnt/cf1/imu.txt","w+t");
     fwgps = fopen("/mnt/cf1/gps.txt","w+t");
     fwnav = fopen("/mnt/cf1/nav.txt","w+t");
+    fwservo = fopen("/mnt/cf1/servo.txt","w+t");
 
     while (!feof(fimu)) {
         fread(&dta,sizeof(struct imu),1,fimu);
-        fprintf(fwimu,"%6.3f %6.3f %6.3f %6.3f %6.3f %6.3f ",dta.p,dta.q,dta.r,dta.ax,dta.ay,dta.az);
-        fprintf(fwimu,"%6.3f %6.3f %6.3f %6.3f %6.3f %6.3f ",dta.hx,dta.hy,dta.hz,dta.phi,dta.the,dta.psi);
-        fprintf(fwimu,"%6.3f %6.3f %d %f\n"                 ,dta.Ps,dta.Pt,dta.err_type,dta.time);
+        fprintf(fwimu,"%f\t",dta.time);
+        fprintf(fwimu,"%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t",
+                dta.p,dta.q,dta.r,dta.ax,dta.ay,dta.az);
+        fprintf(fwimu,"%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t",
+                dta.hx,dta.hy,dta.hz,dta.phi,dta.the,dta.psi);
+        fprintf(fwimu,"%6.3f\t%6.3f\t%d\n",
+                dta.Ps,dta.Pt,dta.err_type);
     }
 
     while (!feof(fgps)) {
         fread(&gdta,sizeof(struct gps),1,fgps);
-        fprintf(fwgps,"%14.10f %14.10f %6.3f %6.3f %6.3f %6.3f %d %f\n",gdta.lat,gdta.lon,gdta.alt,gdta.vn,gdta.ve,gdta.vd,gdta.ITOW,gdta.time);
+        fprintf(fwgps,"%f\t%14.10f\t%14.10f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t%d\n",
+                gdta.time,gdta.lat,gdta.lon,gdta.alt,gdta.vn,gdta.ve,gdta.vd,
+                gdta.ITOW);
     }
 
     while (!feof(fnav)) {
         fread(&ndta,sizeof(struct nav),1,fnav);
-        fprintf(fwnav,"%14.10f %14.10f %6.3f %6.3f %6.3f %6.3f %d %f\n",ndta.lat,ndta.lon,ndta.alt,ndta.vn,ndta.ve,ndta.vd,ndta.err_type,ndta.time);
+        fprintf(fwnav,"%f\t%14.10f\t%14.10f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t%d\n",
+                ndta.time,ndta.lat,ndta.lon,ndta.alt,ndta.vn,ndta.ve,ndta.vd,
+                ndta.err_type);
+    }
+
+    while (!feof(fservo)) {
+        fread(&sdta,sizeof(struct servo),1,fservo);
+        fprintf(fwservo,"%f\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
+                sdta.time,sdta.chn[0],sdta.chn[1],sdta.chn[2],sdta.chn[3],
+                sdta.chn[4],sdta.chn[5],sdta.chn[6],sdta.chn[7],sdta.status);
     }
 
 
@@ -68,6 +92,8 @@ int main()
     fclose(fwgps);
     fclose(fnav);
     fclose(fwnav);
+    fclose(fservo);
+    fclose(fwservo);
 
     printf("data is now dumped in /mnt/cf1 \n");
 
