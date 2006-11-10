@@ -51,7 +51,8 @@
 //global variables
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 bool wifi        = false;       // wifi connection enabled/disabled
-bool log_to_file = false;       // log to file is enabled/disabled	
+bool log_to_file = false;       // log to file is enabled/disabled
+bool log_to_serial = false;     // log to serial/console port
 
 //mutex and conditional variables
 pthread_mutex_t	mutex_imu;
@@ -89,19 +90,30 @@ int main(int argc, char **argv)
      *********************************************************************/
     for ( iarg = 1; iarg < argc; iarg++ ) {
         if ( !strcmp(argv[iarg], "--log-file" )  ) {
-            if ( !strcmp(argv[iarg+1], "on") ) log_to_file = true;
-            if ( !strcmp(argv[iarg+1], "off") ) log_to_file = false;
+            ++iarg;
+            if ( !strcmp(argv[iarg], "on") ) log_to_file = true;
+            if ( !strcmp(argv[iarg], "off") ) log_to_file = false;
+        } else if ( !strcmp(argv[iarg], "--log-serial" )  ) {
+            ++iarg;
+            if ( !strcmp(argv[iarg], "on") ) log_to_serial = true;
+            if ( !strcmp(argv[iarg], "off") ) log_to_serial = false;
+        } else if ( !strcmp(argv[iarg], "--wifi") ) {
+            ++iarg;
+            if ( !strcmp(argv[iarg], "on") ) wifi = true;
+            if ( !strcmp(argv[iarg], "off") ) wifi = false;
+        } else if ( !strcmp(argv[iarg],"--display") ) {
+            ++iarg;
+            if ( !strcmp(argv[iarg], "on") ) display_on = true;
+            if ( !strcmp(argv[iarg], "off") ) display_on = false;
+        } else if ( !strcmp(argv[iarg], "--ip") ) {
+            ++iarg;
+            HOST_IP_ADDR = argv[iarg];
+        } else if ( !strcmp(argv[iarg], "--help") ) {
+            help_message();
+        } else {
+            printf("Unknown option \"%s\"\n", argv[iarg]);
+            help_message();
         }
-        if ( !strcmp(argv[iarg], "--wifi") ) {
-            if ( !strcmp(argv[iarg+1], "on") ) wifi = true;
-            if ( !strcmp(argv[iarg+1], "off") ) wifi = false;
-        }
-        if ( !strcmp(argv[iarg],"--display") ) {
-            if ( !strcmp(argv[iarg+1], "on") ) display_on = true;
-            if ( !strcmp(argv[iarg+1], "off") ) display_on = false;
-        }
-        if ( !strcmp(argv[iarg], "--ip") ) HOST_IP_ADDR = argv[iarg+1];
-        if ( !strcmp(argv[iarg], "--help") ) help_message();
     }
 
 #ifdef NCURSE_DISPLAY_OPTION    
