@@ -58,8 +58,8 @@ extern struct gps gpspacket;
 extern struct nav navpacket;
 
 //mutex and conditional variables
-extern pthread_mutex_t	mutex_imu;
-extern pthread_mutex_t	mutex_gps;
+extern pthread_mutex_t mutex_imu;
+extern pthread_mutex_t mutex_gps;
 extern pthread_mutex_t mutex_nav;
 extern pthread_cond_t  trigger_ahrs;
 extern pthread_cond_t  trigger_nav;
