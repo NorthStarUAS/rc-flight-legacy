@@ -136,6 +136,11 @@ int main(int argc, char **argv)
     }		
 #endif
 
+    // open console link if requested
+    if ( console_link_on ) {
+        console_link_init();
+    }
+
     // open logging files if requested
     if ( log_to_file ) {
         bool result = logging_init();
@@ -227,7 +232,7 @@ int main(int argc, char **argv)
         if ( wifi ) {
             if ( retvalsock ) {
                 send_client();
-                snap_time_interval("TCP",  5, 2);
+                if ( display_on ) snap_time_interval("TCP",  5, 2);
             } else {
                 //attempt connection every 2.0 sec
                 if ( attempt++ == 10 ) { 
