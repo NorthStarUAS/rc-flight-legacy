@@ -30,7 +30,7 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //globals
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-short   retvalsock;         //socket status
+bool retvalsock;                // socket status
 extern struct  sockaddr_in serv_addr;
 
 char	       bufs[numofuplink];  //data buffer
@@ -58,12 +58,15 @@ void *uplink_acq(void *thread_id)
     sprintf(uplinkstr,"[UPLINK  ]:Uplink Data has not been received!");   
 #endif
 
-    //wait until wifi is connected
-    for(;;){ sleep(3); if(retvalsock) break; };
-    //wait until the uplink data arrives
+    // wait until wifi is connected
+    for ( ; ; ) {
+        sleep(3);
+        if ( retvalsock ) break;
+    };
+    // wait until the uplink data arrives
    
     while (1) {
-        if(retvalsock) {
+        if ( retvalsock ) {
             if( (ret=recvfrom(gs_sock_fd,bufs,numofuplink,0,(struct sockaddr *) &serv_addr,&serv_addrlen)) < 0) {
    		errFlag = 1;
             } else {

@@ -46,10 +46,10 @@ WINDOW  *win;
 //
 // open client to transmit/receive the packet to/from ground station
 //
-short open_client ()
+bool open_client ()
 {
     //struct sockaddr_in serv_addr;
-    short  ret;
+    bool result;
   
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family      = AF_INET; 
@@ -65,7 +65,7 @@ short open_client ()
         printf("uNAV CLIENT: Connect Failed.\n");
 #endif        
         close_client();
-        ret = 0;
+        result = false;
     }
     else 
         {
@@ -75,10 +75,10 @@ short open_client ()
             printf("uNAV CLIENT: Connected to server.\n");
 #endif    	
      
-            ret = 1;
+            result = true;
         }
   
-    return ret;
+    return result;
 }
 
 void send_client ( )

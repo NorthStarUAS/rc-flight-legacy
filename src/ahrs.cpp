@@ -64,7 +64,8 @@ MATRIX aP,aQ,aR,aK,Fsys,Hj,Iden;
 MATRIX tmp73,tmp33,tmp77,tmpr,Rinv,mat77;
 MATRIX Hpsi,Kpsi,tmp71;
 double xs[7]={1,0,0,0,0,0,0};
-short  vgCheck=0,magCheck=0; 
+bool   vgCheck = false;
+short  magCheck = 0; 
 
 
 void *ahrs_thread(void *thread_id)
@@ -239,9 +240,9 @@ void AHRS_Algorithm(struct imu *data)
         mat_copy(tmp77,aP);
     }
    
-    if(++magCheck==5) {  
+    if ( ++magCheck == 5 ) {  
         // Heading update at 10 Hz
-        if(vgCheck)
+        if ( vgCheck )
             //avoid both acc and mag updated at the same time:due to
             //computational power
             --magCheck;

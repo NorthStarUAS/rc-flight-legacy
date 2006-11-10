@@ -52,7 +52,6 @@ double get_time_interval(short id)
     struct timespec		ts;
     static struct timespec  ts_p[5];
     double 			nsec,elapsed;
-    // short i=0;
 
     clock_gettime(CLOCK_REALTIME, &ts);
     nsec    = ts.tv_nsec- ts_p[id].tv_nsec;

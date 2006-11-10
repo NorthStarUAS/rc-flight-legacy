@@ -44,7 +44,7 @@ enum   	      modedefs {pitch_mode,roll_mode,heading_mode,altitude_mode,speed_mo
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //control code
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void control_uav(short init_done, short flight_mode)
+void control_uav(bool init_done, short flight_mode)
 {
     uint16_t cnt_cmd[9]={0,};		 	 //elevator,aileron,throttle command
     double  de = 0, da = 0 /*, dthr = 0*/;        //temp. variables
@@ -53,8 +53,7 @@ void control_uav(short init_done, short flight_mode)
     double  tmpr=0,tmpr1=0,nav_psi=0;
     double  Ps_f=0;
     static  short anti_windup[4]={1,};
-    /* short   i=0; */
-    static short /* count = 0, */ k = 0; 
+    static short k = 0; 
     static double Ps_f_p=0;
 
     if ( !init_done ) {

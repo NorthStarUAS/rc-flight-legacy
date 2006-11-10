@@ -48,7 +48,7 @@ MATRIX euler,nIden;
 MATRIX ntmp99,ntmpr,ntmp91,ntmpr91,ntmprr;
 MATRIX ntmp66,ntmp96,ntmp33;
 
-short	     gps_init_count=0;
+short  gps_init_count = 0;
 
 void timer_intr( int sig )
 {
