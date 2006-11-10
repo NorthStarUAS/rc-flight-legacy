@@ -50,8 +50,8 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //global variables
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-short   wifi          = 1;		 //wifi is enabled
-bool	log_to_file   = 0;	         //data lot to file is enabled/disabled	
+bool wifi        = false;       // wifi connection enabled/disabled
+bool log_to_file = false;       // log to file is enabled/disabled	
 
 //mutex and conditional variables
 pthread_mutex_t	mutex_imu;
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
     struct itimerval    it;
     struct sigaction    sa;
     sigset_t            allsigs;
-    short		display_on=1;
+    bool		display_on = false;
    
     /*********************************************************************
      *Parse the command line
@@ -93,12 +93,12 @@ int main(int argc, char **argv)
             if ( !strcmp(argv[iarg+1], "off") ) log_to_file = false;
         }
         if ( !strcmp(argv[iarg], "--wifi") ) {
-            if ( !strcmp(argv[iarg+1], "on") ) wifi = 1;
-            if ( !strcmp(argv[iarg+1], "off") ) wifi = 0;
+            if ( !strcmp(argv[iarg+1], "on") ) wifi = true;
+            if ( !strcmp(argv[iarg+1], "off") ) wifi = false;
         }
         if ( !strcmp(argv[iarg],"--display") ) {
-            if ( !strcmp(argv[iarg+1], "on") ) display_on = 1;
-            if ( !strcmp(argv[iarg+1], "off") ) display_on = 0;
+            if ( !strcmp(argv[iarg+1], "on") ) display_on = true;
+            if ( !strcmp(argv[iarg+1], "off") ) display_on = false;
         }
         if ( !strcmp(argv[iarg], "--ip") ) HOST_IP_ADDR = argv[iarg+1];
         if ( !strcmp(argv[iarg], "--help") ) help_message();
@@ -204,7 +204,7 @@ int main(int argc, char **argv)
     sigemptyset(&allsigs);
 
     // open networked ground station client
-    if (wifi == 1) retvalsock = open_client();
+    if ( wifi ) retvalsock = open_client();
 
     //
     // main loop
@@ -214,7 +214,7 @@ int main(int argc, char **argv)
         sigsuspend(&allsigs);
   
         //telemetry
-        if ( wifi == 1 ) {
+        if ( wifi ) {
             if ( retvalsock ) {
                 send_client();
                 snap_time_interval("TCP",  5, 2);

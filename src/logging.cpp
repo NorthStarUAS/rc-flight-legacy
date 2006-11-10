@@ -98,6 +98,7 @@ static chtype use_colors(int pairs, chtype attrs)
 }		
 #endif
 
+
 // periodic console summary of attitude/location estimate
 void display_message(struct imu *data, struct gps *gdata, struct nav *ndata, int disptime)
 {

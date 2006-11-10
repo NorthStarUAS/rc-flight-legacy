@@ -22,9 +22,9 @@ extern int gs_sock_fd;
 
 // Ground station client communication routines
 
-short open_client( );
-void send_client( );
-void close_client( );
+bool open_client();
+void send_client();
+void close_client();
 
 
 #endif // _UGEAR_GROUNDSTATION_H
