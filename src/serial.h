@@ -8,6 +8,9 @@
 #define _UGEAR_SERIAL_H
 
 
+#include <termios.h>
+
+
 /* Serial port information for talking to components */
 #define SERIAL_PORT0 "/dev/tts/0" 	
 #define SERIAL_PORT1 "/dev/tts/1" 	

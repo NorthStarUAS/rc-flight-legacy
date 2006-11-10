@@ -104,7 +104,9 @@ void *navigation( void *thread_id )
     // initialization of nav variables when gps is available, until
     // then, navigation solution is not available
 #ifndef NCURSE_DISPLAY_OPTION   
-    printf("[nav]:thread[2] initiated ...\n");
+    if ( display_on ) {
+        printf("[nav]:thread[2] initiated ...\n");
+    }
 #endif
    
     navpacket.err_type = no_gps_update;
@@ -117,7 +119,7 @@ void *navigation( void *thread_id )
             break;	
         }
         pthread_mutex_unlock(&mutex_gps);
-        printf("[nav]:waiting for gps signal...\n");
+        if ( display_on ) printf("[nav]:waiting for gps signal...\n");
     }
     navpacket.err_type = no_error;
    

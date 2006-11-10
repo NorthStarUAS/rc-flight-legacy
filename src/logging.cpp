@@ -4,10 +4,18 @@
 #include "logging.h"
 
 
+// global variables for data file logging
+
 static FILE *fimu = NULL;
 static FILE *fgps = NULL;
 static FILE *fnav = NULL;
 static FILE *fservo = NULL;
+
+bool log_to_file = false;       // log to file is enabled/disabled
+bool display_on = false;        // dump summary to display periodically
+
+
+// global variables for ncurses
 
 #ifdef NCURSE_DISPLAY_OPTION
 #include <ncurses/ncurses.h>
@@ -196,3 +204,4 @@ void display_message(struct imu *data, struct gps *gdata, struct nav *ndata, int
 #endif
 
 }
+

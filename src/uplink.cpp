@@ -20,6 +20,7 @@
 
 #include "globaldefs.h"
 #include "groundstation.h"
+#include "logging.h"
 #include "uplink.h"
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -53,7 +54,9 @@ void *uplink_acq(void *thread_id)
     socklen_t  serv_addrlen = sizeof(serv_addr);
 
 #ifndef NCURSE_DISPLAY_OPTION
-    printf("[uplink_acq]::thread[%x] initiated...\n", (int)thread_id);  
+    if ( display_on ) {
+        printf("[uplink_acq]::thread[%x] initiated...\n", (int)thread_id);  
+    }
 #else
     sprintf(uplinkstr,"[UPLINK  ]:Uplink Data has not been received!");   
 #endif

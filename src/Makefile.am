@@ -2,6 +2,7 @@ bin_PROGRAMS = avionics decoder
 
 avionics_SOURCES = \
 	ahrs.cpp ahrs.h \
+	console_link.cpp console_link.h \
 	control.cpp control.h \
 	globaldefs.h \
 	groundstation.cpp groundstation.h \
