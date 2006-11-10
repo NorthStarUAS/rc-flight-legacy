@@ -122,7 +122,10 @@ void *imugps_acq(void *thread_id)
                 pthread_mutex_lock(&mutex_imu);
                 decode_imupacket(&imupacket, input_buffer);
                 pthread_cond_signal(&trigger_ahrs);
-                if ( log_to_file ) log_imu( &imupacket );
+                if ( log_to_file ) {
+                    log_imu( &imupacket );
+                    log_servo( &servopacket );
+                }
                 pthread_mutex_unlock(&mutex_imu);  
             } else {
 #ifndef NCURSE_DISPLAY_OPTION 
@@ -144,7 +147,10 @@ void *imugps_acq(void *thread_id)
                 pthread_mutex_lock(&mutex_imu);
                 decode_imupacket(&imupacket, input_buffer);
                 pthread_cond_signal(&trigger_ahrs);
-                if ( log_to_file ) log_imu( &imupacket );
+                if ( log_to_file ) {
+                    log_imu( &imupacket );
+                    log_servo( &servopacket );
+                }
                 pthread_mutex_unlock(&mutex_imu);  
 		     
                 // check GPS data packet
@@ -343,9 +349,8 @@ void decode_imupacket( struct imu *data, byte* buffer )
         printf("[imu]:fail to decode servo packet..!\n");
     }
 
-    // printf("servo: %d %d %d %d %d\n", servopacket.chn[0], servopacket.chn[1], servopacket.chn[2], servopacket.chn[3], servopacket.chn[4] );
-  
     data->time = get_Time();
+    servopacket.time = data->time;
     data->err_type = no_error;
 }
 

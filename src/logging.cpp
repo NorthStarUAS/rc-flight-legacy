@@ -7,6 +7,7 @@
 static FILE *fimu = NULL;
 static FILE *fgps = NULL;
 static FILE *fnav = NULL;
+static FILE *fservo = NULL;
 
 #ifdef NCURSE_DISPLAY_OPTION
 
@@ -42,6 +43,11 @@ bool logging_init() {
         return false;
     }
 
+    if ( (fservo = fopen("/mnt/cf1/servo.dat","w+b")) == NULL ) {
+        printf("servo.dat cannot be created in /mnt/cf1 directory...error!\n");
+        return false;
+    }
+
     return true;
 }
 
@@ -52,6 +58,7 @@ bool logging_close() {
     fclose(fimu);
     fclose(fgps);
     fclose(fnav);
+    fclose(fservo);
 
     return true;
 }
@@ -69,6 +76,11 @@ void log_imu( struct imu *imupacket ) {
 
 void log_nav( struct nav *navpacket ) {
     fwrite( navpacket, sizeof(struct nav), 1, fnav );
+}
+
+
+void log_servo( struct servo *servopacket ) {
+    fwrite( servopacket, sizeof(struct servo), 1, fservo );
 }
 
 

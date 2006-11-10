@@ -51,6 +51,7 @@ struct nav {
 struct servo {
    unsigned short chn[8];
    unsigned char status;
+   double time;
 };
 
 extern struct imu imupacket;

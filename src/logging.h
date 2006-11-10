@@ -13,6 +13,7 @@ bool logging_close();
 void log_gps( struct gps *gpspacket );
 void log_imu( struct imu *imupacket );
 void log_nav( struct nav *navpacket );
+void log_servo( struct servo *servopacket );
 
 
 #endif // _UGEAR_LOGGING_H
