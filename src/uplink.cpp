@@ -19,19 +19,18 @@
 #include <unistd.h>
 
 #include "globaldefs.h"
+#include "groundstation.h"
+#include "uplink.h"
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //pre-defined constant
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #define	numofuplink	180
-#define maxwaypoints    8
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //globals
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-extern short   open_client();
-extern int     gs_sock_fd;		   //socket 
-extern short   retvalsock;         //socket status
+short   retvalsock;         //socket status
 extern struct  sockaddr_in serv_addr;
 
 char	       bufs[numofuplink];  //data buffer

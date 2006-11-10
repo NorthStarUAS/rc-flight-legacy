@@ -18,25 +18,23 @@
 #include <unistd.h>
 
 #include "ahrs.h"
+#include "control.h"
 #include "globaldefs.h"
 #include "imugps.h"
 #include "logging.h"
 #include "matrix.h"
 #include "timing.h"
+#include "util.h"
 
 //prototype definition
 void 		AHRS_Algorithm(struct imu *data);
 double 		wraparound(double dta);
-extern void 	display_message(struct imu *data, int disptime);
-extern void 	control_uav(short init_done, short flight_mode);
 
 //predefined variables
 #define		g	9.81		//m/sec^2
 #define         g2      19.62   	//2*g
 #define		r2d	57.2958         //raidan to degree
 #define		d2r     0.01745		//degree to radian
-#define         pi      3.141592	
-#define         pi2     6.283184	//pi*2
 
 // sensor characteristics
 
@@ -61,7 +59,7 @@ extern void 	control_uav(short init_done, short flight_mode);
 //sign function
 #define         sign(arg) (arg>=0 ? 1:-1)
 
-// (extern) global variables
+// global variables
 MATRIX aP,aQ,aR,aK,Fsys,Hj,Iden;
 MATRIX tmp73,tmp33,tmp77,tmpr,Rinv,mat77;
 MATRIX Hpsi,Kpsi,tmp71;
@@ -305,16 +303,3 @@ void AHRS_Algorithm(struct imu *data)
     vgCheck = !vgCheck;
 
 }
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// wrap around for -180 and + 180 
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-double wraparound(double dta)
-{
-	
-    //bound heading angle between -180 and 180
-    if(dta >  pi) dta -= pi2;
-    if(dta < -pi) dta += pi2;
-   
-    return dta;
-}	

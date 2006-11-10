@@ -4,8 +4,17 @@
 
 #include "globaldefs.h"
 
+// global variables
+
+#ifdef NCURSE_DISPLAY_OPTION
+#include <ncurses/ncurses.h>
+extern WINDOW *win;
+#endif // NCURSE_DISPLAY_OPTION
 
 extern bool log_to_file;
+
+
+// global functions
 
 bool logging_init();
 bool logging_close();
@@ -15,8 +24,7 @@ void log_imu( struct imu *imupacket );
 void log_nav( struct nav *navpacket );
 void log_servo( struct servo *servopacket );
 
-void ugear_cksum( uint8_t size, unsigned char *buf,
-                  uint8_t *cksum0, uint8_t *cksum1 );
-
+void display_message( struct imu *data, struct gps *gdata,
+                      struct nav *ndata, int disptime );
 
 #endif // _UGEAR_LOGGING_H

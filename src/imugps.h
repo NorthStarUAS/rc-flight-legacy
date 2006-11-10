@@ -15,6 +15,7 @@
 extern struct servo servopacket;
 extern bool autopilot_enable;
 extern bool control_init;
+extern char *cnt_status;
 
 
 // function prototypes

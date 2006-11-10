@@ -34,9 +34,9 @@
 //global variables
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 int gs_sock_fd;
-extern char *HOST_IP_ADDR;
 char buf_err[50];
 struct  sockaddr_in serv_addr;
+char *HOST_IP_ADDR = "192.168.11.101"; //default ground station IP address
 
 #ifdef NCURSE_DISPLAY_OPTION
 WINDOW  *win;

@@ -48,7 +48,6 @@ void decode_gpspacket(struct gps *data, uint8_t* buffer);
 //
 // global variables
 //
-extern char  buf_err[50];
 int   	     sPort2;
 
 struct servo servopacket;
