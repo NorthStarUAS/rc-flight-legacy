@@ -13,10 +13,12 @@
 #include <math.h>
 #include <unistd.h>
 
+#include "control.h"
 #include "imugps.h"
 #include "globaldefs.h"
+#include "uplink.h"
+#include "util.h"
 
-extern double wraparound(double dta);
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //pre-defined constant
@@ -37,15 +39,6 @@ static struct imu      imuval;
 static struct gps      gpsval;
 static struct nav      navval;
 enum   	      modedefs {pitch_mode,roll_mode,heading_mode,altitude_mode,speed_mode,waypoint_mode};
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//external global variables
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-extern short  whichmode[6];
-extern double pitch_gain[3],roll_gain[3];
-extern double heading_gain[3],alt_gain[3],pos_gain[3];
-extern int    numofwaypoints;     
-extern double waypoints[8][2];
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

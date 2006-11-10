@@ -64,5 +64,7 @@ extern pthread_mutex_t mutex_nav;
 extern pthread_cond_t  trigger_ahrs;
 extern pthread_cond_t  trigger_nav;
 
+// constants
+#define M_2PI 6.28318530717958647692
 
 #endif // _UGEAR_GLOBALDEFS_H

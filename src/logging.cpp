@@ -10,18 +10,8 @@ static FILE *fnav = NULL;
 static FILE *fservo = NULL;
 
 #ifdef NCURSE_DISPLAY_OPTION
-
 #include <ncurses/ncurses.h>
-extern WINDOW *win;
-
-extern MATRIX nxs;
-extern double xs[7];
-extern char   *HOST_IP_ADDR;
-extern char   *cnt_status;
-extern short  gps_init_count;
-extern char   *buf_err[50];
-extern char   uplinkstr[80];
-
+WINDOW *win;
 #endif // NCURSE_DISPLAY_OPTION
 
 
@@ -205,21 +195,3 @@ void display_message(struct imu *data, struct gps *gdata, struct nav *ndata, int
 #endif
 
 }
-
-
-void ugear_cksum( uint8_t size, unsigned char *buf,
-                  uint8_t *cksum0, uint8_t *cksum1 )
-{
-    uint8_t c0 = 0;
-    uint8_t c1 = 0;
-
-    for ( uint8_t i = 0; i < size; i++ ) {
-        c0 += (uint8_t)buf[i];
-        c1 += c0;
-    }
-
-    *cksum0 = c0;
-    *cksum1 = c1;
-}
-
-

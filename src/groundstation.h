@@ -12,9 +12,16 @@
 #define _UGEAR_GROUNDSTATION_H
 
 
-//
+// global variables
+
+extern char *HOST_IP_ADDR;  //default ground station IP address (hardcoded in
+                            //groundstation.cpp)
+extern char buf_err[50];
+extern int gs_sock_fd;
+
+
 // Ground station client communication routines
-//
+
 short open_client( );
 void send_client( );
 void close_client( );

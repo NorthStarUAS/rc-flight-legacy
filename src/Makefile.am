@@ -2,7 +2,7 @@ bin_PROGRAMS = avionics decoder
 
 avionics_SOURCES = \
 	ahrs.cpp ahrs.h \
-	control.cpp \
+	control.cpp control.h \
 	globaldefs.h \
 	groundstation.cpp groundstation.h \
 	imugps.cpp imugps.h \
@@ -13,7 +13,8 @@ avionics_SOURCES = \
 	navigation.cpp \
 	serial.cpp serial.h \
 	timing.cpp timing.h \
-	uplink.cpp
+	uplink.h uplink.cpp \
+	util.cpp util.h
 
 decoder_SOURCES = decoder.c
 decoder_LDADD =

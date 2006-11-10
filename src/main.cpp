@@ -33,6 +33,7 @@
 #include "logging.h"
 #include "navigation.h"
 #include "timing.h"
+#include "uplink.h"
 
 #ifdef NCURSE_DISPLAY_OPTION
 #include <ncurses/ncurses.h>
@@ -50,9 +51,7 @@
 //global variables
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 short   wifi          = 1;		 //wifi is enabled
-short	retvalsock    = 0;
 bool	log_to_file   = 0;	         //data lot to file is enabled/disabled	
-char    *HOST_IP_ADDR = "192.168.11.101"; //default ground station IP address
 
 //mutex and conditional variables
 pthread_mutex_t	mutex_imu;
@@ -61,16 +60,10 @@ pthread_mutex_t mutex_nav;
 pthread_cond_t  trigger_ahrs;
 pthread_cond_t  trigger_nav;
 
-#ifdef NCURSE_DISPLAY_OPTION
-WINDOW  *win;
-#endif
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //thread prototypes
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-extern void *uplink_acq(void *thread_id);
-
-extern void display_message(struct imu *data, struct gps *gdata, struct nav *ndata, int id);
 void	    timer_intr1(int sig);
 void	    help_message();
 
