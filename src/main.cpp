@@ -31,8 +31,8 @@
 #include "groundstation.h"
 #include "imugps.h"
 #include "logging.h"
-#include "misc.h"
 #include "navigation.h"
+#include "timing.h"
 
 #ifdef NCURSE_DISPLAY_OPTION
 #include <ncurses/ncurses.h>

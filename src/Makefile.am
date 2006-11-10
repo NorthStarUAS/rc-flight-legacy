@@ -9,10 +9,10 @@ avionics_SOURCES = \
 	logging.cpp logging.h \
 	main.cpp \
 	matrix.c matrix.h \
-	misc.cpp misc.h \
 	navfunc.cpp navfunc.h \
 	navigation.cpp \
 	serial.cpp serial.h \
+	timing.cpp timing.h \
 	uplink.cpp
 
 decoder_SOURCES = decoder.c

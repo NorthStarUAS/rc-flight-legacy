@@ -16,12 +16,12 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include "globaldefs.h"
 #include "logging.h"
 #include "matrix.h"
-#include "misc.h"
 #include "navfunc.h"
 #include "navigation.h"
-#include "globaldefs.h"
+#include "timing.h"
 
 
 //
