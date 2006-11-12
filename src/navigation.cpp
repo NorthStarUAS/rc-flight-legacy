@@ -120,7 +120,8 @@ void *navigation( void *thread_id )
             break;	
         }
         pthread_mutex_unlock(&mutex_gps);
-        if ( display_on ) printf("[nav]:waiting for gps signal...\n");
+        if ( display_on ) printf("[nav]:waiting for gps signal... %d %d\n",
+				 gpspacket.err_type, gps_init_count);
     }
     navpacket.err_type = no_error;
    

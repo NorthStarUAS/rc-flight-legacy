@@ -83,11 +83,11 @@ void *imugps_acq(void *thread_id)
     /*********************************************************************
      *Open and configure Serial Port2 (com2)
      *********************************************************************/
-    sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_38400); 
+    sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_38400,false); 
       
     while (nbytes != 11) nbytes = write(sPort2,(char*)CH_BAUD, 11);     nbytes = 0;  
     close(sPort2);
-    sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_57600); 
+    sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_57600,false); 
   
     
     while (nbytes != 11) nbytes = write(sPort2,(char*)CH_SAMP, 11);     nbytes = 0;  
@@ -113,6 +113,7 @@ void *imugps_acq(void *thread_id)
         // Read packet contents
         switch (input_buffer[2]) {
         case 'S':               // IMU packet without GPS
+	    // printf("no gps data being sent ... :-(\n");
             while ( nbytes < SENSOR_PACKET_LENGTH ) {
                 nbytes += read(sPort2, input_buffer+nbytes,
                                SENSOR_PACKET_LENGTH-nbytes); 
@@ -146,6 +147,8 @@ void *imugps_acq(void *thread_id)
                 nbytes += read(sPort2, input_buffer+nbytes,
                                FULL_PACKET_SIZE-nbytes); 
             }
+
+	    // printf("G P S   D A T A   A V A I L A B L E\n");
 
             // check checksum
             if ( checksum(input_buffer,FULL_PACKET_SIZE) ) {

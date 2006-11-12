@@ -15,16 +15,31 @@ static int sPort0;
 
 // open up the console port
 void console_link_init() {
-    sPort0 = open_serial( SERIAL_PORT0, BAUDRATE_38400 );
+    sPort0 = open_serial( SERIAL_PORT0, BAUDRATE_115200, true );
 }
 
 
-static short console_write( const void *buf, short size ) {
-    return write(sPort0, buf, size);
+static short console_write( uint8_t *buf, short size ) {
+  for ( int i = 0; i < size; ++i ) {
+    // printf("%d ", (uint8_t)buf[i]);
+    write( sPort0, buf+i, 1 );
+  }
+  // printf("\n");
+  return size;
 }
 
 
 void console_link_gps( struct gps *gpspacket ) {
+    static const uint8_t skip_count = 2;
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return;
+    } else {
+        skip = skip_count;
+    }
+
     uint8_t buf[3];
     uint8_t size;
     uint8_t cksum0, cksum1;
@@ -39,21 +54,22 @@ void console_link_gps( struct gps *gpspacket ) {
 
     // packet size (1 byte)
     size = sizeof(struct gps);
-    buf[0] = size + 2; buf[1] = 0;
+    buf[0] = size; buf[1] = 0;
     console_write( buf, 1 );
 
     // packet data
-    console_write( gpspacket, size );
+    console_write( (uint8_t *)gpspacket, size );
 
     // check sum (2 bytes)
-    ugear_cksum( (uint8_t *)gpspacket, size, &cksum0, &cksum1 );
+    ugear_cksum( GPS_PACKET, size, (uint8_t *)gpspacket, size,
+		 &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     console_write( buf, 2 );
 }
 
 
 void console_link_imu( struct imu *imupacket ) {
-    static const uint8_t skip_count = 5;
+    static const uint8_t skip_count = 25;
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -77,20 +93,35 @@ void console_link_imu( struct imu *imupacket ) {
 
     // packet size (1 byte)
     size = sizeof(struct imu);
-    buf[0] = size + 2; buf[1] = 0;
+    buf[0] = size; buf[1] = 0;
+    // printf("imu size = %d\n", size);
     console_write( buf, 1 );
 
     // packet data
-    console_write( imupacket, size );
+    uint8_t bytes = console_write( (uint8_t *)imupacket, size );
+    if ( bytes != size ) {
+      printf("Only wrote %d imu bytes out of %d\n", bytes, size);
+    }
 
     // check sum (2 bytes)
-    ugear_cksum( (uint8_t *)imupacket, size, &cksum0, &cksum1 );
+    ugear_cksum( IMU_PACKET, size, (uint8_t *)imupacket, size,
+		 &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     console_write( buf, 2 );
 }
 
 
 void console_link_nav( struct nav *navpacket ) {
+    static const uint8_t skip_count = 25;
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return;
+    } else {
+        skip = skip_count;
+    }
+
     uint8_t buf[3];
     uint8_t size;
     uint8_t cksum0, cksum1;
@@ -105,21 +136,22 @@ void console_link_nav( struct nav *navpacket ) {
 
     // packet size (1 byte)
     size = sizeof(struct nav);
-    buf[0] = size + 2; buf[1] = 0;
+    buf[0] = size; buf[1] = 0;
     console_write( buf, 1 );
 
     // packet data
-    console_write( navpacket, size );
+    console_write( (uint8_t *)navpacket, size );
 
     // check sum (2 bytes)
-    ugear_cksum( (uint8_t *)navpacket, size, &cksum0, &cksum1 );
+    ugear_cksum( NAV_PACKET, size, (uint8_t *)navpacket, size,
+		 &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     console_write( buf, 2 );
 }
 
 
 void console_link_servo( struct servo *servopacket ) {
-    static const uint8_t skip_count = 5;
+    static const uint8_t skip_count = 25;
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -143,15 +175,22 @@ void console_link_servo( struct servo *servopacket ) {
 
     // packet size (1 byte)
     size = sizeof(struct servo);
-    buf[0] = size + 2; buf[1] = 0;
-    printf("servo size = %d\n", size+2);
+    buf[0] = size; buf[1] = 0;
+    // printf("servo size = %d\n", size);
     console_write( buf, 1 );
 
     // packet data
-    console_write( servopacket, size );
+    uint8_t bytes = console_write( (uint8_t *)servopacket, size );
+    // uint8_t *tmp = (uint8_t *)servopacket;
+    // printf("%d %d %d %d\n", tmp[0], tmp[1], tmp[2], tmp[3] );
+
+    if ( bytes != size ) {
+      printf("Only wrote %d servo bytes out of %d\n", bytes, size);
+    }
 
     // check sum (2 bytes)
-    ugear_cksum( (uint8_t *)servopacket, size, &cksum0, &cksum1 );
+    ugear_cksum( SERVO_PACKET, size, (uint8_t *)servopacket, size,
+		 &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     console_write( buf, 2 );
 }

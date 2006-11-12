@@ -43,10 +43,17 @@ double 		wraparound(double dta);
 // understand how to go about:
 // www.ssec.honeywell.com/magnetic/datasheets/amr.pdf
 
-#define		bBy	 0.0     
-#define		bBx	 0.0     
-#define         sfx      1
-#define         sfy      1
+// default
+// #define		bBy	 0.0     
+// #define		bBx	 0.0
+// #define         sfx      1
+// #define         sfy      1
+
+// jetta @ passenger feet
+#define		bBy	 0.65
+#define		bBx	 0.25
+#define         sfx      (1.0 / 0.500)
+#define         sfy      (1.0 / 0.375)
 
 // err covariance of accelerometers: users must change these values
 // depending on the environment under the vehicle is in operation
@@ -254,8 +261,10 @@ void AHRS_Algorithm(struct imu *data)
             // second stage kalman filter update to estimate the heading angle
             //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             //hard-iron calibration
-            data->hx = sfx*(data->hx) - bBx;
-            data->hy = sfy*(data->hy) - bBy;
+            // original ... data->hx = sfx*(data->hx) - bBx;
+            // original ... data->hy = sfy*(data->hy) - bBy;
+            data->hx = sfx*(data->hx - bBx);
+            data->hy = sfy*(data->hy - bBy);
    
             //magnetic heading correction due to roll and pitch angle
             cPHI= cos(data->phi);
