@@ -42,18 +42,22 @@ double 		wraparound(double dta);
 // values for their unit if necessary. Use the following link to
 // understand how to go about:
 // www.ssec.honeywell.com/magnetic/datasheets/amr.pdf
-
-// default
-// #define		bBy	 0.0     
-// #define		bBx	 0.0
-// #define         sfx      1
-// #define         sfy      1
+//
+// See the top level README file for more information on calibration
+//
+// default values (no hard iron calibration affects observed, no
+// offset, no scaling needed.)
+//
+// #define bBy 0.0     
+// #define bBx 0.0
+// #define sfx 1.0
+// #define sfy 1.1
 
 // jetta @ passenger feet
-#define		bBy	 0.65
-#define		bBx	 0.25
-#define         sfx      (1.0 / 0.500)
-#define         sfy      (1.0 / 0.375)
+#define	bBy 0.65
+#define	bBx 0.25
+#define sfx (1.0 / 0.500)
+#define sfy (1.0 / 0.375)
 
 // err covariance of accelerometers: users must change these values
 // depending on the environment under the vehicle is in operation

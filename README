@@ -1,4 +1,5 @@
-NOTES:
+CONFIGURE/COMPILING
+===================
 
 1. Add the location of your arm cross compiler binaries to your path.
    This will probably look something like:
@@ -10,4 +11,61 @@ NOTES:
 3. Run "./configure --host=arm-linux"
 
 4. Run "make"
+
+
+MAGNETOMETER HARD IRON CALIBRATION
+==================================
+
+Note that many calibration parameters are "hard" coded in the source.
+You will need to rerun "make" after any changes to the code.
+
+Hard iron calibration parameters are set in ahrs.cpp, bBx, bBy, sfx, and sfy.
+
+Users need to fill out proper values for their unit if necessary (most
+likely will be necessary for you.)  The following link explains some
+of the underlying issues with magnetometer sensors as well as how to
+more effectively use them.
+
+    http://www.ssec.honeywell.com/magnetic/datasheets/amr.pdf
+
+Calibration procedure overview:
+
+Rotate the sensor at least one full revolution recording the sequence
+of hx, hy values (see --log-file on option.)  Plot the recorded hx,hy
+pairs and the data will form an ellipsoid, probably offset from the
+origin.
+
+The goal of the calibration procedure is to come up with horizontal &
+vertical offset and scaling factors that transform this offset
+ellipsoid back into a radius=1 circle centered on the origin.
+
+To do this, bBx, bBy are assigned the center poing of the ellipsoid
+(offset from the origin.)
+
+sfx, sfy are vertical and horizontal scaling factors that are
+multiplied against the recentered ellipsoid to stretch/squash it back
+into a r=1 circle.
+
+Any time the sensor is remounted, repositioned, or reoriented, the sensor
+will need to be recalibrated.
+ 
+The default values in the code are for a situation where no hard iron
+calibration affects observed and no offset or rescaling is needed.
+
+    #define bBy 0.0
+    #define bBx 0.0
+    #define sfx 1.0
+    #define sfy 1.1
+
+As an example, we mount the sensor in the passenger foot well of a VW
+Jetta.  We drive two circles, plot hx, hy and observe the resulting
+ellipsoid.  In this case the ellipsoid is centered at 0.25, 0.65.  The
+total horizontal radius of the ellipsoid is about 0.5 and the vertical
+radius is about 0.375.  The both need to be scaled to 1.0 so sfx is
+set to 1/0.5 and sfy is set to 1/0.357
+
+    #define bBy 0.65
+    #define bBx 0.25
+    #define sfx (1.0 / 0.500)
+    #define sfy (1.0 / 0.375)
 
