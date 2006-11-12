@@ -18,7 +18,7 @@
 /***************************************************************************
  * Open and configure serial port
  ***************************************************************************/
-int open_serial(char* serial_port,int baudrate)
+int open_serial(char* serial_port, int baudrate, bool raw_mode )
 {
     int fd;
     struct termios tio_serial;
@@ -40,6 +40,10 @@ int open_serial(char* serial_port,int baudrate)
     tio_serial.c_iflag = IGNBRK | IGNPAR;
     tio_serial.c_oflag = 0;
     //tio_serial.c_lflag = 0;
+
+    if ( raw_mode ) {
+      tio_serial.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+    }
    
     /***************************************************************************
      * smode = 0, read will be satisfied immediately. The number of characters
