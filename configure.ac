@@ -40,11 +40,14 @@ dnl check for default libraries
 AC_SEARCH_LIBS(clock_nanosleep, [rt])
 AC_SEARCH_LIBS(cos, [m])
 
-AM_CONFIG_HEADER(src/unav_config.h)
+AM_CONFIG_HEADER(src/include/ugear_config.h)
 
 AC_CONFIG_FILES([ \
 	Makefile \
         src/Makefile \
+        src/comms/Makefile \
+        src/control/Makefile \
+        src/include/Makefile \
         src/navigation/Makefile \
 ])
 AC_OUTPUT

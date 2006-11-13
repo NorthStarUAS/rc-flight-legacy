@@ -22,7 +22,7 @@ echo "Running aclocal"
 aclocal
 
 echo "Running autoheader"
-AH_RESULT="src/unav_config.h.in"
+AH_RESULT="src/include/ugear_config.h.in"
 autoheader
 if [ ! -e "$AH_RESULT" ]; then
     echo "ERROR: autoheader didn't create $AH_RESULT!"

@@ -13,11 +13,13 @@
 #include <math.h>
 #include <unistd.h>
 
-#include "control.h"
-#include "globaldefs.h"
+#include "comms/uplink.h"
 #include "navigation/imugps.h"
-#include "uplink.h"
+#include "include/globaldefs.h"
+
 #include "util.h"
+
+#include "control.h"
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
