@@ -17,14 +17,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "ahrs.h"
-#include "control.h"
-#include "globaldefs.h"
-#include "imugps.h"
-#include "logging.h"
+#include "comms/logging.h"
+#include "control/control.h"
+#include "include/globaldefs.h"
+
 #include "matrix.h"
 #include "timing.h"
 #include "util.h"
+
+#include "ahrs.h"
+#include "imugps.h"
 
 //prototype definition
 void 		AHRS_Algorithm(struct imu *data);

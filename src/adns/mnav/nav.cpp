@@ -16,9 +16,10 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include "console_link.h"
-#include "globaldefs.h"
-#include "logging.h"
+#include "comms/console_link.h"
+#include "comms/logging.h"
+#include "include/globaldefs.h"
+
 #include "matrix.h"
 #include "nav.h"
 #include "navfunc.h"

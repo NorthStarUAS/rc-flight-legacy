@@ -15,11 +15,12 @@
 #include <math.h>
 #include <pthread.h>
 
-#include "console_link.h"
-#include "globaldefs.h"
+#include "comms/console_link.h"
+#include "comms/logging.h"
+#include "comms/serial.h"
+#include "include/globaldefs.h"
+
 #include "imugps.h"
-#include "logging.h"
-#include "serial.h"
 #include "timing.h"
 
 //
