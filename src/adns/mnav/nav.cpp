@@ -20,8 +20,8 @@
 #include "globaldefs.h"
 #include "logging.h"
 #include "matrix.h"
+#include "nav.h"
 #include "navfunc.h"
-#include "navigation.h"
 #include "timing.h"
 
 

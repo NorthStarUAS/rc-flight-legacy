@@ -1,7 +1,7 @@
 #include <stdio.h>
 
-#include "ahrs.h"
 #include "logging.h"
+#include "navigation/ahrs.h"
 
 
 // global variables for data file logging
