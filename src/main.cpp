@@ -26,13 +26,13 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
-#include "ahrs.h"
 #include "console_link.h"
 #include "globaldefs.h"
 #include "groundstation.h"
-#include "imugps.h"
 #include "logging.h"
-#include "navigation.h"
+#include "navigation/ahrs.h"
+#include "navigation/imugps.h"
+#include "navigation/nav.h"
 #include "timing.h"
 #include "uplink.h"
 

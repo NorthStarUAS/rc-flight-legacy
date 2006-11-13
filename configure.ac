@@ -45,5 +45,6 @@ AM_CONFIG_HEADER(src/unav_config.h)
 AC_CONFIG_FILES([ \
 	Makefile \
         src/Makefile \
+        src/navigation/Makefile \
 ])
 AC_OUTPUT
