@@ -2,10 +2,11 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "console_link.h"
+#include "checksum.h"
 #include "globaldefs.h"
 #include "serial.h"
-#include "util.h"
+
+#include "console_link.h"
 
 // global variables
 

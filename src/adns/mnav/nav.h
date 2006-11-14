@@ -7,7 +7,7 @@
 #define _UGEAR_NAVIGATION_H
 
 
-#include "matrix.h"
+#include "util/matrix.h"
 
 
 // global variables

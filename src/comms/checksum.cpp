@@ -1,4 +1,4 @@
-#include "util.h"
+#include "checksum.h"
 
 
 void ugear_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size,
