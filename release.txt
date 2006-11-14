@@ -1,3 +1,7 @@
+NOTE: THIS IS THE RELEASE.TXT FILE FROM THE ORIGINAL MNAV CODE THIS PROJECT
+BRANCHED FROM:
+
+
 #MNAV Avionics Software Version 1.3
 #This project is GPL'd. For complete details on this licensing, please see
 #the "COPYING" file.
