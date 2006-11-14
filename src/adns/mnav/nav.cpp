@@ -19,11 +19,11 @@
 #include "comms/console_link.h"
 #include "comms/logging.h"
 #include "include/globaldefs.h"
+#include "util/matrix.h"
+#include "util/navfunc.h"
+#include "util/timing.h"
 
-#include "matrix.h"
 #include "nav.h"
-#include "navfunc.h"
-#include "timing.h"
 
 
 //

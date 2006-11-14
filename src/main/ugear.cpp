@@ -26,15 +26,15 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
-#include "console_link.h"
-#include "globaldefs.h"
-#include "groundstation.h"
-#include "logging.h"
+#include "comms/console_link.h"
+#include "comms/groundstation.h"
+#include "comms/logging.h"
+#include "comms/uplink.h"
+#include "include/globaldefs.h"
 #include "navigation/ahrs.h"
 #include "navigation/imugps.h"
 #include "navigation/nav.h"
-#include "timing.h"
-#include "uplink.h"
+#include "util/timing.h"
 
 #ifdef NCURSE_DISPLAY_OPTION
 #include <ncurses/ncurses.h>

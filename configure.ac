@@ -8,7 +8,7 @@ dnl Require at least automake 2.52
 AC_PREREQ(2.52)
 
 dnl Sanity check of the distribution
-AC_CONFIG_SRCDIR([src/main.cpp])
+AC_CONFIG_SRCDIR([src/main/ugear.cpp])
 
 dnl Initialize the automake system (provide project name and version)
 AM_INIT_AUTOMAKE(MicroGear, 1.0)
@@ -48,6 +48,8 @@ AC_CONFIG_FILES([ \
         src/comms/Makefile \
         src/control/Makefile \
         src/include/Makefile \
+        src/main/Makefile \
         src/navigation/Makefile \
+        src/util/Makefile \
 ])
 AC_OUTPUT

@@ -20,9 +20,9 @@
 #include "comms/logging.h"
 #include "control/control.h"
 #include "include/globaldefs.h"
+#include "util/matrix.h"
+#include "util/timing.h"
 
-#include "matrix.h"
-#include "timing.h"
 #include "util.h"
 
 #include "ahrs.h"

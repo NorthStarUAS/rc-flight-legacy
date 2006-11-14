@@ -19,9 +19,9 @@
 #include "comms/logging.h"
 #include "comms/serial.h"
 #include "include/globaldefs.h"
+#include "util/timing.h"
 
 #include "imugps.h"
-#include "timing.h"
 
 //
 // uNAV packet length definition
