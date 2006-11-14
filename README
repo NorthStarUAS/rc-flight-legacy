@@ -1,3 +1,21 @@
+WELCOME
+=======
+
+The MicroGear project is an off shoot of the MNAV project hosted at:
+http://www.sf.net/projects/micronav/
+
+The micronav code is a very simplistic demo application to show some of
+the capabilities of the CrossBow MicroNav UAV controller.  (The micronav
+may be refered to as MNAV or uNAV.)
+
+The goal of the MicroGear project is to turn the original MNAV demo code
+into a full featured, highly capable, highly configurable, advanced UAV
+guidance, navigation, and control device, and at the same time build in
+a variety of advanced and useful features that don't exist in the demo code.
+Robustness, performance, and minimizing memory and disk space footprints are
+critical and highest priority features of this code.
+
+
 CONFIGURE/COMPILING
 ===================
 
@@ -11,6 +29,10 @@ CONFIGURE/COMPILING
 3. Run "./configure --host=arm-linux"
 
 4. Run "make"
+
+5. The resulting applications are called "ugear" and "decoder".  You will
+   find them in src/main/ and they will need to be copied over to the
+   target computer.
 
 
 MAGNETOMETER HARD IRON CALIBRATION
