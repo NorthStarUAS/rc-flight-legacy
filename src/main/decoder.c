@@ -18,32 +18,36 @@ int main()
     struct gps gdta;
     struct nav ndta;
     struct servo sdta;
+    struct health hdta;
 
     // int i = 0;
 
-    FILE *fimu,*fgps,*fnav, *fservo, *fwimu, *fwgps, *fwnav, *fwservo;
-
-    /* FIXME: name used, but never set! */
-    char *name = NULL;
+    FILE *fimu, *fgps, *fnav, *fservo, *fhealth;
+    FILE *fwimu, *fwgps, *fwnav, *fwservo, *fwhealth;
 
     //read file
     if((fimu = fopen("/mnt/cf1/imu.dat","r+b"))==NULL) {
-        printf("%s does not exist...error!\n",name);
+        printf("imu.dat does not exist...error!\n");
         exit(-1);
     }
 
     if((fgps = fopen("/mnt/cf1/gps.dat","r+b"))==NULL) {
-        printf("%s does not exist...error!\n",name);
+        printf("gps.dat does not exist...error!\n");
         exit(-1);
     }
 
     if((fnav = fopen("/mnt/cf1/nav.dat","r+b"))==NULL) {
-        printf("%s does not exist...error!\n",name);
+        printf("nav.dat does not exist...error!\n");
         exit(-1);
     }
 
     if((fservo = fopen("/mnt/cf1/servo.dat","r+b"))==NULL) {
-        printf("%s does not exist...error!\n",name);
+        printf("servo.dat does not exist...error!\n");
+        exit(-1);
+    }
+
+    if((fhealth = fopen("/mnt/cf1/health.dat","r+b"))==NULL) {
+        printf("health.dat does not exist...error!\n");
         exit(-1);
     }
 
@@ -52,6 +56,7 @@ int main()
     fwgps = fopen("/mnt/cf1/gps.txt","w+t");
     fwnav = fopen("/mnt/cf1/nav.txt","w+t");
     fwservo = fopen("/mnt/cf1/servo.txt","w+t");
+    fwhealth = fopen("/mnt/cf1/health.txt","w+t");
 
     while (!feof(fimu)) {
         fread(&dta,sizeof(struct imu),1,fimu);
@@ -85,6 +90,12 @@ int main()
                 sdta.chn[4],sdta.chn[5],sdta.chn[6],sdta.chn[7],sdta.status);
     }
 
+    while (!feof(fhealth)) {
+        fread(&hdta,sizeof(struct health),1,fhealth);
+        fprintf(fwhealth,"%f%.2f\t%.2f\t%d\t%f\n",
+                hdta.time, hdta.volts_raw, hdta.volts, hdta.est_seconds);
+    }
+
 
     fclose(fimu);
     fclose(fwimu);
@@ -94,6 +105,8 @@ int main()
     fclose(fwnav);
     fclose(fservo);
     fclose(fwservo);
+    fclose(fhealth);
+    fclose(fwhealth);
 
     printf("data is now dumped in /mnt/cf1 \n");
 
