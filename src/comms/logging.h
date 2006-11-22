@@ -23,8 +23,11 @@ void log_gps( struct gps *gpspacket );
 void log_imu( struct imu *imupacket );
 void log_nav( struct nav *navpacket );
 void log_servo( struct servo *servopacket );
+void log_health( struct health *healthpacket );
 
 void display_message( struct imu *data, struct gps *gdata,
-                      struct nav *ndata, int disptime );
+                      struct nav *ndata, struct servo *sdata,
+                      struct health *hdata, int disptime );
+
 
 #endif // _UGEAR_LOGGING_H

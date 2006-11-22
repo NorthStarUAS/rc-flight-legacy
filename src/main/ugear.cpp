@@ -249,11 +249,11 @@ int main(int argc, char **argv)
 
         // health status
         sgbatmon_update();
-        
+        log_health( &healthpacket );
+
         if ( display_on ) {
-            display_message(&imupacket, &gpspacket, &navpacket, 5);
-            printf("Battery voltage = %.2f  Estimated remaining = %d sec\n",
-                   healthpacket.volts, healthpacket.est_seconds);
+            display_message( &imupacket, &gpspacket, &navpacket,
+                             &servopacket, &healthpacket, 5 );
         }
     } // end main loop
 

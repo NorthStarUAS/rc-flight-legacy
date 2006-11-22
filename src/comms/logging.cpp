@@ -10,6 +10,7 @@ static FILE *fimu = NULL;
 static FILE *fgps = NULL;
 static FILE *fnav = NULL;
 static FILE *fservo = NULL;
+static FILE *fhealth = NULL;
 
 bool log_to_file = false;       // log to file is enabled/disabled
 bool display_on = false;        // dump summary to display periodically
@@ -46,6 +47,11 @@ bool logging_init() {
         return false;
     }
 
+    if ( (fhealth = fopen("/mnt/cf1/health.dat","w+b")) == NULL ) {
+        printf("health.dat cannot be created in /mnt/cf1 directory...error!\n");
+        return false;
+    }
+
     return true;
 }
 
@@ -57,6 +63,7 @@ bool logging_close() {
     fclose(fgps);
     fclose(fnav);
     fclose(fservo);
+    fclose(fhealth);
 
     return true;
 }
@@ -79,6 +86,11 @@ void log_nav( struct nav *navpacket ) {
 
 void log_servo( struct servo *servopacket ) {
     fwrite( servopacket, sizeof(struct servo), 1, fservo );
+}
+
+
+void log_health( struct health *healthpacket ) {
+    fwrite( healthpacket, sizeof(struct health), 1, fhealth );
 }
 
 
@@ -108,7 +120,9 @@ static chtype use_colors(int pairs, chtype attrs)
 
 
 // periodic console summary of attitude/location estimate
-void display_message(struct imu *data, struct gps *gdata, struct nav *ndata, int disptime)
+void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
+                      struct servo *sdata, struct health *hdata,
+                      int disptime )
 {
     static int count=0;
     // static double r2d = 57.3;
@@ -193,11 +207,16 @@ void display_message(struct imu *data, struct gps *gdata, struct nav *ndata, int
         printf("[deg  ]:phi = %6.2f the = %6.2f psi = %6.2f \n",data->phi*57.3,data->the*57.3,data->psi*57.3);
         printf("[Gauss]:hx  = %6.3f hy  = %6.3f hz  = %6.3f \n",data->hx,data->hy,data->hz);
         printf("[     ]:Ps  = %6.3f Pt  = %6.3f             \n",data->Ps,data->Pt);
-        printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n\n",xs[4]*57.3,xs[5]*57.3,xs[6]*57.3);
+        printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n",xs[4]*57.3,xs[5]*57.3,xs[6]*57.3);
         if ( ndata->err_type == no_error ) {
             printf("[GPS  ]:ITOW= %5d[ms], lon = %f[deg], lat = %f[deg], alt = %f[m]\n",gdata->ITOW,gdata->lon,gdata->lat,gdata->alt);	
             printf("[nav  ]:                 lon = %f[deg], lat = %f[deg], alt = %f[m]\n",            ndata->lon,ndata->lat,ndata->alt);	
         }
+        printf("[Servo]: %d %d %d %d %d\n", sdata->chn[0], sdata->chn[1],
+               sdata->chn[2], sdata->chn[3], sdata->chn[4]);
+        printf("[helth]: v = %.2f sec = %d\n", hdata->volts,
+               hdata->est_seconds);
+        printf("\n");
 
         count = 0;
     }	
