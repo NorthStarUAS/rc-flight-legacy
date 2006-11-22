@@ -53,7 +53,7 @@ struct servo {
    double time;
 };
 
-struct sgbatmon {
+struct health {
     float volts_raw;            /* raw volt reading */
     float volts;                /* filtered volts */
     uint16_t est_seconds;       /* estimated useful seconds remaining */
@@ -64,7 +64,7 @@ extern struct imu imupacket;
 extern struct gps gpspacket;
 extern struct nav navpacket;
 extern struct servo servopacket;
-extern struct sgbatmon batmonpacket;
+extern struct health healthpacket;
 
 //mutex and conditional variables
 extern pthread_mutex_t mutex_imu;

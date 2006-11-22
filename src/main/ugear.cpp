@@ -253,7 +253,7 @@ int main(int argc, char **argv)
         if ( display_on ) {
             display_message(&imupacket, &gpspacket, &navpacket, 5);
             printf("Battery voltage = %.2f  Estimated remaining = %d sec\n",
-                   batmonpacket.volts, batmonpacket.est_seconds);
+                   healthpacket.volts, healthpacket.est_seconds);
         }
     } // end main loop
 
