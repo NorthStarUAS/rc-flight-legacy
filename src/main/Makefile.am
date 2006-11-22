@@ -7,6 +7,7 @@ ugear_LDFLAGS = -nodefaultlibs
 ugear_LDADD = \
 	$(top_builddir)/src/comms/libcomms.a \
 	$(top_builddir)/src/control/libcontrol.a \
+	$(top_builddir)/src/health/libhealth.a \
 	$(top_builddir)/src/navigation/libnavigation.a \
 	$(top_builddir)/src/util/libutil.a \
 	-lm -lgcc -lc

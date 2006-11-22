@@ -1,2 +1,2 @@
-SUBDIRS = comms control include navigation util main
+SUBDIRS = comms control health include navigation util main
 
