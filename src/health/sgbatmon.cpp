@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "comms/console_link.h"
 #include "comms/logging.h"
 #include "util/timing.h"
 
 #include "sgbatmon.h"
 
 
-struct sgbatmon batmonpacket;
+struct health healthpacket;
 
 
 static FILE *fbat;
@@ -32,31 +33,31 @@ bool sgbatmon_update() {
             float v = atof(buf);
             if ( v < 0 ) {
                 // nonsense value keep previous reading.
-                v = batmonpacket.volts;
+                v = healthpacket.volts;
             }
             if ( start_volts < 0.1 ) {
-                batmonpacket.volts = v;
+                healthpacket.volts = v;
                 start_volts = v;
                     start_time = get_Time();
             }
-            printf("buf = %s, raw volts = %.2f\n", buf, v);
-            batmonpacket.volts_raw = v;
-            batmonpacket.volts = (batmonpacket.volts*99.0 + v) / 100.0;
-            batmonpacket.time = get_Time();
+            // printf("buf = %s, raw volts = %.2f\n", buf, v);
+            healthpacket.volts_raw = v;
+            healthpacket.volts = (healthpacket.volts*99.0 + v) / 100.0;
+            healthpacket.time = get_Time();
                 
-            float v_used = start_volts - batmonpacket.volts;
-            float t_elapsed = batmonpacket.time - start_time;
+            float v_used = start_volts - healthpacket.volts;
+            float t_elapsed = healthpacket.time - start_time;
             if ( t_elapsed > 0 ) {
                 double rate = v_used / t_elapsed;
-                printf("volts per sec = %.10f\n", rate);
+                // printf("volts per sec = %.10f\n", rate);
                 if ( rate > 0.0000001 ) {
-                    float est = (batmonpacket.volts - volt_cutoff) / rate;
+                    float est = (healthpacket.volts - volt_cutoff) / rate;
                     if ( est < 0.0 ) est = 0.0;
-                    batmonpacket.est_seconds = (uint16_t)est;
+                    healthpacket.est_seconds = (uint16_t)est;
                 }
             }
         } else {
-            printf("fread() failed\n");
+	    printf("fread() failed\n");
             fclose( fbat );
             return false;
         }
@@ -66,6 +67,10 @@ bool sgbatmon_update() {
             printf("Cannot open battery monitor device\n");
         }
         return false;
+    }
+
+    if ( console_link_on ) {
+      console_link_health( &healthpacket );
     }
 
     return true;
