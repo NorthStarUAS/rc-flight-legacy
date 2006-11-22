@@ -30,6 +30,7 @@
 #include "comms/groundstation.h"
 #include "comms/logging.h"
 #include "comms/uplink.h"
+#include "health/sgbatmon.h"
 #include "include/globaldefs.h"
 #include "navigation/ahrs.h"
 #include "navigation/imugps.h"
@@ -221,6 +222,9 @@ int main(int argc, char **argv)
     // open networked ground station client
     if ( wifi ) retvalsock = open_client();
 
+    // init battery status monitor
+    sgbatmon_init();
+
     //
     // main loop
     //
@@ -228,7 +232,7 @@ int main(int argc, char **argv)
     while (1) {
         sigsuspend(&allsigs);
   
-        //telemetry
+        // telemetry
         if ( wifi ) {
             if ( retvalsock ) {
                 send_client();
@@ -242,8 +246,14 @@ int main(int argc, char **argv)
                 }
             }        
         }
+
+        // health status
+        sgbatmon_update();
+        
         if ( display_on ) {
             display_message(&imupacket, &gpspacket, &navpacket, 5);
+            printf("Battery voltage = %.2f  Estimated remaining = %d sec\n",
+                   batmonpacket.volts, batmonpacket.est_seconds);
         }
     } // end main loop
 

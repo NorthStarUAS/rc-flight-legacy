@@ -47,6 +47,7 @@ AC_CONFIG_FILES([ \
         src/Makefile \
         src/comms/Makefile \
         src/control/Makefile \
+        src/health/Makefile \
         src/include/Makefile \
         src/main/Makefile \
         src/navigation/Makefile \
