@@ -57,9 +57,9 @@ double 		wraparound(double dta);
 
 // jetta @ passenger feet
 #define	bBy 0.65
-#define	bBx 0.25
+#define	bBx 0.15
 #define sfx (1.0 / 0.500)
-#define sfy (1.0 / 0.375)
+#define sfy (1.0 / 0.5)
 
 // err covariance of accelerometers: users must change these values
 // depending on the environment under the vehicle is in operation
