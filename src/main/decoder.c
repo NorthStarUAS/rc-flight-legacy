@@ -92,7 +92,7 @@ int main()
 
     while (!feof(fhealth)) {
         fread(&hdta,sizeof(struct health),1,fhealth);
-        fprintf(fwhealth,"%f%.2f\t%.2f\t%d\t%f\n",
+        fprintf(fwhealth,"%f\t%.2f\t%.2f\t%d\n",
                 hdta.time, hdta.volts_raw, hdta.volts, hdta.est_seconds);
     }
 
