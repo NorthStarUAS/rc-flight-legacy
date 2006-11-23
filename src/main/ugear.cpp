@@ -249,7 +249,9 @@ int main(int argc, char **argv)
 
         // health status
         sgbatmon_update();
-        log_health( &healthpacket );
+	if ( log_to_file ) {
+            log_health( &healthpacket );
+	}
 
         if ( display_on ) {
             display_message( &imupacket, &gpspacket, &navpacket,
