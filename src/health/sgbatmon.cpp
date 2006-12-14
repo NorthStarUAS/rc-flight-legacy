@@ -13,7 +13,7 @@ struct health healthpacket;
 
 static FILE *fbat;
 static float start_volts = 0.0;
-static float volt_cutoff = 3.30;
+static float volt_cutoff = 3.40;
 static double start_time = 0.0;
 
 
@@ -42,7 +42,7 @@ bool sgbatmon_update() {
             }
             // printf("buf = %s, raw volts = %.2f\n", buf, v);
             healthpacket.volts_raw = v;
-            healthpacket.volts = (healthpacket.volts*99.0 + v) / 100.0;
+            healthpacket.volts = healthpacket.volts*0.99 + v*0.01;
             healthpacket.time = get_Time();
                 
             float v_used = start_volts - healthpacket.volts;
