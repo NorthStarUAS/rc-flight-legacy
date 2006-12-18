@@ -1,5 +1,5 @@
 /*******************************************************************************
- * FILE: avionics.c
+ * FILE: ugear.cpp
  * DESCRIPTION:
  *   
  *   
@@ -288,7 +288,7 @@ void timer_intr1(int sig)
 //
 void help_message()
 {
-    printf("\n./avionics -option1 -option2 ... \n");
+    printf("\n./ugear --option1 on/off --option2 on/off --option3 ... \n");
     printf("--wifi on/off        : enable or disable WiFi communication with GS \n");
     printf("--log-file on/off    : enable or disable datalogging in /mnt/cf1/ \n");	
     printf("--console-link on/off: enable or disable serial/console link\n");	
