@@ -1,0 +1,2 @@
+Add update rate (ahrs/nav/etc.) values to the health structure so the
+ground station can evaluate the performance of the onboard computer.
