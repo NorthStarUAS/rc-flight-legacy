@@ -80,6 +80,12 @@ double get_Time()
     return tnow;
 }
 
+// The clock_nanosleep() function doesn't seem to be implemented or available
+// in the gumstix development environment (gcc-4.x, linux-2.6.x) and is never
+// used in this code anyplace ...
+
+#if 0
+
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // get microsleep
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -93,4 +99,4 @@ void microsleep(int interval)
     clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &naptime, NULL);
 }
 
-
+#endif // 0
