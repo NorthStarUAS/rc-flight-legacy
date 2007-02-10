@@ -10,7 +10,6 @@
  *******************************************************************************/
 
 #include <stdio.h>
-//#include <pthread.h>
 #include <sys/types.h>
 
 #include <sys/socket.h>
@@ -33,7 +32,7 @@
 #include "health/sgbatmon.h"
 #include "include/globaldefs.h"
 #include "navigation/ahrs.h"
-#include "navigation/imugps.h"
+#include "navigation/mnav.h"
 #include "navigation/nav.h"
 #include "util/timing.h"
 
@@ -45,7 +44,6 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //pre-defined defintions
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//#define NUM_THREADS	  4		 // number of thread to spawn by main
 #define NETWORK_PORT      9001		 // network port number
 #define UPDATE_USECS	  200000         // downlink at 5 Hz
 
@@ -55,7 +53,7 @@
 bool wifi        = false;       // wifi connection enabled/disabled
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//thread prototypes
+//prototypes
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void	    timer_intr1(int sig);
 void	    help_message();
@@ -121,7 +119,7 @@ int main(int argc, char **argv)
     nav_init();
 
     // Initialize the communcation channel with the MNAV
-    imugps_init();
+    mnav_init();
 
     // open networked ground station client
     if ( wifi ) retvalsock = open_client();
@@ -134,7 +132,7 @@ int main(int argc, char **argv)
     //
 
     while ( true ) {
-        imugps_update();
+        mnav_update();
 
         // telemetry
         if ( wifi ) {
@@ -166,7 +164,7 @@ int main(int argc, char **argv)
     // close and exit
     ahrs_close();
     nav_close();
-    imugps_close();
+    mnav_close();
 }
 
 
