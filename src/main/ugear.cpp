@@ -127,14 +127,35 @@ int main(int argc, char **argv)
     if ( wifi ) retvalsock = open_client();
 
     //
-    // main loop
+    // Main loop.  The mnav_update() command blocks on MNAV sensor
+    // data which is spit out at precisely 50hz.  So this loop will
+    // run at 50 hz and we can time all the other functions based off
+    // that update rate.
     //
+
+    int health_counter = 0;
+    int display_counter = 0;
+    int wifi_counter = 0;
 
     while ( true ) {
         mnav_update();
 
+        health_counter++;
+        display_counter++;
+        wifi_counter++;
+
+        // health status
+        if ( health_counter >= 50 ) {
+            health_counter = 0;
+            health_update();
+            if ( log_to_file ) {
+                log_health( &healthpacket );
+            }
+        }
+
         // telemetry
-        if ( wifi ) {
+        if ( wifi && wifi_counter >= 10 ) {
+            wifi_counter = 0;
             if ( retvalsock ) {
                 send_client();
                 if ( display_on ) snap_time_interval("TCP",  5, 2);
@@ -148,15 +169,10 @@ int main(int argc, char **argv)
             }        
         }
 
-        // health status
-        health_update();
-	if ( log_to_file ) {
-            log_health( &healthpacket );
-	}
-
-        if ( display_on ) {
+        if ( display_on && display_counter >= 25 ) {
+            display_counter = 0;
             display_message( &imupacket, &gpspacket, &navpacket,
-                             &servopacket, &healthpacket, 5 );
+                             &servopacket, &healthpacket );
         }
     } // end main loop
 

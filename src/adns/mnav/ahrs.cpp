@@ -310,8 +310,8 @@ void ahrs_algorithm(struct imu *data)
    
     vgCheck = !vgCheck;
 
-    if ( display_on ) {
-        printf("roll = %.2f  pitch = %.2f  heading = %.2f\n",
-               data->phi * r2d, data->the * r2d, data->psi * r2d );
-    }
+    // if ( display_on ) {
+    //     printf("roll = %.2f  pitch = %.2f  heading = %.2f\n",
+    //            data->phi * r2d, data->the * r2d, data->psi * r2d );
+    // }
 }
