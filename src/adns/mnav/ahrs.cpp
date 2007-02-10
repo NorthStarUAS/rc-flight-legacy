@@ -117,6 +117,8 @@ void ahrs_init()
     }
 }
 
+
+// ahrs update() routine
 void ahrs_update()
 {
     // int rc;
@@ -155,8 +157,10 @@ void ahrs_close()
     mat_free(tmp71);
 }
 
+
 //
-// extended kalman filter algorithm
+// extended kalman filter algorithm.  Prediction is done at 50hz (the
+// MNAV data rate) and correction is done every other frame at 25hz.
 //
 
 void ahrs_algorithm(struct imu *data)

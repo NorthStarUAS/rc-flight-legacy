@@ -138,13 +138,18 @@ int main(int argc, char **argv)
     int wifi_counter = 0;
 
     while ( true ) {
-        mnav_update();
-
+        // upate timing counters
         health_counter++;
         display_counter++;
         wifi_counter++;
 
-        // health status
+        // fetch the next data packet from the MNAV sensor.  This
+        // function will then call the ahrs_update() and nav_update()
+        // functions as appropriate to compute the attitude and
+        // location estimates.
+        mnav_update();
+
+        // health status (update at 1hz)
         if ( health_counter >= 50 ) {
             health_counter = 0;
             health_update();
@@ -153,7 +158,7 @@ int main(int argc, char **argv)
             }
         }
 
-        // telemetry
+        // telemetry (update at 5hz)
         if ( wifi && wifi_counter >= 10 ) {
             wifi_counter = 0;
             if ( retvalsock ) {
@@ -169,6 +174,7 @@ int main(int argc, char **argv)
             }        
         }
 
+        // sensor summary dispay (update at 2hz)
         if ( display_on && display_counter >= 25 ) {
             display_counter = 0;
             display_message( &imupacket, &gpspacket, &navpacket,

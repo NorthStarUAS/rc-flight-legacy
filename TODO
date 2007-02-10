@@ -1,2 +1,4 @@
-Add update rate (ahrs/nav/etc.) values to the health structure so the
-ground station can evaluate the performance of the onboard computer.
+- Make MNAV serial device selectable from the command line
+
+- Add update rate (ahrs/nav/etc.) values to the health structure so the
+  ground station can evaluate the performance of the onboard computer.
