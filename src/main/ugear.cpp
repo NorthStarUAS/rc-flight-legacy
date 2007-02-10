@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 #include <stdio.h>
-#include <pthread.h>
+//#include <pthread.h>
 #include <sys/types.h>
 
 #include <sys/socket.h>
@@ -45,7 +45,7 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //pre-defined defintions
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#define NUM_THREADS	  4		 // number of thread to spawn by main
+//#define NUM_THREADS	  4		 // number of thread to spawn by main
 #define NETWORK_PORT      9001		 // network port number
 #define UPDATE_USECS	  200000         // downlink at 5 Hz
 
@@ -53,14 +53,6 @@
 //global variables
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 bool wifi        = false;       // wifi connection enabled/disabled
-
-//mutex and conditional variables
-pthread_mutex_t	mutex_imu;
-pthread_mutex_t	mutex_gps;
-pthread_mutex_t mutex_nav;
-pthread_cond_t  trigger_ahrs;
-pthread_cond_t  trigger_nav;
-
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //thread prototypes
@@ -74,19 +66,10 @@ void	    help_message();
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 int main(int argc, char **argv)
 {
-    pthread_t 		threads[NUM_THREADS];
-    pthread_attr_t	attr;
-    struct sched_param	param;
-    struct timespec	timeout;
-    int 		rc[NUM_THREADS], tnum, iarg;
+    int tnum, iarg;
     static short	attempt = 0;
-    struct itimerval    it;
-    struct sigaction    sa;
-    sigset_t            allsigs;
    
-    /*********************************************************************
-     *Parse the command line
-     *********************************************************************/
+    // Parse the command line
     for ( iarg = 1; iarg < argc; iarg++ ) {
         if ( !strcmp(argv[iarg], "--log-file" )  ) {
             ++iarg;
@@ -115,28 +98,6 @@ int main(int argc, char **argv)
         }
     }
 
-#ifdef NCURSE_DISPLAY_OPTION    
-    /*********************************************************************
-     *ncurses setting for display
-     *********************************************************************/
-    int width,height;
- 
-    initscr();
-    if (has_colors())
-   	start_color();
-    cbreak();
-    curs_set(0);
-    width = 70;
-    height= 23;
-    // Create a drawing window 
-    win = newwin(height, width, (LINES - height) /2, (COLS - width) /2);
-    if (win == NULL) {
-   	endwin();
-   	printf("ncurses window creation failed!...\n");
-  	_exit(-1);
-    }		
-#endif
-
     // open console link if requested
     if ( console_link_on ) {
         console_link_init();
@@ -151,73 +112,16 @@ int main(int argc, char **argv)
         }
     }
 
-    // initialize mutex and condition variables
-    pthread_mutex_init(&mutex_imu,NULL);
-    pthread_mutex_init(&mutex_gps,NULL);
-    pthread_mutex_init(&mutex_nav,NULL);
-    pthread_cond_init(&trigger_ahrs,NULL);
-    pthread_cond_init(&trigger_nav,NULL);
+    // Initialize AHRS code.  Must be called before ahrs_update() or
+    // ahrs_close()
+    ahrs_init();
 
-    //
-    // create multiple threads
-    //
+    // Initialize the NAV code.  Must be called before nav_update() or
+    // nav_close()
+    nav_init();
 
-    // setup the nice value for higher process priority
-    // setpriority(PRIO_PROCESS, getpid(), -10);
-
-    // initialize and set thread detached attribute
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-    // set scheduling policy
-    pthread_attr_setinheritsched(&attr,PTHREAD_EXPLICIT_SCHED);
-    pthread_attr_setschedpolicy(&attr, SCHED_RR);
-
-    sleep(2);
-
-    // top priority
-    param.sched_priority = sched_get_priority_max(SCHED_RR); 
-    pthread_attr_setschedparam(&attr, &param);
-    rc[0] = pthread_create(&threads[0], &attr, imugps_acq,  (void *)0);
-
-    // top priority
-    param.sched_priority -=  0;
-    pthread_attr_setschedparam(&attr, &param);
-    rc[1] = pthread_create(&threads[1], &attr, ahrs_thread, (void *)1);
-
-    // priority - 5
-    param.sched_priority -=  5;
-    pthread_attr_setschedparam(&attr, &param);
-    rc[2] = pthread_create(&threads[2], &attr, navigation, (void *)2);
-
-    // priority - 10
-    param.sched_priority -=  5;
-    pthread_attr_setschedparam(&attr, &param);
-    rc[3] = pthread_create(&threads[3], &attr, uplink_acq, (void *)3);
-
-    for ( tnum = 0; tnum < NUM_THREADS; tnum++ ) {
-        if ( rc[tnum] ) {
-            printf("ERROR: return code from pthread_create() is %d\n",
-                   rc[tnum]);
-            _exit(-1);
-        }
-    }
-
-    // time interval setting
-    timeout.tv_sec = 0;
-    timeout.tv_nsec = NSECS_PER_SEC / 10;
-
-    it.it_interval.tv_sec  = 0;
-    it.it_interval.tv_usec = UPDATE_USECS;
-    it.it_value            = it.it_interval;
-
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-    sa.sa_handler = timer_intr1;
-
-    sigaction(SIGALRM, &sa, NULL);
-    setitimer(ITIMER_REAL, &it, NULL);
-    sigemptyset(&allsigs);
+    // Initialize the communcation channel with the MNAV
+    imugps_init();
 
     // open networked ground station client
     if ( wifi ) retvalsock = open_client();
@@ -229,9 +133,9 @@ int main(int argc, char **argv)
     // main loop
     //
 
-    while (1) {
-        sigsuspend(&allsigs);
-  
+    while ( true ) {
+        imugps_update();
+
         // telemetry
         if ( wifi ) {
             if ( retvalsock ) {
@@ -259,21 +163,10 @@ int main(int argc, char **argv)
         }
     } // end main loop
 
-    //
-    // close
-    //
-
-#ifdef NCURSE_DISPLAY_OPTION   
-    endwin();
-#endif
-   
-    pthread_mutex_destroy(&mutex_imu);
-    pthread_mutex_destroy(&mutex_gps);
-    pthread_mutex_destroy(&mutex_nav);
-   
-    pthread_attr_destroy(&attr);
-    pthread_cond_destroy(&trigger_ahrs);
-    pthread_exit(NULL);
+    // close and exit
+    ahrs_close();
+    nav_close();
+    imugps_close();
 }
 
 

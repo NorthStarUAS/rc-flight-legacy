@@ -10,7 +10,9 @@
 
 extern double xs[7];
 
-void *ahrs_thread(void *thread_id);
+void ahrs_init();
+void ahrs_update();
+void ahrs_close();
 
 
 #endif // _UGEAR_AHRS_H

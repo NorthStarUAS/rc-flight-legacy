@@ -22,27 +22,26 @@ double exe_rate[3];
 //
 void snap_time_interval( char *threadname, int displaytime, short id )
 {
-    static int 		count[5]={0,};
-    struct timespec		ts;
-    static struct timespec  ts_p[5];
-    double 			sec,nsec,elapsed;
-    static double           sum[5]={0.,};
+    static int 		   count[5]={0,};
+    struct timespec	   ts;
+    static struct timespec ts_p[5];
+    double 		   sec, nsec, dt, rate;
+    static double          sum[5]={0.,};
     
     clock_gettime(CLOCK_REALTIME, &ts);
     sec     = ts.tv_sec - ts_p[id].tv_sec;
     nsec    = ts.tv_nsec- ts_p[id].tv_nsec;
-    elapsed = sec + nsec*1.0e-9;
+    dt = sec + nsec*1.0e-9;
     ts_p[id]= ts;
-    sum[id]+= elapsed;
+    sum[id] += dt;
 	
     if (++count[id] == displaytime) {
-        elapsed = sum[id]/displaytime;
+        rate = sum[id] / count[id];
+        exe_rate[id] = rate;
+
+        printf("[%s]: For %.1f sec: updates ran at %.2f(hz):%.2f(ms)\n",
+               threadname, sum[id], 1/rate, rate*1000);
         sum[id] = 0;
-        exe_rate[id]=elapsed;
-#ifndef NCURSE_DISPLAY_OPTION
-        printf("[%s]:The cycles in %5.2f (Hz):%5.2f (ms) \n",
-               threadname, 1/elapsed, elapsed*1000);
-#endif		
         count[id] = 0;
     }
 }
