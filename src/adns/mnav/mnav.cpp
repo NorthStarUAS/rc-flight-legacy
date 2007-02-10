@@ -124,9 +124,7 @@ void mnav_update()
     int nbytes = 0;
     uint8_t input_buffer[FULL_PACKET_SIZE]={0,};
 
-    int no_gps_count = 0;
     bool imu_valid_data = false;
-    bool gps_valid_data = false;
 
     // Find start of packet: the heade r (2 bytes) starts with 0x5555
     while ( headerOK != 2 ) {
@@ -160,7 +158,6 @@ void mnav_update()
         break;
 
     case 'N':               // IMU packet with GPS
-        printf("imu+gps data packet\n");
         while ( nbytes < FULL_PACKET_SIZE ) {
             nbytes += read(sPort2, input_buffer+nbytes,
                            FULL_PACKET_SIZE-nbytes); 
@@ -176,7 +173,6 @@ void mnav_update()
             // check GPS data packet
             if(input_buffer[33]=='G') {
                 decode_gpspacket(&gpspacket, input_buffer);
-                gps_valid_data = true;
             } else {
                 printf("[gps]:data error...!\n");
                 gpspacket.err_type = got_invalid;
@@ -208,14 +204,7 @@ void mnav_update()
         }
     }
 
-    if ( gps_valid_data || no_gps_count >= 5 ) {
-        nav_update();
-        no_gps_count = 0;
-    } else {
-        no_gps_count++;
-    }
-    
-    if ( gps_valid_data ) {
+    if ( gpspacket.err_type == no_error ) {
         if ( console_link_on ) {
             console_link_gps( &gpspacket );
         }

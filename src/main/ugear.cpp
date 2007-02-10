@@ -133,12 +133,14 @@ int main(int argc, char **argv)
     // that update rate.
     //
 
+    int nav_counter = 0;
     int health_counter = 0;
     int display_counter = 0;
     int wifi_counter = 0;
 
     while ( true ) {
         // upate timing counters
+        nav_counter++;
         health_counter++;
         display_counter++;
         wifi_counter++;
@@ -148,6 +150,12 @@ int main(int argc, char **argv)
         // functions as appropriate to compute the attitude and
         // location estimates.
         mnav_update();
+
+	// navigation (update at 10hz)
+	if ( nav_counter >= 5 && gpspacket.err_type != no_gps_update ) {
+	  nav_counter = 0;
+	  nav_update();
+	}
 
         // health status (update at 1hz)
         if ( health_counter >= 50 ) {
@@ -174,8 +182,8 @@ int main(int argc, char **argv)
             }        
         }
 
-        // sensor summary dispay (update at 2hz)
-        if ( display_on && display_counter >= 25 ) {
+        // sensor summary dispay (update at 0.5hz)
+        if ( display_on && display_counter >= 100 ) {
             display_counter = 0;
             display_message( &imupacket, &gpspacket, &navpacket,
                              &servopacket, &healthpacket );
