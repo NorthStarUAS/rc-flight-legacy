@@ -15,9 +15,11 @@ static FILE *fbat;
 static float start_volts = 0.0;
 static float volt_cutoff = 3.40;
 static double start_time = 0.0;
+static bool batmon_exists;
 
 
 bool sgbatmon_init() {
+    batmon_exists = true;
     return true;
 }
 
@@ -25,6 +27,10 @@ bool sgbatmon_init() {
 bool sgbatmon_update() {
     char buf[5];
     int result = 0;
+
+    if ( !batmon_exists ) {
+        return false;
+    }
 
     if ( (fbat = fopen("/dev/platx/batmon", "r")) != NULL ) {
         result = fread( buf, 4, 1, fbat );
@@ -59,10 +65,12 @@ bool sgbatmon_update() {
         } else {
 	    printf("fread() failed\n");
             fclose( fbat );
+            batmon_exists = false;
             return false;
         }
         fclose( fbat );
     } else {
+        batmon_exists = false;
         if ( display_on ) {
             printf("Cannot open battery monitor device\n");
         }
