@@ -19,8 +19,6 @@
 #define SERIAL_PORT4 "/dev/tts/4"
 #define sPORT_ST2    "/dev/ttyS0"
 
-#define SERIAL_PORT2 "/dev/ttyS2"
-
 /* Baud rate */
 #define	BAUDRATE_9600	B9600
 #define BAUDRATE_19200	B19200
