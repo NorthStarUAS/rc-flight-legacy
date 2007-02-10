@@ -8,7 +8,6 @@
  * LAST REVISED: 10/11/05 Jung Soon Jang
  ******************************************************************************/
 #include <stdio.h>
-#include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -46,7 +45,7 @@ double         pos_gain[3]={0.23,0.0,0.0};
 short          whichmode[6]={-1,-1,-1, 1, 1,-1};
 char           uplinkstr[80];
 
-void *uplink_acq(void *thread_id)
+void uplink_acq()
 {
     int ret,errFlag,i;
     char temp[20],tempr[20];
@@ -55,7 +54,7 @@ void *uplink_acq(void *thread_id)
 
 #ifndef NCURSE_DISPLAY_OPTION
     if ( display_on ) {
-        printf("[uplink_acq]::thread[%x] initiated...\n", (int)thread_id);  
+        printf("[uplink_acq]:: initialized.\n");  
     }
 #else
     sprintf(uplinkstr,"[UPLINK  ]:Uplink Data has not been received!");   

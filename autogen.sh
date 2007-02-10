@@ -50,5 +50,5 @@ if [ -f config.cache ]; then
     echo ""
 fi
 
-echo "Now you are ready to run './configure'"
+echo "Now you are ready to run: ./configure --host=arm-linux"
 echo "======================================"

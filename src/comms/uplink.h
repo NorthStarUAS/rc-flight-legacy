@@ -15,7 +15,7 @@ extern char   uplinkstr[80];
 extern bool   retvalsock;         //socket status
 
 // global functions
-void *uplink_acq(void *thread_id);
+void uplink_acq();
 
 
 #endif // _UGEAR_UPLINK_H

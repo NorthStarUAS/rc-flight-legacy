@@ -25,19 +25,7 @@ AC_PROG_LN_S
 dnl set the $host variable based on local machine/os
 AC_CANONICAL_HOST
 
-dnl Thread related checks
-AC_CHECK_HEADER(pthread.h)
-if test "x$ac_cv_header_pthread_h" = "xyes"; then
-  CXXFLAGS="$CXXFLAGS -pthread"
-  CFLAGS="$CFLAGS -pthread"
-else
-  echo "Unable to find a working pthreads implimentation."
-  echo "configure aborted."
-  exit
-fi
-
 dnl check for default libraries
-AC_SEARCH_LIBS(clock_nanosleep, [rt])
 AC_SEARCH_LIBS(cos, [m])
 
 AM_CONFIG_HEADER(src/include/ugear_config.h)

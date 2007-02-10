@@ -1,11 +1,11 @@
 //
-// FILE: imugps.h
+// FILE: mnav.h
 // DESCRIPTION: aquire, validate and decode the IMU, GPS, and Servo data
-//              inbound from the uNAV
+//              inbound from the MNAV
 //
 
-#ifndef _UGEAR_IMUGPS_H
-#define _UGEAR_IMUGPS_H
+#ifndef _UGEAR_MNAV_H
+#define _UGEAR_MNAV_H
 
 
 #include "globaldefs.h"
@@ -18,11 +18,11 @@ extern char *cnt_status;
 
 
 // function prototypes
-void imugps_init();
-void imugps_update();
-void imugps_close();
+void mnav_init();
+void mnav_update();
+void mnav_close();
 
 void send_servo_cmd(uint16_t cnt_cmd[9]);
 
 
-#endif // _UGEAR_IMUGPS_H
+#endif // _UGEAR_MNAV_H

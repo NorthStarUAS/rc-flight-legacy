@@ -12,7 +12,6 @@
  ******************************************************************************/
 #include <stdio.h>
 #include <math.h>
-// #include <pthread.h>
 #include <time.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -26,7 +25,7 @@
 #include "util.h"
 
 #include "ahrs.h"
-#include "imugps.h"
+#include "mnav.h"
 
 //prototype definition
 void 		ahrs_algorithm(struct imu *data);
@@ -124,27 +123,14 @@ void ahrs_update()
     bool control_init = false;
     bool enable = false;
 
-    // while (1) {
-    //wait until data acquisition is done
-    // pthread_mutex_lock(&mutex_imu);
-    // rc  = pthread_cond_wait(&trigger_ahrs, &mutex_imu);
-    //run attitude and heading estimation algorithm
-    // if (rc == 0) {
-
     ahrs_algorithm(&imupacket);	   
 
-    // }
-    // pthread_mutex_unlock(&mutex_imu);
-           
     if ( display_on ) snap_time_interval("ahrs",  100, 0);
            
     if ( enable && !vgCheck) {
         control_uav( control_init, 0 );
         control_init = true;
     }
-
-    // }
-
 }
 
 
@@ -167,8 +153,6 @@ void ahrs_close()
     mat_free(Kpsi);
     mat_free(Hpsi);
     mat_free(tmp71);
-
-    // pthread_exit(NULL);
 }
 
 //

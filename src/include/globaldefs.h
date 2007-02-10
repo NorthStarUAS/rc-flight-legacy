@@ -6,7 +6,6 @@
 #define _UGEAR_GLOBALDEFS_H
 
 
-#include <pthread.h>
 #include <stdint.h>
 
 #define NSECS_PER_SEC		1000000000
@@ -65,13 +64,6 @@ extern struct gps gpspacket;
 extern struct nav navpacket;
 extern struct servo servopacket;
 extern struct health healthpacket;
-
-//mutex and conditional variables
-extern pthread_mutex_t mutex_imu;
-extern pthread_mutex_t mutex_gps;
-extern pthread_mutex_t mutex_nav;
-extern pthread_cond_t  trigger_ahrs;
-extern pthread_cond_t  trigger_nav;
 
 // constants
 #define M_2PI 6.28318530717958647692

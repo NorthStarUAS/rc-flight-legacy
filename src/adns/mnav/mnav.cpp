@@ -1,5 +1,5 @@
 /******************************************************************************
-* FILE: imugps.c
+* FILE: mnav.c
 * DESCRIPTION:
 *   
 *   
@@ -13,7 +13,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <math.h>
-// #include <pthread.h>
 
 #include "comms/console_link.h"
 #include "comms/logging.h"
@@ -23,7 +22,7 @@
 #include "navigation/nav.h"
 #include "util/timing.h"
 
-#include "imugps.h"
+#include "mnav.h"
 
 //
 // uNAV packet length definition
@@ -63,7 +62,7 @@ struct gps gpspacket;
 struct nav navpacket;
 
 // open and intialize the MNAV communication channel
-void imugps_init()
+void mnav_init()
 {
     int		nbytes = 0;
     uint8_t  	SCALED_MODE[11] ={0x55,0x55,0x53,0x46,0x01,0x00,0x03,0x00, 'S',0x00,0xF0};
@@ -72,7 +71,7 @@ void imugps_init()
     uint8_t          CH_SERVO[7]     ={0x55,0x55,0x53,0x50,0x08,0x00,0xAB};
   
     if ( display_on ) {
-        printf("[imugps_acq] initiated.\n");
+        printf("[mnav] initialized.\n");
     }
   
     /*********************************************************************
@@ -112,13 +111,13 @@ void imugps_init()
 }
 
 
-// Main IMU/GPS data aquisition thread.
+// Main IMU/GPS data aquisition routine
 //
-// Note this thread runs as fast as IMU/GPS data is available.  It
-// blocks on the serial port read, otherwise it runs full bore,
-// pulling in data as fast as it's available.
+// Note this blocks until new IMU/GPS data is available.  The rate at
+// which the MNAV sends data dictates the timing and rate of the
+// entire ugear program.
 //
-void imugps_update()
+void mnav_update()
 {
     int headerOK = 0;
     int count = 0;
@@ -152,13 +151,10 @@ void imugps_update()
 
         // check checksum
         if ( checksum(input_buffer,SENSOR_PACKET_LENGTH) ) {
-            // pthread_mutex_lock(&mutex_imu);
             decode_imupacket(&imupacket, input_buffer);
             imu_valid_data = true;
         } else {
-#ifndef NCURSE_DISPLAY_OPTION 
             printf("[imu]:checksum error...!\n"); 
-#endif                  	
             imupacket.err_type = checksum_err; 
         };
         break;
@@ -174,13 +170,11 @@ void imugps_update()
 
         // check checksum
         if ( checksum(input_buffer,FULL_PACKET_SIZE) ) {
-            // pthread_mutex_lock(&mutex_imu);
             decode_imupacket(&imupacket, input_buffer);
             imu_valid_data = true;
 		     
             // check GPS data packet
             if(input_buffer[33]=='G') {
-                // pthread_mutex_lock(&mutex_gps);
                 decode_gpspacket(&gpspacket, input_buffer);
                 gps_valid_data = true;
             } else {
@@ -280,7 +274,7 @@ void imugps_update()
 }
 
 
-void imugps_close()
+void mnav_close()
 {
     //close the serial port
     close(sPort2);

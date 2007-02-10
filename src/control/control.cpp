@@ -14,7 +14,7 @@
 #include <unistd.h>
 
 #include "comms/uplink.h"
-#include "navigation/imugps.h"
+#include "navigation/mnav.h"
 #include "include/globaldefs.h"
 
 #include "util.h"
