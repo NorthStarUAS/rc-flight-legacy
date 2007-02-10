@@ -27,7 +27,7 @@ void log_health( struct health *healthpacket );
 
 void display_message( struct imu *data, struct gps *gdata,
                       struct nav *ndata, struct servo *sdata,
-                      struct health *hdata, int disptime );
+                      struct health *hdata );
 
 
 #endif // _UGEAR_LOGGING_H
