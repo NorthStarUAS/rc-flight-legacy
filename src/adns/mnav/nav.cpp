@@ -29,7 +29,7 @@
 //
 // prototypes
 //
-void 	      navigation_algorithm(struct imu *imudta,struct gps *gpsdta);
+void nav_algorithm(struct imu *imudta,struct gps *gpsdta);
 
 //
 // error characteristics of navigation parameters
@@ -57,16 +57,10 @@ void timer_intr( int sig )
     return;
 }
 
-//thread main
-void *navigation( void *thread_id )
+
+// initialize nav structures and matrices
+void nav_init()
 {
-    struct imu	     imulocal;
-    struct gps	     gpslocal;
-    int    	     rc;
-    struct itimerval it;
-    struct sigaction sa;
-    sigset_t         allsigs;
-   
     // matrix creation for navigation computation
     nxs   = mat_creat(9,1,ZERO_MATRIX);   //state x=[lat lon alt ve vn vup bax bay baz]'
     nF    = mat_creat(9,9,ZERO_MATRIX);   //system matrix
@@ -103,85 +97,96 @@ void *navigation( void *thread_id )
     nRn[0][0] = Pcov; nRn[1][1] = nRn[0][0]; nRn[2][2] = 2.0*2.0;  
     nRn[3][3] = 0.01; nRn[4][4] = nRn[3][3]; nRn[5][5] = 0.02; 
   
-    // initialization of nav variables when gps is available, until
-    // then, navigation solution is not available
-#ifndef NCURSE_DISPLAY_OPTION   
-    if ( display_on ) {
-        printf("[nav]:thread[2] initiated ...\n");
-    }
-#endif
-   
     navpacket.err_type = no_gps_update;
-   
-    while ( 1 ) {
-        sleep(1);
-        pthread_mutex_lock(&mutex_gps);
-        if ( gpspacket.err_type == no_error && ++gps_init_count > 20) {
-            pthread_mutex_unlock(&mutex_gps);	
-            break;	
-        }
-        pthread_mutex_unlock(&mutex_gps);
-        if ( display_on ) printf("[nav]:waiting for gps signal... %d %d\n",
-				 gpspacket.err_type, gps_init_count);
+
+    if ( display_on ) {
+        printf("[nav] initialized.\n");
     }
-    navpacket.err_type = no_error;
-   
-    // initialize navigation state variables with GPS (Lat,Lon,Alt)
-    pthread_mutex_lock(&mutex_gps);
-    nxs[0][0] = gpspacket.lat*D2R;
-    nxs[1][0] = gpspacket.lon*D2R;
-    nxs[2][0] = gpspacket.alt;
-    pthread_mutex_unlock(&mutex_gps);
-   
-    // specify timeout
-    it.it_interval.tv_sec = 0;
-    it.it_interval.tv_usec= DEFAULT_USECS;
-    it.it_value           = it.it_interval;
+}
 
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-    sa.sa_handler = timer_intr;
 
-    sigaction(SIGALRM, &sa, NULL);
-    setitimer(ITIMER_REAL, &it, NULL);
-    sigemptyset(&allsigs);
-   
-    // start main loop
+void nav_update()
+{
+    struct imu	     imulocal;
+    struct gps	     gpslocal;
+    int    	     rc;
+    struct itimerval it;
+    struct sigaction sa;
+    sigset_t         allsigs;
+    static int       gps_state = 0;
+    static double    acq_start = 0; // time that gps first acquired
+    static double    last_time = 0;
 
-    printf("[nav]:navigation is enabled...\n");
+    double cur_time = get_Time();
+    double dt = cur_time - last_time;
 
-    while ( 1 ) {
-        sigsuspend(&allsigs); rc = 0;
-        if (rc == 0) {
-            // timout is expired ...
+    // on boot up, wait until 20 seconds after gps acquired before
+    // using data in order to let the solution [hopefully] get more
+    // accurate.
 
-            // copy information to loacal variables
-            pthread_mutex_lock(&mutex_gps);
-            gpslocal = gpspacket;
-            pthread_mutex_unlock(&mutex_gps);
-            pthread_mutex_lock(&mutex_imu);
-            imulocal = imupacket;
-            pthread_mutex_unlock(&mutex_imu);
+    if ( gpspacket.err_type == no_error ) {
+        if ( gps_state == 0 ) {
+            gps_state = 1;      // gps first acquired
+            acq_start = cur_time;
+            if ( display_on ) printf("[nav] gps first aquired.\n");
+        } else if ( gps_state == 1 ) {
+            if ( cur_time - acq_start >= 20.0 ) {
+                gps_state = 2;  // gps solid for 20 sec
+                navpacket.err_type = no_error;
+
+                // initialize navigation state variables with GPS (Lat,Lon,Alt)
+                nxs[0][0] = gpspacket.lat*D2R;
+                nxs[1][0] = gpspacket.lon*D2R;
+                nxs[2][0] = gpspacket.alt;
+
+                if ( display_on ) printf("[nav] navigation is enabled\n");
+            } else {
+                static int gps_counter = 0;
+                gps_counter++;
+                if ( gps_counter >= 10 ) {
+                    if ( display_on ) {
+                        printf( "[nav] gps ready in %.1f seconds.\n",
+                                20.0 - (cur_time - acq_start) );
+                    }
+                    gps_counter = 0;
+                }
+            }
+        }
+    }
+
+    if ( gps_state == 2 ) {
+        // copy information to loacal variables
+        gpslocal = gpspacket;
+        imulocal = imupacket;
                    
-            // run navigation algorithm
-            navigation_algorithm(&imulocal,&gpslocal);
+        // run navigation algorithm
+        nav_algorithm( &imulocal, &gpslocal );
            
-            pthread_mutex_lock(&mutex_nav);   
-            navpacket.lat = nxs[0][0]*R2D;
-            navpacket.lon = nxs[1][0]*R2D;
-            navpacket.alt = nxs[2][0];
-            navpacket.vn  = nxs[3][0];
-            navpacket.ve  = nxs[4][0];
-            navpacket.vd  = nxs[5][0];
-            navpacket.time= get_Time();
-            if ( console_link_on ) console_link_nav( &navpacket );
-            if ( log_to_file ) log_nav( &navpacket );
-            pthread_mutex_unlock(&mutex_nav);
+        navpacket.lat = nxs[0][0]*R2D;
+        navpacket.lon = nxs[1][0]*R2D;
+        navpacket.alt = nxs[2][0];
+        navpacket.vn  = nxs[3][0];
+        navpacket.ve  = nxs[4][0];
+        navpacket.vd  = nxs[5][0];
+        navpacket.time= get_Time();
 
-            if ( display_on ) snap_time_interval("nav", 20, 1);
+        if ( console_link_on ) {
+            console_link_nav( &navpacket );
+        }
+
+        if ( log_to_file ) {
+            log_nav( &navpacket );
+        }
+
+        if ( display_on ) {
+            snap_time_interval("nav", 20, 1);
         }
     }
+}
 
+
+void nav_close()
+{
     // free memory space
     mat_free(nxs);
     mat_free(nF);
@@ -202,14 +207,13 @@ void *navigation( void *thread_id )
     mat_free(ntmp66);
     mat_free(ntmp96);
     mat_free(ntmp33);
-
-    pthread_exit(NULL);
 }
+
 
 //
 // navigation algorithm
 //
-void navigation_algorithm(struct imu *imudta,struct gps *gpsdta)
+void nav_algorithm(struct imu *imudta,struct gps *gpsdta)
 {
     double dt;       //sampling rate of navigation
     short  i = 0;

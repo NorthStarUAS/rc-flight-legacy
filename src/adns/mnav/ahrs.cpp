@@ -12,7 +12,7 @@
  ******************************************************************************/
 #include <stdio.h>
 #include <math.h>
-#include <pthread.h>
+// #include <pthread.h>
 #include <time.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -29,7 +29,7 @@
 #include "imugps.h"
 
 //prototype definition
-void 		AHRS_Algorithm(struct imu *data);
+void 		ahrs_algorithm(struct imu *data);
 double 		wraparound(double dta);
 
 //predefined variables
@@ -81,18 +81,9 @@ bool   vgCheck = false;
 short  magCheck = 0; 
 
 
-void *ahrs_thread(void *thread_id)
+// initalize the AHRS matrices
+void ahrs_init()
 {
-    int    rc;
-    bool control_init = false;
-    bool enable = false;
-
-#ifndef NCURSE_DISPLAY_OPTION
-    if ( display_on ) {
-        printf("[ahrs_thread]::thread[%d] initiated...\n", thread_id);
-    }
-#endif
-   
     //initialization of err, measurement, and process cov. matrices
     aP = mat_creat(7,7,ZERO_MATRIX); 
     aQ = mat_creat(7,7,ZERO_MATRIX); 
@@ -121,28 +112,44 @@ void *ahrs_thread(void *thread_id)
     tmp77 = mat_creat(7,7,ZERO_MATRIX);
     tmpr  = mat_creat(7,7,ZERO_MATRIX);
     mat77 = mat_creat(7,7,ZERO_MATRIX);
-   
-    sleep(1);
 
-    while (1) {
-        //wait until data acquisition is done
-        pthread_mutex_lock(&mutex_imu);
-        rc  = pthread_cond_wait(&trigger_ahrs, &mutex_imu);
-        //run attitude and heading estimation algorithm
-        if (rc == 0) { 	   
-            AHRS_Algorithm(&imupacket);	   
-        }
-        pthread_mutex_unlock(&mutex_imu);
-           
-        if ( display_on ) snap_time_interval("ahrs",  100, 0);
-           
-        if ( enable && !vgCheck) {
-            control_uav( control_init, 0 );
-            control_init = true;
-        }
+    if ( display_on ) {
+        printf("[ahrs] initialized.\n");
+    }
+}
 
+void ahrs_update()
+{
+    // int rc;
+    bool control_init = false;
+    bool enable = false;
+
+    // while (1) {
+    //wait until data acquisition is done
+    // pthread_mutex_lock(&mutex_imu);
+    // rc  = pthread_cond_wait(&trigger_ahrs, &mutex_imu);
+    //run attitude and heading estimation algorithm
+    // if (rc == 0) {
+
+    ahrs_algorithm(&imupacket);	   
+
+    // }
+    // pthread_mutex_unlock(&mutex_imu);
+           
+    if ( display_on ) snap_time_interval("ahrs",  100, 0);
+           
+    if ( enable && !vgCheck) {
+        control_uav( control_init, 0 );
+        control_init = true;
     }
 
+    // }
+
+}
+
+
+void ahrs_close()
+{
     //free memory space
     mat_free(aP);
     mat_free(aQ);
@@ -161,15 +168,14 @@ void *ahrs_thread(void *thread_id)
     mat_free(Hpsi);
     mat_free(tmp71);
 
-    pthread_exit(NULL);
+    // pthread_exit(NULL);
 }
-
 
 //
 // extended kalman filter algorithm
 //
 
-void AHRS_Algorithm(struct imu *data)
+void ahrs_algorithm(struct imu *data)
 {
     static double tnow,tprev=0;
     double pc,qc,rc;
@@ -320,4 +326,8 @@ void AHRS_Algorithm(struct imu *data)
    
     vgCheck = !vgCheck;
 
+    if ( display_on ) {
+        printf("roll = %.2f  pitch = %.2f  heading = %.2f\n",
+               data->phi * r2d, data->the * r2d, data->psi * r2d );
+    }
 }

@@ -18,7 +18,10 @@ extern char *cnt_status;
 
 
 // function prototypes
-void *imugps_acq(void *thread_id);
+void imugps_init();
+void imugps_update();
+void imugps_close();
+
 void send_servo_cmd(uint16_t cnt_cmd[9]);
 
 

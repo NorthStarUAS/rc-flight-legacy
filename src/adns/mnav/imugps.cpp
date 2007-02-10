@@ -13,12 +13,14 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <math.h>
-#include <pthread.h>
+// #include <pthread.h>
 
 #include "comms/console_link.h"
 #include "comms/logging.h"
 #include "comms/serial.h"
 #include "include/globaldefs.h"
+#include "navigation/ahrs.h"
+#include "navigation/nav.h"
 #include "util/timing.h"
 
 #include "imugps.h"
@@ -60,205 +62,232 @@ struct imu imupacket;
 struct gps gpspacket;
 struct nav navpacket;
 
+// open and intialize the MNAV communication channel
+void imugps_init()
+{
+    int		nbytes = 0;
+    uint8_t  	SCALED_MODE[11] ={0x55,0x55,0x53,0x46,0x01,0x00,0x03,0x00, 'S',0x00,0xF0};
+    uint8_t          CH_BAUD[11]     ={0x55,0x55,0x57,0x46,0x01,0x00,0x02,0x00,0x03,0x00,0xA3};
+    uint8_t		CH_SAMP[11]     ={0x55,0x55,0x53,0x46,0x01,0x00,0x01,0x00,0x02,0x00,0x9D};
+    uint8_t          CH_SERVO[7]     ={0x55,0x55,0x53,0x50,0x08,0x00,0xAB};
+  
+    if ( display_on ) {
+        printf("[imugps_acq] initiated.\n");
+    }
+  
+    /*********************************************************************
+     *Open and configure Serial Port2 (com2)
+     *********************************************************************/
+    sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_38400,false); 
+    printf("Opened serial port at 38400.\n");
+      
+    while (nbytes != 11) {
+        nbytes = write(sPort2,(char*)CH_BAUD, 11);
+        printf("writing CH_BAUD\n");
+    }
+    nbytes = 0;  
+    close(sPort2);
+
+    sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_57600,false); 
+    printf("Opened serial port at 57600.\n");
+  
+    
+    while (nbytes != 11) {
+        nbytes = write(sPort2,(char*)CH_SAMP, 11);
+        printf("writing CH_SAMP\n");
+    }
+    nbytes = 0;
+
+    while (nbytes != 11) {
+        nbytes = write(sPort2,(char*)SCALED_MODE, 11);
+        printf("writing SCALED_MODE\n");
+    }
+    nbytes = 0;
+
+    while (nbytes !=  7) {
+        nbytes = write(sPort2,(char*)CH_SERVO, 7);
+        printf("writing CH_SERVO\n");
+    }
+    nbytes = 0;  
+}
+
+
 // Main IMU/GPS data aquisition thread.
 //
 // Note this thread runs as fast as IMU/GPS data is available.  It
 // blocks on the serial port read, otherwise it runs full bore,
 // pulling in data as fast as it's available.
 //
-void *imugps_acq(void *thread_id)
+void imugps_update()
 {
-    int		count=0,nbytes=0,headerOK=0;
-    uint8_t  	input_buffer[FULL_PACKET_SIZE]={0,};
-    uint8_t  	SCALED_MODE[11] ={0x55,0x55,0x53,0x46,0x01,0x00,0x03,0x00, 'S',0x00,0xF0};
-    uint8_t          CH_BAUD[11]     ={0x55,0x55,0x57,0x46,0x01,0x00,0x02,0x00,0x03,0x00,0xA3};
-    uint8_t		CH_SAMP[11]     ={0x55,0x55,0x53,0x46,0x01,0x00,0x01,0x00,0x02,0x00,0x9D};
-    uint8_t          CH_SERVO[7]     ={0x55,0x55,0x53,0x50,0x08,0x00,0xAB};
-  
-#ifndef NCURSE_DISPLAY_OPTION
-    if ( display_on ) {
-        printf("[imugps_acq]::thread[%d] initiated...\n", thread_id);
+    int headerOK = 0;
+    int count = 0;
+    int nbytes = 0;
+    uint8_t input_buffer[FULL_PACKET_SIZE]={0,};
+
+    int no_gps_count = 0;
+    bool imu_valid_data = false;
+    bool gps_valid_data = false;
+
+    // Find start of packet: the heade r (2 bytes) starts with 0x5555
+    while ( headerOK != 2 ) {
+        while(1!=read(sPort2,input_buffer,1));
+        if (input_buffer[0] == 0x55)
+            headerOK++;
+        else
+            headerOK = 0;
     }
-#endif
-  
-    /*********************************************************************
-     *Open and configure Serial Port2 (com2)
-     *********************************************************************/
-    sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_38400,false); 
-      
-    while (nbytes != 11) nbytes = write(sPort2,(char*)CH_BAUD, 11);     nbytes = 0;  
-    close(sPort2);
-    sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_57600,false); 
-  
-    
-    while (nbytes != 11) nbytes = write(sPort2,(char*)CH_SAMP, 11);     nbytes = 0;  
-    while (nbytes != 11) nbytes = write(sPort2,(char*)SCALED_MODE, 11); nbytes = 0;
-    while (nbytes !=  7) nbytes = write(sPort2,(char*)CH_SERVO, 7);     nbytes = 0;  
-  
-    while (1) {
-        /*********************************************************************
-         *Find start of packet: the heade r (2 bytes) starts with 0x5555
-         *********************************************************************/
-  
-        while ( headerOK != 2 ) {
-            while(1!=read(sPort2,input_buffer,1));
-            if (input_buffer[0] == 0x55)
-                headerOK++;
-            else
-                headerOK = 0;
-        }
      	
-        headerOK = 0; while(1!=read(sPort2,&input_buffer[2],1));
-        nbytes = 3; 
+    headerOK = 0; while ( 1 != read(sPort2,&input_buffer[2],1) );
+    nbytes = 3; 
   
-        // Read packet contents
-        switch (input_buffer[2]) {
-        case 'S':               // IMU packet without GPS
-	    // printf("no gps data being sent ... :-(\n");
-            while ( nbytes < SENSOR_PACKET_LENGTH ) {
-                nbytes += read(sPort2, input_buffer+nbytes,
-                               SENSOR_PACKET_LENGTH-nbytes); 
-            }
-
-            // check checksum
-            if ( checksum(input_buffer,SENSOR_PACKET_LENGTH) ) {
-                pthread_mutex_lock(&mutex_imu);
-                decode_imupacket(&imupacket, input_buffer);
-                pthread_cond_signal(&trigger_ahrs);
-                if ( console_link_on ) {
-                    console_link_imu( &imupacket );
-                    console_link_servo( &servopacket );
-                }
-                if ( log_to_file ) {
-                    log_imu( &imupacket );
-                    log_servo( &servopacket );
-                }
-                pthread_mutex_unlock(&mutex_imu);  
-            } else {
-#ifndef NCURSE_DISPLAY_OPTION 
-                printf("[imu]:checksum error...!\n"); 
-#endif                  	
-                imupacket.err_type = checksum_err; 
-            };
-       		  
-		  
-            break;
-        case 'N':               // IMU packet with GPS
-            while ( nbytes < FULL_PACKET_SIZE ) {
-                nbytes += read(sPort2, input_buffer+nbytes,
-                               FULL_PACKET_SIZE-nbytes); 
-            }
-
-	    // printf("G P S   D A T A   A V A I L A B L E\n");
-
-            // check checksum
-            if ( checksum(input_buffer,FULL_PACKET_SIZE) ) {
-                pthread_mutex_lock(&mutex_imu);
-                decode_imupacket(&imupacket, input_buffer);
-                pthread_cond_signal(&trigger_ahrs);
-                if ( console_link_on ) {
-                    console_link_imu( &imupacket );
-                    console_link_servo( &servopacket );
-                }
-                if ( log_to_file ) {
-                    log_imu( &imupacket );
-                    log_servo( &servopacket );
-                }
-                pthread_mutex_unlock(&mutex_imu);  
-		     
-                // check GPS data packet
-                if(input_buffer[33]=='G') {
-                    pthread_mutex_lock(&mutex_gps);
-                    decode_gpspacket(&gpspacket, input_buffer);
-                    if ( console_link_on ) console_link_gps( &gpspacket );
-                    if ( log_to_file ) log_gps( &gpspacket );
-                    pthread_mutex_unlock(&mutex_gps);
-                } else {
-#ifndef NCURSE_DISPLAY_OPTION		     	
-                    printf("[gps]:data error...!\n");
-#endif		         
-                    gpspacket.err_type = got_invalid;
-                } // end if(checksum(input_buffer...
-            } else { 
-#ifndef NCURSE_DISPLAY_OPTION		  	
-                printf("[imu]:checksum error(gps)...!\n");
-#endif
-                gpspacket.err_type = checksum_err;
-                imupacket.err_type = checksum_err; 
-            }
-		  
-                  
-            break;
-        default : 
-#ifdef NCURSE_DISPLAY_OPTION        
-            sprintf(buf_err,"Invalid [imu] data packet (%d)",++err_cnt);
-#else
-            printf("[imu]:invalid data packet...!\n");
-#endif		  
-		  
-        } // end case
-
-
-        //////////////////////////////////////////////////////////////
-        // NOTICE: MANUAL OVERRIDE
-        //////////////////////////////////////////////////////////////
-
-        // Manual override functionality for the uNAV is hardwired
-        // into the unit.  It is hardwired to the gear channel (CH5
-        // when counting from 1.)  This is not optional.  When you
-        // enter manual override mode, the servo commands you send to
-        // the uNAV are ignored and the unit passes through the
-        // transmited values directly.
-        //
-        // So all the code needs to do is monitor the manual override
-        // switch and not send autopilot commands in manual override
-        // mode (they would be ignored anyway.)  There is no need to
-        // copy the data through in software, it should all happen
-        // automatically.
-        //
-        // Also note that I call this a "manual override" and not a
-        // "fail safe".  If the uNAV fails for any reason, you will be
-        // picking up toothpicks.
-        //
-
-        if ( servopacket.chn[4] <= 12000 ) {
-            // if the autopilot is enabled, or signal is lost
-            if ( !autopilot_enable && display_on ) {
-                printf("[CONTROL]: switching to autopilot\n");
-            }
-            autopilot_enable = true;  
-            count  = 15;
-            cnt_status = "MNAV in AutoPilot Mode";
-        } else if ( servopacket.chn[4] > 12000
-                    && servopacket.chn[4] < 60000 )
-        {
-            // add delay on control trigger to minimize mode confusion
-            // caused by the transmitter power off
-            if ( count < 0 ) {
-                if ( autopilot_enable && display_on ) {
-                    printf("[CONTROL]: switching to manual pass through\n");
-                }
-                autopilot_enable = false;
-                control_init = false;
-                cnt_status = "MNAV in Manual Mode";
-            } else {
-                count--;
-            }
-
+    // Read packet contents
+    switch (input_buffer[2]) {
+    case 'S':               // IMU packet without GPS
+        // printf("no gps data being sent ... :-(\n");
+        while ( nbytes < SENSOR_PACKET_LENGTH ) {
+            nbytes += read(sPort2, input_buffer+nbytes,
+                           SENSOR_PACKET_LENGTH-nbytes); 
         }
-		
-    } // end while
 
+        // check checksum
+        if ( checksum(input_buffer,SENSOR_PACKET_LENGTH) ) {
+            // pthread_mutex_lock(&mutex_imu);
+            decode_imupacket(&imupacket, input_buffer);
+            imu_valid_data = true;
+        } else {
+#ifndef NCURSE_DISPLAY_OPTION 
+            printf("[imu]:checksum error...!\n"); 
+#endif                  	
+            imupacket.err_type = checksum_err; 
+        };
+        break;
+
+    case 'N':               // IMU packet with GPS
+        printf("imu+gps data packet\n");
+        while ( nbytes < FULL_PACKET_SIZE ) {
+            nbytes += read(sPort2, input_buffer+nbytes,
+                           FULL_PACKET_SIZE-nbytes); 
+        }
+
+        // printf("G P S   D A T A   A V A I L A B L E\n");
+
+        // check checksum
+        if ( checksum(input_buffer,FULL_PACKET_SIZE) ) {
+            // pthread_mutex_lock(&mutex_imu);
+            decode_imupacket(&imupacket, input_buffer);
+            imu_valid_data = true;
+		     
+            // check GPS data packet
+            if(input_buffer[33]=='G') {
+                // pthread_mutex_lock(&mutex_gps);
+                decode_gpspacket(&gpspacket, input_buffer);
+                gps_valid_data = true;
+            } else {
+                printf("[gps]:data error...!\n");
+                gpspacket.err_type = got_invalid;
+            } // end if(checksum(input_buffer...
+        } else { 
+            printf("[imu]:checksum error(gps)...!\n");
+            gpspacket.err_type = checksum_err;
+            imupacket.err_type = checksum_err; 
+        }
+        break;
+
+    default : 
+        printf("[imu] invalid data packet ... !\n");
+
+    } // end case
+
+
+    if ( imu_valid_data ) {
+        ahrs_update();
+
+        if ( console_link_on ) {
+            console_link_imu( &imupacket );
+            console_link_servo( &servopacket );
+        }
+
+        if ( log_to_file ) {
+            log_imu( &imupacket );
+            log_servo( &servopacket );
+        }
+    }
+
+    if ( gps_valid_data || no_gps_count >= 5 ) {
+        nav_update();
+        no_gps_count = 0;
+    } else {
+        no_gps_count++;
+    }
+    
+    if ( gps_valid_data ) {
+        if ( console_link_on ) {
+            console_link_gps( &gpspacket );
+        }
+
+        if ( log_to_file ) {
+            log_gps( &gpspacket );
+        }
+    }
+
+    //////////////////////////////////////////////////////////////
+    // NOTICE: MANUAL OVERRIDE
+    //////////////////////////////////////////////////////////////
+
+    // Manual override functionality for the uNAV is hardwired
+    // into the unit.  It is hardwired to the gear channel (CH5
+    // when counting from 1.)  This is not optional.  When you
+    // enter manual override mode, the servo commands you send to
+    // the uNAV are ignored and the unit passes through the
+    // transmited values directly.
+    //
+    // So all the code needs to do is monitor the manual override
+    // switch and not send autopilot commands in manual override
+    // mode (they would be ignored anyway.)  There is no need to
+    // copy the data through in software, it should all happen
+    // automatically.
+    //
+    // Also note that I call this a "manual override" and not a
+    // "fail safe".  If the uNAV fails for any reason, you will be
+    // picking up toothpicks.
+    //
+
+    if ( servopacket.chn[4] <= 12000 ) {
+        // if the autopilot is enabled, or signal is lost
+        if ( !autopilot_enable && display_on ) {
+            printf("[CONTROL]: switching to autopilot\n");
+        }
+        autopilot_enable = true;  
+        count  = 15;
+        cnt_status = "MNAV in AutoPilot Mode";
+    } else if ( servopacket.chn[4] > 12000
+                && servopacket.chn[4] < 60000 )
+    {
+        // add delay on control trigger to minimize mode confusion
+        // caused by the transmitter power off
+        if ( count < 0 ) {
+            if ( autopilot_enable && display_on ) {
+                printf("[CONTROL]: switching to manual pass through\n");
+            }
+            autopilot_enable = false;
+            control_init = false;
+            cnt_status = "MNAV in Manual Mode";
+        } else {
+            count--;
+        }
+    }
+}
+
+
+void imugps_close()
+{
     //close the serial port
     close(sPort2);
 
     //close files
     logging_close();
-
-    //exit the thread
-    pthread_exit(NULL);
-
-} // end void *imugps_acq()
+}
 
 
 //

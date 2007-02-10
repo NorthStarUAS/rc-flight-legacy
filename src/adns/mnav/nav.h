@@ -15,7 +15,9 @@ extern MATRIX nxs;
 extern short gps_init_count;
 
 // global functions
-void *navigation(void *thread_id);
+void nav_init();
+void nav_update();
+void nav_close();
 
 
 #endif // _UGEAR_NAVIGATION_H
