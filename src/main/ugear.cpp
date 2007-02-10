@@ -55,7 +55,6 @@ bool wifi        = false;       // wifi connection enabled/disabled
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //prototypes
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void	    timer_intr1(int sig);
 void	    help_message();
 
 
@@ -165,12 +164,6 @@ int main(int argc, char **argv)
     ahrs_close();
     nav_close();
     mnav_close();
-}
-
-
-void timer_intr1(int sig)
-{
-    return;
 }
 
 
