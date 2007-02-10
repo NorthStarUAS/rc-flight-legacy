@@ -1,14 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "comms/console_link.h"
 #include "comms/logging.h"
 #include "util/timing.h"
 
 #include "sgbatmon.h"
-
-
-struct health healthpacket;
 
 
 static FILE *fbat;
@@ -75,10 +71,6 @@ bool sgbatmon_update() {
             printf("Cannot open battery monitor device\n");
         }
         return false;
-    }
-
-    if ( console_link_on ) {
-      console_link_health( &healthpacket );
     }
 
     return true;

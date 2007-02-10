@@ -29,7 +29,7 @@
 #include "comms/groundstation.h"
 #include "comms/logging.h"
 #include "comms/uplink.h"
-#include "health/sgbatmon.h"
+#include "health/health.h"
 #include "include/globaldefs.h"
 #include "navigation/ahrs.h"
 #include "navigation/mnav.h"
@@ -120,11 +120,11 @@ int main(int argc, char **argv)
     // Initialize the communcation channel with the MNAV
     mnav_init();
 
+    // init system health and status monitor
+    health_init();
+
     // open networked ground station client
     if ( wifi ) retvalsock = open_client();
-
-    // init battery status monitor
-    sgbatmon_init();
 
     //
     // main loop
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
         }
 
         // health status
-        sgbatmon_update();
+        health_update();
 	if ( log_to_file ) {
             log_health( &healthpacket );
 	}
