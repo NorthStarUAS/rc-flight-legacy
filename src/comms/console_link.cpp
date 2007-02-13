@@ -11,19 +11,20 @@
 // global variables
 
 bool console_link_on = false;    // link to ground station via console port
-static int sPort0;
+char console_dev[64] = "/dev/ttyS0";
+static int confd;
 
 
 // open up the console port
 void console_link_init() {
-    sPort0 = open_serial( SERIAL_PORT0, BAUDRATE_115200, true );
+    confd = open_serial( console_dev, BAUDRATE_115200, true );
 }
 
 
 static short console_write( uint8_t *buf, short size ) {
   for ( int i = 0; i < size; ++i ) {
     // printf("%d ", (uint8_t)buf[i]);
-    write( sPort0, buf+i, 1 );
+    write( confd, buf+i, 1 );
   }
   // printf("\n");
   return size;

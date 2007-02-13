@@ -57,6 +57,8 @@ struct health {
     float volts;                /* filtered volts */
     uint16_t est_seconds;       /* estimated useful seconds remaining */
     uint8_t loadavg;            /* system "1 minute" load average */
+    uint8_t ahrs_hz;            /* actual ahrs loop hz */
+    uint8_t nav_hz;             /* actual nav loop hz */
     double time;
 };
 

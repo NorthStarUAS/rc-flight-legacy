@@ -10,22 +10,25 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
+
+#include "comms/logging.h"
+
 #include "globaldefs.h"
 #include "matrix.h"
 
 //global variables
-double exe_rate[3];
+static double exe_rate[5];
+static int count[5] = {0,};
+static struct timespec ts_p[5];
+static double sum[5] = {0.,};
 
 //
 // snap time interval
 //
 void snap_time_interval( char *threadname, int displaytime, short id )
 {
-    static int 		   count[5]={0,};
     struct timespec	   ts;
-    static struct timespec ts_p[5];
     double 		   sec, nsec, dt, rate;
-    static double          sum[5]={0.,};
     
     clock_gettime(CLOCK_REALTIME, &ts);
     sec     = ts.tv_sec - ts_p[id].tv_sec;
@@ -38,8 +41,10 @@ void snap_time_interval( char *threadname, int displaytime, short id )
         rate = sum[id] / count[id];
         exe_rate[id] = rate;
 
-        printf("[%s]: For %.1f sec: updates ran at %.2f(hz):%.2f(ms)\n",
-               threadname, sum[id], 1/rate, rate*1000);
+        if ( display_on ) {
+            printf("[%s]: For %.1f sec: updates ran at %.2f(hz): %.2f(ms) step\n",
+                   threadname, sum[id], 1/rate, rate*1000);
+        }
         sum[id] = 0;
         count[id] = 0;
     }
@@ -60,6 +65,7 @@ double get_time_interval(short id)
        
     return elapsed;	
 }	
+
 
 double get_Time()
 {
