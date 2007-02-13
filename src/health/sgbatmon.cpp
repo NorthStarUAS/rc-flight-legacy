@@ -45,7 +45,6 @@ bool sgbatmon_update() {
             // printf("buf = %s, raw volts = %.2f\n", buf, v);
             healthpacket.volts_raw = v;
             healthpacket.volts = healthpacket.volts*0.99 + v*0.01;
-            healthpacket.time = get_Time();
                 
             float v_used = start_volts - healthpacket.volts;
             float t_elapsed = healthpacket.time - start_time;

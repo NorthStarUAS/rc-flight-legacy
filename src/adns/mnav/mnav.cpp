@@ -40,6 +40,8 @@
 //temperature compensation for accel.
 //temperature compensation for mag.
 
+char mnav_dev[MAX_MNAV_DEV] = "/dev/ttyS2";
+
 //
 // prototype definition
 //

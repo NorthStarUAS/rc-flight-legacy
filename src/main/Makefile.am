@@ -1,10 +1,10 @@
 # For StarGate compile uncomment the following lines:
-ugear_LDFLAGS = "-nodefaultlibs"
-ugear_MORELIBS = -lm -lrt -lgcc -lc
+# ugear_LDFLAGS = "-nodefaultlibs"
+# ugear_MORELIBS = -lm -lrt -lgcc -lc
 
 # For GumStix compile uncomment the following lines instead:
-# ugear_LDFLAGS =
-# ugear_MORELIBS =
+ugear_LDFLAGS =
+ugear_MORELIBS =
 
 bin_PROGRAMS = ugear decoder
 

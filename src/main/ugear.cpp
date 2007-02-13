@@ -72,10 +72,12 @@ int main(int argc, char **argv)
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) log_to_file = true;
             if ( !strcmp(argv[iarg], "off") ) log_to_file = false;
-        } else if ( !strcmp(argv[iarg], "--console-link" )  ) {
+        } else if ( !strcmp(argv[iarg], "--mnav" )  ) {
             ++iarg;
-            if ( !strcmp(argv[iarg], "on") ) console_link_on = true;
-            if ( !strcmp(argv[iarg], "off") ) console_link_on = false;
+            strncpy( mnav_dev, argv[iarg], MAX_MNAV_DEV );
+        } else if ( !strcmp(argv[iarg], "--console" )  ) {
+            ++iarg;
+            strncpy( console_dev, argv[iarg], MAX_CONSOLE_DEV );
         } else if ( !strcmp(argv[iarg], "--wifi") ) {
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) wifi = true;

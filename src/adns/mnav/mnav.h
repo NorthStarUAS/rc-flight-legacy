@@ -16,6 +16,9 @@ extern bool autopilot_enable;
 extern bool control_init;
 extern char *cnt_status;
 
+#define MAX_MNAV_DEV 64
+extern char mnav_dev[MAX_MNAV_DEV];
+
 
 // function prototypes
 void mnav_init();
