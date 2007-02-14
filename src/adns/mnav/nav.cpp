@@ -108,16 +108,10 @@ void nav_update()
 {
     struct imu	     imulocal;
     struct gps	     gpslocal;
-    int    	     rc;
-    struct itimerval it;
-    struct sigaction sa;
-    sigset_t         allsigs;
     static int       gps_state = 0;
     static double    acq_start = 0; // time that gps first acquired
-    static double    last_time = 0;
 
     double cur_time = get_Time();
-    double dt = cur_time - last_time;
 
     // on boot up, wait until 20 seconds after gps acquired before
     // using data in order to let the solution [hopefully] get more

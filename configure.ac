@@ -26,6 +26,7 @@ dnl set the $host variable based on local machine/os
 AC_CANONICAL_HOST
 
 dnl check for default libraries
+AC_SEARCH_LIBS(clock_gettime, [rt])
 AC_SEARCH_LIBS(cos, [m])
 
 AM_CONFIG_HEADER(src/include/ugear_config.h)
@@ -39,6 +40,8 @@ AC_CONFIG_FILES([ \
         src/include/Makefile \
         src/main/Makefile \
         src/navigation/Makefile \
+        src/props/Makefile \
         src/util/Makefile \
+        src/xml/Makefile \
 ])
 AC_OUTPUT

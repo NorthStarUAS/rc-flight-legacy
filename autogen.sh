@@ -50,5 +50,7 @@ if [ -f config.cache ]; then
     echo ""
 fi
 
-echo "Now you are ready to run: ./configure --host=arm-linux"
-echo "======================================"
+echo ""
+echo "Now you are ready to run:"
+echo ""
+echo "CFLAGS=\"-Wall -O2\" CXXFLAGS=\"-Wall -O2\" ./configure --host=arm-linux"
