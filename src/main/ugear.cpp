@@ -34,6 +34,7 @@
 #include "navigation/ahrs.h"
 #include "navigation/mnav.h"
 #include "navigation/nav.h"
+#include "props/props.hxx"
 #include "util/timing.h"
 
 #ifdef NCURSE_DISPLAY_OPTION
@@ -63,9 +64,11 @@ void	    help_message();
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 int main(int argc, char **argv)
 {
-    int tnum, iarg;
+    int iarg;
     static short	attempt = 0;
    
+    SGPropertyNode root;
+
     // Parse the command line
     for ( iarg = 1; iarg < argc; iarg++ ) {
         if ( !strcmp(argv[iarg], "--log-file" )  ) {
