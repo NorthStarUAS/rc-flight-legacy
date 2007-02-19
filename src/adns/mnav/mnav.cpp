@@ -80,34 +80,34 @@ void mnav_init()
      *Open and configure Serial Port2 (com2)
      *********************************************************************/
     sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_38400,false); 
-    printf("Opened serial port at 38400.\n");
+    // printf("Opened serial port at 38400.\n");
       
     while (nbytes != 11) {
         nbytes = write(sPort2,(char*)CH_BAUD, 11);
-        printf("writing CH_BAUD\n");
+        // printf("writing CH_BAUD\n");
     }
     nbytes = 0;  
     close(sPort2);
 
     sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_57600,false); 
-    printf("Opened serial port at 57600.\n");
+    // printf("Opened serial port at 57600.\n");
   
     
     while (nbytes != 11) {
         nbytes = write(sPort2,(char*)CH_SAMP, 11);
-        printf("writing CH_SAMP\n");
+        // printf("writing CH_SAMP\n");
     }
     nbytes = 0;
 
     while (nbytes != 11) {
         nbytes = write(sPort2,(char*)SCALED_MODE, 11);
-        printf("writing SCALED_MODE\n");
+        // printf("writing SCALED_MODE\n");
     }
     nbytes = 0;
 
     while (nbytes !=  7) {
         nbytes = write(sPort2,(char*)CH_SERVO, 7);
-        printf("writing CH_SERVO\n");
+        // printf("writing CH_SERVO\n");
     }
     nbytes = 0;  
 }
@@ -176,7 +176,7 @@ void mnav_update()
             if(input_buffer[33]=='G') {
                 decode_gpspacket(&gpspacket, input_buffer);
             } else {
-                printf("[gps]:data error...!\n");
+               printf("[gps]:data error...!\n");
                 gpspacket.err_type = got_invalid;
             } // end if(checksum(input_buffer...
         } else { 
