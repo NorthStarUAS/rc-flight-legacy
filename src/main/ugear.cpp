@@ -81,6 +81,7 @@ int main(int argc, char **argv)
         } else if ( !strcmp(argv[iarg], "--console" )  ) {
             ++iarg;
             strncpy( console_dev, argv[iarg], MAX_CONSOLE_DEV );
+	    console_link_on = true;
         } else if ( !strcmp(argv[iarg], "--wifi") ) {
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) wifi = true;
@@ -160,6 +161,10 @@ int main(int argc, char **argv)
 	if ( nav_counter >= 5 && gpspacket.err_type != no_gps_update ) {
 	  nav_counter = 0;
 	  nav_update();
+
+	  if ( console_link_on ) {
+            console_link_nav( &navpacket );
+	  }
 	}
 
         // health status (update at 1hz)
@@ -169,6 +174,9 @@ int main(int argc, char **argv)
             if ( log_to_file ) {
                 log_health( &healthpacket );
             }
+	    if ( console_link_on ) {
+	      console_link_health( &healthpacket );
+	    }
         }
 
         // telemetry (update at 5hz)

@@ -71,7 +71,7 @@ void console_link_gps( struct gps *gpspacket ) {
 
 
 void console_link_imu( struct imu *imupacket ) {
-    static const uint8_t skip_count = 2;
+    static const uint8_t skip_count = 5;
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -153,7 +153,7 @@ void console_link_nav( struct nav *navpacket ) {
 
 
 void console_link_servo( struct servo *servopacket ) {
-    static const uint8_t skip_count = 2;
+    static const uint8_t skip_count = 5;
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -199,7 +199,7 @@ void console_link_servo( struct servo *servopacket ) {
 
 
 void console_link_health( struct health *healthpacket ) {
-    static const uint8_t skip_count = 20;
+    static const uint8_t skip_count = 5;
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {

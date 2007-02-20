@@ -26,7 +26,7 @@ struct imu {
    double Ps,Pt;                /* static/pitot pressure */
    // double Tx,Ty,Tz;          /* temperature           */
    double phi,the,psi;          /* attitudes             */
-   short  err_type;		/* error type		 */
+   uint8_t  err_type;		/* error type		 */
    double time;
 };
 
@@ -34,7 +34,7 @@ struct gps {
    double lat,lon,alt;          /* gps position          */
    double ve,vn,vd;             /* gps velocity          */
    uint16_t ITOW;
-   short  err_type;             /* error type            */
+   uint8_t err_type;            /* error type            */
    double time;
 };
 
@@ -42,7 +42,7 @@ struct nav {
    double lat,lon,alt;
    double ve,vn,vd;
    // float  t;
-   short  err_type;
+   uint8_t  err_type;
    double time;
 };
 
