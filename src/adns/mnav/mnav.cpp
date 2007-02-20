@@ -127,6 +127,7 @@ void mnav_update()
     uint8_t input_buffer[FULL_PACKET_SIZE]={0,};
 
     bool imu_valid_data = false;
+    bool gps_valid_data = false;
 
     // Find start of packet: the heade r (2 bytes) starts with 0x5555
     while ( headerOK != 2 ) {
@@ -175,6 +176,7 @@ void mnav_update()
             // check GPS data packet
             if(input_buffer[33]=='G') {
                 decode_gpspacket(&gpspacket, input_buffer);
+		gps_valid_data = true;
             } else {
                printf("[gps]:data error...!\n");
                 gpspacket.err_type = got_invalid;
@@ -206,7 +208,7 @@ void mnav_update()
         }
     }
 
-    if ( gpspacket.err_type == no_error ) {
+    if ( gps_valid_data ) {
         if ( console_link_on ) {
             console_link_gps( &gpspacket );
         }
@@ -315,6 +317,8 @@ void decode_gpspacket( struct gps *data, uint8_t* buffer )
     data->ITOW = ((data->ITOW = buffer[59]) << 8)|buffer[58];
     data->err_type = no_error;
     data->time = get_Time();
+
+    // printf("sizeof gps = %d  time = %.3f\n", sizeof(struct gps), data->time);
 }
 
 

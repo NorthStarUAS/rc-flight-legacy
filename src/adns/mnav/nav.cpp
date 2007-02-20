@@ -163,14 +163,6 @@ void nav_update()
         navpacket.vd  = nxs[5][0];
         navpacket.time= get_Time();
 
-        if ( console_link_on ) {
-            console_link_nav( &navpacket );
-        }
-
-        if ( log_to_file ) {
-            log_nav( &navpacket );
-        }
-
         if ( display_on ) {
             snap_time_interval("nav", 20, 1);
         }

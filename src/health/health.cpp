@@ -25,9 +25,5 @@ bool health_update() {
     loadavg_update();
     sgbatmon_update();
 
-    if ( console_link_on ) {
-      console_link_health( &healthpacket );
-    }
-
     return true;
 }
