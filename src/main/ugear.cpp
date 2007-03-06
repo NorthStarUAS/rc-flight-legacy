@@ -161,10 +161,6 @@ int main(int argc, char **argv)
 	if ( nav_counter >= 5 && gpspacket.err_type != no_gps_update ) {
 	  nav_counter = 0;
 	  nav_update();
-
-	  if ( console_link_on ) {
-            console_link_nav( &navpacket );
-	  }
 	}
 
         // health status (update at 1hz)
