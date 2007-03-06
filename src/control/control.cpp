@@ -13,6 +13,7 @@
 #include <math.h>
 #include <unistd.h>
 
+#include "comms/logging.h"
 #include "comms/uplink.h"
 #include "navigation/mnav.h"
 #include "include/globaldefs.h"
@@ -46,7 +47,80 @@ enum   	      modedefs {pitch_mode,roll_mode,heading_mode,altitude_mode,speed_mo
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //control code
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void control_uav(bool init_done, short flight_mode)
+
+static  short anti_windup[4]={1,};
+static short k = 0; 
+static double Ps_f_p=0;
+
+
+void control_init() {
+  // initialization:
+  if ( display_on ) { printf("Initializing autopilot\n"); }
+
+  servopos = servopacket;  	         // save the last servo positions
+  imuval   = imupacket;                    // save the last attitude
+  gpsval   = gpspacket;                    // save the last gps
+  navval   = navpacket;                    // save the last nav
+  Ps_f_p   = 0.0;			
+  sum[0]=sum[1]=sum[2]=sum[3]=sum[4]= 0.;  // initialize integral sums
+  anti_windup[0]=anti_windup[1]=0;
+  anti_windup[2]=anti_windup[3]=0;
+  k        = 0;
+  //printf("\n[control]::control is initialized..!\n");
+
+}
+
+
+void control_update(short flight_mode)
+{
+    uint16_t cnt_cmd[9]={0,};		 	 //elevator,aileron,throttle command
+    double  de = 0, da = 0 /*, dthr = 0*/;        //temp. variables
+    double  dthe, dphi, /* dpsi, */ dh;           //perturbed variables
+    double  dthe_ref,dphi_ref,dpsi_ref=0,dh_ref=0;//perturbed reference variable
+    double  tmpr=0,tmpr1=0,nav_psi=0;
+    double  Ps_f=0;
+
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //obtain the purturbed states
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    dthe   = imupacket.the; 
+    dphi   = imupacket.phi;
+
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //pass through the first order low pass filter to remove noise
+    //G(s)=1/(tau s + 1), tau =0.4;
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    Ps_f   = 0.9048*Ps_f_p + 0.09516*imupacket.Ps;
+    Ps_f_p = Ps_f;
+    dh     = Ps_f  - imuval.Ps;
+
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // simple pass through
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //elevator
+    cnt_cmd[1] = servopacket.chn[1];
+    //aileron
+    cnt_cmd[0] = servopacket.chn[0];
+    //throttle
+    cnt_cmd[2] = servopacket.chn[2];
+    // rudder
+    cnt_cmd[3] = servopacket.chn[3];
+
+    // for ( i = 0; i < 9; ++i ) {
+    //     cnt_cmd[i] = servopos.chn[2];
+    // }
+
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //send commands
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    send_servo_cmd(cnt_cmd);
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//control code
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+void control_uav_old(bool init_done, short flight_mode)
 {
     uint16_t cnt_cmd[9]={0,};		 	 //elevator,aileron,throttle command
     double  de = 0, da = 0 /*, dthr = 0*/;        //temp. variables
@@ -220,3 +294,4 @@ void control_uav(bool init_done, short flight_mode)
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     send_servo_cmd(cnt_cmd);
 }
+

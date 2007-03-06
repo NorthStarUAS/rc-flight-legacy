@@ -55,9 +55,10 @@ void decode_gpspacket(struct gps *data, uint8_t* buffer);
 static int sPort2;
 
 struct servo servopacket;
-bool         autopilot_enable = false;
-bool         control_init = false;
-char         *cnt_status;
+bool autopilot_enable = false;
+bool autopilot_reinit = false;
+int  autopilot_count = 0;
+char *cnt_status;
 
 struct imu imupacket;
 struct gps gpspacket;
@@ -122,7 +123,6 @@ void mnav_init()
 void mnav_update()
 {
     int headerOK = 0;
-    int count = 0;
     int nbytes = 0;
     uint8_t input_buffer[FULL_PACKET_SIZE]={0,};
 
@@ -244,24 +244,24 @@ void mnav_update()
         // if the autopilot is enabled, or signal is lost
         if ( !autopilot_enable && display_on ) {
             printf("[CONTROL]: switching to autopilot\n");
+	    autopilot_reinit = true;
         }
-        autopilot_enable = true;  
-        count  = 15;
+        autopilot_enable = true;
+        autopilot_count  = 15;
         cnt_status = "MNAV in AutoPilot Mode";
     } else if ( servopacket.chn[4] > 12000
                 && servopacket.chn[4] < 60000 )
     {
         // add delay on control trigger to minimize mode confusion
         // caused by the transmitter power off
-        if ( count < 0 ) {
+        if ( autopilot_count < 0 ) {
             if ( autopilot_enable && display_on ) {
                 printf("[CONTROL]: switching to manual pass through\n");
             }
             autopilot_enable = false;
-            control_init = false;
             cnt_status = "MNAV in Manual Mode";
         } else {
-            count--;
+            autopilot_count--;
         }
     }
 }
