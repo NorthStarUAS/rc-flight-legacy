@@ -1,4 +1,6 @@
-- Make MNAV serial device selectable from the command line
+- Config file
+
+- Autopilot!
 
 - Add return / command direction across serial connection.
 
@@ -8,6 +10,16 @@
 - Add an altitude estimator based on the pressure sensor, but
   corrected over time by an average of the (gps - pressure) error.
 
-- Port property system to the arm (?piggy?)
+x 2/14/2007: Better libstdc++ solution on stargate (hate to static link) :-(
+  - copy libstdc++.so.5.0.5 and libgcc_s.so.1 from build tree
+  - then we can dynamically link the ugear executable so it is a small upload
+    and it will run on the host.
+  - Not sure what else might break when libgcc_s.so.1 is replaced with a
+    newer version, so heads up and eyes open ...
 
-- Port xml reader to the arm (?piggy?)
+x 2/13/2007: Port property system to the arm (?piggy?)
+
+x 2/13/2007: Port xml reader to the arm (?piggy?)
+
+x 2/12/2007: Make MNAV serial device selectable from the command line
+
