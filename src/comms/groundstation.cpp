@@ -21,10 +21,6 @@
 #include "globaldefs.h"
 #include "groundstation.h"
 
-#ifdef NCURSE_DISPLAY_OPTION
-#include <ncurses/ncurses.h>
-#endif   
-
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //pre-defined defintions
@@ -38,11 +34,6 @@ int gs_sock_fd;
 char buf_err[50];
 struct  sockaddr_in serv_addr;
 char *HOST_IP_ADDR = "192.168.11.101"; //default ground station IP address
-
-#ifdef NCURSE_DISPLAY_OPTION
-WINDOW  *win;
-#endif
-
 
 //
 // open client to transmit/receive the packet to/from ground station
@@ -60,24 +51,14 @@ bool open_client ()
   
   
     if (connect(gs_sock_fd,(sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) {
-#ifdef NCURSE_DISPLAY_OPTION
-        sprintf(buf_err,"Connection::Failed!   ");
-#else        	
         printf("uNAV CLIENT: Connect Failed.\n");
-#endif        
         close_client();
         result = false;
     }
-    else 
-        {
-#ifdef NCURSE_DISPLAY_OPTION
-            sprintf(buf_err,"Connection::Success!      ");
-#else     	
-            printf("uNAV CLIENT: Connected to server.\n");
-#endif    	
-     
-            result = true;
-        }
+    else {
+        printf("uNAV CLIENT: Connected to server.\n");
+	result = true;
+    }
   
     return result;
 }
@@ -102,14 +83,10 @@ void send_client ( )
   
      
     if (sendto(gs_sock_fd, buf, 200, 0,(struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1) {
-#ifdef NCURSE_DISPLAY_OPTION
-        sprintf(buf_err,"Sending Packet::Failed!   ");
-#else  	
         printf("uNAV CLIENT: Sending Packet Failed.\n");
-#endif     
-    }
-    else
+    } else {
         sprintf(buf_err,"Sending Packet::OK!    ");
+    }
     
 }
 

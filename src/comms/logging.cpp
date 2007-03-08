@@ -16,14 +16,6 @@ bool log_to_file = false;       // log to file is enabled/disabled
 bool display_on = false;        // dump summary to display periodically
 
 
-// global variables for ncurses
-
-#ifdef NCURSE_DISPLAY_OPTION
-#include <ncurses/ncurses.h>
-WINDOW *win;
-#endif // NCURSE_DISPLAY_OPTION
-
-
 bool logging_init() {
     // open files
 
@@ -92,31 +84,6 @@ void log_servo( struct servo *servopacket ) {
 void log_health( struct health *healthpacket ) {
     fwrite( healthpacket, sizeof(struct health), 1, fhealth );
 }
-
-
-// ncurses related functions
-#ifdef NCURSE_DISPLAY_OPTION
-static void set_colors(int pair, int foreground, int background)
-{
-    if (has_colors()) {
-   	if (pair > COLOR_PAIRS)
-   	    pair = COLOR_PAIRS;
-   	init_pair(pair, foreground,background);
-   	wattrset(win, COLOR_PAIR(pair));
-    }		    
-}
-
-static chtype use_colors(int pairs, chtype attrs)
-{
-    if (has_colors()) {
-   	if (pairs > COLOR_PAIRS)
-   	    pairs = COLOR_PAIRS;
-   	attrs |= COLOR_PAIR(pairs);
-    }
-    wattrset(win,attrs);
-    return attrs;	    	
-}		
-#endif
 
 
 // periodic console summary of attitude/location estimate

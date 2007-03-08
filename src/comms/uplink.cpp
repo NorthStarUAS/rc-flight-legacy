@@ -52,13 +52,9 @@ void uplink_acq()
     unsigned long sum=0;
     socklen_t  serv_addrlen = sizeof(serv_addr);
 
-#ifndef NCURSE_DISPLAY_OPTION
     if ( display_on ) {
         printf("[uplink_acq]:: initialized.\n");  
     }
-#else
-    sprintf(uplinkstr,"[UPLINK  ]:Uplink Data has not been received!");   
-#endif
 
     // wait until wifi is connected
     for ( ; ; ) {
@@ -87,24 +83,15 @@ void uplink_acq()
                         waypoints[i][0] = atof(temp);    
                         waypoints[i][1] = atof(tempr);
                     }
-#ifndef NCURSE_DISPLAY_OPTION
                     //print the results
                     for(i=0;i<numofwaypoints;i++) {
                         printf("[uplink]:waypts = %d=>Lat=%f, Lon=%f \n",
                                numofwaypoints,waypoints[i][0],waypoints[i][1]);
                     }
-#else
-                    sprintf(uplinkstr,"[UPLINK  ]:%d WayPts, Last>> Lat=%f, Lon=%f",
-                            numofwaypoints,waypoints[numofwaypoints-1][0],waypoints[numofwaypoints-1][1]);
-#endif
                     break;
                 case 'G':
                     sscanf(bufs+2,"%hd %f %f %f",&pid_mode, &pid_gain[0],&pid_gain[1],&pid_gain[2]);
-#ifndef NCURSE_DISPLAY_OPTION
                     printf("[uplink]:[mode=%d]P=%4.2f I=%4.2f D=%4.2f\n",pid_mode,pid_gain[0],pid_gain[1],pid_gain[2]);
-#else
-                    sprintf(uplinkstr,"[UPLINK  ]:Gain [mode=%d]>> P=%4.2f I=%4.2f D=%4.2f\n",pid_mode,pid_gain[0],pid_gain[1],pid_gain[2]);
-#endif	
                     //gain tuning
                     switch (pid_mode) {
                     case 0:  //pitch_mode:

@@ -10,9 +10,6 @@
 
 #define NSECS_PER_SEC		1000000000
 
-// ncurses
-// #define NCURSE_DISPLAY_OPTION
-
 //Stargate I or II
 //#define SG2
 

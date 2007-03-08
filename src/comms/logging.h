@@ -6,11 +6,6 @@
 
 // global variables
 
-#ifdef NCURSE_DISPLAY_OPTION
-#include <ncurses/ncurses.h>
-extern WINDOW *win;
-#endif // NCURSE_DISPLAY_OPTION
-
 extern bool log_to_file;
 extern bool display_on;
 
