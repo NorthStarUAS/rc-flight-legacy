@@ -53,6 +53,7 @@
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 bool wifi        = false;       // wifi connection enabled/disabled
 
+
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //prototypes
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -67,7 +68,8 @@ int main(int argc, char **argv)
     int iarg;
     static short	attempt = 0;
    
-    SGPropertyNode root;
+    // initialize properties
+    props = new SGPropertyNode;
 
     // Parse the command line
     for ( iarg = 1; iarg < argc; iarg++ ) {
