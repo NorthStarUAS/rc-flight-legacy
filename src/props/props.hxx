@@ -6,7 +6,7 @@
  *
  * See props.html for documentation [replace with URL when available].
  *
- * $Id: props.hxx,v 1.1 2007/02/14 02:43:46 curt Exp $
+ * $Id: props.hxx,v 1.2 2007/03/08 20:54:08 curt Exp $
  */
 
 #ifndef __PROPS_HXX
@@ -1278,6 +1278,20 @@ private:
   };
 
 };
+
+// global property structure
+extern SGPropertyNode *props;
+
+// borrowed from fg_props.cxx
+inline SGPropertyNode *fgGetNode (const char *path, bool create = false)
+{
+  return props->getNode(path, create);
+}
+
+inline SGPropertyNode *fgGetNode (const char *path, int index, bool create = false)
+{
+  return props->getNode(path, index, create);
+}
 
 #endif // __PROPS_HXX
 

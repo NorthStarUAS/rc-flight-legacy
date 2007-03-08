@@ -79,7 +79,6 @@ double xs[7]={1,0,0,0,0,0,0};
 bool   vgCheck = false;
 short  magCheck = 0; 
 
-
 // initalize the AHRS matrices
 void ahrs_init()
 {

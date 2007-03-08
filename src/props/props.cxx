@@ -4,7 +4,7 @@
 //
 // See props.html for documentation [replace with URL when available].
 //
-// $Id: props.cxx,v 1.1 2007/02/14 02:43:46 curt Exp $
+// $Id: props.cxx,v 1.2 2007/03/08 20:54:08 curt Exp $
 
 #include "props.hxx"
 
@@ -14,6 +14,9 @@
 #include <string.h>
 
 #if PROPS_STANDALONE
+
+// global property structure
+SGPropertyNode *props;
 
 #include <iostream>
 using std::cerr;

@@ -18,6 +18,7 @@
 #include "comms/console_link.h"
 #include "comms/logging.h"
 #include "include/globaldefs.h"
+#include "props/props.hxx"
 #include "util/matrix.h"
 #include "util/navfunc.h"
 #include "util/timing.h"
@@ -50,6 +51,14 @@ MATRIX ntmp99,ntmpr,ntmp91,ntmpr91,ntmprr;
 MATRIX ntmp66,ntmp96,ntmp33;
 
 short  gps_init_count = 0;
+
+// nav (cooked gps/accelerometer) property nodes
+static SGPropertyNode *nav_lat_node = NULL;
+static SGPropertyNode *nav_lon_node = NULL;
+static SGPropertyNode *nav_alt_node = NULL;
+static SGPropertyNode *nav_track_node = NULL;
+static SGPropertyNode *nav_vel_node = NULL;
+
 
 void timer_intr( int sig )
 {
@@ -97,6 +106,13 @@ void nav_init()
     nRn[3][3] = 0.01; nRn[4][4] = nRn[3][3]; nRn[5][5] = 0.02; 
   
     navpacket.err_type = no_gps_update;
+
+    // initialize nav property nodes
+    nav_lat_node = fgGetNode("/position/latitude-deg", true);
+    nav_lon_node = fgGetNode("/position/longitude-deg", true);
+    nav_alt_node = fgGetNode("/position/altitude-nav-m", true);
+    nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
+    nav_vel_node = fgGetNode("/velocities/groundspeed-ms", true);
 
     if ( display_on ) {
         printf("[nav] initialized.\n");
@@ -162,6 +178,15 @@ void nav_update()
         navpacket.ve  = nxs[4][0];
         navpacket.vd  = nxs[5][0];
         navpacket.time= get_Time();
+
+        // publish values to property tree
+	nav_lat_node->setDoubleValue( navpacket.lat );
+	nav_lon_node->setDoubleValue( navpacket.lon );
+	nav_alt_node->setDoubleValue( navpacket.alt );
+	nav_track_node->setDoubleValue( atan2(navpacket.vn, navpacket.ve)
+					* SG_RADIANS_TO_DEGREES );
+	nav_vel_node->setDoubleValue( sqrt( navpacket.vn * navpacket.vn
+					    + navpacket.ve * navpacket.ve ) );
 
         if ( console_link_on ) {
             console_link_nav( &navpacket );

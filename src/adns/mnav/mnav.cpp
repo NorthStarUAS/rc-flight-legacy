@@ -20,6 +20,7 @@
 #include "include/globaldefs.h"
 #include "navigation/ahrs.h"
 #include "navigation/nav.h"
+#include "props/props.hxx"
 #include "util/timing.h"
 
 #include "mnav.h"
@@ -63,6 +64,23 @@ char *cnt_status;
 struct imu imupacket;
 struct gps gpspacket;
 struct nav navpacket;
+
+// imu property nodes
+static SGPropertyNode *theta_node = NULL;
+static SGPropertyNode *phi_node = NULL;
+static SGPropertyNode *psi_node = NULL;
+static SGPropertyNode *Ps_node = NULL;
+static SGPropertyNode *Pt_node = NULL;
+static SGPropertyNode *comp_time_node = NULL;
+
+// gps property nodes
+static SGPropertyNode *gps_lat_node = NULL;
+static SGPropertyNode *gps_lon_node = NULL;
+static SGPropertyNode *gps_alt_node = NULL;
+static SGPropertyNode *gps_ve_node = NULL;
+static SGPropertyNode *gps_vn_node = NULL;
+static SGPropertyNode *gps_vd_node = NULL;
+
 
 // open and intialize the MNAV communication channel
 void mnav_init()
@@ -111,6 +129,22 @@ void mnav_init()
         // printf("writing CH_SERVO\n");
     }
     nbytes = 0;  
+
+    // initialize imu property nodes
+    theta_node = fgGetNode("/orientation/pitch-deg", true);
+    phi_node = fgGetNode("/orientation/roll-deg", true);
+    psi_node = fgGetNode("/orientaiton/heading-deg", true);
+    Ps_node = fgGetNode("/position/altitude-pressure-m", true);
+    Pt_node = fgGetNode("/velocities/airspeed-ms", true);
+    comp_time_node = fgGetNode("/time/computer-sec", true);
+
+    // initialize gps property nodes
+    gps_lat_node = fgGetNode("/position/latitude-gps-deg", true);
+    gps_lon_node = fgGetNode("/position/longitude-gps-deg", true);
+    gps_alt_node = fgGetNode("/position/altitude-gps-m", true);
+    gps_ve_node = fgGetNode("/velocities/ve-gps-ms", true);
+    gps_vn_node = fgGetNode("/velocities/vn-gps-ms", true);
+    gps_vd_node = fgGetNode("/velocities/vd-gps-ms", true);
 }
 
 
@@ -197,6 +231,14 @@ void mnav_update()
     if ( imu_valid_data ) {
         ahrs_update();
 
+	// publish values to property tree
+	theta_node->setDoubleValue( imupacket.the * SG_RADIANS_TO_DEGREES );
+	phi_node->setDoubleValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
+	psi_node->setDoubleValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
+	Ps_node->setDoubleValue( imupacket.Ps );
+	Pt_node->setDoubleValue( imupacket.Pt );
+	comp_time_node->setDoubleValue( imupacket.time );
+
         if ( console_link_on ) {
             console_link_imu( &imupacket );
             console_link_servo( &servopacket );
@@ -209,6 +251,14 @@ void mnav_update()
     }
 
     if ( gps_valid_data ) {
+        // publish values to property tree
+	gps_lat_node->setDoubleValue( gpspacket.lat );
+	gps_lon_node->setDoubleValue( gpspacket.lon );
+	gps_alt_node->setDoubleValue( gpspacket.alt );
+	gps_ve_node->setDoubleValue( gpspacket.ve );
+	gps_vn_node->setDoubleValue( gpspacket.vn );
+	gps_vd_node->setDoubleValue( gpspacket.vd );
+
         if ( console_link_on ) {
             console_link_gps( &gpspacket );
         }
