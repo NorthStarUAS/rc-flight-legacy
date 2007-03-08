@@ -37,10 +37,6 @@
 #include "props/props.hxx"
 #include "util/timing.h"
 
-#ifdef NCURSE_DISPLAY_OPTION
-#include <ncurses/ncurses.h>
-#endif   
-
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //pre-defined defintions
