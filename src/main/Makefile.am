@@ -18,6 +18,7 @@ ugear_LDADD = \
 	$(top_builddir)/src/control/libcontrol.a \
 	$(top_builddir)/src/props/libsgprops.a \
 	$(top_builddir)/src/util/libutil.a \
+	$(top_builddir)/src/xml/libsgxml.a \
 	$(ugear_MORELIBS)
 
 decoder_SOURCES = decoder.c

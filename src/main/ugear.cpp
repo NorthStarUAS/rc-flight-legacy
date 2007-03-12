@@ -25,17 +25,25 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
+#include <string>
+
 #include "comms/console_link.h"
 #include "comms/groundstation.h"
 #include "comms/logging.h"
 #include "comms/uplink.h"
+#include "control/control.h"
 #include "health/health.h"
 #include "include/globaldefs.h"
 #include "navigation/ahrs.h"
 #include "navigation/mnav.h"
 #include "navigation/nav.h"
 #include "props/props.hxx"
+#include "props/props_io.hxx"
+#include "util/exception.hxx"
+#include "util/sg_path.hxx"
 #include "util/timing.h"
+
+using std::string;
 
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -63,9 +71,25 @@ int main(int argc, char **argv)
 {
     int iarg;
     static short	attempt = 0;
-   
+
     // initialize properties
     props = new SGPropertyNode;
+
+    string root = "./ugdata";
+    SGPropertyNode *root_node = fgGetNode("/config/root-path", true);
+    root_node->setStringValue( root.c_str() );
+
+    // load master config file
+    SGPath master( root );
+    master.append( "master.xml" );
+    try {
+      readProperties( master.c_str(), props);
+    } catch (const sg_exception &exc) {
+      printf("\n");
+      printf("*** Cannot load master config file: %s\n", master.c_str());
+      printf("\n");
+      sleep(1);
+    }
 
     // Parse the command line
     for ( iarg = 1; iarg < argc; iarg++ ) {
@@ -130,6 +154,9 @@ int main(int argc, char **argv)
     // open networked ground station client
     if ( wifi ) retvalsock = open_client();
 
+    // initialize the autopilot
+    control_init();
+
     //
     // Main loop.  The mnav_update() command blocks on MNAV sensor
     // data which is spit out at precisely 50hz.  So this loop will
@@ -141,6 +168,7 @@ int main(int argc, char **argv)
     int health_counter = 0;
     int display_counter = 0;
     int wifi_counter = 0;
+    int ap_counter = 0;
 
     while ( true ) {
         // upate timing counters
@@ -148,6 +176,7 @@ int main(int argc, char **argv)
         health_counter++;
         display_counter++;
         wifi_counter++;
+	ap_counter++;
 
         // fetch the next data packet from the MNAV sensor.  This
         // function will then call the ahrs_update() and nav_update()
@@ -172,6 +201,12 @@ int main(int argc, char **argv)
 	      console_link_health( &healthpacket );
 	    }
         }
+
+	// autopilot update at 25 hz
+	if ( ap_counter >= 2 && autopilot_enable ) { 
+	  ap_counter = 0;
+	  control_update(0);
+	}
 
         // telemetry (update at 5hz)
         if ( wifi && wifi_counter >= 10 ) {
