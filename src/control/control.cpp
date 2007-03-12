@@ -19,6 +19,7 @@
 #include "include/globaldefs.h"
 
 #include "util.h"
+#include "xmlauto.hxx"
 
 #include "control.h"
 
@@ -52,8 +53,17 @@ static  short anti_windup[4]={1,};
 static short k = 0; 
 static double Ps_f_p=0;
 
+// the "FlightGear" autopilot
+static FGXMLAutopilot ap;
+
 
 void control_init() {
+    ap.init();
+    ap.build();
+}
+
+
+void control_reset() {
   // initialization:
   if ( display_on ) { printf("Initializing autopilot\n"); }
 
@@ -62,11 +72,7 @@ void control_init() {
   gpsval   = gpspacket;                    // save the last gps
   navval   = navpacket;                    // save the last nav
   Ps_f_p   = 0.0;			
-  sum[0]=sum[1]=sum[2]=sum[3]=sum[4]= 0.;  // initialize integral sums
-  anti_windup[0]=anti_windup[1]=0;
-  anti_windup[2]=anti_windup[3]=0;
   k        = 0;
-  //printf("\n[control]::control is initialized..!\n");
 
 }
 
@@ -81,12 +87,6 @@ void control_update(short flight_mode)
     double  Ps_f=0;
 
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    //obtain the purturbed states
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    dthe   = imupacket.the; 
-    dphi   = imupacket.phi;
-
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //pass through the first order low pass filter to remove noise
     //G(s)=1/(tau s + 1), tau =0.4;
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -98,17 +98,17 @@ void control_update(short flight_mode)
     // simple pass through
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //elevator
-    cnt_cmd[1] = servopacket.chn[1];
+    cnt_cmd[1] = servopacket.chn[1] + (imupacket.the * 1600.0 * 57.3);
+    printf("%d\n", cnt_cmd[1]);
     //aileron
-    cnt_cmd[0] = servopacket.chn[0];
+    cnt_cmd[0] = servopacket.chn[0] + (imupacket.phi * 16000 * 57.3);
     //throttle
     cnt_cmd[2] = servopacket.chn[2];
     // rudder
     cnt_cmd[3] = servopacket.chn[3];
 
-    // for ( i = 0; i < 9; ++i ) {
-    //     cnt_cmd[i] = servopos.chn[2];
-    // }
+    ap.update( 0.04 );	// dt = 1/25
+
 
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //send commands

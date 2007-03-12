@@ -123,14 +123,6 @@ void ahrs_update()
     ahrs_algorithm(&imupacket);	   
 
     if ( display_on ) snap_time_interval("ahrs",  100, 0);
-           
-    if ( autopilot_enable && !vgCheck) {
-      if ( autopilot_reinit ) {
-	control_init();
-	autopilot_reinit = false;
-      }
-        control_update( 0 );
-    }
 }
 
 
