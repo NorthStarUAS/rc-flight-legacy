@@ -203,9 +203,9 @@ int main(int argc, char **argv)
         }
 
 	// autopilot update at 25 hz
-	if ( ap_counter >= 2 && autopilot_enable ) { 
+	if ( ap_counter >= 2 ) { 
 	  ap_counter = 0;
-	  control_update(0);
+ 	  control_update(0);
 	}
 
         // telemetry (update at 5hz)
