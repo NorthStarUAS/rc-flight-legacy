@@ -15,8 +15,9 @@
 
 #include "comms/logging.h"
 #include "comms/uplink.h"
-#include "navigation/mnav.h"
 #include "include/globaldefs.h"
+#include "navigation/mnav.h"
+#include "props/props.hxx"
 
 #include "util.h"
 #include "xmlauto.hxx"
@@ -44,22 +45,34 @@ static struct gps      gpsval;
 static struct nav      navval;
 enum   	      modedefs {pitch_mode,roll_mode,heading_mode,altitude_mode,speed_mode,waypoint_mode};
 
+static SGPropertyNode *aileron_out_node = NULL;
+static SGPropertyNode *elevator_out_node = NULL;
+static SGPropertyNode *throttle_out_node = NULL;
+static SGPropertyNode *rudder_out_node = NULL;
+static SGPropertyNode *ap_target = NULL;
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //control code
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-static  short anti_windup[4]={1,};
-static short k = 0; 
-static double Ps_f_p=0;
 
 // the "FlightGear" autopilot
 static FGXMLAutopilot ap;
 
 
 void control_init() {
+    // initialize the autopilot class and build the structures from the
+    // configuration file values
     ap.init();
     ap.build();
+
+    // initialize the flight control output property nodes
+    aileron_out_node = fgGetNode("/controls/flight/aileron", true);
+    elevator_out_node = fgGetNode("/controls/flight/elevator", true);
+    throttle_out_node = fgGetNode("/engines/engine[0]/throttle", true);
+    rudder_out_node = fgGetNode("/controls/flight/rudder", true);
+
+    ap_target = fgGetNode("/autopilot/settings/target-pitch", true);
 }
 
 
@@ -67,62 +80,74 @@ void control_reset() {
   // initialization:
   if ( display_on ) { printf("Initializing autopilot\n"); }
 
-  servopos = servopacket;  	         // save the last servo positions
-  imuval   = imupacket;                    // save the last attitude
-  gpsval   = gpspacket;                    // save the last gps
-  navval   = navpacket;                    // save the last nav
-  Ps_f_p   = 0.0;			
-  k        = 0;
-
+  servopos = servopacket;	// save the last servo positions
+  imuval   = imupacket;		// save the last attitude
+  gpsval   = gpspacket;		// save the last gps
+  navval   = navpacket;		// save the last nav
 }
 
 
 void control_update(short flight_mode)
 {
-    uint16_t cnt_cmd[9]={0,};		 	 //elevator,aileron,throttle command
+    uint16_t servo_out[9]={0,};		 	 //elevator,aileron,throttle command
     double  de = 0, da = 0 /*, dthr = 0*/;        //temp. variables
     double  dthe, dphi, /* dpsi, */ dh;           //perturbed variables
     double  dthe_ref,dphi_ref,dpsi_ref=0,dh_ref=0;//perturbed reference variable
     double  tmpr=0,tmpr1=0,nav_psi=0;
-    double  Ps_f=0;
 
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    //pass through the first order low pass filter to remove noise
-    //G(s)=1/(tau s + 1), tau =0.4;
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    Ps_f   = 0.9048*Ps_f_p + 0.09516*imupacket.Ps;
-    Ps_f_p = Ps_f;
-    dh     = Ps_f  - imuval.Ps;
+    // make a quick exit if we are disabled
+    if ( !autopilot_enable ) {
+      return;
+    }
 
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // simple pass through
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    //elevator
-    cnt_cmd[1] = servopacket.chn[1] + (imupacket.the * 1600.0 * 57.3);
-    printf("%d\n", cnt_cmd[1]);
-    //aileron
-    cnt_cmd[0] = servopacket.chn[0] + (imupacket.phi * 16000 * 57.3);
-    //throttle
-    cnt_cmd[2] = servopacket.chn[2];
-    // rudder
-    cnt_cmd[3] = servopacket.chn[3];
+    // reset the autopilot if requested
+    if ( autopilot_reinit ) {
+      control_reset();
+      autopilot_reinit = false;
+    }
 
+    // optional: use channel #6 to change the autopilot target value
+    double min_value = -5.0;
+    double max_value = 15.0;
+    double tgt_value = (max_value - min_value) *
+      ((double)servopacket.chn[5] / 65535.0) + min_value;
+    ap_target->setDoubleValue( tgt_value );
+
+    // update the autopilot stages
     ap.update( 0.04 );	// dt = 1/25
+
+    // send the servo commands out
+
+    //aileron
+    // servo_out[0] = servopacket.chn[0] + (imupacket.phi * 16000 * 57.3);
+    servo_out[0] = 32768 + aileron_out_node->getDoubleValue() * 32768;
+
+    //elevator
+    servo_out[1] = servopacket.chn[1] + (imupacket.the * 1600.0 * 57.3);
+    servo_out[1] = 32768 + elevator_out_node->getDoubleValue() * 32768;
+
+    //throttle
+    servo_out[2] = servopacket.chn[2];
+
+    // rudder
+    servo_out[3] = 32768 + rudder_out_node->getDoubleValue() * 32768;
 
 
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //send commands
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    send_servo_cmd(cnt_cmd);
+    send_servo_cmd(servo_out);
 }
 
+
+#if 0
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //control code
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void control_uav_old(bool init_done, short flight_mode)
 {
-    uint16_t cnt_cmd[9]={0,};		 	 //elevator,aileron,throttle command
+    uint16_t servo_out[9]={0,};		 	 //elevator,aileron,throttle command
     double  de = 0, da = 0 /*, dthr = 0*/;        //temp. variables
     double  dthe, dphi, /* dpsi, */ dh;           //perturbed variables
     double  dthe_ref,dphi_ref,dpsi_ref=0,dh_ref=0;//perturbed reference variable
@@ -278,20 +303,21 @@ void control_uav_old(bool init_done, short flight_mode)
     //elervons:elevator and aileron mixing
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //elevator
-    cnt_cmd[1] = servopos.chn[1] + (uint16_t)(deg2servo*(de+da)*57.3);
+    servo_out[1] = servopos.chn[1] + (uint16_t)(deg2servo*(de+da)*57.3);
     //aileron
-    cnt_cmd[0] = servopos.chn[0] + (uint16_t)(deg2servo*(da-de)*57.3);
+    servo_out[0] = servopos.chn[0] + (uint16_t)(deg2servo*(da-de)*57.3);
     //throttle
-    cnt_cmd[2] = servopos.chn[2];
-    // printf("cnt_cmd[2] = %d %d %d\n", cnt_cmd[2], servopos.chn[2], servopacket.chn[2]);
+    servo_out[2] = servopos.chn[2];
+    // printf("servo_out[2] = %d %d %d\n", servo_out[2], servopos.chn[2], servopacket.chn[2]);
 
     // for ( i = 0; i < 9; ++i ) {
-    //     cnt_cmd[i] = servopos.chn[2];
+    //     servo_out[i] = servopos.chn[2];
     // }
 
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //send commands
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    send_servo_cmd(cnt_cmd);
+    send_servo_cmd(servo_out);
 }
 
+#endif

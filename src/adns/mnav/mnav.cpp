@@ -71,6 +71,8 @@ static SGPropertyNode *phi_node = NULL;
 static SGPropertyNode *psi_node = NULL;
 static SGPropertyNode *Ps_node = NULL;
 static SGPropertyNode *Pt_node = NULL;
+static SGPropertyNode *Ps_filt_node = NULL;
+static SGPropertyNode *Pt_filt_node = NULL;
 static SGPropertyNode *comp_time_node = NULL;
 
 // gps property nodes
@@ -80,6 +82,9 @@ static SGPropertyNode *gps_alt_node = NULL;
 static SGPropertyNode *gps_ve_node = NULL;
 static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
+
+// control input nodes
+static SGPropertyNode *servo_chn_node[8];
 
 
 // open and intialize the MNAV communication channel
@@ -136,6 +141,8 @@ void mnav_init()
     psi_node = fgGetNode("/orientaiton/heading-deg", true);
     Ps_node = fgGetNode("/position/altitude-pressure-m", true);
     Pt_node = fgGetNode("/velocities/airspeed-ms", true);
+    Ps_filt_node = fgGetNode("/position/altitude-filtered-m", true);
+    Pt_filt_node = fgGetNode("/velocities/airspeed-filtered-ms", true);
     comp_time_node = fgGetNode("/time/computer-sec", true);
 
     // initialize gps property nodes
@@ -145,6 +152,11 @@ void mnav_init()
     gps_ve_node = fgGetNode("/velocities/ve-gps-ms", true);
     gps_vn_node = fgGetNode("/velocities/vn-gps-ms", true);
     gps_vd_node = fgGetNode("/velocities/vd-gps-ms", true);
+
+    // initialize control input property nodes
+    for ( int i = 0; i < 8; ++i ) {
+      servo_chn_node[i] = fgGetNode("/controls/channel", i, true);
+    }
 }
 
 
@@ -159,6 +171,9 @@ void mnav_update()
     int headerOK = 0;
     int nbytes = 0;
     uint8_t input_buffer[FULL_PACKET_SIZE]={0,};
+
+    static double Ps_filt = 0.0;
+    static double Pt_filt = 0.0;
 
     bool imu_valid_data = false;
     bool gps_valid_data = false;
@@ -231,13 +246,23 @@ void mnav_update()
     if ( imu_valid_data ) {
         ahrs_update();
 
+	// Do a simple first order low pass filter to remove noise
+	Ps_filt = 0.9 * Ps_filt + 0.1 * imupacket.Ps;
+	Pt_filt = 0.9 * Pt_filt + 0.1 * imupacket.Pt;
+
 	// publish values to property tree
 	theta_node->setDoubleValue( imupacket.the * SG_RADIANS_TO_DEGREES );
 	phi_node->setDoubleValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
 	psi_node->setDoubleValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
 	Ps_node->setDoubleValue( imupacket.Ps );
 	Pt_node->setDoubleValue( imupacket.Pt );
+	Ps_filt_node->setDoubleValue( Ps_filt );
+	Pt_filt_node->setDoubleValue( Pt_filt );
 	comp_time_node->setDoubleValue( imupacket.time );
+
+	for ( int i = 0; i < 8; ++i ) {
+	  servo_chn_node[i]->setDoubleValue( servopacket.chn[i] );
+	}
 
         if ( console_link_on ) {
             console_link_imu( &imupacket );

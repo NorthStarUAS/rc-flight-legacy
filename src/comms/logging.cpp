@@ -100,8 +100,8 @@ void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
         printf("[GPS  ]:ITOW= %5d[ms], lon = %f[deg], lat = %f[deg], alt = %f[m]\n",gdata->ITOW,gdata->lon,gdata->lat,gdata->alt);	
         printf("[nav  ]:                 lon = %f[deg], lat = %f[deg], alt = %f[m]\n",            ndata->lon,ndata->lat,ndata->alt);	
     }
-    printf("[Servo]: %d %d %d %d %d\n", sdata->chn[0], sdata->chn[1],
-           sdata->chn[2], sdata->chn[3], sdata->chn[4]);
+    printf("[Servo]: %d %d %d %d %d %d\n", sdata->chn[0], sdata->chn[1],
+           sdata->chn[2], sdata->chn[3], sdata->chn[4], sdata->chn[5]);
     printf("[health]: v = %.2f sec = %d loadavg = %.2f\n",
            hdata->volts, hdata->est_seconds,
            (float)hdata->loadavg / 100.0);
