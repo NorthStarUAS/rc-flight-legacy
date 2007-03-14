@@ -53,11 +53,11 @@ MATRIX ntmp66,ntmp96,ntmp33;
 short  gps_init_count = 0;
 
 // nav (cooked gps/accelerometer) property nodes
-static SGPropertyNode *nav_lat_node = NULL;
-static SGPropertyNode *nav_lon_node = NULL;
-static SGPropertyNode *nav_alt_node = NULL;
-static SGPropertyNode *nav_track_node = NULL;
-static SGPropertyNode *nav_vel_node = NULL;
+// static SGPropertyNode *nav_lat_node = NULL;
+// static SGPropertyNode *nav_lon_node = NULL;
+// static SGPropertyNode *nav_alt_node = NULL;
+// static SGPropertyNode *nav_track_node = NULL;
+// static SGPropertyNode *nav_vel_node = NULL;
 
 
 void timer_intr( int sig )
@@ -108,11 +108,11 @@ void nav_init()
     navpacket.err_type = no_gps_update;
 
     // initialize nav property nodes
-    nav_lat_node = fgGetNode("/position/latitude-deg", true);
-    nav_lon_node = fgGetNode("/position/longitude-deg", true);
-    nav_alt_node = fgGetNode("/position/altitude-nav-m", true);
-    nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
-    nav_vel_node = fgGetNode("/velocities/groundspeed-ms", true);
+    // nav_lat_node = fgGetNode("/position/latitude-deg", true);
+    // nav_lon_node = fgGetNode("/position/longitude-deg", true);
+    // nav_alt_node = fgGetNode("/position/altitude-nav-m", true);
+    // nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
+    // nav_vel_node = fgGetNode("/velocities/groundspeed-ms", true);
 
     if ( display_on ) {
         printf("[nav] initialized.\n");
@@ -180,13 +180,13 @@ void nav_update()
         navpacket.time= get_Time();
 
         // publish values to property tree
-	nav_lat_node->setDoubleValue( navpacket.lat );
-	nav_lon_node->setDoubleValue( navpacket.lon );
-	nav_alt_node->setDoubleValue( navpacket.alt );
-	nav_track_node->setDoubleValue( atan2(navpacket.vn, navpacket.ve)
-					* SG_RADIANS_TO_DEGREES );
-	nav_vel_node->setDoubleValue( sqrt( navpacket.vn * navpacket.vn
-					    + navpacket.ve * navpacket.ve ) );
+	// nav_lat_node->setDoubleValue( navpacket.lat );
+	// nav_lon_node->setDoubleValue( navpacket.lon );
+	// nav_alt_node->setDoubleValue( navpacket.alt );
+	// nav_track_node->setDoubleValue( atan2(navpacket.vn, navpacket.ve)
+	// 				* SG_RADIANS_TO_DEGREES );
+	// nav_vel_node->setDoubleValue( sqrt( navpacket.vn * navpacket.vn
+	// 				    + navpacket.ve * navpacket.ve ) );
 
         if ( console_link_on ) {
             console_link_nav( &navpacket );
