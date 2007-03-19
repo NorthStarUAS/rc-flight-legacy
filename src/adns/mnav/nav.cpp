@@ -20,6 +20,7 @@
 #include "include/globaldefs.h"
 #include "props/props.hxx"
 #include "util/matrix.h"
+#include "util/myprof.h"
 #include "util/navfunc.h"
 #include "util/timing.h"
 
@@ -51,6 +52,8 @@ MATRIX ntmp99,ntmpr,ntmp91,ntmpr91,ntmprr;
 MATRIX ntmp66,ntmp96,ntmp33;
 
 short  gps_init_count = 0;
+
+float alt_err_filt = 0.0;
 
 // nav (cooked gps/accelerometer) property nodes
 // static SGPropertyNode *nav_lat_node = NULL;
@@ -169,7 +172,9 @@ void nav_update()
         imulocal = imupacket;
                    
         // run navigation algorithm
+	nav_alg_prof.start();
         nav_algorithm( &imulocal, &gpslocal );
+	nav_alg_prof.stop();
            
         navpacket.lat = nxs[0][0]*R2D;
         navpacket.lon = nxs[1][0]*R2D;
@@ -178,6 +183,12 @@ void nav_update()
         navpacket.ve  = nxs[4][0];
         navpacket.vd  = nxs[5][0];
         navpacket.time= get_Time();
+
+	// compute a filtered error difference between gps altitude
+	// and pressure altitude.  (at 10hz update rate this averages
+	// the error over about 16min 40sec)
+	float alt_err = navpacket.alt - imupacket.Ps;
+	alt_err_filt = 0.9999 * alt_err_filt + 0.0001 * alt_err;
 
         // publish values to property tree
 	// nav_lat_node->setDoubleValue( navpacket.lat );

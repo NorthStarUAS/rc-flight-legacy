@@ -66,13 +66,13 @@ struct gps gpspacket;
 struct nav navpacket;
 
 // imu property nodes
-static SGPropertyNode *theta_node = NULL;
-static SGPropertyNode *phi_node = NULL;
+// static SGPropertyNode *theta_node = NULL;
+// static SGPropertyNode *phi_node = NULL;
 // static SGPropertyNode *psi_node = NULL;
 // static SGPropertyNode *Ps_node = NULL;
 // static SGPropertyNode *Pt_node = NULL;
-static SGPropertyNode *Ps_filt_node = NULL;
-static SGPropertyNode *Pt_filt_node = NULL;
+// static SGPropertyNode *Ps_filt_node = NULL;
+// static SGPropertyNode *Pt_filt_node = NULL;
 // static SGPropertyNode *comp_time_node = NULL;
 
 // gps property nodes
@@ -136,13 +136,13 @@ void mnav_init()
     nbytes = 0;  
 
     // initialize imu property nodes
-    theta_node = fgGetNode("/orientation/pitch-deg", true);
-    phi_node = fgGetNode("/orientation/roll-deg", true);
+    // theta_node = fgGetNode("/orientation/pitch-deg", true);
+    // phi_node = fgGetNode("/orientation/roll-deg", true);
     // psi_node = fgGetNode("/orientaiton/heading-deg", true);
     // Ps_node = fgGetNode("/position/altitude-pressure-m", true);
     // Pt_node = fgGetNode("/velocities/airspeed-ms", true);
-    Ps_filt_node = fgGetNode("/position/altitude-filtered-m", true);
-    Pt_filt_node = fgGetNode("/velocities/airspeed-filtered-ms", true);
+    // Ps_filt_node = fgGetNode("/position/altitude-filtered-m", true);
+    // Pt_filt_node = fgGetNode("/velocities/airspeed-filtered-ms", true);
     // comp_time_node = fgGetNode("/time/computer-sec", true);
 
     // initialize gps property nodes
@@ -251,13 +251,13 @@ void mnav_update()
 	Pt_filt = 0.9 * Pt_filt + 0.1 * imupacket.Pt;
 
 	// publish values to property tree
-	theta_node->setFloatValue( imupacket.the * SG_RADIANS_TO_DEGREES );
-	phi_node->setFloatValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
+	// theta_node->setFloatValue( imupacket.the * SG_RADIANS_TO_DEGREES );
+	// phi_node->setFloatValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
 	// psi_node->setFloatValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
 	// Ps_node->setFloatValue( imupacket.Ps );
 	// Pt_node->setFloatValue( imupacket.Pt );
-	Ps_filt_node->setFloatValue( Ps_filt );
-	Pt_filt_node->setFloatValue( Pt_filt );
+	// Ps_filt_node->setFloatValue( Ps_filt );
+	// Pt_filt_node->setFloatValue( Pt_filt );
 	// comp_time_node->setDoubleValue( imupacket.time );
 
 	// for ( int i = 0; i < 8; ++i ) {

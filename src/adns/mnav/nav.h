@@ -13,6 +13,7 @@
 // global variables
 extern MATRIX nxs;
 extern short gps_init_count;
+extern float alt_err_filt;
 
 // global functions
 void nav_init();

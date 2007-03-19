@@ -72,7 +72,7 @@ void control_init() {
     throttle_out_node = fgGetNode("/engines/engine[0]/throttle", true);
     rudder_out_node = fgGetNode("/controls/flight/rudder", true);
 
-    ap_target = fgGetNode("/autopilot/settings/target-pitch", true);
+    ap_target = fgGetNode("/autopilot/settings/target-roll-deg", true);
 }
 
 
@@ -89,12 +89,7 @@ void control_reset() {
 
 void control_update(short flight_mode)
 {
-    uint16_t servo_out[9]={0,};		 	 //elevator,aileron,throttle command
-    double  de = 0, da = 0 /*, dthr = 0*/;        //temp. variables
-    double  dthe, dphi, /* dpsi, */ dh;           //perturbed variables
-    double  dthe_ref,dphi_ref,dpsi_ref=0,dh_ref=0;//perturbed reference variable
-    double  tmpr=0,tmpr1=0,nav_psi=0;
-
+    uint16_t servo_out[9]={0,};	//elevator,aileron,throttle command
     // make a quick exit if we are disabled
     if ( !autopilot_enable ) {
       return;
@@ -107,11 +102,11 @@ void control_update(short flight_mode)
     }
 
     // optional: use channel #6 to change the autopilot target value
-    double min_value = -5.0;
-    double max_value = 15.0;
+    double min_value = -35.0;
+    double max_value = 35.0;
     double tgt_value = (max_value - min_value) *
       ((double)servopacket.chn[5] / 65535.0) + min_value;
-    ap_target->setDoubleValue( tgt_value );
+    ap_target->setFloatValue( tgt_value );
 
     // update the autopilot stages
     ap.update( 0.04 );	// dt = 1/25
@@ -119,18 +114,18 @@ void control_update(short flight_mode)
     // send the servo commands out
 
     //aileron
-    // servo_out[0] = servopacket.chn[0] + (imupacket.phi * 16000 * 57.3);
-    servo_out[0] = 32768 + aileron_out_node->getDoubleValue() * 32768;
+    // servo_out[0] = servopacket.chn[0] + (imupacket.phif * 16000 * 57.3);
+    servo_out[0] = 32768 + aileron_out_node->getFloatValue() * 32768;
 
     //elevator
-    servo_out[1] = servopacket.chn[1] + (imupacket.the * 1600.0 * 57.3);
-    servo_out[1] = 32768 + elevator_out_node->getDoubleValue() * 32768;
+    // servo_out[1] = servopacket.chn[1] + (imupacket.thef * 1600.0 * 57.3);
+    servo_out[1] = 32768 + elevator_out_node->getFloatValue() * 32768;
 
     //throttle
     servo_out[2] = servopacket.chn[2];
 
     // rudder
-    servo_out[3] = 32768 + rudder_out_node->getDoubleValue() * 32768;
+    servo_out[3] = 32768 + rudder_out_node->getFloatValue() * 32768;
 
 
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
