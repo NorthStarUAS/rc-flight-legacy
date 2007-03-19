@@ -40,6 +40,7 @@
 #include "props/props.hxx"
 #include "props/props_io.hxx"
 #include "util/exception.hxx"
+#include "util/myprof.h"
 #include "util/sg_path.hxx"
 #include "util/timing.h"
 
@@ -169,6 +170,7 @@ int main(int argc, char **argv)
     int display_counter = 0;
     int wifi_counter = 0;
     int ap_counter = 0;
+    // SGPropertyNode *true_alt_node = fgGetNode("/position/altitude-true-m",true);
 
     while ( true ) {
         // upate timing counters
@@ -179,20 +181,29 @@ int main(int argc, char **argv)
 	ap_counter++;
 
         // fetch the next data packet from the MNAV sensor.  This
-        // function will then call the ahrs_update() and nav_update()
-        // functions as appropriate to compute the attitude and
-        // location estimates.
+        // function will then call the ahrs_update() function as
+        // appropriate to compute the attitude estimate.
+	mnav_prof.start();
         mnav_update();
+	mnav_prof.stop();
 
-	// navigation (update at 10hz)
+	// navigation (update at 10hz.)  compute a location estimate
+	// based on gps and accelerometer data.
 	if ( nav_counter >= 5 && gpspacket.err_type != no_gps_update ) {
 	  nav_counter = 0;
+	  nav_prof.start();
 	  nav_update();
+	  nav_prof.stop();
 	}
 
-        // health status (update at 1hz)
-        if ( health_counter >= 50 ) {
+	// best guess at true altitude
+	float true_alt_m = imupacket.Ps + alt_err_filt;
+	// true_alt_node->setFloatValue( true_alt_m );
+
+        // health status (update at 0.1hz)
+        if ( health_counter >= 500 ) {
             health_counter = 0;
+	    health_prof.start();
             health_update();
             if ( log_to_file ) {
                 log_health( &healthpacket );
@@ -200,12 +211,15 @@ int main(int argc, char **argv)
 	    if ( console_link_on ) {
 	      console_link_health( &healthpacket );
 	    }
+	    health_prof.stop();
         }
 
 	// autopilot update at 25 hz
 	if ( ap_counter >= 2 ) { 
 	  ap_counter = 0;
+	  control_prof.start();
  	  control_update(0);
+	  control_prof.stop();
 	}
 
         // telemetry (update at 5hz)
@@ -229,6 +243,11 @@ int main(int argc, char **argv)
             display_counter = 0;
             display_message( &imupacket, &gpspacket, &navpacket,
                              &servopacket, &healthpacket );
+	    mnav_prof.stats   ( "MNAV" );
+	    nav_prof.stats    ( "NAV " );
+	    nav_alg_prof.stats    ( "NAVA" );
+	    control_prof.stats( "CTRL" );
+	    health_prof.stats ( "HLTH" );
         }
     } // end main loop
 
