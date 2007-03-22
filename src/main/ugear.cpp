@@ -47,27 +47,27 @@
 using std::string;
 
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//pre-defined defintions
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//
+// #defines
+//
 #define NETWORK_PORT      9001		 // network port number
 #define UPDATE_USECS	  200000         // downlink at 5 Hz
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//global variables
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-bool wifi        = false;       // wifi connection enabled/disabled
+//
+// global variables
+//
+bool wifi       = false;	// wifi connection enabled/disabled
+bool enable_nav = false;	// nav filter enabled/disabled
+
+//
+// prototypes
+//
+void help_message();
 
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//prototypes
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-void	    help_message();
-
-
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//main here...
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//
+// main ...
+//
 int main(int argc, char **argv)
 {
     int iarg;
@@ -91,6 +91,10 @@ int main(int argc, char **argv)
       printf("\n");
       sleep(1);
     }
+
+    // set some config values
+    SGPropertyNode *p = fgGetNode("/config/nav-filter/enable", true);
+    enable_nav = p->getBoolValue();
 
     // Parse the command line
     for ( iarg = 1; iarg < argc; iarg++ ) {
@@ -142,9 +146,11 @@ int main(int argc, char **argv)
     // ahrs_close()
     ahrs_init();
 
-    // Initialize the NAV code.  Must be called before nav_update() or
-    // nav_close()
-    nav_init();
+    if ( enable_nav ) {
+      // Initialize the NAV code.  Must be called before nav_update() or
+      // nav_close()
+      nav_init();
+    }
 
     // Initialize the communcation channel with the MNAV
     mnav_init();
@@ -170,15 +176,19 @@ int main(int argc, char **argv)
     int display_counter = 0;
     int wifi_counter = 0;
     int ap_counter = 0;
-    // SGPropertyNode *true_alt_node = fgGetNode("/position/altitude-true-m",true);
+    SGPropertyNode *true_alt_node = fgGetNode("/position/altitude-true-m",true);
+
+    printf("Everything inited ... ready to run\n");
 
     while ( true ) {
         // upate timing counters
-        nav_counter++;
         health_counter++;
         display_counter++;
         wifi_counter++;
 	ap_counter++;
+        if ( enable_nav ) {
+	  nav_counter++;
+	}
 
         // fetch the next data packet from the MNAV sensor.  This
         // function will then call the ahrs_update() function as
@@ -187,18 +197,20 @@ int main(int argc, char **argv)
         mnav_update();
 	mnav_prof.stop();
 
-	// navigation (update at 10hz.)  compute a location estimate
-	// based on gps and accelerometer data.
-	if ( nav_counter >= 5 && gpspacket.err_type != no_gps_update ) {
-	  nav_counter = 0;
-	  nav_prof.start();
-	  nav_update();
-	  nav_prof.stop();
+	if ( enable_nav ) {
+	  // navigation (update at 10hz.)  compute a location estimate
+	  // based on gps and accelerometer data.
+	  if ( nav_counter >= 5 && gpspacket.err_type != no_gps_update ) {
+	    nav_counter = 0;
+	    nav_prof.start();
+	    nav_update();
+	    nav_prof.stop();
+	  }
 	}
 
 	// best guess at true altitude
 	float true_alt_m = imupacket.Ps + alt_err_filt;
-	// true_alt_node->setFloatValue( true_alt_m );
+	true_alt_node->setFloatValue( true_alt_m );
 
         // health status (update at 0.1hz)
         if ( health_counter >= 500 ) {
@@ -244,8 +256,11 @@ int main(int argc, char **argv)
             display_message( &imupacket, &gpspacket, &navpacket,
                              &servopacket, &healthpacket );
 	    mnav_prof.stats   ( "MNAV" );
-	    nav_prof.stats    ( "NAV " );
-	    nav_alg_prof.stats    ( "NAVA" );
+	    ahrs_prof.stats   ( "AHRS" );
+	    if ( enable_nav ) {
+	      nav_prof.stats    ( "NAV " );
+	      nav_alg_prof.stats    ( "NAVA" );
+	    }
 	    control_prof.stats( "CTRL" );
 	    health_prof.stats ( "HLTH" );
         }
@@ -253,8 +268,10 @@ int main(int argc, char **argv)
 
     // close and exit
     ahrs_close();
-    nav_close();
     mnav_close();
+    if ( enable_nav ) {
+      nav_close();
+    }
 }
 
 
