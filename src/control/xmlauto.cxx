@@ -18,7 +18,9 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: xmlauto.cxx,v 1.2 2007/03/22 00:45:56 curt Exp $
+// $Id: xmlauto.cxx,v 1.3 2007/03/22 19:16:22 curt Exp $
+
+#include <math.h>
 
 #include <props/props_io.hxx>
 #include <util/exception.hxx>

@@ -104,7 +104,7 @@ void mnav_init()
     /*********************************************************************
      *Open and configure Serial Port2 (com2)
      *********************************************************************/
-    sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_38400,false); 
+    sPort2 = open_serial( mnav_dev, BAUDRATE_38400, false );
     // printf("Opened serial port at 38400.\n");
       
     while (nbytes != 11) {
@@ -114,7 +114,7 @@ void mnav_init()
     nbytes = 0;  
     close(sPort2);
 
-    sPort2 = open_serial(SERIAL_PORT2,BAUDRATE_57600,false); 
+    sPort2 = open_serial( mnav_dev, BAUDRATE_57600, false );
     // printf("Opened serial port at 57600.\n");
   
     

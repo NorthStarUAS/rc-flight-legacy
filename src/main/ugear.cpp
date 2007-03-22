@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 
     // load master config file
     SGPath master( root );
-    master.append( "master.xml" );
+    master.append( "config.xml" );
     try {
       readProperties( master.c_str(), props);
     } catch (const sg_exception &exc) {
@@ -95,6 +95,12 @@ int main(int argc, char **argv)
 
     // set some config values
     SGPropertyNode *p;
+
+    p = fgGetNode("/config/mnav/device", true);
+    strncpy( mnav_dev, p->getStringValue(), MAX_MNAV_DEV );
+
+    p = fgGetNode("/config/console/device", true);
+    strncpy( console_dev, p->getStringValue(), MAX_CONSOLE_DEV );
 
     p = fgGetNode("/config/nav-filter/enable", true);
     enable_nav = p->getBoolValue();
