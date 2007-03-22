@@ -19,6 +19,7 @@
 #include "comms/logging.h"
 #include "control/control.h"
 #include "include/globaldefs.h"
+#include "props/props.hxx"
 #include "util/matrix.h"
 #include "util/timing.h"
 
@@ -40,25 +41,12 @@ double 		wraparound(double dta);
 // sensor characteristics
 
 // magnetometer hard-iron calibration: users need to fill out proper
-// values for their unit if necessary. Use the following link to
-// understand how to go about:
+// values in the master.xml file for their unit. Use the following
+// link to understand a bit about the procedure:
 // www.ssec.honeywell.com/magnetic/datasheets/amr.pdf
 //
-// See the top level README file for more information on calibration
-//
-// default values (no hard iron calibration affects observed, no
-// offset, no scaling needed.)
-//
-// #define bBy 0.0     
-// #define bBx 0.0
-// #define sfx 1.0
-// #define sfy 1.1
-
-// jetta @ passenger feet
-#define	bBy 0.65
-#define	bBx 0.15
-#define sfx (1.0 / 0.500)
-#define sfy (1.0 / 0.5)
+// Actually, see the top level README file for practical information
+// on calibration
 
 // err covariance of accelerometers: users must change these values
 // depending on the environment under the vehicle is in operation
@@ -78,6 +66,14 @@ MATRIX Hpsi,Kpsi,tmp71;
 double xs[7]={1,0,0,0,0,0,0};
 bool   vgCheck = false;
 short  magCheck = 0; 
+
+double bBx = 0.0, bBy = 0.0, sfx = 1.0, sfy = 1.0;
+
+static SGPropertyNode *bBx_node = NULL;
+static SGPropertyNode *bBy_node = NULL;
+static SGPropertyNode *sfx_node = NULL;
+static SGPropertyNode *sfy_node = NULL;
+
 
 // initalize the AHRS matrices
 void ahrs_init()
@@ -110,6 +106,16 @@ void ahrs_init()
     tmp77 = mat_creat(7,7,ZERO_MATRIX);
     tmpr  = mat_creat(7,7,ZERO_MATRIX);
     mat77 = mat_creat(7,7,ZERO_MATRIX);
+
+    // initialize hard iron calibration property nodes
+    bBx_node = fgGetNode("/config/ahrs/bBx", true);
+    bBx = bBx_node->getDoubleValue();
+    bBy_node = fgGetNode("/config/ahrs/bBy", true);
+    bBy = bBy_node->getDoubleValue();
+    sfx_node = fgGetNode("/config/ahrs/sfx", true);
+    sfx = sfx_node->getDoubleValue();
+    sfy_node = fgGetNode("/config/ahrs/sfy", true);
+    sfy = sfy_node->getDoubleValue();
 
     if ( display_on ) {
         printf("[ahrs] initialized.\n");

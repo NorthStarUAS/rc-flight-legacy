@@ -57,7 +57,7 @@ void decode_gpspacket(struct gps *data, uint8_t* buffer);
 static int sPort2;
 
 struct servo servopacket;
-bool autopilot_enable = false;
+bool autopilot_active = false;
 bool autopilot_reinit = false;
 int  autopilot_count = 0;
 char *cnt_status;
@@ -320,11 +320,11 @@ void mnav_update()
 
     if ( servopacket.chn[4] <= 12000 ) {
         // if the autopilot is enabled, or signal is lost
-        if ( !autopilot_enable && display_on ) {
+        if ( !autopilot_active && display_on ) {
             printf("[CONTROL]: switching to autopilot\n");
 	    autopilot_reinit = true;
         }
-        autopilot_enable = true;
+        autopilot_active = true;
         autopilot_count  = 15;
         cnt_status = "MNAV in AutoPilot Mode";
     } else if ( servopacket.chn[4] > 12000
@@ -333,10 +333,10 @@ void mnav_update()
         // add delay on control trigger to minimize mode confusion
         // caused by the transmitter power off
         if ( autopilot_count < 0 ) {
-            if ( autopilot_enable && display_on ) {
+            if ( autopilot_active && display_on ) {
                 printf("[CONTROL]: switching to manual pass through\n");
             }
-            autopilot_enable = false;
+            autopilot_active = false;
             cnt_status = "MNAV in Manual Mode";
         } else {
             autopilot_count--;
