@@ -1,0 +1,7 @@
+#!/bin/sh
+
+while true; do
+    cp /dev/platx/batmon /tmp/batmon.new
+    mv /tmp/batmon.new /tmp/batmon
+    sleep 10
+done
