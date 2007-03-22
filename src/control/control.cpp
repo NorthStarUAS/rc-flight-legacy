@@ -91,7 +91,7 @@ void control_update(short flight_mode)
 {
     uint16_t servo_out[9]={0,};	//elevator,aileron,throttle command
     // make a quick exit if we are disabled
-    if ( !autopilot_enable ) {
+    if ( !autopilot_active ) {
       return;
     }
 
@@ -132,6 +132,11 @@ void control_update(short flight_mode)
     //send commands
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     send_servo_cmd(servo_out);
+}
+
+
+void control_close() {
+  // nothing to see here, move along ...
 }
 
 
