@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# This script enables and configures the second serial port.
+
+# The console serial port (/dev/ttyS0) is closer to the power input connector.
+# The second serial port (/dev/ttyS2) is closer to the corner of the unit.
+                                                                                
+DEFAULT_BAUD=38400
+
+echo "Loading proc_gpio kernel module"
+modprobe proc_gpio
+
+echo "Configuring gpio to enable /dev/ttyS2"
+echo "AF2 in" > /proc/gpio/GPIO46
+echo "AF1 out" > /proc/gpio/GPIO47
+
+echo "Turning off software flow control and setting baud to 38400"
+stty -F /dev/ttyS2 -ixon speed $DEFAULT_BAUD
+stty -F /dev/ttyS2 -ixon speed $DEFAULT_BAUD
