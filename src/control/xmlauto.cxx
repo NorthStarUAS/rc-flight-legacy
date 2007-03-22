@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: xmlauto.cxx,v 1.1 2007/03/20 20:39:48 curt Exp $
+// $Id: xmlauto.cxx,v 1.2 2007/03/22 00:45:56 curt Exp $
 
 #include <props/props_io.hxx>
 #include <util/exception.hxx>
@@ -742,7 +742,7 @@ void FGXMLAutopilot::init() {
     config_props = fgGetNode( "/autopilot/new-config", true );
 
     SGPropertyNode *root_n = fgGetNode("/config/root-path");
-    SGPropertyNode *path_n = fgGetNode("/config/autopilot-path");
+    SGPropertyNode *path_n = fgGetNode("/config/autopilot/path");
 
     if ( path_n ) {
         SGPath config( root_n->getStringValue() );
