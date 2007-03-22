@@ -56,8 +56,9 @@ using std::string;
 //
 // global variables
 //
-bool wifi       = false;	// wifi connection enabled/disabled
-bool enable_nav = false;	// nav filter enabled/disabled
+bool wifi           = false;	// wifi connection enabled/disabled
+bool enable_nav     = false;	// nav filter enabled/disabled
+bool enable_control = false;	// autopilot control module enabled/disabled
 
 //
 // prototypes
@@ -76,7 +77,7 @@ int main(int argc, char **argv)
     // initialize properties
     props = new SGPropertyNode;
 
-    string root = "./ugdata";
+    string root = ".";
     SGPropertyNode *root_node = fgGetNode("/config/root-path", true);
     root_node->setStringValue( root.c_str() );
 
@@ -93,8 +94,13 @@ int main(int argc, char **argv)
     }
 
     // set some config values
-    SGPropertyNode *p = fgGetNode("/config/nav-filter/enable", true);
+    SGPropertyNode *p;
+
+    p = fgGetNode("/config/nav-filter/enable", true);
     enable_nav = p->getBoolValue();
+
+    p = fgGetNode("/config/autopilot/enable", true);
+    enable_control = p->getBoolValue();
 
     // Parse the command line
     for ( iarg = 1; iarg < argc; iarg++ ) {
@@ -161,8 +167,10 @@ int main(int argc, char **argv)
     // open networked ground station client
     if ( wifi ) retvalsock = open_client();
 
-    // initialize the autopilot
-    control_init();
+    if ( enable_control ) {
+      // initialize the autopilot
+      control_init();
+    }
 
     //
     // Main loop.  The mnav_update() command blocks on MNAV sensor
@@ -212,6 +220,16 @@ int main(int argc, char **argv)
 	float true_alt_m = imupacket.Ps + alt_err_filt;
 	true_alt_node->setFloatValue( true_alt_m );
 
+	if ( enable_control ) {
+	  // autopilot update at 25 hz
+	  if ( ap_counter >= 2 ) { 
+	    ap_counter = 0;
+	    control_prof.start();
+	    control_update(0);
+	    control_prof.stop();
+	  }
+	}
+
         // health status (update at 0.1hz)
         if ( health_counter >= 500 ) {
             health_counter = 0;
@@ -225,14 +243,6 @@ int main(int argc, char **argv)
 	    }
 	    health_prof.stop();
         }
-
-	// autopilot update at 25 hz
-	if ( ap_counter >= 2 ) { 
-	  ap_counter = 0;
-	  control_prof.start();
- 	  control_update(0);
-	  control_prof.stop();
-	}
 
         // telemetry (update at 5hz)
         if ( wifi && wifi_counter >= 10 ) {
@@ -261,7 +271,9 @@ int main(int argc, char **argv)
 	      nav_prof.stats    ( "NAV " );
 	      nav_alg_prof.stats    ( "NAVA" );
 	    }
-	    control_prof.stats( "CTRL" );
+	    if ( enable_control ) {
+	      control_prof.stats( "CTRL" );
+	    }
 	    health_prof.stats ( "HLTH" );
         }
     } // end main loop
@@ -271,6 +283,9 @@ int main(int argc, char **argv)
     mnav_close();
     if ( enable_nav ) {
       nav_close();
+    }
+    if ( enable_control ) {
+      control_close();
     }
 }
 
