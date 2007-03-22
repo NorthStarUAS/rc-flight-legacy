@@ -93,7 +93,11 @@ int main(int argc, char **argv)
       sleep(1);
     }
 
-    // set some config values
+    // extract configuration values from the property tree (which is
+    // now populated with the master config.xml data.  Do this before
+    // the command line processing so that any options specified on
+    // the command line will override what is in the config.xml file.
+
     SGPropertyNode *p;
 
     p = fgGetNode("/config/mnav/device", true);

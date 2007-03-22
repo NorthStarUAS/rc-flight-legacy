@@ -4,3 +4,7 @@ EXTRA_DIST = \
 
 SUBDIRS	= src
 
+dist-hook:
+	( cd $(top_srcdir); tar --exclude=CVS -cf - data scripts ) \
+		| ( cd $(distdir); tar xvf - )
+		
