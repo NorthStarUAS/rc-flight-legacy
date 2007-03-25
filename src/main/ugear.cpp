@@ -194,7 +194,6 @@ int main(int argc, char **argv)
     int display_counter = 0;
     int wifi_counter = 0;
     int ap_counter = 0;
-    SGPropertyNode *true_alt_node = fgGetNode("/position/altitude-true-m",true);
 
     printf("Everything inited ... ready to run\n");
 
@@ -225,10 +224,6 @@ int main(int argc, char **argv)
 	    nav_prof.stop();
 	  }
 	}
-
-	// best guess at true altitude
-	float true_alt_m = imupacket.Ps + alt_err_filt;
-	true_alt_node->setFloatValue( true_alt_m );
 
 	if ( enable_control ) {
 	  // autopilot update at 25 hz
