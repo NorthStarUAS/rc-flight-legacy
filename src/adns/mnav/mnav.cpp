@@ -72,8 +72,8 @@ static SGPropertyNode *phi_node = NULL;
 // static SGPropertyNode *psi_node = NULL;
 // static SGPropertyNode *Ps_node = NULL;
 // static SGPropertyNode *Pt_node = NULL;
-// static SGPropertyNode *Ps_filt_node = NULL;
-// static SGPropertyNode *Pt_filt_node = NULL;
+static SGPropertyNode *Ps_filt_node = NULL;
+static SGPropertyNode *Pt_filt_node = NULL;
 // static SGPropertyNode *comp_time_node = NULL;
 
 // gps property nodes
@@ -86,6 +86,9 @@ static SGPropertyNode *phi_node = NULL;
 
 // control input nodes
 // static SGPropertyNode *servo_chn_node[8];
+
+// derived property nodes
+SGPropertyNode *true_alt_node = NULL;
 
 
 // open and intialize the MNAV communication channel
@@ -142,8 +145,8 @@ void mnav_init()
     // psi_node = fgGetNode("/orientaiton/heading-deg", true);
     // Ps_node = fgGetNode("/position/altitude-pressure-m", true);
     // Pt_node = fgGetNode("/velocities/airspeed-ms", true);
-    // Ps_filt_node = fgGetNode("/position/altitude-filtered-m", true);
-    // Pt_filt_node = fgGetNode("/velocities/airspeed-filtered-ms", true);
+    Ps_filt_node = fgGetNode("/position/altitude-filtered-m", true);
+    Pt_filt_node = fgGetNode("/velocities/airspeed-filtered-ms", true);
     // comp_time_node = fgGetNode("/time/computer-sec", true);
 
     // initialize gps property nodes
@@ -158,6 +161,10 @@ void mnav_init()
     // for ( int i = 0; i < 8; ++i ) {
     //   servo_chn_node[i] = fgGetNode("/controls/channel", i, true);
     // }
+
+    // initialize derived property nodes
+    true_alt_node = fgGetNode("/position/altitude-true-m",true);
+
 }
 
 
@@ -175,6 +182,8 @@ void mnav_update()
 
     static double Ps_filt = 0.0;
     static double Pt_filt = 0.0;
+    static double alt_err_filt = -9999.0;
+    static int alt_err_count  = 0;
 
     bool imu_valid_data = false;
     bool gps_valid_data = false;
@@ -253,14 +262,18 @@ void mnav_update()
 	Ps_filt = 0.9 * Ps_filt + 0.1 * imupacket.Ps;
 	Pt_filt = 0.9 * Pt_filt + 0.1 * imupacket.Pt;
 
+        // best guess at true altitude
+        float true_alt_m = Ps_filt + alt_err_filt;
+        true_alt_node->setFloatValue( true_alt_m );
+
 	// publish values to property tree
 	theta_node->setFloatValue( imupacket.the * SG_RADIANS_TO_DEGREES );
 	phi_node->setFloatValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
 	// psi_node->setFloatValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
 	// Ps_node->setFloatValue( imupacket.Ps );
 	// Pt_node->setFloatValue( imupacket.Pt );
-	// Ps_filt_node->setFloatValue( Ps_filt );
-	// Pt_filt_node->setFloatValue( Pt_filt );
+	Ps_filt_node->setFloatValue( Ps_filt );
+	Pt_filt_node->setFloatValue( Pt_filt );
 	// comp_time_node->setDoubleValue( imupacket.time );
 
 	// for ( int i = 0; i < 8; ++i ) {
@@ -279,6 +292,22 @@ void mnav_update()
     }
 
     if ( gps_valid_data ) {
+	// compute a filtered error difference between gps altitude
+	// and pressure altitude.  (at 4hz update rate this averages
+	// the error over about 40 minutes)
+	float alt_err = navpacket.alt - imupacket.Ps;
+
+        if ( alt_err_count == 0 ) {
+            alt_err_filt = alt_err;
+        } else if ( alt_err_count < 10000 ) {
+            alt_err_filt
+                = ((alt_err_count - 1.0) / alt_err_count) * alt_err_filt
+                  + (1.0 / alt_err_count) * alt_err;
+        } else {
+            alt_err_filt = 0.9999 * alt_err_filt + 0.0001 * alt_err;
+        }
+        printf("Alt err = %.2f\n", alt_err_filt);
+
         // publish values to property tree
         // gps_lat_node->setDoubleValue( gpspacket.lat );
 	// gps_lon_node->setDoubleValue( gpspacket.lon );
