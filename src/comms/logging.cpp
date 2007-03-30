@@ -1,8 +1,8 @@
 #include <stdio.h>
 
-#include "logging.h"
 #include "navigation/ahrs.h"
 
+#include "logging.h"
 
 // global variables for data file logging
 
@@ -13,34 +13,42 @@ static FILE *fservo = NULL;
 static FILE *fhealth = NULL;
 
 bool log_to_file = false;       // log to file is enabled/disabled
+SGPath log_path;                // base log path
 bool display_on = false;        // dump summary to display periodically
 
 
 bool logging_init() {
+    SGPath file;
+
     // open files
 
-    if ( (fimu = fopen("/mnt/cf1/imu.dat","w+b")) == NULL ) {
-        printf("imu.dat cannot be created in /mnt/cf1 directory...error!\n");
+    file = log_path; file.append( "imu.dat" );
+    if ( (fimu = fopen( file.c_str(), "w+b" )) == NULL ) {
+        printf("Cannont open %s\n", file.c_str());
         return false;
     }
 
-    if ( (fgps = fopen("/mnt/cf1/gps.dat","w+b")) == NULL ) {
-        printf("gps.dat cannot be created in /mnt/cf1 directory...error!\n");
+    file = log_path; file.append( "gps.dat" );
+    if ( (fgps = fopen( file.c_str(), "w+b" )) == NULL ) {
+        printf("Cannont open %s\n", file.c_str());
         return false;
     }
 
-    if ( (fnav = fopen("/mnt/cf1/nav.dat","w+b")) == NULL ) {
-        printf("nav.dat cannot be created in /mnt/cf1 directory...error!\n");
+    file = log_path; file.append( "nav.dat" );
+    if ( (fnav = fopen( file.c_str(), "w+b" )) == NULL ) {
+        printf("Cannont open %s\n", file.c_str());
         return false;
     }
 
-    if ( (fservo = fopen("/mnt/cf1/servo.dat","w+b")) == NULL ) {
-        printf("servo.dat cannot be created in /mnt/cf1 directory...error!\n");
+    file = log_path; file.append( "servo.dat" );
+    if ( (fservo = fopen( file.c_str(),"w+b" )) == NULL ) {
+        printf("Cannont open %s\n", file.c_str());
         return false;
     }
 
-    if ( (fhealth = fopen("/mnt/cf1/health.dat","w+b")) == NULL ) {
-        printf("health.dat cannot be created in /mnt/cf1 directory...error!\n");
+    file = log_path; file.append( "health.dat" );
+    if ( (fhealth = fopen( file.c_str(), "w+b" )) == NULL ) {
+        printf("Cannont open %s\n", file.c_str());
         return false;
     }
 
