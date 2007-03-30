@@ -4,9 +4,12 @@
 
 #include "globaldefs.h"
 
+#include "util/sg_path.hxx"
+
 // global variables
 
 extern bool log_to_file;
+extern SGPath log_path;
 extern bool display_on;
 
 // global functions
