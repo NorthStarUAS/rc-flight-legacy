@@ -17,6 +17,7 @@ enum errdefs { neveruse, neveruse1, no_error, got_invalid, checksum_err,
                gps_update, no_gps_update };
 
 struct imu {
+   double time;
    double p,q,r;		/* angular velocities    */
    double ax,ay,az;		/* acceleration          */
    double hx,hy,hz;             /* magnetic field     	 */
@@ -24,39 +25,38 @@ struct imu {
    // double Tx,Ty,Tz;          /* temperature           */
    double phi,the,psi;          /* attitudes             */
    uint8_t  err_type;		/* error type		 */
-   double time;
 };
 
 struct gps {
+   double time;
    double lat,lon,alt;          /* gps position          */
    double ve,vn,vd;             /* gps velocity          */
-   uint16_t ITOW;
+   double ITOW;                 /* seconds since start of week */
    uint8_t err_type;            /* error type            */
-   double time;
 };
 
 struct nav {
+   double time;
    double lat,lon,alt;
    double ve,vn,vd;
    // float  t;
    uint8_t  err_type;
-   double time;
 };
 
 struct servo {
+   double time;
    uint16_t chn[8];
    uint8_t status;
-   double time;
 };
 
 struct health {
+    double time;
     float volts_raw;            /* raw volt reading */
     float volts;                /* filtered volts */
     uint16_t est_seconds;       /* estimated useful seconds remaining */
     uint8_t loadavg;            /* system "1 minute" load average */
     uint8_t ahrs_hz;            /* actual ahrs loop hz */
     uint8_t nav_hz;             /* actual nav loop hz */
-    double time;
 };
 
 extern struct imu imupacket;

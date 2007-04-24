@@ -105,10 +105,19 @@ void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
     printf("[     ]:Ps  = %6.3f Pt  = %6.3f             \n",data->Ps,data->Pt);
     printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n",xs[4]*57.3,xs[5]*57.3,xs[6]*57.3);
     if ( gdata->err_type == no_error ) {
-        printf("[GPS  ]:ITOW= %5d[ms], lon = %f[deg], lat = %f[deg], alt = %f[m]\n",gdata->ITOW,gdata->lon,gdata->lat,gdata->alt);
+        double tmp = gdata->ITOW;
+        int days = tmp / (24 * 60 * 60);
+        tmp -= days * 24 * 60 * 60;
+        int hours = tmp / (60 * 60);
+        tmp -= hours * 60 * 60;
+        int min = tmp / 60;
+        tmp -= min * 60;
+        double sec = tmp;
+        printf("[GPS  ]:ITOW= %.3f[sec]  %dd %02d:%02d:%06.3f\n", gdata->ITOW, days, hours, min, sec);
+        printf("[GPS  ]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",gdata->lon,gdata->lat,gdata->alt);
     }
     if ( ndata->err_type == no_error ) {
-        printf("[nav  ]:                 lon = %f[deg], lat = %f[deg], alt = %f[m]\n",            ndata->lon,ndata->lat,ndata->alt);	
+        printf("[nav  ]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",            ndata->lon,ndata->lat,ndata->alt);	
     }
     printf("[Servo]: %d %d %d %d %d %d\n", sdata->chn[0], sdata->chn[1],
            sdata->chn[2], sdata->chn[3], sdata->chn[4], sdata->chn[5]);
@@ -117,5 +126,5 @@ void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
            (float)hdata->loadavg / 100.0);
     printf("\n");
 
+    // printf("imu size = %d\n", sizeof( struct imu ) );
 }
-

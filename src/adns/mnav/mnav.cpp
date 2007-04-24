@@ -99,20 +99,29 @@ void mnav_init()
     uint8_t          CH_BAUD[11]     ={0x55,0x55,0x57,0x46,0x01,0x00,0x02,0x00,0x03,0x00,0xA3};
     uint8_t		CH_SAMP[11]     ={0x55,0x55,0x53,0x46,0x01,0x00,0x01,0x00,0x02,0x00,0x9D};
     uint8_t          CH_SERVO[7]     ={0x55,0x55,0x53,0x50,0x00,0x00,0xA3};
-  
-    if ( display_on ) {
-        printf("[mnav] initialized.\n");
-    }
-  
-    /*********************************************************************
-     *Open and configure Serial Port2 (com2)
-     *********************************************************************/
+
+    printf("[mnav] ...\n");
+
+    //
+    // Open and configure Serial Port2 (com2)
+    //
+
+    // Note: the MNAV serial input routine depends on only a single
+    // command being in it's input buffer at a time.  It doesn't look
+    // at the actual data values initially, just reads to the end of
+    // the buffer.  If we write our commands too quickly and stack up
+    // more than one message in the MNAV input buffer, all but the
+    // first message will be lost.  Thus we need to sleep for at least
+    // 100-200ms between message.  For now it's easier to just sleep 1
+    // second.
+
     sPort2 = open_serial( mnav_dev, BAUDRATE_38400, false );
     // printf("Opened serial port at 38400.\n");
       
     while (nbytes != 11) {
+        printf("  writing CH_BAUD\n");
         nbytes = write(sPort2,(char*)CH_BAUD, 11);
-        // printf("writing CH_BAUD\n");
+        sleep(1);
     }
     nbytes = 0;  
     close(sPort2);
@@ -122,20 +131,23 @@ void mnav_init()
   
     
     while (nbytes != 11) {
+        printf("  writing CH_SAMP\n");
         nbytes = write(sPort2,(char*)CH_SAMP, 11);
-        // printf("writing CH_SAMP\n");
+        sleep(1);
     }
     nbytes = 0;
 
     while (nbytes != 11) {
+        printf("  writing SCALED_MODE\n");
         nbytes = write(sPort2,(char*)SCALED_MODE, 11);
-        // printf("writing SCALED_MODE\n");
+        sleep(1);
     }
     nbytes = 0;
 
     while (nbytes !=  7) {
+        printf("  writing CH_SERVO\n");
         nbytes = write(sPort2,(char*)CH_SERVO, 7);
-        // printf("writing CH_SERVO\n");
+        sleep(1);
     }
     nbytes = 0;  
 
@@ -165,6 +177,9 @@ void mnav_init()
     // initialize derived property nodes
     true_alt_node = fgGetNode("/position/altitude-true-m",true);
 
+    if ( display_on ) {
+        printf(" initialized.\n");
+    }
 }
 
 
@@ -188,13 +203,21 @@ void mnav_update()
     bool imu_valid_data = false;
     bool gps_valid_data = false;
 
+    int trouble_count = 1;
+
     // Find start of packet: the heade r (2 bytes) starts with 0x5555
     while ( headerOK != 2 ) {
         while(1!=read(sPort2,input_buffer,1));
-        if (input_buffer[0] == 0x55)
+        if ( input_buffer[0] == 0x55 ) {
             headerOK++;
-        else
+            trouble_count = 1;
+        } else {
             headerOK = 0;
+            trouble_count++;
+        }
+        if ( trouble_count % 10000 == 0 ) {
+            printf("Having trouble finding a valid packet header.\n");
+        }
     }
      	
     headerOK = 0; while ( 1 != read(sPort2,&input_buffer[2],1) );
@@ -306,7 +329,7 @@ void mnav_update()
         } else {
             alt_err_filt = 0.9999 * alt_err_filt + 0.0001 * alt_err;
         }
-        printf("Alt err = %.2f\n", alt_err_filt);
+        // printf("Alt err = %.2f\n", alt_err_filt);
 
         // publish values to property tree
         // gps_lat_node->setDoubleValue( gpspacket.lat );
@@ -421,7 +444,14 @@ void decode_gpspacket( struct gps *data, uint8_t* buffer )
    
    
     // gps time
-    data->ITOW = ((data->ITOW = buffer[59]) << 8)|buffer[58];
+    // data->ITOW = ((data->ITOW = buffer[59]) << 8)|buffer[58];
+    data->ITOW = (buffer[61] << 24) | (buffer[60] << 16) | (buffer[59] << 8)
+        | buffer[58];
+    data->ITOW /= 1000.0;
+
+    // uint16_t msb;
+    // msb = ((msb = buffer[61]) << 8) | buffer[60];
+    // printf("gps itow = (%d) (%d) (%d) (%d) %.3f\n", buffer[61], buffer[60], buffer[59], buffer[58], data->ITOW);
     data->err_type = no_error;
     data->time = get_Time();
 
