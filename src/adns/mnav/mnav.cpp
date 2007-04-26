@@ -237,7 +237,9 @@ void mnav_update()
             decode_imupacket(&imupacket, input_buffer);
             imu_valid_data = true;
         } else {
-            printf("[imu]:checksum error...!\n"); 
+            if ( display_on ) {
+                printf("[imu]:checksum error...!\n"); 
+            }
             imupacket.err_type = checksum_err; 
         };
         break;
@@ -264,14 +266,18 @@ void mnav_update()
                 gpspacket.err_type = got_invalid;
             } // end if(checksum(input_buffer...
         } else { 
-            printf("[imu]:checksum error(gps)...!\n");
+            if ( display_on ) {
+                printf("[imu]:checksum error(gps)...!\n");
+            }
             gpspacket.err_type = checksum_err;
             imupacket.err_type = checksum_err; 
         }
         break;
 
     default : 
-        printf("[imu] invalid data packet ... !\n");
+        if ( display_on ) {
+            printf("[imu] invalid data packet ... !\n");
+        }
 
     } // end case
 
