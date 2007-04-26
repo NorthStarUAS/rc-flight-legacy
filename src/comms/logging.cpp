@@ -1,4 +1,8 @@
+#include <dirent.h>
 #include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <zlib.h>
 
 #include "navigation/ahrs.h"
 
@@ -6,48 +10,94 @@
 
 // global variables for data file logging
 
-static FILE *fimu = NULL;
-static FILE *fgps = NULL;
-static FILE *fnav = NULL;
-static FILE *fservo = NULL;
-static FILE *fhealth = NULL;
+static gzFile fimu = NULL;
+static gzFile fgps = NULL;
+static gzFile fnav = NULL;
+static gzFile fservo = NULL;
+static gzFile fhealth = NULL;
 
 bool log_to_file = false;       // log to file is enabled/disabled
 SGPath log_path;                // base log path
 bool display_on = false;        // dump summary to display periodically
 
 
+// scan the base path for fltNNNN directories.  Return the biggest
+// flight number
+int max_flight_num() {
+    int max = -1;
+
+    DIR *d = opendir( log_path.c_str() );
+    if ( d == NULL ) {
+        printf( "Cannot open %s for log writing\n", log_path.c_str() );
+        return max;
+    }
+
+    struct dirent *file;
+    while ( ( file = readdir(d) ) != NULL  ) {
+        if ( strncmp( file->d_name, "flt", 3 ) == 0 ) {
+            int num;
+            sscanf( file->d_name, "flt%d", &num );
+            if ( num > max ) {
+                max = num;
+            }
+            printf("file = %s  num = %d  max = %d\n", file->d_name, num, max);
+        }
+    }
+
+    if ( closedir( d ) != 0 ) {
+        printf("Error: cannot close log directory\n");
+        return -1;
+    }
+
+    return max;
+}
+
+
 bool logging_init() {
+    // find the biggest flight number logged so far
+    int max = max_flight_num();
+    printf("Max log dir is flt%05d\n", max);
+
+
+    // make the new logging directory
+    char new_dir[256];
+    snprintf( new_dir, 256, "%s/flt%05d", log_path.c_str(), max+1 );
+    printf("Creating log dir: %s\n", new_dir);
+    int result = mkdir( new_dir, 01777 );
+    if ( result != 0 ) {
+        printf("Error: creating %s\n", new_dir);
+    }
+
+    // open all the logging files
+
     SGPath file;
 
-    // open files
-
-    file = log_path; file.append( "imu.dat" );
-    if ( (fimu = fopen( file.c_str(), "w+b" )) == NULL ) {
+    file = new_dir; file.append( "imu.dat.gz" );
+    if ( (fimu = gzopen( file.c_str(), "w+b" )) == NULL ) {
         printf("Cannont open %s\n", file.c_str());
         return false;
     }
 
-    file = log_path; file.append( "gps.dat" );
-    if ( (fgps = fopen( file.c_str(), "w+b" )) == NULL ) {
+    file = new_dir; file.append( "gps.dat.gz" );
+    if ( (fgps = gzopen( file.c_str(), "w+b" )) == NULL ) {
         printf("Cannont open %s\n", file.c_str());
         return false;
     }
 
-    file = log_path; file.append( "nav.dat" );
-    if ( (fnav = fopen( file.c_str(), "w+b" )) == NULL ) {
+    file = new_dir; file.append( "nav.dat.gz" );
+    if ( (fnav = gzopen( file.c_str(), "w+b" )) == NULL ) {
         printf("Cannont open %s\n", file.c_str());
         return false;
     }
 
-    file = log_path; file.append( "servo.dat" );
-    if ( (fservo = fopen( file.c_str(),"w+b" )) == NULL ) {
+    file = new_dir; file.append( "servo.dat.gz" );
+    if ( (fservo = gzopen( file.c_str(),"w+b" )) == NULL ) {
         printf("Cannont open %s\n", file.c_str());
         return false;
     }
 
-    file = log_path; file.append( "health.dat" );
-    if ( (fhealth = fopen( file.c_str(), "w+b" )) == NULL ) {
+    file = new_dir; file.append( "health.dat.gz" );
+    if ( (fhealth = gzopen( file.c_str(), "w+b" )) == NULL ) {
         printf("Cannont open %s\n", file.c_str());
         return false;
     }
@@ -59,38 +109,38 @@ bool logging_init() {
 bool logging_close() {
     // close files
 
-    fclose(fimu);
-    fclose(fgps);
-    fclose(fnav);
-    fclose(fservo);
-    fclose(fhealth);
+    gzclose(fimu);
+    gzclose(fgps);
+    gzclose(fnav);
+    gzclose(fservo);
+    gzclose(fhealth);
 
     return true;
 }
 
 
 void log_gps( struct gps *gpspacket ) {
-    fwrite( gpspacket, sizeof(struct gps), 1, fgps );
+    gzwrite( fgps, gpspacket, sizeof(struct gps) );
 }
 
 
 void log_imu( struct imu *imupacket ) {
-    fwrite( imupacket, sizeof(struct imu), 1, fimu );
+    gzwrite( fimu, imupacket, sizeof(struct imu) );
 }
 
 
 void log_nav( struct nav *navpacket ) {
-    fwrite( navpacket, sizeof(struct nav), 1, fnav );
+    gzwrite( fnav, navpacket, sizeof(struct nav) );
 }
 
 
 void log_servo( struct servo *servopacket ) {
-    fwrite( servopacket, sizeof(struct servo), 1, fservo );
+    gzwrite( fservo, servopacket, sizeof(struct servo) );
 }
 
 
 void log_health( struct health *healthpacket ) {
-    fwrite( healthpacket, sizeof(struct health), 1, fhealth );
+    gzwrite( fhealth, healthpacket, sizeof(struct health) );
 }
 
 
