@@ -24,7 +24,7 @@ struct imu {
    double Ps,Pt;                /* static/pitot pressure */
    // double Tx,Ty,Tz;          /* temperature           */
    double phi,the,psi;          /* attitudes             */
-   uint8_t  err_type;		/* error type		 */
+   uint64_t  err_type;		/* error type		 */
 };
 
 struct gps {
@@ -32,7 +32,7 @@ struct gps {
    double lat,lon,alt;          /* gps position          */
    double ve,vn,vd;             /* gps velocity          */
    double ITOW;                 /* seconds since start of week */
-   uint8_t err_type;            /* error type            */
+   uint64_t err_type;            /* error type            */
 };
 
 struct nav {
@@ -40,23 +40,23 @@ struct nav {
    double lat,lon,alt;
    double ve,vn,vd;
    // float  t;
-   uint8_t  err_type;
+   uint64_t  err_type;
 };
 
 struct servo {
    double time;
    uint16_t chn[8];
-   uint8_t status;
+   uint64_t status;
 };
 
 struct health {
     double time;
     float volts_raw;            /* raw volt reading */
     float volts;                /* filtered volts */
-    uint16_t est_seconds;       /* estimated useful seconds remaining */
-    uint8_t loadavg;            /* system "1 minute" load average */
-    uint8_t ahrs_hz;            /* actual ahrs loop hz */
-    uint8_t nav_hz;             /* actual nav loop hz */
+    uint64_t est_seconds;       /* estimated useful seconds remaining */
+    uint64_t loadavg;            /* system "1 minute" load average */
+    uint64_t ahrs_hz;            /* actual ahrs loop hz */
+    uint64_t nav_hz;             /* actual nav loop hz */
 };
 
 extern struct imu imupacket;

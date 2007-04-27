@@ -176,5 +176,5 @@ void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
            (float)hdata->loadavg / 100.0);
     printf("\n");
 
-    // printf("imu size = %d\n", sizeof( struct imu ) );
+    printf("imu size = %d\n", sizeof( struct imu ) );
 }
