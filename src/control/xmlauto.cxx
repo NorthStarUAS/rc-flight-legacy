@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: xmlauto.cxx,v 1.3 2007/03/22 19:16:22 curt Exp $
+// $Id: xmlauto.cxx,v 1.4 2007/07/09 17:56:00 curt Exp $
 
 #include <math.h>
 
@@ -49,7 +49,8 @@ FGPIDController::FGPIDController( SGPropertyNode *node ):
     edf_n_1( 0.0 ),
     edf_n_2( 0.0 ),
     u_n_1( 0.0 ),
-    desiredTs( 0.0 )
+    desiredTs( 0.0 ),
+    elapsedTime( 0.0 )
 {
     int i;
     for ( i = 0; i < node->nChildren(); ++i ) {
