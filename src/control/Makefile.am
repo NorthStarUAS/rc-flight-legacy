@@ -2,6 +2,8 @@ noinst_LIBRARIES = libcontrol.a
 
 libcontrol_a_SOURCES = \
 	control.cpp control.h \
-	xmlauto.hxx xmlauto.cxx
+	route.cxx route.hxx \
+	waypoint.cxx waypoint.hxx \
+	xmlauto.cxx xmlauto.hxx
 
 INCLUDES = -I$(top_srcdir)/src
