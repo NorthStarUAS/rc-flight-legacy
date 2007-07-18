@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: xmlauto.cxx,v 1.4 2007/07/09 17:56:00 curt Exp $
+// $Id: xmlauto.cxx,v 1.5 2007/07/18 21:08:44 curt Exp $
 
 #include <math.h>
 
@@ -98,7 +98,7 @@ FGPIDController::FGPIDController( SGPropertyNode *node ):
             } else {
                 prop = child->getChild( "value" );
                 if ( prop != NULL ) {
-                    r_n = prop->getDoubleValue();
+                    r_n_value = prop->getDoubleValue();
                 }
             }
             prop = child->getChild( "scale" );
@@ -407,7 +407,7 @@ FGPISimpleController::FGPISimpleController( SGPropertyNode *node ):
             } else {
                 prop = child->getChild( "value" );
                 if ( prop != NULL ) {
-                    r_n = prop->getDoubleValue();
+                    r_n_value = prop->getDoubleValue();
                 }
             }
             prop = child->getChild( "scale" );
