@@ -102,11 +102,11 @@ void control_update(short flight_mode)
     }
 
     // optional: use channel #6 to change the autopilot target value
-    double min_value = -35.0;
-    double max_value = 35.0;
-    double tgt_value = (max_value - min_value) *
-      ((double)servopacket.chn[5] / 65535.0) + min_value;
-    ap_target->setFloatValue( tgt_value );
+    // double min_value = -35.0;
+    // double max_value = 35.0;
+    // double tgt_value = (max_value - min_value) *
+    //   ((double)servopacket.chn[5] / 65535.0) + min_value;
+    // ap_target->setFloatValue( tgt_value );
 
     // update the autopilot stages
     ap.update( 0.04 );	// dt = 1/25
@@ -120,6 +120,9 @@ void control_update(short flight_mode)
     //elevator
     // servo_out[1] = servopacket.chn[1] + (imupacket.thef * 1600.0 * 57.3);
     servo_out[1] = 32768 + elevator_out_node->getFloatValue() * 32768;
+    // SGPropertyNode *pitch = fgGetNode("/orientation/pitch-deg", true);
+    // printf("pitch = %.2f elevator out = %.2f\n", pitch->getFloatValue(),
+    //	   elevator_out_node->getFloatValue());
 
     //throttle
     servo_out[2] = servopacket.chn[2];
