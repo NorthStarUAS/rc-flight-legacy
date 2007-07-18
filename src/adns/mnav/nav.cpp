@@ -56,9 +56,10 @@ short  gps_init_count = 0;
 // nav (cooked gps/accelerometer) property nodes
 // static SGPropertyNode *nav_lat_node = NULL;
 // static SGPropertyNode *nav_lon_node = NULL;
-// static SGPropertyNode *nav_alt_node = NULL;
+static SGPropertyNode *nav_alt_feet = NULL;
 // static SGPropertyNode *nav_track_node = NULL;
 // static SGPropertyNode *nav_vel_node = NULL;
+static SGPropertyNode *nav_vert_speed_fps = NULL;
 
 
 void timer_intr( int sig )
@@ -111,9 +112,10 @@ void nav_init()
     // initialize nav property nodes
     // nav_lat_node = fgGetNode("/position/latitude-deg", true);
     // nav_lon_node = fgGetNode("/position/longitude-deg", true);
-    // nav_alt_node = fgGetNode("/position/altitude-nav-m", true);
+    nav_alt_feet = fgGetNode("/position/altitude-nav-ft", true);
     // nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
     // nav_vel_node = fgGetNode("/velocities/groundspeed-ms", true);
+    nav_vert_speed_fps = fgGetNode("/velocities/vertical-speed-fps", true);
 
     if ( display_on ) {
         printf("[nav] initialized.\n");
@@ -165,7 +167,7 @@ void nav_update()
     }
 
     if ( gps_state == 2 ) {
-        // copy information to loacal variables
+        // copy information to local variables
         gpslocal = gpspacket;
         imulocal = imupacket;
                    
@@ -185,11 +187,12 @@ void nav_update()
         // publish values to property tree
 	// nav_lat_node->setDoubleValue( navpacket.lat );
 	// nav_lon_node->setDoubleValue( navpacket.lon );
-	// nav_alt_node->setDoubleValue( navpacket.alt );
+	nav_alt_feet->setDoubleValue( navpacket.alt * SG_METER_TO_FEET );
 	// nav_track_node->setDoubleValue( atan2(navpacket.vn, navpacket.ve)
 	// 				* SG_RADIANS_TO_DEGREES );
 	// nav_vel_node->setDoubleValue( sqrt( navpacket.vn * navpacket.vn
 	// 				    + navpacket.ve * navpacket.ve ) );
+        nav_vert_speed_fps->setDoubleValue( -navpacket.vd * SG_METER_TO_FEET );
 
         if ( console_link_on ) {
             console_link_nav( &navpacket );
@@ -239,11 +242,11 @@ void nav_algorithm(struct imu *imudta,struct gps *gpsdta)
     double dt;       //sampling rate of navigation
     short  i = 0;
     double yd[6];  
-    static double tnow,tprev=0; 
+    static double tnow, tprev = 0; 
 
     tnow = get_Time();
     dt   = tnow - tprev; tprev = tnow;
-    if (dt == 0 ) dt = 0.100;
+    if ( dt == 0 ) dt = 0.100;
 
     // matrix initialization
     euler[0][0] = imudta->psi;
