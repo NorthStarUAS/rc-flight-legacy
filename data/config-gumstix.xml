@@ -41,5 +41,9 @@
       <!-- <path>autopilots/Rascal110-pitchleveler.xml</path> -->
     </autopilot>
 
+    <route>
+      <path>routes/SPRC-1.xml</path>
+    </route>
+
   </config>
 </PropertyList>
