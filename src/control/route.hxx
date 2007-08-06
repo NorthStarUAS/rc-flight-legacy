@@ -21,7 +21,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route.hxx,v 1.1 2007/07/18 21:10:17 curt Exp $
+// $Id: route.hxx,v 1.2 2007/08/06 19:41:48 curt Exp $
 
 
 #ifndef _ROUTE_HXX
@@ -85,7 +85,9 @@ public:
 	if ( route.size() ) {
 	    return route[0];
 	} else {
-	    return SGWayPoint( 0.0, 0.0, 0.0, SGWayPoint::SPHERICAL, "invalid" );
+	    return SGWayPoint( 0.0, 0.0, 0.0, 0.0,
+                               SGWayPoint::SPHERICAL,
+                               "invalid" );
 	}
     }
 
@@ -97,7 +99,8 @@ public:
 	if ( current_wp < (int)route.size() ) {
 	    return route[current_wp];
 	} else {
-	    return SGWayPoint( 0.0, 0.0, 0.0, SGWayPoint::SPHERICAL, "invalid" );
+	    return SGWayPoint( 0.0, 0.0, 0.0, 0.0,
+                               SGWayPoint::SPHERICAL, "invalid" );
 	}
     }
 
@@ -127,7 +130,8 @@ public:
 	if ( n < (int)route.size() ) {
 	    return route[n];
 	} else {
-	    return SGWayPoint( 0.0, 0.0, 0.0, SGWayPoint::SPHERICAL, "invalid" );
+	    return SGWayPoint( 0.0, 0.0, 0.0, 0.0,
+                               SGWayPoint::SPHERICAL, "invalid" );
 	}
     }
 

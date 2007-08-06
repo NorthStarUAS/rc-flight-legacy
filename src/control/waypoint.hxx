@@ -21,7 +21,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: waypoint.hxx,v 1.1 2007/07/18 21:10:17 curt Exp $
+// $Id: waypoint.hxx,v 1.2 2007/08/06 19:41:48 curt Exp $
 
 
 #ifndef _WAYPOINT_HXX
@@ -32,6 +32,8 @@
 # error This library requires C++
 #endif
 
+
+#include <props/props.hxx>
 
 #include <string>
 
@@ -66,11 +68,11 @@ private:
 
     double target_lon;
     double target_lat;
-    double target_alt;
+    double target_alt_m;
+    double target_speed_kt;
     double distance;
 
     string id;
-    string name;
 
 public:
 
@@ -78,14 +80,21 @@ public:
      * Construct a waypoint
      * @param lon destination longitude
      * @param lat destination latitude
-     * @param alt target altitude
+     * @param alt_m target altitude
+     * @param speed_kt target altitude
      * @param mode type of coordinates/math to use
      * @param s waypoint identifier
-     * @param n waypoint name
      */
     SGWayPoint( const double lon = 0.0, const double lat = 0.0,
-		const double alt = 0.0, const modetype m = SPHERICAL,
-		const string& s = "", const string& n = "" );
+		const double alt_m = 0.0, const double speed_kt = 0.0,
+                const modetype m = SPHERICAL,
+		const string& s = "" );
+
+    /**
+     * Construct a waypoint
+     * @param node a pointer to a property subtree with configuration values
+     */
+    SGWayPoint( SGPropertyNode *node );
 
     /** Destructor */
     ~SGWayPoint();
@@ -126,7 +135,10 @@ public:
     inline double get_target_lat() const { return target_lat; }
 
     /** @return waypoint altitude */
-    inline double get_target_alt() const { return target_alt; }
+    inline double get_target_alt_m() const { return target_alt_m; }
+
+    /** @return waypoint speed */
+    inline double get_target_speed_kt() const { return target_speed_kt; }
 
     /**
      * This value is not calculated by this class.  It is simply a
@@ -148,10 +160,6 @@ public:
 
     /** @return waypoint id */
     inline const string& get_id() const { return id; }
-
-    /** @return waypoint name */
-    inline const string& get_name() const { return name; }
-
 };
 
 
