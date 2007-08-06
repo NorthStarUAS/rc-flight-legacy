@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: waypoint.cxx,v 1.1 2007/07/18 21:10:17 curt Exp $
+// $Id: waypoint.cxx,v 1.2 2007/08/06 19:41:48 curt Exp $
 
 
 #include <include/globaldefs.h>
@@ -29,14 +29,56 @@
 
 
 // Constructor
-SGWayPoint::SGWayPoint( const double lon, const double lat, const double alt,
-			const modetype m, const string& s, const string& n ) {
+SGWayPoint::SGWayPoint( const double lon, const double lat,
+                        const double alt_m, const double speed_kt,
+                        const modetype m, const string& s ) {
     target_lon = lon;
     target_lat = lat;
-    target_alt = alt;
+    target_alt_m = alt_m;
+    target_speed_kt = speed_kt;
     mode = m;
     id = s;
-    name = n;
+}
+
+SGWayPoint::SGWayPoint( SGPropertyNode *node ):
+    mode( SPHERICAL ),
+    target_lon( 0.0 ),
+    target_lat( 0.0 ),
+    target_alt_m( -9999.9 ),
+    target_speed_kt( 0.0 ),
+    distance( 0.0 ),
+    id( "" )
+{
+    int i;
+    for ( i = 0; i < node->nChildren(); ++i ) {
+        SGPropertyNode *child = node->getChild(i);
+        string cname = child->getName();
+        string cval = child->getStringValue();
+        if ( cname == "id" ) {
+            id = cval;
+        } else if ( cname == "lon" ) {
+            target_lon = child->getDoubleValue();
+        } else if ( cname == "lat" ) {
+            target_lat = child->getDoubleValue();
+        } else if ( cname == "alt-ft" ) {
+            target_alt_m = child->getDoubleValue() * SG_FEET_TO_METER;
+        } else if ( cname == "speed-kt" ) {
+            target_speed_kt = child->getDoubleValue();
+        } else if ( cname == "mode" ) {
+            if ( cval == "spherical" ) {
+                mode = SPHERICAL;
+            } else {
+                mode = CARTESIAN;
+            }
+        } else {
+            printf("Error in waypoint config logic, " );
+            if ( id.length() ) {
+                printf("Section = %s", id.c_str() );
+            }
+        }
+    }
+    printf("WPT: %.6f %.6f %.2f %.2f\n",
+           target_lon, target_lat, target_alt_m, target_speed_kt);
 }
 
 
@@ -77,6 +119,6 @@ void SGWayPoint::CourseAndDistance( const SGWayPoint &wp,
 			double *course, double *dist ) const {
     CourseAndDistance( wp.get_target_lon(),
 		       wp.get_target_lat(),
-		       wp.get_target_alt(),
+		       wp.get_target_alt_m(),
 		       course, dist );
 }
