@@ -54,8 +54,8 @@ MATRIX ntmp66,ntmp96,ntmp33;
 short  gps_init_count = 0;
 
 // nav (cooked gps/accelerometer) property nodes
-// static SGPropertyNode *nav_lat_node = NULL;
-// static SGPropertyNode *nav_lon_node = NULL;
+static SGPropertyNode *nav_lat_node = NULL;
+static SGPropertyNode *nav_lon_node = NULL;
 static SGPropertyNode *nav_alt_feet = NULL;
 // static SGPropertyNode *nav_track_node = NULL;
 // static SGPropertyNode *nav_vel_node = NULL;
@@ -110,8 +110,8 @@ void nav_init()
     navpacket.err_type = no_gps_update;
 
     // initialize nav property nodes
-    // nav_lat_node = fgGetNode("/position/latitude-deg", true);
-    // nav_lon_node = fgGetNode("/position/longitude-deg", true);
+    nav_lat_node = fgGetNode("/position/latitude-deg", true);
+    nav_lon_node = fgGetNode("/position/longitude-deg", true);
     nav_alt_feet = fgGetNode("/position/altitude-nav-ft", true);
     // nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
     // nav_vel_node = fgGetNode("/velocities/groundspeed-ms", true);
@@ -185,8 +185,8 @@ void nav_update()
         navpacket.time= get_Time();
 
         // publish values to property tree
-	// nav_lat_node->setDoubleValue( navpacket.lat );
-	// nav_lon_node->setDoubleValue( navpacket.lon );
+	nav_lat_node->setDoubleValue( navpacket.lat );
+	nav_lon_node->setDoubleValue( navpacket.lon );
 	nav_alt_feet->setDoubleValue( navpacket.alt * SG_METER_TO_FEET );
 	// nav_track_node->setDoubleValue( atan2(navpacket.vn, navpacket.ve)
 	// 				* SG_RADIANS_TO_DEGREES );

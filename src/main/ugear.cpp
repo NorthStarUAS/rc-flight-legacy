@@ -32,6 +32,7 @@
 #include "comms/logging.h"
 #include "comms/uplink.h"
 #include "control/control.h"
+#include "control/route_mgr.hxx"
 #include "health/health.h"
 #include "include/globaldefs.h"
 #include "navigation/ahrs.h"
@@ -53,12 +54,17 @@ using std::string;
 #define NETWORK_PORT      9001		 // network port number
 #define UPDATE_USECS	  200000         // downlink at 5 Hz
 
+
 //
-// global variables
+// global variables & objects
 //
 bool wifi           = false;	// wifi connection enabled/disabled
 bool enable_nav     = false;	// nav filter enabled/disabled
 bool enable_control = false;	// autopilot control module enabled/disabled
+bool enable_route   = false;	// route module enabled/disabled
+
+FGRouteMgr route_mgr;           // route manager object
+
 
 //
 // prototypes
@@ -113,6 +119,9 @@ int main(int argc, char **argv)
     p = fgGetNode("/config/autopilot/enable", true);
     enable_control = p->getBoolValue();
 
+    p = fgGetNode("/config/route/enable", true);
+    enable_route = p->getBoolValue();
+
     // Parse the command line
     for ( iarg = 1; iarg < argc; iarg++ ) {
         if ( !strcmp(argv[iarg], "--log-dir" )  ) {
@@ -164,9 +173,9 @@ int main(int argc, char **argv)
     ahrs_init();
 
     if ( enable_nav ) {
-      // Initialize the NAV code.  Must be called before nav_update() or
-      // nav_close()
-      nav_init();
+        // Initialize the NAV code.  Must be called before nav_update() or
+        // nav_close()
+        nav_init();
     }
 
     // Initialize the communcation channel with the MNAV
@@ -179,8 +188,13 @@ int main(int argc, char **argv)
     if ( wifi ) retvalsock = open_client();
 
     if ( enable_control ) {
-      // initialize the autopilot
-      control_init();
+        // initialize the autopilot
+        control_init();
+    }
+
+    if ( enable_route ) {
+        // initialize the route manager
+        route_mgr.init();
     }
 
     //
@@ -195,6 +209,7 @@ int main(int argc, char **argv)
     int display_counter = 0;
     int wifi_counter = 0;
     int ap_counter = 0;
+    int route_counter = 0;
 
     printf("Everything inited ... ready to run\n");
 
@@ -204,8 +219,9 @@ int main(int argc, char **argv)
         display_counter++;
         wifi_counter++;
 	ap_counter++;
+        route_counter++;
         if ( enable_nav ) {
-	  nav_counter++;
+            nav_counter++;
 	}
 
         // fetch the next data packet from the MNAV sensor.  This
@@ -227,14 +243,24 @@ int main(int argc, char **argv)
 	}
 
 	if ( enable_control ) {
-	  // autopilot update at 25 hz
-	  if ( ap_counter >= 2 ) { 
-	    ap_counter = 0;
-	    control_prof.start();
-	    control_update(0);
-	    control_prof.stop();
-	  }
+            // autopilot update at 25 hz
+            if ( ap_counter >= 2 ) { 
+                ap_counter = 0;
+                control_prof.start();
+                control_update(0);
+                control_prof.stop();
+            }
 	}
+
+        if ( enable_route ) {
+            // route updates at 5 hz
+            if ( route_counter >= 10 ) {
+                route_counter = 0;
+                route_mgr_prof.start();
+                route_mgr.update();
+                route_mgr_prof.stop();
+            }
+        }
 
         // health status (update at 0.1hz)
         if ( health_counter >= 500 ) {

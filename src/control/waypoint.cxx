@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: waypoint.cxx,v 1.2 2007/08/06 19:41:48 curt Exp $
+// $Id: waypoint.cxx,v 1.3 2007/08/06 21:20:14 curt Exp $
 
 
 #include <include/globaldefs.h>
@@ -65,10 +65,10 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
         } else if ( cname == "speed-kt" ) {
             target_speed_kt = child->getDoubleValue();
         } else if ( cname == "mode" ) {
-            if ( cval == "spherical" ) {
-                mode = SPHERICAL;
-            } else {
+            if ( cval == "cartesian" ) {
                 mode = CARTESIAN;
+            } else {
+                mode = SPHERICAL;
             }
         } else {
             printf("Error in waypoint config logic, " );
