@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route.cxx,v 1.1 2007/07/18 21:10:17 curt Exp $
+// $Id: route.cxx,v 1.2 2007/08/06 21:20:14 curt Exp $
 
 
 #if 0
@@ -29,7 +29,9 @@
 
 
 // constructor
-SGRoute::SGRoute() {
+SGRoute::SGRoute():
+    current_wp(0)
+{
     route.clear();
 }
 

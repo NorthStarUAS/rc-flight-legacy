@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.hxx,v 1.1 2007/08/06 19:41:48 curt Exp $
+// $Id: route_mgr.hxx,v 1.2 2007/08/06 21:20:14 curt Exp $
 
 
 #ifndef _ROUTE_MGR_HXX
@@ -65,23 +65,25 @@ private:
 
     SGWayPoint make_waypoint( const string& target );
 
+    bool build();
+
 public:
 
     FGRouteMgr();
     ~FGRouteMgr();
 
-    void init ();
-    bool build ();
+    void init();
 
-    void update (double dt);
+    void update();
 
     int new_waypoint( const string& tgt_alt, int n = -1 );
     void add_waypoint( const SGWayPoint& wp, int n = -1 );
-    SGWayPoint pop_waypoint( int i = 0 );
 
     SGWayPoint get_waypoint( int i ) const {
         return route->get_waypoint(i);
     }
+
+    SGWayPoint pop_waypoint( int i = 0 );
 
     int size() const {
         return route->size();

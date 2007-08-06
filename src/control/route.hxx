@@ -21,7 +21,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route.hxx,v 1.2 2007/08/06 19:41:48 curt Exp $
+// $Id: route.hxx,v 1.3 2007/08/06 21:20:14 curt Exp $
 
 
 #ifndef _ROUTE_HXX
@@ -114,11 +114,14 @@ public:
 	}
     }
 
-    /** Increment the current waypoint pointer. */
+    /** Increment the current waypoint pointer, loop back to first
+     *  waypoint after route is finished (hardcoded behavior). */
     inline void increment_current() {
 	if ( current_wp < (int)route.size() - 1 ) {
 	    ++current_wp;
-	}
+	} else {
+            current_wp = 0;
+        }
     }
 
     /**

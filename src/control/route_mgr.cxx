@@ -20,7 +20,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.cxx,v 1.1 2007/08/06 19:41:48 curt Exp $
+// $Id: route_mgr.cxx,v 1.2 2007/08/06 21:20:14 curt Exp $
 
 
 #include <include/globaldefs.h>
@@ -56,6 +56,8 @@ void FGRouteMgr::init() {
     SGPropertyNode *root_n = fgGetNode("/config/root-path");
     SGPropertyNode *path_n = fgGetNode("/config/route/path");
 
+    route->clear();
+
     if ( path_n ) {
         SGPath config( root_n->getStringValue() );
         config.append( path_n->getStringValue() );
@@ -71,12 +73,12 @@ void FGRouteMgr::init() {
                 exit(-1);
             }        
         } catch (const sg_exception& exc) {
-	  printf("Failed to load route configuration: %s\n",
-		 config.c_str());
+            printf("Failed to load route configuration: %s\n",
+                   config.c_str());
         }
 
     } else {
-      printf("No autopilot configuration specified in master.xml file!");
+        printf("No autopilot configuration specified in master.xml file!");
     }
 
     lon = fgGetNode( "/position/longitude-deg", true );
@@ -84,18 +86,17 @@ void FGRouteMgr::init() {
     alt = fgGetNode( "/position/altitude-ft", true );
 
     true_hdg_deg = fgGetNode( "/autopilot/settings/true-heading-deg", true );
-    target_altitude_ft = fgGetNode( "/autopilot/settings/target-altitude-ft", true );
-
-    route->clear();
+    target_altitude_ft
+        = fgGetNode( "/autopilot/settings/target-altitude-ft", true );
 }
 
 
-void FGRouteMgr::update( double dt ) {
+void FGRouteMgr::update() {
     double wp_course, wp_distance;
 
-    // first way point
+    // track current waypoint
     if ( route->size() > 0 ) {
-        SGWayPoint wp = route->get_waypoint( 0 );
+        SGWayPoint wp = route->get_current();
         wp.CourseAndDistance( lon->getDoubleValue(), lat->getDoubleValue(),
                               alt->getDoubleValue(), &wp_course, &wp_distance );
 
@@ -107,8 +108,10 @@ void FGRouteMgr::update( double dt ) {
             altitude_set = true;
         }
 
-        if ( wp_distance < 200.0 ) {
-            pop_waypoint();
+        printf("true hdg = %.0f  dist (m) = %.0f\n", wp_course, wp_distance );
+
+        if ( wp_distance < 100.0 ) {
+            route->increment_current();
             altitude_set = false;
         }
     }
@@ -128,14 +131,16 @@ SGWayPoint FGRouteMgr::pop_waypoint( int n ) {
     SGWayPoint wp;
 
     if ( route->size() > 0 ) {
-        if ( n < 0 )
+        if ( n < 0 ) {
             n = route->size() - 1;
+        }
         wp = route->get_waypoint(n);
         route->delete_waypoint(n);
     }
 
-    if ( n == 0 && route->size() )
+    if ( n == 0 && route->size() ) {
         altitude_set = false;
+    }
 
     return wp;
 }
@@ -160,6 +165,8 @@ bool FGRouteMgr::build() {
             return false;
         }
     }
+
+    printf("loaded %d waypoints\n", route->size());
 
     return true;
 }
