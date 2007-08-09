@@ -28,6 +28,7 @@ AC_CANONICAL_HOST
 dnl check for default libraries
 AC_SEARCH_LIBS(clock_gettime, [rt])
 AC_SEARCH_LIBS(cos, [m])
+AC_SEARCH_LIBS(gzopen, [z])
 
 AM_CONFIG_HEADER(src/include/ugear_config.h)
 
