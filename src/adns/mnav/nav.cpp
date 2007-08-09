@@ -57,7 +57,7 @@ short  gps_init_count = 0;
 static SGPropertyNode *nav_lat_node = NULL;
 static SGPropertyNode *nav_lon_node = NULL;
 static SGPropertyNode *nav_alt_feet = NULL;
-// static SGPropertyNode *nav_track_node = NULL;
+static SGPropertyNode *nav_track_node = NULL;
 // static SGPropertyNode *nav_vel_node = NULL;
 static SGPropertyNode *nav_vert_speed_fps = NULL;
 
@@ -113,7 +113,7 @@ void nav_init()
     nav_lat_node = fgGetNode("/position/latitude-deg", true);
     nav_lon_node = fgGetNode("/position/longitude-deg", true);
     nav_alt_feet = fgGetNode("/position/altitude-nav-ft", true);
-    // nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
+    nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
     // nav_vel_node = fgGetNode("/velocities/groundspeed-ms", true);
     nav_vert_speed_fps = fgGetNode("/velocities/vertical-speed-fps", true);
 
@@ -188,8 +188,8 @@ void nav_update()
 	nav_lat_node->setDoubleValue( navpacket.lat );
 	nav_lon_node->setDoubleValue( navpacket.lon );
 	nav_alt_feet->setDoubleValue( navpacket.alt * SG_METER_TO_FEET );
-	// nav_track_node->setDoubleValue( atan2(navpacket.vn, navpacket.ve)
-	// 				* SG_RADIANS_TO_DEGREES );
+	nav_track_node->setDoubleValue( 90 - atan2(navpacket.vn, navpacket.ve)
+	 				* SG_RADIANS_TO_DEGREES );
 	// nav_vel_node->setDoubleValue( sqrt( navpacket.vn * navpacket.vn
 	// 				    + navpacket.ve * navpacket.ve ) );
         nav_vert_speed_fps->setDoubleValue( -navpacket.vd * SG_METER_TO_FEET );

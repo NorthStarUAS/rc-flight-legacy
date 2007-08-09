@@ -69,7 +69,7 @@ struct nav navpacket;
 // imu property nodes
 static SGPropertyNode *theta_node = NULL;
 static SGPropertyNode *phi_node = NULL;
-// static SGPropertyNode *psi_node = NULL;
+static SGPropertyNode *psi_node = NULL;
 // static SGPropertyNode *Ps_node = NULL;
 // static SGPropertyNode *Pt_node = NULL;
 static SGPropertyNode *Ps_filt_node = NULL;
@@ -154,7 +154,7 @@ void mnav_init()
     // initialize imu property nodes
     theta_node = fgGetNode("/orientation/pitch-deg", true);
     phi_node = fgGetNode("/orientation/roll-deg", true);
-    // psi_node = fgGetNode("/orientaiton/heading-deg", true);
+    psi_node = fgGetNode("/orientaiton/heading-deg", true);
     // Ps_node = fgGetNode("/position/altitude-pressure-m", true);
     // Pt_node = fgGetNode("/velocities/airspeed-ms", true);
     Ps_filt_node = fgGetNode("/position/altitude-filtered-m", true);
@@ -298,7 +298,7 @@ void mnav_update()
 	// publish values to property tree
 	theta_node->setFloatValue( imupacket.the * SG_RADIANS_TO_DEGREES );
 	phi_node->setFloatValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
-	// psi_node->setFloatValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
+	psi_node->setFloatValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
 	// Ps_node->setFloatValue( imupacket.Ps );
 	// Pt_node->setFloatValue( imupacket.Pt );
 	Ps_filt_node->setFloatValue( Ps_filt );
