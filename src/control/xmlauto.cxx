@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: xmlauto.cxx,v 1.6 2007/08/09 15:46:21 curt Exp $
+// $Id: xmlauto.cxx,v 1.7 2007/08/09 21:22:04 curt Exp $
 
 #include <math.h>
 
@@ -867,9 +867,14 @@ static void update_helper( double dt ) {
     if ( diff > 180.0 ) { diff -= 360.0; }
     true_error->setDoubleValue( diff );
 
-    printf("tgt = %.1f  current = %.1f  error = %.1f\n",
-           target_true->getDoubleValue(), true_hdg->getDoubleValue(),
-           diff);
+    /* static int c = 0;
+    c++;
+    if ( c > 25 ) {
+        printf("  tgt = %.1f  current = %.1f  error = %.1f\n",
+               target_true->getDoubleValue(), true_hdg->getDoubleValue(),
+               diff);
+        c = 0;
+        } */
 }
 
 
@@ -884,4 +889,15 @@ void FGXMLAutopilot::update( double dt ) {
     for ( i = 0; i < components.size(); ++i ) {
         components[i]->update( dt );
     }
+
+    /* static SGPropertyNode *debug
+        = fgGetNode("/autopilot/internal/target-roll-deg");
+    static int c = 0;
+    c++;
+    if ( c > 25 ) {
+        printf("target roll = %.1f\n", debug->getDoubleValue());
+        c = 0;
+        } */
+    
 }
+
