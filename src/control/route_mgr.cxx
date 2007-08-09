@@ -20,7 +20,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.cxx,v 1.2 2007/08/06 21:20:14 curt Exp $
+// $Id: route_mgr.cxx,v 1.3 2007/08/09 15:46:21 curt Exp $
 
 
 #include <include/globaldefs.h>
@@ -108,7 +108,8 @@ void FGRouteMgr::update() {
             altitude_set = true;
         }
 
-        printf("true hdg = %.0f  dist (m) = %.0f\n", wp_course, wp_distance );
+        // printf("true hdg = %.0f  dist (m) = %.0f\n",
+        //        wp_course, wp_distance );
 
         if ( wp_distance < 100.0 ) {
             route->increment_current();
