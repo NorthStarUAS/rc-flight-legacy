@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <!-- Home -->
+  <wpt>
+    <lat>45.220403</lat>
+    <lon>-93.145169</lon>
+  </wpt>
+
+  <wpt>
+    <lat>45.222639</lat>
+    <lon>-93.147084</lon>
+  </wpt>
+
+  <wpt>
+    <lat>45.223055</lat>
+    <lon>-93.143806</lon>
+  </wpt>
+
+  <wpt>
+    <lat>45.217697</lat>
+    <lon>-93.146574</lon>
+  </wpt>
+
+  <wpt>
+    <lat>45.217463</lat>
+    <lon>-93.143452</lon>
+  </wpt>
+
+</PropertyList>

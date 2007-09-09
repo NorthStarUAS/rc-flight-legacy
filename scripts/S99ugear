@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# Start the boa daemon
+#
+
+BASE_DIR=/mnt/mmc
+UGEAR_DIR=$BASE_DIR/MicroGear
+
+start() {
+ 	echo "Starting ugear ..."
+	cd $UGEAR_DIR
+	start-stop-daemon --start -x $UGEAR_DIR/ugear -- --log-dir $BASE_DIR &
+}	
+stop() {
+	echo -n "Stopping ugear..."
+	start-stop-daemon --stop --name ugear
+}
+reload() {
+	echo -n "Reloading not implemented, use restart..."
+}
+restart() {
+	stop
+	start
+}	
+
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
+	;;
+  reload)
+	reload
+	;;
+  restart)
+  	restart
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?
+
