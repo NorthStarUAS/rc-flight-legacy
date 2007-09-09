@@ -329,8 +329,8 @@ void help_message()
 {
     printf("\n./ugear --option1 on/off --option2 on/off --option3 ... \n");
     printf("--wifi on/off        : enable or disable WiFi communication with GS \n");
-    printf("--log-dir path      :  enable onboard data logging to path\n");	
-    printf("--console-link on/off: enable or disable serial/console link\n");	
+    printf("--log-dir path       : enable onboard data logging to path\n");	
+    printf("--console <dev>      : enable or disable serial/console link\n");	
     printf("--display on/off     : enable or disable dumping data to display \n");	
     printf("--ip xxx.xxx.xxx.xxx : set GS i.p. address for WiFi comm. \n");
     printf("--help               : display the help messages \n\n");
