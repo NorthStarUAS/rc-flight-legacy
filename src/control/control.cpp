@@ -118,18 +118,13 @@ void control_update(short flight_mode)
     }
 
     //aileron
-    // servo_out[0] = servopacket.chn[0] + (imupacket.phif * 16000 * 57.3);
     servo_out[0] = 32768 + aileron_out_node->getFloatValue() * 32768;
 
     //elevator
-    // servo_out[1] = servopacket.chn[1] + (imupacket.thef * 1600.0 * 57.3);
     servo_out[1] = 32768 + elevator_out_node->getFloatValue() * 32768;
-    // SGPropertyNode *pitch = fgGetNode("/orientation/pitch-deg", true);
-    // printf("pitch = %.2f elevator out = %.2f\n", pitch->getFloatValue(),
-    //	   elevator_out_node->getFloatValue());
 
     //throttle
-    servo_out[2] = servopacket.chn[2];
+    servo_out[2] = 32758 + throttle_out_node->getFloatValue() * 32768;
 
     // rudder
     servo_out[3] = 32768 + rudder_out_node->getFloatValue() * 32768;
