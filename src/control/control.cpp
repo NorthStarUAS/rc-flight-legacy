@@ -89,7 +89,7 @@ void control_reset() {
 
 void control_update(short flight_mode)
 {
-    uint16_t servo_out[9]={0,};	//elevator,aileron,throttle command
+    uint16_t servo_out[9];	//elevator,aileron,throttle command
     // make a quick exit if we are disabled
     if ( !autopilot_active ) {
       return;
@@ -111,7 +111,11 @@ void control_update(short flight_mode)
     // update the autopilot stages
     ap.update( 0.04 );	// dt = 1/25
 
-    // send the servo commands out
+    // initialize the servo command array to central values so we don't
+    // inherit junk
+    for ( int i = 0; i < 9; ++i ) {
+        servo_out[i] = 32768;
+    }
 
     //aileron
     // servo_out[0] = servopacket.chn[0] + (imupacket.phif * 16000 * 57.3);
@@ -130,10 +134,9 @@ void control_update(short flight_mode)
     // rudder
     servo_out[3] = 32768 + rudder_out_node->getFloatValue() * 32768;
 
-
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    //send commands
-    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //send commands out to MNAV
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     send_servo_cmd(servo_out);
 }
 
