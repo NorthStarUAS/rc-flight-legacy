@@ -32,7 +32,8 @@
 #define FULL_PACKET_LENGTH	38
 #define SENSOR_PACKET_LENGTH    51   
 #define GPS_PACKET_LENGTH	35
-#define FULL_PACKET_SIZE        86  // scaled mode with sampling less than 100Hz
+#define FULL_PACKET_SIZE        86 // scaled mode with sampling less than 100Hz
+#define SERVO_PACKET_LENGTH     24
 #define fullspeed		0
 
 #define D2R			0.017453292519940
@@ -225,7 +226,8 @@ void mnav_update()
   
     // Read packet contents
     switch (input_buffer[2]) {
-    case 'S':               // IMU packet without GPS
+    case 'S':               // IMU packet without GPS (< 100hz)
+    case 's':               // IMU packet without GPS (100hz)
         // printf("no gps data being sent ... :-(\n");
         while ( nbytes < SENSOR_PACKET_LENGTH ) {
             nbytes += read(sPort2, input_buffer+nbytes,
@@ -244,7 +246,8 @@ void mnav_update()
         };
         break;
 
-    case 'N':               // IMU packet with GPS
+    case 'N':               // IMU packet with GPS (< 100hz)
+    case 'n':               // IMU packet with GPS (100hz)
         while ( nbytes < FULL_PACKET_SIZE ) {
             nbytes += read(sPort2, input_buffer+nbytes,
                            FULL_PACKET_SIZE-nbytes); 
@@ -538,8 +541,8 @@ void send_servo_cmd(uint16_t cnt_cmd[9])
     // cnt_cmd[0] = ch0:aileron
     // cnt_cmd[2] = ch2:throttle
 
-    uint8_t data[24];
-    short i = 0, nbytes = 0;
+    uint8_t data[SERVO_PACKET_LENGTH];
+    short i = 0;
     uint16_t sum = 0;
 
     // printf("sending servo data ");
@@ -576,8 +579,10 @@ void send_servo_cmd(uint16_t cnt_cmd[9])
     data[23] = (uint8_t)sum;
 
     //sendout the command packet
-    while (nbytes != 24) {
+    short nbytes = 0;
+    while (nbytes != SERVO_PACKET_LENGTH) {
         // printf("  writing servos ...\n");
-        nbytes = write(sPort2,(char*)data, 24);
+        nbytes = write(sPort2,(char *)(data + nbytes),
+                       SERVO_PACKET_LENGTH - nbytes);
     }
 }
