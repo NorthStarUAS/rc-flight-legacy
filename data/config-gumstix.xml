@@ -42,6 +42,9 @@
     </autopilot>
 
     <route>
+      <!-- set value to true to enable the high level route management -->
+      <enable type="bool">true</enable>
+
       <path>routes/SPRC-1.xml</path>
     </route>
 
