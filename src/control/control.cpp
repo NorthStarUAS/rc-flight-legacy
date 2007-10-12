@@ -50,6 +50,7 @@ static SGPropertyNode *elevator_out_node = NULL;
 static SGPropertyNode *throttle_out_node = NULL;
 static SGPropertyNode *rudder_out_node = NULL;
 static SGPropertyNode *ap_target = NULL;
+static SGPropertyNode *wing_mix = NULL;
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -73,6 +74,8 @@ void control_init() {
     rudder_out_node = fgGetNode("/controls/flight/rudder", true);
 
     ap_target = fgGetNode("/autopilot/settings/target-roll-deg", true);
+
+    wing_mix = fgGetNode("/config/autopilot/elevon-mixing", true);
 }
 
 
@@ -111,20 +114,37 @@ void control_update(short flight_mode)
     // update the autopilot stages
     ap.update( 0.04 );	// dt = 1/25
 
+    /* printf("%.2f %.2f\n", aileron_out_node->getFloatValue(),
+              elevator_out_node->getFloatValue()); */
+
     // initialize the servo command array to central values so we don't
     // inherit junk
     for ( int i = 0; i < 9; ++i ) {
         servo_out[i] = 32768;
     }
 
-    //aileron
-    servo_out[0] = 32768 + aileron_out_node->getFloatValue() * 32768;
+    if ( wing_mix->getBoolValue() ) {
+        // elevon mixing mode
 
-    //elevator
-    servo_out[1] = 32768 + elevator_out_node->getFloatValue() * 32768;
+        //aileron
+        servo_out[0] = 32768 + aileron_out_node->getFloatValue() * 32768
+            + elevator_out_node->getFloatValue() * 32768;
+
+        //elevator
+        servo_out[1] = 32768 + aileron_out_node->getFloatValue() * 32768
+            - elevator_out_node->getFloatValue() * 32768;
+    } else {
+        // conventional airframe mode
+
+        //aileron
+        servo_out[0] = 32768 + aileron_out_node->getFloatValue() * 32768;
+
+        //elevator
+        servo_out[1] = 32768 + elevator_out_node->getFloatValue() * 32768;
+    }
 
     //throttle
-    servo_out[2] = 32758 + throttle_out_node->getFloatValue() * 32768;
+    servo_out[2] = 32768 + throttle_out_node->getFloatValue() * 32768;
 
     // rudder
     servo_out[3] = 32768 + rudder_out_node->getFloatValue() * 32768;
@@ -132,6 +152,7 @@ void control_update(short flight_mode)
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //send commands out to MNAV
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // printf("%d %d\n", servo_out[0], servo_out[1]);
     send_servo_cmd(servo_out);
 }
 
@@ -318,7 +339,7 @@ void control_uav_old(bool init_done, short flight_mode)
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //send commands
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    send_servo_cmd(servo_out);
+    send_short_servo_cmd(servo_out);
 }
 
 #endif
