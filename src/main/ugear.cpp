@@ -242,16 +242,6 @@ int main(int argc, char **argv)
 	  }
 	}
 
-	if ( enable_control ) {
-            // autopilot update at 25 hz
-            if ( ap_counter >= 2 ) { 
-                ap_counter = 0;
-                control_prof.start();
-                control_update(0);
-                control_prof.stop();
-            }
-	}
-
         if ( enable_route ) {
             // route updates at 5 hz
             if ( route_counter >= 10 ) {
@@ -261,6 +251,16 @@ int main(int argc, char **argv)
                 route_mgr_prof.stop();
             }
         }
+
+	if ( enable_control ) {
+            // autopilot update at 25 hz
+            if ( ap_counter >= 2 ) { 
+                ap_counter = 0;
+                control_prof.start();
+                control_update(0);
+                control_prof.stop();
+            }
+	}
 
         // health status (update at 0.1hz)
         if ( health_counter >= 500 ) {
