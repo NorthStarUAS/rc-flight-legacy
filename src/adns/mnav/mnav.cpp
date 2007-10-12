@@ -34,7 +34,7 @@
 #define GPS_PACKET_LENGTH	35
 #define FULL_PACKET_SIZE        86 // scaled mode with sampling less than 100Hz
 #define SERVO_PACKET_LENGTH     24
-#define fullspeed		0
+#define SHORT_SERVO_PACKET_LENGTH 14
 
 #define D2R			0.017453292519940
 #define R2D			57.29577951308232
@@ -297,6 +297,9 @@ void mnav_update()
         // best guess at true altitude
         float true_alt_m = Ps_filt + alt_err_filt;
         true_alt_node->setFloatValue( true_alt_m );
+
+        /* printf("%.2f %.2f\n", imupacket.phi * SG_RADIANS_TO_DEGREES,
+           imupacket.the * SG_RADIANS_TO_DEGREES); */
 
 	// publish values to property tree
 	theta_node->setFloatValue( imupacket.the * SG_RADIANS_TO_DEGREES );
@@ -578,11 +581,70 @@ void send_servo_cmd(uint16_t cnt_cmd[9])
     data[22] = (uint8_t)(sum >> 8);
     data[23] = (uint8_t)sum;
 
+#if 0 /* Really fancy but MNAV still glitches occasionally */
     //sendout the command packet
     short nbytes = 0;
-    while (nbytes != SERVO_PACKET_LENGTH) {
+    uint8_t *ptr = data;
+    while (nbytes < SERVO_PACKET_LENGTH) {
         // printf("  writing servos ...\n");
+        ssize_t result = write(sPort2, ptr, SERVO_PACKET_LENGTH - nbytes);
+        if ( result > 0 ) {
+            nbytes += result;
+            ptr += result;
+        }
+    }
+#endif
+
+#if 0 /* earlier code, note nbytes is never incremented in a partial write so this is buggy */
+    short nbytes = 0;
+    while (nbytes != SERVO_PACKET_LENGTH) {
         nbytes = write(sPort2,(char *)(data + nbytes),
                        SERVO_PACKET_LENGTH - nbytes);
+        if ( nbytes != SERVO_PACKET_LENGTH ) {
+            printf("wrote %d\n", nbytes);
+        }
     }
+#endif
+
+#if 1
+    // don't attempt any manner of retry if write fails
+    write(sPort2, data, SERVO_PACKET_LENGTH);
+#endif
+
+    // printf("%d %d\n", cnt_cmd[0], cnt_cmd[1]);
+
+}
+
+
+// identical to full servo command, but only sends first 4 channels of
+// data, saving 10 bytes per message.
+void send_short_servo_cmd(uint16_t cnt_cmd[9])
+{
+    uint8_t data[SHORT_SERVO_PACKET_LENGTH];
+    short i = 0;
+    uint16_t sum = 0;
+
+    // printf("sending servo data ");
+    // for ( i = 0; i < 4; ++i ) printf("%d ", cnt_cmd[i]);
+    // printf("\n");
+
+    data[0] = 0x55; 
+    data[1] = 0x55;
+    data[2] = 0x53;
+    data[3] = 0x54;
+
+    for ( i = 0; i < 4; ++i ) {
+        data[4+2*i] = (uint8_t)(cnt_cmd[i] >> 8); 
+        data[5+2*i] = (uint8_t)cnt_cmd[i];
+    }
+
+    //checksum: need to be verified
+    sum = 0xa6;
+    for (i = 4; i < 12; i++) sum += data[i];
+  
+    data[12] = (uint8_t)(sum >> 8);
+    data[13] = (uint8_t)sum;
+
+    // don't attempt any manner of retry if write fails
+    write(sPort2, data, SHORT_SERVO_PACKET_LENGTH);
 }
