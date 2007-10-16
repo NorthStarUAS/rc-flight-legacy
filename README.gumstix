@@ -4,30 +4,62 @@ GUMSTIX Preparation
 1. Make new rootfs.  <insert details of package selection and configuration
    options>
 
-2. Configure gumstix to mount mmc card:
-   - login root/gumstix
-   - edit /etc/modules
-   - edit /etc/network/interfaces (remove the "auto mwlan0" lines.
-   - reboot or run "modprobe mmc_block pxamci"
+2. Copy rootfs and matching u-boot.bin to the mmc card.
 
-3. Upload new rootfs.arm_nofpu.jffs2 to gumstix mmc card using hyperterminal
-   or mincom, sz/rz, etc.
-   - cd /mnt/mmc
-   - rz (send rootfs.arm_nofpu.jffs2 file from your gumstix-buildroot tree)
-   - wait a couple minutes for the transfer.
+   Option A: 
 
-4. Flash the new root file system image:
+     - Use a usb adapter and copy these directly to the card from the host
+       computer.  The card file system is vfat to it may not handle any
+       arbitrary file name.
+
+   Option B:
+   
+     1. Configure gumstix to mount mmc card:
+        - login root/gumstix
+        - edit /etc/modules
+        - edit /etc/network/interfaces (remove the "auto mwlan0" lines.
+        - reboot or run "modprobe mmc_block pxamci"
+
+     2. Upload new rootfs.arm_nofpu.jffs2 to gumstix mmc card using
+        hyperterminal or mincom, sz/rz, etc.
+        - cd /mnt/mmc
+        - rz (send rootfs.arm_nofpu.jffs2 file from your gumstix-buildroot tree)
+        - wait a couple minutes for the transfer.
+
+3. Flash the new root file system image:
    - http://docwiki.gumstix.org/Replacing_the_filesystem_image
    - reboot (press a key to interrupt the boot loader and get a prompt)
    - GUM> mmcinit
    - GUM> fatls mmc 1
    - GUM> fatload mmc 1 a2000000 rootfs.arm_nofpu.jffs2 (note: 6 zeros)
+   - GUM> crc32 a2000000 ${filesize}
+          (double check crc32 matches same crc32 that zip has when you display
+          the file in a .zip archive)
    - GUM> protect on 1:0-1
    - GUM> erase all
    - GUM> cp.b a2000000 40000 ${filesize}
    - GUM> boot
 
-5. Configure new root image
+4. Install new kernel image (installed separately)
+   - http://docwiki.gumstix.org/Replacing_the_filesystem_image
+   - GUM> mmcinit
+   - GUM> fatload mmc 1 a2000000 uImage
+   - GUM> katinstall 100000
+   - GUM> katload 100000
+   - GUM> boot
+
+5. Optionally flash the new boot loader too (there can be some matching
+   dependencies between the boot loader and the file system image.
+   - http://docwiki.gumstix.org/U-boot#Loading_new_stuff_to_flash
+   - reboot (press a key to interrupt the boot loader and get a prompt)
+   - GUM> mmcinit
+   - GUM> fatload mmc 1 a2000000 u-boot.bin
+   - GUM> protect off all
+   - GUM> era 1:0-1
+   - GUM> cp.b a2000000 0 ${filesize}
+   - GUM> reset
+
+6. Configure new root image
    - (wait for boot, Rendezvous will take a while to time out, we'll fix that)
    - cd /etc/init.d
    - vi S50bonjour
