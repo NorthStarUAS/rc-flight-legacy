@@ -38,19 +38,20 @@
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //global variables
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-static double sum[5]={0.,};
-static struct servo    servopos;
-static struct imu      imuval;
-static struct gps      gpsval;
-static struct nav      navval;
-enum   	      modedefs {pitch_mode,roll_mode,heading_mode,altitude_mode,speed_mode,waypoint_mode};
+struct servo servo_out;
+// static double sum[5]={0.,};
+//static struct servo    servopos;
+//static struct imu      imuval;
+//static struct gps      gpsval;
+//static struct nav      navval;
+//enum   	      modedefs {pitch_mode,roll_mode,heading_mode,altitude_mode,speed_mode,waypoint_mode};
 
 static SGPropertyNode *aileron_out_node = NULL;
 static SGPropertyNode *elevator_out_node = NULL;
 static SGPropertyNode *throttle_out_node = NULL;
 static SGPropertyNode *rudder_out_node = NULL;
 static SGPropertyNode *ap_target = NULL;
-static SGPropertyNode *wing_mix = NULL;
+static SGPropertyNode *elevon_mix = NULL;
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -75,7 +76,7 @@ void control_init() {
 
     ap_target = fgGetNode("/autopilot/settings/target-roll-deg", true);
 
-    wing_mix = fgGetNode("/config/autopilot/elevon-mixing", true);
+    elevon_mix = fgGetNode("/config/autopilot/elevon-mixing", true);
 }
 
 
@@ -83,16 +84,15 @@ void control_reset() {
   // initialization:
   if ( display_on ) { printf("Initializing autopilot\n"); }
 
-  servopos = servopacket;	// save the last servo positions
-  imuval   = imupacket;		// save the last attitude
-  gpsval   = gpspacket;		// save the last gps
-  navval   = navpacket;		// save the last nav
+  //servopos = servo_in;	// save the last servo positions
+  //imuval   = imupacket;		// save the last attitude
+  //gpsval   = gpspacket;		// save the last gps
+  //navval   = navpacket;		// save the last nav
 }
 
 
 void control_update(short flight_mode)
 {
-    uint16_t servo_out[9];	//elevator,aileron,throttle command
     // make a quick exit if we are disabled
     if ( !autopilot_active ) {
       return;
@@ -108,7 +108,7 @@ void control_update(short flight_mode)
     // double min_value = -35.0;
     // double max_value = 35.0;
     // double tgt_value = (max_value - min_value) *
-    //   ((double)servopacket.chn[5] / 65535.0) + min_value;
+    //   ((double)servo_in.chn[5] / 65535.0) + min_value;
     // ap_target->setFloatValue( tgt_value );
 
     // update the autopilot stages
@@ -116,44 +116,54 @@ void control_update(short flight_mode)
 
     /* printf("%.2f %.2f\n", aileron_out_node->getFloatValue(),
               elevator_out_node->getFloatValue()); */
+    static SGPropertyNode *nav_vert_speed_fps
+        = fgGetNode("/velocities/vertical-speed-fps", true);
+    /* printf("%.2f %.2f\n", nav_vert_speed_fps->getFloatValue(),
+              elevator_out_node->getFloatValue()); */
 
     // initialize the servo command array to central values so we don't
     // inherit junk
     for ( int i = 0; i < 9; ++i ) {
-        servo_out[i] = 32768;
+        servo_out.chn[i] = 32768;
     }
 
-    if ( wing_mix->getBoolValue() ) {
+    if ( elevon_mix->getBoolValue() ) {
         // elevon mixing mode
 
         //aileron
-        servo_out[0] = 32768 + aileron_out_node->getFloatValue() * 32768
-            + elevator_out_node->getFloatValue() * 32768;
+        servo_out.chn[0] = 32768
+            + (int16_t)(aileron_out_node->getFloatValue() * 32768)
+            + (int16_t)(elevator_out_node->getFloatValue() * 32768);
 
         //elevator
-        servo_out[1] = 32768 + aileron_out_node->getFloatValue() * 32768
-            - elevator_out_node->getFloatValue() * 32768;
+        servo_out.chn[1] = 32768
+            + (int16_t)(aileron_out_node->getFloatValue() * 32768)
+            - (int16_t)(elevator_out_node->getFloatValue() * 32768);
     } else {
         // conventional airframe mode
 
         //aileron
-        servo_out[0] = 32768 + aileron_out_node->getFloatValue() * 32768;
+        servo_out.chn[0] = 32768
+            + (int16_t)(aileron_out_node->getFloatValue() * 32768);
 
         //elevator
-        servo_out[1] = 32768 + elevator_out_node->getFloatValue() * 32768;
+        servo_out.chn[1] = 32768
+            + (int16_t)(elevator_out_node->getFloatValue() * 32768);
     }
 
     //throttle
-    servo_out[2] = 32768 + throttle_out_node->getFloatValue() * 32768;
+    servo_out.chn[2] = 32768
+        + (uint16_t)(throttle_out_node->getFloatValue() * 32768);
 
     // rudder
-    servo_out[3] = 32768 + rudder_out_node->getFloatValue() * 32768;
+    servo_out.chn[3] = 32768
+        + (int16_t)(rudder_out_node->getFloatValue() * 32768);
 
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //send commands out to MNAV
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // printf("%d %d\n", servo_out[0], servo_out[1]);
-    send_servo_cmd(servo_out);
+    send_servo_cmd();
 }
 
 
@@ -181,12 +191,12 @@ void control_uav_old(bool init_done, short flight_mode)
 
     if ( !init_done ) {
         // initialization:
-        servopos = servopacket;  	         // save the last servo positions
-        imuval   = imupacket;                    // save the last attitude
-        gpsval   = gpspacket;                    // save the last gps
-        navval   = navpacket;                    // save the last nav
+        servopos = servo_in;                  // save the last servo pos's
+        imuval   = imupacket;                   // save the last attitude
+        gpsval   = gpspacket;                   // save the last gps
+        navval   = navpacket;                   // save the last nav
         Ps_f_p   = 0.0;			
-        sum[0]=sum[1]=sum[2]=sum[3]=sum[4]= 0.;  // initialize integral sums
+        sum[0]=sum[1]=sum[2]=sum[3]=sum[4]= 0.; // initialize integral sums
         anti_windup[0]=anti_windup[1]=0;
         anti_windup[2]=anti_windup[3]=0;
         k        = 0;
@@ -330,7 +340,7 @@ void control_uav_old(bool init_done, short flight_mode)
     servo_out[0] = servopos.chn[0] + (uint16_t)(deg2servo*(da-de)*57.3);
     //throttle
     servo_out[2] = servopos.chn[2];
-    // printf("servo_out[2] = %d %d %d\n", servo_out[2], servopos.chn[2], servopacket.chn[2]);
+    // printf("servo_out[2] = %d %d %d\n", servo_out[2], servopos.chn[2], servo_in.chn[2]);
 
     // for ( i = 0; i < 9; ++i ) {
     //     servo_out[i] = servopos.chn[2];
