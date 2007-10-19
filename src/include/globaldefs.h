@@ -32,7 +32,7 @@ struct gps {
    double lat,lon,alt;          /* gps position          */
    double ve,vn,vd;             /* gps velocity          */
    double ITOW;                 /* seconds since start of week */
-   uint64_t err_type;            /* error type            */
+   uint64_t err_type;           /* error type            */
 };
 
 struct nav {
@@ -54,15 +54,16 @@ struct health {
     float volts_raw;            /* raw volt reading */
     float volts;                /* filtered volts */
     uint64_t est_seconds;       /* estimated useful seconds remaining */
-    uint64_t loadavg;            /* system "1 minute" load average */
-    uint64_t ahrs_hz;            /* actual ahrs loop hz */
-    uint64_t nav_hz;             /* actual nav loop hz */
+    uint64_t loadavg;           /* system "1 minute" load average */
+    uint64_t ahrs_hz;           /* actual ahrs loop hz */
+    uint64_t nav_hz;            /* actual nav loop hz */
 };
 
 extern struct imu imupacket;
 extern struct gps gpspacket;
 extern struct nav navpacket;
-extern struct servo servopacket;
+extern struct servo servo_in;
+extern struct servo servo_out;
 extern struct health healthpacket;
 
 // A varienty of constants
