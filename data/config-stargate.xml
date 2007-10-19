@@ -5,6 +5,10 @@
 <PropertyList>
   <config>
 
+    <data>
+      <log-path>/mnt/mmc/FlightData</log-path>
+    </data>
+
     <console>
       <!-- console device.  Typically this is /dev/tts/0 for the -->
       <!-- stargate and /dev/ttyS0 for the gumstix -->
