@@ -25,7 +25,7 @@ void mnav_init();
 void mnav_update();
 void mnav_close();
 
-void send_servo_cmd(uint16_t cnt_cmd[9]);
+void send_servo_cmd();
 
 
 #endif // _UGEAR_MNAV_H
