@@ -69,5 +69,5 @@ GUMSTIX Preparation
    - Repeat step #2 above to enable the mmc card and disable the mwlan0
    - Reboot and make sure everything looks clean and the mmc card comes up
      mounted and /mnt/mmc
-
+   - copy /mnt/mmc/MicroGear/scripts/S99ugear to /etc/init.d on the gumstix.
 
