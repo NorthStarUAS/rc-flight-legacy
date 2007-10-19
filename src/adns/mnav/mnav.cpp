@@ -57,7 +57,7 @@ void decode_gpspacket(struct gps *data, uint8_t* buffer);
 //
 static int sPort2;
 
-struct servo servopacket;
+struct servo servo_in;
 bool autopilot_active = false;
 bool autopilot_reinit = false;
 int  autopilot_count = 0;
@@ -312,17 +312,15 @@ void mnav_update()
 	// comp_time_node->setDoubleValue( imupacket.time );
 
 	// for ( int i = 0; i < 8; ++i ) {
-	//   servo_chn_node[i]->setIntValue( servopacket.chn[i] );
+	//   servo_chn_node[i]->setIntValue( servo_in.chn[i] );
 	// }
 
         if ( console_link_on ) {
             console_link_imu( &imupacket );
-            console_link_servo( &servopacket );
         }
 
         if ( log_to_file ) {
             log_imu( &imupacket );
-            log_servo( &servopacket );
         }
     }
 
@@ -382,7 +380,7 @@ void mnav_update()
     // picking up toothpicks.
     //
 
-    if ( servopacket.chn[4] <= 12000 ) {
+    if ( servo_in.chn[4] <= 12000 ) {
         // if the autopilot is enabled, or signal is lost
         if ( !autopilot_active && display_on ) {
             printf("[CONTROL]: switching to autopilot\n");
@@ -391,8 +389,8 @@ void mnav_update()
         autopilot_active = true;
         autopilot_count  = 15;
         cnt_status = "MNAV in AutoPilot Mode";
-    } else if ( servopacket.chn[4] > 12000
-                && servopacket.chn[4] < 60000 )
+    } else if ( servo_in.chn[4] > 12000
+                && servo_in.chn[4] < 60000 )
     {
         // add delay on control trigger to minimize mode confusion
         // caused by the transmitter power off
@@ -508,41 +506,39 @@ void decode_imupacket( struct imu *data, uint8_t* buffer )
 
     // servo packet
     switch (buffer[2]) {
-    case 'S' :   servopacket.status = buffer[32];
-        servopacket.chn[0] = ((tmpr = buffer[33]) << 8)|buffer[34]; tmpr = 0;
-        servopacket.chn[1] = ((tmpr = buffer[35]) << 8)|buffer[36]; tmpr = 0;
-        servopacket.chn[2] = ((tmpr = buffer[37]) << 8)|buffer[38]; tmpr = 0;
-        servopacket.chn[3] = ((tmpr = buffer[39]) << 8)|buffer[40]; tmpr = 0;
-        servopacket.chn[4] = ((tmpr = buffer[41]) << 8)|buffer[42]; tmpr = 0;
-        servopacket.chn[5] = ((tmpr = buffer[43]) << 8)|buffer[44]; tmpr = 0;
-        servopacket.chn[6] = ((tmpr = buffer[45]) << 8)|buffer[46]; tmpr = 0;
-        servopacket.chn[7] = ((tmpr = buffer[47]) << 8)|buffer[48]; 
+    case 'S' :   servo_in.status = buffer[32];
+        servo_in.chn[0] = ((tmpr = buffer[33]) << 8)|buffer[34]; tmpr = 0;
+        servo_in.chn[1] = ((tmpr = buffer[35]) << 8)|buffer[36]; tmpr = 0;
+        servo_in.chn[2] = ((tmpr = buffer[37]) << 8)|buffer[38]; tmpr = 0;
+        servo_in.chn[3] = ((tmpr = buffer[39]) << 8)|buffer[40]; tmpr = 0;
+        servo_in.chn[4] = ((tmpr = buffer[41]) << 8)|buffer[42]; tmpr = 0;
+        servo_in.chn[5] = ((tmpr = buffer[43]) << 8)|buffer[44]; tmpr = 0;
+        servo_in.chn[6] = ((tmpr = buffer[45]) << 8)|buffer[46]; tmpr = 0;
+        servo_in.chn[7] = ((tmpr = buffer[47]) << 8)|buffer[48]; 
         break;
-    case 'N' :   servopacket.status = buffer[67];
-        servopacket.chn[0] = ((tmpr = buffer[68]) << 8)|buffer[69]; tmpr = 0;
-        servopacket.chn[1] = ((tmpr = buffer[70]) << 8)|buffer[71]; tmpr = 0;
-        servopacket.chn[2] = ((tmpr = buffer[72]) << 8)|buffer[73]; tmpr = 0;
-        servopacket.chn[3] = ((tmpr = buffer[74]) << 8)|buffer[75]; tmpr = 0;
-        servopacket.chn[4] = ((tmpr = buffer[76]) << 8)|buffer[77]; tmpr = 0;
-        servopacket.chn[5] = ((tmpr = buffer[78]) << 8)|buffer[79]; tmpr = 0;
-        servopacket.chn[6] = ((tmpr = buffer[80]) << 8)|buffer[81]; tmpr = 0;
-        servopacket.chn[7] = ((tmpr = buffer[82]) << 8)|buffer[83]; 
+    case 'N' :   servo_in.status = buffer[67];
+        servo_in.chn[0] = ((tmpr = buffer[68]) << 8)|buffer[69]; tmpr = 0;
+        servo_in.chn[1] = ((tmpr = buffer[70]) << 8)|buffer[71]; tmpr = 0;
+        servo_in.chn[2] = ((tmpr = buffer[72]) << 8)|buffer[73]; tmpr = 0;
+        servo_in.chn[3] = ((tmpr = buffer[74]) << 8)|buffer[75]; tmpr = 0;
+        servo_in.chn[4] = ((tmpr = buffer[76]) << 8)|buffer[77]; tmpr = 0;
+        servo_in.chn[5] = ((tmpr = buffer[78]) << 8)|buffer[79]; tmpr = 0;
+        servo_in.chn[6] = ((tmpr = buffer[80]) << 8)|buffer[81]; tmpr = 0;
+        servo_in.chn[7] = ((tmpr = buffer[82]) << 8)|buffer[83]; 
         break;
     default  :
         printf("[imu]:fail to decode servo packet..!\n");
     }
 
     data->time = get_Time();
-    servopacket.time = data->time;
+    servo_in.time = data->time;
     data->err_type = no_error;
 }
 
 
-void send_servo_cmd(uint16_t cnt_cmd[9])
+void send_servo_cmd()
 {
-    // cnt_cmd[1] = ch1:elevator
-    // cnt_cmd[0] = ch0:aileron
-    // cnt_cmd[2] = ch2:throttle
+    // ch0: aileron, ch1: elevator, ch2: throttle, ch3: rudder
 
     uint8_t data[SERVO_PACKET_LENGTH];
     short i = 0;
@@ -558,21 +554,9 @@ void send_servo_cmd(uint16_t cnt_cmd[9])
     data[3] = 0x53;
 
     for ( i = 0; i < 9; ++i ) {
-        data[4+2*i] = (uint8_t)(cnt_cmd[i] >> 8); 
-        data[5+2*i] = (uint8_t)cnt_cmd[i];
+        data[4+2*i] = (uint8_t)(servo_out.chn[i] >> 8); 
+        data[5+2*i] = (uint8_t)servo_out.chn[i];
     }
-
-    // aileron
-    // data[4] = (uint8_t)(cnt_cmd[0] >> 8); 
-    // data[5] = (uint8_t)cnt_cmd[0];
-
-    // elevator
-    // data[6] = (uint8_t)(cnt_cmd[1] >> 8);
-    // data[7] = (uint8_t)cnt_cmd[1];
-
-    // throttle
-    // data[8] = (uint8_t)(cnt_cmd[2] >> 8);
-    // data[9] = (uint8_t)cnt_cmd[2];
 
     //checksum: need to be verified
     sum = 0xa6;
