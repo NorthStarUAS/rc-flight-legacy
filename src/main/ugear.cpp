@@ -58,18 +58,27 @@ using std::string;
 //
 // global variables & objects
 //
-bool wifi           = false;	// wifi connection enabled/disabled
-bool enable_nav     = false;	// nav filter enabled/disabled
-bool enable_control = false;	// autopilot control module enabled/disabled
-bool enable_route   = false;	// route module enabled/disabled
 
 FGRouteMgr route_mgr;           // route manager object
 
 
 //
-// prototypes
+// usage message
 //
-void help_message();
+void usage()
+{
+    printf("\n./ugear --option1 on/off --option2 on/off --option3 ... \n");
+    printf("--log-dir path       : enable onboard data logging to path\n");
+    printf("--log-servo in/out   : specify which servo data to log (out=default)\n");
+    printf("--mnav <device>      : specify mnav communication device\n");
+    printf("--console <dev>      : specify console device and enable link\n");
+    printf("--display on/off     : dump periodic data to display\n");	
+    printf("--wifi on/off        : enable or disable WiFi communication with GS \n");
+    printf("--ip xxx.xxx.xxx.xxx : set GS i.p. address for WiFi comm\n");
+    printf("--help               : display this help messages\n\n");
+    
+    _exit(0);	
+}	
 
 
 //
@@ -79,6 +88,11 @@ int main(int argc, char **argv)
 {
     int iarg;
     static short	attempt = 0;
+    bool log_servo_out  = true;    // log outgoing servo commands by default
+    bool enable_control = false;   // autopilot control module enabled/disabled
+    bool enable_nav     = false;   // nav filter enabled/disabled
+    bool enable_route   = false;   // route module enabled/disabled
+    bool wifi           = false;   // wifi connection enabled/disabled
 
     // initialize properties
     props = new SGPropertyNode;
@@ -91,13 +105,13 @@ int main(int argc, char **argv)
     SGPath master( root );
     master.append( "config.xml" );
     try {
-      readProperties( master.c_str(), props);
-      printf("Loaded configuration from %s\n", master.c_str());
+        readProperties( master.c_str(), props);
+        printf("Loaded configuration from %s\n", master.c_str());
     } catch (const sg_exception &exc) {
-      printf("\n");
-      printf("*** Cannot load master config file: %s\n", master.c_str());
-      printf("\n");
-      sleep(1);
+        printf("\n");
+        printf("*** Cannot load master config file: %s\n", master.c_str());
+        printf("\n");
+        sleep(1);
     }
 
     // extract configuration values from the property tree (which is
@@ -106,6 +120,12 @@ int main(int argc, char **argv)
     // the command line will override what is in the config.xml file.
 
     SGPropertyNode *p;
+
+    p = fgGetNode("/config/data/log-path", true);
+    log_path.set( p->getStringValue() );
+    p = fgGetNode("/config/data/enable", true);
+    log_to_file = p->getBoolValue();
+    printf("log path = %s enabled = %d\n", log_path.c_str(), log_to_file);
 
     p = fgGetNode("/config/mnav/device", true);
     strncpy( mnav_dev, p->getStringValue(), MAX_MNAV_DEV );
@@ -128,6 +148,10 @@ int main(int argc, char **argv)
             ++iarg;
             log_path.set( argv[iarg] );
             log_to_file = true;
+        } else if ( !strcmp(argv[iarg],"--log-servo") ) {
+            ++iarg;
+            if ( !strcmp(argv[iarg], "out") ) log_servo_out = true;
+            if ( !strcmp(argv[iarg], "in") ) log_servo_out = false;
         } else if ( !strcmp(argv[iarg], "--mnav" )  ) {
             ++iarg;
             strncpy( mnav_dev, argv[iarg], MAX_MNAV_DEV );
@@ -135,22 +159,22 @@ int main(int argc, char **argv)
             ++iarg;
             strncpy( console_dev, argv[iarg], MAX_CONSOLE_DEV );
 	    console_link_on = true;
-        } else if ( !strcmp(argv[iarg], "--wifi") ) {
-            ++iarg;
-            if ( !strcmp(argv[iarg], "on") ) wifi = true;
-            if ( !strcmp(argv[iarg], "off") ) wifi = false;
         } else if ( !strcmp(argv[iarg],"--display") ) {
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) display_on = true;
             if ( !strcmp(argv[iarg], "off") ) display_on = false;
+        } else if ( !strcmp(argv[iarg], "--wifi") ) {
+            ++iarg;
+            if ( !strcmp(argv[iarg], "on") ) wifi = true;
+            if ( !strcmp(argv[iarg], "off") ) wifi = false;
         } else if ( !strcmp(argv[iarg], "--ip") ) {
             ++iarg;
             HOST_IP_ADDR = argv[iarg];
         } else if ( !strcmp(argv[iarg], "--help") ) {
-            help_message();
+            usage();
         } else {
             printf("Unknown option \"%s\"\n", argv[iarg]);
-            help_message();
+            usage();
         }
     }
 
@@ -262,6 +286,22 @@ int main(int argc, char **argv)
             }
 	}
 
+        if ( console_link_on ) {
+            if ( log_servo_out ) {
+                console_link_servo( &servo_out );
+            } else {
+                console_link_servo( &servo_in );
+            }
+        }
+
+        if ( log_to_file ) {
+            if ( log_servo_out ) {
+                log_servo( &servo_out );
+            } else {
+                log_servo( &servo_in );
+            }
+        }
+
         // health status (update at 0.1hz)
         if ( health_counter >= 500 ) {
             health_counter = 0;
@@ -296,7 +336,7 @@ int main(int argc, char **argv)
         if ( display_on && display_counter >= 100 ) {
             display_counter = 0;
             display_message( &imupacket, &gpspacket, &navpacket,
-                             &servopacket, &healthpacket );
+                             &servo_in, &healthpacket );
 	    mnav_prof.stats   ( "MNAV" );
 	    ahrs_prof.stats   ( "AHRS" );
 	    if ( enable_nav ) {
@@ -322,18 +362,3 @@ int main(int argc, char **argv)
 }
 
 
-//
-// help message
-//
-void help_message()
-{
-    printf("\n./ugear --option1 on/off --option2 on/off --option3 ... \n");
-    printf("--wifi on/off        : enable or disable WiFi communication with GS \n");
-    printf("--log-dir path       : enable onboard data logging to path\n");	
-    printf("--console <dev>      : enable or disable serial/console link\n");	
-    printf("--display on/off     : enable or disable dumping data to display \n");	
-    printf("--ip xxx.xxx.xxx.xxx : set GS i.p. address for WiFi comm. \n");
-    printf("--help               : display the help messages \n\n");
-    
-    _exit(0);	
-}	
