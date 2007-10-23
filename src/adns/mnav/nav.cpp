@@ -56,10 +56,11 @@ short  gps_init_count = 0;
 // nav (cooked gps/accelerometer) property nodes
 static SGPropertyNode *nav_lat_node = NULL;
 static SGPropertyNode *nav_lon_node = NULL;
-static SGPropertyNode *nav_alt_feet = NULL;
+static SGPropertyNode *nav_alt_feet_node = NULL;
 static SGPropertyNode *nav_track_node = NULL;
 // static SGPropertyNode *nav_vel_node = NULL;
-static SGPropertyNode *nav_vert_speed_fps = NULL;
+static SGPropertyNode *nav_vert_speed_fps_node = NULL;
+static SGPropertyNode *pressure_error_m_node = NULL;
 
 
 void timer_intr( int sig )
@@ -112,10 +113,12 @@ void nav_init()
     // initialize nav property nodes
     nav_lat_node = fgGetNode("/position/latitude-deg", true);
     nav_lon_node = fgGetNode("/position/longitude-deg", true);
-    nav_alt_feet = fgGetNode("/position/altitude-nav-ft", true);
+    nav_alt_feet_node = fgGetNode("/position/altitude-nav-ft", true);
     nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
     // nav_vel_node = fgGetNode("/velocities/groundspeed-ms", true);
-    nav_vert_speed_fps = fgGetNode("/velocities/vertical-speed-fps", true);
+    nav_vert_speed_fps_node
+        = fgGetNode("/velocities/nav-vertical-speed-fps",true);
+    pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
 
     if ( display_on ) {
         printf("[nav] initialized.\n");
@@ -129,6 +132,10 @@ void nav_update()
     struct gps	     gpslocal;
     static int       gps_state = 0;
     static double    acq_start = 0; // time that gps first acquired
+
+    static float Ps_filt_err = 0.0;
+    static float Ps_count  = 0.0;
+    const float Ps_span = 10000.0;
 
     double cur_time = get_Time();
 
@@ -184,15 +191,28 @@ void nav_update()
         navpacket.vd  = nxs[5][0];
         navpacket.time= get_Time();
 
+	// compute a filtered error difference between gps altitude
+	// and pressure altitude.  (at 4hz update rate this averages
+	// the error over about 40 minutes)
+        Ps_count += 1.0; if (Ps_count > (Ps_span - 1.0)) {
+            Ps_count = (Ps_span - 1.0);
+        }
+	float alt_err = navpacket.alt - imupacket.Ps;
+        Ps_filt_err = (Ps_count / Ps_span) * Ps_filt_err
+            + ((Ps_span - Ps_count) / Ps_span) * alt_err;
+        // printf("Alt err = %.2f\n", alt_err_filt);
+
         // publish values to property tree
 	nav_lat_node->setDoubleValue( navpacket.lat );
 	nav_lon_node->setDoubleValue( navpacket.lon );
-	nav_alt_feet->setDoubleValue( navpacket.alt * SG_METER_TO_FEET );
+	nav_alt_feet_node->setDoubleValue( navpacket.alt * SG_METER_TO_FEET );
 	nav_track_node->setDoubleValue( 90 - atan2(navpacket.vn, navpacket.ve)
 	 				* SG_RADIANS_TO_DEGREES );
 	// nav_vel_node->setDoubleValue( sqrt( navpacket.vn * navpacket.vn
 	// 				    + navpacket.ve * navpacket.ve ) );
-        nav_vert_speed_fps->setDoubleValue( -navpacket.vd * SG_METER_TO_FEET );
+        nav_vert_speed_fps_node
+            ->setDoubleValue( -navpacket.vd * SG_METER_TO_FEET );
+        pressure_error_m_node->setFloatValue( Ps_filt_err );
 
         if ( console_link_on ) {
             console_link_nav( &navpacket );

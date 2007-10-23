@@ -76,6 +76,9 @@ static SGPropertyNode *psi_node = NULL;
 static SGPropertyNode *Ps_filt_node = NULL;
 static SGPropertyNode *Pt_filt_node = NULL;
 // static SGPropertyNode *comp_time_node = NULL;
+SGPropertyNode *pressure_error_m_node = NULL;
+SGPropertyNode *true_alt_ft_node = NULL;
+SGPropertyNode *vert_fps_node = NULL;
 
 // gps property nodes
 // static SGPropertyNode *gps_lat_node = NULL;
@@ -84,12 +87,6 @@ static SGPropertyNode *Pt_filt_node = NULL;
 // static SGPropertyNode *gps_ve_node = NULL;
 // static SGPropertyNode *gps_vn_node = NULL;
 // static SGPropertyNode *gps_vd_node = NULL;
-
-// control input nodes
-// static SGPropertyNode *servo_chn_node[8];
-
-// derived property nodes
-SGPropertyNode *true_alt_node = NULL;
 
 
 // open and intialize the MNAV communication channel
@@ -158,9 +155,12 @@ void mnav_init()
     psi_node = fgGetNode("/orientaiton/heading-deg", true);
     // Ps_node = fgGetNode("/position/altitude-pressure-m", true);
     // Pt_node = fgGetNode("/velocities/airspeed-ms", true);
-    Ps_filt_node = fgGetNode("/position/altitude-filtered-m", true);
-    Pt_filt_node = fgGetNode("/velocities/airspeed-filtered-ms", true);
+    Ps_filt_node = fgGetNode("/position/altitude-pressure-m", true);
+    Pt_filt_node = fgGetNode("/velocities/airspeed-pitot-ms", true);
     // comp_time_node = fgGetNode("/time/computer-sec", true);
+    true_alt_ft_node = fgGetNode("/position/altitude-ft",true);
+    pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
+    vert_fps_node = fgGetNode("/velocities/vertical-speed-fps",true);
 
     // initialize gps property nodes
     // gps_lat_node = fgGetNode("/position/latitude-gps-deg", true);
@@ -169,14 +169,6 @@ void mnav_init()
     // gps_ve_node = fgGetNode("/velocities/ve-gps-ms", true);
     // gps_vn_node = fgGetNode("/velocities/vn-gps-ms", true);
     // gps_vd_node = fgGetNode("/velocities/vd-gps-ms", true);
-
-    // initialize control input property nodes
-    // for ( int i = 0; i < 8; ++i ) {
-    //   servo_chn_node[i] = fgGetNode("/controls/channel", i, true);
-    // }
-
-    // initialize derived property nodes
-    true_alt_node = fgGetNode("/position/altitude-true-m",true);
 
     if ( display_on ) {
         printf(" initialized.\n");
@@ -196,10 +188,12 @@ void mnav_update()
     int nbytes = 0;
     uint8_t input_buffer[FULL_PACKET_SIZE]={0,};
 
-    static double Ps_filt = 0.0;
-    static double Pt_filt = 0.0;
-    static double alt_err_filt = -9999.0;
-    static int alt_err_count  = 0;
+    static float Ps_filt = 0.0;
+    static float Pt_filt = 0.0;
+
+    static float Ps_filt_last = 0.0;
+    static double t_last = 0.0;
+    static float climb_filt = 0.0;
 
     bool imu_valid_data = false;
     bool gps_valid_data = false;
@@ -295,8 +289,13 @@ void mnav_update()
 	Pt_filt = 0.9 * Pt_filt + 0.1 * imupacket.Pt;
 
         // best guess at true altitude
-        float true_alt_m = Ps_filt + alt_err_filt;
-        true_alt_node->setFloatValue( true_alt_m );
+        float true_alt_m = Ps_filt + pressure_error_m_node->getFloatValue();
+
+        // pressure sensor based rate of climb
+        float climb = (Ps_filt - Ps_filt_last) / (imupacket.time - t_last);
+        Ps_filt_last = Ps_filt;
+        t_last = imupacket.time;
+        climb_filt = 0.99 * climb_filt + 0.01 * climb;
 
         /* printf("%.2f %.2f\n", imupacket.phi * SG_RADIANS_TO_DEGREES,
            imupacket.the * SG_RADIANS_TO_DEGREES); */
@@ -310,10 +309,11 @@ void mnav_update()
 	Ps_filt_node->setFloatValue( Ps_filt );
 	Pt_filt_node->setFloatValue( Pt_filt );
 	// comp_time_node->setDoubleValue( imupacket.time );
+        true_alt_ft_node->setFloatValue( true_alt_m * SG_METER_TO_FEET );
+        vert_fps_node->setFloatValue( climb_filt * SG_METER_TO_FEET );
 
-	// for ( int i = 0; i < 8; ++i ) {
-	//   servo_chn_node[i]->setIntValue( servo_in.chn[i] );
-	// }
+        printf("Ps = %.2f  GPS = %.2f  Blend = %.2f  vsi = %.2f\n",
+               Ps_filt, navpacket.alt, true_alt_m, climb_filt);
 
         if ( console_link_on ) {
             console_link_imu( &imupacket );
@@ -325,22 +325,6 @@ void mnav_update()
     }
 
     if ( gps_valid_data ) {
-	// compute a filtered error difference between gps altitude
-	// and pressure altitude.  (at 4hz update rate this averages
-	// the error over about 40 minutes)
-	float alt_err = navpacket.alt - imupacket.Ps;
-
-        if ( alt_err_count == 0 ) {
-            alt_err_filt = alt_err;
-        } else if ( alt_err_count < 10000 ) {
-            alt_err_filt
-                = ((alt_err_count - 1.0) / alt_err_count) * alt_err_filt
-                  + (1.0 / alt_err_count) * alt_err;
-        } else {
-            alt_err_filt = 0.9999 * alt_err_filt + 0.0001 * alt_err;
-        }
-        // printf("Alt err = %.2f\n", alt_err_filt);
-
         // publish values to property tree
         // gps_lat_node->setDoubleValue( gpspacket.lat );
 	// gps_lon_node->setDoubleValue( gpspacket.lon );
@@ -553,10 +537,14 @@ void send_servo_cmd()
     data[2] = 0x53;
     data[3] = 0x53;
 
-    for ( i = 0; i < 9; ++i ) {
+    for ( i = 0; i < 8; ++i ) {
         data[4+2*i] = (uint8_t)(servo_out.chn[i] >> 8); 
         data[5+2*i] = (uint8_t)servo_out.chn[i];
     }
+
+    // pad last unused channel
+    data[4+2*8] = 0x80;
+    data[5+2*8] = 0x00;
 
     //checksum: need to be verified
     sum = 0xa6;
@@ -565,35 +553,9 @@ void send_servo_cmd()
     data[22] = (uint8_t)(sum >> 8);
     data[23] = (uint8_t)sum;
 
-#if 0 /* Really fancy but MNAV still glitches occasionally */
-    //sendout the command packet
-    short nbytes = 0;
-    uint8_t *ptr = data;
-    while (nbytes < SERVO_PACKET_LENGTH) {
-        // printf("  writing servos ...\n");
-        ssize_t result = write(sPort2, ptr, SERVO_PACKET_LENGTH - nbytes);
-        if ( result > 0 ) {
-            nbytes += result;
-            ptr += result;
-        }
-    }
-#endif
-
-#if 0 /* earlier code, note nbytes is never incremented in a partial write so this is buggy */
-    short nbytes = 0;
-    while (nbytes != SERVO_PACKET_LENGTH) {
-        nbytes = write(sPort2,(char *)(data + nbytes),
-                       SERVO_PACKET_LENGTH - nbytes);
-        if ( nbytes != SERVO_PACKET_LENGTH ) {
-            printf("wrote %d\n", nbytes);
-        }
-    }
-#endif
-
-#if 1
-    // don't attempt any manner of retry if write fails
+    // don't attempt any manner of retry if write fails (it shouldn't
+    // ever fail) :-)
     write(sPort2, data, SERVO_PACKET_LENGTH);
-#endif
 
     // printf("%d %d\n", cnt_cmd[0], cnt_cmd[1]);
 
@@ -602,14 +564,14 @@ void send_servo_cmd()
 
 // identical to full servo command, but only sends first 4 channels of
 // data, saving 10 bytes per message.
-void send_short_servo_cmd(uint16_t cnt_cmd[9])
+void send_short_servo_cmd()
 {
     uint8_t data[SHORT_SERVO_PACKET_LENGTH];
     short i = 0;
     uint16_t sum = 0;
 
     // printf("sending servo data ");
-    // for ( i = 0; i < 4; ++i ) printf("%d ", cnt_cmd[i]);
+    // for ( i = 0; i < 4; ++i ) printf("%d ", servo_out.chn[i]);
     // printf("\n");
 
     data[0] = 0x55; 
@@ -618,8 +580,8 @@ void send_short_servo_cmd(uint16_t cnt_cmd[9])
     data[3] = 0x54;
 
     for ( i = 0; i < 4; ++i ) {
-        data[4+2*i] = (uint8_t)(cnt_cmd[i] >> 8); 
-        data[5+2*i] = (uint8_t)cnt_cmd[i];
+        data[4+2*i] = (uint8_t)(servo_out.chn[i] >> 8); 
+        data[5+2*i] = (uint8_t)servo_out.chn[i];
     }
 
     //checksum: need to be verified
