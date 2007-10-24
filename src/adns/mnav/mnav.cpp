@@ -295,7 +295,7 @@ void mnav_update()
         float climb = (Ps_filt - Ps_filt_last) / (imupacket.time - t_last);
         Ps_filt_last = Ps_filt;
         t_last = imupacket.time;
-        climb_filt = 0.99 * climb_filt + 0.01 * climb;
+        climb_filt = 0.993 * climb_filt + 0.007 * climb;
 
         /* printf("%.2f %.2f\n", imupacket.phi * SG_RADIANS_TO_DEGREES,
            imupacket.the * SG_RADIANS_TO_DEGREES); */
@@ -312,8 +312,8 @@ void mnav_update()
         true_alt_ft_node->setFloatValue( true_alt_m * SG_METER_TO_FEET );
         vert_fps_node->setFloatValue( climb_filt * SG_METER_TO_FEET );
 
-        printf("Ps = %.2f  GPS = %.2f  Blend = %.2f  vsi = %.2f\n",
-               Ps_filt, navpacket.alt, true_alt_m, climb_filt);
+        // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
+        //        Ps_filt, navpacket.alt, true_alt_m, climb_filt);
 
         if ( console_link_on ) {
             console_link_imu( &imupacket );

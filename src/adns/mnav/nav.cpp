@@ -135,7 +135,7 @@ void nav_update()
 
     static float Ps_filt_err = 0.0;
     static float Ps_count  = 0.0;
-    const float Ps_span = 10000.0;
+    const float Ps_span = 2500.0;   // counts @ 10hz
 
     double cur_time = get_Time();
 
@@ -200,7 +200,7 @@ void nav_update()
 	float alt_err = navpacket.alt - imupacket.Ps;
         Ps_filt_err = (Ps_count / Ps_span) * Ps_filt_err
             + ((Ps_span - Ps_count) / Ps_span) * alt_err;
-        // printf("Alt err = %.2f\n", alt_err_filt);
+        // printf("cnt = %.0f err = %.2f\n", Ps_count, Ps_filt_err);
 
         // publish values to property tree
 	nav_lat_node->setDoubleValue( navpacket.lat );
