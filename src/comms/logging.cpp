@@ -144,6 +144,36 @@ void log_health( struct health *healthpacket ) {
 }
 
 
+void flush_gps() {
+    // printf("flush gps\n");
+    gzflush( fgps, Z_SYNC_FLUSH );
+}
+
+
+void flush_imu() {
+    // printf("flush imu\n");
+    gzflush( fimu, Z_SYNC_FLUSH );
+}
+
+
+void flush_nav() {
+    // printf("flush nav\n");
+    gzflush( fnav, Z_SYNC_FLUSH );
+}
+
+
+void flush_servo() {
+    // printf("flush servo\n");
+    gzflush( fservo, Z_SYNC_FLUSH );
+}
+
+
+void flush_health() {
+    // printf("flush health\n");
+    gzflush( fhealth, Z_SYNC_FLUSH );
+}
+
+
 // periodic console summary of attitude/location estimate
 void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
                       struct servo *sdata, struct health *hdata )

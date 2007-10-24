@@ -23,6 +23,12 @@ void log_nav( struct nav *navpacket );
 void log_servo( struct servo *servopacket );
 void log_health( struct health *healthpacket );
 
+void flush_gps( );
+void flush_imu( );
+void flush_nav( );
+void flush_servo( );
+void flush_health( );
+
 void display_message( struct imu *data, struct gps *gdata,
                       struct nav *ndata, struct servo *sdata,
                       struct health *hdata );
