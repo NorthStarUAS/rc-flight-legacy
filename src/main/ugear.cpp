@@ -234,6 +234,7 @@ int main(int argc, char **argv)
     int wifi_counter = 0;
     int ap_counter = 0;
     int route_counter = 0;
+    int flush_counter = 0;
 
     printf("Everything inited ... ready to run\n");
 
@@ -247,6 +248,7 @@ int main(int argc, char **argv)
         if ( enable_nav ) {
             nav_counter++;
 	}
+        flush_counter++;
 
         // fetch the next data packet from the MNAV sensor.  This
         // function will then call the ahrs_update() function as
@@ -348,6 +350,35 @@ int main(int argc, char **argv)
 	    }
 	    health_prof.stats ( "HLTH" );
         }
+
+        // round robin flushing of logging streams (update at 0.5hz)
+        if ( flush_counter >= 100 ) {
+            flush_counter = 0;
+            static int flush_state = 0;
+            if ( log_to_file ) {
+                switch ( flush_state ) {
+                case 0:
+                    flush_gps();
+                    break;
+                case 1:
+                    flush_imu();
+                    break;
+                case 2:
+                    flush_nav();
+                    break;
+                case 3:
+                    flush_servo();
+                    break;
+                case 4:
+                    flush_health();
+                    break;
+                default:
+                    flush_state = 0;
+                }
+                flush_state++;
+            }
+        }
+
     } // end main loop
 
     // close and exit
