@@ -119,8 +119,12 @@ void control_update(short flight_mode)
               elevator_out_node->getFloatValue()); */
     static SGPropertyNode *vert_speed_fps
         = fgGetNode("/velocities/vertical-speed-fps", true);
-    /* printf("%.2f %.2f\n", nav_vert_speed_fps->getFloatValue(),
-              elevator_out_node->getFloatValue()); */
+    static SGPropertyNode *true_alt
+        = fgGetNode("/position/altitude-ft", true);
+    /* printf("%.1f %.2f %.2f\n",
+           true_alt->getFloatValue(),
+           vert_speed_fps->getFloatValue(),
+           elevator_out_node->getFloatValue()); */
 
     // initialize the servo command array to central values so we don't
     // inherit junk
