@@ -285,7 +285,7 @@ void mnav_update()
 	ahrs_prof.stop();
 
 	// Do a simple first order low pass filter to remove noise
-	Ps_filt = 0.9 * Ps_filt + 0.1 * imupacket.Ps;
+	Ps_filt = 0.92 * Ps_filt + 0.08 * imupacket.Ps;
 	Pt_filt = 0.9 * Pt_filt + 0.1 * imupacket.Pt;
 
         // best guess at true altitude
@@ -295,7 +295,7 @@ void mnav_update()
         float climb = (Ps_filt - Ps_filt_last) / (imupacket.time - t_last);
         Ps_filt_last = Ps_filt;
         t_last = imupacket.time;
-        climb_filt = 0.993 * climb_filt + 0.007 * climb;
+        climb_filt = 0.994 * climb_filt + 0.006 * climb;
 
         /* printf("%.2f %.2f\n", imupacket.phi * SG_RADIANS_TO_DEGREES,
            imupacket.the * SG_RADIANS_TO_DEGREES); */
