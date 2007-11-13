@@ -1,19 +1,18 @@
 WELCOME
 =======
 
-The MicroGear project is an off shoot of the MNAV project hosted at:
+The MicroGear project is a complete overhaul of the MNAV project hosted at:
 http://www.sf.net/projects/micronav/
 
-The micronav code is a very simplistic demo application to show some of
-the capabilities of the CrossBow MicroNav UAV controller.  (The micronav
-may be refered to as MNAV or uNAV.)
+The micronav code is a very simple demo application to show some of
+the capabilities of the CrossBow MicroNav UAV controller.  (The
+micronav may be refered to as MNAV or uNAV.)
 
-The goal of the MicroGear project is to turn the original MNAV demo code
-into a full featured, highly capable, highly configurable, advanced UAV
-guidance, navigation, and control device, and at the same time build in
-a variety of advanced and useful features that don't exist in the demo code.
-Robustness, performance, and minimizing memory and disk space footprints are
-critical and highest priority features of this code.
+MicroGear is a UAV guidance, navigation, and control device
+application that is robust, highly capable, highly configurable, open,
+and interfaceable.  Along with high levels of capability, MicroGear
+focuses on robustness, high performance, and minimal memory and disk
+footprints.
 
 
 CONFIGURE/COMPILING
@@ -22,8 +21,8 @@ CONFIGURE/COMPILING
 1. Add the location of your arm cross compiler binaries to your path.
    This will probably look something like:
 
-   export PATH=${PATH}:/usr/local/arm/3.3.2/bin
    export PATH=${PATH}:/home/curt/Projects/GumStix/gumstix-buildroot/build_arm_nofpu/staging_dir/bin
+   export PATH=${PATH}:/usr/local/arm/3.3.2/bin
 
 2. Run "./autogen.sh"
 

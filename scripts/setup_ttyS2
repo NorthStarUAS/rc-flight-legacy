@@ -1,6 +1,7 @@
 #!/bin/sh
 
-# This script enables and configures the second serial port.
+# This script enables and configures the second serial port.  This script
+# is not needed on modern gumstix.
 
 # The console serial port (/dev/ttyS0) is closer to the power input connector.
 # The second serial port (/dev/ttyS2) is closer to the corner of the unit.

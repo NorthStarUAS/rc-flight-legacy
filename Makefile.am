@@ -1,6 +1,6 @@
 EXTRA_DIST = \
 	autogen.sh \
-	release.txt
+	xbow-release.txt
 
 SUBDIRS	= src
 
