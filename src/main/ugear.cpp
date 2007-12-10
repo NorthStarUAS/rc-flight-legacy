@@ -84,7 +84,7 @@ void usage()
 //
 // main ...
 //
-int main(int argc, char **argv)
+int main( int argc, char **argv )
 {
     int iarg;
     static short	attempt = 0;

@@ -117,7 +117,7 @@ void nav_init()
     nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
     // nav_vel_node = fgGetNode("/velocities/groundspeed-ms", true);
     nav_vert_speed_fps_node
-        = fgGetNode("/velocities/nav-vertical-speed-fps",true);
+        = fgGetNode("/velocities/vertical-speed-fps",true);
     pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
 
     if ( display_on ) {

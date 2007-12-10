@@ -160,7 +160,7 @@ void mnav_init()
     // comp_time_node = fgGetNode("/time/computer-sec", true);
     true_alt_ft_node = fgGetNode("/position/altitude-ft",true);
     pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
-    vert_fps_node = fgGetNode("/velocities/vertical-speed-fps",true);
+    vert_fps_node = fgGetNode("/velocities/pressure-vertical-speed-fps",true);
 
     // initialize gps property nodes
     // gps_lat_node = fgGetNode("/position/latitude-gps-deg", true);
@@ -284,8 +284,8 @@ void mnav_update()
         ahrs_update();
 	ahrs_prof.stop();
 
-	// Do a simple first order low pass filter to remove noise
-	Ps_filt = 0.92 * Ps_filt + 0.08 * imupacket.Ps;
+	// Do a simple first order low pass filter to reduce noise
+	Ps_filt = 0.93 * Ps_filt + 0.07 * imupacket.Ps;
 	Pt_filt = 0.9 * Pt_filt + 0.1 * imupacket.Pt;
 
         // best guess at true altitude
