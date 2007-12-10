@@ -11,7 +11,7 @@ dnl Sanity check of the distribution
 AC_CONFIG_SRCDIR([src/main/ugear.cpp])
 
 dnl Initialize the automake system (provide project name and version)
-AM_INIT_AUTOMAKE(MicroGear, 1.3)
+AM_INIT_AUTOMAKE(MicroGear, 1.3.1)
 
 dnl Checks for programs.
 AC_PROG_MAKE_SET
@@ -43,6 +43,7 @@ AC_CONFIG_FILES([ \
         src/main/Makefile \
         src/navigation/Makefile \
         src/props/Makefile \
+        src/routegen/Makefile \
         src/util/Makefile \
         src/xml/Makefile \
 ])

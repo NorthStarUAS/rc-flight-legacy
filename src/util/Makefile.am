@@ -8,6 +8,7 @@ libutil_a_SOURCES = \
 	point3d.hxx \
 	polar3d.cxx polar3d.hxx \
 	sg_path.cxx sg_path.hxx \
+	SGReferenced.hxx SGSharedPtr.hxx \
         timing.cpp timing.h
 
 INCLUDES = -I$(top_srcdir)/src
