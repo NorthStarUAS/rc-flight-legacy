@@ -20,7 +20,7 @@ void usage( char *prog ) {
     printf("Usage: %s [ --options ]\n", prog);
     printf("\n");
     printf("Note: coordinates can be specified in the following formats:\n");
-    printf("  Decimal degrees: -158.25929 or decimal minutes: W158-15.5574\n");
+    printf("  Decimal degrees: -158.25929 or decimal minutes: W158:15.5574\n");
     printf("\n");
     printf("  --start-lon <lon_coord>\n");
     printf("  --start-lat <lat_coord>\n");
@@ -76,7 +76,7 @@ double parse_coord( const string coord ) {
             sign = -1;
         }
         string mindeg = coord.substr(1);
-        string::size_type pos = mindeg.find_first_of("-");
+        string::size_type pos = mindeg.find_first_of(":");
         if ( pos == string::npos ) {
             printf("whole degrees\n");
             result = atof( mindeg.c_str() );
