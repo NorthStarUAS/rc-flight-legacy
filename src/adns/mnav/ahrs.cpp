@@ -287,7 +287,10 @@ void ahrs_algorithm(struct imu *data)
             
             //state update
             data->psi = atan2(coeff1[0],coeff1[1]);
-            for(i=0;i<7;i++) xs[i] += (invR*tmp71[i][0])*wraparound(atan2(Byc,-Bxc) - data->psi);
+            for(i=0;i<7;i++) {
+                Kpsi[i][0] = invR*tmp71[i][0];
+                xs[i] += Kpsi[i][0]*wraparound(atan2(Byc,-Bxc) - data->psi);
+            }
       
             //error covariance matrix update aP = (I - Kpsi*Hpsi)*aP
             mat_mymul1(Kpsi,Hpsi,mat77,3); 
