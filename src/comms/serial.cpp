@@ -18,7 +18,7 @@
 /***************************************************************************
  * Open and configure serial port
  ***************************************************************************/
-int open_serial(char* serial_port, int baudrate, bool raw_mode )
+int open_serial(char* serial_port, int baudrate, bool raw_mode, bool nonblock )
 {
     int fd;
     struct termios tio_serial;
@@ -31,8 +31,10 @@ int open_serial(char* serial_port, int baudrate, bool raw_mode )
         _exit(-1);
     }
 
-    /* Enable non-blocking IO */
-    //fcntl(fd, F_SETFL, O_NONBLOCK);  
+    if ( nonblock ) {
+        /* Enable non-blocking IO */
+        fcntl(fd, F_SETFL, O_NONBLOCK);
+    }
       
     /* Serial port setting */
     bzero(&tio_serial, sizeof(tio_serial));

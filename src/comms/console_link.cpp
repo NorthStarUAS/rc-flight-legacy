@@ -1,12 +1,19 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
+
+#include <string>
 
 #include "checksum.h"
 #include "globaldefs.h"
 #include "serial.h"
 
+#include <health/health.h>
+
 #include "console_link.h"
+
+using std::string;
 
 // global variables
 
@@ -17,17 +24,17 @@ static int confd;
 
 // open up the console port
 void console_link_init() {
-    confd = open_serial( console_dev, BAUDRATE_115200, true );
+    confd = open_serial( console_dev, BAUDRATE_115200, true, true );
 }
 
 
 static short console_write( uint8_t *buf, short size ) {
-  for ( int i = 0; i < size; ++i ) {
-    // printf("%d ", (uint8_t)buf[i]);
-    write( confd, buf+i, 1 );
-  }
-  // printf("\n");
-  return size;
+    for ( int i = 0; i < size; ++i ) {
+        // printf("%d ", (uint8_t)buf[i]);
+        write( confd, buf+i, 1 );
+    }
+    // printf("\n");
+    return size;
 }
 
 
@@ -199,16 +206,6 @@ void console_link_servo( struct servo *servopacket ) {
 
 
 void console_link_health( struct health *healthpacket ) {
-    static const uint8_t skip_count = 5;
-    static uint8_t skip = skip_count;
-
-    if ( skip > 0 ) {
-        --skip;
-        return;
-    } else {
-        skip = skip_count;
-    }
-
     uint8_t buf[3];
     uint8_t size;
     uint8_t cksum0, cksum1;
@@ -241,4 +238,119 @@ void console_link_health( struct health *healthpacket ) {
 		 &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     console_write( buf, 2 );
+}
+
+
+static int console_read_command( char result_buf[256] ) {
+    // read character by character until we run out of data or find a '\n'
+    // if we run out of data, save what we have so far and start with that for
+    // the next call.
+
+    // persistant data because we may not get the whole command in one call
+    static char command_buf[256];
+    static int command_counter = 0;
+
+    char buf[2]; buf[0] = 0;
+
+    int result = read( confd, buf, 1 );
+    while ( result == 1 && buf[0] != '\n' ) {
+        command_buf[command_counter] = buf[0];
+        command_counter++;
+        result = read( confd, buf, 1 );
+    }
+
+    if ( result == 1 && buf[0] == '\n' ) {
+        command_buf[command_counter] = 0; // terminate string
+        int size = command_counter + 1;
+        strncpy( result_buf, command_buf, size );
+        command_counter = 0;
+        return size;
+    }
+
+    return 0;
+}
+
+
+// calculate the nmea check sum
+static char calc_nmea_cksum(const char *sentence) {
+    unsigned char sum = 0;
+    int i, len;
+
+    // cout << sentence << endl;
+
+    len = strlen(sentence);
+    sum = sentence[0];
+    for ( i = 1; i < len; i++ ) {
+        // cout << sentence[i];
+        sum ^= sentence[i];
+    }
+    // cout << endl;
+
+    // printf("sum = %02x\n", sum);
+    return sum;
+}
+
+
+// read and parse and execute incomming commands
+void console_link_command() {
+    char command_buf[256];
+    int result = console_read_command( command_buf );
+
+    if ( result == 0 ) {
+        return;
+    }
+    
+    // FILE *debug;
+    // debug = fopen("/tmp/debug.txt", "a");
+    // fprintf(debug, "Received command: '%s'\n", command_buf);
+    // fclose(debug);
+
+    string cmd = command_buf;
+
+    // validate check sum
+    if ( cmd.length() < 4 ) {
+        // bogus command
+        return;
+    }
+    string nmea_sum = cmd.substr(cmd.length() - 2);
+    cmd = cmd.substr(0, cmd.length() - 3);
+    char cmd_sum[10];
+    snprintf( cmd_sum, 3, "%02X", calc_nmea_cksum(cmd.c_str()) );
+
+    // debug = fopen("/tmp/debug.txt", "a");
+    // fprintf(debug, " cmd: '%s' nmea: '%s' '%s'\n", cmd.c_str(),
+    //         nmea_sum.c_str(), cmd_sum);
+    // fclose(debug);
+
+    if ( nmea_sum.c_str()[0] != cmd_sum[0]
+         || nmea_sum.c_str()[1] != cmd_sum[1])
+    {
+        // checksum failure
+        // debug = fopen("/tmp/debug.txt", "a");
+        // fprintf(debug, "check sum failure\n");
+        // fclose(debug);
+        return;
+    }
+
+    // parse the command
+    string::size_type pos = cmd.find_first_of(",");
+    if ( pos == string::npos ) {
+        // bogus command
+        return;
+    }
+
+    // extract command sequence number
+    string num = cmd.substr(0, pos);
+    int sequence = atoi( num.c_str() );
+
+    // remainder
+    cmd = cmd.substr(pos + 1);
+
+    // execute command
+    // debug = fopen("/tmp/debug.txt", "a");
+    // fprintf(debug, "Sequence: %d  Execute: '%s'\n", sequence, cmd.c_str());
+    // fclose(debug);
+
+    // register that we've received this message correctly
+    health_update_command_sequence(sequence);
 }

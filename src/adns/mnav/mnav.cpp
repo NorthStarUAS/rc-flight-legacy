@@ -113,7 +113,7 @@ void mnav_init()
     // 100-200ms between message.  For now it's easier to just sleep 1
     // second.
 
-    sPort2 = open_serial( mnav_dev, BAUDRATE_38400, false );
+    sPort2 = open_serial( mnav_dev, BAUDRATE_38400, false, false );
     // printf("Opened serial port at 38400.\n");
       
     while (nbytes != 11) {
@@ -124,7 +124,7 @@ void mnav_init()
     nbytes = 0;  
     close(sPort2);
 
-    sPort2 = open_serial( mnav_dev, BAUDRATE_57600, false );
+    sPort2 = open_serial( mnav_dev, BAUDRATE_57600, false, false );
     // printf("Opened serial port at 57600.\n");
   
     

@@ -6,6 +6,7 @@
 
 bool health_init();
 bool health_update();
+void health_update_command_sequence( int sequence );
 
 
 #endif // _UGEAR_HEALTH_H

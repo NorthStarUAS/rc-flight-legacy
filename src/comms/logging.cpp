@@ -201,8 +201,7 @@ void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
     }
     printf("[Servo]: %d %d %d %d %d %d\n", sdata->chn[0], sdata->chn[1],
            sdata->chn[2], sdata->chn[3], sdata->chn[4], sdata->chn[5]);
-    printf("[health]: v = %.2f sec = %d loadavg = %.2f\n",
-           hdata->volts, hdata->est_seconds,
+    printf("[health]: loadavg = %.2f\n",
            (float)hdata->loadavg / 100.0);
     printf("\n");
 

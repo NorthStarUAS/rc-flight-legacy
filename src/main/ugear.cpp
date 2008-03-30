@@ -234,20 +234,24 @@ int main( int argc, char **argv )
     int wifi_counter = 0;
     int ap_counter = 0;
     int route_counter = 0;
+    int command_counter = 0;
     int flush_counter = 0;
 
     printf("Everything inited ... ready to run\n");
 
     while ( true ) {
+        // Notice: this loop runs at 50hz synced to the MNAV data input
+
         // upate timing counters
+        if ( enable_nav ) {
+            nav_counter++;
+	}
         health_counter++;
         display_counter++;
         wifi_counter++;
 	ap_counter++;
         route_counter++;
-        if ( enable_nav ) {
-            nav_counter++;
-	}
+        command_counter++;
         flush_counter++;
 
         // fetch the next data packet from the MNAV sensor.  This
@@ -267,6 +271,14 @@ int main( int argc, char **argv )
 	    nav_prof.stop();
 	  }
 	}
+
+        if ( console_link_on ) {
+            // check for incoming command data (5hz)
+            if ( command_counter > 10 ) {
+                command_counter = 0;
+                console_link_command();
+            }
+        }
 
         if ( enable_route ) {
             // route updates at 5 hz
@@ -304,8 +316,8 @@ int main( int argc, char **argv )
             }
         }
 
-        // health status (update at 0.1hz)
-        if ( health_counter >= 500 ) {
+        // health status (update at 1hz)
+        if ( health_counter >= 50 ) {
             health_counter = 0;
 	    health_prof.start();
             health_update();

@@ -51,9 +51,7 @@ struct servo {
 
 struct health {
     double time;
-    float volts_raw;            /* raw volt reading */
-    float volts;                /* filtered volts */
-    uint64_t est_seconds;       /* estimated useful seconds remaining */
+    uint64_t command_sequence;  /* highest received command sequence num */
     uint64_t loadavg;           /* system "1 minute" load average */
     uint64_t ahrs_hz;           /* actual ahrs loop hz */
     uint64_t nav_hz;            /* actual nav loop hz */
