@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.hxx,v 1.2 2007/08/06 21:20:14 curt Exp $
+// $Id: route_mgr.hxx,v 1.3 2008/04/02 02:23:32 curt Exp $
 
 
 #ifndef _ROUTE_MGR_HXX
@@ -45,9 +45,17 @@ using std::vector;
 
 class FGRouteMgr {
 
+public:
+
+    enum fgRouteMode {
+        GoHome = 0,
+        FollowRoute = 1
+    };
+
 private:
 
     SGRoute *route;
+    SGWayPoint home;
 
     // route configuration
     SGPropertyNode_ptr config_props;
@@ -61,7 +69,10 @@ private:
     SGPropertyNode_ptr true_hdg_deg;
     SGPropertyNode_ptr target_altitude_ft;
 
+    bool home_set;
     bool altitude_set;
+
+    fgRouteMode mode;
 
     SGWayPoint make_waypoint( const string& target );
 
@@ -89,6 +100,15 @@ public:
         return route->size();
     }
 
+    bool update_home( const SGWayPoint &wp, bool force_update );
+
+    inline void set_route_mode() {
+        mode = FollowRoute;
+    }
+
+    inline void set_home_mode() {
+        mode = GoHome;
+    }
 };
 
 

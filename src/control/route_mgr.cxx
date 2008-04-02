@@ -20,13 +20,18 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.cxx,v 1.4 2007/08/09 21:22:03 curt Exp $
+// $Id: route_mgr.cxx,v 1.5 2008/04/02 02:23:32 curt Exp $
 
+
+#include <math.h>
 
 #include <include/globaldefs.h>
 #include <props/props_io.hxx>
 #include <util/exception.hxx>
 #include <util/sg_path.hxx>
+
+#include "comms/logging.h"
+#include "health/health.h"
 
 #include "waypoint.hxx"
 #include "route_mgr.hxx"
@@ -40,7 +45,9 @@ FGRouteMgr::FGRouteMgr() :
     alt( NULL ),
     true_hdg_deg( NULL ),
     target_altitude_ft( NULL ),
-    altitude_set( false )
+    home_set( false ),
+    altitude_set( false ),
+    mode( GoHome )
 {
 }
 
@@ -71,7 +78,9 @@ void FGRouteMgr::init() {
                 printf(" configuration.  See earlier errors for\n" );
                 printf(" details.");
                 exit(-1);
-            }        
+            }
+
+            mode = FollowRoute;
         } catch (const sg_exception& exc) {
             printf("Failed to load route configuration: %s\n",
                    config.c_str());
@@ -94,8 +103,22 @@ void FGRouteMgr::init() {
 void FGRouteMgr::update() {
     double wp_course, wp_distance;
 
-    // track current waypoint
-    if ( route->size() > 0 ) {
+    if ( mode == GoHome && home_set ) {
+        home.CourseAndDistance( lon->getDoubleValue(), lat->getDoubleValue(),
+                                alt->getDoubleValue(),
+                                &wp_course, &wp_distance );
+
+        true_hdg_deg->setDoubleValue( wp_course );
+        double target_alt_m = home.get_target_alt_m();
+
+        if ( !altitude_set && target_alt_m > -9990 ) {
+            target_altitude_ft->setDoubleValue( target_alt_m * SG_METER_TO_FEET );
+            altitude_set = true;
+        }
+
+        health_update_target_waypoint( 0 );
+    } else if ( mode == FollowRoute && route->size() > 0 ) {
+        // track current waypoint of route
         SGWayPoint wp = route->get_current();
         wp.CourseAndDistance( lon->getDoubleValue(), lat->getDoubleValue(),
                               alt->getDoubleValue(), &wp_course, &wp_distance );
@@ -115,6 +138,9 @@ void FGRouteMgr::update() {
             route->increment_current();
             altitude_set = false;
         }
+
+        // update health status with current target waypoint
+        health_update_target_waypoint( route->get_waypoint_index() );
     }
 
 }
@@ -207,4 +233,28 @@ SGWayPoint FGRouteMgr::make_waypoint( const string& tgt ) {
     SGWayPoint wp( lon, lat, alt_m, speed_kt, SGWayPoint::SPHERICAL, "" );
 
     return wp;
+}
+
+
+bool FGRouteMgr::update_home( const SGWayPoint &wp, bool force_update ) {
+    if ( !home_set || force_update ) {
+        // sanity check
+        if ( fabs(wp.get_target_lon() > 0.0001)
+             || fabs(wp.get_target_lat() > 0.0001) )
+        {
+            // good location
+            home = wp;
+            home_set = true;
+            if ( display_on ) {
+                printf( "HOME updated: %.6f %.6f\n",
+                        home.get_target_lon(), home.get_target_lat() );
+            }
+            return true;
+        } else {
+            // bogus location, ignore ...
+            return false;
+        }
+    }
+
+    return false;
 }
