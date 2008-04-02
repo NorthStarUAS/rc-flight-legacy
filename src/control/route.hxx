@@ -21,7 +21,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route.hxx,v 1.3 2007/08/06 21:20:14 curt Exp $
+// $Id: route.hxx,v 1.4 2008/04/02 02:23:32 curt Exp $
 
 
 #ifndef _ROUTE_HXX
@@ -136,6 +136,11 @@ public:
 	    return SGWayPoint( 0.0, 0.0, 0.0, 0.0,
                                SGWayPoint::SPHERICAL, "invalid" );
 	}
+    }
+
+    /** Return the current waypoint *index* number */
+    inline int get_waypoint_index() const {
+        return current_wp;
     }
 
     /** Delete the front waypoint */

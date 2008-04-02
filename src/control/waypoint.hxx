@@ -21,7 +21,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: waypoint.hxx,v 1.2 2007/08/06 19:41:48 curt Exp $
+// $Id: waypoint.hxx,v 1.3 2008/04/02 02:23:32 curt Exp $
 
 
 #ifndef _WAYPOINT_HXX
@@ -86,7 +86,7 @@ public:
      * @param s waypoint identifier
      */
     SGWayPoint( const double lon = 0.0, const double lat = 0.0,
-		const double alt_m = 0.0, const double speed_kt = 0.0,
+		const double alt_m = -9999.9, const double speed_kt = 0.0,
                 const modetype m = SPHERICAL,
 		const string& s = "" );
 
