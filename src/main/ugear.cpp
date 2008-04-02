@@ -93,6 +93,7 @@ int main( int argc, char **argv )
     bool enable_nav     = false;   // nav filter enabled/disabled
     bool enable_route   = false;   // route module enabled/disabled
     bool wifi           = false;   // wifi connection enabled/disabled
+    bool initial_home   = false;   // initial home position determined
 
     // initialize properties
     props = new SGPropertyNode;
@@ -262,14 +263,23 @@ int main( int argc, char **argv )
 	mnav_prof.stop();
 
 	if ( enable_nav ) {
-	  // navigation (update at 10hz.)  compute a location estimate
-	  // based on gps and accelerometer data.
-	  if ( nav_counter >= 5 && gpspacket.err_type != no_gps_update ) {
-	    nav_counter = 0;
-	    nav_prof.start();
-	    nav_update();
-	    nav_prof.stop();
-	  }
+            // navigation (update at 10hz.)  compute a location estimate
+            // based on gps and accelerometer data.
+            if ( nav_counter >= 5 && gpspacket.err_type != no_gps_update ) {
+                nav_counter = 0;
+                nav_prof.start();
+                nav_update();
+                nav_prof.stop();
+
+                // initial home is most recent gps result after being
+                // alive with a solution for 20 seconds
+                if ( !initial_home && navpacket.err_type == no_error ) {
+                    SGWayPoint wp( gpspacket.lon, gpspacket.lat, -9999.9 );
+                    if ( route_mgr.update_home(wp, true /* force update */) ) {
+                        initial_home = true;
+                    }
+                }
+            }
 	}
 
         if ( console_link_on ) {
