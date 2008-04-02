@@ -186,11 +186,11 @@ void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
     printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n",xs[4]*57.3,xs[5]*57.3,xs[6]*57.3);
     if ( gdata->err_type == no_error ) {
         double tmp = gdata->ITOW;
-        int days = tmp / (24 * 60 * 60);
+        int days = (int)(tmp / (24 * 60 * 60));
         tmp -= days * 24 * 60 * 60;
-        int hours = tmp / (60 * 60);
+        int hours = (int)(tmp / (60 * 60));
         tmp -= hours * 60 * 60;
-        int min = tmp / 60;
+        int min = (int)(tmp / 60);
         tmp -= min * 60;
         double sec = tmp;
         printf("[GPS  ]:ITOW= %.3f[sec]  %dd %02d:%02d:%06.3f\n", gdata->ITOW, days, hours, min, sec);
@@ -201,7 +201,8 @@ void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
     }
     printf("[Servo]: %d %d %d %d %d %d\n", sdata->chn[0], sdata->chn[1],
            sdata->chn[2], sdata->chn[3], sdata->chn[4], sdata->chn[5]);
-    printf("[health]: loadavg = %.2f\n",
+    printf("[health]: cmdseq = %d  tgtwp = %d  loadavg = %.2f\n",
+           (int)hdata->command_sequence, (int)hdata->target_waypoint,
            (float)hdata->loadavg / 100.0);
     printf("\n");
 
