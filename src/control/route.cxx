@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route.cxx,v 1.2 2007/08/06 21:20:14 curt Exp $
+// $Id: route.cxx,v 1.3 2008/04/04 22:33:04 curt Exp $
 
 
 #if 0
@@ -103,6 +103,18 @@ void SGRoute::add_waypoint( const SGWayPoint &wp, int n ) {
         route.insert( route.begin() + n, 1, wp );
         // update distance of next leg if not at end of route
         update_distance( n + 1 );
+    }
+    update_distance( n );
+}
+
+/**
+ * Replace waypoint number 'n' with new waypoint.
+ * @param wp a waypoint
+ * @param n waypoint index number
+ */
+void SGRoute::replace_waypoint( const SGWayPoint &wp, int n ) {
+    if ( n >= 0 && n < route.size() ) {
+        route[n] = wp;
     }
     update_distance( n );
 }

@@ -20,7 +20,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.cxx,v 1.6 2008/04/04 06:18:39 curt Exp $
+// $Id: route_mgr.cxx,v 1.7 2008/04/04 22:33:04 curt Exp $
 
 
 #include <math.h>
@@ -144,8 +144,15 @@ void FGRouteMgr::update() {
 
         // update health status with current target waypoint
         health_update_target_waypoint( route->get_waypoint_index() );
-    }
+    } else {
+        // problem: we've been commanded to go home and no home
+        // position has been set, or we've been commanded to follow a
+        // route, but no route has been defined.
 
+        // We are in ill-defined territory, I'd like to go into some
+        // sort of slow circling mode and either hold altitude or
+        // maybe do a slow speed decent to minimize our momentum.
+    }
 }
 
 
@@ -154,6 +161,13 @@ void FGRouteMgr::add_waypoint( const SGWayPoint& wp, int n ) {
         altitude_set = false;
 
     route->add_waypoint( wp, n );
+}
+
+
+void FGRouteMgr::replace_waypoint( const SGWayPoint& wp, int n ) {
+    if ( n >= 0 && n < route->size() ) {
+        route->add_waypoint( wp, n );
+    }
 }
 
 

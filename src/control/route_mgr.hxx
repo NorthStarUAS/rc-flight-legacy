@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.hxx,v 1.4 2008/04/04 06:18:39 curt Exp $
+// $Id: route_mgr.hxx,v 1.5 2008/04/04 22:33:04 curt Exp $
 
 
 #ifndef _ROUTE_MGR_HXX
@@ -89,6 +89,7 @@ public:
 
     int new_waypoint( const string& tgt_alt, int n = -1 );
     void add_waypoint( const SGWayPoint& wp, int n = -1 );
+    void replace_waypoint( const SGWayPoint &wp, int n );
 
     SGWayPoint get_waypoint( int i ) const {
         return route->get_waypoint(i);
@@ -104,10 +105,20 @@ public:
 
     inline void set_route_mode() {
         mode = FollowRoute;
+        FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
+        fprintf(debug, "mode: FollowRoute\n");
+        fclose(debug);
     }
 
     inline void set_home_mode() {
         mode = GoHome;
+        FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
+        fprintf(debug, "mode: GoHome\n");
+        fclose(debug);
+    }
+
+    inline fgRouteMode get_route_mode() {
+        return mode;
     }
 };
 

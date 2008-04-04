@@ -23,7 +23,7 @@ void console_link_imu( struct imu *imupacket );
 void console_link_nav( struct nav *navpacket );
 void console_link_servo( struct servo *servopacket );
 void console_link_health( struct health *healthpacket );
-void console_link_command();
+bool console_link_command();
 
 
 #endif // _UGEAR_CONSOLE_LINK_H
