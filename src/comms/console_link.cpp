@@ -9,7 +9,9 @@
 #include "globaldefs.h"
 #include "serial.h"
 
+#include <control/route_mgr.hxx>
 #include <health/health.h>
+#include <util/strutils.hxx>
 
 #include "console_link.h"
 
@@ -241,6 +243,44 @@ void console_link_health( struct health *healthpacket ) {
 }
 
 
+static int console_link_execute_command( const string command ) {
+    vector <string> token = split( command, "," );
+
+    // command to fly a new altitude
+
+    // command to interrupt route and come back to some new point and
+    // keep passing over it.
+
+    if ( token[0] == "hb" ) {
+        // heart beat, ignore
+
+    } else if ( token[0] == "home" ) {
+        // specify new home location
+        double lon = atof( token[1].c_str() );
+        double lat = atof( token[2].c_str() );
+        route_mgr.update_home( SGWayPoint(lon, lat), true );
+    } else if ( token[0] == "go" ) {
+        // specify router mode
+        if ( token[1] == "home" ) {
+            route_mgr.set_home_mode();
+        } else if ( token[2] == "route" ) {
+            route_mgr.set_route_mode();
+        }
+
+    } else if ( token[0] == "ap" ) {
+        // specify an autopilot target
+        if ( token[1] == "alt" ) {
+            double alt = atof( token[2].c_str() );
+            SGPropertyNode_ptr target_altitude_ft
+                = fgGetNode( "/autopilot/settings/target-altitude-ft", true );
+            target_altitude_ft->setDoubleValue( alt );
+        }
+    } else if ( token[0] == "wp" ) {
+        // specify new waypoint coordinates
+    }
+}
+
+
 static int console_read_command( char result_buf[256] ) {
     // read character by character until we run out of data or find a '\n'
     // if we run out of data, save what we have so far and start with that for
@@ -350,6 +390,7 @@ void console_link_command() {
     // debug = fopen("/tmp/debug.txt", "a");
     // fprintf(debug, "Sequence: %d  Execute: '%s'\n", sequence, cmd.c_str());
     // fclose(debug);
+    console_link_execute_command( cmd );
 
     // register that we've received this message correctly
     health_update_command_sequence(sequence);
