@@ -230,11 +230,16 @@ int main( int argc, char **argv )
     int route_counter = 0;
     int command_counter = 0;
     int flush_counter = 0;
+    bool read_command = false;
+    double last_command_time = 0.0;
+    double current_time = 0.0;
 
     printf("Everything inited ... ready to run\n");
 
     while ( true ) {
         // Notice: this loop runs at 50hz synced to the MNAV data input
+
+        current_time = get_Time();
 
         // upate timing counters
         if ( enable_nav ) {
@@ -279,7 +284,23 @@ int main( int argc, char **argv )
             // check for incoming command data (5hz)
             if ( command_counter > 10 ) {
                 command_counter = 0;
-                console_link_command();
+                if ( console_link_command() ) {
+                    read_command = true;
+                    last_command_time = current_time;
+                }
+            }
+            if ( read_command
+                 && current_time > last_command_time + 15.0
+                 && route_mgr.get_route_mode() != FGRouteMgr::GoHome )
+            {
+                // we've established a positive link, but it's been 15
+                // seconds since the last command received and we
+                // aren't already in GoHome mode.  Console link is
+                // assumed to be down or we've flown out of radio
+                // modem range.  Switch to fly home mode.  Ground
+                // station operator will need to send a resume route
+                // command to resume the route.
+                route_mgr.set_home_mode();
             }
         }
 

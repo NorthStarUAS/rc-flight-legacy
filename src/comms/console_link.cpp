@@ -243,31 +243,36 @@ void console_link_health( struct health *healthpacket ) {
 }
 
 
-static int console_link_execute_command( const string command ) {
+static void console_link_execute_command( const string command ) {
     vector <string> token = split( command, "," );
+
+    if ( token.size() < 1 ) {
+        // no valide tokens
+        return;
+    }
 
     // command to fly a new altitude
 
     // command to interrupt route and come back to some new point and
     // keep passing over it.
 
-    if ( token[0] == "hb" ) {
+    if ( token[0] == "hb" && token.size() == 1 ) {
         // heart beat, ignore
 
-    } else if ( token[0] == "home" ) {
+    } else if ( token[0] == "home" && token.size() == 3 ) {
         // specify new home location
         double lon = atof( token[1].c_str() );
         double lat = atof( token[2].c_str() );
         route_mgr.update_home( SGWayPoint(lon, lat), true );
-    } else if ( token[0] == "go" ) {
+    } else if ( token[0] == "go" && token.size() == 2 ) {
         // specify router mode
         if ( token[1] == "home" ) {
             route_mgr.set_home_mode();
-        } else if ( token[2] == "route" ) {
+        } else if ( token[1] == "route" ) {
             route_mgr.set_route_mode();
         }
 
-    } else if ( token[0] == "ap" ) {
+    } else if ( token[0] == "ap" && token.size() == 3 ) {
         // specify an autopilot target
         if ( token[1] == "alt" ) {
             double alt = atof( token[2].c_str() );
@@ -275,8 +280,14 @@ static int console_link_execute_command( const string command ) {
                 = fgGetNode( "/autopilot/settings/target-altitude-ft", true );
             target_altitude_ft->setDoubleValue( alt );
         }
-    } else if ( token[0] == "wp" ) {
-        // specify new waypoint coordinates
+    } else if ( token[0] == "wp" && token.size() == 5 ) {
+        // specify new waypoint coordinates for a waypoint
+        int index = atoi( token[1].c_str() );
+        double lon = atof( token[2].c_str() );
+        double lat = atof( token[3].c_str() );
+        double alt_ft = atof( token[4].c_str() );
+        SGWayPoint wp( lon, lat, alt_ft * SG_FEET_TO_METER );
+        route_mgr.replace_waypoint( wp, index );
     }
 }
 
@@ -331,13 +342,14 @@ static char calc_nmea_cksum(const char *sentence) {
 }
 
 
-// read and parse and execute incomming commands
-void console_link_command() {
+// read and parse and execute incomming commands, return true if a
+// valid command received, false otherwise.
+bool console_link_command() {
     char command_buf[256];
     int result = console_read_command( command_buf );
 
     if ( result == 0 ) {
-        return;
+        return false;
     }
     
     // FILE *debug;
@@ -350,7 +362,7 @@ void console_link_command() {
     // validate check sum
     if ( cmd.length() < 4 ) {
         // bogus command
-        return;
+        return false;
     }
     string nmea_sum = cmd.substr(cmd.length() - 2);
     cmd = cmd.substr(0, cmd.length() - 3);
@@ -369,15 +381,19 @@ void console_link_command() {
         // debug = fopen("/tmp/debug.txt", "a");
         // fprintf(debug, "check sum failure\n");
         // fclose(debug);
-        return;
+        return false;
     }
 
     // parse the command
     string::size_type pos = cmd.find_first_of(",");
     if ( pos == string::npos ) {
         // bogus command
-        return;
+        return false;
     }
+
+    FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
+    fprintf(debug, "command: %s\n", cmd.c_str());
+    fclose(debug);
 
     // extract command sequence number
     string num = cmd.substr(0, pos);
@@ -394,4 +410,6 @@ void console_link_command() {
 
     // register that we've received this message correctly
     health_update_command_sequence(sequence);
+
+    return true;
 }

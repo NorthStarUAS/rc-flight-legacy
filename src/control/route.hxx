@@ -21,7 +21,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route.hxx,v 1.4 2008/04/02 02:23:32 curt Exp $
+// $Id: route.hxx,v 1.5 2008/04/04 22:33:04 curt Exp $
 
 
 #ifndef _ROUTE_HXX
@@ -71,6 +71,13 @@ public:
      * @param wp a waypoint
      */
     void add_waypoint( const SGWayPoint &wp, int n = -1 );
+
+    /**
+     * Add waypoint (default), or insert waypoint at position n.
+     * @param wp a waypoint
+     */
+    void replace_waypoint( const SGWayPoint &wp, int n );
+
     /**
      * Get the number of waypoints (i.e. route length )
      * @return route length
