@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.hxx,v 1.3 2008/04/02 02:23:32 curt Exp $
+// $Id: route_mgr.hxx,v 1.4 2008/04/04 06:18:39 curt Exp $
 
 
 #ifndef _ROUTE_MGR_HXX
@@ -110,6 +110,9 @@ public:
         mode = GoHome;
     }
 };
+
+
+extern FGRouteMgr route_mgr;           // global route manager object
 
 
 #endif // _ROUTE_MGR_HXX
