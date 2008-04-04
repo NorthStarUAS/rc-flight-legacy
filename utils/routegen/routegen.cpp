@@ -26,6 +26,7 @@ void usage( char *prog ) {
     printf("  --start-lat <lat_coord>\n");
     printf("  --home-lon <lon_coord>\n");
     printf("  --home-lat <lat_coord>\n");
+    printf("  --route-alt <altitude_ft>\n");
     printf("  --swath-heading <initial swath heading deg true>\n");
     printf("  --swath-length <swath length meters>\n");
     printf("  --swath-width <width between swaths in meters>\n");
@@ -195,6 +196,7 @@ int main( int argc, char **argv )
     double start_lat = 0.0;
     double home_lon = 0.0;
     double home_lat = 0.0;
+    double route_alt_m = 0.0;
     double swath_hdg = 0.0;
     double swath_len = 0.0;
     double swath_width = 0.0;
@@ -217,6 +219,9 @@ int main( int argc, char **argv )
         } else if ( !strcmp(argv[iarg],"--home-lat") ) {
             ++iarg;
             home_lat = parse_coord( argv[iarg] ) * SGD_DEGREES_TO_RADIANS;
+        } else if ( !strcmp(argv[iarg],"--route-alt") ) {
+            ++iarg;
+            route_alt_m = atof( argv[iarg] ) * SG_FEET_TO_METER;
         } else if ( !strcmp(argv[iarg],"--swath-heading") ) {
             ++iarg;
             swath_hdg = SGD_2PI - atof( argv[iarg] ) * SGD_DEGREES_TO_RADIANS;
@@ -249,14 +254,19 @@ int main( int argc, char **argv )
         }
     }
 
+    if ( route_alt_m < 1.0 ) {
+        printf("Error: no route altitude specified\n");
+        exit(-1);
+    }
+
     // Generate route waypoints
     SGRoute route;
     double time_remaining = flight_time;
     double ete_home = 0.0;
     int state = 0;
 
-    Point3D current( start_lon, start_lat, 0.0 );
-    route.add_waypoint( SGWayPoint(current.lon(), current.lat()) );
+    Point3D current( start_lon, start_lat, route_alt_m );
+    route.add_waypoint( SGWayPoint(current.lon(), current.lat(), route_alt_m) );
 
     // subtract out distance from launch/recover point (aka home) to
     // first waypoint
@@ -310,14 +320,14 @@ int main( int argc, char **argv )
             break;
         }
 
-        route.add_waypoint( SGWayPoint(next.lon(), next.lat()) );
+        route.add_waypoint( SGWayPoint(next.lon(), next.lat(), route_alt_m) );
         
         current = next;
         time_remaining -= ete;
 
         state = (state + 1) % 4;
     }
-    route.add_waypoint( SGWayPoint(home_lon, home_lat) );
+    route.add_waypoint( SGWayPoint(home_lon, home_lat, route_alt_m) );
 
     printf("\n");
     printf("Route summary:\n");
@@ -350,21 +360,31 @@ int main( int argc, char **argv )
                 wpt.get_target_lat() * SGD_RADIANS_TO_DEGREES );
         fprintf(fd, "    <lon>%.8f</lon>\n",
                 wpt.get_target_lon() * SGD_RADIANS_TO_DEGREES );
+        fprintf(fd, "    <alt-ft>%.0f</alt-ft>\n",
+                wpt.get_target_alt_m() * SG_METER_TO_FEET );
         fprintf(fd, "  </wpt>\n");
     }
     fprintf(fd, "</PropertyList>\n");
     fclose(fd);
     
-    // Output route for gnuplot
+    // Output route for lfstech glass
     fd = fopen("route.pln", "w");
     for ( i = 0; i < size; ++i ) {
         SGWayPoint wpt = route.get_waypoint( i );
-        fprintf(fd, "G %.8f %.8f 0.0 WP%02d\n",
-                wpt.get_target_lon() * SGD_RADIANS_TO_DEGREES,
+        fprintf(fd, "GEO %.8f %.8f WP%02d %.1f\n",
                 wpt.get_target_lat() * SGD_RADIANS_TO_DEGREES,
-                i );
+                wpt.get_target_lon() * SGD_RADIANS_TO_DEGREES,
+                i,
+                wpt.get_target_alt_m() * SG_METER_TO_FEET
+          );
     }
+    fprintf(fd, "END\n");
     fclose(fd);
 
     return 0;
 }
+
+
+
+
+
