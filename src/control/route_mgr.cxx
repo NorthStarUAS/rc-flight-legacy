@@ -20,7 +20,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.cxx,v 1.5 2008/04/02 02:23:32 curt Exp $
+// $Id: route_mgr.cxx,v 1.6 2008/04/04 06:18:39 curt Exp $
 
 
 #include <math.h>
@@ -35,6 +35,9 @@
 
 #include "waypoint.hxx"
 #include "route_mgr.hxx"
+
+
+FGRouteMgr route_mgr;           // global route manager object
 
 
 FGRouteMgr::FGRouteMgr() :
@@ -229,7 +232,7 @@ SGWayPoint FGRouteMgr::make_waypoint( const string& tgt ) {
         return 1;
     }
 
-    printf("Adding waypoint lon = %.6f lat = %.6f\n", lon, lat);
+    printf("Adding waypoint lon = %.6f lat = %.0f alt_m\n", lon, lat, alt_m);
     SGWayPoint wp( lon, lat, alt_m, speed_kt, SGWayPoint::SPHERICAL, "" );
 
     return wp;
