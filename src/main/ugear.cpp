@@ -56,13 +56,6 @@ using std::string;
 
 
 //
-// global variables & objects
-//
-
-FGRouteMgr route_mgr;           // route manager object
-
-
-//
 // usage message
 //
 void usage()
