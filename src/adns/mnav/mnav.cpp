@@ -79,6 +79,7 @@ static SGPropertyNode *Pt_filt_node = NULL;
 SGPropertyNode *pressure_error_m_node = NULL;
 SGPropertyNode *true_alt_ft_node = NULL;
 SGPropertyNode *vert_fps_node = NULL;
+SGPropertyNode *ground_alt_press_m_node = NULL;
 
 // gps property nodes
 // static SGPropertyNode *gps_lat_node = NULL;
@@ -161,6 +162,8 @@ void mnav_init()
     true_alt_ft_node = fgGetNode("/position/altitude-ft",true);
     pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
     vert_fps_node = fgGetNode("/velocities/pressure-vertical-speed-fps",true);
+    ground_alt_press_m_node
+        = fgGetNode("/position/ground-altitude-pressure-m", true);
 
     // initialize gps property nodes
     // gps_lat_node = fgGetNode("/position/latitude-gps-deg", true);
@@ -294,8 +297,25 @@ void mnav_update()
         // pressure sensor based rate of climb
         float climb = (Ps_filt - Ps_filt_last) / (imupacket.time - t_last);
         Ps_filt_last = Ps_filt;
-        t_last = imupacket.time;
         climb_filt = 0.994 * climb_filt + 0.006 * climb;
+
+        // determine ground reference altitude.  Average pressure
+        // altitude over first 30 seconds unit is powered on.  This
+        // assumes that system clock time starts counting at zero.
+        // Watch out if we ever find a way to set the system clock to
+        // real time.
+        static float ground_alt_press = Ps_filt;
+        if ( imupacket.time < 30.0 ) {
+            float dt = imupacket.time - t_last;
+            float elapsed = imupacket.time - dt;
+            ground_alt_press
+                = (elapsed * ground_alt_press + dt * Ps_filt) / imupacket.time;
+            if ( display_on ) {
+                printf("Ground pressure altitude = %.1f\n", ground_alt_press);
+            }
+        }
+
+        t_last = imupacket.time;
 
         /* printf("%.2f %.2f\n", imupacket.phi * SG_RADIANS_TO_DEGREES,
            imupacket.the * SG_RADIANS_TO_DEGREES); */
@@ -311,6 +331,7 @@ void mnav_update()
 	// comp_time_node->setDoubleValue( imupacket.time );
         true_alt_ft_node->setFloatValue( true_alt_m * SG_METER_TO_FEET );
         vert_fps_node->setFloatValue( climb_filt * SG_METER_TO_FEET );
+        ground_alt_press_m_node->setFloatValue( ground_alt_press );
 
         // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
         //        Ps_filt, navpacket.alt, true_alt_m, climb_filt);
