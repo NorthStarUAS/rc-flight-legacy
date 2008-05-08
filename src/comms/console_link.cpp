@@ -259,11 +259,13 @@ static void console_link_execute_command( const string command ) {
     if ( token[0] == "hb" && token.size() == 1 ) {
         // heart beat, ignore
 
-    } else if ( token[0] == "home" && token.size() == 3 ) {
+    } else if ( token[0] == "home" && token.size() == 4 ) {
         // specify new home location
         double lon = atof( token[1].c_str() );
         double lat = atof( token[2].c_str() );
-        route_mgr.update_home( SGWayPoint(lon, lat), true );
+        double alt_ft = atof( token[3].c_str() );
+        SGWayPoint wp( lon, lat, alt_ft * SG_FEET_TO_METER );
+        route_mgr.update_home( wp, true );
     } else if ( token[0] == "go" && token.size() == 2 ) {
         // specify router mode
         if ( token[1] == "home" ) {
