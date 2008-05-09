@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: xmlauto.cxx,v 1.7 2007/08/09 21:22:04 curt Exp $
+// $Id: xmlauto.cxx,v 1.8 2008/05/09 00:34:28 curt Exp $
 
 #include <math.h>
 
@@ -898,6 +898,12 @@ void FGXMLAutopilot::update( double dt ) {
         printf("target roll = %.1f\n", debug->getDoubleValue());
         c = 0;
         } */
-    
+
+    /* static SGPropertyNode *debug1
+        = fgGetNode("/position/altitude-agl-ft", true);
+    static SGPropertyNode *debug2
+        = fgGetNode("/autopilot/settings/target-agl-ft", true);
+    printf("target agl = %.0f  current agl = %.0f\n", 
+    debug2->getFloatValue(), debug1->getFloatValue()); */
 }
 

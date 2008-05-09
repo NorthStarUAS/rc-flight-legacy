@@ -20,7 +20,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.cxx,v 1.7 2008/04/04 22:33:04 curt Exp $
+// $Id: route_mgr.cxx,v 1.8 2008/05/09 00:34:28 curt Exp $
 
 
 #include <math.h>
@@ -48,8 +48,10 @@ FGRouteMgr::FGRouteMgr() :
     alt( NULL ),
     true_hdg_deg( NULL ),
     target_altitude_ft( NULL ),
+    target_agl_ft( NULL ),
     home_set( false ),
     altitude_set( false ),
+    agl_set( false ),
     mode( GoHome )
 {
 }
@@ -100,6 +102,8 @@ void FGRouteMgr::init() {
     true_hdg_deg = fgGetNode( "/autopilot/settings/true-heading-deg", true );
     target_altitude_ft
         = fgGetNode( "/autopilot/settings/target-altitude-ft", true );
+    target_agl_ft
+        = fgGetNode( "/autopilot/settings/target-agl-ft", true );
 }
 
 
@@ -113,10 +117,15 @@ void FGRouteMgr::update() {
 
         true_hdg_deg->setDoubleValue( wp_course );
         double target_alt_m = home.get_target_alt_m();
+        double target_agl_m = home.get_target_agl_m();
 
         if ( !altitude_set && target_alt_m > -9990 ) {
             target_altitude_ft->setDoubleValue( target_alt_m * SG_METER_TO_FEET );
             altitude_set = true;
+        }
+        if ( !agl_set && target_agl_m > -9990 ) {
+            target_agl_ft->setDoubleValue( target_agl_m * SG_METER_TO_FEET );
+            agl_set = true;
         }
 
         health_update_target_waypoint( 0 );
@@ -128,10 +137,15 @@ void FGRouteMgr::update() {
 
         true_hdg_deg->setDoubleValue( wp_course );
         double target_alt_m = wp.get_target_alt_m();
+        double target_agl_m = wp.get_target_agl_m();
 
         if ( !altitude_set && target_alt_m > -9990 ) {
             target_altitude_ft->setDoubleValue( target_alt_m * SG_METER_TO_FEET );
             altitude_set = true;
+        }
+        if ( !agl_set && target_agl_m > -9990 ) {
+            target_agl_ft->setDoubleValue( target_agl_m * SG_METER_TO_FEET );
+            agl_set = true;
         }
 
         // printf("true hdg = %.0f  dist (m) = %.0f\n",
@@ -228,7 +242,10 @@ SGWayPoint FGRouteMgr::make_waypoint( const string& tgt ) {
     double lon = 0.0;
     double lat = 0.0;
     double alt_m = -9999.0;
+    double agl_m = -9999.0;
     double speed_kt = 0.0;
+
+    // WARNING: this routine doesn't have any way to handle AGL altitudes
 
     // extract altitude
     size_t pos = target.find( '@' );
@@ -246,8 +263,10 @@ SGWayPoint FGRouteMgr::make_waypoint( const string& tgt ) {
         return 1;
     }
 
-    printf("Adding waypoint lon = %.6f lat = %.0f alt_m\n", lon, lat, alt_m);
-    SGWayPoint wp( lon, lat, alt_m, speed_kt, SGWayPoint::SPHERICAL, "" );
+    printf("Adding waypoint lon = %.6f lat = %.6f alt_m = %.0f\n",
+           lon, lat, alt_m);
+    SGWayPoint wp( lon, lat, alt_m, agl_m, speed_kt,
+                   SGWayPoint::SPHERICAL, "" );
 
     return wp;
 }
