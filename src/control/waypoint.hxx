@@ -21,7 +21,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: waypoint.hxx,v 1.3 2008/04/02 02:23:32 curt Exp $
+// $Id: waypoint.hxx,v 1.4 2008/05/09 00:34:28 curt Exp $
 
 
 #ifndef _WAYPOINT_HXX
@@ -69,6 +69,7 @@ private:
     double target_lon;
     double target_lat;
     double target_alt_m;
+    double target_agl_m;
     double target_speed_kt;
     double distance;
 
@@ -86,8 +87,8 @@ public:
      * @param s waypoint identifier
      */
     SGWayPoint( const double lon = 0.0, const double lat = 0.0,
-		const double alt_m = -9999.9, const double speed_kt = 0.0,
-                const modetype m = SPHERICAL,
+		const double alt_m = -9999.9, const double agl_m = -9999.9,
+                const double speed_kt = 0.0, const modetype m = SPHERICAL,
 		const string& s = "" );
 
     /**
@@ -136,6 +137,9 @@ public:
 
     /** @return waypoint altitude */
     inline double get_target_alt_m() const { return target_alt_m; }
+
+    /** @return waypoint altitude relative to ground altitude */
+    inline double get_target_agl_m() const { return target_agl_m; }
 
     /** @return waypoint speed */
     inline double get_target_speed_kt() const { return target_speed_kt; }

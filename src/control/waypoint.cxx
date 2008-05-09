@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: waypoint.cxx,v 1.3 2007/08/06 21:20:14 curt Exp $
+// $Id: waypoint.cxx,v 1.4 2008/05/09 00:34:28 curt Exp $
 
 
 #include <include/globaldefs.h>
@@ -30,11 +30,13 @@
 
 // Constructor
 SGWayPoint::SGWayPoint( const double lon, const double lat,
-                        const double alt_m, const double speed_kt,
+                        const double alt_m, const double agl_m,
+                        const double speed_kt,
                         const modetype m, const string& s ) {
     target_lon = lon;
     target_lat = lat;
     target_alt_m = alt_m;
+    target_agl_m = agl_m;
     target_speed_kt = speed_kt;
     mode = m;
     id = s;
@@ -45,6 +47,7 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
     target_lon( 0.0 ),
     target_lat( 0.0 ),
     target_alt_m( -9999.9 ),
+    target_agl_m( -9999.9 ),
     target_speed_kt( 0.0 ),
     distance( 0.0 ),
     id( "" )
@@ -62,6 +65,8 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
             target_lat = child->getDoubleValue();
         } else if ( cname == "alt-ft" ) {
             target_alt_m = child->getDoubleValue() * SG_FEET_TO_METER;
+        } else if ( cname == "agl-ft" ) {
+            target_agl_m = child->getDoubleValue() * SG_FEET_TO_METER;
         } else if ( cname == "speed-kt" ) {
             target_speed_kt = child->getDoubleValue();
         } else if ( cname == "mode" ) {
@@ -77,8 +82,8 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
             }
         }
     }
-    printf("WPT: %.6f %.6f %.2f %.2f\n",
-           target_lon, target_lat, target_alt_m, target_speed_kt);
+    printf("WPT: %.6f %.6f %.0f (MSL) %.0f (AGL) %.0f (kts)\n",
+           target_lon, target_lat, target_alt_m, target_agl_m, target_speed_kt);
 }
 
 
@@ -119,6 +124,6 @@ void SGWayPoint::CourseAndDistance( const SGWayPoint &wp,
 			double *course, double *dist ) const {
     CourseAndDistance( wp.get_target_lon(),
 		       wp.get_target_lat(),
-		       wp.get_target_alt_m(),
+		       0.0 /* wp.get_target_alt_m() */ ,
 		       course, dist );
 }
