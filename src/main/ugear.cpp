@@ -287,10 +287,13 @@ int main( int argc, char **argv )
                 if ( console_link_command() ) {
                     read_command = true;
                     last_command_time = current_time;
+                    // FIXME: shouldn't assume route mode just because
+                    // we read a command from the ground station
+                    route_mgr.set_route_mode();
                 }
             }
             if ( read_command
-                 && current_time > last_command_time + 15.0
+                 && current_time > last_command_time + 60.0
                  && route_mgr.get_route_mode() != FGRouteMgr::GoHome )
             {
                 // we've established a positive link, but it's been 15
