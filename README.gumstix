@@ -4,7 +4,7 @@ GUMSTIX Preparation
 1. Make new rootfs.  <insert details of package selection and configuration
    options>
 
-2. Copy rootfs and matching u-boot.bin to the mmc card.
+2. Copy rootfs, matching uImage, and matching u-boot.bin to the mmc card.
 
    Option A: 
 

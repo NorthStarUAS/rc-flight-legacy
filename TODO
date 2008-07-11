@@ -1,14 +1,21 @@
-- Config file
+- Make "GoHome" on lost comm link timeout configurable
 
-- Autopilot!
+- ground station sends up true date so gumstix can set it's clock properly
 
-- Add return / command direction across serial connection.
+- have "home" location selection write an entry to debug.txt
+- don't write FollowRoute to debug each time we receive a message.
 
 - Add update rate (ahrs/nav/etc.) values to the health structure so the
   ground station can evaluate the performance of the onboard computer.
 
 - Add an altitude estimator based on the pressure sensor, but
   corrected over time by an average of the (gps - pressure) error.
+
+x Add return / command direction across serial connection.
+
+x add config file
+
+x Autopilot!
 
 x 2/14/2007: Better libstdc++ solution on stargate (hate to static link) :-(
   - copy libstdc++.so.5.0.5 and libgcc_s.so.1 from build tree
