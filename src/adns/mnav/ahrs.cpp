@@ -167,6 +167,7 @@ void ahrs_algorithm(struct imu *data)
     double norm,Bxc,Byc,invR;
     double dt,Hdt;
     double coeff1[3]={0,},temp[2]={0,};
+    double xsn[4]={0,};
     short  i=0;
 
     //snap the time interval, dt, of this routine
@@ -199,10 +200,12 @@ void ahrs_algorithm(struct imu *data)
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     /*propagation of quaternion using gyro measurement
       at a given sampling interval dt                                   */
-    xs[0] += -pc*xs[1] - qc*xs[2] - rc*xs[3];
-    xs[1] +=  pc*xs[0] - qc*xs[3] + rc*xs[2];
-    xs[2] +=  pc*xs[3] + qc*xs[0] - rc*xs[1];
-    xs[3] += -pc*xs[2] + qc*xs[1] + rc*xs[0];
+    xsn[0] = xs[0] - pc*xs[1] - qc*xs[2] - rc*xs[3];
+    xsn[1] = xs[1] + pc*xs[0] - qc*xs[3] + rc*xs[2];
+    xsn[2] = xs[2] + pc*xs[3] + qc*xs[0] - rc*xs[1];
+    xsn[3] = xs[3] - pc*xs[2] + qc*xs[1] + rc*xs[0];
+
+    for(i=0;i<4;i++) xs[i] = xsn[i];
    
     //error covriance propagation: P = Fsys*P*Fsys' + Q
     mat_mymul2(Fsys,aP,tmp77,3); 
@@ -269,6 +272,10 @@ void ahrs_algorithm(struct imu *data)
             Byc = (data->hy)*cPHI-(data->hz)*sPHI;
 
             //Jacobian
+            //||q||^2=1 must happen before using this
+            norm = 1.0/sqrt(xs[0]*xs[0]+xs[1]*xs[1]+xs[2]*xs[2]+xs[3]*xs[3]);
+            for(i=0;i<4;i++) xs[i] = xs[i]*norm;
+
             coeff1[0]= 2*(xs[1]*xs[2]+xs[0]*xs[3]);
             coeff1[1]= 1 - 2*(xs[2]*xs[2]+xs[3]*xs[3]);
             coeff1[2]= 2/(coeff1[0]*coeff1[0]+coeff1[1]*coeff1[1]);
