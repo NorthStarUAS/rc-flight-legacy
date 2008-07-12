@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route.cxx,v 1.3 2008/04/04 22:33:04 curt Exp $
+// $Id: route.cxx,v 1.4 2008/07/12 14:59:26 curt Exp $
 
 
 #if 0
@@ -75,7 +75,7 @@ double SGRoute::distance_off_route( double x, double y ) const {
 
 
 /** Update the length of the leg ending at waypoint index */
-void SGRoute::update_distance(int index)
+void SGRoute::update_distance(unsigned int index)
 {
     SGWayPoint& curr = route[ index ];
     double course, dist;
@@ -91,19 +91,12 @@ void SGRoute::update_distance(int index)
 }
 
 /**
- * Add waypoint (default), or insert waypoint at position n.
+ * Add waypoint
  * @param wp a waypoint
  */
-void SGRoute::add_waypoint( const SGWayPoint &wp, int n ) {
-    int size = route.size();
-    if ( n < 0 || n >= size ) {
-        n = size;
-        route.push_back( wp );
-    } else {
-        route.insert( route.begin() + n, 1, wp );
-        // update distance of next leg if not at end of route
-        update_distance( n + 1 );
-    }
+void SGRoute::add_waypoint( const SGWayPoint &wp ) {
+    unsigned int n = route.size();
+    route.push_back( wp );
     update_distance( n );
 }
 
@@ -112,7 +105,7 @@ void SGRoute::add_waypoint( const SGWayPoint &wp, int n ) {
  * @param wp a waypoint
  * @param n waypoint index number
  */
-void SGRoute::replace_waypoint( const SGWayPoint &wp, int n ) {
+void SGRoute::replace_waypoint( const SGWayPoint &wp, unsigned int n ) {
     if ( n >= 0 && n < route.size() ) {
         route[n] = wp;
     }
@@ -120,15 +113,20 @@ void SGRoute::replace_waypoint( const SGWayPoint &wp, int n ) {
 }
 
 /** Delete waypoint with index n  (last one if n < 0) */
-void SGRoute::delete_waypoint( int n ) {
-    int size = route.size();
-    if ( size == 0 )
+void SGRoute::delete_waypoint( unsigned int n ) {
+    unsigned int size = route.size();
+    if ( size == 0 ) {
         return;
-    if ( n < 0 || n >= size )
+    }
+
+    if ( n < 0 || n >= size ) {
         n = size - 1;
+    }
 
     route.erase( route.begin() + n );
+
     // update distance of next leg if not at end of route
-    if ( n < size - 1 )
+    if ( n < size - 1 ) {
         update_distance( n );
+    }
 }

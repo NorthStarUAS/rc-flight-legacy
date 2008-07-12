@@ -75,7 +75,10 @@ void send_client ( )
             imupacket.phi,imupacket.the,imupacket.psi,
             imupacket.hx, imupacket.hy, imupacket.hz,
             imupacket.Ps, imupacket.Pt, 
-            gpspacket.lat,gpspacket.lon,gpspacket.alt,gpspacket.err_type,imupacket.err_type,navpacket.err_type);
+            gpspacket.lat,gpspacket.lon,gpspacket.alt,
+            (int)gpspacket.err_type,
+            (int)imupacket.err_type,
+            (int)navpacket.err_type);
 
     for(i=0;i<199;i++) sum += buf[i];
     buf[199] = (char)(sum%256);

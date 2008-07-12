@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.hxx,v 1.6 2008/05/09 00:34:28 curt Exp $
+// $Id: route_mgr.hxx,v 1.7 2008/07/12 14:59:26 curt Exp $
 
 
 #ifndef _ROUTE_MGR_HXX
@@ -89,8 +89,8 @@ public:
 
     void update();
 
-    int new_waypoint( const string& tgt_alt, int n = -1 );
-    void add_waypoint( const SGWayPoint& wp, int n = -1 );
+    int new_waypoint( const string& tgt_alt );
+    void add_waypoint( const SGWayPoint& wp );
     void replace_waypoint( const SGWayPoint &wp, int n );
 
     SGWayPoint get_waypoint( int i ) const {
