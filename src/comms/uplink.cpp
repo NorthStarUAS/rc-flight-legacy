@@ -79,7 +79,7 @@ void uplink_acq()
                 case 'W':
                     sscanf(bufs+2,"%d",&numofwaypoints);
                     for(i=0;i<numofwaypoints;i++) {
-                        sscanf(bufs+3+i*23,"%s %s",&temp,&tempr);
+                        sscanf(bufs+3+i*23,"%s %s",temp,tempr);
                         waypoints[i][0] = atof(temp);    
                         waypoints[i][1] = atof(tempr);
                     }

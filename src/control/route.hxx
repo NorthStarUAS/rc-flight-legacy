@@ -21,7 +21,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route.hxx,v 1.6 2008/05/09 00:34:28 curt Exp $
+// $Id: route.hxx,v 1.7 2008/07/12 14:59:26 curt Exp $
 
 
 #ifndef _ROUTE_HXX
@@ -50,7 +50,7 @@ private:
     route_list route;
     int current_wp;
 
-    void update_distance(int index);
+    void update_distance(unsigned int index);
 
 public:
 
@@ -67,16 +67,16 @@ public:
     }
 
     /**
-     * Add waypoint (default), or insert waypoint at position n.
+     * Add waypoint
      * @param wp a waypoint
      */
-    void add_waypoint( const SGWayPoint &wp, int n = -1 );
+    void add_waypoint( const SGWayPoint &wp );
 
     /**
      * Add waypoint (default), or insert waypoint at position n.
      * @param wp a waypoint
      */
-    void replace_waypoint( const SGWayPoint &wp, int n );
+    void replace_waypoint( const SGWayPoint &wp, unsigned int n );
 
     /**
      * Get the number of waypoints (i.e. route length )
@@ -154,7 +154,7 @@ public:
     inline void delete_first() { delete_waypoint(0); }
 
     /** Delete waypoint waypoint with index n  (last one if n < 0) */
-    void delete_waypoint( int n = 0 );
+    void delete_waypoint( unsigned int n = 0 );
 
     /**
      * Calculate perpendicular distance from the current route segment

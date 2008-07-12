@@ -20,7 +20,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.cxx,v 1.8 2008/05/09 00:34:28 curt Exp $
+// $Id: route_mgr.cxx,v 1.9 2008/07/12 14:59:26 curt Exp $
 
 
 #include <math.h>
@@ -170,17 +170,18 @@ void FGRouteMgr::update() {
 }
 
 
-void FGRouteMgr::add_waypoint( const SGWayPoint& wp, int n ) {
-    if ( n == 0 || !route->size() )
+void FGRouteMgr::add_waypoint( const SGWayPoint& wp ) {
+    if ( !route->size() ) {
         altitude_set = false;
+    }
 
-    route->add_waypoint( wp, n );
+    route->add_waypoint( wp );
 }
 
 
 void FGRouteMgr::replace_waypoint( const SGWayPoint& wp, int n ) {
     if ( n >= 0 && n < route->size() ) {
-        route->add_waypoint( wp, n );
+        route->replace_waypoint( wp, n );
     }
 }
 
@@ -230,9 +231,9 @@ bool FGRouteMgr::build() {
 }
 
 
-int FGRouteMgr::new_waypoint( const string& target, int n ) {
+int FGRouteMgr::new_waypoint( const string& target ) {
     SGWayPoint wp = make_waypoint( target );
-    add_waypoint( wp, n );
+    add_waypoint( wp );
     return 1;
 }
 
