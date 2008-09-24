@@ -28,6 +28,69 @@
 - Add an altitude estimator based on the pressure sensor, but
   corrected over time by an average of the (gps - pressure) error.
 
+April 4, 2008 (Friday)
+x (Curt) When UAV loses heartbeat, head home until commanded to resume route.
+x (Curt) Add telnet command reader to UGsmooth
+x (Curt) add wp command parser to ugear so we can update wayponts on the fly
+x (Team ATI) 2 successful launches on the catapult!  Yeehaw!
+
+April 3, 2008 (Thursday)
+x (Curt) remove test commands from UGsmooth.
+x (Curt) Add autopilot targets to telemetry data being sent to ship
+
+April 2, 2008 (Wednesday)
+x (Curt) Add command parser on board ugear
+x (Curt) how does target altitude property get set?  Must be specified in route?
+
+April 1, 2008 (Tuesday)
+x (Curt) Update version of ugear on Malolo2 pack (Note: rz --ymodem !)
+x (Curt) Add feature to route manager to follow route or go home.
+
+x (Curt) gpsd working and validated with Tim's handheld, ground station can
+  "know" where "home" is, even when "home" is moving.
+x (Curt) reglued malolo2 winglets
+x (Curt) send current target waypoint index to ground station
+x (Curt) move control linkages to outer hole on control horn
+x (Team) 2 flawless flights (launch, flight, recovery).  47 minutes each.
+
+March 30, 2008 (Sunday)
+x (Curt) UAV sets default home location to where it sees its first "real" fix.
+x (ATI team) test malolo2 servo motion and centering
+x (ATI team) successful Malolo 2 maiden.
+x (Ship) 3 successful UAV launches, flights, and recoveries ... glitch with
+  speed controller overheating
+
+March 29, 2008 (Saturday)
+x (Curt) test malolo1 servo motion and centering
+x (Jack) Update FG so it can display coordinates in decimal minutes.
+x (Curt) Add uplink sequenced, verified, check summed commands to autopilot
+
+March 28, 2008 (Friday)
+x (Mike) Finalize servo install in Malolo 2 wings, finish cover plates
+x (Curt) duh: switch to ":" to seperate degrees and minutes
+x (Curt) Update heading calc code in ugear as per Jung's fix.
+x (Curt) Test ugear heading fix
+x (Curt) Update UGsmooth to display decimal minute coordinates correctly
+x (Curt) Sync toughbook with latest UGsmooth version
+x (Curt) Test uavpfd/uavnav on tough book to see if they will run
+x (Mike) Install servos and linkages in Malolo 1 wings.
+x (Mike) Cover plates for Malolo1 servo wells.
+x (Curt) Test gps status annunciator on ground station
+
+March 27, 2008 (Thursday)
+x (Mike) Fabricate/install missing servo base plate in malolo 1 wing.
+x (Tim) Check servo operation in Malolo 2 wings before final installation
+x (Curt) Update routegen so we can accept/use decimal minute coordinates.
+x (Curt) Fix route generator to stay within flight distance limit
+  including distance from launch point to first point in the route and
+  distance from the last route point to home.
+x (Curt) but instead of limiting the route by distance, limit it by
+  flight time factoring in speed, course, wind speed, wind direction.
+  (AKA - Route generator should factor in wind vector and plan the
+  flight based on time aloft, not distance
+x (Curt) UGsmooth computes gps health and sends over to UAV_NAV/PFD
+x (Curt) Have ugsmooth send lfstech structure directly, not through FG
+
 x Add return / command direction across serial connection.
 
 x add config file
