@@ -273,7 +273,7 @@ int main( int argc, char **argv )
                 // alive with a solution for 20 seconds
                 if ( !initial_home && navpacket.err_type == no_error ) {
                     SGWayPoint wp( gpspacket.lon, gpspacket.lat, -9999.9 );
-                    if ( route_mgr.update_home(wp, true /* force update */) ) {
+                    if ( route_mgr.update_home(wp, 0.0, true /* force update */) ) {
                         initial_home = true;
                     }
                 }

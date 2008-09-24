@@ -21,7 +21,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: waypoint.hxx,v 1.4 2008/05/09 00:34:28 curt Exp $
+// $Id: waypoint.hxx,v 1.5 2008/09/24 19:04:51 curt Exp $
 
 
 #ifndef _WAYPOINT_HXX
@@ -71,6 +71,15 @@ private:
     double target_alt_m;
     double target_agl_m;
     double target_speed_kt;
+
+    // relative waypoints will have their actual target_lon & lat
+    // computed as an offset angle and distance from a specified
+    // reference location and heading.  These values should be set to
+    // zero to indicate this waypoint is absolute and the target_lon &
+    // lat should not ever be updated.
+    double offset_hdg_deg;
+    double offset_dist_m;
+
     double distance;
 
     string id;
@@ -83,12 +92,16 @@ public:
      * @param lat destination latitude
      * @param alt_m target altitude
      * @param speed_kt target altitude
+     * @param heading_deg (offset heading for relative waypoints only)
+     * @param dist_m (offset distance for relative waypoints only)
      * @param mode type of coordinates/math to use
      * @param s waypoint identifier
      */
     SGWayPoint( const double lon = 0.0, const double lat = 0.0,
 		const double alt_m = -9999.9, const double agl_m = -9999.9,
-                const double speed_kt = 0.0, const modetype m = SPHERICAL,
+                const double speed_kt = 0.0,
+                const double heading_deg = 0.0, const double dist_m = 0.0,
+                const modetype m = SPHERICAL,
 		const string& s = "" );
 
     /**
@@ -146,7 +159,7 @@ public:
 
     /**
      * This value is not calculated by this class.  It is simply a
-     * placeholder for the user to stash a distance value.  This is useful
+     * placeholder for the user to store a distance value.  This is useful
      * when you stack waypoints together into a route.  You can calculate the
      * distance from the previous waypoint once and save it here.  Adding up
      * all the distances here plus the distance to the first waypoint gives you

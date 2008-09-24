@@ -259,13 +259,14 @@ static void console_link_execute_command( const string command ) {
     if ( token[0] == "hb" && token.size() == 1 ) {
         // heart beat, ignore
 
-    } else if ( token[0] == "home" && token.size() == 4 ) {
+    } else if ( token[0] == "home" && token.size() == 5 ) {
         // specify new home location
         double lon = atof( token[1].c_str() );
         double lat = atof( token[2].c_str() );
         double alt_ft = atof( token[3].c_str() );
+        double course_deg = atof( token[4].c_str() );
         SGWayPoint wp( lon, lat, alt_ft * SG_FEET_TO_METER );
-        route_mgr.update_home( wp, true );
+        route_mgr.update_home( wp, course_deg, true );
     } else if ( token[0] == "go" && token.size() == 2 ) {
         // specify router mode
         if ( token[1] == "home" ) {
@@ -344,8 +345,8 @@ static char calc_nmea_cksum(const char *sentence) {
 }
 
 
-// read and parse and execute incomming commands, return true if a
-// valid command received, false otherwise.
+// read, parse, and execute incomming commands, return true if a valid
+// command received, false otherwise.
 bool console_link_command() {
     char command_buf[256];
     int result = console_read_command( command_buf );

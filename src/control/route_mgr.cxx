@@ -20,7 +20,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.cxx,v 1.9 2008/07/12 14:59:26 curt Exp $
+// $Id: route_mgr.cxx,v 1.10 2008/09/24 19:04:51 curt Exp $
 
 
 #include <math.h>
@@ -42,6 +42,7 @@ FGRouteMgr route_mgr;           // global route manager object
 
 FGRouteMgr::FGRouteMgr() :
     route( new SGRoute ),
+    home_course_deg( 0.0 ),
     config_props( NULL ),
     lon( NULL ),
     lat( NULL ),
@@ -246,7 +247,8 @@ SGWayPoint FGRouteMgr::make_waypoint( const string& tgt ) {
     double agl_m = -9999.0;
     double speed_kt = 0.0;
 
-    // WARNING: this routine doesn't have any way to handle AGL altitudes
+    // WARNING: this routine doesn't have any way to handle AGL
+    // altitudes.  Nor can it handle any offset heading/dist requests
 
     // extract altitude
     size_t pos = target.find( '@' );
@@ -266,14 +268,16 @@ SGWayPoint FGRouteMgr::make_waypoint( const string& tgt ) {
 
     printf("Adding waypoint lon = %.6f lat = %.6f alt_m = %.0f\n",
            lon, lat, alt_m);
-    SGWayPoint wp( lon, lat, alt_m, agl_m, speed_kt,
+    SGWayPoint wp( lon, lat, alt_m, agl_m, speed_kt, 0.0, 0.0,
                    SGWayPoint::SPHERICAL, "" );
 
     return wp;
 }
 
 
-bool FGRouteMgr::update_home( const SGWayPoint &wp, bool force_update ) {
+bool FGRouteMgr::update_home( const SGWayPoint &wp, const double hdg,
+                              bool force_update )
+{
     if ( !home_set || force_update ) {
         // sanity check
         if ( fabs(wp.get_target_lon() > 0.0001)
@@ -281,10 +285,12 @@ bool FGRouteMgr::update_home( const SGWayPoint &wp, bool force_update ) {
         {
             // good location
             home = wp;
+            home_course_deg = hdg;
             home_set = true;
             if ( display_on ) {
-                printf( "HOME updated: %.6f %.6f\n",
-                        home.get_target_lon(), home.get_target_lat() );
+                printf( "HOME updated: %.6f %.6f (course = %.1f)\n",
+                        home.get_target_lon(), home.get_target_lat(),
+                        home_course_deg );
             }
             return true;
         } else {
