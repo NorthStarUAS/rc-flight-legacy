@@ -21,7 +21,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: polar3d.hxx,v 1.1 2007/07/18 21:07:10 curt Exp $
+// $Id: polar3d.hxx,v 1.2 2008/09/24 21:30:49 curt Exp $
 
 
 #ifndef _POLAR3D_HXX
@@ -41,7 +41,7 @@
  * specified in meters (and converted internally to radians)
  * ... assumes a spherical world.
  * @param orig specified in polar coordinates
- * @param course offset radial
+ * @param course offset radial (in radians)
  * @param dist offset distance
  * @return destination point in polar coordinates
  */

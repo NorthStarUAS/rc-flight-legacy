@@ -6,6 +6,7 @@
 #include "include/globaldefs.h"
 
 #include "comms/console_link.h"
+#include "control/route_mgr.hxx"
 #include "props/props.hxx"
 #include "util/timing.h"
 
@@ -46,6 +47,8 @@ bool health_init() {
 
 
 bool health_update() {
+    static int wp_index = 0;
+
     healthpacket.time = get_Time();
 
     healthpacket.target_roll_deg = ap_roll->getDoubleValue();
@@ -59,6 +62,22 @@ bool health_update() {
 
     loadavg_update();
     //sgbatmon_update();
+
+    int size = route_mgr.size();
+    if ( size > 0 ) {
+        if ( wp_index >= size ) {
+            wp_index = 0;
+        }
+        SGWayPoint wp = route_mgr.get_waypoint( wp_index );
+        healthpacket.wp_lon = wp.get_target_lon();
+        healthpacket.wp_lat = wp.get_target_lat();
+        healthpacket.wp_index = wp_index;
+        wp_index++;
+    } else {
+        healthpacket.wp_lon = 0.0;
+        healthpacket.wp_lat = 0.0;
+        healthpacket.wp_index = 0;
+    }
 
     return true;
 }

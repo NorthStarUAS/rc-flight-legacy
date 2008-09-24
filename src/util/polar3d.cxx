@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: polar3d.cxx,v 1.1 2007/07/18 21:07:10 curt Exp $
+// $Id: polar3d.cxx,v 1.2 2008/09/24 21:30:49 curt Exp $
 
 #include <math.h>
 
@@ -32,12 +32,12 @@
  * specified in meters (and converted internally to radians)
  * ... assumes a spherical world.
  * @param orig specified in polar coordinates
- * @param course offset radial
+ * @param course offset radial (in radians)
  * @param dist offset distance
  * @return destination point in polar coordinates
  */
-Point3D calc_gc_lon_lat( const Point3D& orig, double course,
-                                double dist ) {
+Point3D calc_gc_lon_lat( const Point3D& orig, double course, double dist )
+{
     Point3D result;
 
     // lat=asin(sin(lat1)*cos(d)+cos(lat1)*sin(d)*cos(tc))

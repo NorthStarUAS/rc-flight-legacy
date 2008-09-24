@@ -56,6 +56,11 @@ struct health {
     double target_pitch_deg;    /* AP target pitch angle */
     double target_climb_fps;    /* AP target climb rate */
     double target_altitude_ft;  /* AP target altitude */
+    double wp_lon;              /* longitude of indexed waypoint */
+    double wp_lat;              /* latitude of indexed waypoint */
+    uint64_t wp_index;          /* index of reported wp (wp's are
+                                   reported in a round robin
+                                   fashion) */
     uint64_t command_sequence;  /* highest received command sequence num */
     uint64_t target_waypoint;   /* index of current waypoint target */
     uint64_t loadavg;           /* system "1 minute" load average */

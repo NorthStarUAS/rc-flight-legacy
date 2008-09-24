@@ -21,7 +21,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: waypoint.hxx,v 1.5 2008/09/24 19:04:51 curt Exp $
+// $Id: waypoint.hxx,v 1.6 2008/09/24 21:30:49 curt Exp $
 
 
 #ifndef _WAYPOINT_HXX
@@ -139,6 +139,17 @@ public:
     void CourseAndDistance( const SGWayPoint &wp,
 			    double *course, double *dist ) const;
 
+    /**
+     * Update the target_lon and target_lat values of this waypoint
+     * based on this waypoint's offset heading and offset distance
+     * values.  The new target location is computed relative to the
+     * provided reference point and reference heading.
+     * @param ref the reference waypoint
+     * @param ref_heading the reference heading/course
+     */
+    void update_relative_pos( const SGWayPoint &ref,
+                              const double ref_heading_deg );
+
     /** @return waypoint mode */
     inline modetype get_mode() const { return mode; }
 
@@ -156,6 +167,12 @@ public:
 
     /** @return waypoint speed */
     inline double get_target_speed_kt() const { return target_speed_kt; }
+ 
+    /** @return offset heading */
+    inline double get_offset_hdg_deg() const { return offset_hdg_deg; }
+ 
+    /** @return offset heading */
+    inline double get_offset_dist_m() const { return offset_dist_m; }
 
     /**
      * This value is not calculated by this class.  It is simply a

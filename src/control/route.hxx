@@ -21,7 +21,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route.hxx,v 1.8 2008/09/24 19:04:51 curt Exp $
+// $Id: route.hxx,v 1.9 2008/09/24 21:30:49 curt Exp $
 
 
 #ifndef _ROUTE_HXX
@@ -155,6 +155,14 @@ public:
 
     /** Delete waypoint waypoint with index n  (last one if n < 0) */
     void delete_waypoint( unsigned int n = 0 );
+
+    /** Refresh relative/offset positions of all waypoints in this
+     *  route that have relative offsets.  CAUTION: this traverses and
+     *  updates the entire route in one shot, so you might see a
+     *  performance glitch with very large routes.
+     */
+    void refresh_offset_positions( const SGWayPoint &ref,
+                                   const double ref_heading_deg );
 
     /**
      * Calculate perpendicular distance from the current route segment

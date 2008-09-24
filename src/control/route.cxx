@@ -18,12 +18,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route.cxx,v 1.4 2008/07/12 14:59:26 curt Exp $
+// $Id: route.cxx,v 1.5 2008/09/24 21:30:49 curt Exp $
 
 
-#if 0
-#include <util/vector.hxx>
-#endif
+#include <math.h>
 
 #include "route.hxx"
 
@@ -128,5 +126,19 @@ void SGRoute::delete_waypoint( unsigned int n ) {
     // update distance of next leg if not at end of route
     if ( n < size - 1 ) {
         update_distance( n );
+    }
+}
+
+
+/** Refresh relative/offset positions of all waypoints in this
+ *  route that have relative offsets.
+ */
+void SGRoute::refresh_offset_positions( const SGWayPoint &ref,
+                                        const double ref_heading_deg )
+{
+    for ( unsigned int i = 0; i < route.size(); ++i ) {
+        if ( fabs(route[i].get_offset_dist_m()) > 1.0 ) {
+            route[i].update_relative_pos( ref, ref_heading_deg );
+        }
     }
 }

@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: waypoint.cxx,v 1.5 2008/09/24 19:04:51 curt Exp $
+// $Id: waypoint.cxx,v 1.6 2008/09/24 21:30:49 curt Exp $
 
 
 #include <include/globaldefs.h>
@@ -110,8 +110,12 @@ void SGWayPoint::CourseAndDistance( const double cur_lon,
 				    const double cur_alt,
 				    double *course, double *dist ) const {
     if ( mode == SPHERICAL ) {
-	Point3D current( cur_lon * SGD_DEGREES_TO_RADIANS, cur_lat * SGD_DEGREES_TO_RADIANS, 0.0 );
-	Point3D target( target_lon * SGD_DEGREES_TO_RADIANS, target_lat * SGD_DEGREES_TO_RADIANS, 0.0 );
+	Point3D current( cur_lon * SGD_DEGREES_TO_RADIANS,
+                         cur_lat * SGD_DEGREES_TO_RADIANS,
+                         0.0 );
+	Point3D target( target_lon * SGD_DEGREES_TO_RADIANS,
+                        target_lat * SGD_DEGREES_TO_RADIANS,
+                        0.0 );
 	calc_gc_course_dist( current, target, course, dist );
 	*course = 360.0 - *course * SGD_RADIANS_TO_DEGREES;
     } else if ( mode == CARTESIAN ) {
@@ -135,4 +139,30 @@ void SGWayPoint::CourseAndDistance( const SGWayPoint &wp,
 		       wp.get_target_lat(),
 		       0.0 /* wp.get_target_alt_m() */ ,
 		       course, dist );
+}
+
+/**
+ * Update the target_lon and target_lat values of this waypoint
+ * based on this waypoint's offset heading and offset distance
+ * values.  The new target location is computed relative to the
+ * provided reference point and reference heading.
+ */
+void SGWayPoint::update_relative_pos( const SGWayPoint &ref,
+                                      const double ref_heading_deg )
+{
+     if ( mode == SPHERICAL ) {
+         Point3D orig( ref.get_target_lon() * SGD_DEGREES_TO_RADIANS,
+                       ref.get_target_lat() * SGD_DEGREES_TO_RADIANS,
+                       0.0 );
+         double course = ref_heading_deg + offset_hdg_deg;
+         if ( course < 0.0 ) { course += 360.0; }
+         if ( course > 360.0 ) { course -= 360.0; }
+         Point3D tgt = calc_gc_lon_lat( orig,
+                                        course * SGD_DEGREES_TO_RADIANS,
+                                        offset_dist_m );
+         target_lon = tgt.lon() * SGD_RADIANS_TO_DEGREES;
+         target_lat = tgt.lat() * SGD_RADIANS_TO_DEGREES;
+     } else if ( mode == CARTESIAN ) {
+         // FIXME: update this code to work with cartesian systems too
+     }
 }
