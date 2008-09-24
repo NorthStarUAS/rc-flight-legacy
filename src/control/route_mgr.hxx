@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.hxx,v 1.7 2008/07/12 14:59:26 curt Exp $
+// $Id: route_mgr.hxx,v 1.8 2008/09/24 19:04:51 curt Exp $
 
 
 #ifndef _ROUTE_MGR_HXX
@@ -56,6 +56,7 @@ private:
 
     SGRoute *route;
     SGWayPoint home;
+    double home_course_deg;
 
     // route configuration
     SGPropertyNode_ptr config_props;
@@ -103,7 +104,8 @@ public:
         return route->size();
     }
 
-    bool update_home( const SGWayPoint &wp, bool force_update );
+    bool update_home( const SGWayPoint &wp, const double hdg,
+		      bool force_update );
 
     inline void set_route_mode() {
         mode = FollowRoute;

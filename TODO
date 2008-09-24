@@ -1,3 +1,20 @@
+- When updating the home location, also specify a direciton of travel
+
+- Add waypoints that are relative to "home" and are updated automatically
+  when the home location is updated.
+
+- Make a *copy* of next waypoint and follow that, rather than following the
+  record at the front of the queue.  This lets us update waypoints "on the
+  fly" i.e. relative to a new home position.  Hmmm, but what happens if we
+  power on, get our first relative waypoint, and then sit around for a *long*
+  time before we launch, then the first waypoint could be way off and not
+  what we want or expect?
+
+  If we just follow the first waypoint in the queue, how do we deal with a
+  situation where the waypoint jumps out from under the uas and the new
+  position forces a "miss"?  Do we live with the uas looping around and trying
+  again?  Maybe this will be a rare problem?
+
 - Make "GoHome" on lost comm link timeout configurable
 
 - ground station sends up true date so gumstix can set it's clock properly
