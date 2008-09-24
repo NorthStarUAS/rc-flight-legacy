@@ -20,7 +20,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.cxx,v 1.10 2008/09/24 19:04:51 curt Exp $
+// $Id: route_mgr.cxx,v 1.11 2008/09/24 21:30:49 curt Exp $
 
 
 #include <math.h>
@@ -287,6 +287,7 @@ bool FGRouteMgr::update_home( const SGWayPoint &wp, const double hdg,
             home = wp;
             home_course_deg = hdg;
             home_set = true;
+            route->refresh_offset_positions( wp, home_course_deg );
             if ( display_on ) {
                 printf( "HOME updated: %.6f %.6f (course = %.1f)\n",
                         home.get_target_lon(), home.get_target_lat(),
