@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include <time.h>
 
-#include "comms/logging.h"
+#include <comms/logging.h>
 
 #include "globaldefs.h"
 #include "matrix.h"
