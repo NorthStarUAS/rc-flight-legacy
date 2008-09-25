@@ -71,7 +71,7 @@ bool health_update() {
         SGWayPoint wp = route_mgr.get_waypoint( wp_index );
         healthpacket.wp_lon = wp.get_target_lon();
         healthpacket.wp_lat = wp.get_target_lat();
-        healthpacket.wp_index = wp_index;
+        healthpacket.wp_index = wp_index + 1000000*size;
         wp_index++;
     } else {
         healthpacket.wp_lon = 0.0;

@@ -18,11 +18,12 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: waypoint.cxx,v 1.6 2008/09/24 21:30:49 curt Exp $
+// $Id: waypoint.cxx,v 1.7 2008/09/25 20:47:29 curt Exp $
 
 
 #include <include/globaldefs.h>
 
+#include <comms/logging.h>
 #include <util/polar3d.hxx>
 
 #include "waypoint.hxx"
@@ -157,11 +158,21 @@ void SGWayPoint::update_relative_pos( const SGWayPoint &ref,
          double course = ref_heading_deg + offset_hdg_deg;
          if ( course < 0.0 ) { course += 360.0; }
          if ( course > 360.0 ) { course -= 360.0; }
+         course = 360.0 - course; // invert to make this routine happy
          Point3D tgt = calc_gc_lon_lat( orig,
                                         course * SGD_DEGREES_TO_RADIANS,
                                         offset_dist_m );
          target_lon = tgt.lon() * SGD_RADIANS_TO_DEGREES;
          target_lat = tgt.lat() * SGD_RADIANS_TO_DEGREES;
+
+         FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
+         fprintf(debug, "ref_hdg = %.1f offset=%.1f course=%.1f dist=%.1f\n",
+                 ref_heading_deg, offset_hdg_deg,
+                 360.0 - course, offset_dist_m);
+         fprintf(debug, "ref = %.6f %.6f  new = %.6f %.6f\n",
+                 ref.get_target_lon(), ref.get_target_lat(),
+                 target_lon, target_lat);
+         fclose(debug);
      } else if ( mode == CARTESIAN ) {
          // FIXME: update this code to work with cartesian systems too
      }

@@ -240,6 +240,14 @@ void console_link_health( struct health *healthpacket ) {
 		 &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     console_write( buf, 2 );
+
+    /* 
+       FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
+       fprintf(debug, "wpt %d: %.8f %.8f\n", healthpacket->wp_index,
+       healthpacket->wp_lon, healthpacket->wp_lat);
+       fclose(debug);
+    */
+
 }
 
 
@@ -247,7 +255,7 @@ static void console_link_execute_command( const string command ) {
     vector <string> token = split( command, "," );
 
     if ( token.size() < 1 ) {
-        // no valide tokens
+        // no valid tokens
         return;
     }
 

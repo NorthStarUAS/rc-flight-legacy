@@ -1,6 +1,3 @@
-- Add waypoints that are relative to "home" and are updated automatically
-  when the home location is updated.
-
 - Make a *copy* of next waypoint and follow that, rather than following the
   record at the front of the queue.  This lets us update waypoints "on the
   fly" i.e. relative to a new home position.  Hmmm, but what happens if we
@@ -23,11 +20,28 @@
 - Add update rate (ahrs/nav/etc.) values to the health structure so the
   ground station can evaluate the performance of the onboard computer.
 
-- Add an altitude estimator based on the pressure sensor, but
-  corrected over time by an average of the (gps - pressure) error.
+
+x 9/25/2008 - Actual route is communicated, one waypoint per health
+  record back to the ground station.  The waypoints are sent in a
+  round robin fashion so the ground station can automatically match
+  the UAS's actual route, even if it is updated dynamically in flight.
+
+x 9/25/2008 - Add functionality to update the target_lon & lat of
+  relative/offset waypoints.
+
+x 9/25/2008 - Home is the "reference" point.  If home is updated, any
+  offset/relative waypoints are recomputed relative to the new home
+  location and reference heading.
+
+x 9/24/2008 - Add initial support for relative/offset waypoints who's
+  positions can be recomputed relative to some new reference point and
+  reference heading.
 
 x 9/24/2008 - When updating the home location, also specify a
   direction of travel.
+
+x Add an altitude estimator based on the pressure sensor, but
+  corrected over time by an average of the (gps - pressure) error.
 
 April 4, 2008 (Friday)
 x (Curt) When UAV loses heartbeat, head home until commanded to resume route.
