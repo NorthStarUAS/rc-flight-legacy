@@ -63,20 +63,20 @@ bool health_update() {
     loadavg_update();
     //sgbatmon_update();
 
+    // send each waypoint, then home location (with wp_index = 0)
     int size = route_mgr.size();
-    if ( size > 0 ) {
-        if ( wp_index >= size ) {
-            wp_index = 0;
-        }
+    if ( size > 0 && wp_index < size ) {
         SGWayPoint wp = route_mgr.get_waypoint( wp_index );
         healthpacket.wp_lon = wp.get_target_lon();
         healthpacket.wp_lat = wp.get_target_lat();
         healthpacket.wp_index = wp_index + 1000000*size;
         wp_index++;
     } else {
-        healthpacket.wp_lon = 0.0;
-        healthpacket.wp_lat = 0.0;
+        SGWayPoint home = route_mgr.get_home();
+        healthpacket.wp_lon = home.get_target_lon();
+        healthpacket.wp_lat = home.get_target_lat();
         healthpacket.wp_index = 0;
+        wp_index = 0;
     }
 
     return true;
