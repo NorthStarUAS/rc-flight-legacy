@@ -20,7 +20,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.cxx,v 1.11 2008/09/24 21:30:49 curt Exp $
+// $Id: route_mgr.cxx,v 1.12 2008/09/26 18:52:47 curt Exp $
 
 
 #include <math.h>
@@ -262,8 +262,6 @@ SGWayPoint FGRouteMgr::make_waypoint( const string& tgt ) {
     if ( pos != string::npos ) {
         lon = atof( target.substr(0, pos).c_str());
         lat = atof( target.c_str() + pos + 1);
-
-        return 1;
     }
 
     printf("Adding waypoint lon = %.6f lat = %.6f alt_m = %.0f\n",

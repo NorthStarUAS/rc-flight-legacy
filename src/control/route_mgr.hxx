@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.hxx,v 1.8 2008/09/24 19:04:51 curt Exp $
+// $Id: route_mgr.hxx,v 1.9 2008/09/26 18:52:47 curt Exp $
 
 
 #ifndef _ROUTE_MGR_HXX
@@ -106,6 +106,14 @@ public:
 
     bool update_home( const SGWayPoint &wp, const double hdg,
 		      bool force_update );
+
+    SGWayPoint get_home() const {
+        if ( home_set ) {
+            return home;
+        } else {
+            return SGWayPoint();
+        }
+    }
 
     inline void set_route_mode() {
         mode = FollowRoute;
