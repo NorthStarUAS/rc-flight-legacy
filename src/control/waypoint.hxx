@@ -21,7 +21,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: waypoint.hxx,v 1.6 2008/09/24 21:30:49 curt Exp $
+// $Id: waypoint.hxx,v 1.7 2008/09/26 18:51:41 curt Exp $
 
 
 #ifndef _WAYPOINT_HXX
@@ -97,7 +97,7 @@ public:
      * @param mode type of coordinates/math to use
      * @param s waypoint identifier
      */
-    SGWayPoint( const double lon = 0.0, const double lat = 0.0,
+    SGWayPoint( const double lon, const double lat,
 		const double alt_m = -9999.9, const double agl_m = -9999.9,
                 const double speed_kt = 0.0,
                 const double heading_deg = 0.0, const double dist_m = 0.0,
@@ -105,10 +105,15 @@ public:
 		const string& s = "" );
 
     /**
-     * Construct a waypoint
+     * Construct a waypoint from a property sub tree
      * @param node a pointer to a property subtree with configuration values
      */
     SGWayPoint( SGPropertyNode *node );
+
+    /**
+     * Construct a null waypoint
+     */
+    SGWayPoint();
 
     /** Destructor */
     ~SGWayPoint();

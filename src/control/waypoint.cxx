@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: waypoint.cxx,v 1.7 2008/09/25 20:47:29 curt Exp $
+// $Id: waypoint.cxx,v 1.8 2008/09/26 18:51:40 curt Exp $
 
 
 #include <include/globaldefs.h>
@@ -94,6 +94,21 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
     }
     printf("WPT: %.6f %.6f %.0f (MSL) %.0f (AGL) %.0f (kts)\n",
            target_lon, target_lat, target_alt_m, target_agl_m, target_speed_kt);
+}
+
+
+SGWayPoint::SGWayPoint():
+    mode( SPHERICAL ),
+    target_lon( 0.0 ),
+    target_lat( 0.0 ),
+    target_alt_m( -9999.9 ),
+    target_agl_m( -9999.9 ),
+    target_speed_kt( 0.0 ),
+    offset_hdg_deg( 0.0 ),
+    offset_dist_m( 0.0 ),
+    distance( 0.0 ),
+    id( "" )
+{
 }
 
 
