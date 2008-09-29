@@ -1,3 +1,9 @@
+- Add support for a primary route and a standby route.  Support
+  external commands to clear the stby route, upload new waypoints, and
+  swap the standby and primary routes.
+
+- Track down Rohit's AHRS modifications to see if they work any better.
+
 - Add support for a "notes" file that will contain time/date (?) in
   the file name and be able to contain arbitrary time stamped messages
   from the ground station.  This file will be saved onboard the UAS
@@ -18,7 +24,7 @@
 - Make "GoHome" on lost comm link timeout configurable
 
 - ground station sends up true date so gumstix can set it's clock
-  properly
+  properly (?)
 
 - have "home" location selection write an entry to debug.txt
 - don't write FollowRoute to debug each time we receive a message.
