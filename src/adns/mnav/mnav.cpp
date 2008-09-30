@@ -83,12 +83,13 @@ SGPropertyNode *vert_fps_node = NULL;
 SGPropertyNode *ground_alt_press_m_node = NULL;
 
 // gps property nodes
-// static SGPropertyNode *gps_lat_node = NULL;
-// static SGPropertyNode *gps_lon_node = NULL;
+static SGPropertyNode *gps_lat_node = NULL;
+static SGPropertyNode *gps_lon_node = NULL;
 // static SGPropertyNode *gps_alt_node = NULL;
 // static SGPropertyNode *gps_ve_node = NULL;
 // static SGPropertyNode *gps_vn_node = NULL;
 // static SGPropertyNode *gps_vd_node = NULL;
+static SGPropertyNode *gps_track_node = NULL;
 
 
 // open and intialize the MNAV communication channel
@@ -168,12 +169,13 @@ void mnav_init()
         = fgGetNode("/position/ground-altitude-pressure-m", true);
 
     // initialize gps property nodes
-    // gps_lat_node = fgGetNode("/position/latitude-gps-deg", true);
-    // gps_lon_node = fgGetNode("/position/longitude-gps-deg", true);
+    gps_lat_node = fgGetNode("/position/latitude-deg", true);
+    gps_lon_node = fgGetNode("/position/longitude-deg", true);
     // gps_alt_node = fgGetNode("/position/altitude-gps-m", true);
     // gps_ve_node = fgGetNode("/velocities/ve-gps-ms", true);
     // gps_vn_node = fgGetNode("/velocities/vn-gps-ms", true);
     // gps_vd_node = fgGetNode("/velocities/vd-gps-ms", true);
+    gps_track_node = fgGetNode("/orientation/groundtrack-deg", true);
 
     if ( display_on ) {
         printf(" initialized.\n");
@@ -348,12 +350,14 @@ void mnav_update()
 
     if ( gps_valid_data ) {
         // publish values to property tree
-        // gps_lat_node->setDoubleValue( gpspacket.lat );
-	// gps_lon_node->setDoubleValue( gpspacket.lon );
+        gps_lat_node->setDoubleValue( gpspacket.lat );
+	gps_lon_node->setDoubleValue( gpspacket.lon );
 	// gps_alt_node->setDoubleValue( gpspacket.alt );
 	// gps_ve_node->setDoubleValue( gpspacket.ve );
 	// gps_vn_node->setDoubleValue( gpspacket.vn );
 	// gps_vd_node->setDoubleValue( gpspacket.vd );
+	gps_track_node->setDoubleValue( 90 - atan2(gpspacket.vn, gpspacket.ve)
+	 				* SG_RADIANS_TO_DEGREES );
 
         if ( console_link_on ) {
             console_link_gps( &gpspacket );
