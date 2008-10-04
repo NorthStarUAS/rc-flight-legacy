@@ -169,13 +169,13 @@ void mnav_init()
         = fgGetNode("/position/ground-altitude-pressure-m", true);
 
     // initialize gps property nodes
-    gps_lat_node = fgGetNode("/position/latitude-deg", true);
-    gps_lon_node = fgGetNode("/position/longitude-deg", true);
+    gps_lat_node = fgGetNode("/position/latitude-gps-deg", true);
+    gps_lon_node = fgGetNode("/position/longitude-gps-deg", true);
     // gps_alt_node = fgGetNode("/position/altitude-gps-m", true);
     // gps_ve_node = fgGetNode("/velocities/ve-gps-ms", true);
     // gps_vn_node = fgGetNode("/velocities/vn-gps-ms", true);
     // gps_vd_node = fgGetNode("/velocities/vd-gps-ms", true);
-    gps_track_node = fgGetNode("/orientation/groundtrack-deg", true);
+    gps_track_node = fgGetNode("/orientation/groundtrack-gps-deg", true);
 
     if ( display_on ) {
         printf(" initialized.\n");

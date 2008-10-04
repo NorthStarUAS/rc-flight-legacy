@@ -111,10 +111,10 @@ void nav_init()
     navpacket.err_type = no_gps_update;
 
     // initialize nav property nodes
-    nav_lat_node = fgGetNode("/position/latitude-nav-deg", true);
-    nav_lon_node = fgGetNode("/position/longitude-nav-deg", true);
+    nav_lat_node = fgGetNode("/position/latitude-deg", true);
+    nav_lon_node = fgGetNode("/position/longitude-deg", true);
     nav_alt_feet_node = fgGetNode("/position/altitude-nav-ft", true);
-    nav_track_node = fgGetNode("/orientation/groundtrack-nav-deg", true);
+    nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
     // nav_vel_node = fgGetNode("/velocities/groundspeed-ms", true);
     nav_vert_speed_fps_node
         = fgGetNode("/velocities/vertical-speed-fps",true);
