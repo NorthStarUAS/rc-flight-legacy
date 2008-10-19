@@ -50,6 +50,7 @@ struct servo servo_out;
 static SGPropertyNode *agl_alt_ft_node = NULL;
 static SGPropertyNode *aileron_out_node = NULL;
 static SGPropertyNode *elevator_out_node = NULL;
+static SGPropertyNode *elevator_damp_node = NULL;
 static SGPropertyNode *throttle_out_node = NULL;
 static SGPropertyNode *rudder_out_node = NULL;
 static SGPropertyNode *ap_target = NULL;
@@ -74,6 +75,7 @@ void control_init() {
     agl_alt_ft_node = fgGetNode("/position/altitude-agl-ft", true);
     aileron_out_node = fgGetNode("/controls/flight/aileron", true);
     elevator_out_node = fgGetNode("/controls/flight/elevator", true);
+    elevator_damp_node = fgGetNode("/controls/flight/elevator-damp", true);
     throttle_out_node = fgGetNode("/controls/engine/throttle", true);
     rudder_out_node = fgGetNode("/controls/flight/rudder", true);
 
@@ -134,18 +136,21 @@ void control_update(short flight_mode)
         servo_out.chn[i] = 32768;
     }
 
+    float elevator = elevator_out_node->getFloatValue()
+	+ elevator_damp_node->getFloatValue();
+
     if ( elevon_mix->getBoolValue() ) {
         // elevon mixing mode
 
         //aileron
         servo_out.chn[0] = 32768
             + (int16_t)(aileron_out_node->getFloatValue() * 32768)
-            + (int16_t)(elevator_out_node->getFloatValue() * 32768);
+            + (int16_t)(elevator * 32768);
 
         //elevator
         servo_out.chn[1] = 32768
             + (int16_t)(aileron_out_node->getFloatValue() * 32768)
-            - (int16_t)(elevator_out_node->getFloatValue() * 32768);
+            - (int16_t)(elevator * 32768);
     } else {
         // conventional airframe mode
 
@@ -155,7 +160,7 @@ void control_update(short flight_mode)
 
         //elevator
         servo_out.chn[1] = 32768
-            + (int16_t)(elevator_out_node->getFloatValue() * 32768);
+            + (int16_t)(elevator * 32768);
     }
 
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
@@ -194,8 +199,17 @@ void control_update(short flight_mode)
     // unexpectedly.
 
     // throttle
-    servo_out.chn[2] = 32768
-        + (int16_t)(throttle_out_node->getFloatValue() * 32768);
+
+    // limit throttle change to 128 units per cycle ... which means it
+    // takes about 10 seconds to traverse a range of 32768 (about full
+    // range) assuming 25 cycles per second.
+    static int16_t last_throttle = 12000;
+    int16_t target_throttle = 32768
+	+ (int16_t)(throttle_out_node->getFloatValue() * 32768);
+    int16_t diff = target_throttle - last_throttle;
+    if ( diff > 128 ) diff = 128;
+    if ( diff < -128 ) diff = -128;
+    servo_out.chn[2] = last_throttle + diff;
 
     // override and disable throttle output if within 100' of the
     // ground (assuming ground elevation is the pressure altitude we
@@ -206,6 +220,8 @@ void control_update(short flight_mode)
 
     // printf("throttle = %.2f %d\n", throttle_out_node->getFloatValue(),
     //        servo_out.chn[2]);
+
+    last_throttle = servo_out.chn[2];
 
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
