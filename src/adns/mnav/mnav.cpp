@@ -68,6 +68,9 @@ struct gps gpspacket;
 struct nav navpacket;
 
 // imu property nodes
+// static SGPropertyNode *p_node = NULL;
+static SGPropertyNode *q_node = NULL;
+// static SGPropertyNode *r_node = NULL;
 static SGPropertyNode *theta_node = NULL;
 static SGPropertyNode *phi_node = NULL;
 static SGPropertyNode *psi_node = NULL;
@@ -152,7 +155,10 @@ void mnav_init()
     }
     nbytes = 0;  
 
-    // initialize imu property nodes
+    // initialize imu property nodes 
+    // p_node = fgGetNode("/orientation/roll-rate-degps", true);
+    q_node = fgGetNode("/orientation/pitch-rate-degps", true);
+    // r_node = fgGetNode("/orientation/heading-rate-degps", true);
     theta_node = fgGetNode("/orientation/pitch-deg", true);
     phi_node = fgGetNode("/orientation/roll-deg", true);
     psi_node = fgGetNode("/orientaiton/heading-deg", true);
@@ -324,6 +330,9 @@ void mnav_update()
            imupacket.the * SG_RADIANS_TO_DEGREES); */
 
 	// publish values to property tree
+	// p_node->setFloatValue( imupacket.p * SG_RADIANS_TO_DEGREES );
+	q_node->setFloatValue( imupacket.q * SG_RADIANS_TO_DEGREES );
+	// r_node->setFloatValue( imupacket.r * SG_RADIANS_TO_DEGREES );
 	theta_node->setFloatValue( imupacket.the * SG_RADIANS_TO_DEGREES );
 	phi_node->setFloatValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
 	psi_node->setFloatValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
