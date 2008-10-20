@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: xmlauto.cxx,v 1.9 2008/10/19 00:46:15 curt Exp $
+// $Id: xmlauto.cxx,v 1.10 2008/10/20 14:39:46 curt Exp $
 
 #include <math.h>
 
@@ -867,6 +867,14 @@ static void update_helper( double dt ) {
     if ( diff > 180.0 ) { diff -= 360.0; }
     true_error->setDoubleValue( diff );
 
+    // calculate the roll angle squared for the purpose of adding open
+    // loop elevator deflection in turns.
+    static SGPropertyNode *roll_squared
+        = fgGetNode( "/orientation/roll-deg-squared", true );
+    static SGPropertyNode *phi_node = fgGetNode("/orientation/roll-deg", true);
+    double roll = phi_node->getDoubleValue();
+    roll_squared->setDoubleValue( roll * roll );
+ 
     /* static int c = 0;
     c++;
     if ( c > 25 ) {
