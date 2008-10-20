@@ -1,8 +1,13 @@
+- Safety measure ... fall back to gps position if "nav" position
+  diverges by more than some threshold.
+
 - Add support for a primary route and a standby route.  Support
   external commands to clear the stby route, upload new waypoints, and
   swap the standby and primary routes.
 
 - Track down Rohit's AHRS modifications to see if they work any better.
+
+- Have Rohit explain is magnetometer calibration method.
 
 - Add support for a "notes" file that will contain time/date (?) in
   the file name and be able to contain arbitrary time stamped messages
@@ -32,6 +37,29 @@
 - Add update rate (ahrs/nav/etc.) values to the health structure so the
   ground station can evaluate the performance of the onboard computer.
 
+
+x 10/20/2008 - first stab at adding up elevator in turns... proportional
+  to the roll angle "squared"
+
+x 10/18/2008 - Add a pitch rate damping mode using just a small amount
+  of elevator throw.
+
+x 10/18/2008 - lower throttle top end (on Malolo2)
+
+x 10/18/2008 - limit amount of throttle change per iteration.  128
+  steps per cycle on a 0-65535 range, where 16384 - 49152 is about the
+  effective full range.  Assumes the code runs at 25 cycles per
+  second.  This means it takes about 10 seconds to travel from idle to
+  full throttle.
+
+x 10/18/2008 - double check sensor calibration values of "Phil's" MNAV.
+  - nothing obvious, trying 2 things:
+    1. power from separate battery
+    2. run with 1m gps cable
+
+x 10/2/2008 - Build a throttle based altitude controller ... make lots
+  of fail safes and safety measures to prevent the throttle from being
+  activated inadvertently when it shouldn't come on.
 
 x 9/26/2008 - Send the "home" reference point along with waypoints!
 
