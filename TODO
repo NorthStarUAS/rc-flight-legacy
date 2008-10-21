@@ -1,3 +1,6 @@
+MicroGear TODO
+==============
+
 - Safety measure ... fall back to gps position if "nav" position
   diverges by more than some threshold.
 

@@ -24,6 +24,7 @@ static SGPropertyNode *ap_climb;
 static SGPropertyNode *ap_altitude;
 static SGPropertyNode *ground_ref;
 static SGPropertyNode *ap_agl;
+static SGPropertyNode *pressure_error_m_node;
 
 
 bool health_init() {
@@ -37,7 +38,8 @@ bool health_init() {
     ap_altitude = fgGetNode( "/autopilot/settings/target-altitude-ft", true );
     ground_ref = fgGetNode( "/position/ground-altitude-pressure-m", true );
     ap_agl = fgGetNode( "/autopilot/settings/target-agl-ft", true );
-
+    pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
+    
     // set initial values
     healthpacket.command_sequence = 0;
     healthpacket.target_waypoint = 0;
@@ -58,6 +60,7 @@ bool health_update() {
     /* healthpacket.target_altitude_ft = ap_altitude->getDoubleValue(); */
     healthpacket.target_altitude_ft
         = ground_ref->getDoubleValue() * SG_METER_TO_FEET
+        + pressure_error_m_node->getFloatValue() * SG_METER_TO_FEET
           + ap_agl->getDoubleValue();
 
     loadavg_update();
