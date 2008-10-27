@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# This script enables and configures /dev/ttyS3
+
+# The console serial port (/dev/ttyS0) is closer to the power input connector.
+# For the console-hw board, setup /dev/ttyS3
+
+echo "Loading proc_gpio kernel module"
+modprobe proc_gpio
+
+echo "Configuring gpio to enable /dev/ttyS3"
+echo "AF1 in" > /proc/gpio/GPIO49
+echo "AF1 out" > /proc/gpio/GPIO48
+
