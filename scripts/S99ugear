@@ -9,8 +9,8 @@ UGEAR_DIR=$BASE_DIR/MicroGear
 start() {
  	echo "Starting ugear ..."
 	cd $UGEAR_DIR
-	# start-stop-daemon --start -x $UGEAR_DIR/ugear -- --console /dev/ttyS0  --log-dir $BASE_DIR/FlightData &
-	start-stop-daemon --start -x $UGEAR_DIR/ugear &
+	start-stop-daemon --start -x $UGEAR_DIR/ugear -- --console /dev/ttyS0 &
+	# start-stop-daemon --start -x $UGEAR_DIR/ugear &
 }	
 stop() {
 	echo -n "Stopping ugear..."
