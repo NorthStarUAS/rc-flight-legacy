@@ -363,10 +363,12 @@ bool console_link_command() {
         return false;
     }
     
-    // FILE *debug;
-    // debug = fopen("/tmp/debug.txt", "a");
-    // fprintf(debug, "Received command: '%s'\n", command_buf);
-    // fclose(debug);
+    /*
+      FILE *debug;
+      debug = fopen("/tmp/debug.txt", "a");
+      fprintf(debug, "Received command: '%s'\n", command_buf);
+      fclose(debug);
+    */
 
     string cmd = command_buf;
 
@@ -380,18 +382,22 @@ bool console_link_command() {
     char cmd_sum[10];
     snprintf( cmd_sum, 3, "%02X", calc_nmea_cksum(cmd.c_str()) );
 
-    // debug = fopen("/tmp/debug.txt", "a");
-    // fprintf(debug, " cmd: '%s' nmea: '%s' '%s'\n", cmd.c_str(),
-    //         nmea_sum.c_str(), cmd_sum);
-    // fclose(debug);
+    /*
+      debug = fopen("/tmp/debug.txt", "a");
+      fprintf(debug, " cmd: '%s' nmea: '%s' '%s'\n", cmd.c_str(),
+              nmea_sum.c_str(), cmd_sum);
+      fclose(debug);
+    */
 
     if ( nmea_sum.c_str()[0] != cmd_sum[0]
          || nmea_sum.c_str()[1] != cmd_sum[1])
     {
         // checksum failure
-        // debug = fopen("/tmp/debug.txt", "a");
-        // fprintf(debug, "check sum failure\n");
-        // fclose(debug);
+        /*
+	  debug = fopen("/tmp/debug.txt", "a");
+	  fprintf(debug, "check sum failure\n");
+	  fclose(debug);
+	*/
         return false;
     }
 
@@ -402,9 +408,11 @@ bool console_link_command() {
         return false;
     }
 
-    FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
-    fprintf(debug, "command: %s\n", cmd.c_str());
-    fclose(debug);
+    /*
+      FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
+      fprintf(debug, "command: %s\n", cmd.c_str());
+      fclose(debug);
+    */
 
     // extract command sequence number
     string num = cmd.substr(0, pos);
@@ -414,9 +422,11 @@ bool console_link_command() {
     cmd = cmd.substr(pos + 1);
 
     // execute command
-    // debug = fopen("/tmp/debug.txt", "a");
-    // fprintf(debug, "Sequence: %d  Execute: '%s'\n", sequence, cmd.c_str());
-    // fclose(debug);
+    /*
+      debug = fopen("/tmp/debug.txt", "a");
+      fprintf(debug, "Sequence: %d  Execute: '%s'\n", sequence, cmd.c_str());
+      fclose(debug);
+    */
     console_link_execute_command( cmd );
 
     // register that we've received this message correctly

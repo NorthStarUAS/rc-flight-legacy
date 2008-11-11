@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.hxx,v 1.9 2008/09/26 18:52:47 curt Exp $
+// $Id: route_mgr.hxx,v 1.10 2008/11/11 20:29:44 curt Exp $
 
 
 #ifndef _ROUTE_MGR_HXX
@@ -117,16 +117,20 @@ public:
 
     inline void set_route_mode() {
         mode = FollowRoute;
-        FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
-        fprintf(debug, "mode: FollowRoute\n");
-        fclose(debug);
+	/*
+	  FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
+	  fprintf(debug, "mode: FollowRoute\n");
+	  fclose(debug);
+	*/
     }
 
     inline void set_home_mode() {
         mode = GoHome;
-        FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
-        fprintf(debug, "mode: GoHome\n");
-        fclose(debug);
+	/*
+	  FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
+	  fprintf(debug, "mode: GoHome\n");
+	  fclose(debug);
+	*/
     }
 
     inline fgRouteMode get_route_mode() {
