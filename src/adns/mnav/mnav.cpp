@@ -83,6 +83,7 @@ SGPropertyNode *pressure_error_m_node = NULL;
 SGPropertyNode *true_alt_ft_node = NULL;
 SGPropertyNode *agl_alt_ft_node = NULL;
 SGPropertyNode *vert_fps_node = NULL;
+SGPropertyNode *forward_accel_node = NULL;
 SGPropertyNode *ground_alt_press_m_node = NULL;
 
 // gps property nodes
@@ -171,6 +172,7 @@ void mnav_init()
     agl_alt_ft_node = fgGetNode("/position/altitude-agl-ft", true);
     pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
     vert_fps_node = fgGetNode("/velocities/pressure-vertical-speed-fps",true);
+    forward_accel_node = fgGetNode("/accelerations/airspeed-ktps",true);
     ground_alt_press_m_node
         = fgGetNode("/position/ground-altitude-pressure-m", true);
 
@@ -205,8 +207,10 @@ void mnav_update()
     static float Pt_filt = 0.0;
 
     static float Ps_filt_last = 0.0;
+    static float Pt_filt_last = 0.0;
     static double t_last = 0.0;
     static float climb_filt = 0.0;
+    static float accel_filt = 0.0;
 
     bool imu_valid_data = false;
     bool gps_valid_data = false;
@@ -298,16 +302,22 @@ void mnav_update()
 	ahrs_prof.stop();
 
 	// Do a simple first order low pass filter to reduce noise
-	Ps_filt = 0.93 * Ps_filt + 0.07 * imupacket.Ps;
-	Pt_filt = 0.9 * Pt_filt + 0.1 * imupacket.Pt;
+	Ps_filt = 0.97 * Ps_filt + 0.03 * imupacket.Ps;
+	Pt_filt = 0.97 * Pt_filt + 0.03 * imupacket.Pt;
 
         // best guess at true altitude
         float true_alt_m = Ps_filt + pressure_error_m_node->getFloatValue();
 
-        // pressure sensor based rate of climb
+        // compute rate of climb based on pressure altitude change
         float climb = (Ps_filt - Ps_filt_last) / (imupacket.time - t_last);
         Ps_filt_last = Ps_filt;
-        climb_filt = 0.994 * climb_filt + 0.006 * climb;
+        climb_filt = 0.97 * climb_filt + 0.03 * climb;
+
+        // compute a forward acceleration value based on pitot speed
+        // change
+        float accel = (Pt_filt - Pt_filt_last) / (imupacket.time - t_last);
+        Pt_filt_last = Pt_filt;
+        accel_filt = 0.97 * accel_filt + 0.03 * accel;
 
         // determine ground reference altitude.  Average pressure
         // altitude over first 30 seconds unit is powered on.  This
@@ -344,6 +354,7 @@ void mnav_update()
         true_alt_ft_node->setFloatValue( true_alt_m * SG_METER_TO_FEET );
         agl_alt_ft_node->setFloatValue( (Ps_filt - ground_alt_press) * SG_METER_TO_FEET );
         vert_fps_node->setFloatValue( climb_filt * SG_METER_TO_FEET );
+        forward_accel_node->setFloatValue( accel_filt * SG_MPS_TO_KT );
 
         // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
         //        Ps_filt, navpacket.alt, true_alt_m, climb_filt);

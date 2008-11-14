@@ -128,4 +128,10 @@ extern struct health healthpacket;
 /** Nautical Miles to Radians */
 #define SG_RAD_TO_NM        3437.7467707849392526
 
+/** Meters per second to Knots */
+#define SG_MPS_TO_KT        1.9438444924406046432
+
+/** Knots to meters per second */
+#define SG_KT_TO_MPS        0.5144444444444444444
+
 #endif // _UGEAR_GLOBALDEFS_H
