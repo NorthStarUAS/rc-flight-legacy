@@ -1,9 +1,6 @@
 MicroGear TODO
 ==============
 
-- Safety measure ... fall back to gps position if "nav" position
-  diverges by more than some threshold.
-
 - Add support for a primary route and a standby route.  Support
   external commands to clear the stby route, upload new waypoints, and
   swap the standby and primary routes.
@@ -31,15 +28,25 @@ MicroGear TODO
 
 - Make "GoHome" on lost comm link timeout configurable
 
-- ground station sends up true date so gumstix can set it's clock
-  properly (?)
-
 - have "home" location selection write an entry to debug.txt
 - don't write FollowRoute to debug each time we receive a message.
 
 - Add update rate (ahrs/nav/etc.) values to the health structure so the
   ground station can evaluate the performance of the onboard computer.
 
+- Safety measure ... fall back to gps position if "nav" position
+  diverges by more than some threshold.  (This could be a solution to
+  a problem caused by timing pauses caused by trying to do too much
+  data logging.)  It still may be a good idea as a safety.
+
+- ground station sends up true date so gumstix can set it's clock
+  properly (?) -- low priority.  Maybe we could send this as a message
+  in the early startup so it can get logged someplace if we are doing
+  onboard logging.
+
+
+x 11/11/2008 - cmopute a forward acceleration value based on pitot sensor
+  and expose that into the property system as /accelerations/airspeed-ktps
 
 x 10/20/2008 - first stab at adding up elevator in turns... proportional
   to the roll angle "squared"
