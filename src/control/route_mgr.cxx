@@ -20,7 +20,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.cxx,v 1.12 2008/09/26 18:52:47 curt Exp $
+// $Id: route_mgr.cxx,v 1.13 2008/11/23 04:02:17 curt Exp $
 
 
 #include <math.h>
@@ -48,11 +48,11 @@ FGRouteMgr::FGRouteMgr() :
     lat( NULL ),
     alt( NULL ),
     true_hdg_deg( NULL ),
-    target_altitude_ft( NULL ),
     target_agl_ft( NULL ),
+    override_agl_ft( NULL ),
+    target_msl_ft( NULL ),
+    override_msl_ft( NULL ),
     home_set( false ),
-    altitude_set( false ),
-    agl_set( false ),
     mode( GoHome )
 {
 }
@@ -101,15 +101,24 @@ void FGRouteMgr::init() {
     alt = fgGetNode( "/position/altitude-ft", true );
 
     true_hdg_deg = fgGetNode( "/autopilot/settings/true-heading-deg", true );
-    target_altitude_ft
-        = fgGetNode( "/autopilot/settings/target-altitude-ft", true );
+    target_msl_ft
+        = fgGetNode( "/autopilot/settings/target-msl-ft", true );
+    override_msl_ft
+        = fgGetNode( "/autopilot/settings/override-msl-ft", true );
     target_agl_ft
         = fgGetNode( "/autopilot/settings/target-agl-ft", true );
+    override_agl_ft
+        = fgGetNode( "/autopilot/settings/override-agl-ft", true );
 }
 
 
 void FGRouteMgr::update() {
     double wp_course, wp_distance;
+
+    double override_agl = override_agl_ft->getDoubleValue();
+    double override_msl = override_msl_ft->getDoubleValue();
+    double target_agl_m = 0;
+    double target_msl_m = 0;
 
     if ( mode == GoHome && home_set ) {
         home.CourseAndDistance( lon->getDoubleValue(), lat->getDoubleValue(),
@@ -117,19 +126,11 @@ void FGRouteMgr::update() {
                                 &wp_course, &wp_distance );
 
         true_hdg_deg->setDoubleValue( wp_course );
-        double target_alt_m = home.get_target_alt_m();
-        double target_agl_m = home.get_target_agl_m();
+        target_agl_m = home.get_target_agl_m();
+        target_msl_m = home.get_target_alt_m();
 
-        if ( !altitude_set && target_alt_m > -9990 ) {
-            target_altitude_ft->setDoubleValue( target_alt_m * SG_METER_TO_FEET );
-            altitude_set = true;
-        }
-        if ( !agl_set && target_agl_m > -9990 ) {
-            target_agl_ft->setDoubleValue( target_agl_m * SG_METER_TO_FEET );
-            agl_set = true;
-        }
-
-        health_update_target_waypoint( 0 );
+	// update health status with current target waypoint
+	health_update_target_waypoint( 0 );
     } else if ( mode == FollowRoute && route->size() > 0 ) {
         // track current waypoint of route
         SGWayPoint wp = route->get_current();
@@ -137,45 +138,42 @@ void FGRouteMgr::update() {
                               alt->getDoubleValue(), &wp_course, &wp_distance );
 
         true_hdg_deg->setDoubleValue( wp_course );
-        double target_alt_m = wp.get_target_alt_m();
-        double target_agl_m = wp.get_target_agl_m();
-
-        if ( !altitude_set && target_alt_m > -9990 ) {
-            target_altitude_ft->setDoubleValue( target_alt_m * SG_METER_TO_FEET );
-            altitude_set = true;
-        }
-        if ( !agl_set && target_agl_m > -9990 ) {
-            target_agl_ft->setDoubleValue( target_agl_m * SG_METER_TO_FEET );
-            agl_set = true;
-        }
-
-        // printf("true hdg = %.0f  dist (m) = %.0f\n",
-        //        wp_course, wp_distance );
+        target_agl_m = wp.get_target_agl_m();
+        target_msl_m = wp.get_target_alt_m();
 
         if ( wp_distance < 50.0 ) {
             route->increment_current();
-            altitude_set = false;
         }
 
         // update health status with current target waypoint
         health_update_target_waypoint( route->get_waypoint_index() );
     } else {
-        // problem: we've been commanded to go home and no home
-        // position has been set, or we've been commanded to follow a
-        // route, but no route has been defined.
+        // FIXME: we've been commanded to go home and no home position
+        // has been set, or we've been commanded to follow a route,
+        // but no route has been defined.
 
         // We are in ill-defined territory, I'd like to go into some
         // sort of slow circling mode and either hold altitude or
         // maybe do a slow speed decent to minimize our momentum.
     }
+
+    // update target altitude based on waypoint targets and possible
+    // overrides ... preference is given to agl if both agl & msl are
+    // set.
+    if ( override_agl > 1 ) {
+	target_agl_ft->setDoubleValue( override_agl );
+    } else if ( override_msl > 1 ) {
+	target_msl_ft->setDoubleValue( override_msl );
+    } else if ( target_agl_m > 1 ) {
+	target_agl_ft->setDoubleValue( target_agl_m * SG_METER_TO_FEET );
+    } else if ( target_msl_m > 1 ) {
+	target_msl_ft->setDoubleValue( target_msl_m * SG_METER_TO_FEET );
+    }
+
 }
 
 
 void FGRouteMgr::add_waypoint( const SGWayPoint& wp ) {
-    if ( !route->size() ) {
-        altitude_set = false;
-    }
-
     route->add_waypoint( wp );
 }
 
@@ -196,10 +194,6 @@ SGWayPoint FGRouteMgr::pop_waypoint( int n ) {
         }
         wp = route->get_waypoint(n);
         route->delete_waypoint(n);
-    }
-
-    if ( n == 0 && route->size() ) {
-        altitude_set = false;
     }
 
     return wp;

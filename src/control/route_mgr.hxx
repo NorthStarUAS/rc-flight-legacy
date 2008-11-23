@@ -18,7 +18,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.hxx,v 1.10 2008/11/11 20:29:44 curt Exp $
+// $Id: route_mgr.hxx,v 1.11 2008/11/23 04:02:17 curt Exp $
 
 
 #ifndef _ROUTE_MGR_HXX
@@ -68,12 +68,14 @@ private:
 
     // automatic outputs
     SGPropertyNode_ptr true_hdg_deg;
-    SGPropertyNode_ptr target_altitude_ft;
     SGPropertyNode_ptr target_agl_ft;
+    SGPropertyNode_ptr override_agl_ft;
+    SGPropertyNode_ptr target_msl_ft;
+    SGPropertyNode_ptr override_msl_ft;
 
     bool home_set;
-    bool altitude_set;
-    bool agl_set;
+    bool msl_override;
+    bool agl_override;
 
     fgRouteMode mode;
 
