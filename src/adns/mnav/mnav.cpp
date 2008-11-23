@@ -166,7 +166,7 @@ void mnav_init()
     // Ps_node = fgGetNode("/position/altitude-pressure-m", true);
     // Pt_node = fgGetNode("/velocities/airspeed-ms", true);
     Ps_filt_node = fgGetNode("/position/altitude-pressure-m", true);
-    Pt_filt_node = fgGetNode("/velocities/airspeed-pitot-ms", true);
+    Pt_filt_node = fgGetNode("/velocities/airspeed-kt", true);
     // comp_time_node = fgGetNode("/time/computer-sec", true);
     true_alt_ft_node = fgGetNode("/position/altitude-ft",true);
     agl_alt_ft_node = fgGetNode("/position/altitude-agl-ft", true);
@@ -349,7 +349,7 @@ void mnav_update()
 	// Ps_node->setFloatValue( imupacket.Ps );
 	// Pt_node->setFloatValue( imupacket.Pt );
 	Ps_filt_node->setFloatValue( Ps_filt );
-	Pt_filt_node->setFloatValue( Pt_filt );
+	Pt_filt_node->setFloatValue( Pt_filt * SG_MPS_TO_KT );
 	// comp_time_node->setDoubleValue( imupacket.time );
         true_alt_ft_node->setFloatValue( true_alt_m * SG_METER_TO_FEET );
         agl_alt_ft_node->setFloatValue( (Ps_filt - ground_alt_press) * SG_METER_TO_FEET );
