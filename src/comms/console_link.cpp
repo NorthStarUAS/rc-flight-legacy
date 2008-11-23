@@ -273,7 +273,7 @@ static void console_link_execute_command( const string command ) {
         double lat = atof( token[2].c_str() );
         double alt_ft = atof( token[3].c_str() );
         double course_deg = atof( token[4].c_str() );
-        SGWayPoint wp( lon, lat, alt_ft * SG_FEET_TO_METER );
+        SGWayPoint wp( lon, lat );
         route_mgr.update_home( wp, course_deg, true );
     } else if ( token[0] == "go" && token.size() == 2 ) {
         // specify router mode
@@ -285,11 +285,21 @@ static void console_link_execute_command( const string command ) {
 
     } else if ( token[0] == "ap" && token.size() == 3 ) {
         // specify an autopilot target
-        if ( token[1] == "alt" ) {
-            double alt = atof( token[2].c_str() );
-            SGPropertyNode_ptr target_altitude_ft
-                = fgGetNode( "/autopilot/settings/target-altitude-ft", true );
-            target_altitude_ft->setDoubleValue( alt );
+        if ( token[1] == "agl-ft" ) {
+            double agl_ft = atof( token[2].c_str() );
+            SGPropertyNode_ptr override_agl_node
+                = fgGetNode( "/autopilot/settings/override-agl-ft", true );
+            override_agl_node->setDoubleValue( agl_ft );
+        } else if ( token[1] == "msl-ft" ) {
+            double msl_ft = atof( token[2].c_str() );
+            SGPropertyNode_ptr override_msl_node
+                = fgGetNode( "/autopilot/settings/override-msl-ft", true );
+            override_msl_node->setDoubleValue( msl_ft );
+        } else if ( token[1] == "speed-kt" ) {
+            double speed_kt = atof( token[2].c_str() );
+            SGPropertyNode_ptr speed_kt_node
+                = fgGetNode( "/autopilot/settings/target-speed-kt", true );
+            speed_kt_node->setDoubleValue( speed_kt );
         }
     } else if ( token[0] == "wp" && token.size() == 5 ) {
         // specify new waypoint coordinates for a waypoint
