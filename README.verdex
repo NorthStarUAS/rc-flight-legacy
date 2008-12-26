@@ -1,0 +1,30 @@
+Based on information found here:
+
+    http://docwiki.gumstix.org/Connecting_via_Serial_-_Linux
+
+Important! >>> Use the "MissPiggy" script to connect so all the options get
+set right for transfer.  Once connected ...
+
+<reboot gumstix>
+<halt the boot to get to the boot prompt>
+
+U-Boot version 1.2.0
+
+First, load the filesystem:
+
+GUM>loadb a2000000
+[ Ctrl-\ C ]
+kermit>send rootfs.arm_nofpu.jffs2
+kermit>connect
+GUM>pro on 1:0-1 && jera all && cp.b a2000000 40000 ${filesize}
+
+Now, load the kernel:
+
+GUM>loadb a2000000
+[ Ctrl-\ C ]
+kermit>send uImage
+kermit>connect
+GUM>katinstall 100000
+GUM>katload 100000
+GUM>bootm
+
