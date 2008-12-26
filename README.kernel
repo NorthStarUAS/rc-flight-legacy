@@ -1,0 +1,33 @@
+Based on information from the following link:
+
+    http://docwiki.gumstix.org/index.php/Recompiling_the_Linux_Kernel
+
+Configure the kernel:
+
+    cd <gumstix-buildroot>
+    cd build_arm_nofpu
+    cd linux-<the version of linux you're using>
+    make ARCH=arm menuconfig
+
+    <make your module selections>
+
+    Multimedia devices ->
+        Video For Linux ->
+            Video Capture Adapters -> V4L USB devices ->
+                Empia EM2800 ...
+                Phillips web cam ...
+
+    Device Drivers -> USB Support -> 
+        USB Serial Converter support ->
+            USB Garmin
+	    USB Navman GPS
+            USB Prolific 2303 Single Port Serial Driver
+        
+
+
+Rebuild the kernel:
+
+    rm arch/arm/boot/compressed/vmlinux
+    cd <gumstix-buildroot>
+    make
+
