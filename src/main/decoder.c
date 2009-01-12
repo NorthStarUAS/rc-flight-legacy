@@ -66,7 +66,7 @@ int main()
         fprintf(fwimu,"%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t",
                 dta.hx,dta.hy,dta.hz,dta.phi,dta.the,dta.psi);
         fprintf(fwimu,"%6.3f\t%6.3f\t%d\n",
-                dta.Ps,dta.Pt,dta.err_type);
+                dta.Ps,dta.Pt,dta.status);
     }
 
     while (!feof(fgps)) {
@@ -80,7 +80,7 @@ int main()
         fread(&ndta,sizeof(struct nav),1,fnav);
         fprintf(fwnav,"%f\t%14.10f\t%14.10f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t%d\n",
                 ndta.time,ndta.lat,ndta.lon,ndta.alt,ndta.vn,ndta.ve,ndta.vd,
-                ndta.err_type);
+                ndta.status);
     }
 
     while (!feof(fservo)) {
