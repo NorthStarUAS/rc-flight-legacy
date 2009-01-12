@@ -2,6 +2,7 @@ Based on information found here:
 
     http://docwiki.gumstix.org/Connecting_via_Serial_-_Linux
 
+Important! >>> Use ckermit to connect for these transfers.
 Important! >>> Use the "MissPiggy" script to connect so all the options get
 set right for transfer.  Once connected ...
 

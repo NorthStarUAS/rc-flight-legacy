@@ -253,7 +253,7 @@ void mnav_update()
             if ( display_on ) {
                 printf("[imu]:checksum error...!\n"); 
             }
-            imupacket.err_type = checksum_err; 
+            imupacket.status = ChecksumError; 
         };
         break;
 
@@ -276,15 +276,15 @@ void mnav_update()
                 decode_gpspacket(&gpspacket, input_buffer);
 		gps_valid_data = true;
             } else {
-               printf("[gps]:data error...!\n");
-                gpspacket.err_type = got_invalid;
+		printf("[gps]:data error...!\n");
+		gpspacket.status = NotValid;
             } // end if(checksum(input_buffer...
         } else { 
             if ( display_on ) {
                 printf("[imu]:checksum error(gps)...!\n");
             }
-            gpspacket.err_type = checksum_err;
-            imupacket.err_type = checksum_err; 
+            gpspacket.status = ChecksumError;
+            imupacket.status = ChecksumError; 
         }
         break;
 
@@ -492,7 +492,7 @@ void decode_gpspacket( struct gps *data, uint8_t* buffer )
     // uint16_t msb;
     // msb = ((msb = buffer[61]) << 8) | buffer[60];
     // printf("gps itow = (%d) (%d) (%d) (%d) %.3f\n", buffer[61], buffer[60], buffer[59], buffer[58], data->ITOW);
-    data->err_type = no_error;
+    data->status = ValidData;
     data->time = get_Time();
 
     // printf("sizeof gps = %d  time = %.3f\n", sizeof(struct gps), data->time);
@@ -561,8 +561,9 @@ void decode_imupacket( struct imu *data, uint8_t* buffer )
     }
 
     data->time = get_Time();
+    data->status = ValidData;
+
     servo_in.time = data->time;
-    data->err_type = no_error;
 }
 
 

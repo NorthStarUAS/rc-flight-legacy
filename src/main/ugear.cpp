@@ -263,7 +263,7 @@ int main( int argc, char **argv )
 	if ( enable_nav ) {
             // navigation (update at 10hz.)  compute a location estimate
             // based on gps and accelerometer data.
-            if ( nav_counter >= 5 && gpspacket.err_type != no_gps_update ) {
+            if ( nav_counter >= 5 ) {
                 nav_counter = 0;
                 nav_prof.start();
                 nav_update();
@@ -271,7 +271,7 @@ int main( int argc, char **argv )
 
                 // initial home is most recent gps result after being
                 // alive with a solution for 20 seconds
-                if ( !initial_home && navpacket.err_type == no_error ) {
+                if ( !initial_home && navpacket.status == ValidData ) {
                     SGWayPoint wp( gpspacket.lon, gpspacket.lat, -9999.9 );
                     if ( route_mgr.update_home(wp, 0.0, true /* force update */) ) {
                         initial_home = true;

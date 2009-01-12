@@ -13,8 +13,11 @@
 //Stargate I or II
 //#define SG2
 
-enum errdefs { neveruse, neveruse1, no_error, got_invalid, checksum_err,
-               gps_update, no_gps_update };
+enum errdefs {
+    NotValid,			/* data not valid */
+    ChecksumError,		/* check sum error (and data invalid) */
+    ValidData,			/* data recently valid */
+};
 
 struct imu {
    double time;
@@ -24,23 +27,23 @@ struct imu {
    double Ps,Pt;                /* static/pitot pressure */
    // double Tx,Ty,Tz;          /* temperature           */
    double phi,the,psi;          /* attitudes             */
-   uint64_t  err_type;		/* error type		 */
+   uint64_t status;		/* error type		 */
 };
 
 struct gps {
    double time;
-   double lat,lon,alt;          /* gps position          */
-   double ve,vn,vd;             /* gps velocity          */
+   double lat,lon,alt;          /* gps position                */
+   double ve,vn,vd;             /* gps velocity                */
    double ITOW;                 /* seconds since start of week */
-   uint64_t err_type;           /* error type            */
+   uint64_t status;		/* data status flag            */
 };
 
 struct nav {
    double time;
    double lat,lon,alt;
    double ve,vn,vd;
-   // float  t;
-   uint64_t  err_type;
+   // float t;
+   uint64_t status;		/* data status flag */
 };
 
 struct servo {

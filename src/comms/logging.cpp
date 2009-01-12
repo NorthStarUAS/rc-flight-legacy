@@ -184,7 +184,7 @@ void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
     printf("[Gauss]:hx  = %6.3f hy  = %6.3f hz  = %6.3f \n",data->hx,data->hy,data->hz);
     printf("[     ]:Ps  = %6.3f Pt  = %6.3f             \n",data->Ps,data->Pt);
     printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n",xs[4]*57.3,xs[5]*57.3,xs[6]*57.3);
-    if ( gdata->err_type == no_error ) {
+    if ( gdata->status == ValidData ) {
         double tmp = gdata->ITOW;
         int days = (int)(tmp / (24 * 60 * 60));
         tmp -= days * 24 * 60 * 60;
@@ -196,7 +196,7 @@ void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
         printf("[GPS  ]:ITOW= %.3f[sec]  %dd %02d:%02d:%06.3f\n", gdata->ITOW, days, hours, min, sec);
         printf("[GPS  ]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",gdata->lon,gdata->lat,gdata->alt);
     }
-    if ( ndata->err_type == no_error ) {
+    if ( ndata->status == ValidData ) {
         printf("[nav  ]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",            ndata->lon,ndata->lat,ndata->alt);	
     }
     printf("[Servo]: %d %d %d %d %d %d\n", sdata->chn[0], sdata->chn[1],

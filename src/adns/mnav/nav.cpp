@@ -108,7 +108,7 @@ void nav_init()
     nRn[0][0] = Pcov; nRn[1][1] = nRn[0][0]; nRn[2][2] = 2.0*2.0;  
     nRn[3][3] = 0.01; nRn[4][4] = nRn[3][3]; nRn[5][5] = 0.02; 
   
-    navpacket.err_type = no_gps_update;
+    navpacket.status = NotValid;
 
     // initialize nav property nodes
     nav_lat_node = fgGetNode("/position/latitude-deg", true);
@@ -143,7 +143,7 @@ void nav_update()
     // using data in order to let the solution [hopefully] get more
     // accurate.
 
-    if ( gpspacket.err_type == no_error ) {
+    if ( gpspacket.status == ValidData ) {
         if ( gps_state == 0 ) {
             gps_state = 1;      // gps first acquired
             acq_start = cur_time;
@@ -151,7 +151,6 @@ void nav_update()
         } else if ( gps_state == 1 ) {
             if ( cur_time - acq_start >= 20.0 ) {
                 gps_state = 2;  // gps solid for 20 sec
-                navpacket.err_type = no_error;
 
                 // initialize navigation state variables with GPS (Lat,Lon,Alt)
                 nxs[0][0] = gpspacket.lat*D2R;
@@ -183,13 +182,14 @@ void nav_update()
         nav_algorithm( &imulocal, &gpslocal );
 	nav_alg_prof.stop();
            
-        navpacket.lat = nxs[0][0]*R2D;
-        navpacket.lon = nxs[1][0]*R2D;
-        navpacket.alt = nxs[2][0];
-        navpacket.vn  = nxs[3][0];
-        navpacket.ve  = nxs[4][0];
-        navpacket.vd  = nxs[5][0];
-        navpacket.time= get_Time();
+        navpacket.lat  = nxs[0][0]*R2D;
+        navpacket.lon  = nxs[1][0]*R2D;
+        navpacket.alt  = nxs[2][0];
+        navpacket.vn   = nxs[3][0];
+        navpacket.ve   = nxs[4][0];
+        navpacket.vd   = nxs[5][0];
+        navpacket.time = get_Time();
+	navpacket.status = ValidData;
 
 	// compute a filtered error difference between gps altitude
 	// and pressure altitude.  (at 4hz update rate this averages
@@ -263,6 +263,7 @@ void nav_algorithm(struct imu *imudta,struct gps *gpsdta)
     short  i = 0;
     double yd[6];  
     static double tnow, tprev = 0; 
+    static double last_gps_time = 0;
 
     tnow = get_Time();
     dt   = tnow - tprev; tprev = tnow;
@@ -298,7 +299,7 @@ void nav_algorithm(struct imu *imudta,struct gps *gpsdta)
     for(i=0;i<9;i++) nF[i][i]+=1;
    
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    //propagation of navigation equation
+    // propagation of navigation equation (prediction step)
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     nu[0][0] = (imudta->ax);
     nu[1][0] = (imudta->ay);
@@ -315,9 +316,12 @@ void nav_algorithm(struct imu *imudta,struct gps *gpsdta)
     mat_mul(ntmp99,ntmpr,nPn);
     for(i=0;i<9;i++) nPn[i][i] += nQn[i][i];
 
-    // update using GPS
-    if ( gpsdta->err_type == no_error ) {
-        gpspacket.err_type = no_error;
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // update when new GPS data is available (correction step)
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    if ( gpsdta->status == ValidData && gpsdta->time > last_gps_time )
+    {
+	last_gps_time = gpsdta->time;
        
         //gain matrix Kn = P*H'*(H*P*H' + R)^-1
         mat_subcopy(nPn, 6, 6, ntmp66);
