@@ -217,7 +217,7 @@ void mnav_update()
 
     int trouble_count = 1;
 
-    // Find start of packet: the heade r (2 bytes) starts with 0x5555
+    // Find start of packet: the header (2 bytes) starts with 0x5555
     while ( headerOK != 2 ) {
         while(1!=read(sPort2,input_buffer,1));
         if ( input_buffer[0] == 0x55 ) {
