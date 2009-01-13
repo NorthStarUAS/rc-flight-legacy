@@ -1,3 +1,8 @@
+Compiling build root ...
+
+disable bluez if not bluetooth hardware
+enable gpsd with patches.
+
 Based on information found here:
 
     http://docwiki.gumstix.org/Connecting_via_Serial_-_Linux
