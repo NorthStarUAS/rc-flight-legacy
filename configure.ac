@@ -44,6 +44,7 @@ AC_CONFIG_FILES([ \
         src/navigation/Makefile \
         src/props/Makefile \
         src/routegen/Makefile \
+        src/sensors/Makefile \
         src/util/Makefile \
         src/xml/Makefile \
 ])
