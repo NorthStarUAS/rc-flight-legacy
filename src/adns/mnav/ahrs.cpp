@@ -26,7 +26,6 @@
 #include "util.h"
 
 #include "ahrs.h"
-#include "mnav.h"
 
 //prototype definition
 void 		ahrs_algorithm(struct imu *data);

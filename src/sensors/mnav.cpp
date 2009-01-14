@@ -197,20 +197,11 @@ void mnav_init()
 // which the MNAV sends data dictates the timing and rate of the
 // entire ugear program.
 //
-void mnav_update()
+mnav_result_t mnav_read()
 {
     int headerOK = 0;
     int nbytes = 0;
     uint8_t input_buffer[FULL_PACKET_SIZE]={0,};
-
-    static float Ps_filt = 0.0;
-    static float Pt_filt = 0.0;
-
-    static float Ps_filt_last = 0.0;
-    static float Pt_filt_last = 0.0;
-    static double t_last = 0.0;
-    static float climb_filt = 0.0;
-    static float accel_filt = 0.0;
 
     bool imu_valid_data = false;
     bool gps_valid_data = false;
@@ -295,99 +286,118 @@ void mnav_update()
 
     } // end case
 
+    if ( imu_valid_data && gps_valid_data ) {
+	return IMUGPSValid;
+    } else if ( imu_valid_data ) {
+	return IMUValid;
+    } else if ( gps_valid_data ) {
+	return GPSValid;
+    } else {
+	return NoValidData;
+    }
+}
 
-    if ( imu_valid_data ) {
-        ahrs_prof.start();
-        ahrs_update();
-	ahrs_prof.stop();
 
-	// Do a simple first order low pass filter to reduce noise
-	Ps_filt = 0.97 * Ps_filt + 0.03 * imupacket.Ps;
-	Pt_filt = 0.97 * Pt_filt + 0.03 * imupacket.Pt;
+void mnav_imu_update() {
+    static float Ps_filt = 0.0;
+    static float Pt_filt = 0.0;
 
-        // best guess at true altitude
-        float true_alt_m = Ps_filt + pressure_error_m_node->getFloatValue();
+    static float Ps_filt_last = 0.0;
+    static float Pt_filt_last = 0.0;
+    static double t_last = 0.0;
+    static float climb_filt = 0.0;
+    static float accel_filt = 0.0;
 
-        // compute rate of climb based on pressure altitude change
-        float climb = (Ps_filt - Ps_filt_last) / (imupacket.time - t_last);
-        Ps_filt_last = Ps_filt;
-        climb_filt = 0.97 * climb_filt + 0.03 * climb;
+    // Do a simple first order low pass filter to reduce noise
+    Ps_filt = 0.97 * Ps_filt + 0.03 * imupacket.Ps;
+    Pt_filt = 0.97 * Pt_filt + 0.03 * imupacket.Pt;
 
-        // compute a forward acceleration value based on pitot speed
-        // change
-        float accel = (Pt_filt - Pt_filt_last) / (imupacket.time - t_last);
-        Pt_filt_last = Pt_filt;
-        accel_filt = 0.97 * accel_filt + 0.03 * accel;
+    // best guess at true altitude
+    float true_alt_m = Ps_filt + pressure_error_m_node->getFloatValue();
 
-        // determine ground reference altitude.  Average pressure
-        // altitude over first 30 seconds unit is powered on.  This
-        // assumes that system clock time starts counting at zero.
-        // Watch out if we ever find a way to set the system clock to
-        // real time.
-        static float ground_alt_press = imupacket.Ps;
-        if ( imupacket.time < 30.0 ) {
-            float dt = imupacket.time - t_last;
-            float elapsed = imupacket.time - dt;
-            ground_alt_press
-                = (elapsed * ground_alt_press + dt * imupacket.Ps)
-                  / imupacket.time;
-            ground_alt_press_m_node->setFloatValue( ground_alt_press );
-        }
+    // compute rate of climb based on pressure altitude change
+    float climb = (Ps_filt - Ps_filt_last) / (imupacket.time - t_last);
+    Ps_filt_last = Ps_filt;
+    climb_filt = 0.97 * climb_filt + 0.03 * climb;
 
-        t_last = imupacket.time;
+    // compute a forward acceleration value based on pitot speed
+    // change
+    float accel = (Pt_filt - Pt_filt_last) / (imupacket.time - t_last);
+    Pt_filt_last = Pt_filt;
+    accel_filt = 0.97 * accel_filt + 0.03 * accel;
 
-        /* printf("%.2f %.2f\n", imupacket.phi * SG_RADIANS_TO_DEGREES,
-           imupacket.the * SG_RADIANS_TO_DEGREES); */
-
-	// publish values to property tree
-	// p_node->setFloatValue( imupacket.p * SG_RADIANS_TO_DEGREES );
-	q_node->setFloatValue( imupacket.q * SG_RADIANS_TO_DEGREES );
-	// r_node->setFloatValue( imupacket.r * SG_RADIANS_TO_DEGREES );
-	theta_node->setFloatValue( imupacket.the * SG_RADIANS_TO_DEGREES );
-	phi_node->setFloatValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
-	psi_node->setFloatValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
-	// Ps_node->setFloatValue( imupacket.Ps );
-	// Pt_node->setFloatValue( imupacket.Pt );
-	Ps_filt_node->setFloatValue( Ps_filt );
-	Pt_filt_node->setFloatValue( Pt_filt * SG_MPS_TO_KT );
-	// comp_time_node->setDoubleValue( imupacket.time );
-        true_alt_ft_node->setFloatValue( true_alt_m * SG_METER_TO_FEET );
-        agl_alt_ft_node->setFloatValue( (Ps_filt - ground_alt_press) * SG_METER_TO_FEET );
-        vert_fps_node->setFloatValue( climb_filt * SG_METER_TO_FEET );
-        forward_accel_node->setFloatValue( accel_filt * SG_MPS_TO_KT );
-
-        // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
-        //        Ps_filt, navpacket.alt, true_alt_m, climb_filt);
-
-        if ( console_link_on ) {
-            console_link_imu( &imupacket );
-        }
-
-        if ( log_to_file ) {
-            log_imu( &imupacket );
-        }
+    // determine ground reference altitude.  Average pressure
+    // altitude over first 30 seconds unit is powered on.  This
+    // assumes that system clock time starts counting at zero.
+    // Watch out if we ever find a way to set the system clock to
+    // real time.
+    static float ground_alt_press = imupacket.Ps;
+    if ( imupacket.time < 30.0 ) {
+	float dt = imupacket.time - t_last;
+	float elapsed = imupacket.time - dt;
+	ground_alt_press
+	    = (elapsed * ground_alt_press + dt * imupacket.Ps)
+	    / imupacket.time;
+	ground_alt_press_m_node->setFloatValue( ground_alt_press );
     }
 
-    if ( gps_valid_data ) {
-        // publish values to property tree
-        gps_lat_node->setDoubleValue( gpspacket.lat );
-	gps_lon_node->setDoubleValue( gpspacket.lon );
-	// gps_alt_node->setDoubleValue( gpspacket.alt );
-	// gps_ve_node->setDoubleValue( gpspacket.ve );
-	// gps_vn_node->setDoubleValue( gpspacket.vn );
-	// gps_vd_node->setDoubleValue( gpspacket.vd );
-	gps_track_node->setDoubleValue( 90 - atan2(gpspacket.vn, gpspacket.ve)
-	 				* SG_RADIANS_TO_DEGREES );
+    t_last = imupacket.time;
 
-        if ( console_link_on ) {
-            console_link_gps( &gpspacket );
-        }
+    /* printf("%.2f %.2f\n", imupacket.phi * SG_RADIANS_TO_DEGREES,
+       imupacket.the * SG_RADIANS_TO_DEGREES); */
 
-        if ( log_to_file ) {
-            log_gps( &gpspacket );
-        }
+    // publish values to property tree
+    // p_node->setFloatValue( imupacket.p * SG_RADIANS_TO_DEGREES );
+    q_node->setFloatValue( imupacket.q * SG_RADIANS_TO_DEGREES );
+    // r_node->setFloatValue( imupacket.r * SG_RADIANS_TO_DEGREES );
+    theta_node->setFloatValue( imupacket.the * SG_RADIANS_TO_DEGREES );
+    phi_node->setFloatValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
+    psi_node->setFloatValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
+    // Ps_node->setFloatValue( imupacket.Ps );
+    // Pt_node->setFloatValue( imupacket.Pt );
+    Ps_filt_node->setFloatValue( Ps_filt );
+    Pt_filt_node->setFloatValue( Pt_filt * SG_MPS_TO_KT );
+    // comp_time_node->setDoubleValue( imupacket.time );
+    true_alt_ft_node->setFloatValue( true_alt_m * SG_METER_TO_FEET );
+    agl_alt_ft_node->setFloatValue( (Ps_filt - ground_alt_press) * SG_METER_TO_FEET );
+    vert_fps_node->setFloatValue( climb_filt * SG_METER_TO_FEET );
+    forward_accel_node->setFloatValue( accel_filt * SG_MPS_TO_KT );
+    
+    // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
+    //        Ps_filt, navpacket.alt, true_alt_m, climb_filt);
+
+    if ( console_link_on ) {
+	console_link_imu( &imupacket );
     }
 
+    if ( log_to_file ) {
+	log_imu( &imupacket );
+    }
+}
+
+
+void mnav_gps_update() {
+    // publish values to property tree
+    gps_lat_node->setDoubleValue( gpspacket.lat );
+    gps_lon_node->setDoubleValue( gpspacket.lon );
+    // gps_alt_node->setDoubleValue( gpspacket.alt );
+    // gps_ve_node->setDoubleValue( gpspacket.ve );
+    // gps_vn_node->setDoubleValue( gpspacket.vn );
+    // gps_vd_node->setDoubleValue( gpspacket.vd );
+    gps_track_node->setDoubleValue( 90 - atan2(gpspacket.vn, gpspacket.ve)
+				    * SG_RADIANS_TO_DEGREES );
+
+    if ( console_link_on ) {
+	console_link_gps( &gpspacket );
+    }
+
+    if ( log_to_file ) {
+	log_gps( &gpspacket );
+    }
+}
+
+
+void mnav_servo_update() {
     //////////////////////////////////////////////////////////////
     // NOTICE: MANUAL OVERRIDE
     //////////////////////////////////////////////////////////////

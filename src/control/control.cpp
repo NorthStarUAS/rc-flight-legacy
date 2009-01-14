@@ -16,7 +16,7 @@
 #include "comms/logging.h"
 #include "comms/uplink.h"
 #include "include/globaldefs.h"
-#include "navigation/mnav.h"
+#include "sensors/mnav.h"
 #include "props/props.hxx"
 #include "util/timing.h"
 

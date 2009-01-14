@@ -36,10 +36,10 @@
 #include "health/health.h"
 #include "include/globaldefs.h"
 #include "navigation/ahrs.h"
-#include "navigation/mnav.h"
 #include "navigation/nav.h"
 #include "props/props.hxx"
 #include "props/props_io.hxx"
+#include "sensors/mnav.h"
 #include "util/exception.hxx"
 #include "util/myprof.h"
 #include "util/sg_path.hxx"
@@ -87,6 +87,7 @@ int main( int argc, char **argv )
     bool enable_route   = false;   // route module enabled/disabled
     bool wifi           = false;   // wifi connection enabled/disabled
     bool initial_home   = false;   // initial home position determined
+    double gps_timeout_sec = 10.0; // initial gps timeout
 
     // initialize properties
     props = new SGPropertyNode;
@@ -129,6 +130,13 @@ int main( int argc, char **argv )
 
     p = fgGetNode("/config/nav-filter/enable", true);
     enable_nav = p->getBoolValue();
+
+    p = fgGetNode("/config/nav-filter/gps-timeout-sec", true);
+    gps_timeout_sec = p->getDoubleValue();
+    if ( gps_timeout_sec < 0.0001 ) {
+	// default to 10 seconds if nothing valid specified
+	gps_timeout_sec = 10.0;
+    }
 
     p = fgGetNode("/config/autopilot/enable", true);
     enable_control = p->getBoolValue();
@@ -257,8 +265,22 @@ int main( int argc, char **argv )
         // function will then call the ahrs_update() function as
         // appropriate to compute the attitude estimate.
 	mnav_prof.start();
-        mnav_update();
+        mnav_result_t result = mnav_read();
 	mnav_prof.stop();
+
+	if ( result == IMUValid || result == IMUGPSValid ) {
+	    ahrs_prof.start();
+	    ahrs_update();
+	    ahrs_prof.stop();
+
+	    mnav_imu_update();
+	}
+
+	if ( result == GPSValid || result == IMUGPSValid ) {
+	    mnav_gps_update();
+	}
+
+	mnav_servo_update();
 
 	if ( enable_nav ) {
             // navigation (update at 10hz.)  compute a location estimate
