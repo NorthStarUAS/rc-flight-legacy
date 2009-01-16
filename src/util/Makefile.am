@@ -5,6 +5,7 @@ libutil_a_SOURCES = \
         matrix.c matrix.h \
 	myprof.cxx myprof.h \
         navfunc.cpp navfunc.h \
+	netSocket.cxx netSocket.h ul.h \
 	point3d.hxx \
 	polar3d.cxx polar3d.hxx \
 	sg_path.cxx sg_path.hxx \

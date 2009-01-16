@@ -18,7 +18,8 @@
 /***************************************************************************
  * Open and configure serial port
  ***************************************************************************/
-int open_serial(char* serial_port, int baudrate, bool raw_mode, bool nonblock )
+int open_serial( const char *serial_port, int baudrate,
+		 bool raw_mode, bool nonblock )
 {
     int fd;
     struct termios tio_serial;

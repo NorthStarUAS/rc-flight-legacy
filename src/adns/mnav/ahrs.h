@@ -8,6 +8,7 @@
 #define _UGEAR_AHRS_H
 
 
+extern struct imu imupacket;
 extern double xs[7];
 
 void ahrs_init();

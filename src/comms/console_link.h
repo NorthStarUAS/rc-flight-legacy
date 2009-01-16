@@ -14,8 +14,6 @@ enum ugPacketType {
 };
 
 extern bool console_link_on;
-#define MAX_CONSOLE_DEV 64
-extern char console_dev[MAX_CONSOLE_DEV];
 
 void console_link_init();
 void console_link_gps( struct gps *gpspacket );

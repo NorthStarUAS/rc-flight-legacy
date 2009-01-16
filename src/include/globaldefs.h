@@ -71,9 +71,6 @@ struct health {
     uint64_t nav_hz;            /* actual nav loop hz */
 };
 
-extern struct imu imupacket;
-extern struct gps gpspacket;
-extern struct nav navpacket;
 extern struct servo servo_in;
 extern struct servo servo_out;
 extern struct health healthpacket;
