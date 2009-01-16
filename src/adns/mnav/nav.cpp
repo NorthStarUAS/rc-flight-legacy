@@ -7,6 +7,7 @@
  * SOURCE: 
  * LAST REVISED: 8/31/06 Jung Soon Jang
  ******************************************************************************/
+
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -15,15 +16,18 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include "globaldefs.h"
+
 #include "comms/console_link.h"
 #include "comms/logging.h"
-#include "include/globaldefs.h"
 #include "props/props.hxx"
+#include "sensors/GPS.h"
 #include "util/matrix.h"
 #include "util/myprof.h"
 #include "util/navfunc.h"
 #include "util/timing.h"
 
+#include "ahrs.h"
 #include "nav.h"
 
 
@@ -44,14 +48,15 @@ void nav_algorithm(struct imu *imudta,struct gps *gpsdta);
 //
 // global matrix variables
 //
+struct nav navpacket;
+short  gps_init_count = 0;
+
 MATRIX nxs,nF,nG,nGd,nu;
 MATRIX nPn,nQn,nRn,nKn,nRinv;
 MATRIX dcm;
 MATRIX euler,nIden;
 MATRIX ntmp99,ntmpr,ntmp91,ntmpr91,ntmprr;
 MATRIX ntmp66,ntmp96,ntmp33;
-
-short  gps_init_count = 0;
 
 // nav (cooked gps/accelerometer) property nodes
 static SGPropertyNode *nav_lat_node = NULL;

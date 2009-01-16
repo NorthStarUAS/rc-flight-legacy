@@ -24,6 +24,8 @@
 #include "util/myprof.h"
 #include "util/timing.h"
 
+#include "GPS.h"
+
 #include "mnav.h"
 
 //
@@ -43,8 +45,6 @@
 //temperature compensation for accel.
 //temperature compensation for mag.
 
-char mnav_dev[MAX_MNAV_DEV] = "/dev/ttyS2";
-
 //
 // prototype definition
 //
@@ -63,11 +63,15 @@ bool autopilot_reinit = false;
 int  autopilot_count = 0;
 char *cnt_status;
 
-struct imu imupacket;
-struct gps gpspacket;
-struct nav navpacket;
+static struct imu imu_data;
+static struct gps gps_data;
+bool imu_data_valid = false;
+bool gps_data_valid = false;
 
 // imu property nodes
+
+static SGPropertyNode *mnav_dev = NULL;
+
 // static SGPropertyNode *p_node = NULL;
 static SGPropertyNode *q_node = NULL;
 // static SGPropertyNode *r_node = NULL;
@@ -86,26 +90,19 @@ SGPropertyNode *vert_fps_node = NULL;
 SGPropertyNode *forward_accel_node = NULL;
 SGPropertyNode *ground_alt_press_m_node = NULL;
 
-// gps property nodes
-static SGPropertyNode *gps_lat_node = NULL;
-static SGPropertyNode *gps_lon_node = NULL;
-// static SGPropertyNode *gps_alt_node = NULL;
-// static SGPropertyNode *gps_ve_node = NULL;
-// static SGPropertyNode *gps_vn_node = NULL;
-// static SGPropertyNode *gps_vd_node = NULL;
-static SGPropertyNode *gps_track_node = NULL;
-
 
 // open and intialize the MNAV communication channel
 void mnav_init()
 {
+    mnav_dev = fgGetNode("/config/sensors/mnav/device", true);
+
     int		nbytes = 0;
     uint8_t  	SCALED_MODE[11] ={0x55,0x55,0x53,0x46,0x01,0x00,0x03,0x00, 'S',0x00,0xF0};
     uint8_t          CH_BAUD[11]     ={0x55,0x55,0x57,0x46,0x01,0x00,0x02,0x00,0x03,0x00,0xA3};
     uint8_t		CH_SAMP[11]     ={0x55,0x55,0x53,0x46,0x01,0x00,0x01,0x00,0x02,0x00,0x9D};
     uint8_t          CH_SERVO[7]     ={0x55,0x55,0x53,0x50,0x00,0x00,0xA3};
 
-    printf("[mnav (%s)] ...\n", mnav_dev);
+    printf("[mnav (%s)] ...\n", mnav_dev->getStringValue());
 
     //
     // Open and configure Serial Port2 (com2)
@@ -120,7 +117,8 @@ void mnav_init()
     // 100-200ms between message.  For now it's easier to just sleep 1
     // second.
 
-    sPort2 = open_serial( mnav_dev, BAUDRATE_38400, false, false );
+    sPort2 = open_serial( mnav_dev->getStringValue(),
+			  BAUDRATE_38400, false, false );
     // printf("Opened serial port at 38400.\n");
       
     while (nbytes != 11) {
@@ -131,7 +129,8 @@ void mnav_init()
     nbytes = 0;  
     close(sPort2);
 
-    sPort2 = open_serial( mnav_dev, BAUDRATE_57600, false, false );
+    sPort2 = open_serial( mnav_dev->getStringValue(),
+			  BAUDRATE_57600, false, false );
     // printf("Opened serial port at 57600.\n");
   
     
@@ -176,35 +175,27 @@ void mnav_init()
     ground_alt_press_m_node
         = fgGetNode("/position/ground-altitude-pressure-m", true);
 
-    // initialize gps property nodes
-    gps_lat_node = fgGetNode("/position/latitude-gps-deg", true);
-    gps_lon_node = fgGetNode("/position/longitude-gps-deg", true);
-    // gps_alt_node = fgGetNode("/position/altitude-gps-m", true);
-    // gps_ve_node = fgGetNode("/velocities/ve-gps-ms", true);
-    // gps_vn_node = fgGetNode("/velocities/vn-gps-ms", true);
-    // gps_vd_node = fgGetNode("/velocities/vd-gps-ms", true);
-    gps_track_node = fgGetNode("/orientation/groundtrack-gps-deg", true);
-
     if ( display_on ) {
         printf(" initialized.\n");
     }
 }
 
 
-// Main IMU/GPS data aquisition routine
+// Main MNAV data aquisition routine
 //
 // Note this blocks until new IMU/GPS data is available.  The rate at
 // which the MNAV sends data dictates the timing and rate of the
-// entire ugear program.
-//
-mnav_result_t mnav_read()
+// entire ugear program.  This routine fills in both the imu and gps
+// structure if data is available from the MNAV.
+
+void mnav_read()
 {
+    imu_data_valid = false;
+    gps_data_valid = false;
+
     int headerOK = 0;
     int nbytes = 0;
     uint8_t input_buffer[FULL_PACKET_SIZE]={0,};
-
-    bool imu_valid_data = false;
-    bool gps_valid_data = false;
 
     int trouble_count = 1;
 
@@ -238,13 +229,13 @@ mnav_result_t mnav_read()
 
         // check checksum
         if ( checksum(input_buffer,SENSOR_PACKET_LENGTH) ) {
-            decode_imupacket(&imupacket, input_buffer);
-            imu_valid_data = true;
+            decode_imupacket(&imu_data, input_buffer);
+            imu_data_valid = true;
         } else {
             if ( display_on ) {
                 printf("[imu]:checksum error...!\n"); 
             }
-            imupacket.status = ChecksumError; 
+            imu_data.status = ChecksumError; 
         };
         break;
 
@@ -259,23 +250,23 @@ mnav_result_t mnav_read()
 
         // check checksum
         if ( checksum(input_buffer,FULL_PACKET_SIZE) ) {
-            decode_imupacket(&imupacket, input_buffer);
-            imu_valid_data = true;
+            decode_imupacket(&imu_data, input_buffer);
+            imu_data_valid = true;
 		     
             // check GPS data packet
             if(input_buffer[33]=='G') {
-                decode_gpspacket(&gpspacket, input_buffer);
-		gps_valid_data = true;
+                decode_gpspacket(&gps_data, input_buffer);
+		gps_data_valid = true;
             } else {
 		printf("[gps]:data error...!\n");
-		gpspacket.status = NotValid;
+		gps_data.status = NotValid;
             } // end if(checksum(input_buffer...
         } else { 
             if ( display_on ) {
                 printf("[imu]:checksum error(gps)...!\n");
             }
-            gpspacket.status = ChecksumError;
-            imupacket.status = ChecksumError; 
+            gps_data.status = ChecksumError;
+            imu_data.status = ChecksumError; 
         }
         break;
 
@@ -285,16 +276,6 @@ mnav_result_t mnav_read()
         }
 
     } // end case
-
-    if ( imu_valid_data && gps_valid_data ) {
-	return IMUGPSValid;
-    } else if ( imu_valid_data ) {
-	return IMUValid;
-    } else if ( gps_valid_data ) {
-	return GPSValid;
-    } else {
-	return NoValidData;
-    }
 }
 
 
@@ -309,20 +290,20 @@ void mnav_imu_update() {
     static float accel_filt = 0.0;
 
     // Do a simple first order low pass filter to reduce noise
-    Ps_filt = 0.97 * Ps_filt + 0.03 * imupacket.Ps;
-    Pt_filt = 0.97 * Pt_filt + 0.03 * imupacket.Pt;
+    Ps_filt = 0.97 * Ps_filt + 0.03 * imu_data.Ps;
+    Pt_filt = 0.97 * Pt_filt + 0.03 * imu_data.Pt;
 
     // best guess at true altitude
     float true_alt_m = Ps_filt + pressure_error_m_node->getFloatValue();
 
     // compute rate of climb based on pressure altitude change
-    float climb = (Ps_filt - Ps_filt_last) / (imupacket.time - t_last);
+    float climb = (Ps_filt - Ps_filt_last) / (imu_data.time - t_last);
     Ps_filt_last = Ps_filt;
     climb_filt = 0.97 * climb_filt + 0.03 * climb;
 
     // compute a forward acceleration value based on pitot speed
     // change
-    float accel = (Pt_filt - Pt_filt_last) / (imupacket.time - t_last);
+    float accel = (Pt_filt - Pt_filt_last) / (imu_data.time - t_last);
     Pt_filt_last = Pt_filt;
     accel_filt = 0.97 * accel_filt + 0.03 * accel;
 
@@ -331,33 +312,33 @@ void mnav_imu_update() {
     // assumes that system clock time starts counting at zero.
     // Watch out if we ever find a way to set the system clock to
     // real time.
-    static float ground_alt_press = imupacket.Ps;
-    if ( imupacket.time < 30.0 ) {
-	float dt = imupacket.time - t_last;
-	float elapsed = imupacket.time - dt;
+    static float ground_alt_press = imu_data.Ps;
+    if ( imu_data.time < 30.0 ) {
+	float dt = imu_data.time - t_last;
+	float elapsed = imu_data.time - dt;
 	ground_alt_press
-	    = (elapsed * ground_alt_press + dt * imupacket.Ps)
-	    / imupacket.time;
+	    = (elapsed * ground_alt_press + dt * imu_data.Ps)
+	    / imu_data.time;
 	ground_alt_press_m_node->setFloatValue( ground_alt_press );
     }
 
-    t_last = imupacket.time;
+    t_last = imu_data.time;
 
-    /* printf("%.2f %.2f\n", imupacket.phi * SG_RADIANS_TO_DEGREES,
-       imupacket.the * SG_RADIANS_TO_DEGREES); */
+    /* printf("%.2f %.2f\n", imu_data.phi * SG_RADIANS_TO_DEGREES,
+       imu_data.the * SG_RADIANS_TO_DEGREES); */
 
     // publish values to property tree
-    // p_node->setFloatValue( imupacket.p * SG_RADIANS_TO_DEGREES );
-    q_node->setFloatValue( imupacket.q * SG_RADIANS_TO_DEGREES );
-    // r_node->setFloatValue( imupacket.r * SG_RADIANS_TO_DEGREES );
-    theta_node->setFloatValue( imupacket.the * SG_RADIANS_TO_DEGREES );
-    phi_node->setFloatValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
-    psi_node->setFloatValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
-    // Ps_node->setFloatValue( imupacket.Ps );
-    // Pt_node->setFloatValue( imupacket.Pt );
+    // p_node->setFloatValue( imu_data.p * SG_RADIANS_TO_DEGREES );
+    q_node->setFloatValue( imu_data.q * SG_RADIANS_TO_DEGREES );
+    // r_node->setFloatValue( imu_data.r * SG_RADIANS_TO_DEGREES );
+    theta_node->setFloatValue( imu_data.the * SG_RADIANS_TO_DEGREES );
+    phi_node->setFloatValue( imu_data.phi * SG_RADIANS_TO_DEGREES );
+    psi_node->setFloatValue( imu_data.psi * SG_RADIANS_TO_DEGREES );
+    // Ps_node->setFloatValue( imu_data.Ps );
+    // Pt_node->setFloatValue( imu_data.Pt );
     Ps_filt_node->setFloatValue( Ps_filt );
     Pt_filt_node->setFloatValue( Pt_filt * SG_MPS_TO_KT );
-    // comp_time_node->setDoubleValue( imupacket.time );
+    // comp_time_node->setDoubleValue( imu_data.time );
     true_alt_ft_node->setFloatValue( true_alt_m * SG_METER_TO_FEET );
     agl_alt_ft_node->setFloatValue( (Ps_filt - ground_alt_press) * SG_METER_TO_FEET );
     vert_fps_node->setFloatValue( climb_filt * SG_METER_TO_FEET );
@@ -367,37 +348,21 @@ void mnav_imu_update() {
     //        Ps_filt, navpacket.alt, true_alt_m, climb_filt);
 
     if ( console_link_on ) {
-	console_link_imu( &imupacket );
+	console_link_imu( &imu_data );
     }
 
     if ( log_to_file ) {
-	log_imu( &imupacket );
+	log_imu( &imu_data );
     }
 }
 
 
 void mnav_gps_update() {
-    // publish values to property tree
-    gps_lat_node->setDoubleValue( gpspacket.lat );
-    gps_lon_node->setDoubleValue( gpspacket.lon );
-    // gps_alt_node->setDoubleValue( gpspacket.alt );
-    // gps_ve_node->setDoubleValue( gpspacket.ve );
-    // gps_vn_node->setDoubleValue( gpspacket.vn );
-    // gps_vd_node->setDoubleValue( gpspacket.vd );
-    gps_track_node->setDoubleValue( 90 - atan2(gpspacket.vn, gpspacket.ve)
-				    * SG_RADIANS_TO_DEGREES );
-
-    if ( console_link_on ) {
-	console_link_gps( &gpspacket );
-    }
-
-    if ( log_to_file ) {
-	log_gps( &gpspacket );
-    }
+    // noop for now
 }
 
 
-void mnav_servo_update() {
+void mnav_manual_override_check() {
     //////////////////////////////////////////////////////////////
     // NOTICE: MANUAL OVERRIDE
     //////////////////////////////////////////////////////////////
@@ -574,6 +539,24 @@ void decode_imupacket( struct imu *data, uint8_t* buffer )
     data->status = ValidData;
 
     servo_in.time = data->time;
+}
+
+
+bool mnav_get_imu( struct imu *data ) {
+    if ( imu_data_valid ) {
+	memcpy( data, &imu_data, sizeof(struct imu) );
+    }
+
+    return imu_data_valid;
+}
+
+
+bool mnav_get_gps( struct gps *data ) {
+    if ( gps_data_valid ) {
+	memcpy( data, &gps_data, sizeof(struct gps) );
+    }
+
+    return gps_data_valid;
 }
 
 

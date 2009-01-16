@@ -16,27 +16,18 @@ extern bool autopilot_active;
 extern bool autopilot_reinit;
 extern char *cnt_status;
 
-#define MAX_MNAV_DEV 64
-extern char mnav_dev[MAX_MNAV_DEV];
-
-enum mnav_result_t {
-    NoValidData,		/* data didn't parse or checksum correctly */
-    IMUValid,			/* Valid IMU data was loaded into the
-				   global structure */
-    GPSValid,			/* Valid GPS data was loaded into the
-				   global structure */
-    IMUGPSValid,		/* Valid IMU and GPS data was loaded
-				   into the global structure */
-};
-
 
 // function prototypes
 void mnav_init();
-mnav_result_t mnav_read();
+void mnav_read();
+void mnav_close();
+
+bool mnav_get_imu( struct imu *data );
+bool mnav_get_gps( struct gps *data );
+
 void mnav_imu_update();
 void mnav_gps_update();
-void mnav_servo_update();
-void mnav_close();
+void mnav_manual_override_check();
 
 void send_servo_cmd();
 void send_short_servo_cmd();

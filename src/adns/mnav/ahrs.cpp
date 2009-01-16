@@ -32,10 +32,10 @@ void 		ahrs_algorithm(struct imu *data);
 double 		wraparound(double dta);
 
 //predefined variables
-#define		g	9.81		//m/sec^2
-#define         g2      19.62   	//2*g
-#define		r2d	57.2958         //raidan to degree
-#define		d2r     0.01745		//degree to radian
+#define		g	9.81		// m/sec^2
+#define         g2      19.62   	// 2*g
+#define		r2d	57.2958         // radian to degree
+#define		d2r     0.01745		// degree to radian
 
 // sensor characteristics
 
@@ -59,6 +59,8 @@ double 		wraparound(double dta);
 #define         sign(arg) (arg>=0 ? 1:-1)
 
 // global variables
+struct imu imupacket;
+
 MATRIX aP,aQ,aR,aK,Fsys,Hj,Iden;
 MATRIX tmp73,tmp33,tmp77,tmpr,Rinv,mat77;
 MATRIX Hpsi,Kpsi,tmp71;
@@ -211,7 +213,7 @@ void ahrs_algorithm(struct imu *data)
     mat_mymul3(tmp77,Fsys,aP,3);
     for(i=0;i<7;i++) aP[i][i] += aQ[i][i];
 
-    if (vgCheck) {
+    if ( true /*vgCheck*/ ) {
         // Pitch and Roll Update at 25 Hz
         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         //Extended Kalman filter: correction step for pitch and roll
@@ -247,9 +249,9 @@ void ahrs_algorithm(struct imu *data)
         mat_copy(tmp77,aP);
     }
    
-    if ( ++magCheck == 5 ) {  
-        // Heading update at 10 Hz
-        if ( vgCheck )
+    if ( ++magCheck == 2 ) {  
+        // Heading update at 50 Hz
+        if ( false /* vgCheck */ )
             //avoid both acc and mag updated at the same time:due to
             //computational power
             --magCheck;

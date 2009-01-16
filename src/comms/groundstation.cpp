@@ -19,6 +19,11 @@
 #include <arpa/inet.h>
 
 #include "globaldefs.h"
+
+#include "navigation/ahrs.h"
+#include "navigation/nav.h"
+#include "sensors/GPS.h"
+
 #include "groundstation.h"
 
 

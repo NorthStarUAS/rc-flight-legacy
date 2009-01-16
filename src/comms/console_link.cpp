@@ -11,6 +11,7 @@
 
 #include <control/route_mgr.hxx>
 #include <health/health.h>
+#include <props/props.hxx>
 #include <util/strutils.hxx>
 
 #include "console_link.h"
@@ -19,14 +20,17 @@ using std::string;
 
 // global variables
 
+static SGPropertyNode *console_dev = NULL;
 bool console_link_on = false;    // link to ground station via console port
-char console_dev[64] = "/dev/ttyS0";
 static int confd;
 
 
 // open up the console port
 void console_link_init() {
-    confd = open_serial( console_dev, BAUDRATE_115200, true, true );
+    console_dev = fgGetNode("/config/console/device", true);
+
+    confd = open_serial( console_dev->getStringValue(),
+			 BAUDRATE_115200, true, true );
 }
 
 

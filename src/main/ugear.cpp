@@ -39,9 +39,11 @@
 #include "navigation/nav.h"
 #include "props/props.hxx"
 #include "props/props_io.hxx"
+#include "sensors/GPS.h"
 #include "sensors/mnav.h"
 #include "util/exception.hxx"
 #include "util/myprof.h"
+#include "util/netSocket.h"
 #include "util/sg_path.hxx"
 #include "util/timing.h"
 
@@ -53,6 +55,11 @@ using std::string;
 //
 #define NETWORK_PORT      9001		 // network port number
 #define UPDATE_USECS	  200000         // downlink at 5 Hz
+
+//
+// Configuration settings
+static SGPropertyNode *imu_source = NULL;
+static SGPropertyNode *gps_source = NULL;
 
 
 //
@@ -89,6 +96,9 @@ int main( int argc, char **argv )
     bool initial_home   = false;   // initial home position determined
     double gps_timeout_sec = 10.0; // initial gps timeout
 
+    // initialize network library
+    netInit( NULL, NULL );
+
     // initialize properties
     props = new SGPropertyNode;
 
@@ -122,12 +132,6 @@ int main( int argc, char **argv )
     log_to_file = p->getBoolValue();
     printf("log path = %s enabled = %d\n", log_path.c_str(), log_to_file);
 
-    p = fgGetNode("/config/mnav/device", true);
-    strncpy( mnav_dev, p->getStringValue(), MAX_MNAV_DEV );
-
-    p = fgGetNode("/config/console/device", true);
-    strncpy( console_dev, p->getStringValue(), MAX_CONSOLE_DEV );
-
     p = fgGetNode("/config/nav-filter/enable", true);
     enable_nav = p->getBoolValue();
 
@@ -144,6 +148,9 @@ int main( int argc, char **argv )
     p = fgGetNode("/config/route/enable", true);
     enable_route = p->getBoolValue();
 
+    imu_source = fgGetNode("/config/sensors/imu-source", true);
+    gps_source = fgGetNode("/config/sensors/gps-source", true);
+
     // Parse the command line
     for ( iarg = 1; iarg < argc; iarg++ ) {
         if ( !strcmp(argv[iarg], "--log-dir" )  ) {
@@ -156,11 +163,12 @@ int main( int argc, char **argv )
             if ( !strcmp(argv[iarg], "in") ) log_servo_out = false;
         } else if ( !strcmp(argv[iarg], "--mnav" )  ) {
             ++iarg;
-            strncpy( mnav_dev, argv[iarg], MAX_MNAV_DEV );
+	    p = fgGetNode("/config/sensors/mnav/device", true);
+	    p->setStringValue( argv[iarg] );
         } else if ( !strcmp(argv[iarg], "--console" )  ) {
             ++iarg;
-            strncpy( console_dev, argv[iarg], MAX_CONSOLE_DEV );
-	    console_link_on = true;
+	    p = fgGetNode("/config/console/device", true);
+	    p->setStringValue( argv[iarg] );
         } else if ( !strcmp(argv[iarg],"--display") ) {
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) display_on = true;
@@ -206,6 +214,9 @@ int main( int argc, char **argv )
 
     // Initialize the communcation channel with the MNAV
     mnav_init();
+
+    // Initialize communication with the GPS
+    GPS_init();
 
     // init system health and status monitor
     health_init();
@@ -265,10 +276,10 @@ int main( int argc, char **argv )
         // function will then call the ahrs_update() function as
         // appropriate to compute the attitude estimate.
 	mnav_prof.start();
-        mnav_result_t result = mnav_read();
+        mnav_read();
 	mnav_prof.stop();
 
-	if ( result == IMUValid || result == IMUGPSValid ) {
+	if ( mnav_get_imu(&imupacket) ) {
 	    ahrs_prof.start();
 	    ahrs_update();
 	    ahrs_prof.stop();
@@ -276,11 +287,9 @@ int main( int argc, char **argv )
 	    mnav_imu_update();
 	}
 
-	if ( result == GPSValid || result == IMUGPSValid ) {
-	    mnav_gps_update();
-	}
+	GPS_update();
 
-	mnav_servo_update();
+	mnav_manual_override_check();
 
 	if ( enable_nav ) {
             // navigation (update at 10hz.)  compute a location estimate
@@ -445,6 +454,7 @@ int main( int argc, char **argv )
     // close and exit
     ahrs_close();
     mnav_close();
+    GPS_close();
     if ( enable_nav ) {
       nav_close();
     }
