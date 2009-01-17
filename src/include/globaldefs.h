@@ -10,8 +10,6 @@
 
 #define NSECS_PER_SEC		1000000000
 
-//Stargate I or II
-//#define SG2
 
 enum errdefs {
     NotValid,			/* data not valid */
@@ -34,7 +32,7 @@ struct gps {
    double time;
    double lat,lon,alt;          /* gps position                */
    double ve,vn,vd;             /* gps velocity                */
-   double ITOW;                 /* seconds since start of week */
+   double date;                 /* unix seconds from gps       */
    uint64_t status;		/* data status flag            */
 };
 

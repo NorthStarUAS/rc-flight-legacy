@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+
+<!-- Master MicroGear config file -->
+
+<PropertyList>
+  <config>
+
+    <!-- Onboard data logging.  Caution: enabling this feature can have -->
+    <!-- a significant performance impact on the ugear application. -->
+    <data>
+      <log-path>/mnt/mmc/FlightData</log-path>
+      <enable type="bool">false</enable>
+    </data>
+
+    <!-- Ground station communication. -->
+    <console>
+      <device>/dev/ttyS0</device>
+      <lost-link-timeout-sec>60</lost-link-timeout-sec>
+    </console>
+
+    <!-- Sensor selection and configuration. -->
+    <sensors>
+      <!-- imu-source can be: mnav, or none -->
+      <imu-source>mnav</imu-source>
+
+      <!-- MNAV configuration -->
+      <mnav>
+        <device>/dev/ttyS1</device>
+      </mnav>
+
+      <!-- gps-source can be: gpsd, mnav, none -->
+      <gps-source>gpsd</gps-source>
+
+      <!-- GPSD configuration -->
+      <gpsd>
+        <port>2947</port>
+        <host>localhost</host>
+        <init-string>n=0</init-string>
+        <init-string>w=1</init-string>
+      </gpsd>
+    </sensors>
+
+    <!-- AHRS configuration. -->
+    <ahrs>
+      <!-- hard iron calibration parameters, see the readme for -->
+      <!-- configuration and calibration instructions. -->
+      <bBx>0.0</bBx>
+      <bBy>0.0</bBy>
+      <sfx>1.0</sfx>
+      <sfy>1.0</sfy>
+    </ahrs>
+
+    <!-- Nav algorithm configuration -->
+    <nav-filter>
+      <!-- set value to true to enable the 10hz navigational filter -->
+      <enable type="bool">true</enable>
+
+      <!-- Magnetic Declination (Variation) -->
+      <!-- You can force a value or specify "auto" to have the system -->
+      <!-- compute a magnetic variation based on gps location and date -->
+
+      <!-- <magvar-deg>0.827</magvar-deg> --> <!-- @KANE, 01/17/2009 -->
+      <magvar-deg>auto</magvar-deg>
+
+      <!-- how long do we trust the navigation estimate after we've lost gps -->
+      <gps-timeout-sec>15.0</gps-timeout-sec>
+    </nav-filter>
+
+    <!-- Autopilot and control configuration. -->
+    <autopilot>
+      <!-- set value to true to enable the autopilot -->
+      <enable type="bool">true</enable>
+
+      <!-- select the autopilot configuration -->
+      <path>autopilots/Malolo2-alt-thr.xml</path>
+      <!-- <path>autopilots/SeniorTelemaster.xml</path> -->
+      <!-- <path>autopilots/Rascal110-combined.xml</path> -->
+      <!-- <path>autopilots/Rascal110-wingleveler.xml</path> -->
+      <!-- <path>autopilots/Rascal110-pitchleveler.xml</path> -->
+
+      <!-- set value to true to enable flying wing elevon mixing -->
+      <elevon-mixing type="bool">true</elevon-mixing>
+    </autopilot>
+
+    <!-- Primary route selection and configuration. -->
+    <route>
+      <!-- set value to true to enable the high level route management -->
+      <enable type="bool">true</enable>
+
+      <!-- <path>routes/NOAA.xml</path> -->
+      <!-- <path>routes/SPRC-bowtie.xml</path> -->
+      <!-- <path>routes/Jensen-tri.xml</path> -->
+      <!-- <path>routes/WinonaRC.xml</path> -->
+      <path>routes/bowtie.xml</path> <!-- relative bowtie -->
+    </route>
+
+  </config>
+</PropertyList>

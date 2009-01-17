@@ -8,7 +8,7 @@ MicroGear TODO
   gps, our nav estimate has likely diverged, and we are starting to
   get desperate.
 
-- Better handling of magnetic offset ... at least make it
+- Automatically compute the magnetic offset ... at least make it
   configurable if not compute a close approximation.
 
 - Resolve #include "dir/file.h" vs. <dir/file.h> vs. "file.h"
@@ -60,6 +60,9 @@ MicroGear TODO
   onboard logging.  This will disappear as an issue anyway when we
   migrate away from the MNAV.
 
+
+x 01/17/2009 - Make the local magnetic declination (variation)
+  configurable rather than hard coded.
 
 x 01/17/2009 - Work on clearer gps/nav data validation logic and flagging.
 

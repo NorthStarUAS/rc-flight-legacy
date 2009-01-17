@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 #include <zlib.h>
 
 #include "navigation/ahrs.h"
@@ -189,16 +190,12 @@ void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
     printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n",xs[4]*57.3,xs[5]*57.3,xs[6]*57.3);
 
     if ( gdata->status == ValidData ) {
-        double tmp = gdata->ITOW;
-        int days = (int)(tmp / (24 * 60 * 60));
-        tmp -= days * 24 * 60 * 60;
-        int hours = (int)(tmp / (60 * 60));
-        tmp -= hours * 60 * 60;
-        int min = (int)(tmp / 60);
-        tmp -= min * 60;
-        double sec = tmp;
-        printf("[GPS  ]:ITOW= %.3f[sec]  %dd %02d:%02d:%06.3f\n",
-	       gdata->ITOW, days, hours, min, sec);
+	time_t current_time = gdata->date;
+	double remainder = gdata->date - current_time;
+	struct tm *date = gmtime(&current_time);
+        printf("[GPS  ]:date = %04d/%02d/%02d %02d:%02d:%05.2f\n",
+	       date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
+	       date->tm_hour, date->tm_min, date->tm_sec + remainder);
         printf("[GPS  ]:lon = %f[deg], lat = %f[deg], alt = %f[m], age = %.2f\n",
 	       gdata->lon, gdata->lat, gdata->alt, current_time - gdata->time);
     } else {
