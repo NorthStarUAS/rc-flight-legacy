@@ -5,6 +5,7 @@
 #include <zlib.h>
 
 #include "navigation/ahrs.h"
+#include "util/timing.h"
 
 #include "logging.h"
 
@@ -178,12 +179,15 @@ void flush_health() {
 void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
                       struct servo *sdata, struct health *hdata )
 {
+    double current_time = get_Time();
+
     printf("[m/s^2]:ax  = %6.3f ay  = %6.3f az  = %6.3f \n",data->ax,data->ay,data->az);
     printf("[deg/s]:p   = %6.3f q   = %6.3f r   = %6.3f \n",data->p*57.3, data->q*57.3, data->r*57.3);
     printf("[deg  ]:phi = %6.2f the = %6.2f psi = %6.2f \n",data->phi*57.3,data->the*57.3,data->psi*57.3);
     printf("[Gauss]:hx  = %6.3f hy  = %6.3f hz  = %6.3f \n",data->hx,data->hy,data->hz);
     printf("[     ]:Ps  = %6.3f Pt  = %6.3f             \n",data->Ps,data->Pt);
     printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n",xs[4]*57.3,xs[5]*57.3,xs[6]*57.3);
+
     if ( gdata->status == ValidData ) {
         double tmp = gdata->ITOW;
         int days = (int)(tmp / (24 * 60 * 60));
@@ -193,12 +197,20 @@ void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
         int min = (int)(tmp / 60);
         tmp -= min * 60;
         double sec = tmp;
-        printf("[GPS  ]:ITOW= %.3f[sec]  %dd %02d:%02d:%06.3f\n", gdata->ITOW, days, hours, min, sec);
-        printf("[GPS  ]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",gdata->lon,gdata->lat,gdata->alt);
+        printf("[GPS  ]:ITOW= %.3f[sec]  %dd %02d:%02d:%06.3f\n",
+	       gdata->ITOW, days, hours, min, sec);
+        printf("[GPS  ]:lon = %f[deg], lat = %f[deg], alt = %f[m], age = %.2f\n",
+	       gdata->lon, gdata->lat, gdata->alt, current_time - gdata->time);
+    } else {
+	printf("[GPS  ]:[No Valid Data]\n");
     }
+
     if ( ndata->status == ValidData ) {
         printf("[nav  ]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",            ndata->lon,ndata->lat,ndata->alt);	
+    } else {
+	printf("[nav  ]:[No Valid Data]\n");
     }
+
     printf("[Servo]: %d %d %d %d %d %d\n", sdata->chn[0], sdata->chn[1],
            sdata->chn[2], sdata->chn[3], sdata->chn[4], sdata->chn[5]);
     printf("[health]: cmdseq = %d  tgtwp = %d  loadavg = %.2f\n",

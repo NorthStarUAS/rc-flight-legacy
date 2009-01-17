@@ -1,6 +1,21 @@
 MicroGear TODO
 ==============
 
+- Implement some dead reckoning system that tries to track location
+  based on magnetic heading, airspeed, and wind speed estimate, and
+  time elapsed.  Snap to gps location when ever we have fresh gps
+  data.  Use as a possible fall back for a situation where we lose
+  gps, our nav estimate has likely diverged, and we are starting to
+  get desperate.
+
+- Better handling of magnetic offset ... at least make it
+  configurable if not compute a close approximation.
+
+- Resolve #include "dir/file.h" vs. <dir/file.h> vs. "file.h"
+
+- Replace adhoc PI R2D, and D2R type constants scattered through the
+  code.
+
 - Add support for a primary route and a standby route.  Support
   external commands to clear the stby route, upload new waypoints, and
   swap the standby and primary routes.
@@ -42,10 +57,16 @@ MicroGear TODO
 - ground station sends up true date so gumstix can set it's clock
   properly (?) -- low priority.  Maybe we could send this as a message
   in the early startup so it can get logged someplace if we are doing
-  onboard logging.
+  onboard logging.  This will disappear as an issue anyway when we
+  migrate away from the MNAV.
 
 
-x 11/11/2008 - cmopute a forward acceleration value based on pitot sensor
+x 01/17/2009 - Work on clearer gps/nav data validation logic and flagging.
+
+x 01/16/2009 - Add gpsd support.  More can be done, but basic support
+  is there and working.
+
+x 11/11/2008 - compute a forward acceleration value based on pitot sensor
   and expose that into the property system as /accelerations/airspeed-ktps
 
 x 10/20/2008 - first stab at adding up elevator in turns... proportional

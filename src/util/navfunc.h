@@ -31,7 +31,7 @@
 #define FT2M         0.3048                /* feet to meters conversion factor */
 #define KTS2ms       0.5144                /* Knots to meters/sec conversion factor*/
 #define PI           3.14159265358979      /* pi */
-#define MAG_DEC     -0.270944862           /*magnetic declination of Stanford (rad): -15.15 */
+// #define MAG_DEC     -0.270944862           /*magnetic declination of Stanford (rad): -15.15 */
 #define MM2M         0.001                 /*mm to m*/
 
 /*---------------     Define Structures and Enumerated Types -------------*/
