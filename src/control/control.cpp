@@ -33,7 +33,6 @@
 #define deg2servo     819    	     // 65536/80deg.
 #define servo_mid_pos 32768          // middle position of the servos
 #define sign(arg)    (arg>=0 ? 1:-1)
-#define MAG_DEC      -0.270944862    /*magnetic declination of Stanford (rad): -15.15 */
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
