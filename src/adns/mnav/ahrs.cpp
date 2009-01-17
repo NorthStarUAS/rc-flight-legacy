@@ -20,7 +20,9 @@
 #include "control/control.h"
 #include "include/globaldefs.h"
 #include "props/props.hxx"
+#include "sensors/IMU.h"
 #include "util/matrix.h"
+#include "util/myprof.h"
 #include "util/timing.h"
 
 #include "util.h"
@@ -59,7 +61,6 @@ double 		wraparound(double dta);
 #define         sign(arg) (arg>=0 ? 1:-1)
 
 // global variables
-struct imu imupacket;
 
 MATRIX aP,aQ,aR,aK,Fsys,Hj,Iden;
 MATRIX tmp73,tmp33,tmp77,tmpr,Rinv,mat77;
@@ -127,7 +128,9 @@ void ahrs_init()
 // ahrs update() routine
 void ahrs_update()
 {
+    ahrs_prof.start();
     ahrs_algorithm(&imupacket);	   
+    ahrs_prof.stop();
 
     if ( display_on ) snap_time_interval("ahrs",  100, 0);
 }
@@ -249,63 +252,57 @@ void ahrs_algorithm(struct imu *data)
         mat_copy(tmp77,aP);
     }
    
-    if ( ++magCheck == 2 ) {  
-        // Heading update at 50 Hz
-        if ( false /* vgCheck */ )
-            //avoid both acc and mag updated at the same time:due to
-            //computational power
-            --magCheck;
-        else {	  
-            magCheck = 0;	
-            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            // second stage kalman filter update to estimate the heading angle
-            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            //hard-iron calibration
-            // original ... data->hx = sfx*(data->hx) - bBx;
-            // original ... data->hy = sfy*(data->hy) - bBy;
-            data->hx = sfx*(data->hx - bBx);
-            data->hy = sfy*(data->hy - bBy);
+    if ( ++magCheck >= 2 ) {  
+        // Heading update at 25 Hz
+	magCheck = 0;	
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// second stage kalman filter update to estimate the heading angle
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	//hard-iron calibration
+	// original ... data->hx = sfx*(data->hx) - bBx;
+	// original ... data->hy = sfy*(data->hy) - bBy;
+	data->hx = sfx*(data->hx - bBx);
+	data->hy = sfy*(data->hy - bBy);
    
-            //magnetic heading correction due to roll and pitch angle
-            cPHI= cos(data->phi);
-            sPHI= sin(data->phi);
-            Bxc = (data->hx)*cos(data->the)+((data->hy)*sPHI+(data->hz)*cPHI)*sin(data->the);
-            Byc = (data->hy)*cPHI-(data->hz)*sPHI;
+	//magnetic heading correction due to roll and pitch angle
+	cPHI= cos(data->phi);
+	sPHI= sin(data->phi);
+	Bxc = (data->hx)*cos(data->the)+((data->hy)*sPHI+(data->hz)*cPHI)*sin(data->the);
+	Byc = (data->hy)*cPHI-(data->hz)*sPHI;
 
-            //Jacobian
-            //||q||^2=1 must happen before using this
-            norm = 1.0/sqrt(xs[0]*xs[0]+xs[1]*xs[1]+xs[2]*xs[2]+xs[3]*xs[3]);
-            for(i=0;i<4;i++) xs[i] = xs[i]*norm;
+	//Jacobian
+	//||q||^2=1 must happen before using this
+	norm = 1.0/sqrt(xs[0]*xs[0]+xs[1]*xs[1]+xs[2]*xs[2]+xs[3]*xs[3]);
+	for(i=0;i<4;i++) xs[i] = xs[i]*norm;
 
-            coeff1[0]= 2*(xs[1]*xs[2]+xs[0]*xs[3]);
-            coeff1[1]= 1 - 2*(xs[2]*xs[2]+xs[3]*xs[3]);
-            coeff1[2]= 2/(coeff1[0]*coeff1[0]+coeff1[1]*coeff1[1]);
+	coeff1[0]= 2*(xs[1]*xs[2]+xs[0]*xs[3]);
+	coeff1[1]= 1 - 2*(xs[2]*xs[2]+xs[3]*xs[3]);
+	coeff1[2]= 2/(coeff1[0]*coeff1[0]+coeff1[1]*coeff1[1]);
    
-            temp[0] = coeff1[1]*coeff1[2];
-            temp[1] = coeff1[0]*coeff1[2];
+	temp[0] = coeff1[1]*coeff1[2];
+	temp[1] = coeff1[0]*coeff1[2];
       
-            Hpsi[0][0] = xs[3]*temp[0];
-            Hpsi[0][1] = xs[2]*temp[0];
-            Hpsi[0][2] = xs[1]*temp[0]+2*xs[2]*temp[1];
-            Hpsi[0][3] = xs[0]*temp[0]+2*xs[3]*temp[1];
+	Hpsi[0][0] = xs[3]*temp[0];
+	Hpsi[0][1] = xs[2]*temp[0];
+	Hpsi[0][2] = xs[1]*temp[0]+2*xs[2]*temp[1];
+	Hpsi[0][3] = xs[0]*temp[0]+2*xs[3]*temp[1];
       
-            //gain matrix Kpsi = aP*Hpsi'*(Hpsi*aP*Hpsi' + Rpsi)^-1
-            mat_mymul4(aP,Hpsi,tmp71,3);
-            invR = 1/(Hpsi[0][0]*tmp71[0][0]+Hpsi[0][1]*tmp71[1][0]+Hpsi[0][2]*tmp71[2][0]+Hpsi[0][3]*tmp71[3][0]+var_psi);
-            
-            //state update
-            data->psi = atan2(coeff1[0],coeff1[1]);
-            for(i=0;i<7;i++) {
-                Kpsi[i][0] = invR*tmp71[i][0];
-                xs[i] += Kpsi[i][0]*wraparound(atan2(Byc,-Bxc) - data->psi);
-            }
+	//gain matrix Kpsi = aP*Hpsi'*(Hpsi*aP*Hpsi' + Rpsi)^-1
+	mat_mymul4(aP,Hpsi,tmp71,3);
+	invR = 1/(Hpsi[0][0]*tmp71[0][0]+Hpsi[0][1]*tmp71[1][0]+Hpsi[0][2]*tmp71[2][0]+Hpsi[0][3]*tmp71[3][0]+var_psi);
+
+	//state update
+	data->psi = atan2(coeff1[0],coeff1[1]);
+	for(i=0;i<7;i++) {
+	    Kpsi[i][0] = invR*tmp71[i][0];
+	    xs[i] += Kpsi[i][0]*wraparound(atan2(Byc,-Bxc) - data->psi);
+	}
       
-            //error covariance matrix update aP = (I - Kpsi*Hpsi)*aP
-            mat_mymul1(Kpsi,Hpsi,mat77,3); 
-            mat_sub(Iden,mat77,tmpr);
-            mat_mymul5(tmpr,aP, tmp77,3);
-            mat_copy(tmp77,aP);      
-        }
+	//error covariance matrix update aP = (I - Kpsi*Hpsi)*aP
+	mat_mymul1(Kpsi,Hpsi,mat77,3); 
+	mat_sub(Iden,mat77,tmpr);
+	mat_mymul5(tmpr,aP, tmp77,3);
+	mat_copy(tmp77,aP);      
     }
    
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 

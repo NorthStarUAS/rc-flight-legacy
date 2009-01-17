@@ -23,6 +23,7 @@
 #include "navigation/ahrs.h"
 #include "navigation/nav.h"
 #include "sensors/GPS.h"
+#include "sensors/IMU.h"
 
 #include "groundstation.h"
 

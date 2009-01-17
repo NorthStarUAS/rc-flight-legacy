@@ -346,14 +346,6 @@ void mnav_imu_update() {
     
     // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
     //        Ps_filt, navpacket.alt, true_alt_m, climb_filt);
-
-    if ( console_link_on ) {
-	console_link_imu( &imu_data );
-    }
-
-    if ( log_to_file ) {
-	log_imu( &imu_data );
-    }
 }
 
 
@@ -544,7 +536,20 @@ void decode_imupacket( struct imu *data, uint8_t* buffer )
 
 bool mnav_get_imu( struct imu *data ) {
     if ( imu_data_valid ) {
-	memcpy( data, &imu_data, sizeof(struct imu) );
+	// copy fields individually so we don't overwrite phi, the, psi
+	data->time = imu_data.time;
+	data->p = imu_data.p;
+	data->q = imu_data.q;
+	data->r = imu_data.r;
+	data->ax = imu_data.ax;
+	data->ay = imu_data.ay;
+	data->az = imu_data.az;
+	data->hx = imu_data.hx;
+	data->hy = imu_data.hy;
+	data->hz = imu_data.hz;
+	data->Ps = imu_data.Ps;
+	data->Pt = imu_data.Pt;
+	data->status = imu_data.status;
     }
 
     return imu_data_valid;

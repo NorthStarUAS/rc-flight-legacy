@@ -22,6 +22,7 @@
 #include "comms/logging.h"
 #include "props/props.hxx"
 #include "sensors/GPS.h"
+#include "sensors/IMU.h"
 #include "util/matrix.h"
 #include "util/myprof.h"
 #include "util/navfunc.h"
@@ -133,6 +134,8 @@ void nav_init()
 
 void nav_update()
 {
+    nav_prof.start();
+
     struct imu	     imulocal;
     struct gps	     gpslocal;
     static int       gps_state = 0;
@@ -231,6 +234,8 @@ void nav_update()
             snap_time_interval("nav", 20, 1);
         }
     }
+
+    nav_prof.stop();
 }
 
 

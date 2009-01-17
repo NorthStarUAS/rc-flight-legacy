@@ -40,6 +40,7 @@
 #include "props/props.hxx"
 #include "props/props_io.hxx"
 #include "sensors/GPS.h"
+#include "sensors/IMU.h"
 #include "sensors/mnav.h"
 #include "util/exception.hxx"
 #include "util/myprof.h"
@@ -58,8 +59,6 @@ using std::string;
 
 //
 // Configuration settings
-static SGPropertyNode *imu_source = NULL;
-static SGPropertyNode *gps_source = NULL;
 
 
 //
@@ -94,7 +93,8 @@ int main( int argc, char **argv )
     bool enable_route   = false;   // route module enabled/disabled
     bool wifi           = false;   // wifi connection enabled/disabled
     bool initial_home   = false;   // initial home position determined
-    double gps_timeout_sec = 10.0; // initial gps timeout
+    double gps_timeout_sec = 9.0; // nav algorithm gps timeout
+    double lost_link_sec = 59.0;   // lost link timeout
 
     // initialize network library
     netInit( NULL, NULL );
@@ -135,21 +135,26 @@ int main( int argc, char **argv )
     p = fgGetNode("/config/nav-filter/enable", true);
     enable_nav = p->getBoolValue();
 
-    p = fgGetNode("/config/nav-filter/gps-timeout-sec", true);
-    gps_timeout_sec = p->getDoubleValue();
-    if ( gps_timeout_sec < 0.0001 ) {
-	// default to 10 seconds if nothing valid specified
-	gps_timeout_sec = 10.0;
+    p = fgGetNode("/config/nav-filter/gps-timeout-sec");
+    if ( p != NULL && p->getDoubleValue() > 0.0001 ) {
+	// stick with the default if nothing valid specified
+	gps_timeout_sec = p->getDoubleValue();
     }
+    printf("navigation filter enabled = %d  gps timeout = %.1f\n",
+	   enable_nav, gps_timeout_sec);
 
+    p = fgGetNode("/config/console/lost-link-timeout-sec");
+    if ( p != NULL && p->getDoubleValue() > 0.0001 ) {
+	// stick with the default if nothing valid specified
+	lost_link_sec = p->getDoubleValue();
+    }
+    printf("lost link timeout = %.1f\n", lost_link_sec);
+    
     p = fgGetNode("/config/autopilot/enable", true);
     enable_control = p->getBoolValue();
 
     p = fgGetNode("/config/route/enable", true);
     enable_route = p->getBoolValue();
-
-    imu_source = fgGetNode("/config/sensors/imu-source", true);
-    gps_source = fgGetNode("/config/sensors/gps-source", true);
 
     // Parse the command line
     for ( iarg = 1; iarg < argc; iarg++ ) {
@@ -212,10 +217,10 @@ int main( int argc, char **argv )
         nav_init();
     }
 
-    // Initialize the communcation channel with the MNAV
-    mnav_init();
+    // Initialize communication with the selected IMU
+    IMU_init();
 
-    // Initialize communication with the GPS
+    // Initialize communication with the selected GPS
     GPS_init();
 
     // init system health and status monitor
@@ -255,9 +260,8 @@ int main( int argc, char **argv )
 
     printf("Everything inited ... ready to run\n");
 
+    // Notice: the main loop runs at 50hz synced to the IMU data input.
     while ( true ) {
-        // Notice: this loop runs at 50hz synced to the MNAV data input
-
         current_time = get_Time();
 
         // upate timing counters
@@ -272,42 +276,45 @@ int main( int argc, char **argv )
         command_counter++;
         flush_counter++;
 
-        // fetch the next data packet from the MNAV sensor.  This
-        // function will then call the ahrs_update() function as
-        // appropriate to compute the attitude estimate.
-	mnav_prof.start();
-        mnav_read();
-	mnav_prof.stop();
+        // Fetch the next data packet from the IMU.
+	//
+	// This is a blocking routine.  It waits for the next output
+        // of the IMU.  The assumption is that the IMU will spit out
+        // data at a regular interval and thus control the
+        // timing/syncronization of this entire application.
+	IMU_update();
 
-	if ( mnav_get_imu(&imupacket) ) {
-	    ahrs_prof.start();
-	    ahrs_update();
-	    ahrs_prof.stop();
+	// Run the AHRS algorithm.
+	ahrs_update();
 
-	    mnav_imu_update();
-	}
+	mnav_imu_update();
 
+	// Fetch GPS data if available.
 	GPS_update();
 
 	mnav_manual_override_check();
 
-	if ( enable_nav ) {
+	if ( enable_nav && nav_counter >= 5 ) {
             // navigation (update at 10hz.)  compute a location estimate
             // based on gps and accelerometer data.
-            if ( nav_counter >= 5 ) {
-                nav_counter = 0;
-                nav_prof.start();
-                nav_update();
-                nav_prof.stop();
+	    nav_counter = 0;
 
-                // initial home is most recent gps result after being
-                // alive with a solution for 20 seconds
-                if ( !initial_home && navpacket.status == ValidData ) {
-                    SGWayPoint wp( gpspacket.lon, gpspacket.lat, -9999.9 );
-                    if ( route_mgr.update_home(wp, 0.0, true /* force update */) ) {
-                        initial_home = true;
-                    }
-                }
+	    nav_update();
+
+	    // check gps data age.  The nav filter continues to run,
+	    // but the results are marked as NotValid if the most
+	    // recent gps data becomes too old.
+	    if ( current_time > gpspacket.time + gps_timeout_sec ) {
+		navpacket.status = NotValid;
+	    }
+
+	    // initial home is most recent gps result after being
+	    // alive with a solution for 20 seconds
+	    if ( !initial_home && navpacket.status == ValidData ) {
+		SGWayPoint wp( gpspacket.lon, gpspacket.lat, -9999.9 );
+		if ( route_mgr.update_home(wp, 0.0, true /* force update */) ) {
+		    initial_home = true;
+		}
             }
 	}
 
@@ -318,22 +325,23 @@ int main( int argc, char **argv )
                 if ( console_link_command() ) {
                     read_command = true;
                     last_command_time = current_time;
-                    // FIXME: shouldn't assume route mode just because
-                    // we read a command from the ground station
+                    // FIXME: we shouldn't necessarily assume route
+                    // mode just because we read a command from the
+                    // ground station
                     route_mgr.set_route_mode();
                 }
             }
             if ( read_command
-                 && current_time > last_command_time + 60.0
+                 && current_time > last_command_time + lost_link_sec
                  && route_mgr.get_route_mode() != FGRouteMgr::GoHome )
             {
-                // we've established a positive link, but it's been 15
-                // seconds since the last command received and we
-                // aren't already in GoHome mode.  Console link is
-                // assumed to be down or we've flown out of radio
-                // modem range.  Switch to fly home mode.  Ground
-                // station operator will need to send a resume route
-                // command to resume the route.
+                // We have previously established a positive link with
+                // the groundstation, but it's been NN seconds since
+                // the last command received and we aren't already in
+                // GoHome mode.  Console link is assumed to be down or
+                // we've flown out of radio modem range.  Switch to
+                // fly home mode.  Ground station operator will need
+                // to send a resume route command to resume the route.
                 route_mgr.set_home_mode();
             }
         }
