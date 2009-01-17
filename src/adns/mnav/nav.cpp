@@ -51,6 +51,7 @@ void nav_algorithm(struct imu *imudta,struct gps *gpsdta);
 //
 struct nav navpacket;
 short  gps_init_count = 0;
+static double magvar_rad = 0.0;
 
 MATRIX nxs,nF,nG,nGd,nu;
 MATRIX nPn,nQn,nRn,nKn,nRinv;
@@ -59,7 +60,8 @@ MATRIX euler,nIden;
 MATRIX ntmp99,ntmpr,ntmp91,ntmpr91,ntmprr;
 MATRIX ntmp66,ntmp96,ntmp33;
 
-// nav (cooked gps/accelerometer) property nodes
+// nav estimate property nodes
+static SGPropertyNode *magvar_deg_node = NULL;;
 static SGPropertyNode *nav_lat_node = NULL;
 static SGPropertyNode *nav_lon_node = NULL;
 static SGPropertyNode *nav_alt_feet_node = NULL;
@@ -117,6 +119,8 @@ void nav_init()
     navpacket.status = NotValid;
 
     // initialize nav property nodes
+    magvar_deg_node = fgGetNode("/config/nav-filter/magvar-deg", true);
+    magvar_rad = magvar_deg_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
     nav_lat_node = fgGetNode("/position/latitude-deg", true);
     nav_lon_node = fgGetNode("/position/longitude-deg", true);
     nav_alt_feet_node = fgGetNode("/position/altitude-nav-ft", true);
@@ -127,7 +131,8 @@ void nav_init()
     pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
 
     if ( display_on ) {
-        printf("[nav] initialized.\n");
+        printf("[nav] initialized, magvar = %.1f (deg).\n",
+	       magvar_rad * SGD_RADIANS_TO_DEGREES);
     }
 }
 
@@ -287,8 +292,8 @@ void nav_algorithm(struct imu *imudta,struct gps *gpsdta)
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //fill out F and G
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    EulerToDcm(euler,MAG_DEC,ntmp33);
-    mat_scalMul(ntmp33,dt,dcm);
+    EulerToDcm( euler, magvar_rad, ntmp33 );
+    mat_scalMul( ntmp33, dt, dcm );
    
     for(i=0;i<9;i++) nF[i][i]=0;
     nF[0][3] = dt/(Rns + nxs[2][0]);
