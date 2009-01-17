@@ -29,6 +29,7 @@
 #include "util/timing.h"
 
 #include "ahrs.h"
+#include "coremag.h"
 #include "nav.h"
 
 
@@ -120,7 +121,13 @@ void nav_init()
 
     // initialize nav property nodes
     magvar_deg_node = fgGetNode("/config/nav-filter/magvar-deg", true);
-    magvar_rad = magvar_deg_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+    if ( strcmp(magvar_deg_node->getStringValue(), "auto") == 0 ||
+	 strlen(magvar_deg_node->getStringValue()) == 0 )
+    {
+	magvar_rad = 0.0;
+    } else {
+	magvar_rad = magvar_deg_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+    }
     nav_lat_node = fgGetNode("/position/latitude-deg", true);
     nav_lon_node = fgGetNode("/position/longitude-deg", true);
     nav_alt_feet_node = fgGetNode("/position/altitude-nav-ft", true);
@@ -131,8 +138,8 @@ void nav_init()
     pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
 
     if ( display_on ) {
-        printf("[nav] initialized, magvar = %.1f (deg).\n",
-	       magvar_rad * SGD_RADIANS_TO_DEGREES);
+        printf("[nav] initialized, magvar = %s (deg).\n",
+	       magvar_deg_node->getStringValue());
     }
 }
 
@@ -170,7 +177,20 @@ void nav_update()
                 nxs[1][0] = gpspacket.lon*D2R;
                 nxs[2][0] = gpspacket.alt;
 
-                if ( display_on ) printf("[nav] navigation is enabled\n");
+		// initialize magnetic variation
+		if ( strcmp(magvar_deg_node->getStringValue(), "auto") == 0 ) {
+		    long int jd = unixdate_to_julian_days( gpspacket.date );
+		    double field[6];
+		    magvar_rad
+			= calc_magvar( gpspacket.lat*SGD_DEGREES_TO_RADIANS,
+				       gpspacket.lon*SGD_DEGREES_TO_RADIANS,
+				       gpspacket.alt / 1000.0,
+				       jd, field );
+		}
+                if ( display_on ) {
+		    printf("[nav] navigation is enabled, magvar = %.1f (deg)\n",
+			   magvar_rad * SGD_RADIANS_TO_DEGREES );
+		}
             } else {
                 static int gps_counter = 0;
                 gps_counter++;

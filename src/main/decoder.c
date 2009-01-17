@@ -73,7 +73,7 @@ int main()
         fread(&gdta,sizeof(struct gps),1,fgps);
         fprintf(fwgps,"%f\t%14.10f\t%14.10f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t%d\n",
                 gdta.time,gdta.lat,gdta.lon,gdta.alt,gdta.vn,gdta.ve,gdta.vd,
-                gdta.ITOW);
+                gdta.date);
     }
 
     while (!feof(fnav)) {

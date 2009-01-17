@@ -452,9 +452,9 @@ void decode_gpspacket( struct gps *data, uint8_t* buffer )
    
     // gps time
     // data->ITOW = ((data->ITOW = buffer[59]) << 8)|buffer[58];
-    data->ITOW = (buffer[61] << 24) | (buffer[60] << 16) | (buffer[59] << 8)
+    data->date = (buffer[61] << 24) | (buffer[60] << 16) | (buffer[59] << 8)
         | buffer[58];
-    data->ITOW /= 1000.0;
+    data->date /= 1000.0;
 
     // uint16_t msb;
     // msb = ((msb = buffer[61]) << 8) | buffer[60];

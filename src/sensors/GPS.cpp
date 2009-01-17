@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: GPS.cpp,v 1.1 2009/01/16 19:01:33 curt Exp $
+ * $Id: GPS.cpp,v 1.2 2009/01/17 20:28:01 curt Exp $
  */
 
 
@@ -40,7 +40,7 @@ static SGPropertyNode *gps_lon_node = NULL;
 // static SGPropertyNode *gps_vn_node = NULL;
 // static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_track_node = NULL;
-
+static SGPropertyNode *gps_unix_sec_node = NULL;
 
 void GPS_init() {
     // initialize gps property nodes
@@ -58,6 +58,7 @@ void GPS_init() {
     // gps_vn_node = fgGetNode("/velocities/vn-gps-ms", true);
     // gps_vd_node = fgGetNode("/velocities/vd-gps-ms", true);
     gps_track_node = fgGetNode("/orientation/groundtrack-gps-deg", true);
+    gps_unix_sec_node = fgGetNode("/position/gps-unix-time-sec", true);
 
     switch ( source ) {
     case gpsMNAV:
@@ -82,6 +83,12 @@ void GPS_update() {
 
     case gpsMNAV:
 	fresh_data = mnav_get_gps(&gpspacket);
+
+	// mnav conveys little useful date information from the gps,
+	// fake it with a recent date that is close enough to compute
+	// a reasonable magnetic variation, this should be updated
+	// every year or two.
+	gpspacket.date = 1232216597; /* Jan 17, 2009 */
 	break;
 
     case gpsGPSD:

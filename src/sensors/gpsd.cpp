@@ -6,7 +6,7 @@
  *
  * Copyright Curt Olson curtolson@gmail.com
  *
- * $Id: gpsd.cpp,v 1.1 2009/01/16 19:01:33 curt Exp $
+ * $Id: gpsd.cpp,v 1.2 2009/01/17 20:28:01 curt Exp $
  */
 
 #include <string>
@@ -111,7 +111,7 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	//
 	// example: GPSD,O=RMC 1232073262.000 0.005 45.138145
 	// -93.157083 285.50 3.60 1.80 181.4300 0.046 0.000 ? 7.20 ? 3
-	double unix_time = atof( token[1].c_str() );
+	gps_data.date = atof( token[1].c_str() );
 	gps_data.lat = atof( token[3].c_str() );
 	gps_data.lon = atof( token[4].c_str() );
 	gps_data.alt = atof( token[5].c_str() );
@@ -131,10 +131,10 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	    // entire second.
 	    gps_data.time = get_Time();
 	}
-	if ( unix_time > last_unix_time ) {
-	    gps_data.vn = (gps_data.alt - last_alt_m) * (unix_time - last_unix_time);
+	if ( gps_data.date > last_unix_time ) {
+	    gps_data.vn = (gps_data.alt - last_alt_m) * (gps_data.date - last_unix_time);
 	    last_alt_m = gps_data.alt;
-	    last_unix_time = unix_time;
+	    last_unix_time = gps_data.date;
 	}
 	gps_data.status = ValidData;
     } else if ( token[0] == "GPSD,Y=GSV" ) {

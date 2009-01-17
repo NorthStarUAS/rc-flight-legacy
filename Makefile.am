@@ -1,5 +1,8 @@
 EXTRA_DIST = \
 	autogen.sh \
+	README.gumstix \
+	README.verdex \
+	README.kernel \
 	xbow-release.txt
 
 SUBDIRS	= src
