@@ -36,3 +36,4 @@ myprofile nav_alg_prof;
 myprofile control_prof;
 myprofile route_mgr_prof;
 myprofile health_prof;
+myprofile main_prof;

@@ -31,6 +31,7 @@ extern myprofile nav_alg_prof;
 extern myprofile control_prof;
 extern myprofile route_mgr_prof;
 extern myprofile health_prof;
+extern myprofile main_prof;
 
 
 #endif // _UGEAR_MYPROF_H
