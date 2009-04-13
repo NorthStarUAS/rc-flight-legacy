@@ -18,9 +18,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: strutils.cxx,v 1.1 2008/04/04 06:22:43 curt Exp $
+// $Id: strutils.cxx,v 1.2 2009/04/13 15:29:48 curt Exp $
 
 #include <ctype.h>
+#include <string.h>
 #include "strutils.hxx"
 
 /**
