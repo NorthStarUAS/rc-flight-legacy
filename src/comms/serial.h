@@ -33,8 +33,7 @@
 #define	s8O1	2		/* 8 data bits,  odd parity, 1 stop bit */
 
 /* function prototypes */
-int  open_serial( const char *serial_port, int baudrate,
-		  bool raw_mode, bool nonblock );
-
+int serial_open( const char *serial_port, int baudrate,
+		 bool raw_mode, bool nonblock );
 
 #endif // _UGEAR_SERIAL_H

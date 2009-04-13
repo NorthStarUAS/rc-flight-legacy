@@ -18,7 +18,7 @@
 /***************************************************************************
  * Open and configure serial port
  ***************************************************************************/
-int open_serial( const char *serial_port, int baudrate,
+int serial_open( const char *serial_port, int baudrate,
 		 bool raw_mode, bool nonblock )
 {
     int fd;

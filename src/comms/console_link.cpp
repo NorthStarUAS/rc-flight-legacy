@@ -29,7 +29,7 @@ static int confd;
 void console_link_init() {
     console_dev = fgGetNode("/config/console/device", true);
 
-    confd = open_serial( console_dev->getStringValue(),
+    confd = serial_open( console_dev->getStringValue(),
 			 BAUDRATE_115200, true, true );
 }
 
