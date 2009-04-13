@@ -1,0 +1,4 @@
+2009-04-13: version 1.6
+
+- Check point release prior to integrating UMN INS/GNS code and testing a 
+  timer/callback architecture.
