@@ -8,13 +8,13 @@
  * LAST REVISED: 8/31/06 Jung Soon Jang
  ******************************************************************************/
 
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+//#include <sys/time.h>
 #include <time.h>
-#include <sys/time.h>
 #include <unistd.h>
-#include <signal.h>
 
 #include "globaldefs.h"
 

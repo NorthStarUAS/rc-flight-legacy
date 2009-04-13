@@ -5,10 +5,11 @@
  *
  * See props.html for documentation [replace with URL when available].
  *
- * $Id: props_io.cxx,v 1.1 2007/02/14 02:43:46 curt Exp $
+ * $Id: props_io.cxx,v 1.2 2009/04/13 15:29:48 curt Exp $
  */
 
 #include <stdlib.h>		// atof() atoi()
+#include <string.h>
 
 #include "util/sg_path.hxx"
 #include "xml/easyxml.hxx"

@@ -5,11 +5,12 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: IMU.cpp,v 1.1 2009/01/17 20:28:01 curt Exp $
+ * $Id: IMU.cpp,v 1.2 2009/04/13 15:29:48 curt Exp $
  */
 
 
 #include <math.h>
+#include <string.h>
 
 #include "globaldefs.h"
 

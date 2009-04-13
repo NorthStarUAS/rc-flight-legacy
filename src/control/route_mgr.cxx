@@ -20,10 +20,11 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: route_mgr.cxx,v 1.13 2008/11/23 04:02:17 curt Exp $
+// $Id: route_mgr.cxx,v 1.14 2009/04/13 15:29:48 curt Exp $
 
 
 #include <math.h>
+#include <stdlib.h>
 
 #include <include/globaldefs.h>
 #include <props/props_io.hxx>
