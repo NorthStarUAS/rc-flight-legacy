@@ -8,9 +8,6 @@ MicroGear TODO
   gps, our nav estimate has likely diverged, and we are starting to
   get desperate.
 
-- Automatically compute the magnetic offset ... at least make it
-  configurable if not compute a close approximation.
-
 - Resolve #include "dir/file.h" vs. <dir/file.h> vs. "file.h"
 
 - Replace adhoc PI R2D, and D2R type constants scattered through the
@@ -41,8 +38,6 @@ MicroGear TODO
   the new position forces a "miss"?  Do we live with the uas looping
   around and trying again?  Maybe this will be a rare problem?
 
-- Make "GoHome" on lost comm link timeout configurable
-
 - have "home" location selection write an entry to debug.txt
 - don't write FollowRoute to debug each time we receive a message.
 
@@ -61,10 +56,15 @@ MicroGear TODO
   migrate away from the MNAV.
 
 
+x 01/17/2009 - Automatically compute the magnetic offset ... at least
+  make it configurable if not compute a close approximation.
+
 x 01/17/2009 - Make the local magnetic declination (variation)
   configurable rather than hard coded.
 
 x 01/17/2009 - Work on clearer gps/nav data validation logic and flagging.
+
+x 01/17/2009 - Make "GoHome" on lost comm link timeout configurable
 
 x 01/16/2009 - Add gpsd support.  More can be done, but basic support
   is there and working.
