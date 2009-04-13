@@ -25,7 +25,7 @@ static double sum[5] = {0.,};
 //
 // snap time interval
 //
-void snap_time_interval( char *threadname, int displaytime, short id )
+void snap_time_interval( const char *threadname, int displaytime, short id )
 {
     struct timespec	   ts;
     double 		   sec, nsec, dt, rate;
@@ -50,7 +50,7 @@ void snap_time_interval( char *threadname, int displaytime, short id )
     }
 }
 
-double get_time_interval(short id)
+double get_time_interval( short id )
 {
     struct timespec		ts;
     static struct timespec  ts_p[5];
