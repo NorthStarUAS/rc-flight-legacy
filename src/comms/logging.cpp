@@ -181,7 +181,7 @@ void flush_health() {
 void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
                       struct servo *sdata, struct health *hdata )
 {
-    double current_time = get_Time();
+    // double current_time = get_Time();
 
     printf("[m/s^2]:ax  = %6.3f ay  = %6.3f az  = %6.3f \n",data->ax,data->ay,data->az);
     printf("[deg/s]:p   = %6.3f q   = %6.3f r   = %6.3f \n",data->p*57.3, data->q*57.3, data->r*57.3);

@@ -14,7 +14,6 @@
 // global definitions
 extern bool autopilot_active;
 extern bool autopilot_reinit;
-extern char *cnt_status;
 
 
 // function prototypes

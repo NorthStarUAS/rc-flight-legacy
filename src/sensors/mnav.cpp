@@ -378,6 +378,7 @@ void mnav_manual_override_check() {
     //
 
     if ( servo_in.chn[4] <= 12000 ) {
+        // MNAV is in AutoPilot Mode
         // if the autopilot is enabled, or signal is lost
         if ( !autopilot_active && display_on ) {
             printf("[CONTROL]: switching to autopilot\n");
@@ -385,18 +386,17 @@ void mnav_manual_override_check() {
         }
         autopilot_active = true;
         autopilot_count  = 15;
-        cnt_status = "MNAV in AutoPilot Mode";
     } else if ( servo_in.chn[4] > 12000
                 && servo_in.chn[4] < 60000 )
     {
         // add delay on control trigger to minimize mode confusion
         // caused by the transmitter power off
         if ( autopilot_count < 0 ) {
+            // MNAV is in Manual Mode
             if ( autopilot_active && display_on ) {
                 printf("[CONTROL]: switching to manual pass through\n");
             }
             autopilot_active = false;
-            cnt_status = "MNAV in Manual Mode";
         } else {
             autopilot_count--;
         }
