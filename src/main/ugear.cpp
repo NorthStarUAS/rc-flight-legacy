@@ -336,12 +336,13 @@ int main( int argc, char **argv )
                  && route_mgr.get_route_mode() != FGRouteMgr::GoHome )
             {
                 // We have previously established a positive link with
-                // the groundstation, but it's been NN seconds since
-                // the last command received and we aren't already in
-                // GoHome mode.  Console link is assumed to be down or
-                // we've flown out of radio modem range.  Switch to
-                // fly home mode.  Ground station operator will need
-                // to send a resume route command to resume the route.
+                // the groundstation, but it's been lost_link seconds
+                // since the last command received and we aren't
+                // already in GoHome mode.  Console link is assumed to
+                // be down or we've flown out of radio modem range.
+                // Switch to fly home mode.  Ground station operator
+                // will need to send a resume route command to resume
+                // the route.
                 route_mgr.set_home_mode();
             }
         }
