@@ -6,7 +6,7 @@
 ugear_LDFLAGS =
 ugear_MORELIBS =
 
-bin_PROGRAMS = ugear ugear_100hz decoder
+bin_PROGRAMS = ugear ugear_timer decoder
 
 ugear_SOURCES = \
 	ugear.cpp
@@ -22,10 +22,10 @@ ugear_LDADD = \
 	$(top_builddir)/src/xml/libsgxml.a \
 	$(ugear_MORELIBS)
 
-ugear_100hz_SOURCES = \
-	ugear_100hz.cpp
+ugear_timer_SOURCES = \
+	ugear_timer.cpp
 
-ugear_100hz_LDADD = \
+ugear_timer_LDADD = \
 	$(top_builddir)/src/comms/libcomms.a \
 	$(top_builddir)/src/health/libhealth.a \
 	$(top_builddir)/src/sensors/libsensors.a \
