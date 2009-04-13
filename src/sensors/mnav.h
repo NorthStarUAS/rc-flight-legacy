@@ -19,6 +19,7 @@ extern bool autopilot_reinit;
 // function prototypes
 void mnav_init();
 void mnav_read();
+void mnav_read_nonblock();
 void mnav_close();
 
 bool mnav_get_imu( struct imu *data );

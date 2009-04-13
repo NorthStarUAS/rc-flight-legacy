@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: IMU.cpp,v 1.2 2009/04/13 15:29:48 curt Exp $
+ * $Id: IMU.cpp,v 1.3 2009/04/13 23:17:37 curt Exp $
  */
 
 
@@ -71,7 +71,7 @@ void IMU_update() {
 
     case imuMNAV:
 	mnav_prof.start();
-        mnav_read();
+        mnav_read_nonblock();
 	mnav_prof.stop();
 
 	fresh_data = mnav_get_imu(&imupacket);

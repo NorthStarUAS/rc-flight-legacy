@@ -117,7 +117,7 @@ void mnav_init()
     // 100-200ms between message.  For now it's easier to just sleep 1
     // second.
 
-    sPort2 = open_serial( mnav_dev->getStringValue(),
+    sPort2 = serial_open( mnav_dev->getStringValue(),
 			  BAUDRATE_38400, false, false );
     // printf("Opened serial port at 38400.\n");
       
@@ -129,7 +129,7 @@ void mnav_init()
     nbytes = 0;  
     close(sPort2);
 
-    sPort2 = open_serial( mnav_dev->getStringValue(),
+    sPort2 = serial_open( mnav_dev->getStringValue(),
 			  BAUDRATE_57600, false, false );
     // printf("Opened serial port at 57600.\n");
   
@@ -276,6 +276,136 @@ void mnav_read()
         }
 
     } // end case
+}
+
+
+void mnav_read_nonblock()
+{
+    double start_time = get_Time();
+    const double time_out = 0.0025; // 1/4 of 100hz interval
+    imu_data_valid = false;
+    gps_data_valid = false;
+
+    static int nbytes = 0;
+    static uint8_t input_buffer[FULL_PACKET_SIZE]={0,};
+
+    // set mode as nonblocking
+    fcntl(sPort2, F_SETFL, O_NONBLOCK);
+ 
+    if ( nbytes < 3 ) {
+	// Find start of packet: the header (2 bytes) starts with 0x55 0x55
+	// bail if we find nothing in the input buffer
+	int headerOK = 0;
+
+	while ( (headerOK != 2) && (get_Time() - start_time < time_out) ) {
+	    if ( read(sPort2,input_buffer,1) == 1 ) {
+		if ( input_buffer[0] == 0x55 ) {
+		    headerOK++;
+		} else {
+		    headerOK = 0;
+		}
+	    }
+	}
+	if ( headerOK != 2 ) {
+	    // printf("Timeout (1) looking for header.\n");
+	    return;
+	}
+     	
+	headerOK = 0;
+	while ( (headerOK != 1) && (get_Time() - start_time < time_out) ) {
+	    if ( read(sPort2,&input_buffer[2],1) == 1 ) {
+		headerOK = 1;
+	    }
+	}
+	if ( headerOK != 1 ) {
+	    // printf("Timeout (2) looking for header.\n");
+	    return;
+	}
+	
+	nbytes = 3; 
+    } else {
+	// printf("Restarting packet read\n");
+    }
+  
+    // Read packet contents
+    switch (input_buffer[2]) {
+    case 'S':               // IMU packet without GPS (< 100hz)
+    case 's':               // IMU packet without GPS (100hz)
+        // printf("no gps data being sent ... :-(\n");
+        while ( nbytes < SENSOR_PACKET_LENGTH
+		&& (get_Time() - start_time < time_out) )
+	{
+	    int result = read(sPort2, input_buffer+nbytes,
+			      SENSOR_PACKET_LENGTH-nbytes);
+	    if ( result > 0 ) {
+		nbytes += result;
+	    }
+        }
+	if ( nbytes < SENSOR_PACKET_LENGTH ) {
+	    // printf("Timeout reading IMU packet\n");
+	    return;
+	}
+
+        // check checksum
+        if ( checksum(input_buffer,SENSOR_PACKET_LENGTH) ) {
+            decode_imupacket(&imu_data, input_buffer);
+            imu_data_valid = true;
+        } else {
+            if ( display_on ) {
+                printf("[imu]:checksum error...!\n"); 
+            }
+            imu_data.status = ChecksumError; 
+        };
+        break;
+
+    case 'N':               // IMU packet with GPS (< 100hz)
+    case 'n':               // IMU packet with GPS (100hz)
+        while ( nbytes < FULL_PACKET_SIZE
+		&& (get_Time() - start_time < time_out) )
+	{
+            int result = read(sPort2, input_buffer+nbytes,
+			      FULL_PACKET_SIZE-nbytes); 
+	    if ( result > 0 ) {
+		nbytes += result;
+	    }
+        }
+	if ( nbytes < FULL_PACKET_SIZE ) {
+	    printf("Timeout reading IMU+GPS packet\n");
+	    return;
+	}
+
+        // printf("G P S   D A T A   A V A I L A B L E\n");
+
+        // check checksum
+        if ( checksum(input_buffer,FULL_PACKET_SIZE) ) {
+            decode_imupacket(&imu_data, input_buffer);
+            imu_data_valid = true;
+		     
+            // check GPS data packet
+            if(input_buffer[33]=='G') {
+                decode_gpspacket(&gps_data, input_buffer);
+		gps_data_valid = true;
+            } else {
+		printf("[gps]:data error...!\n");
+		gps_data.status = NotValid;
+            } // end if(checksum(input_buffer...
+        } else { 
+            if ( display_on ) {
+                printf("[imu]:checksum error(gps)...!\n");
+            }
+            gps_data.status = ChecksumError;
+            imu_data.status = ChecksumError; 
+        }
+        break;
+
+    default : 
+        if ( display_on ) {
+            printf("[imu] invalid data packet ... !\n");
+        }
+
+    } // end case
+
+    nbytes = 0;
 }
 
 
