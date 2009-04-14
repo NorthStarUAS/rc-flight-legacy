@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: GPS.cpp,v 1.3 2009/04/13 15:29:48 curt Exp $
+ * $Id: GPS.cpp,v 1.4 2009/04/14 21:06:42 curt Exp $
  */
 
 
@@ -43,6 +43,7 @@ static SGPropertyNode *gps_lon_node = NULL;
 static SGPropertyNode *gps_track_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
 
+
 void GPS_init() {
     // initialize gps property nodes
     gps_source_node = fgGetNode("/config/sensors/gps-source", true);
@@ -77,7 +78,7 @@ void GPS_init() {
 }
 
 
-void GPS_update() {
+bool GPS_update() {
     bool fresh_data = false;
 
     switch ( source ) {
@@ -121,6 +122,8 @@ void GPS_update() {
 	    log_gps( &gpspacket );
 	}
     }
+
+    return fresh_data;
 }
 
 
@@ -128,7 +131,7 @@ void GPS_close() {
     switch ( source ) {
 
     case gpsMNAV:
-	// nopp
+	// nop
 	break;
 
     case gpsGPSD:

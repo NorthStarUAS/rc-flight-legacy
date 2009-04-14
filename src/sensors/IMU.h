@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: IMU.h,v 1.1 2009/01/17 20:28:01 curt Exp $
+ * $Id: IMU.h,v 1.2 2009/04/14 21:06:43 curt Exp $
  */
 
 
@@ -21,7 +21,7 @@ enum imu_source_t {
 };
 
 void IMU_init();
-void IMU_update();
+bool IMU_update();
 void IMU_close();
 
 
