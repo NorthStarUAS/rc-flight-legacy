@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: GPS.h,v 1.1 2009/01/16 19:01:33 curt Exp $
+ * $Id: GPS.h,v 1.2 2009/04/14 21:06:42 curt Exp $
  */
 
 
@@ -22,7 +22,7 @@ enum gps_source_t {
 };
 
 void GPS_init();
-void GPS_update();
+bool GPS_update();
 void GPS_close();
 
 

@@ -117,9 +117,6 @@ void timer_handler (int signum)
     double dt = current_time - last_time;
     dt_accum += dt;
     dt_error += (dt - 0.01) * (dt - 0.01);
-    if ( (count % 100) == 0 ) {
-	printf("adt = %.4f e = %.8f\n", dt_accum / (double)count, dt_error / (double)count);
-    }
     last_time = current_time;
 
     // upate timing counters
@@ -135,24 +132,20 @@ void timer_handler (int signum)
     flush_counter++;
 
     // Fetch the next data packet from the IMU.
-    //
-    // This is a blocking routine.  It waits for the next output
-    // of the IMU.  The assumption is that the IMU will spit out
-    // data at a regular interval and thus control the
-    // timing/syncronization of this entire application.
-    IMU_update();
+    if ( IMU_update() ) {
+	// Run the AHRS algorithm.
+	ahrs_update();
 
-    // Run the AHRS algorithm.
-    ahrs_update();
-
-    mnav_imu_update();
+	// Fixme: this should be separated out from the mnav specific code
+	mnav_imu_update();
+    }
 
     // Fetch GPS data if available.
     GPS_update();
 
     mnav_manual_override_check();
 
-    if ( enable_nav && nav_counter >= 5 ) {
+    if ( enable_nav && nav_counter >= 10 ) {
 	// navigation (update at 10hz.)  compute a location estimate
 	// based on gps and accelerometer data.
 	nav_counter = 0;
@@ -180,7 +173,7 @@ void timer_handler (int signum)
 	bool read_command = false;
 
 	// check for incoming command data (5hz)
-	if ( command_counter > 10 ) {
+	if ( command_counter > 20 ) {
 	    command_counter = 0;
 	    if ( console_link_command() ) {
 		read_command = true;
@@ -208,7 +201,7 @@ void timer_handler (int signum)
 
     if ( enable_route ) {
 	// route updates at 5 hz
-	if ( route_counter >= 10 ) {
+	if ( route_counter >= 20 ) {
 	    route_counter = 0;
 	    route_mgr_prof.start();
 	    route_mgr.update();
@@ -218,7 +211,7 @@ void timer_handler (int signum)
 
     if ( enable_control ) {
 	// autopilot update at 25 hz
-	if ( ap_counter >= 2 ) { 
+	if ( ap_counter >= 4 ) { 
 	    ap_counter = 0;
 	    control_prof.start();
 	    control_update(0);
@@ -243,7 +236,7 @@ void timer_handler (int signum)
     }
 
     // health status (update at 1hz)
-    if ( health_counter >= 50 ) {
+    if ( health_counter >= 100 ) {
 	health_counter = 0;
 	health_prof.start();
 	health_update();
@@ -257,7 +250,7 @@ void timer_handler (int signum)
     }
 
     // telemetry (update at 5hz)
-    if ( wifi && wifi_counter >= 10 ) {
+    if ( wifi && wifi_counter >= 20 ) {
 	wifi_counter = 0;
 	if ( retvalsock ) {
 	    send_client();
@@ -273,7 +266,7 @@ void timer_handler (int signum)
     }
 
     // sensor summary dispay (update at 0.5hz)
-    if ( display_on && display_counter >= 100 ) {
+    if ( display_on && display_counter >= 200 ) {
 	display_counter = 0;
 	display_message( &imupacket, &gpspacket, &navpacket,
 			 &servo_in, &healthpacket );
@@ -291,7 +284,7 @@ void timer_handler (int signum)
     }
 
     // round robin flushing of logging streams (update at 0.5hz)
-    if ( flush_counter >= 100 ) {
+    if ( flush_counter >= 200 ) {
 	flush_counter = 0;
 	static int flush_state = 0;
 	if ( log_to_file ) {

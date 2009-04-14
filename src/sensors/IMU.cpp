@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: IMU.cpp,v 1.3 2009/04/13 23:17:37 curt Exp $
+ * $Id: IMU.cpp,v 1.4 2009/04/14 21:06:42 curt Exp $
  */
 
 
@@ -57,14 +57,8 @@ void IMU_init() {
 
 }
 
-// NOTE: this is the master time syncronization routine in ugear.
-// This routine should block until new IMU data is available.  The
-// rate at which the IMU sends data dictates the timing and rate of
-// the entire ugear program.  Currently the code expects MNAV-like
-// behavior where the IMU is configured to send fresh data at a
-// consistant 50hz pace.
 
-void IMU_update() {
+bool IMU_update() {
     bool fresh_data = false;
 
     switch ( source ) {
@@ -96,6 +90,8 @@ void IMU_update() {
 	    log_imu( &imupacket );
 	}
     }
+
+    return fresh_data;
 }
 
 
@@ -103,7 +99,7 @@ void IMU_close() {
     switch ( source ) {
 
     case imuMNAV:
-	// nopp
+	// nop
 	break;
 
     default:

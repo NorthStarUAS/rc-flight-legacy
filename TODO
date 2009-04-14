@@ -19,7 +19,7 @@ MicroGear TODO
 
 - Track down Rohit's AHRS modifications to see if they work any better.
 
-- Have Rohit explain is magnetometer calibration method.
+- Have Rohit explain his magnetometer calibration method.
 
 - Add support for a "notes" file that will contain time/date (?) in
   the file name and be able to contain arbitrary time stamped messages
@@ -55,6 +55,10 @@ MicroGear TODO
   onboard logging.  This will disappear as an issue anyway when we
   migrate away from the MNAV.
 
+
+x 04/13/2009 - Test a setitimer() / sigaction() approach to structuring
+  the main loop timing.  Write a non-blocking MNAV data parser.  So far the
+  results are real good.
 
 x 01/17/2009 - Automatically compute the magnetic offset ... at least
   make it configurable if not compute a close approximation.
