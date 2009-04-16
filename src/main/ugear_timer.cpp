@@ -61,6 +61,8 @@ using std::string;
 // Configuration settings
 //
 
+static const int HEARTBEAT_HZ = 50;	 // master clock rate
+
 static bool log_servo_out  = true;    // log outgoing servo commands by default
 static bool enable_control = false;   // autopilot control module enabled/disabled
 static bool enable_nav     = false;   // nav filter enabled/disabled
@@ -95,6 +97,8 @@ void usage()
 // sa structure.
 void timer_handler (int signum)
 {
+    main_prof.start();
+
     double current_time = get_Time();
 
     static int nav_counter = 0;
@@ -145,8 +149,8 @@ void timer_handler (int signum)
 
     mnav_manual_override_check();
 
-    if ( enable_nav && nav_counter >= 10 ) {
-	// navigation (update at 10hz.)  compute a location estimate
+    if ( enable_nav && nav_counter >= (HEARTBEAT_HZ / 25) ) {
+	// navigation (update at 25hz.)  compute a location estimate
 	// based on gps and accelerometer data.
 	nav_counter = 0;
 
@@ -173,7 +177,7 @@ void timer_handler (int signum)
 	bool read_command = false;
 
 	// check for incoming command data (5hz)
-	if ( command_counter > 20 ) {
+	if ( command_counter >= (HEARTBEAT_HZ / 5) ) {
 	    command_counter = 0;
 	    if ( console_link_command() ) {
 		read_command = true;
@@ -201,7 +205,7 @@ void timer_handler (int signum)
 
     if ( enable_route ) {
 	// route updates at 5 hz
-	if ( route_counter >= 20 ) {
+	if ( route_counter >= (HEARTBEAT_HZ / 5) ) {
 	    route_counter = 0;
 	    route_mgr_prof.start();
 	    route_mgr.update();
@@ -211,7 +215,7 @@ void timer_handler (int signum)
 
     if ( enable_control ) {
 	// autopilot update at 25 hz
-	if ( ap_counter >= 4 ) { 
+	if ( ap_counter >= (HEARTBEAT_HZ / 25) ) { 
 	    ap_counter = 0;
 	    control_prof.start();
 	    control_update(0);
@@ -236,7 +240,7 @@ void timer_handler (int signum)
     }
 
     // health status (update at 1hz)
-    if ( health_counter >= 100 ) {
+    if ( health_counter >= (HEARTBEAT_HZ / 1) ) {
 	health_counter = 0;
 	health_prof.start();
 	health_update();
@@ -250,7 +254,7 @@ void timer_handler (int signum)
     }
 
     // telemetry (update at 5hz)
-    if ( wifi && wifi_counter >= 20 ) {
+    if ( wifi && wifi_counter >= (HEARTBEAT_HZ / 5) ) {
 	wifi_counter = 0;
 	if ( retvalsock ) {
 	    send_client();
@@ -266,7 +270,9 @@ void timer_handler (int signum)
     }
 
     // sensor summary dispay (update at 0.5hz)
-    if ( display_on && display_counter >= 200 ) {
+    if ( display_on && display_counter
+	 >= (HEARTBEAT_HZ * 2 /* divide by 0.5 */) )
+    {
 	display_counter = 0;
 	display_message( &imupacket, &gpspacket, &navpacket,
 			 &servo_in, &healthpacket );
@@ -284,7 +290,7 @@ void timer_handler (int signum)
     }
 
     // round robin flushing of logging streams (update at 0.5hz)
-    if ( flush_counter >= 200 ) {
+    if ( flush_counter >= (HEARTBEAT_HZ * 2 /* divide by 0.5 */) ) {
 	flush_counter = 0;
 	static int flush_state = 0;
 	if ( log_to_file ) {
@@ -310,6 +316,8 @@ void timer_handler (int signum)
 	    flush_state++;
 	}
     }
+
+    main_prof.stop();
 }
 
 
@@ -475,10 +483,16 @@ int main( int argc, char **argv )
 
     // Configure the timer to expire after 10,000 usec (1/100th of a second)
     timer.it_value.tv_sec = 0;
-    timer.it_value.tv_usec = 10000;
+    timer.it_value.tv_usec = (1000000 / HEARTBEAT_HZ);
     // ... and every 10 msec after that (100hz)
     timer.it_interval.tv_sec = 0;
-    timer.it_interval.tv_usec = 10000;
+    timer.it_interval.tv_usec = (1000000 / HEARTBEAT_HZ);
+    //#if defined(__arm__)
+    // shorten the interval for gumstix to one other, otherwise it
+    // misses (at least when requesting 100hz)
+    //timer.it_value.tv_usec = 1;
+    //timer.it_interval.tv_usec = 1;
+    //#endif
     // Start a real timer. It counts down based on the wall clock
     setitimer (ITIMER_REAL, &timer, NULL);
 
@@ -489,9 +503,7 @@ int main( int argc, char **argv )
     // generated (100hz default)
     while ( true ) {
 	// printf("main(): sleeping\n");
-	main_prof.start();
 	sleep(1);
-	main_prof.stop();
     }
 
     // close and exit

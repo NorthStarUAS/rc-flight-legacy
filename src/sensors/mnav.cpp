@@ -65,8 +65,9 @@ char *cnt_status;
 
 static struct imu imu_data;
 static struct gps gps_data;
-bool imu_data_valid = false;
-bool gps_data_valid = false;
+static bool imu_data_valid = false;
+static bool gps_data_valid = false;
+static double start_time;
 
 // imu property nodes
 
@@ -188,7 +189,7 @@ void mnav_init()
 // entire ugear program.  This routine fills in both the imu and gps
 // structure if data is available from the MNAV.
 
-void mnav_read()
+bool mnav_read()
 {
     imu_data_valid = false;
     gps_data_valid = false;
@@ -276,15 +277,21 @@ void mnav_read()
         }
 
     } // end case
+
+    return imu_data_valid;
 }
 
 
-void mnav_read_nonblock()
-{
-    double start_time = get_Time();
-    const double time_out = 0.0025; // 1/4 of 100hz interval
+void mnav_start_nonblock_read() {
     imu_data_valid = false;
     gps_data_valid = false;
+    start_time = get_Time();
+}
+
+
+bool mnav_read_nonblock()
+{
+    const double time_out = 0.0025; // 1/4 of 100hz interval
 
     static int nbytes = 0;
     static uint8_t input_buffer[FULL_PACKET_SIZE]={0,};
@@ -304,11 +311,15 @@ void mnav_read_nonblock()
 		} else {
 		    headerOK = 0;
 		}
+	    } else {
+		// exit immediately (not waiting for timeout) if
+		// nothing in the input buffer.
+		return false;
 	    }
 	}
 	if ( headerOK != 2 ) {
 	    // printf("Timeout (1) looking for header.\n");
-	    return;
+	    return false;
 	}
      	
 	headerOK = 0;
@@ -319,7 +330,7 @@ void mnav_read_nonblock()
 	}
 	if ( headerOK != 1 ) {
 	    // printf("Timeout (2) looking for header.\n");
-	    return;
+	    return false;
 	}
 	
 	nbytes = 3; 
@@ -343,7 +354,7 @@ void mnav_read_nonblock()
         }
 	if ( nbytes < SENSOR_PACKET_LENGTH ) {
 	    // printf("Timeout reading IMU packet\n");
-	    return;
+	    return false;
 	}
 
         // check checksum
@@ -371,7 +382,7 @@ void mnav_read_nonblock()
         }
 	if ( nbytes < FULL_PACKET_SIZE ) {
 	    printf("Timeout reading IMU+GPS packet\n");
-	    return;
+	    return false;
 	}
 
         // printf("G P S   D A T A   A V A I L A B L E\n");
@@ -406,6 +417,8 @@ void mnav_read_nonblock()
     } // end case
 
     nbytes = 0;
+
+    return true;
 }
 
 

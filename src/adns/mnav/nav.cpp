@@ -255,7 +255,7 @@ void nav_update()
         }
 
         if ( display_on ) {
-            snap_time_interval("nav", 20, 1);
+            snap_time_interval("nav", 50, 1);
         }
     }
 

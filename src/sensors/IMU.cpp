@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: IMU.cpp,v 1.4 2009/04/14 21:06:42 curt Exp $
+ * $Id: IMU.cpp,v 1.5 2009/04/16 20:35:46 curt Exp $
  */
 
 
@@ -65,7 +65,10 @@ bool IMU_update() {
 
     case imuMNAV:
 	mnav_prof.start();
-        mnav_read_nonblock();
+	// read IMU until no data available.  This will flush any
+	// potential backlog that could accumulate for any reason.
+	mnav_start_nonblock_read();
+        while ( mnav_read_nonblock() );
 	mnav_prof.stop();
 
 	fresh_data = mnav_get_imu(&imupacket);
