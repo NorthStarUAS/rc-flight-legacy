@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: IMU.h,v 1.2 2009/04/14 21:06:43 curt Exp $
+ * $Id: IMU.h,v 1.3 2009/04/17 18:10:03 curt Exp $
  */
 
 
@@ -17,7 +17,8 @@ extern struct imu imupacket;
 
 enum imu_source_t {
     imuNone,
-    imuMNAV
+    imuMNAV,
+    imuUGFile
 };
 
 void IMU_init();

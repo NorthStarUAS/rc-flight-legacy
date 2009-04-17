@@ -1,6 +1,10 @@
 MicroGear TODO
 ==============
 
+- Make "heart beat" rate xml configurable.
+
+- Add ability to read from file versus live sensors
+
 - Implement some dead reckoning system that tries to track location
   based on magnetic heading, airspeed, and wind speed estimate, and
   time elapsed.  Snap to gps location when ever we have fresh gps
