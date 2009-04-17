@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: GPS.cpp,v 1.4 2009/04/14 21:06:42 curt Exp $
+ * $Id: GPS.cpp,v 1.5 2009/04/17 18:10:03 curt Exp $
  */
 
 
@@ -21,6 +21,7 @@
 #include "gpsd.h"
 #include "mnav.h"
 #include "GPS.h"
+#include "ugfile.h"
 
 //
 // Global variables
@@ -63,11 +64,14 @@ void GPS_init() {
     gps_unix_sec_node = fgGetNode("/position/gps-unix-time-sec", true);
 
     switch ( source ) {
+    case gpsGPSD:
+	gpsd_init();
+	break;
     case gpsMNAV:
 	// nothing to do
 	break;
-    case gpsGPSD:
-	gpsd_init();
+    case gpsUGFile:
+	// nothing to do
 	break;
     default:
 	if ( display_on ) {
@@ -83,6 +87,10 @@ bool GPS_update() {
 
     switch ( source ) {
 
+    case gpsGPSD:
+	fresh_data = gpsd_get_gps(&gpspacket);
+	break;
+
     case gpsMNAV:
 	fresh_data = mnav_get_gps(&gpspacket);
 
@@ -93,8 +101,8 @@ bool GPS_update() {
 	gpspacket.date = 1232216597; /* Jan 17, 2009 */
 	break;
 
-    case gpsGPSD:
-	fresh_data = gpsd_get_gps(&gpspacket);
+    case gpsUGFile:
+	fresh_data = ugfile_get_gps(&gpspacket);
 	break;
 
     default:
@@ -130,12 +138,16 @@ bool GPS_update() {
 void GPS_close() {
     switch ( source ) {
 
+    case gpsGPSD:
+	// fixme
+	break;
+
     case gpsMNAV:
 	// nop
 	break;
 
-    case gpsGPSD:
-	// fixme
+    case gpsUGFile:
+	ugfile_close();
 	break;
 
     default:
