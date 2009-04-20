@@ -6,7 +6,7 @@
 #include <time.h>
 #include <zlib.h>
 
-#include "navigation/ahrs.h"
+#include "adns_mnav/ahrs.h"
 #include "sensors/gps_mgr.h"
 #include "util/timing.h"
 

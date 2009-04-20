@@ -36,12 +36,12 @@ AC_CONFIG_FILES([ \
 	Makefile \
         src/Makefile \
         src/actuators/Makefile \
+        src/adns_mnav/Makefile \
         src/comms/Makefile \
         src/control/Makefile \
         src/health/Makefile \
         src/include/Makefile \
         src/main/Makefile \
-        src/navigation/Makefile \
         src/props/Makefile \
         src/sensors/Makefile \
         src/util/Makefile \

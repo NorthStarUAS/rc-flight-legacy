@@ -1,6 +1,6 @@
-noinst_LIBRARIES = libnavigation.a
+noinst_LIBRARIES = libadns_mnav.a
 
-libnavigation_a_SOURCES = \
+libadns_mnav_a_SOURCES = \
 	coremag.cpp coremag.h \
 	ahrs.cpp ahrs.h \
 	nav.cpp nav.h

@@ -20,8 +20,8 @@
 
 #include "globaldefs.h"
 
-#include "navigation/ahrs.h"
-#include "navigation/nav.h"
+#include "adns_mnav/ahrs.h"
+#include "adns_mnav/nav.h"
 #include "sensors/gps_mgr.h"
 #include "sensors/imu_mgr.h"
 

@@ -28,6 +28,8 @@
 #include <string>
 
 #include "actuators/act_mgr.h"
+#include "adns_mnav/ahrs.h"
+#include "adns_mnav/nav.h"
 #include "comms/console_link.h"
 #include "comms/groundstation.h"
 #include "comms/logging.h"
@@ -36,8 +38,6 @@
 #include "control/route_mgr.hxx"
 #include "health/health.h"
 #include "include/globaldefs.h"
-#include "navigation/ahrs.h"
-#include "navigation/nav.h"
 #include "props/props.hxx"
 #include "props/props_io.hxx"
 #include "sensors/gps_mgr.h"
