@@ -41,7 +41,7 @@ void nav_algorithm(struct imu *imudta,struct gps *gpsdta);
 // error characteristics of navigation parameters
 //
 #define	    Vcov    		0.04                        // (0.2 m/s)^2 
-#define     Pcov    		(5.0e-5*D2R)*(5.0e-5*D2R)   // (5.0e-5*d2r)
+#define     Pcov    		(5.0e-5*SGD_DEGREES_TO_RADIANS)*(5.0e-5*SGD_DEGREES_TO_RADIANS)   // (5.0e-5*d2r)
 #define     Rew     		6.359058719353925e+006      //earth radius
 #define     Rns     		6.386034030458164e+006      //earth radius
 #define     DEFAULT_USECS	100000			    //10 Hz
@@ -172,8 +172,8 @@ void nav_update()
                 gps_state = 2;  // gps solid for 20 sec
 
                 // initialize navigation state variables with GPS (Lat,Lon,Alt)
-                nxs[0][0] = gpspacket.lat*D2R;
-                nxs[1][0] = gpspacket.lon*D2R;
+                nxs[0][0] = gpspacket.lat*SGD_DEGREES_TO_RADIANS;
+                nxs[1][0] = gpspacket.lon*SGD_DEGREES_TO_RADIANS;
                 nxs[2][0] = gpspacket.alt;
 
 		// initialize magnetic variation
@@ -214,8 +214,8 @@ void nav_update()
         nav_algorithm( &imulocal, &gpslocal );
 	nav_alg_prof.stop();
            
-        navpacket.lat  = nxs[0][0]*R2D;
-        navpacket.lon  = nxs[1][0]*R2D;
+        navpacket.lat  = nxs[0][0]*SGD_RADIANS_TO_DEGREES;
+        navpacket.lon  = nxs[1][0]*SGD_RADIANS_TO_DEGREES;
         navpacket.alt  = nxs[2][0];
         navpacket.vn   = nxs[3][0];
         navpacket.ve   = nxs[4][0];
@@ -374,8 +374,8 @@ void nav_algorithm(struct imu *imudta,struct gps *gpsdta)
         mat_copy(ntmp99,nPn);
        
         // state update
-        yd[0] = (gpsdta->lat*D2R - nxs[0][0]);
-        yd[1] = (gpsdta->lon*D2R - nxs[1][0]);
+        yd[0] = (gpsdta->lat*SGD_DEGREES_TO_RADIANS - nxs[0][0]);
+        yd[1] = (gpsdta->lon*SGD_DEGREES_TO_RADIANS - nxs[1][0]);
         yd[2] = (gpsdta->alt     - nxs[2][0]);
         yd[3] = (gpsdta->vn      - nxs[3][0]);
         yd[4] = (gpsdta->ve      - nxs[4][0]);

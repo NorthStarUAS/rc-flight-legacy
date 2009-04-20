@@ -38,8 +38,6 @@
 #define SERVO_PACKET_LENGTH     24
 #define SHORT_SERVO_PACKET_LENGTH 14
 
-#define D2R			0.017453292519940
-#define R2D			57.29577951308232
 #define g			9.81
 
 //temperature compensation for accel.

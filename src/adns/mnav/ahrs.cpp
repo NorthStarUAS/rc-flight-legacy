@@ -36,8 +36,6 @@ double 		wraparound(double dta);
 //predefined variables
 #define		g	9.81		// m/sec^2
 #define         g2      19.62   	// 2*g
-#define		r2d	57.2958         // radian to degree
-#define		d2r     0.01745		// degree to radian
 
 // sensor characteristics
 

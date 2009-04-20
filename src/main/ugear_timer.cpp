@@ -101,7 +101,11 @@ void timer_handler (int signum)
 {
     main_prof.start();
 
+    // master "dt"
+    static double last_time = 0.0;
     double current_time = get_Time();
+    double dt = current_time - last_time;
+    last_time = current_time;
 
     static int nav_counter = 0;
     static int health_counter = 0;
@@ -115,15 +119,9 @@ void timer_handler (int signum)
     static short wifi_attempt = 0;
 
     static int count = 0;
+
     count++;
     // printf ("timer expired %d times\n", count);
-    static double dt_accum = 0.0;
-    static double dt_error = 0.0;
-    static double last_time = 0.0;
-    double dt = current_time - last_time;
-    dt_accum += dt;
-    dt_error += (dt - 0.01) * (dt - 0.01);
-    last_time = current_time;
 
     // upate timing counters
     if ( enable_nav ) {
@@ -366,9 +364,9 @@ int main( int argc, char **argv )
 
     SGPropertyNode *p;
 
-    p = fgGetNode("/config/data/log-path", true);
+    p = fgGetNode("/config/logging/path", true);
     log_path.set( p->getStringValue() );
-    p = fgGetNode("/config/data/enable", true);
+    p = fgGetNode("/config/logging/enable", true);
     log_to_file = p->getBoolValue();
     printf("log path = %s enabled = %d\n", log_path.c_str(), log_to_file);
 
@@ -440,8 +438,7 @@ int main( int argc, char **argv )
 
     // open logging files if requested
     if ( log_to_file ) {
-        bool result = logging_init();
-        if ( !result ) {
+        if ( !logging_init() ) {
             printf("Warning: error opening one or more data files, logging disabled\n");
             log_to_file = false;
         }
@@ -475,6 +472,8 @@ int main( int argc, char **argv )
     if ( enable_control ) {
         // initialize the autopilot
         control_init();
+
+	// initialize the actuators
 	Actuator_init();
     }
 
@@ -495,12 +494,6 @@ int main( int argc, char **argv )
     // ... and every 10 msec after that (100hz)
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = (1000000 / HEARTBEAT_HZ);
-    //#if defined(__arm__)
-    // shorten the interval for gumstix to one other, otherwise it
-    // misses (at least when requesting 100hz)
-    //timer.it_value.tv_usec = 1;
-    //timer.it_interval.tv_usec = 1;
-    //#endif
     // Start a real timer. It counts down based on the wall clock
     setitimer (ITIMER_REAL, &timer, NULL);
 
@@ -524,6 +517,7 @@ int main( int argc, char **argv )
     }
     if ( enable_control ) {
       control_close();
+      Actuator_close();
     }
 }
 

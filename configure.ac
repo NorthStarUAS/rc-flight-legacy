@@ -36,7 +36,6 @@ AC_CONFIG_FILES([ \
 	Makefile \
         src/Makefile \
         src/actuators/Makefile \
-        src/benchmarks/Makefile \
         src/comms/Makefile \
         src/control/Makefile \
         src/health/Makefile \
@@ -44,9 +43,11 @@ AC_CONFIG_FILES([ \
         src/main/Makefile \
         src/navigation/Makefile \
         src/props/Makefile \
-        src/routegen/Makefile \
         src/sensors/Makefile \
         src/util/Makefile \
         src/xml/Makefile \
+        utils/Makefile \
+        utils/benchmarks/Makefile \
+        utils/routegen/Makefile \
 ])
 AC_OUTPUT

@@ -26,11 +26,6 @@
 #define GRAVITY_2    0.0000059       /* second coefficient for the gravity model*/
 #define GRAVITY_NOM  9.81            /* nominal gravity */ 
 #define SCHULER2     1.533421593170545E-06 /* Sculer Frequency (rad/sec) Squared */
-#define R2D          57.29577951308232     /* radians to degrees conversion factor */
-#define D2R          0.01745329251994      /* degrees to radians conversion factor */  
-#define FT2M         0.3048                /* feet to meters conversion factor */
-#define KTS2ms       0.5144                /* Knots to meters/sec conversion factor*/
-#define PI           3.14159265358979      /* pi */
 #define MM2M         0.001                 /*mm to m*/
 
 /*---------------     Define Structures and Enumerated Types -------------*/

@@ -74,7 +74,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: coremag.cpp,v 1.2 2009/04/13 15:29:48 curt Exp $
+// $Id: coremag.cpp,v 1.3 2009/04/20 20:40:53 curt Exp $
 
 
 #include <math.h>
@@ -82,7 +82,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-//#include <simgear/constants.h>
+#include <include/globaldefs.h>
 #include <util/sg_inlines.h>
 
 #include "coremag.h"
@@ -339,7 +339,7 @@ double calc_magvar( double lat, double lon, double h, long dat, double* field )
     }
 
     /* Find geodetic field components: */
-    psi = theta - ((M_PI / 2.0) - lat);
+    psi = theta - ((SGD_PI / 2.0) - lat);
     sinpsi = sin(psi);
     cospsi = cos(psi);
     X = -B_theta * cospsi - B_r * sinpsi;
