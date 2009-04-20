@@ -1,10 +1,10 @@
 SUBDIRS = \
 	actuators \
+	adns_mnav \
 	comms \
 	control \
 	health \
 	include \
-	navigation \
 	sensors \
 	util \
 	xml \
