@@ -9,6 +9,4 @@ SUBDIRS = \
 	util \
 	xml \
 	props \
-	main \
-	benchmarks \
-	routegen
+	main
