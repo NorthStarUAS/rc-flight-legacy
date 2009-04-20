@@ -66,9 +66,10 @@ static bool read_gps() {
 	return false;
     }
 
+    double lat_rad, lon_rad, alt_neg;
     int result = fscanf( gpsfile,"%lf %lf %lf %lf %lf %lf %lf\n",
 			 &gps_data.time,
-			 &gps_data.lat, &gps_data.lon, &gps_data.alt,
+			 &lat_rad, &lon_rad, &alt_neg,
 			 &gps_data.vn, &gps_data.ve, &gps_data.vd
 			 /* , &gps[7], &gps[8], &gps[9] */
 			 );
@@ -77,7 +78,14 @@ static bool read_gps() {
 	return false;
     }
 
+    gps_data.lat = lat_rad * SGD_RADIANS_TO_DEGREES;
+    gps_data.lon = lon_rad * SGD_RADIANS_TO_DEGREES;
+    gps_data.alt = -alt_neg;
+    gps_data.status = ValidData;
     gpscount++;
+
+    printf("read gps = %.3f %.8f %.8f %.8f\n", gps_data.time, gps_data.lat,
+	   gps_data.lon, gps_data.alt);
 
     return true;
 }

@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: gps_mgr.cpp,v 1.1 2009/04/20 01:53:02 curt Exp $
+ * $Id: gps_mgr.cpp,v 1.2 2009/04/20 02:14:59 curt Exp $
  */
 
 
@@ -66,6 +66,12 @@ void GPS_init() {
     gps_track_node = fgGetNode("/orientation/groundtrack-gps-deg", true);
     gps_unix_sec_node = fgGetNode("/position/gps-unix-time-sec", true);
 
+    // mnav conveys little useful date information from the gps,
+    // fake it with a recent date that is close enough to compute
+    // a reasonable magnetic variation, this should be updated
+    // every year or two.
+    gpspacket.date = 1232216597; /* Jan 17, 2009 */
+
     switch ( source ) {
     case gpsGPSD:
 	gpsd_init();
@@ -97,11 +103,6 @@ bool GPS_update() {
     case gpsMNAV:
 	fresh_data = mnav_get_gps(&gpspacket);
 
-	// mnav conveys little useful date information from the gps,
-	// fake it with a recent date that is close enough to compute
-	// a reasonable magnetic variation, this should be updated
-	// every year or two.
-	gpspacket.date = 1232216597; /* Jan 17, 2009 */
 	break;
 
     case gpsUGFile:

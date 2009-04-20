@@ -614,7 +614,7 @@ bool mnav_get_press() {
 }
 
 
-void send_servo_cmd()
+void mnav_send_servo_cmd()
 {
     // ch0: aileron, ch1: elevator, ch2: throttle, ch3: rudder
 
@@ -658,7 +658,7 @@ void send_servo_cmd()
 
 // identical to full servo command, but only sends first 4 channels of
 // data, saving 10 bytes per message.
-void send_short_servo_cmd()
+void mnav_send_short_servo_cmd()
 {
     uint8_t data[SHORT_SERVO_PACKET_LENGTH];
     short i = 0;
@@ -668,7 +668,7 @@ void send_short_servo_cmd()
     // for ( i = 0; i < 4; ++i ) printf("%d ", servo_out.chn[i]);
     // printf("\n");
 
-    data[0] = 0x55; 
+    data[0] = 0x55;
     data[1] = 0x55;
     data[2] = 0x53;
     data[3] = 0x54;
