@@ -233,7 +233,7 @@ void control_update(short flight_mode)
     servo_out.time = get_Time();
 
     // send commanded servo positions to the MNAV
-    send_short_servo_cmd();
+    mnav_send_short_servo_cmd();
 }
 
 
