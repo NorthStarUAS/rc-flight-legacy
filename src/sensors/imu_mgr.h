@@ -1,16 +1,16 @@
 /**
- * \file: IMU.h
+ * \file: imu_mgr.h
  *
  * Front end management interface for reading IMU data.
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: IMU.h,v 1.3 2009/04/17 18:10:03 curt Exp $
+ * $Id: imu_mgr.h,v 1.1 2009/04/20 01:53:02 curt Exp $
  */
 
 
-#ifndef _UGEAR_IMU_H
-#define _UGEAR_IMU_H
+#ifndef _UGEAR_IMU_MGR_H
+#define _UGEAR_IMU_MGR_H
 
 
 extern struct imu imupacket;
@@ -26,4 +26,4 @@ bool IMU_update();
 void IMU_close();
 
 
-#endif // _UGEAR_IMU_H
+#endif // _UGEAR_IMU_MGR_H

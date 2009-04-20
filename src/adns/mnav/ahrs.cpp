@@ -20,7 +20,7 @@
 #include "control/control.h"
 #include "include/globaldefs.h"
 #include "props/props.hxx"
-#include "sensors/IMU.h"
+#include "sensors/imu_mgr.h"
 #include "util/matrix.h"
 #include "util/myprof.h"
 #include "util/timing.h"
@@ -71,15 +71,24 @@ short  magCheck = 0;
 
 double bBx = 0.0, bBy = 0.0, sfx = 1.0, sfy = 1.0;
 
+// ahrs property nodes
 static SGPropertyNode *bBx_node = NULL;
 static SGPropertyNode *bBy_node = NULL;
 static SGPropertyNode *sfx_node = NULL;
 static SGPropertyNode *sfy_node = NULL;
+static SGPropertyNode *theta_node = NULL;
+static SGPropertyNode *phi_node = NULL;
+static SGPropertyNode *psi_node = NULL;
 
 
 // initalize the AHRS matrices
 void ahrs_init()
 {
+    // initialize ahrs property nodes 
+    theta_node = fgGetNode("/orientation/pitch-deg", true);
+    phi_node = fgGetNode("/orientation/roll-deg", true);
+    psi_node = fgGetNode("/orientaiton/heading-deg", true);
+
     //initialization of err, measurement, and process cov. matrices
     aP = mat_creat(7,7,ZERO_MATRIX); 
     aQ = mat_creat(7,7,ZERO_MATRIX); 
@@ -131,6 +140,11 @@ void ahrs_update()
     ahrs_prof.start();
     ahrs_algorithm(&imupacket);	   
     ahrs_prof.stop();
+
+    // publish values to property tree
+    theta_node->setFloatValue( imupacket.the * SG_RADIANS_TO_DEGREES );
+    phi_node->setFloatValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
+    psi_node->setFloatValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
 
     if ( display_on ) snap_time_interval("ahrs",  100, 0);
 }

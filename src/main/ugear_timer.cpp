@@ -39,8 +39,9 @@
 #include "navigation/nav.h"
 #include "props/props.hxx"
 #include "props/props_io.hxx"
-#include "sensors/GPS.h"
-#include "sensors/IMU.h"
+#include "sensors/gps_mgr.h"
+#include "sensors/imu_mgr.h"
+#include "sensors/press_mgr.h"
 #include "sensors/mnav.h"
 #include "util/exception.hxx"
 #include "util/myprof.h"
@@ -139,10 +140,10 @@ void timer_handler (int signum)
     if ( IMU_update() ) {
 	// Run the AHRS algorithm.
 	ahrs_update();
-
-	// Fixme: this should be separated out from the mnav specific code
-	mnav_imu_update();
     }
+
+    // Fetch Pressure data if available
+    Pressure_update();
 
     // Fetch GPS data if available.
     GPS_update();
@@ -456,6 +457,9 @@ int main( int argc, char **argv )
     // Initialize communication with the selected IMU
     IMU_init();
 
+    // Initialize communication with the selected Pressure sensor
+    Pressure_init();
+
     // Initialize communication with the selected GPS
     GPS_init();
 
@@ -508,8 +512,9 @@ int main( int argc, char **argv )
 
     // close and exit
     ahrs_close();
-    mnav_close();
+    IMU_close();
     GPS_close();
+    Pressure_close();
     if ( enable_nav ) {
       nav_close();
     }

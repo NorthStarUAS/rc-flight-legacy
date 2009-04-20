@@ -22,8 +22,8 @@
 
 #include "navigation/ahrs.h"
 #include "navigation/nav.h"
-#include "sensors/GPS.h"
-#include "sensors/IMU.h"
+#include "sensors/gps_mgr.h"
+#include "sensors/imu_mgr.h"
 
 #include "groundstation.h"
 

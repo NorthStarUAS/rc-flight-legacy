@@ -1,11 +1,11 @@
 /**
- * \file: IMU.cpp
+ * \file: imu_mgr.cpp
  *
  * Front end management interface for reading IMU data.
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: IMU.cpp,v 1.6 2009/04/17 18:10:03 curt Exp $
+ * $Id: imu_mgr.cpp,v 1.1 2009/04/20 01:53:02 curt Exp $
  */
 
 
@@ -21,7 +21,8 @@
 
 #include "mnav.h"
 #include "ugfile.h"
-#include "IMU.h"
+
+#include "imu_mgr.h"
 
 //
 // Global variables
@@ -35,9 +36,17 @@ static imu_source_t source = imuNone;
 // imu property nodes
 static SGPropertyNode *imu_source_node = NULL;
 
+static SGPropertyNode *p_node = NULL;
+static SGPropertyNode *q_node = NULL;
+static SGPropertyNode *r_node = NULL;
+
 
 void IMU_init() {
     // initialize imu property nodes
+    p_node = fgGetNode("/orientation/roll-rate-degps", true);
+    q_node = fgGetNode("/orientation/pitch-rate-degps", true);
+    r_node = fgGetNode("/orientation/heading-rate-degps", true);
+
     imu_source_node = fgGetNode("/config/sensors/imu-source", true);
     if ( strcmp(imu_source_node->getStringValue(), "mnav") == 0 ) {
 	source = imuMNAV;
@@ -59,7 +68,7 @@ void IMU_init() {
 	break;
     default:
 	if ( display_on ) {
-	    printf("Warning: no imu source defined\n");
+	    printf("Warning (init): no imu source defined\n");
 	}
     }
 
@@ -92,13 +101,15 @@ bool IMU_update() {
 
     default:
 	if ( display_on ) {
-	    printf("Warning: no imu source defined\n");
+	    printf("Warning (update): no imu source defined\n");
 	}
     }
 
     if ( fresh_data ) {
-	// publish values to property tree (example)
-	// gps_lat_node->setDoubleValue( gpspacket.lat );
+	// publish values to property tree
+	p_node->setFloatValue( imupacket.p * SG_RADIANS_TO_DEGREES );
+	q_node->setFloatValue( imupacket.q * SG_RADIANS_TO_DEGREES );
+	r_node->setFloatValue( imupacket.r * SG_RADIANS_TO_DEGREES );
 
 	if ( console_link_on ) {
 	    console_link_imu( &imupacket );

@@ -28,9 +28,11 @@ void mnav_close();
 
 bool mnav_get_imu( struct imu *data );
 bool mnav_get_gps( struct gps *data );
+bool mnav_get_press();
 
 void mnav_imu_update();
 void mnav_gps_update();
+void mnav_press_update();
 void mnav_manual_override_check();
 
 void send_servo_cmd();

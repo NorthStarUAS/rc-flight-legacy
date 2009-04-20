@@ -24,7 +24,7 @@
 #include "util/myprof.h"
 #include "util/timing.h"
 
-#include "GPS.h"
+#include "gps_mgr.h"
 
 #include "mnav.h"
 
@@ -69,27 +69,8 @@ static bool imu_data_valid = false;
 static bool gps_data_valid = false;
 static double start_time;
 
-// imu property nodes
-
+// mnav property nodes
 static SGPropertyNode *mnav_dev = NULL;
-
-// static SGPropertyNode *p_node = NULL;
-static SGPropertyNode *q_node = NULL;
-// static SGPropertyNode *r_node = NULL;
-static SGPropertyNode *theta_node = NULL;
-static SGPropertyNode *phi_node = NULL;
-static SGPropertyNode *psi_node = NULL;
-// static SGPropertyNode *Ps_node = NULL;
-// static SGPropertyNode *Pt_node = NULL;
-static SGPropertyNode *Ps_filt_node = NULL;
-static SGPropertyNode *Pt_filt_node = NULL;
-// static SGPropertyNode *comp_time_node = NULL;
-SGPropertyNode *pressure_error_m_node = NULL;
-SGPropertyNode *true_alt_ft_node = NULL;
-SGPropertyNode *agl_alt_ft_node = NULL;
-SGPropertyNode *vert_fps_node = NULL;
-SGPropertyNode *forward_accel_node = NULL;
-SGPropertyNode *ground_alt_press_m_node = NULL;
 
 
 // open and intialize the MNAV communication channel
@@ -155,26 +136,6 @@ void mnav_init()
         sleep(1);
     }
     nbytes = 0;  
-
-    // initialize imu property nodes 
-    // p_node = fgGetNode("/orientation/roll-rate-degps", true);
-    q_node = fgGetNode("/orientation/pitch-rate-degps", true);
-    // r_node = fgGetNode("/orientation/heading-rate-degps", true);
-    theta_node = fgGetNode("/orientation/pitch-deg", true);
-    phi_node = fgGetNode("/orientation/roll-deg", true);
-    psi_node = fgGetNode("/orientaiton/heading-deg", true);
-    // Ps_node = fgGetNode("/position/altitude-pressure-m", true);
-    // Pt_node = fgGetNode("/velocities/airspeed-ms", true);
-    Ps_filt_node = fgGetNode("/position/altitude-pressure-m", true);
-    Pt_filt_node = fgGetNode("/velocities/airspeed-kt", true);
-    // comp_time_node = fgGetNode("/time/computer-sec", true);
-    true_alt_ft_node = fgGetNode("/position/altitude-ft",true);
-    agl_alt_ft_node = fgGetNode("/position/altitude-agl-ft", true);
-    pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
-    vert_fps_node = fgGetNode("/velocities/pressure-vertical-speed-fps",true);
-    forward_accel_node = fgGetNode("/accelerations/airspeed-ktps",true);
-    ground_alt_press_m_node
-        = fgGetNode("/position/ground-altitude-pressure-m", true);
 
     if ( display_on ) {
         printf(" initialized.\n");
@@ -423,76 +384,15 @@ bool mnav_read_nonblock()
 
 
 void mnav_imu_update() {
-    static float Ps_filt = 0.0;
-    static float Pt_filt = 0.0;
-
-    static float Ps_filt_last = 0.0;
-    static float Pt_filt_last = 0.0;
-    static double t_last = 0.0;
-    static float climb_filt = 0.0;
-    static float accel_filt = 0.0;
-
-    // Do a simple first order low pass filter to reduce noise
-    Ps_filt = 0.97 * Ps_filt + 0.03 * imu_data.Ps;
-    Pt_filt = 0.97 * Pt_filt + 0.03 * imu_data.Pt;
-
-    // best guess at true altitude
-    float true_alt_m = Ps_filt + pressure_error_m_node->getFloatValue();
-
-    // compute rate of climb based on pressure altitude change
-    float climb = (Ps_filt - Ps_filt_last) / (imu_data.time - t_last);
-    Ps_filt_last = Ps_filt;
-    climb_filt = 0.97 * climb_filt + 0.03 * climb;
-
-    // compute a forward acceleration value based on pitot speed
-    // change
-    float accel = (Pt_filt - Pt_filt_last) / (imu_data.time - t_last);
-    Pt_filt_last = Pt_filt;
-    accel_filt = 0.97 * accel_filt + 0.03 * accel;
-
-    // determine ground reference altitude.  Average pressure
-    // altitude over first 30 seconds unit is powered on.  This
-    // assumes that system clock time starts counting at zero.
-    // Watch out if we ever find a way to set the system clock to
-    // real time.
-    static float ground_alt_press = imu_data.Ps;
-    if ( imu_data.time < 30.0 ) {
-	float dt = imu_data.time - t_last;
-	float elapsed = imu_data.time - dt;
-	ground_alt_press
-	    = (elapsed * ground_alt_press + dt * imu_data.Ps)
-	    / imu_data.time;
-	ground_alt_press_m_node->setFloatValue( ground_alt_press );
-    }
-
-    t_last = imu_data.time;
-
-    /* printf("%.2f %.2f\n", imu_data.phi * SG_RADIANS_TO_DEGREES,
-       imu_data.the * SG_RADIANS_TO_DEGREES); */
-
-    // publish values to property tree
-    // p_node->setFloatValue( imu_data.p * SG_RADIANS_TO_DEGREES );
-    q_node->setFloatValue( imu_data.q * SG_RADIANS_TO_DEGREES );
-    // r_node->setFloatValue( imu_data.r * SG_RADIANS_TO_DEGREES );
-    theta_node->setFloatValue( imu_data.the * SG_RADIANS_TO_DEGREES );
-    phi_node->setFloatValue( imu_data.phi * SG_RADIANS_TO_DEGREES );
-    psi_node->setFloatValue( imu_data.psi * SG_RADIANS_TO_DEGREES );
-    // Ps_node->setFloatValue( imu_data.Ps );
-    // Pt_node->setFloatValue( imu_data.Pt );
-    Ps_filt_node->setFloatValue( Ps_filt );
-    Pt_filt_node->setFloatValue( Pt_filt * SG_MPS_TO_KT );
-    // comp_time_node->setDoubleValue( imu_data.time );
-    true_alt_ft_node->setFloatValue( true_alt_m * SG_METER_TO_FEET );
-    agl_alt_ft_node->setFloatValue( (Ps_filt - ground_alt_press) * SG_METER_TO_FEET );
-    vert_fps_node->setFloatValue( climb_filt * SG_METER_TO_FEET );
-    forward_accel_node->setFloatValue( accel_filt * SG_MPS_TO_KT );
-    
-    // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
-    //        Ps_filt, navpacket.alt, true_alt_m, climb_filt);
 }
 
 
 void mnav_gps_update() {
+    // noop for now
+}
+
+
+void mnav_press_update() {
     // noop for now
 }
 
@@ -705,6 +605,12 @@ bool mnav_get_gps( struct gps *data ) {
     }
 
     return gps_data_valid;
+}
+
+
+bool mnav_get_press() {
+    // noop right now (imu routine fills in pressure)
+    return true;
 }
 
 

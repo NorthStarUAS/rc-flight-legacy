@@ -1,11 +1,11 @@
 /**
- * \file: GPS.cpp
+ * \file: gps_mgr.cpp
  *
  * Front end management interface for reading GPS data.
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: GPS.cpp,v 1.5 2009/04/17 18:10:03 curt Exp $
+ * $Id: gps_mgr.cpp,v 1.1 2009/04/20 01:53:02 curt Exp $
  */
 
 
@@ -20,8 +20,9 @@
 
 #include "gpsd.h"
 #include "mnav.h"
-#include "GPS.h"
 #include "ugfile.h"
+
+#include "gps_mgr.h"
 
 //
 // Global variables
@@ -48,10 +49,12 @@ static SGPropertyNode *gps_unix_sec_node = NULL;
 void GPS_init() {
     // initialize gps property nodes
     gps_source_node = fgGetNode("/config/sensors/gps-source", true);
-    if ( strcmp(gps_source_node->getStringValue(), "mnav") == 0 ) {
-	source = gpsMNAV;
+    if ( strcmp(gps_source_node->getStringValue(), "file") == 0 ) {
+	source = gpsUGFile;
     } else if ( strcmp(gps_source_node->getStringValue(), "gpsd") == 0 ) {
 	source = gpsGPSD;
+    } else if ( strcmp(gps_source_node->getStringValue(), "mnav") == 0 ) {
+	source = gpsMNAV;
     }
 
     gps_lat_node = fgGetNode("/position/latitude-gps-deg", true);
