@@ -1,6 +1,10 @@
 MicroGear TODO
 ==============
 
+- Add servo sensor module
+
+- Add actuator module
+
 - Make "heart beat" rate xml configurable.
 
 - Add ability to read from file versus live sensors

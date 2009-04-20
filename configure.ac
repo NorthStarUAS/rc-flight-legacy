@@ -35,6 +35,7 @@ AM_CONFIG_HEADER(src/include/ugear_config.h)
 AC_CONFIG_FILES([ \
 	Makefile \
         src/Makefile \
+        src/actuators/Makefile \
         src/benchmarks/Makefile \
         src/comms/Makefile \
         src/control/Makefile \
