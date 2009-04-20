@@ -160,7 +160,7 @@ void timer_handler (int signum)
 	// check gps data age.  The nav filter continues to run,
 	// but the results are marked as NotValid if the most
 	// recent gps data becomes too old.
-	if ( current_time > gpspacket.time + gps_timeout_sec ) {
+	if ( GPS_age() > gps_timeout_sec ) {
 	    navpacket.status = NotValid;
 	}
 

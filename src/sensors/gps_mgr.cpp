@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: gps_mgr.cpp,v 1.2 2009/04/20 02:14:59 curt Exp $
+ * $Id: gps_mgr.cpp,v 1.3 2009/04/20 15:01:43 curt Exp $
  */
 
 
@@ -17,6 +17,7 @@
 #include "comms/console_link.h"
 #include "comms/logging.h"
 #include "props/props.hxx"
+#include "util/timing.h"
 
 #include "gpsd.h"
 #include "mnav.h"
@@ -32,6 +33,7 @@
 struct gps gpspacket;
 
 static gps_source_t source = gpsNone;
+static double gps_last_time = 0.0;
 
 // gps property nodes
 static SGPropertyNode *gps_source_node = NULL;
@@ -70,7 +72,7 @@ void GPS_init() {
     // fake it with a recent date that is close enough to compute
     // a reasonable magnetic variation, this should be updated
     // every year or two.
-    gpspacket.date = 1232216597; /* Jan 17, 2009 */
+    gpspacket.date = 1240238933; /* Apr 20, 2009 */
 
     switch ( source ) {
     case gpsGPSD:
@@ -116,6 +118,8 @@ bool GPS_update() {
     }
 
     if ( fresh_data ) {
+	gps_last_time = get_Time(); // for computing gps data age
+
 	// publish values to property tree
 	gps_lat_node->setDoubleValue( gpspacket.lat );
 	gps_lon_node->setDoubleValue( gpspacket.lon );
@@ -159,4 +163,9 @@ void GPS_close() {
 	    printf("Warning: no gps source defined\n");
 	}
     }
+}
+
+
+double GPS_age() {
+    return get_Time() - gps_last_time;
 }

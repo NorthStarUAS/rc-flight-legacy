@@ -7,6 +7,7 @@
 #include <zlib.h>
 
 #include "navigation/ahrs.h"
+#include "sensors/gps_mgr.h"
 #include "util/timing.h"
 
 #include "logging.h"
@@ -198,7 +199,7 @@ void display_message( struct imu *data, struct gps *gdata, struct nav *ndata,
 	       date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
 	       date->tm_hour, date->tm_min, date->tm_sec + remainder);
         printf("[GPS  ]:lon = %f[deg], lat = %f[deg], alt = %f[m], age = %.2f\n",
-	       gdata->lon, gdata->lat, gdata->alt, current_time - gdata->time);
+	       gdata->lon, gdata->lat, gdata->alt, GPS_age());
     } else {
 	printf("[GPS  ]:[No Valid Data]\n");
     }
