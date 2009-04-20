@@ -35,8 +35,8 @@ void mnav_gps_update();
 void mnav_press_update();
 void mnav_manual_override_check();
 
-void mnav_send_servo_cmd();
-void mnav_send_short_servo_cmd();
+void mnav_send_servo_cmd( struct servo *servo_out );
+void mnav_send_short_servo_cmd( struct servo *servo_out );
 
 
 #endif // _UGEAR_MNAV_H

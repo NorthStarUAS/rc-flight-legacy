@@ -1,2 +1,14 @@
-SUBDIRS = comms control health include navigation util xml props sensors main routegen benchmarks
-
+SUBDIRS = \
+	actuators \
+	comms \
+	control \
+	health \
+	include \
+	navigation \
+	sensors \
+	util \
+	xml \
+	props \
+	main \
+	benchmarks \
+	routegen

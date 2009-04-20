@@ -27,6 +27,7 @@
 
 #include <string>
 
+#include "actuators/act_mgr.h"
 #include "comms/console_link.h"
 #include "comms/groundstation.h"
 #include "comms/logging.h"
@@ -222,6 +223,8 @@ void timer_handler (int signum)
 	    control_update(0);
 	    control_prof.stop();
 	}
+
+	Actuator_update();
     }
 
     if ( console_link_on ) {
@@ -472,6 +475,7 @@ int main( int argc, char **argv )
     if ( enable_control ) {
         // initialize the autopilot
         control_init();
+	Actuator_init();
     }
 
     if ( enable_route ) {

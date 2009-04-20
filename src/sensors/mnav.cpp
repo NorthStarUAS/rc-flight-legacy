@@ -614,7 +614,7 @@ bool mnav_get_press() {
 }
 
 
-void mnav_send_servo_cmd()
+void mnav_send_servo_cmd( struct servo *servo_out )
 {
     // ch0: aileron, ch1: elevator, ch2: throttle, ch3: rudder
 
@@ -632,8 +632,8 @@ void mnav_send_servo_cmd()
     data[3] = 0x53;
 
     for ( i = 0; i < 8; ++i ) {
-        data[4+2*i] = (uint8_t)(servo_out.chn[i] >> 8); 
-        data[5+2*i] = (uint8_t)servo_out.chn[i];
+        data[4+2*i] = (uint8_t)(servo_out->chn[i] >> 8); 
+        data[5+2*i] = (uint8_t)servo_out->chn[i];
     }
 
     // pad last unused channel
@@ -658,14 +658,14 @@ void mnav_send_servo_cmd()
 
 // identical to full servo command, but only sends first 4 channels of
 // data, saving 10 bytes per message.
-void mnav_send_short_servo_cmd()
+void mnav_send_short_servo_cmd( struct servo *servo_out )
 {
     uint8_t data[SHORT_SERVO_PACKET_LENGTH];
     short i = 0;
     uint16_t sum = 0;
 
     // printf("sending servo data ");
-    // for ( i = 0; i < 4; ++i ) printf("%d ", servo_out.chn[i]);
+    // for ( i = 0; i < 4; ++i ) printf("%d ", servo_out->chn[i]);
     // printf("\n");
 
     data[0] = 0x55;
@@ -674,8 +674,8 @@ void mnav_send_short_servo_cmd()
     data[3] = 0x54;
 
     for ( i = 0; i < 4; ++i ) {
-        data[4+2*i] = (uint8_t)(servo_out.chn[i] >> 8); 
-        data[5+2*i] = (uint8_t)servo_out.chn[i];
+        data[4+2*i] = (uint8_t)(servo_out->chn[i] >> 8); 
+        data[5+2*i] = (uint8_t)servo_out->chn[i];
     }
 
     //checksum: need to be verified

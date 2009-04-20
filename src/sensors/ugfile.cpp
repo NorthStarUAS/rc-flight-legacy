@@ -84,8 +84,8 @@ static bool read_gps() {
     gps_data.status = ValidData;
     gpscount++;
 
-    printf("read gps = %.3f %.8f %.8f %.8f\n", gps_data.time, gps_data.lat,
-	   gps_data.lon, gps_data.alt);
+    // printf("read gps = %.3f %.8f %.8f %.8f\n", gps_data.time, gps_data.lat,
+    //	   gps_data.lon, gps_data.alt);
 
     return true;
 }

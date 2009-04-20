@@ -12,6 +12,7 @@ ugear_SOURCES = \
 	ugear.cpp
 
 ugear_LDADD = \
+	$(top_builddir)/src/actuators/libactuators.a \
 	$(top_builddir)/src/comms/libcomms.a \
 	$(top_builddir)/src/health/libhealth.a \
 	$(top_builddir)/src/sensors/libsensors.a \
@@ -26,6 +27,7 @@ ugear_timer_SOURCES = \
 	ugear_timer.cpp
 
 ugear_timer_LDADD = \
+	$(top_builddir)/src/actuators/libactuators.a \
 	$(top_builddir)/src/comms/libcomms.a \
 	$(top_builddir)/src/health/libhealth.a \
 	$(top_builddir)/src/sensors/libsensors.a \

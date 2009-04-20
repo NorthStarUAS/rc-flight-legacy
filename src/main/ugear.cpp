@@ -27,6 +27,7 @@
 
 #include <string>
 
+#include "actuators/act_mgr.h"
 #include "comms/console_link.h"
 #include "comms/groundstation.h"
 #include "comms/logging.h"

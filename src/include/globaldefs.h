@@ -70,7 +70,7 @@ struct health {
 };
 
 extern struct servo servo_in;
-extern struct servo servo_out;
+// extern struct servo servo_out;
 extern struct health healthpacket;
 
 // A varienty of constants
