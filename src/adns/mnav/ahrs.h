@@ -10,9 +10,9 @@
 
 extern double xs[7];
 
-void ahrs_init();
-void ahrs_update();
-void ahrs_close();
+void mnav_ahrs_init();
+void mnav_ahrs_update();
+void mnav_ahrs_close();
 
 
 #endif // _UGEAR_AHRS_H

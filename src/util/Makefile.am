@@ -1,6 +1,7 @@
 noinst_LIBRARIES = libutil.a
 
 libutil_a_SOURCES = \
+	coremag.cpp coremag.h \
 	exception.cxx exception.hxx \
         matrix.c matrix.h \
 	myprof.cxx myprof.h \
