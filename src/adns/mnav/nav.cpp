@@ -22,13 +22,13 @@
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
 #include "sensors/imu_mgr.h"
+#include "util/coremag.h"
 #include "util/matrix.h"
 #include "util/myprof.h"
 #include "util/navfunc.h"
 #include "util/timing.h"
 
 #include "ahrs.h"
-#include "coremag.h"
 #include "nav.h"
 
 
@@ -78,7 +78,7 @@ void timer_intr( int sig )
 
 
 // initialize nav structures and matrices
-void nav_init()
+void mnav_nav_init()
 {
     // matrix creation for navigation computation
     nxs   = mat_creat(9,1,ZERO_MATRIX);   //state x=[lat lon alt ve vn vup bax bay baz]'
@@ -119,7 +119,8 @@ void nav_init()
     navpacket.status = NotValid;
 
     // initialize nav property nodes
-    magvar_deg_node = fgGetNode("/config/nav-filter/magvar-deg", true);
+    magvar_deg_node = fgGetNode("/config/adns/mnav/nav-filter/magvar-deg",
+				true);
     if ( strcmp(magvar_deg_node->getStringValue(), "auto") == 0 ||
 	 strlen(magvar_deg_node->getStringValue()) == 0 )
     {
@@ -143,7 +144,7 @@ void nav_init()
 }
 
 
-void nav_update()
+void mnav_nav_update()
 {
     nav_prof.start();
 
@@ -263,7 +264,7 @@ void nav_update()
 }
 
 
-void nav_close()
+void mnav_nav_close()
 {
     // free memory space
     mat_free(nxs);

@@ -210,12 +210,12 @@ int main( int argc, char **argv )
 
     // Initialize AHRS code.  Must be called before ahrs_update() or
     // ahrs_close()
-    ahrs_init();
+    mnav_ahrs_init();
 
     if ( enable_nav ) {
         // Initialize the NAV code.  Must be called before nav_update() or
         // nav_close()
-        nav_init();
+        mnav_nav_init();
     }
 
     // Initialize communication with the selected IMU
@@ -286,7 +286,7 @@ int main( int argc, char **argv )
 	IMU_update();
 
 	// Run the AHRS algorithm.
-	ahrs_update();
+	mnav_ahrs_update();
 
 	mnav_imu_update();
 
@@ -300,7 +300,7 @@ int main( int argc, char **argv )
             // based on gps and accelerometer data.
 	    nav_counter = 0;
 
-	    nav_update();
+	    mnav_nav_update();
 
 	    // check gps data age.  The nav filter continues to run,
 	    // but the results are marked as NotValid if the most
@@ -462,14 +462,14 @@ int main( int argc, char **argv )
     } // end main loop
 
     // close and exit
-    ahrs_close();
+    mnav_ahrs_close();
     mnav_close();
     GPS_close();
     if ( enable_nav ) {
-      nav_close();
+	mnav_nav_close();
     }
     if ( enable_control ) {
-      control_close();
+	control_close();
     }
 }
 

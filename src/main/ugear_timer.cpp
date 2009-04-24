@@ -30,6 +30,7 @@
 #include "actuators/act_mgr.h"
 #include "adns_mnav/ahrs.h"
 #include "adns_mnav/nav.h"
+#include "adns_umn/adns.h"
 #include "comms/console_link.h"
 #include "comms/groundstation.h"
 #include "comms/logging.h"
@@ -67,11 +68,11 @@ static const int HEARTBEAT_HZ = 50;	 // master clock rate
 
 static bool log_servo_out  = true;    // log outgoing servo commands by default
 static bool enable_control = false;   // autopilot control module enabled/disabled
-static bool enable_nav     = false;   // nav filter enabled/disabled
+static bool enable_mnav_adns = false; // mnav nav filter enabled/disabled
 static bool enable_route   = false;   // route module enabled/disabled
 static bool wifi           = false;   // wifi connection enabled/disabled
 static bool initial_home   = false;   // initial home position determined
-static double gps_timeout_sec = 9.0; // nav algorithm gps timeout
+static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 static double lost_link_sec = 59.0;   // lost link timeout
 
 //
@@ -107,7 +108,7 @@ void timer_handler (int signum)
     double dt = current_time - last_time;
     last_time = current_time;
 
-    static int nav_counter = 0;
+    static int mnav_nav_counter = 0;
     static int health_counter = 0;
     static int display_counter = 0;
     static int wifi_counter = 0;
@@ -124,8 +125,8 @@ void timer_handler (int signum)
     // printf ("timer expired %d times\n", count);
 
     // upate timing counters
-    if ( enable_nav ) {
-	nav_counter++;
+    if ( enable_mnav_adns ) {
+	mnav_nav_counter++;
     }
     health_counter++;
     display_counter++;
@@ -135,11 +136,12 @@ void timer_handler (int signum)
     command_counter++;
     flush_counter++;
 
+    //
+    // Sensor input section
+    //
+
     // Fetch the next data packet from the IMU.
-    if ( IMU_update() ) {
-	// Run the AHRS algorithm.
-	ahrs_update();
-    }
+    bool fresh_imu_data = IMU_update();
 
     // Fetch Pressure data if available
     Pressure_update();
@@ -149,12 +151,23 @@ void timer_handler (int signum)
 
     mnav_manual_override_check();
 
-    if ( enable_nav && nav_counter >= (HEARTBEAT_HZ / 25) ) {
+    //
+    // Attitude Determination and Navigation section
+    //
+
+    if ( fresh_imu_data ) {
+	if ( enable_mnav_adns ) {
+	    // Run the MNAV AHRS algorithm.
+	    mnav_ahrs_update();
+	}
+    }
+
+    if ( enable_mnav_adns && mnav_nav_counter >= (HEARTBEAT_HZ / 25) ) {
 	// navigation (update at 25hz.)  compute a location estimate
 	// based on gps and accelerometer data.
-	nav_counter = 0;
+	mnav_nav_counter = 0;
 
-	nav_update();
+	mnav_nav_update();
 
 	// check gps data age.  The nav filter continues to run,
 	// but the results are marked as NotValid if the most
@@ -172,6 +185,10 @@ void timer_handler (int signum)
 	    }
 	}
     }
+
+    //
+    // Read commands from ground station section
+    //
 
     if ( console_link_on ) {
 	bool read_command = false;
@@ -203,6 +220,10 @@ void timer_handler (int signum)
 	}
     }
 
+    //
+    // Control section
+    //
+
     if ( enable_route ) {
 	// route updates at 5 hz
 	if ( route_counter >= (HEARTBEAT_HZ / 5) ) {
@@ -224,6 +245,10 @@ void timer_handler (int signum)
 
 	Actuator_update();
     }
+
+    //
+    // Data logging and Telemetry dump section
+    //
 
     if ( console_link_on ) {
 	if ( log_servo_out ) {
@@ -280,7 +305,7 @@ void timer_handler (int signum)
 			 &servo_in, &healthpacket );
 	mnav_prof.stats   ( "MNAV" );
 	ahrs_prof.stats   ( "AHRS" );
-	if ( enable_nav ) {
+	if ( enable_mnav_adns ) {
 	    nav_prof.stats    ( "NAV " );
 	    nav_alg_prof.stats    ( "NAVA" );
 	}
@@ -370,16 +395,16 @@ int main( int argc, char **argv )
     log_to_file = p->getBoolValue();
     printf("log path = %s enabled = %d\n", log_path.c_str(), log_to_file);
 
-    p = fgGetNode("/config/nav-filter/enable", true);
-    enable_nav = p->getBoolValue();
+    p = fgGetNode("/config/adns/mnav/enable", true);
+    enable_mnav_adns = p->getBoolValue();
 
-    p = fgGetNode("/config/nav-filter/gps-timeout-sec");
+    p = fgGetNode("/config/adns/mnav/nav-filter/gps-timeout-sec");
     if ( p != NULL && p->getDoubleValue() > 0.0001 ) {
 	// stick with the default if nothing valid specified
 	gps_timeout_sec = p->getDoubleValue();
     }
-    printf("navigation filter enabled = %d  gps timeout = %.1f\n",
-	   enable_nav, gps_timeout_sec);
+    printf("mnav adns enabled = %d  gps timeout = %.1f\n",
+	   enable_mnav_adns, gps_timeout_sec);
 
     p = fgGetNode("/config/console/lost-link-timeout-sec");
     if ( p != NULL && p->getDoubleValue() > 0.0001 ) {
@@ -444,14 +469,14 @@ int main( int argc, char **argv )
         }
     }
 
-    // Initialize AHRS code.  Must be called before ahrs_update() or
-    // ahrs_close()
-    ahrs_init();
+    if ( enable_mnav_adns ) {
+	// Initialize AHRS code.  Must be called before ahrs_update() or
+	// ahrs_close()
+	mnav_ahrs_init();
 
-    if ( enable_nav ) {
         // Initialize the NAV code.  Must be called before nav_update() or
         // nav_close()
-        nav_init();
+        mnav_nav_init();
     }
 
     // Initialize communication with the selected IMU
@@ -508,16 +533,16 @@ int main( int argc, char **argv )
     }
 
     // close and exit
-    ahrs_close();
+    if ( enable_mnav_adns ) {
+	mnav_ahrs_close();
+	mnav_nav_close();
+    }
     IMU_close();
     GPS_close();
     Pressure_close();
-    if ( enable_nav ) {
-      nav_close();
-    }
     if ( enable_control ) {
-      control_close();
-      Actuator_close();
+	control_close();
+	Actuator_close();
     }
 }
 

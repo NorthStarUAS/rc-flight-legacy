@@ -29,9 +29,6 @@
 
 #include "ahrs.h"
 
-//prototype definition
-void 		ahrs_algorithm(struct imu *data);
-double 		wraparound(double dta);
 
 //predefined variables
 #define		g	9.81		// m/sec^2
@@ -80,7 +77,7 @@ static SGPropertyNode *psi_node = NULL;
 
 
 // initalize the AHRS matrices
-void ahrs_init()
+void mnav_ahrs_init()
 {
     // initialize ahrs property nodes 
     theta_node = fgGetNode("/orientation/pitch-deg", true);
@@ -117,13 +114,13 @@ void ahrs_init()
     mat77 = mat_creat(7,7,ZERO_MATRIX);
 
     // initialize hard iron calibration property nodes
-    bBx_node = fgGetNode("/config/ahrs/bBx", true);
+    bBx_node = fgGetNode("/config/adns/mnav/ahrs/bBx", true);
     bBx = bBx_node->getDoubleValue();
-    bBy_node = fgGetNode("/config/ahrs/bBy", true);
+    bBy_node = fgGetNode("/config/adns/mnav/ahrs/bBy", true);
     bBy = bBy_node->getDoubleValue();
-    sfx_node = fgGetNode("/config/ahrs/sfx", true);
+    sfx_node = fgGetNode("/config/adns/mnav/ahrs/sfx", true);
     sfx = sfx_node->getDoubleValue();
-    sfy_node = fgGetNode("/config/ahrs/sfy", true);
+    sfy_node = fgGetNode("/config/adns/mnav/ahrs/sfy", true);
     sfy = sfy_node->getDoubleValue();
 
     if ( display_on ) {
@@ -132,50 +129,12 @@ void ahrs_init()
 }
 
 
-// ahrs update() routine
-void ahrs_update()
-{
-    ahrs_prof.start();
-    ahrs_algorithm(&imupacket);	   
-    ahrs_prof.stop();
-
-    // publish values to property tree
-    theta_node->setFloatValue( imupacket.the * SG_RADIANS_TO_DEGREES );
-    phi_node->setFloatValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
-    psi_node->setFloatValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
-
-    if ( display_on ) snap_time_interval("ahrs",  100, 0);
-}
-
-
-void ahrs_close()
-{
-    //free memory space
-    mat_free(aP);
-    mat_free(aQ);
-    mat_free(aR);
-    mat_free(aK);
-    mat_free(Fsys);
-    mat_free(Iden);
-    mat_free(Hj);
-    mat_free(Rinv);
-    mat_free(tmp77);
-    mat_free(tmp33);
-    mat_free(tmp73);
-    mat_free(tmpr);
-    mat_free(mat77);
-    mat_free(Kpsi);
-    mat_free(Hpsi);
-    mat_free(tmp71);
-}
-
-
 //
 // extended kalman filter algorithm.  Prediction is done at 50hz (the
 // MNAV data rate) and correction is done every other frame at 25hz.
 //
 
-void ahrs_algorithm(struct imu *data)
+static void ahrs_algorithm(struct imu *data)
 {
     static double tnow,tprev=0;
     double pc,qc,rc;
@@ -334,4 +293,42 @@ void ahrs_algorithm(struct imu *data)
     //     printf("roll = %.2f  pitch = %.2f  heading = %.2f\n",
     //            data->phi * r2d, data->the * r2d, data->psi * r2d );
     // }
+}
+
+
+// ahrs update() routine
+void mnav_ahrs_update()
+{
+    ahrs_prof.start();
+    ahrs_algorithm(&imupacket);	   
+    ahrs_prof.stop();
+
+    // publish values to property tree
+    theta_node->setFloatValue( imupacket.the * SG_RADIANS_TO_DEGREES );
+    phi_node->setFloatValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
+    psi_node->setFloatValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
+
+    if ( display_on ) snap_time_interval("ahrs",  100, 0);
+}
+
+
+void mnav_ahrs_close()
+{
+    //free memory space
+    mat_free(aP);
+    mat_free(aQ);
+    mat_free(aR);
+    mat_free(aK);
+    mat_free(Fsys);
+    mat_free(Iden);
+    mat_free(Hj);
+    mat_free(Rinv);
+    mat_free(tmp77);
+    mat_free(tmp33);
+    mat_free(tmp73);
+    mat_free(tmpr);
+    mat_free(mat77);
+    mat_free(Kpsi);
+    mat_free(Hpsi);
+    mat_free(tmp71);
 }

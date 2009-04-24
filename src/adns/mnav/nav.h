@@ -17,9 +17,9 @@ extern MATRIX nxs;
 
 
 // global functions
-void nav_init();
-void nav_update();
-void nav_close();
+void mnav_nav_init();
+void mnav_nav_update();
+void mnav_nav_close();
 
 
 #endif // _UGEAR_NAVIGATION_H
