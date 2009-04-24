@@ -33,7 +33,7 @@ ivl_matrix *ivl_matrix_new(uint rows, uint cols)
     ivl_matrix *m = NULL;
 
     m = (ivl_matrix*)ivl_malloc( sizeof(ivl_matrix) );
-    m->type = MATRIX;
+    m->type = ivlMATRIX;
     m->ncols = cols;
     m->nrows = rows;
 
@@ -55,7 +55,7 @@ ivl_matrix *ivl_matrix_new(uint rows, uint cols)
  */
 void ivl_matrix_free( ivl_matrix **m)
 {
-    if( (*m)->type == MATRIX )
+    if( (*m)->type == ivlMATRIX )
 	{
 	    ivl_free( (*m)->matrix );
 	    ivl_free( (*m)->vector );
@@ -106,7 +106,7 @@ int /*bool*/ ivl_matrix_get_view(ivl_matrix *m,
     if( (scol + ncol <= m->ncols) &&
 	(srow + nrow <= m->nrows ) )
 	{
-	    s->type = VIEW;
+	    s->type = ivlVIEW;
 
 	    s->srow = srow;
 	    s->scol = scol;
@@ -136,7 +136,7 @@ int /*bool*/ ivl_matrix_get_view(ivl_matrix *m,
  */
 double ivl_matrix_get(ivl_matrix *m, uint row, uint col)
 {
-    if( m->type == VIEW )
+    if( m->type == ivlVIEW )
 	{
 	    return ivl_matrix_get( V(m)->parent,
 				   V(m)->srow + row,
@@ -156,7 +156,7 @@ double ivl_matrix_get(ivl_matrix *m, uint row, uint col)
  */
 void ivl_matrix_set(ivl_matrix *m, uint row, uint col, double v)
 {
-    if( m->type == VIEW )
+    if( m->type == ivlVIEW )
 	{
 	    ivl_matrix_set( V(m)->parent, 
 			    V(m)->srow + row,
@@ -187,7 +187,7 @@ ivl_matrix *ivl_matrix_copy(ivl_matrix *from, ivl_matrix *to)
 	    return NULL;
 	}
 
-    if( from->type == MATRIX && to->type == MATRIX )
+    if( from->type == ivlMATRIX && to->type == ivlMATRIX )
 	{
 	    memcpy( to->vector, from->vector, to->nrows * to->ncols * sizeof(double) );
 	}
@@ -217,7 +217,7 @@ ivl_matrix *ivl_matrix_zeros(ivl_matrix *m)
 {
     uint r,c;
 
-    if( m->type == VIEW )
+    if( m->type == ivlVIEW )
 	{
 	    for(r=0;r<m->nrows;r++)
 		for(c=0;c<m->ncols;c++)
@@ -733,7 +733,7 @@ void ivl_matrix_print(ivl_matrix *m, int precision, int /*bool*/ sn)
 	precision = 6;
 
     printf("-- %s, nrows=%d, ncols=%d --\n"
-	   ,m->type == MATRIX ? "matrix" : "matrix view"
+	   ,m->type == ivlMATRIX ? "matrix" : "matrix view"
 	   ,m->nrows
 	   ,m->ncols
 	   );

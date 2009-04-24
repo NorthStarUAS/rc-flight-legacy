@@ -9,10 +9,10 @@
 #define IVL_MATRIX_H
 
 
-enum MatrixType
+enum ivlMatrixType
 {
-	MATRIX,
-	VIEW
+	ivlMATRIX,
+	ivlVIEW
 };
 
 /*! 
@@ -20,7 +20,7 @@ enum MatrixType
  */
 typedef struct ivlMatrix
 {
-	enum MatrixType type;	/*!< matrix type */
+	enum ivlMatrixType type;	/*!< matrix type */
 	uint nrows;	/*!< number of rows in matrix */
 	uint ncols;	/*!< number of columns in matrix */
 

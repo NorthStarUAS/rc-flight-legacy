@@ -2,6 +2,9 @@
 #define KALMANFILTER_H
 
 
+#include "matrix.h"
+
+
 /*
  * Discrete Kalman Filter
  *
