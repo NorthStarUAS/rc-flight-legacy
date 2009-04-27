@@ -6,7 +6,7 @@
  *
  * Copyright Curt Olson curtolson@gmail.com
  *
- * $Id: gpsd.cpp,v 1.2 2009/01/17 20:28:01 curt Exp $
+ * $Id: gpsd.cpp,v 1.3 2009/04/27 01:29:09 curt Exp $
  */
 
 #include <string>
@@ -20,6 +20,7 @@ using std::string;
 #include "util/netSocket.h"
 #include <util/strutils.hxx>
 #include "util/timing.h"
+#include "gps_mgr.h"
 
 #include "gpsd.h"
 
@@ -95,8 +96,7 @@ static void gpsd_connect() {
 
 
 static bool parse_gpsd_sentence( const char *sentence ) {
-    static double last_unix_time = 0.0;
-    static double last_alt_m = 0.0;
+    static bool new_position = false;
 
     vector <string> token = split( sentence, " " );
     if ( token.size() < 1 ) {
@@ -121,7 +121,6 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	    double angle_rad = (90.0 - course_deg) * SGD_DEGREES_TO_RADIANS;
 	    gps_data.vn = cos(angle_rad) * speed_mps;
 	    gps_data.ve = sin(angle_rad) * speed_mps;
-
 	    // update structure time stamp only after we get ground
 	    // track data.  This means the new position report is
 	    // delayed until ground track info is sent over, but
@@ -130,12 +129,14 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	    // slightly instead delaying the ground track data by an
 	    // entire second.
 	    gps_data.time = get_Time();
+	    new_position = true;
 	}
-	if ( gps_data.date > last_unix_time ) {
-	    gps_data.vn = (gps_data.alt - last_alt_m) * (gps_data.date - last_unix_time);
-	    last_alt_m = gps_data.alt;
-	    last_unix_time = gps_data.date;
-	}
+	// if ( gps_data.date > last_unix_time && last_unix_time > 0.0 ) {
+	//   gps_data.vn = (gps_data.alt - last_alt_m) * (gps_data.date - last_unix_time);
+	//   last_alt_m = gps_data.alt;
+	//    last_unix_time = gps_data.date;
+	// }
+	gps_data.vn = atof( token[10].c_str() );
 	gps_data.status = ValidData;
     } else if ( token[0] == "GPSD,Y=GSV" ) {
 	// Output of GPSD "Y" command 
@@ -151,10 +152,9 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	if ( display_on ) {
 	    printf("Unknown GPSD sentence: %s", sentence);
 	}
-	return false;
     }
 
-    return true;
+    return new_position;
 }
 
 
