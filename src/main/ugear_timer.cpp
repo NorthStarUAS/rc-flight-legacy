@@ -32,9 +32,7 @@
 #include "adns_mnav/nav.h"
 #include "adns_umn/adns.h"
 #include "comms/console_link.h"
-#include "comms/groundstation.h"
 #include "comms/logging.h"
-#include "comms/uplink.h"
 #include "control/control.h"
 #include "control/route_mgr.hxx"
 #include "health/health.h"
@@ -69,11 +67,21 @@ static const int HEARTBEAT_HZ = 50;	 // master clock rate
 static bool log_servo_out  = true;    // log outgoing servo commands by default
 static bool enable_control = false;   // autopilot control module enabled/disabled
 static bool enable_mnav_adns = false; // mnav nav filter enabled/disabled
+static bool enable_umn_adns = false;  // mnav nav filter enabled/disabled
 static bool enable_route   = false;   // route module enabled/disabled
 static bool wifi           = false;   // wifi connection enabled/disabled
 static bool initial_home   = false;   // initial home position determined
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 static double lost_link_sec = 59.0;   // lost link timeout
+
+// gps property nodes
+static SGPropertyNode *gps_time_stamp_node = NULL;
+static SGPropertyNode *gps_lat_node = NULL;
+static SGPropertyNode *gps_lon_node = NULL;
+static SGPropertyNode *gps_alt_node = NULL;
+static SGPropertyNode *gps_ve_node = NULL;
+static SGPropertyNode *gps_vn_node = NULL;
+static SGPropertyNode *gps_vd_node = NULL;
 
 //
 // usage message
@@ -117,7 +125,6 @@ void timer_handler (int signum)
     static int command_counter = 0;
     static int flush_counter = 0;
     static double last_command_time = 0.0;
-    static short wifi_attempt = 0;
 
     static int count = 0;
 
@@ -155,34 +162,69 @@ void timer_handler (int signum)
     // Attitude Determination and Navigation section
     //
 
-    if ( fresh_imu_data ) {
-	if ( enable_mnav_adns ) {
+    if ( enable_mnav_adns ) {
+	if ( fresh_imu_data ) {
 	    // Run the MNAV AHRS algorithm.
 	    mnav_ahrs_update();
 	}
+
+	if ( mnav_nav_counter >= (HEARTBEAT_HZ / 25) ) {
+	    // navigation (update at 25hz.)  compute a location
+	    // estimate based on gps and accelerometer data.
+	    mnav_nav_counter = 0;
+
+	    mnav_nav_update();
+
+	    // check gps data age.  The nav filter continues to run,
+	    // but the results are marked as NotValid if the most
+	    // recent gps data becomes too old.
+	    if ( GPS_age() > gps_timeout_sec ) {
+		navpacket.status = NotValid;
+	    }
+
+	    // initial home is most recent gps result after being
+	    // alive with a solution for 20 seconds
+	    if ( !initial_home && navpacket.status == ValidData ) {
+		SGWayPoint wp( gps_lon_node->getDoubleValue(),
+			       gps_lat_node->getDoubleValue(),
+			       -9999.9 );
+		if ( route_mgr.update_home(wp, 0.0, true /* force update */) ) {
+		    initial_home = true;
+		}
+	    }
+	}
     }
 
-    if ( enable_mnav_adns && mnav_nav_counter >= (HEARTBEAT_HZ / 25) ) {
-	// navigation (update at 25hz.)  compute a location estimate
-	// based on gps and accelerometer data.
-	mnav_nav_counter = 0;
-
-	mnav_nav_update();
-
-	// check gps data age.  The nav filter continues to run,
-	// but the results are marked as NotValid if the most
-	// recent gps data becomes too old.
-	if ( GPS_age() > gps_timeout_sec ) {
-	    navpacket.status = NotValid;
-	}
-
-	// initial home is most recent gps result after being
-	// alive with a solution for 20 seconds
-	if ( !initial_home && navpacket.status == ValidData ) {
-	    SGWayPoint wp( gpspacket.lon, gpspacket.lat, -9999.9 );
-	    if ( route_mgr.update_home(wp, 0.0, true /* force update */) ) {
-		initial_home = true;
-	    }
+    if ( enable_umn_adns ) {
+	static bool umn_init_pos = false;
+	if ( GPS_age() < 1 && !umn_init_pos ) {
+	    umn_init_pos = true;
+	    NavState s;
+	    memset( &s, 0, sizeof(NavState) );
+	    s.pos[0] =  gps_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+	    s.pos[1] =  gps_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+	    s.pos[2] = -gps_alt_node->getDoubleValue();
+	    umn_adns_set_initial_state( &s );
+	    umn_adns_print_state( &s );
+	}	    
+	if ( umn_init_pos ) {
+	    double imu[7], gps[7];
+	    imu[0] = imupacket.time;
+	    imu[1] = imupacket.p;
+	    imu[2] = imupacket.q;
+	    imu[3] = imupacket.r;
+	    imu[4] = imupacket.ax;
+	    imu[5] = imupacket.ay;
+	    imu[6] = imupacket.az;
+	    gps[0] = gps_time_stamp_node->getDoubleValue();
+	    gps[1] = gps_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+	    gps[2] = gps_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+	    gps[3] = -gps_alt_node->getDoubleValue();
+	    gps[4] = gps_vn_node->getDoubleValue();
+	    gps[5] = gps_ve_node->getDoubleValue();
+	    gps[6] = gps_vd_node->getDoubleValue();
+	    // umn_adns_print_gps( gps );
+	    umn_adns_update( imu, gps );
 	}
     }
 
@@ -280,29 +322,12 @@ void timer_handler (int signum)
 	health_prof.stop();
     }
 
-    // telemetry (update at 5hz)
-    if ( wifi && wifi_counter >= (HEARTBEAT_HZ / 5) ) {
-	wifi_counter = 0;
-	if ( retvalsock ) {
-	    send_client();
-	    if ( display_on ) snap_time_interval("TCP",  5, 2);
-	} else {
-	    // attempt connection every 2.0 sec
-	    if ( wifi_attempt++ == 10 ) { 
-		close_client(); 
-		retvalsock = open_client();
-		wifi_attempt = 0;
-	    }
-	}        
-    }
-
     // sensor summary dispay (update at 0.5hz)
     if ( display_on && display_counter
 	 >= (HEARTBEAT_HZ * 2 /* divide by 0.5 */) )
     {
 	display_counter = 0;
-	display_message( &imupacket, &gpspacket, &navpacket,
-			 &servo_in, &healthpacket );
+	display_message( &imupacket, &navpacket, &servo_in, &healthpacket );
 	mnav_prof.stats   ( "MNAV" );
 	ahrs_prof.stats   ( "AHRS" );
 	if ( enable_mnav_adns ) {
@@ -406,6 +431,10 @@ int main( int argc, char **argv )
     printf("mnav adns enabled = %d  gps timeout = %.1f\n",
 	   enable_mnav_adns, gps_timeout_sec);
 
+    p = fgGetNode("/config/adns/umn/enable", true);
+    enable_umn_adns = p->getBoolValue();
+    printf("umn adns enabled = %d\n", enable_umn_adns);
+
     p = fgGetNode("/config/console/lost-link-timeout-sec");
     if ( p != NULL && p->getDoubleValue() > 0.0001 ) {
 	// stick with the default if nothing valid specified
@@ -445,9 +474,6 @@ int main( int argc, char **argv )
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) wifi = true;
             if ( !strcmp(argv[iarg], "off") ) wifi = false;
-        } else if ( !strcmp(argv[iarg], "--ip") ) {
-            ++iarg;
-            HOST_IP_ADDR = argv[iarg];
         } else if ( !strcmp(argv[iarg], "--help") ) {
             usage();
         } else {
@@ -479,6 +505,10 @@ int main( int argc, char **argv )
         mnav_nav_init();
     }
 
+    if ( enable_umn_adns ) {
+	umn_adns_init();
+    }
+
     // Initialize communication with the selected IMU
     IMU_init();
 
@@ -490,9 +520,6 @@ int main( int argc, char **argv )
 
     // init system health and status monitor
     health_init();
-
-    // open networked ground station client
-    if ( wifi ) retvalsock = open_client();
 
     if ( enable_control ) {
         // initialize the autopilot
@@ -506,6 +533,15 @@ int main( int argc, char **argv )
         // initialize the route manager
         route_mgr.init();
     }
+
+    // initialize gps property nodes
+    gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
+    gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
+    gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
+    gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
+    gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
+    gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
+    gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
 
     // Install timer_handler as the signal handler for SIGALRM (alarm
     // timing is based on wall clock)
@@ -536,6 +572,9 @@ int main( int argc, char **argv )
     if ( enable_mnav_adns ) {
 	mnav_ahrs_close();
 	mnav_nav_close();
+    }
+    if ( enable_umn_adns ) {
+	umn_adns_close();
     }
     IMU_close();
     GPS_close();

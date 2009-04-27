@@ -9,10 +9,11 @@
 #include "globaldefs.h"
 #include "serial.h"
 
-#include <control/route_mgr.hxx>
-#include <health/health.h>
-#include <props/props.hxx>
-#include <util/strutils.hxx>
+#include "control/route_mgr.hxx"
+#include "health/health.h"
+#include "props/props.hxx"
+#include "sensors/gps_mgr.h"
+#include "util/strutils.hxx"
 
 #include "console_link.h"
 

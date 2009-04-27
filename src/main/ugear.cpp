@@ -87,7 +87,6 @@ void usage()
 int main( int argc, char **argv )
 {
     int iarg;
-    static short	attempt = 0;
     bool log_servo_out  = true;    // log outgoing servo commands by default
     bool enable_control = false;   // autopilot control module enabled/disabled
     bool enable_nav     = false;   // nav filter enabled/disabled
@@ -183,9 +182,6 @@ int main( int argc, char **argv )
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) wifi = true;
             if ( !strcmp(argv[iarg], "off") ) wifi = false;
-        } else if ( !strcmp(argv[iarg], "--ip") ) {
-            ++iarg;
-            HOST_IP_ADDR = argv[iarg];
         } else if ( !strcmp(argv[iarg], "--help") ) {
             usage();
         } else {
@@ -226,9 +222,6 @@ int main( int argc, char **argv )
 
     // init system health and status monitor
     health_init();
-
-    // open networked ground station client
-    if ( wifi ) retvalsock = open_client();
 
     if ( enable_control ) {
         // initialize the autopilot
@@ -305,14 +298,20 @@ int main( int argc, char **argv )
 	    // check gps data age.  The nav filter continues to run,
 	    // but the results are marked as NotValid if the most
 	    // recent gps data becomes too old.
-	    if ( current_time > gpspacket.time + gps_timeout_sec ) {
+	    if ( GPS_age() > gps_timeout_sec ) {
 		navpacket.status = NotValid;
 	    }
 
 	    // initial home is most recent gps result after being
 	    // alive with a solution for 20 seconds
 	    if ( !initial_home && navpacket.status == ValidData ) {
-		SGWayPoint wp( gpspacket.lon, gpspacket.lat, -9999.9 );
+		SGPropertyNode *gps_lat_node
+		    = fgGetNode("/sensors/gps/latitude-deg", true);
+		SGPropertyNode *gps_lon_node
+		    = fgGetNode("/sensors/gps/longitude-deg", true);
+		SGWayPoint wp( gps_lon_node->getDoubleValue(),
+			       gps_lat_node->getDoubleValue(),
+			       -9999.9 );
 		if ( route_mgr.update_home(wp, 0.0, true /* force update */) ) {
 		    initial_home = true;
 		}
@@ -398,26 +397,10 @@ int main( int argc, char **argv )
 	    health_prof.stop();
         }
 
-        // telemetry (update at 5hz)
-        if ( wifi && wifi_counter >= 10 ) {
-            wifi_counter = 0;
-            if ( retvalsock ) {
-                send_client();
-                if ( display_on ) snap_time_interval("TCP",  5, 2);
-            } else {
-                //attempt connection every 2.0 sec
-                if ( attempt++ == 10 ) { 
-                    close_client(); 
-                    retvalsock = open_client();
-                    attempt = 0;
-                }
-            }        
-        }
-
         // sensor summary dispay (update at 0.5hz)
         if ( display_on && display_counter >= 100 ) {
             display_counter = 0;
-            display_message( &imupacket, &gpspacket, &navpacket,
+            display_message( &imupacket, &navpacket,
                              &servo_in, &healthpacket );
 	    mnav_prof.stats   ( "MNAV" );
 	    ahrs_prof.stats   ( "AHRS" );

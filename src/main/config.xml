@@ -59,20 +59,23 @@
       <pressure-source>mnav</pressure-source>
     </sensors>
 
-    <!--                                       -->
-    <!-- Actuator selection and configuration. -->
-    <!--                                       -->
-
-    <actuators>
-      <!-- output can be: mnav, or none -->
-      <output>none</output>
-    </actuators>
-
     <!--                                                          -->
     <!-- Attitude Determination & Navigation System configuration -->
     <!--                                                          -->
 
     <adns>
+      <!-- Magnetic Declination (Variation) -->
+      <!-- You can force a value or specify "auto" to have the system -->
+      <!-- compute a magnetic variation based on initial gps location and -->
+      <!-- date. -->
+      <!-- <magvar-deg>0.827</magvar-deg> --> <!-- @KANE, 01/17/2009 -->
+      <magvar-deg>auto</magvar-deg>
+
+      <umn>
+	<!-- University of Minnesota AEM ADNS system -->
+	<enable type="bool">true</enable>
+      </umn>
+
       <mnav>
 	<!-- MNAV based AHRS + Navigation algorithm -->
 	<enable type="bool">true</enable>
@@ -92,13 +95,6 @@
 	  <!-- Nav algorithm configuration -->
 	  <!-- set value to true to enable the 10hz navigational filter -->
 	  <enable type="bool">true</enable>
-
-	  <!-- Magnetic Declination (Variation) -->
-	  <!-- You can force a value or specify "auto" to have the system -->
-	  <!-- compute a magnetic variation based on gps location and date -->
-
-	  <!-- <magvar-deg>0.827</magvar-deg> --> <!-- @KANE, 01/17/2009 -->
-	  <magvar-deg>auto</magvar-deg>
 
 	  <!-- how long do we trust the navigation estimate after we've -->
 	  <!-- lost gps -->
@@ -140,6 +136,15 @@
       <!-- <path>routes/WinonaRC.xml</path> -->
       <path>routes/bowtie.xml</path> <!-- relative bowtie -->
     </route>
+
+    <!--                                       -->
+    <!-- Actuator selection and configuration. -->
+    <!--                                       -->
+
+    <actuators>
+      <!-- output can be: mnav, or none -->
+      <output>none</output>
+    </actuators>
 
   </config>
 </PropertyList>

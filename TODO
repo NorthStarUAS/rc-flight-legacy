@@ -1,6 +1,13 @@
 MicroGear TODO
 ==============
 
+- move magvar computation to gps_mgr
+
+- remove gps count down from mnav nav.c ... now handled in gps_mgr
+
+- remove dependency on using gps/imupacket for globally sharing data and
+  move to the property tree.
+
 - Add telnet server module so we can remotely interact with the property tree
 
 - Add servo sensor module
@@ -58,6 +65,8 @@ MicroGear TODO
   onboard logging.  This will disappear as an issue anyway when we
   migrate away from the MNAV.
 
+
+x 04/24/2009 - First working integration of the UMN ADNS algorithm.
 
 x 04/20/2009 - Replace adhoc PI R2D, and D2R type constants scattered
   through the code.

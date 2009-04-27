@@ -22,7 +22,6 @@
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
 #include "sensors/imu_mgr.h"
-#include "util/coremag.h"
 #include "util/matrix.h"
 #include "util/myprof.h"
 #include "util/navfunc.h"
@@ -35,7 +34,7 @@
 //
 // prototypes
 //
-void nav_algorithm(struct imu *imudta,struct gps *gpsdta);
+void nav_algorithm( struct imu *imudta );
 
 //
 // error characteristics of navigation parameters
@@ -60,8 +59,18 @@ MATRIX euler,nIden;
 MATRIX ntmp99,ntmpr,ntmp91,ntmpr91,ntmprr;
 MATRIX ntmp66,ntmp96,ntmp33;
 
+// gps sensor property nodes
+static SGPropertyNode *gps_time_stamp_node = NULL;
+static SGPropertyNode *gps_lat_node = NULL;
+static SGPropertyNode *gps_lon_node = NULL;
+static SGPropertyNode *gps_alt_node = NULL;
+static SGPropertyNode *gps_ve_node = NULL;
+static SGPropertyNode *gps_vn_node = NULL;
+static SGPropertyNode *gps_vd_node = NULL;
+static SGPropertyNode *gps_unix_sec_node = NULL;
+static SGPropertyNode *gps_magvar_deg_node = NULL;;
+
 // nav estimate property nodes
-static SGPropertyNode *magvar_deg_node = NULL;;
 static SGPropertyNode *nav_lat_node = NULL;
 static SGPropertyNode *nav_lon_node = NULL;
 static SGPropertyNode *nav_alt_feet_node = NULL;
@@ -118,16 +127,18 @@ void mnav_nav_init()
   
     navpacket.status = NotValid;
 
+    // initialize gps sensor property nodes
+    gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
+    gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
+    gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
+    gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
+    gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
+    gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
+    gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
+    gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
+    gps_magvar_deg_node = fgGetNode("/sensors/gps/magvar-deg", true);
+
     // initialize nav property nodes
-    magvar_deg_node = fgGetNode("/config/adns/mnav/nav-filter/magvar-deg",
-				true);
-    if ( strcmp(magvar_deg_node->getStringValue(), "auto") == 0 ||
-	 strlen(magvar_deg_node->getStringValue()) == 0 )
-    {
-	magvar_rad = 0.0;
-    } else {
-	magvar_rad = magvar_deg_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-    }
     nav_lat_node = fgGetNode("/position/latitude-deg", true);
     nav_lon_node = fgGetNode("/position/longitude-deg", true);
     nav_alt_feet_node = fgGetNode("/position/altitude-nav-ft", true);
@@ -138,8 +149,7 @@ void mnav_nav_init()
     pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
 
     if ( display_on ) {
-        printf("[nav] initialized, magvar = %s (deg).\n",
-	       magvar_deg_node->getStringValue());
+        printf("[mnav nav] initialized\n");
     }
 }
 
@@ -149,7 +159,6 @@ void mnav_nav_update()
     nav_prof.start();
 
     struct imu	     imulocal;
-    struct gps	     gpslocal;
     static int       gps_state = 0;
     static double    acq_start = 0; // time that gps first acquired
 
@@ -159,60 +168,30 @@ void mnav_nav_update()
 
     double cur_time = get_Time();
 
-    // on boot up, wait until 20 seconds after gps acquired before
-    // using data in order to let the solution [hopefully] get more
-    // accurate.
+    if ( GPS_age() < 2.0 && gps_state == 0 ) {
+	// gps first acquired
+	gps_state = 1;
 
-    if ( gpspacket.status == ValidData ) {
-        if ( gps_state == 0 ) {
-            gps_state = 1;      // gps first acquired
-            acq_start = cur_time;
-            if ( display_on ) printf("[nav] gps first aquired.\n");
-        } else if ( gps_state == 1 ) {
-            if ( cur_time - acq_start >= 20.0 ) {
-                gps_state = 2;  // gps solid for 20 sec
+	// initialize navigation state variables with GPS (Lat,Lon,Alt)
+	nxs[0][0] = gps_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+	nxs[1][0] = gps_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+	nxs[2][0] = gps_alt_node->getDoubleValue();
 
-                // initialize navigation state variables with GPS (Lat,Lon,Alt)
-                nxs[0][0] = gpspacket.lat*SGD_DEGREES_TO_RADIANS;
-                nxs[1][0] = gpspacket.lon*SGD_DEGREES_TO_RADIANS;
-                nxs[2][0] = gpspacket.alt;
+	// initialize magnetic variation
+	magvar_rad
+	    = gps_magvar_deg_node->getDoubleValue() * SG_DEGREES_TO_RADIANS;
 
-		// initialize magnetic variation
-		if ( strcmp(magvar_deg_node->getStringValue(), "auto") == 0 ) {
-		    long int jd = unixdate_to_julian_days( gpspacket.date );
-		    double field[6];
-		    magvar_rad
-			= calc_magvar( gpspacket.lat*SGD_DEGREES_TO_RADIANS,
-				       gpspacket.lon*SGD_DEGREES_TO_RADIANS,
-				       gpspacket.alt / 1000.0,
-				       jd, field );
-		}
-                if ( display_on ) {
-		    printf("[nav] navigation is enabled, magvar = %.1f (deg)\n",
-			   magvar_rad * SGD_RADIANS_TO_DEGREES );
-		}
-            } else {
-                static int gps_counter = 0;
-                gps_counter++;
-                if ( gps_counter >= 10 ) {
-                    if ( display_on ) {
-                        printf( "[nav] gps ready in %.1f seconds.\n",
-                                20.0 - (cur_time - acq_start) );
-                    }
-                    gps_counter = 0;
-                }
-            }
-        }
-    }
-
-    if ( gps_state == 2 ) {
+	if ( display_on ) {
+	    printf("[mnav nav] navigation is enabled, magvar = %.1f (deg)\n",
+		   magvar_rad * SGD_RADIANS_TO_DEGREES );
+	}
+    } else if ( gps_state == 1 ) {
         // copy information to local variables
-        gpslocal = gpspacket;
         imulocal = imupacket;
                    
         // run navigation algorithm
 	nav_alg_prof.start();
-        nav_algorithm( &imulocal, &gpslocal );
+        nav_algorithm( &imulocal );
 	nav_alg_prof.stop();
            
         navpacket.lat  = nxs[0][0]*SGD_RADIANS_TO_DEGREES;
@@ -292,7 +271,7 @@ void mnav_nav_close()
 //
 // navigation algorithm
 //
-void nav_algorithm(struct imu *imudta,struct gps *gpsdta)
+void nav_algorithm( struct imu *imudta )
 {
     double dt;       //sampling rate of navigation
     short  i = 0;
@@ -354,9 +333,10 @@ void nav_algorithm(struct imu *imudta,struct gps *gpsdta)
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // update when new GPS data is available (correction step)
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    if ( gpsdta->status == ValidData && gpsdta->time > last_gps_time )
-    {
-	last_gps_time = gpsdta->time;
+    double gps_time = gps_time_stamp_node->getDoubleValue();
+
+    if ( gps_time > last_gps_time ) {
+	last_gps_time = gps_time;
        
         //gain matrix Kn = P*H'*(H*P*H' + R)^-1
         mat_subcopy(nPn, 6, 6, ntmp66);
@@ -375,12 +355,14 @@ void nav_algorithm(struct imu *imudta,struct gps *gpsdta)
         mat_copy(ntmp99,nPn);
        
         // state update
-        yd[0] = (gpsdta->lat*SGD_DEGREES_TO_RADIANS - nxs[0][0]);
-        yd[1] = (gpsdta->lon*SGD_DEGREES_TO_RADIANS - nxs[1][0]);
-        yd[2] = (gpsdta->alt     - nxs[2][0]);
-        yd[3] = (gpsdta->vn      - nxs[3][0]);
-        yd[4] = (gpsdta->ve      - nxs[4][0]);
-        yd[5] = (gpsdta->vd      - nxs[5][0]);
+        yd[0] = (gps_lat_node->getDoubleValue()*SGD_DEGREES_TO_RADIANS
+		 - nxs[0][0]);
+        yd[1] = (gps_lon_node->getDoubleValue()*SGD_DEGREES_TO_RADIANS
+		 - nxs[1][0]);
+        yd[2] = (gps_alt_node->getDoubleValue() - nxs[2][0]);
+        yd[3] = (gps_vn_node->getDoubleValue()  - nxs[3][0]);
+        yd[4] = (gps_ve_node->getDoubleValue()  - nxs[4][0]);
+        yd[5] = (gps_vd_node->getDoubleValue()  - nxs[5][0]);
 
         for ( i = 0; i < 9; i++ ) {
             nxs[i][0] += nKn[i][0]*yd[0] + nKn[i][1]*yd[1] + nKn[i][2]*yd[2]

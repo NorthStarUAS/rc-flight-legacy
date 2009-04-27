@@ -10,6 +10,8 @@
 
 #include "props/props.hxx"
 
+#include "gps_mgr.h"
+
 #include "ugfile.h"
 
 

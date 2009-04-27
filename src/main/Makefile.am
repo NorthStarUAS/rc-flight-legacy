@@ -6,7 +6,9 @@
 ugear_LDFLAGS =
 ugear_MORELIBS =
 
-bin_PROGRAMS = ugear ugear_timer decoder
+EXTRA_DIST=config.xml
+
+bin_PROGRAMS = ugear ugear_timer
 
 ugear_SOURCES = \
 	ugear.cpp
@@ -29,6 +31,7 @@ ugear_timer_SOURCES = \
 ugear_timer_LDADD = \
 	$(top_builddir)/src/actuators/libactuators.a \
 	$(top_builddir)/src/adns_mnav/libadns_mnav.a \
+	$(top_builddir)/src/adns_umn/libadns_umn.a \
 	$(top_builddir)/src/comms/libcomms.a \
 	$(top_builddir)/src/health/libhealth.a \
 	$(top_builddir)/src/sensors/libsensors.a \
@@ -38,7 +41,7 @@ ugear_timer_LDADD = \
 	$(top_builddir)/src/xml/libsgxml.a \
 	$(ugear_MORELIBS)
 
-decoder_SOURCES = decoder.c
-decoder_LDADD =
+# decoder_SOURCES = decoder.c
+# decoder_LDADD =
 
 INCLUDES = -I$(top_srcdir)/src

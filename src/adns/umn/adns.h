@@ -5,13 +5,16 @@
  *
  * Copyright (C) 2009 - Aerospace Engineering and Mechanics Dept, University of Minnesota
  *
- * $Id: adns.h,v 1.1 2009/04/24 17:47:11 curt Exp $
+ * $Id: adns.h,v 1.2 2009/04/27 01:29:09 curt Exp $
  */
 
 
 #ifndef _UGEAR_ADNS_UMN_H
 #define _UGEAR_ADNS_UMN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "kalmanfilter.h"
 
@@ -34,5 +37,11 @@ NavState *umn_adns_get_state();
 KalmanFilter *umn_adns_get_kf();
 int umn_adns_close();
 
+void umn_adns_print_state( NavState *state );
+void umn_adns_print_gps( double *gps );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // _UGEAR_ADNS_UMN_H

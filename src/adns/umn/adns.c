@@ -63,7 +63,7 @@ void umn_adns_print_gps( double *gps )
 
 void umn_adns_print_state( NavState *state )
 {
-    printf( "state %.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f\n",
+    printf( "state %.8f,%.8f,%.2f,%.2f,%.2f,%.2f,%.3f,%.3f,%.3f\n",
 	    state->pos[0], state->pos[1], state->pos[2],
 	    state->vel[0], state->vel[1], state->vel[2],
 	    state->eul[0], state->eul[1], state->eul[2] );
@@ -116,7 +116,6 @@ void umn_adns_print_cov( KalmanFilter *kf )
 // call before umn_adns_init()
 void umn_adns_set_initial_state( NavState *s ) {
     memcpy( &state, s, sizeof(NavState) );
-    umn_adns_print_state(&state);
 }
 
 
@@ -233,14 +232,19 @@ int umn_adns_update( double *imu, double *gps ) {
 
     // umn_adns_print_imu(imu);
 
-    static int count = 0;
-    if ( ++count % 500 == 0 ) {
-	printf("count = %d\n", count++);
-    }
+    // static int count = 0;
+    // if ( ++count % 500 == 0 ) {
+    //   printf("count = %d\n", count++);
+    // }
+
+    // umn_adns_print_imu( imu );
+    // umn_adns_print_gps( gps );
+    umn_adns_print_state( &state );
 
     double dt = imu[0] - last_imu_time;
     if ( last_imu_time < 0.001 ) { dt = 0.01; } // sanity check
     last_imu_time = imu[0];
+    // printf("dt = %.3f\n", dt);
 
     /******************* INS update *************************/
 

@@ -28,14 +28,6 @@ struct imu {
    uint64_t status;		/* error type		 */
 };
 
-struct gps {
-   double time;
-   double lat,lon,alt;          /* gps position                */
-   double ve,vn,vd;             /* gps velocity                */
-   double date;                 /* unix seconds from gps       */
-   uint64_t status;		/* data status flag            */
-};
-
 struct nav {
    double time;
    double lat,lon,alt;
