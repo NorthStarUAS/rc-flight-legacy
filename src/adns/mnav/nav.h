@@ -11,8 +11,7 @@
 
 
 // global variables
-extern struct nav navpacket;
-extern short gps_init_count;
+//extern struct nav navpacket;
 extern MATRIX nxs;
 
 

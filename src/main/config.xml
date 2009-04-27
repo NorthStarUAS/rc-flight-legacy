@@ -71,6 +71,10 @@
       <!-- <magvar-deg>0.827</magvar-deg> --> <!-- @KANE, 01/17/2009 -->
       <magvar-deg>auto</magvar-deg>
 
+      <!-- Time in seconds we will project forward on inertials alone after -->
+      <!-- losing a gps solution. -->
+      <gps-timeout-sec>15.0</gps-timeout-sec>
+
       <umn>
 	<!-- University of Minnesota AEM ADNS system -->
 	<enable type="bool">true</enable>
@@ -95,10 +99,6 @@
 	  <!-- Nav algorithm configuration -->
 	  <!-- set value to true to enable the 10hz navigational filter -->
 	  <enable type="bool">true</enable>
-
-	  <!-- how long do we trust the navigation estimate after we've -->
-	  <!-- lost gps -->
-	  <gps-timeout-sec>15.0</gps-timeout-sec>
 	</nav-filter>
       </mnav>
     </adns>

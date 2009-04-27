@@ -29,8 +29,7 @@ void flush_nav( );
 void flush_servo( );
 void flush_health( );
 
-void display_message( struct imu *data,
-                      struct nav *ndata, struct servo *sdata,
+void display_message( struct imu *data, struct servo *sdata,
                       struct health *hdata );
 
 

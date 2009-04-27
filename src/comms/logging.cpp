@@ -36,6 +36,12 @@ static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_track_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
 
+// "nav" property nodes
+static SGPropertyNode *nav_status_node = NULL;
+static SGPropertyNode *nav_lat_node = NULL;
+static SGPropertyNode *nav_lon_node = NULL;
+static SGPropertyNode *nav_alt_node = NULL;
+
 
 // scan the base path for fltNNNN directories.  Return the biggest
 // flight number
@@ -190,8 +196,8 @@ void flush_health() {
 
 
 // periodic console summary of attitude/location estimate
-void display_message( struct imu *data, struct nav *ndata,
-                      struct servo *sdata, struct health *hdata )
+void display_message( struct imu *data, struct servo *sdata,
+		      struct health *hdata )
 {
     // double current_time = get_Time();
 
@@ -202,23 +208,28 @@ void display_message( struct imu *data, struct nav *ndata,
     printf("[     ]:Ps  = %6.3f Pt  = %6.3f             \n",data->Ps,data->Pt);
     printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n",xs[4]*57.3,xs[5]*57.3,xs[6]*57.3);
 
+    static bool props_inited = false;
+    if ( !props_inited ) {
+	props_inited = true;
+
+	// initialize gps property nodes
+	gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
+	gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
+	gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
+	gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
+	gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
+	gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
+	gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
+	gps_track_node = fgGetNode("/sensors/gps/groundtrack-deg", true);
+	gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
+
+	nav_status_node = fgGetNode("/status/navigation", true);
+	nav_lat_node = fgGetNode("/position/latitude-deg", true);
+	nav_lon_node = fgGetNode("/position/longitude-deg", true);
+	nav_alt_node = fgGetNode("/position/altitude-nav-m", true);
+    }
+
     if ( GPS_age() < 10.0 ) {
-	static bool gps_props_inited = false;
-	if ( !gps_props_inited ) {
-	    gps_props_inited = true;
-
-	    // initialize gps property nodes
-	    gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
-	    gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
-	    gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
-	    gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
-	    gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
-	    gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
-	    gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
-	    gps_track_node = fgGetNode("/sensors/gps/groundtrack-deg", true);
-	    gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
-	}
-
 	time_t current_time = gps_unix_sec_node->getIntValue();
 	double remainder = gps_unix_sec_node->getDoubleValue() - current_time;
 	struct tm *date = gmtime(&current_time);
@@ -232,8 +243,11 @@ void display_message( struct imu *data, struct nav *ndata,
 	printf("[GPS  ]:[No Recent Data]\n");
     }
 
-    if ( ndata->status == ValidData ) {
-        printf("[nav  ]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",            ndata->lon,ndata->lat,ndata->alt);	
+    if ( strcmp( nav_status_node->getStringValue(), "valid" ) == 0 ) {
+        printf("[nav  ]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",
+	       nav_lon_node->getDoubleValue(),
+	       nav_lat_node->getDoubleValue(),
+	       nav_alt_node->getDoubleValue());	
     } else {
 	printf("[nav  ]:[No Valid Data]\n");
     }

@@ -8,8 +8,6 @@
 
 #include <stdint.h>
 
-#define NSECS_PER_SEC		1000000000
-
 
 enum errdefs {
     NotValid,			/* data not valid */
