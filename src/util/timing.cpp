@@ -93,6 +93,7 @@ double get_Time()
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // get microsleep
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#define NSECS_PER_SEC		1000000000
 void microsleep(int interval)
 {
     struct timespec naptime;

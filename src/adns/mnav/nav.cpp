@@ -48,8 +48,7 @@ void nav_algorithm( struct imu *imudta );
 //
 // global matrix variables
 //
-struct nav navpacket;
-short  gps_init_count = 0;
+static struct nav navpacket;
 static double magvar_rad = 0.0;
 
 MATRIX nxs,nF,nG,nGd,nu;
@@ -71,8 +70,10 @@ static SGPropertyNode *gps_unix_sec_node = NULL;
 static SGPropertyNode *gps_magvar_deg_node = NULL;;
 
 // nav estimate property nodes
+static SGPropertyNode *nav_status_node = NULL;
 static SGPropertyNode *nav_lat_node = NULL;
 static SGPropertyNode *nav_lon_node = NULL;
+static SGPropertyNode *nav_alt_node = NULL;
 static SGPropertyNode *nav_alt_feet_node = NULL;
 static SGPropertyNode *nav_track_node = NULL;
 // static SGPropertyNode *nav_vel_node = NULL;
@@ -127,7 +128,7 @@ void mnav_nav_init()
   
     navpacket.status = NotValid;
 
-    // initialize gps sensor property nodes
+    // initialize' gps sensor property nodes
     gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
     gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
     gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
@@ -139,8 +140,11 @@ void mnav_nav_init()
     gps_magvar_deg_node = fgGetNode("/sensors/gps/magvar-deg", true);
 
     // initialize nav property nodes
+    nav_status_node = fgGetNode("/status/navigation", true);
+    nav_status_node->setStringValue("invalid");
     nav_lat_node = fgGetNode("/position/latitude-deg", true);
     nav_lon_node = fgGetNode("/position/longitude-deg", true);
+    nav_alt_node = fgGetNode("/position/altitude-nav-m", true);
     nav_alt_feet_node = fgGetNode("/position/altitude-nav-ft", true);
     nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
     // nav_vel_node = fgGetNode("/velocities/groundspeed-ms", true);
@@ -202,6 +206,7 @@ void mnav_nav_update()
         navpacket.vd   = nxs[5][0];
         navpacket.time = get_Time();
 	navpacket.status = ValidData;
+	nav_status_node->setStringValue("valid");
 
 	// compute a filtered error difference between gps altitude
 	// and pressure altitude.  (at 4hz update rate this averages
@@ -217,6 +222,7 @@ void mnav_nav_update()
         // publish values to property tree
 	nav_lat_node->setDoubleValue( navpacket.lat );
 	nav_lon_node->setDoubleValue( navpacket.lon );
+	nav_alt_node->setDoubleValue( navpacket.alt );
 	nav_alt_feet_node->setDoubleValue( navpacket.alt * SG_METER_TO_FEET );
 	nav_track_node->setDoubleValue( 90 - atan2(navpacket.vn, navpacket.ve)
 	 				* SG_RADIANS_TO_DEGREES );

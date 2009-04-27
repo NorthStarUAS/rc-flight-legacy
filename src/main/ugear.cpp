@@ -135,7 +135,7 @@ int main( int argc, char **argv )
     p = fgGetNode("/config/nav-filter/enable", true);
     enable_nav = p->getBoolValue();
 
-    p = fgGetNode("/config/nav-filter/gps-timeout-sec");
+    p = fgGetNode("/config/adns/gps-timeout-sec");
     if ( p != NULL && p->getDoubleValue() > 0.0001 ) {
 	// stick with the default if nothing valid specified
 	gps_timeout_sec = p->getDoubleValue();
@@ -299,12 +299,14 @@ int main( int argc, char **argv )
 	    // but the results are marked as NotValid if the most
 	    // recent gps data becomes too old.
 	    if ( GPS_age() > gps_timeout_sec ) {
-		navpacket.status = NotValid;
+		SGPropertyNode *nav_status_node
+		    = fgGetNode("/status/navigation", true);
+		nav_status_node->setStringValue("invalid");
 	    }
 
-	    // initial home is most recent gps result after being
-	    // alive with a solution for 20 seconds
-	    if ( !initial_home && navpacket.status == ValidData ) {
+	    // initial home is set to the location where the gps first
+	    // comes alive
+	    if ( !initial_home && GPS_age() < 2.0 ) {
 		SGPropertyNode *gps_lat_node
 		    = fgGetNode("/sensors/gps/latitude-deg", true);
 		SGPropertyNode *gps_lon_node
@@ -400,8 +402,7 @@ int main( int argc, char **argv )
         // sensor summary dispay (update at 0.5hz)
         if ( display_on && display_counter >= 100 ) {
             display_counter = 0;
-            display_message( &imupacket, &navpacket,
-                             &servo_in, &healthpacket );
+            display_message( &imupacket, &servo_in, &healthpacket );
 	    mnav_prof.stats   ( "MNAV" );
 	    ahrs_prof.stats   ( "AHRS" );
 	    if ( enable_nav ) {

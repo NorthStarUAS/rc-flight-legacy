@@ -179,12 +179,14 @@ void timer_handler (int signum)
 	    // but the results are marked as NotValid if the most
 	    // recent gps data becomes too old.
 	    if ( GPS_age() > gps_timeout_sec ) {
-		navpacket.status = NotValid;
+		SGPropertyNode *nav_status_node
+		    = fgGetNode("/status/navigation", true);
+		nav_status_node->setStringValue("invalid");
 	    }
 
 	    // initial home is most recent gps result after being
 	    // alive with a solution for 20 seconds
-	    if ( !initial_home && navpacket.status == ValidData ) {
+	    if ( !initial_home && GPS_age() < 2.0 ) {
 		SGWayPoint wp( gps_lon_node->getDoubleValue(),
 			       gps_lat_node->getDoubleValue(),
 			       -9999.9 );
@@ -327,7 +329,7 @@ void timer_handler (int signum)
 	 >= (HEARTBEAT_HZ * 2 /* divide by 0.5 */) )
     {
 	display_counter = 0;
-	display_message( &imupacket, &navpacket, &servo_in, &healthpacket );
+	display_message( &imupacket, &servo_in, &healthpacket );
 	mnav_prof.stats   ( "MNAV" );
 	ahrs_prof.stats   ( "AHRS" );
 	if ( enable_mnav_adns ) {
@@ -423,7 +425,7 @@ int main( int argc, char **argv )
     p = fgGetNode("/config/adns/mnav/enable", true);
     enable_mnav_adns = p->getBoolValue();
 
-    p = fgGetNode("/config/adns/mnav/nav-filter/gps-timeout-sec");
+    p = fgGetNode("/config/adns/gps-timeout-sec");
     if ( p != NULL && p->getDoubleValue() > 0.0001 ) {
 	// stick with the default if nothing valid specified
 	gps_timeout_sec = p->getDoubleValue();
