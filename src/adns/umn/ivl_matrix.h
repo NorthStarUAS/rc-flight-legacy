@@ -8,6 +8,7 @@
 #ifndef IVL_MATRIX_H
 #define IVL_MATRIX_H
 
+#include <stdlib.h>		/* for uint typedef */
 
 enum ivlMatrixType
 {

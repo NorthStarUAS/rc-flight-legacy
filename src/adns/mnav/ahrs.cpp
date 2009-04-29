@@ -77,12 +77,12 @@ static SGPropertyNode *psi_node = NULL;
 
 
 // initalize the AHRS matrices
-void mnav_ahrs_init()
+void mnav_ahrs_init( SGPropertyNode *config )
 {
     // initialize ahrs property nodes 
-    theta_node = fgGetNode("/orientation/pitch-deg", true);
-    phi_node = fgGetNode("/orientation/roll-deg", true);
-    psi_node = fgGetNode("/orientaiton/heading-deg", true);
+    theta_node = fgGetNode("/orientation/mnav/pitch-deg", true);
+    phi_node = fgGetNode("/orientation/mnav/roll-deg", true);
+    psi_node = fgGetNode("/orientaiton/mnav/heading-deg", true);
 
     //initialization of err, measurement, and process cov. matrices
     aP = mat_creat(7,7,ZERO_MATRIX); 
@@ -114,17 +114,18 @@ void mnav_ahrs_init()
     mat77 = mat_creat(7,7,ZERO_MATRIX);
 
     // initialize hard iron calibration property nodes
-    bBx_node = fgGetNode("/config/adns/mnav/ahrs/bBx", true);
+    bBx_node = config->getChild("bBx", 0, true);
     bBx = bBx_node->getDoubleValue();
-    bBy_node = fgGetNode("/config/adns/mnav/ahrs/bBy", true);
+    bBy_node = config->getChild("bBy", 0, true);
     bBy = bBy_node->getDoubleValue();
-    sfx_node = fgGetNode("/config/adns/mnav/ahrs/sfx", true);
+    sfx_node = config->getChild("sfx", 0, true);
     sfx = sfx_node->getDoubleValue();
-    sfy_node = fgGetNode("/config/adns/mnav/ahrs/sfy", true);
+    sfy_node = config->getChild("sfy", 0, true);
     sfy = sfy_node->getDoubleValue();
 
     if ( display_on ) {
-        printf("[ahrs] initialized.\n");
+        printf("[ahrs] initialized. bBx=%.2f bBy=%.2f sfx=%.2f sfy=%.2f\n",
+	       bBx, bBy, sfx, sfy);
     }
 }
 

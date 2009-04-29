@@ -28,9 +28,10 @@
 #include <string>
 
 #include "actuators/act_mgr.h"
-#include "adns_mnav/ahrs.h"
-#include "adns_mnav/nav.h"
-#include "adns_umn/adns.h"
+#include "adns/adns_mgr.h"
+#include "adns/mnav/ahrs.h"	// remove?
+#include "adns/mnav/nav.h"	// remove?
+#include "adns/umn/adns.h"	// remove?
 #include "comms/console_link.h"
 #include "comms/logging.h"
 #include "control/control.h"
@@ -116,7 +117,6 @@ void timer_handler (int signum)
     double dt = current_time - last_time;
     last_time = current_time;
 
-    static int mnav_nav_counter = 0;
     static int health_counter = 0;
     static int display_counter = 0;
     static int wifi_counter = 0;
@@ -131,10 +131,6 @@ void timer_handler (int signum)
     count++;
     // printf ("timer expired %d times\n", count);
 
-    // upate timing counters
-    if ( enable_mnav_adns ) {
-	mnav_nav_counter++;
-    }
     health_counter++;
     display_counter++;
     wifi_counter++;
@@ -162,71 +158,25 @@ void timer_handler (int signum)
     // Attitude Determination and Navigation section
     //
 
-    if ( enable_mnav_adns ) {
-	if ( fresh_imu_data ) {
-	    // Run the MNAV AHRS algorithm.
-	    mnav_ahrs_update();
-	}
+    ADNS_update( fresh_imu_data );
 
-	if ( mnav_nav_counter >= (HEARTBEAT_HZ / 25) ) {
-	    // navigation (update at 25hz.)  compute a location
-	    // estimate based on gps and accelerometer data.
-	    mnav_nav_counter = 0;
-
-	    mnav_nav_update();
-
-	    // check gps data age.  The nav filter continues to run,
-	    // but the results are marked as NotValid if the most
-	    // recent gps data becomes too old.
-	    if ( GPS_age() > gps_timeout_sec ) {
-		SGPropertyNode *nav_status_node
-		    = fgGetNode("/status/navigation", true);
-		nav_status_node->setStringValue("invalid");
-	    }
-
-	    // initial home is most recent gps result after being
-	    // alive with a solution for 20 seconds
-	    if ( !initial_home && GPS_age() < 2.0 ) {
-		SGWayPoint wp( gps_lon_node->getDoubleValue(),
-			       gps_lat_node->getDoubleValue(),
-			       -9999.9 );
-		if ( route_mgr.update_home(wp, 0.0, true /* force update */) ) {
-		    initial_home = true;
-		}
-	    }
-	}
+    // check gps data age.  The nav filter continues to run, but the
+    // results are marked as NotValid if the most recent gps data
+    // becomes too old.
+    if ( GPS_age() > gps_timeout_sec ) {
+	SGPropertyNode *nav_status_node
+	    = fgGetNode("/status/navigation", true);
+	nav_status_node->setStringValue("invalid");
     }
 
-    if ( enable_umn_adns ) {
-	static bool umn_init_pos = false;
-	if ( GPS_age() < 1 && !umn_init_pos ) {
-	    umn_init_pos = true;
-	    NavState s;
-	    memset( &s, 0, sizeof(NavState) );
-	    s.pos[0] =  gps_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-	    s.pos[1] =  gps_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-	    s.pos[2] = -gps_alt_node->getDoubleValue();
-	    umn_adns_set_initial_state( &s );
-	    umn_adns_print_state( &s );
-	}	    
-	if ( umn_init_pos ) {
-	    double imu[7], gps[7];
-	    imu[0] = imupacket.time;
-	    imu[1] = imupacket.p;
-	    imu[2] = imupacket.q;
-	    imu[3] = imupacket.r;
-	    imu[4] = imupacket.ax;
-	    imu[5] = imupacket.ay;
-	    imu[6] = imupacket.az;
-	    gps[0] = gps_time_stamp_node->getDoubleValue();
-	    gps[1] = gps_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-	    gps[2] = gps_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-	    gps[3] = -gps_alt_node->getDoubleValue();
-	    gps[4] = gps_vn_node->getDoubleValue();
-	    gps[5] = gps_ve_node->getDoubleValue();
-	    gps[6] = gps_vd_node->getDoubleValue();
-	    // umn_adns_print_gps( gps );
-	    umn_adns_update( imu, gps );
+    // initial home is most recent gps result after being alive with a
+    // solution for 20 seconds
+    if ( !initial_home && GPS_age() < 2.0 ) {
+	SGWayPoint wp( gps_lon_node->getDoubleValue(),
+		       gps_lat_node->getDoubleValue(),
+		       -9999.9 );
+	if ( route_mgr.update_home(wp, 0.0, true /*force update*/) ) {
+	    initial_home = true;
 	}
     }
 
@@ -497,20 +447,6 @@ int main( int argc, char **argv )
         }
     }
 
-    if ( enable_mnav_adns ) {
-	// Initialize AHRS code.  Must be called before ahrs_update() or
-	// ahrs_close()
-	mnav_ahrs_init();
-
-        // Initialize the NAV code.  Must be called before nav_update() or
-        // nav_close()
-        mnav_nav_init();
-    }
-
-    if ( enable_umn_adns ) {
-	umn_adns_init();
-    }
-
     // Initialize communication with the selected IMU
     IMU_init();
 
@@ -519,6 +455,9 @@ int main( int argc, char **argv )
 
     // Initialize communication with the selected GPS
     GPS_init();
+
+    // Initialize any defined ADNS modules
+    ADNS_init();
 
     // init system health and status monitor
     health_init();
@@ -571,13 +510,7 @@ int main( int argc, char **argv )
     }
 
     // close and exit
-    if ( enable_mnav_adns ) {
-	mnav_ahrs_close();
-	mnav_nav_close();
-    }
-    if ( enable_umn_adns ) {
-	umn_adns_close();
-    }
+    ADNS_close();
     IMU_close();
     GPS_close();
     Pressure_close();

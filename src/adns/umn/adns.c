@@ -494,3 +494,8 @@ NavState *umn_adns_get_state() {
 KalmanFilter *umn_adns_get_kf() {
     return kf;
 }
+
+
+int umn_adns_close() {
+    return 1;
+}

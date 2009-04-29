@@ -28,8 +28,8 @@
 #include <string>
 
 #include "actuators/act_mgr.h"
-#include "adns_mnav/ahrs.h"
-#include "adns_mnav/nav.h"
+#include "adns/mnav/ahrs.h"
+#include "adns/mnav/nav.h"
 #include "comms/console_link.h"
 #include "comms/groundstation.h"
 #include "comms/logging.h"
@@ -206,7 +206,7 @@ int main( int argc, char **argv )
 
     // Initialize AHRS code.  Must be called before ahrs_update() or
     // ahrs_close()
-    mnav_ahrs_init();
+    mnav_ahrs_init( NULL );
 
     if ( enable_nav ) {
         // Initialize the NAV code.  Must be called before nav_update() or

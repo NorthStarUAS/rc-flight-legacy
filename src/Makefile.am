@@ -1,7 +1,6 @@
 SUBDIRS = \
 	actuators \
-	adns_mnav \
-	adns_umn \
+	adns \
 	comms \
 	control \
 	health \
