@@ -36,8 +36,9 @@ AC_CONFIG_FILES([ \
 	Makefile \
         src/Makefile \
         src/actuators/Makefile \
-        src/adns_mnav/Makefile \
-        src/adns_umn/Makefile \
+        src/adns/Makefile \
+        src/adns/mnav/Makefile \
+        src/adns/umn/Makefile \
         src/comms/Makefile \
         src/control/Makefile \
         src/health/Makefile \

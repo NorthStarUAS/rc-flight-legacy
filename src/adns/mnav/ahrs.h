@@ -8,9 +8,12 @@
 #define _UGEAR_AHRS_H
 
 
+#include "props/props.hxx"
+
+
 extern double xs[7];
 
-void mnav_ahrs_init();
+void mnav_ahrs_init( SGPropertyNode *config );
 void mnav_ahrs_update();
 void mnav_ahrs_close();
 

@@ -14,10 +14,10 @@ libadns_umn_a_SOURCES = \
 
 noinst_PROGRAMS = test_closedloop nexttest
 
-test_closedloop_LDADD = $(top_builddir)/src/adns_umn/libadns_umn.a -lm
+test_closedloop_LDADD = $(top_builddir)/src/adns/umn/libadns_umn.a -lm
 #newtest_SOURCES = newtest.c
 #newtest_LDADD = $(top_builddir)/src/adns_umn/libadns_umn.a -lm
 nexttest_SOURCES = nexttest.c
-nexttest_LDADD = $(top_builddir)/src/adns_umn/libadns_umn.a -lm
+nexttest_LDADD = $(top_builddir)/src/adns/umn/libadns_umn.a -lm
 
 INCLUDES = -I$(top_srcdir)/src
