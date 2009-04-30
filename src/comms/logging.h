@@ -29,8 +29,7 @@ void flush_nav( );
 void flush_servo( );
 void flush_health( );
 
-void display_message( struct imu *data, struct servo *sdata,
-                      struct health *hdata );
+void display_message( struct servo *sdata, struct health *hdata );
 
 
 #endif // _UGEAR_LOGGING_H

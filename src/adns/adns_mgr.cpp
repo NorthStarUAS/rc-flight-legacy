@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: adns_mgr.cpp,v 1.1 2009/04/29 01:46:14 curt Exp $
+ * $Id: adns_mgr.cpp,v 1.2 2009/04/30 14:39:38 curt Exp $
  */
 
 
@@ -31,6 +31,18 @@
 // Global variables
 //
 
+// imu property nodes
+static SGPropertyNode *timestamp_node = NULL;
+static SGPropertyNode *p_node = NULL;
+static SGPropertyNode *q_node = NULL;
+static SGPropertyNode *r_node = NULL;
+static SGPropertyNode *ax_node = NULL;
+static SGPropertyNode *ay_node = NULL;
+static SGPropertyNode *az_node = NULL;
+static SGPropertyNode *hx_node = NULL;
+static SGPropertyNode *hy_node = NULL;
+static SGPropertyNode *hz_node = NULL;
+
 // gps property nodes
 static SGPropertyNode *gps_time_stamp_node = NULL;
 static SGPropertyNode *gps_lat_node = NULL;
@@ -42,6 +54,18 @@ static SGPropertyNode *gps_vd_node = NULL;
 
 
 void ADNS_init() {
+    // initialize imu property nodes
+    timestamp_node = fgGetNode("/sensors/imu/timestamp", true);
+    p_node = fgGetNode("/sensors/imu/p-radps", true);
+    q_node = fgGetNode("/sensors/imu/q-radps", true);
+    r_node = fgGetNode("/sensors/imu/r-radps", true);
+    ax_node = fgGetNode("/sensors/imu/ax-mpss", true);
+    ay_node = fgGetNode("/sensors/imu/ay-mpss", true);
+    az_node = fgGetNode("/sensors/imu/az-mpss", true);
+    hx_node = fgGetNode("/sensors/imu/hx", true);
+    hy_node = fgGetNode("/sensors/imu/hy", true);
+    hz_node = fgGetNode("/sensors/imu/hz", true);
+
     // initialize gps property nodes
     gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
     gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
@@ -76,6 +100,18 @@ void ADNS_init() {
 
 
 bool ADNS_update( bool fresh_imu_data ) {
+    struct imu imupacket;
+    imupacket.time = timestamp_node->getDoubleValue();
+    imupacket.p = p_node->getDoubleValue();
+    imupacket.q = q_node->getDoubleValue();
+    imupacket.r = r_node->getDoubleValue();
+    imupacket.ax = ax_node->getDoubleValue();
+    imupacket.ay = ay_node->getDoubleValue();
+    imupacket.az = az_node->getDoubleValue();
+    imupacket.hx = hx_node->getDoubleValue();
+    imupacket.hy = hy_node->getDoubleValue();
+    imupacket.hz = hz_node->getDoubleValue();
+
     SGPropertyNode *toplevel = fgGetNode("/config/adns", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
@@ -86,7 +122,7 @@ bool ADNS_update( bool fresh_imu_data ) {
 	    mnav_nav_counter++;
 	    if ( fresh_imu_data ) {
 		// Run the MNAV AHRS algorithm.
-		mnav_ahrs_update();
+		mnav_ahrs_update( &imupacket );
 	    }
 
 	    if ( mnav_nav_counter >= 2 ) {
@@ -96,7 +132,7 @@ bool ADNS_update( bool fresh_imu_data ) {
 		// data.
 		mnav_nav_counter = 0;
 
-		mnav_nav_update();
+		mnav_nav_update( &imupacket );
 	    }
 	} else if ( type == "umn" ) {
 	    static bool umn_init_pos = false;

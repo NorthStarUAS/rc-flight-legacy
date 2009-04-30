@@ -15,25 +15,6 @@ enum errdefs {
     ValidData,			/* data recently valid */
 };
 
-struct imu {
-   double time;
-   double p,q,r;		/* angular velocities    */
-   double ax,ay,az;		/* acceleration          */
-   double hx,hy,hz;             /* magnetic field     	 */
-   double Ps,Pt;                /* static/pitot pressure */
-   // double Tx,Ty,Tz;          /* temperature           */
-   double phi,the,psi;          /* attitudes             */
-   uint64_t status;		/* error type		 */
-};
-
-struct nav {
-   double time;
-   double lat,lon,alt;
-   double ve,vn,vd;
-   // float t;
-   uint64_t status;		/* data status flag */
-};
-
 struct servo {
    double time;
    uint16_t chn[8];

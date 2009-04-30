@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: act_mgr.cpp,v 1.1 2009/04/20 18:38:12 curt Exp $
+ * $Id: act_mgr.cpp,v 1.2 2009/04/30 14:39:38 curt Exp $
  */
 
 
@@ -76,16 +76,16 @@ void Actuator_init() {
 bool Actuator_update() {
     bool fresh_data = false;
 
-    /* printf("%.2f %.2f\n", aileron_out_node->getFloatValue(),
-              elevator_out_node->getFloatValue()); */
+    /* printf("%.2f %.2f\n", aileron_out_node->getDoubleValue(),
+              elevator_out_node->getDoubleValue()); */
     /* static SGPropertyNode *vert_speed_fps
        = fgGetNode("/velocities/vertical-speed-fps", true); */
     /* static SGPropertyNode *true_alt
        = fgGetNode("/position/altitude-ft", true); */
     /* printf("%.1f %.2f %.2f\n",
-           true_alt->getFloatValue(),
-           vert_speed_fps->getFloatValue(),
-           elevator_out_node->getFloatValue()); */
+           true_alt->getDoubleValue(),
+           vert_speed_fps->getDoubleValue(),
+           elevator_out_node->getDoubleValue()); */
 
     // initialize the servo command array to central values so we don't
     // inherit junk
@@ -93,27 +93,27 @@ bool Actuator_update() {
         servo_out.chn[i] = 32768;
     }
 
-    float elevator = elevator_out_node->getFloatValue()
-	+ elevator_damp_node->getFloatValue();
+    float elevator = elevator_out_node->getDoubleValue()
+	+ elevator_damp_node->getDoubleValue();
 
     if ( elevon_mix->getBoolValue() ) {
         // elevon mixing mode
 
         //aileron
         servo_out.chn[0] = 32768
-            + (int16_t)(aileron_out_node->getFloatValue() * 32768)
+            + (int16_t)(aileron_out_node->getDoubleValue() * 32768)
             + (int16_t)(elevator * 32768);
 
         //elevator
         servo_out.chn[1] = 32768
-            + (int16_t)(aileron_out_node->getFloatValue() * 32768)
+            + (int16_t)(aileron_out_node->getDoubleValue() * 32768)
             - (int16_t)(elevator * 32768);
     } else {
         // conventional airframe mode
 
         //aileron
         servo_out.chn[0] = 32768
-            + (int16_t)(aileron_out_node->getFloatValue() * 32768);
+            + (int16_t)(aileron_out_node->getDoubleValue() * 32768);
 
         //elevator
         servo_out.chn[1] = 32768
@@ -162,7 +162,7 @@ bool Actuator_update() {
     // range) assuming 25 cycles per second.
     static int16_t last_throttle = 12000;
     int16_t target_throttle = 32768
-	+ (int16_t)(throttle_out_node->getFloatValue() * 32768);
+	+ (int16_t)(throttle_out_node->getDoubleValue() * 32768);
     int16_t diff = target_throttle - last_throttle;
     if ( diff > 128 ) diff = 128;
     if ( diff < -128 ) diff = -128;
@@ -171,11 +171,11 @@ bool Actuator_update() {
     // override and disable throttle output if within 100' of the
     // ground (assuming ground elevation is the pressure altitude we
     // recorded with the system started up.
-    if ( agl_alt_ft_node->getFloatValue() < 100.0 ) {
+    if ( agl_alt_ft_node->getDoubleValue() < 100.0 ) {
         servo_out.chn[2] = 12000;
     }
 
-    // printf("throttle = %.2f %d\n", throttle_out_node->getFloatValue(),
+    // printf("throttle = %.2f %d\n", throttle_out_node->getDoubleValue(),
     //        servo_out.chn[2]);
 
     last_throttle = servo_out.chn[2];
@@ -185,7 +185,7 @@ bool Actuator_update() {
 
     // rudder
     servo_out.chn[3] = 32768
-        + (int16_t)(rudder_out_node->getFloatValue() * 32768);
+        + (int16_t)(rudder_out_node->getDoubleValue() * 32768);
 
     // time stamp the packet for logging
     servo_out.time = get_Time();

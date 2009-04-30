@@ -60,7 +60,7 @@ bool health_update() {
     /* healthpacket.target_altitude_ft = ap_altitude->getDoubleValue(); */
     healthpacket.target_altitude_ft
         = ground_ref->getDoubleValue() * SG_METER_TO_FEET
-        + pressure_error_m_node->getFloatValue() * SG_METER_TO_FEET
+        + pressure_error_m_node->getDoubleValue() * SG_METER_TO_FEET
           + ap_agl->getDoubleValue();
 
     loadavg_update();
