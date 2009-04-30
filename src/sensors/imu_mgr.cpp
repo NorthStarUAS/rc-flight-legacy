@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: imu_mgr.cpp,v 1.1 2009/04/20 01:53:02 curt Exp $
+ * $Id: imu_mgr.cpp,v 1.2 2009/04/30 14:39:39 curt Exp $
  */
 
 
@@ -14,6 +14,7 @@
 
 #include "globaldefs.h"
 
+#include "adns/mnav/ahrs.h"
 #include "comms/console_link.h"
 #include "comms/logging.h"
 #include "props/props.hxx"
@@ -28,24 +29,35 @@
 // Global variables
 //
 
-// shared imu structure
-struct imu imupacket;
-
 static imu_source_t source = imuNone;
 
 // imu property nodes
 static SGPropertyNode *imu_source_node = NULL;
 
+static SGPropertyNode *timestamp_node = NULL;
 static SGPropertyNode *p_node = NULL;
 static SGPropertyNode *q_node = NULL;
 static SGPropertyNode *r_node = NULL;
+static SGPropertyNode *ax_node = NULL;
+static SGPropertyNode *ay_node = NULL;
+static SGPropertyNode *az_node = NULL;
+static SGPropertyNode *hx_node = NULL;
+static SGPropertyNode *hy_node = NULL;
+static SGPropertyNode *hz_node = NULL;
 
 
 void IMU_init() {
     // initialize imu property nodes
-    p_node = fgGetNode("/orientation/roll-rate-degps", true);
-    q_node = fgGetNode("/orientation/pitch-rate-degps", true);
-    r_node = fgGetNode("/orientation/heading-rate-degps", true);
+    timestamp_node = fgGetNode("/sensors/imu/timestamp", true);
+    p_node = fgGetNode("/sensors/imu/p-radps", true);
+    q_node = fgGetNode("/sensors/imu/q-radps", true);
+    r_node = fgGetNode("/sensors/imu/r-radps", true);
+    ax_node = fgGetNode("/sensors/imu/ax-mpss", true);
+    ay_node = fgGetNode("/sensors/imu/ay-mpss", true);
+    az_node = fgGetNode("/sensors/imu/az-mpss", true);
+    hx_node = fgGetNode("/sensors/imu/hx", true);
+    hy_node = fgGetNode("/sensors/imu/hy", true);
+    hz_node = fgGetNode("/sensors/imu/hz", true);
 
     imu_source_node = fgGetNode("/config/sensors/imu-source", true);
     if ( strcmp(imu_source_node->getStringValue(), "mnav") == 0 ) {
@@ -76,6 +88,7 @@ void IMU_init() {
 
 
 bool IMU_update() {
+    struct imu imupacket;
     bool fresh_data = false;
 
     switch ( source ) {
@@ -107,9 +120,16 @@ bool IMU_update() {
 
     if ( fresh_data ) {
 	// publish values to property tree
-	p_node->setFloatValue( imupacket.p * SG_RADIANS_TO_DEGREES );
-	q_node->setFloatValue( imupacket.q * SG_RADIANS_TO_DEGREES );
-	r_node->setFloatValue( imupacket.r * SG_RADIANS_TO_DEGREES );
+	timestamp_node->setDoubleValue( imupacket.time );
+	p_node->setDoubleValue( imupacket.p );
+	q_node->setDoubleValue( imupacket.q );
+	r_node->setDoubleValue( imupacket.r );
+	ax_node->setDoubleValue( imupacket.ax );
+	ay_node->setDoubleValue( imupacket.ay );
+	az_node->setDoubleValue( imupacket.az );
+	hx_node->setDoubleValue( imupacket.hx );
+	hy_node->setDoubleValue( imupacket.hy );
+	hz_node->setDoubleValue( imupacket.hz );
 
 	if ( console_link_on ) {
 	    console_link_imu( &imupacket );

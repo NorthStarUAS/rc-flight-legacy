@@ -7,6 +7,7 @@
 #include <zlib.h>
 
 #include "adns/mnav/ahrs.h"
+#include "adns/mnav/nav.h"
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
 #include "util/timing.h"
@@ -25,6 +26,21 @@ bool log_to_file = false;       // log to file is enabled/disabled
 SGPath log_path;                // base log path
 bool display_on = false;        // dump summary to display periodically
 
+// imu property nodes
+static SGPropertyNode *p_node = NULL;
+static SGPropertyNode *q_node = NULL;
+static SGPropertyNode *r_node = NULL;
+static SGPropertyNode *ax_node = NULL;
+static SGPropertyNode *ay_node = NULL;
+static SGPropertyNode *az_node = NULL;
+static SGPropertyNode *hx_node = NULL;
+static SGPropertyNode *hy_node = NULL;
+static SGPropertyNode *hz_node = NULL;
+
+// air data nodes
+static SGPropertyNode *Ps_node = NULL;
+static SGPropertyNode *Pt_node = NULL;
+
 // gps property nodes
 static SGPropertyNode *gps_time_stamp_node = NULL;
 static SGPropertyNode *gps_lat_node = NULL;
@@ -35,6 +51,11 @@ static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_track_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
+
+// imu output nodes
+static SGPropertyNode *theta_node = NULL;
+static SGPropertyNode *phi_node = NULL;
+static SGPropertyNode *psi_node = NULL;
 
 // "nav" property nodes
 static SGPropertyNode *nav_status_node = NULL;
@@ -196,21 +217,26 @@ void flush_health() {
 
 
 // periodic console summary of attitude/location estimate
-void display_message( struct imu *data, struct servo *sdata,
-		      struct health *hdata )
+void display_message( struct servo *sdata, struct health *hdata )
 {
-    // double current_time = get_Time();
-
-    printf("[m/s^2]:ax  = %6.3f ay  = %6.3f az  = %6.3f \n",data->ax,data->ay,data->az);
-    printf("[deg/s]:p   = %6.3f q   = %6.3f r   = %6.3f \n",data->p*57.3, data->q*57.3, data->r*57.3);
-    printf("[deg  ]:phi = %6.2f the = %6.2f psi = %6.2f \n",data->phi*57.3,data->the*57.3,data->psi*57.3);
-    printf("[Gauss]:hx  = %6.3f hy  = %6.3f hz  = %6.3f \n",data->hx,data->hy,data->hz);
-    printf("[     ]:Ps  = %6.3f Pt  = %6.3f             \n",data->Ps,data->Pt);
-    printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n",xs[4]*57.3,xs[5]*57.3,xs[6]*57.3);
-
     static bool props_inited = false;
     if ( !props_inited ) {
 	props_inited = true;
+
+	// initialize imu property nodes
+	p_node = fgGetNode("/sensors/imu/p-radps", true);
+	q_node = fgGetNode("/sensors/imu/q-radps", true);
+	r_node = fgGetNode("/sensors/imu/r-radps", true);
+	ax_node = fgGetNode("/sensors/imu/ax-mpss", true);
+	ay_node = fgGetNode("/sensors/imu/ay-mpss", true);
+	az_node = fgGetNode("/sensors/imu/az-mpss", true);
+	hx_node = fgGetNode("/sensors/imu/hx", true);
+	hy_node = fgGetNode("/sensors/imu/hy", true);
+	hz_node = fgGetNode("/sensors/imu/hz", true);
+
+	// initialize air data nodes
+	Ps_node = fgGetNode("/position/altitude-pressure-raw-m", true);
+	Pt_node = fgGetNode("/velocities/airspeed-pressure-raw-ms", true);
 
 	// initialize gps property nodes
 	gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
@@ -223,11 +249,43 @@ void display_message( struct imu *data, struct servo *sdata,
 	gps_track_node = fgGetNode("/sensors/gps/groundtrack-deg", true);
 	gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
 
+	// initialize ahrs property nodes 
+	theta_node = fgGetNode("/orientation/pitch-deg", true);
+	phi_node = fgGetNode("/orientation/roll-deg", true);
+	psi_node = fgGetNode("/orientation/heading-deg", true);
+
+	// initialize nav property nodes
 	nav_status_node = fgGetNode("/status/navigation", true);
 	nav_lat_node = fgGetNode("/position/latitude-deg", true);
 	nav_lon_node = fgGetNode("/position/longitude-deg", true);
 	nav_alt_node = fgGetNode("/position/altitude-nav-m", true);
     }
+
+    // double current_time = get_Time();
+
+    printf("[m/s^2]:ax  = %6.3f ay  = %6.3f az  = %6.3f \n",
+	   ax_node->getDoubleValue(),
+	   ay_node->getDoubleValue(),
+	   az_node->getDoubleValue());
+    printf("[deg/s]:p   = %6.3f q   = %6.3f r   = %6.3f \n",
+	   p_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES,
+	   q_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES,
+	   r_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES);
+    printf("[Gauss]:hx  = %6.3f hy  = %6.3f hz  = %6.3f \n",
+	   hx_node->getDoubleValue(),
+	   hy_node->getDoubleValue(),
+	   hz_node->getDoubleValue());
+    printf("[deg  ]:phi = %6.2f the = %6.2f psi = %6.2f \n",
+	   phi_node->getDoubleValue(),
+	   theta_node->getDoubleValue(),
+	   psi_node->getDoubleValue());
+    printf("[     ]:Ps  = %6.3f Pt  = %6.3f             \n",
+	   Ps_node->getDoubleValue(),
+	   Pt_node->getDoubleValue());
+    printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n",
+	   xs[4] * SGD_RADIANS_TO_DEGREES,
+	   xs[5] * SGD_RADIANS_TO_DEGREES,
+	   xs[6] * SGD_RADIANS_TO_DEGREES);
 
     if ( GPS_age() < 10.0 ) {
 	time_t current_time = gps_unix_sec_node->getIntValue();

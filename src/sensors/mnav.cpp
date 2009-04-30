@@ -606,8 +606,12 @@ bool mnav_get_gps( struct gps *data ) {
 }
 
 
-bool mnav_get_press() {
-    // noop right now (imu routine fills in pressure)
+bool mnav_get_press( struct imu *data ) {
+    // this is a bit of a hack ... just fill in the pressure entries in the
+    // "imu" structure which is badly named and return
+    data->Ps = imu_data.Ps;
+    data->Pt = imu_data.Pt;
+
     return true;
 }
 

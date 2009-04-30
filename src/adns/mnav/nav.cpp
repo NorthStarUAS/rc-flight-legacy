@@ -158,7 +158,7 @@ void mnav_nav_init()
 }
 
 
-void mnav_nav_update()
+void mnav_nav_update( struct imu *imupacket )
 {
     nav_prof.start();
 
@@ -191,7 +191,7 @@ void mnav_nav_update()
 	}
     } else if ( gps_state == 1 ) {
         // copy information to local variables
-        imulocal = imupacket;
+        imulocal = *imupacket;
                    
         // run navigation algorithm
 	nav_alg_prof.start();
@@ -214,7 +214,7 @@ void mnav_nav_update()
         Ps_count += 1.0; if (Ps_count > (Ps_span - 1.0)) {
             Ps_count = (Ps_span - 1.0);
         }
-	float alt_err = navpacket.alt - imupacket.Ps;
+	float alt_err = navpacket.alt - imupacket->Ps;
         Ps_filt_err = (Ps_count / Ps_span) * Ps_filt_err
             + ((Ps_span - Ps_count) / Ps_span) * alt_err;
         // printf("cnt = %.0f err = %.2f\n", Ps_count, Ps_filt_err);

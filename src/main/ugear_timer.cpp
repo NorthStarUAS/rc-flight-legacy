@@ -279,7 +279,7 @@ void timer_handler (int signum)
 	 >= (HEARTBEAT_HZ * 2 /* divide by 0.5 */) )
     {
 	display_counter = 0;
-	display_message( &imupacket, &servo_in, &healthpacket );
+	display_message( &servo_in, &healthpacket );
 	mnav_prof.stats   ( "MNAV" );
 	ahrs_prof.stats   ( "AHRS" );
 	if ( enable_mnav_adns ) {

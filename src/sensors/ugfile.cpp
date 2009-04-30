@@ -8,6 +8,7 @@
 #include <string>
 #include <string.h>
 
+#include "adns/mnav/ahrs.h"
 #include "props/props.hxx"
 
 #include "gps_mgr.h"

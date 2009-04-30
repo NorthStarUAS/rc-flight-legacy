@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: press_mgr.cpp,v 1.1 2009/04/20 01:53:02 curt Exp $
+ * $Id: press_mgr.cpp,v 1.2 2009/04/30 14:39:39 curt Exp $
  */
 
 
@@ -14,6 +14,7 @@
 
 #include "globaldefs.h"
 
+#include "adns/mnav/ahrs.h"
 #include "comms/logging.h"
 #include "props/props.hxx"
 
@@ -36,8 +37,8 @@ static float accel_filt = 0.0;
 
 // pressure property nodes
 static SGPropertyNode *pressure_source_node = NULL;
-// static SGPropertyNode *Ps_node = NULL;
-// static SGPropertyNode *Pt_node = NULL;
+static SGPropertyNode *Ps_node = NULL;
+static SGPropertyNode *Pt_node = NULL;
 static SGPropertyNode *Ps_filt_node = NULL;
 static SGPropertyNode *Pt_filt_node = NULL;
 static SGPropertyNode *pressure_error_m_node = NULL;
@@ -57,8 +58,8 @@ void Pressure_init() {
     }
 
     // initialize property tree nodes
-    // Ps_node = fgGetNode("/position/altitude-pressure-m", true);
-    // Pt_node = fgGetNode("/velocities/airspeed-ms", true);
+    Ps_node = fgGetNode("/position/altitude-pressure-raw-m", true);
+    Pt_node = fgGetNode("/velocities/airspeed-pressure-raw-ms", true);
     Ps_filt_node = fgGetNode("/position/altitude-pressure-m", true);
     Pt_filt_node = fgGetNode("/velocities/airspeed-kt", true);
     true_alt_ft_node = fgGetNode("/position/altitude-ft",true);
@@ -93,7 +94,7 @@ static void do_pressure_helpers( struct imu *data ) {
     Pt_filt = 0.97 * Pt_filt + 0.03 * data->Pt;
 
     // best guess at true altitude
-    true_alt_m = Ps_filt + pressure_error_m_node->getFloatValue();
+    true_alt_m = Ps_filt + pressure_error_m_node->getDoubleValue();
 
     // compute rate of climb based on pressure altitude change
     float climb = (Ps_filt - Ps_filt_last) / (data->time - t_last);
@@ -122,7 +123,7 @@ static void do_pressure_helpers( struct imu *data ) {
 	ground_alt_press
 	    = (elapsed * ground_alt_press + dt * data->Ps)
 	    / data->time;
-	ground_alt_press_m_node->setFloatValue( ground_alt_press );
+	ground_alt_press_m_node->setDoubleValue( ground_alt_press );
     }
 
     t_last = data->time;
@@ -135,10 +136,12 @@ static void do_pressure_helpers( struct imu *data ) {
 bool Pressure_update() {
     bool fresh_data = false;
 
+    struct imu imupacket;
+
     switch ( source ) {
 
     case pressMNAV:
-	fresh_data = mnav_get_press();
+	fresh_data = mnav_get_press( &imupacket );
 
 	break;
 
@@ -152,15 +155,15 @@ bool Pressure_update() {
 	do_pressure_helpers( &imupacket );
 
 	// publish values to property tree
-	// Ps_node->setFloatValue( imupacket.Ps );
-	// Pt_node->setFloatValue( imupacket.Pt );
-	Ps_filt_node->setFloatValue( Ps_filt );
-	Pt_filt_node->setFloatValue( Pt_filt * SG_MPS_TO_KT );
-	true_alt_ft_node->setFloatValue( true_alt_m * SG_METER_TO_FEET );
-	agl_alt_ft_node->setFloatValue( (Ps_filt - ground_alt_press)
+	Ps_node->setDoubleValue( imupacket.Ps );
+	Pt_node->setDoubleValue( imupacket.Pt );
+	Ps_filt_node->setDoubleValue( Ps_filt );
+	Pt_filt_node->setDoubleValue( Pt_filt * SG_MPS_TO_KT );
+	true_alt_ft_node->setDoubleValue( true_alt_m * SG_METER_TO_FEET );
+	agl_alt_ft_node->setDoubleValue( (Ps_filt - ground_alt_press)
 					* SG_METER_TO_FEET );
-	vert_fps_node->setFloatValue( climb_filt * SG_METER_TO_FEET );
-	forward_accel_node->setFloatValue( accel_filt * SG_MPS_TO_KT );
+	vert_fps_node->setDoubleValue( climb_filt * SG_METER_TO_FEET );
+	forward_accel_node->setDoubleValue( accel_filt * SG_MPS_TO_KT );
 
 	// if ( console_link_on ) {
 	//     console_link_imu( &imupacket );

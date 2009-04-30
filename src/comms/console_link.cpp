@@ -9,6 +9,8 @@
 #include "globaldefs.h"
 #include "serial.h"
 
+#include "adns/mnav/ahrs.h"
+#include "adns/mnav/nav.h"
 #include "control/route_mgr.hxx"
 #include "health/health.h"
 #include "props/props.hxx"

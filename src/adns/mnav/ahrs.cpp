@@ -61,16 +61,17 @@ MATRIX aP,aQ,aR,aK,Fsys,Hj,Iden;
 MATRIX tmp73,tmp33,tmp77,tmpr,Rinv,mat77;
 MATRIX Hpsi,Kpsi,tmp71;
 double xs[7]={1,0,0,0,0,0,0};
-bool   vgCheck = false;
 short  magCheck = 0; 
 
 double bBx = 0.0, bBy = 0.0, sfx = 1.0, sfy = 1.0;
 
-// ahrs property nodes
+// ahrs calibration nodes
 static SGPropertyNode *bBx_node = NULL;
 static SGPropertyNode *bBy_node = NULL;
 static SGPropertyNode *sfx_node = NULL;
 static SGPropertyNode *sfy_node = NULL;
+
+// imu output nodes
 static SGPropertyNode *theta_node = NULL;
 static SGPropertyNode *phi_node = NULL;
 static SGPropertyNode *psi_node = NULL;
@@ -82,7 +83,7 @@ void mnav_ahrs_init( SGPropertyNode *config )
     // initialize ahrs property nodes 
     theta_node = fgGetNode("/orientation/mnav/pitch-deg", true);
     phi_node = fgGetNode("/orientation/mnav/roll-deg", true);
-    psi_node = fgGetNode("/orientaiton/mnav/heading-deg", true);
+    psi_node = fgGetNode("/orientation/mnav/heading-deg", true);
 
     //initialization of err, measurement, and process cov. matrices
     aP = mat_creat(7,7,ZERO_MATRIX); 
@@ -188,8 +189,7 @@ static void ahrs_algorithm(struct imu *data)
     mat_mymul3(tmp77,Fsys,aP,3);
     for(i=0;i<7;i++) aP[i][i] += aQ[i][i];
 
-    if ( true /*vgCheck*/ ) {
-        // Pitch and Roll Update at 25 Hz
+    if ( true ) {
         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         //Extended Kalman filter: correction step for pitch and roll
         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -288,8 +288,6 @@ static void ahrs_algorithm(struct imu *data)
     data->phi = atan2(2*(xs[0]*xs[1]+xs[2]*xs[3]),1-2*(xs[1]*xs[1]+xs[2]*xs[2]));
     data->psi = atan2(2*(xs[1]*xs[2]+xs[0]*xs[3]),1-2*(xs[2]*xs[2]+xs[3]*xs[3]));
    
-    vgCheck = !vgCheck;
-
     // if ( display_on ) {
     //     printf("roll = %.2f  pitch = %.2f  heading = %.2f\n",
     //            data->phi * r2d, data->the * r2d, data->psi * r2d );
@@ -298,16 +296,16 @@ static void ahrs_algorithm(struct imu *data)
 
 
 // ahrs update() routine
-void mnav_ahrs_update()
+void mnav_ahrs_update( struct imu *imupacket )
 {
     ahrs_prof.start();
-    ahrs_algorithm(&imupacket);	   
+    ahrs_algorithm( imupacket );
     ahrs_prof.stop();
 
     // publish values to property tree
-    theta_node->setFloatValue( imupacket.the * SG_RADIANS_TO_DEGREES );
-    phi_node->setFloatValue( imupacket.phi * SG_RADIANS_TO_DEGREES );
-    psi_node->setFloatValue( imupacket.psi * SG_RADIANS_TO_DEGREES );
+    theta_node->setDoubleValue( imupacket->the * SG_RADIANS_TO_DEGREES );
+    phi_node->setDoubleValue( imupacket->phi * SG_RADIANS_TO_DEGREES );
+    psi_node->setDoubleValue( imupacket->psi * SG_RADIANS_TO_DEGREES );
 
     if ( display_on ) snap_time_interval("ahrs",  100, 0);
 }

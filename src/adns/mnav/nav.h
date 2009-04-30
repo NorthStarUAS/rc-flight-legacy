@@ -9,6 +9,13 @@
 
 #include "util/matrix.h"
 
+struct nav {
+   double time;
+   double lat,lon,alt;
+   double ve,vn,vd;
+   // float t;
+   uint64_t status;		/* data status flag */
+};
 
 // global variables
 //extern struct nav navpacket;
@@ -17,7 +24,7 @@ extern MATRIX nxs;
 
 // global functions
 void mnav_nav_init();
-void mnav_nav_update();
+void mnav_nav_update( struct imu *imupacket );
 void mnav_nav_close();
 
 
