@@ -1,12 +1,6 @@
 MicroGear TODO
 ==============
 
-- translate "pressure" -> "air data" (file names, variable names, comments,
-  etc.)
-
-- remove dependency on using imupacket for globally sharing data and
-  move to the property tree.
-
 - Add telnet server module so we can remotely interact with the property tree
 
 - Add servo sensor module
@@ -64,6 +58,12 @@ MicroGear TODO
   onboard logging.  This will disappear as an issue anyway when we
   migrate away from the MNAV.
 
+
+x 04/30/2009 remove dependency on using imupacket for globally sharing data and
+  move to the property tree.
+
+x 04/30/2009 translate "pressure" -> "air data" (file names, variable names,
+  comments, etc.)
 
 x 04/27/2009 - remove dependency on using navpacket for globally sharing
   data and move to the property tree.

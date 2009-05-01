@@ -1,11 +1,11 @@
 /**
- * \file: press_mgr.cpp
+ * \file: airdata_mgr.cpp
  *
- * Front end management interface for reading pressure data.
+ * Front end management interface for reading air data.
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: press_mgr.cpp,v 1.3 2009/05/01 02:04:17 curt Exp $
+ * $Id: airdata_mgr.cpp,v 1.1 2009/05/01 11:40:48 curt Exp $
  */
 
 
@@ -20,13 +20,11 @@
 
 #include "mnav.h"
 
-#include "press_mgr.h"
+#include "airdata_mgr.h"
 
 //
 // Global variables
 //
-
-static pressure_source_t source = pressNone;
 
 static float Ps_filt = 0.0;
 static float Pt_filt = 0.0;
@@ -35,8 +33,7 @@ static float ground_alt_press = 0.0;
 static float climb_filt = 0.0;
 static float accel_filt = 0.0;
 
-// pressure property nodes
-static SGPropertyNode *pressure_source_node = NULL;
+// air data property nodes
 static SGPropertyNode *Ps_node = NULL;
 static SGPropertyNode *Pt_node = NULL;
 static SGPropertyNode *Ps_filt_node = NULL;
@@ -50,16 +47,10 @@ static SGPropertyNode *ground_alt_press_m_node = NULL;
 
 
 
-void Pressure_init() {
-    // initialize pressure property nodes
-    pressure_source_node = fgGetNode("/config/sensors/pressure-source", true);
-    if ( strcmp(pressure_source_node->getStringValue(), "mnav") == 0 ) {
-	source = pressMNAV;
-    }
-
-    // initialize property tree nodes
-    Ps_node = fgGetNode("/position/altitude-pressure-raw-m", true);
-    Pt_node = fgGetNode("/velocities/airspeed-pressure-raw-ms", true);
+void AirData_init() {
+    // initialize air data property nodes
+    Ps_node = fgGetNode("/sensors/air-data/Ps-m", true);
+    Pt_node = fgGetNode("/sensors/air-data/Pt-ms", true);
     Ps_filt_node = fgGetNode("/position/altitude-pressure-m", true);
     Pt_filt_node = fgGetNode("/velocities/airspeed-kt", true);
     true_alt_ft_node = fgGetNode("/position/altitude-ft",true);
@@ -70,17 +61,25 @@ void Pressure_init() {
     ground_alt_press_m_node
         = fgGetNode("/position/ground-altitude-pressure-m", true);
 
-    switch ( source ) {
-    case pressMNAV:
-	// nothing to do
-	break;
-
-    default:
-	if ( display_on ) {
-	    printf("Warning: (init) no pressure source defined\n");
+    // traverse configured modules
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors", true);
+    for ( int i = 0; i < toplevel->nChildren(); ++i ) {
+	SGPropertyNode *section = toplevel->getChild(i);
+	string name = section->getName();
+	if ( name == "air-data" ) {
+	    string source = section->getChild("source")->getStringValue();
+	    string basename = "/sensors/";
+	    basename += section->getDisplayName();
+	    printf("i = %d  name = %s source = %s %s\n",
+		   i, name.c_str(), source.c_str(), basename.c_str());
+	    if ( source == "mnav" ) {
+		// nop
+	    } else {
+		printf("Unknown air data source = '%s' in config file\n",
+		       source.c_str());
+	    }
 	}
     }
-
 }
 
 
@@ -133,21 +132,28 @@ static void do_pressure_helpers( struct imu *data ) {
 }
 
 
-bool Pressure_update() {
+bool AirData_update() {
     bool fresh_data = false;
 
     struct imu imupacket;
 
-    switch ( source ) {
-
-    case pressMNAV:
-	fresh_data = mnav_get_press( &imupacket );
-
-	break;
-
-    default:
-	if ( display_on ) {
-	    // printf("Warning: (update) no pressure source defined\n");
+    // traverse configured modules
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors", true);
+    for ( int i = 0; i < toplevel->nChildren(); ++i ) {
+	SGPropertyNode *section = toplevel->getChild(i);
+	string name = section->getName();
+	if ( name == "air-data" ) {
+	    string source = section->getChild("source")->getStringValue();
+	    string basename = "/sensors/";
+	    basename += section->getDisplayName();
+	    // printf("i = %d  name = %s source = %s %s\n",
+	    //	   i, name.c_str(), source.c_str(), basename.c_str());
+	    if ( source == "mnav" ) {
+		fresh_data = mnav_get_airdata(&imupacket);
+	    } else {
+		printf("Unknown air data source = '%s' in config file\n",
+		       source.c_str());
+	    }
 	}
     }
 
@@ -178,16 +184,24 @@ bool Pressure_update() {
 }
 
 
-void Pressure_close() {
-    switch ( source ) {
-
-    case pressMNAV:
-	// nop
-	break;
-
-    default:
-	if ( display_on ) {
-	    printf("Warning: (close) no pressure source defined\n");
+void AirData_close() {
+    // traverse configured modules
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors", true);
+    for ( int i = 0; i < toplevel->nChildren(); ++i ) {
+	SGPropertyNode *section = toplevel->getChild(i);
+	string name = section->getName();
+	if ( name == "air-data" ) {
+	    string source = section->getChild("source")->getStringValue();
+	    string basename = "/sensors/";
+	    basename += section->getDisplayName();
+	    // printf("i = %d  name = %s source = %s %s\n",
+	    //	   i, name.c_str(), source.c_str(), basename.c_str());
+	    if ( source == "mnav" ) {
+		// nop
+	    } else {
+		printf("Unknown air data source = '%s' in config file\n",
+		       source.c_str());
+	    }
 	}
     }
 }
