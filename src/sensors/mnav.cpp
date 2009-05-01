@@ -418,7 +418,7 @@ void mnav_gps_update() {
 }
 
 
-void mnav_press_update() {
+void mnav_airdata_update() {
     // noop for now
 }
 
@@ -636,9 +636,9 @@ bool mnav_get_gps( struct gps *data ) {
 }
 
 
-bool mnav_get_press( struct imu *data ) {
-    // this is a bit of a hack ... just fill in the pressure entries in the
-    // "imu" structure which is badly named and return
+bool mnav_get_airdata( struct imu *data ) {
+    // this is a bit of a hack ... just fill in the air data entries
+    // in the "imu" structure which is badly named and return
     data->Ps = imu_data.Ps;
     data->Pt = imu_data.Pt;
 

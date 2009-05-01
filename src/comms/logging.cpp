@@ -235,8 +235,8 @@ void display_message( struct servo *sdata, struct health *hdata )
 	hz_node = fgGetNode("/sensors/imu/hz", true);
 
 	// initialize air data nodes
-	Ps_node = fgGetNode("/position/altitude-pressure-raw-m", true);
-	Pt_node = fgGetNode("/velocities/airspeed-pressure-raw-ms", true);
+	Ps_node = fgGetNode("/sensors/air-data/Ps-m", true);
+	Pt_node = fgGetNode("/sensors/air-data/Pt-ms", true);
 
 	// initialize gps property nodes
 	gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);

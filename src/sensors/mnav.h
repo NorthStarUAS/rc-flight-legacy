@@ -30,11 +30,11 @@ void mnav_close();
 
 bool mnav_get_imu();
 bool mnav_get_gps( struct gps *data );
-bool mnav_get_press( struct imu *data );
+bool mnav_get_airdata( struct imu *data );
 
 void mnav_imu_update();
 void mnav_gps_update();
-void mnav_press_update();
+void mnav_airdata_update();
 void mnav_manual_override_check();
 
 void mnav_send_servo_cmd( struct servo *servo_out );
