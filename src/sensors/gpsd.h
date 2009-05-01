@@ -6,7 +6,7 @@
  *
  * Copyright Curt Olson curtolson@gmail.com
  *
- * $Id: gpsd.h,v 1.1 2009/01/16 19:01:33 curt Exp $
+ * $Id: gpsd.h,v 1.2 2009/05/01 02:04:17 curt Exp $
  */
 
 #ifndef _UGEAR_GPSD_H
@@ -15,8 +15,8 @@
 
 #include "globaldefs.h"
 
-void gpsd_init();
-bool gpsd_get_gps( struct gps *data );
+void gpsd_init( string rootname, SGPropertyNode *config );
+bool gpsd_get_gps();
 void gpsd_close();
 
 

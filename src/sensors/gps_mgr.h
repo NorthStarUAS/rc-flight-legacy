@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: gps_mgr.h,v 1.3 2009/04/27 01:29:09 curt Exp $
+ * $Id: gps_mgr.h,v 1.4 2009/05/01 02:04:17 curt Exp $
  */
 
 
@@ -23,12 +23,6 @@ struct gps {
    uint64_t status;		/* data status flag            */
 };
 
-enum gps_source_t {
-    gpsNone,
-    gpsGPSD,
-    gpsMNAV,
-    gpsUGFile
-};
 
 void GPS_init();
 bool GPS_update();

@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: adns_mgr.cpp,v 1.2 2009/04/30 14:39:38 curt Exp $
+ * $Id: adns_mgr.cpp,v 1.3 2009/05/01 02:04:16 curt Exp $
  */
 
 
@@ -56,12 +56,12 @@ static SGPropertyNode *gps_vd_node = NULL;
 void ADNS_init() {
     // initialize imu property nodes
     timestamp_node = fgGetNode("/sensors/imu/timestamp", true);
-    p_node = fgGetNode("/sensors/imu/p-radps", true);
-    q_node = fgGetNode("/sensors/imu/q-radps", true);
-    r_node = fgGetNode("/sensors/imu/r-radps", true);
-    ax_node = fgGetNode("/sensors/imu/ax-mpss", true);
-    ay_node = fgGetNode("/sensors/imu/ay-mpss", true);
-    az_node = fgGetNode("/sensors/imu/az-mpss", true);
+    p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
+    q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
+    r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
+    ax_node = fgGetNode("/sensors/imu/ax-mps_sec", true);
+    ay_node = fgGetNode("/sensors/imu/ay-mps_sec", true);
+    az_node = fgGetNode("/sensors/imu/az-mps_sec", true);
     hx_node = fgGetNode("/sensors/imu/hx", true);
     hy_node = fgGetNode("/sensors/imu/hy", true);
     hz_node = fgGetNode("/sensors/imu/hz", true);
@@ -84,7 +84,7 @@ void ADNS_init() {
 	if ( type == "mnav" ) {
 	    // Initialize AHRS code.  Must be called before ahrs_update() or
 	    // ahrs_close()
-	    mnav_ahrs_init( section->getChild("ahrs") );
+	    mnav_ahrs_init( section );
 
 	    // Initialize the NAV code.  Must be called before nav_update() or
 	    // nav_close()
@@ -140,8 +140,10 @@ bool ADNS_update( bool fresh_imu_data ) {
 		umn_init_pos = true;
 		NavState s;
 		memset( &s, 0, sizeof(NavState) );
-		s.pos[0] =  gps_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-		s.pos[1] =  gps_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+		s.pos[0] =  gps_lat_node->getDoubleValue()
+		    * SGD_DEGREES_TO_RADIANS;
+		s.pos[1] =  gps_lon_node->getDoubleValue()
+		    * SGD_DEGREES_TO_RADIANS;
 		s.pos[2] = -gps_alt_node->getDoubleValue();
 		umn_adns_set_initial_state( &s );
 		umn_adns_print_state( &s );

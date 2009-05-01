@@ -42,6 +42,20 @@ static bool gps_data_valid = false;
 // fixme: this should move over to the UMN INS/GNS module
 static NavState state;
 
+static SGPropertyNode *outputroot = NULL;
+
+// output property nodes
+static SGPropertyNode *timestamp_node = NULL;
+static SGPropertyNode *p_node = NULL;
+static SGPropertyNode *q_node = NULL;
+static SGPropertyNode *r_node = NULL;
+static SGPropertyNode *ax_node = NULL;
+static SGPropertyNode *ay_node = NULL;
+static SGPropertyNode *az_node = NULL;
+static SGPropertyNode *hx_node = NULL;
+static SGPropertyNode *hy_node = NULL;
+static SGPropertyNode *hz_node = NULL;
+
 
 static bool read_imu() {
     if( feof(imufile) ) {
@@ -95,10 +109,22 @@ static bool read_gps() {
 
 
 // function prototypes
-bool ugfile_init() {
+bool ugfile_init( string rootname ) {
+    outputroot = fgGetNode( rootname.c_str(), true );
+
+    timestamp_node = outputroot->getChild("timestamp", 0, true);
+    p_node = outputroot->getChild("p-rad_sec", 0, true);
+    q_node = outputroot->getChild("q-rad_sec", 0, true);
+    r_node = outputroot->getChild("r-rad_sec", 0, true);
+    ax_node = outputroot->getChild("ax-mps_sec", 0, true);
+    ay_node = outputroot->getChild("ay-mps_sec", 0, true);
+    az_node = outputroot->getChild("az-mps_sec", 0, true);
+    hx_node = outputroot->getChild("hx", 0, true);
+    hy_node = outputroot->getChild("hy", 0, true);
+    hz_node = outputroot->getChild("hz", 0, true);
+
     SGPropertyNode *file_base_node
 	= fgGetNode("/config/sensors/file/base", true);
-
     string file_name;
     string base_name = file_base_node->getStringValue();
 
@@ -175,20 +201,16 @@ void ugfile_close() {
 
 bool ugfile_get_imu( struct imu *data ) {
     if ( imu_data_valid ) {
-	// copy fields individually so we don't overwrite phi, the, psi
-	data->time = imu_data.time;
-	data->p = imu_data.p;
-	data->q = imu_data.q;
-	data->r = imu_data.r;
-	data->ax = imu_data.ax;
-	data->ay = imu_data.ay;
-	data->az = imu_data.az;
-	data->hx = imu_data.hx;
-	data->hy = imu_data.hy;
-	data->hz = imu_data.hz;
-	data->Ps = imu_data.Ps;
-	data->Pt = imu_data.Pt;
-	data->status = imu_data.status;
+	timestamp_node->setDoubleValue( imu_data.time );
+	p_node->setDoubleValue( imu_data.p );
+	q_node->setDoubleValue( imu_data.q );
+	r_node->setDoubleValue( imu_data.r );
+	ax_node->setDoubleValue( imu_data.ax );
+	ay_node->setDoubleValue( imu_data.ay );
+	az_node->setDoubleValue( imu_data.az );
+	hx_node->setDoubleValue( imu_data.hx );
+	hy_node->setDoubleValue( imu_data.hy );
+	hz_node->setDoubleValue( imu_data.hz );
     }
 
     return imu_data_valid;
