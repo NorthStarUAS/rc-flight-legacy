@@ -141,14 +141,14 @@ int umn_adns_init() {
     //     ivl_matrix_scalar_mult(kf->H,-1,NULL);
 
     /* print H */
-    int i;
+    /* int i;
     printf("H:");
     for(i = 0; i < 6*15; i++) {
 	printf("%.15f", kf->H->vector[i]);
 	if( i < 6*15 - 1 ) {
 	    printf(",");
 	}
-    }
+    } */
 
     /*system_computeRv(s);*/
     double v;
@@ -162,11 +162,13 @@ int umn_adns_init() {
     kf->R->matrix[4][4] = v;
     kf->R->matrix[5][5] = v;
 
+    /*
     printf("Rv:");
     for(i = 0; i <kf->m; i++) {
 	printf("   %.15f", kf->R->matrix[i][i]);
     }
     printf("\n");
+    */
 
     /*system_computeG(s,NULL); *///15*12        
     /*G =  [  Z3   Z3   Z3  Z3;...*/

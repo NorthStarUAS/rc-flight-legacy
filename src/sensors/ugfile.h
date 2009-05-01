@@ -10,9 +10,11 @@
 
 #include "globaldefs.h"
 
+#include "props/props.hxx"
+
 
 // function prototypes
-bool ugfile_init();
+bool ugfile_init( string rootname );
 bool ugfile_read();
 void ugfile_close();
 

@@ -224,12 +224,12 @@ void display_message( struct servo *sdata, struct health *hdata )
 	props_inited = true;
 
 	// initialize imu property nodes
-	p_node = fgGetNode("/sensors/imu/p-radps", true);
-	q_node = fgGetNode("/sensors/imu/q-radps", true);
-	r_node = fgGetNode("/sensors/imu/r-radps", true);
-	ax_node = fgGetNode("/sensors/imu/ax-mpss", true);
-	ay_node = fgGetNode("/sensors/imu/ay-mpss", true);
-	az_node = fgGetNode("/sensors/imu/az-mpss", true);
+	p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
+	q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
+	r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
+	ax_node = fgGetNode("/sensors/imu/ax-mps_sec", true);
+	ay_node = fgGetNode("/sensors/imu/ay-mps_sec", true);
+	az_node = fgGetNode("/sensors/imu/az-mps_sec", true);
 	hx_node = fgGetNode("/sensors/imu/hx", true);
 	hy_node = fgGetNode("/sensors/imu/hy", true);
 	hz_node = fgGetNode("/sensors/imu/hz", true);
@@ -250,9 +250,9 @@ void display_message( struct servo *sdata, struct health *hdata )
 	gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
 
 	// initialize ahrs property nodes 
-	theta_node = fgGetNode("/orientation/pitch-deg", true);
-	phi_node = fgGetNode("/orientation/roll-deg", true);
-	psi_node = fgGetNode("/orientation/heading-deg", true);
+	theta_node = fgGetNode("/orientation/mnav/pitch-deg", true);
+	phi_node = fgGetNode("/orientation/mnav/roll-deg", true);
+	psi_node = fgGetNode("/orientation/mnav/heading-deg", true);
 
 	// initialize nav property nodes
 	nav_status_node = fgGetNode("/status/navigation", true);

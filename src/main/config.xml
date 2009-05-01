@@ -31,32 +31,27 @@
     <!--                                     -->
 
     <sensors>
-      <!-- imu-source can be: file, mnav, or none -->
-      <imu-source>mnav</imu-source>
+      <!-- <imu> -->
+	<!-- <source>file</source> --> <!-- 6DOFv4, AD12345, file, or mnav -->
+        <!-- <name>fgfs1.imu</name> -->
+      <!-- </imu> -->
 
-      <!-- File configuration -->
-      <file>
-        <base>fgfs1</base>
-      </file>
-
-      <!-- MNAV configuration -->
-      <mnav>
+      <imu>
+	<source>mnav</source> <!-- 6DOFv4, AD12345, file, or mnav -->
         <device>/dev/ttyUSB0</device>
-      </mnav>
+      </imu>
 
-      <!-- gps-source can be: file, gpsd, mnav, none -->
-      <gps-source>gpsd</gps-source>
-
-      <!-- GPSD configuration -->
-      <gpsd>
+      <gps>
+	<source>gpsd</source> <!-- file, gpsd, mnav -->
         <port>2947</port>
         <host>localhost</host>
         <init-string>n=0</init-string>
         <init-string>w=1</init-string>
-      </gpsd>
+      </gps>
 
-      <!-- pressure source can be: mnav, none -->
-      <pressure-source>mnav</pressure-source>
+      <air-data>
+	<source>mnav</source> <!-- mnav -->
+      </air-data>
     </sensors>
 
     <!--                                                          -->
@@ -84,22 +79,14 @@
 	<!-- MNAV based AHRS + Navigation algorithm -->
 	<enable type="bool">true</enable>
 
-	<ahrs>
-	  <!-- AHRS configuration. -->
+	<!-- AHRS configuration. -->
 
-	  <!-- hard iron calibration parameters, see the readme for -->
-	  <!-- configuration and calibration instructions. -->
-	  <bBx>0.0</bBx>
-	  <bBy>0.0</bBy>
-	  <sfx>1.0</sfx>
-	  <sfy>1.0</sfy>
-	</ahrs>
-
-	<nav-filter>
-	  <!-- Nav algorithm configuration -->
-	  <!-- set value to true to enable the 10hz navigational filter -->
-	  <enable type="bool">true</enable>
-	</nav-filter>
+	<!-- hard iron calibration parameters, see the readme for -->
+	<!-- configuration and calibration instructions. -->
+	<bBx>0.0</bBx>
+	<bBy>0.0</bBy>
+	<sfx>1.0</sfx>
+	<sfy>1.0</sfy>
       </mnav>
     </adns>
 

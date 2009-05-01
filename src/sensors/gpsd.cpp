@@ -6,7 +6,7 @@
  *
  * Copyright Curt Olson curtolson@gmail.com
  *
- * $Id: gpsd.cpp,v 1.3 2009/04/27 01:29:09 curt Exp $
+ * $Id: gpsd.cpp,v 1.4 2009/05/01 02:04:17 curt Exp $
  */
 
 #include <string>
@@ -26,8 +26,22 @@ using std::string;
 
 
 // gpsd property nodes
+static SGPropertyNode *outputroot = NULL;
+static SGPropertyNode *configroot = NULL;
+
+static SGPropertyNode *gps_timestamp_node = NULL;
+static SGPropertyNode *gps_lat_node = NULL;
+static SGPropertyNode *gps_lon_node = NULL;
+static SGPropertyNode *gps_alt_node = NULL;
+static SGPropertyNode *gps_ve_node = NULL;
+static SGPropertyNode *gps_vn_node = NULL;
+static SGPropertyNode *gps_vd_node = NULL;
+static SGPropertyNode *gps_unix_sec_node = NULL;
+
 static SGPropertyNode *gpsd_port_node = NULL;
 static SGPropertyNode *gpsd_host_node = NULL;
+
+
 static int port = 2947;
 static string host = "localhost";
 static netSocket gpsd_sock;
@@ -36,23 +50,34 @@ static struct gps gps_data;
 static double last_init_time = 0.0;
 
 
-void gpsd_init() {
-    gpsd_port_node = fgGetNode("/config/sensors/gpsd/port");
+void gpsd_init( string rootname, SGPropertyNode *config ) {
+    outputroot = fgGetNode( rootname.c_str(), true );
+
+    gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
+    gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
+    gps_alt_node = outputroot->getChild("altitude-m", 0, true);
+    gps_ve_node = outputroot->getChild("ve-ms", 0, true);
+    gps_vn_node = outputroot->getChild("vn-ms", 0, true);
+    gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+    gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+
+    gpsd_port_node = config->getChild("port");
     if ( gpsd_port_node != NULL ) {
 	port = gpsd_port_node->getIntValue();
     }
-    gpsd_host_node = fgGetNode("/config/sensors/gpsd/host");
+    gpsd_host_node = config->getChild("host");
     if ( gpsd_host_node != NULL ) {
 	host = gpsd_host_node->getStringValue();
     }
+    configroot = config;
 }
 
 
 // send our configured init strings to configure gpsd the way we prefer
 static void gpsd_send_init() {
-    static SGPropertyNode *node = fgGetNode("/config/sensors/gpsd");
-    for ( int i = 0; i < node->nChildren(); ++i ) {
-        SGPropertyNode *child = node->getChild(i);
+    for ( int i = 0; i < configroot->nChildren(); ++i ) {
+        SGPropertyNode *child = configroot->getChild(i);
         string cname = child->getName();
         string cval = child->getStringValue();
 	if ( cname == "init-string" ) {
@@ -158,7 +183,7 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 }
 
 
-bool gpsd_get_gps( struct gps *data ) {
+bool gpsd_get_gps() {
     bool gps_data_valid = false;
 
     if ( !socket_connected ) {
@@ -170,7 +195,6 @@ bool gpsd_get_gps( struct gps *data ) {
     while ( (result = gpsd_sock.recv( gpsd_sentence, 256 )) > 0 ) {
 	gpsd_sentence[result] = 0;
 	if ( parse_gpsd_sentence( gpsd_sentence ) ) {
-	    memcpy( data, &gps_data, sizeof(struct gps) );
 	    gps_data_valid = true;
 	}
     }
@@ -180,6 +204,17 @@ bool gpsd_get_gps( struct gps *data ) {
     // resending the init sequence.
     if ( get_Time() > gps_data.time + 5 && get_Time() > last_init_time + 5 ) {
 	gpsd_send_init();
+    }
+
+    if ( gps_data_valid ) {
+	gps_timestamp_node->setIntValue( gps_data.time );
+	gps_lat_node->setDoubleValue( gps_data.lat );
+	gps_lon_node->setDoubleValue( gps_data.lon );
+	gps_alt_node->setDoubleValue( gps_data.alt );
+	gps_ve_node->setDoubleValue( gps_data.ve );
+	gps_vn_node->setDoubleValue( gps_data.vn );
+	gps_vd_node->setDoubleValue( gps_data.vd );
+	gps_unix_sec_node->setDoubleValue( gps_data.date );
     }
 
     return gps_data_valid;

@@ -69,12 +69,40 @@ static double start_time;
 
 // mnav property nodes
 static SGPropertyNode *mnav_dev = NULL;
+static SGPropertyNode *outputroot = NULL;
 
+// output property nodes
+static SGPropertyNode *timestamp_node = NULL;
+static SGPropertyNode *p_node = NULL;
+static SGPropertyNode *q_node = NULL;
+static SGPropertyNode *r_node = NULL;
+static SGPropertyNode *ax_node = NULL;
+static SGPropertyNode *ay_node = NULL;
+static SGPropertyNode *az_node = NULL;
+static SGPropertyNode *hx_node = NULL;
+static SGPropertyNode *hy_node = NULL;
+static SGPropertyNode *hz_node = NULL;
 
 // open and intialize the MNAV communication channel
-void mnav_init()
-{
-    mnav_dev = fgGetNode("/config/sensors/mnav/device", true);
+void mnav_init( string rootname, SGPropertyNode *config ) {
+    if ( outputroot != NULL ) {
+	// init has already been run
+	return;
+    }
+
+    outputroot = fgGetNode( rootname.c_str(), true );
+    mnav_dev = config->getChild("device", 0, true);
+
+    timestamp_node = outputroot->getChild("timestamp", 0, true);
+    p_node = outputroot->getChild("p-rad_sec", 0, true);
+    q_node = outputroot->getChild("q-rad_sec", 0, true);
+    r_node = outputroot->getChild("r-rad_sec", 0, true);
+    ax_node = outputroot->getChild("ax-mps_sec", 0, true);
+    ay_node = outputroot->getChild("ay-mps_sec", 0, true);
+    az_node = outputroot->getChild("az-mps_sec", 0, true);
+    hx_node = outputroot->getChild("hx", 0, true);
+    hy_node = outputroot->getChild("hy", 0, true);
+    hz_node = outputroot->getChild("hz", 0, true);
 
     int		nbytes = 0;
     uint8_t  	SCALED_MODE[11] ={0x55,0x55,0x53,0x46,0x01,0x00,0x03,0x00, 'S',0x00,0xF0};
@@ -575,22 +603,18 @@ void decode_imupacket( struct imu *data, uint8_t* buffer )
 }
 
 
-bool mnav_get_imu( struct imu *data ) {
+bool mnav_get_imu() {
     if ( imu_data_valid ) {
-	// copy fields individually so we don't overwrite phi, the, psi
-	data->time = imu_data.time;
-	data->p = imu_data.p;
-	data->q = imu_data.q;
-	data->r = imu_data.r;
-	data->ax = imu_data.ax;
-	data->ay = imu_data.ay;
-	data->az = imu_data.az;
-	data->hx = imu_data.hx;
-	data->hy = imu_data.hy;
-	data->hz = imu_data.hz;
-	data->Ps = imu_data.Ps;
-	data->Pt = imu_data.Pt;
-	data->status = imu_data.status;
+	timestamp_node->setDoubleValue( imu_data.time );
+	p_node->setDoubleValue( imu_data.p );
+	q_node->setDoubleValue( imu_data.q );
+	r_node->setDoubleValue( imu_data.r );
+	ax_node->setDoubleValue( imu_data.ax );
+	ay_node->setDoubleValue( imu_data.ay );
+	az_node->setDoubleValue( imu_data.az );
+	hx_node->setDoubleValue( imu_data.hx );
+	hy_node->setDoubleValue( imu_data.hy );
+	hz_node->setDoubleValue( imu_data.hz );
     }
 
     return imu_data_valid;
@@ -598,6 +622,12 @@ bool mnav_get_imu( struct imu *data ) {
 
 
 bool mnav_get_gps( struct gps *data ) {
+    // mnav conveys little useful date information from the gps,
+    // fake it with a recent date that is close enough to compute
+    // a reasonable magnetic variation, this should be updated
+    // every year or two.
+    gps_data.date = 1240238933; /* Apr 20, 2009 */
+
     if ( gps_data_valid ) {
 	memcpy( data, &gps_data, sizeof(struct gps) );
     }

@@ -125,7 +125,7 @@ void mnav_ahrs_init( SGPropertyNode *config )
     sfy = sfy_node->getDoubleValue();
 
     if ( display_on ) {
-        printf("[ahrs] initialized. bBx=%.2f bBy=%.2f sfx=%.2f sfy=%.2f\n",
+        printf("[mnav ahrs] initialized. bBx=%.2f bBy=%.2f sfx=%.2f sfy=%.2f\n",
 	       bBx, bBy, sfx, sfy);
     }
 }

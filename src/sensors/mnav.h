@@ -10,6 +10,8 @@
 
 #include "globaldefs.h"
 
+#include "props/props.hxx"
+
 
 // global definitions
 extern bool autopilot_active;
@@ -17,7 +19,7 @@ extern bool autopilot_reinit;
 
 
 // function prototypes
-void mnav_init();
+void mnav_init( string rootname, SGPropertyNode *config );
 
 bool mnav_read();
 
@@ -26,7 +28,7 @@ bool mnav_read_nonblock();
 
 void mnav_close();
 
-bool mnav_get_imu( struct imu *data );
+bool mnav_get_imu();
 bool mnav_get_gps( struct gps *data );
 bool mnav_get_press( struct imu *data );
 

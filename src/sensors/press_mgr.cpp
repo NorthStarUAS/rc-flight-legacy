@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: press_mgr.cpp,v 1.2 2009/04/30 14:39:39 curt Exp $
+ * $Id: press_mgr.cpp,v 1.3 2009/05/01 02:04:17 curt Exp $
  */
 
 
@@ -147,7 +147,7 @@ bool Pressure_update() {
 
     default:
 	if ( display_on ) {
-	    printf("Warning: (update) no pressure source defined\n");
+	    // printf("Warning: (update) no pressure source defined\n");
 	}
     }
 
