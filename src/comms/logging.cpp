@@ -250,9 +250,9 @@ void display_message( struct servo *sdata, struct health *hdata )
 	gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
 
 	// initialize ahrs property nodes 
-	theta_node = fgGetNode("/orientation/mnav/pitch-deg", true);
-	phi_node = fgGetNode("/orientation/mnav/roll-deg", true);
-	psi_node = fgGetNode("/orientation/mnav/heading-deg", true);
+	theta_node = fgGetNode("/orientation/pitch-deg", true);
+	phi_node = fgGetNode("/orientation/roll-deg", true);
+	psi_node = fgGetNode("/orientation/heading-deg", true);
 
 	// initialize nav property nodes
 	nav_status_node = fgGetNode("/status/navigation", true);

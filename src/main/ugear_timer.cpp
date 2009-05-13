@@ -1,12 +1,11 @@
 /*******************************************************************************
- * FILE: ugear.cpp
+ * FILE: ugear_timer.cpp
  * DESCRIPTION:
  *   
  *   
  *
  * SOURCE: 
- * REVISED: 9/02/05 Jung Soon Jang
- * REVISED: 4/07/06 Jung Soon Jang
+ * REVISED: Curtis L. Olson
  *******************************************************************************/
 
 #include <stdio.h>

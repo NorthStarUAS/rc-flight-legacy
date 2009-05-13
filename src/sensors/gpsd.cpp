@@ -6,7 +6,7 @@
  *
  * Copyright Curt Olson curtolson@gmail.com
  *
- * $Id: gpsd.cpp,v 1.4 2009/05/01 02:04:17 curt Exp $
+ * $Id: gpsd.cpp,v 1.5 2009/05/13 22:09:04 curt Exp $
  */
 
 #include <string>
@@ -26,7 +26,6 @@ using std::string;
 
 
 // gpsd property nodes
-static SGPropertyNode *outputroot = NULL;
 static SGPropertyNode *configroot = NULL;
 
 static SGPropertyNode *gps_timestamp_node = NULL;
@@ -51,8 +50,8 @@ static double last_init_time = 0.0;
 
 
 void gpsd_init( string rootname, SGPropertyNode *config ) {
-    outputroot = fgGetNode( rootname.c_str(), true );
-
+    // initialize gpsd property nodes 
+    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
     gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
     gps_lon_node = outputroot->getChild("longitude-deg", 0, true);

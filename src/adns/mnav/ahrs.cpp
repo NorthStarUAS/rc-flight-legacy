@@ -78,12 +78,13 @@ static SGPropertyNode *psi_node = NULL;
 
 
 // initalize the AHRS matrices
-void mnav_ahrs_init( SGPropertyNode *config )
+void mnav_ahrs_init( string rootname, SGPropertyNode *config )
 {
     // initialize ahrs property nodes 
-    theta_node = fgGetNode("/orientation/mnav/pitch-deg", true);
-    phi_node = fgGetNode("/orientation/mnav/roll-deg", true);
-    psi_node = fgGetNode("/orientation/mnav/heading-deg", true);
+    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    theta_node = outputroot->getChild("pitch-deg", 0, true);
+    phi_node = outputroot->getChild("roll-deg", 0, true);
+    psi_node = outputroot->getChild("heading-deg", 0, true);
 
     //initialization of err, measurement, and process cov. matrices
     aP = mat_creat(7,7,ZERO_MATRIX); 

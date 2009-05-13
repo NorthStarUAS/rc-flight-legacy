@@ -23,7 +23,7 @@ extern MATRIX nxs;
 
 
 // global functions
-void mnav_nav_init();
+void mnav_nav_init( string rootname );
 void mnav_nav_update( struct imu *imupacket );
 void mnav_nav_close();
 

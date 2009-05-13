@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: adns_mgr.cpp,v 1.3 2009/05/01 02:04:16 curt Exp $
+ * $Id: adns_mgr.cpp,v 1.4 2009/05/13 22:09:04 curt Exp $
  */
 
 
@@ -52,6 +52,10 @@ static SGPropertyNode *gps_ve_node = NULL;
 static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
 
+// output property nodes
+static SGPropertyNode *theta_node = NULL;
+static SGPropertyNode *phi_node = NULL;
+static SGPropertyNode *psi_node = NULL;
 
 void ADNS_init() {
     // initialize imu property nodes
@@ -76,26 +80,42 @@ void ADNS_init() {
     gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/adns", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/filters", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
-	string type = section->getName();
+	string name = section->getName();
+	if ( name == "filter" ) {
+	    string module = section->getChild("module")->getStringValue();
+	    string basename = "/adns/";
+	    basename += section->getDisplayName();
+	    printf("i = %d  name = %s module = %s %s\n",
+	    	   i, name.c_str(), module.c_str(), basename.c_str());
+	    
+	    if ( module == "mnav" ) {
+		// Initialize AHRS code.  Must be called before
+		// ahrs_update() or ahrs_close()
+		mnav_ahrs_init( basename, section );
 
-	if ( type == "mnav" ) {
-	    // Initialize AHRS code.  Must be called before ahrs_update() or
-	    // ahrs_close()
-	    mnav_ahrs_init( section );
-
-	    // Initialize the NAV code.  Must be called before nav_update() or
-	    // nav_close()
-	    mnav_nav_init();
-	} else if ( type == "umn" ) {
-	    umn_adns_init();
+		// Initialize the NAV code.  Must be called before
+		// nav_update() or nav_close()
+		mnav_nav_init( basename );
+	    } else if ( module == "umn" ) {
+		umn_adns_init( );
+	    }
 	}
     }
 
-    // initialize gps property nodes
+    // initialize output property nodes (after module initialization
+    // so we know that the reference properties will exist
+    if ( toplevel->nChildren() > 0 ) {
+	theta_node = fgGetNode("/orientation/pitch-deg", true);
+	phi_node = fgGetNode("/orientation/roll-deg", true);
+	psi_node = fgGetNode("/orientation/heading-deg", true);
 
+	theta_node->alias("/adns/filter[0]/pitch-deg");
+	phi_node->alias("/adns/filter[0]/roll-deg");
+	psi_node->alias("/adns/filter[0]/heading-deg");
+    }
 }
 
 
@@ -112,60 +132,61 @@ bool ADNS_update( bool fresh_imu_data ) {
     imupacket.hy = hy_node->getDoubleValue();
     imupacket.hz = hz_node->getDoubleValue();
 
-    SGPropertyNode *toplevel = fgGetNode("/config/adns", true);
+    // traverse configured modules
+    SGPropertyNode *toplevel = fgGetNode("/config/filters", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
-	string type = section->getName();
-
-	if ( type == "mnav" ) {
-	    static int mnav_nav_counter = 0;
-	    mnav_nav_counter++;
-	    if ( fresh_imu_data ) {
-		// Run the MNAV AHRS algorithm.
-		mnav_ahrs_update( &imupacket );
-	    }
-
-	    if ( mnav_nav_counter >= 2 ) {
-		// navigation at half the rate of ahrs (assumes ahrs
-		// update @ 50hz and nav update @ 25hz.)  Compute a
-		// location estimate based on gps and accelerometer
-		// data.
-		mnav_nav_counter = 0;
-
-		mnav_nav_update( &imupacket );
-	    }
-	} else if ( type == "umn" ) {
-	    static bool umn_init_pos = false;
-	    if ( GPS_age() < 1 && !umn_init_pos ) {
-		umn_init_pos = true;
-		NavState s;
-		memset( &s, 0, sizeof(NavState) );
-		s.pos[0] =  gps_lat_node->getDoubleValue()
-		    * SGD_DEGREES_TO_RADIANS;
-		s.pos[1] =  gps_lon_node->getDoubleValue()
-		    * SGD_DEGREES_TO_RADIANS;
-		s.pos[2] = -gps_alt_node->getDoubleValue();
-		umn_adns_set_initial_state( &s );
-		umn_adns_print_state( &s );
-	    }	    
-	    if ( umn_init_pos ) {
-		double imu[7], gps[7];
-		imu[0] = imupacket.time;
-		imu[1] = imupacket.p;
-		imu[2] = imupacket.q;
-		imu[3] = imupacket.r;
-		imu[4] = imupacket.ax;
-		imu[5] = imupacket.ay;
-		imu[6] = imupacket.az;
-		gps[0] = gps_time_stamp_node->getDoubleValue();
-		gps[1] = gps_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-		gps[2] = gps_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-		gps[3] = -gps_alt_node->getDoubleValue();
-		gps[4] = gps_vn_node->getDoubleValue();
-		gps[5] = gps_ve_node->getDoubleValue();
-		gps[6] = gps_vd_node->getDoubleValue();
-		// umn_adns_print_gps( gps );
-		umn_adns_update( imu, gps );
+	string name = section->getName();
+	if ( name == "filter" ) {
+	    string module = section->getChild("module")->getStringValue();
+	    if ( module == "mnav" ) {
+		static int mnav_nav_counter = 0;
+		mnav_nav_counter++;
+		if ( fresh_imu_data ) {
+		    // Run the MNAV AHRS algorithm.
+		    mnav_ahrs_update( &imupacket );
+		}
+		if ( mnav_nav_counter >= 2 ) {
+		    // navigation at half the rate of ahrs (assumes ahrs
+		    // update @ 50hz and nav update @ 25hz.)  Compute a
+		    // location estimate based on gps and accelerometer
+		    // data.
+		    mnav_nav_counter = 0;
+		    mnav_nav_update( &imupacket );
+		}
+	    } else if ( module == "umn" ) {
+		static bool umn_init_pos = false;
+		if ( GPS_age() < 1 && !umn_init_pos ) {
+		    umn_init_pos = true;
+		    NavState s;
+		    memset( &s, 0, sizeof(NavState) );
+		    s.pos[0] =  gps_lat_node->getDoubleValue()
+			* SGD_DEGREES_TO_RADIANS;
+		    s.pos[1] =  gps_lon_node->getDoubleValue()
+			* SGD_DEGREES_TO_RADIANS;
+		    s.pos[2] = -gps_alt_node->getDoubleValue();
+		    umn_adns_set_initial_state( &s );
+		    umn_adns_print_state( &s );
+		}	    
+		if ( umn_init_pos ) {
+		    double imu[7], gps[7];
+		    imu[0] = imupacket.time;
+		    imu[1] = imupacket.p;
+		    imu[2] = imupacket.q;
+		    imu[3] = imupacket.r;
+		    imu[4] = imupacket.ax;
+		    imu[5] = imupacket.ay;
+		    imu[6] = imupacket.az;
+		    gps[0] = gps_time_stamp_node->getDoubleValue();
+		    gps[1] = gps_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+		    gps[2] = gps_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+		    gps[3] = -gps_alt_node->getDoubleValue();
+		    gps[4] = gps_vn_node->getDoubleValue();
+		    gps[5] = gps_ve_node->getDoubleValue();
+		    gps[6] = gps_vd_node->getDoubleValue();
+		    // umn_adns_print_gps( gps );
+		    umn_adns_update( imu, gps );
+		}
 	    }
 	}
     }
@@ -175,16 +196,19 @@ bool ADNS_update( bool fresh_imu_data ) {
 
 
 void ADNS_close() {
+    // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/adns", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
-	string type = section->getName();
-
-	if ( type == "mnav" ) {
-	    mnav_ahrs_close();
-	    mnav_nav_close();
-	} else if ( type == "umn" ) {
-	    umn_adns_close();
+	string name = section->getName();
+	if ( name == "filter" ) {
+	    string module = section->getChild("module")->getStringValue();
+	    if ( module == "mnav" ) {
+		mnav_ahrs_close();
+		mnav_nav_close();
+	    } else if ( module == "umn" ) {
+		umn_adns_close();
+	    }
 	}
     }
 }

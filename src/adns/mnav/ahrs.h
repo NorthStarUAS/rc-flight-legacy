@@ -24,7 +24,7 @@ struct imu {
 
 extern double xs[7];
 
-void mnav_ahrs_init( SGPropertyNode *config );
+void mnav_ahrs_init( string rootname, SGPropertyNode *config );
 void mnav_ahrs_update( struct imu *imupacket );
 void mnav_ahrs_close();
 

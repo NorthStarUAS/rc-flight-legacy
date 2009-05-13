@@ -3,8 +3,8 @@
 # ugear_MORELIBS = -lm -lrt -lgcc -lc
 
 # For GumStix compile uncomment the following lines instead:
-ugear_LDFLAGS =
-ugear_MORELIBS =
+#ugear_LDFLAGS =
+#ugear_MORELIBS =
 
 EXTRA_DIST=config.xml
 

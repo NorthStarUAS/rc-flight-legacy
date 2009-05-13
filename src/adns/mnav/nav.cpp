@@ -88,7 +88,7 @@ void timer_intr( int sig )
 
 
 // initialize nav structures and matrices
-void mnav_nav_init()
+void mnav_nav_init( string rootname )
 {
     // matrix creation for navigation computation
     nxs   = mat_creat(9,1,ZERO_MATRIX);   //state x=[lat lon alt ve vn vup bax bay baz]'
@@ -140,17 +140,18 @@ void mnav_nav_init()
     gps_magvar_deg_node = fgGetNode("/sensors/gps/magvar-deg", true);
 
     // initialize nav property nodes
-    nav_status_node = fgGetNode("/status/navigation", true);
+    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    nav_status_node = outputroot->getChild("navigation",0, true);
     nav_status_node->setStringValue("invalid");
-    nav_lat_node = fgGetNode("/position/latitude-deg", true);
-    nav_lon_node = fgGetNode("/position/longitude-deg", true);
-    nav_alt_node = fgGetNode("/position/altitude-nav-m", true);
-    nav_alt_feet_node = fgGetNode("/position/altitude-nav-ft", true);
-    nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
-    // nav_vel_node = fgGetNode("/velocities/groundspeed-ms", true);
+    nav_lat_node = outputroot->getChild("latitude-deg", 0, true);
+    nav_lon_node = outputroot->getChild("longitude-deg", 0, true);
+    nav_alt_node = outputroot->getChild("altitude-nav-m", 0, true);
+    nav_alt_feet_node = outputroot->getChild("altitude-nav-ft", 0, true);
+    nav_track_node = outputroot->getChild("groundtrack-deg", 0, true);
+    // nav_vel_node = outputroot->getChild("groundspeed-ms", 0, true);
     nav_vert_speed_fps_node
-        = fgGetNode("/velocities/vertical-speed-fps",true);
-    pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
+        = outputroot->getChild("vertical-speed-fps", 0, true);
+    pressure_error_m_node = outputroot->getChild("pressure-error-m", 0, true);
 
     if ( display_on ) {
         printf("[mnav nav] initialized\n");
