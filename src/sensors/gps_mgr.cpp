@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: gps_mgr.cpp,v 1.5 2009/05/01 02:04:16 curt Exp $
+ * $Id: gps_mgr.cpp,v 1.6 2009/05/13 22:09:04 curt Exp $
  */
 
 
@@ -115,10 +115,8 @@ bool GPS_update() {
 	string name = section->getName();
 	if ( name == "gps" ) {
 	    string source = section->getChild("source")->getStringValue();
-	    string basename = "/sensors/";
-	    basename += section->getDisplayName();
-	    // printf("i = %d  name = %s source = %s %s\n",
-	    //	   i, name.c_str(), source.c_str(), basename.c_str());
+	    // printf("i = %d  name = %s source = %s\n",
+	    //	   i, name.c_str(), source.c_str());
 	    if ( source == "file" ) {
 		fresh_data = ugfile_get_gps(&gpspacket);
 	    } else if ( source == "gpsd" ) {
@@ -182,10 +180,8 @@ void GPS_close() {
 	string name = section->getName();
 	if ( name == "gps" ) {
 	    string source = section->getChild("source")->getStringValue();
-	    string basename = "/sensors/";
-	    basename += section->getDisplayName();
-	    printf("i = %d  name = %s source = %s %s\n",
-		   i, name.c_str(), source.c_str(), basename.c_str());
+	    printf("i = %d  name = %s source = %s\n",
+		   i, name.c_str(), source.c_str());
 	    if ( source == "file" ) {
 		ugfile_close();
 	    } else if ( source == "gpsd" ) {

@@ -54,11 +54,11 @@
       </air-data>
     </sensors>
 
-    <!--                                                          -->
-    <!-- Attitude Determination & Navigation System configuration -->
-    <!--                                                          -->
+    <!--                       -->
+    <!-- Filters configuration -->
+    <!--                       -->
 
-    <adns>
+    <filters>
       <!-- Magnetic Declination (Variation) -->
       <!-- You can force a value or specify "auto" to have the system -->
       <!-- compute a magnetic variation based on initial gps location and -->
@@ -70,16 +70,10 @@
       <!-- losing a gps solution. -->
       <gps-timeout-sec>15.0</gps-timeout-sec>
 
-      <umn>
-	<!-- University of Minnesota AEM ADNS system -->
-	<enable type="bool">true</enable>
-      </umn>
-
-      <mnav>
+      <filter>
 	<!-- MNAV based AHRS + Navigation algorithm -->
+	<module>mnav</module>
 	<enable type="bool">true</enable>
-
-	<!-- AHRS configuration. -->
 
 	<!-- hard iron calibration parameters, see the readme for -->
 	<!-- configuration and calibration instructions. -->
@@ -87,8 +81,15 @@
 	<bBy>0.0</bBy>
 	<sfx>1.0</sfx>
 	<sfy>1.0</sfy>
-      </mnav>
-    </adns>
+      </filter>
+
+      <filter>
+	<!-- University of Minnesota AEM ADNS -->
+	<module>umn-adns</module>
+	<enable type="bool">true</enable>
+      </filter>
+
+    </filters>
 
     <!--                                      -->
     <!-- Autopilot and control configuration. -->
