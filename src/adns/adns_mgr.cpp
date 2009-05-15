@@ -5,25 +5,16 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: adns_mgr.cpp,v 1.5 2009/05/15 14:41:32 curt Exp $
+ * $Id: adns_mgr.cpp,v 1.6 2009/05/15 17:04:56 curt Exp $
  */
 
-
-#include <math.h>
-#include <string.h>
 
 #include "globaldefs.h"
 
 #include "adns/mnav/ahrs.h"
 #include "adns/mnav/nav.h"
-#include "adns/umn/adns.h"
-// #include "comms/console_link.h"
-// #include "comms/logging.h"
+#include "adns/umn_interface.h"
 #include "props/props.hxx"
-#include "sensors/imu_mgr.h"	// temporary until imupacket dependency is removed?
-#include "sensors/gps_mgr.h"
-// #include "util/coremag.h"
-// #include "util/timing.h"
 
 #include "adns_mgr.h"
 
@@ -42,15 +33,6 @@ static SGPropertyNode *az_node = NULL;
 static SGPropertyNode *hx_node = NULL;
 static SGPropertyNode *hy_node = NULL;
 static SGPropertyNode *hz_node = NULL;
-
-// gps property nodes
-static SGPropertyNode *gps_time_stamp_node = NULL;
-static SGPropertyNode *gps_lat_node = NULL;
-static SGPropertyNode *gps_lon_node = NULL;
-static SGPropertyNode *gps_alt_node = NULL;
-static SGPropertyNode *gps_ve_node = NULL;
-static SGPropertyNode *gps_vn_node = NULL;
-static SGPropertyNode *gps_vd_node = NULL;
 
 // output property nodes
 static SGPropertyNode *theta_node = NULL;
@@ -82,15 +64,6 @@ void ADNS_init() {
     hy_node = fgGetNode("/sensors/imu/hy", true);
     hz_node = fgGetNode("/sensors/imu/hz", true);
 
-    // initialize gps property nodes
-    gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
-    gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
-    gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
-    gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
-    gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
-    gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
-    gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
-
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/filters", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
@@ -112,7 +85,7 @@ void ADNS_init() {
 		// nav_update() or nav_close()
 		mnav_nav_init( basename );
 	    } else if ( module == "umn" ) {
-		umn_adns_init( );
+		ugumn_adns_init( basename );
 	    }
 	}
     }
@@ -191,38 +164,7 @@ bool ADNS_update( bool fresh_imu_data ) {
 		    mnav_nav_update( &imupacket );
 		}
 	    } else if ( module == "umn" ) {
-		static bool umn_init_pos = false;
-		if ( GPS_age() < 1 && !umn_init_pos ) {
-		    umn_init_pos = true;
-		    NavState s;
-		    memset( &s, 0, sizeof(NavState) );
-		    s.pos[0] =  gps_lat_node->getDoubleValue()
-			* SGD_DEGREES_TO_RADIANS;
-		    s.pos[1] =  gps_lon_node->getDoubleValue()
-			* SGD_DEGREES_TO_RADIANS;
-		    s.pos[2] = -gps_alt_node->getDoubleValue();
-		    umn_adns_set_initial_state( &s );
-		    umn_adns_print_state( &s );
-		}	    
-		if ( umn_init_pos ) {
-		    double imu[7], gps[7];
-		    imu[0] = imupacket.time;
-		    imu[1] = imupacket.p;
-		    imu[2] = imupacket.q;
-		    imu[3] = imupacket.r;
-		    imu[4] = imupacket.ax;
-		    imu[5] = imupacket.ay;
-		    imu[6] = imupacket.az;
-		    gps[0] = gps_time_stamp_node->getDoubleValue();
-		    gps[1] = gps_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-		    gps[2] = gps_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-		    gps[3] = -gps_alt_node->getDoubleValue();
-		    gps[4] = gps_vn_node->getDoubleValue();
-		    gps[5] = gps_ve_node->getDoubleValue();
-		    gps[6] = gps_vd_node->getDoubleValue();
-		    // umn_adns_print_gps( gps );
-		    umn_adns_update( imu, gps );
-		}
+		ugumn_adns_update( &imupacket );
 	    }
 	}
     }
@@ -243,7 +185,7 @@ void ADNS_close() {
 		mnav_ahrs_close();
 		mnav_nav_close();
 	    } else if ( module == "umn" ) {
-		umn_adns_close();
+		ugumn_adns_close();
 	    }
 	}
     }
