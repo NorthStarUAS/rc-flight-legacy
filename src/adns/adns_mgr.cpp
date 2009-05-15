@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: adns_mgr.cpp,v 1.4 2009/05/13 22:09:04 curt Exp $
+ * $Id: adns_mgr.cpp,v 1.5 2009/05/15 14:41:32 curt Exp $
  */
 
 
@@ -57,6 +57,18 @@ static SGPropertyNode *theta_node = NULL;
 static SGPropertyNode *phi_node = NULL;
 static SGPropertyNode *psi_node = NULL;
 
+static SGPropertyNode *nav_status_node = NULL;
+static SGPropertyNode *nav_lat_node = NULL;
+static SGPropertyNode *nav_lon_node = NULL;
+static SGPropertyNode *nav_alt_node = NULL;
+static SGPropertyNode *nav_alt_feet_node = NULL;
+static SGPropertyNode *nav_vn_node = NULL;
+static SGPropertyNode *nav_ve_node = NULL;
+static SGPropertyNode *nav_vd_node = NULL;
+static SGPropertyNode *nav_track_node = NULL;
+static SGPropertyNode *nav_vel_node = NULL;
+static SGPropertyNode *nav_vert_speed_fps_node = NULL;
+
 void ADNS_init() {
     // initialize imu property nodes
     timestamp_node = fgGetNode("/sensors/imu/timestamp", true);
@@ -107,14 +119,38 @@ void ADNS_init() {
 
     // initialize output property nodes (after module initialization
     // so we know that the reference properties will exist
-    if ( toplevel->nChildren() > 0 ) {
-	theta_node = fgGetNode("/orientation/pitch-deg", true);
-	phi_node = fgGetNode("/orientation/roll-deg", true);
-	psi_node = fgGetNode("/orientation/heading-deg", true);
+    theta_node = fgGetNode("/orientation/pitch-deg", true);
+    phi_node = fgGetNode("/orientation/roll-deg", true);
+    psi_node = fgGetNode("/orientation/heading-deg", true);
 
+    nav_status_node = fgGetNode("/health/navigation", true);
+    nav_lat_node = fgGetNode("/position/latitude-deg", true);
+    nav_lon_node = fgGetNode("/position/longitude-deg", true);
+    nav_alt_node = fgGetNode("/position/altitude-m", true);
+    nav_alt_feet_node = fgGetNode("/position/altitude-ft", true);
+    nav_vn_node = fgGetNode("/velocity/vn-ms", true);
+    nav_ve_node = fgGetNode("/velocity/ve-ms", true);
+    nav_vd_node = fgGetNode("/velocity/vd-ms", true);
+    nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
+    nav_vel_node = fgGetNode("/velocity/groundspeed-ms", true);
+    nav_vert_speed_fps_node = fgGetNode("/velocity/vertical-speed-fps", true);
+
+    if ( toplevel->nChildren() > 0 ) {
 	theta_node->alias("/adns/filter[0]/pitch-deg");
 	phi_node->alias("/adns/filter[0]/roll-deg");
 	psi_node->alias("/adns/filter[0]/heading-deg");
+
+	nav_status_node->alias("/adns/filter[0]/navigation");
+	nav_lat_node->alias("/adns/filter[0]/latitude-deg");
+	nav_lon_node->alias("/adns/filter[0]/longitude-deg");
+	nav_alt_node->alias("/adns/filter[0]/altitude-m");
+	nav_alt_feet_node->alias("/adns/filter[0]/altitude-ft");
+	nav_vn_node->alias("/adns/filter[0]/vn-ms");
+	nav_ve_node->alias("/adns/filter[0]/ve-ms");
+	nav_vd_node->alias("/adns/filter[0]/vd-ms");
+	nav_track_node->alias("/adns/filter[0]/groundtrack-deg");
+	nav_vel_node->alias("/adns/filter[0]/groundspeed-ms");
+	nav_vert_speed_fps_node->alias("/adns/filter[0]/vertical-speed-fps");
     }
 }
 
