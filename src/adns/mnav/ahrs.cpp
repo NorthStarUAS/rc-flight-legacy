@@ -71,7 +71,7 @@ static SGPropertyNode *bBy_node = NULL;
 static SGPropertyNode *sfx_node = NULL;
 static SGPropertyNode *sfy_node = NULL;
 
-// imu output nodes
+// ahrs output nodes
 static SGPropertyNode *theta_node = NULL;
 static SGPropertyNode *phi_node = NULL;
 static SGPropertyNode *psi_node = NULL;

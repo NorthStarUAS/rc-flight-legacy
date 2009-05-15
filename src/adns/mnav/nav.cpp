@@ -213,7 +213,6 @@ void mnav_nav_update( struct imu *imupacket )
         navpacket.vd   = nxs[5][0];
         navpacket.time = get_Time();
 	navpacket.status = ValidData;
-	nav_status_node->setStringValue("valid");
 
 	// compute a filtered error difference between gps altitude
 	// and pressure altitude.  (at 4hz update rate this averages
@@ -227,6 +226,7 @@ void mnav_nav_update( struct imu *imupacket )
         // printf("cnt = %.0f err = %.2f\n", Ps_count, Ps_filt_err);
 
         // publish values to property tree
+	nav_status_node->setStringValue("valid");
 	nav_lat_node->setDoubleValue( navpacket.lat );
 	nav_lon_node->setDoubleValue( navpacket.lon );
 	nav_alt_node->setDoubleValue( navpacket.alt );
