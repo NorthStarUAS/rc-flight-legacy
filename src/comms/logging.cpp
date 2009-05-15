@@ -255,10 +255,10 @@ void display_message( struct servo *sdata, struct health *hdata )
 	psi_node = fgGetNode("/orientation/heading-deg", true);
 
 	// initialize nav property nodes
-	nav_status_node = fgGetNode("/status/navigation", true);
+	nav_status_node = fgGetNode("/health/navigation", true);
 	nav_lat_node = fgGetNode("/position/latitude-deg", true);
 	nav_lon_node = fgGetNode("/position/longitude-deg", true);
-	nav_alt_node = fgGetNode("/position/altitude-nav-m", true);
+	nav_alt_node = fgGetNode("/position/altitude-m", true);
     }
 
     // double current_time = get_Time();

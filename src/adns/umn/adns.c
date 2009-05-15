@@ -241,7 +241,7 @@ int umn_adns_update( double *imu, double *gps ) {
 
     // umn_adns_print_imu( imu );
     // umn_adns_print_gps( gps );
-    umn_adns_print_state( &state );
+    // umn_adns_print_state( &state );
 
     double dt = imu[0] - last_imu_time;
     if ( last_imu_time < 0.001 ) { dt = 0.01; } // sanity check

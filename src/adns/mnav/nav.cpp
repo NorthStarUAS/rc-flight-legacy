@@ -75,8 +75,11 @@ static SGPropertyNode *nav_lat_node = NULL;
 static SGPropertyNode *nav_lon_node = NULL;
 static SGPropertyNode *nav_alt_node = NULL;
 static SGPropertyNode *nav_alt_feet_node = NULL;
+static SGPropertyNode *nav_vn_node = NULL;
+static SGPropertyNode *nav_ve_node = NULL;
+static SGPropertyNode *nav_vd_node = NULL;
 static SGPropertyNode *nav_track_node = NULL;
-// static SGPropertyNode *nav_vel_node = NULL;
+static SGPropertyNode *nav_vel_node = NULL;
 static SGPropertyNode *nav_vert_speed_fps_node = NULL;
 static SGPropertyNode *pressure_error_m_node = NULL;
 
@@ -133,8 +136,8 @@ void mnav_nav_init( string rootname )
     gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
     gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
     gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
-    gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
     gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
+    gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
     gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
     gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
     gps_magvar_deg_node = fgGetNode("/sensors/gps/magvar-deg", true);
@@ -145,10 +148,13 @@ void mnav_nav_init( string rootname )
     nav_status_node->setStringValue("invalid");
     nav_lat_node = outputroot->getChild("latitude-deg", 0, true);
     nav_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    nav_alt_node = outputroot->getChild("altitude-nav-m", 0, true);
-    nav_alt_feet_node = outputroot->getChild("altitude-nav-ft", 0, true);
+    nav_alt_node = outputroot->getChild("altitude-m", 0, true);
+    nav_alt_feet_node = outputroot->getChild("altitude-ft", 0, true);
+    nav_vn_node = outputroot->getChild("vn-ms", 0, true);
+    nav_ve_node = outputroot->getChild("ve-ms", 0, true);
+    nav_vd_node = outputroot->getChild("vd-ms", 0, true);
     nav_track_node = outputroot->getChild("groundtrack-deg", 0, true);
-    // nav_vel_node = outputroot->getChild("groundspeed-ms", 0, true);
+    nav_vel_node = outputroot->getChild("groundspeed-ms", 0, true);
     nav_vert_speed_fps_node
         = outputroot->getChild("vertical-speed-fps", 0, true);
     pressure_error_m_node = outputroot->getChild("pressure-error-m", 0, true);
@@ -225,10 +231,13 @@ void mnav_nav_update( struct imu *imupacket )
 	nav_lon_node->setDoubleValue( navpacket.lon );
 	nav_alt_node->setDoubleValue( navpacket.alt );
 	nav_alt_feet_node->setDoubleValue( navpacket.alt * SG_METER_TO_FEET );
+	nav_vn_node->setDoubleValue( navpacket.vn );
+	nav_ve_node->setDoubleValue( navpacket.ve );
+	nav_vd_node->setDoubleValue( navpacket.vd );
 	nav_track_node->setDoubleValue( 90 - atan2(navpacket.vn, navpacket.ve)
 	 				* SG_RADIANS_TO_DEGREES );
-	// nav_vel_node->setDoubleValue( sqrt( navpacket.vn * navpacket.vn
-	// 				    + navpacket.ve * navpacket.ve ) );
+	nav_vel_node->setDoubleValue( sqrt( navpacket.vn * navpacket.vn
+	 				    + navpacket.ve * navpacket.ve ) );
         nav_vert_speed_fps_node
             ->setDoubleValue( -navpacket.vd * SG_METER_TO_FEET );
         pressure_error_m_node->setFloatValue( Ps_filt_err );

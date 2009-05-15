@@ -71,6 +71,12 @@
       <gps-timeout-sec>15.0</gps-timeout-sec>
 
       <filter>
+	<!-- University of Minnesota AEM ADNS -->
+	<module>umn</module>
+	<enable type="bool">true</enable>
+      </filter>
+
+      <filter>
 	<!-- MNAV based AHRS + Navigation algorithm -->
 	<module>mnav</module>
 	<enable type="bool">true</enable>
@@ -81,12 +87,6 @@
 	<bBy>0.0</bBy>
 	<sfx>1.0</sfx>
 	<sfy>1.0</sfy>
-      </filter>
-
-      <filter>
-	<!-- University of Minnesota AEM ADNS -->
-	<module>umn-adns</module>
-	<enable type="bool">true</enable>
       </filter>
 
     </filters>
