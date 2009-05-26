@@ -2,6 +2,7 @@ EXTRA_DIST = \
 	autogen.sh \
 	README.gumstix \
 	README.verdex \
+	README.mpc5200 \
 	README.kernel \
 	xbow-release.txt
 

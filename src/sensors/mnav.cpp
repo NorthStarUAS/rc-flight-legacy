@@ -83,16 +83,16 @@ static SGPropertyNode *hx_node = NULL;
 static SGPropertyNode *hy_node = NULL;
 static SGPropertyNode *hz_node = NULL;
 
-// open and intialize the MNAV communication channel
-void mnav_init( string rootname, SGPropertyNode *config ) {
-    if ( outputroot != NULL ) {
-	// init has already been run
-	return;
-    }
 
-    outputroot = fgGetNode( rootname.c_str(), true );
+// initialize mnav input property nodes
+static void bind_input( SGPropertyNode *config ) {
     mnav_dev = config->getChild("device", 0, true);
+}
 
+
+// initialize manv output property nodes 
+static void bind_output( string rootname ) {
+    outputroot = fgGetNode( rootname.c_str(), true );
     timestamp_node = outputroot->getChild("timestamp", 0, true);
     p_node = outputroot->getChild("p-rad_sec", 0, true);
     q_node = outputroot->getChild("q-rad_sec", 0, true);
@@ -103,6 +103,18 @@ void mnav_init( string rootname, SGPropertyNode *config ) {
     hx_node = outputroot->getChild("hx", 0, true);
     hy_node = outputroot->getChild("hy", 0, true);
     hz_node = outputroot->getChild("hz", 0, true);
+}
+
+
+// open and intialize the MNAV communication channel
+void mnav_init( string rootname, SGPropertyNode *config ) {
+    if ( outputroot != NULL ) {
+	// init has already been run
+	return;
+    }
+
+    bind_input( config );
+    bind_output( rootname );
 
     int		nbytes = 0;
     uint8_t  	SCALED_MODE[11] ={0x55,0x55,0x53,0x46,0x01,0x00,0x03,0x00, 'S',0x00,0xF0};
