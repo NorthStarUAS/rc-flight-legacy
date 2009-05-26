@@ -6,7 +6,7 @@
  *
  * Copyright Curt Olson curtolson@gmail.com
  *
- * $Id: gpsd.cpp,v 1.5 2009/05/13 22:09:04 curt Exp $
+ * $Id: gpsd.cpp,v 1.6 2009/05/26 22:10:22 curt Exp $
  */
 
 #include <string>
@@ -49,18 +49,8 @@ static struct gps gps_data;
 static double last_init_time = 0.0;
 
 
-void gpsd_init( string rootname, SGPropertyNode *config ) {
-    // initialize gpsd property nodes 
-    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
-    gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    gps_alt_node = outputroot->getChild("altitude-m", 0, true);
-    gps_ve_node = outputroot->getChild("ve-ms", 0, true);
-    gps_vn_node = outputroot->getChild("vn-ms", 0, true);
-    gps_vd_node = outputroot->getChild("vd-ms", 0, true);
-    gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
-
+// initialize gpsd input property nodes
+static void bind_input( SGPropertyNode *config ) {
     gpsd_port_node = config->getChild("port");
     if ( gpsd_port_node != NULL ) {
 	port = gpsd_port_node->getIntValue();
@@ -70,6 +60,26 @@ void gpsd_init( string rootname, SGPropertyNode *config ) {
 	host = gpsd_host_node->getStringValue();
     }
     configroot = config;
+}
+
+
+// initialize gpsd output property nodes 
+static void bind_output( string rootname ) {
+    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
+    gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
+    gps_alt_node = outputroot->getChild("altitude-m", 0, true);
+    gps_ve_node = outputroot->getChild("ve-ms", 0, true);
+    gps_vn_node = outputroot->getChild("vn-ms", 0, true);
+    gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+    gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+}
+
+
+void gpsd_init( string rootname, SGPropertyNode *config ) {
+    bind_input( config );
+    bind_output( rootname );
 }
 
 

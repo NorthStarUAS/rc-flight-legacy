@@ -1,6 +1,11 @@
 MicroGear TODO
 ==============
 
+- Add support for a local ground cache for basic ground (obstacle?) avoidance.
+
+- Add alias code to allow plugging/binding any set of sensors into any 
+  filter algorithm.
+
 - Add telnet server module so we can remotely interact with the property tree
 
 - Add servo sensor module
@@ -58,6 +63,8 @@ MicroGear TODO
   onboard logging.  This will disappear as an issue anyway when we
   migrate away from the MNAV.
 
+
+x 05/15/2009 wired the UMN ADNS algorithm output into the UGear structure.
 
 x 04/30/2009 remove dependency on using imupacket for globally sharing data and
   move to the property tree.

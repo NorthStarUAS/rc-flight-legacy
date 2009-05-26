@@ -11,7 +11,7 @@ dnl Sanity check of the distribution
 AC_CONFIG_SRCDIR([src/main/ugear.cpp])
 
 dnl Initialize the automake system (provide project name and version)
-AM_INIT_AUTOMAKE(MicroGear, 1.6)
+AM_INIT_AUTOMAKE(MicroGear, 1.7)
 
 dnl Checks for programs.
 AC_PROG_MAKE_SET
@@ -24,6 +24,9 @@ AC_PROG_LN_S
 
 dnl set the $host variable based on local machine/os
 AC_CANONICAL_HOST
+
+dnl use the acinclude macro to find extra include directories.
+wi_EXTRA_DIRS(no, ${EXTRA_DIRS})
 
 dnl check for default libraries
 AC_SEARCH_LIBS(clock_gettime, [rt])

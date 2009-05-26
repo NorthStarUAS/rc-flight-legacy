@@ -1,0 +1,9 @@
+Quick cheat sheet for compiling and building for an MPC5200 embedded board.
+
+$ export CC=powerpc-603e-linux-gnu-gcc
+$ less autogen.sh 
+$ export CXX=powerpc-603e-linux-gnu-g++
+$ export PATH=/opt/OSELAS.Toolchain-1.1.1/powerpc-603e-linux-gnu/gcc-4.1.2-glibc-2.5-kernel-2.6.18/bin:$PATH
+$ ./autogen.sh 
+$ CFLAGS="-Wall -O2" CXXFLAGS="-Wall -O2" ./configure --host=powerpc-603e-linux-gnu --prefix=/home/curt/Projects/MPC-5200/OSELAS.BSP-Phytec-phyCORE-MPC5200B-tiny-6/local/powerpc-603e-linux-gnu/usr
+$ make
