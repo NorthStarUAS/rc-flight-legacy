@@ -5,5 +5,10 @@ $ less autogen.sh
 $ export CXX=powerpc-603e-linux-gnu-g++
 $ export PATH=/opt/OSELAS.Toolchain-1.1.1/powerpc-603e-linux-gnu/gcc-4.1.2-glibc-2.5-kernel-2.6.18/bin:$PATH
 $ ./autogen.sh 
-$ CFLAGS="-Wall -O2" CXXFLAGS="-Wall -O2" ./configure --host=powerpc-603e-linux-gnu --prefix=/home/curt/Projects/MPC-5200/OSELAS.BSP-Phytec-phyCORE-MPC5200B-tiny-6/local/powerpc-603e-linux-gnu/usr
+$ CFLAGS="-Wall -Werror -O2" CXXFLAGS="-Wall -Werror -O2" ./configure --host=powerpc-603e-linux-gnu --prefix=/home/curt/Projects/MPC-5200/OSELAS.BSP-Phytec-phyCORE-MPC5200B-tiny-6/local/powerpc-603e-linux-gnu/usr
 $ make
+
+Quick cheat sheet for "ecos" on MPC-5200, notice --prefix=
+
+CFLAGS="-mcpu=603e -Wall -Werror -Wpointer-arith -Wstrict-prototypes -Winline -Wundef -Woverloaded-virtual -g -O2 -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -fvtable-gc " CXXFLAGS="-mcpu=603e -Wall -Werror -Wpointer-arith -Wstrict-prototypes -Winline -Wundef -Woverloaded-virtual -g -O2 -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -fvtable-gc" LDFLAGS="-mcpu=603e -g -nostdlib -Wl,--gc-sections -Wl,-static" ./configure --host=powerpc-eabi
+

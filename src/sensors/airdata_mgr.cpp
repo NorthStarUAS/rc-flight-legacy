@@ -5,11 +5,12 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: airdata_mgr.cpp,v 1.1 2009/05/01 11:40:48 curt Exp $
+ * $Id: airdata_mgr.cpp,v 1.2 2009/08/25 15:04:01 curt Exp $
  */
 
 
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "globaldefs.h"

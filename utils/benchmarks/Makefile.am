@@ -4,7 +4,7 @@
 
 # For GumStix compile uncomment the following lines instead:
 whetstone =
-wheetstone_MORELIBS =
+whetstone_MORELIBS = -lm
 
 bin_PROGRAMS = whetstone
 

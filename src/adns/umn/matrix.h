@@ -12,7 +12,7 @@ void matrix_mult3x3(int transA, int transB, const double* a, const double* b,
                     double *c);
 double matrix_norm_inf(ivl_matrix *m);
 int matrix_exp(double a, ivl_matrix *m, ivl_matrix *result);
-int matrix_exp_approx( double dt, ivl_matrix *m, ivl_matrix *result );
+void matrix_exp_approx( double dt, ivl_matrix *m, ivl_matrix *result );
 int matrix_inv(ivl_matrix *m, ivl_matrix *result);
 
 // Compute c = beta*c + alpha*a*b

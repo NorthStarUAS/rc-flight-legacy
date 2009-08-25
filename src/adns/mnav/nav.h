@@ -7,6 +7,8 @@
 #define _UGEAR_NAVIGATION_H
 
 
+#include <stdint.h>
+
 #include "util/matrix.h"
 
 struct nav {
