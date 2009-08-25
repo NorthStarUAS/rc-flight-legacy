@@ -19,7 +19,8 @@ extern bool autopilot_reinit;
 
 
 // function prototypes
-void mnav_init( string rootname, SGPropertyNode *config );
+void mnav_imu_init( string rootname, SGPropertyNode *config );
+void mnav_gps_init( string rootname );
 
 bool mnav_read();
 

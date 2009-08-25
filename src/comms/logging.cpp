@@ -1,9 +1,8 @@
-#include <dirent.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <time.h>
+#include <sys/types.h>		// opendir() mkdir()
+#include <dirent.h>		// opendir()
+#include <stdio.h>		// sscanf()
+#include <string.h>		// strncmp()
+#include <sys/stat.h>		// mkdir()
 #include <zlib.h>
 
 #include "adns/mnav/ahrs.h"

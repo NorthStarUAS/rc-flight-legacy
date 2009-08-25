@@ -113,7 +113,7 @@ void timer_handler (int signum)
     // master "dt"
     static double last_time = 0.0;
     double current_time = get_Time();
-    double dt = current_time - last_time;
+    // double dt = current_time - last_time;
     last_time = current_time;
 
     static int health_counter = 0;

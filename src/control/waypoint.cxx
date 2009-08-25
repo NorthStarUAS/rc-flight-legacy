@@ -18,8 +18,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: waypoint.cxx,v 1.9 2008/11/11 20:29:44 curt Exp $
+// $Id: waypoint.cxx,v 1.10 2009/08/25 15:04:01 curt Exp $
 
+
+#include <stdio.h>
 
 #include <include/globaldefs.h>
 

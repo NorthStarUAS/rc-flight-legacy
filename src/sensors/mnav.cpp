@@ -83,6 +83,14 @@ static SGPropertyNode *hx_node = NULL;
 static SGPropertyNode *hy_node = NULL;
 static SGPropertyNode *hz_node = NULL;
 
+static SGPropertyNode *gps_timestamp_node = NULL;
+static SGPropertyNode *gps_lat_node = NULL;
+static SGPropertyNode *gps_lon_node = NULL;
+static SGPropertyNode *gps_alt_node = NULL;
+static SGPropertyNode *gps_ve_node = NULL;
+static SGPropertyNode *gps_vn_node = NULL;
+static SGPropertyNode *gps_vd_node = NULL;
+static SGPropertyNode *gps_unix_sec_node = NULL;
 
 // initialize mnav input property nodes
 static void bind_input( SGPropertyNode *config ) {
@@ -90,8 +98,8 @@ static void bind_input( SGPropertyNode *config ) {
 }
 
 
-// initialize manv output property nodes 
-static void bind_output( string rootname ) {
+// initialize mnav imu output property nodes 
+static void bind_imu_output( string rootname ) {
     outputroot = fgGetNode( rootname.c_str(), true );
     timestamp_node = outputroot->getChild("timestamp", 0, true);
     p_node = outputroot->getChild("p-rad_sec", 0, true);
@@ -106,15 +114,29 @@ static void bind_output( string rootname ) {
 }
 
 
+// initialize mnav gps output property nodes 
+static void bind_gps_output( string rootname ) {
+    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
+    gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
+    gps_alt_node = outputroot->getChild("altitude-m", 0, true);
+    gps_ve_node = outputroot->getChild("ve-ms", 0, true);
+    gps_vn_node = outputroot->getChild("vn-ms", 0, true);
+    gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+    gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+}
+
+
 // open and intialize the MNAV communication channel
-void mnav_init( string rootname, SGPropertyNode *config ) {
+void mnav_imu_init( string rootname, SGPropertyNode *config ) {
     if ( outputroot != NULL ) {
 	// init has already been run
 	return;
     }
 
     bind_input( config );
-    bind_output( rootname );
+    bind_imu_output( rootname );
 
     int		nbytes = 0;
     uint8_t  	SCALED_MODE[11] ={0x55,0x55,0x53,0x46,0x01,0x00,0x03,0x00, 'S',0x00,0xF0};
@@ -178,6 +200,11 @@ void mnav_init( string rootname, SGPropertyNode *config ) {
     if ( display_on ) {
         printf(" initialized.\n");
     }
+}
+
+
+void mnav_gps_init( string rootname ) {
+    bind_gps_output( rootname );
 }
 
 
@@ -380,7 +407,10 @@ bool mnav_read_nonblock()
 	    }
         }
 	if ( nbytes < FULL_PACKET_SIZE ) {
-	    printf("Timeout reading IMU+GPS packet\n");
+	    if ( display_on ) {
+		printf("Timeout reading IMU+GPS packet, but will resume next frame...\n");
+	    }
+
 	    return false;
 	}
 
@@ -503,7 +533,10 @@ bool checksum( uint8_t* buffer, int packet_len ) {
     uint16_t sum = 0;
 
     for ( i = 2; i < packet_len - 2; i++ ) sum = sum + buffer[i];
-    rcvchecksum = ((rcvchecksum = buffer[packet_len-2]) << 8) | buffer[packet_len-1];
+    // original code generates a warning:
+    //   "operation on 'rcvchecksum' may be undefined"
+    // rcvchecksum = ((rcvchecksum = buffer[packet_len-2]) << 8) | buffer[packet_len-1];
+    rcvchecksum = (buffer[packet_len-2] << 8) | buffer[packet_len-1];
 
     // if (rcvchecksum == sum%0x10000)
     if ( rcvchecksum == sum ) //&0xFFFF)
@@ -642,6 +675,17 @@ bool mnav_get_gps( struct gps *data ) {
 
     if ( gps_data_valid ) {
 	memcpy( data, &gps_data, sizeof(struct gps) );
+    }
+
+    if ( gps_data_valid ) {
+	gps_timestamp_node->setDoubleValue( gps_data.time );
+	gps_lat_node->setDoubleValue( gps_data.lat );
+	gps_lon_node->setDoubleValue( gps_data.lon );
+	gps_alt_node->setDoubleValue( gps_data.alt );
+	gps_ve_node->setDoubleValue( gps_data.ve );
+	gps_vn_node->setDoubleValue( gps_data.vn );
+	gps_vd_node->setDoubleValue( gps_data.vd );
+	gps_unix_sec_node->setDoubleValue( gps_data.date );
     }
 
     return gps_data_valid;

@@ -5,12 +5,14 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: act_mgr.cpp,v 1.2 2009/04/30 14:39:38 curt Exp $
+ * $Id: act_mgr.cpp,v 1.3 2009/08/25 15:04:01 curt Exp $
  */
 
+#include <cstdio>
 
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "globaldefs.h"
 

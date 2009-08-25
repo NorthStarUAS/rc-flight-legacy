@@ -72,7 +72,8 @@ void kalmanfilter_free(KalmanFilter **kf)
 int kalmanfilter_eval_phi(KalmanFilter *kf, ivl_matrix *F, double dt)
 {
     // return matrix_exp( dt, F, kf->phi );
-    return matrix_exp_approx( dt, F, kf->phi );
+    matrix_exp_approx( dt, F, kf->phi );
+    return 0;
 }
 
 

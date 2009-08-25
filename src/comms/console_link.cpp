@@ -278,7 +278,7 @@ static void console_link_execute_command( const string command ) {
         // specify new home location
         double lon = atof( token[1].c_str() );
         double lat = atof( token[2].c_str() );
-        double alt_ft = atof( token[3].c_str() );
+        // double alt_ft = atof( token[3].c_str() );
         double course_deg = atof( token[4].c_str() );
         SGWayPoint wp( lon, lat );
         route_mgr.update_home( wp, course_deg, true );

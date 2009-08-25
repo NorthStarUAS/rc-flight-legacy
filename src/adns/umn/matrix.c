@@ -133,7 +133,7 @@ double matrix_norm_inf( ivl_matrix *m )
  * result = I + dt * m
  * 
  */
-int matrix_exp_approx( double dt, ivl_matrix *m, ivl_matrix *result )
+void matrix_exp_approx( double dt, ivl_matrix *m, ivl_matrix *result )
 {
     int r, c, p;
     int nrows = m->nrows;
@@ -531,12 +531,12 @@ r
  or   
           upper case 'Z'. */
 
-	if (inta >= 129 && inta <= 137 || inta >= 145 && inta <= 153 || inta 
-		>= 162 && inta <= 169) {
+	if ((inta >= 129 && inta <= 137) || (inta >= 145 && inta <= 153) ||
+	    (inta >= 162 && inta <= 169)) {
 	    inta += 64;
 	}
-	if (intb >= 129 && intb <= 137 || intb >= 145 && intb <= 153 || intb 
-		>= 162 && intb <= 169) {
+	if ((intb >= 129 && intb <= 137) || (intb >= 145 && intb <= 153) ||
+	    (intb >= 162 && intb <= 169)) {
 	    intb += 64;
 	}
 
@@ -565,7 +565,7 @@ e
 static
 /* Subroutine */ int xerbla_(char *srname, integer *info)
 {
-    fprintf(stderr, "Error in %s, info = %d\n", srname, info);
+    fprintf(stderr, "Error in %s, info = %d\n", srname, *info);
     return 0;
 }
 
@@ -1022,7 +1022,7 @@ static
 	return 0;
     }
 /*     Quick return if possible. */
-    if (*m == 0 || *n == 0 || *alpha == 0. && *beta == 1.) {
+    if (*m == 0 || *n == 0 || (*alpha == 0. && *beta == 1.)) {
 	return 0;
     }
 /*     Set  LENX  and  LENY, the lengths of the vectors x and y, and set   
@@ -1317,7 +1317,7 @@ static
 	return 0;
     }
 /*     Quick return if possible. */
-    if (*m == 0 || *n == 0 || (*alpha == 0. || *k == 0) && *beta == 1.) {
+    if (*m == 0 || *n == 0 || ((*alpha == 0. || *k == 0) && *beta == 1.)) {
 	return 0;
     }
 /*     And if  alpha.eq.zero. */
@@ -2343,7 +2343,7 @@ static
     integer info;
     doublereal temp;
     integer i__, j;
-    integer ix, jx, kx;
+    integer ix, jx, kx = 0;
     logical nounit;
 #define a_ref(a_1,a_2) a[(a_2)*a_dim1 + a_1]
 /*  Purpose   
@@ -2819,21 +2819,21 @@ static
 
        Parameter adjustments */
     /* Table of constant values */
-    integer c__1 = 1;
-    integer c_n1 = -1;
-    integer c__2 = 2;
-    doublereal c_b18 = 1.;
-    doublereal c_b22 = -1.;
+    // integer c__1 = 1;
+    // integer c_n1 = -1;
+    // integer c__2 = 2;
+    // doublereal c_b18 = 1.;
+    // doublereal c_b22 = -1.;
     
     /* System generated locals */
-    integer a_dim1, a_offset, i__1, i__2[2], i__3, i__4, i__5;
-    char ch__1[2];
+    integer a_dim1, a_offset, i__1 /*, i__2[2], i__3, i__4, i__5 */;
+    // char ch__1[2];
     /* Builtin functions   
        Subroutine */ int s_cat(char *, char **, integer *, integer *, ftnlen);
     /* Local variables */
-    integer j;
+    // integer j;
     logical upper;
-    integer jb, nb, nn;
+    // integer jb, nb, nn;
     logical nounit;
 #define a_ref(a_1,a_2) a[(a_2)*a_dim1 + a_1]
 

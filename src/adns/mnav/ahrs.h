@@ -8,6 +8,8 @@
 #define _UGEAR_AHRS_H
 
 
+#include <stdint.h>
+
 #include "props/props.hxx"
 
 struct imu {

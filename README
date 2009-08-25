@@ -26,7 +26,7 @@ CONFIGURE/COMPILING
 
 2. Run "./autogen.sh"
 
-3. Run "CFLAGS="-Wall -O2" CXXFLAGS="-Wall -O2" ./configure --host=arm-linux"
+3. Run "CFLAGS="-Wall -Werror -O2" CXXFLAGS="-Wall -Werror -O2" ./configure --host=arm-linux"
 
 4. Run "make"
 

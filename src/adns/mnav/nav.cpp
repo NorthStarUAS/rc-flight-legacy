@@ -171,13 +171,13 @@ void mnav_nav_update( struct imu *imupacket )
 
     struct imu	     imulocal;
     static int       gps_state = 0;
-    static double    acq_start = 0; // time that gps first acquired
+    // static double    acq_start = 0; // time that gps first acquired
 
     static float Ps_filt_err = 0.0;
     static float Ps_count  = 0.0;
     const float Ps_span = 2500.0;   // counts @ 10hz
 
-    double cur_time = get_Time();
+    // double cur_time = get_Time();
 
     if ( GPS_age() < 2.0 && gps_state == 0 ) {
 	// gps first acquired

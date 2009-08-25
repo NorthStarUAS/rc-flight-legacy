@@ -5,11 +5,12 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: gps_mgr.cpp,v 1.6 2009/05/13 22:09:04 curt Exp $
+ * $Id: gps_mgr.cpp,v 1.7 2009/08/25 15:04:01 curt Exp $
  */
 
 
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "globaldefs.h"
@@ -66,7 +67,7 @@ void GPS_init() {
 	    } else if ( source == "gpsd" ) {
 		gpsd_init( basename, section );
 	    } else if ( source == "mnav" ) {
-		// nop
+		mnav_gps_init( basename );
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());

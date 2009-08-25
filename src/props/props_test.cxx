@@ -20,6 +20,7 @@ using std::endl;
 class Stuff {
 public:
   Stuff () : _stuff(199.0) {}
+  virtual ~Stuff () {}
   virtual float getStuff () const { return _stuff; }
   virtual void setStuff (float stuff) { _stuff = stuff; }
   virtual float getStuff (int index) const { return _stuff * index; }

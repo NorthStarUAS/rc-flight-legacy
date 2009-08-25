@@ -6,7 +6,7 @@
  *
  * Copyright Curt Olson curtolson@gmail.com
  *
- * $Id: gpsd.cpp,v 1.6 2009/05/26 22:10:22 curt Exp $
+ * $Id: gpsd.cpp,v 1.7 2009/08/25 15:04:01 curt Exp $
  */
 
 #include <string>
@@ -216,7 +216,7 @@ bool gpsd_get_gps() {
     }
 
     if ( gps_data_valid ) {
-	gps_timestamp_node->setIntValue( gps_data.time );
+	gps_timestamp_node->setDoubleValue( gps_data.time );
 	gps_lat_node->setDoubleValue( gps_data.lat );
 	gps_lon_node->setDoubleValue( gps_data.lon );
 	gps_alt_node->setDoubleValue( gps_data.alt );

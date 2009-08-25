@@ -5,11 +5,12 @@
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: imu_mgr.cpp,v 1.3 2009/05/01 02:04:17 curt Exp $
+ * $Id: imu_mgr.cpp,v 1.4 2009/08/25 15:04:02 curt Exp $
  */
 
 
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "globaldefs.h"
@@ -45,7 +46,7 @@ void IMU_init() {
 	    if ( source == "file" ) {
 		ugfile_init( basename );
 	    } else if ( source == "mnav" ) {
-		mnav_init( basename, section );
+		mnav_imu_init( basename, section );
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
