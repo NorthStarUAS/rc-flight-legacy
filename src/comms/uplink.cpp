@@ -74,7 +74,7 @@ void uplink_acq()
                 }
                 //check checksum
                 sum = 0; for(i=0;i<numofuplink-1;i++) sum += bufs[i];
-                if(bufs[numofuplink-1] != sum%256) continue;
+                if ( bufs[numofuplink-1] != (char)(sum % 256) ) continue;
                 switch (bufs[0]) {
                 case 'W':
                     sscanf(bufs+2,"%d",&numofwaypoints);
