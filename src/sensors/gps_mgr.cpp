@@ -63,7 +63,7 @@ void GPS_init() {
 	    printf("i = %d  name = %s source = %s %s\n",
 		   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "file" ) {
-		ugfile_init( basename );
+		ugfile_gps_init( basename, section );
 	    } else if ( source == "gpsd" ) {
 		gpsd_init( basename, section );
 	    } else if ( source == "mnav" ) {

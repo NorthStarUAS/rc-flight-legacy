@@ -297,7 +297,7 @@ void display_message( struct servo *sdata, struct health *hdata )
 	       gps_lon_node->getDoubleValue(), gps_lat_node->getDoubleValue(),
 	       gps_alt_node->getDoubleValue(), GPS_age());
     } else {
-	printf("[GPS  ]:[No Recent Data]\n");
+	printf("[GPS  ]:[%0f seconds old]\n", GPS_age());
     }
 
     if ( strcmp( nav_status_node->getStringValue(), "valid" ) == 0 ) {

@@ -31,27 +31,32 @@
     <!--                                     -->
 
     <sensors>
-      <!-- <imu> -->
-	<!-- <source>file</source> --> <!-- 6DOFv4, AD12345, file, or mnav -->
-        <!-- <name>fgfs1.imu</name> -->
-      <!-- </imu> -->
-
       <imu>
-	<source>mnav</source> <!-- 6DOFv4, AD12345, file, or mnav -->
-        <device>/dev/ttyUSB0</device>
+	<source>file</source> <!-- 6DOFv4, AD12345, file, or mnav -->
+        <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN</name> 
       </imu>
-
       <gps>
-	<source>gpsd</source> <!-- file, gpsd, mnav -->
-        <port>2947</port>
-        <host>localhost</host>
-        <init-string>n=0</init-string>
-        <init-string>w=1</init-string>
+	<source>file</source> <!-- 6DOFv4, AD12345, file, or mnav -->
+        <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN</name> 
       </gps>
 
-      <air-data>
-	<source>mnav</source> <!-- mnav -->
-      </air-data>
+
+      <!-- <imu> -->
+	<!-- <source>mnav</source> --> <!-- 6DOFv4, AD12345, file, or mnav -->
+        <!-- <device>/dev/ttyUSB-1</device> -->
+      <!-- </imu> -->
+
+      <!-- <gps> -->
+	<!-- <source>gpsd</source> --> <!-- file, gpsd, mnav -->
+        <!-- <port>2947</port> -->
+        <!-- <host>localhost</host> -->
+        <!-- <init-string>n=0</init-string> -->
+        <!-- <init-string>w=1</init-string> -->
+      <!-- </gps> -->
+
+      <!-- <air-data> -->
+	<!-- <source>mnav</source> --> <!-- mnav -->
+      <!-- </air-data> -->
     </sensors>
 
     <!--                       -->

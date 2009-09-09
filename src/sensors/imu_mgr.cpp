@@ -44,7 +44,7 @@ void IMU_init() {
 	    printf("i = %d  name = %s source = %s %s\n",
 		   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "file" ) {
-		ugfile_init( basename );
+		ugfile_imu_init( basename, section );
 	    } else if ( source == "mnav" ) {
 		mnav_imu_init( basename, section );
 	    } else {

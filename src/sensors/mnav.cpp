@@ -116,7 +116,7 @@ static void bind_imu_output( string rootname ) {
 
 // initialize mnav gps output property nodes 
 static void bind_gps_output( string rootname ) {
-    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    outputroot = fgGetNode( rootname.c_str(), true );
     gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
     gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
