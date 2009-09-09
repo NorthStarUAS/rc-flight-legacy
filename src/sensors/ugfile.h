@@ -14,7 +14,8 @@
 
 
 // function prototypes
-bool ugfile_init( string rootname );
+bool ugfile_imu_init( string rootname, SGPropertyNode *config );
+bool ugfile_gps_init( string rootname, SGPropertyNode *config );
 bool ugfile_read();
 void ugfile_close();
 
