@@ -12,11 +12,13 @@
 #include <math.h>
 #include <string.h>
 
+#include <umngnss/adns.h>
+
 #include "globaldefs.h"
 #include "adns/mnav/ahrs.h"	// temporary until imupacket dependency is removed?
-#include "adns/umn/adns.h"
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
+
 #include "umn_interface.h"
 
 
