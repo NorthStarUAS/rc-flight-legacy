@@ -1,6 +1,5 @@
 SUBDIRS = \
-	mnav \
-	umn
+	mnav
 
 noinst_LIBRARIES = libadns.a
 
