@@ -34,6 +34,7 @@
 static struct gps gpspacket;
 
 static double gps_last_time = -31557600.0; // default to t minus one year old
+static double real_time_offset = 0.0;
 
 // gps property nodes
 static SGPropertyNode *gps_timestamp_node = NULL;
@@ -119,11 +120,11 @@ bool GPS_update() {
 	    // printf("i = %d  name = %s source = %s\n",
 	    //	   i, name.c_str(), source.c_str());
 	    if ( source == "file" ) {
-		fresh_data = ugfile_get_gps(&gpspacket);
+		fresh_data = ugfile_get_gps();
 	    } else if ( source == "gpsd" ) {
 		fresh_data = gpsd_get_gps();
 	    } else if ( source == "mnav" ) {
-		fresh_data = mnav_get_gps(&gpspacket);
+		fresh_data = mnav_get_gps(&gpspacket /*FIXME*/);
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
@@ -134,6 +135,7 @@ bool GPS_update() {
     if ( fresh_data && gps_state == 1 ) {
 	// for computing gps data age
 	gps_last_time = gps_timestamp_node->getDoubleValue();
+	// real_time_offset = get_Time() - gps_last_time;
 
 	if ( console_link_on ) {
 	    console_link_gps( &gpspacket );
@@ -144,9 +146,12 @@ bool GPS_update() {
 	}
     } else if ( fresh_data ) {
 	const double gps_settle = 10.0;
-	static double gps_acq_time = get_Time();
+	static double gps_acq_time = gps_timestamp_node->getDoubleValue();
 	static double last_time = 0.0;
-	double cur_time = get_Time();
+	double cur_time = gps_timestamp_node->getDoubleValue();
+	// gps_last_time = gps_timestamp_node->getDoubleValue();
+	// real_time_offset = cur_time - gps_last_time;
+
 	if ( cur_time - gps_acq_time >= gps_settle ) {
 	    gps_state = 1;
 
@@ -199,5 +204,5 @@ void GPS_close() {
 
 
 double GPS_age() {
-    return get_Time() - gps_last_time;
+    return get_Time() - gps_last_time - real_time_offset;
 }

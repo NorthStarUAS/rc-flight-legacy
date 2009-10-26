@@ -33,6 +33,8 @@ AC_SEARCH_LIBS(clock_gettime, [rt])
 AC_SEARCH_LIBS(cos, [m])
 AC_SEARCH_LIBS(gzopen, [z])
 
+AC_SEARCH_LIBS(umn_adns_init, [umngnss])
+
 AM_CONFIG_HEADER(src/include/ugear_config.h)
 
 AC_CONFIG_FILES([ \
@@ -40,13 +42,14 @@ AC_CONFIG_FILES([ \
         src/Makefile \
         src/actuators/Makefile \
         src/adns/Makefile \
+        src/adns/curt/Makefile \
         src/adns/mnav/Makefile \
-        src/adns/umn/Makefile \
         src/comms/Makefile \
         src/control/Makefile \
         src/health/Makefile \
         src/include/Makefile \
         src/main/Makefile \
+        src/math/Makefile \
         src/props/Makefile \
         src/sensors/Makefile \
         src/util/Makefile \

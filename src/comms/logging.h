@@ -31,5 +31,8 @@ void flush_health( );
 
 void display_message( struct servo *sdata, struct health *hdata );
 
+bool logging_navstate_init();
+void logging_navstate();
+void logging_navstate_close();
 
 #endif // _UGEAR_LOGGING_H
