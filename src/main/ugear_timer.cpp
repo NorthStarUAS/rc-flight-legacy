@@ -26,11 +26,12 @@
 
 #include <string>
 
+#include <umngnss/adns.h>
+
 #include "actuators/act_mgr.h"
 #include "adns/adns_mgr.h"
 #include "adns/mnav/ahrs.h"	// remove?
 #include "adns/mnav/nav.h"	// remove?
-#include "adns/umn/adns.h"	// remove?
 #include "comms/console_link.h"
 #include "comms/logging.h"
 #include "control/control.h"
@@ -178,6 +179,8 @@ void timer_handler (int signum)
 	    initial_home = true;
 	}
     }
+
+    /* FIXME: TEMPORARY */ logging_navstate();
 
     //
     // Read commands from ground station section
@@ -446,6 +449,8 @@ int main( int argc, char **argv )
         }
     }
 
+    /* FIXME: TEMPORARY */ logging_navstate_init();
+
     // Initialize communication with the selected IMU
     IMU_init();
 
@@ -483,6 +488,7 @@ int main( int argc, char **argv )
     gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
     gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
 
+#if 0
     // Install timer_handler as the signal handler for SIGALRM (alarm
     // timing is based on wall clock)
     memset (&sa, 0, sizeof (sa));
@@ -497,6 +503,7 @@ int main( int argc, char **argv )
     timer.it_interval.tv_usec = (1000000 / HEARTBEAT_HZ);
     // Start a real timer. It counts down based on the wall clock
     setitimer (ITIMER_REAL, &timer, NULL);
+#endif
 
     printf("Everything inited ... ready to run\n");
 
@@ -504,8 +511,12 @@ int main( int argc, char **argv )
     // timer_handler() callback which is run every time the alarm is
     // generated (100hz default)
     while ( true ) {
+	#if 0
 	// printf("main(): sleeping\n");
 	sleep(1);
+	#else
+	timer_handler( 0 );
+	#endif
     }
 
     // close and exit

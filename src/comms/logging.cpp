@@ -15,6 +15,8 @@
 
 // global variables for data file logging
 
+static FILE *fnavstate = NULL;
+
 static gzFile fimu = NULL;
 static gzFile fgps = NULL;
 static gzFile fnav = NULL;
@@ -26,15 +28,18 @@ SGPath log_path;                // base log path
 bool display_on = false;        // dump summary to display periodically
 
 // imu property nodes
-static SGPropertyNode *p_node = NULL;
-static SGPropertyNode *q_node = NULL;
-static SGPropertyNode *r_node = NULL;
-static SGPropertyNode *ax_node = NULL;
-static SGPropertyNode *ay_node = NULL;
-static SGPropertyNode *az_node = NULL;
-static SGPropertyNode *hx_node = NULL;
-static SGPropertyNode *hy_node = NULL;
-static SGPropertyNode *hz_node = NULL;
+static bool props_inited = false;
+
+static SGPropertyNode *imu_timestamp_node = NULL;
+static SGPropertyNode *imu_p_node = NULL;
+static SGPropertyNode *imu_q_node = NULL;
+static SGPropertyNode *imu_r_node = NULL;
+static SGPropertyNode *imu_ax_node = NULL;
+static SGPropertyNode *imu_ay_node = NULL;
+static SGPropertyNode *imu_az_node = NULL;
+static SGPropertyNode *imu_hx_node = NULL;
+static SGPropertyNode *imu_hy_node = NULL;
+static SGPropertyNode *imu_hz_node = NULL;
 
 // air data nodes
 static SGPropertyNode *Ps_node = NULL;
@@ -61,6 +66,56 @@ static SGPropertyNode *nav_status_node = NULL;
 static SGPropertyNode *nav_lat_node = NULL;
 static SGPropertyNode *nav_lon_node = NULL;
 static SGPropertyNode *nav_alt_node = NULL;
+static SGPropertyNode *nav_vn_node = NULL;
+static SGPropertyNode *nav_ve_node = NULL;
+static SGPropertyNode *nav_vd_node = NULL;
+
+
+static void init_props() {
+    props_inited = true;
+
+    // initialize imu property nodes
+    imu_timestamp_node = fgGetNode("/sensors/imu/timestamp");
+    imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
+    imu_q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
+    imu_r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
+    imu_ax_node = fgGetNode("/sensors/imu/ax-mps_sec", true);
+    imu_ay_node = fgGetNode("/sensors/imu/ay-mps_sec", true);
+    imu_az_node = fgGetNode("/sensors/imu/az-mps_sec", true);
+    imu_hx_node = fgGetNode("/sensors/imu/hx", true);
+    imu_hy_node = fgGetNode("/sensors/imu/hy", true);
+    imu_hz_node = fgGetNode("/sensors/imu/hz", true);
+
+    // initialize air data nodes
+    Ps_node = fgGetNode("/sensors/air-data/Ps-m", true);
+    Pt_node = fgGetNode("/sensors/air-data/Pt-ms", true);
+
+    // initialize gps property nodes
+    gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
+    gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
+    gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
+    gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
+    gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
+    gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
+    gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
+    gps_track_node = fgGetNode("/sensors/gps/groundtrack-deg", true);
+    gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
+
+    // initialize ahrs property nodes 
+    theta_node = fgGetNode("/orientation/pitch-deg", true);
+    phi_node = fgGetNode("/orientation/roll-deg", true);
+    psi_node = fgGetNode("/orientation/heading-deg", true);
+
+    // initialize nav property nodes
+    nav_status_node = fgGetNode("/health/navigation", true);
+    nav_lat_node = fgGetNode("/position/latitude-deg", true);
+    nav_lon_node = fgGetNode("/position/longitude-deg", true);
+    nav_alt_node = fgGetNode("/position/altitude-m", true);
+    nav_lon_node = fgGetNode("/position/longitude-deg", true);
+    nav_vn_node = fgGetNode("/velocity/vn-ms", true);
+    nav_ve_node = fgGetNode("/velocity/ve-ms", true);
+    nav_vd_node = fgGetNode("/velocity/vd-ms", true);
+}
 
 
 // scan the base path for fltNNNN directories.  Return the biggest
@@ -218,62 +273,24 @@ void flush_health() {
 // periodic console summary of attitude/location estimate
 void display_message( struct servo *sdata, struct health *hdata )
 {
-    static bool props_inited = false;
-    if ( !props_inited ) {
-	props_inited = true;
-
-	// initialize imu property nodes
-	p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
-	q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
-	r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
-	ax_node = fgGetNode("/sensors/imu/ax-mps_sec", true);
-	ay_node = fgGetNode("/sensors/imu/ay-mps_sec", true);
-	az_node = fgGetNode("/sensors/imu/az-mps_sec", true);
-	hx_node = fgGetNode("/sensors/imu/hx", true);
-	hy_node = fgGetNode("/sensors/imu/hy", true);
-	hz_node = fgGetNode("/sensors/imu/hz", true);
-
-	// initialize air data nodes
-	Ps_node = fgGetNode("/sensors/air-data/Ps-m", true);
-	Pt_node = fgGetNode("/sensors/air-data/Pt-ms", true);
-
-	// initialize gps property nodes
-	gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
-	gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
-	gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
-	gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
-	gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
-	gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
-	gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
-	gps_track_node = fgGetNode("/sensors/gps/groundtrack-deg", true);
-	gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
-
-	// initialize ahrs property nodes 
-	theta_node = fgGetNode("/orientation/pitch-deg", true);
-	phi_node = fgGetNode("/orientation/roll-deg", true);
-	psi_node = fgGetNode("/orientation/heading-deg", true);
-
-	// initialize nav property nodes
-	nav_status_node = fgGetNode("/health/navigation", true);
-	nav_lat_node = fgGetNode("/position/latitude-deg", true);
-	nav_lon_node = fgGetNode("/position/longitude-deg", true);
-	nav_alt_node = fgGetNode("/position/altitude-m", true);
-    }
-
     // double current_time = get_Time();
 
+    if ( !props_inited ) {
+	init_props();
+    }
+
     printf("[m/s^2]:ax  = %6.3f ay  = %6.3f az  = %6.3f \n",
-	   ax_node->getDoubleValue(),
-	   ay_node->getDoubleValue(),
-	   az_node->getDoubleValue());
+	   imu_ax_node->getDoubleValue(),
+	   imu_ay_node->getDoubleValue(),
+	   imu_az_node->getDoubleValue());
     printf("[deg/s]:p   = %6.3f q   = %6.3f r   = %6.3f \n",
-	   p_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES,
-	   q_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES,
-	   r_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES);
+	   imu_p_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES,
+	   imu_q_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES,
+	   imu_r_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES);
     printf("[Gauss]:hx  = %6.3f hy  = %6.3f hz  = %6.3f \n",
-	   hx_node->getDoubleValue(),
-	   hy_node->getDoubleValue(),
-	   hz_node->getDoubleValue());
+	   imu_hx_node->getDoubleValue(),
+	   imu_hy_node->getDoubleValue(),
+	   imu_hz_node->getDoubleValue());
     printf("[deg  ]:phi = %6.2f the = %6.2f psi = %6.2f \n",
 	   phi_node->getDoubleValue(),
 	   theta_node->getDoubleValue(),
@@ -318,3 +335,55 @@ void display_message( struct servo *sdata, struct health *hdata )
 
     // printf("imu size = %d\n", sizeof( struct imu ) );
 }
+
+
+bool logging_navstate_init() {
+    printf("Opening navstate file 'ugear.navstate' in current directory\n");
+
+    fnavstate = fopen("ugear.navstate", "w");
+
+    if ( fnavstate == NULL ) {
+	printf("Error opening ugear.navstate\n");
+	return false;
+    }
+
+    return true;
+}
+
+
+void logging_navstate()
+{
+    if ( !props_inited ) {
+	init_props();
+    }
+
+    if ( fnavstate == NULL ) {
+	return;
+    }
+
+    double pretty_yaw = psi_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+    if ( pretty_yaw < 0 ) {
+        pretty_yaw += 2 * 3.14159265358979323846;
+    }
+
+    fprintf( fnavstate,
+             "%.3f %.12f %.12f %.13f %.4f %.4f %.4f %.4f %.4f %.4f\n",
+             imu_timestamp_node->getDoubleValue(),
+	     nav_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
+	     nav_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
+	     -nav_alt_node->getDoubleValue(),
+	     nav_vn_node->getDoubleValue(),
+	     nav_ve_node->getDoubleValue(),
+	     nav_vd_node->getDoubleValue(),
+	     pretty_yaw,
+	     theta_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
+	     phi_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS
+	     );
+}
+
+
+void logging_navstate_close() {
+    fclose( fnavstate );
+}
+
+

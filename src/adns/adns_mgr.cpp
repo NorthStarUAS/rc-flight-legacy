@@ -11,6 +11,7 @@
 
 #include "globaldefs.h"
 
+#include "adns/curt/adns_curt.hxx"
 #include "adns/mnav/ahrs.h"
 #include "adns/mnav/nav.h"
 #include "adns/umn_interface.h"
@@ -22,17 +23,19 @@
 // Global variables
 //
 
+static double last_imu_time = 0.0;
+
 // imu property nodes
-static SGPropertyNode *timestamp_node = NULL;
-static SGPropertyNode *p_node = NULL;
-static SGPropertyNode *q_node = NULL;
-static SGPropertyNode *r_node = NULL;
-static SGPropertyNode *ax_node = NULL;
-static SGPropertyNode *ay_node = NULL;
-static SGPropertyNode *az_node = NULL;
-static SGPropertyNode *hx_node = NULL;
-static SGPropertyNode *hy_node = NULL;
-static SGPropertyNode *hz_node = NULL;
+static SGPropertyNode *imu_timestamp_node = NULL;
+static SGPropertyNode *imu_p_node = NULL;
+static SGPropertyNode *imu_q_node = NULL;
+static SGPropertyNode *imu_r_node = NULL;
+static SGPropertyNode *imu_ax_node = NULL;
+static SGPropertyNode *imu_ay_node = NULL;
+static SGPropertyNode *imu_az_node = NULL;
+static SGPropertyNode *imu_hx_node = NULL;
+static SGPropertyNode *imu_hy_node = NULL;
+static SGPropertyNode *imu_hz_node = NULL;
 
 // output property nodes
 static SGPropertyNode *theta_node = NULL;
@@ -51,18 +54,19 @@ static SGPropertyNode *nav_track_node = NULL;
 static SGPropertyNode *nav_vel_node = NULL;
 static SGPropertyNode *nav_vert_speed_fps_node = NULL;
 
+
 void ADNS_init() {
     // initialize imu property nodes
-    timestamp_node = fgGetNode("/sensors/imu/timestamp", true);
-    p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
-    q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
-    r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
-    ax_node = fgGetNode("/sensors/imu/ax-mps_sec", true);
-    ay_node = fgGetNode("/sensors/imu/ay-mps_sec", true);
-    az_node = fgGetNode("/sensors/imu/az-mps_sec", true);
-    hx_node = fgGetNode("/sensors/imu/hx", true);
-    hy_node = fgGetNode("/sensors/imu/hy", true);
-    hz_node = fgGetNode("/sensors/imu/hz", true);
+    imu_timestamp_node = fgGetNode("/sensors/imu/timestamp", true);
+    imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
+    imu_q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
+    imu_r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
+    imu_ax_node = fgGetNode("/sensors/imu/ax-mps_sec", true);
+    imu_ay_node = fgGetNode("/sensors/imu/ay-mps_sec", true);
+    imu_az_node = fgGetNode("/sensors/imu/az-mps_sec", true);
+    imu_hx_node = fgGetNode("/sensors/imu/hx", true);
+    imu_hy_node = fgGetNode("/sensors/imu/hy", true);
+    imu_hz_node = fgGetNode("/sensors/imu/hz", true);
 
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/filters", true);
@@ -76,7 +80,9 @@ void ADNS_init() {
 	    printf("i = %d  name = %s module = %s %s\n",
 	    	   i, name.c_str(), module.c_str(), basename.c_str());
 	    
-	    if ( module == "mnav" ) {
+	    if ( module == "curt" ) {
+		curt_adns_init( basename );
+	    } else if ( module == "mnav" ) {
 		// Initialize AHRS code.  Must be called before
 		// ahrs_update() or ahrs_close()
 		mnav_ahrs_init( basename, section );
@@ -129,17 +135,21 @@ void ADNS_init() {
 
 
 bool ADNS_update( bool fresh_imu_data ) {
+    double imu_time = imu_timestamp_node->getDoubleValue();
+    double imu_dt = imu_time - last_imu_time;
+    if ( imu_dt > 1.0 ) { imu_dt = 0.02; } // sanity check
+
     struct imu imupacket;
-    imupacket.time = timestamp_node->getDoubleValue();
-    imupacket.p = p_node->getDoubleValue();
-    imupacket.q = q_node->getDoubleValue();
-    imupacket.r = r_node->getDoubleValue();
-    imupacket.ax = ax_node->getDoubleValue();
-    imupacket.ay = ay_node->getDoubleValue();
-    imupacket.az = az_node->getDoubleValue();
-    imupacket.hx = hx_node->getDoubleValue();
-    imupacket.hy = hy_node->getDoubleValue();
-    imupacket.hz = hz_node->getDoubleValue();
+    imupacket.time = imu_time;
+    imupacket.p = imu_p_node->getDoubleValue();
+    imupacket.q = imu_q_node->getDoubleValue();
+    imupacket.r = imu_r_node->getDoubleValue();
+    imupacket.ax = imu_ax_node->getDoubleValue();
+    imupacket.ay = imu_ay_node->getDoubleValue();
+    imupacket.az = imu_az_node->getDoubleValue();
+    imupacket.hx = imu_hx_node->getDoubleValue();
+    imupacket.hy = imu_hy_node->getDoubleValue();
+    imupacket.hz = imu_hz_node->getDoubleValue();
 
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/filters", true);
@@ -148,7 +158,9 @@ bool ADNS_update( bool fresh_imu_data ) {
 	string name = section->getName();
 	if ( name == "filter" ) {
 	    string module = section->getChild("module")->getStringValue();
-	    if ( module == "mnav" ) {
+	    if ( module == "curt" ) {
+		curt_adns_update( imu_dt );
+	    } else if ( module == "mnav" ) {
 		static int mnav_nav_counter = 0;
 		mnav_nav_counter++;
 		if ( fresh_imu_data ) {
@@ -168,6 +180,8 @@ bool ADNS_update( bool fresh_imu_data ) {
 	    }
 	}
     }
+
+    last_imu_time = imu_time;
 
     return true;
 }

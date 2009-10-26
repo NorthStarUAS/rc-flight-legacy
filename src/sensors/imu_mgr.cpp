@@ -71,7 +71,7 @@ bool IMU_update() {
 	    // 	   i, name.c_str(), source.c_str());
 	    if ( source == "file" ) {
 		ugfile_read();
-		fresh_data = ugfile_get_imu(&imupacket);
+		fresh_data = ugfile_get_imu();
 	    } else if ( source == "mnav" ) {
 		mnav_prof.start();
 		// read IMU until no data available.  This will flush any

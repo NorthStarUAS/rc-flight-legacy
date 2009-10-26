@@ -19,8 +19,8 @@ bool ugfile_gps_init( string rootname, SGPropertyNode *config );
 bool ugfile_read();
 void ugfile_close();
 
-bool ugfile_get_imu( struct imu *data );
-bool ugfile_get_gps( struct gps *data );
+bool ugfile_get_imu();
+bool ugfile_get_gps();
 
 
 #endif // _UGEAR_FILE_H

@@ -82,17 +82,22 @@ static bool read_imu() {
 	return false;
     }
 
+// #define FORCE_REAL_TIME
     if ( !first_time ) {
+#ifdef FORCE_REAL_TIME
 	if ( get_Time() - real_time_offset < next_imu_data.time ) {
 	    return false;
 	}
+#endif
 
 	if ( next_valid ) {
 	    memcpy( &imu_data, &next_imu_data, sizeof(struct imu) );
 	}
     }
 
+#ifdef FORCE_REAL_TIME
     do {
+#endif
 	int result = fscanf( imufile,
 			     "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf\n",
 			     &next_imu_data.time,
@@ -112,7 +117,9 @@ static bool read_imu() {
 	    next_valid = true;
 	    imucount++;
 	}
+#ifdef FORCE_REAL_TIME
     } while ( get_Time() - real_time_offset > next_imu_data.time );
+#endif
 
     if ( first_time && next_valid ) {
 	first_time = false;
@@ -134,9 +141,15 @@ static bool read_gps() {
     }
 
     if ( !first_time ) {
-	if ( get_Time() - real_time_offset < next_gps_data.time ) {
+#ifdef FORCE_REAL_TIME
+ 	if ( get_Time() - real_time_offset < next_gps_data.time ) {
 	    return false;
 	}
+#else
+	if ( next_imu_data.time < next_gps_data.time ) {
+	    return false;
+	}
+#endif
 
 	if ( next_valid ) {
 	    memcpy( &gps_data, &next_gps_data, sizeof(struct gps) );
@@ -144,7 +157,9 @@ static bool read_gps() {
     }
 
     double lat_rad, lon_rad, alt_neg;
+#ifdef FORCE_REAL_TIME
     do {
+#endif
 	int result = fscanf( gpsfile,"%lf %lf %lf %lf %lf %lf %lf\n",
 			     &next_gps_data.time,
 			     &lat_rad, &lon_rad, &alt_neg,
@@ -160,7 +175,9 @@ static bool read_gps() {
 	    next_valid = true;
 	    gpscount++;
 	}
+#ifdef FORCE_REAL_TIME
     } while ( get_Time() - real_time_offset > next_gps_data.time );
+#endif
 
     next_gps_data.lat = lat_rad * SGD_RADIANS_TO_DEGREES;
     next_gps_data.lon = lon_rad * SGD_RADIANS_TO_DEGREES;
@@ -334,7 +351,7 @@ void ugfile_close() {
 }
 
 
-bool ugfile_get_imu( struct imu *data ) {
+bool ugfile_get_imu() {
     if ( imu_data_valid ) {
 	imu_timestamp_node->setDoubleValue( imu_data.time );
 	imu_p_node->setDoubleValue( imu_data.p );
@@ -352,9 +369,16 @@ bool ugfile_get_imu( struct imu *data ) {
 }
 
 
-bool ugfile_get_gps( struct gps *data ) {
+bool ugfile_get_gps() {
     if ( gps_data_valid ) {
-	memcpy( data, &gps_data, sizeof(struct gps) );
+	gps_timestamp_node->setDoubleValue( gps_data.time );
+	gps_lat_node->setDoubleValue( gps_data.lat );
+	gps_lon_node->setDoubleValue( gps_data.lon );
+	gps_alt_node->setDoubleValue( gps_data.alt );
+	gps_ve_node->setDoubleValue( gps_data.ve );
+	gps_vn_node->setDoubleValue( gps_data.vn );
+	gps_vd_node->setDoubleValue( gps_data.vd );
+	gps_unix_sec_node->setDoubleValue( gps_data.date );
     }
 
     return gps_data_valid;

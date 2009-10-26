@@ -31,10 +31,11 @@ ugear_timer_SOURCES = \
 ugear_timer_LDADD = \
 	$(top_builddir)/src/actuators/libactuators.a \
 	$(top_builddir)/src/adns/libadns.a \
+	$(top_builddir)/src/adns/curt/libadns_curt.a \
 	$(top_builddir)/src/adns/mnav/libadns_mnav.a \
-	$(top_builddir)/src/adns/umn/libadns_umn.a \
 	$(top_builddir)/src/comms/libcomms.a \
 	$(top_builddir)/src/health/libhealth.a \
+	$(top_builddir)/src/math/libmath.a \
 	$(top_builddir)/src/sensors/libsensors.a \
 	$(top_builddir)/src/control/libcontrol.a \
 	$(top_builddir)/src/props/libsgprops.a \
