@@ -11,7 +11,6 @@
 #include <unistd.h>
 
 #include "comms/logging.h"
-#include "comms/uplink.h"
 #include "include/globaldefs.h"
 #include "sensors/mnav.h"
 
