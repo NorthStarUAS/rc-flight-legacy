@@ -14,7 +14,6 @@
 #include <comms/logging.h>
 
 #include "globaldefs.h"
-#include "matrix.h"
 
 //global variables
 static double exe_rate[5];
@@ -83,25 +82,3 @@ double get_Time()
     tnow = (t.tv_sec-tset.tv_sec) + 1.0e-9*(double)(t.tv_nsec - tset.tv_nsec);
     return tnow;
 }
-
-// The clock_nanosleep() function doesn't seem to be implemented or available
-// in the gumstix development environment (gcc-4.x, linux-2.6.x) and is never
-// used in this code anyplace ...
-
-#if 0
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// get microsleep
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#define NSECS_PER_SEC		1000000000
-void microsleep(int interval)
-{
-    struct timespec naptime;
-	
-    naptime.tv_sec  = 0;
-    naptime.tv_nsec = NSECS_PER_SEC/interval;   // 0.1 msec
-
-    clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &naptime, NULL);
-}
-
-#endif // 0
