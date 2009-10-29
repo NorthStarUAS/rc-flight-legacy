@@ -4,8 +4,7 @@ libcomms_a_SOURCES = \
 	checksum.cpp checksum.h \
 	console_link.cpp console_link.h \
 	logging.cpp logging.h \
-	serial.cpp serial.h \
-	uplink.h uplink.cpp
+	serial.cpp serial.h
 
 # groundstation.cpp groundstation.h
 
