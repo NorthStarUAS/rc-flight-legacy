@@ -22,12 +22,13 @@
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
 #include "sensors/imu_mgr.h"
-#include "util/matrix.h"
 #include "util/myprof.h"
-#include "util/navfunc.h"
 #include "util/timing.h"
 
 #include "ahrs.h"
+#include "matrix.h"
+#include "navfunc.h"
+
 #include "nav.h"
 
 

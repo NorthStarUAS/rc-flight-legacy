@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-#include "util/matrix.h"
+#include "matrix.h"
 
 struct nav {
    double time;

@@ -21,12 +21,12 @@
 #include "include/globaldefs.h"
 #include "props/props.hxx"
 #include "sensors/imu_mgr.h"
-#include "util/matrix.h"
 #include "util/myprof.h"
 #include "util/timing.h"
 
 #include "util.h"
 
+#include "matrix.h"
 #include "ahrs.h"
 
 
