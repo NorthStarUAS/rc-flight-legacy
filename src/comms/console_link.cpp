@@ -7,7 +7,6 @@
 
 #include "checksum.h"
 #include "globaldefs.h"
-#include "serial.h"
 
 #include "adns/mnav/ahrs.h"
 #include "adns/mnav/nav.h"
@@ -17,6 +16,8 @@
 #include "sensors/gps_mgr.h"
 #include "util/strutils.hxx"
 
+#include "serial.hxx"
+
 #include "console_link.h"
 
 using std::string;
@@ -25,22 +26,22 @@ using std::string;
 
 static SGPropertyNode *console_dev = NULL;
 bool console_link_on = false;    // link to ground station via console port
-static int confd;
+static SGSerialPort console;
 
 
 // open up the console port
 void console_link_init() {
     console_dev = fgGetNode("/config/console/device", true);
 
-    confd = serial_open( console_dev->getStringValue(),
-			 BAUDRATE_115200, true, true );
+    console.open_port( console_dev->getStringValue(), true );
+    console.set_baud( 115200 );
 }
 
 
 static short console_write( uint8_t *buf, short size ) {
     for ( int i = 0; i < size; ++i ) {
         // printf("%d ", (uint8_t)buf[i]);
-        write( confd, buf+i, 1 );
+        console.write_port( (char *)buf+i, 1 );
     }
     // printf("\n");
     return size;
@@ -331,11 +332,11 @@ static int console_read_command( char result_buf[256] ) {
 
     char buf[2]; buf[0] = 0;
 
-    int result = read( confd, buf, 1 );
+    int result = console.read_port( buf, 1 );
     while ( result == 1 && buf[0] != '\n' ) {
         command_buf[command_counter] = buf[0];
         command_counter++;
-        result = read( confd, buf, 1 );
+        result = console.read_port( buf, 1 );
     }
 
     if ( result == 1 && buf[0] == '\n' ) {
