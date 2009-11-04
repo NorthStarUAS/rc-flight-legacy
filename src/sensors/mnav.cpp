@@ -16,7 +16,7 @@
 
 #include "comms/console_link.h"
 #include "comms/logging.h"
-#include "comms/serial.h"
+#include "comms/serial.hxx"
 #include "include/globaldefs.h"
 #include "adns/mnav/ahrs.h"
 #include "adns/mnav/nav.h"
@@ -53,7 +53,7 @@ void decode_gpspacket(struct gps *data, uint8_t* buffer);
 //
 // global variables
 //
-static int sPort2;
+static SGSerialPort sPort2;
 
 struct servo servo_in;
 bool autopilot_active = false;
@@ -159,40 +159,40 @@ void mnav_imu_init( string rootname, SGPropertyNode *config ) {
     // 100-200ms between message.  For now it's easier to just sleep 1
     // second.
 
-    sPort2 = serial_open( mnav_dev->getStringValue(),
-			  BAUDRATE_38400, false, false );
+    sPort2.open_port( mnav_dev->getStringValue(), false );
+    sPort2.set_baud( 38400 );
     // printf("Opened serial port at 38400.\n");
       
     while (nbytes != 11) {
         printf("  writing CH_BAUD\n");
-        nbytes = write(sPort2,(char*)CH_BAUD, 11);
+        nbytes = sPort2.write_port((char*)CH_BAUD, 11);
         sleep(1);
     }
     nbytes = 0;  
-    close(sPort2);
+    sPort2.close_port();
 
-    sPort2 = serial_open( mnav_dev->getStringValue(),
-			  BAUDRATE_57600, false, false );
+    sPort2.open_port( mnav_dev->getStringValue(), false );
+    sPort2.set_baud( 57600 );
     // printf("Opened serial port at 57600.\n");
   
     
     while (nbytes != 11) {
         printf("  writing CH_SAMP\n");
-        nbytes = write(sPort2,(char*)CH_SAMP, 11);
+        nbytes = sPort2.write_port((char*)CH_SAMP, 11);
         sleep(1);
     }
     nbytes = 0;
 
     while (nbytes != 11) {
         printf("  writing SCALED_MODE\n");
-        nbytes = write(sPort2,(char*)SCALED_MODE, 11);
+        nbytes = sPort2.write_port((char*)SCALED_MODE, 11);
         sleep(1);
     }
     nbytes = 0;
 
     while (nbytes !=  7) {
         printf("  writing CH_SERVO\n");
-        nbytes = write(sPort2,(char*)CH_SERVO, 7);
+        nbytes = sPort2.write_port((char*)CH_SERVO, 7);
         sleep(1);
     }
     nbytes = 0;  
@@ -228,7 +228,7 @@ bool mnav_read()
 
     // Find start of packet: the header (2 bytes) starts with 0x5555
     while ( headerOK != 2 ) {
-        while(1!=read(sPort2,input_buffer,1));
+        while ( 1 != sPort2.read_port((char *)input_buffer,1) );
         if ( input_buffer[0] == 0x55 ) {
             headerOK++;
             trouble_count = 1;
@@ -241,7 +241,7 @@ bool mnav_read()
         }
     }
      	
-    headerOK = 0; while ( 1 != read(sPort2,&input_buffer[2],1) );
+    headerOK = 0; while ( 1 != sPort2.read_port((char *)&input_buffer[2],1) );
     nbytes = 3; 
   
     // Read packet contents
@@ -250,8 +250,8 @@ bool mnav_read()
     case 's':               // IMU packet without GPS (100hz)
         // printf("no gps data being sent ... :-(\n");
         while ( nbytes < SENSOR_PACKET_LENGTH ) {
-            nbytes += read(sPort2, input_buffer+nbytes,
-                           SENSOR_PACKET_LENGTH-nbytes); 
+            nbytes += sPort2.read_port((char *)input_buffer+nbytes,
+				       SENSOR_PACKET_LENGTH-nbytes); 
         }
 
         // check checksum
@@ -269,8 +269,8 @@ bool mnav_read()
     case 'N':               // IMU packet with GPS (< 100hz)
     case 'n':               // IMU packet with GPS (100hz)
         while ( nbytes < FULL_PACKET_SIZE ) {
-            nbytes += read(sPort2, input_buffer+nbytes,
-                           FULL_PACKET_SIZE-nbytes); 
+            nbytes += sPort2.read_port((char *)input_buffer+nbytes,
+				       FULL_PACKET_SIZE-nbytes); 
         }
 
         // printf("G P S   D A T A   A V A I L A B L E\n");
@@ -323,15 +323,15 @@ bool mnav_read_nonblock()
     static uint8_t input_buffer[FULL_PACKET_SIZE]={0,};
 
     // set mode as nonblocking
-    fcntl(sPort2, F_SETFL, O_NONBLOCK);
- 
+    sPort2.set_nonblocking();
+
     if ( nbytes < 3 ) {
 	// Find start of packet: the header (2 bytes) starts with 0x55 0x55
 	// bail if we find nothing in the input buffer
 	int headerOK = 0;
 
 	while ( (headerOK != 2) && (get_Time() - start_time < time_out) ) {
-	    if ( read(sPort2,input_buffer,1) == 1 ) {
+	    if ( sPort2.read_port((char *)input_buffer,1) == 1 ) {
 		if ( input_buffer[0] == 0x55 ) {
 		    headerOK++;
 		} else {
@@ -350,7 +350,7 @@ bool mnav_read_nonblock()
      	
 	headerOK = 0;
 	while ( (headerOK != 1) && (get_Time() - start_time < time_out) ) {
-	    if ( read(sPort2,&input_buffer[2],1) == 1 ) {
+	    if ( sPort2.read_port((char *)&input_buffer[2],1) == 1 ) {
 		headerOK = 1;
 	    }
 	}
@@ -372,8 +372,8 @@ bool mnav_read_nonblock()
         while ( nbytes < SENSOR_PACKET_LENGTH
 		&& (get_Time() - start_time < time_out) )
 	{
-	    int result = read(sPort2, input_buffer+nbytes,
-			      SENSOR_PACKET_LENGTH-nbytes);
+	    int result = sPort2.read_port((char *)input_buffer+nbytes,
+					  SENSOR_PACKET_LENGTH-nbytes);
 	    if ( result > 0 ) {
 		nbytes += result;
 	    }
@@ -400,8 +400,8 @@ bool mnav_read_nonblock()
         while ( nbytes < FULL_PACKET_SIZE
 		&& (get_Time() - start_time < time_out) )
 	{
-            int result = read(sPort2, input_buffer+nbytes,
-			      FULL_PACKET_SIZE-nbytes); 
+            int result = sPort2.read_port((char *)input_buffer+nbytes,
+					  FULL_PACKET_SIZE-nbytes); 
 	    if ( result > 0 ) {
 		nbytes += result;
 	    }
@@ -518,7 +518,7 @@ void mnav_manual_override_check() {
 void mnav_close()
 {
     //close the serial port
-    close(sPort2);
+    sPort2.close_port();
 
     //close files
     logging_close();
@@ -737,7 +737,7 @@ void mnav_send_servo_cmd( struct servo *servo_out )
 
     // don't attempt any manner of retry if write fails (it shouldn't
     // ever fail) :-)
-    write(sPort2, data, SERVO_PACKET_LENGTH);
+    sPort2.write_port((char *)data, SERVO_PACKET_LENGTH);
 
     // printf("%d %d\n", cnt_cmd[0], cnt_cmd[1]);
 
@@ -774,5 +774,5 @@ void mnav_send_short_servo_cmd( struct servo *servo_out )
     data[13] = (uint8_t)sum;
 
     // don't attempt any manner of retry if write fails
-    write(sPort2, data, SHORT_SERVO_PACKET_LENGTH);
+    sPort2.write_port((char *)data, SHORT_SERVO_PACKET_LENGTH);
 }
