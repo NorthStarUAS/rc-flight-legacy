@@ -666,16 +666,12 @@ bool mnav_get_imu() {
 }
 
 
-bool mnav_get_gps( struct gps *data ) {
+bool mnav_get_gps() {
     // mnav conveys little useful date information from the gps,
     // fake it with a recent date that is close enough to compute
     // a reasonable magnetic variation, this should be updated
     // every year or two.
     gps_data.date = 1240238933; /* Apr 20, 2009 */
-
-    if ( gps_data_valid ) {
-	memcpy( data, &gps_data, sizeof(struct gps) );
-    }
 
     if ( gps_data_valid ) {
 	gps_timestamp_node->setDoubleValue( gps_data.time );

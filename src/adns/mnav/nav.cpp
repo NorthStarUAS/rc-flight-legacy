@@ -60,12 +60,12 @@ MATRIX ntmp99,ntmpr,ntmp91,ntmpr91,ntmprr;
 MATRIX ntmp66,ntmp96,ntmp33;
 
 // gps sensor property nodes
-static SGPropertyNode *gps_time_stamp_node = NULL;
+static SGPropertyNode *gps_timestamp_node = NULL;
 static SGPropertyNode *gps_lat_node = NULL;
 static SGPropertyNode *gps_lon_node = NULL;
 static SGPropertyNode *gps_alt_node = NULL;
-static SGPropertyNode *gps_ve_node = NULL;
 static SGPropertyNode *gps_vn_node = NULL;
+static SGPropertyNode *gps_ve_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
 static SGPropertyNode *gps_magvar_deg_node = NULL;;
@@ -133,7 +133,7 @@ void mnav_nav_init( string rootname )
     navpacket.status = NotValid;
 
     // initialize' gps sensor property nodes
-    gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
+    gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
     gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
     gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
     gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
@@ -196,6 +196,8 @@ void mnav_nav_update( struct imu *imupacket )
 	if ( display_on ) {
 	    printf("[mnav nav] navigation is enabled, magvar = %.1f (deg)\n",
 		   magvar_rad * SGD_RADIANS_TO_DEGREES );
+	    printf("initial position = %.8f %.8f %.2f\n",
+		   nxs[0][0], nxs[1][0], nxs[2][0]);
 	}
     } else if ( gps_state == 1 ) {
         // copy information to local variables
@@ -293,17 +295,18 @@ void nav_algorithm( struct imu *imudta )
     double dt;       //sampling rate of navigation
     short  i = 0;
     double yd[6];  
-    static double tnow, tprev = 0; 
-    static double last_gps_time = 0;
+    static double tnow, tprev = 0.0; 
+    static double last_gps_time = 0.0;
 
     tnow = get_Time();
     dt   = tnow - tprev; tprev = tnow;
-    if ( dt == 0 ) dt = 0.100;
+    if ( dt < 0.000001 ) dt = 0.01;
 
     // matrix initialization
     euler[0][0] = imudta->psi;
     euler[1][0] = imudta->the;
     euler[2][0] = imudta->phi;
+    // printf("euler = %.2f %.2f %.2f\n", euler[0][0], euler[1][0], euler[2][0]);
 
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //fill out F and G
@@ -350,7 +353,7 @@ void nav_algorithm( struct imu *imudta )
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // update when new GPS data is available (correction step)
     //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    double gps_time = gps_time_stamp_node->getDoubleValue();
+    double gps_time = gps_timestamp_node->getDoubleValue();
 
     if ( gps_time > last_gps_time ) {
 	last_gps_time = gps_time;

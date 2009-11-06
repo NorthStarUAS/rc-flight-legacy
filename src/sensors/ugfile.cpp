@@ -29,6 +29,15 @@ typedef struct
     double accelbias[3];
 } NavState;
 
+
+struct gps {
+    double time;
+    double lat,lon,alt;          /* gps position                */
+    double  vn,ve,vd;             /* gps velocity                */
+    double date;                 /* unix seconds from gps       */
+    int8_t status;		 /* data status flag            */
+};
+
 	
 static FILE *imufile = NULL;
 static FILE *istatefile = NULL;
@@ -169,7 +178,6 @@ static bool read_gps() {
 			     &next_gps_data.vd
 			     /* , &gps[7], &gps[8], &gps[9] */
 			     );
-
 	if ( result != 7 ) {
 	    next_valid = false;
 	} else {

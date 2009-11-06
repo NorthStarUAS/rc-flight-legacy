@@ -32,8 +32,6 @@
 // Global variables
 //
 
-static struct gps gpspacket;
-
 static double gps_last_time = -31557600.0; // default to t minus one year old
 static double real_time_offset = 0.0;
 
@@ -125,7 +123,7 @@ bool GPS_update() {
 	    } else if ( source == "gpsd" ) {
 		fresh_data = gpsd_get_gps();
 	    } else if ( source == "mnav" ) {
-		fresh_data = mnav_get_gps(&gpspacket /*FIXME*/);
+		fresh_data = mnav_get_gps();
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());

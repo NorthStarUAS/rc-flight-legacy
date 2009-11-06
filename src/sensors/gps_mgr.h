@@ -16,6 +16,7 @@
 #include <stdint.h>
 
 
+#if 0
 // extern struct gps gpspacket;
 
 struct gps {
@@ -25,6 +26,7 @@ struct gps {
    double date;                 /* unix seconds from gps       */
    uint64_t status;		/* data status flag            */
 };
+#endif
 
 
 void GPS_init();
