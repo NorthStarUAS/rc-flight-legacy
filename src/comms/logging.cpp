@@ -215,8 +215,8 @@ bool logging_close() {
 }
 
 
-void log_gps( struct gps *gpspacket ) {
-    gzwrite( fgps, gpspacket, sizeof(struct gps) );
+void log_gps( uint8_t *gps_buf, int gps_size ) {
+    gzwrite( fgps, gps_buf, gps_size );
 }
 
 

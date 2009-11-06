@@ -43,8 +43,6 @@ dnl code configuration selections
 AC_ARG_ENABLE(batch-mode, [  --enable-batch-mode    Disable real-time clock/timing for running in batch mode], [enable_batch_mode="$enableval"], [enable_batch_mode="no"] )
 if test "x$enable_batch_mode" != "xno"; then
     AC_DEFINE([BATCH_MODE], 1, [Define to disable real time timing and run flat out])
-else
-    AC_DEFINE([BATCH_MODE], 0, [Define to disable real time timing and run flat out])
 fi
 
 
@@ -63,8 +61,6 @@ AC_ARG_ENABLE(mnav-sensor, [  --enable-mnav-sensor    Include MNAV sensor driver
 if test "x$enable_mnav_sensor" != "xno"; then
     AC_DEFINE([ENABLE_MNAV_SENSOR], 1, [Define to include MNAV sensor driver])
     GPL_CLEAN="no"
-else
-    AC_DEFINE([ENABLE_MNAV_SENSOR], 0, [Define to include MNAV sensor driver])
 fi
 AM_CONDITIONAL(ENABLE_MNAV_SENSOR, test "x$enable_mnav_sensor" != "xno")
 
@@ -72,8 +68,6 @@ AC_ARG_ENABLE(mnav-filter, [  --enable-mnav-filter    Include MNAV filter], [ena
 if test "x$enable_mnav_filter" != "xno"; then
     AC_DEFINE([ENABLE_MNAV_FILTER], 1, [Define to include MNAV filter])
     GPL_CLEAN="no"
-else
-    AC_DEFINE([ENABLE_MNAV_FILTER], 0, [Define to include MNAV filter])
 fi
 AM_CONDITIONAL(ENABLE_MNAV_FILTER, test "x$enable_mnav_filter" != "xno")
 

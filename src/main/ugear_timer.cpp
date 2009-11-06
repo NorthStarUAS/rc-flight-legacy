@@ -52,6 +52,8 @@
 #include "util/sg_path.hxx"
 #include "util/timing.h"
 
+#include "globals.hxx"
+
 using std::string;
 
 
@@ -76,15 +78,6 @@ static bool wifi           = false;   // wifi connection enabled/disabled
 static bool initial_home   = false;   // initial home position determined
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 static double lost_link_sec = 59.0;   // lost link timeout
-
-// gps property nodes
-static SGPropertyNode *gps_timestamp_node = NULL;
-static SGPropertyNode *gps_lat_node = NULL;
-static SGPropertyNode *gps_lon_node = NULL;
-static SGPropertyNode *gps_alt_node = NULL;
-static SGPropertyNode *gps_ve_node = NULL;
-static SGPropertyNode *gps_vn_node = NULL;
-static SGPropertyNode *gps_vd_node = NULL;
 
 //
 // usage message
@@ -174,6 +167,10 @@ void timer_handler (int signum)
     // initial home is most recent gps result after being alive with a
     // solution for 20 seconds
     if ( !initial_home && GPS_age() < 2.0 ) {
+	SGPropertyNode *gps_lat_node
+	    = fgGetNode("/sensors/gps/latitude-deg", true);
+	SGPropertyNode *gps_lon_node
+	    = fgGetNode("/sensors/gps/longitude-deg", true);
 	SGWayPoint wp( gps_lon_node->getDoubleValue(),
 		       gps_lat_node->getDoubleValue(),
 		       -9999.9 );
@@ -350,6 +347,8 @@ int main( int argc, char **argv )
     SGPropertyNode *root_node = fgGetNode("/config/root-path", true);
     root_node->setStringValue( root.c_str() );
 
+    UGGlobals_init();
+
     // load master config file
     SGPath master( root );
     master.append( "config.xml" );
@@ -480,15 +479,6 @@ int main( int argc, char **argv )
         // initialize the route manager
         route_mgr.init();
     }
-
-    // initialize gps property nodes
-    gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
-    gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
-    gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
-    gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
-    gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
-    gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
-    gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
 
 #ifndef BATCH_MODE
     // Install timer_handler as the signal handler for SIGALRM (alarm

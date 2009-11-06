@@ -48,7 +48,37 @@ static short console_write( uint8_t *buf, short size ) {
 }
 
 
-void console_link_gps( struct gps *gpspacket ) {
+static void console_link_packet( uint8_t packet_id,
+				 uint8_t *packet_buf,
+				 int packet_size )
+{
+    uint8_t buf[3];
+    uint8_t cksum0, cksum1;
+
+    // start of message sync bytes
+    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1; buf[2] = 0;
+    console_write( buf, 2 );
+
+    // packet id (1 byte)
+    buf[0] = packet_id; buf[1] = 0;
+    console_write( buf, 1 );
+
+    // packet size (1 byte)
+    buf[0] = packet_size; buf[1] = 0;
+    console_write( buf, 1 );
+
+    // packet data
+    console_write( packet_buf, packet_size );
+
+    // check sum (2 bytes)
+    ugear_cksum( packet_id, packet_size, packet_buf, packet_size,
+		 &cksum0, &cksum1 );
+    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
+    console_write( buf, 2 );
+}
+
+
+void console_link_gps( uint8_t *gps_buf, int gps_size ) {
     static const uint8_t skip_count = 2;
     static uint8_t skip = skip_count;
 
@@ -59,31 +89,7 @@ void console_link_gps( struct gps *gpspacket ) {
         skip = skip_count;
     }
 
-    uint8_t buf[3];
-    uint8_t size;
-    uint8_t cksum0, cksum1;
-
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1; buf[2] = 0;
-    console_write( buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = GPS_PACKET; buf[1] = 0;
-    console_write( buf, 1 );
-
-    // packet size (1 byte)
-    size = sizeof(struct gps);
-    buf[0] = size; buf[1] = 0;
-    console_write( buf, 1 );
-
-    // packet data
-    console_write( (uint8_t *)gpspacket, size );
-
-    // check sum (2 bytes)
-    ugear_cksum( GPS_PACKET, size, (uint8_t *)gpspacket, size,
-		 &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    console_write( buf, 2 );
+    console_link_packet( GPS_PACKET, gps_buf, gps_size );
 }
 
 
