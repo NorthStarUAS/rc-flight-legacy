@@ -14,6 +14,7 @@ class UGPacketizer {
     SGPropertyNode *gps_ve_node;
     SGPropertyNode *gps_vd_node;
     SGPropertyNode *gps_unix_sec_node;
+    SGPropertyNode *gps_status_node;
 
     void bind_gps_nodes();
 

@@ -45,7 +45,6 @@ static int port = 2947;
 static string host = "localhost";
 static netSocket gpsd_sock;
 static bool socket_connected = false;
-static struct gps gps_data;
 static double last_init_time = 0.0;
 
 
@@ -145,16 +144,16 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	//
 	// example: GPSD,O=RMC 1232073262.000 0.005 45.138145
 	// -93.157083 285.50 3.60 1.80 181.4300 0.046 0.000 ? 7.20 ? 3
-	gps_data.date = atof( token[1].c_str() );
-	gps_data.lat = atof( token[3].c_str() );
-	gps_data.lon = atof( token[4].c_str() );
-	gps_data.alt = atof( token[5].c_str() );
+	gps_unix_sec_node->setDoubleValue( atof(token[1].c_str()) );
+	gps_lat_node->setDoubleValue( atof(token[3].c_str()) );
+	gps_lon_node->setDoubleValue( atof(token[4].c_str()) );
+	gps_alt_node->setDoubleValue( atof(token[5].c_str()) );
 	if ( token[8] != "?" && token[9] != "?" ) {
 	    double course_deg = atof( token[8].c_str() );
 	    double speed_mps = atof( token[9].c_str() );
 	    double angle_rad = (90.0 - course_deg) * SGD_DEGREES_TO_RADIANS;
-	    gps_data.vn = cos(angle_rad) * speed_mps;
-	    gps_data.ve = sin(angle_rad) * speed_mps;
+	    gps_vn_node->setDoubleValue( cos(angle_rad) * speed_mps );
+	    gps_ve_node->setDoubleValue( sin(angle_rad) * speed_mps );
 	    // update structure time stamp only after we get ground
 	    // track data.  This means the new position report is
 	    // delayed until ground track info is sent over, but
@@ -162,16 +161,15 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	    // one shot, I feel it's better to delay the position
 	    // slightly instead delaying the ground track data by an
 	    // entire second.
-	    gps_data.time = get_Time();
+	    gps_timestamp_node->setDoubleValue( get_Time() );
 	    new_position = true;
 	}
 	// if ( gps_data.date > last_unix_time && last_unix_time > 0.0 ) {
-	//   gps_data.vn = (gps_data.alt - last_alt_m) * (gps_data.date - last_unix_time);
+	//   gps_data.vd = (gps_data.alt - last_alt_m) * (gps_data.date - last_unix_time);
 	//   last_alt_m = gps_data.alt;
 	//    last_unix_time = gps_data.date;
 	// }
-	gps_data.vn = atof( token[10].c_str() );
-	gps_data.status = ValidData;
+	gps_vd_node->setDoubleValue( atof(token[10].c_str()) );
     } else if ( token[0] == "GPSD,Y=GSV" ) {
 	// Output of GPSD "Y" command 
 	// 
@@ -211,19 +209,9 @@ bool gpsd_get_gps() {
     // If more than 5 seconds has elapsed without seeing new data and
     // our last init attempt was more than 5 seconds ago, try
     // resending the init sequence.
-    if ( get_Time() > gps_data.time + 5 && get_Time() > last_init_time + 5 ) {
+    double gps_timestamp = gps_timestamp_node->getDoubleValue();
+    if ( get_Time() > gps_timestamp + 5 && get_Time() > last_init_time + 5 ) {
 	gpsd_send_init();
-    }
-
-    if ( gps_data_valid ) {
-	gps_timestamp_node->setDoubleValue( gps_data.time );
-	gps_lat_node->setDoubleValue( gps_data.lat );
-	gps_lon_node->setDoubleValue( gps_data.lon );
-	gps_alt_node->setDoubleValue( gps_data.alt );
-	gps_ve_node->setDoubleValue( gps_data.ve );
-	gps_vn_node->setDoubleValue( gps_data.vn );
-	gps_vd_node->setDoubleValue( gps_data.vd );
-	gps_unix_sec_node->setDoubleValue( gps_data.date );
     }
 
     return gps_data_valid;

@@ -17,6 +17,13 @@
 extern bool autopilot_active;
 extern bool autopilot_reinit;
 
+struct gps {
+   double time;
+   double lat,lon,alt;          /* gps position                */
+   double vn,ve,vd;             /* gps velocity                */
+   double date;                 /* unix seconds from gps       */
+   uint64_t status;		/* data status flag            */
+};
 
 // function prototypes
 void mnav_imu_init( string rootname, SGPropertyNode *config );
@@ -30,7 +37,7 @@ bool mnav_read_nonblock();
 void mnav_close();
 
 bool mnav_get_imu();
-bool mnav_get_gps( struct gps *data );
+bool mnav_get_gps();
 bool mnav_get_airdata( struct imu *data );
 
 void mnav_imu_update();

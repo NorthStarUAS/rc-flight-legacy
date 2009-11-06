@@ -14,7 +14,7 @@
 struct nav {
    double time;
    double lat,lon,alt;
-   double ve,vn,vd;
+   double vn,ve,vd;
    // float t;
    uint64_t status;		/* data status flag */
 };
