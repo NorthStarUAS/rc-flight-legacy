@@ -1,19 +1,13 @@
-/*******************************************************************************
- * FILE: ugear_timer.cpp
- * DESCRIPTION:
- *   
- *   
- *
- * SOURCE: 
- * REVISED: Curtis L. Olson
- *******************************************************************************/
+//
+// ugear_timer.cxx - top level "main" program
+//
+// Written by Curtis Olson, curtolson <at> gmail <dot> com.
+// Started 2007.
+// This code is released into the public domain.
+// 
 
 #include <stdio.h>
 #include <sys/types.h>
-
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -58,12 +52,6 @@ using std::string;
 
 
 //
-// #defines
-//
-#define NETWORK_PORT      9001		 // network port number
-#define UPDATE_USECS	  200000         // downlink at 5 Hz
-
-//
 // Configuration settings
 //
 
@@ -74,7 +62,6 @@ static bool enable_control = false;   // autopilot control module enabled/disabl
 static bool enable_mnav_adns = false; // mnav nav filter enabled/disabled
 static bool enable_umn_adns = false;  // mnav nav filter enabled/disabled
 static bool enable_route   = false;   // route module enabled/disabled
-static bool wifi           = false;   // wifi connection enabled/disabled
 static bool initial_home   = false;   // initial home position determined
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 static double lost_link_sec = 59.0;   // lost link timeout
@@ -90,8 +77,6 @@ void usage()
     printf("--mnav <device>      : specify mnav communication device\n");
     printf("--console <dev>      : specify console device and enable link\n");
     printf("--display on/off     : dump periodic data to display\n");	
-    printf("--wifi on/off        : enable or disable WiFi communication with GS \n");
-    printf("--ip xxx.xxx.xxx.xxx : set GS i.p. address for WiFi comm\n");
     printf("--help               : display this help messages\n\n");
     
     _exit(0);	
@@ -114,7 +99,6 @@ void timer_handler (int signum)
 
     static int health_counter = 0;
     static int display_counter = 0;
-    static int wifi_counter = 0;
     static int ap_counter = 0;
     static int route_counter = 0;
     static int command_counter = 0;
@@ -128,7 +112,6 @@ void timer_handler (int signum)
 
     health_counter++;
     display_counter++;
-    wifi_counter++;
     ap_counter++;
     route_counter++;
     command_counter++;
@@ -425,10 +408,6 @@ int main( int argc, char **argv )
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) display_on = true;
             if ( !strcmp(argv[iarg], "off") ) display_on = false;
-        } else if ( !strcmp(argv[iarg], "--wifi") ) {
-            ++iarg;
-            if ( !strcmp(argv[iarg], "on") ) wifi = true;
-            if ( !strcmp(argv[iarg], "off") ) wifi = false;
         } else if ( !strcmp(argv[iarg], "--help") ) {
             usage();
         } else {
