@@ -19,7 +19,7 @@ bool logging_init();
 bool logging_close();
 
 void log_gps( uint8_t *gps_buf, int gps_size );
-void log_imu( struct imu *imupacket );
+void log_imu( uint8_t *imu_buf, int imu_size );
 void log_nav( struct nav *navpacket );
 void log_servo( struct servo *servopacket );
 void log_health( struct health *healthpacket );

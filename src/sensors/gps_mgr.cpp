@@ -136,15 +136,17 @@ bool GPS_update() {
 	gps_last_time = gps_timestamp_node->getDoubleValue();
 	// real_time_offset = get_Time() - gps_last_time;
 
-	uint8_t buf[256];
-	int size = packetizer->packetize_gps( buf );
+	if ( console_link_on || log_to_file ) {
+	    uint8_t buf[256];
+	    int size = packetizer->packetize_gps( buf );
 
-	if ( console_link_on ) {
-	    console_link_gps( buf, size );
-	}
+	    if ( console_link_on ) {
+		console_link_gps( buf, size );
+	    }
 
-	if ( log_to_file ) {
-	    log_gps( buf, size );
+	    if ( log_to_file ) {
+		log_gps( buf, size );
+	    }
 	}
     } else if ( fresh_data ) {
 	const double gps_settle = 10.0;
