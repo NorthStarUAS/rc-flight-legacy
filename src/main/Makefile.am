@@ -26,6 +26,7 @@ bin_PROGRAMS = ugear_timer
 # 	$(ugear_MORELIBS)
 
 ugear_timer_SOURCES = \
+	globals.cxx globals.hxx \
 	ugear_timer.cpp
 
 ugear_timer_LDADD = \
@@ -33,10 +34,10 @@ ugear_timer_LDADD = \
 	$(top_builddir)/src/adns/libadns.a \
 	$(top_builddir)/src/adns/curt/libadns_curt.a \
 	$(top_builddir)/src/adns/mnav/libadns_mnav.a \
-	$(top_builddir)/src/comms/libcomms.a \
 	$(top_builddir)/src/health/libhealth.a \
 	$(top_builddir)/src/math/libmath.a \
 	$(top_builddir)/src/sensors/libsensors.a \
+	$(top_builddir)/src/comms/libcomms.a \
 	$(top_builddir)/src/control/libcontrol.a \
 	$(top_builddir)/src/props/libsgprops.a \
 	$(top_builddir)/src/util/libutil.a \
