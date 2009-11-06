@@ -212,14 +212,6 @@ bool Actuator_update() {
 
     if ( fresh_data ) {
 	// publish values to property tree
-
-	// if ( console_link_on ) {
-	//     console_link_imu( &imupacket );
-	// }
-
-	// if ( log_to_file ) {
-	//     log_imu( &imupacket );
-	// }
     }
 
     return fresh_data;

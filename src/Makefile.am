@@ -1,6 +1,7 @@
 SUBDIRS = \
 	actuators \
 	adns \
+	camera \
 	comms \
 	control \
 	health \

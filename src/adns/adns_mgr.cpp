@@ -75,6 +75,10 @@ void ADNS_init() {
 	string name = section->getName();
 	if ( name == "filter" ) {
 	    string module = section->getChild("module")->getStringValue();
+	    bool enabled = section->getChild("enable")->getBoolValue();
+	    if ( !enabled ) {
+		continue;
+	    }
 	    string basename = "/adns/";
 	    basename += section->getDisplayName();
 	    printf("i = %d  name = %s module = %s %s\n",
@@ -158,6 +162,10 @@ bool ADNS_update( bool fresh_imu_data ) {
 	string name = section->getName();
 	if ( name == "filter" ) {
 	    string module = section->getChild("module")->getStringValue();
+	    bool enabled = section->getChild("enable")->getBoolValue();
+	    if ( !enabled ) {
+		continue;
+	    }
 	    if ( module == "curt" ) {
 		curt_adns_update( imu_dt );
 	    } else if ( module == "mnav" ) {
