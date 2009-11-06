@@ -23,7 +23,7 @@
 
 
 // gps property nodes
-static SGPropertyNode *gps_time_stamp_node = NULL;
+static SGPropertyNode *gps_timestamp_node = NULL;
 static SGPropertyNode *gps_lat_node = NULL;
 static SGPropertyNode *gps_lon_node = NULL;
 static SGPropertyNode *gps_alt_node = NULL;
@@ -71,7 +71,7 @@ int ugumn_adns_init( string rootname ) {
         = outputroot->getChild("vertical-speed-fps", 0, true);
 
     // initialize gps property nodes
-    gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
+    gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
     gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
     gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
     gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
@@ -108,7 +108,7 @@ int ugumn_adns_update( struct imu *imupacket ) {
 	imu[4] = imupacket->ax;
 	imu[5] = imupacket->ay;
 	imu[6] = imupacket->az;
-	gps[0] = gps_time_stamp_node->getDoubleValue();
+	gps[0] = gps_timestamp_node->getDoubleValue();
 	gps[1] = gps_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
 	gps[2] = gps_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
 	gps[3] = -gps_alt_node->getDoubleValue();

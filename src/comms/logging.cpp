@@ -46,7 +46,7 @@ static SGPropertyNode *Ps_node = NULL;
 static SGPropertyNode *Pt_node = NULL;
 
 // gps property nodes
-static SGPropertyNode *gps_time_stamp_node = NULL;
+static SGPropertyNode *gps_timestamp_node = NULL;
 static SGPropertyNode *gps_lat_node = NULL;
 static SGPropertyNode *gps_lon_node = NULL;
 static SGPropertyNode *gps_alt_node = NULL;
@@ -91,7 +91,7 @@ static void init_props() {
     Pt_node = fgGetNode("/sensors/air-data/Pt-ms", true);
 
     // initialize gps property nodes
-    gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
+    gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
     gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
     gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
     gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);

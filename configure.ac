@@ -37,6 +37,46 @@ AC_SEARCH_LIBS(umn_adns_init, [umngnss])
 
 AM_CONFIG_HEADER(src/include/ugear_config.h)
 
+
+dnl code configuration selections
+
+AC_ARG_ENABLE(batch-mode, [  --enable-batch-mode    Disable real-time clock/timing for running in batch mode], [enable_batch_mode="$enableval"], [enable_batch_mode="no"] )
+if test "x$enable_batch_mode" != "xno"; then
+    AC_DEFINE([BATCH_MODE], 1, [Define to disable real time timing and run flat out])
+else
+    AC_DEFINE([BATCH_MODE], 0, [Define to disable real time timing and run flat out])
+fi
+
+
+dnl code module selections
+
+GPL_CLEAN="yes"
+
+AC_ARG_ENABLE(gpl-modules, [  --enable-gpl-modules    Include all GPL module code], [enable_gpl_modules="$enableval"], [enable_gpl_modules="no"] )
+if test "x$enable_gpl_modules" != "xno"; then
+    GPL_CLEAN="no"
+    enable_mnav_sensor="yes"
+    enable_mnav_filter="yes"
+fi
+
+AC_ARG_ENABLE(mnav-sensor, [  --enable-mnav-sensor    Include MNAV sensor driver], [enable_mnav_sensor="$enableval"], [enable_mnav_sensor="no"] )
+if test "x$enable_mnav_sensor" != "xno"; then
+    AC_DEFINE([ENABLE_MNAV_SENSOR], 1, [Define to include MNAV sensor driver])
+    GPL_CLEAN="no"
+else
+    AC_DEFINE([ENABLE_MNAV_SENSOR], 0, [Define to include MNAV sensor driver])
+fi
+AM_CONDITIONAL(ENABLE_MNAV_SENSOR, test "x$enable_mnav_sensor" != "xno")
+
+AC_ARG_ENABLE(mnav-filter, [  --enable-mnav-filter    Include MNAV filter], [enable_mnav_filter="$enableval"], [enable_mnav_filter="no"] )
+if test "x$enable_mnav_filter" != "xno"; then
+    AC_DEFINE([ENABLE_MNAV_FILTER], 1, [Define to include MNAV filter])
+    GPL_CLEAN="no"
+else
+    AC_DEFINE([ENABLE_MNAV_FILTER], 0, [Define to include MNAV filter])
+fi
+AM_CONDITIONAL(ENABLE_MNAV_FILTER, test "x$enable_mnav_filter" != "xno")
+
 AC_CONFIG_FILES([ \
 	Makefile \
         src/Makefile \
@@ -44,6 +84,7 @@ AC_CONFIG_FILES([ \
         src/adns/Makefile \
         src/adns/curt/Makefile \
         src/adns/mnav/Makefile \
+        src/camera/Makefile \
         src/comms/Makefile \
         src/control/Makefile \
         src/health/Makefile \
@@ -59,3 +100,37 @@ AC_CONFIG_FILES([ \
         utils/routegen/Makefile \
 ])
 AC_OUTPUT
+
+echo
+echo GPL_CLEAN = $GPL_CLEAN
+
+if test "x$GPL_CLEAN" = "xno"; then
+    cat <<GPLEOF
+
+NOTICE: you have included certain GPL licensed modules in this
+configuration.  The GPL license is "viral" so you will need to ensure
+that all of your own code that is included in this build is licensed
+with a GPL compatible license.
+
+If this causes a problem, consider running "./configure" with the
+"--disable-gpl-modules" option to exclude GPL code.  This produces a
+configuration with only LGPL, MPL, or public domain code and allows
+you to link in your own proprietary drivers or modules.
+
+You can use the --help option to configure for a complete list of
+available options.
+
+GPLEOF
+else
+    cat <<GPLEOF
+
+You have configured a "GPL clean" build and may link in proprietary
+code modules if desired.
+
+GPLEOF
+fi
+
+cat <<GPLEOF
+MNAV sensor driver (GPL): $enable_mnav_sensor
+MNAV filter (GPL)       : $enable_mnav_filter
+GPLEOF

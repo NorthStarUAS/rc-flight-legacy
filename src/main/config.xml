@@ -33,11 +33,11 @@
     <sensors>
       <imu>
 	<source>file</source> <!-- 6DOFv4, AD12345, file, or mnav -->
-        <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight2/UMN</name> 
+        <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN</name> 
       </imu>
       <gps>
 	<source>file</source> <!-- 6DOFv4, AD12345, file, or mnav -->
-        <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight2/UMN</name> 
+        <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN</name> 
       </gps>
 
 
@@ -76,12 +76,6 @@
       <gps-timeout-sec>15.0</gps-timeout-sec>
 
       <filter>
-	<!-- Curt/ATI playground -->
-	<module>curt</module>
-	<enable type="bool">true</enable>
-      </filter>
-
-      <filter>
 	<!-- MNAV based AHRS + Navigation algorithm -->
 	<module>mnav</module>
 	<enable type="bool">true</enable>
@@ -97,7 +91,13 @@
       <filter>
 	<!-- University of Minnesota AEM ADNS -->
 	<module>umn</module>
-	<enable type="bool">true</enable>
+	<enable type="bool">false</enable>
+      </filter>
+
+      <filter>
+	<!-- Curt/ATI playground -->
+	<module>curt</module>
+	<enable type="bool">false</enable>
       </filter>
 
     </filters>

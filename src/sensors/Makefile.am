@@ -1,3 +1,9 @@
+if ENABLE_MNAV_SENSOR
+    MNAV_SENSOR = mnav.cpp mnav.h
+else
+    MNAV_SENSOR =
+endif
+
 noinst_LIBRARIES = libsensors.a
 
 libsensors_a_SOURCES = \
@@ -5,7 +11,7 @@ libsensors_a_SOURCES = \
 	gps_mgr.cpp gps_mgr.h \
 	imu_mgr.cpp imu_mgr.h \
 	gpsd.cpp gpsd.h \
-	mnav.cpp mnav.h \
+	$(MNAV_SENSOR) \
 	ugfile.cpp ugfile.h
 
 INCLUDES = -I$(top_srcdir)/src

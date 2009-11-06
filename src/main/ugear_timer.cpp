@@ -28,6 +28,8 @@
 
 #include <umngnss/adns.h>
 
+#include "include/ugear_config.h"
+
 #include "actuators/act_mgr.h"
 #include "adns/adns_mgr.h"
 #include "adns/mnav/ahrs.h"	// remove?
@@ -76,7 +78,7 @@ static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 static double lost_link_sec = 59.0;   // lost link timeout
 
 // gps property nodes
-static SGPropertyNode *gps_time_stamp_node = NULL;
+static SGPropertyNode *gps_timestamp_node = NULL;
 static SGPropertyNode *gps_lat_node = NULL;
 static SGPropertyNode *gps_lon_node = NULL;
 static SGPropertyNode *gps_alt_node = NULL;
@@ -480,7 +482,7 @@ int main( int argc, char **argv )
     }
 
     // initialize gps property nodes
-    gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
+    gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
     gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
     gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
     gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
@@ -488,7 +490,7 @@ int main( int argc, char **argv )
     gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
     gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
 
-#if 0
+#ifndef BATCH_MODE
     // Install timer_handler as the signal handler for SIGALRM (alarm
     // timing is based on wall clock)
     memset (&sa, 0, sizeof (sa));
@@ -511,12 +513,12 @@ int main( int argc, char **argv )
     // timer_handler() callback which is run every time the alarm is
     // generated (100hz default)
     while ( true ) {
-	#if 0
+#ifndef BATCH_MODE
 	// printf("main(): sleeping\n");
 	sleep(1);
-	#else
+#else
 	timer_handler( 0 );
-	#endif
+#endif
     }
 
     // close and exit

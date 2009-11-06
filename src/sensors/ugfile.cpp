@@ -8,6 +8,8 @@
 #include <string>
 #include <string.h>
 
+#include "include/ugear_config.h"
+
 #include "adns/mnav/ahrs.h"
 #include "props/props.hxx"
 #include "util/timing.h"
@@ -68,8 +70,8 @@ static SGPropertyNode *gps_timestamp_node = NULL;
 static SGPropertyNode *gps_lat_node = NULL;
 static SGPropertyNode *gps_lon_node = NULL;
 static SGPropertyNode *gps_alt_node = NULL;
-static SGPropertyNode *gps_ve_node = NULL;
 static SGPropertyNode *gps_vn_node = NULL;
+static SGPropertyNode *gps_ve_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
 
@@ -82,9 +84,8 @@ static bool read_imu() {
 	return false;
     }
 
-// #define FORCE_REAL_TIME
     if ( !first_time ) {
-#ifdef FORCE_REAL_TIME
+#ifndef BATCH_MODE
 	if ( get_Time() - real_time_offset < next_imu_data.time ) {
 	    return false;
 	}
@@ -95,7 +96,7 @@ static bool read_imu() {
 	}
     }
 
-#ifdef FORCE_REAL_TIME
+#ifndef BATCH_MODE
     do {
 #endif
 	int result = fscanf( imufile,
@@ -117,7 +118,7 @@ static bool read_imu() {
 	    next_valid = true;
 	    imucount++;
 	}
-#ifdef FORCE_REAL_TIME
+#ifndef BATCH_MODE
     } while ( get_Time() - real_time_offset > next_imu_data.time );
 #endif
 
@@ -141,7 +142,7 @@ static bool read_gps() {
     }
 
     if ( !first_time ) {
-#ifdef FORCE_REAL_TIME
+#ifndef BATCH_MODE
  	if ( get_Time() - real_time_offset < next_gps_data.time ) {
 	    return false;
 	}
@@ -157,7 +158,7 @@ static bool read_gps() {
     }
 
     double lat_rad, lon_rad, alt_neg;
-#ifdef FORCE_REAL_TIME
+#ifndef BATCH_MODE
     do {
 #endif
 	int result = fscanf( gpsfile,"%lf %lf %lf %lf %lf %lf %lf\n",
@@ -175,7 +176,7 @@ static bool read_gps() {
 	    next_valid = true;
 	    gpscount++;
 	}
-#ifdef FORCE_REAL_TIME
+#ifndef BATCH_MODE
     } while ( get_Time() - real_time_offset > next_gps_data.time );
 #endif
 
@@ -231,8 +232,8 @@ static void bind_gps_output( string rootname ) {
     gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
     gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
     gps_alt_node = outputroot->getChild("altitude-m", 0, true);
-    gps_ve_node = outputroot->getChild("ve-ms", 0, true);
     gps_vn_node = outputroot->getChild("vn-ms", 0, true);
+    gps_ve_node = outputroot->getChild("ve-ms", 0, true);
     gps_vd_node = outputroot->getChild("vd-ms", 0, true);
     gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
 }
@@ -375,8 +376,8 @@ bool ugfile_get_gps() {
 	gps_lat_node->setDoubleValue( gps_data.lat );
 	gps_lon_node->setDoubleValue( gps_data.lon );
 	gps_alt_node->setDoubleValue( gps_data.alt );
-	gps_ve_node->setDoubleValue( gps_data.ve );
 	gps_vn_node->setDoubleValue( gps_data.vn );
+	gps_ve_node->setDoubleValue( gps_data.ve );
 	gps_vd_node->setDoubleValue( gps_data.vd );
 	gps_unix_sec_node->setDoubleValue( gps_data.date );
     }

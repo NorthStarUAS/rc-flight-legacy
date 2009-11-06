@@ -171,14 +171,6 @@ bool AirData_update() {
 					* SG_METER_TO_FEET );
 	vert_fps_node->setDoubleValue( climb_filt * SG_METER_TO_FEET );
 	forward_accel_node->setDoubleValue( accel_filt * SG_MPS_TO_KT );
-
-	// if ( console_link_on ) {
-	//     console_link_imu( &imupacket );
-	// }
-
-	// if ( log_to_file ) {
-	//     log_imu( &imupacket );
-	// }
     }
 
     return fresh_data;
