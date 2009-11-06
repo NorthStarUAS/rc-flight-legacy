@@ -20,7 +20,7 @@ extern bool console_link_on;
 
 void console_link_init();
 void console_link_gps( uint8_t *gps_buf, int gps_size );
-void console_link_imu( struct imu *imupacket );
+void console_link_imu( uint8_t *imu_buf, int imu_size );
 void console_link_nav( struct nav *navpacket );
 void console_link_servo( struct servo *servopacket );
 void console_link_health( struct health *healthpacket );

@@ -18,6 +18,8 @@
 #include "adns/mnav/ahrs.h"
 #include "comms/console_link.h"
 #include "comms/logging.h"
+#include "comms/packetizer.hxx"
+#include "main/globals.hxx"
 #include "props/props.hxx"
 #include "util/myprof.h"
 
@@ -88,12 +90,17 @@ bool IMU_update() {
     }
 
     if ( fresh_data ) {
-	if ( console_link_on ) {
-	    console_link_imu( &imupacket );
-	}
+	if ( console_link_on || log_to_file ) {
+	    uint8_t buf[256];
+	    int size = packetizer->packetize_imu( buf );
 
-	if ( log_to_file ) {
-	    log_imu( &imupacket );
+	    if ( console_link_on ) {
+		console_link_imu( buf, size );
+	    }
+
+	    if ( log_to_file ) {
+		log_imu( buf, size );
+	    }
 	}
     }
 

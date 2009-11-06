@@ -220,8 +220,8 @@ void log_gps( uint8_t *gps_buf, int gps_size ) {
 }
 
 
-void log_imu( struct imu *imupacket ) {
-    gzwrite( fimu, imupacket, sizeof(struct imu) );
+void log_imu( uint8_t *imu_buf, int imu_size ) {
+    gzwrite( fimu, imu_buf, imu_size );
 }
 
 
