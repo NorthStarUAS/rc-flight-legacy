@@ -13,17 +13,20 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "globaldefs.h"
+#include "include/ugear_config.h"
 
 #include "comms/console_link.h"
 #include "comms/logging.h"
+#include "include/globaldefs.h"
 #include "main/globals.hxx"
 #include "props/props.hxx"
 #include "util/coremag.h"
 #include "util/timing.h"
 
 #include "gpsd.h"
-#include "mnav.h"
+#ifdef ENABLE_MNAV_SENSOR
+#  include "mnav.h"
+#endif // ENABLE_MNAV_SENSOR
 #include "ugfile.h"
 
 #include "gps_mgr.h"
@@ -62,12 +65,16 @@ void GPS_init() {
 	    basename += section->getDisplayName();
 	    printf("i = %d  name = %s source = %s %s\n",
 		   i, name.c_str(), source.c_str(), basename.c_str());
-	    if ( source == "file" ) {
+	    if ( source == "null" ) {
+		// do nothing
+	    } else if ( source == "file" ) {
 		ugfile_gps_init( basename, section );
 	    } else if ( source == "gpsd" ) {
 		gpsd_init( basename, section );
+#ifdef ENABLE_MNAV_SENSOR
 	    } else if ( source == "mnav" ) {
 		mnav_gps_init( basename );
+#endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
@@ -118,12 +125,16 @@ bool GPS_update() {
 	    string source = section->getChild("source")->getStringValue();
 	    // printf("i = %d  name = %s source = %s\n",
 	    //	   i, name.c_str(), source.c_str());
-	    if ( source == "file" ) {
+	    if ( source == "null" ) {
+		// do nothing
+	    } else if ( source == "file" ) {
 		fresh_data = ugfile_get_gps();
 	    } else if ( source == "gpsd" ) {
 		fresh_data = gpsd_get_gps();
+#ifdef ENABLE_MNAV_SENSOR
 	    } else if ( source == "mnav" ) {
 		fresh_data = mnav_get_gps();
+#endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
@@ -192,12 +203,16 @@ void GPS_close() {
 	    string source = section->getChild("source")->getStringValue();
 	    printf("i = %d  name = %s source = %s\n",
 		   i, name.c_str(), source.c_str());
-	    if ( source == "file" ) {
+	    if ( source == "null" ) {
+		// do nothing
+	    } else if ( source == "file" ) {
 		ugfile_close();
 	    } else if ( source == "gpsd" ) {
 		// fixme
+#ifdef ENABLE_MNAV_SENSOR
 	    } else if ( source == "mnav" ) {
 		// nop
+#endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
