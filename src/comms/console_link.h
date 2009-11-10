@@ -9,11 +9,11 @@
 #define START_OF_MSG1 224
 
 enum ugPacketType {
-    GPS_PACKET = 0,
-    IMU_PACKET = 1,
-    NAV_PACKET = 2,
-    SERVO_PACKET = 3,
-    HEALTH_PACKET = 4
+    GPS_PACKET_V1 = 0,
+    IMU_PACKET_V1 = 1,
+    NAV_PACKET_V1 = 2,
+    SERVO_PACKET_V1 = 3,
+    HEALTH_PACKET_V1 = 4
 };
 
 extern bool console_link_on;

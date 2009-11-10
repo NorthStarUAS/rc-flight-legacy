@@ -6,10 +6,10 @@
 #include <string>
 
 #include "checksum.h"
-#include "globaldefs.h"
+#include "include/globaldefs.h"
 
-#include "adns/mnav/ahrs.h"
-#include "adns/mnav/nav.h"
+#include "adns/mnav/ahrs.h"	// FIXME: need to remove
+#include "adns/mnav/nav.h"	// FIXME: need to remove
 #include "control/route_mgr.hxx"
 #include "health/health.h"
 #include "props/props.hxx"
@@ -89,7 +89,7 @@ void console_link_gps( uint8_t *gps_buf, int gps_size ) {
         skip = skip_count;
     }
 
-    console_link_packet( GPS_PACKET, gps_buf, gps_size );
+    console_link_packet( GPS_PACKET_V1, gps_buf, gps_size );
 }
 
 
@@ -104,7 +104,7 @@ void console_link_imu( uint8_t *imu_buf, int imu_size ) {
         skip = skip_count;
     }
 
-    console_link_packet( IMU_PACKET, imu_buf, imu_size );
+    console_link_packet( IMU_PACKET_V1, imu_buf, imu_size );
 }
 
 
@@ -128,7 +128,7 @@ void console_link_nav( struct nav *navpacket ) {
     console_write( buf, 2 );
 
     // packet id (1 byte)
-    buf[0] = NAV_PACKET; buf[1] = 0;
+    buf[0] = NAV_PACKET_V1; buf[1] = 0;
     console_write( buf, 1 );
 
     // packet size (1 byte)
@@ -140,7 +140,7 @@ void console_link_nav( struct nav *navpacket ) {
     console_write( (uint8_t *)navpacket, size );
 
     // check sum (2 bytes)
-    ugear_cksum( NAV_PACKET, size, (uint8_t *)navpacket, size,
+    ugear_cksum( NAV_PACKET_V1, size, (uint8_t *)navpacket, size,
 		 &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     console_write( buf, 2 );
@@ -167,7 +167,7 @@ void console_link_servo( struct servo *servopacket ) {
     console_write( buf, 2 );
 
     // packet id (1 byte)
-    buf[0] = SERVO_PACKET; buf[1] = 0;
+    buf[0] = SERVO_PACKET_V1; buf[1] = 0;
     console_write( buf, 1 );
 
     // packet size (1 byte)
@@ -186,7 +186,7 @@ void console_link_servo( struct servo *servopacket ) {
     }
 
     // check sum (2 bytes)
-    ugear_cksum( SERVO_PACKET, size, (uint8_t *)servopacket, size,
+    ugear_cksum( SERVO_PACKET_V1, size, (uint8_t *)servopacket, size,
 		 &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     console_write( buf, 2 );
@@ -203,7 +203,7 @@ void console_link_health( struct health *healthpacket ) {
     console_write( buf, 2 );
 
     // packet id (1 byte)
-    buf[0] = HEALTH_PACKET; buf[1] = 0;
+    buf[0] = HEALTH_PACKET_V1; buf[1] = 0;
     console_write( buf, 1 );
 
     // packet size (1 byte)
@@ -222,7 +222,7 @@ void console_link_health( struct health *healthpacket ) {
     }
 
     // check sum (2 bytes)
-    ugear_cksum( HEALTH_PACKET, size, (uint8_t *)healthpacket, size,
+    ugear_cksum( HEALTH_PACKET_V1, size, (uint8_t *)healthpacket, size,
 		 &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     console_write( buf, 2 );
