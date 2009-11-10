@@ -14,11 +14,14 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "globaldefs.h"
+#include "include/ugear_config.h"
 
 #include "comms/logging.h"
+#include "include/globaldefs.h"
 #include "props/props.hxx"
-#include "sensors/mnav.h"
+#ifdef ENABLE_MNAV_SENSOR
+#  include "sensors/mnav.h"
+#endif
 #include "util/timing.h"
 
 #include "act_mgr.h"
@@ -27,11 +30,9 @@
 // Global variables
 //
 
-static actuator_output_t output = actNone;
 struct servo servo_out;
 
 // actuator property nodes
-static SGPropertyNode *actuator_output_node = NULL;
 static SGPropertyNode *agl_alt_ft_node = NULL;
 static SGPropertyNode *aileron_out_node = NULL;
 static SGPropertyNode *elevator_out_node = NULL;
@@ -42,12 +43,7 @@ static SGPropertyNode *elevon_mix = NULL;
 
 
 void Actuator_init() {
-    // initialize actuator property nodes
-    actuator_output_node = fgGetNode("/config/actuators/output", true);
-    if ( strcmp(actuator_output_node->getStringValue(), "mnav") == 0 ) {
-	output = actMNAV;
-    }
-
+    // bind properties
     agl_alt_ft_node = fgGetNode("/position/altitude-agl-ft", true);
     aileron_out_node = fgGetNode("/controls/flight/aileron", true);
     elevator_out_node = fgGetNode("/controls/flight/elevator", true);
@@ -56,28 +52,26 @@ void Actuator_init() {
     rudder_out_node = fgGetNode("/controls/flight/rudder", true);
     elevon_mix = fgGetNode("/config/autopilot/elevon-mixing", true);
 
-    switch ( output ) {
-
-    case actMNAV:
-	// nothing to do
-	break;
-
-    case actNone:
-	// nothing to do
-	break;
-
-    default:
-	if ( display_on ) {
-	    printf("Warning: (init) no actuator output defined\n");
+    // traverse configured modules
+    SGPropertyNode *toplevel = fgGetNode("/config/actuators", true);
+    for ( int i = 0; i < toplevel->nChildren(); ++i ) {
+	SGPropertyNode *section = toplevel->getChild(i);
+	string name = section->getName();
+	if ( name == "null" ) {
+	    // do nothing
+#ifdef ENABLE_MNAV_SENSOR
+	} else if ( name == "mnav" ) {
+	    // do nothing
+#endif // ENABLE_MNAV_SENSOR
+	} else {
+	    printf("Unknown actuator = '%s' in config file\n",
+		   name.c_str());
 	}
     }
-
 }
 
 
 bool Actuator_update() {
-    bool fresh_data = false;
-
     /* printf("%.2f %.2f\n", aileron_out_node->getDoubleValue(),
               elevator_out_node->getDoubleValue()); */
     /* static SGPropertyNode *vert_speed_fps
@@ -193,41 +187,42 @@ bool Actuator_update() {
     servo_out.time = get_Time();
 
 
-    switch ( output ) {
-
-    case actMNAV:
-	// send commanded servo positions to the MNAV
-	mnav_send_short_servo_cmd( &servo_out );
-	break;
-
-    case actNone:
-	// noop
-	break;
-
-    default:
-	if ( display_on ) {
-	    printf("Warning: (update) no actuator source defined\n");
+    // traverse configured modules
+    SGPropertyNode *toplevel = fgGetNode("/config/actuators", true);
+    for ( int i = 0; i < toplevel->nChildren(); ++i ) {
+	SGPropertyNode *section = toplevel->getChild(i);
+	string name = section->getName();
+	if ( name == "null" ) {
+	    // do nothing
+#ifdef ENABLE_MNAV_SENSOR
+	} else if ( name == "mnav" ) {
+	    mnav_send_short_servo_cmd( &servo_out );
+#endif // ENABLE_MNAV_SENSOR
+	} else {
+	    printf("Unknown actuator = '%s' in config file\n",
+		   name.c_str());
 	}
     }
 
-    if ( fresh_data ) {
-	// publish values to property tree
-    }
-
-    return fresh_data;
+    return true;
 }
 
 
 void Actuators_close() {
-    switch ( output ) {
-
-    case actMNAV:
-	// nop
-	break;
-
-    default:
-	if ( display_on ) {
-	    printf("Warning: (close) no pressure source defined\n");
+    // traverse configured modules
+    SGPropertyNode *toplevel = fgGetNode("/config/actuators", true);
+    for ( int i = 0; i < toplevel->nChildren(); ++i ) {
+	SGPropertyNode *section = toplevel->getChild(i);
+	string name = section->getName();
+	if ( name == "null" ) {
+	    // do nothing
+#ifdef ENABLE_MNAV_SENSOR
+	} else if ( name == "mnav" ) {
+	    // noop
+#endif // ENABLE_MNAV_SENSOR
+	} else {
+	    printf("Unknown actuator = '%s' in config file\n",
+		   name.c_str());
 	}
     }
 }
