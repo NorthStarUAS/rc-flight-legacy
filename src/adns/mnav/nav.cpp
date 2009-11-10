@@ -21,7 +21,7 @@
 #include "comms/logging.h"
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
-#include "sensors/imu_mgr.h"
+// #include "sensors/imu_mgr.h"
 #include "util/myprof.h"
 #include "util/timing.h"
 

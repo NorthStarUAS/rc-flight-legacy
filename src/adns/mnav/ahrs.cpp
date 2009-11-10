@@ -20,7 +20,7 @@
 #include "control/control.h"
 #include "include/globaldefs.h"
 #include "props/props.hxx"
-#include "sensors/imu_mgr.h"
+//#include "sensors/imu_mgr.h"
 #include "util/myprof.h"
 #include "util/timing.h"
 
