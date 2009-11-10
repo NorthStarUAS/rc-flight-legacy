@@ -37,6 +37,10 @@ static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
 
+static SGPropertyNode *gps_device_name = NULL;
+static SGPropertyNode *gps_satellites = NULL;
+static SGPropertyNode *gps_nmode = NULL;
+
 static SGPropertyNode *gpsd_port_node = NULL;
 static SGPropertyNode *gpsd_host_node = NULL;
 
@@ -73,6 +77,10 @@ static void bind_output( string rootname ) {
     gps_vn_node = outputroot->getChild("vn-ms", 0, true);
     gps_vd_node = outputroot->getChild("vd-ms", 0, true);
     gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+
+    gps_device_name = outputroot->getChild("device-name", 0, true);
+    gps_satellites = outputroot->getChild("satellites", 0, true);
+    gps_nmode = outputroot->getChild("nmea-mode", 0, true);
 }
 
 
@@ -131,15 +139,39 @@ static void gpsd_connect() {
 static bool parse_gpsd_sentence( const char *sentence ) {
     static bool new_position = false;
 
+    // printf("%s", sentence);
+
     vector <string> token = split( sentence, " " );
     if ( token.size() < 1 ) {
         // no valid tokens
         return false;
     }
 
-    if ( token[0] == "GPSD,O=GGA" || token[0] == "GPSD,O=GSA"
-	 || token[0] == "GPSD,O=RMC" )
-    {
+    int pos = token[0].find(",");
+    string tmp1 = "";
+    string gpsd_cmd = "";
+    string gpsd_arg = "";
+    if ( pos >= 0 ) {
+ 	tmp1 = token[0].substr(pos + 1);
+        pos = tmp1.find("=");
+	if ( pos >= 0 ) {
+            gpsd_cmd = tmp1.substr(0, pos);
+	    gpsd_arg = tmp1.substr(pos + 1);
+            // printf("cmd = %s  arg = %s\n", gpsd_cmd.c_str(), gpsd_arg.c_str() ); 
+        }
+    }
+
+    if ( gpsd_cmd == "F" ) {
+	gps_device_name->setStringValue( gpsd_arg.c_str() );
+    } else if ( gpsd_cmd == "N" ) {
+	if ( gpsd_arg == "0" ) {
+	    gps_nmode->setStringValue( "nmea ascii" );
+        } else {
+	    gps_nmode->setStringValue( "binary" );
+        }
+    } else if ( gpsd_cmd == "O" && 
+                (gpsd_arg == "GGA" || gpsd_arg == "GLL" ||
+                 gpsd_arg == "GSA" || gpsd_arg == "RMC") ) {
 	// Output of GPSD "O" (ohhh) command
 	//
 	// example: GPSD,O=RMC 1232073262.000 0.005 45.138145
@@ -147,7 +179,9 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	gps_unix_sec_node->setDoubleValue( atof(token[1].c_str()) );
 	gps_lat_node->setDoubleValue( atof(token[3].c_str()) );
 	gps_lon_node->setDoubleValue( atof(token[4].c_str()) );
-	gps_alt_node->setDoubleValue( atof(token[5].c_str()) );
+	if ( token[5] != "?" ) {
+	    gps_alt_node->setDoubleValue( atof(token[5].c_str()) );
+        }
 	if ( token[8] != "?" && token[9] != "?" ) {
 	    double course_deg = atof( token[8].c_str() );
 	    double speed_mps = atof( token[9].c_str() );
@@ -169,17 +203,29 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	//   last_alt_m = gps_data.alt;
 	//    last_unix_time = gps_data.date;
 	// }
-	gps_vd_node->setDoubleValue( atof(token[10].c_str()) );
-    } else if ( token[0] == "GPSD,Y=GSV" ) {
+	if ( token[10] != "?" ) {
+	    gps_vd_node->setDoubleValue( -atof(token[10].c_str()) );
+	}
+    } else if ( gpsd_cmd == "Y" && gpsd_arg == "GSV" ) {
 	// Output of GPSD "Y" command 
 	// 
 	// GPSD,Y=GSV 1232073259.000 11:14 76 358 0 0:22 55 126 41
 	// 1:31 41 198 35 1:5 27 82 36 1:30 24 111 32 1:12 22 69 25
 	// 1:11 21 302 26 1:18 20 125 38 1:32 17 304 28 1:9 8 41 14
 	// 1:51 36 199 37 0:
-    } else if ( token[0] == "GPSD,O=MID2" || token[0] == "GPSD,O=MID4" ) {
+	gps_satellites->setStringValue( sentence );
+    } else if ( gpsd_cmd == "O" &&
+                (gpsd_arg == "MID2" || gpsd_arg == "MID4") ) {
 	// still in "unreliable" binary mode, resend init sequence
 	gpsd_send_init();
+    } else if ( gpsd_cmd == "W" ) {
+	// reports if "watcher" mode is set (1) or unset (0).  In watcher mode
+	// gpsd streams gps messages to the connected clients as they come in
+	// rather than waiting for the client to poll.  This is the default
+	// mode of operation for ugear.
+    } else if ( gpsd_cmd == "X" ) {
+	// according to the docs, gpsd_arg will be 0 when the gps is offline
+	// or "n" with the timestamp of the most recent message
     } else {
 	if ( display_on ) {
 	    printf("Unknown GPSD sentence: %s", sentence);
