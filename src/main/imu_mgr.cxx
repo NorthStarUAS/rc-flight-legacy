@@ -124,10 +124,14 @@ void IMU_close() {
 	    string source = section->getChild("source")->getStringValue();
 	    printf("i = %d  name = %s source = %s\n",
 		   i, name.c_str(), source.c_str());
-	    if ( source == "file" ) {
+	    if ( source == "null" ) {
+		// do nothing
+	    } else if ( source == "file" ) {
 		ugfile_close();
+#ifdef ENABLE_MNAV_SENSOR
 	    } else if ( source == "mnav" ) {
 		// nop
+#endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
