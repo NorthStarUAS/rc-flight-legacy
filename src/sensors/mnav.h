@@ -8,7 +8,7 @@
 #define _UGEAR_MNAV_H
 
 
-#include "globaldefs.h"
+#include "include/globaldefs.h"
 
 #include "props/props.hxx"
 
@@ -27,6 +27,7 @@ struct gps {
 
 // function prototypes
 void mnav_imu_init( string rootname, SGPropertyNode *config );
+void mnav_airdata_init( string rootname );
 void mnav_gps_init( string rootname );
 
 bool mnav_read();
@@ -38,7 +39,7 @@ void mnav_close();
 
 bool mnav_get_imu();
 bool mnav_get_gps();
-bool mnav_get_airdata( struct imu *data );
+bool mnav_get_airdata();
 
 void mnav_imu_update();
 void mnav_gps_update();

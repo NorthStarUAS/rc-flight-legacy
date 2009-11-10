@@ -55,7 +55,7 @@ void decode_gpspacket(struct gps *data, uint8_t* buffer);
 //
 static SGSerialPort sPort2;
 
-struct servo servo_in;
+//struct servo servo_in;
 bool autopilot_active = false;
 bool autopilot_reinit = false;
 int  autopilot_count = 0;
@@ -71,18 +71,24 @@ static double start_time;
 static SGPropertyNode *mnav_dev = NULL;
 static SGPropertyNode *outputroot = NULL;
 
-// output property nodes
-static SGPropertyNode *timestamp_node = NULL;
-static SGPropertyNode *p_node = NULL;
-static SGPropertyNode *q_node = NULL;
-static SGPropertyNode *r_node = NULL;
-static SGPropertyNode *ax_node = NULL;
-static SGPropertyNode *ay_node = NULL;
-static SGPropertyNode *az_node = NULL;
-static SGPropertyNode *hx_node = NULL;
-static SGPropertyNode *hy_node = NULL;
-static SGPropertyNode *hz_node = NULL;
+// imu property nodes
+static SGPropertyNode *imu_timestamp_node = NULL;
+static SGPropertyNode *imu_p_node = NULL;
+static SGPropertyNode *imu_q_node = NULL;
+static SGPropertyNode *imu_r_node = NULL;
+static SGPropertyNode *imu_ax_node = NULL;
+static SGPropertyNode *imu_ay_node = NULL;
+static SGPropertyNode *imu_az_node = NULL;
+static SGPropertyNode *imu_hx_node = NULL;
+static SGPropertyNode *imu_hy_node = NULL;
+static SGPropertyNode *imu_hz_node = NULL;
 
+// air data property nodes
+static SGPropertyNode *airdata_timestamp_node = NULL;
+static SGPropertyNode *airdata_Ps_node = NULL;
+static SGPropertyNode *airdata_Pt_node = NULL;
+
+// gps property nodes
 static SGPropertyNode *gps_timestamp_node = NULL;
 static SGPropertyNode *gps_lat_node = NULL;
 static SGPropertyNode *gps_lon_node = NULL;
@@ -101,16 +107,26 @@ static void bind_input( SGPropertyNode *config ) {
 // initialize mnav imu output property nodes 
 static void bind_imu_output( string rootname ) {
     outputroot = fgGetNode( rootname.c_str(), true );
-    timestamp_node = outputroot->getChild("timestamp", 0, true);
-    p_node = outputroot->getChild("p-rad_sec", 0, true);
-    q_node = outputroot->getChild("q-rad_sec", 0, true);
-    r_node = outputroot->getChild("r-rad_sec", 0, true);
-    ax_node = outputroot->getChild("ax-mps_sec", 0, true);
-    ay_node = outputroot->getChild("ay-mps_sec", 0, true);
-    az_node = outputroot->getChild("az-mps_sec", 0, true);
-    hx_node = outputroot->getChild("hx", 0, true);
-    hy_node = outputroot->getChild("hy", 0, true);
-    hz_node = outputroot->getChild("hz", 0, true);
+    imu_timestamp_node = outputroot->getChild("timestamp", 0, true);
+    imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
+    imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
+    imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
+    imu_ax_node = outputroot->getChild("ax-mps_sec", 0, true);
+    imu_ay_node = outputroot->getChild("ay-mps_sec", 0, true);
+    imu_az_node = outputroot->getChild("az-mps_sec", 0, true);
+    imu_hx_node = outputroot->getChild("hx", 0, true);
+    imu_hy_node = outputroot->getChild("hy", 0, true);
+    imu_hz_node = outputroot->getChild("hz", 0, true);
+}
+
+
+// initialize mnav gps output property nodes 
+static void bind_airdata_output( string rootname ) {
+    // "/sensors/air-data"
+    outputroot = fgGetNode( rootname.c_str(), true );
+    airdata_timestamp_node = outputroot->getChild("timestamp", 0, true);
+    airdata_Ps_node = outputroot->getChild("Ps-m", 0, true);
+    airdata_Pt_node = outputroot->getChild("Pt-ms", 0, true);
 }
 
 
@@ -200,6 +216,11 @@ void mnav_imu_init( string rootname, SGPropertyNode *config ) {
     if ( display_on ) {
         printf(" initialized.\n");
     }
+}
+
+
+void mnav_airdata_init( string rootname ) {
+    bind_airdata_output( rootname );
 }
 
 
@@ -650,16 +671,16 @@ void decode_imupacket( struct imu *data, uint8_t* buffer )
 
 bool mnav_get_imu() {
     if ( imu_data_valid ) {
-	timestamp_node->setDoubleValue( imu_data.time );
-	p_node->setDoubleValue( imu_data.p );
-	q_node->setDoubleValue( imu_data.q );
-	r_node->setDoubleValue( imu_data.r );
-	ax_node->setDoubleValue( imu_data.ax );
-	ay_node->setDoubleValue( imu_data.ay );
-	az_node->setDoubleValue( imu_data.az );
-	hx_node->setDoubleValue( imu_data.hx );
-	hy_node->setDoubleValue( imu_data.hy );
-	hz_node->setDoubleValue( imu_data.hz );
+	imu_timestamp_node->setDoubleValue( imu_data.time );
+	imu_p_node->setDoubleValue( imu_data.p );
+	imu_q_node->setDoubleValue( imu_data.q );
+	imu_r_node->setDoubleValue( imu_data.r );
+	imu_ax_node->setDoubleValue( imu_data.ax );
+	imu_ay_node->setDoubleValue( imu_data.ay );
+	imu_az_node->setDoubleValue( imu_data.az );
+	imu_hx_node->setDoubleValue( imu_data.hx );
+	imu_hy_node->setDoubleValue( imu_data.hy );
+	imu_hz_node->setDoubleValue( imu_data.hz );
     }
 
     return imu_data_valid;
@@ -688,13 +709,16 @@ bool mnav_get_gps() {
 }
 
 
-bool mnav_get_airdata( struct imu *data ) {
+bool mnav_get_airdata() {
     // this is a bit of a hack ... just fill in the air data entries
     // in the "imu" structure which is badly named and return
-    data->Ps = imu_data.Ps;
-    data->Pt = imu_data.Pt;
+    if ( imu_data_valid ) {
+	airdata_timestamp_node->setDoubleValue( imu_data.time );
+	airdata_Ps_node->setDoubleValue( imu_data.Ps );
+	airdata_Pt_node->setDoubleValue( imu_data.Pt );
+    }
 
-    return true;
+    return imu_data_valid;
 }
 
 
