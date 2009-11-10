@@ -298,10 +298,13 @@ void display_message( struct servo *sdata, struct health *hdata )
     printf("[     ]:Ps  = %6.3f Pt  = %6.3f             \n",
 	   Ps_node->getDoubleValue(),
 	   Pt_node->getDoubleValue());
+#if 0
+    // gyro bias from mnav filter
     printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n",
 	   xs[4] * SGD_RADIANS_TO_DEGREES,
 	   xs[5] * SGD_RADIANS_TO_DEGREES,
 	   xs[6] * SGD_RADIANS_TO_DEGREES);
+#endif
 
     if ( GPS_age() < 10.0 ) {
 	time_t current_time = gps_unix_sec_node->getIntValue();

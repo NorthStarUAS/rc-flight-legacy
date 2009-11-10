@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "globaldefs.h"
+#include "include/globaldefs.h"
 
 #include "util/sg_path.hxx"
 
@@ -24,11 +24,11 @@ void log_nav( struct nav *navpacket );
 void log_servo( struct servo *servopacket );
 void log_health( struct health *healthpacket );
 
-void flush_gps( );
-void flush_imu( );
-void flush_nav( );
-void flush_servo( );
-void flush_health( );
+void flush_gps();
+void flush_imu();
+void flush_nav();
+void flush_servo();
+void flush_health();
 
 void display_message( struct servo *sdata, struct health *hdata );
 
