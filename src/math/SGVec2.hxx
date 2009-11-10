@@ -22,6 +22,7 @@
 #include <ieeefp.h>
 #endif
 
+#define NO_OPENSCENEGRAPH_INTERFACE
 #ifndef NO_OPENSCENEGRAPH_INTERFACE
 #include <osg/Vec2f>
 #include <osg/Vec2d>
