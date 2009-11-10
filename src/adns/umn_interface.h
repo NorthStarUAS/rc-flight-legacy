@@ -19,7 +19,7 @@ using std::string;
 
 
 int ugumn_adns_init( string rootname );
-int ugumn_adns_update( struct imu *imupacket );
+int ugumn_adns_update();
 int ugumn_adns_close();
 
 
