@@ -14,11 +14,6 @@
 
 #include "include/globaldefs.h"
 
-enum actuator_output_t {
-    actNone,
-    actMNAV
-};
-
 //
 // global variables
 //
