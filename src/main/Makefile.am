@@ -6,7 +6,6 @@ else
 MNAV_LIBS =
 endif
 
-
 bin_PROGRAMS = ugear_timer
 
 ugear_timer_SOURCES = \
