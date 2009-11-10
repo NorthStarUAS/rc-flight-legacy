@@ -26,8 +26,6 @@
 
 #include "actuators/act_mgr.h"
 #include "adns/adns_mgr.h"
-#include "adns/mnav/ahrs.h"	// remove?
-#include "adns/mnav/nav.h"	// remove?
 #include "comms/console_link.h"
 #include "comms/logging.h"
 #include "control/control.h"
@@ -38,7 +36,6 @@
 #include "props/props_io.hxx"
 #include "sensors/airdata_mgr.h"
 #include "sensors/gps_mgr.h"
-#include "sensors/imu_mgr.h"
 #include "sensors/mnav.h"
 #include "util/exception.hxx"
 #include "util/myprof.h"
@@ -47,6 +44,7 @@
 #include "util/timing.h"
 
 #include "globals.hxx"
+#include "imu_mgr.hxx"
 
 using std::string;
 
@@ -130,7 +128,9 @@ void timer_handler (int signum)
     // Fetch GPS data if available.
     GPS_update();
 
+#if 0 // FIXME: this needs to be handled in a more generic way
     mnav_manual_override_check();
+#endif
 
     //
     // Attitude Determination and Navigation section
