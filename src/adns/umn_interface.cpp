@@ -14,13 +14,24 @@
 
 #include <umngnss/adns.h>
 
-#include "globaldefs.h"
-#include "adns/mnav/ahrs.h"	// temporary until imupacket dependency is removed?
+#include "include/globaldefs.h"
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
 
 #include "umn_interface.h"
 
+
+// imu property nodes
+static SGPropertyNode *imu_timestamp_node = NULL;
+static SGPropertyNode *imu_p_node = NULL;
+static SGPropertyNode *imu_q_node = NULL;
+static SGPropertyNode *imu_r_node = NULL;
+static SGPropertyNode *imu_ax_node = NULL;
+static SGPropertyNode *imu_ay_node = NULL;
+static SGPropertyNode *imu_az_node = NULL;
+static SGPropertyNode *imu_hx_node = NULL;
+static SGPropertyNode *imu_hy_node = NULL;
+static SGPropertyNode *imu_hz_node = NULL;
 
 // gps property nodes
 static SGPropertyNode *gps_timestamp_node = NULL;
@@ -50,6 +61,27 @@ static SGPropertyNode *nav_vert_speed_fps_node = NULL;
 
 
 int ugumn_adns_init( string rootname ) {
+    // initialize imu property nodes
+    imu_timestamp_node = fgGetNode("/sensors/imu/timestamp");
+    imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
+    imu_q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
+    imu_r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
+    imu_ax_node = fgGetNode("/sensors/imu/ax-mps_sec", true);
+    imu_ay_node = fgGetNode("/sensors/imu/ay-mps_sec", true);
+    imu_az_node = fgGetNode("/sensors/imu/az-mps_sec", true);
+    imu_hx_node = fgGetNode("/sensors/imu/hx", true);
+    imu_hy_node = fgGetNode("/sensors/imu/hy", true);
+    imu_hz_node = fgGetNode("/sensors/imu/hz", true);
+
+    // initialize gps property nodes
+    gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
+    gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
+    gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
+    gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
+    gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
+    gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
+    gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
+
     // initialize ahrs property nodes 
     SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
     theta_node = outputroot->getChild("pitch-deg", 0, true);
@@ -70,22 +102,13 @@ int ugumn_adns_init( string rootname ) {
     nav_vert_speed_fps_node
         = outputroot->getChild("vertical-speed-fps", 0, true);
 
-    // initialize gps property nodes
-    gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
-    gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
-    gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
-    gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
-    gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
-    gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
-    gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
-
     int result = umn_adns_init();
 
     return result;
 }
 
 
-int ugumn_adns_update( struct imu *imupacket ) {
+int ugumn_adns_update() {
     static bool umn_init_pos = false;
     if ( GPS_age() < 1 && !umn_init_pos ) {
 	umn_init_pos = true;
@@ -101,13 +124,13 @@ int ugumn_adns_update( struct imu *imupacket ) {
     }	    
     if ( umn_init_pos ) {
 	double imu[7], gps[7];
-	imu[0] = imupacket->time;
-	imu[1] = imupacket->p;
-	imu[2] = imupacket->q;
-	imu[3] = imupacket->r;
-	imu[4] = imupacket->ax;
-	imu[5] = imupacket->ay;
-	imu[6] = imupacket->az;
+	imu[0] = imu_timestamp_node->getDoubleValue();
+	imu[1] = imu_p_node->getDoubleValue();
+	imu[2] = imu_q_node->getDoubleValue();
+	imu[3] = imu_r_node->getDoubleValue();
+	imu[4] = imu_ax_node->getDoubleValue();
+	imu[5] = imu_ay_node->getDoubleValue();
+	imu[6] = imu_az_node->getDoubleValue();
 	gps[0] = gps_timestamp_node->getDoubleValue();
 	gps[1] = gps_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
 	gps[2] = gps_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
