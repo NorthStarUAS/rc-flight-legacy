@@ -141,8 +141,8 @@
     <!--                                       -->
 
     <actuators>
-      <!-- output can be: mnav, or none -->
-      <output>none</output>
+      <!-- output can be: mnav, or null -->
+      <null/>
     </actuators>
 
   </config>
