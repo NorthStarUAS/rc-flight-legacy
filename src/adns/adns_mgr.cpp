@@ -9,15 +9,21 @@
  */
 
 
-#include "globaldefs.h"
+#include <stdio.h>
+
+#include "include/ugear_config.h"
 
 #include "adns/curt/adns_curt.hxx"
-#include "adns/mnav/ahrs.h"
-#include "adns/mnav/nav.h"
+#ifdef ENABLE_MNAV_FILTER
+#  include "adns/mnav/ahrs.h"
+#  include "adns/mnav/nav.h"
+#endif // ENABLE_MNAV_FILTER
 #include "adns/umn_interface.h"
+#include "include/globaldefs.h"
 #include "props/props.hxx"
 
 #include "adns_mgr.h"
+
 
 //
 // Global variables
@@ -86,6 +92,7 @@ void ADNS_init() {
 	    
 	    if ( module == "curt" ) {
 		curt_adns_init( basename );
+#ifdef ENABLE_MNAV_FILTER
 	    } else if ( module == "mnav" ) {
 		// Initialize AHRS code.  Must be called before
 		// ahrs_update() or ahrs_close()
@@ -94,6 +101,7 @@ void ADNS_init() {
 		// Initialize the NAV code.  Must be called before
 		// nav_update() or nav_close()
 		mnav_nav_init( basename );
+#endif // ENABLE_MNAV_FILTER
 	    } else if ( module == "umn" ) {
 		ugumn_adns_init( basename );
 	    }
@@ -143,18 +151,6 @@ bool ADNS_update( bool fresh_imu_data ) {
     double imu_dt = imu_time - last_imu_time;
     if ( imu_dt > 1.0 ) { imu_dt = 0.02; } // sanity check
 
-    struct imu imupacket;
-    imupacket.time = imu_time;
-    imupacket.p = imu_p_node->getDoubleValue();
-    imupacket.q = imu_q_node->getDoubleValue();
-    imupacket.r = imu_r_node->getDoubleValue();
-    imupacket.ax = imu_ax_node->getDoubleValue();
-    imupacket.ay = imu_ay_node->getDoubleValue();
-    imupacket.az = imu_az_node->getDoubleValue();
-    imupacket.hx = imu_hx_node->getDoubleValue();
-    imupacket.hy = imu_hy_node->getDoubleValue();
-    imupacket.hz = imu_hz_node->getDoubleValue();
-
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/filters", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
@@ -166,11 +162,27 @@ bool ADNS_update( bool fresh_imu_data ) {
 	    if ( !enabled ) {
 		continue;
 	    }
-	    if ( module == "curt" ) {
+	    if ( module == "null" ) {
+		// do nothing
+	    } else if ( module == "curt" ) {
 		curt_adns_update( imu_dt );
+#ifdef ENABLE_MNAV_FILTER
 	    } else if ( module == "mnav" ) {
 		static int mnav_nav_counter = 0;
+
 		mnav_nav_counter++;
+		struct imu imupacket;
+		imupacket.time = imu_time;
+		imupacket.p = imu_p_node->getDoubleValue();
+		imupacket.q = imu_q_node->getDoubleValue();
+		imupacket.r = imu_r_node->getDoubleValue();
+		imupacket.ax = imu_ax_node->getDoubleValue();
+		imupacket.ay = imu_ay_node->getDoubleValue();
+		imupacket.az = imu_az_node->getDoubleValue();
+		imupacket.hx = imu_hx_node->getDoubleValue();
+		imupacket.hy = imu_hy_node->getDoubleValue();
+		imupacket.hz = imu_hz_node->getDoubleValue();
+
 		if ( fresh_imu_data ) {
 		    // Run the MNAV AHRS algorithm.
 		    mnav_ahrs_update( &imupacket );
@@ -183,8 +195,9 @@ bool ADNS_update( bool fresh_imu_data ) {
 		    mnav_nav_counter = 0;
 		    mnav_nav_update( &imupacket );
 		}
+#endif // ENABLE_MNAV_FILTER
 	    } else if ( module == "umn" ) {
-		ugumn_adns_update( &imupacket );
+		ugumn_adns_update();
 	    }
 	}
     }
@@ -203,9 +216,13 @@ void ADNS_close() {
 	string name = section->getName();
 	if ( name == "filter" ) {
 	    string module = section->getChild("module")->getStringValue();
-	    if ( module == "mnav" ) {
+	    if ( module == "null" ) {
+		// do nothing
+#ifdef ENABLE_MNAV_FILTER
+	    } else if ( module == "mnav" ) {
 		mnav_ahrs_close();
 		mnav_nav_close();
+#endif // ENABLE_MNAV_FILTER
 	    } else if ( module == "umn" ) {
 		ugumn_adns_close();
 	    }
