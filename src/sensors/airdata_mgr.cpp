@@ -13,13 +13,16 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "globaldefs.h"
+#include "include/ugear_config.h"
 
-#include "adns/mnav/ahrs.h"
 #include "comms/logging.h"
+#include "include/globaldefs.h"
 #include "props/props.hxx"
 
-#include "mnav.h"
+#ifdef ENABLE_MNAV_SENSOR
+#  include "adns/mnav/ahrs.h"
+#  include "mnav.h"
+#endif
 
 #include "airdata_mgr.h"
 
@@ -35,8 +38,9 @@ static float climb_filt = 0.0;
 static float accel_filt = 0.0;
 
 // air data property nodes
-static SGPropertyNode *Ps_node = NULL;
-static SGPropertyNode *Pt_node = NULL;
+static SGPropertyNode *airdata_timestamp_node = NULL;
+static SGPropertyNode *airdata_Ps_node = NULL;
+static SGPropertyNode *airdata_Pt_node = NULL;
 static SGPropertyNode *Ps_filt_node = NULL;
 static SGPropertyNode *Pt_filt_node = NULL;
 static SGPropertyNode *pressure_error_m_node = NULL;
@@ -47,17 +51,19 @@ static SGPropertyNode *forward_accel_node = NULL;
 static SGPropertyNode *ground_alt_press_m_node = NULL;
 
 
-
 void AirData_init() {
     // initialize air data property nodes
-    Ps_node = fgGetNode("/sensors/air-data/Ps-m", true);
-    Pt_node = fgGetNode("/sensors/air-data/Pt-ms", true);
+    airdata_timestamp_node = fgGetNode("/sensors/air-data/timestamp", true);
+    airdata_Ps_node = fgGetNode("/sensors/air-data/Ps-m", true);
+    airdata_Pt_node = fgGetNode("/sensors/air-data/Pt-ms", true);
     Ps_filt_node = fgGetNode("/position/altitude-pressure-m", true);
     Pt_filt_node = fgGetNode("/velocities/airspeed-kt", true);
     true_alt_ft_node = fgGetNode("/position/altitude-ft",true);
     agl_alt_ft_node = fgGetNode("/position/altitude-agl-ft", true);
-    pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
-    vert_fps_node = fgGetNode("/velocities/pressure-vertical-speed-fps",true);
+    pressure_error_m_node
+	= fgGetNode("/position/pressure-error-m", true);
+    vert_fps_node
+	= fgGetNode("/velocities/pressure-vertical-speed-fps",true);
     forward_accel_node = fgGetNode("/accelerations/airspeed-ktps",true);
     ground_alt_press_m_node
         = fgGetNode("/position/ground-altitude-pressure-m", true);
@@ -73,8 +79,12 @@ void AirData_init() {
 	    basename += section->getDisplayName();
 	    printf("i = %d  name = %s source = %s %s\n",
 		   i, name.c_str(), source.c_str(), basename.c_str());
-	    if ( source == "mnav" ) {
-		// nop
+	    if ( source == "null" ) {
+		// do nothing
+#ifdef ENABLE_MNAV_SENSOR
+	    } else if ( source == "mnav" ) {
+		mnav_airdata_init( basename );
+#endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown air data source = '%s' in config file\n",
 		       source.c_str());
@@ -84,26 +94,30 @@ void AirData_init() {
 }
 
 
-static void do_pressure_helpers( struct imu *data ) {
+static void do_pressure_helpers() {
     static float Ps_filt_last = 0.0;
     static float Pt_filt_last = 0.0;
     static double t_last = 0.0;
 
+    double ad_time = airdata_timestamp_node->getDoubleValue();
+    double Ps = airdata_Ps_node->getDoubleValue();
+    double Pt = airdata_Pt_node->getDoubleValue();
+
     // Do a simple first order low pass filter to reduce noise
-    Ps_filt = 0.97 * Ps_filt + 0.03 * data->Ps;
-    Pt_filt = 0.97 * Pt_filt + 0.03 * data->Pt;
+    Ps_filt = 0.97 * Ps_filt + 0.03 * Ps;
+    Pt_filt = 0.97 * Pt_filt + 0.03 * Pt;
 
     // best guess at true altitude
     true_alt_m = Ps_filt + pressure_error_m_node->getDoubleValue();
 
     // compute rate of climb based on pressure altitude change
-    float climb = (Ps_filt - Ps_filt_last) / (data->time - t_last);
+    float climb = (Ps_filt - Ps_filt_last) / (ad_time - t_last);
     Ps_filt_last = Ps_filt;
     climb_filt = 0.97 * climb_filt + 0.03 * climb;
 
     // compute a forward acceleration value based on pitot speed
     // change
-    float accel = (Pt_filt - Pt_filt_last) / (data->time - t_last);
+    float accel = (Pt_filt - Pt_filt_last) / (ad_time - t_last);
     Pt_filt_last = Pt_filt;
     accel_filt = 0.97 * accel_filt + 0.03 * accel;
 
@@ -114,19 +128,19 @@ static void do_pressure_helpers( struct imu *data ) {
     // real time.
     static bool first_time = true;
     if ( first_time ) { 
-	ground_alt_press = data->Ps;
+	ground_alt_press = Ps;
 	first_time = false;
     }
-    if ( data->time < 30.0 ) {
-	float dt = data->time - t_last;
-	float elapsed = data->time - dt;
+    if ( ad_time < 30.0 ) {
+	float dt = ad_time - t_last;
+	float elapsed = ad_time - dt;
 	ground_alt_press
-	    = (elapsed * ground_alt_press + dt * data->Ps)
-	    / data->time;
+	    = (elapsed * ground_alt_press + dt * Ps)
+	    / ad_time;
 	ground_alt_press_m_node->setDoubleValue( ground_alt_press );
     }
 
-    t_last = data->time;
+    t_last = ad_time;
 
     // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
     //        Ps_filt, navpacket.alt, true_alt_m, climb_filt);
@@ -135,8 +149,6 @@ static void do_pressure_helpers( struct imu *data ) {
 
 bool AirData_update() {
     bool fresh_data = false;
-
-    struct imu imupacket;
 
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/sensors", true);
@@ -149,8 +161,12 @@ bool AirData_update() {
 	    basename += section->getDisplayName();
 	    // printf("i = %d  name = %s source = %s %s\n",
 	    //	   i, name.c_str(), source.c_str(), basename.c_str());
-	    if ( source == "mnav" ) {
-		fresh_data = mnav_get_airdata(&imupacket);
+	    if ( source == "null" ) {
+		// do nothing
+#ifdef ENABLE_MNAV_SENSOR
+	    } else if ( source == "mnav" ) {
+		fresh_data = mnav_get_airdata();
+#endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown air data source = '%s' in config file\n",
 		       source.c_str());
@@ -159,11 +175,9 @@ bool AirData_update() {
     }
 
     if ( fresh_data ) {
-	do_pressure_helpers( &imupacket );
+	do_pressure_helpers();
 
 	// publish values to property tree
-	Ps_node->setDoubleValue( imupacket.Ps );
-	Pt_node->setDoubleValue( imupacket.Pt );
 	Ps_filt_node->setDoubleValue( Ps_filt );
 	Pt_filt_node->setDoubleValue( Pt_filt * SG_MPS_TO_KT );
 	true_alt_ft_node->setDoubleValue( true_alt_m * SG_METER_TO_FEET );
