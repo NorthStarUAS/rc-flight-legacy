@@ -1,5 +1,11 @@
+if ENABLE_MNAV_FILTER
+MNAV_DIR = mnav
+else
+MNAV_DIR =
+endif
+
 SUBDIRS = \
-	curt mnav
+	curt $(MNAV_DIR)
 
 noinst_LIBRARIES = libadns.a
 
