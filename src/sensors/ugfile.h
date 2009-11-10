@@ -8,7 +8,7 @@
 #define _UGEAR_FILE_H
 
 
-#include "globaldefs.h"
+#include "include/globaldefs.h"
 
 #include "props/props.hxx"
 
