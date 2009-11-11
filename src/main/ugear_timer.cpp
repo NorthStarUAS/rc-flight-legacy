@@ -142,9 +142,9 @@ void timer_handler (int signum)
     // results are marked as NotValid if the most recent gps data
     // becomes too old.
     if ( GPS_age() > gps_timeout_sec ) {
-	SGPropertyNode *nav_status_node
+	SGPropertyNode *filter_status_node
 	    = fgGetNode("/status/navigation", true);
-	nav_status_node->setStringValue("invalid");
+	filter_status_node->setStringValue("invalid");
     }
 
     // initial home is most recent gps result after being alive with a

@@ -43,22 +43,22 @@ static SGPropertyNode *imu_hx_node = NULL;
 static SGPropertyNode *imu_hy_node = NULL;
 static SGPropertyNode *imu_hz_node = NULL;
 
-// output property nodes
-static SGPropertyNode *theta_node = NULL;
-static SGPropertyNode *phi_node = NULL;
-static SGPropertyNode *psi_node = NULL;
+// filter property nodes
+static SGPropertyNode *filter_theta_node = NULL;
+static SGPropertyNode *filter_phi_node = NULL;
+static SGPropertyNode *filter_psi_node = NULL;
+static SGPropertyNode *filter_lat_node = NULL;
+static SGPropertyNode *filter_lon_node = NULL;
+static SGPropertyNode *filter_alt_node = NULL;
+static SGPropertyNode *filter_vn_node = NULL;
+static SGPropertyNode *filter_ve_node = NULL;
+static SGPropertyNode *filter_vd_node = NULL;
+static SGPropertyNode *filter_status_node = NULL;
 
-static SGPropertyNode *nav_status_node = NULL;
-static SGPropertyNode *nav_lat_node = NULL;
-static SGPropertyNode *nav_lon_node = NULL;
-static SGPropertyNode *nav_alt_node = NULL;
-static SGPropertyNode *nav_alt_feet_node = NULL;
-static SGPropertyNode *nav_vn_node = NULL;
-static SGPropertyNode *nav_ve_node = NULL;
-static SGPropertyNode *nav_vd_node = NULL;
-static SGPropertyNode *nav_track_node = NULL;
-static SGPropertyNode *nav_vel_node = NULL;
-static SGPropertyNode *nav_vert_speed_fps_node = NULL;
+static SGPropertyNode *filter_alt_feet_node = NULL;
+static SGPropertyNode *filter_track_node = NULL;
+static SGPropertyNode *filter_vel_node = NULL;
+static SGPropertyNode *filter_vert_speed_fps_node = NULL;
 
 
 void Filter_init() {
@@ -110,38 +110,38 @@ void Filter_init() {
 
     // initialize output property nodes (after module initialization
     // so we know that the reference properties will exist
-    theta_node = fgGetNode("/orientation/pitch-deg", true);
-    phi_node = fgGetNode("/orientation/roll-deg", true);
-    psi_node = fgGetNode("/orientation/heading-deg", true);
+    filter_theta_node = fgGetNode("/orientation/pitch-deg", true);
+    filter_phi_node = fgGetNode("/orientation/roll-deg", true);
+    filter_psi_node = fgGetNode("/orientation/heading-deg", true);
+    filter_lat_node = fgGetNode("/position/latitude-deg", true);
+    filter_lon_node = fgGetNode("/position/longitude-deg", true);
+    filter_alt_node = fgGetNode("/position/altitude-m", true);
+    filter_vn_node = fgGetNode("/velocity/vn-ms", true);
+    filter_ve_node = fgGetNode("/velocity/ve-ms", true);
+    filter_vd_node = fgGetNode("/velocity/vd-ms", true);
+    filter_status_node = fgGetNode("/health/navigation", true);
 
-    nav_status_node = fgGetNode("/health/navigation", true);
-    nav_lat_node = fgGetNode("/position/latitude-deg", true);
-    nav_lon_node = fgGetNode("/position/longitude-deg", true);
-    nav_alt_node = fgGetNode("/position/altitude-m", true);
-    nav_alt_feet_node = fgGetNode("/position/altitude-ft", true);
-    nav_vn_node = fgGetNode("/velocity/vn-ms", true);
-    nav_ve_node = fgGetNode("/velocity/ve-ms", true);
-    nav_vd_node = fgGetNode("/velocity/vd-ms", true);
-    nav_track_node = fgGetNode("/orientation/groundtrack-deg", true);
-    nav_vel_node = fgGetNode("/velocity/groundspeed-ms", true);
-    nav_vert_speed_fps_node = fgGetNode("/velocity/vertical-speed-fps", true);
+    filter_alt_feet_node = fgGetNode("/position/altitude-ft", true);
+    filter_track_node = fgGetNode("/orientation/groundtrack-deg", true);
+    filter_vel_node = fgGetNode("/velocity/groundspeed-ms", true);
+    filter_vert_speed_fps_node = fgGetNode("/velocity/vertical-speed-fps", true);
 
     if ( toplevel->nChildren() > 0 ) {
-	theta_node->alias("/filters/filter[0]/pitch-deg");
-	phi_node->alias("/filters/filter[0]/roll-deg");
-	psi_node->alias("/filters/filter[0]/heading-deg");
+	filter_theta_node->alias("/filters/filter[0]/pitch-deg");
+	filter_phi_node->alias("/filters/filter[0]/roll-deg");
+	filter_psi_node->alias("/filters/filter[0]/heading-deg");
+	filter_lat_node->alias("/filters/filter[0]/latitude-deg");
+	filter_lon_node->alias("/filters/filter[0]/longitude-deg");
+	filter_alt_node->alias("/filters/filter[0]/altitude-m");
+	filter_vn_node->alias("/filters/filter[0]/vn-ms");
+	filter_ve_node->alias("/filters/filter[0]/ve-ms");
+	filter_vd_node->alias("/filters/filter[0]/vd-ms");
+	filter_status_node->alias("/filters/filter[0]/navigation");
 
-	nav_status_node->alias("/filters/filter[0]/navigation");
-	nav_lat_node->alias("/filters/filter[0]/latitude-deg");
-	nav_lon_node->alias("/filters/filter[0]/longitude-deg");
-	nav_alt_node->alias("/filters/filter[0]/altitude-m");
-	nav_alt_feet_node->alias("/filters/filter[0]/altitude-ft");
-	nav_vn_node->alias("/filters/filter[0]/vn-ms");
-	nav_ve_node->alias("/filters/filter[0]/ve-ms");
-	nav_vd_node->alias("/filters/filter[0]/vd-ms");
-	nav_track_node->alias("/filters/filter[0]/groundtrack-deg");
-	nav_vel_node->alias("/filters/filter[0]/groundspeed-ms");
-	nav_vert_speed_fps_node->alias("/filters/filter[0]/vertical-speed-fps");
+	filter_alt_feet_node->alias("/filters/filter[0]/altitude-ft");
+	filter_track_node->alias("/filters/filter[0]/groundtrack-deg");
+	filter_vel_node->alias("/filters/filter[0]/groundspeed-ms");
+	filter_vert_speed_fps_node->alias("/filters/filter[0]/vertical-speed-fps");
     }
 }
 

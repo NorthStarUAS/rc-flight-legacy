@@ -42,22 +42,22 @@ static SGPropertyNode *gps_ve_node = NULL;
 static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
 
-// adns output nodes
-static SGPropertyNode *theta_node = NULL;
-static SGPropertyNode *phi_node = NULL;
-static SGPropertyNode *psi_node = NULL;
+// filter property nodes
+static SGPropertyNode *filter_theta_node = NULL;
+static SGPropertyNode *filter_phi_node = NULL;
+static SGPropertyNode *filter_psi_node = NULL;
+static SGPropertyNode *filter_lat_node = NULL;
+static SGPropertyNode *filter_lon_node = NULL;
+static SGPropertyNode *filter_alt_node = NULL;
+static SGPropertyNode *filter_vn_node = NULL;
+static SGPropertyNode *filter_ve_node = NULL;
+static SGPropertyNode *filter_vd_node = NULL;
+static SGPropertyNode *filter_status_node = NULL;
 
-static SGPropertyNode *nav_status_node = NULL;
-static SGPropertyNode *nav_lat_node = NULL;
-static SGPropertyNode *nav_lon_node = NULL;
-static SGPropertyNode *nav_alt_node = NULL;
-static SGPropertyNode *nav_alt_feet_node = NULL;
-static SGPropertyNode *nav_vn_node = NULL;
-static SGPropertyNode *nav_ve_node = NULL;
-static SGPropertyNode *nav_vd_node = NULL;
-static SGPropertyNode *nav_track_node = NULL;
-static SGPropertyNode *nav_vel_node = NULL;
-static SGPropertyNode *nav_vert_speed_fps_node = NULL;
+static SGPropertyNode *filter_alt_feet_node = NULL;
+static SGPropertyNode *filter_track_node = NULL;
+static SGPropertyNode *filter_vel_node = NULL;
+static SGPropertyNode *filter_vert_speed_fps_node = NULL;
 
 
 int ugumn_adns_init( string rootname ) {
@@ -84,22 +84,22 @@ int ugumn_adns_init( string rootname ) {
 
     // initialize ahrs property nodes 
     SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
-    theta_node = outputroot->getChild("pitch-deg", 0, true);
-    phi_node = outputroot->getChild("roll-deg", 0, true);
-    psi_node = outputroot->getChild("heading-deg", 0, true);
+    filter_theta_node = outputroot->getChild("pitch-deg", 0, true);
+    filter_phi_node = outputroot->getChild("roll-deg", 0, true);
+    filter_psi_node = outputroot->getChild("heading-deg", 0, true);
+    filter_lat_node = outputroot->getChild("latitude-deg", 0, true);
+    filter_lon_node = outputroot->getChild("longitude-deg", 0, true);
+    filter_alt_node = outputroot->getChild("altitude-m", 0, true);
+    filter_vn_node = outputroot->getChild("vn-ms", 0, true);
+    filter_ve_node = outputroot->getChild("ve-ms", 0, true);
+    filter_vd_node = outputroot->getChild("vd-ms", 0, true);
+    filter_status_node = outputroot->getChild("navigation",0, true);
+    filter_status_node->setStringValue("invalid");
 
-    nav_status_node = outputroot->getChild("navigation",0, true);
-    nav_status_node->setStringValue("invalid");
-    nav_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    nav_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    nav_alt_node = outputroot->getChild("altitude-m", 0, true);
-    nav_alt_feet_node = outputroot->getChild("altitude-ft", 0, true);
-    nav_vn_node = outputroot->getChild("vn-ms", 0, true);
-    nav_ve_node = outputroot->getChild("ve-ms", 0, true);
-    nav_vd_node = outputroot->getChild("vd-ms", 0, true);
-    nav_track_node = outputroot->getChild("groundtrack-deg", 0, true);
-    nav_vel_node = outputroot->getChild("groundspeed-ms", 0, true);
-    nav_vert_speed_fps_node
+    filter_alt_feet_node = outputroot->getChild("altitude-ft", 0, true);
+    filter_track_node = outputroot->getChild("groundtrack-deg", 0, true);
+    filter_vel_node = outputroot->getChild("groundspeed-ms", 0, true);
+    filter_vert_speed_fps_node
         = outputroot->getChild("vertical-speed-fps", 0, true);
 
     int result = umn_adns_init();
@@ -144,23 +144,23 @@ int ugumn_adns_update() {
 	NavState *s = umn_adns_get_state();
 
 	// publish values to property tree
-	phi_node->setDoubleValue( s->eul[2] * SG_RADIANS_TO_DEGREES );
-	theta_node->setDoubleValue( s->eul[1] * SG_RADIANS_TO_DEGREES );
-	psi_node->setDoubleValue( s->eul[0] * SG_RADIANS_TO_DEGREES );
+	filter_phi_node->setDoubleValue( s->eul[2] * SG_RADIANS_TO_DEGREES );
+	filter_theta_node->setDoubleValue( s->eul[1] * SG_RADIANS_TO_DEGREES );
+	filter_psi_node->setDoubleValue( s->eul[0] * SG_RADIANS_TO_DEGREES );
+	filter_lat_node->setDoubleValue( s->pos[0] * SG_RADIANS_TO_DEGREES );
+	filter_lon_node->setDoubleValue( s->pos[1] * SG_RADIANS_TO_DEGREES );
+	filter_alt_node->setDoubleValue( -s->pos[2] );
+	filter_vn_node->setDoubleValue( s->vel[0] );
+	filter_ve_node->setDoubleValue( s->vel[1] );
+	filter_vd_node->setDoubleValue( s->vel[2] );
+	filter_status_node->setStringValue("valid");
 
-	nav_status_node->setStringValue("valid");
-	nav_lat_node->setDoubleValue( s->pos[0] * SG_RADIANS_TO_DEGREES );
-	nav_lon_node->setDoubleValue( s->pos[1] * SG_RADIANS_TO_DEGREES );
-	nav_alt_node->setDoubleValue( -s->pos[2] );
-	nav_alt_feet_node->setDoubleValue( -s->pos[2] * SG_METER_TO_FEET );
-	nav_vn_node->setDoubleValue( s->vel[0] );
-	nav_ve_node->setDoubleValue( s->vel[1] );
-	nav_vd_node->setDoubleValue( s->vel[2] );
-	nav_track_node->setDoubleValue( 90 - atan2(s->vel[0], s->vel[1])
+	filter_alt_feet_node->setDoubleValue( -s->pos[2] * SG_METER_TO_FEET );
+	filter_track_node->setDoubleValue( 90 - atan2(s->vel[0], s->vel[1])
 	 				* SG_RADIANS_TO_DEGREES );
-	nav_vel_node->setDoubleValue( sqrt( s->vel[0] * s->vel[0]
+	filter_vel_node->setDoubleValue( sqrt( s->vel[0] * s->vel[0]
 	 				    + s->vel[1] * s->vel[1] ) );
-        nav_vert_speed_fps_node
+        filter_vert_speed_fps_node
             ->setDoubleValue( -s->vel[2] * SG_METER_TO_FEET );
     }
 
