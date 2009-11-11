@@ -22,6 +22,13 @@ AC_PROG_RANLIB
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
+echo "AR is $AR"
+if test -z "${AR+set}"; then
+  AR=ar
+fi
+echo "AR is $AR"
+AC_SUBST(AR)
+
 dnl set the $host variable based on local machine/os
 AC_CANONICAL_HOST
 
