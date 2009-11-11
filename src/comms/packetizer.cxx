@@ -31,6 +31,10 @@ void UGPacketizer::bind_imu_nodes() {
     imu_hz_node = fgGetNode("/sensors/imu/hz", true);
 }
 
+// initialize filter property nodes
+void UGPacketizer::bind_filter_nodes() {
+}
+
 
 UGPacketizer::UGPacketizer() {
     bind_gps_nodes();

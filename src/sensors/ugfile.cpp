@@ -10,7 +10,7 @@
 
 #include "include/ugear_config.h"
 
-#include "adns/mnav/ahrs.h"
+#include "filters/mnav/ahrs.h"	// FIXME: need to remove
 #include "props/props.hxx"
 #include "util/timing.h"
 

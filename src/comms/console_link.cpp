@@ -8,8 +8,8 @@
 #include "checksum.h"
 #include "include/globaldefs.h"
 
-#include "adns/mnav/ahrs.h"	// FIXME: need to remove
-#include "adns/mnav/nav.h"	// FIXME: need to remove
+#include "filters/mnav/ahrs.h"	// FIXME: need to remove
+#include "filters/mnav/nav.h"	// FIXME: need to remove
 #include "control/route_mgr.hxx"
 #include "health/health.h"
 #include "props/props.hxx"

@@ -5,8 +5,8 @@
 #include <sys/stat.h>		// mkdir()
 #include <zlib.h>
 
-#include "adns/mnav/ahrs.h"
-#include "adns/mnav/nav.h"
+#include "filters/mnav/ahrs.h"	// FIXME: need to remove
+#include "filters/mnav/nav.h"	// FIXME: need to remove
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
 #include "util/timing.h"
@@ -56,19 +56,17 @@ static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_track_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
 
-// imu output nodes
-static SGPropertyNode *theta_node = NULL;
-static SGPropertyNode *phi_node = NULL;
-static SGPropertyNode *psi_node = NULL;
-
-// "nav" property nodes
-static SGPropertyNode *nav_status_node = NULL;
-static SGPropertyNode *nav_lat_node = NULL;
-static SGPropertyNode *nav_lon_node = NULL;
-static SGPropertyNode *nav_alt_node = NULL;
-static SGPropertyNode *nav_vn_node = NULL;
-static SGPropertyNode *nav_ve_node = NULL;
-static SGPropertyNode *nav_vd_node = NULL;
+// filter output nodes
+static SGPropertyNode *filter_theta_node = NULL;
+static SGPropertyNode *filter_phi_node = NULL;
+static SGPropertyNode *filter_psi_node = NULL;
+static SGPropertyNode *filter_status_node = NULL;
+static SGPropertyNode *filter_lat_node = NULL;
+static SGPropertyNode *filter_lon_node = NULL;
+static SGPropertyNode *filter_alt_node = NULL;
+static SGPropertyNode *filter_vn_node = NULL;
+static SGPropertyNode *filter_ve_node = NULL;
+static SGPropertyNode *filter_vd_node = NULL;
 
 
 static void init_props() {
@@ -102,19 +100,19 @@ static void init_props() {
     gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
 
     // initialize ahrs property nodes 
-    theta_node = fgGetNode("/orientation/pitch-deg", true);
-    phi_node = fgGetNode("/orientation/roll-deg", true);
-    psi_node = fgGetNode("/orientation/heading-deg", true);
+    filter_theta_node = fgGetNode("/orientation/pitch-deg", true);
+    filter_phi_node = fgGetNode("/orientation/roll-deg", true);
+    filter_psi_node = fgGetNode("/orientation/heading-deg", true);
 
     // initialize nav property nodes
-    nav_status_node = fgGetNode("/health/navigation", true);
-    nav_lat_node = fgGetNode("/position/latitude-deg", true);
-    nav_lon_node = fgGetNode("/position/longitude-deg", true);
-    nav_alt_node = fgGetNode("/position/altitude-m", true);
-    nav_lon_node = fgGetNode("/position/longitude-deg", true);
-    nav_vn_node = fgGetNode("/velocity/vn-ms", true);
-    nav_ve_node = fgGetNode("/velocity/ve-ms", true);
-    nav_vd_node = fgGetNode("/velocity/vd-ms", true);
+    filter_status_node = fgGetNode("/health/navigation", true);
+    filter_lat_node = fgGetNode("/position/latitude-deg", true);
+    filter_lon_node = fgGetNode("/position/longitude-deg", true);
+    filter_alt_node = fgGetNode("/position/altitude-m", true);
+    filter_lon_node = fgGetNode("/position/longitude-deg", true);
+    filter_vn_node = fgGetNode("/velocity/vn-ms", true);
+    filter_ve_node = fgGetNode("/velocity/ve-ms", true);
+    filter_vd_node = fgGetNode("/velocity/vd-ms", true);
 }
 
 
@@ -292,9 +290,9 @@ void display_message( struct servo *sdata, struct health *hdata )
 	   imu_hy_node->getDoubleValue(),
 	   imu_hz_node->getDoubleValue());
     printf("[deg  ]:phi = %6.2f the = %6.2f psi = %6.2f \n",
-	   phi_node->getDoubleValue(),
-	   theta_node->getDoubleValue(),
-	   psi_node->getDoubleValue());
+	   filter_phi_node->getDoubleValue(),
+	   filter_theta_node->getDoubleValue(),
+	   filter_psi_node->getDoubleValue());
     printf("[     ]:Ps  = %6.3f Pt  = %6.3f             \n",
 	   Ps_node->getDoubleValue(),
 	   Pt_node->getDoubleValue());
@@ -320,11 +318,11 @@ void display_message( struct servo *sdata, struct health *hdata )
 	printf("[GPS  ]:[%0f seconds old]\n", GPS_age());
     }
 
-    if ( strcmp( nav_status_node->getStringValue(), "valid" ) == 0 ) {
+    if ( strcmp( filter_status_node->getStringValue(), "valid" ) == 0 ) {
         printf("[nav  ]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",
-	       nav_lon_node->getDoubleValue(),
-	       nav_lat_node->getDoubleValue(),
-	       nav_alt_node->getDoubleValue());	
+	       filter_lon_node->getDoubleValue(),
+	       filter_lat_node->getDoubleValue(),
+	       filter_alt_node->getDoubleValue());	
     } else {
 	printf("[nav  ]:[No Valid Data]\n");
     }
@@ -364,7 +362,8 @@ void logging_navstate()
 	return;
     }
 
-    double pretty_yaw = psi_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+    double pretty_yaw
+	= filter_psi_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
     if ( pretty_yaw < 0 ) {
         pretty_yaw += 2 * 3.14159265358979323846;
     }
@@ -372,15 +371,15 @@ void logging_navstate()
     fprintf( fnavstate,
              "%.3f %.12f %.12f %.13f %.4f %.4f %.4f %.4f %.4f %.4f\n",
              imu_timestamp_node->getDoubleValue(),
-	     nav_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
-	     nav_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
-	     -nav_alt_node->getDoubleValue(),
-	     nav_vn_node->getDoubleValue(),
-	     nav_ve_node->getDoubleValue(),
-	     nav_vd_node->getDoubleValue(),
+	     filter_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
+	     filter_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
+	     -filter_alt_node->getDoubleValue(),
+	     filter_vn_node->getDoubleValue(),
+	     filter_ve_node->getDoubleValue(),
+	     filter_vd_node->getDoubleValue(),
 	     pretty_yaw,
-	     theta_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
-	     phi_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS
+	     filter_theta_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
+	     filter_phi_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS
 	     );
 }
 

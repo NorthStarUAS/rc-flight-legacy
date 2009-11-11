@@ -75,10 +75,9 @@ AC_CONFIG_FILES([ \
 	Makefile \
         src/Makefile \
         src/actuators/Makefile \
-        src/adns/Makefile \
-        src/adns/curt/Makefile \
-        src/adns/mnav/Makefile \
-        src/camera/Makefile \
+        src/filters/Makefile \
+        src/filters/curt/Makefile \
+        src/filters/mnav/Makefile \
         src/comms/Makefile \
         src/control/Makefile \
         src/health/Makefile \

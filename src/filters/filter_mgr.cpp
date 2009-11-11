@@ -1,9 +1,9 @@
 /**
- * \file: adns_mgr.cpp
+ * \file: filter_mgr.cpp
  *
- * Front end management interface for executing the available ADNS codes.
+ * Front end management interface for executing the available filter codes.
  *
- * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
+ * Copyright (C) 2009 - Curtis L. Olson curtolson <at> gmail <dot> com
  *
  * $Id: adns_mgr.cpp,v 1.6 2009/05/15 17:04:56 curt Exp $
  */
@@ -13,16 +13,16 @@
 
 #include "include/ugear_config.h"
 
-#include "adns/curt/adns_curt.hxx"
+#include "filters/curt/adns_curt.hxx"
 #ifdef ENABLE_MNAV_FILTER
-#  include "adns/mnav/ahrs.h"
-#  include "adns/mnav/nav.h"
+#  include "filters/mnav/ahrs.h"
+#  include "filters/mnav/nav.h"
 #endif // ENABLE_MNAV_FILTER
-#include "adns/umn_interface.h"
+#include "filters/umn_interface.h"
 #include "include/globaldefs.h"
 #include "props/props.hxx"
 
-#include "adns_mgr.h"
+#include "filter_mgr.h"
 
 
 //
@@ -61,7 +61,7 @@ static SGPropertyNode *nav_vel_node = NULL;
 static SGPropertyNode *nav_vert_speed_fps_node = NULL;
 
 
-void ADNS_init() {
+void Filter_init() {
     // initialize imu property nodes
     imu_timestamp_node = fgGetNode("/sensors/imu/timestamp", true);
     imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
@@ -85,7 +85,7 @@ void ADNS_init() {
 	    if ( !enabled ) {
 		continue;
 	    }
-	    string basename = "/adns/";
+	    string basename = "/filters/";
 	    basename += section->getDisplayName();
 	    printf("i = %d  name = %s module = %s %s\n",
 	    	   i, name.c_str(), module.c_str(), basename.c_str());
@@ -127,26 +127,26 @@ void ADNS_init() {
     nav_vert_speed_fps_node = fgGetNode("/velocity/vertical-speed-fps", true);
 
     if ( toplevel->nChildren() > 0 ) {
-	theta_node->alias("/adns/filter[0]/pitch-deg");
-	phi_node->alias("/adns/filter[0]/roll-deg");
-	psi_node->alias("/adns/filter[0]/heading-deg");
+	theta_node->alias("/filters/filter[0]/pitch-deg");
+	phi_node->alias("/filters/filter[0]/roll-deg");
+	psi_node->alias("/filters/filter[0]/heading-deg");
 
-	nav_status_node->alias("/adns/filter[0]/navigation");
-	nav_lat_node->alias("/adns/filter[0]/latitude-deg");
-	nav_lon_node->alias("/adns/filter[0]/longitude-deg");
-	nav_alt_node->alias("/adns/filter[0]/altitude-m");
-	nav_alt_feet_node->alias("/adns/filter[0]/altitude-ft");
-	nav_vn_node->alias("/adns/filter[0]/vn-ms");
-	nav_ve_node->alias("/adns/filter[0]/ve-ms");
-	nav_vd_node->alias("/adns/filter[0]/vd-ms");
-	nav_track_node->alias("/adns/filter[0]/groundtrack-deg");
-	nav_vel_node->alias("/adns/filter[0]/groundspeed-ms");
-	nav_vert_speed_fps_node->alias("/adns/filter[0]/vertical-speed-fps");
+	nav_status_node->alias("/filters/filter[0]/navigation");
+	nav_lat_node->alias("/filters/filter[0]/latitude-deg");
+	nav_lon_node->alias("/filters/filter[0]/longitude-deg");
+	nav_alt_node->alias("/filters/filter[0]/altitude-m");
+	nav_alt_feet_node->alias("/filters/filter[0]/altitude-ft");
+	nav_vn_node->alias("/filters/filter[0]/vn-ms");
+	nav_ve_node->alias("/filters/filter[0]/ve-ms");
+	nav_vd_node->alias("/filters/filter[0]/vd-ms");
+	nav_track_node->alias("/filters/filter[0]/groundtrack-deg");
+	nav_vel_node->alias("/filters/filter[0]/groundspeed-ms");
+	nav_vert_speed_fps_node->alias("/filters/filter[0]/vertical-speed-fps");
     }
 }
 
 
-bool ADNS_update( bool fresh_imu_data ) {
+bool Filter_update( bool fresh_imu_data ) {
     double imu_time = imu_timestamp_node->getDoubleValue();
     double imu_dt = imu_time - last_imu_time;
     if ( imu_dt > 1.0 ) { imu_dt = 0.02; } // sanity check
@@ -208,9 +208,9 @@ bool ADNS_update( bool fresh_imu_data ) {
 }
 
 
-void ADNS_close() {
+void Filter_close() {
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/adns", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/filters", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();

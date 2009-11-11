@@ -1,7 +1,7 @@
 EXTRA_DIST = config.xml
 
 if ENABLE_MNAV_FILTER
-MNAV_LIBS = $(top_builddir)/src/adns/mnav/libadns_mnav.a
+MNAV_LIBS = $(top_builddir)/src/filters/mnav/libadns_mnav.a
 else
 MNAV_LIBS =
 endif
@@ -15,8 +15,8 @@ ugear_timer_SOURCES = \
 
 ugear_timer_LDADD = \
 	$(top_builddir)/src/actuators/libactuators.a \
-	$(top_builddir)/src/adns/libadns.a \
-	$(top_builddir)/src/adns/curt/libadns_curt.a \
+	$(top_builddir)/src/filters/libfilters.a \
+	$(top_builddir)/src/filters/curt/libadns_curt.a \
 	$(MNAV_LIBS) \
 	$(top_builddir)/src/health/libhealth.a \
 	$(top_builddir)/src/math/libmath.a \

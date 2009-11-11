@@ -25,11 +25,11 @@
 #include "include/ugear_config.h"
 
 #include "actuators/act_mgr.h"
-#include "adns/adns_mgr.h"
 #include "comms/console_link.h"
 #include "comms/logging.h"
 #include "control/control.h"
 #include "control/route_mgr.hxx"
+#include "filters/filter_mgr.h"
 #include "health/health.h"
 #include "include/globaldefs.h"
 #include "props/props.hxx"
@@ -136,7 +136,7 @@ void timer_handler (int signum)
     // Attitude Determination and Navigation section
     //
 
-    ADNS_update( fresh_imu_data );
+    Filter_update( fresh_imu_data );
 
     // check gps data age.  The nav filter continues to run, but the
     // results are marked as NotValid if the most recent gps data
@@ -441,7 +441,7 @@ int main( int argc, char **argv )
     GPS_init();
 
     // Initialize any defined ADNS modules
-    ADNS_init();
+    Filter_init();
 
     // init system health and status monitor
     health_init();
@@ -491,7 +491,7 @@ int main( int argc, char **argv )
     }
 
     // close and exit
-    ADNS_close();
+    Filter_close();
     IMU_close();
     GPS_close();
     AirData_close();
