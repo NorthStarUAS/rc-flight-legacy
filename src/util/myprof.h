@@ -24,10 +24,10 @@ class myprofile {
 
 
 // global profiling structures
+extern myprofile filter_prof;
 extern myprofile mnav_prof;
 extern myprofile ahrs_prof;
 extern myprofile nav_prof;
-extern myprofile nav_alg_prof;
 extern myprofile control_prof;
 extern myprofile route_mgr_prof;
 extern myprofile health_prof;

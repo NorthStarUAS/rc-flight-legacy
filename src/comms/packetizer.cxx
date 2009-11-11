@@ -15,6 +15,7 @@ void UGPacketizer::bind_gps_nodes() {
     gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
     gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
     gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
+    gps_status_node = NULL;
 }
 
 // initialize imu property nodes 
@@ -29,16 +30,29 @@ void UGPacketizer::bind_imu_nodes() {
     imu_hx_node = fgGetNode("/sensors/imu/hx", true);
     imu_hy_node = fgGetNode("/sensors/imu/hy", true);
     imu_hz_node = fgGetNode("/sensors/imu/hz", true);
+    imu_status_node = NULL;
 }
 
 // initialize filter property nodes
 void UGPacketizer::bind_filter_nodes() {
+    filter_timestamp_node = fgGetNode("/filters/filter/timestamp", true);
+    filter_theta_node = fgGetNode("/filters/filter/pitch-deg", true);
+    filter_phi_node = fgGetNode("/filters/filter/roll-deg", true);
+    filter_psi_node = fgGetNode("/filters/filter/heading-deg", true);
+    filter_lat_node = fgGetNode("/filters/filter/latitude-deg", true);
+    filter_lon_node = fgGetNode("/filters/filter/longitude-deg", true);
+    filter_alt_node = fgGetNode("/filters/filter/altitude-m", true);
+    filter_vn_node = fgGetNode("/filters/filter/vn-ms", true);
+    filter_ve_node = fgGetNode("/filters/filter/ve-ms", true);
+    filter_vd_node = fgGetNode("/filters/filter/vd-ms", true);
+    filter_status_node = fgGetNode("/filters/filter/status", true);
 }
 
 
 UGPacketizer::UGPacketizer() {
     bind_gps_nodes();
     bind_imu_nodes();
+    bind_filter_nodes();
 }
 
 
@@ -93,18 +107,6 @@ void UGPacketizer::decode_gps( uint8_t *buf ) {
 	   time, lat, lon, alt/1000.0, vn/100.0, ve/100.0, vd/100.0, date,
 	   status);
 }
-
-
-struct imu {
-   double time;
-   double p,q,r;		/* angular velocities    */
-   double ax,ay,az;		/* acceleration          */
-   double hx,hy,hz;             /* magnetic field     	 */
-   double Ps,Pt;                /* static/pitot pressure */
-   // double Tx,Ty,Tz;          /* temperature           */
-   double phi,the,psi;          /* attitudes             */
-   uint64_t status;		/* error type		 */
-};
 
 
 int UGPacketizer::packetize_imu( uint8_t *buf ) {
@@ -167,3 +169,70 @@ void UGPacketizer::decode_imu( uint8_t *buf ) {
 	   hx/1000.0, hy/1000.0, hz/1000.0,
 	   status );
 }
+
+
+int UGPacketizer::packetize_filter( uint8_t *buf ) {
+    uint8_t *startbuf = buf;
+
+    double time = filter_timestamp_node->getDoubleValue();
+    *(double *)buf = time; buf += 8;
+
+    /* resolution of 0.1 degrees */
+    double phi = (int16_t)(filter_phi_node->getDoubleValue() * 10);
+    *(int16_t *)buf = time; buf += 2;
+
+    double theta = (int16_t)(filter_theta_node->getDoubleValue() * 10);
+    *(int16_t *)buf = time; buf += 2;
+
+    double psi = (int16_t)(filter_psi_node->getDoubleValue() * 10);
+    *(int16_t *)buf = time; buf += 2;
+
+    double lat = filter_lat_node->getDoubleValue();
+    *(double *)buf = lat; buf += 8;
+
+    double lon = filter_lon_node->getDoubleValue();
+    *(double *)buf = lon; buf += 8;
+
+    /* resolution of 0.001 meters */
+    int32_t alt = (int)(filter_alt_node->getDoubleValue() * 1000);
+    *(int32_t *)buf = alt; buf += 4;
+
+    /* +/- 327.67 mps (732.9 mph), resolution of 0.01 mps */
+    int16_t vn = (int16_t)(filter_vn_node->getDoubleValue() * 100);
+    *(int16_t *)buf = vn; buf += 2;
+
+    int16_t ve = (int16_t)(filter_ve_node->getDoubleValue() * 100);
+    *(int16_t *)buf = ve; buf += 2;
+
+    int16_t vd = (int16_t)(filter_vd_node->getDoubleValue() * 100);
+    *(int16_t *)buf = vd; buf += 2;
+    
+    uint8_t status = 0;
+    *buf = status; buf++;
+
+    return buf - startbuf;
+}
+
+
+void UGPacketizer::decode_filter( uint8_t *buf ) {
+    double time = *(double *)buf; buf += 8;
+    int16_t phi = *(int16_t *)buf; buf += 2;
+    int16_t the = *(int16_t *)buf; buf += 2;
+    int16_t psi = *(int16_t *)buf; buf += 2;
+    double lat = *(double *)buf; buf += 8;
+    double lon = *(double *)buf; buf += 8;
+    int32_t alt = *(int32_t *)buf; buf += 4;
+    int16_t vn = *(int16_t *)buf; buf += 2;
+    int16_t ve = *(int16_t *)buf; buf += 2;
+    int16_t vd = *(int16_t *)buf; buf += 2;
+    uint8_t status = *(uint8_t *)buf; buf += 1;
+
+    printf("t = %.2f (%.1f %.1f %.1f) (%.8f %.8f a=%.2f) (%.2f %.2f %.2f) %d\n",
+	   time,
+	   phi/10.0, the/10.0, psi/10.0,
+	   lat, lon, alt/1000.0,
+	   vn/100.0, ve/100.0, vd/100.0,
+	   status);
+}
+
+

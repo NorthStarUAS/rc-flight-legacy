@@ -13,6 +13,8 @@
 
 #include "include/ugear_config.h"
 
+#include "comms/console_link.h"
+#include "comms/logging.h"
 #include "filters/curt/adns_curt.hxx"
 #ifdef ENABLE_MNAV_FILTER
 #  include "filters/mnav/ahrs.h"
@@ -20,7 +22,9 @@
 #endif // ENABLE_MNAV_FILTER
 #include "filters/umn_interface.h"
 #include "include/globaldefs.h"
+#include "main/globals.hxx"
 #include "props/props.hxx"
+#include "util/myprof.h"
 
 #include "filter_mgr.h"
 
@@ -147,6 +151,8 @@ void Filter_init() {
 
 
 bool Filter_update( bool fresh_imu_data ) {
+    filter_prof.start();
+
     double imu_time = imu_timestamp_node->getDoubleValue();
     double imu_dt = imu_time - last_imu_time;
     if ( imu_dt > 1.0 ) { imu_dt = 0.02; } // sanity check
@@ -200,6 +206,21 @@ bool Filter_update( bool fresh_imu_data ) {
 		ugumn_adns_update();
 	    }
 	}
+    }
+
+    filter_prof.stop();
+
+    if ( console_link_on || log_to_file ) {
+	uint8_t buf[256];
+	int size = packetizer->packetize_filter( buf );
+
+        if ( console_link_on ) {
+            console_link_filter( buf, size );
+        }
+
+        if ( log_to_file ) {
+            log_filter( buf, size );
+        }
     }
 
     last_imu_time = imu_time;

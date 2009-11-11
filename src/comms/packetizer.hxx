@@ -31,8 +31,10 @@ class UGPacketizer {
     SGPropertyNode *imu_hx_node;
     SGPropertyNode *imu_hy_node;
     SGPropertyNode *imu_hz_node;
+    SGPropertyNode *imu_status_node;
 
     // filter property nodes
+    SGPropertyNode *filter_timestamp_node;
     SGPropertyNode *filter_theta_node;
     SGPropertyNode *filter_phi_node;
     SGPropertyNode *filter_psi_node;
@@ -58,6 +60,9 @@ public:
 
     int packetize_imu( uint8_t *buf );
     void decode_imu( uint8_t *buf );
+
+    int packetize_filter( uint8_t *buf );
+    void decode_filter( uint8_t *buf );
 
 };
 

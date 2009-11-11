@@ -32,7 +32,7 @@ void myprofile::stats( const char *header ) {
 myprofile mnav_prof;
 myprofile ahrs_prof;
 myprofile nav_prof;
-myprofile nav_alg_prof;
+myprofile filter_prof;
 myprofile control_prof;
 myprofile route_mgr_prof;
 myprofile health_prof;
