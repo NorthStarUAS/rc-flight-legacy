@@ -20,13 +20,13 @@ bool logging_close();
 
 void log_gps( uint8_t *gps_buf, int gps_size );
 void log_imu( uint8_t *imu_buf, int imu_size );
-void log_nav( struct nav *navpacket );
+void log_filter( uint8_t *filter_buf, int filter_size );
 void log_servo( struct servo *servopacket );
 void log_health( struct health *healthpacket );
 
 void flush_gps();
 void flush_imu();
-void flush_nav();
+void flush_filter();
 void flush_servo();
 void flush_health();
 

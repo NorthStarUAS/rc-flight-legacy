@@ -108,7 +108,7 @@ void console_link_imu( uint8_t *imu_buf, int imu_size ) {
 }
 
 
-void console_link_nav( struct nav *navpacket ) {
+void console_link_filter( uint8_t *filter_buf, int filter_size ) {
     static const uint8_t skip_count = 2;
     static uint8_t skip = skip_count;
 
@@ -119,31 +119,7 @@ void console_link_nav( struct nav *navpacket ) {
         skip = skip_count;
     }
 
-    uint8_t buf[3];
-    uint8_t size;
-    uint8_t cksum0, cksum1;
-
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1; buf[2] = 0;
-    console_write( buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = NAV_PACKET_V1; buf[1] = 0;
-    console_write( buf, 1 );
-
-    // packet size (1 byte)
-    size = sizeof(struct nav);
-    buf[0] = size; buf[1] = 0;
-    console_write( buf, 1 );
-
-    // packet data
-    console_write( (uint8_t *)navpacket, size );
-
-    // check sum (2 bytes)
-    ugear_cksum( NAV_PACKET_V1, size, (uint8_t *)navpacket, size,
-		 &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    console_write( buf, 2 );
+    console_link_packet( FILTER_PACKET_V1, filter_buf, filter_size );
 }
 
 

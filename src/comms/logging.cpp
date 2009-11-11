@@ -19,7 +19,7 @@ static FILE *fnavstate = NULL;
 
 static gzFile fimu = NULL;
 static gzFile fgps = NULL;
-static gzFile fnav = NULL;
+static gzFile ffilter = NULL;
 static gzFile fservo = NULL;
 static gzFile fhealth = NULL;
 
@@ -99,20 +99,17 @@ static void init_props() {
     gps_track_node = fgGetNode("/sensors/gps/groundtrack-deg", true);
     gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
 
-    // initialize ahrs property nodes 
+    // initialize filter property nodes 
     filter_theta_node = fgGetNode("/orientation/pitch-deg", true);
     filter_phi_node = fgGetNode("/orientation/roll-deg", true);
     filter_psi_node = fgGetNode("/orientation/heading-deg", true);
-
-    // initialize nav property nodes
-    filter_status_node = fgGetNode("/health/navigation", true);
     filter_lat_node = fgGetNode("/position/latitude-deg", true);
     filter_lon_node = fgGetNode("/position/longitude-deg", true);
     filter_alt_node = fgGetNode("/position/altitude-m", true);
-    filter_lon_node = fgGetNode("/position/longitude-deg", true);
     filter_vn_node = fgGetNode("/velocity/vn-ms", true);
     filter_ve_node = fgGetNode("/velocity/ve-ms", true);
     filter_vd_node = fgGetNode("/velocity/vd-ms", true);
+    filter_status_node = fgGetNode("/health/navigation", true);
 }
 
 
@@ -168,31 +165,31 @@ bool logging_init() {
 
     file = new_dir; file.append( "imu.dat.gz" );
     if ( (fimu = gzopen( file.c_str(), "w+b" )) == NULL ) {
-        printf("Cannont open %s\n", file.c_str());
+        printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
     file = new_dir; file.append( "gps.dat.gz" );
     if ( (fgps = gzopen( file.c_str(), "w+b" )) == NULL ) {
-        printf("Cannont open %s\n", file.c_str());
+        printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
-    file = new_dir; file.append( "nav.dat.gz" );
-    if ( (fnav = gzopen( file.c_str(), "w+b" )) == NULL ) {
-        printf("Cannont open %s\n", file.c_str());
+    file = new_dir; file.append( "filter.dat.gz" );
+    if ( (ffilter = gzopen( file.c_str(), "w+b" )) == NULL ) {
+        printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
     file = new_dir; file.append( "servo.dat.gz" );
     if ( (fservo = gzopen( file.c_str(),"w+b" )) == NULL ) {
-        printf("Cannont open %s\n", file.c_str());
+        printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
     file = new_dir; file.append( "health.dat.gz" );
     if ( (fhealth = gzopen( file.c_str(), "w+b" )) == NULL ) {
-        printf("Cannont open %s\n", file.c_str());
+        printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
@@ -205,7 +202,7 @@ bool logging_close() {
 
     gzclose(fimu);
     gzclose(fgps);
-    gzclose(fnav);
+    gzclose(ffilter);
     gzclose(fservo);
     gzclose(fhealth);
 
@@ -223,8 +220,8 @@ void log_imu( uint8_t *imu_buf, int imu_size ) {
 }
 
 
-void log_nav( struct nav *navpacket ) {
-    gzwrite( fnav, navpacket, sizeof(struct nav) );
+void log_filter( uint8_t *filter_buf, int filter_size  ) {
+    gzwrite( ffilter, filter_buf, filter_size );
 }
 
 
@@ -250,9 +247,9 @@ void flush_imu() {
 }
 
 
-void flush_nav() {
-    // printf("flush nav\n");
-    gzflush( fnav, Z_SYNC_FLUSH );
+void flush_filter() {
+    // printf("flush filter\n");
+    gzflush( ffilter, Z_SYNC_FLUSH );
 }
 
 
@@ -319,12 +316,12 @@ void display_message( struct servo *sdata, struct health *hdata )
     }
 
     if ( strcmp( filter_status_node->getStringValue(), "valid" ) == 0 ) {
-        printf("[nav  ]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",
+        printf("[filter]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",
 	       filter_lon_node->getDoubleValue(),
 	       filter_lat_node->getDoubleValue(),
 	       filter_alt_node->getDoubleValue());	
     } else {
-	printf("[nav  ]:[No Valid Data]\n");
+	printf("[filter]:[No Valid Data]\n");
     }
 
     printf("[Servo]: %d %d %d %d %d %d\n", sdata->chn[0], sdata->chn[1],

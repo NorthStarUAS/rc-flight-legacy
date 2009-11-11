@@ -264,11 +264,11 @@ void timer_handler (int signum)
     {
 	display_counter = 0;
 	display_message( &servo_in, &healthpacket );
+	filter_prof.stats    ( "FILTER" );
 	mnav_prof.stats   ( "MNAV" );
 	ahrs_prof.stats   ( "AHRS" );
 	if ( enable_mnav_adns ) {
 	    nav_prof.stats    ( "NAV " );
-	    nav_alg_prof.stats    ( "NAVA" );
 	}
 	if ( enable_control ) {
 	    control_prof.stats( "CTRL" );
@@ -290,7 +290,7 @@ void timer_handler (int signum)
 		flush_imu();
 		break;
 	    case 2:
-		flush_nav();
+		flush_filter();
 		break;
 	    case 3:
 		flush_servo();

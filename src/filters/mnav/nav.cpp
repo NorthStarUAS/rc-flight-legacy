@@ -204,9 +204,7 @@ void mnav_nav_update( struct imu *imupacket )
         imulocal = *imupacket;
                    
         // run navigation algorithm
-	nav_alg_prof.start();
         nav_algorithm( &imulocal );
-	nav_alg_prof.stop();
            
         navpacket.lat  = nxs[0][0]*SGD_RADIANS_TO_DEGREES;
         navpacket.lon  = nxs[1][0]*SGD_RADIANS_TO_DEGREES;
@@ -244,14 +242,6 @@ void mnav_nav_update( struct imu *imupacket )
         nav_vert_speed_fps_node
             ->setDoubleValue( -navpacket.vd * SG_METER_TO_FEET );
         pressure_error_m_node->setFloatValue( Ps_filt_err );
-
-        if ( console_link_on ) {
-            console_link_nav( &navpacket );
-        }
-
-        if ( log_to_file ) {
-            log_nav( &navpacket );
-        }
 
         if ( display_on ) {
             snap_time_interval("nav", 50, 1);
