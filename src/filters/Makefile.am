@@ -7,10 +7,10 @@ endif
 SUBDIRS = \
 	curt $(MNAV_DIR)
 
-noinst_LIBRARIES = libadns.a
+noinst_LIBRARIES = libfilters.a
 
-libadns_a_SOURCES = \
-	adns_mgr.cpp adns_mgr.h \
+libfilters_a_SOURCES = \
+	filter_mgr.cpp filter_mgr.h \
 	umn_interface.cpp umn_interface.h
 
 INCLUDES = -I$(top_srcdir)/src

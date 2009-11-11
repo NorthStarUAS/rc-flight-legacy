@@ -20,7 +20,7 @@
 #include "props/props.hxx"
 
 #ifdef ENABLE_MNAV_SENSOR
-#  include "adns/mnav/ahrs.h"
+#  include "filters/mnav/ahrs.h"
 #  include "mnav.h"
 #endif
 

@@ -32,8 +32,21 @@ class UGPacketizer {
     SGPropertyNode *imu_hy_node;
     SGPropertyNode *imu_hz_node;
 
+    // filter property nodes
+    SGPropertyNode *filter_theta_node;
+    SGPropertyNode *filter_phi_node;
+    SGPropertyNode *filter_psi_node;
+    SGPropertyNode *filter_lat_node;
+    SGPropertyNode *filter_lon_node;
+    SGPropertyNode *filter_alt_node;
+    SGPropertyNode *filter_vn_node;
+    SGPropertyNode *filter_ve_node;
+    SGPropertyNode *filter_vd_node;
+    SGPropertyNode *filter_status_node;
+
     void bind_gps_nodes();
     void bind_imu_nodes();
+    void bind_filter_nodes();
 
 public:
 
@@ -45,6 +58,7 @@ public:
 
     int packetize_imu( uint8_t *buf );
     void decode_imu( uint8_t *buf );
+
 };
 
 
