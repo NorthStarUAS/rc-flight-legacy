@@ -284,23 +284,27 @@ void timer_handler (int signum)
 	    switch ( flush_state ) {
 	    case 0:
 		flush_gps();
+		flush_state++;
 		break;
 	    case 1:
 		flush_imu();
+		flush_state++;
 		break;
 	    case 2:
 		flush_filter();
+		flush_state++;
 		break;
 	    case 3:
 		flush_servo();
+		flush_state++;
 		break;
 	    case 4:
 		flush_health();
+		flush_state++;
 		break;
 	    default:
 		flush_state = 0;
 	    }
-	    flush_state++;
 	}
     }
 
@@ -401,6 +405,7 @@ int main( int argc, char **argv )
 	    p->setStringValue( argv[iarg] );
         } else if ( !strcmp(argv[iarg], "--console" )  ) {
             ++iarg;
+	    console_link_on = true;
 	    p = fgGetNode("/config/console/device", true);
 	    p->setStringValue( argv[iarg] );
             console_link_on = true;
