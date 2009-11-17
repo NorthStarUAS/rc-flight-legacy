@@ -8,10 +8,10 @@ dnl Require at least automake 2.52
 AC_PREREQ(2.52)
 
 dnl Sanity check of the distribution
-AC_CONFIG_SRCDIR([src/main/ugear.cpp])
+AC_CONFIG_SRCDIR([src/main/ugear_timer.cpp])
 
 dnl Initialize the automake system (provide project name and version)
-AM_INIT_AUTOMAKE(MicroGear, 1.8)
+AM_INIT_AUTOMAKE(MicroGear, 1.9)
 
 dnl Checks for programs.
 AC_PROG_MAKE_SET
