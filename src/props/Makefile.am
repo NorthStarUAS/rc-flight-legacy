@@ -1,4 +1,4 @@
-lib_LIBRARIES = libsgprops.a
+noinst_LIBRARIES = libsgprops.a
 
 include_HEADERS = \
 	props.hxx \
@@ -12,7 +12,7 @@ noinst_PROGRAMS = props_test
 
 props_test_SOURCES = props_test.cxx
 props_test_LDADD = \
-	$(top_builddir)/src/props/libsgprops.a \
+	libsgprops.a \
 	$(top_builddir)/src/xml/libsgxml.a \
 	$(top_builddir)/src/util/libutil.a
 

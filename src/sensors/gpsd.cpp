@@ -109,6 +109,7 @@ static void gpsd_send_init() {
     last_init_time = get_Time();
 }
 
+
 // attempt to connect to gpsd
 static void gpsd_connect() {
     // make sure it's closed
@@ -171,7 +172,8 @@ static bool parse_gpsd_sentence( const char *sentence ) {
         }
     } else if ( gpsd_cmd == "O" && 
                 (gpsd_arg == "GGA" || gpsd_arg == "GLL" ||
-                 gpsd_arg == "GSA" || gpsd_arg == "RMC") ) {
+		 gpsd_arg == "GND" || gpsd_arg == "GSA" ||
+		 gpsd_arg == "RMC") ) {
 	// Output of GPSD "O" (ohhh) command
 	//
 	// example: GPSD,O=RMC 1232073262.000 0.005 45.138145
@@ -213,7 +215,8 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	// 1:31 41 198 35 1:5 27 82 36 1:30 24 111 32 1:12 22 69 25
 	// 1:11 21 302 26 1:18 20 125 38 1:32 17 304 28 1:9 8 41 14
 	// 1:51 36 199 37 0:
-	gps_satellites->setStringValue( sentence );
+	//
+	// gps_satellites->setStringValue( sentence );
     } else if ( gpsd_cmd == "O" &&
                 (gpsd_arg == "MID2" || gpsd_arg == "MID4") ) {
 	// still in "unreliable" binary mode, resend init sequence

@@ -36,20 +36,20 @@ void console_link_init() {
 }
 
 
-static short console_write( uint8_t *buf, short size ) {
-    for ( int i = 0; i < size; ++i ) {
-        // printf("%d ", (uint8_t)buf[i]);
-        console.write_port( (char *)buf+i, 1 );
-    }
-    // printf("\n");
-    return size;
+static short console_write( const uint8_t *buf, const short size ) {
+    // return size; // temp debug
+    // return console.write_port( "abcdefgabcdefgabcdefgabcdefgabcdefgabcdefg\n", 48 );
+
+    int result = console.write_port( (const char *)buf, size );
+    return result;
 }
 
 
-static void console_link_packet( uint8_t packet_id,
-				 uint8_t *packet_buf,
-				 int packet_size )
+static void console_link_packet( const uint8_t packet_id,
+				 const uint8_t *packet_buf,
+				 const int packet_size )
 {
+    // printf(" begin console_link_packet()\n");
     uint8_t buf[3];
     uint8_t cksum0, cksum1;
 
@@ -73,10 +73,14 @@ static void console_link_packet( uint8_t packet_id,
 		 &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     console_write( buf, 2 );
+    // printf(" end console_link_packet()\n");
 }
 
 
 void console_link_gps( uint8_t *gps_buf, int gps_size ) {
+    console_write( gps_buf, gps_size ); return;
+
+    // printf("Console link gps()\n");
     static const uint8_t skip_count = 2;
     static uint8_t skip = skip_count;
 
@@ -92,6 +96,9 @@ void console_link_gps( uint8_t *gps_buf, int gps_size ) {
 
 
 void console_link_imu( uint8_t *imu_buf, int imu_size ) {
+    console_write( imu_buf, imu_size ); return;
+
+    // printf("Console link imu()\n");
     static const uint8_t skip_count = 5;
     static uint8_t skip = skip_count;
 
@@ -107,6 +114,9 @@ void console_link_imu( uint8_t *imu_buf, int imu_size ) {
 
 
 void console_link_filter( uint8_t *filter_buf, int filter_size ) {
+    console_write( filter_buf, filter_size ); return;
+
+    // printf("Console link filter()\n");
     static const uint8_t skip_count = 2;
     static uint8_t skip = skip_count;
 
@@ -118,10 +128,14 @@ void console_link_filter( uint8_t *filter_buf, int filter_size ) {
     }
 
     console_link_packet( FILTER_PACKET_V1, filter_buf, filter_size );
+    // printf("end Console link filter()\n");
 }
 
 
 void console_link_servo( struct servo *servopacket ) {
+    return;
+
+    // printf("Console link servo()\n");
     static const uint8_t skip_count = 5;
     static uint8_t skip = skip_count;
 
@@ -168,6 +182,9 @@ void console_link_servo( struct servo *servopacket ) {
 
 
 void console_link_health( struct health *healthpacket ) {
+    return;
+
+    // printf("Console link health()\n");
     uint8_t buf[3];
     uint8_t size;
     uint8_t cksum0, cksum1;
