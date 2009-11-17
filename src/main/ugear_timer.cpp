@@ -131,7 +131,6 @@ void timer_handler (int signum)
 #if 0 // FIXME: this needs to be handled in a more generic way
     mnav_manual_override_check();
 #endif
-
     //
     // Attitude Determination and Navigation section
     //
@@ -404,6 +403,7 @@ int main( int argc, char **argv )
             ++iarg;
 	    p = fgGetNode("/config/console/device", true);
 	    p->setStringValue( argv[iarg] );
+            console_link_on = true;
         } else if ( !strcmp(argv[iarg],"--display") ) {
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) display_on = true;
