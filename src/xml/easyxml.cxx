@@ -256,6 +256,7 @@ readXML (istream &input, XMLVisitor &visitor, const string &path)
   }
 
   XML_ParserFree(parser);
+  visitor.endXML();
 }
 
 void
@@ -301,6 +302,7 @@ readXML (const char *buf, const int size, XMLVisitor &visitor)
   }
 
   XML_ParserFree(parser);
+  visitor.endXML();
 }
 
 // end of easyxml.cxx
