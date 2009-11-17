@@ -23,8 +23,9 @@ void myprofile::stop() {
 }
 
 void myprofile::stats( const char *header ) {
-  printf("%s: avg = %.4f  count = %d  total = %.4f  (last = %.4f)\n",
-	 header, total_time / (double)count, count, total_time, last_interval );
+    printf( "%s: avg = %.4f  count = %d  total = %.4f  (last = %.4f)\n",
+	    header, total_time / (double)count,
+	    count, total_time, last_interval );
 }
 
 
