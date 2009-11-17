@@ -226,15 +226,11 @@ void log_filter( uint8_t *filter_buf, int filter_size  ) {
 
 
 void log_servo( struct servo *servopacket ) {
-    return;
-
     gzwrite( fservo, servopacket, sizeof(struct servo) );
 }
 
 
 void log_health( struct health *healthpacket ) {
-    return;
-
     gzwrite( fhealth, healthpacket, sizeof(struct health) );
 }
 
