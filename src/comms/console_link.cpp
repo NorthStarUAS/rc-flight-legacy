@@ -37,9 +37,6 @@ void console_link_init() {
 
 
 static short console_write( const uint8_t *buf, const short size ) {
-    // return size; // temp debug
-    // return console.write_port( "abcdefgabcdefgabcdefgabcdefgabcdefgabcdefg\n", 48 );
-
     int result = console.write_port( (const char *)buf, size );
     return result;
 }
@@ -78,8 +75,6 @@ static void console_link_packet( const uint8_t packet_id,
 
 
 void console_link_gps( uint8_t *gps_buf, int gps_size ) {
-    console_write( gps_buf, gps_size ); return;
-
     // printf("Console link gps()\n");
     static const uint8_t skip_count = 2;
     static uint8_t skip = skip_count;
@@ -96,8 +91,6 @@ void console_link_gps( uint8_t *gps_buf, int gps_size ) {
 
 
 void console_link_imu( uint8_t *imu_buf, int imu_size ) {
-    console_write( imu_buf, imu_size ); return;
-
     // printf("Console link imu()\n");
     static const uint8_t skip_count = 5;
     static uint8_t skip = skip_count;
@@ -114,8 +107,6 @@ void console_link_imu( uint8_t *imu_buf, int imu_size ) {
 
 
 void console_link_filter( uint8_t *filter_buf, int filter_size ) {
-    console_write( filter_buf, filter_size ); return;
-
     // printf("Console link filter()\n");
     static const uint8_t skip_count = 2;
     static uint8_t skip = skip_count;
@@ -133,8 +124,6 @@ void console_link_filter( uint8_t *filter_buf, int filter_size ) {
 
 
 void console_link_servo( struct servo *servopacket ) {
-    return;
-
     // printf("Console link servo()\n");
     static const uint8_t skip_count = 5;
     static uint8_t skip = skip_count;
@@ -182,8 +171,6 @@ void console_link_servo( struct servo *servopacket ) {
 
 
 void console_link_health( struct health *healthpacket ) {
-    return;
-
     // printf("Console link health()\n");
     uint8_t buf[3];
     uint8_t size;
