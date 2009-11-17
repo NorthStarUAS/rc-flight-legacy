@@ -275,31 +275,8 @@ int SGSerialPort::write_port(const char* buf, int len) {
     static bool error = false;
     int count;
 
-    if ( error ) {
-	// attempt some sort of error recovery
-	count = write(fd, "\n", 1);
-	if ( count == 1 ) {
-	    // cout << "Serial error recover successful!\n";
-	    error = false;
-	} else {
-	    return 0;
-	}
-    }
-
     count = write(fd, buf, len);
     // cout << "write '" << buf << "'  " << count << " bytes" << endl;
-
-    if ( (int)count == len ) {
-	error = false;
-    } else {
-	error = true;
-	if ( errno == EAGAIN ) {
-	    // ok ... in our context we don't really care if we can't
-	    // write a string, we'll just get it the next time around
-	} else {
-	    perror( "Serial I/O on write" );
-	}
-    }
 
     return count;
 }
