@@ -131,6 +131,7 @@ void timer_handler (int signum)
 #if 0 // FIXME: this needs to be handled in a more generic way
     mnav_manual_override_check();
 #endif
+
     //
     // Attitude Determination and Navigation section
     //
@@ -263,17 +264,15 @@ void timer_handler (int signum)
     {
 	display_counter = 0;
 	display_message( &servo_in, &healthpacket );
-	filter_prof.stats    ( "FILTER" );
-	mnav_prof.stats   ( "MNAV" );
-	ahrs_prof.stats   ( "AHRS" );
-	if ( enable_mnav_adns ) {
-	    nav_prof.stats    ( "NAV " );
-	}
+	imu_prof.stats( "IMU " );
+	gps_prof.stats( "GPS " );
+	air_prof.stats( "AIR " );
+	filter_prof.stats( "FILT" );
 	if ( enable_control ) {
-	    control_prof.stats( "CTRL" );
+	    control_prof.stats( "CNTL" );
 	}
-	health_prof.stats ( "HLTH" );
-	main_prof.stats ( "MAIN" );
+	health_prof.stats( "HLTH" );
+	main_prof.stats( "MAIN" );
     }
 
     // round robin flushing of logging streams (update at 0.5hz)
@@ -408,7 +407,6 @@ int main( int argc, char **argv )
 	    console_link_on = true;
 	    p = fgGetNode("/config/console/device", true);
 	    p->setStringValue( argv[iarg] );
-            console_link_on = true;
         } else if ( !strcmp(argv[iarg],"--display") ) {
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) display_on = true;

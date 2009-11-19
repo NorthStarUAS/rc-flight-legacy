@@ -18,6 +18,7 @@
 #include "comms/logging.h"
 #include "include/globaldefs.h"
 #include "props/props.hxx"
+#include "util/myprof.h"
 
 #ifdef ENABLE_MNAV_SENSOR
 #  include "filters/mnav/ahrs.h"
@@ -69,7 +70,7 @@ void AirData_init() {
         = fgGetNode("/position/ground-altitude-pressure-m", true);
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -148,10 +149,12 @@ static void do_pressure_helpers() {
 
 
 bool AirData_update() {
+    air_prof.start();
+
     bool fresh_data = false;
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -187,17 +190,19 @@ bool AirData_update() {
 	forward_accel_node->setDoubleValue( accel_filt * SG_MPS_TO_KT );
     }
 
+    air_prof.stop();
+
     return fresh_data;
 }
 
 
 void AirData_close() {
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
-	if ( name == "air-data" ) {
+	if ( name == "airdata" ) {
 	    string source = section->getChild("source")->getStringValue();
 	    string basename = "/sensors/";
 	    basename += section->getDisplayName();

@@ -34,7 +34,7 @@
 
 void IMU_init() {
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/imu-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -62,10 +62,12 @@ void IMU_init() {
 
 
 bool IMU_update() {
+    imu_prof.start();
+
     bool fresh_data = false;
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/imu-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -80,12 +82,10 @@ bool IMU_update() {
 		fresh_data = ugfile_get_imu();
 #ifdef ENABLE_MNAV_SENSOR
 	    } else if ( source == "mnav" ) {
-		mnav_prof.start();
 		// read IMU until no data available.  This will flush any
 		// potential backlog that could accumulate for any reason.
 		mnav_start_nonblock_read();
 		while ( mnav_read_nonblock() );
-		mnav_prof.stop();
 		fresh_data = mnav_get_imu();
 #endif // ENABLE_MNAV_SENSOR
 	    } else {
@@ -94,6 +94,8 @@ bool IMU_update() {
 	    }
 	}
     }
+
+    imu_prof.stop();
 
     if ( fresh_data ) {
 	if ( console_link_on || log_to_file ) {
@@ -116,7 +118,7 @@ bool IMU_update() {
 
 void IMU_close() {
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/imu-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
