@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 
-#define START_OF_MSG0 147
-#define START_OF_MSG1 224
+#define START_OF_MSG0 147	// 0x93
+#define START_OF_MSG1 224	// 0xE0
 
 enum ugPacketType {
     GPS_PACKET_V1 = 0,

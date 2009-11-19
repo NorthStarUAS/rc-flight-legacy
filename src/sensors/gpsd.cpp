@@ -173,6 +173,7 @@ static bool parse_gpsd_sentence( const char *sentence ) {
     } else if ( gpsd_cmd == "O" && 
                 (gpsd_arg == "GGA" || gpsd_arg == "GLL" ||
 		 gpsd_arg == "GND" || gpsd_arg == "GSA" ||
+		 gpsd_arg == "MID2" || gpsd_arg == "MID4" ||
 		 gpsd_arg == "RMC") ) {
 	// Output of GPSD "O" (ohhh) command
 	//
@@ -217,10 +218,12 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	// 1:51 36 199 37 0:
 	//
 	// gps_satellites->setStringValue( sentence );
+#if 0 // depricated ... could have original been a bug in gpsd for this gps?
     } else if ( gpsd_cmd == "O" &&
                 (gpsd_arg == "MID2" || gpsd_arg == "MID4") ) {
 	// still in "unreliable" binary mode, resend init sequence
 	gpsd_send_init();
+#endif
     } else if ( gpsd_cmd == "W" ) {
 	// reports if "watcher" mode is set (1) or unset (0).  In watcher mode
 	// gpsd streams gps messages to the connected clients as they come in

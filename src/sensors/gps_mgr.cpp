@@ -21,6 +21,7 @@
 #include "main/globals.hxx"
 #include "props/props.hxx"
 #include "util/coremag.h"
+#include "util/myprof.h"
 #include "util/timing.h"
 
 #include "gpsd.h"
@@ -55,7 +56,7 @@ void GPS_init() {
     magvar_init_deg_node = fgGetNode("/config/adns/magvar-deg", true);
 				
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/gps-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -113,11 +114,13 @@ static void compute_magvar() {
 
 
 bool GPS_update() {
+    gps_prof.start();
+
     bool fresh_data = false;
     static int gps_state = 0;
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/gps-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -141,6 +144,8 @@ bool GPS_update() {
 	    }
 	}
     }
+
+    gps_prof.stop();
 
     if ( fresh_data && gps_state == 1 ) {
 	// for computing gps data age
@@ -195,7 +200,7 @@ bool GPS_update() {
 void GPS_close() {
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/gps-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();

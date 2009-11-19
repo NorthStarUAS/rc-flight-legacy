@@ -30,9 +30,9 @@ void myprofile::stats( const char *header ) {
 
 
 // global profiling structures
-myprofile mnav_prof;
-myprofile ahrs_prof;
-myprofile nav_prof;
+myprofile imu_prof;
+myprofile gps_prof;
+myprofile air_prof;
 myprofile filter_prof;
 myprofile control_prof;
 myprofile route_mgr_prof;
