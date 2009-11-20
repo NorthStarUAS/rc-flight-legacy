@@ -45,7 +45,12 @@ static SGPropertyNode *gps_track_node = NULL;
 static SGPropertyNode *gps_magvar_deg_node = NULL;
 
 // magnetic variation property nodes
-static SGPropertyNode *magvar_init_deg_node = NULL;;
+static SGPropertyNode *magvar_init_deg_node = NULL;
+
+// comm property nodes
+static SGPropertyNode *gps_console_skip = NULL;
+static SGPropertyNode *gps_logging_skip = NULL;
+
 
 void GPS_init() {
     gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
@@ -54,7 +59,11 @@ void GPS_init() {
 
     // initialize magnetic variation property nodes
     magvar_init_deg_node = fgGetNode("/config/adns/magvar-deg", true);
-				
+
+    // initialize comm nodes
+    gps_console_skip = fgGetNode("/config/console/gps-skip", true);
+    gps_logging_skip = fgGetNode("/config/logging/gps-skip", true);
+
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/sensors/gps-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
@@ -157,11 +166,11 @@ bool GPS_update() {
 	    int size = packetizer->packetize_gps( buf );
 
 	    if ( console_link_on ) {
-		console_link_gps( buf, size );
+		console_link_gps( buf, size, gps_console_skip->getIntValue() );
 	    }
 
 	    if ( log_to_file ) {
-		log_gps( buf, size );
+		log_gps( buf, size, gps_logging_skip->getIntValue() );
 	    }
 	}
     } else if ( fresh_data ) {

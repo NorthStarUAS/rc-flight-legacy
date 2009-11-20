@@ -19,11 +19,11 @@ enum ugPacketType {
 extern bool console_link_on;
 
 void console_link_init();
-void console_link_gps( uint8_t *gps_buf, int gps_size );
-void console_link_imu( uint8_t *imu_buf, int imu_size );
-void console_link_filter( uint8_t *filter_buf, int filter_size );
-void console_link_servo( struct servo *servopacket );
-void console_link_health( struct health *healthpacket );
+void console_link_gps( uint8_t *gps_buf, int gps_size, int skip_count );
+void console_link_imu( uint8_t *imu_buf, int imu_size, int skip_count );
+void console_link_filter( uint8_t *filter_buf, int filter_size, int skip_count );
+void console_link_servo( struct servo *servopacket, int skip_count );
+void console_link_health( struct health *healthpacket, int skip_count );
 bool console_link_command();
 
 

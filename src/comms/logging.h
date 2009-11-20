@@ -18,11 +18,11 @@ extern bool display_on;
 bool logging_init();
 bool logging_close();
 
-void log_gps( uint8_t *gps_buf, int gps_size );
-void log_imu( uint8_t *imu_buf, int imu_size );
-void log_filter( uint8_t *filter_buf, int filter_size );
-void log_servo( struct servo *servopacket );
-void log_health( struct health *healthpacket );
+void log_gps( uint8_t *gps_buf, int gps_size, int skip_count );
+void log_imu( uint8_t *imu_buf, int imu_size, int skip_count );
+void log_filter( uint8_t *filter_buf, int filter_size, int skip_count );
+void log_servo( struct servo *servopacket, int skip_count );
+void log_health( struct health *healthpacket, int skip_count );
 
 void flush_gps();
 void flush_imu();

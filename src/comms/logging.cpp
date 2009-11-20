@@ -210,27 +210,72 @@ bool logging_close() {
 }
 
 
-void log_gps( uint8_t *gps_buf, int gps_size ) {
+void log_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return;
+    } else {
+        skip = skip_count;
+    }
+
     gzwrite( fgps, gps_buf, gps_size );
 }
 
 
-void log_imu( uint8_t *imu_buf, int imu_size ) {
+void log_imu( uint8_t *imu_buf, int imu_size, int skip_count ) {
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return;
+    } else {
+        skip = skip_count;
+    }
+
     gzwrite( fimu, imu_buf, imu_size );
 }
 
 
-void log_filter( uint8_t *filter_buf, int filter_size  ) {
+void log_filter( uint8_t *filter_buf, int filter_size, int skip_count ) {
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return;
+    } else {
+        skip = skip_count;
+    }
+
     gzwrite( ffilter, filter_buf, filter_size );
 }
 
 
-void log_servo( struct servo *servopacket ) {
+void log_servo( struct servo *servopacket, int skip_count ) {
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return;
+    } else {
+        skip = skip_count;
+    }
+
     gzwrite( fservo, servopacket, sizeof(struct servo) );
 }
 
 
-void log_health( struct health *healthpacket ) {
+void log_health( struct health *healthpacket, int skip_count ) {
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return;
+    } else {
+        skip = skip_count;
+    }
+
     gzwrite( fhealth, healthpacket, sizeof(struct health) );
 }
 

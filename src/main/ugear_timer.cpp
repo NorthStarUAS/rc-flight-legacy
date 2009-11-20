@@ -230,30 +230,30 @@ void timer_handler (int signum)
 
     if ( console_link_on ) {
 	if ( log_servo_out ) {
-	    console_link_servo( &servo_out );
+	    console_link_servo( &servo_out, 5 );
 	} else {
-	    console_link_servo( &servo_in );
+	    console_link_servo( &servo_in, 5 );
 	}
     }
 
     if ( log_to_file ) {
 	if ( log_servo_out ) {
-	    log_servo( &servo_out );
+	    log_servo( &servo_out, 0 );
 	} else {
-	    log_servo( &servo_in );
+	    log_servo( &servo_in, 0 );
 	}
     }
 
     // health status (update at 1hz)
     if ( health_counter >= (HEARTBEAT_HZ / 1) ) {
-	health_counter = 0;
 	health_prof.start();
+	health_counter = 0;
 	health_update();
-	if ( log_to_file ) {
-	    log_health( &healthpacket );
-	}
 	if ( console_link_on ) {
-	    console_link_health( &healthpacket );
+	    console_link_health( &healthpacket, 0 );
+	}
+	if ( log_to_file ) {
+	    log_health( &healthpacket, 0 );
 	}
 	health_prof.stop();
     }

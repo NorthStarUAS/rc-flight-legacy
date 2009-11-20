@@ -138,7 +138,8 @@ static void gpsd_connect() {
 
 
 static bool parse_gpsd_sentence( const char *sentence ) {
-    static bool new_position = false;
+    static double last_gps_sec = 0.0;
+    bool new_position = false;
 
     // printf("%s", sentence);
 
@@ -191,15 +192,6 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	    double angle_rad = (90.0 - course_deg) * SGD_DEGREES_TO_RADIANS;
 	    gps_vn_node->setDoubleValue( cos(angle_rad) * speed_mps );
 	    gps_ve_node->setDoubleValue( sin(angle_rad) * speed_mps );
-	    // update structure time stamp only after we get ground
-	    // track data.  This means the new position report is
-	    // delayed until ground track info is sent over, but
-	    // because the kalman filter takes all these parameters in
-	    // one shot, I feel it's better to delay the position
-	    // slightly instead delaying the ground track data by an
-	    // entire second.
-	    gps_timestamp_node->setDoubleValue( get_Time() );
-	    new_position = true;
 	}
 	// if ( gps_data.date > last_unix_time && last_unix_time > 0.0 ) {
 	//   gps_data.vd = (gps_data.alt - last_alt_m) * (gps_data.date - last_unix_time);
@@ -208,6 +200,11 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	// }
 	if ( token[10] != "?" ) {
 	    gps_vd_node->setDoubleValue( -atof(token[10].c_str()) );
+	}
+	if ( gps_unix_sec_node->getDoubleValue() > last_gps_sec ) {
+	    last_gps_sec = gps_unix_sec_node->getDoubleValue();
+	    gps_timestamp_node->setDoubleValue( get_Time() );
+	    new_position = true;
 	}
     } else if ( gpsd_cmd == "Y" && gpsd_arg == "GSV" ) {
 	// Output of GPSD "Y" command 

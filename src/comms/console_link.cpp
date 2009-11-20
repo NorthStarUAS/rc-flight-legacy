@@ -26,11 +26,9 @@ static SGPropertyNode *console_dev = NULL;
 bool console_link_on = false;    // link to ground station via console port
 static SGSerialPort console;
 
-
 // open up the console port
 void console_link_init() {
     console_dev = fgGetNode("/config/console/device", true);
-
     console.open_port( console_dev->getStringValue(), true );
     console.set_baud( 115200 );
 }
@@ -74,9 +72,8 @@ static void console_link_packet( const uint8_t packet_id,
 }
 
 
-void console_link_gps( uint8_t *gps_buf, int gps_size ) {
+void console_link_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
     // printf("Console link gps()\n");
-    static const uint8_t skip_count = 2;
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -90,9 +87,8 @@ void console_link_gps( uint8_t *gps_buf, int gps_size ) {
 }
 
 
-void console_link_imu( uint8_t *imu_buf, int imu_size ) {
+void console_link_imu( uint8_t *imu_buf, int imu_size, int skip_count  ) {
     // printf("Console link imu()\n");
-    static const uint8_t skip_count = 5;
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -106,9 +102,8 @@ void console_link_imu( uint8_t *imu_buf, int imu_size ) {
 }
 
 
-void console_link_filter( uint8_t *filter_buf, int filter_size ) {
+void console_link_filter( uint8_t *filter_buf, int filter_size, int skip_count ) {
     // printf("Console link filter()\n");
-    static const uint8_t skip_count = 2;
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -123,9 +118,8 @@ void console_link_filter( uint8_t *filter_buf, int filter_size ) {
 }
 
 
-void console_link_servo( struct servo *servopacket ) {
+void console_link_servo( struct servo *servopacket, int skip_count  ) {
     // printf("Console link servo()\n");
-    static const uint8_t skip_count = 5;
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -170,8 +164,17 @@ void console_link_servo( struct servo *servopacket ) {
 }
 
 
-void console_link_health( struct health *healthpacket ) {
+void console_link_health( struct health *healthpacket, int skip_count  ) {
     // printf("Console link health()\n");
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return;
+    } else {
+        skip = skip_count;
+    }
+
     uint8_t buf[3];
     uint8_t size;
     uint8_t cksum0, cksum1;

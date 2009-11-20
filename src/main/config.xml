@@ -5,31 +5,34 @@
 <PropertyList>
   <config>
 
-    <!--                       -->
     <!-- Onboard data logging. -->
-    <!--                       -->
-
     <logging>
       <!-- Caution: enabling this feature can have a significant -->
       <!-- performance impact on the ugear application depending on the -->
       <!-- speed of the onboard storage. -->
       <path>/mnt/mmc/FlightData</path>
       <enable type="bool">false</enable>
+
+      <imu-skip>10</imu-skip>
+      <gps-skip>0</gps-skip>
+      <airdata-skip>10</airdata-skip>
+      <filter-skip>10</filter-skip>
     </logging>
 
-    <!--                               -->
-    <!-- Ground station communication. -->
-    <!--                               -->
-
+    <!-- Console / ground station communication. -->
     <console>
-      <device>/dev/ttyS0</device>
+      <device>/dev/ttyPSC0</device>
+      <enable type="bool">false</enable>
+
       <lost-link-timeout-sec>60</lost-link-timeout-sec>
+
+      <imu-skip>10</imu-skip>
+      <gps-skip>0</gps-skip>
+      <airdata-skip>10</airdata-skip>
+      <filter-skip>10</filter-skip>
     </console>
 
-    <!--                                     -->
     <!-- Sensor selection and configuration. -->
-    <!--                                     -->
-
     <sensors>
       <imu-group>
         <imu>
@@ -64,10 +67,7 @@
       </airdata-group>
     </sensors>
 
-    <!--                       -->
     <!-- Filters configuration -->
-    <!--                       -->
-
     <filters>
       <!-- Magnetic Declination (Variation) -->
       <!-- You can force a value or specify "auto" to have the system -->
@@ -107,10 +107,7 @@
 
     </filters>
 
-    <!--                                      -->
     <!-- Autopilot and control configuration. -->
-    <!--                                      -->
-
     <autopilot>
       <!-- set value to true to enable the autopilot -->
       <enable type="bool">true</enable>
@@ -126,10 +123,7 @@
       <elevon-mixing type="bool">true</elevon-mixing>
     </autopilot>
 
-    <!--                                            -->
     <!-- Primary route selection and configuration. -->
-    <!--                                            -->
-
     <route>
       <!-- set value to true to enable the high level route management -->
       <enable type="bool">true</enable>
@@ -141,10 +135,7 @@
       <path>routes/bowtie.xml</path> <!-- relative bowtie -->
     </route>
 
-    <!--                                       -->
     <!-- Actuator selection and configuration. -->
-    <!--                                       -->
-
     <actuators>
       <!-- output can be: mnav, or null -->
       <null/>
