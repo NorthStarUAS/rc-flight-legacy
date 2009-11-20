@@ -64,6 +64,10 @@ static SGPropertyNode *filter_track_node = NULL;
 static SGPropertyNode *filter_vel_node = NULL;
 static SGPropertyNode *filter_vert_speed_fps_node = NULL;
 
+// comm property nodes
+static SGPropertyNode *filter_console_skip = NULL;
+static SGPropertyNode *filter_logging_skip = NULL;
+
 
 void Filter_init() {
     // initialize imu property nodes
@@ -77,6 +81,10 @@ void Filter_init() {
     imu_hx_node = fgGetNode("/sensors/imu/hx", true);
     imu_hy_node = fgGetNode("/sensors/imu/hy", true);
     imu_hz_node = fgGetNode("/sensors/imu/hz", true);
+
+    // initialize comm nodes
+    filter_console_skip = fgGetNode("/config/console/filter-skip", true);
+    filter_logging_skip = fgGetNode("/config/logging/filter-skip", true);
 
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/filters", true);
@@ -215,11 +223,12 @@ bool Filter_update( bool fresh_imu_data ) {
 	int size = packetizer->packetize_filter( buf );
 
         if ( console_link_on ) {
-            console_link_filter( buf, size );
+            console_link_filter( buf, size,
+				 filter_console_skip->getIntValue() );
         }
 
         if ( log_to_file ) {
-            log_filter( buf, size );
+            log_filter( buf, size, filter_logging_skip->getIntValue() );
         }
     }
 

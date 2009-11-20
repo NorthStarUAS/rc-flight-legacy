@@ -177,16 +177,6 @@ int UGPacketizer::packetize_filter( uint8_t *buf ) {
     double time = filter_timestamp_node->getDoubleValue();
     *(double *)buf = time; buf += 8;
 
-    /* resolution of 0.1 degrees */
-    double phi = (int16_t)(filter_phi_node->getDoubleValue() * 10);
-    *(int16_t *)buf = time; buf += 2;
-
-    double theta = (int16_t)(filter_theta_node->getDoubleValue() * 10);
-    *(int16_t *)buf = time; buf += 2;
-
-    double psi = (int16_t)(filter_psi_node->getDoubleValue() * 10);
-    *(int16_t *)buf = time; buf += 2;
-
     double lat = filter_lat_node->getDoubleValue();
     *(double *)buf = lat; buf += 8;
 
@@ -207,6 +197,16 @@ int UGPacketizer::packetize_filter( uint8_t *buf ) {
     int16_t vd = (int16_t)(filter_vd_node->getDoubleValue() * 100);
     *(int16_t *)buf = vd; buf += 2;
     
+    /* resolution of 0.1 degrees */
+    int16_t phi = (int16_t)(filter_phi_node->getDoubleValue() * 10);
+    *(int16_t *)buf = phi; buf += 2;
+
+    int16_t theta = (int16_t)(filter_theta_node->getDoubleValue() * 10);
+    *(int16_t *)buf = theta; buf += 2;
+
+    int16_t psi = (int16_t)(filter_psi_node->getDoubleValue() * 10);
+    *(int16_t *)buf = psi; buf += 2;
+
     uint8_t status = 0;
     *buf = status; buf++;
 
@@ -216,22 +216,22 @@ int UGPacketizer::packetize_filter( uint8_t *buf ) {
 
 void UGPacketizer::decode_filter( uint8_t *buf ) {
     double time = *(double *)buf; buf += 8;
-    int16_t phi = *(int16_t *)buf; buf += 2;
-    int16_t the = *(int16_t *)buf; buf += 2;
-    int16_t psi = *(int16_t *)buf; buf += 2;
     double lat = *(double *)buf; buf += 8;
     double lon = *(double *)buf; buf += 8;
     int32_t alt = *(int32_t *)buf; buf += 4;
     int16_t vn = *(int16_t *)buf; buf += 2;
     int16_t ve = *(int16_t *)buf; buf += 2;
     int16_t vd = *(int16_t *)buf; buf += 2;
+    int16_t phi = *(int16_t *)buf; buf += 2;
+    int16_t the = *(int16_t *)buf; buf += 2;
+    int16_t psi = *(int16_t *)buf; buf += 2;
     uint8_t status = *(uint8_t *)buf; buf += 1;
 
-    printf("t = %.2f (%.1f %.1f %.1f) (%.8f %.8f a=%.2f) (%.2f %.2f %.2f) %d\n",
+    printf("t = %.2f (%.8f %.8f a=%.2f) (%.2f %.2f %.2f) (%.1f %.1f %.1f) %d\n",
 	   time,
-	   phi/10.0, the/10.0, psi/10.0,
 	   lat, lon, alt/1000.0,
 	   vn/100.0, ve/100.0, vd/100.0,
+	   phi/10.0, the/10.0, psi/10.0,
 	   status);
 }
 

@@ -31,8 +31,16 @@
 // Global variables
 //
 
+// comm property nodes
+static SGPropertyNode *imu_console_skip = NULL;
+static SGPropertyNode *imu_logging_skip = NULL;
+
 
 void IMU_init() {
+    // initialize comm nodes
+    imu_console_skip = fgGetNode("/config/console/imu-skip", true);
+    imu_logging_skip = fgGetNode("/config/logging/imu-skip", true);
+
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/sensors/imu-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
@@ -103,11 +111,11 @@ bool IMU_update() {
 	    int size = packetizer->packetize_imu( buf );
 
 	    if ( console_link_on ) {
-		console_link_imu( buf, size );
+		console_link_imu( buf, size, imu_console_skip->getDoubleValue() );
 	    }
 
 	    if ( log_to_file ) {
-		log_imu( buf, size );
+		log_imu( buf, size, imu_logging_skip->getDoubleValue() );
 	    }
 	}
     }
