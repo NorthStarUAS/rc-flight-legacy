@@ -92,6 +92,10 @@ void gpsd_init( string rootname, SGPropertyNode *config ) {
 
 // send our configured init strings to configure gpsd the way we prefer
 static void gpsd_send_init() {
+    if ( !socket_connected ) {
+	return;
+    }
+
     for ( int i = 0; i < configroot->nChildren(); ++i ) {
         SGPropertyNode *child = configroot->getChild(i);
         string cname = child->getName();
@@ -120,12 +124,16 @@ static void gpsd_connect() {
     }
 
     if ( ! gpsd_sock.open( true ) ) {
-        printf("error opening gpsd socket\n");
+	if ( display_on ) {
+	    printf("error opening gpsd socket\n");
+	}
 	return;
     }
     
     if (gpsd_sock.connect( host.c_str(), port ) < 0) {
-        printf("error connecting to gpsd\n");
+	if ( display_on ) {
+	    printf("error connecting to gpsd\n");
+	}
 	return;
     }
 
@@ -253,6 +261,12 @@ bool gpsd_get_gps() {
 	if ( parse_gpsd_sentence( gpsd_sentence ) ) {
 	    gps_data_valid = true;
 	}
+    }
+    if ( errno != EAGAIN ) {
+	if ( display_on ) {
+	    perror("gpsd recv");
+	}
+	socket_connected = false;
     }
 
     // If more than 5 seconds has elapsed without seeing new data and

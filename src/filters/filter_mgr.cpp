@@ -223,6 +223,7 @@ bool Filter_update( bool fresh_imu_data ) {
 	int size = packetizer->packetize_filter( buf );
 
         if ( console_link_on ) {
+	    // printf("sending filter packet\n");
             console_link_filter( buf, size,
 				 filter_console_skip->getIntValue() );
         }
