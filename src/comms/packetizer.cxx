@@ -48,11 +48,25 @@ void UGPacketizer::bind_filter_nodes() {
     filter_status_node = fgGetNode("/filters/filter/status", true);
 }
 
+// initialize actuator property nodes
+void UGPacketizer::bind_actuator_nodes() {
+    act_timestamp_node = fgGetNode("/actuators/actuator/timestamp", true);
+    act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
+    act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
+    act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);
+    act_rudder_node = fgGetNode("/actuators/actuator/channel", 3, true);
+    act_channel5_node = fgGetNode("/actuators/actuator/channel", 4, true);
+    act_channel6_node = fgGetNode("/actuators/actuator/channel", 5, true);
+    act_channel7_node = fgGetNode("/actuators/actuator/channel", 6, true);
+    act_channel8_node = fgGetNode("/actuators/actuator/channel", 7, true);
+}
+
 
 UGPacketizer::UGPacketizer() {
     bind_gps_nodes();
     bind_imu_nodes();
     bind_filter_nodes();
+    bind_actuator_nodes();
 }
 
 
@@ -233,6 +247,43 @@ void UGPacketizer::decode_filter( uint8_t *buf ) {
 	   vn/100.0, ve/100.0, vd/100.0,
 	   phi/10.0, the/10.0, psi/10.0,
 	   status);
+}
+
+
+int UGPacketizer::packetize_actuator( uint8_t *buf ) {
+    uint8_t *startbuf = buf;
+
+    double time = act_timestamp_node->getDoubleValue();
+    *(double *)buf = time; buf += 8;
+
+    int16_t ail = (int16_t)(act_aileron_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = ail; buf += 2;
+
+    int16_t ele = (int16_t)(act_elevator_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = ele; buf += 2;
+
+    uint16_t thr = (uint16_t)(act_throttle_node->getDoubleValue() * 60000);
+    *(uint16_t *)buf = thr; buf += 2;
+
+    int16_t rud = (int16_t)(act_rudder_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = rud; buf += 2;
+
+    int16_t ch5 = (int16_t)(act_channel5_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = ch5; buf += 2;
+
+    int16_t ch6 = (int16_t)(act_channel6_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = ch6; buf += 2;
+
+    int16_t ch7 = (int16_t)(act_channel7_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = ch7; buf += 2;
+
+    int16_t ch8 = (int16_t)(act_channel8_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = ch8; buf += 2;
+
+    uint8_t status = 0;
+    *buf = status; buf++;
+
+    return buf - startbuf;
 }
 
 

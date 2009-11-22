@@ -228,22 +228,6 @@ void timer_handler (int signum)
     // Data logging and Telemetry dump section
     //
 
-    if ( console_link_on ) {
-	if ( log_servo_out ) {
-	    console_link_servo( &servo_out, 5 );
-	} else {
-	    console_link_servo( &servo_in, 5 );
-	}
-    }
-
-    if ( log_to_file ) {
-	if ( log_servo_out ) {
-	    log_servo( &servo_out, 0 );
-	} else {
-	    log_servo( &servo_in, 0 );
-	}
-    }
-
     // health status (update at 1hz)
     if ( health_counter >= (HEARTBEAT_HZ / 1) ) {
 	health_prof.start();
@@ -263,7 +247,7 @@ void timer_handler (int signum)
 	 >= (HEARTBEAT_HZ * 2 /* divide by 0.5 */) )
     {
 	display_counter = 0;
-	display_message( &servo_in, &healthpacket );
+	display_message( &healthpacket );
 	imu_prof.stats( "IMU " );
 	gps_prof.stats( "GPS " );
 	air_prof.stats( "AIR " );
@@ -294,7 +278,7 @@ void timer_handler (int signum)
 		flush_state++;
 		break;
 	    case 3:
-		flush_servo();
+		flush_actuator();
 		flush_state++;
 		break;
 	    case 4:

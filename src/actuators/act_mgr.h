@@ -18,7 +18,7 @@
 // global variables
 //
 
-extern struct servo servo_out;
+/* extern struct servo servo_out; */
 
 
 void Actuator_init();

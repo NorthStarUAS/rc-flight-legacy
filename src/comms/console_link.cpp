@@ -118,8 +118,10 @@ void console_link_filter( uint8_t *filter_buf, int filter_size, int skip_count )
 }
 
 
-void console_link_servo( struct servo *servopacket, int skip_count  ) {
-    // printf("Console link servo()\n");
+void console_link_actuator( uint8_t *actuator_buf, int actuator_size,
+			    int skip_count  )
+{
+    // printf("Console link actuator()\n");
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -129,38 +131,7 @@ void console_link_servo( struct servo *servopacket, int skip_count  ) {
         skip = skip_count;
     }
 
-    uint8_t buf[3];
-    uint8_t size;
-    uint8_t cksum0, cksum1;
-
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1; buf[2] = 0;
-    console_write( buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = SERVO_PACKET_V1; buf[1] = 0;
-    console_write( buf, 1 );
-
-    // packet size (1 byte)
-    size = sizeof(struct servo);
-    buf[0] = size; buf[1] = 0;
-    // printf("servo size = %d\n", size);
-    console_write( buf, 1 );
-
-    // packet data
-    uint8_t bytes = console_write( (uint8_t *)servopacket, size );
-    // uint8_t *tmp = (uint8_t *)servopacket;
-    // printf("%d %d %d %d\n", tmp[0], tmp[1], tmp[2], tmp[3] );
-
-    if ( bytes != size ) {
-      printf("Only wrote %d servo bytes out of %d\n", bytes, size);
-    }
-
-    // check sum (2 bytes)
-    ugear_cksum( SERVO_PACKET_V1, size, (uint8_t *)servopacket, size,
-		 &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    console_write( buf, 2 );
+    console_link_packet( ACTUATOR_PACKET_V1, actuator_buf, actuator_size );
 }
 
 

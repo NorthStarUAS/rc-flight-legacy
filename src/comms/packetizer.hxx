@@ -46,9 +46,21 @@ class UGPacketizer {
     SGPropertyNode *filter_vd_node;
     SGPropertyNode *filter_status_node;
 
+    // actuator property nodes
+    SGPropertyNode *act_timestamp_node;
+    SGPropertyNode *act_aileron_node;
+    SGPropertyNode *act_elevator_node;
+    SGPropertyNode *act_throttle_node;
+    SGPropertyNode *act_rudder_node;
+    SGPropertyNode *act_channel5_node;
+    SGPropertyNode *act_channel6_node;
+    SGPropertyNode *act_channel7_node;
+    SGPropertyNode *act_channel8_node;
+
     void bind_gps_nodes();
     void bind_imu_nodes();
     void bind_filter_nodes();
+    void bind_actuator_nodes();
 
 public:
 
@@ -63,6 +75,9 @@ public:
 
     int packetize_filter( uint8_t *buf );
     void decode_filter( uint8_t *buf );
+
+    int packetize_actuator( uint8_t *buf );
+    void decode_actuator( uint8_t *buf );
 
 };
 

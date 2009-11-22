@@ -20,7 +20,7 @@ static FILE *fnavstate = NULL;
 static gzFile fimu = NULL;
 static gzFile fgps = NULL;
 static gzFile ffilter = NULL;
-static gzFile fservo = NULL;
+static gzFile fact = NULL;
 static gzFile fhealth = NULL;
 
 bool log_to_file = false;       // log to file is enabled/disabled
@@ -68,6 +68,12 @@ static SGPropertyNode *filter_vn_node = NULL;
 static SGPropertyNode *filter_ve_node = NULL;
 static SGPropertyNode *filter_vd_node = NULL;
 
+// actuator property nodes
+static SGPropertyNode *act_aileron_node = NULL;
+static SGPropertyNode *act_elevator_node = NULL;
+static SGPropertyNode *act_throttle_node = NULL;
+static SGPropertyNode *act_rudder_node = NULL;
+static SGPropertyNode *act_channel5_node = NULL;
 
 static void init_props() {
     props_inited = true;
@@ -110,6 +116,13 @@ static void init_props() {
     filter_ve_node = fgGetNode("/velocity/ve-ms", true);
     filter_vd_node = fgGetNode("/velocity/vd-ms", true);
     filter_status_node = fgGetNode("/health/navigation", true);
+
+    // initialize actuator property nodes
+    act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
+    act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
+    act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);
+    act_rudder_node = fgGetNode("/actuators/actuator/channel", 3, true);
+    act_channel5_node = fgGetNode("/actuators/actuator/channel", 4, true);
 }
 
 
@@ -181,8 +194,8 @@ bool logging_init() {
         return false;
     }
 
-    file = new_dir; file.append( "servo.dat.gz" );
-    if ( (fservo = gzopen( file.c_str(),"w+b" )) == NULL ) {
+    file = new_dir; file.append( "actuator.dat.gz" );
+    if ( (fact = gzopen( file.c_str(),"w+b" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
         return false;
     }
@@ -203,7 +216,7 @@ bool logging_close() {
     gzclose(fimu);
     gzclose(fgps);
     gzclose(ffilter);
-    gzclose(fservo);
+    gzclose(fact);
     gzclose(fhealth);
 
     return true;
@@ -252,7 +265,7 @@ void log_filter( uint8_t *filter_buf, int filter_size, int skip_count ) {
 }
 
 
-void log_servo( struct servo *servopacket, int skip_count ) {
+void log_actuator( uint8_t *actuator_buf, int actuator_size, int skip_count ) {
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -262,7 +275,7 @@ void log_servo( struct servo *servopacket, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fservo, servopacket, sizeof(struct servo) );
+    gzwrite( fact, actuator_buf, actuator_size );
 }
 
 
@@ -298,9 +311,9 @@ void flush_filter() {
 }
 
 
-void flush_servo() {
-    // printf("flush servo\n");
-    gzflush( fservo, Z_SYNC_FLUSH );
+void flush_actuator() {
+    // printf("flush actuator\n");
+    gzflush( fact, Z_SYNC_FLUSH );
 }
 
 
@@ -311,7 +324,7 @@ void flush_health() {
 
 
 // periodic console summary of attitude/location estimate
-void display_message( struct servo *sdata, struct health *hdata )
+void display_message( struct health *hdata )
 {
     // double current_time = get_Time();
 
@@ -369,8 +382,12 @@ void display_message( struct servo *sdata, struct health *hdata )
 	printf("[filter]:[No Valid Data]\n");
     }
 
-    printf("[Servo]: %d %d %d %d %d %d\n", sdata->chn[0], sdata->chn[1],
-           sdata->chn[2], sdata->chn[3], sdata->chn[4], sdata->chn[5]);
+    printf("[act  ]: %.2f %.2f %.2f %.2f %.2f\n",
+	   act_aileron_node->getDoubleValue(),
+	   act_elevator_node->getDoubleValue(),
+	   act_throttle_node->getDoubleValue(),
+	   act_rudder_node->getDoubleValue(),
+	   act_channel5_node->getDoubleValue());
     printf("[health]: cmdseq = %d  tgtwp = %d  loadavg = %.2f\n",
            (int)hdata->command_sequence, (int)hdata->target_waypoint,
            (float)hdata->loadavg / 100.0);

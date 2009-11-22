@@ -15,11 +15,11 @@ enum errdefs {
     ValidData,			/* data recently valid */
 };
 
-struct servo {
-   double time;
-   uint16_t chn[8];
-   uint64_t status;
-};
+//struct servo {
+//    double time;
+//    uint16_t channel[8];
+//    uint8_t status;
+//};
 
 struct health {
     double time;
