@@ -24,8 +24,6 @@
 // global variables
 //
 
-struct servo servo_in;
-
 // the "FlightGear" autopilot
 static FGXMLAutopilot ap;
 
@@ -66,12 +64,6 @@ void control_update(short flight_mode)
       autopilot_reinit = false;
     }
 #endif
-
-    // optional: use channel #6 to change the autopilot target value
-    // double min_value = -35.0;
-    // double max_value = 35.0;
-    // double tgt_value = (max_value - min_value) *
-    //   ((double)servo_in.chn[5] / 65535.0) + min_value;
 
     // update the autopilot stages
     ap.update( 0.04 );	// dt = 1/25

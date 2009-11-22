@@ -13,10 +13,11 @@
       <path>/mnt/mmc/FlightData</path>
       <enable type="bool">false</enable>
 
-      <imu-skip>10</imu-skip>
+      <imu-skip>4</imu-skip>
       <gps-skip>0</gps-skip>
-      <airdata-skip>10</airdata-skip>
-      <filter-skip>10</filter-skip>
+      <airdata-skip>4</airdata-skip>
+      <filter-skip>4</filter-skip>
+      <actuator-skip>4</actuator-skip>
     </logging>
 
     <!-- Console / ground station communication. -->
@@ -26,10 +27,11 @@
 
       <lost-link-timeout-sec>60</lost-link-timeout-sec>
 
-      <imu-skip>10</imu-skip>
+      <imu-skip>4</imu-skip>
       <gps-skip>0</gps-skip>
-      <airdata-skip>10</airdata-skip>
-      <filter-skip>10</filter-skip>
+      <airdata-skip>4</airdata-skip>
+      <filter-skip>4</filter-skip>
+      <actuator-skip>4</actuator-skip>
     </console>
 
     <!-- Sensor selection and configuration. -->
