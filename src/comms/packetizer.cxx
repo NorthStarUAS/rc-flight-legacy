@@ -287,3 +287,23 @@ int UGPacketizer::packetize_actuator( uint8_t *buf ) {
 }
 
 
+void UGPacketizer::decode_actuator( uint8_t *buf ) {
+    double time = *(double *)buf; buf += 8;
+    int16_t ail = *(int16_t *)buf; buf += 2;
+    int16_t ele = *(int16_t *)buf; buf += 2;
+    uint16_t thr = *(uint16_t *)buf; buf += 2;
+    int16_t rud = *(int16_t *)buf; buf += 2;
+    int16_t ch5 = *(int16_t *)buf; buf += 2;
+    int16_t ch6 = *(int16_t *)buf; buf += 2;
+    int16_t ch7 = *(int16_t *)buf; buf += 2;
+    int16_t ch8 = *(int16_t *)buf; buf += 2;
+    uint8_t status = *(uint8_t *)buf; buf += 1;
+
+    printf("t = %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d\n",
+	   time,
+	   ail/30000.0, ele/30000.0, thr/60000.0, rud/30000.0,
+	   ch5/30000.0, ch6/30000.0, ch7/30000.0, ch8/30000.0,
+	   status);
+}
+
+
