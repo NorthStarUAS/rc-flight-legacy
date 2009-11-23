@@ -82,9 +82,8 @@ int UGPacketizer::packetize_gps( uint8_t *buf ) {
     double lon = gps_lon_node->getDoubleValue();
     *(double *)buf = lon; buf += 8;
 
-    /* resolution of 0.001 meters */
-    int32_t alt = (int)(gps_alt_node->getDoubleValue() * 1000);
-    *(int32_t *)buf = alt; buf += 4;
+    float alt = gps_alt_node->getFloatValue();
+    *(float *)buf = alt; buf += 4;
 
     /* +/- 327.67 mps (732.9 mph), resolution of 0.01 mps */
     int16_t vn = (int16_t)(gps_vn_node->getDoubleValue() * 100);
@@ -110,7 +109,7 @@ void UGPacketizer::decode_gps( uint8_t *buf ) {
     double time = *(double *)buf; buf += 8;
     double lat = *(double *)buf; buf += 8;
     double lon = *(double *)buf; buf += 8;
-    int32_t alt = *(int32_t *)buf; buf += 4;
+    float alt = *(float *)buf; buf += 4;
     int16_t vn = *(int16_t *)buf; buf += 2;
     int16_t ve = *(int16_t *)buf; buf += 2;
     int16_t vd = *(int16_t *)buf; buf += 2;
@@ -118,7 +117,7 @@ void UGPacketizer::decode_gps( uint8_t *buf ) {
     uint8_t status = *(uint8_t *)buf; buf += 1;
 
     printf("t = %.2f (%.8f %.8f) a=%.2f  (%.2f %.2f %.2f) %.2f %d\n",
-	   time, lat, lon, alt/1000.0, vn/100.0, ve/100.0, vd/100.0, date,
+	   time, lat, lon, alt, vn/100.0, ve/100.0, vd/100.0, date,
 	   status);
 }
 
@@ -129,32 +128,32 @@ int UGPacketizer::packetize_imu( uint8_t *buf ) {
     double time = imu_timestamp_node->getDoubleValue();
     *(double *)buf = time; buf += 8;
 
-    int32_t p = (int)(imu_p_node->getDoubleValue() * 1000);
-    *(int32_t *)buf = p; buf += 4;
+    float p = imu_p_node->getFloatValue();
+    *(float *)buf = p; buf += 4;
 
-    int32_t q = (int)(imu_q_node->getDoubleValue() * 1000);
-    *(int32_t *)buf = q; buf += 4;
+    float q = imu_q_node->getFloatValue();
+    *(float *)buf = q; buf += 4;
 
-    int32_t r = (int)(imu_r_node->getDoubleValue() * 1000);
-    *(int32_t *)buf = r; buf += 4;
+    float r = imu_r_node->getFloatValue();
+    *(float *)buf = r; buf += 4;
 
-    int32_t ax = (int)(imu_ax_node->getDoubleValue() * 1000);
-    *(int32_t *)buf = ax; buf += 4;
+    float ax = imu_ax_node->getFloatValue();
+    *(float *)buf = ax; buf += 4;
 
-    int32_t ay = (int)(imu_ay_node->getDoubleValue() * 1000);
-    *(int32_t *)buf = ay; buf += 4;
+    float ay = imu_ay_node->getFloatValue();
+    *(float *)buf = ay; buf += 4;
 
-    int32_t az = (int)(imu_az_node->getDoubleValue() * 1000);
-    *(int32_t *)buf = az; buf += 4;
+    float az = imu_az_node->getFloatValue();
+    *(float *)buf = az; buf += 4;
 
-    int32_t hx = (int)(imu_hx_node->getDoubleValue() * 1000);
-    *(int32_t *)buf = hx; buf += 4;
+    float hx = imu_hx_node->getFloatValue();
+    *(float *)buf = hx; buf += 4;
 
-    int32_t hy = (int)(imu_hy_node->getDoubleValue() * 1000);
-    *(int32_t *)buf = hy; buf += 4;
+    float hy = imu_hy_node->getFloatValue();
+    *(float *)buf = hy; buf += 4;
 
-    int32_t hz = (int)(imu_hz_node->getDoubleValue() * 1000);
-    *(int32_t *)buf = hz; buf += 4;
+    float hz = imu_hz_node->getFloatValue();
+    *(float *)buf = hz; buf += 4;
 
     uint8_t status = 0;
     *buf = status; buf++;
@@ -165,23 +164,19 @@ int UGPacketizer::packetize_imu( uint8_t *buf ) {
 
 void UGPacketizer::decode_imu( uint8_t *buf ) {
     double time = *(double *)buf; buf += 8;
-    double p = *(int32_t *)buf; buf += 4;
-    double q = *(int32_t *)buf; buf += 4;
-    double r = *(int32_t *)buf; buf += 4;
-    double ax = *(int32_t *)buf; buf += 4;
-    double ay = *(int32_t *)buf; buf += 4;
-    double az = *(int32_t *)buf; buf += 4;
-    double hx = *(int32_t *)buf; buf += 4;
-    double hy = *(int32_t *)buf; buf += 4;
-    double hz = *(int32_t *)buf; buf += 4;
+    double p = *(float *)buf; buf += 4;
+    double q = *(float *)buf; buf += 4;
+    double r = *(float *)buf; buf += 4;
+    double ax = *(float *)buf; buf += 4;
+    double ay = *(float *)buf; buf += 4;
+    double az = *(float *)buf; buf += 4;
+    double hx = *(float *)buf; buf += 4;
+    double hy = *(float *)buf; buf += 4;
+    double hz = *(float *)buf; buf += 4;
     uint8_t status = *(uint8_t *)buf; buf += 1;
 
     printf("t = %.2f (%.3f %.3f %.3f) (%.3f %.3f %.f) (%.3f %.3f %.3f) %d\n",
-	   time,
-	   p/1000.0, q/1000.0, r/1000.0,
-	   ax/1000.0, ay/1000.0, az/1000.0,
-	   hx/1000.0, hy/1000.0, hz/1000.0,
-	   status );
+	   time, p, q, r, ax, ay, az, hx, hy, hz, status );
 }
 
 
@@ -197,9 +192,8 @@ int UGPacketizer::packetize_filter( uint8_t *buf ) {
     double lon = filter_lon_node->getDoubleValue();
     *(double *)buf = lon; buf += 8;
 
-    /* resolution of 0.001 meters */
-    int32_t alt = (int)(filter_alt_node->getDoubleValue() * 1000);
-    *(int32_t *)buf = alt; buf += 4;
+    float alt = filter_alt_node->getFloatValue();
+    *(float *)buf = alt; buf += 4;
 
     /* +/- 327.67 mps (732.9 mph), resolution of 0.01 mps */
     int16_t vn = (int16_t)(filter_vn_node->getDoubleValue() * 100);
@@ -232,7 +226,7 @@ void UGPacketizer::decode_filter( uint8_t *buf ) {
     double time = *(double *)buf; buf += 8;
     double lat = *(double *)buf; buf += 8;
     double lon = *(double *)buf; buf += 8;
-    int32_t alt = *(int32_t *)buf; buf += 4;
+    float alt = *(float *)buf; buf += 4;
     int16_t vn = *(int16_t *)buf; buf += 2;
     int16_t ve = *(int16_t *)buf; buf += 2;
     int16_t vd = *(int16_t *)buf; buf += 2;
@@ -242,8 +236,7 @@ void UGPacketizer::decode_filter( uint8_t *buf ) {
     uint8_t status = *(uint8_t *)buf; buf += 1;
 
     printf("t = %.2f (%.8f %.8f a=%.2f) (%.2f %.2f %.2f) (%.1f %.1f %.1f) %d\n",
-	   time,
-	   lat, lon, alt/1000.0,
+	   time, lat, lon, alt,
 	   vn/100.0, ve/100.0, vd/100.0,
 	   phi/10.0, the/10.0, psi/10.0,
 	   status);
