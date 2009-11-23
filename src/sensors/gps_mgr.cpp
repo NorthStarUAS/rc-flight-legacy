@@ -24,6 +24,7 @@
 #include "util/myprof.h"
 #include "util/timing.h"
 
+#include "gps_fgfs.hxx"
 #include "gpsd.h"
 #ifdef ENABLE_MNAV_SENSOR
 #  include "mnav.h"
@@ -77,6 +78,8 @@ void GPS_init() {
 		   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "fgfs" ) {
+		fgfs_gps_init( basename, section );
 	    } else if ( source == "file" ) {
 		ugfile_gps_init( basename, section );
 	    } else if ( source == "gpsd" ) {
@@ -139,6 +142,8 @@ bool GPS_update() {
 	    //	   i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "fgfs" ) {
+		fresh_data = fgfs_gps_update();
 	    } else if ( source == "file" ) {
 		fresh_data = ugfile_get_gps();
 	    } else if ( source == "gpsd" ) {
@@ -219,6 +224,8 @@ void GPS_close() {
 		   i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "fgfs" ) {
+		fgfs_gps_close();
 	    } else if ( source == "file" ) {
 		ugfile_close();
 	    } else if ( source == "gpsd" ) {

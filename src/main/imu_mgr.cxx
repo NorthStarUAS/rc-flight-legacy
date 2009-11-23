@@ -19,6 +19,7 @@
 #include "props/props.hxx"
 #include "util/myprof.h"
 
+#include "sensors/imu_fgfs.hxx"
 #ifdef ENABLE_MNAV_SENSOR
 #  include "sensors/mnav.h"
 #endif // ENABLE_MNAV_SENSOR
@@ -54,6 +55,8 @@ void IMU_init() {
 		   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "fgfs" ) {
+		fgfs_imu_init( basename, section );
 	    } else if ( source == "file" ) {
 		ugfile_imu_init( basename, section );
 #ifdef ENABLE_MNAV_SENSOR
@@ -85,6 +88,8 @@ bool IMU_update() {
 	    // 	   i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "fgfs" ) {
+		fresh_data = fgfs_imu_update();
 	    } else if ( source == "file" ) {
 		ugfile_read();
 		fresh_data = ugfile_get_imu();
@@ -136,6 +141,8 @@ void IMU_close() {
 		   i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "fgfs" ) {
+		fgfs_imu_close();
 	    } else if ( source == "file" ) {
 		ugfile_close();
 #ifdef ENABLE_MNAV_SENSOR

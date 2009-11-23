@@ -164,15 +164,15 @@ int UGPacketizer::packetize_imu( uint8_t *buf ) {
 
 void UGPacketizer::decode_imu( uint8_t *buf ) {
     double time = *(double *)buf; buf += 8;
-    double p = *(float *)buf; buf += 4;
-    double q = *(float *)buf; buf += 4;
-    double r = *(float *)buf; buf += 4;
-    double ax = *(float *)buf; buf += 4;
-    double ay = *(float *)buf; buf += 4;
-    double az = *(float *)buf; buf += 4;
-    double hx = *(float *)buf; buf += 4;
-    double hy = *(float *)buf; buf += 4;
-    double hz = *(float *)buf; buf += 4;
+    float p = *(float *)buf; buf += 4;
+    float q = *(float *)buf; buf += 4;
+    float r = *(float *)buf; buf += 4;
+    float ax = *(float *)buf; buf += 4;
+    float ay = *(float *)buf; buf += 4;
+    float az = *(float *)buf; buf += 4;
+    float hx = *(float *)buf; buf += 4;
+    float hy = *(float *)buf; buf += 4;
+    float hz = *(float *)buf; buf += 4;
     uint8_t status = *(uint8_t *)buf; buf += 1;
 
     printf("t = %.2f (%.3f %.3f %.3f) (%.3f %.3f %.f) (%.3f %.3f %.3f) %d\n",
