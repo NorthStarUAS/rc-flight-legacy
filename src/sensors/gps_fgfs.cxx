@@ -101,44 +101,44 @@ bool fgfs_gps_update() {
     const int fgfs_gps_size = 40;
     uint8_t packet_buf[fgfs_gps_size];
 
+    bool fresh_data = false;
+
     int result;
-    if ( (result = sock.recv(packet_buf, fgfs_gps_size, 0)) < 0 ) {
-	return false;
+    while ( (result = sock.recv(packet_buf, fgfs_gps_size, 0))
+	    == fgfs_gps_size )
+    {
+	fresh_data = true;
+
+	/*
+	  my_swap( packet_buf, 0, 8 );
+	  my_swap( packet_buf, 8, 4 );
+	  my_swap( packet_buf, 12, 4 );
+	  my_swap( packet_buf, 16, 4 );
+	  my_swap( packet_buf, 20, 4 );
+	  my_swap( packet_buf, 24, 4 );
+	  my_swap( packet_buf, 28, 4 );
+	*/
+
+	uint8_t *buf = packet_buf;
+	double time = *(double *)buf; buf += 8;
+	double lat = *(double *)buf; buf += 8;
+	double lon = *(double *)buf; buf += 8;
+	float alt = *(float *)buf; buf += 4;
+	float vn = *(float *)buf; buf += 4;
+	float ve = *(float *)buf; buf += 4;
+	float vd = *(float *)buf; buf += 4;
+
+	gps_timestamp_node->setDoubleValue( get_Time() );
+	gps_lat_node->setDoubleValue( lat );
+	gps_lon_node->setDoubleValue( lon );
+	gps_alt_node->setDoubleValue( alt );
+	gps_vn_node->setDoubleValue( vn );
+	gps_ve_node->setDoubleValue( ve );
+	gps_vd_node->setDoubleValue( vd );
+	gps_unix_sec_node->setDoubleValue( time );
     }
 
-    // printf("udp msg received = %d\n", result);
-
-    /* printf("%02x %02x %02x %02x %.3f\n", (unsigned char)packet_buf[28], (unsigned char)packet_buf[29], (unsigned char)packet_buf[30], (unsigned char)packet_buf[31], *(float *)(&packet_buf[28])); */
-
-    /*
-    my_swap( packet_buf, 0, 8 );
-    my_swap( packet_buf, 8, 4 );
-    my_swap( packet_buf, 12, 4 );
-    my_swap( packet_buf, 16, 4 );
-    my_swap( packet_buf, 20, 4 );
-    my_swap( packet_buf, 24, 4 );
-    my_swap( packet_buf, 28, 4 );
-    */
-
-    uint8_t *buf = packet_buf;
-    double time = *(double *)buf; buf += 8;
-    double lat = *(double *)buf; buf += 8;
-    double lon = *(double *)buf; buf += 8;
-    float alt = *(float *)buf; buf += 4;
-    float vn = *(float *)buf; buf += 4;
-    float ve = *(float *)buf; buf += 4;
-    float vd = *(float *)buf; buf += 4;
-
-    gps_timestamp_node->setDoubleValue( get_Time() );
-    gps_lat_node->setDoubleValue( lat );
-    gps_lon_node->setDoubleValue( lon );
-    gps_alt_node->setDoubleValue( alt );
-    gps_vn_node->setDoubleValue( vn );
-    gps_ve_node->setDoubleValue( ve );
-    gps_vd_node->setDoubleValue( vd );
-    gps_unix_sec_node->setDoubleValue( time );
-
-    return true;
+    return fresh_data;
 }
 
 
