@@ -48,7 +48,7 @@ void IMU_init() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "imu" ) {
-	    string source = section->getChild("source")->getStringValue();
+	    string source = section->getChild("source", 0, true)->getStringValue();
 	    string basename = "/sensors/";
 	    basename += section->getDisplayName();
 	    printf("i = %d  name = %s source = %s %s\n",
@@ -83,7 +83,7 @@ bool IMU_update() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "imu" ) {
-	    string source = section->getChild("source")->getStringValue();
+	    string source = section->getChild("source", 0, true)->getStringValue();
 	    // printf("i = %d  name = %s source = %s\n",
 	    // 	   i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {
@@ -136,7 +136,7 @@ void IMU_close() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "imu" ) {
-	    string source = section->getChild("source")->getStringValue();
+	    string source = section->getChild("source", 0, true)->getStringValue();
 	    printf("i = %d  name = %s source = %s\n",
 		   i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {

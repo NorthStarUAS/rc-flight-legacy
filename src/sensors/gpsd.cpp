@@ -16,8 +16,8 @@ using std::string;
 #include "globaldefs.h"
 
 #include "comms/logging.h"
+#include "comms/netSocket.h"
 #include "props/props.hxx"
-#include "util/netSocket.h"
 #include <util/strutils.hxx>
 #include "util/timing.h"
 #include "gps_mgr.h"

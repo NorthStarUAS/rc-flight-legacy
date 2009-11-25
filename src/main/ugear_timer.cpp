@@ -27,6 +27,7 @@
 #include "actuators/act_mgr.h"
 #include "comms/console_link.h"
 #include "comms/logging.h"
+#include "comms/netSocket.h"	// netInit()
 #include "control/control.h"
 #include "control/route_mgr.hxx"
 #include "filters/filter_mgr.h"
@@ -39,7 +40,6 @@
 #include "sensors/mnav.h"
 #include "util/exception.hxx"
 #include "util/myprof.h"
-#include "util/netSocket.h"
 #include "util/sg_path.hxx"
 #include "util/timing.h"
 

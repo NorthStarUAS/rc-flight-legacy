@@ -92,8 +92,8 @@ void Filter_init() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "filter" ) {
-	    string module = section->getChild("module")->getStringValue();
-	    bool enabled = section->getChild("enable")->getBoolValue();
+	    string module = section->getChild("module", 0, true)->getStringValue();
+	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
 	    if ( !enabled ) {
 		continue;
 	    }
@@ -171,8 +171,8 @@ bool Filter_update( bool fresh_imu_data ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "filter" ) {
-	    string module = section->getChild("module")->getStringValue();
-	    bool enabled = section->getChild("enable")->getBoolValue();
+	    string module = section->getChild("module", 0, true)->getStringValue();
+	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
 	    if ( !enabled ) {
 		continue;
 	    }
@@ -246,7 +246,11 @@ void Filter_close() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "filter" ) {
-	    string module = section->getChild("module")->getStringValue();
+	    string module = section->getChild("module", 0, true)->getStringValue();
+	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    if ( !enabled ) {
+		continue;
+	    }
 	    if ( module == "null" ) {
 		// do nothing
 #ifdef ENABLE_MNAV_FILTER

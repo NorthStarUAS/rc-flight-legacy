@@ -26,6 +26,7 @@
 #endif
 #include "util/timing.h"
 
+#include "act_fgfs.hxx"
 #include "act_mgr.h"
 
 //
@@ -88,15 +89,27 @@ void Actuator_init() {
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
-	if ( name == "null" ) {
-	    // do nothing
+	if ( name == "actuator" ) {
+	    string module = section->getChild("module", 0, true)->getStringValue();
+	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    if ( !enabled ) {
+		continue;
+	    }
+	    printf("i = %d  name = %s module = %s\n",
+	    	   i, name.c_str(), module.c_str());
+
+	    if ( module == "null" ) {
+		// do nothing
+	    } else if ( module == "fgfs" ) {
+		fgfs_act_init( section );
 #ifdef ENABLE_MNAV_SENSOR
-	} else if ( name == "mnav" ) {
-	    // do nothing
+	    } else if ( module == "mnav" ) {
+		// do nothing
 #endif // ENABLE_MNAV_SENSOR
-	} else {
-	    printf("Unknown actuator = '%s' in config file\n",
-		   name.c_str());
+	    } else {
+		printf("Unknown actuator = '%s' in config file\n",
+		       name.c_str());
+	    }
 	}
     }
 }
@@ -245,15 +258,24 @@ bool Actuator_update() {
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
-	if ( name == "null" ) {
-	    // do nothing
+	if ( name == "actuator" ) {
+	    string module = section->getChild("module", 0, true)->getStringValue();
+	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    if ( !enabled ) {
+		continue;
+	    }
+	    if ( module == "null" ) {
+		// do nothing
+	    } else if ( module == "fgfs" ) {
+		fgfs_act_update();
 #ifdef ENABLE_MNAV_SENSOR
-	} else if ( name == "mnav" ) {
-	    mnav_send_short_servo_cmd( &servo_out );
+	    } else if ( module == "mnav" ) {
+		mnav_send_short_servo_cmd( &servo_out );
 #endif // ENABLE_MNAV_SENSOR
-	} else {
-	    printf("Unknown actuator = '%s' in config file\n",
-		   name.c_str());
+	    } else {
+		printf("Unknown actuator = '%s' in config file\n",
+		       name.c_str());
+	    }
 	}
     }
 
@@ -280,15 +302,24 @@ void Actuators_close() {
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
-	if ( name == "null" ) {
-	    // do nothing
+	if ( name == "actuator" ) {
+	    string module = section->getChild("module", 0, true)->getStringValue();
+	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    if ( !enabled ) {
+		continue;
+	    }
+	    if ( module == "null" ) {
+		// do nothing
+	    } else if ( module == "fgfs" ) {
+		fgfs_act_close();
 #ifdef ENABLE_MNAV_SENSOR
-	} else if ( name == "mnav" ) {
-	    // noop
+	    } else if ( module == "mnav" ) {
+		// noop
 #endif // ENABLE_MNAV_SENSOR
-	} else {
-	    printf("Unknown actuator = '%s' in config file\n",
-		   name.c_str());
+	    } else {
+		printf("Unknown actuator = '%s' in config file\n",
+		       name.c_str());
+	    }
 	}
     }
 }

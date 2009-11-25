@@ -75,7 +75,7 @@ void AirData_init() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "air-data" ) {
-	    string source = section->getChild("source")->getStringValue();
+	    string source = section->getChild("source", 0, true)->getStringValue();
 	    string basename = "/sensors/";
 	    basename += section->getDisplayName();
 	    printf("i = %d  name = %s source = %s %s\n",
@@ -159,7 +159,7 @@ bool AirData_update() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "air-data" ) {
-	    string source = section->getChild("source")->getStringValue();
+	    string source = section->getChild("source", 0, true)->getStringValue();
 	    string basename = "/sensors/";
 	    basename += section->getDisplayName();
 	    // printf("i = %d  name = %s source = %s %s\n",
@@ -203,7 +203,7 @@ void AirData_close() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "airdata" ) {
-	    string source = section->getChild("source")->getStringValue();
+	    string source = section->getChild("source", 0, true)->getStringValue();
 	    string basename = "/sensors/";
 	    basename += section->getDisplayName();
 	    // printf("i = %d  name = %s source = %s %s\n",
