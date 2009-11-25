@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+
+<!-- Example usage: <dash><dash>generic=file,out,50,fgfs.truth,insgns-truth -->
+
+<PropertyList>
+
+ <generic>
+
+  <input>
+    <binary_mode>true</binary_mode>
+    <binary_footer>none</binary_footer>
+
+    <chunk>
+      <name>time (sec)</name>
+      <type>double</type>
+      <node>/ugear/act/timestamp-sec</node>
+    </chunk>
+
+    <chunk>
+      <name>aileron</name>
+      <type>float</type>
+      <node>/ugear/act/aileron</node>
+    </chunk>
+
+    <chunk>
+      <name>elevator</name>
+      <type>float</type>
+      <node>/ugear/act/elevator</node>
+    </chunk>
+
+    <chunk>
+      <name>throttle</name>
+      <type>float</type>
+      <node>/ugear/act/throttle</node>
+    </chunk>
+
+    <chunk>
+      <name>rudder</name>
+      <type>float</type>
+      <node>/ugear/act/rudder</node>
+    </chunk>
+
+    <chunk>
+      <name>channel5</name>
+      <type>float</type>
+      <node>/ugear/act/channel5</node>
+    </chunk>
+
+    <chunk>
+      <name>channel6</name>
+      <type>float</type>
+      <node>/ugear/act/channel6</node>
+    </chunk>
+
+    <chunk>
+      <name>channel7</name>
+      <type>float</type>
+      <node>/ugear/act/channel7</node>
+    </chunk>
+
+    <chunk>
+      <name>channel8</name>
+      <type>float</type>
+      <node>/ugear/act/channel8</node>
+    </chunk>
+
+
+  </input>
+
+ </generic>
+
+</PropertyList>

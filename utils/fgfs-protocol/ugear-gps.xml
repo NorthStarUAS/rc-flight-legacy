@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<!-- Example usage: <dash><dash>generic=file,out,4,fgfs.gps,insgns-gps -->
+
+<PropertyList>
+
+ <generic>
+
+  <output>
+    <binary_mode>true</binary_mode>
+    <binary_footer>none</binary_footer>
+
+    <chunk>
+      <name>time (sec)</name>
+      <type>double</type>
+      <node>/sim/time/elapsed-sec</node>
+    </chunk>
+
+    <chunk>
+      <name>latitude</name>
+      <type>double</type>
+      <node>/position/latitude-deg</node>
+    </chunk>
+
+    <chunk>
+      <name>longitude</name>
+      <type>double</type>
+      <node>/position/longitude-deg</node>
+    </chunk>
+
+    <chunk>
+      <name>positive altitiude (m)</name>
+      <type>float</type>
+      <node>/position/altitude-ft</node>
+      <factor>0.3048</factor>                  <!-- feet to meter -->
+    </chunk>
+
+    <chunk>
+      <name>Velocity North ("vn" mps)</name>
+      <type>float</type>
+      <node>/velocities/speed-north-fps</node>
+      <factor>0.3048</factor>                  <!-- fps to mps -->
+    </chunk>
+
+    <chunk>
+      <name>Velocity East ("ve" mps)</name>
+      <type>float</type>
+      <node>/velocities/speed-east-fps</node>
+      <factor>0.3048</factor>                  <!-- fps to mps -->
+    </chunk>
+
+    <chunk>
+      <name>Velocity Down ("vd" mps)</name>
+      <type>float</type>
+      <node>/velocities/speed-down-fps</node>
+      <factor>0.3048</factor>                  <!-- fps to mps -->
+    </chunk>
+  </output>
+
+ </generic>
+
+</PropertyList>
