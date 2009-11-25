@@ -34,12 +34,18 @@
       <actuator-skip>4</actuator-skip>
     </console>
 
+    <telnet>
+      <enable type="bool">true</enable>
+      <port>6499</port>
+    </telnet>
+
     <!-- Sensor selection and configuration. -->
     <sensors>
       <imu-group>
         <imu>
-	  <source>file</source> <!-- 6DOFv4, AD12345, file, or mnav -->
-          <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN</name> 
+	  <source>fgfs</source> <!-- 6DOFv4, AD12345, file, or mnav -->
+          <port>6500</port>
+          <!-- <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN</name> -->
         </imu>
         <!-- <imu> -->
 	  <!-- <source>mnav</source> --> <!-- 6DOFv4, AD12345, file, or mnav -->
@@ -49,8 +55,9 @@
 
       <gps-group>
         <gps>
-	  <source>file</source> <!-- 6DOFv4, AD12345, file, or mnav -->
-          <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN</name> 
+	  <source>fgfs</source>
+	  <port>6501</port>
+          <!-- <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN</name> -->
         </gps>
 
         <!-- <gps> -->
@@ -83,9 +90,15 @@
       <gps-timeout-sec>15.0</gps-timeout-sec>
 
       <filter>
+	<!-- University of Minnesota AEM ADNS -->
+	<module>umn</module>
+	<enable type="bool">true</enable>
+      </filter>
+
+      <filter>
 	<!-- MNAV based AHRS + Navigation algorithm -->
 	<module>mnav</module>
-	<enable type="bool">true</enable>
+	<enable type="bool">false</enable>
 
 	<!-- hard iron calibration parameters, see the readme for -->
 	<!-- configuration and calibration instructions. -->
@@ -93,12 +106,6 @@
 	<bBy>0.0</bBy>
 	<sfx>1.0</sfx>
 	<sfy>1.0</sfy>
-      </filter>
-
-      <filter>
-	<!-- University of Minnesota AEM ADNS -->
-	<module>umn</module>
-	<enable type="bool">false</enable>
       </filter>
 
       <filter>
@@ -139,8 +146,11 @@
 
     <!-- Actuator selection and configuration. -->
     <actuators>
-      <!-- output can be: mnav, or null -->
-      <null/>
+      <actuator>
+        <module>fgfs</module>
+        <host>localhost</host>
+        <port>6502</port>        
+      </actuator>
     </actuators>
 
   </config>

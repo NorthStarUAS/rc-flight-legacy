@@ -138,6 +138,18 @@ bool fgfs_act_update() {
     float ch8 = act_channel8_node->getFloatValue();
     *(float *)buf = ch8; buf += 4;
 
+    if ( ulIsLittleEndian ) {
+	my_swap( packet_buf, 0, 8 );
+	my_swap( packet_buf, 8, 4 );
+	my_swap( packet_buf, 12, 4 );
+	my_swap( packet_buf, 16, 4 );
+	my_swap( packet_buf, 20, 4 );
+	my_swap( packet_buf, 24, 4 );
+	my_swap( packet_buf, 28, 4 );
+	my_swap( packet_buf, 32, 4 );
+	my_swap( packet_buf, 36, 4 );
+    }
+
     int result = sock.send( packet_buf, fgfs_act_size, 0 );
     if ( result != fgfs_act_size ) {
 	return false;
