@@ -109,15 +109,15 @@ bool fgfs_gps_update() {
     {
 	fresh_data = true;
 
-	/*
-	  my_swap( packet_buf, 0, 8 );
-	  my_swap( packet_buf, 8, 4 );
-	  my_swap( packet_buf, 12, 4 );
-	  my_swap( packet_buf, 16, 4 );
-	  my_swap( packet_buf, 20, 4 );
-	  my_swap( packet_buf, 24, 4 );
-	  my_swap( packet_buf, 28, 4 );
-	*/
+	if ( ulIsLittleEndian ) {
+	    my_swap( packet_buf, 0, 8 );
+	    my_swap( packet_buf, 8, 8 );
+	    my_swap( packet_buf, 16, 8 );
+	    my_swap( packet_buf, 24, 4 );
+	    my_swap( packet_buf, 28, 4 );
+	    my_swap( packet_buf, 32, 4 );
+	    my_swap( packet_buf, 36, 4 );
+	}
 
 	uint8_t *buf = packet_buf;
 	double time = *(double *)buf; buf += 8;
