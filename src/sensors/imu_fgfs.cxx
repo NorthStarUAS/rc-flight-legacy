@@ -10,8 +10,8 @@
 
 #include "include/ugear_config.h"
 
+#include "comms/netSocket.h"
 #include "props/props.hxx"
-#include "util/netSocket.h"
 #include "util/timing.h"
 
 #include "imu_fgfs.hxx"
