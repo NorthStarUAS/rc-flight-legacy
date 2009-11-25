@@ -11,12 +11,18 @@
 // modify it under the terms of the GNU LGPL
 //
 
+#include <sstream>
+
 #include "props/props.hxx"
+#include "props/props_io.hxx"
 #include "util/strutils.hxx"
 
 #include "netChat.h"
 #include "logging.h"
 #include "telnet.hxx"
+
+using std::stringstream;
+using std::ends;
 
 
 /**
@@ -154,7 +160,7 @@ PropsChannel::foundTerminator()
 	} else if ( command == "ls" ) {
 	    SGPropertyNode* dir = node;
 	    if (tokens.size() == 2) {
-		if (tokens[1][0] == '/') {
+		if ( tokens[1][0] == '/' ) {
 		    dir = fgGetNode( tokens[1].c_str() );
 		} else {
 		    string s = path;
@@ -162,29 +168,29 @@ PropsChannel::foundTerminator()
 		    s += tokens[1];
 		    dir = fgGetNode( s.c_str() );
 		}
-
-		if (dir == 0) {
-		    node_not_found_error( tokens[1] );
-		}
 	    }
 
-	    for (int i = 0; i < dir->nChildren(); i++) {
-		SGPropertyNode * child = dir->getChild(i);
-		string line = child->getDisplayName(true);
+	    if ( dir != NULL ) {
+		for ( int i = 0; i < dir->nChildren(); i++ ) {
+		    SGPropertyNode * child = dir->getChild(i);
+		    string line = child->getDisplayName(true);
 
-		if ( child->nChildren() > 0 ) {
-		    line += "/";
-		} else {
-		    if (mode == PROMPT) {
-			string value = child->getStringValue();
-			line += " =\t'" + value + "'\t(";
+		    if ( child->nChildren() > 0 ) {
+			line += "/";
+		    } else {
+			if (mode == PROMPT) {
+			    string value = child->getStringValue();
+			    line += " =\t'" + value + "'\t(";
 			line += getValueTypeString( child );
 			line += ")";
+			}
 		    }
-		}
 
-		line += getTerminator();
-		push( line.c_str() );
+		    line += getTerminator();
+		    push( line.c_str() );
+		}
+	    } else {
+		node_not_found_error( tokens[1] );
 	    }
 	} else if ( command == "cd" ) {
 	    if (tokens.size() == 2) {
@@ -244,7 +250,25 @@ PropsChannel::foundTerminator()
 		    push( getTerminator() );
 		}
 	    }
-        } else if ( command == "quit" ) {
+	} else if ( command == "dump" ) {
+	    stringstream buf;
+	    if ( tokens.size() <= 1 ) {
+		writeProperties( buf, node, true );
+		buf << ends; // null terminate the string
+		push( buf.str().c_str() );
+		push( getTerminator() );
+	    } else {
+		SGPropertyNode *child = node->getNode( tokens[1].c_str() );
+		if ( child ) {
+		    writeProperties ( buf, child, true );
+		    buf << ends; // null terminate the string
+		    push( buf.str().c_str() );
+		    push( getTerminator() );
+		} else {
+		    node_not_found_error( tokens[1] );
+		}
+	    }
+         } else if ( command == "quit" ) {
 	    close();
 	    shouldDelete();
 	    return;
@@ -258,7 +282,7 @@ Valid commands are:\r\n\
 \r\n\
 cd <dir>           cd to a directory, '..' to move back\r\n\
 data               switch to raw data mode\r\n\
-# dump               dump current state (in xml)\r\n\
+dump [<dir>]       dump the current state (in xml)\r\n\
 get <var>          show the value of a parameter\r\n\
 help               show this help message\r\n\
 ls [<dir>]         list directory\r\n\

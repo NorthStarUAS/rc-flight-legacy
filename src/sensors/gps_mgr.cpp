@@ -59,7 +59,7 @@ void GPS_init() {
     gps_magvar_deg_node = fgGetNode("/sensors/gps/magvar-deg", true);
 
     // initialize magnetic variation property nodes
-    magvar_init_deg_node = fgGetNode("/config/adns/magvar-deg", true);
+    magvar_init_deg_node = fgGetNode("/config/filters/magvar-deg", true);
 
     // initialize comm nodes
     gps_console_skip = fgGetNode("/config/console/gps-skip", true);

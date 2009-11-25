@@ -58,14 +58,14 @@ void AirData_init() {
     airdata_Ps_node = fgGetNode("/sensors/air-data/Ps-m", true);
     airdata_Pt_node = fgGetNode("/sensors/air-data/Pt-ms", true);
     Ps_filt_node = fgGetNode("/position/altitude-pressure-m", true);
-    Pt_filt_node = fgGetNode("/velocities/airspeed-kt", true);
+    Pt_filt_node = fgGetNode("/velocity/airspeed-kt", true);
     true_alt_ft_node = fgGetNode("/position/altitude-ft",true);
     agl_alt_ft_node = fgGetNode("/position/altitude-agl-ft", true);
     pressure_error_m_node
 	= fgGetNode("/position/pressure-error-m", true);
     vert_fps_node
-	= fgGetNode("/velocities/pressure-vertical-speed-fps",true);
-    forward_accel_node = fgGetNode("/accelerations/airspeed-ktps",true);
+	= fgGetNode("/velocity/pressure-vertical-speed-fps",true);
+    forward_accel_node = fgGetNode("/acceleration/airspeed-ktps",true);
     ground_alt_press_m_node
         = fgGetNode("/position/ground-altitude-pressure-m", true);
 
