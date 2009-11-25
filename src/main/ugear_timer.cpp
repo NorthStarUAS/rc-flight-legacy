@@ -60,6 +60,7 @@ static bool enable_control = false;   // autopilot control module enabled/disabl
 static bool enable_mnav_adns = false; // mnav nav filter enabled/disabled
 static bool enable_umn_adns = false;  // mnav nav filter enabled/disabled
 static bool enable_route   = false;   // route module enabled/disabled
+static bool enable_telnet  = false;   // telnet command/monitor interface
 static bool initial_home   = false;   // initial home position determined
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 static double lost_link_sec = 59.0;   // lost link timeout
@@ -196,6 +197,14 @@ void timer_handler (int signum)
 	    // resume route command to resume the route.
 	    route_mgr.set_home_mode();
 	}
+    }
+
+    //
+    // Read commands from telnet interface
+    //
+
+    if ( enable_telnet ) {
+	telnet->process();
     }
 
     //
@@ -343,6 +352,19 @@ int main( int argc, char **argv )
     p = fgGetNode("/config/logging/enable", true);
     log_to_file = p->getBoolValue();
     printf("log path = %s enabled = %d\n", log_path.c_str(), log_to_file);
+
+    p = fgGetNode("/config/telnet/enable", true);
+    enable_telnet = p->getBoolValue();
+    if ( enable_telnet ) {
+	p = fgGetNode("/config/telnet/port", true);
+	if ( p->getIntValue() > 0 ) {
+	    telnet = new UGTelnet( p->getIntValue() );
+	    telnet->open();
+	} else {
+	    printf("No telnet port defined, disabling telnet interface\n");
+	    enable_telnet = false;
+	}
+    }
 
     p = fgGetNode("/config/adns/mnav/enable", true);
     enable_mnav_adns = p->getBoolValue();

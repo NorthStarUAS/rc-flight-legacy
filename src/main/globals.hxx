@@ -6,15 +6,19 @@
 // This code is released into the public domain.
 // 
 
-#ifndef UG_GLOBALS_HXX
-#define UG_GLOBASL_HXX
+#ifndef UGEAR_GLOBALS_HXX
+#define UGEAR_GLOBALS_HXX
 
 
 #include "comms/packetizer.hxx"
+#include "comms/telnet.hxx"
+
 
 extern UGPacketizer *packetizer;
+extern UGTelnet *telnet;
+
 
 bool UGGlobals_init();
 
 
-#endif // UG_GLOBALS_HXX
+#endif // UGEAR_GLOBALS_HXX

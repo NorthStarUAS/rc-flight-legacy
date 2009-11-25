@@ -6,10 +6,11 @@
 // This code is released into the public domain.
 // 
 
-#include "comms/packetizer.hxx"
+#include "globals.hxx"
 
 
-UGPacketizer *packetizer;
+UGPacketizer *packetizer = NULL;
+UGTelnet *telnet = NULL;
 
 
 bool UGGlobals_init() {
