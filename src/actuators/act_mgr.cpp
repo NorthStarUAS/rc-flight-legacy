@@ -119,7 +119,7 @@ bool Actuator_update() {
     /* printf("%.2f %.2f\n", aileron_out_node->getFloatValue(),
               elevator_out_node->getFloatValue()); */
     /* static SGPropertyNode *vert_speed_fps
-       = fgGetNode("/velocities/vertical-speed-fps", true); */
+       = fgGetNode("/velocity/vertical-speed-fps", true); */
     /* static SGPropertyNode *true_alt
        = fgGetNode("/position/altitude-ft", true); */
     /* printf("%.1f %.2f %.2f\n",

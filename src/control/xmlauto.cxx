@@ -831,7 +831,7 @@ inline void SG_NORMALIZE_RANGE( T &val, const T min, const T max ) {
  */
 static void update_helper( double dt ) {
     // Estimate speed in 5,10 seconds
-    static SGPropertyNode *vel = fgGetNode( "/velocities/airspeed-kt", true );
+    static SGPropertyNode *vel = fgGetNode( "/velocity/airspeed-kt", true );
     static SGPropertyNode *lookahead5
         = fgGetNode( "/autopilot/internal/lookahead-5-sec-airspeed-kt", true );
     static SGPropertyNode *lookahead10

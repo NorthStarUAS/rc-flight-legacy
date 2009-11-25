@@ -57,8 +57,6 @@ static const int HEARTBEAT_HZ = 50;	 // master clock rate
 
 static bool log_servo_out  = true;    // log outgoing servo commands by default
 static bool enable_control = false;   // autopilot control module enabled/disabled
-static bool enable_mnav_adns = false; // mnav nav filter enabled/disabled
-static bool enable_umn_adns = false;  // mnav nav filter enabled/disabled
 static bool enable_route   = false;   // route module enabled/disabled
 static bool enable_telnet  = false;   // telnet command/monitor interface
 static bool initial_home   = false;   // initial home position determined
@@ -366,20 +364,12 @@ int main( int argc, char **argv )
 	}
     }
 
-    p = fgGetNode("/config/adns/mnav/enable", true);
-    enable_mnav_adns = p->getBoolValue();
-
-    p = fgGetNode("/config/adns/gps-timeout-sec");
+    p = fgGetNode("/config/filters/gps-timeout-sec");
     if ( p != NULL && p->getDoubleValue() > 0.0001 ) {
 	// stick with the default if nothing valid specified
 	gps_timeout_sec = p->getDoubleValue();
     }
-    printf("mnav adns enabled = %d  gps timeout = %.1f\n",
-	   enable_mnav_adns, gps_timeout_sec);
-
-    p = fgGetNode("/config/adns/umn/enable", true);
-    enable_umn_adns = p->getBoolValue();
-    printf("umn adns enabled = %d\n", enable_umn_adns);
+    printf("gps timeout = %.1f\n", gps_timeout_sec);
 
     p = fgGetNode("/config/console/lost-link-timeout-sec");
     if ( p != NULL && p->getDoubleValue() > 0.0001 ) {
@@ -449,7 +439,7 @@ int main( int argc, char **argv )
     // Initialize communication with the selected GPS
     GPS_init();
 
-    // Initialize any defined ADNS modules
+    // Initialize any defined filter modules
     Filter_init();
 
     // init system health and status monitor
