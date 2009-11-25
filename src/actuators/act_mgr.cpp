@@ -104,7 +104,7 @@ void Actuator_init() {
 		fgfs_act_init( section );
 #ifdef ENABLE_MNAV_SENSOR
 	    } else if ( module == "mnav" ) {
-		// do nothing
+		mnav_act_init();
 #endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown actuator = '%s' in config file\n",
@@ -116,8 +116,8 @@ void Actuator_init() {
 
 
 bool Actuator_update() {
-    /* printf("%.2f %.2f\n", aileron_out_node->getDoubleValue(),
-              elevator_out_node->getDoubleValue()); */
+    /* printf("%.2f %.2f\n", aileron_out_node->getFloatValue(),
+              elevator_out_node->getFloatValue()); */
     /* static SGPropertyNode *vert_speed_fps
        = fgGetNode("/velocities/vertical-speed-fps", true); */
     /* static SGPropertyNode *true_alt
@@ -125,7 +125,7 @@ bool Actuator_update() {
     /* printf("%.1f %.2f %.2f\n",
            true_alt->getDoubleValue(),
            vert_speed_fps->getDoubleValue(),
-           elevator_out_node->getDoubleValue()); */
+           elevator_out_node->getFloatValue()); */
 
     // initialize the servo command array to central values so we don't
     // inherit junk
@@ -133,40 +133,40 @@ bool Actuator_update() {
     //    servo_out.chn[i] = 32768;
     //}
 
-    float elevator = output_elevator_node->getDoubleValue()
-	+ output_elevator_damp_node->getDoubleValue();
+    float elevator = output_elevator_node->getFloatValue()
+	+ output_elevator_damp_node->getFloatValue();
 
     if ( act_elevon_mix_node->getBoolValue() ) {
         // elevon mixing mode
 
         //aileron
         /* servo_out.chn[0] = 32768
-            + (int16_t)(act_aileron_node->getDoubleValue() * 32768)
+            + (int16_t)(act_aileron_node->getFloatValue() * 32768)
             + (int16_t)(elevator * 32768); */
 	act_aileron_node
-	    ->setDoubleValue( output_aileron_node->getDoubleValue()
+	    ->setFloatValue( output_aileron_node->getFloatValue()
 			      + elevator );
 
         //elevator
         /* servo_out.chn[1] = 32768
-            + (int16_t)(act_aileron_node->getDoubleValue() * 32768)
+            + (int16_t)(act_aileron_node->getFloatValue() * 32768)
             - (int16_t)(elevator * 32768); */
 	act_elevator_node
-	    ->setDoubleValue( output_aileron_node->getDoubleValue()
+	    ->setFloatValue( output_aileron_node->getFloatValue()
 			      - elevator );
     } else {
         // conventional airframe mode
 
         //aileron
         /* servo_out.chn[0] = 32768
-	   + (int16_t)(act_aileron_node->getDoubleValue() * 32768); */
+	   + (int16_t)(act_aileron_node->getFloatValue() * 32768); */
 	act_aileron_node
-	    ->setDoubleValue( output_aileron_node->getDoubleValue() );
+	    ->setFloatValue( output_aileron_node->getFloatValue() );
 
         //elevator
         /* servo_out.chn[1] = 32768
 	   + (int16_t)(elevator * 32768); */
-	act_elevator_node->setDoubleValue( elevator );
+	act_elevator_node->setFloatValue( elevator );
     }
 
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
@@ -211,7 +211,7 @@ bool Actuator_update() {
     // range) assuming 25 cycles per second.
     /*static int16_t last_throttle = 12000;
     int16_t target_throttle = 32768
-	+ (int16_t)(act_throttle_node->getDoubleValue() * 32768);
+	+ (int16_t)(act_throttle_node->getFloatValue() * 32768);
     int16_t diff = target_throttle - last_throttle;
     if ( diff > 128 ) diff = 128;
     if ( diff < -128 ) diff = -128;
@@ -220,22 +220,22 @@ bool Actuator_update() {
     // limit throttle delta to 0.2% of full range per cycle.  At a 50hz
     // update rate it will take 10 seconds to travel the full range.
     static double last_throttle = 0.0;
-    double target_throttle = output_throttle_node->getDoubleValue();
+    double target_throttle = output_throttle_node->getFloatValue();
     double diff = target_throttle - last_throttle;
     if ( diff > 0.002 ) { diff = 0.002; }
     if ( diff < -0.002 ) { diff = -0.002; }
-    act_throttle_node->setDoubleValue( last_throttle + diff );
+    act_throttle_node->setFloatValue( last_throttle + diff );
     last_throttle = last_throttle + diff;
 
     // override and disable throttle output if within 100' of the
     // ground (assuming ground elevation is the pressure altitude we
     // recorded with the system started up.
     if ( agl_alt_ft_node->getDoubleValue() < 100.0 ) {
-        act_throttle_node->setDoubleValue( 0.0 );
+        act_throttle_node->setFloatValue( 0.0 );
 	/* servo_out.chn[2] = 12000; */
     }
 
-    // printf("throttle = %.2f %d\n", throttle_out_node->getDoubleValue(),
+    // printf("throttle = %.2f %d\n", throttle_out_node->getFloatValue(),
     //        servo_out.chn[2]);
 
     /* last_throttle = servo_out.chn[2]; */
@@ -245,8 +245,8 @@ bool Actuator_update() {
 
     // rudder
     /* servo_out.chn[3] = 32768
-       + (int16_t)(act_rudder_node->getDoubleValue() * 32768); */
-    act_rudder_node->setDoubleValue( output_rudder_node->getDoubleValue() );
+       + (int16_t)(act_rudder_node->getFloatValue() * 32768); */
+    act_rudder_node->setFloatValue( output_rudder_node->getFloatValue() );
 
     // time stamp for logging
     /* servo_out.time = get_Time(); */
@@ -270,7 +270,7 @@ bool Actuator_update() {
 		fgfs_act_update();
 #ifdef ENABLE_MNAV_SENSOR
 	    } else if ( module == "mnav" ) {
-		mnav_send_short_servo_cmd( &servo_out );
+		mnav_send_short_servo_cmd( /* &servo_out */ );
 #endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown actuator = '%s' in config file\n",
@@ -314,7 +314,7 @@ void Actuators_close() {
 		fgfs_act_close();
 #ifdef ENABLE_MNAV_SENSOR
 	    } else if ( module == "mnav" ) {
-		// noop
+		// do nothing
 #endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown actuator = '%s' in config file\n",

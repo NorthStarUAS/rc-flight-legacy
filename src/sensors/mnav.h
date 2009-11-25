@@ -25,10 +25,17 @@ struct gps {
    uint64_t status;		/* data status flag            */
 };
 
+struct servo {
+    double time;
+    uint16_t channel[8];
+    uint8_t status;
+};
+
 // function prototypes
 void mnav_imu_init( string rootname, SGPropertyNode *config );
 void mnav_airdata_init( string rootname );
 void mnav_gps_init( string rootname );
+void mnav_act_init();
 
 bool mnav_read();
 
@@ -46,8 +53,8 @@ void mnav_gps_update();
 void mnav_airdata_update();
 void mnav_manual_override_check();
 
-void mnav_send_servo_cmd( struct servo *servo_out );
-void mnav_send_short_servo_cmd( struct servo *servo_out );
+void mnav_send_servo_cmd( /* struct servo *servo_out */ );
+void mnav_send_short_servo_cmd( /* struct servo *servo_out */ );
 
 
 #endif // _UGEAR_MNAV_H

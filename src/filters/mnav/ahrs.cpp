@@ -20,8 +20,6 @@
 #include "control/control.h"
 #include "include/globaldefs.h"
 #include "props/props.hxx"
-//#include "sensors/imu_mgr.h"
-#include "util/myprof.h"
 #include "util/timing.h"
 
 #include "util.h"
@@ -299,9 +297,7 @@ static void ahrs_algorithm(struct imu *data)
 // ahrs update() routine
 void mnav_ahrs_update( struct imu *imupacket )
 {
-    ahrs_prof.start();
     ahrs_algorithm( imupacket );
-    ahrs_prof.stop();
 
     // publish values to property tree
     theta_node->setDoubleValue( imupacket->the * SG_RADIANS_TO_DEGREES );

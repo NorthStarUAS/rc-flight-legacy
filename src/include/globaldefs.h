@@ -15,11 +15,6 @@ enum errdefs {
     ValidData,			/* data recently valid */
 };
 
-//struct servo {
-//    double time;
-//    uint16_t channel[8];
-//    uint8_t status;
-//};
 
 struct health {
     double time;
@@ -40,7 +35,6 @@ struct health {
     uint64_t nav_hz;            /* actual nav loop hz */
 };
 
-extern struct servo servo_in;
 extern struct health healthpacket;
 
 // A varienty of constants

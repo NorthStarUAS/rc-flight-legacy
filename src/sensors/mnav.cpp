@@ -55,7 +55,6 @@ void decode_gpspacket(struct gps *data, uint8_t* buffer);
 //
 static SGSerialPort sPort2;
 
-//struct servo servo_in;
 bool autopilot_active = false;
 bool autopilot_reinit = false;
 int  autopilot_count = 0;
@@ -63,6 +62,8 @@ char *cnt_status;
 
 static struct imu imu_data;
 static struct gps gps_data;
+static struct servo servo_in;
+static struct servo servo_out;
 static bool imu_data_valid = false;
 static bool gps_data_valid = false;
 static double start_time;
@@ -97,6 +98,17 @@ static SGPropertyNode *gps_ve_node = NULL;
 static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
+
+// actuator property nodes
+static SGPropertyNode *act_timestamp_node = NULL;
+static SGPropertyNode *act_aileron_node = NULL;
+static SGPropertyNode *act_elevator_node = NULL;
+static SGPropertyNode *act_throttle_node = NULL;
+static SGPropertyNode *act_rudder_node = NULL;
+static SGPropertyNode *act_channel5_node = NULL;
+static SGPropertyNode *act_channel6_node = NULL;
+static SGPropertyNode *act_channel7_node = NULL;
+static SGPropertyNode *act_channel8_node = NULL;
 
 // initialize mnav input property nodes
 static void bind_input( SGPropertyNode *config ) {
@@ -141,6 +153,19 @@ static void bind_gps_output( string rootname ) {
     gps_vn_node = outputroot->getChild("vn-ms", 0, true);
     gps_vd_node = outputroot->getChild("vd-ms", 0, true);
     gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+}
+
+// initialize actuator property nodes 
+static void bind_act_nodes() {
+    act_timestamp_node = fgGetNode("/actuators/actuator/timestamp", true);
+    act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
+    act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
+    act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);
+    act_rudder_node = fgGetNode("/actuators/actuator/channel", 3, true);
+    act_channel5_node = fgGetNode("/actuators/actuator/channel", 4, true);
+    act_channel6_node = fgGetNode("/actuators/actuator/channel", 5, true);
+    act_channel7_node = fgGetNode("/actuators/actuator/channel", 6, true);
+    act_channel8_node = fgGetNode("/actuators/actuator/channel", 7, true);
 }
 
 
@@ -226,6 +251,10 @@ void mnav_airdata_init( string rootname ) {
 
 void mnav_gps_init( string rootname ) {
     bind_gps_output( rootname );
+}
+
+void mnav_act_init() {
+    bind_act_nodes();
 }
 
 
@@ -509,7 +538,9 @@ void mnav_manual_override_check() {
     // picking up toothpicks.
     //
 
-    if ( servo_in.chn[4] <= 12000 ) {
+    int ch5 = 32768 + act_channel5_node->getFloatValue() * 32768;
+
+    if ( ch5 <= 12000 ) {
         // MNAV is in AutoPilot Mode
         // if the autopilot is enabled, or signal is lost
         if ( !autopilot_active && display_on ) {
@@ -518,9 +549,7 @@ void mnav_manual_override_check() {
         }
         autopilot_active = true;
         autopilot_count  = 15;
-    } else if ( servo_in.chn[4] > 12000
-                && servo_in.chn[4] < 60000 )
-    {
+    } else if ( ch5 > 12000 && ch5 < 60000 ) {
         // add delay on control trigger to minimize mode confusion
         // caused by the transmitter power off
         if ( autopilot_count < 0 ) {
@@ -639,24 +668,24 @@ void decode_imupacket( struct imu *data, uint8_t* buffer )
     // servo packet
     switch (buffer[2]) {
     case 'S' :   servo_in.status = buffer[32];
-        servo_in.chn[0] = ((tmpr = buffer[33]) << 8)|buffer[34]; tmpr = 0;
-        servo_in.chn[1] = ((tmpr = buffer[35]) << 8)|buffer[36]; tmpr = 0;
-        servo_in.chn[2] = ((tmpr = buffer[37]) << 8)|buffer[38]; tmpr = 0;
-        servo_in.chn[3] = ((tmpr = buffer[39]) << 8)|buffer[40]; tmpr = 0;
-        servo_in.chn[4] = ((tmpr = buffer[41]) << 8)|buffer[42]; tmpr = 0;
-        servo_in.chn[5] = ((tmpr = buffer[43]) << 8)|buffer[44]; tmpr = 0;
-        servo_in.chn[6] = ((tmpr = buffer[45]) << 8)|buffer[46]; tmpr = 0;
-        servo_in.chn[7] = ((tmpr = buffer[47]) << 8)|buffer[48]; 
+        servo_in.channel[0] = ((tmpr = buffer[33]) << 8)|buffer[34]; tmpr = 0;
+        servo_in.channel[1] = ((tmpr = buffer[35]) << 8)|buffer[36]; tmpr = 0;
+        servo_in.channel[2] = ((tmpr = buffer[37]) << 8)|buffer[38]; tmpr = 0;
+        servo_in.channel[3] = ((tmpr = buffer[39]) << 8)|buffer[40]; tmpr = 0;
+        servo_in.channel[4] = ((tmpr = buffer[41]) << 8)|buffer[42]; tmpr = 0;
+        servo_in.channel[5] = ((tmpr = buffer[43]) << 8)|buffer[44]; tmpr = 0;
+        servo_in.channel[6] = ((tmpr = buffer[45]) << 8)|buffer[46]; tmpr = 0;
+        servo_in.channel[7] = ((tmpr = buffer[47]) << 8)|buffer[48]; 
         break;
     case 'N' :   servo_in.status = buffer[67];
-        servo_in.chn[0] = ((tmpr = buffer[68]) << 8)|buffer[69]; tmpr = 0;
-        servo_in.chn[1] = ((tmpr = buffer[70]) << 8)|buffer[71]; tmpr = 0;
-        servo_in.chn[2] = ((tmpr = buffer[72]) << 8)|buffer[73]; tmpr = 0;
-        servo_in.chn[3] = ((tmpr = buffer[74]) << 8)|buffer[75]; tmpr = 0;
-        servo_in.chn[4] = ((tmpr = buffer[76]) << 8)|buffer[77]; tmpr = 0;
-        servo_in.chn[5] = ((tmpr = buffer[78]) << 8)|buffer[79]; tmpr = 0;
-        servo_in.chn[6] = ((tmpr = buffer[80]) << 8)|buffer[81]; tmpr = 0;
-        servo_in.chn[7] = ((tmpr = buffer[82]) << 8)|buffer[83]; 
+        servo_in.channel[0] = ((tmpr = buffer[68]) << 8)|buffer[69]; tmpr = 0;
+        servo_in.channel[1] = ((tmpr = buffer[70]) << 8)|buffer[71]; tmpr = 0;
+        servo_in.channel[2] = ((tmpr = buffer[72]) << 8)|buffer[73]; tmpr = 0;
+        servo_in.channel[3] = ((tmpr = buffer[74]) << 8)|buffer[75]; tmpr = 0;
+        servo_in.channel[4] = ((tmpr = buffer[76]) << 8)|buffer[77]; tmpr = 0;
+        servo_in.channel[5] = ((tmpr = buffer[78]) << 8)|buffer[79]; tmpr = 0;
+        servo_in.channel[6] = ((tmpr = buffer[80]) << 8)|buffer[81]; tmpr = 0;
+        servo_in.channel[7] = ((tmpr = buffer[82]) << 8)|buffer[83]; 
         break;
     default  :
         printf("[imu]:fail to decode servo packet..!\n");
@@ -722,9 +751,32 @@ bool mnav_get_airdata() {
 }
 
 
-void mnav_send_servo_cmd( struct servo *servo_out )
+static void mnav_gen_servo() {
+    servo_out.channel[0]
+	= 32768 + (int16_t)(act_aileron_node->getFloatValue() * 32768);
+    servo_out.channel[1]
+	= 32768 + (int16_t)(act_elevator_node->getFloatValue() * 32768);
+    servo_out.channel[2]
+	= 32768 + (int16_t)((act_throttle_node->getFloatValue()*2.0 - 1.0) * 32768);
+    servo_out.channel[3]
+	= 32768 + (int16_t)(act_rudder_node->getFloatValue() * 32768);
+    servo_out.channel[0]
+	= 32768 + (int16_t)(act_channel5_node->getFloatValue() * 32768);
+    servo_out.channel[0]
+	= 32768 + (int16_t)(act_channel6_node->getFloatValue() * 32768);
+    servo_out.channel[0]
+	= 32768 + (int16_t)(act_channel7_node->getFloatValue() * 32768);
+    servo_out.channel[0]
+	= 32768 + (int16_t)(act_channel8_node->getFloatValue() * 32768);
+}
+
+
+void mnav_send_servo_cmd( /* struct servo *servo_out */ )
 {
     // ch0: aileron, ch1: elevator, ch2: throttle, ch3: rudder
+
+    // populate servo packet
+    mnav_gen_servo();
 
     uint8_t data[SERVO_PACKET_LENGTH];
     short i = 0;
@@ -740,8 +792,8 @@ void mnav_send_servo_cmd( struct servo *servo_out )
     data[3] = 0x53;
 
     for ( i = 0; i < 8; ++i ) {
-        data[4+2*i] = (uint8_t)(servo_out->chn[i] >> 8); 
-        data[5+2*i] = (uint8_t)servo_out->chn[i];
+        data[4+2*i] = (uint8_t)(servo_out.channel[i] >> 8); 
+        data[5+2*i] = (uint8_t)servo_out.channel[i];
     }
 
     // pad last unused channel
@@ -766,14 +818,17 @@ void mnav_send_servo_cmd( struct servo *servo_out )
 
 // identical to full servo command, but only sends first 4 channels of
 // data, saving 10 bytes per message.
-void mnav_send_short_servo_cmd( struct servo *servo_out )
+void mnav_send_short_servo_cmd( /* struct servo *servo_out */ )
 {
+    // populate servo packet
+    mnav_gen_servo();
+
     uint8_t data[SHORT_SERVO_PACKET_LENGTH];
     short i = 0;
     uint16_t sum = 0;
 
     // printf("sending servo data ");
-    // for ( i = 0; i < 4; ++i ) printf("%d ", servo_out->chn[i]);
+    // for ( i = 0; i < 4; ++i ) printf("%d ", servo_out->channel[i]);
     // printf("\n");
 
     data[0] = 0x55;
@@ -782,8 +837,8 @@ void mnav_send_short_servo_cmd( struct servo *servo_out )
     data[3] = 0x54;
 
     for ( i = 0; i < 4; ++i ) {
-        data[4+2*i] = (uint8_t)(servo_out->chn[i] >> 8); 
-        data[5+2*i] = (uint8_t)servo_out->chn[i];
+        data[4+2*i] = (uint8_t)(servo_out.channel[i] >> 8); 
+        data[5+2*i] = (uint8_t)servo_out.channel[i];
     }
 
     //checksum: need to be verified

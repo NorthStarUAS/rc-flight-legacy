@@ -21,8 +21,6 @@
 #include "comms/logging.h"
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
-// #include "sensors/imu_mgr.h"
-#include "util/myprof.h"
 #include "util/timing.h"
 
 #include "ahrs.h"
@@ -168,8 +166,6 @@ void mnav_nav_init( string rootname )
 
 void mnav_nav_update( struct imu *imupacket )
 {
-    nav_prof.start();
-
     struct imu	     imulocal;
     static int       gps_state = 0;
     // static double    acq_start = 0; // time that gps first acquired
@@ -247,8 +243,6 @@ void mnav_nav_update( struct imu *imupacket )
             snap_time_interval("nav", 50, 1);
         }
     }
-
-    nav_prof.stop();
 }
 
 
