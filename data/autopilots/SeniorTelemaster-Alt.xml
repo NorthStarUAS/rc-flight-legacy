@@ -22,7 +22,7 @@
       <prop>/autopilot/internal/target-roll-deg</prop>
     </output>
     <config>
-      <Kp>-0.6</Kp>        <!-- proportional gain -->
+      <Kp>-1.0</Kp>        <!-- proportional gain -->
       <Ki>0.0</Ki>         <!-- integral gain -->
       <u_min>-20.0</u_min> <!-- minimum output clamp -->
       <u_max>20.0</u_max>  <!-- maximum output clamp -->
@@ -48,12 +48,12 @@
       <prop>/controls/flight/aileron</prop>
     </output>
     <config>
-      <Kp>-0.007</Kp>      <!-- proportional gain -->
+      <Kp>0.01</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>2.0</Ti>         <!-- integrator time -->
+      <Ti>0.5</Ti>         <!-- integrator time -->
       <Td>0.01</Td>        <!-- derivator time -->
       <u_min>-0.25</u_min> <!-- minimum output clamp -->
       <u_max>0.25</u_max>  <!-- maximum output clamp -->
@@ -65,27 +65,30 @@
   <!-- Stage #1 sets target rate of climb based on diff between current -->
   <!-- alt and target altitude. -->
   <pi-simple-controller>
-    <name>Altitude Hold (Pressure altimeter based, references AGL) Stage 1</name>
+    <name>Altitude Hold (Altimeter based) Stage 1</name>
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/altitude</prop>
       <value>altitude-hold</value>
     </enable>
     <input>
-      <prop>/position/altitude-agl-ft</prop>
+      <prop>/position/altitude-nav-ft</prop>
     </input>
     <reference>
-      <prop>/autopilot/settings/target-agl-ft</prop>
-      <!-- <value>500</value> -->
+      <!-- <prop>/autopilot/settings/target-altitude-ft</prop> -->
+      <value>1400</value>
     </reference>
     <output>
       <prop>/autopilot/internal/target-climb-rate-fps</prop>
     </output>
     <config>
-      <Kp>0.15</Kp>            <!-- proportional gain -->
+      <Kp>0.15</Kp>
+      <!-- proportional gain -->
       <Ki>0.0</Ki>
-      <u_min>-8.33</u_min>     <!-- minimum output clamp -->
-      <u_max>8.33</u_max>      <!-- maximum output clamp -->
+      <u_min>-8.33</u_min>
+      <!-- minimum output clamp -->
+      <u_max>8.33</u_max>
+      <!-- maximum output clamp -->
     </config>
   </pi-simple-controller>
 
@@ -108,15 +111,15 @@
       <prop>/autopilot/settings/target-pitch-deg</prop>
     </output>
     <config>
-      <Kp>0.5</Kp>         <!-- proportional gain -->
+      <Kp>0.7</Kp>         <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>1.0</Ti>         <!-- integrator time -->
-      <Td>0.00001</Td>     <!-- derivator time -->
-      <u_min>-15.0</u_min> <!-- minimum output clamp -->
-      <u_max>15.0</u_max>  <!-- maximum output clamp -->
+      <Ti>10.0</Ti>        <!-- integrator time -->
+      <Td>0.0001</Td>      <!-- derivator time -->
+      <u_min>-12.0</u_min> <!-- minimum output clamp -->
+      <u_max>12.0</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
@@ -132,19 +135,19 @@
       <prop>/orientation/pitch-deg</prop>
     </input>
     <reference>
-      <prop>/autopilot/settings/target-pitch-deg</prop>
+      <prop>/autopilot/settings/target-pitch-deg</prop> -->
       <!-- <value>5.0</value> -->
     </reference>
     <output>
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>0.015</Kp>
+      <Kp>-0.015</Kp>
       <beta>1.0</beta>
       <alpha>0.1</alpha>
       <gamma>0.0</gamma>
       <Ti>0.5</Ti>
-      <Td>0.0001</Td>
+      <Td>0.001</Td>
       <u_min>-0.25</u_min>
       <u_max>0.25</u_max>
     </config>
