@@ -24,8 +24,8 @@
     <config>
       <Kp>-0.6</Kp>        <!-- proportional gain -->
       <Ki>0.0</Ki>         <!-- integral gain -->
-      <u_min>-20.0</u_min> <!-- minimum output clamp -->
-      <u_max>20.0</u_max>  <!-- maximum output clamp -->
+      <u_min>-25.0</u_min> <!-- minimum output clamp -->
+      <u_max>25.0</u_max>  <!-- maximum output clamp -->
     </config>
   </pi-simple-controller>
 
@@ -48,12 +48,12 @@
       <prop>/controls/flight/aileron</prop>
     </output>
     <config>
-      <Kp>-0.007</Kp>      <!-- proportional gain -->
+      <Kp>0.005</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>2.0</Ti>         <!-- integrator time -->
+      <Ti>1.5</Ti>         <!-- integrator time -->
       <Td>0.01</Td>        <!-- derivator time -->
       <u_min>-0.25</u_min> <!-- minimum output clamp -->
       <u_max>0.25</u_max>  <!-- maximum output clamp -->
@@ -115,8 +115,8 @@
                            <!-- unfiltered derivative error -->
       <Ti>1.0</Ti>         <!-- integrator time -->
       <Td>0.00001</Td>     <!-- derivator time -->
-      <u_min>-15.0</u_min> <!-- minimum output clamp -->
-      <u_max>15.0</u_max>  <!-- maximum output clamp -->
+      <u_min>-10.0</u_min> <!-- minimum output clamp -->
+      <u_max>12.0</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
@@ -133,20 +133,20 @@
     </input>
     <reference>
       <prop>/autopilot/settings/target-pitch-deg</prop>
-      <!-- <value>5.0</value> -->
+      <!-- <value>2.0</value> -->
     </reference>
     <output>
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>0.015</Kp>
+      <Kp>-0.004</Kp>
       <beta>1.0</beta>
       <alpha>0.1</alpha>
       <gamma>0.0</gamma>
-      <Ti>0.5</Ti>
+      <Ti>2.0</Ti>
       <Td>0.0001</Td>
-      <u_min>-0.25</u_min>
-      <u_max>0.25</u_max>
+      <u_min>-0.15</u_min>
+      <u_max>0.15</u_max>
     </config>
   </pid-controller>
 
