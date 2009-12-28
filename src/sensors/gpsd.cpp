@@ -198,8 +198,12 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	    double course_deg = atof( token[8].c_str() );
 	    double speed_mps = atof( token[9].c_str() );
 	    double angle_rad = (90.0 - course_deg) * SGD_DEGREES_TO_RADIANS;
-	    gps_vn_node->setDoubleValue( cos(angle_rad) * speed_mps );
-	    gps_ve_node->setDoubleValue( sin(angle_rad) * speed_mps );
+	    gps_vn_node->setDoubleValue( sin(angle_rad) * speed_mps );
+	    gps_ve_node->setDoubleValue( cos(angle_rad) * speed_mps );
+	    /* printf("mps=%.1f deg=%.1f rad=%.3f vn=%.1f ve=%.1f\n",
+		   speed_mps, course_deg, angle_rad,
+		   gps_vn_node->getDoubleValue(),
+		   gps_ve_node->getDoubleValue()); */
 	}
 	// if ( gps_data.date > last_unix_time && last_unix_time > 0.0 ) {
 	//   gps_data.vd = (gps_data.alt - last_alt_m) * (gps_data.date - last_unix_time);
