@@ -183,7 +183,7 @@ static bool parse_gpsd_sentence( const char *sentence ) {
                 (gpsd_arg == "GGA" || gpsd_arg == "GLL" ||
 		 gpsd_arg == "GND" || gpsd_arg == "GSA" ||
 		 gpsd_arg == "MID2" || gpsd_arg == "MID4" ||
-		 gpsd_arg == "RMC") ) {
+		 gpsd_arg == "RMC" || gpsd_arg == "0x0106") ) {
 	// Output of GPSD "O" (ohhh) command
 	//
 	// example: GPSD,O=RMC 1232073262.000 0.005 45.138145
@@ -218,7 +218,8 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	    gps_timestamp_node->setDoubleValue( get_Time() );
 	    new_position = true;
 	}
-    } else if ( gpsd_cmd == "Y" && gpsd_arg == "GSV" ) {
+    } else if ( gpsd_cmd == "Y" && 
+		(gpsd_arg == "GSV" || gpsd_arg == "0x0130") ) {
 	// Output of GPSD "Y" command 
 	// 
 	// GPSD,Y=GSV 1232073259.000 11:14 76 358 0 0:22 55 126 41
