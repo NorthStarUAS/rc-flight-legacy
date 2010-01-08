@@ -29,6 +29,7 @@
 #ifdef ENABLE_MNAV_SENSOR
 #  include "mnav.h"
 #endif // ENABLE_MNAV_SENSOR
+#include "gps_ublox5.h"
 #include "ugfile.h"
 
 #include "gps_mgr.h"
@@ -88,6 +89,8 @@ void GPS_init() {
 	    } else if ( source == "mnav" ) {
 		mnav_gps_init( basename );
 #endif // ENABLE_MNAV_SENSOR
+	    } else if ( source == "ublox5" ) {
+		gps_ublox5_init( basename, section );
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
@@ -152,6 +155,8 @@ bool GPS_update() {
 	    } else if ( source == "mnav" ) {
 		fresh_data = mnav_get_gps();
 #endif // ENABLE_MNAV_SENSOR
+	    } else if ( source == "ublox5" ) {
+		fresh_data = gps_ublox5_update();
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
@@ -234,6 +239,8 @@ void GPS_close() {
 	    } else if ( source == "mnav" ) {
 		// nop
 #endif // ENABLE_MNAV_SENSOR
+	    } else if ( source == "ublox5" ) {
+		gps_ublox5_close();
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
