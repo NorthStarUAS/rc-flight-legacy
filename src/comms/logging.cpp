@@ -3,6 +3,7 @@
 #include <stdio.h>		// sscanf()
 #include <string.h>		// strncmp()
 #include <sys/stat.h>		// mkdir()
+#include <sys/time.h>
 #include <zlib.h>
 
 #include "filters/mnav/ahrs.h"	// FIXME: need to remove
@@ -413,7 +414,7 @@ bool logging_navstate_init() {
 
 void logging_navstate()
 {
-    return;
+    // return;
 
     if ( !props_inited ) {
 	init_props();
@@ -429,9 +430,12 @@ void logging_navstate()
         pretty_yaw += 2 * 3.14159265358979323846;
     }
 
+    struct timeval tv;
+    gettimeofday( &tv, NULL );
+    double unixSec = tv.tv_sec + (tv.tv_usec / 1000000.0);
     fprintf( fnavstate,
-             "%.3f %.12f %.12f %.13f %.4f %.4f %.4f %.4f %.4f %.4f\n",
-             imu_timestamp_node->getDoubleValue(),
+             "%.3f %.12f %.12f %.3f %.4f %.4f %.4f %.4f %.4f %.4f\n",
+             /*imu_timestamp_node->getDoubleValue()*/ unixSec,
 	     filter_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
 	     filter_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
 	     -filter_alt_node->getDoubleValue(),

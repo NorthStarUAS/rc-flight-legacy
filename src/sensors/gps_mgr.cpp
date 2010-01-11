@@ -73,6 +73,11 @@ void GPS_init() {
 	string name = section->getName();
 	if ( name == "gps" ) {
 	    string source = section->getChild("source", 0, true)->getStringValue();
+            bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+            if ( !enabled ) {
+                continue;
+            }
+
 	    string basename = "/sensors/";
 	    basename += section->getDisplayName();
 	    printf("i = %d  name = %s source = %s %s\n",
@@ -141,6 +146,11 @@ bool GPS_update() {
 	string name = section->getName();
 	if ( name == "gps" ) {
 	    string source = section->getChild("source", 0, true)->getStringValue();
+            bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+            if ( !enabled ) {
+                continue;
+            }
+
 	    // printf("i = %d  name = %s source = %s\n",
 	    //	   i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {
@@ -225,6 +235,11 @@ void GPS_close() {
 	string name = section->getName();
 	if ( name == "gps" ) {
 	    string source = section->getChild("source", 0, true)->getStringValue();
+            bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+            if ( !enabled ) {
+                continue;
+            }
+
 	    printf("i = %d  name = %s source = %s\n",
 		   i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {
