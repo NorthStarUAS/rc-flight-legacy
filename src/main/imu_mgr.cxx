@@ -18,6 +18,7 @@
 #include "main/globals.hxx"
 #include "props/props.hxx"
 #include "util/myprof.h"
+#include "util/timing.h"
 
 #include "sensors/imu_fgfs.hxx"
 #ifdef ENABLE_MNAV_SENSOR
