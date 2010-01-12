@@ -32,12 +32,18 @@
 // Global variables
 //
 
+static double imu_last_time = -31557600.0; // default to t minus one year old
+
+static SGPropertyNode *imu_timestamp_node = NULL;
+
 // comm property nodes
 static SGPropertyNode *imu_console_skip = NULL;
 static SGPropertyNode *imu_logging_skip = NULL;
 
 
 void IMU_init() {
+    imu_timestamp_node = fgGetNode("/sensors/imu/time-stamp", true);
+
     // initialize comm nodes
     imu_console_skip = fgGetNode("/config/console/imu-skip", true);
     imu_logging_skip = fgGetNode("/config/logging/imu-skip", true);
@@ -111,6 +117,9 @@ bool IMU_update() {
     imu_prof.stop();
 
     if ( fresh_data ) {
+	// for computing imu data age
+	imu_last_time = imu_timestamp_node->getDoubleValue();
+
 	if ( console_link_on || log_to_file ) {
 	    uint8_t buf[256];
 	    int size = packetizer->packetize_imu( buf );
@@ -155,4 +164,9 @@ void IMU_close() {
 	    }
 	}
     }
+}
+
+
+double IMU_age() {
+    return get_Time() - imu_last_time;
 }

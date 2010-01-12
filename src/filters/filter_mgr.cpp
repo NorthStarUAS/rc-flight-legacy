@@ -71,7 +71,7 @@ static SGPropertyNode *filter_logging_skip = NULL;
 
 void Filter_init() {
     // initialize imu property nodes
-    imu_timestamp_node = fgGetNode("/sensors/imu/timestamp", true);
+    imu_timestamp_node = fgGetNode("/sensors/imu/time-stamp", true);
     imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
     imu_q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
     imu_r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
@@ -163,7 +163,10 @@ bool Filter_update( bool fresh_imu_data ) {
 
     double imu_time = imu_timestamp_node->getDoubleValue();
     double imu_dt = imu_time - last_imu_time;
-    if ( imu_dt > 1.0 ) { imu_dt = 0.02; } // sanity check
+
+    // sanity check (i.e. system clock was changed by another process)
+    if ( imu_dt > 1.0 ) { imu_dt = 0.02; }
+    if ( imu_dt < 0.0 ) { imu_dt = 0.02; }
 
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/filters", true);
