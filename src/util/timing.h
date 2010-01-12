@@ -5,7 +5,7 @@
 extern void snap_time_interval( const char *threadname,
 				int displaytime, short id );
 extern double get_time_interval( short id );
-extern double get_Time();
+extern double get_Time( bool reset = false );
 
 
 #endif // _UGEAR_MISC_H

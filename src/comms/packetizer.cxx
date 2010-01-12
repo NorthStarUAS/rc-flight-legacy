@@ -20,7 +20,7 @@ void UGPacketizer::bind_gps_nodes() {
 
 // initialize imu property nodes 
 void UGPacketizer::bind_imu_nodes() {
-    imu_timestamp_node = fgGetNode("/sensors/imu/timestamp", true);
+    imu_timestamp_node = fgGetNode("/sensors/imu/time-stamp", true);
     imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
     imu_q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
     imu_r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
@@ -35,7 +35,7 @@ void UGPacketizer::bind_imu_nodes() {
 
 // initialize filter property nodes
 void UGPacketizer::bind_filter_nodes() {
-    filter_timestamp_node = fgGetNode("/filters/filter/timestamp", true);
+    filter_timestamp_node = fgGetNode("/filters/filter/time-stamp", true);
     filter_theta_node = fgGetNode("/filters/filter/pitch-deg", true);
     filter_phi_node = fgGetNode("/filters/filter/roll-deg", true);
     filter_psi_node = fgGetNode("/filters/filter/heading-deg", true);
@@ -50,7 +50,7 @@ void UGPacketizer::bind_filter_nodes() {
 
 // initialize actuator property nodes
 void UGPacketizer::bind_actuator_nodes() {
-    act_timestamp_node = fgGetNode("/actuators/actuator/timestamp", true);
+    act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
     act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
     act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
     act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);

@@ -66,15 +66,15 @@ double get_time_interval( short id )
 }	
 
 
-double get_Time()
+double get_Time( bool reset )
 {
     struct timespec t;
     static struct timespec tset;
     double tnow;
-    static int init = 0;
+    static bool init = false;
    
-    if ( init == 0 ) {
-        init = 1;
+    if ( !init || reset ) {
+        init = true;
         clock_gettime(CLOCK_REALTIME,&tset);
         return 0.0;
     } 

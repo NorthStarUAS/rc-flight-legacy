@@ -54,7 +54,7 @@ static SGPropertyNode *ground_alt_press_m_node = NULL;
 
 void AirData_init() {
     // initialize air data property nodes
-    airdata_timestamp_node = fgGetNode("/sensors/air-data/timestamp", true);
+    airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
     airdata_Ps_node = fgGetNode("/sensors/air-data/Ps-m", true);
     airdata_Pt_node = fgGetNode("/sensors/air-data/Pt-ms", true);
     Ps_filt_node = fgGetNode("/position/altitude-pressure-m", true);

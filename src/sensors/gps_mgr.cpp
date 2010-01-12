@@ -39,7 +39,6 @@
 //
 
 static double gps_last_time = -31557600.0; // default to t minus one year old
-static double real_time_offset = 0.0;
 
 // gps property nodes
 static SGPropertyNode *gps_timestamp_node = NULL;
@@ -179,7 +178,6 @@ bool GPS_update() {
     if ( fresh_data && gps_state == 1 ) {
 	// for computing gps data age
 	gps_last_time = gps_timestamp_node->getDoubleValue();
-	// real_time_offset = get_Time() - gps_last_time;
 
 	if ( console_link_on || log_to_file ) {
 	    uint8_t buf[256];
@@ -198,8 +196,10 @@ bool GPS_update() {
 	static double gps_acq_time = gps_timestamp_node->getDoubleValue();
 	static double last_time = 0.0;
 	double cur_time = gps_timestamp_node->getDoubleValue();
-	// gps_last_time = gps_timestamp_node->getDoubleValue();
-	// real_time_offset = cur_time - gps_last_time;
+	// if ( display_on ) {
+	//     printf("gps first aquired = %.3f  cur time = %.3f\n",
+	//	   gps_acq_time, cur_time);
+	// }
 
 	if ( cur_time - gps_acq_time >= gps_settle ) {
 	    gps_state = 1;
@@ -266,5 +266,5 @@ void GPS_close() {
 
 
 double GPS_age() {
-    return get_Time() - gps_last_time - real_time_offset;
+    return get_Time() - gps_last_time;
 }

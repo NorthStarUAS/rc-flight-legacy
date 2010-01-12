@@ -36,11 +36,6 @@ using std::string;
 #include "gps_ublox5.h"
 
 
-#define UBX_SYNC1 0xB5
-#define UBX_SYNC2 0x62
-
-static struct timeval timestamp; // Unix Time Stamp Structure
-
 // gpsd property nodes
 static SGPropertyNode *configroot = NULL;
 
@@ -163,7 +158,7 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
     bool new_position = false;
     static bool set_system_time = false;
 
-    if ( msg_class == 1 && msg_id == 2 ) {
+    if ( msg_class == 0x01 && msg_id == 0x02 ) {
 	// NAV-POSLLH
 	my_swap( payload, 0, 4);
 	my_swap( payload, 4, 4);
@@ -182,7 +177,7 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	uint32_t hAcc = *((uint32_t *)(p+20));
 	uint32_t vAcc = *((uint32_t *)(p+24));
 	// printf("nav-posllh (%d) %d %d %d %d\n", iTOW, lon, lat, height, hMSL);
-    } else if ( msg_class == 1 && msg_id == 6 ) {
+    } else if ( msg_class == 0x01 && msg_id == 0x06 ) {
 	// NAV-SOL
 	my_swap( payload, 0, 4);
 	my_swap( payload, 4, 4);
@@ -247,15 +242,20 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	    double unixFract = unixSecs - floor(unixSecs);
 	    struct timeval time;
 	    gps_unix_sec_node->setDoubleValue( unixSecs );
+#if 0
 	    if ( unixSecs > 1263154775 && !set_system_time) {
 		printf("Setting system time to %.3f\n", unixSecs);
 		set_system_time = true;
 		time.tv_sec = floor(unixSecs);
 		time.tv_usec = floor(unixFract * 1000000.);
 		settimeofday(&time, NULL);
+		// first time through, restamp this packet with the
+		// "reset" system time to avoid a huge dt
+		gps_timestamp_node->setDoubleValue( get_Time(true) );
 	    }
+#endif
 	}
-   } else if ( msg_class == 1 && msg_id == 18 ) {
+   } else if ( msg_class == 0x01 && msg_id == 0x12 ) {
 	// NAV-VELNED
 	my_swap( payload, 0, 4);
 	my_swap( payload, 4, 4);
@@ -278,7 +278,7 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	uint32_t sAcc = *((uint32_t *)(p+28));
 	uint32_t cAcc = *((uint32_t *)(p+32));
 	// printf("nav-velned (%d) %.2f %.2f %.2f s = %.2f h = %.2f\n", iTOW, velN / 100.0, velE / 100.0, velD / 100.0, speed / 100.0, heading / 100000.0);
-    } else if ( msg_class == 1 && msg_id == 33 ) {
+    } else if ( msg_class == 0x01 && msg_id == 0x21 ) {
 	// NAV-TIMEUTC
 	my_swap( payload, 0, 4);
 	my_swap( payload, 4, 4);
@@ -296,7 +296,6 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	uint8_t min = p[17];
 	uint8_t sec = p[18];
 	uint8_t valid = p[19];
-#if 0
 	if ( !set_system_time && year > 2009 ) {
 	    set_system_time = true;
 	    printf("nav-timeutc (%d) %02x %04d/%02d/%02d %02d:%02d:%02d\n",
@@ -314,8 +313,25 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	    fulltime.tv_sec = unix_sec;
 	    fulltime.tv_usec = nano / 1000;
 	    settimeofday( &fulltime, NULL );
+	    get_Time( true ); 	// reset precise clock timer to zero
 	}
-#endif
+    } else if ( msg_class == 0x01 && msg_id == 0x30 ) {
+	// NAV-SVINFO (partial parse)
+	my_swap( payload, 0, 4);
+
+	uint8_t *p = payload;
+	uint32_t iTOW = *((uint32_t *)p+0);
+	uint8_t numCh = p[4];
+	uint8_t globalFlags = p[5];
+	int satUsed = 0;
+	for ( int i = 0; i < numCh; i++ ) {
+	    uint8_t flags = p[10 + 12*i];
+	    if ( flags && 0x1 ) {
+		satUsed++;
+	    }
+	}
+	gps_satellites->setIntValue( satUsed );
+	// printf("Satellite count = %d/%d\n", satUsed, numCh);
     }
 
     return new_position;

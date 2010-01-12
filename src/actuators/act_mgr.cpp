@@ -70,7 +70,7 @@ void Actuator_init() {
     act_elevon_mix_node = fgGetNode("/config/autopilot/elevon-mixing", true);
     agl_alt_ft_node = fgGetNode("/position/altitude-agl-ft", true);
 
-    act_timestamp_node = fgGetNode("/actuators/actuator/timestamp", true);
+    act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
     act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
     act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
     act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);

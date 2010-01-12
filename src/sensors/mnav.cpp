@@ -119,7 +119,7 @@ static void bind_input( SGPropertyNode *config ) {
 // initialize mnav imu output property nodes 
 static void bind_imu_output( string rootname ) {
     outputroot = fgGetNode( rootname.c_str(), true );
-    imu_timestamp_node = outputroot->getChild("timestamp", 0, true);
+    imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
     imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
     imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
@@ -136,7 +136,7 @@ static void bind_imu_output( string rootname ) {
 static void bind_airdata_output( string rootname ) {
     // "/sensors/air-data"
     outputroot = fgGetNode( rootname.c_str(), true );
-    airdata_timestamp_node = outputroot->getChild("timestamp", 0, true);
+    airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     airdata_Ps_node = outputroot->getChild("Ps-m", 0, true);
     airdata_Pt_node = outputroot->getChild("Pt-ms", 0, true);
 }
@@ -157,7 +157,7 @@ static void bind_gps_output( string rootname ) {
 
 // initialize actuator property nodes 
 static void bind_act_nodes() {
-    act_timestamp_node = fgGetNode("/actuators/actuator/timestamp", true);
+    act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
     act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
     act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
     act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);

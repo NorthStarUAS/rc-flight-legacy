@@ -55,7 +55,7 @@ static void bind_input( SGPropertyNode *config ) {
 
 /// initialize actuator property nodes 
 static void bind_act_nodes() {
-    act_timestamp_node = fgGetNode("/actuators/actuator/timestamp", true);
+    act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
     act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
     act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
     act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);

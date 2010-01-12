@@ -80,7 +80,7 @@ static void init_props() {
     props_inited = true;
 
     // initialize imu property nodes
-    imu_timestamp_node = fgGetNode("/sensors/imu/timestamp");
+    imu_timestamp_node = fgGetNode("/sensors/imu/time-stamp");
     imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
     imu_q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
     imu_r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
