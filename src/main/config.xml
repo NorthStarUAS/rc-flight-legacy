@@ -10,8 +10,8 @@
       <!-- Caution: enabling this feature can have a significant -->
       <!-- performance impact on the ugear application depending on the -->
       <!-- speed of the onboard storage. -->
-      <path>/mnt/mmc/FlightData</path>
-      <enable type="bool">false</enable>
+      <path>.</path>
+      <enable type="bool">true</enable>
 
       <imu-skip>4</imu-skip>
       <gps-skip>0</gps-skip>
