@@ -11,7 +11,7 @@
       <!-- performance impact on the ugear application depending on the -->
       <!-- speed of the onboard storage. -->
       <path>.</path>
-      <enable type="bool">true</enable>
+      <enable type="bool">false</enable>
 
       <imu-skip>4</imu-skip>
       <gps-skip>0</gps-skip>
@@ -43,30 +43,17 @@
     <sensors>
       <imu-group>
         <imu>
-	  <source>fgfs</source> <!-- 6DOFv4, AD12345, file, or mnav -->
-          <port>6500</port>
-          <!-- <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN</name> -->
+	  <source>file</source>
+	  <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN-chop</name>
         </imu>
-        <!-- <imu> -->
-	  <!-- <source>mnav</source> --> <!-- 6DOFv4, AD12345, file, or mnav -->
-          <!-- <device>/dev/ttyUSB-1</device> -->
-        <!-- </imu> -->
       </imu-group>
 
       <gps-group>
         <gps>
-	  <source>fgfs</source>
-	  <port>6501</port>
-          <!-- <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN</name> -->
+          <source>file</source>
+          <enable type="bool">true</enable>
+	  <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN-chop</name>
         </gps>
-
-        <!-- <gps> -->
-	  <!-- <source>gpsd</source> --> <!-- file, gpsd, mnav -->
-          <!-- <port>2947</port> -->
-          <!-- <host>localhost</host> -->
-          <!-- <init-string>n=0</init-string> -->
-          <!-- <init-string>w=1</init-string> -->
-        <!-- </gps> -->
       </gps-group>
 
       <airdata-group>

@@ -141,7 +141,7 @@ void gps_ublox5_init( string rootname, SGPropertyNode *config ) {
 
 
 // swap big/little endian bytes
-void my_swap( uint8_t *buf, int index, int count ) {
+static void my_swap( uint8_t *buf, int index, int count ) {
     int i;
     uint8_t tmp;
     for ( i = 0; i < count / 2; ++i ) {

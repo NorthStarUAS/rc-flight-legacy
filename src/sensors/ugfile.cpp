@@ -89,7 +89,7 @@ static bool read_imu() {
     static bool first_time = true;
     static bool next_valid = false;
 
-    if( feof(imufile) ) {
+    if ( feof(imufile) ) {
 	return false;
     }
 
@@ -219,7 +219,7 @@ static void bind_input( SGPropertyNode *config ) {
 static void bind_imu_output( string rootname ) {
     outputroot = fgGetNode( rootname.c_str(), true );
 
-    imu_timestamp_node = outputroot->getChild("timestamp", 0, true);
+    imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
     imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
     imu_r_node = outputroot->getChild("r-rad_sec", 0, true);

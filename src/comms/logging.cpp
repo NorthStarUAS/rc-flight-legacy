@@ -435,7 +435,7 @@ void logging_navstate()
     double unixSec = tv.tv_sec + (tv.tv_usec / 1000000.0);
     fprintf( fnavstate,
              "%.3f %.12f %.12f %.3f %.4f %.4f %.4f %.4f %.4f %.4f\n",
-             /*imu_timestamp_node->getDoubleValue()*/ unixSec,
+             imu_timestamp_node->getDoubleValue() /* unixSec */,
 	     filter_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
 	     filter_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
 	     -filter_alt_node->getDoubleValue(),

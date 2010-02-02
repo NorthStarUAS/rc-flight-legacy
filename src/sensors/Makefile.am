@@ -9,6 +9,7 @@ noinst_LIBRARIES = libsensors.a
 libsensors_a_SOURCES = \
 	airdata_mgr.cpp airdata_mgr.h \
 	imu_fgfs.cxx imu_fgfs.hxx \
+	sf_6DOFv4.cxx sf_6DOFv4.h \
 	gps_mgr.cpp gps_mgr.h \
 	gpsd.cpp gpsd.h \
 	gps_fgfs.cxx gps_fgfs.hxx \
