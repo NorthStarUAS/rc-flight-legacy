@@ -114,11 +114,11 @@ int ugumn_adns_update() {
 	umn_init_pos = true;
 	NavState s;
 	memset( &s, 0, sizeof(NavState) );
-	s.pos[0] =  gps_lat_node->getDoubleValue()
-	    * SGD_DEGREES_TO_RADIANS;
-	s.pos[1] =  gps_lon_node->getDoubleValue()
-	    * SGD_DEGREES_TO_RADIANS;
+	s.pos[0] = gps_lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+	s.pos[1] = gps_lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
 	s.pos[2] = -gps_alt_node->getDoubleValue();
+	s.eul[0] = SGD_PI_2 - atan2( gps_vn_node->getDoubleValue(),
+				     gps_ve_node->getDoubleValue() );
 	umn_adns_set_initial_state( &s );
 	umn_adns_print_state( &s );
     }	    

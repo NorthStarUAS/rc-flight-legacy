@@ -24,6 +24,7 @@
 #ifdef ENABLE_MNAV_SENSOR
 #  include "sensors/mnav.h"
 #endif // ENABLE_MNAV_SENSOR
+#include "sensors/sf_6DOFv4.h"
 #include "sensors/ugfile.h"
 
 #include "imu_mgr.hxx"
@@ -70,6 +71,8 @@ void IMU_init() {
 	    } else if ( source == "mnav" ) {
 		mnav_imu_init( basename, section );
 #endif // ENABLE_MNAV_SENSOR
+	    } else if ( source == "sf6DOFv4" ) {
+		sf_6DOFv4_imu_init( basename, section );
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
@@ -108,6 +111,8 @@ bool IMU_update() {
 		while ( mnav_read_nonblock() );
 		fresh_data = mnav_get_imu();
 #endif // ENABLE_MNAV_SENSOR
+	    } else if ( source == "sf6DOFv4" ) {
+		fresh_data = sf_6DOFv4_get_imu();
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
@@ -126,11 +131,11 @@ bool IMU_update() {
 	    int size = packetizer->packetize_imu( buf );
 
 	    if ( console_link_on ) {
-		console_link_imu( buf, size, imu_console_skip->getDoubleValue() );
+		console_link_imu( buf, size, imu_console_skip->getIntValue() );
 	    }
 
 	    if ( log_to_file ) {
-		log_imu( buf, size, imu_logging_skip->getDoubleValue() );
+		log_imu( buf, size, imu_logging_skip->getIntValue() );
 	    }
 	}
     }
@@ -159,6 +164,8 @@ void IMU_close() {
 	    } else if ( source == "mnav" ) {
 		// nop
 #endif // ENABLE_MNAV_SENSOR
+	    } else if ( source == "sf6DOFv4" ) {
+		sf_6DOFv4_close();
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());

@@ -1,12 +1,14 @@
 WELCOME
 =======
 
-The MicroGear project is a complete overhaul of the MNAV project hosted at:
-http://www.sf.net/projects/micronav/
-
-The micronav code is a very simple demo application to show some of
-the capabilities of the CrossBow MicroNav UAV controller.  (The
-micronav may be refered to as MNAV or uNAV.)
+The MicroGear project is an advance embedded application for unmanned
+aircraft systems.  In includes a functioning open-source kalman filter
+for estimating attitude and location based on gps and inertial
+sensors.  It also includes an advance PID-based autopilot and a host
+of supporting libraries and cool functionality.  It leverages "easy
+XML" for config file parsing and several structures and libraries from
+the FlightGear project including the "property system" and a number
+advanced math routines.
 
 MicroGear is a UAV guidance, navigation, and control device
 application that is robust, highly capable, highly configurable, open,
@@ -24,9 +26,19 @@ CONFIGURE/COMPILING
    export PATH=${PATH}:/home/curt/Projects/GumStix/gumstix-buildroot/build_arm_nofpu/staging_dir/bin
    export PATH=${PATH}:/usr/local/arm/3.3.2/bin
 
+   Not that there are some "setpath-*.sh" scripts in the toplevel
+   MicroGear tree.  These will need to be modified for your local
+   paths, but are there as an an example and for your convenience.
+
 2. Run "./autogen.sh"
 
-3. Run "CFLAGS="-Wall -Werror -O2" CXXFLAGS="-Wall -Werror -O2" ./configure --host=arm-linux"
+3. Run "./configure CFLAGS="-Wall -O2" CXXFLAGS="-Wall -O2" --host=something-something"
+
+   For the "new" Gumstix Open Embedded tools you would use
+   --host=arm-angstrom-linux-gnueabi
+
+   For the "old" gumstix/verdex tree you would add the cross compilers
+   to your path and use --host=arm-linux
 
 4. Run "make"
 

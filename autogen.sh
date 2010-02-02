@@ -53,4 +53,4 @@ fi
 echo ""
 echo "Now you are ready to run:"
 echo ""
-echo "./configure CFLAGS=\"-Wall -Werror -O2\" CXXFLAGS=\"-Wall -Werror -O2\" --host=arm-linux"
+echo "./configure CFLAGS=\"-Wall -O2\" CXXFLAGS=\"-Wall -O2\" --host=arm-linux"
