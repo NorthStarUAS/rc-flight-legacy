@@ -142,6 +142,7 @@ void gps_ublox5_init( string rootname, SGPropertyNode *config ) {
 
 // swap big/little endian bytes
 static void my_swap( uint8_t *buf, int index, int count ) {
+#if defined( __powerpc__ )
     int i;
     uint8_t tmp;
     for ( i = 0; i < count / 2; ++i ) {
@@ -149,6 +150,7 @@ static void my_swap( uint8_t *buf, int index, int count ) {
         buf[index+i] = buf[index+count-i-1];
         buf[index+count-i-1] = tmp;
     }
+#endif
 }
 
 
@@ -193,7 +195,7 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	my_swap( payload, 44, 2);
 
 	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)p+0);
+	uint32_t iTOW = *((uint32_t *)(p+0));
 	int32_t fTOW = *((int32_t *)(p+4));
 	int16_t week = *((int16_t *)(p+8));
 	uint8_t gpsFix = p[10];
@@ -209,7 +211,8 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	uint16_t pDOP = *((uint16_t *)(p+44));
 	uint8_t numSV = p[47];
 	// printf("nav-sol (%d) %d %d %d %d %d [ %d %d %d ]\n",
-	//        gpsFix, iTOW, fTOW, ecefX, ecefY, ecefZ, ecefVX, ecefVY, ecefVZ);
+	//         gpsFix, iTOW, fTOW, ecefX, ecefY, ecefZ,
+	//         ecefVX, ecefVY, ecefVZ);
 	SGVec3d ecef( ecefX / 100.0, ecefY / 100.0, ecefZ / 100.0 );
 	SGGeod wgs84;
 	SGGeodesy::SGCartToGeod( ecef, wgs84 );
@@ -228,10 +231,10 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	    gps_ve_node->setDoubleValue( vel_ned.y() );
 	    gps_vd_node->setDoubleValue( vel_ned.z() );
 	    // printf("        %.10f %.10f %.2f - %.2f %.2f %.2f\n",
-	    //     wgs84.getLatitudeDeg(),
-	    //     wgs84.getLongitudeDeg(),
-	    //     wgs84.getElevationM(),
-	    //     vel_ned.x(), vel_ned.y(), vel_ned.z() );
+	    //        wgs84.getLatitudeDeg(),
+	    //        wgs84.getLongitudeDeg(),
+	    //        wgs84.getElevationM(),
+	    //        vel_ned.x(), vel_ned.y(), vel_ned.z() );
 
 	    double julianDate = (week * 7.0) + 
 		(0.001 * iTOW) / 86400.0 +  //86400 = seconds in 1 day
@@ -286,8 +289,8 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	my_swap( payload, 12, 2);
 
 	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)p+0);
-	uint32_t tAcc = *((uint32_t *)p+4);
+	uint32_t iTOW = *((uint32_t *)(p+0));
+	uint32_t tAcc = *((uint32_t *)(p+4));
 	int32_t nano = *((int32_t *)(p+8));
 	int16_t year = *((int16_t *)(p+12));
 	uint8_t month = p[14];
@@ -320,13 +323,15 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	my_swap( payload, 0, 4);
 
 	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)p+0);
+	uint32_t iTOW = *((uint32_t *)(p+0));
 	uint8_t numCh = p[4];
 	uint8_t globalFlags = p[5];
 	int satUsed = 0;
 	for ( int i = 0; i < numCh; i++ ) {
 	    uint8_t flags = p[10 + 12*i];
-	    if ( flags && 0x1 ) {
+	    uint8_t quality = p[11 + 12*i];
+	    // printf("chn=%d flags=%d quality=%d\n", i, flags, quality);
+	    if ( flags & 0x1 ) {
 		satUsed++;
 	    }
 	}
