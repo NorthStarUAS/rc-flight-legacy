@@ -256,6 +256,7 @@ static bool parse_6DOFv4_msg( uint8_t *msg, int size )
     if ( tokens.size() != 10 ) {
 	if ( display_on ) {
 	    printf("Received %d tokens expecting 10. 6DOF output misconfigured?\n", tokens.size());
+	    printf("%s\n", msg);
 	}
 	return false;
     }
@@ -293,7 +294,7 @@ static bool read_6DOFv4() {
     int len;
     const int max_len = 256;
     uint8_t input[max_len];
-    uint8_t msg[max_len];
+    static uint8_t msg[max_len];
 
     // printf("read 6DOFv4, entry state = %d\n", state);
 
@@ -308,7 +309,7 @@ static bool read_6DOFv4() {
 	}
 	if ( len > 0 && input[0] == 'A' ) {
 	    // fprintf( stderr, "read 'A'\n");
-	    state++;
+	    state = 1;
 	}
     }
     if ( state == 1 ) {
