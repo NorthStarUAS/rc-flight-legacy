@@ -6,14 +6,14 @@ else
 MNAV_LIBS =
 endif
 
-bin_PROGRAMS = ugear_timer
+bin_PROGRAMS = ugear
 
-ugear_timer_SOURCES = \
+ugear_SOURCES = \
 	globals.cxx globals.hxx \
         imu_mgr.cxx imu_mgr.hxx \
-	ugear_timer.cpp
+	ugear_gumstix.cpp
 
-ugear_timer_LDADD = \
+ugear_LDADD = \
 	$(top_builddir)/src/actuators/libactuators.a \
 	$(top_builddir)/src/filters/libfilters.a \
 	$(top_builddir)/src/filters/curt/libadns_curt.a \
