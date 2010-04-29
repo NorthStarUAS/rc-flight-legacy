@@ -79,7 +79,8 @@ PropsChannel::PropsChannel()
       path("/"),
       mode(PROMPT)
 {
-    setTerminator( "\r\n" );
+    // setTerminator( "\r\n" );
+    setTerminator( "\n" );
 }
 
 /**
@@ -371,7 +372,7 @@ UGTelnet::handleAccept()
 {
     netAddress addr;
     int handle = netChannel::accept( &addr );
-    printf("Telent server accepted connection from %s:%d\n",
+    printf("Telnet server accepted connection from %s:%d\n",
            addr.getHost(), addr.getPort() );
     PropsChannel* channel = new PropsChannel();
     channel->setHandle( handle );

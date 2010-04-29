@@ -27,6 +27,8 @@
 #include "util/timing.h"
 
 #include "act_fgfs.hxx"
+#include "arduservo.hxx"
+
 #include "act_mgr.h"
 
 //
@@ -57,6 +59,8 @@ static SGPropertyNode *act_channel8_node = NULL;
 // comm property nodes
 static SGPropertyNode *act_console_skip = NULL;
 static SGPropertyNode *act_logging_skip = NULL;
+static SGPropertyNode *pilot_console_skip = NULL;
+static SGPropertyNode *pilot_logging_skip = NULL;
 
 
 void Actuator_init() {
@@ -83,6 +87,8 @@ void Actuator_init() {
     // initialize comm nodes
     act_console_skip = fgGetNode("/config/console/actuator-skip", true);
     act_logging_skip = fgGetNode("/config/logging/actuator-skip", true);
+    pilot_console_skip = fgGetNode("/config/console/pilot-skip", true);
+    pilot_logging_skip = fgGetNode("/config/logging/pilot-skip", true);
 
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/actuators", true);
@@ -100,6 +106,8 @@ void Actuator_init() {
 
 	    if ( module == "null" ) {
 		// do nothing
+	    } else if ( module == "ardupilot-servo" ) {
+		arduservo_init( section );
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_init( section );
 #ifdef ENABLE_MNAV_SENSOR
@@ -108,14 +116,14 @@ void Actuator_init() {
 #endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown actuator = '%s' in config file\n",
-		       name.c_str());
+		       module.c_str());
 	    }
 	}
     }
 }
 
 
-bool Actuator_update() {
+static void set_actuator_values() {
     /* printf("%.2f %.2f\n", aileron_out_node->getFloatValue(),
               elevator_out_node->getFloatValue()); */
     /* static SGPropertyNode *vert_speed_fps
@@ -127,47 +135,32 @@ bool Actuator_update() {
            vert_speed_fps->getDoubleValue(),
            elevator_out_node->getFloatValue()); */
 
-    // initialize the servo command array to central values so we don't
-    // inherit junk
-    //for ( int i = 0; i < 8; ++i ) {
-    //    servo_out.chn[i] = 32768;
-    //}
-
     float elevator = output_elevator_node->getFloatValue()
 	+ output_elevator_damp_node->getFloatValue();
 
     if ( act_elevon_mix_node->getBoolValue() ) {
-        // elevon mixing mode
+        // elevon mixing mode (i.e. flying wing)
 
         //aileron
-        /* servo_out.chn[0] = 32768
-            + (int16_t)(act_aileron_node->getFloatValue() * 32768)
-            + (int16_t)(elevator * 32768); */
 	act_aileron_node
-	    ->setFloatValue( output_aileron_node->getFloatValue()
-			      + elevator );
+	    ->setFloatValue( output_aileron_node->getFloatValue() + elevator );
 
         //elevator
-        /* servo_out.chn[1] = 32768
-            + (int16_t)(act_aileron_node->getFloatValue() * 32768)
-            - (int16_t)(elevator * 32768); */
 	act_elevator_node
-	    ->setFloatValue( output_aileron_node->getFloatValue()
-			      - elevator );
+	    ->setFloatValue( output_aileron_node->getFloatValue() - elevator );
     } else {
         // conventional airframe mode
 
         //aileron
-        /* servo_out.chn[0] = 32768
-	   + (int16_t)(act_aileron_node->getFloatValue() * 32768); */
 	act_aileron_node
 	    ->setFloatValue( output_aileron_node->getFloatValue() );
 
         //elevator
-        /* servo_out.chn[1] = 32768
-	   + (int16_t)(elevator * 32768); */
 	act_elevator_node->setFloatValue( elevator );
     }
+
+    // rudder
+    act_rudder_node->setFloatValue( output_rudder_node->getFloatValue() );
 
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
@@ -175,7 +168,7 @@ bool Actuator_update() {
     // Placing the engine throttle under autopilot control requires
     // EXTREME care!!!!
 
-    // Propellers are constructed of sharpened knife material.
+    // Propellers are constructed of sharp knife-like material.
     // Electric motors don't quit and give up if they encounter intial
     // resistance.  Severe injuries to hand or face or any other body
     // part in the vicinity of the motor or prop can occur at any
@@ -183,18 +176,37 @@ bool Actuator_update() {
 
     // Care must be taken during initial setup, and then from that
     // point on during all operational, testing, and ground handling
-    // phases.  Extreme vigilance must always be maintianed if the
-    // autopilot has control of the throttle.
+    // phases.  Extreme vigilance must always be maintianed at all
+    // times (especially if the autopilot has control of the
+    // throttle.)
 
     // I cannot stress this point enough!!!  One nanosecond of
     // distraction or loss of focus can result in severe lifelong
     // injury or death!  Do not take your fingers or face for granted.
     // Always maintain utmost caution and correct safety procedures to
-    // ensure safe operation with a throttle enabled UAS.
+    // ensure safe operation with a throttle enabled UAS:
+
+    // 1. Never put your fingers or any other body part in the
+    // vicinity or path of the propellor.
+
+    // 2. When the prop is moving (i.e. power test on the ground)
+    // always stay behind the prop arc.  If a blade shatters it will
+    // shoot outwards and forwards and you never want to be in the
+    // path of a flying knife.
+
+    // 3. Always stay behind the aircraft.  If the engine
+    // inadvertantly powers up or goes from idle to full throttle, the
+    // aircraft could be propelled right at you.
+
+    // Safety is ultimately the responsibility of the operator at the
+    // field.  Never put yourself or helpers or spectators in a
+    // position where a moment of stupidity will result in an injury.
+    // Always make sure everyone is positioned so that if you do make
+    // a mistake everyone is still protected and safe!
 
     // As an internal safety measure, the throttle will be completely
-    // turned off (value of 12000 on a 0-65535 scale) when the
-    // pressure altitude is < 50m AGL.
+    // turned off (value of 0.0 on a 0.0 - 1.0 scale) when the
+    // pressure altitude is < 100' AGL.
 
     // None of the built in safety measures are sufficient for a safe
     // system!  Pressure sensor readings can glitch, bugs can creep
@@ -205,17 +217,6 @@ bool Actuator_update() {
     // unexpectedly.
 
     // throttle
-
-    // limit throttle change to 128 units per cycle ... which means it
-    // takes about 10 seconds to traverse a range of 32768 (about full
-    // range) assuming 25 cycles per second.
-    /*static int16_t last_throttle = 12000;
-    int16_t target_throttle = 32768
-	+ (int16_t)(act_throttle_node->getFloatValue() * 32768);
-    int16_t diff = target_throttle - last_throttle;
-    if ( diff > 128 ) diff = 128;
-    if ( diff < -128 ) diff = -128;
-    servo_out.chn[2] = last_throttle + diff;*/
 
     // limit throttle delta to 0.2% of full range per cycle.  At a 50hz
     // update rate it will take 10 seconds to travel the full range.
@@ -232,26 +233,20 @@ bool Actuator_update() {
     // recorded with the system started up.
     if ( agl_alt_ft_node->getDoubleValue() < 100.0 ) {
         act_throttle_node->setFloatValue( 0.0 );
-	/* servo_out.chn[2] = 12000; */
     }
 
     // printf("throttle = %.2f %d\n", throttle_out_node->getFloatValue(),
     //        servo_out.chn[2]);
 
-    /* last_throttle = servo_out.chn[2]; */
-
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
+}
 
-    // rudder
-    /* servo_out.chn[3] = 32768
-       + (int16_t)(act_rudder_node->getFloatValue() * 32768); */
-    act_rudder_node->setFloatValue( output_rudder_node->getFloatValue() );
 
+bool Actuator_update() {
     // time stamp for logging
-    /* servo_out.time = get_Time(); */
     act_timestamp_node->setDoubleValue( get_Time() );
-
+    set_actuator_values();
 
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/actuators", true);
@@ -266,6 +261,8 @@ bool Actuator_update() {
 	    }
 	    if ( module == "null" ) {
 		// do nothing
+	    } else if ( module == "ardupilot-servo" ) {
+		arduservo_update();
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_update();
 #ifdef ENABLE_MNAV_SENSOR
@@ -274,12 +271,14 @@ bool Actuator_update() {
 #endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown actuator = '%s' in config file\n",
-		       name.c_str());
+		       module.c_str());
 	    }
 	}
     }
 
     if ( console_link_on || log_to_file ) {
+	// actuators
+
 	uint8_t buf[256];
 	int size = packetizer->packetize_actuator( buf );
 
@@ -289,6 +288,18 @@ bool Actuator_update() {
 
 	if ( log_to_file ) {
 	    log_actuator( buf, size, act_logging_skip->getIntValue() );
+	}
+
+	// pilot input
+
+	size = packetizer->packetize_pilot( buf );
+
+	if ( console_link_on ) {
+	    console_link_pilot( buf, size, pilot_console_skip->getIntValue() );
+	}
+
+	if ( log_to_file ) {
+	    log_pilot( buf, size, pilot_logging_skip->getIntValue() );
 	}
     }
 
@@ -310,6 +321,8 @@ void Actuators_close() {
 	    }
 	    if ( module == "null" ) {
 		// do nothing
+	    } else if ( module == "ardupilot-servo" ) {
+		arduservo_close();
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_close();
 #ifdef ENABLE_MNAV_SENSOR
@@ -318,7 +331,7 @@ void Actuators_close() {
 #endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown actuator = '%s' in config file\n",
-		       name.c_str());
+		       module.c_str());
 	    }
 	}
     }

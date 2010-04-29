@@ -9,29 +9,17 @@
  */
 
 #include <errno.h>		// errno
-// #include <math.h>		// sin() cos()
-// #include <sys/types.h>		// open()
-// #include <sys/stat.h>		// open()
 #include <fcntl.h>		// open()
 #include <stdio.h>		// printf() et. al.
 #include <termios.h>		// tcgetattr() et. al.
 #include <unistd.h>		// tcgetattr() et. al.
 #include <string.h>		// memset(), strerror()
-// #include <sys/time.h>		// gettimeofday()
-// #include <time.h>
-// #include <string>
-
-// using std::string;
 
 #include "globaldefs.h"
 
 #include "comms/logging.h"
-// #include "math/SGMath.hxx"
-// #include "math/SGGeodesy.hxx"
-// #include "props/props.hxx"
 #include "util/strutils.hxx"
 #include "util/timing.h"
-// #include "gps_mgr.h"
 
 #include "sf_6DOFv4.h"
 

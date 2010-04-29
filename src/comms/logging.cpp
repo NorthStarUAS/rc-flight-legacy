@@ -22,6 +22,7 @@ static gzFile fimu = NULL;
 static gzFile fgps = NULL;
 static gzFile ffilter = NULL;
 static gzFile fact = NULL;
+static gzFile fpilot = NULL;
 static gzFile fhealth = NULL;
 
 bool log_to_file = false;       // log to file is enabled/disabled
@@ -76,6 +77,14 @@ static SGPropertyNode *act_throttle_node = NULL;
 static SGPropertyNode *act_rudder_node = NULL;
 static SGPropertyNode *act_channel5_node = NULL;
 
+// pilot property nodes
+static SGPropertyNode *pilot_aileron_node = NULL;
+static SGPropertyNode *pilot_elevator_node = NULL;
+static SGPropertyNode *pilot_throttle_node = NULL;
+static SGPropertyNode *pilot_rudder_node = NULL;
+static SGPropertyNode *pilot_channel5_node = NULL;
+
+
 static void init_props() {
     props_inited = true;
 
@@ -124,6 +133,13 @@ static void init_props() {
     act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);
     act_rudder_node = fgGetNode("/actuators/actuator/channel", 3, true);
     act_channel5_node = fgGetNode("/actuators/actuator/channel", 4, true);
+
+    // initialize pilot property nodes
+    pilot_aileron_node = fgGetNode("/actuators/pilot/channel", 0, true);
+    pilot_elevator_node = fgGetNode("/actuators/pilot/channel", 1, true);
+    pilot_throttle_node = fgGetNode("/actuators/pilot/channel", 2, true);
+    pilot_rudder_node = fgGetNode("/actuators/pilot/channel", 3, true);
+    pilot_channel5_node = fgGetNode("/actuators/pilot/channel", 4, true);
 }
 
 
@@ -201,6 +217,12 @@ bool logging_init() {
         return false;
     }
 
+    file = new_dir; file.append( "pilot.dat.gz" );
+    if ( (fpilot = gzopen( file.c_str(),"w+b" )) == NULL ) {
+        printf("Cannot open %s\n", file.c_str());
+        return false;
+    }
+
     file = new_dir; file.append( "health.dat.gz" );
     if ( (fhealth = gzopen( file.c_str(), "w+b" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
@@ -218,6 +240,7 @@ bool logging_close() {
     gzclose(fgps);
     gzclose(ffilter);
     gzclose(fact);
+    gzclose(fpilot);
     gzclose(fhealth);
 
     return true;
@@ -225,6 +248,7 @@ bool logging_close() {
 
 
 void log_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
+    if ( skip_count < 1 ) { skip_count = 1; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -239,6 +263,7 @@ void log_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
 
 
 void log_imu( uint8_t *imu_buf, int imu_size, int skip_count ) {
+    if ( skip_count < 1 ) { skip_count = 1; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -253,6 +278,7 @@ void log_imu( uint8_t *imu_buf, int imu_size, int skip_count ) {
 
 
 void log_filter( uint8_t *filter_buf, int filter_size, int skip_count ) {
+    if ( skip_count < 1 ) { skip_count = 1; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -267,6 +293,7 @@ void log_filter( uint8_t *filter_buf, int filter_size, int skip_count ) {
 
 
 void log_actuator( uint8_t *actuator_buf, int actuator_size, int skip_count ) {
+    if ( skip_count < 1 ) { skip_count = 1; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -280,7 +307,23 @@ void log_actuator( uint8_t *actuator_buf, int actuator_size, int skip_count ) {
 }
 
 
+void log_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count ) {
+    if ( skip_count < 1 ) { skip_count = 1; }
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return;
+    } else {
+        skip = skip_count;
+    }
+
+    gzwrite( fpilot, pilot_buf, pilot_size );
+}
+
+
 void log_health( struct health *healthpacket, int skip_count ) {
+    if ( skip_count < 1 ) { skip_count = 1; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -315,6 +358,12 @@ void flush_filter() {
 void flush_actuator() {
     // printf("flush actuator\n");
     gzflush( fact, Z_SYNC_FLUSH );
+}
+
+
+void flush_pilot() {
+    // printf("flush pilot\n");
+    gzflush( fpilot, Z_SYNC_FLUSH );
 }
 
 

@@ -43,6 +43,7 @@ static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
 
 // filter property nodes
+static SGPropertyNode *filter_timestamp_node = NULL;
 static SGPropertyNode *filter_theta_node = NULL;
 static SGPropertyNode *filter_phi_node = NULL;
 static SGPropertyNode *filter_psi_node = NULL;
@@ -84,6 +85,7 @@ int ugumn_adns_init( string rootname ) {
 
     // initialize ahrs property nodes 
     SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    filter_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     filter_theta_node = outputroot->getChild("pitch-deg", 0, true);
     filter_phi_node = outputroot->getChild("roll-deg", 0, true);
     filter_psi_node = outputroot->getChild("heading-deg", 0, true);
@@ -144,6 +146,7 @@ int ugumn_adns_update() {
 	NavState *s = umn_adns_get_state();
 
 	// publish values to property tree
+	filter_timestamp_node->setDoubleValue( imu[0] );
 	filter_phi_node->setDoubleValue( s->eul[2] * SG_RADIANS_TO_DEGREES );
 	filter_theta_node->setDoubleValue( s->eul[1] * SG_RADIANS_TO_DEGREES );
 	filter_psi_node->setDoubleValue( s->eul[0] * SG_RADIANS_TO_DEGREES );

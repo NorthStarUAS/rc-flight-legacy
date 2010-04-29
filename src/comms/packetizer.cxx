@@ -59,6 +59,22 @@ void UGPacketizer::bind_actuator_nodes() {
     act_channel6_node = fgGetNode("/actuators/actuator/channel", 5, true);
     act_channel7_node = fgGetNode("/actuators/actuator/channel", 6, true);
     act_channel8_node = fgGetNode("/actuators/actuator/channel", 7, true);
+    act_status_node = fgGetNode("/actuators/actuator/status", true);
+}
+
+
+// initialize pilot input property nodes
+void UGPacketizer::bind_pilot_nodes() {
+    pilot_timestamp_node = fgGetNode("/actuators/pilot/time-stamp", true);
+    pilot_aileron_node = fgGetNode("/actuators/pilot/channel", 0, true);
+    pilot_elevator_node = fgGetNode("/actuators/pilot/channel", 1, true);
+    pilot_throttle_node = fgGetNode("/actuators/pilot/channel", 2, true);
+    pilot_rudder_node = fgGetNode("/actuators/pilot/channel", 3, true);
+    pilot_channel5_node = fgGetNode("/actuators/pilot/channel", 4, true);
+    pilot_channel6_node = fgGetNode("/actuators/pilot/channel", 5, true);
+    pilot_channel7_node = fgGetNode("/actuators/pilot/channel", 6, true);
+    pilot_channel8_node = fgGetNode("/actuators/pilot/channel", 7, true);
+    pilot_status_node = fgGetNode("/actuators/pilot/status", true);
 }
 
 
@@ -67,6 +83,7 @@ UGPacketizer::UGPacketizer() {
     bind_imu_nodes();
     bind_filter_nodes();
     bind_actuator_nodes();
+    bind_pilot_nodes();
 }
 
 
@@ -281,6 +298,63 @@ int UGPacketizer::packetize_actuator( uint8_t *buf ) {
 
 
 void UGPacketizer::decode_actuator( uint8_t *buf ) {
+    double time = *(double *)buf; buf += 8;
+    int16_t ail = *(int16_t *)buf; buf += 2;
+    int16_t ele = *(int16_t *)buf; buf += 2;
+    uint16_t thr = *(uint16_t *)buf; buf += 2;
+    int16_t rud = *(int16_t *)buf; buf += 2;
+    int16_t ch5 = *(int16_t *)buf; buf += 2;
+    int16_t ch6 = *(int16_t *)buf; buf += 2;
+    int16_t ch7 = *(int16_t *)buf; buf += 2;
+    int16_t ch8 = *(int16_t *)buf; buf += 2;
+    uint8_t status = *(uint8_t *)buf; buf += 1;
+
+    printf("t = %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %d\n",
+	   time,
+	   ail/30000.0, ele/30000.0, thr/60000.0, rud/30000.0,
+	   ch5/30000.0, ch6/30000.0, ch7/30000.0, ch8/30000.0,
+	   status);
+}
+
+
+int UGPacketizer::packetize_pilot( uint8_t *buf ) {
+    uint8_t *startbuf = buf;
+
+    double time = pilot_timestamp_node->getDoubleValue();
+    *(double *)buf = time; buf += 8;
+
+    int16_t ail = (int16_t)(pilot_aileron_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = ail; buf += 2;
+
+    int16_t ele = (int16_t)(pilot_elevator_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = ele; buf += 2;
+
+    uint16_t thr = (uint16_t)(pilot_throttle_node->getDoubleValue() * 60000);
+    *(uint16_t *)buf = thr; buf += 2;
+
+    int16_t rud = (int16_t)(pilot_rudder_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = rud; buf += 2;
+
+    int16_t ch5 = (int16_t)(pilot_channel5_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = ch5; buf += 2;
+
+    int16_t ch6 = (int16_t)(pilot_channel6_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = ch6; buf += 2;
+
+    int16_t ch7 = (int16_t)(pilot_channel7_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = ch7; buf += 2;
+
+    int16_t ch8 = (int16_t)(pilot_channel8_node->getDoubleValue() * 30000);
+    *(int16_t *)buf = ch8; buf += 2;
+
+    uint8_t status = 0;
+    *buf = status; buf++;
+
+    return buf - startbuf;
+}
+
+
+void UGPacketizer::decode_pilot( uint8_t *buf ) {
     double time = *(double *)buf; buf += 8;
     int16_t ail = *(int16_t *)buf; buf += 2;
     int16_t ele = *(int16_t *)buf; buf += 2;

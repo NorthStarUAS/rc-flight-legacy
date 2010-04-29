@@ -74,6 +74,7 @@ static void console_link_packet( const uint8_t packet_id,
 
 void console_link_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
     // printf("Console link gps()\n");
+    if ( skip_count < 1 ) { skip_count = 1; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -89,6 +90,7 @@ void console_link_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
 
 void console_link_imu( uint8_t *imu_buf, int imu_size, int skip_count  ) {
     // printf("Console link imu()\n");
+    if ( skip_count < 1 ) { skip_count = 1; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -104,6 +106,7 @@ void console_link_imu( uint8_t *imu_buf, int imu_size, int skip_count  ) {
 
 void console_link_filter( uint8_t *filter_buf, int filter_size, int skip_count ) {
     // printf("Console link filter()\n");
+    if ( skip_count < 1 ) { skip_count = 1; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -122,6 +125,7 @@ void console_link_actuator( uint8_t *actuator_buf, int actuator_size,
 			    int skip_count  )
 {
     // printf("Console link actuator()\n");
+    if ( skip_count < 1 ) { skip_count = 1; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -135,8 +139,26 @@ void console_link_actuator( uint8_t *actuator_buf, int actuator_size,
 }
 
 
+void console_link_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count  )
+{
+    // printf("Console link pilot()\n");
+    if ( skip_count < 1 ) { skip_count = 1; }
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return;
+    } else {
+        skip = skip_count;
+    }
+
+    console_link_packet( PILOT_INPUT_PACKET_V1, pilot_buf, pilot_size );
+}
+
+
 void console_link_health( struct health *healthpacket, int skip_count  ) {
     // printf("Console link health()\n");
+    if ( skip_count < 1 ) { skip_count = 1; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {

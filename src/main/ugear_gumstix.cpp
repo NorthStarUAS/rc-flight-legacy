@@ -289,6 +289,10 @@ void timer_handler (int signum)
 		flush_state++;
 		break;
 	    case 4:
+		flush_pilot();
+		flush_state++;
+		break;
+	    case 5:
 		flush_health();
 		flush_state++;
 		break;
