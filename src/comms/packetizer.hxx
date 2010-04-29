@@ -56,11 +56,25 @@ class UGPacketizer {
     SGPropertyNode *act_channel6_node;
     SGPropertyNode *act_channel7_node;
     SGPropertyNode *act_channel8_node;
+    SGPropertyNode *act_status_node;
+
+    // pilot input property nodes
+    SGPropertyNode *pilot_timestamp_node;
+    SGPropertyNode *pilot_aileron_node;
+    SGPropertyNode *pilot_elevator_node;
+    SGPropertyNode *pilot_throttle_node;
+    SGPropertyNode *pilot_rudder_node;
+    SGPropertyNode *pilot_channel5_node;
+    SGPropertyNode *pilot_channel6_node;
+    SGPropertyNode *pilot_channel7_node;
+    SGPropertyNode *pilot_channel8_node;
+    SGPropertyNode *pilot_status_node;
 
     void bind_gps_nodes();
     void bind_imu_nodes();
     void bind_filter_nodes();
     void bind_actuator_nodes();
+    void bind_pilot_nodes();
 
 public:
 
@@ -78,6 +92,9 @@ public:
 
     int packetize_actuator( uint8_t *buf );
     void decode_actuator( uint8_t *buf );
+
+    int packetize_pilot( uint8_t *buf );
+    void decode_pilot( uint8_t *buf );
 
 };
 
