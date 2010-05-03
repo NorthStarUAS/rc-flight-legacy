@@ -75,6 +75,8 @@ class UGPacketizer {
     void bind_filter_nodes();
     void bind_actuator_nodes();
     void bind_pilot_nodes();
+    void bind_health_sys_nodes();
+    void bind_health_ap_nodes();
 
 public:
 

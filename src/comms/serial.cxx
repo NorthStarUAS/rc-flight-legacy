@@ -284,5 +284,9 @@ int SGSerialPort::write_port(const char* buf, int len) {
     count = write(fd, buf, len);
     // cout << "write '" << buf << "'  " << count << " bytes" << endl;
 
+    /* if ( count < 0 || count != len ) {
+           perror("serial write");
+       } */
+
     return count;
 }
