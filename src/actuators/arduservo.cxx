@@ -261,7 +261,7 @@ static bool arduservo_read() {
     static uint8_t cksum_A = 0, cksum_B = 0, cksum_lo = 0, cksum_hi = 0;
     int len;
     uint8_t input[500];
-    uint8_t payload[500];
+    static uint8_t payload[500];
 
     // printf("read arduservo, entry state = %d\n", state);
 

@@ -333,6 +333,8 @@ bool console_link_command() {
         return false;
     }
     
+    /* printf("read command '%s'\n", command_buf); */
+
     /*
       FILE *debug;
       debug = fopen("/tmp/debug.txt", "a");
