@@ -32,7 +32,6 @@
 #include <util/sg_path.hxx>
 
 #include "comms/logging.h"
-#include "health/health.h"
 
 #include "waypoint.hxx"
 #include "route_mgr.hxx"
@@ -53,6 +52,7 @@ FGRouteMgr::FGRouteMgr() :
     override_agl_ft( NULL ),
     target_msl_ft( NULL ),
     override_msl_ft( NULL ),
+    target_waypoint( NULL ),
     home_set( false ),
     mode( GoHome )
 {
@@ -110,6 +110,8 @@ void FGRouteMgr::init() {
         = fgGetNode( "/autopilot/settings/target-agl-ft", true );
     override_agl_ft
         = fgGetNode( "/autopilot/settings/override-agl-ft", true );
+    target_waypoint
+	= fgGetNode( "/autopilot/route-mgr/target-waypoint-idx", true );
 }
 
 
@@ -130,8 +132,8 @@ void FGRouteMgr::update() {
         target_agl_m = home.get_target_agl_m();
         target_msl_m = home.get_target_alt_m();
 
-	// update health status with current target waypoint
-	health_update_target_waypoint( 0 );
+	// publish current target waypoint
+	target_waypoint->setIntValue( 0 );
     } else if ( mode == FollowRoute && route->size() > 0 ) {
         // track current waypoint of route
         SGWayPoint wp = route->get_current();
@@ -146,8 +148,8 @@ void FGRouteMgr::update() {
             route->increment_current();
         }
 
-        // update health status with current target waypoint
-        health_update_target_waypoint( route->get_waypoint_index() );
+        // publish current target waypoint
+        target_waypoint->setIntValue( route->get_waypoint_index() );
     } else {
         // FIXME: we've been commanded to go home and no home position
         // has been set, or we've been commanded to follow a route,
