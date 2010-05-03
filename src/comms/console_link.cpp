@@ -9,7 +9,6 @@
 #include "include/globaldefs.h"
 
 #include "control/route_mgr.hxx"
-#include "health/health.h"
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
 #include "util/strutils.hxx"
@@ -23,6 +22,8 @@ using std::string;
 // global variables
 
 static SGPropertyNode *console_dev = NULL;
+static SGPropertyNode *console_seq_num = NULL;
+
 bool console_link_on = false;    // link to ground station via console port
 static SGSerialPort console;
 
@@ -31,6 +32,9 @@ void console_link_init() {
     console_dev = fgGetNode("/config/console/device", true);
     console.open_port( console_dev->getStringValue(), true );
     console.set_baud( 115200 );
+
+    console_seq_num = fgGetNode("/status/console-link-sequence-num", true);
+    console_seq_num->setIntValue( 0 );
 }
 
 
@@ -156,7 +160,8 @@ void console_link_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count  )
 }
 
 
-void console_link_health( struct health *healthpacket, int skip_count  ) {
+void console_link_health_ap( uint8_t *healthap_buf, int healthap_size,
+			     int skip_count ) {
     // printf("Console link health()\n");
     if ( skip_count < 1 ) { skip_count = 1; }
     static uint8_t skip = skip_count;
@@ -168,6 +173,9 @@ void console_link_health( struct health *healthpacket, int skip_count  ) {
         skip = skip_count;
     }
 
+    console_link_packet( HEALTH_AP_PACKET_V1, healthap_buf, healthap_size );
+
+#if 0
     uint8_t buf[3];
     uint8_t size;
     uint8_t cksum0, cksum1;
@@ -207,7 +215,7 @@ void console_link_health( struct health *healthpacket, int skip_count  ) {
        healthpacket->wp_lon, healthpacket->wp_lat);
        fclose(debug);
     */
-
+#endif
 }
 
 
@@ -402,7 +410,7 @@ bool console_link_command() {
     console_link_execute_command( cmd );
 
     // register that we've received this message correctly
-    health_update_command_sequence(sequence);
+    console_seq_num->setIntValue( sequence );
 
     return true;
 }

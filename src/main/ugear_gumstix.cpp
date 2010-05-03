@@ -240,12 +240,6 @@ void timer_handler (int signum)
 	health_prof.start();
 	health_counter = 0;
 	health_update();
-	if ( console_link_on ) {
-	    console_link_health( &healthpacket, 0 );
-	}
-	if ( log_to_file ) {
-	    log_health( &healthpacket, 0 );
-	}
 	health_prof.stop();
     }
 
@@ -254,7 +248,7 @@ void timer_handler (int signum)
 	 >= (HEARTBEAT_HZ * 2 /* divide by 0.5 */) )
     {
 	display_counter = 0;
-	display_message( &healthpacket );
+	display_message();
 	imu_prof.stats( "IMU " );
 	gps_prof.stats( "GPS " );
 	air_prof.stats( "AIR " );

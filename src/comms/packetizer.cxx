@@ -78,6 +78,11 @@ void UGPacketizer::bind_pilot_nodes() {
 }
 
 
+// initialize pilot input property nodes
+void UGPacketizer::bind_pilot_nodes() {
+}
+
+
 UGPacketizer::UGPacketizer() {
     bind_gps_nodes();
     bind_imu_nodes();

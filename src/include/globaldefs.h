@@ -16,6 +16,7 @@ enum errdefs {
 };
 
 
+#if 0
 struct health {
     double time;
     double target_roll_deg;     /* AP target roll angle */
@@ -36,6 +37,7 @@ struct health {
 };
 
 extern struct health healthpacket;
+#endif
 
 // A varienty of constants
 

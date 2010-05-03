@@ -13,7 +13,7 @@ enum ugPacketType {
     IMU_PACKET_V1 = 0x01,
     FILTER_PACKET_V1 = 0x02,
     ACTUATOR_PACKET_V1 = 0x03,
-    HEALTH_PACKET_V1 = 0x04,
+    HEALTH_AP_PACKET_V1 = 0x04,
     PILOT_INPUT_PACKET_V1 = 0x05
 };
 
@@ -27,7 +27,8 @@ void console_link_filter( uint8_t *filter_buf, int filter_size,
 void console_link_actuator( uint8_t *actuator_buf, int actuator_size,
 			    int skip_count );
 void console_link_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count );
-void console_link_health( struct health *healthpacket, int skip_count );
+void console_link_health_ap( uint8_t *healthap_buf, int healthap_size,
+			     int skip_count );
 bool console_link_command();
 
 

@@ -32,7 +32,7 @@ void flush_actuator();
 void flush_pilot();
 void flush_health();
 
-void display_message( struct health *hdata );
+void display_message();
 
 bool logging_navstate_init();
 void logging_navstate();

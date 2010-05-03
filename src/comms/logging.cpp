@@ -84,6 +84,11 @@ static SGPropertyNode *pilot_throttle_node = NULL;
 static SGPropertyNode *pilot_rudder_node = NULL;
 static SGPropertyNode *pilot_channel5_node = NULL;
 
+// health/status nodes
+static SGPropertyNode *console_seq_num = NULL;
+static SGPropertyNode *target_waypoint = NULL;
+static SGPropertyNode *system_load_avg = NULL;
+
 
 static void init_props() {
     props_inited = true;
@@ -140,6 +145,12 @@ static void init_props() {
     pilot_throttle_node = fgGetNode("/actuators/pilot/channel", 2, true);
     pilot_rudder_node = fgGetNode("/actuators/pilot/channel", 3, true);
     pilot_channel5_node = fgGetNode("/actuators/pilot/channel", 4, true);
+
+    // initialize health/status property nodes
+    console_seq_num = fgGetNode("/status/console-link-sequence-num", true);
+    target_waypoint = fgGetNode( "/autopilot/route-mgr/target-waypoint-idx",
+				 true );
+    system_load_avg = fgGetNode("/status/system-load-avg", true);
 }
 
 
@@ -322,7 +333,7 @@ void log_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count ) {
 }
 
 
-void log_health( struct health *healthpacket, int skip_count ) {
+void log_health( uint8_t *healthap_buf, int healthap_size, int skip_count ) {
     if ( skip_count < 1 ) { skip_count = 1; }
     static uint8_t skip = skip_count;
 
@@ -333,7 +344,7 @@ void log_health( struct health *healthpacket, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fhealth, healthpacket, sizeof(struct health) );
+    gzwrite( fhealth, healthap_buf, healthap_size );
 }
 
 
@@ -374,7 +385,7 @@ void flush_health() {
 
 
 // periodic console summary of attitude/location estimate
-void display_message( struct health *hdata )
+void display_message()
 {
     // double current_time = get_Time();
 
@@ -439,8 +450,8 @@ void display_message( struct health *hdata )
 	   act_rudder_node->getDoubleValue(),
 	   act_channel5_node->getDoubleValue());
     printf("[health]: cmdseq = %d  tgtwp = %d  loadavg = %.2f\n",
-           (int)hdata->command_sequence, (int)hdata->target_waypoint,
-           (float)hdata->loadavg / 100.0);
+           console_seq_num->getIntValue(), target_waypoint->getIntValue(),
+           system_load_avg->getFloatValue());
     printf("\n");
 
     // printf("imu size = %d\n", sizeof( struct imu ) );

@@ -195,7 +195,14 @@ PropsChannel::foundTerminator()
 	    }
 	} else if ( command == "cd" ) {
 	    if (tokens.size() == 2) {
-		SGPropertyNode* child = node->getNode( tokens[1].c_str() );
+		SGPropertyNode *child = NULL;
+		try {
+		    child = node->getNode( tokens[1].c_str() );
+		} catch ( string &message ) {
+		    push( message.c_str() );
+		    push( getTerminator() );
+		    child = NULL;
+		}
 		if ( child ) {
 		    node = child;
 		    path = node->getPath();

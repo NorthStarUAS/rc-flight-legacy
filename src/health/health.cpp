@@ -6,16 +6,14 @@
 #include "include/globaldefs.h"
 
 #include "comms/console_link.h"
+#include "comms/logging.h"
 #include "control/route_mgr.hxx"
 #include "props/props.hxx"
 #include "util/timing.h"
 
 #include "health.h"
 #include "loadavg.h"
-//#include "sgbatmon.h"
 
-
-struct health healthpacket;
 
 static SGPropertyNode *ap_roll;
 static SGPropertyNode *ap_hdg;
@@ -25,7 +23,6 @@ static SGPropertyNode *ap_altitude;
 static SGPropertyNode *ground_ref;
 static SGPropertyNode *ap_agl;
 static SGPropertyNode *pressure_error_m_node;
-
 
 bool health_init() {
     loadavg_init();
@@ -39,33 +36,24 @@ bool health_init() {
     ground_ref = fgGetNode( "/position/ground-altitude-pressure-m", true );
     ap_agl = fgGetNode( "/autopilot/settings/target-agl-ft", true );
     pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
-    
-    // set initial values
-    healthpacket.command_sequence = 0;
-    healthpacket.target_waypoint = 0;
 
     return true;
 }
 
 
 bool health_update() {
-    static int wp_index = 0;
+    // static int wp_index = 0;
 
-    healthpacket.time = get_Time();
-
-    healthpacket.target_roll_deg = ap_roll->getDoubleValue();
-    healthpacket.target_heading_deg = ap_hdg->getDoubleValue();
-    healthpacket.target_pitch_deg = ap_pitch->getDoubleValue();
-    healthpacket.target_climb_fps = ap_climb->getDoubleValue();
-    /* healthpacket.target_altitude_ft = ap_altitude->getDoubleValue(); */
+    /*
     healthpacket.target_altitude_ft
         = ground_ref->getDoubleValue() * SG_METER_TO_FEET
         + pressure_error_m_node->getDoubleValue() * SG_METER_TO_FEET
           + ap_agl->getDoubleValue();
+    */
 
     loadavg_update();
-    //sgbatmon_update();
 
+#if 0
     // send each waypoint, then home location (with wp_index = 0)
     int size = route_mgr.size();
     if ( size > 0 && wp_index < size ) {
@@ -81,16 +69,14 @@ bool health_update() {
         healthpacket.wp_index = 0;
         wp_index = 0;
     }
+#endif
+
+    if ( console_link_on ) {
+	//console_link_health( &healthpacket, 0 );
+    }
+    if ( log_to_file ) {
+	//log_health( &healthpacket, 0 );
+    }
 
     return true;
-}
-
-
-void health_update_command_sequence( int sequence ) {
-    healthpacket.command_sequence = sequence;
-}
-
-
-void health_update_target_waypoint( int index ) {
-    healthpacket.target_waypoint = index;
 }

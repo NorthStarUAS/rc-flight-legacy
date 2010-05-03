@@ -72,6 +72,7 @@ private:
     SGPropertyNode_ptr override_agl_ft;
     SGPropertyNode_ptr target_msl_ft;
     SGPropertyNode_ptr override_msl_ft;
+    SGPropertyNode_ptr target_waypoint;
 
     bool home_set;
     bool msl_override;
