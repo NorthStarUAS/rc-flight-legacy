@@ -23,14 +23,14 @@ void log_imu( uint8_t *imu_buf, int imu_size, int skip_count );
 void log_filter( uint8_t *filter_buf, int filter_size, int skip_count );
 void log_actuator( uint8_t *actuator_buf, int actuator_size, int skip_count );
 void log_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count );
-void log_health( struct health *healthpacket, int skip_count );
+void log_ap( uint8_t *ap_buf, int ap_size, int skip_count );
 
 void flush_gps();
 void flush_imu();
 void flush_filter();
 void flush_actuator();
 void flush_pilot();
-void flush_health();
+void flush_ap();
 
 void display_message();
 

@@ -15,27 +15,8 @@
 #include "loadavg.h"
 
 
-static SGPropertyNode *ap_roll;
-static SGPropertyNode *ap_hdg;
-static SGPropertyNode *ap_pitch;
-static SGPropertyNode *ap_climb;
-static SGPropertyNode *ap_altitude;
-static SGPropertyNode *ground_ref;
-static SGPropertyNode *ap_agl;
-static SGPropertyNode *pressure_error_m_node;
-
 bool health_init() {
     loadavg_init();
-    //sgbatmon_init();
-
-    ap_roll = fgGetNode("/autopilot/internal/target-roll-deg", true);
-    ap_hdg = fgGetNode( "/autopilot/settings/true-heading-deg", true );
-    ap_pitch = fgGetNode( "/autopilot/settings/target-pitch-deg", true );
-    ap_climb = fgGetNode("/autopilot/internal/target-climb-rate-fps", true);
-    ap_altitude = fgGetNode( "/autopilot/settings/target-altitude-ft", true );
-    ground_ref = fgGetNode( "/position/ground-altitude-pressure-m", true );
-    ap_agl = fgGetNode( "/autopilot/settings/target-agl-ft", true );
-    pressure_error_m_node = fgGetNode("/position/pressure-error-m", true);
 
     return true;
 }
@@ -70,13 +51,6 @@ bool health_update() {
         wp_index = 0;
     }
 #endif
-
-    if ( console_link_on ) {
-	//console_link_health( &healthpacket, 0 );
-    }
-    if ( log_to_file ) {
-	//log_health( &healthpacket, 0 );
-    }
 
     return true;
 }
