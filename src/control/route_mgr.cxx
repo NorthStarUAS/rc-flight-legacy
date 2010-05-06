@@ -31,13 +31,19 @@
 #include <util/exception.hxx>
 #include <util/sg_path.hxx>
 
+#include "comms/console_link.h"
 #include "comms/logging.h"
+#include "main/globals.hxx"
 
 #include "waypoint.hxx"
 #include "route_mgr.hxx"
 
 
 FGRouteMgr route_mgr;           // global route manager object
+
+// console/logging property nodes
+static SGPropertyNode *ap_console_skip = NULL;
+static SGPropertyNode *ap_logging_skip = NULL;
 
 
 FGRouteMgr::FGRouteMgr() :
@@ -65,7 +71,7 @@ FGRouteMgr::~FGRouteMgr() {
 
 
 void FGRouteMgr::init() {
-    config_props = fgGetNode( "/route[0]", true );
+    config_props = fgGetNode( "/routes/route", true );
 
     SGPropertyNode *root_n = fgGetNode("/config/root-path");
     SGPropertyNode *path_n = fgGetNode("/config/route/path");
@@ -112,6 +118,9 @@ void FGRouteMgr::init() {
         = fgGetNode( "/autopilot/settings/override-agl-ft", true );
     target_waypoint
 	= fgGetNode( "/autopilot/route-mgr/target-waypoint-idx", true );
+
+    ap_console_skip = fgGetNode("/config/console/autopilot-skip", true);
+    ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
 }
 
 
@@ -173,6 +182,38 @@ void FGRouteMgr::update() {
 	target_msl_ft->setDoubleValue( target_msl_m * SG_METER_TO_FEET );
     }
 
+    if ( console_link_on || log_to_file ) {
+	// send one waypoint per message, then home location (with
+	// index = 65535)
+	static int wp_index = 0;
+	int index = 0;
+	SGWayPoint wp;
+	if ( size() > 0 && wp_index < size() ) {
+	    wp = route_mgr.get_waypoint( wp_index );
+	    index = wp_index;
+	} else {
+	    wp = route_mgr.get_home();
+	    index = 65535;
+	}
+
+	uint8_t buf[256];
+	int pkt_size = packetizer->packetize_ap( buf, &wp, index );
+	
+	if ( console_link_on ) {
+	    bool result = console_link_ap( buf, pkt_size,
+					   ap_console_skip->getIntValue() );
+	    if ( result ) {
+		wp_index++;
+		if ( wp_index >= size() + 1 ) {
+		    wp_index = 0;
+		}
+	    }
+	}
+
+	if ( log_to_file ) {
+	    log_ap( buf, pkt_size, ap_logging_skip->getIntValue() );
+	}
+    }
 }
 
 

@@ -23,7 +23,7 @@ static gzFile fgps = NULL;
 static gzFile ffilter = NULL;
 static gzFile fact = NULL;
 static gzFile fpilot = NULL;
-static gzFile fhealth = NULL;
+static gzFile fap = NULL;
 
 bool log_to_file = false;       // log to file is enabled/disabled
 SGPath log_path;                // base log path
@@ -234,8 +234,8 @@ bool logging_init() {
         return false;
     }
 
-    file = new_dir; file.append( "health.dat.gz" );
-    if ( (fhealth = gzopen( file.c_str(), "w+b" )) == NULL ) {
+    file = new_dir; file.append( "ap.dat.gz" );
+    if ( (fap = gzopen( file.c_str(), "w+b" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
         return false;
     }
@@ -252,14 +252,14 @@ bool logging_close() {
     gzclose(ffilter);
     gzclose(fact);
     gzclose(fpilot);
-    gzclose(fhealth);
+    gzclose(fap);
 
     return true;
 }
 
 
 void log_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
-    if ( skip_count < 1 ) { skip_count = 1; }
+    if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -274,7 +274,7 @@ void log_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
 
 
 void log_imu( uint8_t *imu_buf, int imu_size, int skip_count ) {
-    if ( skip_count < 1 ) { skip_count = 1; }
+    if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -289,7 +289,7 @@ void log_imu( uint8_t *imu_buf, int imu_size, int skip_count ) {
 
 
 void log_filter( uint8_t *filter_buf, int filter_size, int skip_count ) {
-    if ( skip_count < 1 ) { skip_count = 1; }
+    if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -304,7 +304,7 @@ void log_filter( uint8_t *filter_buf, int filter_size, int skip_count ) {
 
 
 void log_actuator( uint8_t *actuator_buf, int actuator_size, int skip_count ) {
-    if ( skip_count < 1 ) { skip_count = 1; }
+    if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -319,7 +319,7 @@ void log_actuator( uint8_t *actuator_buf, int actuator_size, int skip_count ) {
 
 
 void log_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count ) {
-    if ( skip_count < 1 ) { skip_count = 1; }
+    if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -333,8 +333,8 @@ void log_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count ) {
 }
 
 
-void log_health( uint8_t *healthap_buf, int healthap_size, int skip_count ) {
-    if ( skip_count < 1 ) { skip_count = 1; }
+void log_ap( uint8_t *ap_buf, int ap_size, int skip_count ) {
+    if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
@@ -344,7 +344,7 @@ void log_health( uint8_t *healthap_buf, int healthap_size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fhealth, healthap_buf, healthap_size );
+    gzwrite( fap, ap_buf, ap_size );
 }
 
 
@@ -378,9 +378,9 @@ void flush_pilot() {
 }
 
 
-void flush_health() {
-    // printf("flush health\n");
-    gzflush( fhealth, Z_SYNC_FLUSH );
+void flush_ap() {
+    // printf("flush ap\n");
+    gzflush( fap, Z_SYNC_FLUSH );
 }
 
 

@@ -76,146 +76,117 @@ static void console_link_packet( const uint8_t packet_id,
 }
 
 
-void console_link_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
+bool console_link_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
     // printf("Console link gps()\n");
-    if ( skip_count < 1 ) { skip_count = 1; }
+    if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
         --skip;
-        return;
+        return false;
     } else {
         skip = skip_count;
     }
 
     console_link_packet( GPS_PACKET_V1, gps_buf, gps_size );
+
+    return true;
 }
 
 
-void console_link_imu( uint8_t *imu_buf, int imu_size, int skip_count  ) {
+bool console_link_imu( uint8_t *imu_buf, int imu_size, int skip_count  ) {
     // printf("Console link imu()\n");
-    if ( skip_count < 1 ) { skip_count = 1; }
+    if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
         --skip;
-        return;
+        return false;
     } else {
         skip = skip_count;
     }
 
     console_link_packet( IMU_PACKET_V1, imu_buf, imu_size );
+
+    return true;
 }
 
 
-void console_link_filter( uint8_t *filter_buf, int filter_size, int skip_count ) {
+bool console_link_filter( uint8_t *filter_buf, int filter_size,
+			  int skip_count )
+{
     // printf("Console link filter()\n");
-    if ( skip_count < 1 ) { skip_count = 1; }
+    if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
         --skip;
-        return;
+        return false;
     } else {
         skip = skip_count;
     }
 
     console_link_packet( FILTER_PACKET_V1, filter_buf, filter_size );
-    // printf("end Console link filter()\n");
+
+    return true;
 }
 
 
-void console_link_actuator( uint8_t *actuator_buf, int actuator_size,
-			    int skip_count  )
+bool console_link_actuator( uint8_t *actuator_buf, int actuator_size,
+			    int skip_count )
 {
     // printf("Console link actuator()\n");
-    if ( skip_count < 1 ) { skip_count = 1; }
+    if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
         --skip;
-        return;
+        return false;
     } else {
         skip = skip_count;
     }
 
     console_link_packet( ACTUATOR_PACKET_V1, actuator_buf, actuator_size );
+
+    return true;
 }
 
 
-void console_link_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count  )
+bool console_link_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count )
 {
     // printf("Console link pilot()\n");
-    if ( skip_count < 1 ) { skip_count = 1; }
+    if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
         --skip;
-        return;
+        return false;
     } else {
         skip = skip_count;
     }
 
     console_link_packet( PILOT_INPUT_PACKET_V1, pilot_buf, pilot_size );
+
+    return true;
 }
 
 
-void console_link_health_ap( uint8_t *healthap_buf, int healthap_size,
-			     int skip_count ) {
+bool console_link_ap( uint8_t *ap_buf, int ap_size, int skip_count )
+{
     // printf("Console link health()\n");
-    if ( skip_count < 1 ) { skip_count = 1; }
+    if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
     if ( skip > 0 ) {
         --skip;
-        return;
+        return false;
     } else {
         skip = skip_count;
     }
 
-    console_link_packet( HEALTH_AP_PACKET_V1, healthap_buf, healthap_size );
+    console_link_packet( AP_STATUS_PACKET_V1, ap_buf, ap_size );
 
-#if 0
-    uint8_t buf[3];
-    uint8_t size;
-    uint8_t cksum0, cksum1;
-
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1; buf[2] = 0;
-    console_write( buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = HEALTH_PACKET_V1; buf[1] = 0;
-    console_write( buf, 1 );
-
-    // packet size (1 byte)
-    size = sizeof(struct health);
-    buf[0] = size; buf[1] = 0;
-    // printf("servo size = %d\n", size);
-    console_write( buf, 1 );
-
-    // packet data
-    uint8_t bytes = console_write( (uint8_t *)healthpacket, size );
-    // uint8_t *tmp = (uint8_t *)healthpacket;
-    // printf("%d %d %d %d\n", tmp[0], tmp[1], tmp[2], tmp[3] );
-
-    if ( bytes != size ) {
-      printf("Only wrote %d health bytes out of %d\n", bytes, size);
-    }
-
-    // check sum (2 bytes)
-    ugear_cksum( HEALTH_PACKET_V1, size, (uint8_t *)healthpacket, size,
-		 &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    console_write( buf, 2 );
-
-    /* 
-       FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
-       fprintf(debug, "wpt %d: %.8f %.8f\n", healthpacket->wp_index,
-       healthpacket->wp_lon, healthpacket->wp_lat);
-       fclose(debug);
-    */
-#endif
+    return true;
 }
 
 
@@ -397,20 +368,26 @@ bool console_link_command() {
     // extract command sequence number
     string num = cmd.substr(0, pos);
     int sequence = atoi( num.c_str() );
+    static int last_sequence_num = -1;
 
-    // remainder
-    cmd = cmd.substr(pos + 1);
+    // ignore repeated commands (including roll over logic)
+    if ( sequence != last_sequence_num ) {
 
-    // execute command
-    /*
-      debug = fopen("/tmp/debug.txt", "a");
-      fprintf(debug, "Sequence: %d  Execute: '%s'\n", sequence, cmd.c_str());
-      fclose(debug);
-    */
-    console_link_execute_command( cmd );
+	// remainder
+	cmd = cmd.substr(pos + 1);
 
-    // register that we've received this message correctly
-    console_seq_num->setIntValue( sequence );
+	// execute command
+	/*
+	  debug = fopen("/tmp/debug.txt", "a");
+	  fprintf(debug, "Sequence: %d  Execute: '%s'\n", sequence, cmd.c_str());
+	  fclose(debug);
+	*/
+	console_link_execute_command( cmd );
+
+	// register that we've received this message correctly
+	console_seq_num->setIntValue( sequence );
+	last_sequence_num = sequence;
+    }
 
     return true;
 }

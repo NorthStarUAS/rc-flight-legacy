@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 
+#include "control/route_mgr.hxx"
 #include "props/props.hxx"
 
 
@@ -18,6 +19,7 @@ class UGPacketizer {
     SGPropertyNode *gps_ve_node;
     SGPropertyNode *gps_vd_node;
     SGPropertyNode *gps_unix_sec_node;
+    SGPropertyNode *gps_satellites_node;
     SGPropertyNode *gps_status_node;
 
     // imu property nodes
@@ -70,13 +72,28 @@ class UGPacketizer {
     SGPropertyNode *pilot_channel8_node;
     SGPropertyNode *pilot_status_node;
 
+    // autopilot status nodes
+    SGPropertyNode *ap_hdg;
+    SGPropertyNode *ap_roll;
+    SGPropertyNode *ap_altitude;
+    SGPropertyNode *ap_climb;
+    SGPropertyNode *ap_pitch;
+    SGPropertyNode *ap_speed;
+    SGPropertyNode *ap_waypoint;
+
+    // system health nodes
+    SGPropertyNode *system_load_avg;
+
+    // console link nodes
+    SGPropertyNode *console_seq_num;
+
     void bind_gps_nodes();
     void bind_imu_nodes();
     void bind_filter_nodes();
     void bind_actuator_nodes();
     void bind_pilot_nodes();
-    void bind_health_system_nodes();
-    void bind_health_ap_nodes();
+    void bind_ap_nodes();
+    void bind_health_nodes();
 
 public:
 
@@ -97,6 +114,12 @@ public:
 
     int packetize_pilot( uint8_t *buf );
     void decode_pilot( uint8_t *buf );
+
+    int packetize_ap( uint8_t *buf, SGWayPoint *wp, int index );
+    void decode_ap( uint8_t *buf );
+
+    int packetize_health( uint8_t *buf );
+    void decode_health( uint8_t *buf );
 
 };
 

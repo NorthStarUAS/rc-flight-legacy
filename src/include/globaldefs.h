@@ -16,29 +16,6 @@ enum errdefs {
 };
 
 
-#if 0
-struct health {
-    double time;
-    double target_roll_deg;     /* AP target roll angle */
-    double target_heading_deg;  /* AP target heading angle */
-    double target_pitch_deg;    /* AP target pitch angle */
-    double target_climb_fps;    /* AP target climb rate */
-    double target_altitude_ft;  /* AP target altitude */
-    double wp_lon;              /* longitude of indexed waypoint */
-    double wp_lat;              /* latitude of indexed waypoint */
-    uint64_t wp_index;          /* index of reported wp (wp's are
-                                   reported in a round robin
-                                   fashion) */
-    uint64_t command_sequence;  /* highest received command sequence num */
-    uint64_t target_waypoint;   /* index of current waypoint target */
-    uint64_t loadavg;           /* system "1 minute" load average */
-    uint64_t ahrs_hz;           /* actual ahrs loop hz */
-    uint64_t nav_hz;            /* actual nav loop hz */
-};
-
-extern struct health healthpacket;
-#endif
-
 // A varienty of constants
 
 /** For divide by zero avoidance, this will be close enough to zero */

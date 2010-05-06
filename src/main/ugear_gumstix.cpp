@@ -287,7 +287,7 @@ void timer_handler (int signum)
 		flush_state++;
 		break;
 	    case 5:
-		flush_health();
+		flush_ap();
 		flush_state++;
 		break;
 	    default:

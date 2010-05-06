@@ -2,6 +2,9 @@
 
 #include <stdio.h>
 
+#include "control/route_mgr.hxx"
+#include "util/timing.h"
+
 #include "packetizer.hxx"
 
 
@@ -15,6 +18,7 @@ void UGPacketizer::bind_gps_nodes() {
     gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
     gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
     gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
+    gps_satellites_node = fgGetNode("/sensors/gps/satellites", true);
     gps_status_node = NULL;
 }
 
@@ -78,8 +82,21 @@ void UGPacketizer::bind_pilot_nodes() {
 }
 
 
-// initialize pilot input property nodes
-void UGPacketizer::bind_pilot_nodes() {
+// initialize autopilot status property nodes
+void UGPacketizer::bind_ap_nodes() {
+    ap_hdg = fgGetNode( "/autopilot/settings/true-heading-deg", true );
+    ap_roll = fgGetNode("/autopilot/internal/target-roll-deg", true);
+    ap_altitude = fgGetNode( "/autopilot/settings/target-altitude-ft", true );
+    ap_climb = fgGetNode("/autopilot/internal/target-climb-rate-fps", true);
+    ap_pitch = fgGetNode( "/autopilot/settings/target-pitch-deg", true );
+    ap_speed = fgGetNode( "/autopilot/settings/target-speed-kts", true );
+    ap_waypoint = fgGetNode( "/autopilot/route-mgr/target-waypoint-idx", true );
+}
+
+
+// initialize system health property nodes
+void UGPacketizer::bind_health_nodes() {
+    system_load_avg = fgGetNode("/status/system-load-avg", true);
 }
 
 
@@ -89,6 +106,11 @@ UGPacketizer::UGPacketizer() {
     bind_filter_nodes();
     bind_actuator_nodes();
     bind_pilot_nodes();
+    bind_ap_nodes();
+    bind_health_nodes();
+
+    // command sequence node
+    console_seq_num = fgGetNode("/status/console-link-sequence-num", true);
 }
 
 
@@ -119,6 +141,9 @@ int UGPacketizer::packetize_gps( uint8_t *buf ) {
     
     double date = gps_unix_sec_node->getDoubleValue();
     *(double *)buf = date; buf += 8;
+
+    uint8_t sats = gps_satellites_node->getIntValue();
+    *buf = sats; buf++;
 
     uint8_t status = 0;
     *buf = status; buf++;
@@ -237,6 +262,9 @@ int UGPacketizer::packetize_filter( uint8_t *buf ) {
     int16_t psi = (int16_t)(filter_psi_node->getDoubleValue() * 10);
     *(int16_t *)buf = psi; buf += 2;
 
+    int8_t seq = (int8_t)console_seq_num->getIntValue();
+    *(int8_t *)buf = seq; buf ++;
+
     uint8_t status = 0;
     *buf = status; buf++;
 
@@ -255,13 +283,14 @@ void UGPacketizer::decode_filter( uint8_t *buf ) {
     int16_t phi = *(int16_t *)buf; buf += 2;
     int16_t the = *(int16_t *)buf; buf += 2;
     int16_t psi = *(int16_t *)buf; buf += 2;
+    uint8_t seq = *(uint8_t *)buf; buf += 1;
     uint8_t status = *(uint8_t *)buf; buf += 1;
 
-    printf("t = %.2f (%.8f %.8f a=%.2f) (%.2f %.2f %.2f) (%.1f %.1f %.1f) %d\n",
+    printf("t = %.2f (%.8f %.8f a=%.2f) (%.2f %.2f %.2f) (%.1f %.1f %.1f) %d %d\n",
 	   time, lat, lon, alt,
 	   vn/100.0, ve/100.0, vd/100.0,
 	   phi/10.0, the/10.0, psi/10.0,
-	   status);
+	   seq, status);
 }
 
 
@@ -379,3 +408,58 @@ void UGPacketizer::decode_pilot( uint8_t *buf ) {
 }
 
 
+int UGPacketizer::packetize_ap( uint8_t *buf, SGWayPoint *wp, int index ) {
+    uint8_t *startbuf = buf;
+
+    double time = get_Time();
+    *(double *)buf = time; buf += 8;
+
+    int16_t hdg = (int16_t)(ap_hdg->getFloatValue() * 10.0);
+    *(int16_t *)buf = hdg; buf += 2;
+
+    int16_t roll = (int16_t)(ap_roll->getFloatValue() * 10.0);
+    *(int16_t *)buf = roll; buf += 2;
+
+    uint16_t alt = (uint16_t)ap_altitude->getFloatValue();
+    *(uint16_t *)buf = alt; buf += 2;
+
+    uint16_t climb = (uint16_t)(ap_climb->getFloatValue() * 10.0);
+    *(uint16_t *)buf = climb; buf += 2;
+
+    int16_t pitch = (int16_t)(ap_pitch->getFloatValue() * 10.0);
+    *(int16_t *)buf = pitch; buf += 2;
+
+    int16_t speed = (int16_t)(ap_speed->getFloatValue() * 10.0);
+    *(int16_t *)buf = speed; buf += 2;
+
+    uint16_t waypoint = (uint16_t)ap_waypoint->getIntValue();
+    *(uint16_t *)buf = waypoint; buf += 2;
+
+    *(double *)buf = wp->get_target_lon(); buf += 8;
+    *(double *)buf = wp->get_target_lat(); buf += 8;
+    *(uint16_t *)buf = index; buf += 2;
+    *(uint16_t *)buf = route_mgr.size(); buf += 2;
+
+    return buf - startbuf;
+}
+
+
+void UGPacketizer::decode_ap( uint8_t *buf ) {
+    double time = *(double *)buf; buf += 8;
+    int16_t ap_hdg = *(int16_t *)buf; buf += 2;
+    int16_t ap_roll = *(int16_t *)buf; buf += 2;
+    uint16_t ap_alt = *(uint16_t *)buf; buf += 2;
+    int16_t ap_climb = *(int16_t *)buf; buf += 2;
+    int16_t ap_pitch = *(int16_t *)buf; buf += 2;
+    int16_t ap_speed = *(int16_t *)buf; buf += 2;
+    uint16_t ap_waypoint = *(uint16_t *)buf; buf += 2;
+    double lon = *(double *)buf; buf += 8;
+    double lat = *(double *)buf; buf += 8;
+    uint16_t wp_index = *(uint16_t *)buf; buf += 2;
+    uint16_t route_size = *(uint16_t *)buf; buf += 2;
+
+    printf("t = %.2f %.1f %.1f %d %d %.1f %.1f %d %.10f %.10f %d %d\n",
+	   time,
+	   ap_hdg/10.0, ap_roll/10.0, ap_alt, ap_climb, ap_pitch/10.0,
+	   ap_speed/10.0, ap_waypoint, lon, lat, wp_index, route_size);
+}
