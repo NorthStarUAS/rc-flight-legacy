@@ -32,6 +32,7 @@ static SGPropertyNode *gps_alt_node = NULL;
 static SGPropertyNode *gps_ve_node = NULL;
 static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
+static SGPropertyNode *gps_satellites_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
 
 
@@ -56,6 +57,7 @@ static void bind_gps_output( string rootname ) {
     gps_ve_node = outputroot->getChild("ve-ms", 0, true);
     gps_vn_node = outputroot->getChild("vn-ms", 0, true);
     gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+    gps_satellites_node = outputroot->getChild("satellites", 0, true);
     gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
 }
 
@@ -135,6 +137,7 @@ bool fgfs_gps_update() {
 	gps_vn_node->setDoubleValue( vn );
 	gps_ve_node->setDoubleValue( ve );
 	gps_vd_node->setDoubleValue( vd );
+	gps_satellites_node->setIntValue( 8 ); // fake a solid number
 	gps_unix_sec_node->setDoubleValue( time );
     }
 

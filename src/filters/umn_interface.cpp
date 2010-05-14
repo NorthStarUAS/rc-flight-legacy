@@ -110,8 +110,11 @@ int ugumn_adns_init( string rootname ) {
 }
 
 
-int ugumn_adns_update() {
+bool ugumn_adns_update() {
     static bool umn_init_pos = false;
+
+    bool fresh_data = false;
+
     if ( GPS_age() < 1 && !umn_init_pos ) {
 	umn_init_pos = true;
 	NavState s;
@@ -124,6 +127,7 @@ int ugumn_adns_update() {
 	umn_adns_set_initial_state( &s );
 	umn_adns_print_state( &s );
     }	    
+
     if ( umn_init_pos ) {
 	double imu[7], gps[7];
 	imu[0] = imu_timestamp_node->getDoubleValue();
@@ -165,9 +169,11 @@ int ugumn_adns_update() {
 	 				    + s->vel[1] * s->vel[1] ) );
         filter_vert_speed_fps_node
             ->setDoubleValue( -s->vel[2] * SG_METER_TO_FEET );
+
+	fresh_data = true;
     }
 
-    return 1;
+    return fresh_data;
 }
 
 

@@ -18,7 +18,8 @@ bool fgfs_imu_init( string rootname, SGPropertyNode *config );
 bool fgfs_imu_update();
 void fgfs_imu_close();
 
-//bool fgfs_imu_get();
+bool fgfs_airdata_init( string rootname );
+bool fgfs_airdata_update();
 
 
 #endif // _UGEAR_IMU_FGFS_HXX

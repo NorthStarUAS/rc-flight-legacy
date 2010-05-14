@@ -15,20 +15,20 @@ enum ugPacketType {
     ACTUATOR_PACKET_V1 = 0x03,
     PILOT_INPUT_PACKET_V1 = 0x04,
     AP_STATUS_PACKET_V1 = 0x05,
-    SYSTEM_HEALTH_PACKET_V1 = 0x06
+    AIR_DATA_PACKET_V1 = 0x06,
+    SYSTEM_HEALTH_PACKET_V1 = 0x07,
 };
 
 extern bool console_link_on;
 
 void console_link_init();
-bool console_link_gps( uint8_t *gps_buf, int gps_size, int skip_count );
-bool console_link_imu( uint8_t *imu_buf, int imu_size, int skip_count );
-bool console_link_filter( uint8_t *filter_buf, int filter_size,
-			  int skip_count );
-bool console_link_actuator( uint8_t *actuator_buf, int actuator_size,
-			    int skip_count );
-bool console_link_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count );
-bool console_link_ap( uint8_t *ap_buf, int ap_size, int skip_count );
+bool console_link_gps( uint8_t *buf, int size, int skip_count );
+bool console_link_imu( uint8_t *buf, int size, int skip_count );
+bool console_link_airdata( uint8_t *buf, int size, int skip_count );
+bool console_link_filter( uint8_t *buf, int size, int skip_count );
+bool console_link_actuator( uint8_t *buf, int size, int skip_count );
+bool console_link_pilot( uint8_t *buf, int size, int skip_count );
+bool console_link_ap( uint8_t *buf, int size, int skip_count );
 bool console_link_command();
 
 

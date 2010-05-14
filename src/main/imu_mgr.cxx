@@ -60,7 +60,7 @@ void IMU_init() {
 	    string basename = "/sensors/";
 	    basename += section->getDisplayName();
 	    printf("i = %d  name = %s source = %s %s\n",
-		   i, name.c_str(), source.c_str(), basename.c_str());
+	           i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
 	    } else if ( source == "fgfs" ) {
@@ -95,7 +95,7 @@ bool IMU_update() {
 	if ( name == "imu" ) {
 	    string source = section->getChild("source", 0, true)->getStringValue();
 	    // printf("i = %d  name = %s source = %s\n",
-	    // 	   i, name.c_str(), source.c_str());
+	    //        i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {
 		// do nothing
 	    } else if ( source == "fgfs" ) {

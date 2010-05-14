@@ -36,6 +36,11 @@ static SGPropertyNode *imu_hx_node = NULL;
 static SGPropertyNode *imu_hy_node = NULL;
 static SGPropertyNode *imu_hz_node = NULL;
 
+static SGPropertyNode *airdata_timestamp_node = NULL;
+static SGPropertyNode *airdata_airspeed_node = NULL;
+static SGPropertyNode *airdata_altitude_node = NULL;
+static bool airdata_inited = false;
+
 
 // initialize fgfs_imu input property nodes
 static void bind_input( SGPropertyNode *config ) {
@@ -47,7 +52,7 @@ static void bind_input( SGPropertyNode *config ) {
 }
 
 
-/// initialize imu output property nodes 
+// initialize imu output property nodes 
 static void bind_imu_output( string rootname ) {
     outputroot = fgGetNode( rootname.c_str(), true );
 
@@ -61,6 +66,18 @@ static void bind_imu_output( string rootname ) {
     imu_hx_node = outputroot->getChild("hx", 0, true);
     imu_hy_node = outputroot->getChild("hy", 0, true);
     imu_hz_node = outputroot->getChild("hz", 0, true);
+}
+
+
+// initialize airdata output property nodes 
+static void bind_airdata_output( string rootname ) {
+    outputroot = fgGetNode( rootname.c_str(), true );
+
+    airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    airdata_airspeed_node = outputroot->getChild("airspeed-kt", 0, true);
+    airdata_altitude_node = outputroot->getChild("altitude-m", 0, true);
+
+    airdata_inited = true;
 }
 
 
@@ -88,6 +105,14 @@ bool fgfs_imu_init( string rootname, SGPropertyNode *config ) {
 }
 
 
+// function prototypes
+bool fgfs_airdata_init( string rootname ) {
+    bind_airdata_output( rootname );
+
+    return true;
+}
+
+
 // swap big/little endian bytes
 static void my_swap( uint8_t *buf, int index, int count )
 {
@@ -102,7 +127,7 @@ static void my_swap( uint8_t *buf, int index, int count )
 
 
 bool fgfs_imu_update() {
-    const int fgfs_imu_size = 32;
+    const int fgfs_imu_size = 40;
     uint8_t packet_buf[fgfs_imu_size];
 
     bool fresh_data = false;
@@ -121,6 +146,8 @@ bool fgfs_imu_update() {
 	    my_swap( packet_buf, 20, 4 );
 	    my_swap( packet_buf, 24, 4 );
 	    my_swap( packet_buf, 28, 4 );
+	    my_swap( packet_buf, 32, 4 );
+	    my_swap( packet_buf, 36, 4 );
 	}
 
 	uint8_t *buf = packet_buf;
@@ -131,8 +158,11 @@ bool fgfs_imu_update() {
 	float ax = *(float *)buf; buf += 4;
 	float ay = *(float *)buf; buf += 4;
 	float az = *(float *)buf; buf += 4;
+	float airspeed = *(float *)buf; buf += 4;
+	float altitude = *(float *)buf; buf += 4;
 
-	imu_timestamp_node->setDoubleValue( get_Time() );
+	double cur_time = get_Time();
+	imu_timestamp_node->setDoubleValue( cur_time );
 	imu_p_node->setDoubleValue( p );
 	imu_q_node->setDoubleValue( q );
 	imu_r_node->setDoubleValue( r );
@@ -142,7 +172,29 @@ bool fgfs_imu_update() {
 	imu_hx_node->setDoubleValue( 0.0 );
 	imu_hy_node->setDoubleValue( 0.0 );
 	imu_hz_node->setDoubleValue( 0.0 );
+
+	if ( airdata_inited ) {
+	    airdata_timestamp_node->setDoubleValue( cur_time );
+	    airdata_airspeed_node->setDoubleValue( airspeed );
+	    airdata_altitude_node->setDoubleValue( altitude );
+	}
     }
+
+    return fresh_data;
+}
+
+
+bool fgfs_airdata_update() {
+    bool fresh_data = false;
+
+    static double last_time = 0.0;
+    double cur_time = airdata_timestamp_node->getDoubleValue();
+
+    if ( cur_time > last_time ) {
+	fresh_data = true;
+    }
+
+    last_time = cur_time;
 
     return fresh_data;
 }
