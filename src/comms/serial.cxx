@@ -73,18 +73,18 @@ bool SGSerialPort::open_port( const string& device, bool nonblock_mode ) {
         fcntl(fd, F_SETFL, O_NONBLOCK);
     }
 
-#if 0
-    // these settings caused random program corruption on the MPC5200
-    // and don't appear to actually be needed, so let's not set them
-    // and we'll stick with the defulat bootup port settings for now.
-
     // set required port parameters 
     if ( tcgetattr( fd, &config ) != 0 ) {
 	printf( "Unable to poll port settings" );
 	return false;
     }
 
-    // cfmakeraw( &config );
+    cfmakeraw( &config );
+
+#if 0
+    // these settings caused random program corruption on the MPC5200
+    // and don't appear to actually be needed, so let's not set them
+    // and we'll stick with the defulat bootup port settings for now.
 
     // cout << "config.c_iflag = " << config.c_iflag << endl;
 
@@ -107,11 +107,12 @@ bool SGSerialPort::open_port( const string& device, bool nonblock_mode ) {
     // Raw (not cooked/canonical) input mode
     config.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
 
+#endif
+
     if ( tcsetattr( fd, TCSANOW, &config ) != 0 ) {
 	printf( "Unable to update port settings" );
 	return false;
     }
-#endif
 
     return true;
 }
@@ -284,9 +285,9 @@ int SGSerialPort::write_port(const char* buf, int len) {
     count = write(fd, buf, len);
     // cout << "write '" << buf << "'  " << count << " bytes" << endl;
 
-    /* if ( count < 0 || count != len ) {
+    if ( count < 0 || count != len ) {
            perror("serial write");
-       } */
+    }
 
     return count;
 }

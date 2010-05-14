@@ -349,7 +349,6 @@ static bool arduservo_read() {
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// fprintf( stderr, "checksum passes (%d)!\n", pkt_id );
 		new_data = arduservo_parse( pkt_id, pkt_len, payload );
-		state++;
 	    } else {
 		if ( display_on ) {
 		    // printf("checksum failed %d %d (computed) != %d %d (message)\n",

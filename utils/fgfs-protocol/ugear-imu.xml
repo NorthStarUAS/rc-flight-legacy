@@ -54,6 +54,21 @@
       <node>/accelerations/pilot/z-accel-fps_sec</node>
       <factor>0.3048</factor>  <!-- feet to meter -->
     </chunk>
+
+    <!-- air data appended to IMU data for convenience -->
+    <chunk>
+      <name>Indicated airspeed (kt)</name>
+      <type>float</type>
+      <node>/instrumentation/airspeed-indicator/indicated-speed-kt</node>
+    </chunk>
+
+    <chunk>
+      <name>Pressure altitude (m)</name>
+      <type>float</type>
+      <node>/instrumentation/altimeter/indicated-altitude-ft</node>
+      <factor>0.3048</factor>
+    </chunk>
+
   </output>
 
  </generic>

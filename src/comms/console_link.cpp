@@ -40,7 +40,21 @@ void console_link_init() {
 
 static short console_write( const uint8_t *buf, const short size ) {
     int result = console.write_port( (const char *)buf, size );
+    /* if ( result != size ) {
+         printf("write error, only wrote %d bytes of %d\n", result, size);
+       } */
     return result;
+}
+
+
+static void gen_test_pattern( uint8_t *buf, int size ) {
+    static uint8_t val = 0;
+
+    for ( int i = 8; i < size; i++ ) {
+	buf[i] = val;
+    }
+
+    val++;
 }
 
 
@@ -64,6 +78,8 @@ static void console_link_packet( const uint8_t packet_id,
     buf[0] = packet_size; buf[1] = 0;
     console_write( buf, 1 );
 
+    // gen_test_pattern( (uint8_t *)packet_buf, packet_size );
+
     // packet data
     console_write( packet_buf, packet_size );
 
@@ -71,12 +87,15 @@ static void console_link_packet( const uint8_t packet_id,
     ugear_cksum( packet_id, packet_size, packet_buf, packet_size,
 		 &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
+    /*if ( packet_id == 2 ) {
+	printf("cksum = %d %d\n", cksum0, cksum1);
+    }*/
     console_write( buf, 2 );
     // printf(" end console_link_packet()\n");
 }
 
 
-bool console_link_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
+bool console_link_gps( uint8_t *buf, int size, int skip_count ) {
     // printf("Console link gps()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
@@ -88,13 +107,13 @@ bool console_link_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
         skip = skip_count;
     }
 
-    console_link_packet( GPS_PACKET_V1, gps_buf, gps_size );
+    console_link_packet( GPS_PACKET_V1, buf, size );
 
     return true;
 }
 
 
-bool console_link_imu( uint8_t *imu_buf, int imu_size, int skip_count  ) {
+bool console_link_imu( uint8_t *buf, int size, int skip_count  ) {
     // printf("Console link imu()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
@@ -106,14 +125,31 @@ bool console_link_imu( uint8_t *imu_buf, int imu_size, int skip_count  ) {
         skip = skip_count;
     }
 
-    console_link_packet( IMU_PACKET_V1, imu_buf, imu_size );
+    console_link_packet( IMU_PACKET_V1, buf, size );
 
     return true;
 }
 
 
-bool console_link_filter( uint8_t *filter_buf, int filter_size,
-			  int skip_count )
+bool console_link_airdata( uint8_t *buf, int size, int skip_count  ) {
+    // printf("Console link airdata()\n");
+    if ( skip_count < 0 ) { skip_count = 0; }
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return false;
+    } else {
+        skip = skip_count;
+    }
+
+    console_link_packet( AIR_DATA_PACKET_V1, buf, size );
+
+    return true;
+}
+
+
+bool console_link_filter( uint8_t *buf, int size, int skip_count )
 {
     // printf("Console link filter()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
@@ -126,14 +162,13 @@ bool console_link_filter( uint8_t *filter_buf, int filter_size,
         skip = skip_count;
     }
 
-    console_link_packet( FILTER_PACKET_V1, filter_buf, filter_size );
+    console_link_packet( FILTER_PACKET_V1, buf, size );
 
     return true;
 }
 
 
-bool console_link_actuator( uint8_t *actuator_buf, int actuator_size,
-			    int skip_count )
+bool console_link_actuator( uint8_t *buf, int size, int skip_count )
 {
     // printf("Console link actuator()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
@@ -146,13 +181,13 @@ bool console_link_actuator( uint8_t *actuator_buf, int actuator_size,
         skip = skip_count;
     }
 
-    console_link_packet( ACTUATOR_PACKET_V1, actuator_buf, actuator_size );
+    console_link_packet( ACTUATOR_PACKET_V1, buf, size );
 
     return true;
 }
 
 
-bool console_link_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count )
+bool console_link_pilot( uint8_t *buf, int size, int skip_count )
 {
     // printf("Console link pilot()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
@@ -165,13 +200,13 @@ bool console_link_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count )
         skip = skip_count;
     }
 
-    console_link_packet( PILOT_INPUT_PACKET_V1, pilot_buf, pilot_size );
+    console_link_packet( PILOT_INPUT_PACKET_V1, buf, size );
 
     return true;
 }
 
 
-bool console_link_ap( uint8_t *ap_buf, int ap_size, int skip_count )
+bool console_link_ap( uint8_t *buf, int size, int skip_count )
 {
     // printf("Console link health()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
@@ -184,7 +219,7 @@ bool console_link_ap( uint8_t *ap_buf, int ap_size, int skip_count )
         skip = skip_count;
     }
 
-    console_link_packet( AP_STATUS_PACKET_V1, ap_buf, ap_size );
+    console_link_packet( AP_STATUS_PACKET_V1, buf, size );
 
     return true;
 }

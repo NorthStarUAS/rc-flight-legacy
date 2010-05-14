@@ -34,7 +34,18 @@ void UGPacketizer::bind_imu_nodes() {
     imu_hx_node = fgGetNode("/sensors/imu/hx", true);
     imu_hy_node = fgGetNode("/sensors/imu/hy", true);
     imu_hz_node = fgGetNode("/sensors/imu/hz", true);
-    imu_status_node = NULL;
+    imu_status_node = fgGetNode("/sensors/imu/status", true);
+}
+
+// initialize air data property nodes 
+void UGPacketizer::bind_airdata_nodes() {
+    airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
+    airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
+    airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
+    airdata_climb_fps_node
+	= fgGetNode("/velocity/pressure-vertical-speed-fps",true);
+    airdata_accel_ktps_node = fgGetNode("/acceleration/airspeed-ktps",true);
+    airdata_status_node = fgGetNode("/sensors/air-data/status", true);
 }
 
 // initialize filter property nodes
@@ -103,6 +114,7 @@ void UGPacketizer::bind_health_nodes() {
 UGPacketizer::UGPacketizer() {
     bind_gps_nodes();
     bind_imu_nodes();
+    bind_airdata_nodes();
     bind_filter_nodes();
     bind_actuator_nodes();
     bind_pilot_nodes();
@@ -227,6 +239,45 @@ void UGPacketizer::decode_imu( uint8_t *buf ) {
 }
 
 
+int UGPacketizer::packetize_airdata( uint8_t *buf ) {
+    uint8_t *startbuf = buf;
+
+    double time = airdata_timestamp_node->getDoubleValue();
+    *(double *)buf = time; buf += 8;
+
+    int16_t airspeed = (int16_t)(airdata_airspeed_node->getFloatValue() * 100);
+    *(int16_t *)buf = airspeed; buf += 2;
+
+    float alt = airdata_altitude_node->getFloatValue();
+    *(float *)buf = alt; buf += 4;
+
+    int16_t climb = (int16_t)((airdata_climb_fps_node->getFloatValue() * 60) * 10);
+    *(float *)buf = climb; buf += 2;
+
+    int16_t accel = (int16_t)(airdata_accel_ktps_node->getFloatValue() * 100);
+    *(float *)buf = accel; buf += 2;
+
+    uint8_t status = airdata_status_node->getIntValue();
+    *buf = status; buf++;
+
+    return buf - startbuf;
+}
+
+
+void UGPacketizer::decode_airdata( uint8_t *buf ) {
+    double time = *(double *)buf; buf += 8;
+    int16_t airspeed = *(int16_t *)buf; buf += 2;
+    float alt = *(float *)buf; buf += 4;
+    int16_t climb = *(int16_t *)buf; buf += 2;
+    int16_t accel = *(int16_t *)buf; buf += 2;
+    uint8_t status = *(uint8_t *)buf; buf += 1;
+
+    printf("t = %.2f %.1f %.1f %.2f %.2f %d\n",
+	   time, (float)airspeed/100, alt, (float)climb/10, (float)accel/100,
+	   status );
+}
+
+
 int UGPacketizer::packetize_filter( uint8_t *buf ) {
     uint8_t *startbuf = buf;
 
@@ -251,7 +302,7 @@ int UGPacketizer::packetize_filter( uint8_t *buf ) {
 
     int16_t vd = (int16_t)(filter_vd_node->getDoubleValue() * 100);
     *(int16_t *)buf = vd; buf += 2;
-    
+
     /* resolution of 0.1 degrees */
     int16_t phi = (int16_t)(filter_phi_node->getDoubleValue() * 10);
     *(int16_t *)buf = phi; buf += 2;
@@ -263,10 +314,12 @@ int UGPacketizer::packetize_filter( uint8_t *buf ) {
     *(int16_t *)buf = psi; buf += 2;
 
     int8_t seq = (int8_t)console_seq_num->getIntValue();
-    *(int8_t *)buf = seq; buf ++;
+    *(int8_t *)buf = seq; buf++;
 
     uint8_t status = 0;
     *buf = status; buf++;
+
+    /* tmp */ buf++;
 
     return buf - startbuf;
 }
@@ -439,6 +492,9 @@ int UGPacketizer::packetize_ap( uint8_t *buf, SGWayPoint *wp, int index ) {
     *(double *)buf = wp->get_target_lat(); buf += 8;
     *(uint16_t *)buf = index; buf += 2;
     *(uint16_t *)buf = route_mgr.size(); buf += 2;
+
+    int8_t seq = (int8_t)console_seq_num->getIntValue();
+    *(int8_t *)buf = seq; buf++;
 
     return buf - startbuf;
 }

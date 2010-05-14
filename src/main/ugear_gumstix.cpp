@@ -275,18 +275,22 @@ void timer_handler (int signum)
 		flush_state++;
 		break;
 	    case 2:
-		flush_filter();
+		flush_airdata();
 		flush_state++;
 		break;
 	    case 3:
-		flush_actuator();
+		flush_filter();
 		flush_state++;
 		break;
 	    case 4:
-		flush_pilot();
+		flush_actuator();
 		flush_state++;
 		break;
 	    case 5:
+		flush_pilot();
+		flush_state++;
+		break;
+	    case 6:
 		flush_ap();
 		flush_state++;
 		break;

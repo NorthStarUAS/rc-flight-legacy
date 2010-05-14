@@ -15,8 +15,10 @@
 
 #include "include/ugear_config.h"
 
+#include "comms/console_link.h"
 #include "comms/logging.h"
 #include "include/globaldefs.h"
+#include "main/globals.hxx"
 #include "props/props.hxx"
 #include "util/myprof.h"
 
@@ -25,25 +27,34 @@
 #  include "mnav.h"
 #endif
 
+#include "imu_fgfs.hxx"
+
 #include "airdata_mgr.h"
 
 //
 // Global variables
 //
 
-static float Ps_filt = 0.0;
-static float Pt_filt = 0.0;
+static float altitude_filt = 0.0;
+static float airspeed_filt = 0.0;
 static float true_alt_m = 0.0;
 static float ground_alt_press = 0.0;
 static float climb_filt = 0.0;
 static float accel_filt = 0.0;
+static float Ps_filt_err = 0.0;
 
 // air data property nodes
 static SGPropertyNode *airdata_timestamp_node = NULL;
-static SGPropertyNode *airdata_Ps_node = NULL;
-static SGPropertyNode *airdata_Pt_node = NULL;
-static SGPropertyNode *Ps_filt_node = NULL;
-static SGPropertyNode *Pt_filt_node = NULL;
+static SGPropertyNode *airdata_altitude_node = NULL;
+static SGPropertyNode *airdata_airspeed_node = NULL;
+
+// input property nodes
+static SGPropertyNode *filter_timestamp_node = NULL;
+static SGPropertyNode *filter_alt_node = NULL;
+
+// output property nodes
+static SGPropertyNode *altitude_filt_node = NULL;
+static SGPropertyNode *airspeed_filt_node = NULL;
 static SGPropertyNode *pressure_error_m_node = NULL;
 static SGPropertyNode *true_alt_ft_node = NULL;
 static SGPropertyNode *agl_alt_ft_node = NULL;
@@ -51,16 +62,28 @@ static SGPropertyNode *vert_fps_node = NULL;
 static SGPropertyNode *forward_accel_node = NULL;
 static SGPropertyNode *ground_alt_press_m_node = NULL;
 
+// comm property nodes
+static SGPropertyNode *airdata_console_skip = NULL;
+static SGPropertyNode *airdata_logging_skip = NULL;
+
 
 void AirData_init() {
     // initialize air data property nodes
     airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
-    airdata_Ps_node = fgGetNode("/sensors/air-data/Ps-m", true);
-    airdata_Pt_node = fgGetNode("/sensors/air-data/Pt-ms", true);
-    Ps_filt_node = fgGetNode("/position/altitude-pressure-m", true);
-    Pt_filt_node = fgGetNode("/velocity/airspeed-kt", true);
-    true_alt_ft_node = fgGetNode("/position/altitude-ft",true);
-    agl_alt_ft_node = fgGetNode("/position/altitude-agl-ft", true);
+    airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
+    airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
+
+    // input property nodes
+    filter_timestamp_node = fgGetNode("/filters/filter/time-stamp", true);
+    filter_alt_node = fgGetNode("/position/altitude-m", true);
+
+    // filtered/computed output property nodes
+    altitude_filt_node = fgGetNode("/position/altitude-pressure-m", true);
+    airspeed_filt_node = fgGetNode("/velocity/airspeed-kt", true);
+
+    true_alt_ft_node = fgGetNode("/position/altitude-true-combined-ft",true);
+    agl_alt_ft_node = fgGetNode("/position/altitude-pressure-agl-ft", true);
+
     pressure_error_m_node
 	= fgGetNode("/position/pressure-error-m", true);
     vert_fps_node
@@ -69,8 +92,12 @@ void AirData_init() {
     ground_alt_press_m_node
         = fgGetNode("/position/ground-altitude-pressure-m", true);
 
+    // initialize comm nodes
+    airdata_console_skip = fgGetNode("/config/console/airdata-skip", true);
+    airdata_logging_skip = fgGetNode("/config/logging/airdata-skip", true);
+
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/air-data-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -82,6 +109,8 @@ void AirData_init() {
 		   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "fgfs" ) {
+		fgfs_airdata_init( basename );
 #ifdef ENABLE_MNAV_SENSOR
 	    } else if ( source == "mnav" ) {
 		mnav_airdata_init( basename );
@@ -95,56 +124,87 @@ void AirData_init() {
 }
 
 
-static void do_pressure_helpers() {
-    static float Ps_filt_last = 0.0;
-    static float Pt_filt_last = 0.0;
-    static double t_last = 0.0;
+static void update_pressure_helpers() {
+    static float altitude_filt_last = 0.0;
+    static float airspeed_filt_last = 0.0;
+    static double last_time = 0.0;
+    double cur_time = airdata_timestamp_node->getDoubleValue();
+    static double start_time = cur_time;
 
-    double ad_time = airdata_timestamp_node->getDoubleValue();
-    double Ps = airdata_Ps_node->getDoubleValue();
-    double Pt = airdata_Pt_node->getDoubleValue();
+    double dt = cur_time - last_time;
+    if ( dt > 1.0 ) {
+	dt = 1.0;		// keep dt smallish
+    }
 
-    // Do a simple first order low pass filter to reduce noise
-    Ps_filt = 0.97 * Ps_filt + 0.03 * Ps;
-    Pt_filt = 0.97 * Pt_filt + 0.03 * Pt;
+    float Ps = airdata_altitude_node->getFloatValue();
+    float Pt = airdata_airspeed_node->getFloatValue();
+    float filter_alt_m = filter_alt_node->getFloatValue();
 
-    // best guess at true altitude
-    true_alt_m = Ps_filt + pressure_error_m_node->getDoubleValue();
+    // Do a simple first order (time based) low pass filter to reduce noise
+    altitude_filt = (1.0 - dt) * altitude_filt + dt * Ps;
+    airspeed_filt = (1.0 - dt) * airspeed_filt + dt * Pt;
+
+    // compute a filtered error difference between gps altitude
+    // and pressure altitude.  (at 4hz update rate this averages
+    // the error over about 40 minutes)
+    double elapsed_time = cur_time - start_time;
+    if ( elapsed_time > 1800 ) {
+	elapsed_time = 1800;	// 30 minutes
+    }
+    static bool first_time = true;
+    if ( first_time ) {
+	if ( filter_timestamp_node->getDoubleValue() > 1.0 ) {
+	    first_time = false;
+	    Ps_filt_err = filter_alt_m - Ps;
+	}
+    } else {
+	if ( elapsed_time >= dt && elapsed_time >= 0.001 ) {
+	    float alt_err = filter_alt_m - Ps;
+	    Ps_filt_err = ((elapsed_time - dt) * Ps_filt_err + dt * alt_err)
+		/ elapsed_time;
+	    // printf("cnt = %.0f err = %.2f\n", Ps_count, Ps_filt_err);
+	}
+
+	// best guess at true altitude
+	true_alt_m = altitude_filt + Ps_filt_err;
+    }
 
     // compute rate of climb based on pressure altitude change
-    float climb = (Ps_filt - Ps_filt_last) / (ad_time - t_last);
-    Ps_filt_last = Ps_filt;
+    float climb = (altitude_filt - altitude_filt_last) / dt;
+    altitude_filt_last = altitude_filt;
     climb_filt = 0.97 * climb_filt + 0.03 * climb;
 
     // compute a forward acceleration value based on pitot speed
     // change
-    float accel = (Pt_filt - Pt_filt_last) / (ad_time - t_last);
-    Pt_filt_last = Pt_filt;
+    float accel = (airspeed_filt - airspeed_filt_last) / dt;
+    airspeed_filt_last = airspeed_filt;
     accel_filt = 0.97 * accel_filt + 0.03 * accel;
 
-    // determine ground reference altitude.  Average pressure
-    // altitude over first 30 seconds unit is powered on.  This
-    // assumes that system clock time starts counting at zero.
-    // Watch out if we ever find a way to set the system clock to
-    // real time.
-    static bool first_time = true;
-    if ( first_time ) { 
-	ground_alt_press = Ps;
-	first_time = false;
-    }
-    if ( ad_time < 30.0 ) {
-	float dt = ad_time - t_last;
-	float elapsed = ad_time - dt;
-	ground_alt_press
-	    = (elapsed * ground_alt_press + dt * Ps)
-	    / ad_time;
-	ground_alt_press_m_node->setDoubleValue( ground_alt_press );
+    // determine ground reference altitude.  Average filter altitude
+    // over first 30 seconds the filter becomes active.
+    static float ground_alt_filter = Ps;
+
+    if ( elapsed_time >= dt && elapsed_time >= 0.001 && elapsed_time <= 30.0 ) {
+	ground_alt_filter
+	    = ((elapsed_time - dt) * ground_alt_filter + dt * Ps)
+	    / elapsed_time;
+	ground_alt_press_m_node->setDoubleValue( ground_alt_filter );
     }
 
-    t_last = ad_time;
+    last_time = cur_time;
+
+    // publish values to property tree
+    pressure_error_m_node->setDoubleValue( Ps_filt_err );
+    altitude_filt_node->setDoubleValue( altitude_filt );
+    airspeed_filt_node->setDoubleValue( airspeed_filt * SG_MPS_TO_KT );
+    true_alt_ft_node->setDoubleValue( true_alt_m * SG_METER_TO_FEET );
+    agl_alt_ft_node->setDoubleValue( (altitude_filt - ground_alt_filter)
+				     * SG_METER_TO_FEET );
+    vert_fps_node->setDoubleValue( climb_filt * SG_METER_TO_FEET );
+    forward_accel_node->setDoubleValue( accel_filt * SG_MPS_TO_KT );
 
     // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
-    //        Ps_filt, navpacket.alt, true_alt_m, climb_filt);
+    //        altitude_filt, navpacket.alt, true_alt_m, climb_filt);
 }
 
 
@@ -154,7 +214,7 @@ bool AirData_update() {
     bool fresh_data = false;
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/air-data-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -166,6 +226,8 @@ bool AirData_update() {
 	    //	   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "fgfs" ) {
+		fresh_data = fgfs_airdata_update();
 #ifdef ENABLE_MNAV_SENSOR
 	    } else if ( source == "mnav" ) {
 		fresh_data = mnav_get_airdata();
@@ -178,16 +240,22 @@ bool AirData_update() {
     }
 
     if ( fresh_data ) {
-	do_pressure_helpers();
+	update_pressure_helpers();
 
-	// publish values to property tree
-	Ps_filt_node->setDoubleValue( Ps_filt );
-	Pt_filt_node->setDoubleValue( Pt_filt * SG_MPS_TO_KT );
-	true_alt_ft_node->setDoubleValue( true_alt_m * SG_METER_TO_FEET );
-	agl_alt_ft_node->setDoubleValue( (Ps_filt - ground_alt_press)
-					* SG_METER_TO_FEET );
-	vert_fps_node->setDoubleValue( climb_filt * SG_METER_TO_FEET );
-	forward_accel_node->setDoubleValue( accel_filt * SG_MPS_TO_KT );
+	if ( console_link_on || log_to_file ) {
+	    uint8_t buf[256];
+	    int size = packetizer->packetize_airdata( buf );
+
+	    if ( console_link_on ) {
+		// printf("sending filter packet\n");
+		console_link_airdata( buf, size,
+				      airdata_console_skip->getIntValue() );
+	    }
+
+	    if ( log_to_file ) {
+		log_airdata( buf, size, airdata_logging_skip->getIntValue() );
+	    }
+	}
     }
 
     air_prof.stop();
@@ -198,7 +266,7 @@ bool AirData_update() {
 
 void AirData_close() {
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/air-data-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -208,8 +276,14 @@ void AirData_close() {
 	    basename += section->getDisplayName();
 	    // printf("i = %d  name = %s source = %s %s\n",
 	    //	   i, name.c_str(), source.c_str(), basename.c_str());
-	    if ( source == "mnav" ) {
+	    if ( source == "null" ) {
+		// do nothing
+	    } else if ( source == "fgfs" ) {
 		// nop
+#ifdef ENABLE_MNAV_SENSOR
+	    } else if ( source == "mnav" ) {
+		// nop
+#endif
 	    } else {
 		printf("Unknown air data source = '%s' in config file\n",
 		       source.c_str());

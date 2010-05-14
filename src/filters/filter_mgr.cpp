@@ -48,6 +48,7 @@ static SGPropertyNode *imu_hy_node = NULL;
 static SGPropertyNode *imu_hz_node = NULL;
 
 // filter property nodes
+static SGPropertyNode *filter_timestamp_node = NULL;
 static SGPropertyNode *filter_theta_node = NULL;
 static SGPropertyNode *filter_phi_node = NULL;
 static SGPropertyNode *filter_psi_node = NULL;
@@ -59,10 +60,12 @@ static SGPropertyNode *filter_ve_node = NULL;
 static SGPropertyNode *filter_vd_node = NULL;
 static SGPropertyNode *filter_status_node = NULL;
 
-static SGPropertyNode *filter_alt_feet_node = NULL;
+static SGPropertyNode *filter_alt_ft_node = NULL;
 static SGPropertyNode *filter_track_node = NULL;
 static SGPropertyNode *filter_vel_node = NULL;
 static SGPropertyNode *filter_vert_speed_fps_node = NULL;
+static SGPropertyNode *filter_ground_alt_m_node = NULL;
+static SGPropertyNode *filter_alt_agl_ft_node = NULL;
 
 // comm property nodes
 static SGPropertyNode *filter_console_skip = NULL;
@@ -122,6 +125,7 @@ void Filter_init() {
 
     // initialize output property nodes (after module initialization
     // so we know that the reference properties will exist
+    filter_timestamp_node = fgGetNode("/filters/time-stamp", true);
     filter_theta_node = fgGetNode("/orientation/pitch-deg", true);
     filter_phi_node = fgGetNode("/orientation/roll-deg", true);
     filter_psi_node = fgGetNode("/orientation/heading-deg", true);
@@ -133,12 +137,18 @@ void Filter_init() {
     filter_vd_node = fgGetNode("/velocity/vd-ms", true);
     filter_status_node = fgGetNode("/health/navigation", true);
 
-    filter_alt_feet_node = fgGetNode("/position/altitude-ft", true);
+    filter_alt_ft_node = fgGetNode("/position/altitude-ft", true);
     filter_track_node = fgGetNode("/orientation/groundtrack-deg", true);
     filter_vel_node = fgGetNode("/velocity/groundspeed-ms", true);
-    filter_vert_speed_fps_node = fgGetNode("/velocity/vertical-speed-fps", true);
+    filter_vert_speed_fps_node
+	= fgGetNode("/velocity/vertical-speed-fps", true);
+    filter_ground_alt_m_node
+	= fgGetNode("/position/ground-altitude-filter-m", true);
+    filter_alt_agl_ft_node
+	= fgGetNode("/position/altitude-filter-agl-ft", true);
 
     if ( toplevel->nChildren() > 0 ) {
+	filter_timestamp_node->alias("/filters/filter[0]/time-stamp");
 	filter_theta_node->alias("/filters/filter[0]/pitch-deg");
 	filter_phi_node->alias("/filters/filter[0]/roll-deg");
 	filter_psi_node->alias("/filters/filter[0]/heading-deg");
@@ -150,11 +160,42 @@ void Filter_init() {
 	filter_vd_node->alias("/filters/filter[0]/vd-ms");
 	filter_status_node->alias("/filters/filter[0]/navigation");
 
-	filter_alt_feet_node->alias("/filters/filter[0]/altitude-ft");
+	filter_alt_ft_node->alias("/filters/filter[0]/altitude-ft");
 	filter_track_node->alias("/filters/filter[0]/groundtrack-deg");
 	filter_vel_node->alias("/filters/filter[0]/groundspeed-ms");
 	filter_vert_speed_fps_node->alias("/filters/filter[0]/vertical-speed-fps");
     }
+}
+
+
+static void update_ground() {
+    static double last_time = 0.0;
+
+    double cur_time = filter_timestamp_node->getDoubleValue();
+    static double start_time = cur_time;
+    double elapsed_time = cur_time - start_time;
+
+    double dt = cur_time - last_time;
+    if ( dt > 1.0 ) {
+	dt = 1.0;		// keep dt smallish
+    }
+
+    // determine ground reference altitude.  Average filter altitude
+    // over first 30 seconds the filter becomes active.
+    static float ground_alt_filter = filter_alt_node->getFloatValue();
+
+    if ( elapsed_time >= dt && elapsed_time >= 0.001 && elapsed_time <= 30.0 ) {
+	ground_alt_filter
+	    = ((elapsed_time - dt) * ground_alt_filter
+	       + dt * filter_alt_node->getFloatValue())
+	    / elapsed_time;
+	filter_ground_alt_m_node->setDoubleValue( ground_alt_filter );
+    }
+
+    float agl_m = filter_alt_node->getFloatValue() - ground_alt_filter;
+    filter_alt_agl_ft_node->setDoubleValue( agl_m * SG_METER_TO_FEET );
+
+    last_time = cur_time;
 }
 
 
@@ -163,6 +204,7 @@ bool Filter_update( bool fresh_imu_data ) {
 
     double imu_time = imu_timestamp_node->getDoubleValue();
     double imu_dt = imu_time - last_imu_time;
+    bool fresh_filter_data = false;
 
     // sanity check (i.e. system clock was changed by another process)
     if ( imu_dt > 1.0 ) { imu_dt = 0.02; }
@@ -182,7 +224,7 @@ bool Filter_update( bool fresh_imu_data ) {
 	    if ( module == "null" ) {
 		// do nothing
 	    } else if ( module == "curt" ) {
-		curt_adns_update( imu_dt );
+		fresh_filter_data = curt_adns_update( imu_dt );
 #ifdef ENABLE_MNAV_FILTER
 	    } else if ( module == "mnav" ) {
 		static int mnav_nav_counter = 0;
@@ -212,33 +254,38 @@ bool Filter_update( bool fresh_imu_data ) {
 		    mnav_nav_counter = 0;
 		    mnav_nav_update( &imupacket );
 		}
+		fresh_filter_data = true;
 #endif // ENABLE_MNAV_FILTER
 	    } else if ( module == "umn" ) {
-		ugumn_adns_update();
+		fresh_filter_data = ugumn_adns_update();
 	    }
 	}
     }
 
     filter_prof.stop();
 
-    if ( console_link_on || log_to_file ) {
-	uint8_t buf[256];
-	int size = packetizer->packetize_filter( buf );
+    if ( fresh_filter_data ) {
+	update_ground();
+	     
+	if ( console_link_on || log_to_file ) {
+	    uint8_t buf[256];
+	    int size = packetizer->packetize_filter( buf );
 
-        if ( console_link_on ) {
-	    // printf("sending filter packet\n");
-            console_link_filter( buf, size,
-				 filter_console_skip->getIntValue() );
-        }
+	    if ( console_link_on ) {
+		// printf("sending filter packet\n");
+		console_link_filter( buf, size,
+				     filter_console_skip->getIntValue() );
+	    }
 
-        if ( log_to_file ) {
-            log_filter( buf, size, filter_logging_skip->getIntValue() );
-        }
+	    if ( log_to_file ) {
+		log_filter( buf, size, filter_logging_skip->getIntValue() );
+	    }
+	}
     }
 
     last_imu_time = imu_time;
 
-    return true;
+    return fresh_filter_data;
 }
 
 

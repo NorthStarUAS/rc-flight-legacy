@@ -86,8 +86,8 @@ static SGPropertyNode *imu_hz_node = NULL;
 
 // air data property nodes
 static SGPropertyNode *airdata_timestamp_node = NULL;
-static SGPropertyNode *airdata_Ps_node = NULL;
-static SGPropertyNode *airdata_Pt_node = NULL;
+static SGPropertyNode *airdata_altitude_node = NULL;
+static SGPropertyNode *airdata_airspeed_node = NULL;
 
 // gps property nodes
 static SGPropertyNode *gps_timestamp_node = NULL;
@@ -137,8 +137,8 @@ static void bind_airdata_output( string rootname ) {
     // "/sensors/air-data"
     outputroot = fgGetNode( rootname.c_str(), true );
     airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    airdata_Ps_node = outputroot->getChild("Ps-m", 0, true);
-    airdata_Pt_node = outputroot->getChild("Pt-ms", 0, true);
+    airdata_altitude_node = outputroot->getChild("altitude-m", 0, true);
+    airdata_airspeed_node = outputroot->getChild("airspeed-kt", 0, true);
 }
 
 
@@ -743,8 +743,8 @@ bool mnav_get_airdata() {
     // in the "imu" structure which is badly named and return
     if ( imu_data_valid ) {
 	airdata_timestamp_node->setDoubleValue( imu_data.time );
-	airdata_Ps_node->setDoubleValue( imu_data.Ps );
-	airdata_Pt_node->setDoubleValue( imu_data.Pt );
+	airdata_altitude_node->setDoubleValue( imu_data.Ps );
+	airdata_airspeed_node->setDoubleValue( imu_data.Pt );
     }
 
     return imu_data_valid;

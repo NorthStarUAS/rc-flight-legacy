@@ -35,6 +35,14 @@ class UGPacketizer {
     SGPropertyNode *imu_hz_node;
     SGPropertyNode *imu_status_node;
 
+    // air data property nodes
+    SGPropertyNode *airdata_timestamp_node;
+    SGPropertyNode *airdata_altitude_node;
+    SGPropertyNode *airdata_airspeed_node;
+    SGPropertyNode *airdata_climb_fps_node;
+    SGPropertyNode *airdata_accel_ktps_node;
+    SGPropertyNode *airdata_status_node;
+
     // filter property nodes
     SGPropertyNode *filter_timestamp_node;
     SGPropertyNode *filter_theta_node;
@@ -89,6 +97,7 @@ class UGPacketizer {
 
     void bind_gps_nodes();
     void bind_imu_nodes();
+    void bind_airdata_nodes();
     void bind_filter_nodes();
     void bind_actuator_nodes();
     void bind_pilot_nodes();
@@ -105,6 +114,9 @@ public:
 
     int packetize_imu( uint8_t *buf );
     void decode_imu( uint8_t *buf );
+
+    int packetize_airdata( uint8_t *buf );
+    void decode_airdata( uint8_t *buf );
 
     int packetize_filter( uint8_t *buf );
     void decode_filter( uint8_t *buf );

@@ -47,10 +47,7 @@ static SGPropertyNode *gps_ve_node = NULL;
 static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
-
-static SGPropertyNode *gps_satellites = NULL;
-static SGPropertyNode *gps_nmode = NULL;
-
+static SGPropertyNode *gps_satellites_node = NULL;
 static SGPropertyNode *gps_device_name_node = NULL;
 
 static int fd = -1;
@@ -77,10 +74,8 @@ static void bind_output( string rootname ) {
     gps_ve_node = outputroot->getChild("ve-ms", 0, true);
     gps_vn_node = outputroot->getChild("vn-ms", 0, true);
     gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+    gps_satellites_node = outputroot->getChild("satellites", 0, true);
     gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
-
-    gps_satellites = outputroot->getChild("satellites", 0, true);
-    gps_nmode = outputroot->getChild("nmea-mode", 0, true);
 }
 
 
@@ -335,7 +330,7 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 		satUsed++;
 	    }
 	}
-	gps_satellites->setIntValue( satUsed );
+	gps_satellites_node->setIntValue( satUsed );
 	// printf("Satellite count = %d/%d\n", satUsed, numCh);
     }
 

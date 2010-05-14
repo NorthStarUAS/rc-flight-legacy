@@ -18,8 +18,9 @@
 
 static FILE *fnavstate = NULL;
 
-static gzFile fimu = NULL;
 static gzFile fgps = NULL;
+static gzFile fimu = NULL;
+static gzFile fair = NULL;
 static gzFile ffilter = NULL;
 static gzFile fact = NULL;
 static gzFile fpilot = NULL;
@@ -44,8 +45,8 @@ static SGPropertyNode *imu_hy_node = NULL;
 static SGPropertyNode *imu_hz_node = NULL;
 
 // air data nodes
-static SGPropertyNode *Ps_node = NULL;
-static SGPropertyNode *Pt_node = NULL;
+static SGPropertyNode *airdata_altitude_node = NULL;
+static SGPropertyNode *airdata_airspeed_node = NULL;
 
 // gps property nodes
 static SGPropertyNode *gps_timestamp_node = NULL;
@@ -106,8 +107,8 @@ static void init_props() {
     imu_hz_node = fgGetNode("/sensors/imu/hz", true);
 
     // initialize air data nodes
-    Ps_node = fgGetNode("/sensors/air-data/Ps-m", true);
-    Pt_node = fgGetNode("/sensors/air-data/Pt-ms", true);
+    airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
+    airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
 
     // initialize gps property nodes
     gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
@@ -258,7 +259,7 @@ bool logging_close() {
 }
 
 
-void log_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
+void log_gps( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
@@ -269,11 +270,11 @@ void log_gps( uint8_t *gps_buf, int gps_size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fgps, gps_buf, gps_size );
+    gzwrite( fgps, buf, size );
 }
 
 
-void log_imu( uint8_t *imu_buf, int imu_size, int skip_count ) {
+void log_imu( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
@@ -284,11 +285,11 @@ void log_imu( uint8_t *imu_buf, int imu_size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fimu, imu_buf, imu_size );
+    gzwrite( fimu, buf, size );
 }
 
 
-void log_filter( uint8_t *filter_buf, int filter_size, int skip_count ) {
+void log_airdata( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
@@ -299,11 +300,11 @@ void log_filter( uint8_t *filter_buf, int filter_size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( ffilter, filter_buf, filter_size );
+    gzwrite( fair, buf, size );
 }
 
 
-void log_actuator( uint8_t *actuator_buf, int actuator_size, int skip_count ) {
+void log_filter( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
@@ -314,11 +315,11 @@ void log_actuator( uint8_t *actuator_buf, int actuator_size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fact, actuator_buf, actuator_size );
+    gzwrite( ffilter, buf, size );
 }
 
 
-void log_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count ) {
+void log_actuator( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
@@ -329,11 +330,11 @@ void log_pilot( uint8_t *pilot_buf, int pilot_size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fpilot, pilot_buf, pilot_size );
+    gzwrite( fact, buf, size );
 }
 
 
-void log_ap( uint8_t *ap_buf, int ap_size, int skip_count ) {
+void log_pilot( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
@@ -344,7 +345,22 @@ void log_ap( uint8_t *ap_buf, int ap_size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fap, ap_buf, ap_size );
+    gzwrite( fpilot, buf, size );
+}
+
+
+void log_ap( uint8_t *buf, int size, int skip_count ) {
+    if ( skip_count < 0 ) { skip_count = 0; }
+    static uint8_t skip = skip_count;
+
+    if ( skip > 0 ) {
+        --skip;
+        return;
+    } else {
+        skip = skip_count;
+    }
+
+    gzwrite( fap, buf, size );
 }
 
 
@@ -357,6 +373,12 @@ void flush_gps() {
 void flush_imu() {
     // printf("flush imu\n");
     gzflush( fimu, Z_SYNC_FLUSH );
+}
+
+
+void flush_airdata() {
+    // printf("flush airdata\n");
+    gzflush( fair, Z_SYNC_FLUSH );
 }
 
 
@@ -409,9 +431,9 @@ void display_message()
 	   filter_phi_node->getDoubleValue(),
 	   filter_theta_node->getDoubleValue(),
 	   filter_psi_node->getDoubleValue());
-    printf("[     ]:Ps  = %6.3f Pt  = %6.3f             \n",
-	   Ps_node->getDoubleValue(),
-	   Pt_node->getDoubleValue());
+    printf("[     ]:Palt  = %6.3f Pspd  = %6.3f             \n",
+	   airdata_altitude_node->getDoubleValue(),
+	   airdata_airspeed_node->getDoubleValue());
 #if 0
     // gyro bias from mnav filter
     printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n",
