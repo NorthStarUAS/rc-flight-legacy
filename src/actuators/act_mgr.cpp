@@ -27,7 +27,7 @@
 #include "util/timing.h"
 
 #include "act_fgfs.hxx"
-#include "arduservo.hxx"
+#include "ardusensor.hxx"
 
 #include "act_mgr.h"
 
@@ -107,7 +107,7 @@ void Actuator_init() {
 	    if ( module == "null" ) {
 		// do nothing
 	    } else if ( module == "ardupilot-servo" ) {
-		arduservo_init( section );
+		ardusensor_init( section );
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_init( section );
 #ifdef ENABLE_MNAV_SENSOR
@@ -262,7 +262,7 @@ bool Actuator_update() {
 	    if ( module == "null" ) {
 		// do nothing
 	    } else if ( module == "ardupilot-servo" ) {
-		arduservo_update();
+		ardusensor_update();
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_update();
 #ifdef ENABLE_MNAV_SENSOR
@@ -322,7 +322,7 @@ void Actuators_close() {
 	    if ( module == "null" ) {
 		// do nothing
 	    } else if ( module == "ardupilot-servo" ) {
-		arduservo_close();
+		ardusensor_close();
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_close();
 #ifdef ENABLE_MNAV_SENSOR

@@ -1,5 +1,5 @@
 //
-// FILE: arduservo.hxx
+// FILE: ardusensor.hxx
 // DESCRIPTION: interact with ardupilot based servo subsystem board
 //
 
@@ -17,13 +17,14 @@
 #include "props/props.hxx"
 #include "util/timing.h"
 
-#include "arduservo.hxx"
+#include "ardusensor.hxx"
 
 #define START_OF_MSG0 147
 #define START_OF_MSG1 224
 #define SENSOR_PACKET_ID 10
 #define COMMAND_PACKET_ID 11
 #define MAX_SERVOS 4
+#define MAX_ANALOG_INPUTS 4
 
 // fgfs_imu property nodes
 static SGPropertyNode *configroot = NULL;
@@ -54,9 +55,20 @@ static SGPropertyNode *act_channel7_node = NULL;
 static SGPropertyNode *act_channel8_node = NULL;
 static SGPropertyNode *act_status_node = NULL;
 
+// air data nodes
+static SGPropertyNode *airdata_timestamp_node = NULL;
+static SGPropertyNode *airdata_analog0_node = NULL;
+static SGPropertyNode *airdata_analog1_node = NULL;
+static SGPropertyNode *airdata_airspeed_node = NULL;
+static SGPropertyNode *airdata_altitude_node = NULL;
+static bool airdata_inited = false;
+
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
 // static int baud = 115200;
+
+uint16_t analog[MAX_ANALOG_INPUTS]; // temporary storage
+
 
 // initialize fgfs_gps input property nodes
 static void bind_input( SGPropertyNode *config ) {
@@ -98,8 +110,22 @@ static void bind_act_nodes() {
 }
 
 
+// initialize airdata output property nodes 
+static void bind_airdata_output( string rootname ) {
+    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+
+    airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    airdata_analog0_node = outputroot->getChild("analog0", 0, true);
+    airdata_analog1_node = outputroot->getChild("analog1", 0, true);
+    airdata_airspeed_node = outputroot->getChild("airspeed-kt", 0, true);
+    airdata_altitude_node = outputroot->getChild("altitude-m", 0, true);
+
+    airdata_inited = true;
+}
+
+
 // send our configured init strings to configure gpsd the way we prefer
-static bool arduservo_open() {
+static bool ardusensor_open() {
     if ( display_on ) {
 	printf("Ardu servo subsystem on %s\n", device_name.c_str());
     }
@@ -147,17 +173,25 @@ static bool arduservo_open() {
 
 
 // function prototypes
-bool arduservo_init( SGPropertyNode *config ) {
-    printf("arduservo_init()\n");
+bool ardusensor_init( SGPropertyNode *config ) {
+    printf("ardusensor_init()\n");
 
     bind_input( config );
     bind_act_nodes();
-    bool result = arduservo_open();
+    bool result = ardusensor_open();
 
     return result;
 }
 
 
+bool ardusensor_airdata_init( string rootname ) {
+    bind_airdata_output( rootname );
+
+    return true;
+}
+
+
+#if 0
 // swap big/little endian bytes
 static void my_swap( uint8_t *buf, int index, int count )
 {
@@ -169,6 +203,7 @@ static void my_swap( uint8_t *buf, int index, int count )
         buf[index+count-i-1] = tmp;
     }
 }
+#endif
 
 
 // convert a pwm pulse length to a normalize [-1 to 1] or [0 to 1] range
@@ -190,15 +225,16 @@ static double normalize_pulse( int pulse, bool symmetrical ) {
     return result;
 }
 
-static bool arduservo_parse( uint8_t pkt_id, uint8_t pkt_len,
+static bool ardusensor_parse( uint8_t pkt_id, uint8_t pkt_len,
 			     uint8_t *payload )
 {
     bool new_data = false;
 
     if ( pkt_id == SENSOR_PACKET_ID ) {
-	if ( pkt_len == MAX_SERVOS * 2 + 1 ) {
+	if ( pkt_len == MAX_SERVOS * 2 + 1 + MAX_ANALOG_INPUTS * 2 ) {
 	    uint8_t lo, hi;
 	    double val;
+
 	    pilot_timestamp_node->setDoubleValue( get_Time() );
 
 	    lo = payload[0]; hi = payload[1];
@@ -219,6 +255,11 @@ static bool arduservo_parse( uint8_t pkt_id, uint8_t pkt_len,
 
 	    pilot_manual_node->setIntValue( !payload[8] );
 
+	    for ( int i = 0; i < MAX_ANALOG_INPUTS; i++ ) {
+		lo = payload[9 + 2*i]; hi = payload[10 + 2*i];
+		analog[i] = hi*256 + lo;
+	    }
+
 #if 0
 	    if ( display_on ) {
 		printf("%5.2f %5.2f %4.2f %5.2f %d\n",
@@ -233,7 +274,7 @@ static bool arduservo_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("arduservo: packet size mismatch in pilot input\n");
+		printf("ardusensor: packet size mismatch in pilot input\n");
 	    }
 	}
     }
@@ -242,7 +283,8 @@ static bool arduservo_parse( uint8_t pkt_id, uint8_t pkt_len,
 }
 
 
-static void arduservo_read_tmp() {
+#if 0
+static void ardusensor_read_tmp() {
     int len;
     uint8_t input[16];
     len = read( fd, input, 1 );
@@ -251,9 +293,10 @@ static void arduservo_read_tmp() {
 	len = read( fd, input, 1 );
     }
 }
+#endif
 
 
-static bool arduservo_read() {
+static bool ardusensor_read() {
     static int state = 0;
     static int pkt_id = 0;
     static int pkt_len = 0;
@@ -263,7 +306,7 @@ static bool arduservo_read() {
     uint8_t input[500];
     static uint8_t payload[500];
 
-    // printf("read arduservo, entry state = %d\n", state);
+    // printf("read ardusensor, entry state = %d\n", state);
 
     bool new_data = false;
 
@@ -348,7 +391,7 @@ static bool arduservo_read() {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// fprintf( stderr, "checksum passes (%d)!\n", pkt_id );
-		new_data = arduservo_parse( pkt_id, pkt_len, payload );
+		new_data = ardusensor_parse( pkt_id, pkt_len, payload );
 	    } else {
 		if ( display_on ) {
 		    // printf("checksum failed %d %d (computed) != %d %d (message)\n",
@@ -406,7 +449,7 @@ static void ardu_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, 
 }
 
 
-static bool arduservo_write() {
+static bool ardusensor_write() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
@@ -475,17 +518,70 @@ static bool arduservo_write() {
 }
 
 
-bool arduservo_update() {
+bool ardusensor_update() {
     // read receiver values from ardu servo subsystem
-    while ( arduservo_read() );
+    while ( ardusensor_read() );
 
     // send actuator commands to ardu servo subsystem
-    arduservo_write();
+    ardusensor_write();
 
     return true;
 }
 
 
-void arduservo_close() {
+bool ardusensor_airdata_update() {
+    bool fresh_data = false;
+    static double last_time = 0.0;
+
+    if ( airdata_inited ) {
+	double cur_time = pilot_timestamp_node->getDoubleValue();
+
+	// basic formula: v = sqrt((2/p) * q) where v = velocity, q =
+	// dynamic pressure (pitot tube sensor value), and p = air
+	// density.
+
+	// if p is specified in kg/m^3 (value = 1.225) and if q is
+	// specified in Pa (N/m^2) where 1 psi == 6900 Pa, then the
+	// velocity will be in meters per second.
+
+	// The MPXV5004DP has a full scale span of 3.9V, Maximum
+	// pressure reading is 0.57psi (4000Pa)
+
+	// With a 10bit ADC (ardupilot) we record a value of 226
+	// (0-1024) at zero velocity.  Assuming a 5V input source,
+	// this corresponds to about 1.1V ... via another reference we
+	// predict the device saturates at about 3.9V.  In other words 1.1V
+	// (226ADC) == 0Pa and 3.9V(799ADC) == 4000Pa.  Thus:
+
+	// Pa = (ADC - 226) * 147
+	// Airspeed(mps) = sqrt( (2/1.225) * Pa )
+
+	// This yields a theoretical maximum speed sensor reading of
+	// about 81mps (156 kts)
+
+	// hard coded (probably should use constants from the config file)
+	float Pa = (analog[0] - 226) * 7;
+	if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
+	float airspeed_mps = sqrt( 2*Pa / 1.225 );
+	float airspeed_kts = airspeed_mps * SG_MPS_TO_KT;
+
+	if ( cur_time > last_time ) {
+	    airdata_timestamp_node->setDoubleValue( cur_time );
+	    airdata_analog0_node->setIntValue( analog[0] );
+	    airdata_analog1_node->setIntValue( analog[1] );
+	    airdata_airspeed_node->setDoubleValue( airspeed_kts );
+	    airdata_altitude_node->setDoubleValue( analog[1] );
+
+	    fresh_data = true;
+	}
+
+	last_time = cur_time;
+    }
+
+    return fresh_data;
+}
+
+
+void ardusensor_close() {
     close(fd);
 }
