@@ -53,4 +53,8 @@ fi
 echo ""
 echo "Now you are ready to run:"
 echo ""
+echo "./configure CC=arm-angstrom-linux-gnueabi-gcc CFLAGS=\"-Wall -O2\" CXX=arm-angstrom-linux-gnueabi-g++ CXXFLAGS=\"-Wall -O2\" --host=arm-angstrom-linux-gnueabi --prefix=/home/curt/Projects/GumStixOE/gumstix-oe/tmp/cross/"
+echo ""
+echo "or ..."
+echo ""
 echo "./configure CFLAGS=\"-Wall -O2\" CXXFLAGS=\"-Wall -O2\" --host=arm-linux"
