@@ -245,20 +245,20 @@ void FGPIDController::update( double dt ) {
     Ts = elapsedTime;
     elapsedTime = 0.0;
 
-    //if (enable_prop != NULL && enable_prop->getStringValue() == enable_value){
-    if ( !enabled ) {
-      // first time being enabled, seed u_n with current
-      // property tree value
-      u_n = output_list[0]->getDoubleValue();
-      // and clip
-      if ( u_n < u_min ) { u_n = u_min; }
-      if ( u_n > u_max ) { u_n = u_max; }
-      u_n_1 = u_n;
+    if (enable_prop != NULL && enable_prop->getStringValue() == enable_value) {
+	if ( !enabled ) {
+	    // first time being enabled, seed u_n with current
+	    // property tree value
+	    u_n = output_list[0]->getDoubleValue();
+	    // and clip
+	    if ( u_n < u_min ) { u_n = u_min; }
+	    if ( u_n > u_max ) { u_n = u_max; }
+	    u_n_1 = u_n;
+	}
+	enabled = true;
+    } else {
+	enabled = false;
     }
-    enabled = true;
-    // } else {
-    // enabled = false;
-    // }
 
     if ( enabled && Ts > 0.0) {
         if ( debug ) printf("Updating %s Ts = %.2f", name.c_str(), Ts );
@@ -460,15 +460,15 @@ FGPISimpleController::FGPISimpleController( SGPropertyNode *node ):
 
 
 void FGPISimpleController::update( double dt ) {
-    //if (enable_prop != NULL && enable_prop->getStringValue() == enable_value){
-    if ( !enabled ) {
-      // we have just been enabled, zero out int_sum
-      int_sum = 0.0;
+    if (enable_prop != NULL && enable_prop->getStringValue() == enable_value) {
+	if ( !enabled ) {
+	    // we have just been enabled, zero out int_sum
+	    int_sum = 0.0;
+	}
+	enabled = true;
+    } else {
+	enabled = false;
     }
-    enabled = true;
-    // } else {
-    //     enabled = false;
-    // }
 
     if ( enabled ) {
         if ( debug ) printf("Updating %s\n", name.c_str());

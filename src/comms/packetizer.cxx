@@ -100,7 +100,7 @@ void UGPacketizer::bind_ap_nodes() {
     ap_altitude = fgGetNode( "/autopilot/settings/target-altitude-ft", true );
     ap_climb = fgGetNode("/autopilot/internal/target-climb-rate-fps", true);
     ap_pitch = fgGetNode( "/autopilot/settings/target-pitch-deg", true );
-    ap_speed = fgGetNode( "/autopilot/settings/target-speed-kts", true );
+    ap_speed = fgGetNode( "/autopilot/settings/target-speed-kt", true );
     ap_waypoint = fgGetNode( "/autopilot/route-mgr/target-waypoint-idx", true );
 }
 

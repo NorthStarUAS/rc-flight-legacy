@@ -91,12 +91,11 @@ void timer_handler (int signum)
     // master "dt"
     static double last_time = 0.0;
     double current_time = get_Time();
-    // double dt = current_time - last_time;
+    double dt = current_time - last_time;
     last_time = current_time;
 
     static int health_counter = 0;
     static int display_counter = 0;
-    static int ap_counter = 0;
     static int route_counter = 0;
     static int command_counter = 0;
     static int flush_counter = 0;
@@ -109,7 +108,6 @@ void timer_handler (int signum)
 
     health_counter++;
     display_counter++;
-    ap_counter++;
     route_counter++;
     command_counter++;
     flush_counter++;
@@ -220,13 +218,9 @@ void timer_handler (int signum)
     }
 
     if ( enable_control ) {
-	// autopilot update at 25 hz
-	if ( ap_counter >= (HEARTBEAT_HZ / 25) ) { 
-	    ap_counter = 0;
-	    control_prof.start();
-	    control_update(0);
-	    control_prof.stop();
-	}
+	control_prof.start();
+	control_update(dt);
+	control_prof.stop();
 
 	Actuator_update();
     }

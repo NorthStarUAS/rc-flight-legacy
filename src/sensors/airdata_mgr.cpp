@@ -139,6 +139,10 @@ static void update_pressure_helpers() {
 	dt = 1.0;		// keep dt smallish
     }
 
+    if ( dt < 0.000001 ) {
+	return; 		// do nothing if dt zero
+    }
+
     float Ps = airdata_altitude_node->getFloatValue();
     float Pt = airdata_airspeed_node->getFloatValue();
     float filter_alt_m = filter_alt_node->getFloatValue();
@@ -199,7 +203,7 @@ static void update_pressure_helpers() {
     // publish values to property tree
     pressure_error_m_node->setDoubleValue( Ps_filt_err );
     altitude_filt_node->setDoubleValue( altitude_filt );
-    airspeed_filt_node->setDoubleValue( airspeed_filt * SG_MPS_TO_KT );
+    airspeed_filt_node->setDoubleValue( airspeed_filt );
     true_alt_ft_node->setDoubleValue( true_alt_m * SG_METER_TO_FEET );
     agl_alt_ft_node->setDoubleValue( (altitude_filt - ground_alt_filter)
 				     * SG_METER_TO_FEET );

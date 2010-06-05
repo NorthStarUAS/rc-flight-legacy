@@ -48,6 +48,7 @@ static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
 static SGPropertyNode *gps_satellites_node = NULL;
+static SGPropertyNode *gps_fix_type_node = NULL;
 static SGPropertyNode *gps_device_name_node = NULL;
 
 static int fd = -1;
@@ -75,6 +76,7 @@ static void bind_output( string rootname ) {
     gps_vn_node = outputroot->getChild("vn-ms", 0, true);
     gps_vd_node = outputroot->getChild("vd-ms", 0, true);
     gps_satellites_node = outputroot->getChild("satellites", 0, true);
+    gps_fix_type_node = outputroot->getChild("fix-type", 0, true);
     gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
 }
 
@@ -216,6 +218,10 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	// SGVec3d vel_ecef = ecef2ned.backTransform(vel_ned);
 	SGVec3d vel_ned = ecef2ned.transform( vel_ecef );
 	// printf("my vel ned = %.2f %.2f %.2f\n", vel_ned.x(), vel_ned.y(), vel_ned.z());
+
+ 	gps_satellites_node->setIntValue( numSV );
+ 	gps_fix_type_node->setIntValue( gpsFix );
+
 	if ( gpsFix == 3 ) {
 	    new_position = true;
 	    gps_timestamp_node->setDoubleValue( get_Time() );
@@ -323,14 +329,15 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	uint8_t globalFlags = p[5];
 	int satUsed = 0;
 	for ( int i = 0; i < numCh; i++ ) {
+	    uint8_t satid = p[9 + 12*i];
 	    uint8_t flags = p[10 + 12*i];
 	    uint8_t quality = p[11 + 12*i];
-	    // printf("chn=%d flags=%d quality=%d\n", i, flags, quality);
-	    if ( flags & 0x1 ) {
+	    // printf(" chn=%d satid=%d flags=%d quality=%d\n", i, satid, flags, quality);
+	    if ( quality == 3 ) {
 		satUsed++;
 	    }
 	}
-	gps_satellites_node->setIntValue( satUsed );
+ 	// gps_satellites_node->setIntValue( satUsed );
 	// printf("Satellite count = %d/%d\n", satUsed, numCh);
     }
 

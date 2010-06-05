@@ -34,16 +34,13 @@
 #include "comms/console_link.h"
 #include "comms/logging.h"
 #include "main/globals.hxx"
+#include "sensors/gps_mgr.h"
 
 #include "waypoint.hxx"
 #include "route_mgr.hxx"
 
 
 FGRouteMgr route_mgr;           // global route manager object
-
-// console/logging property nodes
-static SGPropertyNode *ap_console_skip = NULL;
-static SGPropertyNode *ap_logging_skip = NULL;
 
 
 FGRouteMgr::FGRouteMgr() :
@@ -59,6 +56,11 @@ FGRouteMgr::FGRouteMgr() :
     target_msl_ft( NULL ),
     override_msl_ft( NULL ),
     target_waypoint( NULL ),
+    route_mode_node( NULL ),
+    home_lon_node( NULL ),
+    home_lat_node( NULL ),
+    ap_console_skip( NULL ),
+    ap_logging_skip( NULL ),
     home_set( false ),
     mode( GoHome )
 {
@@ -70,8 +72,38 @@ FGRouteMgr::~FGRouteMgr() {
 }
 
 
-void FGRouteMgr::init() {
+// bind property nodes
+void FGRouteMgr::bind() {
     config_props = fgGetNode( "/routes/route", true );
+
+    lon = fgGetNode( "/position/longitude-deg", true );
+    lat = fgGetNode( "/position/latitude-deg", true );
+    alt = fgGetNode( "/position/altitude-ft", true );
+
+    true_hdg_deg = fgGetNode( "/autopilot/settings/true-heading-deg", true );
+    target_msl_ft
+        = fgGetNode( "/autopilot/settings/target-msl-ft", true );
+    override_msl_ft
+        = fgGetNode( "/autopilot/settings/override-msl-ft", true );
+    target_agl_ft
+        = fgGetNode( "/autopilot/settings/target-agl-ft", true );
+    override_agl_ft
+        = fgGetNode( "/autopilot/settings/override-agl-ft", true );
+    target_waypoint
+	= fgGetNode( "/autopilot/route-mgr/target-waypoint-idx", true );
+
+    route_mode_node = fgGetNode("/routes/mode", true);
+
+    home_lon_node = fgGetNode("/routes/home/longitude-deg", true );
+    home_lat_node = fgGetNode("/routes/home/latitude-deg", true );
+
+    ap_console_skip = fgGetNode("/config/console/autopilot-skip", true);
+    ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
+}
+
+
+void FGRouteMgr::init() {
+    bind();
 
     SGPropertyNode *root_n = fgGetNode("/config/root-path");
     SGPropertyNode *path_n = fgGetNode("/config/route/path");
@@ -93,7 +125,7 @@ void FGRouteMgr::init() {
                 exit(-1);
             }
 
-            mode = FollowRoute;
+            set_route_mode();
         } catch (const sg_exception& exc) {
             printf("Failed to load route configuration: %s\n",
                    config.c_str());
@@ -102,25 +134,6 @@ void FGRouteMgr::init() {
     } else {
         printf("No autopilot configuration specified in master.xml file!");
     }
-
-    lon = fgGetNode( "/position/longitude-deg", true );
-    lat = fgGetNode( "/position/latitude-deg", true );
-    alt = fgGetNode( "/position/altitude-ft", true );
-
-    true_hdg_deg = fgGetNode( "/autopilot/settings/true-heading-deg", true );
-    target_msl_ft
-        = fgGetNode( "/autopilot/settings/target-msl-ft", true );
-    override_msl_ft
-        = fgGetNode( "/autopilot/settings/override-msl-ft", true );
-    target_agl_ft
-        = fgGetNode( "/autopilot/settings/target-agl-ft", true );
-    override_agl_ft
-        = fgGetNode( "/autopilot/settings/override-agl-ft", true );
-    target_waypoint
-	= fgGetNode( "/autopilot/route-mgr/target-waypoint-idx", true );
-
-    ap_console_skip = fgGetNode("/config/console/autopilot-skip", true);
-    ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
 }
 
 
@@ -144,21 +157,24 @@ void FGRouteMgr::update() {
 	// publish current target waypoint
 	target_waypoint->setIntValue( 0 );
     } else if ( mode == FollowRoute && route->size() > 0 ) {
-        // track current waypoint of route
-        SGWayPoint wp = route->get_current();
-        wp.CourseAndDistance( lon->getDoubleValue(), lat->getDoubleValue(),
-                              alt->getDoubleValue(), &wp_course, &wp_distance );
+	if ( GPS_age() < 10.0 ) {
+	    // track current waypoint of route (only if we have fresh gps data)
+	    SGWayPoint wp = route->get_current();
+	    wp.CourseAndDistance( lon->getDoubleValue(), lat->getDoubleValue(),
+				  alt->getDoubleValue(),
+				  &wp_course, &wp_distance );
 
-        true_hdg_deg->setDoubleValue( wp_course );
-        target_agl_m = wp.get_target_agl_m();
-        target_msl_m = wp.get_target_alt_m();
+	    true_hdg_deg->setDoubleValue( wp_course );
+	    target_agl_m = wp.get_target_agl_m();
+	    target_msl_m = wp.get_target_alt_m();
 
-        if ( wp_distance < 50.0 ) {
-            route->increment_current();
-        }
+	    if ( wp_distance < 50.0 ) {
+		route->increment_current();
+	    }
 
-        // publish current target waypoint
-        target_waypoint->setIntValue( route->get_waypoint_index() );
+	    // publish current target waypoint
+	    target_waypoint->setIntValue( route->get_waypoint_index() );
+	}
     } else {
         // FIXME: we've been commanded to go home and no home position
         // has been set, or we've been commanded to follow a route,
@@ -323,6 +339,8 @@ bool FGRouteMgr::update_home( const SGWayPoint &wp, const double hdg,
             home = wp;
             home_course_deg = hdg;
             home_set = true;
+	    home_lon_node->setDoubleValue( home.get_target_lon() );
+	    home_lat_node->setDoubleValue( home.get_target_lat() );
             route->refresh_offset_positions( wp, home_course_deg );
             if ( display_on ) {
                 printf( "HOME updated: %.6f %.6f (course = %.1f)\n",
@@ -338,3 +356,35 @@ bool FGRouteMgr::update_home( const SGWayPoint &wp, const double hdg,
 
     return false;
 }
+
+
+SGWayPoint FGRouteMgr::get_home() {
+    if ( home_set ) {
+	return home;
+    } else {
+	return SGWayPoint();
+    }
+}
+
+
+void FGRouteMgr::set_route_mode() {
+    mode = FollowRoute;
+    route_mode_node->setStringValue("route");
+    /*
+      FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
+      fprintf(debug, "mode: FollowRoute\n");
+      fclose(debug);
+    */
+}
+
+
+void FGRouteMgr::set_home_mode() {
+    mode = GoHome;
+    route_mode_node->setStringValue("home");
+    /*
+      FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
+      fprintf(debug, "mode: GoHome\n");
+      fclose(debug);
+    */
+}
+

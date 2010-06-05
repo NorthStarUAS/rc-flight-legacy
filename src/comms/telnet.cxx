@@ -13,6 +13,7 @@
 
 #include <sstream>
 
+#include "control/control.h"
 #include "props/props.hxx"
 #include "props/props_io.hxx"
 #include "util/strutils.hxx"
@@ -257,6 +258,20 @@ PropsChannel::foundTerminator()
 		    push( tmp.c_str() );
 		    push( getTerminator() );
 		}
+	    }
+	} else if ( command == "run" ) {
+	    if (tokens.size() == 2) {
+		string command = tokens[1];
+		if ( command == "ap.reinit()" ) {
+		    control_reinit();
+		} else {
+		    push( "unknown command: " );
+		    push( tokens[1].c_str() );
+		    push( getTerminator() );
+		}
+	    } else {
+		push( "usage: run <command>" );
+		push( getTerminator() );
 	    }
 	} else if ( command == "dump" ) {
 	    stringstream buf;

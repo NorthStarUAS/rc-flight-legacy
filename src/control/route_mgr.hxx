@@ -74,6 +74,17 @@ private:
     SGPropertyNode_ptr override_msl_ft;
     SGPropertyNode_ptr target_waypoint;
 
+    // route following mode
+    SGPropertyNode *route_mode_node;
+
+    // register "home" in the property tree
+    SGPropertyNode *home_lon_node;
+    SGPropertyNode *home_lat_node;
+
+    // console/logging property nodes
+    SGPropertyNode *ap_console_skip;
+    SGPropertyNode *ap_logging_skip;
+
     bool home_set;
     bool msl_override;
     bool agl_override;
@@ -88,6 +99,8 @@ public:
 
     FGRouteMgr();
     ~FGRouteMgr();
+
+    void bind();
 
     void init();
 
@@ -110,32 +123,12 @@ public:
     bool update_home( const SGWayPoint &wp, const double hdg,
 		      bool force_update );
 
-    SGWayPoint get_home() const {
-        if ( home_set ) {
-            return home;
-        } else {
-            return SGWayPoint();
-        }
-    }
+    SGWayPoint get_home();
 
-    inline void set_route_mode() {
-        mode = FollowRoute;
-	/*
-	  FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
-	  fprintf(debug, "mode: FollowRoute\n");
-	  fclose(debug);
-	*/
-    }
+    void set_route_mode();
 
-    inline void set_home_mode() {
-        mode = GoHome;
-	/*
-	  FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
-	  fprintf(debug, "mode: GoHome\n");
-	  fclose(debug);
-	*/
-    }
-
+    void set_home_mode();
+ 
     inline fgRouteMode get_route_mode() {
         return mode;
     }
