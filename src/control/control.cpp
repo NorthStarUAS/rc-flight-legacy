@@ -28,45 +28,87 @@
 static FGXMLAutopilot ap;
 
 
+// autopilot control properties
+static SGPropertyNode *ap_master_switch_node = NULL;
+static SGPropertyNode *ap_heading_mode_node = NULL;
+static SGPropertyNode *ap_altitude_mode_node = NULL;
+static SGPropertyNode *ap_speed_mode_node = NULL;
+
+static SGPropertyNode *heading_lock_node = NULL;
+static SGPropertyNode *altitude_lock_node = NULL;
+static SGPropertyNode *speed_lock_node = NULL;
+
+
+static void bind_properties() {
+    ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
+    ap_heading_mode_node = fgGetNode("/autopilot/heading-mode", true);
+    ap_altitude_mode_node = fgGetNode("/autopilot/altitude-mode", true);
+    ap_speed_mode_node = fgGetNode("/autopilot/speed-mode", true);
+
+    heading_lock_node = fgGetNode("/autopilot/locks/heading", true);
+    altitude_lock_node = fgGetNode("/autopilot/locks/altitude", true);
+    speed_lock_node = fgGetNode("/autopilot/locks/speed", true);
+}
+
+
 void control_init() {
     // initialize the autopilot class and build the structures from the
     // configuration file values
 
+    bind_properties();
+
     ap.init();
     ap.build();
 
+    // set default autopilot modes
+    ap_heading_mode_node->setStringValue("route");
+    ap_altitude_mode_node->setStringValue("pitch");
+    ap_speed_mode_node->setStringValue("throttle");
+
     if ( display_on ) {
-	printf("Initializing autopilot\n");
+	printf("Autopilot initialized\n");
     }
 }
 
 
-void control_reset() {
-    // initialization
+void control_reinit() {
+    // reread autopilot configuration from the property tree and reset
+    // all stages (i.e. real time gain tuning)
+
+    ap.reinit();
 }
 
 
-void control_update(short flight_mode)
+void control_update(double dt)
 {
-#if 0
-    // FIXME: we need a more generic autopilot mode switching system.
-    // I can envision at least 3 modes: (1) Manual pass through, (2)
-    // Fly by wire, and (3) full autopilot
+    static bool autopilot_enabled = false;
 
-    // make a quick exit if we are disabled
-    if ( !autopilot_active ) {
-      return;
+    if ( ap_master_switch_node->getBoolValue() ) {
+	if ( !autopilot_enabled ) {
+	    // autopilot is just activated, set lock modes
+	    heading_lock_node
+		->setStringValue( ap_heading_mode_node->getStringValue() );
+	    altitude_lock_node
+		->setStringValue( ap_altitude_mode_node->getStringValue() );
+	    speed_lock_node
+		->setStringValue( ap_speed_mode_node->getStringValue() );
+	    
+	    autopilot_enabled = true;
+	}
+    } else {
+	if ( autopilot_enabled ) {
+	    // autopilot is just de-activated, clear lock modes
+	    heading_lock_node->setStringValue( "" );
+	    altitude_lock_node->setStringValue( "" );
+	    speed_lock_node->setStringValue( "" );
+	    autopilot_enabled = false;
+	}
     }
 
-    // reset the autopilot if requested
-    if ( autopilot_reinit ) {
-      control_reset();
-      autopilot_reinit = false;
+    if ( autopilot_enabled ) {
+	// update the autopilot stages
+	ap.update( dt );
     }
-#endif
-
-    // update the autopilot stages
-    ap.update( 0.04 );	// dt = 1/25
 }
 
 
