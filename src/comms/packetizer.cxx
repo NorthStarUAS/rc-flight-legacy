@@ -97,7 +97,8 @@ void UGPacketizer::bind_pilot_nodes() {
 void UGPacketizer::bind_ap_nodes() {
     ap_hdg = fgGetNode( "/autopilot/settings/true-heading-deg", true );
     ap_roll = fgGetNode("/autopilot/internal/target-roll-deg", true);
-    ap_altitude = fgGetNode( "/autopilot/settings/target-altitude-ft", true );
+    ap_altitude_agl = fgGetNode( "/autopilot/settings/target-agl-ft", true );
+    ap_altitude_msl = fgGetNode( "/autopilot/settings/target-msl-ft", true );
     ap_climb = fgGetNode("/autopilot/internal/target-climb-rate-fps", true);
     ap_pitch = fgGetNode( "/autopilot/settings/target-pitch-deg", true );
     ap_speed = fgGetNode( "/autopilot/settings/target-speed-kt", true );
@@ -473,11 +474,14 @@ int UGPacketizer::packetize_ap( uint8_t *buf, SGWayPoint *wp, int index ) {
     int16_t roll = (int16_t)(ap_roll->getFloatValue() * 10.0);
     *(int16_t *)buf = roll; buf += 2;
 
-    uint16_t alt = (uint16_t)ap_altitude->getFloatValue();
-    *(uint16_t *)buf = alt; buf += 2;
+    uint16_t alt_agl = (uint16_t)ap_altitude_agl->getFloatValue();
+    *(uint16_t *)buf = alt_agl; buf += 2;
 
-    uint16_t climb = (uint16_t)(ap_climb->getFloatValue() * 10.0);
-    *(uint16_t *)buf = climb; buf += 2;
+    uint16_t alt_msl = (uint16_t)ap_altitude_msl->getFloatValue();
+    *(uint16_t *)buf = alt_msl; buf += 2;
+
+    int16_t climb = (int16_t)(ap_climb->getFloatValue() * 10.0);
+    *(int16_t *)buf = climb; buf += 2;
 
     int16_t pitch = (int16_t)(ap_pitch->getFloatValue() * 10.0);
     *(int16_t *)buf = pitch; buf += 2;
@@ -504,7 +508,8 @@ void UGPacketizer::decode_ap( uint8_t *buf ) {
     double time = *(double *)buf; buf += 8;
     int16_t ap_hdg = *(int16_t *)buf; buf += 2;
     int16_t ap_roll = *(int16_t *)buf; buf += 2;
-    uint16_t ap_alt = *(uint16_t *)buf; buf += 2;
+    uint16_t ap_alt_agl = *(uint16_t *)buf; buf += 2;
+    uint16_t ap_alt_msl = *(uint16_t *)buf; buf += 2;
     int16_t ap_climb = *(int16_t *)buf; buf += 2;
     int16_t ap_pitch = *(int16_t *)buf; buf += 2;
     int16_t ap_speed = *(int16_t *)buf; buf += 2;
@@ -514,8 +519,9 @@ void UGPacketizer::decode_ap( uint8_t *buf ) {
     uint16_t wp_index = *(uint16_t *)buf; buf += 2;
     uint16_t route_size = *(uint16_t *)buf; buf += 2;
 
-    printf("t = %.2f %.1f %.1f %d %d %.1f %.1f %d %.10f %.10f %d %d\n",
+    printf("t = %.2f %.1f %.1f %d %d %d %.1f %.1f %d %.10f %.10f %d %d\n",
 	   time,
-	   ap_hdg/10.0, ap_roll/10.0, ap_alt, ap_climb, ap_pitch/10.0,
-	   ap_speed/10.0, ap_waypoint, lon, lat, wp_index, route_size);
+	   ap_hdg/10.0, ap_roll/10.0, ap_alt_agl, ap_alt_msl, ap_climb,
+	   ap_pitch/10.0, ap_speed/10.0, ap_waypoint, lon, lat, wp_index,
+	   route_size);
 }

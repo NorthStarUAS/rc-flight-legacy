@@ -83,7 +83,8 @@ class UGPacketizer {
     // autopilot status nodes
     SGPropertyNode *ap_hdg;
     SGPropertyNode *ap_roll;
-    SGPropertyNode *ap_altitude;
+    SGPropertyNode *ap_altitude_agl;
+    SGPropertyNode *ap_altitude_msl;
     SGPropertyNode *ap_climb;
     SGPropertyNode *ap_pitch;
     SGPropertyNode *ap_speed;

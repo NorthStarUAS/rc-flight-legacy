@@ -38,6 +38,11 @@ static SGPropertyNode *heading_lock_node = NULL;
 static SGPropertyNode *altitude_lock_node = NULL;
 static SGPropertyNode *speed_lock_node = NULL;
 
+// temporary ... set target speed to current speed when autopilot is
+// activated
+static SGPropertyNode *cur_speed_node = NULL;
+static SGPropertyNode *target_speed_node = NULL;
+
 
 static void bind_properties() {
     ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
@@ -48,6 +53,9 @@ static void bind_properties() {
     heading_lock_node = fgGetNode("/autopilot/locks/heading", true);
     altitude_lock_node = fgGetNode("/autopilot/locks/altitude", true);
     speed_lock_node = fgGetNode("/autopilot/locks/speed", true);
+
+    cur_speed_node = fgGetNode("/velocity/airspeed-kt", true);
+    target_speed_node = fgGetNode("/autopilot/settings/target-speed-kt", true);
 }
 
 
@@ -92,7 +100,10 @@ void control_update(double dt)
 		->setStringValue( ap_altitude_mode_node->getStringValue() );
 	    speed_lock_node
 		->setStringValue( ap_speed_mode_node->getStringValue() );
-	    
+
+	    double cur_speed = cur_speed_node->getDoubleValue();
+	    target_speed_node->setDoubleValue( cur_speed );
+
 	    autopilot_enabled = true;
 	}
     } else {
