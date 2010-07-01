@@ -94,6 +94,11 @@ bool IMU_update() {
 	string name = section->getName();
 	if ( name == "imu" ) {
 	    string source = section->getChild("source", 0, true)->getStringValue();
+            bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+            if ( !enabled ) {
+                continue;
+            }
+
 	    // printf("i = %d  name = %s source = %s\n",
 	    //        i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {
