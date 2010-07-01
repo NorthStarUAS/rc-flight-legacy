@@ -217,6 +217,12 @@ bool logging_init() {
         return false;
     }
 
+    file = new_dir; file.append( "air.dat.gz" );
+    if ( (fair = gzopen( file.c_str(), "w+b" )) == NULL ) {
+        printf("Cannot open %s\n", file.c_str());
+        return false;
+    }
+
     file = new_dir; file.append( "filter.dat.gz" );
     if ( (ffilter = gzopen( file.c_str(), "w+b" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
@@ -512,9 +518,9 @@ void logging_navstate()
         pretty_yaw += 2 * 3.14159265358979323846;
     }
 
-    struct timeval tv;
-    gettimeofday( &tv, NULL );
-    double unixSec = tv.tv_sec + (tv.tv_usec / 1000000.0);
+    //struct timeval tv;
+    //gettimeofday( &tv, NULL );
+    //double unixSec = tv.tv_sec + (tv.tv_usec / 1000000.0);
     fprintf( fnavstate,
              "%.3f %.12f %.12f %.3f %.4f %.4f %.4f %.4f %.4f %.4f\n",
              imu_timestamp_node->getDoubleValue() /* unixSec */,

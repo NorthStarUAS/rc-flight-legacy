@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "control/route_mgr.hxx"
+#include "include/globaldefs.h"
 #include "util/timing.h"
 
 #include "packetizer.hxx"
@@ -40,8 +41,10 @@ void UGPacketizer::bind_imu_nodes() {
 // initialize air data property nodes 
 void UGPacketizer::bind_airdata_nodes() {
     airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
-    airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
-    airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
+    // airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
+    airdata_altitude_node = fgGetNode("/position/altitude-pressure-m", true);
+    // airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
+    airdata_airspeed_node = fgGetNode("/velocity/airspeed-kt", true);
     airdata_climb_fps_node
 	= fgGetNode("/velocity/pressure-vertical-speed-fps",true);
     airdata_accel_ktps_node = fgGetNode("/acceleration/airspeed-ktps",true);
@@ -95,6 +98,8 @@ void UGPacketizer::bind_pilot_nodes() {
 
 // initialize autopilot status property nodes
 void UGPacketizer::bind_ap_nodes() {
+    filter_ground_alt_m_node
+	= fgGetNode("/position/ground-altitude-filter-m", true);
     ap_hdg = fgGetNode( "/autopilot/settings/true-heading-deg", true );
     ap_roll = fgGetNode("/autopilot/internal/target-roll-deg", true);
     ap_altitude_agl = fgGetNode( "/autopilot/settings/target-agl-ft", true );
@@ -320,8 +325,6 @@ int UGPacketizer::packetize_filter( uint8_t *buf ) {
     uint8_t status = 0;
     *buf = status; buf++;
 
-    /* tmp */ buf++;
-
     return buf - startbuf;
 }
 
@@ -474,11 +477,10 @@ int UGPacketizer::packetize_ap( uint8_t *buf, SGWayPoint *wp, int index ) {
     int16_t roll = (int16_t)(ap_roll->getFloatValue() * 10.0);
     *(int16_t *)buf = roll; buf += 2;
 
-    uint16_t alt_agl = (uint16_t)ap_altitude_agl->getFloatValue();
-    *(uint16_t *)buf = alt_agl; buf += 2;
-
-    uint16_t alt_msl = (uint16_t)ap_altitude_msl->getFloatValue();
-    *(uint16_t *)buf = alt_msl; buf += 2;
+    float alt_agl_ft = ap_altitude_agl->getFloatValue();
+    float ground_m = filter_ground_alt_m_node->getFloatValue();
+    float alt_msl_ft = ground_m * SG_METER_TO_FEET + alt_agl_ft;
+    *(uint16_t *)buf = (uint16_t)alt_msl_ft; buf += 2;
 
     int16_t climb = (int16_t)(ap_climb->getFloatValue() * 10.0);
     *(int16_t *)buf = climb; buf += 2;
