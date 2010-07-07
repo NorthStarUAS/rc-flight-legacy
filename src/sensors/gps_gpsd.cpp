@@ -22,7 +22,7 @@ using std::string;
 #include "util/timing.h"
 #include "gps_mgr.h"
 
-#include "gpsd.h"
+#include "gps_gpsd.h"
 
 
 // gpsd property nodes

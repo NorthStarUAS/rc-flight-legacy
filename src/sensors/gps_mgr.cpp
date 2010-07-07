@@ -25,7 +25,7 @@
 #include "util/timing.h"
 
 #include "gps_fgfs.hxx"
-#include "gpsd.h"
+#include "gps_gpsd.h"
 #ifdef ENABLE_MNAV_SENSOR
 #  include "mnav.h"
 #endif // ENABLE_MNAV_SENSOR
