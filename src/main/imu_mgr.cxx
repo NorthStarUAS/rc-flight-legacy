@@ -25,6 +25,7 @@
 #  include "sensors/mnav.h"
 #endif // ENABLE_MNAV_SENSOR
 #include "sensors/imu_sf6DOFv4.h"
+#include "sensors/imu_vn100.h"
 #include "sensors/ugfile.h"
 
 #include "imu_mgr.hxx"
@@ -73,6 +74,8 @@ void IMU_init() {
 #endif // ENABLE_MNAV_SENSOR
 	    } else if ( source == "sf6DOFv4" ) {
 		sf_6DOFv4_imu_init( basename, section );
+	    } else if ( source == "vn100" ) {
+		imu_vn100_init( basename, section );
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
@@ -118,6 +121,8 @@ bool IMU_update() {
 #endif // ENABLE_MNAV_SENSOR
 	    } else if ( source == "sf6DOFv4" ) {
 		fresh_data = sf_6DOFv4_get_imu();
+	    } else if ( source == "vn100" ) {
+		fresh_data = imu_vn100_get();
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
@@ -171,6 +176,8 @@ void IMU_close() {
 #endif // ENABLE_MNAV_SENSOR
 	    } else if ( source == "sf6DOFv4" ) {
 		sf_6DOFv4_close();
+	    } else if ( source == "vn100" ) {
+		imu_vn100_close();
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());

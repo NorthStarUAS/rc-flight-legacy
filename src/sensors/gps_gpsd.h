@@ -9,8 +9,8 @@
  * $Id: gpsd.h,v 1.2 2009/05/01 02:04:17 curt Exp $
  */
 
-#ifndef _UGEAR_GPSD_H
-#define _UGEAR_GPSD_H
+#ifndef _UGEAR_GPS_GPSD_H
+#define _UGEAR_GPS_GPSD_H
 
 
 #include "globaldefs.h"
@@ -20,4 +20,4 @@ bool gpsd_get_gps();
 void gpsd_close();
 
 
-#endif // _UGEAR_GPSD_H
+#endif // _UGEAR_GPS_GPSD_H
