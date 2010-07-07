@@ -24,7 +24,7 @@
 #ifdef ENABLE_MNAV_SENSOR
 #  include "sensors/mnav.h"
 #endif // ENABLE_MNAV_SENSOR
-#include "sensors/sf_6DOFv4.h"
+#include "sensors/imu_sf6DOFv4.h"
 #include "sensors/ugfile.h"
 
 #include "imu_mgr.hxx"
