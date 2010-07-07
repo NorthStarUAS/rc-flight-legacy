@@ -11,7 +11,7 @@ libsensors_a_SOURCES = \
 	imu_fgfs.cxx imu_fgfs.hxx \
 	sf_6DOFv4.cxx sf_6DOFv4.h \
 	gps_mgr.cpp gps_mgr.h \
-	gpsd.cpp gpsd.h \
+	gps_gpsd.cpp gps_gpsd.h \
 	gps_fgfs.cxx gps_fgfs.hxx \
 	gps_ublox5.cxx gps_ublox5.h \
 	$(MNAV_SENSOR) \
