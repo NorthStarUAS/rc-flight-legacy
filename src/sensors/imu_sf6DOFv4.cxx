@@ -21,7 +21,7 @@
 #include "util/strutils.hxx"
 #include "util/timing.h"
 
-#include "sf_6DOFv4.h"
+#include "imu_sf6DOFv4.h"
 
 
 // imu property nodes
