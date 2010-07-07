@@ -43,6 +43,12 @@
     <sensors>
       <imu-group>
         <imu>
+          <enable type="bool">true</enable>
+          <source>vn100</source>
+          <device>/dev/ttyUSB0</device>
+        </imu>
+        <imu>
+          <enable type="bool">false</enable>
 	  <source>file</source>
 	  <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN-chop</name>
         </imu>
@@ -50,8 +56,14 @@
 
       <gps-group>
         <gps>
-          <source>file</source>
           <enable type="bool">true</enable>
+          <source>gpsd</source>
+          <port>2947</port>
+          <host>localhost</host>
+        </gps>
+        <gps>
+          <enable type="bool">false</enable>
+          <source>file</source>
 	  <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN-chop</name>
         </gps>
       </gps-group>
