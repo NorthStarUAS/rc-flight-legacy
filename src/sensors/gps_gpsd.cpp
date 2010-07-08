@@ -120,7 +120,8 @@ static void gpsd_connect() {
     gpsd_sock.close();
 
     if ( display_on ) {
-	printf("Attempting to connect to gpsd @ %s:%d\n", host.c_str(), port);
+	printf("Attempting to connect to gpsd @ %s:%d ... ",
+	       host.c_str(), port);
     }
 
     if ( ! gpsd_sock.open( true ) ) {
@@ -142,6 +143,10 @@ static void gpsd_connect() {
     socket_connected = true;
 
     gpsd_send_init();
+
+    if ( display_on ) {
+	printf("success!\n");
+    }
 }
 
 
