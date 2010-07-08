@@ -60,6 +60,8 @@
           <source>gpsd</source>
           <port>2947</port>
           <host>localhost</host>
+          <init-string>n=0</init-string>
+          <init-string>w=1</init-string>
         </gps>
         <gps>
           <enable type="bool">false</enable>
