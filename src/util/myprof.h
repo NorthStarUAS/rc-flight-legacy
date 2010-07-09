@@ -7,10 +7,11 @@ class myprofile {
  private:
 
   int count;
+  double init_time;
   double start_time;
   double end_time;
   double last_interval;
-  double total_time;
+  double sum_time;
 
  public:
 
