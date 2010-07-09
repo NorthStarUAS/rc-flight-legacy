@@ -175,7 +175,12 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	int32_t hMSL = *((int32_t *)(p+16));
 	uint32_t hAcc = *((uint32_t *)(p+20));
 	uint32_t vAcc = *((uint32_t *)(p+24));
-	// printf("nav-posllh (%d) %d %d %d %d\n", iTOW, lon, lat, height, hMSL);
+	if ( display_on && 0 ) {
+	    if ( gps_fix_type_node->getIntValue() < 3 ) {
+		printf("nav-posllh (%d) %d %d %d %d\n",
+		       iTOW, lon, lat, height, hMSL);
+	    }
+	}
     } else if ( msg_class == 0x01 && msg_id == 0x06 ) {
 	// NAV-SOL
 	my_swap( payload, 0, 4);
@@ -207,9 +212,13 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	uint32_t sAcc = *((uint32_t *)(p+40));
 	uint16_t pDOP = *((uint16_t *)(p+44));
 	uint8_t numSV = p[47];
-	// printf("nav-sol (%d) %d %d %d %d %d [ %d %d %d ]\n",
-	//         gpsFix, iTOW, fTOW, ecefX, ecefY, ecefZ,
-	//         ecefVX, ecefVY, ecefVZ);
+	if ( display_on && 0 ) {
+	    if ( gps_fix_type_node->getIntValue() < 3 ) {
+		printf("nav-sol (%d) %d %d %d %d %d [ %d %d %d ]\n",
+		       gpsFix, iTOW, fTOW, ecefX, ecefY, ecefZ,
+		       ecefVX, ecefVY, ecefVZ);
+	    }
+	}
 	SGVec3d ecef( ecefX / 100.0, ecefY / 100.0, ecefZ / 100.0 );
 	SGGeod wgs84;
 	SGGeodesy::SGCartToGeod( ecef, wgs84 );
@@ -281,7 +290,13 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	int32_t heading = *((int32_t *)(p+24));
 	uint32_t sAcc = *((uint32_t *)(p+28));
 	uint32_t cAcc = *((uint32_t *)(p+32));
-	// printf("nav-velned (%d) %.2f %.2f %.2f s = %.2f h = %.2f\n", iTOW, velN / 100.0, velE / 100.0, velD / 100.0, speed / 100.0, heading / 100000.0);
+	if ( display_on && 0 ) {
+	    if ( gps_fix_type_node->getIntValue() < 3 ) {
+		printf("nav-velned (%d) %.2f %.2f %.2f s = %.2f h = %.2f\n",
+		       iTOW, velN / 100.0, velE / 100.0, velD / 100.0,
+		       speed / 100.0, heading / 100000.0);
+	    }
+	}
     } else if ( msg_class == 0x01 && msg_id == 0x21 ) {
 	// NAV-TIMEUTC
 	my_swap( payload, 0, 4);
@@ -300,9 +315,15 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	uint8_t min = p[17];
 	uint8_t sec = p[18];
 	uint8_t valid = p[19];
+	if ( display_on && 0 ) {
+	    if ( gps_fix_type_node->getIntValue() < 3 ) {
+		printf("nav-timeutc (%d) %02x %04d/%02d/%02d %02d:%02d:%02d\n",
+		       iTOW, valid, year, month, day, hour, min, sec);
+	    }
+	}
 	if ( !set_system_time && year > 2009 ) {
 	    set_system_time = true;
-	    printf("nav-timeutc (%d) %02x %04d/%02d/%02d %02d:%02d:%02d\n",
+	    printf("set system clock: nav-timeutc (%d) %02x %04d/%02d/%02d %02d:%02d:%02d\n",
 		   iTOW, valid, year, month, day, hour, min, sec);
 	    struct tm gps_time;
 	    gps_time.tm_sec = sec;
@@ -333,12 +354,23 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	    uint8_t flags = p[10 + 12*i];
 	    uint8_t quality = p[11 + 12*i];
 	    // printf(" chn=%d satid=%d flags=%d quality=%d\n", i, satid, flags, quality);
-	    if ( quality == 3 ) {
+	    if ( quality > 3 ) {
 		satUsed++;
 	    }
 	}
  	// gps_satellites_node->setIntValue( satUsed );
-	// printf("Satellite count = %d/%d\n", satUsed, numCh);
+	if ( display_on && 0 ) {
+	    if ( gps_fix_type_node->getIntValue() < 3 ) {
+		printf("Satellite count = %d/%d\n", satUsed, numCh);
+	    }
+	}
+    } else {
+	if ( display_on && 0 ) {
+	    if ( gps_fix_type_node->getIntValue() < 3 ) {
+		printf("UBLOX5 msg class = %d  msg id = %d\n",
+		       msg_class, msg_id);
+	    }
+	}
     }
 
     return new_position;
@@ -463,7 +495,7 @@ static bool read_ublox5() {
 						 payload_length, payload );
 		state++;
 	    } else {
-		if ( display_on ) {
+		if ( display_on && 0 ) {
 		    printf("checksum failed %d %d (computed) != %d %d (message)\n",
 			   cksum_A, cksum_B, cksum_lo, cksum_hi );
 		}

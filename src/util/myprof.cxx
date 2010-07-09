@@ -5,8 +5,9 @@
 #include "myprof.h"
 
 myprofile::myprofile() {
-  count = 0;
-  total_time = 0.0;
+    init_time = get_Time();
+    count = 0;
+    sum_time = 0.0;
 }
 
 myprofile::~myprofile() {
@@ -19,13 +20,18 @@ void myprofile::start() {
 
 void myprofile::stop() {
   last_interval = get_Time() - start_time;
-  total_time += last_interval;
+  sum_time += last_interval;
 }
 
 void myprofile::stats( const char *header ) {
-    printf( "%s: avg = %.4f  count = %d  total = %.4f  (last = %.4f)\n",
-	    header, total_time / (double)count,
-	    count, total_time, last_interval );
+    double total_time = get_Time() - init_time;
+    double avg_hz = 0.0;
+    if ( total_time > 1.0 ) {
+	avg_hz = (double)count / total_time;
+    }
+    printf( "%s: avg = %.4f count = %d total = %.4f (last = %.4f) avg hz=%.3f\n",
+	    header, sum_time / (double)count,
+	    count, sum_time, last_interval, avg_hz );
 }
 
 
