@@ -44,7 +44,7 @@ static int fd = -1;
 static string device_name = "/dev/ttyS0";
 
 // internal filter values
-static double p_filter = 0.0;
+/*static double p_filter = 0.0;
 static double q_filter = 0.0;
 static double r_filter = 0.0;
 static double ax_filter = 0.0;
@@ -52,7 +52,7 @@ static double ay_filter = 0.0;
 static double az_filter = 0.0;
 static double hx_filter = 0.0;
 static double hy_filter = 0.0;
-static double hz_filter = 0.0;
+static double hz_filter = 0.0;*/
 
 
 // initialize gpsd input property nodes
@@ -231,8 +231,8 @@ void imu_vn100_init( string rootname, SGPropertyNode *config ) {
 
     imu_vn100_open_115200();
     sleep(1);
-    imu_vn100_send_cmd( "VNWRG,06,13" ); // switch to MAR (raw sensor) output
-    imu_vn100_send_cmd( "VNWRG,07,100" ); // switch to 100hz output
+    imu_vn100_send_cmd( "VNWRG,06,253" ); // switch to CMV (raw sensor) output which wasn't documented
+    imu_vn100_send_cmd( "VNWRG,07,50" ); // switch to 50hz output
 }
 
 
@@ -273,43 +273,43 @@ static bool imu_vn100_parse_msg( char *msg_buf, int size )
         return false;
     }
     vector<string> tokens = split( msg.c_str(), "," );
-    if ( tokens[0] == "VNMAR" && tokens.size() == 10 ) {
+    if ( tokens[0] == "VNCMV" && tokens.size() == 11 ) {
 	double val;
 	val = atof( tokens[1].c_str() );
-	hx_filter = 0.75*hx_filter + 0.25*val;
-	imu_hx_node->setDoubleValue( hx_filter );
+	// hx_filter = 0.75*hx_filter + 0.25*val;
+	imu_hx_node->setDoubleValue( val );
 
 	val = atof( tokens[2].c_str() );
-	hy_filter = 0.75*hy_filter + 0.25*val;
-	imu_hy_node->setDoubleValue( hy_filter );
+	// hy_filter = 0.75*hy_filter + 0.25*val;
+	imu_hy_node->setDoubleValue( val );
 
 	val = atof( tokens[3].c_str() );
-	hz_filter = 0.75*hz_filter + 0.25*val;
-	imu_hz_node->setDoubleValue( hz_filter );
+	// hz_filter = 0.75*hz_filter + 0.25*val;
+	imu_hz_node->setDoubleValue( val );
 
 	val = atof( tokens[4].c_str() );
-	ax_filter = 0.75*ax_filter + 0.25*val;
-	imu_ax_node->setDoubleValue( ax_filter );
+	// ax_filter = 0.75*ax_filter + 0.25*val;
+	imu_ax_node->setDoubleValue( val );
 
 	val = atof( tokens[5].c_str() );
-	ay_filter = 0.75*ay_filter + 0.25*val;
-	imu_ay_node->setDoubleValue( ay_filter );
+	// ay_filter = 0.75*ay_filter + 0.25*val;
+	imu_ay_node->setDoubleValue( val );
 
 	val = atof( tokens[6].c_str() );
-	az_filter = 0.75*az_filter + 0.25*val;
-	imu_az_node->setDoubleValue( az_filter );
+	// az_filter = 0.75*az_filter + 0.25*val;
+	imu_az_node->setDoubleValue( val );
 
 	val = atof( tokens[7].c_str() );
-	p_filter = 0.75*p_filter + 0.25*val;
-	imu_p_node->setDoubleValue( p_filter );
+	// p_filter = 0.75*p_filter + 0.25*val;
+	imu_p_node->setDoubleValue( val );
 
 	val = atof( tokens[8].c_str() );
-	q_filter = 0.75*q_filter + 0.25*val;
-	imu_q_node->setDoubleValue( q_filter );
+	// q_filter = 0.75*q_filter + 0.25*val;
+	imu_q_node->setDoubleValue( val );
 
 	val = atof( tokens[9].c_str() );
-	r_filter = 0.75*r_filter + 0.25*val;
-	imu_r_node->setDoubleValue( r_filter );
+	// r_filter = 0.75*r_filter + 0.25*val;
+	imu_r_node->setDoubleValue( val );
     } else {
 	if ( display_on ) {
 	    printf("Unknown message or wrong number of fields: '%s'\n",

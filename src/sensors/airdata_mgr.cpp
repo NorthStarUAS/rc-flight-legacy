@@ -148,8 +148,29 @@ static void update_pressure_helpers() {
     float filter_alt_m = filter_alt_node->getFloatValue();
 
     // Do a simple first order (time based) low pass filter to reduce noise
-    altitude_filt = (1.0 - dt) * altitude_filt + dt * Ps;
-    airspeed_filt = (1.0 - dt) * airspeed_filt + dt * Pt;
+    float time_factor = 0.5; // length of time (sec) to low pass
+			     // filter the input over.  A time value
+			     // of zero will result in the filter
+			     // output being equal to the raw input at
+			     // each time step.
+    float weight_factor;
+    if ( time_factor > 0.0 ) {
+	weight_factor = dt / time_factor;
+    } else {
+	weight_factor = 1.0;
+    }
+    // The greater the weight, the noisier the filter, but the faster
+    // it converges.  Must be > 0.0 or value will never converge.  Max
+    // weight is 1.0 which means we just use the raw input value with
+    // no filetering.
+    if ( weight_factor < 0.001 ) {
+	weight_factor = 0.001;
+    }
+    if ( weight_factor > 1.0 ) {
+	weight_factor = 1.0;
+    }
+    altitude_filt = (1.0 - weight_factor) * altitude_filt + weight_factor * Ps;
+    airspeed_filt = (1.0 - weight_factor) * airspeed_filt + weight_factor * Pt;
 
     // compute a filtered error difference between gps altitude
     // and pressure altitude.  (at 4hz update rate this averages
