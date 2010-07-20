@@ -31,10 +31,12 @@ static FGXMLAutopilot ap;
 // autopilot control properties
 static SGPropertyNode *ap_master_switch_node = NULL;
 static SGPropertyNode *ap_heading_mode_node = NULL;
+static SGPropertyNode *ap_yaw_mode_node = NULL;
 static SGPropertyNode *ap_altitude_mode_node = NULL;
 static SGPropertyNode *ap_speed_mode_node = NULL;
 
 static SGPropertyNode *heading_lock_node = NULL;
+static SGPropertyNode *yaw_lock_node = NULL;
 static SGPropertyNode *altitude_lock_node = NULL;
 static SGPropertyNode *speed_lock_node = NULL;
 
@@ -47,10 +49,12 @@ static SGPropertyNode *target_speed_node = NULL;
 static void bind_properties() {
     ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
     ap_heading_mode_node = fgGetNode("/autopilot/heading-mode", true);
+    ap_yaw_mode_node = fgGetNode("/autopilot/yaw-mode", true);
     ap_altitude_mode_node = fgGetNode("/autopilot/altitude-mode", true);
     ap_speed_mode_node = fgGetNode("/autopilot/speed-mode", true);
 
     heading_lock_node = fgGetNode("/autopilot/locks/heading", true);
+    yaw_lock_node = fgGetNode("/autopilot/locks/yaw", true);
     altitude_lock_node = fgGetNode("/autopilot/locks/altitude", true);
     speed_lock_node = fgGetNode("/autopilot/locks/speed", true);
 
@@ -70,6 +74,7 @@ void control_init() {
 
     // set default autopilot modes
     ap_heading_mode_node->setStringValue("route");
+    ap_yaw_mode_node->setStringValue("turn-coord");
     ap_altitude_mode_node->setStringValue("pitch");
     ap_speed_mode_node->setStringValue("throttle");
 
@@ -96,6 +101,8 @@ void control_update(double dt)
 	    // autopilot is just activated, set lock modes
 	    heading_lock_node
 		->setStringValue( ap_heading_mode_node->getStringValue() );
+	    yaw_lock_node
+		->setStringValue( ap_yaw_mode_node->getStringValue() );
 	    altitude_lock_node
 		->setStringValue( ap_altitude_mode_node->getStringValue() );
 	    speed_lock_node
@@ -110,6 +117,7 @@ void control_update(double dt)
 	if ( autopilot_enabled ) {
 	    // autopilot is just de-activated, clear lock modes
 	    heading_lock_node->setStringValue( "" );
+	    yaw_lock_node->setStringValue( "" );
 	    altitude_lock_node->setStringValue( "" );
 	    speed_lock_node->setStringValue( "" );
 	    autopilot_enabled = false;
