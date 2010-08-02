@@ -69,6 +69,26 @@
       <factor>0.3048</factor>
     </chunk>
 
+    <!-- attitude "truth" also appended for the purposes of allowing -->
+    <!-- the filter to evaluate how well it's doing -->
+    <chunk>
+      <name>roll truth (deg)</name>
+      <type>float</type>
+      <node>/orientation/roll-deg</node>
+    </chunk>
+
+    <chunk>
+      <name>pitch truth (deg)</name>
+      <type>float</type>
+      <node>/orientation/pitch-deg</node>
+    </chunk>
+
+    <chunk>
+      <name>heading truth (deg)</name>
+      <type>float</type>
+      <node>/orientation/heading-deg</node>
+    </chunk>
+
   </output>
 
  </generic>
