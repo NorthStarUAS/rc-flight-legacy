@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<!-- Example usage: <dash><dash>generic=file,out,50,fgfs.truth,insgns-truth -->
+
+<PropertyList>
+
+ <generic>
+
+  <output>
+    <binary_mode>true</binary_mode>
+    <binary_footer>none</binary_footer>
+
+    <chunk>
+      <name>time (sec)</name>
+      <type>double</type>
+      <node>/sim/time/elapsed-sec</node>
+    </chunk>
+
+    <chunk>
+      <name>aileron</name>
+      <type>float</type>
+      <node>/controls/flight/aileron</node>
+    </chunk>
+
+    <chunk>
+      <name>elevator</name>
+      <type>float</type>
+      <node>/controls/flight/elevator</node>
+    </chunk>
+
+    <chunk>
+      <name>throttle</name>
+      <type>float</type>
+      <node>/controls/engines/engine[0]/throttle</node>
+    </chunk>
+
+    <chunk>
+      <name>rudder</name>
+      <type>float</type>
+      <node>/controls/flight/rudder</node>
+    </chunk>
+
+    <chunk>
+      <name>auto/manual select</name>
+      <type>float</type>
+      <node>/ugear/settings/ap-enable</node>
+    </chunk>
+
+  </output>
+
+ </generic>
+
+</PropertyList>
