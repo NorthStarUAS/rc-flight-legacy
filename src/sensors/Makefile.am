@@ -18,6 +18,7 @@ libsensors_a_SOURCES = \
 	$(MNAV_SENSOR) \
 	pilot_mgr.cxx pilot_mgr.hxx \
 	pilot_fgfs.cxx pilot_fgfs.hxx \
+	ardupilot.cxx ardupilot.hxx \
 	ugfile.cpp ugfile.h
 
 INCLUDES = -I$(top_srcdir)/src
