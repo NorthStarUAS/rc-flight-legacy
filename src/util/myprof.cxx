@@ -5,7 +5,7 @@
 #include "myprof.h"
 
 myprofile::myprofile() {
-    init_time = get_Time();
+    init_time = 0.0;
     count = 0;
     sum_time = 0.0;
 }
@@ -14,8 +14,11 @@ myprofile::~myprofile() {
 }
 
 void myprofile::start() {
-  start_time = get_Time();
-  count++;
+    if ( init_time <= 0.0001 ) {
+	init_time = get_Time();
+    }
+    start_time = get_Time();
+    count++;
 }
 
 void myprofile::stop() {
@@ -39,6 +42,7 @@ void myprofile::stats( const char *header ) {
 myprofile imu_prof;
 myprofile gps_prof;
 myprofile air_prof;
+myprofile pilot_prof;
 myprofile filter_prof;
 myprofile control_prof;
 myprofile route_mgr_prof;
