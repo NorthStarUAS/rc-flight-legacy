@@ -23,7 +23,8 @@
 #define START_OF_MSG1 224
 #define SENSOR_PACKET_ID 10
 #define COMMAND_PACKET_ID 11
-#define MAX_SERVOS 4
+#define MAX_PILOT_INPUTS 4
+#define MAX_ACTUATORS 4
 #define MAX_ANALOG_INPUTS 4
 
 // fgfs_imu property nodes
@@ -63,13 +64,17 @@ static SGPropertyNode *airdata_airspeed_node = NULL;
 static SGPropertyNode *airdata_altitude_node = NULL;
 
 static bool airdata_inited = false;
+static bool pilot_controls_inited = false;
 static bool fresh_pilot_data = false;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
 // static int baud = 115200;
 
-uint16_t analog[MAX_ANALOG_INPUTS]; // temporary storage
+static double data_in_timestamp = 0.0;
+static uint16_t analog[MAX_ANALOG_INPUTS];     // internal stash
+static bool manual_mode = true;
+static uint16_t pilot_input[MAX_PILOT_INPUTS]; // internal stash
 
 
 // initialize fgfs_gps input property nodes
@@ -129,6 +134,8 @@ static void bind_pilot_controls( string rootname ) {
     pilot_channel7_node = fgGetNode("/controls/pilot/channel", 6, true);
     pilot_channel8_node = fgGetNode("/controls/pilot/channel", 7, true);
     pilot_status_node = fgGetNode("/controls/pilot/status", true);
+
+    pilot_controls_inited = true;
 }
 
 
@@ -223,8 +230,8 @@ static void my_swap( uint8_t *buf, int index, int count )
 
 
 // convert a pwm pulse length to a normalize [-1 to 1] or [0 to 1] range
-static double normalize_pulse( int pulse, bool symmetrical ) {
-    double result = 0.0;
+static float normalize_pulse( int pulse, bool symmetrical ) {
+    float result = 0.0;
 
     if ( symmetrical ) {
 	// i.e. aileron, rudder, elevator
@@ -246,30 +253,22 @@ static bool ardusensor_parse( uint8_t pkt_id, uint8_t pkt_len,
 {
     bool new_data = false;
 
+    if ( display_on ) {
+	printf("ardusensor_parse()\n");
+    }
+
     if ( pkt_id == SENSOR_PACKET_ID ) {
-	if ( pkt_len == MAX_SERVOS * 2 + 1 + MAX_ANALOG_INPUTS * 2 ) {
+	if ( pkt_len == MAX_PILOT_INPUTS * 2 + 1 + MAX_ANALOG_INPUTS * 2 ) {
 	    uint8_t lo, hi;
-	    double val;
 
-	    pilot_timestamp_node->setDoubleValue( get_Time() );
+	    data_in_timestamp = get_Time();
 
-	    lo = payload[0]; hi = payload[1];
-	    val = normalize_pulse( hi*256 + lo, true );
-	    pilot_aileron_node->setDoubleValue( val );
+	    for ( int i = 0; i < MAX_PILOT_INPUTS; i++ ) {
+		lo = payload[0 + 2*i]; hi = payload[1 + 2*i];
+		pilot_input[i] = hi*256 + lo;
+	    }
 
-	    lo = payload[2]; hi = payload[3];
-	    val = normalize_pulse( hi*256 + lo, true );
-	    pilot_elevator_node->setDoubleValue( val );
-
-	    lo = payload[4]; hi = payload[5];
-	    val = normalize_pulse( hi*256 + lo, false );
-	    pilot_throttle_node->setDoubleValue( val );
-
-	    lo = payload[6]; hi = payload[7];
-	    val = normalize_pulse( hi*256 + lo, true );
-	    pilot_rudder_node->setDoubleValue( val );
-
-	    pilot_manual_node->setIntValue( !payload[8] );
+	    manual_mode = !payload[8];
 
 	    for ( int i = 0; i < MAX_ANALOG_INPUTS; i++ ) {
 		lo = payload[9 + 2*i]; hi = payload[10 + 2*i];
@@ -322,7 +321,9 @@ static bool ardusensor_read() {
     uint8_t input[500];
     static uint8_t payload[500];
 
-    // printf("read ardusensor, entry state = %d\n", state);
+    if ( display_on ) {
+	printf("read ardusensor, entry state = %d\n", state);
+    }
 
     bool new_data = false;
 
@@ -481,7 +482,7 @@ static bool ardusensor_write() {
     // packet id (1 byte)
     buf[0] = COMMAND_PACKET_ID; buf[1] = 0;
     // packet length (1 byte)
-    buf[1] = 2 * MAX_SERVOS;
+    buf[1] = 2 * MAX_ACTUATORS;
     len = write( fd, buf, 2 );
 
 #if 0  
@@ -496,7 +497,7 @@ static bool ardusensor_write() {
 #endif
 
     // servo data
-    if ( MAX_SERVOS == 4 ) {
+    if ( MAX_ACTUATORS == 4 ) {
 	int val;
 	uint8_t hi, lo;
 
@@ -538,11 +539,19 @@ static bool ardusensor_write() {
 
 
 bool ardusensor_update() {
+    if ( display_on ) {
+	printf("ardusensor_update()\n");
+    }
+
     // read receiver values from ardu servo subsystem
     while ( ardusensor_read() );
 
     // send actuator commands to ardu servo subsystem
     ardusensor_write();
+
+    if ( display_on ) {
+	printf("ardusensor_update() - finished\n");
+    }
 
     return true;
 }
@@ -604,6 +613,27 @@ bool ardusensor_airdata_update() {
 bool ardusensor_pilot_update() {
     // basically a no-op other than managing the fresh_data flag correctly
     bool fresh_data = fresh_pilot_data;
+
+    if ( fresh_data && pilot_controls_inited ) {
+	float val;
+
+	pilot_timestamp_node->setDoubleValue( data_in_timestamp );
+
+	val = normalize_pulse( pilot_input[0], true );
+	pilot_aileron_node->setDoubleValue( val );
+
+	val = normalize_pulse( pilot_input[1], true );
+	pilot_elevator_node->setDoubleValue( val );
+
+	val = normalize_pulse( pilot_input[2], false );
+	pilot_throttle_node->setDoubleValue( val );
+
+	val = normalize_pulse( pilot_input[3], true );
+	pilot_rudder_node->setDoubleValue( val );
+
+	pilot_manual_node->setIntValue( manual_mode );
+    }
+
     fresh_pilot_data = false;
     return fresh_data;
 }
