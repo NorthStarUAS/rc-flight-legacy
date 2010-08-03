@@ -86,6 +86,10 @@
 
       <air-data-group>
         <air-data>
+	  <source>fgfs</source>
+	  <enable type="bool">true</enable>
+        </air-data>
+        <air-data>
 	  <source>ardusensor</source>
 	  <enable type="bool">false</enable>
         </air-data>
@@ -181,7 +185,7 @@
       <actuator>
         <module>fgfs</module>
  	<host>192.168.1.103</host>
- 	<port>6502</port>
+ 	<port>6503</port>
         <enable type="bool">true</enable>
       </actuator>
       <actuator>
