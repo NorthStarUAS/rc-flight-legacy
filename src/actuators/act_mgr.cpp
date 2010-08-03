@@ -107,6 +107,10 @@ void Actuator_init() {
     // master autopilot switch
     ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
 
+    // default to ap on unless pilot inputs turn it off (so we can run
+    // with no pilot inputs connected)
+    ap_master_switch_node->setBoolValue( true );
+
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/actuators", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {

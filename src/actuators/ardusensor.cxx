@@ -122,18 +122,18 @@ static void bind_airdata_output( string rootname ) {
 
 // initialize airdata output property nodes 
 static void bind_pilot_controls( string rootname ) {
-    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    // SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
 
-    pilot_timestamp_node = fgGetNode("/controls/pilot/time-stamp", true);
-    pilot_aileron_node = fgGetNode("/controls/pilot/aileron", 0, true);
-    pilot_elevator_node = fgGetNode("/controls/pilot/elevator", 1, true);
-    pilot_throttle_node = fgGetNode("/controls/pilot/throttle", 2, true);
-    pilot_rudder_node = fgGetNode("/controls/pilot/rudder", 3, true);
-    pilot_manual_node = fgGetNode("/controls/pilot/manual", 4, true);
-    pilot_channel6_node = fgGetNode("/controls/pilot/channel", 5, true);
-    pilot_channel7_node = fgGetNode("/controls/pilot/channel", 6, true);
-    pilot_channel8_node = fgGetNode("/controls/pilot/channel", 7, true);
-    pilot_status_node = fgGetNode("/controls/pilot/status", true);
+    pilot_timestamp_node = fgGetNode("/sensors/pilot/time-stamp", true);
+    pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", 0, true);
+    pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", 1, true);
+    pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", 2, true);
+    pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", 3, true);
+    pilot_manual_node = fgGetNode("/sensors/pilot/manual", 4, true);
+    pilot_channel6_node = fgGetNode("/sensors/pilot/channel", 5, true);
+    pilot_channel7_node = fgGetNode("/sensors/pilot/channel", 6, true);
+    pilot_channel8_node = fgGetNode("/sensors/pilot/channel", 7, true);
+    pilot_status_node = fgGetNode("/sensors/pilot/status", true);
 
     pilot_controls_inited = true;
 }
@@ -253,10 +253,6 @@ static bool ardusensor_parse( uint8_t pkt_id, uint8_t pkt_len,
 {
     bool new_data = false;
 
-    if ( display_on ) {
-	printf("ardusensor_parse()\n");
-    }
-
     if ( pkt_id == SENSOR_PACKET_ID ) {
 	if ( pkt_len == MAX_PILOT_INPUTS * 2 + 1 + MAX_ANALOG_INPUTS * 2 ) {
 	    uint8_t lo, hi;
@@ -321,9 +317,9 @@ static bool ardusensor_read() {
     uint8_t input[500];
     static uint8_t payload[500];
 
-    if ( display_on ) {
-	printf("read ardusensor, entry state = %d\n", state);
-    }
+    // if ( display_on ) {
+    //   printf("read ardusensor, entry state = %d\n", state);
+    // }
 
     bool new_data = false;
 
@@ -539,19 +535,11 @@ static bool ardusensor_write() {
 
 
 bool ardusensor_update() {
-    if ( display_on ) {
-	printf("ardusensor_update()\n");
-    }
-
     // read receiver values from ardu servo subsystem
     while ( ardusensor_read() );
 
     // send actuator commands to ardu servo subsystem
     ardusensor_write();
-
-    if ( display_on ) {
-	printf("ardusensor_update() - finished\n");
-    }
 
     return true;
 }

@@ -83,16 +83,16 @@ void UGPacketizer::bind_actuator_nodes() {
 
 // initialize pilot input property nodes
 void UGPacketizer::bind_pilot_nodes() {
-    pilot_timestamp_node = fgGetNode("/actuators/pilot/time-stamp", true);
-    pilot_aileron_node = fgGetNode("/actuators/pilot/channel", 0, true);
-    pilot_elevator_node = fgGetNode("/actuators/pilot/channel", 1, true);
-    pilot_throttle_node = fgGetNode("/actuators/pilot/channel", 2, true);
-    pilot_rudder_node = fgGetNode("/actuators/pilot/channel", 3, true);
-    pilot_channel5_node = fgGetNode("/actuators/pilot/channel", 4, true);
-    pilot_channel6_node = fgGetNode("/actuators/pilot/channel", 5, true);
-    pilot_channel7_node = fgGetNode("/actuators/pilot/channel", 6, true);
-    pilot_channel8_node = fgGetNode("/actuators/pilot/channel", 7, true);
-    pilot_status_node = fgGetNode("/actuators/pilot/status", true);
+    pilot_timestamp_node = fgGetNode("/sensors/pilot/time-stamp", true);
+    pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", 0, true);
+    pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", 1, true);
+    pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", 2, true);
+    pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", 3, true);
+    pilot_channel5_node = fgGetNode("/sensors/pilot/manual", 4, true);
+    pilot_channel6_node = fgGetNode("/sensors/pilot/channel", 5, true);
+    pilot_channel7_node = fgGetNode("/sensors/pilot/channel", 6, true);
+    pilot_channel8_node = fgGetNode("/sensors/pilot/channel", 7, true);
+    pilot_status_node = fgGetNode("/sensors/pilot/status", true);
 }
 
 

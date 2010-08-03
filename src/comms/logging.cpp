@@ -141,11 +141,11 @@ static void init_props() {
     act_channel5_node = fgGetNode("/actuators/actuator/channel", 4, true);
 
     // initialize pilot property nodes
-    pilot_aileron_node = fgGetNode("/actuators/pilot/channel", 0, true);
-    pilot_elevator_node = fgGetNode("/actuators/pilot/channel", 1, true);
-    pilot_throttle_node = fgGetNode("/actuators/pilot/channel", 2, true);
-    pilot_rudder_node = fgGetNode("/actuators/pilot/channel", 3, true);
-    pilot_channel5_node = fgGetNode("/actuators/pilot/channel", 4, true);
+    pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", 0, true);
+    pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", 1, true);
+    pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", 2, true);
+    pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", 3, true);
+    pilot_channel5_node = fgGetNode("/sensors/pilot/manual", 4, true);
 
     // initialize health/status property nodes
     console_seq_num = fgGetNode("/status/console-link-sequence-num", true);
