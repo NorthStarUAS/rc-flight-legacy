@@ -53,16 +53,16 @@ static SGPropertyNode *ap_master_switch_node = NULL;
 
 void PilotInput_init() {
     // pilot input property nodes
-    pilot_timestamp_node = fgGetNode("/controls/pilot/time-stamp", true);
-    pilot_aileron_node = fgGetNode("/controls/pilot/aileron", 0, true);
-    pilot_elevator_node = fgGetNode("/controls/pilot/elevator", 1, true);
-    pilot_throttle_node = fgGetNode("/controls/pilot/throttle", 2, true);
-    pilot_rudder_node = fgGetNode("/controls/pilot/rudder", 3, true);
-    pilot_manual_node = fgGetNode("/controls/pilot/manual", 4, true);
-    pilot_channel6_node = fgGetNode("/controls/pilot/channel", 5, true);
-    pilot_channel7_node = fgGetNode("/controls/pilot/channel", 6, true);
-    pilot_channel8_node = fgGetNode("/controls/pilot/channel", 7, true);
-    pilot_status_node = fgGetNode("/controls/pilot/status", true);
+    pilot_timestamp_node = fgGetNode("/sensors/pilot/time-stamp", true);
+    pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", 0, true);
+    pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", 1, true);
+    pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", 2, true);
+    pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", 3, true);
+    pilot_manual_node = fgGetNode("/sensors/pilot/manual", 4, true);
+    pilot_channel6_node = fgGetNode("/sensors/pilot/channel", 5, true);
+    pilot_channel7_node = fgGetNode("/sensors/pilot/channel", 6, true);
+    pilot_channel8_node = fgGetNode("/sensors/pilot/channel", 7, true);
+    pilot_status_node = fgGetNode("/sensors/pilot/status", true);
 
     // initialize comm nodes
     pilot_console_skip = fgGetNode("/config/console/pilot-skip", true);
@@ -76,7 +76,7 @@ void PilotInput_init() {
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
-	if ( name == "pilot-control" ) {
+	if ( name == "pilot-input" ) {
 	    string source = section->getChild("source", 0, true)->getStringValue();
 	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
 	    if ( !enabled ) {
