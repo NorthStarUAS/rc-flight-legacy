@@ -287,25 +287,29 @@ static void console_link_execute_command( const string command ) {
 }
 
 
-static int console_read_command( char result_buf[256] ) {
+#define BUF_SIZE 256
+static int console_read_command( char result_buf[BUF_SIZE] ) {
     // read character by character until we run out of data or find a '\n'
     // if we run out of data, save what we have so far and start with that for
     // the next call.
 
     // persistant data because we may not get the whole command in one call
-    static char command_buf[256];
+    static char command_buf[BUF_SIZE];
     static int command_counter = 0;
 
     char buf[2]; buf[0] = 0;
 
     int result = console.read_port( buf, 1 );
-    while ( result == 1 && buf[0] != '\n' ) {
+    while ( result == 1 && buf[0] != '\n' && command_counter < BUF_SIZE ) {
         command_buf[command_counter] = buf[0];
         command_counter++;
         result = console.read_port( buf, 1 );
     }
 
-    if ( result == 1 && buf[0] == '\n' ) {
+    if ( command_counter >= BUF_SIZE ) {
+	// abort this command and try again
+	command_counter = 0;
+    } else if ( result == 1 && buf[0] == '\n' ) {
         command_buf[command_counter] = 0; // terminate string
         int size = command_counter + 1;
         strncpy( result_buf, command_buf, size );

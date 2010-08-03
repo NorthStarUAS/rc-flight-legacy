@@ -61,7 +61,9 @@ static SGPropertyNode *airdata_analog0_node = NULL;
 static SGPropertyNode *airdata_analog1_node = NULL;
 static SGPropertyNode *airdata_airspeed_node = NULL;
 static SGPropertyNode *airdata_altitude_node = NULL;
+
 static bool airdata_inited = false;
+static bool fresh_pilot_data = false;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
@@ -86,17 +88,6 @@ static void bind_input( SGPropertyNode *config ) {
 
 /// initialize actuator property nodes 
 static void bind_act_nodes() {
-    pilot_timestamp_node = fgGetNode("/actuators/pilot/time-stamp", true);
-    pilot_aileron_node = fgGetNode("/actuators/pilot/channel", 0, true);
-    pilot_elevator_node = fgGetNode("/actuators/pilot/channel", 1, true);
-    pilot_throttle_node = fgGetNode("/actuators/pilot/channel", 2, true);
-    pilot_rudder_node = fgGetNode("/actuators/pilot/channel", 3, true);
-    pilot_manual_node = fgGetNode("/actuators/pilot/channel", 4, true);
-    pilot_channel6_node = fgGetNode("/actuators/pilot/channel", 5, true);
-    pilot_channel7_node = fgGetNode("/actuators/pilot/channel", 6, true);
-    pilot_channel8_node = fgGetNode("/actuators/pilot/channel", 7, true);
-    pilot_status_node = fgGetNode("/actuators/pilot/status", true);
-
     act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
     act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
     act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
@@ -121,6 +112,23 @@ static void bind_airdata_output( string rootname ) {
     airdata_altitude_node = outputroot->getChild("altitude-m", 0, true);
 
     airdata_inited = true;
+}
+
+
+// initialize airdata output property nodes 
+static void bind_pilot_controls( string rootname ) {
+    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+
+    pilot_timestamp_node = fgGetNode("/controls/pilot/time-stamp", true);
+    pilot_aileron_node = fgGetNode("/controls/pilot/aileron", 0, true);
+    pilot_elevator_node = fgGetNode("/controls/pilot/elevator", 1, true);
+    pilot_throttle_node = fgGetNode("/controls/pilot/throttle", 2, true);
+    pilot_rudder_node = fgGetNode("/controls/pilot/rudder", 3, true);
+    pilot_manual_node = fgGetNode("/controls/pilot/manual", 4, true);
+    pilot_channel6_node = fgGetNode("/controls/pilot/channel", 5, true);
+    pilot_channel7_node = fgGetNode("/controls/pilot/channel", 6, true);
+    pilot_channel8_node = fgGetNode("/controls/pilot/channel", 7, true);
+    pilot_status_node = fgGetNode("/controls/pilot/status", true);
 }
 
 
@@ -178,6 +186,7 @@ bool ardusensor_init( SGPropertyNode *config ) {
 
     bind_input( config );
     bind_act_nodes();
+
     bool result = ardusensor_open();
 
     return result;
@@ -186,6 +195,13 @@ bool ardusensor_init( SGPropertyNode *config ) {
 
 bool ardusensor_airdata_init( string rootname ) {
     bind_airdata_output( rootname );
+
+    return true;
+}
+
+
+bool ardusensor_pilot_init( string rootname ) {
+    bind_pilot_controls( rootname );
 
     return true;
 }
@@ -392,6 +408,9 @@ static bool ardusensor_read() {
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// fprintf( stderr, "checksum passes (%d)!\n", pkt_id );
 		new_data = ardusensor_parse( pkt_id, pkt_len, payload );
+		if ( new_data ) {
+		    fresh_pilot_data = true;
+		}
 	    } else {
 		if ( display_on ) {
 		    // printf("checksum failed %d %d (computed) != %d %d (message)\n",
@@ -578,6 +597,14 @@ bool ardusensor_airdata_update() {
 	last_time = cur_time;
     }
 
+    return fresh_data;
+}
+
+
+bool ardusensor_pilot_update() {
+    // basically a no-op other than managing the fresh_data flag correctly
+    bool fresh_data = fresh_pilot_data;
+    fresh_pilot_data = false;
     return fresh_data;
 }
 

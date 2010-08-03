@@ -56,23 +56,9 @@ static SGPropertyNode *act_channel6_node = NULL;
 static SGPropertyNode *act_channel7_node = NULL;
 static SGPropertyNode *act_channel8_node = NULL;
 
-// pilot input property nodes
-static SGPropertyNode *pilot_timestamp_node = NULL;
-static SGPropertyNode *pilot_aileron_node = NULL;
-static SGPropertyNode *pilot_elevator_node = NULL;
-static SGPropertyNode *pilot_throttle_node = NULL;
-static SGPropertyNode *pilot_rudder_node = NULL;
-static SGPropertyNode *pilot_manual_node = NULL;
-static SGPropertyNode *pilot_channel6_node = NULL;
-static SGPropertyNode *pilot_channel7_node = NULL;
-static SGPropertyNode *pilot_channel8_node = NULL;
-static SGPropertyNode *pilot_status_node = NULL;
-
 // comm property nodes
 static SGPropertyNode *act_console_skip = NULL;
 static SGPropertyNode *act_logging_skip = NULL;
-static SGPropertyNode *pilot_console_skip = NULL;
-static SGPropertyNode *pilot_logging_skip = NULL;
 
 // throttle safety
 static SGPropertyNode *throttle_safety_prop_node = NULL;
@@ -104,27 +90,14 @@ void Actuator_init() {
     act_channel7_node = fgGetNode("/actuators/actuator/channel", 6, true);
     act_channel8_node = fgGetNode("/actuators/actuator/channel", 7, true);
 
-    pilot_timestamp_node = fgGetNode("/actuators/pilot/time-stamp", true);
-    pilot_aileron_node = fgGetNode("/actuators/pilot/channel", 0, true);
-    pilot_elevator_node = fgGetNode("/actuators/pilot/channel", 1, true);
-    pilot_throttle_node = fgGetNode("/actuators/pilot/channel", 2, true);
-    pilot_rudder_node = fgGetNode("/actuators/pilot/channel", 3, true);
-    pilot_manual_node = fgGetNode("/actuators/pilot/channel", 4, true);
-    pilot_channel6_node = fgGetNode("/actuators/pilot/channel", 5, true);
-    pilot_channel7_node = fgGetNode("/actuators/pilot/channel", 6, true);
-    pilot_channel8_node = fgGetNode("/actuators/pilot/channel", 7, true);
-    pilot_status_node = fgGetNode("/actuators/pilot/status", true);
-
     // initialize comm nodes
     act_console_skip = fgGetNode("/config/console/actuator-skip", true);
     act_logging_skip = fgGetNode("/config/logging/actuator-skip", true);
-    pilot_console_skip = fgGetNode("/config/console/pilot-skip", true);
-    pilot_logging_skip = fgGetNode("/config/logging/pilot-skip", true);
 
     // throttle safety
     throttle_safety_prop_node
 	= fgGetNode("/config/actuators/throttle-safety/prop", true);
-    if ( throttle_safety_prop_node->getStringValue() != "" ) {
+    if ( (string)throttle_safety_prop_node->getStringValue() != (string)"" ) {
 	throttle_safety_val_node
 	    = fgGetNode(throttle_safety_prop_node->getStringValue(), true);
     }
@@ -279,7 +252,7 @@ static void set_actuator_values_ap() {
     // override and disable throttle output if within 100' of the
     // ground (assuming ground elevation is the pressure altitude we
     // recorded with the system started up.
-    if ( throttle_safety_prop_node->getStringValue() != "" ) {
+    if ( (string)throttle_safety_prop_node->getStringValue() != (string)"" ) {
 	if ( throttle_safety_val_node->getDoubleValue()
 	     < throttle_safety_min_node->getDoubleValue() ) {
 	    act_throttle_node->setFloatValue( 0.0 );
@@ -301,10 +274,15 @@ static void set_actuator_values_ap() {
 
 
 static void set_actuator_values_pilot() {
+    /* this isn't important at the moment, but should be revived at
+       some point */
+
+    /*
     act_aileron_node->setFloatValue( pilot_aileron_node->getFloatValue() );
     act_elevator_node->setFloatValue( pilot_elevator_node->getFloatValue() );
     act_throttle_node->setFloatValue( pilot_throttle_node->getFloatValue() );
     act_rudder_node->setFloatValue( pilot_rudder_node->getFloatValue() );
+    */
 }
 
 
@@ -345,12 +323,6 @@ bool Actuator_update() {
 	}
     }
 
-    // Hello this is a bit of a hack to hard code the master autopilot
-    // on/off switch here.  In the future, actuators and pilot inputs
-    // will need to be generalized into their own separate modules and
-    // the master autopilot on/off switch may come from other sources.
-    ap_master_switch_node->setBoolValue( !pilot_manual_node->getBoolValue() );
-
     if ( console_link_on || log_to_file ) {
 	// actuators
 
@@ -363,18 +335,6 @@ bool Actuator_update() {
 
 	if ( log_to_file ) {
 	    log_actuator( buf, size, act_logging_skip->getIntValue() );
-	}
-
-	// pilot input
-
-	size = packetizer->packetize_pilot( buf );
-
-	if ( console_link_on ) {
-	    console_link_pilot( buf, size, pilot_console_skip->getIntValue() );
-	}
-
-	if ( log_to_file ) {
-	    log_pilot( buf, size, pilot_logging_skip->getIntValue() );
 	}
     }
 

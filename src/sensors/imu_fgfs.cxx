@@ -39,6 +39,11 @@ static SGPropertyNode *imu_hz_node = NULL;
 static SGPropertyNode *airdata_timestamp_node = NULL;
 static SGPropertyNode *airdata_airspeed_node = NULL;
 static SGPropertyNode *airdata_altitude_node = NULL;
+
+static SGPropertyNode *imu_roll_truth_node = NULL;
+static SGPropertyNode *imu_pitch_truth_node = NULL;
+static SGPropertyNode *imu_yaw_truth_node = NULL;
+
 static bool airdata_inited = false;
 
 
@@ -66,6 +71,10 @@ static void bind_imu_output( string rootname ) {
     imu_hx_node = outputroot->getChild("hx", 0, true);
     imu_hy_node = outputroot->getChild("hy", 0, true);
     imu_hz_node = outputroot->getChild("hz", 0, true);
+
+    imu_roll_truth_node = outputroot->getChild("roll-truth-deg", 0, true);
+    imu_pitch_truth_node = outputroot->getChild("pitch-truth-deg", 0, true);
+    imu_yaw_truth_node = outputroot->getChild("yaw-truth-deg", 0, true);
 }
 
 
@@ -127,7 +136,7 @@ static void my_swap( uint8_t *buf, int index, int count )
 
 
 bool fgfs_imu_update() {
-    const int fgfs_imu_size = 40;
+    const int fgfs_imu_size = 52;
     uint8_t packet_buf[fgfs_imu_size];
 
     bool fresh_data = false;
@@ -148,6 +157,9 @@ bool fgfs_imu_update() {
 	    my_swap( packet_buf, 28, 4 );
 	    my_swap( packet_buf, 32, 4 );
 	    my_swap( packet_buf, 36, 4 );
+	    my_swap( packet_buf, 40, 4 );
+	    my_swap( packet_buf, 44, 4 );
+	    my_swap( packet_buf, 48, 4 );
 	}
 
 	uint8_t *buf = packet_buf;
@@ -160,6 +172,9 @@ bool fgfs_imu_update() {
 	float az = *(float *)buf; buf += 4;
 	float airspeed = *(float *)buf; buf += 4;
 	float altitude = *(float *)buf; buf += 4;
+	float roll_truth = *(float *)buf; buf += 4;
+	float pitch_truth = *(float *)buf; buf += 4;
+	float yaw_truth = *(float *)buf; buf += 4;
 
 	double cur_time = get_Time();
 	imu_timestamp_node->setDoubleValue( cur_time );
@@ -172,6 +187,9 @@ bool fgfs_imu_update() {
 	imu_hx_node->setDoubleValue( 0.0 );
 	imu_hy_node->setDoubleValue( 0.0 );
 	imu_hz_node->setDoubleValue( 0.0 );
+	imu_roll_truth_node->setDoubleValue( roll_truth );
+	imu_pitch_truth_node->setDoubleValue( pitch_truth );
+	imu_yaw_truth_node->setDoubleValue( yaw_truth );
 
 	if ( airdata_inited ) {
 	    airdata_timestamp_node->setDoubleValue( cur_time );

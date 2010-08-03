@@ -13,25 +13,29 @@
       <path>.</path>
       <enable type="bool">false</enable>
 
-      <imu-skip>4</imu-skip>
       <gps-skip>0</gps-skip>
-      <airdata-skip>4</airdata-skip>
-      <filter-skip>4</filter-skip>
-      <actuator-skip>4</actuator-skip>
+      <imu-skip>0</imu-skip>
+      <airdata-skip>9</airdata-skip>
+      <filter-skip>9</filter-skip>
+      <actuator-skip>9</actuator-skip>
+      <pilot-skip>9</pilot-skip>
+      <autopilot-skip>9</autopilot-skip>
     </logging>
 
     <!-- Console / ground station communication. -->
     <console>
-      <device>/dev/ttyPSC0</device>
+      <device>/dev/ttyS0</device>
       <enable type="bool">false</enable>
 
       <lost-link-timeout-sec>60</lost-link-timeout-sec>
 
-      <imu-skip>4</imu-skip>
-      <gps-skip>0</gps-skip>
-      <airdata-skip>4</airdata-skip>
+      <gps-skip>1</gps-skip>
+      <imu-skip>8</imu-skip>
+      <airdata-skip>8</airdata-skip>
       <filter-skip>4</filter-skip>
       <actuator-skip>4</actuator-skip>
+      <pilot-skip>8</pilot-skip>
+      <autopilot-skip>8</autopilot-skip>
     </console>
 
     <telnet>
@@ -42,8 +46,13 @@
     <!-- Sensor selection and configuration. -->
     <sensors>
       <imu-group>
+	<imu>
+	  <enable type="bool">true</enable>
+	  <source>fgfs</source>
+	  <port>6500</port>
+	</imu>
         <imu>
-          <enable type="bool">true</enable>
+          <enable type="bool">false</enable>
           <source>vn100</source>
           <device>/dev/ttyUSB0</device>
         </imu>
@@ -55,8 +64,13 @@
       </imu-group>
 
       <gps-group>
+	<gps>
+	  <enable type="bool">true</enable>
+	  <source>fgfs</source>
+	  <port>6501</port>
+	</gps>
         <gps>
-          <enable type="bool">true</enable>
+          <enable type="bool">false</enable>
           <source>gpsd</source>
           <port>2947</port>
           <host>localhost</host>
@@ -70,11 +84,12 @@
         </gps>
       </gps-group>
 
-      <airdata-group>
-        <!-- <airdata> -->
-	  <!-- <source>mnav</source> --> <!-- mnav -->
-        <!-- </airdata> -->
-      </airdata-group>
+      <air-data-group>
+        <air-data>
+	  <source>ardusensor</source>
+	  <enable type="bool">false</enable>
+        </air-data>
+      </air-data-group>
     </sensors>
 
     <!-- Filters configuration -->
@@ -123,14 +138,15 @@
       <enable type="bool">true</enable>
 
       <!-- select the autopilot configuration -->
-      <path>autopilots/Malolo2-alt-thr.xml</path>
       <!-- <path>autopilots/SeniorTelemaster.xml</path> -->
+      <!-- <path>autopilots/Malolo2-alt-thr.xml</path> -->
       <!-- <path>autopilots/Rascal110-combined.xml</path> -->
       <!-- <path>autopilots/Rascal110-wingleveler.xml</path> -->
       <!-- <path>autopilots/Rascal110-pitchleveler.xml</path> -->
+      <path>autopilots/Rascal110-fgfs.xml</path>
 
       <!-- set value to true to enable flying wing elevon mixing -->
-      <elevon-mixing type="bool">true</elevon-mixing>
+      <elevon-mixing type="bool">false</elevon-mixing>
     </autopilot>
 
     <!-- Primary route selection and configuration. -->
@@ -145,12 +161,34 @@
       <path>routes/bowtie.xml</path> <!-- relative bowtie -->
     </route>
 
+    <!-- Pilot Input configuration -->
+    <pilot-inputs>
+      <pilot-input>
+        <source>fgfs</source>
+        <enable type="bool">true</enable>
+	<port>6502</port>
+      </pilot-input>
+    </pilot-inputs>
+
     <!-- Actuator selection and configuration. -->
     <actuators>
+      <throttle-safety>
+        <!-- throttle will be forced to zero when prop value is less than -->
+        <!-- minimum threshold -->
+        <prop>/position/altitude-filter-agl-ft</prop>
+        <min-value>100</min-value>
+      </throttle-safety>
       <actuator>
         <module>fgfs</module>
-        <host>localhost</host>
-        <port>6502</port>        
+ 	<host>192.168.1.103</host>
+ 	<port>6502</port>
+        <enable type="bool">true</enable>
+      </actuator>
+      <actuator>
+        <module>ardupilot-servo</module>
+        <enable type="bool">false</enable>
+	<device>/dev/ttyUSB0</device>
+        <baud>115200</baud>        
       </actuator>
     </actuators>
 

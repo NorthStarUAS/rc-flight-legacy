@@ -37,6 +37,7 @@
 #include "props/props_io.hxx"
 #include "sensors/airdata_mgr.h"
 #include "sensors/gps_mgr.h"
+#include "sensors/pilot_mgr.h"
 #include "sensors/mnav.h"
 #include "util/exception.hxx"
 #include "util/myprof.h"
@@ -125,9 +126,8 @@ void timer_handler (int signum)
     // Fetch GPS data if available.
     GPS_update();
 
-#if 0 // FIXME: this needs to be handled in a more generic way
-    mnav_manual_override_check();
-#endif
+    // Fetch Pilot Inputs
+    PilotInput_update();
 
     //
     // Attitude Determination and Navigation section
@@ -159,7 +159,7 @@ void timer_handler (int signum)
 	}
     }
 
-    /* FIXME: TEMPORARY */ logging_navstate();
+    /* FIXME: TEMPORARY */ /* logging_navstate(); */
 
     //
     // Read commands from ground station section
@@ -424,7 +424,7 @@ int main( int argc, char **argv )
         }
     }
 
-    /* FIXME: TEMPORARY */ logging_navstate_init();
+    /* FIXME: TEMPORARY */ /* logging_navstate_init(); */
 
     // Initialize communication with the selected IMU
     IMU_init();
@@ -434,6 +434,9 @@ int main( int argc, char **argv )
 
     // Initialize communication with the selected GPS
     GPS_init();
+
+    // Initialize communication with pilot input sensor
+    PilotInput_init();
 
     // Initialize any defined filter modules
     Filter_init();
@@ -490,6 +493,7 @@ int main( int argc, char **argv )
     IMU_close();
     GPS_close();
     AirData_close();
+    PilotInput_close();
     if ( enable_control ) {
 	control_close();
 	Actuator_close();
