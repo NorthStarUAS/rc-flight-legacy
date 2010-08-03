@@ -10,7 +10,7 @@
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/heading</prop>
-      <value>route-mgr</value>
+      <value>route</value>
     </enable>
     <input>
       <prop>/autopilot/internal/true-heading-error-deg</prop>
@@ -35,7 +35,7 @@
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/heading</prop>
-      <value>route-mgr</value>
+      <value>route</value>
     </enable>
     <input>
       <prop>/orientation/roll-deg</prop>
@@ -69,14 +69,14 @@
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/altitude</prop>
-      <value>altitude-hold</value>
+      <value>pitch</value>
     </enable>
     <input>
-      <prop>/position/altitude-ft</prop>
+      <prop>/position/altitude-filter-agl-ft</prop>
     </input>
     <reference>
-      <!-- <prop>/autopilot/settings/target-msl-ft</prop> -->
-      <value>1000</value> -->
+      <prop>/autopilot/settings/target-agl-ft</prop>
+      <!-- <value>1000</value> -->
     </reference>
     <output>
       <prop>/autopilot/internal/target-climb-rate-fps</prop>
@@ -96,7 +96,7 @@
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/altitude</prop>
-      <value>altitude-hold</value>
+      <value>pitch</value>
     </enable>
     <input>
       <prop>/velocity/vertical-speed-fps</prop>
@@ -126,7 +126,7 @@
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/altitude</prop>
-      <value>pitch-leveler</value>
+      <value>pitch</value>
     </enable>
     <input>
       <prop>/orientation/pitch-deg</prop>
@@ -149,5 +149,122 @@
       <u_max>0.25</u_max>
     </config>
   </pid-controller>
+
+ <!-- Auto throttle --> 
+ <pid-controller>
+    <name>Auto Throttle</name>
+    <debug>false</debug>
+    <enable>
+      <prop>/autopilot/locks/speed</prop>
+      <value>throttle</value>
+    </enable>
+    <input>
+      <prop>/velocity/airspeed-kt</prop>
+    </input>
+    <reference>
+      <prop>/autopilot/settings/target-speed-kt</prop>
+    </reference>
+    <output>
+      <prop>/controls/engine/throttle</prop>
+    </output>
+    <config>
+      <Kp>0.04</Kp>       <!-- proportional gain -->
+      <beta>1.0</beta>    <!-- input value weighing factor -->
+      <alpha>0.1</alpha>  <!-- low pass filter weighing factor -->
+      <gamma>0.0</gamma>  <!-- input value weighing factor for -->
+                          <!-- unfiltered derivative error -->
+      <Ti>5.0</Ti>        <!-- integrator time -->
+      <Td>0.001</Td>      <!-- derivator time -->
+      <u_min>0.0</u_min>  <!-- minimum output clamp -->
+      <u_max>0.9</u_max>  <!-- maximum output clamp -->
+    </config>
+  </pid-controller>
+
+  <!-- Hold speed by varying elevator (2 stage cascading controller)--> 
+
+  <!-- Stage 1, command a forward acceleration rate based on velocity error -->
+  <pi-simple-controller>
+    <name>Speed hold (vary elevator)</name>
+    <debug>false</debug>
+    <enable>
+      <prop>/autopilot/locks/speed</prop>
+      <value>pitch</value>
+    </enable>
+    <input>
+      <prop>/velocity/airspeed-kt</prop>
+    </input>
+    <reference>
+      <prop>/autopilot/settings/target-speed-kt</prop>
+    </reference>
+    <output>
+      <prop>/autopilot/settings/target-accel-ktps</prop>
+    </output>
+    <config>
+      <Kp>0.2</Kp>	       <!-- proportional gain -->
+      <Ki>0.0</Ki>             <!-- integral gain -->
+      <u_min>-1.0</u_min>      <!-- minimum output clamp -->
+      <u_max>1.0</u_max>       <!-- maximum output clamp -->
+    </config>
+  </pi-simple-controller>
+
+  <!-- Stage 2, command elevator to achieve target acceleration rate -->
+  <pid-controller>
+    <name>Speed hold (vary elevator)</name>
+    <debug>true</debug>
+    <enable>
+      <prop>/autopilot/locks/speed</prop>
+      <value>pitch</value>
+    </enable>
+    <input>
+      <prop>/acceleration/airspeed-ktps</prop>
+    </input>
+    <reference>
+      <prop>/autopilot/settings/target-accel-ktps</prop>
+    </reference>
+    <output>
+      <prop>/controls/flight/elevator</prop>
+    </output>
+    <config>
+      <Kp>0.01</Kp>        <!-- proportional gain -->
+      <beta>1.0</beta>     <!-- input value weighing factor -->
+      <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
+      <gamma>0.0</gamma>   <!-- input value weighing factor for -->
+                           <!-- unfiltered derivative error -->
+      <Ti>3.0</Ti>        <!-- integrator time -->
+      <Td>0.001</Td>       <!-- derivator time -->
+      <u_min>-0.25</u_min> <!-- minimum output clamp -->
+      <u_max>0.25</u_max>  <!-- maximum output clamp -->
+    </config>
+  </pid-controller>
+
+  <!-- Turn coordinator: manipulates rudder to zero y axis accel. -->
+  <pid-controller>
+    <name>Turn Coordinator</name>
+    <debug>false</debug>
+      <enable>
+        <prop>/autopilot/locks/yaw</prop>
+        <value>turn-coord</value>
+      </enable>
+      <input>
+        <prop>/sensors/imu/ay-mps_sec</prop>
+      </input>
+      <reference>
+        <value>0.0</value>
+      </reference>
+      <output>
+        <prop>/controls/flight/rudder</prop>
+      </output>
+      <config>
+        <Kp>0.005</Kp>      <!-- proportional gain -->
+        <beta>1.0</beta>     <!-- input value weighing factor -->
+        <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
+        <gamma>0.0</gamma>   <!-- input value weighing factor for -->
+                             <!-- unfiltered derivative error -->
+        <Ti>1.0</Ti>        <!-- integrator time -->
+        <Td>0.01</Td>        <!-- derivator time -->
+        <u_min>-0.25</u_min> <!-- minimum output clamp -->
+        <u_max>0.25</u_max>  <!-- maximum output clamp -->
+      </config>
+    </pid-controller>
 
 </PropertyList>
