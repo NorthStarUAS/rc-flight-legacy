@@ -125,11 +125,11 @@ static void bind_pilot_controls( string rootname ) {
     // SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
 
     pilot_timestamp_node = fgGetNode("/sensors/pilot/time-stamp", true);
-    pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", 0, true);
-    pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", 1, true);
-    pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", 2, true);
-    pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", 3, true);
-    pilot_manual_node = fgGetNode("/sensors/pilot/manual", 4, true);
+    pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", true);
+    pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", true);
+    pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", true);
+    pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", true);
+    pilot_manual_node = fgGetNode("/sensors/pilot/manual", true);
     pilot_channel6_node = fgGetNode("/sensors/pilot/channel", 5, true);
     pilot_channel7_node = fgGetNode("/sensors/pilot/channel", 6, true);
     pilot_channel8_node = fgGetNode("/sensors/pilot/channel", 7, true);
