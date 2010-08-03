@@ -27,7 +27,7 @@
 #  include "mnav.h"
 #endif
 
-#include "actuators/ardusensor.hxx"
+#include "ardupilot.hxx"
 #include "imu_fgfs.hxx"
 
 #include "airdata_mgr.h"
@@ -114,8 +114,8 @@ void AirData_init() {
 		   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
-	    } else if ( source == "ardusensor" ) {
-		ardusensor_airdata_init( basename );
+	    } else if ( source == "ardupilot" ) {
+		ardupilot_airdata_init( basename );
 	    } else if ( source == "fgfs" ) {
 		fgfs_airdata_init( basename );
 #ifdef ENABLE_MNAV_SENSOR
@@ -262,8 +262,8 @@ bool AirData_update() {
 	    //	   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
-	    } else if ( source == "ardusensor" ) {
-		fresh_data = ardusensor_airdata_update();
+	    } else if ( source == "ardupilot" ) {
+		fresh_data = ardupilot_airdata_update();
 	    } else if ( source == "fgfs" ) {
 		fresh_data = fgfs_airdata_update();
 #ifdef ENABLE_MNAV_SENSOR
@@ -318,7 +318,7 @@ void AirData_close() {
 		// do nothing
 	    } else if ( source == "fgfs" ) {
 		// nop
-	    } else if ( source == "ardusensor" ) {
+	    } else if ( source == "ardupilot" ) {
 		// nop
 #ifdef ENABLE_MNAV_SENSOR
 	    } else if ( source == "mnav" ) {

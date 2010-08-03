@@ -1,5 +1,5 @@
 //
-// FILE: ardusensor.hxx
+// FILE: ardupilot.cxx
 // DESCRIPTION: interact with ardupilot based servo subsystem board
 //
 
@@ -17,7 +17,7 @@
 #include "props/props.hxx"
 #include "util/timing.h"
 
-#include "ardusensor.hxx"
+#include "ardupilot.hxx"
 
 #define START_OF_MSG0 147
 #define START_OF_MSG1 224
@@ -140,7 +140,7 @@ static void bind_pilot_controls( string rootname ) {
 
 
 // send our configured init strings to configure gpsd the way we prefer
-static bool ardusensor_open() {
+static bool ardupilot_open() {
     if ( display_on ) {
 	printf("Ardu servo subsystem on %s\n", device_name.c_str());
     }
@@ -188,26 +188,26 @@ static bool ardusensor_open() {
 
 
 // function prototypes
-bool ardusensor_init( SGPropertyNode *config ) {
-    printf("ardusensor_init()\n");
+bool ardupilot_init( SGPropertyNode *config ) {
+    printf("ardupilot_init()\n");
 
     bind_input( config );
     bind_act_nodes();
 
-    bool result = ardusensor_open();
+    bool result = ardupilot_open();
 
     return result;
 }
 
 
-bool ardusensor_airdata_init( string rootname ) {
+bool ardupilot_airdata_init( string rootname ) {
     bind_airdata_output( rootname );
 
     return true;
 }
 
 
-bool ardusensor_pilot_init( string rootname ) {
+bool ardupilot_pilot_init( string rootname ) {
     bind_pilot_controls( rootname );
 
     return true;
@@ -248,7 +248,7 @@ static float normalize_pulse( int pulse, bool symmetrical ) {
     return result;
 }
 
-static bool ardusensor_parse( uint8_t pkt_id, uint8_t pkt_len,
+static bool ardupilot_parse( uint8_t pkt_id, uint8_t pkt_len,
 			     uint8_t *payload )
 {
     bool new_data = false;
@@ -285,7 +285,7 @@ static bool ardusensor_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("ardusensor: packet size mismatch in pilot input\n");
+		printf("ardupilot: packet size mismatch in pilot input\n");
 	    }
 	}
     }
@@ -295,7 +295,7 @@ static bool ardusensor_parse( uint8_t pkt_id, uint8_t pkt_len,
 
 
 #if 0
-static void ardusensor_read_tmp() {
+static void ardupilot_read_tmp() {
     int len;
     uint8_t input[16];
     len = read( fd, input, 1 );
@@ -307,7 +307,7 @@ static void ardusensor_read_tmp() {
 #endif
 
 
-static bool ardusensor_read() {
+static bool ardupilot_read() {
     static int state = 0;
     static int pkt_id = 0;
     static int pkt_len = 0;
@@ -318,7 +318,7 @@ static bool ardusensor_read() {
     static uint8_t payload[500];
 
     // if ( display_on ) {
-    //   printf("read ardusensor, entry state = %d\n", state);
+    //   printf("read ardupilot, entry state = %d\n", state);
     // }
 
     bool new_data = false;
@@ -404,7 +404,7 @@ static bool ardusensor_read() {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// fprintf( stderr, "checksum passes (%d)!\n", pkt_id );
-		new_data = ardusensor_parse( pkt_id, pkt_len, payload );
+		new_data = ardupilot_parse( pkt_id, pkt_len, payload );
 		if ( new_data ) {
 		    fresh_pilot_data = true;
 		}
@@ -465,7 +465,7 @@ static void ardu_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, 
 }
 
 
-static bool ardusensor_write() {
+static bool ardupilot_write() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
@@ -534,18 +534,18 @@ static bool ardusensor_write() {
 }
 
 
-bool ardusensor_update() {
+bool ardupilot_update() {
     // read receiver values from ardu servo subsystem
-    while ( ardusensor_read() );
+    while ( ardupilot_read() );
 
     // send actuator commands to ardu servo subsystem
-    ardusensor_write();
+    ardupilot_write();
 
     return true;
 }
 
 
-bool ardusensor_airdata_update() {
+bool ardupilot_airdata_update() {
     bool fresh_data = false;
     static double last_time = 0.0;
 
@@ -598,7 +598,7 @@ bool ardusensor_airdata_update() {
 }
 
 
-bool ardusensor_pilot_update() {
+bool ardupilot_pilot_update() {
     // basically a no-op other than managing the fresh_data flag correctly
     bool fresh_data = fresh_pilot_data;
 
@@ -627,6 +627,6 @@ bool ardusensor_pilot_update() {
 }
 
 
-void ardusensor_close() {
+void ardupilot_close() {
     close(fd);
 }

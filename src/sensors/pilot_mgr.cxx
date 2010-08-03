@@ -22,8 +22,8 @@
 #include "props/props.hxx"
 #include "util/myprof.h"
 
-#include "actuators/ardusensor.hxx"
-#include "sensors/pilot_fgfs.hxx"
+#include "ardupilot.hxx"
+#include "pilot_fgfs.hxx"
 
 #include "pilot_mgr.h"
 
@@ -88,8 +88,8 @@ void PilotInput_init() {
 		   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
-	    } else if ( source == "ardusensor" ) {
-		ardusensor_pilot_init( basename );
+	    } else if ( source == "ardupilot" ) {
+		ardupilot_pilot_init( basename );
 	    } else if ( source == "fgfs" ) {
 		fgfs_pilot_init( basename, section );
 	    } else {
@@ -123,8 +123,8 @@ bool PilotInput_update() {
 	    //	   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
-	    } else if ( source == "ardusensor" ) {
-		fresh_data = ardusensor_pilot_update();
+	    } else if ( source == "ardupilot" ) {
+		fresh_data = ardupilot_pilot_update();
 	    } else if ( source == "fgfs" ) {
 		fresh_data = fgfs_pilot_update();
 	    } else {
@@ -182,7 +182,7 @@ void PilotInput_close() {
 		// do nothing
 	    } else if ( source == "fgfs" ) {
 		fgfs_pilot_close();
-	    } else if ( source == "ardusensor" ) {
+	    } else if ( source == "ardupilot" ) {
 		// nop
 	    } else {
 		printf("Unknown air data source = '%s' in config file\n",
