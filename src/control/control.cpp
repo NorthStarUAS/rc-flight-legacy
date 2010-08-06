@@ -43,6 +43,7 @@ static SGPropertyNode *speed_lock_node = NULL;
 // temporary ... set target speed to current speed when autopilot is
 // activated
 static SGPropertyNode *cur_speed_node = NULL;
+static SGPropertyNode *initial_speed_node = NULL;
 static SGPropertyNode *target_speed_node = NULL;
 
 
@@ -59,6 +60,7 @@ static void bind_properties() {
     speed_lock_node = fgGetNode("/autopilot/locks/speed", true);
 
     cur_speed_node = fgGetNode("/velocity/airspeed-kt", true);
+    initial_speed_node = fgGetNode("/config/autopilot/initial-speed-kt", true);
     target_speed_node = fgGetNode("/autopilot/settings/target-speed-kt", true);
 }
 
@@ -108,8 +110,11 @@ void control_update(double dt)
 	    speed_lock_node
 		->setStringValue( ap_speed_mode_node->getStringValue() );
 
-	    double cur_speed = cur_speed_node->getDoubleValue();
-	    target_speed_node->setDoubleValue( cur_speed );
+	    float target_speed_kt = target_speed_node->getFloatValue();
+	    float initial_speed_kt = initial_speed_node->getFloatValue();
+	    if ( target_speed_kt < 0.1 ) {
+		target_speed_node->setFloatValue( initial_speed_kt );
+	    }
 
 	    autopilot_enabled = true;
 	}

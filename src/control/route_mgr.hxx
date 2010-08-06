@@ -62,9 +62,11 @@ private:
     SGPropertyNode_ptr config_props;
 
     // automatic inputs
-    SGPropertyNode_ptr lon;
-    SGPropertyNode_ptr lat;
-    SGPropertyNode_ptr alt;
+    SGPropertyNode_ptr lon_node;
+    SGPropertyNode_ptr lat_node;
+    SGPropertyNode_ptr alt_node;
+    SGPropertyNode_ptr vn_node;
+    SGPropertyNode_ptr ve_node;
 
     // automatic outputs
     SGPropertyNode_ptr true_hdg_deg;
@@ -80,6 +82,14 @@ private:
     // register "home" in the property tree
     SGPropertyNode *home_lon_node;
     SGPropertyNode *home_lat_node;
+
+    // wind related property nodes
+    SGPropertyNode *est_wind_speed_kt;
+    SGPropertyNode *est_wind_dir_deg;
+    SGPropertyNode *est_wind_east_mps;
+    SGPropertyNode *est_wind_north_mps;
+    SGPropertyNode *est_wind_true_heading_deg;
+    SGPropertyNode *est_wind_target_heading_deg;
 
     // console/logging property nodes
     SGPropertyNode *ap_console_skip;
