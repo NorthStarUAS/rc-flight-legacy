@@ -67,6 +67,13 @@ static SGPropertyNode *filter_vert_speed_fps_node = NULL;
 static SGPropertyNode *filter_ground_alt_m_node = NULL;
 static SGPropertyNode *filter_alt_agl_ft_node = NULL;
 
+// air data property nodes (wind estimation)
+static SGPropertyNode *airdata_airspeed_node = NULL;
+static SGPropertyNode *est_wind_speed_kt = NULL;
+static SGPropertyNode *est_wind_dir_deg = NULL;
+static SGPropertyNode *est_wind_east_mps = NULL;
+static SGPropertyNode *est_wind_north_mps = NULL;
+
 // comm property nodes
 static SGPropertyNode *filter_console_skip = NULL;
 static SGPropertyNode *filter_logging_skip = NULL;
@@ -84,6 +91,13 @@ void Filter_init() {
     imu_hx_node = fgGetNode("/sensors/imu/hx", true);
     imu_hy_node = fgGetNode("/sensors/imu/hy", true);
     imu_hz_node = fgGetNode("/sensors/imu/hz", true);
+
+    // airdata airspeed (unfiltered)
+    airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
+    est_wind_speed_kt = fgGetNode("/filters/wind-est/wind-speed-kt", true);
+    est_wind_dir_deg = fgGetNode("/filters/wind-est/wind-dir-deg", true);
+    est_wind_east_mps = fgGetNode("/filters/wind-est/wind-east-mps", true);
+    est_wind_north_mps = fgGetNode("/filters/wind-est/wind-north-mps", true);
 
     // initialize comm nodes
     filter_console_skip = fgGetNode("/config/console/filter-skip", true);
@@ -199,6 +213,57 @@ static void update_ground() {
 }
 
 
+// onboard wind estimate (requires airspeed, true heading, and ground
+// velocity fector)
+static void update_wind() {
+    // Estimate wind direction and speed based on ground track speed
+    // versus aircraft heading and indicated airspeed.
+    static double pitot_scale_filt = 1.0;
+
+    double psi = SGD_PI_2
+	- filter_psi_node->getDoubleValue() * SG_DEGREES_TO_RADIANS;
+    double airspeed_kt = airdata_airspeed_node->getDoubleValue();
+    double ue = cos(psi) * (airspeed_kt * pitot_scale_filt * SG_KT_TO_MPS);
+    double un = sin(psi) * (airspeed_kt * pitot_scale_filt * SG_KT_TO_MPS);
+    double we = ue - filter_ve_node->getDoubleValue();
+    double wn = un - filter_vn_node->getDoubleValue();
+
+    static double filt_we = 0.0, filt_wn = 0.0;
+    filt_we = 0.9995 * filt_we + 0.0005 * we;
+    filt_wn = 0.9995 * filt_wn + 0.0005 * wn;
+
+    double wind_deg = 90 - atan2( filt_wn, filt_we ) * SGD_RADIANS_TO_DEGREES;
+    if ( wind_deg < 0 ) { wind_deg += 360.0; }
+    double wind_speed_kt = sqrt( filt_we*filt_we + filt_wn*filt_wn ) * SG_MPS_TO_KT;
+
+    est_wind_speed_kt->setDoubleValue( wind_speed_kt );
+    est_wind_dir_deg->setDoubleValue( wind_deg );
+    est_wind_east_mps->setDoubleValue( filt_we );
+    est_wind_north_mps->setDoubleValue( filt_wn );
+
+    // estimate pitot tube bias
+    double true_e = filt_we + filter_ve_node->getDoubleValue();
+    double true_n = filt_wn + filter_vn_node->getDoubleValue();
+
+    double true_deg = 90 - atan2( true_n, true_e ) * SGD_RADIANS_TO_DEGREES;
+    if ( true_deg < 0 ) { true_deg += 360.0; }
+    double true_speed_kt = sqrt( true_e*true_e + true_n*true_n ) * SG_MPS_TO_KT;
+
+    double pitot_scale = 1.0;
+    if ( airspeed_kt > 1.0 ) {
+	pitot_scale = true_speed_kt / airspeed_kt;
+	if ( pitot_scale < 0.25 ) { pitot_scale = 0.25;	}
+	if ( pitot_scale > 4.00 ) { pitot_scale = 4.00; }
+    }
+
+    pitot_scale_filt = 0.999 * pitot_scale_filt + 0.001 * pitot_scale;
+
+    // if ( display_on ) {
+    //   printf("true: %.2f kt  %.1f deg (scale = %.4f)\n", true_speed_kt, true_deg, pitot_scale_filt);
+    // }
+}
+
+
 bool Filter_update( bool fresh_imu_data ) {
     filter_prof.start();
 
@@ -266,6 +331,7 @@ bool Filter_update( bool fresh_imu_data ) {
 
     if ( fresh_filter_data ) {
 	update_ground();
+	update_wind();
 	     
 	if ( console_link_on || log_to_file ) {
 	    uint8_t buf[256];

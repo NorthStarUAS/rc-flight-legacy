@@ -47,9 +47,11 @@ FGRouteMgr::FGRouteMgr() :
     route( new SGRoute ),
     home_course_deg( 0.0 ),
     config_props( NULL ),
-    lon( NULL ),
-    lat( NULL ),
-    alt( NULL ),
+    lon_node( NULL ),
+    lat_node( NULL ),
+    alt_node( NULL ),
+    vn_node( NULL ),
+    ve_node( NULL ),
     true_hdg_deg( NULL ),
     target_agl_ft( NULL ),
     override_agl_ft( NULL ),
@@ -59,6 +61,12 @@ FGRouteMgr::FGRouteMgr() :
     route_mode_node( NULL ),
     home_lon_node( NULL ),
     home_lat_node( NULL ),
+    est_wind_speed_kt( NULL ),
+    est_wind_dir_deg( NULL ),
+    est_wind_east_mps( NULL ),
+    est_wind_north_mps( NULL ),
+    est_wind_true_heading_deg( NULL ),
+    est_wind_target_heading_deg( NULL ),
     ap_console_skip( NULL ),
     ap_logging_skip( NULL ),
     home_set( false ),
@@ -76,11 +84,13 @@ FGRouteMgr::~FGRouteMgr() {
 void FGRouteMgr::bind() {
     config_props = fgGetNode( "/routes/route", true );
 
-    lon = fgGetNode( "/position/longitude-deg", true );
-    lat = fgGetNode( "/position/latitude-deg", true );
-    alt = fgGetNode( "/position/altitude-ft", true );
+    lon_node = fgGetNode( "/position/longitude-deg", true );
+    lat_node = fgGetNode( "/position/latitude-deg", true );
+    alt_node = fgGetNode( "/position/altitude-ft", true );
+    vn_node = fgGetNode( "/velocity/vn-ms", true);
+    ve_node = fgGetNode( "/velocity/ve-ms", true);
 
-    true_hdg_deg = fgGetNode( "/autopilot/settings/true-heading-deg", true );
+    true_hdg_deg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
     target_msl_ft
         = fgGetNode( "/autopilot/settings/target-msl-ft", true );
     override_msl_ft
@@ -96,6 +106,15 @@ void FGRouteMgr::bind() {
 
     home_lon_node = fgGetNode("/routes/home/longitude-deg", true );
     home_lat_node = fgGetNode("/routes/home/latitude-deg", true );
+
+    est_wind_speed_kt = fgGetNode("/filters/wind-est/wind-speed-kt", true);
+    est_wind_dir_deg = fgGetNode("/filters/wind-est/wind-dir-deg", true);
+    est_wind_east_mps = fgGetNode("/filters/wind-est/wind-east-mps", true);
+    est_wind_north_mps = fgGetNode("/filters/wind-est/wind-north-mps", true);
+    est_wind_true_heading_deg
+	= fgGetNode("/filters/wind-est/true-heading-deg", true);
+    est_wind_target_heading_deg
+	= fgGetNode("/filters/wind-est/target-heading-deg", true);
 
     ap_console_skip = fgGetNode("/config/console/autopilot-skip", true);
     ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
@@ -146,8 +165,9 @@ void FGRouteMgr::update() {
     double target_msl_m = 0;
 
     if ( mode == GoHome && home_set ) {
-        home.CourseAndDistance( lon->getDoubleValue(), lat->getDoubleValue(),
-                                alt->getDoubleValue(),
+        home.CourseAndDistance( lon_node->getDoubleValue(),
+				lat_node->getDoubleValue(),
+                                alt_node->getDoubleValue(),
                                 &wp_course, &wp_distance );
 
         true_hdg_deg->setDoubleValue( wp_course );
@@ -160,8 +180,9 @@ void FGRouteMgr::update() {
 	if ( GPS_age() < 10.0 ) {
 	    // track current waypoint of route (only if we have fresh gps data)
 	    SGWayPoint wp = route->get_current();
-	    wp.CourseAndDistance( lon->getDoubleValue(), lat->getDoubleValue(),
-				  alt->getDoubleValue(),
+	    wp.CourseAndDistance( lon_node->getDoubleValue(),
+				  lat_node->getDoubleValue(),
+				  alt_node->getDoubleValue(),
 				  &wp_course, &wp_distance );
 
 	    true_hdg_deg->setDoubleValue( wp_course );
@@ -197,6 +218,74 @@ void FGRouteMgr::update() {
     } else if ( target_msl_m > 1 ) {
 	target_msl_ft->setDoubleValue( target_msl_m * SG_METER_TO_FEET );
     }
+
+    // Compute wind based current heading estimate and target heading
+    // estimate.  This can be used to "schedule" the bank angle gain
+    // correctly so that up wind flying will produce gentler turns and
+    // down wind flying will produce more aggressive turns.
+    double vn = vn_node->getDoubleValue();
+    double ve = ve_node->getDoubleValue();
+    double wn = est_wind_north_mps->getDoubleValue();
+    double we = est_wind_east_mps->getDoubleValue();
+
+    double true_e = ve + we;
+    double true_n = vn + wn;
+
+    double true_speed_mps = sqrt( true_e*true_e + true_n*true_n );
+    double true_deg = 90 - atan2( true_n, true_e ) * SGD_RADIANS_TO_DEGREES;
+    if ( true_deg < 0 ) { true_deg += 360.0; }
+
+    est_wind_true_heading_deg->setDoubleValue( true_deg );
+
+    // from williams.best.vwh.net/avform.htm (aviation formulas)
+    double ws = est_wind_speed_kt->getDoubleValue() * SG_KT_TO_MPS;
+    double tas = true_speed_mps;
+    double wd = est_wind_dir_deg->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+    double crs = wp_course * SGD_DEGREES_TO_RADIANS;
+    double hd = 0.0;
+    double gs = 0.0;
+    if ( tas > 0.1 ) {
+	// printf("ws=%.1f tas=%.1f wd=%.1f crs=%.1f\n", ws, tas, wd, crs);
+	double swc = (ws/tas)*sin(wd-crs);
+	// printf("swc=%.2f\n", swc);
+	if ( fabs(swc) > 1.0 ) {
+	    // course cannot be flown, wind too strong
+	    // point nose into estimated wind and "kite" as best we can
+	    hd = wd + SGD_PI;
+	    if ( hd > SGD_2PI ) { hd -= SGD_2PI; }
+	} else {
+	    hd = crs + asin(swc);
+	    if ( hd < 0.0 ) { hd += SGD_2PI; }
+	    if ( hd > SGD_2PI ) { hd -= SGD_2PI; }
+	    gs = tas * sqrt(1-swc*swc) - ws * cos(wd - crs);
+	}
+	est_wind_target_heading_deg
+	    ->setDoubleValue( hd * SGD_RADIANS_TO_DEGREES );
+    }
+    // if ( display_on ) {
+    //   printf("af: hd=%.1f gs=%.1f\n", hd * SGD_RADIANS_TO_DEGREES, gs);
+    // }
+
+
+#if 0
+    if ( display_on ) {
+	SGPropertyNode *ground_deg = fgGetNode("/orientation/groundtrack-deg", true);
+	double gtd = ground_deg->getDoubleValue();
+	if ( gtd < 0 ) { gtd += 360.0; }
+	double diff = wp_course - gtd;
+	if ( diff < -180.0 ) { diff += 360.0; }
+	if ( diff > 180.0 ) { diff -= 360.0; }
+	SGPropertyNode *psi = fgGetNode("/orientation/heading-deg", true);
+	printf("true filt=%.1f true-wind-est=%.1f target-hd=%.1f\n",
+	       psi->getDoubleValue(), true_deg, hd * SGD_RADIANS_TO_DEGREES);
+	printf("gt cur=%.1f target=%.1f diff=%.1f\n", gtd, wp_course, diff);
+	diff = hd*SGD_RADIANS_TO_DEGREES - true_deg;
+	if ( diff < -180.0 ) { diff += 360.0; }
+	if ( diff > 180.0 ) { diff -= 360.0; }
+	printf("wnd: cur=%.1f target=%.1f diff=%.1f\n",
+	       true_deg, hd * SGD_RADIANS_TO_DEGREES, diff);
+    }
+#endif
 
     if ( console_link_on || log_to_file ) {
 	// send one waypoint per message, then home location (with

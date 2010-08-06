@@ -855,18 +855,39 @@ static void update_helper( double dt ) {
         v_last = v;
     }
 
-    // Calculate true heading error normalized to +/- 180.0
-    static SGPropertyNode *target_true
-        = fgGetNode( "/autopilot/settings/true-heading-deg", true );
-    static SGPropertyNode *true_hdg
-        = fgGetNode( "/orientation/groundtrack-deg", true );
-    static SGPropertyNode *true_error
-        = fgGetNode( "/autopilot/internal/true-heading-error-deg", true );
+    double diff;
 
-    double diff = target_true->getDoubleValue() - true_hdg->getDoubleValue();
+    // Calculate groundtrack heading error normalized to +/- 180.0
+    static SGPropertyNode *target_groundtrack
+        = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
+    static SGPropertyNode *current_groundtrack
+        = fgGetNode( "/orientation/groundtrack-deg", true );
+    static SGPropertyNode *groundtrack_error
+        = fgGetNode( "/autopilot/internal/groundtrack-error-deg", true );
+
+    diff = target_groundtrack->getDoubleValue() - current_groundtrack->getDoubleValue();
     if ( diff < -180.0 ) { diff += 360.0; }
     if ( diff > 180.0 ) { diff -= 360.0; }
-    true_error->setDoubleValue( diff );
+    groundtrack_error->setDoubleValue( diff );
+
+    // Calculate "wind compensated" groundtrack heading error
+    // normalized to +/- 180.0.  The ground track heading error can be
+    // misleading if there is wind.  we compute a wind compensated
+    // true heading difference so we know what heading we need to roll
+    // out at to achieve the target ground track heading.  The actual
+    // computations are performed in the route_mgr code, the wind
+    // estimation is performed in the filter_mgr code.
+    static SGPropertyNode *target_wind_true
+        = fgGetNode( "/filters/wind-est/target-heading-deg", true );
+    static SGPropertyNode *wind_true_hdg
+        = fgGetNode( "/filters/wind-est/true-heading-deg", true );
+    static SGPropertyNode *wind_true_error
+        = fgGetNode( "/autopilot/internal/wind-true-error-deg", true );
+
+    diff = target_wind_true->getDoubleValue() - wind_true_hdg->getDoubleValue();
+    if ( diff < -180.0 ) { diff += 360.0; }
+    if ( diff > 180.0 ) { diff -= 360.0; }
+    wind_true_error->setDoubleValue( diff );
 
     // calculate the roll angle squared for the purpose of adding open
     // loop elevator deflection in turns.
@@ -880,7 +901,7 @@ static void update_helper( double dt ) {
     c++;
     if ( c > 25 ) {
         printf("  tgt = %.1f  current = %.1f  error = %.1f\n",
-               target_true->getDoubleValue(), true_hdg->getDoubleValue(),
+               target_groundtrack->getDoubleValue(), true_hdg->getDoubleValue(),
                diff);
         c = 0;
         } */

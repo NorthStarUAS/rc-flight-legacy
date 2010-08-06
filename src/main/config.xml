@@ -149,6 +149,9 @@
       <!-- <path>autopilots/Rascal110-pitchleveler.xml</path> -->
       <path>autopilots/Rascal110-fgfs.xml</path>
 
+      <!-- set initial target speed when autopilot is activated -->
+      <initial-speed-kt>45</initial-speed-kt>
+
       <!-- set value to true to enable flying wing elevon mixing -->
       <elevon-mixing type="bool">false</elevon-mixing>
     </autopilot>

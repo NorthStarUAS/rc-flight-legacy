@@ -208,7 +208,7 @@ void timer_handler (int signum)
     //
 
     if ( enable_route ) {
-	// route updates at 5 hz
+	// route updates at 10 hz
 	if ( route_counter >= (HEARTBEAT_HZ / 5) ) {
 	    route_counter = 0;
 	    route_mgr_prof.start();

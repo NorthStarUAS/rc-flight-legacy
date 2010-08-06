@@ -150,10 +150,13 @@ bool ugumn_adns_update() {
 	NavState *s = umn_adns_get_state();
 
 	// publish values to property tree
+	double psi = s->eul[0];
+	if ( psi < 0 ) { psi += SGD_2PI; }
+	if ( psi > SGD_2PI ) { psi -= SGD_2PI; }
 	filter_timestamp_node->setDoubleValue( imu[0] );
 	filter_phi_node->setDoubleValue( s->eul[2] * SG_RADIANS_TO_DEGREES );
 	filter_theta_node->setDoubleValue( s->eul[1] * SG_RADIANS_TO_DEGREES );
-	filter_psi_node->setDoubleValue( s->eul[0] * SG_RADIANS_TO_DEGREES );
+	filter_psi_node->setDoubleValue( psi * SG_RADIANS_TO_DEGREES );
 	filter_lat_node->setDoubleValue( s->pos[0] * SG_RADIANS_TO_DEGREES );
 	filter_lon_node->setDoubleValue( s->pos[1] * SG_RADIANS_TO_DEGREES );
 	filter_alt_node->setDoubleValue( -s->pos[2] );

@@ -100,7 +100,7 @@ void UGPacketizer::bind_pilot_nodes() {
 void UGPacketizer::bind_ap_nodes() {
     filter_ground_alt_m_node
 	= fgGetNode("/position/ground-altitude-filter-m", true);
-    ap_hdg = fgGetNode( "/autopilot/settings/true-heading-deg", true );
+    ap_hdg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
     ap_roll = fgGetNode("/autopilot/internal/target-roll-deg", true);
     ap_altitude_agl = fgGetNode( "/autopilot/settings/target-agl-ft", true );
     ap_altitude_msl = fgGetNode( "/autopilot/settings/target-msl-ft", true );
