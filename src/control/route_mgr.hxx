@@ -22,7 +22,7 @@
 
 
 #ifndef _ROUTE_MGR_HXX
-#define _ROUTE_MGR_HXX 1
+#define _ROUTE_MGR_HXX
 
 #ifndef __cplusplus
 # error This library requires C++
