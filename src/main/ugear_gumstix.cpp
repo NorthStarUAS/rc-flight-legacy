@@ -74,6 +74,7 @@ void usage()
     printf("--log-servo in/out   : specify which servo data to log (out=default)\n");
     printf("--mnav <device>      : specify mnav communication device\n");
     printf("--console <dev>      : specify console device and enable link\n");
+    printf("--debug on/off       : log debugging events to debug.txt\n");	
     printf("--display on/off     : dump periodic data to display\n");	
     printf("--help               : display this help messages\n\n");
     
@@ -166,7 +167,7 @@ void timer_handler (int signum)
     //
 
     if ( console_link_on ) {
-	bool read_command = false;
+	static bool read_command = false;
 
 	// check for incoming command data (5hz)
 	if ( command_counter >= (HEARTBEAT_HZ / 5) ) {
@@ -177,12 +178,18 @@ void timer_handler (int signum)
 		// FIXME: we shouldn't necessarily assume route
 		// mode just because we read a command from the
 		// ground station
-		route_mgr.set_route_mode();
+		if ( route_mgr.get_route_mode() != FGRouteMgr::FollowRoute ) {
+		    route_mgr.set_route_mode();
+		    if ( debug_on ) {
+			debug_log("route", "switch to ROUTE mode");
+		    }
+		}
 	    }
 	}
-	if ( read_command
-	     && current_time > last_command_time + lost_link_sec
-	     && route_mgr.get_route_mode() != FGRouteMgr::GoHome )
+
+ 	if ( read_command
+	     && (current_time > last_command_time + lost_link_sec)
+	     && (route_mgr.get_route_mode() != FGRouteMgr::GoHome) )
         {
 	    // We have previously established a positive link with the
 	    // groundstation, but it's been lost_link seconds since
@@ -192,6 +199,9 @@ void timer_handler (int signum)
 	    // home mode.  Ground station operator will need to send a
 	    // resume route command to resume the route.
 	    route_mgr.set_home_mode();
+	    if ( debug_on ) {
+		debug_log("route", "switch to HOME mode");
+	    }
 	}
     }
 
@@ -243,19 +253,21 @@ void timer_handler (int signum)
     {
 	display_counter = 0;
 	display_message();
-	imu_prof.stats( "IMU " );
-	gps_prof.stats( "GPS " );
-	air_prof.stats( "AIR " );
-	filter_prof.stats( "FILT" );
+	imu_prof.stats();
+	gps_prof.stats();
+	air_prof.stats();
+	filter_prof.stats();
 	if ( enable_control ) {
-	    control_prof.stats( "CNTL" );
+	    control_prof.stats();
 	}
-	health_prof.stats( "HLTH" );
-	main_prof.stats( "MAIN" );
+	health_prof.stats();
+	datalog_prof.stats();
+	main_prof.stats();
     }
 
-    // round robin flushing of logging streams (update at 0.5hz)
-    if ( flush_counter >= (HEARTBEAT_HZ * 2 /* divide by 0.5 */) ) {
+    // round robin flushing of logging streams (update at 1.0 hz)
+    if ( flush_counter >= (HEARTBEAT_HZ * 1) ) {
+	datalog_prof.start();
 	flush_counter = 0;
 	static int flush_state = 0;
 	if ( log_to_file ) {
@@ -292,6 +304,7 @@ void timer_handler (int signum)
 		flush_state = 0;
 	    }
 	}
+	datalog_prof.stop();
     }
 
     main_prof.stop();
@@ -321,6 +334,18 @@ int main( int argc, char **argv )
 
     UGGlobals_init();
 
+    // initialize profiling names
+    imu_prof.set_name("imu");
+    gps_prof.set_name("gps");
+    air_prof.set_name("airdata");
+    pilot_prof.set_name("pilot");
+    filter_prof.set_name("filter");
+    control_prof.set_name("control");
+    route_mgr_prof.set_name("filter");
+    health_prof.set_name("health");
+    datalog_prof.set_name("datalogger");
+    main_prof.set_name("main");
+
     // load master config file
     SGPath master( root );
     master.append( "config.xml" );
@@ -346,6 +371,9 @@ int main( int argc, char **argv )
     p = fgGetNode("/config/logging/enable", true);
     log_to_file = p->getBoolValue();
     printf("log path = %s enabled = %d\n", log_path.c_str(), log_to_file);
+
+    p = fgGetNode("/config/debug-log/enable", true);
+    debug_on = p->getBoolValue();
 
     p = fgGetNode("/config/telnet/enable", true);
     enable_telnet = p->getBoolValue();
@@ -399,6 +427,10 @@ int main( int argc, char **argv )
 	    console_link_on = true;
 	    p = fgGetNode("/config/console/device", true);
 	    p->setStringValue( argv[iarg] );
+        } else if ( !strcmp(argv[iarg],"--debug") ) {
+            ++iarg;
+            if ( !strcmp(argv[iarg], "on") ) debug_on = true;
+            if ( !strcmp(argv[iarg], "off") ) debug_on = false;
         } else if ( !strcmp(argv[iarg],"--display") ) {
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) display_on = true;

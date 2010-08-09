@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include "comms/logging.h"
+
 #include "timing.h"
 
 #include "myprof.h"
@@ -13,6 +15,10 @@ myprofile::myprofile() {
 myprofile::~myprofile() {
 }
 
+void myprofile::set_name( const string _name ) {
+    name = _name;
+}
+
 void myprofile::start() {
     if ( init_time <= 0.0001 ) {
 	init_time = get_Time();
@@ -22,18 +28,27 @@ void myprofile::start() {
 }
 
 void myprofile::stop() {
-  last_interval = get_Time() - start_time;
-  sum_time += last_interval;
+    double stop_time = get_Time();
+    last_interval = stop_time - start_time;
+    sum_time += last_interval;
+    
+    // log situations where a module took longer that 0.1 sec to execute
+    if ( debug_on && (last_interval > 0.1) ) {
+	char msg[256];
+	snprintf(msg, 256, "t1 = %.3f t2 = %.3f int = %.3f",
+		 start_time, stop_time, last_interval);
+	debug_log( name.c_str(), msg );
+    }
 }
 
-void myprofile::stats( const char *header ) {
+void myprofile::stats() {
     double total_time = get_Time() - init_time;
     double avg_hz = 0.0;
     if ( total_time > 1.0 ) {
 	avg_hz = (double)count / total_time;
     }
     printf( "%s: avg = %.4f count = %d total = %.4f (last = %.4f) avg hz=%.3f\n",
-	    header, sum_time / (double)count,
+	    name.c_str(), sum_time / (double)count,
 	    count, sum_time, last_interval, avg_hz );
 }
 
@@ -47,4 +62,5 @@ myprofile filter_prof;
 myprofile control_prof;
 myprofile route_mgr_prof;
 myprofile health_prof;
+myprofile datalog_prof;
 myprofile main_prof;

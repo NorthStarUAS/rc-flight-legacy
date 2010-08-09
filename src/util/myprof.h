@@ -1,6 +1,10 @@
 #ifndef _UGEAR_MYPROF_H
 #define _UGEAR_MYPROF_H
 
+#include <string>
+
+using std::string;
+
 
 class myprofile {
 
@@ -12,15 +16,17 @@ class myprofile {
   double end_time;
   double last_interval;
   double sum_time;
+  string name;
 
  public:
 
   myprofile();
   ~myprofile();
 
+  void set_name( const string _name );
   void start();
   void stop();
-  void stats( const char *header );
+  void stats();
 };
 
 
@@ -33,6 +39,7 @@ extern myprofile filter_prof;
 extern myprofile control_prof;
 extern myprofile route_mgr_prof;
 extern myprofile health_prof;
+extern myprofile datalog_prof;
 extern myprofile main_prof;
 
 

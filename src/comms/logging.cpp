@@ -26,9 +26,10 @@ static gzFile fact = NULL;
 static gzFile fpilot = NULL;
 static gzFile fap = NULL;
 
-bool log_to_file = false;       // log to file is enabled/disabled
-SGPath log_path;                // base log path
-bool display_on = false;        // dump summary to display periodically
+bool log_to_file = false;  // log to file is enabled/disabled
+SGPath log_path;	   // base log path
+bool display_on = false;   // dump summary to display periodically
+bool debug_on = false;	   // extra debugging log written to debug.txt
 
 // imu property nodes
 static bool props_inited = false;
@@ -483,6 +484,23 @@ void display_message()
     printf("\n");
 
     // printf("imu size = %d\n", sizeof( struct imu ) );
+}
+
+
+bool debug_log( const char *hdr, const char *msg ) {
+    static FILE *log = NULL;
+
+    if ( log == NULL ) {
+	log = fopen( "debug.txt", "a" );
+    }
+    if ( log == NULL ) {
+	return false;
+    }
+
+    fprintf( log, "%.3f %s %s\n", get_Time(), hdr, msg );
+    fflush( log );
+
+    return true;
 }
 
 

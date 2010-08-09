@@ -143,6 +143,9 @@ bool PilotInput_update() {
 	// come from other sources.
 	ap_master_switch_node
 	    ->setBoolValue( !pilot_manual_node->getBoolValue() );
+	// if ( display_on ) {
+	//    printf("autopilot = %d\n", ap_master_switch_node->getBoolValue());
+	// }
 
 	if ( console_link_on || log_to_file ) {
 	    uint8_t buf[256];

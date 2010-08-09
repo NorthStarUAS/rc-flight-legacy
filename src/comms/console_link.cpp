@@ -12,7 +12,9 @@
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
 #include "util/strutils.hxx"
+#include "util/timing.h"
 
+#include "logging.h"
 #include "serial.hxx"
 
 #include "console_link.h"
@@ -289,6 +291,7 @@ static void console_link_execute_command( const string command ) {
 
 #define BUF_SIZE 256
 static int console_read_command( char result_buf[BUF_SIZE] ) {
+
     // read character by character until we run out of data or find a '\n'
     // if we run out of data, save what we have so far and start with that for
     // the next call.
@@ -300,7 +303,8 @@ static int console_read_command( char result_buf[BUF_SIZE] ) {
     char buf[2]; buf[0] = 0;
 
     int result = console.read_port( buf, 1 );
-    while ( result == 1 && buf[0] != '\n' && command_counter < BUF_SIZE ) {
+    while ( (result == 1) && (buf[0] != '\n')
+	    && (command_counter < BUF_SIZE) ) {
         command_buf[command_counter] = buf[0];
         command_counter++;
         result = console.read_port( buf, 1 );
@@ -309,7 +313,7 @@ static int console_read_command( char result_buf[BUF_SIZE] ) {
     if ( command_counter >= BUF_SIZE ) {
 	// abort this command and try again
 	command_counter = 0;
-    } else if ( result == 1 && buf[0] == '\n' ) {
+    } else if ( (result == 1) && (buf[0] == '\n') ) {
         command_buf[command_counter] = 0; // terminate string
         int size = command_counter + 1;
         strncpy( result_buf, command_buf, size );
@@ -351,14 +355,9 @@ bool console_link_command() {
         return false;
     }
     
-    /* printf("read command '%s'\n", command_buf); */
-
-    /*
-      FILE *debug;
-      debug = fopen("/tmp/debug.txt", "a");
-      fprintf(debug, "Received command: '%s'\n", command_buf);
-      fclose(debug);
-    */
+    if ( debug_on ) {
+	debug_log( "console cmd rcvd", command_buf );
+    }
 
     string cmd = command_buf;
 
@@ -372,22 +371,14 @@ bool console_link_command() {
     char cmd_sum[10];
     snprintf( cmd_sum, 3, "%02X", calc_nmea_cksum(cmd.c_str()) );
 
-    /*
-      debug = fopen("/tmp/debug.txt", "a");
-      fprintf(debug, " cmd: '%s' nmea: '%s' '%s'\n", cmd.c_str(),
-              nmea_sum.c_str(), cmd_sum);
-      fclose(debug);
-    */
-
     if ( nmea_sum.c_str()[0] != cmd_sum[0]
          || nmea_sum.c_str()[1] != cmd_sum[1])
     {
         // checksum failure
-        /*
-	  debug = fopen("/tmp/debug.txt", "a");
-	  fprintf(debug, "check sum failure\n");
-	  fclose(debug);
-	*/
+	if ( debug_on ) {
+	    debug_log( "console cmd rcvd", "failed check sum" );
+	}
+
         return false;
     }
 
@@ -397,12 +388,6 @@ bool console_link_command() {
         // bogus command
         return false;
     }
-
-    /*
-      FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
-      fprintf(debug, "command: %s\n", cmd.c_str());
-      fclose(debug);
-    */
 
     // extract command sequence number
     string num = cmd.substr(0, pos);
@@ -416,11 +401,9 @@ bool console_link_command() {
 	cmd = cmd.substr(pos + 1);
 
 	// execute command
-	/*
-	  debug = fopen("/tmp/debug.txt", "a");
-	  fprintf(debug, "Sequence: %d  Execute: '%s'\n", sequence, cmd.c_str());
-	  fclose(debug);
-	*/
+	if ( debug_on ) {
+	    debug_log( "console cmd rcvd", "executed valid command" );
+	}
 	console_link_execute_command( cmd );
 
 	// register that we've received this message correctly

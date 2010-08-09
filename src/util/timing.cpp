@@ -80,5 +80,17 @@ double get_Time( bool reset )
     } 
     clock_gettime(CLOCK_REALTIME, &t);
     tnow = (t.tv_sec-tset.tv_sec) + 1.0e-9*(double)(t.tv_nsec - tset.tv_nsec);
+
+    return tnow;
+}
+
+double get_RealTime()
+{
+    struct timespec t;
+    double tnow;
+   
+    clock_gettime(CLOCK_REALTIME, &t);
+    tnow = t.tv_sec + 1.0e-9*(double)(t.tv_nsec);
+
     return tnow;
 }
