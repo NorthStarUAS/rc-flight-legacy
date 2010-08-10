@@ -25,6 +25,7 @@ static gzFile ffilter = NULL;
 static gzFile fact = NULL;
 static gzFile fpilot = NULL;
 static gzFile fap = NULL;
+static FILE *debug = NULL;
 
 bool log_to_file = false;  // log to file is enabled/disabled
 SGPath log_path;	   // base log path
@@ -246,6 +247,12 @@ bool logging_init() {
     if ( (fap = gzopen( file.c_str(), "w+b" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
         return false;
+    }
+
+    file = new_dir; file.append( "events.dat" );
+    if ( (debug = fopen( file.c_str(), "w" )) == NULL ) {
+	printf("Cannot open %s\n", file.c_str());
+	return false;
     }
 
     return true;
@@ -488,17 +495,8 @@ void display_message()
 
 
 bool debug_log( const char *hdr, const char *msg ) {
-    static FILE *log = NULL;
-
-    if ( log == NULL ) {
-	log = fopen( "debug.txt", "a" );
-    }
-    if ( log == NULL ) {
-	return false;
-    }
-
-    fprintf( log, "%.3f %s %s\n", get_Time(), hdr, msg );
-    fflush( log );
+    fprintf( debug, "%.3f %s %s\n", get_Time(), hdr, msg );
+    fflush( debug );
 
     return true;
 }
