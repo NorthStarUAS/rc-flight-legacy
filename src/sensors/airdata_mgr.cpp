@@ -152,11 +152,11 @@ static void update_pressure_helpers() {
     float filter_alt_m = filter_alt_node->getFloatValue();
 
     // Do a simple first order (time based) low pass filter to reduce noise
-    float time_factor = 0.5; // length of time (sec) to low pass
-			     // filter the input over.  A time value
-			     // of zero will result in the filter
-			     // output being equal to the raw input at
-			     // each time step.
+    float time_factor = 0.40;  // length of time (sec) to low pass
+			       // filter the input over.  A time value
+			       // of zero will result in the filter
+			       // output being equal to the raw input at
+			       // each time step.
     float weight_factor;
     if ( time_factor > 0.0 ) {
 	weight_factor = dt / time_factor;
@@ -166,7 +166,7 @@ static void update_pressure_helpers() {
     // The greater the weight, the noisier the filter, but the faster
     // it converges.  Must be > 0.0 or value will never converge.  Max
     // weight is 1.0 which means we just use the raw input value with
-    // no filetering.
+    // no filtering.
     if ( weight_factor < 0.001 ) {
 	weight_factor = 0.001;
     }

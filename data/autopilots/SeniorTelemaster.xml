@@ -13,7 +13,7 @@
       <value>route</value>
     </enable>
     <input>
-      <prop>/autopilot/internal/true-heading-error-deg</prop>
+      <prop>/autopilot/internal/wind-true-error-deg</prop>
     </input>
     <reference>
       <value>0.0</value>
@@ -116,7 +116,7 @@
       <Ti>1.5</Ti>         <!-- integrator time -->
       <Td>0.00001</Td>     <!-- derivator time -->
       <u_min>-10.0</u_min> <!-- minimum output clamp -->
-      <u_max>10.0</u_max>  <!-- maximum output clamp -->
+      <u_max>8.0</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
@@ -139,7 +139,7 @@
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>0.017</Kp>
+      <Kp>0.025</Kp> <!-- was 0.017 -->
       <beta>1.0</beta>
       <alpha>0.1</alpha>
       <gamma>0.0</gamma>
@@ -168,7 +168,7 @@
       <prop>/controls/engine/throttle</prop>
     </output>
     <config>
-      <Kp>0.04</Kp>       <!-- proportional gain -->
+      <Kp>0.045</Kp>       <!-- proportional gain (was 0.04) -->
       <beta>1.0</beta>    <!-- input value weighing factor -->
       <alpha>0.1</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>  <!-- input value weighing factor for -->

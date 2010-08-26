@@ -74,7 +74,7 @@ void usage()
     printf("--log-servo in/out   : specify which servo data to log (out=default)\n");
     printf("--mnav <device>      : specify mnav communication device\n");
     printf("--console <dev>      : specify console device and enable link\n");
-    printf("--debug on/off       : log debugging events to debug.txt\n");	
+    printf("--events on/off      : log interesting events to events.txt\n");	
     printf("--display on/off     : dump periodic data to display\n");	
     printf("--help               : display this help messages\n\n");
     
@@ -180,8 +180,8 @@ void timer_handler (int signum)
 		// ground station
 		if ( route_mgr.get_route_mode() != FGRouteMgr::FollowRoute ) {
 		    route_mgr.set_route_mode();
-		    if ( debug_on ) {
-			debug_log("route", "switch to ROUTE mode");
+		    if ( event_log_on ) {
+			event_log("route", "switch to ROUTE mode");
 		    }
 		}
 	    }
@@ -199,8 +199,8 @@ void timer_handler (int signum)
 	    // home mode.  Ground station operator will need to send a
 	    // resume route command to resume the route.
 	    route_mgr.set_home_mode();
-	    if ( debug_on ) {
-		debug_log("route", "switch to HOME mode");
+	    if ( event_log_on ) {
+		event_log("route", "switch to HOME mode");
 	    }
 	}
     }
@@ -265,8 +265,8 @@ void timer_handler (int signum)
 	main_prof.stats();
     }
 
-    // round robin flushing of logging streams (update at 1.0 hz)
-    if ( flush_counter >= (HEARTBEAT_HZ * 1) ) {
+    // round robin flushing of logging streams (update at 0.5 hz)
+    if ( flush_counter >= (HEARTBEAT_HZ * 0.5) ) {
 	datalog_prof.start();
 	flush_counter = 0;
 	static int flush_state = 0;
@@ -372,8 +372,8 @@ int main( int argc, char **argv )
     log_to_file = p->getBoolValue();
     printf("log path = %s enabled = %d\n", log_path.c_str(), log_to_file);
 
-    p = fgGetNode("/config/debug-log/enable", true);
-    debug_on = p->getBoolValue();
+    p = fgGetNode("/config/logging/events", true);
+    event_log_on = p->getBoolValue();
 
     p = fgGetNode("/config/telnet/enable", true);
     enable_telnet = p->getBoolValue();
@@ -427,10 +427,10 @@ int main( int argc, char **argv )
 	    console_link_on = true;
 	    p = fgGetNode("/config/console/device", true);
 	    p->setStringValue( argv[iarg] );
-        } else if ( !strcmp(argv[iarg],"--debug") ) {
+        } else if ( !strcmp(argv[iarg],"--events") ) {
             ++iarg;
-            if ( !strcmp(argv[iarg], "on") ) debug_on = true;
-            if ( !strcmp(argv[iarg], "off") ) debug_on = false;
+            if ( !strcmp(argv[iarg], "on") ) event_log_on = true;
+            if ( !strcmp(argv[iarg], "off") ) event_log_on = false;
         } else if ( !strcmp(argv[iarg],"--display") ) {
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) display_on = true;

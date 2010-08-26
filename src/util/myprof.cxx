@@ -32,12 +32,12 @@ void myprofile::stop() {
     last_interval = stop_time - start_time;
     sum_time += last_interval;
     
-    // log situations where a module took longer that 0.1 sec to execute
-    if ( debug_on && (last_interval > 0.1) ) {
+    // log situations where a module took longer that 0.10 sec to execute
+    if ( event_log_on && (last_interval > 0.10) ) {
 	char msg[256];
 	snprintf(msg, 256, "t1 = %.3f t2 = %.3f int = %.3f",
 		 start_time, stop_time, last_interval);
-	debug_log( name.c_str(), msg );
+	event_log( name.c_str(), msg );
     }
 }
 

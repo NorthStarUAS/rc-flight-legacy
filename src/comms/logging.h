@@ -12,7 +12,7 @@
 extern bool log_to_file;
 extern SGPath log_path;
 extern bool display_on;
-extern bool debug_on;
+extern bool event_log_on;
 
 // global functions
 
@@ -37,7 +37,7 @@ void flush_ap();
 
 void display_message();
 
-bool debug_log( const char *hdr, const char *msg );
+bool event_log( const char *hdr, const char *msg );
 
 bool logging_navstate_init();
 void logging_navstate();

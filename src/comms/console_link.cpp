@@ -355,8 +355,8 @@ bool console_link_command() {
         return false;
     }
     
-    if ( debug_on ) {
-	debug_log( "console cmd rcvd", command_buf );
+    if ( event_log_on ) {
+	event_log( "console cmd rcvd", command_buf );
     }
 
     string cmd = command_buf;
@@ -375,8 +375,8 @@ bool console_link_command() {
          || nmea_sum.c_str()[1] != cmd_sum[1])
     {
         // checksum failure
-	if ( debug_on ) {
-	    debug_log( "console cmd rcvd", "failed check sum" );
+	if ( event_log_on ) {
+	    event_log( "console cmd rcvd", "failed check sum" );
 	}
 
         return false;
@@ -401,8 +401,8 @@ bool console_link_command() {
 	cmd = cmd.substr(pos + 1);
 
 	// execute command
-	if ( debug_on ) {
-	    debug_log( "console cmd rcvd", "executed valid command" );
+	if ( event_log_on ) {
+	    event_log( "console cmd rcvd", "executed valid command" );
 	}
 	console_link_execute_command( cmd );
 

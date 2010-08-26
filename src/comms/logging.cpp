@@ -25,12 +25,12 @@ static gzFile ffilter = NULL;
 static gzFile fact = NULL;
 static gzFile fpilot = NULL;
 static gzFile fap = NULL;
-static FILE *debug = NULL;
+static FILE *fevent = NULL;
 
 bool log_to_file = false;  // log to file is enabled/disabled
 SGPath log_path;	   // base log path
 bool display_on = false;   // dump summary to display periodically
-bool debug_on = false;	   // extra debugging log written to debug.txt
+bool event_log_on = false; // events log written to events.txt
 
 // imu property nodes
 static bool props_inited = false;
@@ -250,7 +250,7 @@ bool logging_init() {
     }
 
     file = new_dir; file.append( "events.dat" );
-    if ( (debug = fopen( file.c_str(), "w" )) == NULL ) {
+    if ( (fevent = fopen( file.c_str(), "w" )) == NULL ) {
 	printf("Cannot open %s\n", file.c_str());
 	return false;
     }
@@ -494,9 +494,9 @@ void display_message()
 }
 
 
-bool debug_log( const char *hdr, const char *msg ) {
-    fprintf( debug, "%.3f %s %s\n", get_Time(), hdr, msg );
-    fflush( debug );
+bool event_log( const char *hdr, const char *msg ) {
+    fprintf( fevent, "%.3f %s %s\n", get_Time(), hdr, msg );
+    fflush( fevent );
 
     return true;
 }
