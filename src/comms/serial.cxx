@@ -291,9 +291,12 @@ int SGSerialPort::write_port(const char* buf, int len) {
     count = write(fd, buf, len);
     // cout << "write '" << buf << "'  " << count << " bytes" << endl;
 
-    if ( count < 0 || count != len ) {
-           perror("serial write");
-    }
+    // if we are writing to the console port, outputing anything could
+    // compound our problems.
+
+    //if ( count < 0 || count != len ) {
+    //       perror("serial write");
+    //}
 
     return count;
 }
