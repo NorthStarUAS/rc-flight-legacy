@@ -22,9 +22,13 @@ int main() {
     printf("start of main!\n");
 
     netBufferChannel server;
+
+    netBufferChannel::tmp_buffer.init(1024);
     netBufferChannel::in_buffer.init(1024);
     netBufferChannel::out_buffer.init(1024);
+
     netBufferChannel::connection_count = 0;
+    netBufferChannel::lossless = false;
 
     int port = 6500;
     string device = "/dev/ttyUSB0";
