@@ -55,14 +55,20 @@ SGSerialPort::~SGSerialPort() {
 }
 
 bool SGSerialPort::open_port( const string& device, bool nonblock_mode ) {
-
     struct termios config;
 
-    fd = open( device.c_str(), O_RDWR | O_NOCTTY );
-    printf( "Serial fd created = %d", fd);
+    if ( nonblock_mode ) {
+	// sometimes the open() can block if you don't use
+	// non-blocking mode
+	fd = open( device.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
+    } else {
+	fd = open( device.c_str(), O_RDWR | O_NOCTTY );
+    }
+
+    printf( "Serial fd created = %d\n", fd);
 
     if ( fd  == -1 ) {
-	printf( "Cannot open %s for serial I/O", device.c_str() );
+	printf( "Cannot open %s for serial I/O\n", device.c_str() );
 	return false;
     } else {
 	dev_open = true;
@@ -75,7 +81,7 @@ bool SGSerialPort::open_port( const string& device, bool nonblock_mode ) {
 
     // set required port parameters 
     if ( tcgetattr( fd, &config ) != 0 ) {
-	printf( "Unable to poll port settings" );
+	printf( "Unable to poll port settings\n" );
 	return false;
     }
 
@@ -110,7 +116,7 @@ bool SGSerialPort::open_port( const string& device, bool nonblock_mode ) {
 #endif
 
     if ( tcsetattr( fd, TCSANOW, &config ) != 0 ) {
-	printf( "Unable to update port settings" );
+	printf( "Unable to update port settings\n" );
 	return false;
     }
 

@@ -97,6 +97,7 @@ AC_CONFIG_FILES([ \
         src/xml/Makefile \
         utils/Makefile \
         utils/benchmarks/Makefile \
+        utils/netcom/Makefile \
         utils/routegen/Makefile \
 ])
 AC_OUTPUT
