@@ -1,3 +1,4 @@
 SUBDIRS = \
 	benchmarks \
+	netcom \
 	routegen

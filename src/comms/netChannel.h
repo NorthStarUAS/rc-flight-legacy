@@ -94,19 +94,22 @@ public:
   
   // These are meant to be overridden.
   virtual void handleClose (void) {
-      //ulSetError(UL_WARNING,"Network: %d: unhandled close",getHandle());
+      printf("Network: %d: unhandled close\n", getHandle() );
   }
   virtual void handleRead (void) {
-      //ulSetError(UL_WARNING,"Network: %d: unhandled read",getHandle());
+      printf("Network: %d: unhandled read\n", getHandle() );
   }
   virtual void handleWrite (void) {
-      //ulSetError(UL_WARNING,"Network: %d: unhandled write",getHandle());
+      printf("Network: %d: unhandled write\n", getHandle() );
   }
   virtual void handleAccept (void) {
-      //ulSetError(UL_WARNING,"Network: %d: unhandled accept",getHandle());
+      printf("Network: %d: unhandled accept\n", getHandle() );
   }
   virtual void handleError (int error) {
-      //ulSetError(UL_WARNING,"Network: %d: errno: %s(%d)",getHandle(),strerror(errno),errno);
+      printf("Network: %d: errno: %s(%d)\n ",
+	     getHandle(),
+	     strerror(errno),
+	     errno );
   }
 
   static bool poll (unsigned int timeout = 0 ) ;

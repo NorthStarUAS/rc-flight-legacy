@@ -1,5 +1,5 @@
 //
-// ugear_timer.cxx - top level "main" program
+// ugear_gumstix.cxx - top level "main" program
 //
 // Written by Curtis Olson, curtolson <at> gmail <dot> com.
 // Started 2007.
