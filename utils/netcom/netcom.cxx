@@ -50,7 +50,6 @@ int main() {
     printf("net server started on port %d\n", port );
 
     char serial_buf[256];
-    int bytes;
 
     // this whole approach is in sore need of some thought about what
     // to do with buffer overruns ... can we stupidly drop data, or is
@@ -78,32 +77,31 @@ int main() {
 
 	int in_len = netBufferChannel::in_buffer.getLength();
 	if ( in_len ) {
-	    bytes = console.write_port( netBufferChannel::in_buffer.getData(),
-					in_len );
-	    if ( bytes != in_len ) {
-		// our write came up short, but we need to service the
-		// in_buffer and make room for more data, so we punt
-		// and just discard the unwritten data.
-		netBufferChannel::in_buffer.remove();
-
-		// this is the call we would use to just remove the
-		// bytes that were written and have a "loss less"
-		// system, but a system that could block for long
-		// periods or get way behind:
-		// netBufferChannel::in_buffer.remove(0, bytes);
-	    } else {
+	    int bytes_written
+		= console.write_port( netBufferChannel::in_buffer.getData(),
+				      in_len );
+	    if ( bytes_written < 0 ) {
+		// perror("serial write");
+	    } else if ( bytes_written == 0 ) {
+		// nothing was written
+	    } else if ( bytes_written != in_len ) {
+		// not a full write
+		netBufferChannel::in_buffer.remove(0, bytes_written);
+	    } else if ( bytes_written == in_len ) {
 		// everything was written so clear the entire input buffer
 		netBufferChannel::in_buffer.remove();
+	    } else {
+		// huh?
 	    }
 	}
 
 	// read the serial port
-	int bytes = console.read_port( serial_buf, 256 );
-	if ( bytes > 0 ) {
+	int bytes_read = console.read_port( serial_buf, 256 );
+	if ( bytes_read > 0 ) {
 	    bool result = netBufferChannel::out_buffer.append( serial_buf,
-							       bytes );
+							       bytes_read );
 	    if ( ! result ) {
-		// the out buffer is full, bummer.  This means we just
+		// the out_buffer is full, bummer.  This means we just
 		// dropped some data that we read from the serial port
 		// before it could be passed along to the destination.
 		// This is a case that I can't anticipate happening.
