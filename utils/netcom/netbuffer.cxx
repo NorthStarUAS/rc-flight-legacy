@@ -23,10 +23,13 @@
 
 #include "netbuffer.hxx"
 
+netBuffer netBufferChannel::tmp_buffer;
 netBuffer netBufferChannel::in_buffer;
 netBuffer netBufferChannel::out_buffer;
 int netBufferChannel::connection_count;
+bool netBufferChannel::lossless;
 
+// Notice: the following notice may be incorrect: 
 // Notice, this module only reads as much from the network layer as it
 // can.  This is loss-less, but it means that the network layer
 // buffers could build up, and or the sending side could block.
@@ -36,17 +39,45 @@ int netBufferChannel::connection_count;
 void
 netBufferChannel::handleRead (void)
 {
-    int max_read = in_buffer.getMaxLength() - in_buffer.getLength() ;
-    if ( max_read ) {
-	char* data = in_buffer.getData() + in_buffer.getLength() ;
-	int num_read = recv (data, max_read) ;
-	if (num_read > 0) {
-	    in_buffer.append (num_read) ;
-	    //ulSetError ( UL_DEBUG, "netBufferChannel: %d read", num_read ) ;
+    if ( lossless ) {
+	// only read in what we have space for in our in_buffer
+	int max_read = in_buffer.getMaxLength() - in_buffer.getLength() ;
+	if ( max_read ) {
+	    char* data = in_buffer.getData() + in_buffer.getLength() ;
+	    int num_read = recv (data, max_read) ;
+	    if (num_read > 0) {
+		in_buffer.append (num_read) ;
+		//ulSetError ( UL_DEBUG, "netBufferChannel: %d read", num_read ) ;
+	    }
 	}
-    }
-    if (in_buffer.getLength()) {
-	handleBufferRead (in_buffer);
+	if (in_buffer.getLength()) {
+	    handleBufferRead (in_buffer);
+	}
+    } else {
+	// we need to flush the incoming network packet so things
+	// don't build up.  Use a hysterisys based approach.  Once the
+	// buffer fills up, it needs to drop to half empty before we
+	// will accept more data.  In the mean time we just trash and
+	// discard when we can't put in in our in_buffer
+	int max_read = in_buffer.getMaxLength() - in_buffer.getLength() ;
+	if ( full ) {
+	    if ( max_read >= in_buffer.getLength() ) {
+		// half full (or less) so accept data again
+		full = false;
+	    }
+	}
+	int num_read = recv (tmp_buffer.getData(), tmp_buffer.getMaxLength()) ;
+	if ( ! full ) {
+	    int bytes = num_read;
+	    if ( num_read >= max_read ) {
+		bytes = max_read;
+		full = true;
+	    }
+	    in_buffer.append( tmp_buffer.getData(), bytes );
+	} else {
+	    // just drop the data <snif>
+	}
+	tmp_buffer.remove();
     }
 }
 
