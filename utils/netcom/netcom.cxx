@@ -62,13 +62,31 @@ int main() {
 
 	// if we have any new data read from the network interface,
 	// write it to the serial port.
+
+	// notice: the network server layer attempts to buffer
+	// everything and lose nothing, so if we get bombarded with
+	// too much data to push down the serial port, then we need to
+	// make some hard decisions.  For the moment we make our best
+	// attempt to write what is in the buffer, and then flush the
+	// buffer so we can receive more data.  We absolutely must not
+	// make the remote client block by not servicing the data
+	// quickly enough.
+
 	int in_len = netBufferChannel::in_buffer.getLength();
 	if ( in_len ) {
 	    bytes = console.write_port( netBufferChannel::in_buffer.getData(),
 					in_len );
 	    if ( bytes != in_len ) {
-		// remove just the bytes that were written
-		netBufferChannel::in_buffer.remove(0, bytes);
+		// our write came up short, but we need to service the
+		// in_buffer and make room for more data, so we punt
+		// and just discard the unwritten data.
+		netBufferChannel::in_buffer.remove();
+
+		// this is the call we would use to just remove the
+		// bytes that were written and have a "loss less"
+		// system, but a system that could block for long
+		// periods or get way behind:
+		// netBufferChannel::in_buffer.remove(0, bytes);
 	    } else {
 		// everything was written so clear the entire input buffer
 		netBufferChannel::in_buffer.remove();
