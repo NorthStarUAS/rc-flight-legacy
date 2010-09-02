@@ -28,7 +28,7 @@ int main() {
     netBufferChannel::out_buffer.init(1024);
 
     netBufferChannel::connection_count = 0;
-    netBufferChannel::lossless = false;
+    netBufferChannel::lossy = true;
 
     int port = 6500;
     string device = "/dev/ttyUSB0";

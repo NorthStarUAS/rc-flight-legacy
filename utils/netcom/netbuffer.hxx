@@ -183,7 +183,7 @@ public:
     static netBuffer out_buffer;
 
     static int connection_count;
-    static bool lossless;
+    static bool lossy;
 
     netBufferChannel () :
 	should_close (0)
