@@ -31,8 +31,8 @@
 #include <util/exception.hxx>
 #include <util/sg_path.hxx>
 
-#include "comms/console_link.h"
 #include "comms/logging.h"
+#include "comms/remote_link.h"
 #include "main/globals.hxx"
 #include "sensors/gps_mgr.h"
 

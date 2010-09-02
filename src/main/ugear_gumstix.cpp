@@ -25,8 +25,8 @@
 #include "include/ugear_config.h"
 
 #include "actuators/act_mgr.h"
-#include "comms/console_link.h"
 #include "comms/logging.h"
+#include "comms/remote_link.h"
 #include "comms/netSocket.h"	// netInit()
 #include "control/control.h"
 #include "control/route_mgr.hxx"

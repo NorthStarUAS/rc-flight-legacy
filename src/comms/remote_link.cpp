@@ -17,7 +17,7 @@
 #include "logging.h"
 #include "serial.hxx"
 
-#include "console_link.h"
+#include "remote_link.h"
 
 using std::string;
 

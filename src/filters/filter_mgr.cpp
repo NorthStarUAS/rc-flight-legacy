@@ -13,7 +13,7 @@
 
 #include "include/ugear_config.h"
 
-#include "comms/console_link.h"
+#include "comms/remote_link.h"
 #include "comms/logging.h"
 #include "filters/curt/adns_curt.hxx"
 #ifdef ENABLE_MNAV_FILTER

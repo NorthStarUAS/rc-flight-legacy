@@ -16,7 +16,7 @@
 
 #include "include/ugear_config.h"
 
-#include "comms/console_link.h"
+#include "comms/remote_link.h"
 #include "comms/logging.h"
 #include "include/globaldefs.h"
 #include "main/globals.hxx"
