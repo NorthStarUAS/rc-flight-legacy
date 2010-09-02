@@ -68,7 +68,7 @@ netBufferChannel::handleRead (void)
 	}
 	int num_read = recv (tmp_buffer.getData(), tmp_buffer.getMaxLength()) ;
 	tmp_buffer.append (num_read);
-	printf("num_read = %d  full = %d\n", num_read, full);
+	//printf("num_read = %d  full = %d\n", num_read, full);
 	if ( ! full ) {
 	    int bytes = num_read;
 	    if ( num_read >= max_read ) {
