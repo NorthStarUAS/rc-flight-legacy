@@ -1,5 +1,5 @@
-#ifndef _UGEAR_CONSOLE_LINK_H
-#define _UGEAR_CONSOLE_LINK_H
+#ifndef _UGEAR_REMOTE_LINK_H
+#define _UGEAR_REMOTE_LINK_H
 
 
 #include <stdint.h>
@@ -19,17 +19,17 @@ enum ugPacketType {
     SYSTEM_HEALTH_PACKET_V1 = 0x07,
 };
 
-extern bool console_link_on;
+extern bool remote_link_on;
 
-void console_link_init();
-bool console_link_gps( uint8_t *buf, int size, int skip_count );
-bool console_link_imu( uint8_t *buf, int size, int skip_count );
-bool console_link_airdata( uint8_t *buf, int size, int skip_count );
-bool console_link_filter( uint8_t *buf, int size, int skip_count );
-bool console_link_actuator( uint8_t *buf, int size, int skip_count );
-bool console_link_pilot( uint8_t *buf, int size, int skip_count );
-bool console_link_ap( uint8_t *buf, int size, int skip_count );
-bool console_link_command();
+void remote_link_init();
+bool remote_link_gps( uint8_t *buf, int size, int skip_count );
+bool remote_link_imu( uint8_t *buf, int size, int skip_count );
+bool remote_link_airdata( uint8_t *buf, int size, int skip_count );
+bool remote_link_filter( uint8_t *buf, int size, int skip_count );
+bool remote_link_actuator( uint8_t *buf, int size, int skip_count );
+bool remote_link_pilot( uint8_t *buf, int size, int skip_count );
+bool remote_link_ap( uint8_t *buf, int size, int skip_count );
+bool remote_link_command();
 
 
-#endif // _UGEAR_CONSOLE_LINK_H
+#endif // _UGEAR_REMOTE_LINK_H

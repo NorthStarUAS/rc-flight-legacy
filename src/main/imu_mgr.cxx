@@ -141,12 +141,12 @@ bool IMU_update() {
 	// for computing imu data age
 	imu_last_time = imu_timestamp_node->getDoubleValue();
 
-	if ( console_link_on || log_to_file ) {
+	if ( remote_link_on || log_to_file ) {
 	    uint8_t buf[256];
 	    int size = packetizer->packetize_imu( buf );
 
-	    if ( console_link_on ) {
-		console_link_imu( buf, size, imu_console_skip->getIntValue() );
+	    if ( remote_link_on ) {
+		remote_link_imu( buf, size, imu_console_skip->getIntValue() );
 	    }
 
 	    if ( log_to_file ) {

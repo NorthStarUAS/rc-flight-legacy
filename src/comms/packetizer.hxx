@@ -95,7 +95,7 @@ class UGPacketizer {
     SGPropertyNode *system_load_avg;
 
     // console link nodes
-    SGPropertyNode *console_seq_num;
+    SGPropertyNode *link_seq_num;
 
     void bind_gps_nodes();
     void bind_imu_nodes();
