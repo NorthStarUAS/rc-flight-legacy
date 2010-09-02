@@ -232,19 +232,7 @@ int SGSerialPort::read_port(char *buf, int len) {
     int count = read(fd, buf, len);
     // cout << "read " << count << " bytes" << endl;
 
-    if ( count < 0 ) {
-	// error condition
-	if ( errno != EAGAIN ) {
-	    perror( "Serial I/O on read" );
-	}
-
-	buf[0] = '\0';
-	return 0;
-    } else {
-	buf[count] = '\0';
-
-	return count;
-    }
+    return count;
 }
 
 
