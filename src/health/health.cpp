@@ -5,8 +5,8 @@
 
 #include "include/globaldefs.h"
 
-#include "comms/console_link.h"
 #include "comms/logging.h"
+#include "comms/remote_link.h"
 #include "control/route_mgr.hxx"
 #include "props/props.hxx"
 #include "util/timing.h"
