@@ -147,13 +147,13 @@ bool PilotInput_update() {
 	//    printf("autopilot = %d\n", ap_master_switch_node->getBoolValue());
 	// }
 
-	if ( console_link_on || log_to_file ) {
+	if ( remote_link_on || log_to_file ) {
 	    uint8_t buf[256];
 	    int size = packetizer->packetize_pilot( buf );
 
-	    if ( console_link_on ) {
+	    if ( remote_link_on ) {
 		// printf("sending filter packet\n");
-		console_link_pilot( buf, size,
+		remote_link_pilot( buf, size,
 				    pilot_console_skip->getIntValue() );
 	    }
 

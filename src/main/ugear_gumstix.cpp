@@ -166,13 +166,13 @@ void timer_handler (int signum)
     // Read commands from ground station section
     //
 
-    if ( console_link_on ) {
+    if ( remote_link_on ) {
 	static bool read_command = false;
 
 	// check for incoming command data (5hz)
 	if ( command_counter >= (HEARTBEAT_HZ / 5) ) {
 	    command_counter = 0;
-	    if ( console_link_command() ) {
+	    if ( remote_link_command() ) {
 		read_command = true;
 		last_command_time = current_time;
 		// FIXME: we shouldn't necessarily assume route
@@ -424,7 +424,7 @@ int main( int argc, char **argv )
 	    p->setStringValue( argv[iarg] );
         } else if ( !strcmp(argv[iarg], "--console" )  ) {
             ++iarg;
-	    console_link_on = true;
+	    remote_link_on = true;
 	    p = fgGetNode("/config/console/device", true);
 	    p->setStringValue( argv[iarg] );
         } else if ( !strcmp(argv[iarg],"--events") ) {
@@ -444,8 +444,8 @@ int main( int argc, char **argv )
     }
 
     // open console link if requested
-    if ( console_link_on ) {
-        console_link_init();
+    if ( remote_link_on ) {
+        remote_link_init();
     }
 
     // open logging files if requested

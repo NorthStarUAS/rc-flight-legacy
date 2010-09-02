@@ -88,7 +88,7 @@ static SGPropertyNode *pilot_rudder_node = NULL;
 static SGPropertyNode *pilot_channel5_node = NULL;
 
 // health/status nodes
-static SGPropertyNode *console_seq_num = NULL;
+static SGPropertyNode *link_seq_num = NULL;
 static SGPropertyNode *target_waypoint = NULL;
 static SGPropertyNode *system_load_avg = NULL;
 
@@ -150,7 +150,7 @@ static void init_props() {
     pilot_channel5_node = fgGetNode("/sensors/pilot/manual", true);
 
     // initialize health/status property nodes
-    console_seq_num = fgGetNode("/status/console-link-sequence-num", true);
+    link_seq_num = fgGetNode("/status/remote-link-sequence-num", true);
     target_waypoint = fgGetNode( "/autopilot/route-mgr/target-waypoint-idx",
 				 true );
     system_load_avg = fgGetNode("/status/system-load-avg", true);
@@ -486,7 +486,7 @@ void display_message()
 	   act_rudder_node->getDoubleValue(),
 	   act_channel5_node->getDoubleValue());
     printf("[health]: cmdseq = %d  tgtwp = %d  loadavg = %.2f\n",
-           console_seq_num->getIntValue(), target_waypoint->getIntValue(),
+           link_seq_num->getIntValue(), target_waypoint->getIntValue(),
            system_load_avg->getFloatValue());
     printf("\n");
 

@@ -179,12 +179,12 @@ bool GPS_update() {
 	// for computing gps data age
 	gps_last_time = gps_timestamp_node->getDoubleValue();
 
-	if ( console_link_on || log_to_file ) {
+	if ( remote_link_on || log_to_file ) {
 	    uint8_t buf[256];
 	    int size = packetizer->packetize_gps( buf );
 
-	    if ( console_link_on ) {
-		console_link_gps( buf, size, gps_console_skip->getIntValue() );
+	    if ( remote_link_on ) {
+		remote_link_gps( buf, size, gps_console_skip->getIntValue() );
 	    }
 
 	    if ( log_to_file ) {

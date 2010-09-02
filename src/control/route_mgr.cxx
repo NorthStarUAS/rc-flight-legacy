@@ -287,7 +287,7 @@ void FGRouteMgr::update() {
     }
 #endif
 
-    if ( console_link_on || log_to_file ) {
+    if ( remote_link_on || log_to_file ) {
 	// send one waypoint per message, then home location (with
 	// index = 65535)
 	static int wp_index = 0;
@@ -304,8 +304,8 @@ void FGRouteMgr::update() {
 	uint8_t buf[256];
 	int pkt_size = packetizer->packetize_ap( buf, &wp, index );
 	
-	if ( console_link_on ) {
-	    bool result = console_link_ap( buf, pkt_size,
+	if ( remote_link_on ) {
+	    bool result = remote_link_ap( buf, pkt_size,
 					   ap_console_skip->getIntValue() );
 	    if ( result ) {
 		wp_index++;

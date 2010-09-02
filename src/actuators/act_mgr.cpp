@@ -327,14 +327,14 @@ bool Actuator_update() {
 	}
     }
 
-    if ( console_link_on || log_to_file ) {
+    if ( remote_link_on || log_to_file ) {
 	// actuators
 
 	uint8_t buf[256];
 	int size = packetizer->packetize_actuator( buf );
 
-	if ( console_link_on ) {
-	    console_link_actuator( buf, size, act_console_skip->getIntValue() );
+	if ( remote_link_on ) {
+	    remote_link_actuator( buf, size, act_console_skip->getIntValue() );
 	}
 
 	if ( log_to_file ) {

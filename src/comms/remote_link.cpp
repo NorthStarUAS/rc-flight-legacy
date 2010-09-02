@@ -23,25 +23,25 @@ using std::string;
 
 // global variables
 
-static SGPropertyNode *console_dev = NULL;
-static SGPropertyNode *console_seq_num = NULL;
+static SGPropertyNode *link_dev = NULL;
+static SGPropertyNode *link_sequence_num = NULL;
 
-bool console_link_on = false;    // link to ground station via console port
-static SGSerialPort console;
+bool remote_link_on = false;    // link to remote operator station
+static SGSerialPort serial_fd;
 
-// open up the console port
-void console_link_init() {
-    console_dev = fgGetNode("/config/console/device", true);
-    console.open_port( console_dev->getStringValue(), true );
-    console.set_baud( 115200 );
+// set up the remote link
+void remote_link_init() {
+    link_dev = fgGetNode("/config/console/device", true);
+    serial_fd.open_port( link_dev->getStringValue(), true );
+    serial_fd.set_baud( 115200 );
 
-    console_seq_num = fgGetNode("/status/console-link-sequence-num", true);
-    console_seq_num->setIntValue( 0 );
+    link_sequence_num = fgGetNode("/status/remote-link-sequence-num", true);
+    link_sequence_num->setIntValue( 0 );
 }
 
 
-static short console_write( const uint8_t *buf, const short size ) {
-    int result = console.write_port( (const char *)buf, size );
+static short serial_write( const uint8_t *buf, const short size ) {
+    int result = serial_fd.write_port( (const char *)buf, size );
     /* if ( result != size ) {
          printf("write error, only wrote %d bytes of %d\n", result, size);
        } */
@@ -60,30 +60,30 @@ static void gen_test_pattern( uint8_t *buf, int size ) {
 }
 
 
-static void console_link_packet( const uint8_t packet_id,
+static void remote_link_packet( const uint8_t packet_id,
 				 const uint8_t *packet_buf,
 				 const int packet_size )
 {
-    // printf(" begin console_link_packet()\n");
+    // printf(" begin remote_link_packet()\n");
     uint8_t buf[3];
     uint8_t cksum0, cksum1;
 
     // start of message sync bytes
     buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1; buf[2] = 0;
-    console_write( buf, 2 );
+    serial_write( buf, 2 );
 
     // packet id (1 byte)
     buf[0] = packet_id; buf[1] = 0;
-    console_write( buf, 1 );
+    serial_write( buf, 1 );
 
     // packet size (1 byte)
     buf[0] = packet_size; buf[1] = 0;
-    console_write( buf, 1 );
+    serial_write( buf, 1 );
 
     // gen_test_pattern( (uint8_t *)packet_buf, packet_size );
 
     // packet data
-    console_write( packet_buf, packet_size );
+    serial_write( packet_buf, packet_size );
 
     // check sum (2 bytes)
     ugear_cksum( packet_id, packet_size, packet_buf, packet_size,
@@ -92,13 +92,13 @@ static void console_link_packet( const uint8_t packet_id,
     /*if ( packet_id == 2 ) {
 	printf("cksum = %d %d\n", cksum0, cksum1);
     }*/
-    console_write( buf, 2 );
-    // printf(" end console_link_packet()\n");
+    serial_write( buf, 2 );
+    // printf(" end remote_link_packet()\n");
 }
 
 
-bool console_link_gps( uint8_t *buf, int size, int skip_count ) {
-    // printf("Console link gps()\n");
+bool remote_link_gps( uint8_t *buf, int size, int skip_count ) {
+    // printf("remote link gps()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
@@ -109,14 +109,14 @@ bool console_link_gps( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    console_link_packet( GPS_PACKET_V1, buf, size );
+    remote_link_packet( GPS_PACKET_V1, buf, size );
 
     return true;
 }
 
 
-bool console_link_imu( uint8_t *buf, int size, int skip_count  ) {
-    // printf("Console link imu()\n");
+bool remote_link_imu( uint8_t *buf, int size, int skip_count  ) {
+    // printf("remote link imu()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
@@ -127,14 +127,14 @@ bool console_link_imu( uint8_t *buf, int size, int skip_count  ) {
         skip = skip_count;
     }
 
-    console_link_packet( IMU_PACKET_V1, buf, size );
+    remote_link_packet( IMU_PACKET_V1, buf, size );
 
     return true;
 }
 
 
-bool console_link_airdata( uint8_t *buf, int size, int skip_count  ) {
-    // printf("Console link airdata()\n");
+bool remote_link_airdata( uint8_t *buf, int size, int skip_count  ) {
+    // printf("remote link airdata()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
@@ -145,15 +145,15 @@ bool console_link_airdata( uint8_t *buf, int size, int skip_count  ) {
         skip = skip_count;
     }
 
-    console_link_packet( AIR_DATA_PACKET_V1, buf, size );
+    remote_link_packet( AIR_DATA_PACKET_V1, buf, size );
 
     return true;
 }
 
 
-bool console_link_filter( uint8_t *buf, int size, int skip_count )
+bool remote_link_filter( uint8_t *buf, int size, int skip_count )
 {
-    // printf("Console link filter()\n");
+    // printf("remote link filter()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
@@ -164,15 +164,15 @@ bool console_link_filter( uint8_t *buf, int size, int skip_count )
         skip = skip_count;
     }
 
-    console_link_packet( FILTER_PACKET_V1, buf, size );
+    remote_link_packet( FILTER_PACKET_V1, buf, size );
 
     return true;
 }
 
 
-bool console_link_actuator( uint8_t *buf, int size, int skip_count )
+bool remote_link_actuator( uint8_t *buf, int size, int skip_count )
 {
-    // printf("Console link actuator()\n");
+    // printf("remote link actuator()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
@@ -183,15 +183,15 @@ bool console_link_actuator( uint8_t *buf, int size, int skip_count )
         skip = skip_count;
     }
 
-    console_link_packet( ACTUATOR_PACKET_V1, buf, size );
+    remote_link_packet( ACTUATOR_PACKET_V1, buf, size );
 
     return true;
 }
 
 
-bool console_link_pilot( uint8_t *buf, int size, int skip_count )
+bool remote_link_pilot( uint8_t *buf, int size, int skip_count )
 {
-    // printf("Console link pilot()\n");
+    // printf("remote link pilot()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
@@ -202,15 +202,15 @@ bool console_link_pilot( uint8_t *buf, int size, int skip_count )
         skip = skip_count;
     }
 
-    console_link_packet( PILOT_INPUT_PACKET_V1, buf, size );
+    remote_link_packet( PILOT_INPUT_PACKET_V1, buf, size );
 
     return true;
 }
 
 
-bool console_link_ap( uint8_t *buf, int size, int skip_count )
+bool remote_link_ap( uint8_t *buf, int size, int skip_count )
 {
-    // printf("Console link health()\n");
+    // printf("remote link health()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = skip_count;
 
@@ -221,13 +221,13 @@ bool console_link_ap( uint8_t *buf, int size, int skip_count )
         skip = skip_count;
     }
 
-    console_link_packet( AP_STATUS_PACKET_V1, buf, size );
+    remote_link_packet( AP_STATUS_PACKET_V1, buf, size );
 
     return true;
 }
 
 
-static void console_link_execute_command( const string command ) {
+static void remote_link_execute_command( const string command ) {
     vector <string> token = split( command, "," );
 
     if ( token.size() < 1 ) {
@@ -290,7 +290,7 @@ static void console_link_execute_command( const string command ) {
 
 
 #define BUF_SIZE 256
-static int console_read_command( char result_buf[BUF_SIZE] ) {
+static int serial_read_command( char result_buf[BUF_SIZE] ) {
 
     // read character by character until we run out of data or find a '\n'
     // if we run out of data, save what we have so far and start with that for
@@ -302,12 +302,12 @@ static int console_read_command( char result_buf[BUF_SIZE] ) {
 
     char buf[2]; buf[0] = 0;
 
-    int result = console.read_port( buf, 1 );
+    int result = serial_fd.read_port( buf, 1 );
     while ( (result == 1) && (buf[0] != '\n')
 	    && (command_counter < BUF_SIZE) ) {
         command_buf[command_counter] = buf[0];
         command_counter++;
-        result = console.read_port( buf, 1 );
+        result = serial_fd.read_port( buf, 1 );
     }
 
     if ( command_counter >= BUF_SIZE ) {
@@ -347,16 +347,16 @@ static char calc_nmea_cksum(const char *sentence) {
 
 // read, parse, and execute incomming commands, return true if a valid
 // command received, false otherwise.
-bool console_link_command() {
+bool remote_link_command() {
     char command_buf[256];
-    int result = console_read_command( command_buf );
+    int result = serial_read_command( command_buf );
 
     if ( result == 0 ) {
         return false;
     }
     
     if ( event_log_on ) {
-	event_log( "console cmd rcvd", command_buf );
+	event_log( "remote cmd rcvd", command_buf );
     }
 
     string cmd = command_buf;
@@ -376,7 +376,7 @@ bool console_link_command() {
     {
         // checksum failure
 	if ( event_log_on ) {
-	    event_log( "console cmd rcvd", "failed check sum" );
+	    event_log( "remote cmd rcvd", "failed check sum" );
 	}
 
         return false;
@@ -402,12 +402,12 @@ bool console_link_command() {
 
 	// execute command
 	if ( event_log_on ) {
-	    event_log( "console cmd rcvd", "executed valid command" );
+	    event_log( "remote cmd rcvd", "executed valid command" );
 	}
-	console_link_execute_command( cmd );
+	remote_link_execute_command( cmd );
 
 	// register that we've received this message correctly
-	console_seq_num->setIntValue( sequence );
+	link_sequence_num->setIntValue( sequence );
 	last_sequence_num = sequence;
     }
 

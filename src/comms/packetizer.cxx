@@ -128,7 +128,7 @@ UGPacketizer::UGPacketizer() {
     bind_health_nodes();
 
     // command sequence node
-    console_seq_num = fgGetNode("/status/console-link-sequence-num", true);
+    link_seq_num = fgGetNode("/status/remote-link-sequence-num", true);
 }
 
 
@@ -319,7 +319,7 @@ int UGPacketizer::packetize_filter( uint8_t *buf ) {
     int16_t psi = (int16_t)(filter_psi_node->getDoubleValue() * 10);
     *(int16_t *)buf = psi; buf += 2;
 
-    int8_t seq = (int8_t)console_seq_num->getIntValue();
+    int8_t seq = (int8_t)link_seq_num->getIntValue();
     *(int8_t *)buf = seq; buf++;
 
     uint8_t status = 0;
@@ -499,7 +499,7 @@ int UGPacketizer::packetize_ap( uint8_t *buf, SGWayPoint *wp, int index ) {
     *(uint16_t *)buf = index; buf += 2;
     *(uint16_t *)buf = route_mgr.size(); buf += 2;
 
-    int8_t seq = (int8_t)console_seq_num->getIntValue();
+    int8_t seq = (int8_t)link_seq_num->getIntValue();
     *(int8_t *)buf = seq; buf++;
 
     return buf - startbuf;

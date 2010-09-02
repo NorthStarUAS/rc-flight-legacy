@@ -280,13 +280,13 @@ bool AirData_update() {
     if ( fresh_data ) {
 	update_pressure_helpers();
 
-	if ( console_link_on || log_to_file ) {
+	if ( remote_link_on || log_to_file ) {
 	    uint8_t buf[256];
 	    int size = packetizer->packetize_airdata( buf );
 
-	    if ( console_link_on ) {
+	    if ( remote_link_on ) {
 		// printf("sending filter packet\n");
-		console_link_airdata( buf, size,
+		remote_link_airdata( buf, size,
 				      airdata_console_skip->getIntValue() );
 	    }
 

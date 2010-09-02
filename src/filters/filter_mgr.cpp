@@ -333,13 +333,13 @@ bool Filter_update( bool fresh_imu_data ) {
 	update_ground();
 	update_wind();
 	     
-	if ( console_link_on || log_to_file ) {
+	if ( remote_link_on || log_to_file ) {
 	    uint8_t buf[256];
 	    int size = packetizer->packetize_filter( buf );
 
-	    if ( console_link_on ) {
+	    if ( remote_link_on ) {
 		// printf("sending filter packet\n");
-		console_link_filter( buf, size,
+		remote_link_filter( buf, size,
 				     filter_console_skip->getIntValue() );
 	    }
 
