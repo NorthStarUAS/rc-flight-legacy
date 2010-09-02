@@ -27,7 +27,7 @@ netBuffer netBufferChannel::tmp_buffer;
 netBuffer netBufferChannel::in_buffer;
 netBuffer netBufferChannel::out_buffer;
 int netBufferChannel::connection_count;
-bool netBufferChannel::lossless;
+bool netBufferChannel::lossy;
 
 // Notice: the following notice may be incorrect: 
 // Notice, this module only reads as much from the network layer as it
@@ -39,7 +39,7 @@ bool netBufferChannel::lossless;
 void
 netBufferChannel::handleRead (void)
 {
-    if ( lossless ) {
+    if ( !lossy ) {
 	// only read in what we have space for in our in_buffer
 	int max_read = in_buffer.getMaxLength() - in_buffer.getLength() ;
 	if ( max_read ) {
