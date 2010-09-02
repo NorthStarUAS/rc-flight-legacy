@@ -44,9 +44,15 @@ int main() {
     }
     console.set_baud( baud );
 
-    server.open();
-    server.bind( "", port );
-    server.listen( 5 );
+    if ( !server.open() ) {
+	printf("failed to open server socket\n");
+    }
+    if ( server.bind( "", port ) < 0 ) {
+	printf("failed to bind server socket\n");
+    }
+    if ( server.listen( 5 ) < 0 ) {
+	printf("failed to listen on socket\n");
+    }
     printf("net server started on port %d\n", port );
 
     char serial_buf[256];

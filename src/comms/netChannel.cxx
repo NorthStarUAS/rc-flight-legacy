@@ -257,15 +257,17 @@ netChannel::poll (unsigned int timeout)
   for ( i=0; reads[i]; i++ )
   {
     ch = (netChannel*)reads[i];
-    if ( ! ch -> closed )
+    if ( ! ch -> closed ) {
       ch -> handleReadEvent();
+    }
   }
 
   for ( i=0; writes[i]; i++ )
   {
     ch = (netChannel*)writes[i];
-    if ( ! ch -> closed )
+    if ( ! ch -> closed ) {
       ch -> handleWriteEvent();
+    }
   }
 
   return true ;
