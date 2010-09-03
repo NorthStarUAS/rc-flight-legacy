@@ -1,10 +1,10 @@
-bin_PROGRAMS = netcom
+bin_PROGRAMS = uartserv
 
-netcom_SOURCES = \
-	netcom.cxx \
+uartserv_SOURCES = \
+	uartserv.cxx \
 	netbuffer.cxx netbuffer.hxx
 
-netcom_LDADD = \
+uartserv_LDADD = \
         $(top_builddir)/src/comms/libcomms.a \
         $(top_builddir)/src/control/libcontrol.a \
 	$(top_builddir)/src/props/libsgprops.a \
