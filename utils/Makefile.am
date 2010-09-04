@@ -1,4 +1,4 @@
 SUBDIRS = \
 	benchmarks \
-	netcom \
-	routegen
+	routegen \
+	uartserv

@@ -14,7 +14,7 @@
 
 
 void Filter_init();
-bool Filter_update( bool fresh_imu_data );
+bool Filter_update();
 void Filter_close();
 
 
