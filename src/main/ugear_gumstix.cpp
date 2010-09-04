@@ -73,7 +73,7 @@ void usage()
     printf("--log-dir path       : enable onboard data logging to path\n");
     printf("--log-servo in/out   : specify which servo data to log (out=default)\n");
     printf("--mnav <device>      : specify mnav communication device\n");
-    printf("--console <dev>      : specify console device and enable link\n");
+    printf("--remote-link on/off : remote link enable or disabled\n");
     printf("--events on/off      : log interesting events to events.txt\n");	
     printf("--display on/off     : dump periodic data to display\n");	
     printf("--help               : display this help messages\n\n");
@@ -133,8 +133,9 @@ void timer_handler (int signum)
     //
     // Attitude Determination and Navigation section
     //
-
-    Filter_update( fresh_imu_data );
+    if ( fresh_imu_data ) {
+	Filter_update();
+    }
 
     // check gps data age.  The nav filter continues to run, but the
     // results are marked as NotValid if the most recent gps data
@@ -192,12 +193,13 @@ void timer_handler (int signum)
 	     && (route_mgr.get_route_mode() != FGRouteMgr::GoHome) )
         {
 	    // We have previously established a positive link with the
-	    // groundstation, but it's been lost_link seconds since
-	    // the last command received and we aren't already in
-	    // GoHome mode.  Console link is assumed to be down or
-	    // we've flown out of radio modem range.  Switch to fly
-	    // home mode.  Ground station operator will need to send a
-	    // resume route command to resume the route.
+	    // remote operator station, but it's been lost_link
+	    // seconds since the last command received and we aren't
+	    // already in GoHome mode.  The remote link is assumed to
+	    // be down or we've flown out of radio modem range.
+	    // Switch to fly home mode.  Route will automatically
+	    // resume when communications are reestablished
+	    // (presumably by flying back within range.)
 	    route_mgr.set_home_mode();
 	    if ( event_log_on ) {
 		event_log("route", "switch to HOME mode");
@@ -395,7 +397,7 @@ int main( int argc, char **argv )
     }
     printf("gps timeout = %.1f\n", gps_timeout_sec);
 
-    p = fgGetNode("/config/console/lost-link-timeout-sec");
+    p = fgGetNode("/config/remote-link/lost-link-timeout-sec");
     if ( p != NULL && p->getDoubleValue() > 0.0001 ) {
 	// stick with the default if nothing valid specified
 	lost_link_sec = p->getDoubleValue();
@@ -422,11 +424,10 @@ int main( int argc, char **argv )
             ++iarg;
 	    p = fgGetNode("/config/sensors/mnav/device", true);
 	    p->setStringValue( argv[iarg] );
-        } else if ( !strcmp(argv[iarg], "--console" )  ) {
+        } else if ( !strcmp(argv[iarg], "--remote-link" )  ) {
             ++iarg;
-	    remote_link_on = true;
-	    p = fgGetNode("/config/console/device", true);
-	    p->setStringValue( argv[iarg] );
+            if ( !strcmp(argv[iarg], "on") ) remote_link_on = true;
+            if ( !strcmp(argv[iarg], "off") ) remote_link_on = false;
         } else if ( !strcmp(argv[iarg],"--events") ) {
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) event_log_on = true;
@@ -443,7 +444,7 @@ int main( int argc, char **argv )
         }
     }
 
-    // open console link if requested
+    // open remote link if requested
     if ( remote_link_on ) {
         remote_link_init();
     }

@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -15,6 +16,7 @@
 #include "util/timing.h"
 
 #include "logging.h"
+#include "netSocket.h"
 #include "serial.hxx"
 
 #include "remote_link.h"
@@ -23,31 +25,98 @@ using std::string;
 
 // global variables
 
-static SGPropertyNode *link_dev = NULL;
-static SGPropertyNode *link_sequence_num = NULL;
+enum ugLinkType {
+    ugUNKNOWN,
+    ugUART,
+    ugSOCKET
+};
 
+static SGPropertyNode *link_sequence_num = NULL;
 bool remote_link_on = false;    // link to remote operator station
 static SGSerialPort serial_fd;
+static netSocket link_socket;
+bool link_connected = false;
+static ugLinkType link_type = ugUNKNOWN;
 
 // set up the remote link
 void remote_link_init() {
-    link_dev = fgGetNode("/config/console/device", true);
-    serial_fd.open_port( link_dev->getStringValue(), true );
-    serial_fd.set_baud( 115200 );
+    SGPropertyNode *link_type_node = fgGetNode("/config/remote-link/type", true);
+    if ( strcmp(link_type_node->getStringValue(), "uart") == 0 ) {
+	if ( display_on ) {
+	    printf("remote link: direct uart\n");
+	}
+	link_type = ugUART;
+    } else if ( strcmp(link_type_node->getStringValue(), "uart-server") == 0 ) {
+	if ( display_on ) {
+	    printf("remote link: via network server\n");
+	}
+	link_type = ugSOCKET;
+    }
+
+    if ( link_type == ugUART ) {
+	SGPropertyNode *link_dev = fgGetNode("/config/remote-link/device", true);
+	serial_fd.open_port( link_dev->getStringValue(), true );
+	serial_fd.set_baud( 115200 );
+    } else if ( link_type == ugSOCKET ) {
+	SGPropertyNode *link_host = fgGetNode("/config/remote-link/host", true);
+	SGPropertyNode *link_port = fgGetNode("/config/remote-link/port", true);
+	if ( ! link_socket.open(true) ) {
+	    printf("Error opening socket: %s:%d\n",
+		   link_host->getStringValue(),
+		   link_port->getIntValue());
+	}
+	if ( link_socket.connect( link_host->getStringValue(),
+				    link_port->getIntValue() ) < 0 )
+	{
+	    if ( display_on ) {
+		printf("Error connecting socket: %s:%d\n",
+		       link_host->getStringValue(),
+		       link_port->getIntValue());
+	    }
+	}
+	link_socket.setBlocking( false );
+
+	link_connected = true;
+    }
 
     link_sequence_num = fgGetNode("/status/remote-link-sequence-num", true);
     link_sequence_num->setIntValue( 0 );
 }
 
 
-static short serial_write( const uint8_t *buf, const short size ) {
-    int result = serial_fd.write_port( (const char *)buf, size );
-    /* if ( result != size ) {
-         printf("write error, only wrote %d bytes of %d\n", result, size);
-       } */
-    return result;
+static short link_write( const uint8_t *buf, const short size ) {
+    if ( link_type == ugUART ) {
+	return serial_fd.write_port( (const char *)buf, size );
+    } else if ( link_type == ugSOCKET ) {
+	if ( ! link_connected ) {
+	    // attempt to establish a socket connection if we aren't
+	    // connected (this could happen if the server shutdown or
+	    // restarted on us.
+	    remote_link_init();
+	}
+
+	// ignore the SIGPIPE signal for this write (to avoid getting
+	// killed if the remote end shuts down before us
+	sighandler_t prev = signal(SIGPIPE, SIG_IGN);
+	int result = link_socket.send( (const char *)buf, size );
+	signal(SIGPIPE, prev);
+	if ( result < 0 ) {
+	    if ( errno == EPIPE ) {
+		// remote end has shut down
+		link_connected = false;
+	    }
+	}
+	return result;
+    }
 }
 
+static short link_read( const uint8_t *buf, const short size ) {
+    if ( link_type == ugUART ) {
+	return serial_fd.read_port( (char *)buf, size );
+    } else if ( link_type == ugSOCKET ) {
+	return link_socket.recv( (char *)buf, size );
+    }
+}
 
 static void gen_test_pattern( uint8_t *buf, int size ) {
     static uint8_t val = 0;
@@ -61,38 +130,43 @@ static void gen_test_pattern( uint8_t *buf, int size ) {
 
 
 static void remote_link_packet( const uint8_t packet_id,
-				 const uint8_t *packet_buf,
-				 const int packet_size )
+				const uint8_t *packet_buf,
+				const int packet_size )
 {
+    const int MAX_PACKET_SIZE = 256;
+
     // printf(" begin remote_link_packet()\n");
-    uint8_t buf[3];
+    uint8_t buf[MAX_PACKET_SIZE];
+    uint8_t *ptr = buf;
     uint8_t cksum0, cksum1;
 
     // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1; buf[2] = 0;
-    serial_write( buf, 2 );
+    ptr[0] = START_OF_MSG0; ptr[1] = START_OF_MSG1;
+    ptr += 2;
 
     // packet id (1 byte)
-    buf[0] = packet_id; buf[1] = 0;
-    serial_write( buf, 1 );
+    ptr[0] = packet_id;
+    ptr += 1;
 
     // packet size (1 byte)
-    buf[0] = packet_size; buf[1] = 0;
-    serial_write( buf, 1 );
+    ptr[0] = packet_size;
+    ptr += 1;
 
     // gen_test_pattern( (uint8_t *)packet_buf, packet_size );
 
-    // packet data
-    serial_write( packet_buf, packet_size );
+    // copy packet data
+    memmove( ptr, packet_buf, packet_size );
+    ptr += packet_size;
 
     // check sum (2 bytes)
     ugear_cksum( packet_id, packet_size, packet_buf, packet_size,
 		 &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
+    ptr[0] = cksum0; ptr[1] = cksum1;
     /*if ( packet_id == 2 ) {
 	printf("cksum = %d %d\n", cksum0, cksum1);
     }*/
-    serial_write( buf, 2 );
+
+    link_write( buf, packet_size + 6 );
     // printf(" end remote_link_packet()\n");
 }
 
@@ -290,7 +364,7 @@ static void remote_link_execute_command( const string command ) {
 
 
 #define BUF_SIZE 256
-static int serial_read_command( char result_buf[BUF_SIZE] ) {
+static int read_link_command( char result_buf[BUF_SIZE] ) {
 
     // read character by character until we run out of data or find a '\n'
     // if we run out of data, save what we have so far and start with that for
@@ -300,14 +374,15 @@ static int serial_read_command( char result_buf[BUF_SIZE] ) {
     static char command_buf[BUF_SIZE];
     static int command_counter = 0;
 
-    char buf[2]; buf[0] = 0;
+    uint8_t buf[2]; buf[0] = 0;
 
-    int result = serial_fd.read_port( buf, 1 );
+    int result = 0;
+    result = link_read( buf, 1 );
     while ( (result == 1) && (buf[0] != '\n')
 	    && (command_counter < BUF_SIZE) ) {
         command_buf[command_counter] = buf[0];
         command_counter++;
-        result = serial_fd.read_port( buf, 1 );
+        result = link_read( buf, 1 );
     }
 
     if ( command_counter >= BUF_SIZE ) {
@@ -349,7 +424,7 @@ static char calc_nmea_cksum(const char *sentence) {
 // command received, false otherwise.
 bool remote_link_command() {
     char command_buf[256];
-    int result = serial_read_command( command_buf );
+    int result = read_link_command( command_buf );
 
     if ( result == 0 ) {
         return false;

@@ -264,14 +264,14 @@ static void update_wind() {
 }
 
 
-bool Filter_update( bool fresh_imu_data ) {
+bool Filter_update() {
     filter_prof.start();
 
     double imu_time = imu_timestamp_node->getDoubleValue();
     double imu_dt = imu_time - last_imu_time;
     bool fresh_filter_data = false;
 
-    // sanity check (i.e. system clock was changed by another process)
+    // sanity check (i.e. if system clock was changed by another process)
     if ( imu_dt > 1.0 ) { imu_dt = 0.02; }
     if ( imu_dt < 0.0 ) { imu_dt = 0.02; }
 
@@ -307,10 +307,9 @@ bool Filter_update( bool fresh_imu_data ) {
 		imupacket.hy = imu_hy_node->getDoubleValue();
 		imupacket.hz = imu_hz_node->getDoubleValue();
 
-		if ( fresh_imu_data ) {
-		    // Run the MNAV AHRS algorithm.
-		    mnav_ahrs_update( &imupacket );
-		}
+		// Run the MNAV AHRS algorithm.
+		mnav_ahrs_update( &imupacket );
+
 		if ( mnav_nav_counter >= 2 ) {
 		    // navigation at half the rate of ahrs (assumes ahrs
 		    // update @ 50hz and nav update @ 25hz.)  Compute a

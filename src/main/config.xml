@@ -22,10 +22,14 @@
       <autopilot-skip>9</autopilot-skip>
     </logging>
 
-    <!-- Console / ground station communication. -->
-    <console>
-      <device>/dev/ttyS0</device>
-      <enable type="bool">false</enable>
+    <!-- Remote operator communication. -->
+    <remote-link>
+      <enable type="bool">true</enable>
+
+      <type>uart-server</type> <!-- uart or uart-server -->
+      <device>/dev/ttyUSB0</device>
+      <host>localhost</host>
+      <port>6500</port>
 
       <lost-link-timeout-sec>60</lost-link-timeout-sec>
 
@@ -36,7 +40,7 @@
       <actuator-skip>4</actuator-skip>
       <pilot-skip>8</pilot-skip>
       <autopilot-skip>8</autopilot-skip>
-    </console>
+    </remote-link>
 
     <telnet>
       <enable type="bool">true</enable>

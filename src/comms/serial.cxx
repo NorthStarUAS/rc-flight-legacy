@@ -87,6 +87,16 @@ bool SGSerialPort::open_port( const string& device, bool nonblock_mode ) {
 
     cfmakeraw( &config );
 
+    // in addition .... (testing)
+    // disable software flow control on both input and output
+    config.c_iflag &= ~(IXON | IXOFF );
+
+    // enable any character to restart stopped output
+    config.c_iflag |= (IXANY);
+
+    // disable hardware flow control
+    config.c_cflag &= ~(CRTSCTS);
+
 #if 0
     // these settings caused random program corruption on the MPC5200
     // and don't appear to actually be needed, so let's not set them
