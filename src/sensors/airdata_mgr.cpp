@@ -67,8 +67,13 @@ static SGPropertyNode *ground_alt_press_m_node = NULL;
 static SGPropertyNode *airdata_console_skip = NULL;
 static SGPropertyNode *airdata_logging_skip = NULL;
 
+static myprofile debug2b1;
+static myprofile debug2b2;
 
 void AirData_init() {
+    debug2b1.set_name("debug2b1 airdata update");
+    debug2b2.set_name("debug2b2 airdata console link");
+
     // initialize air data property nodes
     airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
     airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
@@ -241,6 +246,8 @@ static void update_pressure_helpers() {
 
 
 bool AirData_update() {
+    debug2b1.start();
+
     air_prof.start();
 
     bool fresh_data = false;
@@ -277,6 +284,9 @@ bool AirData_update() {
 	}
     }
 
+    debug2b1.stop();
+    debug2b2.start();
+
     if ( fresh_data ) {
 	update_pressure_helpers();
 
@@ -295,6 +305,8 @@ bool AirData_update() {
 	    }
 	}
     }
+
+    debug2b2.stop();
 
     air_prof.stop();
 

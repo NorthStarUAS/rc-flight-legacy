@@ -94,37 +94,38 @@ static bool gps_ublox5_open() {
 	return false;
     }
 
-    struct termios oldTio;	// Old Serial Port Settings
-    struct termios newTio; 	// New Serial Port Settings
-    memset(&oldTio, 0, sizeof(oldTio));
-    memset(&newTio, 0, sizeof(newTio));
+    struct termios config; 	// Serial port settings
+    memset(&config, 0, sizeof(config));
 
     // Save Current Serial Port Settings
-    tcgetattr(fd,&oldTio); 
+    // tcgetattr(fd,&oldTio); 
 
     // Configure New Serial Port Settings
-    newTio.c_cflag     = B115200 | // bps rate
+    config.c_cflag     = B115200 | // bps rate
                          CRTSCTS | // output flow ctnl
                          CS8	 | // 8n1
                          CLOCAL	 | // local connection, no modem
                          CREAD;	   // enable receiving chars
-    newTio.c_iflag     = IGNPAR;   // ignore parity bits
-    newTio.c_oflag     = 0;
-    newTio.c_lflag     = 0;
-    newTio.c_cc[VTIME] = 0;
-    newTio.c_cc[VMIN]  = 1;	   // block 'read' from returning until at
+    config.c_iflag     = IGNPAR;   // ignore parity bits
+    config.c_oflag     = 0;
+    config.c_lflag     = 0;
+    config.c_cc[VTIME] = 0;
+    config.c_cc[VMIN]  = 0;	   // block 'read' from returning until at
                                    // least 1 character is received
 
     // Flush Serial Port I/O buffer
     tcflush(fd, TCIOFLUSH);
 
     // Set New Serial Port Settings
-    int ret = tcsetattr( fd, TCSANOW, &newTio );
+    int ret = tcsetattr( fd, TCSANOW, &config );
     if ( ret > 0 ) {
         fprintf( stderr, "error configuring device: %s - %s\n",
                  device_name.c_str(), strerror(errno) );
 	return false;
     }
+
+    // Enable non-blocking IO (one more time for good measure)
+    fcntl(fd, F_SETFL, O_NONBLOCK);
 
     return true;
 }

@@ -64,6 +64,19 @@ static bool initial_home   = false;   // initial home position determined
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 static double lost_link_sec = 59.0;   // lost link timeout
 
+// debug main loop "block" on gumstix verdex
+myprofile debug1;
+myprofile debug2;
+myprofile debug2a;
+myprofile debug2b;
+myprofile debug2c;
+myprofile debug2d;
+myprofile debug3;
+myprofile debug4;
+myprofile debug5;
+myprofile debug6;
+myprofile debug7;
+
 //
 // usage message
 //
@@ -90,6 +103,8 @@ void timer_handler (int signum)
 {
     main_prof.start();
 
+    debug1.start();
+
     // master "dt"
     static double last_time = 0.0;
     double current_time = get_Time();
@@ -114,21 +129,37 @@ void timer_handler (int signum)
     command_counter++;
     flush_counter++;
 
+    debug1.stop();
+
+    debug2.start();
+
     //
     // Sensor input section
     //
 
+    debug2a.start();
     // Fetch the next data packet from the IMU.
     bool fresh_imu_data = IMU_update();
+    debug2a.stop();
 
+    debug2b.start();
     // Fetch air data if available
     AirData_update();
+    debug2b.stop();
 
+    debug2c.start();
     // Fetch GPS data if available.
     GPS_update();
+    debug2c.stop();
 
+    debug2d.start();
     // Fetch Pilot Inputs
     PilotInput_update();
+    debug2d.stop();
+
+    debug2.stop();
+
+    debug3.start();
 
     //
     // Attitude Determination and Navigation section
@@ -162,6 +193,10 @@ void timer_handler (int signum)
     }
 
     /* FIXME: TEMPORARY */ /* logging_navstate(); */
+
+    debug3.stop();
+
+    debug4.start();
 
     //
     // Read commands from ground station section
@@ -207,6 +242,10 @@ void timer_handler (int signum)
 	}
     }
 
+    debug4.stop();
+
+    debug5.start();
+
     //
     // Read commands from telnet interface
     //
@@ -214,6 +253,10 @@ void timer_handler (int signum)
     if ( enable_telnet ) {
 	telnet->process();
     }
+
+    debug5.stop();
+
+    debug6.start();
 
     //
     // Control section
@@ -236,6 +279,10 @@ void timer_handler (int signum)
 
 	Actuator_update();
     }
+
+    debug6.stop();
+
+    debug7.start();
 
     //
     // Data logging and Telemetry dump section
@@ -309,6 +356,8 @@ void timer_handler (int signum)
 	datalog_prof.stop();
     }
 
+    debug7.stop();
+
     main_prof.stop();
 }
 
@@ -347,6 +396,19 @@ int main( int argc, char **argv )
     health_prof.set_name("health");
     datalog_prof.set_name("datalogger");
     main_prof.set_name("main");
+
+    // debugging
+    debug1.set_name("debug1 (var updates)");
+    debug2.set_name("debug2 (inputs)");
+    debug2a.set_name("debug2a (IMU)");
+    debug2b.set_name("debug2b (AirData)");
+    debug2c.set_name("debug2c (GPS)");
+    debug2d.set_name("debug2d (Pilot)");
+    debug3.set_name("debug3 (filter+nav)");
+    debug4.set_name("debug4 (console)");
+    debug5.set_name("debug5 (telnet)");
+    debug6.set_name("debug6 (ap+actuator)");
+    debug7.set_name("debug7 (logging)");
 
     // load master config file
     SGPath master( root );

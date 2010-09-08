@@ -39,6 +39,7 @@ static SGPropertyNode *imu_az_node = NULL;
 static SGPropertyNode *imu_hx_node = NULL;
 static SGPropertyNode *imu_hy_node = NULL;
 static SGPropertyNode *imu_hz_node = NULL;
+static SGPropertyNode *imu_temp_node = NULL;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
@@ -63,7 +64,7 @@ static void bind_imu_input( SGPropertyNode *config ) {
     }
     configroot = config;
 
-    SGPropertyNode *node = NULL;
+    // SGPropertyNode *node = NULL;
 }
 
 
@@ -81,6 +82,7 @@ static void bind_imu_output( string rootname ) {
     imu_hx_node = outputroot->getChild("hx", 0, true);
     imu_hy_node = outputroot->getChild("hy", 0, true);
     imu_hz_node = outputroot->getChild("hz", 0, true);
+    imu_temp_node = outputroot->getChild("temp_C", 0, true);
 }
 
 
@@ -97,31 +99,30 @@ static bool imu_vn100_open_9600() {
 	return false;
     }
 
-    struct termios oldTio;	// Old Serial Port Settings
-    struct termios newTio; 	// New Serial Port Settings
-    memset(&oldTio, 0, sizeof(oldTio));
-    memset(&newTio, 0, sizeof(newTio));
+    struct termios config;     // New Serial Port Settings
+
+    memset(&config, 0, sizeof(config));
 
     // Save Current Serial Port Settings
-    tcgetattr(fd,&oldTio); 
+    // tcgetattr(fd,&oldTio); 
 
     // Configure New Serial Port Settings
-    newTio.c_cflag     = B9600 | // bps rate
+    config.c_cflag     = B9600 | // bps rate
                          CS8	 | // 8n1
                          CLOCAL	 | // local connection, no modem
                          CREAD;	   // enable receiving chars
-    newTio.c_iflag     = IGNPAR;   // ignore parity bits
-    newTio.c_oflag     = 0;
-    newTio.c_lflag     = 0;
-    newTio.c_cc[VTIME] = 0;
-    newTio.c_cc[VMIN]  = 1;	   // block 'read' from returning until at
+    config.c_iflag     = IGNPAR;   // ignore parity bits
+    config.c_oflag     = 0;
+    config.c_lflag     = 0;
+    config.c_cc[VTIME] = 0;
+    config.c_cc[VMIN]  = 0;	   // block 'read' from returning until at
                                    // least 1 character is received
 
     // Flush Serial Port I/O buffer
     tcflush(fd, TCIOFLUSH);
 
     // Set New Serial Port Settings
-    int ret = tcsetattr( fd, TCSANOW, &newTio );
+    int ret = tcsetattr( fd, TCSANOW, &config );
     if ( ret > 0 ) {
         fprintf( stderr, "error configuring device: %s - %s\n",
                  device_name.c_str(), strerror(errno) );
@@ -145,36 +146,38 @@ static bool imu_vn100_open_115200() {
 	return false;
     }
 
-    struct termios oldTio;	// Old Serial Port Settings
-    struct termios newTio; 	// New Serial Port Settings
-    memset(&oldTio, 0, sizeof(oldTio));
-    memset(&newTio, 0, sizeof(newTio));
+    struct termios config; 	// New Serial Port Settings
+
+    memset(&config, 0, sizeof(config));
 
     // Save Current Serial Port Settings
-    tcgetattr(fd,&oldTio); 
+    // tcgetattr(fd,&oldTio); 
 
     // Configure New Serial Port Settings
-    newTio.c_cflag     = B115200 | // bps rate
+    config.c_cflag     = B115200 | // bps rate
                          CS8	 | // 8n1
                          CLOCAL	 | // local connection, no modem
                          CREAD;	   // enable receiving chars
-    newTio.c_iflag     = IGNPAR;   // ignore parity bits
-    newTio.c_oflag     = 0;
-    newTio.c_lflag     = 0;
-    newTio.c_cc[VTIME] = 0;
-    newTio.c_cc[VMIN]  = 1;	   // block 'read' from returning until at
+    config.c_iflag     = IGNPAR;   // ignore parity bits
+    config.c_oflag     = 0;
+    config.c_lflag     = 0;
+    config.c_cc[VTIME] = 0;
+    config.c_cc[VMIN]  = 0;	   // block 'read' from returning until at
                                    // least 1 character is received
 
     // Flush Serial Port I/O buffer
     tcflush(fd, TCIOFLUSH);
 
     // Set New Serial Port Settings
-    int ret = tcsetattr( fd, TCSANOW, &newTio );
+    int ret = tcsetattr( fd, TCSANOW, &config );
     if ( ret > 0 ) {
         fprintf( stderr, "error configuring device: %s - %s\n",
                  device_name.c_str(), strerror(errno) );
 	return false;
     }
+
+    // Enable non-blocking IO (one more time for good measure)
+    fcntl(fd, F_SETFL, O_NONBLOCK);
 
     return true;
 }
@@ -310,6 +313,10 @@ static bool imu_vn100_parse_msg( char *msg_buf, int size )
 	val = atof( tokens[9].c_str() );
 	// r_filter = 0.75*r_filter + 0.25*val;
 	imu_r_node->setDoubleValue( val );
+
+	val = atof( tokens[10].c_str() );
+	// r_filter = 0.75*r_filter + 0.25*val;
+	imu_temp_node->setDoubleValue( val );
     } else {
 	if ( display_on ) {
 	    printf("Unknown message or wrong number of fields: '%s'\n",

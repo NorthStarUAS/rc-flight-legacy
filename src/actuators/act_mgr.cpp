@@ -24,6 +24,7 @@
 #ifdef ENABLE_MNAV_SENSOR
 #  include "sensors/mnav.h"
 #endif
+#include "util/myprof.h"
 #include "util/timing.h"
 
 #include "act_fgfs.hxx"
@@ -68,8 +69,14 @@ static SGPropertyNode *throttle_safety_min_node = NULL;
 // master autopilot switch
 static SGPropertyNode *ap_master_switch_node = NULL;
 
+static myprofile debug6a;
+static myprofile debug6b;
+
 
 void Actuator_init() {
+    debug6a.set_name("debug6a act update and output");
+    debug6b.set_name("debug6b act console logging");
+
     // bind properties
     output_aileron_node = fgGetNode("/controls/flight/aileron", true);
     output_elevator_node = fgGetNode("/controls/flight/elevator", true);
@@ -291,6 +298,8 @@ static void set_actuator_values_pilot() {
 
 
 bool Actuator_update() {
+    debug6a.start();
+
     // time stamp for logging
     act_timestamp_node->setDoubleValue( get_Time() );
     if ( ap_master_switch_node->getBoolValue() ) {
@@ -327,6 +336,10 @@ bool Actuator_update() {
 	}
     }
 
+    debug6a.stop();
+
+    debug6b.start();
+
     if ( remote_link_on || log_to_file ) {
 	// actuators
 
@@ -341,6 +354,8 @@ bool Actuator_update() {
 	    log_actuator( buf, size, act_logging_skip->getIntValue() );
 	}
     }
+
+    debug6b.stop();
 
     return true;
 }

@@ -18,8 +18,46 @@
 #include "netbuffer.hxx"
 
 
-int main() {
+void usage() {
+    printf("\nUsage: uartserv --option1 arg1 --option2 arg2 ...\n");
+    printf("--device dev_path (uart device)\n");
+    printf("--baud n (uart baud)\n");
+    printf("--port n (network port for local connections)\n");
+    exit(0);
+}
+
+int main( int argc, char **argv) {
     printf("start of main!\n");
+
+    netInit(); // must call first (before any network action at least)
+
+    string device = "/dev/ttyS0";
+    int port = 6500;
+    int baud = 115200;
+
+    // Parse the command line
+    for ( int iarg = 1; iarg < argc; iarg++ ) {
+        if ( !strcmp(argv[iarg], "--device" )  ) {
+            ++iarg;
+            device = argv[iarg];
+        } else if ( !strcmp(argv[iarg], "--baud" )  ) {
+            ++iarg;
+	    baud = atoi( argv[iarg] );
+	    if ( baud < 300 || baud > 230400 ) {
+		printf("Baud must be >= 300 and <= 230400\n");
+		usage();
+	    }
+        } else if ( !strcmp(argv[iarg],"--port") ) {
+            ++iarg;
+            port = atoi( argv[iarg] );
+	    if ( port <= 1024 || port > 65535 ) {
+		printf("Port must be > 1024 and < 65535\n");
+		usage();
+	    }
+	} else {
+	    usage();
+	}
+    }
 
     netBufferChannel server;
 
@@ -29,10 +67,6 @@ int main() {
 
     netBufferChannel::connection_count = 0;
     netBufferChannel::lossy = true;
-
-    int port = 6500;
-    string device = "/dev/ttyUSB0";
-    int baud = 115200;
 
     SGSerialPort console;
     printf("before opening %s\n", device.c_str() );

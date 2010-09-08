@@ -64,6 +64,7 @@ void remote_link_init() {
 	    printf("Error opening socket: %s:%d\n",
 		   link_host->getStringValue(),
 		   link_port->getIntValue());
+	    return;
 	}
 	if ( link_socket.connect( link_host->getStringValue(),
 				    link_port->getIntValue() ) < 0 )
@@ -73,6 +74,7 @@ void remote_link_init() {
 		       link_host->getStringValue(),
 		       link_port->getIntValue());
 	    }
+	    return;
 	}
 	link_socket.setBlocking( false );
 
@@ -95,18 +97,23 @@ static short link_write( const uint8_t *buf, const short size ) {
 	    remote_link_init();
 	}
 
-	// ignore the SIGPIPE signal for this write (to avoid getting
-	// killed if the remote end shuts down before us
-	sighandler_t prev = signal(SIGPIPE, SIG_IGN);
-	int result = link_socket.send( (const char *)buf, size );
-	signal(SIGPIPE, prev);
-	if ( result < 0 ) {
-	    if ( errno == EPIPE ) {
-		// remote end has shut down
-		link_connected = false;
+	int result = 0;
+	if ( link_connected ) {
+	    // ignore the SIGPIPE signal for this write (to avoid getting
+	    // killed if the remote end shuts down before us
+	    sighandler_t prev = signal(SIGPIPE, SIG_IGN);
+	    result = link_socket.send( (const char *)buf, size );
+	    signal(SIGPIPE, prev);
+	    if ( result < 0 ) {
+		if ( errno == EPIPE ) {
+		    // remote end has shut down
+		    link_connected = false;
+		}
 	    }
 	}
 	return result;
+    } else {
+	return 0;
     }
 }
 
@@ -115,6 +122,8 @@ static short link_read( const uint8_t *buf, const short size ) {
 	return serial_fd.read_port( (char *)buf, size );
     } else if ( link_type == ugSOCKET ) {
 	return link_socket.recv( (char *)buf, size );
+    } else {
+	return 0;
     }
 }
 

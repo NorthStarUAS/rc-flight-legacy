@@ -201,7 +201,7 @@ static bool sf_6DOFv4_open() {
     newTio.c_oflag     = 0;
     newTio.c_lflag     = 0;
     newTio.c_cc[VTIME] = 0;
-    newTio.c_cc[VMIN]  = 1;	   // block 'read' from returning until at
+    newTio.c_cc[VMIN]  = 0;	   // block 'read' from returning until at
                                    // least 1 character is received
 
     // Flush Serial Port I/O buffer

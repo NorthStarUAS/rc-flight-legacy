@@ -43,8 +43,14 @@ static SGPropertyNode *imu_timestamp_node = NULL;
 static SGPropertyNode *imu_console_skip = NULL;
 static SGPropertyNode *imu_logging_skip = NULL;
 
+static myprofile debug2a1;
+static myprofile debug2a2;
+	
 
 void IMU_init() {
+    debug2a1.set_name("debug2a1 IMU read");
+    debug2a2.set_name("debug2a2 IMU console link");
+
     imu_timestamp_node = fgGetNode("/sensors/imu/time-stamp", true);
 
     // initialize comm nodes
@@ -91,6 +97,8 @@ void IMU_init() {
 
 
 bool IMU_update() {
+    debug2a1.start();
+
     imu_prof.start();
 
     bool fresh_data = false;
@@ -136,6 +144,9 @@ bool IMU_update() {
     }
 
     imu_prof.stop();
+    debug2a1.stop();
+
+    debug2a2.start();
 
     if ( fresh_data ) {
 	// for computing imu data age
@@ -154,6 +165,8 @@ bool IMU_update() {
 	    }
 	}
     }
+
+    debug2a2.stop();
 
     return fresh_data;
 }
