@@ -100,7 +100,7 @@ void Filter_init() {
     est_wind_north_mps = fgGetNode("/filters/wind-est/wind-north-mps", true);
 
     // initialize comm nodes
-    filter_console_skip = fgGetNode("/config/console/filter-skip", true);
+    filter_console_skip = fgGetNode("/config/remote-link/filter-skip", true);
     filter_logging_skip = fgGetNode("/config/logging/filter-skip", true);
 
     // traverse configured modules

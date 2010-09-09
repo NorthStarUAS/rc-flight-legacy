@@ -87,6 +87,7 @@ bool SGSerialPort::open_port( const string& device, bool nonblock_mode ) {
 
     cfmakeraw( &config );
 
+#if 0
     // in addition .... (testing)
     // disable software flow control on both input and output
     config.c_iflag &= ~(IXON | IXOFF );
@@ -97,7 +98,6 @@ bool SGSerialPort::open_port( const string& device, bool nonblock_mode ) {
     // disable hardware flow control
     config.c_cflag &= ~(CRTSCTS);
 
-#if 0
     // these settings caused random program corruption on the MPC5200
     // and don't appear to actually be needed, so let's not set them
     // and we'll stick with the defulat bootup port settings for now.
@@ -178,6 +178,12 @@ bool SGSerialPort::set_baud(int baud) {
 	return false;
     }
 
+    if ( cfsetspeed( &config, speed ) != 0 ) {
+	printf( "Problem setting baud rate" );
+	return false;
+    }
+
+#if 0
     if ( cfsetispeed( &config, speed ) != 0 ) {
 	printf( "Problem setting input baud rate" );
 	return false;
@@ -187,6 +193,7 @@ bool SGSerialPort::set_baud(int baud) {
 	printf( "Problem setting output baud rate" );
 	return false;
     }
+#endif
 
     if ( tcsetattr( fd, TCSANOW, &config ) != 0 ) {
 	printf( "Unable to update port settings" );
@@ -236,13 +243,7 @@ string SGSerialPort::read_port() {
 }
 
 int SGSerialPort::read_port(char *buf, int len) {
-
-    string result;
-
-    int count = read(fd, buf, len);
-    // cout << "read " << count << " bytes" << endl;
-
-    return count;
+    return read(fd, buf, len);
 }
 
 
@@ -283,10 +284,5 @@ int SGSerialPort::write_port(const string& value) {
 
 
 int SGSerialPort::write_port(const char* buf, int len) {
-    static bool error = false;
-    int count;
-
-    count = write(fd, buf, len);
-
-    return count;
+    return write(fd, buf, len);
 }

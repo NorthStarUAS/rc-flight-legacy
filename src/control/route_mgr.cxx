@@ -116,7 +116,7 @@ void FGRouteMgr::bind() {
     est_wind_target_heading_deg
 	= fgGetNode("/filters/wind-est/target-heading-deg", true);
 
-    ap_console_skip = fgGetNode("/config/console/autopilot-skip", true);
+    ap_console_skip = fgGetNode("/config/remote-link/autopilot-skip", true);
     ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
 }
 

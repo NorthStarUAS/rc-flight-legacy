@@ -143,7 +143,7 @@ int main( int argc, char **argv )
     printf("navigation filter enabled = %d  gps timeout = %.1f\n",
 	   enable_nav, gps_timeout_sec);
 
-    p = fgGetNode("/config/console/lost-link-timeout-sec");
+    p = fgGetNode("/config/remote-link/lost-link-timeout-sec");
     if ( p != NULL && p->getDoubleValue() > 0.0001 ) {
 	// stick with the default if nothing valid specified
 	lost_link_sec = p->getDoubleValue();
@@ -172,7 +172,7 @@ int main( int argc, char **argv )
 	    p->setStringValue( argv[iarg] );
         } else if ( !strcmp(argv[iarg], "--console" )  ) {
             ++iarg;
-	    p = fgGetNode("/config/console/device", true);
+	    p = fgGetNode("/config/remote-link/device", true);
 	    p->setStringValue( argv[iarg] );
         } else if ( !strcmp(argv[iarg],"--display") ) {
             ++iarg;

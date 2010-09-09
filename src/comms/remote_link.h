@@ -30,6 +30,7 @@ bool remote_link_actuator( uint8_t *buf, int size, int skip_count );
 bool remote_link_pilot( uint8_t *buf, int size, int skip_count );
 bool remote_link_ap( uint8_t *buf, int size, int skip_count );
 bool remote_link_command();
+void remote_link_flush_serial();
 
 
 #endif // _UGEAR_REMOTE_LINK_H

@@ -16,6 +16,7 @@
 #include "util/timing.h"
 
 #include "logging.h"
+#include "netBuffer.h"		// for netBuffer structure
 #include "netSocket.h"
 #include "serial.hxx"
 
@@ -34,8 +35,9 @@ enum ugLinkType {
 static SGPropertyNode *link_sequence_num = NULL;
 bool remote_link_on = false;    // link to remote operator station
 static SGSerialPort serial_fd;
+static netBuffer serial_buffer(128);
 static netSocket link_socket;
-bool link_connected = false;
+bool link_open = false;
 static ugLinkType link_type = ugUNKNOWN;
 
 // set up the remote link
@@ -55,8 +57,12 @@ void remote_link_init() {
 
     if ( link_type == ugUART ) {
 	SGPropertyNode *link_dev = fgGetNode("/config/remote-link/device", true);
-	serial_fd.open_port( link_dev->getStringValue(), true );
+	if ( ! serial_fd.open_port( link_dev->getStringValue(), true ) ) {
+	    return;
+	}
 	serial_fd.set_baud( 115200 );
+
+	link_open = true;
     } else if ( link_type == ugSOCKET ) {
 	SGPropertyNode *link_host = fgGetNode("/config/remote-link/host", true);
 	SGPropertyNode *link_port = fgGetNode("/config/remote-link/port", true);
@@ -78,7 +84,7 @@ void remote_link_init() {
 	}
 	link_socket.setBlocking( false );
 
-	link_connected = true;
+	link_open = true;
     }
 
     link_sequence_num = fgGetNode("/status/remote-link-sequence-num", true);
@@ -86,19 +92,64 @@ void remote_link_init() {
 }
 
 
-static short link_write( const uint8_t *buf, const short size ) {
-    if ( link_type == ugUART ) {
-	return serial_fd.write_port( (const char *)buf, size );
-    } else if ( link_type == ugSOCKET ) {
-	if ( ! link_connected ) {
-	    // attempt to establish a socket connection if we aren't
-	    // connected (this could happen if the server shutdown or
-	    // restarted on us.
-	    remote_link_init();
-	}
+// write as many bytes out of the serial_buffer to the uart as the
+// driver will accept.
+void remote_link_flush_serial() {
+    if ( ! link_open || (link_type != ugUART) ) {
+	// device not open, or link type is not uart
+	return;
+    }
 
+    // attempt better success by writing multiple small chunks to the
+    // serial port (2 * 8 = 16 bytes per call attempted)
+    const int loops = 1;
+    const int bytes_per_loop = 32;
+
+    for ( int i = 0; i < loops; i++ ) {
+	int write_len = serial_buffer.getLength();
+	if ( write_len > bytes_per_loop ) {
+	    write_len = bytes_per_loop;
+	}
+	if ( write_len ) {
+	    int bytes_written
+		= serial_fd.write_port( serial_buffer.getData(),
+					write_len );
+	    // printf("(%d) avail = %d  written = %d\n",
+	    //        i, serial_buffer.getLength(), bytes_written);
+	    if ( bytes_written < 0 ) {
+		// perror("serial write");
+	    } else if ( bytes_written == 0 ) {
+		// nothing was written
+	    } else if ( bytes_written > 0 ) {
+		// something was written
+		serial_buffer.remove(0, bytes_written);
+	    } else {
+		// huh?
+	    }
+	}
+    }
+}
+
+
+static short link_write( const uint8_t *buf, const short size ) {
+    if ( ! link_open ) {
+	// attempt to establish a socket connection if we aren't
+	// connected (this could happen if the server shutdown or
+	// restarted on us.
+	remote_link_init();
+    }
+
+    if ( link_type == ugUART ) {
+	// stuff the request in a fifo buffer and then work on writing
+	// out the front end of the buffer.
+	serial_buffer.append((char *)buf, size);
+
+	remote_link_flush_serial();
+
+	return 0; // return value not used right now
+    } else if ( link_type == ugSOCKET ) {
 	int result = 0;
-	if ( link_connected ) {
+	if ( link_open ) {
 	    // ignore the SIGPIPE signal for this write (to avoid getting
 	    // killed if the remote end shuts down before us
 	    sighandler_t prev = signal(SIGPIPE, SIG_IGN);
@@ -107,7 +158,7 @@ static short link_write( const uint8_t *buf, const short size ) {
 	    if ( result < 0 ) {
 		if ( errno == EPIPE ) {
 		    // remote end has shut down
-		    link_connected = false;
+		    link_open = false;
 		}
 	    }
 	}
@@ -374,7 +425,6 @@ static void remote_link_execute_command( const string command ) {
 
 #define BUF_SIZE 256
 static int read_link_command( char result_buf[BUF_SIZE] ) {
-
     // read character by character until we run out of data or find a '\n'
     // if we run out of data, save what we have so far and start with that for
     // the next call.

@@ -221,6 +221,10 @@ void timer_handler (int signum)
 		    }
 		}
 	    }
+
+	    // dribble a bit more out of the serial port if there is
+	    // something pending
+	    remote_link_flush_serial();
 	}
 
  	if ( read_command

@@ -98,7 +98,7 @@ void Actuator_init() {
     act_channel8_node = fgGetNode("/actuators/actuator/channel", 7, true);
 
     // initialize comm nodes
-    act_console_skip = fgGetNode("/config/console/actuator-skip", true);
+    act_console_skip = fgGetNode("/config/remote-link/actuator-skip", true);
     act_logging_skip = fgGetNode("/config/logging/actuator-skip", true);
 
     // throttle safety

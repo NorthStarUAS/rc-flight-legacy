@@ -65,7 +65,7 @@ void PilotInput_init() {
     pilot_status_node = fgGetNode("/sensors/pilot/status", true);
 
     // initialize comm nodes
-    pilot_console_skip = fgGetNode("/config/console/pilot-skip", true);
+    pilot_console_skip = fgGetNode("/config/remote-link/pilot-skip", true);
     pilot_logging_skip = fgGetNode("/config/logging/pilot-skip", true);
 
     // master autopilot switch

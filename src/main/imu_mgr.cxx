@@ -54,7 +54,7 @@ void IMU_init() {
     imu_timestamp_node = fgGetNode("/sensors/imu/time-stamp", true);
 
     // initialize comm nodes
-    imu_console_skip = fgGetNode("/config/console/imu-skip", true);
+    imu_console_skip = fgGetNode("/config/remote-link/imu-skip", true);
     imu_logging_skip = fgGetNode("/config/logging/imu-skip", true);
 
     // traverse configured modules

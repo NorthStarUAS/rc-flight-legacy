@@ -99,7 +99,7 @@ void AirData_init() {
         = fgGetNode("/position/ground-altitude-pressure-m", true);
 
     // initialize comm nodes
-    airdata_console_skip = fgGetNode("/config/console/airdata-skip", true);
+    airdata_console_skip = fgGetNode("/config/remote-link/airdata-skip", true);
     airdata_logging_skip = fgGetNode("/config/logging/airdata-skip", true);
 
     // traverse configured modules
