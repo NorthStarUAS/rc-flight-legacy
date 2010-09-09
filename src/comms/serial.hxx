@@ -113,6 +113,9 @@ public:
 
     /** @return true if device open */
     inline bool is_enabled() { return dev_open; }
+
+    /** @return the actual file descriptor */
+    inline fd_type get_fd() { return fd; }
 };
 
 

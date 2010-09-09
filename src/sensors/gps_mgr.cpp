@@ -62,7 +62,7 @@ void GPS_init() {
     magvar_init_deg_node = fgGetNode("/config/filters/magvar-deg", true);
 
     // initialize comm nodes
-    gps_console_skip = fgGetNode("/config/console/gps-skip", true);
+    gps_console_skip = fgGetNode("/config/remote-link/gps-skip", true);
     gps_logging_skip = fgGetNode("/config/logging/gps-skip", true);
 
     // traverse configured modules

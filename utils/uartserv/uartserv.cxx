@@ -70,7 +70,7 @@ int main( int argc, char **argv) {
 
     SGSerialPort console;
     printf("before opening %s\n", device.c_str() );
-    if ( ! console.open_port( device, true ) ) {
+    if ( ! console.open_port( device, false /* blocking */ ) ) {
 	printf("error opening serial port %s\n", device.c_str() );
 	exit(-1);
     } else {
@@ -136,21 +136,45 @@ int main( int argc, char **argv) {
 	}
 
 	// read the serial port
-	int bytes_read = console.read_port( serial_buf, 256 );
-	if ( bytes_read > 0 ) {
-	    bool result = netBufferChannel::out_buffer.append( serial_buf,
-							       bytes_read );
-	    if ( ! result ) {
-		// the out_buffer is full, bummer.  This means we just
-		// dropped some data that we read from the serial port
-		// before it could be passed along to the destination.
-		// This is a case that I can't anticipate happening.
-		// Our inbound feeder pipe is teeny, but the outgoing
-		// network pipe is big.
 
-		// is there some other way we should deal with this,
-		// other than just dropping the data?  Where should it
-		// go, how much more should we hold in limbo?
+	// setup select
+	int fd = console.get_fd() + 1;
+	fd_set input;
+	FD_ZERO(&input);
+	FD_SET(fd, &input);
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 100000;
+
+	int n = select( fd + 1, &input, NULL, NULL, &timeout );
+
+	if ( n < 0 ) {
+	    // error
+	} else if ( n == 0 ) {
+	    // timeout with no input
+	} else {
+	    // input ready
+	    if ( FD_ISSET(fd, &input) ) {
+		int bytes_read = console.read_port( serial_buf, 256 );
+		if ( bytes_read > 0 ) {
+		    bool result
+			= netBufferChannel::out_buffer.append( serial_buf,
+							       bytes_read );
+		    if ( ! result ) {
+			// the out_buffer is full, bummer.  This means
+			// we just dropped some data that we read from
+			// the serial port before it could be passed
+			// along to the destination.  This is a case
+			// that I can't anticipate happening.  Our
+			// inbound feeder pipe is teeny, but the
+			// outgoing network pipe is big.
+
+			// is there some other way we should deal with
+			// this, other than just dropping the data?
+			// Where should it go, how much more should we
+			// hold in limbo?
+		    }
+		}
 	    }
 	}
     }
