@@ -1,0 +1,80 @@
+./configure CFLAGS="-Wall -O2" CXXFLAGS="-Wall -O2" --host=arm-angstrom-linux-gnueabi --prefix=/home/curt/Projects/GumStixOE/gumstix-oe/tmp/cross/
+
+
+Setup the serial connection:
+
+    http://www.gumstix.net/Setup-and-Programming/view/Getting-started/Setting-up-a-serial-connection/111.html
+
+
+Replace the root file system and kernel images:
+
+    http://www.gumstix.net/Setup-and-Programming/view/Getting-started/Replacing-the-file-system-image/111.html
+
+
+Configure kernel modules:
+
+    http://www.gumstix.net/wiki/index.php?title=Kernel_Reconfiguration
+    (pl2303 is already there)
+
+Once configured, including them in your root image:
+
+    http://www.gumstix.net/wiki/index.php?title=Filesystem
+
+    In gumstix-oe/com.gumstix.collection/packages/tasks/task-base-gumstix.bb:
+
+        add kernel-module-pl2303 into the
+        RRECOMMENDS_task-base-gumstix-usbhost section
+
+
+Clean up of unused services (makes booting much faster and cleaner):
+
+    - /etc/modules
+
+      - hidp (bluetooth stuff?)
+      - pcmcia (we don't have any of that do we?)
+      - pxa2xx_cs 
+      - rfcomm (bluetooth stuff)
+      - tsc2003 (touch screen controller)
+
+    - /etc/network/interfaces:
+
+      - comment out ethernet and wireless sections
+      - comment out usb0 and bnep0 sections
+
+    - /etc/modprobe.d/ethernet.conf
+
+      -comment out line if no ethernet hardware
+
+    - /etc/init.d/
+
+      - alsa-state, bluetooth, boa (httpd), cron (can be a cpu pig
+        when the clock changes by years), ntpd, ntpdate
+      - add exit / disabled message
+
+    - /etc/inittab
+
+      - find the line that reads as follows and change "respawn" to "once" 
+
+        S:2345:respawn:/sbin/getty 115200 ttyS0 vt100
+
+      - The getty line in /etc/inittab should finally look like this:
+
+        S:2345:once:/sbin/getty 115200 ttyS0 vt100
+
+      - This gives you an opportunity to log in via the console after
+        a reboot to fix something, but allows the UGLink process to
+        disable getty so it's not conflicting with the ground station
+        communication.
+
+
+Upload libstdc++.so.6.0.8 from
+
+     /home/curt/Projects/GumStixOE/gumstix-oe/tmp/staging/arm-angstrom-linux-gnueabi/lib/
+
+     copy to /usr/lib
+     cd /usr/lib
+     ln -s libstdc++.so.6.0.8 libstdc++.so.6
+
+Better yet, figure out how to use bitbake to configure this to be
+built into the root file system image.
+
