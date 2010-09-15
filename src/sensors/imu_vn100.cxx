@@ -10,6 +10,7 @@
 
 #include <errno.h>		// errno
 #include <fcntl.h>		// open()
+#include <math.h>		// fabs()
 #include <stdio.h>		// printf() et. al.
 #include <termios.h>		// tcgetattr() et. al.
 #include <unistd.h>		// tcgetattr() et. al.
@@ -241,7 +242,15 @@ void imu_vn100_init( string rootname, SGPropertyNode *config ) {
 
 static bool imu_vn100_parse_msg( char *msg_buf, int size )
 {
+    double current_time = get_Time();
     string msg = (string)msg_buf;
+
+    // variables used to compute an intial steady state gyro bias
+    static bool bias_ready = false;
+    static double start_time  = -1.0;
+    static int count = 0;
+    static double p_sum = 0.0, q_sum = 0.0, r_sum = 0.0;
+    static double p_bias = 0.0, q_bias = 0.0, r_bias = 0.0;
 
     // validate message
     if ( msg.length() < 9 ) {
@@ -277,7 +286,7 @@ static bool imu_vn100_parse_msg( char *msg_buf, int size )
     }
     vector<string> tokens = split( msg.c_str(), "," );
     if ( tokens[0] == "VNCMV" && tokens.size() == 11 ) {
-	double val;
+	double val, p, q, r;
 	val = atof( tokens[1].c_str() );
 	// hx_filter = 0.75*hx_filter + 0.25*val;
 	imu_hx_node->setDoubleValue( val );
@@ -302,21 +311,57 @@ static bool imu_vn100_parse_msg( char *msg_buf, int size )
 	// az_filter = 0.75*az_filter + 0.25*val;
 	imu_az_node->setDoubleValue( val );
 
-	val = atof( tokens[7].c_str() );
+	p = val = atof( tokens[7].c_str() );
 	// p_filter = 0.75*p_filter + 0.25*val;
-	imu_p_node->setDoubleValue( val );
+	imu_p_node->setDoubleValue( val - p_bias );
 
-	val = atof( tokens[8].c_str() );
+	q = val = atof( tokens[8].c_str() );
 	// q_filter = 0.75*q_filter + 0.25*val;
-	imu_q_node->setDoubleValue( val );
+	imu_q_node->setDoubleValue( val - q_bias );
 
-	val = atof( tokens[9].c_str() );
+	r = val = atof( tokens[9].c_str() );
 	// r_filter = 0.75*r_filter + 0.25*val;
-	imu_r_node->setDoubleValue( val );
+	imu_r_node->setDoubleValue( val - r_bias );
 
 	val = atof( tokens[10].c_str() );
 	// r_filter = 0.75*r_filter + 0.25*val;
 	imu_temp_node->setDoubleValue( val );
+
+	imu_timestamp_node->setDoubleValue( current_time );
+
+	if ( !bias_ready ) {
+	    // average first 15 seconds of steady state gyro values and
+	    // use as a global bias.  This should be removed for the
+	    // temperature compensated vector nav unit.
+	    if ( start_time < 0.0 ) {
+		start_time = current_time;
+	    }
+	    if ( current_time - start_time < 15.0 ) {
+		p_sum += p;
+		q_sum += q;
+		r_sum += r;
+		count++;
+		p_bias = p_sum / (double)count;
+		q_bias = q_sum / (double)count;
+		r_bias = r_sum / (double)count;
+	    } else {
+		bias_ready = true;
+		if ( display_on ) {
+		    printf("gyro bias: p=%.2f q=%.2f r=%.2f\n",
+			   p_bias, q_bias, r_bias);
+		}
+		// sanity check
+		if ( fabs(p_bias) > 1.0 /* 57.3 deg/sec */ ||
+		     fabs(q_bias) > 1.0 /* 57.3 deg/sec */ ||
+		     fabs(r_bias) > 1.0 /* 57.3 deg/sec */ )
+	        {
+		    printf("Something is wrong with the gyro, it is outputting bad data!\n");
+		    printf("Aborting so you can fix the hardware problem.\n");
+		    printf("NOTE: IMU must be still when software is started.\n");
+		    exit(-1);
+		}
+	    }
+	}
     } else {
 	if ( display_on ) {
 	    printf("Unknown message or wrong number of fields: '%s'\n",
@@ -326,8 +371,6 @@ static bool imu_vn100_parse_msg( char *msg_buf, int size )
     }
 
     // printf("%s\n", msg.c_str());
-
-    imu_timestamp_node->setDoubleValue( get_Time() );
 
     return true;
 }
