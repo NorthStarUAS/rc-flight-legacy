@@ -1,6 +1,7 @@
 #include <sys/types.h>		// opendir() mkdir()
 #include <dirent.h>		// opendir()
 #include <stdio.h>		// sscanf()
+#include <stdlib.h>		// random()
 #include <string.h>		// strncmp()
 #include <sys/stat.h>		// mkdir()
 #include <sys/time.h>
@@ -273,9 +274,16 @@ bool logging_close() {
 }
 
 
+// return a random integer between 0 and max - 1
+static int my_random( int max ) {
+    int result = (int)(((double)random() / RAND_MAX) * max);
+    // printf("log rand(%d) = %d\n", max, result);
+    return result;
+}
+
 void log_gps( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = skip_count;
+    static uint8_t skip = my_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -290,7 +298,7 @@ void log_gps( uint8_t *buf, int size, int skip_count ) {
 
 void log_imu( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = skip_count;
+    static uint8_t skip = my_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -305,7 +313,7 @@ void log_imu( uint8_t *buf, int size, int skip_count ) {
 
 void log_airdata( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = skip_count;
+    static uint8_t skip = my_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -320,7 +328,7 @@ void log_airdata( uint8_t *buf, int size, int skip_count ) {
 
 void log_filter( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = skip_count;
+    static uint8_t skip = my_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -335,7 +343,7 @@ void log_filter( uint8_t *buf, int size, int skip_count ) {
 
 void log_actuator( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = skip_count;
+    static uint8_t skip = my_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -350,7 +358,7 @@ void log_actuator( uint8_t *buf, int size, int skip_count ) {
 
 void log_pilot( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = skip_count;
+    static uint8_t skip = my_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -365,7 +373,7 @@ void log_pilot( uint8_t *buf, int size, int skip_count ) {
 
 void log_ap( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = skip_count;
+    static uint8_t skip = my_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -423,8 +431,6 @@ void flush_ap() {
 // periodic console summary of attitude/location estimate
 void display_message()
 {
-    // double current_time = get_Time();
-
     if ( !props_inited ) {
 	init_props();
     }

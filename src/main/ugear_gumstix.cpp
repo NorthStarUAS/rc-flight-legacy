@@ -556,6 +556,9 @@ int main( int argc, char **argv )
         route_mgr.init();
     }
 
+    // intialize random number generator
+    srandom( time(NULL) );
+
 #ifndef BATCH_MODE
     // Install timer_handler as the signal handler for SIGALRM (alarm
     // timing is based on wall clock)
