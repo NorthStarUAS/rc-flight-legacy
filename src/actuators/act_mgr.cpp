@@ -68,6 +68,7 @@ static SGPropertyNode *throttle_safety_min_node = NULL;
 
 // master autopilot switch
 static SGPropertyNode *ap_master_switch_node = NULL;
+static SGPropertyNode *fcs_mode_node = NULL;
 
 static myprofile debug6a;
 static myprofile debug6b;
@@ -113,6 +114,7 @@ void Actuator_init() {
 
     // master autopilot switch
     ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
+    fcs_mode_node = fgGetNode("/config/autopilot/fcs-mode", true);
 
     // default to ap on unless pilot inputs turn it off (so we can run
     // with no pilot inputs connected)
@@ -246,33 +248,55 @@ static void set_actuator_values_ap() {
 
     // throttle
 
-#if 0
-    // limit throttle delta to 0.2% of full range per cycle.  At a 50hz
-    // update rate it will take 10 seconds to travel the full range.
-    static double last_throttle = 0.0;
-    double target_throttle = output_throttle_node->getFloatValue();
-    double diff = target_throttle - last_throttle;
-    if ( diff > 0.002 ) { diff = 0.002; }
-    if ( diff < -0.002 ) { diff = -0.002; }
-    act_throttle_node->setFloatValue( last_throttle + diff );
-    last_throttle = last_throttle + diff;
-#else
     act_throttle_node->setFloatValue( output_throttle_node->getFloatValue() );
-#endif
+    static bool sas_throttle_override = false;
 
-    // override and disable throttle output if within 100' of the
-    // ground (assuming ground elevation is the pressure altitude we
-    // recorded with the system started up.
-    if ( (string)throttle_safety_prop_node->getStringValue() != (string)"" ) {
-	if ( throttle_safety_val_node->getDoubleValue()
-	     < throttle_safety_min_node->getDoubleValue() ) {
-	    act_throttle_node->setFloatValue( 0.0 );
+    if ( !sas_throttle_override ) {
+	if ( strcmp(fcs_mode_node->getStringValue(), "sas") == 0 ) {
+	    // in sas mode require a sequence of zero throttle, full
+	    // throttle, and zero throttle again before throttle pass
+	    // through can become active under 100' AGL
+
+	    static int sas_throttle_state = 0;
+	    if ( sas_throttle_state == 0 ) {
+		if ( output_throttle_node->getFloatValue() < 0.05 ) {
+		    // wait for zero throttle
+		    sas_throttle_state = 1;
+		}
+	    } else if ( sas_throttle_state == 1 ) {
+		if ( output_throttle_node->getFloatValue() > 0.95 ) {
+		    // next wait for full throttle
+		    sas_throttle_state = 2;
+		}
+	    } else if ( sas_throttle_state == 2 ) {
+		if ( output_throttle_node->getFloatValue() < 0.05 ) {
+		    // next wait for zero throttle again.  Throttle pass
+		    // through is now live, even under 100' AGL
+		    sas_throttle_state = 3;
+		    sas_throttle_override = true;
+		}
+	    }
 	}
-    } else {
-	// hard coded backup plan if a property/threshold-value has
-	// not been specified
-	if ( agl_alt_ft_node->getDoubleValue() < 100.0 ) {
-	    act_throttle_node->setFloatValue( 0.0 );
+    }
+
+    // for any mode that is not sas (and then only if the safety
+    // override sequence has been completed), override and disable
+    // throttle output if within 100' of the ground (assuming ground
+    // elevation is the pressure altitude we recorded with the system
+    // started up.
+    if ( ! sas_throttle_override ) {
+	if ( (string)throttle_safety_prop_node->getStringValue() != (string)"" )
+	{
+	    if ( throttle_safety_val_node->getDoubleValue()
+		 < throttle_safety_min_node->getDoubleValue() ) {
+		act_throttle_node->setFloatValue( 0.0 );
+	    }
+	} else {
+	    // hard coded backup plan if a property/threshold-value has
+	    // not been specified
+	    if ( agl_alt_ft_node->getDoubleValue() < 100.0 ) {
+		act_throttle_node->setFloatValue( 0.0 );
+	    }
 	}
     }
 

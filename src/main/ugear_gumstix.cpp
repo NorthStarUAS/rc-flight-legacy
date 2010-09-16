@@ -30,6 +30,7 @@
 #include "comms/netSocket.h"	// netInit()
 #include "control/control.h"
 #include "control/route_mgr.hxx"
+#include "control/sas.hxx"
 #include "filters/filter_mgr.h"
 #include "health/health.h"
 #include "include/globaldefs.h"
@@ -59,6 +60,7 @@ static const int HEARTBEAT_HZ = 50;	 // master clock rate
 static bool log_servo_out  = true;    // log outgoing servo commands by default
 static bool enable_control = false;   // autopilot control module enabled/disabled
 static bool enable_route   = false;   // route module enabled/disabled
+static bool enable_sas     = true;    // sas module enabled/disabled
 static bool enable_telnet  = false;   // telnet command/monitor interface
 static bool initial_home   = false;   // initial home position determined
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
@@ -274,6 +276,10 @@ void timer_handler (int signum)
 	    route_mgr.update();
 	    route_mgr_prof.stop();
 	}
+    }
+
+    if ( enable_sas ) {
+	sas.update();
     }
 
     if ( enable_control ) {
@@ -554,6 +560,11 @@ int main( int argc, char **argv )
     if ( enable_route ) {
         // initialize the route manager
         route_mgr.init();
+    }
+
+    if ( enable_sas ) {
+	// initialize the sas system
+	sas.init();
     }
 
     // intialize random number generator

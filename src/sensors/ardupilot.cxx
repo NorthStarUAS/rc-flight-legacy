@@ -75,14 +75,47 @@ static double data_in_timestamp = 0.0;
 static uint16_t analog[MAX_ANALOG_INPUTS];     // internal stash
 static bool manual_mode = true;
 static uint16_t pilot_input[MAX_PILOT_INPUTS]; // internal stash
-
+static bool pilot_input_rev[MAX_PILOT_INPUTS];
 
 // initialize fgfs_gps input property nodes
 static void bind_input( SGPropertyNode *config ) {
+    for ( int i = 0; i < MAX_PILOT_INPUTS; i++ ) {
+	pilot_input_rev[i] = false;
+    }
     act_device_node = config->getChild("device");
     if ( act_device_node != NULL ) {
 	device_name = act_device_node->getStringValue();
     }
+    SGPropertyNode *node, *child;
+    node = config->getChild("aileron");
+    if ( node != NULL ) {
+	child = node->getChild("reverse");
+	if ( child != NULL ) {
+	    pilot_input_rev[0] = child->getBoolValue();
+	}
+    }
+    node = config->getChild("elevator");
+    if ( node != NULL ) {
+	child = node->getChild("reverse");
+	if ( child != NULL ) {
+	    pilot_input_rev[1] = child->getBoolValue();
+	}
+    }
+    node = config->getChild("throttle");
+    if ( node != NULL ) {
+	child = node->getChild("reverse");
+	if ( child != NULL ) {
+	    pilot_input_rev[2] = child->getBoolValue();
+	}
+    }
+    node = config->getChild("rudder");
+    if ( node != NULL ) {
+	child = node->getChild("reverse");
+	if ( child != NULL ) {
+	    pilot_input_rev[3] = child->getBoolValue();
+	}
+    }
+
     // act_baud_node = config->getChild("baud");
     // if ( act_baud_node != NULL ) {
     // 	baud = act_baud_node->getIntValue();
@@ -610,15 +643,19 @@ bool ardupilot_pilot_update() {
 	pilot_timestamp_node->setDoubleValue( data_in_timestamp );
 
 	val = normalize_pulse( pilot_input[0], true );
+	if ( pilot_input_rev[0] ) { val *= -1.0; }
 	pilot_aileron_node->setDoubleValue( val );
 
 	val = normalize_pulse( pilot_input[1], true );
+	if ( pilot_input_rev[1] ) { val *= -1.0; }
 	pilot_elevator_node->setDoubleValue( val );
 
 	val = normalize_pulse( pilot_input[2], false );
+	if ( pilot_input_rev[1] ) { val *= -1.0; }
 	pilot_throttle_node->setDoubleValue( val );
 
 	val = normalize_pulse( pilot_input[3], true );
+	if ( pilot_input_rev[1] ) { val *= -1.0; }
 	pilot_rudder_node->setDoubleValue( val );
 
 	pilot_manual_node->setIntValue( manual_mode );

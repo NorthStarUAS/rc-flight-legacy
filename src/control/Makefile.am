@@ -4,6 +4,7 @@ libcontrol_a_SOURCES = \
 	control.cpp control.h \
 	route.cxx route.hxx \
 	route_mgr.cxx route_mgr.hxx \
+	sas.cxx sas.hxx \
 	waypoint.cxx waypoint.hxx \
 	xmlauto.cxx xmlauto.hxx
 
