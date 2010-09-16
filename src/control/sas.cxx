@@ -22,6 +22,7 @@
 
 
 #include <math.h>		// fabs()
+#include <stdio.h>
 
 #include "comms/logging.h"
 #include "util/timing.h"
