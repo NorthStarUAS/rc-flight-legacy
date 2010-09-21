@@ -67,6 +67,8 @@ void UGSAS::bind() {
 	= fgGetNode("/autopilot/settings/target-roll-deg", true);
     target_pitch_deg_node
 	= fgGetNode("/autopilot/settings/target-pitch-deg", true);
+    target_pitch_base_deg_node
+	= fgGetNode("/autopilot/settings/target-pitch-base-deg", true);
 
     throttle_output_node = fgGetNode("/controls/engine/throttle", true);
     rudder_output_node = fgGetNode("/controls/flight/rudder", true);
@@ -162,7 +164,33 @@ void UGSAS::update() {
 	if ( roll_cmd < -1.0 ) { roll_cmd = -1.0; }
     }
     int roll_sign = 1;
-    if ( roll_cmd < 0 ) { roll_sign = -1; }
+    if ( roll_cmd < 0 ) { roll_sign = -1; roll_cmd *= -1.0; }
+
+    double roll_delta = 0.0;
+    double new_roll = target_roll_deg_node->getDoubleValue();
+    if ( fabs(roll_cmd) > 0.001 ) {
+	// pilot is inputing a roll command
+	roll_delta
+	    = roll_sign * roll_cmd * aileron_full_rate_node->getDoubleValue()
+	      * dt;
+    } else {
+	// pilot stick is centered
+	if ( fabs(new_roll) <= 10.0 ) {
+	    // target roll within +/- 10 degrees of level, roll slowly
+	    // back to level at 2 degps rate.
+	    roll_delta = -new_roll;
+	    if ( roll_delta > 2.0 * dt ) {
+		roll_delta = 2.0 * dt;
+	    } else if ( roll_delta < -2.0 * dt ) {
+		roll_delta = -2.0 * dt;
+	    }
+	}
+    }
+
+    new_roll += roll_delta;
+    if ( new_roll < -45.0 ) { new_roll = -45.0; }
+    if ( new_roll > 45.0 ) { new_roll = 45.0; }
+    target_roll_deg_node->setDoubleValue( new_roll );
 
     double pitch_cmd = 0.0;
     if ( elevator >= elev_center + elev_dz ) {
@@ -173,23 +201,26 @@ void UGSAS::update() {
 	if ( pitch_cmd < -1.0 ) { pitch_cmd = -1.0; }
     }
     int pitch_sign = 1;
-    if ( pitch_cmd < 0 ) { pitch_sign = -1; }
+    if ( pitch_cmd < 0 ) { pitch_sign = -1; pitch_cmd *= -1.0; }
 
-    double roll_delta
-	= roll_sign * roll_cmd * roll_cmd
-	* aileron_full_rate_node->getDoubleValue() * dt;
     double pitch_delta
-	= pitch_sign * pitch_cmd * pitch_cmd
+	= pitch_sign * pitch_cmd /* * pitch_cmd */
 	* elevator_full_rate_node->getDoubleValue() * dt;
 
-    double new_roll = target_roll_deg_node->getDoubleValue() + roll_delta;
-    if ( new_roll < -45.0 ) { new_roll = -45.0; }
-    if ( new_roll > 45.0 ) { new_roll = 45.0; }
-    target_roll_deg_node->setDoubleValue( new_roll );
+    double new_pitch_base
+	= target_pitch_base_deg_node->getDoubleValue() + pitch_delta;
+    if ( new_pitch_base < -15.0 ) { new_pitch_base = -15.0; }
+    if ( new_pitch_base > 15.0 ) { new_pitch_base = 15.0; }
+    target_pitch_base_deg_node->setDoubleValue( new_pitch_base );
 
-    double new_pitch = target_pitch_deg_node->getDoubleValue() + pitch_delta;
-    if ( new_pitch < -15.0 ) { new_pitch = -15.0; }
-    if ( new_pitch > 15.0 ) { new_pitch = 15.0; }
+    // map throttle [0 ... 1] to [-mp ... mp] for throttle pitch offset
+    // where mp is the max pitch bias.  This "simulates" the natural
+    // tendency of an aircraft to pitch up or down as throttle is
+    // manipulated.
+    const double mp = 2.5; 	// degrees throttle pitch bias
+    double pitch_throttle_delta
+	= (pilot_throttle_node->getFloatValue() * 2.0 - 1.0) * mp;
+    double new_pitch = new_pitch_base + pitch_throttle_delta;
     target_pitch_deg_node->setDoubleValue( new_pitch );
 
     // this is a hard coded hack, but pass through throttle and rudder here

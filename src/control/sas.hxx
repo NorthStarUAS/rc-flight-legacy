@@ -78,6 +78,7 @@ private:
 
     SGPropertyNode_ptr target_roll_deg_node;
     SGPropertyNode_ptr target_pitch_deg_node;
+    SGPropertyNode_ptr target_pitch_base_deg_node;
 
     SGPropertyNode_ptr throttle_output_node;
     SGPropertyNode_ptr rudder_output_node;
