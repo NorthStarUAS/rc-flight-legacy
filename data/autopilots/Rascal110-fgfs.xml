@@ -13,13 +13,13 @@
       <value>route</value>
     </enable>
     <input>
-      <prop>/autopilot/internal/true-heading-error-deg</prop>
+      <prop>/autopilot/internal/wind-true-error-deg</prop>
     </input>
     <reference>
       <value>0.0</value>
     </reference>
     <output>
-      <prop>/autopilot/internal/target-roll-deg</prop>
+      <prop>/autopilot/settings/target-roll-deg</prop>
     </output>
     <config>
       <Kp>-0.6</Kp>        <!-- proportional gain -->
@@ -34,14 +34,14 @@
     <name>Roll angle hold</name>
     <debug>false</debug>
     <enable>
-      <prop>/autopilot/locks/heading</prop>
-      <value>route</value>
+      <prop>/autopilot/locks/roll</prop>
+      <value>aileron</value>
     </enable>
     <input>
       <prop>/orientation/roll-deg</prop>
     </input>
     <reference>
-      <prop>/autopilot/internal/target-roll-deg</prop>
+      <prop>/autopilot/settings/target-roll-deg</prop>
       <!-- <value>0.0</value> -->
     </reference>
     <output>
@@ -125,8 +125,8 @@
     <name>Pitch Hold</name>
     <debug>false</debug>
     <enable>
-      <prop>/autopilot/locks/altitude</prop>
-      <value>pitch</value>
+      <prop>/autopilot/locks/pitch</prop>
+      <value>elevator</value>
     </enable>
     <input>
       <prop>/orientation/pitch-deg</prop>
@@ -252,7 +252,7 @@
         <value>0.0</value>
       </reference>
       <output>
-        <prop>/controls/flight/rudder</prop>
+        <prop>/controls/flight/rudder-disable</prop>
       </output>
       <config>
         <Kp>0.005</Kp>      <!-- proportional gain -->

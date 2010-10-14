@@ -45,6 +45,17 @@ AC_SEARCH_LIBS(umn_adns_init, [umngnss])
 AM_CONFIG_HEADER(src/include/ugear_config.h)
 
 
+dnl automatic detection of pointing library
+
+AC_LANG_PUSH(C++)
+AC_CHECK_HEADER(atipointing.hxx)
+if test "x$ac_cv_header_atipointing_hxx" = "xyes"; then
+    AC_DEFINE([ATI_POINTING], 1, [Define to include ATI pointing module.])
+fi
+AM_CONDITIONAL(ENABLE_ATI_POINTING, test "x$ac_cv_header_atipointing_hxx" = "xyes")
+AC_LANG_POP
+
+
 dnl code configuration selections
 
 AC_ARG_ENABLE(batch-mode, [  --enable-batch-mode    Disable real-time clock/timing for running in batch mode], [enable_batch_mode="$enableval"], [enable_batch_mode="no"] )

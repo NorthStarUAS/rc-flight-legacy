@@ -140,10 +140,17 @@
 
     </filters>
 
+    <pointing>
+      <mechanism>tilt-roll</mechanism>
+    </pointing>
+
     <!-- Autopilot and control configuration. -->
     <autopilot>
       <!-- set value to true to enable the autopilot -->
       <enable type="bool">true</enable>
+
+      <!-- route or sas -->
+      <fcs-mode>route</fcs-mode> 
 
       <!-- select the autopilot configuration -->
       <!-- <path>autopilots/SeniorTelemaster.xml</path> -->
@@ -151,7 +158,8 @@
       <!-- <path>autopilots/Rascal110-combined.xml</path> -->
       <!-- <path>autopilots/Rascal110-wingleveler.xml</path> -->
       <!-- <path>autopilots/Rascal110-pitchleveler.xml</path> -->
-      <path>autopilots/Rascal110-fgfs.xml</path>
+      <!-- <path>autopilots/Rascal110-fgfs.xml</path> -->
+      <path>autopilots/FlyCamOne3.xml</path>
 
       <!-- set initial target speed when autopilot is activated -->
       <initial-speed-kt>45</initial-speed-kt>
@@ -191,7 +199,7 @@
       </throttle-safety>
       <actuator>
         <module>fgfs</module>
- 	<host>192.168.1.103</host>
+ 	<host>192.168.1.102</host>
  	<port>6503</port>
         <enable type="bool">true</enable>
       </actuator>

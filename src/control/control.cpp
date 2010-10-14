@@ -45,6 +45,12 @@ static SGPropertyNode *yaw_lock_node = NULL;
 static SGPropertyNode *altitude_lock_node = NULL;
 static SGPropertyNode *speed_lock_node = NULL;
 static SGPropertyNode *pitch_lock_node = NULL;
+static SGPropertyNode *pointing_lock_node = NULL;
+
+static SGPropertyNode *lookat_mode_node = NULL;
+static SGPropertyNode *ned_n_node = NULL;
+static SGPropertyNode *ned_e_node = NULL;
+static SGPropertyNode *ned_d_node = NULL;
 
 static SGPropertyNode *roll_deg_node = NULL;
 static SGPropertyNode *pitch_deg_node = NULL;
@@ -71,6 +77,12 @@ static void bind_properties() {
     altitude_lock_node = fgGetNode("/autopilot/locks/altitude", true);
     speed_lock_node = fgGetNode("/autopilot/locks/speed", true);
     pitch_lock_node = fgGetNode("/autopilot/locks/pitch", true);
+    pointing_lock_node = fgGetNode("/autopilot/locks/pointing", true);
+
+    lookat_mode_node = fgGetNode("/pointing/lookat-mode", true);
+    ned_n_node = fgGetNode("/pointing/vector/north", true);
+    ned_e_node = fgGetNode("/pointing/vector/east", true);
+    ned_d_node = fgGetNode("/pointing/vector/down", true);
 
     roll_deg_node = fgGetNode("/orientation/roll-deg", true);
     pitch_deg_node = fgGetNode("/orientation/pitch-deg", true);
@@ -129,6 +141,11 @@ void control_update(double dt)
 		altitude_lock_node->setStringValue( "pitch" );
 		speed_lock_node->setStringValue( "throttle" );
 		pitch_lock_node->setStringValue( "elevator" );
+		pointing_lock_node->setStringValue( "on" );
+		lookat_mode_node->setStringValue( "ned-vector" );
+		ned_n_node->setFloatValue( 0.0 );
+		ned_e_node->setFloatValue( 0.0 );
+		ned_d_node->setFloatValue( 1.0 );
 
 		float target_speed_kt = target_speed_node->getFloatValue();
 		float initial_speed_kt = initial_speed_node->getFloatValue();
@@ -144,6 +161,11 @@ void control_update(double dt)
 		altitude_lock_node->setStringValue( "" );
 		speed_lock_node->setStringValue( "" );
 		pitch_lock_node->setStringValue( "elevator" );
+		pointing_lock_node->setStringValue( "on" );
+		lookat_mode_node->setStringValue( "ned-vector" );
+		ned_n_node->setFloatValue( 0.0 );
+		ned_e_node->setFloatValue( 0.0 );
+		ned_d_node->setFloatValue( 1.0 );
 
 		float target_roll_deg = roll_deg_node->getFloatValue();
 		if ( target_roll_deg > 45.0 ) { target_roll_deg = 45.0; }
@@ -172,6 +194,7 @@ void control_update(double dt)
 	    altitude_lock_node->setStringValue( "" );
 	    speed_lock_node->setStringValue( "" );
 	    pitch_lock_node->setStringValue( "" );
+	    pointing_lock_node->setStringValue( "" );
 	    fcs_enabled = false;
 	}
     }

@@ -465,8 +465,8 @@ static int gen_pulse( double val, bool symmetrical ) {
 
     if ( symmetrical ) {
 	// i.e. aileron, rudder, elevator
-	if ( val < -1.0 ) { val = -1.0; }
-	if ( val > 1.0 ) { val = 1.0; }
+	if ( val < -1.5 ) { val = -1.5; }
+	if ( val > 1.5 ) { val = 1.5; }
 	pulse = 1500 + (int)(400 * val);
     } else {
 	// i.e. throttle

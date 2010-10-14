@@ -20,9 +20,13 @@
 
 #include <string>
 
+#include "include/ugear_config.h"
+
 #include <umngnss/adns.h>
 
-#include "include/ugear_config.h"
+#ifdef ATI_POINTING
+# include <atipointing.hxx>
+#endif
 
 #include "actuators/act_mgr.h"
 #include "comms/logging.h"
@@ -261,6 +265,13 @@ void timer_handler (int signum)
     }
 
     debug5.stop();
+
+#ifdef ATI_POINTING
+    //
+    // Update pointing module
+    //
+    ati_pointing_update( dt );
+#endif
 
     debug6.start();
 
@@ -549,6 +560,11 @@ int main( int argc, char **argv )
     // init system health and status monitor
     health_init();
 
+#ifdef ATI_POINTING
+    // initialize pointing module
+    ati_pointing_init();
+#endif
+
     if ( enable_control ) {
         // initialize the autopilot
         control_init();
@@ -607,6 +623,9 @@ int main( int argc, char **argv )
     GPS_close();
     AirData_close();
     PilotInput_close();
+#ifdef ATI_POINTING
+    ati_pointing_close();
+#endif
     if ( enable_control ) {
 	control_close();
 	Actuator_close();

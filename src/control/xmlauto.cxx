@@ -423,6 +423,15 @@ FGPISimpleController::FGPISimpleController( SGPropertyNode *node ):
                 output_list.push_back( tmp );
                 i++;
             }
+            prop = child->getChild( "offset-prop" );
+            if ( prop != NULL ) {
+                offset_prop = fgGetNode( prop->getStringValue(), true );
+            } else {
+                prop = child->getChild( "offset-value" );
+                if ( prop != NULL ) {
+                    offset_value = prop->getDoubleValue();
+                }
+            }
         } else if ( cname == "config" ) {
             SGPropertyNode *prop;
 
