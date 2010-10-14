@@ -19,7 +19,7 @@
       <value>0.0</value>
     </reference>
     <output>
-      <prop>/autopilot/internal/target-roll-deg</prop>
+      <prop>/autopilot/settings/target-roll-deg</prop>
     </output>
     <config>
       <Kp>-0.7</Kp>        <!-- proportional gain -->
@@ -34,29 +34,29 @@
     <name>Roll angle hold</name>
     <debug>false</debug>
     <enable>
-      <prop>/autopilot/locks/heading</prop>
-      <value>route</value>
+      <prop>/autopilot/locks/roll</prop>
+      <value>aileron</value>
     </enable>
     <input>
       <prop>/orientation/roll-deg</prop>
     </input>
     <reference>
-      <prop>/autopilot/internal/target-roll-deg</prop>
+      <prop>/autopilot/settings/target-roll-deg</prop>
       <!-- <value>0.0</value> -->
     </reference>
     <output>
       <prop>/controls/flight/aileron</prop>
     </output>
     <config>
-      <Kp>-0.016</Kp>      <!-- proportional gain -->
+      <Kp>-0.025</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
       <Ti>2.0</Ti>         <!-- integrator time -->
       <Td>0.01</Td>        <!-- derivator time -->
-      <u_min>-0.30</u_min> <!-- minimum output clamp -->
-      <u_max>0.30</u_max>  <!-- maximum output clamp -->
+      <u_min>-0.50</u_min> <!-- minimum output clamp -->
+      <u_max>0.50</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
@@ -125,8 +125,8 @@
     <name>Pitch Hold</name>
     <debug>false</debug>
     <enable>
-      <prop>/autopilot/locks/altitude</prop>
-      <value>pitch</value>
+      <prop>/autopilot/locks/pitch</prop>
+      <value>elevator</value>
     </enable>
     <input>
       <prop>/orientation/pitch-deg</prop>
@@ -139,14 +139,14 @@
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>0.025</Kp> <!-- was 0.017 -->
+      <Kp>0.05</Kp> <!-- was 0.017 -->
       <beta>1.0</beta>
       <alpha>0.1</alpha>
       <gamma>0.0</gamma>
-      <Ti>0.5</Ti>
+      <Ti>1.0</Ti>
       <Td>0.0001</Td>
-      <u_min>-0.40</u_min>
-      <u_max>0.40</u_max>
+      <u_min>-0.50</u_min>
+      <u_max>0.50</u_max>
     </config>
   </pid-controller>
 
@@ -168,13 +168,13 @@
       <prop>/controls/engine/throttle</prop>
     </output>
     <config>
-      <Kp>0.045</Kp>       <!-- proportional gain (was 0.04) -->
+      <Kp>0.045</Kp>      <!-- proportional gain (was 0.04) -->
       <beta>1.0</beta>    <!-- input value weighing factor -->
       <alpha>0.1</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>  <!-- input value weighing factor for -->
                           <!-- unfiltered derivative error -->
       <Ti>5.0</Ti>        <!-- integrator time -->
-      <Td>0.001</Td>      <!-- derivator time -->
+      <Td>0.00005</Td>     <!-- derivator time -->
       <u_min>0.0</u_min>  <!-- minimum output clamp -->
       <u_max>0.9</u_max>  <!-- maximum output clamp -->
     </config>
@@ -225,7 +225,7 @@
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>0.01</Kp>        <!-- proportional gain -->
+      <Kp>0.005</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -252,7 +252,7 @@
         <value>0.0</value>
       </reference>
       <output>
-        <prop>/controls/flight/rudder</prop>
+        <prop>/controls/flight/rudder-disable</prop>
       </output>
       <config>
         <Kp>-0.005</Kp>      <!-- proportional gain -->

@@ -6,6 +6,12 @@ else
 MNAV_LIBS =
 endif
 
+if ENABLE_ATI_POINTING
+POINTING_LIBS = -latipointing
+else
+POINTING_LIBS =
+endif
+
 bin_PROGRAMS = ugear
 
 ugear_SOURCES = \
@@ -20,6 +26,7 @@ ugear_LDADD = \
 	$(MNAV_LIBS) \
 	$(top_builddir)/src/health/libhealth.a \
 	$(top_builddir)/src/math/libmath.a \
+	$(POINTING_LIBS) \
 	$(top_builddir)/src/sensors/libsensors.a \
 	$(top_builddir)/src/comms/libcomms.a \
 	$(top_builddir)/src/control/libcontrol.a \
