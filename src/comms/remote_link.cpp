@@ -427,6 +427,24 @@ static void remote_link_execute_command( const string command ) {
         double alt_ft = atof( token[4].c_str() );
         SGWayPoint wp( lon, lat, alt_ft * SG_FEET_TO_METER );
         route_mgr.replace_waypoint( wp, index );
+    } else if ( token[0] == "laned" && token.size() == 4 ) {
+	// set ned-vector lookat mode
+	SGPropertyNode_ptr mode_node
+                = fgGetNode( "/pointing/lookat-mode", true );
+	mode_node->setStringValue("ned-vector");
+        // specify new lookat ned coordinates
+	double north = atof( token[1].c_str() );
+	SGPropertyNode_ptr north_node
+                = fgGetNode( "/pointing/vector/north", true );
+	north_node->setDoubleValue( north );
+	double east = atof( token[2].c_str() );
+	SGPropertyNode_ptr east_node
+                = fgGetNode( "/pointing/vector/east", true );
+	east_node->setDoubleValue( east );
+	double down = atof( token[3].c_str() );
+	SGPropertyNode_ptr down_node
+                = fgGetNode( "/pointing/vector/down", true );
+	down_node->setDoubleValue( down );
     }
 }
 

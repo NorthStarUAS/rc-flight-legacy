@@ -57,7 +57,7 @@ static SGPropertyNode *pitch_deg_node = NULL;
 static SGPropertyNode *cur_speed_node = NULL;
 static SGPropertyNode *initial_speed_node = NULL;
 static SGPropertyNode *target_roll_deg_node = NULL;
-static SGPropertyNode *target_pitch_deg_node = NULL;
+static SGPropertyNode *target_pitch_base_deg_node = NULL;
 static SGPropertyNode *target_speed_node = NULL;
 
 
@@ -90,8 +90,8 @@ static void bind_properties() {
     initial_speed_node = fgGetNode("/config/autopilot/initial-speed-kt", true);
     target_roll_deg_node
 	= fgGetNode("/autopilot/settings/target-roll-deg", true);
-    target_pitch_deg_node
-	= fgGetNode("/autopilot/settings/target-pitch-deg", true);
+    target_pitch_base_deg_node
+	= fgGetNode("/autopilot/settings/target-pitch-base-deg", true);
     target_speed_node = fgGetNode("/autopilot/settings/target-speed-kt", true);
 }
 
@@ -172,10 +172,14 @@ void control_update(double dt)
 		if ( target_roll_deg < -45.0 ) { target_roll_deg = -45.0; }
 		target_roll_deg_node->setFloatValue( target_roll_deg );
 
-		float target_pitch_deg = pitch_deg_node->getFloatValue();
-		if ( target_pitch_deg > 15.0 ) { target_pitch_deg = 15.0; }
-		if ( target_pitch_deg < -15.0 ) { target_pitch_deg = -15.0; }
-		target_pitch_deg_node->setFloatValue( target_pitch_deg );
+		float target_pitch_base_deg = pitch_deg_node->getFloatValue();
+		if ( target_pitch_base_deg > 15.0 ) {
+		    target_pitch_base_deg = 15.0;
+		}
+		if ( target_pitch_base_deg < -15.0 ) {
+		    target_pitch_base_deg = -15.0;
+		}
+		target_pitch_base_deg_node->setFloatValue( target_pitch_base_deg );
 
 		float target_speed_kt = target_speed_node->getFloatValue();
 		float initial_speed_kt = initial_speed_node->getFloatValue();

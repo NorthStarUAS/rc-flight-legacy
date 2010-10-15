@@ -132,7 +132,7 @@ void Filter_init() {
 		mnav_nav_init( basename );
 #endif // ENABLE_MNAV_FILTER
 	    } else if ( module == "umn" ) {
-		ugumn_adns_init( basename );
+		ugumn_adns_init( basename, section );
 	    }
 	}
     }
