@@ -60,8 +60,19 @@ static SGPropertyNode *filter_track_node = NULL;
 static SGPropertyNode *filter_vel_node = NULL;
 static SGPropertyNode *filter_vert_speed_fps_node = NULL;
 
+static SGPropertyNode *cov_gps_hpos_node = NULL;
+static SGPropertyNode *cov_gps_vpos_node = NULL;
+static SGPropertyNode *cov_gps_hvel_node = NULL;
+static SGPropertyNode *cov_gps_vvel_node = NULL;
+static SGPropertyNode *sigma_w_f_node = NULL;
+static SGPropertyNode *sigma_w_g_node = NULL;
+static SGPropertyNode *sigma_c_f_node = NULL;
+static SGPropertyNode *sigma_c_g_node = NULL;
+static SGPropertyNode *tau_f_node = NULL;
+static SGPropertyNode *tau_g_node = NULL;
 
-int ugumn_adns_init( string rootname ) {
+
+int ugumn_adns_init( string rootname, SGPropertyNode *config ) {
     // initialize imu property nodes
     imu_timestamp_node = fgGetNode("/sensors/imu/time-stamp");
     imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
@@ -105,6 +116,35 @@ int ugumn_adns_init( string rootname ) {
         = outputroot->getChild("vertical-speed-fps", 0, true);
 
     int result = umn_adns_init();
+
+    // set tuning value for specific gps and imu noise characteristics
+    cov_gps_hpos_node = config->getChild("cov-gps-hpos", 0, true);
+    cov_gps_vpos_node = config->getChild("cov-gps-vpos", 0, true);
+    cov_gps_hvel_node = config->getChild("cov-gps-hvel", 0, true);
+    cov_gps_vvel_node = config->getChild("cov-gps-vvel", 0, true);
+    sigma_w_f_node = config->getChild("sigma-w-f", 0, true);
+    sigma_w_g_node = config->getChild("sigma-w-g", 0, true);
+    sigma_c_f_node = config->getChild("sigma-c-f", 0, true);
+    sigma_c_g_node = config->getChild("sigma-c-g", 0, true);
+    tau_f_node = config->getChild("tau-f", 0, true);
+    tau_g_node = config->getChild("tau-g", 0, true);
+
+    umn_adns_init_R( cov_gps_hpos_node->getDoubleValue(),
+		     cov_gps_vpos_node->getDoubleValue(),
+		     cov_gps_hvel_node->getDoubleValue(),
+		     cov_gps_vvel_node->getDoubleValue() );
+    umn_adns_init_Rw( sigma_w_f_node->getDoubleValue(),
+		      sigma_w_g_node->getDoubleValue(),
+		      sigma_c_f_node->getDoubleValue(),
+		      sigma_c_g_node->getDoubleValue(),
+		      tau_f_node->getDoubleValue(),
+		      tau_g_node->getDoubleValue() );
+    umn_adns_init_P( cov_gps_hpos_node->getDoubleValue(),
+		     cov_gps_vpos_node->getDoubleValue(),
+		     cov_gps_hvel_node->getDoubleValue(),
+		     cov_gps_vvel_node->getDoubleValue(),
+		     sigma_w_f_node->getDoubleValue(), 
+		     sigma_w_g_node->getDoubleValue() );
 
     return result;
 }

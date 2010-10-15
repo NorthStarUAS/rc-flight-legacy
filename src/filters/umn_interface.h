@@ -15,10 +15,13 @@
 
 #include <string>
 
+#include "props/props.hxx"
+
 using std::string;
 
 
-int ugumn_adns_init( string rootname );
+
+int ugumn_adns_init( string rootname, SGPropertyNode *config );
 bool ugumn_adns_update();
 int ugumn_adns_close();
 

@@ -217,7 +217,7 @@ void UGSAS::update() {
     // where mp is the max pitch bias.  This "simulates" the natural
     // tendency of an aircraft to pitch up or down as throttle is
     // manipulated.
-    const double mp = 2.5; 	// degrees throttle pitch bias
+    const double mp = 4.0; 	// degrees throttle pitch bias
     double pitch_throttle_delta
 	= (pilot_throttle_node->getFloatValue() * 2.0 - 1.0) * mp;
     double new_pitch = new_pitch_base + pitch_throttle_delta;
