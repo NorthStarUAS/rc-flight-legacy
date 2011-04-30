@@ -1,0 +1,30 @@
+Here are some performance results for comparison purposes:
+
+Old 400Mhz Gumstix (Software floating point):
+
+    Loops: 100000. Iterations: 1. Duration: 212 sec.
+    C Converted Double Precision Whetstones: 47.2 MIPS
+
+Older 600Mhz Verdex (not pro) (Software floating point):
+
+    Loops: 100000, Iterations: 1, Duration: 70 sec.
+    C Converted Double Precision Whetstones: 142.9 MIPS
+
+Newer 600Mhz Verdex Pro:
+
+    Pretty much the same as the older Verdex
+
+MPC5200 (Hardware floating point, no compiler optimizations):
+
+    Loops: 100000, Iterations: 1, Duration: 66 sec.
+    C Converted Double Precision Whetstones: 150.0 MIPS
+
+MPC5200 (Hardware floating point, compilered with -O3):
+
+    Loops: 100000, Iterations: 1, Duration: 22 sec.
+    C Converted Double Precision Whetstones: 450.0 MIPS
+
+Overo 600Mhz: (Compiled with -mcpu=cortex-a8 -mfloat-abi=softfp -mfpu=neon -ffast-math -fno-math-errno)
+
+    Loops: 1000000, Iterations: 1, Duration: 89 sec.
+    C Converted Double Precision Whetstones: 1123.6 MIPS
