@@ -34,7 +34,7 @@ CONFIGURE/COMPILING
 
 3. Run "./configure CFLAGS="-Wall -O2" CXXFLAGS="-Wall -O2" --host=something-something"
 
-   For the "new" Gumstix Open Embedded tools you would use
+   For the "new" Overo/Verdex-pro Open Embedded tools you would use
    --host=arm-angstrom-linux-gnueabi
 
    For the "old" gumstix/verdex tree you would add the cross compilers
