@@ -45,14 +45,27 @@ AC_SEARCH_LIBS(umn_adns_init, [umngnss])
 AM_CONFIG_HEADER(src/include/ugear_config.h)
 
 
+dnl automatic detection of gnss/adns library
+
+enable_gnss_filter="no"
+AC_CHECK_HEADER(umngnss/adns.h)
+if test "x$ac_cv_header_umngnss_adns_h" = "xyes"; then
+    AC_DEFINE([ENABLE_GNSS_FILTER], 1, [Define to include Advanced GNSS filter.])
+    enable_gnss_filter="yes"
+fi
+AM_CONDITIONAL(ENABLE_GNSS_FILTER, test "x$ac_cv_header_umngnss_adns_h" = "xyes")
+
+
 dnl automatic detection of pointing library
 
+enable_ati_pointing="no"
 AC_LANG_PUSH(C++)
-AC_CHECK_HEADER(atipointing.hxx)
-if test "x$ac_cv_header_atipointing_hxx" = "xyes"; then
+AC_CHECK_HEADER(atipointing/atipointing.hxx)
+if test "x$ac_cv_header_atipointing_atipointing_hxx" = "xyes"; then
     AC_DEFINE([ATI_POINTING], 1, [Define to include ATI pointing module.])
+    enable_ati_pointing="yes"
 fi
-AM_CONDITIONAL(ENABLE_ATI_POINTING, test "x$ac_cv_header_atipointing_hxx" = "xyes")
+AM_CONDITIONAL(ENABLE_ATI_POINTING, test "x$ac_cv_header_atipointing_atipointing_hxx" = "xyes")
 AC_LANG_POP
 
 
@@ -88,12 +101,6 @@ if test "x$enable_mnav_filter" != "xno"; then
     GPL_CLEAN="no"
 fi
 AM_CONDITIONAL(ENABLE_MNAV_FILTER, test "x$enable_mnav_filter" != "xno")
-
-AC_ARG_ENABLE(gnss-filter, [  --enable-gnss-filter    Include Advanced GNSS filter], [enable_gnss_filter="$enableval"], [enable_gnss_filter="no"] )
-if test "x$enable_gnss_filter" != "xno"; then
-    AC_DEFINE([ENABLE_GNSS_FILTER], 1, [Define to include Advnaced GNSS filter])
-fi
-AM_CONDITIONAL(ENABLE_GNSS_FILTER, test "x$enable_gnss_filter" != "xno")
 
 AC_CONFIG_FILES([ \
 	Makefile \
@@ -150,6 +157,8 @@ GPLEOF
 fi
 
 cat <<GPLEOF
-MNAV sensor driver (GPL): $enable_mnav_sensor
-MNAV filter (GPL)       : $enable_mnav_filter
+MNAV sensor driver (GPL)         : $enable_mnav_sensor
+MNAV filter (GPL)                : $enable_mnav_filter
+Advanced GNSS filter (non-free)  : $enable_gnss_filter
+ATI Pointing (non-free)          : $enable_ati_pointing
 GPLEOF
