@@ -20,7 +20,9 @@
 #  include "filters/mnav/ahrs.h"
 #  include "filters/mnav/nav.h"
 #endif // ENABLE_MNAV_FILTER
-#include "filters/umn_interface.h"
+#ifdef ENABLE_GNSS_FILTER
+#  include "filters/gnss/gnss_interface.h"
+#endif // ENABLE_GNSS_FILTER
 #include "include/globaldefs.h"
 #include "main/globals.hxx"
 #include "props/props.hxx"
@@ -131,8 +133,10 @@ void Filter_init() {
 		// nav_update() or nav_close()
 		mnav_nav_init( basename );
 #endif // ENABLE_MNAV_FILTER
+#ifdef ENABLE_GNSS_FILTER
 	    } else if ( module == "umn" ) {
 		ugumn_adns_init( basename, section );
+#endif // ENABLE_GNSS_FILTER
 	    }
 	}
     }
@@ -320,8 +324,10 @@ bool Filter_update() {
 		}
 		fresh_filter_data = true;
 #endif // ENABLE_MNAV_FILTER
+#ifdef ENABLE_GNSS_FILTER
 	    } else if ( module == "umn" ) {
 		fresh_filter_data = ugumn_adns_update();
+#endif // ENABLE_GNSS_FILTER
 	    }
 	}
     }
@@ -373,8 +379,10 @@ void Filter_close() {
 		mnav_ahrs_close();
 		mnav_nav_close();
 #endif // ENABLE_MNAV_FILTER
+#ifdef ENABLE_GNSS_FILTER
 	    } else if ( module == "umn" ) {
 		ugumn_adns_close();
+#endif // ENABLE_GNSS_FILTER
 	    }
 	}
     }

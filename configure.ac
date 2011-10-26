@@ -89,12 +89,19 @@ if test "x$enable_mnav_filter" != "xno"; then
 fi
 AM_CONDITIONAL(ENABLE_MNAV_FILTER, test "x$enable_mnav_filter" != "xno")
 
+AC_ARG_ENABLE(gnss-filter, [  --enable-gnss-filter    Include Advanced GNSS filter], [enable_gnss_filter="$enableval"], [enable_gnss_filter="no"] )
+if test "x$enable_gnss_filter" != "xno"; then
+    AC_DEFINE([ENABLE_GNSS_FILTER], 1, [Define to include Advnaced GNSS filter])
+fi
+AM_CONDITIONAL(ENABLE_GNSS_FILTER, test "x$enable_gnss_filter" != "xno")
+
 AC_CONFIG_FILES([ \
 	Makefile \
         src/Makefile \
         src/actuators/Makefile \
         src/filters/Makefile \
         src/filters/curt/Makefile \
+        src/filters/gnss/Makefile \
         src/filters/mnav/Makefile \
         src/comms/Makefile \
         src/control/Makefile \

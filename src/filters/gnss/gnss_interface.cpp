@@ -129,6 +129,7 @@ int ugumn_adns_init( string rootname, SGPropertyNode *config ) {
     tau_f_node = config->getChild("tau-f", 0, true);
     tau_g_node = config->getChild("tau-g", 0, true);
 
+#if 0
     umn_adns_init_R( cov_gps_hpos_node->getDoubleValue(),
 		     cov_gps_vpos_node->getDoubleValue(),
 		     cov_gps_hvel_node->getDoubleValue(),
@@ -145,6 +146,7 @@ int ugumn_adns_init( string rootname, SGPropertyNode *config ) {
 		     cov_gps_vvel_node->getDoubleValue(),
 		     sigma_w_f_node->getDoubleValue(), 
 		     sigma_w_g_node->getDoubleValue() );
+#endif
 
     return result;
 }

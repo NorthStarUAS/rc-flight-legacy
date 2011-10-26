@@ -14,8 +14,8 @@
 #include <errno.h>
 #include <math.h>
 
-#include "comms/console_link.h"
 #include "comms/logging.h"
+#include "comms/remote_link.h"
 #include "comms/serial.hxx"
 #include "include/globaldefs.h"
 #include "filters/mnav/ahrs.h"

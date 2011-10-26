@@ -17,8 +17,8 @@
 
 #include "globaldefs.h"
 
-#include "comms/console_link.h"
 #include "comms/logging.h"
+#include "comms/remote_link.h"
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
 #include "util/timing.h"

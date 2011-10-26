@@ -22,8 +22,6 @@
 
 #include "include/ugear_config.h"
 
-#include <umngnss/adns.h>
-
 #ifdef ATI_POINTING
 # include <atipointing.hxx>
 #endif
