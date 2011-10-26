@@ -1,4 +1,4 @@
-// sas.hxx - stability assist system (aka fly-by-wire)
+// cas.hxx - Command Augmentation System (aka fly-by-wire)
 //
 // Written by Curtis Olson, started September 2010.
 //
@@ -21,8 +21,8 @@
 // $Id: route_mgr.hxx,v 1.11 2008/11/23 04:02:17 curt Exp $
 
 
-#ifndef _SAS_HXX
-#define _SAS_HXX
+#ifndef _CAS_HXX
+#define _CAS_HXX
 
 #ifndef __cplusplus
 # error This library requires C++
@@ -43,11 +43,11 @@ using std::vector;
  * 
  */
 
-class UGSAS {
+class UGCAS {
 
 public:
 
-    enum ugSASMode {
+    enum ugCASMode {
         PassThrough = 0,
         PitchRollRates = 1
     };
@@ -85,16 +85,16 @@ private:
 
     // fcs mode
     SGPropertyNode_ptr ap_master_switch_node;
-    SGPropertyNode_ptr sas_mode_node;
+    SGPropertyNode_ptr cas_mode_node;
 
-    ugSASMode sas_mode;
+    ugCASMode cas_mode;
 
     double last_time;
 
 public:
 
-    UGSAS();
-    ~UGSAS();
+    UGCAS();
+    ~UGCAS();
 
     void bind();
 
@@ -102,17 +102,17 @@ public:
 
     void update();
 
-    inline void set_sas_mode( ugSASMode mode ) {
-	sas_mode = mode;
+    inline void set_cas_mode( ugCASMode mode ) {
+	cas_mode = mode;
     }
  
-    inline ugSASMode get_sas_mode() {
-        return sas_mode;
+    inline ugCASMode get_cas_mode() {
+        return cas_mode;
     }
 };
 
 
-extern UGSAS sas;		// global SAS object
+extern UGCAS cas;		// global CAS object
 
 
-#endif // _SAS_HXX
+#endif // _CAS_HXX

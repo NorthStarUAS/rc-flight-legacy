@@ -1,4 +1,4 @@
-// sas.cxx - stability assist system (aka fly-by-wire)
+// cas.cxx - Command Augmentation System (aka fly-by-wire)
 //
 // Written by Curtis Olson, started September 2010.
 //
@@ -17,8 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-//
-// $Id: route_mgr.hxx,v 1.11 2008/11/23 04:02:17 curt Exp $
 
 
 #include <math.h>		// fabs()
@@ -27,41 +25,41 @@
 #include "comms/logging.h"
 #include "util/timing.h"
 
-#include "sas.hxx"
+#include "cas.hxx"
 
 
-UGSAS sas;			// global sas object
+UGCAS cas;			// global cas object
 
 
-UGSAS::UGSAS() :
-    sas_mode( PassThrough )
+UGCAS::UGCAS() :
+    cas_mode( PassThrough )
 {
 }
 
-UGSAS::~UGSAS() {
+UGCAS::~UGCAS() {
 }
 
 
 // bind property nodes
-void UGSAS::bind() {
+void UGCAS::bind() {
     pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", true);
     pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", true);
     pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", true);
     pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", true);
 
-    aileron_min_node = fgGetNode("/config/sas/aileron/min", true);
-    aileron_max_node = fgGetNode("/config/sas/aileron/max", true);
-    aileron_center_node = fgGetNode("/config/sas/aileron/center", true);
-    aileron_dz_node = fgGetNode("/config/sas/aileron/dead-zone", true);
+    aileron_min_node = fgGetNode("/config/cas/aileron/min", true);
+    aileron_max_node = fgGetNode("/config/cas/aileron/max", true);
+    aileron_center_node = fgGetNode("/config/cas/aileron/center", true);
+    aileron_dz_node = fgGetNode("/config/cas/aileron/dead-zone", true);
     aileron_full_rate_node
-	= fgGetNode("/config/sas/aileron/full-rate-degps", true);
+	= fgGetNode("/config/cas/aileron/full-rate-degps", true);
 
-    elevator_min_node = fgGetNode("/config/sas/elevator/min", true);
-    elevator_max_node = fgGetNode("/config/sas/elevator/max", true);
-    elevator_center_node = fgGetNode("/config/sas/elevator/center", true);
-    elevator_dz_node = fgGetNode("/config/sas/aileron/dead-zone", true);
+    elevator_min_node = fgGetNode("/config/cas/elevator/min", true);
+    elevator_max_node = fgGetNode("/config/cas/elevator/max", true);
+    elevator_center_node = fgGetNode("/config/cas/elevator/center", true);
+    elevator_dz_node = fgGetNode("/config/cas/aileron/dead-zone", true);
     elevator_full_rate_node
-	= fgGetNode("/config/sas/elevator/full-rate-degps", true);
+	= fgGetNode("/config/cas/elevator/full-rate-degps", true);
 
     target_roll_deg_node
 	= fgGetNode("/autopilot/settings/target-roll-deg", true);
@@ -74,15 +72,15 @@ void UGSAS::bind() {
     rudder_output_node = fgGetNode("/controls/flight/rudder", true);
 
     ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
-    sas_mode_node = fgGetNode("/autopilot/sas-mode", true);
+    cas_mode_node = fgGetNode("/autopilot/cas-mode", true);
 }
 
-// initialize SAS system
-void UGSAS::init() {
+// initialize CAS system
+void UGCAS::init() {
     bind();
 }
 
-void UGSAS::update() {
+void UGCAS::update() {
     double current_time = get_Time();
     double dt = current_time - last_time;
     last_time = current_time;

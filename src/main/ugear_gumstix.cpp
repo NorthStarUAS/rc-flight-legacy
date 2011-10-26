@@ -30,9 +30,9 @@
 #include "comms/logging.h"
 #include "comms/remote_link.h"
 #include "comms/netSocket.h"	// netInit()
+#include "control/cas.hxx"
 #include "control/control.h"
 #include "control/route_mgr.hxx"
-#include "control/sas.hxx"
 #include "filters/filter_mgr.h"
 #include "health/health.h"
 #include "include/globaldefs.h"
@@ -61,8 +61,8 @@ static const int HEARTBEAT_HZ = 50;	 // master clock rate
 
 static bool log_servo_out  = true;    // log outgoing servo commands by default
 static bool enable_control = false;   // autopilot control module enabled/disabled
-static bool enable_route   = false;   // route module enabled/disabled
-static bool enable_sas     = true;    // sas module enabled/disabled
+static bool enable_route   = true;    // route module enabled/disabled
+static bool enable_cas     = false;   // cas module enabled/disabled
 static bool enable_telnet  = false;   // telnet command/monitor interface
 static bool initial_home   = false;   // initial home position determined
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
@@ -287,8 +287,8 @@ void timer_handler (int signum)
 	}
     }
 
-    if ( enable_sas ) {
-	sas.update();
+    if ( enable_cas ) {
+	cas.update();
     }
 
     if ( enable_control ) {
@@ -431,7 +431,7 @@ int main( int argc, char **argv )
 
     // load master config file
     SGPath master( root );
-    master.append( "config.xml" );
+    master.append( "config/main.xml" );
     try {
         readProperties( master.c_str(), props);
         printf("Loaded configuration from %s\n", master.c_str());
@@ -576,9 +576,9 @@ int main( int argc, char **argv )
         route_mgr.init();
     }
 
-    if ( enable_sas ) {
-	// initialize the sas system
-	sas.init();
+    if ( enable_cas ) {
+	// initialize the cas system
+	cas.init();
     }
 
     // intialize random number generator
