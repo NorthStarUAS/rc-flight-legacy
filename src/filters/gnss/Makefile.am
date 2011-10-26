@@ -1,9 +1,6 @@
-noinst_LIBRARIES = libadns_mnav.a
+noinst_LIBRARIES = libgnss_interface.a
 
-libadns_mnav_a_SOURCES = \
-	ahrs.cpp ahrs.h \
-	matrix.c matrix.h \
-	nav.cpp nav.h \
-	navfunc.cpp navfunc.h
+libgnss_interface_a_SOURCES = \
+	gnss_interface.cpp gnss_interface.hxx
 
 INCLUDES = -I$(top_srcdir)/src

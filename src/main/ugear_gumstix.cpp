@@ -23,7 +23,7 @@
 #include "include/ugear_config.h"
 
 #ifdef ATI_POINTING
-# include <atipointing.hxx>
+# include <atipointing/atipointing.hxx>
 #endif
 
 #include "actuators/act_mgr.h"

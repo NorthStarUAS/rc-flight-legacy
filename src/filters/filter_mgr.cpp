@@ -135,7 +135,7 @@ void Filter_init() {
 #endif // ENABLE_MNAV_FILTER
 #ifdef ENABLE_GNSS_FILTER
 	    } else if ( module == "umn" ) {
-		ugumn_adns_init( basename, section );
+		uggnss_adns_init( basename, section );
 #endif // ENABLE_GNSS_FILTER
 	    }
 	}
@@ -326,7 +326,7 @@ bool Filter_update() {
 #endif // ENABLE_MNAV_FILTER
 #ifdef ENABLE_GNSS_FILTER
 	    } else if ( module == "umn" ) {
-		fresh_filter_data = ugumn_adns_update();
+		fresh_filter_data = uggnss_adns_update();
 #endif // ENABLE_GNSS_FILTER
 	    }
 	}
@@ -381,7 +381,7 @@ void Filter_close() {
 #endif // ENABLE_MNAV_FILTER
 #ifdef ENABLE_GNSS_FILTER
 	    } else if ( module == "umn" ) {
-		ugumn_adns_close();
+		uggnss_adns_close();
 #endif // ENABLE_GNSS_FILTER
 	    }
 	}

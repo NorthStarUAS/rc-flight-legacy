@@ -1,11 +1,10 @@
 /**
- * \file: umn_interface.h
+ * \file: gnss_interface.cpp
  *
- * C++/Property aware interface for UMN ADNS algorithm
+ * C++/Property aware interface for GNSS/ADNS 15-state kalman filter algorithm
  *
  * Copyright (C) 2009 - Curtis L. Olson
  *
- * $Id: umn_interface.cpp,v 1.1 2009/05/15 17:04:56 curt Exp $
  */
 
 
@@ -18,7 +17,7 @@
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
 
-#include "umn_interface.h"
+#include "gnss_interface.h"
 
 
 // imu property nodes
@@ -72,7 +71,7 @@ static SGPropertyNode *tau_f_node = NULL;
 static SGPropertyNode *tau_g_node = NULL;
 
 
-int ugumn_adns_init( string rootname, SGPropertyNode *config ) {
+int uggnss_adns_init( string rootname, SGPropertyNode *config ) {
     // initialize imu property nodes
     imu_timestamp_node = fgGetNode("/sensors/imu/time-stamp");
     imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
@@ -152,7 +151,7 @@ int ugumn_adns_init( string rootname, SGPropertyNode *config ) {
 }
 
 
-bool ugumn_adns_update() {
+bool uggnss_adns_update() {
     static bool umn_init_pos = false;
 
     bool fresh_data = false;
@@ -222,7 +221,7 @@ bool ugumn_adns_update() {
 }
 
 
-int ugumn_adns_close() {
+int uggnss_adns_close() {
     return umn_adns_close();
 }
 
