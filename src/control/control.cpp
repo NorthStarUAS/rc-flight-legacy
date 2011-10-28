@@ -63,7 +63,7 @@ static SGPropertyNode *target_speed_node = NULL;
 
 static void bind_properties() {
     ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
-    fcs_mode_node = fgGetNode("/config/autopilot/fcs-mode", true);
+    fcs_mode_node = fgGetNode("/config/fcs/mode", true);
     // ap_heading_mode_node = fgGetNode("/autopilot/heading-mode", true);
     // ap_roll_mode_node = fgGetNode("/autopilot/roll-mode", true);
     // ap_yaw_mode_node = fgGetNode("/autopilot/yaw-mode", true);
@@ -87,7 +87,7 @@ static void bind_properties() {
     roll_deg_node = fgGetNode("/orientation/roll-deg", true);
     pitch_deg_node = fgGetNode("/orientation/pitch-deg", true);
     cur_speed_node = fgGetNode("/velocity/airspeed-kt", true);
-    initial_speed_node = fgGetNode("/config/autopilot/initial-speed-kt", true);
+    initial_speed_node = fgGetNode("/config/fcs/initial-speed-kt", true);
     target_roll_deg_node
 	= fgGetNode("/autopilot/settings/target-roll-deg", true);
     target_pitch_base_deg_node
@@ -153,8 +153,8 @@ void control_update(double dt)
 		    target_speed_node->setFloatValue( initial_speed_kt );
 		}
 		fcs_enabled = true;
-	    } else if ( strcmp(fcs_mode_node->getStringValue(), "sas") == 0 ) {
-		// fcs is just activated, set lock modes for "sas"
+	    } else if ( strcmp(fcs_mode_node->getStringValue(), "cas") == 0 ) {
+		// fcs is just activated, set lock modes for "cas"
 		heading_lock_node->setStringValue( "" );
 		roll_lock_node->setStringValue( "aileron" );
 		yaw_lock_node->setStringValue( "" );
