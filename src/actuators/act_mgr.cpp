@@ -85,7 +85,7 @@ void Actuator_init() {
     output_throttle_node = fgGetNode("/controls/engine/throttle", true);
     output_rudder_node = fgGetNode("/controls/flight/rudder", true);
 
-    act_elevon_mix_node = fgGetNode("/config/autopilot/elevon-mixing", true);
+    act_elevon_mix_node = fgGetNode("/config/actuators/elevon-mixing", true);
     agl_alt_ft_node = fgGetNode("/position/altitude-agl-ft", true);
 
     act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
@@ -114,7 +114,7 @@ void Actuator_init() {
 
     // master autopilot switch
     ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
-    fcs_mode_node = fgGetNode("/config/autopilot/fcs-mode", true);
+    fcs_mode_node = fgGetNode("/config/fcs/mode", true);
 
     // default to ap on unless pilot inputs turn it off (so we can run
     // with no pilot inputs connected)

@@ -150,7 +150,7 @@ int main( int argc, char **argv )
     }
     printf("lost link timeout = %.1f\n", lost_link_sec);
     
-    p = fgGetNode("/config/autopilot/enable", true);
+    p = fgGetNode("/config/fcs/enable", true);
     enable_control = p->getBoolValue();
 
     p = fgGetNode("/config/route/enable", true);

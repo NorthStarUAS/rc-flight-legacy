@@ -64,6 +64,7 @@ static bool enable_control = false;   // autopilot control module enabled/disabl
 static bool enable_route   = true;    // route module enabled/disabled
 static bool enable_cas     = false;   // cas module enabled/disabled
 static bool enable_telnet  = false;   // telnet command/monitor interface
+static bool enable_pointing = false;  // pan/tilt pointing module
 static bool initial_home   = false;   // initial home position determined
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 static double lost_link_sec = 59.0;   // lost link timeout
@@ -471,6 +472,9 @@ int main( int argc, char **argv )
 	}
     }
 
+    p = fgGetNode("/config/pointing/enable", true);
+    enable_pointing = p->getBoolValue();
+
     p = fgGetNode("/config/filters/gps-timeout-sec");
     if ( p != NULL && p->getDoubleValue() > 0.0001 ) {
 	// stick with the default if nothing valid specified
@@ -485,7 +489,7 @@ int main( int argc, char **argv )
     }
     printf("lost link timeout = %.1f\n", lost_link_sec);
     
-    p = fgGetNode("/config/autopilot/enable", true);
+    p = fgGetNode("/config/fcs/enable", true);
     enable_control = p->getBoolValue();
 
     p = fgGetNode("/config/route/enable", true);

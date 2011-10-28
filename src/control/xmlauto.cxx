@@ -752,33 +752,14 @@ FGXMLAutopilot::~FGXMLAutopilot() {
 
  
 void FGXMLAutopilot::init() {
-    config_props = fgGetNode( "/autopilot/new-config", true );
+    config_props = fgGetNode( "/config/fcs/autopilot", true );
 
-    SGPropertyNode *root_n = fgGetNode("/config/root-path");
-    SGPropertyNode *path_n = fgGetNode("/config/autopilot/path");
-
-    if ( path_n ) {
-        SGPath config( root_n->getStringValue() );
-        config.append( path_n->getStringValue() );
-
-        printf("Reading autopilot configuration from %s\n", config.c_str() );
-        try {
-            readProperties( config.str(), config_props );
-
-            if ( ! build() ) {
-	        printf("Detected an internal inconsistency in the autopilot\n");
-                printf(" configuration.  See earlier errors for\n" );
-                printf(" details.");
-                exit(-1);
-            }        
-        } catch (const sg_exception& exc) {
-	  printf("Failed to load autopilot configuration: %s\n",
-		 config.c_str());
-        }
-
-    } else {
-      printf("No autopilot configuration specified in master.xml file!");
-    }
+    if ( ! build() ) {
+      printf("Detected an internal inconsistency in the autopilot\n");
+      printf(" configuration.  See earlier errors for\n" );
+      printf(" details.");
+      exit(-1);
+    }        
 }
 
 
