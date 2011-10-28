@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <!-- Caution: enabling this feature can have a significant -->
+  <!-- performance impact on the ugear application depending on the -->
+  <!-- speed of the onboard storage. -->
+  <enable type="bool">true</enable>
+
+  <path>/home/root/Resolution3</path>
+
+  <!-- these values seem appropriate for verdex sd card performance -->
+  <gps-skip>0</gps-skip>
+  <imu-skip>9</imu-skip>
+  <airdata-skip>9</airdata-skip>
+  <filter-skip>9</filter-skip> <!-- 5hz -->
+  <actuator-skip>9</actuator-skip>
+  <pilot-skip>9</pilot-skip>
+  <autopilot-skip>1</autopilot-skip> <!-- 5hz -->
+  <events type="bool">true</events>
+
+</PropertyList>

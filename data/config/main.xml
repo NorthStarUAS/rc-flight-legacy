@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+
+<!-- Master uGear config file -->
+
+<PropertyList>
+
+  <config>
+
+    <!-- Onboard data logging. -->
+    <logging include="comms/log-verdex.xml" />
+
+    <!-- Remote operator communication. -->
+    <remote-link include="comms/remote-link-xtend.xml" />
+
+    <!-- socket based remote monitoring and control interface -->
+    <telnet include="comms/telnet.xml" />
+
+    <!-- Sensor selection and configuration. -->
+    <sensors include="sensors/group-avior-1C.xml" />
+
+    <!-- Filters configuration -->
+    <filters>
+      <!-- Magnetic Declination (Variation) -->
+      <!-- You can force a value or specify "auto" to have the system -->
+      <!-- compute a magnetic variation based on initial gps location and -->
+      <!-- date. -->
+      <!-- <magvar-deg>0.827</magvar-deg> --> <!-- @KANE, 01/17/2009 -->
+      <magvar-deg>auto</magvar-deg>
+
+      <!-- Time in seconds we will project forward on inertials alone after -->
+      <!-- losing a gps solution. -->
+      <gps-timeout-sec>15.0</gps-timeout-sec>
+
+      <filter include="filters/advanced-gnss.xml" />
+      <!-- <filter include="filters/mnav.xml" /> -->
+      <!-- <filter incldue="filters/curt.xml" /> -->
+
+    </filters>
+
+    <pointing include="pointing.xml" />
+
+    <!-- Autopilot and control configuration. -->
+    <fcs>
+      <!-- set value to true to enable the fcs -->
+      <enable type="bool">true</enable>
+
+      <!-- route or cas -->
+      <mode>route</mode> 
+
+      <!-- select the autopilot configuration -->
+      <!-- <autopilot include="autopilots/SeniorTelemaster.xml" /> -->
+      <!-- <autopilot include="autopilots/Malolo2-alt-thr.xml" /> -->
+      <!-- <autopilot include="autopilots/Rascal110-combined.xml" /> -->
+      <!-- <autopilot include="autopilots/Rascal110-wingleveler.xml" /> -->
+      <!-- <autopilot include="autopilots/Rascal110-pitchleveler.xml" /> -->
+      <!-- <autopilot include="autopilots/Rascal110-fgfs.xml" /> -->
+      <autopilot include="autopilots/FlyCamOne3.xml" />
+
+      <!-- set initial target speed when autopilot is activated -->
+      <initial-speed-kt>45</initial-speed-kt>
+    </fcs>
+
+    <!-- Primary route selection and configuration. -->
+    <route>
+      <!-- set value to true to enable the high level route management -->
+      <enable type="bool">true</enable>
+
+      <!-- <path>routes/NOAA.xml</path> -->
+      <!-- <path>routes/SPRC-bowtie.xml</path> -->
+      <!-- <path>routes/Jensen-tri.xml</path> -->
+      <!-- <path>routes/WinonaRC.xml</path> -->
+      <path>routes/bowtie.xml</path> <!-- relative bowtie -->
+    </route>
+
+    <!-- command augmentation system -->
+    <cas include="cas.xml" />
+
+    <!-- Actuator selection and configuration. -->
+    <actuators>
+      <throttle-safety>
+        <!-- throttle will be forced to zero when prop value is less than -->
+        <!-- minimum threshold -->
+        <prop>/position/altitude-filter-agl-ft</prop>
+        <min-value>100</min-value>
+      </throttle-safety>
+
+      <!-- set value to true to enable flying wing elevon mixing -->
+      <elevon-mixing type="bool">false</elevon-mixing>
+
+      <actuator include="actuators/fgfs24.xml" />
+      <!-- <actuator include="actuators/ardupilot.xml" /> -->
+    </actuators>
+
+  </config>
+
+</PropertyList>

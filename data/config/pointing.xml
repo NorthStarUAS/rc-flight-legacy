@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <!-- Pan/Tilt pointing, requires ATI's pointing module -->
+
+  <enable type="bool">true</enable>
+  <mechanism>tilt-roll</mechanism>
+
+</PropertyList>

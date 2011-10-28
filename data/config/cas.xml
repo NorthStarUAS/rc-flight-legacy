@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <aileron>
+    <min>-1.0</min>
+    <max>1.0</max>
+    <center>-0.025</center>
+    <dead-zone>0.05</dead-zone>
+    <full-rate-degps>60</full-rate-degps>
+  </aileron>
+
+  <elevator>
+    <min>-0.8</min>
+    <max>1.0</max>
+    <center>0.230</center>
+    <dead-zone>0.05</dead-zone>
+    <full-rate-degps>30</full-rate-degps>
+  </elevator>
+
+</PropertyList>

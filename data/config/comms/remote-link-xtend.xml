@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <enable type="bool">true</enable>
+
+  <lost-link-timeout-sec>60</lost-link-timeout-sec>
+
+  <type>uart</type> <!-- uart or uart-server -->
+  <device>/dev/ttyS0</device>
+  <host>localhost</host>
+  <port>6500</port>
+
+  <gps-skip>1</gps-skip>
+  <imu-skip>12</imu-skip> <!-- 9 -->
+  <airdata-skip>12</airdata-skip> <!-- 9 -->
+  <filter-skip>12</filter-skip> <!-- 4hz -->
+  <actuator-skip>12</actuator-skip>
+  <pilot-skip>12</pilot-skip>
+  <autopilot-skip>4</autopilot-skip> <!-- 2hz -->
+
+</PropertyList>

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <module>ardupilot-servo</module>
+  <enable type="bool">true</enable>
+
+  <device>/dev/ttyUSB0</device>
+  <baud>115200</baud>        
+
+</PropertyList>

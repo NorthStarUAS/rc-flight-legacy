@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <!-- FlyCamOne-3 Camera Control -->
+
+  <!-- Tilt -->
+  <pi-simple-controller>
+    <name>Tilt</name>
+    <debug>false</debug>
+    <enable>
+      <prop>/autopilot/locks/pointing</prop>
+      <value>on</value>
+    </enable>
+    <input>
+      <prop>/pointing/tilt-deg</prop>
+    </input>
+    <reference>
+      <value>0.0</value>
+    </reference>
+    <output>
+      <prop>/controls/flight/elevator</prop>
+      <offset-value>0.0</offset-value>
+    </output>
+    <config>
+      <Kp>0.0125</Kp>        <!-- proportional gain -->
+      <u_min>-1.5</u_min>  <!-- minimum output clamp -->
+      <u_max>1.5</u_max>   <!-- maximum output clamp -->
+    </config>
+  </pi-simple-controller>
+
+  <!-- Roll -->
+  <pi-simple-controller>
+    <name>Roll</name>
+    <debug>false</debug>
+    <enable>
+      <prop>/autopilot/locks/pointing</prop>
+      <value>on</value>
+    </enable>
+    <input>
+      <prop>/pointing/roll-deg</prop>
+    </input>
+    <reference>
+      <value>0.0</value>
+    </reference>
+    <output>
+      <prop>/controls/flight/aileron</prop>
+      <offset-value>0.0</offset-value>
+    </output>
+    <config>
+      <Kp>0.0125</Kp>	  <!-- proportional gain -->
+      <u_min>-1.5</u_min> <!-- minimum output clamp -->
+      <u_max>1.5</u_max>  <!-- maximum output clamp -->
+    </config>
+  </pi-simple-controller>
+
+</PropertyList>

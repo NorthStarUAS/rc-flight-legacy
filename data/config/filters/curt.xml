@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <!-- Curt/ATI playground -->
+  <module>curt</module>
+  <enable type="bool">false</enable>
+
+</PropertyList>

@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <pid-controller>
+    <!-- Simple pitch leveler mode -->
+    <name>Pitch leveler</name>
+    <debug>false</debug>
+    <enable>
+      <prop>/autopilot/locks/altitude</prop>
+      <value>pitch-leveler</value>
+    </enable>
+    <input>
+      <prop>/orientation/pitch-deg</prop>
+    </input>
+    <reference>
+      <prop>/autopilot/settings/target-pitch</prop>
+    </reference>
+    <output>
+      <prop>/controls/flight/elevator</prop>
+    </output>
+    <config>
+      <Kp>-0.05</Kp>
+      <beta>1.0</beta>
+      <alpha>0.1</alpha>
+      <gamma>0.0</gamma>
+      <Ti>0.5</Ti>
+      <Td>0.001</Td>
+      <u_min>-0.25</u_min>
+      <u_max>0.25</u_max>
+    </config>
+  </pid-controller>
+
+</PropertyList>
