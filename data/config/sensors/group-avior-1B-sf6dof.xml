@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <imu-group>
+    <imu>
+      <source>sf6DOFv4</source>
+      <enable type="bool">true</enable>
+      <device>/dev/ttyS2</device>
+      <p-bias>419.6</p-bias> <p-scale>0.06857</p-scale>
+      <q-bias>423.0</q-bias> <q-scale>-0.06857</q-scale>
+      <r-bias>416.1</r-bias> <r-scale>-0.06857</r-scale>
+      <ax-bias>513.0</ax-bias> <ax-scale>0.1072</ax-scale>
+      <ay-bias>517.0</ay-bias> <ay-scale>0.1010</ay-scale>
+      <az-bias>515.2</az-bias> <az-scale>-0.1072</az-scale>
+      <hx-bias>512.0</hx-bias> <hx-scale>0.1072</hx-scale>
+      <hy-bias>512.0</hy-bias> <hy-scale>0.1010</hy-scale>
+      <hz-bias>512.0</hz-bias> <hz-scale>-0.1072</hz-scale>
+    </imu>
+  </imu-group>
+
+  <gps-group>
+    <gps>
+      <source>ublox5</source>
+      <enable type="bool">true</enable>
+      <device>/dev/ttyS1</device>
+    </gps>
+  </gps-group>
+
+  <air-data-group>
+    <air-data>
+      <source>ardupilot</source>
+      <enable type="bool">true</enable>
+    </air-data>
+  </air-data-group>
+
+  <pilot-inputs>
+    <pilot-input>
+      <source>ardupilot</source>
+      <enable type="bool">true</enable>
+    </pilot-input>
+  </pilot-inputs>
+
+</PropertyList>
+

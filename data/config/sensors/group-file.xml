@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <imu-group>
+    <imu>
+      <enable type="bool">false</enable>
+      <source>file</source>
+      <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN-chop</name>
+    </imu>
+  </imu-group>
+
+  <gps-group>
+    <gps>
+      <enable type="bool">false</enable>
+      <source>file</source>
+      <name>/home/curt/Projects/Lockheed-Martin/IMU-Comparison/FlightData/Flight1/UMN-chop</name>
+    </gps>
+  </gps-group>
+
+</PropertyList>

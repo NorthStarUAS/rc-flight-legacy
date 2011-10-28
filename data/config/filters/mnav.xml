@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <!-- MNAV based AHRS + Navigation algorithm -->
+  <module>mnav</module>
+  <enable type="bool">false</enable>
+
+  <!-- hard iron calibration parameters, see the readme for -->
+  <!-- configuration and calibration instructions. -->
+  <bBx>0.0</bBx>
+  <bBy>0.0</bBy>
+  <sfx>1.0</sfx>
+  <sfy>1.0</sfy>
+
+</PropertyList>
