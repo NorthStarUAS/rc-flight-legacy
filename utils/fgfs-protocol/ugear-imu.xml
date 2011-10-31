@@ -19,19 +19,19 @@
     <chunk>
       <name>roll rate ("p" rad/sec)</name>
       <type>float</type>
-      <node>/fdm/jsbsim/velocities/pi-rad_sec</node>
+      <node>/orientation/p-body</node>
     </chunk>
 
     <chunk>
       <name>pitch rate ("q" rad/sec)</name>
       <type>float</type>
-      <node>/fdm/jsbsim/velocities/qi-rad_sec</node>
+      <node>/orientation/q-body</node>
     </chunk>
 
     <chunk>
       <name>yaw rate ("r" rad/sec)</name>
       <type>float</type>
-      <node>/fdm/jsbsim/velocities/ri-rad_sec</node>
+      <node>/orientation/r-body</node>
     </chunk>
 
     <chunk>
