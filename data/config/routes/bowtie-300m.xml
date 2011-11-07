@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <enable type="bool">true</enable>
+
+  <wpt>
+    <offset-heading-deg>-20</offset-heading-deg>
+    <offset-dist-m>300</offset-dist-m>
+    <agl-ft>500</agl-ft>
+  </wpt>
+
+  <wpt>
+    <offset-heading-deg>20</offset-heading-deg>
+    <offset-dist-m>300</offset-dist-m>
+    <agl-ft>500</agl-ft>
+  </wpt>
+
+  <wpt>
+    <offset-heading-deg>-160</offset-heading-deg>
+    <offset-dist-m>300</offset-dist-m>
+    <agl-ft>500</agl-ft>
+  </wpt>
+
+  <wpt>
+    <offset-heading-deg>160</offset-heading-deg>
+    <offset-dist-m>300</offset-dist-m>
+    <agl-ft>500</agl-ft>
+  </wpt>
+
+</PropertyList>

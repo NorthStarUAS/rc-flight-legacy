@@ -3,7 +3,7 @@
 <PropertyList>
 
   <module>fgfs</module>
-  <host>192.168.1.102</host>
+  <host>localhost</host>
   <port>6503</port>
   <enable type="bool">true</enable>
 

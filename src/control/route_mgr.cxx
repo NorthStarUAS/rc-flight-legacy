@@ -58,6 +58,8 @@ FGRouteMgr::FGRouteMgr() :
     target_msl_ft( NULL ),
     override_msl_ft( NULL ),
     target_waypoint( NULL ),
+    wp_dist_m( NULL ),
+    wp_eta_sec( NULL ),
     route_mode_node( NULL ),
     home_lon_node( NULL ),
     home_lat_node( NULL ),
@@ -82,7 +84,7 @@ FGRouteMgr::~FGRouteMgr() {
 
 // bind property nodes
 void FGRouteMgr::bind() {
-    config_props = fgGetNode( "/routes/route", true );
+    config_props = fgGetNode( "/config/route", true );
 
     lon_node = fgGetNode( "/position/longitude-deg", true );
     lat_node = fgGetNode( "/position/latitude-deg", true );
@@ -101,6 +103,8 @@ void FGRouteMgr::bind() {
         = fgGetNode( "/autopilot/settings/override-agl-ft", true );
     target_waypoint
 	= fgGetNode( "/autopilot/route-mgr/target-waypoint-idx", true );
+    wp_dist_m = fgGetNode( "/autopilot/route-mgr/wp-dist-m", true );
+    wp_eta_sec = fgGetNode( "/autopilot/route-mgr/wp-eta-m", true );
 
     route_mode_node = fgGetNode("/routes/mode", true);
 
@@ -124,35 +128,16 @@ void FGRouteMgr::bind() {
 void FGRouteMgr::init() {
     bind();
 
-    SGPropertyNode *root_n = fgGetNode("/config/root-path");
-    SGPropertyNode *path_n = fgGetNode("/config/route/path");
-
     route->clear();
 
-    if ( path_n ) {
-        SGPath config( root_n->getStringValue() );
-        config.append( path_n->getStringValue() );
-
-        printf("Reading route configuration from %s\n", config.c_str() );
-        try {
-            readProperties( config.str(), config_props );
-
-            if ( ! build() ) {
-	        printf("Detected an internal inconsistency in the route\n");
-                printf(" configuration.  See earlier errors for\n" );
-                printf(" details.");
-                exit(-1);
-            }
-
-            set_route_mode();
-        } catch (const sg_exception& exc) {
-            printf("Failed to load route configuration: %s\n",
-                   config.c_str());
-        }
-
-    } else {
-        printf("No autopilot configuration specified in master.xml file!");
+    if ( ! build() ) {
+	printf("Detected an internal inconsistency in the route\n");
+	printf(" configuration.  See earlier errors for\n" );
+	printf(" details.");
+	exit(-1);
     }
+
+    set_route_mode();
 }
 
 
@@ -205,6 +190,8 @@ void FGRouteMgr::update() {
         // sort of slow circling mode and either hold altitude or
         // maybe do a slow speed decent to minimize our momentum.
     }
+
+    wp_dist_m->setFloatValue( wp_distance );
 
     // update target altitude based on waypoint targets and possible
     // overrides ... preference is given to agl if both agl & msl are
@@ -266,6 +253,11 @@ void FGRouteMgr::update() {
     //   printf("af: hd=%.1f gs=%.1f\n", hd * SGD_RADIANS_TO_DEGREES, gs);
     // }
 
+    if ( gs > 0.1 ) {
+	wp_eta_sec->setFloatValue( wp_distance / (gs * SG_KT_TO_MPS) );
+    } else {
+	wp_eta_sec->setFloatValue( 0.0 );
+    }
 
 #if 0
     if ( display_on ) {
@@ -363,6 +355,8 @@ bool FGRouteMgr::build() {
         if ( name == "wpt" ) {
             SGWayPoint wpt( node );
             route->add_waypoint( wpt );
+	} else if ( name == "enable" ) {
+	    // happily ignore this
         } else {
             printf("Unknown top level section: %s\n", name.c_str() );
             return false;

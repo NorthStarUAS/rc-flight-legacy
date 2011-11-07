@@ -59,7 +59,6 @@ using std::string;
 
 static const int HEARTBEAT_HZ = 50;	 // master clock rate
 
-static bool log_servo_out  = true;    // log outgoing servo commands by default
 static bool enable_control = false;   // autopilot control module enabled/disabled
 static bool enable_route   = true;    // route module enabled/disabled
 static bool enable_cas     = false;   // cas module enabled/disabled
@@ -279,8 +278,8 @@ void timer_handler (int signum)
     //
 
     if ( enable_route ) {
-	// route updates at 10 hz
-	if ( route_counter >= (HEARTBEAT_HZ / 5) ) {
+	// route updates at 25 hz
+	if ( route_counter >= (HEARTBEAT_HZ / 25) ) {
 	    route_counter = 0;
 	    route_mgr_prof.start();
 	    route_mgr.update();
@@ -399,10 +398,6 @@ int main( int argc, char **argv )
     // initialize properties
     props = new SGPropertyNode;
 
-    string root = ".";
-    SGPropertyNode *root_node = fgGetNode("/config/root-path", true);
-    root_node->setStringValue( root.c_str() );
-
     UGGlobals_init();
 
     // initialize profiling names
@@ -430,9 +425,24 @@ int main( int argc, char **argv )
     debug6.set_name("debug6 (ap+actuator)");
     debug7.set_name("debug7 (logging)");
 
+    // determine config root path
+    string root = "./config";
+
+    // Parse command line: Pass #1 scan for a custom config root on
+    // command line
+    for ( iarg = 1; iarg < argc; iarg++ ) {
+	if ( !strcmp(argv[iarg], "--config" )  ) {
+	    ++iarg;
+	    root = argv[iarg];
+	    break;
+	}
+    }
+    SGPropertyNode *root_node = fgGetNode("/config/root-path", true);
+    root_node->setStringValue( root.c_str() );
+
     // load master config file
     SGPath master( root );
-    master.append( "config/main.xml" );
+    master.append( "main.xml" );
     try {
         readProperties( master.c_str(), props);
         printf("Loaded configuration from %s\n", master.c_str());
@@ -495,16 +505,13 @@ int main( int argc, char **argv )
     p = fgGetNode("/config/route/enable", true);
     enable_route = p->getBoolValue();
 
-    // Parse the command line
+    // Parse the command line: pass #2 allows command line options to
+    // override config file options
     for ( iarg = 1; iarg < argc; iarg++ ) {
         if ( !strcmp(argv[iarg], "--log-dir" )  ) {
             ++iarg;
             log_path.set( argv[iarg] );
             log_to_file = true;
-        } else if ( !strcmp(argv[iarg],"--log-servo") ) {
-            ++iarg;
-            if ( !strcmp(argv[iarg], "out") ) log_servo_out = true;
-            if ( !strcmp(argv[iarg], "in") ) log_servo_out = false;
         } else if ( !strcmp(argv[iarg], "--mnav" )  ) {
             ++iarg;
 	    p = fgGetNode("/config/sensors/mnav/device", true);
@@ -521,6 +528,9 @@ int main( int argc, char **argv )
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) display_on = true;
             if ( !strcmp(argv[iarg], "off") ) display_on = false;
+        } else if ( !strcmp(argv[iarg], "--config" )  ) {
+   	    // considered earlier in first pass
+            ++iarg;
         } else if ( !strcmp(argv[iarg], "--help") ) {
             usage();
         } else {
