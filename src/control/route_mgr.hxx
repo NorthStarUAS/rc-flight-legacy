@@ -75,6 +75,8 @@ private:
     SGPropertyNode_ptr target_msl_ft;
     SGPropertyNode_ptr override_msl_ft;
     SGPropertyNode_ptr target_waypoint;
+    SGPropertyNode_ptr wp_dist_m;
+    SGPropertyNode_ptr wp_eta_sec;
 
     // route following mode
     SGPropertyNode *route_mode_node;

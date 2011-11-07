@@ -38,6 +38,20 @@ static SGPropertyNode *act_channel6_node = NULL;
 static SGPropertyNode *act_channel7_node = NULL;
 static SGPropertyNode *act_channel8_node = NULL;
 
+// additional autopilot target nodes (note this is a hack, but we are
+// sending data back to FG in this module so it makes some sense to
+// include autopilot targets.)
+static SGPropertyNode *ap_target_bank_deg = NULL;
+static SGPropertyNode *ap_target_pitch_deg = NULL;
+static SGPropertyNode *ap_target_ground_track_deg = NULL;
+static SGPropertyNode *ap_target_climb_fps = NULL;
+static SGPropertyNode *filter_ground_alt_m_node = NULL;
+static SGPropertyNode *ap_altitude_agl = NULL;
+static SGPropertyNode *ap_target_speed_kt = NULL;
+static SGPropertyNode *ap_heading_deg = NULL;
+static SGPropertyNode *ap_ground_track_deg = NULL;
+static SGPropertyNode *ap_dist_m = NULL;
+static SGPropertyNode *ap_eta_sec = NULL;
 
 // initialize fgfs_gps input property nodes
 static void bind_input( SGPropertyNode *config ) {
@@ -64,6 +78,19 @@ static void bind_act_nodes() {
     act_channel6_node = fgGetNode("/actuators/actuator/channel", 5, true);
     act_channel7_node = fgGetNode("/actuators/actuator/channel", 6, true);
     act_channel8_node = fgGetNode("/actuators/actuator/channel", 7, true);
+
+    ap_target_bank_deg = fgGetNode("/autopilot/settings/target-roll-deg", true);
+    ap_target_pitch_deg = fgGetNode( "/autopilot/settings/target-pitch-deg", true );
+    ap_heading_deg = fgGetNode( "/orientation/heading-deg", true );
+    ap_target_ground_track_deg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
+    ap_target_climb_fps = fgGetNode("/autopilot/internal/target-climb-rate-fps", true);
+    filter_ground_alt_m_node
+	= fgGetNode("/position/ground-altitude-filter-m", true);
+    ap_altitude_agl = fgGetNode( "/autopilot/settings/target-agl-ft", true );
+    ap_target_speed_kt = fgGetNode( "/autopilot/settings/target-speed-kt", true );
+    ap_ground_track_deg = fgGetNode( "/orientation/groundtrack-deg", true );
+    ap_dist_m = fgGetNode( "/autopilot/route-mgr/wp-dist-m", true );
+    ap_eta_sec =  fgGetNode( "/autopilot/route-mgr/wp-eta-m", true );
 }
 
 
@@ -107,7 +134,7 @@ static void my_swap( uint8_t *buf, int index, int count )
 
 
 bool fgfs_act_update() {
-    const int fgfs_act_size = 40;
+    const int fgfs_act_size = 76;
     uint8_t packet_buf[fgfs_act_size];
     uint8_t *buf = packet_buf;
 
@@ -138,6 +165,43 @@ bool fgfs_act_update() {
     float ch8 = act_channel8_node->getFloatValue();
     *(float *)buf = ch8; buf += 4;
 
+    float bank = ap_target_bank_deg->getFloatValue() * 100 + 18000.0;
+    *(float *)buf = bank; buf += 4;
+
+    float pitch = ap_target_pitch_deg->getFloatValue() * 100 + 9000.0;
+    *(float *)buf = pitch; buf += 4;
+
+    float target_track_offset = ap_target_ground_track_deg->getFloatValue()
+	- ap_heading_deg->getFloatValue();
+    if ( target_track_offset < -180 ) { target_track_offset += 360.0; }
+    if ( target_track_offset > 180 ) { target_track_offset -= 360.0; }
+    float hdg = target_track_offset * 100 + 36000.0;
+    *(float *)buf = hdg; buf += 4;
+
+    float climb = ap_target_climb_fps->getFloatValue() * 1000 + 100000.0;
+    *(float *)buf = climb; buf += 4;
+
+    float alt_agl_ft = ap_altitude_agl->getFloatValue();
+    float ground_m = filter_ground_alt_m_node->getFloatValue();
+    float alt_msl_ft = (ground_m * SG_METER_TO_FEET + alt_agl_ft) * 100.0;
+    *(float *)buf = alt_msl_ft; buf += 4;
+
+    float speed = ap_target_speed_kt->getFloatValue() * 100;
+    *(float *)buf = speed; buf += 4;
+
+    float track_offset = ap_ground_track_deg->getFloatValue()
+	- ap_heading_deg->getFloatValue();
+    if ( track_offset < -180 ) { track_offset += 360.0; }
+    if ( track_offset > 180 ) { track_offset -= 360.0; }
+    float offset = track_offset * 100 + 36000.0;
+    *(float *)buf = offset; buf += 4;
+
+    float dist = ap_dist_m->getFloatValue() / 10.0;
+    *(float *)buf = dist; buf += 4;
+
+    float eta = ap_eta_sec->getFloatValue();
+    *(float *)buf = eta; buf += 4;
+
     if ( ulIsLittleEndian ) {
 	my_swap( packet_buf, 0, 8 );
 	my_swap( packet_buf, 8, 4 );
@@ -148,6 +212,15 @@ bool fgfs_act_update() {
 	my_swap( packet_buf, 28, 4 );
 	my_swap( packet_buf, 32, 4 );
 	my_swap( packet_buf, 36, 4 );
+	my_swap( packet_buf, 40, 4 );
+	my_swap( packet_buf, 44, 4 );
+	my_swap( packet_buf, 48, 4 );
+	my_swap( packet_buf, 52, 4 );
+	my_swap( packet_buf, 56, 4 );
+	my_swap( packet_buf, 60, 4 );
+	my_swap( packet_buf, 64, 4 );
+	my_swap( packet_buf, 68, 4 );
+	my_swap( packet_buf, 72, 4 );
     }
 
     int result = sock.send( packet_buf, fgfs_act_size, 0 );

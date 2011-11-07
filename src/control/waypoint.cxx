@@ -94,8 +94,15 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
             }
         }
     }
-    printf("WPT: %.6f %.6f %.0f (MSL) %.0f (AGL) %.0f (kts)\n",
-           target_lon, target_lat, target_alt_m, target_agl_m, target_speed_kt);
+    if ( fabs(offset_dist_m) < 0.1 ) {
+	printf("WPT: %.6f %.6f %.0f (MSL) %.0f (AGL) %.0f (kts)\n",
+	       target_lon, target_lat, target_alt_m, target_agl_m,
+	       target_speed_kt);
+    } else {
+	printf("WPT: %4.0f deg %.0fm %.0f (MSL) %.0f (AGL) %.0f (kts)\n",
+	       offset_hdg_deg, offset_dist_m, target_alt_m, target_agl_m,
+	       target_speed_kt);
+    }
 }
 
 

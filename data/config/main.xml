@@ -16,7 +16,8 @@
     <telnet include="comms/telnet.xml" />
 
     <!-- Sensor selection and configuration. -->
-    <sensors include="sensors/group-avior-1C.xml" />
+    <!-- <sensors include="sensors/group-avior-1C.xml" /> -->
+    <sensors include="sensors/group-fgfs24.xml" />
 
     <!-- Filters configuration -->
     <filters>
@@ -53,24 +54,15 @@
       <!-- <autopilot include="autopilots/Rascal110-combined.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-wingleveler.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-pitchleveler.xml" /> -->
-      <!-- <autopilot include="autopilots/Rascal110-fgfs.xml" /> -->
-      <autopilot include="autopilots/FlyCamOne3.xml" />
+      <autopilot include="autopilots/Rascal110-fgfs.xml" />
+      <!-- <autopilot include="autopilots/FlyCamOne3.xml" /> -->
 
       <!-- set initial target speed when autopilot is activated -->
       <initial-speed-kt>45</initial-speed-kt>
     </fcs>
 
     <!-- Primary route selection and configuration. -->
-    <route>
-      <!-- set value to true to enable the high level route management -->
-      <enable type="bool">true</enable>
-
-      <!-- <path>routes/NOAA.xml</path> -->
-      <!-- <path>routes/SPRC-bowtie.xml</path> -->
-      <!-- <path>routes/Jensen-tri.xml</path> -->
-      <!-- <path>routes/WinonaRC.xml</path> -->
-      <path>routes/bowtie.xml</path> <!-- relative bowtie -->
-    </route>
+    <route include="routes/bowtie-300m.xml" />
 
     <!-- command augmentation system -->
     <cas include="cas.xml" />
