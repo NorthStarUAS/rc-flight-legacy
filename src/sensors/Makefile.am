@@ -21,4 +21,4 @@ libsensors_a_SOURCES = \
 	ardupilot.cxx ardupilot.hxx \
 	ugfile.cpp ugfile.h
 
-INCLUDES = -I$(top_srcdir)/src
+INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src

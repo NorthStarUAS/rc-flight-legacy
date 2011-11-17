@@ -15,4 +15,4 @@ libmath_a_SOURCES = \
 	SGVec4.hxx \
 	simgear_constants.h
 
-INCLUDES = -I$(top_srcdir)/src
+INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src

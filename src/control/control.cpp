@@ -15,7 +15,7 @@
 #include "include/globaldefs.h"
 #include "sensors/mnav.h"
 
-#include "util.h"
+#include "include/util.h"
 #include "xmlauto.hxx"
 
 #include "control.h"

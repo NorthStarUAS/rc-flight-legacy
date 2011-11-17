@@ -6,6 +6,7 @@ SUBDIRS = \
 	health \
 	include \
 	math \
+	mission \
 	sensors \
 	util \
 	xml \

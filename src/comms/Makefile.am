@@ -12,4 +12,4 @@ libcomms_a_SOURCES = \
 	serial.cxx serial.hxx \
 	telnet.cxx telnet.hxx
 
-INCLUDES = -I$(top_srcdir)/src
+INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
