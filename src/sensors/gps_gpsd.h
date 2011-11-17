@@ -13,7 +13,7 @@
 #define _UGEAR_GPS_GPSD_H
 
 
-#include "globaldefs.h"
+#include "include/globaldefs.h"
 
 void gpsd_init( string rootname, SGPropertyNode *config );
 bool gpsd_get_gps();

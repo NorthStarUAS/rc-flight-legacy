@@ -13,7 +13,7 @@
 
 #include <comms/logging.h>
 
-#include "globaldefs.h"
+#include "include/globaldefs.h"
 
 //global variables
 static double exe_rate[5];

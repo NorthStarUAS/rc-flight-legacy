@@ -16,4 +16,4 @@ libsgxml_a_SOURCES = \
 	xmltok.h xmltok.c \
 	xmltok_impl.h
 
-INCLUDES = -I$(top_srcdir)/src
+INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src

@@ -12,4 +12,4 @@ libutil_a_SOURCES = \
 	strutils.hxx strutils.cxx \
         timing.cpp timing.h
 
-INCLUDES = -I$(top_srcdir)/src
+INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
