@@ -41,4 +41,4 @@ ugear_LDADD = \
 	$(top_builddir)/src/util/libutil.a \
 	$(top_builddir)/src/xml/libsgxml.a
 
-INCLUDES = -I$(top_srcdir)/src
+INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src

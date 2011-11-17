@@ -12,7 +12,7 @@
 #define _UGEAR_GPS_UBLOX5_H
 
 
-#include "globaldefs.h"
+#include "include/globaldefs.h"
 
 void gps_ublox5_init( string rootname, SGPropertyNode *config );
 bool gps_ublox5_update();

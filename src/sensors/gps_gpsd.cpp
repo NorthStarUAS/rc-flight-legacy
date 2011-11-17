@@ -13,7 +13,7 @@
 
 using std::string;
 
-#include "globaldefs.h"
+#include "include/globaldefs.h"
 
 #include "comms/logging.h"
 #include "comms/netSocket.h"

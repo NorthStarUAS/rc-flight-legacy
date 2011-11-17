@@ -23,7 +23,7 @@
 
 using std::string;
 
-#include "globaldefs.h"
+#include "include/globaldefs.h"
 
 #include "comms/logging.h"
 #include "math/SGMath.hxx"

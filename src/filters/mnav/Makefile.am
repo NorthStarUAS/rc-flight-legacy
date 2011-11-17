@@ -6,4 +6,4 @@ libadns_mnav_a_SOURCES = \
 	nav.cpp nav.h \
 	navfunc.cpp navfunc.h
 
-INCLUDES = -I$(top_srcdir)/src
+INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src

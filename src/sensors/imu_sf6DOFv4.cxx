@@ -15,7 +15,7 @@
 #include <unistd.h>		// tcgetattr() et. al.
 #include <string.h>		// memset(), strerror()
 
-#include "globaldefs.h"
+#include "include/globaldefs.h"
 
 #include "comms/logging.h"
 #include "util/strutils.hxx"
