@@ -49,23 +49,24 @@
       <mode>route</mode> 
 
       <!-- select the autopilot configuration -->
+      <autopilot include="autopilots/Resolution3.xml" />
       <!-- <autopilot include="autopilots/SeniorTelemaster.xml" /> -->
       <!-- <autopilot include="autopilots/Malolo2-alt-thr.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-combined.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-wingleveler.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-pitchleveler.xml" /> -->
-      <autopilot include="autopilots/Rascal110-fgfs.xml" />
+      <!-- <autopilot include="autopilots/Rascal110-fgfs.xml" /> -->
       <!-- <autopilot include="autopilots/FlyCamOne3.xml" /> -->
 
       <!-- set initial target speed when autopilot is activated -->
-      <initial-speed-kt>45</initial-speed-kt>
+      <initial-speed-kt>40</initial-speed-kt>
     </fcs>
 
     <!-- Primary route selection and configuration. -->
     <route include="routes/bowtie-300m.xml" />
 
     <!-- command augmentation system -->
-    <cas include="cas.xml" />
+    <!-- <cas include="cas.xml" /> -->
 
     <!-- Actuator selection and configuration. -->
     <actuators>
@@ -77,7 +78,7 @@
       </throttle-safety>
 
       <!-- set value to true to enable flying wing elevon mixing -->
-      <elevon-mixing type="bool">false</elevon-mixing>
+      <elevon-mixing type="bool">true</elevon-mixing>
 
       <actuator include="actuators/fgfs24.xml" />
       <!-- <actuator include="actuators/ardupilot.xml" /> -->
