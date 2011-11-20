@@ -1,5 +1,3 @@
-EXTRA_DIST = config.xml
-
 if ENABLE_MNAV_FILTER
 MNAV_LIBS = $(top_builddir)/src/filters/mnav/libadns_mnav.a
 else

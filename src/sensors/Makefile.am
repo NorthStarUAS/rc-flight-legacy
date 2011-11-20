@@ -16,7 +16,7 @@ libsensors_a_SOURCES = \
 	gps_fgfs.cxx gps_fgfs.hxx \
 	gps_ublox5.cxx gps_ublox5.h \
 	$(MNAV_SENSOR) \
-	pilot_mgr.cxx pilot_mgr.hxx \
+	pilot_mgr.cxx pilot_mgr.h \
 	pilot_fgfs.cxx pilot_fgfs.hxx \
 	ardupilot.cxx ardupilot.hxx \
 	ugfile.cpp ugfile.h
