@@ -232,7 +232,22 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
  	gps_satellites_node->setIntValue( numSV );
  	gps_fix_type_node->setIntValue( gpsFix );
 
-	if ( gpsFix == 3 ) {
+	if ( fabs(ecefX) > 650000000
+	     || fabs(ecefY) > 650000000
+	     || fabs(ecefZ) > 650000000 ) {
+	    // earth radius is about 6371km (637,100,000 cm).  If one
+	    // of the ecef coordinates is beyond this radius we know
+	    // we have bad data.  This means we won't toss data until
+	    // above about 423,000' MSL
+	    if ( event_log_on ) {
+		event_log( "ublox5", "received bogus ecef data" );
+	    }
+	} else if ( wgs84.getElevationM() > 60000 ) {
+	    // sanity check: assume altitude > 60k meters (200k feet) is bad
+	} else if ( wgs84.getElevationM() < -1000 ) {
+	    // sanity check: assume altitude < -1000 meters (-3000 feet) is bad
+	} else if ( gpsFix == 3 ) {
+	    // passed basic sanity checks and gps is reporting a 3d fix
 	    new_position = true;
 	    gps_timestamp_node->setDoubleValue( get_Time() );
 	    gps_lat_node->setDoubleValue( wgs84.getLatitudeDeg() );
