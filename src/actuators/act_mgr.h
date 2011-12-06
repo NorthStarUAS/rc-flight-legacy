@@ -12,14 +12,6 @@
 #ifndef _UGEAR_ACT_MGR_H
 #define _UGEAR_ACT_MGR_H
 
-#include "include/globaldefs.h"
-
-//
-// global variables
-//
-
-/* extern struct servo servo_out; */
-
 
 void Actuator_init();
 bool Actuator_update();
