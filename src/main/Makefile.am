@@ -21,7 +21,7 @@ bin_PROGRAMS = ugear
 ugear_SOURCES = \
 	globals.cxx globals.hxx \
         imu_mgr.cxx imu_mgr.hxx \
-	ugear_gumstix.cpp
+	ugear_mission.cpp
 
 ugear_LDADD = \
 	$(top_builddir)/src/actuators/libactuators.a \
@@ -29,6 +29,7 @@ ugear_LDADD = \
 	$(top_builddir)/src/filters/curt/libadns_curt.a \
 	$(MNAV_LIBS) \
 	$(GNSS_LIBS) \
+	$(top_builddir)/src/mission/libmission.a \
 	$(top_builddir)/src/health/libhealth.a \
 	$(top_builddir)/src/math/libmath.a \
 	$(POINTING_LIBS) \
