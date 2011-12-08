@@ -10,6 +10,7 @@
 #include "include/globaldefs.h"
 
 #include "control/route_mgr.hxx"
+#include "mission/mission_mgr.hxx"
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
 #include "util/strutils.hxx"
@@ -386,21 +387,27 @@ static void remote_link_execute_command( const string command ) {
         // heart beat, ignore
 
     } else if ( token[0] == "home" && token.size() == 5 ) {
+
         // specify new home location
         double lon = atof( token[1].c_str() );
         double lat = atof( token[2].c_str() );
         // double alt_ft = atof( token[3].c_str() );
         double course_deg = atof( token[4].c_str() );
         SGWayPoint wp( lon, lat );
-        route_mgr.update_home( wp, course_deg, true );
+	FGRouteMgr *route_mgr = Mission_get_route_mgr();
+	if ( route_mgr != NULL ) {
+	    route_mgr->update_home( wp, course_deg, true );
+	}
     } else if ( token[0] == "go" && token.size() == 2 ) {
-        // specify router mode
-        if ( token[1] == "home" ) {
-            route_mgr.set_home_mode();
-        } else if ( token[1] == "route" ) {
-            route_mgr.set_route_mode();
-        }
-
+	FGRouteMgr *route_mgr = Mission_get_route_mgr();
+	if ( route_mgr != NULL ) {
+	    // specify router mode
+	    if ( token[1] == "home" ) {
+		route_mgr->set_home_mode();
+	    } else if ( token[1] == "route" ) {
+		route_mgr->set_route_mode();
+	    }
+	}
     } else if ( token[0] == "ap" && token.size() == 3 ) {
         // specify an autopilot target
         if ( token[1] == "agl-ft" ) {
@@ -421,12 +428,12 @@ static void remote_link_execute_command( const string command ) {
         }
     } else if ( token[0] == "wp" && token.size() == 5 ) {
         // specify new waypoint coordinates for a waypoint
-        int index = atoi( token[1].c_str() );
-        double lon = atof( token[2].c_str() );
-        double lat = atof( token[3].c_str() );
-        double alt_ft = atof( token[4].c_str() );
-        SGWayPoint wp( lon, lat, alt_ft * SG_FEET_TO_METER );
-        route_mgr.replace_waypoint( wp, index );
+        // int index = atoi( token[1].c_str() );
+        // double lon = atof( token[2].c_str() );
+        // double lat = atof( token[3].c_str() );
+        // double alt_ft = atof( token[4].c_str() );
+        // SGWayPoint wp( lon, lat, alt_ft * SG_FEET_TO_METER );
+        // route_mgr.replace_waypoint( wp, index );
     } else if ( token[0] == "laned" && token.size() == 4 ) {
 	// set ned-vector lookat mode
 	SGPropertyNode_ptr mode_node

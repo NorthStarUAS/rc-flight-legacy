@@ -129,7 +129,8 @@ public:
     int packetize_pilot( uint8_t *buf );
     void decode_pilot( uint8_t *buf );
 
-    int packetize_ap( uint8_t *buf, SGWayPoint *wp, int index );
+    int packetize_ap( uint8_t *buf, uint8_t route_size, SGWayPoint *wp,
+		      int index );
     void decode_ap( uint8_t *buf );
 
     int packetize_health( uint8_t *buf );

@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#include "control/route_mgr.hxx"
+// #include "control/route_mgr.hxx"
 #include "include/globaldefs.h"
 #include "util/timing.h"
 
@@ -465,7 +465,9 @@ void UGPacketizer::decode_pilot( uint8_t *buf ) {
 }
 
 
-int UGPacketizer::packetize_ap( uint8_t *buf, SGWayPoint *wp, int index ) {
+int UGPacketizer::packetize_ap( uint8_t *buf, uint8_t route_size,
+				SGWayPoint *wp, int index )
+{
     uint8_t *startbuf = buf;
 
     double time = get_Time();
@@ -497,7 +499,7 @@ int UGPacketizer::packetize_ap( uint8_t *buf, SGWayPoint *wp, int index ) {
     *(double *)buf = wp->get_target_lon(); buf += 8;
     *(double *)buf = wp->get_target_lat(); buf += 8;
     *(uint16_t *)buf = index; buf += 2;
-    *(uint16_t *)buf = route_mgr.size(); buf += 2;
+    *(uint16_t *)buf = route_size; buf += 2;
 
     int8_t seq = (int8_t)link_seq_num->getIntValue();
     *(int8_t *)buf = seq; buf++;

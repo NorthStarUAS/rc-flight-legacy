@@ -40,9 +40,6 @@
 #include "route_mgr.hxx"
 
 
-FGRouteMgr route_mgr;           // global route manager object
-
-
 FGRouteMgr::FGRouteMgr() :
     route( new SGRoute ),
     home_course_deg( 0.0 ),
@@ -286,15 +283,16 @@ void FGRouteMgr::update() {
 	int index = 0;
 	SGWayPoint wp;
 	if ( size() > 0 && wp_index < size() ) {
-	    wp = route_mgr.get_waypoint( wp_index );
+	    wp = get_waypoint( wp_index );
 	    index = wp_index;
 	} else {
-	    wp = route_mgr.get_home();
+	    wp = get_home();
 	    index = 65535;
 	}
 
 	uint8_t buf[256];
-	int pkt_size = packetizer->packetize_ap( buf, &wp, index );
+	int pkt_size = packetizer->packetize_ap( buf, size(), &wp,
+						 index );
 	
 	if ( remote_link_on ) {
 	    bool result = remote_link_ap( buf, pkt_size,
