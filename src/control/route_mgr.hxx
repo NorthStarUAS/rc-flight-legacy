@@ -147,7 +147,4 @@ public:
 };
 
 
-extern FGRouteMgr route_mgr;           // global route manager object
-
-
 #endif // _ROUTE_MGR_HXX
