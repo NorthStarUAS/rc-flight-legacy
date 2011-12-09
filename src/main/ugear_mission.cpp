@@ -193,7 +193,7 @@ void timer_handler (int signum)
 	SGWayPoint wp( gps_lon_node->getDoubleValue(),
 		       gps_lat_node->getDoubleValue(),
 		       -9999.9 );
-	FGRouteMgr *route_mgr = Mission_get_route_mgr();
+	FGRouteMgr *route_mgr = mission_mgr.get_route_mgr();
 	if ( route_mgr != NULL ) {
 	    if ( route_mgr->update_home(wp, 0.0, true /*force update*/) ) {
 		initial_home = true;
@@ -223,7 +223,7 @@ void timer_handler (int signum)
 		// FIXME: we shouldn't necessarily assume route
 		// mode just because we read a command from the
 		// ground station
-		FGRouteMgr *route_mgr = Mission_get_route_mgr();
+		FGRouteMgr *route_mgr = mission_mgr.get_route_mgr();
 		if ( route_mgr != NULL ) {
 		    if ( route_mgr->get_route_mode()
 			 != FGRouteMgr::FollowRoute )
@@ -253,7 +253,7 @@ void timer_handler (int signum)
 	    // resume when communications are reestablished
 	    // (presumably by flying back within range.)
 
-	    FGRouteMgr *route_mgr = Mission_get_route_mgr();
+	    FGRouteMgr *route_mgr = mission_mgr.get_route_mgr();
 	    if ( route_mgr != NULL ) {
 		if ( route_mgr->get_route_mode() != FGRouteMgr::GoHome ) {
 		    route_mgr->set_home_mode();
@@ -293,7 +293,7 @@ void timer_handler (int signum)
     //
 
     if ( enable_mission ) {
-	Mission_update();
+	mission_mgr.update();
     }
 
     if ( enable_cas ) {
@@ -595,7 +595,7 @@ int main( int argc, char **argv )
     }
 
     if ( enable_mission ) {
-	Mission_init();
+	mission_mgr.init();
     }
 
     if ( enable_cas ) {
