@@ -58,7 +58,7 @@ private:
     SGWayPoint home;
     double home_course_deg;
 
-    // route configuration
+    // route configuration tree
     SGPropertyNode_ptr config_props;
 
     // automatic inputs
@@ -114,7 +114,7 @@ public:
 
     void bind();
 
-    void init();
+    void init( SGPropertyNode *branch );
 
     void update();
 
