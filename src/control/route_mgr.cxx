@@ -81,8 +81,6 @@ FGRouteMgr::~FGRouteMgr() {
 
 // bind property nodes
 void FGRouteMgr::bind() {
-    config_props = fgGetNode( "/config/route", true );
-
     lon_node = fgGetNode( "/position/longitude-deg", true );
     lat_node = fgGetNode( "/position/latitude-deg", true );
     alt_node = fgGetNode( "/position/altitude-ft", true );
@@ -122,7 +120,9 @@ void FGRouteMgr::bind() {
 }
 
 
-void FGRouteMgr::init() {
+void FGRouteMgr::init( SGPropertyNode *branch ) {
+    config_props = branch;
+
     bind();
 
     route->clear();

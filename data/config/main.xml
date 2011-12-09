@@ -62,11 +62,8 @@
       <initial-speed-kt>45</initial-speed-kt>
     </fcs>
 
-    <!-- Primary route selection and configuration. -->
-    <mission>
-      <enable type="bool">true</enable>
-    </mission>
-    <route include="routes/bowtie-300m.xml" />
+    <!-- Primary mission selection and configuration. -->
+    <mission include="missions/demo1.xml" />
 
     <!-- command augmentation system -->
     <!-- <cas include="cas.xml" /> -->
