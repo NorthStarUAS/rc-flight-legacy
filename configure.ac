@@ -117,6 +117,7 @@ AC_CONFIG_FILES([ \
         src/main/Makefile \
 	src/math/Makefile \
         src/mission/Makefile \
+        src/mission/tasks/Makefile \
         src/props/Makefile \
         src/sensors/Makefile \
         src/util/Makefile \
