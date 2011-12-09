@@ -88,6 +88,7 @@ myprofile debug7;
 void usage()
 {
     printf("\n./ugear --option1 on/off --option2 on/off --option3 ... \n");
+    printf("--config path        : path to location of configuration file tree\n");
     printf("--log-dir path       : enable onboard data logging to path\n");
     printf("--log-servo in/out   : specify which servo data to log (out=default)\n");
     printf("--mnav <device>      : specify mnav communication device\n");
@@ -610,6 +611,7 @@ int main( int argc, char **argv )
     // timing is based on wall clock)
     memset (&sa, 0, sizeof (sa));
     sa.sa_handler = &timer_handler;
+
     sigaction (SIGALRM, &sa, NULL);
 
     // Configure the timer to expire after 10,000 usec (1/100th of a second)

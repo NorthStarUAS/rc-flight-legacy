@@ -57,4 +57,4 @@ echo "./configure CC=arm-angstrom-linux-gnueabi-gcc CFLAGS="-Wall -O2" CXX=arm-a
 echo ""
 echo "or ..."
 echo ""
-echo "./configure CFLAGS=\"-Wall -O2\" CXXFLAGS=\"-Wall -O2\" --host=arm-linux"
+echo "../configure CFLAGS=\"-Wall -O3\" CXXFLAGS=\"-Wall -O3\" --prefix=/your/path/to/supporting/libs"
