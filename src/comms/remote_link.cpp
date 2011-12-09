@@ -394,12 +394,12 @@ static void remote_link_execute_command( const string command ) {
         // double alt_ft = atof( token[3].c_str() );
         double course_deg = atof( token[4].c_str() );
         SGWayPoint wp( lon, lat );
-	FGRouteMgr *route_mgr = Mission_get_route_mgr();
+	FGRouteMgr *route_mgr = mission_mgr.get_route_mgr();
 	if ( route_mgr != NULL ) {
 	    route_mgr->update_home( wp, course_deg, true );
 	}
     } else if ( token[0] == "go" && token.size() == 2 ) {
-	FGRouteMgr *route_mgr = Mission_get_route_mgr();
+	FGRouteMgr *route_mgr = mission_mgr.get_route_mgr();
 	if ( route_mgr != NULL ) {
 	    // specify router mode
 	    if ( token[1] == "home" ) {
