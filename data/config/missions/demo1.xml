@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <enable type="bool">true</enable>
+
+  <!-- global tasks: each of these are run every iteration -->
+  <global-tasks>
+    <task>
+      <name>throttle-safety</name>
+      <min-alt-agl-ft>100</min-alt-agl-ft>
+    </task>
+
+    <task>
+      <name>lost-link</name>
+      <mode>go-home</mode> <!-- go-home, continue, self-destruct, new-route -->
+      <resume type="bool">true</resume> <!-- resume mission when/if link re-established? true/false -->
+    </task>
+  </global-tasks>
+
+  <!-- sequential tasks: only the front item in the fifo queue is run -->
+  <sequential-tasks>
+    <task>
+      <name>bungee-launch</name>
+      <finish-alt-agl-ft>150</finish-alt-agl-ft>
+    </task>
+
+    <task>
+      <name>route</name>
+      <route include="../routes/bowtie-300m.xml" />
+      <timed>0</timed>
+      <loop>0</loop>
+    </task>
+  </sequential-tasks>
+
+  <!-- standby tasks: a list of tasks that are initialized and configured -->
+  <!-- and could be moved to the global or sequential task lists at any -->
+  <!-- time. -->
+  <standby-tasks>
+  </standby-tasks>
+
+</PropertyList>

@@ -458,6 +458,7 @@ int main( int argc, char **argv )
     } catch (const sg_exception &exc) {
         printf("\n");
         printf("*** Cannot load master config file: %s\n", master.c_str());
+	printf("*** \n%s\n***\n", exc.getFormattedMessage().c_str());
         printf("\n");
         sleep(1);
     }
