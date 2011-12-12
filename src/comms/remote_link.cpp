@@ -387,17 +387,24 @@ static void remote_link_execute_command( const string command ) {
         // heart beat, ignore
 
     } else if ( token[0] == "home" && token.size() == 5 ) {
-
         // specify new home location
         double lon = atof( token[1].c_str() );
         double lat = atof( token[2].c_str() );
         // double alt_ft = atof( token[3].c_str() );
-        double course_deg = atof( token[4].c_str() );
-        SGWayPoint wp( lon, lat );
-	FGRouteMgr *route_mgr = mission_mgr.get_route_mgr();
-	if ( route_mgr != NULL ) {
-	    route_mgr->update_home( wp, course_deg, true );
-	}
+        double azimuth_deg = atof( token[4].c_str() );
+
+	SGPropertyNode_ptr home_lon_node
+	    = fgGetNode("/navigation/home/longitude-deg", true );
+	SGPropertyNode_ptr home_lat_node
+	    = fgGetNode("/navigation/home/latitude-deg", true );
+	SGPropertyNode_ptr home_azimuth_node
+	    = fgGetNode("/navigation/home/azimuth-deg", true );
+	SGPropertyNode_ptr home_set_node
+	    = fgGetNode("/navigation/home/valid", true );
+	home_lon_node->setDoubleValue( lon );
+	home_lat_node->setDoubleValue( lat );
+	home_azimuth_node->setDoubleValue( azimuth_deg );
+	home_set_node->setBoolValue( true );
     } else if ( token[0] == "go" && token.size() == 2 ) {
 	FGRouteMgr *route_mgr = mission_mgr.get_route_mgr();
 	if ( route_mgr != NULL ) {
