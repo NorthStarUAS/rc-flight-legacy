@@ -7,6 +7,10 @@
   <!-- global tasks: each of these are run every iteration -->
   <global-tasks>
     <task>
+      <name>home-manager</name>
+    </task>
+
+    <task>
       <name>throttle-safety</name>
       <min-alt-agl-ft>100</min-alt-agl-ft>
     </task>
