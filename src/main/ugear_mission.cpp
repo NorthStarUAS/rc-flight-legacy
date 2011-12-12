@@ -65,7 +65,6 @@ static bool enable_mission = true;    // mission mgr module enabled/disabled
 static bool enable_cas     = false;   // cas module enabled/disabled
 static bool enable_telnet  = false;   // telnet command/monitor interface
 static bool enable_pointing = false;  // pan/tilt pointing module
-static bool initial_home   = false;   // initial home position determined
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 static double lost_link_sec = 59.0;   // lost link timeout
 
@@ -181,24 +180,6 @@ void timer_handler (int signum)
 	SGPropertyNode *filter_status_node
 	    = fgGetNode("/status/navigation", true);
 	filter_status_node->setStringValue("invalid");
-    }
-
-    // initial home is most recent gps result after being alive with a
-    // solution for 20 seconds
-    if ( !initial_home && GPS_age() < 2.0 ) {
-	SGPropertyNode *gps_lat_node
-	    = fgGetNode("/sensors/gps/latitude-deg", true);
-	SGPropertyNode *gps_lon_node
-	    = fgGetNode("/sensors/gps/longitude-deg", true);
-	SGWayPoint wp( gps_lon_node->getDoubleValue(),
-		       gps_lat_node->getDoubleValue(),
-		       -9999.9 );
-	FGRouteMgr *route_mgr = mission_mgr.get_route_mgr();
-	if ( route_mgr != NULL ) {
-	    if ( route_mgr->update_home(wp, 0.0, true /*force update*/) ) {
-		initial_home = true;
-	    }
-	}
     }
 
     /* FIXME: TEMPORARY */ /* logging_navstate(); */
