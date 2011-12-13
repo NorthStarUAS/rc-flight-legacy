@@ -128,7 +128,7 @@ UGPacketizer::UGPacketizer() {
     bind_health_nodes();
 
     // command sequence node
-    link_seq_num = fgGetNode("/status/remote-link-sequence-num", true);
+    link_seq_num = fgGetNode("/comms/remote-link/sequence-num", true);
 }
 
 
