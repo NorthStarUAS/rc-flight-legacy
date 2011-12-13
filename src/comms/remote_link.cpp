@@ -34,6 +34,7 @@ enum ugLinkType {
 };
 
 static SGPropertyNode *link_sequence_num = NULL;
+static SGPropertyNode *link_message_time_sec = NULL;
 bool remote_link_on = false;    // link to remote operator station
 static SGSerialPort serial_fd;
 static netBuffer serial_buffer(128);
@@ -88,8 +89,10 @@ void remote_link_init() {
 	link_open = true;
     }
 
-    link_sequence_num = fgGetNode("/status/remote-link-sequence-num", true);
+    link_sequence_num = fgGetNode("/comms/remote-link/sequence-num", true);
     link_sequence_num->setIntValue( 0 );
+    link_message_time_sec
+	= fgGetNode("/comms/remote-link/last-message-sec", true);
 }
 
 
@@ -583,6 +586,7 @@ bool remote_link_command() {
 	// register that we've received this message correctly
 	link_sequence_num->setIntValue( sequence );
 	last_sequence_num = sequence;
+	link_message_time_sec->setDoubleValue( get_Time() );
     }
 
     return true;

@@ -151,7 +151,7 @@ static void init_props() {
     pilot_channel5_node = fgGetNode("/sensors/pilot/manual", true);
 
     // initialize health/status property nodes
-    link_seq_num = fgGetNode("/status/remote-link-sequence-num", true);
+    link_seq_num = fgGetNode("/comms/remote-link/sequence-num", true);
     target_waypoint = fgGetNode( "/autopilot/route-mgr/target-waypoint-idx",
 				 true );
     system_load_avg = fgGetNode("/status/system-load-avg", true);

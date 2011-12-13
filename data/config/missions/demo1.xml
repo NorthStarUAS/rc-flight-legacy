@@ -11,14 +11,19 @@
     </task>
 
     <task>
-      <name>throttle-safety</name>
-      <min-alt-agl-ft>100</min-alt-agl-ft>
+      <name>lost-link</name>
+      <timeout-sec>60</timeout-sec>
+      <loss-action>
+        <push-task>flyto-startup</push-task>
+      </loss-action>
+      <resume-action>
+        <pop-task>flyto-startup</pop-task>
+      </resume-action>
     </task>
 
     <task>
-      <name>lost-link</name>
-      <mode>go-home</mode> <!-- go-home, continue, self-destruct, new-route -->
-      <resume type="bool">true</resume> <!-- resume mission when/if link re-established? true/false -->
+      <name>throttle-safety</name>
+      <min-alt-agl-ft>100</min-alt-agl-ft>
     </task>
   </global-tasks>
 
