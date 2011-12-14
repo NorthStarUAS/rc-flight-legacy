@@ -37,6 +37,7 @@
 #include "health/health.h"
 #include "include/globaldefs.h"
 #include "mission/mission_mgr.hxx"
+#include "mission/tasks/task_route.hxx"
 #include "props/props.hxx"
 #include "props/props_io.hxx"
 #include "sensors/airdata_mgr.h"
@@ -204,14 +205,21 @@ void timer_handler (int signum)
 		// FIXME: we shouldn't necessarily assume route
 		// mode just because we read a command from the
 		// ground station
-		FGRouteMgr *route_mgr = mission_mgr.get_route_mgr();
-		if ( route_mgr != NULL ) {
-		    if ( route_mgr->get_route_mode()
-			 != FGRouteMgr::FollowRoute )
-		    {
-			route_mgr->set_route_mode();
-			if ( event_log_on ) {
-			    event_log("route", "switch to ROUTE mode");
+
+		// FIXME: the following code shouldn't be used any
+		// more
+		UGTaskRoute *route_task
+		    = (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
+		if ( route_task != NULL ) {
+		    FGRouteMgr *route_mgr = route_task->get_route_mgr();
+		    if ( route_mgr != NULL ) {
+			if ( route_mgr->get_route_mode()
+			     != FGRouteMgr::FollowRoute )
+			{
+			    route_mgr->set_route_mode();
+			    if ( event_log_on ) {
+				event_log("route", "switch to ROUTE mode");
+			    }
 			}
 		    }
 		}
@@ -234,12 +242,18 @@ void timer_handler (int signum)
 	    // resume when communications are reestablished
 	    // (presumably by flying back within range.)
 
-	    FGRouteMgr *route_mgr = mission_mgr.get_route_mgr();
-	    if ( route_mgr != NULL ) {
-		if ( route_mgr->get_route_mode() != FGRouteMgr::GoHome ) {
-		    route_mgr->set_home_mode();
-		    if ( event_log_on ) {
-			event_log("route", "switch to HOME mode");
+	    // FIXME: the following code shouldn't be used any
+	    // more
+	    UGTaskRoute *route_task
+		= (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
+	    if ( route_task != NULL ) {
+		FGRouteMgr *route_mgr = route_task->get_route_mgr();
+		if ( route_mgr != NULL ) {
+		    if ( route_mgr->get_route_mode() != FGRouteMgr::GoHome ) {
+			route_mgr->set_home_mode();
+			if ( event_log_on ) {
+			    event_log("route", "switch to HOME mode");
+			}
 		    }
 		}
 	    }

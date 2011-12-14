@@ -9,8 +9,9 @@
 #include "checksum.h"
 #include "include/globaldefs.h"
 
-#include "control/route_mgr.hxx"
+//#include "control/route_mgr.hxx"
 #include "mission/mission_mgr.hxx"
+#include "mission/tasks/task_route.hxx"
 #include "props/props.hxx"
 #include "sensors/gps_mgr.h"
 #include "util/strutils.hxx"
@@ -409,13 +410,19 @@ static void remote_link_execute_command( const string command ) {
 	home_azimuth_node->setDoubleValue( azimuth_deg );
 	home_set_node->setBoolValue( true );
     } else if ( token[0] == "go" && token.size() == 2 ) {
-	FGRouteMgr *route_mgr = mission_mgr.get_route_mgr();
-	if ( route_mgr != NULL ) {
-	    // specify router mode
-	    if ( token[1] == "home" ) {
-		route_mgr->set_home_mode();
-	    } else if ( token[1] == "route" ) {
-		route_mgr->set_route_mode();
+	// FIXME: we should push a gohome task, the following code
+	// shouldn't be used any more
+	UGTaskRoute *route_task
+	    = (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
+	if ( route_task != NULL ) {
+	    FGRouteMgr *route_mgr = route_task->get_route_mgr();
+	    if ( route_mgr != NULL ) {
+		// specify router mode
+		if ( token[1] == "home" ) {
+		    route_mgr->set_home_mode();
+		} else if ( token[1] == "route" ) {
+		    route_mgr->set_route_mode();
+		}
 	    }
 	}
     } else if ( token[0] == "ap" && token.size() == 3 ) {
