@@ -13,12 +13,7 @@
     <task>
       <name>lost-link</name>
       <timeout-sec>60</timeout-sec>
-      <loss-action>
-        <push-task>flyto-startup</push-task>
-      </loss-action>
-      <resume-action>
-        <pop-task>flyto-startup</pop-task>
-      </resume-action>
+      <push-task>flyto-startup</push-task>
     </task>
 
     <task>
