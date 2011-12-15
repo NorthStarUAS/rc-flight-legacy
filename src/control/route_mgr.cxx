@@ -26,15 +26,15 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <include/globaldefs.h>
-#include <props/props_io.hxx>
-#include <util/exception.hxx>
-#include <util/sg_path.hxx>
-
 #include "comms/logging.h"
 #include "comms/remote_link.h"
+#include "include/globaldefs.h"
 #include "main/globals.hxx"
+#include "props/props_io.hxx"
 #include "sensors/gps_mgr.h"
+#include "util/exception.hxx"
+#include "util/sg_path.hxx"
+#include "util/wind.hxx"
 
 #include "waypoint.hxx"
 #include "route_mgr.hxx"
@@ -99,7 +99,7 @@ void FGRouteMgr::bind() {
     target_waypoint
 	= fgGetNode( "/autopilot/route-mgr/target-waypoint-idx", true );
     wp_dist_m = fgGetNode( "/autopilot/route-mgr/wp-dist-m", true );
-    wp_eta_sec = fgGetNode( "/autopilot/route-mgr/wp-eta-m", true );
+    wp_eta_sec = fgGetNode( "/autopilot/route-mgr/wp-eta-sec", true );
 
     route_mode_node = fgGetNode("/routes/mode", true);
 
@@ -221,37 +221,18 @@ void FGRouteMgr::update() {
 
     est_wind_true_heading_deg->setDoubleValue( true_deg );
 
-    // from williams.best.vwh.net/avform.htm (aviation formulas)
-    double ws = est_wind_speed_kt->getDoubleValue() * SG_KT_TO_MPS;
-    double tas = true_speed_mps;
-    double wd = est_wind_dir_deg->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-    double crs = wp_course * SGD_DEGREES_TO_RADIANS;
-    double hd = 0.0;
-    double gs = 0.0;
-    if ( tas > 0.1 ) {
-	// printf("ws=%.1f tas=%.1f wd=%.1f crs=%.1f\n", ws, tas, wd, crs);
-	double swc = (ws/tas)*sin(wd-crs);
-	// printf("swc=%.2f\n", swc);
-	if ( fabs(swc) > 1.0 ) {
-	    // course cannot be flown, wind too strong
-	    // point nose into estimated wind and "kite" as best we can
-	    hd = wd + SGD_PI;
-	    if ( hd > SGD_2PI ) { hd -= SGD_2PI; }
-	} else {
-	    hd = crs + asin(swc);
-	    if ( hd < 0.0 ) { hd += SGD_2PI; }
-	    if ( hd > SGD_2PI ) { hd -= SGD_2PI; }
-	    gs = tas * sqrt(1-swc*swc) - ws * cos(wd - crs);
-	}
-	est_wind_target_heading_deg
-	    ->setDoubleValue( hd * SGD_RADIANS_TO_DEGREES );
-    }
-    // if ( display_on ) {
-    //   printf("af: hd=%.1f gs=%.1f\n", hd * SGD_RADIANS_TO_DEGREES, gs);
-    // }
+    double hd_deg = 0.0;
+    double gs_kt = 0.0;
+    wind_course( est_wind_speed_kt->getDoubleValue(),
+		 true_speed_mps * SG_MPS_TO_KT,
+		 est_wind_dir_deg->getDoubleValue(),
+		 wp_course,
+		 &hd_deg, &gs_kt );
 
-    if ( gs > 0.1 ) {
-	wp_eta_sec->setFloatValue( wp_distance / (gs * SG_KT_TO_MPS) );
+    est_wind_target_heading_deg->setDoubleValue( hd_deg );
+
+    if ( gs_kt > 0.1 ) {
+	wp_eta_sec->setFloatValue( wp_distance / (gs_kt * SG_KT_TO_MPS) );
     } else {
 	wp_eta_sec->setFloatValue( 0.0 );
     }
