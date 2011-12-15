@@ -47,8 +47,6 @@ FGRouteMgr::FGRouteMgr() :
     lon_node( NULL ),
     lat_node( NULL ),
     alt_node( NULL ),
-    vn_node( NULL ),
-    ve_node( NULL ),
     true_hdg_deg( NULL ),
     target_agl_ft( NULL ),
     override_agl_ft( NULL ),
@@ -60,11 +58,9 @@ FGRouteMgr::FGRouteMgr() :
     route_mode_node( NULL ),
     home_lon_node( NULL ),
     home_lat_node( NULL ),
-    est_wind_speed_kt( NULL ),
-    est_wind_dir_deg( NULL ),
-    est_wind_east_mps( NULL ),
-    est_wind_north_mps( NULL ),
-    est_wind_true_heading_deg( NULL ),
+    wind_speed_kt( NULL ),
+    wind_dir_deg( NULL ),
+    true_airspeed_kt( NULL ),
     est_wind_target_heading_deg( NULL ),
     ap_console_skip( NULL ),
     ap_logging_skip( NULL ),
@@ -84,8 +80,6 @@ void FGRouteMgr::bind() {
     lon_node = fgGetNode( "/position/longitude-deg", true );
     lat_node = fgGetNode( "/position/latitude-deg", true );
     alt_node = fgGetNode( "/position/altitude-ft", true );
-    vn_node = fgGetNode( "/velocity/vn-ms", true);
-    ve_node = fgGetNode( "/velocity/ve-ms", true);
 
     true_hdg_deg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
     target_msl_ft
@@ -106,12 +100,9 @@ void FGRouteMgr::bind() {
     home_lon_node = fgGetNode("/routes/home/longitude-deg", true );
     home_lat_node = fgGetNode("/routes/home/latitude-deg", true );
 
-    est_wind_speed_kt = fgGetNode("/filters/wind-est/wind-speed-kt", true);
-    est_wind_dir_deg = fgGetNode("/filters/wind-est/wind-dir-deg", true);
-    est_wind_east_mps = fgGetNode("/filters/wind-est/wind-east-mps", true);
-    est_wind_north_mps = fgGetNode("/filters/wind-est/wind-north-mps", true);
-    est_wind_true_heading_deg
-	= fgGetNode("/filters/wind-est/true-heading-deg", true);
+    wind_speed_kt = fgGetNode("/filters/wind-est/wind-speed-kt", true);
+    wind_dir_deg = fgGetNode("/filters/wind-est/wind-dir-deg", true);
+    true_airspeed_kt = fgGetNode("/filters/wind-est/true-airspeed-kt", true);
     est_wind_target_heading_deg
 	= fgGetNode("/filters/wind-est/target-heading-deg", true);
 
@@ -203,29 +194,11 @@ void FGRouteMgr::update() {
 	target_msl_ft->setDoubleValue( target_msl_m * SG_METER_TO_FEET );
     }
 
-    // Compute wind based current heading estimate and target heading
-    // estimate.  This can be used to "schedule" the bank angle gain
-    // correctly so that up wind flying will produce gentler turns and
-    // down wind flying will produce more aggressive turns.
-    double vn = vn_node->getDoubleValue();
-    double ve = ve_node->getDoubleValue();
-    double wn = est_wind_north_mps->getDoubleValue();
-    double we = est_wind_east_mps->getDoubleValue();
-
-    double true_e = ve + we;
-    double true_n = vn + wn;
-
-    double true_speed_mps = sqrt( true_e*true_e + true_n*true_n );
-    double true_deg = 90 - atan2( true_n, true_e ) * SGD_RADIANS_TO_DEGREES;
-    if ( true_deg < 0 ) { true_deg += 360.0; }
-
-    est_wind_true_heading_deg->setDoubleValue( true_deg );
-
     double hd_deg = 0.0;
     double gs_kt = 0.0;
-    wind_course( est_wind_speed_kt->getDoubleValue(),
-		 true_speed_mps * SG_MPS_TO_KT,
-		 est_wind_dir_deg->getDoubleValue(),
+    wind_course( wind_speed_kt->getDoubleValue(),
+		 true_airspeed_kt->getDoubleValue(),
+		 wind_dir_deg->getDoubleValue(),
 		 wp_course,
 		 &hd_deg, &gs_kt );
 
