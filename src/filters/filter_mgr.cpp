@@ -75,6 +75,10 @@ static SGPropertyNode *est_wind_speed_kt = NULL;
 static SGPropertyNode *est_wind_dir_deg = NULL;
 static SGPropertyNode *est_wind_east_mps = NULL;
 static SGPropertyNode *est_wind_north_mps = NULL;
+static SGPropertyNode *true_airspeed_kt = NULL;
+static SGPropertyNode *true_heading_deg = NULL;
+static SGPropertyNode *true_air_east_mps = NULL;
+static SGPropertyNode *true_air_north_mps = NULL;
 
 // comm property nodes
 static SGPropertyNode *filter_console_skip = NULL;
@@ -100,6 +104,10 @@ void Filter_init() {
     est_wind_dir_deg = fgGetNode("/filters/wind-est/wind-dir-deg", true);
     est_wind_east_mps = fgGetNode("/filters/wind-est/wind-east-mps", true);
     est_wind_north_mps = fgGetNode("/filters/wind-est/wind-north-mps", true);
+    true_airspeed_kt = fgGetNode("/filters/wind-est/true-airspeed-kt", true);
+    true_heading_deg = fgGetNode("/filters/wind-est/true-heading-deg", true);
+    true_air_east_mps = fgGetNode("/filters/wind-est/true-airspeed-east-mps", true);
+    true_air_north_mps = fgGetNode("/filters/wind-est/true-airspeed-north-mps", true);
 
     // initialize comm nodes
     filter_console_skip = fgGetNode("/config/remote-link/filter-skip", true);
@@ -252,6 +260,12 @@ static void update_wind() {
     double true_deg = 90 - atan2( true_n, true_e ) * SGD_RADIANS_TO_DEGREES;
     if ( true_deg < 0 ) { true_deg += 360.0; }
     double true_speed_kt = sqrt( true_e*true_e + true_n*true_n ) * SG_MPS_TO_KT;
+
+    // FIXME: Put the true speeds in the property tree now!
+    true_airspeed_kt->setDoubleValue( true_speed_kt );
+    true_heading_deg->setDoubleValue( true_deg );
+    true_air_east_mps->setDoubleValue( true_e );
+    true_air_north_mps->setDoubleValue( true_n );
 
     double pitot_scale = 1.0;
     if ( airspeed_kt > 1.0 ) {

@@ -10,6 +10,7 @@ libutil_a_SOURCES = \
 	sg_path.cxx sg_path.hxx \
 	SGReferenced.hxx SGSharedPtr.hxx \
 	strutils.hxx strutils.cxx \
-        timing.cpp timing.h
+        timing.cpp timing.h \
+	wind.cxx wind.hxx
 
 INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src

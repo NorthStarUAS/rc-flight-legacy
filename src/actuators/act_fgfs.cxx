@@ -90,7 +90,7 @@ static void bind_act_nodes() {
     ap_target_speed_kt = fgGetNode( "/autopilot/settings/target-speed-kt", true );
     ap_ground_track_deg = fgGetNode( "/orientation/groundtrack-deg", true );
     ap_dist_m = fgGetNode( "/autopilot/route-mgr/wp-dist-m", true );
-    ap_eta_sec =  fgGetNode( "/autopilot/route-mgr/wp-eta-m", true );
+    ap_eta_sec =  fgGetNode( "/autopilot/route-mgr/wp-eta-sec", true );
 }
 
 
