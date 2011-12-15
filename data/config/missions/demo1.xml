@@ -12,7 +12,7 @@
 
     <task>
       <name>lost-link</name>
-      <timeout-sec>60</timeout-sec>
+      <timeout-sec>10</timeout-sec>
       <push-task>flyto-coord</push-task>
     </task>
 
