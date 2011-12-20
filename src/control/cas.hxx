@@ -55,37 +55,37 @@ public:
 private:
 
     // route configuration
-    SGPropertyNode_ptr config_props;
+    SGPropertyNode *config_props;
 
     // property nodes
 
-    SGPropertyNode_ptr pilot_aileron_node;
-    SGPropertyNode_ptr pilot_elevator_node;
-    SGPropertyNode_ptr pilot_throttle_node;
-    SGPropertyNode_ptr pilot_rudder_node;
+    SGPropertyNode *pilot_aileron_node;
+    SGPropertyNode *pilot_elevator_node;
+    SGPropertyNode *pilot_throttle_node;
+    SGPropertyNode *pilot_rudder_node;
 
-    SGPropertyNode_ptr aileron_min_node;
-    SGPropertyNode_ptr aileron_max_node;
-    SGPropertyNode_ptr aileron_center_node;
-    SGPropertyNode_ptr aileron_dz_node;
-    SGPropertyNode_ptr aileron_full_rate_node;
+    SGPropertyNode *aileron_min_node;
+    SGPropertyNode *aileron_max_node;
+    SGPropertyNode *aileron_center_node;
+    SGPropertyNode *aileron_dz_node;
+    SGPropertyNode *aileron_full_rate_node;
 
-    SGPropertyNode_ptr elevator_min_node;
-    SGPropertyNode_ptr elevator_max_node;
-    SGPropertyNode_ptr elevator_center_node;
-    SGPropertyNode_ptr elevator_dz_node;
-    SGPropertyNode_ptr elevator_full_rate_node;
+    SGPropertyNode *elevator_min_node;
+    SGPropertyNode *elevator_max_node;
+    SGPropertyNode *elevator_center_node;
+    SGPropertyNode *elevator_dz_node;
+    SGPropertyNode *elevator_full_rate_node;
 
-    SGPropertyNode_ptr target_roll_deg_node;
-    SGPropertyNode_ptr target_pitch_deg_node;
-    SGPropertyNode_ptr target_pitch_base_deg_node;
+    SGPropertyNode *target_roll_deg_node;
+    SGPropertyNode *target_pitch_deg_node;
+    SGPropertyNode *target_pitch_base_deg_node;
 
-    SGPropertyNode_ptr throttle_output_node;
-    SGPropertyNode_ptr rudder_output_node;
+    SGPropertyNode *throttle_output_node;
+    SGPropertyNode *rudder_output_node;
 
     // fcs mode
-    SGPropertyNode_ptr ap_master_switch_node;
-    SGPropertyNode_ptr cas_mode_node;
+    SGPropertyNode *ap_master_switch_node;
+    SGPropertyNode *cas_mode_node;
 
     ugCASMode cas_mode;
 
