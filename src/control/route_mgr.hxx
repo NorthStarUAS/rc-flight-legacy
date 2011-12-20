@@ -59,22 +59,22 @@ private:
     double home_course_deg;
 
     // route configuration tree
-    SGPropertyNode_ptr config_props;
+    SGPropertyNode *config_props;
 
     // automatic inputs
-    SGPropertyNode_ptr lon_node;
-    SGPropertyNode_ptr lat_node;
-    SGPropertyNode_ptr alt_node;
+    SGPropertyNode *lon_node;
+    SGPropertyNode *lat_node;
+    SGPropertyNode *alt_node;
 
     // automatic outputs
-    SGPropertyNode_ptr true_hdg_deg;
-    SGPropertyNode_ptr target_agl_ft;
-    SGPropertyNode_ptr override_agl_ft;
-    SGPropertyNode_ptr target_msl_ft;
-    SGPropertyNode_ptr override_msl_ft;
-    SGPropertyNode_ptr target_waypoint;
-    SGPropertyNode_ptr wp_dist_m;
-    SGPropertyNode_ptr wp_eta_sec;
+    SGPropertyNode *true_hdg_deg;
+    SGPropertyNode *target_agl_ft;
+    SGPropertyNode *override_agl_ft;
+    SGPropertyNode *target_msl_ft;
+    SGPropertyNode *override_msl_ft;
+    SGPropertyNode *target_waypoint;
+    SGPropertyNode *wp_dist_m;
+    SGPropertyNode *wp_eta_sec;
 
     // route following mode
     SGPropertyNode *route_mode_node;

@@ -52,16 +52,16 @@ protected:
 
     string name;
 
-    SGPropertyNode_ptr enable_prop;
-    SGPropertyNode_ptr passive_mode;
+    SGPropertyNode *enable_prop;
+    SGPropertyNode *passive_mode;
     string enable_value;
     bool honor_passive;
     bool enabled;
 
-    SGPropertyNode_ptr input_prop;
-    SGPropertyNode_ptr r_n_prop;
+    SGPropertyNode *input_prop;
+    SGPropertyNode *r_n_prop;
     double r_n_value;
-    vector <SGPropertyNode_ptr> output_list;
+    vector <SGPropertyNode *> output_list;
 
 public:
 
@@ -152,7 +152,7 @@ private:
     // proportional component data
     bool proportional;
     double Kp;
-    SGPropertyNode_ptr offset_prop;
+    SGPropertyNode *offset_prop;
     double offset_value;
 
     // integral component data
@@ -274,7 +274,7 @@ protected:
 private:
 
     bool serviceable;
-    SGPropertyNode_ptr config_props;
+    SGPropertyNode *config_props;
     comp_list components;
 };
 
