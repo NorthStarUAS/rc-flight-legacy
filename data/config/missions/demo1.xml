@@ -13,7 +13,7 @@
     <task>
       <name>lost-link</name>
       <timeout-sec>10</timeout-sec>
-      <push-task>flyto-coord</push-task>
+      <push-task>circle-coord</push-task>
     </task>
 
     <task>
@@ -41,6 +41,14 @@
   <!-- and could be moved to the global or sequential task lists at any -->
   <!-- time. -->
   <standby-tasks>
+    <task>
+      <name>circle-coord</name>
+      <coord-path>/navigation/startup</coord-path>
+      <bank-deg>20</bank-deg>
+      <altitude-agl-ft>500</altitude-agl-ft>
+      <speed-kt>40</speed-kt>
+    </task>
+
     <task>
       <name>flyto-coord</name>
       <coord-path>/navigation/startup</coord-path>
