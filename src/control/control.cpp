@@ -129,12 +129,14 @@ void control_reinit() {
 
 void control_update(double dt)
 {
-    static bool fcs_enabled = false;
+    static string last_fcs_mode = "";
+
+    string fcs_mode = fcs_mode_node->getStringValue();
 
     if ( ap_master_switch_node->getBoolValue() ) {
-	if ( !fcs_enabled ) {
-	    if ( strcmp(fcs_mode_node->getStringValue(), "route") == 0 ) {
-		// fcs is just activated, set lock modes for "route"
+	if ( last_fcs_mode != fcs_mode ) {
+	    if ( fcs_mode == "route" ) {
+		// set lock modes for "route"
 		heading_lock_node->setStringValue( "route" );
 		roll_lock_node->setStringValue( "aileron" );
 		yaw_lock_node->setStringValue( "turn-coord" );
@@ -152,9 +154,27 @@ void control_update(double dt)
 		if ( target_speed_kt < 0.1 ) {
 		    target_speed_node->setFloatValue( initial_speed_kt );
 		}
-		fcs_enabled = true;
-	    } else if ( strcmp(fcs_mode_node->getStringValue(), "cas") == 0 ) {
-		// fcs is just activated, set lock modes for "cas"
+	    } else if ( fcs_mode == "circle" ) {
+		// set lock modes for "circle"
+		heading_lock_node->setStringValue( "" );
+		roll_lock_node->setStringValue( "aileron" );
+		yaw_lock_node->setStringValue( "turn-coord" );
+		altitude_lock_node->setStringValue( "pitch" );
+		speed_lock_node->setStringValue( "throttle" );
+		pitch_lock_node->setStringValue( "elevator" );
+		pointing_lock_node->setStringValue( "on" );
+		lookat_mode_node->setStringValue( "ned-vector" );
+		ned_n_node->setFloatValue( 0.0 );
+		ned_e_node->setFloatValue( 0.0 );
+		ned_d_node->setFloatValue( 1.0 );
+
+		float target_speed_kt = target_speed_node->getFloatValue();
+		float initial_speed_kt = initial_speed_node->getFloatValue();
+		if ( target_speed_kt < 0.1 ) {
+		    target_speed_node->setFloatValue( initial_speed_kt );
+		}
+	    } else if ( fcs_mode == "cas" ) {
+		// set lock modes for "cas"
 		heading_lock_node->setStringValue( "" );
 		roll_lock_node->setStringValue( "aileron" );
 		yaw_lock_node->setStringValue( "" );
@@ -186,11 +206,10 @@ void control_update(double dt)
 		if ( target_speed_kt < 0.1 ) {
 		    target_speed_node->setFloatValue( initial_speed_kt );
 		}
-		fcs_enabled = true;
 	    }
 	}
     } else {
-	if ( fcs_enabled ) {
+	if ( fcs_mode != "" ) {
 	    // autopilot is just de-activated, clear lock modes
 	    heading_lock_node->setStringValue( "" );
 	    roll_lock_node->setStringValue( "" );
@@ -199,14 +218,15 @@ void control_update(double dt)
 	    speed_lock_node->setStringValue( "" );
 	    pitch_lock_node->setStringValue( "" );
 	    pointing_lock_node->setStringValue( "" );
-	    fcs_enabled = false;
 	}
     }
 
-    if ( fcs_enabled ) {
+    if ( fcs_mode != "" ) {
 	// update the autopilot stages
 	ap.update( dt );
     }
+
+    last_fcs_mode = fcs_mode;
 }
 
 
