@@ -869,12 +869,12 @@ static void update_helper( double dt ) {
     // estimation is performed in the filter_mgr code.
     static SGPropertyNode *target_wind_true
         = fgGetNode( "/filters/wind-est/target-heading-deg", true );
-    static SGPropertyNode *wind_true_hdg
-        = fgGetNode( "/filters/wind-est/true-heading-deg", true );
+    static SGPropertyNode *true_hdg
+        = fgGetNode( "/orientation/heading-deg", true );
     static SGPropertyNode *wind_true_error
         = fgGetNode( "/autopilot/internal/wind-true-error-deg", true );
 
-    diff = target_wind_true->getDoubleValue() - wind_true_hdg->getDoubleValue();
+    diff = target_wind_true->getDoubleValue() - true_hdg->getDoubleValue();
     if ( diff < -180.0 ) { diff += 360.0; }
     if ( diff > 180.0 ) { diff -= 360.0; }
     wind_true_error->setDoubleValue( diff );
