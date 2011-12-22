@@ -44,7 +44,11 @@
     <task>
       <name>circle-coord</name>
       <coord-path>/navigation/startup</coord-path>
+
       <bank-deg>20</bank-deg>
+      <bank-limit-deg>30</bank-limit-deg>
+      <heading-error-gain>0.8</heading-error-gain>
+
       <altitude-agl-ft>500</altitude-agl-ft>
       <speed-kt>40</speed-kt>
     </task>
