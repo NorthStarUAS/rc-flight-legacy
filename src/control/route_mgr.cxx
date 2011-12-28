@@ -42,7 +42,6 @@
 
 FGRouteMgr::FGRouteMgr() :
     route( new SGRoute ),
-    home_course_deg( 0.0 ),
     config_props( NULL ),
     lon_node( NULL ),
     lat_node( NULL ),
@@ -55,17 +54,12 @@ FGRouteMgr::FGRouteMgr() :
     target_waypoint( NULL ),
     wp_dist_m( NULL ),
     wp_eta_sec( NULL ),
-    route_mode_node( NULL ),
-    home_lon_node( NULL ),
-    home_lat_node( NULL ),
     wind_speed_kt( NULL ),
     wind_dir_deg( NULL ),
     true_airspeed_kt( NULL ),
     est_wind_target_heading_deg( NULL ),
     ap_console_skip( NULL ),
-    ap_logging_skip( NULL ),
-    home_set( false ),
-    mode( GoHome )
+    ap_logging_skip( NULL )
 {
 }
 
@@ -95,11 +89,6 @@ void FGRouteMgr::bind() {
     wp_dist_m = fgGetNode( "/autopilot/route-mgr/wp-dist-m", true );
     wp_eta_sec = fgGetNode( "/autopilot/route-mgr/wp-eta-sec", true );
 
-    route_mode_node = fgGetNode("/routes/mode", true);
-
-    home_lon_node = fgGetNode("/routes/home/longitude-deg", true );
-    home_lat_node = fgGetNode("/routes/home/latitude-deg", true );
-
     wind_speed_kt = fgGetNode("/filters/wind-est/wind-speed-kt", true);
     wind_dir_deg = fgGetNode("/filters/wind-est/wind-dir-deg", true);
     true_airspeed_kt = fgGetNode("/filters/wind-est/true-airspeed-kt", true);
@@ -124,8 +113,6 @@ void FGRouteMgr::init( SGPropertyNode *branch ) {
 	printf(" details.");
 	exit(-1);
     }
-
-    set_route_mode();
 }
 
 
@@ -137,19 +124,7 @@ void FGRouteMgr::update() {
     double target_agl_m = 0;
     double target_msl_m = 0;
 
-    if ( mode == GoHome && home_set ) {
-        home.CourseAndDistance( lon_node->getDoubleValue(),
-				lat_node->getDoubleValue(),
-                                alt_node->getDoubleValue(),
-                                &wp_course, &wp_distance );
-
-        true_hdg_deg->setDoubleValue( wp_course );
-        target_agl_m = home.get_target_agl_m();
-        target_msl_m = home.get_target_alt_m();
-
-	// publish current target waypoint
-	target_waypoint->setIntValue( 0 );
-    } else if ( mode == FollowRoute && route->size() > 0 ) {
+    if ( route->size() > 0 ) {
 	if ( GPS_age() < 10.0 ) {
 	    // track current waypoint of route (only if we have fresh gps data)
 	    SGWayPoint wp = route->get_current();
@@ -170,13 +145,11 @@ void FGRouteMgr::update() {
 	    target_waypoint->setIntValue( route->get_waypoint_index() );
 	}
     } else {
-        // FIXME: we've been commanded to go home and no home position
-        // has been set, or we've been commanded to follow a route,
-        // but no route has been defined.
+        // FIXME: we've been commanded to follow a route, but no route
+        // has been defined.
 
-        // We are in ill-defined territory, I'd like to go into some
-        // sort of slow circling mode and either hold altitude or
-        // maybe do a slow speed decent to minimize our momentum.
+        // We are in ill-defined territory, should we do some sort of
+        // circle of our homoe position?
     }
 
     wp_dist_m->setFloatValue( wp_distance );
@@ -239,21 +212,17 @@ void FGRouteMgr::update() {
 	if ( size() > 0 && wp_index < size() ) {
 	    wp = get_waypoint( wp_index );
 	    index = wp_index;
-	} else {
-	    wp = get_home();
-	    index = 65535;
 	}
 
 	uint8_t buf[256];
-	int pkt_size = packetizer->packetize_ap( buf, size(), &wp,
-						 index );
+	int pkt_size = packetizer->packetize_ap( buf, size(), &wp, index );
 	
 	if ( remote_link_on ) {
 	    bool result = remote_link_ap( buf, pkt_size,
-					   ap_console_skip->getIntValue() );
+					  ap_console_skip->getIntValue() );
 	    if ( result ) {
 		wp_index++;
-		if ( wp_index >= size() + 1 ) {
+		if ( wp_index >= size() ) {
 		    wp_index = 0;
 		}
 	    }
@@ -362,64 +331,22 @@ SGWayPoint FGRouteMgr::make_waypoint( const string& tgt ) {
 }
 
 
-bool FGRouteMgr::update_home( const SGWayPoint &wp, const double hdg,
-                              bool force_update )
+bool FGRouteMgr::reposition_pattern( const SGWayPoint &wp, const double hdg )
 {
-    if ( !home_set || force_update ) {
-        // sanity check
-        if ( fabs(wp.get_target_lon() > 0.0001)
-             || fabs(wp.get_target_lat() > 0.0001) )
-        {
-            // good location
-            home = wp;
-            home_course_deg = hdg;
-            home_set = true;
-	    home_lon_node->setDoubleValue( home.get_target_lon() );
-	    home_lat_node->setDoubleValue( home.get_target_lat() );
-            route->refresh_offset_positions( wp, home_course_deg );
-            if ( display_on ) {
-                printf( "HOME updated: %.6f %.6f (course = %.1f)\n",
-                        home.get_target_lon(), home.get_target_lat(),
-                        home_course_deg );
-            }
-            return true;
-        } else {
-            // bogus location, ignore ...
-            return false;
-        }
-    }
-
-    return false;
-}
-
-
-SGWayPoint FGRouteMgr::get_home() {
-    if ( home_set ) {
-	return home;
+    // sanity check
+    if ( fabs(wp.get_target_lon() > 0.0001)
+	 || fabs(wp.get_target_lat() > 0.0001) )
+    {
+	// good location
+	route->refresh_offset_positions( wp, hdg );
+	if ( display_on ) {
+	    printf( "ROUTE pattern updated: %.6f %.6f (course = %.1f)\n",
+		    wp.get_target_lon(), wp.get_target_lat(),
+		    hdg );
+	}
+	return true;
     } else {
-	return SGWayPoint();
+	// bogus location, ignore ...
+	return false;
     }
 }
-
-
-void FGRouteMgr::set_route_mode() {
-    mode = FollowRoute;
-    route_mode_node->setStringValue("route");
-    /*
-      FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
-      fprintf(debug, "mode: FollowRoute\n");
-      fclose(debug);
-    */
-}
-
-
-void FGRouteMgr::set_home_mode() {
-    mode = GoHome;
-    route_mode_node->setStringValue("home");
-    /*
-      FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
-      fprintf(debug, "mode: GoHome\n");
-      fclose(debug);
-    */
-}
-

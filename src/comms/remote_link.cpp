@@ -419,9 +419,9 @@ static void remote_link_execute_command( const string command ) {
 	    if ( route_mgr != NULL ) {
 		// specify router mode
 		if ( token[1] == "home" ) {
-		    route_mgr->set_home_mode();
+		    // route_mgr->set_home_mode();
 		} else if ( token[1] == "route" ) {
-		    route_mgr->set_route_mode();
+		    // route_mgr->set_route_mode();
 		}
 	    }
 	}

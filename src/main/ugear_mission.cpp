@@ -122,7 +122,6 @@ void timer_handler (int signum)
     static int route_counter = 0;
     static int command_counter = 0;
     static int flush_counter = 0;
-    static double last_command_time = 0.0;
 
     static int count = 0;
 
@@ -194,69 +193,14 @@ void timer_handler (int signum)
     //
 
     if ( remote_link_on ) {
-	static bool read_command = false;
-
 	// check for incoming command data (5hz)
 	if ( command_counter >= (HEARTBEAT_HZ / 5) ) {
 	    command_counter = 0;
-	    if ( remote_link_command() ) {
-		read_command = true;
-		last_command_time = current_time;
-		// FIXME: we shouldn't necessarily assume route
-		// mode just because we read a command from the
-		// ground station
-
-		// FIXME: the following code shouldn't be used any
-		// more
-		UGTaskRoute *route_task
-		    = (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
-		if ( route_task != NULL ) {
-		    FGRouteMgr *route_mgr = route_task->get_route_mgr();
-		    if ( route_mgr != NULL ) {
-			if ( route_mgr->get_route_mode()
-			     != FGRouteMgr::FollowRoute )
-			{
-			    route_mgr->set_route_mode();
-			    if ( event_log_on ) {
-				event_log("route", "switch to ROUTE mode");
-			    }
-			}
-		    }
-		}
-	    }
+	    remote_link_command();
 
 	    // dribble a bit more out of the serial port if there is
 	    // something pending
 	    remote_link_flush_serial();
-	}
-
- 	if ( read_command &&
-	     (current_time > last_command_time + lost_link_sec) )
-        {
-	    // We have previously established a positive link with the
-	    // remote operator station, but it's been lost_link
-	    // seconds since the last command received and we aren't
-	    // already in GoHome mode.  The remote link is assumed to
-	    // be down or we've flown out of radio modem range.
-	    // Switch to fly home mode.  Route will automatically
-	    // resume when communications are reestablished
-	    // (presumably by flying back within range.)
-
-	    // FIXME: the following code shouldn't be used any
-	    // more
-	    UGTaskRoute *route_task
-		= (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
-	    if ( route_task != NULL ) {
-		FGRouteMgr *route_mgr = route_task->get_route_mgr();
-		if ( route_mgr != NULL ) {
-		    if ( route_mgr->get_route_mode() != FGRouteMgr::GoHome ) {
-			route_mgr->set_home_mode();
-			if ( event_log_on ) {
-			    event_log("route", "switch to HOME mode");
-			}
-		    }
-		}
-	    }
 	}
     }
 
