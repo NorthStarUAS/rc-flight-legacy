@@ -47,16 +47,16 @@ class FGRouteMgr {
 
 public:
 
-    enum fgRouteMode {
+    /*    enum fgRouteMode {
         GoHome = 0,
         FollowRoute = 1
-    };
+	};*/
 
 private:
 
     SGRoute *route;
-    SGWayPoint home;
-    double home_course_deg;
+    // SGWayPoint home;
+    // double home_course_deg;
 
     // route configuration tree
     SGPropertyNode *config_props;
@@ -77,11 +77,11 @@ private:
     SGPropertyNode *wp_eta_sec;
 
     // route following mode
-    SGPropertyNode *route_mode_node;
+    // SGPropertyNode *route_mode_node;
 
     // register "home" in the property tree
-    SGPropertyNode *home_lon_node;
-    SGPropertyNode *home_lat_node;
+    // SGPropertyNode *home_lon_node;
+    // SGPropertyNode *home_lat_node;
 
     // wind related property nodes
     SGPropertyNode *wind_speed_kt;
@@ -93,11 +93,11 @@ private:
     SGPropertyNode *ap_console_skip;
     SGPropertyNode *ap_logging_skip;
 
-    bool home_set;
+    // bool home_set;
     bool msl_override;
     bool agl_override;
 
-    fgRouteMode mode;
+    // fgRouteMode mode;
 
     SGWayPoint make_waypoint( const string& target );
 
@@ -128,18 +128,17 @@ public:
         return route->size();
     }
 
-    bool update_home( const SGWayPoint &wp, const double hdg,
-		      bool force_update );
+    bool reposition_pattern( const SGWayPoint &wp, const double hdg );
 
-    SGWayPoint get_home();
+    // SGWayPoint get_home();
 
-    void set_route_mode();
+    // void set_route_mode();
 
-    void set_home_mode();
+    // void set_home_mode();
  
-    inline fgRouteMode get_route_mode() {
-        return mode;
-    }
+    // inline fgRouteMode get_route_mode() {
+    //     return mode;
+    // }
 };
 
 
