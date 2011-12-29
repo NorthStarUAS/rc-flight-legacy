@@ -56,8 +56,8 @@
     <task>
       <name>flyto-coord</name>
       <coord-path>/navigation/startup</coord-path>
-      <altitude-agl-ft>500</altitude-agl-ft>
-      <speed-kt>40</speed-kt>
+      <altitude-agl-ft>350</altitude-agl-ft>
+      <speed-kt>60</speed-kt>
     </task>
   </standby-tasks>
 
