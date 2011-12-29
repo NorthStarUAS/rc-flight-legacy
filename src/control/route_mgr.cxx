@@ -149,7 +149,7 @@ void FGRouteMgr::update() {
         // has been defined.
 
         // We are in ill-defined territory, should we do some sort of
-        // circle of our homoe position?
+        // circle of our home position?
     }
 
     wp_dist_m->setFloatValue( wp_distance );
