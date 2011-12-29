@@ -45,18 +45,9 @@ using std::vector;
 
 class FGRouteMgr {
 
-public:
-
-    /*    enum fgRouteMode {
-        GoHome = 0,
-        FollowRoute = 1
-	};*/
-
 private:
 
     SGRoute *route;
-    // SGWayPoint home;
-    // double home_course_deg;
 
     // route configuration tree
     SGPropertyNode *config_props;
@@ -75,13 +66,6 @@ private:
     SGPropertyNode *target_waypoint;
     SGPropertyNode *wp_dist_m;
     SGPropertyNode *wp_eta_sec;
-
-    // route following mode
-    // SGPropertyNode *route_mode_node;
-
-    // register "home" in the property tree
-    // SGPropertyNode *home_lon_node;
-    // SGPropertyNode *home_lat_node;
 
     // wind related property nodes
     SGPropertyNode *wind_speed_kt;
@@ -129,16 +113,6 @@ public:
     }
 
     bool reposition_pattern( const SGWayPoint &wp, const double hdg );
-
-    // SGWayPoint get_home();
-
-    // void set_route_mode();
-
-    // void set_home_mode();
- 
-    // inline fgRouteMode get_route_mode() {
-    //     return mode;
-    // }
 };
 
 
