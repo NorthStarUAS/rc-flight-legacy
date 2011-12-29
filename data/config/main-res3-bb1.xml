@@ -70,13 +70,6 @@
 
     <!-- Actuator selection and configuration. -->
     <actuators>
-      <throttle-safety>
-        <!-- throttle will be forced to zero when prop value is less than -->
-        <!-- minimum threshold -->
-        <prop>/position/altitude-filter-agl-ft</prop>
-        <min-value>100</min-value>
-      </throttle-safety>
-
       <!-- set value to true to enable flying wing elevon mixing -->
       <elevon-mixing type="bool">true</elevon-mixing>
 
