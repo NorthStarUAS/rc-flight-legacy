@@ -60,9 +60,7 @@ static SGPropertyNode *act_console_skip = NULL;
 static SGPropertyNode *act_logging_skip = NULL;
 
 // throttle safety
-static SGPropertyNode *throttle_safety_prop_node = NULL;
-static SGPropertyNode *throttle_safety_val_node = NULL;
-static SGPropertyNode *throttle_safety_min_node = NULL;
+static SGPropertyNode *throttle_safety_node = NULL;
 
 // master autopilot switch
 static SGPropertyNode *ap_master_switch_node = NULL;
@@ -101,14 +99,7 @@ void Actuator_init() {
     act_logging_skip = fgGetNode("/config/logging/actuator-skip", true);
 
     // throttle safety
-    throttle_safety_prop_node
-	= fgGetNode("/config/actuators/throttle-safety/prop", true);
-    if ( (string)throttle_safety_prop_node->getStringValue() != (string)"" ) {
-	throttle_safety_val_node
-	    = fgGetNode(throttle_safety_prop_node->getStringValue(), true);
-    }
-    throttle_safety_min_node
-	= fgGetNode("/config/actuators/throttle-safety/min-value", true);
+    throttle_safety_node = fgGetNode("/actuators/throttle-safety", true);
 
     // master autopilot switch
     ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
@@ -283,18 +274,8 @@ static void set_actuator_values_ap() {
     // elevation is the pressure altitude we recorded with the system
     // started up.
     if ( ! sas_throttle_override ) {
-	if ( (string)throttle_safety_prop_node->getStringValue() != (string)"" )
-	{
-	    if ( throttle_safety_val_node->getDoubleValue()
-		 < throttle_safety_min_node->getDoubleValue() ) {
-		act_throttle_node->setFloatValue( 0.0 );
-	    }
-	} else {
-	    // hard coded backup plan if a property/threshold-value has
-	    // not been specified
-	    if ( agl_alt_ft_node->getDoubleValue() < 100.0 ) {
-		act_throttle_node->setFloatValue( 0.0 );
-	    }
+	if ( throttle_safety_node->getBoolValue() ) {
+	    act_throttle_node->setFloatValue( 0.0 );
 	}
     }
 
