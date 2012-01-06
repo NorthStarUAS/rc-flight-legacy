@@ -39,7 +39,7 @@
 
     <task>
       <name>route</name>
-      <route include="../routes/bowtie-300m.xml" />
+      <route include="../routes/AB-800m.xml" />
       <timed>0</timed>
       <loop>0</loop>
     </task>
