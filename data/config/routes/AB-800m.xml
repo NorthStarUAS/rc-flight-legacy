@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <enable type="bool">true</enable>
+
+  <wpt>
+    <offset-heading-deg>-45</offset-heading-deg>
+    <offset-dist-m>800</offset-dist-m>
+    <agl-ft>500</agl-ft>
+  </wpt>
+
+  <wpt>
+    <offset-heading-deg>45</offset-heading-deg>
+    <offset-dist-m>800</offset-dist-m>
+    <agl-ft>500</agl-ft>
+  </wpt>
+
+</PropertyList>
