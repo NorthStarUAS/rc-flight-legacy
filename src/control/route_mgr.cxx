@@ -31,7 +31,7 @@
 #include "include/globaldefs.h"
 #include "main/globals.hxx"
 #include "props/props_io.hxx"
-#include "sensors/gps_mgr.h"
+#include "sensors/gps_mgr.hxx"
 #include "util/exception.hxx"
 #include "util/sg_path.hxx"
 #include "util/wind.hxx"

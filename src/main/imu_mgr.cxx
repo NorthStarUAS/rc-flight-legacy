@@ -22,11 +22,11 @@
 
 #include "sensors/imu_fgfs.hxx"
 #ifdef ENABLE_MNAV_SENSOR
-#  include "sensors/mnav.h"
+#  include "sensors/mnav.hxx"
 #endif // ENABLE_MNAV_SENSOR
-#include "sensors/imu_sf6DOFv4.h"
-#include "sensors/imu_vn100.h"
-#include "sensors/ugfile.h"
+#include "sensors/imu_sf6DOFv4.hxx"
+#include "sensors/imu_vn100.hxx"
+#include "sensors/ugfile.hxx"
 
 #include "imu_mgr.hxx"
 

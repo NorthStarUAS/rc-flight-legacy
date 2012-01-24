@@ -1,11 +1,10 @@
 /**
- * \file: gps_mgr.cpp
+ * \file: gps_mgr.cxx
  *
  * Front end management interface for reading GPS data.
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: gps_mgr.cpp,v 1.7 2009/08/25 15:04:01 curt Exp $
  */
 
 
@@ -25,14 +24,15 @@
 #include "util/timing.h"
 
 #include "gps_fgfs.hxx"
-#include "gps_gpsd.h"
+#include "gps_gpsd.hxx"
 #ifdef ENABLE_MNAV_SENSOR
-#  include "mnav.h"
+#  include "mnav.hxx"
 #endif // ENABLE_MNAV_SENSOR
-#include "gps_ublox5.h"
-#include "ugfile.h"
+#include "gps_mediatek.hxx"
+#include "gps_ublox5.hxx"
+#include "ugfile.hxx"
 
-#include "gps_mgr.h"
+#include "gps_mgr.hxx"
 
 //
 // Global variables

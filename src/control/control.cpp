@@ -13,7 +13,7 @@
 
 #include "comms/logging.h"
 #include "include/globaldefs.h"
-#include "sensors/mnav.h"
+#include "sensors/mnav.hxx"
 
 #include "include/util.h"
 #include "xmlauto.hxx"

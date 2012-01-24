@@ -15,7 +15,7 @@
 
 #include "include/globaldefs.h"
 #include "props/props.hxx"
-#include "sensors/gps_mgr.h"
+#include "sensors/gps_mgr.hxx"
 
 #include "gnss_interface.h"
 

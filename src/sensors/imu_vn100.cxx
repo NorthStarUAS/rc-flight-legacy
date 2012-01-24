@@ -3,9 +3,8 @@
  *
  * Vectornav.com VN-100 (ascii/uart) driver
  *
- * Copyright Curt Olson curtolson@gmail.com
+ * Copyright (C) 2012 - Curtis L. Olson colson@atiak.com
  *
- * $Id: gpsd.cpp,v 1.7 2009/08/25 15:04:01 curt Exp $
  */
 
 #include <errno.h>		// errno
@@ -22,7 +21,7 @@
 #include "util/strutils.hxx"
 #include "util/timing.h"
 
-#include "imu_vn100.h"
+#include "imu_vn100.hxx"
 
 
 // imu property nodes

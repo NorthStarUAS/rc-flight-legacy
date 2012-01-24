@@ -1,11 +1,10 @@
 /**
- * \file: pilot_mgr.cpp
+ * \file: pilot_mgr.cxx
  *
  * Front end management interface for reading pilot input.
  *
  * Copyright (C) 2010 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: airdata_mgr.cpp,v 1.2 2009/08/25 15:04:01 curt Exp $
  */
 
 
@@ -25,7 +24,7 @@
 #include "ardupilot.hxx"
 #include "pilot_fgfs.hxx"
 
-#include "pilot_mgr.h"
+#include "pilot_mgr.hxx"
 
 //
 // Global variables

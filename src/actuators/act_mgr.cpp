@@ -20,7 +20,7 @@
 #include "main/globals.hxx"
 #include "props/props.hxx"
 #ifdef ENABLE_MNAV_SENSOR
-#  include "sensors/mnav.h"
+#  include "sensors/mnav.hxx"
 #endif
 #include "util/myprof.h"
 #include "util/timing.h"

@@ -1,7 +1,7 @@
 /**
- * \file: gps_ublox5.cxx
+ * \file: gps_mediatek.cxx
  *
- * u-blox 5 protocol driver
+ * MediaTek 3329 MTX protocol driver
  *
  * Copyright (C) 2012 - Curtis L. Olson colson@atiak.com
  *
