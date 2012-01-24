@@ -1,11 +1,11 @@
 //
-// FILE: mnav.h
+// FILE: mnav.hxx
 // DESCRIPTION: aquire, validate and decode the IMU, GPS, and Servo data
 //              inbound from the MNAV
 //
 
-#ifndef _UGEAR_MNAV_H
-#define _UGEAR_MNAV_H
+#ifndef _UGEAR_MNAV_HXX
+#define _UGEAR_MNAV_HXX
 
 
 #include "include/globaldefs.h"
@@ -57,4 +57,4 @@ void mnav_send_servo_cmd( /* struct servo *servo_out */ );
 void mnav_send_short_servo_cmd( /* struct servo *servo_out */ );
 
 
-#endif // _UGEAR_MNAV_H
+#endif // _UGEAR_MNAV_HXX

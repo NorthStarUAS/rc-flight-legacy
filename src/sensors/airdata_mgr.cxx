@@ -1,11 +1,10 @@
 /**
- * \file: airdata_mgr.cpp
+ * \file: airdata_mgr.cxx
  *
  * Front end management interface for reading air data.
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: airdata_mgr.cpp,v 1.2 2009/08/25 15:04:01 curt Exp $
  */
 
 
@@ -24,13 +23,13 @@
 
 #ifdef ENABLE_MNAV_SENSOR
 #  include "filters/mnav/ahrs.h"
-#  include "mnav.h"
+#  include "mnav.hxx"
 #endif
 
 #include "ardupilot.hxx"
 #include "imu_fgfs.hxx"
 
-#include "airdata_mgr.h"
+#include "airdata_mgr.hxx"
 
 //
 // Global variables

@@ -1,5 +1,5 @@
 /******************************************************************************
-* FILE: mnav.c
+* FILE: mnav.cxx
 * DESCRIPTION:
 *   
 *   
@@ -24,9 +24,9 @@
 #include "util/myprof.h"
 #include "util/timing.h"
 
-#include "gps_mgr.h"
+#include "gps_mgr.hxx"
 
-#include "mnav.h"
+#include "mnav.hxx"
 
 //
 // uNAV packet length definition

@@ -1,15 +1,15 @@
 /**
- * \file: sf_6DOFv4.h
+ * \file: imu_vn100.hxx
  *
- * Sparkfun 6DOF v4 driver
+ * VectorNav VN100 (UART) driver
  *
- * Copyright Curt Olson curtolson@gmail.com
+ * Copyright (C) 2012 - Curtis L. Olson colson@atiak.com
  *
- * $Id: gpsd.h,v 1.2 2009/05/01 02:04:17 curt Exp $
  */
 
-#ifndef _UGEAR_IMU_VN100_H
-#define _UGEAR_IMU_VN100_H
+#ifndef _UGEAR_IMU_VN100_HXX
+#define _UGEAR_IMU_VN100_HXX
+
 
 #include <string>
 
@@ -24,4 +24,4 @@ bool imu_vn100_get();
 void imu_vn100_close();
 
 
-#endif // _UGEAR_IMU_VN100_H
+#endif // _UGEAR_IMU_VN100_HXX

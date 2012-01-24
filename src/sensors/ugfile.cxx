@@ -1,5 +1,5 @@
 //
-// FILE: ugfile.cpp
+// FILE: ugfile.cxx
 // DESCRIPTION: aquire saved sensor data from a set of files (rather
 // than from a live sensor)
 //
@@ -14,9 +14,9 @@
 #include "props/props.hxx"
 #include "util/timing.h"
 
-#include "gps_mgr.h"
+#include "gps_mgr.hxx"
 
-#include "ugfile.h"
+#include "ugfile.hxx"
 
 
 typedef struct
