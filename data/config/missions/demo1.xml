@@ -33,8 +33,8 @@
   <!-- sequential tasks: only the front item in the fifo queue is run -->
   <sequential-tasks>
     <task>
-      <name>bungee-launch</name>
-      <finish-alt-agl-ft>150</finish-alt-agl-ft>
+      <name>launch</name>
+      <alt-agl-ft>150</alt-agl-ft>
     </task>
 
     <task>
