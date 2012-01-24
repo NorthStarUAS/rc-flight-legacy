@@ -13,7 +13,7 @@
 #include "mission/mission_mgr.hxx"
 #include "mission/tasks/task_route.hxx"
 #include "props/props.hxx"
-#include "sensors/gps_mgr.h"
+#include "sensors/gps_mgr.hxx"
 #include "util/strutils.hxx"
 #include "util/timing.h"
 

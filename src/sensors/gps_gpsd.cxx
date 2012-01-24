@@ -1,12 +1,11 @@
 /**
- * \file: gpsd.cpp
+ * \file: gpsd.cxx
  *
  * Read gps data from the gpsd driver (provides data via a socket
  * connection on port 2947)
  *
- * Copyright Curt Olson curtolson@gmail.com
+ * Copyright (C) 2012 - Curt Olson curtolson@gmail.com
  *
- * $Id: gpsd.cpp,v 1.7 2009/08/25 15:04:01 curt Exp $
  */
 
 #include <string>
@@ -18,11 +17,11 @@ using std::string;
 #include "comms/logging.h"
 #include "comms/netSocket.h"
 #include "props/props.hxx"
-#include <util/strutils.hxx>
+#include "util/strutils.hxx"
 #include "util/timing.h"
-#include "gps_mgr.h"
+#include "gps_mgr.hxx"
 
-#include "gps_gpsd.h"
+#include "gps_gpsd.hxx"
 
 
 // gpsd property nodes

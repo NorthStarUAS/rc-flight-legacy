@@ -1,16 +1,15 @@
 /**
- * \file: gps_mgr.h
+ * \file: gps_mgr.hxx
  *
  * Front end management interface for reading GPS data.
  *
  * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
  *
- * $Id: gps_mgr.h,v 1.5 2009/05/15 17:04:56 curt Exp $
  */
 
 
-#ifndef _UGEAR_GPS_MGR_H
-#define _UGEAR_GPS_MGR_H
+#ifndef _UGEAR_GPS_MGR_HXX
+#define _UGEAR_GPS_MGR_HXX
 
 
 void GPS_init();
@@ -21,4 +20,4 @@ void GPS_close();
 double GPS_age();
 
 
-#endif // _UGEAR_GPS_MGR_H
+#endif // _UGEAR_GPS_MGR_HXX

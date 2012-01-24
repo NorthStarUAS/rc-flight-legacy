@@ -10,7 +10,7 @@
 #include "filters/mnav/ahrs.h"	// FIXME: need to remove
 #include "filters/mnav/nav.h"	// FIXME: need to remove
 #include "props/props.hxx"
-#include "sensors/gps_mgr.h"
+#include "sensors/gps_mgr.hxx"
 #include "util/timing.h"
 
 #include "logging.h"

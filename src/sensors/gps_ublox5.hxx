@@ -1,15 +1,14 @@
 /**
- * \file: gps_ublox5.h
+ * \file: gps_ublox5.hxx
  *
  * u-blox 5 protocol driver
  *
  * Copyright Curt Olson curtolson@gmail.com
  *
- * $Id: gpsd.h,v 1.2 2009/05/01 02:04:17 curt Exp $
  */
 
-#ifndef _UGEAR_GPS_UBLOX5_H
-#define _UGEAR_GPS_UBLOX5_H
+#ifndef _UGEAR_GPS_UBLOX5_HXX
+#define _UGEAR_GPS_UBLOX5_HXX
 
 
 #include "include/globaldefs.h"
@@ -19,4 +18,4 @@ bool gps_ublox5_update();
 void gps_ublox5_close();
 
 
-#endif // _UGEAR_GPS_UBLOX5_H
+#endif // _UGEAR_GPS_UBLOX5_HXX

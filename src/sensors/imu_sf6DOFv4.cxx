@@ -1,11 +1,10 @@
 /**
- *  \file: sf_6DOFv4.h
+ *  \file: imu_sf6DOFv4.cxx
  *
  * Sparkfun 6DOF v4 driver
  *
- * Copyright Curt Olson curtolson@gmail.com
+ * Copyright (C) 2012 - Curt L. Olson colson@atiak.com
  *
- * $Id: gpsd.cpp,v 1.7 2009/08/25 15:04:01 curt Exp $
  */
 
 #include <errno.h>		// errno
@@ -21,7 +20,7 @@
 #include "util/strutils.hxx"
 #include "util/timing.h"
 
-#include "imu_sf6DOFv4.h"
+#include "imu_sf6DOFv4.hxx"
 
 
 // imu property nodes

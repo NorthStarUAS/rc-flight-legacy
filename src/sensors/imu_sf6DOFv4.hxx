@@ -1,15 +1,14 @@
 /**
- * \file: sf_6DOFv4.h
+ * \file: sf_6DOFv4.hxx
  *
  * Sparkfun 6DOF v4 driver
  *
  * Copyright Curt Olson curtolson@gmail.com
  *
- * $Id: gpsd.h,v 1.2 2009/05/01 02:04:17 curt Exp $
  */
 
-#ifndef _UGEAR_IMU_SF6DOFV4_H
-#define _UGEAR_IMU_SF6DOFV4_H
+#ifndef _UGEAR_IMU_SF6DOFV4_HXX
+#define _UGEAR_IMU_SF6DOFV4_HXX
 
 #include <string>
 
@@ -24,4 +23,4 @@ bool sf_6DOFv4_get_imu();
 void sf_6DOFv4_close();
 
 
-#endif // _UGEAR_IMU_SF6DOFV4_H
+#endif // _UGEAR_IMU_SF6DOFV4_HXX

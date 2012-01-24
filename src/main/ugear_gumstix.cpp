@@ -36,8 +36,6 @@
 #include "filters/filter_mgr.h"
 #include "health/health.h"
 #include "include/globaldefs.h"
-#include "mission/mission_mgr.hxx"
-#include "mission/tasks/task_route.hxx"
 #include "props/props.hxx"
 #include "props/props_io.hxx"
 #include "sensors/airdata_mgr.hxx"
@@ -62,10 +60,11 @@ using std::string;
 static const int HEARTBEAT_HZ = 50;	 // master clock rate
 
 static bool enable_control = false;   // autopilot control module enabled/disabled
-static bool enable_mission = true;    // mission mgr module enabled/disabled
+static bool enable_route   = true;    // route module enabled/disabled
 static bool enable_cas     = false;   // cas module enabled/disabled
 static bool enable_telnet  = false;   // telnet command/monitor interface
 static bool enable_pointing = false;  // pan/tilt pointing module
+static bool initial_home   = false;   // initial home position determined
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 static double lost_link_sec = 59.0;   // lost link timeout
 
@@ -88,7 +87,6 @@ myprofile debug7;
 void usage()
 {
     printf("\n./ugear --option1 on/off --option2 on/off --option3 ... \n");
-    printf("--config path        : path to location of configuration file tree\n");
     printf("--log-dir path       : enable onboard data logging to path\n");
     printf("--log-servo in/out   : specify which servo data to log (out=default)\n");
     printf("--mnav <device>      : specify mnav communication device\n");
@@ -122,6 +120,7 @@ void timer_handler (int signum)
     static int route_counter = 0;
     static int command_counter = 0;
     static int flush_counter = 0;
+    static double last_command_time = 0.0;
 
     static int count = 0;
 
@@ -182,6 +181,21 @@ void timer_handler (int signum)
 	filter_status_node->setStringValue("invalid");
     }
 
+    // initial home is most recent gps result after being alive with a
+    // solution for 20 seconds
+    if ( !initial_home && GPS_age() < 2.0 ) {
+	SGPropertyNode *gps_lat_node
+	    = fgGetNode("/sensors/gps/latitude-deg", true);
+	SGPropertyNode *gps_lon_node
+	    = fgGetNode("/sensors/gps/longitude-deg", true);
+	SGWayPoint wp( gps_lon_node->getDoubleValue(),
+		       gps_lat_node->getDoubleValue(),
+		       -9999.9 );
+	if ( route_mgr.update_home(wp, 0.0, true /*force update*/) ) {
+	    initial_home = true;
+	}
+    }
+
     /* FIXME: TEMPORARY */ /* logging_navstate(); */
 
     debug3.stop();
@@ -193,14 +207,46 @@ void timer_handler (int signum)
     //
 
     if ( remote_link_on ) {
+	static bool read_command = false;
+
 	// check for incoming command data (5hz)
 	if ( command_counter >= (HEARTBEAT_HZ / 5) ) {
 	    command_counter = 0;
-	    remote_link_command();
+	    if ( remote_link_command() ) {
+		read_command = true;
+		last_command_time = current_time;
+		// FIXME: we shouldn't necessarily assume route
+		// mode just because we read a command from the
+		// ground station
+		if ( route_mgr.get_route_mode() != FGRouteMgr::FollowRoute ) {
+		    route_mgr.set_route_mode();
+		    if ( event_log_on ) {
+			event_log("route", "switch to ROUTE mode");
+		    }
+		}
+	    }
 
 	    // dribble a bit more out of the serial port if there is
 	    // something pending
 	    remote_link_flush_serial();
+	}
+
+ 	if ( read_command
+	     && (current_time > last_command_time + lost_link_sec)
+	     && (route_mgr.get_route_mode() != FGRouteMgr::GoHome) )
+        {
+	    // We have previously established a positive link with the
+	    // remote operator station, but it's been lost_link
+	    // seconds since the last command received and we aren't
+	    // already in GoHome mode.  The remote link is assumed to
+	    // be down or we've flown out of radio modem range.
+	    // Switch to fly home mode.  Route will automatically
+	    // resume when communications are reestablished
+	    // (presumably by flying back within range.)
+	    route_mgr.set_home_mode();
+	    if ( event_log_on ) {
+		event_log("route", "switch to HOME mode");
+	    }
 	}
     }
 
@@ -231,8 +277,14 @@ void timer_handler (int signum)
     // Control section
     //
 
-    if ( enable_mission ) {
-	mission_mgr.update();
+    if ( enable_route ) {
+	// route updates at 25 hz
+	if ( route_counter >= (HEARTBEAT_HZ / 25) ) {
+	    route_counter = 0;
+	    route_mgr_prof.start();
+	    route_mgr.update();
+	    route_mgr_prof.stop();
+	}
     }
 
     if ( enable_cas ) {
@@ -397,7 +449,6 @@ int main( int argc, char **argv )
     } catch (const sg_exception &exc) {
         printf("\n");
         printf("*** Cannot load master config file: %s\n", master.c_str());
-	printf("*** \n%s\n***\n", exc.getFormattedMessage().c_str());
         printf("\n");
         sleep(1);
     }
@@ -451,8 +502,8 @@ int main( int argc, char **argv )
     p = fgGetNode("/config/fcs/enable", true);
     enable_control = p->getBoolValue();
 
-    p = fgGetNode("/config/mission/enable", true);
-    enable_mission = p->getBoolValue();
+    p = fgGetNode("/config/route/enable", true);
+    enable_route = p->getBoolValue();
 
     // Parse the command line: pass #2 allows command line options to
     // override config file options
@@ -534,8 +585,9 @@ int main( int argc, char **argv )
 	Actuator_init();
     }
 
-    if ( enable_mission ) {
-	mission_mgr.init();
+    if ( enable_route ) {
+        // initialize the route manager
+        route_mgr.init();
     }
 
     if ( enable_cas ) {
@@ -551,7 +603,6 @@ int main( int argc, char **argv )
     // timing is based on wall clock)
     memset (&sa, 0, sizeof (sa));
     sa.sa_handler = &timer_handler;
-
     sigaction (SIGALRM, &sa, NULL);
 
     // Configure the timer to expire after 10,000 usec (1/100th of a second)
