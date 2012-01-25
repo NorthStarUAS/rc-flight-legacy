@@ -7,6 +7,8 @@
  *
  */
 
+// FIXME: VALIDATE NMEA CHECKSUMS!!!!
+
 #include <errno.h>		// errno
 #include <math.h>		// sin() cos()
 #include <sys/types.h>		// open()
@@ -17,7 +19,7 @@
 #include <unistd.h>		// tcgetattr() et. al.
 #include <string.h>		// memset()
 #include <sys/time.h>		// gettimeofday()
-#include <time.h>
+#include <time.h>		// mktime()
 #include <string>
 
 using std::string;
@@ -32,7 +34,7 @@ using std::string;
 #include "util/timing.h"
 #include "gps_mgr.hxx"
 
-#include "gps_ublox5.hxx"
+#include "gps_mediatek.hxx"
 
 
 // gpsd property nodes
@@ -81,12 +83,12 @@ static void bind_output( string rootname ) {
 
 
 // send our configured init strings to configure gpsd the way we prefer
-static bool gps_ublox5_open() {
+static bool gps_mediatek3329_open() {
     if ( display_on ) {
-	printf("ublox5 on %s\n", device_name.c_str());
+	printf("mediatek 3329 on %s\n", device_name.c_str());
     }
 
-    fd = open( device_name.c_str(), O_RDONLY | O_NOCTTY | O_NONBLOCK );
+    fd = open( device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
     if ( fd < 0 ) {
         fprintf( stderr, "open serial: unable to open %s - %s\n",
                  device_name.c_str(), strerror(errno) );
@@ -100,8 +102,8 @@ static bool gps_ublox5_open() {
     // tcgetattr(fd,&oldTio); 
 
     // Configure New Serial Port Settings
-    config.c_cflag     = B115200 | // bps rate
-                         CRTSCTS | // output flow ctnl
+    config.c_cflag     = B57600 |  // bps rate
+	// CRTSCTS | // output flow ctnl
                          CS8	 | // 8n1
                          CLOCAL	 | // local connection, no modem
                          CREAD;	   // enable receiving chars
@@ -130,393 +132,332 @@ static bool gps_ublox5_open() {
 }
 
 
-void gps_ublox5_init( string rootname, SGPropertyNode *config ) {
+// calculate the nmea check sum
+static char calc_nmea_cksum(const char *sentence) {
+    unsigned char sum = 0;
+    int i, len;
+
+    // cout << sentence << endl;
+
+    len = strlen(sentence);
+    sum = sentence[0];
+    for ( i = 1; i < len; i++ ) {
+        // cout << sentence[i];
+        sum ^= sentence[i];
+    }
+    // cout << endl;
+
+    // printf("sum = %02x\n", sum);
+    return sum;
+}
+
+
+static int gps_send_cmd( string msg ) {
+    char msg_sum[10];
+    snprintf( msg_sum, 3, "%02X", calc_nmea_cksum(msg.c_str()) );
+    string command = "$";
+    command += msg;
+    command += "*";
+    command += msg_sum;
+    if ( display_on ) {
+	printf("sending '%s'\n", command.c_str());
+    }
+    command += "\r\n";
+    
+    int len = write( fd, command.c_str(), command.length() );
+
+    return len;
+}
+
+
+void gps_mediatek3329_init( string rootname, SGPropertyNode *config ) {
     bind_input( config );
     bind_output( rootname );
-    gps_ublox5_open();
-}
+    gps_mediatek3329_open();
 
+    // send setup strings (reference command set from datasheets in
+    // the documentation)
 
-// swap big/little endian bytes
-static void my_swap( uint8_t *buf, int index, int count ) {
-#if defined( __powerpc__ )
-    int i;
-    uint8_t tmp;
-    for ( i = 0; i < count / 2; ++i ) {
-        tmp = buf[index+i];
-        buf[index+i] = buf[index+count-i-1];
-        buf[index+count-i-1] = tmp;
+    unsigned int len = 0;
+
+    // GGA and RMC at full rate:
+    string cmd314 = "PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0";
+    // GGA and RMC at full rate, GSV every 10th position report:
+    // string cmd314 = "PMTK314,0,1,0,1,0,10,0,0,0,0,0,0,0,0,0,0,0";
+    len = gps_send_cmd( cmd314 );
+    if ( len != cmd314.length() + 6 ) {
+	printf("MediaTek: error sending command: %s\n", cmd314.c_str());
     }
-#endif
+
+    // 200ms update rate (5hz)
+    string cmd220 = "PMTK220,200";
+    len = gps_send_cmd( cmd220 );
+    if ( len != cmd220.length() + 6 ) {
+	printf("MediaTek: error sending command: %s\n", cmd220.c_str());
+    }
+
+    // Enable WAAS $PMTK301,2
+    string cmd301 = "PMTK301,2";
+    len = gps_send_cmd( cmd301 );
+    if ( len != cmd301.length() + 6 ) {
+	printf("MediaTek: error sending command: %s\n", cmd301.c_str());
+    }
+
+    // Query firmware version $PMTK605
+    string cmd604 = "PMTK605";
+    len = gps_send_cmd( cmd604 );
+    if ( len != cmd604.length() + 6 ) {
+	printf("MediaTek: error sending command: %s\n", cmd604.c_str());
+    }
+
+    // Command to set baud should we ever want to change from the
+    // default of 57,600: $PMTK251,38400*27 (up to 115200 should be
+    // supported)
 }
 
 
-static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
-			      uint16_t payload_length, uint8_t *payload )
+static double gtime_to_gsec( string gtime ) {
+    string hour = gtime.substr(0, 2);
+    string min = gtime.substr(2, 2);
+    string sec = gtime.substr(4);
+
+    double gsec	=
+	atoi(hour.c_str()) * 3600.0
+	+ atoi(min.c_str()) * 60.0
+	+ atof(sec.c_str());
+
+    return gsec;
+}
+
+
+static double date_time_to_unix_sec( string gdate, string gtime ) {
+   string hour = gtime.substr(0, 2);
+   string min = gtime.substr(2, 2);
+   string isec = gtime.substr(4, 2);
+   string fsec = gtime.substr(6);
+
+   string day = gdate.substr(0, 2);
+   string mon = gdate.substr(2, 2);
+   string year = gdate.substr(4, 2);
+
+   // printf("%s : %s : %s + 0%s  %s / %s / %s\n", hour.c_str(), min.c_str(),
+   //        isec.c_str(), fsec.c_str(), day.c_str(), mon.c_str(),
+   //        year.c_str() );
+
+   struct tm t;
+   t.tm_sec = atoi(isec.c_str());
+   t.tm_min = atoi(min.c_str());
+   t.tm_hour = atoi(hour.c_str());
+   t.tm_mday = atoi(day.c_str());
+   t.tm_mon = atoi(mon.c_str()) - 1;
+   t.tm_year = atoi(year.c_str()) + 100;
+   t.tm_gmtoff = 0;
+
+   // force timezone to GMT/UTC so mktime() does the proper conversion
+   tzname[0] = tzname[1] = "GMT";
+   timezone = 0;
+   daylight = 0;
+   setenv("TZ", "UTC", 1);
+
+   // printf("%d\n", mktime(&t));
+   // printf("tzname[0]=%s, tzname[1]=%s, timezone=%d, daylight=%d\n",
+   //        tzname[0], tzname[1], timezone, daylight);
+
+   double result = (double)mktime(&t);
+   result += atof( fsec.c_str() );
+
+   return result;
+}
+
+
+static bool parse_nmea_msg( char *payload, int size )
 {
     bool new_position = false;
     static bool set_system_time = false;
+    static double last_gsec = 0.0;
+    static double last_alt_m = 0.0;
 
-    if ( msg_class == 0x01 && msg_id == 0x02 ) {
-	// NAV-POSLLH
-	my_swap( payload, 0, 4);
-	my_swap( payload, 4, 4);
-	my_swap( payload, 8, 4);
-	my_swap( payload, 12, 4);
-	my_swap( payload, 16, 4);
-	my_swap( payload, 20, 4);
-	my_swap( payload, 24, 4);
+    string msg = (string)payload;
+    // printf("orig = %s\n", msg.c_str());
 
-	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)p+0);
-	int32_t lon = *((int32_t *)(p+4));
-	int32_t lat = *((int32_t *)(p+8));
-	int32_t height = *((int32_t *)(p+12));
-	int32_t hMSL = *((int32_t *)(p+16));
-	uint32_t hAcc = *((uint32_t *)(p+20));
-	uint32_t vAcc = *((uint32_t *)(p+24));
-	if ( display_on && 0 ) {
+    // validate message
+    if ( msg.length() < 9 ) {
+        // bogus command
+	if ( display_on ) { printf("mediatek: short command '%s'\n", msg.c_str()); }
+        return false;
+    }
+ 
+    // save sender check sum
+    string nmea_sum = msg.substr(msg.length() - 2);
+    // printf("nmea_sum = %s\n", nmea_sum.c_str() );
+
+    // trim down to core message
+    msg = msg.substr(0, msg.length() - 3);
+    // printf("nmea_msg = %s\n", msg.c_str());
+    char msg_sum[10];
+    snprintf( msg_sum, 3, "%02X", calc_nmea_cksum(msg.c_str()) );
+
+    if ( nmea_sum.c_str()[0] != msg_sum[0]
+         || nmea_sum.c_str()[1] != msg_sum[1])
+    {
+        // checksum failure
+        printf("mediatek: checksum failure %s (msg) != %02X (calc)\n", nmea_sum.c_str(), calc_nmea_cksum(msg.c_str()) );
+        return false;
+    }
+
+    vector <string> token = split( msg, "," );
+    if ( token.size() < 1 ) {
+        // no valid tokens
+        return false;
+    }
+
+    if ( token[0] == "GPGGA" && token.size() == 15 ) {
+	// ex: GPGGA,163227,3321.173,N,11039.855,W,1,,,3333,F,,,,*0F
+	double gsec = gtime_to_gsec( token[1].c_str() );
+	double lat_deg = atof( token[2].c_str() );
+	if ( token[3] == "S" ) {
+	    lat_deg *= -1.0;
+	}
+	double lon_deg = atof( token[4].c_str() );
+	if ( token[5] == "W" ) {
+	    lon_deg *= -1.0;
+	}
+	int fix_ind = atoi( token[6].c_str() );
+	int num_sats = atoi( token[7].c_str() );
+	float hdop = atof( token[8].c_str() );
+	float alt_m = atof( token[9].c_str() );
+	if ( token[10] == "F" ) {
+	    alt_m *= SG_FEET_TO_METER;
+	}
+	float geoid_sep_m = atof( token[11].c_str() );
+	if ( token[12] == "F" ) {
+	    geoid_sep_m *= SG_FEET_TO_METER;
+	}
+
+	double dt = gsec - last_gsec;
+	if ( dt < 0.0 ) { dt += 86400; }
+	double da = alt_m - last_alt_m;
+	double vspeed_mps = 0.0;
+	if ( dt > 0.001 ) {
+	    vspeed_mps = da / dt;
+	}
+	last_gsec = gsec;
+	last_alt_m = alt_m;
+
+	if ( display_on ) {
 	    if ( gps_fix_type_node->getIntValue() < 3 ) {
-		printf("nav-posllh (%d) %d %d %d %d\n",
-		       iTOW, lon, lat, height, hMSL);
+		printf("gga (%.3f) %.8f %.8f %.2f %d\n",
+		       gsec, lon_deg, lat_deg, alt_m, num_sats);
 	    }
 	}
-    } else if ( msg_class == 0x01 && msg_id == 0x06 ) {
-	// NAV-SOL
-	my_swap( payload, 0, 4);
-	my_swap( payload, 4, 4);
-	my_swap( payload, 8, 2);
-	my_swap( payload, 12, 4);
-	my_swap( payload, 16, 4);
-	my_swap( payload, 20, 4);
-	my_swap( payload, 24, 4);
-	my_swap( payload, 28, 4);
-	my_swap( payload, 32, 4);
-	my_swap( payload, 36, 4);
-	my_swap( payload, 40, 4);
-	my_swap( payload, 44, 2);
-
-	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)(p+0));
-	int32_t fTOW = *((int32_t *)(p+4));
-	int16_t week = *((int16_t *)(p+8));
-	uint8_t gpsFix = p[10];
-	uint8_t flags = p[11];
-	int32_t ecefX = *((int32_t *)(p+12));
-	int32_t ecefY = *((int32_t *)(p+16));
-	int32_t ecefZ = *((int32_t *)(p+20));
-	uint32_t pAcc = *((uint32_t *)(p+24));
-	int32_t ecefVX = *((int32_t *)(p+28));
-	int32_t ecefVY = *((int32_t *)(p+32));
-	int32_t ecefVZ = *((int32_t *)(p+36));
-	uint32_t sAcc = *((uint32_t *)(p+40));
-	uint16_t pDOP = *((uint16_t *)(p+44));
-	uint8_t numSV = p[47];
-	if ( display_on && 0 ) {
-	    if ( gps_fix_type_node->getIntValue() < 3 ) {
-		printf("nav-sol (%d) %d %d %d %d %d [ %d %d %d ]\n",
-		       gpsFix, iTOW, fTOW, ecefX, ecefY, ecefZ,
-		       ecefVX, ecefVY, ecefVZ);
-	    }
-	}
-	SGVec3d ecef( ecefX / 100.0, ecefY / 100.0, ecefZ / 100.0 );
-	SGGeod wgs84;
-	SGGeodesy::SGCartToGeod( ecef, wgs84 );
-	SGQuatd ecef2ned = SGQuatd::fromLonLat(wgs84);
-	SGVec3d vel_ecef( ecefVX / 100.0, ecefVY / 100.0, ecefVZ / 100.0 );
-	// SGVec3d vel_ecef = ecef2ned.backTransform(vel_ned);
-	SGVec3d vel_ned = ecef2ned.transform( vel_ecef );
-	// printf("my vel ned = %.2f %.2f %.2f\n", vel_ned.x(), vel_ned.y(), vel_ned.z());
-
- 	gps_satellites_node->setIntValue( numSV );
- 	gps_fix_type_node->setIntValue( gpsFix );
-
-	if ( fabs(ecefX) > 650000000
-	     || fabs(ecefY) > 650000000
-	     || fabs(ecefZ) > 650000000 ) {
-	    // earth radius is about 6371km (637,100,000 cm).  If one
-	    // of the ecef coordinates is beyond this radius we know
-	    // we have bad data.  This means we won't toss data until
-	    // above about 423,000' MSL
-	    if ( event_log_on ) {
-		event_log( "ublox5", "received bogus ecef data" );
-	    }
-	} else if ( wgs84.getElevationM() > 60000 ) {
-	    // sanity check: assume altitude > 60k meters (200k feet) is bad
-	} else if ( wgs84.getElevationM() < -1000 ) {
-	    // sanity check: assume altitude < -1000 meters (-3000 feet) is bad
-	} else if ( gpsFix == 3 ) {
-	    // passed basic sanity checks and gps is reporting a 3d fix
+    } else if ( token[0] == "GPRMC" && token.size() == 13 ) {
+	// ex: $GPRMC,053740.000,A,2503.6319,N,12136.0099,E,2.69,79.65,100106,,,A*53
+	double gsec = gtime_to_gsec( token[1].c_str() );
+	if ( token[2] == "A" ) {
+	    // for the mediatek, the gga string is sent, followed by
+	    // the rmc string.  So we notify the system of new valid
+	    // data whenever a valid rmc string is read.
 	    new_position = true;
-	    gps_timestamp_node->setDoubleValue( get_Time() );
-	    gps_lat_node->setDoubleValue( wgs84.getLatitudeDeg() );
-	    gps_lon_node->setDoubleValue( wgs84.getLongitudeDeg() );
-	    gps_alt_node->setDoubleValue( wgs84.getElevationM() );
-	    gps_vn_node->setDoubleValue( vel_ned.x() );
-	    gps_ve_node->setDoubleValue( vel_ned.y() );
-	    gps_vd_node->setDoubleValue( vel_ned.z() );
-	    // printf("        %.10f %.10f %.2f - %.2f %.2f %.2f\n",
-	    //        wgs84.getLatitudeDeg(),
-	    //        wgs84.getLongitudeDeg(),
-	    //        wgs84.getElevationM(),
-	    //        vel_ned.x(), vel_ned.y(), vel_ned.z() );
+	}
+	double lat_deg = atof( token[3].c_str() );
+	if ( token[4] == "S" ) {
+	    lat_deg *= -1.0;
+	}
+	double lon_deg = atof( token[5].c_str() );
+	if ( token[6] == "W" ) {
+	    lon_deg *= -1.0;
+	}
+	float speed_kts = atof( token[7].c_str() );
+	float course_deg = atof( token[8].c_str() );
 
-	    double julianDate = (week * 7.0) + 
-		(0.001 * iTOW) / 86400.0 +  //86400 = seconds in 1 day
-		2444244.5; // 2444244.5 Julian date of GPS epoch (Jan 5 1980 at midnight)
-	    julianDate = julianDate - 2440587.5; // Subtract Julian Date of Unix Epoch (Jan 1 1970)
+	// compute unix time (time_t)
+	double unix_sec = date_time_to_unix_sec( token[9], token[1] );
 
-	    double unixSecs = julianDate * 86400.0;
-	    double unixFract = unixSecs - floor(unixSecs);
-	    struct timeval time;
-	    gps_unix_sec_node->setDoubleValue( unixSecs );
-#if 0
-	    if ( unixSecs > 1263154775 && !set_system_time) {
-		printf("Setting system time to %.3f\n", unixSecs);
-		set_system_time = true;
-		time.tv_sec = floor(unixSecs);
-		time.tv_usec = floor(unixFract * 1000000.);
-		settimeofday(&time, NULL);
-		// first time through, restamp this packet with the
-		// "reset" system time to avoid a huge dt
-		gps_timestamp_node->setDoubleValue( get_Time(true) );
-	    }
-#endif
+	// compute speed/course to vel NED
+	double speed_mps = speed_kts * SG_KT_TO_MPS;
+	double angle_rad = (90.0 - course_deg) * SGD_DEGREES_TO_RADIANS;
+	gps_vn_node->setDoubleValue( sin(angle_rad) * speed_mps );
+	gps_ve_node->setDoubleValue( cos(angle_rad) * speed_mps );
+	printf("rmc (%.3f) mps=%.1f deg=%.1f rad=%.3f vn=%.1f ve=%.1f\n",
+	       unix_sec,
+	       speed_mps, course_deg, angle_rad,
+	       gps_vn_node->getDoubleValue(),
+	       gps_ve_node->getDoubleValue());
+    } else if ( token[0] == "PMTK001" && token.size() == 3 ) {
+	int cmd_id = atoi( token[1].c_str() );
+	int status_id = atoi( token[2].c_str() );
+	if ( status_id == 1 ) {
+	    printf("MediaTek: received unsupported command: %d\n", cmd_id);
+	} else if ( status_id == 2 ) {
+	    printf("MediaTek: valid command, but action failed: %d\n", cmd_id);
+	} else if ( status_id == 3 ) {
+	    printf("MediaTek: command succeeded: %d\n", cmd_id);
 	}
-   } else if ( msg_class == 0x01 && msg_id == 0x12 ) {
-	// NAV-VELNED
-	my_swap( payload, 0, 4);
-	my_swap( payload, 4, 4);
-	my_swap( payload, 8, 4);
-	my_swap( payload, 12, 4);
-	my_swap( payload, 16, 4);
-	my_swap( payload, 20, 4);
-	my_swap( payload, 24, 4);
-	my_swap( payload, 28, 4);
-	my_swap( payload, 32, 4);
-
-	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)p+0);
-	int32_t velN = *((int32_t *)(p+4));
-	int32_t velE = *((int32_t *)(p+8));
-	int32_t velD = *((int32_t *)(p+12));
-	uint32_t speed = *((uint32_t *)(p+16));
-	uint32_t gspeed = *((uint32_t *)(p+20));
-	int32_t heading = *((int32_t *)(p+24));
-	uint32_t sAcc = *((uint32_t *)(p+28));
-	uint32_t cAcc = *((uint32_t *)(p+32));
-	if ( display_on && 0 ) {
-	    if ( gps_fix_type_node->getIntValue() < 3 ) {
-		printf("nav-velned (%d) %.2f %.2f %.2f s = %.2f h = %.2f\n",
-		       iTOW, velN / 100.0, velE / 100.0, velD / 100.0,
-		       speed / 100.0, heading / 100000.0);
-	    }
-	}
-    } else if ( msg_class == 0x01 && msg_id == 0x21 ) {
-	// NAV-TIMEUTC
-	my_swap( payload, 0, 4);
-	my_swap( payload, 4, 4);
-	my_swap( payload, 8, 4);
-	my_swap( payload, 12, 2);
-
-	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)(p+0));
-	uint32_t tAcc = *((uint32_t *)(p+4));
-	int32_t nano = *((int32_t *)(p+8));
-	int16_t year = *((int16_t *)(p+12));
-	uint8_t month = p[14];
-	uint8_t day = p[15];
-	uint8_t hour = p[16];
-	uint8_t min = p[17];
-	uint8_t sec = p[18];
-	uint8_t valid = p[19];
-	if ( display_on && 0 ) {
-	    if ( gps_fix_type_node->getIntValue() < 3 ) {
-		printf("nav-timeutc (%d) %02x %04d/%02d/%02d %02d:%02d:%02d\n",
-		       iTOW, valid, year, month, day, hour, min, sec);
-	    }
-	}
-	if ( !set_system_time && year > 2009 ) {
-	    set_system_time = true;
-	    printf("set system clock: nav-timeutc (%d) %02x %04d/%02d/%02d %02d:%02d:%02d\n",
-		   iTOW, valid, year, month, day, hour, min, sec);
-	    struct tm gps_time;
-	    gps_time.tm_sec = sec;
-	    gps_time.tm_min = min;
-	    gps_time.tm_hour = hour;
-	    gps_time.tm_mday = day;
-	    gps_time.tm_mon = month - 1;
-	    gps_time.tm_year = year - 1900;
-	    time_t unix_sec = mktime( &gps_time );
-	    printf("gps->unix time = %d\n", (int)unix_sec);
-	    struct timeval fulltime;
-	    fulltime.tv_sec = unix_sec;
-	    fulltime.tv_usec = nano / 1000;
-	    settimeofday( &fulltime, NULL );
-	    get_Time( true ); 	// reset precise clock timer to zero
-	}
-    } else if ( msg_class == 0x01 && msg_id == 0x30 ) {
-	// NAV-SVINFO (partial parse)
-	my_swap( payload, 0, 4);
-
-	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)(p+0));
-	uint8_t numCh = p[4];
-	uint8_t globalFlags = p[5];
-	int satUsed = 0;
-	for ( int i = 0; i < numCh; i++ ) {
-	    uint8_t satid = p[9 + 12*i];
-	    uint8_t flags = p[10 + 12*i];
-	    uint8_t quality = p[11 + 12*i];
-	    // printf(" chn=%d satid=%d flags=%d quality=%d\n", i, satid, flags, quality);
-	    if ( quality > 3 ) {
-		satUsed++;
-	    }
-	}
- 	// gps_satellites_node->setIntValue( satUsed );
-	if ( display_on && 0 ) {
-	    if ( gps_fix_type_node->getIntValue() < 3 ) {
-		printf("Satellite count = %d/%d\n", satUsed, numCh);
-	    }
-	}
+    } else if ( token[0] == "PMTK705" && token.size() == 5 ) {
+	string firmware = token[1] + "," + token[2] + "," + token[3];
+	printf("MediaTek: firmware rev: %s\n", firmware.c_str() );
     } else {
-	if ( display_on && 0 ) {
-	    if ( gps_fix_type_node->getIntValue() < 3 ) {
-		printf("UBLOX5 msg class = %d  msg id = %d\n",
-		       msg_class, msg_id);
-	    }
+	if ( display_on ) {
+	    printf("MediaTek Unknown NMEA Message = \"%s\"\n", payload);
 	}
     }
 
     return new_position;
 }
 
-static bool read_ublox5() {
+static bool read_mediatek3329() {
     static int state = 0;
-    static int msg_class = 0, msg_id = 0;
-    static int length_lo = 0, length_hi = 0, payload_length = 0;
     static int counter = 0;
-    static uint8_t cksum_A = 0, cksum_B = 0, cksum_lo = 0, cksum_hi = 0;
     int len;
-    uint8_t input[500];
-    uint8_t payload[500];
+    char input[8];
+    static char payload[257];	// 256+1 for a null string terminator
 
-    // printf("read ublox5, entry state = %d\n", state);
+    // printf("read mediatek, entry state = %d\n", state);
 
     bool new_position = false;
 
     if ( state == 0 ) {
 	counter = 0;
-	cksum_A = cksum_B = 0;
 	len = read( fd, input, 1 );
-	while ( len > 0 && input[0] != 0xB5 ) {
-	    // fprintf( stderr, "state0: len = %d val = %2X\n", len, input[0] );
+	while ( len > 0 ) {
+	    //printf("mt0 read: %d\n", (unsigned int)input[0]);
+	    if ( input[0] == '$' ) {
+		state = 1;
+		break;
+	    }
 	    len = read( fd, input, 1 );
-	}
-	if ( len > 0 && input[0] == 0xB5 ) {
-	    // fprintf( stderr, "read 0xB5\n");
-	    state++;
+	    //printf("mt0 read: %d\n", (unsigned int)input[0]);
 	}
     }
     if ( state == 1 ) {
 	len = read( fd, input, 1 );
-	if ( len > 0 ) {
-	    if ( input[0] == 0x62 ) {
-		// fprintf( stderr, "read 0x62\n");
-		state++;
-	    } else if ( input[0] == 0xB5 ) {
-		// fprintf( stderr, "read 0xB5\n");
+	//printf("mt1 read: %d (%d)\n", (unsigned int)input[0], counter);
+	while ( len > 0 && counter < 256 ) {
+	    if ( input[0] == '\r' ) {
+		payload[counter] = 0;
+		state = 2;
+		break;
 	    } else {
-		state = 0;
+		payload[counter++] = input[0];
 	    }
+	    len = read( fd, input, 1 );
+	    //printf("mt1 read: %d (%d)\n", (unsigned int)input[0], counter);
+	}
+	if ( counter >= 256 ) {
+	    state = 0;
 	}
     }
     if ( state == 2 ) {
 	len = read( fd, input, 1 );
+	//printf("mt2 read: %d\n", (unsigned int)input[0]);
 	if ( len > 0 ) {
-	    msg_class = input[0];
-	    cksum_A += input[0];
-	    cksum_B += cksum_A;
-	    // fprintf( stderr, "msg class = %d\n", msg_class );
-	    state++;
-	}
-    }
-    if ( state == 3 ) {
-	len = read( fd, input, 1 );
-	if ( len > 0 ) {
-	    msg_id = input[0];
-	    cksum_A += input[0];
-	    cksum_B += cksum_A;
-	    // fprintf( stderr, "msg id = %d\n", msg_id );
-	    state++;
-	}
-    }
-    if ( state == 4 ) {
-	len = read( fd, input, 1 );
-	if ( len > 0 ) {
-	    length_lo = input[0];
-	    cksum_A += input[0];
-	    cksum_B += cksum_A;
-	    state++;
-	}
-    }
-    if ( state == 5 ) {
-	len = read( fd, input, 1 );
-	if ( len > 0 ) {
-	    length_hi = input[0];
-	    cksum_A += input[0];
-	    cksum_B += cksum_A;
-	    payload_length = length_hi*256 + length_lo;
-	    // fprintf( stderr, "payload len = %d\n", payload_length );
-	    if ( payload_length > 400 ) {
-		state = 0;
-	    } else {
-		state++;
+	    if ( input[0] == '\n' ) {
+		// printf("mta: calling parser with '%s'\n", payload);
+		new_position = parse_nmea_msg( payload, counter );
 	    }
+	    state = 0;
 	}
-    }
-    if ( state == 6 ) {
-	len = read( fd, input, 1 );
-	while ( len > 0 ) {
-	    payload[counter++] = input[0];
-	    //fprintf( stderr, "%02X ", input[0] );
-	    cksum_A += input[0];
-	    cksum_B += cksum_A;
-	    if ( counter >= payload_length ) {
-		break;
-	    }
-	    len = read( fd, input, 1 );
-	}
-
-	if ( counter >= payload_length ) {
-	    state++;
-	    //fprintf( stderr, "\n" );
-	}
-    }
-    if ( state == 7 ) {
-	len = read( fd, input, 1 );
-	if ( len > 0 ) {
-	    cksum_lo = input[0];
-	    state++;
-	}
-    }
-    if ( state == 8 ) {
-	len = read( fd, input, 1 );
-	if ( len > 0 ) {
-	    cksum_hi = input[0];
-	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
-		// fprintf( stderr, "checksum passes (%d)!\n", msg_id );
-		new_position = parse_ublox5_msg( msg_class, msg_id,
-						 payload_length, payload );
-		state++;
-	    } else {
-		if ( display_on && 0 ) {
-		    printf("checksum failed %d %d (computed) != %d %d (message)\n",
-			   cksum_A, cksum_B, cksum_lo, cksum_hi );
-		}
-	    }
-	    // this is the end of a record, reset state to 0 to start
-	    // looking for next record
+	if ( counter >= 256 ) {
 	    state = 0;
 	}
     }
@@ -525,13 +466,13 @@ static bool read_ublox5() {
 }
 
 
-bool gps_ublox5_update() {
-    // run an iteration of the ublox5 scanner/parser
-    bool gps_data_valid = read_ublox5();
+bool gps_mediatek3329_update() {
+    // run an iteration of the mediatek scanner/parser
+    bool gps_data_valid = read_mediatek3329();
 
     return gps_data_valid;
  }
 
 
-void gps_ublox5_close() {
+void gps_mediatek3329_close() {
 }

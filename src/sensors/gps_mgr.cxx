@@ -93,6 +93,8 @@ void GPS_init() {
 	    } else if ( source == "mnav" ) {
 		mnav_gps_init( basename );
 #endif // ENABLE_MNAV_SENSOR
+	    } else if ( source == "mediatek" ) {
+		gps_mediatek3329_init( basename, section );
 	    } else if ( source == "ublox5" ) {
 		gps_ublox5_init( basename, section );
 	    } else {
@@ -164,6 +166,8 @@ bool GPS_update() {
 	    } else if ( source == "mnav" ) {
 		fresh_data = mnav_get_gps();
 #endif // ENABLE_MNAV_SENSOR
+	    } else if ( source == "mediatek" ) {
+		fresh_data = gps_mediatek3329_update();
 	    } else if ( source == "ublox5" ) {
 		fresh_data = gps_ublox5_update();
 	    } else {
@@ -254,6 +258,8 @@ void GPS_close() {
 	    } else if ( source == "mnav" ) {
 		// nop
 #endif // ENABLE_MNAV_SENSOR
+	    } else if ( source == "mediatek" ) {
+		gps_mediatek3329_close();
 	    } else if ( source == "ublox5" ) {
 		gps_ublox5_close();
 	    } else {
