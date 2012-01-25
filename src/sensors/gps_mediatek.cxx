@@ -50,6 +50,7 @@ static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
 static SGPropertyNode *gps_satellites_node = NULL;
 static SGPropertyNode *gps_fix_type_node = NULL;
+static SGPropertyNode *gps_firmware_node = NULL;
 static SGPropertyNode *gps_device_name_node = NULL;
 
 static int fd = -1;
@@ -79,6 +80,7 @@ static void bind_output( string rootname ) {
     gps_satellites_node = outputroot->getChild("satellites", 0, true);
     gps_fix_type_node = outputroot->getChild("fix-type", 0, true);
     gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+    gps_firmware_node = outputroot->getChild("firmware", 0, true);
 }
 
 
@@ -311,78 +313,123 @@ static bool parse_nmea_msg( char *payload, int size )
         return false;
     }
 
+    double dd = 0.0;
+    double mm = 0.0;
+
     if ( token[0] == "GPGGA" && token.size() == 15 ) {
 	// ex: GPGGA,163227,3321.173,N,11039.855,W,1,,,3333,F,,,,*0F
-	double gsec = gtime_to_gsec( token[1].c_str() );
-	double lat_deg = atof( token[2].c_str() );
-	if ( token[3] == "S" ) {
-	    lat_deg *= -1.0;
-	}
-	double lon_deg = atof( token[4].c_str() );
-	if ( token[5] == "W" ) {
-	    lon_deg *= -1.0;
-	}
-	int fix_ind = atoi( token[6].c_str() );
-	int num_sats = atoi( token[7].c_str() );
-	float hdop = atof( token[8].c_str() );
-	float alt_m = atof( token[9].c_str() );
-	if ( token[10] == "F" ) {
-	    alt_m *= SG_FEET_TO_METER;
-	}
-	float geoid_sep_m = atof( token[11].c_str() );
-	if ( token[12] == "F" ) {
-	    geoid_sep_m *= SG_FEET_TO_METER;
-	}
 
-	double dt = gsec - last_gsec;
-	if ( dt < 0.0 ) { dt += 86400; }
-	double da = alt_m - last_alt_m;
+	double alt_m = 0.0;
 	double vspeed_mps = 0.0;
-	if ( dt > 0.001 ) {
-	    vspeed_mps = da / dt;
-	}
-	last_gsec = gsec;
-	last_alt_m = alt_m;
 
-	if ( display_on ) {
-	    if ( gps_fix_type_node->getIntValue() < 3 ) {
-		printf("gga (%.3f) %.8f %.8f %.2f %d\n",
-		       gsec, lon_deg, lat_deg, alt_m, num_sats);
+	double gsec = gtime_to_gsec( token[1].c_str() );
+
+	// double lat_deg = atof( token[2].c_str() );
+	// if ( token[3] == "S" ) {
+	//     lat_deg *= -1.0;
+	// }
+
+	// double lon_deg = atof( token[4].c_str() );
+	// if ( token[5] == "W" ) {
+	//     lon_deg *= -1.0;
+	// }
+
+	int fix_ind = atoi( token[6].c_str() );
+	gps_fix_type_node->setIntValue( fix_ind );
+
+	int num_sats = atoi( token[7].c_str() );
+	gps_satellites_node->setIntValue( num_sats );
+
+	float hdop = atof( token[8].c_str() );
+
+	if ( fix_ind > 0 ) {
+	    alt_m = atof( token[9].c_str() );
+	    if ( token[10] == "F" ) {
+		alt_m *= SG_FEET_TO_METER;
+	    }
+	    gps_alt_node->setDoubleValue( alt_m );
+
+	    float geoid_sep_m = atof( token[11].c_str() );
+	    if ( token[12] == "F" ) {
+		geoid_sep_m *= SG_FEET_TO_METER;
+	    }
+
+	    // compute vertical speed
+	    double dt = gsec - last_gsec;
+	    if ( dt < 0.0 ) { dt += 86400; }
+	    double da = alt_m - last_alt_m;
+	    if ( dt > 0.001 ) {
+		vspeed_mps = da / dt;
+	    }
+	    gps_vd_node->setDoubleValue( -vspeed_mps );
+
+	    last_gsec = gsec;
+	    last_alt_m = alt_m;
+
+	    if ( display_on ) {
+		printf("gga (%.3f) %.2f %.3f %d\n",
+		       gsec, alt_m, vspeed_mps, num_sats);
 	    }
 	}
     } else if ( token[0] == "GPRMC" && token.size() == 13 ) {
 	// ex: $GPRMC,053740.000,A,2503.6319,N,12136.0099,E,2.69,79.65,100106,,,A*53
 	double gsec = gtime_to_gsec( token[1].c_str() );
+
 	if ( token[2] == "A" ) {
 	    // for the mediatek, the gga string is sent, followed by
 	    // the rmc string.  So we notify the system of new valid
 	    // data whenever a valid rmc string is read.
+
 	    new_position = true;
-	}
-	double lat_deg = atof( token[3].c_str() );
-	if ( token[4] == "S" ) {
-	    lat_deg *= -1.0;
-	}
-	double lon_deg = atof( token[5].c_str() );
-	if ( token[6] == "W" ) {
-	    lon_deg *= -1.0;
-	}
-	float speed_kts = atof( token[7].c_str() );
-	float course_deg = atof( token[8].c_str() );
+	    gps_timestamp_node->setDoubleValue( get_Time() );
 
-	// compute unix time (time_t)
-	double unix_sec = date_time_to_unix_sec( token[9], token[1] );
+	    // compute unix time (time_t)
+	    double unix_sec = date_time_to_unix_sec( token[9], token[1] );
+	    gps_unix_sec_node->setDoubleValue( unix_sec );
+	    if ( ! set_system_time ) {
+		set_system_time = true;
+		time_t sec = (time_t)unix_sec;
+		suseconds_t usec = (unix_sec - sec) * 1000000;
+		struct timeval fulltime;
+		fulltime.tv_sec = sec;
+		fulltime.tv_usec = usec;
+		settimeofday( &fulltime, NULL );
+		get_Time( true ); 	// reset precise clock timer to zero
+	    }
 
-	// compute speed/course to vel NED
-	double speed_mps = speed_kts * SG_KT_TO_MPS;
-	double angle_rad = (90.0 - course_deg) * SGD_DEGREES_TO_RADIANS;
-	gps_vn_node->setDoubleValue( sin(angle_rad) * speed_mps );
-	gps_ve_node->setDoubleValue( cos(angle_rad) * speed_mps );
-	printf("rmc (%.3f) mps=%.1f deg=%.1f rad=%.3f vn=%.1f ve=%.1f\n",
-	       unix_sec,
-	       speed_mps, course_deg, angle_rad,
-	       gps_vn_node->getDoubleValue(),
-	       gps_ve_node->getDoubleValue());
+	    dd = atof( token[3].substr(0, 2).c_str() );
+	    mm = atof( token[3].substr(2).c_str() );
+	    double lat_deg = dd + (mm / 60.0);
+	    if ( token[4] == "S" ) {
+		lat_deg *= -1.0;
+	    }
+	    gps_lat_node->setDoubleValue( lat_deg );
+
+	    dd = atof( token[3].substr(0, 3).c_str() );
+	    mm = atof( token[3].substr(3).c_str() );
+	    double lon_deg = dd + (mm / 60.0);
+	    if ( token[6] == "W" ) {
+		lon_deg *= -1.0;
+	    }
+	    gps_lon_node->setDoubleValue( lon_deg );
+
+	    float speed_kts = atof( token[7].c_str() );
+	    float course_deg = atof( token[8].c_str() );
+
+	    // compute speed/course to vel NED
+	    double speed_mps = speed_kts * SG_KT_TO_MPS;
+	    double angle_rad = (90.0 - course_deg) * SGD_DEGREES_TO_RADIANS;
+	    gps_vn_node->setDoubleValue( sin(angle_rad) * speed_mps );
+	    gps_ve_node->setDoubleValue( cos(angle_rad) * speed_mps );
+
+	    if ( display_on ) {
+		printf("rmc (%.3f) mps=%.1f deg=%.1f rad=%.3f vn=%.1f ve=%.1f\n",
+		       unix_sec,
+		       speed_mps, course_deg, angle_rad,
+		       gps_vn_node->getDoubleValue(),
+		       gps_ve_node->getDoubleValue());
+	    }
+	}
     } else if ( token[0] == "PMTK001" && token.size() == 3 ) {
 	int cmd_id = atoi( token[1].c_str() );
 	int status_id = atoi( token[2].c_str() );
@@ -395,6 +442,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	}
     } else if ( token[0] == "PMTK705" && token.size() == 5 ) {
 	string firmware = token[1] + "," + token[2] + "," + token[3];
+	gps_firmware_node->setStringValue( firmware.c_str() );
 	printf("MediaTek: firmware rev: %s\n", firmware.c_str() );
     } else {
 	if ( display_on ) {
@@ -404,6 +452,7 @@ static bool parse_nmea_msg( char *payload, int size )
 
     return new_position;
 }
+
 
 static bool read_mediatek3329() {
     static int state = 0;
