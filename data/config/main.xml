@@ -17,7 +17,8 @@
 
     <!-- Sensor selection and configuration. -->
     <!-- <sensors include="sensors/group-avior-1C.xml" /> -->
-    <sensors include="sensors/group-fgfs24.xml" />
+    <!-- <sensors include="sensors/group-fgfs24.xml" /> -->
+    <sensors include="sensors/group-mediatek-test.xml" />
 
     <!-- Filters configuration -->
     <filters>
