@@ -1,0 +1,30 @@
+Example for "out of tree" build for 64 bit linux:
+
+$ ./autogen.sh
+$ mkdir build_linux-pc
+$ cd build_linux-pc
+$ ../configure CFLAGS="-Wall -O3" CXXFLAGS="-Wall -O3" --prefix=/usr/local/ugear.x86_64
+$ make
+$ make install
+
+
+Example for building for the "Overo (Open Embedded)" target:
+
+$ source ../ugear/setpath-overo-oe.sh
+$ ./autogen.sh
+$ mkdir build_overo-oe
+$ cd build_overo-oe
+$ ../configure CFLAGS="-Wall -O3" CXXFLAGS="-Wall -O3" --prefix=/usr/local/ugear.overo-oe --host=arm-angstrom-linux-gnueabi
+$ make
+$ make install
+
+
+Example for building for the "Gumstix (Verdex Pro) Open Embedded" target:
+
+$ source ../ugear/setpath-gumstix-oe.sh
+$ ./autogen.sh
+$ mkdir build_gumstix-oe
+$ cd build_gumstix-oe
+$ ../configure CFLAGS="-Wall -O3" CXXFLAGS="-Wall -O3" --prefix=/usr/local/ugear.gumstix-oe --host=arm-angstrom-linux-gnueabi
+$ make
+$ make install
