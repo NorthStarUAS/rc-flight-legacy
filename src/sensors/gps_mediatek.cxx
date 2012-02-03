@@ -303,7 +303,14 @@ static bool parse_nmea_msg( char *payload, int size )
          || nmea_sum.c_str()[1] != msg_sum[1])
     {
         // checksum failure
-        printf("mediatek: checksum failure %s (msg) != %02X (calc)\n", nmea_sum.c_str(), calc_nmea_cksum(msg.c_str()) );
+	if ( event_log_on ) {
+	    event_log( "mediatek", "checksum failed for message:" );
+	    event_log( "  mediatek", payload );
+	}
+	if ( display_on ) {
+	    printf("mediatek: checksum failure %s (msg) != %02X (calc)\n", nmea_sum.c_str(), calc_nmea_cksum(msg.c_str()) );
+	    printf("mediatek: failed message: %s\n", payload);
+	}
         return false;
     }
 
@@ -405,8 +412,8 @@ static bool parse_nmea_msg( char *payload, int size )
 	    }
 	    gps_lat_node->setDoubleValue( lat_deg );
 
-	    dd = atof( token[3].substr(0, 3).c_str() );
-	    mm = atof( token[3].substr(3).c_str() );
+	    dd = atof( token[5].substr(0, 3).c_str() );
+	    mm = atof( token[5].substr(3).c_str() );
 	    double lon_deg = dd + (mm / 60.0);
 	    if ( token[6] == "W" ) {
 		lon_deg *= -1.0;
