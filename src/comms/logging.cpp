@@ -59,7 +59,6 @@ static SGPropertyNode *gps_alt_node = NULL;
 static SGPropertyNode *gps_ve_node = NULL;
 static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
-static SGPropertyNode *gps_track_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
 
 // filter output nodes
@@ -121,7 +120,6 @@ static void init_props() {
     gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
     gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
     gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
-    gps_track_node = fgGetNode("/sensors/gps/groundtrack-deg", true);
     gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
 
     // initialize filter property nodes 
