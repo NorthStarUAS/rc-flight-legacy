@@ -42,7 +42,6 @@ static double gps_last_time = -31557600.0; // default to t minus one year old
 
 // gps property nodes
 static SGPropertyNode *gps_timestamp_node = NULL;
-static SGPropertyNode *gps_track_node = NULL;
 static SGPropertyNode *gps_magvar_deg_node = NULL;
 
 // magnetic variation property nodes
@@ -55,7 +54,6 @@ static SGPropertyNode *gps_logging_skip = NULL;
 
 void GPS_init() {
     gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
-    gps_track_node = fgGetNode("/sensors/gps/groundtrack-deg", true);
     gps_magvar_deg_node = fgGetNode("/sensors/gps/magvar-deg", true);
 
     // initialize magnetic variation property nodes
