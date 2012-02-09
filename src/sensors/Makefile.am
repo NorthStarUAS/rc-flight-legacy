@@ -15,7 +15,7 @@ libsensors_a_SOURCES = \
 	gps_gpsd.cxx gps_gpsd.hxx \
 	gps_fgfs.cxx gps_fgfs.hxx \
 	gps_mediatek.cxx gps_mediatek.hxx \
-	gps_ublox5.cxx gps_ublox5.hxx \
+	gps_ublox.cxx gps_ublox.hxx \
 	$(MNAV_SENSOR) \
 	pilot_mgr.cxx pilot_mgr.hxx \
 	pilot_fgfs.cxx pilot_fgfs.hxx \

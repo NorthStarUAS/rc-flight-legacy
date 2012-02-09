@@ -12,7 +12,7 @@
 
   <gps-group>
     <gps>
-      <source>ublox5</source>
+      <source>ublox</source>
       <enable type="bool">true</enable>
       <device>/dev/ttyS1</device>
     </gps>

@@ -1,5 +1,5 @@
 /**
- * \file: gps_ublox5.cxx
+ * \file: gps_ublox.cxx
  *
  * u-blox 5 protocol driver
  *
@@ -32,7 +32,7 @@ using std::string;
 #include "util/timing.h"
 #include "gps_mgr.hxx"
 
-#include "gps_ublox5.hxx"
+#include "gps_ublox.hxx"
 
 
 // gpsd property nodes
@@ -81,9 +81,9 @@ static void bind_output( string rootname ) {
 
 
 // send our configured init strings to configure gpsd the way we prefer
-static bool gps_ublox5_open() {
+static bool gps_ublox_open() {
     if ( display_on ) {
-	printf("ublox5 on %s\n", device_name.c_str());
+	printf("ublox on %s\n", device_name.c_str());
     }
 
     fd = open( device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
@@ -129,10 +129,10 @@ static bool gps_ublox5_open() {
 }
 
 
-void gps_ublox5_init( string rootname, SGPropertyNode *config ) {
+void gps_ublox_init( string rootname, SGPropertyNode *config ) {
     bind_input( config );
     bind_output( rootname );
-    gps_ublox5_open();
+    gps_ublox_open();
 }
 
 
@@ -150,7 +150,7 @@ static void my_swap( uint8_t *buf, int index, int count ) {
 }
 
 
-static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
+static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 			      uint16_t payload_length, uint8_t *payload )
 {
     bool new_position = false;
@@ -238,7 +238,7 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
 	    // we have bad data.  This means we won't toss data until
 	    // above about 423,000' MSL
 	    if ( event_log_on ) {
-		event_log( "ublox5", "received bogus ecef data" );
+		event_log( "ublox", "received bogus ecef data" );
 	    }
 	} else if ( wgs84.getElevationM() > 60000 ) {
 	    // sanity check: assume altitude > 60k meters (200k feet) is bad
@@ -381,7 +381,7 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
     } else {
 	if ( display_on && 0 ) {
 	    if ( gps_fix_type_node->getIntValue() < 3 ) {
-		printf("UBLOX5 msg class = %d  msg id = %d\n",
+		printf("UBLOX msg class = %d  msg id = %d\n",
 		       msg_class, msg_id);
 	    }
 	}
@@ -390,7 +390,7 @@ static bool parse_ublox5_msg( uint8_t msg_class, uint8_t msg_id,
     return new_position;
 }
 
-static bool read_ublox5() {
+static bool read_ublox() {
     static int state = 0;
     static int msg_class = 0, msg_id = 0;
     static int length_lo = 0, length_hi = 0, payload_length = 0;
@@ -400,7 +400,7 @@ static bool read_ublox5() {
     uint8_t input[500];
     static uint8_t payload[500];
 
-    // printf("read ublox5, entry state = %d\n", state);
+    // printf("read ublox, entry state = %d\n", state);
 
     bool new_position = false;
 
@@ -505,7 +505,7 @@ static bool read_ublox5() {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// fprintf( stderr, "checksum passes (%d)!\n", msg_id );
-		new_position = parse_ublox5_msg( msg_class, msg_id,
+		new_position = parse_ublox_msg( msg_class, msg_id,
 						 payload_length, payload );
 		state++;
 	    } else {
@@ -524,13 +524,13 @@ static bool read_ublox5() {
 }
 
 
-bool gps_ublox5_update() {
-    // run an iteration of the ublox5 scanner/parser
-    bool gps_data_valid = read_ublox5();
+bool gps_ublox_update() {
+    // run an iteration of the ublox scanner/parser
+    bool gps_data_valid = read_ublox();
 
     return gps_data_valid;
  }
 
 
-void gps_ublox5_close() {
+void gps_ublox_close() {
 }

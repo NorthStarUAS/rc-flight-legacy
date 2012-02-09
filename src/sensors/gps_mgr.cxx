@@ -29,7 +29,7 @@
 #  include "mnav.hxx"
 #endif // ENABLE_MNAV_SENSOR
 #include "gps_mediatek.hxx"
-#include "gps_ublox5.hxx"
+#include "gps_ublox.hxx"
 #include "ugfile.hxx"
 
 #include "gps_mgr.hxx"
@@ -93,8 +93,8 @@ void GPS_init() {
 #endif // ENABLE_MNAV_SENSOR
 	    } else if ( source == "mediatek" ) {
 		gps_mediatek3329_init( basename, section );
-	    } else if ( source == "ublox5" ) {
-		gps_ublox5_init( basename, section );
+	    } else if ( source == "ublox" ) {
+		gps_ublox_init( basename, section );
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
@@ -166,8 +166,8 @@ bool GPS_update() {
 #endif // ENABLE_MNAV_SENSOR
 	    } else if ( source == "mediatek" ) {
 		fresh_data = gps_mediatek3329_update();
-	    } else if ( source == "ublox5" ) {
-		fresh_data = gps_ublox5_update();
+	    } else if ( source == "ublox" ) {
+		fresh_data = gps_ublox_update();
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
@@ -258,8 +258,8 @@ void GPS_close() {
 #endif // ENABLE_MNAV_SENSOR
 	    } else if ( source == "mediatek" ) {
 		gps_mediatek3329_close();
-	    } else if ( source == "ublox5" ) {
-		gps_ublox5_close();
+	    } else if ( source == "ublox" ) {
+		gps_ublox_close();
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
