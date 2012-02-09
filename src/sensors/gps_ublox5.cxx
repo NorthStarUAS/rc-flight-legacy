@@ -86,7 +86,7 @@ static bool gps_ublox5_open() {
 	printf("ublox5 on %s\n", device_name.c_str());
     }
 
-    fd = open( device_name.c_str(), O_RDONLY | O_NOCTTY | O_NONBLOCK );
+    fd = open( device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
     if ( fd < 0 ) {
         fprintf( stderr, "open serial: unable to open %s - %s\n",
                  device_name.c_str(), strerror(errno) );
@@ -101,7 +101,6 @@ static bool gps_ublox5_open() {
 
     // Configure New Serial Port Settings
     config.c_cflag     = B115200 | // bps rate
-                         CRTSCTS | // output flow ctnl
                          CS8	 | // 8n1
                          CLOCAL	 | // local connection, no modem
                          CREAD;	   // enable receiving chars
