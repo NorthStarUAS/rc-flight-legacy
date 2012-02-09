@@ -22,4 +22,12 @@ libsensors_a_SOURCES = \
 	ardupilot.cxx ardupilot.hxx \
 	ugfile.cxx ugfile.hxx
 
+bin_PROGRAMS = ublox-config
+
+ublox_config_SOURCES = gps_ublox_config.cxx
+
+ublox_config_LDADD = \
+	$(top_builddir)/src/math/libmath.a \
+	$(top_builddir)/src/util/libutil.a
+
 INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
