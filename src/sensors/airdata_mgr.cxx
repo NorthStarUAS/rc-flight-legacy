@@ -21,11 +21,6 @@
 #include "props/props.hxx"
 #include "util/myprof.h"
 
-#ifdef ENABLE_MNAV_SENSOR
-#  include "filters/mnav/ahrs.h"
-#  include "mnav.hxx"
-#endif
-
 #include "APM2.hxx"
 #include "ardupilot.hxx"
 #include "imu_fgfs.hxx"
@@ -125,10 +120,6 @@ void AirData_init() {
 		ardupilot_airdata_init( basename );
 	    } else if ( source == "fgfs" ) {
 		fgfs_airdata_init( basename );
-#ifdef ENABLE_MNAV_SENSOR
-	    } else if ( source == "mnav" ) {
-		mnav_airdata_init( basename );
-#endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown air data source = '%s' in config file\n",
 		       source.c_str());
@@ -277,10 +268,6 @@ bool AirData_update() {
 		fresh_data = ardupilot_airdata_update();
 	    } else if ( source == "fgfs" ) {
 		fresh_data = fgfs_airdata_update();
-#ifdef ENABLE_MNAV_SENSOR
-	    } else if ( source == "mnav" ) {
-		fresh_data = mnav_get_airdata();
-#endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown air data source = '%s' in config file\n",
 		       source.c_str());
@@ -338,10 +325,6 @@ void AirData_close() {
 		// nop
 	    } else if ( source == "ardupilot" ) {
 		// nop
-#ifdef ENABLE_MNAV_SENSOR
-	    } else if ( source == "mnav" ) {
-		// nop
-#endif
 	    } else {
 		printf("Unknown air data source = '%s' in config file\n",
 		       source.c_str());

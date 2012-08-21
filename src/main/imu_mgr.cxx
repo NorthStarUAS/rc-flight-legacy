@@ -22,9 +22,6 @@
 
 #include "sensors/APM2.hxx"
 #include "sensors/imu_fgfs.hxx"
-#ifdef ENABLE_MNAV_SENSOR
-#  include "sensors/mnav.hxx"
-#endif // ENABLE_MNAV_SENSOR
 #include "sensors/imu_sf6DOFv4.hxx"
 #include "sensors/imu_vn100_spi.hxx"
 #include "sensors/imu_vn100_uart.hxx"
@@ -83,10 +80,6 @@ void IMU_init() {
 		fgfs_imu_init( basename, section );
 	    } else if ( source == "file" ) {
 		ugfile_imu_init( basename, section );
-#ifdef ENABLE_MNAV_SENSOR
-	    } else if ( source == "mnav" ) {
-		mnav_imu_init( basename, section );
-#endif // ENABLE_MNAV_SENSOR
 	    } else if ( source == "sf6DOFv4" ) {
 		sf_6DOFv4_imu_init( basename, section );
 	    } else if ( source == "vn100" ) {
@@ -132,14 +125,6 @@ bool IMU_update() {
 	    } else if ( source == "file" ) {
 		ugfile_read();
 		fresh_data = ugfile_get_imu();
-#ifdef ENABLE_MNAV_SENSOR
-	    } else if ( source == "mnav" ) {
-		// read IMU until no data available.  This will flush any
-		// potential backlog that could accumulate for any reason.
-		mnav_start_nonblock_read();
-		while ( mnav_read_nonblock() );
-		fresh_data = mnav_get_imu();
-#endif // ENABLE_MNAV_SENSOR
 	    } else if ( source == "sf6DOFv4" ) {
 		fresh_data = sf_6DOFv4_get_imu();
 	    } else if ( source == "vn100" ) {
@@ -200,10 +185,6 @@ void IMU_close() {
 		fgfs_imu_close();
 	    } else if ( source == "file" ) {
 		ugfile_close();
-#ifdef ENABLE_MNAV_SENSOR
-	    } else if ( source == "mnav" ) {
-		// nop
-#endif // ENABLE_MNAV_SENSOR
 	    } else if ( source == "sf6DOFv4" ) {
 		sf_6DOFv4_close();
 	    } else if ( source == "vn100" ) {
