@@ -88,13 +88,6 @@ if test "x$enable_gpl_modules" != "xno"; then
     enable_mnav_filter="yes"
 fi
 
-AC_ARG_ENABLE(mnav-sensor, [  --enable-mnav-sensor    Include MNAV sensor driver], [enable_mnav_sensor="$enableval"], [enable_mnav_sensor="no"] )
-if test "x$enable_mnav_sensor" != "xno"; then
-    AC_DEFINE([ENABLE_MNAV_SENSOR], 1, [Define to include MNAV sensor driver])
-    GPL_CLEAN="no"
-fi
-AM_CONDITIONAL(ENABLE_MNAV_SENSOR, test "x$enable_mnav_sensor" != "xno")
-
 AC_ARG_ENABLE(mnav-filter, [  --enable-mnav-filter    Include MNAV filter], [enable_mnav_filter="$enableval"], [enable_mnav_filter="no"] )
 if test "x$enable_mnav_filter" != "xno"; then
     AC_DEFINE([ENABLE_MNAV_FILTER], 1, [Define to include MNAV filter])
@@ -159,7 +152,6 @@ GPLEOF
 fi
 
 cat <<GPLEOF
-MNAV sensor driver (GPL)         : $enable_mnav_sensor
 MNAV filter (GPL)                : $enable_mnav_filter
 Advanced GNSS filter (non-free)  : $enable_gnss_filter
 ATI Pointing (non-free)          : $enable_ati_pointing

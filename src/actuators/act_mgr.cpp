@@ -19,9 +19,6 @@
 #include "include/globaldefs.h"
 #include "main/globals.hxx"
 #include "props/props.hxx"
-#ifdef ENABLE_MNAV_SENSOR
-#  include "sensors/mnav.hxx"
-#endif
 #include "util/myprof.h"
 #include "util/timing.h"
 
@@ -132,10 +129,6 @@ void Actuator_init() {
 		ardupilot_init( section );
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_init( section );
-#ifdef ENABLE_MNAV_SENSOR
-	    } else if ( module == "mnav" ) {
-		mnav_act_init();
-#endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown actuator = '%s' in config file\n",
 		       module.c_str());
@@ -333,10 +326,6 @@ bool Actuator_update() {
 		ardupilot_update();
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_update();
-#ifdef ENABLE_MNAV_SENSOR
-	    } else if ( module == "mnav" ) {
-		mnav_send_short_servo_cmd( /* &servo_out */ );
-#endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown actuator = '%s' in config file\n",
 		       module.c_str());
@@ -389,10 +378,6 @@ void Actuators_close() {
 		ardupilot_close();
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_close();
-#ifdef ENABLE_MNAV_SENSOR
-	    } else if ( module == "mnav" ) {
-		// do nothing
-#endif // ENABLE_MNAV_SENSOR
 	    } else {
 		printf("Unknown actuator = '%s' in config file\n",
 		       module.c_str());
