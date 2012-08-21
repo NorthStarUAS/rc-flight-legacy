@@ -21,16 +21,16 @@
 
 #define START_OF_MSG0 147
 #define START_OF_MSG1 224
-#define SENSOR_PACKET_ID 10
-#define COMMAND_PACKET_ID 11
-#define MAX_PILOT_INPUTS 4
-#define MAX_ACTUATORS 4
+#define ACT_COMMAND_PACKET_ID 20
+#define PILOT_PACKET_ID 30
+#define MAX_PILOT_INPUTS 8
+#define MAX_ACTUATORS 8
 #define MAX_ANALOG_INPUTS 4
 
 // fgfs_imu property nodes
 static SGPropertyNode *configroot = NULL;
-static SGPropertyNode *act_device_node = NULL;
-// static SGPropertyNode *act_baud_node = NULL;
+static SGPropertyNode *APM2_device_node = NULL;
+static SGPropertyNode *APM2_baud_node = NULL;
 
 // pilot input property nodes
 static SGPropertyNode *pilot_timestamp_node = NULL;
@@ -38,10 +38,11 @@ static SGPropertyNode *pilot_aileron_node = NULL;
 static SGPropertyNode *pilot_elevator_node = NULL;
 static SGPropertyNode *pilot_throttle_node = NULL;
 static SGPropertyNode *pilot_rudder_node = NULL;
-static SGPropertyNode *pilot_manual_node = NULL;
+static SGPropertyNode *pilot_channel5_node = NULL;
 static SGPropertyNode *pilot_channel6_node = NULL;
 static SGPropertyNode *pilot_channel7_node = NULL;
 static SGPropertyNode *pilot_channel8_node = NULL;
+static SGPropertyNode *pilot_manual_node = NULL;
 static SGPropertyNode *pilot_status_node = NULL;
 
 // actuator property nodes
@@ -63,17 +64,18 @@ static SGPropertyNode *airdata_analog1_node = NULL;
 static SGPropertyNode *airdata_airspeed_node = NULL;
 static SGPropertyNode *airdata_altitude_node = NULL;
 
+static bool master_opened = false;
 static bool airdata_inited = false;
-static bool pilot_controls_inited = false;
+static bool pilot_input_inited = false;
+
 static bool fresh_pilot_data = false;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
-// static int baud = 115200;
+static int baud = 115200;
 
 static double data_in_timestamp = 0.0;
 static uint16_t analog[MAX_ANALOG_INPUTS];     // internal stash
-static bool manual_mode = true;
 static uint16_t pilot_input[MAX_PILOT_INPUTS]; // internal stash
 static bool pilot_input_rev[MAX_PILOT_INPUTS];
 
@@ -81,10 +83,6 @@ static bool pilot_input_rev[MAX_PILOT_INPUTS];
 static void bind_input( SGPropertyNode *config ) {
     for ( int i = 0; i < MAX_PILOT_INPUTS; i++ ) {
 	pilot_input_rev[i] = false;
-    }
-    act_device_node = config->getChild("device");
-    if ( act_device_node != NULL ) {
-	device_name = act_device_node->getStringValue();
     }
     SGPropertyNode *node, *child;
     node = config->getChild("aileron");
@@ -162,20 +160,34 @@ static void bind_pilot_controls( string rootname ) {
     pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", true);
     pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", true);
     pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", true);
-    pilot_manual_node = fgGetNode("/sensors/pilot/manual", true);
+    pilot_channel5_node = fgGetNode("/sensors/pilot/channel", 4, true);
     pilot_channel6_node = fgGetNode("/sensors/pilot/channel", 5, true);
     pilot_channel7_node = fgGetNode("/sensors/pilot/channel", 6, true);
     pilot_channel8_node = fgGetNode("/sensors/pilot/channel", 7, true);
+    pilot_manual_node = fgGetNode("/sensors/pilot/manual", true);
     pilot_status_node = fgGetNode("/sensors/pilot/status", true);
 
-    pilot_controls_inited = true;
+    pilot_input_inited = true;
 }
 
 
 // send our configured init strings to configure gpsd the way we prefer
 static bool APM2_open() {
+    if ( master_opened ) {
+	return true;
+    }
+
+    APM2_device_node = fgGetNode("/config/sensors/APM2/device");
+    if ( APM2_device_node != NULL ) {
+	device_name = APM2_device_node->getStringValue();
+    }
+    APM2_baud_node = fgGetNode("/config/sensors/APM2/baud");
+    if ( APM2_baud_node != NULL ) {
+	baud = APM2_baud_node->getIntValue();
+    }
+
     if ( display_on ) {
-	printf("Ardu servo subsystem on %s\n", device_name.c_str());
+	printf("APM2 Sensor Head on %s @ %d baud\n", device_name.c_str(), baud);
     }
 
     fd = open( device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
@@ -218,16 +230,16 @@ static bool APM2_open() {
     // Enable non-blocking IO (one more time for good measure)
     fcntl(fd, F_SETFL, O_NONBLOCK);
 
+    master_opened = true;
+
     return true;
 }
 
 
-// function prototypes
 bool APM2_init( SGPropertyNode *config ) {
     printf("APM2_init()\n");
 
     bind_input( config );
-    bind_act_nodes();
 
     bool result = APM2_open();
 
@@ -236,14 +248,28 @@ bool APM2_init( SGPropertyNode *config ) {
 
 
 bool APM2_imu_init( string rootname, SGPropertyNode *config ) {
+    if ( ! APM2_open() ) {
+	return false;
+    }
+
+    return true;
 }
 
 
-bool APM2_gps_init( string rootname ) {
+bool APM2_gps_init( string rootname, SGPropertyNode *config ) {
+    if ( ! APM2_open() ) {
+	return false;
+    }
+
+    return true;
 }
 
 
 bool APM2_airdata_init( string rootname ) {
+    if ( ! APM2_open() ) {
+	return false;
+    }
+
     bind_airdata_output( rootname );
 
     return true;
@@ -251,6 +277,10 @@ bool APM2_airdata_init( string rootname ) {
 
 
 bool APM2_pilot_init( string rootname ) {
+    if ( ! APM2_open() ) {
+	return false;
+    }
+
     bind_pilot_controls( rootname );
 
     return true;
@@ -258,6 +288,13 @@ bool APM2_pilot_init( string rootname ) {
 
 
 bool APM2_act_init( SGPropertyNode *config ) {
+    if ( ! APM2_open() ) {
+	return false;
+    }
+
+    bind_act_nodes();
+
+    return true;
 }
 
 
@@ -296,12 +333,12 @@ static float normalize_pulse( int pulse, bool symmetrical ) {
 }
 
 static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
-			     uint8_t *payload )
+			uint8_t *payload )
 {
     bool new_data = false;
 
-    if ( pkt_id == SENSOR_PACKET_ID ) {
-	if ( pkt_len == MAX_PILOT_INPUTS * 2 + 1 + MAX_ANALOG_INPUTS * 2 ) {
+    if ( pkt_id == PILOT_PACKET_ID ) {
+	if ( pkt_len == MAX_PILOT_INPUTS * 2 ) {
 	    uint8_t lo, hi;
 
 	    data_in_timestamp = get_Time();
@@ -309,13 +346,6 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    for ( int i = 0; i < MAX_PILOT_INPUTS; i++ ) {
 		lo = payload[0 + 2*i]; hi = payload[1 + 2*i];
 		pilot_input[i] = hi*256 + lo;
-	    }
-
-	    manual_mode = !payload[8];
-
-	    for ( int i = 0; i < MAX_ANALOG_INPUTS; i++ ) {
-		lo = payload[9 + 2*i]; hi = payload[10 + 2*i];
-		analog[i] = hi*256 + lo;
 	    }
 
 #if 0
@@ -523,12 +553,12 @@ static bool APM2_write() {
     len = write( fd, buf, 2 );
 
     // packet id (1 byte)
-    buf[0] = COMMAND_PACKET_ID; buf[1] = 0;
+    buf[0] = ACT_COMMAND_PACKET_ID; buf[1] = 0;
     // packet length (1 byte)
     buf[1] = 2 * MAX_ACTUATORS;
     len = write( fd, buf, 2 );
 
-#if 0  
+#if 1
     // generate some test data
     static double t = 0.0;
     t += 0.02;
@@ -537,10 +567,14 @@ static bool APM2_write() {
     act_elevator_node->setFloatValue(dummy);
     act_throttle_node->setFloatValue((dummy/2)+0.5);
     act_rudder_node->setFloatValue(dummy);
+    act_channel5_node->setFloatValue(dummy);
+    act_channel6_node->setFloatValue(dummy);
+    act_channel7_node->setFloatValue(dummy);
+    act_channel8_node->setFloatValue(dummy);
 #endif
 
-    // servo data
-    if ( MAX_ACTUATORS == 4 ) {
+    // actuator data
+    if ( MAX_ACTUATORS == 8 ) {
 	int val;
 	uint8_t hi, lo;
 
@@ -567,13 +601,37 @@ static bool APM2_write() {
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
+
+	val = gen_pulse( act_channel5_node->getFloatValue(), true );
+	hi = val / 256;
+	lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
+
+	val = gen_pulse( act_channel6_node->getFloatValue(), true );
+	hi = val / 256;
+	lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
+
+	val = gen_pulse( act_channel7_node->getFloatValue(), true );
+	hi = val / 256;
+	lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
+
+	val = gen_pulse( act_channel8_node->getFloatValue(), true );
+	hi = val / 256;
+	lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
     }
   
     // write packet
     len = write( fd, buf, size );
   
     // check sum (2 bytes)
-    ardu_cksum( COMMAND_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    ardu_cksum( ACT_COMMAND_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     len = write( fd, buf, 2 );
 
@@ -581,31 +639,36 @@ static bool APM2_write() {
 }
 
 
-bool APM2_update() {
-    // read receiver values from ardu servo subsystem
+static bool APM2_update() {
+    // read any pending APM2 data (and parse any completed messages)
     while ( APM2_read() );
-
-    // send actuator commands to ardu servo subsystem
-    APM2_write();
 
     return true;
 }
 
 
 bool APM2_imu_update() {
+    APM2_update();
+
+    return true;
 }
 
 
 bool APM2_gps_update() {
+    APM2_update();
+
+    return true;
 }
 
 
 bool APM2_airdata_update() {
+    APM2_update();
+
     bool fresh_data = false;
     static double last_time = 0.0;
 
     if ( airdata_inited ) {
-	double cur_time = pilot_timestamp_node->getDoubleValue();
+	double cur_time = 0.0 /* (FIXME) pilot_timestamp_node->getDoubleValue()*/;
 
 	// basic formula: v = sqrt((2/p) * q) where v = velocity, q =
 	// dynamic pressure (pitot tube sensor value), and p = air
@@ -654,10 +717,12 @@ bool APM2_airdata_update() {
 
 
 bool APM2_pilot_update() {
+    APM2_update();
+
     // basically a no-op other than managing the fresh_data flag correctly
     bool fresh_data = fresh_pilot_data;
 
-    if ( fresh_data && pilot_controls_inited ) {
+    if ( fresh_data && pilot_input_inited ) {
 	float val;
 
 	pilot_timestamp_node->setDoubleValue( data_in_timestamp );
@@ -671,14 +736,30 @@ bool APM2_pilot_update() {
 	pilot_elevator_node->setDoubleValue( val );
 
 	val = normalize_pulse( pilot_input[2], false );
-	if ( pilot_input_rev[1] ) { val *= -1.0; }
+	if ( pilot_input_rev[2] ) { val *= -1.0; }
 	pilot_throttle_node->setDoubleValue( val );
 
 	val = normalize_pulse( pilot_input[3], true );
-	if ( pilot_input_rev[1] ) { val *= -1.0; }
+	if ( pilot_input_rev[3] ) { val *= -1.0; }
 	pilot_rudder_node->setDoubleValue( val );
 
-	pilot_manual_node->setIntValue( manual_mode );
+	val = normalize_pulse( pilot_input[4], true );
+	if ( pilot_input_rev[4] ) { val *= -1.0; }
+	pilot_channel5_node->setDoubleValue( val );
+
+	val = normalize_pulse( pilot_input[5], true );
+	if ( pilot_input_rev[5] ) { val *= -1.0; }
+	pilot_channel6_node->setDoubleValue( val );
+
+	val = normalize_pulse( pilot_input[6], true );
+	if ( pilot_input_rev[6] ) { val *= -1.0; }
+	pilot_channel7_node->setDoubleValue( val );
+
+	val = normalize_pulse( pilot_input[7], true );
+	if ( pilot_input_rev[7] ) { val *= -1.0; }
+	pilot_channel8_node->setDoubleValue( val );
+
+	pilot_manual_node->setIntValue( pilot_channel8_node->getDoubleValue() < 0 );
     }
 
     fresh_pilot_data = false;
@@ -687,29 +768,40 @@ bool APM2_pilot_update() {
 
 
 bool APM2_act_update() {
+    // send actuator commands to ardu servo subsystem
+    APM2_write();
+
+    return true;
 }
 
 
-void APM2_close() {
+static void APM2_close() {
     close(fd);
+
+    master_opened = false;
 }
 
 
 void APM2_imu_close() {
+    APM2_close();
 }
 
 
 void APM2_gps_close() {
+    APM2_close();
 }
 
 
 void APM2_airdata_close() {
+    APM2_close();
 }
 
 
 void APM2_pilot_close() {
+    APM2_close();
 }
 
 
 void APM2_act_close() {
+    APM2_close();
 }

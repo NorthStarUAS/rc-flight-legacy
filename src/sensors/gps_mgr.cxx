@@ -23,6 +23,7 @@
 #include "util/myprof.h"
 #include "util/timing.h"
 
+#include "APM2.hxx"
 #include "gps_fgfs.hxx"
 #include "gps_gpsd.hxx"
 #include "gps_mediatek.hxx"
@@ -78,6 +79,8 @@ void GPS_init() {
 		   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "APM2" ) {
+		APM2_gps_init( basename, section );
 	    } else if ( source == "fgfs" ) {
 		fgfs_gps_init( basename, section );
 	    } else if ( source == "file" ) {
@@ -89,7 +92,7 @@ void GPS_init() {
 	    } else if ( source == "ublox" ) {
 		gps_ublox_init( basename, section );
 	    } else {
-		printf("Unknown imu source = '%s' in config file\n",
+		printf("Unknown gps source = '%s' in config file\n",
 		       source.c_str());
 	    }
 	}
@@ -147,6 +150,8 @@ bool GPS_update() {
 	    //	   i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "APM2" ) {
+		fresh_data = APM2_gps_update();
 	    } else if ( source == "fgfs" ) {
 		fresh_data = fgfs_gps_update();
 	    } else if ( source == "file" ) {
@@ -158,7 +163,7 @@ bool GPS_update() {
 	    } else if ( source == "ublox" ) {
 		fresh_data = gps_ublox_update();
 	    } else {
-		printf("Unknown imu source = '%s' in config file\n",
+		printf("Unknown gps source = '%s' in config file\n",
 		       source.c_str());
 	    }
 	}
@@ -235,6 +240,8 @@ void GPS_close() {
 		   i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "APM2" ) {
+		APM2_gps_close();
 	    } else if ( source == "fgfs" ) {
 		fgfs_gps_close();
 	    } else if ( source == "file" ) {
@@ -246,7 +253,7 @@ void GPS_close() {
 	    } else if ( source == "ublox" ) {
 		gps_ublox_close();
 	    } else {
-		printf("Unknown imu source = '%s' in config file\n",
+		printf("Unknown gps source = '%s' in config file\n",
 		       source.c_str());
 	    }
 	}
