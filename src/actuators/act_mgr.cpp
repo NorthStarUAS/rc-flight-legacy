@@ -27,6 +27,7 @@
 
 #include "act_fgfs.hxx"
 #include "sensors/ardupilot.hxx"
+#include "sensors/APM2.hxx"
 
 #include "act_mgr.h"
 
@@ -125,6 +126,8 @@ void Actuator_init() {
 
 	    if ( module == "null" ) {
 		// do nothing
+	    } else if ( module == "APM2" ) {
+		APM2_act_init( section );
 	    } else if ( module == "ardupilot" ) {
 		ardupilot_init( section );
 	    } else if ( module == "fgfs" ) {
@@ -324,6 +327,8 @@ bool Actuator_update() {
 	    }
 	    if ( module == "null" ) {
 		// do nothing
+	    } else if ( module == "APM2" ) {
+		APM2_act_update();
 	    } else if ( module == "ardupilot" ) {
 		ardupilot_update();
 	    } else if ( module == "fgfs" ) {
@@ -378,6 +383,8 @@ void Actuators_close() {
 	    }
 	    if ( module == "null" ) {
 		// do nothing
+	    } else if ( module == "APM2" ) {
+		APM2_act_close();
 	    } else if ( module == "ardupilot" ) {
 		ardupilot_close();
 	    } else if ( module == "fgfs" ) {
