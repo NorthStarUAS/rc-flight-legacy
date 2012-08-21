@@ -49,9 +49,11 @@ static SGPropertyNode *gps_unix_sec_node = NULL;
 static SGPropertyNode *gps_satellites_node = NULL;
 static SGPropertyNode *gps_fix_type_node = NULL;
 static SGPropertyNode *gps_device_name_node = NULL;
+static SGPropertyNode *gps_baud_node = NULL;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
+static int baud = 57600;
 
 
 // initialize gpsd input property nodes
@@ -59,6 +61,10 @@ static void bind_input( SGPropertyNode *config ) {
     gps_device_name_node = config->getChild("device");
     if ( gps_device_name_node != NULL ) {
 	device_name = gps_device_name_node->getStringValue();
+    }
+    gps_baud_node = config->getChild("baud");
+    if ( gps_baud_node != NULL ) {
+	baud = gps_baud_node->getIntValue();
     }
     configroot = config;
 }
@@ -99,8 +105,19 @@ static bool gps_ublox_open() {
     // Save Current Serial Port Settings
     // tcgetattr(fd,&oldTio); 
 
+    int config_baud = B115200;
+    if ( baud == 115200 ) {
+	config_baud = B115200;
+    } else if ( baud == 57600 ) {
+	config_baud = B57600;
+    } else if ( baud == 9600 ) {
+	config_baud = B9600;
+    } else {
+	fprintf( stderr, "Ublox baud rate (%d) unsupported by driver, using back to 115200.\n", baud);
+    }
+
     // Configure New Serial Port Settings
-    config.c_cflag     = B115200 | // bps rate
+    config.c_cflag     = config_baud | // bps rate
                          CS8	 | // 8n1
                          CLOCAL	 | // local connection, no modem
                          CREAD;	   // enable receiving chars

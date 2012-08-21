@@ -1,5 +1,5 @@
 /**
- *  \file: imu_vn100.cxx
+ *  \file: imu_vn100_uart.cxx
  *
  * Vectornav.com VN-100 (ascii/uart) driver
  *
@@ -21,7 +21,7 @@
 #include "util/strutils.hxx"
 #include "util/timing.h"
 
-#include "imu_vn100.hxx"
+#include "imu_vn100_uart.hxx"
 
 
 // imu property nodes
@@ -87,7 +87,7 @@ static void bind_imu_output( string rootname ) {
 
 
 // send our configured init strings to configure gpsd the way we prefer
-static bool imu_vn100_open_9600() {
+static bool imu_vn100_uart_open_9600() {
     if ( display_on ) {
 	printf("Vectornav.com VN-100 on %s @ 9600\n", device_name.c_str());
     }
@@ -134,7 +134,7 @@ static bool imu_vn100_open_9600() {
 
 
 // send our configured init strings to configure gpsd the way we prefer
-static bool imu_vn100_open_115200() {
+static bool imu_vn100_uart_open_115200() {
     if ( display_on ) {
 	printf("Vectornav.com VN-100 on %s @ 115,200\n", device_name.c_str());
     }
@@ -203,7 +203,7 @@ static char calc_nmea_cksum(const char *sentence) {
 }
 
 
-static int imu_vn100_send_cmd( string msg ) {
+static int imu_vn100_uart_send_cmd( string msg ) {
     char msg_sum[10];
     snprintf( msg_sum, 3, "%02X", calc_nmea_cksum(msg.c_str()) );
     string command = "$";
@@ -221,25 +221,25 @@ static int imu_vn100_send_cmd( string msg ) {
 }
 
 
-void imu_vn100_init( string rootname, SGPropertyNode *config ) {
+void imu_vn100_uart_init( string rootname, SGPropertyNode *config ) {
     bind_imu_input( config );
     bind_imu_output( rootname );
 
-    imu_vn100_open_9600();
+    imu_vn100_uart_open_9600();
     sleep(1);
-    imu_vn100_send_cmd( "VNWRG,05,115200" ); // switch to 115,200 baud
+    imu_vn100_uart_send_cmd( "VNWRG,05,115200" ); // switch to 115,200 baud
     sleep(1);
-    imu_vn100_close();
+    imu_vn100_uart_close();
     sleep(1);
 
-    imu_vn100_open_115200();
+    imu_vn100_uart_open_115200();
     sleep(1);
-    imu_vn100_send_cmd( "VNWRG,06,253" ); // switch to CMV (raw sensor) output which wasn't documented
-    imu_vn100_send_cmd( "VNWRG,07,50" ); // switch to 50hz output
+    imu_vn100_uart_send_cmd( "VNWRG,06,253" ); // switch to CMV (raw sensor) output which wasn't documented
+    imu_vn100_uart_send_cmd( "VNWRG,07,50" ); // switch to 50hz output
 }
 
 
-static bool imu_vn100_parse_msg( char *msg_buf, int size )
+static bool imu_vn100_uart_parse_msg( char *msg_buf, int size )
 {
     double current_time = get_Time();
     string msg = (string)msg_buf;
@@ -375,7 +375,7 @@ static bool imu_vn100_parse_msg( char *msg_buf, int size )
 }
 
 
-static bool imu_vn100_read() {
+static bool imu_vn100_uart_read() {
     static int state = 0;
     static int counter = 0;
     int len;
@@ -383,7 +383,7 @@ static bool imu_vn100_read() {
     uint8_t input[max_len];
     static uint8_t msg[max_len];
 
-    // printf("read vn100, entry state = %d\n", state);
+    // printf("read vn100_uart, entry state = %d\n", state);
 
     bool fresh_data = false;
 
@@ -412,7 +412,7 @@ static bool imu_vn100_read() {
 		counter = max_len - 1;
 	    }
 	    msg[counter] = 0;
-	    fresh_data = imu_vn100_parse_msg( (char *)msg, counter );
+	    fresh_data = imu_vn100_uart_parse_msg( (char *)msg, counter );
 	    state = 0;
 	}
 	// printf("len = %d  counter = %d  input = %d\n", len, counter, input[0]);
@@ -422,11 +422,11 @@ static bool imu_vn100_read() {
 }
 
 
-bool imu_vn100_get() {
+bool imu_vn100_uart_get() {
     // scan for new messages
     bool imu_data_valid = false;
 
-    while ( imu_vn100_read() ) {
+    while ( imu_vn100_uart_read() ) {
 	imu_data_valid = true;
     }
 
@@ -434,6 +434,6 @@ bool imu_vn100_get() {
  }
 
 
-void imu_vn100_close() {
+void imu_vn100_uart_close() {
     close(fd);
 }

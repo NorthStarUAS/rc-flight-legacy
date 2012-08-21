@@ -26,6 +26,7 @@
 #  include "mnav.hxx"
 #endif
 
+#include "APM2.hxx"
 #include "ardupilot.hxx"
 #include "imu_fgfs.hxx"
 
@@ -118,6 +119,8 @@ void AirData_init() {
 		   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "APM2" ) {
+		APM2_airdata_init( basename );
 	    } else if ( source == "ardupilot" ) {
 		ardupilot_airdata_init( basename );
 	    } else if ( source == "fgfs" ) {
@@ -268,6 +271,8 @@ bool AirData_update() {
 	    //	   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "APM2" ) {
+		fresh_data = APM2_airdata_update();
 	    } else if ( source == "ardupilot" ) {
 		fresh_data = ardupilot_airdata_update();
 	    } else if ( source == "fgfs" ) {
@@ -327,6 +332,8 @@ void AirData_close() {
 	    //	   i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "APM2" ) {
+		APM2_airdata_close();
 	    } else if ( source == "fgfs" ) {
 		// nop
 	    } else if ( source == "ardupilot" ) {

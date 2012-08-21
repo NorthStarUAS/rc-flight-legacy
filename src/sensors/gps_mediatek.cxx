@@ -373,10 +373,12 @@ static bool parse_nmea_msg( char *payload, int size )
 	    last_gsec = gsec;
 	    last_alt_m = alt_m;
 
+#if 0
 	    if ( display_on ) {
 		printf("gga (%.3f) %.2f %.3f %d\n",
 		       gsec, alt_m, vspeed_mps, num_sats);
 	    }
+#endif
 	}
     } else if ( token[0] == "GPRMC" && token.size() == 13 ) {
 	// ex: $GPRMC,053740.000,A,2503.6319,N,12136.0099,E,2.69,79.65,100106,,,A*53
@@ -429,6 +431,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	    gps_vn_node->setDoubleValue( sin(angle_rad) * speed_mps );
 	    gps_ve_node->setDoubleValue( cos(angle_rad) * speed_mps );
 
+#if 0
 	    if ( display_on ) {
 		printf("rmc (%.3f) mps=%.1f deg=%.1f rad=%.3f vn=%.1f ve=%.1f\n",
 		       unix_sec,
@@ -436,6 +439,7 @@ static bool parse_nmea_msg( char *payload, int size )
 		       gps_vn_node->getDoubleValue(),
 		       gps_ve_node->getDoubleValue());
 	    }
+#endif
 	}
     } else if ( token[0] == "PMTK001" && token.size() == 3 ) {
 	int cmd_id = atoi( token[1].c_str() );

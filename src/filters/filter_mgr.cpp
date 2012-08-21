@@ -145,6 +145,9 @@ void Filter_init() {
 	    } else if ( module == "umn" ) {
 		uggnss_adns_init( basename, section );
 #endif // ENABLE_GNSS_FILTER
+	    } else {
+		printf("Unknown filter = '%s' in config file\n",
+		       module.c_str());
 	    }
 	}
     }
