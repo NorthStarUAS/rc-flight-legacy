@@ -25,9 +25,6 @@
 
 #include "gps_fgfs.hxx"
 #include "gps_gpsd.hxx"
-#ifdef ENABLE_MNAV_SENSOR
-#  include "mnav.hxx"
-#endif // ENABLE_MNAV_SENSOR
 #include "gps_mediatek.hxx"
 #include "gps_ublox.hxx"
 #include "ugfile.hxx"
@@ -87,10 +84,6 @@ void GPS_init() {
 		ugfile_gps_init( basename, section );
 	    } else if ( source == "gpsd" ) {
 		gpsd_init( basename, section );
-#ifdef ENABLE_MNAV_SENSOR
-	    } else if ( source == "mnav" ) {
-		mnav_gps_init( basename );
-#endif // ENABLE_MNAV_SENSOR
 	    } else if ( source == "mediatek" ) {
 		gps_mediatek3329_init( basename, section );
 	    } else if ( source == "ublox" ) {
@@ -160,10 +153,6 @@ bool GPS_update() {
 		fresh_data = ugfile_get_gps();
 	    } else if ( source == "gpsd" ) {
 		fresh_data = gpsd_get_gps();
-#ifdef ENABLE_MNAV_SENSOR
-	    } else if ( source == "mnav" ) {
-		fresh_data = mnav_get_gps();
-#endif // ENABLE_MNAV_SENSOR
 	    } else if ( source == "mediatek" ) {
 		fresh_data = gps_mediatek3329_update();
 	    } else if ( source == "ublox" ) {
@@ -252,10 +241,6 @@ void GPS_close() {
 		ugfile_close();
 	    } else if ( source == "gpsd" ) {
 		// fixme
-#ifdef ENABLE_MNAV_SENSOR
-	    } else if ( source == "mnav" ) {
-		// nop
-#endif // ENABLE_MNAV_SENSOR
 	    } else if ( source == "mediatek" ) {
 		gps_mediatek3329_close();
 	    } else if ( source == "ublox" ) {
