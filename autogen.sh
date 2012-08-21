@@ -53,7 +53,7 @@ fi
 echo ""
 echo "Now you are ready to run:"
 echo ""
-echo "./configure CC=arm-angstrom-linux-gnueabi-gcc CFLAGS="-Wall -O2" CXX=arm-angstrom-linux-gnueabi-g++ CXXFLAGS="-Wall -O2" --host=arm-angstrom-linux-gnueabi --prefix=/usr/local/Overo-OE/"
+echo "./configure CC=arm-angstrom-linux-gnueabi-gcc CFLAGS="-Wall -O2" CXX=arm-angstrom-linux-gnueabi-g++ CXXFLAGS="-Wall -O2" --host=arm-angstrom-linux-gnueabi --prefix=/usr/local/ugear.overo-oe"
 echo ""
 echo "or ..."
 echo ""

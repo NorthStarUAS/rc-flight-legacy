@@ -7,8 +7,8 @@ SUBDIRS = \
 	include \
 	math \
 	mission \
-	sensors \
 	util \
+	sensors \
 	xml \
 	props \
 	main

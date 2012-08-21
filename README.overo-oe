@@ -1,6 +1,7 @@
-Compile Instructions
-====================
-1. Install libumngnss.a (i.e. in /usr/local/Overo-OE)
+I. Compile Instructions
+=======================
+
+1. Install libumngnss.a (i.e. in /usr/local/ugear.overo-oe)
 
 2. Install libatipointing.a (in same root as libumngnss.a)
 
@@ -8,17 +9,83 @@ Compile Instructions
 
 4. CC=arm-angstrom-linux-gnueabi-gcc CXX=arm-angstrom-linux-gnueabi-g++ ./autogen.sh
 
-5. ./configure CC=arm-angstrom-linux-gnueabi-gcc CFLAGS="-Wall -O2 -mcpu=cortex-a8 -mfloat-abi=softfp -mfpu=neon -ffast-math -fno-math-errno" CXX=arm-angstrom-linux-gnueabi-g++ CXXFLAGS="-Wall -O2 -mcpu=cortex-a8 -mfloat-abi=softfp -mfpu=neon -ffast-math -fno-math-errno" --host=arm-angstrom-linux-gnueabi --prefix=/usr/local/Overo-OE/
+5. ./configure CC=arm-angstrom-linux-gnueabi-gcc CFLAGS="-Wall -O2 -mcpu=cortex-a8 -mfloat-abi=softfp -mfpu=neon -ffast-math -fno-math-errno" CXX=arm-angstrom-linux-gnueabi-g++ CXXFLAGS="-Wall -O2 -mcpu=cortex-a8 -mfloat-abi=softfp -mfpu=neon -ffast-math -fno-math-errno" --host=arm-angstrom-linux-gnueabi --prefix=/usr/local/ugear.overo-oe/
 
 6. make
 
 
-Setup the serial connection:
+II. Overo Bootable SD Card Image Instructions
+=============================================
 
-    http://www.gumstix.net/Setup-and-Programming/view/Getting-started/Setting-up-a-serial-connection/111.html
+(newbies) Setup the serial connection:
+
+    http://www.gumstix.org/connect-to-my-gumstix-system.html
 
 
-Replace the root file system and kernel images:
+Create a Bootable MicroSD Card:
+
+    http://gumstix.org/create-a-bootable-microsd-card.html
+
+1. Compute card size:
+
+    fdisk -l /dev/sdb
+
+    Disk /dev/sda: 8035 MB, 8035237888 bytes
+
+    Divide the card size in bytes by 255 heads, 63 sectors and 512
+    bytes per sector and round down to the nearest
+    integer. E.g. 2016411648/255/63/512 = 245.15 --> 245 cylinders.
+
+    i.e.: 15931539456 / ( 255 * 63 * 512 ) = 1936
+
+2. Wipe out current card contents:
+
+    CAUTION: double check device or you'll be reloading your host computer!
+
+    dd if=/dev/zero of=/dev/sdb bs=1024 count=1024
+
+    DANGER!!!!    
+
+3. Partition the card (using sfdisk because that's what gumstix uses)
+
+    sfdisk --force -D -uS -H 255 -S 63 -C nnnn /dev/sdb
+
+    The value of the -C parameter was calculate in the previous step.
+
+    At the prompt "/dev/sdb1 : " type 128,130944,0x0C,* and then press
+    enter to set up a 64MB bootable FAT partition.
+
+    At the prompt "/dev/sdb2 : " type 131072,,,- and then press enter
+    to setup the linux root partition.
+
+4. Format the new partitions
+
+   mkfs.vfat -F 32 /dev/sdb1 -n boot
+   mke2fs -j -L rootfs /dev/sdb2
+
+5. Mount the new partitions (can be done through the graphical file
+   manager if you wish) -- otherwise create some mount points and
+   mount away.
+
+6. Install the boot files
+
+    cd /home/curt/Projects/OveroOE/tmp/deploy/glibc/images/overo
+    cp MLO-overo /media/boot/MLO
+    cp u-boot-overo.bin /media/boot/u-boot.bin
+    cp uImage-overo.bin /media/boot/uImage
+
+7. Install the rootfs image
+
+    cd /home/curt/Projects/OveroOE/tmp/deploy/glibc/images/overo
+    tar xvaf omap3-console-image-overo.tar.bz2 -C /media/rootfs/
+
+8. sync; sync; sync
+
+
+III. Optional replace the onboard factory image (not using an external
+micro sd card)
+
+    Replace the root file system and kernel images:
 
     http://www.gumstix.net/Setup-and-Programming/view/Getting-started/Replacing-the-file-system-image/111.html
 
@@ -37,6 +104,13 @@ Once configured, including them in your root image:
         add kernel-module-pl2303 into the
         RRECOMMENDS_task-base-gumstix-usbhost section
 
+
+IV. Post install tweaks and fixups
+
+    cd /home/curt/Projects/OveroOE/tmp/deploy/glibc/ipk/armv7a
+    scp libstdc++* root@192.168.1.100:
+    then onboard the overo:
+    opkg install libstdc++...
 
 Clean up of unused services (makes booting much faster and cleaner):
 

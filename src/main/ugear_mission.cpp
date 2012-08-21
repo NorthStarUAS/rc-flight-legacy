@@ -59,7 +59,7 @@ using std::string;
 // Configuration settings
 //
 
-static const int HEARTBEAT_HZ = 50;	 // master clock rate
+static const int HEARTBEAT_HZ = 100;	 // master clock rate
 
 static bool enable_control = false;   // autopilot control module enabled/disabled
 static bool enable_mission = true;    // mission mgr module enabled/disabled

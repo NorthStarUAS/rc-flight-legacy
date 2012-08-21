@@ -20,12 +20,14 @@
 #include "util/myprof.h"
 #include "util/timing.h"
 
+#include "sensors/APM2.hxx"
 #include "sensors/imu_fgfs.hxx"
 #ifdef ENABLE_MNAV_SENSOR
 #  include "sensors/mnav.hxx"
 #endif // ENABLE_MNAV_SENSOR
 #include "sensors/imu_sf6DOFv4.hxx"
-#include "sensors/imu_vn100.hxx"
+#include "sensors/imu_vn100_spi.hxx"
+#include "sensors/imu_vn100_uart.hxx"
 #include "sensors/ugfile.hxx"
 
 #include "imu_mgr.hxx"
@@ -75,6 +77,8 @@ void IMU_init() {
 	           i, name.c_str(), source.c_str(), basename.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "APM2" ) {
+		APM2_imu_init( basename, section );
 	    } else if ( source == "fgfs" ) {
 		fgfs_imu_init( basename, section );
 	    } else if ( source == "file" ) {
@@ -86,7 +90,9 @@ void IMU_init() {
 	    } else if ( source == "sf6DOFv4" ) {
 		sf_6DOFv4_imu_init( basename, section );
 	    } else if ( source == "vn100" ) {
-		imu_vn100_init( basename, section );
+		imu_vn100_uart_init( basename, section );
+	    } else if ( source == "vn100-spi" ) {
+		imu_vn100_spi_init( basename, section );
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
@@ -119,6 +125,8 @@ bool IMU_update() {
 	    //        i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "APM2" ) {
+		fresh_data = APM2_imu_update();
 	    } else if ( source == "fgfs" ) {
 		fresh_data = fgfs_imu_update();
 	    } else if ( source == "file" ) {
@@ -135,7 +143,9 @@ bool IMU_update() {
 	    } else if ( source == "sf6DOFv4" ) {
 		fresh_data = sf_6DOFv4_get_imu();
 	    } else if ( source == "vn100" ) {
-		fresh_data = imu_vn100_get();
+		fresh_data = imu_vn100_uart_get();
+	    } else if ( source == "vn100-spi" ) {
+		fresh_data = imu_vn100_spi_get();
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());
@@ -184,6 +194,8 @@ void IMU_close() {
 		   i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {
 		// do nothing
+	    } else if ( source == "APM2" ) {
+		APM2_imu_close();
 	    } else if ( source == "fgfs" ) {
 		fgfs_imu_close();
 	    } else if ( source == "file" ) {
@@ -195,7 +207,9 @@ void IMU_close() {
 	    } else if ( source == "sf6DOFv4" ) {
 		sf_6DOFv4_close();
 	    } else if ( source == "vn100" ) {
-		imu_vn100_close();
+		imu_vn100_uart_close();
+	    } else if ( source == "vn100-spi" ) {
+		imu_vn100_spi_close();
 	    } else {
 		printf("Unknown imu source = '%s' in config file\n",
 		       source.c_str());

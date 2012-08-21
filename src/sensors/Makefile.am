@@ -10,7 +10,8 @@ libsensors_a_SOURCES = \
 	airdata_mgr.cxx airdata_mgr.hxx \
 	imu_fgfs.cxx imu_fgfs.hxx \
 	imu_sf6DOFv4.cxx imu_sf6DOFv4.hxx \
-	imu_vn100.cxx imu_vn100.hxx \
+	imu_vn100_uart.cxx imu_vn100_uart.hxx \
+	imu_vn100_spi.cxx imu_vn100_spi.hxx \
 	gps_mgr.cxx gps_mgr.hxx \
 	gps_gpsd.cxx gps_gpsd.hxx \
 	gps_fgfs.cxx gps_fgfs.hxx \
@@ -20,6 +21,7 @@ libsensors_a_SOURCES = \
 	pilot_mgr.cxx pilot_mgr.hxx \
 	pilot_fgfs.cxx pilot_fgfs.hxx \
 	ardupilot.cxx ardupilot.hxx \
+	APM2.cxx APM2.hxx \
 	ugfile.cxx ugfile.hxx
 
 bin_PROGRAMS = ublox-config
