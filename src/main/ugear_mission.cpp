@@ -43,7 +43,6 @@
 #include "sensors/airdata_mgr.hxx"
 #include "sensors/gps_mgr.hxx"
 #include "sensors/pilot_mgr.hxx"
-//#include "sensors/mnav.hxx"
 #include "util/exception.hxx"
 #include "util/myprof.h"
 #include "util/sg_path.hxx"
