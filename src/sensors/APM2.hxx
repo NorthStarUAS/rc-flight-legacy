@@ -13,15 +13,14 @@
 
 
 // function prototypes
-bool APM2_init( SGPropertyNode *config );
-bool APM2_update();
-void APM2_close();
+
+// bool APM2_init( SGPropertyNode *config );
 
 bool APM2_imu_init( string rootname, SGPropertyNode *config );
 bool APM2_imu_update();
 void APM2_imu_close();
 
-bool APM2_gps_init( string rootname );
+bool APM2_gps_init( string rootname, SGPropertyNode *config  );
 bool APM2_gps_update();
 void APM2_gps_close();
 
