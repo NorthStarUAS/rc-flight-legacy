@@ -1,5 +1,5 @@
 //
-// FILE: ardupilot.cxx
+// FILE: APM2.cxx
 // DESCRIPTION: interact with APM2 with "sensor head" firmware
 //
 
@@ -21,16 +21,36 @@
 
 #define START_OF_MSG0 147
 #define START_OF_MSG1 224
+
 #define ACT_COMMAND_PACKET_ID 20
 #define PILOT_PACKET_ID 30
+#define IMU_PACKET_ID 31
+
 #define MAX_PILOT_INPUTS 8
 #define MAX_ACTUATORS 8
+#define MAX_IMU_SENSORS 7
 #define MAX_ANALOG_INPUTS 4
 
-// fgfs_imu property nodes
+// APM2 interface and config property nodes
 static SGPropertyNode *configroot = NULL;
 static SGPropertyNode *APM2_device_node = NULL;
 static SGPropertyNode *APM2_baud_node = NULL;
+
+// imu property nodes
+static SGPropertyNode *imu_timestamp_node = NULL;
+static SGPropertyNode *imu_p_node = NULL;
+static SGPropertyNode *imu_q_node = NULL;
+static SGPropertyNode *imu_r_node = NULL;
+static SGPropertyNode *imu_ax_node = NULL;
+static SGPropertyNode *imu_ay_node = NULL;
+static SGPropertyNode *imu_az_node = NULL;
+static SGPropertyNode *imu_hx_node = NULL;
+static SGPropertyNode *imu_hy_node = NULL;
+static SGPropertyNode *imu_hz_node = NULL;
+static SGPropertyNode *imu_temp_node = NULL;
+static SGPropertyNode *imu_p_bias_node = NULL;
+static SGPropertyNode *imu_q_bias_node = NULL;
+static SGPropertyNode *imu_r_bias_node = NULL;
 
 // pilot input property nodes
 static SGPropertyNode *pilot_timestamp_node = NULL;
@@ -65,10 +85,9 @@ static SGPropertyNode *airdata_airspeed_node = NULL;
 static SGPropertyNode *airdata_altitude_node = NULL;
 
 static bool master_opened = false;
+static bool imu_inited = false;
 static bool airdata_inited = false;
 static bool pilot_input_inited = false;
-
-static bool fresh_pilot_data = false;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
@@ -78,6 +97,8 @@ static double data_in_timestamp = 0.0;
 static uint16_t analog[MAX_ANALOG_INPUTS];     // internal stash
 static uint16_t pilot_input[MAX_PILOT_INPUTS]; // internal stash
 static bool pilot_input_rev[MAX_PILOT_INPUTS];
+
+static int16_t imu_sensors[MAX_IMU_SENSORS];
 
 // initialize fgfs_gps input property nodes
 static void bind_input( SGPropertyNode *config ) {
@@ -121,8 +142,30 @@ static void bind_input( SGPropertyNode *config ) {
     configroot = config;
 }
 
+// initialize imu output property nodes 
+static void bind_imu_output( string rootname ) {
+    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
 
-/// initialize actuator property nodes 
+    imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
+    imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
+    imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
+    imu_ax_node = outputroot->getChild("ax-mps_sec", 0, true);
+    imu_ay_node = outputroot->getChild("ay-mps_sec", 0, true);
+    imu_az_node = outputroot->getChild("az-mps_sec", 0, true);
+    imu_hx_node = outputroot->getChild("hx", 0, true);
+    imu_hy_node = outputroot->getChild("hy", 0, true);
+    imu_hz_node = outputroot->getChild("hz", 0, true);
+    imu_temp_node = outputroot->getChild("temp_C", 0, true);
+    imu_p_bias_node = outputroot->getChild("p-bias", 0, true);
+    imu_q_bias_node = outputroot->getChild("q-bias", 0, true);
+    imu_r_bias_node = outputroot->getChild("r-bias", 0, true);
+
+    imu_inited = true;
+}
+
+
+// initialize actuator property nodes 
 static void bind_act_nodes() {
     act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
     act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
@@ -252,6 +295,8 @@ bool APM2_imu_init( string rootname, SGPropertyNode *config ) {
 	return false;
     }
 
+    bind_imu_output( rootname );
+
     return true;
 }
 
@@ -363,6 +408,32 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	} else {
 	    if ( display_on ) {
 		printf("APM2: packet size mismatch in pilot input\n");
+	    }
+	}
+    } else if ( pkt_id == IMU_PACKET_ID ) {
+	if ( pkt_len == MAX_IMU_SENSORS * 2 ) {
+	    uint8_t lo, hi;
+
+	    data_in_timestamp = get_Time();
+
+	    for ( int i = 0; i < MAX_IMU_SENSORS; i++ ) {
+		lo = payload[0 + 2*i]; hi = payload[1 + 2*i];
+		imu_sensors[i] = hi*256 + lo;
+	    }
+
+#if 0
+	    if ( display_on ) {
+		for ( int i = 0; i < MAX_IMU_SENSORS; i++ ) {
+		    printf("%d ", imu_sensors[i]);
+		}
+		printf("\n");
+	    }
+#endif
+		      
+	    new_data = true;
+	} else {
+	    if ( display_on ) {
+		printf("APM2: packet size mismatch in imu input\n");
 	    }
 	}
     }
@@ -482,9 +553,6 @@ static bool APM2_read() {
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// fprintf( stderr, "checksum passes (%d)!\n", pkt_id );
 		new_data = APM2_parse( pkt_id, pkt_len, payload );
-		if ( new_data ) {
-		    fresh_pilot_data = true;
-		}
 	    } else {
 		if ( display_on ) {
 		    // printf("checksum failed %d %d (computed) != %d %d (message)\n",
@@ -521,7 +589,7 @@ static int gen_pulse( double val, bool symmetrical ) {
 }
 
 
-static void ardu_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
+static void APM2_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
 {
     uint8_t c0 = 0;
     uint8_t c1 = 0;
@@ -542,7 +610,7 @@ static void ardu_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, 
 }
 
 
-static bool APM2_write() {
+static bool APM2_act_write() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
@@ -631,7 +699,7 @@ static bool APM2_write() {
     len = write( fd, buf, size );
   
     // check sum (2 bytes)
-    ardu_cksum( ACT_COMMAND_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    APM2_cksum( ACT_COMMAND_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     len = write( fd, buf, 2 );
 
@@ -649,6 +717,20 @@ static bool APM2_update() {
 
 bool APM2_imu_update() {
     APM2_update();
+
+    if ( imu_inited ) {
+	const float gyro_scale = 0.0174532 / 16.4;
+	const float accel_scale = 9.81 / 4096.0;
+	const float temp_scale = 0.02;
+
+	imu_p_node->setDoubleValue( imu_sensors[0] * gyro_scale );
+	imu_q_node->setDoubleValue( imu_sensors[1] * gyro_scale );
+	imu_r_node->setDoubleValue( imu_sensors[2] * gyro_scale );
+	imu_ax_node->setDoubleValue( imu_sensors[3] * accel_scale );
+	imu_ay_node->setDoubleValue( imu_sensors[4] * accel_scale );
+	imu_az_node->setDoubleValue( imu_sensors[5] * accel_scale );
+	imu_temp_node->setDoubleValue( imu_sensors[6] * temp_scale );
+    }
 
     return true;
 }
@@ -719,57 +801,55 @@ bool APM2_airdata_update() {
 bool APM2_pilot_update() {
     APM2_update();
 
-    // basically a no-op other than managing the fresh_data flag correctly
-    bool fresh_data = fresh_pilot_data;
-
-    if ( fresh_data && pilot_input_inited ) {
-	float val;
-
-	pilot_timestamp_node->setDoubleValue( data_in_timestamp );
-
-	val = normalize_pulse( pilot_input[0], true );
-	if ( pilot_input_rev[0] ) { val *= -1.0; }
-	pilot_aileron_node->setDoubleValue( val );
-
-	val = normalize_pulse( pilot_input[1], true );
-	if ( pilot_input_rev[1] ) { val *= -1.0; }
-	pilot_elevator_node->setDoubleValue( val );
-
-	val = normalize_pulse( pilot_input[2], false );
-	if ( pilot_input_rev[2] ) { val *= -1.0; }
-	pilot_throttle_node->setDoubleValue( val );
-
-	val = normalize_pulse( pilot_input[3], true );
-	if ( pilot_input_rev[3] ) { val *= -1.0; }
-	pilot_rudder_node->setDoubleValue( val );
-
-	val = normalize_pulse( pilot_input[4], true );
-	if ( pilot_input_rev[4] ) { val *= -1.0; }
-	pilot_channel5_node->setDoubleValue( val );
-
-	val = normalize_pulse( pilot_input[5], true );
-	if ( pilot_input_rev[5] ) { val *= -1.0; }
-	pilot_channel6_node->setDoubleValue( val );
-
-	val = normalize_pulse( pilot_input[6], true );
-	if ( pilot_input_rev[6] ) { val *= -1.0; }
-	pilot_channel7_node->setDoubleValue( val );
-
-	val = normalize_pulse( pilot_input[7], true );
-	if ( pilot_input_rev[7] ) { val *= -1.0; }
-	pilot_channel8_node->setDoubleValue( val );
-
-	pilot_manual_node->setIntValue( pilot_channel8_node->getDoubleValue() < 0 );
+    if ( !pilot_input_inited ) {
+	return false;
     }
 
-    fresh_pilot_data = false;
-    return fresh_data;
+    float val;
+
+    pilot_timestamp_node->setDoubleValue( data_in_timestamp );
+
+    val = normalize_pulse( pilot_input[0], true );
+    if ( pilot_input_rev[0] ) { val *= -1.0; }
+    pilot_aileron_node->setDoubleValue( val );
+
+    val = normalize_pulse( pilot_input[1], true );
+    if ( pilot_input_rev[1] ) { val *= -1.0; }
+    pilot_elevator_node->setDoubleValue( val );
+
+    val = normalize_pulse( pilot_input[2], false );
+    if ( pilot_input_rev[2] ) { val *= -1.0; }
+    pilot_throttle_node->setDoubleValue( val );
+
+    val = normalize_pulse( pilot_input[3], true );
+    if ( pilot_input_rev[3] ) { val *= -1.0; }
+    pilot_rudder_node->setDoubleValue( val );
+
+    val = normalize_pulse( pilot_input[4], true );
+    if ( pilot_input_rev[4] ) { val *= -1.0; }
+    pilot_channel5_node->setDoubleValue( val );
+
+    val = normalize_pulse( pilot_input[5], true );
+    if ( pilot_input_rev[5] ) { val *= -1.0; }
+    pilot_channel6_node->setDoubleValue( val );
+
+    val = normalize_pulse( pilot_input[6], true );
+    if ( pilot_input_rev[6] ) { val *= -1.0; }
+    pilot_channel7_node->setDoubleValue( val );
+
+    val = normalize_pulse( pilot_input[7], true );
+    if ( pilot_input_rev[7] ) { val *= -1.0; }
+    pilot_channel8_node->setDoubleValue( val );
+
+    pilot_manual_node->setIntValue( pilot_channel8_node->getDoubleValue() < 0 );
+
+    return true;
 }
 
 
 bool APM2_act_update() {
-    // send actuator commands to ardu servo subsystem
-    APM2_write();
+    // send actuator commands to APM2 servo subsystem
+    APM2_act_write();
 
     return true;
 }
