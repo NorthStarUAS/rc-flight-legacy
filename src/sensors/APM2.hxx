@@ -14,8 +14,6 @@
 
 // function prototypes
 
-// bool APM2_init( SGPropertyNode *config );
-
 bool APM2_imu_init( string rootname, SGPropertyNode *config );
 bool APM2_imu_update();
 void APM2_imu_close();
