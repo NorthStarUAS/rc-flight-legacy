@@ -119,11 +119,11 @@ static int16_t imu_sensors[MAX_IMU_SENSORS];
 struct gps_sensors_t {
     double timestamp;
     uint32_t time;
-    int32_t date;
+    uint32_t date;
     int32_t latitude;
     int32_t longitude;
     int32_t altitude;
-    int32_t ground_speed;
+    uint32_t ground_speed;
     int32_t ground_course;
     int32_t speed_3d;
     int16_t hdop;
@@ -493,16 +493,16 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	if ( pkt_len == 36 ) {
 	    gps_sensors.timestamp = get_Time();
 	    gps_sensors.time = *(uint32_t *)payload; payload += 4;
-	    gps_sensors.date = *(int32_t *)payload; payload += 4;
+	    gps_sensors.date = *(uint32_t *)payload; payload += 4;
 	    gps_sensors.latitude = *(int32_t *)payload; payload += 4;
 	    gps_sensors.longitude = *(int32_t *)payload; payload += 4;
 	    gps_sensors.altitude = *(int32_t *)payload; payload += 4;
-	    gps_sensors.ground_speed = *(int32_t *)payload; payload += 4;
+	    gps_sensors.ground_speed = *(uint32_t *)payload; payload += 4;
 	    gps_sensors.ground_course = *(int32_t *)payload; payload += 4;
 	    gps_sensors.speed_3d = *(int32_t *)payload; payload += 4;
 	    gps_sensors.hdop = *(int16_t *)payload; payload += 2;
-	    gps_sensors.num_sats = *(int8_t *)payload; payload += 1;
-	    gps_sensors.status = *(int8_t *)payload; payload += 1;
+	    gps_sensors.num_sats = *(uint8_t *)payload; payload += 1;
+	    gps_sensors.status = *(uint8_t *)payload; payload += 1;
 
 #if 0
 	    if ( display_on ) {
