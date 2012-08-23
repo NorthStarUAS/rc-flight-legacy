@@ -25,6 +25,7 @@
 #define ACT_COMMAND_PACKET_ID 20
 #define PILOT_PACKET_ID 30
 #define IMU_PACKET_ID 31
+#define GPS_PACKET_ID 32
 
 #define MAX_PILOT_INPUTS 8
 #define MAX_ACTUATORS 8
@@ -51,6 +52,20 @@ static SGPropertyNode *imu_temp_node = NULL;
 static SGPropertyNode *imu_p_bias_node = NULL;
 static SGPropertyNode *imu_q_bias_node = NULL;
 static SGPropertyNode *imu_r_bias_node = NULL;
+
+// gps property nodes
+static SGPropertyNode *gps_timestamp_node = NULL;
+static SGPropertyNode *gps_day_secs_node = NULL;
+static SGPropertyNode *gps_date_node = NULL;
+static SGPropertyNode *gps_lat_node = NULL;
+static SGPropertyNode *gps_lon_node = NULL;
+static SGPropertyNode *gps_alt_node = NULL;
+static SGPropertyNode *gps_ve_node = NULL;
+static SGPropertyNode *gps_vn_node = NULL;
+static SGPropertyNode *gps_vd_node = NULL;
+static SGPropertyNode *gps_unix_sec_node = NULL;
+static SGPropertyNode *gps_satellites_node = NULL;
+static SGPropertyNode *gps_fix_type_node = NULL;
 
 // pilot input property nodes
 static SGPropertyNode *pilot_timestamp_node = NULL;
@@ -86,6 +101,7 @@ static SGPropertyNode *airdata_altitude_node = NULL;
 
 static bool master_opened = false;
 static bool imu_inited = false;
+static bool gps_inited = false;
 static bool airdata_inited = false;
 static bool pilot_input_inited = false;
 
@@ -99,6 +115,21 @@ static uint16_t pilot_input[MAX_PILOT_INPUTS]; // internal stash
 static bool pilot_input_rev[MAX_PILOT_INPUTS];
 
 static int16_t imu_sensors[MAX_IMU_SENSORS];
+
+struct gps_sensors_t {
+    double timestamp;
+    uint32_t time;
+    int32_t date;
+    int32_t latitude;
+    int32_t longitude;
+    int32_t altitude;
+    int32_t ground_speed;
+    int32_t ground_course;
+    int32_t speed_3d;
+    int16_t hdop;
+    uint8_t num_sats;
+    uint8_t status;
+} gps_sensors;
 
 // initialize fgfs_gps input property nodes
 static void bind_input( SGPropertyNode *config ) {
@@ -162,6 +193,26 @@ static void bind_imu_output( string rootname ) {
     imu_r_bias_node = outputroot->getChild("r-bias", 0, true);
 
     imu_inited = true;
+}
+
+
+// initialize gps output property nodes 
+static void bind_gps_output( string rootname ) {
+    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    gps_day_secs_node = outputroot->getChild("day-seconds", 0, true);
+    gps_date_node = outputroot->getChild("date", 0, true);
+    gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
+    gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
+    gps_alt_node = outputroot->getChild("altitude-m", 0, true);
+    gps_ve_node = outputroot->getChild("ve-ms", 0, true);
+    gps_vn_node = outputroot->getChild("vn-ms", 0, true);
+    gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+    gps_satellites_node = outputroot->getChild("satellites", 0, true);
+    gps_fix_type_node = outputroot->getChild("fix-type", 0, true);
+    gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+
+    gps_inited = true;
 }
 
 
@@ -306,6 +357,8 @@ bool APM2_gps_init( string rootname, SGPropertyNode *config ) {
 	return false;
     }
 
+    bind_gps_output( rootname );
+
     return true;
 }
 
@@ -434,6 +487,36 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	} else {
 	    if ( display_on ) {
 		printf("APM2: packet size mismatch in imu input\n");
+	    }
+	}
+    } else if ( pkt_id == GPS_PACKET_ID ) {
+	if ( pkt_len == 36 ) {
+	    gps_sensors.timestamp = get_Time();
+	    gps_sensors.time = *(uint32_t *)payload; payload += 4;
+	    gps_sensors.date = *(int32_t *)payload; payload += 4;
+	    gps_sensors.latitude = *(int32_t *)payload; payload += 4;
+	    gps_sensors.longitude = *(int32_t *)payload; payload += 4;
+	    gps_sensors.altitude = *(int32_t *)payload; payload += 4;
+	    gps_sensors.ground_speed = *(int32_t *)payload; payload += 4;
+	    gps_sensors.ground_course = *(int32_t *)payload; payload += 4;
+	    gps_sensors.speed_3d = *(int32_t *)payload; payload += 4;
+	    gps_sensors.hdop = *(int16_t *)payload; payload += 2;
+	    gps_sensors.num_sats = *(int8_t *)payload; payload += 1;
+	    gps_sensors.status = *(int8_t *)payload; payload += 1;
+
+#if 0
+	    if ( display_on ) {
+		for ( int i = 0; i < MAX_IMU_SENSORS; i++ ) {
+		    printf("%d ", imu_sensors[i]);
+		}
+		printf("\n");
+	    }
+#endif
+		      
+	    new_data = true;
+	} else {
+	    if ( display_on ) {
+		printf("APM2: packet size mismatch in gps input\n");
 	    }
 	}
     }
@@ -736,8 +819,90 @@ bool APM2_imu_update() {
 }
 
 
+static double date_time_to_unix_sec( int gdate, float gtime ) {
+    int hour = (int)(gtime / 3600); gtime -= hour * 3600;
+    int min = (int)(gtime / 60); gtime -= min * 60;
+    int isec = (int)gtime; gtime -= isec;
+    float fsec = gtime;
+
+    int day = gdate / 10000; gdate -= day * 10000;
+    int mon = gdate / 100; gdate -= mon * 100;
+    int year = gdate;
+
+    // printf("%02d:%02d:%02d + %.3f  %02d / %02d / %02d\n", hour, min,
+    //        isec, fsec, day, mon,
+    //        year );
+
+    struct tm t;
+    t.tm_sec = isec;
+    t.tm_min = min;
+    t.tm_hour = hour;
+    t.tm_mday = day;
+    t.tm_mon = mon - 1;
+    t.tm_year = year + 100;
+    t.tm_gmtoff = 0;
+
+    // force timezone to GMT/UTC so mktime() does the proper conversion
+    tzname[0] = tzname[1] = (char *)"GMT";
+    timezone = 0;
+    daylight = 0;
+    setenv("TZ", "UTC", 1);
+    
+    // printf("%d\n", mktime(&t));
+    // printf("tzname[0]=%s, tzname[1]=%s, timezone=%d, daylight=%d\n",
+    //        tzname[0], tzname[1], timezone, daylight);
+
+    double result = (double)mktime(&t);
+    result += fsec;
+
+    return result;
+}
+
+
 bool APM2_gps_update() {
+    static double last_timestamp = 0.0;
+    static double last_alt_m = 0.0;
+
     APM2_update();
+
+    double dt = gps_sensors.timestamp - last_timestamp;
+    if ( gps_inited && dt > 0.001 ) {
+	gps_timestamp_node->setDoubleValue(gps_sensors.timestamp);
+	gps_day_secs_node->setDoubleValue(gps_sensors.time / 1000.0);
+	gps_date_node->setDoubleValue(gps_sensors.date);
+	gps_lat_node->setDoubleValue(gps_sensors.latitude / 10000000.0);
+	gps_lon_node->setDoubleValue(gps_sensors.longitude / 10000000.0);
+	double alt_m = gps_sensors.altitude / 100.0;
+	gps_alt_node->setDoubleValue( alt_m );
+
+	// compute horizontal speed components
+	double speed_mps = gps_sensors.ground_speed * 0.01;
+	double angle_rad = (90.0 - gps_sensors.ground_course*0.01)
+	    * SGD_DEGREES_TO_RADIANS;
+	gps_vn_node->setDoubleValue( sin(angle_rad) * speed_mps );
+	gps_ve_node->setDoubleValue( cos(angle_rad) * speed_mps );
+
+	// compute vertical speed
+	double vspeed_mps = 0.0;
+	double da = alt_m - last_alt_m;
+	// dt should be safely non zero for a divide or we wouldn't be here
+	vspeed_mps = da / dt;
+	gps_vd_node->setDoubleValue( -vspeed_mps );
+	last_alt_m = alt_m;
+
+	//gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+	gps_satellites_node->setIntValue(gps_sensors.num_sats);
+	//if ( sensors_gps.status == 2 ) {
+	    // promote to "3" for ugear convention of good fix
+	    //sensors_gps.status = 3;
+	//}
+	gps_fix_type_node->setIntValue( gps_sensors.status );
+	double unix_secs = date_time_to_unix_sec( gps_sensors.date,
+						  gps_sensors.time / 1000.0 );
+	gps_unix_sec_node->setDoubleValue( unix_secs );
+
+	last_timestamp = gps_sensors.timestamp;
+    }
 
     return true;
 }
