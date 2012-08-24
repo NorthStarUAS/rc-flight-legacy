@@ -22,7 +22,9 @@
 #define START_OF_MSG0 147
 #define START_OF_MSG1 224
 
+#define ACK_PACKET_ID 10
 #define ACT_COMMAND_PACKET_ID 20
+#define PWM_RATE_PACKET_ID 21
 #define PILOT_PACKET_ID 30
 #define IMU_PACKET_ID 31
 #define GPS_PACKET_ID 32
@@ -36,6 +38,7 @@
 static SGPropertyNode *configroot = NULL;
 static SGPropertyNode *APM2_device_node = NULL;
 static SGPropertyNode *APM2_baud_node = NULL;
+static SGPropertyNode *APM2_pwm_rate_node = NULL;
 
 // imu property nodes
 static SGPropertyNode *imu_timestamp_node = NULL;
@@ -108,7 +111,9 @@ static bool pilot_input_inited = false;
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
 static int baud = 115200;
-
+static int act_pwm_rate_hz = 50;
+static bool act_pwm_rate_ack = false;
+ 
 static double data_in_timestamp = 0.0;
 static uint16_t analog[MAX_ANALOG_INPUTS];     // internal stash
 static uint16_t pilot_input[MAX_PILOT_INPUTS]; // internal stash
@@ -130,6 +135,7 @@ struct gps_sensors_t {
     uint8_t num_sats;
     uint8_t status;
 } gps_sensors;
+
 
 // initialize fgfs_gps input property nodes
 static void bind_input( SGPropertyNode *config ) {
@@ -166,10 +172,6 @@ static void bind_input( SGPropertyNode *config ) {
 	}
     }
 
-    // act_baud_node = config->getChild("baud");
-    // if ( act_baud_node != NULL ) {
-    // 	baud = act_baud_node->getIntValue();
-    // }
     configroot = config;
 }
 
@@ -279,6 +281,10 @@ static bool APM2_open() {
     if ( APM2_baud_node != NULL ) {
 	baud = APM2_baud_node->getIntValue();
     }
+    APM2_pwm_rate_node = fgGetNode("/config/sensors/APM2/pwm-hz");
+    if ( APM2_pwm_rate_node != NULL ) {
+	act_pwm_rate_hz = APM2_pwm_rate_node->getIntValue();
+    }
 
     if ( display_on ) {
 	printf("APM2 Sensor Head on %s @ %d baud\n", device_name.c_str(), baud);
@@ -330,6 +336,7 @@ static bool APM2_open() {
 }
 
 
+#if 0
 bool APM2_init( SGPropertyNode *config ) {
     printf("APM2_init()\n");
 
@@ -339,6 +346,7 @@ bool APM2_init( SGPropertyNode *config ) {
 
     return result;
 }
+#endif
 
 
 bool APM2_imu_init( string rootname, SGPropertyNode *config ) {
@@ -435,7 +443,17 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 {
     bool new_data = false;
 
-    if ( pkt_id == PILOT_PACKET_ID ) {
+    if ( pkt_id == ACK_PACKET_ID ) {
+	if ( pkt_len == 1 ) {
+	    if ( payload[0] == PWM_RATE_PACKET_ID ) {
+		act_pwm_rate_ack = true;
+	    }
+	} else {
+	    if ( display_on ) {
+		printf("APM2: packet size mismatch in ack\n");
+	    }
+	}
+    } else if ( pkt_id == PILOT_PACKET_ID ) {
 	if ( pkt_len == MAX_PILOT_INPUTS * 2 ) {
 	    uint8_t lo, hi;
 
@@ -525,7 +543,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 }
 
 
-#if 0
+#if 1
 static void APM2_read_tmp() {
     int len;
     uint8_t input[16];
@@ -693,6 +711,42 @@ static void APM2_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, 
 }
 
 
+static bool APM2_act_set_pwm_rates( uint16_t rates[MAX_ACTUATORS] ) {
+    uint8_t buf[256];
+    uint8_t cksum0, cksum1;
+    uint8_t size = 0;
+    int len;
+
+    // start of message sync bytes
+    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    // packet id (1 byte)
+    buf[0] = PWM_RATE_PACKET_ID;
+    // packet length (1 byte)
+    buf[1] = MAX_ACTUATORS * 2;
+    len = write( fd, buf, 2 );
+
+    // actuator data
+    for ( int i = 0; i < MAX_ACTUATORS; i++ ) {
+	uint16_t val = rates[i];
+	uint8_t hi = val / 256;
+	uint8_t lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
+    }
+  
+    // write packet
+    len = write( fd, buf, size );
+  
+    // check sum (2 bytes)
+    APM2_cksum( PWM_RATE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    return true;
+}
+
 static bool APM2_act_write() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
@@ -704,7 +758,7 @@ static bool APM2_act_write() {
     len = write( fd, buf, 2 );
 
     // packet id (1 byte)
-    buf[0] = ACT_COMMAND_PACKET_ID; buf[1] = 0;
+    buf[0] = ACT_COMMAND_PACKET_ID;
     // packet length (1 byte)
     buf[1] = 2 * MAX_ACTUATORS;
     len = write( fd, buf, 2 );
@@ -793,6 +847,7 @@ static bool APM2_act_write() {
 static bool APM2_update() {
     // read any pending APM2 data (and parse any completed messages)
     while ( APM2_read() );
+    // APM2_read_tmp();
 
     return true;
 }
@@ -1013,6 +1068,17 @@ bool APM2_pilot_update() {
 
 
 bool APM2_act_update() {
+    if ( ! act_pwm_rate_ack ) {
+	uint16_t rates[MAX_ACTUATORS] = { 50, 50, 50, 50, 50, 50, 50, 50 };
+	// uint16_t rates[] = { 100, 100, 100, 100, 100, 100, 100, 100 };
+	// uint16_t rates[] = { 200, 200, 200, 200, 200, 200, 200, 200 };
+	// uint16_t rates[] = { 400, 400, 400, 400, 400, 400, 400, 400 };
+	for ( int i = 0; i < MAX_ACTUATORS; i++ ) {
+	    rates[i] = act_pwm_rate_hz;
+	}
+	APM2_act_set_pwm_rates( rates );
+    }
+
     // send actuator commands to APM2 servo subsystem
     APM2_act_write();
 
