@@ -499,6 +499,10 @@ void display_message()
 
 
 bool event_log( const char *hdr, const char *msg ) {
+    if ( fevent == NULL ) {
+	return false;
+    }
+
     fprintf( fevent, "%.3f %s %s\n", get_Time(), hdr, msg );
     fflush( fevent );
 
