@@ -14,6 +14,10 @@
 
 // function prototypes
 
+bool APM2_update();
+void APM2_close();
+bool APM2_request_baud( uint32_t baud );
+
 bool APM2_imu_init( string rootname, SGPropertyNode *config );
 bool APM2_imu_update();
 void APM2_imu_close();
