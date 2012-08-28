@@ -43,6 +43,11 @@ static SGPropertyNode *APM2_device_node = NULL;
 static SGPropertyNode *APM2_baud_node = NULL;
 static SGPropertyNode *APM2_pwm_rate_node = NULL;
 static SGPropertyNode *APM2_input_vcc_node = NULL;
+static SGPropertyNode *APM2_pilot_packet_count_node = NULL;
+static SGPropertyNode *APM2_imu_packet_count_node = NULL;
+static SGPropertyNode *APM2_gps_packet_count_node = NULL;
+static SGPropertyNode *APM2_baro_packet_count_node = NULL;
+static SGPropertyNode *APM2_analog_packet_count_node = NULL;
 
 // imu property nodes
 static SGPropertyNode *imu_timestamp_node = NULL;
@@ -155,6 +160,13 @@ static float analog[MAX_ANALOG_INPUTS];     // internal stash
 
 static bool airspeed_inited = false;
 static double airspeed_zero_start_time = 0.0;
+
+static uint32_t pilot_packet_counter = 0;
+static uint32_t imu_packet_counter = 0;
+static uint32_t gps_packet_counter = 0;
+static uint32_t baro_packet_counter = 0;
+static uint32_t analog_packet_counter = 0;
+
 
 // initialize fgfs_gps input property nodes
 static void bind_input( SGPropertyNode *config ) {
@@ -357,6 +369,16 @@ static bool APM2_open() {
 	act_pwm_rate_hz = APM2_pwm_rate_node->getIntValue();
     }
     APM2_input_vcc_node = fgGetNode("/sensors/APM2/input-vcc", true);
+    APM2_pilot_packet_count_node
+	= fgGetNode("/sensors/APM2/pilot-packet-count", true);
+    APM2_imu_packet_count_node
+	= fgGetNode("/sensors/APM2/imu-packet-count", true);
+    APM2_gps_packet_count_node
+	= fgGetNode("/sensors/APM2/gps-packet-count", true);
+    APM2_baro_packet_count_node
+	= fgGetNode("/sensors/APM2/baro-packet-count", true);
+    APM2_analog_packet_count_node
+	= fgGetNode("/sensors/APM2/analog-packet-count", true);
 
     int baud_bits = B115200;
     if ( baud == 115200 ) {
@@ -519,7 +541,10 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		       pilot_manual_node->getIntValue());
 	    }
 #endif
-		      
+
+	    pilot_packet_counter++;
+	    APM2_pilot_packet_count_node->setIntValue( pilot_packet_counter );
+
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
@@ -546,6 +571,9 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 #endif
 		      
+	    imu_packet_counter++;
+	    APM2_imu_packet_count_node->setIntValue( imu_packet_counter );
+
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
@@ -576,6 +604,9 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 #endif
 		      
+	    gps_packet_counter++;
+	    APM2_gps_packet_count_node->setIntValue( gps_packet_counter );
+
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
@@ -598,6 +629,9 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 #endif
 		      
+	    baro_packet_counter++;
+	    APM2_baro_packet_count_node->setIntValue( baro_packet_counter );
+
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
@@ -629,6 +663,9 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 #endif
 		      
+	    analog_packet_counter++;
+	    APM2_analog_packet_count_node->setIntValue( analog_packet_counter );
+
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
