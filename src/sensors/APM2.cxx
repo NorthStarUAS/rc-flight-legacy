@@ -25,20 +25,24 @@
 #define ACK_PACKET_ID 10
 #define ACT_COMMAND_PACKET_ID 20
 #define PWM_RATE_PACKET_ID 21
+#define BAUD_PACKET_ID 22
 #define PILOT_PACKET_ID 30
 #define IMU_PACKET_ID 31
 #define GPS_PACKET_ID 32
+#define BARO_PACKET_ID 33
+#define ANALOG_PACKET_ID 34
 
 #define MAX_PILOT_INPUTS 8
 #define MAX_ACTUATORS 8
 #define MAX_IMU_SENSORS 7
-#define MAX_ANALOG_INPUTS 4
+#define MAX_ANALOG_INPUTS 6
 
 // APM2 interface and config property nodes
 static SGPropertyNode *configroot = NULL;
 static SGPropertyNode *APM2_device_node = NULL;
 static SGPropertyNode *APM2_baud_node = NULL;
 static SGPropertyNode *APM2_pwm_rate_node = NULL;
+static SGPropertyNode *APM2_input_vcc_node = NULL;
 
 // imu property nodes
 static SGPropertyNode *imu_timestamp_node = NULL;
@@ -97,10 +101,12 @@ static SGPropertyNode *act_status_node = NULL;
 
 // air data nodes
 static SGPropertyNode *airdata_timestamp_node = NULL;
-static SGPropertyNode *airdata_analog0_node = NULL;
-static SGPropertyNode *airdata_analog1_node = NULL;
-static SGPropertyNode *airdata_airspeed_node = NULL;
+static SGPropertyNode *airdata_pressure_node = NULL;
+static SGPropertyNode *airdata_temperature_node = NULL;
 static SGPropertyNode *airdata_altitude_node = NULL;
+static SGPropertyNode *airdata_climb_rate_node = NULL;
+static SGPropertyNode *airdata_airspeed_mps_node = NULL;
+static SGPropertyNode *airdata_airspeed_kt_node = NULL;
 
 static bool master_opened = false;
 static bool imu_inited = false;
@@ -110,15 +116,16 @@ static bool pilot_input_inited = false;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
-static int baud = 115200;
+static int baud = 230400;
 static int act_pwm_rate_hz = 50;
 static bool act_pwm_rate_ack = false;
- 
-static double data_in_timestamp = 0.0;
-static uint16_t analog[MAX_ANALOG_INPUTS];     // internal stash
+//static bool baud_rate_ack = false;
+
+static double pilot_in_timestamp = 0.0;
 static uint16_t pilot_input[MAX_PILOT_INPUTS]; // internal stash
 static bool pilot_input_rev[MAX_PILOT_INPUTS];
 
+static double imu_timestamp = 0.0;
 static int16_t imu_sensors[MAX_IMU_SENSORS];
 
 struct gps_sensors_t {
@@ -136,6 +143,18 @@ struct gps_sensors_t {
     uint8_t status;
 } gps_sensors;
 
+struct air_data_t {
+    double timestamp;
+    float pressure;
+    float temp;
+    float climb_rate;
+    float airspeed;
+} airdata;
+
+static float analog[MAX_ANALOG_INPUTS];     // internal stash
+
+static bool airspeed_inited = false;
+static double airspeed_zero_start_time = 0.0;
 
 // initialize fgfs_gps input property nodes
 static void bind_input( SGPropertyNode *config ) {
@@ -232,16 +251,17 @@ static void bind_act_nodes() {
     act_status_node = fgGetNode("/actuators/actuator/status", true);
 }
 
-
 // initialize airdata output property nodes 
 static void bind_airdata_output( string rootname ) {
     SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
 
     airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    airdata_analog0_node = outputroot->getChild("analog0", 0, true);
-    airdata_analog1_node = outputroot->getChild("analog1", 0, true);
-    airdata_airspeed_node = outputroot->getChild("airspeed-kt", 0, true);
+    airdata_pressure_node = outputroot->getChild("pressure-mbar", 0, true);
+    airdata_temperature_node = outputroot->getChild("temp-degC", 0, true);
     airdata_altitude_node = outputroot->getChild("altitude-m", 0, true);
+    airdata_climb_rate_node = outputroot->getChild("climb-rate-mps", 0, true);
+    airdata_airspeed_mps_node = outputroot->getChild("airspeed-mps", 0, true);
+    airdata_airspeed_kt_node = outputroot->getChild("airspeed-kt", 0, true);
 
     airdata_inited = true;
 }
@@ -268,26 +288,10 @@ static void bind_pilot_controls( string rootname ) {
 
 
 // send our configured init strings to configure gpsd the way we prefer
-static bool APM2_open() {
-    if ( master_opened ) {
-	return true;
-    }
-
-    APM2_device_node = fgGetNode("/config/sensors/APM2/device");
-    if ( APM2_device_node != NULL ) {
-	device_name = APM2_device_node->getStringValue();
-    }
-    APM2_baud_node = fgGetNode("/config/sensors/APM2/baud");
-    if ( APM2_baud_node != NULL ) {
-	baud = APM2_baud_node->getIntValue();
-    }
-    APM2_pwm_rate_node = fgGetNode("/config/sensors/APM2/pwm-hz");
-    if ( APM2_pwm_rate_node != NULL ) {
-	act_pwm_rate_hz = APM2_pwm_rate_node->getIntValue();
-    }
-
+static bool APM2_open_device( int baud_bits ) {
     if ( display_on ) {
-	printf("APM2 Sensor Head on %s @ %d baud\n", device_name.c_str(), baud);
+	printf("APM2 Sensor Head on %s @ %d(code) baud\n", device_name.c_str(),
+	       baud_bits);
     }
 
     fd = open( device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
@@ -305,7 +309,7 @@ static bool APM2_open() {
     // tcgetattr(fd,&oldTio); 
 
     // Configure New Serial Port Settings
-    config.c_cflag     = B115200 | // bps rate
+    config.c_cflag     = baud_bits | // bps rate
                          CS8	 | // 8n1
                          CLOCAL	 | // local connection, no modem
                          CREAD;	   // enable receiving chars
@@ -329,6 +333,44 @@ static bool APM2_open() {
 
     // Enable non-blocking IO (one more time for good measure)
     fcntl(fd, F_SETFL, O_NONBLOCK);
+
+    return true;
+}
+
+
+// send our configured init strings to configure gpsd the way we prefer
+static bool APM2_open() {
+    if ( master_opened ) {
+	return true;
+    }
+
+    APM2_device_node = fgGetNode("/config/sensors/APM2/device");
+    if ( APM2_device_node != NULL ) {
+	device_name = APM2_device_node->getStringValue();
+    }
+    APM2_baud_node = fgGetNode("/config/sensors/APM2/baud");
+    if ( APM2_baud_node != NULL ) {
+       baud = APM2_baud_node->getIntValue();
+    }
+    APM2_pwm_rate_node = fgGetNode("/config/sensors/APM2/pwm-hz");
+    if ( APM2_pwm_rate_node != NULL ) {
+	act_pwm_rate_hz = APM2_pwm_rate_node->getIntValue();
+    }
+    APM2_input_vcc_node = fgGetNode("/sensors/APM2/input-vcc", true);
+
+    int baud_bits = B115200;
+    if ( baud == 115200 ) {
+	baud_bits = B115200;
+    } else if ( baud == 230400 ) {
+	baud_bits = B230400;
+    } else {
+	printf("unsupported baud rate = %d\n", baud);
+    }
+
+    if ( ! APM2_open_device( baud_bits ) ) {
+	printf("device open failed ...");
+	return false;
+    }
 
     master_opened = true;
 
@@ -444,9 +486,12 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
     bool new_data = false;
 
     if ( pkt_id == ACK_PACKET_ID ) {
+	// printf("Received ACK = %d\n", payload[0]);
 	if ( pkt_len == 1 ) {
 	    if ( payload[0] == PWM_RATE_PACKET_ID ) {
 		act_pwm_rate_ack = true;
+	    // } else if ( payload[0] == BAUD_PACKET_ID ) {
+	    //   baud_rate_ack = true;
 	    }
 	} else {
 	    if ( display_on ) {
@@ -457,7 +502,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	if ( pkt_len == MAX_PILOT_INPUTS * 2 ) {
 	    uint8_t lo, hi;
 
-	    data_in_timestamp = get_Time();
+	    pilot_in_timestamp = get_Time();
 
 	    for ( int i = 0; i < MAX_PILOT_INPUTS; i++ ) {
 		lo = payload[0 + 2*i]; hi = payload[1 + 2*i];
@@ -485,7 +530,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	if ( pkt_len == MAX_IMU_SENSORS * 2 ) {
 	    uint8_t lo, hi;
 
-	    data_in_timestamp = get_Time();
+	    imu_timestamp = get_Time();
 
 	    for ( int i = 0; i < MAX_IMU_SENSORS; i++ ) {
 		lo = payload[0 + 2*i]; hi = payload[1 + 2*i];
@@ -537,6 +582,59 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		printf("APM2: packet size mismatch in gps input\n");
 	    }
 	}
+    } else if ( pkt_id == BARO_PACKET_ID ) {
+	if ( pkt_len == 12 ) {
+	    airdata.timestamp = get_Time();
+	    airdata.pressure = *(float *)payload; payload += 4;
+	    airdata.temp = *(float *)payload; payload += 4;
+	    airdata.climb_rate = *(float *)payload; payload += 4;
+
+#if 0
+	    if ( display_on ) {
+		for ( int i = 0; i < MAX_IMU_SENSORS; i++ ) {
+		    printf("%d ", imu_sensors[i]);
+		}
+		printf("\n");
+	    }
+#endif
+		      
+	    new_data = true;
+	} else {
+	    if ( display_on ) {
+		printf("APM2: packet size mismatch in barometer input\n");
+	    }
+	}
+    } else if ( pkt_id == ANALOG_PACKET_ID ) {
+	if ( pkt_len == 2 * MAX_ANALOG_INPUTS ) {
+	    uint8_t lo, hi;
+	    for ( int i = 0; i < MAX_ANALOG_INPUTS; i++ ) {
+		lo = payload[0 + 2*i]; hi = payload[1 + 2*i];
+		float val = (float)(hi*256 + lo);
+		if ( i != 5 ) {
+		    // tranmitted value is left shifted 6 bits (*64)
+		    analog[i] = val / 64.0;
+		} else {
+		    // special case APM2 specific sensor values, write to
+		    // property tree here
+		    analog[i] = val / 1000.0;
+		    APM2_input_vcc_node->setDoubleValue( analog[i] );
+		}
+	    }
+#if 0
+	    if ( display_on ) {
+		for ( int i = 0; i < MAX_ANALOG_INPUTS; i++ ) {
+		    printf("%.2f ", (float)analog[i] / 64.0);
+		}
+		printf("\n");
+	    }
+#endif
+		      
+	    new_data = true;
+	} else {
+	    if ( display_on ) {
+		printf("APM2: packet size mismatch in analog input\n");
+	    }
+	}
     }
 
     return new_data;
@@ -577,7 +675,7 @@ static bool APM2_read() {
 	cksum_A = cksum_B = 0;
 	len = read( fd, input, 1 );
 	while ( len > 0 && input[0] != START_OF_MSG0 ) {
-	    // fprintf( stderr, "state0: len = %d val = %2X\n", len, input[0] );
+	    // fprintf( stderr, "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
 	    len = read( fd, input, 1 );
 	}
 	if ( len > 0 && input[0] == START_OF_MSG0 ) {
@@ -710,6 +808,38 @@ static void APM2_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, 
     *cksum1 = c1;
 }
 
+
+#if 0
+bool APM2_request_baud( uint32_t baud ) {
+    uint8_t buf[256];
+    uint8_t cksum0, cksum1;
+    uint8_t size = 4;
+    int len;
+
+    // start of message sync bytes
+    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    // packet id (1 byte)
+    buf[0] = BAUD_PACKET_ID;
+    // packet length (1 byte)
+    buf[1] = size;
+    len = write( fd, buf, 2 );
+
+    // actuator data
+    *(uint32_t *)buf = baud;
+  
+    // write packet
+    len = write( fd, buf, size );
+  
+    // check sum (2 bytes)
+    APM2_cksum( BAUD_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    return true;
+}
+#endif
 
 static bool APM2_act_set_pwm_rates( uint16_t rates[MAX_ACTUATORS] ) {
     uint8_t buf[256];
@@ -844,7 +974,7 @@ static bool APM2_act_write() {
 }
 
 
-static bool APM2_update() {
+bool APM2_update() {
     // read any pending APM2 data (and parse any completed messages)
     while ( APM2_read() );
     // APM2_read_tmp();
@@ -861,6 +991,7 @@ bool APM2_imu_update() {
 	const float accel_scale = 9.81 / 4096.0;
 	const float temp_scale = 0.02;
 
+	imu_timestamp_node->setDoubleValue( imu_timestamp );
 	imu_p_node->setDoubleValue( imu_sensors[0] * gyro_scale );
 	imu_q_node->setDoubleValue( imu_sensors[1] * gyro_scale );
 	imu_r_node->setDoubleValue( imu_sensors[2] * gyro_scale );
@@ -915,6 +1046,8 @@ static double date_time_to_unix_sec( int gdate, float gtime ) {
 
 
 bool APM2_gps_update() {
+    bool good_position = false;
+
     static double last_timestamp = 0.0;
     static double last_alt_m = 0.0;
 
@@ -957,9 +1090,11 @@ bool APM2_gps_update() {
 	gps_unix_sec_node->setDoubleValue( unix_secs );
 
 	last_timestamp = gps_sensors.timestamp;
+
+	good_position = ( gps_sensors.status == 2 );
     }
 
-    return true;
+    return good_position;
 }
 
 
@@ -968,13 +1103,40 @@ bool APM2_airdata_update() {
 
     bool fresh_data = false;
     static double last_time = 0.0;
+    static double analog0_sum = 0.0;
+    static int analog0_count = 0;
+    static float analog0_offset = 0.0;
+    static float analog0_filter = 0.0;
 
     if ( airdata_inited ) {
-	double cur_time = 0.0 /* (FIXME) pilot_timestamp_node->getDoubleValue()*/;
+	double cur_time = airdata.timestamp;
 
-	// basic formula: v = sqrt((2/p) * q) where v = velocity, q =
-	// dynamic pressure (pitot tube sensor value), and p = air
-	// density.
+	if ( cur_time <= last_time ) {
+	    return false;
+	}
+
+	if ( ! airspeed_inited ) {
+	    if ( airspeed_zero_start_time > 0 ) {
+		analog0_sum += analog[0];
+		analog0_count++;
+		analog0_offset = analog0_sum / analog0_count;
+	    } else {
+		airspeed_zero_start_time = get_Time();
+		analog0_sum = 0.0;
+		analog0_count = 0;
+		analog0_filter = analog[0];
+	    }
+	    if ( cur_time > airspeed_zero_start_time + 10.0 ) {
+		//printf("analog0_offset = %.2f\n", analog0_offset);
+		airspeed_inited = true;
+	    }
+	}
+
+	airdata_timestamp_node->setDoubleValue( cur_time );
+
+	// basic pressure to airspeed formula: v = sqrt((2/p) * q)
+	// where v = velocity, q = dynamic pressure (pitot tube sensor
+	// value), and p = air density.
 
 	// if p is specified in kg/m^3 (value = 1.225) and if q is
 	// specified in Pa (N/m^2) where 1 psi == 6900 Pa, then the
@@ -983,33 +1145,38 @@ bool APM2_airdata_update() {
 	// The MPXV5004DP has a full scale span of 3.9V, Maximum
 	// pressure reading is 0.57psi (4000Pa)
 
-	// With a 10bit ADC (APM2) we record a value of 226
-	// (0-1024) at zero velocity.  Assuming a 5V input source,
-	// this corresponds to about 1.1V ... via another reference we
-	// predict the device saturates at about 3.9V.  In other words 1.1V
-	// (226ADC) == 0Pa and 3.9V(799ADC) == 4000Pa.  Thus:
+	// Example (APM2): With a 10bit ADC (APM2) we record a value
+	// of 230 (0-1024) at zero velocity.  The sensor saturates at
+	// a value of about 1017 (4000psi).  Thus:
 
-	// Pa = (ADC - 226) * 147
+	// Pa = (ADC - 230) * 5.083
 	// Airspeed(mps) = sqrt( (2/1.225) * Pa )
 
 	// This yields a theoretical maximum speed sensor reading of
 	// about 81mps (156 kts)
 
-	// hard coded (probably should use constants from the config file)
-	float Pa = (analog[0] - 226) * 7;
+	// hard coded (probably should use constants from the config file,
+	// or zero itself out on init.)
+	analog0_filter = 0.95 * analog0_filter + 0.05 * analog[0];
+	//printf("analog0 = %.2f (analog[0] = %.2f)\n", analog0_filter, analog[0]);
+	float Pa = (analog0_filter - analog0_offset) * 5.083;
 	if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
 	float airspeed_mps = sqrt( 2*Pa / 1.225 );
-	float airspeed_kts = airspeed_mps * SG_MPS_TO_KT;
+	float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
+	airdata_airspeed_mps_node->setDoubleValue( airspeed_mps );
+	airdata_airspeed_kt_node->setDoubleValue( airspeed_kt );
 
-	if ( cur_time > last_time ) {
-	    airdata_timestamp_node->setDoubleValue( cur_time );
-	    airdata_analog0_node->setIntValue( analog[0] );
-	    airdata_analog1_node->setIntValue( analog[1] );
-	    airdata_airspeed_node->setDoubleValue( airspeed_kts );
-	    airdata_altitude_node->setDoubleValue( analog[1] );
+	// Altitude next
+	airdata_pressure_node->setDoubleValue( airdata.pressure / 100.0 );
+	airdata_temperature_node->setDoubleValue( airdata.temp / 10.0 );
+	airdata_climb_rate_node->setDoubleValue( airdata.climb_rate );
 
-	    fresh_data = true;
-	}
+	// from here: http://keisan.casio.com/has10/SpecExec.cgi?path=06000000%2eScience%2f02100100%2eEarth%20science%2f12000300%2eAltitude%20from%20atmospheric%20pressure%2fdefault%2exml&charset=utf-8
+	const float sea_press = 1013.25;
+	float alt_m = ((pow((sea_press / (airdata.pressure/100.0)), 1.0/5.257) - 1.0) * ((airdata.temp/10.0) + 273.15)) / 0.0065;
+	airdata_altitude_node->setDoubleValue( alt_m );
+
+	fresh_data = true;
 
 	last_time = cur_time;
     }
@@ -1027,7 +1194,7 @@ bool APM2_pilot_update() {
 
     float val;
 
-    pilot_timestamp_node->setDoubleValue( data_in_timestamp );
+    pilot_timestamp_node->setDoubleValue( pilot_in_timestamp );
 
     val = normalize_pulse( pilot_input[0], true );
     if ( pilot_input_rev[0] ) { val *= -1.0; }
@@ -1086,7 +1253,7 @@ bool APM2_act_update() {
 }
 
 
-static void APM2_close() {
+void APM2_close() {
     close(fd);
 
     master_opened = false;
