@@ -385,7 +385,9 @@ static bool APM2_open() {
 	baud_bits = B115200;
     } else if ( baud == 230400 ) {
 	baud_bits = B230400;
-    } else {
+    } else if ( baud == 500000 ) {
+	baud_bits = B500000;
+     } else {
 	printf("unsupported baud rate = %d\n", baud);
     }
 
