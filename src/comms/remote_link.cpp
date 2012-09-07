@@ -36,6 +36,7 @@ enum ugLinkType {
 
 static SGPropertyNode *link_sequence_num = NULL;
 static SGPropertyNode *link_message_time_sec = NULL;
+static SGPropertyNode *link_bytes_per_frame = NULL;
 bool remote_link_on = false;    // link to remote operator station
 static SGSerialPort serial_fd;
 static netBuffer serial_buffer(128);
@@ -94,6 +95,11 @@ void remote_link_init() {
     link_sequence_num->setIntValue( 0 );
     link_message_time_sec
 	= fgGetNode("/comms/remote-link/last-message-sec", true);
+    link_bytes_per_frame
+	= fgGetNode("/config/remote-link/write-bytes-per-frame", true);
+    if ( link_bytes_per_frame->getIntValue() == 0 ) {
+	link_bytes_per_frame->setIntValue(16);
+    }
 }
 
 
@@ -108,12 +114,12 @@ void remote_link_flush_serial() {
     // attempt better success by writing multiple small chunks to the
     // serial port (2 * 8 = 16 bytes per call attempted)
     const int loops = 1;
-    const int bytes_per_loop = 32;
+    int bytes_per_frame = link_bytes_per_frame->getIntValue();
 
     for ( int i = 0; i < loops; i++ ) {
 	int write_len = serial_buffer.getLength();
-	if ( write_len > bytes_per_loop ) {
-	    write_len = bytes_per_loop;
+	if ( write_len > bytes_per_frame ) {
+	    write_len = bytes_per_frame;
 	}
 	if ( write_len ) {
 	    int bytes_written
