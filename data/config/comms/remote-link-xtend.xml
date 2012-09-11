@@ -18,5 +18,6 @@
   <actuator-skip>12</actuator-skip>
   <pilot-skip>12</pilot-skip>
   <autopilot-skip>4</autopilot-skip> <!-- 2hz -->
+  <health-skip>2</health-skip> <!-- 2hz -->
 
 </PropertyList>
