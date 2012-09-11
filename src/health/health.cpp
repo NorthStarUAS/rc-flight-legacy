@@ -6,8 +6,10 @@
 #include "include/globaldefs.h"
 
 #include "comms/logging.h"
+#include "comms/packetizer.hxx"
 #include "comms/remote_link.h"
 #include "control/route_mgr.hxx"
+#include "main/globals.hxx"
 #include "props/props.hxx"
 #include "util/timing.h"
 
@@ -15,8 +17,19 @@
 #include "loadavg.h"
 
 
+static SGPropertyNode *input_vcc_node = NULL;
+static SGPropertyNode *health_console_skip = NULL;
+static SGPropertyNode *health_logging_skip = NULL;
+
+
 bool health_init() {
     loadavg_init();
+
+    input_vcc_node = fgGetNode("/sensors/APM2/input-vcc", true);
+
+    // initialize comm nodes
+    health_console_skip = fgGetNode("/config/remote-link/health-skip", true);
+    health_logging_skip = fgGetNode("/config/logging/health-skip", true);
 
     return true;
 }
@@ -34,23 +47,18 @@ bool health_update() {
 
     loadavg_update();
 
-#if 0
-    // send each waypoint, then home location (with wp_index = 0)
-    int size = route_mgr.size();
-    if ( size > 0 && wp_index < size ) {
-        SGWayPoint wp = route_mgr.get_waypoint( wp_index );
-        healthpacket.wp_lon = wp.get_target_lon();
-        healthpacket.wp_lat = wp.get_target_lat();
-        healthpacket.wp_index = wp_index + 1000000*size;
-        wp_index++;
-    } else {
-        SGWayPoint home = route_mgr.get_home();
-        healthpacket.wp_lon = home.get_target_lon();
-        healthpacket.wp_lat = home.get_target_lat();
-        healthpacket.wp_index = 0;
-        wp_index = 0;
+    if ( remote_link_on || log_to_file ) {
+	uint8_t buf[256];
+	int size = packetizer->packetize_health( buf );
+
+	if ( remote_link_on ) {
+	    remote_link_health( buf, size, health_console_skip->getIntValue() );
+	}
+
+	if ( log_to_file ) {
+	    log_health( buf, size, health_logging_skip->getIntValue() );
+	}
     }
-#endif
 
     return true;
 }

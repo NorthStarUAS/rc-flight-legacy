@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "comms/logging.h"
+#include "comms/display.h"
 #include "props/props.hxx"
 
 #include "loadavg.h"

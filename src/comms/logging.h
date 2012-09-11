@@ -11,7 +11,6 @@
 
 extern bool log_to_file;
 extern SGPath log_path;
-extern bool display_on;
 extern bool event_log_on;
 
 // global functions
@@ -26,6 +25,7 @@ void log_filter( uint8_t *buf, int size, int skip_count );
 void log_actuator( uint8_t *buf, int size, int skip_count );
 void log_pilot( uint8_t *buf, int size, int skip_count );
 void log_ap( uint8_t *buf, int size, int skip_count );
+void log_health( uint8_t *buf, int size, int skip_count );
 
 void flush_gps();
 void flush_imu();
@@ -34,8 +34,7 @@ void flush_filter();
 void flush_actuator();
 void flush_pilot();
 void flush_ap();
-
-void display_message();
+void flush_health();
 
 bool event_log( const char *hdr, const char *msg );
 

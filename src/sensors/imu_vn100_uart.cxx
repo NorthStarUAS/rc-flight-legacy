@@ -17,7 +17,7 @@
 
 #include "include/globaldefs.h"
 
-#include "comms/logging.h"
+#include "comms/display.h"
 #include "util/strutils.hxx"
 #include "util/timing.h"
 
