@@ -3,9 +3,9 @@
 <PropertyList>
 
   <APM2>
-    <device>/dev/ttyUSB0</device>
-    <baud>500000</baud>
-    <pwm-hz>400</pwm-hz>
+    <device>/dev/ttyO0</device>
+    <baud>115200</baud>
+    <pwm-hz>50</pwm-hz>
   </APM2>
 
   <imu-group>
