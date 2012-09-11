@@ -22,7 +22,7 @@
 #include <math.h>		// fabs()
 #include <stdio.h>
 
-#include "comms/logging.h"
+#include "comms/display.h"
 #include "util/timing.h"
 
 #include "cas.hxx"

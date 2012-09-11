@@ -11,7 +11,7 @@
 #include <math.h>
 #include <unistd.h>
 
-#include "comms/logging.h"
+#include "comms/display.h"
 #include "include/globaldefs.h"
 
 #include "include/util.h"

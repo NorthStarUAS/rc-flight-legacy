@@ -2,6 +2,7 @@ noinst_LIBRARIES = libcomms.a
 
 libcomms_a_SOURCES = \
 	checksum.cpp checksum.h \
+	display.cpp display.h \
 	logging.cpp logging.h \
         netBuffer.cxx netBuffer.h \
         netChannel.cxx netChannel.h \

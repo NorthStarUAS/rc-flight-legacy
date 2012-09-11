@@ -27,6 +27,7 @@
 #endif
 
 #include "actuators/act_mgr.h"
+#include "comms/display.h"
 #include "comms/logging.h"
 #include "comms/remote_link.h"
 #include "comms/netSocket.h"	// netInit()
@@ -313,6 +314,10 @@ void timer_handler (int signum)
 		break;
 	    case 6:
 		flush_ap();
+		flush_state++;
+		break;
+	    case 7:
+		flush_health();
 		flush_state++;
 		break;
 	    default:

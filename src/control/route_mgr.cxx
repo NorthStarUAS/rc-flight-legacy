@@ -26,6 +26,7 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "comms/display.h"
 #include "comms/logging.h"
 #include "comms/remote_link.h"
 #include "include/globaldefs.h"
