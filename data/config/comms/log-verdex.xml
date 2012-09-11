@@ -17,6 +17,7 @@
   <actuator-skip>9</actuator-skip>
   <pilot-skip>9</pilot-skip>
   <autopilot-skip>1</autopilot-skip> <!-- 5hz -->
+  <health-skip>2</health-skip> <!-- 2hz -->
   <events type="bool">true</events>
 
 </PropertyList>
