@@ -12,7 +12,7 @@
 
 #include "include/ugear_config.h"
 
-#include "comms/logging.h"
+#include "comms/display.h"
 #include "main/globals.hxx"
 #include "props/props.hxx"
 #include "util/timing.h"

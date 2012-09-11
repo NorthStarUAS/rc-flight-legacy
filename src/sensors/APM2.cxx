@@ -12,7 +12,7 @@
 
 #include "include/ugear_config.h"
 
-#include "comms/logging.h"
+#include "comms/display.h"
 #include "main/globals.hxx"
 #include "props/props.hxx"
 #include "util/timing.h"
@@ -118,6 +118,7 @@ static bool imu_inited = false;
 static bool gps_inited = false;
 static bool airdata_inited = false;
 static bool pilot_input_inited = false;
+static bool actuator_inited = false;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
@@ -208,6 +209,10 @@ static void bind_input( SGPropertyNode *config ) {
 
 // initialize imu output property nodes 
 static void bind_imu_output( string rootname ) {
+    if ( imu_inited ) {
+	return;
+    }
+
     SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
 
     imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
@@ -231,6 +236,10 @@ static void bind_imu_output( string rootname ) {
 
 // initialize gps output property nodes 
 static void bind_gps_output( string rootname ) {
+    if ( gps_inited ) {
+	return;
+    }
+
     SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
     gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     gps_day_secs_node = outputroot->getChild("day-seconds", 0, true);
@@ -251,6 +260,10 @@ static void bind_gps_output( string rootname ) {
 
 // initialize actuator property nodes 
 static void bind_act_nodes() {
+    if ( actuator_inited ) {
+	return;
+    }
+
     act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
     act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
     act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
@@ -261,10 +274,16 @@ static void bind_act_nodes() {
     act_channel7_node = fgGetNode("/actuators/actuator/channel", 6, true);
     act_channel8_node = fgGetNode("/actuators/actuator/channel", 7, true);
     act_status_node = fgGetNode("/actuators/actuator/status", true);
+
+    actuator_inited = true;
 }
 
 // initialize airdata output property nodes 
 static void bind_airdata_output( string rootname ) {
+    if ( airdata_inited ) {
+	return;
+    }
+
     SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
 
     airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
@@ -281,7 +300,9 @@ static void bind_airdata_output( string rootname ) {
 
 // initialize airdata output property nodes 
 static void bind_pilot_controls( string rootname ) {
-    // SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    if ( pilot_input_inited ) {
+	return;
+    }
 
     pilot_timestamp_node = fgGetNode("/sensors/pilot/time-stamp", true);
     pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", true);
@@ -932,7 +953,7 @@ static bool APM2_act_write() {
     buf[1] = 2 * MAX_ACTUATORS;
     len = write( fd, buf, 2 );
 
-#if 1
+#if 0
     // generate some test data
     static double t = 0.0;
     t += 0.02;
@@ -1274,19 +1295,21 @@ bool APM2_pilot_update() {
 
 
 bool APM2_act_update() {
-    if ( ! act_pwm_rate_ack ) {
-	uint16_t rates[MAX_ACTUATORS] = { 50, 50, 50, 50, 50, 50, 50, 50 };
-	// uint16_t rates[] = { 100, 100, 100, 100, 100, 100, 100, 100 };
-	// uint16_t rates[] = { 200, 200, 200, 200, 200, 200, 200, 200 };
-	// uint16_t rates[] = { 400, 400, 400, 400, 400, 400, 400, 400 };
-	for ( int i = 0; i < MAX_ACTUATORS; i++ ) {
-	    rates[i] = act_pwm_rate_hz;
+    if ( actuator_inited ) {
+	if ( ! act_pwm_rate_ack ) {
+	    uint16_t rates[MAX_ACTUATORS] = { 50, 50, 50, 50, 50, 50, 50, 50 };
+	    // uint16_t rates[] = { 100, 100, 100, 100, 100, 100, 100, 100 };
+	    // uint16_t rates[] = { 200, 200, 200, 200, 200, 200, 200, 200 };
+	    // uint16_t rates[] = { 400, 400, 400, 400, 400, 400, 400, 400 };
+	    for ( int i = 0; i < MAX_ACTUATORS; i++ ) {
+		rates[i] = act_pwm_rate_hz;
+	    }
+	    APM2_act_set_pwm_rates( rates );
 	}
-	APM2_act_set_pwm_rates( rates );
-    }
 
-    // send actuator commands to APM2 servo subsystem
-    APM2_act_write();
+	// send actuator commands to APM2 servo subsystem
+	APM2_act_write();
+    }
 
     return true;
 }

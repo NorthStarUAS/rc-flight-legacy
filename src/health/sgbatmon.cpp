@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "comms/logging.h"
 #include "util/timing.h"
 
 #include "sgbatmon.h"

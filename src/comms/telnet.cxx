@@ -19,7 +19,7 @@
 #include "util/strutils.hxx"
 
 #include "netChat.h"
-#include "logging.h"
+#include "display.h"
 #include "telnet.hxx"
 
 using std::stringstream;

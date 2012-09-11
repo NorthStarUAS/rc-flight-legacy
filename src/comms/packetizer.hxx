@@ -92,7 +92,8 @@ class UGPacketizer {
     SGPropertyNode *ap_waypoint;
 
     // system health nodes
-    SGPropertyNode *system_load_avg;
+    SGPropertyNode *system_loadavg_node;
+    SGPropertyNode *input_vcc_node;
 
     // console link nodes
     SGPropertyNode *link_seq_num;

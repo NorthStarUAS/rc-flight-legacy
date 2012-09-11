@@ -25,7 +25,6 @@
 
 #include <include/globaldefs.h>
 
-#include <comms/logging.h>
 #include <util/polar3d.hxx>
 
 #include "waypoint.hxx"

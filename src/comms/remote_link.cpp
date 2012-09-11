@@ -9,7 +9,6 @@
 #include "checksum.h"
 #include "include/globaldefs.h"
 
-//#include "control/route_mgr.hxx"
 #include "mission/mission_mgr.hxx"
 #include "mission/tasks/task_route.hxx"
 #include "props/props.hxx"
@@ -17,6 +16,7 @@
 #include "util/strutils.hxx"
 #include "util/timing.h"
 
+#include "display.h"
 #include "logging.h"
 #include "netBuffer.h"		// for netBuffer structure
 #include "netSocket.h"
@@ -363,7 +363,7 @@ bool remote_link_pilot( uint8_t *buf, int size, int skip_count )
 
 bool remote_link_ap( uint8_t *buf, int size, int skip_count )
 {
-    // printf("remote link health()\n");
+    // printf("remote link ap()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
     static uint8_t skip = my_random(skip_count);
 
@@ -375,6 +375,25 @@ bool remote_link_ap( uint8_t *buf, int size, int skip_count )
     }
 
     remote_link_packet( AP_STATUS_PACKET_V1, buf, size );
+
+    return true;
+}
+
+
+bool remote_link_health( uint8_t *buf, int size, int skip_count )
+{
+    // printf("remote link health()\n");
+    if ( skip_count < 0 ) { skip_count = 0; }
+    static uint8_t skip = my_random(skip_count);
+
+    if ( skip > 0 ) {
+        --skip;
+        return false;
+    } else {
+        skip = skip_count;
+    }
+
+    remote_link_packet( SYSTEM_HEALTH_PACKET_V1, buf, size );
 
     return true;
 }
