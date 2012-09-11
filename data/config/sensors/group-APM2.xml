@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <APM2>
+    <device>/dev/ttyUSB0</device>
+    <baud>500000</baud>
+    <pwm-hz>400</pwm-hz>
+  </APM2>
+
+  <imu-group>
+    <imu>
+      <source>APM2</source>
+      <enable type="bool">true</enable>
+    </imu>
+  </imu-group>
+
+  <gps-group>
+    <gps>
+      <source>APM2</source>
+      <enable type="bool">true</enable>
+    </gps>
+  </gps-group>
+
+  <air-data-group>
+    <air-data>
+      <source>APM2</source>
+      <enable type="bool">true</enable>
+    </air-data>
+  </air-data-group>
+
+  <pilot-inputs>
+    <pilot-input>
+      <source>APM2</source>
+      <enable type="bool">true</enable>
+    </pilot-input>
+  </pilot-inputs>
+
+</PropertyList>
+
