@@ -41,6 +41,9 @@ class UGPacketizer {
     SGPropertyNode *airdata_airspeed_node;
     SGPropertyNode *airdata_climb_fps_node;
     SGPropertyNode *airdata_accel_ktps_node;
+    SGPropertyNode *airdata_wind_dir_node;
+    SGPropertyNode *airdata_wind_speed_node;
+    SGPropertyNode *airdata_pitot_scale_node;
     SGPropertyNode *airdata_status_node;
 
     // filter property nodes
@@ -136,7 +139,6 @@ public:
 
     int packetize_health( uint8_t *buf );
     void decode_health( uint8_t *buf );
-
 };
 
 
