@@ -58,8 +58,12 @@ void UGPacketizer::bind_airdata_nodes() {
     //     = fgGetNode("/velocity/pressure-vertical-speed-fps",true);
 
     airdata_accel_ktps_node = fgGetNode("/acceleration/airspeed-ktps",true);
+    airdata_wind_dir_node = fgGetNode("/filters/wind-est/wind-dir-deg", true);
+    airdata_wind_speed_node = fgGetNode("/filters/wind-est/wind-speed-kt", true);
+    airdata_pitot_scale_node = fgGetNode("/filters/wind-est/pitot-scale-factor", true);
     airdata_status_node = fgGetNode("/sensors/air-data/status", true);
 }
+
 
 // initialize filter property nodes
 void UGPacketizer::bind_filter_nodes() {
@@ -269,10 +273,19 @@ int UGPacketizer::packetize_airdata( uint8_t *buf ) {
     *(float *)buf = alt; buf += 4;
 
     int16_t climb = (int16_t)((airdata_climb_fps_node->getFloatValue() * 60) * 10);
-    *(float *)buf = climb; buf += 2;
+    *(int16_t *)buf = climb; buf += 2;
 
     int16_t accel = (int16_t)(airdata_accel_ktps_node->getFloatValue() * 100);
-    *(float *)buf = accel; buf += 2;
+    *(int16_t *)buf = accel; buf += 2;
+
+    uint16_t wind_deg = (uint16_t)(airdata_wind_dir_node->getFloatValue()*100);
+    *(uint16_t *)buf = wind_deg; buf += 2;
+
+    uint8_t wind_kts = (uint8_t)(airdata_wind_speed_node->getFloatValue() * 4);
+    *buf = wind_kts; buf++;
+
+    uint8_t pitot_scale = (uint8_t)(airdata_pitot_scale_node->getFloatValue()*100);
+    *(uint8_t *)buf = pitot_scale; buf += 1;
 
     uint8_t status = airdata_status_node->getIntValue();
     *buf = status; buf++;
@@ -287,10 +300,13 @@ void UGPacketizer::decode_airdata( uint8_t *buf ) {
     float alt = *(float *)buf; buf += 4;
     int16_t climb = *(int16_t *)buf; buf += 2;
     int16_t accel = *(int16_t *)buf; buf += 2;
+    uint16_t wind_deg = *(uint16_t *)buf; buf += 2;
+    uint8_t wind_kts = *(uint8_t *)buf; buf += 1;
     uint8_t status = *(uint8_t *)buf; buf += 1;
 
-    printf("t = %.2f %.1f %.1f %.2f %.2f %d\n",
-	   time, (float)airspeed/100, alt, (float)climb/10, (float)accel/100,
+    printf("t = %.2f %.1f %.1f %.2f %.2f %.1f %.1f %d\n",
+	   time, (float)airspeed/100.0, alt, (float)climb/10.0,
+	   (float)accel/100.0, (float)wind_deg/100.0, (float)wind_kts/4.0,
 	   status );
 }
 
