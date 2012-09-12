@@ -79,7 +79,7 @@ void AirData_init() {
     filter_alt_node = fgGetNode("/position/altitude-m", true);
 
     // filtered/computed output property nodes
-    altitude_filt_node = fgGetNode("/position/altitude-pressure-m", true);
+    altitude_filt_node = fgGetNode("/position/altitude-pressure-smoothed-m", true);
     airspeed_filt_node = fgGetNode("/velocity/airspeed-kt", true);
 
     true_alt_ft_node = fgGetNode("/position/altitude-true-combined-ft",true);

@@ -109,7 +109,8 @@ static SGPropertyNode *airdata_timestamp_node = NULL;
 static SGPropertyNode *airdata_pressure_node = NULL;
 static SGPropertyNode *airdata_temperature_node = NULL;
 static SGPropertyNode *airdata_altitude_node = NULL;
-static SGPropertyNode *airdata_climb_rate_node = NULL;
+static SGPropertyNode *airdata_climb_rate_mps_node = NULL;
+static SGPropertyNode *airdata_climb_rate_fps_node = NULL;
 static SGPropertyNode *airdata_airspeed_mps_node = NULL;
 static SGPropertyNode *airdata_airspeed_kt_node = NULL;
 
@@ -290,7 +291,10 @@ static void bind_airdata_output( string rootname ) {
     airdata_pressure_node = outputroot->getChild("pressure-mbar", 0, true);
     airdata_temperature_node = outputroot->getChild("temp-degC", 0, true);
     airdata_altitude_node = outputroot->getChild("altitude-m", 0, true);
-    airdata_climb_rate_node = outputroot->getChild("climb-rate-mps", 0, true);
+    airdata_climb_rate_mps_node
+	= outputroot->getChild("vertical-speed-mps", 0, true);
+    airdata_climb_rate_fps_node
+	= outputroot->getChild("vertical-speed-fps", 0, true);
     airdata_airspeed_mps_node = outputroot->getChild("airspeed-mps", 0, true);
     airdata_airspeed_kt_node = outputroot->getChild("airspeed-kt", 0, true);
 
@@ -674,7 +678,9 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		    // special case APM2 specific sensor values, write to
 		    // property tree here
 		    analog[i] = val / 1000.0;
-		    APM2_input_vcc_node->setDoubleValue( analog[i] );
+		    static float filter_vcc = analog[i];
+		    filter_vcc = 0.9999 * filter_vcc + 0.0001 * analog[i];
+		    APM2_input_vcc_node->setDoubleValue( filter_vcc );
 		}
 	    }
 #if 0
@@ -1229,7 +1235,8 @@ bool APM2_airdata_update() {
 	// Altitude next
 	airdata_pressure_node->setDoubleValue( airdata.pressure / 100.0 );
 	airdata_temperature_node->setDoubleValue( airdata.temp / 10.0 );
-	airdata_climb_rate_node->setDoubleValue( airdata.climb_rate );
+	airdata_climb_rate_mps_node->setDoubleValue( airdata.climb_rate );
+	airdata_climb_rate_fps_node->setDoubleValue( airdata.climb_rate / SG_METER_TO_FEET );
 
 	// from here: http://keisan.casio.com/has10/SpecExec.cgi?path=06000000%2eScience%2f02100100%2eEarth%20science%2f12000300%2eAltitude%20from%20atmospheric%20pressure%2fdefault%2exml&charset=utf-8
 	const float sea_press = 1013.25;
