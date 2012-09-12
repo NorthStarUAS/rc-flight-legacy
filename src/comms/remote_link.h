@@ -17,6 +17,7 @@ enum ugPacketType {
     AP_STATUS_PACKET_V1 = 0x05,
     AIR_DATA_PACKET_V1 = 0x06,
     SYSTEM_HEALTH_PACKET_V1 = 0x07,
+    AIR_DATA_PACKET_V2 = 0x08,
 };
 
 extern bool remote_link_on;

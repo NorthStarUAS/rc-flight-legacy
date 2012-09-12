@@ -282,7 +282,7 @@ int UGPacketizer::packetize_airdata( uint8_t *buf ) {
     *(uint16_t *)buf = wind_deg; buf += 2;
 
     uint8_t wind_kts = (uint8_t)(airdata_wind_speed_node->getFloatValue() * 4);
-    *buf = wind_kts; buf++;
+    *buf = wind_kts; buf += 1;
 
     uint8_t pitot_scale = (uint8_t)(airdata_pitot_scale_node->getFloatValue()*100);
     *(uint8_t *)buf = pitot_scale; buf += 1;

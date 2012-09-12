@@ -288,7 +288,7 @@ bool AirData_update() {
 	    if ( remote_link_on ) {
 		// printf("sending filter packet\n");
 		remote_link_airdata( buf, size,
-				      airdata_console_skip->getIntValue() );
+				     airdata_console_skip->getIntValue() );
 	    }
 
 	    if ( log_to_file ) {
