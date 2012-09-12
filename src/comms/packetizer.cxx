@@ -41,12 +41,22 @@ void UGPacketizer::bind_imu_nodes() {
 // initialize air data property nodes 
 void UGPacketizer::bind_airdata_nodes() {
     airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
+
+    // select one of the following altitude sources
     // airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
-    airdata_altitude_node = fgGetNode("/position/altitude-pressure-m", true);
+    // airdata_altitude_node = fgGetNode("/position/altitude-pressure-smoothed-m", true);
+    airdata_altitude_node = fgGetNode("/position/altitude-true-combined-m", true);
+
+    // select one of the following airspeed sources
     // airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
     airdata_airspeed_node = fgGetNode("/velocity/airspeed-kt", true);
+
+    // select one of the following climb rate sources
     airdata_climb_fps_node
-	= fgGetNode("/velocity/pressure-vertical-speed-fps",true);
+	= fgGetNode("/sensors/air-data/vertical-speed-fps",true);
+    // airdata_climb_fps_node
+    //     = fgGetNode("/velocity/pressure-vertical-speed-fps",true);
+
     airdata_accel_ktps_node = fgGetNode("/acceleration/airspeed-ktps",true);
     airdata_status_node = fgGetNode("/sensors/air-data/status", true);
 }
@@ -541,8 +551,8 @@ int UGPacketizer::packetize_health( uint8_t *buf )
     uint16_t vcc = (uint16_t)(input_vcc_node->getFloatValue() * 1000.0);
     *(uint16_t *)buf = vcc; buf += 2;
 
-    uint8_t loadavg = (int8_t)(system_loadavg_node->getFloatValue() * 10.0);
-    *(uint8_t *)buf = loadavg; buf++;
+    uint16_t loadavg = (uint16_t)(system_loadavg_node->getFloatValue() * 100.0);
+    *(uint16_t *)buf = loadavg; buf += 2;
 
     return buf - startbuf;
 }

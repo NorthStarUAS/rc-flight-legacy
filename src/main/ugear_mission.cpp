@@ -255,8 +255,8 @@ void timer_handler (int signum)
     // Data logging and Telemetry dump section
     //
 
-    // health status (update at 1hz)
-    if ( health_counter >= (HEARTBEAT_HZ / 1) ) {
+    // health status (update at 10hz)
+    if ( health_counter >= (HEARTBEAT_HZ / 10) ) {
 	health_prof.start();
 	health_counter = 0;
 	health_update();
