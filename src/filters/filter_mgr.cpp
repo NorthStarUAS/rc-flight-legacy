@@ -75,6 +75,7 @@ static SGPropertyNode *est_wind_speed_kt = NULL;
 static SGPropertyNode *est_wind_dir_deg = NULL;
 static SGPropertyNode *est_wind_east_mps = NULL;
 static SGPropertyNode *est_wind_north_mps = NULL;
+static SGPropertyNode *est_pitot_scale_factor = NULL;
 static SGPropertyNode *true_airspeed_kt = NULL;
 static SGPropertyNode *true_heading_deg = NULL;
 static SGPropertyNode *true_air_east_mps = NULL;
@@ -108,6 +109,7 @@ void Filter_init() {
     true_heading_deg = fgGetNode("/filters/wind-est/true-heading-deg", true);
     true_air_east_mps = fgGetNode("/filters/wind-est/true-airspeed-east-mps", true);
     true_air_north_mps = fgGetNode("/filters/wind-est/true-airspeed-north-mps", true);
+    est_pitot_scale_factor = fgGetNode("/filters/wind-est/pitot-scale-factor", true);
 
     // initialize comm nodes
     filter_console_skip = fgGetNode("/config/remote-link/filter-skip", true);
@@ -278,6 +280,7 @@ static void update_wind() {
     }
 
     pitot_scale_filt = 0.999 * pitot_scale_filt + 0.001 * pitot_scale;
+    est_pitot_scale_factor->setDoubleValue( pitot_scale_filt );
 
     // if ( display_on ) {
     //   printf("true: %.2f kt  %.1f deg (scale = %.4f)\n", true_speed_kt, true_deg, pitot_scale_filt);
