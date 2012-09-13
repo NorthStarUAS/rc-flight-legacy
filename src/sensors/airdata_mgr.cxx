@@ -52,6 +52,7 @@ static SGPropertyNode *filter_alt_node = NULL;
 static SGPropertyNode *altitude_filt_node = NULL;
 static SGPropertyNode *airspeed_filt_node = NULL;
 static SGPropertyNode *pressure_error_m_node = NULL;
+static SGPropertyNode *true_alt_m_node = NULL;
 static SGPropertyNode *true_alt_ft_node = NULL;
 static SGPropertyNode *agl_alt_ft_node = NULL;
 static SGPropertyNode *vert_fps_node = NULL;
@@ -82,6 +83,7 @@ void AirData_init() {
     altitude_filt_node = fgGetNode("/position/altitude-pressure-smoothed-m", true);
     airspeed_filt_node = fgGetNode("/velocity/airspeed-kt", true);
 
+    true_alt_m_node = fgGetNode("/position/altitude-true-combined-m",true);
     true_alt_ft_node = fgGetNode("/position/altitude-true-combined-ft",true);
     agl_alt_ft_node = fgGetNode("/position/altitude-pressure-agl-ft", true);
 
@@ -227,6 +229,7 @@ static void update_pressure_helpers() {
     pressure_error_m_node->setDoubleValue( Ps_filt_err );
     altitude_filt_node->setDoubleValue( altitude_filt );
     airspeed_filt_node->setDoubleValue( airspeed_filt );
+    true_alt_m_node->setDoubleValue( true_alt_m );
     true_alt_ft_node->setDoubleValue( true_alt_m * SG_METER_TO_FEET );
     agl_alt_ft_node->setDoubleValue( (altitude_filt - ground_alt_filter)
 				     * SG_METER_TO_FEET );
