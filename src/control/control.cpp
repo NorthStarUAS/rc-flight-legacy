@@ -18,6 +18,7 @@
 #include "include/globaldefs.h"
 #include "main/globals.hxx"
 #include "mission/mission_mgr.hxx"
+#include "mission/tasks/task_home_mgr.hxx"
 #include "mission/tasks/task_route.hxx"
 
 #include "include/util.h"
@@ -248,6 +249,7 @@ void control_update(double dt)
 	// index = 65535)
 
 	static int wp_index = 0;
+	int index = 0;
 	SGWayPoint wp;
 	int route_size = 0;
 
@@ -256,17 +258,27 @@ void control_update(double dt)
 	if ( route_task != NULL ) {
 	    FGRouteMgr *route_mgr = route_task->get_route_mgr();
 	    if ( route_mgr != NULL ) {
-		route_task->reposition_if_necessary();
 		route_size = route_mgr->size();
+		route_task->reposition_if_necessary();
 		if ( route_size > 0 && wp_index < route_size ) {
 		    wp = route_mgr->get_waypoint( wp_index );
+		    index = wp_index;
 		}
 	    }
 	}
 
+        // special case send home as a route waypoint with id = 65535
+        if ( wp_index == route_size ) {
+	    UGTaskHomeMgr *home_mgr
+		= (UGTaskHomeMgr *)mission_mgr.find_seq_task( "home-manager" );
+	    if ( home_mgr != NULL ) {
+		wp = home_mgr->get_home_wpt();
+		index = 65535;
+	    }
+	}
+
 	uint8_t buf[256];
-	int pkt_size = packetizer->packetize_ap( buf, route_size, &wp,
-						 wp_index );
+	int pkt_size = packetizer->packetize_ap( buf, route_size, &wp, index );
 	
 	if ( remote_link_on ) {
 	    bool result = remote_link_ap( buf, pkt_size,
