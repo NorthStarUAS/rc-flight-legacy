@@ -203,36 +203,6 @@ void FGRouteMgr::update() {
 	       true_deg, hd * SGD_RADIANS_TO_DEGREES, diff);
     }
 #endif
-
-    if ( remote_link_on || log_to_file ) {
-	// send one waypoint per message, then home location (with
-	// index = 65535)
-	static int wp_index = 0;
-	int index = 0;
-	SGWayPoint wp;
-	if ( size() > 0 && wp_index < size() ) {
-	    wp = get_waypoint( wp_index );
-	    index = wp_index;
-	}
-
-	uint8_t buf[256];
-	int pkt_size = packetizer->packetize_ap( buf, size(), &wp, index );
-	
-	if ( remote_link_on ) {
-	    bool result = remote_link_ap( buf, pkt_size,
-					  ap_console_skip->getIntValue() );
-	    if ( result ) {
-		wp_index++;
-		if ( wp_index >= size() ) {
-		    wp_index = 0;
-		}
-	    }
-	}
-
-	if ( log_to_file ) {
-	    log_ap( buf, pkt_size, ap_logging_skip->getIntValue() );
-	}
-    }
 }
 
 

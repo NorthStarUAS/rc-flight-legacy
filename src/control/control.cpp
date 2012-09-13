@@ -12,7 +12,13 @@
 #include <unistd.h>
 
 #include "comms/display.h"
+#include "comms/logging.h"
+#include "comms/packetizer.hxx"
+#include "comms/remote_link.h"
 #include "include/globaldefs.h"
+#include "main/globals.hxx"
+#include "mission/mission_mgr.hxx"
+#include "mission/tasks/task_route.hxx"
 
 #include "include/util.h"
 #include "xmlauto.hxx"
@@ -59,6 +65,10 @@ static SGPropertyNode *target_roll_deg_node = NULL;
 static SGPropertyNode *target_pitch_base_deg_node = NULL;
 static SGPropertyNode *target_speed_node = NULL;
 
+// console/logging property nodes
+static SGPropertyNode *ap_console_skip = NULL;
+static SGPropertyNode *ap_logging_skip = NULL;
+
 
 static void bind_properties() {
     ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
@@ -92,6 +102,9 @@ static void bind_properties() {
     target_pitch_base_deg_node
 	= fgGetNode("/autopilot/settings/target-pitch-base-deg", true);
     target_speed_node = fgGetNode("/autopilot/settings/target-speed-kt", true);
+
+    ap_console_skip = fgGetNode("/config/remote-link/autopilot-skip", true);
+    ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
 }
 
 
@@ -228,6 +241,46 @@ void control_update(double dt)
     if ( fcs_mode != "" ) {
 	// update the autopilot stages
 	ap.update( dt );
+    }
+
+    if ( remote_link_on || log_to_file ) {
+	// send one waypoint per message, then home location (with
+	// index = 65535)
+
+	static int wp_index = 0;
+	SGWayPoint wp;
+	int route_size = 0;
+
+	UGTaskRoute *route_task
+	    = (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
+	if ( route_task != NULL ) {
+	    FGRouteMgr *route_mgr = route_task->get_route_mgr();
+	    if ( route_mgr != NULL ) {
+		route_size = route_mgr->size();
+		if ( route_size > 0 && wp_index < route_size ) {
+		    wp = route_mgr->get_waypoint( wp_index );
+		}
+	    }
+	}
+
+	uint8_t buf[256];
+	int pkt_size = packetizer->packetize_ap( buf, route_size, &wp,
+						 wp_index );
+	
+	if ( remote_link_on ) {
+	    bool result = remote_link_ap( buf, pkt_size,
+					  ap_console_skip->getIntValue() );
+	    if ( result ) {
+		wp_index++;
+		if ( wp_index >= route_size ) {
+		    wp_index = 0;
+		}
+	    }
+	}
+
+	if ( log_to_file ) {
+	    log_ap( buf, pkt_size, ap_logging_skip->getIntValue() );
+	}
     }
 }
 
