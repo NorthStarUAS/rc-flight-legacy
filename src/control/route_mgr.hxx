@@ -73,6 +73,7 @@ private:
     SGPropertyNode *true_airspeed_kt;
     SGPropertyNode *est_wind_target_heading_deg;
 
+    // FIXME REMOVE!
     // console/logging property nodes
     SGPropertyNode *ap_console_skip;
     SGPropertyNode *ap_logging_skip;
