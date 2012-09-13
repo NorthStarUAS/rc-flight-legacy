@@ -134,6 +134,9 @@ void control_update(double dt)
 
     if ( ap_master_switch_node->getBoolValue() ) {
 	if ( last_fcs_mode != fcs_mode ) {
+	    if ( event_log_on ) {
+		event_log( "control mode changed to:", fcs_mode.c_str() );
+	    }
 	    if ( fcs_mode == "route" ) {
 		// set lock modes for "route"
 		heading_lock_node->setStringValue( "route" );
@@ -207,6 +210,7 @@ void control_update(double dt)
 		}
 	    }
 	}
+	last_fcs_mode = fcs_mode;
     } else {
 	if ( fcs_mode != "" ) {
 	    // autopilot is just de-activated, clear lock modes
@@ -218,14 +222,13 @@ void control_update(double dt)
 	    pitch_lock_node->setStringValue( "" );
 	    pointing_lock_node->setStringValue( "" );
 	}
+	last_fcs_mode = "";
     }
 
     if ( fcs_mode != "" ) {
 	// update the autopilot stages
 	ap.update( dt );
     }
-
-    last_fcs_mode = fcs_mode;
 }
 
 
