@@ -357,20 +357,20 @@ bool Filter_update() {
     if ( fresh_filter_data ) {
 	update_ground();
 	update_wind();
+    }
 	     
-	if ( remote_link_on || log_to_file ) {
-	    uint8_t buf[256];
-	    int size = packetizer->packetize_filter( buf );
+    if ( remote_link_on || log_to_file ) {
+	uint8_t buf[256];
+	int size = packetizer->packetize_filter( buf );
 
-	    if ( remote_link_on ) {
-		// printf("sending filter packet\n");
-		remote_link_filter( buf, size,
-				     filter_console_skip->getIntValue() );
-	    }
+	if ( remote_link_on ) {
+	    // printf("sending filter packet\n");
+	    remote_link_filter( buf, size,
+				filter_console_skip->getIntValue() );
+	}
 
-	    if ( log_to_file ) {
-		log_filter( buf, size, filter_logging_skip->getIntValue() );
-	    }
+	if ( log_to_file ) {
+	    log_filter( buf, size, filter_logging_skip->getIntValue() );
 	}
     }
 
