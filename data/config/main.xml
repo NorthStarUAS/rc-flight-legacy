@@ -63,7 +63,10 @@
     </fcs>
 
     <!-- Primary route selection and configuration. -->
-    <route include="routes/bowtie-300m.xml" />
+    <!-- <route include="routes/bowtie-300m.xml" /> -->
+
+    <!-- Primary mission selection and configuration. -->
+    <mission include="missions/demo1.xml" />
 
     <!-- command augmentation system -->
     <!-- <cas include="cas.xml" /> -->
