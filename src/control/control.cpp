@@ -270,7 +270,7 @@ void control_update(double dt)
         // special case send home as a route waypoint with id = 65535
         if ( wp_index == route_size ) {
 	    UGTaskHomeMgr *home_mgr
-		= (UGTaskHomeMgr *)mission_mgr.find_seq_task( "home-manager" );
+		= (UGTaskHomeMgr *)mission_mgr.find_global_task( "home-manager" );
 	    if ( home_mgr != NULL ) {
 		wp = home_mgr->get_home_wpt();
 		index = 65535;
@@ -285,7 +285,7 @@ void control_update(double dt)
 					  ap_console_skip->getIntValue() );
 	    if ( result ) {
 		wp_index++;
-		if ( wp_index >= route_size ) {
+		if ( wp_index > route_size ) {
 		    wp_index = 0;
 		}
 	    }
