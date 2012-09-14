@@ -110,6 +110,7 @@ void Filter_init() {
     true_air_east_mps = fgGetNode("/filters/wind-est/true-airspeed-east-mps", true);
     true_air_north_mps = fgGetNode("/filters/wind-est/true-airspeed-north-mps", true);
     est_pitot_scale_factor = fgGetNode("/filters/wind-est/pitot-scale-factor", true);
+    est_pitot_scale_factor->setFloatValue( 1.0 ); // initialize to 1.0
 
     // initialize comm nodes
     filter_console_skip = fgGetNode("/config/remote-link/filter-skip", true);
@@ -237,9 +238,21 @@ static void update_wind() {
     // versus aircraft heading and indicated airspeed.
     static double pitot_scale_filt = 1.0;
 
+    double airspeed_kt = airdata_airspeed_node->getDoubleValue();
+    if ( airspeed_kt < 15.0 ) {
+	// indicated airspeed < 15 kts (hopefully) indicating we are
+	// not flying and thus the assumptions the following code is
+	// based on do not yet apply so we should exit now.  We are
+	// assuming that we won't see > 15 kts sitting still on the
+	// ground and that our stall speed is above 15 kts.  Is there
+	// a more reliable way to determine if we are "flying"
+	// vs. "not flying"?
+
+	return;
+    }
+
     double psi = SGD_PI_2
 	- filter_psi_node->getDoubleValue() * SG_DEGREES_TO_RADIANS;
-    double airspeed_kt = airdata_airspeed_node->getDoubleValue();
     double ue = cos(psi) * (airspeed_kt * pitot_scale_filt * SG_KT_TO_MPS);
     double un = sin(psi) * (airspeed_kt * pitot_scale_filt * SG_KT_TO_MPS);
     double we = ue - filter_ve_node->getDoubleValue();
@@ -266,7 +279,6 @@ static void update_wind() {
     if ( true_deg < 0 ) { true_deg += 360.0; }
     double true_speed_kt = sqrt( true_e*true_e + true_n*true_n ) * SG_MPS_TO_KT;
 
-    // FIXME: Put the true speeds in the property tree now!
     true_airspeed_kt->setDoubleValue( true_speed_kt );
     true_heading_deg->setDoubleValue( true_deg );
     true_air_east_mps->setDoubleValue( true_e );
@@ -275,8 +287,11 @@ static void update_wind() {
     double pitot_scale = 1.0;
     if ( airspeed_kt > 1.0 ) {
 	pitot_scale = true_speed_kt / airspeed_kt;
-	if ( pitot_scale < 0.25 ) { pitot_scale = 0.25;	}
-	if ( pitot_scale > 4.00 ) { pitot_scale = 4.00; }
+	// don't let the scale factor exceed double or half which
+	// would be an extremely badly calibrated pitot tube if that
+	// ever happened.
+	if ( pitot_scale < 0.50 ) { pitot_scale = 0.50;	}
+	if ( pitot_scale > 2.00 ) { pitot_scale = 2.00; }
     }
 
     pitot_scale_filt = 0.999 * pitot_scale_filt + 0.001 * pitot_scale;
