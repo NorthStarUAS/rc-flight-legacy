@@ -48,7 +48,7 @@
       <prop>/controls/flight/aileron</prop>
     </output>
     <config>
-      <Kp>0.008</Kp>       <!-- proportional gain, 0.01 worked-->
+      <Kp>0.004</Kp>       <!-- proportional gain, 0.01 worked-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -109,7 +109,7 @@
       <prop>/autopilot/settings/target-pitch-deg</prop>
     </output>
     <config>
-      <Kp>0.20</Kp>        <!-- proportional gain 0.45 seemed too agressive -->
+      <Kp>0.10</Kp>        <!-- proportional gain 0.45 seemed too agressive -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -140,7 +140,7 @@
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>-0.008</Kp> <!-- tele 0.5, 0.005 too little? -->
+      <Kp>-0.004</Kp> <!-- tele 0.5, 0.005 too little? -->
       <beta>1.0</beta>
       <alpha>0.1</alpha>
       <gamma>0.0</gamma>
@@ -169,7 +169,7 @@
       <prop>/controls/engine/throttle</prop>
     </output>
     <config>
-      <Kp>0.040</Kp>      <!-- proportional gain (0.035 too slow?) -->
+      <Kp>0.020</Kp>      <!-- proportional gain (0.035 too slow?) -->
       <beta>1.0</beta>    <!-- input value weighing factor -->
       <alpha>0.1</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>  <!-- input value weighing factor for -->
@@ -226,7 +226,7 @@
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>0.005</Kp>        <!-- proportional gain -->
+      <Kp>0.0025</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -237,35 +237,5 @@
       <u_max>0.25</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
-
-  <!-- Turn coordinator: manipulates rudder to zero y axis accel. -->
-  <pid-controller>
-    <name>Turn Coordinator</name>
-    <debug>false</debug>
-      <enable>
-        <prop>/autopilot/locks/yaw</prop>
-        <value>turn-coord</value>
-      </enable>
-      <input>
-        <prop>/sensors/imu/ay-mps_sec</prop>
-      </input>
-      <reference>
-        <value>0.0</value>
-      </reference>
-      <output>
-        <prop>/controls/flight/rudder-disable</prop>
-      </output>
-      <config>
-        <Kp>-0.005</Kp>      <!-- proportional gain -->
-        <beta>1.0</beta>     <!-- input value weighing factor -->
-        <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
-        <gamma>0.0</gamma>   <!-- input value weighing factor for -->
-                             <!-- unfiltered derivative error -->
-        <Ti>1.0</Ti>        <!-- integrator time -->
-        <Td>0.01</Td>        <!-- derivator time -->
-        <u_min>-0.25</u_min> <!-- minimum output clamp -->
-        <u_max>0.25</u_max>  <!-- maximum output clamp -->
-      </config>
-    </pid-controller>
 
 </PropertyList>
