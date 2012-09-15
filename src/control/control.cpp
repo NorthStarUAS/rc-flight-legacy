@@ -115,8 +115,9 @@ void control_init() {
 
     bind_properties();
 
+    // initialize and build the autopilot controller from the property
+    // tree config (/config/fcs/autopilot)
     ap.init();
-    ap.build();
 
     // set default autopilot modes
     // ap_heading_mode_node->setStringValue("route");
