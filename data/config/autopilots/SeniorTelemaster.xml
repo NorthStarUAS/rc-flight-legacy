@@ -48,7 +48,7 @@
       <prop>/controls/flight/aileron</prop>
     </output>
     <config>
-      <Kp>-0.025</Kp>       <!-- proportional gain -->
+      <Kp>-0.012</Kp>      <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -108,7 +108,7 @@
       <prop>/autopilot/settings/target-pitch-deg</prop>
     </output>
     <config>
-      <Kp>0.45</Kp>         <!-- proportional gain -->
+      <Kp>0.22</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -139,7 +139,7 @@
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>0.05</Kp> <!-- was 0.017 -->
+      <Kp>0.025</Kp> <!-- was 0.017 -->
       <beta>1.0</beta>
       <alpha>0.1</alpha>
       <gamma>0.0</gamma>
@@ -168,7 +168,7 @@
       <prop>/controls/engine/throttle</prop>
     </output>
     <config>
-      <Kp>0.045</Kp>      <!-- proportional gain (was 0.04) -->
+      <Kp>0.022</Kp>      <!-- proportional gain (was 0.04) -->
       <beta>1.0</beta>    <!-- input value weighing factor -->
       <alpha>0.1</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>  <!-- input value weighing factor for -->
@@ -225,12 +225,12 @@
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>0.005</Kp>        <!-- proportional gain -->
+      <Kp>0.0025</Kp>      <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>3.0</Ti>        <!-- integrator time -->
+      <Ti>3.0</Ti>         <!-- integrator time -->
       <Td>0.001</Td>       <!-- derivator time -->
       <u_min>-0.25</u_min> <!-- minimum output clamp -->
       <u_max>0.25</u_max>  <!-- maximum output clamp -->
@@ -255,7 +255,7 @@
         <prop>/controls/flight/rudder-disable</prop>
       </output>
       <config>
-        <Kp>-0.005</Kp>      <!-- proportional gain -->
+        <Kp>-0.0025</Kp>      <!-- proportional gain -->
         <beta>1.0</beta>     <!-- input value weighing factor -->
         <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
         <gamma>0.0</gamma>   <!-- input value weighing factor for -->
