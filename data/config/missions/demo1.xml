@@ -13,7 +13,8 @@
     <task>
       <name>lost-link</name>
       <timeout-sec>10</timeout-sec>
-      <push-task>circle-coord</push-task>
+      <push-task-if-airborne>circle-coord</push-task-if-airborne>
+      <airborne-flag>/mission/is-airborne</airborne-flag>
     </task>
 
     <task>
@@ -25,6 +26,17 @@
       <off-accel-g>0.0</off-accel-g>
       <!-- safety "on" means throttle cannot run -->
       <on-alt-agl-ft>50</on-alt-agl-ft>
+      <on-ground-speed-kt>5</on-ground-speed-kt>
+      <on-air-speed-kt>15</on-air-speed-kt>
+    </task>
+
+    <task>
+      <name>is-airborne</name>
+      <!-- "off" in the sense of "off" the ground if we exceed these values -->
+      <off-alt-agl-ft>10</off-alt-agl-ft>
+      <off-ground-speed-kt>15</off-ground-speed-kt>
+      <off-air-speed-kt>20</off-air-speed-kt>
+      <!-- "on" the ground if we drop below these values-->
       <on-ground-speed-kt>5</on-ground-speed-kt>
       <on-air-speed-kt>15</on-air-speed-kt>
     </task>
