@@ -116,6 +116,7 @@ AC_CONFIG_FILES([ \
         src/util/Makefile \
         src/xml/Makefile \
         utils/Makefile \
+        utils/admin/Makefile \
         utils/benchmarks/Makefile \
         utils/routegen/Makefile \
         utils/uartserv/Makefile \
