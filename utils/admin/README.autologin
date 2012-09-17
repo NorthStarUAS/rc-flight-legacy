@@ -17,3 +17,4 @@ S:2345:respawn:/sbin/getty -n -l /sbin/autologin 115200 ttyO2
 
 [5] Place any auto login commands you wish to run in ~root/.profile  See
 autologin.root.profile for example
+
