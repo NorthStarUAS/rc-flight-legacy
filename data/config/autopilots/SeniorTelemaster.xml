@@ -72,7 +72,7 @@
       <value>pitch</value>
     </enable>
     <input>
-      <prop>/position/altitude-filter-agl-ft</prop>
+      <prop>/position/altitude-pressure-agl-ft</prop>
     </input>
     <reference>
       <prop>/autopilot/settings/target-agl-ft</prop>
@@ -139,7 +139,7 @@
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>-0.025</Kp> <!-- was 0.017 -->
+      <Kp>-0.050</Kp> <!-- was 0.017 -->
       <beta>1.0</beta>
       <alpha>0.1</alpha>
       <gamma>0.0</gamma>
