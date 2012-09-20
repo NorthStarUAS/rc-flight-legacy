@@ -1295,7 +1295,7 @@ bool APM2_pilot_update() {
     if ( pilot_input_rev[7] ) { val *= -1.0; }
     pilot_channel8_node->setDoubleValue( val );
 
-    pilot_manual_node->setIntValue( pilot_channel8_node->getDoubleValue() < 0 );
+    pilot_manual_node->setIntValue( pilot_channel8_node->getDoubleValue() > 0 );
 
     return true;
 }
