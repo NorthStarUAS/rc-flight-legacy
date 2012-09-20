@@ -259,8 +259,8 @@ static void update_wind() {
     double wn = un - filter_vn_node->getDoubleValue();
 
     static double filt_we = 0.0, filt_wn = 0.0;
-    filt_we = 0.9995 * filt_we + 0.0005 * we;
-    filt_wn = 0.9995 * filt_wn + 0.0005 * wn;
+    filt_we = 0.9998 * filt_we + 0.0002 * we;
+    filt_wn = 0.9998 * filt_wn + 0.0002 * wn;
 
     double wind_deg = 90 - atan2( filt_wn, filt_we ) * SGD_RADIANS_TO_DEGREES;
     if ( wind_deg < 0 ) { wind_deg += 360.0; }
@@ -294,7 +294,7 @@ static void update_wind() {
 	if ( pitot_scale > 2.00 ) { pitot_scale = 2.00; }
     }
 
-    pitot_scale_filt = 0.999 * pitot_scale_filt + 0.001 * pitot_scale;
+    pitot_scale_filt = 0.9995 * pitot_scale_filt + 0.0005 * pitot_scale;
     est_pitot_scale_factor->setDoubleValue( pitot_scale_filt );
 
     // if ( display_on ) {
