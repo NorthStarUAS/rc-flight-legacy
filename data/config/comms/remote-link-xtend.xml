@@ -4,7 +4,6 @@
 
   <enable type="bool">true</enable>
 
-  <lost-link-timeout-sec>120</lost-link-timeout-sec>
   <write-bytes-per-frame>10</write-bytes-per-frame>
 
   <type>uart</type> <!-- uart or uart-server -->
