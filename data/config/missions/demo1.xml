@@ -12,7 +12,7 @@
 
     <task>
       <name>lost-link</name>
-      <timeout-sec>10</timeout-sec>
+      <timeout-sec>60</timeout-sec>
       <push-task-if-airborne>circle-coord</push-task-if-airborne>
       <airborne-flag>/mission/is-airborne</airborne-flag>
     </task>
