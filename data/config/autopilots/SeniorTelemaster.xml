@@ -72,7 +72,7 @@
       <value>pitch</value>
     </enable>
     <input>
-      <prop>/position/altitude-filter-agl-ft</prop>
+      <prop>/position/altitude-pressure-agl-ft</prop>
     </input>
     <reference>
       <prop>/autopilot/settings/target-agl-ft</prop>
