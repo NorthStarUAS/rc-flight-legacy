@@ -48,15 +48,15 @@
       <prop>/controls/flight/aileron</prop>
     </output>
     <config>
-      <Kp>-0.012</Kp>      <!-- proportional gain -->
+      <Kp>-0.008</Kp>      <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
       <Ti>2.0</Ti>         <!-- integrator time -->
       <Td>0.01</Td>        <!-- derivator time -->
-      <u_min>-0.50</u_min> <!-- minimum output clamp -->
-      <u_max>0.50</u_max>  <!-- maximum output clamp -->
+      <u_min>-0.40</u_min> <!-- minimum output clamp -->
+      <u_max>0.40</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
@@ -108,7 +108,7 @@
       <prop>/autopilot/settings/target-pitch-deg</prop>
     </output>
     <config>
-      <Kp>0.22</Kp>        <!-- proportional gain -->
+      <Kp>0.07</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -139,11 +139,11 @@
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>0.025</Kp> <!-- was 0.017 -->
+      <Kp>-0.025</Kp> <!-- was 0.017 -->
       <beta>1.0</beta>
       <alpha>0.1</alpha>
       <gamma>0.0</gamma>
-      <Ti>1.0</Ti>
+      <Ti>0.4</Ti>
       <Td>0.0001</Td>
       <u_min>-0.50</u_min>
       <u_max>0.50</u_max>

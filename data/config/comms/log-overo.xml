@@ -7,7 +7,7 @@
   <!-- speed of the onboard storage. -->
   <enable type="bool">true</enable>
 
-  <path>/home/root/Resolution3</path>
+  <path>/home/root/SeniorTelemaster</path>
 
   <!-- these values seem appropriate for verdex sd card performance -->
   <gps-skip>0</gps-skip>
