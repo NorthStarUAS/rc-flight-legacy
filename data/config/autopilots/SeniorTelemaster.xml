@@ -139,7 +139,7 @@
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>-0.025</Kp> <!-- was 0.017 -->
+      <Kp>-0.050</Kp> <!-- was 0.017 -->
       <beta>1.0</beta>
       <alpha>0.1</alpha>
       <gamma>0.0</gamma>

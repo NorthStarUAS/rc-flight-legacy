@@ -69,15 +69,15 @@
       <bank-limit-deg>30</bank-limit-deg>
       <heading-error-gain>0.8</heading-error-gain>
 
-      <altitude-agl-ft>1000</altitude-agl-ft>
-      <speed-kt>40</speed-kt>
+      <altitude-agl-ft>475</altitude-agl-ft>
+      <speed-kt>30</speed-kt>
     </task>
 
     <task>
       <name>flyto-coord</name>
       <coord-path>/navigation/startup</coord-path>
-      <altitude-agl-ft>350</altitude-agl-ft>
-      <speed-kt>60</speed-kt>
+      <altitude-agl-ft>400</altitude-agl-ft>
+      <speed-kt>35</speed-kt>
     </task>
   </standby-tasks>
 
