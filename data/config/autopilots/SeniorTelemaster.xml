@@ -48,6 +48,7 @@
       <prop>/controls/flight/aileron</prop>
     </output>
     <config>
+      <!-- try -0.012 next or maybe higher? -->
       <Kp>-0.008</Kp>      <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
