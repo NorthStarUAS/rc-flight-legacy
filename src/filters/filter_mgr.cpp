@@ -391,9 +391,11 @@ bool Filter_update() {
 
     last_imu_time = imu_time;
 
-    //static SGPropertyNode *tp = fgGetNode("/sensors/imu/pitch-truth-deg", true);
-    //static SGPropertyNode *ep = fgGetNode("/orientation/pitch-deg", true);
-    // printf("pitch: true = %.1f est = %.1f\n", tp->getDoubleValue(), ep->getDoubleValue());
+#if 0
+    static SGPropertyNode *tp = fgGetNode("/sensors/imu/pitch-truth-deg", true);
+    static SGPropertyNode *ep = fgGetNode("/orientation/pitch-deg", true);
+    printf("pitch error: %.2f (true = %.2f est = %.2f)\n", ep->getDoubleValue() - tp->getDoubleValue(), tp->getDoubleValue(), ep->getDoubleValue());
+#endif
 
     return fresh_filter_data;
 }
