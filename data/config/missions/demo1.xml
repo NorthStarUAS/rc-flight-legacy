@@ -25,7 +25,7 @@
       <off-air-speed-kt>15</off-air-speed-kt>
       <off-accel-g>0.0</off-accel-g>
       <!-- safety "on" means throttle cannot run -->
-      <on-alt-agl-ft>50</on-alt-agl-ft>
+      <on-alt-agl-ft>0</on-alt-agl-ft>
       <on-ground-speed-kt>5</on-ground-speed-kt>
       <on-air-speed-kt>10</on-air-speed-kt>
     </task>
@@ -46,9 +46,9 @@
   <sequential-tasks>
     <task>
       <name>launch</name>
-      <pitch-deg>17</pitch-deg>
+      <pitch-deg>12</pitch-deg>
       <roll-deg>0</roll-deg>
-      <speed-kts>45</speed-kts>
+      <speed-kts>40</speed-kts>
       <completion-alt-ft>200</completion-alt-ft>
     </task>
 
@@ -73,14 +73,14 @@
       <heading-error-gain>0.8</heading-error-gain>
 
       <altitude-agl-ft>500</altitude-agl-ft>
-      <speed-kt>35</speed-kt>
+      <speed-kt>30</speed-kt>
     </task>
 
     <task>
       <name>flyto-coord</name>
       <coord-path>/navigation/startup</coord-path>
-      <altitude-agl-ft>400</altitude-agl-ft>
-      <speed-kt>35</speed-kt>
+      <altitude-agl-ft>500</altitude-agl-ft>
+      <speed-kt>30</speed-kt>
     </task>
   </standby-tasks>
 
