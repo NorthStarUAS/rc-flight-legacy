@@ -119,14 +119,6 @@ void control_init() {
     // tree config (/config/fcs/autopilot)
     ap.init();
 
-    // set default autopilot modes
-    // ap_heading_mode_node->setStringValue("route");
-    // ap_roll_mode_node->setStringValue("aileron");
-    // ap_yaw_mode_node->setStringValue("turn-coord");
-    // ap_altitude_mode_node->setStringValue("pitch");
-    // ap_speed_mode_node->setStringValue("throttle");
-    // ap_pitch_mode_node->setStringValue("elevator");
-
     if ( display_on ) {
 	printf("Autopilot initialized\n");
     }
@@ -152,44 +144,46 @@ void control_update(double dt)
 	    if ( event_log_on ) {
 		event_log( "control mode changed to:", fcs_mode.c_str() );
 	    }
-	    if ( fcs_mode == "route" ) {
-		// set lock modes for "route"
-		heading_lock_node->setStringValue( "route" );
+
+	    // set default target speed if not overridden by operator
+	    float target_speed_kt = target_speed_node->getFloatValue();
+	    float initial_speed_kt = initial_speed_node->getFloatValue();
+	    if ( target_speed_kt < 0.1 ) {
+		target_speed_node->setFloatValue( initial_speed_kt );
+	    }
+
+	    // turn on pointing (universally for now)
+	    pointing_lock_node->setStringValue( "on" );
+	    lookat_mode_node->setStringValue( "ned-vector" );
+	    ned_n_node->setFloatValue( 0.0 );
+	    ned_e_node->setFloatValue( 0.0 );
+	    ned_d_node->setFloatValue( 1.0 );
+
+	    if ( fcs_mode == "basic" ) {
+		// set lock modes for "basic" inner loops only
+		heading_lock_node->setStringValue( "" );
 		roll_lock_node->setStringValue( "aileron" );
 		yaw_lock_node->setStringValue( "turn-coord" );
-		altitude_lock_node->setStringValue( "pitch" );
+		altitude_lock_node->setStringValue( "" );
 		speed_lock_node->setStringValue( "throttle" );
 		pitch_lock_node->setStringValue( "elevator" );
-		pointing_lock_node->setStringValue( "on" );
-		lookat_mode_node->setStringValue( "ned-vector" );
-		ned_n_node->setFloatValue( 0.0 );
-		ned_e_node->setFloatValue( 0.0 );
-		ned_d_node->setFloatValue( 1.0 );
 
-		float target_speed_kt = target_speed_node->getFloatValue();
-		float initial_speed_kt = initial_speed_node->getFloatValue();
-		if ( target_speed_kt < 0.1 ) {
-		    target_speed_node->setFloatValue( initial_speed_kt );
-		}
-	    } else if ( fcs_mode == "circle" ) {
-		// set lock modes for "circle"
+	    } else if ( fcs_mode == "basic+alt" ) {
+		// set lock modes for "basic" + alt hold
 		heading_lock_node->setStringValue( "" );
 		roll_lock_node->setStringValue( "aileron" );
 		yaw_lock_node->setStringValue( "turn-coord" );
 		altitude_lock_node->setStringValue( "pitch" );
 		speed_lock_node->setStringValue( "throttle" );
 		pitch_lock_node->setStringValue( "elevator" );
-		pointing_lock_node->setStringValue( "on" );
-		lookat_mode_node->setStringValue( "ned-vector" );
-		ned_n_node->setFloatValue( 0.0 );
-		ned_e_node->setFloatValue( 0.0 );
-		ned_d_node->setFloatValue( 1.0 );
-
-		float target_speed_kt = target_speed_node->getFloatValue();
-		float initial_speed_kt = initial_speed_node->getFloatValue();
-		if ( target_speed_kt < 0.1 ) {
-		    target_speed_node->setFloatValue( initial_speed_kt );
-		}
+	    } else if ( fcs_mode == "basic+alt+nav" ) {
+		// set lock modes for "basic" + alt hold + navigation
+		heading_lock_node->setStringValue( "route" );
+		roll_lock_node->setStringValue( "aileron" );
+		yaw_lock_node->setStringValue( "turn-coord" );
+		altitude_lock_node->setStringValue( "pitch" );
+		speed_lock_node->setStringValue( "throttle" );
+		pitch_lock_node->setStringValue( "elevator" );
 	    } else if ( fcs_mode == "cas" ) {
 		// set lock modes for "cas"
 		heading_lock_node->setStringValue( "" );
@@ -199,10 +193,6 @@ void control_update(double dt)
 		speed_lock_node->setStringValue( "" );
 		pitch_lock_node->setStringValue( "elevator" );
 		pointing_lock_node->setStringValue( "on" );
-		lookat_mode_node->setStringValue( "ned-vector" );
-		ned_n_node->setFloatValue( 0.0 );
-		ned_e_node->setFloatValue( 0.0 );
-		ned_d_node->setFloatValue( 1.0 );
 
 		float target_roll_deg = roll_deg_node->getFloatValue();
 		if ( target_roll_deg > 45.0 ) { target_roll_deg = 45.0; }
@@ -217,12 +207,6 @@ void control_update(double dt)
 		    target_pitch_base_deg = -15.0;
 		}
 		target_pitch_base_deg_node->setFloatValue( target_pitch_base_deg );
-
-		float target_speed_kt = target_speed_node->getFloatValue();
-		float initial_speed_kt = initial_speed_node->getFloatValue();
-		if ( target_speed_kt < 0.1 ) {
-		    target_speed_node->setFloatValue( initial_speed_kt );
-		}
 	    }
 	}
 	last_fcs_mode = fcs_mode;
