@@ -109,7 +109,7 @@
       <prop>/autopilot/settings/target-pitch-deg</prop>
     </output>
     <config>
-      <Kp>0.07</Kp>        <!-- proportional gain -->
+      <Kp>0.05</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -253,15 +253,15 @@
         <value>0.0</value>
       </reference>
       <output>
-        <prop>/controls/flight/rudder-disable</prop>
+        <prop>/controls/flight/rudder</prop>
       </output>
       <config>
-        <Kp>-0.0025</Kp>      <!-- proportional gain -->
+        <Kp>0.02</Kp>        <!-- proportional gain -->
         <beta>1.0</beta>     <!-- input value weighing factor -->
         <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
         <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                              <!-- unfiltered derivative error -->
-        <Ti>1.0</Ti>        <!-- integrator time -->
+        <Ti>1.0</Ti>         <!-- integrator time -->
         <Td>0.01</Td>        <!-- derivator time -->
         <u_min>-0.25</u_min> <!-- minimum output clamp -->
         <u_max>0.25</u_max>  <!-- maximum output clamp -->
