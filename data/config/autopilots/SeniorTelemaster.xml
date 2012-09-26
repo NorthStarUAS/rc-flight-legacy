@@ -49,12 +49,12 @@
     </output>
     <config>
       <!-- try -0.012 next or maybe higher? -->
-      <Kp>-0.010</Kp>      <!-- proportional gain -->
+      <Kp>-0.020</Kp>      <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>1.5</Ti>         <!-- integrator time -->
+      <Ti>0.5</Ti>         <!-- integrator time -->
       <Td>0.01</Td>        <!-- derivator time -->
       <u_min>-0.40</u_min> <!-- minimum output clamp -->
       <u_max>0.40</u_max>  <!-- maximum output clamp -->
@@ -144,7 +144,7 @@
       <beta>1.0</beta>
       <alpha>0.1</alpha>
       <gamma>0.0</gamma>
-      <Ti>0.4</Ti>
+      <Ti>1.0</Ti>
       <Td>0.0001</Td>
       <u_min>-0.25</u_min> <!-- max down -->
       <u_max>0.50</u_max> <!-- max up -->
@@ -169,7 +169,7 @@
       <prop>/controls/engine/throttle</prop>
     </output>
     <config>
-      <Kp>0.022</Kp>      <!-- proportional gain (was 0.04) -->
+      <Kp>0.040</Kp>      <!-- proportional gain (was 0.04) -->
       <beta>1.0</beta>    <!-- input value weighing factor -->
       <alpha>0.1</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>  <!-- input value weighing factor for -->
