@@ -37,6 +37,11 @@
 #define MAX_IMU_SENSORS 7
 #define MAX_ANALOG_INPUTS 6
 
+#define PWM_CENTER 1525.0
+#define PWM_HALF_RANGE 414.0
+#define PWM_RANGE (PWM_HALF_RANGE * 2.0)
+#define PWM_MIN (PWM_CENTER - PWM_HALF_RANGE)
+
 // APM2 interface and config property nodes
 static SGPropertyNode *configroot = NULL;
 static SGPropertyNode *APM2_device_node = NULL;
@@ -516,12 +521,12 @@ static float normalize_pulse( int pulse, bool symmetrical ) {
 
     if ( symmetrical ) {
 	// i.e. aileron, rudder, elevator
-	result = (pulse - 1500.0) / 400.0;
+	result = (pulse - PWM_CENTER) / PWM_HALF_RANGE;
 	if ( result < -1.0 ) { result = -1.0; }
 	if ( result > 1.0 ) { result = 1.0; }
     } else {
 	// i.e. throttle
-	result = (pulse - 1100.0) / 800.0;
+	result = (pulse - PWM_MIN) / PWM_RANGE;
 	if ( result < 0.0 ) { result = 0.0; }
 	if ( result > 1.0 ) { result = 1.0; }
     }
@@ -842,12 +847,12 @@ static int gen_pulse( double val, bool symmetrical ) {
 	// i.e. aileron, rudder, elevator
 	if ( val < -1.5 ) { val = -1.5; }
 	if ( val > 1.5 ) { val = 1.5; }
-	pulse = 1500 + (int)(400 * val);
+	pulse = PWM_CENTER + (int)(PWM_HALF_RANGE * val);
     } else {
 	// i.e. throttle
 	if ( val < 0.0 ) { val = 0.0; }
 	if ( val > 1.0 ) { val = 1.0; }
-	pulse = 1100 + (int)(800 * val);
+	pulse = PWM_MIN + (int)(PWM_RANGE * val);
     }
 
     return pulse;
