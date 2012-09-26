@@ -654,10 +654,8 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 
 #if 0
 	    if ( display_on ) {
-		for ( int i = 0; i < MAX_IMU_SENSORS; i++ ) {
-		    printf("%d ", imu_sensors[i]);
-		}
-		printf("\n");
+		printf("baro %.3f %.1f %.1f %.1f\n", airdata.timestamp,
+			airdata.pressure, airdata.temp, airdata.climb_rate);
 	    }
 #endif
 		      
