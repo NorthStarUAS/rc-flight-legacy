@@ -63,7 +63,7 @@
     </fcs>
 
     <!-- Primary mission selection and configuration. -->
-    <mission include="missions/demo1.xml">
+    <mission include="missions/tele-launch.xml">
       <global-tasks n="0">
         <task n="2">
           <off-alt-agl-ft n="0">0</off-alt-agl-ft>
