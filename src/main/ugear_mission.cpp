@@ -67,7 +67,6 @@ static bool enable_cas     = false;   // cas module enabled/disabled
 static bool enable_telnet  = false;   // telnet command/monitor interface
 static bool enable_pointing = false;  // pan/tilt pointing module
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
-static double lost_link_sec = 59.0;   // lost link timeout
 
 // debug main loop "block" on gumstix verdex
 myprofile debug1;
@@ -445,13 +444,6 @@ int main( int argc, char **argv )
     }
     printf("gps timeout = %.1f\n", gps_timeout_sec);
 
-    p = fgGetNode("/config/remote-link/lost-link-timeout-sec");
-    if ( p != NULL && p->getDoubleValue() > 0.0001 ) {
-	// stick with the default if nothing valid specified
-	lost_link_sec = p->getDoubleValue();
-    }
-    printf("lost link timeout = %.1f\n", lost_link_sec);
-    
     p = fgGetNode("/config/fcs/enable", true);
     enable_control = p->getBoolValue();
 
