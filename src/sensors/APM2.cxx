@@ -1236,7 +1236,7 @@ bool APM2_airdata_update() {
 	airdata_pressure_node->setDoubleValue( airdata.pressure / 100.0 );
 	airdata_temperature_node->setDoubleValue( airdata.temp / 10.0 );
 	airdata_climb_rate_mps_node->setDoubleValue( airdata.climb_rate );
-	airdata_climb_rate_fps_node->setDoubleValue( airdata.climb_rate / SG_METER_TO_FEET );
+	airdata_climb_rate_fps_node->setDoubleValue( airdata.climb_rate * SG_METER_TO_FEET );
 
 	// from here: http://keisan.casio.com/has10/SpecExec.cgi?path=06000000%2eScience%2f02100100%2eEarth%20science%2f12000300%2eAltitude%20from%20atmospheric%20pressure%2fdefault%2exml&charset=utf-8
 	const float sea_press = 1013.25;
