@@ -163,7 +163,7 @@ void control_update(double dt)
 		// set lock modes for "basic" inner loops only
 		heading_lock_node->setStringValue( "" );
 		roll_lock_node->setStringValue( "aileron" );
-		yaw_lock_node->setStringValue( "turn-coord" );
+		yaw_lock_node->setStringValue( "" );
 		altitude_lock_node->setStringValue( "" );
 		speed_lock_node->setStringValue( "throttle" );
 		pitch_lock_node->setStringValue( "elevator" );
