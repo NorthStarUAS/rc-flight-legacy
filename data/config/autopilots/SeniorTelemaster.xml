@@ -49,12 +49,12 @@
     </output>
     <config>
       <!-- try -0.012 next or maybe higher? -->
-      <Kp>-0.008</Kp>      <!-- proportional gain -->
+      <Kp>-0.010</Kp>      <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>2.0</Ti>         <!-- integrator time -->
+      <Ti>1.5</Ti>         <!-- integrator time -->
       <Td>0.01</Td>        <!-- derivator time -->
       <u_min>-0.40</u_min> <!-- minimum output clamp -->
       <u_max>0.40</u_max>  <!-- maximum output clamp -->
@@ -109,7 +109,7 @@
       <prop>/autopilot/settings/target-pitch-deg</prop>
     </output>
     <config>
-      <Kp>0.05</Kp>        <!-- proportional gain -->
+      <Kp>0.03</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -140,14 +140,14 @@
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>-0.050</Kp> <!-- was 0.017 -->
+      <Kp>0.070</Kp> <!-- was 0.017 -->
       <beta>1.0</beta>
       <alpha>0.1</alpha>
       <gamma>0.0</gamma>
       <Ti>0.4</Ti>
       <Td>0.0001</Td>
-      <u_min>-0.50</u_min>
-      <u_max>0.50</u_max>
+      <u_min>-0.25</u_min> <!-- max down -->
+      <u_max>0.50</u_max> <!-- max up -->
     </config>
   </pid-controller>
 
@@ -177,7 +177,7 @@
       <Ti>5.0</Ti>        <!-- integrator time -->
       <Td>0.00005</Td>     <!-- derivator time -->
       <u_min>0.0</u_min>  <!-- minimum output clamp -->
-      <u_max>0.9</u_max>  <!-- maximum output clamp -->
+      <u_max>1.0</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
@@ -256,7 +256,7 @@
         <prop>/controls/flight/rudder</prop>
       </output>
       <config>
-        <Kp>0.02</Kp>        <!-- proportional gain -->
+        <Kp>-0.005</Kp>      <!-- proportional gain -->
         <beta>1.0</beta>     <!-- input value weighing factor -->
         <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
         <gamma>0.0</gamma>   <!-- input value weighing factor for -->
