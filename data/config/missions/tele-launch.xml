@@ -46,12 +46,12 @@
   <sequential-tasks>
     <task>
       <name>launch</name>
-      <pitch-deg>20</pitch-deg>
+      <pitch-deg>17</pitch-deg>
       <roll-deg>0</roll-deg>
       <speed-kts>35</speed-kts>
       <completion-alt-ft>200</completion-alt-ft>
-      <steering-gain>0.05</steering-gain>
-      <max-steer>1.0</max-steer>
+      <steering-gain>0.025</steering-gain>
+      <max-steer>0.5</max-steer>
     </task>
 
     <task>
