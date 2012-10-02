@@ -50,6 +50,8 @@
       <roll-deg>0</roll-deg>
       <speed-kts>35</speed-kts>
       <completion-alt-ft>200</completion-alt-ft>
+      <steering-gain>0.05</steering-gain>
+      <max-steer>1.0</max-steer>
     </task>
 
     <task>
