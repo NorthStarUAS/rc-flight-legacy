@@ -12,6 +12,11 @@
     <imu>
       <source>APM2</source>
       <enable type="bool">true</enable>
+      <bias>
+        <ax>-0.07</ax>
+        <ay>0.29</ay>
+        <az>-0.60</az>
+      </bias>
     </imu>
   </imu-group>
 
