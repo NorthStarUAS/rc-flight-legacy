@@ -171,6 +171,9 @@ static double airspeed_zero_start_time = 0.0;
 static float ax_bias = 0.0;
 static float ay_bias = 0.0;
 static float az_bias = 0.0;
+static double ax_scale = 1.0;
+static double ay_scale = 1.0;
+static double az_scale = 1.0;
 
 static uint32_t pilot_packet_counter = 0;
 static uint32_t imu_packet_counter = 0;
@@ -456,21 +459,30 @@ bool APM2_imu_init( string rootname, SGPropertyNode *config ) {
 
     bind_imu_output( rootname );
 
-    SGPropertyNode *bias = config->getChild("bias");
-    if ( bias != NULL ) {
-	SGPropertyNode *node = NULL;
-	node = bias->getChild("ax");
-	if ( node != NULL ) {
-	    ax_bias = node->getDoubleValue();
-	}
-	node = bias->getChild("ay");
-	if ( node != NULL ) {
-	    ay_bias = node->getDoubleValue();
-	}
-	node = bias->getChild("az");
-	if ( node != NULL ) {
-	    az_bias = node->getDoubleValue();
-	}
+    SGPropertyNode *node = NULL;
+    node = config->getChild("ax-bias");
+    if ( node != NULL ) {
+	ax_bias = node->getDoubleValue();
+    }
+    node = config->getChild("ay-bias");
+    if ( node != NULL ) {
+	ay_bias = node->getDoubleValue();
+    }
+    node = config->getChild("az-bias");
+    if ( node != NULL ) {
+	az_bias = node->getDoubleValue();
+    }
+    node = config->getChild("ax-scale");
+    if ( node != NULL ) {
+	ax_scale = node->getDoubleValue();
+    }
+    node = config->getChild("ay-scale");
+    if ( node != NULL ) {
+	ay_scale = node->getDoubleValue();
+    }
+    node = config->getChild("az-scale");
+    if ( node != NULL ) {
+	az_scale = node->getDoubleValue();
     }
  
     return true;
@@ -1085,9 +1097,12 @@ bool APM2_imu_update() {
 	imu_p_node->setDoubleValue( imu_sensors[0] * gyro_scale );
 	imu_q_node->setDoubleValue( imu_sensors[1] * gyro_scale );
 	imu_r_node->setDoubleValue( imu_sensors[2] * gyro_scale );
-	imu_ax_node->setDoubleValue( imu_sensors[3] * accel_scale + ax_bias );
-	imu_ay_node->setDoubleValue( imu_sensors[4] * accel_scale + ay_bias );
-	imu_az_node->setDoubleValue( imu_sensors[5] * accel_scale + az_bias );
+	double ax = (imu_sensors[3]*accel_scale - ax_bias) * ax_scale;
+	double ay = (imu_sensors[4]*accel_scale - ay_bias) * ay_scale;
+	double az = (imu_sensors[5]*accel_scale - az_bias) * az_scale;
+	imu_ax_node->setDoubleValue( ax );
+	imu_ay_node->setDoubleValue( ay );
+	imu_az_node->setDoubleValue( az );
 	imu_temp_node->setDoubleValue( imu_sensors[6] * temp_scale );
     }
 

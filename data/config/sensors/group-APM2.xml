@@ -12,11 +12,12 @@
     <imu>
       <source>APM2</source>
       <enable type="bool">true</enable>
-      <bias>
-        <ax>-0.07</ax>
-        <ay>0.29</ay>
-        <az>-0.60</az>
-      </bias>
+      <ax-bias>0.06</ax-bias>
+      <ay-bias>-0.37</ay-bias>
+      <az-bias>0.60</az-bias>
+      <ax-scale>1.0000</ax-scale>
+      <ay-scale>0.9914</ay-scale>
+      <az-scale>0.9849</az-scale>
     </imu>
   </imu-group>
 
