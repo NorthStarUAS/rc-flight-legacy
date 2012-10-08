@@ -1,4 +1,4 @@
-bin_PROGRAMS = autologin pressanykey stopme
+sbin_PROGRAMS = autologin pressanykey stopme
 
 autologin_SOURCES = \
 	autologin.c
