@@ -115,6 +115,7 @@ AC_CONFIG_FILES([ \
         src/sensors/Makefile \
         src/util/Makefile \
         src/xml/Makefile \
+        uglink/Makefile \
         utils/Makefile \
         utils/admin/Makefile \
         utils/benchmarks/Makefile \
