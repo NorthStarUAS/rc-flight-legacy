@@ -28,7 +28,7 @@
 using std::string;
 using std::vector;
 
-#include <plib/netChannel.h>
+#include "comms/netChannel.h"
 
 
 /**
