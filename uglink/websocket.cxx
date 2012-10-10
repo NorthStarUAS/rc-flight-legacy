@@ -22,7 +22,7 @@
 #include <openssl/md5.h>
 #include <sstream>
 
-#include <plib/netBuffer.h>
+#include "comms/netBuffer.h"
 
 #include <include/globaldefs.h>
 //#include <simgear/structure/commands.hxx>
