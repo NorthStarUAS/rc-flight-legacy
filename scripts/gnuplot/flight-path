@@ -1,0 +1,5 @@
+# plot flight path
+
+set xlabel "Flight Path"
+
+plot "filter.txt" using 3:2 with lines title "Filter Path", "gps.txt" using 3:2 with lines title "GPS Path"
