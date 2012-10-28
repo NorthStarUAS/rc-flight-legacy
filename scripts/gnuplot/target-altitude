@@ -1,0 +1,2 @@
+# plot target pitch angle versus actual pitch angle
+plot "ap.txt" using 1:4 with lines title "Target Altitude (MSL)", "filter.txt" using 1:($4/0.3048) with lines title "Filter Altitude (MSL)", "air.txt" using 1:($3/0.3048) with lines title "Baro Altitude", "gps.txt" using 1:($4/0.3048) with lines title "GPS Altitude (MSL)", "gps.txt" using 1:($9*100) with lines title "Satellites *100"
