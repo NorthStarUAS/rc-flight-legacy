@@ -1,0 +1,2 @@
+# plot target speed versus actual speed
+plot "ap.txt" using 1:7 with lines title "Target Speed (kts)", "air.txt" using 1:2 with lines title "Actual Speed (kts)"

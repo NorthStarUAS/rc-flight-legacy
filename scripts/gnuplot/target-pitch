@@ -1,0 +1,2 @@
+# plot target pitch angle versus actual pitch angle
+plot "ap.txt" using 1:6 with lines title "Target Pitch (deg)", "filter.txt" using 1:9 with lines title "Actual Pitch (deg)"

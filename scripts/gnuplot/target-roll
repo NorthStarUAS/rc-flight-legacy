@@ -1,0 +1,7 @@
+# plot target roll angle versus actual roll angle
+
+set ytics nomirror
+set y2label "Aileron"
+set y2tics
+
+plot "act.txt" using 1:2 with lines axis x1y2 title "Aileron Defl", "ap.txt" using 1:3 with lines title "Target Roll (deg)", "filter.txt" using 1:8 with lines title "Actual Roll (deg)"
