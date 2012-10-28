@@ -590,8 +590,8 @@ void compute_derived_data( struct gps *gpspacket,
 	if ( ol_hdg < 0.0 ) { ol_hdg += 360.0; }
 	if ( ol_hdg > 360.0 ) { ol_hdg -= 360.0; }
     }
-    printf("ol_hdg %.3f %.3f %.3f %.3f\n",
+    /* printf("ol_hdg %.3f %.3f %.3f %.3f\n",
 	   filter_timestamp_node->getDoubleValue(),
 	   ol_hdg, filter_psi_node->getDoubleValue(),
-	   filter_psi_node->getDoubleValue() - ol_hdg);
+	   filter_psi_node->getDoubleValue() - ol_hdg); */
 }
