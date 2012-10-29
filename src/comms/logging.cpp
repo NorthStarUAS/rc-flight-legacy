@@ -81,49 +81,49 @@ bool logging_init() {
     SGPath file;
 
     file = new_dir; file.append( "imu.dat.gz" );
-    if ( (fimu = gzopen( file.c_str(), "w+b" )) == NULL ) {
+    if ( (fimu = gzopen( file.c_str(), "wb" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
     file = new_dir; file.append( "gps.dat.gz" );
-    if ( (fgps = gzopen( file.c_str(), "w+b" )) == NULL ) {
+    if ( (fgps = gzopen( file.c_str(), "wb" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
     file = new_dir; file.append( "air.dat.gz" );
-    if ( (fair = gzopen( file.c_str(), "w+b" )) == NULL ) {
+    if ( (fair = gzopen( file.c_str(), "wb" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
     file = new_dir; file.append( "filter.dat.gz" );
-    if ( (ffilter = gzopen( file.c_str(), "w+b" )) == NULL ) {
+    if ( (ffilter = gzopen( file.c_str(), "wb" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
     file = new_dir; file.append( "actuator.dat.gz" );
-    if ( (fact = gzopen( file.c_str(),"w+b" )) == NULL ) {
+    if ( (fact = gzopen( file.c_str(),"wb" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
     file = new_dir; file.append( "pilot.dat.gz" );
-    if ( (fpilot = gzopen( file.c_str(),"w+b" )) == NULL ) {
+    if ( (fpilot = gzopen( file.c_str(),"wb" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
     file = new_dir; file.append( "health.dat.gz" );
-    if ( (fhealth = gzopen( file.c_str(), "w+b" )) == NULL ) {
+    if ( (fhealth = gzopen( file.c_str(), "wb" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
     file = new_dir; file.append( "ap.dat.gz" );
-    if ( (fap = gzopen( file.c_str(), "w+b" )) == NULL ) {
+    if ( (fap = gzopen( file.c_str(), "wb" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
         return false;
     }
