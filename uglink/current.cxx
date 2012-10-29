@@ -572,26 +572,63 @@ void compute_derived_data( struct gps *gpspacket,
     // temporary experiment: open loop compute heading from yaw gyro
     // only, starting with filter heading as soon as auto-mode
     // (vs. manual) mode is set.  Then see how close/well this tracks.
+
     bool auto_mode = (pilot_channel8_node->getIntValue() < 0);
     static bool last_auto_mode = auto_mode;
+
+    bool throttle = (pilot_throttle_node->getDoubleValue() > 0.5);
+    static bool last_throttle = throttle;
+
     //double timestamp =  filter_timestamp_node->getDoubleValue();
     //static double last_timestamp = timestamp;
     //double dt = timestamp - last_timestamp;
-    static double ol_hdg = filter_psi_node->getDoubleValue();
+    static double ol_roll = filter_psi_node->getDoubleValue();
+    static double ol_pitch = filter_psi_node->getDoubleValue();
+    static double ol_yaw = filter_psi_node->getDoubleValue();
+
     if ( !last_auto_mode && auto_mode ) {
-	ol_hdg = filter_psi_node->getDoubleValue();
+	ol_roll = filter_phi_node->getDoubleValue();
+	ol_pitch = filter_theta_node->getDoubleValue();
+	ol_yaw = filter_psi_node->getDoubleValue();
     }
     last_auto_mode = auto_mode;
+
+    if ( !last_throttle && throttle ) {
+	ol_roll = filter_phi_node->getDoubleValue();
+	ol_pitch = filter_theta_node->getDoubleValue();
+	ol_yaw = filter_psi_node->getDoubleValue();
+    }
+    last_throttle = throttle;
+
     if ( dt > 0.0 ) {
+	double dp
+	    = (imu_p_node->getDoubleValue() * dt) * SGD_RADIANS_TO_DEGREES;
+	double dq
+	    = (imu_q_node->getDoubleValue() * dt) * SGD_RADIANS_TO_DEGREES;
 	double dr
 	    = (imu_r_node->getDoubleValue() * dt) * SGD_RADIANS_TO_DEGREES;
 	//printf("dr=%.3f imu_r=%.3f dt=%.3f\n
-	ol_hdg += dr;
-	if ( ol_hdg < 0.0 ) { ol_hdg += 360.0; }
-	if ( ol_hdg > 360.0 ) { ol_hdg -= 360.0; }
+	ol_roll += dp;
+	if ( ol_roll < -180.0 ) { ol_roll += 360.0; }
+	if ( ol_roll > 180.0 ) { ol_roll -= 360.0; }
+	ol_pitch += dq;
+	if ( ol_pitch < -180.0 ) { ol_pitch += 360.0; }
+	if ( ol_pitch > 180.0 ) { ol_pitch -= 360.0; }
+	ol_yaw += dr;
+	if ( ol_yaw < 0.0 ) { ol_yaw += 360.0; }
+	if ( ol_yaw > 360.0 ) { ol_yaw -= 360.0; }
     }
-    /* printf("ol_hdg %.3f %.3f %.3f %.3f\n",
-	   filter_timestamp_node->getDoubleValue(),
-	   ol_hdg, filter_psi_node->getDoubleValue(),
-	   filter_psi_node->getDoubleValue() - ol_hdg); */
+    if ( throttle ) {
+	/* printf("OL %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n",
+	       filter_timestamp_node->getDoubleValue(),
+	       filter_phi_node->getDoubleValue(),
+	       filter_theta_node->getDoubleValue(),
+	       filter_psi_node->getDoubleValue(),
+	       ol_roll, ol_pitch, ol_yaw ); */
+	printf("OL %.3f %.3f %.3f %.3f\n",
+	       filter_timestamp_node->getDoubleValue(),
+	       filter_theta_node->getDoubleValue(),
+	       ol_pitch,
+	       imu_q_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES);
+    }
 }
