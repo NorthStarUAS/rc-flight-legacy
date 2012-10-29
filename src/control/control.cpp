@@ -165,25 +165,24 @@ void control_update(double dt)
 		roll_lock_node->setStringValue( "aileron" );
 		yaw_lock_node->setStringValue( "" );
 		altitude_lock_node->setStringValue( "" );
-		speed_lock_node->setStringValue( "throttle" );
-		pitch_lock_node->setStringValue( "elevator" );
-
+		speed_lock_node->setStringValue( "elevator" );
+		pitch_lock_node->setStringValue( "" );
 	    } else if ( fcs_mode == "basic+alt" ) {
 		// set lock modes for "basic" + alt hold
 		heading_lock_node->setStringValue( "" );
 		roll_lock_node->setStringValue( "aileron" );
-		yaw_lock_node->setStringValue( "turn-coord" );
-		altitude_lock_node->setStringValue( "pitch" );
-		speed_lock_node->setStringValue( "throttle" );
-		pitch_lock_node->setStringValue( "elevator" );
+		yaw_lock_node->setStringValue( "" );
+		altitude_lock_node->setStringValue( "throttle" );
+		speed_lock_node->setStringValue( "elevator" );
+		pitch_lock_node->setStringValue( "" );
 	    } else if ( fcs_mode == "basic+alt+nav" ) {
 		// set lock modes for "basic" + alt hold + navigation
 		heading_lock_node->setStringValue( "route" );
 		roll_lock_node->setStringValue( "aileron" );
-		yaw_lock_node->setStringValue( "turn-coord" );
-		altitude_lock_node->setStringValue( "pitch" );
-		speed_lock_node->setStringValue( "throttle" );
-		pitch_lock_node->setStringValue( "elevator" );
+		yaw_lock_node->setStringValue( "" );
+		altitude_lock_node->setStringValue( "throttle" );
+		speed_lock_node->setStringValue( "elevator" );
+		pitch_lock_node->setStringValue( "" );
 	    } else if ( fcs_mode == "cas" ) {
 		// set lock modes for "cas"
 		heading_lock_node->setStringValue( "" );
