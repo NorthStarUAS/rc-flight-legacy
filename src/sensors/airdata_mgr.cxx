@@ -54,6 +54,7 @@ static SGPropertyNode *airspeed_filt_node = NULL;
 static SGPropertyNode *pressure_error_m_node = NULL;
 static SGPropertyNode *true_alt_m_node = NULL;
 static SGPropertyNode *true_alt_ft_node = NULL;
+static SGPropertyNode *agl_alt_m_node = NULL;
 static SGPropertyNode *agl_alt_ft_node = NULL;
 static SGPropertyNode *vert_fps_node = NULL;
 static SGPropertyNode *forward_accel_node = NULL;
@@ -85,6 +86,7 @@ void AirData_init() {
 
     true_alt_m_node = fgGetNode("/position/altitude-true-combined-m",true);
     true_alt_ft_node = fgGetNode("/position/altitude-true-combined-ft",true);
+    agl_alt_m_node = fgGetNode("/position/altitude-pressure-agl-m", true);
     agl_alt_ft_node = fgGetNode("/position/altitude-pressure-agl-ft", true);
 
     pressure_error_m_node
@@ -152,7 +154,7 @@ static void update_pressure_helpers() {
     float filter_alt_m = filter_alt_node->getFloatValue();
 
     // Do a simple first order (time based) low pass filter to reduce noise
-    float time_factor = 0.40;  // length of time (sec) to low pass
+    float time_factor = 0.20;  // length of time (sec) to low pass
 			       // filter the input over.  A time value
 			       // of zero will result in the filter
 			       // output being equal to the raw input at
@@ -210,7 +212,7 @@ static void update_pressure_helpers() {
     // change
     float accel = (airspeed_filt - airspeed_filt_last) / dt;
     airspeed_filt_last = airspeed_filt;
-    accel_filt = 0.97 * accel_filt + 0.03 * accel;
+    accel_filt = 0.95 * accel_filt + 0.05 * accel;
 
     // determine ground reference altitude.  Average filter altitude
     // over first 30 seconds the filter becomes active.
@@ -231,6 +233,7 @@ static void update_pressure_helpers() {
     airspeed_filt_node->setDoubleValue( airspeed_filt );
     true_alt_m_node->setDoubleValue( true_alt_m );
     true_alt_ft_node->setDoubleValue( true_alt_m * SG_METER_TO_FEET );
+    agl_alt_m_node->setDoubleValue( altitude_filt - ground_alt_filter );
     agl_alt_ft_node->setDoubleValue( (altitude_filt - ground_alt_filter)
 				     * SG_METER_TO_FEET );
     vert_fps_node->setDoubleValue( climb_filt * SG_METER_TO_FEET );
