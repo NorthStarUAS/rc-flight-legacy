@@ -154,7 +154,7 @@ static void update_pressure_helpers() {
     float filter_alt_m = filter_alt_node->getFloatValue();
 
     // Do a simple first order (time based) low pass filter to reduce noise
-    float time_factor = 0.20;  // length of time (sec) to low pass
+    float time_factor = 0.10;  // length of time (sec) to low pass
 			       // filter the input over.  A time value
 			       // of zero will result in the filter
 			       // output being equal to the raw input at
@@ -212,7 +212,7 @@ static void update_pressure_helpers() {
     // change
     float accel = (airspeed_filt - airspeed_filt_last) / dt;
     airspeed_filt_last = airspeed_filt;
-    accel_filt = 0.95 * accel_filt + 0.05 * accel;
+    accel_filt = 0.8 * accel_filt + 0.2 * accel;
 
     // determine ground reference altitude.  Average filter altitude
     // over first 30 seconds the filter becomes active.
