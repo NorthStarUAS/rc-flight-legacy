@@ -55,7 +55,7 @@
       <!-- <autopilot include="autopilots/Rascal110-combined.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-wingleveler.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-pitchleveler.xml" /> -->
-      <autopilot include="autopilots/Rascal110-fgfs.xml" />
+      <autopilot include="autopilots/Rascal110-fgfs-pitch-speed.xml" />
       <!-- <autopilot include="autopilots/FlyCamOne3.xml" /> -->
 
       <!-- set initial target speed when autopilot is activated -->
