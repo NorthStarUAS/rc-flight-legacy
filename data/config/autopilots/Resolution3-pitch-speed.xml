@@ -22,7 +22,7 @@
       <prop>/autopilot/settings/target-roll-deg</prop>
     </output>
     <config>
-      <Kp>-0.7</Kp>        <!-- proportional gain -->
+      <Kp>-0.6</Kp>        <!-- proportional gain -->
       <Ki>0.0</Ki>         <!-- integral gain -->
       <u_min>-20.0</u_min> <!-- minimum output clamp -->
       <u_max>20.0</u_max>  <!-- maximum output clamp -->
@@ -55,9 +55,9 @@
                            <!-- unfiltered derivative error -->
       <Ti>2.0</Ti>         <!-- integrator time -->
       <Td>0.01</Td>        <!-- derivator time -->
-      <!-- center trim point is about 0.15 -->
-      <u_min>-0.05</u_min> <!-- minimum output clamp -->
-      <u_max>0.35</u_max>  <!-- maximum output clamp -->
+      <!-- center trim point is about 0.15 (recentered towards zero now?) -->
+      <u_min>-0.10</u_min> <!-- minimum output clamp -->
+      <u_max>0.30</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
@@ -128,7 +128,7 @@
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/speed</prop>
-      <value>pitch</value>
+      <value>elevator</value>
     </enable>
     <input>
       <prop>/velocity/airspeed-kt</prop>
@@ -150,10 +150,10 @@
   <!-- Stage 2, command elevator to achieve target acceleration rate -->
   <pid-controller>
     <name>Speed hold (vary elevator)</name>
-    <debug>true</debug>
+    <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/speed</prop>
-      <value>pitch</value>
+      <value>elevator</value>
     </enable>
     <input>
       <prop>/acceleration/airspeed-ktps</prop>

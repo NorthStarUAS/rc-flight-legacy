@@ -49,7 +49,7 @@
       <mode>route</mode> 
 
       <!-- select the autopilot configuration -->
-      <autopilot include="autopilots/Resolution3.xml" />
+      <autopilot include="autopilots/Resolution3-pitch-speed.xml" />
       <!-- <autopilot include="autopilots/SeniorTelemaster.xml" /> -->
       <!-- <autopilot include="autopilots/Malolo2-alt-thr.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-combined.xml" /> -->
