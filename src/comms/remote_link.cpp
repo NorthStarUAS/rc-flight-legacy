@@ -39,7 +39,7 @@ static SGPropertyNode *link_message_time_sec = NULL;
 static SGPropertyNode *link_bytes_per_frame = NULL;
 bool remote_link_on = false;    // link to remote operator station
 static SGSerialPort serial_fd;
-static netBuffer serial_buffer(96);
+static netBuffer serial_buffer(128);
 static netSocket link_socket;
 bool link_open = false;
 static ugLinkType link_type = ugUNKNOWN;
