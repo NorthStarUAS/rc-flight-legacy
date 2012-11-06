@@ -4,7 +4,7 @@
 
   <enable type="bool">true</enable>
 
-  <write-bytes-per-frame>10</write-bytes-per-frame>
+  <write-bytes-per-frame>16</write-bytes-per-frame>
 
   <type>uart</type> <!-- uart or uart-server -->
   <device>/dev/ttyO2</device>
@@ -12,11 +12,11 @@
   <port>6500</port>
 
   <gps-skip>2</gps-skip>
-  <imu-skip>25</imu-skip> <!-- 9 -->
-  <airdata-skip>25</airdata-skip> <!-- 9 -->
-  <filter-skip>25</filter-skip> <!-- 4hz -->
-  <actuator-skip>25</actuator-skip>
-  <pilot-skip>25</pilot-skip>
+  <imu-skip>19</imu-skip> <!-- 9 -->
+  <airdata-skip>19</airdata-skip> <!-- 9 -->
+  <filter-skip>19</filter-skip> <!-- 4hz -->
+  <actuator-skip>19</actuator-skip>
+  <pilot-skip>19</pilot-skip>
   <autopilot-skip>8</autopilot-skip> <!-- 2hz -->
   <health-skip>8</health-skip> <!-- 2hz -->
 
