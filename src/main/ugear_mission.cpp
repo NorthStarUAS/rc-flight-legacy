@@ -90,7 +90,6 @@ void usage()
     printf("--config path        : path to location of configuration file tree\n");
     printf("--log-dir path       : enable onboard data logging to path\n");
     printf("--log-servo in/out   : specify which servo data to log (out=default)\n");
-    printf("--mnav <device>      : specify mnav communication device\n");
     printf("--remote-link on/off : remote link enable or disabled\n");
     printf("--events on/off      : log interesting events to events.txt\n");	
     printf("--display on/off     : dump periodic data to display\n");	
@@ -118,8 +117,6 @@ void timer_handler (int signum)
 
     static int health_counter = 0;
     static int display_counter = 0;
-    static int route_counter = 0;
-    static int command_counter = 0;
     static int flush_counter = 0;
 
     static int count = 0;
@@ -129,8 +126,6 @@ void timer_handler (int signum)
 
     health_counter++;
     display_counter++;
-    route_counter++;
-    command_counter++;
     flush_counter++;
 
     debug1.stop();
@@ -192,15 +187,12 @@ void timer_handler (int signum)
     //
 
     if ( remote_link_on ) {
-	// check for incoming command data (5hz)
-	if ( command_counter >= (HEARTBEAT_HZ / 5) ) {
-	    command_counter = 0;
-	    remote_link_command();
+	// check for incoming command data
+	remote_link_command();
 
-	    // dribble a bit more out of the serial port if there is
-	    // something pending
-	    remote_link_flush_serial();
-	}
+	// dribble a bit more out of the serial port if there is
+	// something pending
+	remote_link_flush_serial();
     }
 
     debug4.stop();
@@ -457,10 +449,6 @@ int main( int argc, char **argv )
             ++iarg;
             log_path.set( argv[iarg] );
             log_to_file = true;
-        } else if ( !strcmp(argv[iarg], "--mnav" )  ) {
-            ++iarg;
-	    p = fgGetNode("/config/sensors/mnav/device", true);
-	    p->setStringValue( argv[iarg] );
         } else if ( !strcmp(argv[iarg], "--remote-link" )  ) {
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) remote_link_on = true;
