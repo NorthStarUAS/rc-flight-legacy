@@ -47,7 +47,8 @@ class FGRouteMgr {
 
 private:
 
-    SGRoute *route;
+    SGRoute *active;
+    SGRoute *standby;
 
     // route configuration tree
     SGPropertyNode *config_props;
@@ -84,7 +85,7 @@ private:
 
     // fgRouteMode mode;
 
-    SGWayPoint make_waypoint( const string& target );
+    SGWayPoint make_waypoint( const string& wpt_string );
 
     bool build();
 
@@ -99,20 +100,26 @@ public:
 
     void update();
 
-    int new_waypoint( const string& tgt_alt );
-    void add_waypoint( const SGWayPoint& wp );
-    void replace_waypoint( const SGWayPoint &wp, int n );
+    // swap the "active" and the "standby" routes, but only if the
+    // "standby" route has some waypoints.
+    bool swap();
 
+    // these modify the "standby" route
+    void clear_standby() {
+	standby->clear();
+    }
+    int new_waypoint( const string& wpt_string );
+    int new_waypoint( const double lon, const double lat, const int mode );
+
+    // returns info on the "active" route
     SGWayPoint get_waypoint( int i ) const {
-        return route->get_waypoint(i);
+        return active->get_waypoint(i);
     }
-
-    SGWayPoint pop_waypoint( int i = 0 );
-
     int size() const {
-        return route->size();
+        return active->size();
     }
 
+    // applies to the "active" route
     bool reposition_pattern( const SGWayPoint &wp, const double hdg );
 };
 

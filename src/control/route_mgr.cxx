@@ -42,7 +42,8 @@
 
 
 FGRouteMgr::FGRouteMgr() :
-    route( new SGRoute ),
+    active( new SGRoute ),
+    standby( new SGRoute ),
     config_props( NULL ),
     lon_node( NULL ),
     lat_node( NULL ),
@@ -66,7 +67,8 @@ FGRouteMgr::FGRouteMgr() :
 
 
 FGRouteMgr::~FGRouteMgr() {
-    delete route;
+    delete standby;
+    delete active;
 }
 
 
@@ -106,7 +108,8 @@ void FGRouteMgr::init( SGPropertyNode *branch ) {
 
     bind();
 
-    route->clear();
+    active->clear();
+    standby->clear();
 
     if ( ! build() ) {
 	printf("Detected an internal inconsistency in the route\n");
@@ -114,6 +117,10 @@ void FGRouteMgr::init( SGPropertyNode *branch ) {
 	printf(" details.");
 	exit(-1);
     }
+
+    // build() constructs the new route in the "standby" slot, swap it
+    // to "active"
+    swap();
 }
 
 
@@ -125,10 +132,10 @@ void FGRouteMgr::update() {
     double target_agl_m = 0;
     double target_msl_m = 0;
 
-    if ( route->size() > 0 ) {
+    if ( active->size() > 0 ) {
 	if ( GPS_age() < 10.0 ) {
 	    // track current waypoint of route (only if we have fresh gps data)
-	    SGWayPoint wp = route->get_current();
+	    SGWayPoint wp = active->get_current();
 	    wp.CourseAndDistance( lon_node->getDoubleValue(),
 				  lat_node->getDoubleValue(),
 				  alt_node->getDoubleValue(),
@@ -139,11 +146,11 @@ void FGRouteMgr::update() {
 	    target_msl_m = wp.get_target_alt_m();
 
 	    if ( wp_distance < 50.0 ) {
-		route->increment_current();
+		active->increment_current();
 	    }
 
 	    // publish current target waypoint
-	    target_waypoint->setIntValue( route->get_waypoint_index() );
+	    target_waypoint->setIntValue( active->get_waypoint_index() );
 	}
     } else {
         // FIXME: we've been commanded to follow a route, but no route
@@ -206,35 +213,23 @@ void FGRouteMgr::update() {
 }
 
 
-void FGRouteMgr::add_waypoint( const SGWayPoint& wp ) {
-    route->add_waypoint( wp );
-}
-
-
-void FGRouteMgr::replace_waypoint( const SGWayPoint& wp, int n ) {
-    if ( n >= 0 && n < route->size() ) {
-        route->replace_waypoint( wp, n );
-    }
-}
-
-
-SGWayPoint FGRouteMgr::pop_waypoint( int n ) {
-    SGWayPoint wp;
-
-    if ( route->size() > 0 ) {
-        if ( n < 0 ) {
-            n = route->size() - 1;
-        }
-        wp = route->get_waypoint(n);
-        route->delete_waypoint(n);
+bool FGRouteMgr::swap() {
+    if ( !standby->size() ) {
+	// standby route is empty
+	return false;
     }
 
-    return wp;
+    SGRoute *tmp;
+    tmp = active;
+    active = standby;
+    standby = tmp;
+
+    return true;
 }
 
 
 bool FGRouteMgr::build() {
-    route->clear();
+    standby->clear();
 
     SGPropertyNode *node;
     int i;
@@ -246,7 +241,7 @@ bool FGRouteMgr::build() {
         // cout << name << endl;
         if ( name == "wpt" ) {
             SGWayPoint wpt( node );
-            route->add_waypoint( wpt );
+            standby->add_waypoint( wpt );
 	} else if ( name == "enable" ) {
 	    // happily ignore this
         } else {
@@ -255,21 +250,41 @@ bool FGRouteMgr::build() {
         }
     }
 
-    printf("loaded %d waypoints\n", route->size());
+    printf("loaded %d waypoints\n", standby->size());
 
     return true;
 }
 
 
-int FGRouteMgr::new_waypoint( const string& target ) {
-    SGWayPoint wp = make_waypoint( target );
-    add_waypoint( wp );
+int FGRouteMgr::new_waypoint( const string& wpt_string )
+{
+    SGWayPoint wp = make_waypoint( wpt_string );
+    standby->add_waypoint( wp );
     return 1;
 }
 
 
-SGWayPoint FGRouteMgr::make_waypoint( const string& tgt ) {
-    string target = tgt;
+int FGRouteMgr::new_waypoint( const double field1, const double field2,
+			      const int mode )
+{
+    if ( mode == 0 ) {
+        // relative waypoint
+	SGWayPoint wp( 0.0, 0.0, -9999.0, -9999.0, 0.0, 0.0, 0.0,
+		       SGWayPoint::SPHERICAL, "" );
+	standby->add_waypoint( wp );
+    } else if ( mode == 1 ) {
+	// absolute waypoint
+	SGWayPoint wp( field1, field1, -9999.0, -9999.0, 0.0, field2, field1,
+		       SGWayPoint::SPHERICAL, "" );
+	standby->add_waypoint( wp );
+    }
+
+    return 1;
+}
+
+
+SGWayPoint FGRouteMgr::make_waypoint( const string& wpt_string ) {
+    string target = wpt_string;
     double lon = 0.0;
     double lat = 0.0;
     double alt_m = -9999.0;
@@ -309,7 +324,7 @@ bool FGRouteMgr::reposition_pattern( const SGWayPoint &wp, const double hdg )
 	 || fabs(wp.get_target_lat() > 0.0001) )
     {
 	// good location
-	route->refresh_offset_positions( wp, hdg );
+	active->refresh_offset_positions( wp, hdg );
 	if ( display_on ) {
 	    printf( "ROUTE pattern updated: %.6f %.6f (course = %.1f)\n",
 		    wp.get_target_lon(), wp.get_target_lat(),
