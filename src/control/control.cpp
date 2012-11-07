@@ -243,7 +243,6 @@ void control_update(double dt)
 	    FGRouteMgr *route_mgr = route_task->get_route_mgr();
 	    if ( route_mgr != NULL ) {
 		route_size = route_mgr->size();
-		route_task->reposition_if_necessary();
 		if ( route_size > 0 && wp_index < route_size ) {
 		    wp = route_mgr->get_waypoint( wp_index );
 		    index = wp_index;
