@@ -5,6 +5,7 @@
 #include "sg_file.hxx"
 #include "include/globaldefs.h"
 #include "util/sg_path.hxx"
+#include <util/timing.h>
 
 #include "command.hxx"
 #include "messages.hxx"
@@ -894,11 +895,25 @@ int serial_read( SGSerialPort *serial, SGIOChannel *log,
 		 uint8_t *buf, int length )
 {
     int bytes_read = 0;
+    static unsigned int total_bytes = 0;
+    static SGPropertyNode *telemetry_rate_node
+	= fgGetNode("/comms/telemetry-input-bytes-per-sec", true);
 
     bytes_read = serial->read_port( (char *)buf, length );
 
     if ( bytes_read > 0 && log != NULL ) {
 	log->write( (char *)buf, bytes_read );
+    }
+
+    if ( bytes_read > 0 ) {
+	static double first_read_sec = get_Time();
+	double current_read_sec = get_Time();
+	total_bytes += bytes_read;
+	double elapsed_sec = current_read_sec - first_read_sec;
+	if ( elapsed_sec > 0.0 ) {
+	    double byte_rate = total_bytes / elapsed_sec;
+	    telemetry_rate_node->setDoubleValue(byte_rate);
+	}
     }
 
     return bytes_read;
