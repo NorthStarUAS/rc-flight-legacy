@@ -434,6 +434,26 @@ static void remote_link_execute_command( const string command ) {
 	home_lat_node->setDoubleValue( lat );
 	home_azimuth_node->setDoubleValue( azimuth_deg );
 	home_set_node->setBoolValue( true );
+    } else if ( token[0] == "route" && token.size() >= 4 ) {
+	// find the active route manager
+	UGTaskRoute *route_task
+	    = (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
+	if ( route_task != NULL ) {
+	    FGRouteMgr *route_mgr = route_task->get_route_mgr();
+	    if ( route_mgr != NULL ) {
+		route_mgr->clear_standby();
+		unsigned int i = 1;
+		while ( i + 3 <= token.size() ) {
+		    int mode = atoi( token[i].c_str() );
+		    double field1 = atof( token[i+1].c_str() );
+		    double field2 = atof( token[i+2].c_str() );
+		    route_mgr->new_waypoint( field1, field2, mode );
+		    i += 3;
+		}
+		route_mgr->swap();
+		route_task->reposition();
+	    }
+	}
     } else if ( token[0] == "go" && token.size() == 2 ) {
 	// FIXME: we should push a gohome task, the following code
 	// shouldn't be used any more
