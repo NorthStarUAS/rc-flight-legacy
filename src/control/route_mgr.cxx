@@ -274,7 +274,7 @@ int FGRouteMgr::new_waypoint( const double field1, const double field2,
 	standby->add_waypoint( wp );
     } else if ( mode == 1 ) {
 	// absolute waypoint
-	SGWayPoint wp( field1, field2, -9999.0, -9999.0, 0.0, field2, field1,
+	SGWayPoint wp( field1, field2, -9999.0, -9999.0, 0.0, 0.0, 0.0,
 		       SGWayPoint::SPHERICAL, "" );
 	standby->add_waypoint( wp );
     }
