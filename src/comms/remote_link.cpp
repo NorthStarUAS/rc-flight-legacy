@@ -522,24 +522,46 @@ static void remote_link_execute_command( const string command ) {
         // double alt_ft = atof( token[4].c_str() );
         // SGWayPoint wp( lon, lat, alt_ft * SG_FEET_TO_METER );
         // route_mgr.replace_waypoint( wp, index );
-    } else if ( token[0] == "laned" && token.size() == 4 ) {
-	// set ned-vector lookat mode
-	SGPropertyNode *mode_node
+    } else if ( token[0] == "la" && token.size() == 5 ) {
+	if ( token[1] == "ned" ) {
+	    // set ned-vector lookat mode
+	    SGPropertyNode *mode_node
                 = fgGetNode( "/pointing/lookat-mode", true );
-	mode_node->setStringValue("ned-vector");
-        // specify new lookat ned coordinates
-	double north = atof( token[1].c_str() );
-	SGPropertyNode *north_node
+	    mode_node->setStringValue("ned-vector");
+	    // specify new lookat ned coordinates
+	    double north = atof( token[2].c_str() );
+	    SGPropertyNode *north_node
                 = fgGetNode( "/pointing/vector/north", true );
-	north_node->setDoubleValue( north );
-	double east = atof( token[2].c_str() );
-	SGPropertyNode *east_node
+	    north_node->setDoubleValue( north );
+	    double east = atof( token[3].c_str() );
+	    SGPropertyNode *east_node
                 = fgGetNode( "/pointing/vector/east", true );
-	east_node->setDoubleValue( east );
-	double down = atof( token[3].c_str() );
-	SGPropertyNode *down_node
+	    east_node->setDoubleValue( east );
+	    double down = atof( token[4].c_str() );
+	    SGPropertyNode *down_node
                 = fgGetNode( "/pointing/vector/down", true );
-	down_node->setDoubleValue( down );
+	    down_node->setDoubleValue( down );
+	} else if ( token[1] == "wgs84" ) {
+	    // set wgs84 lookat mode
+	    SGPropertyNode *mode_node
+                = fgGetNode( "/pointing/lookat-mode", true );
+	    mode_node->setStringValue("wgs84");
+	    // specify new lookat ned coordinates
+	    double lon = atof( token[2].c_str() );
+	    SGPropertyNode *lon_node
+                = fgGetNode( "/pointing/wgs84/longitude-deg", true );
+	    lon_node->setDoubleValue( lon );
+	    double lat = atof( token[3].c_str() );
+	    SGPropertyNode *lat_node
+                = fgGetNode( "/pointing/wgs84/latitude-deg", true );
+	    lat_node->setDoubleValue( lat );
+	    SGPropertyNode *ground_node
+		= fgGetNode( "/position/ground-altitude-filter-m", true );
+	    double ground = ground_node->getDoubleValue();
+	    SGPropertyNode *alt_node
+                = fgGetNode( "/pointing/wgs84/altitude-m", true );
+	    alt_node->setDoubleValue( ground );
+	}
     }
 }
 
