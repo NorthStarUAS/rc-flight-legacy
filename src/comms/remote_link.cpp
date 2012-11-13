@@ -467,8 +467,6 @@ static void remote_link_execute_command( const string command ) {
 		    route_mgr->new_waypoint( field1, field2, mode );
 		    i += 3;
 		}
-		route_mgr->swap();
-		route_task->reposition();
 	    }
 	}
     } else if ( token[0] == "route_end" && token.size() == 1 ) {
