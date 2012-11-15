@@ -135,10 +135,18 @@ void control_reinit() {
 
 void control_update(double dt)
 {
+    // FIXME: there's probably a better place than this, but we need
+    // to update the pattern routes every frame (even if the route
+    // task is not active) and so the code to do this is going here
+    // for now.
+    UGTaskRoute *route_task
+	= (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
+    if ( route_task != NULL ) {
+	route_task->reposition_if_necessary();
+    }
+
     static string last_fcs_mode = "";
-
     string fcs_mode = fcs_mode_node->getStringValue();
-
     if ( ap_master_switch_node->getBoolValue() ) {
 	if ( last_fcs_mode != fcs_mode ) {
 	    if ( event_log_on ) {
