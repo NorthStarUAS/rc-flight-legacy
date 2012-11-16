@@ -38,12 +38,6 @@ static FGXMLAutopilot ap;
 // autopilot control properties
 static SGPropertyNode *ap_master_switch_node = NULL;
 static SGPropertyNode *fcs_mode_node = NULL;
-//static SGPropertyNode *ap_heading_mode_node = NULL;
-//static SGPropertyNode *ap_roll_mode_node = NULL;
-//static SGPropertyNode *ap_yaw_mode_node = NULL;
-//static SGPropertyNode *ap_altitude_mode_node = NULL;
-//static SGPropertyNode *ap_speed_mode_node = NULL;
-//static SGPropertyNode *ap_pitch_mode_node = NULL;
 
 static SGPropertyNode *heading_lock_node = NULL;
 static SGPropertyNode *roll_lock_node = NULL;
@@ -60,11 +54,8 @@ static SGPropertyNode *ned_d_node = NULL;
 
 static SGPropertyNode *roll_deg_node = NULL;
 static SGPropertyNode *pitch_deg_node = NULL;
-static SGPropertyNode *cur_speed_node = NULL;
-static SGPropertyNode *initial_speed_node = NULL;
 static SGPropertyNode *target_roll_deg_node = NULL;
 static SGPropertyNode *target_pitch_base_deg_node = NULL;
-static SGPropertyNode *target_speed_node = NULL;
 
 // console/logging property nodes
 static SGPropertyNode *ap_console_skip = NULL;
@@ -74,12 +65,6 @@ static SGPropertyNode *ap_logging_skip = NULL;
 static void bind_properties() {
     ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
     fcs_mode_node = fgGetNode("/config/fcs/mode", true);
-    // ap_heading_mode_node = fgGetNode("/autopilot/heading-mode", true);
-    // ap_roll_mode_node = fgGetNode("/autopilot/roll-mode", true);
-    // ap_yaw_mode_node = fgGetNode("/autopilot/yaw-mode", true);
-    // ap_altitude_mode_node = fgGetNode("/autopilot/altitude-mode", true);
-    // ap_speed_mode_node = fgGetNode("/autopilot/speed-mode", true);
-    // ap_pitch_mode_node = fgGetNode("/autopilot/pitch-mode", true);
 
     heading_lock_node = fgGetNode("/autopilot/locks/heading", true);
     roll_lock_node = fgGetNode("/autopilot/locks/roll", true);
@@ -96,13 +81,10 @@ static void bind_properties() {
 
     roll_deg_node = fgGetNode("/orientation/roll-deg", true);
     pitch_deg_node = fgGetNode("/orientation/pitch-deg", true);
-    cur_speed_node = fgGetNode("/velocity/airspeed-kt", true);
-    initial_speed_node = fgGetNode("/config/fcs/initial-speed-kt", true);
     target_roll_deg_node
 	= fgGetNode("/autopilot/settings/target-roll-deg", true);
     target_pitch_base_deg_node
 	= fgGetNode("/autopilot/settings/target-pitch-base-deg", true);
-    target_speed_node = fgGetNode("/autopilot/settings/target-speed-kt", true);
 
     ap_console_skip = fgGetNode("/config/remote-link/autopilot-skip", true);
     ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
@@ -151,13 +133,6 @@ void control_update(double dt)
 	if ( last_fcs_mode != fcs_mode ) {
 	    if ( event_log_on ) {
 		event_log( "control mode changed to:", fcs_mode.c_str() );
-	    }
-
-	    // set default target speed if not overridden by operator
-	    float target_speed_kt = target_speed_node->getFloatValue();
-	    float initial_speed_kt = initial_speed_node->getFloatValue();
-	    if ( target_speed_kt < 0.1 ) {
-		target_speed_node->setFloatValue( initial_speed_kt );
 	    }
 
 	    // turn on pointing (universally for now)
