@@ -59,9 +59,6 @@
       <!-- <autopilot include="autopilots/Rascal110-pitchleveler.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-fgfs.xml" /> -->
       <!-- <autopilot include="autopilots/FlyCamOne3.xml" /> -->
-
-      <!-- set initial target speed when autopilot is activated -->
-      <initial-speed-kt>30</initial-speed-kt>
     </fcs>
 
     <!-- Primary mission selection and configuration. -->
