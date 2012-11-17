@@ -46,7 +46,7 @@
   <sequential-tasks>
     <task>
       <name>launch</name>
-      <speed-kts>40</speed-kts>
+      <speed-kt>40</speed-kt>
       <completion-alt-ft>200</completion-alt-ft>
       <steering-gain>0.025</steering-gain>
       <max-steer>0.5</max-steer>
