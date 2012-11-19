@@ -102,7 +102,7 @@
       <value>altitude-hold</value>
     </enable>
     <input>
-      <prop>/velocities/vertical-speed-fps</prop>
+      <prop>/velocities/pressure-vertical-speed-fps</prop>
     </input>
     <reference>
       <prop>/autopilot/internal/target-climb-rate-fps</prop>
