@@ -98,7 +98,7 @@
       <value>throttle</value>
     </enable>
     <input>
-      <prop>/velocity/vertical-speed-fps</prop>
+      <prop>/velocity/pressure-vertical-speed-fps</prop>
     </input>
     <reference>
       <prop>/autopilot/internal/target-climb-rate-fps</prop>

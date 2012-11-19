@@ -52,10 +52,10 @@ void UGPacketizer::bind_airdata_nodes() {
     airdata_airspeed_node = fgGetNode("/velocity/airspeed-kt", true);
 
     // select one of the following climb rate sources
-    airdata_climb_fps_node
-	= fgGetNode("/sensors/air-data/vertical-speed-fps",true);
     // airdata_climb_fps_node
-    //     = fgGetNode("/velocity/pressure-vertical-speed-fps",true);
+    //     = fgGetNode("/sensors/air-data/vertical-speed-fps",true);
+    airdata_climb_fps_node
+	= fgGetNode("/velocity/pressure-vertical-speed-fps",true);
 
     airdata_accel_ktps_node = fgGetNode("/acceleration/airspeed-ktps",true);
     airdata_wind_dir_node = fgGetNode("/filters/wind-est/wind-dir-deg", true);
