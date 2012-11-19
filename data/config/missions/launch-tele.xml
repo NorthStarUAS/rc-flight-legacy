@@ -46,7 +46,7 @@
   <sequential-tasks>
     <task>
       <name>launch</name>
-      <speed-kt>35</speed-kt>
+      <speed-kt>25</speed-kt>
       <completion-alt-ft>200</completion-alt-ft>
       <steering-gain>0.025</steering-gain>
       <max-steer>0.5</max-steer>
@@ -58,7 +58,7 @@
       <name>route</name>
       <route include="../routes/bowtie-300m.xml" />
       <altitude-agl-ft>500</altitude-agl-ft>
-      <speed-kt>45</speed-kt>
+      <speed-kt>30</speed-kt>
       <timed>0</timed>
       <loop>0</loop>
     </task>
