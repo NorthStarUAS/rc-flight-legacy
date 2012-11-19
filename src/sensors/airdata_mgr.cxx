@@ -206,13 +206,13 @@ static void update_pressure_helpers() {
     // compute rate of climb based on pressure altitude change
     float climb = (altitude_filt - altitude_filt_last) / dt;
     altitude_filt_last = altitude_filt;
-    climb_filt = 0.97 * climb_filt + 0.03 * climb;
+    climb_filt = 0.95 * climb_filt + 0.05 * climb;
 
     // compute a forward acceleration value based on pitot speed
     // change
     float accel = (airspeed_filt - airspeed_filt_last) / dt;
     airspeed_filt_last = airspeed_filt;
-    accel_filt = 0.8 * accel_filt + 0.2 * accel;
+    accel_filt = 0.9 * accel_filt + 0.1 * accel;
 
     // determine ground reference altitude.  Average filter altitude
     // over first 30 seconds the filter becomes active.
@@ -237,7 +237,7 @@ static void update_pressure_helpers() {
     agl_alt_ft_node->setDoubleValue( (altitude_filt - ground_alt_filter)
 				     * SG_METER_TO_FEET );
     vert_fps_node->setDoubleValue( climb_filt * SG_METER_TO_FEET );
-    forward_accel_node->setDoubleValue( accel_filt * SG_MPS_TO_KT );
+    forward_accel_node->setDoubleValue( accel_filt );
 
     // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
     //        altitude_filt, navpacket.alt, true_alt_m, climb_filt);
