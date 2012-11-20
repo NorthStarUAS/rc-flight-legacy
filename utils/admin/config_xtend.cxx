@@ -111,18 +111,23 @@ int main(int argc, char **argv ) {
     string power_level = "2";
     string stream_limit = "400";
 
-    if ( argc == 1 ) {
+    if ( argc == 2 ) {
 	query_only = true;
-    } else if ( argc == 3 ) {
-	power_level = argv[1];
-	stream_limit = argv[2];
+	device_name = argv[1];
+    } else if ( argc == 4 ) {
+	device_name = argv[1];
+	power_level = argv[2];
+	stream_limit = argv[3];
     } else {
-	printf("usage: %s <power_code> <stream_limit_bytes_hex>\n", argv[0]);
+	printf("usage: %s <dev> [ <power_code> <stream_limit_bytes_hex> ]\n",
+	       argv[0]);
+	printf("  dev: device node\n");
 	printf("  power code: 0=1mw 1=10mw 2=100mw 3=500mw 4=1000mw\n");
 	printf("  stream_limit_bytes: sender inserts a pause after this many bytes to\n");
 	printf("      emulate full duplex operations.\n");
 	printf("\n");
-	printf("Example: %s 2 400\n", argv[0]);
+	printf("Example: %s /dev/ttyUSB0\n", argv[0]);
+	printf("Example: %s /dev/ttyO2 2 400\n", argv[0]);
 	return(-1);
     }
     
