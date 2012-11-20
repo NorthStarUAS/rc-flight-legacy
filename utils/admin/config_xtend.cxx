@@ -78,7 +78,6 @@ bool xtend_send( const char *payload ) {
 
 
 static bool xtend_read_line( char *payload ) {
-    static int state = 0;
     static int counter = 0;
     int len;
     char input[8];
@@ -107,7 +106,27 @@ static bool xtend_read_line( char *payload ) {
 }
 
 
-int main() {
+int main(int argc, char **argv ) {
+    bool query_only = false;
+    string power_level = "2";
+    string stream_limit = "400";
+
+    if ( argc == 1 ) {
+	query_only = true;
+    } else if ( argc == 3 ) {
+	power_level = argv[1];
+	stream_limit = argv[2];
+    } else {
+	printf("usage: %s <power_code> <stream_limit_bytes_hex>\n", argv[0]);
+	printf("  power code: 0=1mw 1=10mw 2=100mw 3=500mw 4=1000mw\n");
+	printf("  stream_limit_bytes: sender inserts a pause after this many bytes to\n");
+	printf("      emulate full duplex operations.\n");
+	printf("\n");
+	printf("Example: %s 2 400\n", argv[0]);
+	return(-1);
+    }
+    
+
     char reply[256];
 
     xtend_open( B115200 );
@@ -119,11 +138,12 @@ int main() {
     xtend_read_line(reply);
     printf("reply = %s\n", reply);
 
+    printf("\n");
     printf("Querying current settings...\n");
 
     xtend_send( "ATBD\r" );
     xtend_read_line(reply);
-    printf("reply = %s\n", reply);
+    printf("reply = %s: ", reply);
     if ( reply[0] == '3' ) {
 	printf("baud = 9600\n");
     } else if ( reply[0] == '7' ) {
@@ -132,7 +152,7 @@ int main() {
 
     xtend_send( "ATBR\r" );
     xtend_read_line(reply);
-    printf("reply = %s\n", reply);
+    printf("reply = %s: ", reply);
     if ( reply[0] == '0' ) {
 	printf("RF baud = 9600\n");
     } else if ( reply[0] == '1' ) {
@@ -145,7 +165,7 @@ int main() {
 
     xtend_send( "ATPL\r" );
     xtend_read_line(reply);
-    printf("reply = %s\n", reply);
+    printf("reply = %s: ", reply);
     if ( reply[0] == '0' ) {
 	printf("1 mW\n");
     } else if ( reply[0] == '1' ) {
@@ -170,56 +190,39 @@ int main() {
     xtend_read_line(reply);
     printf("reply = 0x%s\n", reply);
 
-    printf("\n");
+    if ( !query_only ) {
+	printf("\n");
+	printf("Setting parameters...\n");
 
-    printf("Setting parameters...\n");
+	xtend_send( "ATBD7\r" );
+	xtend_read_line(reply);
+	printf("reply = %s\n", reply);
 
-    xtend_send( "ATBD7\r" );
-    xtend_read_line(reply);
-    printf("reply = %s\n", reply);
-    if ( reply[0] == '3' ) {
-	printf("baud = 9600\n");
-    } else if ( reply[0] == '7' ) {
-	printf("baud = 115,200\n");
+	xtend_send( "ATBR1\r" );
+	xtend_read_line(reply);
+	printf("reply = %s\n", reply);
+
+	xtend_send( "ATPL" );
+	xtend_send( power_level.c_str() );
+	xtend_send( "\r" );
+	xtend_read_line(reply);
+	printf("reply = %s\n", reply);
+
+	xtend_send( "ATTT400\r" );
+	xtend_read_line(reply);
+	printf("reply = %s\n", reply);
+
+	printf("\n");
+	printf("Writing settings to non-volatile memory\n");
+
+	xtend_send( "ATWR\r" );
+	xtend_read_line(reply);
+	printf("reply = %s\n", reply);
+
+	xtend_send( "ATCN\r" );
+	xtend_read_line(reply);
+	printf("reply = %s\n", reply);
     }
-
-    xtend_send( "ATBR1\r" );
-    xtend_read_line(reply);
-    printf("reply = %s\n", reply);
-    if ( reply[0] == '0' ) {
-	printf("RF baud = 9600\n");
-    } else if ( reply[0] == '1' ) {
-	printf("RF baud = 115,200\n");
-    }
-
-    xtend_send( "ATPL2\r" );
-    xtend_read_line(reply);
-    printf("reply = %s\n", reply);
-    if ( reply[0] == '0' ) {
-	printf("1 mW\n");
-    } else if ( reply[0] == '1' ) {
-	printf("10 mW\n");
-    } else if ( reply[0] == '2' ) {
-	printf("100 mW\n");
-    } else if ( reply[0] == '3' ) {
-	printf("500 mW\n");
-    } else if ( reply[0] == '4' ) {
-	printf("1000 mW\n");
-    }
-
-    xtend_send( "ATTT400\r" );
-    xtend_read_line(reply);
-    printf("reply = %s\n", reply);
-
-    printf("writing settings to non-volitile memory\n");
-
-    xtend_send( "ATWR\r" );
-    xtend_read_line(reply);
-    printf("reply = %s\n", reply);
-
-    xtend_send( "ATCN\r" );
-    xtend_read_line(reply);
-    printf("reply = %s\n", reply);
 
     close(fd);
 
