@@ -37,6 +37,8 @@ class UGPacketizer {
 
     // air data property nodes
     SGPropertyNode *airdata_timestamp_node;
+    SGPropertyNode *airdata_pressure_node;
+    SGPropertyNode *airdata_temperature_node;
     SGPropertyNode *airdata_altitude_node;
     SGPropertyNode *airdata_airspeed_node;
     SGPropertyNode *airdata_climb_fps_node;

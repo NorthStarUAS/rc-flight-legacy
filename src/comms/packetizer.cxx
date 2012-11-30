@@ -41,11 +41,13 @@ void UGPacketizer::bind_imu_nodes() {
 // initialize air data property nodes 
 void UGPacketizer::bind_airdata_nodes() {
     airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
+    airdata_pressure_node = fgGetNode("/sensors/air-data/pressure-mbar", true);
+    airdata_temperature_node = fgGetNode("/sensors/air-data/temp-degC", true);
 
     // select one of the following altitude sources
-    // airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
+    airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
     // airdata_altitude_node = fgGetNode("/position/altitude-pressure-smoothed-m", true);
-    airdata_altitude_node = fgGetNode("/position/altitude-true-combined-m", true);
+    // airdata_altitude_node = fgGetNode("/position/altitude-true-combined-m", true);
 
     // select one of the following airspeed sources
     // airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
@@ -266,6 +268,12 @@ int UGPacketizer::packetize_airdata( uint8_t *buf ) {
     double time = airdata_timestamp_node->getDoubleValue();
     *(double *)buf = time; buf += 8;
 
+    uint16_t mbar = (uint16_t)(airdata_pressure_node->getFloatValue() * 10);
+    *(uint16_t *)buf = mbar; buf += 2;
+
+    uint16_t temp = (uint16_t)(airdata_temperature_node->getFloatValue() * 10);
+    *(uint16_t *)buf = temp; buf += 2;
+
     int16_t airspeed = (int16_t)(airdata_airspeed_node->getFloatValue() * 100);
     *(int16_t *)buf = airspeed; buf += 2;
 
@@ -296,6 +304,9 @@ int UGPacketizer::packetize_airdata( uint8_t *buf ) {
 
 void UGPacketizer::decode_airdata( uint8_t *buf ) {
     double time = *(double *)buf; buf += 8;
+
+    uint16_t mbar = *(uint16_t *)buf; buf += 2;
+    uint16_t temp = *(uint16_t *)buf; buf += 2;
     int16_t airspeed = *(int16_t *)buf; buf += 2;
     float alt = *(float *)buf; buf += 4;
     int16_t climb = *(int16_t *)buf; buf += 2;
@@ -304,10 +315,10 @@ void UGPacketizer::decode_airdata( uint8_t *buf ) {
     uint8_t wind_kts = *(uint8_t *)buf; buf += 1;
     uint8_t status = *(uint8_t *)buf; buf += 1;
 
-    printf("t = %.2f %.1f %.1f %.2f %.2f %.1f %.1f %d\n",
-	   time, (float)airspeed/100.0, alt, (float)climb/10.0,
-	   (float)accel/100.0, (float)wind_deg/100.0, (float)wind_kts/4.0,
-	   status );
+    printf("t = %.2f %.1f %.1f %.1f %.1f %.2f %.2f %.1f %.1f %d\n",
+	   time, (float)mbar/10, (float)temp/10.0, (float)airspeed/100.0,
+	   alt, (float)climb/10.0, (float)accel/100.0, (float)wind_deg/100.0,
+	   (float)wind_kts/4.0, status );
 }
 
 
