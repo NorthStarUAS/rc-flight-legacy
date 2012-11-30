@@ -272,48 +272,12 @@ void timer_handler (int signum)
 	main_prof.stats();
     }
 
-    // round robin flushing of logging streams (update at 0.5 hz)
-    if ( flush_counter >= (HEARTBEAT_HZ * 0.5) ) {
+    // round robin flushing of logging streams (update at 1 hz)
+    if ( flush_counter >= HEARTBEAT_HZ ) {
 	datalog_prof.start();
 	flush_counter = 0;
-	static int flush_state = 0;
 	if ( log_to_file ) {
-	    switch ( flush_state ) {
-	    case 0:
-		flush_gps();
-		flush_state++;
-		break;
-	    case 1:
-		flush_imu();
-		flush_state++;
-		break;
-	    case 2:
-		flush_airdata();
-		flush_state++;
-		break;
-	    case 3:
-		flush_filter();
-		flush_state++;
-		break;
-	    case 4:
-		flush_actuator();
-		flush_state++;
-		break;
-	    case 5:
-		flush_pilot();
-		flush_state++;
-		break;
-	    case 6:
-		flush_ap();
-		flush_state++;
-		break;
-	    case 7:
-		flush_health();
-		flush_state++;
-		break;
-	    default:
-		flush_state = 0;
-	    }
+	    flush_data();
 	}
 	datalog_prof.stop();
     }
