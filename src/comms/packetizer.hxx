@@ -8,6 +8,23 @@
 #include "props/props.hxx"
 
 
+#define START_OF_MSG0 147	// 0x93
+#define START_OF_MSG1 224	// 0xE0
+
+enum ugPacketType {
+    GPS_PACKET_V1 = 0x00,
+    IMU_PACKET_V1 = 0x01,
+    FILTER_PACKET_V1 = 0x02,
+    ACTUATOR_PACKET_V1 = 0x03,
+    PILOT_INPUT_PACKET_V1 = 0x04,
+    AP_STATUS_PACKET_V1 = 0x05,
+    AIR_DATA_PACKET_V1 = 0x06,
+    SYSTEM_HEALTH_PACKET_V1 = 0x07,
+    AIR_DATA_PACKET_V2 = 0x08,
+    AIR_DATA_PACKET_V3 = 0x09,
+};
+
+
 class UGPacketizer {
 
     // gps property nodes

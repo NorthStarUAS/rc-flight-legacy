@@ -271,8 +271,8 @@ int UGPacketizer::packetize_airdata( uint8_t *buf ) {
     uint16_t mbar = (uint16_t)(airdata_pressure_node->getFloatValue() * 10);
     *(uint16_t *)buf = mbar; buf += 2;
 
-    uint16_t temp = (uint16_t)(airdata_temperature_node->getFloatValue() * 10);
-    *(uint16_t *)buf = temp; buf += 2;
+    int16_t temp = (int16_t)(airdata_temperature_node->getFloatValue() * 10);
+    *(int16_t *)buf = temp; buf += 2;
 
     int16_t airspeed = (int16_t)(airdata_airspeed_node->getFloatValue() * 100);
     *(int16_t *)buf = airspeed; buf += 2;
@@ -306,7 +306,7 @@ void UGPacketizer::decode_airdata( uint8_t *buf ) {
     double time = *(double *)buf; buf += 8;
 
     uint16_t mbar = *(uint16_t *)buf; buf += 2;
-    uint16_t temp = *(uint16_t *)buf; buf += 2;
+    int16_t temp = *(int16_t *)buf; buf += 2;
     int16_t airspeed = *(int16_t *)buf; buf += 2;
     float alt = *(float *)buf; buf += 4;
     int16_t climb = *(int16_t *)buf; buf += 2;
