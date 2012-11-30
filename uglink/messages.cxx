@@ -138,6 +138,25 @@ void UGTrack::parse_msg( const int id, char *buf,
 	       airpacket->climb_fpm, airpacket->acceleration,
 	       airpacket->wind_dir, airpacket->wind_speed,
 	       airpacket->pitot_scale, airpacket->status ); */
+    } else if ( id == AIR_DATA_PACKET_V3 ) {
+	airpacket->timestamp = *(double *)buf; buf += 8;
+	airpacket->pressure = *(uint16_t *)buf / 10.0; buf += 2;
+	airpacket->temperature = *(int16_t *)buf / 10.0; buf += 2;
+	airpacket->airspeed = *(int16_t *)buf / 100.0; buf += 2;
+	airpacket->altitude = *(float *)buf; buf += 4;
+	airpacket->climb_fpm = *(int16_t *)buf / 10.0; buf += 2;
+	airpacket->acceleration = *(int16_t *)buf / 100.0; buf += 2;
+	airpacket->wind_dir = *(uint16_t *)buf / 100.0; buf += 2;
+	airpacket->wind_speed = *(uint8_t *)buf / 4.0; buf += 1;
+	airpacket->pitot_scale = *(uint8_t *)buf / 100.0; buf += 1;
+	airpacket->status = *(uint8_t *)buf; buf += 1;
+	
+	printf("air3 %.2f %.1f %.1f %.1f %.1f %.2f %.2f %.1f %.1f %.2f %d\n",
+	       airpacket->timestamp, airpacket->pressure,
+	       airpacket->temperature, airpacket->airspeed, airpacket->altitude,
+	       airpacket->climb_fpm, airpacket->acceleration,
+	       airpacket->wind_dir, airpacket->wind_speed,
+	       airpacket->pitot_scale, airpacket->status );
     } else if ( id == FILTER_PACKET_V1 ) {
 	filterpacket->timestamp = *(double *)buf; buf += 8;
 	filterpacket->lat = *(double *)buf; buf += 8;
@@ -267,15 +286,15 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
     static double alt_min = 999999999.0;
 
     // open the file
-    SGFile input( file );
-    if ( !input.open( SG_IO_IN ) ) {
-        cout << "Cannot open file: " << file << endl;
+    gzFile input;
+    if ( (input = gzopen( file.c_str(), "rb" )) == NULL ) {
+        printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
-    while ( ! input.eof() ) {
+    while ( ! gzeof(input) ) {
         // cout << "looking for next message ..." << endl;
-        int id = next_message( &input, NULL, &gpspacket, &imupacket,
+        int id = next_message( input, NULL, &gpspacket, &imupacket,
 			       &airpacket, &filterpacket, &actpacket,
 			       &pilotpacket, &appacket, &healthpacket,
 			       ignore_checksum );
@@ -287,16 +306,16 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
 	    {
 		double interval = gpspacket.gps_time - gps_time;
 		if ( gps_time < 0.00001 || interval < 1000000 ) {
-			printf("gps interval %.3f (last=%.3f new=%.3f)\n",
-			       interval, gps_time, gpspacket.gps_time);
-			gps_data.push_back( gpspacket );
-			gps_time = gpspacket.gps_time;
-			if ( gpspacket.alt < alt_min ) {
-			    alt_min = gpspacket.alt;
-			}
-			if ( gpspacket.alt > alt_max ) {
-			    alt_max = gpspacket.alt;
-			}
+		    /* printf("gps interval %.3f (last=%.3f new=%.3f)\n",
+		       interval, gps_time, gpspacket.gps_time); */
+		    gps_data.push_back( gpspacket );
+		    gps_time = gpspacket.gps_time;
+		    if ( gpspacket.alt < alt_min ) {
+			alt_min = gpspacket.alt;
+		    }
+		    if ( gpspacket.alt > alt_max ) {
+			alt_max = gpspacket.alt;
+		    }
 		} else {
 		    cout << "oops gps time too far in future: "
 			 << gpspacket.gps_time << " > " << gps_time << endl;
@@ -311,7 +330,7 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
             } else {
                 cout << "oops imu back in time" << endl;
             }
-        } else if ( id == AIR_DATA_PACKET_V1 || id == AIR_DATA_PACKET_V2 ) {
+        } else if ( id == AIR_DATA_PACKET_V1 || id == AIR_DATA_PACKET_V2 || id == AIR_DATA_PACKET_V3 ) {
             if ( airpacket.timestamp > air_time ) {
                 air_data.push_back( airpacket );
                 air_time = airpacket.timestamp;
@@ -747,8 +766,9 @@ bool UGTrack::export_text_tab( const string &path ) {
     airdata airpacket;
     for ( int i = 0; i < airdata_size(); i++ ) {
 	airpacket = get_airdatapt(i);
-	fprintf( air_fd, "%.3f\t%.1f\t%.2f\t%.2f\t%.2f\t%.1f\t%.1f\t%.2f\t%d\n",
+	fprintf( air_fd, "%.3f\t%.1f\t%.1f\t%.1f\t%.2f\t%.2f\t%.2f\t%.1f\t%.1f\t%.2f\t%d\n",
 		 airpacket.timestamp,
+		 airpacket.pressure, airpacket.temperature,
 		 airpacket.airspeed, airpacket.altitude, airpacket.climb_fpm,
 		 airpacket.acceleration, airpacket.wind_dir,
 		 airpacket.wind_speed, airpacket.pitot_scale, airpacket.status
@@ -871,26 +891,6 @@ bool UGTrack::export_text_tab( const string &path ) {
 
 // attempt to work around some system dependent issues.  Our read can
 // return < data than we want.
-int myread( SGIOChannel *ch, SGIOChannel *log, char *buf, int length ) {
-    bool myeof = false;
-    int result = 0;
-    if ( !myeof ) {
-      result = ch->read( buf, length );
-      // cout << "wanted " << length << " read " << result << " bytes" << endl;
-      if ( ch->get_type() == sgFileType ) {
-	myeof = ((SGFile *)ch)->eof();
-      }
-    }
-
-    if ( result > 0 && log != NULL ) {
-        log->write( buf, result );
-    }
-
-    return result;
-}
-
-// attempt to work around some system dependent issues.  Our read can
-// return < data than we want.
 int serial_read( SGSerialPort *serial, SGIOChannel *log,
 		 uint8_t *buf, int length )
 {
@@ -935,7 +935,7 @@ static void glean_ascii_msgs( const char c ) {
 
 
 // load the next message of a real time data stream
-int UGTrack::next_message( SGIOChannel *ch, SGIOChannel *log,
+int UGTrack::next_message( gzFile fd, SGIOChannel *log,
 			   struct gps *gpspacket, struct imu *imupacket,
 			   struct airdata *airpacket,
 			   struct filter *filterpacket,
@@ -954,46 +954,34 @@ int UGTrack::next_message( SGIOChannel *ch, SGIOChannel *log,
 
     // scan for sync characters
     uint8_t sync0, sync1;
-    myread( ch, log, tmpbuf, 2 );
+    gzread( fd, tmpbuf, 2 );
     sync0 = (unsigned char)tmpbuf[0];
     sync1 = (unsigned char)tmpbuf[1];
     while ( (sync0 != START_OF_MSG0 || sync1 != START_OF_MSG1) && !myeof ) {
         sync0 = sync1;
-        myread( ch, log, tmpbuf, 1 ); sync1 = (unsigned char)tmpbuf[0];
+        gzread( fd, tmpbuf, 1 ); sync1 = (unsigned char)tmpbuf[0];
         cout << "scanning for start of message "
 	     << (unsigned int)sync0 << " " << (unsigned int)sync1
-	     << ", eof = " << ch->eof() << endl;
-        if ( ch->get_type() == sgFileType ) {
-            myeof = ((SGFile *)ch)->eof();
-        }
+	     << ", eof = " << gzeof(fd) << endl;
+	myeof = gzeof(fd);
     }
 
-    cout << "found start of message ..." << endl;
+    // cout << "found start of message ..." << endl;
 
     // read message id and size
-    myread( ch, log, tmpbuf, 2 );
+    gzread( fd, tmpbuf, 2 );
     uint8_t id = (unsigned char)tmpbuf[0];
     uint8_t size = (unsigned char)tmpbuf[1];
     // cout << "message = " << (int)id << " size = " << (int)size << endl;
 
     // load message
-    if ( ch->get_type() == sgFileType ) {
-        int count = myread( ch, log, savebuf, size );
-        if ( count != size ) {
-            cout << "ERROR: didn't read enough bytes!" << endl;
-        }
-    } else {
-#ifdef READ_ONE_BY_ONE
-        for ( int i = 0; i < size; ++i ) {
-            myread( ch, log, tmpbuf, 1 ); savebuf[i] = tmpbuf[0];
-        }
-#else
-	myread( ch, log, savebuf, size );
-#endif
+    int count = gzread( fd, savebuf, size );
+    if ( count != size ) {
+	cout << "ERROR: didn't read enough bytes!" << endl;
     }
 
     // read checksum
-    myread( ch, log, tmpbuf, 2 );
+    gzread( fd, tmpbuf, 2 );
     uint8_t cksum0 = (unsigned char)tmpbuf[0];
     uint8_t cksum1 = (unsigned char)tmpbuf[1];
     
