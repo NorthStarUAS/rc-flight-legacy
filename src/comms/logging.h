@@ -27,14 +27,7 @@ void log_pilot( uint8_t *buf, int size, int skip_count );
 void log_ap( uint8_t *buf, int size, int skip_count );
 void log_health( uint8_t *buf, int size, int skip_count );
 
-void flush_gps();
-void flush_imu();
-void flush_airdata();
-void flush_filter();
-void flush_actuator();
-void flush_pilot();
-void flush_ap();
-void flush_health();
+void flush_data();
 
 bool event_log( const char *hdr, const char *msg );
 

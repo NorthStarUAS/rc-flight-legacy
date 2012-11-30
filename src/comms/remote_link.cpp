@@ -20,6 +20,7 @@
 #include "logging.h"
 #include "netBuffer.h"		// for netBuffer structure
 #include "netSocket.h"
+#include "packetizer.hxx"
 #include "serial.hxx"
 
 #include "remote_link.h"

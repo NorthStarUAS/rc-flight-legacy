@@ -13,17 +13,13 @@
 #include "sensors/gps_mgr.hxx"
 #include "util/timing.h"
 
+#include "checksum.h"
+#include "packetizer.hxx"
+
 #include "logging.h"
 
 // global variables for data file logging
-static gzFile fgps = NULL;
-static gzFile fimu = NULL;
-static gzFile fair = NULL;
-static gzFile ffilter = NULL;
-static gzFile fact = NULL;
-static gzFile fpilot = NULL;
-static gzFile fap = NULL;
-static gzFile fhealth = NULL;
+static gzFile fdata = NULL;
 static FILE *fevent = NULL;
 
 bool log_to_file = false;  // log to file is enabled/disabled
@@ -65,65 +61,23 @@ int max_flight_num() {
 bool logging_init() {
     // find the biggest flight number logged so far
     int max = max_flight_num();
-    printf("Max log dir is flt%05d\n", max);
+    printf("Max log dir index is %05d\n", max);
 
     // make the new logging directory
     char new_dir[256];
     snprintf( new_dir, 256, "%s/flt%05d", log_path.c_str(), max+1 );
     printf("Creating log dir: %s\n", new_dir);
-    int result = mkdir( new_dir, 01777 );
+    int result = mkdir( new_dir, 00777 );
     if ( result != 0 ) {
         printf("Error: creating %s\n", new_dir);
     }
 
-    // open all the logging files
+    // open the logging files
 
     SGPath file;
 
-    file = new_dir; file.append( "imu.dat.gz" );
-    if ( (fimu = gzopen( file.c_str(), "wb" )) == NULL ) {
-        printf("Cannot open %s\n", file.c_str());
-        return false;
-    }
-
-    file = new_dir; file.append( "gps.dat.gz" );
-    if ( (fgps = gzopen( file.c_str(), "wb" )) == NULL ) {
-        printf("Cannot open %s\n", file.c_str());
-        return false;
-    }
-
-    file = new_dir; file.append( "air.dat.gz" );
-    if ( (fair = gzopen( file.c_str(), "wb" )) == NULL ) {
-        printf("Cannot open %s\n", file.c_str());
-        return false;
-    }
-
-    file = new_dir; file.append( "filter.dat.gz" );
-    if ( (ffilter = gzopen( file.c_str(), "wb" )) == NULL ) {
-        printf("Cannot open %s\n", file.c_str());
-        return false;
-    }
-
-    file = new_dir; file.append( "actuator.dat.gz" );
-    if ( (fact = gzopen( file.c_str(),"wb" )) == NULL ) {
-        printf("Cannot open %s\n", file.c_str());
-        return false;
-    }
-
-    file = new_dir; file.append( "pilot.dat.gz" );
-    if ( (fpilot = gzopen( file.c_str(),"wb" )) == NULL ) {
-        printf("Cannot open %s\n", file.c_str());
-        return false;
-    }
-
-    file = new_dir; file.append( "health.dat.gz" );
-    if ( (fhealth = gzopen( file.c_str(), "wb" )) == NULL ) {
-        printf("Cannot open %s\n", file.c_str());
-        return false;
-    }
-
-    file = new_dir; file.append( "ap.dat.gz" );
-    if ( (fap = gzopen( file.c_str(), "wb" )) == NULL ) {
+    file = new_dir; file.append( "flight.dat.gz" );
+    if ( (fdata = gzopen( file.c_str(), "wb" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
         return false;
     }
@@ -141,15 +95,55 @@ bool logging_init() {
 bool logging_close() {
     // close files
 
-    gzclose(fimu);
-    gzclose(fgps);
-    gzclose(ffilter);
-    gzclose(fact);
-    gzclose(fpilot);
-    gzclose(fap);
-    gzclose(fhealth);
+    gzclose(fdata);
+    gzclose(fevent);
 
     return true;
+}
+
+
+static int log_write( const uint8_t *buf, const short size ) {
+    return gzwrite( fdata, buf, size );
+}
+
+
+static void log_packet( const uint8_t packet_id,
+			const uint8_t *packet_buf,
+			const int packet_size )
+{
+    const int MAX_PACKET_SIZE = 256;
+
+    // printf(" begin log_packet()\n");
+    uint8_t buf[MAX_PACKET_SIZE];
+    uint8_t *ptr = buf;
+    uint8_t cksum0, cksum1;
+
+    // start of message sync bytes
+    ptr[0] = START_OF_MSG0; ptr[1] = START_OF_MSG1;
+    ptr += 2;
+
+    // packet id (1 byte)
+    ptr[0] = packet_id;
+    ptr += 1;
+
+    // packet size (1 byte)
+    ptr[0] = packet_size;
+    ptr += 1;
+
+    // copy packet data
+    memmove( ptr, packet_buf, packet_size );
+    ptr += packet_size;
+
+    // check sum (2 bytes)
+    ugear_cksum( packet_id, packet_size, packet_buf, packet_size,
+		 &cksum0, &cksum1 );
+    ptr[0] = cksum0; ptr[1] = cksum1;
+    /*if ( packet_id == 2 ) {
+	printf("cksum = %d %d\n", cksum0, cksum1);
+    }*/
+
+    log_write( buf, packet_size + 6 );
+    // printf(" end log_packet()\n");
 }
 
 
@@ -159,6 +153,7 @@ static int my_random( int max ) {
     // printf("log rand(%d) = %d\n", max, result);
     return result;
 }
+
 
 void log_gps( uint8_t *buf, int size, int skip_count ) {
     if ( skip_count < 0 ) { skip_count = 0; }
@@ -171,7 +166,7 @@ void log_gps( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fgps, buf, size );
+    log_packet( GPS_PACKET_V1, buf, size );
 }
 
 
@@ -186,7 +181,7 @@ void log_imu( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fimu, buf, size );
+    log_packet( IMU_PACKET_V1, buf, size );
 }
 
 
@@ -201,7 +196,7 @@ void log_airdata( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fair, buf, size );
+    log_packet( AIR_DATA_PACKET_V3, buf, size );
 }
 
 
@@ -216,7 +211,7 @@ void log_filter( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( ffilter, buf, size );
+    log_packet( FILTER_PACKET_V1, buf, size );
 }
 
 
@@ -231,7 +226,7 @@ void log_actuator( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fact, buf, size );
+    log_packet( ACTUATOR_PACKET_V1, buf, size );
 }
 
 
@@ -246,7 +241,7 @@ void log_pilot( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fpilot, buf, size );
+    log_packet( PILOT_INPUT_PACKET_V1, buf, size );
 }
 
 
@@ -261,7 +256,7 @@ void log_ap( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fap, buf, size );
+    log_packet( AP_STATUS_PACKET_V1, buf, size );
 }
 
 
@@ -276,55 +271,13 @@ void log_health( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    gzwrite( fhealth, buf, size );
+    log_packet( SYSTEM_HEALTH_PACKET_V1, buf, size );
 }
 
 
-void flush_gps() {
-    // printf("flush gps\n");
-    gzflush( fgps, Z_SYNC_FLUSH );
-}
-
-
-void flush_imu() {
-    // printf("flush imu\n");
-    gzflush( fimu, Z_SYNC_FLUSH );
-}
-
-
-void flush_airdata() {
-    // printf("flush airdata\n");
-    gzflush( fair, Z_SYNC_FLUSH );
-}
-
-
-void flush_filter() {
-    // printf("flush filter\n");
-    gzflush( ffilter, Z_SYNC_FLUSH );
-}
-
-
-void flush_actuator() {
-    // printf("flush actuator\n");
-    gzflush( fact, Z_SYNC_FLUSH );
-}
-
-
-void flush_pilot() {
-    // printf("flush pilot\n");
-    gzflush( fpilot, Z_SYNC_FLUSH );
-}
-
-
-void flush_ap() {
-    // printf("flush ap\n");
-    gzflush( fap, Z_SYNC_FLUSH );
-}
-
-
-void flush_health() {
-    // printf("flush ap\n");
-    gzflush( fhealth, Z_SYNC_FLUSH );
+void flush_data() {
+    // printf("flush data\n");
+    gzflush( fdata, Z_SYNC_FLUSH );
 }
 
 
