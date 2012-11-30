@@ -25,6 +25,8 @@ struct imu {
 
 struct airdata {
     double timestamp;
+    float pressure;		// mbar
+    float temperature;		// deg C
     float airspeed;		// knots
     float altitude;		// meters
     float climb_fpm;		// feet per minute

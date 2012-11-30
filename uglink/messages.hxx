@@ -7,8 +7,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <zlib.h>
 
-#include "iochannel.hxx"
+// #include "iochannel.hxx"
 
 #include "globals.hxx"
 #include "serial.hxx"
@@ -29,6 +30,7 @@ enum ugPacketType {
     AIR_DATA_PACKET_V1 = 0x06,
     SYSTEM_HEALTH_PACKET_V1 = 0x07,
     AIR_DATA_PACKET_V2 = 0x08,
+    AIR_DATA_PACKET_V3 = 0x09,
 };
 
 const uint8_t GPS_PACKET_V1_SIZE = 44;
@@ -75,7 +77,7 @@ public:
 
     // read/parse the next message from the specified data stream,
     // returns id # if a valid message found.
-    int next_message( SGIOChannel *ch, SGIOChannel *log,
+    int next_message( gzFile fd, SGIOChannel *log,
                       struct gps *gpspacket, struct imu *imupacket,
 		      struct airdata *airpacket,
 		      struct filter *filterpacket, struct actuator *actpacket,
