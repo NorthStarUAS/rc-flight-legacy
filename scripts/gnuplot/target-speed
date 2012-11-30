@@ -1,2 +1,5 @@
 # plot target speed versus actual speed
-plot "ap.txt" using 1:7 with lines title "Target Speed (kts)", "air.txt" using 1:2 with lines title "Actual Speed (kts)", "air.txt" using 1:5 with lines title "Pitot Accel"
+
+plot "ap.txt" using 1:7 with lines title "Target Speed (kts)", \
+     "air.txt" using 1:4 with lines title "Actual Speed (kts)", \
+     "air.txt" using 1:7 with lines title "Pitot Accel"
