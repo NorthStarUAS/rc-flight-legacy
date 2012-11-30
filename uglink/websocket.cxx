@@ -86,6 +86,8 @@ class WSChannel : public netBufferChannel
 
     // air data property nodes
     SGPropertyNode *airdata_timestamp_node;
+    SGPropertyNode *airdata_pressure_node;
+    SGPropertyNode *airdata_temperature_node;
     SGPropertyNode *airdata_altitude_node;
     SGPropertyNode *airdata_airspeed_node;
     SGPropertyNode *airdata_climb_fpm_node;
@@ -233,6 +235,8 @@ void WSChannel::bind()
     imu_status_node = fgGetNode("/sensors/imu/status", true);
 
     airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
+    airdata_pressure_node = fgGetNode("/sensors/air-data/pressure-mbar", true);
+    airdata_temperature_node = fgGetNode("/sensors/air-data/temperature-degC", true);
     airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-pressure-m", true);
     airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
     airdata_climb_fpm_node
@@ -451,7 +455,7 @@ WSChannel::process_line( string line )
 		    * pitot_scale_node->getDoubleValue();
 		if ( airspeed < 0 ) { airspeed = 0.0; }
 		snprintf( reply, 256,
-			  "update1 %.8f %.8f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %d %d %.0f %.1f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.1f %.3f %.3f %.1f\r\n",
+			  "update1 %.8f %.8f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %d %d %.0f %.1f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.1f %.3f %.3f %.1f %.1f\r\n",
 			  filter_lon_node->getDoubleValue(),
 			  filter_lat_node->getDoubleValue(),
 			  airdata_altitude_node->getDoubleValue(),
@@ -476,7 +480,8 @@ WSChannel::process_line( string line )
 			  ap_speed_node->getDoubleValue(),
 			  pitot_scale_node->getDoubleValue(),
 			  health_input_vcc_node->getFloatValue(),
-			  flight_total_timer->getDoubleValue()
+			  flight_total_timer->getDoubleValue(),
+			  airdata_temperature_node->getDoubleValue()
 			  );
 		encode_send(reply);
 	    } else if ( tokens[1] == "route" ) {
