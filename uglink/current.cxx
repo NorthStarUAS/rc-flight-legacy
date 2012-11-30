@@ -43,6 +43,8 @@ static SGPropertyNode *imu_status_node = NULL;
 
 // air data property nodes
 static SGPropertyNode *airdata_timestamp_node = NULL;
+static SGPropertyNode *airdata_pressure_node = NULL;
+static SGPropertyNode *airdata_temperature_node = NULL;
 static SGPropertyNode *airdata_altitude_node = NULL;
 static SGPropertyNode *airdata_airspeed_node = NULL;
 static SGPropertyNode *airdata_climb_fpm_node = NULL;
@@ -155,6 +157,8 @@ static void bind_imu_nodes() {
 // bind air data property nodes 
 static void bind_airdata_nodes() {
     airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
+    airdata_pressure_node = fgGetNode("/sensors/air-data/pressure-mbar", true);
+    airdata_temperature_node = fgGetNode("/sensors/air-data/temperature-degC", true);
     airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-pressure-m", true);
     airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
     airdata_climb_fpm_node
@@ -305,6 +309,8 @@ static void update_imu_nodes( struct imu *imupacket ) {
 // update air data property nodes 
 static void update_airdata_nodes( struct airdata *airpacket ) {
     airdata_timestamp_node->setDoubleValue( airpacket->timestamp );
+    airdata_pressure_node->setFloatValue( airpacket->pressure );
+    airdata_temperature_node->setFloatValue( airpacket->temperature );
     airdata_altitude_node->setFloatValue( airpacket->altitude );
     airdata_airspeed_node->setFloatValue( airpacket->airspeed );
     airdata_climb_fpm_node->setFloatValue( airpacket->climb_fpm );
