@@ -11,8 +11,6 @@
 #include <unistd.h>
 #include <time.h>
 
-#include "include/globaldefs.h"
-
 
 double get_Time( bool reset )
 {
