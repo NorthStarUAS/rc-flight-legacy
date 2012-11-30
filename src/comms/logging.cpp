@@ -96,7 +96,7 @@ bool logging_close() {
     // close files
 
     gzclose(fdata);
-    gzclose(fevent);
+    fclose(fevent);
 
     return true;
 }
