@@ -98,6 +98,7 @@ static SGPropertyNode *ap_roll_node = NULL;
 static SGPropertyNode *ap_altitude_node = NULL;
 static SGPropertyNode *ap_climb_node = NULL;
 static SGPropertyNode *ap_pitch_node = NULL;
+static SGPropertyNode *ap_theta_dot_node = NULL;
 static SGPropertyNode *ap_speed_node = NULL;
 static SGPropertyNode *ap_waypoint_target_node = NULL;
 static SGPropertyNode *ap_route_size_node = NULL;
@@ -225,6 +226,7 @@ static void bind_ap_nodes() {
     ap_climb_node = fgGetNode("/autopilot/internal/target-climb-rate-fps",
 			      true);
     ap_pitch_node = fgGetNode( "/autopilot/settings/target-pitch-deg", true );
+    ap_theta_dot_node = fgGetNode( "/autopilot/settings/target-the-dot", true );
     ap_speed_node = fgGetNode( "/autopilot/settings/target-speed-kt", true );
     ap_waypoint_target_node
 	= fgGetNode( "/autopilot/route/target-waypoint-index", true );
@@ -374,6 +376,7 @@ static void update_ap_nodes( struct apstatus *appacket ) {
     ap_altitude_node->setFloatValue( appacket->target_altitude_msl_ft );
     ap_climb_node->setFloatValue( appacket->target_climb_fps );
     ap_pitch_node->setFloatValue( appacket->target_pitch_deg );
+    ap_theta_dot_node->setFloatValue( appacket->target_theta_dot );
     ap_speed_node->setFloatValue( appacket->target_speed_kt );
     ap_waypoint_target_node->setIntValue( appacket->target_wp );
     ap_route_size_node->setIntValue( appacket->route_size );

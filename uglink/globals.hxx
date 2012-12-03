@@ -79,6 +79,7 @@ struct apstatus {
     float target_altitude_msl_ft;
     float target_climb_fps;
     float target_pitch_deg;
+    float target_theta_dot;
     float target_speed_kt;
     int target_wp;
     double wp_lon;
