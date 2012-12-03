@@ -62,6 +62,10 @@ static SGPropertyNode *filter_ve_node = NULL;
 static SGPropertyNode *filter_vd_node = NULL;
 static SGPropertyNode *filter_status_node = NULL;
 
+static SGPropertyNode *filter_phi_dot_node = NULL;
+static SGPropertyNode *filter_the_dot_node = NULL;
+static SGPropertyNode *filter_psi_dot_node = NULL;
+
 static SGPropertyNode *filter_alt_ft_node = NULL;
 static SGPropertyNode *filter_track_node = NULL;
 static SGPropertyNode *filter_vel_node = NULL;
@@ -169,6 +173,10 @@ void Filter_init() {
     filter_vd_node = fgGetNode("/velocity/vd-ms", true);
     filter_status_node = fgGetNode("/health/navigation", true);
 
+    filter_phi_dot_node = fgGetNode("/orientation/phi-dot-rad_sec", true);
+    filter_the_dot_node = fgGetNode("/orientation/the-dot-rad_sec", true);
+    filter_psi_dot_node = fgGetNode("/orientation/psi-dot-rad_sec", true);
+
     filter_alt_ft_node = fgGetNode("/position/altitude-ft", true);
     filter_track_node = fgGetNode("/orientation/groundtrack-deg", true);
     filter_vel_node = fgGetNode("/velocity/groundspeed-ms", true);
@@ -197,6 +205,35 @@ void Filter_init() {
 	filter_vel_node->alias("/filters/filter[0]/groundspeed-ms");
 	filter_vert_speed_fps_node->alias("/filters/filter[0]/vertical-speed-fps");
     }
+}
+
+
+static void update_euler_rates() {
+    double phi = filter_phi_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+    double the = filter_theta_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+    double psi = filter_psi_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+
+    // direct computation of euler rates give body rates and estimated
+    // attitude (based on googled references):
+    // http://www.princeton.edu/~stengel/MAE331Lecture9.pdf
+    // http://www.mathworks.com/help/aeroblks/customvariablemass6dofeulerangles.html
+
+    double p = imu_p_node->getDoubleValue();
+    double q = imu_q_node->getDoubleValue();
+    double r = imu_r_node->getDoubleValue();
+
+    if ( SGD_PI_2 - fabs(the) > 0.00001 ) {
+	double phi_dot = p + q * sin(phi) * tan(the) + r * cos(phi) * tan(the);
+	double the_dot = q * cos(phi) - r * sin(phi);
+	double psi_dot = q * sin(phi) / cos(the) + r * cos(phi) / cos(the);
+	filter_phi_dot_node->setDoubleValue(phi_dot);
+	filter_the_dot_node->setDoubleValue(the_dot);
+	filter_psi_dot_node->setDoubleValue(psi_dot);
+	/* printf("dt=%.3f q=%.3f q(ned)=%.3f phi(dot)=%.3f\n",
+	   dt,imu_q_node->getDoubleValue(), dq/dt, phi_dot);  */
+	/* printf("%.3f %.3f %.3f %.3f\n",
+	   cur_time,imu_q_node->getDoubleValue(), dq/dt, the_dot); */
+   }
 }
 
 
@@ -311,8 +348,8 @@ bool Filter_update() {
     bool fresh_filter_data = false;
 
     // sanity check (i.e. if system clock was changed by another process)
-    if ( imu_dt > 1.0 ) { imu_dt = 0.02; }
-    if ( imu_dt < 0.0 ) { imu_dt = 0.02; }
+    if ( imu_dt > 1.0 ) { imu_dt = 0.01; }
+    if ( imu_dt < 0.0 ) { imu_dt = 0.01; }
 
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/filters", true);
@@ -370,6 +407,7 @@ bool Filter_update() {
     filter_prof.stop();
 
     if ( fresh_filter_data ) {
+	update_euler_rates();
 	update_ground();
 	update_wind();
     }
