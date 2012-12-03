@@ -375,7 +375,7 @@ bool remote_link_ap( uint8_t *buf, int size, int skip_count )
         skip = skip_count;
     }
 
-    remote_link_packet( AP_STATUS_PACKET_V1, buf, size );
+    remote_link_packet( AP_STATUS_PACKET_V2, buf, size );
 
     return true;
 }
