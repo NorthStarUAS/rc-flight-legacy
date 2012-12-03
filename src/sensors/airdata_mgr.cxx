@@ -206,13 +206,13 @@ static void update_pressure_helpers() {
     // compute rate of climb based on pressure altitude change
     float climb = (altitude_filt - altitude_filt_last) / dt;
     altitude_filt_last = altitude_filt;
-    climb_filt = 0.95 * climb_filt + 0.05 * climb;
+    climb_filt = 0.98 * climb_filt + 0.02 * climb;
 
     // compute a forward acceleration value based on pitot speed
     // change
     float accel = (airspeed_filt - airspeed_filt_last) / dt;
     airspeed_filt_last = airspeed_filt;
-    accel_filt = 0.9 * accel_filt + 0.1 * accel;
+    accel_filt = 0.98 * accel_filt + 0.02 * accel;
 
     // determine ground reference altitude.  Average filter altitude
     // over first 30 seconds the filter becomes active.
