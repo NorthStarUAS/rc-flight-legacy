@@ -238,6 +238,32 @@ void UGTrack::parse_msg( const int id, char *buf,
 	       appacket->target_speed_kt, appacket->target_wp,
 	       appacket->wp_lon, appacket->wp_lat, appacket->wp_index,
 	       appacket->route_size); */
+    } else if ( id == AP_STATUS_PACKET_V2 ) {
+	appacket->timestamp = *(double *)buf; buf += 8;
+	appacket->target_heading_deg = (*(int16_t *)buf) / 10.0; buf += 2;
+	appacket->target_roll_deg = (*(int16_t *)buf) / 10.0; buf += 2;
+	appacket->target_altitude_msl_ft = *(uint16_t *)buf; buf += 2;
+	appacket->target_climb_fps = (*(int16_t *)buf) / 10.0; buf += 2;
+	appacket->target_pitch_deg = (*(int16_t *)buf) / 10.0; buf += 2;
+	appacket->target_theta_dot = (*(int16_t *)buf) / 1000.0; buf += 2;
+	appacket->target_speed_kt = (*(int16_t *)buf) / 10.0; buf += 2;
+	appacket->target_wp = *(uint16_t *)buf; buf += 2;
+	appacket->wp_lon = *(double *)buf; buf += 8;
+	appacket->wp_lat = *(double *)buf; buf += 8;
+	appacket->wp_index = *(uint16_t *)buf; buf += 2;
+	appacket->route_size = *(uint16_t *)buf; buf += 2;
+	uint8_t command_seq = *(uint8_t *)buf; buf += 1;
+
+	/*command_mgr.update_cmd_sequence( command_seq, appacket->timestamp );*/
+
+	/* printf("ap = %.2f (%.1f %.1f) (%04.0f %.1f %.1f %.2f) %.1f [%d %.10f %.10f %d %d]\n",
+	       appacket->timestamp, appacket->target_heading_deg,
+	       appacket->target_roll_deg, appacket->target_altitude_msl_ft,
+	       appacket->target_climb_fps*60.0, appacket->target_pitch_deg,
+	       appacket->target_theta_dot, appacket->target_speed_kt,
+	       appacket->target_wp,
+	       appacket->wp_lon, appacket->wp_lat, appacket->wp_index,
+	       appacket->route_size); */
     } else if ( id == SYSTEM_HEALTH_PACKET_V1 ) {
         healthpacket->timestamp = *(double *)buf; buf += 8;
 	healthpacket->input_vcc = (*(uint16_t *)buf) / 1000.0; buf += 2;
@@ -358,7 +384,7 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
             } else {
                 cout << "oops pilot back in time" << endl;
             }
-        } else if ( id == AP_STATUS_PACKET_V1 ) {
+        } else if ( id == AP_STATUS_PACKET_V1 || id == AP_STATUS_PACKET_V2 ) {
             if ( appacket.timestamp > ap_time ) {
                 ap_data.push_back( appacket );
                 ap_time = appacket.timestamp;
@@ -855,11 +881,12 @@ bool UGTrack::export_text_tab( const string &path ) {
     for ( int i = 0; i < ap_size(); i++ ) {
 	appacket = get_appt(i);
 	fprintf( ap_fd,
-		 "%.3f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%d\t%.10f\t%.10f\t%d\t%d\n",
+		 "%.3f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.3f\t%.2f\t%d\t%.10f\t%.10f\t%d\t%d\n",
 		 appacket.timestamp,
 		 appacket.target_heading_deg, appacket.target_roll_deg,
 		 appacket.target_altitude_msl_ft, appacket.target_climb_fps,
-		 appacket.target_pitch_deg, appacket.target_speed_kt,
+		 appacket.target_pitch_deg, appacket.target_theta_dot,
+		 appacket.target_speed_kt,
 		 appacket.target_wp, appacket.wp_lon, appacket.wp_lat,
 		 appacket.wp_index, appacket.route_size
 		 );
@@ -1215,6 +1242,8 @@ airdata UGEARInterpAIR( const airdata A, const airdata B, const double percent )
 {
     airdata p;
     p.timestamp = interp(A.timestamp, B.timestamp, percent);
+    p.pressure = interp(A.pressure, B.pressure, percent);
+    p.temperature = interp(A.temperature, B.temperature, percent);
     p.airspeed = interp(A.airspeed, B.airspeed, percent);
     p.altitude = interp(A.altitude, B.altitude, percent);
     p.climb_fpm = interp(A.climb_fpm, B.climb_fpm, percent);
@@ -1292,6 +1321,7 @@ apstatus UGEARInterpAP( const apstatus A, const apstatus B, const double percent
     p.target_altitude_msl_ft = interp(A.target_altitude_msl_ft, B.target_altitude_msl_ft, percent);
     p.target_climb_fps = interp(A.target_climb_fps, B.target_climb_fps, percent);
     p.target_pitch_deg = interp(A.target_pitch_deg, B.target_pitch_deg, percent);
+    p.target_theta_dot = interp(A.target_theta_dot, B.target_theta_dot, percent);
     p.target_speed_kt = interp(A.target_speed_kt, B.target_speed_kt, percent);
     p.target_wp = A.target_wp;
     p.wp_lon = A.wp_lon;
