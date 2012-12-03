@@ -121,7 +121,7 @@ void UGPacketizer::bind_ap_nodes() {
     ap_altitude_agl = fgGetNode( "/autopilot/settings/target-agl-ft", true );
     ap_altitude_msl = fgGetNode( "/autopilot/settings/target-msl-ft", true );
     ap_climb = fgGetNode("/autopilot/internal/target-climb-rate-fps", true);
-    ap_pitch = fgGetNode( "/autopilot/settings/target-pitch-deg", true );
+    ap_theta_dot = fgGetNode( "/autopilot/settings/target-the-dot", true );
     ap_speed = fgGetNode( "/autopilot/settings/target-speed-kt", true );
     ap_waypoint = fgGetNode( "/autopilot/route-mgr/target-waypoint-idx", true );
 }
@@ -525,8 +525,8 @@ int UGPacketizer::packetize_ap( uint8_t *buf, uint8_t route_size,
     int16_t climb = (int16_t)(ap_climb->getFloatValue() * 10.0);
     *(int16_t *)buf = climb; buf += 2;
 
-    int16_t pitch = (int16_t)(ap_pitch->getFloatValue() * 10.0);
-    *(int16_t *)buf = pitch; buf += 2;
+    int16_t theta_dot = (int16_t)(ap_theta_dot->getFloatValue() * 1000.0);
+    *(int16_t *)buf = theta_dot; buf += 2;
 
     int16_t speed = (int16_t)(ap_speed->getFloatValue() * 10.0);
     *(int16_t *)buf = speed; buf += 2;
@@ -553,7 +553,7 @@ void UGPacketizer::decode_ap( uint8_t *buf ) {
     uint16_t ap_alt_agl = *(uint16_t *)buf; buf += 2;
     uint16_t ap_alt_msl = *(uint16_t *)buf; buf += 2;
     int16_t ap_climb = *(int16_t *)buf; buf += 2;
-    int16_t ap_pitch = *(int16_t *)buf; buf += 2;
+    int16_t ap_theta_dot = *(int16_t *)buf; buf += 2;
     int16_t ap_speed = *(int16_t *)buf; buf += 2;
     uint16_t ap_waypoint = *(uint16_t *)buf; buf += 2;
     double lon = *(double *)buf; buf += 8;
@@ -564,7 +564,7 @@ void UGPacketizer::decode_ap( uint8_t *buf ) {
     printf("t = %.2f %.1f %.1f %d %d %d %.1f %.1f %d %.10f %.10f %d %d\n",
 	   time,
 	   ap_hdg/10.0, ap_roll/10.0, ap_alt_agl, ap_alt_msl, ap_climb,
-	   ap_pitch/10.0, ap_speed/10.0, ap_waypoint, lon, lat, wp_index,
+	   ap_theta_dot/1000.0, ap_speed/10.0, ap_waypoint, lon, lat, wp_index,
 	   route_size);
 }
 
