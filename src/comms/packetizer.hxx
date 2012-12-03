@@ -109,7 +109,7 @@ class UGPacketizer {
     SGPropertyNode *ap_altitude_agl;
     SGPropertyNode *ap_altitude_msl;
     SGPropertyNode *ap_climb;
-    SGPropertyNode *ap_pitch;
+    SGPropertyNode *ap_theta_dot;
     SGPropertyNode *ap_speed;
     SGPropertyNode *ap_waypoint;
 
