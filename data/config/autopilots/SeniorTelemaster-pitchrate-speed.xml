@@ -24,8 +24,8 @@
     <config>
       <Kp>-0.6</Kp>        <!-- proportional gain -->
       <Ki>0.0</Ki>         <!-- integral gain -->
-      <u_min>-25.0</u_min> <!-- minimum output clamp -->
-      <u_max>25.0</u_max>  <!-- maximum output clamp -->
+      <u_min>-20.0</u_min> <!-- minimum output clamp -->
+      <u_max>20.0</u_max>  <!-- maximum output clamp -->
     </config>
   </pi-simple-controller>
 
@@ -48,15 +48,16 @@
       <prop>/controls/flight/aileron</prop>
     </output>
     <config>
-      <Kp>0.040</Kp>      <!-- proportional gain -->
+      <!-- try -0.012 next or maybe higher? -->
+      <Kp>-0.035</Kp>      <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>5.0</Ti>         <!-- integrator time -->
-      <Td>0.01</Td>        <!-- derivator time -->
-      <u_min>-0.50</u_min> <!-- minimum output clamp -->
-      <u_max>0.50</u_max>  <!-- maximum output clamp -->
+      <Ti>1.0</Ti>         <!-- integrator time -->
+      <Td>0.000001</Td>        <!-- derivator time -->
+      <u_min>-0.40</u_min> <!-- minimum output clamp -->
+      <u_max>0.40</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
@@ -107,7 +108,7 @@
       <prop>/controls/engine/throttle</prop>
     </output>
     <config>
-      <Kp>0.010</Kp>        <!-- proportional gain -->
+      <Kp>0.015</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -121,7 +122,7 @@
 
   <!-- Hold speed by varying elevator (2 stage cascading controller)--> 
 
-  <!-- Stage 1, command a forward acceleration rate based on velocity error -->
+  <!-- Stage 1, command a pitch rate based on velocity error -->
   <pi-simple-controller>
     <name>Speed hold (vary elevator)</name>
     <debug>false</debug>
@@ -136,17 +137,17 @@
       <prop>/autopilot/settings/target-speed-kt</prop>
     </reference>
     <output>
-      <prop>/autopilot/settings/target-accel-ktps</prop>
+      <prop>/autopilot/settings/target-the-dot</prop>
     </output>
     <config>
-      <Kp>0.2</Kp>	       <!-- proportional gain -->
+      <Kp>-0.007</Kp>	       <!-- prop gain: 5 kt error = 0.035 rad/sec-->
       <Ki>0.0</Ki>             <!-- integral gain -->
-      <u_min>-2.0</u_min>      <!-- minimum output clamp -->
-      <u_max>2.0</u_max>       <!-- maximum output clamp -->
+      <u_min>-0.035</u_min>      <!-- minimum output clamp (2 deg/sec) -->
+      <u_max>0.035</u_max>       <!-- maximum output clamp (2 deg/sec)-->
     </config>
   </pi-simple-controller>
 
-  <!-- Stage 2, command elevator to achieve target acceleration rate -->
+  <!-- Stage 2, command elevator to achieve target pitch rate -->
   <pid-controller>
     <name>Speed hold (vary elevator)</name>
     <debug>false</debug>
@@ -155,23 +156,23 @@
       <value>elevator</value>
     </enable>
     <input>
-      <prop>/acceleration/airspeed-ktps</prop>
+      <prop>/orientation/the-dot-rad_sec</prop>
     </input>
     <reference>
-      <prop>/autopilot/settings/target-accel-ktps</prop>
+      <prop>/autopilot/settings/target-the-dot</prop>
     </reference>
     <output>
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>0.20</Kp>        <!-- proportional gain -->
+      <Kp>-1.0</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>10.0</Ti>        <!-- integrator time -->
+      <Ti>0.5</Ti>         <!-- integrator time -->
       <Td>0.00005</Td>     <!-- derivator time -->
-      <u_min>-0.50</u_min> <!-- minimum output clamp -->
+      <u_min>-0.25</u_min> <!-- minimum output clamp -->
       <u_max>0.25</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
