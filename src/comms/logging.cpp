@@ -256,7 +256,7 @@ void log_ap( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    log_packet( AP_STATUS_PACKET_V1, buf, size );
+    log_packet( AP_STATUS_PACKET_V2, buf, size );
 }
 
 
