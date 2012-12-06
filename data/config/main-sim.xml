@@ -7,7 +7,9 @@
   <config>
 
     <!-- Onboard data logging. -->
-    <!-- <logging include="comms/log-overo.xml" /> -->
+    <logging include="comms/log-overo.xml">                                 
+      <path n="0">/home/curt/FlightData</path>                        
+    </logging>
 
     <!-- Remote operator communication. -->
     <remote-link include="comms/remote-link-xtend.xml" />
@@ -49,13 +51,13 @@
       <mode>route</mode> 
 
       <!-- select the autopilot configuration -->
-      <!-- <autopilot include="autopilots/Resolution3.xml" /> -->
+      <!-- <autopilot include="autopilots/Resolution3-pitch-speed.xml" /> -->
       <!-- <autopilot include="autopilots/SeniorTelemaster.xml" /> -->
       <!-- <autopilot include="autopilots/Malolo2-alt-thr.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-combined.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-wingleveler.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-pitchleveler.xml" /> -->
-      <autopilot include="autopilots/Rascal110-fgfs-pitch-speed.xml" />
+      <autopilot include="autopilots/Rascal110-fgfs-pitchrate-speed.xml" />
       <!-- <autopilot include="autopilots/FlyCamOne3.xml" /> -->
     </fcs>
 
