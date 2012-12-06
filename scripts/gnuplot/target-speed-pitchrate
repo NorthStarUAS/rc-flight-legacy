@@ -6,7 +6,6 @@ set y2tics
 
 plot "ap.txt" using 1:8 with lines title "Target Speed (kts)", \
      "air.txt" using 1:4 with lines title "Actual Speed (kts)", \
-     "air.txt" using 1:($7/2) with lines title "Pitot Accel", \
+     "ap.txt" using 1:7 with lines title "Target Pitch Rate", \
      "act.txt" using 1:3 with lines axis x1y2 title "AP Elevator Defl", \
-     "pilot.txt" using 1:3 with lines axis x1y2 title "Pilot Elevator Defl", \
-     "filter.txt" using 1:9 with lines title "Actual Pitch (deg)"
+     "pilot.txt" using 1:3 with lines axis x1y2 title "Pilot Elevator Defl"
