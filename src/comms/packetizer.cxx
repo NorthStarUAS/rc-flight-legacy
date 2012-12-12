@@ -131,7 +131,10 @@ void UGPacketizer::bind_ap_nodes() {
 // initialize system health property nodes
 void UGPacketizer::bind_health_nodes() {
     system_loadavg_node = fgGetNode("/status/system-load-avg", true);
-    input_vcc_node = fgGetNode("/sensors/APM2/board-vcc", true);
+    avionics_vcc_node = fgGetNode("/sensors/APM2/board-vcc", true);
+    extern_volt_node = fgGetNode("/sensors/APM2/extern-volt", true);
+    extern_amp_node = fgGetNode("/sensors/APM2/extern-amps", true);
+    extern_mah_node = fgGetNode("/sensors/APM2/extern-current-mah", true);
 }
 
 
@@ -581,11 +584,20 @@ int UGPacketizer::packetize_health( uint8_t *buf )
     double time = get_Time();
     *(double *)buf = time; buf += 8;
 
-    uint16_t vcc = (uint16_t)(input_vcc_node->getFloatValue() * 1000.0);
-    *(uint16_t *)buf = vcc; buf += 2;
-
     uint16_t loadavg = (uint16_t)(system_loadavg_node->getFloatValue() * 100.0);
     *(uint16_t *)buf = loadavg; buf += 2;
+
+    uint16_t vcc = (uint16_t)(avionics_vcc_node->getFloatValue() * 1000.0);
+    *(uint16_t *)buf = vcc; buf += 2;
+
+    uint16_t volt = (uint16_t)(extern_volt_node->getFloatValue() * 1000.0);
+    *(uint16_t *)buf = volt; buf += 2;
+
+    uint16_t amp = (uint16_t)(extern_amp_node->getFloatValue() * 1000.0);
+    *(uint16_t *)buf = amp; buf += 2;
+
+    uint16_t mah = (uint16_t)(extern_mah_node->getFloatValue());
+    *(uint16_t *)buf = mah; buf += 2;
 
     return buf - startbuf;
 }
@@ -593,10 +605,13 @@ int UGPacketizer::packetize_health( uint8_t *buf )
 
 void UGPacketizer::decode_health( uint8_t *buf ) {
     double time = *(double *)buf; buf += 8;
-    uint16_t input_vcc = *(uint16_t *)buf; buf += 2;
-    uint8_t loadavg = *(uint8_t *)buf; buf++;
+    uint16_t loadavg = *(uint16_t *)buf; buf +=- 2;
+    uint16_t avionics_vcc = *(uint16_t *)buf; buf += 2;
+    uint16_t volt = *(uint16_t *)buf; buf += 2;
+    uint16_t amp = *(uint16_t *)buf; buf += 2;
+    uint16_t mah = *(uint16_t *)buf; buf += 2;
 
-    printf("t = %.2f %.3f %.2f\n",
+    printf("t = %.2f %.3f %.2f \n",
 	   time,
-	   input_vcc/1000.0, loadavg/10.0);
+	   loadavg/10.0, avionics_vcc/1000.0, volt/1000.0, amp/1000.0, mah );
 }

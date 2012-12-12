@@ -13,10 +13,9 @@
 
     <!-- multiplier to convert from the raw analog voltage to actual -->
     <!-- external voltage. -->
-    <!-- 4.089 is the value I computed experimentally -->
     <!-- 4.127 is the proper value for the AttoPilot 45A (13.6V) sensor -->
     <!-- 15.700 is the proper value for the AttoPilot 50V/90A sensor -->
-    <volt-divider-ratio> 4.089</volt-divider-ratio>
+    <volt-divider-ratio> 4.127</volt-divider-ratio>
 
     <!-- this is a calibration offset which is subtracted from the analog -->
     <!-- voltage if it's non zero for a zero current draw (not a likely -->

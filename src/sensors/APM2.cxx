@@ -425,7 +425,7 @@ static bool APM2_open() {
     if ( APM2_amp_offset_node != NULL ) {
 	extern_amp_offset = APM2_amp_offset_node->getFloatValue();
     }
-    APM2_amp_offset_node = fgGetNode("/config/sensors/APM2/external-amp-ratio");
+    APM2_amp_ratio_node = fgGetNode("/config/sensors/APM2/external-amp-ratio");
     if ( APM2_amp_ratio_node != NULL ) {
 	extern_amp_ratio = APM2_amp_ratio_node->getFloatValue();
     }
