@@ -25,7 +25,7 @@ static SGPropertyNode *health_logging_skip = NULL;
 bool health_init() {
     loadavg_init();
 
-    input_vcc_node = fgGetNode("/sensors/APM2/input-vcc", true);
+    input_vcc_node = fgGetNode("/sensors/APM2/board-vcc", true);
 
     // initialize comm nodes
     health_console_skip = fgGetNode("/config/remote-link/health-skip", true);

@@ -131,7 +131,7 @@ void UGPacketizer::bind_ap_nodes() {
 // initialize system health property nodes
 void UGPacketizer::bind_health_nodes() {
     system_loadavg_node = fgGetNode("/status/system-load-avg", true);
-    input_vcc_node = fgGetNode("/sensors/APM2/input-vcc", true);
+    input_vcc_node = fgGetNode("/sensors/APM2/board-vcc", true);
 }
 
 
