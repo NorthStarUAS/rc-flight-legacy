@@ -47,7 +47,14 @@ static SGPropertyNode *configroot = NULL;
 static SGPropertyNode *APM2_device_node = NULL;
 static SGPropertyNode *APM2_baud_node = NULL;
 static SGPropertyNode *APM2_pwm_rate_node = NULL;
-static SGPropertyNode *APM2_input_vcc_node = NULL;
+static SGPropertyNode *APM2_volt_ratio_node = NULL;
+static SGPropertyNode *APM2_amp_offset_node = NULL;
+static SGPropertyNode *APM2_amp_ratio_node = NULL;
+static SGPropertyNode *APM2_analog_nodes[MAX_ANALOG_INPUTS];
+static SGPropertyNode *APM2_extern_volt_node = NULL;
+static SGPropertyNode *APM2_extern_amp_node = NULL;
+static SGPropertyNode *APM2_extern_amp_sum_node = NULL;
+static SGPropertyNode *APM2_board_vcc_node = NULL;
 static SGPropertyNode *APM2_pilot_packet_count_node = NULL;
 static SGPropertyNode *APM2_imu_packet_count_node = NULL;
 static SGPropertyNode *APM2_gps_packet_count_node = NULL;
@@ -130,6 +137,11 @@ static int fd = -1;
 static string device_name = "/dev/ttyS0";
 static int baud = 230400;
 static int act_pwm_rate_hz = 50;
+static float volt_div_ratio = 100; // a nonsense value
+static float extern_amp_offset = 0.0;
+static float extern_amp_ratio = 0.1; // a nonsense value
+static float extern_amp_sum = 0.0;
+
 static bool act_pwm_rate_ack = false;
 //static bool baud_rate_ack = false;
 
@@ -405,7 +417,27 @@ static bool APM2_open() {
     if ( APM2_pwm_rate_node != NULL ) {
 	act_pwm_rate_hz = APM2_pwm_rate_node->getIntValue();
     }
-    APM2_input_vcc_node = fgGetNode("/sensors/APM2/input-vcc", true);
+    APM2_volt_ratio_node = fgGetNode("/config/sensors/APM2/volt-divider-ratio");
+    if ( APM2_volt_ratio_node != NULL ) {
+	volt_div_ratio = APM2_volt_ratio_node->getFloatValue();
+    }
+    APM2_amp_offset_node = fgGetNode("/config/sensors/APM2/external-amp-offset");
+    if ( APM2_amp_offset_node != NULL ) {
+	extern_amp_offset = APM2_amp_offset_node->getFloatValue();
+    }
+    APM2_amp_offset_node = fgGetNode("/config/sensors/APM2/external-amp-ratio");
+    if ( APM2_amp_ratio_node != NULL ) {
+	extern_amp_ratio = APM2_amp_ratio_node->getFloatValue();
+    }
+
+    for ( int i = 0; i < MAX_ANALOG_INPUTS; i++ ) {
+	APM2_analog_nodes[i]
+	    = fgGetNode("/sensors/APM2/raw-analog/channel", i, true);
+    }
+    APM2_extern_volt_node = fgGetNode("/sensors/APM2/extern-volt", true);
+    APM2_extern_amp_node = fgGetNode("/sensors/APM2/extern-amps", true);
+    APM2_extern_amp_sum_node = fgGetNode("/sensors/APM2/extern-current-mah", true);
+    APM2_board_vcc_node = fgGetNode("/sensors/APM2/board-vcc", true);
     APM2_pilot_packet_count_node
 	= fgGetNode("/sensors/APM2/pilot-packet-count", true);
     APM2_imu_packet_count_node
@@ -714,11 +746,29 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		    // special case APM2 specific sensor values, write to
 		    // property tree here
 		    analog[i] = val / 1000.0;
-		    static float filter_vcc = analog[i];
-		    filter_vcc = 0.9999 * filter_vcc + 0.0001 * analog[i];
-		    APM2_input_vcc_node->setDoubleValue( filter_vcc );
 		}
+		APM2_analog_nodes[i]->setFloatValue( analog[i] );
 	    }
+
+	    // fill in property values that don't belong to some other
+	    // sub system right now.
+	    double analog_timestamp = get_Time();
+	    static double last_analog_timestamp = analog_timestamp;
+	    double dt = analog_timestamp - last_analog_timestamp;
+	    last_analog_timestamp = analog_timestamp;
+
+	    static float filter_vcc = analog[5];
+	    filter_vcc = 0.9999 * filter_vcc + 0.0001 * analog[5];
+	    APM2_board_vcc_node->setDoubleValue( filter_vcc );
+
+	    float extern_volts = analog[1] * (filter_vcc/1024.0) * volt_div_ratio;
+	    float extern_amps = ((analog[2] * (filter_vcc/1024.0)) - extern_amp_offset) * extern_amp_ratio;
+	    extern_amp_sum += extern_amps * dt * 0.277777778; // 0.2777... is 1000/3600 (conversion to milli-amp hours)
+
+	    APM2_extern_volt_node->setFloatValue( extern_volts );
+	    APM2_extern_amp_node->setFloatValue( extern_amps );
+	    APM2_extern_amp_sum_node->setFloatValue( extern_amp_sum );
+
 #if 0
 	    if ( display_on ) {
 		for ( int i = 0; i < MAX_ANALOG_INPUTS; i++ ) {

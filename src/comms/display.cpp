@@ -140,7 +140,7 @@ static void init_props() {
     target_waypoint = fgGetNode( "/autopilot/route-mgr/target-waypoint-idx",
 				 true );
     system_loadavg_node = fgGetNode("/status/system-load-avg", true);
-    input_vcc_node = fgGetNode("/sensors/APM2/input-vcc", true);
+    input_vcc_node = fgGetNode("/sensors/APM2/board-vcc", true);
 }
 
 
