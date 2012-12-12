@@ -23,6 +23,7 @@ enum ugPacketType {
     AIR_DATA_PACKET_V2 = 8,
     AIR_DATA_PACKET_V3 = 9,
     AP_STATUS_PACKET_V2 = 10,
+    SYSTEM_HEALTH_PACKET_V2 = 11,
 };
 
 
@@ -117,7 +118,10 @@ class UGPacketizer {
 
     // system health nodes
     SGPropertyNode *system_loadavg_node;
-    SGPropertyNode *input_vcc_node;
+    SGPropertyNode *avionics_vcc_node;
+    SGPropertyNode *extern_volt_node;
+    SGPropertyNode *extern_amp_node;
+    SGPropertyNode *extern_mah_node;
 
     // console link nodes
     SGPropertyNode *link_seq_num;
