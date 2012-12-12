@@ -603,6 +603,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 			uint8_t *payload )
 {
     bool new_data = false;
+    static float extern_volt_filt = 0.0;
 
     if ( pkt_id == ACK_PACKET_ID ) {
 	// printf("Received ACK = %d\n", payload[0]);
@@ -762,10 +763,13 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    APM2_board_vcc_node->setDoubleValue( filter_vcc );
 
 	    float extern_volts = analog[1] * (filter_vcc/1024.0) * volt_div_ratio;
+	    extern_volt_filt = 0.99 * extern_volt_filt + 0.01 * extern_volts;
 	    float extern_amps = ((analog[2] * (filter_vcc/1024.0)) - extern_amp_offset) * extern_amp_ratio;
+	    /*printf("a[2]=%.1f vcc=%.2f ratio=%.2f amps=%.2f\n",
+		analog[2], filter_vcc, extern_amp_ratio, extern_amps); */
 	    extern_amp_sum += extern_amps * dt * 0.277777778; // 0.2777... is 1000/3600 (conversion to milli-amp hours)
 
-	    APM2_extern_volt_node->setFloatValue( extern_volts );
+	    APM2_extern_volt_node->setFloatValue( extern_volt_filt );
 	    APM2_extern_amp_node->setFloatValue( extern_amps );
 	    APM2_extern_amp_sum_node->setFloatValue( extern_amp_sum );
 
