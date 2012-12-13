@@ -401,7 +401,7 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
             } else {
                 cout << "oops ap status back in time" << endl;
             }
-        } else if ( id == SYSTEM_HEALTH_PACKET_V1 ) {
+        } else if ( id == SYSTEM_HEALTH_PACKET_V1 || id == SYSTEM_HEALTH_PACKET_V2 ) {
             if ( healthpacket.timestamp > health_time ) {
                 health_data.push_back( healthpacket );
                 health_time = healthpacket.timestamp;
