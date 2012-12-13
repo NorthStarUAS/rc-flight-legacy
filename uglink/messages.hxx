@@ -32,6 +32,7 @@ enum ugPacketType {
     AIR_DATA_PACKET_V2 = 8,
     AIR_DATA_PACKET_V3 = 9,
     AP_STATUS_PACKET_V2 = 10,
+    SYSTEM_HEALTH_PACKET_V2 = 11,
 };
 
 const uint8_t GPS_PACKET_V1_SIZE = 44;

@@ -266,8 +266,18 @@ void UGTrack::parse_msg( const int id, char *buf,
 	       appacket->route_size); */
     } else if ( id == SYSTEM_HEALTH_PACKET_V1 ) {
         healthpacket->timestamp = *(double *)buf; buf += 8;
-	healthpacket->input_vcc = (*(uint16_t *)buf) / 1000.0; buf += 2;
-	healthpacket->loadavg = (*(uint16_t *)buf) / 100.0; buf++;
+	healthpacket->avionics_vcc = (*(uint16_t *)buf) / 1000.0; buf += 2;
+	healthpacket->load_avg = (*(uint16_t *)buf) / 100.0; buf += 2;
+	/* printf("health = %.2f vcc=%.2f loadavg=%.2f\n",
+	       healthpacket->timestamp, healthpacket->input_vcc,
+	       healthpacket->loadavg); */
+    } else if ( id == SYSTEM_HEALTH_PACKET_V2 ) {
+        healthpacket->timestamp = *(double *)buf; buf += 8;
+	healthpacket->load_avg = (*(uint16_t *)buf) / 100.0; buf += 2;
+	healthpacket->avionics_vcc = (*(uint16_t *)buf) / 1000.0; buf += 2;
+	healthpacket->extern_volts = (*(uint16_t *)buf) / 1000.0; buf += 2;
+	healthpacket->extern_amps = (*(uint16_t *)buf) / 1000.0; buf += 2;
+	healthpacket->extern_mah = (*(uint16_t *)buf); buf += 2;
 	/* printf("health = %.2f vcc=%.2f loadavg=%.2f\n",
 	       healthpacket->timestamp, healthpacket->input_vcc,
 	       healthpacket->loadavg); */
@@ -905,10 +915,11 @@ bool UGTrack::export_text_tab( const string &path ) {
     for ( int i = 0; i < health_size(); i++ ) {
 	healthpacket = get_healthpt(i);
 	fprintf( health_fd,
-		 "%.3f\t%.2f\t%.2f\n",
+		 "%.3f\t%.2f\t%.2f\t%.2f\t%.2f\t%.0f\n",
 		 healthpacket.timestamp,
-		 healthpacket.input_vcc, healthpacket.loadavg
-		 );
+		 healthpacket.load_avg, healthpacket.avionics_vcc,
+		 healthpacket.extern_volts, healthpacket.extern_amps,
+		 healthpacket.extern_mah );
     }
     fclose(health_fd);
 
@@ -1336,8 +1347,11 @@ health UGEARInterpHEALTH( const health A, const health B, const double percent )
 {
     health p = B;
     p.timestamp = interp(A.timestamp, B.timestamp, percent);
-    p.input_vcc = interp(A.input_vcc, B.input_vcc, percent, true, true);
-    p.loadavg = interp(A.loadavg, B.loadavg, percent);
+    p.load_avg = interp(A.load_avg, B.load_avg, percent);
+    p.avionics_vcc = interp(A.avionics_vcc, B.avionics_vcc, percent);
+    p.extern_volts = interp(A.extern_volts, B.extern_volts, percent);
+    p.extern_amps = interp(A.extern_amps, B.extern_amps, percent);
+    p.extern_mah = interp(A.extern_mah, B.extern_mah, percent);
 
     return p;
 }

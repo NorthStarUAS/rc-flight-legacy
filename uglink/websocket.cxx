@@ -146,8 +146,10 @@ class WSChannel : public netBufferChannel
     SGPropertyNode *ap_route_size_node;
 
     // system health nodes
-    SGPropertyNode *health_input_vcc_node;
-    SGPropertyNode *health_loadavg_node;
+    SGPropertyNode *health_extern_volts_node;
+    SGPropertyNode *health_extern_amps_node;
+    SGPropertyNode *health_extern_mah_node;
+    SGPropertyNode *health_load_avg_node;
 
     SGPropertyNode *filter_track_node;
     SGPropertyNode *filter_speed_node;
@@ -292,8 +294,10 @@ void WSChannel::bind()
 	= fgGetNode( "/autopilot/route/target-waypoint-index", true );
     ap_route_size_node = fgGetNode( "/autopilot/route/size", true );
 
-    health_input_vcc_node = fgGetNode( "/status/input-vcc", true );
-    health_loadavg_node = fgGetNode( "/status/system-load-avg", true );
+    health_extern_volts_node = fgGetNode( "/status/extern-volts", true );
+    health_extern_amps_node = fgGetNode( "/status/extern-amps", true );
+    health_extern_mah_node = fgGetNode( "/status/extern-mah", true );
+    health_load_avg_node = fgGetNode( "/status/system-load-avg", true );
 
     filter_track_node = fgGetNode("/filters/filter/track-deg", true);
     filter_speed_node = fgGetNode("/filters/filter/speed-kt", true);
@@ -455,7 +459,7 @@ WSChannel::process_line( string line )
 		    * pitot_scale_node->getDoubleValue();
 		if ( airspeed < 0 ) { airspeed = 0.0; }
 		snprintf( reply, 256,
-			  "update1 %.8f %.8f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %d %d %.0f %.1f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.1f %.3f %.3f %.1f %.1f\r\n",
+			  "update1 %.8f %.8f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %d %d %.0f %.1f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.1f %.3f %.2f %.2f %.0f %.1f %.1f\r\n",
 			  filter_lon_node->getDoubleValue(),
 			  filter_lat_node->getDoubleValue(),
 			  airdata_altitude_node->getDoubleValue(),
@@ -479,7 +483,9 @@ WSChannel::process_line( string line )
 			  ap_altitude_node->getDoubleValue(),
 			  ap_speed_node->getDoubleValue(),
 			  pitot_scale_node->getDoubleValue(),
-			  health_input_vcc_node->getFloatValue(),
+			  health_extern_volts_node->getDoubleValue(),
+			  health_extern_amps_node->getDoubleValue(),
+			  health_extern_mah_node->getDoubleValue(),
 			  flight_total_timer->getDoubleValue(),
 			  airdata_temperature_node->getDoubleValue()
 			  );
