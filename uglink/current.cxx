@@ -104,8 +104,11 @@ static SGPropertyNode *ap_waypoint_target_node = NULL;
 static SGPropertyNode *ap_route_size_node = NULL;
 
 // system health nodes
-static SGPropertyNode *system_loadavg_node = NULL;
-static SGPropertyNode *input_vcc_node = NULL;
+static SGPropertyNode *avionics_vcc_node = NULL;
+static SGPropertyNode *system_load_avg_node = NULL;
+static SGPropertyNode *extern_volts_node = NULL;
+static SGPropertyNode *extern_amps_node = NULL;
+static SGPropertyNode *extern_mah_node = NULL;
 
 // console link nodes
 static SGPropertyNode *link_seq_num = NULL;
@@ -255,8 +258,11 @@ static void bind_derived_nodes() {
 
 // bind system health property nodes
 static void bind_health_nodes() {
-    system_loadavg_node = fgGetNode("/status/system-load-avg", true);
-    input_vcc_node = fgGetNode("/status/input-vcc", true);
+    system_load_avg_node = fgGetNode("/status/system-load-avg", true);
+    avionics_vcc_node = fgGetNode("/status/input-vcc", true);
+    extern_volts_node = fgGetNode("/status/extern-volts", true);
+    extern_amps_node = fgGetNode("/status/extern-amps", true);
+    extern_mah_node = fgGetNode("/status/extern-mah", true);
 }
 
 
@@ -403,8 +409,11 @@ static void update_ap_nodes( struct apstatus *appacket ) {
 
 // update system health property nodes
 static void update_health_nodes( struct health *healthpacket ) {
-  input_vcc_node->setFloatValue( healthpacket->input_vcc );
-  system_loadavg_node->setFloatValue( healthpacket->loadavg );
+    system_load_avg_node->setFloatValue( healthpacket->load_avg );
+    avionics_vcc_node->setFloatValue( healthpacket->avionics_vcc );
+    extern_volts_node->setFloatValue( healthpacket->extern_volts );
+    extern_amps_node->setFloatValue( healthpacket->extern_amps );
+    extern_mah_node->setFloatValue( healthpacket->extern_mah );
 }
 
 

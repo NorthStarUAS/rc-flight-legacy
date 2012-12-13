@@ -90,8 +90,11 @@ struct apstatus {
 
 struct health {
     double timestamp;
-    float input_vcc;           /* input vcc */
-    float loadavg;           /* system "1 minute" load average */
+    float load_avg;		/* system "1 minute" load average */
+    float avionics_vcc;		/* input vcc */
+    float extern_volts;
+    float extern_amps;
+    float extern_mah;
 };
 
 
