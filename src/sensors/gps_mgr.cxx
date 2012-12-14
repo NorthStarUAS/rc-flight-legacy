@@ -41,6 +41,7 @@ static double gps_last_time = -31557600.0; // default to t minus one year old
 
 // gps property nodes
 static SGPropertyNode *gps_timestamp_node = NULL;
+static SGPropertyNode *gps_status_node = NULL;
 static SGPropertyNode *gps_magvar_deg_node = NULL;
 
 // magnetic variation property nodes
@@ -50,9 +51,13 @@ static SGPropertyNode *magvar_init_deg_node = NULL;
 static SGPropertyNode *gps_console_skip = NULL;
 static SGPropertyNode *gps_logging_skip = NULL;
 
+// set system time from gps
+static bool set_system_time = false;
+
 
 void GPS_init() {
     gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
+    gps_status_node = fgGetNode("/sensors/gps/status", true);
     gps_magvar_deg_node = fgGetNode("/sensors/gps/magvar-deg", true);
 
     // initialize magnetic variation property nodes
@@ -172,7 +177,7 @@ bool GPS_update() {
 
     gps_prof.stop();
 
-    if ( fresh_data && gps_state == 1 ) {
+    if ( fresh_data ) {
 	// for computing gps data age
 	gps_last_time = gps_timestamp_node->getDoubleValue();
 
@@ -188,7 +193,8 @@ bool GPS_update() {
 		log_gps( buf, size, gps_logging_skip->getIntValue() );
 	    }
 	}
-    } else if ( fresh_data ) {
+    }
+    if ( gps_status_node->getIntValue() == 2 ) {
 	const double gps_settle = 10.0;
 	static double gps_acq_time = gps_timestamp_node->getDoubleValue();
 	static double last_time = 0.0;
