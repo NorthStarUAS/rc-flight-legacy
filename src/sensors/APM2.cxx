@@ -89,7 +89,7 @@ static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
 static SGPropertyNode *gps_satellites_node = NULL;
-static SGPropertyNode *gps_fix_type_node = NULL;
+static SGPropertyNode *gps_status_node = NULL;
 
 // pilot input property nodes
 static SGPropertyNode *pilot_timestamp_node = NULL;
@@ -276,7 +276,7 @@ static void bind_gps_output( string rootname ) {
     gps_vn_node = outputroot->getChild("vn-ms", 0, true);
     gps_vd_node = outputroot->getChild("vd-ms", 0, true);
     gps_satellites_node = outputroot->getChild("satellites", 0, true);
-    gps_fix_type_node = outputroot->getChild("fix-type", 0, true);
+    gps_status_node = outputroot->getChild("status", 0, true);
     gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
 
     gps_inited = true;
@@ -604,6 +604,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 {
     bool new_data = false;
     static float extern_volt_filt = 0.0;
+    static float extern_amp_filt = 0.0;
 
     if ( pkt_id == ACK_PACKET_ID ) {
 	// printf("Received ACK = %d\n", payload[0]);
@@ -763,14 +764,15 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    APM2_board_vcc_node->setDoubleValue( filter_vcc );
 
 	    float extern_volts = analog[1] * (filter_vcc/1024.0) * volt_div_ratio;
-	    extern_volt_filt = 0.99 * extern_volt_filt + 0.01 * extern_volts;
+	    extern_volt_filt = 0.995 * extern_volt_filt + 0.005 * extern_volts;
 	    float extern_amps = ((analog[2] * (filter_vcc/1024.0)) - extern_amp_offset) * extern_amp_ratio;
+	    extern_amp_filt = 0.99 * extern_amp_filt + 0.01 * extern_amps;
 	    /*printf("a[2]=%.1f vcc=%.2f ratio=%.2f amps=%.2f\n",
 		analog[2], filter_vcc, extern_amp_ratio, extern_amps); */
 	    extern_amp_sum += extern_amps * dt * 0.277777778; // 0.2777... is 1000/3600 (conversion to milli-amp hours)
 
 	    APM2_extern_volt_node->setFloatValue( extern_volt_filt );
-	    APM2_extern_amp_node->setFloatValue( extern_amps );
+	    APM2_extern_amp_node->setFloatValue( extern_amp_filt );
 	    APM2_extern_amp_sum_node->setFloatValue( extern_amp_sum );
 
 #if 0
@@ -1205,55 +1207,53 @@ static double date_time_to_unix_sec( int gdate, float gtime ) {
 
 
 bool APM2_gps_update() {
-    bool good_position = false;
-
     static double last_timestamp = 0.0;
     static double last_alt_m = 0.0;
 
     APM2_update();
 
-    double dt = gps_sensors.timestamp - last_timestamp;
-    if ( gps_inited && dt > 0.001 ) {
-	gps_timestamp_node->setDoubleValue(gps_sensors.timestamp);
-	gps_day_secs_node->setDoubleValue(gps_sensors.time / 1000.0);
-	gps_date_node->setDoubleValue(gps_sensors.date);
-	gps_lat_node->setDoubleValue(gps_sensors.latitude / 10000000.0);
-	gps_lon_node->setDoubleValue(gps_sensors.longitude / 10000000.0);
-	double alt_m = gps_sensors.altitude / 100.0;
-	gps_alt_node->setDoubleValue( alt_m );
-
-	// compute horizontal speed components
-	double speed_mps = gps_sensors.ground_speed * 0.01;
-	double angle_rad = (90.0 - gps_sensors.ground_course*0.01)
-	    * SGD_DEGREES_TO_RADIANS;
-	gps_vn_node->setDoubleValue( sin(angle_rad) * speed_mps );
-	gps_ve_node->setDoubleValue( cos(angle_rad) * speed_mps );
-
-	// compute vertical speed
-	double vspeed_mps = 0.0;
-	double da = alt_m - last_alt_m;
-	// dt should be safely non zero for a divide or we wouldn't be here
-	vspeed_mps = da / dt;
-	gps_vd_node->setDoubleValue( -vspeed_mps );
-	last_alt_m = alt_m;
-
-	//gps_vd_node = outputroot->getChild("vd-ms", 0, true);
-	gps_satellites_node->setIntValue(gps_sensors.num_sats);
-	//if ( sensors_gps.status == 2 ) {
-	    // promote to "3" for ugear convention of good fix
-	    //sensors_gps.status = 3;
-	//}
-	gps_fix_type_node->setIntValue( gps_sensors.status );
-	double unix_secs = date_time_to_unix_sec( gps_sensors.date,
-						  gps_sensors.time / 1000.0 );
-	gps_unix_sec_node->setDoubleValue( unix_secs );
-
-	last_timestamp = gps_sensors.timestamp;
-
-	good_position = ( gps_sensors.status == 2 );
+    if ( !gps_inited ) {
+	return false;
     }
 
-    return good_position;
+    double dt = gps_sensors.timestamp - last_timestamp;
+    if ( dt < 0.001 ) {
+	return false;
+    }
+
+    gps_timestamp_node->setDoubleValue(gps_sensors.timestamp);
+    gps_day_secs_node->setDoubleValue(gps_sensors.time / 1000.0);
+    gps_date_node->setDoubleValue(gps_sensors.date);
+    gps_lat_node->setDoubleValue(gps_sensors.latitude / 10000000.0);
+    gps_lon_node->setDoubleValue(gps_sensors.longitude / 10000000.0);
+    double alt_m = gps_sensors.altitude / 100.0;
+    gps_alt_node->setDoubleValue( alt_m );
+
+    // compute horizontal speed components
+    double speed_mps = gps_sensors.ground_speed * 0.01;
+    double angle_rad = (90.0 - gps_sensors.ground_course*0.01)
+	* SGD_DEGREES_TO_RADIANS;
+    gps_vn_node->setDoubleValue( sin(angle_rad) * speed_mps );
+    gps_ve_node->setDoubleValue( cos(angle_rad) * speed_mps );
+
+    // compute vertical speed
+    double vspeed_mps = 0.0;
+    double da = alt_m - last_alt_m;
+    // dt should be safely non zero for a divide or we wouldn't be here
+    vspeed_mps = da / dt;
+    gps_vd_node->setDoubleValue( -vspeed_mps );
+    last_alt_m = alt_m;
+
+    //gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+    gps_satellites_node->setIntValue(gps_sensors.num_sats);
+    gps_status_node->setIntValue( gps_sensors.status );
+    double unix_secs = date_time_to_unix_sec( gps_sensors.date,
+					      gps_sensors.time / 1000.0 );
+    gps_unix_sec_node->setDoubleValue( unix_secs );
+
+    last_timestamp = gps_sensors.timestamp;
+
+    return true;
 }
 
 

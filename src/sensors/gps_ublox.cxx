@@ -48,14 +48,14 @@ static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
 static SGPropertyNode *gps_satellites_node = NULL;
-static SGPropertyNode *gps_fix_type_node = NULL;
+static SGPropertyNode *gps_status_node = NULL;
 static SGPropertyNode *gps_device_name_node = NULL;
 static SGPropertyNode *gps_baud_node = NULL;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
 static int baud = 57600;
-
+static int gps_fix_value = 0;
 
 // initialize gpsd input property nodes
 static void bind_input( SGPropertyNode *config ) {
@@ -82,8 +82,8 @@ static void bind_output( string rootname ) {
     gps_vn_node = outputroot->getChild("vn-ms", 0, true);
     gps_vd_node = outputroot->getChild("vd-ms", 0, true);
     gps_satellites_node = outputroot->getChild("satellites", 0, true);
-    gps_fix_type_node = outputroot->getChild("fix-type", 0, true);
     gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+    gps_status_node = outputroot->getChild("status", 0, true);
 }
 
 
@@ -169,7 +169,7 @@ static void my_swap( uint8_t *buf, int index, int count ) {
 
 
 static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
-			      uint16_t payload_length, uint8_t *payload )
+			     uint16_t payload_length, uint8_t *payload )
 {
     bool new_position = false;
     static bool set_system_time = false;
@@ -193,7 +193,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	uint32_t hAcc = *((uint32_t *)(p+20));
 	uint32_t vAcc = *((uint32_t *)(p+24));
 	if ( display_on && 0 ) {
-	    if ( gps_fix_type_node->getIntValue() < 3 ) {
+	    if ( gps_fix_value < 3 ) {
 		printf("nav-posllh (%d) %d %d %d %d\n",
 		       iTOW, lon, lat, height, hMSL);
 	    }
@@ -230,7 +230,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	uint16_t pDOP = *((uint16_t *)(p+44));
 	uint8_t numSV = p[47];
 	if ( display_on && 0 ) {
-	    if ( gps_fix_type_node->getIntValue() < 3 ) {
+	    if ( gps_fix_value < 3 ) {
 		printf("nav-sol (%d) %d %d %d %d %d [ %d %d %d ]\n",
 		       gpsFix, iTOW, fTOW, ecefX, ecefY, ecefZ,
 		       ecefVX, ecefVY, ecefVZ);
@@ -246,7 +246,14 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	// printf("my vel ned = %.2f %.2f %.2f\n", vel_ned.x(), vel_ned.y(), vel_ned.z());
 
  	gps_satellites_node->setIntValue( numSV );
- 	gps_fix_type_node->setIntValue( gpsFix );
+ 	gps_fix_value = gpsFix;
+	if ( gps_fix_value == 0 ) {
+	    gps_status_node->setIntValue( 0 );
+	} else if ( gps_fix_value == 1 || gps_fix_value == 2 ) {
+	    gps_status_node->setIntValue( 1 );
+	} else if ( gps_fix_value == 3 ) {
+	    gps_status_node->setIntValue( 2 );
+	}
 
 	if ( fabs(ecefX) > 650000000
 	     || fabs(ecefY) > 650000000
@@ -323,7 +330,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	uint32_t sAcc = *((uint32_t *)(p+28));
 	uint32_t cAcc = *((uint32_t *)(p+32));
 	if ( display_on && 0 ) {
-	    if ( gps_fix_type_node->getIntValue() < 3 ) {
+	    if ( gps_fix_value < 3 ) {
 		printf("nav-velned (%d) %.2f %.2f %.2f s = %.2f h = %.2f\n",
 		       iTOW, velN / 100.0, velE / 100.0, velD / 100.0,
 		       speed / 100.0, heading / 100000.0);
@@ -348,7 +355,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	uint8_t sec = p[18];
 	uint8_t valid = p[19];
 	if ( display_on && 0 ) {
-	    if ( gps_fix_type_node->getIntValue() < 3 ) {
+	    if ( gps_fix_value < 3 ) {
 		printf("nav-timeutc (%d) %02x %04d/%02d/%02d %02d:%02d:%02d\n",
 		       iTOW, valid, year, month, day, hour, min, sec);
 	    }
@@ -392,13 +399,13 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	}
  	// gps_satellites_node->setIntValue( satUsed );
 	if ( display_on && 0 ) {
-	    if ( gps_fix_type_node->getIntValue() < 3 ) {
+	    if ( gps_fix_value < 3 ) {
 		printf("Satellite count = %d/%d\n", satUsed, numCh);
 	    }
 	}
     } else {
 	if ( display_on && 0 ) {
-	    if ( gps_fix_type_node->getIntValue() < 3 ) {
+	    if ( gps_fix_value < 3 ) {
 		printf("UBLOX msg class = %d  msg id = %d\n",
 		       msg_class, msg_id);
 	    }
@@ -524,7 +531,7 @@ static bool read_ublox() {
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// fprintf( stderr, "checksum passes (%d)!\n", msg_id );
 		new_position = parse_ublox_msg( msg_class, msg_id,
-						 payload_length, payload );
+						payload_length, payload );
 		state++;
 	    } else {
 		if ( display_on && 0 ) {
