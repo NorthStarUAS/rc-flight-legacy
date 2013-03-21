@@ -26,6 +26,8 @@
 #define ACT_COMMAND_PACKET_ID 20
 #define PWM_RATE_PACKET_ID 21
 #define BAUD_PACKET_ID 22
+#define AUX2_RELAY_PACKET_ID 23
+
 #define PILOT_PACKET_ID 30
 #define IMU_PACKET_ID 31
 #define GPS_PACKET_ID 32
@@ -793,6 +795,16 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		printf("APM2: packet size mismatch in analog input\n");
 	    }
 	}
+    } else if ( pkt_id == AUX2_RELAY_PACKET_ID ) {
+	if ( display_on ) {
+	    payload[pkt_len] = 0;
+	    printf("aux2: %s\n", payload);
+	}
+		      
+	baro_packet_counter++;
+	APM2_baro_packet_count_node->setIntValue( baro_packet_counter );
+	
+	new_data = true;
     }
 
     return new_data;
