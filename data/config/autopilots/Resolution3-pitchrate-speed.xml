@@ -56,8 +56,8 @@
       <Ti>2.0</Ti>         <!-- integrator time -->
       <Td>0.01</Td>        <!-- derivator time -->
       <!-- center trim point is about 0.15 (recentered towards zero now?) -->
-      <u_min>-0.10</u_min> <!-- minimum output clamp -->
-      <u_max>0.30</u_max>  <!-- maximum output clamp -->
+      <u_min>0.00</u_min> <!-- minimum output clamp -->
+      <u_max>0.50</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
