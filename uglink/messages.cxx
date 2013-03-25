@@ -750,6 +750,7 @@ bool UGTrack::export_raw_umn( const string &path ) {
 
 // export the whole flight data set as tab delimited files
 bool UGTrack::export_text_tab( const string &path ) {
+    SGPropertyNode *flying_wing_node = fgGetNode("/config/flying-wing-mode", true);
     FILE *gps_fd = NULL;
     string gps_file = path + "/";
     gps_file += "gps.txt";
@@ -846,10 +847,20 @@ bool UGTrack::export_text_tab( const string &path ) {
     actuator actpacket;
     for ( int i = 0; i < act_size(); i++ ) {
 	actpacket = get_actpt(i);
+	double ail = actpacket.ail;
+	double ele = actpacket.ele;
+	if ( flying_wing_node->getBoolValue() ) {
+	    double ch1 = actpacket.ail;
+	    double ch2 = actpacket.ele;
+	    double e = (ch1 - ch2) / 2.0;
+	    double a = ch1 - e;
+	    ele = e;
+	    ail = a;
+	}
 	fprintf( act_fd,
 		 "%.3f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%d\n",
 		 actpacket.timestamp,
-		 actpacket.ail, actpacket.ele, actpacket.thr, actpacket.rud,
+		 ail, ele, actpacket.thr, actpacket.rud,
 		 actpacket.ch5, actpacket.ch6, actpacket.ch7, actpacket.ch8,
 		 actpacket.status
 		 );
@@ -867,10 +878,20 @@ bool UGTrack::export_text_tab( const string &path ) {
     pilot pilotpacket;
     for ( int i = 0; i < pilot_size(); i++ ) {
 	pilotpacket = get_pilotpt(i);
+	double ail = pilotpacket.ail;
+	double ele = pilotpacket.ele;
+	if ( flying_wing_node->getBoolValue() ) {
+	    double ch1 = pilotpacket.ail;
+	    double ch2 = pilotpacket.ele;
+	    double e = (ch1 - ch2) / 2.0;
+	    double a = ch1 - e;
+	    ele = e;
+	    ail = a;
+	}
 	fprintf( pilot_fd,
 		 "%.3f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%d\n",
 		 pilotpacket.timestamp,
-		 pilotpacket.ail, pilotpacket.ele,
+		 ail, ele,
 		 pilotpacket.thr, pilotpacket.rud,
 		 pilotpacket.ch5, pilotpacket.ch6,
 		 pilotpacket.ch7, pilotpacket.ch8,
