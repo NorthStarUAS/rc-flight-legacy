@@ -164,12 +164,12 @@
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>-0.2</Kp>        <!-- proportional gain -0.5 too big, -0.1 too small -->
+      <Kp>-0.1</Kp>        <!-- proportional gain -0.5 too big, -0.02 too small -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>2.0</Ti>         <!-- integrator time -->
+      <Ti>1.0</Ti>         <!-- integrator time -->
       <Td>0.00005</Td>     <!-- derivator time -->
       <u_min>0.15</u_min> <!-- minimum output clamp -->
       <u_max>0.30</u_max>  <!-- maximum output clamp -->
