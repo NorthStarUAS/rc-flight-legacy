@@ -45,9 +45,9 @@ void UGPacketizer::bind_airdata_nodes() {
     airdata_temperature_node = fgGetNode("/sensors/air-data/temp-degC", true);
 
     // select one of the following altitude sources
-    airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
+    // airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
     // airdata_altitude_node = fgGetNode("/position/altitude-pressure-smoothed-m", true);
-    // airdata_altitude_node = fgGetNode("/position/altitude-true-combined-m", true);
+    airdata_altitude_node = fgGetNode("/position/altitude-true-combined-m", true);
 
     // select one of the following airspeed sources
     // airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
