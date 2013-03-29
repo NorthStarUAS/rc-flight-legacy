@@ -611,7 +611,7 @@ void UGPacketizer::decode_health( uint8_t *buf ) {
     uint16_t amp = *(uint16_t *)buf; buf += 2;
     uint16_t mah = *(uint16_t *)buf; buf += 2;
 
-    printf("t = %.2f %.3f %.2f \n",
+    printf("t = %.2f %.3f %.2f %.2f %.1f %.0f \n",
 	   time,
 	   loadavg/10.0, avionics_vcc/1000.0, volt/1000.0, amp/1000.0, mah );
 }
