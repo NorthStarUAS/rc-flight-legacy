@@ -1220,7 +1220,7 @@ static double date_time_to_unix_sec( int gdate, float gtime ) {
 
 bool APM2_gps_update() {
     static double last_timestamp = 0.0;
-    static double last_alt_m = 0.0;
+    static double last_alt_m = -9999.9;
 
     APM2_update();
 
@@ -1250,7 +1250,10 @@ bool APM2_gps_update() {
 
     // compute vertical speed
     double vspeed_mps = 0.0;
-    double da = alt_m - last_alt_m;
+    double da = 0.0;
+    if ( last_alt_m > -1000.0 ) {
+	da = alt_m - last_alt_m;
+    }
     // dt should be safely non zero for a divide or we wouldn't be here
     vspeed_mps = da / dt;
     gps_vd_node->setDoubleValue( -vspeed_mps );
