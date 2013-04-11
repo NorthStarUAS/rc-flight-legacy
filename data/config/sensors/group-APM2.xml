@@ -27,7 +27,8 @@
     <!-- 13.66 is the proper value for the AttoPilot 45A (13.6V) sensor -->
     <!-- 27.32 is the proper value for the AttoPilot 50V/90A sensor -->
     <!-- 14.50 aligns better with my "watts up" numbers -->                    
-    <external-amp-ratio>14.50</external-amp-ratio>
+    <!-- 15.40 calibrates better with what my battery charger -->
+    <external-amp-ratio>15.40</external-amp-ratio>
 
   </APM2>
 
