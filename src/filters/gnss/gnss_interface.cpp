@@ -40,7 +40,7 @@ static SGPropertyNode *gps_alt_node = NULL;
 static SGPropertyNode *gps_ve_node = NULL;
 static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
-static SGPropertyNode *gps_settle_node = NULL
+static SGPropertyNode *gps_settle_node = NULL;
 
 // filter property nodes
 static SGPropertyNode *filter_timestamp_node = NULL;

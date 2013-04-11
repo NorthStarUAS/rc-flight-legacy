@@ -43,7 +43,7 @@ static double gps_last_time = -31557600.0; // default to t minus one year old
 static SGPropertyNode *gps_timestamp_node = NULL;
 static SGPropertyNode *gps_status_node = NULL;
 static SGPropertyNode *gps_magvar_deg_node = NULL;
-static SGPropertyNdoe *gps_settle_node = NULL;
+static SGPropertyNode *gps_settle_node = NULL;
 
 // magnetic variation property nodes
 static SGPropertyNode *magvar_init_deg_node = NULL;
