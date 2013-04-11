@@ -22,7 +22,7 @@
       <prop>/autopilot/settings/target-roll-deg</prop>
     </output>
     <config>
-      <Kp>-0.6</Kp>        <!-- proportional gain -->
+      <Kp>-0.3</Kp>        <!-- proportional gain -->
       <Ki>0.0</Ki>         <!-- integral gain -->
       <u_min>-20.0</u_min> <!-- minimum output clamp -->
       <u_max>20.0</u_max>  <!-- maximum output clamp -->
@@ -48,15 +48,19 @@
       <prop>/controls/flight/aileron</prop>
     </output>
     <config>
-      <Kp>-0.025</Kp>      <!-- proportional gain, 0.01 worked-->
+      <!-- 4/4/2013 P=-0.025 I=1.00 min/max = 0.20, seems way slow and laggy, and saturates -->
+      <!-- 4/7/2013 P=-0.05 I=1.00 min/max = 0.25, seems even more wild -->
+      <!-- 4/7/2013 P=-0.01 I=0.50 min/max = 0.25, tons of overshoot and oscillations -->
+      <!-- 4/7/2013 P=-0.01 I=2.00 min/max = 0.25, -->
+      <Kp>-0.01</Kp>       <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>1.0</Ti>         <!-- integrator time -->
-      <Td>0.0001</Td>        <!-- derivator time -->
-      <u_min>-0.20</u_min> <!-- minimum output clamp -->
-      <u_max>0.20</u_max>  <!-- maximum output clamp -->
+      <Ti>2.0</Ti>         <!-- integrator time -->
+      <Td>0.0001</Td>      <!-- derivator time -->
+      <u_min>-0.25</u_min> <!-- minimum output clamp -->
+      <u_max>0.25</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
@@ -139,10 +143,11 @@
       <prop>/autopilot/settings/target-the-dot</prop>
     </output>
     <config>
-      <Kp>-0.007</Kp>	       <!-- prop gain: 5 kt error = 0.035 rad/sec-->
+      <!-- increased gains to produce a more aggressive target pitch rate -->
+      <Kp>-0.014</Kp>	       <!-- prop gain: 5 kt error = 4 deg/sec-->
       <Ki>0.0</Ki>             <!-- integral gain -->
-      <u_min>-0.035</u_min>      <!-- minimum output clamp (-2 deg/sec) -->
-      <u_max>0.070</u_max>       <!-- maximum output clamp (+4 deg/sec)-->
+      <u_min>-0.070</u_min>      <!-- minimum output clamp (-4 deg/sec) -->
+      <u_max>0.140</u_max>       <!-- maximum output clamp (+8 deg/sec)-->
     </config>
   </pi-simple-controller>
 
@@ -164,14 +169,16 @@
       <prop>/controls/flight/elevator</prop>
     </output>
     <config>
-      <Kp>-0.1</Kp>        <!-- proportional gain -0.5 too big, -0.02 too small -->
+      <!-- 4/4/2013 P=0.1 I=0.20, correct elevator sense, mostly convergent, about 2hz oscillations though in elevator and pitch rate, dial down a bit? -->
+      <!-- 4/7/2013 P=0.08 I=0.50, correct elevator sense, mostly convergent -->
+      <Kp>0.08</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>1.0</Ti>         <!-- integrator time -->
+      <Ti>0.50</Ti>         <!-- integrator time -->
       <Td>0.00005</Td>     <!-- derivator time -->
-      <u_min>0.15</u_min> <!-- minimum output clamp -->
+      <u_min>0.10</u_min> <!-- minimum output clamp -->
       <u_max>0.30</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
