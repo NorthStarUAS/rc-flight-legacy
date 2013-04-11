@@ -43,6 +43,7 @@ static double gps_last_time = -31557600.0; // default to t minus one year old
 static SGPropertyNode *gps_timestamp_node = NULL;
 static SGPropertyNode *gps_status_node = NULL;
 static SGPropertyNode *gps_magvar_deg_node = NULL;
+static SGPropertyNdoe *gps_settle_node = NULL;
 
 // magnetic variation property nodes
 static SGPropertyNode *magvar_init_deg_node = NULL;
@@ -59,6 +60,8 @@ void GPS_init() {
     gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
     gps_status_node = fgGetNode("/sensors/gps/status", true);
     gps_magvar_deg_node = fgGetNode("/sensors/gps/magvar-deg", true);
+    gps_settle_node = fgGetNode("/sensors/gps/settle", true);
+    gps_settle_node->setBoolValue(false);
 
     // initialize magnetic variation property nodes
     magvar_init_deg_node = fgGetNode("/config/filters/magvar-deg", true);
@@ -194,7 +197,7 @@ bool GPS_update() {
 	    }
 	}
     }
-    if ( gps_status_node->getIntValue() == 2 ) {
+    if ( gps_status_node->getIntValue() == 2 && !gps_state ) {
 	const double gps_settle = 10.0;
 	static double gps_acq_time = gps_timestamp_node->getDoubleValue();
 	static double last_time = 0.0;
@@ -206,6 +209,7 @@ bool GPS_update() {
 
 	if ( cur_time - gps_acq_time >= gps_settle ) {
 	    gps_state = 1;
+	    gps_settle_node->setBoolValue(true);
 
 	    // initialize magnetic variation
 	    compute_magvar();
