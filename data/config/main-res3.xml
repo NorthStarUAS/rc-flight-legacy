@@ -18,7 +18,11 @@
     <telnet include="comms/telnet.xml" />
 
     <!-- Sensor selection and configuration. -->
-    <sensors include="sensors/group-APM2.xml" />
+    <sensors include="sensors/group-APM2.xml">
+      <APM2 n="0">
+        <pwm-hz n="0">100</pwm-hz>
+      </APM2>
+    </sensors>
     <!-- <sensors include="sensors/group-fgfs24.xml" /> -->
 
     <!-- Filters configuration -->
