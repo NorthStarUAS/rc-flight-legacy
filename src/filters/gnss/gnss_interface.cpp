@@ -40,6 +40,7 @@ static SGPropertyNode *gps_alt_node = NULL;
 static SGPropertyNode *gps_ve_node = NULL;
 static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
+static SGPropertyNode *gps_settle_node = NULL
 
 // filter property nodes
 static SGPropertyNode *filter_timestamp_node = NULL;
@@ -92,6 +93,7 @@ int uggnss_adns_init( string rootname, SGPropertyNode *config ) {
     gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
     gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
     gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
+    gps_settle_node = fgGetNode("/sensors/gps/settle", true);
 
     // initialize ahrs property nodes 
     SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
@@ -156,7 +158,8 @@ bool uggnss_adns_update() {
 
     bool fresh_data = false;
 
-    if ( GPS_age() < 1 && !umn_init_pos ) {
+    if ( GPS_age() < 1.0 && gps_settle_node->getBoolValue() && !umn_init_pos )
+    {
 	umn_init_pos = true;
 	NavState s;
 	memset( &s, 0, sizeof(NavState) );
