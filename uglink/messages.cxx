@@ -858,7 +858,7 @@ bool UGTrack::export_text_tab( const string &path ) {
 	    ail = a;
 	}
 	fprintf( act_fd,
-		 "%.3f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%d\n",
+		 "%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%d\n",
 		 actpacket.timestamp,
 		 ail, ele, actpacket.thr, actpacket.rud,
 		 actpacket.ch5, actpacket.ch6, actpacket.ch7, actpacket.ch8,
@@ -889,7 +889,7 @@ bool UGTrack::export_text_tab( const string &path ) {
 	    ail = a;
 	}
 	fprintf( pilot_fd,
-		 "%.3f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%d\n",
+		 "%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%d\n",
 		 pilotpacket.timestamp,
 		 ail, ele,
 		 pilotpacket.thr, pilotpacket.rud,
