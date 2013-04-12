@@ -324,11 +324,9 @@ static void update_wind() {
     double pitot_scale = 1.0;
     if ( airspeed_kt > 1.0 ) {
 	pitot_scale = true_speed_kt / airspeed_kt;
-	// don't let the scale factor exceed double or half which
-	// would be an extremely badly calibrated pitot tube if that
-	// ever happened.
-	if ( pitot_scale < 0.50 ) { pitot_scale = 0.50;	}
-	if ( pitot_scale > 2.00 ) { pitot_scale = 2.00; }
+	// don't let the scale factor exceed some reasonable limits
+	if ( pitot_scale < 0.75 ) { pitot_scale = 0.75;	}
+	if ( pitot_scale > 1.25 ) { pitot_scale = 1.25; }
     }
 
     pitot_scale_filt = 0.9995 * pitot_scale_filt + 0.0005 * pitot_scale;

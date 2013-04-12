@@ -30,6 +30,9 @@
     <!-- 15.40 calibrates better with what my battery charger -->
     <external-amp-ratio>15.40</external-amp-ratio>
 
+    <!-- Pitot tube calibration factor, probably should leave this as 1.0 -->
+    <!-- and override it with a per-aircraft value in the top level main.xml -->
+    <pitot-calibrate-factor>1.0</pitot-calibrate-factor>
   </APM2>
 
   <imu-group>

@@ -53,6 +53,7 @@ static SGPropertyNode *APM2_volt_ratio_node = NULL;
 static SGPropertyNode *APM2_amp_offset_node = NULL;
 static SGPropertyNode *APM2_amp_ratio_node = NULL;
 static SGPropertyNode *APM2_analog_nodes[MAX_ANALOG_INPUTS];
+static SGPropertyNode *APM2_pitot_calibrate_node = NULL;
 static SGPropertyNode *APM2_extern_volt_node = NULL;
 static SGPropertyNode *APM2_extern_amp_node = NULL;
 static SGPropertyNode *APM2_extern_amp_sum_node = NULL;
@@ -143,6 +144,7 @@ static float volt_div_ratio = 100; // a nonsense value
 static float extern_amp_offset = 0.0;
 static float extern_amp_ratio = 0.1; // a nonsense value
 static float extern_amp_sum = 0.0;
+static float pitot_calibrate = 1.0;
 
 static bool act_pwm_rate_ack = false;
 //static bool baud_rate_ack = false;
@@ -435,6 +437,10 @@ static bool APM2_open() {
     for ( int i = 0; i < MAX_ANALOG_INPUTS; i++ ) {
 	APM2_analog_nodes[i]
 	    = fgGetNode("/sensors/APM2/raw-analog/channel", i, true);
+    }
+    APM2_pitot_calibrate_node = fgGetNode("/config/sensors/APM2/pitot-calibrate-factor");
+    if ( APM2_pitot_calibrate_node != NULL ) {
+	pitot_calibrate = APM2_pitot_calibrate_node->getFloatValue();
     }
     APM2_extern_volt_node = fgGetNode("/sensors/APM2/extern-volt", true);
     APM2_extern_amp_node = fgGetNode("/sensors/APM2/extern-amps", true);
@@ -1335,7 +1341,7 @@ bool APM2_airdata_update() {
 	//printf("analog0 = %.2f (analog[0] = %.2f)\n", analog0_filter, analog[0]);
 	float Pa = (analog0_filter - analog0_offset) * 5.083;
 	if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
-	float airspeed_mps = sqrt( 2*Pa / 1.225 );
+	float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
 	float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
 	airdata_airspeed_mps_node->setDoubleValue( airspeed_mps );
 	airdata_airspeed_kt_node->setDoubleValue( airspeed_kt );

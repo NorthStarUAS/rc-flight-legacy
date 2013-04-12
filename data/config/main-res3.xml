@@ -21,6 +21,7 @@
     <sensors include="sensors/group-APM2.xml">
       <APM2 n="0">
         <pwm-hz n="0">200</pwm-hz>
+        <pitot-calibrate-factor n="0">0.90</pitot-calibrate-factor>
       </APM2>
     </sensors>
     <!-- <sensors include="sensors/group-fgfs24.xml" /> -->
