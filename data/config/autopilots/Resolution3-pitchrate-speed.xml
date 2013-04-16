@@ -52,8 +52,9 @@
       <!-- 4/7/2013 P=-0.05 I=1.00 min/max = 0.25, seems even more wild -->
       <!-- 4/7/2013 P=-0.01 I=0.50 min/max = 0.25, tons of overshoot and oscillations -->
       <!-- 4/7/2013 P=-0.01 I=2.00 min/max = 0.25, still tons of overshoot -->
-      <!-- 4/8/2013 P=-0.01 I=10.00 min/max = 0.25, -->
-      <Kp>-0.01</Kp>       <!-- proportional gain-->
+      <!-- 4/8/2013 P=-0.01 I=10.00 min/max = 0.25, improving, but still overshooting -->
+      <!-- 4/8/2013 P=-0.007 I=10.00 min/max = 0.25, -->
+      <Kp>-0.007</Kp>      <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -172,8 +173,9 @@
     <config>
       <!-- 4/4/2013 P=0.1 I=0.20, correct elevator sense, mostly convergent, about 2hz oscillations though in elevator and pitch rate, dial down a bit? -->
       <!-- 4/7/2013 P=0.08 I=0.50, correct elevator sense, mostly convergent, still seems like a lot of oscillatiions? -->
-      <!-- 4/8/2013 P=0.05 I=0.50, -->
-      <Kp>0.05</Kp>        <!-- proportional gain -->
+      <!-- 4/8/2013 P=0.05 I=0.50, Lots of oscillations still -->
+      <!-- 4/8/2013 P=0.025 I=0.50, -->
+      <Kp>0.025</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
