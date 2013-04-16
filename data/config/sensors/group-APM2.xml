@@ -27,8 +27,8 @@
     <!-- 13.66 is the proper value for the AttoPilot 45A (13.6V) sensor -->
     <!-- 27.32 is the proper value for the AttoPilot 50V/90A sensor -->
     <!-- 14.50 aligns better with my "watts up" numbers -->                    
-    <!-- 15.40 calibrates better with what my battery charger -->
-    <external-amp-ratio>15.40</external-amp-ratio>
+    <!-- 15.00 calibrates better with what my battery charger -->
+    <external-amp-ratio>15.00</external-amp-ratio>
 
     <!-- Pitot tube calibration factor, probably should leave this as 1.0 -->
     <!-- and override it with a per-aircraft value in the top level main.xml -->
