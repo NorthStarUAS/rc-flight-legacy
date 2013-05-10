@@ -8,7 +8,7 @@
 
     <!-- Onboard data logging. -->
     <logging include="comms/log-overo.xml">                                 
-      <path n="0">/home/curt/FlightData</path>                        
+      <path n="0">/home/root/FlightData</path>                        
     </logging>
 
     <!-- Remote operator communication. -->
