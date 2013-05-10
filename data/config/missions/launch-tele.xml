@@ -40,6 +40,15 @@
       <on-ground-speed-kt>5</on-ground-speed-kt>
       <on-air-speed-kt>10</on-air-speed-kt>
     </task>
+
+    <task>
+      <name>camera-trigger</name>
+      <vert-fov-deg>30.0</vert-fov-deg>
+      <overlap-pct>0.25</overlap-pct>
+      <min-agl-ft>200.0</min-agl-ft>
+      <min-rate-sec>3.0</min-rate-sec>
+    </task>
+
   </global-tasks>
 
   <!-- sequential tasks: only the front item in the fifo queue is run -->
