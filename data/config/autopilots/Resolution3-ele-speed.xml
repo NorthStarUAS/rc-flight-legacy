@@ -132,7 +132,7 @@
   <!-- Hold speed by varying elevator --> 
 
   <!-- Stage 1, command a pitch rate based on velocity error -->
-  <pi-simple-controller>
+  <pid-controller>
     <name>Speed hold (vary elevator)</name>
     <debug>false</debug>
     <enable>
@@ -150,9 +150,8 @@
     </output>
     <config>
       <!-- 4/26/2013 Kp=-0.025 a=0.5 Ti=10.0 Td=1.0 : ran to extremes and pegged -->
-      <!-- 4/29/2013 Kp=-0.001 a=0.5 Ti=10.0 Td=1.0 : elevator didn't budge? -->
-      <!-- 4/29/2013 Kp=-0.01 a=0.5 Ti=10.0 Td=1.0 : starting point for next resolution build? -->
-      <Kp>-0.01</Kp>       <!-- proportional gain -->
+      <!-- 4/29/2013 Kp=-0.001 a=0.5 Ti=10.0 Td=1.0 : starting point for next resolution build? -->
+      <Kp>-0.001</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.5</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
