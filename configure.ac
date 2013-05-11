@@ -119,6 +119,7 @@ AC_CONFIG_FILES([ \
         utils/Makefile \
         utils/admin/Makefile \
         utils/benchmarks/Makefile \
+        utils/dynamichome/Makefile \
         utils/routegen/Makefile \
         utils/uartserv/Makefile \
 ])
