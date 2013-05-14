@@ -56,7 +56,7 @@ public:
     }
     inline bool remote_lost_link_predict() {
 	printf("last = %.2f  cur = %.2f\n", last_delivered_time, current_time);
-	if ( last_delivered_time + 20 > current_time ) {
+	if ( last_delivered_time + 60 > current_time ) {
 	    return true;
 	}
 	return false;
