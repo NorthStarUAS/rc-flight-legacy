@@ -138,6 +138,12 @@ void UGPacketizer::bind_health_nodes() {
 }
 
 
+// initialize payload status property nodes
+void UGPacketizer::bind_payload_nodes() {
+    payload_trigger_num_node = fgGetNode("/payload/camera/trigger-num", true);
+}
+
+
 UGPacketizer::UGPacketizer() {
     bind_gps_nodes();
     bind_imu_nodes();
@@ -611,7 +617,31 @@ void UGPacketizer::decode_health( uint8_t *buf ) {
     uint16_t amp = *(uint16_t *)buf; buf += 2;
     uint16_t mah = *(uint16_t *)buf; buf += 2;
 
-    printf("t = %.2f %.3f %.2f %.2f %.1f %.0f \n",
+    printf("t = %.2f %.3f %.2f %.2f %.1f %d \n",
 	   time,
 	   loadavg/10.0, avionics_vcc/1000.0, volt/1000.0, amp/1000.0, mah );
+}
+
+
+int UGPacketizer::packetize_payload( uint8_t *buf )
+{
+    uint8_t *startbuf = buf;
+
+    double time = get_Time();
+    *(double *)buf = time; buf += 8;
+
+    uint16_t trigger_num = (uint16_t)(payload_trigger_num_node->getIntValue());
+    *(uint16_t *)buf = trigger_num; buf += 2;
+
+    return buf - startbuf;
+}
+
+
+void UGPacketizer::decode_payload( uint8_t *buf ) {
+    double time = *(double *)buf; buf += 8;
+    uint16_t trigger_num = *(uint16_t *)buf; buf +=- 2;
+
+    printf("t = %.2f %d\n",
+	   time,
+	   trigger_num );
 }
