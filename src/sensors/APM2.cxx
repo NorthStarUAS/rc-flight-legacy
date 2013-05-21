@@ -5,7 +5,7 @@
 
 #include <errno.h>		// errno
 #include <fcntl.h>		// open()
-#include <stdio.h>		// printf) et. al.
+#include <stdio.h>		// printf() et. al.
 #include <termios.h>		// tcgetattr() et. al.
 #include <unistd.h>		// tcgetattr() et. al.
 #include <string.h>		// memset(), strerror()
@@ -1184,7 +1184,28 @@ bool APM2_imu_update() {
 }
 
 
-static double date_time_to_unix_sec( int gdate, float gtime ) {
+// This function works ONLY with the UBLOX date format (the ublox reports
+// weeks since the GPS epoch.)
+static double ublox_date_time_to_unix_sec( int week, float gtime ) {
+    double julianDate = (week * 7.0) + 
+	(0.001 * gtime) / 86400.0 +  // 86400 = seconds in 1 day
+	2444244.5; // 2444244.5 Julian date of GPS epoch (Jan 5 1980 at midnight)
+    julianDate = julianDate - 2440587.5; // Subtract Julian Date of Unix Epoch (Jan 1 1970)
+
+    double unixSecs = julianDate * 86400.0;
+
+    // hardcoded handling of leap seconds
+    unixSecs -= 16.0;
+
+    // printf("unix time = %.0f\n", unixSecs);
+
+    return unixSecs;
+}
+
+// This function works ONLY with the MTK16 date format (the ublox reports
+// weeks since the GPS epoch.)
+static double MTK16_date_time_to_unix_sec( int gdate, float gtime ) {
+    gtime /= 1000.0;
     int hour = (int)(gtime / 3600); gtime -= hour * 3600;
     int min = (int)(gtime / 60); gtime -= min * 60;
     int isec = (int)gtime; gtime -= isec;
@@ -1219,6 +1240,8 @@ static double date_time_to_unix_sec( int gdate, float gtime ) {
 
     double result = (double)mktime(&t);
     result += fsec;
+
+    // printf("unix time = %.0f\n", result);
 
     return result;
 }
@@ -1268,8 +1291,8 @@ bool APM2_gps_update() {
     //gps_vd_node = outputroot->getChild("vd-ms", 0, true);
     gps_satellites_node->setIntValue(gps_sensors.num_sats);
     gps_status_node->setIntValue( gps_sensors.status );
-    double unix_secs = date_time_to_unix_sec( gps_sensors.date,
-					      gps_sensors.time / 1000.0 );
+    double unix_secs = ublox_date_time_to_unix_sec( gps_sensors.date,
+					            gps_sensors.time );
     gps_unix_sec_node->setDoubleValue( unix_secs );
 
     last_timestamp = gps_sensors.timestamp;
