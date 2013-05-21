@@ -24,6 +24,7 @@ enum ugPacketType {
     AIR_DATA_PACKET_V3 = 9,
     AP_STATUS_PACKET_V2 = 10,
     SYSTEM_HEALTH_PACKET_V2 = 11,
+    PAYLOAD_PACKET_V1 = 12,
 };
 
 
@@ -123,6 +124,9 @@ class UGPacketizer {
     SGPropertyNode *extern_amp_node;
     SGPropertyNode *extern_mah_node;
 
+    // payload status nodes
+    SGPropertyNode *payload_trigger_num_node;
+
     // console link nodes
     SGPropertyNode *link_seq_num;
 
@@ -134,6 +138,7 @@ class UGPacketizer {
     void bind_pilot_nodes();
     void bind_ap_nodes();
     void bind_health_nodes();
+    void bind_payload_nodes();
 
 public:
 
@@ -164,6 +169,9 @@ public:
 
     int packetize_health( uint8_t *buf );
     void decode_health( uint8_t *buf );
+
+    int packetize_payload( uint8_t *buf );
+    void decode_payload( uint8_t *buf );
 };
 
 
