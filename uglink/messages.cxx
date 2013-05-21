@@ -71,7 +71,8 @@ void UGTrack::parse_msg( const int id, char *buf,
 			 struct actuator *actpacket,
 			 struct pilot *pilotpacket,
 			 struct apstatus *appacket,
-			 struct health *healthpacket)
+			 struct health *healthpacket,
+			 struct payload *payloadpacket)
 {
     if ( id == GPS_PACKET_V1 ) {
 	gpspacket->timestamp = *(double *)buf; buf += 8;
@@ -281,6 +282,11 @@ void UGTrack::parse_msg( const int id, char *buf,
 	/* printf("health = %.2f vcc=%.2f loadavg=%.2f\n",
 	       healthpacket->timestamp, healthpacket->input_vcc,
 	       healthpacket->loadavg); */
+    } else if ( id == PAYLOAD_PACKET_V1 ) {
+        payloadpacket->timestamp = *(double *)buf; buf += 8;
+	payloadpacket->trigger_num = *(uint16_t *)buf; buf += 2;
+	/* printf("payload = %.2f trigger_num=%.2f\n",
+  	          payloadpacket->timestamp, payloadpacket->trigger_num); */
     } else {
         cout << "unknown id = " << id << endl;
     }
@@ -299,15 +305,17 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
     pilot pilotpacket;
     apstatus appacket;
     health healthpacket;
+    payload payloadpacket;
 
-    double gps_time = 0;
-    double imu_time = 0;
-    double air_time = 0;
-    double filter_time = 0;
-    double act_time = 0;
-    double pilot_time = 0;
-    double ap_time = 0;
-    double health_time = 0;
+    double gps_time = 0.0;
+    double imu_time = 0.0;
+    double air_time = 0.0;
+    double filter_time = 0.0;
+    double act_time = 0.0;
+    double pilot_time = 0.0;
+    double ap_time = 0.0;
+    double health_time = 0.0;
+    double payload_time = 0.0;
 
     gps_data.clear();
     imu_data.clear();
@@ -317,6 +325,7 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
     pilot_data.clear();
     ap_data.clear();
     health_data.clear();
+    payload_data.clear();
 
     static double alt_max = 0.0;
     static double alt_min = 999999999.0;
@@ -333,7 +342,7 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
         int id = next_message( input, NULL, &gpspacket, &imupacket,
 			       &airpacket, &filterpacket, &actpacket,
 			       &pilotpacket, &appacket, &healthpacket,
-			       ignore_checksum );
+			       &payloadpacket, ignore_checksum );
         count++;
 
         if ( id == GPS_PACKET_V1 ) {
@@ -408,6 +417,13 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
             } else {
                 cout << "oops health status back in time" << endl;
             }
+        } else if ( id == PAYLOAD_PACKET_V1 ) {
+            if ( payloadpacket.timestamp > payload_time ) {
+                payload_data.push_back( payloadpacket );
+                payload_time = payloadpacket.timestamp;
+            } else {
+                cout << "oops payload status back in time" << endl;
+            }
         } else {
 	    cout << "Unknown packet id: " << id << endl;
 	}
@@ -435,6 +451,7 @@ bool UGTrack::load_flight( const string &path ) {
     pilot pilotpacket;
     apstatus appacket;
     health healthpacket;
+    payload payloadpacket;
 
     gps_data.clear();
     imu_data.clear();
@@ -442,6 +459,7 @@ bool UGTrack::load_flight( const string &path ) {
     act_data.clear();
     ap_data.clear();
     health_data.clear();
+    payload_data.clear();
 
     gzFile fgps = NULL;
     gzFile fimu = NULL;
@@ -475,7 +493,7 @@ bool UGTrack::load_flight( const string &path ) {
     while ( gzread( fgps, buf, size ) == size ) {
 	parse_msg( GPS_PACKET_V1, buf, &gpspacket, &imupacket, &airpacket,
 		   &filterpacket, &actpacket, &pilotpacket, &appacket,
-		   &healthpacket );
+		   &healthpacket, &payloadpacket );
 	dt = gpspacket.gps_time - t_last;
 	if ( dt > maxt ) {
 	    maxt = dt;
@@ -500,7 +518,7 @@ bool UGTrack::load_flight( const string &path ) {
     while ( gzread( fimu, buf, size ) == size ) {
 	parse_msg( IMU_PACKET_V1, buf, &gpspacket, &imupacket, &airpacket,
 		   &filterpacket, &actpacket, &pilotpacket, &appacket,
-		   &healthpacket );
+		   &healthpacket, &payloadpacket );
         /* printf("%.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f\n",
                imupacket.Ps, imupacket.Pt,
                imupacket.p, imupacket.q, imupacket.r,
@@ -529,7 +547,7 @@ bool UGTrack::load_flight( const string &path ) {
     while ( gzread( fair, buf, size ) == size ) {
 	parse_msg( AIR_DATA_PACKET_V2, buf, &gpspacket, &imupacket, &airpacket,
 		   &filterpacket, &actpacket, &pilotpacket, &appacket,
-		   &healthpacket );
+		   &healthpacket, &payloadpacket );
         printf("airdata %.3f %.1f %.1f %.1f %.3f %.1f %.1f %.2f\n",
                airpacket.timestamp, airpacket.airspeed, airpacket.altitude,
                airpacket.climb_fpm, airpacket.acceleration,
@@ -559,7 +577,7 @@ bool UGTrack::load_flight( const string &path ) {
     while ( gzread( ffilter, buf, size ) == size ) {
 	parse_msg( FILTER_PACKET_V1, buf, &gpspacket, &imupacket, &airpacket,
 		   &filterpacket, &actpacket, &pilotpacket, &appacket,
-		   &healthpacket );
+		   &healthpacket, &payloadpacket );
         printf("filter %.3f %.4f %.4f %.2f %.2f %.2f\n", filterpacket.timestamp,
 	       filterpacket.lat, filterpacket.lon,
 	       filterpacket.phi, filterpacket.theta, filterpacket.psi );
@@ -587,7 +605,7 @@ bool UGTrack::load_flight( const string &path ) {
     while ( gzread( fact, buf, size ) == size ) {
 	parse_msg( ACTUATOR_PACKET_V1, buf, &gpspacket, &imupacket, &airpacket,
 		   &filterpacket, &actpacket, &pilotpacket, &appacket,
-		   &healthpacket );
+		   &healthpacket, &payloadpacket );
 	printf("act %.3f %.2f %.2f %.2f %.2f\n",
 	       actpacket.timestamp, actpacket.ail, actpacket.ele,
 	       actpacket.thr, actpacket.rud);
@@ -615,7 +633,7 @@ bool UGTrack::load_flight( const string &path ) {
     while ( gzread( fpilot, buf, size ) == size ) {
 	parse_msg( PILOT_INPUT_PACKET_V1, buf, &gpspacket, &imupacket,
 		   &airpacket, &filterpacket, &actpacket, &pilotpacket,
-		   &appacket, &healthpacket );
+		   &appacket, &healthpacket, &payloadpacket );
 	printf("pilot %.3f %.2f %.2f %.2f %.2f\n",
 	       pilotpacket.timestamp, pilotpacket.ail, pilotpacket.ele,
 	       pilotpacket.thr, pilotpacket.rud);
@@ -643,7 +661,7 @@ bool UGTrack::load_flight( const string &path ) {
     while ( gzread( fap, buf, size ) == size ) {
 	parse_msg( AP_STATUS_PACKET_V1, buf, &gpspacket, &imupacket, &airpacket,
 		   &filterpacket, &actpacket, &pilotpacket, &appacket,
-		   &healthpacket );
+		   &healthpacket, &payloadpacket );
 	dt = appacket.timestamp - t_last;
 	/* printf("%.3f\n", appacket.timestamp); */
 	if ( dt > maxt ) {
@@ -669,7 +687,7 @@ bool UGTrack::load_flight( const string &path ) {
     while ( gzread( fhealth, buf, size ) == size ) {
 	parse_msg( SYSTEM_HEALTH_PACKET_V1, buf, &gpspacket, &imupacket,
 		   &airpacket, &filterpacket, &actpacket, &pilotpacket,
-		   &appacket, &healthpacket );
+		   &appacket, &healthpacket, &payloadpacket );
 	dt = healthpacket.timestamp - t_last;
 	/* printf("%.3f\n", healthpacket.timestamp); */
 	if ( dt > maxt ) {
@@ -944,6 +962,24 @@ bool UGTrack::export_text_tab( const string &path ) {
     }
     fclose(health_fd);
 
+    FILE *payload_fd = NULL;
+    string payload_file = path + "/";
+    payload_file += "payload.txt";
+    payload_fd = fopen( payload_file.c_str(), "w" );
+    if ( payload_fd == NULL ) {
+	perror("");
+	exit(-1);
+    }
+    payload payloadpacket;
+    for ( int i = 0; i < payload_size(); i++ ) {
+	payloadpacket = get_payloadpt(i);
+	fprintf( payload_fd,
+		 "%.3f\t%d\n",
+		 payloadpacket.timestamp,
+		 payloadpacket.trigger_num );
+    }
+    fclose(payload_fd);
+
     return true;
 }
 
@@ -995,13 +1031,15 @@ static void glean_ascii_msgs( const char c ) {
 
 // load the next message of a real time data stream
 int UGTrack::next_message( gzFile fd, SGIOChannel *log,
-			   struct gps *gpspacket, struct imu *imupacket,
+			   struct gps *gpspacket,
+			   struct imu *imupacket,
 			   struct airdata *airpacket,
 			   struct filter *filterpacket,
 			   struct actuator *actpacket,
 			   struct pilot *pilotpacket,
 			   struct apstatus *appacket,
 			   struct health *healthpacket,
+			   struct payload *payloadpacket,
 			   bool ignore_checksum )
 {
     char tmpbuf[256];
@@ -1047,7 +1085,8 @@ int UGTrack::next_message( gzFile fd, SGIOChannel *log,
     if ( validate_cksum( id, size, savebuf, cksum0, cksum1, ignore_checksum ) )
     {
         parse_msg( id, savebuf, gpspacket, imupacket, airpacket, filterpacket,
-		   actpacket, pilotpacket, appacket, healthpacket );
+		   actpacket, pilotpacket, appacket, healthpacket,
+		   payloadpacket );
         return id;
     }
 
@@ -1058,13 +1097,15 @@ int UGTrack::next_message( gzFile fd, SGIOChannel *log,
 
 // load the next message of a real time data stream
 int UGTrack::next_message( SGSerialPort *serial, SGIOChannel *log,
-                           struct gps *gpspacket, struct imu *imupacket,
+                           struct gps *gpspacket,
+			   struct imu *imupacket,
 			   struct airdata *airpacket,
 			   struct filter *filterpacket,
 			   struct actuator *actpacket,
 			   struct pilot *pilotpacket,
 			   struct apstatus *appacket,
 			   struct health *healthpacket,
+			   struct payload *payloadpacket,
                            bool ignore_checksum )
 {
     static int state = 0;
@@ -1186,7 +1227,7 @@ int UGTrack::next_message( SGSerialPort *serial, SGIOChannel *log,
 			parse_msg( pkt_id, (char *)payload, gpspacket,
 				   imupacket, airpacket, filterpacket,
 				   actpacket, pilotpacket, appacket,
-				   healthpacket );
+				   healthpacket, payloadpacket );
 			msg_id = pkt_id;
 		    } else {
 			printf("pkt=%d checksum failed %d %d (computed) != %d %d (message)\n",
@@ -1373,6 +1414,16 @@ health UGEARInterpHEALTH( const health A, const health B, const double percent )
     p.extern_volts = interp(A.extern_volts, B.extern_volts, percent);
     p.extern_amps = interp(A.extern_amps, B.extern_amps, percent);
     p.extern_mah = interp(A.extern_mah, B.extern_mah, percent);
+
+    return p;
+}
+
+payload UGEARInterpPAYLOAD( const payload A, const payload B,
+			    const double percent )
+{
+    payload p = B;
+    p.timestamp = interp(A.timestamp, B.timestamp, percent);
+    p.trigger_num = B.trigger_num;
 
     return p;
 }

@@ -804,6 +804,7 @@ int main( int argc, char **argv ) {
 	pilot pilotpacket; bzero( &pilotpacket, sizeof(pilotpacket) );
 	apstatus appacket; bzero( &appacket, sizeof(appacket) );
 	health healthpacket; bzero( &healthpacket, sizeof(healthpacket) );
+	payload payloadpacket; bzero( &payloadpacket, sizeof(payloadpacket) );
 
         double gps_time = 0.0;
         double imu_time = 0.0;
@@ -853,7 +854,7 @@ int main( int argc, char **argv ) {
 					 &imupacket, &airpacket, &filterpacket,
 					 &actpacket, &pilotpacket,
 					 &appacket, &healthpacket,
-					 ignore_checksum );
+					 &payloadpacket, ignore_checksum );
 		// cout << "message id = " << id << endl;
 		count++;
 

@@ -97,5 +97,12 @@ struct health {
     float extern_mah;
 };
 
+// starts small, but this will likely expand as new payload packages
+// are developed and tighting integrated into the system.
+struct payload {
+    double timestamp;
+    int trigger_num;
+};
+
 
 #endif // _UGLINK_GLOBALS_HXX
