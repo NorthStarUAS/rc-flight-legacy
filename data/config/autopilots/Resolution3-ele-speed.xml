@@ -54,13 +54,14 @@
       <!-- 4/7/2013 P=-0.01 I=2.00 min/max = 0.25, still tons of overshoot -->
       <!-- 4/8/2013 P=-0.01 I=10.00 min/max = 0.25, improving, but still overshooting -->
       <!-- 4/8/2013 P=-0.007 I=10.00 min/max = 0.25, -->
-      <!-- 4/8/2013 P=0.007 I=10.00 min/max = 0.25, Res3 #3 -->
-      <Kp>0.007</Kp>      <!-- proportional gain-->
+      <!-- 4/8/2013 P=0.007 I=10.00 min/max = 0.25, Res3 #3 Seemed like not pushing hard enought to get rid of long term error, but really jumpy -->
+      <!-- 4/8/2013 P=0.005 I=5.00 min/max = 0.25, Res3 #3 -->
+      <Kp>0.005</Kp>      <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>10.0</Ti>        <!-- integrator time -->
+      <Ti>5.0</Ti>        <!-- integrator time -->
       <Td>0.0001</Td>      <!-- derivator time -->
       <u_min>-0.25</u_min> <!-- minimum output clamp -->
       <u_max>0.25</u_max>  <!-- maximum output clamp -->
@@ -131,8 +132,6 @@
   </pid-controller>
 
   <!-- Hold speed by varying elevator --> 
-
-  <!-- Stage 1, command a pitch rate based on velocity error -->
   <pid-controller>
     <name>Speed hold (vary elevator)</name>
     <debug>false</debug>
@@ -154,15 +153,17 @@
       <!-- 4/29/2013 Kp=-0.001 a=0.5 Ti=10.0 Td=1.0 : starting point for next resolution build? -->
       <!-- 5/10/2013 Kp=0.001 a=0.5 Ti=10.0 Td=1.0 : flip sense for res3 #3 -->
       <!-- 5/11/2013 Kp=0.001 a=0.5 Ti=10.0 Td=1.0 : shift range of motion for new airframe -->
-      <Kp>0.001</Kp>       <!-- proportional gain -->
+      <!-- 5/11/2013 Kp=0.001 a=0.5 Ti=10.0 Td=1.0 : stayed bounded but oscillated slowly over a long period, probably need to up the global gain a bit. -->
+      <!-- 5/11/2013 Kp=0.002 a=0.5 Ti=10.0 Td=1.0 :  -->
+      <Kp>0.002</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.5</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
       <Ti>10.0</Ti>        <!-- integrator time -->
       <Td>1.0</Td>     <!-- derivator time -->
-      <u_min>-0.20</u_min>  <!-- minimum output clamp -->
-      <u_max>0.05</u_max>  <!-- maximum output clamp -->
+      <u_min>-0.15</u_min>  <!-- minimum output clamp -->
+      <u_max>0.10</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
