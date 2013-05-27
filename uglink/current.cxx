@@ -322,6 +322,7 @@ static void update_airdata_nodes( struct airdata *airpacket ) {
     airdata_pressure_node->setFloatValue( airpacket->pressure );
     airdata_temperature_node->setFloatValue( airpacket->temperature );
     airdata_altitude_node->setFloatValue( airpacket->altitude );
+    airdata_altitude_true_node->setFloatValue( airpacket->altitude_true );
     airdata_airspeed_node->setFloatValue( airpacket->airspeed );
     airdata_climb_fpm_node->setFloatValue( airpacket->climb_fpm );
     airdata_accel_ktps_node->setFloatValue( airpacket->acceleration );
