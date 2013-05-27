@@ -152,9 +152,30 @@ void UGTrack::parse_msg( const int id, char *buf,
 	airpacket->pitot_scale = *(uint8_t *)buf / 100.0; buf += 1;
 	airpacket->status = *(uint8_t *)buf; buf += 1;
 	
-	printf("air3 %.2f %.1f %.1f %.1f %.1f %.2f %.2f %.1f %.1f %.2f %d\n",
+	/*printf("air3 %.2f %.1f %.1f %.1f %.1f %.2f %.2f %.1f %.1f %.2f %d\n",
 	       airpacket->timestamp, airpacket->pressure,
 	       airpacket->temperature, airpacket->airspeed, airpacket->altitude,
+	       airpacket->climb_fpm, airpacket->acceleration,
+	       airpacket->wind_dir, airpacket->wind_speed,
+	       airpacket->pitot_scale, airpacket->status );*/
+    } else if ( id == AIR_DATA_PACKET_V4 ) {
+	airpacket->timestamp = *(double *)buf; buf += 8;
+	airpacket->pressure = *(uint16_t *)buf / 10.0; buf += 2;
+	airpacket->temperature = *(int16_t *)buf / 10.0; buf += 2;
+	airpacket->airspeed = *(int16_t *)buf / 100.0; buf += 2;
+	airpacket->altitude = *(float *)buf; buf += 4;
+	airpacket->altitude_true = *(float *)buf; buf += 4;
+	airpacket->climb_fpm = *(int16_t *)buf / 10.0; buf += 2;
+	airpacket->acceleration = *(int16_t *)buf / 100.0; buf += 2;
+	airpacket->wind_dir = *(uint16_t *)buf / 100.0; buf += 2;
+	airpacket->wind_speed = *(uint8_t *)buf / 4.0; buf += 1;
+	airpacket->pitot_scale = *(uint8_t *)buf / 100.0; buf += 1;
+	airpacket->status = *(uint8_t *)buf; buf += 1;
+	
+	printf("air4 %.2f %.1f %.1f %.1f %.1f %.1f %.2f %.2f %.1f %.1f %.2f %d\n",
+	       airpacket->timestamp, airpacket->pressure,
+	       airpacket->temperature, airpacket->airspeed,
+	       airpacket->altitude, airpacket->altitude_true,
 	       airpacket->climb_fpm, airpacket->acceleration,
 	       airpacket->wind_dir, airpacket->wind_speed,
 	       airpacket->pitot_scale, airpacket->status );
@@ -285,8 +306,8 @@ void UGTrack::parse_msg( const int id, char *buf,
     } else if ( id == PAYLOAD_PACKET_V1 ) {
         payloadpacket->timestamp = *(double *)buf; buf += 8;
 	payloadpacket->trigger_num = *(uint16_t *)buf; buf += 2;
-	/* printf("payload = %.2f trigger_num=%.2f\n",
-  	          payloadpacket->timestamp, payloadpacket->trigger_num); */
+	printf("payload = %.2f trigger_num=%.2f\n",
+  	          payloadpacket->timestamp, payloadpacket->trigger_num);
     } else {
         cout << "unknown id = " << id << endl;
     }
@@ -349,8 +370,8 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
             if ( gpspacket.gps_time > gps_time &&
 		 gpspacket.gps_time < 4600000000)
 	    {
-		double interval = gpspacket.gps_time - gps_time;
-		if ( gps_time < 0.00001 || interval < 1000000 ) {
+		// double interval = gpspacket.gps_time - gps_time;
+		// if ( gps_time < 0.00001 || interval < 1000000 ) {
 		    /* printf("gps interval %.3f (last=%.3f new=%.3f)\n",
 		       interval, gps_time, gpspacket.gps_time); */
 		    gps_data.push_back( gpspacket );
@@ -361,10 +382,10 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
 		    if ( gpspacket.alt > alt_max ) {
 			alt_max = gpspacket.alt;
 		    }
-		} else {
-		    cout << "oops gps time too far in future: "
-			 << gpspacket.gps_time << " > " << gps_time << endl;
-		}
+		    // } else {
+		    //   cout << "oops gps time too far in future: "
+		    //     << gpspacket.gps_time << " > " << gps_time << endl;
+		    // }
             } else {
 		cout << "oops gps back in time: " << gpspacket.gps_time << " " << gps_time << endl;
             }
@@ -375,7 +396,7 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
             } else {
                 cout << "oops imu back in time" << endl;
             }
-        } else if ( id == AIR_DATA_PACKET_V1 || id == AIR_DATA_PACKET_V2 || id == AIR_DATA_PACKET_V3 ) {
+        } else if ( id == AIR_DATA_PACKET_V1 || id == AIR_DATA_PACKET_V2 || id == AIR_DATA_PACKET_V3 || id == AIR_DATA_PACKET_V4 ) {
             if ( airpacket.timestamp > air_time ) {
                 air_data.push_back( airpacket );
                 air_time = airpacket.timestamp;
@@ -388,6 +409,7 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
                 filter_time = filterpacket.timestamp;
             } else {
                 cout << "oops filter back in time" << endl;
+		cout << "  " << filterpacket.timestamp << " < " << filter_time << endl;
             }
         } else if ( id == ACTUATOR_PACKET_V1 ) {
             if ( actpacket.timestamp > act_time ) {

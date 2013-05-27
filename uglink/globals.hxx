@@ -29,6 +29,7 @@ struct airdata {
     float temperature;		// deg C
     float airspeed;		// knots
     float altitude;		// meters
+    float altitude_true;	// meters (corrected by filtered difference with gps)
     float climb_fpm;		// feet per minute
     float acceleration;		// knots per second
     float wind_dir;             // degrees (0-360)

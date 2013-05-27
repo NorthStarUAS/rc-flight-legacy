@@ -196,7 +196,7 @@ void log_airdata( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    log_packet( AIR_DATA_PACKET_V3, buf, size );
+    log_packet( AIR_DATA_PACKET_V4, buf, size );
 }
 
 

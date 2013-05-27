@@ -1,0 +1,5 @@
+# plot altitude hold parameters
+
+plot "ap.txt" using 1:4 with lines title "Target Altitude (MSL)", \
+     "air.txt" using 1:($5/0.3048) with lines title "True (combined) Altitude", \
+     "gps.txt" using 1:($4/0.3048) with lines title "GPS Altitude"
