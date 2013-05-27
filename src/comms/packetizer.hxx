@@ -25,6 +25,7 @@ enum ugPacketType {
     AP_STATUS_PACKET_V2 = 10,
     SYSTEM_HEALTH_PACKET_V2 = 11,
     PAYLOAD_PACKET_V1 = 12,
+    AIR_DATA_PACKET_V4 = 13
 };
 
 
@@ -60,6 +61,7 @@ class UGPacketizer {
     SGPropertyNode *airdata_pressure_node;
     SGPropertyNode *airdata_temperature_node;
     SGPropertyNode *airdata_altitude_node;
+    SGPropertyNode *airdata_altitude_true_node;
     SGPropertyNode *airdata_airspeed_node;
     SGPropertyNode *airdata_climb_fps_node;
     SGPropertyNode *airdata_accel_ktps_node;

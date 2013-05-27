@@ -299,7 +299,7 @@ bool remote_link_airdata( uint8_t *buf, int size, int skip_count  ) {
         skip = skip_count;
     }
 
-    remote_link_packet( AIR_DATA_PACKET_V3, buf, size );
+    remote_link_packet( AIR_DATA_PACKET_V4, buf, size );
 
     return true;
 }

@@ -34,6 +34,7 @@ enum ugPacketType {
     AP_STATUS_PACKET_V2 = 10,
     SYSTEM_HEALTH_PACKET_V2 = 11,
     PAYLOAD_PACKET_V1 = 12,
+    AIR_DATA_PACKET_V4 = 13,
 };
 
 // these constants are depricated and remain to support older code
