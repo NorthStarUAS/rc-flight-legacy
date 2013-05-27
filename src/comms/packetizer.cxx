@@ -44,10 +44,10 @@ void UGPacketizer::bind_airdata_nodes() {
     airdata_pressure_node = fgGetNode("/sensors/air-data/pressure-mbar", true);
     airdata_temperature_node = fgGetNode("/sensors/air-data/temp-degC", true);
 
-    // select one of the following altitude sources
+    // select one of the following pressure altitude sources
     // airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
-    // airdata_altitude_node = fgGetNode("/position/altitude-pressure-smoothed-m", true);
-    airdata_altitude_node = fgGetNode("/position/altitude-true-combined-m", true);
+    airdata_altitude_node = fgGetNode("/position/altitude-pressure-smoothed-m", true);
+    airdata_altitude_true_node = fgGetNode("/position/altitude-true-combined-m", true);
 
     // select one of the following airspeed sources
     // airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
@@ -289,6 +289,9 @@ int UGPacketizer::packetize_airdata( uint8_t *buf ) {
 
     float alt = airdata_altitude_node->getFloatValue();
     *(float *)buf = alt; buf += 4;
+
+    float alt_true = airdata_altitude_true_node->getFloatValue();
+    *(float *)buf = alt_true; buf += 4;
 
     int16_t climb = (int16_t)((airdata_climb_fps_node->getFloatValue() * 60) * 10);
     *(int16_t *)buf = climb; buf += 2;

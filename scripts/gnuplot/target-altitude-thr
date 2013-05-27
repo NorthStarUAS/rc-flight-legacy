@@ -8,4 +8,5 @@ plot "ap.txt" using 1:4 with lines title "Target Altitude (MSL)", \
      "air.txt" using 1:($5/0.3048) with lines title "Baro Altitude", \
      "ap.txt" using 1:($5*60) with lines title "Target Climb (FPM)", \
      "air.txt" using 1:($7*60) with lines title "Climb Rate (FPM)", \
-     "act.txt" using 1:4 with lines axis x1y2 title "Throttle"
+     "act.txt" using 1:4 with lines axis x1y2 title "AP Throttle", \
+     "pilot.txt" using 1:4 with lines axis x1y2 title "Pilot Throttle"

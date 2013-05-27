@@ -46,6 +46,7 @@ static SGPropertyNode *airdata_timestamp_node = NULL;
 static SGPropertyNode *airdata_pressure_node = NULL;
 static SGPropertyNode *airdata_temperature_node = NULL;
 static SGPropertyNode *airdata_altitude_node = NULL;
+static SGPropertyNode *airdata_altitude_true_node = NULL;
 static SGPropertyNode *airdata_airspeed_node = NULL;
 static SGPropertyNode *airdata_climb_fpm_node = NULL;
 static SGPropertyNode *airdata_accel_ktps_node = NULL;
@@ -164,6 +165,7 @@ static void bind_airdata_nodes() {
     airdata_pressure_node = fgGetNode("/sensors/air-data/pressure-mbar", true);
     airdata_temperature_node = fgGetNode("/sensors/air-data/temperature-degC", true);
     airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-pressure-m", true);
+    airdata_altitude_true_node = fgGetNode("/position/altitude-true-combined-m", true);
     airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
     airdata_climb_fpm_node
 	= fgGetNode("/sensors/air-data/vertical-speed-fpm", true);
