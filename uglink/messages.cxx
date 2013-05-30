@@ -172,13 +172,13 @@ void UGTrack::parse_msg( const int id, char *buf,
 	airpacket->pitot_scale = *(uint8_t *)buf / 100.0; buf += 1;
 	airpacket->status = *(uint8_t *)buf; buf += 1;
 	
-	printf("air4 %.2f %.1f %.1f %.1f %.1f %.1f %.2f %.2f %.1f %.1f %.2f %d\n",
+	/* printf("air4 %.2f %.1f %.1f %.1f %.1f %.1f %.2f %.2f %.1f %.1f %.2f %d\n",
 	       airpacket->timestamp, airpacket->pressure,
 	       airpacket->temperature, airpacket->airspeed,
 	       airpacket->altitude, airpacket->altitude_true,
 	       airpacket->climb_fpm, airpacket->acceleration,
 	       airpacket->wind_dir, airpacket->wind_speed,
-	       airpacket->pitot_scale, airpacket->status );
+	       airpacket->pitot_scale, airpacket->status ); */
     } else if ( id == FILTER_PACKET_V1 ) {
 	filterpacket->timestamp = *(double *)buf; buf += 8;
 	filterpacket->lat = *(double *)buf; buf += 8;
@@ -1341,6 +1341,7 @@ airdata UGEARInterpAIR( const airdata A, const airdata B, const double percent )
     p.temperature = interp(A.temperature, B.temperature, percent);
     p.airspeed = interp(A.airspeed, B.airspeed, percent);
     p.altitude = interp(A.altitude, B.altitude, percent);
+    p.altitude_true = interp(A.altitude_true, B.altitude_true, percent);
     p.climb_fpm = interp(A.climb_fpm, B.climb_fpm, percent);
     p.acceleration = interp(A.acceleration, B.acceleration, percent);
     p.wind_dir = interp(A.wind_dir, B.wind_dir, percent);

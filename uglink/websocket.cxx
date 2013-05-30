@@ -89,6 +89,7 @@ class WSChannel : public netBufferChannel
     SGPropertyNode *airdata_pressure_node;
     SGPropertyNode *airdata_temperature_node;
     SGPropertyNode *airdata_altitude_node;
+    SGPropertyNode *airdata_altitude_true_node;
     SGPropertyNode *airdata_airspeed_node;
     SGPropertyNode *airdata_climb_fpm_node;
     SGPropertyNode *airdata_accel_ktps_node;
@@ -240,6 +241,7 @@ void WSChannel::bind()
     airdata_pressure_node = fgGetNode("/sensors/air-data/pressure-mbar", true);
     airdata_temperature_node = fgGetNode("/sensors/air-data/temperature-degC", true);
     airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-pressure-m", true);
+    airdata_altitude_true_node = fgGetNode("/position/altitude-true-combined-m", true);
     airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
     airdata_climb_fpm_node
 	= fgGetNode("/sensors/air-data/vertical-speed-fpm", true);
@@ -462,7 +464,7 @@ WSChannel::process_line( string line )
 			  "update1 %.8f %.8f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %d %d %.0f %.1f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.1f %.3f %.2f %.2f %.0f %.1f %.1f\r\n",
 			  filter_lon_node->getDoubleValue(),
 			  filter_lat_node->getDoubleValue(),
-			  airdata_altitude_node->getDoubleValue(),
+			  airdata_altitude_true_node->getDoubleValue(),
 			  airdata_airspeed_node->getDoubleValue(),
 			  filter_psi_node->getDoubleValue(),
 			  filter_track_node->getDoubleValue(),
