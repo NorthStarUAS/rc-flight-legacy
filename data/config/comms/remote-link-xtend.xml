@@ -12,12 +12,13 @@
   <port>6500</port>
 
   <gps-skip>2</gps-skip>
-  <imu-skip>19</imu-skip> <!-- 9 -->
-  <airdata-skip>19</airdata-skip> <!-- 9 -->
-  <filter-skip>19</filter-skip> <!-- 4hz -->
-  <actuator-skip>19</actuator-skip>
-  <pilot-skip>19</pilot-skip>
-  <autopilot-skip>8</autopilot-skip> <!-- 2hz -->
-  <health-skip>8</health-skip> <!-- 2hz -->
+  <imu-skip>19</imu-skip> <!-- 5hz -->
+  <airdata-skip>19</airdata-skip> <!-- 5hz -->
+  <filter-skip>19</filter-skip> <!-- 5hz -->
+  <actuator-skip>19</actuator-skip> <!-- 5hz -->
+  <pilot-skip>19</pilot-skip> <!-- 5hz -->
+  <autopilot-skip>49</autopilot-skip> <!-- 2hz -->
+  <health-skip>4</health-skip> <!-- 2hz -->
+  <payload-skip>24</payload-skip> <!-- 4hz -->
 
 </PropertyList>
