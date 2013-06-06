@@ -39,6 +39,7 @@
 #include "include/globaldefs.h"
 #include "mission/mission_mgr.hxx"
 #include "mission/tasks/task_route.hxx"
+#include "payload/payload_mgr.hxx"
 #include "props/props.hxx"
 #include "props/props_io.hxx"
 #include "sensors/airdata_mgr.hxx"
@@ -253,6 +254,8 @@ void timer_handler (int signum)
 	health_update();
 	health_prof.stop();
     }
+
+    payload_mgr.update();
 
     // sensor summary dispay (update at 0.5hz)
     if ( display_on && display_counter
@@ -469,6 +472,9 @@ int main( int argc, char **argv )
     // init system health and status monitor
     health_init();
 
+    // init payload manager
+    payload_mgr.init();
+
 #ifdef ATI_POINTING
     // initialize pointing module
     ati_pointing_init();
@@ -535,6 +541,7 @@ int main( int argc, char **argv )
 #ifdef ATI_POINTING
     ati_pointing_close();
 #endif
+    payload_mgr.close();
     if ( enable_control ) {
 	control_close();
 	Actuator_close();
