@@ -400,6 +400,25 @@ bool remote_link_health( uint8_t *buf, int size, int skip_count )
 }
 
 
+bool remote_link_payload( uint8_t *buf, int size, int skip_count )
+{
+    // printf("remote link payload()\n");
+    if ( skip_count < 0 ) { skip_count = 0; }
+    static uint8_t skip = my_random(skip_count);
+
+    if ( skip > 0 ) {
+        --skip;
+        return false;
+    } else {
+        skip = skip_count;
+    }
+
+    remote_link_packet( PAYLOAD_PACKET_V1, buf, size );
+
+    return true;
+}
+
+
 static void remote_link_execute_command( const string command ) {
     vector <string> token = split( command, "," );
 
