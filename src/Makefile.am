@@ -7,6 +7,7 @@ SUBDIRS = \
 	include \
 	math \
 	mission \
+	payload \
 	util \
 	sensors \
 	xml \
