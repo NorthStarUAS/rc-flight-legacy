@@ -306,8 +306,8 @@ void UGTrack::parse_msg( const int id, char *buf,
     } else if ( id == PAYLOAD_PACKET_V1 ) {
         payloadpacket->timestamp = *(double *)buf; buf += 8;
 	payloadpacket->trigger_num = *(uint16_t *)buf; buf += 2;
-	printf("payload = %.2f trigger_num=%.2f\n",
-  	          payloadpacket->timestamp, payloadpacket->trigger_num);
+	/* printf("payload = %.2f trigger_num=%d\n",
+	   payloadpacket->timestamp, payloadpacket->trigger_num); */
     } else {
         cout << "unknown id = " << id << endl;
     }
@@ -843,10 +843,12 @@ bool UGTrack::export_text_tab( const string &path ) {
     airdata airpacket;
     for ( int i = 0; i < airdata_size(); i++ ) {
 	airpacket = get_airdatapt(i);
-	fprintf( air_fd, "%.3f\t%.1f\t%.1f\t%.1f\t%.2f\t%.2f\t%.2f\t%.1f\t%.1f\t%.2f\t%d\n",
+	fprintf( air_fd, "%.3f\t%.1f\t%.1f\t%.1f\t%.2f\t%.2f\t%.2f\t%.2f\t%.1f\t%.1f\t%.2f\t%d\n",
 		 airpacket.timestamp,
 		 airpacket.pressure, airpacket.temperature,
-		 airpacket.airspeed, airpacket.altitude, airpacket.climb_fpm,
+		 airpacket.airspeed,
+		 airpacket.altitude, airpacket.altitude_true,
+		 airpacket.climb_fpm,
 		 airpacket.acceleration, airpacket.wind_dir,
 		 airpacket.wind_speed, airpacket.pitot_scale, airpacket.status
 		 );

@@ -111,6 +111,9 @@ static SGPropertyNode *extern_volts_node = NULL;
 static SGPropertyNode *extern_amps_node = NULL;
 static SGPropertyNode *extern_mah_node = NULL;
 
+// payload nodes
+static SGPropertyNode *payload_trigger_num_node = NULL;
+
 // console link nodes
 static SGPropertyNode *link_seq_num = NULL;
 
@@ -268,6 +271,12 @@ static void bind_health_nodes() {
 }
 
 
+// bind payload property nodes
+static void bind_payload_nodes() {
+    payload_trigger_num_node = fgGetNode("/payload/camera/trigger-num", true);
+}
+
+
 static void bind_props() {
     bind_gps_nodes();
     bind_imu_nodes();
@@ -277,6 +286,7 @@ static void bind_props() {
     bind_pilot_nodes();
     bind_ap_nodes();
     bind_health_nodes();
+    bind_payload_nodes();
     bind_derived_nodes();
 
     // command sequence node
@@ -420,6 +430,12 @@ static void update_health_nodes( struct health *healthpacket ) {
 }
 
 
+// update payload property nodes
+static void update_payload_nodes( struct payload *payloadpacket ) {
+     payload_trigger_num_node->setIntValue( payloadpacket->trigger_num );
+}
+
+
 void update_props( struct gps *gpspacket,
 		   struct imu *imupacket,
 		   struct airdata *airpacket,
@@ -427,7 +443,8 @@ void update_props( struct gps *gpspacket,
 		   struct actuator *actpacket,
 		   struct pilot *pilotpacket,
 		   struct apstatus *appacket,
-		   struct health *healthpacket )
+		   struct health *healthpacket,
+		   struct payload *payloadpacket )
 {
     if ( ! props_inited ) {
 	props_inited = true;
@@ -442,6 +459,7 @@ void update_props( struct gps *gpspacket,
     update_pilot_nodes( pilotpacket );
     update_ap_nodes( appacket );
     update_health_nodes( healthpacket );
+    update_payload_nodes( payloadpacket );
 }
 
 
@@ -452,7 +470,8 @@ void compute_derived_data( struct gps *gpspacket,
 			   struct actuator *actpacket,
 			   struct pilot *pilotpacket,
 			   struct apstatus *appacket,
-			   struct health *healthpacket )
+			   struct health *healthpacket,
+			   struct payload *payloadpacket )
 {
     // static double last_time = 0.0;
 
