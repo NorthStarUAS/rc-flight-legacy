@@ -153,6 +153,7 @@ UGPacketizer::UGPacketizer() {
     bind_pilot_nodes();
     bind_ap_nodes();
     bind_health_nodes();
+    bind_payload_nodes();
 
     // command sequence node
     link_seq_num = fgGetNode("/comms/remote-link/sequence-num", true);

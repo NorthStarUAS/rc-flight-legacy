@@ -61,7 +61,7 @@ bool UGPayloadMgr::update() {
 	}
 
 	if ( log_to_file ) {
-	    log_airdata( buf, size, payload_logging_skip->getIntValue() );
+	    log_payload( buf, size, payload_logging_skip->getIntValue() );
 	}
     }
     return true;
