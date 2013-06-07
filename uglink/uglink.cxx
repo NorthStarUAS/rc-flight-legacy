@@ -450,6 +450,7 @@ int main( int argc, char **argv ) {
         int pilot_count = 0;
         int ap_count = 0;
         int health_count = 0;
+        int payload_count = 0;
 
         gps gps0, gps1;
         gps0 = gps1 = track.get_gpspt( 0 );
@@ -475,7 +476,10 @@ int main( int argc, char **argv ) {
         health health0, health1;
         health0 = health1 = track.get_healthpt( 0 );
 
-        double last_lat = -999.9, last_lon = -999.9;
+	payload payload0, payload1;
+        payload0 = payload1 = track.get_payloadpt( 0 );
+
+	double last_lat = -999.9, last_lon = -999.9;
 
         printf("<gpx>\n");
         printf(" <trk>\n");
@@ -660,7 +664,17 @@ int main( int argc, char **argv ) {
             }
             // cout << "Percent = " << percent << endl;
 
-            gps gpspacket = UGEARInterpGPS( gps0, gps1, gps_percent );
+            double payload_percent;
+            if ( fabs(payload1.timestamp - payload0.timestamp) < 0.00001 ) {
+                payload_percent = 0.0;
+            } else {
+                payload_percent =
+                    (current_time - payload0.timestamp) /
+                    (payload1.timestamp - payload0.timestamp);
+            }
+            // cout << "Percent = " << percent << endl;
+
+	    gps gpspacket = UGEARInterpGPS( gps0, gps1, gps_percent );
             imu imupacket = UGEARInterpIMU( imu0, imu1, imu_percent );
             airdata airpacket = UGEARInterpAIR( air0, air1, air_percent );
             filter filterpacket = UGEARInterpFILTER( filter0, filter1,
@@ -670,6 +684,7 @@ int main( int argc, char **argv ) {
 						  pilot_percent );
             apstatus appacket = UGEARInterpAP( ap0, ap1, ap_percent );
             health healthpacket = UGEARInterpHEALTH( health0, health1, health_percent );
+            payload payloadpacket = UGEARInterpPAYLOAD( payload0, payload1, payload_percent );
 
             // cout << current_time << " " << p0.lat_deg << ", " << p0.lon_deg
             //      << endl;
@@ -722,11 +737,11 @@ int main( int argc, char **argv ) {
 
 	    compute_derived_data( &gpspacket, &imupacket, &airpacket,
 				  &filterpacket, &actpacket, &pilotpacket,
-				  &appacket, &healthpacket );
+				  &appacket, &healthpacket, &payloadpacket );
 
 	    update_props( &gpspacket, &imupacket, &airpacket,
 			  &filterpacket, &actpacket, &pilotpacket,
-			  &appacket, &healthpacket );
+			  &appacket, &healthpacket, &payloadpacket );
 
             udp_send_data( &gpspacket, &imupacket, &airpacket, &filterpacket,
 			   &actpacket, &pilotpacket, &appacket, &healthpacket );
@@ -1000,11 +1015,12 @@ int main( int argc, char **argv ) {
 
 		compute_derived_data( &gpspacket, &imupacket, &airpacket,
 				      &filterpacket, &actpacket, &pilotpacket,
-				      &appacket, &healthpacket );
+				      &appacket, &healthpacket,
+				      &payloadpacket );
 
 		update_props( &gpspacket, &imupacket, &airpacket,
 			      &filterpacket, &actpacket, &pilotpacket,
-			      &appacket, &healthpacket );
+			      &appacket, &healthpacket, &payloadpacket );
 
                 udp_send_data( &gpspacket, &imupacket, &airpacket,
 			       &filterpacket, &actpacket, &pilotpacket,

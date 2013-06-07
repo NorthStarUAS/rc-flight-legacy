@@ -12,7 +12,8 @@ void compute_derived_data( struct gps *gpspacket,
 			   struct actuator *actpacket,
 			   struct pilot *pilotpacket,
 			   struct apstatus *appacket,
-			   struct health *healthpacket);
+			   struct health *healthpacket,
+			   struct payload *payloadpacket );
 
 void update_props( struct gps *gpspacket,
 		   struct imu *imupacket,
@@ -21,6 +22,7 @@ void update_props( struct gps *gpspacket,
 		   struct actuator *actpacket,
 		   struct pilot *pilotpacket,
 		   struct apstatus *appacket,
-		   struct health *healthpacket);
+		   struct health *healthpacket,
+		   struct payload *payloadpacket );
 
 #endif // _UGEAR_CURRENT_HXX
