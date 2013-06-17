@@ -47,6 +47,7 @@
       <overlap-pct>0.10</overlap-pct>
       <min-agl-ft>200.0</min-agl-ft>
       <min-rate-sec>3.0</min-rate-sec>
+      <max-rate-sec>60.0</max-rate-sec>
     </task>
 
   </global-tasks>
