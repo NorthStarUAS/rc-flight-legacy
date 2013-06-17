@@ -229,6 +229,8 @@ apstatus UGEARInterpAP( const apstatus A, const apstatus B,
 			  const double percent );
 health UGEARInterpHEALTH( const health A, const health B,
 			  const double percent );
+payload UGEARInterpPAYLOAD( const payload A, const payload B,
+			  const double percent );
 
 
 #endif // _UGEAR_MESSAGES_HXX
