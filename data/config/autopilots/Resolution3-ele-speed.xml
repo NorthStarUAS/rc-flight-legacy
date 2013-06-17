@@ -56,13 +56,13 @@
       <!-- 4/8/2013 P=-0.007 I=10.00 min/max = 0.25, -->
       <!-- 4/8/2013 P=0.007 I=10.00 min/max = 0.25, Res3 #3 Seemed like not pushing hard enought to get rid of long term error, but really jumpy -->
       <!-- 5/24/2013 P=0.005 I=5.00 min/max = 0.25, Res3 #3 maybe still too snappy? -->
-      <!-- 5/26/2013 P=0.004 I=5.00 min/max = 0.25, Res3 #3 -->
-      <Kp>0.005</Kp>      <!-- proportional gain-->
+      <!-- 6/17/2013 P=0.004 I=2.00 min/max = 0.25, Res3 #3 seeking better convergence -->
+      <Kp>0.004</Kp>      <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>5.0</Ti>        <!-- integrator time -->
+      <Ti>2.0</Ti>        <!-- integrator time -->
       <Td>0.0001</Td>      <!-- derivator time -->
       <u_min>-0.25</u_min> <!-- minimum output clamp -->
       <u_max>0.25</u_max>  <!-- maximum output clamp -->
@@ -159,8 +159,9 @@
       <!-- 5/11/2013 Kp=0.001 a=0.5 Ti=10.0 Td=1.0 : stayed bounded but oscillated slowly over a long period, probably need to up the global gain a bit. -->
       <!-- 5/11/2013 Kp=0.004 a=0.5 Ti=10.0 Td=1.0 :  better but still laggy -->
       <!-- 5/28/2013 Kp=0.006 a=0.5 Ti=10.0 Td=1.0 :  even better, almost flyable -->
-      <!-- 5/28/2013 Kp=0.008 a=0.5 Ti=10.0 Td=1.0 :  -->
-      <Kp>0.008</Kp>       <!-- proportional gain -->
+      <!-- 5/28/2013 Kp=0.008 a=0.5 Ti=10.0 Td=1.0 :  would like faster convergence -->
+      <!-- 6/17/2013 Kp=0.010 a=0.5 Ti=10.0 Td=1.0 :  -->
+      <Kp>0.010</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.5</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
