@@ -179,11 +179,10 @@ static void update_pressure_helpers() {
     airspeed_filt = (1.0 - weight_factor) * airspeed_filt + weight_factor * Pt;
 
     // compute a filtered error difference between gps altitude
-    // and pressure altitude.  (at 4hz update rate this averages
-    // the error over about 40 minutes)
+    // and pressure altitude.
     double elapsed_time = cur_time - start_time;
-    if ( elapsed_time > 1800 ) {
-	elapsed_time = 1800;	// 30 minutes
+    if ( elapsed_time > 300 ) {
+	elapsed_time = 300;	// 5 minutes
     }
     static bool first_time = true;
     if ( first_time ) {
