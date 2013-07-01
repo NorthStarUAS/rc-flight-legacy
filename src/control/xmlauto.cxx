@@ -511,7 +511,12 @@ void FGPISimpleController::update( double dt ) {
         }
 
         if ( integral ) {
-            int_sum += error * Ki * dt;
+	    double est_output = prop_comp + int_sum;
+	    if ( est_output > u_min && est_output < u_max ) {
+		int_sum += error * Ki * dt;
+	    } else {
+		// turn off the integrator if output is saturated.
+	    }
         } else {
             int_sum = 0.0;
         }
