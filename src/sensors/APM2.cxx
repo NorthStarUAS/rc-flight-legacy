@@ -1377,7 +1377,15 @@ bool APM2_airdata_update() {
 
 	// from here: http://keisan.casio.com/has10/SpecExec.cgi?path=06000000%2eScience%2f02100100%2eEarth%20science%2f12000300%2eAltitude%20from%20atmospheric%20pressure%2fdefault%2exml&charset=utf-8
 	const float sea_press = 1013.25;
-	float alt_m = ((pow((sea_press / (airdata.pressure/100.0)), 1.0/5.257) - 1.0) * ((airdata.temp/10.0) + 273.15)) / 0.0065;
+
+	// pick a standard any standard, the APM "air" temp sensor is
+	// highly biased by board temp, so it really makes more sense
+	// to just pick a fixed value here and let the system
+	// (downstream) figure out the error between pressure and gps
+	// altitudes.
+	const float std_temp = 20.0;
+
+	float alt_m = ((pow((sea_press / (airdata.pressure/100.0)), 1.0/5.257) - 1.0) * (std_temp + 273.15)) / 0.0065;
 	airdata_altitude_node->setDoubleValue( alt_m );
 
 	fresh_data = true;
