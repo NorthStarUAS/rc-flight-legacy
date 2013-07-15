@@ -18,12 +18,12 @@
     <telnet include="comms/telnet.xml" />
 
     <!-- Sensor selection and configuration. -->
-    <!-- <sensors include="sensors/group-APM2.xml"> -->
-    <!--   <APM2 n="0"> -->
-    <!--     <device n="0">/dev/ttyACM0</device> -->
-    <!--   </APM2> -->
-    <!-- </sensors> -->
-    <sensors include="sensors/group-fgfs24.xml" />
+    <sensors include="sensors/group-APM2.xml">
+      <APM2 n="0">
+        <device n="0">/dev/ttyACM0</device>
+      </APM2>
+    </sensors>
+    <!-- <sensors include="sensors/group-fgfs24.xml" /> -->
 
     <!-- Filters configuration -->
     <filters>
@@ -56,14 +56,17 @@
 
       <!-- select the autopilot configuration -->
       <!-- <autopilot include="autopilots/Resolution3.xml" /> -->
-      <!-- <autopilot include="autopilots/SeniorTelemaster-pitchrate-speed.xml" /> -->
+      <autopilot include="autopilots/SeniorTelemaster-pitchrate-speed.xml" />
       <!-- <autopilot include="autopilots/Malolo2-alt-thr.xml" /> -->
-      <autopilot include="autopilots/Rascal110-fgfs-ele-speed.xml" />
+      <!-- <autopilot include="autopilots/Rascal110-combined.xml" /> -->
+      <!-- <autopilot include="autopilots/Rascal110-wingleveler.xml" /> -->
+      <!-- <autopilot include="autopilots/Rascal110-pitchleveler.xml" /> -->
+      <!-- <autopilot include="autopilots/Rascal110-fgfs.xml" /> -->
       <!-- <autopilot include="autopilots/FlyCamOne3.xml" /> -->
     </fcs>
 
     <!-- Primary mission selection and configuration. -->
-    <mission include="missions/launch-rascal.xml" />
+    <mission include="missions/launch-tele.xml" />
 
     <!-- command augmentation system -->
     <!-- <cas include="cas.xml" /> -->
@@ -73,9 +76,9 @@
       <!-- set value to true to enable flying wing elevon mixing -->
       <elevon-mixing type="bool">false</elevon-mixing>
 
-      <actuator include="actuators/fgfs24.xml" />
+      <!-- <actuator include="actuators/fgfs24.xml" /> -->
       <!-- <actuator include="actuators/ardupilot.xml" /> -->
-      <!-- <actuator include="actuators/APM2.xml" /> -->
+      <actuator include="actuators/APM2.xml" />
     </actuators>
 
   </config>
