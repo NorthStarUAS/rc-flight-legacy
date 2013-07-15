@@ -433,8 +433,7 @@ static void remote_link_execute_command( const string command ) {
     // keep passing over it.
 
     if ( token[0] == "hb" && token.size() == 1 ) {
-        // heart beat, ignore
-
+        // heart beat, no action needed
     } else if ( token[0] == "home" && token.size() == 5 ) {
         // specify new home location
         double lon = atof( token[1].c_str() );
@@ -500,22 +499,10 @@ static void remote_link_execute_command( const string command ) {
 		route_task->reposition();
 	    }
 	}
-    } else if ( token[0] == "go" && token.size() == 2 ) {
-	// FIXME: we should push a gohome task, the following code
-	// shouldn't be used any more
-	UGTaskRoute *route_task
-	    = (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
-	if ( route_task != NULL ) {
-	    FGRouteMgr *route_mgr = route_task->get_route_mgr();
-	    if ( route_mgr != NULL ) {
-		// specify router mode
-		if ( token[1] == "home" ) {
-		    // route_mgr->set_home_mode();
-		} else if ( token[1] == "route" ) {
-		    // route_mgr->set_route_mode();
-		}
-	    }
-	}
+    } else if ( token[0] == "task" ) {
+	SGPropertyNode *mission_command
+	    = fgGetNode( "/mission/command-request", true );
+	mission_command->setStringValue( command.c_str() );
     } else if ( token[0] == "ap" && token.size() == 3 ) {
         // specify an autopilot target
         if ( token[1] == "agl-ft" ) {
