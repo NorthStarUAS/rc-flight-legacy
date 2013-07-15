@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <enable type="bool">true</enable>
+
+  <!-- global tasks: each of these are run every iteration -->
+  <global-tasks>
+    <task>
+      <name>home-manager</name>
+    </task>
+
+    <task>
+      <name>lost-link</name>
+      <timeout-sec>60</timeout-sec>
+      <action-nickname>circle-home</action-nickname>
+    </task>
+
+    <task>
+      <name>throttle-safety</name>
+      <!-- safety "off" means throttle can run -->
+      <off-alt-agl-ft>0</off-alt-agl-ft>
+      <off-ground-speed-kt>0</off-ground-speed-kt>
+      <off-air-speed-kt>0</off-air-speed-kt>
+      <off-accel-g>0.0</off-accel-g>
+      <!-- safety "on" means throttle cannot run -->
+      <on-alt-agl-ft>0</on-alt-agl-ft>
+      <on-ground-speed-kt>0</on-ground-speed-kt>
+      <on-air-speed-kt>0</on-air-speed-kt>
+    </task>
+
+    <task>
+      <name>is-airborne</name>
+      <!-- "off" in the sense of "off" the ground if we exceed these values -->
+      <off-alt-agl-ft>10</off-alt-agl-ft>
+      <off-ground-speed-kt>10</off-ground-speed-kt>
+      <off-air-speed-kt>15</off-air-speed-kt>
+      <!-- "on" the ground if we drop below these values-->
+      <on-ground-speed-kt>5</on-ground-speed-kt>
+      <on-air-speed-kt>10</on-air-speed-kt>
+    </task>
+
+    <task>
+      <name>camera-trigger</name>
+      <vert-fov-deg>30.0</vert-fov-deg>
+      <overlap-pct>0.25</overlap-pct>
+      <min-agl-ft>200.0</min-agl-ft>
+      <min-rate-sec>3.0</min-rate-sec>
+    </task>
+
+  </global-tasks>
+
+  <!-- sequential tasks: only the front item in the fifo queue is run -->
+  <sequential-tasks>
+    <task>
+      <name>launch</name>
+      <speed-kt>25</speed-kt>
+      <completion-alt-ft>200</completion-alt-ft>
+      <steering-gain>-0.025</steering-gain>
+      <max-steer>0.5</max-steer>
+      <roll-gain>0.5</roll-gain>
+      <roll-limit>5.0</roll-limit>
+    </task>
+
+    <task>
+      <name>route</name>
+      <route include="../routes/bowtie-300m.xml" />
+      <altitude-agl-ft>500</altitude-agl-ft>
+      <speed-kt>30</speed-kt>
+      <timed>0</timed>
+      <loop>0</loop>
+    </task>
+  </sequential-tasks>
+
+  <!-- standby tasks: a list of tasks that are initialized and configured -->
+  <!-- and could be moved to the global or sequential task lists at any -->
+  <!-- time. -->
+  <standby-tasks>
+    <task>
+      <name>circle-coord</name>
+      <nickname>circle-home</nickname>
+      <coord-path>/navigation/home</coord-path>
+
+      <bank-deg>10</bank-deg>
+      <bank-limit-deg>20</bank-limit-deg>
+      <heading-error-gain>0.6</heading-error-gain>
+
+      <altitude-agl-ft>500</altitude-agl-ft>
+      <speed-kt>30</speed-kt>
+    </task>
+
+    <task>
+      <name>circle-coord</name>
+      <nickname>circle-target</nickname>
+      <coord-path>/navigation/circle-target</coord-path>
+
+      <bank-deg>10</bank-deg>
+      <bank-limit-deg>20</bank-limit-deg>
+      <heading-error-gain>0.6</heading-error-gain>
+
+      <altitude-agl-ft>500</altitude-agl-ft>
+      <speed-kt>30</speed-kt>
+    </task>
+
+    <task>
+      <name>flyto-coord</name>
+      <coord-path>/navigation/startup</coord-path>
+      <altitude-agl-ft>500</altitude-agl-ft>
+      <speed-kt>30</speed-kt>
+    </task>
+  </standby-tasks>
+
+</PropertyList>
