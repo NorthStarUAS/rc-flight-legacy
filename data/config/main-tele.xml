@@ -7,8 +7,8 @@
   <config>
 
     <!-- Onboard data logging. -->
-    <logging include="comms/log-overo.xml">
-      <path n="0">/home/root/FlightData</path>
+    <logging include="comms/log-overo.xml">                                 
+      <path n="0">/home/root/FlightData</path>                        
     </logging>
 
     <!-- Remote operator communication. -->
@@ -18,7 +18,11 @@
     <telnet include="comms/telnet.xml" />
 
     <!-- Sensor selection and configuration. -->
-    <sensors include="sensors/group-APM2.xml" />
+    <sensors include="sensors/group-APM2.xml">
+      <APM2 n="0">
+        <pitot-calibrate-factor n="0">1.0</pitot-calibrate-factor>
+      </APM2>
+    </sensors>
     <!-- <sensors include="sensors/group-fgfs24.xml" /> -->
 
     <!-- Filters configuration -->
