@@ -147,6 +147,7 @@ class WSChannel : public netBufferChannel
     SGPropertyNode *ap_route_size_node;
 
     // system health nodes
+    SGPropertyNode *health_avionics_vcc_node;
     SGPropertyNode *health_extern_volts_node;
     SGPropertyNode *health_extern_amps_node;
     SGPropertyNode *health_extern_mah_node;
@@ -296,6 +297,7 @@ void WSChannel::bind()
 	= fgGetNode( "/autopilot/route/target-waypoint-index", true );
     ap_route_size_node = fgGetNode( "/autopilot/route/size", true );
 
+    health_avionics_vcc_node = fgGetNode( "/status/input-vcc", true );
     health_extern_volts_node = fgGetNode( "/status/extern-volts", true );
     health_extern_amps_node = fgGetNode( "/status/extern-amps", true );
     health_extern_mah_node = fgGetNode( "/status/extern-mah", true );
@@ -455,12 +457,44 @@ WSChannel::process_line( string line )
 			  wind_deg_node->getDoubleValue(),
 			  wind_speed_node->getDoubleValue());
 		encode_send(reply);
+	    } else if ( tokens[1] == "update_json" ) {
+		char reply[4096];
+		snprintf( reply, 4096,
+			  "update_json {\"lon\":\"%.8f\",\"lat\":\"%.8f\",\"alt_true\":\"%.1f\",\"airspeed\":\"%.1f\",\"filter_psi\":\"%.1f\",\"filter_track\":\"%.1f\",\"filter_speed\":\"%.1f\",\"wind_deg\":\"%.1f\",\"wind_kts\":\"%.1f\",\"gps_sats\":\"%d\",\"lost_link\":\"%d\",\"control_mode\":\"%.0f\",\"ap_hdg\":\"%.1f\",\"airdata_climb\":\"%.2f\",\"ap_climb\":\"%.2f\",\"imu_ay\":\"%.2f\",\"imu_az\":\"%.2f\",\"imu_r\":\"%.2f\",\"filter_phi\":\"%.2f\",\"filter_theta\":\"%.2f\",\"ap_altitude\":\"%.2f\",\"ap_speed\":\"%.1f\",\"pitot_scale\":\"%.3f\",\"avionics_vcc\":\"%.2f\",\"main_volts\":\"%.2f\",\"main_amps\":\"%.2f\",\"main_mah\":\"%.0f\",\"flight_timer\":\"%.1f\",\"airdata_temp\":\"%.1f\"}\r\n",
+			  filter_lon_node->getDoubleValue(),
+			  filter_lat_node->getDoubleValue(),
+			  airdata_altitude_true_node->getDoubleValue(),
+			  airdata_airspeed_node->getDoubleValue(),
+			  filter_psi_node->getDoubleValue(),
+			  filter_track_node->getDoubleValue(),
+			  filter_speed_node->getDoubleValue(),
+			  wind_deg_node->getDoubleValue(),
+			  wind_speed_node->getDoubleValue(),
+			  gps_satellites_node->getIntValue(),
+			  command_mgr.remote_lost_link_predict(),
+			  pilot_channel5_node->getDoubleValue(),
+			  ap_hdg_node->getDoubleValue(),
+			  airdata_climb_fpm_node->getDoubleValue(),
+			  ap_climb_node->getDoubleValue(),
+			  imu_ay_node->getDoubleValue(),
+			  imu_az_node->getDoubleValue(),
+			  imu_r_node->getDoubleValue()*SG_RADIANS_TO_DEGREES,
+			  filter_phi_node->getDoubleValue(),
+			  filter_theta_node->getDoubleValue(),
+			  ap_altitude_node->getDoubleValue(),
+			  ap_speed_node->getDoubleValue(),
+			  pitot_scale_node->getDoubleValue(),
+			  health_avionics_vcc_node->getDoubleValue(),
+			  health_extern_volts_node->getDoubleValue(),
+			  health_extern_amps_node->getDoubleValue(),
+			  health_extern_mah_node->getDoubleValue(),
+			  flight_total_timer->getDoubleValue(),
+			  airdata_temperature_node->getDoubleValue()
+			  );
+		encode_send(reply);
 	    } else if ( tokens[1] == "update1" ) {
-		char reply[256];
-		double airspeed = airdata_airspeed_node->getDoubleValue()
-		    * pitot_scale_node->getDoubleValue();
-		if ( airspeed < 0 ) { airspeed = 0.0; }
-		snprintf( reply, 256,
+		char reply[1024];
+		snprintf( reply, 1024,
 			  "update1 %.8f %.8f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %d %d %.0f %.1f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.1f %.3f %.2f %.2f %.0f %.1f %.1f\r\n",
 			  filter_lon_node->getDoubleValue(),
 			  filter_lat_node->getDoubleValue(),
