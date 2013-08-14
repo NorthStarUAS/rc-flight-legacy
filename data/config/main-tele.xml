@@ -20,7 +20,7 @@
     <!-- Sensor selection and configuration. -->
     <sensors include="sensors/group-APM2.xml">
       <APM2 n="0">
-        <pitot-calibrate-factor n="0">1.1</pitot-calibrate-factor>
+        <pitot-calibrate-factor n="0">1.15</pitot-calibrate-factor>
       </APM2>
     </sensors>
     <!-- <sensors include="sensors/group-fgfs24.xml" /> -->
