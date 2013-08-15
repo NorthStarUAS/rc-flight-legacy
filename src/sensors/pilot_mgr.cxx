@@ -43,6 +43,12 @@ static SGPropertyNode *pilot_channel7_node = NULL;
 static SGPropertyNode *pilot_channel8_node = NULL;
 static SGPropertyNode *pilot_status_node = NULL;
 
+// flight control output property nodes
+static SGPropertyNode *output_aileron_node = NULL;
+static SGPropertyNode *output_elevator_node = NULL;
+static SGPropertyNode *output_throttle_node = NULL;
+static SGPropertyNode *output_rudder_node = NULL;
+
 // comm property nodes
 static SGPropertyNode *pilot_console_skip = NULL;
 static SGPropertyNode *pilot_logging_skip = NULL;
@@ -63,6 +69,12 @@ void PilotInput_init() {
     pilot_channel7_node = fgGetNode("/sensors/pilot/channel", 6, true);
     pilot_channel8_node = fgGetNode("/sensors/pilot/channel", 7, true);
     pilot_status_node = fgGetNode("/sensors/pilot/status", true);
+
+    // flight control output property nodes
+    output_aileron_node = fgGetNode("/controls/flight/aileron", true);
+    output_elevator_node = fgGetNode("/controls/flight/elevator", true);
+    output_throttle_node = fgGetNode("/controls/engine/throttle", true);
+    output_rudder_node = fgGetNode("/controls/flight/rudder", true);
 
     // initialize comm nodes
     pilot_console_skip = fgGetNode("/config/remote-link/pilot-skip", true);
@@ -141,15 +153,25 @@ bool PilotInput_update() {
     if ( fresh_data ) {
 
 	// Hello this is a bit of a hack to hard code the master
-	// autopilot on/off switch here.  In the future, actuators and
-	// pilot inputs will need to be generalized into their own
-	// separate modules and the master autopilot on/off switch may
-	// come from other sources.
+	// autopilot on/off switch here.  In the future the master
+	// autopilot on/off switch may come from other sources. (?)
 	ap_master_switch_node
 	    ->setBoolValue( !pilot_manual_node->getBoolValue() );
 	// if ( display_on ) {
 	//    printf("autopilot = %d\n", ap_master_switch_node->getBoolValue());
 	// }
+
+	// Only in manual mode, do copy the pilot inputs to the main
+	// AP outputs.  This puts the pilot inputs in a standard place
+	// and allows the AP to seed it's components with trimmed
+	// values and improve continuity when switching from manual to
+	// AP mode.
+	if ( ! ap_master_switch_node->getBoolValue() ) {
+	    output_aileron_node->setFloatValue( pilot_aileron_node->getFloatValue() );
+	    output_elevator_node->setFloatValue( pilot_elevator_node->getFloatValue() );
+	    output_throttle_node->setFloatValue( pilot_throttle_node->getFloatValue() );
+	    output_rudder_node->setFloatValue( pilot_rudder_node->getFloatValue() );
+	}
 
 	if ( remote_link_on || log_to_file ) {
 	    uint8_t buf[256];

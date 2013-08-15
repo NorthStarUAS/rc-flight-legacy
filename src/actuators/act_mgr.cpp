@@ -284,15 +284,14 @@ static void set_actuator_values_ap() {
 
 
 static void set_actuator_values_pilot() {
-    /* this isn't important at the moment, but should be revived at
-       some point */
-
-    /*
-    act_aileron_node->setFloatValue( pilot_aileron_node->getFloatValue() );
-    act_elevator_node->setFloatValue( pilot_elevator_node->getFloatValue() );
-    act_throttle_node->setFloatValue( pilot_throttle_node->getFloatValue() );
-    act_rudder_node->setFloatValue( pilot_rudder_node->getFloatValue() );
-    */
+    // The following lines would act as a manual pass-through at the
+    // ugear level.  Howver, manaul pass-through is handled more
+    // efficiently (less latency) directly on APM2.5 hardware.
+    //
+    // act_aileron_node->setFloatValue( pilot_aileron_node->getFloatValue() );
+    // act_elevator_node->setFloatValue( pilot_elevator_node->getFloatValue() );
+    // act_throttle_node->setFloatValue( pilot_throttle_node->getFloatValue() );
+    // act_rudder_node->setFloatValue( pilot_rudder_node->getFloatValue() );
 }
 
 
