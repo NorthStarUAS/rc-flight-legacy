@@ -50,7 +50,7 @@ FGPIDController::FGPIDController( SGPropertyNode *node ):
     edf_n_1( 0.0 ),
     edf_n_2( 0.0 ),
     u_n_1( 0.0 ),
-    desiredTs( 0.0 ),
+    desiredTs( 0.00001 ),
     elapsedTime( 0.0 )
 {
     int i;
@@ -238,29 +238,19 @@ void FGPIDController::update( double dt ) {
     
     elapsedTime += dt;
     if ( elapsedTime <= desiredTs ) {
-        // do nothing if time step is not positive (i.e. no time has
-        // elapsed)
+        // do nothing if no time has elapsed
         return;
     }
     Ts = elapsedTime;
     elapsedTime = 0.0;
 
     if (enable_prop != NULL && enable_prop->getStringValue() == enable_value) {
-	if ( !enabled ) {
-	    // first time being enabled, seed u_n with current
-	    // property tree value
-	    u_n = output_list[0]->getDoubleValue();
-	    // and clip
-	    if ( u_n < u_min ) { u_n = u_min; }
-	    if ( u_n > u_max ) { u_n = u_max; }
-	    u_n_1 = u_n;
-	}
 	enabled = true;
     } else {
 	enabled = false;
     }
 
-    if ( enabled && Ts > 0.0) {
+    if ( Ts > 0.0) {
         if ( debug ) printf("Updating %s Ts = %.2f", name.c_str(), Ts );
 
         double y_n = 0.0;
@@ -336,19 +326,24 @@ void FGPIDController::update( double dt ) {
         ep_n_1  = ep_n;
         edf_n_2 = edf_n_1;
         edf_n_1 = edf_n;
+    }
 
+    if ( enabled ) {
+	// Copy the result to the output node(s)
 	unsigned int i;
 	for ( i = 0; i < output_list.size(); ++i ) {
 	  output_list[i]->setDoubleValue( u_n );
 	}
-    } else if ( !enabled ) {
-        ep_n  = 0.0;
-        edf_n = 0.0;
-        // Updates indexed values;
-        u_n_1   = u_n;
-        ep_n_1  = ep_n;
-        edf_n_2 = edf_n_1;
-        edf_n_1 = edf_n;
+    } else {
+	// Mirror the output value while we are not enabled so there
+	// is less of a continuity break when this module is enabled
+
+	// pull output value from the corresponding property tree value
+	u_n = output_list[0]->getDoubleValue();
+	// and clip
+	if ( u_n < u_min ) { u_n = u_min; }
+	if ( u_n > u_max ) { u_n = u_max; }
+	u_n_1 = u_n;
     }
 }
 

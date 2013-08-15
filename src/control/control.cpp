@@ -206,10 +206,11 @@ void control_update(double dt)
 	last_fcs_mode = "";
     }
 
-    if ( fcs_mode != "" ) {
-	// update the autopilot stages
-	ap.update( dt );
-    }
+    // update the autopilot stages (even in manual flight mode.)  This
+    // keeps the differential metric up to date, tracks manual inputs,
+    // and keeps more continuity in the flight when the mode is
+    // switched to autopilot.
+    ap.update( dt );
 
     if ( remote_link_on || log_to_file ) {
 	// send one waypoint per message, then home location (with
