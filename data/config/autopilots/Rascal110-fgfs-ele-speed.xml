@@ -92,8 +92,8 @@
     <!-- 5/24/2013, Kp=0.006 Ti=20.0 didn't seem to be pushing up to target -->
     <!-- 5/26/2013, Kp=0.006 Ti=10.0 -->
     <config>
-      <Kp>0.004</Kp>       <!-- proportional gain -->
-      <Ki>0.001</Ki>
+      <Kp>0.003</Kp>       <!-- proportional gain -->
+      <Ki>0.00015</Ki>
       <u_min>0.0</u_min>   <!-- minimum output clamp -->
       <u_max>1.0</u_max>   <!-- maximum output clamp -->
     </config>
