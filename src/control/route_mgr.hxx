@@ -67,6 +67,8 @@ private:
     SGPropertyNode *target_waypoint;
     SGPropertyNode *wp_dist_m;
     SGPropertyNode *wp_eta_sec;
+    SGPropertyNode *xtrack_dist_m;
+    SGPropertyNode *proj_dist_m;
 
     // wind related property nodes
     SGPropertyNode *wind_speed_kt;

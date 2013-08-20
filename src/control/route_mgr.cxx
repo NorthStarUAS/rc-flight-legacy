@@ -56,6 +56,9 @@ FGRouteMgr::FGRouteMgr() :
     target_waypoint( NULL ),
     wp_dist_m( NULL ),
     wp_eta_sec( NULL ),
+    xtrack_dist_m( NULL ),
+    proj_dist_m( NULL ),
+
     wind_speed_kt( NULL ),
     wind_dir_deg( NULL ),
     true_airspeed_kt( NULL ),
@@ -91,6 +94,8 @@ void FGRouteMgr::bind() {
 	= fgGetNode( "/autopilot/route-mgr/target-waypoint-idx", true );
     wp_dist_m = fgGetNode( "/autopilot/route-mgr/wp-dist-m", true );
     wp_eta_sec = fgGetNode( "/autopilot/route-mgr/wp-eta-sec", true );
+    xtrack_dist_m = fgGetNode( "/autopilot/route-mgr/xtrack-dist-m", true );
+    proj_dist_m = fgGetNode( "/autopilot/route-mgr/projected-dist-m", true );
 
     wind_speed_kt = fgGetNode("/filters/wind-est/wind-speed-kt", true);
     wind_dir_deg = fgGetNode("/filters/wind-est/wind-dir-deg", true);
@@ -125,27 +130,76 @@ void FGRouteMgr::init( SGPropertyNode *branch ) {
 
 
 void FGRouteMgr::update() {
-    double wp_course, wp_distance;
+    double direct_course, direct_distance;
+    double leg_course, leg_distance;
 
     double override_agl = override_agl_ft->getDoubleValue();
     double override_msl = override_msl_ft->getDoubleValue();
     double target_agl_m = 0;
     double target_msl_m = 0;
 
+    double nav_course = 0.0;
+    double nav_dist_m = 0.0;
+
     if ( active->size() > 0 ) {
 	if ( GPS_age() < 10.0 ) {
 	    // track current waypoint of route (only if we have fresh gps data)
+	    SGWayPoint prev = active->get_previous();
 	    SGWayPoint wp = active->get_current();
+
+	    // compute direct-to course and distance
 	    wp.CourseAndDistance( lon_node->getDoubleValue(),
 				  lat_node->getDoubleValue(),
 				  alt_node->getDoubleValue(),
-				  &wp_course, &wp_distance );
+				  &direct_course, &direct_distance );
 
-	    true_hdg_deg->setDoubleValue( wp_course );
+	    // compute leg course and distance
+	    wp.CourseAndDistance( prev, &leg_course, &leg_distance );
+
+	    // difference between ideal (leg) course and direct course
+            double angle = leg_course - direct_course;
+            if ( angle < -180.0 ) {
+	        angle += 360.0;
+            } else if ( angle > 180.0 ) {
+	        angle -= 360.0;
+            }
+
+	    // compute cross-track error
+	    double angle_rad = angle * SGD_DEGREES_TO_RADIANS;
+            double xtrack_m = sin( angle_rad ) * direct_distance;
+            double dist_m = cos( angle_rad ) * direct_distance;
+	    xtrack_dist_m->setDoubleValue( xtrack_m );
+	    proj_dist_m->setDoubleValue( dist_m );
+
+	    // compute cross-track steering compensation
+	    double xtrack_route_gain = 0.6; /* hard coded to start with */
+	    double xtrack_comp = xtrack_m * xtrack_route_gain;
+	    if ( xtrack_comp < -45.0 ) { xtrack_comp = -45.0; }
+	    if ( xtrack_comp > 45.0 ) { xtrack_comp = 45.0; }
+	    double xtrack_course = leg_course - xtrack_comp;
+            if ( xtrack_course < 0.0 ) {
+                xtrack_course += 360.0;
+            } else if ( xtrack_course > 360.0 ) {
+                xtrack_course -= 360.0;
+            }
+
+	    // target heading
+	    bool use_xtrack_steering = true;
+	    if ( use_xtrack_steering ) {
+		// do cross track steering compensation and test for
+		// waypoint acquisition along leg length.
+		nav_course = xtrack_course;
+		nav_dist_m = dist_m;
+	    } else {
+		// direct to, raw dist for wp acquisition.
+		nav_course = direct_course;
+		nav_dist_m = direct_distance;
+	    }
+
+	    true_hdg_deg->setDoubleValue( nav_course );
 	    target_agl_m = wp.get_target_agl_m();
 	    target_msl_m = wp.get_target_alt_m();
-
-	    if ( wp_distance < 50.0 ) {
+	    if ( nav_dist_m < 50.0 ) {
 		active->increment_current();
 	    }
 
@@ -160,7 +214,7 @@ void FGRouteMgr::update() {
         // circle of our home position?
     }
 
-    wp_dist_m->setFloatValue( wp_distance );
+    wp_dist_m->setFloatValue( direct_distance );
 
     // update target altitude based on waypoint targets and possible
     // overrides ... preference is given to agl if both agl & msl are
@@ -180,13 +234,13 @@ void FGRouteMgr::update() {
     wind_course( wind_speed_kt->getDoubleValue(),
 		 true_airspeed_kt->getDoubleValue(),
 		 wind_dir_deg->getDoubleValue(),
-		 wp_course,
+		 nav_course,
 		 &hd_deg, &gs_kt );
 
     est_wind_target_heading_deg->setDoubleValue( hd_deg );
 
     if ( gs_kt > 0.1 ) {
-	wp_eta_sec->setFloatValue( wp_distance / (gs_kt * SG_KT_TO_MPS) );
+	wp_eta_sec->setFloatValue( direct_distance / (gs_kt * SG_KT_TO_MPS) );
     } else {
 	wp_eta_sec->setFloatValue( 0.0 );
     }
