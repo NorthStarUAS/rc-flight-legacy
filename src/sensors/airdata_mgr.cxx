@@ -229,7 +229,8 @@ static void update_pressure_helpers() {
     // publish values to property tree
     pressure_error_m_node->setDoubleValue( Ps_filt_err );
     altitude_filt_node->setDoubleValue( altitude_filt );
-    airspeed_filt_node->setDoubleValue( airspeed_filt );
+    // airspeed_filt_node->setDoubleValue( airspeed_filt /* smoothed */ );
+    airspeed_filt_node->setDoubleValue( Pt /* raw */ );
     true_alt_m_node->setDoubleValue( true_alt_m );
     true_alt_ft_node->setDoubleValue( true_alt_m * SG_METER_TO_FEET );
     agl_alt_m_node->setDoubleValue( altitude_filt - ground_alt_filter );
