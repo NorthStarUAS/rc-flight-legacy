@@ -268,7 +268,7 @@ void FGPIDController::update( double dt ) {
         if ( debug ) printf("  input = %.3f ref = %.3f\n", y_n, r_n );
 
         // Calculates proportional error:
-        ep_n = beta * r_n - y_n;
+        ep_n = beta * (r_n - y_n);
         if ( debug ) printf( "  ep_n = %.3f", ep_n);
         if ( debug ) printf( "  ep_n_1 = %.3f", ep_n_1);
 
@@ -503,37 +503,31 @@ void FGPISimpleController::update( double dt ) {
 
         if ( proportional ) {
             prop_comp = error * Kp + offset;
+            if ( prop_comp < u_min ) { prop_comp = u_min; }
+            if ( prop_comp > u_max ) { prop_comp = u_max; }
         }
 
         if ( integral ) {
-	    double est_output = prop_comp + int_sum;
-	    if ( est_output > u_min && est_output < u_max ) {
-		int_sum += error * Ki * dt;
-	    } else {
-		// turn off the integrator if output is saturated.
-	    }
-        } else {
-            int_sum = 0.0;
-        }
+	    int_sum += error * Ki * dt;
+	} else {
+	    int_sum = 0.0;
+	}
+
+	double pre_output = prop_comp + int_sum;
+	double clamp_output = pre_output;
+	if ( clamp_output < u_min ) { clamp_output = u_min; }
+	if ( clamp_output > u_max ) { clamp_output = u_max; }
+	if ( clamp_output != pre_output && integral ) {
+	    int_sum = clamp_output - prop_comp;
+	}
 
         if ( debug ) printf("prop_comp = %.3f int_sum = %.3f\n",
 			    prop_comp, int_sum);
-
-        double output = prop_comp + int_sum;
-
-        if ( clamp ) {
-            if ( output < u_min ) {
-                output = u_min;
-            }
-            if ( output > u_max ) {
-                output = u_max;
-            }
-        }
-        if ( debug ) printf("output = %.3f\n", output);
+        if ( debug ) printf("clamped output = %.3f\n", clamp_output);
 
         unsigned int i;
         for ( i = 0; i < output_list.size(); ++i ) {
-            output_list[i]->setDoubleValue( output );
+            output_list[i]->setDoubleValue( clamp_output );
         }
     }
 }
