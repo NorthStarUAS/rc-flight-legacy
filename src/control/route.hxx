@@ -109,6 +109,22 @@ public:
     }
 
     /**
+     * Get the previous waypoint
+     * @return the previous waypoint
+     */
+    inline SGWayPoint get_previous() const {
+	int prev_wp = current_wp - 1;
+	if ( prev_wp < 0 ) {
+	    prev_wp = (int)route.size() - 1;
+	}
+	if ( prev_wp < (int)route.size() ) {
+	    return route[prev_wp];
+	} else {
+	    return SGWayPoint();
+	}
+    }
+
+    /**
      * Set the current waypoint
      * @param number of waypoint to make current.
      */
