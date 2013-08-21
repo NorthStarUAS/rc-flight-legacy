@@ -53,7 +53,9 @@
       <!-- 8/7/2013 Kp = -0.035 Ti = 1.0 Td = 0.0001 worked ok but lots of overshoot/oscillation --> 
       <!-- 8/7/2013 Kp = -0.035 Ti = 2.0 Td = 0.001 too much differential? Too much integral? --> 
       <!-- 8/8/2013 Kp = -0.035 Ti = 3.0 Td = 0.0001 too wobbly, too high overall gain? --> 
-      <Kp>-0.02</Kp>      <!-- proportional gain-->
+      <!-- 8/20/2013 Kp = -0.02 Ti = 3.0 Td = 0.0001 lots of overshoot/oscillations, still not tracking well -->
+      <!-- 8/21/2013 Kp = -0.015 Ti = 3.0 Td = 0.0001 less noisy, tracking a bit better, try even lower on Kp? -->
+      <Kp>-0.010</Kp>       <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -151,14 +153,16 @@
       <!-- 8/7/2013 - Kp = -0.03 Td = 0.7  u_min = -0.35 moving wrong direction for stability -->
       <!-- 8/7/2013 - Kp = -0.03 Td = 1.0  u_min = -0.35 over fighting change -->
       <!-- 8/8/2013 - Kp = -0.035 Td = 0.8  ok, but wishing for better lock on target -->
-      <!-- 8/15/2013: Kp = -0.040 alpha = 0.25 Ti = 8.0 Td = 0.8  like -->
-      <Kp>-0.040</Kp>      <!-- proportional gain -->
+      <!-- 8/15/2013: Kp = -0.040 alpha = 0.25 Ti = 8.0 Td = 0.8  like, but still oscillating/chasing in a slow period -->
+      <!-- 8/20/2013: Kp = -0.040 alpha = 0.25 Ti = 8.0 Td = 0.8  like, but noisy noisy after turning off the low pass filter on airspeed. -->
+      <!-- 8/21/2013: Kp = -0.020 alpha = 0.25 Ti = 8.0 Td = 1.0  probably best so far but still noisy elevator motion, lower the Kp even more, but keep Kp*Td about the same. -->
+      <Kp>-0.015</Kp>      <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.25</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
       <Ti>8.0</Ti>         <!-- integrator time -->
-      <Td>0.8</Td>         <!-- derivator time -->
+      <Td>1.4</Td>         <!-- derivator time -->
       <u_min>-0.35</u_min> <!-- minimum output clamp -->
       <u_max>0.20</u_max>  <!-- maximum output clamp -->
     </config>
