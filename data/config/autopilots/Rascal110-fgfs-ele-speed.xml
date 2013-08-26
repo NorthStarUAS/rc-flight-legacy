@@ -57,13 +57,13 @@
       <!-- 4/8/2013 P=0.007 I=10.00 min/max = 0.25, Res3 #3 Seemed like not pushing hard enought to get rid of long term error, but really jumpy -->
       <!-- 5/24/2013 P=0.005 I=5.00 min/max = 0.25, Res3 #3 maybe still too snappy? -->
       <!-- 6/17/2013 P=0.004 I=2.00 min/max = 0.25, Res3 #3 seeking better convergence -->
-      <Kp>0.05</Kp>      <!-- proportional gain-->
+      <Kp>0.02</Kp>      <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>5.0</Ti>        <!-- integrator time -->
-      <Td>0.01</Td>      <!-- derivator time -->
+      <Ti>10.0</Ti>        <!-- integrator time -->
+      <Td>0.0001</Td>      <!-- derivator time -->
       <u_min>-0.50</u_min> <!-- minimum output clamp -->
       <u_max>0.50</u_max>  <!-- maximum output clamp -->
     </config>
@@ -73,6 +73,34 @@
 
   <!-- Drive the throttle based on altitude error -->
   <pi-simple-controller>
+    <name>Altitude Hold (Pressure altimeter based, references AGL)</name>
+    <debug>false</debug>
+    <enable>
+      <prop>/autopilot/locks/altitude</prop>
+      <value>throttle-simple</value>
+    </enable>
+    <input>
+      <prop>/position/altitude-filter-agl-ft</prop>
+    </input>
+    <reference>
+      <prop>/autopilot/settings/target-agl-ft</prop>
+      <!-- <value>500</value> -->
+    </reference>
+    <output>
+      <prop>/controls/engine/throttle</prop>
+    </output>
+    <!-- 5/24/2013, Kp=0.006 Ti=20.0 didn't seem to be pushing up to target -->
+    <!-- 5/26/2013, Kp=0.006 Ti=10.0 -->
+    <config>
+      <Kp>0.004</Kp>       <!-- proportional gain -->
+      <Ki>0.0004</Ki>
+      <u_min>0.0</u_min>   <!-- minimum output clamp -->
+      <u_max>1.0</u_max>   <!-- maximum output clamp -->
+    </config>
+  </pi-simple-controller>
+
+  <!-- Drive the throttle based on altitude error -->
+  <pid-controller>
     <name>Altitude Hold (Pressure altimeter based, references AGL)</name>
     <debug>false</debug>
     <enable>
@@ -92,12 +120,17 @@
     <!-- 5/24/2013, Kp=0.006 Ti=20.0 didn't seem to be pushing up to target -->
     <!-- 5/26/2013, Kp=0.006 Ti=10.0 -->
     <config>
-      <Kp>0.003</Kp>       <!-- proportional gain -->
-      <Ki>0.00015</Ki>
+      <Kp>0.002</Kp>       <!-- proportional gain -->
+      <beta>1.0</beta>     <!-- input value weighing factor -->
+      <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
+      <gamma>0.0</gamma>   <!-- input value weighing factor for -->
+                           <!-- unfiltered derivative error -->
+      <Ti>20.0</Ti>        <!-- integrator time -->
+      <Td>0.00001</Td>     <!-- derivator time -->
       <u_min>0.0</u_min>   <!-- minimum output clamp -->
       <u_max>1.0</u_max>   <!-- maximum output clamp -->
     </config>
-  </pi-simple-controller>
+  </pid-controller>
 
   <!-- drives the throttle to achieve the desired climb rate. -->
   <pid-controller>
@@ -149,12 +182,12 @@
     <config>
       <!-- 6/27/2013 Kp=-0.010 a=0.5 Ti=10.0 Td=1.0 : ran to extremes and pegged -->
       <!-- 6/17/2013 Kp=0.010 a=0.5 Ti=10.0 Td=1.0 :  -->
-      <Kp>0.030</Kp>       <!-- proportional gain -->
-      <beta>1.0</beta>     <!-- input value weighing factor -->
+      <Kp>0.015</Kp>       <!-- proportional gain -->
+      <beta>1.00</beta>     <!-- input value weighing factor -->
       <alpha>0.25</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
-      <Ti>20.0</Ti>        <!-- integrator time -->
+      <Ti>8.0</Ti>        <!-- integrator time -->
       <Td>1.0</Td>     <!-- derivator time -->
       <u_min>-0.80</u_min>  <!-- minimum output clamp -->
       <u_max>0.05</u_max>  <!-- maximum output clamp -->
