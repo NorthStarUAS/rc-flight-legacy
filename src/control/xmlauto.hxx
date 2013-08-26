@@ -50,7 +50,7 @@ class FGXMLAutoComponent {
 
 protected:
 
-    string name;
+    SGPropertyNode *name_node;
 
     SGPropertyNode *enable_prop;
     SGPropertyNode *passive_mode;
@@ -60,7 +60,8 @@ protected:
 
     SGPropertyNode *input_prop;
     SGPropertyNode *r_n_prop;
-    double r_n_value;
+    SGPropertyNode *r_n_value;
+    // SGPropertyNode *output_node;
     vector <SGPropertyNode *> output_list;
 
 public:
@@ -73,14 +74,14 @@ public:
       enabled( false ),
       input_prop( NULL ),
       r_n_prop( NULL ),
-      r_n_value( 0.0 )
+      r_n_value( NULL )
     { }
 
     virtual ~FGXMLAutoComponent() {}
 
     virtual void update (double dt)=0;
     
-    inline const string& get_name() { return name; }
+    inline const char *get_name() { return name_node->getStringValue(); }
 };
 
 
@@ -93,32 +94,33 @@ class FGPIDController : public FGXMLAutoComponent {
 private:
 
     // debug flag
-    bool debug;
+    SGPropertyNode *debug_node;
 
     // Input values
-    double y_n;                 // measured process value
-    double r_n;                 // reference (set point) value
-    double y_scale;             // scale process input from property system
-    double r_scale;             // scale reference input from property system
-    double y_offset;
-    double r_offset;
+    SGPropertyNode *y_n_node;                 // measured process value
+    SGPropertyNode *r_n_node;                 // reference (set point) value
+    SGPropertyNode *y_scale_node;             // scale process input from property system
+    SGPropertyNode *r_scale_node;             // scale reference input from property system
+    SGPropertyNode *y_offset_node;
+    SGPropertyNode *r_offset_node;
 
     // Configuration values
-    double Kp;                  // proportional gain
+    SGPropertyNode *Ts_node;	              // time step (optional)
+    SGPropertyNode *Kp_node;                  // proportional gain
 
-    double alpha;               // low pass filter weighing factor (usually 0.1)
-    double beta;                // process value weighing factor for
+    SGPropertyNode *alpha_node;               // low pass filter weighing factor (usually 0.1)
+    SGPropertyNode *beta_node;                // process value weighing factor for
                                 // calculating proportional error
                                 // (usually 1.0)
-    double gamma;               // process value weighing factor for
+    SGPropertyNode *gamma_node;               // process value weighing factor for
                                 // calculating derivative error
                                 // (usually 0.0)
 
-    double Ti;                  // Integrator time (sec)
-    double Td;                  // Derivator time (sec)
+    SGPropertyNode *Ti_node;                  // Integrator time (sec)
+    SGPropertyNode *Td_node;                  // Derivator time (sec)
 
-    double u_min;               // Minimum output clamp
-    double u_max;               // Maximum output clamp
+    SGPropertyNode *u_min_node;               // Minimum output clamp
+    SGPropertyNode *u_max_node;               // Maximum output clamp
 
     // Previous state tracking values
     double ep_n_1;              // ep[n-1]  (prop error)
@@ -151,29 +153,27 @@ private:
 
     // proportional component data
     bool proportional;
-    double Kp;
-    SGPropertyNode *offset_prop;
-    double offset_value;
+    SGPropertyNode *Kp_node;
 
     // integral component data
     bool integral;
-    double Ki;
+    SGPropertyNode *Ki_node;
     double int_sum;
 
     // post functions for output
     bool clamp;
 
     // debug flag
-    bool debug;
+    SGPropertyNode *debug_node;
 
     // Input values
     double y_n;                 // measured process value
     double r_n;                 // reference (set point) value
-    double y_scale;             // scale process input from property system
-    double r_scale;             // scale reference input from property system
+    SGPropertyNode *y_scale_node;             // scale process input from property system
+    SGPropertyNode *r_scale_node;             // scale reference input from property system
 
-    double u_min;               // Minimum output clamp
-    double u_max;               // Maximum output clamp
+    SGPropertyNode *u_min_node;               // Minimum output clamp
+    SGPropertyNode *u_max_node;               // Maximum output clamp
 
     
 public:
@@ -200,7 +200,7 @@ private:
     double filter_gain;
 
     // debug flag
-    bool debug;
+    bool debug_node;
 
     // Input values
     double ivalue;                 // input value
