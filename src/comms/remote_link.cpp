@@ -521,6 +521,11 @@ static void remote_link_execute_command( const string command ) {
                 = fgGetNode( "/autopilot/settings/target-speed-kt", true );
             speed_kt_node->setDoubleValue( speed_kt );
         }
+    } else if ( token[0] == "set" && token.size() == 3 ) {
+	string prop_name = token[1];
+	string value = token[2];
+	SGPropertyNode *node = fgGetNode( prop_name.c_str() );
+	node->setStringValue( value.c_str() );
     } else if ( token[0] == "wp" && token.size() == 5 ) {
         // specify new waypoint coordinates for a waypoint
         // int index = atoi( token[1].c_str() );
