@@ -137,7 +137,12 @@ void SGRoute::refresh_offset_positions( const SGWayPoint &ref,
                                         const double ref_heading_deg )
 {
     for ( unsigned int i = 0; i < route.size(); ++i ) {
-        if ( fabs(route[i].get_offset_dist_m()) > 1.0 ) {
+	// positive value indicates 'relative' way point.  This
+	// generally works ok, but it's conceivable we'd want a
+	// waypoint at zero distance offset (exactly at home) so this
+	// should be carefully rethought and a better way derived I
+	// think.
+        if ( fabs(route[i].get_offset_dist_m()) > 0.01 ) {
             route[i].update_relative_pos( ref, ref_heading_deg );
         }
     }
