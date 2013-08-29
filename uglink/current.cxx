@@ -5,6 +5,7 @@
 #include "include/globaldefs.h"
 
 #include "current.hxx"
+#include "geo.hxx"
 
 
 #define HAVE_AIRDATA_SPEED 1
@@ -113,6 +114,16 @@ static SGPropertyNode *extern_mah_node = NULL;
 
 // payload nodes
 static SGPropertyNode *payload_trigger_num_node = NULL;
+static SGPropertyNode *payload_lookat_lon_node = NULL;
+static SGPropertyNode *payload_lookat_lat_node = NULL;
+static SGPropertyNode *payload_ll_lon_node = NULL;
+static SGPropertyNode *payload_ll_lat_node = NULL;
+static SGPropertyNode *payload_lr_lon_node = NULL;
+static SGPropertyNode *payload_lr_lat_node = NULL;
+static SGPropertyNode *payload_ul_lon_node = NULL;
+static SGPropertyNode *payload_ul_lat_node = NULL;
+static SGPropertyNode *payload_ur_lon_node = NULL;
+static SGPropertyNode *payload_ur_lat_node = NULL;
 
 // console link nodes
 static SGPropertyNode *link_seq_num = NULL;
@@ -129,8 +140,8 @@ static SGPropertyNode *filter_climb_node = NULL;
 static SGPropertyNode *flight_flying_status = NULL;
 static SGPropertyNode *flight_total_timer = NULL;
 static SGPropertyNode *flight_auto_timer = NULL;
-static SGPropertyNode *flight_motor_timer = NULL;
 static SGPropertyNode *flight_odometer = NULL;
+static SGPropertyNode *ground_alt_node = NULL;
 
 
 // bind gps property nodes 
@@ -256,8 +267,8 @@ static void bind_derived_nodes() {
     flight_flying_status = fgGetNode("/status/in-flight", true);
     flight_total_timer = fgGetNode("/status/flight-timer-secs", true);
     flight_auto_timer = fgGetNode("/status/autopilot-timer-secs", true);
-    flight_motor_timer = fgGetNode("/status/motor-run-secs", true);
     flight_odometer = fgGetNode("/status/flight-odometer", true);
+    ground_alt_node = fgGetNode("/filters/ground-alt-m", true);
 }
 
 
@@ -274,6 +285,16 @@ static void bind_health_nodes() {
 // bind payload property nodes
 static void bind_payload_nodes() {
     payload_trigger_num_node = fgGetNode("/payload/camera/trigger-num", true);
+    payload_lookat_lon_node = fgGetNode("/payload/camera/lookat-lon-deg", true);
+    payload_lookat_lat_node = fgGetNode("/payload/camera/lookat-lat-deg", true);
+    payload_ll_lon_node = fgGetNode("/payload/camera/lower-left-lon-deg", true);
+    payload_ll_lat_node = fgGetNode("/payload/camera/lower-left-lat-deg", true);
+    payload_lr_lon_node = fgGetNode("/payload/camera/lower-right-lon-deg", true);
+    payload_lr_lat_node = fgGetNode("/payload/camera/lower-right-lat-deg", true);
+    payload_ul_lon_node = fgGetNode("/payload/camera/upper-left-lon-deg", true);
+    payload_ul_lat_node = fgGetNode("/payload/camera/upper-left-lat-deg", true);
+    payload_ur_lon_node = fgGetNode("/payload/camera/upper-right-lon-deg", true);
+    payload_ur_lat_node = fgGetNode("/payload/camera/upper-right-lat-deg", true);
 }
 
 
@@ -432,7 +453,7 @@ static void update_health_nodes( struct health *healthpacket ) {
 
 // update payload property nodes
 static void update_payload_nodes( struct payload *payloadpacket ) {
-     payload_trigger_num_node->setIntValue( payloadpacket->trigger_num );
+    payload_trigger_num_node->setIntValue( payloadpacket->trigger_num );
 }
 
 
@@ -487,7 +508,7 @@ void compute_derived_data( struct gps *gpspacket,
     // compute in-flight status
     bool in_flight = false;
 #ifdef HAVE_AIRDATA_SPEED
-    if ( airpacket->airspeed > 20 ) { 
+    if ( airpacket->airspeed > 15 ) { 
 	in_flight = true;
     }
 #else
@@ -517,25 +538,24 @@ void compute_derived_data( struct gps *gpspacket,
 
     }
 
-    // motor timer
-    double motor_timer = flight_motor_timer->getDoubleValue();
-    double throttle_norm = 0.0;
-    if ( pilot_channel5_node->getDoubleValue() < 0.5 ) {
-	// get throttle from actuator output in auto flight mode
-	throttle_norm = act_throttle_node->getDoubleValue();
-    } else {
-	// get throttle from pilot command in manual flight mode
-	throttle_norm = pilot_throttle_node->getDoubleValue();
-    }
-    motor_timer += ( dt * throttle_norm );
-    flight_motor_timer->setDoubleValue( motor_timer );
-
     // estimate distance traveled from filter velocity and dt
     if ( in_flight ) {
 	double vel_ms = filter_speed_node->getDoubleValue() * SG_KT_TO_MPS;
 	double od = flight_odometer->getDoubleValue();
 	od += vel_ms * dt;
 	flight_odometer->setDoubleValue( od );
+    }
+
+    // estimate ground altitude (average altitude when not flying
+    static double ground_alt_filter = -9999.9;
+    if ( ! in_flight && filter_timestamp_node->getDoubleValue() > 0.0 ) {
+	double alt = filter_alt_node->getDoubleValue();
+	if ( ground_alt_filter < -1000 ) {
+	    ground_alt_filter = alt;
+	} else {
+	    ground_alt_filter = 0.999 * ground_alt_filter + 0.001 * alt;
+	}
+	printf("(%.4f)ground alt = %.2f\n", filter_timestamp_node->getDoubleValue(), ground_alt_filter);
     }
 
     // compute ground track heading/speed
@@ -670,5 +690,43 @@ void compute_derived_data( struct gps *gpspacket,
 	       filter_theta_node->getDoubleValue(),
 	       ol_pitch,
 	       imu_q_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES);
+    }
+
+    // Compute camera target/coverage for each new shot
+
+    // hard coded values for samsung NX210 camera
+    const double h_mm = 23.7;
+    const double v_mm = 15.7;
+    const double focal_len_mm = 30.0;
+
+    static int last_trigger_num = 0;
+
+    if ( payloadpacket->trigger_num != last_trigger_num ) {
+	last_trigger_num = payloadpacket->trigger_num;
+
+	SGGeod cam_pos = SGGeod::fromDegM(filter_lon_node->getDoubleValue(),
+					  filter_lat_node->getDoubleValue(),
+					  filter_alt_node->getDoubleValue());
+	SGGeod lookat_wgs84, ll_wgs84, lr_wgs84, ul_wgs84, ur_wgs84;
+ 
+	geolocate_image( cam_pos, ground_alt_node->getDoubleValue(),
+			 filter_phi_node->getDoubleValue(),
+			 filter_theta_node->getDoubleValue(),
+			 filter_psi_node->getDoubleValue(),
+			 h_mm, v_mm, focal_len_mm,
+			 &lookat_wgs84,
+			 &ll_wgs84, &lr_wgs84, &ul_wgs84, &ur_wgs84 );
+	// printf("Camera shot @ %.8f %.8f\n", lookat_wgs84.getLongitudeDeg(),
+	//        lookat_wgs84.getLatitudeDeg());
+	payload_lookat_lon_node->setDoubleValue(lookat_wgs84.getLongitudeDeg());
+	payload_lookat_lat_node->setDoubleValue(lookat_wgs84.getLatitudeDeg());
+	payload_ll_lon_node->setDoubleValue( ll_wgs84.getLongitudeDeg() );
+	payload_ll_lat_node->setDoubleValue( ll_wgs84.getLatitudeDeg() );
+	payload_lr_lon_node->setDoubleValue( lr_wgs84.getLongitudeDeg() );
+	payload_lr_lat_node->setDoubleValue( lr_wgs84.getLatitudeDeg() );
+	payload_ul_lon_node->setDoubleValue( ul_wgs84.getLongitudeDeg() );
+	payload_ul_lat_node->setDoubleValue( ul_wgs84.getLatitudeDeg() );
+	payload_ur_lon_node->setDoubleValue( ur_wgs84.getLongitudeDeg() );
+	payload_ur_lat_node->setDoubleValue( ur_wgs84.getLatitudeDeg() );
     }
 }

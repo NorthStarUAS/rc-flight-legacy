@@ -61,8 +61,8 @@ static SGPropertyNode *use_ground_speed_node = NULL;
 static SGPropertyNode *flying_wing_node = NULL;
 static SGPropertyNode *flight_total_timer = NULL;
 static SGPropertyNode *flight_auto_timer = NULL;
-static SGPropertyNode *flight_motor_timer = NULL;
 static SGPropertyNode *flight_odometer = NULL;
+static SGPropertyNode *extern_mah_node = NULL;
 
 // skip initial seconds
 double skip = 0.0;
@@ -200,8 +200,8 @@ int main( int argc, char **argv ) {
     // timers/counters for end of run reporting
     flight_total_timer = fgGetNode("/status/flight-timer-secs", true);
     flight_auto_timer = fgGetNode("/status/autopilot-timer-secs", true);
-    flight_motor_timer = fgGetNode("/status/motor-run-secs", true);
     flight_odometer = fgGetNode("/status/flight-odometer", true);
+    extern_mah_node = fgGetNode("/status/extern-mah", true);
 
     // set some default values
     use_groundtrack_hdg_node->setBoolValue( false );
@@ -402,6 +402,7 @@ int main( int argc, char **argv ) {
         cout << "Loaded " << track.pilot_size() << " pilot records." << endl;
         cout << "Loaded " << track.ap_size() << " ap status records." << endl;
         cout << "Loaded " << track.health_size() << " health status records." << endl;
+        cout << "Loaded " << track.payload_size() << " payload records." << endl;
 
 	if ( export_raw_umn ) {
 	    track.export_raw_umn( path_raw_umn );
@@ -584,7 +585,19 @@ int main( int argc, char **argv ) {
             //  cout << "pos0 = " << pos0.get_seconds()
             // << " pos1 = " << pos1.get_seconds() << endl;
 
-            double gps_percent;
+             // Advance payload status pointer
+            while ( current_time > payload1.timestamp
+                    && payload_count < track.payload_size() - 1 )
+            {
+                payload0 = payload1;
+                ++payload_count;
+                // cout << "count = " << count << endl;
+                payload1 = track.get_payloadpt( payload_count );
+            }
+            //  cout << "pos0 = " << pos0.get_seconds()
+            // << " pos1 = " << pos1.get_seconds() << endl;
+
+           double gps_percent;
             if ( fabs(gps1.timestamp - gps0.timestamp) < 0.00001 ) {
                 gps_percent = 0.0;
             } else {
@@ -801,8 +814,7 @@ int main( int argc, char **argv ) {
 
 	printf("Total Flight Time = %.1f min\n", flight_total_timer->getDoubleValue() / 60.0);
 	printf("Total Autopilot Time = %.1f min\n", flight_auto_timer->getDoubleValue() / 60.0);
-	printf("Total Motor Time = %.1f min\n", flight_motor_timer->getDoubleValue() / 60.0);
-	printf("Estimated Battery Burn = %.0f Mah\n", flight_motor_timer->getDoubleValue() * 2.85);
+	printf("Estimated Battery Usage = %.0f Mah\n", extern_mah_node->getDoubleValue());
 	printf("Estimated Distance Traveled = %.0f m %.2f nm\n", flight_odometer->getDoubleValue(), flight_odometer->getDoubleValue() * SG_METER_TO_NM );
     } else if ( serialdev.length() ) {
         // process incoming data from the serial port
