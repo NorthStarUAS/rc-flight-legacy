@@ -400,19 +400,23 @@ WSChannel::encode_send( const string& message )
     }
 }
 
-static void json_add( string *reply, string fmt, double value ) {
+static void json_add( string *reply, string fmt, double value, bool comma = true ) {
     const int maxbuf = 64;
     char buf[maxbuf];
     snprintf(buf, maxbuf, fmt.c_str(), value);
-    *reply += ",";
+    if ( comma ) {
+	*reply += ",";
+    }
     *reply += buf;
 }
 
-static void json_add( string *reply, string fmt, int value ) {
+static void json_add( string *reply, string fmt, int value, bool comma = true ) {
     const int maxbuf = 64;
     char buf[maxbuf];
     snprintf(buf, maxbuf, fmt.c_str(), value);
-    *reply += ",";
+    if ( comma ) {
+	*reply += ",";
+    }
     *reply += buf;
 }
 
@@ -499,7 +503,7 @@ WSChannel::process_line( string line )
 		string reply = "update_json {";
 
 		json_add(&reply, "\"lon\":\"%.8f\"",
-			 filter_lon_node->getDoubleValue() );
+			 filter_lon_node->getDoubleValue(), false );
 
 		json_add(&reply, "\"lat\":\"%.8f\"",
 			 filter_lat_node->getDoubleValue() );
