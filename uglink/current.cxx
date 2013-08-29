@@ -555,7 +555,7 @@ void compute_derived_data( struct gps *gpspacket,
 	} else {
 	    ground_alt_filter = 0.999 * ground_alt_filter + 0.001 * alt;
 	}
-	printf("(%.4f)ground alt = %.2f\n", filter_timestamp_node->getDoubleValue(), ground_alt_filter);
+	// printf("(%.4f)ground alt = %.2f\n", filter_timestamp_node->getDoubleValue(), ground_alt_filter);
     }
 
     // compute ground track heading/speed
