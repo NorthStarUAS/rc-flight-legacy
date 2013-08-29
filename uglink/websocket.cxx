@@ -589,6 +589,39 @@ WSChannel::process_line( string line )
 		json_add(&reply, "\"airdata_temp\":\"%.1f\"",
 			 airdata_temperature_node->getDoubleValue() );
 
+		json_add(&reply, "\"camera_trigger\":\"%d\"",
+			 payload_trigger_num_node->getIntValue() );
+
+		json_add(&reply, "\"camera_lookat_lon\":\"%.8f\"",
+			 payload_lookat_lon_node->getDoubleValue() );
+
+		json_add(&reply, "\"camera_lookat_lat\":\"%.8f\"",
+			 payload_lookat_lat_node->getDoubleValue() );
+
+		json_add(&reply, "\"camera_ll_lon\":\"%.8f\"",
+			 payload_ll_lon_node->getDoubleValue() );
+
+		json_add(&reply, "\"camera_ll_lat\":\"%.8f\"",
+			 payload_ll_lat_node->getDoubleValue() );
+
+		json_add(&reply, "\"camera_lr_lon\":\"%.8f\"",
+			 payload_lr_lon_node->getDoubleValue() );
+
+		json_add(&reply, "\"camera_lr_lat\":\"%.8f\"",
+			 payload_lr_lat_node->getDoubleValue() );
+
+		json_add(&reply, "\"camera_ul_lon\":\"%.8f\"",
+			 payload_ul_lon_node->getDoubleValue() );
+
+		json_add(&reply, "\"camera_ul_lat\":\"%.8f\"",
+			 payload_ul_lat_node->getDoubleValue() );
+
+		json_add(&reply, "\"camera_ur_lon\":\"%.8f\"",
+			 payload_ur_lon_node->getDoubleValue() );
+
+		json_add(&reply, "\"camera_ur_lat\":\"%.8f\"",
+			 payload_ur_lat_node->getDoubleValue() );
+
 		reply += "}\r\n",
 		encode_send(reply.c_str());
 	    } else if ( tokens[1] == "update1" ) {
