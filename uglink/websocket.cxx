@@ -153,6 +153,19 @@ class WSChannel : public netBufferChannel
     SGPropertyNode *health_extern_mah_node;
     SGPropertyNode *health_load_avg_node;
 
+    // payload nodes
+    SGPropertyNode *payload_trigger_num_node;
+    SGPropertyNode *payload_lookat_lon_node;
+    SGPropertyNode *payload_lookat_lat_node;
+    SGPropertyNode *payload_ll_lon_node;
+    SGPropertyNode *payload_ll_lat_node;
+    SGPropertyNode *payload_lr_lon_node;
+    SGPropertyNode *payload_lr_lat_node;
+    SGPropertyNode *payload_ul_lon_node;
+    SGPropertyNode *payload_ul_lat_node;
+    SGPropertyNode *payload_ur_lon_node;
+    SGPropertyNode *payload_ur_lat_node;
+
     SGPropertyNode *filter_track_node;
     SGPropertyNode *filter_speed_node;
     SGPropertyNode *wind_deg_node;
@@ -162,7 +175,6 @@ class WSChannel : public netBufferChannel
     SGPropertyNode *flight_flying_status;
     SGPropertyNode *flight_total_timer;
     SGPropertyNode *flight_auto_timer;
-    SGPropertyNode *flight_motor_timer;
 
 public:
 
@@ -303,6 +315,17 @@ void WSChannel::bind()
     health_extern_mah_node = fgGetNode( "/status/extern-mah", true );
     health_load_avg_node = fgGetNode( "/status/system-load-avg", true );
 
+    payload_trigger_num_node = fgGetNode("/payload/camera/trigger-num", true);
+    payload_lookat_lon_node = fgGetNode("/payload/camera/lookat-lon-deg", true);
+    payload_lookat_lat_node = fgGetNode("/payload/camera/lookat-lat-deg", true);
+    payload_ll_lon_node = fgGetNode("/payload/camera/lower-left-lon-deg", true);
+    payload_ll_lat_node = fgGetNode("/payload/camera/lower-left-lat-deg", true);
+    payload_lr_lon_node = fgGetNode("/payload/camera/lower-right-lon-deg", true);
+    payload_lr_lat_node = fgGetNode("/payload/camera/lower-right-lat-deg", true);
+    payload_ul_lon_node = fgGetNode("/payload/camera/upper-left-lon-deg", true);
+    payload_ul_lat_node = fgGetNode("/payload/camera/upper-left-lat-deg", true);
+    payload_ur_lon_node = fgGetNode("/payload/camera/upper-right-lon-deg", true);
+    payload_ur_lat_node = fgGetNode("/payload/camera/upper-right-lat-deg", true);
     filter_track_node = fgGetNode("/filters/filter/track-deg", true);
     filter_speed_node = fgGetNode("/filters/filter/speed-kt", true);
     wind_deg_node = fgGetNode("/filters/wind-deg", true);
@@ -313,7 +336,6 @@ void WSChannel::bind()
     flight_flying_status = fgGetNode("/status/in-flight", true);
     flight_total_timer = fgGetNode("/status/flight-timer-secs", true);
     flight_auto_timer = fgGetNode("/status/autopilot-timer-secs", true);
-    flight_motor_timer = fgGetNode("/status/motor-run-secs", true);
 }
 
 
@@ -376,6 +398,22 @@ WSChannel::encode_send( const string& message )
 	wrap[0] = 255;
 	bufferSend(wrap, 1);
     }
+}
+
+static void json_add( string *reply, string fmt, double value ) {
+    const int maxbuf = 64;
+    char buf[maxbuf];
+    snprintf(buf, maxbuf, fmt.c_str(), value);
+    *reply += ",";
+    *reply += buf;
+}
+
+static void json_add( string *reply, string fmt, int value ) {
+    const int maxbuf = 64;
+    char buf[maxbuf];
+    snprintf(buf, maxbuf, fmt.c_str(), value);
+    *reply += ",";
+    *reply += buf;
 }
 
 /**
@@ -458,40 +496,97 @@ WSChannel::process_line( string line )
 			  wind_speed_node->getDoubleValue());
 		encode_send(reply);
 	    } else if ( tokens[1] == "update_json" ) {
-		char reply[4096];
-		snprintf( reply, 4096,
-			  "update_json {\"lon\":\"%.8f\",\"lat\":\"%.8f\",\"alt_true\":\"%.1f\",\"airspeed\":\"%.1f\",\"filter_psi\":\"%.1f\",\"filter_track\":\"%.1f\",\"filter_speed\":\"%.1f\",\"wind_deg\":\"%.1f\",\"wind_kts\":\"%.1f\",\"gps_sats\":\"%d\",\"lost_link\":\"%d\",\"control_mode\":\"%.0f\",\"ap_hdg\":\"%.1f\",\"airdata_climb\":\"%.2f\",\"ap_climb\":\"%.2f\",\"imu_ay\":\"%.2f\",\"imu_az\":\"%.2f\",\"imu_r\":\"%.2f\",\"filter_phi\":\"%.2f\",\"filter_theta\":\"%.2f\",\"ap_altitude\":\"%.2f\",\"ap_speed\":\"%.1f\",\"pitot_scale\":\"%.3f\",\"avionics_vcc\":\"%.2f\",\"main_volts\":\"%.2f\",\"main_amps\":\"%.2f\",\"main_mah\":\"%.0f\",\"flight_timer\":\"%.1f\",\"airdata_temp\":\"%.1f\"}\r\n",
-			  filter_lon_node->getDoubleValue(),
-			  filter_lat_node->getDoubleValue(),
-			  airdata_altitude_true_node->getDoubleValue(),
-			  airdata_airspeed_node->getDoubleValue(),
-			  filter_psi_node->getDoubleValue(),
-			  filter_track_node->getDoubleValue(),
-			  filter_speed_node->getDoubleValue(),
-			  wind_deg_node->getDoubleValue(),
-			  wind_speed_node->getDoubleValue(),
-			  gps_satellites_node->getIntValue(),
-			  command_mgr.remote_lost_link_predict(),
-			  pilot_channel5_node->getDoubleValue(),
-			  ap_hdg_node->getDoubleValue(),
-			  airdata_climb_fpm_node->getDoubleValue(),
-			  ap_climb_node->getDoubleValue(),
-			  imu_ay_node->getDoubleValue(),
-			  imu_az_node->getDoubleValue(),
-			  imu_r_node->getDoubleValue()*SG_RADIANS_TO_DEGREES,
-			  filter_phi_node->getDoubleValue(),
-			  filter_theta_node->getDoubleValue(),
-			  ap_altitude_node->getDoubleValue(),
-			  ap_speed_node->getDoubleValue(),
-			  pitot_scale_node->getDoubleValue(),
-			  health_avionics_vcc_node->getDoubleValue(),
-			  health_extern_volts_node->getDoubleValue(),
-			  health_extern_amps_node->getDoubleValue(),
-			  health_extern_mah_node->getDoubleValue(),
-			  flight_total_timer->getDoubleValue(),
-			  airdata_temperature_node->getDoubleValue()
-			  );
-		encode_send(reply);
+		string reply = "update_json {";
+
+		json_add(&reply, "\"lon\":\"%.8f\"",
+			 filter_lon_node->getDoubleValue() );
+
+		json_add(&reply, "\"lat\":\"%.8f\"",
+			 filter_lat_node->getDoubleValue() );
+
+		json_add(&reply, "\"alt_true\":\"%.1f\"",
+			 airdata_altitude_true_node->getDoubleValue() );
+
+		json_add(&reply, "\"airspeed\":\"%.1f\"",
+			 airdata_airspeed_node->getDoubleValue() );
+
+		json_add(&reply, "\"filter_psi\":\"%.1f\"",
+			 filter_psi_node->getDoubleValue() );
+
+		json_add(&reply, "\"filter_track\":\"%.1f\"",
+			 filter_track_node->getDoubleValue() );
+
+		json_add(&reply, "\"filter_speed\":\"%.1f\"",
+			 filter_speed_node->getDoubleValue() );
+
+		json_add(&reply, "\"wind_deg\":\"%.1f\"",
+			 wind_deg_node->getDoubleValue() );
+
+		json_add(&reply, "\"wind_kts\":\"%.1f\"",
+			 wind_speed_node->getDoubleValue() );
+
+		json_add(&reply, "\"gps_sats\":\"%d\"",
+			 gps_satellites_node->getIntValue() );
+
+		json_add(&reply, "\"lost_link\":\"%d\"",
+			 command_mgr.remote_lost_link_predict() );
+
+		json_add(&reply, "\"control_mode\":\"%d\"",
+			 pilot_channel5_node->getDoubleValue() );
+
+		json_add(&reply, "\"ap_hdg\":\"%.1f\"",
+			 ap_hdg_node->getDoubleValue() );
+
+		json_add(&reply, "\"airdata_climb\":\"%.2f\"",
+			 airdata_climb_fpm_node->getDoubleValue() );
+
+		json_add(&reply, "\"ap_climb\":\"%.2f\"",
+			 ap_climb_node->getDoubleValue() );
+
+		json_add(&reply, "\"imu_ay\":\"%.2f\"",
+			 imu_ay_node->getDoubleValue() );
+
+		json_add(&reply, "\"imu_az\":\"%.2f\"",
+			 imu_az_node->getDoubleValue() );
+
+		json_add(&reply, "\"imu_r\":\"%.2f\"",
+			 imu_r_node->getDoubleValue()*SG_RADIANS_TO_DEGREES );
+
+		json_add(&reply, "\"filter_phi\":\"%.2f\"",
+			 filter_phi_node->getDoubleValue() );
+
+		json_add(&reply, "\"filter_theta\":\"%.2f\"",
+			 filter_theta_node->getDoubleValue() );
+
+		json_add(&reply, "\"ap_altitude\":\"%.2f\"",
+			 ap_altitude_node->getDoubleValue() );
+
+		json_add(&reply, "\"ap_speed\":\"%.1f\"",
+			 ap_speed_node->getDoubleValue() );
+
+		json_add(&reply, "\"pitot_scale\":\"%.3f\"",
+			 pitot_scale_node->getDoubleValue() );
+
+		json_add(&reply, "\"avionics_vcc\":\"%.2f\"",
+			 health_avionics_vcc_node->getDoubleValue() );
+
+		json_add(&reply, "\"main_volts\":\"%.2f\"",
+			 health_extern_volts_node->getDoubleValue() );
+
+		json_add(&reply, "\"main_amps\":\"%.2f\"",
+			 health_extern_amps_node->getDoubleValue() );
+
+		json_add(&reply, "\"main_mah\":\"%.0f\"",
+			 health_extern_mah_node->getDoubleValue() );
+
+		json_add(&reply, "\"flight_timer\":\"%.1f\"",
+			 flight_total_timer->getDoubleValue() );
+
+		json_add(&reply, "\"airdata_temp\":\"%.1f\"",
+			 airdata_temperature_node->getDoubleValue() );
+
+		reply += "}\r\n",
+		encode_send(reply.c_str());
 	    } else if ( tokens[1] == "update1" ) {
 		char reply[1024];
 		snprintf( reply, 1024,

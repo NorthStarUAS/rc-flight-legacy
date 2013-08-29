@@ -4,6 +4,7 @@ uglink_SOURCES = \
 	base64.cxx base64.hxx \
 	command.cxx command.hxx \
 	current.cxx current.hxx \
+	geo.cxx geo.hxx \
 	iochannel.cxx iochannel.hxx \
 	messages.cxx messages.hxx \
 	opengc.hxx \
