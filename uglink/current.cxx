@@ -555,6 +555,7 @@ void compute_derived_data( struct gps *gpspacket,
 	} else {
 	    ground_alt_filter = 0.999 * ground_alt_filter + 0.001 * alt;
 	}
+	ground_alt_node->setDoubleValue(ground_alt_filter);
 	// printf("(%.4f)ground alt = %.2f\n", filter_timestamp_node->getDoubleValue(), ground_alt_filter);
     }
 
@@ -704,6 +705,7 @@ void compute_derived_data( struct gps *gpspacket,
     if ( payloadpacket->trigger_num != last_trigger_num ) {
 	last_trigger_num = payloadpacket->trigger_num;
 
+	// printf("alt = %.2f\n", filter_alt_node->getDoubleValue());
 	SGGeod cam_pos = SGGeod::fromDegM(filter_lon_node->getDoubleValue(),
 					  filter_lat_node->getDoubleValue(),
 					  filter_alt_node->getDoubleValue());
