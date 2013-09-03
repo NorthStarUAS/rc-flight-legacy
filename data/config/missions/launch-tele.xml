@@ -42,10 +42,11 @@
 
     <task>
       <name>camera-trigger</name>
-      <vert-fov-deg>30.0</vert-fov-deg>
+      <vert-fov-deg>29.3273</vert-fov-deg>
       <overlap-pct>0.25</overlap-pct>
       <min-agl-ft>200.0</min-agl-ft>
       <min-rate-sec>3.0</min-rate-sec>
+      <max-rate-sec>60.0</max-rate-sec>
     </task>
 
   </global-tasks>
