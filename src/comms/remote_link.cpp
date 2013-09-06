@@ -466,11 +466,11 @@ static void remote_link_execute_command( const string command ) {
 		    int mode = atoi( token[i].c_str() );
 		    double field1 = atof( token[i+1].c_str() );
 		    double field2 = atof( token[i+2].c_str() );
-		    double alt = -9999.9;
+		    double agl_m = -9999.9;
 		    if ( token[i+3] != "-" ) {
-			alt = atof( token[i+3].c_str() );
+			agl_m = atof( token[i+3].c_str() ) * SG_FEET_TO_METER;
 		    }
-		    route_mgr->new_waypoint( field1, field2, alt, mode );
+		    route_mgr->new_waypoint( field1, field2, agl_m, mode );
 		    i += 4;
 		}
 	    }
@@ -487,11 +487,11 @@ static void remote_link_execute_command( const string command ) {
 		    int mode = atoi( token[i].c_str() );
 		    double field1 = atof( token[i+1].c_str() );
 		    double field2 = atof( token[i+2].c_str() );
-		    double alt = -9999.9;
+		    double agl_m = -9999.9;
 		    if ( token[i+3] != "-" ) {
-			alt = atof( token[i+3].c_str() );
+			agl_m = atof( token[i+3].c_str() ) * SG_FEET_TO_METER;
 		    }
-		    route_mgr->new_waypoint( field1, field2, alt, mode );
+		    route_mgr->new_waypoint( field1, field2, agl_m, mode );
 		    i += 4;
 		}
 	    }
