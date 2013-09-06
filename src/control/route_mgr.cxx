@@ -219,13 +219,13 @@ void FGRouteMgr::update() {
     // update target altitude based on waypoint targets and possible
     // overrides ... preference is given to agl if both agl & msl are
     // set.
-    if ( override_agl > 1 ) {
+    if ( override_agl > 1.0 ) {
 	target_agl_ft->setDoubleValue( override_agl );
-    } else if ( override_msl > 1 ) {
+    } else if ( override_msl > 1.0 ) {
 	target_msl_ft->setDoubleValue( override_msl );
-    } else if ( target_agl_m > 1 ) {
+    } else if ( target_agl_m > 1.0 ) {
 	target_agl_ft->setDoubleValue( target_agl_m * SG_METER_TO_FEET );
-    } else if ( target_msl_m > 1 ) {
+    } else if ( target_msl_m > 1.0 ) {
 	target_msl_ft->setDoubleValue( target_msl_m * SG_METER_TO_FEET );
     }
 
@@ -319,16 +319,17 @@ int FGRouteMgr::new_waypoint( const string& wpt_string )
 
 
 int FGRouteMgr::new_waypoint( const double field1, const double field2,
+			      const double alt,
 			      const int mode )
 {
     if ( mode == 0 ) {
         // relative waypoint
-	SGWayPoint wp( 0.0, 0.0, -9999.0, -9999.0, 0.0, field2, field1,
+	SGWayPoint wp( 0.0, 0.0, -9999.0, alt, 0.0, field2, field1,
 		       SGWayPoint::SPHERICAL, "" );
 	standby->add_waypoint( wp );
     } else if ( mode == 1 ) {
 	// absolute waypoint
-	SGWayPoint wp( field1, field2, -9999.0, -9999.0, 0.0, 0.0, 0.0,
+	SGWayPoint wp( field1, field2, -9999.0, alt, 0.0, 0.0, 0.0,
 		       SGWayPoint::SPHERICAL, "" );
 	standby->add_waypoint( wp );
     }
