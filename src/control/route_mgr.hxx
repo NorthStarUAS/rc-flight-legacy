@@ -111,7 +111,8 @@ public:
 	standby->clear();
     }
     int new_waypoint( const string& wpt_string );
-    int new_waypoint( const double lon, const double lat, const int mode );
+    int new_waypoint( const double lon, const double lat, const double alt,
+		      const int mode );
 
     // returns info on the "active" route
     SGWayPoint get_waypoint( int i ) const {
