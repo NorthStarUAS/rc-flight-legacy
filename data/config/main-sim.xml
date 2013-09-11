@@ -12,7 +12,9 @@
     </logging>
 
     <!-- Remote operator communication. -->
-    <!-- <remote-link include="comms/remote-link-xtend.xml" /> -->
+    <remote-link include="comms/remote-link-xtend.xml">
+      <device n="0">/dev/ttyUSB0</device>
+    </remote-link>
 
     <!-- socket based remote monitoring and control interface -->
     <telnet include="comms/telnet.xml" />
@@ -58,7 +60,7 @@
       <!-- <autopilot include="autopilots/Resolution3.xml" /> -->
       <!-- <autopilot include="autopilots/SeniorTelemaster-pitchrate-speed.xml" /> -->
       <!-- <autopilot include="autopilots/Malolo2-alt-thr.xml" /> -->
-      <autopilot include="autopilots/Rascal110-fgfs-ele-speed.xml" />
+      <autopilot include="autopilots/Rascal110-fgfs-ele2-speed.xml" />
       <!-- <autopilot include="autopilots/FlyCamOne3.xml" /> -->
     </fcs>
 
