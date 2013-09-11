@@ -55,7 +55,7 @@
       <mode>route</mode> 
 
       <!-- select the autopilot configuration -->
-      <autopilot include="autopilots/SeniorTelemaster-ele-speed.xml" />
+      <autopilot include="autopilots/SeniorTelemaster-ele2-speed.xml" />
       <!-- <autopilot include="autopilots/Resolution3-ele-speed.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-fgfs-ele-speed.xml" /> -->
       <!-- <autopilot include="autopilots/FlyCamOne3.xml" /> -->
