@@ -56,16 +56,8 @@
       <mode>route</mode> 
 
       <!-- select the autopilot configuration -->
-      <autopilot include="autopilots/Resolution3-ele-speed.xml" />
-      <!-- <autopilot include="autopilots/Resolution3-pitchrate-speed.xml" />-->
-      <!-- <autopilot include="autopilots/Resolution3-pitch-speed.xml" /> -->
-      <!-- <autopilot include="autopilots/SeniorTelemaster.xml" /> -->
-      <!-- <autopilot include="autopilots/Malolo2-alt-thr.xml" /> -->
-      <!-- <autopilot include="autopilots/Rascal110-combined.xml" /> -->
-      <!-- <autopilot include="autopilots/Rascal110-wingleveler.xml" /> -->
-      <!-- <autopilot include="autopilots/Rascal110-pitchleveler.xml" /> -->
-      <!-- <autopilot include="autopilots/Rascal110-fgfs-pitch-speed.xml" /> -->
-      <!-- <autopilot include="autopilots/FlyCamOne3.xml" /> -->
+      <!-- <autopilot include="autopilots/Resolution3-03-ele-speed.xml" /> -->
+      <autopilot include="autopilots/Resolution3-03-ele2-speed.xml" />
     </fcs>
 
     <!-- Primary mission selection and configuration. -->
