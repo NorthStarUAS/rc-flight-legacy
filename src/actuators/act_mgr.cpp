@@ -39,8 +39,19 @@ static SGPropertyNode *output_elevator_damp_node = NULL;
 static SGPropertyNode *output_throttle_node = NULL;
 static SGPropertyNode *output_rudder_node = NULL;
 
+//
 static SGPropertyNode *act_elevon_mix_node = NULL;
 static SGPropertyNode *agl_alt_ft_node = NULL;
+
+// actuator global limits (dynamically adjustable)
+static SGPropertyNode *act_aileron_min = NULL;
+static SGPropertyNode *act_aileron_max = NULL;
+static SGPropertyNode *act_elevator_min = NULL;
+static SGPropertyNode *act_elevator_max = NULL;
+static SGPropertyNode *act_throttle_min = NULL;
+static SGPropertyNode *act_throttle_max = NULL;
+static SGPropertyNode *act_rudder_min = NULL;
+static SGPropertyNode *act_rudder_max = NULL;
 
 // actuator property nodes
 static SGPropertyNode *act_timestamp_node = NULL;
@@ -81,6 +92,24 @@ void Actuator_init() {
 
     act_elevon_mix_node = fgGetNode("/config/actuators/elevon-mixing", true);
     agl_alt_ft_node = fgGetNode("/position/altitude-agl-ft", true);
+
+    act_aileron_min = fgGetNode("/config/actuators/limits/aileron-min", true);
+    act_aileron_max = fgGetNode("/config/actuators/limits/aileron-max", true);
+    act_elevator_min = fgGetNode("/config/actuators/limits/elevator-min", true);
+    act_elevator_max = fgGetNode("/config/actuators/limits/elevator-max", true);
+    act_throttle_min = fgGetNode("/config/actuators/limits/throttle-min", true);
+    act_throttle_max = fgGetNode("/config/actuators/limits/throttle-max", true);
+    act_rudder_min = fgGetNode("/config/actuators/limits/rudder-min", true);
+    act_rudder_max = fgGetNode("/config/actuators/limits/rudder-max", true);
+
+    act_aileron_min->setFloatValue(-1.0);
+    act_aileron_max->setFloatValue( 1.0);
+    act_elevator_min->setFloatValue(-1.0);
+    act_elevator_max->setFloatValue( 1.0);
+    act_throttle_min->setFloatValue( 0.0);
+    act_throttle_max->setFloatValue( 1.0);
+    act_rudder_min->setFloatValue(-1.0);
+    act_rudder_max->setFloatValue( 1.0);
 
     act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
     act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
@@ -152,30 +181,50 @@ static void set_actuator_values_ap() {
 
     float elevator = output_elevator_node->getFloatValue()
 	+ output_elevator_damp_node->getFloatValue();
+    if ( elevator < act_elevator_min->getFloatValue() ) {
+	elevator = act_elevator_min->getFloatValue();
+    }
+    if ( elevator > act_elevator_max->getFloatValue() ) {
+	elevator = act_elevator_max->getFloatValue();
+    }
+
+    float aileron = output_aileron_node->getFloatValue();
+    if ( aileron < act_aileron_min->getFloatValue() ) {
+	aileron = act_aileron_min->getFloatValue();
+    }
+    if ( aileron > act_aileron_max->getFloatValue() ) {
+	aileron = act_aileron_max->getFloatValue();
+    }
 
     if ( act_elevon_mix_node->getBoolValue() ) {
         // elevon mixing mode (i.e. flying wing)
 
-        //aileron
+        // aileron
 	act_aileron_node
-	    ->setFloatValue( output_aileron_node->getFloatValue() + elevator );
+	    ->setFloatValue( aileron + elevator );
 
-        //elevator
+        // elevator
 	act_elevator_node
-	    ->setFloatValue( output_aileron_node->getFloatValue() - elevator );
+	    ->setFloatValue( aileron - elevator );
     } else {
         // conventional airframe mode
 
         //aileron
-	act_aileron_node
-	    ->setFloatValue( output_aileron_node->getFloatValue() );
+	act_aileron_node->setFloatValue( aileron );
 
         //elevator
 	act_elevator_node->setFloatValue( elevator );
     }
 
     // rudder
-    act_rudder_node->setFloatValue( output_rudder_node->getFloatValue() );
+    float rudder = output_rudder_node->getFloatValue();
+    if ( rudder < act_rudder_min->getFloatValue() ) {
+	rudder = act_rudder_min->getFloatValue();
+    }
+    if ( rudder > act_rudder_max->getFloatValue() ) {
+	rudder = act_rudder_max->getFloatValue();
+    }
+    act_rudder_node->setFloatValue( rudder );
 
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
@@ -233,7 +282,15 @@ static void set_actuator_values_ap() {
 
     // throttle
 
-    act_throttle_node->setFloatValue( output_throttle_node->getFloatValue() );
+    double throttle = output_throttle_node->getFloatValue();
+    if ( throttle < act_throttle_min->getFloatValue() ) {
+	throttle = act_throttle_min->getFloatValue();
+    }
+    if ( throttle > act_throttle_max->getFloatValue() ) {
+	throttle = act_throttle_max->getFloatValue();
+    }
+    act_throttle_node->setFloatValue( throttle );
+
     static bool sas_throttle_override = false;
 
     if ( !sas_throttle_override ) {
