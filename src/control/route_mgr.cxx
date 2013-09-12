@@ -172,7 +172,7 @@ void FGRouteMgr::update() {
 	    proj_dist_m->setDoubleValue( dist_m );
 
 	    // compute cross-track steering compensation
-	    double xtrack_route_gain = 0.6; /* hard coded to start with */
+	    double xtrack_route_gain = 0.4; /* hard coded to start with */
 	    double xtrack_comp = xtrack_m * xtrack_route_gain;
 	    if ( xtrack_comp < -45.0 ) { xtrack_comp = -45.0; }
 	    if ( xtrack_comp > 45.0 ) { xtrack_comp = 45.0; }
