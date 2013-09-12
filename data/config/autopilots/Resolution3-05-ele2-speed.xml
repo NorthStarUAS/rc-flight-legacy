@@ -57,7 +57,7 @@
       <!-- 4/8/2013 P=0.007 I=10.00 min/max = 0.25, Res3 #3 Seemed like not pushing hard enought to get rid of long term error, but really jumpy -->
       <!-- 5/24/2013 P=0.005 I=5.00 min/max = 0.25, Res3 #3 maybe still too snappy? -->
       <!-- 6/17/2013 P=0.004 I=2.00 min/max = 0.25, Res3 #3 seeking better convergence -->
-      <!-- 9/7/2013 P=-0.004 I=10.00 min/max = 0.25, still a bit hard -->
+      <!-- 9/5/2013 P=0.004 I=10.00 min/max = 0.25, Seems pretty jittery still, need to soften more. -->
       <Kp>-0.002</Kp>       <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
@@ -136,9 +136,48 @@
     </config>
   </pid-controller>
 
-  <!-- Hold speed by varying elevator --> 
+  <!-- Hold speed by varying elevator (direct, 1-stage approach) --> 
   <pid-controller>
     <name>Speed hold (vary elevator)</name>
+    <debug>false</debug>
+    <enable>
+      <prop>/autopilot/locks/speed</prop>
+      <value>elevator-direct</value>
+    </enable>
+    <input>
+      <prop>/velocity/airspeed-kt</prop>
+    </input>
+    <reference>
+      <prop>/autopilot/settings/target-speed-kt</prop>
+    </reference>
+    <output>
+      <prop>/controls/flight/elevator</prop>
+    </output>
+    <!-- 4/26/2013 Kp=-0.025 a=0.5 Ti=10.0 Td=1.0 : ran to extremes and pegged -->
+    <!-- 4/29/2013 Kp=-0.001 a=0.5 Ti=10.0 Td=1.0 : starting point for next resolution build? -->
+    <!-- 5/10/2013 Kp=0.001 a=0.5 Ti=10.0 Td=1.0 : flip sense for res3 #3 -->
+    <!-- 5/11/2013 Kp=0.001 a=0.5 Ti=10.0 Td=1.0 : shift range of motion for new airframe -->
+    <!-- 5/11/2013 Kp=0.001 a=0.5 Ti=10.0 Td=1.0 : stayed bounded but oscillated slowly over a long period, probably need to up the global gain a bit. -->
+    <!-- 5/11/2013 Kp=0.004 a=0.5 Ti=10.0 Td=1.0 :  better but still laggy -->
+    <!-- 5/28/2013 Kp=0.006 a=0.5 Ti=10.0 Td=1.0 :  even better, almost flyable -->
+    <!-- 5/28/2013 Kp=0.008 a=0.5 Ti=10.0 Td=1.0 :  would like faster convergence -->
+    <!-- 6/17/2013 Kp=0.010 a=0.5 Ti=10.0 Td=1.0 range=-0.15-0.05 clipping on both ends of range:  -->
+    <config>
+      <Kp>0.010</Kp>       <!-- proportional gain -->
+      <beta>1.0</beta>     <!-- input value weighing factor -->
+      <alpha>0.5</alpha>   <!-- low pass filter weighing factor -->
+      <gamma>0.0</gamma>   <!-- input value weighing factor for -->
+      <!-- unfiltered derivative error -->
+      <Ti>10.0</Ti>        <!-- integrator time -->
+      <Td>1.1</Td>     <!-- derivator time -->
+      <u_min>-0.20</u_min>  <!-- minimum output clamp -->
+      <u_max>0.05</u_max>  <!-- maximum output clamp -->
+    </config>
+  </pid-controller>
+
+  <!-- Hold speed by varying elevator (2-stage approach) --> 
+  <pid-controller>
+    <name>Speed hold (vary elevator) Stage #1</name>
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/speed</prop>
@@ -151,28 +190,48 @@
       <prop>/autopilot/settings/target-speed-kt</prop>
     </reference>
     <output>
-      <prop>/controls/flight/elevator</prop>
+      <prop>/autopilot/settings/target-pitch-deg</prop>
     </output>
     <config>
-      <!-- 4/26/2013 Kp=-0.025 a=0.5 Ti=10.0 Td=1.0 : ran to extremes and pegged -->
-      <!-- 4/29/2013 Kp=-0.001 a=0.5 Ti=10.0 Td=1.0 : starting point for next resolution build? -->
-      <!-- 5/10/2013 Kp=0.001 a=0.5 Ti=10.0 Td=1.0 : flip sense for res3 #3 -->
-      <!-- 5/11/2013 Kp=0.001 a=0.5 Ti=10.0 Td=1.0 : shift range of motion for new airframe -->
-      <!-- 5/11/2013 Kp=0.001 a=0.5 Ti=10.0 Td=1.0 : stayed bounded but oscillated slowly over a long period, probably need to up the global gain a bit. -->
-      <!-- 5/11/2013 Kp=0.004 a=0.5 Ti=10.0 Td=1.0 :  better but still laggy -->
-      <!-- 5/28/2013 Kp=0.006 a=0.5 Ti=10.0 Td=1.0 :  even better, almost flyable -->
-      <!-- 5/28/2013 Kp=0.008 a=0.5 Ti=10.0 Td=1.0 :  would like faster convergence -->
-      <!-- 6/17/2013 Kp=0.010 a=0.5 Ti=10.0 Td=1.0 :  -->
-      <!-- 9/7/2013 Kp=0.010 a=0.5 Ti=10.0 Td=1.0 : need a bit more stability -->
-      <Kp>0.010</Kp>       <!-- proportional gain -->
+      <Kp>-0.5</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
-      <alpha>0.5</alpha>   <!-- low pass filter weighing factor -->
+      <alpha>0.25</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
-      <Ti>10.0</Ti>        <!-- integrator time -->
-      <Td>1.1</Td>     <!-- derivator time -->
+      <Ti>2.0</Ti>         <!-- integrator time -->
+      <Td>0.000001</Td>    <!-- derivator time -->
+      <u_min>-5.0</u_min> <!-- minimum output clamp -->
+      <u_max>15.0</u_max>  <!-- maximum output clamp -->
+    </config>
+  </pid-controller>
+
+  <pid-controller>
+    <name>Speed hold (vary elevator) Stage #2</name>
+    <debug>false</debug>
+    <enable>
+      <prop>/autopilot/locks/speed</prop>
+      <value>elevator</value>
+    </enable>
+    <input>
+      <prop>/orientation/pitch-deg</prop>
+    </input>
+    <reference>
+      <prop>/autopilot/settings/target-pitch-deg</prop>
+    </reference>
+    <output>
+      <prop>/controls/flight/elevator</prop>
+    </output>
+      <!-- 9/11/2013: Kp = -0.010 alpha = 0.1 Ti = 10.0 Td = 0.0001 adapted from sim work and previous determined elevator gains -->
+    <config>
+      <Kp>-0.010</Kp>       <!-- proportional gain -->
+      <beta>1.0</beta>      <!-- input value weighing factor -->
+      <alpha>0.1</alpha>    <!-- low pass filter weighing factor -->
+      <gamma>0.0</gamma>    <!-- input value weighing factor for -->
+      <!-- unfiltered derivative error -->
+      <Ti>10.0</Ti>         <!-- integrator time -->
+      <Td>0.0001</Td>       <!-- derivator time -->
       <u_min>-0.20</u_min>  <!-- minimum output clamp -->
-      <u_max>0.05</u_max>  <!-- maximum output clamp -->
+      <u_max>0.10</u_max>   <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
