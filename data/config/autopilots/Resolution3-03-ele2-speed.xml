@@ -58,7 +58,7 @@
       <!-- 5/24/2013 P=0.005 I=5.00 min/max = 0.25, Res3 #3 maybe still too snappy? -->
       <!-- 6/17/2013 P=0.004 I=2.00 min/max = 0.25, Res3 #3 seeking better convergence -->
       <!-- 9/5/2013 P=0.004 I=10.00 min/max = 0.25, Seems pretty jittery still, need to soften more. -->
-      <Kp>0.003</Kp>       <!-- proportional gain-->
+      <Kp>0.002</Kp>       <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -200,8 +200,8 @@
       <!-- unfiltered derivative error -->
       <Ti>2.0</Ti>         <!-- integrator time -->
       <Td>0.000001</Td>    <!-- derivator time -->
-      <u_min>-10.0</u_min> <!-- minimum output clamp -->
-      <u_max>10.0</u_max>  <!-- maximum output clamp -->
+      <u_min>-5.0</u_min> <!-- minimum output clamp -->
+      <u_max>15.0</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
