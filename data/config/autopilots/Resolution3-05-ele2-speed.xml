@@ -93,8 +93,9 @@
     <!-- 5/24/2013, Kp=0.006 Ti=20.0 didn't seem to be pushing up to target -->
     <!-- 5/26/2013, (simple) Kp=0.006 Ti=10.0 -->
     <!-- 9/3/2013, convert to full pid and borrow telemaster gains -->
+    <!-- 9/11/2013, Kp=0.005 Ti=20 maybe would like a little slower response -->
     <config>
-      <Kp>0.005</Kp>       <!-- proportional gain -->
+      <Kp>0.004</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -170,8 +171,8 @@
       <!-- unfiltered derivative error -->
       <Ti>10.0</Ti>        <!-- integrator time -->
       <Td>1.1</Td>     <!-- derivator time -->
-      <u_min>-0.20</u_min>  <!-- minimum output clamp -->
-      <u_max>0.05</u_max>  <!-- maximum output clamp -->
+      <u_min>-0.23</u_min>  <!-- minimum output clamp -->
+      <u_max>0.07</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
@@ -221,9 +222,9 @@
     <output>
       <prop>/controls/flight/elevator</prop>
     </output>
-      <!-- 9/11/2013: Kp = -0.010 alpha = 0.1 Ti = 10.0 Td = 0.0001 adapted from sim work and previous determined elevator gains -->
+      <!-- 9/11/2013: Kp = -0.010 alpha = 0.1 Ti = 10.0 Td = 0.0001 adapted from sim work and previous determined elevator gains, but too agressive/jittery -->
     <config>
-      <Kp>-0.010</Kp>       <!-- proportional gain -->
+      <Kp>-0.006</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>      <!-- input value weighing factor -->
       <alpha>0.1</alpha>    <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>    <!-- input value weighing factor for -->
