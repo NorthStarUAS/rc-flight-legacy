@@ -31,6 +31,7 @@
 #include "comms/remote_link.h"
 #include "include/globaldefs.h"
 #include "main/globals.hxx"
+#include "mission/mission_mgr.hxx"
 #include "props/props_io.hxx"
 #include "sensors/gps_mgr.hxx"
 #include "util/exception.hxx"
@@ -116,16 +117,18 @@ void FGRouteMgr::init( SGPropertyNode *branch ) {
     active->clear();
     standby->clear();
 
-    if ( ! build() ) {
-	printf("Detected an internal inconsistency in the route\n");
-	printf(" configuration.  See earlier errors for\n" );
-	printf(" details.");
-	exit(-1);
-    }
+    if ( config_props != NULL ) {
+	if ( ! build() ) {
+	    printf("Detected an internal inconsistency in the route\n");
+	    printf(" configuration.  See earlier errors for\n" );
+	    printf(" details.");
+	    exit(-1);
+	}
 
-    // build() constructs the new route in the "standby" slot, swap it
-    // to "active"
-    swap();
+	// build() constructs the new route in the "standby" slot,
+	// swap it to "active"
+	swap();
+    }
 }
 
 
@@ -212,6 +215,8 @@ void FGRouteMgr::update() {
 
         // We are in ill-defined territory, should we do some sort of
         // circle of our home position?
+
+	mission_mgr.request_task_circle();
     }
 
     wp_dist_m->setFloatValue( direct_distance );
