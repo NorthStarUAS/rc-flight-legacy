@@ -535,7 +535,7 @@ WSChannel::process_line( string line )
 		json_add(&reply, "\"lost_link\":\"%d\"",
 			 command_mgr.remote_lost_link_predict() );
 
-		json_add(&reply, "\"control_mode\":\"%d\"",
+		json_add(&reply, "\"control_mode\":\"%.0f\"",
 			 pilot_channel5_node->getDoubleValue() );
 
 		json_add(&reply, "\"ap_hdg\":\"%.1f\"",
