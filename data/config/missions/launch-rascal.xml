@@ -72,6 +72,7 @@
       <timed>0</timed>
       <loop>0</loop>
     </task>
+
   </sequential-tasks>
 
   <!-- standby tasks: a list of tasks that are initialized and configured -->
@@ -109,6 +110,18 @@
       <coord-path>/navigation/startup</coord-path>
       <altitude-agl-ft>500</altitude-agl-ft>
       <speed-kt>30</speed-kt>
+    </task>
+
+    <task>
+      <name>land</name>
+      <lateral-offset-m>50.0</lateral-offset-m>
+      <glideslope-deg>6.0</glideslope-deg>
+      <turn-radius-m>75</turn-radius-m>
+      <turn-steps>5</turn-steps>
+      <side>left</side>
+      <alt-downwind-ft>200</alt-downwind-ft>
+      <alt-final-ft>100</alt-final-ft>
+      <speed-kt>25</speed-kt>
     </task>
   </standby-tasks>
 
