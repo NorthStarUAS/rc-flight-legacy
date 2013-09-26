@@ -548,7 +548,11 @@ int UGPacketizer::packetize_ap( uint8_t *buf, uint8_t route_size,
     int16_t speed = (int16_t)(ap_speed->getFloatValue() * 10.0);
     *(int16_t *)buf = speed; buf += 2;
 
-    uint16_t waypoint = (uint16_t)ap_waypoint->getIntValue();
+    int target_wpt_index = ap_waypoint->getIntValue();
+    if ( target_wpt_index >= route_size ) {
+	target_wpt_index = 0;
+    }
+    uint16_t waypoint = (uint16_t)target_wpt_index;
     *(uint16_t *)buf = waypoint; buf += 2;
 
     *(double *)buf = wp->get_target_lon(); buf += 8;
