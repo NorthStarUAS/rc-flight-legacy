@@ -18,6 +18,7 @@
 #include "include/globaldefs.h"
 #include "main/globals.hxx"
 #include "mission/mission_mgr.hxx"
+#include "mission/tasks/task_circle_coord.hxx"
 #include "mission/tasks/task_home_mgr.hxx"
 #include "mission/tasks/task_route.hxx"
 
@@ -221,26 +222,36 @@ void control_update(double dt)
 	SGWayPoint wp;
 	int route_size = 0;
 
-	UGTaskRoute *route_task
-	    = (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
-	if ( route_task != NULL ) {
-	    FGRouteMgr *route_mgr = route_task->get_route_mgr();
-	    if ( route_mgr != NULL ) {
-		route_size = route_mgr->size();
-		if ( route_size > 0 && wp_index < route_size ) {
-		    wp = route_mgr->get_waypoint( wp_index );
-		    index = wp_index;
-		}
-	    }
-	}
+	UGTask *current_task = mission_mgr.front_seq_task();
+	if ( current_task != NULL ) {
+	    string task_name = current_task->get_name();
 
-        // special case send home as a route waypoint with id = 65535
-        if ( wp_index == route_size ) {
-	    UGTaskHomeMgr *home_mgr
-		= (UGTaskHomeMgr *)mission_mgr.find_global_task( "home-manager" );
-	    if ( home_mgr != NULL ) {
-		wp = home_mgr->get_home_wpt();
-		index = 65535;
+	    if ( task_name == "route" || task_name == "land" ) {
+		UGTaskRoute *route_task = (UGTaskRoute *)current_task;
+		FGRouteMgr *route_mgr = route_task->get_route_mgr();
+		if ( route_mgr != NULL ) {
+		    route_size = route_mgr->size();
+		    if ( route_size > 0 && wp_index < route_size ) {
+			wp = route_mgr->get_waypoint( wp_index );
+			index = wp_index;
+		    }
+		}
+
+	    } else if ( task_name == "circle-coord" ) {
+		UGTaskCircleCoord *circle_task = (UGTaskCircleCoord *)current_task;
+		wp = circle_task->get_center();
+		route_size = 1;
+		index = wp_index;
+	    }
+
+	    // special case send home as a route waypoint with id = 65535
+	    if ( wp_index == route_size ) {
+		UGTaskHomeMgr *home_mgr
+		    = (UGTaskHomeMgr *)mission_mgr.find_global_task( "home-manager" );
+		if ( home_mgr != NULL ) {
+		    wp = home_mgr->get_home_wpt();
+		    index = 65535;
+		}
 	    }
 	}
 
