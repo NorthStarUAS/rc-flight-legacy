@@ -60,7 +60,8 @@
       <!-- <autopilot include="autopilots/Resolution3.xml" /> -->
       <!-- <autopilot include="autopilots/SeniorTelemaster-pitchrate-speed.xml" /> -->
       <!-- <autopilot include="autopilots/Malolo2-alt-thr.xml" /> -->
-      <autopilot include="autopilots/Rascal110-fgfs-ele2-speed.xml" />
+      <!-- <autopilot include="autopilots/Rascal110-fgfs-ele2-speed.xml" /> -->
+      <autopilot include="autopilots/Resolution3-fgfs-ele2-speed.xml" />
       <!-- <autopilot include="autopilots/FlyCamOne3.xml" /> -->
     </fcs>
 
