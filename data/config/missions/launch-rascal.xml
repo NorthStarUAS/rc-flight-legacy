@@ -116,8 +116,8 @@
       <name>land</name>
       <lateral-offset-m>50.0</lateral-offset-m>
       <glideslope-deg>6.0</glideslope-deg>
-      <turn-radius-m>75</turn-radius-m>
-      <turn-steps>5</turn-steps>
+      <turn-radius-m>100</turn-radius-m>
+      <turn-steps>6</turn-steps>
       <side>left</side>
       <alt-downwind-ft>200</alt-downwind-ft>
       <alt-final-ft>100</alt-final-ft>
