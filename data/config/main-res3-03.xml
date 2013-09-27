@@ -23,6 +23,16 @@
         <pwm-hz n="0">200</pwm-hz>
         <pitot-calibrate-factor n="0">1.15</pitot-calibrate-factor>
       </APM2>
+      <imu-group n="0">
+        <imu n="0">
+          <ax-bias n="0"> 0.047</ax-bias>
+          <ay-bias n="0">-0.293</ay-bias>
+          <az-bias n="0"> 1.226</az-bias>
+          <ax-scale n="0">1.001</ax-scale>
+          <ay-scale n="0">0.999</ay-scale>
+          <az-scale n="0">0.980</az-scale>
+        </imu>
+      </imu-group>
     </sensors>
     <!-- <sensors include="sensors/group-fgfs24.xml" /> -->
 
