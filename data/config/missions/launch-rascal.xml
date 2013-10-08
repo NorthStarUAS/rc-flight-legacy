@@ -114,12 +114,12 @@
 
     <task>
       <name>land</name>
-      <lateral-offset-m>50.0</lateral-offset-m>
-      <glideslope-deg>6.0</glideslope-deg>
+      <lateral-offset-m>5.0</lateral-offset-m>
+      <glideslope-deg>3.0</glideslope-deg>
       <turn-radius-m>100</turn-radius-m>
-      <turn-steps>6</turn-steps>
+      <turn-steps>8</turn-steps>
       <side>left</side>
-      <alt-downwind-ft>200</alt-downwind-ft>
+      <alt-downwind-ft>150</alt-downwind-ft>
       <alt-final-ft>100</alt-final-ft>
       <speed-kt>25</speed-kt>
     </task>
