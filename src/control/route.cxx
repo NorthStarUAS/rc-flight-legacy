@@ -144,6 +144,24 @@ void SGRoute::refresh_offset_positions( const SGWayPoint &ref,
 	// think.
         if ( fabs(route[i].get_offset_dist_m()) > 0.01 ) {
             route[i].update_relative_pos( ref, ref_heading_deg );
+	    update_distance( i );
         }
     }
+}
+
+
+/** Get the distance remaining in the route starting at the next
+    (target) waypoint.  It is up to the calling layer to compute
+    the distance to the next waypoint and add it to the remaining
+    distance of the route.  The logic here is that the calling
+    layer is already computing distance to the next waypoint, and
+    then we need to know the distance from the next waypoint to
+    the end to compute the total distance to the end of the route.
+*/
+double SGRoute::get_remaining_distance_from_current_waypoint() {
+    double dist = 0.0;
+    for ( unsigned int i = current_wp+1; i < route.size(); ++i ) {
+	dist += route[i].get_distance();
+    }
+    return dist;
 }
