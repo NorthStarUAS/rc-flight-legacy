@@ -179,7 +179,8 @@ void FGRouteMgr::update() {
 	    double xtrack_comp = xtrack_m * xtrack_route_gain;
 	    if ( xtrack_comp < -45.0 ) { xtrack_comp = -45.0; }
 	    if ( xtrack_comp > 45.0 ) { xtrack_comp = 45.0; }
-	    double xtrack_course = leg_course - xtrack_comp;
+	    // double xtrack_course = leg_course - xtrack_comp;
+	    double xtrack_course = direct_course - xtrack_comp;
             if ( xtrack_course < 0.0 ) {
                 xtrack_course += 360.0;
             } else if ( xtrack_course > 360.0 ) {
@@ -208,6 +209,10 @@ void FGRouteMgr::update() {
 
 	    // publish current target waypoint
 	    target_waypoint->setIntValue( active->get_waypoint_index() );
+
+	    //if ( display_on ) {
+	    // printf("route dist = %0f\n", direct_distance + active->get_remaining_distance_from_current_waypoint());
+	    // }
 	}
     } else {
         // FIXME: we've been commanded to follow a route, but no route
@@ -278,10 +283,13 @@ bool FGRouteMgr::swap() {
 	return false;
     }
 
-    SGRoute *tmp;
-    tmp = active;
+    // swap standby <=> active routes
+    SGRoute *tmp = active;
     active = standby;
     standby = tmp;
+
+    // set target way point to the first waypoint in the new active route
+    active->set_current( 0 );
 
     return true;
 }
