@@ -31,24 +31,27 @@
 
 
 // Constructor
-SGWayPoint::SGWayPoint( const double lon, const double lat,
+SGWayPoint::SGWayPoint( const double field1, const double field2,
                         const double alt_m, const double agl_m,
                         const double speed_kt,
-                        const double heading_deg, const double dist_m,
                         const modetype m, const string& s ) {
-    target_lon = lon;
-    target_lat = lat;
+    mode = m;
+    if ( mode == ABSOLUTE ) {
+	target_lon = field1;
+	target_lat = field2;
+    } else if ( mode == RELATIVE ) {
+	offset_hdg_deg = field1;
+	offset_dist_m = field2;
+    }
     target_alt_m = alt_m;
     target_agl_m = agl_m;
     target_speed_kt = speed_kt;
-    offset_hdg_deg = heading_deg;
-    offset_dist_m = dist_m;
-    mode = m;
     id = s;
 }
 
+
 SGWayPoint::SGWayPoint( SGPropertyNode *node ):
-    mode( SPHERICAL ),
+    mode( ABSOLUTE ),
     target_lon( 0.0 ),
     target_lat( 0.0 ),
     target_alt_m( -9999.9 ),
@@ -68,8 +71,10 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
             id = cval;
         } else if ( cname == "lon" ) {
             target_lon = child->getDoubleValue();
+	    mode = ABSOLUTE;
         } else if ( cname == "lat" ) {
             target_lat = child->getDoubleValue();
+	    mode = ABSOLUTE;
         } else if ( cname == "alt-ft" ) {
             target_alt_m = child->getDoubleValue() * SG_FEET_TO_METER;
         } else if ( cname == "agl-ft" ) {
@@ -78,14 +83,10 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
             target_speed_kt = child->getDoubleValue();
         } else if ( cname == "offset-heading-deg" ) {
             offset_hdg_deg = child->getDoubleValue();
+	    mode = RELATIVE;
         } else if ( cname == "offset-dist-m" ) {
             offset_dist_m = child->getDoubleValue();
-        } else if ( cname == "mode" ) {
-            if ( cval == "cartesian" ) {
-                mode = CARTESIAN;
-            } else {
-                mode = SPHERICAL;
-            }
+	    mode = RELATIVE;
         } else {
             printf("Error in waypoint config logic, " );
             if ( id.length() ) {
@@ -93,11 +94,11 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
             }
         }
     }
-    if ( fabs(offset_dist_m) < 0.1 ) {
+    if ( mode == ABSOLUTE ) {
 	printf("WPT: %.6f %.6f %.0f (MSL) %.0f (AGL) %.0f (kts)\n",
 	       target_lon, target_lat, target_alt_m, target_agl_m,
 	       target_speed_kt);
-    } else {
+    } else if ( mode == RELATIVE ) {
 	printf("WPT: %4.0f deg %.0fm %.0f (MSL) %.0f (AGL) %.0f (kts)\n",
 	       offset_hdg_deg, offset_dist_m, target_alt_m, target_agl_m,
 	       target_speed_kt);
@@ -106,7 +107,7 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
 
 
 SGWayPoint::SGWayPoint():
-    mode( SPHERICAL ),
+    mode( ABSOLUTE ),
     target_lon( 0.0 ),
     target_lat( 0.0 ),
     target_alt_m( -9999.9 ),
@@ -127,33 +128,19 @@ SGWayPoint::~SGWayPoint() {
 
 // Calculate course and distances.  For WGS84 and SPHERICAL
 // coordinates lat, lon, and course are in degrees, alt and distance
-// are in meters.  For CARTESIAN coordinates x = lon, y = lat.  Course
-// is in degrees and distance is in what ever units x and y are in.
+// are in meters.
 void SGWayPoint::CourseAndDistance( const double cur_lon,
 				    const double cur_lat,
 				    const double cur_alt,
 				    double *course, double *dist ) const {
-    if ( mode == SPHERICAL ) {
-	Point3D current( cur_lon * SGD_DEGREES_TO_RADIANS,
-                         cur_lat * SGD_DEGREES_TO_RADIANS,
-                         0.0 );
-	Point3D target( target_lon * SGD_DEGREES_TO_RADIANS,
-                        target_lat * SGD_DEGREES_TO_RADIANS,
-                        0.0 );
-	calc_gc_course_dist( current, target, course, dist );
-	*course = 360.0 - *course * SGD_RADIANS_TO_DEGREES;
-    } else if ( mode == CARTESIAN ) {
-	double dx = target_lon - cur_lon;
-	double dy = target_lat - cur_lat;
-	*course = -atan2( dy, dx ) * SGD_RADIANS_TO_DEGREES - 90;
-	while ( *course < 0 ) {
-	    *course += 360.0;
-	}
-	while ( *course > 360.0 ) {
-	    *course -= 360.0;
-	}
-	*dist = sqrt( dx * dx + dy * dy );
-    }
+    Point3D current( cur_lon * SGD_DEGREES_TO_RADIANS,
+		     cur_lat * SGD_DEGREES_TO_RADIANS,
+		     0.0 );
+    Point3D target( target_lon * SGD_DEGREES_TO_RADIANS,
+		    target_lat * SGD_DEGREES_TO_RADIANS,
+		    0.0 );
+    calc_gc_course_dist( current, target, course, dist );
+    *course = 360.0 - *course * SGD_RADIANS_TO_DEGREES;
 }
 
 // Calculate course and distances between two waypoints
@@ -174,19 +161,18 @@ void SGWayPoint::CourseAndDistance( const SGWayPoint &wp,
 void SGWayPoint::update_relative_pos( const SGWayPoint &ref,
                                       const double ref_heading_deg )
 {
-     if ( mode == SPHERICAL ) {
-         Point3D orig( ref.get_target_lon() * SGD_DEGREES_TO_RADIANS,
-                       ref.get_target_lat() * SGD_DEGREES_TO_RADIANS,
-                       0.0 );
-         double course = ref_heading_deg + offset_hdg_deg;
-         if ( course < 0.0 ) { course += 360.0; }
-         if ( course > 360.0 ) { course -= 360.0; }
-         course = 360.0 - course; // invert to make this routine happy
-         Point3D tgt = calc_gc_lon_lat( orig,
-                                        course * SGD_DEGREES_TO_RADIANS,
-                                        offset_dist_m );
-         target_lon = tgt.lon() * SGD_RADIANS_TO_DEGREES;
-         target_lat = tgt.lat() * SGD_RADIANS_TO_DEGREES;
+    Point3D orig( ref.get_target_lon() * SGD_DEGREES_TO_RADIANS,
+		  ref.get_target_lat() * SGD_DEGREES_TO_RADIANS,
+		  0.0 );
+    double course = ref_heading_deg + offset_hdg_deg;
+    if ( course < 0.0 ) { course += 360.0; }
+    if ( course > 360.0 ) { course -= 360.0; }
+    course = 360.0 - course; // invert to make this routine happy
+    Point3D tgt = calc_gc_lon_lat( orig,
+				   course * SGD_DEGREES_TO_RADIANS,
+				   offset_dist_m );
+    target_lon = tgt.lon() * SGD_RADIANS_TO_DEGREES;
+    target_lat = tgt.lat() * SGD_RADIANS_TO_DEGREES;
 
 	 /*
 	   FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
@@ -198,7 +184,4 @@ void SGWayPoint::update_relative_pos( const SGWayPoint &ref,
                    target_lon, target_lat);
            fclose(debug);
 	 */
-     } else if ( mode == CARTESIAN ) {
-         // FIXME: update this code to work with cartesian systems too
-     }
 }
