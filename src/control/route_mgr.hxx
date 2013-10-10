@@ -45,6 +45,24 @@ using std::vector;
 
 class FGRouteMgr {
 
+public:
+
+    enum FollowMode {
+	DIRECT = 0,
+	XTRACK_LEG_HDG = 1,
+	XTRACK_DIRECT_HDG = 2
+    };
+
+    enum CompletionMode {
+	RESTART = 0,
+	CIRCLE_LAST_WPT = 1,
+	EXTEND_LAST_LEG = 2
+	// idea: reverse and fly backwards to home
+	// idea: swap to standby route and fly that
+	// idea: return home and circle
+	// idea: rally points
+    };
+
 private:
 
     SGRoute *active;
@@ -60,10 +78,10 @@ private:
 
     // automatic outputs
     SGPropertyNode *true_hdg_deg;
-    SGPropertyNode *target_agl_ft;
-    SGPropertyNode *override_agl_ft;
-    SGPropertyNode *target_msl_ft;
-    SGPropertyNode *override_msl_ft;
+    SGPropertyNode *target_agl_node;
+    SGPropertyNode *override_agl_node;
+    SGPropertyNode *target_msl_node;
+    SGPropertyNode *override_msl_node;
     SGPropertyNode *target_waypoint;
     SGPropertyNode *wp_dist_m;
     SGPropertyNode *wp_eta_sec;
@@ -76,16 +94,16 @@ private:
     SGPropertyNode *true_airspeed_kt;
     SGPropertyNode *est_wind_target_heading_deg;
 
-    // FIXME REMOVE!
-    // console/logging property nodes
-    SGPropertyNode *ap_console_skip;
-    SGPropertyNode *ap_logging_skip;
+    // route behaviors
+    FollowMode follow_mode;
+    CompletionMode completion_mode;
 
-    // bool home_set;
+    // altitude overrides
     bool msl_override;
     bool agl_override;
 
-    // fgRouteMode mode;
+    // stats
+    double dist_remaining_m;
 
     SGWayPoint make_waypoint( const string& wpt_string );
 
@@ -99,6 +117,16 @@ public:
     void bind();
 
     void init( SGPropertyNode *branch );
+
+    // set route follow mode
+    void set_follow_mode( enum FollowMode mode ) {
+	follow_mode = mode;
+    }
+
+    // set route completion mode
+    void set_completion_mode( enum CompletionMode mode ) {
+	completion_mode = mode;
+    }
 
     void update();
 
@@ -121,9 +149,17 @@ public:
     int size() const {
         return active->size();
     }
+    double get_dist_remaining_m() const {
+	return dist_remaining_m;
+    }
 
     // applies to the "active" route
     bool reposition_pattern( const SGWayPoint &wp, const double hdg );
+
+    // restart the route from the beginning
+    void restart() {
+	active->set_current( 0 );
+    }
 };
 
 
