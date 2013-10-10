@@ -142,7 +142,7 @@ void SGRoute::refresh_offset_positions( const SGWayPoint &ref,
 	// waypoint at zero distance offset (exactly at home) so this
 	// should be carefully rethought and a better way derived I
 	// think.
-        if ( fabs(route[i].get_offset_dist_m()) > 0.01 ) {
+        if ( route[i].get_mode() == SGWayPoint::RELATIVE ) {
             route[i].update_relative_pos( ref, ref_heading_deg );
 	    update_distance( i );
         }
