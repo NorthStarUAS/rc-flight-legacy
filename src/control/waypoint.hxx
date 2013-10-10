@@ -50,16 +50,12 @@ public:
 
     /**
      * Waypoint mode.
-     * <li> SPHERICAL requests all bearing and distance math be done assuming
-     *      the world is a perfect sphere.  This is less compuntationally
-     *      expensive than using wgs84 math and still a fairly good
-     *      approximation of the real world, especially over shorter distances.
-     * <li> CARTESIAN requests all math be done assuming the coordinates specify
-     *      position in a Z = up world.
+     * <li> ABSOLUTE: coordinates are longitude, latitude (deg)
+     * <li> RELATIVE: coordinates are distance (m), heading (deg)
      */
     enum modetype { 
-	SPHERICAL = 0,
-	CARTESIAN = 1
+	ABSOLUTE = 0,
+	RELATIVE = 1
     };
 
 private:
@@ -88,20 +84,19 @@ public:
 
     /**
      * Construct a waypoint
-     * @param lon destination longitude
-     * @param lat destination latitude
+     * @param field1 target longitude deg if mode == ABSOLUTE
+     * @param field2 target latitude deg if mode == ABSOLUTE
+     * @param field1 (offset heading deg if mode == RELATIVE
+     * @param dist_m (offset distance m if mode == RELATIVE
      * @param alt_m target altitude
      * @param speed_kt target altitude
-     * @param heading_deg (offset heading for relative waypoints only)
-     * @param dist_m (offset distance for relative waypoints only)
      * @param mode type of coordinates/math to use
      * @param s waypoint identifier
      */
-    SGWayPoint( const double lon, const double lat,
+    SGWayPoint( const double field1, const double field2,
 		const double alt_m = -9999.9, const double agl_m = -9999.9,
                 const double speed_kt = 0.0,
-                const double heading_deg = 0.0, const double dist_m = 0.0,
-                const modetype m = SPHERICAL,
+                const modetype m = ABSOLUTE,
 		const string& s = "" );
 
     /**
@@ -121,9 +116,7 @@ public:
     /**
      * Calculate course and distances.  For WGS84 and SPHERICAL
      * coordinates lat, lon, and course are in degrees, alt and
-     * distance are in meters.  For CARTESIAN coordinates x = lon, y =
-     * lat.  Course is in degrees and distance is in what ever units x
-     * and y are in.
+     * distance are in meters.
      * @param cur_lon (in) current longitude
      * @param cur_lat (in) current latitude
      * @param cur_alt (in) current altitude
