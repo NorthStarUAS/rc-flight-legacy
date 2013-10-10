@@ -50,10 +50,10 @@ FGRouteMgr::FGRouteMgr() :
     lat_node( NULL ),
     alt_node( NULL ),
     true_hdg_deg( NULL ),
-    target_agl_ft( NULL ),
-    override_agl_ft( NULL ),
-    target_msl_ft( NULL ),
-    override_msl_ft( NULL ),
+    target_agl_node( NULL ),
+    override_agl_node( NULL ),
+    target_msl_node( NULL ),
+    override_msl_node( NULL ),
     target_waypoint( NULL ),
     wp_dist_m( NULL ),
     wp_eta_sec( NULL ),
@@ -64,8 +64,9 @@ FGRouteMgr::FGRouteMgr() :
     wind_dir_deg( NULL ),
     true_airspeed_kt( NULL ),
     est_wind_target_heading_deg( NULL ),
-    ap_console_skip( NULL ),
-    ap_logging_skip( NULL )
+    follow_mode( XTRACK_LEG_HDG ),
+    completion_mode( RESTART ),
+    dist_remaining_m( 0.0 )
 {
 }
 
@@ -83,14 +84,12 @@ void FGRouteMgr::bind() {
     alt_node = fgGetNode( "/position/altitude-ft", true );
 
     true_hdg_deg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
-    target_msl_ft
-        = fgGetNode( "/autopilot/settings/target-msl-ft", true );
-    override_msl_ft
-        = fgGetNode( "/autopilot/settings/override-msl-ft", true );
-    target_agl_ft
-        = fgGetNode( "/autopilot/settings/target-agl-ft", true );
-    override_agl_ft
-        = fgGetNode( "/autopilot/settings/override-agl-ft", true );
+    target_msl_node = fgGetNode( "/autopilot/settings/target-msl-ft", true );
+    override_msl_node
+	= fgGetNode( "/autopilot/settings/override-msl-ft", true );
+    target_agl_node = fgGetNode( "/autopilot/settings/target-agl-ft", true );
+    override_agl_node
+	= fgGetNode( "/autopilot/settings/override-agl-ft", true );
     target_waypoint
 	= fgGetNode( "/autopilot/route-mgr/target-waypoint-idx", true );
     wp_dist_m = fgGetNode( "/autopilot/route-mgr/wp-dist-m", true );
@@ -104,8 +103,8 @@ void FGRouteMgr::bind() {
     est_wind_target_heading_deg
 	= fgGetNode("/filters/wind-est/target-heading-deg", true);
 
-    ap_console_skip = fgGetNode("/config/remote-link/autopilot-skip", true);
-    ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
+    // ap_console_skip = fgGetNode("/config/remote-link/autopilot-skip", true);
+    // ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
 }
 
 
@@ -136,13 +135,11 @@ void FGRouteMgr::update() {
     double direct_course, direct_distance;
     double leg_course, leg_distance;
 
-    double override_agl = override_agl_ft->getDoubleValue();
-    double override_msl = override_msl_ft->getDoubleValue();
-    double target_agl_m = 0;
-    double target_msl_m = 0;
-
     double nav_course = 0.0;
     double nav_dist_m = 0.0;
+
+    double target_agl_m = 0.0;
+    double target_msl_m = 0.0;
 
     if ( active->size() > 0 ) {
 	if ( GPS_age() < 10.0 ) {
@@ -171,47 +168,106 @@ void FGRouteMgr::update() {
 	    double angle_rad = angle * SGD_DEGREES_TO_RADIANS;
             double xtrack_m = sin( angle_rad ) * direct_distance;
             double dist_m = cos( angle_rad ) * direct_distance;
+	    /* printf("direct_dist = %.1f angle = %.1f dist_m = %.1f\n",
+	              direct_distance, angle, dist_m); */
 	    xtrack_dist_m->setDoubleValue( xtrack_m );
 	    proj_dist_m->setDoubleValue( dist_m );
 
 	    // compute cross-track steering compensation
-	    double xtrack_route_gain = 0.4; /* hard coded to start with */
+	    double xtrack_route_gain = 0.5; /* hard coded to start with */
 	    double xtrack_comp = xtrack_m * xtrack_route_gain;
 	    if ( xtrack_comp < -45.0 ) { xtrack_comp = -45.0; }
 	    if ( xtrack_comp > 45.0 ) { xtrack_comp = 45.0; }
-	    // double xtrack_course = leg_course - xtrack_comp;
-	    double xtrack_course = direct_course - xtrack_comp;
-            if ( xtrack_course < 0.0 ) {
-                xtrack_course += 360.0;
-            } else if ( xtrack_course > 360.0 ) {
-                xtrack_course -= 360.0;
-            }
 
-	    // target heading
-	    bool use_xtrack_steering = true;
-	    if ( use_xtrack_steering ) {
-		// do cross track steering compensation and test for
-		// waypoint acquisition along leg length.
-		nav_course = xtrack_course;
-		nav_dist_m = dist_m;
-	    } else {
-		// direct to, raw dist for wp acquisition.
+	    // default distance for waypoint acquisition, direct
+	    // distance to the target waypoint.  This can be overrided
+	    // later by leg following and replaced with distance
+	    // remaining along the leg.
+	    nav_dist_m = direct_distance;
+
+	    if ( follow_mode == DIRECT ) {
+		// direct to
 		nav_course = direct_course;
-		nav_dist_m = direct_distance;
+	    } else {
+		// cross track steering
+		if ( active->get_waypoint_index() == 0 ) {
+		    // first waypoint is always 'direct to'.
+		    nav_course = direct_course;
+		} else if ( active->get_waypoint_index() == active->size()-1 ) {
+		    // force leg heading logic on last leg so it is
+		    // possible to extend the center line beyond the
+		    // waypoint.
+		    nav_dist_m = dist_m;
+		    nav_course = leg_course - xtrack_comp;
+		} else if ( fabs(angle) <= 45.0 ) {
+		    // normal case
+		    nav_dist_m = dist_m;
+		    if ( follow_mode == XTRACK_LEG_HDG ) {
+			// xtrack_course based on leg_course should be
+			// the most stable
+			nav_course = leg_course - xtrack_comp;
+		    } else if ( follow_mode == XTRACK_DIRECT_HDG ) {
+			// xtrack_course based on direct_course could
+			// start oscillating the closer we get to the
+			// target waypoint.
+			nav_course = direct_course - xtrack_comp;
+		    }
+		} else {
+		    // navigate 'direct to' if off by more than the
+		    // xtrack system can compensate for
+		    nav_course = direct_course;
+		}
 	    }
+
+            if ( nav_course < 0.0 ) {
+                nav_course += 360.0;
+            } else if ( nav_course > 360.0 ) {
+                nav_course -= 360.0;
+            }
 
 	    true_hdg_deg->setDoubleValue( nav_course );
 	    target_agl_m = wp.get_target_agl_m();
 	    target_msl_m = wp.get_target_alt_m();
-	    if ( nav_dist_m < 50.0 ) {
-		active->increment_current();
+
+	    // estimate distance remaining to completion of route
+	    dist_remaining_m = nav_dist_m
+		+ active->get_remaining_distance_from_current_waypoint();
+
+	    /* if ( display_on ) {
+		printf("next leg: %.1f  to end: %.1f  wpt=%d of %d\n",
+		       nav_dist_m, dist_remaining_m,
+		       active->get_waypoint_index(), active->size());
+	       } */
+	    // logic to mark completion of leg and move to next leg.
+	    if ( completion_mode == RESTART ) {
+		if ( nav_dist_m < 50.0 ) {
+		    active->increment_current();
+		}
+	    } else if ( completion_mode == CIRCLE_LAST_WPT ) {
+		if ( nav_dist_m < 50.0 ) {
+		    if ( active->get_waypoint_index() < active->size() - 1 ) {
+			active->increment_current();
+		    } else {
+			SGWayPoint wp = active->get_current();
+			mission_mgr.request_task_circle(wp.get_target_lon(),
+							wp.get_target_lat());
+		    }
+		}
+	    } else if ( completion_mode == EXTEND_LAST_LEG ) {
+		if ( nav_dist_m < 50.0 ) {
+		    if ( active->get_waypoint_index() < active->size() - 1 ) {
+			active->increment_current();
+		    } else {
+			// follow the last leg forever
+		    }
+		}
 	    }
 
 	    // publish current target waypoint
 	    target_waypoint->setIntValue( active->get_waypoint_index() );
 
-	    //if ( display_on ) {
-	    // printf("route dist = %0f\n", direct_distance + active->get_remaining_distance_from_current_waypoint());
+	    // if ( display_on ) {
+	    // printf("route dist = %0f\n", dist_remaining_m);
 	    // }
 	}
     } else {
@@ -229,14 +285,16 @@ void FGRouteMgr::update() {
     // update target altitude based on waypoint targets and possible
     // overrides ... preference is given to agl if both agl & msl are
     // set.
-    if ( override_agl > 1.0 ) {
-	target_agl_ft->setDoubleValue( override_agl );
-    } else if ( override_msl > 1.0 ) {
-	target_msl_ft->setDoubleValue( override_msl );
+    double override_agl_ft = override_agl_node->getDoubleValue();
+    double override_msl_ft = override_msl_node->getDoubleValue();
+    if ( override_agl_ft > 1.0 ) {
+	target_agl_node->setDoubleValue( override_agl_ft );
+    } else if ( override_msl_ft > 1.0 ) {
+	target_msl_node->setDoubleValue( override_msl_ft );
     } else if ( target_agl_m > 1.0 ) {
-	target_agl_ft->setDoubleValue( target_agl_m * SG_METER_TO_FEET );
+	target_agl_node->setDoubleValue( target_agl_m * SG_METER_TO_FEET );
     } else if ( target_msl_m > 1.0 ) {
-	target_msl_ft->setDoubleValue( target_msl_m * SG_METER_TO_FEET );
+	target_msl_node->setDoubleValue( target_msl_m * SG_METER_TO_FEET );
     }
 
     double hd_deg = 0.0;
@@ -337,13 +395,13 @@ int FGRouteMgr::new_waypoint( const double field1, const double field2,
 {
     if ( mode == 0 ) {
         // relative waypoint
-	SGWayPoint wp( 0.0, 0.0, -9999.0, alt, 0.0, field2, field1,
-		       SGWayPoint::SPHERICAL, "" );
+	SGWayPoint wp( field2, field1, -9999.0, alt, 0.0,
+		       SGWayPoint::RELATIVE, "" );
 	standby->add_waypoint( wp );
     } else if ( mode == 1 ) {
 	// absolute waypoint
-	SGWayPoint wp( field1, field2, -9999.0, alt, 0.0, 0.0, 0.0,
-		       SGWayPoint::SPHERICAL, "" );
+	SGWayPoint wp( field1, field2, -9999.0, alt, 0.0,
+		       SGWayPoint::ABSOLUTE, "" );
 	standby->add_waypoint( wp );
     }
 
@@ -378,8 +436,8 @@ SGWayPoint FGRouteMgr::make_waypoint( const string& wpt_string ) {
 
     printf("Adding waypoint lon = %.6f lat = %.6f alt_m = %.0f\n",
            lon, lat, alt_m);
-    SGWayPoint wp( lon, lat, alt_m, agl_m, speed_kt, 0.0, 0.0,
-                   SGWayPoint::SPHERICAL, "" );
+    SGWayPoint wp( lon, lat, alt_m, agl_m, speed_kt,
+                   SGWayPoint::ABSOLUTE, "" );
 
     return wp;
 }
