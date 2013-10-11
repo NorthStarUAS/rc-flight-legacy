@@ -64,8 +64,9 @@ FGRouteMgr::FGRouteMgr() :
     wind_dir_deg( NULL ),
     true_airspeed_kt( NULL ),
     est_wind_target_heading_deg( NULL ),
+    start_mode( FIRST_WPT ),
     follow_mode( XTRACK_LEG_HDG ),
-    completion_mode( RESTART ),
+    completion_mode( LOOP ),
     dist_remaining_m( 0.0 )
 {
 }
@@ -143,6 +144,25 @@ void FGRouteMgr::update() {
 
     if ( active->size() > 0 ) {
 	if ( GPS_age() < 10.0 ) {
+
+	    // route start up logic: if start_mode == FIRST_WPT then
+	    // there is nothing to do, we simply continue to track wpt
+	    // 0 if that is the current waypoint.  If start_mode ==
+	    // FIRST_LEG, then if we are tracking wpt 0, then
+	    // increment it so we track the 2nd waypoint along the
+	    // first leg.  If you have provided a 1 point route and
+	    // request first_leg startup behavior, then don't do that
+	    // again, force sane route parameters instead!
+	    if ( (start_mode == FIRST_LEG)
+		 && (active->get_waypoint_index() == 0) ) {
+		if ( active->size() > 1 ) {
+		    active->increment_current();
+		} else {
+		    start_mode = FIRST_WPT;
+		    follow_mode = DIRECT;
+		}
+	    }
+
 	    // track current waypoint of route (only if we have fresh gps data)
 	    SGWayPoint prev = active->get_previous();
 	    SGWayPoint wp = active->get_current();
@@ -190,8 +210,11 @@ void FGRouteMgr::update() {
 		nav_course = direct_course;
 	    } else {
 		// cross track steering
-		if ( active->get_waypoint_index() == 0 ) {
-		    // first waypoint is always 'direct to'.
+		if ( (active->get_waypoint_index() == 0)
+		     && (completion_mode != LOOP) ) {
+		    // first waypoint is 'direct to' except for LOOP
+		    // routes which track the leg connecting the last
+		    // wpt to the first wpt.
 		    nav_course = direct_course;
 		} else if ( active->get_waypoint_index() == active->size()-1 ) {
 		    // force leg heading logic on last leg so it is
@@ -239,7 +262,7 @@ void FGRouteMgr::update() {
 		       active->get_waypoint_index(), active->size());
 	       } */
 	    // logic to mark completion of leg and move to next leg.
-	    if ( completion_mode == RESTART ) {
+	    if ( completion_mode == LOOP ) {
 		if ( nav_dist_m < 50.0 ) {
 		    active->increment_current();
 		}
