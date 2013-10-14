@@ -5,8 +5,7 @@
 #include <string>
 
 #include <control/route.hxx>
-#include <util/point3d.hxx>
-#include <util/polar3d.hxx>
+#include <math/SGMath.hxx>
 
 #include <include/globaldefs.h>
 
@@ -41,19 +40,13 @@ void usage( char *prog ) {
 }
 
 
-double get_dist( const Point3D& start, const Point3D& dest ) {
-    double course;
-    double dist;
-    calc_gc_course_dist( start, dest, &course, &dist );
-    return dist;
+double get_dist( const SGGeoc start, const SGGeoc dest ) {
+    return SGGeodesy::distanceM( start, dest );
 }
 
 
-double get_course( const Point3D& start, const Point3D& dest ) {
-    double course;
-    double dist;
-    calc_gc_course_dist( start, dest, &course, &dist );
-    return course;
+double get_course( const SGGeoc start, const SGGeoc dest ) {
+    return SGGeodesy::courseRad( start, dest );
 }
 
 
@@ -138,21 +131,22 @@ double route_length( const SGRoute route ) {
 
     double result = 0.0;
     SGWayPoint wpt;
-    Point3D current, next;
+    SGGeoc current, next;
 
     // launch pt (aka home) location is the last waypoint
     int size = route.size();
     wpt = route.get_waypoint( size - 1 );
-    current = Point3D( wpt.get_target_lon(), wpt.get_target_lat(), 0 );
+
+    current.setLongitudeDeg( wpt.get_target_lon() );
+    current.setLatitudeDeg( wpt.get_target_lat() );
 
     for ( int i = 0; i < size; ++i ) {
-        double course, dist;
         wpt = route.get_waypoint( i );
-        next = Point3D( wpt.get_target_lon(), wpt.get_target_lat(), 0 );
+	next.setLongitudeDeg( wpt.get_target_lon() );
+	next.setLatitudeDeg( wpt.get_target_lat() );
         // printf("%.5f %.5f  %.5f %.5f\n", current.lon(), current.lat(),
         //        next.lon(), next.lat());
-        calc_gc_course_dist( current, next, &course, &dist );
-        // printf("  course = %.2f  dist = %.2f\n", course, dist);
+        double dist = SGGeodesy::distanceM( current, next );
 
         result += dist;
         current = next;
@@ -167,20 +161,21 @@ double route_max_dist( const SGRoute route ) {
 
     double maxdist = 0.0;
     SGWayPoint wpt;
-    Point3D home, current;
+    SGGeoc home, current;
 
     // launch pt (aka home) location is the last waypoint
     int size = route.size();
     wpt = route.get_waypoint( size - 1 );
-    home = Point3D( wpt.get_target_lon(), wpt.get_target_lat(), 0 );
+    home.setLongitudeDeg( wpt.get_target_lon() );
+    home.setLatitudeDeg( wpt.get_target_lat() );
 
     for ( int i = 0; i < size; ++i ) {
-        double course, dist;
         wpt = route.get_waypoint( i );
-        current = Point3D( wpt.get_target_lon(), wpt.get_target_lat(), 0 );
+	current.setLongitudeDeg( wpt.get_target_lon() );
+	current.setLatitudeDeg( wpt.get_target_lat() );
         // printf("%.5f %.5f  %.5f %.5f\n", current.lon(), current.lat(),
         //        next.lon(), next.lat());
-        calc_gc_course_dist( home, current, &course, &dist );
+	double dist = SGGeodesy::distanceM( home, current );
         // printf("  course = %.2f  dist = %.2f\n", course, dist);
 
         if ( dist > maxdist ) { maxdist = dist; }
@@ -265,14 +260,21 @@ int main( int argc, char **argv )
     double ete_home = 0.0;
     int state = 0;
 
-    Point3D current( start_lon, start_lat, route_alt_m );
-    route.add_waypoint( SGWayPoint(current.lon(), current.lat(), route_alt_m) );
+    SGGeoc current;
+    current.setLongitudeDeg( start_lon );
+    current.setLatitudeDeg( start_lat );
+    route.add_waypoint( SGWayPoint(current.getLongitudeDeg(),
+				   current.getLatitudeDeg(),
+				   route_alt_m) );
 
     // subtract out distance from launch/recover point (aka home) to
     // first waypoint
-    Point3D home( home_lon, home_lat, 0.0 );
+    SGGeoc home;
+    home.setLongitudeDeg( home_lon );
+    home.setLatitudeDeg( home_lat );
     double course, dist, ete;
-    calc_gc_course_dist( current, home, &course, &dist );
+    dist = SGGeodesy::distanceM( current, home );
+    course =SGGeodesy::courseRad( current, home ) * SG_RADIANS_TO_DEGREES;
     ete = calc_ete_min(course, dist, flight_speed, wind_speed, wind_dir);
     time_remaining -= ete;
     printf("time remaining = %f\n", time_remaining);
@@ -306,12 +308,14 @@ int main( int argc, char **argv )
         }
 
         // compute the next waypoint
-        Point3D next = calc_gc_lon_lat( current, hdg, dist );
+	SGGeoc next;
+	SGGeodesy::advanceRadM( current, hdg * SGD_DEGREES_TO_RADIANS,
+				dist, next );
         ete = calc_ete_min(hdg, dist, flight_speed, wind_speed, wind_dir);
 
         // compute distance to return home
-        double dist_home;
-        calc_gc_course_dist( next, home, &course, &dist_home );
+        double dist_home = SGGeodesy::distanceM( next, home );
+	course = SGGeodesy::courseRad( next, home ) * SG_RADIANS_TO_DEGREES;
         ete_home = calc_ete_min(course, dist_home, flight_speed,
                                 wind_speed, wind_dir);
 
@@ -320,7 +324,7 @@ int main( int argc, char **argv )
             break;
         }
 
-        route.add_waypoint( SGWayPoint(next.lon(), next.lat(), route_alt_m) );
+        route.add_waypoint( SGWayPoint(next.getLongitudeDeg(), next.getLatitudeDeg(), route_alt_m) );
         
         current = next;
         time_remaining -= ete;

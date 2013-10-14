@@ -12,6 +12,7 @@ routegen_SOURCES = routegen.cpp
 
 routegen_LDADD = \
         $(top_builddir)/src/control/libcontrol.a \
+        $(top_builddir)/src/math/libmath.a \
 	$(top_builddir)/src/props/libsgprops.a \
         $(top_builddir)/src/util/libutil.a
 
