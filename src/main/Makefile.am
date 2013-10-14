@@ -33,11 +33,11 @@ ugear_LDADD = \
 	$(top_builddir)/src/mission/tasks/libtasks.a \
 	$(top_builddir)/src/health/libhealth.a \
 	$(top_builddir)/src/payload/libpayload.a \
-	$(top_builddir)/src/math/libmath.a \
 	$(POINTING_LIBS) \
 	$(top_builddir)/src/sensors/libsensors.a \
 	$(top_builddir)/src/comms/libcomms.a \
 	$(top_builddir)/src/control/libcontrol.a \
+	$(top_builddir)/src/math/libmath.a \
 	$(top_builddir)/src/props/libsgprops.a \
 	$(top_builddir)/src/util/libutil.a \
 	$(top_builddir)/src/xml/libsgxml.a
