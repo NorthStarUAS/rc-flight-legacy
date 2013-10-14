@@ -256,11 +256,14 @@ void FGRouteMgr::update() {
 	    dist_remaining_m = nav_dist_m
 		+ active->get_remaining_distance_from_current_waypoint();
 
-	    /* if ( display_on ) {
+#if 0
+	    if ( display_on ) {
 		printf("next leg: %.1f  to end: %.1f  wpt=%d of %d\n",
 		       nav_dist_m, dist_remaining_m,
 		       active->get_waypoint_index(), active->size());
-	       } */
+	    }
+#endif
+
 	    // logic to mark completion of leg and move to next leg.
 	    if ( completion_mode == LOOP ) {
 		if ( nav_dist_m < 50.0 ) {

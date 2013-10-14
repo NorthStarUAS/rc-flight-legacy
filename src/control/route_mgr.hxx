@@ -157,6 +157,9 @@ public:
     SGWayPoint get_waypoint( int i ) const {
         return active->get_waypoint(i);
     }
+    int get_waypoint_index() const {
+	return active->get_waypoint_index();
+    }
     int size() const {
         return active->size();
     }
