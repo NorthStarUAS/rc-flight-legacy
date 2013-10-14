@@ -24,8 +24,9 @@
 #include <stdio.h>
 
 #include <include/globaldefs.h>
+#include <math/SGMath.hxx>
 
-#include <util/polar3d.hxx>
+// #include <util/polar3d.hxx>
 
 #include "waypoint.hxx"
 
@@ -34,7 +35,18 @@
 SGWayPoint::SGWayPoint( const double field1, const double field2,
                         const double alt_m, const double agl_m,
                         const double speed_kt,
-                        const modetype m, const string& s ) {
+                        const modetype m, const string& s ):
+    mode( ABSOLUTE ),
+    target_lon( 0.0 ),
+    target_lat( 0.0 ),
+    target_alt_m( -9999.9 ),
+    target_agl_m( -9999.9 ),
+    target_speed_kt( 0.0 ),
+    offset_hdg_deg( 0.0 ),
+    offset_dist_m( 0.0 ),
+    distance( 0.0 ),
+    id( "" )
+ {
     mode = m;
     if ( mode == ABSOLUTE ) {
 	target_lon = field1;
@@ -133,14 +145,13 @@ void SGWayPoint::CourseAndDistance( const double cur_lon,
 				    const double cur_lat,
 				    const double cur_alt,
 				    double *course, double *dist ) const {
-    Point3D current( cur_lon * SGD_DEGREES_TO_RADIANS,
-		     cur_lat * SGD_DEGREES_TO_RADIANS,
-		     0.0 );
-    Point3D target( target_lon * SGD_DEGREES_TO_RADIANS,
-		    target_lat * SGD_DEGREES_TO_RADIANS,
-		    0.0 );
-    calc_gc_course_dist( current, target, course, dist );
-    *course = 360.0 - *course * SGD_RADIANS_TO_DEGREES;
+    SGGeoc current, target;
+    current.setLongitudeDeg( cur_lon );
+    current.setLatitudeDeg( cur_lat );
+    target.setLongitudeDeg( target_lon );
+    target.setLatitudeDeg( target_lat );
+    *dist = SGGeodesy::distanceM( current, target );
+    *course = 360.0 - SGGeodesy::courseRad( current, target ) * SG_RADIANS_TO_DEGREES;
 }
 
 // Calculate course and distances between two waypoints
@@ -161,18 +172,21 @@ void SGWayPoint::CourseAndDistance( const SGWayPoint &wp,
 void SGWayPoint::update_relative_pos( const SGWayPoint &ref,
                                       const double ref_heading_deg )
 {
-    Point3D orig( ref.get_target_lon() * SGD_DEGREES_TO_RADIANS,
-		  ref.get_target_lat() * SGD_DEGREES_TO_RADIANS,
-		  0.0 );
+    SGGeoc orig;
+    orig.setLongitudeDeg( ref.get_target_lon() );
+    orig.setLatitudeDeg( ref.get_target_lat() );
+
     double course = ref_heading_deg + offset_hdg_deg;
     if ( course < 0.0 ) { course += 360.0; }
     if ( course > 360.0 ) { course -= 360.0; }
     course = 360.0 - course; // invert to make this routine happy
-    Point3D tgt = calc_gc_lon_lat( orig,
-				   course * SGD_DEGREES_TO_RADIANS,
-				   offset_dist_m );
-    target_lon = tgt.lon() * SGD_RADIANS_TO_DEGREES;
-    target_lat = tgt.lat() * SGD_RADIANS_TO_DEGREES;
+
+    SGGeoc result;
+    SGGeodesy::advanceRadM( orig, course * SGD_DEGREES_TO_RADIANS,
+			    offset_dist_m, result );
+
+    target_lon = result.getLongitudeDeg();
+    target_lat = result.getLatitudeDeg();
 
 	 /*
 	   FILE *debug = fopen("/mnt/mmc/debug.txt", "a");
