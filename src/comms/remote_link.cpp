@@ -442,13 +442,13 @@ static void remote_link_execute_command( const string command ) {
         double azimuth_deg = atof( token[4].c_str() );
 
 	SGPropertyNode *home_lon_node
-	    = fgGetNode("/navigation/home/longitude-deg", true );
+	    = fgGetNode("/mission/home/longitude-deg", true );
 	SGPropertyNode *home_lat_node
-	    = fgGetNode("/navigation/home/latitude-deg", true );
+	    = fgGetNode("/mission/home/latitude-deg", true );
 	SGPropertyNode *home_azimuth_node
-	    = fgGetNode("/navigation/home/azimuth-deg", true );
+	    = fgGetNode("/mission/home/azimuth-deg", true );
 	SGPropertyNode *home_set_node
-	    = fgGetNode("/navigation/home/valid", true );
+	    = fgGetNode("/mission/home/valid", true );
 	home_lon_node->setDoubleValue( lon );
 	home_lat_node->setDoubleValue( lat );
 	home_azimuth_node->setDoubleValue( azimuth_deg );
