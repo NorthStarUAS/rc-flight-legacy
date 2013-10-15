@@ -92,11 +92,11 @@ void FGRouteMgr::bind() {
     override_agl_node
 	= fgGetNode( "/autopilot/settings/override-agl-ft", true );
     target_waypoint
-	= fgGetNode( "/autopilot/route-mgr/target-waypoint-idx", true );
-    wp_dist_m = fgGetNode( "/autopilot/route-mgr/wp-dist-m", true );
-    wp_eta_sec = fgGetNode( "/autopilot/route-mgr/wp-eta-sec", true );
-    xtrack_dist_m = fgGetNode( "/autopilot/route-mgr/xtrack-dist-m", true );
-    proj_dist_m = fgGetNode( "/autopilot/route-mgr/projected-dist-m", true );
+	= fgGetNode( "/mission/route/target-waypoint-idx", true );
+    wp_dist_m = fgGetNode( "/mission/route/wp-dist-m", true );
+    wp_eta_sec = fgGetNode( "/mission/route/wp-eta-sec", true );
+    xtrack_dist_m = fgGetNode( "/mission/route/xtrack-dist-m", true );
+    proj_dist_m = fgGetNode( "/mission/route/projected-dist-m", true );
 
     wind_speed_kt = fgGetNode("/filters/wind-est/wind-speed-kt", true);
     wind_dir_deg = fgGetNode("/filters/wind-est/wind-dir-deg", true);
