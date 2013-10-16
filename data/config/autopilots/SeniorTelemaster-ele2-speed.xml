@@ -97,13 +97,14 @@
     <!-- 8/28/2013, Kp=0.002 Ti=20.0 trying pid-controller here maybe too soft? -->
     <!-- 8/28/2013, Kp=0.003 Ti=20.0 smooth but too laggy?  too much overshoot -->
     <!-- 8/31/2013, Kp=0.004 Ti=20.0 smooth but still too laggy?  too much overshoot -->
+    <!-- 10/15/2013, Kp=0.005 Ti=20.0 smooth but too much overshoot, trying new values from sim work ... -->
     <config>
-      <Kp>0.005</Kp>       <!-- proportional gain -->
+      <Kp>0.020</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>20.0</Ti>        <!-- integrator time -->
+      <Ti>10.0</Ti>        <!-- integrator time -->
       <Td>0.00001</Td>     <!-- derivator time -->
       <u_min>0.0</u_min>   <!-- minimum output clamp -->
       <u_max>1.0</u_max>   <!-- maximum output clamp -->
