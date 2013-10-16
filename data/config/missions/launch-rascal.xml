@@ -73,7 +73,6 @@
       <timed>0</timed>
       <loop>0</loop>
     </task>
-
   </sequential-tasks>
 
   <!-- standby tasks: a list of tasks that are initialized and configured -->
@@ -102,7 +101,6 @@
       <bank-limit-deg>20</bank-limit-deg>
       <heading-error-gain>0.6</heading-error-gain>
     </task>
-
     <task>
       <name>land</name>
       <lateral-offset-m>0.0</lateral-offset-m>

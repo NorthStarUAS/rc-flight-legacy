@@ -70,6 +70,7 @@
       <route include="../routes/bowtie-300m.xml" />
       <altitude-agl-ft>500</altitude-agl-ft>
       <speed-kt>25</speed-kt>
+      <xtrack-steer-gain>0.4</xtrack-steer-gain>
       <timed>0</timed>
       <loop>0</loop>
     </task>
@@ -100,6 +101,20 @@
       <bank-deg>10</bank-deg>
       <bank-limit-deg>20</bank-limit-deg>
       <heading-error-gain>0.6</heading-error-gain>
+    </task>
+    <task>
+      <name>land</name>
+      <lateral-offset-m>0.0</lateral-offset-m>
+      <glideslope-deg>6.0</glideslope-deg>
+      <turn-radius-m>75</turn-radius-m>
+      <turn-steps>8</turn-steps>
+      <side>left</side>
+      <extend-final-leg-m>150</extend-final-leg-m>
+      <alt-bias-ft>100</alt-bias-ft>
+      <approach-speed-kt>25</approach-speed-kt>
+      <flare-speed-kt>20</flare-speed-kt>
+      <flare-seconds>2.5</flare-seconds>
+      <xtrack-steer-gain>0.8</xtrack-steer-gain>
     </task>
   </standby-tasks>
 
