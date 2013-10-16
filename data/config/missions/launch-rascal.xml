@@ -69,6 +69,7 @@
       <route include="../routes/bowtie-500m.xml" />
       <altitude-agl-ft>500</altitude-agl-ft>
       <speed-kt>30</speed-kt>
+      <xtrack-steer-gain>0.4</xtrack-steer-gain>
       <timed>0</timed>
       <loop>0</loop>
     </task>
@@ -114,6 +115,7 @@
       <approach-speed-kt>25</approach-speed-kt>
       <flare-speed-kt>20</flare-speed-kt>
       <flare-seconds>2.5</flare-seconds>
+      <xtrack-steer-gain>0.6</xtrack-steer-gain>
     </task>
   </standby-tasks>
 
