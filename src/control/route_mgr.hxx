@@ -76,6 +76,9 @@ private:
     // route configuration tree
     SGPropertyNode *config_props;
 
+    // route following configuration
+    SGPropertyNode *xtrack_gain_node;
+
     // automatic inputs
     SGPropertyNode *lon_node;
     SGPropertyNode *lat_node;
