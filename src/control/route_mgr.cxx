@@ -46,6 +46,7 @@ FGRouteMgr::FGRouteMgr() :
     active( new SGRoute ),
     standby( new SGRoute ),
     config_props( NULL ),
+    xtrack_gain_node( NULL ),
     lon_node( NULL ),
     lat_node( NULL ),
     alt_node( NULL ),
@@ -80,6 +81,8 @@ FGRouteMgr::~FGRouteMgr() {
 
 // bind property nodes
 void FGRouteMgr::bind() {
+    xtrack_gain_node = fgGetNode( "/mission/route/xtrack-steer-gain", true );
+
     lon_node = fgGetNode( "/position/longitude-deg", true );
     lat_node = fgGetNode( "/position/latitude-deg", true );
     alt_node = fgGetNode( "/position/altitude-ft", true );
@@ -194,8 +197,8 @@ void FGRouteMgr::update() {
 	    proj_dist_m->setDoubleValue( dist_m );
 
 	    // compute cross-track steering compensation
-	    double xtrack_route_gain = 0.5; /* hard coded to start with */
-	    double xtrack_comp = xtrack_m * xtrack_route_gain;
+	    double xtrack_gain = xtrack_gain_node->getDoubleValue();
+	    double xtrack_comp = xtrack_m * xtrack_gain;
 	    if ( xtrack_comp < -45.0 ) { xtrack_comp = -45.0; }
 	    if ( xtrack_comp > 45.0 ) { xtrack_comp = 45.0; }
 
