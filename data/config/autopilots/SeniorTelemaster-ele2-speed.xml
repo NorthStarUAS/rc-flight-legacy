@@ -66,8 +66,8 @@
                            <!-- unfiltered derivative error -->
       <Ti>10.0</Ti>         <!-- integrator time -->
       <Td>0.0001</Td>      <!-- derivator time -->
-      <u_min>-0.60</u_min> <!-- minimum output clamp -->
-      <u_max>0.60</u_max>  <!-- maximum output clamp -->
+      <u_min>-0.70</u_min> <!-- minimum output clamp -->
+      <u_max>0.70</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
@@ -98,8 +98,9 @@
     <!-- 8/28/2013, Kp=0.003 Ti=20.0 smooth but too laggy?  too much overshoot -->
     <!-- 8/31/2013, Kp=0.004 Ti=20.0 smooth but still too laggy?  too much overshoot -->
     <!-- 10/15/2013, Kp=0.005 Ti=20.0 smooth but too much overshoot, trying new values from sim work ... -->
+    <!-- 10/17/2013, Kp=0.020 Ti=10.0 too much hunting ... -->
     <config>
-      <Kp>0.020</Kp>       <!-- proportional gain -->
+      <Kp>0.010</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -240,8 +241,8 @@
       <!-- unfiltered derivative error -->
       <Ti>10.0</Ti>        <!-- integrator time -->
       <Td>0.0001</Td>      <!-- derivator time -->
-      <u_min>-0.30</u_min> <!-- minimum output clamp -->
-      <u_max>0.30</u_max>  <!-- maximum output clamp -->
+      <u_min>-0.40</u_min> <!-- minimum output clamp -->
+      <u_max>0.40</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
