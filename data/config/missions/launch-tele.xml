@@ -105,7 +105,7 @@
     <task>
       <name>land</name>
       <lateral-offset-m>0.0</lateral-offset-m>
-      <glideslope-deg>5.0</glideslope-deg>
+      <glideslope-deg>5.5</glideslope-deg>
       <turn-radius-m>75</turn-radius-m>
       <turn-steps>8</turn-steps>
       <side>left</side>
