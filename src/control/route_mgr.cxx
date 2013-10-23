@@ -424,12 +424,12 @@ int FGRouteMgr::new_waypoint( const double field1, const double field2,
 {
     if ( mode == 0 ) {
         // relative waypoint
-	SGWayPoint wp( field2, field1, -9999.0, alt, 0.0,
+	SGWayPoint wp( field2, field1, -9999.0, alt, 0.0, 0.0,
 		       SGWayPoint::RELATIVE, "" );
 	standby->add_waypoint( wp );
     } else if ( mode == 1 ) {
 	// absolute waypoint
-	SGWayPoint wp( field1, field2, -9999.0, alt, 0.0,
+	SGWayPoint wp( field1, field2, -9999.0, alt, 0.0, 0.0,
 		       SGWayPoint::ABSOLUTE, "" );
 	standby->add_waypoint( wp );
     }
@@ -465,7 +465,7 @@ SGWayPoint FGRouteMgr::make_waypoint( const string& wpt_string ) {
 
     printf("Adding waypoint lon = %.6f lat = %.6f alt_m = %.0f\n",
            lon, lat, alt_m);
-    SGWayPoint wp( lon, lat, alt_m, agl_m, speed_kt,
+    SGWayPoint wp( lon, lat, alt_m, agl_m, speed_kt, 0.0,
                    SGWayPoint::ABSOLUTE, "" );
 
     return wp;
