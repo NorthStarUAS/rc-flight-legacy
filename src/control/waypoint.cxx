@@ -35,6 +35,7 @@
 SGWayPoint::SGWayPoint( const double field1, const double field2,
                         const double alt_m, const double agl_m,
                         const double speed_kt,
+			const double bank_deg,
                         const modetype m, const string& s ):
     mode( ABSOLUTE ),
     target_lon( 0.0 ),
@@ -42,6 +43,7 @@ SGWayPoint::SGWayPoint( const double field1, const double field2,
     target_alt_m( -9999.9 ),
     target_agl_m( -9999.9 ),
     target_speed_kt( 0.0 ),
+    target_bank_deg( 0.0 ),
     offset_hdg_deg( 0.0 ),
     offset_dist_m( 0.0 ),
     distance( 0.0 ),
@@ -58,6 +60,7 @@ SGWayPoint::SGWayPoint( const double field1, const double field2,
     target_alt_m = alt_m;
     target_agl_m = agl_m;
     target_speed_kt = speed_kt;
+    target_bank_deg = bank_deg;
     id = s;
 }
 
@@ -69,6 +72,7 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
     target_alt_m( -9999.9 ),
     target_agl_m( -9999.9 ),
     target_speed_kt( 0.0 ),
+    target_bank_deg( 0.0 ),
     offset_hdg_deg( 0.0 ),
     offset_dist_m( 0.0 ),
     distance( 0.0 ),
@@ -93,6 +97,8 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
             target_agl_m = child->getDoubleValue() * SG_FEET_TO_METER;
         } else if ( cname == "speed-kt" ) {
             target_speed_kt = child->getDoubleValue();
+        } else if ( cname == "bank-deg" ) {
+            target_bank_deg = child->getDoubleValue();
         } else if ( cname == "offset-heading-deg" ) {
             offset_hdg_deg = child->getDoubleValue();
 	    mode = RELATIVE;
@@ -125,6 +131,7 @@ SGWayPoint::SGWayPoint():
     target_alt_m( -9999.9 ),
     target_agl_m( -9999.9 ),
     target_speed_kt( 0.0 ),
+    target_bank_deg( 0.0 ),
     offset_hdg_deg( 0.0 ),
     offset_dist_m( 0.0 ),
     distance( 0.0 ),
