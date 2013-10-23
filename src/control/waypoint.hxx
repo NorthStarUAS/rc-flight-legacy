@@ -67,6 +67,7 @@ private:
     double target_alt_m;
     double target_agl_m;
     double target_speed_kt;
+    double target_bank_deg;
 
     // relative waypoints will have their actual target_lon & lat
     // computed as an offset angle and distance from a specified
@@ -96,6 +97,7 @@ public:
     SGWayPoint( const double field1, const double field2,
 		const double alt_m = -9999.9, const double agl_m = -9999.9,
                 const double speed_kt = 0.0,
+		const double bank_deg = 0.0,
                 const modetype m = ABSOLUTE,
 		const string& s = "" );
 
@@ -165,6 +167,9 @@ public:
 
     /** @return waypoint speed */
     inline double get_target_speed_kt() const { return target_speed_kt; }
+ 
+    /** @return waypoint bank angle */
+    inline double get_target_bank_deg() const { return target_bank_deg; }
  
     /** @return offset heading */
     inline double get_offset_hdg_deg() const { return offset_hdg_deg; }
