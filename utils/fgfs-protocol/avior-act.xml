@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+
+<!-- Example usage: <dash><dash>generic=file,out,50,fgfs.truth,insgns-truth -->
+
+<PropertyList>
+
+ <generic>
+
+  <input>
+    <binary_mode>true</binary_mode>
+    <binary_footer>none</binary_footer>
+
+    <chunk>
+      <name>time (sec)</name>
+      <type>double</type>
+      <node>/avior/act/timestamp-sec</node>
+    </chunk>
+
+    <chunk>
+      <name>aileron</name>
+      <type>float</type>
+      <node>/avior/act/aileron</node>
+    </chunk>
+
+    <chunk>
+      <name>elevator</name>
+      <type>float</type>
+      <node>/avior/act/elevator</node>
+    </chunk>
+
+    <chunk>
+      <name>throttle</name>
+      <type>float</type>
+      <node>/avior/act/throttle</node>
+    </chunk>
+
+    <chunk>
+      <name>rudder</name>
+      <type>float</type>
+      <node>/avior/act/rudder</node>
+    </chunk>
+
+    <chunk>
+      <name>channel5</name>
+      <type>float</type>
+      <node>/avior/act/channel5</node>
+    </chunk>
+
+    <chunk>
+      <name>channel6</name>
+      <type>float</type>
+      <node>/avior/act/channel6</node>
+    </chunk>
+
+    <chunk>
+      <name>channel7</name>
+      <type>float</type>
+      <node>/avior/act/channel7</node>
+    </chunk>
+
+    <chunk>
+      <name>channel8</name>
+      <type>float</type>
+      <node>/avior/act/channel8</node>
+    </chunk>
+
+    <chunk>
+      <name>target-bank</name>
+      <type>float</type>
+      <node>/controls/reserved/reserved[0]</node>
+    </chunk>
+
+    <chunk>
+      <name>target-pitch</name>
+      <type>float</type>
+      <node>/controls/reserved/reserved[1]</node>
+    </chunk>
+
+     <chunk>
+      <name>wind-hdg-error</name>
+      <type>float</type>
+      <node>/controls/reserved/reserved[2]</node>
+    </chunk>
+
+     <chunk>
+      <name>climb-rate</name>
+      <type>float</type>
+      <node>/controls/reserved/reserved[3]</node>
+    </chunk>
+
+     <chunk>
+      <name>altitude</name>
+      <type>float</type>
+      <node>/controls/reserved/reserved[4]</node>
+    </chunk>
+
+     <chunk>
+      <name>speed</name>
+      <type>float</type>
+      <node>/controls/reserved/reserved[5]</node>
+    </chunk>
+
+     <chunk>
+      <name>ground-grack</name>
+      <type>float</type>
+      <node>/controls/reserved/reserved[6]</node>
+    </chunk>
+
+     <chunk>
+      <name>dist</name>
+      <type>float</type>
+      <node>/controls/reserved/reserved[7]</node>
+    </chunk>
+
+     <chunk>
+      <name>eta</name>
+      <type>float</type>
+      <node>/controls/reserved/reserved[8]</node>
+    </chunk>
+
+ </input>
+
+ </generic>
+
+</PropertyList>

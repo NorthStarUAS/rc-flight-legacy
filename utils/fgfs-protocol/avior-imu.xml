@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+
+<!-- Example usage: <dash><dash>generic=file,out,50,fgfs.imu,insgns-imu -->
+
+<PropertyList>
+
+ <generic>
+
+  <output>
+    <binary_mode>true</binary_mode>
+    <binary_footer>none</binary_footer>
+
+    <chunk>
+      <name>time (sec)</name>
+      <type>double</type>
+      <node>/sim/time/elapsed-sec</node>
+    </chunk>
+
+    <chunk>
+      <name>roll rate ("p" rad/sec)</name>
+      <type>float</type>
+      <node>/orientation/p-body</node>
+    </chunk>
+
+    <chunk>
+      <name>pitch rate ("q" rad/sec)</name>
+      <type>float</type>
+      <node>/orientation/q-body</node>
+    </chunk>
+
+    <chunk>
+      <name>yaw rate ("r" rad/sec)</name>
+      <type>float</type>
+      <node>/orientation/r-body</node>
+    </chunk>
+
+    <chunk>
+      <name>X accel (body axis) (mps)</name>
+      <type>float</type>
+      <node>/accelerations/pilot/x-accel-fps_sec</node>
+      <factor>0.3048</factor>  <!-- feet to meter -->
+    </chunk>
+
+    <chunk>
+      <name>Y accel (body axis) (mps)</name>
+      <type>float</type>
+      <node>/accelerations/pilot/y-accel-fps_sec</node>
+      <factor>0.3048</factor>  <!-- feet to meter -->
+    </chunk>
+
+    <chunk>
+      <name>Z accel (body axis) (mps)</name>
+      <type>float</type>
+      <node>/accelerations/pilot/z-accel-fps_sec</node>
+      <factor>0.3048</factor>  <!-- feet to meter -->
+    </chunk>
+
+    <!-- air data appended to IMU data for convenience -->
+    <chunk>
+      <name>Indicated airspeed (kt)</name>
+      <type>float</type>
+      <node>/velocities/airspeed-kt</node>
+    </chunk>
+
+    <chunk>
+      <name>Pressure altitude (m)</name>
+      <type>float</type>
+      <node>/instrumentation/altimeter/indicated-altitude-ft</node>
+      <factor>0.3048</factor>
+    </chunk>
+
+    <!-- attitude "truth" also appended for the purposes of allowing -->
+    <!-- the filter to evaluate how well it's doing -->
+    <chunk>
+      <name>roll truth (deg)</name>
+      <type>float</type>
+      <node>/orientation/roll-deg</node>
+    </chunk>
+
+    <chunk>
+      <name>pitch truth (deg)</name>
+      <type>float</type>
+      <node>/orientation/pitch-deg</node>
+    </chunk>
+
+    <chunk>
+      <name>heading truth (deg)</name>
+      <type>float</type>
+      <node>/orientation/heading-deg</node>
+    </chunk>
+
+  </output>
+
+ </generic>
+
+</PropertyList>
