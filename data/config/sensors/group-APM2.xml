@@ -15,7 +15,9 @@
     <!-- external voltage. -->
     <!-- 4.127 is the proper value for the AttoPilot 45A (13.6V) sensor -->
     <!-- 15.700 is the proper value for the AttoPilot 50V/90A sensor -->
+    <!-- 15.901 is the estimated value for the Avior rev3-->
     <volt-divider-ratio> 4.127</volt-divider-ratio>
+    <!-- <volt-divider-ratio> 16.282</volt-divider-ratio> -->
 
     <!-- this is a calibration offset which is subtracted from the analog -->
     <!-- voltage if it's non zero for a zero current draw (not a likely -->
@@ -28,7 +30,9 @@
     <!-- 27.32 is the proper value for the AttoPilot 50V/90A sensor -->
     <!-- 14.50 aligns better with my "watts up" numbers -->                    
     <!-- 15.00 calibrates better with what my battery charger -->
+    <!-- 38.14 estimate for Avior-rev3 -->
     <external-amp-ratio>15.00</external-amp-ratio>
+    <!-- <external-amp-ratio>38.14</external-amp-ratio> -->
 
     <!-- Pitot tube calibration factor, probably should leave this as 1.0 -->
     <!-- and override it with a per-aircraft value in the top level main.xml -->
