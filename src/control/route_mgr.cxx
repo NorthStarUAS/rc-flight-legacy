@@ -36,7 +36,6 @@
 #include "sensors/gps_mgr.hxx"
 #include "util/exception.hxx"
 #include "util/sg_path.hxx"
-#include "util/wind.hxx"
 
 #include "waypoint.hxx"
 #include "route_mgr.hxx"
@@ -50,7 +49,9 @@ FGRouteMgr::FGRouteMgr() :
     lon_node( NULL ),
     lat_node( NULL ),
     alt_node( NULL ),
-    true_hdg_deg( NULL ),
+    target_course_deg( NULL ),
+    groundspeed_node( NULL ),
+    target_heading_error_deg( NULL ),
     target_agl_node( NULL ),
     override_agl_node( NULL ),
     target_msl_node( NULL ),
@@ -60,11 +61,6 @@ FGRouteMgr::FGRouteMgr() :
     wp_eta_sec( NULL ),
     xtrack_dist_m( NULL ),
     proj_dist_m( NULL ),
-
-    wind_speed_kt( NULL ),
-    wind_dir_deg( NULL ),
-    true_airspeed_kt( NULL ),
-    est_wind_target_heading_deg( NULL ),
     start_mode( FIRST_WPT ),
     follow_mode( XTRACK_LEG_HDG ),
     completion_mode( LOOP ),
@@ -87,7 +83,8 @@ void FGRouteMgr::bind() {
     lat_node = fgGetNode( "/position/latitude-deg", true );
     alt_node = fgGetNode( "/position/altitude-ft", true );
 
-    true_hdg_deg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
+    target_course_deg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
+    groundspeed_node = fgGetNode("/velocity/groundspeed-ms", true);
     target_msl_node = fgGetNode( "/autopilot/settings/target-msl-ft", true );
     override_msl_node
 	= fgGetNode( "/autopilot/settings/override-msl-ft", true );
@@ -100,15 +97,6 @@ void FGRouteMgr::bind() {
     wp_eta_sec = fgGetNode( "/mission/route/wp-eta-sec", true );
     xtrack_dist_m = fgGetNode( "/mission/route/xtrack-dist-m", true );
     proj_dist_m = fgGetNode( "/mission/route/projected-dist-m", true );
-
-    wind_speed_kt = fgGetNode("/filters/wind-est/wind-speed-kt", true);
-    wind_dir_deg = fgGetNode("/filters/wind-est/wind-dir-deg", true);
-    true_airspeed_kt = fgGetNode("/filters/wind-est/true-airspeed-kt", true);
-    est_wind_target_heading_deg
-	= fgGetNode("/filters/wind-est/target-heading-deg", true);
-
-    // ap_console_skip = fgGetNode("/config/remote-link/autopilot-skip", true);
-    // ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
 }
 
 
@@ -251,7 +239,7 @@ void FGRouteMgr::update() {
                 nav_course -= 360.0;
             }
 
-	    true_hdg_deg->setDoubleValue( nav_course );
+	    target_course_deg->setDoubleValue( nav_course );
 	    target_agl_m = wp.get_target_agl_m();
 	    target_msl_m = wp.get_target_alt_m();
 
@@ -326,18 +314,9 @@ void FGRouteMgr::update() {
 	target_msl_node->setDoubleValue( target_msl_m * SG_METER_TO_FEET );
     }
 
-    double hd_deg = 0.0;
-    double gs_kt = 0.0;
-    wind_course( wind_speed_kt->getDoubleValue(),
-		 true_airspeed_kt->getDoubleValue(),
-		 wind_dir_deg->getDoubleValue(),
-		 nav_course,
-		 &hd_deg, &gs_kt );
-
-    est_wind_target_heading_deg->setDoubleValue( hd_deg );
-
-    if ( gs_kt > 0.1 ) {
-	wp_eta_sec->setFloatValue( direct_distance / (gs_kt * SG_KT_TO_MPS) );
+    double gs_mps = groundspeed_node->getDoubleValue();
+    if ( gs_mps > 0.1 ) {
+	wp_eta_sec->setFloatValue( direct_distance / gs_mps );
     } else {
 	wp_eta_sec->setFloatValue( 0.0 );
     }

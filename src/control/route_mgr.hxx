@@ -85,7 +85,9 @@ private:
     SGPropertyNode *alt_node;
 
     // automatic outputs
-    SGPropertyNode *true_hdg_deg;
+    SGPropertyNode *target_course_deg;
+    SGPropertyNode *groundspeed_node;
+    SGPropertyNode *target_heading_error_deg;
     SGPropertyNode *target_agl_node;
     SGPropertyNode *override_agl_node;
     SGPropertyNode *target_msl_node;
@@ -95,12 +97,6 @@ private:
     SGPropertyNode *wp_eta_sec;
     SGPropertyNode *xtrack_dist_m;
     SGPropertyNode *proj_dist_m;
-
-    // wind related property nodes
-    SGPropertyNode *wind_speed_kt;
-    SGPropertyNode *wind_dir_deg;
-    SGPropertyNode *true_airspeed_kt;
-    SGPropertyNode *est_wind_target_heading_deg;
 
     // route behaviors
     StartMode start_mode;
