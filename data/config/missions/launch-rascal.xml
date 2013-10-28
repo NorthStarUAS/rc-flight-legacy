@@ -112,8 +112,8 @@
       <alt-bias-ft>0</alt-bias-ft>
       <approach-speed-kt>25</approach-speed-kt>
       <flare-speed-kt>20</flare-speed-kt>
-      <flare-seconds>2.5</flare-seconds>
-      <xtrack-steer-gain>0.6</xtrack-steer-gain>
+      <flare-seconds>3.5</flare-seconds>
+      <xtrack-steer-gain>0.4</xtrack-steer-gain>
     </task>
   </standby-tasks>
 
