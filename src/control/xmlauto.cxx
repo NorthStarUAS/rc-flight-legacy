@@ -23,9 +23,10 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <props/props_io.hxx>
-#include <util/exception.hxx>
-#include <util/sg_path.hxx>
+#include "props/props_io.hxx"
+#include "util/exception.hxx"
+#include "util/sg_path.hxx"
+#include "util/wind.hxx"
 
 #include "xmlauto.hxx"
 
@@ -748,21 +749,59 @@ static void update_helper( double dt ) {
         v_last = v;
     }
 
+    // given the current wind estimate, compute the true heading
+    // required to fly the current ground course, then compute the
+    // true heading required to fly the target nav course.  Steer
+    // based on the heading differnce in "true orientation" space
+    // rather than in ground track space.  This schedules our
+    // steerging gain based on the wind vector automatically.  Note we
+    // do not use our actual true heading because our wind estimate
+    // and true heading estimate aren't perfect, winds can shift
+    // rapidly, and trusting average or old estimates can throw us way
+    // off.
+
     double diff;
 
-    // Calculate groundtrack heading error normalized to +/- 180.0
-    static SGPropertyNode *target_groundtrack
-        = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
-    static SGPropertyNode *current_groundtrack
+    // real sensor data
+    static SGPropertyNode *groundtrack_deg
         = fgGetNode( "/orientation/groundtrack-deg", true );
-    static SGPropertyNode *groundtrack_error
-        = fgGetNode( "/autopilot/internal/groundtrack-error-deg", true );
 
-    diff = target_groundtrack->getDoubleValue() - current_groundtrack->getDoubleValue();
-    if ( diff < -180.0 ) { diff += 360.0; }
-    if ( diff > 180.0 ) { diff -= 360.0; }
-    groundtrack_error->setDoubleValue( diff );
+    // wind estimates
+    static SGPropertyNode *wind_speed_kt
+	= fgGetNode("/filters/wind-est/wind-speed-kt", true);
+    static SGPropertyNode *wind_dir_deg
+	= fgGetNode("/filters/wind-est/wind-dir-deg", true);
+    static SGPropertyNode *true_airspeed_kt
+	= fgGetNode("/filters/wind-est/true-airspeed-kt", true);
+ 
+    // autopilot settings
+    static SGPropertyNode *target_course_deg
+        = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
+    static SGPropertyNode *wind_heading_error
+        = fgGetNode( "/autopilot/settings/wind-heading-error-deg", true );
 
+    double gs_kt = 0.0;
+
+    double est_nav_hdg_deg = 0.0;
+    wind_course( wind_speed_kt->getDoubleValue(),
+		 true_airspeed_kt->getDoubleValue(),
+		 wind_dir_deg->getDoubleValue(),
+		 target_course_deg->getDoubleValue(),
+		 &est_nav_hdg_deg, &gs_kt );
+
+    double est_cur_hdg_deg = 0.0;
+    wind_course( wind_speed_kt->getDoubleValue(),
+		 true_airspeed_kt->getDoubleValue(),
+		 wind_dir_deg->getDoubleValue(),
+		 groundtrack_deg->getDoubleValue(),
+		 &est_cur_hdg_deg, &gs_kt );
+
+    double hdg_error = est_nav_hdg_deg - est_cur_hdg_deg;
+    if ( hdg_error < -180.0 ) { hdg_error += 360.0; }
+    if ( hdg_error > 180.0 ) { hdg_error -= 360.0; }
+    wind_heading_error->setDoubleValue( hdg_error );
+
+#if 0
     // Calculate "wind compensated" groundtrack heading error
     // normalized to +/- 180.0.  The ground track heading error can be
     // misleading if there is wind.  we compute a wind compensated
@@ -781,23 +820,19 @@ static void update_helper( double dt ) {
     if ( diff < -180.0 ) { diff += 360.0; }
     if ( diff > 180.0 ) { diff -= 360.0; }
     wind_true_error->setDoubleValue( diff );
+#endif
 
+#if 0
     // calculate the roll angle squared for the purpose of adding open
     // loop elevator deflection in turns.
     static SGPropertyNode *roll_squared
         = fgGetNode( "/orientation/roll-deg-squared", true );
-    static SGPropertyNode *phi_node = fgGetNode("/orientation/roll-deg", true);
+    static SGPropertyNode *phi_node
+	= fgGetNode("/orientation/roll-deg", true);
     double roll = phi_node->getDoubleValue();
     roll_squared->setDoubleValue( roll * roll );
- 
-    /* static int c = 0;
-    c++;
-    if ( c > 25 ) {
-        printf("  tgt = %.1f  current = %.1f  error = %.1f\n",
-               target_groundtrack->getDoubleValue(), true_hdg->getDoubleValue(),
-               diff);
-        c = 0;
-        } */
+#endif
+
 }
 
 
