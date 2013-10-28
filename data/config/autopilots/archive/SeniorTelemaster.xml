@@ -13,7 +13,7 @@
       <value>route</value>
     </enable>
     <input>
-      <prop>/autopilot/internal/wind-true-error-deg</prop>
+      <prop>/autopilot/settings/wind-heading-error-deg</prop>
     </input>
     <reference>
       <value>0.0</value>

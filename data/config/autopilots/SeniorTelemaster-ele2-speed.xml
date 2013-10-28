@@ -13,7 +13,7 @@
       <value>route</value>
     </enable>
     <input>
-      <prop>/autopilot/internal/wind-true-error-deg</prop>
+      <prop>/autopilot/settings/wind-heading-error-deg</prop>
     </input>
     <reference>
       <value>0.0</value>
@@ -241,7 +241,7 @@
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
-      <Ti>10.0</Ti>        <!-- integrator time -->
+      <Ti>5.0</Ti>        <!-- integrator time -->
       <Td>0.0001</Td>      <!-- derivator time -->
       <u_min>-0.40</u_min> <!-- minimum output clamp -->
       <u_max>0.50</u_max>  <!-- maximum output clamp -->
