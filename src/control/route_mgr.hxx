@@ -77,17 +77,22 @@ private:
     SGPropertyNode *config_props;
 
     // route following configuration
+    SGPropertyNode *bank_limit_node;
+    SGPropertyNode *heading_gain_node;
+    SGPropertyNode *L1_gain_node;
     SGPropertyNode *xtrack_gain_node;
 
     // automatic inputs
     SGPropertyNode *lon_node;
     SGPropertyNode *lat_node;
     SGPropertyNode *alt_node;
+    SGPropertyNode *groundspeed_node;
+    SGPropertyNode *groundtrack_node;
 
     // automatic outputs
-    SGPropertyNode *target_course_deg;
-    SGPropertyNode *groundspeed_node;
     SGPropertyNode *target_heading_error_deg;
+    SGPropertyNode *target_course_deg;
+    SGPropertyNode *ap_roll_node;
     SGPropertyNode *target_agl_node;
     SGPropertyNode *override_agl_node;
     SGPropertyNode *target_msl_node;

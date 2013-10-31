@@ -36,6 +36,7 @@
 #include "sensors/gps_mgr.hxx"
 #include "util/exception.hxx"
 #include "util/sg_path.hxx"
+#include "util/wind.hxx"
 
 #include "waypoint.hxx"
 #include "route_mgr.hxx"
@@ -45,13 +46,18 @@ FGRouteMgr::FGRouteMgr() :
     active( new SGRoute ),
     standby( new SGRoute ),
     config_props( NULL ),
+    bank_limit_node( NULL ),
+    heading_gain_node( NULL ),
+    L1_gain_node( NULL ),
     xtrack_gain_node( NULL ),
     lon_node( NULL ),
     lat_node( NULL ),
     alt_node( NULL ),
-    target_course_deg( NULL ),
     groundspeed_node( NULL ),
+    groundtrack_node( NULL ),
     target_heading_error_deg( NULL ),
+    target_course_deg( NULL ),
+    ap_roll_node( NULL ),
     target_agl_node( NULL ),
     override_agl_node( NULL ),
     target_msl_node( NULL ),
@@ -77,14 +83,19 @@ FGRouteMgr::~FGRouteMgr() {
 
 // bind property nodes
 void FGRouteMgr::bind() {
+    bank_limit_node = fgGetNode("/mission/route/bank-limit-deg", true);
+    heading_gain_node = fgGetNode("/mission/route/heading-error-gain", true);
+    L1_gain_node = fgGetNode("/mission/route/L1-gain", true);
     xtrack_gain_node = fgGetNode( "/mission/route/xtrack-steer-gain", true );
 
     lon_node = fgGetNode( "/position/longitude-deg", true );
     lat_node = fgGetNode( "/position/latitude-deg", true );
     alt_node = fgGetNode( "/position/altitude-ft", true );
-
-    target_course_deg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
     groundspeed_node = fgGetNode("/velocity/groundspeed-ms", true);
+    groundtrack_node = fgGetNode( "/orientation/groundtrack-deg", true );
+
+    ap_roll_node = fgGetNode("/autopilot/settings/target-roll-deg", true);
+    target_course_deg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
     target_msl_node = fgGetNode( "/autopilot/settings/target-msl-ft", true );
     override_msl_node
 	= fgGetNode( "/autopilot/settings/override-msl-ft", true );
@@ -240,6 +251,47 @@ void FGRouteMgr::update() {
             }
 
 	    target_course_deg->setDoubleValue( nav_course );
+
+	    // target bank angle computed here
+
+	    double target_bank_deg = 0.0;
+
+#if 0 // original linear response to error
+
+	    // compute heading error in aircraft heading space after
+	    // doing wind triangle math on the current and target
+	    // ground courses.  This gives us a close estimate of how
+	    // far we have to yaw the aircraft nose to get on the
+	    // target ground course.
+	    double hdg_error
+		= wind_heading_diff( groundtrack_node->getDoubleValue(),
+				     target_course_deg->getDoubleValue() );
+	    target_bank_deg = hdg_error * heading_gain_node->getDoubleValue();
+
+#else // new 'mathematical' response to error
+
+	    double L1 = L1_gain_node->getDoubleValue();	// gain
+	    double course_error = groundtrack_node->getDoubleValue()
+		- target_course_deg->getDoubleValue();
+	    if ( course_error < -180.0 ) { course_error += 360.0; }
+	    if ( course_error >  180.0 ) { course_error -= 360.0; }
+	    double accel = 2.0 * groundspeed_node->getDoubleValue()
+		* sin(course_error * SG_DEGREES_TO_RADIANS) / L1;
+
+	    static const double gravity = 9.81; // m/sec^2
+	    double target_bank = -atan( accel / gravity );
+	    target_bank_deg = target_bank * SG_RADIANS_TO_DEGREES;
+#endif
+
+	    double bank_limit_deg = bank_limit_node->getDoubleValue();
+	    if ( target_bank_deg < -bank_limit_deg ) {
+		target_bank_deg = -bank_limit_deg;
+	    }
+	    if ( target_bank_deg > bank_limit_deg ) {
+		target_bank_deg = bank_limit_deg;
+	    }
+	    ap_roll_node->setDoubleValue( target_bank_deg );
+
 	    target_agl_m = wp.get_target_agl_m();
 	    target_msl_m = wp.get_target_alt_m();
 
