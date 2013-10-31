@@ -724,6 +724,7 @@ inline void SG_NORMALIZE_RANGE( T &val, const T min, const T max ) {
  * Update helper values
  */
 static void update_helper( double dt ) {
+#if 0
     // Estimate speed in 5,10 seconds
     static SGPropertyNode *vel = fgGetNode( "/velocity/airspeed-kt", true );
     static SGPropertyNode *lookahead5
@@ -748,7 +749,9 @@ static void update_helper( double dt ) {
         lookahead10->setDoubleValue( v + average * 10.0 );
         v_last = v;
     }
+#endif
 
+#if 0
     // given the current wind estimate, compute the true heading
     // required to fly the current ground course, then compute the
     // true heading required to fly the target nav course.  Steer
@@ -767,39 +770,21 @@ static void update_helper( double dt ) {
         = fgGetNode( "/orientation/groundtrack-deg", true );
 
     // wind estimates
-    static SGPropertyNode *wind_speed_kt
-	= fgGetNode("/filters/wind-est/wind-speed-kt", true);
-    static SGPropertyNode *wind_dir_deg
-	= fgGetNode("/filters/wind-est/wind-dir-deg", true);
-    static SGPropertyNode *true_airspeed_kt
-	= fgGetNode("/filters/wind-est/true-airspeed-kt", true);
- 
     // autopilot settings
     static SGPropertyNode *target_course_deg
         = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
+
+    // compute heading error in aircraft heading space after doing
+    // wind triangle math on the current and target ground courses.
+    // This gives us a close estimate of how far we have to yaw the
+    // aircraft nose to get on the target ground course.
+    double hdg_error = wind_heading_diff(groundtrack_deg->getDoubleValue(),
+					 target_course_deg->getDoubleValue());
+
     static SGPropertyNode *wind_heading_error
         = fgGetNode( "/autopilot/settings/wind-heading-error-deg", true );
-
-    double gs_kt = 0.0;
-
-    double est_nav_hdg_deg = 0.0;
-    wind_course( wind_speed_kt->getDoubleValue(),
-		 true_airspeed_kt->getDoubleValue(),
-		 wind_dir_deg->getDoubleValue(),
-		 target_course_deg->getDoubleValue(),
-		 &est_nav_hdg_deg, &gs_kt );
-
-    double est_cur_hdg_deg = 0.0;
-    wind_course( wind_speed_kt->getDoubleValue(),
-		 true_airspeed_kt->getDoubleValue(),
-		 wind_dir_deg->getDoubleValue(),
-		 groundtrack_deg->getDoubleValue(),
-		 &est_cur_hdg_deg, &gs_kt );
-
-    double hdg_error = est_nav_hdg_deg - est_cur_hdg_deg;
-    if ( hdg_error < -180.0 ) { hdg_error += 360.0; }
-    if ( hdg_error > 180.0 ) { hdg_error -= 360.0; }
     wind_heading_error->setDoubleValue( hdg_error );
+#endif
 
 #if 0
     // Calculate "wind compensated" groundtrack heading error
