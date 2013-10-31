@@ -9,7 +9,7 @@
 // Given a wind speed estimate, true airspeed estimate, wind direction
 // estimate, and a desired course to fly, then compute a true heading to
 // fly to achieve the desired course in the given wind.  Also compute the
-// resulting ground speed.
+// estimated ground speed.
 
 void wind_course( double ws_kt, double tas_kt, double wd_deg, double crs_deg,
 		  double *hd_deg, double *gs_kt)
@@ -40,4 +40,43 @@ void wind_course( double ws_kt, double tas_kt, double wd_deg, double crs_deg,
     // if ( display_on ) {
     //   printf("af: hd=%.1f gs=%.1f\n", hd * SGD_RADIANS_TO_DEGREES, gs);
     // }
+}
+
+
+// Given wind speed and direction, true airspeed (pulled directly from
+// the property tree), as well as a current ground course, and a
+// target ground course, compute the estimated true heading (psi,
+// aircraft body heading) difference that will take us from the
+// current ground course to the target ground course.
+
+double wind_heading_diff( double current_crs_deg, double target_crs_deg ) {
+    // wind estimates
+    static SGPropertyNode *wind_speed_kt
+	= fgGetNode("/filters/wind-est/wind-speed-kt", true);
+    static SGPropertyNode *wind_dir_deg
+	= fgGetNode("/filters/wind-est/wind-dir-deg", true);
+    static SGPropertyNode *true_airspeed_kt
+	= fgGetNode("/filters/wind-est/true-airspeed-kt", true);
+ 
+    double gs_kt = 0.0;
+
+    double est_cur_hdg_deg = 0.0;
+    wind_course( wind_speed_kt->getDoubleValue(),
+		 true_airspeed_kt->getDoubleValue(),
+		 wind_dir_deg->getDoubleValue(),
+		 current_crs_deg,
+		 &est_cur_hdg_deg, &gs_kt );
+
+    double est_nav_hdg_deg = 0.0;
+    wind_course( wind_speed_kt->getDoubleValue(),
+		 true_airspeed_kt->getDoubleValue(),
+		 wind_dir_deg->getDoubleValue(),
+		 target_crs_deg,
+		 &est_nav_hdg_deg, &gs_kt );
+
+    double hdg_diff = est_nav_hdg_deg - est_cur_hdg_deg;
+    if ( hdg_diff < -180.0 ) { hdg_diff += 360.0; }
+    if ( hdg_diff > 180.0 ) { hdg_diff -= 360.0; }
+
+    return hdg_diff;
 }
