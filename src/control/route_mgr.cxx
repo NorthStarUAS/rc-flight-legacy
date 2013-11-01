@@ -268,7 +268,7 @@ void FGRouteMgr::update() {
 				     target_course_deg->getDoubleValue() );
 	    target_bank_deg = hdg_error * heading_gain_node->getDoubleValue();
 
-#else // new 'mathematical' response to error
+#else // new L1 'mathematical' response to error
 
 	    double L1 = L1_gain_node->getDoubleValue();	// gain
 	    double course_error = groundtrack_node->getDoubleValue()
