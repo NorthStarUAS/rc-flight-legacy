@@ -2,34 +2,7 @@
 
 <PropertyList>
 
-  <!-- Route following, 2 stage cascading controller -->
-
-  <!-- Stage #1: set target bank angle based on heading error -->
-  <pi-simple-controller>
-    <name>True Heading Hold (DG based) Stage 1</name>
-    <debug>false</debug>
-    <enable>
-      <prop>/autopilot/locks/heading</prop>
-      <value>route</value>
-    </enable>
-    <input>
-      <prop>/autopilot/settings/wind-heading-error-deg</prop>
-    </input>
-    <reference>
-      <value>0.0</value>
-    </reference>
-    <output>
-      <prop>/autopilot/settings/target-roll-deg</prop>
-    </output>
-    <config>
-      <Kp>-0.3</Kp>        <!-- proportional gain -->
-      <Ki>0.0</Ki>         <!-- integral gain -->
-      <u_min>-20.0</u_min> <!-- minimum output clamp -->
-      <u_max>20.0</u_max>  <!-- maximum output clamp -->
-    </config>
-  </pi-simple-controller>
-
-  <!-- Stage #2: set aileron surface command based on target bank angle -->
+  <!-- Bank angle hold -->
   <pid-controller>
     <name>Roll angle hold</name>
     <debug>false</debug>
