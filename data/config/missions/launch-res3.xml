@@ -66,11 +66,11 @@
     <task>
       <name>route</name>
       <route include="../routes/bowtie-300m.xml" />
+      <bank-limit-deg>20</bank-limit-deg>
+      <L1-gain>5.0</L1-gain>
+      <xtrack-steer-gain>0.4</xtrack-steer-gain>
       <altitude-agl-ft>500</altitude-agl-ft>
       <speed-kt>30</speed-kt>
-      <xtrack-steer-gain>0.4</xtrack-steer-gain>
-      <timed>0</timed>
-      <loop>0</loop>
     </task>
   </sequential-tasks>
 
@@ -82,11 +82,9 @@
       <name>circle-coord</name>
       <nickname>circle-home</nickname>
       <config>/mission/home</config>
-
-      <bank-deg>10</bank-deg>
+      <radius-m>100</radius-m>
       <bank-limit-deg>20</bank-limit-deg>
-      <heading-error-gain>0.6</heading-error-gain>
-
+      <L1-gain>5.0</L1-gain>
       <altitude-agl-ft>500</altitude-agl-ft>
       <speed-kt>25</speed-kt>
     </task>
@@ -95,10 +93,9 @@
       <name>circle-coord</name>
       <nickname>circle-target</nickname>
       <config>/mission/circle</config>
-
-      <bank-deg>10</bank-deg>
+      <radius-m>100</radius-m>
       <bank-limit-deg>20</bank-limit-deg>
-      <heading-error-gain>0.6</heading-error-gain>
+      <L1-gain>5.0</L1-gain>
     </task>
     <task>
       <name>land</name>
@@ -111,8 +108,8 @@
       <alt-bias-ft>100</alt-bias-ft>
       <approach-speed-kt>25</approach-speed-kt>
       <flare-speed-kt>20</flare-speed-kt>
-      <flare-seconds>2.5</flare-seconds>
-      <xtrack-steer-gain>0.8</xtrack-steer-gain>
+      <flare-seconds>3.5</flare-seconds>
+      <xtrack-steer-gain>0.4</xtrack-steer-gain>
     </task>
   </standby-tasks>
 
