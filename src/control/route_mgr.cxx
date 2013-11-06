@@ -47,8 +47,9 @@ FGRouteMgr::FGRouteMgr() :
     standby( new SGRoute ),
     config_props( NULL ),
     bank_limit_node( NULL ),
-    heading_gain_node( NULL ),
-    L1_gain_node( NULL ),
+    // heading_gain_node( NULL ),
+    L1_period_node( NULL ),
+    L1_damping_node( NULL ),
     xtrack_gain_node( NULL ),
     lon_node( NULL ),
     lat_node( NULL ),
@@ -84,8 +85,9 @@ FGRouteMgr::~FGRouteMgr() {
 // bind property nodes
 void FGRouteMgr::bind() {
     bank_limit_node = fgGetNode("/mission/route/bank-limit-deg", true);
-    heading_gain_node = fgGetNode("/mission/route/heading-error-gain", true);
-    L1_gain_node = fgGetNode("/mission/route/L1-gain", true);
+    // heading_gain_node = fgGetNode("/mission/route/heading-error-gain", true);
+    L1_period_node = fgGetNode("/mission/route/L1-period", true);
+    L1_damping_node = fgGetNode("/mission/route/L1-damping", true);
     xtrack_gain_node = fgGetNode( "/mission/route/xtrack-steer-gain", true );
 
     lon_node = fgGetNode( "/position/longitude-deg", true );
@@ -165,6 +167,10 @@ void FGRouteMgr::update() {
 		}
 	    }
 
+	    double L1_period = L1_period_node->getDoubleValue();
+	    double L1_damping = L1_damping_node->getDoubleValue();
+	    double gs_mps = groundspeed_node->getDoubleValue();
+
 	    // track current waypoint of route (only if we have fresh gps data)
 	    SGWayPoint prev = active->get_previous();
 	    SGWayPoint wp = active->get_current();
@@ -210,7 +216,7 @@ void FGRouteMgr::update() {
 	    if ( follow_mode == DIRECT ) {
 		// direct to
 		nav_course = direct_course;
-	    } else {
+	    } else if ( follow_mode == XTRACK_DIRECT_HDG ) {
 		// cross track steering
 		if ( (active->get_waypoint_index() == 0)
 		     && (completion_mode != LOOP) ) {
@@ -218,30 +224,70 @@ void FGRouteMgr::update() {
 		    // routes which track the leg connecting the last
 		    // wpt to the first wpt.
 		    nav_course = direct_course;
-		} else if ( active->get_waypoint_index() == active->size()-1 ) {
+		} else if ( (active->get_waypoint_index() == active->size()-1)
+			    && (completion_mode == EXTEND_LAST_LEG) ) {
 		    // force leg heading logic on last leg so it is
 		    // possible to extend the center line beyond the
-		    // waypoint.
-		    nav_dist_m = dist_m;
+		    // waypoint (if requested by completion mode.)
 		    nav_course = leg_course - xtrack_comp;
 		} else if ( fabs(angle) <= 45.0 ) {
-		    // normal case
-		    nav_dist_m = dist_m;
-		    if ( follow_mode == XTRACK_LEG_HDG ) {
-			// xtrack_course based on leg_course should be
-			// the most stable
-			nav_course = leg_course - xtrack_comp;
-		    } else if ( follow_mode == XTRACK_DIRECT_HDG ) {
-			// xtrack_course based on direct_course could
-			// start oscillating the closer we get to the
-			// target waypoint.
-			nav_course = direct_course - xtrack_comp;
-		    }
+		    // normal case, note: in this tracking mode,
+		    // xtrack_course based on direct_course could
+		    // start oscillating the closer we get to the
+		    // target waypoint.
+		    nav_course = direct_course - xtrack_comp;
 		} else {
 		    // navigate 'direct to' if off by more than the
 		    // xtrack system can compensate for
 		    nav_course = direct_course;
 		}
+	    } else if ( follow_mode == XTRACK_LEG_HDG ) {
+		// cross track steering
+		if ( (active->get_waypoint_index() == 0)
+		     && (completion_mode != LOOP) ) {
+		    // first waypoint is 'direct to' except for LOOP
+		    // routes which track the leg connecting the last
+		    // wpt to the first wpt.
+		    nav_course = direct_course;
+		} else if ( (active->get_waypoint_index() == active->size()-1)
+			    && (completion_mode == EXTEND_LAST_LEG) ) {
+		    // force leg heading logic on last leg so it is
+		    // possible to extend the center line beyond the
+		    // waypoint (if requested by completion mode.)
+		    nav_dist_m = dist_m;
+		    nav_course = leg_course - xtrack_comp;
+		} else {
+		    // normal case: xtrack_course based on leg_course,
+		    // will have consistent stable regardless of
+		    // distance from waypoint.
+		    nav_dist_m = dist_m;
+		    nav_course = leg_course - xtrack_comp;
+		}
+	    } else if ( follow_mode == LEADER ) {
+		double L1_dist = (1.0 / SGD_PI) * L1_damping * L1_period * gs_mps;
+		double wangle = 0.0;
+		if ( L1_dist < 0.01 ) {
+		    // ground speed <= 0.0 (problem?!?)
+		    nav_course = direct_course;
+		} else if ( L1_dist <= fabs(xtrack_m) ) {
+		    // beyond L1 distance, steer as directly toward
+		    // leg as allowed
+		    wangle = 0.0;
+		} else {
+		    // steer towards imaginary point projected onto
+		    // the route leg L1_distance ahead of us
+		    wangle = acos(fabs(xtrack_m) / L1_dist) * SGD_RADIANS_TO_DEGREES;
+		}
+		if ( wangle < 30.0 ) {
+		    wangle = 30.0;
+		}
+		if ( xtrack_m > 0.0 ) {
+		    nav_course = direct_course + angle - 90.0 + wangle;
+		} else {
+		    nav_course = direct_course + angle + 90.0 - wangle;
+		}
+		nav_dist_m = dist_m;
+		// printf("direct=%.1f angle=%.1f nav=%.1f L1=%.1f xtrack=%.1f wangle=%.1f nav_dist=%.1f\n", direct_course, angle, nav_course, L1_dist, xtrack_m, wangle, nav_dist_m);
 	    }
 
             if ( nav_course < 0.0 ) {
@@ -270,13 +316,16 @@ void FGRouteMgr::update() {
 
 #else // new L1 'mathematical' response to error
 
-	    double L1 = L1_gain_node->getDoubleValue();	// gain
+	    const double sqrt_of_2 = 1.41421356237309504880;
+	    double omegaA = sqrt_of_2 * SGD_PI / L1_period;
+	    double VomegaA = gs_mps * omegaA;
 	    double course_error = groundtrack_node->getDoubleValue()
 		- target_course_deg->getDoubleValue();
 	    if ( course_error < -180.0 ) { course_error += 360.0; }
 	    if ( course_error >  180.0 ) { course_error -= 360.0; }
-	    double accel = 2.0 * groundspeed_node->getDoubleValue()
-		* sin(course_error * SG_DEGREES_TO_RADIANS) / L1;
+
+	    double accel = 2.0 * sin(course_error * SG_DEGREES_TO_RADIANS) * VomegaA;
+	    // double accel = 2.0 * gs_mps * gs_mps * sin(course_error * SG_DEGREES_TO_RADIANS) / L1;
 
 	    static const double gravity = 9.81; // m/sec^2
 	    double target_bank = -atan( accel / gravity );
