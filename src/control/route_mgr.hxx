@@ -55,7 +55,8 @@ public:
     enum FollowMode {
 	DIRECT = 0,		// steer direct to next waypoint
 	XTRACK_LEG_HDG = 1,	// steer towards leg heading + xtrack
-	XTRACK_DIRECT_HDG = 2	// steer direct oto next wpt + xtrack
+	XTRACK_DIRECT_HDG = 2,	// steer direct oto next wpt + xtrack
+	LEADER = 3		// steer towards a projected lead point
     };
 
     enum CompletionMode {
@@ -78,8 +79,9 @@ private:
 
     // route following configuration
     SGPropertyNode *bank_limit_node;
-    SGPropertyNode *heading_gain_node;
-    SGPropertyNode *L1_gain_node;
+    // SGPropertyNode *heading_gain_node;
+    SGPropertyNode *L1_period_node;
+    SGPropertyNode *L1_damping_node;
     SGPropertyNode *xtrack_gain_node;
 
     // automatic inputs
