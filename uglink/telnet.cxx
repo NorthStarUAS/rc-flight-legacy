@@ -262,9 +262,9 @@ PropsChannel::foundTerminator()
 	    }
 	} else if ( command == "fcs-update" ) {
 	    if ( tokens.size() == 2 ) {
-		tmp = "fcs-update,";
-		tmp += tokens[1]
-		command_mgr.add( tmp );
+		string newcmd = "fcs-update,";
+		newcmd += tokens[1]
+		command_mgr.add( newcmd );
 		if ( mode == PROMPT ) {
 		    string tmp = "new values have been relayed to remote";
 		    push( tmp.c_str() );
