@@ -44,6 +44,7 @@ static string infile = "";
 static string flight_dir = "";
 static string serialdev = "";
 static string outfile = "";
+static string fcs_debug_path = "";
 
 // Master time counter
 float sim_time = 0.0f;
@@ -155,6 +156,49 @@ string gen_date_stamp() {
 }
 
 
+void dump_fcs_debug_record( SGFile &fcs_nav, SGFile &fcs_speed,
+			    SGFile &fcs_alt, double current,
+			    struct imu *imupacket,
+			    struct filter *filterpacket,
+			    struct airdata *airpacket,
+			    struct apstatus *appacket,
+			    struct actuator *actpacket )
+{
+    static double last_fcs_time = 0.0;
+    static int max_buf = 256;
+    char buf[max_buf];
+    if ( current >= last_fcs_time + 0.1 ) {
+	// nav
+	double filter_hdg = (SGD_PI * 0.5 - atan2(filterpacket->vn, filterpacket->ve)) * SG_RADIANS_TO_DEGREES;
+	snprintf(buf, max_buf, "%.2f\t%.1f\t%.1f\t%.1f\t%.1f\t%.2f\n",
+		 imupacket->timestamp,
+		 appacket->target_heading_deg,
+		 appacket->target_roll_deg,
+		 filter_hdg,
+		 filterpacket->phi,
+		 actpacket->ail);
+	fcs_nav.writestring(buf);
+	// speed
+	snprintf(buf, max_buf, "%.2f\t%.1f\t%.1f\t%.1f\t%.1f\t%.2f\n",
+		 imupacket->timestamp,
+		 appacket->target_speed_kt,
+		 appacket->target_pitch_deg,
+		 airpacket->airspeed,
+		 filterpacket->theta,
+		 actpacket->ele);
+	fcs_speed.writestring(buf);
+	// alt
+	snprintf(buf, max_buf, "%.2f\t%.1f\t%.1f\t%.2f\n",
+		 imupacket->timestamp,
+		 appacket->target_altitude_msl_ft,
+		 filterpacket->alt,
+		 actpacket->thr);
+	fcs_alt.writestring(buf);
+
+	last_fcs_time = current;
+    }
+}
+
 void usage( const string &argv0 ) {
     cout << "Usage: " << argv0 << endl;
     cout << "\t[ --help ]" << endl;
@@ -163,6 +207,7 @@ void usage( const string &argv0 ) {
     cout << "\t[ --flight <flight_dir>" << endl;
     cout << "\t[ --serial <dev_name>" << endl;
     cout << "\t[ --outfile <outfile_name> (capture the data to a file)" << endl;
+    cout << "\t[ --fcs-debug <path>" << endl;
     cout << "\t[ --export-raw-umn <base_path> ]" << endl;
     cout << "\t[ --export-text-tab <base_path> ]" << endl;
     cout << endl;
@@ -253,6 +298,14 @@ int main( int argc, char **argv ) {
             ++i;
             if ( i < argc ) {
                 outfile = argv[i];
+            } else {
+                usage( argv[0] );
+                exit( -1 );
+            }
+        } else if ( strcmp( argv[i], "--fcs-debug" ) == 0 ) {
+            ++i;
+            if ( i < argc ) {
+                fcs_debug_path = argv[i];
             } else {
                 usage( argv[0] );
                 exit( -1 );
@@ -379,6 +432,37 @@ int main( int argc, char **argv ) {
     if ( sg_swap ) {
         track.set_stargate_swap_mode();
     }
+    
+    // open up the fcs debug files if requested
+    string fcs_nav_path = "";
+    string fcs_speed_path = "";
+    string fcs_alt_path = "";
+    if ( fcs_debug_path.length() ) {
+	fcs_nav_path = fcs_debug_path + "/fcs-debug-nav.txt";
+	fcs_speed_path = fcs_debug_path + "/fcs-debug-speed.txt";
+	fcs_alt_path = fcs_debug_path + "/fcs-debug-alt.txt";
+    }
+    SGFile fcs_nav( fcs_nav_path );
+    if ( fcs_nav_path.length() ) {
+	if ( !fcs_nav.open( SG_IO_OUT ) ) {
+	    cout << "Cannot open: " << fcs_nav_path << endl;
+	    return false;
+	}
+    }
+    SGFile fcs_speed( fcs_speed_path );
+    if ( fcs_speed_path.length() ) {
+	if ( !fcs_speed.open( SG_IO_OUT ) ) {
+	    cout << "Cannot open: " << fcs_speed_path << endl;
+	    return false;
+	    }
+    }
+    SGFile fcs_alt( fcs_alt_path );
+    if ( fcs_alt_path.length() ) {
+	if ( !fcs_alt.open( SG_IO_OUT ) ) {
+	    cout << "Cannot open: " << fcs_alt_path << endl;
+	    return false;
+	}
+    }
 
     UGTelnet telnet( telnet_port );
     telnet.open();
@@ -432,7 +516,6 @@ int main( int argc, char **argv ) {
             printf("*WRONG* [GPS  ]:ITOW= %.3f[sec]  %dd %02d:%02d:%06.3f\n",
                    tmp, days, hours, min, sec);
         }
-
 
         // advance skip seconds forward
         current_time += skip;
@@ -763,6 +846,14 @@ int main( int argc, char **argv ) {
 	    //                  &filterpacket, &actpacket, &pilotpacket,
 	    //                  &appacket, &healthpacket );
 
+	    // fcs debug data output @ 10hz if requested
+	    if ( fcs_debug_path.length() ) {
+		dump_fcs_debug_record( fcs_nav, fcs_speed, fcs_alt,
+				       current_time_stamp,
+				       &imupacket, &filterpacket, &airpacket,
+				       &appacket, &actpacket );
+	    }
+
             telnet.process();
             ws.process();
 
@@ -1041,6 +1132,13 @@ int main( int argc, char **argv ) {
                 last_time = current;
             }
 
+	    // fcs debug data output @ 10hz if requested
+	    if ( fcs_debug_path.length() ) {
+		dump_fcs_debug_record( fcs_nav, fcs_speed, fcs_alt, current,
+				       &imupacket, &filterpacket, &airpacket,
+				       &appacket, &actpacket );
+	    }
+	    
             telnet.process();
             ws.process();
         }
