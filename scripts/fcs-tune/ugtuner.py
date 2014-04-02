@@ -115,6 +115,9 @@ class Controller():
         self.edit_name = QtGui.QLineEdit()
         self.edit_name.setFixedWidth(350)
         self.edit_name.textChanged.connect(self.onChange)
+        self.edit_desc = QtGui.QLineEdit()
+        self.edit_desc.setFixedWidth(350)
+        self.edit_desc.textChanged.connect(self.onChange)
         self.edit_input = QtGui.QLineEdit()
         self.edit_input.setFixedWidth(350)
         self.edit_input.textChanged.connect(self.onChange)
@@ -150,6 +153,7 @@ class Controller():
         self.edit_max.textChanged.connect(self.onChange)
 
         layout.addRow( "<b>Stage Name:</b>", self.edit_name )
+        layout.addRow( "<b>Description:</b>", self.edit_desc )
         layout.addRow( "<b>Input Prop:</b>", self.edit_input )
         layout.addRow( "<b>Reference Prop:</b>", self.edit_ref )
         layout.addRow( "<b>Output Prop:</b>", self.edit_output )
@@ -204,6 +208,7 @@ class Controller():
     def parse_xml(self, node):
         self.xml = node
         self.edit_name.setText(self.get_value('name'))
+        self.edit_desc.setText(self.get_value('description'))
         tmp = self.get_node('input')
         if tmp != None:
             self.edit_input.setText(self.get_value('prop', parent=tmp))
