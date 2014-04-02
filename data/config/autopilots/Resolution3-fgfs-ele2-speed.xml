@@ -21,21 +21,14 @@
       <prop>/controls/flight/aileron</prop>
     </output>
     <config>
-      <!-- 4/4/2013 P=-0.025 I=1.00 min/max = 0.20, seems way slow and laggy, and saturates -->
-      <!-- 4/7/2013 P=-0.05 I=1.00 min/max = 0.25, seems even more wild -->
-      <!-- 4/7/2013 P=-0.01 I=0.50 min/max = 0.25, tons of overshoot and oscillations -->
-      <!-- 4/7/2013 P=-0.01 I=2.00 min/max = 0.25, still tons of overshoot -->
-      <!-- 4/8/2013 P=-0.01 I=10.00 min/max = 0.25, improving, but still overshooting -->
-      <!-- 4/8/2013 P=-0.007 I=10.00 min/max = 0.25, -->
-      <!-- 4/8/2013 P=0.007 I=10.00 min/max = 0.25, Res3 #3 Seemed like not pushing hard enought to get rid of long term error, but really jumpy -->
-      <!-- 5/24/2013 P=0.005 I=5.00 min/max = 0.25, Res3 #3 maybe still too snappy? -->
-      <!-- 6/17/2013 P=0.004 I=2.00 min/max = 0.25, Res3 #3 seeking better convergence -->
-      <Kp>0.02</Kp>      <!-- proportional gain-->
+      <!-- 3/7/2014 P=0.02 I=2.0 min/max = 0.75, fgfs from fall -->
+      <!-- 3/7/2014 P=0.10 I=1.0 min/max = 0.75, fgfs more agressive tracking -->
+      <Kp>0.10</Kp>      <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>2.0</Ti>        <!-- integrator time -->
+      <Ti>1.0</Ti>        <!-- integrator time -->
       <Td>0.0001</Td>      <!-- derivator time -->
       <u_min>-0.75</u_min> <!-- minimum output clamp -->
       <u_max>0.75</u_max>  <!-- maximum output clamp -->
@@ -64,13 +57,14 @@
     </output>
     <!-- 5/24/2013, Kp=0.006 Ti=20.0 didn't seem to be pushing up to target -->
     <!-- 5/26/2013, Kp=0.006 Ti=10.0 -->
+    <!-- 3/8/2014, Kp=0.040 Ti=5.0 try more aggressive, if we increase kp, we can decrease ti value and have a more agressive tighter system -->
     <config>
-      <Kp>0.020</Kp>       <!-- proportional gain -->
+      <Kp>0.02</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>10.0</Ti>        <!-- integrator time -->
+      <Ti>20.0</Ti>        <!-- integrator time -->
       <Td>0.00001</Td>     <!-- derivator time -->
       <u_min>0.0</u_min>   <!-- minimum output clamp -->
       <u_max>1.0</u_max>   <!-- maximum output clamp -->
@@ -127,12 +121,14 @@
       <prop>/autopilot/settings/target-pitch-deg</prop>
     </output>
     <config>
-      <Kp>-1.0</Kp>        <!-- proportional gain -->
+      <!-- 3/7/2014 Kp=-1.0 a=0.25 Ti=2.0 Td=0.000001 : from fall  -->
+      <!-- 3/7/2014 Kp=-10.0 a=0.1 Ti=10.0 Td=0.000001 : better -->
+      <Kp>-10.0</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
-      <alpha>0.25</alpha>  <!-- low pass filter weighing factor -->
+      <alpha>0.1</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
-      <Ti>2.0</Ti>         <!-- integrator time -->
+      <Ti>01.0</Ti>         <!-- integrator time -->
       <Td>0.000001</Td>    <!-- derivator time -->
       <u_min>-5.0</u_min> <!-- minimum output clamp -->
       <u_max>15.0</u_max>  <!-- maximum output clamp -->
@@ -158,12 +154,13 @@
     <config>
       <!-- 6/27/2013 Kp=-0.010 a=0.5 Ti=10.0 Td=1.0 : ran to extremes and pegged -->
       <!-- 6/17/2013 Kp=0.010 a=0.5 Ti=10.0 Td=1.0 :  -->
-      <Kp>-0.03</Kp>       <!-- proportional gain -->
+      <!-- 3/7/2014 Kp=0.04 a=0.1 Ti=1.0 Td=0.00001 :  -->
+      <Kp>-0.04</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
-      <Ti>2.5</Ti>         <!-- integrator time -->
+      <Ti>1.0</Ti>         <!-- integrator time -->
       <Td>0.0001</Td>      <!-- derivator time -->
       <u_min>-1.00</u_min>  <!-- minimum output clamp -->
       <u_max>0.00</u_max>  <!-- maximum output clamp -->
