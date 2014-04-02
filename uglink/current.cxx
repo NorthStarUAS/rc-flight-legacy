@@ -732,3 +732,48 @@ void compute_derived_data( struct gps *gpspacket,
 	payload_ur_lat_node->setDoubleValue( ur_wgs84.getLatitudeDeg() );
     }
 }
+
+
+string current_get_fcs_nav_string() {
+    static int max_buf = 256;
+    char buf[max_buf];
+
+    double filter_hdg = (SGD_PI * 0.5 - atan2(filter_vn_node->getDoubleValue(), filter_ve_node->getDoubleValue())) * SG_RADIANS_TO_DEGREES;
+    snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.1f,%.1f,%.2f\n",
+	     imu_timestamp_node->getDoubleValue(),
+	     ap_hdg_node->getDoubleValue(),
+	     ap_roll_node->getDoubleValue(),
+	     filter_hdg,
+	     filter_phi_node->getDoubleValue(),
+	     act_aileron_node->getDoubleValue());
+
+    return buf;
+}
+
+string current_get_fcs_speed_string() {
+    static int max_buf = 256;
+    char buf[max_buf];
+
+    snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.1f,%.1f,%.2f\n",
+	     imu_timestamp_node->getDoubleValue(),
+	     ap_speed_node->getDoubleValue(),
+	     ap_pitch_node->getDoubleValue(),
+	     airdata_airspeed_node->getDoubleValue(),
+	     filter_theta_node->getDoubleValue(),
+	     act_elevator_node->getDoubleValue());
+
+    return buf;
+}
+
+string current_get_fcs_altitude_string() {
+    static int max_buf = 256;
+    char buf[max_buf];
+
+    snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.2f\n",
+	     imu_timestamp_node->getDoubleValue(),
+	     ap_altitude_node->getDoubleValue(),
+	     filter_alt_node->getDoubleValue(),
+	     act_throttle_node->getDoubleValue() );
+
+    return buf;
+}

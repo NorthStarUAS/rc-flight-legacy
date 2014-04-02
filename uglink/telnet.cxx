@@ -18,6 +18,7 @@
 #include <props/props_io.hxx>
 #include <util/strutils.hxx>
 
+#include "current.hxx"
 #include "globals.hxx"
 #include "command.hxx"
 #include "telnet.hxx"
@@ -25,7 +26,6 @@
 
 using std::stringstream;
 using std::ends;
-
 
 /**
  * Props connection class.
@@ -236,6 +236,38 @@ PropsChannel::foundTerminator()
 		}
 		push( tmp.c_str() );
 		push( getTerminator() );
+	    }
+	} else if ( command == "fcs" ) {
+	    if ( tokens.size() == 2 ) {
+		string tmp = "";
+		if ( mode == PROMPT ) {
+		    tmp = tokens[1];
+		    tmp += " = ";
+		}
+		if ( tokens[1] == "heading" ) {
+		    tmp += current_get_fcs_nav_string();
+		} else if ( tokens[1] == "speed" ) {
+		    tmp += current_get_fcs_speed_string();
+		} else if ( tokens[1] == "altitude" ) {
+		    tmp += current_get_fcs_altitude_string();
+		} else if ( tokens[1] == "all" ) {
+		    tmp += current_get_fcs_nav_string();
+		    tmp += ",";
+		    tmp += current_get_fcs_speed_string();
+		    tmp += ",";
+		    tmp += current_get_fcs_altitude_string();
+		}
+		push( tmp.c_str() );
+		push( getTerminator() );
+	    }
+	} else if ( command == "fcs-update" ) {
+	    if ( tokens.size() == 2 ) {
+		command_mgr.add( cmd );
+		if ( mode == PROMPT ) {
+		    string tmp = "new values have been relayed to remote";
+		    push( tmp.c_str() );
+		    push( getTerminator() );
+		}
 	    }
 	} else if ( command == "set" ) {
 	    if ( tokens.size() >= 2 ) {

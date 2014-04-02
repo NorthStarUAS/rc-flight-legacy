@@ -2,6 +2,8 @@
 #define _UGEAR_CURRENT_HXX
 
 
+#include <string>
+
 #include "globals.hxx"
 
 
@@ -24,5 +26,10 @@ void update_props( struct gps *gpspacket,
 		   struct apstatus *appacket,
 		   struct health *healthpacket,
 		   struct payload *payloadpacket );
+
+string current_get_fcs_nav_string();
+string current_get_fcs_speed_string();
+string current_get_fcs_altitude_string();
+
 
 #endif // _UGEAR_CURRENT_HXX
