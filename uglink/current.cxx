@@ -739,7 +739,7 @@ string current_get_fcs_nav_string() {
     char buf[max_buf];
 
     double filter_hdg = (SGD_PI * 0.5 - atan2(filter_vn_node->getDoubleValue(), filter_ve_node->getDoubleValue())) * SG_RADIANS_TO_DEGREES;
-    snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.1f,%.1f,%.2f\n",
+    snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.1f,%.1f,%.2f",
 	     imu_timestamp_node->getDoubleValue(),
 	     ap_hdg_node->getDoubleValue(),
 	     ap_roll_node->getDoubleValue(),
@@ -754,7 +754,7 @@ string current_get_fcs_speed_string() {
     static int max_buf = 256;
     char buf[max_buf];
 
-    snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.1f,%.1f,%.2f\n",
+    snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.1f,%.1f,%.2f",
 	     imu_timestamp_node->getDoubleValue(),
 	     ap_speed_node->getDoubleValue(),
 	     ap_pitch_node->getDoubleValue(),
@@ -769,7 +769,7 @@ string current_get_fcs_altitude_string() {
     static int max_buf = 256;
     char buf[max_buf];
 
-    snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.2f\n",
+    snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.2f",
 	     imu_timestamp_node->getDoubleValue(),
 	     ap_altitude_node->getDoubleValue(),
 	     filter_alt_node->getDoubleValue(),
