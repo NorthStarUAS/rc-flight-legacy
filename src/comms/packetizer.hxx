@@ -62,6 +62,7 @@ class UGPacketizer {
     SGPropertyNode *airdata_temperature_node;
     SGPropertyNode *airdata_altitude_node;
     SGPropertyNode *airdata_altitude_true_node;
+    SGPropertyNode *airdata_altitude_filter_agl_node;
     SGPropertyNode *airdata_airspeed_node;
     SGPropertyNode *airdata_climb_fps_node;
     SGPropertyNode *airdata_accel_ktps_node;
@@ -174,6 +175,14 @@ public:
 
     int packetize_payload( uint8_t *buf );
     void decode_payload( uint8_t *buf );
+
+    // packetizer has node references to all the good data setup
+    // already, so let's use it to generate other data strings as
+    // well.
+    string get_fcs_nav_string();
+    string get_fcs_speed_string();
+    string get_fcs_altitude_string();
+
 };
 
 

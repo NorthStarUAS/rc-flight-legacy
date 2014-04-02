@@ -1,5 +1,5 @@
+#include <math.h>
 #include <stdint.h>
-
 #include <stdio.h>
 
 // #include "control/route_mgr.hxx"
@@ -48,6 +48,7 @@ void UGPacketizer::bind_airdata_nodes() {
     // airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
     airdata_altitude_node = fgGetNode("/position/altitude-pressure-smoothed-m", true);
     airdata_altitude_true_node = fgGetNode("/position/altitude-true-combined-m", true);
+    airdata_altitude_filter_agl_node = fgGetNode("/position/altitude-filter-agl-ft", true);
 
     // select one of the following airspeed sources
     // airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
@@ -652,4 +653,49 @@ void UGPacketizer::decode_payload( uint8_t *buf ) {
     printf("t = %.2f %d\n",
 	   time,
 	   trigger_num );
+}
+
+
+string UGPacketizer::get_fcs_nav_string() {
+    static int max_buf = 256;
+    char buf[max_buf];
+
+    double filter_hdg = (SGD_PI * 0.5 - atan2(filter_vn_node->getDoubleValue(), filter_ve_node->getDoubleValue())) * SG_RADIANS_TO_DEGREES;
+    snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.1f,%.1f,%.2f",
+	     imu_timestamp_node->getDoubleValue(),
+	     ap_hdg->getDoubleValue(),
+	     ap_roll->getDoubleValue(),
+	     filter_hdg,
+	     filter_phi_node->getDoubleValue(),
+	     act_aileron_node->getDoubleValue());
+
+    return buf;
+}
+
+string UGPacketizer::get_fcs_speed_string() {
+    static int max_buf = 256;
+    char buf[max_buf];
+
+    snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.1f,%.1f,%.2f",
+	     imu_timestamp_node->getDoubleValue(),
+	     ap_speed->getDoubleValue(),
+	     ap_pitch->getDoubleValue(),
+	     airdata_airspeed_node->getDoubleValue(),
+	     filter_theta_node->getDoubleValue(),
+	     act_elevator_node->getDoubleValue());
+
+    return buf;
+}
+
+string UGPacketizer::get_fcs_altitude_string() {
+    static int max_buf = 256;
+    char buf[max_buf];
+
+    snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.2f",
+	     imu_timestamp_node->getDoubleValue(),
+	     ap_altitude_agl->getDoubleValue(),
+	     airdata_altitude_filter_agl_node->getDoubleValue(),
+	     act_throttle_node->getDoubleValue() );
+
+    return buf;
 }
