@@ -772,7 +772,8 @@ string current_get_fcs_altitude_string() {
     snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.2f",
 	     imu_timestamp_node->getDoubleValue(),
 	     ap_altitude_node->getDoubleValue(),
-	     filter_alt_node->getDoubleValue(),
+	     // filter_alt_node->getDoubleValue(),
+	     airdata_altitude_true_node->getDoubleValue()*SG_METER_TO_FEET,
 	     act_throttle_node->getDoubleValue() );
 
     return buf;
