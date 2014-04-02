@@ -52,12 +52,12 @@ class PlotFields():
 
 data_fetcher_quit = False
 class DataFetcher():
-    def __init__(self):
+    def __init__(self, port=6499):
         self.hz = 10
         self.dt = 1.0 / float(self.hz)
         self.seconds = 100
         self.lines = deque()
-        self.t = fgtelnet.FGTelnet("localhost", 6499)
+        self.t = fgtelnet.FGTelnet("localhost", port)
         self.t.send("data")
         self.count = 1
 
@@ -91,9 +91,10 @@ class DataFetcher():
             threading.Timer(self.dt, self.update).start()
 
 class Controller():
-    def __init__(self, index, changefunc):
+    def __init__(self, index, changefunc, port=6499):
         self.index = index
         self.changefunc = changefunc
+        self.port = port
         self.container = self.make_page()
         self.xml = None
         self.fields = PlotFields()
@@ -246,7 +247,8 @@ class Controller():
             command += "," + value
         #print "update: " + str(self.value_array())
         print command
-        t = fgtelnet.FGTelnet("localhost", 6499)
+        print self.port
+        t = fgtelnet.FGTelnet("localhost", self.port)
         t.send("data")
         t.send(command)
         t.quit()
@@ -267,7 +269,7 @@ class Controller():
             command += "," + value
         #print "update: " + str(self.value_array())
         print command
-        t = fgtelnet.FGTelnet("localhost", 6499)
+        t = fgtelnet.FGTelnet("localhost", self.port)
         t.send("data")
         t.send(command)
         t.quit()
@@ -300,12 +302,12 @@ class Controller():
         print "spawned plot command = " + str(pid)
 
 class Tuner(QtGui.QWidget):
-    def __init__(self, filename=""):
+    def __init__(self, filename="", port=6499):
         super(Tuner, self).__init__()
         self.default_title = "FCS Tuner"
         self.controllers = []
         self.initUI()
-        self.load(filename)
+        self.load(filename, port=port)
         self.clean = True
 
     def initUI(self):
@@ -339,7 +341,8 @@ class Tuner(QtGui.QWidget):
         self.resize(800, 700)
         self.show()
 
-    def load(self, filename):
+    def load(self, filename, port=6499):
+        print "Tuner.load " + str(port)
         basename = os.path.basename(str(filename))
         fileroot, ext = os.path.splitext(basename)
 
@@ -366,7 +369,7 @@ class Tuner(QtGui.QWidget):
         root = self.xml.getroot()
         for i,pid_node in enumerate(root.findall('pid-controller')):
             print "controller found..."
-            pid = Controller(index=i, changefunc=self.onChange)
+            pid = Controller(index=i, changefunc=self.onChange, port=port)
             pid.parse_xml(pid_node)
             self.controllers.append(pid)
             self.tabs.addTab( pid.get_widget(), pid.get_name() )
@@ -400,6 +403,9 @@ def usage():
     print "Usage: " + sys.argv[0] + " [autopilot.xml]"
 
 def main():
+    #port = 6499
+    port = 5402
+
     app = QtGui.QApplication(sys.argv)
     filename = ""
     if len(sys.argv) > 2:
@@ -408,10 +414,10 @@ def main():
     elif len(sys.argv) == 2:
         filename = sys.argv[1]
 
-    df = DataFetcher()
+    df = DataFetcher(port=port)
     df.update()
 
-    ex = Tuner(filename)
+    ex = Tuner(filename, port=port)
     sys.exit(app.exec_())
 
 if __name__ == '__main__':

@@ -9,7 +9,9 @@ seconds = 100
 
 lines = deque()
 
-t = fgtelnet.FGTelnet("localhost", 6499)
+#port = 6499
+port = 5402
+t = fgtelnet.FGTelnet("localhost", port)
 t.send("data")
 
 count = 1
