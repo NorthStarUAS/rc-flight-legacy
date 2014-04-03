@@ -60,7 +60,7 @@
     <!-- 5/26/2013, Kp=0.006 Ti=10.0 -->
     <!-- 3/8/2014, Kp=0.040 Ti=5.0 try more aggressive, if we increase kp, we can decrease ti value and have a more agressive tighter system -->
     <config>
-      <Kp>0.02</Kp>       <!-- proportional gain -->
+      <Kp>0.03</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -93,12 +93,12 @@
     <config>
       <!-- 3/7/2014 Kp=-1.0 a=0.25 Ti=2.0 Td=0.000001 : from fall  -->
       <!-- 3/7/2014 Kp=-10.0 a=0.1 Ti=10.0 Td=0.000001 : better -->
-      <Kp>-10.0</Kp>        <!-- proportional gain -->
+      <Kp>-2.0</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
-      <Ti>01.0</Ti>         <!-- integrator time -->
+      <Ti>20.0</Ti>         <!-- integrator time -->
       <Td>0.000001</Td>    <!-- derivator time -->
       <u_min>-5.0</u_min> <!-- minimum output clamp -->
       <u_max>15.0</u_max>  <!-- maximum output clamp -->
@@ -126,12 +126,12 @@
       <!-- 6/27/2013 Kp=-0.010 a=0.5 Ti=10.0 Td=1.0 : ran to extremes and pegged -->
       <!-- 6/17/2013 Kp=0.010 a=0.5 Ti=10.0 Td=1.0 :  -->
       <!-- 3/7/2014 Kp=0.04 a=0.1 Ti=1.0 Td=0.00001 :  -->
-      <Kp>-0.04</Kp>       <!-- proportional gain -->
+      <Kp>-0.08</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
-      <Ti>1.0</Ti>         <!-- integrator time -->
+      <Ti>20.0</Ti>         <!-- integrator time -->
       <Td>0.0001</Td>      <!-- derivator time -->
       <u_min>-1.00</u_min>  <!-- minimum output clamp -->
       <u_max>0.00</u_max>  <!-- maximum output clamp -->
