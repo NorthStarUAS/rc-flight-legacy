@@ -31,38 +31,9 @@ static bool fcs_update_helper(string values) {
     printf("fcs_update_helper\n");
 
     vector<string> tokens = split( values, "," );
-    if ( tokens.size() != 9 ) {
-	return false;
-    }
 
-    int i = atoi(tokens[0].c_str());
-    SGPropertyNode *pid
-	= fgGetNode("/config/fcs/autopilot/pid-controller",i);
-    if ( pid == NULL ) {
-	return false;
-    }
+    return packetizer->decode_fcs_update( tokens );
 
-    SGPropertyNode *config = pid->getNode("config");
-    if ( config == NULL ) {
-	return false;
-    }
-
-    SGPropertyNode *Kp = config->getNode("Kp", true);
-    Kp->setDoubleValue( atof(tokens[1].c_str()) );
-    SGPropertyNode *beta = config->getNode("beta", true);
-    beta->setDoubleValue( atof(tokens[2].c_str()) );
-    SGPropertyNode *alpha = config->getNode("alpha", true);
-    alpha->setDoubleValue( atof(tokens[3].c_str()) );
-    SGPropertyNode *gamma = config->getNode("gamma", true);
-    gamma->setDoubleValue( atof(tokens[4].c_str()) );
-    SGPropertyNode *Ti = config->getNode("Ti", true);
-    Ti->setDoubleValue( atof(tokens[5].c_str()) );
-    SGPropertyNode *Td = config->getNode("Td", true);
-    Td->setDoubleValue( atof(tokens[6].c_str()) );
-    SGPropertyNode *min = config->getNode("u_min", true);
-    min->setDoubleValue( atof(tokens[7].c_str()) );
-    SGPropertyNode *max = config->getNode("u_max", true);
-    max->setDoubleValue( atof(tokens[8].c_str()) );
 }
 
 /**

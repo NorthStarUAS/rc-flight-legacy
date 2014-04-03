@@ -9,6 +9,7 @@
 #include "checksum.h"
 #include "include/globaldefs.h"
 
+#include "main/globals.hxx" 	// packetizer
 #include "mission/mission_mgr.hxx"
 #include "mission/tasks/task_route.hxx"
 #include "props/props.hxx"
@@ -529,6 +530,8 @@ static void remote_link_execute_command( const string command ) {
                 = fgGetNode( "/autopilot/settings/target-speed-kt", true );
             speed_kt_node->setDoubleValue( speed_kt );
         }
+    } else if ( token[0] == "fcs-update" ) {
+	packetizer->decode_fcs_update(token);
     } else if ( token[0] == "set" && token.size() == 3 ) {
 	string prop_name = token[1];
 	string value = token[2];

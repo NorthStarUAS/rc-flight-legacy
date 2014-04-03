@@ -182,7 +182,7 @@ public:
     string get_fcs_nav_string();
     string get_fcs_speed_string();
     string get_fcs_altitude_string();
-
+    bool decode_fcs_update(vector <string> tokens);
 };
 
 
