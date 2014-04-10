@@ -409,10 +409,10 @@ def usage():
     print "Usage: " + sys.argv[0] + " [autopilot.xml]"
 
 def main():
-    #host = "localhost"
-    #port = 6499
-    host = "192.168.1.64"
-    port = 5402
+    host = "localhost"
+    port = 6499
+    #host = "192.168.1.64"
+    #port = 5402
 
     app = QtGui.QApplication(sys.argv)
     filename = ""
