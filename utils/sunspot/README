@@ -1,0 +1,1 @@
+g++ -o shadowpoint -I/usr/local/FlightGear-2.6/include -L /usr/local/FlightGear-2.6/lib64 shadowpoint.cxx -lsgmath -lsgtiming -lsgephem -lsgstructure -lsgdebug -lsgmisc -lplibnet -lplibul -lm
