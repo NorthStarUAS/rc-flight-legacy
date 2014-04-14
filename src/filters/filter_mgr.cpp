@@ -71,6 +71,7 @@ static SGPropertyNode *filter_track_node = NULL;
 static SGPropertyNode *filter_vel_node = NULL;
 static SGPropertyNode *filter_vert_speed_fps_node = NULL;
 static SGPropertyNode *filter_ground_alt_m_node = NULL;
+static SGPropertyNode *filter_alt_agl_m_node = NULL;
 static SGPropertyNode *filter_alt_agl_ft_node = NULL;
 
 // air data property nodes (wind estimation)
@@ -183,9 +184,11 @@ void Filter_init() {
     filter_vert_speed_fps_node
 	= fgGetNode("/velocity/vertical-speed-fps", true);
     filter_ground_alt_m_node
-	= fgGetNode("/position/ground-altitude-filter-m", true);
+	= fgGetNode("/position/filter/altitude-ground-m", true);
+    filter_alt_agl_m_node
+	= fgGetNode("/position/filter/altitude-agl-m", true);
     filter_alt_agl_ft_node
-	= fgGetNode("/position/altitude-filter-agl-ft", true);
+	= fgGetNode("/position/filter/altitude-agl-ft", true);
 
     if ( toplevel->nChildren() > 0 ) {
 	filter_timestamp_node->alias("/filters/filter[0]/time-stamp");
@@ -262,6 +265,7 @@ static void update_ground() {
     }
 
     float agl_m = filter_alt_node->getFloatValue() - ground_alt_filter;
+    filter_alt_agl_m_node->setDoubleValue( agl_m );
     filter_alt_agl_ft_node->setDoubleValue( agl_m * SG_METER_TO_FEET );
 
     last_time = cur_time;

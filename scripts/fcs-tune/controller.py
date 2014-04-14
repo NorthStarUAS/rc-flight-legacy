@@ -20,7 +20,7 @@ class PlotFields():
                         "/controls/flight/elevator", \
                         "time", \
                         "/autopilot/settings/target-agl-ft", \
-                        "/position/altitude-filter-agl-ft", \
+                        "/position/filter/altitude-agl-ft", \
                         "/controls/engine/throttle", \
                     ]
 

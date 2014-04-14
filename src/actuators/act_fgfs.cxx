@@ -85,7 +85,7 @@ static void bind_act_nodes() {
     ap_target_ground_track_deg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
     ap_target_climb_fps = fgGetNode("/autopilot/internal/target-climb-rate-fps", true);
     filter_ground_alt_m_node
-	= fgGetNode("/position/ground-altitude-filter-m", true);
+	= fgGetNode("/position/filter/altitude-ground-m", true);
     ap_altitude_agl = fgGetNode( "/autopilot/settings/target-agl-ft", true );
     ap_target_speed_kt = fgGetNode( "/autopilot/settings/target-speed-kt", true );
     ap_ground_track_deg = fgGetNode( "/orientation/groundtrack-deg", true );
