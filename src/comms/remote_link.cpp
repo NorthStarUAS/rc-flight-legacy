@@ -579,7 +579,7 @@ static void remote_link_execute_command( const string command ) {
                 = fgGetNode( "/pointing/wgs84/latitude-deg", true );
 	    lat_node->setDoubleValue( lat );
 	    SGPropertyNode *ground_node
-		= fgGetNode( "/position/ground-altitude-filter-m", true );
+		= fgGetNode( "/position/filter/altitude-ground-m", true );
 	    double ground = ground_node->getDoubleValue();
 	    SGPropertyNode *alt_node
                 = fgGetNode( "/pointing/wgs84/altitude-m", true );

@@ -47,9 +47,9 @@ void UGPacketizer::bind_airdata_nodes() {
 
     // select one of the following pressure altitude sources
     // airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
-    airdata_altitude_node = fgGetNode("/position/altitude-pressure-smoothed-m", true);
-    airdata_altitude_true_node = fgGetNode("/position/altitude-true-combined-m", true);
-    airdata_altitude_filter_agl_node = fgGetNode("/position/altitude-filter-agl-ft", true);
+    airdata_altitude_node = fgGetNode("/position/pressure/altitude-smoothed-m", true);
+    airdata_altitude_true_node = fgGetNode("/position/combined/altitude-true-m", true);
+    airdata_altitude_filter_agl_node = fgGetNode("/position/filter/altitude-agl-ft", true);
 
     // select one of the following airspeed sources
     // airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
@@ -117,7 +117,7 @@ void UGPacketizer::bind_pilot_nodes() {
 // initialize autopilot status property nodes
 void UGPacketizer::bind_ap_nodes() {
     filter_ground_alt_m_node
-	= fgGetNode("/position/ground-altitude-filter-m", true);
+	= fgGetNode("/position/filter/altitude-ground-m", true);
     ap_hdg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
     ap_roll = fgGetNode("/autopilot/settings/target-roll-deg", true);
     ap_altitude_agl = fgGetNode( "/autopilot/settings/target-agl-ft", true );

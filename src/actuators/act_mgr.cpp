@@ -41,7 +41,6 @@ static SGPropertyNode *output_rudder_node = NULL;
 
 //
 static SGPropertyNode *act_elevon_mix_node = NULL;
-static SGPropertyNode *agl_alt_ft_node = NULL;
 
 // actuator global limits (dynamically adjustable)
 static SGPropertyNode *act_aileron_min = NULL;
@@ -91,7 +90,6 @@ void Actuator_init() {
     output_rudder_node = fgGetNode("/controls/flight/rudder", true);
 
     act_elevon_mix_node = fgGetNode("/config/actuators/elevon-mixing", true);
-    agl_alt_ft_node = fgGetNode("/position/altitude-agl-ft", true);
 
     act_aileron_min = fgGetNode("/config/actuators/limits/aileron-min", true);
     act_aileron_max = fgGetNode("/config/actuators/limits/aileron-max", true);
@@ -168,17 +166,6 @@ void Actuator_init() {
 
 
 static void set_actuator_values_ap() {
-    /* printf("%.2f %.2f\n", aileron_out_node->getFloatValue(),
-              elevator_out_node->getFloatValue()); */
-    /* static SGPropertyNode *vert_speed_fps
-       = fgGetNode("/velocity/vertical-speed-fps", true); */
-    /* static SGPropertyNode *true_alt
-       = fgGetNode("/position/altitude-ft", true); */
-    /* printf("%.1f %.2f %.2f\n",
-           true_alt->getDoubleValue(),
-           vert_speed_fps->getDoubleValue(),
-           elevator_out_node->getFloatValue()); */
-
     float elevator = output_elevator_node->getFloatValue()
 	+ output_elevator_damp_node->getFloatValue();
     if ( elevator < act_elevator_min->getFloatValue() ) {
