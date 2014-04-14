@@ -58,7 +58,7 @@
       <value>throttle</value>
     </enable>
     <input>
-      <prop>/position/altitude-filter-agl-ft</prop>
+      <prop>/position/filter/altitude-agl-ft</prop>
     </input>
     <reference>
       <prop>/autopilot/settings/target-agl-ft</prop>

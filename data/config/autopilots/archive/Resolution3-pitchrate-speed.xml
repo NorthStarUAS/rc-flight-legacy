@@ -77,7 +77,7 @@
       <value>throttle</value>
     </enable>
     <input>
-      <prop>/position/altitude-pressure-agl-ft</prop>
+      <prop>/position/pressure/altitude-agl-ft</prop>
     </input>
     <reference>
       <prop>/autopilot/settings/target-agl-ft</prop>

@@ -179,7 +179,7 @@ static void bind_airdata_nodes() {
     airdata_pressure_node = fgGetNode("/sensors/air-data/pressure-mbar", true);
     airdata_temperature_node = fgGetNode("/sensors/air-data/temperature-degC", true);
     airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-pressure-m", true);
-    airdata_altitude_true_node = fgGetNode("/position/altitude-true-combined-m", true);
+    airdata_altitude_true_node = fgGetNode("/position/combined/altitude-true-m", true);
     airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
     airdata_climb_fpm_node
 	= fgGetNode("/sensors/air-data/vertical-speed-fpm", true);
