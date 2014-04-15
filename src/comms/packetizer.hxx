@@ -62,7 +62,7 @@ class UGPacketizer {
     SGPropertyNode *airdata_temperature_node;
     SGPropertyNode *airdata_altitude_node;
     SGPropertyNode *airdata_altitude_true_node;
-    SGPropertyNode *airdata_altitude_filter_agl_node;
+    SGPropertyNode *official_altitude_agl_node;
     SGPropertyNode *airdata_airspeed_node;
     SGPropertyNode *airdata_climb_fps_node;
     SGPropertyNode *airdata_accel_ktps_node;
