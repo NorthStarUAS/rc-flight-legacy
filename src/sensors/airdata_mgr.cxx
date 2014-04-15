@@ -81,7 +81,7 @@ void AirData_init() {
 
     // input property nodes
     filter_timestamp_node = fgGetNode("/filters/filter/time-stamp", true);
-    filter_alt_node = fgGetNode("/position/altitude-m", true);
+    filter_alt_node = fgGetNode("/position/filter/altitude-m", true);
     filter_ground_node = fgGetNode("/position/filter/altitude-ground-m", true);
 
     // filtered/computed output property nodes

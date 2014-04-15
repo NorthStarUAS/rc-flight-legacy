@@ -56,7 +56,8 @@ static SGPropertyNode *filter_phi_node = NULL;
 static SGPropertyNode *filter_psi_node = NULL;
 static SGPropertyNode *filter_lat_node = NULL;
 static SGPropertyNode *filter_lon_node = NULL;
-static SGPropertyNode *filter_alt_node = NULL;
+static SGPropertyNode *filter_alt_m_node = NULL;
+static SGPropertyNode *filter_alt_ft_node = NULL;
 static SGPropertyNode *filter_vn_node = NULL;
 static SGPropertyNode *filter_ve_node = NULL;
 static SGPropertyNode *filter_vd_node = NULL;
@@ -66,7 +67,6 @@ static SGPropertyNode *filter_phi_dot_node = NULL;
 static SGPropertyNode *filter_the_dot_node = NULL;
 static SGPropertyNode *filter_psi_dot_node = NULL;
 
-static SGPropertyNode *filter_alt_ft_node = NULL;
 static SGPropertyNode *filter_track_node = NULL;
 static SGPropertyNode *filter_vel_node = NULL;
 static SGPropertyNode *filter_vert_speed_fps_node = NULL;
@@ -85,6 +85,13 @@ static SGPropertyNode *true_airspeed_kt = NULL;
 static SGPropertyNode *true_heading_deg = NULL;
 static SGPropertyNode *true_air_east_mps = NULL;
 static SGPropertyNode *true_air_north_mps = NULL;
+
+// official altitude outputs
+static SGPropertyNode *official_alt_m_node = NULL;
+static SGPropertyNode *official_alt_ft_node = NULL;
+static SGPropertyNode *official_agl_m_node = NULL;
+static SGPropertyNode *official_agl_ft_node = NULL;
+static SGPropertyNode *official_ground_m_node = NULL;
 
 // comm property nodes
 static SGPropertyNode *filter_console_skip = NULL;
@@ -168,7 +175,8 @@ void Filter_init() {
     filter_psi_node = fgGetNode("/orientation/heading-deg", true);
     filter_lat_node = fgGetNode("/position/latitude-deg", true);
     filter_lon_node = fgGetNode("/position/longitude-deg", true);
-    filter_alt_node = fgGetNode("/position/altitude-m", true);
+    filter_alt_m_node = fgGetNode("/position/filter/altitude-m", true);
+    filter_alt_ft_node = fgGetNode("/position/filter/altitude-ft", true);
     filter_vn_node = fgGetNode("/velocity/vn-ms", true);
     filter_ve_node = fgGetNode("/velocity/ve-ms", true);
     filter_vd_node = fgGetNode("/velocity/vd-ms", true);
@@ -178,7 +186,6 @@ void Filter_init() {
     filter_the_dot_node = fgGetNode("/orientation/the-dot-rad_sec", true);
     filter_psi_dot_node = fgGetNode("/orientation/psi-dot-rad_sec", true);
 
-    filter_alt_ft_node = fgGetNode("/position/altitude-ft", true);
     filter_track_node = fgGetNode("/orientation/groundtrack-deg", true);
     filter_vel_node = fgGetNode("/velocity/groundspeed-ms", true);
     filter_vert_speed_fps_node
@@ -197,7 +204,7 @@ void Filter_init() {
 	filter_psi_node->alias("/filters/filter[0]/heading-deg");
 	filter_lat_node->alias("/filters/filter[0]/latitude-deg");
 	filter_lon_node->alias("/filters/filter[0]/longitude-deg");
-	filter_alt_node->alias("/filters/filter[0]/altitude-m");
+	filter_alt_m_node->alias("/filters/filter[0]/altitude-m");
 	filter_vn_node->alias("/filters/filter[0]/vn-ms");
 	filter_ve_node->alias("/filters/filter[0]/ve-ms");
 	filter_vd_node->alias("/filters/filter[0]/vd-ms");
@@ -208,6 +215,24 @@ void Filter_init() {
 	filter_vel_node->alias("/filters/filter[0]/groundspeed-ms");
 	filter_vert_speed_fps_node->alias("/filters/filter[0]/vertical-speed-fps");
     }
+
+    // initialize altitude output nodes
+    official_alt_m_node = fgGetNode("/position/altitude-m", true);
+    official_alt_ft_node = fgGetNode("/position/altitude-ft", true);
+    official_agl_m_node = fgGetNode("/position/altitude-agl-m", true);
+    official_agl_ft_node = fgGetNode("/position/altitude-agl-ft", true);
+    official_ground_m_node = fgGetNode("/position/altitude-ground-m", true);
+
+    // select official source:
+    // 1. /position/pressure
+    // 2. /position/filter
+    // 3. /position/combined
+    official_alt_m_node->alias("/position/combined/altitude-true-m");
+    official_alt_ft_node->alias("/position/combined/altitude-true-ft");
+    official_agl_m_node->alias("/position/combined/altitude-agl-m");
+    official_agl_ft_node->alias("/position/combined/altitude-agl-ft");
+    official_ground_m_node->alias("/position/filter/altitude-ground-m");
+    
 }
 
 
@@ -254,17 +279,17 @@ static void update_ground() {
 
     // determine ground reference altitude.  Average filter altitude
     // over first 30 seconds the filter becomes active.
-    static float ground_alt_filter = filter_alt_node->getFloatValue();
+    static float ground_alt_filter = filter_alt_m_node->getFloatValue();
 
     if ( elapsed_time >= dt && elapsed_time >= 0.001 && elapsed_time <= 30.0 ) {
 	ground_alt_filter
 	    = ((elapsed_time - dt) * ground_alt_filter
-	       + dt * filter_alt_node->getFloatValue())
+	       + dt * filter_alt_m_node->getFloatValue())
 	    / elapsed_time;
 	filter_ground_alt_m_node->setDoubleValue( ground_alt_filter );
     }
 
-    float agl_m = filter_alt_node->getFloatValue() - ground_alt_filter;
+    float agl_m = filter_alt_m_node->getFloatValue() - ground_alt_filter;
     filter_alt_agl_m_node->setDoubleValue( agl_m );
     filter_alt_agl_ft_node->setDoubleValue( agl_m * SG_METER_TO_FEET );
 
