@@ -89,7 +89,7 @@ class Route():
     def send_value(self, t, prop, val):
         if len(val):
             if self.port == 5402:
-                command = "send,set," + prop + "," + str(val)
+                command = "send set," + prop + "," + str(val)
                 print command
                 t.send(command)
             else:
