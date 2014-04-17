@@ -285,25 +285,33 @@ PropsChannel::foundTerminator()
 	    }
 	} else if ( command == "set" ) {
 	    if ( tokens.size() >= 2 ) {
-		string value, tmp;
+		string value = "", tmp;
 		for (unsigned int i = 2; i < tokens.size(); i++) {
 		    if ( i > 2 ) {
 			value += " ";
 		    }
 		    value += tokens[i];
 		}
-		node->getNode( tokens[1].c_str(), true )
-		    ->setStringValue(value.c_str());
-
-		if ( mode == PROMPT ) {
-		    // now fetch and write out the new value as confirmation
-		    // of the change
-		    value = node->getStringValue ( tokens[1].c_str(), "" );
-		    tmp = tokens[1] + " = '" + value + "' (";
-		    tmp += getValueTypeString( node->getNode( tokens[1].c_str() ) );
-		    tmp += ")";
-		    push( tmp.c_str() );
+		SGPropertyNode *child = NULL;
+		try {
+		    child = node->getNode( tokens[1].c_str(), true );
+		} catch ( string &message ){
+		    push( message.c_str() );
 		    push( getTerminator() );
+		    child = NULL;
+		}
+		if ( child ) {
+		    child->setStringValue(value.c_str());
+		    if ( mode == PROMPT ) {
+			// now fetch and write out the new value as confirmation
+			// of the change
+			value = node->getStringValue ( tokens[1].c_str(), "" );
+			tmp = tokens[1] + " = '" + value + "' (";
+			tmp += getValueTypeString( node->getNode( tokens[1].c_str() ) );
+			tmp += ")";
+			push( tmp.c_str() );
+			push( getTerminator() );
+		    }
 		}
 	    }
 	} else if ( command == "run" ) {
