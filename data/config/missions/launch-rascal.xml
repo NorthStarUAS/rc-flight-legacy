@@ -105,7 +105,7 @@
       <glideslope-deg>3.0</glideslope-deg>
       <turn-radius-m>75</turn-radius-m>
       <turn-steps>8</turn-steps>
-      <side>left</side>
+      <direction>left</direction>
       <extend-final-leg-m>150</extend-final-leg-m>
       <alt-bias-ft>0</alt-bias-ft>
       <approach-speed-kt>25</approach-speed-kt>
