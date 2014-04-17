@@ -22,6 +22,7 @@ import time
 from circle import Circle
 #from route import Route
 from controller import Controller
+from land import Land
 from route import Route
 
 import fgtelnet
@@ -139,6 +140,10 @@ class Tuner(QtGui.QWidget):
         # Route follow parameters
         self.route = Route(changefunc =self.onChange, host=host, port=port)
         self.tabs.addTab( self.route.get_widget(), "Route" )
+
+        # Land parameters
+        self.land = Land(changefunc =self.onChange, host=host, port=port)
+        self.tabs.addTab( self.land.get_widget(), "Land" )
 
         # PID controller parameters
         root = self.xml.getroot()
