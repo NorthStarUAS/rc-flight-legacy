@@ -4,5 +4,5 @@ For real time plotting run:
 
 For example:
 
-    gnuplot -e "config='altitude.plt'" loop.plt
+    gnuplot -e "config='plot-stage-1.plt'" loop.plt
 
