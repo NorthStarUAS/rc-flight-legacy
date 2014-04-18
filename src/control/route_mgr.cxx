@@ -286,7 +286,14 @@ void FGRouteMgr::update() {
 		} else {
 		    nav_course = direct_course + angle + 90.0 - wangle;
 		}
-		nav_dist_m = dist_m;
+		if ( active->is_acquired() ) {
+		    nav_dist_m = dist_m;
+		} else {
+		    // direct to first waypoint until we've acquired this route
+		    nav_course = direct_course;
+		    nav_dist_m = direct_distance;
+		}
+
 		// printf("direct=%.1f angle=%.1f nav=%.1f L1=%.1f xtrack=%.1f wangle=%.1f nav_dist=%.1f\n", direct_course, angle, nav_course, L1_dist, xtrack_m, wangle, nav_dist_m);
 	    }
 
@@ -359,10 +366,12 @@ void FGRouteMgr::update() {
 	    // logic to mark completion of leg and move to next leg.
 	    if ( completion_mode == LOOP ) {
 		if ( nav_dist_m < 50.0 ) {
+		    active->set_acquired( true );
 		    active->increment_current();
 		}
 	    } else if ( completion_mode == CIRCLE_LAST_WPT ) {
 		if ( nav_dist_m < 50.0 ) {
+		    active->set_acquired( true );
 		    if ( active->get_waypoint_index() < active->size() - 1 ) {
 			active->increment_current();
 		    } else {
@@ -373,6 +382,7 @@ void FGRouteMgr::update() {
 		}
 	    } else if ( completion_mode == EXTEND_LAST_LEG ) {
 		if ( nav_dist_m < 50.0 ) {
+		    active->set_acquired( true );
 		    if ( active->get_waypoint_index() < active->size() - 1 ) {
 			active->increment_current();
 		    } else {
