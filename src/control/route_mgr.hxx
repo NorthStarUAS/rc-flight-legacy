@@ -131,17 +131,17 @@ public:
     void init( SGPropertyNode *branch );
 
     // set route start mode
-    void set_start_mode( enum StartMode mode ) {
+    inline void set_start_mode( enum StartMode mode ) {
 	start_mode = mode;
     }
 
     // set route follow mode
-    void set_follow_mode( enum FollowMode mode ) {
+    inline void set_follow_mode( enum FollowMode mode ) {
 	follow_mode = mode;
     }
 
     // set route completion mode
-    void set_completion_mode( enum CompletionMode mode ) {
+    inline void set_completion_mode( enum CompletionMode mode ) {
 	completion_mode = mode;
     }
 
@@ -152,7 +152,7 @@ public:
     bool swap();
 
     // these modify the "standby" route
-    void clear_standby() {
+    inline void clear_standby() {
 	standby->clear();
     }
     int new_waypoint( const string& wpt_string );
@@ -160,16 +160,16 @@ public:
 		      const int mode );
 
     // returns info on the "active" route
-    SGWayPoint get_waypoint( int i ) const {
+    inline SGWayPoint get_waypoint( int i ) const {
         return active->get_waypoint(i);
     }
-    int get_waypoint_index() const {
+    inline int get_waypoint_index() const {
 	return active->get_waypoint_index();
     }
-    int size() const {
+    inline int size() const {
         return active->size();
     }
-    double get_dist_remaining_m() const {
+    inline double get_dist_remaining_m() const {
 	return dist_remaining_m;
     }
 
@@ -177,7 +177,8 @@ public:
     bool reposition_pattern( const SGWayPoint &wp, const double hdg );
 
     // restart the route from the beginning
-    void restart() {
+    inline void restart() {
+	active->set_acquired( false );
 	active->set_current( 0 );
     }
 };
