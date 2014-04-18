@@ -140,16 +140,6 @@ class Land():
     def update(self, t):
         print "update land params"
 
-        if len(self.edit_rwy_lon.text()):
-            self.send_value(t, "/mission/home/longitude-deg",
-                            self.edit_rwy_lon.text())
-        if len(self.edit_rwy_lat.text()):
-            self.send_value(t, "/mission/home/latitude-deg",
-                            self.edit_rwy_lat.text())
-        if len(self.edit_rwy_hdg.text()):
-            self.send_value(t, "/mission/home/azimuth-deg",
-                            self.edit_rwy_hdg.text())
-
         self.send_value(t, "/mission/land/lateral-offset-m",
                         self.edit_lat_offset.text())
         self.send_value(t, "/mission/land/glideslope-deg",
@@ -170,6 +160,19 @@ class Land():
                         self.edit_flare_speed.text())
         self.send_value(t, "/mission/land/flare-seconds",
                         self.edit_flare_time.text())
+
+        # send these last so our 'route' doesn't stay moved long
+        # before we kick into land mode.
+        if len(self.edit_rwy_lon.text()):
+            self.send_value(t, "/mission/home/longitude-deg",
+                            self.edit_rwy_lon.text())
+        if len(self.edit_rwy_lat.text()):
+            self.send_value(t, "/mission/home/latitude-deg",
+                            self.edit_rwy_lat.text())
+        if len(self.edit_rwy_hdg.text()):
+            self.send_value(t, "/mission/home/azimuth-deg",
+                            self.edit_rwy_hdg.text())
+
 
     def revert(self):
         print str(self.original_values)
