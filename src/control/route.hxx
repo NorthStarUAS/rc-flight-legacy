@@ -49,6 +49,7 @@ private:
     typedef vector < SGWayPoint > route_list;
     route_list route;
     int current_wp;
+    bool acquired;		// optional if the route_mgr wishes to use
 
     void update_distance(unsigned int index);
 
@@ -196,6 +197,13 @@ public:
     double distance_off_route( double x, double y ) const;
 #endif
 
+    inline bool is_acquired() const {
+	return acquired;
+    }
+
+    inline void set_acquired( bool val ) {
+	acquired = val;
+    }
 };
 
 
