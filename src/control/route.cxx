@@ -28,7 +28,8 @@
 
 // constructor
 SGRoute::SGRoute():
-    current_wp(0)
+    current_wp(0),
+    acquired(false)
 {
     route.clear();
 }
