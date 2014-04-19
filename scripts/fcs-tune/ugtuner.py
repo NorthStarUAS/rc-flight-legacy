@@ -133,6 +133,8 @@ class Tuner(QtGui.QWidget):
         self.filename = str(filename)
         self.fileroot, ext = os.path.splitext(self.filename)
 
+        root = self.xml.getroot()
+
         # Circle hold parameters
         self.circle = Circle(changefunc =self.onChange, host=host, port=port)
         self.tabs.addTab( self.circle.get_widget(), "Circle" )
@@ -143,10 +145,10 @@ class Tuner(QtGui.QWidget):
 
         # Route follow parameters
         self.L1 = L1Controller(changefunc =self.onChange, host=host, port=port)
+        self.L1.parse_xml( root.find('L1-controller') )
         self.tabs.addTab( self.L1.get_widget(), "L1" )
 
         # PID controller parameters
-        root = self.xml.getroot()
         for i,pid_node in enumerate(root.findall('pid-controller')):
             print "controller found..."
             pid = Controller(index=i, changefunc=self.onChange, host=host, port=port)

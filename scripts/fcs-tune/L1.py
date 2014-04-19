@@ -39,29 +39,18 @@ class L1Controller():
         layout.addRow( "<b>L1 Period (10-25):</b>", self.edit_L1_period )
         layout.addRow( "<b>L1 Damping (0.7):</b>", self.edit_L1_damping )
 
-        # 'Parameter' button bar
-        param_group = QtGui.QFrame()
-        toplayout.addWidget(param_group)
-        param_layout = QtGui.QHBoxLayout()
-        param_group.setLayout( param_layout )
-        param_layout.addWidget( QtGui.QLabel("<b>L1 Parameters:</b> ") )
-        update = QtGui.QPushButton('Update')
-        update.clicked.connect(self.update)
-        param_layout.addWidget(update)
-        revert = QtGui.QPushButton('Revert')
-        revert.clicked.connect(self.revert)
-        param_layout.addWidget(revert)
-        param_layout.addStretch(1)
-
         # 'Command' button bar
         cmd_group = QtGui.QFrame()
         toplayout.addWidget(cmd_group)
         cmd_layout = QtGui.QHBoxLayout()
         cmd_group.setLayout( cmd_layout )
-        cmd_layout.addWidget( QtGui.QLabel("<b>Task Commands:</b> ") )
-        resume = QtGui.QPushButton('Resume Route')
-        resume.clicked.connect(self.task_resume)
-        cmd_layout.addWidget(resume)
+        cmd_layout.addWidget( QtGui.QLabel("<b>L1 Commands:</b> ") )
+        update = QtGui.QPushButton('Update')
+        update.clicked.connect(self.update)
+        cmd_layout.addWidget(update)
+        revert = QtGui.QPushButton('Revert')
+        revert.clicked.connect(self.revert)
+        cmd_layout.addWidget(revert)
         cmd_layout.addStretch(1)
 
         toplayout.addStretch(1)
@@ -73,6 +62,34 @@ class L1Controller():
 
     def get_widget(self):
         return self.container
+
+    def get_value(self, child, parent=None):
+        if parent == None:
+            parent = self.xml
+        e = parent.find(child)
+        if e != None and e.text != None:
+            return e.text
+        else:
+            return ""
+
+    def get_node(self, child, parent=None):
+        if parent == None:
+            parent = self.xml
+        return parent.find(child)
+
+    def parse_xml(self, node):
+        self.xml = node
+        self.edit_bank_limit.setText(self.get_value('bank-limit-deg'))
+        self.edit_L1_period.setText(self.get_value('period'))
+        self.edit_L1_damping.setText(self.get_value('damping'))
+        self.original_values = self.value_array()
+
+    def value_array(self):
+        result = []
+        result.append( str(self.edit_bank_limit.text()) )
+        result.append( str(self.edit_L1_period.text()) )
+        result.append( str(self.edit_L1_damping.text()) )
+        return result
 
     def send_value(self, t, prop, val):
         if len(val):
