@@ -2,6 +2,14 @@
 
 <PropertyList>
 
+  <!-- L1 config parameters, this drives bank angle (implementation in -->
+  <!-- route_mgr/task_circle_coord) -->
+  <L1-controller>
+    <bank-limit-deg>30</bank-limit-deg>
+    <period>20</period>
+    <damping>0.7</damping>
+  </L1-controller>
+
   <!-- Route following, 2 stage cascading controller -->
 
   <!-- Stage #1: set target bank angle based on heading error -->
