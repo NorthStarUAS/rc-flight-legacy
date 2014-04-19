@@ -701,8 +701,10 @@ bool FGXMLAutopilot::build() {
         } else if ( name == "filter" ) {
             FGXMLAutoComponent *c = new FGDigitalFilter( node );
             components.push_back( c );
+	} else if ( name == "L1-controller" ) {
+	    // information placeholder, we don't do anything here.
         } else {
-	  printf("Unknown top level section: %s\n", name.c_str() );
+	    printf("Unknown top level section: %s\n", name.c_str() );
             return false;
         }
     }
