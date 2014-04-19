@@ -23,7 +23,7 @@ from circle import Circle
 #from route import Route
 from controller import Controller
 from land import Land
-from route import Route
+from L1 import L1Controller
 
 import fgtelnet
 
@@ -137,13 +137,13 @@ class Tuner(QtGui.QWidget):
         self.circle = Circle(changefunc =self.onChange, host=host, port=port)
         self.tabs.addTab( self.circle.get_widget(), "Circle" )
 
-        # Route follow parameters
-        self.route = Route(changefunc =self.onChange, host=host, port=port)
-        self.tabs.addTab( self.route.get_widget(), "Route" )
-
         # Land parameters
         self.land = Land(changefunc =self.onChange, host=host, port=port)
         self.tabs.addTab( self.land.get_widget(), "Land" )
+
+        # Route follow parameters
+        self.L1 = L1Controller(changefunc =self.onChange, host=host, port=port)
+        self.tabs.addTab( self.L1.get_widget(), "L1" )
 
         # PID controller parameters
         root = self.xml.getroot()
