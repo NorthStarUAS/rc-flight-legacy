@@ -8,7 +8,7 @@ class Circle():
         self.changefunc = changefunc
         self.host = host
         self.port = port
-        self.original_values = [ "", "", "left", "100", "25", "25" ]
+        self.original_values = [ "", "", "left", "100" ]
         self.container = self.make_page()
         self.xml = None
 
@@ -37,19 +37,11 @@ class Circle():
         self.edit_radius = QtGui.QLineEdit()
         self.edit_radius.setFixedWidth(350)
         self.edit_radius.textChanged.connect(self.onChange)
-        self.edit_bank_limit = QtGui.QLineEdit()
-        self.edit_bank_limit.setFixedWidth(350)
-        self.edit_bank_limit.textChanged.connect(self.onChange)
-        self.edit_L1_period = QtGui.QLineEdit()
-        self.edit_L1_period.setFixedWidth(350)
-        self.edit_L1_period.textChanged.connect(self.onChange)
 
         layout.addRow( "<b>Altitude AGL (ft):</b>", self.edit_alt )
         layout.addRow( "<b>Speed (kt):</b>", self.edit_speed )
         layout.addRow( "<b>Direction (left/right):</b>", self.edit_direction )
         layout.addRow( "<b>Radius (m):</b>", self.edit_radius )
-        layout.addRow( "<b>Bank Limit (deg):</b>", self.edit_bank_limit )
-        layout.addRow( "<b>L1 Period (10-25):</b>", self.edit_L1_period )
 
         # 'Parameter' button bar
         param_group = QtGui.QFrame()
@@ -115,10 +107,6 @@ class Circle():
                         self.edit_direction.text())
         self.send_value(t, "/mission/circle/radius-m",
                         self.edit_radius.text())
-        self.send_value(t, "/mission/circle/bank-limit-deg",
-                        self.edit_bank_limit.text())
-        self.send_value(t, "/mission/circle/L1-period",
-                        self.edit_L1_period.text())
         t.quit()
 
     def revert(self):
@@ -128,8 +116,6 @@ class Circle():
         self.edit_speed.setText( self.original_values[1] )
         self.edit_direction.setText( self.original_values[2] )
         self.edit_radius.setText( self.original_values[3] )
-        self.edit_bank_limit.setText( self.original_values[4] )
-        self.edit_L1_period.setText( self.original_values[5] )
 
         # send original values to remote
         self.update()

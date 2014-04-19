@@ -3,12 +3,12 @@ import subprocess
 
 import fgtelnet
 
-class Route():
+class L1Controller():
     def __init__(self, changefunc, host="localhost", port=6499):
         self.changefunc = changefunc
         self.host = host
         self.port = port
-        self.original_values = [ "", "", "25", "25", "0.7", "0.5" ]
+        self.original_values = [ "30", "15", "0.7" ]
         self.container = self.make_page()
         self.xml = None
 
@@ -25,12 +25,6 @@ class Route():
         page.setLayout( layout )
         toplayout.addWidget( page )
 
-        self.edit_alt = QtGui.QLineEdit()
-        self.edit_alt.setFixedWidth(350)
-        self.edit_alt.textChanged.connect(self.onChange)
-        self.edit_speed = QtGui.QLineEdit()
-        self.edit_speed.setFixedWidth(350)
-        self.edit_speed.textChanged.connect(self.onChange)
         self.edit_bank_limit = QtGui.QLineEdit()
         self.edit_bank_limit.setFixedWidth(350)
         self.edit_bank_limit.textChanged.connect(self.onChange)
@@ -40,23 +34,17 @@ class Route():
         self.edit_L1_damping = QtGui.QLineEdit()
         self.edit_L1_damping.setFixedWidth(350)
         self.edit_L1_damping.textChanged.connect(self.onChange)
-        self.edit_xtrack_gain = QtGui.QLineEdit()
-        self.edit_xtrack_gain.setFixedWidth(350)
-        self.edit_xtrack_gain.textChanged.connect(self.onChange)
 
-        layout.addRow( "<b>Altitude AGL (ft):</b>", self.edit_alt )
-        layout.addRow( "<b>Speed (kt):</b>", self.edit_speed )
         layout.addRow( "<b>Bank Limit (deg):</b>", self.edit_bank_limit )
         layout.addRow( "<b>L1 Period (10-25):</b>", self.edit_L1_period )
         layout.addRow( "<b>L1 Damping (0.7):</b>", self.edit_L1_damping )
-        layout.addRow( "<b>Xtrack Steer Gain (0.5):</b>", self.edit_xtrack_gain )
 
         # 'Parameter' button bar
         param_group = QtGui.QFrame()
         toplayout.addWidget(param_group)
         param_layout = QtGui.QHBoxLayout()
         param_group.setLayout( param_layout )
-        param_layout.addWidget( QtGui.QLabel("<b>Route Parameters:</b> ") )
+        param_layout.addWidget( QtGui.QLabel("<b>L1 Parameters:</b> ") )
         update = QtGui.QPushButton('Update')
         update.clicked.connect(self.update)
         param_layout.addWidget(update)
@@ -101,29 +89,20 @@ class Route():
         print "update circle hold params"
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
-        self.send_value(t, "/autopilot/settings/override-agl-ft",
-                        self.edit_alt.text())
-        self.send_value(t, "/autopilot/settings/target-speed-kt",
-                        self.edit_speed.text())
-        self.send_value(t, "/mission/route/bank-limit-deg",
+        self.send_value(t, "/config/fcs/autopilot/L1-controller/bank-limit-deg",
                         self.edit_bank_limit.text())
-        self.send_value(t, "/mission/route/L1-period",
+        self.send_value(t, "/config/fcs/autopilot/L1-controller/period",
                         self.edit_L1_period.text())
-        self.send_value(t, "/mission/route/L1-damping",
+        self.send_value(t, "/config/fcs/autopilot/L1-controller/damping",
                         self.edit_L1_damping.text())
-        self.send_value(t, "/mission/route/xtrack-steer-gain",
-                        self.edit_xtrack_gain.text())
         t.quit()
 
     def revert(self):
         print str(self.original_values)
         # revert form
-        self.edit_alt.setText( self.original_values[0] )
-        self.edit_speed.setText( self.original_values[1] )
-        self.edit_bank_limit.setText( self.original_values[2] )
-        self.edit_L1_period.setText( self.original_values[3] )
-        self.edit_L1_damping.setText( self.original_values[4] )
-        self.edit_xtrack_gain.setText( self.original_values[5] )
+        self.edit_bank_limit.setText( self.original_values[0] )
+        self.edit_L1_period.setText( self.original_values[1] )
+        self.edit_L1_damping.setText( self.original_values[2] )
 
         # send original values to remote
         self.update()
