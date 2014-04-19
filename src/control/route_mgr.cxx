@@ -84,10 +84,23 @@ FGRouteMgr::~FGRouteMgr() {
 
 // bind property nodes
 void FGRouteMgr::bind() {
-    bank_limit_node = fgGetNode("/mission/route/bank-limit-deg", true);
+    bank_limit_node = fgGetNode("/config/fcs/autopilot/L1-controller/bank-limit-deg", true);
     // heading_gain_node = fgGetNode("/mission/route/heading-error-gain", true);
-    L1_period_node = fgGetNode("/mission/route/L1-period", true);
-    L1_damping_node = fgGetNode("/mission/route/L1-damping", true);
+    L1_period_node = fgGetNode("/config/fcs/autopilot/L1-controller/period", true);
+    L1_damping_node = fgGetNode("/config/fcs/autopilot/L1-controller/damping", true);
+
+    // sanity check, set some conservative values if none are provided
+    // in the autopilot config
+    if ( bank_limit_node->getDoubleValue() < 0.1 ) {
+	bank_limit_node->setDoubleValue( 20.0 );
+    }
+    if ( L1_period_node->getDoubleValue() < 0.1 ) {
+	L1_period_node->setDoubleValue( 25.0 );
+    }
+    if ( L1_damping_node->getDoubleValue() < 0.1 ) {
+	L1_damping_node->setDoubleValue( 0.7 );
+    }
+
     xtrack_gain_node = fgGetNode( "/mission/route/xtrack-steer-gain", true );
 
     lon_node = fgGetNode( "/position/longitude-deg", true );
