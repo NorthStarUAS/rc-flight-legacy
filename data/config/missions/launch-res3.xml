@@ -66,10 +66,6 @@
     <task>
       <name>route</name>
       <route include="../routes/bowtie-300m.xml" />
-      <bank-limit-deg>25</bank-limit-deg>
-      <L1-period>30.0</L1-period>
-      <L1-damping>0.7</L1-damping>
-      <xtrack-steer-gain>0.4</xtrack-steer-gain>
       <altitude-agl-ft>500</altitude-agl-ft>
       <speed-kt>30</speed-kt>
     </task>
@@ -84,8 +80,6 @@
       <nickname>circle-home</nickname>
       <config>/mission/home</config>
       <radius-m>100</radius-m>
-      <bank-limit-deg>20</bank-limit-deg>
-      <L1-period>30.0</L1-period>
       <altitude-agl-ft>500</altitude-agl-ft>
       <speed-kt>25</speed-kt>
     </task>
@@ -95,8 +89,6 @@
       <nickname>circle-target</nickname>
       <config>/mission/circle</config>
       <radius-m>100</radius-m>
-      <bank-limit-deg>20</bank-limit-deg>
-      <L1-period>30.0</L1-period>
     </task>
     <task>
       <name>land</name>
