@@ -390,7 +390,8 @@ void FGRouteMgr::update() {
 		    } else {
 			SGWayPoint wp = active->get_current();
 			mission_mgr.request_task_circle(wp.get_target_lon(),
-							wp.get_target_lat());
+							wp.get_target_lat(),
+							0.0, 0.0);
 		    }
 		}
 	    } else if ( completion_mode == EXTEND_LAST_LEG ) {
