@@ -94,15 +94,14 @@
       <name>land</name>
       <lateral-offset-m>0.0</lateral-offset-m>
       <glideslope-deg>5.0</glideslope-deg>
-      <turn-radius-m>75</turn-radius-m>
+      <turn-radius-m>100</turn-radius-m>
       <turn-steps>8</turn-steps>
       <direction>left</direction>
       <extend-final-leg-m>150</extend-final-leg-m>
       <alt-bias-ft>100</alt-bias-ft>
       <approach-speed-kt>25</approach-speed-kt>
-      <flare-speed-kt>20</flare-speed-kt>
-      <flare-seconds>3.5</flare-seconds>
-      <xtrack-steer-gain>0.4</xtrack-steer-gain>
+      <flare-pitch-deg>5</flare-pitch-deg>
+      <flare-seconds>5.0</flare-seconds>
     </task>
   </standby-tasks>
 
