@@ -61,7 +61,6 @@
       <max-steer>0.5</max-steer>
       <roll-gain>0.5</roll-gain>
       <roll-limit>5.0</roll-limit>
-      <elevator-max>-0.20</elevator-max>
     </task>
 
     <task>
