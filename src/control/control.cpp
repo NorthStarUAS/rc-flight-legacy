@@ -148,6 +148,13 @@ void control_update(double dt)
 		altitude_lock_node->setStringValue( "" );
 		speed_lock_node->setStringValue( "" );
 		pitch_lock_node->setStringValue( "elevator" );
+	    } else if ( fcs_mode == "roll" ) {
+		// set lock modes for roll only
+		roll_lock_node->setStringValue( "aileron" );
+		yaw_lock_node->setStringValue( "" );
+		altitude_lock_node->setStringValue( "" );
+		speed_lock_node->setStringValue( "" );
+		pitch_lock_node->setStringValue( "" );
 	    } else if ( fcs_mode == "basic+alt+speed" ) {
 		// set lock modes for "basic" + alt hold
 		roll_lock_node->setStringValue( "aileron" );
