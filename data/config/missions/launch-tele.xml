@@ -102,9 +102,8 @@
       <extend-final-leg-m>150</extend-final-leg-m>
       <alt-bias-ft>0</alt-bias-ft>
       <approach-speed-kt>25</approach-speed-kt>
-      <flare-speed-kt>20</flare-speed-kt>
-      <flare-seconds>3.0</flare-seconds>
-      <xtrack-steer-gain>0.4</xtrack-steer-gain>
+      <flare-pitch-deg>5</flare-pitch-deg>
+      <flare-seconds>5.0</flare-seconds>
     </task>
   </standby-tasks>
 
