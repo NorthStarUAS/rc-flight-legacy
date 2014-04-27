@@ -96,7 +96,7 @@
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/speed</prop>
-      <value>elevator</value>
+      <value>pitch</value>
     </enable>
     <input>
       <prop>/velocity/airspeed-kt</prop>
@@ -125,7 +125,7 @@
     <description>Stage #2, Drive elevator to hold target pitch angle</description>
     <debug>false</debug>
     <enable>
-      <prop>/autopilot/locks/speed</prop>
+      <prop>/autopilot/locks/pitch</prop>
       <value>elevator</value>
     </enable>
     <input>

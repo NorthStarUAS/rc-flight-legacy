@@ -40,7 +40,6 @@ static FGXMLAutopilot ap;
 static SGPropertyNode *ap_master_switch_node = NULL;
 static SGPropertyNode *fcs_mode_node = NULL;
 
-static SGPropertyNode *heading_lock_node = NULL;
 static SGPropertyNode *roll_lock_node = NULL;
 static SGPropertyNode *yaw_lock_node = NULL;
 static SGPropertyNode *altitude_lock_node = NULL;
@@ -67,7 +66,6 @@ static void bind_properties() {
     ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
     fcs_mode_node = fgGetNode("/config/fcs/mode", true);
 
-    heading_lock_node = fgGetNode("/autopilot/locks/heading", true);
     roll_lock_node = fgGetNode("/autopilot/locks/roll", true);
     yaw_lock_node = fgGetNode("/autopilot/locks/yaw", true);
     altitude_lock_node = fgGetNode("/autopilot/locks/altitude", true);
@@ -145,39 +143,27 @@ void control_update(double dt)
 
 	    if ( fcs_mode == "basic" ) {
 		// set lock modes for "basic" inner loops only
-		heading_lock_node->setStringValue( "" );
 		roll_lock_node->setStringValue( "aileron" );
 		yaw_lock_node->setStringValue( "" );
 		altitude_lock_node->setStringValue( "" );
-		speed_lock_node->setStringValue( "elevator" );
-		pitch_lock_node->setStringValue( "" );
-	    } else if ( fcs_mode == "basic+alt" ) {
+		speed_lock_node->setStringValue( "" );
+		pitch_lock_node->setStringValue( "elevator" );
+	    } else if ( fcs_mode == "basic+alt+speed" ) {
 		// set lock modes for "basic" + alt hold
-		heading_lock_node->setStringValue( "" );
 		roll_lock_node->setStringValue( "aileron" );
 		yaw_lock_node->setStringValue( "" );
 		altitude_lock_node->setStringValue( "throttle" );
-		speed_lock_node->setStringValue( "elevator" );
-		pitch_lock_node->setStringValue( "" );
+		speed_lock_node->setStringValue( "pitch" );
+		pitch_lock_node->setStringValue( "elevator" );
 	    } else if ( fcs_mode == "basic+nav" ) {
 		// set lock modes for "basic" + navigation
-		heading_lock_node->setStringValue( "route" );
 		roll_lock_node->setStringValue( "aileron" );
 		yaw_lock_node->setStringValue( "" );
 		altitude_lock_node->setStringValue( "" );
-		speed_lock_node->setStringValue( "elevator" );
-		pitch_lock_node->setStringValue( "" );
-	    } else if ( fcs_mode == "basic+alt+nav" ) {
-		// set lock modes for "basic" + alt hold + navigation
-		heading_lock_node->setStringValue( "route" );
-		roll_lock_node->setStringValue( "aileron" );
-		yaw_lock_node->setStringValue( "" );
-		altitude_lock_node->setStringValue( "throttle" );
-		speed_lock_node->setStringValue( "elevator" );
-		pitch_lock_node->setStringValue( "" );
+		speed_lock_node->setStringValue( "pitch" );
+		pitch_lock_node->setStringValue( "elevator" );
 	    } else if ( fcs_mode == "cas" ) {
 		// set lock modes for "cas"
-		heading_lock_node->setStringValue( "" );
 		roll_lock_node->setStringValue( "aileron" );
 		yaw_lock_node->setStringValue( "" );
 		altitude_lock_node->setStringValue( "" );
@@ -204,7 +190,6 @@ void control_update(double dt)
     } else {
 	if ( fcs_mode != "" ) {
 	    // autopilot is just de-activated, clear lock modes
-	    heading_lock_node->setStringValue( "" );
 	    roll_lock_node->setStringValue( "" );
 	    yaw_lock_node->setStringValue( "" );
 	    altitude_lock_node->setStringValue( "" );
