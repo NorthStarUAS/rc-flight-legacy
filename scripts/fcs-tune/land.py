@@ -8,7 +8,7 @@ class Land():
         self.changefunc = changefunc
         self.host = host
         self.port = port
-        self.original_values = [ "0", "3.0", "75", "8", "left", "50", "0", "25", "20", "5" ]
+        self.original_values = [ "0", "3.0", "75", "8", "left", "50", "0", "25", "5", "5" ]
         self.container = self.make_page()
         self.xml = None
 
@@ -58,9 +58,9 @@ class Land():
         self.edit_appr_speed = QtGui.QLineEdit()
         self.edit_appr_speed.setFixedWidth(350)
         self.edit_appr_speed.textChanged.connect(self.onChange)
-        self.edit_flare_speed = QtGui.QLineEdit()
-        self.edit_flare_speed.setFixedWidth(350)
-        self.edit_flare_speed.textChanged.connect(self.onChange)
+        self.edit_flare_pitch = QtGui.QLineEdit()
+        self.edit_flare_pitch.setFixedWidth(350)
+        self.edit_flare_pitch.textChanged.connect(self.onChange)
         self.edit_flare_time = QtGui.QLineEdit()
         self.edit_flare_time.setFixedWidth(350)
         self.edit_flare_time.textChanged.connect(self.onChange)
@@ -76,7 +76,7 @@ class Land():
         layout.addRow( "<b>Extend Final Leg Len (m):</b>", self.edit_final_leg )
         layout.addRow( "<b>Altitude Bias (ft):</b>", self.edit_alt_bias )
         layout.addRow( "<b>Approach Speed (kt):</b>", self.edit_appr_speed )
-        layout.addRow( "<b>Flare Speed (kt):</b>", self.edit_flare_speed )
+        layout.addRow( "<b>Flare Pitch (deg):</b>", self.edit_flare_pitch )
         layout.addRow( "<b>Flare Time (sec):</b>", self.edit_flare_time )
 
         # 'Parameter' button bar
@@ -156,8 +156,8 @@ class Land():
                         self.edit_alt_bias.text())
         self.send_value(t, "/mission/land/approach-speed-kt",
                         self.edit_appr_speed.text())
-        self.send_value(t, "/mission/land/flare-speed-kt",
-                        self.edit_flare_speed.text())
+        self.send_value(t, "/mission/land/flare-pitch-deg",
+                        self.edit_flare_pitch.text())
         self.send_value(t, "/mission/land/flare-seconds",
                         self.edit_flare_time.text())
 
@@ -188,7 +188,7 @@ class Land():
         self.edit_final_leg.setText( self.original_values[5] )
         self.edit_alt_bias.setText( self.original_values[6] )
         self.edit_appr_speed.setText( self.original_values[7] )
-        self.edit_flare_speed.setText( self.original_values[8] )
+        self.edit_flare_pitch.setText( self.original_values[8] )
         self.edit_flare_time.setText( self.original_values[9] )
 
     def set_runway(self, lon, lat, az):
