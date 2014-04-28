@@ -8,6 +8,6 @@
 #include "pilot_fgfs.hxx"
 
 
-bool fgfs_pilot_init( string rootname, SGPropertyNode *config ) {}
-bool fgfs_pilot_update() {}
+bool fgfs_pilot_init( string rootname, SGPropertyNode *config ) { return true; }
+bool fgfs_pilot_update() { return true; }
 void fgfs_pilot_close(){}

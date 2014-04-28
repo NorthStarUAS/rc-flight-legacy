@@ -739,4 +739,6 @@ bool UGPacketizer::decode_fcs_update(vector <string> tokens) {
     min->setDoubleValue( atof(tokens[7].c_str()) );
     SGPropertyNode *max = config->getNode("u_max", true);
     max->setDoubleValue( atof(tokens[8].c_str()) );
+
+    return true;
 }
