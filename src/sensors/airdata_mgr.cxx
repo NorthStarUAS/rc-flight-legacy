@@ -34,7 +34,7 @@
 static float pressure_alt_filt = 0.0;
 static float airspeed_filt = 0.0;
 static float true_alt_m = 0.0;
-static float ground_alt_press = 0.0;
+//static float ground_alt_press = 0.0;
 static float climb_filt = 0.0;
 static float accel_filt = 0.0;
 static float Ps_filt_err = 0.0;
