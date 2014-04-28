@@ -239,9 +239,9 @@ void Filter_init() {
 static void update_euler_rates() {
     double phi = filter_phi_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
     double the = filter_theta_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-    double psi = filter_psi_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
+    /*double psi = filter_psi_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;*/
 
-    // direct computation of euler rates give body rates and estimated
+    // direct computation of euler rates given body rates and estimated
     // attitude (based on googled references):
     // http://www.princeton.edu/~stengel/MAE331Lecture9.pdf
     // http://www.mathworks.com/help/aeroblks/customvariablemass6dofeulerangles.html
