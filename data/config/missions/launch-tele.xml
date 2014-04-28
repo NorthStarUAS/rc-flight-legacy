@@ -97,7 +97,7 @@
       <turn-radius-m>75</turn-radius-m>
       <turn-steps>8</turn-steps>
       <direction>left</direction>
-      <extend-final-leg-m>150</extend-final-leg-m>
+      <extend-final-leg-m>50</extend-final-leg-m>
       <alt-bias-ft>0</alt-bias-ft>
       <approach-speed-kt>25</approach-speed-kt>
       <flare-pitch-deg>5</flare-pitch-deg>
