@@ -13,6 +13,7 @@
   <!-- Bank angle hold -->
   <pid-controller>
     <name>Roll angle hold</name>
+    <description>Built in L1 controller sets target roll angle</description>
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/roll</prop>
@@ -77,12 +78,12 @@
     <!-- 9/3/2013, convert to full pid and borrow telemaster gains -->
     <!-- 9/11/2013, Kp=0.005 Ti=20 maybe would like a little slower response -->
     <config>
-      <Kp>0.004</Kp>       <!-- proportional gain -->
+      <Kp>0.005</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>20.0</Ti>        <!-- integrator time -->
+      <Ti>15.0</Ti>        <!-- integrator time -->
       <Td>0.00001</Td>     <!-- derivator time -->
       <u_min>0.0</u_min>   <!-- minimum output clamp -->
       <u_max>1.0</u_max>   <!-- maximum output clamp -->
@@ -113,7 +114,7 @@
       <alpha>0.1</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
-      <Ti>10.0</Ti>         <!-- integrator time -->
+      <Ti>15.0</Ti>         <!-- integrator time -->
       <Td>0.000001</Td>    <!-- derivator time -->
       <u_min>-5.0</u_min> <!-- minimum output clamp -->
       <u_max>15.0</u_max>  <!-- maximum output clamp -->
