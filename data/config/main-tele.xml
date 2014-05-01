@@ -23,7 +23,7 @@
         <pitot-calibrate-factor n="0">1.05</pitot-calibrate-factor>
         <pwm-hz n="0">200</pwm-hz>
         <volt-divider-ratio n="0">4.070</volt-divider-ratio>
-        <external-amp-ratio n="0">13.90</external-amp-ratio>
+        <external-amp-ratio n="0">14.50</external-amp-ratio>
       </APM2>
       <imu-group n="0">
         <imu n="0">
