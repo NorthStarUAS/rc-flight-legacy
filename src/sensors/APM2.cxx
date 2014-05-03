@@ -1383,7 +1383,7 @@ bool APM2_airdata_update() {
 	// to just pick a fixed value here and let the system
 	// (downstream) figure out the error between pressure and gps
 	// altitudes.
-	const float std_temp = 20.0;
+	const float std_temp = 15.0;
 
 	float alt_m = ((pow((sea_press / (airdata.pressure/100.0)), 1.0/5.257) - 1.0) * (std_temp + 273.15)) / 0.0065;
 	airdata_altitude_node->setDoubleValue( alt_m );
