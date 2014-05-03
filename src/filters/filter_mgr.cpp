@@ -223,16 +223,20 @@ void Filter_init() {
     official_agl_ft_node = fgGetNode("/position/altitude-agl-ft", true);
     official_ground_m_node = fgGetNode("/position/altitude-ground-m", true);
 
-    // select official source:
+    // select official source (currently AGL is pressure based,
+    // absolute ground alt is based on average gps/filter value at
+    // startup, and MSL altitude is based on pressure altitude -
+    // pressure error (pressure error computed as average difference
+    // between gps altitude and pressure altitude over time)):
+    //
     // 1. /position/pressure
     // 2. /position/filter
     // 3. /position/combined
     official_alt_m_node->alias("/position/combined/altitude-true-m");
     official_alt_ft_node->alias("/position/combined/altitude-true-ft");
-    official_agl_m_node->alias("/position/combined/altitude-agl-m");
-    official_agl_ft_node->alias("/position/combined/altitude-agl-ft");
-    official_ground_m_node->alias("/position/filter/altitude-ground-m");
-    
+    official_agl_m_node->alias("/position/pressure/altitude-agl-m");
+    official_agl_ft_node->alias("/position/pressure/altitude-agl-ft");
+    official_ground_m_node->alias("/position/filter/altitude-ground-m");    
 }
 
 
