@@ -116,8 +116,10 @@ void UGPacketizer::bind_pilot_nodes() {
 
 // initialize autopilot status property nodes
 void UGPacketizer::bind_ap_nodes() {
-    filter_ground_alt_m_node
-	= fgGetNode("/position/altitude-ground-m", true);
+    pressure_ground_alt_node
+	= fgGetNode("/position/pressure/altitude-ground-m", true);
+    pressure_error_node
+	= fgGetNode("/position/pressure/pressure-error-m", true);
     ap_hdg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
     ap_roll = fgGetNode("/autopilot/settings/target-roll-deg", true);
     ap_altitude_agl = fgGetNode( "/autopilot/settings/target-agl-ft", true );
@@ -533,9 +535,12 @@ int UGPacketizer::packetize_ap( uint8_t *buf, uint8_t route_size,
     int16_t roll = (int16_t)(ap_roll->getFloatValue() * 10.0);
     *(int16_t *)buf = roll; buf += 2;
 
-    float alt_agl_ft = ap_altitude_agl->getFloatValue();
-    float ground_m = filter_ground_alt_m_node->getFloatValue();
-    float alt_msl_ft = ground_m * SG_METER_TO_FEET + alt_agl_ft;
+    // compute target AP msl as:
+    //   ground_alt(pressure) + altitude_agl(press) - error(press)
+    float target_agl_ft = ap_altitude_agl->getFloatValue();
+    float ground_m = pressure_ground_alt_node->getFloatValue();
+    float error_m = pressure_error_node->getFloatValue();
+    float alt_msl_ft = (ground_m - error_m) * SG_METER_TO_FEET + target_agl_ft;
     *(uint16_t *)buf = (uint16_t)alt_msl_ft; buf += 2;
 
     int16_t climb = (int16_t)(ap_climb->getFloatValue() * 10.0);
@@ -707,38 +712,61 @@ bool UGPacketizer::decode_fcs_update(vector <string> tokens) {
 	tokens.erase(tokens.begin());
     }
 
-    if ( tokens.size() != 9 ) {
+    if ( tokens.size() == 9 ) {
+	int i = atoi(tokens[0].c_str());
+	SGPropertyNode *pid
+	    = fgGetNode("/config/fcs/autopilot/pid-controller",i);
+	if ( pid == NULL ) {
+	    return false;
+	}
+
+	SGPropertyNode *config = pid->getNode("config");
+	if ( config == NULL ) {
+	    return false;
+	}
+
+	SGPropertyNode *Kp = config->getNode("Kp", true);
+	Kp->setDoubleValue( atof(tokens[1].c_str()) );
+	SGPropertyNode *beta = config->getNode("beta", true);
+	beta->setDoubleValue( atof(tokens[2].c_str()) );
+	SGPropertyNode *alpha = config->getNode("alpha", true);
+	alpha->setDoubleValue( atof(tokens[3].c_str()) );
+	SGPropertyNode *gamma = config->getNode("gamma", true);
+	gamma->setDoubleValue( atof(tokens[4].c_str()) );
+	SGPropertyNode *Ti = config->getNode("Ti", true);
+	Ti->setDoubleValue( atof(tokens[5].c_str()) );
+	SGPropertyNode *Td = config->getNode("Td", true);
+	Td->setDoubleValue( atof(tokens[6].c_str()) );
+	SGPropertyNode *min = config->getNode("u_min", true);
+	min->setDoubleValue( atof(tokens[7].c_str()) );
+	SGPropertyNode *max = config->getNode("u_max", true);
+	max->setDoubleValue( atof(tokens[8].c_str()) );
+
+	return true;
+    } else if ( tokens.size() == 5 ) {
+	int i = atoi(tokens[0].c_str());
+	SGPropertyNode *pid
+	    = fgGetNode("/config/fcs/autopilot/pi-simple-controller",i);
+	if ( pid == NULL ) {
+	    return false;
+	}
+
+	SGPropertyNode *config = pid->getNode("config");
+	if ( config == NULL ) {
+	    return false;
+	}
+
+	SGPropertyNode *Kp = config->getNode("Kp", true);
+	Kp->setDoubleValue( atof(tokens[1].c_str()) );
+	SGPropertyNode *Ki = config->getNode("Ki", true);
+	Ki->setDoubleValue( atof(tokens[2].c_str()) );
+	SGPropertyNode *min = config->getNode("u_min", true);
+	min->setDoubleValue( atof(tokens[3].c_str()) );
+	SGPropertyNode *max = config->getNode("u_max", true);
+	max->setDoubleValue( atof(tokens[4].c_str()) );
+
+	return true;
+     } else {
 	return false;
     }
-
-    int i = atoi(tokens[0].c_str());
-    SGPropertyNode *pid
-	= fgGetNode("/config/fcs/autopilot/pid-controller",i);
-    if ( pid == NULL ) {
-	return false;
-    }
-
-    SGPropertyNode *config = pid->getNode("config");
-    if ( config == NULL ) {
-	return false;
-    }
-
-    SGPropertyNode *Kp = config->getNode("Kp", true);
-    Kp->setDoubleValue( atof(tokens[1].c_str()) );
-    SGPropertyNode *beta = config->getNode("beta", true);
-    beta->setDoubleValue( atof(tokens[2].c_str()) );
-    SGPropertyNode *alpha = config->getNode("alpha", true);
-    alpha->setDoubleValue( atof(tokens[3].c_str()) );
-    SGPropertyNode *gamma = config->getNode("gamma", true);
-    gamma->setDoubleValue( atof(tokens[4].c_str()) );
-    SGPropertyNode *Ti = config->getNode("Ti", true);
-    Ti->setDoubleValue( atof(tokens[5].c_str()) );
-    SGPropertyNode *Td = config->getNode("Td", true);
-    Td->setDoubleValue( atof(tokens[6].c_str()) );
-    SGPropertyNode *min = config->getNode("u_min", true);
-    min->setDoubleValue( atof(tokens[7].c_str()) );
-    SGPropertyNode *max = config->getNode("u_max", true);
-    max->setDoubleValue( atof(tokens[8].c_str()) );
-
-    return true;
 }
