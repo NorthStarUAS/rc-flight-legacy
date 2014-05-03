@@ -13,6 +13,7 @@
   <!-- Bank angle hold -->
   <pid-controller>
     <name>Roll angle hold</name>
+    <description>Built in L1 controller sets target roll angle</description>
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/roll</prop>
@@ -42,6 +43,31 @@
       <u_max>1.00</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
+
+  <!-- simple (but runtime tuneable) autocoordination driving rudder in direct proportion to aileron -->
+  <pi-simple-controller>
+    <name>Auto Coordination</name>
+    <debug>false</debug>
+    <enable>
+      <prop>/autopilot/locks/yaw</prop>
+      <value>autocoord</value>
+    </enable>
+    <input>
+      <prop>/controls/flight/aileron</prop>
+    </input>
+    <reference>
+      <value>0.0</value>
+    </reference>
+    <output>
+      <prop>/controls/flight/rudder</prop>
+    </output>
+    <config>
+      <Kp>-0.5</Kp>        <!-- proportional gain -->
+      <Ki>0.0</Ki>         <!-- integral gain -->
+      <u_min>-1.0</u_min> <!-- minimum output clamp -->
+      <u_max>1.0</u_max>  <!-- maximum output clamp -->
+    </config>
+  </pi-simple-controller>
 
   <!-- Altitude hold. -->
 
