@@ -38,23 +38,49 @@
       <!-- 4/8/2013 P=0.007 I=10.00 min/max = 0.25, Res3 #3 Seemed like not pushing hard enought to get rid of long term error, but really jumpy -->
       <!-- 5/24/2013 P=0.005 I=5.00 min/max = 0.25, Res3 #3 maybe still too snappy? -->
       <!-- 6/17/2013 P=0.004 I=2.00 min/max = 0.25, Res3 #3 seeking better convergence -->
-      <Kp>0.02</Kp>      <!-- proportional gain-->
+      <Kp>0.04</Kp>      <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>10.0</Ti>        <!-- integrator time -->
+      <Ti>2.0</Ti>        <!-- integrator time -->
       <Td>0.0001</Td>      <!-- derivator time -->
       <u_min>-0.75</u_min> <!-- minimum output clamp -->
       <u_max>0.75</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
+  <!-- simple (but runtime tuneable) autocoordination driving rudder in direct proportion to aileron -->
+  <pi-simple-controller>
+    <name>Auto Coordination</name>
+    <debug>false</debug>
+    <enable>
+      <prop>/autopilot/locks/yaw</prop>
+      <value>autocoord</value>
+    </enable>
+    <input>
+      <prop>/controls/flight/aileron</prop>
+    </input>
+    <reference>
+      <value>0.0</value>
+    </reference>
+    <output>
+      <prop>/controls/flight/rudder</prop>
+    </output>
+    <config>
+      <Kp>-0.5</Kp>        <!-- proportional gain -->
+      <Ki>0.0</Ki>         <!-- integral gain -->
+      <u_min>-1.0</u_min> <!-- minimum output clamp -->
+      <u_max>1.0</u_max>  <!-- maximum output clamp -->
+    </config>
+  </pi-simple-controller>
+
   <!-- Altitude hold. -->
 
   <!-- Drive the throttle based on altitude error -->
   <pid-controller>
-    <name>Altitude Hold (Pressure altimeter based, references AGL)</name>
+    <name>Altitude Hold</name>
+    <description>Pressure altimeter based, references AGL</description>
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/altitude</prop>
@@ -73,7 +99,7 @@
     <!-- 5/24/2013, Kp=0.006 Ti=20.0 didn't seem to be pushing up to target -->
     <!-- 5/26/2013, Kp=0.006 Ti=10.0 -->
     <config>
-      <Kp>0.005</Kp>       <!-- proportional gain -->
+      <Kp>0.02</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -81,43 +107,14 @@
       <Ti>20.0</Ti>        <!-- integrator time -->
       <Td>0.00001</Td>     <!-- derivator time -->
       <u_min>0.0</u_min>   <!-- minimum output clamp -->
-      <u_max>0.5</u_max>   <!-- maximum output clamp -->
-    </config>
-  </pid-controller>
-
-  <!-- drives the throttle to achieve the desired climb rate. -->
-  <pid-controller>
-    <name>Rate of Climb Hold (barometer based)</name>
-    <debug>false</debug>
-    <enable>
-      <prop>/autopilot/locks/altitude</prop>
-      <value>climb-rate</value>
-    </enable>
-    <input>
-      <prop>/velocity/pressure-vertical-speed-fps</prop>
-    </input>
-    <reference>
-      <prop>/autopilot/internal/target-climb-rate-fps</prop>
-    </reference>
-    <output>
-      <prop>/controls/engine/throttle</prop>
-    </output>
-    <config>
-      <Kp>0.02</Kp>        <!-- proportional gain -->
-      <beta>1.0</beta>     <!-- input value weighing factor -->
-      <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
-      <gamma>0.0</gamma>   <!-- input value weighing factor for -->
-                           <!-- unfiltered derivative error -->
-      <Ti>20.0</Ti>        <!-- integrator time -->
-      <Td>0.00001</Td>     <!-- derivator time -->
-      <u_min>0.0</u_min>   <!-- minimum output clamp -->
-      <u_max>1.0</u_max>   <!-- maximum output clamp -->
+      <u_max>0.6</u_max>   <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
   <!-- Hold speed by varying elevator (2-stage approach) --> 
   <pid-controller>
-    <name>Speed hold (vary elevator) Stage #1</name>
+    <name>Speed Hold 1</name>
+    <description>Stage #1, drive target pitch angle from speed error</description>
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/speed</prop>
@@ -133,12 +130,12 @@
       <prop>/autopilot/settings/target-pitch-deg</prop>
     </output>
     <config>
-      <Kp>-1.0</Kp>        <!-- proportional gain -->
+      <Kp>-1.5</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
-      <alpha>0.25</alpha>  <!-- low pass filter weighing factor -->
+      <alpha>0.1</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
-      <Ti>2.0</Ti>         <!-- integrator time -->
+      <Ti>20.0</Ti>         <!-- integrator time -->
       <Td>0.000001</Td>    <!-- derivator time -->
       <u_min>-5.0</u_min> <!-- minimum output clamp -->
       <u_max>15.0</u_max>  <!-- maximum output clamp -->
@@ -146,7 +143,8 @@
   </pid-controller>
 
   <pid-controller>
-    <name>Speed hold (vary elevator) Stage #2</name>
+    <name>Speed Hold 2</name>
+    <description>Stage #2, Drive elevator to hold target pitch angle</description>
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/pitch</prop>
@@ -164,7 +162,7 @@
     <config>
       <!-- 6/27/2013 Kp=-0.010 a=0.5 Ti=10.0 Td=1.0 : ran to extremes and pegged -->
       <!-- 6/17/2013 Kp=0.010 a=0.5 Ti=10.0 Td=1.0 :  -->
-      <Kp>-0.02</Kp>       <!-- proportional gain -->
+      <Kp>-0.08</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -179,6 +177,7 @@
   <!-- Hold speed by varying elevator (direct, 1-stage approach) --> 
   <pid-controller>
     <name>Speed hold (vary elevator)</name>
+    <description>direct, 1-stage, vary elevator</description>
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/speed</prop>
