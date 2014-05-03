@@ -63,10 +63,9 @@
     </chunk>
 
     <chunk>
-      <name>Pressure altitude (m)</name>
+      <name>Local Pressure (inhg)</name>
       <type>float</type>
-      <node>/instrumentation/altimeter/indicated-altitude-ft</node>
-      <factor>0.3048</factor>
+      <node>/environment/pressure-inhg</node>
     </chunk>
 
     <!-- attitude "truth" also appended for the purposes of allowing -->
