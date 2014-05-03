@@ -151,12 +151,16 @@ class Tuner(QtGui.QWidget):
         # PID controller parameters
         for i,pid_node in enumerate(root.findall('pid-controller')):
             print "controller found..."
-            pid = Controller(index=i, changefunc=self.onChange, host=host, port=port)
+            pid = Controller(index=i, changefunc=self.onChange, host=host, port=port, type="full")
             pid.parse_xml(pid_node)
             self.controllers.append(pid)
             self.tabs.addTab( pid.get_widget(), pid.get_name() )
-        for pid in root.findall('pi-simple-controller'):
-            print "simple controller ignored right now ..."
+        for i,pid_node in enumerate(root.findall('pi-simple-controller')):
+            print "simple controller found..."
+            pid = Controller(index=i, changefunc=self.onChange, host=host, port=port, type="simple")
+            pid.parse_xml(pid_node)
+            self.controllers.append(pid)
+            self.tabs.addTab( pid.get_widget(), pid.get_name() )
 
     def save(self):
         print "called for save, but does nothing yet"
