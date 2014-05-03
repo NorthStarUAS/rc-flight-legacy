@@ -144,7 +144,7 @@ void control_update(double dt)
 	    if ( fcs_mode == "basic" ) {
 		// set lock modes for "basic" inner loops only
 		roll_lock_node->setStringValue( "aileron" );
-		yaw_lock_node->setStringValue( "" );
+		yaw_lock_node->setStringValue( "autocoord" );
 		altitude_lock_node->setStringValue( "" );
 		speed_lock_node->setStringValue( "" );
 		pitch_lock_node->setStringValue( "elevator" );
@@ -158,7 +158,7 @@ void control_update(double dt)
 	    } else if ( fcs_mode == "basic+alt+speed" ) {
 		// set lock modes for "basic" + alt hold
 		roll_lock_node->setStringValue( "aileron" );
-		yaw_lock_node->setStringValue( "" );
+		yaw_lock_node->setStringValue( "autocoord" );
 		altitude_lock_node->setStringValue( "throttle" );
 		speed_lock_node->setStringValue( "pitch" );
 		pitch_lock_node->setStringValue( "elevator" );
