@@ -34,15 +34,13 @@
 static float pressure_alt_filt = 0.0;
 static float airspeed_filt = 0.0;
 static float true_alt_m = 0.0;
-//static float ground_alt_press = 0.0;
 static float climb_filt = 0.0;
-static float accel_filt = 0.0;
 static float Ps_filt_err = 0.0;
 
 // air data property nodes
 static SGPropertyNode *airdata_timestamp_node = NULL;
-static SGPropertyNode *airdata_altitude_node = NULL;
 static SGPropertyNode *airdata_airspeed_node = NULL;
+static SGPropertyNode *airdata_pressure_node = NULL;
 
 // input property nodes
 static SGPropertyNode *filter_timestamp_node = NULL;
@@ -51,7 +49,9 @@ static SGPropertyNode *filter_ground_node = NULL;
 
 // output property nodes
 static SGPropertyNode *pressure_alt_node = NULL;
-static SGPropertyNode *airspeed_filt_node = NULL;
+static SGPropertyNode *pressure_alt_smoothed_node = NULL;
+static SGPropertyNode *airspeed_node = NULL;
+static SGPropertyNode *airspeed_smoothed_node = NULL;
 static SGPropertyNode *pressure_error_m_node = NULL;
 static SGPropertyNode *true_alt_m_node = NULL;
 static SGPropertyNode *true_alt_ft_node = NULL;
@@ -60,8 +60,8 @@ static SGPropertyNode *true_agl_ft_node = NULL;
 static SGPropertyNode *agl_alt_m_node = NULL;
 static SGPropertyNode *agl_alt_ft_node = NULL;
 static SGPropertyNode *vert_fps_node = NULL;
-static SGPropertyNode *forward_accel_node = NULL;
 static SGPropertyNode *ground_alt_press_m_node = NULL;
+static SGPropertyNode *true_oat_node = NULL;
 
 // comm property nodes
 static SGPropertyNode *airdata_console_skip = NULL;
@@ -76,8 +76,8 @@ void AirData_init() {
 
     // initialize air data property nodes
     airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
-    airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
     airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
+    airdata_pressure_node = fgGetNode("/sensors/air-data/pressure-mbar", true);
 
     // input property nodes
     filter_timestamp_node = fgGetNode("/filters/filter/time-stamp", true);
@@ -85,8 +85,10 @@ void AirData_init() {
     filter_ground_node = fgGetNode("/position/filter/altitude-ground-m", true);
 
     // filtered/computed output property nodes
-    pressure_alt_node = fgGetNode("/position/pressure/altitude-smoothed-m", true);
-    airspeed_filt_node = fgGetNode("/velocity/airspeed-kt", true);
+    pressure_alt_node = fgGetNode("/position/pressure/altitude-m", true);
+    pressure_alt_smoothed_node = fgGetNode("/position/pressure/altitude-smoothed-m", true);
+    airspeed_node = fgGetNode("/velocity/airspeed-kt", true);
+    airspeed_smoothed_node = fgGetNode("/velocity/airspeed-smoothed-kt", true);
 
     true_alt_m_node = fgGetNode("/position/combined/altitude-true-m",true);
     true_alt_ft_node = fgGetNode("/position/combined/altitude-true-ft",true);
@@ -99,9 +101,9 @@ void AirData_init() {
 	= fgGetNode("/position/pressure/pressure-error-m", true);
     vert_fps_node
 	= fgGetNode("/velocity/pressure-vertical-speed-fps",true);
-    forward_accel_node = fgGetNode("/acceleration/airspeed-ktps",true);
     ground_alt_press_m_node
         = fgGetNode("/position/pressure/altitude-ground-m", true);
+    true_oat_node = fgGetNode("/position/pressure/outside-air-temp-degC", true);
 
     // initialize comm nodes
     airdata_console_skip = fgGetNode("/config/remote-link/airdata-skip", true);
@@ -141,7 +143,6 @@ void AirData_init() {
 
 static void update_pressure_helpers() {
     static float pressure_alt_filt_last = 0.0;
-    static float airspeed_filt_last = 0.0;
     static double last_time = 0.0;
     double cur_time = airdata_timestamp_node->getDoubleValue();
     static double start_time = cur_time;
@@ -155,7 +156,36 @@ static void update_pressure_helpers() {
 	return; 		// do nothing if dt zero
     }
 
-    float Ps = airdata_altitude_node->getFloatValue();
+    //
+    // 1. Compute altitude from airdata pressure sensor
+    //
+
+    // Forumula taken from here: http://keisan.casio.com/has10/SpecExec.cgi?path=06000000%2eScience%2f02100100%2eEarth%20science%2f12000300%2eAltitude%20from%20atmospheric%20pressure%2fdefault%2exml&charset=utf-8
+    //
+    // h = (((P0/P)^(1/5.257) - 1) * (T+273.15)) / 0.0065
+    // T = h*0.0065 / ((P0/P)^(1/5.257) - 1) - 273.15
+
+    double P = airdata_pressure_node->getDoubleValue(); // sensed pressure
+    const double P0 = 1013.25;	// standard sea level pressure
+
+    // The APM temp sensor is highly biased by board temp and cabin
+    // interior temperature (not OAT), so it really makes more sense
+    // to just pick a fixed value here so our relative altitude does
+    // not drift as our airplane temp changes.  We have a later system
+    // that estimates the error between gps altitude and pressure
+    // altitude.
+    const double T = 15.0;	// standard temp
+
+    // Compute altitude on a standard day
+    double tmp1 = pow((P0/P), 1.0/5.257) - 1.0;
+    double alt_m = (tmp1 * (T + 273.15)) / 0.0065;
+    pressure_alt_node->setDoubleValue( alt_m );
+
+    //
+    // 2. Filter/Smooth Altitude and airspeed to reduce noise
+    //
+
+    float Ps = alt_m; /* pressure_alt_node->getFloatValue(); */
     float Pt = airdata_airspeed_node->getFloatValue();
     float filter_alt_m = filter_alt_node->getFloatValue();
 
@@ -184,8 +214,16 @@ static void update_pressure_helpers() {
     pressure_alt_filt = (1.0 - weight_factor) * pressure_alt_filt + weight_factor * Ps;
     airspeed_filt = (1.0 - weight_factor) * airspeed_filt + weight_factor * Pt;
 
-    // compute a filtered error difference between gps altitude
-    // and pressure altitude.
+    // publish values
+    pressure_alt_smoothed_node->setDoubleValue( pressure_alt_filt );
+    airspeed_node->setDoubleValue( Pt /* raw */ );
+    airspeed_smoothed_node->setDoubleValue( airspeed_filt /* smoothed */ );
+
+    //
+    // 3. Compute a filtered error difference between gps altitude and
+    //    pressure altitude.
+    //
+
     double elapsed_time = cur_time - start_time;
     if ( elapsed_time > 300 ) {
 	elapsed_time = 300;	// 5 minutes
@@ -209,19 +247,28 @@ static void update_pressure_helpers() {
     }
 
     // true altitude estimate - filter ground average is our best
-    // estimate of agl
+    // estimate of true agl if altitude has not changed recently.
     double true_agl_m = true_alt_m - filter_ground_node->getDoubleValue();
+
+    //
+    // 4.0 Compute outside air temperature estimate based on 'true'
+    // altitude fed back into the above formula.  Note if this seems
+    // way off from reality then the math has been cross checked and
+    // consider there may be a bias in the pressure sensor
+    //
+
+    // T = h*0.0065 / ((P0/P)^(1/5.257) - 1) - 273.15
+    double T_est = ((true_alt_m * 0.0065) / tmp1) - 273.15;
+    true_oat_node->setDoubleValue( T_est );
+
+    //
+    // 5.0 Compute some other stuff
+    // 
 
     // compute rate of climb based on pressure altitude change
     float climb = (pressure_alt_filt - pressure_alt_filt_last) / dt;
     pressure_alt_filt_last = pressure_alt_filt;
     climb_filt = 0.98 * climb_filt + 0.02 * climb;
-
-    // compute a forward acceleration value based on pitot speed
-    // change
-    float accel = (airspeed_filt - airspeed_filt_last) / dt;
-    airspeed_filt_last = airspeed_filt;
-    accel_filt = 0.98 * accel_filt + 0.02 * accel;
 
     // determine ground reference altitude.  Average filter altitude
     // over first 30 seconds the filter becomes active.
@@ -238,9 +285,6 @@ static void update_pressure_helpers() {
 
     // publish values to property tree
     pressure_error_m_node->setDoubleValue( Ps_filt_err );
-    pressure_alt_node->setDoubleValue( pressure_alt_filt );
-    // airspeed_filt_node->setDoubleValue( airspeed_filt /* smoothed */ );
-    airspeed_filt_node->setDoubleValue( Pt /* raw */ );
     true_alt_m_node->setDoubleValue( true_alt_m );
     true_alt_ft_node->setDoubleValue( true_alt_m * SG_METER_TO_FEET );
     true_agl_m_node->setDoubleValue( true_agl_m );
@@ -249,7 +293,6 @@ static void update_pressure_helpers() {
     agl_alt_ft_node->setDoubleValue( (pressure_alt_filt - ground_alt_filter)
 				     * SG_METER_TO_FEET );
     vert_fps_node->setDoubleValue( climb_filt * SG_METER_TO_FEET );
-    forward_accel_node->setDoubleValue( accel_filt );
 
     // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
     //        pressure_alt_filt, navpacket.alt, true_alt_m, climb_filt);
