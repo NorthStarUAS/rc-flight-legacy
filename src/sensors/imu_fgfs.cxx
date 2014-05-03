@@ -38,7 +38,7 @@ static SGPropertyNode *imu_hz_node = NULL;
 
 static SGPropertyNode *airdata_timestamp_node = NULL;
 static SGPropertyNode *airdata_airspeed_node = NULL;
-static SGPropertyNode *airdata_altitude_node = NULL;
+static SGPropertyNode *airdata_pressure_node = NULL;
 
 static SGPropertyNode *imu_roll_truth_node = NULL;
 static SGPropertyNode *imu_pitch_truth_node = NULL;
@@ -84,7 +84,7 @@ static void bind_airdata_output( string rootname ) {
 
     airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     airdata_airspeed_node = outputroot->getChild("airspeed-kt", 0, true);
-    airdata_altitude_node = outputroot->getChild("altitude-m", 0, true);
+    airdata_pressure_node = outputroot->getChild("pressure-mbar", 0, true);
 
     airdata_inited = true;
 }
@@ -171,7 +171,7 @@ bool fgfs_imu_update() {
 	float ay = *(float *)buf; buf += 4;
 	float az = *(float *)buf; buf += 4;
 	float airspeed = *(float *)buf; buf += 4;
-	float altitude = *(float *)buf; buf += 4;
+	float pressure = *(float *)buf; buf += 4;
 	float roll_truth = *(float *)buf; buf += 4;
 	float pitch_truth = *(float *)buf; buf += 4;
 	float yaw_truth = *(float *)buf; buf += 4;
@@ -194,7 +194,8 @@ bool fgfs_imu_update() {
 	if ( airdata_inited ) {
 	    airdata_timestamp_node->setDoubleValue( cur_time );
 	    airdata_airspeed_node->setDoubleValue( airspeed );
-	    airdata_altitude_node->setDoubleValue( altitude );
+	    const double inhg2mbar = 33.8638866667;
+	    airdata_pressure_node->setDoubleValue( pressure * inhg2mbar );
 	}
     }
 
