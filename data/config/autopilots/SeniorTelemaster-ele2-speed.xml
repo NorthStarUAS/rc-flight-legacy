@@ -6,8 +6,8 @@
   <!-- route_mgr/task_circle_coord) -->
   <L1-controller>
     <bank-limit-deg>25</bank-limit-deg>
-    <period>15</period>
-    <damping>2.0</damping>
+    <period>20</period>
+    <damping>1.5</damping>
   </L1-controller>
 
   <!-- Bank angle hold -->
@@ -53,6 +53,31 @@
       <u_max>0.75</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
+
+  <!-- simple (but runtime tuneable) autocoordination driving rudder in direct proportion to aileron -->
+  <pi-simple-controller>
+    <name>Auto Coordination</name>
+    <debug>false</debug>
+    <enable>
+      <prop>/autopilot/locks/yaw</prop>
+      <value>autocoord</value>
+    </enable>
+    <input>
+      <prop>/controls/flight/aileron</prop>
+    </input>
+    <reference>
+      <value>0.0</value>
+    </reference>
+    <output>
+      <prop>/controls/flight/rudder</prop>
+    </output>
+    <config>
+      <Kp>-0.5</Kp>        <!-- proportional gain -->
+      <Ki>0.0</Ki>         <!-- integral gain -->
+      <u_min>-1.0</u_min> <!-- minimum output clamp -->
+      <u_max>1.0</u_max>  <!-- maximum output clamp -->
+    </config>
+  </pi-simple-controller>
 
   <!-- Altitude hold. -->
 
