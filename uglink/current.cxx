@@ -175,20 +175,20 @@ static void bind_imu_nodes() {
 
 // bind air data property nodes 
 static void bind_airdata_nodes() {
-    airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
-    airdata_pressure_node = fgGetNode("/sensors/air-data/pressure-mbar", true);
-    airdata_temperature_node = fgGetNode("/sensors/air-data/temperature-degC", true);
-    airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-pressure-m", true);
+    airdata_timestamp_node = fgGetNode("/sensors/airdata/time-stamp", true);
+    airdata_pressure_node = fgGetNode("/sensors/airdata/pressure-mbar", true);
+    airdata_temperature_node = fgGetNode("/sensors/airdata/temperature-degC", true);
+    airdata_altitude_node = fgGetNode("/sensors/airdata/altitude-pressure-m", true);
     airdata_altitude_true_node = fgGetNode("/position/combined/altitude-true-m", true);
-    airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
+    airdata_airspeed_node = fgGetNode("/sensors/airdata/airspeed-kt", true);
     airdata_climb_fpm_node
-	= fgGetNode("/sensors/air-data/vertical-speed-fpm", true);
+	= fgGetNode("/sensors/airdata/vertical-speed-fpm", true);
     airdata_accel_ktps_node
-	= fgGetNode("/sensors/air-data/acceleration-ktps", true);
-    airdata_wind_dir_node = fgGetNode("/sensors/air-data/wind-deg",true);
-    airdata_wind_speed_node = fgGetNode("/sensors/air-data/wind-kts",true);
-    airdata_pitot_scale_node = fgGetNode("/sensors/air-data/pitot-scale-factor",true);
-    airdata_status_node = fgGetNode("/sensors/air-data/status", true);
+	= fgGetNode("/sensors/airdata/acceleration-ktps", true);
+    airdata_wind_dir_node = fgGetNode("/sensors/airdata/wind-deg",true);
+    airdata_wind_speed_node = fgGetNode("/sensors/airdata/wind-kts",true);
+    airdata_pitot_scale_node = fgGetNode("/sensors/airdata/pitot-scale-factor",true);
+    airdata_status_node = fgGetNode("/sensors/airdata/status", true);
 }
 
 // bind filter property nodes

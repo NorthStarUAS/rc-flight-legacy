@@ -250,17 +250,17 @@ void WSChannel::bind()
     imu_hz_node = fgGetNode("/sensors/imu/hz", true);
     imu_status_node = fgGetNode("/sensors/imu/status", true);
 
-    airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
-    airdata_pressure_node = fgGetNode("/sensors/air-data/pressure-mbar", true);
-    airdata_temperature_node = fgGetNode("/sensors/air-data/temperature-degC", true);
-    airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-pressure-m", true);
+    airdata_timestamp_node = fgGetNode("/sensors/airdata/time-stamp", true);
+    airdata_pressure_node = fgGetNode("/sensors/airdata/pressure-mbar", true);
+    airdata_temperature_node = fgGetNode("/sensors/airdata/temperature-degC", true);
+    airdata_altitude_node = fgGetNode("/sensors/airdata/altitude-pressure-m", true);
     airdata_altitude_true_node = fgGetNode("/position/combined/altitude-true-m", true);
-    airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
+    airdata_airspeed_node = fgGetNode("/sensors/airdata/airspeed-kt", true);
     airdata_climb_fpm_node
-	= fgGetNode("/sensors/air-data/vertical-speed-fpm", true);
+	= fgGetNode("/sensors/airdata/vertical-speed-fpm", true);
     airdata_accel_ktps_node
-	= fgGetNode("/sensors/air-data/acceleration-ktps", true);
-    airdata_status_node = fgGetNode("/sensors/air-data/status", true);
+	= fgGetNode("/sensors/airdata/acceleration-ktps", true);
+    airdata_status_node = fgGetNode("/sensors/airdata/status", true);
 
     filter_timestamp_node = fgGetNode("/filters/filter/time-stamp", true);
     filter_theta_node = fgGetNode("/filters/filter/pitch-deg", true);

@@ -18,12 +18,12 @@
     </gps>
   </gps-group>
 
-  <air-data-group>
-    <air-data>
+  <airdata-group>
+    <airdata>
       <source>ardupilot</source>
       <enable type="bool">true</enable>
-    </air-data>
-  </air-data-group>
+    </airdata>
+  </airdata-group>
 
   <pilot-inputs>
     <pilot-input>
