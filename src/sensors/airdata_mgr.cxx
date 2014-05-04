@@ -75,9 +75,9 @@ void AirData_init() {
     debug2b2.set_name("debug2b2 airdata console link");
 
     // initialize air data property nodes
-    airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
-    airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
-    airdata_pressure_node = fgGetNode("/sensors/air-data/pressure-mbar", true);
+    airdata_timestamp_node = fgGetNode("/sensors/airdata/time-stamp", true);
+    airdata_airspeed_node = fgGetNode("/sensors/airdata/airspeed-kt", true);
+    airdata_pressure_node = fgGetNode("/sensors/airdata/pressure-mbar", true);
 
     // input property nodes
     filter_timestamp_node = fgGetNode("/filters/filter/time-stamp", true);
@@ -110,11 +110,11 @@ void AirData_init() {
     airdata_logging_skip = fgGetNode("/config/logging/airdata-skip", true);
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/air-data-group", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
-	if ( name == "air-data" ) {
+	if ( name == "airdata" ) {
 	    string source = section->getChild("source", 0, true)->getStringValue();
 	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
 	    if ( !enabled ) {
@@ -160,7 +160,10 @@ static void update_pressure_helpers() {
     // 1. Compute altitude from airdata pressure sensor
     //
 
-    // Forumula taken from here: http://keisan.casio.com/has10/SpecExec.cgi?path=06000000%2eScience%2f02100100%2eEarth%20science%2f12000300%2eAltitude%20from%20atmospheric%20pressure%2fdefault%2exml&charset=utf-8
+    // Forumula taken from:
+    //   http://keisan.casio.com/exec/system/1224585971
+    // or possibly:
+    //   http://keisan.casio.com/has10/SpecExec.cgi?path=06000000%2eScience%2f02100100%2eEarth%20science%2f12000300%2eAltitude%20from%20atmospheric%20pressure%2fdefault%2exml&charset=utf-8
     //
     // h = (((P0/P)^(1/5.257) - 1) * (T+273.15)) / 0.0065
     // T = h*0.0065 / ((P0/P)^(1/5.257) - 1) - 273.15
@@ -307,11 +310,11 @@ bool AirData_update() {
     bool fresh_data = false;
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/air-data-group", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
-	if ( name == "air-data" ) {
+	if ( name == "airdata" ) {
 	    string source = section->getChild("source", 0, true)->getStringValue();
 	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
 	    if ( !enabled ) {
@@ -368,7 +371,7 @@ bool AirData_update() {
 
 void AirData_close() {
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/air-data-group", true);
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();

@@ -96,8 +96,8 @@ static void init_props() {
     imu_hz_node = fgGetNode("/sensors/imu/hz", true);
 
     // initialize air data nodes
-    airdata_altitude_node = fgGetNode("/sensors/air-data/altitude-m", true);
-    airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
+    airdata_altitude_node = fgGetNode("/position/pressure/altitude-m", true);
+    airdata_airspeed_node = fgGetNode("/sensors/airdata/airspeed-kt", true);
 
     // initialize gps property nodes
     gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);

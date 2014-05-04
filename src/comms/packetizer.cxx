@@ -41,9 +41,9 @@ void UGPacketizer::bind_imu_nodes() {
 
 // initialize air data property nodes 
 void UGPacketizer::bind_airdata_nodes() {
-    airdata_timestamp_node = fgGetNode("/sensors/air-data/time-stamp", true);
-    airdata_pressure_node = fgGetNode("/sensors/air-data/pressure-mbar", true);
-    airdata_temperature_node = fgGetNode("/sensors/air-data/temp-degC", true);
+    airdata_timestamp_node = fgGetNode("/sensors/airdata/time-stamp", true);
+    airdata_pressure_node = fgGetNode("/sensors/airdata/pressure-mbar", true);
+    airdata_temperature_node = fgGetNode("/sensors/airdata/temp-degC", true);
 
     // select one of the following pressure altitude sources
     airdata_altitude_node = fgGetNode("/position/pressure/altitude-smoothed-m", true);
@@ -51,19 +51,19 @@ void UGPacketizer::bind_airdata_nodes() {
     official_altitude_agl_node = fgGetNode("/position/altitude-agl-ft", true);
 
     // select one of the following airspeed sources
-    // airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
+    // airdata_airspeed_node = fgGetNode("/sensors/airdata/airspeed-kt", true);
     airdata_airspeed_node = fgGetNode("/velocity/airspeed-kt", true);
 
     // select one of the following climb rate sources
     // airdata_climb_fps_node
-    //     = fgGetNode("/sensors/air-data/vertical-speed-fps",true);
+    //     = fgGetNode("/sensors/airdata/vertical-speed-fps",true);
     airdata_climb_fps_node
 	= fgGetNode("/velocity/pressure-vertical-speed-fps",true);
 
     airdata_wind_dir_node = fgGetNode("/filters/wind-est/wind-dir-deg", true);
     airdata_wind_speed_node = fgGetNode("/filters/wind-est/wind-speed-kt", true);
     airdata_pitot_scale_node = fgGetNode("/filters/wind-est/pitot-scale-factor", true);
-    airdata_status_node = fgGetNode("/sensors/air-data/status", true);
+    airdata_status_node = fgGetNode("/sensors/airdata/status", true);
 }
 
 

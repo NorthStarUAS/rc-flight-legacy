@@ -112,7 +112,7 @@ void Filter_init() {
     imu_hz_node = fgGetNode("/sensors/imu/hz", true);
 
     // airdata airspeed (unfiltered)
-    airdata_airspeed_node = fgGetNode("/sensors/air-data/airspeed-kt", true);
+    airdata_airspeed_node = fgGetNode("/sensors/airdata/airspeed-kt", true);
     est_wind_speed_kt = fgGetNode("/filters/wind-est/wind-speed-kt", true);
     est_wind_dir_deg = fgGetNode("/filters/wind-est/wind-dir-deg", true);
     est_wind_east_mps = fgGetNode("/filters/wind-est/wind-east-mps", true);
