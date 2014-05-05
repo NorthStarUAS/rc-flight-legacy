@@ -538,7 +538,7 @@ int UGPacketizer::packetize_ap( uint8_t *buf, uint8_t route_size,
     float target_agl_ft = ap_altitude_agl->getFloatValue();
     float ground_m = pressure_ground_alt_node->getFloatValue();
     float error_m = pressure_error_node->getFloatValue();
-    float alt_msl_ft = (ground_m - error_m) * SG_METER_TO_FEET + target_agl_ft;
+    float alt_msl_ft = (ground_m + error_m) * SG_METER_TO_FEET + target_agl_ft;
     *(uint16_t *)buf = (uint16_t)alt_msl_ft; buf += 2;
 
     int16_t climb = (int16_t)(ap_climb->getFloatValue() * 10.0);
