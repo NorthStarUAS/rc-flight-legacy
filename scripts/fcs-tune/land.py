@@ -8,7 +8,7 @@ class Land():
         self.changefunc = changefunc
         self.host = host
         self.port = port
-        self.original_values = [ "0", "3", "75", "8", "left", "50", "10", "25", "5", "5" ]
+        self.original_values = [ "0", "3", "75", "left", "50", "10", "25", "5", "5" ]
         self.container = self.make_page()
         self.xml = None
 
@@ -43,9 +43,6 @@ class Land():
         self.edit_turn_radius = QtGui.QLineEdit()
         self.edit_turn_radius.setFixedWidth(350)
         self.edit_turn_radius.textChanged.connect(self.onChange)
-        self.edit_turn_steps = QtGui.QLineEdit()
-        self.edit_turn_steps.setFixedWidth(350)
-        self.edit_turn_steps.textChanged.connect(self.onChange)
         self.edit_direction = QtGui.QLineEdit()
         self.edit_direction.setFixedWidth(350)
         self.edit_direction.textChanged.connect(self.onChange)
@@ -71,7 +68,6 @@ class Land():
         layout.addRow( "<b>TD Lateral Offset (m):</b>", self.edit_lat_offset )
         layout.addRow( "<b>Approach Glideslope (deg):</b>", self.edit_glideslope )
         layout.addRow( "<b>Final Turn Radius (m):</b>", self.edit_turn_radius )
-        layout.addRow( "<b>Turn Steps (8):</b>", self.edit_turn_steps )
         layout.addRow( "<b>Turn Direction (left/right):</b>", self.edit_direction )
         layout.addRow( "<b>Extend Final Leg Len (m):</b>", self.edit_final_leg )
         layout.addRow( "<b>Altitude Bias (ft):</b>", self.edit_alt_bias )
@@ -146,8 +142,6 @@ class Land():
                         self.edit_glideslope.text())
         self.send_value(t, "/mission/land/turn-radius-m",
                         self.edit_turn_radius.text())
-        self.send_value(t, "/mission/land/turn-steps",
-                        self.edit_turn_steps.text())
         self.send_value(t, "/mission/land/direction",
                         self.edit_direction.text())
         self.send_value(t, "/mission/land/extend-final-leg-m",
@@ -183,13 +177,12 @@ class Land():
         self.edit_lat_offset.setText( self.original_values[0] )
         self.edit_glideslope.setText( self.original_values[1] )
         self.edit_turn_radius.setText( self.original_values[2] )
-        self.edit_turn_steps.setText( self.original_values[3] )
-        self.edit_direction.setText( self.original_values[4] )
-        self.edit_final_leg.setText( self.original_values[5] )
-        self.edit_alt_bias.setText( self.original_values[6] )
-        self.edit_appr_speed.setText( self.original_values[7] )
-        self.edit_flare_pitch.setText( self.original_values[8] )
-        self.edit_flare_time.setText( self.original_values[9] )
+        self.edit_direction.setText( self.original_values[3] )
+        self.edit_final_leg.setText( self.original_values[4] )
+        self.edit_alt_bias.setText( self.original_values[5] )
+        self.edit_appr_speed.setText( self.original_values[6] )
+        self.edit_flare_pitch.setText( self.original_values[7] )
+        self.edit_flare_time.setText( self.original_values[8] )
 
     def set_runway(self, lon, lat, az):
         self.edit_rwy_lon.setText( str(lon) )
