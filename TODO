@@ -1,12 +1,13 @@
-MicroGear TODO
+ugear TODO
 ==============
+
+- Compute airdata climb rate at sensor level (or pass it along if the sensor
+  already computes this.)
 
 - Add support for a local ground cache for basic ground (obstacle?) avoidance.
 
 - Add alias code to allow plugging/binding any set of sensors into any 
   filter algorithm.
-
-- Add telnet server module so we can remotely interact with the property tree
 
 - Add servo sensor module
 
@@ -21,33 +22,12 @@ MicroGear TODO
 
 - Resolve #include "dir/file.h" vs. <dir/file.h> vs. "file.h"
 
-- Add support for a primary route and a standby route.  Support
-  external commands to clear the stby route, upload new waypoints, and
-  swap the standby and primary routes.
-
-- Track down Rohit's AHRS modifications to see if they work any better.
-
-- Have Rohit explain his magnetometer calibration method.
-
 - Add support for a "notes" file that will contain time/date (?) in
   the file name and be able to contain arbitrary time stamped messages
   from the ground station.  This file will be saved onboard the UAS
   along side all the other data.
 
-- Make a *copy* of next waypoint and follow that, rather than
-  following the record at the front of the queue.  This lets us update
-  waypoints "on the fly" i.e. relative to a new home position.  Hmmm,
-  but what happens if we power on, get our first relative waypoint,
-  and then sit around for a *long* time before we launch, then the
-  first waypoint could be way off and not what we want or expect?
-
-  If we just follow the first waypoint in the queue, how do we deal
-  with a situation where the waypoint jumps out from under the uas and
-  the new position forces a "miss"?  Do we live with the uas looping
-  around and trying again?  Maybe this will be a rare problem?
-
 - have "home" location selection write an entry to debug.txt
-- don't write FollowRoute to debug each time we receive a message.
 
 - Add update rate (ahrs/nav/etc.) values to the health structure so the
   ground station can evaluate the performance of the onboard computer.
@@ -63,6 +43,12 @@ MicroGear TODO
   onboard logging.  This will disappear as an issue anyway when we
   migrate away from the MNAV.
 
+
+x Add support for a primary route and a standby route.  Support
+  external commands to clear the stby route, upload new waypoints, and
+  swap the standby and primary routes.
+
+x Add telnet server module so we can remotely interact with the property tree
 
 x 05/15/2009 wired the UMN ADNS algorithm output into the UGear structure.
 
