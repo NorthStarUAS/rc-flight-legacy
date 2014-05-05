@@ -8,7 +8,7 @@ class Land():
         self.changefunc = changefunc
         self.host = host
         self.port = port
-        self.original_values = [ "0", "3.0", "75", "8", "left", "50", "0", "25", "5", "5" ]
+        self.original_values = [ "0", "3", "75", "8", "left", "50", "10", "25", "5", "5" ]
         self.container = self.make_page()
         self.xml = None
 
