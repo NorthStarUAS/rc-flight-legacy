@@ -42,7 +42,7 @@
       <!-- 8/31/2013 Installed digital servos @ 200hz, Kp = -0.015 Ti = 10.0 Td = 0.0001 now too jittery? -->
       <!-- 10/19/2013 Kp = -0.012 Ti = 10.0 Td = 0.0001 still jittery? -->
       <!-- 10/19/2013 Kp = -0.010 Ti = 2.0 Td = 0.0001 too weak at low speed -->
-      <Kp>-0.02</Kp>      <!-- proportional gain-->
+      <Kp>-0.025</Kp>      <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -141,7 +141,7 @@
       <prop>/autopilot/settings/target-pitch-deg</prop>
     </output>
     <config>
-      <Kp>-2.0</Kp>        <!-- proportional gain -->
+      <Kp>-1.5</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
