@@ -196,11 +196,11 @@ class Land():
 
     def task_rwy_sprc36(self):
         print "Set Runway to SPRC 36"
-        self.set_runway( -93.1456618, 45.2202032, 5 )
+        self.set_runway( -93.1454915, 45.2202454, 5 )
 
     def task_rwy_sprc18(self):
-        print "Set Runway to SPRC 36"
-        self.set_runway( -93.1455029, 45.2205971, 185 )
+        print "Set Runway to SPRC 18"
+        self.set_runway( -93.1453326, 45.2205971, 185 )
 
     def task_land(self):
         print "Land!"
