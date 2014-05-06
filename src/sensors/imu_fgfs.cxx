@@ -44,6 +44,11 @@ static SGPropertyNode *imu_roll_truth_node = NULL;
 static SGPropertyNode *imu_pitch_truth_node = NULL;
 static SGPropertyNode *imu_yaw_truth_node = NULL;
 
+static SGPropertyNode *act_throttle_node = NULL;
+static SGPropertyNode *fake_extern_volts_node = NULL;
+static SGPropertyNode *fake_extern_amps_node = NULL;
+static SGPropertyNode *fake_extern_current_node = NULL;
+
 static bool airdata_inited = false;
 
 
@@ -85,6 +90,21 @@ static void bind_airdata_output( string rootname ) {
     airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     airdata_airspeed_node = outputroot->getChild("airspeed-kt", 0, true);
     airdata_pressure_node = outputroot->getChild("pressure-mbar", 0, true);
+
+    act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);
+    fake_extern_volts_node = fgGetNode("/sensors/APM2/extern-volt", true);
+    fake_extern_amps_node  = fgGetNode("/sensors/APM2/extern-amps", true);
+    fake_extern_current_node  = fgGetNode("/sensors/APM2/extern-current-mah", true);
+
+    // set some fake values (write them just once, so if there was an
+    // unintended conflict, the actual sensor would overwrite these.)
+    SGPropertyNode *tmp_node;
+    // note we don't leak here because we are getting a pointer back
+    // into the global property structure
+    tmp_node = fgGetNode("/sensors/APM2/board-vcc", true);
+    tmp_node->setDoubleValue( 5.0 );
+    tmp_node = fgGetNode("/sensors/airdata/temp-degC", true);
+    tmp_node->setDoubleValue( 15.0 );
 
     airdata_inited = true;
 }
@@ -196,6 +216,17 @@ bool fgfs_imu_update() {
 	    airdata_airspeed_node->setDoubleValue( airspeed );
 	    const double inhg2mbar = 33.8638866667;
 	    airdata_pressure_node->setDoubleValue( pressure * inhg2mbar );
+
+	    // fake volt/amp values here for no better place to do it
+	    static double last_time = cur_time;
+	    static double mah = 0.0;
+	    double thr = act_throttle_node->getDoubleValue();
+	    fake_extern_volts_node->setDoubleValue(16.0 - thr);
+	    fake_extern_amps_node->setDoubleValue(thr * 12.0);
+	    double dt = cur_time - last_time;
+	    mah += thr*12.0 * (1000.0/3600.0) * dt;
+	    last_time = cur_time;
+	    fake_extern_current_node->setDoubleValue( mah );
 	}
     }
 
