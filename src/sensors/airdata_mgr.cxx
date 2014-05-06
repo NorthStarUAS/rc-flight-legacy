@@ -299,6 +299,32 @@ static void update_pressure_helpers() {
 
     // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
     //        pressure_alt_filt, navpacket.alt, true_alt_m, climb_filt);
+
+#if 0
+    // experimental section ... try to estimate thermal activity ...
+    static SGPropertyNode *throttle = fgGetNode("/controls/engine/throttle", true);
+    static double sum_x = 0.0;
+    static double sum_y = 0.0;
+    static double sum_x2 = 0.0;
+    static double sum_y2 = 0.0;
+    static double sum_xy = 0.0;
+
+    double x = throttle->getDoubleValue();
+    double y = climb_filt * SG_METER_TO_FEET * 60.0; // fpm
+    double n = 6000.0;		// 100hz * 60 sec
+    double nfact = (n-1.0)/n;
+    sum_x = sum_x*nfact + x;
+    sum_y = sum_y*nfact + y;
+    //printf("x=%.2f y=%.0f sum_x=%.1f sum_y=%.0f\n", x, y, sum_x, sum_y);
+    sum_x2 = sum_x2*nfact + x*x;
+    sum_y2 = sum_y2*nfact + y*y;
+    sum_xy = sum_xy*nfact + x*y;
+
+    double a1 = (n*sum_xy - sum_x*sum_y) / (n*sum_x2 - sum_x*sum_x);
+    double a0 = (sum_y - a1*sum_x) / n;
+    printf("y = %.2f + %.2f * x\n", a0, a1);
+#endif
+
 }
 
 
