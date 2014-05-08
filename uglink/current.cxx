@@ -679,19 +679,20 @@ void compute_derived_data( struct gps *gpspacket,
 	if ( ol_yaw < 0.0 ) { ol_yaw += 360.0; }
 	if ( ol_yaw > 360.0 ) { ol_yaw -= 360.0; }
     }
-    if ( throttle ) {
-	/* printf("OL %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n",
-	       filter_timestamp_node->getDoubleValue(),
-	       filter_phi_node->getDoubleValue(),
-	       filter_theta_node->getDoubleValue(),
-	       filter_psi_node->getDoubleValue(),
-	       ol_roll, ol_pitch, ol_yaw ); */
+    /*if ( throttle ) {
 	printf("OL %.3f %.3f %.3f %.3f\n",
 	       filter_timestamp_node->getDoubleValue(),
 	       filter_theta_node->getDoubleValue(),
 	       ol_pitch,
 	       imu_q_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES);
-    }
+    }*/
+    /*if ( in_flight ) {
+	// dump out throttle position vs airspeed vs climb
+	printf("SI %.2f %.1f %.0f\n", 
+	       act_throttle_node->getDoubleValue(),
+	       airdata_airspeed_node->getDoubleValue(),
+	       airdata_climb_fpm_node->getDoubleValue());
+    }*/
 
     // Compute camera target/coverage for each new shot
 
