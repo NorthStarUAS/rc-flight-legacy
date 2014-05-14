@@ -100,8 +100,8 @@
       <extend-final-leg-m>50</extend-final-leg-m>
       <alt-bias-ft>0</alt-bias-ft>
       <approach-speed-kt>25</approach-speed-kt>
-      <flare-pitch-deg>5</flare-pitch-deg>
-      <flare-seconds>5.0</flare-seconds>
+      <flare-pitch-deg>0</flare-pitch-deg>
+      <flare-seconds>5</flare-seconds>
     </task>
   </standby-tasks>
 

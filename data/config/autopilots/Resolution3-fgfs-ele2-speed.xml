@@ -5,7 +5,7 @@
   <!-- L1 config parameters, this drives bank angle (implementation in -->
   <!-- route_mgr/task_circle_coord) -->
   <L1-controller>
-    <bank-limit-deg>30</bank-limit-deg>
+    <bank-limit-deg>25</bank-limit-deg>
     <period>20</period>
     <damping>0.7</damping>
   </L1-controller>
@@ -94,12 +94,12 @@
     <!-- 5/26/2013, Kp=0.006 Ti=10.0 -->
     <!-- 3/8/2014, Kp=0.040 Ti=5.0 try more aggressive, if we increase kp, we can decrease ti value and have a more agressive tighter system -->
     <config>
-      <Kp>0.015</Kp>       <!-- proportional gain -->
+      <Kp>0.03</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>20.0</Ti>        <!-- integrator time -->
+      <Ti>10.0</Ti>        <!-- integrator time -->
       <Td>0.00001</Td>     <!-- derivator time -->
       <u_min>0.0</u_min>   <!-- minimum output clamp -->
       <u_max>1.0</u_max>   <!-- maximum output clamp -->
