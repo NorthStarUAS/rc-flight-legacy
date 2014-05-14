@@ -79,7 +79,6 @@ private:
 
     // route following configuration
     SGPropertyNode *bank_limit_node;
-    // SGPropertyNode *heading_gain_node;
     SGPropertyNode *L1_period_node;
     SGPropertyNode *L1_damping_node;
     SGPropertyNode *xtrack_gain_node;
