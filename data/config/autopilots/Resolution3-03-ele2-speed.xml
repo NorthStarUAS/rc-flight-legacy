@@ -40,7 +40,7 @@
       <!-- 5/24/2013 P=0.005 I=5.00 min/max = 0.25, Res3 #3 maybe still too snappy? -->
       <!-- 6/17/2013 P=0.004 I=2.00 min/max = 0.25, Res3 #3 seeking better convergence -->
       <!-- 9/5/2013 P=0.004 I=10.00 min/max = 0.25, Seems pretty jittery still, need to soften more. -->
-      <Kp>0.002</Kp>       <!-- proportional gain-->
+      <Kp>0.006</Kp>       <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -78,12 +78,12 @@
     <!-- 9/3/2013, convert to full pid and borrow telemaster gains -->
     <!-- 9/11/2013, Kp=0.005 Ti=20 maybe would like a little slower response -->
     <config>
-      <Kp>0.005</Kp>       <!-- proportional gain -->
+      <Kp>0.01</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>15.0</Ti>        <!-- integrator time -->
+      <Ti>10.0</Ti>        <!-- integrator time -->
       <Td>0.00001</Td>     <!-- derivator time -->
       <u_min>0.0</u_min>   <!-- minimum output clamp -->
       <u_max>1.0</u_max>   <!-- maximum output clamp -->
@@ -109,7 +109,7 @@
       <prop>/autopilot/settings/target-pitch-deg</prop>
     </output>
     <config>
-      <Kp>-1.0</Kp>        <!-- proportional gain -->
+      <Kp>-1.5</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -140,15 +140,15 @@
     </output>
       <!-- 9/11/2013: Kp = -0.010 alpha = 0.1 Ti = 10.0 Td = 0.0001 adapted from sim work and previous determined elevator gains, but too agressive/jittery -->
     <config>
-      <Kp>-0.006</Kp>       <!-- proportional gain -->
+      <Kp>-0.005</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>      <!-- input value weighing factor -->
       <alpha>0.1</alpha>    <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>    <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
       <Ti>10.0</Ti>         <!-- integrator time -->
       <Td>0.0001</Td>       <!-- derivator time -->
-      <u_min>-0.20</u_min>  <!-- minimum output clamp -->
-      <u_max>0.10</u_max>   <!-- maximum output clamp -->
+      <u_min>-0.25</u_min>  <!-- minimum output clamp -->
+      <u_max>0.15</u_max>   <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
