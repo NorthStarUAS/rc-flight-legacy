@@ -55,9 +55,6 @@ class L1Controller():
 
         toplayout.addStretch(1)
 
-        # set initial values
-        self.revert()
-
         return toppage
 
     def get_widget(self):
@@ -103,7 +100,7 @@ class L1Controller():
                 t.send(command)
 
     def update(self):
-        print "update circle hold params"
+        print "update L1 params"
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
         self.send_value(t, "/config/fcs/autopilot/L1-controller/bank-limit-deg",

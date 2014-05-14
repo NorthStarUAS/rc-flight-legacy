@@ -136,15 +136,15 @@ class Tuner(QtGui.QWidget):
         root = self.xml.getroot()
 
         # Circle hold parameters
-        self.circle = Circle(changefunc =self.onChange, host=host, port=port)
+        self.circle = Circle(changefunc=self.onChange, host=host, port=port)
         self.tabs.addTab( self.circle.get_widget(), "Circle" )
 
         # Land parameters
-        self.land = Land(changefunc =self.onChange, host=host, port=port)
+        self.land = Land(changefunc=self.onChange, host=host, port=port)
         self.tabs.addTab( self.land.get_widget(), "Land" )
 
         # Route follow parameters
-        self.L1 = L1Controller(changefunc =self.onChange, host=host, port=port)
+        self.L1 = L1Controller(changefunc=self.onChange, host=host, port=port)
         self.L1.parse_xml( root.find('L1-controller') )
         self.tabs.addTab( self.L1.get_widget(), "L1" )
 
