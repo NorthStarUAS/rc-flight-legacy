@@ -84,7 +84,7 @@ static SGGeod wgs84_from_ned( double ground_elev_m,
 			      SGVec3d dir_ned )
 {
     double agl_m = pos_geod.getElevationM() - ground_elev_m;
-    printf("agl_m = %.2f\n", agl_m);
+    //printf("agl_m = %.2f\n", agl_m);
     double a = atan2(dir_ned.x(), dir_ned.y());
     double proj_deg = (M_PI/2.0 - a) * SGD_RADIANS_TO_DEGREES;
     //printf("proj_deg = %.8f\n", proj_deg);
