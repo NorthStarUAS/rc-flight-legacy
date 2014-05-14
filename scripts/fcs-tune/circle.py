@@ -76,9 +76,6 @@ class Circle():
 
         toplayout.addStretch(1)
 
-        # set initial values
-        self.revert()
-
         return toppage
 
     def get_widget(self):
