@@ -18,15 +18,7 @@
 
     <task>
       <name>throttle-safety</name>
-      <!-- safety "off" means throttle can run -->
-      <off-alt-agl-ft>0</off-alt-agl-ft>
-      <off-ground-speed-kt>0</off-ground-speed-kt>
-      <off-air-speed-kt>0</off-air-speed-kt>
-      <off-accel-g>0.0</off-accel-g>
-      <!-- safety "on" means throttle cannot run -->
-      <on-alt-agl-ft>0</on-alt-agl-ft>
-      <on-ground-speed-kt>0</on-ground-speed-kt>
-      <on-air-speed-kt>0</on-air-speed-kt>
+      <safety-on-ground>false</safety-on-ground>
     </task>
 
     <task>
