@@ -20,8 +20,10 @@
     <!-- Sensor selection and configuration. -->
     <sensors include="sensors/group-APM2.xml">
       <APM2 n="0">
-        <pwm-hz n="0">200</pwm-hz>
         <pitot-calibrate-factor n="0">1.06</pitot-calibrate-factor>
+        <pwm-hz n="0">200</pwm-hz>
+        <volt-divider-ratio n="0">16.282</volt-divider-ratio>
+        <external-amp-ratio n="0">38.14</external-amp-ratio>
       </APM2>
       <imu-group n="0">
         <imu n="0">
