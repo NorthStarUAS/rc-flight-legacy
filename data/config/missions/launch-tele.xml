@@ -39,6 +39,7 @@
       <min-agl-ft>200.0</min-agl-ft>
       <min-rate-sec>3.0</min-rate-sec>
       <max-rate-sec>60.0</max-rate-sec>
+      <trigger-gpio>146</trigger-gpio>
     </task>
 
   </global-tasks>
@@ -49,10 +50,11 @@
       <name>launch</name>
       <speed-kt>25</speed-kt>
       <completion-alt-ft>200</completion-alt-ft>
-      <steering-gain>0.025</steering-gain>
-      <max-steer>0.5</max-steer>
       <roll-gain>0.5</roll-gain>
       <roll-limit>5.0</roll-limit>
+      <rudder-enable>true</rudder-enable>
+      <rudder-gain>0.025</rudder-gain>
+      <rudder-max>0.5</rudder-max>
     </task>
 
     <task>
