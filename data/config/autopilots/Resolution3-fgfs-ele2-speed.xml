@@ -49,7 +49,7 @@
     <name>Auto Coordination</name>
     <debug>false</debug>
     <enable>
-      <prop>/autopilot/locks/yaw</prop>
+      <prop>/autopilot/locks/yaw-disable</prop>
       <value>autocoord</value>
     </enable>
     <input>
