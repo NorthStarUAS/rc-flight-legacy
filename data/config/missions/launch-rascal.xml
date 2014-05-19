@@ -49,10 +49,11 @@
       <name>launch</name>
       <speed-kt>25</speed-kt>
       <completion-alt-ft>200</completion-alt-ft>
-      <steering-gain>-0.025</steering-gain>
-      <max-steer>0.5</max-steer>
       <roll-gain>0.5</roll-gain>
       <roll-limit>5.0</roll-limit>
+      <rudder-enable>true</rudder-enable>
+      <rudder-gain>-0.025</rudder-gain>
+      <rudder-max>0.5</rudder-max>
     </task>
 
     <task>
