@@ -48,12 +48,12 @@
   <sequential-tasks>
     <task>
       <name>launch</name>
-      <speed-kt>25</speed-kt>
+      <speed-kt>20</speed-kt>
       <completion-alt-ft>200</completion-alt-ft>
       <roll-gain>0.5</roll-gain>
-      <roll-limit>5.0</roll-limit>
+      <roll-limit>10.0</roll-limit>
       <rudder-enable>true</rudder-enable>
-      <rudder-gain>0.025</rudder-gain>
+      <rudder-gain>0.04</rudder-gain>
       <rudder-max>0.5</rudder-max>
     </task>
 

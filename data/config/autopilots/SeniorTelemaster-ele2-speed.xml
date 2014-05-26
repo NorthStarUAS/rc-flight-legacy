@@ -6,7 +6,7 @@
   <!-- route_mgr/task_circle_coord) -->
   <L1-controller>
     <bank-limit-deg>25</bank-limit-deg>
-    <period>20</period>
+    <period>18</period>
     <damping>1.5</damping>
   </L1-controller>
 
@@ -42,7 +42,7 @@
       <!-- 8/31/2013 Installed digital servos @ 200hz, Kp = -0.015 Ti = 10.0 Td = 0.0001 now too jittery? -->
       <!-- 10/19/2013 Kp = -0.012 Ti = 10.0 Td = 0.0001 still jittery? -->
       <!-- 10/19/2013 Kp = -0.010 Ti = 2.0 Td = 0.0001 too weak at low speed -->
-      <Kp>-0.025</Kp>      <!-- proportional gain-->
+      <Kp>-0.04</Kp>       <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -72,7 +72,7 @@
       <prop>/controls/flight/rudder</prop>
     </output>
     <config>
-      <Kp>0.25</Kp>        <!-- proportional gain -->
+      <Kp>0.75</Kp>        <!-- proportional gain -->
       <Ki>0.0</Ki>         <!-- integral gain -->
       <u_min>-1.0</u_min>  <!-- minimum output clamp -->
       <u_max>1.0</u_max>   <!-- maximum output clamp -->
@@ -107,12 +107,12 @@
     <!-- 10/17/2013, Kp=0.020 Ti=10.0 too much hunting ... -->
     <!-- 10/17/2013, Kp=0.010 Ti=10.0 much less overshoot ... would like even less over shoot, but also less hunting ... -->
     <config>
-      <Kp>0.008</Kp>        <!-- proportional gain -->
+      <Kp>0.01</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>15.0</Ti>        <!-- integrator time -->
+      <Ti>20.0</Ti>        <!-- integrator time -->
       <Td>0.00001</Td>     <!-- derivator time -->
       <u_min>0.0</u_min>   <!-- minimum output clamp -->
       <u_max>1.0</u_max>   <!-- maximum output clamp -->
