@@ -5,14 +5,15 @@
   <!-- L1 config parameters, this drives bank angle (implementation in -->
   <!-- route_mgr/task_circle_coord) -->
   <L1-controller>
-    <bank-limit-deg>30</bank-limit-deg>
-    <period>20</period>
-    <damping>0.7</damping>
+    <bank-limit-deg>25</bank-limit-deg>
+    <period>22</period>
+    <damping>1.5</damping>
   </L1-controller>
 
   <!-- Bank angle hold -->
   <pid-controller>
     <name>Roll angle hold</name>
+    <description>Built in L1 controller sets target roll angle</description>
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/roll</prop>
@@ -39,15 +40,15 @@
       <!-- 5/24/2013 P=0.005 I=5.00 min/max = 0.25, Res3 #3 maybe still too snappy? -->
       <!-- 6/17/2013 P=0.004 I=2.00 min/max = 0.25, Res3 #3 seeking better convergence -->
       <!-- 9/5/2013 P=0.004 I=10.00 min/max = 0.25, Seems pretty jittery still, need to soften more. -->
-      <Kp>-0.002</Kp>       <!-- proportional gain-->
+      <Kp>-0.005</Kp>       <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>10.0</Ti>        <!-- integrator time -->
+      <Ti>20.0</Ti>        <!-- integrator time -->
       <Td>0.0001</Td>      <!-- derivator time -->
-      <u_min>-0.25</u_min> <!-- minimum output clamp -->
-      <u_max>0.25</u_max>  <!-- maximum output clamp -->
+      <u_min>-0.30</u_min> <!-- minimum output clamp -->
+      <u_max>0.30</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
@@ -55,7 +56,8 @@
 
   <!-- Drive the throttle based on altitude error -->
   <pid-controller>
-    <name>Altitude Hold (Pressure altimeter based, references AGL)</name>
+    <name>Altitude Hold</name>
+    <description>Pressure altimeter based, references AGL</description>
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/altitude</prop>
@@ -76,12 +78,12 @@
     <!-- 9/3/2013, convert to full pid and borrow telemaster gains -->
     <!-- 9/11/2013, Kp=0.005 Ti=20 maybe would like a little slower response -->
     <config>
-      <Kp>0.004</Kp>       <!-- proportional gain -->
+      <Kp>0.01</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
                            <!-- unfiltered derivative error -->
-      <Ti>20.0</Ti>        <!-- integrator time -->
+      <Ti>10.0</Ti>        <!-- integrator time -->
       <Td>0.00001</Td>     <!-- derivator time -->
       <u_min>0.0</u_min>   <!-- minimum output clamp -->
       <u_max>1.0</u_max>   <!-- maximum output clamp -->
@@ -90,7 +92,8 @@
 
   <!-- Hold speed by varying elevator (2-stage approach) --> 
   <pid-controller>
-    <name>Speed hold (vary elevator) Stage #1</name>
+    <name>Speed Hold 1</name>
+    <description>Stage #1, drive target pitch angle from speed error</description>
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/speed</prop>
@@ -106,20 +109,21 @@
       <prop>/autopilot/settings/target-pitch-deg</prop>
     </output>
     <config>
-      <Kp>-0.5</Kp>        <!-- proportional gain -->
+      <Kp>-1.4</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
-      <alpha>0.25</alpha>  <!-- low pass filter weighing factor -->
+      <alpha>0.1</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
-      <Ti>2.0</Ti>         <!-- integrator time -->
+      <Ti>15.0</Ti>         <!-- integrator time -->
       <Td>0.000001</Td>    <!-- derivator time -->
       <u_min>-5.0</u_min> <!-- minimum output clamp -->
-      <u_max>15.0</u_max>  <!-- maximum output clamp -->
+      <u_max>17.5</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
   <pid-controller>
-    <name>Speed hold (vary elevator) Stage #2</name>
+    <name>Speed Hold 2</name>
+    <description>Stage #2, Drive elevator to hold target pitch angle</description>
     <debug>false</debug>
     <enable>
       <prop>/autopilot/locks/pitch</prop>
@@ -136,15 +140,15 @@
     </output>
       <!-- 9/11/2013: Kp = -0.010 alpha = 0.1 Ti = 10.0 Td = 0.0001 adapted from sim work and previous determined elevator gains, but too agressive/jittery -->
     <config>
-      <Kp>-0.006</Kp>       <!-- proportional gain -->
+      <Kp>-0.005</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>      <!-- input value weighing factor -->
       <alpha>0.1</alpha>    <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>    <!-- input value weighing factor for -->
       <!-- unfiltered derivative error -->
       <Ti>10.0</Ti>         <!-- integrator time -->
       <Td>0.0001</Td>       <!-- derivator time -->
-      <u_min>-0.20</u_min>  <!-- minimum output clamp -->
-      <u_max>0.10</u_max>   <!-- maximum output clamp -->
+      <u_min>-0.25</u_min>  <!-- minimum output clamp -->
+      <u_max>0.20</u_max>   <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
@@ -182,8 +186,8 @@
       <!-- unfiltered derivative error -->
       <Ti>10.0</Ti>        <!-- integrator time -->
       <Td>1.1</Td>     <!-- derivator time -->
-      <u_min>-0.23</u_min>  <!-- minimum output clamp -->
-      <u_max>0.07</u_max>  <!-- maximum output clamp -->
+      <u_min>-0.20</u_min>  <!-- minimum output clamp -->
+      <u_max>0.10</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
 
