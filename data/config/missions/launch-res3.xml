@@ -39,6 +39,7 @@
       <min-agl-ft>200.0</min-agl-ft>
       <min-rate-sec>3.0</min-rate-sec>
       <max-rate-sec>60.0</max-rate-sec>
+      <!-- <trigger-gpio>146</trigger-gpio> -->
       <trigger-prop>/controls/flight/rudder</trigger-prop>
     </task>
 
