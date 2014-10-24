@@ -72,7 +72,7 @@
       <prop>/controls/flight/rudder</prop>
     </output>
     <config>
-      <Kp>0.75</Kp>        <!-- proportional gain -->
+      <Kp>-0.75</Kp>       <!-- proportional gain -->
       <Ki>0.0</Ki>         <!-- integral gain -->
       <u_min>-1.0</u_min>  <!-- minimum output clamp -->
       <u_max>1.0</u_max>   <!-- maximum output clamp -->
