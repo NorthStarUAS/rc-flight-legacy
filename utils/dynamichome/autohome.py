@@ -21,6 +21,7 @@ track = 0.0
 print "Update interval is %.1f seconds" % interval
 
 gpsd = gps(mode=WATCH_ENABLE)
+
 try:
     while True:
         # read next available gps message
