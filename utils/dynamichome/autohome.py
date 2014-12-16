@@ -7,18 +7,18 @@ import fgtelnet
 
 host = "localhost"
 port = 5402
+interval = 30.0
+verbose = False
 
 report_time = time.time()
-interval = 30.0
 deg2rad = math.pi / 180.0
 
 x_sum = 0.0
 y_sum = 0.0
 counter = 0
-#filt_x = 0.0
-#filt_y = 0.0
-#filt_speed = 0.0
 track = 0.0
+
+print "Update interval is %.1f seconds" % interval
 
 gpsd = gps(mode=WATCH_ENABLE)
 try:
@@ -37,6 +37,12 @@ try:
             # Tell gpsd we're ready to receive messages.
             gpsd = gps(mode=WATCH_ENABLE)
 
+        # basic sanity checks on gps position (skip report if data is bunk)
+        if gpsd.fix.mode < 1:
+            continue
+        if math.isnan(gpsd.fix.longitude) or math.isnan(gpsd.fix.latitude):
+            continue
+        
         # average track (x, y components)
         if math.isnan(gpsd.fix.track) or math.isnan(gpsd.fix.speed):
             # skip track work
@@ -48,33 +54,33 @@ try:
             x_sum += x
             y_sum += y
             counter += 1
-            #filt_x = 0.9 * filt_x + 0.1 * x;
-            #filt_y = 0.9 * filt_y + 0.1 * y;
             filt_speed = math.sqrt( x*x + y*y )
-            print "hdg = %.1f rad = %.2f x = %.2f  y = %.2f spd = %.2f\n" % (gpsd.fix.track, track_rad, x, y, filt_speed)
+            if verbose:
+                print "hdg = %.1f rad = %.2f x = %.2f  y = %.2f spd = %.2f" % (gpsd.fix.track, track_rad, x, y, filt_speed)
 
         # send home updates at specified interval
         cur_time = time.time()
         if cur_time >= report_time + interval:
             report_time = cur_time
-            
-            print
-            print ' GPS reading'
-            print '----------------------------------------'
-            print 'latitude    ' , gpsd.fix.latitude
-            print 'longitude   ' , gpsd.fix.longitude
-            print 'time utc    ' , gpsd.utc,' + ', gpsd.fix.time
-            print 'altitude (m)' , gpsd.fix.altitude
-            print 'eps         ' , gpsd.fix.eps
-            print 'epx         ' , gpsd.fix.epx
-            print 'epv         ' , gpsd.fix.epv
-            print 'ept         ' , gpsd.fix.ept
-            print 'speed (m/s) ' , gpsd.fix.speed
-            print 'climb       ' , gpsd.fix.climb
-            print 'track       ' , gpsd.fix.track
-            print 'mode        ' , gpsd.fix.mode
-            print
-            print 'sats        ' , gpsd.satellites
+
+            if verbose:
+                print
+                print ' GPS reading'
+                print '----------------------------------------'
+                print 'latitude    ' , gpsd.fix.latitude
+                print 'longitude   ' , gpsd.fix.longitude
+                print 'time utc    ' , gpsd.utc,' + ', gpsd.fix.time
+                print 'altitude (m)' , gpsd.fix.altitude
+                print 'eps         ' , gpsd.fix.eps
+                print 'epx         ' , gpsd.fix.epx
+                print 'epv         ' , gpsd.fix.epv
+                print 'ept         ' , gpsd.fix.ept
+                print 'speed (m/s) ' , gpsd.fix.speed
+                print 'climb       ' , gpsd.fix.climb
+                print 'track       ' , gpsd.fix.track
+                print 'mode        ' , gpsd.fix.mode
+                print
+                print 'sats        ' , gpsd.satellites
 
             # update movement average/stats
             if counter > 0:
@@ -83,7 +89,8 @@ try:
             else:
                 x = 0.0
                 y = 0.0
-            print "x_sum = %.2f y_sum = %.2f counter = %d" % (x_sum, y_sum, counter)
+            if verbose:
+                print "x_sum = %.2f y_sum = %.2f counter = %d" % (x_sum, y_sum, counter)
             # zero accumulators
             x_sum = 0.0
             y_sum = 0.0
@@ -95,13 +102,10 @@ try:
                 # This way we don't get random orientations if the base station
                 # isn't moving.  Note: 0.5 mps =~ 1 kt
                 track = 90.0 - math.atan2( y, x ) / deg2rad
-            print "avg track = %.1f x = %.2f  y = %.2f spd = %.2f\n" % (track, x, y, avg_speed)
+                if track < 0:
+                    track += 360.0
+            print "Time = %.1f avg track = %.1f x = %.2f  y = %.2f spd = %.2f" % (cur_time, track, x, y, avg_speed)
 
-
-            if math.isnan(gpsd.fix.longitude) or math.isnan(gpsd.fix.latitude):
-                # sanity check on our position
-                continue
-                
             message = "send home,%.8f,%.8f,0,%.1f" % \
                       ( gpsd.fix.longitude, gpsd.fix.latitude, track)
             print message
