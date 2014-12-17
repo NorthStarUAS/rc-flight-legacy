@@ -149,6 +149,7 @@ class WSChannel : public netBufferChannel
     // system health nodes
     SGPropertyNode *health_avionics_vcc_node;
     SGPropertyNode *health_extern_volts_node;
+    SGPropertyNode *health_extern_cell_volts_node;
     SGPropertyNode *health_extern_amps_node;
     SGPropertyNode *health_extern_mah_node;
     SGPropertyNode *health_load_avg_node;
@@ -311,6 +312,7 @@ void WSChannel::bind()
 
     health_avionics_vcc_node = fgGetNode( "/status/input-vcc", true );
     health_extern_volts_node = fgGetNode( "/status/extern-volts", true );
+    health_extern_cell_volts_node = fgGetNode( "/status/extern-cell-volts", true );
     health_extern_amps_node = fgGetNode( "/status/extern-amps", true );
     health_extern_mah_node = fgGetNode( "/status/extern-mah", true );
     health_load_avg_node = fgGetNode( "/status/system-load-avg", true );
@@ -576,6 +578,9 @@ WSChannel::process_line( string line )
 
 		json_add(&reply, "\"main_volts\":\"%.2f\"",
 			 health_extern_volts_node->getDoubleValue() );
+
+		json_add(&reply, "\"cell_volts\":\"%.2f\"",
+			 health_extern_cell_volts_node->getDoubleValue() );
 
 		json_add(&reply, "\"main_amps\":\"%.2f\"",
 			 health_extern_amps_node->getDoubleValue() );

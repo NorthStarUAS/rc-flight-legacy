@@ -806,6 +806,21 @@ int main( int argc, char **argv ) {
 			derivedpacket.wind_deg,
 			derivedpacket.wind_speed_kt);
 #endif
+		
+#if 1
+		double ail = pilotpacket.ail;
+		double ele = pilotpacket.ele;
+		if ( flying_wing_node->getBoolValue() ) {
+		    double ch1 = pilotpacket.ail;
+		    double ch2 = pilotpacket.ele;
+		    double e = (ch1 - ch2) / 2.0;
+		    double a = ch1 - e;
+		    ele = e;
+		    ail = a;
+		}
+		printf("TREND %.3f %.3f %.3f %.3f\n",
+		       imupacket.p, imupacket.q, ail, ele);
+#endif
                 double dlat = last_lat - filterpacket.lat;
                 double dlon = last_lon - filterpacket.lon;
                 double dist = sqrt( dlat*dlat + dlon*dlon );
@@ -990,7 +1005,7 @@ int main( int argc, char **argv ) {
 		    } else {
 			cout << "oops imu back in time: " << imupacket.timestamp << " " << imu_time << endl;
 		    }
-		} else if ( id == AIR_DATA_PACKET_V1 ) {
+		} else if ( id == AIR_DATA_PACKET_V4 ) {
 		    if ( airpacket.timestamp > air_time ) {
 			air_time = airpacket.timestamp;
 			packet_time = air_time;
@@ -1018,7 +1033,7 @@ int main( int argc, char **argv ) {
 		    } else {
 			cout << "oops pilot back in time: " << pilotpacket.timestamp << " " << pilot_time << endl;
 		    }
-		} else if ( id == AP_STATUS_PACKET_V1 ) {
+		} else if ( id == AP_STATUS_PACKET_V2) {
 		    if ( appacket.timestamp > ap_time ) {
 			ap_time = appacket.timestamp;
 			packet_time = ap_time;
@@ -1041,7 +1056,7 @@ int main( int argc, char **argv ) {
 		    } else {
 			cout << "oops ap back in time: " << appacket.timestamp << " " << ap_time << endl;
 		    }
-		} else if ( id == SYSTEM_HEALTH_PACKET_V1 ) {
+		} else if ( id == SYSTEM_HEALTH_PACKET_V3 ) {
 		    if ( healthpacket.timestamp > health_time ) {
 			health_time = healthpacket.timestamp;
 			packet_time = health_time;

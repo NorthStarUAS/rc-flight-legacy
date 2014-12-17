@@ -303,6 +303,17 @@ void UGTrack::parse_msg( const int id, char *buf,
 	/* printf("health = %.2f vcc=%.2f loadavg=%.2f\n",
 	       healthpacket->timestamp, healthpacket->input_vcc,
 	       healthpacket->loadavg); */
+    } else if ( id == SYSTEM_HEALTH_PACKET_V3 ) {
+        healthpacket->timestamp = *(double *)buf; buf += 8;
+	healthpacket->load_avg = (*(uint16_t *)buf) / 100.0; buf += 2;
+	healthpacket->avionics_vcc = (*(uint16_t *)buf) / 1000.0; buf += 2;
+	healthpacket->extern_volts = (*(uint16_t *)buf) / 1000.0; buf += 2;
+	healthpacket->extern_cell_volts = (*(uint16_t *)buf) / 1000.0; buf += 2;
+	healthpacket->extern_amps = (*(uint16_t *)buf) / 1000.0; buf += 2;
+	healthpacket->extern_mah = (*(uint16_t *)buf); buf += 2;
+	/* printf("health = %.2f vcc=%.2f loadavg=%.2f\n",
+	       healthpacket->timestamp, healthpacket->input_vcc,
+	       healthpacket->loadavg); */
     } else if ( id == PAYLOAD_PACKET_V1 ) {
         payloadpacket->timestamp = *(double *)buf; buf += 8;
 	payloadpacket->trigger_num = *(uint16_t *)buf; buf += 2;
@@ -432,7 +443,7 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
             } else {
                 cout << "oops ap status back in time" << endl;
             }
-        } else if ( id == SYSTEM_HEALTH_PACKET_V1 || id == SYSTEM_HEALTH_PACKET_V2 ) {
+        } else if ( id == SYSTEM_HEALTH_PACKET_V1 || id == SYSTEM_HEALTH_PACKET_V2 || id == SYSTEM_HEALTH_PACKET_V3 ) {
             if ( healthpacket.timestamp > health_time ) {
                 health_data.push_back( healthpacket );
                 health_time = healthpacket.timestamp;
@@ -981,8 +992,8 @@ bool UGTrack::export_text_tab( const string &path ) {
 		 "%.3f\t%.2f\t%.2f\t%.2f\t%.2f\t%.0f\n",
 		 healthpacket.timestamp,
 		 healthpacket.load_avg, healthpacket.avionics_vcc,
-		 healthpacket.extern_volts, healthpacket.extern_amps,
-		 healthpacket.extern_mah );
+		 healthpacket.extern_volts, healthpacket.extern_cell_volts,
+		 healthpacket.extern_amps, healthpacket.extern_mah );
     }
     fclose(health_fd);
 
@@ -1437,6 +1448,7 @@ health UGEARInterpHEALTH( const health A, const health B, const double percent )
     p.load_avg = interp(A.load_avg, B.load_avg, percent);
     p.avionics_vcc = interp(A.avionics_vcc, B.avionics_vcc, percent);
     p.extern_volts = interp(A.extern_volts, B.extern_volts, percent);
+    p.extern_cell_volts = interp(A.extern_cell_volts, B.extern_cell_volts, percent);
     p.extern_amps = interp(A.extern_amps, B.extern_amps, percent);
     p.extern_mah = interp(A.extern_mah, B.extern_mah, percent);
 
