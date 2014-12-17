@@ -119,6 +119,7 @@ AC_CONFIG_FILES([ \
         uglink/Makefile \
         utils/Makefile \
         utils/admin/Makefile \
+        utils/autohome/Makefile \
         utils/benchmarks/Makefile \
         utils/dynamichome/Makefile \
         utils/geo/Makefile \
