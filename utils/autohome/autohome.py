@@ -8,7 +8,7 @@ import fgtelnet
 host = "localhost"
 port = 5402
 interval = 30.0
-verbose = False
+verbose = True
 
 report_time = time.time()
 deg2rad = math.pi / 180.0
@@ -20,23 +20,26 @@ track = 0.0
 
 print "Update interval is %.1f seconds" % interval
 
-gpsd = gps(mode=WATCH_ENABLE)
+gpsd = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
 
 try:
     while True:
         # read next available gps message
         report = gpsd.next()
+	#print report
         
         # Check report class for 'DEVICE' messages from gpsd.  If
         # we're expecting messages from multiple devices we should
         # inspect the message to determine which device
         # has just become available.  But if we're just listening
         # to a single device, this may do.
-        if report['class'] == 'DEVICE':
-            # Clean up our current connection.
-            gpsd.close()
-            # Tell gpsd we're ready to receive messages.
-            gpsd = gps(mode=WATCH_ENABLE)
+        #if report['class'] == 'DEVICE':
+        #    # Clean up our current connection.
+        #    gpsd.close()
+        #    # Tell gpsd we're ready to receive messages.
+        #    gpsd = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
+	#    gpsd.stream(WATCH_ENABLE|WATCH_NEWSTYLE)
+	#    a = 1
 
         # basic sanity checks on gps position (skip report if data is bunk)
         if gpsd.fix.mode < 1:
@@ -113,7 +116,7 @@ try:
             try:
                 t = fgtelnet.FGTelnet(host, port)
                 t.send("data")
-                t.send("message")
+                t.send(message)
                 t.quit()
             except:
                 print "Cannot connect to uglink"
