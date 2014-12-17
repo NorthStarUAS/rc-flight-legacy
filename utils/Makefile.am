@@ -1,7 +1,7 @@
 SUBDIRS = \
 	admin \
+	autohome \
 	benchmarks \
-	dynamichome \
 	geo \
 	routegen \
 	uartserv

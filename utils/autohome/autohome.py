@@ -8,7 +8,7 @@ import fgtelnet
 host = "localhost"
 port = 5402
 interval = 30.0
-verbose = True
+verbose = False
 
 report_time = time.time()
 deg2rad = math.pi / 180.0
