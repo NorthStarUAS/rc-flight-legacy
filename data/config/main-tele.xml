@@ -1,11 +1,19 @@
 <?xml version="1.0"?>
 
-<!-- Master uGear config file -->
+<!-- Master config file -->
 
 <PropertyList>
 
   <config>
 
+    <!-- Aircraft identity information -->
+    <identity>
+      <make>Hobby Lobby</make>
+      <model>Senior Telemaster</model>
+      <serial-number>01</serial-number>
+      <call-sign>Tele 1</call-sign>
+    </identity>
+    
     <!-- Onboard data logging. -->
     <logging include="comms/log-overo.xml">                                 
       <path n="0">/home/root/FlightData</path>                        
@@ -23,6 +31,7 @@
         <pitot-calibrate-factor n="0">1.05</pitot-calibrate-factor>
         <pwm-hz n="0">200</pwm-hz>
         <volt-divider-ratio n="0">4.070</volt-divider-ratio>
+	<battery-cells n="0">5</battery-cells>
         <external-amp-ratio n="0">14.50</external-amp-ratio>
       </APM2>
       <imu-group n="0">
