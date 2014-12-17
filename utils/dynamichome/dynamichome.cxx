@@ -9,7 +9,7 @@
 using std::string;
 
 
-const int update_interval = 10;                       // seconds
+const int update_interval = 30;                       // seconds
 
 bool parse_track(const string text, double *track_deg /* true */ ) {
     string::size_type pos = text.find_first_of("=");
