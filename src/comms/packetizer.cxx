@@ -135,6 +135,7 @@ void UGPacketizer::bind_health_nodes() {
     system_loadavg_node = fgGetNode("/status/system-load-avg", true);
     avionics_vcc_node = fgGetNode("/sensors/APM2/board-vcc", true);
     extern_volt_node = fgGetNode("/sensors/APM2/extern-volt", true);
+    extern_cell_volt_node = fgGetNode("/sensors/APM2/extern-cell-volt", true);
     extern_amp_node = fgGetNode("/sensors/APM2/extern-amps", true);
     extern_mah_node = fgGetNode("/sensors/APM2/extern-current-mah", true);
 }
@@ -611,6 +612,9 @@ int UGPacketizer::packetize_health( uint8_t *buf )
 
     uint16_t volt = (uint16_t)(extern_volt_node->getFloatValue() * 1000.0);
     *(uint16_t *)buf = volt; buf += 2;
+
+    uint16_t cell_volt = (uint16_t)(extern_cell_volt_node->getFloatValue() * 1000.0);
+    *(uint16_t *)buf = cell_volt; buf += 2;
 
     uint16_t amp = (uint16_t)(extern_amp_node->getFloatValue() * 1000.0);
     *(uint16_t *)buf = amp; buf += 2;
