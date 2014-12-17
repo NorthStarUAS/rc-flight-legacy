@@ -19,6 +19,9 @@
     <volt-divider-ratio> 4.127</volt-divider-ratio>
     <!-- <volt-divider-ratio> 16.282</volt-divider-ratio> -->
 
+    <!-- used to unambiguously determine per-cell voltage -->
+    <battery-cells>4</battery-cells>
+
     <!-- this is a calibration offset which is subtracted from the analog -->
     <!-- voltage if it's non zero for a zero current draw (not a likely -->
     <!-- scenario in with the APM25 -->

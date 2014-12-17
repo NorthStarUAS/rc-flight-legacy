@@ -7,35 +7,25 @@
   <config>
 
     <!-- Onboard data logging. -->
-    <logging include="comms/log-overo.xml">                                 
-      <path n="0">/home/root/FlightData</path>                        
+    <logging include="comms/log-overo.xml">
+      <path n="0">/home/curt/FlightData</path>
     </logging>
 
     <!-- Remote operator communication. -->
-    <remote-link include="comms/remote-link-xtend.xml" />
+    <remote-link include="comms/remote-link-xtend.xml">
+      <device n="0">/dev/ttyUSB0</device>
+    </remote-link>
 
     <!-- socket based remote monitoring and control interface -->
     <telnet include="comms/telnet.xml" />
 
     <!-- Sensor selection and configuration. -->
-    <sensors include="sensors/group-APM2.xml">
-      <APM2 n="0">
-        <pwm-hz n="0">200</pwm-hz>
-	<battery-cells n="0">4</battery-cells>
-        <pitot-calibrate-factor n="0">1.15</pitot-calibrate-factor>
-      </APM2>
-      <imu-group n="0">
-        <imu n="0">
-          <ax-bias n="0">-0.010</ax-bias>
-          <ay-bias n="0">-0.330</ay-bias>
-          <az-bias n="0"> 0.000</az-bias>
-          <ax-scale n="0">1.005</ax-scale>
-          <ay-scale n="0">0.997</ay-scale>
-          <az-scale n="0">0.982</az-scale>
-        </imu>
-      </imu-group>
-    </sensors>
-    <!-- <sensors include="sensors/group-fgfs24.xml" /> -->
+    <!-- <sensors include="sensors/group-APM2.xml"> -->
+    <!--   <APM2 n="0"> -->
+    <!--     <device n="0">/dev/ttyACM0</device> -->
+    <!--   </APM2> -->
+    <!-- </sensors> -->
+    <sensors include="sensors/group-fgfs24.xml" />
 
     <!-- Filters configuration -->
     <filters>
@@ -67,8 +57,9 @@
       <mode>route</mode> 
 
       <!-- select the autopilot configuration -->
-      <!-- <autopilot include="autopilots/Resolution3-03-ele-speed.xml" /> -->
-      <autopilot include="autopilots/Resolution3-03-ele2-speed.xml" />
+      <!-- <autopilot include="autopilots/Rascal110-fgfs-ele2-speed.xml" /> -->
+      <autopilot include="autopilots/Resolution3-fgfs-ele2-speed.xml" />
+      <!-- <autopilot include="autopilots/FlyCamOne3.xml" /> -->
     </fcs>
 
     <!-- Primary mission selection and configuration. -->
@@ -80,11 +71,11 @@
     <!-- Actuator selection and configuration. -->
     <actuators>
       <!-- set value to true to enable flying wing elevon mixing -->
-      <elevon-mixing type="bool">true</elevon-mixing>
+      <elevon-mixing type="bool">false</elevon-mixing>
 
-      <!-- <actuator include="actuators/fgfs24.xml" /> -->
+      <actuator include="actuators/fgfs24.xml" />
       <!-- <actuator include="actuators/ardupilot.xml" /> -->
-      <actuator include="actuators/APM2.xml" />
+      <!-- <actuator include="actuators/APM2.xml" /> -->
     </actuators>
 
   </config>
