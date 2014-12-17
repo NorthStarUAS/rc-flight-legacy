@@ -1,5 +1,5 @@
-noinst_PROGRAMS = dynamichome_old
-bin_PROGRAMS = dynamichome
+noinst_PROGRAMS = dynamichome dynamichome_old
+#bin_PROGRAMS = dynamichome
 
 dynamichome_old_SOURCES = \
 	main.cxx
