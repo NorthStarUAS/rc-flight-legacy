@@ -109,6 +109,7 @@ static SGPropertyNode *ap_route_size_node = NULL;
 static SGPropertyNode *avionics_vcc_node = NULL;
 static SGPropertyNode *system_load_avg_node = NULL;
 static SGPropertyNode *extern_volts_node = NULL;
+static SGPropertyNode *extern_cell_volts_node = NULL;
 static SGPropertyNode *extern_amps_node = NULL;
 static SGPropertyNode *extern_mah_node = NULL;
 
@@ -277,6 +278,7 @@ static void bind_health_nodes() {
     system_load_avg_node = fgGetNode("/status/system-load-avg", true);
     avionics_vcc_node = fgGetNode("/status/input-vcc", true);
     extern_volts_node = fgGetNode("/status/extern-volts", true);
+    extern_cell_volts_node = fgGetNode("/status/extern-cell-volts", true);
     extern_amps_node = fgGetNode("/status/extern-amps", true);
     extern_mah_node = fgGetNode("/status/extern-mah", true);
 }
@@ -446,6 +448,7 @@ static void update_health_nodes( struct health *healthpacket ) {
     system_load_avg_node->setFloatValue( healthpacket->load_avg );
     avionics_vcc_node->setFloatValue( healthpacket->avionics_vcc );
     extern_volts_node->setFloatValue( healthpacket->extern_volts );
+    extern_cell_volts_node->setFloatValue( healthpacket->extern_cell_volts );
     extern_amps_node->setFloatValue( healthpacket->extern_amps );
     extern_mah_node->setFloatValue( healthpacket->extern_mah );
 }
@@ -627,6 +630,7 @@ void compute_derived_data( struct gps *gpspacket,
 	pitot_scale_filt = 0.999 * pitot_scale_filt + 0.001 * pitot_scale;
 	pitot_scale_node->setDoubleValue( pitot_scale_filt );
 	//printf("pitot_scale_filt = %.2f\n", pitot_scale_filt);
+	printf("%.2f %.1f %.1f\n", filterpacket->timestamp, airpacket->airspeed, true_speed_kt);
     }
 #endif
 

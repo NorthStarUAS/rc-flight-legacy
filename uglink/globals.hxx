@@ -94,6 +94,7 @@ struct health {
     float load_avg;		/* system "1 minute" load average */
     float avionics_vcc;		/* input vcc */
     float extern_volts;
+    float extern_cell_volts;
     float extern_amps;
     float extern_mah;
 };

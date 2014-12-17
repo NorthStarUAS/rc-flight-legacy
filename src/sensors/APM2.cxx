@@ -50,11 +50,13 @@ static SGPropertyNode *APM2_device_node = NULL;
 static SGPropertyNode *APM2_baud_node = NULL;
 static SGPropertyNode *APM2_pwm_rate_node = NULL;
 static SGPropertyNode *APM2_volt_ratio_node = NULL;
+static SGPropertyNode *APM2_battery_cells_node = NULL;
 static SGPropertyNode *APM2_amp_offset_node = NULL;
 static SGPropertyNode *APM2_amp_ratio_node = NULL;
 static SGPropertyNode *APM2_analog_nodes[MAX_ANALOG_INPUTS];
 static SGPropertyNode *APM2_pitot_calibrate_node = NULL;
 static SGPropertyNode *APM2_extern_volt_node = NULL;
+static SGPropertyNode *APM2_extern_cell_volt_node = NULL;
 static SGPropertyNode *APM2_extern_amp_node = NULL;
 static SGPropertyNode *APM2_extern_amp_sum_node = NULL;
 static SGPropertyNode *APM2_board_vcc_node = NULL;
@@ -140,6 +142,7 @@ static string device_name = "/dev/ttyS0";
 static int baud = 230400;
 static int act_pwm_rate_hz = 50;
 static float volt_div_ratio = 100; // a nonsense value
+static int battery_cells = 4;
 static float extern_amp_offset = 0.0;
 static float extern_amp_ratio = 0.1; // a nonsense value
 static float extern_amp_sum = 0.0;
@@ -423,6 +426,11 @@ static bool APM2_open() {
     if ( APM2_volt_ratio_node != NULL ) {
 	volt_div_ratio = APM2_volt_ratio_node->getFloatValue();
     }
+    APM2_battery_cells_node = fgGetNode("/config/sensors/APM2/battery-cells");
+    if ( APM2_battery_cells_node != NULL ) {
+	battery_cells = APM2_battery_cells_node->getFloatValue();
+    }
+    if ( battery_cells < 1 ) { battery_cells = 1; }
     APM2_amp_offset_node = fgGetNode("/config/sensors/APM2/external-amp-offset");
     if ( APM2_amp_offset_node != NULL ) {
 	extern_amp_offset = APM2_amp_offset_node->getFloatValue();
@@ -441,6 +449,7 @@ static bool APM2_open() {
 	pitot_calibrate = APM2_pitot_calibrate_node->getFloatValue();
     }
     APM2_extern_volt_node = fgGetNode("/sensors/APM2/extern-volt", true);
+    APM2_extern_cell_volt_node = fgGetNode("/sensors/APM2/extern-cell-volt", true);
     APM2_extern_amp_node = fgGetNode("/sensors/APM2/extern-amps", true);
     APM2_extern_amp_sum_node = fgGetNode("/sensors/APM2/extern-current-mah", true);
     APM2_board_vcc_node = fgGetNode("/sensors/APM2/board-vcc", true);
@@ -771,6 +780,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 
 	    float extern_volts = analog[1] * (filter_vcc/1024.0) * volt_div_ratio;
 	    extern_volt_filt = 0.995 * extern_volt_filt + 0.005 * extern_volts;
+	    float cell_volt = extern_volt_filt / (float)battery_cells;
 	    float extern_amps = ((analog[2] * (filter_vcc/1024.0)) - extern_amp_offset) * extern_amp_ratio;
 	    extern_amp_filt = 0.99 * extern_amp_filt + 0.01 * extern_amps;
 	    /*printf("a[2]=%.1f vcc=%.2f ratio=%.2f amps=%.2f\n",
@@ -778,6 +788,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    extern_amp_sum += extern_amps * dt * 0.277777778; // 0.2777... is 1000/3600 (conversion to milli-amp hours)
 
 	    APM2_extern_volt_node->setFloatValue( extern_volt_filt );
+	    APM2_extern_cell_volt_node->setFloatValue( cell_volt );
 	    APM2_extern_amp_node->setFloatValue( extern_amp_filt );
 	    APM2_extern_amp_sum_node->setFloatValue( extern_amp_sum );
 
