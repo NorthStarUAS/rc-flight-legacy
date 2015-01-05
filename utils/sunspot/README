@@ -1,1 +1,20 @@
+This code requires the SimGear library (from the FlightGear.org
+project) to build.  SimGear provides "ephemeris" computational
+routines.  This allows us to compute a NED vector to the sun (for
+example) or negate that vector to look at our shadow.
+
+Because of the simgear dependency, this code is not included in the
+automated build system.
+
+Here is an example command to build the code directly:
+
 g++ -o shadowpoint -I/usr/local/FlightGear-2.6/include -L /usr/local/FlightGear-2.6/lib64 shadowpoint.cxx -lsgmath -lsgtiming -lsgephem -lsgstructure -lsgdebug -lsgmisc -lplibnet -lplibul -lm
+
+g++ -o test-pan-tilt -I/usr/local/FlightGear-2.6/include -L /usr/local/FlightGear-2.6/lib64 test-pan-tilt.cxx -lgps -lsgtiming -lsgmath -lsgephem -lsgstructure -lsgdebug -lsgmisc -lplibnet -lplibul -lm
+
+Then you will need to start gpsd manually before you run the code using 
+something like:
+
+    gpsd /dev/ttyUSB0
+
+You can run gpsmon in a separate window to directly observe the gps output
