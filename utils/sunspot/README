@@ -10,7 +10,7 @@ Here is an example command to build the code directly:
 
 g++ -o shadowpoint -I/usr/local/FlightGear-2.6/include -L /usr/local/FlightGear-2.6/lib64 shadowpoint.cxx -lsgmath -lsgtiming -lsgephem -lsgstructure -lsgdebug -lsgmisc -lplibnet -lplibul -lm
 
-g++ -o test-pan-tilt -I/usr/local/FlightGear-2.6/include -L /usr/local/FlightGear-2.6/lib64 test-pan-tilt.cxx -lgps -lsgtiming -lsgmath -lsgephem -lsgstructure -lsgdebug -lsgmisc -lplibnet -lplibul -lm
+g++ -o test-pan-tilt -I/usr/local/FlightGear-3.2/include -L /usr/local/FlightGear-3.2/lib64 test-pan-tilt.cxx -lgps -lSimGearCore -lplibnet -lplibul -lm -lpthread
 
 Then you will need to start gpsd manually before you run the code using 
 something like:

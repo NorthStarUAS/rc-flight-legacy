@@ -1,6 +1,7 @@
 #include <string.h>
 #include <string>
-
+#include <termios.h>            // tcgetattr() et. al.
+#
 #include <gps.h>
 
 #include <plib/netSocket.h>
@@ -12,12 +13,11 @@
 
 using std::string;
 
-
-const int update_interval = 10;                       // seconds
-
 static Star our_sun;
 static MoonPos moon;
 
+static int fd = -1;
+static string device_name = "/dev/ttyUSB0";
 
 /* given a particular time expressed in side real time at prime
  * meridian (GST), compute position on the earth (lat, lon) such that
@@ -90,19 +90,19 @@ void fgMoonPositionGST(SGTime t, double *lon, double *lat) {
 
 
 static SGVec3d compute_sun_ecef( double lon_deg, double lat_deg ) {
-    double lon_rad = lon_deg * SG_DEGREES_TO_RADIANS;
-    double lat_rad = lat_deg * SG_DEGREES_TO_RADIANS;
+    SGGeod pos_geod = SGGeod::fromDegM( lon_deg, lat_deg, 0 );
 
-    SGTime t = SGTime( lon_rad, lat_rad, "", 0 );
+    SGTime t = SGTime();
     time_t cur_time = time(NULL);
-    t.update( lon_rad, lat_rad, cur_time, 0 );
+    t.update( pos_geod, cur_time, 0 );
 
     double sun_lon, sun_gd_lat;
     fgSunPositionGST( t, &sun_lon, &sun_gd_lat );
-    printf("Sun is straight over lon=%.8f lat=%.8f\n",
-	   sun_lon*SG_RADIANS_TO_DEGREES, sun_gd_lat*SG_RADIANS_TO_DEGREES);
+    //printf("Sun is straight over lon=%.8f lat=%.8f\n",
+    //       sun_lon*SG_RADIANS_TO_DEGREES, sun_gd_lat*SG_RADIANS_TO_DEGREES);
     SGVec3d sun_ecef = SGVec3d::fromGeod(SGGeod::fromRad(sun_lon, sun_gd_lat));
-    printf("Sun ecef=%.3f %.3f %.3f\n", sun_ecef[0], sun_ecef[1], sun_ecef[2]);
+    //printf("Sun ecef=%.3f %.3f %.3f\n",
+    //       sun_ecef[0], sun_ecef[1], sun_ecef[2]);
 
     return sun_ecef;
 }
@@ -127,12 +127,57 @@ static SGVec3d compute_moon_ecef( double lon_deg, double lat_deg ) {
 #endif
 
 
-int main() {
+// send our configured init strings to configure gpsd the way we prefer
+static bool uart_open(tcflag_t baud) {
+    fd = open( device_name.c_str(), O_RDWR /* | O_NOCTTY */ );
+    if ( fd < 0 ) {
+        fprintf( stderr, "open serial: unable to open %s - %s\n",
+                 device_name.c_str(), strerror(errno) );
+	return false;
+    }
 
+    struct termios config; 	// Serial port settings
+    // memset(&config, 0, sizeof(config));
+
+    // Fetch current serial port settings
+    tcgetattr(fd, &config); 
+    cfsetspeed( &config, baud );
+    // cfmakeraw( &config );
+
+    // Flush Serial Port I/O buffer
+    tcflush(fd, TCIOFLUSH);
+
+    // Set New Serial Port Settings
+    int ret = tcsetattr( fd, TCSANOW, &config );
+    if ( ret > 0 ) {
+        fprintf( stderr, "error configuring device: %s - %s\n",
+                 device_name.c_str(), strerror(errno) );
+	return false;
+    }
+
+    return true;
+}
+
+
+bool uart_send( const char *payload ) {
+    unsigned int size = strlen( payload );
+    unsigned int len = write( fd, payload, size );
+    if ( len != size ) {
+	printf("wrote %d of %d bytes -- try again\n", len, size);
+	return false;
+    } else {
+	printf("wrote %d bytes: %s\n", len, payload);
+	fsync(fd);
+	return true;
+    }
+
+}
+
+
+int main() {
     struct gps_data_t gps_data;
 
     SGGeod loc;
-    int count = update_interval;
 
     netInit(NULL, NULL);
 
@@ -152,6 +197,13 @@ int main() {
     double lat_deg = 45.13800;
     double track_deg = 0.0;
     double pan_tilt_zero_hdg = 180.0; // positioned to look south at zero angle
+    int last_pan_pos = INT_MAX;
+    int last_tilt_pos = INT_MAX;
+
+    if ( ! uart_open( B9600 ) ) {
+	printf("Cannot open pan/tilt uart\n");
+	exit(-1);
+    }
     
     while ( true ) {
 	bool gps_valid = true;
@@ -160,14 +212,15 @@ int main() {
 	}
 	if ( gps_read (&gps_data) <= 0 ) {
 	    gps_valid = false;
+	} else {
+	    printf("read something from gps\n");
 	}
-	/* Display data from the GPS receiver. */
-	printf("read something from gps\n");
 	if ( ! gps_data.set ) {
 	    gps_valid = false;
+	} else {
+	    printf("sats used=%d fix=%d\n", 
+		   gps_data.satellites_used, gps_data.fix.mode);
 	}
-	printf("sats used=%d fix=%d\n", 
-	       gps_data.satellites_used, gps_data.fix.mode);
 	if ( gps_data.fix.mode < 2 ) {
 	    gps_valid = false;
 	}
@@ -213,9 +266,43 @@ int main() {
 	       target_bearing_deg, target_azimuth_deg);
 
 	double pan_deg = pan_tilt_zero_hdg - target_bearing_deg;
+	if ( pan_deg < -180.0 ) {
+	    pan_deg += 360.0;
+	}
+	if ( pan_deg > 180.0 ) {
+	    pan_deg -= 360.0;
+	}
 	double tilt_deg = target_azimuth_deg;
 	printf("pan = %.2f  tilt = %.2f\n", pan_deg, tilt_deg);
-       
+
+	double pan_res = 185.1428; // seconds/arc
+	double tilt_res = 46.2857; // seconds/arc
+	int pan_min = -3088;
+	int pan_max = 3088;
+	int tilt_min = -3510;
+	int tilt_max = 2314;
+	
+	int pan_pos = round(pan_deg / (pan_res/3600.0));
+	if ( pan_pos < pan_min ) { pan_pos = pan_min; }
+	if ( pan_pos > pan_max ) { pan_pos = pan_max; }
+	int tilt_pos = round(tilt_deg / (tilt_res/3600.0));
+	if ( tilt_pos < tilt_min ) { tilt_pos = tilt_min; }
+	if ( tilt_pos > tilt_max ) { tilt_pos = tilt_max; }
+
+	const int maxlen = 256;
+	char command[maxlen];
+	if ( pan_pos != last_pan_pos ) {
+	    last_pan_pos = pan_pos;
+	    snprintf( command, maxlen, "PP%d\r\n", pan_pos );
+	    printf(command);
+	    uart_send(command);
+	}
+	if ( tilt_pos != last_tilt_pos ) {
+	    last_tilt_pos = tilt_pos;
+	    snprintf( command, maxlen, "TP%d\r\n", tilt_pos );
+	    printf(command);
+	    uart_send(command);
+	}
     }
 }
 
