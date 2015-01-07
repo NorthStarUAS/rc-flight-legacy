@@ -76,6 +76,8 @@ void fgSunPositionGST(SGTime t, double *lon_deg, double *lat_deg) {
     printf("Sun -> Gst = %.2f\n", t.getGst());
     double gst_deg = t.getGst() * 360.0 /*degrees*/ / 24.0 /*hours*/;
     *lon_deg = our_sun.getRightAscension() * SG_RADIANS_TO_DEGREES - gst_deg;
+    if ( *lon_deg < -180.0 ) { *lon_deg += 360.0; }
+    if ( *lon_deg > 180.0 ) { *lon_deg -= 360.0; }
     *lat_deg = our_sun.getDeclination() * SG_RADIANS_TO_DEGREES;	
     printf("Sun -> lon = %.8f lat=%.8f\n", *lon_deg, *lat_deg);
  }
@@ -94,6 +96,8 @@ void fgMoonPositionGST(SGTime t, double *lon_deg, double *lat_deg) {
     printf("Moon -> Gst = %.2f\n", t.getGst());
     double gst_deg = t.getGst() * 360.0 /*degrees*/ / 24.0 /*hours*/;
     *lon_deg = moon.getRightAscension() * SG_RADIANS_TO_DEGREES - gst_deg;
+    if ( *lon_deg < -180.0 ) { *lon_deg += 360.0; }
+    if ( *lon_deg > 180.0 ) { *lon_deg -= 360.0; }
     *lat_deg = moon.getDeclination() * SG_RADIANS_TO_DEGREES;	
     printf("Moon -> lon = %.8f lat=%.8f\n", *lon_deg, *lat_deg);
 }
