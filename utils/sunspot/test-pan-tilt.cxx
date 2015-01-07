@@ -23,7 +23,7 @@ static string device_name = "/dev/ttyUSB0";
  * meridian (GST), compute position on the earth (lat, lon) such that
  * sun is directly overhead.  (lat, lon are reported in radians */
 
-void fgSunPositionGST(SGTime t, double *lon, double *lat) {
+void fgSunPositionGST_old(SGTime t, double *lon, double *lat) {
     /* time_t  ssue;           seconds since unix epoch */
     /* double *lat;            (return) latitude        */
     /* double *lon;            (return) longitude       */
@@ -52,41 +52,51 @@ void fgSunPositionGST(SGTime t, double *lon, double *lat) {
 
     *lon = tmp;
     *lat = delta;
+
+    printf("Direct -> lon = %.8f lat=%.8f\n",
+	   our_sun.getLon() * SG_RADIANS_TO_DEGREES,
+	   our_sun.getLat() * SG_RADIANS_TO_DEGREES);
+    printf("Direct -> ra = %.8f dec=%.8f\n",
+	   our_sun.getRightAscension() * SG_RADIANS_TO_DEGREES,
+	   our_sun.getDeclination() * SG_RADIANS_TO_DEGREES);
+    printf("Direct -> Gst = %.2f\n", t.getGst());
 }
 
 
-#if 0
-void fgMoonPositionGST(SGTime t, double *lon, double *lat) {
-    /* time_t  ssue;           seconds since unix epoch */
+void fgSunPositionGST(SGTime t, double *lon_deg, double *lat_deg) {
+    /* SGTime t;               current time             */
+    /* double *lat;            (return) latitude        */
+    /* double *lon;            (return) longitude       */
+
+    our_sun.updatePosition( t.getMjd() );
+
+    printf("Sun -> ra = %.8f dec=%.8f\n",
+	   our_sun.getRightAscension() * SG_RADIANS_TO_DEGREES,
+	   our_sun.getDeclination() * SG_RADIANS_TO_DEGREES);
+    printf("Sun -> Gst = %.2f\n", t.getGst());
+    double gst_deg = t.getGst() * 360.0 /*degrees*/ / 24.0 /*hours*/;
+    *lon_deg = our_sun.getRightAscension() * SG_RADIANS_TO_DEGREES - gst_deg;
+    *lat_deg = our_sun.getDeclination() * SG_RADIANS_TO_DEGREES;	
+    printf("Sun -> lon = %.8f lat=%.8f\n", *lon_deg, *lat_deg);
+ }
+
+
+void fgMoonPositionGST(SGTime t, double *lon_deg, double *lat_deg) {
+    /* SGTime t;               current time             */
     /* double *lat;            (return) latitude        */
     /* double *lon;            (return) longitude       */
 
     moon.updatePosition( t.getMjd(), t.getLst(), our_sun.getLat(), &our_sun );
 
-    double alpha, delta;
-    double tmp;
-
-    double beta = moon.getLat();
-    double xs = moon.getxs();
-    double ys = moon.getys();
-    double ye = moon.getye();
-    double ze = moon.getze();
-    alpha = atan2(ys - tan(beta)*ze/ys, xs);
-    delta = asin(sin(beta)*ye/ys + cos(beta)*ze);
- 
-    tmp = alpha - (SGD_2PI/24)*t.getGst();
-    if (tmp < -SGD_PI) {
-        do tmp += SGD_2PI;
-        while (tmp < -SGD_PI);
-    } else if (tmp > SGD_PI) {
-        do tmp -= SGD_2PI;
-        while (tmp < -SGD_PI);
-    }
-
-    *lon = tmp;
-    *lat = delta;
+    printf("Moon -> ra = %.8f dec=%.8f\n",
+	   moon.getRightAscension() * SG_RADIANS_TO_DEGREES,
+	   moon.getDeclination() * SG_RADIANS_TO_DEGREES);
+    printf("Moon -> Gst = %.2f\n", t.getGst());
+    double gst_deg = t.getGst() * 360.0 /*degrees*/ / 24.0 /*hours*/;
+    *lon_deg = moon.getRightAscension() * SG_RADIANS_TO_DEGREES - gst_deg;
+    *lat_deg = moon.getDeclination() * SG_RADIANS_TO_DEGREES;	
+    printf("Moon -> lon = %.8f lat=%.8f\n", *lon_deg, *lat_deg);
 }
-#endif
 
 
 static SGVec3d compute_sun_ecef( double lon_deg, double lat_deg ) {
@@ -98,9 +108,9 @@ static SGVec3d compute_sun_ecef( double lon_deg, double lat_deg ) {
 
     double sun_lon, sun_gd_lat;
     fgSunPositionGST( t, &sun_lon, &sun_gd_lat );
-    //printf("Sun is straight over lon=%.8f lat=%.8f\n",
-    //       sun_lon*SG_RADIANS_TO_DEGREES, sun_gd_lat*SG_RADIANS_TO_DEGREES);
-    SGVec3d sun_ecef = SGVec3d::fromGeod(SGGeod::fromRad(sun_lon, sun_gd_lat));
+    printf("Sun is straight over lon=%.8f lat=%.8f\n",
+           sun_lon, sun_gd_lat);
+    SGVec3d sun_ecef = SGVec3d::fromGeod(SGGeod::fromDeg(sun_lon, sun_gd_lat));
     //printf("Sun ecef=%.3f %.3f %.3f\n",
     //       sun_ecef[0], sun_ecef[1], sun_ecef[2]);
 
@@ -108,23 +118,20 @@ static SGVec3d compute_sun_ecef( double lon_deg, double lat_deg ) {
 }
 
 
-#if 0
 static SGVec3d compute_moon_ecef( double lon_deg, double lat_deg ) {
-    double lon_rad = lon_deg * SG_DEGREES_TO_RADIANS;
-    double lat_rad = lat_deg * SG_DEGREES_TO_RADIANS;
+    SGGeod pos_geod = SGGeod::fromDegM( lon_deg, lat_deg, 0 );
 
-    SGTime t = SGTime( lon_rad, lat_rad, "", 0 );
+    SGTime t = SGTime();
     time_t cur_time = time(NULL);
-    t.update( lon_rad, lat_rad, cur_time, 0 );
+    t.update( pos_geod, cur_time, 0 );
 
     double moon_lon, moon_gd_lat;
     fgMoonPositionGST( t, &moon_lon, &moon_gd_lat );
     SGVec3d moon_ecef
-	= SGVec3d::fromGeod(SGGeod::fromRad(moon_lon, moon_gd_lat));
+	= SGVec3d::fromGeod(SGGeod::fromDeg(moon_lon, moon_gd_lat));
 
     return moon_ecef;
 }
-#endif
 
 
 // send our configured init strings to configure gpsd the way we prefer
@@ -246,8 +253,8 @@ int main() {
 	// SGVec3d pos_ecef = SGVec3d::fromGeod(pos_geod);
 	SGQuatd ecef2ned = SGQuatd::fromLonLat(pos_geod);
 
-	SGVec3d target_ecef = compute_sun_ecef( lon_deg, lat_deg );
-	// SGVec3d target_ecef = compute_moon_ecef( lon_deg, lat_deg );
+	//SGVec3d target_ecef = compute_sun_ecef( lon_deg, lat_deg );
+	SGVec3d target_ecef = compute_moon_ecef( lon_deg, lat_deg );
 
 	SGVec3d target_ned = normalize( ecef2ned.transform(target_ecef) );
 	SGVec3d inverse_ned = target_ned * -1.0;
