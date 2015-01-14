@@ -13,6 +13,10 @@
 
 using std::string;
 
+//static string track_mode = "sun";
+//static string track_mode = "moon";
+static string track_mode = "wgs84";
+
 static Star our_sun;
 static MoonPos moon;
 
@@ -204,10 +208,15 @@ int main() {
 
     gps_stream(&gps_data, WATCH_ENABLE | WATCH_JSON, NULL);
 
-    double lon_deg = -93.15705;
-    double lat_deg = 45.13800;
+    double base_lon_deg = -93.15705;
+    double base_lat_deg = 45.13800;
+    double base_alt_m = 278.0;
     double track_deg = 0.0;
-    double pan_tilt_zero_hdg = 180.0; // positioned to look south at zero angle
+
+    double body_heading_deg = 133.0; // positioned to look south at zero angle
+    double body_roll_deg = 0.0;
+    double body_pitch_deg = 0.0;
+    
     int last_pan_pos = INT_MAX;
     int last_tilt_pos = INT_MAX;
 
@@ -247,37 +256,80 @@ int main() {
 	}
 
 	if ( gps_valid ) {
-	    lon_deg = gps_data.fix.longitude;
-	    lat_deg = gps_data.fix.latitude;
+	    base_lon_deg = gps_data.fix.longitude;
+	    base_lat_deg = gps_data.fix.latitude;
+	    base_alt_m = gps_data.fix.altitude;
 	    double track_deg = gps_data.fix.track;
 	}
 
-	printf(" pos=%.8f,%.8f trk=%.1f\n", lon_deg, lat_deg, track_deg );
+	printf(" pos=%.8f,%.8f trk=%.1f\n", base_lon_deg, base_lat_deg, track_deg );
 
-	SGGeod pos_geod = SGGeod::fromDegM( lon_deg, lat_deg, 0 );
-	// SGVec3d pos_ecef = SGVec3d::fromGeod(pos_geod);
+	SGGeod pos_geod = SGGeod::fromDegM( base_lon_deg, base_lat_deg, 0 );
+	SGVec3d pos_ecef = SGVec3d::fromGeod(pos_geod);
 	SGQuatd ecef2ned = SGQuatd::fromLonLat(pos_geod);
 
-	SGVec3d target_ecef = compute_sun_ecef( lon_deg, lat_deg );
-	//SGVec3d target_ecef = compute_moon_ecef( lon_deg, lat_deg );
+	SGVec3d dir_ecef;
+	if ( track_mode == "sun" ) {
+	    dir_ecef = compute_sun_ecef(base_lon_deg, base_lat_deg);
+	} else if ( track_mode == "moon" ) {
+	    dir_ecef = compute_moon_ecef(base_lon_deg, base_lat_deg);
+	} else if ( track_mode == "wgs84" ) {
+	    double target_lon_deg = base_lon_deg + 1.0;
+	    double target_lat_deg = base_lat_deg;
+	    double target_alt_m = base_alt_m + 40000.0;
 
-	SGVec3d target_ned = normalize( ecef2ned.transform(target_ecef) );
-	SGVec3d inverse_ned = target_ned * -1.0;
-	printf("target_ned = %.3f %.3f %.3f\n",
-	       target_ned[0], target_ned[1], target_ned[2]);
+	    SGGeod target_geod = SGGeod::fromDegM( target_lon_deg,
+						   target_lat_deg,
+						   target_alt_m );
+	    printf("target_geod = %.3f %.3f %.3f\n",
+		   target_geod.getLongitudeDeg(),
+		   target_geod.getLatitudeDeg(),
+		   target_geod.getElevationM());
+	    SGVec3d target_ecef = SGVec3d::fromGeod( target_geod );
+	    printf("target_ecef = %.3f %.3f %.3f\n",
+		   target_ecef[0], target_ecef[1], target_ecef[2]);
+	    dir_ecef = target_ecef - pos_ecef;
+	    printf("dir_ecef = %.3f %.3f %.3f\n",
+		   dir_ecef[0], dir_ecef[1], dir_ecef[2]);
+	}
+	
+	// Body orientation (the "body" frame of reference which the
+	// pan/tilt is mounted to that could potential move around or
+	// be positioned different ways.)
+	double heading_rad = body_heading_deg * SGD_DEGREES_TO_RADIANS;
+	double pitch_rad = body_pitch_deg * SGD_DEGREES_TO_RADIANS;
+	double roll_rad = body_roll_deg * SGD_DEGREES_TO_RADIANS;
+	SGQuatd ned2body
+	    = SGQuatd::fromYawPitchRoll( heading_rad, pitch_rad, roll_rad );
+
+	// ECEF to aircraft body (eye) coordinate system
+	// transformation
+	SGQuatd ecef2body = ecef2ned * ned2body;
+
+	// compute pointing direction in the ned frame of reference
+	SGVec3d dir_ned = normalize( ecef2ned.transform(dir_ecef) );
+	printf("dir_ned = %.3f %.3f %.3f\n",
+	       dir_ned[0], dir_ned[1], dir_ned[2]);
+
+	// compute pointing direction in the body frame of reference
+	SGVec3d dir_body = normalize( ecef2body.transform(dir_ecef) );
+	printf("dir_body = %.3f %.3f %.3f\n",
+	       dir_body[0], dir_body[1], dir_body[2]);
+
+	SGVec3d inverse_ned = dir_ned * -1.0;
 	printf("shadow_ned = %.3f %.3f %.3f\n",
 	       inverse_ned[0], inverse_ned[1], inverse_ned[2]);
 
-	double target_bearing_deg = atan2(target_ned[1], target_ned[0])
+	double target_bearing_deg = atan2(dir_ned[1], dir_ned[0])
 	    * SG_RADIANS_TO_DEGREES;
-	double horiz = sqrt(target_ned[0]*target_ned[0]
-			    + target_ned[1]*target_ned[1]);
-	double target_azimuth_deg = atan2(-target_ned[2], horiz)
+	double horiz_range = sqrt(dir_ned[0]*dir_ned[0]
+			    + dir_ned[1]*dir_ned[1]);
+	double target_azimuth_deg = atan2(-dir_ned[2], horiz_range)
 	    * SG_RADIANS_TO_DEGREES;
 	printf("target bearing=%.2f azimuth=%.2f\n",
 	       target_bearing_deg, target_azimuth_deg);
 
-	double pan_deg = pan_tilt_zero_hdg - target_bearing_deg;
+	double pan_deg = body_heading_deg - target_bearing_deg;
 	if ( pan_deg < -180.0 ) {
 	    pan_deg += 360.0;
 	}
