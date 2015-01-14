@@ -215,6 +215,7 @@ int main() {
 	printf("Cannot open pan/tilt uart\n");
 	exit(-1);
     }
+    uart_send("\r\n\r\n");
     
     while ( true ) {
 	bool gps_valid = true;
@@ -257,8 +258,8 @@ int main() {
 	// SGVec3d pos_ecef = SGVec3d::fromGeod(pos_geod);
 	SGQuatd ecef2ned = SGQuatd::fromLonLat(pos_geod);
 
-	//SGVec3d target_ecef = compute_sun_ecef( lon_deg, lat_deg );
-	SGVec3d target_ecef = compute_moon_ecef( lon_deg, lat_deg );
+	SGVec3d target_ecef = compute_sun_ecef( lon_deg, lat_deg );
+	//SGVec3d target_ecef = compute_moon_ecef( lon_deg, lat_deg );
 
 	SGVec3d target_ned = normalize( ecef2ned.transform(target_ecef) );
 	SGVec3d inverse_ned = target_ned * -1.0;
@@ -288,7 +289,7 @@ int main() {
 
 	double pan_res = 185.1428; // seconds/arc
 	double tilt_res = 46.2857; // seconds/arc
-	int pan_min = -3088;
+	int pan_min = -3087;
 	int pan_max = 3088;
 	int tilt_min = -3510;
 	int tilt_max = 2314;
