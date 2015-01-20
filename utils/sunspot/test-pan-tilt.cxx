@@ -13,9 +13,9 @@
 
 using std::string;
 
-//static string track_mode = "sun";
+static string track_mode = "sun";
 //static string track_mode = "moon";
-static string track_mode = "wgs84";
+//static string track_mode = "wgs84";
 
 static Star our_sun;
 static MoonPos moon;
@@ -23,50 +23,13 @@ static MoonPos moon;
 static int fd = -1;
 static string device_name = "/dev/ttyUSB0";
 
+static string gpsd_host = "localhost";
+//static string gpsd_host = "192.168.1.64";
+static string gpsd_port = "2947";
+
 /* given a particular time expressed in side real time at prime
  * meridian (GST), compute position on the earth (lat, lon) such that
  * sun is directly overhead.  (lat, lon are reported in radians */
-
-void fgSunPositionGST_old(SGTime t, double *lon, double *lat) {
-    /* time_t  ssue;           seconds since unix epoch */
-    /* double *lat;            (return) latitude        */
-    /* double *lon;            (return) longitude       */
-
-    our_sun.updatePosition( t.getMjd() );
-
-    double alpha, delta;
-    double tmp;
-
-    double beta = our_sun.getLat();
-    double xs = our_sun.getxs();
-    double ys = our_sun.getys();
-    double ye = our_sun.getye();
-    double ze = our_sun.getze();
-    alpha = atan2(ys - tan(beta)*ze/ys, xs);
-    delta = asin(sin(beta)*ye/ys + cos(beta)*ze);
- 
-    tmp = alpha - (SGD_2PI/24)*t.getGst();
-    if (tmp < -SGD_PI) {
-        do tmp += SGD_2PI;
-        while (tmp < -SGD_PI);
-    } else if (tmp > SGD_PI) {
-        do tmp -= SGD_2PI;
-        while (tmp < -SGD_PI);
-    }
-
-    *lon = tmp;
-    *lat = delta;
-
-    printf("Direct -> lon = %.8f lat=%.8f\n",
-	   our_sun.getLon() * SG_RADIANS_TO_DEGREES,
-	   our_sun.getLat() * SG_RADIANS_TO_DEGREES);
-    printf("Direct -> ra = %.8f dec=%.8f\n",
-	   our_sun.getRightAscension() * SG_RADIANS_TO_DEGREES,
-	   our_sun.getDeclination() * SG_RADIANS_TO_DEGREES);
-    printf("Direct -> Gst = %.2f\n", t.getGst());
-}
-
-
 void fgSunPositionGST(SGTime t, double *lon_deg, double *lat_deg) {
     /* SGTime t;               current time             */
     /* double *lat;            (return) latitude        */
@@ -198,7 +161,7 @@ int main() {
 
     netSocket uglink_sock;
 
-    int ret = gps_open("localhost", "2947", &gps_data);
+    int ret = gps_open(gpsd_host.c_str(), gpsd_port.c_str(), &gps_data);
     if ( ret < 0 ) {
 	printf("Error connecting to gpsd.  Is it running?\n");
 	exit(-1);
@@ -213,7 +176,7 @@ int main() {
     double base_alt_m = 278.0;
     double track_deg = 0.0;
 
-    double body_heading_deg = 133.0; // positioned to look south at zero angle
+    double body_heading_deg = 134.0; // positioned to look south at zero angle
     double body_roll_deg = 0.0;
     double body_pitch_deg = 0.0;
     
