@@ -26,7 +26,7 @@
 #define ACT_COMMAND_PACKET_ID 20
 #define PWM_RATE_PACKET_ID 21
 #define BAUD_PACKET_ID 22
-#define AUX2_RELAY_PACKET_ID 23
+#define FLIGHT_COMMAND_PACKET_ID 23
 
 #define PILOT_PACKET_ID 30
 #define IMU_PACKET_ID 31
@@ -810,16 +810,6 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		printf("APM2: packet size mismatch in analog input\n");
 	    }
 	}
-    } else if ( pkt_id == AUX2_RELAY_PACKET_ID ) {
-	if ( display_on ) {
-	    payload[pkt_len] = 0;
-	    printf("aux2: %s\n", payload);
-	}
-		      
-	baro_packet_counter++;
-	APM2_baro_packet_count_node->setIntValue( baro_packet_counter );
-	
-	new_data = true;
     }
 
     return new_data;
@@ -973,6 +963,35 @@ static int gen_pulse( double val, bool symmetrical ) {
 }
 
 
+// convert a float in the range of [-2.0, 2.0] to an integer (range
+// [0,65535]
+static int map_float( double val, bool symmetrical ) {
+    uint16_t result = 0;
+
+    if ( symmetrical ) {
+	// i.e. aileron, rudder, elevator
+	if ( val < -1.5 ) { val = -1.5; }
+	if ( val > 1.5 ) { val = 1.5; }
+	result = 32768 + (int)(32768 * val);
+    } else {
+	// i.e. throttle
+	if ( val < 0.0 ) { val = 0.0; }
+	if ( val > 1.0 ) { val = 1.0; }
+	result = 0 + (int)(32768 * val);
+    }
+
+    // clamp to uint16_t range
+    if ( result < 0 ) {
+	result = 0;
+    }
+    if ( result > 65535 ) {
+	result = 65535;
+    }
+    
+    return result;
+}
+
+
 static void APM2_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
 {
     uint8_t c0 = 0;
@@ -1061,6 +1080,7 @@ static bool APM2_act_set_pwm_rates( uint16_t rates[MAX_ACTUATORS] ) {
 
     return true;
 }
+
 
 static bool APM2_act_write() {
     uint8_t buf[256];
@@ -1152,6 +1172,103 @@ static bool APM2_act_write() {
   
     // check sum (2 bytes)
     APM2_cksum( ACT_COMMAND_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    return true;
+}
+
+
+static bool APM2_act_write_new() {
+    uint8_t buf[256];
+    uint8_t cksum0, cksum1;
+    uint8_t size = 0;
+    int len;
+
+    // start of message sync bytes
+    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    // packet id (1 byte)
+    buf[0] = FLIGHT_COMMAND_PACKET_ID;
+    // packet length (1 byte)
+    buf[1] = 2 * MAX_ACTUATORS;
+    len = write( fd, buf, 2 );
+
+#if 0
+    // generate some test data
+    static double t = 0.0;
+    t += 0.02;
+    double dummy = sin(t);
+    act_aileron_node->setFloatValue(dummy);
+    act_elevator_node->setFloatValue(dummy);
+    act_throttle_node->setFloatValue((dummy/2)+0.5);
+    act_rudder_node->setFloatValue(dummy);
+    act_channel5_node->setFloatValue(dummy);
+    act_channel6_node->setFloatValue(dummy);
+    act_channel7_node->setFloatValue(dummy);
+    act_channel8_node->setFloatValue(dummy);
+#endif
+
+    // actuator data
+    if ( MAX_ACTUATORS == 8 ) {
+	int val;
+	uint8_t hi, lo;
+
+	val = map_float( act_aileron_node->getFloatValue(), true );
+	hi = val / 256;
+	lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
+
+	val = map_float( act_elevator_node->getFloatValue(), true );
+	hi = val / 256;
+	lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
+
+	val = map_float( act_throttle_node->getFloatValue(), false );
+	hi = val / 256;
+	lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
+
+	val = map_float( act_rudder_node->getFloatValue(), true );
+	hi = val / 256;
+	lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
+
+	val = map_float( act_channel5_node->getFloatValue(), true );
+	hi = val / 256;
+	lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
+
+	val = map_float( act_channel6_node->getFloatValue(), true );
+	hi = val / 256;
+	lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
+
+	val = map_float( act_channel7_node->getFloatValue(), true );
+	hi = val / 256;
+	lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
+
+	val = map_float( act_channel8_node->getFloatValue(), true );
+	hi = val / 256;
+	lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
+    }
+  
+    // write packet
+    len = write( fd, buf, size );
+  
+    // check sum (2 bytes)
+    APM2_cksum( FLIGHT_COMMAND_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     len = write( fd, buf, 2 );
 
