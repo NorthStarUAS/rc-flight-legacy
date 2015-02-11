@@ -13,56 +13,23 @@
 
 using std::string;
 
+static string track_mode = "sun";
+//static string track_mode = "moon";
+//static string track_mode = "wgs84";
+
 static Star our_sun;
 static MoonPos moon;
 
 static int fd = -1;
 static string device_name = "/dev/ttyUSB0";
 
+static string gpsd_host = "localhost";
+//static string gpsd_host = "192.168.1.64";
+static string gpsd_port = "2947";
+
 /* given a particular time expressed in side real time at prime
  * meridian (GST), compute position on the earth (lat, lon) such that
  * sun is directly overhead.  (lat, lon are reported in radians */
-
-void fgSunPositionGST_old(SGTime t, double *lon, double *lat) {
-    /* time_t  ssue;           seconds since unix epoch */
-    /* double *lat;            (return) latitude        */
-    /* double *lon;            (return) longitude       */
-
-    our_sun.updatePosition( t.getMjd() );
-
-    double alpha, delta;
-    double tmp;
-
-    double beta = our_sun.getLat();
-    double xs = our_sun.getxs();
-    double ys = our_sun.getys();
-    double ye = our_sun.getye();
-    double ze = our_sun.getze();
-    alpha = atan2(ys - tan(beta)*ze/ys, xs);
-    delta = asin(sin(beta)*ye/ys + cos(beta)*ze);
- 
-    tmp = alpha - (SGD_2PI/24)*t.getGst();
-    if (tmp < -SGD_PI) {
-        do tmp += SGD_2PI;
-        while (tmp < -SGD_PI);
-    } else if (tmp > SGD_PI) {
-        do tmp -= SGD_2PI;
-        while (tmp < -SGD_PI);
-    }
-
-    *lon = tmp;
-    *lat = delta;
-
-    printf("Direct -> lon = %.8f lat=%.8f\n",
-	   our_sun.getLon() * SG_RADIANS_TO_DEGREES,
-	   our_sun.getLat() * SG_RADIANS_TO_DEGREES);
-    printf("Direct -> ra = %.8f dec=%.8f\n",
-	   our_sun.getRightAscension() * SG_RADIANS_TO_DEGREES,
-	   our_sun.getDeclination() * SG_RADIANS_TO_DEGREES);
-    printf("Direct -> Gst = %.2f\n", t.getGst());
-}
-
-
 void fgSunPositionGST(SGTime t, double *lon_deg, double *lat_deg) {
     /* SGTime t;               current time             */
     /* double *lat;            (return) latitude        */
@@ -194,7 +161,7 @@ int main() {
 
     netSocket uglink_sock;
 
-    int ret = gps_open("localhost", "2947", &gps_data);
+    int ret = gps_open(gpsd_host.c_str(), gpsd_port.c_str(), &gps_data);
     if ( ret < 0 ) {
 	printf("Error connecting to gpsd.  Is it running?\n");
 	exit(-1);
@@ -204,10 +171,15 @@ int main() {
 
     gps_stream(&gps_data, WATCH_ENABLE | WATCH_JSON, NULL);
 
-    double lon_deg = -93.15705;
-    double lat_deg = 45.13800;
+    double base_lon_deg = -93.15705;
+    double base_lat_deg = 45.13800;
+    double base_alt_m = 278.0;
     double track_deg = 0.0;
-    double pan_tilt_zero_hdg = 180.0; // positioned to look south at zero angle
+
+    double body_heading_deg = 134.0; // positioned to look south at zero angle
+    double body_roll_deg = 0.0;
+    double body_pitch_deg = 0.0;
+    
     int last_pan_pos = INT_MAX;
     int last_tilt_pos = INT_MAX;
 
@@ -215,6 +187,7 @@ int main() {
 	printf("Cannot open pan/tilt uart\n");
 	exit(-1);
     }
+    uart_send("\r\n\r\n");
     
     while ( true ) {
 	bool gps_valid = true;
@@ -246,37 +219,80 @@ int main() {
 	}
 
 	if ( gps_valid ) {
-	    lon_deg = gps_data.fix.longitude;
-	    lat_deg = gps_data.fix.latitude;
+	    base_lon_deg = gps_data.fix.longitude;
+	    base_lat_deg = gps_data.fix.latitude;
+	    base_alt_m = gps_data.fix.altitude;
 	    double track_deg = gps_data.fix.track;
 	}
 
-	printf(" pos=%.8f,%.8f trk=%.1f\n", lon_deg, lat_deg, track_deg );
+	printf(" pos=%.8f,%.8f trk=%.1f\n", base_lon_deg, base_lat_deg, track_deg );
 
-	SGGeod pos_geod = SGGeod::fromDegM( lon_deg, lat_deg, 0 );
-	// SGVec3d pos_ecef = SGVec3d::fromGeod(pos_geod);
+	SGGeod pos_geod = SGGeod::fromDegM( base_lon_deg, base_lat_deg, 0 );
+	SGVec3d pos_ecef = SGVec3d::fromGeod(pos_geod);
 	SGQuatd ecef2ned = SGQuatd::fromLonLat(pos_geod);
 
-	//SGVec3d target_ecef = compute_sun_ecef( lon_deg, lat_deg );
-	SGVec3d target_ecef = compute_moon_ecef( lon_deg, lat_deg );
+	SGVec3d dir_ecef;
+	if ( track_mode == "sun" ) {
+	    dir_ecef = compute_sun_ecef(base_lon_deg, base_lat_deg);
+	} else if ( track_mode == "moon" ) {
+	    dir_ecef = compute_moon_ecef(base_lon_deg, base_lat_deg);
+	} else if ( track_mode == "wgs84" ) {
+	    double target_lon_deg = base_lon_deg + 1.0;
+	    double target_lat_deg = base_lat_deg;
+	    double target_alt_m = base_alt_m + 40000.0;
 
-	SGVec3d target_ned = normalize( ecef2ned.transform(target_ecef) );
-	SGVec3d inverse_ned = target_ned * -1.0;
-	printf("target_ned = %.3f %.3f %.3f\n",
-	       target_ned[0], target_ned[1], target_ned[2]);
+	    SGGeod target_geod = SGGeod::fromDegM( target_lon_deg,
+						   target_lat_deg,
+						   target_alt_m );
+	    printf("target_geod = %.3f %.3f %.3f\n",
+		   target_geod.getLongitudeDeg(),
+		   target_geod.getLatitudeDeg(),
+		   target_geod.getElevationM());
+	    SGVec3d target_ecef = SGVec3d::fromGeod( target_geod );
+	    printf("target_ecef = %.3f %.3f %.3f\n",
+		   target_ecef[0], target_ecef[1], target_ecef[2]);
+	    dir_ecef = target_ecef - pos_ecef;
+	    printf("dir_ecef = %.3f %.3f %.3f\n",
+		   dir_ecef[0], dir_ecef[1], dir_ecef[2]);
+	}
+	
+	// Body orientation (the "body" frame of reference which the
+	// pan/tilt is mounted to that could potential move around or
+	// be positioned different ways.)
+	double heading_rad = body_heading_deg * SGD_DEGREES_TO_RADIANS;
+	double pitch_rad = body_pitch_deg * SGD_DEGREES_TO_RADIANS;
+	double roll_rad = body_roll_deg * SGD_DEGREES_TO_RADIANS;
+	SGQuatd ned2body
+	    = SGQuatd::fromYawPitchRoll( heading_rad, pitch_rad, roll_rad );
+
+	// ECEF to aircraft body (eye) coordinate system
+	// transformation
+	SGQuatd ecef2body = ecef2ned * ned2body;
+
+	// compute pointing direction in the ned frame of reference
+	SGVec3d dir_ned = normalize( ecef2ned.transform(dir_ecef) );
+	printf("dir_ned = %.3f %.3f %.3f\n",
+	       dir_ned[0], dir_ned[1], dir_ned[2]);
+
+	// compute pointing direction in the body frame of reference
+	SGVec3d dir_body = normalize( ecef2body.transform(dir_ecef) );
+	printf("dir_body = %.3f %.3f %.3f\n",
+	       dir_body[0], dir_body[1], dir_body[2]);
+
+	SGVec3d inverse_ned = dir_ned * -1.0;
 	printf("shadow_ned = %.3f %.3f %.3f\n",
 	       inverse_ned[0], inverse_ned[1], inverse_ned[2]);
 
-	double target_bearing_deg = atan2(target_ned[1], target_ned[0])
+	double target_bearing_deg = atan2(dir_ned[1], dir_ned[0])
 	    * SG_RADIANS_TO_DEGREES;
-	double horiz = sqrt(target_ned[0]*target_ned[0]
-			    + target_ned[1]*target_ned[1]);
-	double target_azimuth_deg = atan2(-target_ned[2], horiz)
+	double horiz_range = sqrt(dir_ned[0]*dir_ned[0]
+			    + dir_ned[1]*dir_ned[1]);
+	double target_azimuth_deg = atan2(-dir_ned[2], horiz_range)
 	    * SG_RADIANS_TO_DEGREES;
 	printf("target bearing=%.2f azimuth=%.2f\n",
 	       target_bearing_deg, target_azimuth_deg);
 
-	double pan_deg = pan_tilt_zero_hdg - target_bearing_deg;
+	double pan_deg = body_heading_deg - target_bearing_deg;
 	if ( pan_deg < -180.0 ) {
 	    pan_deg += 360.0;
 	}
@@ -288,7 +304,7 @@ int main() {
 
 	double pan_res = 185.1428; // seconds/arc
 	double tilt_res = 46.2857; // seconds/arc
-	int pan_min = -3088;
+	int pan_min = -3087;
 	int pan_max = 3088;
 	int tilt_min = -3510;
 	int tilt_max = 2314;
