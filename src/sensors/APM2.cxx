@@ -200,7 +200,7 @@ static uint32_t baro_packet_counter = 0;
 static uint32_t analog_packet_counter = 0;
 
 
-// initialize fgfs_gps input property nodes
+// initialize input property nodes
 static void bind_input( SGPropertyNode *config ) {
     for ( int i = 0; i < MAX_PILOT_INPUTS; i++ ) {
 	pilot_input_rev[i] = false;
