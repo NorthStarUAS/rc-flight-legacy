@@ -39,8 +39,8 @@ static SGPropertyNode *output_elevator_damp_node = NULL;
 static SGPropertyNode *output_throttle_node = NULL;
 static SGPropertyNode *output_rudder_node = NULL;
 
-//
-static SGPropertyNode *act_elevon_mix_node = NULL;
+// deprecated, moved downstream
+// static SGPropertyNode *act_elevon_mix_node = NULL;
 
 // actuator global limits (dynamically adjustable)
 static SGPropertyNode *act_aileron_min = NULL;
@@ -89,7 +89,7 @@ void Actuator_init() {
     output_throttle_node = fgGetNode("/controls/engine/throttle", true);
     output_rudder_node = fgGetNode("/controls/flight/rudder", true);
 
-    act_elevon_mix_node = fgGetNode("/config/actuators/elevon-mixing", true);
+    // act_elevon_mix_node = fgGetNode("/config/actuators/elevon-mixing", true);
 
     act_aileron_min = fgGetNode("/config/actuators/limits/aileron-min", true);
     act_aileron_max = fgGetNode("/config/actuators/limits/aileron-max", true);
@@ -166,6 +166,15 @@ void Actuator_init() {
 
 
 static void set_actuator_values_ap() {
+    float aileron = output_aileron_node->getFloatValue();
+    if ( aileron < act_aileron_min->getFloatValue() ) {
+	aileron = act_aileron_min->getFloatValue();
+    }
+    if ( aileron > act_aileron_max->getFloatValue() ) {
+	aileron = act_aileron_max->getFloatValue();
+    }
+    act_aileron_node->setFloatValue( aileron );
+
     float elevator = output_elevator_node->getFloatValue()
 	+ output_elevator_damp_node->getFloatValue();
     if ( elevator < act_elevator_min->getFloatValue() ) {
@@ -174,15 +183,9 @@ static void set_actuator_values_ap() {
     if ( elevator > act_elevator_max->getFloatValue() ) {
 	elevator = act_elevator_max->getFloatValue();
     }
+    act_elevator_node->setFloatValue( elevator );
 
-    float aileron = output_aileron_node->getFloatValue();
-    if ( aileron < act_aileron_min->getFloatValue() ) {
-	aileron = act_aileron_min->getFloatValue();
-    }
-    if ( aileron > act_aileron_max->getFloatValue() ) {
-	aileron = act_aileron_max->getFloatValue();
-    }
-
+#if 0				// deprecate elevon mixing at this level
     if ( act_elevon_mix_node->getBoolValue() ) {
         // elevon mixing mode (i.e. flying wing)
 
@@ -202,7 +205,8 @@ static void set_actuator_values_ap() {
         //elevator
 	act_elevator_node->setFloatValue( elevator );
     }
-
+#endif
+    
     // rudder
     float rudder = output_rudder_node->getFloatValue();
     if ( rudder < act_rudder_min->getFloatValue() ) {
@@ -329,8 +333,8 @@ static void set_actuator_values_ap() {
 
 static void set_actuator_values_pilot() {
     // The following lines would act as a manual pass-through at the
-    // ugear level.  Howver, manaul pass-through is handled more
-    // efficiently (less latency) directly on APM2.5 hardware.
+    // ugear level.  However, manaul pass-through is handled more
+    // efficiently (less latency) directly on APM2.x hardware.
     //
     // act_aileron_node->setFloatValue( pilot_aileron_node->getFloatValue() );
     // act_elevator_node->setFloatValue( pilot_elevator_node->getFloatValue() );
