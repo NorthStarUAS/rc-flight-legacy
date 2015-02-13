@@ -11,7 +11,7 @@ dnl Sanity check of the distribution
 AC_CONFIG_SRCDIR([src/main/ugear_gumstix.cpp])
 
 dnl Initialize the automake system (provide project name and version)
-AM_INIT_AUTOMAKE(ugear, 2.0)
+AM_INIT_AUTOMAKE(ugear, 2.1)
 
 dnl Checks for programs.
 AC_PROG_MAKE_SET
