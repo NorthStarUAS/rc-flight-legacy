@@ -141,14 +141,7 @@ void control_update(double dt)
 	    ned_e_node->setFloatValue( 0.0 );
 	    ned_d_node->setFloatValue( 1.0 );
 
-	    if ( fcs_mode == "inactive" ) {
-		// unset all locks for "inactive"
-		roll_lock_node->setStringValue( "" );
-		yaw_lock_node->setStringValue( "" );
-		altitude_lock_node->setStringValue( "" );
-		speed_lock_node->setStringValue( "" );
-		pitch_lock_node->setStringValue( "" );
-	    } else if ( fcs_mode == "basic" ) {
+	    if ( fcs_mode == "basic" ) {
 		// set lock modes for "basic" inner loops only
 		roll_lock_node->setStringValue( "aileron" );
 		yaw_lock_node->setStringValue( "autocoord" );
