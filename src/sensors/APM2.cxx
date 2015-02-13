@@ -34,15 +34,16 @@
 #define BARO_PACKET_ID 33
 #define ANALOG_PACKET_ID 34
 
-#define MAX_PILOT_INPUTS 8
-#define MAX_ACTUATORS 8
-#define MAX_IMU_SENSORS 7
-#define MAX_ANALOG_INPUTS 6
+#define NUM_PILOT_INPUTS 8
+#define NUM_ACTUATORS 8
+#define NUM_IMU_SENSORS 7
+#define NUM_ANALOG_INPUTS 6
 
-#define PWM_CENTER 1525.0
-#define PWM_HALF_RANGE 414.0
-#define PWM_RANGE (PWM_HALF_RANGE * 2.0)
+#define PWM_CENTER 1500
+#define PWM_HALF_RANGE 450
+#define PWM_RANGE (PWM_HALF_RANGE * 2)
 #define PWM_MIN (PWM_CENTER - PWM_HALF_RANGE)
+#define PWM_MAX (PWM_CENTER + PWM_HALF_RANGE)
 
 // APM2 interface and config property nodes
 static SGPropertyNode *configroot = NULL;
@@ -53,7 +54,7 @@ static SGPropertyNode *APM2_volt_ratio_node = NULL;
 static SGPropertyNode *APM2_battery_cells_node = NULL;
 static SGPropertyNode *APM2_amp_offset_node = NULL;
 static SGPropertyNode *APM2_amp_ratio_node = NULL;
-static SGPropertyNode *APM2_analog_nodes[MAX_ANALOG_INPUTS];
+static SGPropertyNode *APM2_analog_nodes[NUM_ANALOG_INPUTS];
 static SGPropertyNode *APM2_pitot_calibrate_node = NULL;
 static SGPropertyNode *APM2_extern_volt_node = NULL;
 static SGPropertyNode *APM2_extern_cell_volt_node = NULL;
@@ -152,11 +153,11 @@ static bool act_pwm_rate_ack = false;
 //static bool baud_rate_ack = false;
 
 static double pilot_in_timestamp = 0.0;
-static uint16_t pilot_input[MAX_PILOT_INPUTS]; // internal stash
-static bool pilot_input_rev[MAX_PILOT_INPUTS];
+static uint16_t pilot_input[NUM_PILOT_INPUTS]; // internal stash
+static bool pilot_input_rev[NUM_PILOT_INPUTS];
 
 static double imu_timestamp = 0.0;
-static int16_t imu_sensors[MAX_IMU_SENSORS];
+static int16_t imu_sensors[NUM_IMU_SENSORS];
 
 struct gps_sensors_t {
     double timestamp;
@@ -181,7 +182,7 @@ struct air_data_t {
     float airspeed;
 } airdata;
 
-static float analog[MAX_ANALOG_INPUTS];     // internal stash
+static float analog[NUM_ANALOG_INPUTS];     // internal stash
 
 static bool airspeed_inited = false;
 static double airspeed_zero_start_time = 0.0;
@@ -200,9 +201,9 @@ static uint32_t baro_packet_counter = 0;
 static uint32_t analog_packet_counter = 0;
 
 
-// initialize input property nodes
+// (Deprecated) initialize input property nodes
 static void bind_input( SGPropertyNode *config ) {
-    for ( int i = 0; i < MAX_PILOT_INPUTS; i++ ) {
+    for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
 	pilot_input_rev[i] = false;
     }
     SGPropertyNode *node, *child;
@@ -440,7 +441,7 @@ static bool APM2_open() {
 	extern_amp_ratio = APM2_amp_ratio_node->getFloatValue();
     }
 
-    for ( int i = 0; i < MAX_ANALOG_INPUTS; i++ ) {
+    for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
 	APM2_analog_nodes[i]
 	    = fgGetNode("/sensors/APM2/raw-analog/channel", i, true);
     }
@@ -635,12 +636,12 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	}
     } else if ( pkt_id == PILOT_PACKET_ID ) {
-	if ( pkt_len == MAX_PILOT_INPUTS * 2 ) {
+	if ( pkt_len == NUM_PILOT_INPUTS * 2 ) {
 	    uint8_t lo, hi;
 
 	    pilot_in_timestamp = get_Time();
 
-	    for ( int i = 0; i < MAX_PILOT_INPUTS; i++ ) {
+	    for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
 		lo = payload[0 + 2*i]; hi = payload[1 + 2*i];
 		pilot_input[i] = hi*256 + lo;
 	    }
@@ -666,19 +667,19 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	}
     } else if ( pkt_id == IMU_PACKET_ID ) {
-	if ( pkt_len == MAX_IMU_SENSORS * 2 ) {
+	if ( pkt_len == NUM_IMU_SENSORS * 2 ) {
 	    uint8_t lo, hi;
 
 	    imu_timestamp = get_Time();
 
-	    for ( int i = 0; i < MAX_IMU_SENSORS; i++ ) {
+	    for ( int i = 0; i < NUM_IMU_SENSORS; i++ ) {
 		lo = payload[0 + 2*i]; hi = payload[1 + 2*i];
 		imu_sensors[i] = hi*256 + lo;
 	    }
 
 #if 0
 	    if ( display_on ) {
-		for ( int i = 0; i < MAX_IMU_SENSORS; i++ ) {
+		for ( int i = 0; i < NUM_IMU_SENSORS; i++ ) {
 		    printf("%d ", imu_sensors[i]);
 		}
 		printf("\n");
@@ -711,7 +712,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 
 #if 0
 	    if ( display_on ) {
-		for ( int i = 0; i < MAX_IMU_SENSORS; i++ ) {
+		for ( int i = 0; i < NUM_IMU_SENSORS; i++ ) {
 		    printf("%d ", imu_sensors[i]);
 		}
 		printf("\n");
@@ -751,9 +752,9 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	}
     } else if ( pkt_id == ANALOG_PACKET_ID ) {
-	if ( pkt_len == 2 * MAX_ANALOG_INPUTS ) {
+	if ( pkt_len == 2 * NUM_ANALOG_INPUTS ) {
 	    uint8_t lo, hi;
-	    for ( int i = 0; i < MAX_ANALOG_INPUTS; i++ ) {
+	    for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
 		lo = payload[0 + 2*i]; hi = payload[1 + 2*i];
 		float val = (float)(hi*256 + lo);
 		if ( i != 5 ) {
@@ -794,7 +795,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 
 #if 0
 	    if ( display_on ) {
-		for ( int i = 0; i < MAX_ANALOG_INPUTS; i++ ) {
+		for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
 		    printf("%.2f ", (float)analog[i] / 64.0);
 		}
 		printf("\n");
@@ -963,35 +964,6 @@ static int gen_pulse( double val, bool symmetrical ) {
 }
 
 
-// convert a float in the range of [-2.0, 2.0] to an integer (range
-// [0,65535]
-static int map_float( double val, bool symmetrical ) {
-    uint16_t result = 0;
-
-    if ( symmetrical ) {
-	// i.e. aileron, rudder, elevator
-	if ( val < -1.5 ) { val = -1.5; }
-	if ( val > 1.5 ) { val = 1.5; }
-	result = 32768 + (int)(32768 * val);
-    } else {
-	// i.e. throttle
-	if ( val < 0.0 ) { val = 0.0; }
-	if ( val > 1.0 ) { val = 1.0; }
-	result = 0 + (int)(32768 * val);
-    }
-
-    // clamp to uint16_t range
-    if ( result < 0 ) {
-	result = 0;
-    }
-    if ( result > 65535 ) {
-	result = 65535;
-    }
-    
-    return result;
-}
-
-
 static void APM2_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
 {
     uint8_t c0 = 0;
@@ -1045,7 +1017,7 @@ bool APM2_request_baud( uint32_t baud ) {
 }
 #endif
 
-static bool APM2_act_set_pwm_rates( uint16_t rates[MAX_ACTUATORS] ) {
+static bool APM2_act_set_pwm_rates( uint16_t rates[NUM_ACTUATORS] ) {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
@@ -1058,11 +1030,11 @@ static bool APM2_act_set_pwm_rates( uint16_t rates[MAX_ACTUATORS] ) {
     // packet id (1 byte)
     buf[0] = PWM_RATE_PACKET_ID;
     // packet length (1 byte)
-    buf[1] = MAX_ACTUATORS * 2;
+    buf[1] = NUM_ACTUATORS * 2;
     len = write( fd, buf, 2 );
 
     // actuator data
-    for ( int i = 0; i < MAX_ACTUATORS; i++ ) {
+    for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
 	uint16_t val = rates[i];
 	uint8_t hi = val / 256;
 	uint8_t lo = val - (hi * 256);
@@ -1082,7 +1054,7 @@ static bool APM2_act_set_pwm_rates( uint16_t rates[MAX_ACTUATORS] ) {
 }
 
 
-static bool APM2_act_write() {
+static bool APM2_act_write_old() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
@@ -1095,7 +1067,7 @@ static bool APM2_act_write() {
     // packet id (1 byte)
     buf[0] = ACT_COMMAND_PACKET_ID;
     // packet length (1 byte)
-    buf[1] = 2 * MAX_ACTUATORS;
+    buf[1] = 2 * NUM_ACTUATORS;
     len = write( fd, buf, 2 );
 
 #if 0
@@ -1114,7 +1086,7 @@ static bool APM2_act_write() {
 #endif
 
     // actuator data
-    if ( MAX_ACTUATORS == 8 ) {
+    if ( NUM_ACTUATORS == 8 ) {
 	int val;
 	uint8_t hi, lo;
 
@@ -1179,7 +1151,7 @@ static bool APM2_act_write() {
 }
 
 
-static bool APM2_act_write_new() {
+static bool APM2_act_write() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
@@ -1192,7 +1164,7 @@ static bool APM2_act_write_new() {
     // packet id (1 byte)
     buf[0] = FLIGHT_COMMAND_PACKET_ID;
     // packet length (1 byte)
-    buf[1] = 2 * MAX_ACTUATORS;
+    buf[1] = 2 * NUM_ACTUATORS;
     len = write( fd, buf, 2 );
 
 #if 0
@@ -1211,53 +1183,53 @@ static bool APM2_act_write_new() {
 #endif
 
     // actuator data
-    if ( MAX_ACTUATORS == 8 ) {
+    if ( NUM_ACTUATORS == 8 ) {
 	int val;
 	uint8_t hi, lo;
 
-	val = map_float( act_aileron_node->getFloatValue(), true );
+	val = gen_pulse( act_aileron_node->getFloatValue(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = map_float( act_elevator_node->getFloatValue(), true );
+	val = gen_pulse( act_elevator_node->getFloatValue(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = map_float( act_throttle_node->getFloatValue(), false );
+	val = gen_pulse( act_throttle_node->getFloatValue(), false );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = map_float( act_rudder_node->getFloatValue(), true );
+	val = gen_pulse( act_rudder_node->getFloatValue(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = map_float( act_channel5_node->getFloatValue(), true );
+	val = gen_pulse( act_channel5_node->getFloatValue(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = map_float( act_channel6_node->getFloatValue(), true );
+	val = gen_pulse( act_channel6_node->getFloatValue(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = map_float( act_channel7_node->getFloatValue(), true );
+	val = gen_pulse( act_channel7_node->getFloatValue(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = map_float( act_channel8_node->getFloatValue(), true );
+	val = gen_pulse( act_channel8_node->getFloatValue(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
@@ -1562,11 +1534,11 @@ bool APM2_pilot_update() {
 bool APM2_act_update() {
     if ( actuator_inited ) {
 	if ( ! act_pwm_rate_ack ) {
-	    uint16_t rates[MAX_ACTUATORS] = { 50, 50, 50, 50, 50, 50, 50, 50 };
+	    uint16_t rates[NUM_ACTUATORS] = { 50, 50, 50, 50, 50, 50, 50, 50 };
 	    // uint16_t rates[] = { 100, 100, 100, 100, 100, 100, 100, 100 };
 	    // uint16_t rates[] = { 200, 200, 200, 200, 200, 200, 200, 200 };
 	    // uint16_t rates[] = { 400, 400, 400, 400, 400, 400, 400, 400 };
-	    for ( int i = 0; i < MAX_ACTUATORS; i++ ) {
+	    for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
 		rates[i] = act_pwm_rate_hz;
 	    }
 	    APM2_act_set_pwm_rates( rates );
