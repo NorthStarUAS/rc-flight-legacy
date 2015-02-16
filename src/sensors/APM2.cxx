@@ -161,15 +161,6 @@ static float pitot_calibrate = 1.0;
 static SGPropertyNode *act_config = NULL;
 static int last_ack_id = 0;
 static int last_ack_subid = 0;
-//static bool ack_pwm_rate = false;
-//static bool ack_mix_defaults = false;
-//static bool ack_mix_autocoord = false;
-//static bool ack_mix_throttle_trim = false;
-//static bool ack_mix_flap_trim = false;
-//static bool ack_mix_elevons = false;
-//static bool ack_mix_flaperons = false;
-//static bool ack_mix_vtail = false;
-
 //static bool ack_baud_rate = false;
 
 static uint16_t act_rates[NUM_ACTUATORS] = { 50, 50, 50, 50, 50, 50, 50, 50 };
@@ -1215,103 +1206,6 @@ static int gen_pulse( double val, bool symmetrical ) {
     }
 
     return pulse;
-}
-
-
-static bool APM2_act_write_old() {
-    uint8_t buf[256];
-    uint8_t cksum0, cksum1;
-    uint8_t size = 0;
-    int len;
-
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    len = write( fd, buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = ACT_COMMAND_PACKET_ID;
-    // packet length (1 byte)
-    buf[1] = 2 * NUM_ACTUATORS;
-    len = write( fd, buf, 2 );
-
-#if 0
-    // generate some test data
-    static double t = 0.0;
-    t += 0.02;
-    double dummy = sin(t);
-    act_aileron_node->setFloatValue(dummy);
-    act_elevator_node->setFloatValue(dummy);
-    act_throttle_node->setFloatValue((dummy/2)+0.5);
-    act_rudder_node->setFloatValue(dummy);
-    act_channel5_node->setFloatValue(dummy);
-    act_channel6_node->setFloatValue(dummy);
-    act_channel7_node->setFloatValue(dummy);
-    act_channel8_node->setFloatValue(dummy);
-#endif
-
-    // actuator data
-    if ( NUM_ACTUATORS == 8 ) {
-	int val;
-	uint8_t hi, lo;
-
-	val = gen_pulse( act_aileron_node->getFloatValue(), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-
-	val = gen_pulse( act_elevator_node->getFloatValue(), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-
-	val = gen_pulse( act_throttle_node->getFloatValue(), false );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-
-	val = gen_pulse( act_rudder_node->getFloatValue(), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-
-	val = gen_pulse( act_channel5_node->getFloatValue(), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-
-	val = gen_pulse( act_channel6_node->getFloatValue(), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-
-	val = gen_pulse( act_channel7_node->getFloatValue(), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-
-	val = gen_pulse( act_channel8_node->getFloatValue(), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-    }
-  
-    // write packet
-    len = write( fd, buf, size );
-  
-    // check sum (2 bytes)
-    APM2_cksum( ACT_COMMAND_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    len = write( fd, buf, 2 );
-
-    return true;
 }
 
 
