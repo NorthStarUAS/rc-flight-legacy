@@ -364,20 +364,20 @@ static bool APM2_act_mix_mode( int mode_id, bool enable,
     buf[size++] = mode_id;
     buf[size++] = enable;
 
-    int16_t val;
+    uint16_t val;
     uint8_t hi, lo;
     
     // gain1
-    val = gain1 * 10000;
-    hi = (uint16_t)val / 256;
-    lo = (uint16_t)val - (hi * 256);
+    val = 32767 + gain1 * 10000;
+    hi = val / 256;
+    lo = val - (hi * 256);
     buf[size++] = lo;
     buf[size++] = hi;
     
     // gain2
-    val = gain2 * 10000;
-    hi = (uint16_t)val / 256;
-    lo = (uint16_t)val - (hi * 256);
+    val = 32767 + gain2 * 10000;
+    hi = val / 256;
+    lo = val - (hi * 256);
     buf[size++] = lo;
     buf[size++] = hi;
     
