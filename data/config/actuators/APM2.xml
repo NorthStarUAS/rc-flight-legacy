@@ -4,5 +4,43 @@
 
   <module>APM2</module>
   <enable type="bool">true</enable>
+  <mixing>
+    <!-- command level mixing -->
+    <mix>
+      <mode>auto-coordination</mode>
+      <enable type="bool">true</enable>
+      <gain1>0.5</gain1>
+    </mix>
+    <mix>
+      <mode>throttle-trim</mode>
+      <enable type="bool">true</enable>
+      <gain1>-0.1</gain1>
+    </mix>
+    <mix>
+      <mode>flap-trim</mode>
+      <enable type="bool">true</enable>
+      <gain1>0.1</gain1>
+    </mix>
+
+    <!-- actuator level mixing -->
+    <mix>
+      <mode>elevon</mode>
+      <enable type="bool">true</enable>
+      <gain1>1.0</gain1> <!-- aileron -->
+      <gain2>1.0</gain2> <!-- elevator -->
+    </mix>
+    <mix>
+      <mode>flaperon</mode>
+      <enable type="bool">true</enable>
+      <gain1>1.0</gain1> <!-- aileron -->
+      <gain2>1.0</gain2> <!-- flap -->
+    </mix>
+    <mix>
+      <mode>vtail</mode>
+      <enable type="bool">true</enable>
+      <gain1>1.0</gain1> <!-- elevator -->
+      <gain2>1.0</gain2> <!-- rudder -->
+    </mix>
+  </mixing>
 
 </PropertyList>
