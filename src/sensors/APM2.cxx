@@ -402,57 +402,6 @@ static bool APM2_act_mix_mode( int mode_id, bool enable,
 }
 
 
-static void send_act_mixing_config( SGPropertyNode *config ) {
-    for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
-	pilot_input_rev[i] = false;
-    }
-    SGPropertyNode *mixing = config->getChild("mixing");
-    if ( mixing != NULL ) {
-	for ( int i = 0; i < mixing->nChildren(); ++i ) {
-	    string mode = "";
-	    int mode_id = 0;
-	    bool enable = false;
-	    float gain1 = 0.0;
-	    float gain2 = 0.0;
-	    SGPropertyNode *mix_node = mixing->getChild(i);
-	    SGPropertyNode *mode_node = mix_node->getChild("mode");
-	    SGPropertyNode *enable_node = mix_node->getChild("enable");
-	    SGPropertyNode *gain1_node = mix_node->getChild("gain1");
-	    SGPropertyNode *gain2_node = mix_node->getChild("gain2");
-	    if ( mode_node != NULL ) {
-		mode = mode_node->getStringValue();
-		if ( mode == "auto-coordination" ) {
-		    mode_id = MIX_AUTOCOORDINATE;
-		} else if ( mode == "throttle-trim" ) {
-		    mode_id = MIX_THROTTLE_TRIM;
-		} else if ( mode == "flap-trim" ) {
-		    mode_id = MIX_FLAP_TRIM;
-		} else if ( mode == "elevon" ) {
-		    mode_id = MIX_ELEVONS;
-		} else if ( mode == "flaperon" ) {
-		    mode_id = MIX_FLAPERONS;
-		} else if ( mode == "vtail" ) {
-		    mode_id = MIX_VTAIL;
-		}
-	    }
-	    if ( enable_node != NULL ) {
-		enable = enable_node->getBoolValue();
-	    }
-	    if ( gain1_node != NULL ) {
-		gain1 = gain1_node->getFloatValue();
-	    }
-	    if ( gain2_node != NULL ) {
-		gain2 = gain2_node->getFloatValue();
-	    }
-	    printf("mix: %s %d %.2f %.2f\n", mode.c_str(), enable, gain1, gain2);
-	    if ( enable ) {
-		APM2_act_mix_mode( mode_id, enable, gain1, gain2);
-	    }
-	}
-    }
-}
-
-
 // initialize imu output property nodes 
 static void bind_imu_output( string rootname ) {
     if ( imu_inited ) {
@@ -834,14 +783,14 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
     static float extern_amp_filt = 0.0;
 
     if ( pkt_id == ACK_PACKET_ID ) {
-	printf("Received ACK = %d %d\n", payload[0], payload[1]);
+	if ( display_on ) {
+	    printf("Received ACK = %d %d\n", payload[0], payload[1]);
+	}
 	if ( pkt_len == 2 ) {
 	    last_ack_id = payload[0];
 	    last_ack_subid = payload[1];
 	} else {
-	    if ( display_on ) {
-		printf("APM2: packet size mismatch in ACK\n");
-	    }
+	    printf("APM2: packet size mismatch in ACK\n");
 	}
     } else if ( pkt_id == PILOT_PACKET_ID ) {
 	if ( pkt_len == NUM_PILOT_INPUTS * 2 ) {
@@ -1225,7 +1174,10 @@ static bool APM2_send_config() {
 	    if ( gain2_node != NULL ) {
 		gain2 = gain2_node->getFloatValue();
 	    }
-	    printf("mix: %s %d %.2f %.2f\n", mode.c_str(), enable, gain1, gain2);
+	    if ( display_on ) {
+		printf("mix: %s %d %.2f %.2f\n", mode.c_str(), enable,
+		       gain1, gain2);
+	    }
 	    start_time = get_Time();    
 	    APM2_act_mix_mode( mode_id, enable, gain1, gain2);
 	    last_ack_id = 0;
