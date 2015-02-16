@@ -27,6 +27,7 @@
 #define PWM_RATE_PACKET_ID 21
 #define BAUD_PACKET_ID 22
 #define FLIGHT_COMMAND_PACKET_ID 23
+#define MIX_MODE_PACKET_ID 24
 
 #define PILOT_PACKET_ID 30
 #define IMU_PACKET_ID 31
@@ -45,11 +46,19 @@
 #define PWM_MIN (PWM_CENTER - PWM_HALF_RANGE)
 #define PWM_MAX (PWM_CENTER + PWM_HALF_RANGE)
 
+// Mix mode commands (format is cmd(byte), gain 1 (float), gain 2 (float)
+#define MIX_DEFAULTS 0
+#define MIX_AUTOCOORDINATE 1
+#define MIX_THROTTLE_TRIM 2
+#define MIX_FLAP_TRIM 3
+#define MIX_ELEVONS 4
+#define MIX_FLAPERONS 5
+#define MIX_VTAIL 6
+
 // APM2 interface and config property nodes
 static SGPropertyNode *configroot = NULL;
 static SGPropertyNode *APM2_device_node = NULL;
 static SGPropertyNode *APM2_baud_node = NULL;
-static SGPropertyNode *APM2_pwm_rate_node = NULL;
 static SGPropertyNode *APM2_volt_ratio_node = NULL;
 static SGPropertyNode *APM2_battery_cells_node = NULL;
 static SGPropertyNode *APM2_amp_offset_node = NULL;
@@ -149,8 +158,21 @@ static float extern_amp_ratio = 0.1; // a nonsense value
 static float extern_amp_sum = 0.0;
 static float pitot_calibrate = 1.0;
 
-static bool act_pwm_rate_ack = false;
-//static bool baud_rate_ack = false;
+static SGPropertyNode *act_config = NULL;
+static int last_ack_id = 0;
+static int last_ack_subid = 0;
+//static bool ack_pwm_rate = false;
+//static bool ack_mix_defaults = false;
+//static bool ack_mix_autocoord = false;
+//static bool ack_mix_throttle_trim = false;
+//static bool ack_mix_flap_trim = false;
+//static bool ack_mix_elevons = false;
+//static bool ack_mix_flaperons = false;
+//static bool ack_mix_vtail = false;
+
+//static bool ack_baud_rate = false;
+
+static uint16_t act_rates[NUM_ACTUATORS] = { 50, 50, 50, 50, 50, 50, 50, 50 };
 
 static double pilot_in_timestamp = 0.0;
 static uint16_t pilot_input[NUM_PILOT_INPUTS]; // internal stash
@@ -238,6 +260,198 @@ static void bind_input( SGPropertyNode *config ) {
 
     configroot = config;
 }
+
+
+static void APM2_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
+{
+    uint8_t c0 = 0;
+    uint8_t c1 = 0;
+
+    c0 += hdr1;
+    c1 += c0;
+
+    c0 += hdr2;
+    c1 += c0;
+
+    for ( uint8_t i = 0; i < size; i++ ) {
+        c0 += (uint8_t)buf[i];
+        c1 += c0;
+    }
+
+    *cksum0 = c0;
+    *cksum1 = c1;
+}
+
+
+#if 0
+bool APM2_request_baud( uint32_t baud ) {
+    uint8_t buf[256];
+    uint8_t cksum0, cksum1;
+    uint8_t size = 4;
+    int len;
+
+    // start of message sync bytes
+    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    // packet id (1 byte)
+    buf[0] = BAUD_PACKET_ID;
+    // packet length (1 byte)
+    buf[1] = size;
+    len = write( fd, buf, 2 );
+
+    // actuator data
+    *(uint32_t *)buf = baud;
+  
+    // write packet
+    len = write( fd, buf, size );
+  
+    // check sum (2 bytes)
+    APM2_cksum( BAUD_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    return true;
+}
+#endif
+
+static bool APM2_act_set_pwm_rates( uint16_t rates[NUM_ACTUATORS] ) {
+    uint8_t buf[256];
+    uint8_t cksum0, cksum1;
+    uint8_t size = 0;
+    int len;
+
+    // start of message sync bytes
+    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    // packet id (1 byte)
+    buf[0] = PWM_RATE_PACKET_ID;
+    // packet length (1 byte)
+    buf[1] = NUM_ACTUATORS * 2;
+    len = write( fd, buf, 2 );
+
+    // actuator data
+    for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
+	uint16_t val = rates[i];
+	uint8_t hi = val / 256;
+	uint8_t lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
+    }
+  
+    // write packet
+    len = write( fd, buf, size );
+  
+    // check sum (2 bytes)
+    APM2_cksum( PWM_RATE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    return true;
+}
+
+
+static bool APM2_act_mix_mode( int mode_id, bool enable,
+			       float gain1, float gain2)
+{
+    uint8_t buf[256];
+    uint8_t cksum0, cksum1;
+    uint8_t size = 0;
+    int len;
+
+    // start of message sync bytes
+    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    // packet id (1 byte)
+    buf[0] = MIX_MODE_PACKET_ID;
+    // packet length (1 byte)
+    buf[1] = 6;
+    len = write( fd, buf, 2 );
+
+    buf[size++] = mode_id;
+    buf[size++] = enable;
+
+    int16_t val;
+    uint8_t hi, lo;
+    
+    // gain1
+    val = gain1 * 10000;
+    hi = (uint16_t)val / 256;
+    lo = (uint16_t)val - (hi * 256);
+    buf[size++] = lo;
+    buf[size++] = hi;
+    
+    // gain2
+    val = gain2 * 10000;
+    hi = (uint16_t)val / 256;
+    lo = (uint16_t)val - (hi * 256);
+    buf[size++] = lo;
+    buf[size++] = hi;
+    
+    // write packet
+    len = write( fd, buf, size );
+  
+    // check sum (2 bytes)
+    APM2_cksum( MIX_MODE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    return true;
+}
+
+
+static void send_act_mixing_config( SGPropertyNode *config ) {
+    for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
+	pilot_input_rev[i] = false;
+    }
+    SGPropertyNode *mixing = config->getChild("mixing");
+    if ( mixing != NULL ) {
+	for ( int i = 0; i < mixing->nChildren(); ++i ) {
+	    string mode = "";
+	    int mode_id = 0;
+	    bool enable = false;
+	    float gain1 = 0.0;
+	    float gain2 = 0.0;
+	    SGPropertyNode *mix_node = mixing->getChild(i);
+	    SGPropertyNode *mode_node = mix_node->getChild("mode");
+	    SGPropertyNode *enable_node = mix_node->getChild("enable");
+	    SGPropertyNode *gain1_node = mix_node->getChild("gain1");
+	    SGPropertyNode *gain2_node = mix_node->getChild("gain2");
+	    if ( mode_node != NULL ) {
+		mode = mode_node->getStringValue();
+		if ( mode == "auto-coordination" ) {
+		    mode_id = MIX_AUTOCOORDINATE;
+		} else if ( mode == "throttle-trim" ) {
+		    mode_id = MIX_THROTTLE_TRIM;
+		} else if ( mode == "flap-trim" ) {
+		    mode_id = MIX_FLAP_TRIM;
+		} else if ( mode == "elevon" ) {
+		    mode_id = MIX_ELEVONS;
+		} else if ( mode == "flaperon" ) {
+		    mode_id = MIX_FLAPERONS;
+		} else if ( mode == "vtail" ) {
+		    mode_id = MIX_VTAIL;
+		}
+	    }
+	    if ( enable_node != NULL ) {
+		enable = enable_node->getBoolValue();
+	    }
+	    if ( gain1_node != NULL ) {
+		gain1 = gain1_node->getFloatValue();
+	    }
+	    if ( gain2_node != NULL ) {
+		gain2 = gain2_node->getFloatValue();
+	    }
+	    printf("mix: %s %d %.2f %.2f\n", mode.c_str(), enable, gain1, gain2);
+	    if ( enable ) {
+		APM2_act_mix_mode( mode_id, enable, gain1, gain2);
+	    }
+	}
+    }
+}
+
 
 // initialize imu output property nodes 
 static void bind_imu_output( string rootname ) {
@@ -419,10 +633,6 @@ static bool APM2_open() {
     if ( APM2_baud_node != NULL ) {
        baud = APM2_baud_node->getIntValue();
     }
-    APM2_pwm_rate_node = fgGetNode("/config/sensors/APM2/pwm-hz");
-    if ( APM2_pwm_rate_node != NULL ) {
-	act_pwm_rate_hz = APM2_pwm_rate_node->getIntValue();
-    }
     APM2_volt_ratio_node = fgGetNode("/config/sensors/APM2/volt-divider-ratio");
     if ( APM2_volt_ratio_node != NULL ) {
 	volt_div_ratio = APM2_volt_ratio_node->getFloatValue();
@@ -575,6 +785,7 @@ bool APM2_act_init( SGPropertyNode *config ) {
 	return false;
     }
 
+    act_config = config;
     bind_act_nodes();
 
     return true;
@@ -623,16 +834,13 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
     static float extern_amp_filt = 0.0;
 
     if ( pkt_id == ACK_PACKET_ID ) {
-	// printf("Received ACK = %d\n", payload[0]);
-	if ( pkt_len == 1 ) {
-	    if ( payload[0] == PWM_RATE_PACKET_ID ) {
-		act_pwm_rate_ack = true;
-	    // } else if ( payload[0] == BAUD_PACKET_ID ) {
-	    //   baud_rate_ack = true;
-	    }
+	printf("Received ACK = %d %d\n", payload[0], payload[1]);
+	if ( pkt_len == 2 ) {
+	    last_ack_id = payload[0];
+	    last_ack_subid = payload[1];
 	} else {
 	    if ( display_on ) {
-		printf("APM2: packet size mismatch in ack\n");
+		printf("APM2: packet size mismatch in ACK\n");
 	    }
 	}
     } else if ( pkt_id == PILOT_PACKET_ID ) {
@@ -817,7 +1025,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 }
 
 
-#if 1
+#if 0
 static void APM2_read_tmp() {
     int len;
     uint8_t input[16];
@@ -830,7 +1038,7 @@ static void APM2_read_tmp() {
 #endif
 
 
-static bool APM2_read() {
+static int APM2_read() {
     static int state = 0;
     static int pkt_id = 0;
     static int pkt_len = 0;
@@ -926,7 +1134,7 @@ static bool APM2_read() {
 	if ( len > 0 ) {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
-		// fprintf( stderr, "checksum passes (%d)!\n", pkt_id );
+		// printf( "checksum passes (%d)!\n", pkt_id );
 		new_data = APM2_parse( pkt_id, pkt_len, payload );
 	    } else {
 		if ( display_on ) {
@@ -940,7 +1148,101 @@ static bool APM2_read() {
 	}
     }
 
-    return new_data;
+    if ( new_data ) {
+	return pkt_id;
+    } else {
+	return 0;
+    }
+}
+
+
+// send a full configuration to APM2 and return true only when all
+// parameters are acknowledged.
+static bool APM2_send_config() {
+    if ( display_on ) {
+	printf("APM2_send_config()\n");
+    }
+
+    double start_time = 0.0;
+    double timeout = 0.5;
+
+    SGPropertyNode *APM2_pwm_rate_node
+	= fgGetNode("/config/sensors/APM2/pwm-hz");
+    if ( APM2_pwm_rate_node != NULL ) {
+	act_pwm_rate_hz = APM2_pwm_rate_node->getIntValue();
+	for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
+	    act_rates[i] = act_pwm_rate_hz;
+	}
+	start_time = get_Time();    
+	APM2_act_set_pwm_rates( act_rates );
+	last_ack_id = 0;
+	while ( (last_ack_id != PWM_RATE_PACKET_ID) ) {
+	    APM2_read();
+	    if ( get_Time() > start_time + timeout ) {
+		if ( display_on ) {
+		    printf("Timeout waiting for pwm_rate ack...\n");
+		}
+		return false;
+	    }
+	}
+    }
+
+    SGPropertyNode *mixing = fgGetNode("/config/actuators/actuator/mixing");
+    if ( mixing != NULL ) {
+	for ( int i = 0; i < mixing->nChildren(); ++i ) {
+	    string mode = "";
+	    int mode_id = 0;
+	    bool enable = false;
+	    float gain1 = 0.0;
+	    float gain2 = 0.0;
+	    SGPropertyNode *mix_node = mixing->getChild(i);
+	    SGPropertyNode *mode_node = mix_node->getChild("mode");
+	    SGPropertyNode *enable_node = mix_node->getChild("enable");
+	    SGPropertyNode *gain1_node = mix_node->getChild("gain1");
+	    SGPropertyNode *gain2_node = mix_node->getChild("gain2");
+	    if ( mode_node != NULL ) {
+		mode = mode_node->getStringValue();
+		if ( mode == "auto-coordination" ) {
+		    mode_id = MIX_AUTOCOORDINATE;
+		} else if ( mode == "throttle-trim" ) {
+		    mode_id = MIX_THROTTLE_TRIM;
+		} else if ( mode == "flap-trim" ) {
+		    mode_id = MIX_FLAP_TRIM;
+		} else if ( mode == "elevon" ) {
+		    mode_id = MIX_ELEVONS;
+		} else if ( mode == "flaperon" ) {
+		    mode_id = MIX_FLAPERONS;
+		} else if ( mode == "vtail" ) {
+		    mode_id = MIX_VTAIL;
+		}
+	    }
+	    if ( enable_node != NULL ) {
+		enable = enable_node->getBoolValue();
+	    }
+	    if ( gain1_node != NULL ) {
+		gain1 = gain1_node->getFloatValue();
+	    }
+	    if ( gain2_node != NULL ) {
+		gain2 = gain2_node->getFloatValue();
+	    }
+	    printf("mix: %s %d %.2f %.2f\n", mode.c_str(), enable, gain1, gain2);
+	    start_time = get_Time();    
+	    APM2_act_mix_mode( mode_id, enable, gain1, gain2);
+	    last_ack_id = 0;
+	    last_ack_subid = 0;
+	    while ( (last_ack_id != MIX_MODE_PACKET_ID)
+		    || (last_ack_subid != mode_id) )
+	     {
+		APM2_read();
+		if ( get_Time() > start_time + timeout ) {
+		    printf("Timeout waiting for %s ACK\n", mode.c_str());
+		    return false;
+		}
+	    }
+	}
+    }
+
+    return true;
 }
 
 
@@ -961,96 +1263,6 @@ static int gen_pulse( double val, bool symmetrical ) {
     }
 
     return pulse;
-}
-
-
-static void APM2_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
-{
-    uint8_t c0 = 0;
-    uint8_t c1 = 0;
-
-    c0 += hdr1;
-    c1 += c0;
-
-    c0 += hdr2;
-    c1 += c0;
-
-    for ( uint8_t i = 0; i < size; i++ ) {
-        c0 += (uint8_t)buf[i];
-        c1 += c0;
-    }
-
-    *cksum0 = c0;
-    *cksum1 = c1;
-}
-
-
-#if 0
-bool APM2_request_baud( uint32_t baud ) {
-    uint8_t buf[256];
-    uint8_t cksum0, cksum1;
-    uint8_t size = 4;
-    int len;
-
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    len = write( fd, buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = BAUD_PACKET_ID;
-    // packet length (1 byte)
-    buf[1] = size;
-    len = write( fd, buf, 2 );
-
-    // actuator data
-    *(uint32_t *)buf = baud;
-  
-    // write packet
-    len = write( fd, buf, size );
-  
-    // check sum (2 bytes)
-    APM2_cksum( BAUD_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    len = write( fd, buf, 2 );
-
-    return true;
-}
-#endif
-
-static bool APM2_act_set_pwm_rates( uint16_t rates[NUM_ACTUATORS] ) {
-    uint8_t buf[256];
-    uint8_t cksum0, cksum1;
-    uint8_t size = 0;
-    int len;
-
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    len = write( fd, buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = PWM_RATE_PACKET_ID;
-    // packet length (1 byte)
-    buf[1] = NUM_ACTUATORS * 2;
-    len = write( fd, buf, 2 );
-
-    // actuator data
-    for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
-	uint16_t val = rates[i];
-	uint8_t hi = val / 256;
-	uint8_t lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-    }
-  
-    // write packet
-    len = write( fd, buf, size );
-  
-    // check sum (2 bytes)
-    APM2_cksum( PWM_RATE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    len = write( fd, buf, 2 );
-
-    return true;
 }
 
 
@@ -1250,7 +1462,7 @@ static bool APM2_act_write() {
 
 bool APM2_update() {
     // read any pending APM2 data (and parse any completed messages)
-    while ( APM2_read() );
+    while ( APM2_read() > 0 );
     // APM2_read_tmp();
 
     return true;
@@ -1532,21 +1744,18 @@ bool APM2_pilot_update() {
 
 
 bool APM2_act_update() {
-    if ( actuator_inited ) {
-	if ( ! act_pwm_rate_ack ) {
-	    uint16_t rates[NUM_ACTUATORS] = { 50, 50, 50, 50, 50, 50, 50, 50 };
-	    // uint16_t rates[] = { 100, 100, 100, 100, 100, 100, 100, 100 };
-	    // uint16_t rates[] = { 200, 200, 200, 200, 200, 200, 200, 200 };
-	    // uint16_t rates[] = { 400, 400, 400, 400, 400, 400, 400, 400 };
-	    for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
-		rates[i] = act_pwm_rate_hz;
-	    }
-	    APM2_act_set_pwm_rates( rates );
-	}
-
-	// send actuator commands to APM2 servo subsystem
-	APM2_act_write();
+    static bool actuator_configured = false;
+    
+    if ( !actuator_inited ) {
+	return false;
     }
+
+    if ( !actuator_configured ) {
+	actuator_configured = APM2_send_config();
+    }
+    
+    // send actuator commands to APM2 servo subsystem
+    APM2_act_write();
 
     return true;
 }
