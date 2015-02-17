@@ -28,6 +28,7 @@
 #define BAUD_PACKET_ID 22
 #define FLIGHT_COMMAND_PACKET_ID 23
 #define MIX_MODE_PACKET_ID 24
+#define SAS_MODE_PACKET_ID 24
 
 #define PILOT_PACKET_ID 30
 #define IMU_PACKET_ID 31
@@ -54,6 +55,12 @@
 #define MIX_ELEVONS 4
 #define MIX_FLAPERONS 5
 #define MIX_VTAIL 6
+
+// SAS mode commands (format is cmd(byte), gain)
+#define SAS_DEFAULTS 0
+#define SAS_ROLLAXIS 1
+#define SAS_PITCHAXIS 2
+#define SAS_YAWAXIS 3
 
 // APM2 interface and config property nodes
 static SGPropertyNode *configroot = NULL;
@@ -386,6 +393,48 @@ static bool APM2_act_mix_mode( int mode_id, bool enable,
   
     // check sum (2 bytes)
     APM2_cksum( MIX_MODE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    return true;
+}
+
+
+static bool APM2_act_sas_mode( int mode_id, bool enable, float gain)
+{
+    uint8_t buf[256];
+    uint8_t cksum0, cksum1;
+    uint8_t size = 0;
+    int len;
+
+    // start of message sync bytes
+    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    // packet id (1 byte)
+    buf[0] = SAS_MODE_PACKET_ID;
+    // packet length (1 byte)
+    buf[1] = 4;
+    len = write( fd, buf, 2 );
+
+    buf[size++] = mode_id;
+    buf[size++] = enable;
+
+    uint16_t val;
+    uint8_t hi, lo;
+    
+    // gain
+    val = 32767 + gain * 10000;
+    hi = val / 256;
+    lo = val - (hi * 256);
+    buf[size++] = lo;
+    buf[size++] = hi;
+    
+    // write packet
+    len = write( fd, buf, size );
+  
+    // check sum (2 bytes)
+    APM2_cksum( SAS_MODE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     len = write( fd, buf, 2 );
 
@@ -1174,6 +1223,52 @@ static bool APM2_send_config() {
 	    last_ack_id = 0;
 	    last_ack_subid = 0;
 	    while ( (last_ack_id != MIX_MODE_PACKET_ID)
+		    || (last_ack_subid != mode_id) )
+	     {
+		APM2_read();
+		if ( get_Time() > start_time + timeout ) {
+		    printf("Timeout waiting for %s ACK\n", mode.c_str());
+		    return false;
+		}
+	    }
+	}
+    }
+
+    SGPropertyNode *sas = fgGetNode("/config/actuators/actuator/sas");
+    if ( sas != NULL ) {
+	for ( int i = 0; i < sas->nChildren(); ++i ) {
+	    string mode = "";
+	    int mode_id = 0;
+	    bool enable = false;
+	    float gain = 0.0;
+	    SGPropertyNode *axis_node = sas->getChild(i);
+	    SGPropertyNode *mode_node = axis_node->getChild("mode");
+	    SGPropertyNode *enable_node = axis_node->getChild("enable");
+	    SGPropertyNode *gain_node = axis_node->getChild("gain");
+	    if ( mode_node != NULL ) {
+		mode = mode_node->getStringValue();
+		if ( mode == "roll" ) {
+		    mode_id = SAS_ROLLAXIS;
+		} else if ( mode == "pitch" ) {
+		    mode_id = SAS_PITCHAXIS;
+		} else if ( mode == "yaw" ) {
+		    mode_id = SAS_YAWAXIS;
+		}
+	    }
+	    if ( enable_node != NULL ) {
+		enable = enable_node->getBoolValue();
+	    }
+	    if ( gain_node != NULL ) {
+		gain = gain_node->getFloatValue();
+	    }
+	    if ( display_on ) {
+		printf("sas: %s %d %.2f %.2f\n", mode.c_str(), enable, gain);
+	    }
+	    start_time = get_Time();    
+	    APM2_act_sas_mode( mode_id, enable, gain );
+	    last_ack_id = 0;
+	    last_ack_subid = 0;
+	    while ( (last_ack_id != SAS_MODE_PACKET_ID)
 		    || (last_ack_subid != mode_id) )
 	     {
 		APM2_read();

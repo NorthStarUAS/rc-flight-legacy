@@ -4,6 +4,25 @@
 
   <module>APM2</module>
   <enable type="bool">true</enable>
+
+  <sas>
+    <axis>
+      <mode>roll</mode>
+      <enable type="bool">true</enable>
+      <gain>0.1</gain>
+    </axis>
+    <axis>
+      <mode>pitch</mode>
+      <enable type="bool">false</enable>
+      <gain>0.1</gain>
+    </axis>
+    <axis>
+      <mode>yaw</mode>
+      <enable type="bool">false</enable>
+      <gain>0.1</gain>
+    </axis>
+  </sas>
+  
   <mixing>
     <!-- command level mixing -->
     <mix>
