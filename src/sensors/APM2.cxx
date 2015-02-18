@@ -28,7 +28,7 @@
 #define BAUD_PACKET_ID 22
 #define FLIGHT_COMMAND_PACKET_ID 23
 #define MIX_MODE_PACKET_ID 24
-#define SAS_MODE_PACKET_ID 24
+#define SAS_MODE_PACKET_ID 25
 
 #define PILOT_PACKET_ID 30
 #define IMU_PACKET_ID 31
@@ -802,12 +802,12 @@ static float normalize_pulse( int pulse, bool symmetrical ) {
 
     if ( symmetrical ) {
 	// i.e. aileron, rudder, elevator
-	result = (pulse - PWM_CENTER) / PWM_HALF_RANGE;
+	result = (pulse - PWM_CENTER) / (float)PWM_HALF_RANGE;
 	if ( result < -1.0 ) { result = -1.0; }
 	if ( result > 1.0 ) { result = 1.0; }
     } else {
 	// i.e. throttle
-	result = (pulse - PWM_MIN) / PWM_RANGE;
+	result = (pulse - PWM_MIN) / (float)PWM_RANGE;
 	if ( result < 0.0 ) { result = 0.0; }
 	if ( result > 1.0 ) { result = 1.0; }
     }
