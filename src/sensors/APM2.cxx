@@ -61,6 +61,7 @@
 #define SAS_ROLLAXIS 1
 #define SAS_PITCHAXIS 2
 #define SAS_YAWAXIS 3
+#define SAS_CH7_TUNE 10
 
 // APM2 interface and config property nodes
 static SGPropertyNode *configroot = NULL;
@@ -1241,28 +1242,38 @@ static bool APM2_send_config() {
 	    int mode_id = 0;
 	    bool enable = false;
 	    float gain = 0.0;
-	    SGPropertyNode *axis_node = sas->getChild(i);
-	    SGPropertyNode *mode_node = axis_node->getChild("mode");
-	    SGPropertyNode *enable_node = axis_node->getChild("enable");
-	    SGPropertyNode *gain_node = axis_node->getChild("gain");
-	    if ( mode_node != NULL ) {
-		mode = mode_node->getStringValue();
-		if ( mode == "roll" ) {
-		    mode_id = SAS_ROLLAXIS;
-		} else if ( mode == "pitch" ) {
-		    mode_id = SAS_PITCHAXIS;
-		} else if ( mode == "yaw" ) {
-		    mode_id = SAS_YAWAXIS;
+	    SGPropertyNode *section_node = sas->getChild(i);
+	    string section_name = section_node->getName();
+	    if ( section_name == "axis" ) {
+		SGPropertyNode *mode_node = section_node->getChild("mode");
+		SGPropertyNode *enable_node = section_node->getChild("enable");
+		SGPropertyNode *gain_node = section_node->getChild("gain");
+		if ( mode_node != NULL ) {
+		    mode = mode_node->getStringValue();
+		    if ( mode == "roll" ) {
+			mode_id = SAS_ROLLAXIS;
+		    } else if ( mode == "pitch" ) {
+			mode_id = SAS_PITCHAXIS;
+		    } else if ( mode == "yaw" ) {
+			mode_id = SAS_YAWAXIS;
+		    }
 		}
-	    }
-	    if ( enable_node != NULL ) {
-		enable = enable_node->getBoolValue();
-	    }
-	    if ( gain_node != NULL ) {
-		gain = gain_node->getFloatValue();
+		if ( enable_node != NULL ) {
+		    enable = enable_node->getBoolValue();
+		}
+		if ( gain_node != NULL ) {
+		    gain = gain_node->getFloatValue();
+		}
+	    } else if ( section_name == "pilot-tune" ) {
+		SGPropertyNode *enable_node = section_node->getChild("enable");
+		mode_id = SAS_CH7_TUNE;
+		if ( enable_node != NULL ) {
+		    enable = enable_node->getBoolValue();
+		}
+		gain = 0.0; // not used
 	    }
 	    if ( display_on ) {
-		printf("sas: %s %d %.2f %.2f\n", mode.c_str(), enable, gain);
+		printf("sas: %s %d %.2f\n", mode.c_str(), enable, gain);
 	    }
 	    start_time = get_Time();    
 	    APM2_act_sas_mode( mode_id, enable, gain );
