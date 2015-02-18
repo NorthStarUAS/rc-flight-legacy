@@ -6,6 +6,9 @@
   <enable type="bool">true</enable>
 
   <sas>
+    <pilot-tune> <!-- hardwired to ch7 for now -->
+      <enable type="bool">true</enable>
+    </pilot-tune>
     <axis>
       <mode>roll</mode>
       <enable type="bool">true</enable>
