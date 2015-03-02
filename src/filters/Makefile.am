@@ -4,14 +4,8 @@ else
 MNAV_DIR =
 endif
 
-if ENABLE_GNSS_FILTER
-GNSS_DIR = gnss
-else
-GNSS_DIR =
-endif
-
 SUBDIRS = \
-	curt $(MNAV_DIR) $(GNSS_DIR)
+	curt $(MNAV_DIR) umngnss_euler
 
 noinst_LIBRARIES = libfilters.a
 
