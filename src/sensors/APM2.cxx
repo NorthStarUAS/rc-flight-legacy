@@ -55,6 +55,7 @@
 #define MIX_ELEVONS 4
 #define MIX_FLAPERONS 5
 #define MIX_VTAIL 6
+#define MIX_DIFF_THRUST 7
 
 // SAS mode commands (format is cmd(byte), gain)
 #define SAS_DEFAULTS 0
@@ -1204,6 +1205,8 @@ static bool APM2_send_config() {
 		    mode_id = MIX_FLAPERONS;
 		} else if ( mode == "vtail" ) {
 		    mode_id = MIX_VTAIL;
+		} else if ( mode == "diff-thrust" ) {
+		    mode_id = MIX_DIFF_THRUST;
 		}
 	    }
 	    if ( enable_node != NULL ) {

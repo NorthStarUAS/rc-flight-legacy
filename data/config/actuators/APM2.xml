@@ -63,6 +63,12 @@
       <gain1>1.0</gain1> <!-- elevator -->
       <gain2>1.0</gain2> <!-- rudder -->
     </mix>
+    <mix>
+      <mode>diff-thrust</mode>
+      <enable type="bool">true</enable>
+      <gain1>1.0</gain1> <!-- throttle -->
+      <gain2>0.1</gain2> <!-- rudder -->
+    </mix>
   </mixing>
 
 </PropertyList>
