@@ -40,21 +40,7 @@ AC_SEARCH_LIBS(clock_gettime, [rt])
 AC_SEARCH_LIBS(cos, [m])
 AC_SEARCH_LIBS(gzopen, [z])
 
-AC_SEARCH_LIBS(umn_adns_init, [umngnss])
-
 AM_CONFIG_HEADER(src/include/ugear_config.h)
-
-
-dnl automatic detection of gnss/adns library
-
-enable_gnss_filter="no"
-AC_CHECK_HEADER(umngnss/adns.h)
-if test "x$ac_cv_header_umngnss_adns_h" = "xyes"; then
-    AC_DEFINE([ENABLE_GNSS_FILTER], 1, [Define to include Advanced GNSS filter.])
-    enable_gnss_filter="yes"
-fi
-AM_CONDITIONAL(ENABLE_GNSS_FILTER, test "x$ac_cv_header_umngnss_adns_h" = "xyes")
-
 
 dnl automatic detection of pointing library
 
@@ -101,7 +87,7 @@ AC_CONFIG_FILES([ \
         src/actuators/Makefile \
         src/filters/Makefile \
         src/filters/curt/Makefile \
-        src/filters/gnss/Makefile \
+        src/filters/umngnss_euler/Makefile \
         src/filters/mnav/Makefile \
         src/comms/Makefile \
         src/control/Makefile \
@@ -159,6 +145,5 @@ fi
 
 cat <<GPLEOF
 MNAV filter (GPL)                : $enable_mnav_filter
-Advanced GNSS filter (non-free)  : $enable_gnss_filter
 ATI Pointing (non-free)          : $enable_ati_pointing
 GPLEOF
