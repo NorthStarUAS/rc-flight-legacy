@@ -1,12 +1,7 @@
-/******************************************************************************
- * FILE: misc.c
- * DESCRIPTION:
- *   
- *   
- *
- * SOURCE: 
- * LAST REVISED: 5/11/05 Jung Soon Jang
- ******************************************************************************/
+/*
+ * Simple time measuring and stamping routines
+ */
+
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
