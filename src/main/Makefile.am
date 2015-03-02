@@ -4,12 +4,6 @@ else
 MNAV_LIBS =
 endif
 
-if ENABLE_GNSS_FILTER
-GNSS_LIBS = $(top_builddir)/src/filters/gnss/libgnss_interface.a -lumngnss
-else
-GNSS_LIBS =
-endif
-
 if ENABLE_ATI_POINTING
 POINTING_LIBS = -latipointing
 else
@@ -28,7 +22,7 @@ ugear_LDADD = \
 	$(top_builddir)/src/filters/libfilters.a \
 	$(top_builddir)/src/filters/curt/libadns_curt.a \
 	$(MNAV_LIBS) \
-	$(GNSS_LIBS) \
+	$(top_builddir)/src/filters/umngnss_euler/libumngnss_euler.a \
 	$(top_builddir)/src/mission/libmission.a \
 	$(top_builddir)/src/mission/tasks/libtasks.a \
 	$(top_builddir)/src/health/libhealth.a \
