@@ -1,23 +1,17 @@
-/**
- * \file: gnss_interface.cpp
- *
- * C++/Property aware interface for GNSS/ADNS 15-state kalman filter algorithm
- *
- * Copyright (C) 2009 - Curtis L. Olson
- *
- */
+// umngnss_euler.cpp -- C++/Property aware interface for GNSS/ADNS 15-state
+//                      kalman filter algorithm
+//
 
 
 #include <math.h>
 #include <string.h>
 
-#include <umngnss/adns.h>
-
 #include "include/globaldefs.h"
 #include "props/props.hxx"
 #include "sensors/gps_mgr.hxx"
 
-#include "gnss_interface.h"
+#include "umngnss_euler.h"
+#include "adns.h"
 
 
 // imu property nodes
@@ -72,7 +66,7 @@ static SGPropertyNode *tau_f_node = NULL;
 static SGPropertyNode *tau_g_node = NULL;
 
 
-int uggnss_adns_init( string rootname, SGPropertyNode *config ) {
+int umngnss_euler_init( string rootname, SGPropertyNode *config ) {
     // initialize imu property nodes
     imu_timestamp_node = fgGetNode("/sensors/imu/time-stamp");
     imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
@@ -153,7 +147,7 @@ int uggnss_adns_init( string rootname, SGPropertyNode *config ) {
 }
 
 
-bool uggnss_adns_update() {
+bool umngnss_euler_update() {
     static bool umn_init_pos = false;
 
     bool fresh_data = false;
@@ -224,7 +218,7 @@ bool uggnss_adns_update() {
 }
 
 
-int uggnss_adns_close() {
+int umngnss_euler_close() {
     return umn_adns_close();
 }
 
