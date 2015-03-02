@@ -20,9 +20,7 @@
 #  include "filters/mnav/ahrs.h"
 #  include "filters/mnav/nav.h"
 #endif // ENABLE_MNAV_FILTER
-#ifdef ENABLE_GNSS_FILTER
-#  include "filters/gnss/gnss_interface.h"
-#endif // ENABLE_GNSS_FILTER
+#include "filters/umngnss_euler/umngnss_euler.h"
 #include "include/globaldefs.h"
 #include "main/globals.hxx"
 #include "props/props.hxx"
@@ -156,10 +154,8 @@ void Filter_init() {
 		// nav_update() or nav_close()
 		mnav_nav_init( basename );
 #endif // ENABLE_MNAV_FILTER
-#ifdef ENABLE_GNSS_FILTER
 	    } else if ( module == "umn" ) {
-		uggnss_adns_init( basename, section );
-#endif // ENABLE_GNSS_FILTER
+		umngnss_euler_init( basename, section );
 	    } else {
 		printf("Unknown filter = '%s' in config file\n",
 		       module.c_str());
@@ -427,10 +423,8 @@ bool Filter_update() {
 		}
 		fresh_filter_data = true;
 #endif // ENABLE_MNAV_FILTER
-#ifdef ENABLE_GNSS_FILTER
 	    } else if ( module == "umn" ) {
-		fresh_filter_data = uggnss_adns_update();
-#endif // ENABLE_GNSS_FILTER
+		fresh_filter_data = umngnss_euler_update();
 	    }
 	}
     }
@@ -489,10 +483,8 @@ void Filter_close() {
 		mnav_ahrs_close();
 		mnav_nav_close();
 #endif // ENABLE_MNAV_FILTER
-#ifdef ENABLE_GNSS_FILTER
 	    } else if ( module == "umn" ) {
-		uggnss_adns_close();
-#endif // ENABLE_GNSS_FILTER
+		umngnss_euler_close();
 	    }
 	}
     }
