@@ -14,25 +14,28 @@
 #ifndef NAV_INTERFACE_H_
 #define NAV_INTERFACE_H_
 
+#include "globaldefs.h"
+
+
 /// Standard function to initialize the navigation filter.
 /*!
  * \sa get_nav(), close_nav()
  * \ingroup nav_fcns
 */
-void init_nav(struct sensordata *sensorData_ptr,	///< pointer to sensorData structure
-		struct nav *navData_ptr,			///< pointer to navData structure
-		struct control *controlData_ptr		///< pointer to controlData structure
-		);
+void init_nav( struct imu *imuData_ptr, // pointer to imu structure
+	       struct gps *gpsData_ptr, // pointer to gps structure
+	       struct nav *navData_ptr  // pointer to navData structure
+	       );
 
 /// Standard function to call the navigation filter.
 /*!
  * \sa init_nav(), close_nav()
  * \ingroup nav_fcns
 */
-void get_nav(struct sensordata *sensorData_ptr,	///< pointer to sensorData structure
-		struct nav *navData_ptr,			///< pointer to navData structure
-		struct control *controlData_ptr		///< pointer to controlData structure
-		);
+void get_nav( struct imu *imuData_ptr, // pointer to imu structure
+	      struct gps *gpsData_ptr, // pointer to gps structure
+	      struct nav *navData_ptr  // pointer to navData structure
+	      );
 
 /// Standard function to close the navigation filter.
 /*!
@@ -42,8 +45,5 @@ void get_nav(struct sensordata *sensorData_ptr,	///< pointer to sensorData struc
 */
 void close_nav(void);
 
-//void init_ahrs(struct sensordata *sensorData_ptr, struct get_nav *navData_ptr, struct control *controlData_ptr);
-//void ahrs(struct sensordata *sensorData_ptr, struct get_nav *navData_ptr, struct control *controlData_ptr);
-//void close_ahrs(void);
 
 #endif

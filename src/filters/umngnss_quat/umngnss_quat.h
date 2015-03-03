@@ -1,10 +1,10 @@
 //
-// umngnss_euler.h -- C++/Property aware interface for GNSS/ADNS 15-state
-//                    kalman filter algorithm
+// umngnss_quat.h -- C++/Property aware interface for GNSS/ADNS 15-state
+//                   kalman filter algorithm
 //
 
-#ifndef _UGEAR_UMN_GNSS_EULER_H
-#define _UGEAR_UMN_GNSS_EULER_H
+#ifndef _UGEAR_UMN_GNSS_QUAT_H
+#define _UGEAR_UMN_GNSS_QUAT_H
 
 
 #include <string>
@@ -14,9 +14,9 @@
 using std::string;
 
 
-int umngnss_euler_init( string rootname, SGPropertyNode *config );
-bool umngnss_euler_update();
-int umngnss_euler_close();
+void umngnss_quat_init( string rootname, SGPropertyNode *config );
+bool umngnss_quat_update();
+void umngnss_quat_close();
 
 
-#endif // _UGEAR_UMN_GNSS_EULER_H
+#endif // _UGEAR_UMN_GNSS_QUAT_H
