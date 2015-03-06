@@ -21,6 +21,7 @@
 #  include "filters/mnav/nav.h"
 #endif // ENABLE_MNAV_FILTER
 #include "filters/umngnss_euler/umngnss_euler.h"
+#include "filters/umngnss_quat/umngnss_quat.h"
 #include "include/globaldefs.h"
 #include "main/globals.hxx"
 #include "props/props.hxx"
@@ -154,8 +155,10 @@ void Filter_init() {
 		// nav_update() or nav_close()
 		mnav_nav_init( basename );
 #endif // ENABLE_MNAV_FILTER
-	    } else if ( module == "umn" ) {
+	    } else if ( module == "umn-euler" ) {
 		umngnss_euler_init( basename, section );
+	    } else if ( module == "umn-quat" ) {
+		umngnss_quat_init( basename, section );
 	    } else {
 		printf("Unknown filter = '%s' in config file\n",
 		       module.c_str());
@@ -423,8 +426,10 @@ bool Filter_update() {
 		}
 		fresh_filter_data = true;
 #endif // ENABLE_MNAV_FILTER
-	    } else if ( module == "umn" ) {
+	    } else if ( module == "umn-euler" ) {
 		fresh_filter_data = umngnss_euler_update();
+	    } else if ( module == "umn-quat" ) {
+		fresh_filter_data = umngnss_quat_update();
 	    }
 	}
     }
@@ -483,8 +488,10 @@ void Filter_close() {
 		mnav_ahrs_close();
 		mnav_nav_close();
 #endif // ENABLE_MNAV_FILTER
-	    } else if ( module == "umn" ) {
+	    } else if ( module == "umn-euler" ) {
 		umngnss_euler_close();
+	    } else if ( module == "umn-quat" ) {
+		umngnss_quat_close();
 	    }
 	}
     }

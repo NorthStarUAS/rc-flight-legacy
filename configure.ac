@@ -88,6 +88,7 @@ AC_CONFIG_FILES([ \
         src/filters/Makefile \
         src/filters/curt/Makefile \
         src/filters/umngnss_euler/Makefile \
+        src/filters/umngnss_quat/Makefile \
         src/filters/mnav/Makefile \
         src/comms/Makefile \
         src/control/Makefile \
