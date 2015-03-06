@@ -27,7 +27,7 @@
   </sas>
   
   <mixing>
-    <!-- command level mixing -->
+    <!-- command mixing -->
     <mix>
       <mode>auto-coordination</mode>
       <enable type="bool">true</enable>
@@ -44,7 +44,7 @@
       <gain1>0.1</gain1>
     </mix>
 
-    <!-- actuator level mixing -->
+    <!-- actuator mixing -->
     <mix>
       <mode>elevon</mode>
       <enable type="bool">true</enable>
