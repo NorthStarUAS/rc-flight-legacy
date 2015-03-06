@@ -23,6 +23,7 @@ ugear_LDADD = \
 	$(top_builddir)/src/filters/curt/libadns_curt.a \
 	$(MNAV_LIBS) \
 	$(top_builddir)/src/filters/umngnss_euler/libumngnss_euler.a \
+	$(top_builddir)/src/filters/umngnss_quat/libumngnss_quat.a \
 	$(top_builddir)/src/mission/libmission.a \
 	$(top_builddir)/src/mission/tasks/libtasks.a \
 	$(top_builddir)/src/health/libhealth.a \

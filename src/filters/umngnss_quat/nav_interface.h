@@ -16,6 +16,9 @@
 
 #include "globaldefs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /// Standard function to initialize the navigation filter.
 /*!
@@ -45,5 +48,9 @@ void get_nav( struct imu *imuData_ptr, // pointer to imu structure
 */
 void close_nav(void);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

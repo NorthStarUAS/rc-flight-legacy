@@ -5,7 +5,10 @@ MNAV_DIR =
 endif
 
 SUBDIRS = \
-	curt $(MNAV_DIR) umngnss_euler
+	curt \
+	$(MNAV_DIR) \
+	umngnss_euler \
+	umngnss_quat
 
 noinst_LIBRARIES = libfilters.a
 

@@ -93,7 +93,13 @@ static void props2umn(void) {
     gps_data.vn = gps_vn_node->getDoubleValue();
     gps_data.ve = gps_ve_node->getDoubleValue();
     gps_data.vd = gps_vd_node->getDoubleValue();
-    gps_data.newData = 0; /* FIXME */
+
+    static double last_gps_time = 0.0;
+    if ( gps_data.time > last_gps_time ) {
+	last_gps_time = gps_data.time;
+	// reset to zero by the EKF when this new data is consumed.
+	gps_data.newData = 1;
+    }
 }
 
 // update the property tree values from the nav_data structure
@@ -112,7 +118,14 @@ static void umn2props(void) {
     filter_vn_node->setDoubleValue( nav_data.vn );
     filter_ve_node->setDoubleValue( nav_data.ve );
     filter_vd_node->setDoubleValue( nav_data.vd );
-    filter_status_node->setStringValue("valid"); /* FIXME */
+    if ( nav_data.err_type == data_valid ||
+	 nav_data.err_type == TU_only ||
+	 nav_data.err_type == gps_aided )
+    {
+	filter_status_node->setStringValue("valid");
+    } else {
+	filter_status_node->setStringValue("invalid");
+    }
 
     filter_alt_feet_node->setDoubleValue( nav_data.alt * SG_METER_TO_FEET );
     filter_track_node->setDoubleValue( 90 - atan2(nav_data.vn, nav_data.ve)

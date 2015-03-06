@@ -7,7 +7,7 @@
 #include "worldcoord.h"
 
 
-int lla2ecef( double *lla, double *ecef )
+int eul_lla2ecef( double *lla, double *ecef )
 {
     double ecc2 = EarthEcc * EarthEcc;
 
@@ -24,7 +24,7 @@ int lla2ecef( double *lla, double *ecef )
 }
 
 
-int ecef2ned( double *ecef, double *ref_lla, double *ned )
+int eul_ecef2ned( double *ecef, double *ref_lla, double *ned )
 {
     double sinlat = sin( ref_lla[0] );
     double coslat = cos( ref_lla[0] );
@@ -47,7 +47,7 @@ int ecef2ned( double *ecef, double *ref_lla, double *ned )
 }
 
 
-int lla2ned( double *lla, double *ref_lla, double *ned )
+int eul_lla2ned( double *lla, double *ref_lla, double *ned )
 {
     double ecef[3];
 

@@ -481,8 +481,8 @@ int umn_adns_update( double *imu, double *gps ) {
 	double ins_pos_ned[3];
 	double gps_pos_ned[3];
 
-	lla2ned( state.pos, state.pos, ins_pos_ned);
-	lla2ned( &(gps[1]), state.pos, gps_pos_ned);
+	eul_lla2ned( state.pos, state.pos, ins_pos_ned);
+	eul_lla2ned( &(gps[1]), state.pos, gps_pos_ned);
 
 	/* form innovation */
 	/* position */

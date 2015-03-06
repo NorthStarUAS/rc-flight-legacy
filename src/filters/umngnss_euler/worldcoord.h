@@ -23,9 +23,9 @@
  *
  */
 
-int lla2ecef( double *lla, double *ecef );
-int ecef2ned( double *ecef, double *ref_lla, double *ned );
-int lla2ned( double *lla, double *ref_lla, double *ned );
+int eul_lla2ecef( double *lla, double *ecef );
+int eul_ecef2ned( double *ecef, double *ref_lla, double *ned );
+int eul_lla2ned( double *lla, double *ref_lla, double *ned );
 
 
 #endif /* COORDTRANS_H */
