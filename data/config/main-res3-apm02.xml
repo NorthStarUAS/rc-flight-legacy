@@ -50,7 +50,7 @@
       <!-- losing a gps solution. -->
       <gps-timeout-sec>15.0</gps-timeout-sec>
 
-      <filter include="filters/advanced-gnss.xml" />
+      <filter include="filters/umngnss-euler.xml" />
       <!-- <filter include="filters/mnav.xml" /> -->
       <!-- <filter incldue="filters/curt.xml" /> -->
 

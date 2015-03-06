@@ -2,9 +2,9 @@
 
 <PropertyList>
 
-  <!-- Advanced GNSS / ADNS 15 State Kalman Filter -->
+  <!-- Advanced GNSS / ADNS 15 State Kalman Filter (Euler formulation) -->
 
-  <module>umn</module>
+  <module>umn-euler</module>
   <enable type="bool">true</enable>
 
   <cov-gps-hpos>1.0</cov-gps-hpos> <!-- ublox5 -->
