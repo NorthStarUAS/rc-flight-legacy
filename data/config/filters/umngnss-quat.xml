@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+  <!-- Advanced GNSS / ADNS 15 State Kalman Filter -->
+
+  <module>umn</module>
+  <enable type="bool">true</enable>
+
+  <cov-gps-hpos>1.0</cov-gps-hpos> <!-- ublox5 -->
+  <cov-gps-vpos>3.0</cov-gps-vpos> <!-- ublox5 -->
+  <cov-gps-hvel>0.1</cov-gps-hvel> <!-- ublox5 -->
+  <cov-gps-vvel>0.3</cov-gps-vvel> <!-- ublox5 -->
+
+  <!-- <sigma-w-f>0.01</sigma-w-f> -->      <!-- VectorNav VN-100 -->
+  <!-- <sigma-w-g>0.001</sigma-w-g> -->     <!-- VectorNav VN-100 -->
+                                            <!-- 0.06 * deg2rad -->
+  <!-- <sigma-c-f>0.001</sigma-c-f> -->     <!-- VectorNav VN-100 -->
+  <!-- <sigma-c-g>0.0002</sigma-c-g> -->    <!-- VectorNav VN-100 -->
+                                            <!-- 0.012 * deg2rad -->
+
+  <sigma-w-f>0.02</sigma-w-f>      <!-- Sparkfun 6DOFv4 -->
+  <sigma-w-g>0.01</sigma-w-g>      <!-- Sparkfun 6DOFv4 -->
+                                   <!-- 0.5 * deg2rad -->
+  <sigma-c-f>0.002</sigma-c-f>     <!-- Sparkfun 6DOFv4 -->
+  <sigma-c-g>0.002</sigma-c-g>     <!-- Sparkfun 6DOFv4 -->
+                                   <!-- 0.1 * deg2rad -->
+
+  <tau-f>300.0</tau-f>
+  <tau-g>300.0</tau-g>
+
+</PropertyList>
