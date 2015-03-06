@@ -51,8 +51,8 @@ int eul_lla2ned( double *lla, double *ref_lla, double *ned )
 {
     double ecef[3];
 
-    lla2ecef( lla, ecef );
-    ecef2ned( ecef, ref_lla, ned );
+    eul_lla2ecef( lla, ecef );
+    eul_ecef2ned( ecef, ref_lla, ned );
 
     return 0;
 }
