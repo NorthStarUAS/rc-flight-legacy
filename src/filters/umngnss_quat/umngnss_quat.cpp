@@ -61,6 +61,13 @@ static SGPropertyNode *filter_track_node = NULL;
 static SGPropertyNode *filter_vel_node = NULL;
 static SGPropertyNode *filter_vert_speed_fps_node = NULL;
 
+static SGPropertyNode *filter_p_bias_node = NULL;
+static SGPropertyNode *filter_q_bias_node = NULL;
+static SGPropertyNode *filter_r_bias_node = NULL;
+static SGPropertyNode *filter_ax_bias_node = NULL;
+static SGPropertyNode *filter_ay_bias_node = NULL;
+static SGPropertyNode *filter_az_bias_node = NULL;
+
 #if 0
 static SGPropertyNode *cov_gps_hpos_node = NULL;
 static SGPropertyNode *cov_gps_vpos_node = NULL;
@@ -127,6 +134,13 @@ static void umn2props(void) {
 	filter_status_node->setStringValue("invalid");
     }
 
+    filter_p_bias_node->setDoubleValue( nav_data.gb[0] );
+    filter_q_bias_node->setDoubleValue( nav_data.gb[1] );
+    filter_r_bias_node->setDoubleValue( nav_data.gb[2] );
+    filter_ax_bias_node->setDoubleValue( nav_data.ab[0] );
+    filter_ay_bias_node->setDoubleValue( nav_data.ab[1] );
+    filter_az_bias_node->setDoubleValue( nav_data.ab[2] );
+    
     filter_alt_feet_node->setDoubleValue( nav_data.alt * SG_METER_TO_FEET );
     filter_track_node->setDoubleValue( 90 - atan2(nav_data.vn, nav_data.ve)
 				       * SG_RADIANS_TO_DEGREES );
@@ -180,6 +194,13 @@ void umngnss_quat_init( string rootname, SGPropertyNode *config ) {
     filter_vel_node = outputroot->getChild("groundspeed-ms", 0, true);
     filter_vert_speed_fps_node
         = outputroot->getChild("vertical-speed-fps", 0, true);
+
+    filter_p_bias_node = outputroot->getChild("p-bias", 0, true);
+    filter_q_bias_node = outputroot->getChild("q-bias", 0, true);
+    filter_r_bias_node = outputroot->getChild("r-bias", 0, true);
+    filter_ax_bias_node = outputroot->getChild("ax-bias", 0, true);
+    filter_ay_bias_node = outputroot->getChild("ay-bias", 0, true);
+    filter_az_bias_node = outputroot->getChild("az-bias", 0, true);
 
 #if 0
     // set tuning value for specific gps and imu noise characteristics
