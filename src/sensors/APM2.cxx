@@ -29,6 +29,8 @@
 #define FLIGHT_COMMAND_PACKET_ID 23
 #define MIX_MODE_PACKET_ID 24
 #define SAS_MODE_PACKET_ID 25
+#define SERIAL_NUMBER_PACKET_ID 26
+#define WRITE_EEPROM_PACKET_ID 27
 
 #define PILOT_PACKET_ID 30
 #define IMU_PACKET_ID 31
@@ -314,6 +316,65 @@ bool APM2_request_baud( uint32_t baud ) {
     return true;
 }
 #endif
+
+static bool APM2_act_write_eeprom() {
+    uint8_t buf[256];
+    uint8_t cksum0, cksum1;
+    uint8_t size = 0;
+    int len;
+
+    // start of message sync bytes
+    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    // packet id (1 byte)
+    buf[0] = WRITE_EEPROM_PACKET_ID;
+    // packet length (1 byte)
+    buf[1] = 0;
+    len = write( fd, buf, 2 );
+
+    // check sum (2 bytes)
+    APM2_cksum( WRITE_EEPROM_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    return true;
+}
+
+
+static bool APM2_act_set_serial_number( uint16_t serial_number ) {
+    uint8_t buf[256];
+    uint8_t cksum0, cksum1;
+    uint8_t size = 0;
+    int len;
+
+    // start of message sync bytes
+    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    // packet id (1 byte)
+    buf[0] = SERIAL_NUMBER_PACKET_ID;
+    // packet length (1 byte)
+    buf[1] = 2;
+    len = write( fd, buf, 2 );
+
+    // actuator data
+    uint8_t hi = serial_number / 256;
+    uint8_t lo = serial_number - (hi * 256);
+    buf[size++] = lo;
+    buf[size++] = hi;
+  
+    // write packet
+    len = write( fd, buf, size );
+  
+    // check sum (2 bytes)
+    APM2_cksum( SERIAL_NUMBER_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    return true;
+}
+
 
 static bool APM2_act_set_pwm_rates( uint16_t rates[NUM_ACTUATORS] ) {
     uint8_t buf[256];
@@ -1157,6 +1218,24 @@ static bool APM2_send_config() {
     double start_time = 0.0;
     double timeout = 0.5;
 
+    SGPropertyNode *APM2_serial_number_node
+	= fgGetNode("/config/sensors/APM2/setup-serial-number");
+    if ( APM2_serial_number_node != NULL ) {
+	uint16_t serial_number = APM2_serial_number_node->getIntValue();
+	start_time = get_Time();    
+	APM2_act_set_serial_number( serial_number );
+	last_ack_id = 0;
+	while ( (last_ack_id != SERIAL_NUMBER_PACKET_ID) ) {
+	    APM2_read();
+	    if ( get_Time() > start_time + timeout ) {
+		if ( display_on ) {
+		    printf("Timeout waiting for set serial_number ack...\n");
+		}
+		return false;
+	    }
+	}
+    }
+
     SGPropertyNode *APM2_pwm_rate_node
 	= fgGetNode("/config/sensors/APM2/pwm-hz");
     if ( APM2_pwm_rate_node != NULL ) {
@@ -1291,6 +1370,19 @@ static bool APM2_send_config() {
 		    return false;
 		}
 	    }
+	}
+    }
+
+    start_time = get_Time();    
+    APM2_act_write_eeprom();
+    last_ack_id = 0;
+    while ( (last_ack_id != WRITE_EEPROM_PACKET_ID) ) {
+	APM2_read();
+	if ( get_Time() > start_time + timeout ) {
+	    if ( display_on ) {
+		printf("Timeout waiting for write EEPROM ack...\n");
+	    }
+	    return false;
 	}
     }
 
