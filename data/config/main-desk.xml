@@ -21,6 +21,7 @@
     <sensors include="sensors/group-APM2.xml">
       <APM2 n="0">
         <device n="0">/dev/ttyACM0</device>
+        <setup-serial-number n="0">100</setup-serial-number>
       </APM2>
     </sensors>
     <!-- <sensors include="sensors/group-fgfs24.xml" /> -->
@@ -38,7 +39,8 @@
       <!-- losing a gps solution. -->
       <gps-timeout-sec>15.0</gps-timeout-sec>
 
-      <filter include="filters/umngnss-euler.xml" />
+      <filter include="filters/umngnss-quat.xml" />
+      <!-- <filter include="filters/umngnss-euler.xml" /> -->
       <!-- <filter include="filters/mnav.xml" /> -->
       <!-- <filter incldue="filters/curt.xml" /> -->
 
