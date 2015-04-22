@@ -5,6 +5,14 @@
   <module>APM2</module>
   <enable type="bool">true</enable>
 
+  <!-- actuator gains (negative values = reverse) -->
+  <gains>
+    <channel n="0">1.0</channel>
+    <channel n="1">1.0</channel>
+    <channel n="2">1.0</channel>
+    <channel n="3">1.0</channel>
+  </gains>
+
   <sas>
     <pilot-tune> <!-- hardwired to ch7 for now -->
       <enable type="bool">true</enable>
@@ -12,17 +20,17 @@
     <axis>
       <mode>roll</mode>
       <enable type="bool">true</enable>
-      <gain>0.1</gain>
+      <gain>0.2</gain>
     </axis>
     <axis>
       <mode>pitch</mode>
-      <enable type="bool">false</enable>
-      <gain>0.1</gain>
+      <enable type="bool">true</enable>
+      <gain>0.2</gain>
     </axis>
     <axis>
       <mode>yaw</mode>
-      <enable type="bool">false</enable>
-      <gain>0.1</gain>
+      <enable type="bool">true</enable>
+      <gain>0.2</gain>
     </axis>
   </sas>
   
@@ -35,37 +43,37 @@
     </mix>
     <mix>
       <mode>throttle-trim</mode>
-      <enable type="bool">true</enable>
+      <enable type="bool">false</enable>
       <gain1>-0.1</gain1>
     </mix>
     <mix>
       <mode>flap-trim</mode>
-      <enable type="bool">true</enable>
+      <enable type="bool">false</enable>
       <gain1>0.1</gain1>
     </mix>
 
     <!-- actuator mixing -->
     <mix>
       <mode>elevon</mode>
-      <enable type="bool">true</enable>
+      <enable type="bool">false</enable>
       <gain1>1.0</gain1> <!-- aileron -->
       <gain2>1.0</gain2> <!-- elevator -->
     </mix>
     <mix>
       <mode>flaperon</mode>
-      <enable type="bool">true</enable>
+      <enable type="bool">false</enable>
       <gain1>1.0</gain1> <!-- aileron -->
       <gain2>1.0</gain2> <!-- flap -->
     </mix>
     <mix>
       <mode>vtail</mode>
-      <enable type="bool">true</enable>
+      <enable type="bool">false</enable>
       <gain1>1.0</gain1> <!-- elevator -->
       <gain2>1.0</gain2> <!-- rudder -->
     </mix>
     <mix>
       <mode>diff-thrust</mode>
-      <enable type="bool">true</enable>
+      <enable type="bool">false</enable>
       <gain1>1.0</gain1> <!-- throttle -->
       <gain2>0.1</gain2> <!-- rudder -->
     </mix>
