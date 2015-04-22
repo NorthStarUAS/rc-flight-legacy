@@ -22,21 +22,24 @@
 #define START_OF_MSG0 147
 #define START_OF_MSG1 224
 
-#define ACK_PACKET_ID 10
-#define ACT_COMMAND_PACKET_ID 20
+#define ACK_PACKET_ID 20
+
 #define PWM_RATE_PACKET_ID 21
 #define BAUD_PACKET_ID 22
 #define FLIGHT_COMMAND_PACKET_ID 23
-#define MIX_MODE_PACKET_ID 24
-#define SAS_MODE_PACKET_ID 25
-#define SERIAL_NUMBER_PACKET_ID 26
-#define WRITE_EEPROM_PACKET_ID 27
+#define ACT_GAIN_PACKET_ID 24
+#define MIX_MODE_PACKET_ID 25
+#define SAS_MODE_PACKET_ID 26
+#define SERIAL_NUMBER_PACKET_ID 27
+#define WRITE_EEPROM_PACKET_ID 28
 
-#define PILOT_PACKET_ID 30
-#define IMU_PACKET_ID 31
-#define GPS_PACKET_ID 32
-#define BARO_PACKET_ID 33
-#define ANALOG_PACKET_ID 34
+#define PILOT_PACKET_ID 50
+#define IMU_PACKET_ID 51
+#define GPS_PACKET_ID 52
+#define BARO_PACKET_ID 53
+#define ANALOG_PACKET_ID 54
+
+#define ACT_COMMAND_PACKET_ID 60
 
 #define NUM_PILOT_INPUTS 8
 #define NUM_ACTUATORS 8
@@ -48,6 +51,10 @@
 #define PWM_RANGE (PWM_HALF_RANGE * 2)
 #define PWM_MIN (PWM_CENTER - PWM_HALF_RANGE)
 #define PWM_MAX (PWM_CENTER + PWM_HALF_RANGE)
+
+// Actuator gain (reversing) commands, format is cmd(byte) ch(byte) gain(float)
+#define ACT_GAIN_DEFAULTS 0
+#define ACT_GAIN_SET 1
 
 // Mix mode commands (format is cmd(byte), gain 1 (float), gain 2 (float)
 #define MIX_DEFAULTS 0
@@ -178,7 +185,6 @@ static uint16_t act_rates[NUM_ACTUATORS] = { 50, 50, 50, 50, 50, 50, 50, 50 };
 
 static double pilot_in_timestamp = 0.0;
 static uint16_t pilot_input[NUM_PILOT_INPUTS]; // internal stash
-static bool pilot_input_rev[NUM_PILOT_INPUTS];
 
 static double imu_timestamp = 0.0;
 static int16_t imu_sensors[NUM_IMU_SENSORS];
@@ -227,39 +233,6 @@ static uint32_t analog_packet_counter = 0;
 
 // (Deprecated) initialize input property nodes
 static void bind_input( SGPropertyNode *config ) {
-    for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
-	pilot_input_rev[i] = false;
-    }
-    SGPropertyNode *node, *child;
-    node = config->getChild("aileron");
-    if ( node != NULL ) {
-	child = node->getChild("reverse");
-	if ( child != NULL ) {
-	    pilot_input_rev[0] = child->getBoolValue();
-	}
-    }
-    node = config->getChild("elevator");
-    if ( node != NULL ) {
-	child = node->getChild("reverse");
-	if ( child != NULL ) {
-	    pilot_input_rev[1] = child->getBoolValue();
-	}
-    }
-    node = config->getChild("throttle");
-    if ( node != NULL ) {
-	child = node->getChild("reverse");
-	if ( child != NULL ) {
-	    pilot_input_rev[2] = child->getBoolValue();
-	}
-    }
-    node = config->getChild("rudder");
-    if ( node != NULL ) {
-	child = node->getChild("reverse");
-	if ( child != NULL ) {
-	    pilot_input_rev[3] = child->getBoolValue();
-	}
-    }
-
     configroot = config;
 }
 
@@ -406,6 +379,47 @@ static bool APM2_act_set_pwm_rates( uint16_t rates[NUM_ACTUATORS] ) {
   
     // check sum (2 bytes)
     APM2_cksum( PWM_RATE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    return true;
+}
+
+
+static bool APM2_act_gain_mode( int channel, float gain)
+{
+    uint8_t buf[256];
+    uint8_t cksum0, cksum1;
+    uint8_t size = 0;
+    int len;
+
+    // start of message sync bytes
+    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
+    len = write( fd, buf, 2 );
+
+    // packet id (1 byte)
+    buf[0] = ACT_GAIN_PACKET_ID;
+    // packet length (1 byte)
+    buf[1] = 3;
+    len = write( fd, buf, 2 );
+
+    buf[size++] = (uint8_t)channel;
+
+    uint16_t val;
+    uint8_t hi, lo;
+    
+    // gain
+    val = 32767 + gain * 10000;
+    hi = val / 256;
+    lo = val - (hi * 256);
+    buf[size++] = lo;
+    buf[size++] = hi;
+    
+    // write packet
+    len = write( fd, buf, size );
+  
+    // check sum (2 bytes)
+    APM2_cksum( ACT_GAIN_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     len = write( fd, buf, 2 );
 
@@ -1257,6 +1271,31 @@ static bool APM2_send_config() {
 	}
     }
 
+    SGPropertyNode *gains = fgGetNode("/config/actuators/actuator/gains");
+    if ( gains != NULL ) {
+	for ( int i = 0; i < gains->nChildren(); ++i ) {
+	    SGPropertyNode *channel_node = gains->getChild(i);
+	    int ch = channel_node->getIndex();
+	    float gain = channel_node->getFloatValue();
+	    if ( display_on ) {
+		printf("gain: %d %.2f\n", ch, gain);
+	    }
+	    start_time = get_Time();    
+	    APM2_act_gain_mode( ch, gain );
+	    last_ack_id = 0;
+	    last_ack_subid = 0;
+	    while ( (last_ack_id != ACT_GAIN_PACKET_ID)
+		    || (last_ack_subid != ch) )
+	    {
+		APM2_read();
+		if ( get_Time() > start_time + timeout ) {
+		    printf("Timeout waiting for %s ACK\n", channel_node->getStringValue());
+		    return false;
+		}
+	    }
+	}
+    }
+
     SGPropertyNode *mixing = fgGetNode("/config/actuators/actuator/mixing");
     if ( mixing != NULL ) {
 	for ( int i = 0; i < mixing->nChildren(); ++i ) {
@@ -1348,6 +1387,7 @@ static bool APM2_send_config() {
 		}
 	    } else if ( section_name == "pilot-tune" ) {
 		SGPropertyNode *enable_node = section_node->getChild("enable");
+
 		mode_id = SAS_CH7_TUNE;
 		if ( enable_node != NULL ) {
 		    enable = enable_node->getBoolValue();
@@ -1753,35 +1793,27 @@ bool APM2_pilot_update() {
     pilot_timestamp_node->setDoubleValue( pilot_in_timestamp );
 
     val = normalize_pulse( pilot_input[0], true );
-    if ( pilot_input_rev[0] ) { val *= -1.0; }
     pilot_aileron_node->setDoubleValue( val );
 
     val = normalize_pulse( pilot_input[1], true );
-    if ( pilot_input_rev[1] ) { val *= -1.0; }
     pilot_elevator_node->setDoubleValue( val );
 
     val = normalize_pulse( pilot_input[2], false );
-    if ( pilot_input_rev[2] ) { val *= -1.0; }
     pilot_throttle_node->setDoubleValue( val );
 
     val = normalize_pulse( pilot_input[3], true );
-    if ( pilot_input_rev[3] ) { val *= -1.0; }
     pilot_rudder_node->setDoubleValue( val );
 
     val = normalize_pulse( pilot_input[4], true );
-    if ( pilot_input_rev[4] ) { val *= -1.0; }
     pilot_channel5_node->setDoubleValue( val );
 
     val = normalize_pulse( pilot_input[5], true );
-    if ( pilot_input_rev[5] ) { val *= -1.0; }
     pilot_channel6_node->setDoubleValue( val );
 
     val = normalize_pulse( pilot_input[6], true );
-    if ( pilot_input_rev[6] ) { val *= -1.0; }
     pilot_channel7_node->setDoubleValue( val );
 
     val = normalize_pulse( pilot_input[7], true );
-    if ( pilot_input_rev[7] ) { val *= -1.0; }
     pilot_channel8_node->setDoubleValue( val );
 
     pilot_manual_node->setIntValue( pilot_channel8_node->getDoubleValue() > 0 );
