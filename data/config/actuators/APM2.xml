@@ -5,6 +5,19 @@
   <module>APM2</module>
   <enable type="bool">true</enable>
 
+  <!-- pwm signal rates (default is 50hz) -->
+  <!-- note that CH1/CH2, CH3/CH4/CH5, and CH6/CH7/CH8 run off
+       grouped timers so setting any of the group will also force
+       the same rate for the other channels in the group, channels
+       with rate of 0 are left untouched (but will be affected if
+       another group member rate is set.) -->
+  <pwm-rates> 
+    <channel n="0">50</channel>
+    <channel n="1">50</channel>
+    <channel n="2">50</channel>
+    <channel n="3">50</channel>
+  </pwm-rates> 
+
   <!-- actuator gains (negative values = reverse) -->
   <gains>
     <channel n="0">-1.0</channel>
