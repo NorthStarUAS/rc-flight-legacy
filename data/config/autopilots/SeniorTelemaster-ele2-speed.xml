@@ -42,7 +42,7 @@
       <!-- 8/31/2013 Installed digital servos @ 200hz, Kp = -0.015 Ti = 10.0 Td = 0.0001 now too jittery? -->
       <!-- 10/19/2013 Kp = -0.012 Ti = 10.0 Td = 0.0001 still jittery? -->
       <!-- 10/19/2013 Kp = -0.010 Ti = 2.0 Td = 0.0001 too weak at low speed -->
-      <Kp>-0.04</Kp>       <!-- proportional gain-->
+      <Kp>0.04</Kp>       <!-- proportional gain-->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -53,31 +53,6 @@
       <u_max>0.75</u_max>  <!-- maximum output clamp -->
     </config>
   </pid-controller>
-
-  <!-- simple (but runtime tuneable) autocoordination driving rudder in direct proportion to aileron -->
-  <pi-simple-controller>
-    <name>Auto Coordination</name>
-    <debug>false</debug>
-    <enable>
-      <prop>/autopilot/locks/yaw</prop>
-      <value>autocoord</value>
-    </enable>
-    <input>
-      <prop>/controls/flight/aileron</prop>
-    </input>
-    <reference>
-      <value>0.0</value>
-    </reference>
-    <output>
-      <prop>/controls/flight/rudder</prop>
-    </output>
-    <config>
-      <Kp>-0.75</Kp>       <!-- proportional gain -->
-      <Ki>0.0</Ki>         <!-- integral gain -->
-      <u_min>-1.0</u_min>  <!-- minimum output clamp -->
-      <u_max>1.0</u_max>   <!-- maximum output clamp -->
-    </config>
-  </pi-simple-controller>
 
   <!-- Altitude hold. -->
 
@@ -169,7 +144,7 @@
     </output>
       <!-- 9/11/2013: Kp = 0.02 alpha = 0.1 Ti = 10.0 Td = 0.0001 adapted from sim/direct numbers, but still too agressive @ 10/19/2013? -->
     <config>
-      <Kp>0.06</Kp>        <!-- proportional gain -->
+      <Kp>-0.06</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
@@ -213,7 +188,7 @@
     <!-- 8/31/2013: installed digital servos. -->
     <!-- 8/31/2013: Kp = -0.017 alpha = 0.25 Ti = 8.0 Td = 1.3  Jittery, too much Td? -->
     <config>
-      <Kp>-0.015</Kp>      <!-- proportional gain -->
+      <Kp>0.015</Kp>       <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.25</alpha>  <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
