@@ -7,10 +7,10 @@
 
   <!-- actuator gains (negative values = reverse) -->
   <gains>
-    <channel n="0">1.0</channel>
-    <channel n="1">1.0</channel>
+    <channel n="0">-1.0</channel>
+    <channel n="1">-1.0</channel>
     <channel n="2">1.0</channel>
-    <channel n="3">1.0</channel>
+    <channel n="3">-1.0</channel>
   </gains>
 
   <sas>
@@ -39,7 +39,7 @@
     <mix>
       <mode>auto-coordination</mode>
       <enable type="bool">true</enable>
-      <gain1>0.5</gain1>
+      <gain1>0.4</gain1>
     </mix>
     <mix>
       <mode>throttle-trim</mode>
