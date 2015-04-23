@@ -46,8 +46,8 @@
 #define NUM_IMU_SENSORS 7
 #define NUM_ANALOG_INPUTS 6
 
-#define PWM_CENTER 1500
-#define PWM_HALF_RANGE 450
+#define PWM_CENTER 1520
+#define PWM_HALF_RANGE 413
 #define PWM_RANGE (PWM_HALF_RANGE * 2)
 #define PWM_MIN (PWM_CENTER - PWM_HALF_RANGE)
 #define PWM_MAX (PWM_CENTER + PWM_HALF_RANGE)
@@ -757,6 +757,8 @@ static bool APM2_open() {
 	return false;
     }
 
+    sleep(1);
+    
     master_opened = true;
 
     return true;
@@ -1250,12 +1252,16 @@ static bool APM2_send_config() {
 	}
     }
 
-    SGPropertyNode *APM2_pwm_rate_node
-	= fgGetNode("/config/sensors/APM2/pwm-hz");
-    if ( APM2_pwm_rate_node != NULL ) {
-	act_pwm_rate_hz = APM2_pwm_rate_node->getIntValue();
+    SGPropertyNode *pwm_rates = fgGetNode("/config/actuators/actuator/pwm-rates");
+    if ( pwm_rates != NULL ) {
 	for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
-	    act_rates[i] = act_pwm_rate_hz;
+	    act_rates[i] = 0; /* no change from default */
+	}
+	for ( int i = 0; i < pwm_rates->nChildren(); ++i ) {
+	    SGPropertyNode *channel_node = pwm_rates->getChild(i);
+	    int ch = channel_node->getIndex();
+	    uint16_t rate_hz = channel_node->getIntValue();
+	    act_rates[ch] = rate_hz;
 	}
 	start_time = get_Time();    
 	APM2_act_set_pwm_rates( act_rates );
