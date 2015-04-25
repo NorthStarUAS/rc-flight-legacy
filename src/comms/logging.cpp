@@ -181,7 +181,7 @@ void log_imu( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    log_packet( IMU_PACKET_V1, buf, size );
+    log_packet( IMU_PACKET_V2, buf, size );
 }
 
 
