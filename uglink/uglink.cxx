@@ -103,11 +103,11 @@ static void dump_data_point( struct gps *gpspacket,
 	    gpspacket->lat, gpspacket->lon, gpspacket->alt,
 	    gpspacket->vn, gpspacket->ve, gpspacket->vd,
 	    gpspacket->gps_time, gpspacket->satellites, gpspacket->status );
-    printf( "\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.3f\t%.3f\t%.3f\t%d",
+    printf( "\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.3f\t%.3f\t%.3f\t%.1f\t%d",
 	    imupacket->p /* 12 */, imupacket->q, imupacket->r,
 	    imupacket->ax, imupacket->ay, imupacket->az,
 	    imupacket->hx, imupacket->hy, imupacket->hz,
-	    imupacket->status
+	    imupacket->temp, imupacket->status
 	    );
     printf( "\t%.1f\t%.2f\t%.2f\t%.2f\t%d",
 	    airpacket->airspeed /* 22 */, airpacket->altitude, airpacket->climb_fpm,
@@ -807,7 +807,7 @@ int main( int argc, char **argv ) {
 			derivedpacket.wind_speed_kt);
 #endif
 		
-#if 1
+#if 0
 		double ail = pilotpacket.ail;
 		double ele = pilotpacket.ele;
 		if ( flying_wing_node->getBoolValue() ) {
@@ -998,7 +998,7 @@ int main( int argc, char **argv ) {
 		    } else {
 			cout << "oops gps back in time: " << gpspacket.gps_time << " " << gps_time << endl;
 		    }
-		} else if ( id == IMU_PACKET_V1 ) {
+		} else if ( id == IMU_PACKET_V2 ) {
 		    if ( imupacket.timestamp > imu_time ) {
 			imu_time = imupacket.timestamp;
 			packet_time = imu_time;

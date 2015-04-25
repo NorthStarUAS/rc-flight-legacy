@@ -282,7 +282,7 @@ bool remote_link_imu( uint8_t *buf, int size, int skip_count  ) {
         skip = skip_count;
     }
 
-    remote_link_packet( IMU_PACKET_V1, buf, size );
+    remote_link_packet( IMU_PACKET_V2, buf, size );
 
     return true;
 }

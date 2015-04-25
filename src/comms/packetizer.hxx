@@ -27,6 +27,7 @@ enum ugPacketType {
     PAYLOAD_PACKET_V1 = 12,
     AIR_DATA_PACKET_V4 = 13,
     SYSTEM_HEALTH_PACKET_V3 = 14,
+    IMU_PACKET_V2 = 15,
 };
 
 
@@ -55,6 +56,7 @@ class UGPacketizer {
     SGPropertyNode *imu_hx_node;
     SGPropertyNode *imu_hy_node;
     SGPropertyNode *imu_hz_node;
+    SGPropertyNode *imu_temp_node;
     SGPropertyNode *imu_status_node;
 
     // air data property nodes

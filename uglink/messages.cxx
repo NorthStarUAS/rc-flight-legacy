@@ -111,6 +111,27 @@ void UGTrack::parse_msg( const int id, char *buf,
 	/*printf("imu %.3f %.4f %.4f %.4f %.4f %.4f %.4f\n",
 	       imupacket->timestamp, imupacket->p, imupacket->q, imupacket->r,
 	       imupacket->ax, imupacket->ay, imupacket->az);*/
+    } else if ( id == IMU_PACKET_V2 ) {
+	imupacket->timestamp = *(double *)buf; buf += 8;
+	imupacket->p = *(float *)buf; buf += 4;
+	imupacket->q = *(float *)buf; buf += 4;
+	imupacket->r = *(float *)buf; buf += 4;
+	imupacket->ax = *(float *)buf; buf += 4;
+	imupacket->ay = *(float *)buf; buf += 4;
+	imupacket->az = *(float *)buf; buf += 4;
+	imupacket->hx = *(float *)buf; buf += 4;
+	imupacket->hy = *(float *)buf; buf += 4;
+	imupacket->hz = *(float *)buf; buf += 4;
+	imupacket->temp = *(int16_t *)buf / 10.0; buf += 2;
+	imupacket->status = *(uint8_t *)buf; buf += 1;
+	
+	/*printf("imu = %.2f (%.3f %.3f %.3f) (%.3f %.3f %.f) (%.3f %.3f %.3f) %d\n",
+	       imupacket->timestamp, imupacket->p, imupacket->q, imupacket->r,
+	       imupacket->ax, imupacket->ay, imupacket->az, imupacket->hx,
+	       imupacket->hy, imupacket->hz, imupacket->status );*/
+	/*printf("imu %.3f %.4f %.4f %.4f %.4f %.4f %.4f\n",
+	       imupacket->timestamp, imupacket->p, imupacket->q, imupacket->r,
+	       imupacket->ax, imupacket->ay, imupacket->az);*/
     } else if ( id == AIR_DATA_PACKET_V1 ) {
 	airpacket->timestamp = *(double *)buf; buf += 8;
 	airpacket->airspeed = *(int16_t *)buf / 100.0; buf += 2;
@@ -400,7 +421,7 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
             } else {
 		cout << "oops gps back in time: " << gpspacket.gps_time << " " << gps_time << endl;
             }
-        } else if ( id == IMU_PACKET_V1 ) {
+        } else if ( id == IMU_PACKET_V1 || id == IMU_PACKET_V2 ) {
             if ( imupacket.timestamp > imu_time ) {
                 imu_data.push_back( imupacket );
                 imu_time = imupacket.timestamp;
@@ -769,11 +790,12 @@ bool UGTrack::export_raw_umn( const string &path ) {
     imu imupacket;
     for ( int i = 0; i < imu_size(); i++ ) {
 	imupacket = get_imupt(i);
-	fprintf( imu_fd, "%.4f %.5f %.5f %.5f %.5f %.5f %.5f %.3f %.3f %.3f\n",
+	fprintf( imu_fd, "%.4f %.5f %.5f %.5f %.5f %.5f %.5f %.3f %.3f %.3f %.1f\n",
 		 imupacket.timestamp,
 		 imupacket.p, imupacket.q, imupacket.r,
 		 imupacket.ax, imupacket.ay, imupacket.az,
-		 imupacket.hx, imupacket.hy, imupacket.hz
+		 imupacket.hx, imupacket.hy, imupacket.hz,
+		 imupacket.temp
 		 );
     }
     fclose(imu_fd);
@@ -833,12 +855,12 @@ bool UGTrack::export_text_tab( const string &path ) {
     imu imupacket;
     for ( int i = 0; i < imu_size(); i++ ) {
 	imupacket = get_imupt(i);
-	fprintf( imu_fd, "%.3f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.3f\t%.3f\t%.3f\t%d\n",
+	fprintf( imu_fd, "%.3f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.3f\t%.3f\t%.3f\t%.1f\t%d\n",
 		 imupacket.timestamp,
 		 imupacket.p, imupacket.q, imupacket.r,
 		 imupacket.ax, imupacket.ay, imupacket.az,
 		 imupacket.hx, imupacket.hy, imupacket.hz,
-		 imupacket.status
+		 imupacket.temp, imupacket.status
 		 );
     }
     fclose(imu_fd);
@@ -989,7 +1011,7 @@ bool UGTrack::export_text_tab( const string &path ) {
     for ( int i = 0; i < health_size(); i++ ) {
 	healthpacket = get_healthpt(i);
 	fprintf( health_fd,
-		 "%.3f\t%.2f\t%.2f\t%.2f\t%.2f\t%.0f\n",
+		 "%.3f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.0f\n",
 		 healthpacket.timestamp,
 		 healthpacket.load_avg, healthpacket.avionics_vcc,
 		 healthpacket.extern_volts, healthpacket.extern_cell_volts,
@@ -1341,6 +1363,7 @@ imu UGEARInterpIMU( const imu A, const imu B, const double percent )
     p.hx = interp(A.hx, B.hx, percent);
     p.hy = interp(A.hy, B.hy, percent);
     p.hz = interp(A.hz, B.hz, percent);
+    p.temp = interp(A.temp, B.temp, percent);
     p.status = A.status;
 
     return p;
