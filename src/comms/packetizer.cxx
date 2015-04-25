@@ -36,6 +36,7 @@ void UGPacketizer::bind_imu_nodes() {
     imu_hx_node = fgGetNode("/sensors/imu/hx", true);
     imu_hy_node = fgGetNode("/sensors/imu/hy", true);
     imu_hz_node = fgGetNode("/sensors/imu/hz", true);
+    imu_temp_node = fgGetNode("/sensors/imu/temp_C", true);
     imu_status_node = fgGetNode("/sensors/imu/status", true);
 }
 
@@ -251,6 +252,9 @@ int UGPacketizer::packetize_imu( uint8_t *buf ) {
     float hz = imu_hz_node->getFloatValue();
     *(float *)buf = hz; buf += 4;
 
+    int16_t temp = (int16_t)(imu_temp_node->getFloatValue() * 10);
+    *(int16_t *)buf = temp; buf += 2;
+
     uint8_t status = 0;
     *buf = status; buf++;
 
@@ -269,10 +273,11 @@ void UGPacketizer::decode_imu( uint8_t *buf ) {
     float hx = *(float *)buf; buf += 4;
     float hy = *(float *)buf; buf += 4;
     float hz = *(float *)buf; buf += 4;
+    int16_t temp = *(int16_t *)buf; buf += 2;
     uint8_t status = *(uint8_t *)buf; buf += 1;
 
-    printf("t = %.2f (%.3f %.3f %.3f) (%.3f %.3f %.f) (%.3f %.3f %.3f) %d\n",
-	   time, p, q, r, ax, ay, az, hx, hy, hz, status );
+    printf("t = %.2f (%.3f %.3f %.3f) (%.3f %.3f %.f) (%.3f %.3f %.3f) %.1fC %d\n",
+	   time, p, q, r, ax, ay, az, hx, hy, hz, (float)temp/10.0, status );
 }
 
 

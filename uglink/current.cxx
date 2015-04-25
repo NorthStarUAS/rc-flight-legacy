@@ -40,6 +40,7 @@ static SGPropertyNode *imu_az_node = NULL;
 static SGPropertyNode *imu_hx_node = NULL;
 static SGPropertyNode *imu_hy_node = NULL;
 static SGPropertyNode *imu_hz_node = NULL;
+static SGPropertyNode *imu_temp_node = NULL;
 static SGPropertyNode *imu_status_node = NULL;
 
 // air data property nodes
@@ -171,6 +172,7 @@ static void bind_imu_nodes() {
     imu_hx_node = fgGetNode("/sensors/imu/hx", true);
     imu_hy_node = fgGetNode("/sensors/imu/hy", true);
     imu_hz_node = fgGetNode("/sensors/imu/hz", true);
+    imu_temp_node = fgGetNode("/sensors/imu/temp_C", true);
     imu_status_node = fgGetNode("/sensors/imu/status", true);
 }
 
@@ -346,6 +348,7 @@ static void update_imu_nodes( struct imu *imupacket ) {
     imu_hx_node->setDoubleValue( imupacket->hx );
     imu_hy_node->setDoubleValue( imupacket->hy );
     imu_hz_node->setDoubleValue( imupacket->hz );
+    imu_temp_node->setDoubleValue( imupacket->temp );
     imu_status_node->setIntValue( imupacket->status );
 }
 

@@ -17,9 +17,10 @@ struct gps {
 
 struct imu {
     double timestamp;
-    double p, q, r;		/* angular velocities    */
-    double ax, ay, az;		/* acceleration          */
-    double hx, hy, hz;             /* magnetic field     	 */
+    float p, q, r;		/* angular velocities    */
+    float ax, ay, az;		/* acceleration          */
+    float hx, hy, hz;             /* magnetic field     	 */
+    float temp;
     int status;
 };
 
