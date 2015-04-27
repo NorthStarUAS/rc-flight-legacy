@@ -43,7 +43,7 @@ static SGPropertyNode *airdata_airspeed_node = NULL;
 static SGPropertyNode *airdata_pressure_node = NULL;
 
 // input property nodes
-static SGPropertyNode *filter_timestamp_node = NULL;
+static SGPropertyNode *filter_navigation_node = NULL;
 static SGPropertyNode *filter_alt_node = NULL;
 static SGPropertyNode *filter_ground_node = NULL;
 
@@ -80,7 +80,7 @@ void AirData_init() {
     airdata_pressure_node = fgGetNode("/sensors/airdata/pressure-mbar", true);
 
     // input property nodes
-    filter_timestamp_node = fgGetNode("/filters/filter/time-stamp", true);
+    filter_navigation_node = fgGetNode("/filters/filter/navigation", true);
     filter_alt_node = fgGetNode("/position/filter/altitude-m", true);
     filter_ground_node = fgGetNode("/position/filter/altitude-ground-m", true);
 
@@ -233,7 +233,7 @@ static void update_pressure_helpers() {
     }
     static bool first_time = true;
     if ( first_time ) {
-	if ( filter_timestamp_node->getDoubleValue() > 1.0 ) {
+	if ( (string)filter_navigation_node->getStringValue() == "valid" ) {
 	    first_time = false;
 	    Ps_filt_err = filter_alt_m - Ps;
 	}
