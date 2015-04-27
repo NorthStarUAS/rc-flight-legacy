@@ -13,8 +13,8 @@
        another group member rate is set.) -->
   <pwm-rates> 
     <!-- ch1/ch2 are a group -->
-    <channel n="0">50</channel>
-    <channel n="1">50</channel>
+    <channel n="0">200</channel>
+    <channel n="1">200</channel>
     <!-- ch3/ch4/ch5 are a group -->
     <channel n="2">50</channel>
     <channel n="3">50</channel>
@@ -36,7 +36,7 @@
     <axis>
       <mode>roll</mode>
       <enable type="bool">true</enable>
-      <gain>0.2</gain>
+      <gain>0.3</gain>
     </axis>
     <axis>
       <mode>pitch</mode>
@@ -55,7 +55,7 @@
     <mix>
       <mode>auto-coordination</mode>
       <enable type="bool">true</enable>
-      <gain1>0.4</gain1>
+      <gain1>0.3</gain1>
     </mix>
     <mix>
       <mode>throttle-trim</mode>
