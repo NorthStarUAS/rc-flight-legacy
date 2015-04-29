@@ -1,0 +1,4 @@
+filter.TU_COUNT maybe should be by time, not count so we can handle other
+sample rates
+
+handle 'empty' gps struct?
