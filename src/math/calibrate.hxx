@@ -29,6 +29,9 @@
 class UGCalibrate {
 
 private:
+
+    float _min_temp;		// temp (C)
+    float _max_temp;		// temp (C)
     
     float bias[3];
     float scale[3];
@@ -40,17 +43,19 @@ public:
     UGCalibrate();
     ~UGCalibrate();
 
-    void init( SGPropertyNode *config );
+    void init( SGPropertyNode *config, float min_temp, float max_temp );
 
-    inline float eval_bias( float x )  {
-	return bias[0]*x*x + bias[1]*x + bias[2];
+    inline float eval_bias( float temp )  {
+	return bias[0]*temp*temp + bias[1]*temp + bias[2];
     }
 
-    inline float eval_scale( float x )  {
-	return scale[0]*x*x + scale[1]*x + scale[2];
+    inline float eval_scale( float temp )  {
+	return scale[0]*temp*temp + scale[1]*temp + scale[2];
     }
     
     inline float calibrate( float x, float temp ) {
+	if ( temp < _min_temp ) { temp = _min_temp; }
+	if ( temp > _max_temp ) { temp = _max_temp; }
 	float b = eval_bias( temp );
 	float s = eval_scale( temp );
 	// printf("sensor @ %.1f: %.3f -> %.3f\n", temp, x, (x - bias) * scale);
