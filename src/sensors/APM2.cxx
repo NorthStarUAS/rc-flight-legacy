@@ -13,7 +13,9 @@
 #include "include/ugear_config.h"
 
 #include "comms/display.h"
+#include "comms/logging.h"
 #include "main/globals.hxx"
+#include "math/calibrate.hxx"
 #include "props/props.hxx"
 #include "util/timing.h"
 
@@ -217,12 +219,12 @@ static float analog[NUM_ANALOG_INPUTS];     // internal stash
 static bool airspeed_inited = false;
 static double airspeed_zero_start_time = 0.0;
 
-static float ax_bias = 0.0;
-static float ay_bias = 0.0;
-static float az_bias = 0.0;
-static double ax_scale = 1.0;
-static double ay_scale = 1.0;
-static double az_scale = 1.0;
+static UGCalibrate p_cal;
+static UGCalibrate q_cal;
+static UGCalibrate r_cal;
+static UGCalibrate ax_cal;
+static UGCalibrate ay_cal;
+static UGCalibrate az_cal;
 
 static uint32_t pilot_packet_counter = 0;
 static uint32_t imu_packet_counter = 0;
@@ -785,32 +787,38 @@ bool APM2_imu_init( string rootname, SGPropertyNode *config ) {
 
     bind_imu_output( rootname );
 
-    SGPropertyNode *node = NULL;
-    node = config->getChild("ax-bias");
-    if ( node != NULL ) {
-	ax_bias = node->getDoubleValue();
+    SGPropertyNode *cal = config->getChild("calibration");
+    if ( cal != NULL ) {
+	double min_temp = 27.0;
+	double max_temp = 27.0;
+	SGPropertyNode *min_node = cal->getChild("min-temp-C");
+	if ( min_node != NULL ) {
+	    min_temp = min_node->getFloatValue();
+	}
+	SGPropertyNode *max_node = cal->getChild("max-temp-C");
+	if ( max_node != NULL ) {
+	    max_temp = max_node->getFloatValue();
+	}
+	
+	p_cal.init( cal->getChild("p"), min_temp, max_temp );
+	q_cal.init( cal->getChild("q"), min_temp, max_temp );
+	r_cal.init( cal->getChild("r"), min_temp, max_temp );
+	ax_cal.init( cal->getChild("ax"), min_temp, max_temp );
+	ay_cal.init( cal->getChild("ay"), min_temp, max_temp );
+	az_cal.init( cal->getChild("az"), min_temp, max_temp );
+
+	float temp = min_temp - 5;
+	while ( temp <= max_temp + 5 ) {
+	    printf("%.1f: 0.000 -> %.3f\n",
+		   temp, p_cal.calibrate(0.000, temp));
+	    temp += 0.1;
+	}
     }
-    node = config->getChild("ay-bias");
-    if ( node != NULL ) {
-	ay_bias = node->getDoubleValue();
-    }
-    node = config->getChild("az-bias");
-    if ( node != NULL ) {
-	az_bias = node->getDoubleValue();
-    }
-    node = config->getChild("ax-scale");
-    if ( node != NULL ) {
-	ax_scale = node->getDoubleValue();
-    }
-    node = config->getChild("ay-scale");
-    if ( node != NULL ) {
-	ay_scale = node->getDoubleValue();
-    }
-    node = config->getChild("az-scale");
-    if ( node != NULL ) {
-	az_scale = node->getDoubleValue();
-    }
- 
+    
+    // save the imu calibration parameters with the data file so that
+    // later the original raw sensor values can be derived.
+    log_imu_calibration( config );
+    
     return true;
 }
 
@@ -1570,16 +1578,22 @@ bool APM2_imu_update() {
 	const float accel_scale = 9.81 / 4096.0;
 	const float temp_scale = 0.02;
 
+	double p_raw = imu_sensors[0] * gyro_scale;
+	double q_raw = imu_sensors[1] * gyro_scale;
+	double r_raw = imu_sensors[2] * gyro_scale;
+	double ax_raw = imu_sensors[3] * accel_scale;
+	double ay_raw = imu_sensors[4] * accel_scale;
+	double az_raw = imu_sensors[5] * accel_scale;
+	double temp_C = imu_sensors[6] * temp_scale;
+	
+	imu_p_node->setDoubleValue( p_cal.calibrate(p_raw, temp_C) );
+	imu_q_node->setDoubleValue( q_cal.calibrate(q_raw, temp_C) );
+	imu_r_node->setDoubleValue( r_cal.calibrate(r_raw, temp_C) );
+	imu_ax_node->setDoubleValue( ax_cal.calibrate(ax_raw, temp_C) );
+	imu_ay_node->setDoubleValue( ay_cal.calibrate(ay_raw, temp_C) );
+	imu_az_node->setDoubleValue( az_cal.calibrate(az_raw, temp_C) );
+
 	imu_timestamp_node->setDoubleValue( imu_timestamp );
-	imu_p_node->setDoubleValue( imu_sensors[0] * gyro_scale );
-	imu_q_node->setDoubleValue( imu_sensors[1] * gyro_scale );
-	imu_r_node->setDoubleValue( imu_sensors[2] * gyro_scale );
-	double ax = (imu_sensors[3]*accel_scale - ax_bias) * ax_scale;
-	double ay = (imu_sensors[4]*accel_scale - ay_bias) * ay_scale;
-	double az = (imu_sensors[5]*accel_scale - az_bias) * az_scale;
-	imu_ax_node->setDoubleValue( ax );
-	imu_ay_node->setDoubleValue( ay );
-	imu_az_node->setDoubleValue( az );
 	imu_temp_node->setDoubleValue( imu_sensors[6] * temp_scale );
     }
 
