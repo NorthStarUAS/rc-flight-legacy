@@ -111,6 +111,9 @@ static SGPropertyNode *imu_temp_node = NULL;
 static SGPropertyNode *imu_p_bias_node = NULL;
 static SGPropertyNode *imu_q_bias_node = NULL;
 static SGPropertyNode *imu_r_bias_node = NULL;
+static SGPropertyNode *imu_ax_bias_node = NULL;
+static SGPropertyNode *imu_ay_bias_node = NULL;
+static SGPropertyNode *imu_az_bias_node = NULL;
 
 // gps property nodes
 static SGPropertyNode *gps_timestamp_node = NULL;
@@ -543,6 +546,9 @@ static void bind_imu_output( string rootname ) {
     imu_p_bias_node = outputroot->getChild("p-bias", 0, true);
     imu_q_bias_node = outputroot->getChild("q-bias", 0, true);
     imu_r_bias_node = outputroot->getChild("r-bias", 0, true);
+    imu_ax_bias_node = outputroot->getChild("ax-bias", 0, true);
+    imu_ay_bias_node = outputroot->getChild("ay-bias", 0, true);
+    imu_az_bias_node = outputroot->getChild("az-bias", 0, true);
 
     imu_inited = true;
 }
@@ -807,17 +813,10 @@ bool APM2_imu_init( string rootname, SGPropertyNode *config ) {
 	ay_cal.init( cal->getChild("ay"), min_temp, max_temp );
 	az_cal.init( cal->getChild("az"), min_temp, max_temp );
 
-	float temp = min_temp - 5;
-	while ( temp <= max_temp + 5 ) {
-	    printf("%.1f: 0.000 -> %.3f\n",
-		   temp, p_cal.calibrate(0.000, temp));
-	    temp += 0.1;
-	}
+	// save the imu calibration parameters with the data file so that
+	// later the original raw sensor values can be derived.
+	log_imu_calibration( cal );
     }
-    
-    // save the imu calibration parameters with the data file so that
-    // later the original raw sensor values can be derived.
-    log_imu_calibration( config );
     
     return true;
 }
@@ -1571,6 +1570,8 @@ bool APM2_update() {
 
 
 bool APM2_imu_update() {
+    static double last_imu_timestamp = -1000.0;
+    
     APM2_update();
 
     if ( imu_inited ) {
@@ -1585,7 +1586,17 @@ bool APM2_imu_update() {
 	double ay_raw = imu_sensors[4] * accel_scale;
 	double az_raw = imu_sensors[5] * accel_scale;
 	double temp_C = imu_sensors[6] * temp_scale;
-	
+
+	if ( imu_timestamp > last_imu_timestamp + 5.0 ) {
+	    imu_p_bias_node->setFloatValue( p_cal.eval_bias( temp_C ) );
+	    imu_q_bias_node->setFloatValue( q_cal.eval_bias( temp_C ) );
+	    imu_r_bias_node->setFloatValue( r_cal.eval_bias( temp_C ) );
+	    imu_ax_bias_node->setFloatValue( ax_cal.eval_bias( temp_C ) );
+	    imu_ay_bias_node->setFloatValue( ay_cal.eval_bias( temp_C ) );
+	    imu_az_bias_node->setFloatValue( az_cal.eval_bias( temp_C ) );
+	    last_imu_timestamp = imu_timestamp;
+	}
+
 	imu_p_node->setDoubleValue( p_cal.calibrate(p_raw, temp_C) );
 	imu_q_node->setDoubleValue( q_cal.calibrate(q_raw, temp_C) );
 	imu_r_node->setDoubleValue( r_cal.calibrate(r_raw, temp_C) );
