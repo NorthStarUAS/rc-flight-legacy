@@ -7,10 +7,8 @@
 #include <sys/time.h>
 #include <zlib.h>
 
-#include "filters/mnav/ahrs.h"	// FIXME: need to remove
-#include "filters/mnav/nav.h"	// FIXME: need to remove
 #include "props/props.hxx"
-#include "sensors/gps_mgr.hxx"
+#include "props/props_io.hxx"
 #include "util/timing.h"
 
 #include "checksum.h"
@@ -24,6 +22,7 @@ static FILE *fevent = NULL;
 
 bool log_to_file = false;  // log to file is enabled/disabled
 SGPath log_path;	   // base log path
+static SGPath flight_dir;  // dir containing all our logged data
 bool event_log_on = false; // events log written to events.txt
 
 // scan the base path for fltNNNN directories.  Return the biggest
@@ -65,24 +64,26 @@ bool logging_init() {
 
     // make the new logging directory
     char new_dir[256];
-    snprintf( new_dir, 256, "%s/flt%05d", log_path.c_str(), max+1 );
-    printf("Creating log dir: %s\n", new_dir);
-    int result = mkdir( new_dir, 00777 );
+    snprintf( new_dir, 256, "flt%05d", max+1 );
+    flight_dir = log_path;
+    flight_dir.append(new_dir);
+    printf("Creating log dir: %s\n", flight_dir.c_str());
+    int result = mkdir( flight_dir.c_str(), 00777 );
     if ( result != 0 ) {
-        printf("Error: creating %s\n", new_dir);
+        printf("Error: creating %s\n", flight_dir.c_str());
     }
 
     // open the logging files
 
     SGPath file;
 
-    file = new_dir; file.append( "flight.dat.gz" );
+    file = flight_dir; file.append( "flight.dat.gz" );
     if ( (fdata = gzopen( file.c_str(), "wb" )) == NULL ) {
         printf("Cannot open %s\n", file.c_str());
         return false;
     }
 
-    file = new_dir; file.append( "events.dat" );
+    file = flight_dir; file.append( "events.dat" );
     if ( (fevent = fopen( file.c_str(), "w" )) == NULL ) {
 	printf("Cannot open %s\n", file.c_str());
 	return false;
@@ -302,6 +303,17 @@ bool event_log( const char *hdr, const char *msg ) {
 
     fprintf( fevent, "%.3f %s %s\n", get_Time(), hdr, msg );
     fflush( fevent );
+
+    return true;
+}
+
+
+// write out the imu calibration parameters associated with this data
+// (this allows us to later rederive the original raw sensor values.)
+bool log_imu_calibration( SGPropertyNode *config ) {
+    SGPath file = flight_dir; file.append( "imucal.xml" );
+
+    writeProperties( file.str(), config, true );
 
     return true;
 }

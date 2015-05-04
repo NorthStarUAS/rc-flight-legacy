@@ -5,6 +5,7 @@
 
 #include "include/globaldefs.h"
 
+#include "props/props.hxx"
 #include "util/sg_path.hxx"
 
 // global variables
@@ -32,8 +33,7 @@ void flush_data();
 
 bool event_log( const char *hdr, const char *msg );
 
-bool logging_navstate_init();
-void logging_navstate();
-void logging_navstate_close();
+bool log_imu_calibration( SGPropertyNode *config );
+
 
 #endif // _UGEAR_LOGGING_H
