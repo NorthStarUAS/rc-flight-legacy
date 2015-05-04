@@ -16,6 +16,9 @@
 // set parameters to default zero bias and 1.0 scaling factor
 void UGCalibrate::defaults()
 {
+    _min_temp = 27.0;
+    _max_temp = 27.0;
+    
     bias[0] = 0.0;
     bias[1] = 0.0;
     bias[2] = 0.0;
@@ -38,9 +41,12 @@ UGCalibrate::~UGCalibrate()
 
 
 // load parameters from specified property subtree
-void UGCalibrate::init( SGPropertyNode *config )
+void UGCalibrate::init( SGPropertyNode *config, float min_temp, float max_temp )
 {
     defaults();
+
+    _min_temp = min_temp;
+    _max_temp = max_temp;
     
     SGPropertyNode *node = NULL;
     
