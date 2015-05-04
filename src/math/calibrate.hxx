@@ -46,16 +46,18 @@ public:
     void init( SGPropertyNode *config, float min_temp, float max_temp );
 
     inline float eval_bias( float temp )  {
+	if ( temp < _min_temp ) { temp = _min_temp; }
+	if ( temp > _max_temp ) { temp = _max_temp; }
 	return bias[0]*temp*temp + bias[1]*temp + bias[2];
     }
 
     inline float eval_scale( float temp )  {
+	if ( temp < _min_temp ) { temp = _min_temp; }
+	if ( temp > _max_temp ) { temp = _max_temp; }
 	return scale[0]*temp*temp + scale[1]*temp + scale[2];
     }
     
     inline float calibrate( float x, float temp ) {
-	if ( temp < _min_temp ) { temp = _min_temp; }
-	if ( temp > _max_temp ) { temp = _max_temp; }
 	float b = eval_bias( temp );
 	float s = eval_scale( temp );
 	// printf("sensor @ %.1f: %.3f -> %.3f\n", temp, x, (x - bias) * scale);
