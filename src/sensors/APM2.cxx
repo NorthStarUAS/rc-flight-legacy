@@ -815,7 +815,9 @@ bool APM2_imu_init( string rootname, SGPropertyNode *config ) {
 
 	// save the imu calibration parameters with the data file so that
 	// later the original raw sensor values can be derived.
-	log_imu_calibration( cal );
+	if ( log_to_file ) {
+	    log_imu_calibration( cal );
+	}
     }
     
     return true;
@@ -1400,8 +1402,8 @@ static bool APM2_send_config() {
 		}
 	    } else if ( section_name == "pilot-tune" ) {
 		SGPropertyNode *enable_node = section_node->getChild("enable");
-
 		mode_id = SAS_CH7_TUNE;
+		mode = "ch7-tune";
 		if ( enable_node != NULL ) {
 		    enable = enable_node->getBoolValue();
 		}
