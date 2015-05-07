@@ -1,7 +1,6 @@
 noinst_LIBRARIES = libmath.a
 
 libmath_a_SOURCES = \
-        calibrate.hxx calibrate.cxx \
 	SGGeoc.hxx \
 	SGGeodesy.cxx SGGeodesy.hxx \
 	SGGeod.hxx \

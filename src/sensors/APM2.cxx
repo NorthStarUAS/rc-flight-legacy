@@ -15,8 +15,8 @@
 #include "comms/display.h"
 #include "comms/logging.h"
 #include "main/globals.hxx"
-#include "math/calibrate.hxx"
 #include "props/props.hxx"
+#include "sensors/calibrate.hxx"
 #include "util/timing.h"
 
 #include "APM2.hxx"
@@ -1575,17 +1575,17 @@ bool APM2_imu_update() {
     APM2_update();
 
     if ( imu_inited ) {
-	const float gyro_scale = 0.0174532 / 16.4;
-	const float accel_scale = 9.81 / 4096.0;
-	const float temp_scale = 0.02;
+	const double gyro_scale = 0.0174532 / 16.4;
+	const double accel_scale = 9.81 / 4096.0;
+	const double temp_scale = 0.02;
 
-	double p_raw = imu_sensors[0] * gyro_scale;
-	double q_raw = imu_sensors[1] * gyro_scale;
-	double r_raw = imu_sensors[2] * gyro_scale;
-	double ax_raw = imu_sensors[3] * accel_scale;
-	double ay_raw = imu_sensors[4] * accel_scale;
-	double az_raw = imu_sensors[5] * accel_scale;
-	double temp_C = imu_sensors[6] * temp_scale;
+	double p_raw = (double)imu_sensors[0] * gyro_scale;
+	double q_raw = (double)imu_sensors[1] * gyro_scale;
+	double r_raw = (double)imu_sensors[2] * gyro_scale;
+	double ax_raw = (double)imu_sensors[3] * accel_scale;
+	double ay_raw = (double)imu_sensors[4] * accel_scale;
+	double az_raw = (double)imu_sensors[5] * accel_scale;
+	double temp_C = (double)imu_sensors[6] * temp_scale;
 
 	if ( imu_timestamp > last_imu_timestamp + 5.0 ) {
 	    imu_p_bias_node->setFloatValue( p_cal.eval_bias( temp_C ) );
