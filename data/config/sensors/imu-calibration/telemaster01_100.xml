@@ -1,0 +1,30 @@
+<PropertyList>
+  <calibration>
+    <min-temp-C>23.9</min-temp-C>
+    <max-temp-C>30.1</max-temp-C>
+    <p>
+      <bias>0.00006423 -0.00455176 0.12463765</bias>
+      <scale>0.0 0.0 1.0</scale>
+    </p>
+    <q>
+      <bias>0.00000218 -0.00033037 0.02536234</bias>
+      <scale>0.0 0.0 1.0</scale>
+    </q>
+    <r>
+      <bias>-0.00003836 0.00201130 -0.02027006</bias>
+      <scale>0.0 0.0 1.0</scale>
+    </r>
+    <ax>
+      <bias>0.00194491 -0.10401788 1.22807999</bias>
+      <scale>0.0 0.0 1.0</scale>
+    </ax>
+    <ay>
+      <bias>0.00546314 -0.30630167 3.86812605</bias>
+      <scale>0.0 0.0 1.0</scale>
+    </ay>
+    <az>
+      <bias>0.00215265 -0.11316398 2.66161124</bias>
+      <scale>0.0 0.0 1.0</scale>
+    </az>
+  </calibration>
+</PropertyList>
