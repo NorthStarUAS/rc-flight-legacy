@@ -1,0 +1,30 @@
+<PropertyList>
+  <calibration>
+    <min-temp-C>23.9</min-temp-C>
+    <max-temp-C>30.1</max-temp-C>
+    <p>
+      <bias>0.0 0.0 0.0</bias>
+      <scale>0.0 0.0 1.0</scale>
+    </p>
+    <q>
+      <bias>0.0 0.0 0.0</bias>
+      <scale>0.0 0.0 1.0</scale>
+    </q>
+    <r>
+      <bias>0.0 0.0 0.0</bias>
+      <scale>0.0 0.0 1.0</scale>
+    </r>
+    <ax>
+      <bias>0.0 0.0 0.0</bias>
+      <scale>0.0 0.0 1.0</scale>
+    </ax>
+    <ay>
+      <bias>0.0 0.0 0.0</bias>
+      <scale>0.0 0.0 1.0</scale>
+    </ay>
+    <az>
+      <bias>0.0 0.0 0.0</bias>
+      <scale>0.0 0.0 1.0</scale>
+    </az>
+  </calibration>
+</PropertyList>
