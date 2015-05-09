@@ -76,9 +76,6 @@
     <!-- Primary mission selection and configuration. -->
     <mission include="missions/launch-res3.xml" />
 
-    <!-- command augmentation system -->
-    <!-- <cas include="cas.xml" /> -->
-
     <!-- Actuator selection and configuration. -->
     <actuators>
       <!-- set value to true to enable flying wing elevon mixing -->
