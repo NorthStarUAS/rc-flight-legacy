@@ -49,11 +49,11 @@
     <task>
       <name>launch</name>
       <speed-kt>20</speed-kt>
-      <completion-alt-ft>200</completion-alt-ft>
+      <completion-alt-ft>150</completion-alt-ft>
       <roll-gain>0.5</roll-gain>
       <roll-limit>10.0</roll-limit>
       <rudder-enable>true</rudder-enable>
-      <rudder-gain>-0.04</rudder-gain>
+      <rudder-gain>-0.03</rudder-gain>
       <rudder-max>0.5</rudder-max>
     </task>
 
@@ -89,6 +89,7 @@
       <config>/mission/circle</config>
       <radius-m>100</radius-m>
     </task>
+    
     <task>
       <name>land</name>
       <lateral-offset-m>0.0</lateral-offset-m>
