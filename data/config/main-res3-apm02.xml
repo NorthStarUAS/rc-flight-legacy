@@ -20,7 +20,6 @@
     <!-- Sensor selection and configuration. -->
     <sensors include="sensors/group-APM2.xml">
       <APM2 n="0">
-        <pwm-hz n="0">200</pwm-hz>
 	<battery-cells n="0">4</battery-cells>
         <pitot-calibrate-factor n="0">1.15</pitot-calibrate-factor>
       </APM2>
