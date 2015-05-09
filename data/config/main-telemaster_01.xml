@@ -76,7 +76,7 @@
     </fcs>
 
     <!-- Primary mission selection and configuration. -->
-    <mission include="missions/launch-tele.xml" />
+    <mission include="missions/launch-telemaster.xml" />
 
     <!-- Actuator selection and configuration. -->
     <actuators>
