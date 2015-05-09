@@ -83,12 +83,7 @@
 
     <!-- Actuator selection and configuration. -->
     <actuators>
-      <!-- set value to true to enable flying wing elevon mixing -->
-      <elevon-mixing type="bool">false</elevon-mixing>
-
-      <!-- <actuator include="actuators/fgfs24.xml" /> -->
-      <!-- <actuator include="actuators/ardupilot.xml" /> -->
-      <actuator include="actuators/APM2.xml" />
+      <actuator include="actuators/APM2-telemaster01.xml" />
     </actuators>
 
   </config>
