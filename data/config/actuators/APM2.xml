@@ -36,7 +36,7 @@
     <axis>
       <mode>roll</mode>
       <enable type="bool">true</enable>
-      <gain>0.3</gain>
+      <gain>0.15</gain>
     </axis>
     <axis>
       <mode>pitch</mode>
