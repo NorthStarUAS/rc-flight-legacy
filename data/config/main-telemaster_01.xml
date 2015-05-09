@@ -78,9 +78,6 @@
     <!-- Primary mission selection and configuration. -->
     <mission include="missions/launch-tele.xml" />
 
-    <!-- command augmentation system -->
-    <!-- <cas include="cas.xml" /> -->
-
     <!-- Actuator selection and configuration. -->
     <actuators>
       <actuator include="actuators/APM2-telemaster01.xml" />
