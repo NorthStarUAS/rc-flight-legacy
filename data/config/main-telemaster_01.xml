@@ -36,12 +36,7 @@
       </APM2>
       <imu-group n="0">
         <imu n="0">
-          <ax-bias n="0"> 0.060</ax-bias>
-          <ay-bias n="0">-0.320</ay-bias>
-          <az-bias n="0"> 0.725</az-bias>
-          <ax-scale n="0">1.000</ax-scale>
-          <ay-scale n="0">0.993</ay-scale>
-          <az-scale n="0">0.982</az-scale>
+	  <calibration n="0" include="sensors/imu-calibration/telemaster01_100.xml" />
         </imu>
       </imu-group>
     </sensors>
@@ -61,9 +56,6 @@
       <gps-timeout-sec>15.0</gps-timeout-sec>
 
       <filter include="filters/umngnss-quat.xml" />
-      <!-- <filter include="filters/mnav.xml" /> -->
-      <!-- <filter incldue="filters/curt.xml" /> -->
-
     </filters>
 
     <pointing include="pointing.xml" />

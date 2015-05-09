@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<!-- Master uGear config file -->
+<!-- Master config file -->
 
 <PropertyList>
 
@@ -21,8 +21,14 @@
     <sensors include="sensors/group-APM2.xml">
       <APM2 n="0">
         <device n="0">/dev/ttyACM0</device>
-        <setup-serial-number n="0">100</setup-serial-number>
+        <!-- uncomment, just for one run to force setting the device s/n -->
+        <!-- <setup-serial-number n="0">101</setup-serial-number> -->
       </APM2>
+      <imu-group n="0">
+	<imu n="0">
+	  <calibration n="0" include="sensors/imu-calibration/telemaster01_100.xml" />
+	</imu>
+      </imu-group>
     </sensors>
     <!-- <sensors include="sensors/group-fgfs24.xml" /> -->
 
@@ -40,10 +46,6 @@
       <gps-timeout-sec>15.0</gps-timeout-sec>
 
       <filter include="filters/umngnss-quat.xml" />
-      <!-- <filter include="filters/umngnss-euler.xml" /> -->
-      <!-- <filter include="filters/mnav.xml" /> -->
-      <!-- <filter incldue="filters/curt.xml" /> -->
-
     </filters>
 
     <pointing include="pointing.xml" />
@@ -58,7 +60,7 @@
 
       <!-- select the autopilot configuration -->
       <!-- <autopilot include="autopilots/Resolution3.xml" /> -->
-      <autopilot include="autopilots/SeniorTelemaster-pitchrate-speed.xml" />
+      <autopilot include="autopilots/SeniorTelemaster-ele2-speed.xml" />
       <!-- <autopilot include="autopilots/Malolo2-alt-thr.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-combined.xml" /> -->
       <!-- <autopilot include="autopilots/Rascal110-wingleveler.xml" /> -->
