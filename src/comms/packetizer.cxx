@@ -229,34 +229,44 @@ int UGPacketizer::packetize_imu( uint8_t *buf ) {
     uint8_t *startbuf = buf;
 
     double time = imu_timestamp_node->getDoubleValue();
-    *(double *)buf = time; buf += 8;
+    // *(double *)buf = time; buf += 8;
+    memcpy( buf, &time, 8 ); buf += 8;
 
     float p = imu_p_node->getFloatValue();
-    *(float *)buf = p; buf += 4;
+    // *(float *)buf = p; buf += 4;
+    memcpy( buf, &p, 4 ); buf += 4;
 
     float q = imu_q_node->getFloatValue();
-    *(float *)buf = q; buf += 4;
+    // *(float *)buf = q; buf += 4;
+    memcpy( buf, &q, 4 ); buf += 4;
 
     float r = imu_r_node->getFloatValue();
-    *(float *)buf = r; buf += 4;
+    // *(float *)buf = r; buf += 4;
+    memcpy( buf, &r, 4 ); buf += 4;
 
     float ax = imu_ax_node->getFloatValue();
-    *(float *)buf = ax; buf += 4;
+    // *(float *)buf = ax; buf += 4;
+    memcpy( buf, &ax, 4 ); buf += 4;
 
     float ay = imu_ay_node->getFloatValue();
-    *(float *)buf = ay; buf += 4;
+    // *(float *)buf = ay; buf += 4;
+    memcpy( buf, &ay, 4 ); buf += 4;
 
     float az = imu_az_node->getFloatValue();
-    *(float *)buf = az; buf += 4;
+    // *(float *)buf = az; buf += 4;
+    memcpy( buf, &az, 4 ); buf += 4;
 
     float hx = imu_hx_node->getFloatValue();
-    *(float *)buf = hx; buf += 4;
+    // *(float *)buf = hx; buf += 4;
+    memcpy( buf, &hx, 4 ); buf += 4;
 
     float hy = imu_hy_node->getFloatValue();
-    *(float *)buf = hy; buf += 4;
+    // *(float *)buf = hy; buf += 4;
+    memcpy( buf, &hy, 4 ); buf += 4;
 
     float hz = imu_hz_node->getFloatValue();
-    *(float *)buf = hz; buf += 4;
+    // *(float *)buf = hz; buf += 4;
+    memcpy( buf, &hz, 4 ); buf += 4;
 
     int16_t temp = (int16_t)(imu_temp_node->getFloatValue() * 10);
     *(int16_t *)buf = temp; buf += 2;
@@ -291,8 +301,9 @@ int UGPacketizer::packetize_airdata( uint8_t *buf ) {
     uint8_t *startbuf = buf;
 
     double time = airdata_timestamp_node->getDoubleValue();
-    *(double *)buf = time; buf += 8;
-
+    // *(double *)buf = time; buf += 8;
+    memcpy( buf, &time, 8 ); buf += 8;
+    
     uint16_t mbar = (uint16_t)(airdata_pressure_node->getFloatValue() * 10);
     *(uint16_t *)buf = mbar; buf += 2;
 
@@ -356,16 +367,20 @@ int UGPacketizer::packetize_filter( uint8_t *buf ) {
     uint8_t *startbuf = buf;
 
     double time = filter_timestamp_node->getDoubleValue();
-    *(double *)buf = time; buf += 8;
+    // *(double *)buf = time; buf += 8;
+    memcpy( buf, &time, 8 ); buf += 8;
 
     double lat = filter_lat_node->getDoubleValue();
-    *(double *)buf = lat; buf += 8;
+    // *(double *)buf = lat; buf += 8;
+    memcpy( buf, &lat, 8 ); buf += 8;
 
     double lon = filter_lon_node->getDoubleValue();
-    *(double *)buf = lon; buf += 8;
+    // *(double *)buf = lon; buf += 8;
+    memcpy( buf, &lon, 8 ); buf += 8;
 
     float alt = filter_alt_node->getFloatValue();
-    *(float *)buf = alt; buf += 4;
+    // *(float *)buf = alt; buf += 4;
+    memcpy( buf, &alt, 4 ); buf += 4;
 
     /* +/- 327.67 mps (732.9 mph), resolution of 0.01 mps */
     int16_t vn = (int16_t)(filter_vn_node->getDoubleValue() * 100);
@@ -423,7 +438,8 @@ int UGPacketizer::packetize_actuator( uint8_t *buf ) {
     uint8_t *startbuf = buf;
 
     double time = act_timestamp_node->getDoubleValue();
-    *(double *)buf = time; buf += 8;
+    // *(double *)buf = time; buf += 8;
+    memcpy( buf, &time, 8 ); buf += 8;
 
     int16_t ail = (int16_t)(act_aileron_node->getDoubleValue() * 30000);
     *(int16_t *)buf = ail; buf += 2;
@@ -480,7 +496,8 @@ int UGPacketizer::packetize_pilot( uint8_t *buf ) {
     uint8_t *startbuf = buf;
 
     double time = pilot_timestamp_node->getDoubleValue();
-    *(double *)buf = time; buf += 8;
+    // *(double *)buf = time; buf += 8;
+    memcpy( buf, &time, 8 ); buf += 8;
 
     int16_t ail = (int16_t)(pilot_aileron_node->getDoubleValue() * 30000);
     *(int16_t *)buf = ail; buf += 2;
@@ -539,7 +556,8 @@ int UGPacketizer::packetize_ap( uint8_t *buf, uint8_t route_size,
     uint8_t *startbuf = buf;
 
     double time = get_Time();
-    *(double *)buf = time; buf += 8;
+    // *(double *)buf = time; buf += 8;
+    memcpy( buf, &time, 8 ); buf += 8;
 
     int16_t hdg = (int16_t)(ap_hdg->getFloatValue() * 10.0);
     *(int16_t *)buf = hdg; buf += 2;
@@ -574,8 +592,12 @@ int UGPacketizer::packetize_ap( uint8_t *buf, uint8_t route_size,
     uint16_t waypoint = (uint16_t)target_wpt_index;
     *(uint16_t *)buf = waypoint; buf += 2;
 
-    *(double *)buf = wp->get_target_lon(); buf += 8;
-    *(double *)buf = wp->get_target_lat(); buf += 8;
+    // *(double *)buf = wp->get_target_lon(); buf += 8;
+    double tlon = wp->get_target_lon();
+    memcpy( buf, &tlon, 8 ); buf += 8;
+    // *(double *)buf = wp->get_target_lat(); buf += 8;
+    double tlat = wp->get_target_lat();
+    memcpy( buf, &tlat, 8 ); buf += 8;
     *(uint16_t *)buf = index; buf += 2;
     *(uint16_t *)buf = route_size; buf += 2;
 
@@ -615,7 +637,8 @@ int UGPacketizer::packetize_health( uint8_t *buf )
     uint8_t *startbuf = buf;
 
     double time = get_Time();
-    *(double *)buf = time; buf += 8;
+    // *(double *)buf = time; buf += 8;
+    memcpy( buf, &time, 8 ); buf += 8;
 
     uint16_t loadavg = (uint16_t)(system_loadavg_node->getFloatValue() * 100.0);
     *(uint16_t *)buf = loadavg; buf += 2;
@@ -658,7 +681,8 @@ int UGPacketizer::packetize_payload( uint8_t *buf )
     uint8_t *startbuf = buf;
 
     double time = get_Time();
-    *(double *)buf = time; buf += 8;
+    // *(double *)buf = time; buf += 8;
+    memcpy( buf, &time, 8 ); buf += 8;
 
     uint16_t trigger_num = (uint16_t)(payload_trigger_num_node->getIntValue());
     *(uint16_t *)buf = trigger_num; buf += 2;
