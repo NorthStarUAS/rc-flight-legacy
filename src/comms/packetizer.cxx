@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // #include "control/route_mgr.hxx"
 #include "include/globaldefs.h"
@@ -168,16 +169,20 @@ int UGPacketizer::packetize_gps( uint8_t *buf ) {
     uint8_t *startbuf = buf;
 
     double time = gps_timestamp_node->getDoubleValue();
-    *(double *)buf = time; buf += 8;
+    // *(double *)buf = time; buf += 8;
+    memcpy( buf, &time, 8 ); buf += 8;
 
     double lat = gps_lat_node->getDoubleValue();
-    *(double *)buf = lat; buf += 8;
+    // *(double *)buf = lat; buf += 8;
+    memcpy( buf, &lat, 8 ); buf += 8;
 
     double lon = gps_lon_node->getDoubleValue();
-    *(double *)buf = lon; buf += 8;
+    // *(double *)buf = lon; buf += 8;
+    memcpy( buf, &lon, 8 ); buf += 8;
 
     float alt = gps_alt_node->getFloatValue();
-    *(float *)buf = alt; buf += 4;
+    // *(float *)buf = alt; buf += 4;
+    memcpy( buf, &alt, 4 ); buf += 4;
 
     /* +/- 327.67 mps (732.9 mph), resolution of 0.01 mps */
     int16_t vn = (int16_t)(gps_vn_node->getDoubleValue() * 100);
@@ -190,7 +195,8 @@ int UGPacketizer::packetize_gps( uint8_t *buf ) {
     *(int16_t *)buf = vd; buf += 2;
     
     double date = gps_unix_sec_node->getDoubleValue();
-    *(double *)buf = date; buf += 8;
+    // *(double *)buf = date; buf += 8;
+    memcpy( buf, &date, 8 ); buf += 8;
 
     uint8_t sats = gps_satellites_node->getIntValue();
     *buf = sats; buf++;
@@ -297,10 +303,12 @@ int UGPacketizer::packetize_airdata( uint8_t *buf ) {
     *(int16_t *)buf = airspeed; buf += 2;
 
     float alt = airdata_altitude_node->getFloatValue();
-    *(float *)buf = alt; buf += 4;
+    // *(float *)buf = alt; buf += 4;
+    memcpy( buf, &alt, 4 ); buf+= 4;
 
     float alt_true = airdata_altitude_true_node->getFloatValue();
-    *(float *)buf = alt_true; buf += 4;
+    // *(float *)buf = alt_true; buf += 4;
+    memcpy( buf, &alt_true, 4 ); buf+= 4;
 
     int16_t climb = (int16_t)((airdata_climb_fps_node->getFloatValue() * 60) * 10);
     *(int16_t *)buf = climb; buf += 2;
