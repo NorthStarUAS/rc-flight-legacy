@@ -1304,7 +1304,7 @@ static bool APM2_send_config() {
 	    {
 		APM2_read();
 		if ( get_Time() > start_time + timeout ) {
-		    printf("Timeout waiting for %s ACK\n", channel_node->getStringValue());
+		    printf("Timeout waiting for gain %d ACK\n", ch);
 		    return false;
 		}
 	    }
