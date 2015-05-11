@@ -1,4 +1,4 @@
-bin_PROGRAMS = uartserv
+noinst_PROGRAMS = uartserv
 
 uartserv_SOURCES = \
 	uartserv.cxx \

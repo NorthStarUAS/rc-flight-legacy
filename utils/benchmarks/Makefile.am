@@ -6,7 +6,7 @@
 whetstone =
 whetstone_MORELIBS = -lm
 
-bin_PROGRAMS = spiread whetstone i2c_mcp3427
+noinst_PROGRAMS = spiread whetstone i2c_mcp3427
 
 spiread_SOURCES = \
 	spiread.c
