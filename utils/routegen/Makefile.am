@@ -6,7 +6,7 @@
 # routegen_LDFLAGS =
 # routegen_MORELIBS =
 
-bin_PROGRAMS = routegen
+noinst_PROGRAMS = routegen
 
 routegen_SOURCES = routegen.cpp
 
