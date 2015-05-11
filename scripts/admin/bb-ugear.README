@@ -1,0 +1,9 @@
+# configure a beaglebone (systemd) system to automatically start the ugear
+# autopilot
+
+cp bb-ugear.service /lib/systemd/
+ln -s /lib/systemd/bb-ugear.service /etc/systemd/system/
+
+systemctl daemon-reload 
+systemctl start bb-ugear.service 
+systemctl enable bb-ugear.service
