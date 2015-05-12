@@ -271,7 +271,7 @@ static void update_pressure_helpers() {
     // compute rate of climb based on pressure altitude change
     float climb = (pressure_alt_filt - pressure_alt_filt_last) / dt;
     pressure_alt_filt_last = pressure_alt_filt;
-    climb_filt = 0.98 * climb_filt + 0.02 * climb;
+    climb_filt = 0.99 * climb_filt + 0.01 * climb;
 
     // determine ground reference altitude.  Average filter altitude
     // over first 30 seconds the filter becomes active.
