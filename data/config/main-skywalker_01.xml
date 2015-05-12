@@ -20,7 +20,7 @@
     </logging>
 
     <!-- Remote operator communication. -->
-    <remote-link include="comms/remote-link-xtend.xml" />
+    <remote-link include="comms/remote-link-3dr.xml" />
 
     <!-- socket based remote monitoring and control interface -->
     <telnet include="comms/telnet.xml" />
