@@ -404,7 +404,7 @@ flight_path = sys.argv[1]
 imu_file = flight_path + "/imu.txt"
 gps_file = flight_path + "/gps.txt"
 imu_bias_file = flight_path + "/imubias.txt"
-cal_file = flight_path + "/../imucal.txt"
+cal_file = flight_path + "/../imucal.xml"
 cal_file_per_flight = flight_path + "/imucal-local.txt"
 
 imu_data = []
