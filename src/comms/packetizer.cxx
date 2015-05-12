@@ -54,7 +54,8 @@ void UGPacketizer::bind_airdata_nodes() {
 
     // select one of the following airspeed sources
     // airdata_airspeed_node = fgGetNode("/sensors/airdata/airspeed-kt", true);
-    airdata_airspeed_node = fgGetNode("/velocity/airspeed-kt", true);
+    // airdata_airspeed_node = fgGetNode("/velocity/airspeed-kt", true);
+    airdata_airspeed_node = fgGetNode("/velocity/airspeed-smoothed-kt", true);
 
     // select one of the following climb rate sources
     // airdata_climb_fps_node
