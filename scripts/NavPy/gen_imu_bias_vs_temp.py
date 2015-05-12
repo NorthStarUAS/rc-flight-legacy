@@ -3,6 +3,7 @@
 import os.path
 import sys
 import fileinput
+import re
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,13 +17,30 @@ plt.close()
 
 def usage():
     print "Usage: " + sys.argv[0] + " <flight_dir>"
-
-if len(sys.argv) != 2:
-    usage()
     sys.exit()
 
-flight_path = sys.argv[1]
+back_correct = True
+flight_path = None
 
+for i, arg in enumerate(sys.argv):
+    if i == 0:
+        # skip program name
+        continue
+    elif arg == "-h" or arg == "--help":
+        usage()
+    elif arg == "--no-back-correct":
+        back_correct = False
+    elif re.search("^--", arg):
+        print "unknown option: ", arg
+        usage()
+    else:
+        flight_path = arg
+
+if flight_path == None:
+    print "no flight_dir provided"
+    usage()
+
+    
 # load imu/gps data files
 imu_file = flight_path + "/imu.txt"
 imucal_file = flight_path + "/imucal.xml"
@@ -72,9 +90,11 @@ if len(gps_data) == 0:
 
 
 # Back Correct the Calibration to get raw values
-cal = imucal.Calibration(imucal_file)
-imu_corrected = cal.back_correct(imu_data)
-#imu_corrected = imu_data
+if back_correct:
+    cal = imucal.Calibration(imucal_file)
+    imu_corrected = cal.back_correct(imu_data)
+else:
+    imu_corrected = imu_data
 
 # =========================== Results ===============================
 drl = len(imu_data)
@@ -178,20 +198,25 @@ nsig = 3
 istart = idx_init[0]
 istop = drl
 
-# write output imu vs temp bias file
-min_vel = 5 # mps
-f = open(imu_bias_file, 'w')
-i = istart
-while i < istop:
-    vn = estVEL[i,0]
-    ve = estVEL[i,1]
-    vel = np.sqrt(vn*vn + ve*ve)
-    if vel >= min_vel:
-        f.write( "%.3f %.1f %.4f %.4f %.4f %.4f %.4f %.4f\n" %
-                 (plot_time[i], estGB[i,3], estGB[i,0], estGB[i,1], estGB[i,2],
-                  estAB[i,0], estAB[i,1], estAB[i,2]) )
-    i += 1
-f.close()
+if back_correct:
+    # write output imu vs temp bias file (discard data points associated
+    # with lower than flying speed because this is an indication aircraft
+    # is probably still on the ground and hasn't had a chance for the bias
+    # estimates to converge)
+    min_vel = 5 # mps
+    f = open(imu_bias_file, 'w')
+    i = istart
+    while i < istop:
+        vn = estVEL[i,0]
+        ve = estVEL[i,1]
+        vel = np.sqrt(vn*vn + ve*ve)
+        if vel >= min_vel:
+            f.write( "%.3f %.1f %.4f %.4f %.4f %.4f %.4f %.4f\n" %
+                     (plot_time[i], estGB[i,3],
+                      estGB[i,0], estGB[i,1], estGB[i,2],
+                      estAB[i,0], estAB[i,1], estAB[i,2]) )
+        i += 1
+    f.close()
 
 # ============================= INS PLOTS ======================================
 
