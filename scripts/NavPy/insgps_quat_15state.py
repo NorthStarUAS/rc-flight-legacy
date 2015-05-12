@@ -130,7 +130,7 @@ class Filter():
         #Pab[i,:] = np.diag(self.P[9:12,9:12])
         #Pgb[i,:] = np.diag(self.P[12:15,12:15])
 
-    def update(self, imu, gps):
+    def update(self, imu, gps, verbose=True):
         # Check for validity of GNSS at this time
         self.tcpu = imu.time
         self.tow = gps.tow
@@ -146,7 +146,8 @@ class Filter():
             if abs((self.tcpu-self.last_tcpu) - (self.tow-self.last_tow)) > 0.5:
                 self.TU_COUNT = 0
                 self.NAV_INIT = False
-                print("Time Sync Error -- Request reinitialization")
+                if verbose:
+                    print("Time Sync Error -- Request reinitialization")
             # Record the tow and tcpu at this new update
             self.last_tow = self.tow
             self.last_tcpu = self.tcpu
@@ -187,7 +188,8 @@ class Filter():
                 if self.TU_COUNT >= 35:
                     self.TU_COUNT = 0
                     self.IMU_CAL_INIT = True
-                    print("t = %7.3f, IMU Calibrated!" % (imu.time))
+                    if verbose:
+                        print("t = %7.3f, IMU Calibrated!" % (imu.time))
                     del(self.phi)
                     del(self.theta)
             else:
@@ -217,7 +219,8 @@ class Filter():
 
                     #idx_init.append(i)
                     self.NAV_INIT = True
-                    print("t = %7.3f, Filter (Re-)initialized" % (imu.time) )
+                    if verbose:
+                        print("t = %7.3f, Filter (Re-)initialized" % (imu.time) )
 
         elif self.NAV_INIT:
             # SUBROUTINE 2: MAIN FILTER ALGORITHM, INS + GNSS
@@ -378,8 +381,9 @@ class Filter():
                 self.estAB[:] += dx[9:12]
                 self.estGB[:] += dx[12:15]
 
-                print("t = %7.3f, GNSS Update, self.TU_COUNT = %d" %\
-                        (gps.time, self.TU_COUNT) )
+                if verbose:
+                    print("t = %7.3f, GNSS Update, self.TU_COUNT = %d" %\
+                          (gps.time, self.TU_COUNT) )
 
                 self.TU_COUNT = 0
 
