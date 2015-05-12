@@ -36,7 +36,7 @@
       </APM2>
       <imu-group n="0">
         <imu n="0">
-	  <calibration n="0" include="sensors/imu-calibration/default.xml" />
+	  <calibration n="0" include="sensors/imu-calibration/skywalker01_101.xml" />
         </imu>
       </imu-group>
     </sensors>
