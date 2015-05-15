@@ -79,7 +79,7 @@
 
     <!-- Actuator selection and configuration. -->
     <actuators>
-      <actuator include="actuators/APM2-telemaster01.xml" />
+      <actuator include="actuators/APM2-telemaster_01.xml" />
     </actuators>
 
   </config>
