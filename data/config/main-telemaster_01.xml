@@ -35,7 +35,7 @@
       </APM2>
       <imu-group n="0">
         <imu n="0">
-	  <calibration n="0" include="sensors/imu-calibration/telemaster01_100.xml" />
+	  <calibration n="0" include="sensors/imu-calibration/telemaster_01_100.xml" />
         </imu>
       </imu-group>
     </sensors>
