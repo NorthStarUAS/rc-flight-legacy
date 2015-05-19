@@ -12,7 +12,7 @@
 
     <task>
       <name>lost-link</name>
-      <timeout-sec>60</timeout-sec>
+      <timeout-sec>90</timeout-sec>
       <action-nickname>circle-home</action-nickname>
     </task>
 
@@ -60,7 +60,7 @@
     <task>
       <name>route</name>
       <route include="../routes/bowtie-300m.xml" />
-      <altitude-agl-ft>500</altitude-agl-ft>
+      <altitude-agl-ft>400</altitude-agl-ft>
       <speed-kt>25</speed-kt>
     </task>
   </sequential-tasks>
@@ -79,8 +79,8 @@
       <nickname>circle-home</nickname>
       <config>/mission/home</config>
       <radius-m>100</radius-m>
-      <altitude-agl-ft>500</altitude-agl-ft>
-      <speed-kt>25</speed-kt>
+      <altitude-agl-ft>400</altitude-agl-ft>
+      <speed-kt>23</speed-kt>
     </task>
 
     <task>
@@ -93,13 +93,13 @@
     <task>
       <name>land</name>
       <lateral-offset-m>0.0</lateral-offset-m>
-      <glideslope-deg>5.5</glideslope-deg>
+      <glideslope-deg>6.0</glideslope-deg>
       <turn-radius-m>75</turn-radius-m>
       <turn-steps>8</turn-steps>
       <direction>left</direction>
       <extend-final-leg-m>50</extend-final-leg-m>
       <alt-bias-ft>0</alt-bias-ft>
-      <approach-speed-kt>25</approach-speed-kt>
+      <approach-speed-kt>20</approach-speed-kt>
       <flare-pitch-deg>0</flare-pitch-deg>
       <flare-seconds>5</flare-seconds>
     </task>
