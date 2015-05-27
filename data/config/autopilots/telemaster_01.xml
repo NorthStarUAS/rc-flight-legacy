@@ -82,7 +82,7 @@
     <!-- 10/17/2013, Kp=0.020 Ti=10.0 too much hunting ... -->
     <!-- 10/17/2013, Kp=0.010 Ti=10.0 much less overshoot ... would like even less over shoot, but also less hunting ... -->
     <config>
-      <Kp>0.01</Kp>        <!-- proportional gain -->
+      <Kp>0.012</Kp>        <!-- proportional gain -->
       <beta>1.0</beta>     <!-- input value weighing factor -->
       <alpha>0.1</alpha>   <!-- low pass filter weighing factor -->
       <gamma>0.0</gamma>   <!-- input value weighing factor for -->
