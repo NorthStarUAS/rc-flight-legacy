@@ -12,7 +12,7 @@
 
     <task>
       <name>lost-link</name>
-      <timeout-sec>90</timeout-sec>
+      <timeout-sec>60</timeout-sec>
       <action-nickname>circle-home</action-nickname>
     </task>
 
