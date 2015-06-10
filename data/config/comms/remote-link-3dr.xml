@@ -4,7 +4,7 @@
 
   <enable type="bool">true</enable>
 
-  <write-bytes-per-frame>16</write-bytes-per-frame>
+  <write-bytes-per-frame>32</write-bytes-per-frame>
 
   <type>uart</type> <!-- uart or uart-server -->
   <device>/dev/ttyO2</device>
