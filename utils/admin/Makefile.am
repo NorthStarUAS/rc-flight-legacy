@@ -13,6 +13,6 @@ stopme_SOURCES = \
 	stopme.cxx
 
 stopme_LDADD = \
-	$(top_builddir)/src/util/libutil.a
+	../../src/util/libutil.a
 
 AM_CPPFLAGS = -I$(VPATH)/../../src
