@@ -381,9 +381,10 @@ void FGRouteMgr::update() {
 			active->increment_current();
 		    } else {
 			SGWayPoint wp = active->get_current();
-			mission_mgr.request_task_circle(wp.get_target_lon(),
+			// FIXME: NEED TO GO TO CIRCLE MODE HERE SOME HOW!!!
+			/*mission_mgr.request_task_circle(wp.get_target_lon(),
 							wp.get_target_lat(),
-							0.0, 0.0);
+							0.0, 0.0);*/
 		    }
 		}
 	    } else if ( completion_mode == EXTEND_LAST_LEG ) {
@@ -411,7 +412,8 @@ void FGRouteMgr::update() {
         // We are in ill-defined territory, should we do some sort of
         // circle of our home position?
 
-	mission_mgr.request_task_circle();
+	// FIXME: need to go to circle mode somehow here!!!!
+	/* mission_mgr.request_task_circle(); */
     }
 
     wp_dist_m->setFloatValue( direct_distance );
