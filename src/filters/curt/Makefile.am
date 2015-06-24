@@ -9,4 +9,4 @@ noinst_PROGRAMS = curtquat
 curtquat_SOURCES = \
 	curtquat.cpp
 
-INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
