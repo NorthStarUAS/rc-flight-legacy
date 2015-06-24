@@ -4,4 +4,4 @@ libactuators_a_SOURCES = \
 	act_fgfs.cxx act_fgfs.hxx \
 	act_mgr.cpp act_mgr.h
 
-INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
+AM_CPPFLAGS = -I$(VPATH)/.. -I..
