@@ -10,5 +10,4 @@ SUBDIRS = \
 	util \
 	sensors \
 	xml \
-	props \
-	main
+	props
