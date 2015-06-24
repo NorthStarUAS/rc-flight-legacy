@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-
-<PropertyList>
-
-  <enable type="bool">true</enable>
-  <port>6499</port>
-
-</PropertyList>
