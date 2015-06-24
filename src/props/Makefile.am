@@ -13,7 +13,7 @@ noinst_PROGRAMS = props_test
 props_test_SOURCES = props_test.cxx
 props_test_LDADD = \
 	libsgprops.a \
-	$(top_builddir)/src/xml/libsgxml.a \
-	$(top_builddir)/src/util/libutil.a
+	../xml/libsgxml.a \
+	../util/libutil.a
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
