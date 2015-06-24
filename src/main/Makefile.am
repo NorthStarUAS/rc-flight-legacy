@@ -14,7 +14,6 @@ bin_PROGRAMS = ugear
 
 ugear_SOURCES = \
 	globals.cxx globals.hxx \
-        imu_mgr.cxx imu_mgr.hxx \
 	ugear_mission.cpp
 
 ugear_LDADD = \

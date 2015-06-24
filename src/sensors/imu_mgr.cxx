@@ -9,8 +9,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "include/ugear_config.h"
-
 #include "comms/logging.h"
 #include "comms/remote_link.h"
 #include "comms/packetizer.hxx"
