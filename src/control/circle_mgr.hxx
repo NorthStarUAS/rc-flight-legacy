@@ -66,10 +66,10 @@ private:
 
 public:
 
-    AuraCircleMgr( SGPropertyNode *branch );
+    AuraCircleMgr();
     ~AuraCircleMgr();
 
-    bool init();	// code to run when task is created
+    bool init( SGPropertyNode *branch );	// code to run when task is created
     bool update();	// code to runs while task is active
 
     SGWayPoint get_center();	// return circle center

@@ -19,7 +19,7 @@
 
 #include "circle_mgr.hxx"
 
-AuraCircleMgr::AuraCircleMgr( SGPropertyNode *branch ) :
+AuraCircleMgr::AuraCircleMgr():
     config_path( "" ),
     _direction( "left" ),
     _radius_m( 100.0 ),
@@ -58,26 +58,6 @@ AuraCircleMgr::AuraCircleMgr( SGPropertyNode *branch ) :
     saved_direction( "" ),
     saved_radius_m( 0.0 )
 {
-    int i;
-    SGPropertyNode *node;
-    int count = branch->nChildren();
-    for ( i = 0; i < count; ++i ) {
-        node = branch->getChild(i);
-        string name = node->getName();
-	if ( name == "config" ) {
-	    config_path = node->getStringValue();
-	} else if ( name == "direction" ) {
-	    _direction = node->getStringValue();
-	} else if ( name == "radius-m" ) {
-	    _radius_m = node->getDoubleValue();
-	} else if ( name == "altitude-agl-ft" ) {
-	    _target_agl_ft = node->getDoubleValue();
-	} else if ( name == "speed-kt" ) {
-	    _target_speed_kt = node->getDoubleValue();
-        } else {
-            printf("Unknown circle task parameter: %s\n", name.c_str() );
-        }
-    }
 };
 
 
@@ -150,7 +130,28 @@ bool AuraCircleMgr::bind() {
 }
 
 
-bool AuraCircleMgr::init() {
+bool AuraCircleMgr::init( SGPropertyNode *branch ) {
+    int i;
+    SGPropertyNode *node;
+    int count = branch->nChildren();
+    for ( i = 0; i < count; ++i ) {
+        node = branch->getChild(i);
+        string name = node->getName();
+	if ( name == "config" ) {
+	    config_path = node->getStringValue();
+	} else if ( name == "direction" ) {
+	    _direction = node->getStringValue();
+	} else if ( name == "radius-m" ) {
+	    _radius_m = node->getDoubleValue();
+	} else if ( name == "altitude-agl-ft" ) {
+	    _target_agl_ft = node->getDoubleValue();
+	} else if ( name == "speed-kt" ) {
+	    _target_speed_kt = node->getDoubleValue();
+        } else {
+            printf("Unknown circle task parameter: %s\n", name.c_str() );
+        }
+    }
+
     bind();
 
     return true;
