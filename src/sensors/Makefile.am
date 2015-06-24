@@ -26,4 +26,4 @@ ublox_config_LDADD = \
 	$(top_builddir)/src/math/libmath.a \
 	$(top_builddir)/src/util/libutil.a
 
-INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
