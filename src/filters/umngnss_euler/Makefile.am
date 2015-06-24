@@ -12,4 +12,4 @@ libumngnss_euler_a_SOURCES = \
 	strapdown.h strapdown.c \
 	worldcoord.h worldcoord.c
 
-INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
