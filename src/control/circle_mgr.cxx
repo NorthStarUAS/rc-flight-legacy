@@ -19,7 +19,7 @@
 
 #include "circle_mgr.hxx"
 
-AuraCircleMgr::AuraCircleMgr():
+AuraCircleMgr::AuraCircleMgr() :
     config_path( "" ),
     _direction( "left" ),
     _radius_m( 100.0 ),
