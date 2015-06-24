@@ -29,7 +29,7 @@
 #include "comms/logging.h"
 #include "comms/remote_link.h"
 #include "include/globaldefs.h"
-#include "main/globals.hxx"
+#include "init/globals.hxx"
 //#include "mission/mission_mgr.hxx"
 #include "props/props_io.hxx"
 #include "sensors/gps_mgr.hxx"

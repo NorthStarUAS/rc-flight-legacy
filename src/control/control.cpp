@@ -31,7 +31,7 @@
 #include "comms/packetizer.hxx"
 #include "comms/remote_link.h"
 #include "include/globaldefs.h"
-#include "main/globals.hxx"
+#include "init/globals.hxx"
 //#include "mission/mission_mgr.hxx"
 //#include "mission/tasks/task_circle_coord.hxx"
 //#include "mission/tasks/task_home_mgr.hxx"

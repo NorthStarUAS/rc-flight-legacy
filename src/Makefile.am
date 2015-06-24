@@ -5,7 +5,7 @@ SUBDIRS = \
 	control \
 	health \
 	include \
-	main \
+	init \
 	math \
 	payload \
 	util \

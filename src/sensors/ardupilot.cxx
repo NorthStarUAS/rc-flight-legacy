@@ -11,7 +11,7 @@
 #include <string.h>		// memset(), strerror()
 
 #include "comms/display.h"
-#include "main/globals.hxx"
+#include "init/globals.hxx"
 #include "props/props.hxx"
 #include "util/timing.h"
 

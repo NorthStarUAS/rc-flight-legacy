@@ -8,7 +8,7 @@
 #include "comms/logging.h"
 #include "comms/packetizer.hxx"
 #include "comms/remote_link.h"
-#include "main/globals.hxx"
+#include "init/globals.hxx"
 #include "props/props.hxx"
 #include "util/timing.h"
 

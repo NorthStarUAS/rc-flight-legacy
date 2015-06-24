@@ -23,7 +23,7 @@
 #include "filters/umngnss_euler/umngnss_euler.h"
 #include "filters/umngnss_quat/umngnss_quat.h"
 #include "include/globaldefs.h"
-#include "main/globals.hxx"
+#include "init/globals.hxx"
 #include "props/props.hxx"
 #include "util/myprof.h"
 

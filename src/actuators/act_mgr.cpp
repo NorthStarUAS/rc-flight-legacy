@@ -15,7 +15,7 @@
 #include "comms/remote_link.h"
 #include "comms/logging.h"
 #include "include/globaldefs.h"
-#include "main/globals.hxx"
+#include "init/globals.hxx"
 #include "props/props.hxx"
 #include "util/myprof.h"
 #include "util/timing.h"

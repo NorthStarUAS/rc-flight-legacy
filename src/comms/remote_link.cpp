@@ -9,7 +9,7 @@
 #include "checksum.h"
 #include "include/globaldefs.h"
 
-#include "main/globals.hxx" 	// packetizer
+#include "init/globals.hxx" 	// packetizer
 //#include "mission/mission_mgr.hxx"
 //#include "mission/tasks/task_route.hxx"
 #include "props/props.hxx"

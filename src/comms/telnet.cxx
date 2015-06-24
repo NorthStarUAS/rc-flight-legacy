@@ -14,7 +14,7 @@
 #include <sstream>
 
 #include "control/control.h"
-#include "main/globals.hxx" 	// packetizer
+#include "init/globals.hxx" 	// packetizer
 #include "props/props.hxx"
 #include "props/props_io.hxx"
 #include "util/strutils.hxx"

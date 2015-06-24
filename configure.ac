@@ -8,7 +8,7 @@ dnl Require at least automake 2.52
 AC_PREREQ(2.52)
 
 dnl Sanity check of the distribution
-AC_CONFIG_SRCDIR([src/main/globals.hxx])
+AC_CONFIG_SRCDIR([src/init/globals.hxx])
 
 dnl Initialize the automake system (provide project name and version)
 AM_INIT_AUTOMAKE(ugear, 2.1)
@@ -68,7 +68,7 @@ AC_CONFIG_FILES([ \
         src/control/Makefile \
         src/health/Makefile \
         src/include/Makefile \
-        src/main/Makefile \
+        src/init/Makefile \
 	src/math/Makefile \
         src/payload/Makefile \
         src/props/Makefile \

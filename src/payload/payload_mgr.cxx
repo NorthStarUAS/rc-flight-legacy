@@ -13,7 +13,7 @@
 #include "comms/display.h"
 #include "comms/logging.h"
 #include "comms/remote_link.h"
-#include "main/globals.hxx"
+#include "init/globals.hxx"
 #include "props/props.hxx"
 
 #include "payload_mgr.hxx"

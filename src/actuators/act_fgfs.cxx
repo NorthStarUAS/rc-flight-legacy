@@ -9,7 +9,7 @@
 #include <string.h>
 
 #include "comms/netSocket.h"
-#include "main/globals.hxx"
+#include "init/globals.hxx"
 #include "props/props.hxx"
 #include "util/timing.h"
 

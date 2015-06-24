@@ -12,7 +12,7 @@
 
 #include "comms/display.h"
 #include "comms/logging.h"
-#include "main/globals.hxx"
+#include "init/globals.hxx"
 #include "props/props.hxx"
 #include "sensors/calibrate.hxx"
 #include "util/timing.h"
