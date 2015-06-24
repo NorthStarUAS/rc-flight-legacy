@@ -21,11 +21,11 @@ uglink_SOURCES = \
 #        -lplibnet -lplibul
 
 uglink_LDADD = \
-	$(top_builddir)/src/math/libmath.a \
-	$(top_builddir)/src/comms/libcomms.a \
-	$(top_builddir)/src/props/libsgprops.a \
-	$(top_builddir)/src/util/libutil.a \
-	$(top_builddir)/src/xml/libsgxml.a \
+	../src/math/libmath.a \
+	../src/comms/libcomms.a \
+	../src/props/libsgprops.a \
+	../src/util/libutil.a \
+	../src/xml/libsgxml.a \
 	-lcrypto -lz
 
 
