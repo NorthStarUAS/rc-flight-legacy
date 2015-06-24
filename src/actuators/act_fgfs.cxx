@@ -8,8 +8,6 @@
 #include <string>
 #include <string.h>
 
-#include "include/ugear_config.h"
-
 #include "comms/netSocket.h"
 #include "main/globals.hxx"
 #include "props/props.hxx"
