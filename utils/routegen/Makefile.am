@@ -11,10 +11,10 @@ noinst_PROGRAMS = routegen
 routegen_SOURCES = routegen.cpp
 
 routegen_LDADD = \
-        $(top_builddir)/src/control/libcontrol.a \
-        $(top_builddir)/src/math/libmath.a \
-	$(top_builddir)/src/props/libsgprops.a \
-        $(top_builddir)/src/util/libutil.a
+        ../../src/control/libcontrol.a \
+        ../../src/math/libmath.a \
+	../../src/props/libsgprops.a \
+        ../../src/util/libutil.a
 
 AM_CPPFLAGS = -I$(VPATH)/../../src
 
