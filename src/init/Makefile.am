@@ -1,6 +1,6 @@
-noinst_LIBRARIES = libmain.a
+noinst_LIBRARIES = libinit.a
 
-libmain_a_SOURCES = \
+libinit_a_SOURCES = \
 	globals.cxx globals.hxx
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I..
