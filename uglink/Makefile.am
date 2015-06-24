@@ -29,4 +29,4 @@ uglink_LDADD = \
 	-lcrypto -lz
 
 
-INCLUDES = -I$(top_srcdir)/src
+AM_CPPFLAGS = -I$(VPATH)/../src
