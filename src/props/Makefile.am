@@ -16,4 +16,4 @@ props_test_LDADD = \
 	$(top_builddir)/src/xml/libsgxml.a \
 	$(top_builddir)/src/util/libutil.a
 
-INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
