@@ -10,8 +10,6 @@
 #include <unistd.h>		// tcgetattr() et. al.
 #include <string.h>		// memset(), strerror()
 
-#include "include/ugear_config.h"
-
 #include "comms/display.h"
 #include "comms/logging.h"
 #include "main/globals.hxx"

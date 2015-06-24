@@ -12,8 +12,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "include/ugear_config.h"
-
 #include "comms/display.h"
 #include "comms/logging.h"
 #include "comms/remote_link.h"
