@@ -15,4 +15,4 @@ noinst_LIBRARIES = libfilters.a
 libfilters_a_SOURCES = \
 	filter_mgr.cpp filter_mgr.h
 
-INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
