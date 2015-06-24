@@ -6,7 +6,6 @@ SUBDIRS = \
 	health \
 	include \
 	math \
-	mission \
 	payload \
 	util \
 	sensors \

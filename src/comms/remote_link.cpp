@@ -10,8 +10,8 @@
 #include "include/globaldefs.h"
 
 #include "main/globals.hxx" 	// packetizer
-#include "mission/mission_mgr.hxx"
-#include "mission/tasks/task_route.hxx"
+//#include "mission/mission_mgr.hxx"
+//#include "mission/tasks/task_route.hxx"
 #include "props/props.hxx"
 #include "sensors/gps_mgr.hxx"
 #include "util/strutils.hxx"
@@ -456,57 +456,42 @@ static void remote_link_execute_command( const string command ) {
 	home_set_node->setBoolValue( true );
     } else if ( token[0] == "route" && token.size() >= 5 ) {
 	// find the active route manager
-	UGTaskRoute *route_task
-	    = (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
-	if ( route_task != NULL ) {
-	    FGRouteMgr *route_mgr = route_task->get_route_mgr();
-	    if ( route_mgr != NULL ) {
-		route_mgr->clear_standby();
-		unsigned int i = 1;
-		while ( i + 4 <= token.size() ) {
-		    int mode = atoi( token[i].c_str() );
-		    double field1 = atof( token[i+1].c_str() );
-		    double field2 = atof( token[i+2].c_str() );
-		    double agl_m = -9999.9;
-		    if ( token[i+3] != "-" ) {
-			agl_m = atof( token[i+3].c_str() ) * SG_FEET_TO_METER;
-		    }
-		    route_mgr->new_waypoint( field1, field2, agl_m, mode );
-		    i += 4;
+	if ( route_mgr != NULL ) {
+	    route_mgr->clear_standby();
+	    unsigned int i = 1;
+	    while ( i + 4 <= token.size() ) {
+		int mode = atoi( token[i].c_str() );
+		double field1 = atof( token[i+1].c_str() );
+		double field2 = atof( token[i+2].c_str() );
+		double agl_m = -9999.9;
+		if ( token[i+3] != "-" ) {
+		    agl_m = atof( token[i+3].c_str() ) * SG_FEET_TO_METER;
 		}
+		route_mgr->new_waypoint( field1, field2, agl_m, mode );
+		i += 4;
 	    }
 	}
     } else if ( token[0] == "route_cont" && token.size() >= 5 ) {
 	// find the active route manager
-	UGTaskRoute *route_task
-	    = (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
-	if ( route_task != NULL ) {
-	    FGRouteMgr *route_mgr = route_task->get_route_mgr();
-	    if ( route_mgr != NULL ) {
-		unsigned int i = 1;
-		while ( i + 4 <= token.size() ) {
-		    int mode = atoi( token[i].c_str() );
-		    double field1 = atof( token[i+1].c_str() );
-		    double field2 = atof( token[i+2].c_str() );
-		    double agl_m = -9999.9;
-		    if ( token[i+3] != "-" ) {
-			agl_m = atof( token[i+3].c_str() ) * SG_FEET_TO_METER;
-		    }
-		    route_mgr->new_waypoint( field1, field2, agl_m, mode );
-		    i += 4;
+	if ( route_mgr != NULL ) {
+	    unsigned int i = 1;
+	    while ( i + 4 <= token.size() ) {
+		int mode = atoi( token[i].c_str() );
+		double field1 = atof( token[i+1].c_str() );
+		double field2 = atof( token[i+2].c_str() );
+		double agl_m = -9999.9;
+		if ( token[i+3] != "-" ) {
+		    agl_m = atof( token[i+3].c_str() ) * SG_FEET_TO_METER;
 		}
+		route_mgr->new_waypoint( field1, field2, agl_m, mode );
+		i += 4;
 	    }
 	}
     } else if ( token[0] == "route_end" && token.size() == 1 ) {
 	// find the active route manager
-	UGTaskRoute *route_task
-	    = (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
-	if ( route_task != NULL ) {
-	    FGRouteMgr *route_mgr = route_task->get_route_mgr();
-	    if ( route_mgr != NULL ) {
-		route_mgr->swap();
-		route_task->reposition();
-	    }
+	if ( route_mgr != NULL ) {
+	    route_mgr->swap();
+	    route_mgr->reposition();
 	}
     } else if ( token[0] == "task" ) {
 	SGPropertyNode *mission_command

@@ -12,10 +12,12 @@
 
 #include "comms/packetizer.hxx"
 #include "comms/telnet.hxx"
+#include "control/route_mgr.hxx"
 
 
 extern UGPacketizer *packetizer;
 extern UGTelnet *telnet;
+extern FGRouteMgr *route_mgr;
 
 
 bool UGGlobals_init();

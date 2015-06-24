@@ -32,10 +32,10 @@
 #include "comms/remote_link.h"
 #include "include/globaldefs.h"
 #include "main/globals.hxx"
-#include "mission/mission_mgr.hxx"
-#include "mission/tasks/task_circle_coord.hxx"
-#include "mission/tasks/task_home_mgr.hxx"
-#include "mission/tasks/task_route.hxx"
+//#include "mission/mission_mgr.hxx"
+//#include "mission/tasks/task_circle_coord.hxx"
+//#include "mission/tasks/task_home_mgr.hxx"
+//#include "mission/tasks/task_route.hxx"
 
 #include "include/util.h"
 #include "xmlauto.hxx"
@@ -135,11 +135,7 @@ void control_update(double dt)
     // to update the pattern routes every frame (even if the route
     // task is not active) and so the code to do this is going here
     // for now.
-    UGTaskRoute *route_task
-	= (UGTaskRoute *)mission_mgr.find_seq_task( "route" );
-    if ( route_task != NULL ) {
-	route_task->reposition_if_necessary();
-    }
+    route_mgr->reposition_if_necessary();
 
     static string last_fcs_mode = "";
     string fcs_mode = fcs_mode_node->getStringValue();
@@ -235,6 +231,11 @@ void control_update(double dt)
     // switched to autopilot.
     ap.update( dt );
 
+    // FIXME !!!
+    // I want a departure route, an approach route, and mission route,
+    // and circle hold point (all indicated on the ground station map.)
+    // FIXME !!!
+    
     if ( remote_link_on || log_to_file ) {
 	// send one waypoint per message, then home location (with
 	// index = 65535)
@@ -244,38 +245,29 @@ void control_update(double dt)
 	SGWayPoint wp;
 	int route_size = 0;
 
-	UGTask *current_task = mission_mgr.front_seq_task();
-	if ( current_task != NULL ) {
-	    string task_name = current_task->get_name();
-
-	    if ( task_name == "route" || task_name == "land" ) {
-		UGTaskRoute *route_task = (UGTaskRoute *)current_task;
-		FGRouteMgr *route_mgr = route_task->get_route_mgr();
-		if ( route_mgr != NULL ) {
-		    route_size = route_mgr->size();
-		    if ( route_size > 0 && wp_index < route_size ) {
-			wp = route_mgr->get_waypoint( wp_index );
-			index = wp_index;
-		    }
-		}
-
-	    } else if ( task_name == "circle-coord" ) {
-		UGTaskCircleCoord *circle_task = (UGTaskCircleCoord *)current_task;
-		wp = circle_task->get_center();
-		route_size = 1;
+	if ( route_mgr != NULL ) {
+	    route_size = route_mgr->size();
+	    if ( route_size > 0 && wp_index < route_size ) {
+		wp = route_mgr->get_waypoint( wp_index );
 		index = wp_index;
 	    }
-
-	    // special case send home as a route waypoint with id = 65535
-	    if ( wp_index == route_size ) {
-		UGTaskHomeMgr *home_mgr
-		    = (UGTaskHomeMgr *)mission_mgr.find_global_task( "home-manager" );
-		if ( home_mgr != NULL ) {
-		    wp = home_mgr->get_home_wpt();
-		    index = 65535;
-		}
-	    }
 	}
+	// } else if ( task_name == "circle-coord" ) {
+	//	UGTaskCircleCoord *circle_task = (UGTaskCircleCoord *)current_task;
+	//      wp = circle_task->get_center();
+	//	route_size = 1;
+	//	index = wp_index;
+	//    }
+
+	// special case send home as a route waypoint with id = 65535
+	//if ( wp_index == route_size ) {
+	//    UGTaskHomeMgr *home_mgr
+	//	= (UGTaskHomeMgr *)mission_mgr.find_global_task( "home-manager" );
+	//    if ( home_mgr != NULL ) {
+	//	wp = home_mgr->get_home_wpt();
+	//	index = 65535;
+	//    }
+	//}
 
 	uint8_t buf[256];
 	int pkt_size = packetizer->packetize_ap( buf, route_size, &wp, index );

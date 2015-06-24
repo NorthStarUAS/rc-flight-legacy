@@ -30,7 +30,7 @@
 #include "comms/remote_link.h"
 #include "include/globaldefs.h"
 #include "main/globals.hxx"
-#include "mission/mission_mgr.hxx"
+//#include "mission/mission_mgr.hxx"
 #include "props/props_io.hxx"
 #include "sensors/gps_mgr.hxx"
 #include "util/exception.hxx"
@@ -45,8 +45,13 @@ FGRouteMgr::FGRouteMgr() :
     active( new SGRoute ),
     standby( new SGRoute ),
     config_props( NULL ),
+    home_lon_node( NULL ),
+    home_lat_node( NULL ),
+    home_azimuth_node( NULL ),
+    last_lon( 0.0 ),
+    last_lat( 0.0 ),
+    last_az( 0.0 ),
     bank_limit_node( NULL ),
-    // heading_gain_node( NULL ),
     L1_period_node( NULL ),
     L1_damping_node( NULL ),
     xtrack_gain_node( NULL ),
@@ -83,8 +88,11 @@ FGRouteMgr::~FGRouteMgr() {
 
 // bind property nodes
 void FGRouteMgr::bind() {
+    home_lon_node = fgGetNode("/mission/home/longitude-deg", true );
+    home_lat_node = fgGetNode("/mission/home/latitude-deg", true );
+    home_azimuth_node = fgGetNode("/mission/home/azimuth-deg", true );
+
     bank_limit_node = fgGetNode("/config/fcs/autopilot/L1-controller/bank-limit-deg", true);
-    // heading_gain_node = fgGetNode("/mission/route/heading-error-gain", true);
     L1_period_node = fgGetNode("/config/fcs/autopilot/L1-controller/period", true);
     L1_damping_node = fgGetNode("/config/fcs/autopilot/L1-controller/damping", true);
 
@@ -321,20 +329,6 @@ void FGRouteMgr::update() {
 
 	    double target_bank_deg = 0.0;
 
-#if 0 // original linear response to error
-
-	    // compute heading error in aircraft heading space after
-	    // doing wind triangle math on the current and target
-	    // ground courses.  This gives us a close estimate of how
-	    // far we have to yaw the aircraft nose to get on the
-	    // target ground course.
-	    double hdg_error
-		= wind_heading_diff( groundtrack_node->getDoubleValue(),
-				     target_course_deg->getDoubleValue() );
-	    target_bank_deg = hdg_error * heading_gain_node->getDoubleValue();
-
-#else // new L1 'mathematical' response to error
-
 	    const double sqrt_of_2 = 1.41421356237309504880;
 	    double omegaA = sqrt_of_2 * SGD_PI / L1_period;
 	    double VomegaA = gs_mps * omegaA;
@@ -349,7 +343,6 @@ void FGRouteMgr::update() {
 	    static const double gravity = 9.81; // m/sec^2
 	    double target_bank = -atan( accel / gravity );
 	    target_bank_deg = target_bank * SG_RADIANS_TO_DEGREES;
-#endif
 
 	    double bank_limit_deg = bank_limit_node->getDoubleValue();
 	    if ( target_bank_deg < -bank_limit_deg ) {
@@ -572,6 +565,38 @@ SGWayPoint FGRouteMgr::make_waypoint( const string& wpt_string ) {
                    SGWayPoint::ABSOLUTE, "" );
 
     return wp;
+}
+
+
+bool FGRouteMgr::reposition() {
+    double home_lon = home_lon_node->getDoubleValue();
+    double home_lat = home_lat_node->getDoubleValue();
+    double home_az = home_azimuth_node->getDoubleValue();
+
+    SGWayPoint wp(home_lon, home_lat);
+    return reposition_pattern(wp, home_az);
+}
+
+
+bool FGRouteMgr::reposition_if_necessary() {
+    double home_lon = home_lon_node->getDoubleValue();
+    double home_lat = home_lat_node->getDoubleValue();
+    double home_az = home_azimuth_node->getDoubleValue();
+
+    if ( fabs(home_lon - last_lon) > 0.000001 ||
+	 fabs(home_lat - last_lat) > 0.000001 ||
+	 fabs(home_az - last_az) > 0.001 )
+    {
+	reposition();
+
+	last_lon = home_lon;
+	last_lat = home_lat;
+	last_az = home_az;
+
+	return true;
+    }
+
+    return false;
 }
 
 

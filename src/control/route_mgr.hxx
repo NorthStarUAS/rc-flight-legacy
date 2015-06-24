@@ -76,6 +76,15 @@ private:
     // route configuration tree
     SGPropertyNode *config_props;
 
+    // home
+    SGPropertyNode *home_lon_node;
+    SGPropertyNode *home_lat_node;
+    SGPropertyNode *home_azimuth_node;
+
+    double last_lon;
+    double last_lat;
+    double last_az;
+
     // route following configuration
     SGPropertyNode *bank_limit_node;
     SGPropertyNode *L1_period_node;
@@ -172,6 +181,8 @@ public:
     }
 
     // applies to the "active" route
+    bool reposition();
+    bool reposition_if_necessary();
     bool reposition_pattern( const SGWayPoint &wp, const double hdg );
 
     // restart the route from the beginning
