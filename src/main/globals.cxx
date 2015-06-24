@@ -14,7 +14,7 @@ UGTelnet *telnet = NULL;
 FGRouteMgr *route_mgr = NULL;
 
 
-bool UGGlobals_init() {
+bool AuraCoreInit() {
     packetizer = new UGPacketizer;
     route_mgr = new FGRouteMgr;
 

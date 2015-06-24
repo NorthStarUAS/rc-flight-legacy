@@ -6,8 +6,8 @@
 // This code is released into the public domain.
 // 
 
-#ifndef UGEAR_GLOBALS_HXX
-#define UGEAR_GLOBALS_HXX
+#ifndef AURA_GLOBALS_HXX
+#define AURA_GLOBALS_HXX
 
 
 #include "comms/packetizer.hxx"
@@ -20,7 +20,7 @@ extern UGTelnet *telnet;
 extern FGRouteMgr *route_mgr;
 
 
-bool UGGlobals_init();
+bool AuraCoreInit();
 
 
-#endif // UGEAR_GLOBALS_HXX
+#endif // AURA_GLOBALS_HXX
