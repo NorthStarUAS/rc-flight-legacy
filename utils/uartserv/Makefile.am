@@ -10,5 +10,5 @@ uartserv_LDADD = \
 	$(top_builddir)/src/props/libsgprops.a \
         $(top_builddir)/src/util/libutil.a
 
-INCLUDES = -I$(top_srcdir)/src
+AM_CPPFLAGS = -I$(VPATH)/../../src
 
