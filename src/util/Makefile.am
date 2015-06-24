@@ -14,4 +14,4 @@ libutil_a_SOURCES = \
         timing.cpp timing.h \
 	wind.cxx wind.hxx
 
-INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
