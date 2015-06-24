@@ -1,12 +1,5 @@
-if ENABLE_MNAV_FILTER
-MNAV_DIR = mnav
-else
-MNAV_DIR =
-endif
-
 SUBDIRS = \
 	curt \
-	$(MNAV_DIR) \
 	umngnss_euler \
 	umngnss_quat
 

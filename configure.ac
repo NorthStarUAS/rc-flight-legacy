@@ -8,7 +8,7 @@ dnl Require at least automake 2.52
 AC_PREREQ(2.52)
 
 dnl Sanity check of the distribution
-AC_CONFIG_SRCDIR([src/main/ugear_gumstix.cpp])
+AC_CONFIG_SRCDIR([src/main/globals.hxx])
 
 dnl Initialize the automake system (provide project name and version)
 AM_INIT_AUTOMAKE(ugear, 2.1)
@@ -44,17 +44,6 @@ AM_CONFIG_HEADER(src/include/ugear_config.h)
 
 dnl automatic detection of pointing library
 
-enable_ati_pointing="no"
-AC_LANG_PUSH(C++)
-AC_CHECK_HEADER(atipointing/atipointing.hxx)
-if test "x$ac_cv_header_atipointing_atipointing_hxx" = "xyes"; then
-    AC_DEFINE([ATI_POINTING], 1, [Define to include ATI pointing module.])
-    enable_ati_pointing="yes"
-fi
-AM_CONDITIONAL(ENABLE_ATI_POINTING, test "x$ac_cv_header_atipointing_atipointing_hxx" = "xyes")
-AC_LANG_POP
-
-
 dnl code configuration selections
 
 AC_ARG_ENABLE(batch-mode, [  --enable-batch-mode    Disable real-time clock/timing for running in batch mode], [enable_batch_mode="$enableval"], [enable_batch_mode="no"] )
@@ -65,21 +54,7 @@ fi
 
 dnl code module selections
 
-GPL_CLEAN="yes"
-
-AC_ARG_ENABLE(gpl-modules, [  --enable-gpl-modules    Include all GPL module code], [enable_gpl_modules="$enableval"], [enable_gpl_modules="no"] )
-if test "x$enable_gpl_modules" != "xno"; then
-    GPL_CLEAN="no"
-    enable_mnav_sensor="yes"
-    enable_mnav_filter="yes"
-fi
-
-AC_ARG_ENABLE(mnav-filter, [  --enable-mnav-filter    Include MNAV filter], [enable_mnav_filter="$enableval"], [enable_mnav_filter="no"] )
-if test "x$enable_mnav_filter" != "xno"; then
-    AC_DEFINE([ENABLE_MNAV_FILTER], 1, [Define to include MNAV filter])
-    GPL_CLEAN="no"
-fi
-AM_CONDITIONAL(ENABLE_MNAV_FILTER, test "x$enable_mnav_filter" != "xno")
+LGPL_CLEAN="yes"
 
 AC_CONFIG_FILES([ \
 	Makefile \
@@ -89,7 +64,6 @@ AC_CONFIG_FILES([ \
         src/filters/curt/Makefile \
         src/filters/umngnss_euler/Makefile \
         src/filters/umngnss_quat/Makefile \
-        src/filters/mnav/Makefile \
         src/comms/Makefile \
         src/control/Makefile \
         src/health/Makefile \
@@ -114,35 +88,23 @@ AC_CONFIG_FILES([ \
 AC_OUTPUT
 
 echo
-echo GPL_CLEAN = $GPL_CLEAN
+echo LGPL_CLEAN = $LGPL_CLEAN
 
-if test "x$GPL_CLEAN" = "xno"; then
-    cat <<GPLEOF
+if test "x$LGPL_CLEAN" = "xno"; then
+    cat <<LGPLEOF
 
-NOTICE: you have included certain GPL licensed modules in this
-configuration.  The GPL license is "viral" so you will need to ensure
-that all of your own code that is included in this build is licensed
-with a GPL compatible license.
-
-If this causes a problem, consider running "./configure" with the
-"--disable-gpl-modules" option to exclude GPL code.  This produces a
-configuration with only LGPL, MPL, or public domain code and allows
-you to link in your own proprietary drivers or modules.
+NOTICE: you have included certain modules in this configuration that
+are not LGPL compatible.
 
 You can use the --help option to configure for a complete list of
 available options.
 
-GPLEOF
+LGPLEOF
 else
-    cat <<GPLEOF
+    cat <<LGPLEOF
 
-You have configured a "GPL clean" build and may link in proprietary
-code modules if desired.
+You have configured an LGPL clean build and may link these libraries
+into a larger proprietary application if desired.
 
-GPLEOF
+LGPLEOF
 fi
-
-cat <<GPLEOF
-MNAV filter (GPL)                : $enable_mnav_filter
-ATI Pointing (non-free)          : $enable_ati_pointing
-GPLEOF

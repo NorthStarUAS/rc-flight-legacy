@@ -26,4 +26,4 @@ dynamichome_LDADD = \
 #	-lsgtiming -lsgmisc -lsgdebug -lplibnet -lplibul \
 #	$(joystick_LIBS) $(network_LIBS) $(base_LIBS) -lz
 
-INCLUDES = -I$(top_srcdir)/src
+AM_CPPFLAGS = -I$(top_srcdir)/src

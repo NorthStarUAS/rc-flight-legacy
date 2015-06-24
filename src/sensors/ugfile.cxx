@@ -8,7 +8,7 @@
 #include <string>
 #include <string.h>
 
-#include "filters/mnav/ahrs.h"	// FIXME: need to remove
+#include "include/globaldefs.h"
 #include "props/props.hxx"
 #include "util/timing.h"
 
@@ -34,6 +34,17 @@ struct gps {
     double  vn,ve,vd;             /* gps velocity                */
     double date;                 /* unix seconds from gps       */
     int8_t status;		 /* data status flag            */
+};
+
+struct imu {
+   double time;
+   double p,q,r;                /* angular velocities    */
+   double ax,ay,az;             /* acceleration          */
+   double hx,hy,hz;             /* magnetic field        */
+   double Ps,Pt;                /* static/pitot pressure */
+   // double Tx,Ty,Tz;          /* temperature           */
+   double phi,the,psi;          /* attitudes             */
+   uint64_t status;             /* error type            */
 };
 
 	
