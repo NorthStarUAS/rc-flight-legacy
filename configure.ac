@@ -1,17 +1,17 @@
 dnl Process this file with autogen.sh to produce a working configure
 dnl script.
 
-dnl Initialize the autoconf system
-AC_INIT
-
 dnl Require at least automake 2.52
 AC_PREREQ(2.52)
+
+dnl Initialize the autoconf system (provide project name and version)
+AC_INIT([aura-core], [2.1])
 
 dnl Sanity check of the distribution
 AC_CONFIG_SRCDIR([src/init/globals.hxx])
 
-dnl Initialize the automake system (provide project name and version)
-AM_INIT_AUTOMAKE(ugear, 2.1)
+dnl Initialize the automake system
+AM_INIT_AUTOMAKE
 
 dnl Checks for programs.
 AC_PROG_MAKE_SET
