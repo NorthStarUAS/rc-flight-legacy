@@ -42,6 +42,7 @@ AuraCircleMgr::AuraCircleMgr() :
     wp_dist_m( NULL ),
     wp_eta_sec( NULL )
 {
+    bind();
 };
 
 
@@ -91,7 +92,6 @@ bool AuraCircleMgr::bind() {
 // How does this play with the mission system?  We don't want to do
 // nothing and have the aircraft just fly off in a straight line forever.
 bool AuraCircleMgr::init() {
-    bind();
 
     return true;
 }

@@ -77,6 +77,7 @@ FGRouteMgr::FGRouteMgr() :
     completion_mode( LOOP ),
     dist_remaining_m( 0.0 )
 {
+    bind();
 }
 
 
@@ -135,8 +136,6 @@ void FGRouteMgr::bind() {
 
 void FGRouteMgr::init( SGPropertyNode *branch ) {
     config_props = branch;
-
-    bind();
 
     active->clear();
     standby->clear();

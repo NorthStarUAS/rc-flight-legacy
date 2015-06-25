@@ -19,6 +19,6 @@ bool AuraCoreInit() {
     packetizer = new UGPacketizer;
     circle_mgr = new AuraCircleMgr;
     route_mgr = new FGRouteMgr;
-
+    
     return true;
 }
