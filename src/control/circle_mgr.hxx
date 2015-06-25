@@ -38,13 +38,8 @@ private:
     SGPropertyNode *bank_limit_node;
     SGPropertyNode *L1_period_node;
 
-    // advanced behavior nodes
-    SGPropertyNode *exit_agl_node;
-    SGPropertyNode *exit_heading_node;
-
     // autopilot settings
     SGPropertyNode *fcs_mode_node;
-    SGPropertyNode *ap_speed_node;
     SGPropertyNode *ap_agl_node;
     SGPropertyNode *ap_roll_node;
     SGPropertyNode *target_course_deg;
