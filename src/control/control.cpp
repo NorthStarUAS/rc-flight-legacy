@@ -76,6 +76,11 @@ static SGPropertyNode *target_pitch_base_deg_node = NULL;
 static SGPropertyNode *ap_console_skip = NULL;
 static SGPropertyNode *ap_logging_skip = NULL;
 
+// home
+static SGPropertyNode *home_lon_node = NULL;
+static SGPropertyNode *home_lat_node = NULL;
+static SGPropertyNode *home_alt_node = NULL;
+
 
 static void bind_properties() {
     ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
@@ -102,6 +107,10 @@ static void bind_properties() {
 
     ap_console_skip = fgGetNode("/config/remote-link/autopilot-skip", true);
     ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
+
+    home_lon_node = fgGetNode("/mission/home/longitude-deg", true );
+    home_lat_node = fgGetNode("/mission/home/latitude-deg", true );
+    home_alt_node = fgGetNode("/mission/home/altitude-ft", true );
 }
 
 
@@ -260,14 +269,12 @@ void control_update(double dt)
 	//    }
 
 	// special case send home as a route waypoint with id = 65535
-	//if ( wp_index == route_size ) {
-	//    UGTaskHomeMgr *home_mgr
-	//	= (UGTaskHomeMgr *)mission_mgr.find_global_task( "home-manager" );
-	//    if ( home_mgr != NULL ) {
-	//	wp = home_mgr->get_home_wpt();
-	//	index = 65535;
-	//    }
-	//}
+	if ( wp_index == route_size ) {
+	    wp = SGWayPoint( home_lon_node->getDoubleValue(),
+			     home_lat_node->getDoubleValue(),
+			     home_alt_node->getDoubleValue() );
+	    index = 65535;
+	}
 
 	uint8_t buf[256];
 	int pkt_size = packetizer->packetize_ap( buf, route_size, &wp, index );
