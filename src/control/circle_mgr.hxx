@@ -11,6 +11,7 @@
 #ifndef _AURA_CIRCLE_MGR_HXX
 #define _AURA_CIRCLE_MGR_HXX
 
+#include "control/waypoint.hxx"
 #include "props/props.hxx"
 #include "util/timing.h"
 
