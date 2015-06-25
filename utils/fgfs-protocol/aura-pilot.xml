@@ -43,7 +43,7 @@
     <chunk>
       <name>auto/manual select</name>
       <type>float</type>
-      <node>/avior/settings/ap-enable</node>
+      <node>/aura-uas/settings/ap-enable</node>
     </chunk>
 
   </output>
