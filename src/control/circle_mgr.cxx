@@ -20,27 +20,21 @@
 #include "circle_mgr.hxx"
 
 AuraCircleMgr::AuraCircleMgr() :
-    config_path( "" ),
-    _direction( "left" ),
-    _radius_m( 100.0 ),
-    _target_agl_ft( 0.0 ),
-    _target_speed_kt( 0.0 ),
-
     lon_node( NULL ),
     lat_node( NULL ),
     alt_agl_node( NULL ),
     true_heading_node( NULL ),
     groundtrack_node( NULL ),
     groundspeed_node( NULL ),
+
     coord_lon_node( NULL ),
     coord_lat_node( NULL ),
-
     direction_node( NULL ),
     radius_node( NULL ),
+    target_agl_node( NULL ),
+    target_speed_node( NULL ),
     bank_limit_node( NULL ),
     L1_period_node( NULL ),
-    override_agl_node( NULL ),
-    override_speed_node( NULL ),
 
     exit_agl_node( NULL ),
     exit_heading_node( NULL ),
@@ -50,13 +44,7 @@ AuraCircleMgr::AuraCircleMgr() :
     ap_roll_node( NULL ),
     target_course_deg( NULL ),
     wp_dist_m( NULL ),
-    wp_eta_sec( NULL ),
-
-    saved_fcs_mode( "" ),
-    saved_agl_ft( 0.0 ),
-    saved_speed_kt( 0.0 ),
-    saved_direction( "" ),
-    saved_radius_m( 0.0 )
+    wp_eta_sec( NULL )
 {
 };
 
@@ -73,39 +61,15 @@ bool AuraCircleMgr::bind() {
     groundtrack_node = fgGetNode( "/orientation/groundtrack-deg", true );
     groundspeed_node = fgGetNode("/velocity/groundspeed-ms", true);
 
-    string prop;
+    coord_lon_node = fgGetNode( "/mission/circle/longitude-deg", true );
+    coord_lat_node = fgGetNode( "/mission/circle/latitude-deg", true );
+    direction_node = fgGetNode( "/mission/circle/direction", true );
+    radius_node = fgGetNode( "/mission/circle/radius-m", true );
+    target_agl_node = fgGetNode( "/mission/circle/altitude-agl-ft", true );
+    target_speed_node = fgGetNode( "/mission/circle/speed-kt", true );
 
-    prop = config_path + "/"; prop += "longitude-deg";
-    coord_lon_node = fgGetNode(prop.c_str(), true );
-
-    prop = config_path + "/"; prop += "latitude-deg";
-    coord_lat_node = fgGetNode(prop.c_str(), true );
-
-    prop = config_path + "/"; prop += "direction";
-    direction_node = fgGetNode(prop.c_str(), true );
-
-    prop = config_path + "/"; prop += "radius-m";
-    radius_node = fgGetNode(prop.c_str(), true );
-
-    prop = config_path + "/"; prop += "altitude-agl-ft";
-    override_agl_node = fgGetNode(prop.c_str(), true );
-    if ( _target_agl_ft > 0.0 ) {
-	override_agl_node->setDoubleValue(_target_agl_ft);
-    }
-
-    prop = config_path + "/"; prop += "speed-kt";
-    override_speed_node = fgGetNode(prop.c_str(), true );
-    if ( _target_speed_kt > 0.0 ) {
-	override_speed_node->setDoubleValue(_target_speed_kt);
-    }
-
-    prop = config_path + "/"; prop += "exit-agl-ft";
-    exit_agl_node = fgGetNode(prop.c_str(), true );
-
-    prop = config_path + "/"; prop += "exit-heading-deg";
-    exit_heading_node = fgGetNode(prop.c_str(), true );
-
-    fcs_mode_node = fgGetNode("/config/fcs/mode", true);
+    exit_agl_node = fgGetNode( "/mission/circle/exit-agl-ft", true );
+    exit_heading_node = fgGetNode( "/mission/circle/exit-heading-deg", true );
 
     bank_limit_node = fgGetNode("/config/fcs/autopilot/L1-controller/bank-limit-deg", true );
     L1_period_node = fgGetNode("/config/fcs/autopilot/L1-controller/period", true );
@@ -118,6 +82,7 @@ bool AuraCircleMgr::bind() {
 	L1_period_node->setDoubleValue( 25.0 );
     }
 
+    fcs_mode_node = fgGetNode("/config/fcs/mode", true);
     ap_speed_node = fgGetNode("/autopilot/settings/target-speed-kt", true );
     ap_agl_node = fgGetNode("/autopilot/settings/target-agl-ft", true );
     ap_roll_node = fgGetNode("/autopilot/settings/target-roll-deg", true);
@@ -130,28 +95,11 @@ bool AuraCircleMgr::bind() {
 }
 
 
-bool AuraCircleMgr::init( SGPropertyNode *branch ) {
-    int i;
-    SGPropertyNode *node;
-    int count = branch->nChildren();
-    for ( i = 0; i < count; ++i ) {
-        node = branch->getChild(i);
-        string name = node->getName();
-	if ( name == "config" ) {
-	    config_path = node->getStringValue();
-	} else if ( name == "direction" ) {
-	    _direction = node->getStringValue();
-	} else if ( name == "radius-m" ) {
-	    _radius_m = node->getDoubleValue();
-	} else if ( name == "altitude-agl-ft" ) {
-	    _target_agl_ft = node->getDoubleValue();
-	} else if ( name == "speed-kt" ) {
-	    _target_speed_kt = node->getDoubleValue();
-        } else {
-            printf("Unknown circle task parameter: %s\n", name.c_str() );
-        }
-    }
-
+// FIXME: make sure we have sane default values setup some where
+// Maybe: setup home as the default circle location if not otherwise set?
+// How does this play with the mission system?  We don't want to do
+// nothing and have the aircraft just fly off in a straight line forever.
+bool AuraCircleMgr::init() {
     bind();
 
     return true;
