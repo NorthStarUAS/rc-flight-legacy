@@ -32,10 +32,6 @@
 #include "comms/remote_link.h"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-//#include "mission/mission_mgr.hxx"
-//#include "mission/tasks/task_circle_coord.hxx"
-//#include "mission/tasks/task_home_mgr.hxx"
-//#include "mission/tasks/task_route.hxx"
 
 #include "include/util.h"
 #include "xmlauto.hxx"
@@ -108,9 +104,9 @@ static void bind_properties() {
     ap_console_skip = fgGetNode("/config/remote-link/autopilot-skip", true);
     ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
 
-    home_lon_node = fgGetNode("/mission/home/longitude-deg", true );
-    home_lat_node = fgGetNode("/mission/home/latitude-deg", true );
-    home_alt_node = fgGetNode("/mission/home/altitude-ft", true );
+    home_lon_node = fgGetNode("/task/home/longitude-deg", true );
+    home_lat_node = fgGetNode("/task/home/latitude-deg", true );
+    home_alt_node = fgGetNode("/task/home/altitude-ft", true );
 }
 
 

@@ -58,12 +58,12 @@ bool AuraCircleMgr::bind() {
     groundtrack_node = fgGetNode( "/orientation/groundtrack-deg", true );
     groundspeed_node = fgGetNode("/velocity/groundspeed-ms", true);
 
-    coord_lon_node = fgGetNode( "/mission/circle/longitude-deg", true );
-    coord_lat_node = fgGetNode( "/mission/circle/latitude-deg", true );
-    direction_node = fgGetNode( "/mission/circle/direction", true );
-    radius_node = fgGetNode( "/mission/circle/radius-m", true );
-    target_agl_node = fgGetNode( "/mission/circle/altitude-agl-ft", true );
-    target_speed_node = fgGetNode( "/mission/circle/speed-kt", true );
+    coord_lon_node = fgGetNode( "/task/circle/longitude-deg", true );
+    coord_lat_node = fgGetNode( "/task/circle/latitude-deg", true );
+    direction_node = fgGetNode( "/task/circle/direction", true );
+    radius_node = fgGetNode( "/task/circle/radius-m", true );
+    target_agl_node = fgGetNode( "/task/circle/altitude-agl-ft", true );
+    target_speed_node = fgGetNode( "/task/circle/speed-kt", true );
 
     bank_limit_node = fgGetNode("/config/fcs/autopilot/L1-controller/bank-limit-deg", true );
     L1_period_node = fgGetNode("/config/fcs/autopilot/L1-controller/period", true );
@@ -80,8 +80,8 @@ bool AuraCircleMgr::bind() {
     ap_roll_node = fgGetNode("/autopilot/settings/target-roll-deg", true);
     target_course_deg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
 
-    wp_dist_m = fgGetNode( "/mission/route/wp-dist-m", true );
-    wp_eta_sec = fgGetNode( "/mission/route/wp-eta-sec", true );
+    wp_dist_m = fgGetNode( "/task/route/wp-dist-m", true );
+    wp_eta_sec = fgGetNode( "/task/route/wp-eta-sec", true );
 
     return true;
 }

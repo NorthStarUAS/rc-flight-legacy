@@ -136,35 +136,35 @@ class Land():
     def update(self, t):
         print "update land params"
 
-        self.send_value(t, "/mission/land/lateral-offset-m",
+        self.send_value(t, "/task/land/lateral-offset-m",
                         self.edit_lat_offset.text())
-        self.send_value(t, "/mission/land/glideslope-deg",
+        self.send_value(t, "/task/land/glideslope-deg",
                         self.edit_glideslope.text())
-        self.send_value(t, "/mission/land/turn-radius-m",
+        self.send_value(t, "/task/land/turn-radius-m",
                         self.edit_turn_radius.text())
-        self.send_value(t, "/mission/land/direction",
+        self.send_value(t, "/task/land/direction",
                         self.edit_direction.text())
-        self.send_value(t, "/mission/land/extend-final-leg-m",
+        self.send_value(t, "/task/land/extend-final-leg-m",
                         self.edit_final_leg.text())
-        self.send_value(t, "/mission/land/altitude-bias-ft",
+        self.send_value(t, "/task/land/altitude-bias-ft",
                         self.edit_alt_bias.text())
-        self.send_value(t, "/mission/land/approach-speed-kt",
+        self.send_value(t, "/task/land/approach-speed-kt",
                         self.edit_appr_speed.text())
-        self.send_value(t, "/mission/land/flare-pitch-deg",
+        self.send_value(t, "/task/land/flare-pitch-deg",
                         self.edit_flare_pitch.text())
-        self.send_value(t, "/mission/land/flare-seconds",
+        self.send_value(t, "/task/land/flare-seconds",
                         self.edit_flare_time.text())
 
         # send these last so our 'route' doesn't stay moved long
         # before we kick into land mode.
         if len(self.edit_rwy_lon.text()):
-            self.send_value(t, "/mission/home/longitude-deg",
+            self.send_value(t, "/task/home/longitude-deg",
                             self.edit_rwy_lon.text())
         if len(self.edit_rwy_lat.text()):
-            self.send_value(t, "/mission/home/latitude-deg",
+            self.send_value(t, "/task/home/latitude-deg",
                             self.edit_rwy_lat.text())
         if len(self.edit_rwy_hdg.text()):
-            self.send_value(t, "/mission/home/azimuth-deg",
+            self.send_value(t, "/task/home/azimuth-deg",
                             self.edit_rwy_hdg.text())
 
 
@@ -207,7 +207,7 @@ class Land():
 
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
-        #t.send("set /mission/command-request task,land,5")
+        #t.send("set /task/command-request task,land,5")
 
         # send over current landing configuration and touchdown point
         self.update(t)
@@ -219,7 +219,7 @@ class Land():
         if self.port == 5402:
             t.send(str("send " + cmd))
         else:
-            t.send(str("set /mission/command-request " + cmd))
+            t.send(str("set /task/command-request " + cmd))
         t.quit()
 
     def task_resume(self):
@@ -229,5 +229,5 @@ class Land():
         if self.port == 5402:
             t.send("send task,resume")
         else:
-            t.send("set /mission/command-request task,resume")
+            t.send("set /task/command-request task,resume")
         t.quit()

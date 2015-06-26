@@ -30,7 +30,6 @@
 #include "comms/remote_link.h"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-//#include "mission/mission_mgr.hxx"
 #include "props/props_io.hxx"
 #include "sensors/gps_mgr.hxx"
 #include "util/exception.hxx"
@@ -87,9 +86,9 @@ FGRouteMgr::~FGRouteMgr() {
 
 // bind property nodes
 void FGRouteMgr::bind() {
-    home_lon_node = fgGetNode("/mission/home/longitude-deg", true );
-    home_lat_node = fgGetNode("/mission/home/latitude-deg", true );
-    home_azimuth_node = fgGetNode("/mission/home/azimuth-deg", true );
+    home_lon_node = fgGetNode("/task/home/longitude-deg", true );
+    home_lat_node = fgGetNode("/task/home/latitude-deg", true );
+    home_azimuth_node = fgGetNode("/task/home/azimuth-deg", true );
 
     bank_limit_node = fgGetNode("/config/fcs/autopilot/L1-controller/bank-limit-deg", true);
     L1_period_node = fgGetNode("/config/fcs/autopilot/L1-controller/period", true);
@@ -107,7 +106,7 @@ void FGRouteMgr::bind() {
 	L1_damping_node->setDoubleValue( 0.7 );
     }
 
-    xtrack_gain_node = fgGetNode( "/mission/route/xtrack-steer-gain", true );
+    xtrack_gain_node = fgGetNode( "/task/route/xtrack-steer-gain", true );
 
     lon_node = fgGetNode( "/position/longitude-deg", true );
     lat_node = fgGetNode( "/position/latitude-deg", true );
@@ -120,11 +119,11 @@ void FGRouteMgr::bind() {
     target_msl_node = fgGetNode( "/autopilot/settings/target-msl-ft", true );
     target_agl_node = fgGetNode( "/autopilot/settings/target-agl-ft", true );
     target_waypoint
-	= fgGetNode( "/mission/route/target-waypoint-idx", true );
-    wp_dist_m = fgGetNode( "/mission/route/wp-dist-m", true );
-    wp_eta_sec = fgGetNode( "/mission/route/wp-eta-sec", true );
-    xtrack_dist_m = fgGetNode( "/mission/route/xtrack-dist-m", true );
-    proj_dist_m = fgGetNode( "/mission/route/projected-dist-m", true );
+	= fgGetNode( "/task/route/target-waypoint-idx", true );
+    wp_dist_m = fgGetNode( "/task/route/wp-dist-m", true );
+    wp_eta_sec = fgGetNode( "/task/route/wp-eta-sec", true );
+    xtrack_dist_m = fgGetNode( "/task/route/xtrack-dist-m", true );
+    proj_dist_m = fgGetNode( "/task/route/projected-dist-m", true );
 }
 
 

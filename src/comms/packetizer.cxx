@@ -129,7 +129,7 @@ void UGPacketizer::bind_ap_nodes() {
     ap_pitch = fgGetNode( "/autopilot/settings/target-pitch-deg", true );
     ap_theta_dot = fgGetNode( "/autopilot/settings/target-the-dot", true );
     ap_speed = fgGetNode( "/autopilot/settings/target-speed-kt", true );
-    ap_waypoint = fgGetNode( "/mission/route/target-waypoint-idx", true );
+    ap_waypoint = fgGetNode( "/task/route/target-waypoint-idx", true );
 }
 
 

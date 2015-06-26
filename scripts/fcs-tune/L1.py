@@ -128,6 +128,6 @@ class L1Controller():
         if self.port == 5402:
             t.send("send task,resume")
         else:
-            t.send("set /mission/command-request task,resume")
+            t.send("set /task/command-request task,resume")
         t.quit()
 

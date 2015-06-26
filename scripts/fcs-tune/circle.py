@@ -100,9 +100,9 @@ class Circle():
                         self.edit_alt.text())
         self.send_value(t, "/autopilot/settings/target-speed-kt",
                         self.edit_speed.text())
-        self.send_value(t, "/mission/circle/direction",
+        self.send_value(t, "/task/circle/direction",
                         self.edit_direction.text())
-        self.send_value(t, "/mission/circle/radius-m",
+        self.send_value(t, "/task/circle/radius-m",
                         self.edit_radius.text())
         t.quit()
 
@@ -124,7 +124,7 @@ class Circle():
         if self.port == 5402:
             t.send("send task,circle")
         else:
-            t.send("set /mission/command-request task,circle")
+            t.send("set /task/command-request task,circle")
         t.quit()
 
     def task_home(self):
@@ -134,7 +134,7 @@ class Circle():
         if self.port == 5402:
             t.send("send task,home")
         else:
-            t.send("set /mission/command-request task,home")
+            t.send("set /task/command-request task,home")
         t.quit()
 
     def task_resume(self):
@@ -144,6 +144,6 @@ class Circle():
         if self.port == 5402:
             t.send("send task,resume")
         else:
-            t.send("set /mission/command-request task,resume")
+            t.send("set /task/command-request task,resume")
         t.quit()
 

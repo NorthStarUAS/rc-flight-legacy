@@ -174,7 +174,7 @@ sub set_circle_target {
 
     &send( $fgfs, "data" );     # switch to raw data mode
 
-    &set_prop( $fgfs, "/mission/command-request", $command );
+    &set_prop( $fgfs, "/task/command-request", $command );
     &set_prop( $fgfs, "/autopilot/settings/target-speed-kt", $target_speed_kt );
 
     &send( $fgfs, "quit" );

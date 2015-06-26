@@ -10,8 +10,6 @@
 #include "include/globaldefs.h"
 
 #include "init/globals.hxx" 	// packetizer
-//#include "mission/mission_mgr.hxx"
-//#include "mission/tasks/task_route.hxx"
 #include "props/props.hxx"
 #include "sensors/gps_mgr.hxx"
 #include "util/strutils.hxx"
@@ -443,13 +441,13 @@ static void remote_link_execute_command( const string command ) {
         double azimuth_deg = atof( token[4].c_str() );
 
 	SGPropertyNode *home_lon_node
-	    = fgGetNode("/mission/home/longitude-deg", true );
+	    = fgGetNode("/task/home/longitude-deg", true );
 	SGPropertyNode *home_lat_node
-	    = fgGetNode("/mission/home/latitude-deg", true );
+	    = fgGetNode("/task/home/latitude-deg", true );
 	SGPropertyNode *home_azimuth_node
-	    = fgGetNode("/mission/home/azimuth-deg", true );
+	    = fgGetNode("/task/home/azimuth-deg", true );
 	SGPropertyNode *home_set_node
-	    = fgGetNode("/mission/home/valid", true );
+	    = fgGetNode("/task/home/valid", true );
 	home_lon_node->setDoubleValue( lon );
 	home_lat_node->setDoubleValue( lat );
 	home_azimuth_node->setDoubleValue( azimuth_deg );
@@ -495,7 +493,7 @@ static void remote_link_execute_command( const string command ) {
 	}
     } else if ( token[0] == "task" ) {
 	SGPropertyNode *mission_command
-	    = fgGetNode( "/mission/command-request", true );
+	    = fgGetNode( "/task/command-request", true );
 	mission_command->setStringValue( command.c_str() );
     } else if ( token[0] == "ap" && token.size() == 3 ) {
         // specify an autopilot target
