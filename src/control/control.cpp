@@ -77,6 +77,9 @@ static SGPropertyNode *home_lon_node = NULL;
 static SGPropertyNode *home_lat_node = NULL;
 static SGPropertyNode *home_alt_node = NULL;
 
+// task
+static SGPropertyNode *task_name_node = NULL;
+
 
 static void bind_properties() {
     ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
@@ -107,6 +110,8 @@ static void bind_properties() {
     home_lon_node = fgGetNode("/task/home/longitude-deg", true );
     home_lat_node = fgGetNode("/task/home/latitude-deg", true );
     home_alt_node = fgGetNode("/task/home/altitude-ft", true );
+
+    task_name_node = fgGetNode("/task/current-task-id", true );
 }
 
 
@@ -250,19 +255,22 @@ void control_update(double dt)
 	SGWayPoint wp;
 	int route_size = 0;
 
-	if ( route_mgr != NULL ) {
-	    route_size = route_mgr->size();
-	    if ( route_size > 0 && wp_index < route_size ) {
-		wp = route_mgr->get_waypoint( wp_index );
+	string task_name = task_name_node->getStringValue();
+	if ( task_name == "route" ) {
+	    if ( route_mgr != NULL ) {
+		route_size = route_mgr->size();
+		if ( route_size > 0 && wp_index < route_size ) {
+		    wp = route_mgr->get_waypoint( wp_index );
+		    index = wp_index;
+		}
+	    }
+	} else if ( task_name == "circle-coord" ) {
+	    if ( circle_mgr != NULL ) {
+		wp = circle_mgr->get_center();
+		route_size = 1;
 		index = wp_index;
 	    }
 	}
-	// } else if ( task_name == "circle-coord" ) {
-	//	UGTaskCircleCoord *circle_task = (UGTaskCircleCoord *)current_task;
-	//      wp = circle_task->get_center();
-	//	route_size = 1;
-	//	index = wp_index;
-	//    }
 
 	// special case send home as a route waypoint with id = 65535
 	if ( wp_index == route_size ) {
