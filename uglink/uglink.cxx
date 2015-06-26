@@ -992,51 +992,45 @@ int main( int argc, char **argv ) {
 		count++;
 
 		if ( id == GPS_PACKET_V1 ) {
-		    if ( gpspacket.timestamp > gps_time ) {
-			gps_time = gpspacket.timestamp;
-			packet_time = gps_time;
-		    } else {
+		    if ( gpspacket.timestamp < gps_time ) {
 			cout << "oops gps back in time: " << gpspacket.gps_time << " " << gps_time << endl;
 		    }
+		    gps_time = gpspacket.timestamp;
+		    packet_time = gps_time;
 		} else if ( id == IMU_PACKET_V2 ) {
-		    if ( imupacket.timestamp > imu_time ) {
-			imu_time = imupacket.timestamp;
-			packet_time = imu_time;
-		    } else {
+		    if ( imupacket.timestamp < imu_time ) {
 			cout << "oops imu back in time: " << imupacket.timestamp << " " << imu_time << endl;
 		    }
+		    imu_time = imupacket.timestamp;
+		    packet_time = imu_time;
 		} else if ( id == AIR_DATA_PACKET_V4 ) {
-		    if ( airpacket.timestamp > air_time ) {
-			air_time = airpacket.timestamp;
-			packet_time = air_time;
-		    } else {
+		    if ( airpacket.timestamp < air_time ) {
 			cout << "oops airdata back in time: " << airpacket.timestamp << " " << air_time << endl;
 		    }
+		    air_time = airpacket.timestamp;
+		    packet_time = air_time;
 		} else if ( id == FILTER_PACKET_V1 ) {
-		    if ( filterpacket.timestamp > filter_time ) {
-			filter_time = filterpacket.timestamp;
-			packet_time = filter_time;
-		    } else {
+		    if ( filterpacket.timestamp < filter_time ) {
 			cout << "oops filter back in time: " << filterpacket.timestamp << " " << filter_time << endl;
 		    }
+		    filter_time = filterpacket.timestamp;
+		    packet_time = filter_time;
 		} else if ( id == ACTUATOR_PACKET_V1 ) {
-		    if ( actpacket.timestamp > act_time ) {
-			act_time = actpacket.timestamp;
-			packet_time = act_time;
-		    } else {
+		    if ( actpacket.timestamp < act_time ) {
 			cout << "oops actuator back in time: " << actpacket.timestamp << " " << act_time << endl;
 		    }
+		    act_time = actpacket.timestamp;
+		    packet_time = act_time;
 		} else if ( id == PILOT_INPUT_PACKET_V1 ) {
-		    if ( pilotpacket.timestamp > pilot_time ) {
-			pilot_time = pilotpacket.timestamp;
-			packet_time = pilot_time;
-		    } else {
+		    if ( pilotpacket.timestamp < pilot_time ) {
 			cout << "oops pilot back in time: " << pilotpacket.timestamp << " " << pilot_time << endl;
 		    }
+		    pilot_time = pilotpacket.timestamp;
+		    packet_time = pilot_time;
 		} else if ( id == AP_STATUS_PACKET_V2) {
-		    if ( appacket.timestamp > ap_time ) {
-			ap_time = appacket.timestamp;
-			packet_time = ap_time;
+		    if ( appacket.timestamp < ap_time ) {
+			cout << "oops ap back in time: " << appacket.timestamp << " " << ap_time << endl;
+		    } else {
 			/* printf("Received an ap status packet -- sequence: %d\n",
 			   command_mgr.get_cmd_recv_index()); */
 			
@@ -1053,16 +1047,15 @@ int main( int argc, char **argv ) {
 			       appacket.wp_lon, appacket.wp_lat);
 			printf("target wpt = %d\n",
                                (int)appacket.target_wp); */
-		    } else {
-			cout << "oops ap back in time: " << appacket.timestamp << " " << ap_time << endl;
 		    }
+		    ap_time = appacket.timestamp;
+		    packet_time = ap_time;	
 		} else if ( id == SYSTEM_HEALTH_PACKET_V3 ) {
-		    if ( healthpacket.timestamp > health_time ) {
-			health_time = healthpacket.timestamp;
-			packet_time = health_time;
-		    } else {
+		    if ( healthpacket.timestamp < health_time ) {
 			cout << "oops ap back in time: " << healthpacket.timestamp << " " << health_time << endl;
 		    }
+		    health_time = healthpacket.timestamp;
+		    packet_time = health_time;
 		}
 	    } while ( id >= 0 );
 

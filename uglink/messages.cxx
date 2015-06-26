@@ -407,7 +407,6 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
 		    /* printf("gps interval %.3f (last=%.3f new=%.3f)\n",
 		       interval, gps_time, gpspacket.gps_time); */
 		    gps_data.push_back( gpspacket );
-		    gps_time = gpspacket.gps_time;
 		    if ( gpspacket.alt < alt_min ) {
 			alt_min = gpspacket.alt;
 		    }
@@ -421,63 +420,64 @@ bool UGTrack::load_stream( const string &file, bool ignore_checksum ) {
             } else {
 		cout << "oops gps back in time: " << gpspacket.gps_time << " " << gps_time << endl;
             }
+	    gps_time = gpspacket.gps_time;
         } else if ( id == IMU_PACKET_V1 || id == IMU_PACKET_V2 ) {
             if ( imupacket.timestamp > imu_time ) {
                 imu_data.push_back( imupacket );
-                imu_time = imupacket.timestamp;
             } else {
                 cout << "oops imu back in time" << endl;
             }
+	    imu_time = imupacket.timestamp;
         } else if ( id == AIR_DATA_PACKET_V1 || id == AIR_DATA_PACKET_V2 || id == AIR_DATA_PACKET_V3 || id == AIR_DATA_PACKET_V4 ) {
             if ( airpacket.timestamp > air_time ) {
                 air_data.push_back( airpacket );
-                air_time = airpacket.timestamp;
             } else {
                 cout << "oops airdata back in time" << endl;
             }
+	    air_time = airpacket.timestamp;
         } else if ( id == FILTER_PACKET_V1 ) {
             if ( filterpacket.timestamp > filter_time ) {
                 filter_data.push_back( filterpacket );
-                filter_time = filterpacket.timestamp;
             } else {
                 cout << "oops filter back in time" << endl;
-		cout << "  " << filterpacket.timestamp << " < " << filter_time << endl;
+		// cout << "  " << filterpacket.timestamp << " < " << filter_time << endl;
             }
+	    filter_time = filterpacket.timestamp;
         } else if ( id == ACTUATOR_PACKET_V1 ) {
             if ( actpacket.timestamp > act_time ) {
                 act_data.push_back( actpacket );
-                act_time = actpacket.timestamp;
             } else {
                 cout << "oops actuator back in time" << endl;
             }
+	    act_time = actpacket.timestamp;
         } else if ( id == PILOT_INPUT_PACKET_V1 ) {
             if ( pilotpacket.timestamp > pilot_time ) {
                 pilot_data.push_back( pilotpacket );
-                pilot_time = pilotpacket.timestamp;
             } else {
                 cout << "oops pilot back in time" << endl;
             }
+	    pilot_time = pilotpacket.timestamp;
         } else if ( id == AP_STATUS_PACKET_V1 || id == AP_STATUS_PACKET_V2 ) {
             if ( appacket.timestamp > ap_time ) {
                 ap_data.push_back( appacket );
-                ap_time = appacket.timestamp;
             } else {
                 cout << "oops ap status back in time" << endl;
             }
+	    ap_time = appacket.timestamp;
         } else if ( id == SYSTEM_HEALTH_PACKET_V1 || id == SYSTEM_HEALTH_PACKET_V2 || id == SYSTEM_HEALTH_PACKET_V3 ) {
             if ( healthpacket.timestamp > health_time ) {
                 health_data.push_back( healthpacket );
-                health_time = healthpacket.timestamp;
             } else {
                 cout << "oops health status back in time" << endl;
             }
+	    health_time = healthpacket.timestamp;
         } else if ( id == PAYLOAD_PACKET_V1 ) {
             if ( payloadpacket.timestamp > payload_time ) {
                 payload_data.push_back( payloadpacket );
-                payload_time = payloadpacket.timestamp;
             } else {
                 cout << "oops payload status back in time" << endl;
             }
+	    payload_time = payloadpacket.timestamp;
         } else {
 	    cout << "Unknown packet id: " << id << endl;
 	}
