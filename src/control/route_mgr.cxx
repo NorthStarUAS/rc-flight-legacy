@@ -64,9 +64,7 @@ FGRouteMgr::FGRouteMgr() :
     target_course_deg( NULL ),
     ap_roll_node( NULL ),
     target_agl_node( NULL ),
-    override_agl_node( NULL ),
     target_msl_node( NULL ),
-    override_msl_node( NULL ),
     target_waypoint( NULL ),
     wp_dist_m( NULL ),
     wp_eta_sec( NULL ),
@@ -120,11 +118,7 @@ void FGRouteMgr::bind() {
     ap_roll_node = fgGetNode("/autopilot/settings/target-roll-deg", true);
     target_course_deg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
     target_msl_node = fgGetNode( "/autopilot/settings/target-msl-ft", true );
-    override_msl_node
-	= fgGetNode( "/autopilot/settings/override-msl-ft", true );
     target_agl_node = fgGetNode( "/autopilot/settings/target-agl-ft", true );
-    override_agl_node
-	= fgGetNode( "/autopilot/settings/override-agl-ft", true );
     target_waypoint
 	= fgGetNode( "/mission/route/target-waypoint-idx", true );
     wp_dist_m = fgGetNode( "/mission/route/wp-dist-m", true );
@@ -162,8 +156,8 @@ void FGRouteMgr::update() {
     double nav_course = 0.0;
     double nav_dist_m = 0.0;
 
-    double target_agl_m = 0.0;
-    double target_msl_m = 0.0;
+    double wp_agl_m = 0.0;
+    double wp_msl_m = 0.0;
 
     if ( active->size() > 0 ) {
 	if ( GPS_age() < 10.0 ) {
@@ -226,10 +220,10 @@ void FGRouteMgr::update() {
 	    if ( xtrack_comp < -45.0 ) { xtrack_comp = -45.0; }
 	    if ( xtrack_comp > 45.0 ) { xtrack_comp = 45.0; }
 
-	    // default distance for waypoint acquisition, direct
-	    // distance to the target waypoint.  This can be overrided
-	    // later by leg following and replaced with distance
-	    // remaining along the leg.
+	    // default distance for waypoint acquisition = direct
+	    // distance to the target waypoint.  This can be
+	    // overridden later by leg following and replaced with
+	    // distance remaining along the leg.
 	    nav_dist_m = direct_distance;
 
 	    if ( follow_mode == DIRECT ) {
@@ -352,8 +346,8 @@ void FGRouteMgr::update() {
 	    }
 	    ap_roll_node->setDoubleValue( target_bank_deg );
 
-	    target_agl_m = wp.get_target_agl_m();
-	    target_msl_m = wp.get_target_alt_m();
+	    wp_agl_m = wp.get_target_agl_m();
+	    wp_msl_m = wp.get_target_alt_m();
 
 	    // estimate distance remaining to completion of route
 	    dist_remaining_m = nav_dist_m
@@ -417,19 +411,13 @@ void FGRouteMgr::update() {
 
     wp_dist_m->setFloatValue( direct_distance );
 
-    // update target altitude based on waypoint targets and possible
-    // overrides ... preference is given to agl if both agl & msl are
+    // update target altitude based on waypoint target altitudes if
+    // specified.  Preference is given to agl if both agl & msl are
     // set.
-    double override_agl_ft = override_agl_node->getDoubleValue();
-    double override_msl_ft = override_msl_node->getDoubleValue();
-    if ( override_agl_ft > 1.0 ) {
-	target_agl_node->setDoubleValue( override_agl_ft );
-    } else if ( override_msl_ft > 1.0 ) {
-	target_msl_node->setDoubleValue( override_msl_ft );
-    } else if ( target_agl_m > 1.0 ) {
-	target_agl_node->setDoubleValue( target_agl_m * SG_METER_TO_FEET );
-    } else if ( target_msl_m > 1.0 ) {
-	target_msl_node->setDoubleValue( target_msl_m * SG_METER_TO_FEET );
+    if ( wp_agl_m > 1.0 ) {
+	target_agl_node->setDoubleValue( wp_agl_m * SG_METER_TO_FEET );
+    } else if ( wp_msl_m > 1.0 ) {
+	target_msl_node->setDoubleValue( wp_msl_m * SG_METER_TO_FEET );
     }
 
     double gs_mps = groundspeed_node->getDoubleValue();

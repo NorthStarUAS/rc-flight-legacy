@@ -501,14 +501,14 @@ static void remote_link_execute_command( const string command ) {
         // specify an autopilot target
         if ( token[1] == "agl-ft" ) {
             double agl_ft = atof( token[2].c_str() );
-            SGPropertyNode *override_agl_node
-                = fgGetNode( "/autopilot/settings/override-agl-ft", true );
-            override_agl_node->setDoubleValue( agl_ft );
+            SGPropertyNode *target_agl_node
+                = fgGetNode( "/autopilot/settings/target-agl-ft", true );
+            target_agl_node->setDoubleValue( agl_ft );
         } else if ( token[1] == "msl-ft" ) {
             double msl_ft = atof( token[2].c_str() );
-            SGPropertyNode *override_msl_node
-                = fgGetNode( "/autopilot/settings/override-msl-ft", true );
-            override_msl_node->setDoubleValue( msl_ft );
+            SGPropertyNode *target_msl_node
+                = fgGetNode( "/autopilot/settings/target-msl-ft", true );
+            target_msl_node->setDoubleValue( msl_ft );
         } else if ( token[1] == "speed-kt" ) {
             double speed_kt = atof( token[2].c_str() );
             SGPropertyNode *speed_kt_node

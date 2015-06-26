@@ -103,9 +103,7 @@ private:
     SGPropertyNode *target_course_deg;
     SGPropertyNode *ap_roll_node;
     SGPropertyNode *target_agl_node;
-    SGPropertyNode *override_agl_node;
     SGPropertyNode *target_msl_node;
-    SGPropertyNode *override_msl_node;
     SGPropertyNode *target_waypoint;
     SGPropertyNode *wp_dist_m;
     SGPropertyNode *wp_eta_sec;
@@ -116,10 +114,6 @@ private:
     StartMode start_mode;
     FollowMode follow_mode;
     CompletionMode completion_mode;
-
-    // altitude overrides
-    bool msl_override;
-    bool agl_override;
 
     // stats
     double dist_remaining_m;
