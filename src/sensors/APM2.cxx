@@ -178,6 +178,7 @@ static float extern_amp_offset = 0.0;
 static float extern_amp_ratio = 0.1; // a nonsense value
 static float extern_amp_sum = 0.0;
 static float pitot_calibrate = 1.0;
+static bool reverse_imu_mount = false;
 
 static SGPropertyNode *act_config = NULL;
 static int last_ack_id = 0;
@@ -791,6 +792,13 @@ bool APM2_imu_init( string rootname, SGPropertyNode *config ) {
 
     bind_imu_output( rootname );
 
+    SGPropertyNode *rev = config->getChild("reverse-imu-mount");
+    if ( rev != NULL ) {
+	if ( rev->getBoolValue() ) {
+	    reverse_imu_mount = true;
+	}
+    }
+    
     SGPropertyNode *cal = config->getChild("calibration");
     if ( cal != NULL ) {
 	double min_temp = 27.0;
@@ -1586,6 +1594,14 @@ bool APM2_imu_update() {
 	double ay_raw = (double)imu_sensors[4] * accel_scale;
 	double az_raw = (double)imu_sensors[5] * accel_scale;
 	double temp_C = (double)imu_sensors[6] * temp_scale;
+
+	if ( reverse_imu_mount ) {
+	    // reverse roll/pitch gyros, and x/y accelerometers.
+	    p_raw = -p_raw;
+	    q_raw = -q_raw;
+	    ax_raw = -ax_raw;
+	    ay_raw = -ay_raw;
+	}
 
 	if ( imu_timestamp > last_imu_timestamp + 5.0 ) {
 	    imu_p_bias_node->setFloatValue( p_cal.eval_bias( temp_C ) );
