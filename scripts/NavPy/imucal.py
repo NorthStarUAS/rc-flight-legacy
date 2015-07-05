@@ -76,40 +76,46 @@ class Calibration():
         self.max_temp = self.myfloat(root.find('max-temp-C').text)
         
         node = root.find('p')
-        p1, p2, p3 = node.find('bias').text.split()
-        self.p_bias = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = node.find('scale').text.split()
-        self.p_scale = np.array([p1, p2, p3], dtype=np.float64)
+        if len(node):
+            p1, p2, p3 = node.find('bias').text.split()
+            self.p_bias = np.array([p1, p2, p3], dtype=np.float64)
+            p1, p2, p3 = node.find('scale').text.split()
+            self.p_scale = np.array([p1, p2, p3], dtype=np.float64)
 
         node = root.find('q')
-        p1, p2, p3 = node.find('bias').text.split()
-        self.q_bias = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = node.find('scale').text.split()
-        self.q_scale = np.array([p1, p2, p3], dtype=np.float64)
+        if len(node):
+            p1, p2, p3 = node.find('bias').text.split()
+            self.q_bias = np.array([p1, p2, p3], dtype=np.float64)
+            p1, p2, p3 = node.find('scale').text.split()
+            self.q_scale = np.array([p1, p2, p3], dtype=np.float64)
 
         node = root.find('r')
-        p1, p2, p3 = node.find('bias').text.split()
-        self.r_bias = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = node.find('scale').text.split()
-        self.r_scale = np.array([p1, p2, p3], dtype=np.float64)
+        if len(node):
+            p1, p2, p3 = node.find('bias').text.split()
+            self.r_bias = np.array([p1, p2, p3], dtype=np.float64)
+            p1, p2, p3 = node.find('scale').text.split()
+            self.r_scale = np.array([p1, p2, p3], dtype=np.float64)
 
         node = root.find('ax')
-        p1, p2, p3 = node.find('bias').text.split()
-        self.ax_bias = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = node.find('scale').text.split()
-        self.ax_scale = np.array([p1, p2, p3], dtype=np.float64)
+        if len(node):
+            p1, p2, p3 = node.find('bias').text.split()
+            self.ax_bias = np.array([p1, p2, p3], dtype=np.float64)
+            p1, p2, p3 = node.find('scale').text.split()
+            self.ax_scale = np.array([p1, p2, p3], dtype=np.float64)
 
         node = root.find('ay')
-        p1, p2, p3 = node.find('bias').text.split()
-        self.ay_bias = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = node.find('scale').text.split()
-        self.ay_scale = np.array([p1, p2, p3], dtype=np.float64)
+        if len(node):
+            p1, p2, p3 = node.find('bias').text.split()
+            self.ay_bias = np.array([p1, p2, p3], dtype=np.float64)
+            p1, p2, p3 = node.find('scale').text.split()
+            self.ay_scale = np.array([p1, p2, p3], dtype=np.float64)
 
         node = root.find('az')
-        p1, p2, p3 = node.find('bias').text.split()
-        self.az_bias = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = node.find('scale').text.split()
-        self.az_scale = np.array([p1, p2, p3], dtype=np.float64)
+        if len(node):
+            p1, p2, p3 = node.find('bias').text.split()
+            self.az_bias = np.array([p1, p2, p3], dtype=np.float64)
+            p1, p2, p3 = node.find('scale').text.split()
+            self.az_scale = np.array([p1, p2, p3], dtype=np.float64)
 
     def load(self, cal_file):
         extension = os.path.splitext(cal_file)[1]

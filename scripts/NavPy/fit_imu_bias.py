@@ -5,6 +5,7 @@ import os
 import sys
 import fileinput
 
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 import insgps_quat_15state
@@ -64,26 +65,27 @@ for i, row in enumerate(bias_data):
 
 print bias_array[:,1]
 
+nosave = imucal.Calibration()
 cal = imucal.Calibration()
 
-cal.p_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,2], 2, full=True )
-print "p coefficients = ", cal.p_bias
-print "p residual = ", res[0]
-cal.q_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,3], 2, full=True )
-print "q coefficients = ", cal.q_bias
-print "q residual = ", res[0]
-cal.r_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,4], 2, full=True )
-print "r coefficients = ", cal.r_bias
-print "r residual = ", res[0]
+nosave.p_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,2], 2, full=True )
+print "p coefficients = ", nosave.p_bias
+print "p residual = ", math.sqrt(res[0]/drl) * 180 / math.pi
+nosave.q_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,3], 2, full=True )
+print "q coefficients = ", nosave.q_bias
+print "q residual = ", math.sqrt(res[0]/drl) * 180 / math.pi
+nosave.r_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,4], 2, full=True )
+print "r coefficients = ", nosave.r_bias
+print "r residual = ", math.sqrt(res[0]/drl) * 180 / math.pi
 cal.ax_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,5], 2, full=True )
 print "ax coefficients = ", cal.ax_bias
-print "ax residual = ", res[0]
+print "ax residual = ", math.sqrt(res[0]/drl)
 cal.ay_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,6], 2, full=True )
 print "ay coefficients = ", cal.ay_bias
-print "ay residual = ", res[0]
+print "ay residual = ", math.sqrt(res[0]/drl)
 cal.az_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,7], 2, full=True )
 print "az coefficients = ", cal.az_bias
-print "az residual = ", res[0]
+print "az residual = ", math.sqrt(res[0]/drl)
 
 cal.min_temp = min_temp
 cal.max_temp = max_temp
@@ -104,17 +106,17 @@ def gen_func( coeffs, min, max, step ):
     return xvals, yvals
     
 cal_fig, cal_gyro = plt.subplots(3, sharex=True)
-xvals, yvals = gen_func(cal.p_bias, min_temp, max_temp, 0.1)
+xvals, yvals = gen_func(nosave.p_bias, min_temp, max_temp, 0.1)
 cal_gyro[0].plot(bias_array[:,1],np.rad2deg(bias_array[:,2]),'r.',xvals,np.rad2deg(yvals),label='Filter')
 cal_gyro[0].set_xlabel('Temp (C)')
 cal_gyro[0].set_ylabel('$b_{gx}$ (deg/s)')
 cal_gyro[0].set_title('Gyro Bias vs. Temp')
-xvals, yvals = gen_func(cal.q_bias, min_temp, max_temp, 0.1)
+xvals, yvals = gen_func(nosave.q_bias, min_temp, max_temp, 0.1)
 cal_gyro[1].plot(bias_array[:,1],np.rad2deg(bias_array[:,3]),'g.',xvals,np.rad2deg(yvals), label='Filter')
 cal_gyro[1].set_xlabel('Temp (C)')
 cal_gyro[1].set_ylabel('$b_{gy}$ (deg/s)')
 cal_gyro[1].set_title('Gyro Bias vs. Temp')
-xvals, yvals = gen_func(cal.r_bias, min_temp, max_temp, 0.1)
+xvals, yvals = gen_func(nosave.r_bias, min_temp, max_temp, 0.1)
 cal_gyro[2].plot(bias_array[:,1],np.rad2deg(bias_array[:,4]),'b.',xvals,np.rad2deg(yvals),'g', label='Filter')
 cal_gyro[2].set_xlabel('Temp (C)')
 cal_gyro[2].set_ylabel('$b_{gz}$ (deg/s)')

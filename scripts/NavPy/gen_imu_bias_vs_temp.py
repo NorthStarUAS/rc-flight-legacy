@@ -80,10 +80,11 @@ for line in fgps:
     # have a properly incrementing clock, it doens't really matter
     # what the zero reference point of time is.
     time, lat, lon, alt, vn, ve, vd, unixsec, sats, status = line.split()
-    gps = insgps_quat_15state.GPS( float(time), int(status), float(unixsec),
-                                   float(lat), float(lon), float(alt),
-                                   float(vn), float(ve), float(vd))
-    gps_data.append(gps)
+    if sats >= 4:
+        gps = insgps_quat_15state.GPS( float(time), int(status), float(unixsec),
+                                       float(lat), float(lon), float(alt),
+                                       float(vn), float(ve), float(vd))
+        gps_data.append(gps)
 if len(gps_data) == 0:
     print "No gps records loaded, cannot continue..."
     sys.exit()
