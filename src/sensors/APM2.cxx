@@ -106,9 +106,9 @@ static SGPropertyNode *imu_hx_node = NULL;
 static SGPropertyNode *imu_hy_node = NULL;
 static SGPropertyNode *imu_hz_node = NULL;
 static SGPropertyNode *imu_temp_node = NULL;
-static SGPropertyNode *imu_p_bias_node = NULL;
-static SGPropertyNode *imu_q_bias_node = NULL;
-static SGPropertyNode *imu_r_bias_node = NULL;
+//static SGPropertyNode *imu_p_bias_node = NULL;
+//static SGPropertyNode *imu_q_bias_node = NULL;
+//static SGPropertyNode *imu_r_bias_node = NULL;
 static SGPropertyNode *imu_ax_bias_node = NULL;
 static SGPropertyNode *imu_ay_bias_node = NULL;
 static SGPropertyNode *imu_az_bias_node = NULL;
@@ -221,9 +221,9 @@ static float analog[NUM_ANALOG_INPUTS];     // internal stash
 static bool airspeed_inited = false;
 static double airspeed_zero_start_time = 0.0;
 
-static UGCalibrate p_cal;
-static UGCalibrate q_cal;
-static UGCalibrate r_cal;
+//static UGCalibrate p_cal;
+//static UGCalibrate q_cal;
+//static UGCalibrate r_cal;
 static UGCalibrate ax_cal;
 static UGCalibrate ay_cal;
 static UGCalibrate az_cal;
@@ -542,9 +542,9 @@ static void bind_imu_output( string rootname ) {
     imu_hy_node = outputroot->getChild("hy", 0, true);
     imu_hz_node = outputroot->getChild("hz", 0, true);
     imu_temp_node = outputroot->getChild("temp_C", 0, true);
-    imu_p_bias_node = outputroot->getChild("p-bias", 0, true);
-    imu_q_bias_node = outputroot->getChild("q-bias", 0, true);
-    imu_r_bias_node = outputroot->getChild("r-bias", 0, true);
+    //imu_p_bias_node = outputroot->getChild("p-bias", 0, true);
+    //imu_q_bias_node = outputroot->getChild("q-bias", 0, true);
+    //imu_r_bias_node = outputroot->getChild("r-bias", 0, true);
     imu_ax_bias_node = outputroot->getChild("ax-bias", 0, true);
     imu_ay_bias_node = outputroot->getChild("ay-bias", 0, true);
     imu_az_bias_node = outputroot->getChild("az-bias", 0, true);
@@ -812,9 +812,9 @@ bool APM2_imu_init( string rootname, SGPropertyNode *config ) {
 	    max_temp = max_node->getFloatValue();
 	}
 	
-	p_cal.init( cal->getChild("p"), min_temp, max_temp );
-	q_cal.init( cal->getChild("q"), min_temp, max_temp );
-	r_cal.init( cal->getChild("r"), min_temp, max_temp );
+	//p_cal.init( cal->getChild("p"), min_temp, max_temp );
+	//q_cal.init( cal->getChild("q"), min_temp, max_temp );
+	//r_cal.init( cal->getChild("r"), min_temp, max_temp );
 	ax_cal.init( cal->getChild("ax"), min_temp, max_temp );
 	ay_cal.init( cal->getChild("ay"), min_temp, max_temp );
 	az_cal.init( cal->getChild("az"), min_temp, max_temp );
@@ -1604,18 +1604,18 @@ bool APM2_imu_update() {
 	}
 
 	if ( imu_timestamp > last_imu_timestamp + 5.0 ) {
-	    imu_p_bias_node->setFloatValue( p_cal.eval_bias( temp_C ) );
-	    imu_q_bias_node->setFloatValue( q_cal.eval_bias( temp_C ) );
-	    imu_r_bias_node->setFloatValue( r_cal.eval_bias( temp_C ) );
+	    //imu_p_bias_node->setFloatValue( p_cal.eval_bias( temp_C ) );
+	    //imu_q_bias_node->setFloatValue( q_cal.eval_bias( temp_C ) );
+	    //imu_r_bias_node->setFloatValue( r_cal.eval_bias( temp_C ) );
 	    imu_ax_bias_node->setFloatValue( ax_cal.eval_bias( temp_C ) );
 	    imu_ay_bias_node->setFloatValue( ay_cal.eval_bias( temp_C ) );
 	    imu_az_bias_node->setFloatValue( az_cal.eval_bias( temp_C ) );
 	    last_imu_timestamp = imu_timestamp;
 	}
 
-	imu_p_node->setDoubleValue( p_cal.calibrate(p_raw, temp_C) );
-	imu_q_node->setDoubleValue( q_cal.calibrate(q_raw, temp_C) );
-	imu_r_node->setDoubleValue( r_cal.calibrate(r_raw, temp_C) );
+	imu_p_node->setDoubleValue( p_raw );
+	imu_q_node->setDoubleValue( q_raw );
+	imu_r_node->setDoubleValue( r_raw );
 	imu_ax_node->setDoubleValue( ax_cal.calibrate(ax_raw, temp_C) );
 	imu_ay_node->setDoubleValue( ay_cal.calibrate(ay_raw, temp_C) );
 	imu_az_node->setDoubleValue( az_cal.calibrate(az_raw, temp_C) );
