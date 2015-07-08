@@ -7,7 +7,7 @@ import re
 
 import numpy as np
 import matplotlib.pyplot as plt
-import insgps_quat_15state
+import insgps_quat_15state as EKF
 import navpy
 
 import imucal
@@ -45,27 +45,17 @@ if flight_path == None:
 imu_file = flight_path + "/imu.txt"
 imucal_file = flight_path + "/imucal.xml"
 gps_file = flight_path + "/gps.txt"
+filter_file = flight_path + "/filter.txt"
 imu_bias_file = flight_path + "/imubias.txt"
 
 imu_data = []
 fimu = fileinput.input(imu_file)
 for line in fimu:
     time, p, q, r, ax, ay, az, hx, hy, hz, temp, status = line.split()
-    if False:
-        # values for 4/28/2015
-        ax_bias = 0.060
-        ay_bias = -0.320
-        az_bias = 0.725
-        ax_scale = 1.000
-        ay_scale = 0.993
-        az_scale = 0.982
-        ax = float(ax) / ax_scale + ax_bias
-        ay = float(ay) / ay_scale + ay_bias
-        az = float(az) / az_scale + az_bias
-    imu = insgps_quat_15state.IMU( float(time), int(status),
-                                   float(p), float(q), float(r),
-                                   float(ax), float(ay), float(az),
-                                   float(temp) )
+    imu = EKF.IMU( float(time), int(status),
+                   float(p), float(q), float(r),
+                   float(ax), float(ay), float(az),
+                   float(temp) )
 
     imu_data.append( imu )
 if len(imu_data) == 0:
@@ -81,7 +71,7 @@ for line in fgps:
     # what the zero reference point of time is.
     time, lat, lon, alt, vn, ve, vd, unixsec, sats, status = line.split()
     if sats >= 4:
-        gps = insgps_quat_15state.GPS( float(time), int(status), float(unixsec),
+        gps = EKF.GPS( float(time), int(status), float(unixsec),
                                        float(lat), float(lon), float(alt),
                                        float(vn), float(ve), float(vd))
         gps_data.append(gps)
@@ -89,13 +79,23 @@ if len(gps_data) == 0:
     print "No gps records loaded, cannot continue..."
     sys.exit()
 
+# load filter records if they exist (for comparison purposes)
+filter_data = []
+ffilter = fileinput.input(filter_file)
+for line in ffilter:
+    time, lat, lon, alt, vn, ve, vd, phi, the, psi, status = line.split()
+    filter_data.append( np.array([time, lat, lon, alt, vn, ve, vd,
+                                   phi, the, psi]) )
+filter_array =  np.nan*np.ones((len(filter_data),len(filter_data[0])))
+for i, row in enumerate(filter_data):
+    filter_array[i,:] = row[:]
 
 # Back Correct the Calibration to get raw values
 if back_correct:
     cal = imucal.Calibration(imucal_file)
-    imu_corrected = cal.back_correct(imu_data)
+    imu_raw = cal.back_correct(imu_data)
 else:
-    imu_corrected = imu_data
+    imu_raw = imu_data
 
 # =========================== Results ===============================
 drl = len(imu_data)
@@ -121,11 +121,11 @@ idx_init = []
 
 # =============================== MAIN LOOP ====================================
 
-filter = insgps_quat_15state.Filter()
+filter = EKF.Filter()
 
 gps_index = 1
 nav_init = False
-for i, imu in enumerate(imu_corrected):
+for i, imu in enumerate(imu_raw):
     # walk the gps counter forward as needed
     if imu.time >= gps_data[gps_index].time:
         gps_index += 1
@@ -133,7 +133,7 @@ for i, imu in enumerate(imu_corrected):
         # no more gps data, stick on the last record
         gps_index = len(gps_data)-1
     gps = gps_data[gps_index-1]
-    # print "t(imu) = " + str(imu.time) + " t(gps) = " + str(gps.time)
+    #print "t(imu) = " + str(imu.time) + " t(gps) = " + str(gps.time)
 
     # update the filter
     plot_time[i] = imu.time
@@ -160,6 +160,10 @@ for i, imu in enumerate(imu_corrected):
     stateInnov[i,:] = est.stateInnov[:]
 
 psi, theta, phi = navpy.quat2angle(estATT[:,0],estATT[:,1:4],output_unit='deg')
+for i, a in enumerate(psi):
+    if psi[i] < 0:
+        psi[i] += 360
+    
 
 # Calculate Attitude Error
 delta_att = np.nan*np.zeros((drl,3))
@@ -171,6 +175,9 @@ for i in range(0,drl):
     dC = C2.dot(C1.T)-np.eye(3)
     # dC contains delta angle. To match delta quaternion, divide by 2.
     delta_att[i,:] = [-dC[1,2]/2.0, dC[0,2]/2.0, -dC[0,1]/2.0]
+
+print "idx_init[0]: ", idx_init[0]
+print "len(estPOS): ", len(estPOS)
 
 lat_ref = estPOS[idx_init[0],0]
 lon_ref = estPOS[idx_init[0],1]
@@ -264,16 +271,19 @@ vel_ax[2,1].set_xlabel('Time (sec)')
 
 att_fig, att_ax = plt.subplots(3,2, sharex=True)
 #att_ax[0,0].plot(plot_time[istart:istop],np.rad2deg(flight_data.phi[istart:istop]),label='True')
-att_ax[0,0].plot(plot_time[istart:istop],phi[istart:istop],'r',label='Filter')
+att_ax[0,0].plot(plot_time[istart:istop],phi[istart:istop],'r',label='UMN EKF')
+att_ax[0,0].plot(filter_array[:,0],filter_array[:,7],'b',label='APM EKF')
 att_ax[0,0].set_ylabel(r'$phi$ (deg)')
 att_ax[0,0].legend()
 
 #att_ax[1,0].plot(plot_time[istart:istop],np.rad2deg(flight_data.theta[istart:istop]),label='True')
-att_ax[1,0].plot(plot_time[istart:istop],theta[istart:istop],'r',label='Filter')
+att_ax[1,0].plot(plot_time[istart:istop],theta[istart:istop],'r',label='UMN EKF')
+att_ax[1,0].plot(filter_array[:,0],filter_array[:,8],'b',label='APM EKF')
 att_ax[1,0].set_ylabel(r'$theta$ (deg)')
 
 #att_ax[2,0].plot(plot_time[istart:istop],np.rad2deg(flight_data.psi[istart:istop]),label='True')
-att_ax[2,0].plot(plot_time[istart:istop],psi[istart:istop],'r',label='Filter')
+att_ax[2,0].plot(plot_time[istart:istop],psi[istart:istop],'r',label='UMN EKF')
+att_ax[2,0].plot(filter_array[:,0],filter_array[:,9],'b',label='APM EKF')
 att_ax[2,0].set_ylabel(r'$psi$ (deg)')
 
 att_ax[0,1].plot(plot_time[istart:istop],np.rad2deg(delta_att[istart:istop,0]),'r')

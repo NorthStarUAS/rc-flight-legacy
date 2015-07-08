@@ -3,10 +3,12 @@
 import os.path
 import sys
 import fileinput
+import copy
 
+import math
 import numpy as np
 import matplotlib.pyplot as plt
-import insgps_quat_15state
+import insgps_quat_15state as EKF
 import navpy
 
 import imucal
@@ -45,7 +47,7 @@ def run_filter(imu_data, gps_data):
     idx_init = []
 
     # Main Loop
-    filter = insgps_quat_15state.Filter()
+    filter = EKF.Filter()
 
     gps_index = 1
     nav_init = False
@@ -313,42 +315,33 @@ def plot_accel_temp_bias(estAB):
     cal_accel[2].set_title('Accel Bias vs. Temp')
 
 
-def scale_optimizer(sensor, cal, imu_data, gps_data):
+# original (mostly) iterative optimizer
+def scale_optimizer1(sensor, imu_raw, gps_data):
+    cal = imucal.Calibration()
     print "Solving for best scale factor: ", sensor
-    if sensor == "p":
-        start = cal.p_scale
-    elif sensor == "q":
-        start = cal.q_scale
-    elif sensor == "r":
-        start = cal.r_scale
-    elif sensor == "ax":
-        start = cal.ax_scale
-    elif sensor == "ay":
-        start = cal.ay_scale
-    elif sensor == "az":
-        start = cal.az_scale
-    max = 0.05
+    start = 1.0
+    max = 0.10
     
     best_res = None
     best_scale = None
     for i in range(0,2):
-        for scale in np.arange(start-max, start+max, max/5):
+        for scale in np.arange(start-max, start+max, max/5.0):
             print "  testing scale factor: ", scale
 
             # update calibration
             if sensor == "p":
-                cal.p_scale = scale
+                cal.p_scale = np.array([0.0, 0.0, scale])
             elif sensor == "q":
-                cal.q_scale = scale
+                cal.q_scale = np.array([0.0, 0.0, scale])
             elif sensor == "r":
-                cal.r_scale = scale
+                cal.r_scale = np.array([0.0, 0.0, scale])
             elif sensor == "ax":
-                cal.ax_scale = scale
+                cal.ax_scale = np.array([0.0, 0.0, scale])
             elif sensor == "ay":
-                cal.ay_scale = scale
+                cal.ay_scale = np.array([0.0, 0.0, scale])
             elif sensor == "az":
-                cal.az_scale = scale
-            imu_corrected = cal.correct(imu_data)
+                cal.az_scale = np.array([0.0, 0.0, scale])
+            imu_corrected = cal.correct(imu_raw)
 
             # run the main filter with the temp compensation
             estPOS, estVEL, estATT, estAB, estGB, Pp, Pvel, Patt, Pab, Pgb, stateInnov, plot_time, idx_init, filter_ned, ref_ned, psi, theta, phi, delta_att = run_filter(imu_corrected, gps_data)
@@ -366,31 +359,175 @@ def scale_optimizer(sensor, cal, imu_data, gps_data):
             elif sensor == "az":
                 dep_data = estAB[:,2]
             bias, res, _, _, _ = np.polyfit( estAB[:,3], dep_data, 2, full=True )
-            print "  residual = ", res
+            print "  residual = ", res[0]
 
-            if best_res == None or res < best_res:
-                best_res = res
+            if best_res == None or res[0] < best_res:
+                best_res = res[0]
                 best_scale = scale
                 print "  better scale = %.4f (res = %.3f)" % (best_scale, best_res)
         start = best_scale
         max = max / 5
     print "  best scale = ", best_scale
     print "  best residual = ", best_res
-
-    if sensor == "p":
-        cal.p_scale = best_scale
-    elif sensor == "q":
-        cal.q_scale = best_scale
-    elif sensor == "r":
-        cal.r_scale = best_scale
-    elif sensor == "ax":
-        cal.ax_scale = best_scale
-    elif sensor == "ay":
-        cal.ay_scale = best_scale
-    elif sensor == "az":
-        cal.az_scale = best_scale
+    return best_scale
 
         
+# testing the idea of optimizing the sum of the gyro residuals when
+# modifying a single gyro, and the same idea for accelerometers
+#
+# this one seems to "tip" in the sense of finding a really small value
+# for one axis and a very large value for another axis and not really
+# finding the correct balance.
+def scale_optimizer2(sensor, cal, imu_data, gps_data):
+    print "Solving for best scale factor: ", sensor
+    start = 1.0
+    max = 0.10
+    
+    best_res = None
+    best_scale = None
+    for i in range(0,3):
+        for scale in np.arange(start-max, start+max, max/5.0):
+            print "  testing scale factor: ", scale
+
+            # update calibration
+            if sensor == "p":
+                cal.p_scale = np.array([0.0, 0.0, scale])
+            elif sensor == "q":
+                cal.q_scale = np.array([0.0, 0.0, scale])
+            elif sensor == "r":
+                cal.r_scale = np.array([0.0, 0.0, scale])
+            elif sensor == "ax":
+                cal.ax_scale = np.array([0.0, 0.0, scale])
+            elif sensor == "ay":
+                cal.ay_scale = np.array([0.0, 0.0, scale])
+            elif sensor == "az":
+                cal.az_scale = np.array([0.0, 0.0, scale])
+            imu_corrected = cal.correct(imu_data)
+
+            # run the main filter with the temp compensation
+            estPOS, estVEL, estATT, estAB, estGB, Pp, Pvel, Patt, Pab, Pgb, stateInnov, plot_time, idx_init, filter_ned, ref_ned, psi, theta, phi, delta_att = run_filter(imu_corrected, gps_data)
+
+            if sensor == "p" or sensor == "q" or sensor == "r":
+                bias, p_res, _, _, _ = np.polyfit( estAB[:,3], estGB[:,0], 2, full=True )
+                bias, q_res, _, _, _ = np.polyfit( estAB[:,3], estGB[:,1], 2, full=True )
+                bias, r_res, _, _, _ = np.polyfit( estAB[:,3], estGB[:,2], 2, full=True )
+                variance = (p_res*p_res + q_res*q_res + r_res*r_res) / 3.0
+            elif sensor == "ax" or sensor == "ay" or sensor == "az":
+                bias, ax_res, _, _, _ = np.polyfit( estAB[:,3], estAB[:,0], 2, full=True )
+                bias, ay_res, _, _, _ = np.polyfit( estAB[:,3], estAB[:,1], 2, full=True )
+                bias, az_res, _, _, _ = np.polyfit( estAB[:,3], estAB[:,2], 2, full=True )
+                variance = (ax_res*ax_res + ay_res*ay_res + az_res*az_res) / 3.0
+            res = math.sqrt(variance)
+            print "  residual res = %.5f" % res
+
+            if best_res == None or res < best_res:
+                best_res = res
+                best_scale = scale
+                print "  better scale = %.4f (res = %.4f)" % (best_scale, best_res)
+        start = best_scale
+        max = max / 5
+    print "  best scale = ", best_scale
+    print "  best residual = ", best_res
+
+    #if sensor == "p":
+    #    cal.p_scale = np.array([0.0, 0.0, best_scale])
+    #elif sensor == "q":
+    #    cal.q_scale = np.array([0.0, 0.0, best_scale])
+    #elif sensor == "r":
+    #    cal.r_scale = np.array([0.0, 0.0, best_scale])
+    #elif sensor == "ax":
+    #    cal.ax_scale = np.array([0.0, 0.0, best_scale])
+    #elif sensor == "ay":
+    #    cal.ay_scale = np.array([0.0, 0.0, best_scale])
+    #elif sensor == "az":
+    #    cal.az_scale = np.array([0.0, 0.0, best_scale])
+
+    return best_scale
+
+# iterative optimizer (minimizing innovation 'white noise')
+#
+# this one also seems to "tip" in the sense of finding a really small value
+# for one axis and a very large value for another axis and not really
+# finding the correct balance.
+def scale_optimizer3(sensor, origcal, imu_data, gps_data):
+    print "Solving for best scale factor: ", sensor
+
+    cal = copy.copy(origcal)
+    start = 1.0
+    max = 0.10
+    
+    best_res = None
+    best_scale = None
+    for i in range(0,3):
+        for scale in np.arange(start-max, start+max, max/5.0):
+            print "  testing scale factor: ", scale
+
+            # update calibration
+            if sensor == "p":
+                cal.p_scale = np.array([0.0, 0.0, scale])
+            elif sensor == "q":
+                cal.q_scale = np.array([0.0, 0.0, scale])
+            elif sensor == "r":
+                cal.r_scale = np.array([0.0, 0.0, scale])
+            elif sensor == "ax":
+                cal.ax_scale = np.array([0.0, 0.0, scale])
+            elif sensor == "ay":
+                cal.ay_scale = np.array([0.0, 0.0, scale])
+            elif sensor == "az":
+                cal.az_scale = np.array([0.0, 0.0, scale])
+            imu_corrected = cal.correct(imu_data)
+
+            # run the main filter with the temp compensation
+            estPOS, estVEL, estATT, estAB, estGB, Pp, Pvel, Patt, Pab, Pgb, stateInnov, plot_time, idx_init, filter_ned, ref_ned, psi, theta, phi, delta_att = run_filter(imu_corrected, gps_data)
+
+            istart = 0
+            while math.isnan(stateInnov[istart,0]):
+                istart += 1
+            
+            if sensor == "p":
+                dep_data = stateInnov[istart:,0]
+            elif sensor == "q":
+                dep_data = stateInnov[istart:,1]
+            elif sensor == "r":
+                dep_data = stateInnov[istart:,2]
+            elif sensor == "ax":
+                dep_data = stateInnov[istart:,3]
+            elif sensor == "ay":
+                dep_data = stateInnov[istart:,4]
+            elif sensor == "az":
+                dep_data = stateInnov[istart:,5]
+            #print "dep_data = ", dep_data
+            #print "square = ", np.square(dep_data)
+            #print "sum = ", np.sum( np.square(dep_data) )
+            res = math.sqrt( np.sum( np.square(dep_data) ) / len(dep_data) )
+            print "  res = ", res
+
+            if best_res == None or res < best_res:
+                best_res = res
+                best_scale = scale
+                print "  better scale = %.4f (res = %.4f)" % (best_scale, best_res)
+        start = best_scale
+        max = max / 5
+    print "  best scale = ", best_scale
+    print "  best residual = ", best_res
+
+    #if sensor == "p":
+    #    cal.p_scale = np.array([0.0, 0.0, best_scale])
+    #elif sensor == "q":
+    #    cal.q_scale = np.array([0.0, 0.0, best_scale])
+    #elif sensor == "r":
+    #    cal.r_scale = np.array([0.0, 0.0, best_scale])
+    #elif sensor == "ax":
+    #    cal.ax_scale = np.array([0.0, 0.0, best_scale])
+    #elif sensor == "ay":
+    #    cal.ay_scale = np.array([0.0, 0.0, best_scale])
+    #elif sensor == "az":
+    #    cal.az_scale = np.array([0.0, 0.0, best_scale])
+
+    return best_scale
+
+        
+
 # ===========================================================================
 # Start of script
 # ===========================================================================
@@ -404,17 +541,17 @@ flight_path = sys.argv[1]
 imu_file = flight_path + "/imu.txt"
 gps_file = flight_path + "/gps.txt"
 imu_bias_file = flight_path + "/imubias.txt"
-cal_file = flight_path + "/../imucal.xml"
-cal_file_per_flight = flight_path + "/imucal-local.txt"
+cal_file = flight_path + "/imucal.xml"
+cal_file_per_flight = flight_path + "/imucal-scale.xml"
 
 imu_data = []
 fimu = fileinput.input(imu_file)
 for line in fimu:
     time, p, q, r, ax, ay, az, hx, hy, hz, temp, status = line.split()
-    imu = insgps_quat_15state.IMU( float(time), int(status),
-                                   float(p), float(q), float(r),
-                                   float(ax), float(ay), float(az),
-                                   float(temp) )
+    imu = EKF.IMU( float(time), int(status),
+                   float(p), float(q), float(r),
+                   float(ax), float(ay), float(az),
+                   float(temp) )
     imu_data.append( imu )
 if len(imu_data) == 0:
     print "No imu records loaded, cannot continue..."
@@ -428,20 +565,21 @@ for line in fgps:
     # have a properly incrementing clock, it doens't really matter
     # what the zero reference point of time is.
     time, lat, lon, alt, vn, ve, vd, unixsec, sats, status = line.split()
-    gps = insgps_quat_15state.GPS( float(time), int(status), float(unixsec),
-                                   float(lat), float(lon), float(alt),
-                                   float(vn), float(ve), float(vd))
-    gps_data.append(gps)
+    if sats >= 4:
+        gps = EKF.GPS( float(time), int(status), float(unixsec),
+                       float(lat), float(lon), float(alt),
+                       float(vn), float(ve), float(vd))
+        gps_data.append(gps)
 if len(gps_data) == 0:
     print "No gps records loaded, cannot continue..."
     sys.exit()
 
 # load the group calibration structure
 cal = imucal.Calibration(cal_file)
-imu_corrected = cal.correct(imu_data)
+imu_raw = cal.back_correct(imu_data)
 
-print "First run with global bias offsets to establish a baseline"
-estPOS, estVEL, estATT, estAB, estGB, Pp, Pvel, Patt, Pab, Pgb, stateInnov, plot_time, idx_init, filter_ned, ref_ned, psi, theta, phi, delta_att = run_filter(imu_corrected, gps_data)
+print "First run with raw data to establish a baseline"
+estPOS, estVEL, estATT, estAB, estGB, Pp, Pvel, Patt, Pab, Pgb, stateInnov, plot_time, idx_init, filter_ned, ref_ned, psi, theta, phi, delta_att = run_filter(imu_raw, gps_data)
 
 bias, res, _, _, _ = np.polyfit( estGB[:,3], estGB[:,0], 2, full=True )
 print "p scale = ", cal.p_scale
@@ -462,57 +600,70 @@ bias, res, _, _, _ = np.polyfit( estAB[:,3], estAB[:,2], 2, full=True )
 print "az scale = ", cal.az_scale
 print "az residual = ", res[0]
 
-# optimize the sensor scales individually
-scale_optimizer("p", cal, imu_data, gps_data)
-scale_optimizer("q", cal, imu_data, gps_data)
-scale_optimizer("r", cal, imu_data, gps_data)
-scale_optimizer("ax", cal, imu_data, gps_data)
-scale_optimizer("ay", cal, imu_data, gps_data)
-scale_optimizer("az", cal, imu_data, gps_data)
+# generate plots
+do_plots = False
+if do_plots:
+    drl = len(imu_data)
+    nsig = 3
+    istart = idx_init[0]
+    istop = drl
+    plot_position(ref_ned, filter_ned)
+    plot_velocities(plot_time, estVEL, Pvel)
+    plot_attitudes(plot_time, phi, theta, psi, delta_att, Patt)
+    plot_accel_biases(plot_time, estAB)
+    plot_gyro_biases(plot_time, estGB)
+    plot_gyro_temp_bias(estGB)
+    plot_accel_temp_bias(estAB)
+    plot_innovation(plot_time, stateInnov)
+    plt.show()
 
-imu_corrected = cal.correct(imu_data)
-cal.save(cal_file_per_flight)
+# optimize the sensor scales individually (feed in starting
+# calibration "cal" and update "newcal"
+scale = scale_optimizer1("p", imu_raw, gps_data)
+cal.p_scale = np.array([0.0, 0.0, scale])
+scale = scale_optimizer1("q", imu_raw, gps_data)
+cal.q_scale = np.array([0.0, 0.0, scale])
+scale = scale_optimizer1("r", imu_raw, gps_data)
+cal.r_scale = np.array([0.0, 0.0, scale])
+scale = scale_optimizer1("ax", imu_raw, gps_data)
+cal.ax_scale = np.array([0.0, 0.0, scale])
+scale = scale_optimizer1("ay", imu_raw, gps_data)
+cal.ay_scale = np.array([0.0, 0.0, scale])
+scale = scale_optimizer1("az", imu_raw, gps_data)
+cal.az_scale = np.array([0.0, 0.0, scale])
+
+cal.save_xml(cal_file_per_flight)
+imu_corrected = cal.correct(imu_raw)
 
 print "2nd run with scale values"
 estPOS, estVEL, estATT, estAB, estGB, Pp, Pvel, Patt, Pab, Pgb, stateInnov, plot_time, idx_init, filter_ned, ref_ned, psi, theta, phi, delta_att = run_filter(imu_corrected, gps_data)
 
 bias, res, _, _, _ = np.polyfit( estGB[:,3], estGB[:,0], 2, full=True )
-print "p scale = ", cal.p_scale
+print "p scale = ", newcal.p_scale
 print "p residual = ", res[0]
 bias, res, _, _, _ = np.polyfit( estGB[:,3], estGB[:,1], 2, full=True )
-print "q scale = ", cal.q_scale
+print "q scale = ", newcal.q_scale
 print "q residual = ", res[0]
 bias, res, _, _, _ = np.polyfit( estGB[:,3], estGB[:,2], 2, full=True )
-print "r scale = ", cal.r_scale
+print "r scale = ", newcal.r_scale
 print "r residual = ", res[0]
 bias, res, _, _, _ = np.polyfit( estAB[:,3], estAB[:,0], 2, full=True )
-print "ax scale = ", cal.ax_scale
+print "ax scale = ", newcal.ax_scale
 print "ax residual = ", res[0]
 bias, res, _, _, _ = np.polyfit( estAB[:,3], estAB[:,1], 2, full=True )
-print "ay scale = ", cal.ay_scale
+print "ay scale = ", newcal.ay_scale
 print "ay residual = ", res[0]
 bias, res, _, _, _ = np.polyfit( estAB[:,3], estAB[:,2], 2, full=True )
-print "az scale = ", cal.az_scale
+print "az scale = ", newcal.az_scale
 print "az residual = ", res[0]
 
-# write output imu vs temp bias file
-#min_vel = 5 # mps
-#f = open(imu_bias_file, 'w')
-#i = idx_init[0]
-#while i < istop:
-#    vn = estVEL[i,0]
-#    ve = estVEL[i,1]
-#    vel = np.sqrt(vn*vn + ve*ve)
-#    if vel >= min_vel:
-#        f.write( "%.3f %.1f %.4f %.4f %.4f %.4f %.4f %.4f\n" %
-#                 (plot_time[i], estGB[i,3], estGB[i,0], estGB[i,1], estGB[i,2],
-#                  estAB[i,0], estAB[i,1], estAB[i,2]) )
-#    i += 1
-#f.close()
-
 # generate plots
-do_plots = True
+do_plots = False
 if do_plots:
+    drl = len(imu_data)
+    nsig = 3
+    istart = idx_init[0]
+    istop = drl
     plot_position(ref_ned, filter_ned)
     plot_velocities(plot_time, estVEL, Pvel)
     plot_attitudes(plot_time, phi, theta, psi, delta_att, Patt)

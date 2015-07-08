@@ -199,9 +199,9 @@ class Calibration():
             newimu = copy.copy(imu)
             t = imu.temp
             if t < self.min_temp:
-                t = min_temp
+                t = self.min_temp
             if t > self.max_temp:
-                t = max_temp    
+                t = self.max_temp    
             newimu.p = (imu.p - p_bias_func(t)) * p_scale_func(t)
             newimu.q = (imu.q - q_bias_func(t)) * q_scale_func(t)
             newimu.r = (imu.r - r_bias_func(t)) * r_scale_func(t)
