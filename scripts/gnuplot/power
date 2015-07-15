@@ -8,5 +8,5 @@ plot "pilot.txt" using 1:4 with lines axis x1y2 title "Pilot Throttle", \
      "act.txt" using 1:4 with lines axis x1y2 title "AP Throttle", \
      "health.txt" using 1:3 with lines title "Avionics VCC", \
      "health.txt" using 1:4 with lines title "Main Volts", \
-     "health.txt" using 1:5 with lines title "Amp Draw", \
-     "health.txt" using 1:($6/1000) with lines title "Total AH"
+     "health.txt" using 1:6 with lines title "Amp Draw", \
+     "health.txt" using 1:($7/1000) with lines title "Total AH"
