@@ -1788,11 +1788,15 @@ bool APM2_airdata_update() {
 	// This yields a theoretical maximum speed sensor reading of
 	// about 81mps (156 kts)
 
-	// hard coded (probably should use constants from the config file,
-	// or zero itself out on init.)
-	analog0_filter = 0.95 * analog0_filter + 0.05 * analog[0];
-	//printf("analog0 = %.2f (analog[0] = %.2f)\n", analog0_filter, analog[0]);
-	float Pa = (analog0_filter - analog0_offset) * 5.083;
+	// hard coded filter (probably should use constants from the
+	// config file, or zero itself out on init.)
+	analog0_filter = 0.9 * analog0_filter + 0.1 * analog[0];
+
+	// choose between using raw pitot value or filtered pitot value
+	float analog0 = analog[0];
+	// float analog0 = analog0_filt;
+	
+	float Pa = (analog0 - analog0_offset) * 5.083;
 	if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
 	float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
 	float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
