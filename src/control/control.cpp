@@ -147,6 +147,21 @@ void control_update(double dt)
     // for now.
     route_mgr->reposition_if_necessary();
 
+    // log auto/manual mode changes
+    static bool last_ap_mode = false;
+    if ( ap_master_switch_node->getBoolValue() != last_ap_mode ) {
+	if ( event_log_on ) {
+	    string ap_master_str;
+	    if ( ap_master_switch_node->getBoolValue() ) {
+		ap_master_str = "autopilot";
+	    } else {
+		ap_master_str = "manual flight";
+	    }
+	    event_log( "Master control switch:", ap_master_str.c_str() );
+	}
+	last_ap_mode = ap_master_switch_node->getBoolValue();
+    }
+    
     static string last_fcs_mode = "";
     string fcs_mode = fcs_mode_node->getStringValue();
     if ( ap_master_switch_node->getBoolValue() ) {
