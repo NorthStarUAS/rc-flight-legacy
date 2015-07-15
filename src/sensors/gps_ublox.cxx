@@ -301,9 +301,6 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 		time.tv_sec = floor(unixSecs);
 		time.tv_usec = floor(unixFract * 1000000.);
 		settimeofday(&time, NULL);
-		// first time through, restamp this packet with the
-		// "reset" system time to avoid a huge dt
-		gps_timestamp_node->setDoubleValue( get_Time(true) );
 	    }
 #endif
 	}
@@ -377,7 +374,6 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    fulltime.tv_sec = unix_sec;
 	    fulltime.tv_usec = nano / 1000;
 	    settimeofday( &fulltime, NULL );
-	    get_Time( true ); 	// reset precise clock timer to zero
 	}
     } else if ( msg_class == 0x01 && msg_id == 0x30 ) {
 	// NAV-SVINFO (partial parse)

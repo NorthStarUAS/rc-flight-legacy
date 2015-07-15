@@ -404,7 +404,6 @@ static bool parse_nmea_msg( char *payload, int size )
 		fulltime.tv_sec = sec;
 		fulltime.tv_usec = usec;
 		settimeofday( &fulltime, NULL );
-		get_Time( true ); 	// reset precise clock timer to zero
 	    }
 
 	    dd = atof( token[3].substr(0, 2).c_str() );

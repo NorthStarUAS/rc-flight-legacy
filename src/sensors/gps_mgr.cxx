@@ -240,9 +240,6 @@ bool GPS_update() {
 		if ( settimeofday( &newtime, NULL ) != 0 ) {
 		    // failed to change system clock
 		    perror("Set time");
-		} else {
-		    // success
-		    get_Time( true ); // reset precise clock timer to zero
 		}
 	    }
 

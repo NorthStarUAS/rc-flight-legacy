@@ -277,7 +277,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 		settimeofday(&time, NULL);
 		// first time through, restamp this packet with the
 		// "reset" system time to avoid a huge dt
-		gps_timestamp_node->setDoubleValue( get_Time(true) );
+		gps_timestamp_node->setDoubleValue( get_Time() );
 	    }
 #endif
 	}
@@ -348,7 +348,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    fulltime.tv_sec = unix_sec;
 	    fulltime.tv_usec = nano / 1000;
 	    settimeofday( &fulltime, NULL );
-	    get_Time( true ); 	// reset precise clock timer to zero
+	    get_Time(); 	// reset precise clock timer to zero
 	}
 #endif
     } else if ( msg_class == 0x01 && msg_id == 0x30 ) {

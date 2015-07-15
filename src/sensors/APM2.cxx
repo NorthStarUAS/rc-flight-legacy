@@ -1580,7 +1580,7 @@ bool APM2_update() {
 
 
 bool APM2_imu_update() {
-    static double last_imu_timestamp = -1000.0;
+    static double last_imu_timestamp = 0.0;
     
     APM2_update();
 
@@ -1695,16 +1695,9 @@ static double MTK16_date_time_to_unix_sec( int gdate, float gtime ) {
 
 
 bool APM2_gps_update() {
-    static double last_timestamp = 0.0;
-
     APM2_update();
 
     if ( !gps_inited ) {
-	return false;
-    }
-
-    double dt = gps_sensors.timestamp - last_timestamp;
-    if ( dt < 0.001 ) {
 	return false;
     }
 
@@ -1725,8 +1718,6 @@ bool APM2_gps_update() {
 					            gps_sensors.time );
     gps_unix_sec_node->setDoubleValue( unix_secs );
 
-    last_timestamp = gps_sensors.timestamp;
-
     return true;
 }
 
@@ -1735,7 +1726,6 @@ bool APM2_airdata_update() {
     APM2_update();
 
     bool fresh_data = false;
-    static double last_time = 0.0;
     static double analog0_sum = 0.0;
     static int analog0_count = 0;
     static float analog0_offset = 0.0;
@@ -1743,10 +1733,6 @@ bool APM2_airdata_update() {
 
     if ( airdata_inited ) {
 	double cur_time = airdata.timestamp;
-
-	if ( cur_time <= last_time ) {
-	    return false;
-	}
 
 	if ( ! airspeed_inited ) {
 	    if ( airspeed_zero_start_time > 0 ) {
@@ -1810,8 +1796,6 @@ bool APM2_airdata_update() {
 	airdata_climb_rate_fps_node->setDoubleValue( airdata.climb_rate * SG_METER_TO_FEET );
 
 	fresh_data = true;
-
-	last_time = cur_time;
     }
 
     return fresh_data;
