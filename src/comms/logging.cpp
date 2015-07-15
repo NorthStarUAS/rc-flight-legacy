@@ -83,7 +83,7 @@ bool logging_init() {
         return false;
     }
 
-    file = flight_dir; file.append( "events.dat" );
+    file = flight_dir; file.append( "events.txt" );
     if ( (fevent = fopen( file.c_str(), "w" )) == NULL ) {
 	printf("Cannot open %s\n", file.c_str());
 	return false;
