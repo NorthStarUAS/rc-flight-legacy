@@ -125,6 +125,7 @@ static SGPropertyNode *gps_vn_node = NULL;
 static SGPropertyNode *gps_vd_node = NULL;
 static SGPropertyNode *gps_unix_sec_node = NULL;
 static SGPropertyNode *gps_satellites_node = NULL;
+static SGPropertyNode *gps_pdop_node = NULL;
 static SGPropertyNode *gps_status_node = NULL;
 
 // pilot input property nodes
@@ -200,10 +201,10 @@ struct gps_sensors_t {
     int32_t latitude;
     int32_t longitude;
     int32_t altitude;
-    uint16_t ground_speed;
-    uint16_t ground_course;
-    // int32_t speed_3d;
-    int16_t hdop;
+    int16_t vel_north;
+    int16_t vel_east;
+    int16_t vel_down;
+    int16_t pdop;
     uint8_t num_sats;
     uint8_t status;
 } gps_sensors;
@@ -571,6 +572,7 @@ static void bind_gps_output( string rootname ) {
     gps_vd_node = outputroot->getChild("vd-ms", 0, true);
     gps_satellites_node = outputroot->getChild("satellites", 0, true);
     gps_status_node = outputroot->getChild("status", 0, true);
+    gps_pdop_node = outputroot->getChild("pdop", 0, true);
     gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
 
     gps_inited = true;
@@ -987,17 +989,17 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	}
     } else if ( pkt_id == GPS_PACKET_ID ) {
-	if ( pkt_len == 28 ) {
+	if ( pkt_len == 30 ) {
 	    gps_sensors.timestamp = get_Time();
 	    gps_sensors.time = *(uint32_t *)payload; payload += 4;
 	    gps_sensors.date = *(uint32_t *)payload; payload += 4;
 	    gps_sensors.latitude = *(int32_t *)payload; payload += 4;
 	    gps_sensors.longitude = *(int32_t *)payload; payload += 4;
 	    gps_sensors.altitude = *(int32_t *)payload; payload += 4;
-	    gps_sensors.ground_speed = *(uint16_t *)payload; payload += 2;
-	    gps_sensors.ground_course = *(uint16_t *)payload; payload += 2;
-	    // gps_sensors.speed_3d = *(int32_t *)payload; payload += 4;
-	    gps_sensors.hdop = *(int16_t *)payload; payload += 2;
+	    gps_sensors.vel_north = *(int16_t *)payload; payload += 2;
+	    gps_sensors.vel_east = *(int16_t *)payload; payload += 2;
+	    gps_sensors.vel_down = *(int16_t *)payload; payload += 2;
+	    gps_sensors.pdop = *(int16_t *)payload; payload += 2;
 	    gps_sensors.num_sats = *(uint8_t *)payload; payload += 1;
 	    gps_sensors.status = *(uint8_t *)payload; payload += 1;
 
@@ -1639,9 +1641,10 @@ static double ublox_date_time_to_unix_sec( int week, float gtime ) {
     double unixSecs = julianDate * 86400.0;
 
     // hardcoded handling of leap seconds
-    unixSecs -= 16.0;
+    unixSecs -= 17.0;
 
-    // printf("unix time = %.0f\n", unixSecs);
+    /* printf("unix time from gps = %.0f system = %.0f\n", unixSecs,
+       system("date +%s")); */
 
     return unixSecs;
 }
@@ -1693,7 +1696,6 @@ static double MTK16_date_time_to_unix_sec( int gdate, float gtime ) {
 
 bool APM2_gps_update() {
     static double last_timestamp = 0.0;
-    static double last_alt_m = -9999.9;
 
     APM2_update();
 
@@ -1713,27 +1715,11 @@ bool APM2_gps_update() {
     gps_lon_node->setDoubleValue(gps_sensors.longitude / 10000000.0);
     double alt_m = gps_sensors.altitude / 100.0;
     gps_alt_node->setDoubleValue( alt_m );
-
-    // compute horizontal speed components
-    double speed_mps = gps_sensors.ground_speed * 0.01;
-    double angle_rad = (90.0 - gps_sensors.ground_course*0.01)
-	* SGD_DEGREES_TO_RADIANS;
-    gps_vn_node->setDoubleValue( sin(angle_rad) * speed_mps );
-    gps_ve_node->setDoubleValue( cos(angle_rad) * speed_mps );
-
-    // compute vertical speed
-    double vspeed_mps = 0.0;
-    double da = 0.0;
-    if ( last_alt_m > -1000.0 ) {
-	da = alt_m - last_alt_m;
-    }
-    // dt should be safely non zero for a divide or we wouldn't be here
-    vspeed_mps = da / dt;
-    gps_vd_node->setDoubleValue( -vspeed_mps );
-    last_alt_m = alt_m;
-
-    //gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+    gps_vn_node->setDoubleValue( gps_sensors.vel_north * 0.01 );
+    gps_ve_node->setDoubleValue( gps_sensors.vel_east * 0.01 );
+    gps_vd_node->setDoubleValue( gps_sensors.vel_down * 0.01 );
     gps_satellites_node->setIntValue(gps_sensors.num_sats);
+    gps_pdop_node->setFloatValue(gps_sensors.pdop * 0.01);
     gps_status_node->setIntValue( gps_sensors.status );
     double unix_secs = ublox_date_time_to_unix_sec( gps_sensors.date,
 					            gps_sensors.time );
