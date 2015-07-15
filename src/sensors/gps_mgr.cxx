@@ -11,6 +11,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include "comms/display.h"
 #include "comms/logging.h"
@@ -39,6 +40,7 @@ static double gps_last_time = -31557600.0; // default to t minus one year old
 
 // gps property nodes
 static SGPropertyNode *gps_timestamp_node = NULL;
+static SGPropertyNode *gps_unix_sec_node = NULL;
 static SGPropertyNode *gps_status_node = NULL;
 static SGPropertyNode *gps_magvar_deg_node = NULL;
 static SGPropertyNode *gps_settle_node = NULL;
@@ -56,6 +58,7 @@ static bool set_system_time = false;
 
 void GPS_init() {
     gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
+    gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
     gps_status_node = fgGetNode("/sensors/gps/status", true);
     gps_magvar_deg_node = fgGetNode("/sensors/gps/magvar-deg", true);
     gps_settle_node = fgGetNode("/sensors/gps/settle", true);
@@ -212,6 +215,38 @@ bool GPS_update() {
 	    // initialize magnetic variation
 	    compute_magvar();
 
+	    // set the host system clock if we have a unix-time-sec
+	    // value and if that seems substantially newer than the
+	    // host clock
+	    struct timeval system_time;
+	    gettimeofday( &system_time, NULL );
+	    double system_clock = (double)system_time.tv_sec +
+		(double)system_time.tv_usec / 1000000;
+	    double gps_clock = gps_unix_sec_node->getDoubleValue();
+	    if ( fabs( system_clock - gps_clock ) > 300 ) {
+		// if system clock is off from gps clock by more than
+		// 300 seconds (5 minutes) attempt to set system clock
+		// from gps clock
+		struct timeval newtime;
+		newtime.tv_sec = gps_clock;
+		newtime.tv_usec = (gps_clock - (double)newtime.tv_sec)
+		    * 1000000;
+		if ( display_on ) {
+		    printf("System clock: %.2f\n", system_clock);
+		    printf("GPS clock: %.2ff\n", gps_clock);
+		    printf("Setting system clock to sec: %d usec: %d\n",
+			   newtime.tv_sec, newtime.tv_usec);
+		}
+		if ( settimeofday( &newtime, NULL ) != 0 ) {
+		    // failed to change system clock
+		    perror("Set time");
+		} else {
+		    // success
+		    get_Time( true ); // reset precise clock timer to zero
+		}
+	    }
+
+	    
 	    if ( display_on ) {
 		printf("[gps_mgr] gps ready, magvar = %.2f (deg)\n",
 		       gps_magvar_deg_node->getDoubleValue() );
