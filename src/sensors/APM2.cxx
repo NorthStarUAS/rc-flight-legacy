@@ -38,6 +38,7 @@
 #define GPS_PACKET_ID 52
 #define BARO_PACKET_ID 53
 #define ANALOG_PACKET_ID 54
+#define CONFIG_INFO_PACKET_ID 55
 
 #define ACT_COMMAND_PACKET_ID 60
 
@@ -83,6 +84,8 @@ static SGPropertyNode *APM2_amp_offset_node = NULL;
 static SGPropertyNode *APM2_amp_ratio_node = NULL;
 static SGPropertyNode *APM2_analog_nodes[NUM_ANALOG_INPUTS];
 static SGPropertyNode *APM2_pitot_calibrate_node = NULL;
+
+// additional sensor info nodes (reported back from APM2)
 static SGPropertyNode *APM2_extern_volt_node = NULL;
 static SGPropertyNode *APM2_extern_cell_volt_node = NULL;
 static SGPropertyNode *APM2_extern_amp_node = NULL;
@@ -93,6 +96,10 @@ static SGPropertyNode *APM2_imu_packet_count_node = NULL;
 static SGPropertyNode *APM2_gps_packet_count_node = NULL;
 static SGPropertyNode *APM2_baro_packet_count_node = NULL;
 static SGPropertyNode *APM2_analog_packet_count_node = NULL;
+static SGPropertyNode *APM2_info_serial_number_node = NULL;
+static SGPropertyNode *APM2_info_firmware_node = NULL;
+static SGPropertyNode *APM2_info_master_hz_node = NULL;
+static SGPropertyNode *APM2_info_baud_node = NULL;
 
 // imu property nodes
 static SGPropertyNode *imu_timestamp_node = NULL;
@@ -106,9 +113,6 @@ static SGPropertyNode *imu_hx_node = NULL;
 static SGPropertyNode *imu_hy_node = NULL;
 static SGPropertyNode *imu_hz_node = NULL;
 static SGPropertyNode *imu_temp_node = NULL;
-//static SGPropertyNode *imu_p_bias_node = NULL;
-//static SGPropertyNode *imu_q_bias_node = NULL;
-//static SGPropertyNode *imu_r_bias_node = NULL;
 static SGPropertyNode *imu_ax_bias_node = NULL;
 static SGPropertyNode *imu_ay_bias_node = NULL;
 static SGPropertyNode *imu_az_bias_node = NULL;
@@ -734,6 +738,8 @@ static bool APM2_open() {
     if ( APM2_pitot_calibrate_node != NULL ) {
 	pitot_calibrate = APM2_pitot_calibrate_node->getFloatValue();
     }
+
+    // extra info node
     APM2_extern_volt_node = fgGetNode("/sensors/APM2/extern-volt", true);
     APM2_extern_cell_volt_node = fgGetNode("/sensors/APM2/extern-cell-volt", true);
     APM2_extern_amp_node = fgGetNode("/sensors/APM2/extern-amps", true);
@@ -749,6 +755,11 @@ static bool APM2_open() {
 	= fgGetNode("/sensors/APM2/baro-packet-count", true);
     APM2_analog_packet_count_node
 	= fgGetNode("/sensors/APM2/analog-packet-count", true);
+    APM2_info_serial_number_node
+	= fgGetNode("/sensors/APM2/serial-number", true);
+    APM2_info_firmware_node = fgGetNode("/sensors/APM2/firmware-rev", true);
+    APM2_info_master_hz_node = fgGetNode("/sensors/APM2/master-hz", true);
+    APM2_info_baud_node = fgGetNode("/sensors/APM2/baud-rate", true);
 
     int baud_bits = B115200;
     if ( baud == 115200 ) {
@@ -1103,6 +1114,48 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    if ( display_on ) {
 		printf("APM2: packet size mismatch in analog input\n");
 	    }
+	}
+    } else if ( pkt_id == CONFIG_INFO_PACKET_ID ) {
+	static bool first_time = true;
+	if ( pkt_len == 10 ) {
+	    uint16_t serial_num = *(uint16_t *)payload; payload += 2;
+	    uint16_t firmware_rev = *(uint16_t *)payload; payload += 2;
+	    uint16_t master_hz = *(uint16_t *)payload; payload += 2;
+	    uint32_t baud_rate = *(uint32_t *)payload; payload += 4;
+
+#if 0
+	    if ( display_on ) {
+		printf("info %d %d %d %d\n", serial_num, firmware_rev,
+		       master_hz, baud_rate);
+	    }
+#endif
+		      
+	    APM2_info_serial_number_node->setIntValue( serial_num );
+	    APM2_info_firmware_node->setIntValue( firmware_rev );
+	    APM2_info_master_hz_node->setIntValue( master_hz );
+	    APM2_info_baud_node->setIntValue( baud_rate );
+
+	    if ( first_time ) {
+		// log the data to events.txt
+		first_time = false;
+		char buf[32];
+		snprintf( buf, 32, "%d", serial_num );
+		event_log("APM2 Serial Number: ", buf );
+		snprintf( buf, 32, "%d", firmware_rev );
+		event_log("APM2 Firmware Revision: ", buf );
+		snprintf( buf, 32, "%d", master_hz );
+		event_log("APM2 Master Hz: ", buf );
+		snprintf( buf, 32, "%d", baud_rate );
+		event_log("APM2 Baud Rate: ", buf );
+	    }
+	} else {
+	    if ( display_on ) {
+		printf("APM2: packet size mismatch in config info\n");
+	    }
+	}
+    } else {
+	if ( display_on ) {
+	    printf("APM2: unknown packet id = %d\n", pkt_id);
 	}
     }
 
