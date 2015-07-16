@@ -429,7 +429,7 @@ static void json_add( string *reply, string fmt, int value, bool comma = true ) 
 void
 WSChannel::process_line( string line )
 {
-    cout << "processing line = \"" << line << "\"" << endl;
+    // cout << "processing line = \"" << line << "\"" << endl;
     // printf("processing line = '%s' (%d)\n", line.c_str(), (int)line.length());
 
     vector<string> tokens = split( line );
