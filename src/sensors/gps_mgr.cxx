@@ -233,7 +233,7 @@ bool GPS_update() {
 		    * 1000000;
 		if ( display_on ) {
 		    printf("System clock: %.2f\n", system_clock);
-		    printf("GPS clock: %.2ff\n", gps_clock);
+		    printf("GPS clock: %.2f\n", gps_clock);
 		    printf("Setting system clock to sec: %d usec: %d\n",
 			   newtime.tv_sec, newtime.tv_usec);
 		}
