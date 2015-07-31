@@ -186,39 +186,51 @@ static void update_pressure_helpers() {
     // 2. Filter/Smooth Altitude and airspeed to reduce noise
     //
 
-    float Ps = alt_m; /* pressure_alt_node->getFloatValue(); */
     float Pt = airdata_airspeed_node->getFloatValue();
+    float Ps = alt_m; /* pressure_alt_node->getFloatValue(); */
     float filter_alt_m = filter_alt_node->getFloatValue();
 
     // Do a simple first order (time based) low pass filter to reduce noise
-    float time_factor = 0.10;  // length of time (sec) to low pass
-			       // filter the input over.  A time value
-			       // of zero will result in the filter
-			       // output being equal to the raw input at
-			       // each time step.
-    float weight_factor;
-    if ( time_factor > 0.0 ) {
-	weight_factor = dt / time_factor;
+
+    // Time factor (tf): length of time (sec) to low pass filter the
+    // input over.  A time value of zero will result in the filter
+    // output being equal to the raw input at each time step.
+    float tf_speed = 0.25;
+    float tf_alt   = 0.10;
+
+    // Weight factor (wf): the actual low pass filter value for the
+    // current dt.
+    float wf_speed;
+    if ( tf_speed > 0.0 ) {
+	wf_speed = dt / tf_speed;
     } else {
-	weight_factor = 1.0;
+	wf_speed = 1.0;
     }
+    float wf_alt;
+    if ( tf_alt > 0.0 ) {
+	wf_alt = dt / tf_alt;
+    } else {
+	wf_alt = 1.0;
+    }
+    
     // The greater the weight, the noisier the filter, but the faster
     // it converges.  Must be > 0.0 or value will never converge.  Max
     // weight is 1.0 which means we just use the raw input value with
-    // no filtering.
-    if ( weight_factor < 0.001 ) {
-	weight_factor = 0.001;
-    }
-    if ( weight_factor > 1.0 ) {
-	weight_factor = 1.0;
-    }
-    pressure_alt_filt = (1.0 - weight_factor) * pressure_alt_filt + weight_factor * Ps;
-    airspeed_filt = (1.0 - weight_factor) * airspeed_filt + weight_factor * Pt;
+    // no filtering.  Min weight is 0.0 which means we do not change
+    // the filtered value (but might drift over time with numerical
+    // rounding.)
+    if ( wf_speed < 0.0 ) { wf_speed = 0.0; }
+    if ( wf_speed > 1.0 ) { wf_speed = 1.0; }
+    if ( wf_alt < 0.0 )   { wf_alt = 0.0;   }
+    if ( wf_alt > 1.0 )   { wf_alt = 1.0;   }
+
+    airspeed_filt = (1.0 - wf_speed) * airspeed_filt + wf_speed * Pt;
+    pressure_alt_filt = (1.0 - wf_alt) * pressure_alt_filt + wf_alt * Ps;
 
     // publish values
-    pressure_alt_smoothed_node->setDoubleValue( pressure_alt_filt );
     airspeed_node->setDoubleValue( Pt /* raw */ );
     airspeed_smoothed_node->setDoubleValue( airspeed_filt /* smoothed */ );
+    pressure_alt_smoothed_node->setDoubleValue( pressure_alt_filt );
 
     //
     // 3. Compute a filtered error difference between gps altitude and
