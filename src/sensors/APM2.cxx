@@ -1829,7 +1829,7 @@ bool APM2_airdata_update() {
 
 	// hard coded filter (probably should use constants from the
 	// config file, or zero itself out on init.)
-	analog0_filter = 0.9 * analog0_filter + 0.1 * analog[0];
+	analog0_filter = 0.95 * analog0_filter + 0.05 * analog[0];
 
 	// choose between using raw pitot value or filtered pitot value
 	float analog0 = analog[0];
