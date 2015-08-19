@@ -151,7 +151,7 @@ FGPIDController::FGPIDController( SGPropertyNode *node ):
  * delta_u : The incremental output
  * Kp      : Proportional gain
  * ep      : Proportional error with reference weighing
- *           ep = beta * r - y
+ *           ep = beta * (r - y)
  *           where:
  *           beta : Weighing factor
  *           r    : Reference (setpoint)
