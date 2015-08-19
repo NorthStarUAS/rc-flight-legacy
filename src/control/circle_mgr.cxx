@@ -109,20 +109,22 @@ bool AuraCircleMgr::update() {
     SGWayPoint target = SGWayPoint( coord_lon_node->getDoubleValue(),
 				    coord_lat_node->getDoubleValue() );
 
+    // compute course and distance to center of target circle
     double course_deg;
     double dist_m;
     target.CourseAndDistance( lon_node->getDoubleValue(),
 			      lat_node->getDoubleValue(),
 			      0.0, &course_deg, &dist_m );
 
-    // compute ideal ground course if at ideal radius
+    // compute ideal ground course to be on the circle perimeter if at
+    // ideal radius
     double ideal_crs = course_deg + direction * 90;
     if ( ideal_crs > 360.0 ) { ideal_crs -= 360.0; }
     if ( ideal_crs < 0.0 ) { ideal_crs += 360.0; }
 
     // (in)sanity check
     double radius_m = radius_node->getDoubleValue();
-    if ( radius_m < 10.0 ) { radius_m = 10.0; }
+    if ( radius_m < 25.0 ) { radius_m = 25.0; }
 
     // compute a target ground course based on our actual radius distance
     double target_crs = ideal_crs;
@@ -159,10 +161,27 @@ bool AuraCircleMgr::update() {
     double course_error = groundtrack_node->getDoubleValue() - target_crs;
     if ( course_error < -180.0 ) { course_error += 360.0; }
     if ( course_error >  180.0 ) { course_error -= 360.0; }
+    // accel: is the lateral acceleration we need to compensate for
+    // heading error
     double accel = 2.0 * sin(course_error * SG_DEGREES_TO_RADIANS) * VomegaA;
     // double accel = 2.0 * gs_mps * gs_mps * sin(course_error * SG_DEGREES_TO_RADIANS) / L1;
+
+    // ideal_accel: the steady state lateral accel we would expect
+    // when we are in the groove exactly on our target radius
     double ideal_accel = direction * gs_mps * gs_mps / radius_m;
-    double total_accel = ideal_accel + accel;
+
+    // circling acceleration needed for our current distance from center
+    double turn_accel = direction * gs_mps * gs_mps / dist_m;
+
+    // old way over turns when tracking inbound from a long distance
+    // away
+    // double total_accel = accel + ideal_accel;
+    
+    // compute desired acceleration = acceleration required for course
+    // correction + acceleration required to maintain turn at current
+    // distance from center.
+    double total_accel = accel + turn_accel;
+
     static const double gravity = 9.81; // m/sec^2
     double target_bank = -atan( total_accel / gravity );
     double target_bank_deg = target_bank * SG_RADIANS_TO_DEGREES;
