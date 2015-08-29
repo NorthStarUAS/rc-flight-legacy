@@ -195,8 +195,8 @@ static void update_pressure_helpers() {
     // Time factor (tf): length of time (sec) to low pass filter the
     // input over.  A time value of zero will result in the filter
     // output being equal to the raw input at each time step.
-    float tf_speed = 0.25;
-    float tf_alt   = 0.10;
+    float tf_speed = 0.5;
+    float tf_alt   = 0.1;
 
     // Weight factor (wf): the actual low pass filter value for the
     // current dt.
