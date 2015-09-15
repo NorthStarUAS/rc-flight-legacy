@@ -16,10 +16,6 @@
 #include "comms/remote_link.h"
 #include "comms/logging.h"
 #include "filters/curt/adns_curt.hxx"
-//#ifdef ENABLE_MNAV_FILTER
-//#  include "filters/mnav/ahrs.h"
-//#  include "filters/mnav/nav.h"
-//#endif // ENABLE_MNAV_FILTER
 #include "filters/umngnss_euler/umngnss_euler.h"
 #include "filters/umngnss_quat/umngnss_quat.h"
 #include "include/globaldefs.h"
@@ -145,15 +141,6 @@ void Filter_init() {
 	    
 	    if ( module == "curt" ) {
 		curt_adns_init( basename );
-// #ifdef ENABLE_MNAV_FILTER
-// 	    } else if ( module == "mnav" ) {
-// 		// Initialize AHRS code.  Must be called before
-// 		// ahrs_update() or ahrs_close()
-// 		mnav_ahrs_init( basename, section );
-// 		// Initialize the NAV code.  Must be called before
-// 		// nav_update() or nav_close()
-// 		mnav_nav_init( basename );
-// #endif // ENABLE_MNAV_FILTER
 	    } else if ( module == "umn-euler" ) {
 		umngnss_euler_init( basename, section );
 	    } else if ( module == "umn-quat" ) {
@@ -395,36 +382,6 @@ bool Filter_update() {
 		// do nothing
 	    } else if ( module == "curt" ) {
 		fresh_filter_data = curt_adns_update( imu_dt );
-// #ifdef ENABLE_MNAV_FILTER
-// 	    } else if ( module == "mnav" ) {
-// 		static int mnav_nav_counter = 0;
-
-// 		mnav_nav_counter++;
-// 		struct imu imupacket;
-// 		imupacket.time = imu_time;
-// 		imupacket.p = imu_p_node->getDoubleValue();
-// 		imupacket.q = imu_q_node->getDoubleValue();
-// 		imupacket.r = imu_r_node->getDoubleValue();
-// 		imupacket.ax = imu_ax_node->getDoubleValue();
-// 		imupacket.ay = imu_ay_node->getDoubleValue();
-// 		imupacket.az = imu_az_node->getDoubleValue();
-// 		imupacket.hx = imu_hx_node->getDoubleValue();
-// 		imupacket.hy = imu_hy_node->getDoubleValue();
-// 		imupacket.hz = imu_hz_node->getDoubleValue();
-
-// 		// Run the MNAV AHRS algorithm.
-// 		mnav_ahrs_update( &imupacket );
-
-// 		if ( mnav_nav_counter >= 2 ) {
-// 		    // navigation at half the rate of ahrs (assumes ahrs
-// 		    // update @ 50hz and nav update @ 25hz.)  Compute a
-// 		    // location estimate based on gps and accelerometer
-// 		    // data.
-// 		    mnav_nav_counter = 0;
-// 		    mnav_nav_update( &imupacket );
-// 		}
-// 		fresh_filter_data = true;
-// #endif // ENABLE_MNAV_FILTER
 	    } else if ( module == "umn-euler" ) {
 		fresh_filter_data = umngnss_euler_update();
 	    } else if ( module == "umn-quat" ) {
@@ -482,11 +439,6 @@ void Filter_close() {
 	    }
 	    if ( module == "null" ) {
 		// do nothing
-// #ifdef ENABLE_MNAV_FILTER
-// 	    } else if ( module == "mnav" ) {
-// 		mnav_ahrs_close();
-// 		mnav_nav_close();
-// #endif // ENABLE_MNAV_FILTER
 	    } else if ( module == "umn-euler" ) {
 		umngnss_euler_close();
 	    } else if ( module == "umn-quat" ) {
