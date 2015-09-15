@@ -20,7 +20,6 @@
 
 #include "sensors/APM2.hxx"
 #include "sensors/imu_fgfs.hxx"
-#include "sensors/imu_sf6DOFv4.hxx"
 #include "sensors/imu_vn100_spi.hxx"
 #include "sensors/imu_vn100_uart.hxx"
 #include "sensors/ugfile.hxx"
@@ -78,8 +77,6 @@ void IMU_init() {
 		fgfs_imu_init( basename, section );
 	    } else if ( source == "file" ) {
 		ugfile_imu_init( basename, section );
-	    } else if ( source == "sf6DOFv4" ) {
-		sf_6DOFv4_imu_init( basename, section );
 	    } else if ( source == "vn100" ) {
 		imu_vn100_uart_init( basename, section );
 	    } else if ( source == "vn100-spi" ) {
@@ -123,8 +120,6 @@ bool IMU_update() {
 	    } else if ( source == "file" ) {
 		ugfile_read();
 		fresh_data = ugfile_get_imu();
-	    } else if ( source == "sf6DOFv4" ) {
-		fresh_data = sf_6DOFv4_get_imu();
 	    } else if ( source == "vn100" ) {
 		fresh_data = imu_vn100_uart_get();
 	    } else if ( source == "vn100-spi" ) {
@@ -183,8 +178,6 @@ void IMU_close() {
 		fgfs_imu_close();
 	    } else if ( source == "file" ) {
 		ugfile_close();
-	    } else if ( source == "sf6DOFv4" ) {
-		sf_6DOFv4_close();
 	    } else if ( source == "vn100" ) {
 		imu_vn100_uart_close();
 	    } else if ( source == "vn100-spi" ) {
