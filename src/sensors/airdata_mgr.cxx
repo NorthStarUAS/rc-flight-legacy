@@ -405,6 +405,39 @@ bool AirData_update() {
 }
 
 
+void AirData_recalibrate() {
+    // traverse configured modules
+    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
+    for ( int i = 0; i < toplevel->nChildren(); ++i ) {
+	SGPropertyNode *section = toplevel->getChild(i);
+	string name = section->getName();
+	if ( name == "airdata" ) {
+	    string source = section->getChild("source", 0, true)->getStringValue();
+	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    if ( !enabled ) {
+		continue;
+	    }
+	    string basename = "/sensors/";
+	    basename += section->getDisplayName();
+	    // printf("i = %d  name = %s source = %s %s\n",
+	    //	   i, name.c_str(), source.c_str(), basename.c_str());
+	    if ( source == "null" ) {
+		// do nothing
+	    } else if ( source == "APM2" ) {
+		APM2_airdata_zero_airspeed();
+	    } else if ( source == "ardupilot" ) {
+		// do nothing
+	    } else if ( source == "fgfs" ) {
+		// do nothing
+	    } else {
+		printf("Unknown air data source = '%s' in config file\n",
+		       source.c_str());
+	    }
+	}
+    }
+}
+
+
 void AirData_close() {
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
