@@ -4,7 +4,7 @@ LowPassFilter::LowPassFilter( float time_factor ) :
     filter_value( 0.0 )
 {
    _time_factor = time_factor;
- }
+}
 
 LowPassFilter::~LowPassFilter() {}
 
