@@ -176,7 +176,6 @@ static bool actuator_inited = false;
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
 static int baud = 230400;
-static int act_pwm_rate_hz = 50;
 static float volt_div_ratio = 100; // a nonsense value
 static int battery_cells = 4;
 static float extern_amp_offset = 0.0;
@@ -1852,6 +1851,15 @@ bool APM2_airdata_update() {
     }
 
     return fresh_data;
+}
+
+
+// force an airspeed zero calibration (ideally with the aircraft on
+// the ground with the pitot tube perpendicular to the prevailing
+// wind.)
+void APM2_airdata_zero_airspeed() {
+    airspeed_inited = false;
+    airspeed_zero_start_time = 0.0;
 }
 
 
