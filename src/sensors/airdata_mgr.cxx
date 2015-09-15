@@ -408,6 +408,10 @@ void AirData_recalibrate() {
 	    }
 	}
     }
+    // mark these as requiring calibrate so they will be reinited
+    // starting with current values
+    airdata_calibrated = false;
+    alt_error_calibrated = false;
 }
 
 
