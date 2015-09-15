@@ -17,6 +17,7 @@
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 #include "props/props.hxx"
+#include "util/lowpass.hxx"
 #include "util/myprof.h"
 
 #include "APM2.hxx"
@@ -29,11 +30,14 @@
 // Global variables
 //
 
-static float pressure_alt_filt = 0.0;
-static float airspeed_filt = 0.0;
+// initial values are the 'time factor'
+static LowPassFilter pressure_alt_filt( 0.1 );
+static LowPassFilter ground_alt_filt( 30.0 );
+static LowPassFilter airspeed_filt( 0.5 );
+static LowPassFilter Ps_filt_err( 300.0 );
+static LowPassFilter climb_filt( 1.0 );
+
 static float true_alt_m = 0.0;
-static float climb_filt = 0.0;
-static float Ps_filt_err = 0.0;
 
 // air data property nodes
 static SGPropertyNode *airdata_timestamp_node = NULL;
@@ -65,9 +69,16 @@ static SGPropertyNode *true_oat_node = NULL;
 static SGPropertyNode *airdata_console_skip = NULL;
 static SGPropertyNode *airdata_logging_skip = NULL;
 
+// mission nodes
+static SGPropertyNode *is_airborne_node = NULL;
+
 static myprofile debug2b1;
 static myprofile debug2b2;
 
+// 1. ground altitude, 2. error between pressure altitude and gps altitude
+static bool airdata_calibrated = false;
+static bool alt_error_calibrated = false;
+    
 void AirData_init() {
     debug2b1.set_name("debug2b1 airdata update");
     debug2b2.set_name("debug2b2 airdata console link");
@@ -107,6 +118,9 @@ void AirData_init() {
     airdata_console_skip = fgGetNode("/config/remote-link/airdata-skip", true);
     airdata_logging_skip = fgGetNode("/config/logging/airdata-skip", true);
 
+    // initialize mission nodes
+    is_airborne_node = fgGetNode("/task/is-airborne", true);
+ 
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
@@ -143,7 +157,6 @@ static void update_pressure_helpers() {
     static float pressure_alt_filt_last = 0.0;
     static double last_time = 0.0;
     double cur_time = airdata_timestamp_node->getDoubleValue();
-    static double start_time = cur_time;
 
     double dt = cur_time - last_time;
     if ( dt > 1.0 ) {
@@ -190,73 +203,44 @@ static void update_pressure_helpers() {
     float Ps = alt_m; /* pressure_alt_node->getFloatValue(); */
     float filter_alt_m = filter_alt_node->getFloatValue();
 
-    // Do a simple first order (time based) low pass filter to reduce noise
-
-    // Time factor (tf): length of time (sec) to low pass filter the
-    // input over.  A time value of zero will result in the filter
-    // output being equal to the raw input at each time step.
-    float tf_speed = 0.5;
-    float tf_alt   = 0.1;
-
-    // Weight factor (wf): the actual low pass filter value for the
-    // current dt.
-    float wf_speed;
-    if ( tf_speed > 0.0 ) {
-	wf_speed = dt / tf_speed;
-    } else {
-	wf_speed = 1.0;
-    }
-    float wf_alt;
-    if ( tf_alt > 0.0 ) {
-	wf_alt = dt / tf_alt;
-    } else {
-	wf_alt = 1.0;
+    if ( !airdata_calibrated ) {
+	airdata_calibrated = true;
+	airspeed_filt.init( Pt );
+	pressure_alt_filt.init( Ps );
+	ground_alt_filt.init( Ps );
+	climb_filt.init( 0.0 );
     }
     
-    // The greater the weight, the noisier the filter, but the faster
-    // it converges.  Must be > 0.0 or value will never converge.  Max
-    // weight is 1.0 which means we just use the raw input value with
-    // no filtering.  Min weight is 0.0 which means we do not change
-    // the filtered value (but might drift over time with numerical
-    // rounding.)
-    if ( wf_speed < 0.0 ) { wf_speed = 0.0; }
-    if ( wf_speed > 1.0 ) { wf_speed = 1.0; }
-    if ( wf_alt < 0.0 )   { wf_alt = 0.0;   }
-    if ( wf_alt > 1.0 )   { wf_alt = 1.0;   }
+    airspeed_filt.update( Pt, dt );
+    pressure_alt_filt.update( Ps, dt );
+    if ( ! is_airborne_node->getBoolValue() ) {
+	// ground reference altitude averaged current altitude over
+	// first 30 seconds while on the ground
+	ground_alt_filt.update( Ps, dt );
+    }
 
-    airspeed_filt = (1.0 - wf_speed) * airspeed_filt + wf_speed * Pt;
-    pressure_alt_filt = (1.0 - wf_alt) * pressure_alt_filt + wf_alt * Ps;
 
     // publish values
     airspeed_node->setDoubleValue( Pt /* raw */ );
-    airspeed_smoothed_node->setDoubleValue( airspeed_filt /* smoothed */ );
-    pressure_alt_smoothed_node->setDoubleValue( pressure_alt_filt );
+    airspeed_smoothed_node->setDoubleValue( airspeed_filt.get_value() );
+    pressure_alt_smoothed_node->setDoubleValue( pressure_alt_filt.get_value() );
+    ground_alt_press_m_node->setDoubleValue( ground_alt_filt.get_value() );
 
     //
     // 3. Compute a filtered error difference between gps altitude and
     //    pressure altitude.
     //
 
-    double elapsed_time = cur_time - start_time;
-    if ( elapsed_time > 300 ) {
-	elapsed_time = 300;	// 5 minutes
-    }
-    static bool first_time = true;
-    if ( first_time ) {
+    if ( !alt_error_calibrated ) {
 	if ( (string)filter_navigation_node->getStringValue() == "valid" ) {
-	    first_time = false;
-	    Ps_filt_err = filter_alt_m - Ps;
+	    alt_error_calibrated = true;
+	    Ps_filt_err.init( filter_alt_m - Ps );
 	}
     } else {
-	if ( elapsed_time >= dt && elapsed_time >= 0.001 ) {
-	    float alt_err = filter_alt_m - Ps;
-	    Ps_filt_err = ((elapsed_time - dt) * Ps_filt_err + dt * alt_err)
-		/ elapsed_time;
-	    // printf("cnt = %.0f err = %.2f\n", Ps_count, Ps_filt_err);
-	}
+	Ps_filt_err.update( filter_alt_m - Ps, dt );
 
 	// best guess at true altitude
-	true_alt_m = pressure_alt_filt + Ps_filt_err;
+	true_alt_m = pressure_alt_filt.get_value() + Ps_filt_err.get_value();
     }
 
     // true altitude estimate - filter ground average is our best
@@ -279,36 +263,25 @@ static void update_pressure_helpers() {
     // 
 
     // compute rate of climb based on pressure altitude change
-    float climb = (pressure_alt_filt - pressure_alt_filt_last) / dt;
-    pressure_alt_filt_last = pressure_alt_filt;
-    climb_filt = 0.99 * climb_filt + 0.01 * climb;
-
-    // determine ground reference altitude.  Average filter altitude
-    // over first 30 seconds the filter becomes active.
-    static float ground_alt_filter = Ps;
-
-    if ( elapsed_time >= dt && elapsed_time >= 0.001 && elapsed_time <= 30.0 ) {
-	ground_alt_filter
-	    = ((elapsed_time - dt) * ground_alt_filter + dt * Ps)
-	    / elapsed_time;
-	ground_alt_press_m_node->setDoubleValue( ground_alt_filter );
-    }
+    float climb = (pressure_alt_filt.get_value() - pressure_alt_filt_last) / dt;
+    pressure_alt_filt_last = pressure_alt_filt.get_value();
+    climb_filt.update( climb, dt );
 
     last_time = cur_time;
 
     // publish values to property tree
-    pressure_error_m_node->setDoubleValue( Ps_filt_err );
+    pressure_error_m_node->setDoubleValue( Ps_filt_err.get_value() );
     true_alt_m_node->setDoubleValue( true_alt_m );
     true_alt_ft_node->setDoubleValue( true_alt_m * SG_METER_TO_FEET );
     true_agl_m_node->setDoubleValue( true_agl_m );
     true_agl_ft_node->setDoubleValue( true_agl_m * SG_METER_TO_FEET );
-    agl_alt_m_node->setDoubleValue( pressure_alt_filt - ground_alt_filter );
-    agl_alt_ft_node->setDoubleValue( (pressure_alt_filt - ground_alt_filter)
+    agl_alt_m_node->setDoubleValue( pressure_alt_filt.get_value() - ground_alt_filt.get_value() );
+    agl_alt_ft_node->setDoubleValue( (pressure_alt_filt.get_value() - ground_alt_filt.get_value() )
 				     * SG_METER_TO_FEET );
-    vert_fps_node->setDoubleValue( climb_filt * SG_METER_TO_FEET );
+    vert_fps_node->setDoubleValue( climb_filt.get_value() * SG_METER_TO_FEET );
 
     // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
-    //        pressure_alt_filt, navpacket.alt, true_alt_m, climb_filt);
+    //        pressure_alt_filt, navpacket.alt, true_alt_m, climb_filt.get_value());
 
 #if 0
     // experimental section ... try to estimate thermal activity ...
@@ -320,7 +293,7 @@ static void update_pressure_helpers() {
     static double sum_xy = 0.0;
 
     double x = throttle->getDoubleValue();
-    double y = climb_filt * SG_METER_TO_FEET * 60.0; // fpm
+    double y = climb_filt.get_value() * SG_METER_TO_FEET * 60.0; // fpm
     double n = 6000.0;		// 100hz * 60 sec
     double nfact = (n-1.0)/n;
     sum_x = sum_x*nfact + x;
