@@ -21,6 +21,7 @@
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 #include "props/props.hxx"
+#include "util/lowpass.hxx"
 #include "util/myprof.h"
 
 #include "filter_mgr.h"
@@ -92,6 +93,12 @@ static SGPropertyNode *official_ground_m_node = NULL;
 static SGPropertyNode *filter_console_skip = NULL;
 static SGPropertyNode *filter_logging_skip = NULL;
 
+// mission nodes
+static SGPropertyNode *is_airborne_node = NULL;
+
+// initial values are the 'time factor'
+static LowPassFilter ground_alt_filt( 30.0 );
+static bool ground_alt_calibrated = false;
 
 void Filter_init() {
     // initialize imu property nodes
@@ -122,6 +129,9 @@ void Filter_init() {
     // initialize comm nodes
     filter_console_skip = fgGetNode("/config/remote-link/filter-skip", true);
     filter_logging_skip = fgGetNode("/config/logging/filter-skip", true);
+    
+    // initialize mission nodes
+    is_airborne_node = fgGetNode("/task/is-airborne", true);
 
     // traverse configured modules
     SGPropertyNode *toplevel = fgGetNode("/config/filters", true);
@@ -258,27 +268,27 @@ static void update_ground() {
     static double last_time = 0.0;
 
     double cur_time = filter_timestamp_node->getDoubleValue();
-    static double start_time = cur_time;
-    double elapsed_time = cur_time - start_time;
-
     double dt = cur_time - last_time;
     if ( dt > 1.0 ) {
 	dt = 1.0;		// keep dt smallish
     }
 
     // determine ground reference altitude.  Average filter altitude
-    // over first 30 seconds the filter becomes active.
-    static float ground_alt_filter = filter_alt_m_node->getFloatValue();
-
-    if ( elapsed_time >= dt && elapsed_time >= 0.001 && elapsed_time <= 30.0 ) {
-	ground_alt_filter
-	    = ((elapsed_time - dt) * ground_alt_filter
-	       + dt * filter_alt_m_node->getFloatValue())
-	    / elapsed_time;
-	filter_ground_alt_m_node->setDoubleValue( ground_alt_filter );
+    // over the most recent 30 seconds that we are !is-airborne
+    if ( !ground_alt_calibrated ) {
+	ground_alt_calibrated = true;
+	ground_alt_filt.init( filter_alt_m_node->getFloatValue() );
     }
 
-    float agl_m = filter_alt_m_node->getFloatValue() - ground_alt_filter;
+    if ( ! is_airborne_node->getBoolValue() ) {
+	// ground reference altitude averaged current altitude over
+	// first 30 seconds while on the ground
+	ground_alt_filt.update( filter_alt_m_node->getFloatValue(), dt );
+	filter_ground_alt_m_node->setDoubleValue( ground_alt_filt.get_value() );
+    }
+
+    float agl_m = filter_alt_m_node->getFloatValue()
+	- ground_alt_filt.get_value();
     filter_alt_agl_m_node->setDoubleValue( agl_m );
     filter_alt_agl_ft_node->setDoubleValue( agl_m * SG_METER_TO_FEET );
 
