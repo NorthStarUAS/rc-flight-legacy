@@ -90,6 +90,27 @@ static bool gps_inited = false;
 static bool pilot_input_inited = false;
 static bool actuator_inited = false;
 
+struct imu_sensors_t {
+    uint64_t time;
+    uint16_t type;
+    uint16_t valid;
+    uint32_t imu_time_sync_in;
+    float magX;
+    float magY;
+    float magZ;
+    float accelX;
+    float accelY;
+    float accelZ;
+    float gyroX;
+    float gyroY;
+    float gyroZ;
+    float temp;
+    float pressure;
+    uint32_t att_time_sync_in;
+    float yaw;
+    float pitch;
+    float roll;    
+} imu_sensors;
 
 // initialize goldy2_imu input property nodes
 static void bind_input( SGPropertyNode *config ) {
@@ -337,7 +358,7 @@ uint16_t utilCRC16( const void* data_p, uint16_t data_len, uint16_t crc_start )
 // parse packets
 bool goldy2_parse( uint8_t *buf, int size ) {
     if ( size < 8 ) {
-        printf("goldy packet corruption!\n");
+        printf("goldy packet corrupted\n");
 	return false;
     }
     printf("  header = %c %c %c\n", buf[0], buf[1], buf[2]);
@@ -346,6 +367,19 @@ bool goldy2_parse( uint8_t *buf, int size ) {
     printf("  package len = %d\n", len);
     printf("  CRC = %d\n", buf[6+len] + 256*buf[7+len]);
     printf("  Computed CRC = %d\n", utilCRC16(buf+3, len+3, 0));
+
+    // check header
+    if ( buf[0] != 'U' || buf[1] != 'M' || buf[2] != 'N' ) {
+	printf("goldy packet header invalid\n");
+	return false;
+    }
+    if ( buf[3] == 0x81 && len == 76 ) {
+	// IMU packet
+	print "imu struct size = %d\n", sizeof(imu_sensors));
+    } else {
+	printf("goldy unknown packet or wrong length.\n");
+	return false;
+    }
 }
 
 

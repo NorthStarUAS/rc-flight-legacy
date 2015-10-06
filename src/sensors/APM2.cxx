@@ -624,7 +624,7 @@ static void bind_airdata_output( string rootname ) {
 }
 
 
-// initialize airdata output property nodes 
+// initialize pilot output property nodes 
 static void bind_pilot_controls( string rootname ) {
     if ( pilot_input_inited ) {
 	return;

@@ -24,6 +24,7 @@
 #include "util/timing.h"
 
 #include "APM2.hxx"
+#include "Goldy2.hxx"
 #include "gps_fgfs.hxx"
 #include "gps_gpsd.hxx"
 #include "gps_mediatek.hxx"
@@ -95,6 +96,8 @@ void GPS_init() {
 		fgfs_gps_init( basename, section );
 	    } else if ( source == "file" ) {
 		ugfile_gps_init( basename, section );
+	    } else if ( source == "Goldy2" ) {
+		goldy2_gps_init( basename, section );
 	    } else if ( source == "gpsd" ) {
 		gpsd_init( basename, section );
 	    } else if ( source == "mediatek" ) {
@@ -166,6 +169,8 @@ bool GPS_update() {
 		fresh_data = fgfs_gps_update();
 	    } else if ( source == "file" ) {
 		fresh_data = ugfile_get_gps();
+	    } else if ( source == "Goldy2" ) {
+		fresh_data = goldy2_gps_update();
 	    } else if ( source == "gpsd" ) {
 		fresh_data = gpsd_get_gps();
 	    } else if ( source == "mediatek" ) {
@@ -287,6 +292,8 @@ void GPS_close() {
 		fgfs_gps_close();
 	    } else if ( source == "file" ) {
 		ugfile_close();
+	    } else if ( source == "Goldy2" ) {
+		goldy2_gps_close();
 	    } else if ( source == "gpsd" ) {
 		// fixme
 	    } else if ( source == "mediatek" ) {

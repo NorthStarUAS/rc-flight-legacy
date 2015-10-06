@@ -23,6 +23,7 @@
 #include "act_fgfs.hxx"
 #include "sensors/ardupilot.hxx"
 #include "sensors/APM2.hxx"
+#include "sensors/Goldy2.hxx"
 
 #include "act_mgr.h"
 
@@ -154,6 +155,8 @@ void Actuator_init() {
 		ardupilot_init( section );
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_init( section );
+	    } else if ( module == "Goldy2" ) {
+		goldy2_act_init( section );
 	    } else {
 		printf("Unknown actuator = '%s' in config file\n",
 		       module.c_str());
@@ -371,6 +374,8 @@ bool Actuator_update() {
 		ardupilot_update();
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_update();
+	    } else if ( module == "Goldy2" ) {
+		goldy2_act_update();
 	    } else {
 		printf("Unknown actuator = '%s' in config file\n",
 		       module.c_str());
@@ -423,6 +428,8 @@ void Actuators_close() {
 		ardupilot_close();
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_close();
+	    } else if ( module == "Goldy2" ) {
+		goldy2_act_close();
 	    } else {
 		printf("Unknown actuator = '%s' in config file\n",
 		       module.c_str());

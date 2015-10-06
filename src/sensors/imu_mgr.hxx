@@ -6,8 +6,8 @@
 // 
 
 
-#ifndef _UGEAR_IMU_MGR_HXX
-#define _UGEAR_IMU_MGR_HXX
+#ifndef _AURA_IMU_MGR_HXX
+#define _AURA_IMU_MGR_HXX
 
 
 void IMU_init();
@@ -17,4 +17,4 @@ void IMU_close();
 // return imu data age in seconds
 double IMU_age();
 
-#endif // _UGEAR_IMU_MGR_HXX
+#endif // _AURA_IMU_MGR_HXX

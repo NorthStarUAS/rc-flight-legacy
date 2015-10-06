@@ -19,6 +19,7 @@
 #include "util/timing.h"
 
 #include "sensors/APM2.hxx"
+#include "sensors/Goldy2.hxx"
 #include "sensors/imu_fgfs.hxx"
 #include "sensors/imu_vn100_spi.hxx"
 #include "sensors/imu_vn100_uart.hxx"
@@ -73,6 +74,8 @@ void IMU_init() {
 		// do nothing
 	    } else if ( source == "APM2" ) {
 		APM2_imu_init( basename, section );
+	    } else if ( source == "Goldy2" ) {
+		goldy2_imu_init( basename, section );
 	    } else if ( source == "fgfs" ) {
 		fgfs_imu_init( basename, section );
 	    } else if ( source == "file" ) {
@@ -115,6 +118,8 @@ bool IMU_update() {
 		// do nothing
 	    } else if ( source == "APM2" ) {
 		fresh_data = APM2_imu_update();
+	    } else if ( source == "Goldy2" ) {
+		fresh_data = goldy2_imu_update();
 	    } else if ( source == "fgfs" ) {
 		fresh_data = fgfs_imu_update();
 	    } else if ( source == "file" ) {
@@ -174,6 +179,8 @@ void IMU_close() {
 		// do nothing
 	    } else if ( source == "APM2" ) {
 		APM2_imu_close();
+	    } else if ( source == "Goldy2" ) {
+		goldy2_imu_close();
 	    } else if ( source == "fgfs" ) {
 		fgfs_imu_close();
 	    } else if ( source == "file" ) {

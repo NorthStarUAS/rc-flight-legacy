@@ -22,6 +22,7 @@
 
 #include "APM2.hxx"
 #include "ardupilot.hxx"
+#include "Goldy2.hxx"
 #include "imu_fgfs.hxx"
 
 #include "airdata_mgr.hxx"
@@ -144,6 +145,8 @@ void AirData_init() {
 		ardupilot_airdata_init( basename );
 	    } else if ( source == "fgfs" ) {
 		fgfs_airdata_init( basename );
+	    } else if ( source == "Goldy2" ) {
+		goldy2_airdata_init( basename, section );
 	    } else {
 		printf("Unknown air data source = '%s' in config file\n",
 		       source.c_str());
@@ -341,6 +344,8 @@ bool AirData_update() {
 		fresh_data = ardupilot_airdata_update();
 	    } else if ( source == "fgfs" ) {
 		fresh_data = fgfs_airdata_update();
+	    } else if ( source == "Goldy2" ) {
+		fresh_data = goldy2_airdata_update();
 	    } else {
 		printf("Unknown air data source = '%s' in config file\n",
 		       source.c_str());
@@ -402,6 +407,8 @@ void AirData_recalibrate() {
 		// do nothing
 	    } else if ( source == "fgfs" ) {
 		// do nothing
+	    } else if ( source == "Goldy2" ) {
+		// do nothing
 	    } else {
 		printf("Unknown air data source = '%s' in config file\n",
 		       source.c_str());
@@ -433,6 +440,8 @@ void AirData_close() {
 		APM2_airdata_close();
 	    } else if ( source == "fgfs" ) {
 		// nop
+	    } else if ( source == "Goldy2" ) {
+		goldy2_airdata_close();
 	    } else if ( source == "ardupilot" ) {
 		// nop
 	    } else {

@@ -16,6 +16,7 @@ libsensors_a_SOURCES = \
 	pilot_fgfs.cxx pilot_fgfs.hxx \
 	ardupilot.cxx ardupilot.hxx \
 	APM2.cxx APM2.hxx \
+	Goldy2.cxx Goldy2.hxx \
 	ugfile.cxx ugfile.hxx
 
 bin_PROGRAMS = ublox-config

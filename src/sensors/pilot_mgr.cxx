@@ -21,6 +21,7 @@
 
 #include "APM2.hxx"
 #include "ardupilot.hxx"
+#include "Goldy2.hxx"
 #include "pilot_fgfs.hxx"
 
 #include "pilot_mgr.hxx"
@@ -104,6 +105,8 @@ void PilotInput_init() {
 		ardupilot_pilot_init( basename );
 	    } else if ( source == "fgfs" ) {
 		fgfs_pilot_init( basename, section );
+	    } else if ( source == "Goldy2" ) {
+		goldy2_pilot_init( basename, section );
 	    } else {
 		printf("Unknown pilot input source = '%s' in config file\n",
 		       source.c_str());
@@ -141,6 +144,8 @@ bool PilotInput_update() {
 		fresh_data = ardupilot_pilot_update();
 	    } else if ( source == "fgfs" ) {
 		fresh_data = fgfs_pilot_update();
+	    } else if ( source == "Goldy2" ) {
+		fresh_data = goldy2_pilot_update();
 	    } else {
 		printf("Unknown pilot input source = '%s' in config file\n",
 		       source.c_str());
@@ -213,6 +218,8 @@ void PilotInput_close() {
 		// nop
 	    } else if ( source == "fgfs" ) {
 		fgfs_pilot_close();
+	    } else if ( source == "Goldy2" ) {
+		goldy2_pilot_close();
 	    } else {
 		printf("Unknown pilot input source = '%s' in config file\n",
 		       source.c_str());
