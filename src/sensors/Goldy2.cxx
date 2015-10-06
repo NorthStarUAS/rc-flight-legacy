@@ -4,6 +4,7 @@
 // of Flightgear
 //
 
+#include <stdint.h>
 #include <stdio.h>
 #include <string>
 #include <string.h>
@@ -111,6 +112,7 @@ struct imu_sensors_t {
     float pitch;
     float roll;    
 } imu_sensors;
+
 
 // initialize goldy2_imu input property nodes
 static void bind_input( SGPropertyNode *config ) {
@@ -358,15 +360,15 @@ uint16_t utilCRC16( const void* data_p, uint16_t data_len, uint16_t crc_start )
 // parse packets
 bool goldy2_parse( uint8_t *buf, int size ) {
     if ( size < 8 ) {
-        printf("goldy packet corrupted\n");
+        printf("goldy packet corruption!\n");
 	return false;
     }
-    printf("  header = %c %c %c\n", buf[0], buf[1], buf[2]);
-    printf("  type id = 0x%02x\n", buf[3]);
+    // printf("  header = %c %c %c\n", buf[0], buf[1], buf[2]);
+    // printf("  type id = 0x%02x\n", buf[3]);
     int len = buf[4] + 256*buf[5];
-    printf("  package len = %d\n", len);
-    printf("  CRC = %d\n", buf[6+len] + 256*buf[7+len]);
-    printf("  Computed CRC = %d\n", utilCRC16(buf+3, len+3, 0));
+    // printf("  package len = %d\n", len);
+    // printf("  CRC = %d\n", buf[6+len] + 256*buf[7+len]);
+    // printf("  Computed CRC = %d\n", utilCRC16(buf+3, len+3, 0));
 
     // check header
     if ( buf[0] != 'U' || buf[1] != 'M' || buf[2] != 'N' ) {
@@ -375,9 +377,41 @@ bool goldy2_parse( uint8_t *buf, int size ) {
     }
     if ( buf[3] == 0x81 && len == 76 ) {
 	// IMU packet
-	print "imu struct size = %d\n", sizeof(imu_sensors));
+        uint8_t *payload = buf + 6;
+	uint64_t time_ls = *(uint32_t *)payload; payload += 4;
+	uint64_t time_ms = *(uint32_t *)payload; payload += 4;
+	// printf("time1 = %llu time2 = %llu\n", time_ls, time_ms);
+	imu_sensors.time = time_ls + 4294967295U * time_ms;
+        for ( int i = 0; i < 8; ++i ) {
+	    printf("%02x ", *(buf + 6 + i));
+	}
+	printf("\n");
+	printf("time = %llu\n", imu_sensors.time);
+	imu_sensors.type = *(uint16_t *)payload; payload += 2;
+	printf("type = %d\n", imu_sensors.type);
+	imu_sensors.valid = *(uint16_t *)payload; payload += 2;
+	printf("valid = %d\n", imu_sensors.valid);
+	imu_sensors.imu_time_sync_in = *(uint32_t *)payload; payload += 4;
+	printf("imu sync time = %d\n", imu_sensors.imu_time_sync_in);
+	imu_sensors.magX = *(float *)payload; payload += 4;
+	imu_sensors.magY = *(float *)payload; payload += 4;
+	imu_sensors.magZ = *(float *)payload; payload += 4;
+	imu_sensors.accelX = *(float *)payload; payload += 4;
+	imu_sensors.accelY = *(float *)payload; payload += 4;
+	imu_sensors.accelZ = *(float *)payload; payload += 4;
+	printf("          accel = %.3f %.3f %.3f\n", imu_sensors.accelX, imu_sensors.accelY, imu_sensors.accelZ);
+	imu_sensors.gyroX = *(float *)payload; payload += 4;
+	imu_sensors.gyroY = *(float *)payload; payload += 4;
+	imu_sensors.gyroZ = *(float *)payload; payload += 4;
+	printf("          gyro = %.3f %.3f %.3f\n", imu_sensors.gyroX, imu_sensors.gyroY, imu_sensors.gyroZ);
+	imu_sensors.temp = *(float *)payload; payload += 4;
+	imu_sensors.pressure = *(float *)payload; payload += 4;
+	imu_sensors.att_time_sync_in = *(uint32_t *)payload; payload += 4;
+	imu_sensors.yaw = *(float *)payload; payload += 4;
+	imu_sensors.pitch = *(float *)payload; payload += 4;
+	imu_sensors.roll = *(float *)payload; payload += 4;
     } else {
-	printf("goldy unknown packet or wrong length.\n");
+	// printf("goldy unknown packet or wrong length.\n");
 	return false;
     }
 }
@@ -392,7 +426,7 @@ bool goldy2_update() {
 
     int result;
     while ( (result = sock.recv(packet_buf, goldy2_max_size, 0)) >= 0 ) {
-        printf("Read a packet, len = %d\n", result);
+        // printf("Read a packet, len = %d\n", result);
 	goldy2_parse(packet_buf, result);
     }
 
