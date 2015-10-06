@@ -8,12 +8,12 @@ libsgprops_a_SOURCES = \
 	props.cxx \
 	props_io.cxx
 
-noinst_PROGRAMS = props_test
+noinst_PROGRAMS = props_test mytest
 
 props_test_SOURCES = props_test.cxx
-props_test_LDADD = \
-	libsgprops.a \
-	../xml/libsgxml.a \
-	../util/libutil.a
+props_test_LDADD = libsgprops.a ../xml/libsgxml.a ../util/libutil.a
+
+mytest_SOURCES = mytest.cxx
+mytest_LDADD = libsgprops.a ../xml/libsgxml.a ../util/libutil.a
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
