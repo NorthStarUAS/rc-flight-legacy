@@ -1,0 +1,16 @@
+Getting the beaglebone to route through the usb net connection to the wide
+internet via your Fedora host computer (some other ubuntu based instructions
+don't seem to quite work.)
+
+From: http://robotic-controls.com/learn/beaglebone/beaglebone-internet-over-usb-only
+
+On the BeagleBone side:
+# ifconfig usb0 192.168.7.2
+# route add default gw 192.168.7.1
+
+On Linux (Fedora) computer:
+  (on my system the wifi interface is wlp3s0, the usb interface to the 
+   beaglebone is enp0s20u1)
+# iptables --table nat --append POSTROUTING --out-interface wlp3s0 -j MASQUERADE
+# iptables --append FORWARD --in-interface enp0s20u1 -j ACCEPT
+# echo 1 > /proc/sys/net/ipv4/ip_forward
