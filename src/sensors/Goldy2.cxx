@@ -18,6 +18,7 @@
 #include "props/props.hxx"
 #include "util/timing.h"
 
+#include "util_goldy2.hxx"
 #include "Goldy2.hxx"
 
 
@@ -81,24 +82,11 @@ static SGPropertyNode *pilot_channel8_node = NULL;
 static SGPropertyNode *pilot_manual_node = NULL;
 static SGPropertyNode *pilot_status_node = NULL;
 
-// actuator property nodes
-static SGPropertyNode *act_timestamp_node = NULL;
-static SGPropertyNode *act_aileron_node = NULL;
-static SGPropertyNode *act_elevator_node = NULL;
-static SGPropertyNode *act_throttle_node = NULL;
-static SGPropertyNode *act_rudder_node = NULL;
-static SGPropertyNode *act_channel5_node = NULL;
-static SGPropertyNode *act_channel6_node = NULL;
-static SGPropertyNode *act_channel7_node = NULL;
-static SGPropertyNode *act_channel8_node = NULL;
-static SGPropertyNode *act_status_node = NULL;
-
 static bool master_init = false;
 static bool imu_inited = false;
 static bool airdata_inited = false;
 static bool gps_inited = false;
 static bool pilot_input_inited = false;
-static bool actuator_inited = false;
 
 struct imu_sensors_t {
     uint64_t time;
@@ -231,27 +219,6 @@ static void bind_pilot_controls( string rootname ) {
 }
 
 
-// initialize actuator property nodes
-static void bind_act_nodes() {
-    if ( actuator_inited ) {
-        return;
-    }
-
-    act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
-    act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
-    act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
-    act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);
-    act_rudder_node = fgGetNode("/actuators/actuator/channel", 3, true);
-    act_channel5_node = fgGetNode("/actuators/actuator/channel", 4, true);
-    act_channel6_node = fgGetNode("/actuators/actuator/channel", 5, true);
-    act_channel7_node = fgGetNode("/actuators/actuator/channel", 6, true);
-    act_channel8_node = fgGetNode("/actuators/actuator/channel", 7, true);
-    act_status_node = fgGetNode("/actuators/actuator/status", true);
-
-    actuator_inited = true;
-}
-
-
 bool goldy2_init( SGPropertyNode *config ) {
     if ( master_init ) {
         return true;
@@ -323,13 +290,6 @@ bool goldy2_pilot_init( string rootname, SGPropertyNode *config ) {
     return true;
 }
 
-bool goldy2_act_init( SGPropertyNode *config ) {
-    bind_act_nodes();
-
-    return true;
-}
-
-
 // swap big/little endian bytes
 static void my_swap( uint8_t *buf, int index, int count )
 {
@@ -342,31 +302,6 @@ static void my_swap( uint8_t *buf, int index, int count )
         buf[index+i] = buf[index+count-i-1];
         buf[index+count-i-1] = tmp;
     }
-}
-
-
-uint16_t utilCRC16( const void* data_p, uint16_t data_len, uint16_t crc_start )
-{
-    uint8_t* data_u8_p;
-    uint16_t data_idx;
-    uint16_t crc;
-        
-    // Typecast input for processing.  Note: typecase to 8-bit type does not
-    // yield data alignment issues.
-    data_u8_p = (uint8_t*) data_p;
-        
-    // Start CRC calculation value as that supplied.
-    crc = crc_start;
-        
-    for( data_idx = 0; data_idx < data_len; data_idx++ ) {
-	crc = (uint8_t)(crc >> 8) | (crc << 8);
-	crc ^= data_u8_p[ data_idx ];
-	crc ^= (uint8_t)(crc & 0xff) >> 4;
-	crc ^= crc << 12;
-	crc ^= (crc & 0x00ff) << 5;
-    } 
-        
-    return crc;
 }
 
 
@@ -760,8 +695,8 @@ bool goldy2_parse( uint8_t *buf, int size ) {
     // printf("  type id = 0x%02x size = %d\n", buf[3], size);
     int len = buf[4] + 256*buf[5];
     // printf("  package len = %d\n", len);
-    // printf("  CRC = %d\n", buf[6+len] + 256*buf[7+len]);
-    // printf("  Computed CRC = %d\n", utilCRC16(buf+3, len+3, 0));
+    printf("  CRC = %d\n", buf[6+len] + 256*buf[7+len]);
+    printf("  Computed CRC = %d\n", utilCRC16(buf+3, len+3, 0));
 
     // check header
     if ( buf[0] != 'U' || buf[1] != 'M' || buf[2] != 'N' ) {
@@ -926,10 +861,6 @@ bool goldy2_pilot_update() {
     return true;
 }
 
-bool goldy2_act_update() {
-    return false;
-}
-
 void goldy2_imu_close() {
     sock.close();
 }
@@ -941,7 +872,4 @@ void goldy2_gps_close() {
 }
 
 void goldy2_pilot_close() {
-}
-
-void goldy2_act_close() {
 }

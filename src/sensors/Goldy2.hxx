@@ -34,8 +34,4 @@ bool goldy2_pilot_init( string rootname, SGPropertyNode *config );
 bool goldy2_pilot_update();
 void goldy2_pilot_close();
 
-bool goldy2_act_init( SGPropertyNode *config );
-bool goldy2_act_update();
-void goldy2_act_close();
-
 #endif // _AURA_GOLDY2_HXX
