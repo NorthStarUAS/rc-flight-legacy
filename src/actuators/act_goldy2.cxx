@@ -135,7 +135,7 @@ bool goldy2_act_update() {
     uint16_t CRC_lsb = CRC - (CRC_msb * 256);
     *(uint8_t *)buf = CRC_lsb; buf++;
     *(uint8_t *)buf = CRC_msb; buf++;
-    printf("actual size = %d (we hoped for %d)\n", (int)(buf - start_buf), goldy2_act_size);
+    /* printf("actual size = %d (we hoped for %d)\n", (int)(buf - start_buf), goldy2_act_size); */
 
     int result = sock.send( packet_buf, goldy2_act_size, 0 );
     if ( result != goldy2_act_size ) {

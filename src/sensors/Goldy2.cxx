@@ -695,8 +695,13 @@ bool goldy2_parse( uint8_t *buf, int size ) {
     // printf("  type id = 0x%02x size = %d\n", buf[3], size);
     int len = buf[4] + 256*buf[5];
     // printf("  package len = %d\n", len);
-    printf("  CRC = %d\n", buf[6+len] + 256*buf[7+len]);
-    printf("  Computed CRC = %d\n", utilCRC16(buf+3, len+3, 0));
+    uint16_t CRC = buf[6+len] + 256*buf[7+len];
+    // printf("  CRC = %d\n", CRC);
+    // printf("  Computed CRC = %d\n", utilCRC16(buf+3, len+3, 0));
+    if ( CRC != utilCRC16(buf+3, len+3, 0) ) {
+	printf("goldy packet CRC mismatch!\n");
+	return false;
+    }
 
     // check header
     if ( buf[0] != 'U' || buf[1] != 'M' || buf[2] != 'N' ) {
