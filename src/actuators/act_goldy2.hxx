@@ -1,10 +1,10 @@
 //
-// FILE: act_fgfs.hxx
-// DESCRIPTION: send actuator commands to FlightGear
+// FILE: act_goldy2.hxx
+// DESCRIPTION: send actuator commands to Goldy2
 //
 
-#ifndef _UGEAR_ACT_FGFS_HXX
-#define _UGEAR_ACT_FGFS_HXX
+#ifndef _AURA_ACT_GOLDY2_HXX
+#define _AURA_ACT_GOLDY2_HXX
 
 
 #include "include/globaldefs.h"
@@ -13,9 +13,9 @@
 
 
 // function prototypes
-bool fgfs_act_init( SGPropertyNode *config );
-bool fgfs_act_update();
-void fgfs_act_close();
+bool goldy2_act_init( SGPropertyNode *config );
+bool goldy2_act_update();
+void goldy2_act_close();
 
 
-#endif // _UGEAR_ACT_FGFS_HXX
+#endif // _AURA_ACT_GOLDY2_HXX

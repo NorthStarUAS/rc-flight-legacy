@@ -1,7 +1,6 @@
 //
-// FILE: act_fgfs.cxx
-// DESCRIPTION: send actuator commands to FlightGear
-// of Flightgear
+// FILE: act_goldy2.cxx
+// DESCRIPTION: send actuator commands to Goldy2
 //
 
 #include <stdio.h>
@@ -13,14 +12,15 @@
 #include "props/props.hxx"
 #include "util/timing.h"
 
-#include "act_fgfs.hxx"
+#include "sensors/util_goldy2.hxx"
+#include "act_goldy2.hxx"
 
 
 static netSocket sock;
 static int port = 0;
 static string hostname = "";
 
-// fgfs_imu property nodes
+// goldy2 config property nodes
 static SGPropertyNode *configroot = NULL;
 static SGPropertyNode *act_host_node = NULL;
 static SGPropertyNode *act_port_node = NULL;
@@ -36,22 +36,8 @@ static SGPropertyNode *act_channel6_node = NULL;
 static SGPropertyNode *act_channel7_node = NULL;
 static SGPropertyNode *act_channel8_node = NULL;
 
-// additional autopilot target nodes (note this is a hack, but we are
-// sending data back to FG in this module so it makes some sense to
-// include autopilot targets.)
-static SGPropertyNode *ap_target_bank_deg = NULL;
-static SGPropertyNode *ap_target_pitch_deg = NULL;
-static SGPropertyNode *ap_target_ground_track_deg = NULL;
-static SGPropertyNode *ap_target_climb_fps = NULL;
-static SGPropertyNode *filter_ground_alt_m_node = NULL;
-static SGPropertyNode *ap_altitude_agl = NULL;
-static SGPropertyNode *ap_target_speed_kt = NULL;
-static SGPropertyNode *ap_heading_deg = NULL;
-static SGPropertyNode *ap_ground_track_deg = NULL;
-static SGPropertyNode *ap_dist_m = NULL;
-static SGPropertyNode *ap_eta_sec = NULL;
 
-// initialize fgfs_gps input property nodes
+// initialize goldy2 config property nodes
 static void bind_input( SGPropertyNode *config ) {
     act_host_node = config->getChild("host");
     if ( act_host_node != NULL ) {
@@ -76,24 +62,11 @@ static void bind_act_nodes() {
     act_channel6_node = fgGetNode("/actuators/actuator/channel", 5, true);
     act_channel7_node = fgGetNode("/actuators/actuator/channel", 6, true);
     act_channel8_node = fgGetNode("/actuators/actuator/channel", 7, true);
-
-    ap_target_bank_deg = fgGetNode("/autopilot/settings/target-roll-deg", true);
-    ap_target_pitch_deg = fgGetNode( "/autopilot/settings/target-pitch-deg", true );
-    ap_heading_deg = fgGetNode( "/orientation/heading-deg", true );
-    ap_target_ground_track_deg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
-    ap_target_climb_fps = fgGetNode("/autopilot/internal/target-climb-rate-fps", true);
-    filter_ground_alt_m_node
-	= fgGetNode("/position/altitude-ground-m", true);
-    ap_altitude_agl = fgGetNode( "/autopilot/settings/target-agl-ft", true );
-    ap_target_speed_kt = fgGetNode( "/autopilot/settings/target-speed-kt", true );
-    ap_ground_track_deg = fgGetNode( "/orientation/groundtrack-deg", true );
-    ap_dist_m = fgGetNode( "/task/route/wp-dist-m", true );
-    ap_eta_sec =  fgGetNode( "/task/route/wp-eta-sec", true );
 }
 
 
 // function prototypes
-bool fgfs_act_init( SGPropertyNode *config ) {
+bool goldy2_act_init( SGPropertyNode *config ) {
     printf("actuator_init()\n");
 
     bind_input( config );
@@ -131,98 +104,41 @@ static void my_swap( uint8_t *buf, int index, int count )
 }
 
 
-bool fgfs_act_update() {
-    const int fgfs_act_size = 76;
-    uint8_t packet_buf[fgfs_act_size];
+bool goldy2_act_update() {
+    static uint16_t pos = 1000;
+    const int goldy2_act_size = 68;
+    const int packet_size = 60;	// 6*n, n=10
+    uint8_t packet_buf[goldy2_act_size];
+    uint8_t *start_buf = packet_buf;
     uint8_t *buf = packet_buf;
 
-    double time = act_timestamp_node->getDoubleValue();
-    *(double *)buf = time; buf += 8;
+    *(char *)buf = 'U'; buf++;
+    *(char *)buf = 'M'; buf++;
+    *(char *)buf = 'N'; buf++;
+    *(uint8_t *)buf = 0x01; buf++;	  // payload type
+    *(uint8_t *)buf = packet_size; buf++; // LSB
+    *(uint8_t *)buf = 0; buf++;		  // MSB
 
-    float ail = act_aileron_node->getFloatValue();
-    *(float *)buf = ail; buf += 4;
-
-    float ele = act_elevator_node->getFloatValue();
-    *(float *)buf = ele; buf += 4;
-
-    float thr = act_throttle_node->getFloatValue();
-    *(float *)buf = thr; buf += 4;
-
-    float rud = act_rudder_node->getFloatValue();
-    *(float *)buf = rud; buf += 4;
-
-    float ch5 = act_channel5_node->getFloatValue();
-    *(float *)buf = ch5; buf += 4;
-
-    float ch6 = act_channel6_node->getFloatValue();
-    *(float *)buf = ch6; buf += 4;
-
-    float ch7 = act_channel7_node->getFloatValue();
-    *(float *)buf = ch7; buf += 4;
-
-    float ch8 = act_channel8_node->getFloatValue();
-    *(float *)buf = ch8; buf += 4;
-
-    float bank = ap_target_bank_deg->getFloatValue() * 100 + 18000.0;
-    *(float *)buf = bank; buf += 4;
-
-    float pitch = ap_target_pitch_deg->getFloatValue() * 100 + 9000.0;
-    *(float *)buf = pitch; buf += 4;
-
-    float target_track_offset = ap_target_ground_track_deg->getFloatValue()
-	- ap_heading_deg->getFloatValue();
-    if ( target_track_offset < -180 ) { target_track_offset += 360.0; }
-    if ( target_track_offset > 180 ) { target_track_offset -= 360.0; }
-    float hdg = target_track_offset * 100 + 36000.0;
-    *(float *)buf = hdg; buf += 4;
-
-    float climb = ap_target_climb_fps->getFloatValue() * 1000 + 100000.0;
-    *(float *)buf = climb; buf += 4;
-
-    float alt_agl_ft = ap_altitude_agl->getFloatValue();
-    float ground_m = filter_ground_alt_m_node->getFloatValue();
-    float alt_msl_ft = (ground_m * SG_METER_TO_FEET + alt_agl_ft) * 100.0;
-    *(float *)buf = alt_msl_ft; buf += 4;
-
-    float speed = ap_target_speed_kt->getFloatValue() * 100;
-    *(float *)buf = speed; buf += 4;
-
-    float track_offset = ap_ground_track_deg->getFloatValue()
-	- ap_heading_deg->getFloatValue();
-    if ( track_offset < -180 ) { track_offset += 360.0; }
-    if ( track_offset > 180 ) { track_offset -= 360.0; }
-    float offset = track_offset * 100 + 36000.0;
-    *(float *)buf = offset; buf += 4;
-
-    float dist = ap_dist_m->getFloatValue() / 10.0;
-    *(float *)buf = dist; buf += 4;
-
-    float eta = ap_eta_sec->getFloatValue();
-    *(float *)buf = eta; buf += 4;
-
-    if ( ulIsLittleEndian ) {
-	my_swap( packet_buf, 0, 8 );
-	my_swap( packet_buf, 8, 4 );
-	my_swap( packet_buf, 12, 4 );
-	my_swap( packet_buf, 16, 4 );
-	my_swap( packet_buf, 20, 4 );
-	my_swap( packet_buf, 24, 4 );
-	my_swap( packet_buf, 28, 4 );
-	my_swap( packet_buf, 32, 4 );
-	my_swap( packet_buf, 36, 4 );
-	my_swap( packet_buf, 40, 4 );
-	my_swap( packet_buf, 44, 4 );
-	my_swap( packet_buf, 48, 4 );
-	my_swap( packet_buf, 52, 4 );
-	my_swap( packet_buf, 56, 4 );
-	my_swap( packet_buf, 60, 4 );
-	my_swap( packet_buf, 64, 4 );
-	my_swap( packet_buf, 68, 4 );
-	my_swap( packet_buf, 72, 4 );
+    if (pos++ > 2000) {
+	pos = 1000;
     }
 
-    int result = sock.send( packet_buf, fgfs_act_size, 0 );
-    if ( result != fgfs_act_size ) {
+    for ( uint8_t i = 0; i < 10; i++ ) {
+	*(uint8_t *)buf = i; buf++;
+	*(uint8_t *)buf = 0; buf++; // 0 = PWM, 1 = angle control
+	*(uint16_t *)buf = pos; buf += 2;
+	*(int16_t *)buf = 0; buf += 2;
+    }
+
+    uint16_t CRC = utilCRC16(start_buf+3, packet_size+3, 0);
+    uint16_t CRC_msb = CRC / 256;
+    uint16_t CRC_lsb = CRC - (CRC_msb * 256);
+    *(uint8_t *)buf = CRC_lsb; buf++;
+    *(uint8_t *)buf = CRC_msb; buf++;
+    printf("actual size = %d (we hoped for %d)\n", (int)(buf - start_buf), goldy2_act_size);
+
+    int result = sock.send( packet_buf, goldy2_act_size, 0 );
+    if ( result != goldy2_act_size ) {
 	return false;
     }
 
@@ -230,6 +146,6 @@ bool fgfs_act_update() {
 }
 
 
-void fgfs_act_close() {
+void goldy2_act_close() {
     sock.close();
 }

@@ -21,9 +21,9 @@
 #include "util/timing.h"
 
 #include "act_fgfs.hxx"
+#include "act_goldy2.hxx"
 #include "sensors/ardupilot.hxx"
 #include "sensors/APM2.hxx"
-#include "sensors/Goldy2.hxx"
 
 #include "act_mgr.h"
 
