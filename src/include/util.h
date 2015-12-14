@@ -1,5 +1,5 @@
-#ifndef _UGEAR_UTIL_H
-#define _UGEAR_UTIL_H
+#ifndef _AURA_UTIL_H
+#define _AURA_UTIL_H
 
 
 #include "include/globaldefs.h"
@@ -15,4 +15,4 @@ inline double wraparound( double dta )
 }	
 
 
-#endif // _UGEAR_UTIL_H
+#endif // _AURA_UTIL_H

@@ -7,8 +7,8 @@
  */
 
 
-#ifndef _UGEAR_PAYLOAD_MGR_H
-#define _UGEAR_PAYLOAD_MGR_H
+#ifndef _AURA_PAYLOAD_MGR_H
+#define _AURA_PAYLOAD_MGR_H
 
 
 #include "props/props.hxx"
@@ -38,4 +38,4 @@ public:
 extern UGPayloadMgr payload_mgr;
 
 
-#endif // _UGEAR_PAYLOAD_MGR_H
+#endif // _AURA_PAYLOAD_MGR_H

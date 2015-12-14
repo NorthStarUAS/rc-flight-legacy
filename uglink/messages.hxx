@@ -1,5 +1,5 @@
-#ifndef _UGEAR_MESSAGES_HXX
-#define _UGEAR_MESSAGES_HXX
+#ifndef _AURA_MESSAGES_HXX
+#define _AURA_MESSAGES_HXX
 
 
 //#include <simgear/compiler.h>
@@ -235,4 +235,4 @@ payload UGEARInterpPAYLOAD( const payload A, const payload B,
 			  const double percent );
 
 
-#endif // _UGEAR_MESSAGES_HXX
+#endif // _AURA_MESSAGES_HXX

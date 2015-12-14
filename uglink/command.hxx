@@ -1,5 +1,5 @@
-#ifndef _FG_UGEAR_COMMAND_HXX
-#define _FG_UGEAR_COMMAND_HXX
+#ifndef _AURA_COMMAND_HXX
+#define _AURA_COMMAND_HXX
 
 
 #include <stdint.h>
@@ -67,4 +67,4 @@ public:
 extern UGCommand command_mgr;
 
 
-#endif // _FG_UGEAR_COMMAND_HXX
+#endif // _AURA_COMMAND_HXX

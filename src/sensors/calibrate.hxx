@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef _UGEAR_CALIBRATE_HXX
-#define _UGEAR_CALIBRATE_HXX
+#ifndef _AURA_CALIBRATE_HXX
+#define _AURA_CALIBRATE_HXX
 
 #include "props/props.hxx"
 
@@ -65,4 +65,4 @@ public:
     }
 };
 
-#endif // _UGEAR_CALIBRATE_HXX
+#endif // _AURA_CALIBRATE_HXX

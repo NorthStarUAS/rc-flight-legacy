@@ -8,8 +8,8 @@
  */
 
 
-#ifndef _UGEAR_GPS_MGR_HXX
-#define _UGEAR_GPS_MGR_HXX
+#ifndef _AURA_GPS_MGR_HXX
+#define _AURA_GPS_MGR_HXX
 
 
 void GPS_init();
@@ -20,4 +20,4 @@ void GPS_close();
 double GPS_age();
 
 
-#endif // _UGEAR_GPS_MGR_HXX
+#endif // _AURA_GPS_MGR_HXX

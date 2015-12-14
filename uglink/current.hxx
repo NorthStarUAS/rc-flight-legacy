@@ -1,5 +1,5 @@
-#ifndef _UGEAR_CURRENT_HXX
-#define _UGEAR_CURRENT_HXX
+#ifndef _AURA_CURRENT_HXX
+#define _AURA_CURRENT_HXX
 
 
 #include <string>
@@ -32,4 +32,4 @@ string current_get_fcs_speed_string();
 string current_get_fcs_altitude_string();
 
 
-#endif // _UGEAR_CURRENT_HXX
+#endif // _AURA_CURRENT_HXX

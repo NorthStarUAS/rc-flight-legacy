@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef _UGEAR_IMU_VN100_UART_HXX
-#define _UGEAR_IMU_VN100_UART_HXX
+#ifndef _AURA_IMU_VN100_UART_HXX
+#define _AURA_IMU_VN100_UART_HXX
 
 
 #include <string>
@@ -24,4 +24,4 @@ bool imu_vn100_uart_get();
 void imu_vn100_uart_close();
 
 
-#endif // _UGEAR_IMU_VN100_UART_HXX
+#endif // _AURA_IMU_VN100_UART_HXX

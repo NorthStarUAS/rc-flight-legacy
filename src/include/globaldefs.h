@@ -2,8 +2,8 @@
 // Global defintions used in the avionics program
 //
 
-#ifndef _UGEAR_GLOBALDEFS_H
-#define _UGEAR_GLOBALDEFS_H
+#ifndef _AURA_GLOBALDEFS_H
+#define _AURA_GLOBALDEFS_H
 
 
 #include <stdint.h>
@@ -75,4 +75,4 @@ enum errdefs {
 /** Knots to meters per second */
 #define SG_KT_TO_MPS        0.5144444444444444444
 
-#endif // _UGEAR_GLOBALDEFS_H
+#endif // _AURA_GLOBALDEFS_H

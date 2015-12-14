@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef _UGEAR_GPS_MEDIATEK_HXX
-#define _UGEAR_GPS_MEDIATEX_HXX
+#ifndef _AURA_GPS_MEDIATEK_HXX
+#define _AURA_GPS_MEDIATEX_HXX
 
 
 #include "include/globaldefs.h"
@@ -18,4 +18,4 @@ bool gps_mediatek3329_update();
 void gps_mediatek3329_close();
 
 
-#endif // _UGEAR_GPS_MEDIATEK_HXX
+#endif // _AURA_GPS_MEDIATEK_HXX

@@ -4,8 +4,8 @@
 // of Flightgear
 //
 
-#ifndef _UGEAR_IMU_FGFS_HXX
-#define _UGEAR_IMU_FGFS_HXX
+#ifndef _AURA_IMU_FGFS_HXX
+#define _AURA_IMU_FGFS_HXX
 
 
 #include "include/globaldefs.h"
@@ -22,4 +22,4 @@ bool fgfs_airdata_init( string rootname );
 bool fgfs_airdata_update();
 
 
-#endif // _UGEAR_IMU_FGFS_HXX
+#endif // _AURA_IMU_FGFS_HXX

@@ -4,8 +4,8 @@
 // of Flightgear
 //
 
-#ifndef _UGEAR_PILOT_FGFS_HXX
-#define _UGEAR_PILOT_FGFS_HXX
+#ifndef _AURA_PILOT_FGFS_HXX
+#define _AURA_PILOT_FGFS_HXX
 
 
 #include "include/globaldefs.h"
@@ -19,4 +19,4 @@ bool fgfs_pilot_update();
 void fgfs_pilot_close();
 
 
-#endif // _UGEAR_PILOT_FGFS_HXX
+#endif // _AURA_PILOT_FGFS_HXX

@@ -8,8 +8,8 @@
  */
 
 
-#ifndef _UGEAR_AIRDATA_MGR_HXX
-#define _UGEAR_AIRDATA_MGR_HXX
+#ifndef _AURA_AIRDATA_MGR_HXX
+#define _AURA_AIRDATA_MGR_HXX
 
 
 void AirData_init();
@@ -18,4 +18,4 @@ void AirData_recalibrate();
 void AirData_close();
 
 
-#endif // _UGEAR_AIRDATA_MGR_HXX
+#endif // _AURA_AIRDATA_MGR_HXX

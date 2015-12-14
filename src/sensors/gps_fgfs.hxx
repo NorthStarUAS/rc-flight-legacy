@@ -4,8 +4,8 @@
 // of Flightgear
 //
 
-#ifndef _UGEAR_GPS_FGFS_HXX
-#define _UGEAR_GPS_FGFS_HXX
+#ifndef _AURA_GPS_FGFS_HXX
+#define _AURA_GPS_FGFS_HXX
 
 
 #include "include/globaldefs.h"
@@ -21,4 +21,4 @@ void fgfs_gps_close();
 bool fgfs_gps_get();
 
 
-#endif // _UGEAR_GPS_FGFS_HXX
+#endif // _AURA_GPS_FGFS_HXX

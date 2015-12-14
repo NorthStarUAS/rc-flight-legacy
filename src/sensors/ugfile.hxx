@@ -4,8 +4,8 @@
 // than from a live sensor)
 //
 
-#ifndef _UGEAR_FILE_H
-#define _UGEAR_FILE_H
+#ifndef _AURA_FILE_H
+#define _AURA_FILE_H
 
 
 #include "include/globaldefs.h"
@@ -23,4 +23,4 @@ bool ugfile_get_imu();
 bool ugfile_get_gps();
 
 
-#endif // _UGEAR_FILE_H
+#endif // _AURA_FILE_H

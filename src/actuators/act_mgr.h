@@ -9,8 +9,8 @@
  */
 
 
-#ifndef _UGEAR_ACT_MGR_H
-#define _UGEAR_ACT_MGR_H
+#ifndef _AURA_ACT_MGR_H
+#define _AURA_ACT_MGR_H
 
 
 void Actuator_init();
@@ -18,4 +18,4 @@ bool Actuator_update();
 void Actuator_close();
 
 
-#endif // _UGEAR_ACT_MGR_H
+#endif // _AURA_ACT_MGR_H

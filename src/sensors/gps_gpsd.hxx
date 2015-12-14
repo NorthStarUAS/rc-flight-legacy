@@ -8,8 +8,8 @@
  *
  */
 
-#ifndef _UGEAR_GPS_GPSD_HXX
-#define _UGEAR_GPS_GPSD_HXX
+#ifndef _AURA_GPS_GPSD_HXX
+#define _AURA_GPS_GPSD_HXX
 
 
 #include "include/globaldefs.h"
@@ -20,4 +20,4 @@ bool gpsd_get_gps();
 void gpsd_close();
 
 
-#endif // _UGEAR_GPS_GPSD_HXX
+#endif // _AURA_GPS_GPSD_HXX

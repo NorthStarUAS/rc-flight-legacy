@@ -3,8 +3,8 @@
 //                   kalman filter algorithm
 //
 
-#ifndef _UGEAR_UMN_GNSS_QUAT_H
-#define _UGEAR_UMN_GNSS_QUAT_H
+#ifndef _AURA_UMN_GNSS_QUAT_H
+#define _AURA_UMN_GNSS_QUAT_H
 
 
 #include <string>
@@ -19,4 +19,4 @@ bool umngnss_quat_update();
 void umngnss_quat_close();
 
 
-#endif // _UGEAR_UMN_GNSS_QUAT_H
+#endif // _AURA_UMN_GNSS_QUAT_H

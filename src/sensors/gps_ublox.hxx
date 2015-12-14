@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef _UGEAR_GPS_UBLOX_HXX
-#define _UGEAR_GPS_UBLOX_HXX
+#ifndef _AURA_GPS_UBLOX_HXX
+#define _AURA_GPS_UBLOX_HXX
 
 
 #include "include/globaldefs.h"
@@ -18,4 +18,4 @@ bool gps_ublox_update();
 void gps_ublox_close();
 
 
-#endif // _UGEAR_GPS_UBLOX_HXX
+#endif // _AURA_GPS_UBLOX_HXX

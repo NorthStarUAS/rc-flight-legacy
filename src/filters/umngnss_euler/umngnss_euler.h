@@ -3,8 +3,8 @@
 //                    kalman filter algorithm
 //
 
-#ifndef _UGEAR_UMN_GNSS_EULER_H
-#define _UGEAR_UMN_GNSS_EULER_H
+#ifndef _AURA_UMN_GNSS_EULER_H
+#define _AURA_UMN_GNSS_EULER_H
 
 
 #include <string>
@@ -19,4 +19,4 @@ bool umngnss_euler_update();
 int umngnss_euler_close();
 
 
-#endif // _UGEAR_UMN_GNSS_EULER_H
+#endif // _AURA_UMN_GNSS_EULER_H

@@ -9,8 +9,8 @@
  */
 
 
-#ifndef _UGEAR_ADNS_UMN_H
-#define _UGEAR_ADNS_UMN_H
+#ifndef _AURA_ADNS_UMN_H
+#define _AURA_ADNS_UMN_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,4 +52,4 @@ void umn_adns_print_gps( double *gps );
 }
 #endif
 
-#endif // _UGEAR_ADNS_UMN_H
+#endif // _AURA_ADNS_UMN_H

@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef _UGEAR_IMU_VN100_SPI_HXX
-#define _UGEAR_IMU_VN100_SPI_HXX
+#ifndef _AURA_IMU_VN100_SPI_HXX
+#define _AURA_IMU_VN100_SPI_HXX
 
 
 #include <string>
@@ -24,4 +24,4 @@ bool imu_vn100_spi_get();
 void imu_vn100_spi_close();
 
 
-#endif // _UGEAR_IMU_VN100_SPI_HXX
+#endif // _AURA_IMU_VN100_SPI_HXX

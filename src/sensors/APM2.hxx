@@ -3,8 +3,8 @@
 // DESCRIPTION: interact with APM2 converted to a sensor head
 //
 
-#ifndef _UGEAR_APM2_HXX
-#define _UGEAR_APM2_HXX
+#ifndef _AURA_APM2_HXX
+#define _AURA_APM2_HXX
 
 
 #include "include/globaldefs.h"
@@ -43,4 +43,4 @@ bool APM2_act_update();
 void APM2_act_close();
 
 
-#endif // _UGEAR_APM2_HXX
+#endif // _AURA_APM2_HXX
