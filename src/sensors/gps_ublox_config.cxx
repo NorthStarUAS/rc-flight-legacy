@@ -4,7 +4,7 @@
  * u-blox configuration utility - attempts to robustly update the configuration
  * of a ublox gps receiver based on the a config.txt file saved by u-center.
  *
- * Copyright (C) 2012 - Curtis L. Olson colson@atiak.com
+ * Copyright (C) 2012 - Curtis L. Olson - curtolson@flightgear.org
  *
  */
 

@@ -3,7 +3,7 @@
  *
  * Vectornav.com VN-100 (ascii/uart) driver
  *
- * Copyright (C) 2012 - Curtis L. Olson colson@atiak.com
+ * Copyright (C) 2012 - Curtis L. Olson - curtolson@flightgear.org
  *
  */
 

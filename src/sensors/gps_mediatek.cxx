@@ -3,7 +3,7 @@
  *
  * MediaTek 3329 MTX protocol driver
  *
- * Copyright (C) 2012 - Curtis L. Olson colson@atiak.com
+ * Copyright (C) 2012 - Curtis L. Olson - curtolson@flightgear.org
  *
  */
 

@@ -6,8 +6,8 @@ ugear fcs tuner
 
 This program hopefully does something eventually ...
 
-author: Curtis L. Olson
-website: www.atiak.com
+author: Curtis L. Olson - curtolson@flightgear.org
+website: gallinazo.flightgear.org
 started: March 2014
 """
 
@@ -189,9 +189,9 @@ def usage():
 
 def main():
     host = "localhost"
-    port = 6499
+    #port = 6499
     #host = "192.168.1.64"
-    #port = 5402
+    port = 5402
 
     app = QtGui.QApplication(sys.argv)
     filename = ""

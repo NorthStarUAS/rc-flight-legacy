@@ -1,7 +1,7 @@
 // \file websocket.cxx
 // WebSocket server class.
 //
-// Copyright (C) 2012  Curtis L. Olson - colson@atiak.com
+// Copyright (C) 2012  Curtis L. Olson - curtolson@flightgear.org
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as

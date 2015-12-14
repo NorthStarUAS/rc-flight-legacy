@@ -19,7 +19,8 @@ def usage():
     print "Usage: " + sys.argv[0] + " <flight_dir>"
     sys.exit()
 
-back_correct = True
+#back_correct = True
+back_correct = False
 flight_path = None
 
 for i, arg in enumerate(sys.argv):
@@ -199,7 +200,9 @@ for i, gps in enumerate(gps_data):
     rawgps[i,:] = [ gps.lat, gps.lon, gps.alt ]
 ecef = navpy.lla2ecef(rawgps[:,0],rawgps[:,1],rawgps[:,2],latlon_unit='deg')
 ref_ned = navpy.ecef2ned(ecef-ecef_ref,lat_ref,lon_ref,alt_ref)
-ref_ned[0:idx_init[0],:] = np.nan
+# this next line seems to do the wrong thing as in idx_init[0] is a
+# counter for imu data stream, but gps is sampled at a lower rate.
+### ref_ned[0:idx_init[0],:] = np.nan
 
 # convenient values ...
 nsig = 3
@@ -253,16 +256,16 @@ vel_ax[2,0].plot(plot_time[istart:istop],estVEL[istart:istop,2],'r',label='Filte
 vel_ax[2,0].set_ylabel('$V_D$ (m/s)')
 
 #vel_ax[0,1].plot(plot_time[istart:istop],flight_data.navvn[istart:istop]-estVEL[istart:istop,0],'r')
-vel_ax[0,1].plot(plot_time[istart:istop],nsig*np.sqrt(Pvel[istart:istop,0]),'k')
-vel_ax[0,1].plot(plot_time[istart:istop],-nsig*np.sqrt(Pvel[istart:istop,0]),'k')
+vel_ax[0,1].plot(plot_time[istart:istop],nsig*np.sqrt(Pab[istart:istop,0]),'k')
+vel_ax[0,1].plot(plot_time[istart:istop],-nsig*np.sqrt(Pab[istart:istop,0]),'k')
 
 #vel_ax[1,1].plot(plot_time[istart:istop],flight_data.navve[istart:istop]-estVEL[istart:istop,1],'r')
-vel_ax[1,1].plot(plot_time[istart:istop],nsig*np.sqrt(Pvel[istart:istop,1]),'k')
-vel_ax[1,1].plot(plot_time[istart:istop],-nsig*np.sqrt(Pvel[istart:istop,1]),'k')
+vel_ax[1,1].plot(plot_time[istart:istop],nsig*np.sqrt(Pab[istart:istop,1]),'k')
+vel_ax[1,1].plot(plot_time[istart:istop],-nsig*np.sqrt(Pab[istart:istop,1]),'k')
 
 #vel_ax[2,1].plot(plot_time[istart:istop],flight_data.navvd[istart:istop]-estVEL[istart:istop,2],'r')
-vel_ax[2,1].plot(plot_time[istart:istop],nsig*np.sqrt(Pvel[istart:istop,2]),'k')
-vel_ax[2,1].plot(plot_time[istart:istop],-nsig*np.sqrt(Pvel[istart:istop,2]),'k')
+vel_ax[2,1].plot(plot_time[istart:istop],nsig*np.sqrt(Pab[istart:istop,2]),'k')
+vel_ax[2,1].plot(plot_time[istart:istop],-nsig*np.sqrt(Pab[istart:istop,2]),'k')
 
 vel_ax[0,0].set_title('Velocity (m/s)')
 vel_ax[0,1].set_title('Velocity Error (m/s)')
@@ -271,8 +274,8 @@ vel_ax[2,1].set_xlabel('Time (sec)')
 
 att_fig, att_ax = plt.subplots(3,2, sharex=True)
 #att_ax[0,0].plot(plot_time[istart:istop],np.rad2deg(flight_data.phi[istart:istop]),label='True')
-att_ax[0,0].plot(plot_time[istart:istop],phi[istart:istop],'r',label='UMN EKF')
-att_ax[0,0].plot(filter_array[:,0],filter_array[:,7],'b',label='APM EKF')
+att_ax[0,0].plot(plot_time[istart:istop],phi[istart:istop],'r',label='Post EKF')
+att_ax[0,0].plot(filter_array[:,0],filter_array[:,7],'b',label='Flight EKF')
 att_ax[0,0].set_ylabel(r'$phi$ (deg)')
 att_ax[0,0].legend()
 
@@ -303,30 +306,42 @@ att_ax[0,1].set_title('Attitude Error (deg)')
 att_ax[2,0].set_xlabel('Time (sec)')
 att_ax[2,1].set_xlabel('Time (sec)')
 
-ab_fig, ab_ax = plt.subplots(3, sharex=True)
+ab_fig, ab_ax = plt.subplots(3, 2, sharex=True)
 #try:
     #ab_ax[0].plot(plot_time[istart:istop],flight_data.ax_bias[istart:istop],label='True')
 #except AttributeError:
 #    pass
-ab_ax[0].plot(plot_time[istart:istop],estAB[istart:istop,0],label='Filter')
-ab_ax[0].set_ylabel('$b_{ax}$ (m/s$^2$)')
-ab_ax[0].set_title('Accelerometer Bias')
+ab_ax[0,0].plot(plot_time[istart:istop],estAB[istart:istop,0],label='Filter')
+ab_ax[0,0].set_ylabel('$b_{ax}$ (m/s$^2$)')
+ab_ax[0,0].set_title('Accelerometer Bias')
 
 #try:
     #ab_ax[1].plot(plot_time[istart:istop],flight_data.ay_bias[istart:istop],label='True')
 #except AttributeError:
 #    pass
-ab_ax[1].plot(plot_time[istart:istop],estAB[istart:istop,1],label='Filter')
-ab_ax[1].set_ylabel('$b_{ay}$ (m/s$^2$)')
-ab_ax[1].legend(loc='best')
+ab_ax[1,0].plot(plot_time[istart:istop],estAB[istart:istop,1],label='Filter')
+ab_ax[1,0].set_ylabel('$b_{ay}$ (m/s$^2$)')
+ab_ax[1,0].legend(loc='best')
+
+#ab_ax[0,1].plot(plot_time[istart:istop],flight_data.navvn[istart:istop]-estVEL[istart:istop,0],'r')
+ab_ax[0,1].plot(plot_time[istart:istop],nsig*np.sqrt(Pvel[istart:istop,0]),'k')
+ab_ax[0,1].plot(plot_time[istart:istop],-nsig*np.sqrt(Pvel[istart:istop,0]),'k')
+
+#ab_ax[1,1].plot(plot_time[istart:istop],flight_data.navve[istart:istop]-estVEL[istart:istop,1],'r')
+ab_ax[1,1].plot(plot_time[istart:istop],nsig*np.sqrt(Pvel[istart:istop,1]),'k')
+ab_ax[1,1].plot(plot_time[istart:istop],-nsig*np.sqrt(Pvel[istart:istop,1]),'k')
+
+#ab_ax[2,1].plot(plot_time[istart:istop],flight_data.navvd[istart:istop]-estVEL[istart:istop,2],'r')
+ab_ax[2,1].plot(plot_time[istart:istop],nsig*np.sqrt(Pvel[istart:istop,2]),'k')
+ab_ax[2,1].plot(plot_time[istart:istop],-nsig*np.sqrt(Pvel[istart:istop,2]),'k')
 
 #try:
     #ab_ax[2].plot(plot_time[istart:istop],flight_data.az_bias[istart:istop],label='True')
 #except AttributeError:
 #    pass
-ab_ax[2].plot(plot_time[istart:istop],estAB[istart:istop,2],label='Filter')
-ab_ax[2].set_ylabel('$b_{az}$ (m/s$^2$)')
-ab_ax[2].set_xlabel('Time (sec)')
+ab_ax[2,0].plot(plot_time[istart:istop],estAB[istart:istop,2],label='Filter')
+ab_ax[2,0].set_ylabel('$b_{az}$ (m/s$^2$)')
+ab_ax[2,0].set_xlabel('Time (sec)')
 
 gb_fig, gb_ax = plt.subplots(3, sharex=True)
 #try:
