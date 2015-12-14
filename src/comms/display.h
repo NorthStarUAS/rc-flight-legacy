@@ -1,5 +1,5 @@
-#ifndef _UGEAR_DISPLAY_H
-#define _UGEAR_DISPLAY_H
+#ifndef _AURA_DISPLAY_H
+#define _AURA_DISPLAY_H
 
 // #include <stdint.h>
 
@@ -16,4 +16,4 @@ bool disaply_close();
 
 void display_message();
 
-#endif // _UGEAR_DISPLAY_H
+#endif // _AURA_DISPLAY_H

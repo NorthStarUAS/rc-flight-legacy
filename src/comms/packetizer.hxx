@@ -1,5 +1,5 @@
-#ifndef UG_PACKETIZER_HXX
-#define UG_PACKETIZER_HXX
+#ifndef _AURA_PACKETIZER_HXX
+#define _AURA_PACKETIZER_HXX
 
 
 #include <stdint.h>
@@ -190,4 +190,4 @@ public:
 };
 
 
-#endif // UG_PACKETIZER_HXX
+#endif // _AURA_PACKETIZER_HXX

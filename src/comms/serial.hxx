@@ -24,8 +24,8 @@
 // $Id: serial.hxx,v 1.7 2008/07/28 07:52:15 ehofman Exp $
 
 
-#ifndef _SERIAL_HXX
-#define _SERIAL_HXX
+#ifndef _AURA_SERIAL_HXX
+#define _AURA_SERIAL_HXX
 
 
 #ifndef __cplusplus
@@ -119,6 +119,6 @@ public:
 };
 
 
-#endif // _SERIAL_HXX
+#endif // _AURA_SERIAL_HXX
 
 

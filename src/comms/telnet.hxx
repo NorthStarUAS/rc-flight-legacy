@@ -11,8 +11,8 @@
 // modify it under the terms of the GNU LGPL
 //
 
-#ifndef _UGEAR_TELNET_HXX
-#define _UGEAR_TELNET_HXX
+#ifndef _AURA_TELNET_HXX
+#define _AURA_TELNET_HXX
 
 
 #include "netChannel.h"
@@ -70,5 +70,5 @@ public:
 
 };
 
-#endif // _UGEAR_TELNET_HXX
+#endif // _AURA_TELNET_HXX
 

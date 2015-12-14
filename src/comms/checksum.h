@@ -1,5 +1,5 @@
-#ifndef _UGEAR_CHECKSUM_H
-#define _UGEAR_CHECKSUM_H
+#ifndef _AURA_CHECKSUM_H
+#define _AURA_CHECKSUM_H
 
 
 #include <stdint.h>
@@ -9,4 +9,4 @@ void ugear_cksum( const uint8_t hdr1, const uint8_t hdr2,
                   uint8_t *cksum0, uint8_t *cksum1 );
 
 
-#endif // _UGEAR_CHECKSUM_H
+#endif // _AURA_CHECKSUM_H

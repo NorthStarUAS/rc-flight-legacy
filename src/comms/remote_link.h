@@ -1,5 +1,5 @@
-#ifndef _UGEAR_REMOTE_LINK_H
-#define _UGEAR_REMOTE_LINK_H
+#ifndef _AURA_REMOTE_LINK_H
+#define _AURA_REMOTE_LINK_H
 
 
 #include <stdint.h>
@@ -21,4 +21,4 @@ bool remote_link_command();
 void remote_link_flush_serial();
 
 
-#endif // _UGEAR_REMOTE_LINK_H
+#endif // _AURA_REMOTE_LINK_H

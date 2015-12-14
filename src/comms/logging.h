@@ -1,5 +1,5 @@
-#ifndef _UGEAR_LOGGING_H
-#define _UGEAR_LOGGING_H
+#ifndef _AURA_LOGGING_H
+#define _AURA_LOGGING_H
 
 #include <stdint.h>
 
@@ -36,4 +36,4 @@ bool event_log( const char *hdr, const char *msg );
 bool log_imu_calibration( SGPropertyNode *config );
 
 
-#endif // _UGEAR_LOGGING_H
+#endif // _AURA_LOGGING_H
