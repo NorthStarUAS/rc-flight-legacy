@@ -3,7 +3,7 @@
  *
  * u-blox 5 protocol driver
  *
- * Copyright Curt Olson curtolson@gmail.com
+ * Copyright Curt Olson curtolson@flightgear.org
  *
  */
 

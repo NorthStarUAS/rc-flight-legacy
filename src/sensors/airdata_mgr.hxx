@@ -3,7 +3,7 @@
  *
  * Front end management interface for reading air data.
  *
- * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
+ * Copyright (C) 2009 - Curtis L. Olson curtolson@flightgear.org
  *
  */
 

@@ -3,7 +3,7 @@
  *
  * Front end management interface for output actuators
  *
- * Copyright (C) 2009 - Curtis L. Olson curtolson@gmail.com
+ * Copyright (C) 2009 - Curtis L. Olson curtolson@flightgear.org
  *
  * $Id: act_mgr.cpp,v 1.3 2009/08/25 15:04:01 curt Exp $
  */

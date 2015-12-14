@@ -5,7 +5,7 @@
  * point.  Compensate circle track using wind estimate to try to achieve a 
  * better circle form.
  *
- * Copyright (C) 2011 - Curtis L. Olson curtolson@gmail.com
+ * Copyright (C) 2011 - Curtis L. Olson curtolson@flightgear.org
  *
  */
 

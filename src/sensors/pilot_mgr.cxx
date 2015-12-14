@@ -3,7 +3,7 @@
  *
  * Front end management interface for reading pilot input.
  *
- * Copyright (C) 2010 - Curtis L. Olson curtolson@gmail.com
+ * Copyright (C) 2010 - Curtis L. Olson curtolson@flightgear.org
  *
  */
 

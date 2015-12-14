@@ -4,7 +4,7 @@
  * Read gps data from the gpsd driver (provides data via a socket
  * connection on port 2947)
  *
- * Copyright Curt Olson curtolson@gmail.com
+ * Copyright Curt Olson curtolson@flightgear.org
  *
  */
 

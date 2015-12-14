@@ -3,7 +3,7 @@
  *
  * Callibration helper class
  *
- * Copyright (C) 2015 - Curtis L. Olson curtolson@gmail.com
+ * Copyright (C) 2015 - Curtis L. Olson curtolson@flightgear.org
  *
  */
 

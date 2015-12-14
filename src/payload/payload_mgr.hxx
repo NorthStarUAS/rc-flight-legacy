@@ -3,7 +3,7 @@
  *
  * Top level payload manager
  *
- * Copyright (C) 2013 - Curtis L. Olson curtolson@gmail.com
+ * Copyright (C) 2013 - Curtis L. Olson curtolson@flightgear.org
  */
 
 
