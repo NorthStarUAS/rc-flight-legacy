@@ -33,8 +33,8 @@
 // $Id: coremag.h,v 1.1 2009/01/17 20:28:01 curt Exp $
 
 
-#ifndef _UGEAR_COREMAG_H
-#define _UGEAR_COREMAG_H
+#ifndef _AURA_COREMAG_H
+#define _AURA_COREMAG_H
 
 
 /* Convert date to Julian day 1950-2049 */
@@ -50,4 +50,4 @@ unsigned long int unixdate_to_julian_days( time_t current_time );
 double calc_magvar( double lat, double lon, double h, long dat, double* field );
 
 
-#endif // _UGEAR_COREMAG_H
+#endif // _AURA_COREMAG_H

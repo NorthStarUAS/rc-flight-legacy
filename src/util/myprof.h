@@ -1,5 +1,5 @@
-#ifndef _UGEAR_MYPROF_H
-#define _UGEAR_MYPROF_H
+#ifndef _AURA_MYPROF_H
+#define _AURA_MYPROF_H
 
 #include <string>
 
@@ -43,4 +43,4 @@ extern myprofile datalog_prof;
 extern myprofile main_prof;
 
 
-#endif // _UGEAR_MYPROF_H
+#endif // _AURA_MYPROF_H
