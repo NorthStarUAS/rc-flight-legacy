@@ -14,7 +14,6 @@ libsensors_a_SOURCES = \
 	gps_ublox.cxx gps_ublox.hxx \
 	pilot_mgr.cxx pilot_mgr.hxx \
 	pilot_fgfs.cxx pilot_fgfs.hxx \
-	ardupilot.cxx ardupilot.hxx \
 	APM2.cxx APM2.hxx \
 	util_goldy2.cxx util_goldy2.hxx \
 	Goldy2.cxx Goldy2.hxx \

@@ -20,7 +20,6 @@
 #include "util/myprof.h"
 
 #include "APM2.hxx"
-#include "ardupilot.hxx"
 #include "Goldy2.hxx"
 #include "pilot_fgfs.hxx"
 
@@ -101,8 +100,6 @@ void PilotInput_init() {
 		// do nothing
 	    } else if ( source == "APM2" ) {
 		APM2_pilot_init( basename );
-	    } else if ( source == "ardupilot" ) {
-		ardupilot_pilot_init( basename );
 	    } else if ( source == "fgfs" ) {
 		fgfs_pilot_init( basename, section );
 	    } else if ( source == "Goldy2" ) {
@@ -140,8 +137,6 @@ bool PilotInput_update() {
 		// do nothing
 	    } else if ( source == "APM2" ) {
 		fresh_data = APM2_pilot_update();
-	    } else if ( source == "ardupilot" ) {
-		fresh_data = ardupilot_pilot_update();
 	    } else if ( source == "fgfs" ) {
 		fresh_data = fgfs_pilot_update();
 	    } else if ( source == "Goldy2" ) {
@@ -214,8 +209,6 @@ void PilotInput_close() {
 		// do nothing
 	    } else if ( source == "APM2" ) {
 		APM2_pilot_close();
-	    } else if ( source == "ardupilot" ) {
-		// nop
 	    } else if ( source == "fgfs" ) {
 		fgfs_pilot_close();
 	    } else if ( source == "Goldy2" ) {

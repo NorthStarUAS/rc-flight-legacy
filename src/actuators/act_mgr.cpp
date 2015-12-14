@@ -22,7 +22,6 @@
 
 #include "act_fgfs.hxx"
 #include "act_goldy2.hxx"
-#include "sensors/ardupilot.hxx"
 #include "sensors/APM2.hxx"
 
 #include "act_mgr.h"
@@ -151,8 +150,6 @@ void Actuator_init() {
 		// do nothing
 	    } else if ( module == "APM2" ) {
 		APM2_act_init( section );
-	    } else if ( module == "ardupilot" ) {
-		ardupilot_init( section );
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_init( section );
 	    } else if ( module == "Goldy2" ) {
@@ -370,8 +367,6 @@ bool Actuator_update() {
 		// do nothing
 	    } else if ( module == "APM2" ) {
 		APM2_act_update();
-	    } else if ( module == "ardupilot" ) {
-		ardupilot_update();
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_update();
 	    } else if ( module == "Goldy2" ) {
@@ -424,8 +419,6 @@ void Actuators_close() {
 		// do nothing
 	    } else if ( module == "APM2" ) {
 		APM2_act_close();
-	    } else if ( module == "ardupilot" ) {
-		ardupilot_close();
 	    } else if ( module == "fgfs" ) {
 		fgfs_act_close();
 	    } else if ( module == "Goldy2" ) {
