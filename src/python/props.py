@@ -1,6 +1,31 @@
-# Todo: enumerated children like gps[0], gps[1], etc.
+"""
+
+props.py: a property tree system for python
+
+Provides a hierarchical tree of shared data values.
+ - Modules can use this tree as a way to share data
+   (i.e. communicate) in a loosly structure / flexible way.
+ - Tree values can be accessed in native python code as nested class
+   members: a = root; a.b.c.var1 = 42
+ - Children nodes can be enumerated: /sensors/gps[0], /sensors/gps[1], etc.
+ - C++ interface (in the future) allows complex but flexible data sharing
+   between mixed C++ and python modules.
+ - Maps well to xml or json data storage (i.e. xml/json config files can
+   be loaded into a subtree (child) in the root shared property tree.
+
+Notes:
+ - getChild(path, True) will create 'path' as a set of PropertyNodes() if
+   it doens't exist.   If the final component of the path is intended to be
+   a leaf node, don't include it in the path ... it will be created as a
+   parent node in the tree, not as a leaf node variable.
+ - To create /path/to/variable and assign if a value, call:
+   node = getNode("/path/to", create=True)
+   node.variable = value
+
+"""
 
 import re
+
 
 class PropertyNode:
     def extendEnumeratedNode(self, node, index):
@@ -96,7 +121,7 @@ a = getNode("/a", False)
 print "a dict=", a.__dict__
 print a.b.c.d.e.f.g.var1
 
-n3 = getNode("/a/b/c/d/e/f/g/var1", True)
+n3 = getNode("/a/b/c/d/e/f/g/var1", False)
 print "n3:", n3
 
 n4 = getNode("/a/b/c")
@@ -105,8 +130,18 @@ print n5.__dict__
 n6 = n5.getChild("var1")
 print n6
 
-alt = getNode("/sensors/gps[5]/alt_m", True)
-alt = 275.3
+# correct way to create a path with a new child node
+gps = getNode("/sensors/gps[5]", True)
+gps.alt_m = 275.3
+
+# az get's created a parent node
+az = getNode("/sensors/imu[2]/accel/az", True)
+# this doesn't work
+az = -9.81
+# this should work
+root.sensors.imu[2].accel.az = -9.81
 
 root.pretty_print()
+
+print "alt_m:", root.sensors.gps[5].alt_m
 
