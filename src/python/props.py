@@ -64,7 +64,7 @@ class PropertyNode:
                     print "path includes leaf nodes, sorry"
                     return None
             elif create:
-                # token not found and create flag is true
+                # node not found and create flag is true
                 if index == None:
                     node.__dict__[token] = PropertyNode()
                     node = node.__dict__[token]
@@ -75,7 +75,7 @@ class PropertyNode:
                     self.__extendEnumeratedNode(tmp, index)
                     node = tmp[index]
             else:
-                # requested token not found
+                # requested node not found
                 return None
         # return the last child node in the path
         return node
