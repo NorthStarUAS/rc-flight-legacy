@@ -30,8 +30,8 @@ import re
 
 class PropertyNode:
     def getChild(self, path, create=False):
-        # require relative paths
         if path[:1] == '/':
+            # require relative paths
             return None
         tokens = path.split('/');
         node = self
@@ -46,14 +46,15 @@ class PropertyNode:
             if token in node.__dict__:
                 # node exists
                 if index == None:
+                    # non-enumerated node
                     node = node.__dict__[token]
                 else:
-                    # enumerated (list) child
+                    # enumerated (list) node
                     tmp = node.__dict__[token]
                     if type(tmp) is list and len(tmp) > index:
                         node = tmp[index]
                     elif create:
-                        # base node exists and list is not large enough and
+                        # base node exists, but list is not large enough and
                         # create flag requested: extend the list
                         self.__extendEnumeratedNode(tmp, index)
                         node = tmp[index]
@@ -68,15 +69,15 @@ class PropertyNode:
                     node.__dict__[token] = PropertyNode()
                     node = node.__dict__[token]
                 else:
-                    # test if base list exists, and extend size if needed
+                    # create node list and extend size as needed
                     node.__dict__[token] = []
                     tmp = node.__dict__[token]
                     self.__extendEnumeratedNode(tmp, index)
                     node = tmp[index]
             else:
-                # requestion token not found
+                # requested token not found
                 return None
-        # return the last node in the path
+        # return the last child node in the path
         return node
 
     def pretty_print(self, indent=""):
@@ -100,6 +101,7 @@ class PropertyNode:
         
 root = PropertyNode()
 
+# return/create a node relative to the shared root property node
 def getNode(path, create=False):
     if path[:1] != '/':
         # require leading /
@@ -109,7 +111,10 @@ def getNode(path, create=False):
         return root
     print "getchild on", path[1:], "relative to root"
     return root.getChild(path[1:], create)
-        
+
+
+# run the system through it's paces
+
 n1 = getNode("/a/b/c/d/e/f/g", True)
 n1.var1 = 42
 n1.var2 = 43
