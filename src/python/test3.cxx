@@ -27,9 +27,7 @@ main(int argc, char *argv[])
     // Test creating/setting a variable in python global space
     PyRun_SimpleString("import props\n");
     
-    PyRun_SimpleString("print 'root:', props.root\n");
-    PyRun_SimpleString("props.root = 43\n");
-    PyRun_SimpleString("print 'root:', props.root\n");    
+    PyRun_SimpleString("print 'root:', props.root.pretty_print()\n");
 
     if (pModuleMultiply != NULL) {
         pFunc = PyObject_GetAttrString(pModuleMultiply, argv[2]);
@@ -94,7 +92,9 @@ main(int argc, char *argv[])
     }
     Py_XDECREF(pModuleProps);
 
-
+    PyRun_SimpleString("print 'root:'\n");
+    PyRun_SimpleString("props.root.pretty_print()\n");
+    
     Py_Finalize();
     return 0;
 }
