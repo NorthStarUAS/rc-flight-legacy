@@ -5,6 +5,8 @@ props.py: a property tree system for python
 Provides a hierarchical tree of shared data values.
  - Modules can use this tree as a way to share data
    (i.e. communicate) in a loosly structure / flexible way.
+ - Both reader and writer can create properties in the shared tree so there
+   is less worry about initialization order dependence.
  - Tree values can be accessed in native python code as nested class
    members: a = root; a.b.c.var1 = 42
  - Children nodes can be enumerated: /sensors/gps[0], /sensors/gps[1], etc.
@@ -26,13 +28,7 @@ Notes:
 
 import re
 
-
 class PropertyNode:
-    def extendEnumeratedNode(self, node, index):
-        for i in range(len(node), index+1):
-            print "appending:", i
-            node.append( PropertyNode() )
-            
     def getChild(self, path, create=False):
         # require relative paths
         if path[:1] == '/':
@@ -59,7 +55,7 @@ class PropertyNode:
                     elif create:
                         # base node exists and list is not large enough and
                         # create flag requested: extend the list
-                        self.extendEnumeratedNode(tmp, index)
+                        self.__extendEnumeratedNode(tmp, index)
                         node = tmp[index]
                     else:
                         return None
@@ -75,7 +71,7 @@ class PropertyNode:
                     # test if base list exists, and extend size if needed
                     node.__dict__[token] = []
                     tmp = node.__dict__[token]
-                    self.extendEnumeratedNode(tmp, index)
+                    self.__extendEnumeratedNode(tmp, index)
                     node = tmp[index]
             else:
                 # requestion token not found
@@ -96,6 +92,11 @@ class PropertyNode:
             else:
                 print indent + child + ": " + str(node)
         
+    def __extendEnumeratedNode(self, node, index):
+        for i in range(len(node), index+1):
+            print "appending:", i
+            node.append( PropertyNode() )
+            
         
 root = PropertyNode()
 
