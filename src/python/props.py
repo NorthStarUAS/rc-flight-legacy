@@ -115,19 +115,19 @@ def getNode(path, create=False):
 
 # run the system through it's paces
 
-n1 = getNode("/a/b/c/d/e/f/g", True)
+n1 = getNode("/a/b/c/d/e/f/g", create=True)
 n1.var1 = 42
 n1.var2 = 43
-print getNode("/a/b/c/d/e1/f/g", True)
-n2 = getNode("/a/b/c/d/e/f/g", False)
+print getNode("/a/b/c/d/e1/f/g", create=True)
+n2 = getNode("/a/b/c/d/e/f/g", create=False)
 print n2.__dict__
 print getNode("a/b/c/d/e/f/g")
 
-a = getNode("/a", False)
+a = getNode("/a", create=False)
 print "a dict=", a.__dict__
 print a.b.c.d.e.f.g.var1
 
-n3 = getNode("/a/b/c/d/e/f/g/var1", False)
+n3 = getNode("/a/b/c/d/e/f/g/var1", create=False)
 print "n3:", n3
 
 n4 = getNode("/a/b/c")
@@ -137,11 +137,11 @@ n6 = n5.getChild("var1")
 print n6
 
 # correct way to create a path with a new child node
-gps = getNode("/sensors/gps[5]", True)
+gps = getNode("/sensors/gps[5]", create=True)
 gps.alt_m = 275.3
 
 # az get's created a parent node
-az = getNode("/sensors/imu[2]/accel/az", True)
+az = getNode("/sensors/imu[2]/accel/az", create=True)
 # this doesn't work
 az = -9.81
 # this should work
