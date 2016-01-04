@@ -1,14 +1,25 @@
 #include <Python.h>
 
+#include <string>
+using std::string;
+
+
 // This function must be called first (before any pyPropertyNode
-// usage) to setup the python intepreter and import the python props
-// module
-extern void pyPropsInit(int argc, char **argv);
+// usage.) It sets up the python intepreter and imports the python
+// props module.
+void pyPropsInit(int argc, char **argv);
 
 // This function can be called prior to exit (after the last property
-// node usage) to clean up the python interpreter
+// node usage) to properly shutdown and clean up the python
+// interpreter.
 extern void pyPropsClose();
 
+// Return a pyPropertyNode object that points to the specified path in
+// the property tree.  This is a 'heavier' operation so it is
+// recommended to call this function from initialization routines and
+// save the result.  Then use the pyPropertyNode for direct read/write
+// access in your update routines.
+pyPropertyNode pyGetNode(string abs_path, bool create);
 
 //
 // C++ interface to a python PropertyNode()
