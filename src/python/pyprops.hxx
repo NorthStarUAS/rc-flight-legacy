@@ -4,6 +4,20 @@
 using std::string;
 
 
+//
+// C++ interface to a python PropertyNode()
+//
+class pyPropertyNode
+{
+public:
+    // Default constructor.
+    pyPropertyNode();
+
+    // Destructor.
+    ~pyPropertyNode();
+};
+
+
 // This function must be called first (before any pyPropertyNode
 // usage.) It sets up the python intepreter and imports the python
 // props module.
@@ -19,17 +33,5 @@ extern void pyPropsClose();
 // recommended to call this function from initialization routines and
 // save the result.  Then use the pyPropertyNode for direct read/write
 // access in your update routines.
-pyPropertyNode pyGetNode(string abs_path, bool create);
+pyPropertyNode pyGetNode(string abs_path, bool create=false);
 
-//
-// C++ interface to a python PropertyNode()
-//
-class pyPropertyNode
-{
-public:
-    // Default constructor.
-    pyPropertyNode();
-
-    // Destructor.
-    ~pyPropertyNode();
-};
