@@ -23,14 +23,15 @@ public:
     bool isLeaf();		// returns true if this is a leaf node (value)
     
     // getters
-    double getDoubleValue();
-    long getLongValue();
-    string getStringValue();
+    double getDoubleValue();	// return value as a double
+    long getLongValue();	// return value as a long
+    bool getBoolValue();	// return value as a boolean
+    string getStringValue();	// return value as a string
     
     // setters
-    bool setDoubleValue( double val );
-    bool setLongValue( long val );
-    bool setStringValue( string val );
+    bool setDoubleValue( double val ); // returns true if successful
+    bool setLongValue( long val );     // returns true if successful
+    bool setStringValue( string val ); // returns true if successful
     
 private:
     PyObject *pObj;

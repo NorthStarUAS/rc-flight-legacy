@@ -93,6 +93,14 @@ long pyPropertyNode::getLongValue() {
     return result;
 }
 
+bool pyPropertyNode::getBoolValue() {
+    bool result = false;
+    if ( pObj != NULL ) {
+	result = PyObject_IsTrue(pObj);
+    }
+    return result;
+}
+
 string pyPropertyNode::getStringValue() {
     string result = "";
     if ( pObj != NULL ) {
