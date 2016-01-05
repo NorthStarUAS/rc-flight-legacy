@@ -25,24 +25,39 @@ pyPropertyNode::~pyPropertyNode() {
     Py_XDECREF(pObj);
 }
 
+// testers
+bool pyPropertyNode::isBranch() {
+    string type = (string)pObj->ob_type->tp_name;
+    if ( type == "instance" || type == "list" ) {
+	return true;
+    } else {
+	return false;
+    }
+}
+
+bool pyPropertyNode::isLeaf() {
+    string type = (string)pObj->ob_type->tp_name;
+    if ( type == "instance" || type == "list" ) {
+	return false;
+    } else {
+	return true;
+    }
+}
+
 // getters
 double pyPropertyNode::getDoubleValue() {
     double result = 0.0;
     if ( pObj != NULL ) {
 	if ( PyFloat_Check(pObj) ) {
 	    result = PyFloat_AsDouble(pObj);
-	    printf("Result of call (float): %f\n", result);
 	} else if ( PyInt_Check(pObj) ) {
 	    result = PyInt_AsLong(pObj);
-	    printf("Result of call (int): %f\n", result);
 	} else if ( PyLong_Check(pObj) ) {
 	    result = PyLong_AsLong(pObj);
-	    printf("Result of call (long): %f\n", result);
 	} else if ( PyString_Check(pObj) ) {
 	    PyObject *pFloat = PyFloat_FromString(pObj, NULL);
 	    result = PyFloat_AsDouble(pFloat);
 	    Py_DECREF(pFloat);
-	    printf("Result of call (string): %f\n", result);
 	} else {
 	    printf("Unknown object type: '%s' ", pObj->ob_type->tp_name);
 	    PyObject *pStr = PyObject_Str(pObj);
@@ -50,6 +65,39 @@ double pyPropertyNode::getDoubleValue() {
 	    printf("%s\n", s);
 	    Py_DECREF(pStr);
 	}
+    }
+    return result;
+}
+
+long pyPropertyNode::getLongValue() {
+    long result = 0;
+    if ( pObj != NULL ) {
+	if ( PyFloat_Check(pObj) ) {
+	    result = (long)PyFloat_AsDouble(pObj);
+	} else if ( PyInt_Check(pObj) ) {
+	    result = PyInt_AsLong(pObj);
+	} else if ( PyLong_Check(pObj) ) {
+	    result = PyLong_AsLong(pObj);
+	} else if ( PyString_Check(pObj) ) {
+	    PyObject *pFloat = PyFloat_FromString(pObj, NULL);
+	    result = (long)PyFloat_AsDouble(pFloat);
+	    Py_DECREF(pFloat);
+	} else {
+	    printf("Unknown object type: '%s' ", pObj->ob_type->tp_name);
+	    PyObject *pStr = PyObject_Str(pObj);
+	    char *s = PyString_AsString(pStr);
+	    printf("%s\n", s);
+	    Py_DECREF(pStr);
+	}
+    }
+    return result;
+}
+
+char *pyPropertyNode::getStringValue() {
+    char *result = NULL;
+    if ( pObj != NULL ) {
+	PyObject *pStr = PyObject_Str(pObj);
+	result = PyString_AsString(pStr);
     }
     return result;
 }

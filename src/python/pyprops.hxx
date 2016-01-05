@@ -18,9 +18,12 @@ public:
     // Destructor.
     ~pyPropertyNode();
 
+    // testers
+    bool isBranch();		// returns true if this node can be a parent
+    bool isLeaf();		// returns true if this is a leaf node (value)
+    
     // getters
     double getDoubleValue();
-    int getIntValue();
     long getLongValue();
     char *getStringValue();
     
