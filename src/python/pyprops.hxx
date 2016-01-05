@@ -25,7 +25,12 @@ public:
     // getters
     double getDoubleValue();
     long getLongValue();
-    char *getStringValue();
+    string getStringValue();
+    
+    // setters
+    bool setDoubleValue( double val );
+    bool setLongValue( long val );
+    bool setStringValue( string val );
     
 private:
     PyObject *pObj;

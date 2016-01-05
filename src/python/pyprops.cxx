@@ -72,12 +72,12 @@ double pyPropertyNode::getDoubleValue() {
 long pyPropertyNode::getLongValue() {
     long result = 0;
     if ( pObj != NULL ) {
-	if ( PyFloat_Check(pObj) ) {
-	    result = (long)PyFloat_AsDouble(pObj);
+	if ( PyLong_Check(pObj) ) {
+	    result = PyLong_AsLong(pObj);
 	} else if ( PyInt_Check(pObj) ) {
 	    result = PyInt_AsLong(pObj);
-	} else if ( PyLong_Check(pObj) ) {
-	    result = PyLong_AsLong(pObj);
+	} else if ( PyFloat_Check(pObj) ) {
+	    result = (long)PyFloat_AsDouble(pObj);
 	} else if ( PyString_Check(pObj) ) {
 	    PyObject *pFloat = PyFloat_FromString(pObj, NULL);
 	    result = (long)PyFloat_AsDouble(pFloat);
@@ -93,11 +93,11 @@ long pyPropertyNode::getLongValue() {
     return result;
 }
 
-char *pyPropertyNode::getStringValue() {
-    char *result = NULL;
+string pyPropertyNode::getStringValue() {
+    string result = "";
     if ( pObj != NULL ) {
 	PyObject *pStr = PyObject_Str(pObj);
-	result = PyString_AsString(pStr);
+	result = (string)PyString_AsString(pStr);
     }
     return result;
 }
