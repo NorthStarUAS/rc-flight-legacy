@@ -12,9 +12,20 @@ class pyPropertyNode
 public:
     // Default constructor.
     pyPropertyNode();
+    
+    pyPropertyNode(PyObject *p);
 
     // Destructor.
     ~pyPropertyNode();
+
+    // getters
+    double getDoubleValue();
+    int getIntValue();
+    long getLongValue();
+    char *getStringValue();
+    
+private:
+    PyObject *pObj;
 };
 
 
