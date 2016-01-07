@@ -5,21 +5,21 @@ props.py: a property tree system for python
 Provides a hierarchical tree of shared data values.
  - Modules can use this tree as a way to share data
    (i.e. communicate) in a loosly structure / flexible way.
- - Both reader and writer can create properties in the shared tree so there
-   is less worry about initialization order dependence.
+ - Both reader and writer can create properties in the shared tree as they
+   need them so there is less worry about initialization order dependence.
  - Tree values can be accessed in native python code as nested class
    members: a = root; a.b.c.var1 = 42
  - Children nodes can be enumerated: /sensors/gps[0], /sensors/gps[1], etc.
- - C++ interface (in the future) allows complex but flexible data sharing
-   between mixed C++ and python modules.
+ - C++ interface allows complex but flexible data sharing between mixed
+   C++ and python modules.
  - Maps well to xml or json data storage (i.e. xml/json config files can
    be loaded into a subtree (child) in the root shared property tree.
 
 Notes:
- - getChild(path, True) will create 'path' as a set of PropertyNodes() if
-   it doens't exist.   If the final component of the path is intended to be
-   a leaf node, don't include it in the path ... it will be created as a
-   parent node in the tree, not as a leaf node variable.
+ - getChild(path, True) will create 'path' as a tree of PropertyNodes() if
+   it doens't exist (including any intermediate nodes.)   If the final
+   component of the path is intended to be a leaf node, don't include it
+   in the path or it will be created as a branch.
  - To create /path/to/variable and assign if a value, call:
    node = getNode("/path/to", create=True)
    node.variable = value
