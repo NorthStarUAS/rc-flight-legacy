@@ -23,7 +23,7 @@ pyPropertyNode::~pyPropertyNode() {
 }
 
 // getters
-double pyPropertyNode::getDoubleValue(const char *name) {
+double pyPropertyNode::getDouble(const char *name) {
     double result = 0.0;
     if ( pObj != NULL ) {
 	if ( PyObject_HasAttrString(pObj, name) ) {
@@ -53,7 +53,7 @@ double pyPropertyNode::getDoubleValue(const char *name) {
     return result;
 }
 
-long pyPropertyNode::getLongValue(const char *name) {
+long pyPropertyNode::getLong(const char *name) {
     long result = 0;
     if ( pObj != NULL ) {
 	if ( PyObject_HasAttrString(pObj, name) ) {
@@ -83,7 +83,7 @@ long pyPropertyNode::getLongValue(const char *name) {
     return result;
 }
 
-bool pyPropertyNode::getBoolValue(const char *name) {
+bool pyPropertyNode::getBool(const char *name) {
     bool result = false;
     if ( pObj != NULL ) {
 	if ( PyObject_HasAttrString(pObj, name) ) {
@@ -97,7 +97,7 @@ bool pyPropertyNode::getBoolValue(const char *name) {
     return result;
 }
 
-string pyPropertyNode::getStringValue(const char *name) {
+string pyPropertyNode::getString(const char *name) {
     string result = "";
     if ( pObj != NULL ) {
 	if ( PyObject_HasAttrString(pObj, name) ) {
@@ -112,6 +112,50 @@ string pyPropertyNode::getStringValue(const char *name) {
     return result;
 }
 
+// setters
+bool pyPropertyNode::setDouble( const char *name, double val ) {
+    if ( pObj != NULL ) {
+	PyObject *pFloat = PyFloat_FromDouble(val);
+	int result = PyObject_SetAttrString(pObj, name, pFloat);
+	Py_DECREF(pFloat);
+	return result != -1;
+    } else {
+	return false;
+    }
+}
+
+bool pyPropertyNode::setLong( const char *name, long val ) {
+    if ( pObj != NULL ) {
+	PyObject *pLong = PyLong_FromLong(val);
+	int result = PyObject_SetAttrString(pObj, name, pLong);
+	Py_DECREF(pLong);
+	return result != -1;
+    } else {
+	return false;
+    }
+}
+
+bool pyPropertyNode::setBool( const char *name, bool val ) {
+    if ( pObj != NULL ) {
+	PyObject *pBool = PyBool_FromLong((long)val);
+	int result = PyObject_SetAttrString(pObj, name, pBool);
+	Py_DECREF(pBool);
+	return result != -1;
+    } else {
+	return false;
+    }
+}
+
+bool pyPropertyNode::setString( const char *name, string val ) {
+    if ( pObj != NULL ) {
+	PyObject *pString = PyString_FromString(val.c_str());
+	int result = PyObject_SetAttrString(pObj, name, pString);
+	Py_DECREF(pString);
+	return result != -1;
+    } else {
+	return false;
+    }
+}
 
 // These only need to be looked up once and then saved
 static PyObject *pModuleProps = NULL;

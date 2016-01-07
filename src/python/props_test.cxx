@@ -1,29 +1,36 @@
 #include "pyprops.hxx"
 
 int main(int argc, char **argv) {
-    // cleanup the python interpreter after all the destructors are called
+    // cleanup the python interpreter after all the main() and global
+    // destructors are called
     atexit(pyPropsCleanup);
     
     pyPropsInit(argc, argv);
 
     pyPropertyNode imu_node = pyGetNode("/sensors/imu[2]");
-    printf("before calling getDoubleValue()\n");
-    printf("az = %.2f\n", imu_node.getDoubleValue("az"));
-    printf("az(int) = %ld\n", imu_node.getLongValue("az"));
-    
+    printf("before calling getDouble()\n");
+    printf("az = %.2f\n", imu_node.getDouble("az"));
+    printf("az(int) = %ld\n", imu_node.getLong("az"));
+    imu_node.setDouble("az", -9.7);
+    printf("az = %.2f\n", imu_node.getDouble("az"));
+    imu_node.setLong("az", -10);
+    printf("az = %.2f\n", imu_node.getDouble("az"));
+    imu_node.setString("az", "-9.8092322");
+    printf("az = %.8f\n", imu_node.getDouble("az"));
+   
     pyPropertyNode gps_node = pyGetNode("/sensors/gps[5]");
-    printf("gps name = %s\n", gps_node.getStringValue("name").c_str());
-    printf("gps test = %f\n", gps_node.getDoubleValue("test1"));
-    printf("gps test = %ld\n", gps_node.getLongValue("test1"));
-    printf("gps test = %s\n", gps_node.getStringValue("test1").c_str());
+    printf("gps name = %s\n", gps_node.getString("name").c_str());
+    printf("gps test = %f\n", gps_node.getDouble("test1"));
+    printf("gps test = %ld\n", gps_node.getLong("test1"));
+    printf("gps test = %s\n", gps_node.getString("test1").c_str());
    
     pyGetNode("/sensors/imu[2]");
     
-    printf("/sensors/imu = %s\n", pyGetNode("/sensors").getStringValue("imu").c_str());
+    printf("/sensors/imu = %s\n", pyGetNode("/sensors").getString("imu").c_str());
     // this is nonsensical usage, but also causes a segfault which we
     // really need to catch
     pyPropertyNode t1 = pyGetNode("/sensors/imu[1]");
-    string t2 = t1.getStringValue("az");
+    string t2 = t1.getString("az");
     printf("t1.t2=%s\n", t2.c_str());
-    printf("/sensors/imu[1] = %s\n", pyGetNode("/sensors/imu[1]").getStringValue("az").c_str());
+    printf("/sensors/imu[1] = %s\n", pyGetNode("/sensors/imu[1]").getString("az").c_str());
 }

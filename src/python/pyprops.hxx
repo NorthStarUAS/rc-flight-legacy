@@ -17,16 +17,16 @@ public:
     ~pyPropertyNode();
 
     // getters
-    double getDoubleValue(const char *name);	// return value as a double
-    long getLongValue(const char *name);	// return value as a long
-    bool getBoolValue(const char *name);	// return value as a boolean
-    string getStringValue(const char *name);	// return value as a string
+    double getDouble( const char *name ); // return value as a double
+    long getLong( const char *name );	  // return value as a long
+    bool getBool( const char *name );	  // return value as a boolean
+    string getString( const char *name ); // return value as a string
     
     // setters
-    bool setDoubleValue( double val ); // returns true if successful
-    bool setLongValue( long val );     // returns true if successful
-    bool setBoolValue( bool val );     // returns true if successful
-    bool setStringValue( string val ); // returns true if successful
+    bool setDouble( const char *name, double val ); // returns true if successful
+    bool setLong( const char *name, long val );     // returns true if successful
+    bool setBool( const char *name, bool val );     // returns true if successful
+    bool setString( const char *name, string val ); // returns true if successful
     
 private:
     PyObject *pObj;
