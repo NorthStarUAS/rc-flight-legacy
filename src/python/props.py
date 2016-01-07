@@ -34,9 +34,11 @@ class PropertyNode:
             # require relative paths
             return None
         tokens = path.split('/');
+        print "tokens:", tokens
         node = self
         for i, token in enumerate(tokens):
             # test for enumerated form: ident[index]
+            print "token:", token
             parts = re.split('([\w-]+)\[(\d+)\]', token)
             if len(parts) == 4:
                 token = parts[1]
@@ -60,7 +62,7 @@ class PropertyNode:
                         node = tmp[index]
                     else:
                         return None
-                if not isinstance(node, PropertyNode) and i < len(tokens)-1:
+                if not isinstance(node, PropertyNode):
                     print "path includes leaf nodes, sorry"
                     return None
             elif create:
@@ -129,6 +131,8 @@ print a.b.c.d.e.f.g.var1
 
 n3 = getNode("/a/b/c/d/e/f/g/var1", create=False)
 print "n3:", n3
+n3 = getNode("/a/b/c/d/e/f/g/var1", create=True)
+print "n3:", n3
 
 n4 = getNode("/a/b/c")
 n5 = n4.getChild("d/e/f/g")
@@ -141,11 +145,12 @@ gps = getNode("/sensors/gps[5]", create=True)
 gps.alt_m = 275.3
 
 # az get's created a parent node
-az = getNode("/sensors/imu[2]/accel/az", create=True)
-# this doesn't work
-az = -9.81
+imu = getNode("/sensors/imu[2]", create=True)
+# this works, but is bad form because az is originally created as a
+# PropertyNode() branch that can't have a value, only childredn
+imu.az = -9.80
 # this should work
-root.sensors.imu[2].accel.az = -9.81
+root.sensors.imu[2].az = -9.81
 
 root.pretty_print()
 

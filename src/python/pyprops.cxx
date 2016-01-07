@@ -9,11 +9,7 @@ using std::string;
 #include "pyprops.hxx"
 
 
-// Default constructor.
-pyPropertyNode::pyPropertyNode():
-    pObj(NULL)
-{
-}
+// Constructor
 
 pyPropertyNode::pyPropertyNode(PyObject *p)
 {
@@ -22,90 +18,96 @@ pyPropertyNode::pyPropertyNode(PyObject *p)
 
 // Destructor.
 pyPropertyNode::~pyPropertyNode() {
+    printf("~pyPropertyNode destructor\n");
     Py_XDECREF(pObj);
 }
 
-// testers
-bool pyPropertyNode::isBranch() {
-    string type = (string)pObj->ob_type->tp_name;
-    if ( type == "instance" || type == "list" ) {
-	return true;
-    } else {
-	return false;
-    }
-}
-
-bool pyPropertyNode::isLeaf() {
-    string type = (string)pObj->ob_type->tp_name;
-    if ( type == "instance" || type == "list" ) {
-	return false;
-    } else {
-	return true;
-    }
-}
-
 // getters
-double pyPropertyNode::getDoubleValue() {
+double pyPropertyNode::getDoubleValue(const char *name) {
     double result = 0.0;
     if ( pObj != NULL ) {
-	if ( PyFloat_Check(pObj) ) {
-	    result = PyFloat_AsDouble(pObj);
-	} else if ( PyInt_Check(pObj) ) {
-	    result = PyInt_AsLong(pObj);
-	} else if ( PyLong_Check(pObj) ) {
-	    result = PyLong_AsLong(pObj);
-	} else if ( PyString_Check(pObj) ) {
-	    PyObject *pFloat = PyFloat_FromString(pObj, NULL);
-	    result = PyFloat_AsDouble(pFloat);
-	    Py_DECREF(pFloat);
-	} else {
-	    printf("Unknown object type: '%s' ", pObj->ob_type->tp_name);
-	    PyObject *pStr = PyObject_Str(pObj);
-	    char *s = PyString_AsString(pStr);
-	    printf("%s\n", s);
-	    Py_DECREF(pStr);
+	if ( PyObject_HasAttrString(pObj, name) ) {
+	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
+	    if ( pAttr != NULL ) {
+		if ( PyFloat_Check(pAttr) ) {
+		    result = PyFloat_AsDouble(pAttr);
+		} else if ( PyInt_Check(pAttr) ) {
+		    result = PyInt_AsLong(pAttr);
+		} else if ( PyLong_Check(pAttr) ) {
+		    result = PyLong_AsLong(pAttr);
+		} else if ( PyString_Check(pAttr) ) {
+		    PyObject *pFloat = PyFloat_FromString(pAttr, NULL);
+		    result = PyFloat_AsDouble(pFloat);
+		    Py_DECREF(pFloat);
+		} else {
+		    printf("Unknown object type: '%s' ", pObj->ob_type->tp_name);
+		    PyObject *pStr = PyObject_Str(pObj);
+		    char *s = PyString_AsString(pStr);
+		    printf("%s\n", s);
+		    Py_DECREF(pStr);
+		}
+		//Py_DECREF(pAttr);
+	    }
 	}
     }
     return result;
 }
 
-long pyPropertyNode::getLongValue() {
+long pyPropertyNode::getLongValue(const char *name) {
     long result = 0;
     if ( pObj != NULL ) {
-	if ( PyLong_Check(pObj) ) {
-	    result = PyLong_AsLong(pObj);
-	} else if ( PyInt_Check(pObj) ) {
-	    result = PyInt_AsLong(pObj);
-	} else if ( PyFloat_Check(pObj) ) {
-	    result = (long)PyFloat_AsDouble(pObj);
-	} else if ( PyString_Check(pObj) ) {
-	    PyObject *pFloat = PyFloat_FromString(pObj, NULL);
-	    result = (long)PyFloat_AsDouble(pFloat);
-	    Py_DECREF(pFloat);
-	} else {
-	    printf("Unknown object type: '%s' ", pObj->ob_type->tp_name);
-	    PyObject *pStr = PyObject_Str(pObj);
-	    char *s = PyString_AsString(pStr);
-	    printf("%s\n", s);
-	    Py_DECREF(pStr);
+	if ( PyObject_HasAttrString(pObj, name) ) {
+	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
+	    if ( pAttr != NULL ) {
+		if ( PyLong_Check(pAttr) ) {
+		    result = PyLong_AsLong(pAttr);
+		} else if ( PyInt_Check(pAttr) ) {
+		    result = PyInt_AsLong(pAttr);
+		} else if ( PyFloat_Check(pAttr) ) {
+		    result = (long)PyFloat_AsDouble(pAttr);
+		} else if ( PyString_Check(pAttr) ) {
+		    PyObject *pFloat = PyFloat_FromString(pAttr, NULL);
+		    result = (long)PyFloat_AsDouble(pFloat);
+		    Py_DECREF(pFloat);
+		} else {
+		    printf("Unknown object type: '%s' ", pAttr->ob_type->tp_name);
+		    PyObject *pStr = PyObject_Str(pAttr);
+		    char *s = PyString_AsString(pStr);
+		    printf("%s\n", s);
+		    Py_DECREF(pStr);
+		}
+		Py_DECREF(pAttr);
+	    }
 	}
     }
     return result;
 }
 
-bool pyPropertyNode::getBoolValue() {
+bool pyPropertyNode::getBoolValue(const char *name) {
     bool result = false;
     if ( pObj != NULL ) {
-	result = PyObject_IsTrue(pObj);
+	if ( PyObject_HasAttrString(pObj, name) ) {
+	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
+	    if ( pAttr != NULL ) {
+		result = PyObject_IsTrue(pObj);
+		Py_DECREF(pAttr);
+	    }
+	}
     }
     return result;
 }
 
-string pyPropertyNode::getStringValue() {
+string pyPropertyNode::getStringValue(const char *name) {
     string result = "";
     if ( pObj != NULL ) {
-	PyObject *pStr = PyObject_Str(pObj);
-	result = (string)PyString_AsString(pStr);
+	if ( PyObject_HasAttrString(pObj, name) ) {
+	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
+	    if ( pAttr != NULL ) {
+		PyObject *pStr = PyObject_Str(pObj);
+		result = (string)PyString_AsString(pStr);
+		Py_DECREF(pAttr);
+	    }
+	}
     }
     return result;
 }
@@ -140,7 +142,7 @@ void pyPropsInit(int argc, char **argv) {
 // This function can be called prior to exit (after the last property
 // node usage) to properly shutdown and clean up the python
 // interpreter.
-extern void pyPropsClose() {
+extern void pyPropsCleanup(void) {
     Py_XDECREF(pFuncGetNode);
     Py_XDECREF(pModuleProps);
     Py_Finalize();
@@ -160,7 +162,7 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
 	Py_XDECREF(pPath);
 	Py_XDECREF(pCreate);
 	fprintf(stderr, "Cannot convert argument\n");
-	return pyPropertyNode();
+	return pyPropertyNode(NULL);
     }
     PyTuple_SetItem(pArgs, 0, pPath);
     PyTuple_SetItem(pArgs, 1, pCreate);
@@ -172,8 +174,8 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
     } else {
 	PyErr_Print();
 	fprintf(stderr,"Call failed\n");
-	return pyPropertyNode();
+	return pyPropertyNode(NULL);
     }
-    return pyPropertyNode();
+    return pyPropertyNode(NULL);
 }
 
