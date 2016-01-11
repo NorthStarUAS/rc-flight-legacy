@@ -38,7 +38,7 @@
 #define GPS_PACKET_ID 52
 #define BARO_PACKET_ID 53
 #define ANALOG_PACKET_ID 54
-#define CONFIG_INFO_PACKET_ID 55
+#define STATUS_INFO_PACKET_ID 55
 
 #define ACT_COMMAND_PACKET_ID 60
 
@@ -96,10 +96,12 @@ static SGPropertyNode *APM2_imu_packet_count_node = NULL;
 static SGPropertyNode *APM2_gps_packet_count_node = NULL;
 static SGPropertyNode *APM2_baro_packet_count_node = NULL;
 static SGPropertyNode *APM2_analog_packet_count_node = NULL;
+static SGPropertyNode *APM2_status_packet_count_node = NULL;
 static SGPropertyNode *APM2_info_serial_number_node = NULL;
 static SGPropertyNode *APM2_info_firmware_node = NULL;
 static SGPropertyNode *APM2_info_master_hz_node = NULL;
 static SGPropertyNode *APM2_info_baud_node = NULL;
+static SGPropertyNode *APM2_info_bytes_sec_node = NULL;
 
 // imu property nodes
 static SGPropertyNode *imu_timestamp_node = NULL;
@@ -237,6 +239,7 @@ static uint32_t imu_packet_counter = 0;
 static uint32_t gps_packet_counter = 0;
 static uint32_t baro_packet_counter = 0;
 static uint32_t analog_packet_counter = 0;
+static uint32_t status_packet_counter = 0;
 
 
 // (Deprecated) initialize input property nodes
@@ -754,11 +757,14 @@ static bool APM2_open() {
 	= fgGetNode("/sensors/APM2/baro-packet-count", true);
     APM2_analog_packet_count_node
 	= fgGetNode("/sensors/APM2/analog-packet-count", true);
+    APM2_status_packet_count_node
+	= fgGetNode("/sensors/APM2/status-packet-count", true);
     APM2_info_serial_number_node
 	= fgGetNode("/sensors/APM2/serial-number", true);
     APM2_info_firmware_node = fgGetNode("/sensors/APM2/firmware-rev", true);
     APM2_info_master_hz_node = fgGetNode("/sensors/APM2/master-hz", true);
     APM2_info_baud_node = fgGetNode("/sensors/APM2/baud-rate", true);
+    APM2_info_bytes_sec_node = fgGetNode("/sensors/APM2/bytes-sec", true);
 
     int baud_bits = B115200;
     if ( baud == 115200 ) {
@@ -1114,13 +1120,14 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		printf("APM2: packet size mismatch in analog input\n");
 	    }
 	}
-    } else if ( pkt_id == CONFIG_INFO_PACKET_ID ) {
+    } else if ( pkt_id == STATUS_INFO_PACKET_ID ) {
 	static bool first_time = true;
-	if ( pkt_len == 10 ) {
+	if ( pkt_len == 12 ) {
 	    uint16_t serial_num = *(uint16_t *)payload; payload += 2;
 	    uint16_t firmware_rev = *(uint16_t *)payload; payload += 2;
 	    uint16_t master_hz = *(uint16_t *)payload; payload += 2;
 	    uint32_t baud_rate = *(uint32_t *)payload; payload += 4;
+	    uint16_t bytes_sec = *(uint16_t *)payload; payload += 2;
 
 #if 0
 	    if ( display_on ) {
@@ -1133,6 +1140,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    APM2_info_firmware_node->setIntValue( firmware_rev );
 	    APM2_info_master_hz_node->setIntValue( master_hz );
 	    APM2_info_baud_node->setIntValue( baud_rate );
+	    APM2_info_bytes_sec_node->setIntValue( bytes_sec );
 
 	    if ( first_time ) {
 		// log the data to events.txt
@@ -1147,6 +1155,9 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		snprintf( buf, 32, "%d", baud_rate );
 		event_log("APM2 Baud Rate: ", buf );
 	    }
+	    
+	    status_packet_counter++;
+	    APM2_status_packet_count_node->setIntValue( status_packet_counter );
 	} else {
 	    if ( display_on ) {
 		printf("APM2: packet size mismatch in config info\n");
