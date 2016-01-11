@@ -924,7 +924,7 @@ bool UGTrack::export_text_tab( const string &path ) {
 	actpacket = get_actpt(i);
 	double ail = actpacket.ail;
 	double ele = actpacket.ele;
-	if ( flying_wing_node->getBoolValue() ) {
+	if ( flying_wing_node->getBool() ) {
 	    double ch1 = actpacket.ail;
 	    double ch2 = actpacket.ele;
 	    double e = (ch1 - ch2) / 2.0;
@@ -955,7 +955,7 @@ bool UGTrack::export_text_tab( const string &path ) {
 	pilotpacket = get_pilotpt(i);
 	double ail = pilotpacket.ail;
 	double ele = pilotpacket.ele;
-	if ( flying_wing_node->getBoolValue() ) {
+	if ( flying_wing_node->getBool() ) {
 	    double ch1 = pilotpacket.ail;
 	    double ch2 = pilotpacket.ele;
 	    double e = (ch1 - ch2) / 2.0;

@@ -3,13 +3,14 @@
 // DESCRIPTION: send actuator commands to Goldy2
 //
 
+#include "python/pyprops.hxx"
+
 #include <stdio.h>
 #include <string>
 #include <string.h>
 
 #include "comms/netSocket.h"
 #include "init/globals.hxx"
-#include "python/pyprops.hxx"
 #include "util/timing.h"
 
 #include "sensors/util_goldy2.hxx"
@@ -20,53 +21,29 @@ static netSocket sock;
 static int port = 0;
 static string hostname = "";
 
-// goldy2 config property nodes
-static SGPropertyNode *configroot = NULL;
-static SGPropertyNode *act_host_node = NULL;
-static SGPropertyNode *act_port_node = NULL;
-
-// actuator property nodes
-static SGPropertyNode *act_timestamp_node = NULL;
-static SGPropertyNode *act_aileron_node = NULL;
-static SGPropertyNode *act_elevator_node = NULL;
-static SGPropertyNode *act_throttle_node = NULL;
-static SGPropertyNode *act_rudder_node = NULL;
-static SGPropertyNode *act_channel5_node = NULL;
-static SGPropertyNode *act_channel6_node = NULL;
-static SGPropertyNode *act_channel7_node = NULL;
-static SGPropertyNode *act_channel8_node = NULL;
+// property nodes
+static pyPropertyNode act_node;
 
 
 // initialize goldy2 config property nodes
-static void bind_input( SGPropertyNode *config ) {
-    act_host_node = config->getChild("host");
-    if ( act_host_node != NULL ) {
-	hostname = act_host_node->getStringValue();
+static void bind_input( pyPropertyNode *config ) {
+    if ( config->hasChild("host") ) {
+	hostname = config->getString("host");
     }
-    act_port_node = config->getChild("port");
-    if ( act_port_node != NULL ) {
-	port = act_port_node->getIntValue();
+    if ( config->hasChild("port") ) {
+	port = config->getLong("port");
     }
-    configroot = config;
 }
 
 
 /// initialize actuator property nodes 
 static void bind_act_nodes() {
-    act_timestamp_node = pyGetNode("/actuators/actuator/time-stamp", true);
-    act_aileron_node = pyGetNode("/actuators/actuator/channel", 0, true);
-    act_elevator_node = pyGetNode("/actuators/actuator/channel", 1, true);
-    act_throttle_node = pyGetNode("/actuators/actuator/channel", 2, true);
-    act_rudder_node = pyGetNode("/actuators/actuator/channel", 3, true);
-    act_channel5_node = pyGetNode("/actuators/actuator/channel", 4, true);
-    act_channel6_node = pyGetNode("/actuators/actuator/channel", 5, true);
-    act_channel7_node = pyGetNode("/actuators/actuator/channel", 6, true);
-    act_channel8_node = pyGetNode("/actuators/actuator/channel", 7, true);
+    act_node = pyGetNode("/actuators/actuator", true);
 }
 
 
 // function prototypes
-bool goldy2_act_init( SGPropertyNode *config ) {
+bool goldy2_act_init( pyPropertyNode *config ) {
     printf("actuator_init()\n");
 
     bind_input( config );

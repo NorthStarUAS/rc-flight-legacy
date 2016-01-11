@@ -496,7 +496,7 @@ writeNode (ostream &output, const SGPropertyNode * node,
       if (node->getType() != SGPropertyNode::UNSPECIFIED)
 	output << " type=\"" << getTypeName(node->getType()) << '"';
       output << '>';
-      writeData(output, node->getStringValue());
+      writeData(output, node->getString());
       output << "</" << name << '>' << endl;
     }
   }
@@ -571,7 +571,7 @@ copyProperties (const SGPropertyNode *in, SGPropertyNode *out)
   if (in->hasValue()) {
     switch (in->getType()) {
     case SGPropertyNode::BOOL:
-      if (!out->setBoolValue(in->getBoolValue()))
+      if (!out->setBoolValue(in->getBool()))
 	retval = false;
       break;
     case SGPropertyNode::INT:
@@ -591,11 +591,11 @@ copyProperties (const SGPropertyNode *in, SGPropertyNode *out)
 	retval = false;
       break;
     case SGPropertyNode::STRING:
-      if (!out->setStringValue(in->getStringValue()))
+      if (!out->setStringValue(in->getString()))
 	retval = false;
       break;
     case SGPropertyNode::UNSPECIFIED:
-      if (!out->setUnspecifiedValue(in->getStringValue()))
+      if (!out->setUnspecifiedValue(in->getString()))
 	retval = false;
       break;
     default:

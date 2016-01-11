@@ -18,12 +18,15 @@ int main(int argc, char **argv) {
     imu_node.setString("az", "-9.8092322");
     printf("az = %.8f\n", imu_node.getDouble("az"));
    
-    pyPropertyNode gps_node = pyGetNode("/sensors/gps[5]");
+    pyPropertyNode gps_node = pyGetNode("/sensors/gps[5]", true);
     printf("gps name = %s\n", gps_node.getString("name").c_str());
     printf("gps test = %f\n", gps_node.getDouble("test1"));
     printf("gps test = %ld\n", gps_node.getLong("test1"));
     printf("gps test = %s\n", gps_node.getString("test1").c_str());
-   
+
+    pyPropertyNode sensors = pyGetNode("/sensors");
+    printf("gps size = %d\n", sensors.getLen("gps"));
+
     pyGetNode("/sensors/imu[2]");
     
     printf("/sensors/imu = %s\n", pyGetNode("/sensors").getString("imu").c_str());

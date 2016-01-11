@@ -61,7 +61,7 @@ static int gps_fix_value = 0;
 static void bind_input( SGPropertyNode *config ) {
     gps_device_name_node = config->getChild("device");
     if ( gps_device_name_node != NULL ) {
-	device_name = gps_device_name_node->getStringValue();
+	device_name = gps_device_name_node->getString();
     }
     gps_baud_node = config->getChild("baud");
     if ( gps_baud_node != NULL ) {

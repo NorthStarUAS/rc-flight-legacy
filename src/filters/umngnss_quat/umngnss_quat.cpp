@@ -227,7 +227,7 @@ bool umngnss_quat_update() {
     if ( umn_inited ) {
 	get_nav( &imu_data, &gps_data, &nav_data );
     } else {
-	if ( GPS_age() < 1.0 && gps_settle_node->getBoolValue() ) {
+	if ( GPS_age() < 1.0 && gps_settle_node->getBool() ) {
 	    init_nav( &imu_data, &gps_data, &nav_data );
 	    umn_inited = true;
 	}

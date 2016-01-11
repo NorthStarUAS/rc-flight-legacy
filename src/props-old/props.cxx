@@ -547,7 +547,7 @@ SGPropertyNode::make_string () const
 
   switch (_type) {
   case ALIAS:
-    return _value.alias->getStringValue();
+    return _value.alias->getString();
   case BOOL:
     if (get_bool())
       return "true";
@@ -1001,7 +1001,7 @@ SGPropertyNode::getType () const
 
 
 bool 
-SGPropertyNode::getBoolValue () const
+SGPropertyNode::getBool () const
 {
 				// Shortcut for common case
   if (_attr == (READ|WRITE) && _type == BOOL)
@@ -1013,7 +1013,7 @@ SGPropertyNode::getBoolValue () const
     return SGRawValue<bool>::DefaultValue;
   switch (_type) {
   case ALIAS:
-    return _value.alias->getBoolValue();
+    return _value.alias->getBool();
   case BOOL:
     return get_bool();
   case INT:
@@ -1167,7 +1167,7 @@ SGPropertyNode::getDouble () const
 }
 
 const char *
-SGPropertyNode::getStringValue () const
+SGPropertyNode::getString () const
 {
 				// Shortcut for common case
   if (_attr == (READ|WRITE) && _type == STRING)
@@ -1533,7 +1533,7 @@ SGPropertyNode::tie (const SGRawValue<bool> &rawValue, bool useDefault)
   useDefault = useDefault && hasValue();
   bool old_val = false;
   if (useDefault)
-    old_val = getBoolValue();
+    old_val = getBool();
 
   clearValue();
   _type = BOOL;
@@ -1644,7 +1644,7 @@ SGPropertyNode::tie (const SGRawValue<const char *> &rawValue, bool useDefault)
   useDefault = useDefault && hasValue();
   string old_val;
   if (useDefault)
-    old_val = getStringValue();
+    old_val = getString();
 
   clearValue();
   _type = STRING;
@@ -1665,7 +1665,7 @@ SGPropertyNode::untie ()
 
   switch (_type) {
   case BOOL: {
-    bool val = getBoolValue();
+    bool val = getBool();
     clearValue();
     _type = BOOL;
     _local_val.bool_val = val;
@@ -1701,7 +1701,7 @@ SGPropertyNode::untie ()
   }
   case STRING:
   case UNSPECIFIED: {
-    string val = getStringValue();
+    string val = getString();
     clearValue();
     _type = STRING;
     _local_val.string_val = copy_string(val.c_str());
@@ -1806,11 +1806,11 @@ SGPropertyNode::getType (const char * relative_path) const
  * Get a bool value for another node.
  */
 bool
-SGPropertyNode::getBoolValue (const char * relative_path,
+SGPropertyNode::getBool (const char * relative_path,
 			      bool defaultValue) const
 {
   const SGPropertyNode * node = getNode(relative_path);
-  return (node == 0 ? defaultValue : node->getBoolValue());
+  return (node == 0 ? defaultValue : node->getBool());
 }
 
 
@@ -1866,11 +1866,11 @@ SGPropertyNode::getDouble (const char * relative_path,
  * Get a string value for another node.
  */
 const char *
-SGPropertyNode::getStringValue (const char * relative_path,
+SGPropertyNode::getString (const char * relative_path,
 				const char * defaultValue) const
 {
   const SGPropertyNode * node = getNode(relative_path);
-  return (node == 0 ? defaultValue : node->getStringValue());
+  return (node == 0 ? defaultValue : node->getString());
 }
 
 

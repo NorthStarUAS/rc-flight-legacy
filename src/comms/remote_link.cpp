@@ -47,12 +47,12 @@ static ugLinkType link_type = ugUNKNOWN;
 // set up the remote link
 void remote_link_init() {
     SGPropertyNode *link_type_node = fgGetNode("/config/remote-link/type", true);
-    if ( strcmp(link_type_node->getStringValue(), "uart") == 0 ) {
+    if ( strcmp(link_type_node->getString(), "uart") == 0 ) {
 	if ( display_on ) {
 	    printf("remote link: direct uart\n");
 	}
 	link_type = ugUART;
-    } else if ( strcmp(link_type_node->getStringValue(), "uart-server") == 0 ) {
+    } else if ( strcmp(link_type_node->getString(), "uart-server") == 0 ) {
 	if ( display_on ) {
 	    printf("remote link: via network server\n");
 	}
@@ -61,7 +61,7 @@ void remote_link_init() {
 
     if ( link_type == ugUART ) {
 	SGPropertyNode *link_dev = fgGetNode("/config/remote-link/device", true);
-	if ( ! serial_fd.open_port( link_dev->getStringValue(), true ) ) {
+	if ( ! serial_fd.open_port( link_dev->getString(), true ) ) {
 	    return;
 	}
 	serial_fd.set_baud( 115200 );
@@ -72,17 +72,17 @@ void remote_link_init() {
 	SGPropertyNode *link_port = fgGetNode("/config/remote-link/port", true);
 	if ( ! link_socket.open(true) ) {
 	    printf("Error opening socket: %s:%d\n",
-		   link_host->getStringValue(),
-		   link_port->getIntValue());
+		   link_host->getString(),
+		   link_port->getLong());
 	    return;
 	}
-	if ( link_socket.connect( link_host->getStringValue(),
-				    link_port->getIntValue() ) < 0 )
+	if ( link_socket.connect( link_host->getString(),
+				    link_port->getLong() ) < 0 )
 	{
 	    if ( display_on ) {
 		printf("Error connecting socket: %s:%d\n",
-		       link_host->getStringValue(),
-		       link_port->getIntValue());
+		       link_host->getString(),
+		       link_port->getLong());
 	    }
 	    return;
 	}
@@ -97,7 +97,7 @@ void remote_link_init() {
 	= fgGetNode("/comms/remote-link/last-message-sec", true);
     link_bytes_per_frame
 	= fgGetNode("/config/remote-link/write-bytes-per-frame", true);
-    if ( link_bytes_per_frame->getIntValue() == 0 ) {
+    if ( link_bytes_per_frame->getLong() == 0 ) {
 	link_bytes_per_frame->setIntValue(12);
     }
 }
@@ -114,7 +114,7 @@ void remote_link_flush_serial() {
     // attempt better success by writing multiple small chunks to the
     // serial port (2 * 8 = 16 bytes per call attempted)
     const int loops = 1;
-    int bytes_per_frame = link_bytes_per_frame->getIntValue();
+    int bytes_per_frame = link_bytes_per_frame->getLong();
 
     for ( int i = 0; i < loops; i++ ) {
 	int write_len = serial_buffer.getLength();

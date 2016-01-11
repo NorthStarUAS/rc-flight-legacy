@@ -4,7 +4,9 @@
 
 #include <Python.h>
 #include <string>
+#include <sstream>
 using std::string;
+using std::ostringstream;
 
 #include "pyprops.hxx"
 
@@ -38,13 +40,13 @@ bool pyPropertyNode::hasChild(const char *name) {
 }
 
 // Return a pyPropertyNode object that points to the named child
-pyPropertyNode pyPropertyNode::getChild(const char *childname, bool create)
+pyPropertyNode pyPropertyNode::getChild(const char *name, bool create)
 {
     if ( pObj == NULL ) {
 	return pyPropertyNode();
     }
     PyObject *pValue = PyObject_CallMethod(pObj, "getChild", "sb",
-					   childname, create);
+					   name, create);
     if (pValue == NULL) {
 	PyErr_Print();
 	fprintf(stderr,"Call failed\n");
@@ -55,9 +57,30 @@ pyPropertyNode pyPropertyNode::getChild(const char *childname, bool create)
     return pyPropertyNode(pValue);
 }
 
+pyPropertyNode pyPropertyNode::getChild(const char *name, int index)
+{
+    if ( pObj == NULL ) {
+	return pyPropertyNode();
+    }
+    ostringstream str;
+    str << (string)name << '[' << index << ']';
+    string ename = str.str();
+    printf("ename = %s\n", ename.c_str());
+    return getChild(ename.c_str());    
+}
+
 // return true if pObj pointer is NULL
 bool pyPropertyNode::isNull() {
     return pObj == NULL;
+}    
+
+// return true if pObj is a list (enumerated)
+int pyPropertyNode::getLen(const char *name) {
+    if ( pObj == NULL ) {
+	return false;
+    }
+    PyObject *pValue = PyObject_CallMethod(pObj, "getLen", "s", name);
+    return PyInt_AsLong(pValue);
 }    
 
 // value getters

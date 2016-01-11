@@ -52,7 +52,7 @@ void UGCalibrate::init( SGPropertyNode *config, float min_temp, float max_temp )
     
     node = config->getChild("bias");
     if ( node != NULL ) {
-	string bias_str = node->getStringValue();
+	string bias_str = node->getString();
 	vector<string> tokens = split( bias_str );
 	if ( tokens.size() == 1 ) {
 	    // constant bias
@@ -73,7 +73,7 @@ void UGCalibrate::init( SGPropertyNode *config, float min_temp, float max_temp )
     }
     node = config->getChild("scale");
     if ( node != NULL ) {
-	string scale_str = node->getStringValue();
+	string scale_str = node->getString();
 	vector<string> tokens = split( scale_str );
 	if ( tokens.size() == 1 ) {
 	    // constant scale

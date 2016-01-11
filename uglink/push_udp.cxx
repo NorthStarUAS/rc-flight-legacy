@@ -210,11 +210,11 @@ static void ugear2fg( struct gps *gpspacket,
     double ve = filterpacket->ve;
     double vd = filterpacket->vd;
 
-    if ( use_groundtrack_hdg_node->getBoolValue() ) {
+    if ( use_groundtrack_hdg_node->getBool() ) {
         fdm->psi = SGD_PI * 0.5 - atan2(vn, ve); // heading
     }
 
-    if ( use_ground_speed_node->getBoolValue() ) {
+    if ( use_ground_speed_node->getBool() ) {
 	fdm->vcas = filter_speed_node->getDouble();
     } else {
 	fdm->vcas = airpacket->airspeed;
@@ -275,7 +275,7 @@ static void ugear2fg( struct gps *gpspacket,
     fdm->left_flap = 0.0;
     fdm->right_flap = 0.0;
 
-    if ( est_controls_node->getBoolValue() ) {
+    if ( est_controls_node->getBool() ) {
         static float est_elev = 0.0;
         static float est_aileron = 0.0;
         static float est_rudder = 0.0;
@@ -289,7 +289,7 @@ static void ugear2fg( struct gps *gpspacket,
     } else {
 	if ( pilotpacket->ch5 > 0.5 ) {
 	    // manual override is on, display pilot inputs
-	    if ( !flying_wing_node->getBoolValue() ) {
+	    if ( !flying_wing_node->getBool() ) {
 		ctrls->elevator = fdm->elevator = pilotpacket->ele * -1.0;
 		ctrls->aileron = fdm->left_aileron = pilotpacket->ail;
 		fdm->right_aileron = pilotpacket->ail * -1.0;
@@ -303,7 +303,7 @@ static void ugear2fg( struct gps *gpspacket,
 	    ctrls->throttle[0] = pilotpacket->thr;
 	} else {
 	    // autopilot is active, display actuator commands
-	    if ( !flying_wing_node->getBoolValue() ) {
+	    if ( !flying_wing_node->getBool() ) {
 		ctrls->elevator = fdm->elevator = actpacket->ele * -1.0;
 		ctrls->aileron = fdm->left_aileron = actpacket->ail * -1.0;
 		fdm->right_aileron = actpacket->ail;
@@ -488,13 +488,13 @@ static void ugear2gui( struct gps *gpspacket,
     double ve = filterpacket->ve;
     // double vd = filterpacket->vd;
 
-    if ( use_groundtrack_hdg_node->getBoolValue() ) {
+    if ( use_groundtrack_hdg_node->getBool() ) {
         gui->psi = SGD_PI * 0.5 - atan2(vn, ve); // heading
     }
 
     // printf("%.1f kts %.2f fps\n", speed_kts, climb_fps);
 
-    if ( use_ground_speed_node->getBoolValue() ) {
+    if ( use_ground_speed_node->getBool() ) {
 	gui->vcas = filter_speed_node->getDouble();
     } else {
 	gui->vcas = airpacket->airspeed;

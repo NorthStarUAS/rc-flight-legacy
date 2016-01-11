@@ -7,9 +7,9 @@
 #define _AURA_APM2_HXX
 
 
-#include "include/globaldefs.h"
-
 #include "python/pyprops.hxx"
+
+#include "include/globaldefs.h"
 
 
 // function prototypes
@@ -18,11 +18,11 @@ bool APM2_update();
 void APM2_close();
 bool APM2_request_baud( uint32_t baud );
 
-bool APM2_imu_init( string rootname, SGPropertyNode *config );
+bool APM2_imu_init( string rootname, pyPropertyNode *config );
 bool APM2_imu_update();
 void APM2_imu_close();
 
-bool APM2_gps_init( string rootname, SGPropertyNode *config  );
+bool APM2_gps_init( string rootname, pyPropertyNode *config  );
 bool APM2_gps_update();
 void APM2_gps_close();
 
@@ -38,7 +38,7 @@ bool APM2_pilot_init( string rootname );
 bool APM2_pilot_update();
 void APM2_pilot_close();
 
-bool APM2_act_init( SGPropertyNode *config );
+bool APM2_act_init( pyPropertyNode *config );
 bool APM2_act_update();
 void APM2_act_close();
 

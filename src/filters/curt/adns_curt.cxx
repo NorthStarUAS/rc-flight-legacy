@@ -9,13 +9,14 @@
  */
 
 
+#include "python/pyprops.hxx"
+
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h> // temp: exit()
 
 #include "include/globaldefs.h"
-#include "python/pyprops.hxx"
 #include "sensors/gps_mgr.hxx"
 
 #include "math/SGMath.hxx"
@@ -23,43 +24,47 @@
 #include "adns_curt.hxx"
 
 
-// imu property nodes
-static SGPropertyNode *imu_timestamp_node = NULL;
-static SGPropertyNode *imu_p_node = NULL;
-static SGPropertyNode *imu_q_node = NULL;
-static SGPropertyNode *imu_r_node = NULL;
-static SGPropertyNode *imu_ax_node = NULL;
-static SGPropertyNode *imu_ay_node = NULL;
-static SGPropertyNode *imu_az_node = NULL;
-static SGPropertyNode *imu_hx_node = NULL;
-static SGPropertyNode *imu_hy_node = NULL;
-static SGPropertyNode *imu_hz_node = NULL;
+// property nodes
+static pyPropertyNode imu_node;
+static pyPropertyNode gps_node;
+static pyPropertyNode filter_node;
+
+//static SGPropertyNode *imu_timestamp_node = NULL;
+//static SGPropertyNode *imu_p_node = NULL;
+//static SGPropertyNode *imu_q_node = NULL;
+//static SGPropertyNode *imu_r_node = NULL;
+//static SGPropertyNode *imu_ax_node = NULL;
+//static SGPropertyNode *imu_ay_node = NULL;
+//static SGPropertyNode *imu_az_node = NULL;
+//static SGPropertyNode *imu_hx_node = NULL;
+//static SGPropertyNode *imu_hy_node = NULL;
+//static SGPropertyNode *imu_hz_node = NULL;
 
 // gps property nodes
-static SGPropertyNode *gps_time_stamp_node = NULL;
-static SGPropertyNode *gps_lat_node = NULL;
-static SGPropertyNode *gps_lon_node = NULL;
-static SGPropertyNode *gps_alt_node = NULL;
-static SGPropertyNode *gps_ve_node = NULL;
-static SGPropertyNode *gps_vn_node = NULL;
-static SGPropertyNode *gps_vd_node = NULL;
+//static SGPropertyNode *gps_time_stamp_node = NULL;
+//static SGPropertyNode *gps_lat_node = NULL;
+//static SGPropertyNode *gps_lon_node = NULL;
+//static SGPropertyNode *gps_alt_node = NULL;
+//static SGPropertyNode *gps_ve_node = NULL;
+//static SGPropertyNode *gps_vn_node = NULL;
+//static SGPropertyNode *gps_vd_node = NULL;
 
 // adns output nodes
-static SGPropertyNode *filter_theta_node = NULL;
-static SGPropertyNode *filter_phi_node = NULL;
-static SGPropertyNode *filter_psi_node = NULL;
-static SGPropertyNode *filter_lat_node = NULL;
-static SGPropertyNode *filter_lon_node = NULL;
-static SGPropertyNode *filter_alt_node = NULL;
-static SGPropertyNode *filter_vn_node = NULL;
-static SGPropertyNode *filter_ve_node = NULL;
-static SGPropertyNode *filter_vd_node = NULL;
-static SGPropertyNode *filter_status_node = NULL;
+//static SGPropertyNode *filter_theta_node = NULL;
+//static SGPropertyNode *filter_phi_node = NULL;
+//static SGPropertyNode *filter_psi_node = NULL;
+//static SGPropertyNode *filter_lat_node = NULL;
+//static SGPropertyNode *filter_lon_node = NULL;
+//static SGPropertyNode *filter_alt_node = NULL;
+//static SGPropertyNode *filter_vn_node = NULL;
+//static SGPropertyNode *filter_ve_node = NULL;
+//static SGPropertyNode *filter_vd_node = NULL;
+//static SGPropertyNode *filter_status_node = NULL;
 
-static SGPropertyNode *filter_alt_feet_node = NULL;
-static SGPropertyNode *filter_track_node = NULL;
-static SGPropertyNode *filter_vel_node = NULL;
-static SGPropertyNode *filter_vert_speed_fps_node = NULL;
+//static SGPropertyNode *filter_alt_feet_node = NULL;
+//static SGPropertyNode *filter_track_node = NULL;
+//static SGPropertyNode *filter_vel_node = NULL;
+//static SGPropertyNode *filter_vert_speed_fps_node = NULL;
 
 //
 static bool init_pos = false;
@@ -82,17 +87,18 @@ static SGVec3d gyro_bias;
 
 // bind to property tree
 static bool bind_properties( string rootname ) {
-    // initialize imu property nodes
-    imu_timestamp_node = pyGetNode("/sensors/imu/timestamp");
-    imu_p_node = pyGetNode("/sensors/imu/p-rad_sec", true);
-    imu_q_node = pyGetNode("/sensors/imu/q-rad_sec", true);
-    imu_r_node = pyGetNode("/sensors/imu/r-rad_sec", true);
-    imu_ax_node = pyGetNode("/sensors/imu/ax-mps_sec", true);
-    imu_ay_node = pyGetNode("/sensors/imu/ay-mps_sec", true);
-    imu_az_node = pyGetNode("/sensors/imu/az-mps_sec", true);
-    imu_hx_node = pyGetNode("/sensors/imu/hx", true);
-    imu_hy_node = pyGetNode("/sensors/imu/hy", true);
-    imu_hz_node = pyGetNode("/sensors/imu/hz", true);
+    // initialize property nodes
+    imu_node = pyGetNode("/sensors/imu");
+    //imu_timestamp_node = pyGetNode("/sensors/imu/timestamp");
+    //imu_p_node = pyGetNode("/sensors/imu/p-rad_sec", true);
+    //imu_q_node = pyGetNode("/sensors/imu/q-rad_sec", true);
+    //imu_r_node = pyGetNode("/sensors/imu/r-rad_sec", true);
+    //imu_ax_node = pyGetNode("/sensors/imu/ax-mps_sec", true);
+    //imu_ay_node = pyGetNode("/sensors/imu/ay-mps_sec", true);
+    //imu_az_node = pyGetNode("/sensors/imu/az-mps_sec", true);
+    //imu_hx_node = pyGetNode("/sensors/imu/hx", true);
+    //imu_hy_node = pyGetNode("/sensors/imu/hy", true);
+    //imu_hz_node = pyGetNode("/sensors/imu/hz", true);
 
     // initialize gps property nodes
     gps_time_stamp_node = pyGetNode("/sensors/gps/time-stamp", true);

@@ -27,15 +27,6 @@ static pyPropertyNode orient_node;
 static pyPropertyNode pos_node;
 static pyPropertyNode route_node;
 
-// additional autopilot target nodes (note this is a hack, but we are
-// sending data back to FG in this module so it makes some sense to
-// include autopilot targets.)
-//static pyPropertyNode ap_heading_deg;
-//static pyPropertyNode ap_ground_track_deg;
-//static pyPropertyNode ap_dist_m;
-//static pyPropertyNode ap_eta_sec;
-//static pyPropertyNode filter_ground_alt_m_node;
-
 // initialize fgfs_gps input property nodes
 static void bind_input( pyPropertyNode *config ) {
     if ( config->hasChild("host") ) {
@@ -54,13 +45,6 @@ static void bind_act_nodes() {
     orient_node = pyGetNode("/orientation", true);
     pos_node = pyGetNode("/position", true);
     route_node = pyGetNode("/task/route", true);    
-
-    //ap_heading_deg = pyGetNode( "/orientation/heading-deg", true );
-    //filter_ground_alt_m_node
-    // = pyGetNode("/position/altitude-ground-m", true);
-    // ap_ground_track_deg = pyGetNode( "/orientation/groundtrack-deg", true );
-    //ap_dist_m = pyGetNode( "/task/route/wp-dist-m", true );
-    //ap_eta_sec =  pyGetNode( "/task/route/wp-eta-sec", true );
 }
 
 
@@ -104,6 +88,10 @@ static void my_swap( uint8_t *buf, int index, int count )
 
 
 bool fgfs_act_update() {
+    // additional autopilot target nodes (note this is a hack, but we
+    // are sending data back to FG in this module so it makes some
+    // sense to include autopilot targets.)
+
     const int fgfs_act_size = 76;
     uint8_t packet_buf[fgfs_act_size];
     uint8_t *buf = packet_buf;

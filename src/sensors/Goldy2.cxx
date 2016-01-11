@@ -4,6 +4,8 @@
 // of Flightgear
 //
 
+#include "python/pyprops.hxx"
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
@@ -15,7 +17,6 @@
 #include "comms/netSocket.h"
 #include "math/SGMath.hxx"
 #include "math/SGGeodesy.hxx"
-#include "python/pyprops.hxx"
 #include "util/timing.h"
 
 #include "util_goldy2.hxx"
@@ -34,21 +35,22 @@ static SGPropertyNode *outputroot = NULL;
 static SGPropertyNode *goldy2_port_node = NULL;
 
 // imu property nodes
-static SGPropertyNode *imu_timestamp_node = NULL;
-static SGPropertyNode *imu_p_node = NULL;
-static SGPropertyNode *imu_q_node = NULL;
-static SGPropertyNode *imu_r_node = NULL;
-static SGPropertyNode *imu_ax_node = NULL;
-static SGPropertyNode *imu_ay_node = NULL;
-static SGPropertyNode *imu_az_node = NULL;
-static SGPropertyNode *imu_hx_node = NULL;
-static SGPropertyNode *imu_hy_node = NULL;
-static SGPropertyNode *imu_hz_node = NULL;
-static SGPropertyNode *imu_temp_node = NULL;
-static SGPropertyNode *imu_pressure_node = NULL;
-static SGPropertyNode *imu_roll_node = NULL;
-static SGPropertyNode *imu_pitch_node = NULL;
-static SGPropertyNode *imu_yaw_node = NULL;
+static pyPropertyNode imu_node;
+//static SGPropertyNode *imu_timestamp_node = NULL;
+//static SGPropertyNode *imu_p_node = NULL;
+//static SGPropertyNode *imu_q_node = NULL;
+//static SGPropertyNode *imu_r_node = NULL;
+//static SGPropertyNode *imu_ax_node = NULL;
+//static SGPropertyNode *imu_ay_node = NULL;
+//static SGPropertyNode *imu_az_node = NULL;
+//static SGPropertyNode *imu_hx_node = NULL;
+//static SGPropertyNode *imu_hy_node = NULL;
+//static SGPropertyNode *imu_hz_node = NULL;
+//static SGPropertyNode *imu_temp_node = NULL;
+//static SGPropertyNode *imu_pressure_node = NULL;
+//static SGPropertyNode *imu_roll_node = NULL;
+//static SGPropertyNode *imu_pitch_node = NULL;
+//static SGPropertyNode *imu_yaw_node = NULL;
 
 // airdata property nodes
 static SGPropertyNode *airdata_timestamp_node = NULL;

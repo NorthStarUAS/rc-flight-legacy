@@ -87,8 +87,8 @@ void PilotInput_init() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "pilot-input" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    string source = section->getChild("source", 0, true)->getString();
+	    bool enabled = section->getChild("enable", 0, true)->getBool();
 	    if ( !enabled ) {
 		continue;
 	    }
@@ -124,8 +124,8 @@ bool PilotInput_update() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "pilot-input" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    string source = section->getChild("source", 0, true)->getString();
+	    bool enabled = section->getChild("enable", 0, true)->getBool();
 	    if ( !enabled ) {
 		continue;
 	    }
@@ -154,9 +154,9 @@ bool PilotInput_update() {
 	// autopilot on/off switch here.  In the future the master
 	// autopilot on/off switch may come from other sources. (?)
 	ap_master_switch_node
-	    ->setBoolValue( !pilot_manual_node->getBoolValue() );
+	    ->setBoolValue( !pilot_manual_node->getBool() );
 	// if ( display_on ) {
-	//    printf("autopilot = %d\n", ap_master_switch_node->getBoolValue());
+	//    printf("autopilot = %d\n", ap_master_switch_node->getBool());
 	// }
 
 	// Only in manual mode, do copy the pilot inputs to the main
@@ -164,7 +164,7 @@ bool PilotInput_update() {
 	// and allows the AP to seed it's components with trimmed
 	// values and improve continuity when switching from manual to
 	// AP mode.
-	if ( ! ap_master_switch_node->getBoolValue() ) {
+	if ( ! ap_master_switch_node->getBool() ) {
 	    output_aileron_node->setFloatValue( pilot_aileron_node->getDouble() );
 	    output_elevator_node->setFloatValue( pilot_elevator_node->getDouble() );
 	    output_throttle_node->setFloatValue( pilot_throttle_node->getDouble() );
@@ -200,7 +200,7 @@ void PilotInput_close() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "pilot-input" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
+	    string source = section->getChild("source", 0, true)->getString();
 	    string basename = "/sensors/";
 	    basename += section->getDisplayName();
 	    // printf("i = %d  name = %s source = %s %s\n",

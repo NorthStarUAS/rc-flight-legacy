@@ -218,7 +218,7 @@ static bool read_gps() {
 static void bind_input( SGPropertyNode *config ) {
     file_base_node = config->getChild("name");
     if ( file_base_node != NULL ) {
-	file_base_name = file_base_node->getStringValue();
+	file_base_name = file_base_node->getString();
     }
     configroot = config;
 }

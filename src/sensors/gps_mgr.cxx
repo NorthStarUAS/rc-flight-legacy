@@ -78,8 +78,8 @@ void GPS_init() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "gps" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-            bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    string source = section->getChild("source", 0, true)->getString();
+            bool enabled = section->getChild("enable", 0, true)->getBool();
             if ( !enabled ) {
                 continue;
             }
@@ -115,8 +115,8 @@ void GPS_init() {
 
 static void compute_magvar() {
     double magvar_rad = 0.0;
-    if ( strcmp(magvar_init_deg_node->getStringValue(), "auto") == 0
-	 || strlen(magvar_init_deg_node->getStringValue()) == 0 )
+    if ( strcmp(magvar_init_deg_node->getString(), "auto") == 0
+	 || strlen(magvar_init_deg_node->getString()) == 0 )
     {
 	SGPropertyNode *date_node
 	    = pyGetNode("/sensors/gps/unix-time-sec", true);
@@ -153,8 +153,8 @@ bool GPS_update() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "gps" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-            bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    string source = section->getChild("source", 0, true)->getString();
+            bool enabled = section->getChild("enable", 0, true)->getBool();
             if ( !enabled ) {
                 continue;
             }
@@ -276,8 +276,8 @@ void GPS_close() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "gps" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-            bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    string source = section->getChild("source", 0, true)->getString();
+            bool enabled = section->getChild("enable", 0, true)->getBool();
             if ( !enabled ) {
                 continue;
             }

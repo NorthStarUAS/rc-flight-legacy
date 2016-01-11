@@ -139,8 +139,8 @@ void Filter_init() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "filter" ) {
-	    string module = section->getChild("module", 0, true)->getStringValue();
-	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    string module = section->getChild("module", 0, true)->getString();
+	    bool enabled = section->getChild("enable", 0, true)->getBool();
 	    if ( !enabled ) {
 		continue;
 	    }
@@ -277,17 +277,17 @@ static void update_ground() {
     // over the most recent 30 seconds that we are !is-airborne
     if ( !ground_alt_calibrated ) {
 	ground_alt_calibrated = true;
-	ground_alt_filt.init( filter_alt_m_node->getFloatValue() );
+	ground_alt_filt.init( filter_alt_m_node->getDouble() );
     }
 
-    if ( ! is_airborne_node->getBoolValue() ) {
+    if ( ! is_airborne_node->getBool() ) {
 	// ground reference altitude averaged current altitude over
 	// first 30 seconds while on the ground
-	ground_alt_filt.update( filter_alt_m_node->getFloatValue(), dt );
+	ground_alt_filt.update( filter_alt_m_node->getDouble(), dt );
 	filter_ground_alt_m_node->setDoubleValue( ground_alt_filt.get_value() );
     }
 
-    float agl_m = filter_alt_m_node->getFloatValue()
+    float agl_m = filter_alt_m_node->getDouble()
 	- ground_alt_filt.get_value();
     filter_alt_agl_m_node->setDoubleValue( agl_m );
     filter_alt_agl_ft_node->setDoubleValue( agl_m * SG_METER_TO_FEET );
@@ -383,8 +383,8 @@ bool Filter_update() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "filter" ) {
-	    string module = section->getChild("module", 0, true)->getStringValue();
-	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    string module = section->getChild("module", 0, true)->getString();
+	    bool enabled = section->getChild("enable", 0, true)->getBool();
 	    if ( !enabled ) {
 		continue;
 	    }
@@ -415,11 +415,11 @@ bool Filter_update() {
 	if ( remote_link_on ) {
 	    // printf("sending filter packet\n");
 	    remote_link_filter( buf, size,
-				filter_console_skip->getIntValue() );
+				filter_console_skip->getLong() );
 	}
 
 	if ( log_to_file ) {
-	    log_filter( buf, size, filter_logging_skip->getIntValue() );
+	    log_filter( buf, size, filter_logging_skip->getLong() );
 	}
     }
 
@@ -442,8 +442,8 @@ void Filter_close() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "filter" ) {
-	    string module = section->getChild("module", 0, true)->getStringValue();
-	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    string module = section->getChild("module", 0, true)->getString();
+	    bool enabled = section->getChild("enable", 0, true)->getBool();
 	    if ( !enabled ) {
 		continue;
 	    }

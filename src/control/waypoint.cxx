@@ -81,7 +81,7 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
     for ( i = 0; i < node->nChildren(); ++i ) {
         SGPropertyNode *child = node->getChild(i);
         string cname = child->getName();
-        string cval = child->getStringValue();
+        string cval = child->getString();
         if ( cname == "id" ) {
             id = cval;
         } else if ( cname == "lon" ) {

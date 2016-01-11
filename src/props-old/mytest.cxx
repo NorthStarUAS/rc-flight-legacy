@@ -38,5 +38,5 @@ int main() {
     printf("imu[0]/q (int) = %d\n", q0->getIntValue());
 
     // read the value as a C string
-    printf("imu[0]/q (string) = %s\n", q0->getStringValue());	  
+    printf("imu[0]/q (string) = %s\n", q0->getString());	  
 }

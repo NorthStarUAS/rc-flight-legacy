@@ -127,8 +127,8 @@ void AirData_init() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "airdata" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    string source = section->getChild("source", 0, true)->getString();
+	    bool enabled = section->getChild("enable", 0, true)->getBool();
 	    if ( !enabled ) {
 		continue;
 	    }
@@ -213,7 +213,7 @@ static void update_pressure_helpers() {
     
     airspeed_filt.update( Pt, dt );
     pressure_alt_filt.update( Ps, dt );
-    if ( ! is_airborne_node->getBoolValue() ) {
+    if ( ! is_airborne_node->getBool() ) {
 	// ground reference altitude averaged current altitude over
 	// first 30 seconds while on the ground
 	ground_alt_filt.update( Ps, dt );
@@ -232,7 +232,7 @@ static void update_pressure_helpers() {
     //
 
     if ( !alt_error_calibrated ) {
-	if ( (string)filter_navigation_node->getStringValue() == "valid" ) {
+	if ( (string)filter_navigation_node->getString() == "valid" ) {
 	    alt_error_calibrated = true;
 	    Ps_filt_err.init( filter_alt_m - Ps );
 	}
@@ -324,8 +324,8 @@ bool AirData_update() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "airdata" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    string source = section->getChild("source", 0, true)->getString();
+	    bool enabled = section->getChild("enable", 0, true)->getBool();
 	    if ( !enabled ) {
 		continue;
 	    }
@@ -385,8 +385,8 @@ void AirData_recalibrate() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "airdata" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    string source = section->getChild("source", 0, true)->getString();
+	    bool enabled = section->getChild("enable", 0, true)->getBool();
 	    if ( !enabled ) {
 		continue;
 	    }
@@ -422,7 +422,7 @@ void AirData_close() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "airdata" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
+	    string source = section->getChild("source", 0, true)->getString();
 	    string basename = "/sensors/";
 	    basename += section->getDisplayName();
 	    // printf("i = %d  name = %s source = %s %s\n",

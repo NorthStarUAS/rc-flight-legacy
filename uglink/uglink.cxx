@@ -810,7 +810,7 @@ int main( int argc, char **argv ) {
 #if 0
 		double ail = pilotpacket.ail;
 		double ele = pilotpacket.ele;
-		if ( flying_wing_node->getBoolValue() ) {
+		if ( flying_wing_node->getBool() ) {
 		    double ch1 = pilotpacket.ail;
 		    double ch2 = pilotpacket.ele;
 		    double e = (ch1 - ch2) / 2.0;

@@ -20,11 +20,12 @@ public:
     // Destructor.
     ~pyPropertyNode();
 
-    bool hasChild( const char *name );
+    bool hasChild(const char *name );
     pyPropertyNode getChild( const char *name, bool create=false );
+    pyPropertyNode getChild( const char *name, int index );
 
-    // return true if pObj pointer is NULL
-    bool isNull();
+    bool isNull();		// return true if pObj pointer is NULL
+    int getLen( const char *name); // return len of pObj if a list, else 0
     
     // value getters
     double getDouble( const char *name ); // return value as a double

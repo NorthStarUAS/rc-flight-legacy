@@ -1,11 +1,12 @@
 #ifndef _AURA_LOGGING_H
 #define _AURA_LOGGING_H
 
+#include "python/pyprops.hxx"
+
 #include <stdint.h>
 
 #include "include/globaldefs.h"
 
-#include "props/props.hxx"
 #include "util/sg_path.hxx"
 
 // global variables
@@ -33,7 +34,7 @@ void flush_data();
 
 bool event_log( const char *hdr, const char *msg );
 
-bool log_imu_calibration( SGPropertyNode *config );
+bool log_imu_calibration( pyPropertyNode *config );
 
 
 #endif // _AURA_LOGGING_H

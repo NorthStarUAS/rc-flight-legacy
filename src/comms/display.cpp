@@ -177,7 +177,7 @@ void display_message()
 #endif
 
     if ( GPS_age() < 10.0 ) {
-	time_t current_time = gps_unix_sec_node->getIntValue();
+	time_t current_time = gps_unix_sec_node->getLong();
 	double remainder = gps_unix_sec_node->getDoubleValue() - current_time;
 	struct tm *date = gmtime(&current_time);
         printf("[GPS  ]:date = %04d/%02d/%02d %02d:%02d:%05.2f\n",
@@ -190,7 +190,7 @@ void display_message()
 	printf("[GPS  ]:[%0f seconds old]\n", GPS_age());
     }
 
-    if ( strcmp( filter_status_node->getStringValue(), "valid" ) == 0 ) {
+    if ( strcmp( filter_status_node->getString(), "valid" ) == 0 ) {
         printf("[filter]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",
 	       filter_lon_node->getDoubleValue(),
 	       filter_lat_node->getDoubleValue(),
@@ -206,9 +206,9 @@ void display_message()
 	   act_rudder_node->getDoubleValue(),
 	   act_channel5_node->getDoubleValue());
     printf("[health]: cmdseq = %d  tgtwp = %d  loadavg = %.2f  vcc = %.2f\n",
-           link_seq_num->getIntValue(), target_waypoint->getIntValue(),
-           system_loadavg_node->getFloatValue(),
-	   input_vcc_node->getFloatValue());
+           link_seq_num->getLong(), target_waypoint->getLong(),
+           system_loadavg_node->getDouble(),
+	   input_vcc_node->getDouble());
     printf("\n");
 
     // printf("imu size = %d\n", sizeof( struct imu ) );

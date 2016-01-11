@@ -59,7 +59,7 @@ static void bind_input( SGPropertyNode *config ) {
     }
     gpsd_host_node = config->getChild("host");
     if ( gpsd_host_node != NULL ) {
-	host = gpsd_host_node->getStringValue();
+	host = gpsd_host_node->getString();
     }
     configroot = config;
 }
@@ -98,7 +98,7 @@ static void gpsd_send_init() {
     for ( int i = 0; i < configroot->nChildren(); ++i ) {
         SGPropertyNode *child = configroot->getChild(i);
         string cname = child->getName();
-        string cval = child->getStringValue();
+        string cval = child->getString();
 	if ( cname == "init-string" ) {
 	    if ( display_on ) {
 		printf("sending to gpsd: %s\n", cval.c_str());

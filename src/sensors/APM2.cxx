@@ -705,7 +705,7 @@ static bool APM2_open() {
 
     APM2_device_node = pyGetNode("/config/sensors/APM2/device");
     if ( APM2_device_node != NULL ) {
-	device_name = APM2_device_node->getStringValue();
+	device_name = APM2_device_node->getString();
     }
     APM2_baud_node = pyGetNode("/config/sensors/APM2/baud");
     if ( APM2_baud_node != NULL ) {
@@ -806,7 +806,7 @@ bool APM2_imu_init( string rootname, SGPropertyNode *config ) {
 
     SGPropertyNode *rev = config->getChild("reverse-imu-mount");
     if ( rev != NULL ) {
-	if ( rev->getBoolValue() ) {
+	if ( rev->getBool() ) {
 	    reverse_imu_mount = true;
 	}
     }
@@ -1385,7 +1385,7 @@ static bool APM2_send_config() {
 	    SGPropertyNode *gain1_node = mix_node->getChild("gain1");
 	    SGPropertyNode *gain2_node = mix_node->getChild("gain2");
 	    if ( mode_node != NULL ) {
-		mode = mode_node->getStringValue();
+		mode = mode_node->getString();
 		if ( mode == "auto-coordination" ) {
 		    mode_id = MIX_AUTOCOORDINATE;
 		} else if ( mode == "throttle-trim" ) {
@@ -1403,7 +1403,7 @@ static bool APM2_send_config() {
 		}
 	    }
 	    if ( enable_node != NULL ) {
-		enable = enable_node->getBoolValue();
+		enable = enable_node->getBool();
 	    }
 	    if ( gain1_node != NULL ) {
 		gain1 = gain1_node->getDouble();
@@ -1445,7 +1445,7 @@ static bool APM2_send_config() {
 		SGPropertyNode *enable_node = section_node->getChild("enable");
 		SGPropertyNode *gain_node = section_node->getChild("gain");
 		if ( mode_node != NULL ) {
-		    mode = mode_node->getStringValue();
+		    mode = mode_node->getString();
 		    if ( mode == "roll" ) {
 			mode_id = SAS_ROLLAXIS;
 		    } else if ( mode == "pitch" ) {
@@ -1455,7 +1455,7 @@ static bool APM2_send_config() {
 		    }
 		}
 		if ( enable_node != NULL ) {
-		    enable = enable_node->getBoolValue();
+		    enable = enable_node->getBool();
 		}
 		if ( gain_node != NULL ) {
 		    gain = gain_node->getDouble();
@@ -1465,7 +1465,7 @@ static bool APM2_send_config() {
 		mode_id = SAS_CH7_TUNE;
 		mode = "ch7-tune";
 		if ( enable_node != NULL ) {
-		    enable = enable_node->getBoolValue();
+		    enable = enable_node->getBool();
 		}
 		gain = 0.0; // not used
 	    }

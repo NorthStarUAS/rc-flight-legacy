@@ -86,7 +86,7 @@ void UGCAS::update() {
     double dt = current_time - last_time;
     last_time = current_time;
 
-    if ( !ap_master_switch_node->getBoolValue() ) {
+    if ( !ap_master_switch_node->getBool() ) {
 	// fcs master switch off, exit
 	return;
     }

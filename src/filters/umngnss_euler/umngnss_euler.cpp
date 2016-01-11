@@ -152,7 +152,7 @@ bool umngnss_euler_update() {
 
     bool fresh_data = false;
 
-    if ( GPS_age() < 1.0 && gps_settle_node->getBoolValue() && !umn_init_pos )
+    if ( GPS_age() < 1.0 && gps_settle_node->getBool() && !umn_init_pos )
     {
 	umn_init_pos = true;
 	NavState s;

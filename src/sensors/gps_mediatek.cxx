@@ -62,7 +62,7 @@ static string device_name = "/dev/ttyS0";
 static void bind_input( SGPropertyNode *config ) {
     gps_device_name_node = config->getChild("device");
     if ( gps_device_name_node != NULL ) {
-	device_name = gps_device_name_node->getStringValue();
+	device_name = gps_device_name_node->getString();
     }
     configroot = config;
 }

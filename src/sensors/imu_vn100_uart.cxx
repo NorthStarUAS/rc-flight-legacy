@@ -60,7 +60,7 @@ static double hz_filter = 0.0;*/
 static void bind_imu_input( SGPropertyNode *config ) {
     imu_device_name_node = config->getChild("device");
     if ( imu_device_name_node != NULL ) {
-	device_name = imu_device_name_node->getStringValue();
+	device_name = imu_device_name_node->getString();
     }
     configroot = config;
 

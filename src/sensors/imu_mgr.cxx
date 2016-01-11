@@ -60,8 +60,8 @@ void IMU_init() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "imu" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-            bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    string source = section->getChild("source", 0, true)->getString();
+            bool enabled = section->getChild("enable", 0, true)->getBool();
             if ( !enabled ) {
                 continue;
             }
@@ -106,8 +106,8 @@ bool IMU_update() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "imu" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-            bool enabled = section->getChild("enable", 0, true)->getBoolValue();
+	    string source = section->getChild("source", 0, true)->getString();
+            bool enabled = section->getChild("enable", 0, true)->getBool();
             if ( !enabled ) {
                 continue;
             }
@@ -172,7 +172,7 @@ void IMU_close() {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
 	if ( name == "imu" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
+	    string source = section->getChild("source", 0, true)->getString();
 	    printf("i = %d  name = %s source = %s\n",
 		   i, name.c_str(), source.c_str());
 	    if ( source == "null" ) {

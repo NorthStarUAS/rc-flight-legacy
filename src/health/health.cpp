@@ -51,11 +51,11 @@ bool health_update() {
 	int size = packetizer->packetize_health( buf );
 
 	if ( remote_link_on ) {
-	    remote_link_health( buf, size, health_console_skip->getIntValue() );
+	    remote_link_health( buf, size, health_console_skip->getLong() );
 	}
 
 	if ( log_to_file ) {
-	    log_health( buf, size, health_logging_skip->getIntValue() );
+	    log_health( buf, size, health_logging_skip->getLong() );
 	}
     }
 

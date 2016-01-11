@@ -61,17 +61,17 @@ FGPIDController::FGPIDController( SGPropertyNode *node ):
     // enable nodes
     SGPropertyNode *enable_node = node->getChild( "enable", 0, true );
     SGPropertyNode *prop = enable_node->getChild( "prop", 0, true );
-    enable_prop = pyGetNode( prop->getStringValue(), true );
+    enable_prop = pyGetNode( prop->getString(), true );
     SGPropertyNode *val = enable_node->getChild( "value", 0, true );
-    enable_value = val->getStringValue();
+    enable_value = val->getString();
     SGPropertyNode *pass = enable_node->getChild( "honor-passive", 0, true );
-    honor_passive = pass->getBoolValue();
+    honor_passive = pass->getBool();
 
     // input
     SGPropertyNode *input_node = node->getChild( "input", 0, true );
     SGPropertyNode *input_name = input_node->getChild( "prop", 0, true );
     if ( input_name != NULL ) {
-	input_prop = pyGetNode( input_name->getStringValue(), true );
+	input_prop = pyGetNode( input_name->getString(), true );
     }
     y_scale_node = input_node->getChild( "scale" );
     if ( y_scale_node == NULL ) {
@@ -85,7 +85,7 @@ FGPIDController::FGPIDController( SGPropertyNode *node ):
     SGPropertyNode *reference_node = node->getChild( "reference", 0, true );
     SGPropertyNode *r_n_name = reference_node->getChild( "prop", 0, true );
     if ( r_n_name != NULL ) {
-	r_n_prop = pyGetNode( r_n_name->getStringValue(), true );
+	r_n_prop = pyGetNode( r_n_name->getString(), true );
     }
     r_n_value = reference_node->getChild( "value" );
     r_scale_node = reference_node->getChild( "scale" );
@@ -101,7 +101,7 @@ FGPIDController::FGPIDController( SGPropertyNode *node ):
     int i = 0;
     SGPropertyNode *output_prop;
     while ( (output_prop = output_node->getChild("prop", i)) != NULL ) {
-	SGPropertyNode *tmp = pyGetNode( output_prop->getStringValue(), true );
+	SGPropertyNode *tmp = pyGetNode( output_prop->getString(), true );
 	output_list.push_back( tmp );
 	i++;
     }
@@ -204,13 +204,13 @@ void FGPIDController::update( double dt ) {
     Ts = elapsedTime;
     elapsedTime = 0.0;
 
-    if (enable_prop != NULL && enable_prop->getStringValue() == enable_value) {
+    if (enable_prop != NULL && enable_prop->getString() == enable_value) {
 	enabled = true;
     } else {
 	enabled = false;
     }
 
-    bool debug = debug_node->getBoolValue();
+    bool debug = debug_node->getBool();
 
     if ( Ts > 0.0) {
         if ( debug ) printf("Updating %s Ts = %.2f", get_name(), Ts );
@@ -339,17 +339,17 @@ FGPISimpleController::FGPISimpleController( SGPropertyNode *node ):
     // enable nodes
     SGPropertyNode *enable_node = node->getChild( "enable", 0, true );
     SGPropertyNode *prop = enable_node->getChild( "prop", 0, true );
-    enable_prop = pyGetNode( prop->getStringValue(), true );
+    enable_prop = pyGetNode( prop->getString(), true );
     SGPropertyNode *val = enable_node->getChild( "value", 0, true );
-    enable_value = val->getStringValue();
+    enable_value = val->getString();
     SGPropertyNode *pass = enable_node->getChild( "honor-passive", 0, true );
-    honor_passive = pass->getBoolValue();
+    honor_passive = pass->getBool();
 
     // input
     SGPropertyNode *input_node = node->getChild( "input", 0, true );
     SGPropertyNode *input_name = input_node->getChild( "prop", 0, true );
     if ( input_name != NULL ) {
-	input_prop = pyGetNode( input_name->getStringValue(), true );
+	input_prop = pyGetNode( input_name->getString(), true );
     }
     y_scale_node = input_node->getChild( "scale" );
     if ( y_scale_node == NULL ) {
@@ -362,7 +362,7 @@ FGPISimpleController::FGPISimpleController( SGPropertyNode *node ):
     SGPropertyNode *reference_node = node->getChild( "reference", 0, true );
     SGPropertyNode *r_n_name = reference_node->getChild( "prop", 0, true );
     if ( r_n_name != NULL ) {
-	r_n_prop = pyGetNode( r_n_name->getStringValue(), true );
+	r_n_prop = pyGetNode( r_n_name->getString(), true );
     }
     r_n_value = reference_node->getChild( "value" );
     r_scale_node = reference_node->getChild( "scale" );
@@ -377,7 +377,7 @@ FGPISimpleController::FGPISimpleController( SGPropertyNode *node ):
     int i = 0;
     SGPropertyNode *output_prop;
     while ( (output_prop = output_node->getChild("prop", i)) != NULL ) {
-	SGPropertyNode *tmp = pyGetNode( output_prop->getStringValue(), true );
+	SGPropertyNode *tmp = pyGetNode( output_prop->getString(), true );
 	output_list.push_back( tmp );
 	i++;
     }
@@ -392,7 +392,7 @@ FGPISimpleController::FGPISimpleController( SGPropertyNode *node ):
 
 
 void FGPISimpleController::update( double dt ) {
-    if (enable_prop != NULL && enable_prop->getStringValue() == enable_value) {
+    if (enable_prop != NULL && enable_prop->getString() == enable_value) {
 	if ( !enabled ) {
 	    // we have just been enabled, zero out int_sum
 	    int_sum = 0.0;
@@ -403,7 +403,7 @@ void FGPISimpleController::update( double dt ) {
     }
 
     if ( enabled ) {
-	bool debug = debug_node->getBoolValue();
+	bool debug = debug_node->getBool();
         if ( debug ) printf("Updating %s\n", get_name());
         double input = 0.0;
 	input = input_prop->getDouble() * y_scale_node->getDouble();
@@ -460,19 +460,19 @@ FGPredictor::FGPredictor ( SGPropertyNode *node ):
     for ( i = 0; i < node->nChildren(); ++i ) {
         SGPropertyNode *child = node->getChild(i);
         string cname = child->getName();
-        string cval = child->getStringValue();
+        string cval = child->getString();
         if ( cname == "name" ) {
             name_node = child;
         } else if ( cname == "debug" ) {
             debug_node = child;
         } else if ( cname == "input" ) {
-            input_prop = pyGetNode( child->getStringValue(), true );
+            input_prop = pyGetNode( child->getString(), true );
         } else if ( cname == "seconds" ) {
             seconds = child->getDouble();
         } else if ( cname == "filter-gain" ) {
             filter_gain = child->getDouble();
         } else if ( cname == "output" ) {
-	    SGPropertyNode *tmp = pyGetNode( child->getStringValue(), true );
+	    SGPropertyNode *tmp = pyGetNode( child->getString(), true );
             output_list.push_back( tmp );
         }
     }   
@@ -535,11 +535,11 @@ FGDigitalFilter::FGDigitalFilter(SGPropertyNode *node)
     for ( i = 0; i < node->nChildren(); ++i ) {
         SGPropertyNode *child = node->getChild(i);
         string cname = child->getName();
-        string cval = child->getStringValue();
+        string cval = child->getString();
         if ( cname == "name" ) {
             name_node = child;
         } else if ( cname == "debug" ) {
-            debug = child->getBoolValue();
+            debug = child->getBool();
         } else if ( cname == "type" ) {
             if ( cval == "exponential" ) {
                 filterType = exponential;
@@ -551,7 +551,7 @@ FGDigitalFilter::FGDigitalFilter(SGPropertyNode *node)
                 filterType = noiseSpike;
             }
         } else if ( cname == "input" ) {
-            input_prop = pyGetNode( child->getStringValue(), true );
+            input_prop = pyGetNode( child->getString(), true );
         } else if ( cname == "filter-time" ) {
             Tf = child->getDouble();
         } else if ( cname == "samples" ) {
@@ -559,7 +559,7 @@ FGDigitalFilter::FGDigitalFilter(SGPropertyNode *node)
         } else if ( cname == "max-rate-of-change" ) {
             rateOfChange = child->getDouble();
         } else if ( cname == "output" ) {
-            SGPropertyNode *tmp = pyGetNode( child->getStringValue(), true );
+            SGPropertyNode *tmp = pyGetNode( child->getString(), true );
             output_list.push_back( tmp );
         }
     }

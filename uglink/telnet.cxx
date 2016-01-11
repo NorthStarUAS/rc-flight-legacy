@@ -182,7 +182,7 @@ PropsChannel::foundTerminator()
 			line += "/";
 		    } else {
 			if (mode == PROMPT) {
-			    string value = child->getStringValue();
+			    string value = child->getString();
 			    line += " =\t'" + value + "'\t(";
 			line += getValueTypeString( child );
 			line += ")";
@@ -223,7 +223,7 @@ PropsChannel::foundTerminator()
 	} else if ( command == "get" || command == "show" ) {
 	    if ( tokens.size() == 2 ) {
 		string tmp;
-		string value = node->getStringValue ( tokens[1].c_str(), "" );
+		string value = node->getString ( tokens[1].c_str(), "" );
 		if ( mode == PROMPT ) {
 		    tmp = tokens[1];
 		    tmp += " = '";
@@ -286,7 +286,7 @@ PropsChannel::foundTerminator()
 		if ( mode == PROMPT ) {
 		    // now fetch and write out the new value as confirmation
 		    // of the change
-		    value = node->getStringValue ( tokens[1].c_str(), "" );
+		    value = node->getString ( tokens[1].c_str(), "" );
 		    tmp = tokens[1] + " = '" + value + "' (";
 		    tmp += getValueTypeString( node->getNode( tokens[1].c_str() ) );
 		    tmp += ")";

@@ -149,22 +149,22 @@ void control_update(double dt)
 
     // log auto/manual mode changes
     static bool last_ap_mode = false;
-    if ( ap_master_switch_node->getBoolValue() != last_ap_mode ) {
+    if ( ap_master_switch_node->getBool() != last_ap_mode ) {
 	if ( event_log_on ) {
 	    string ap_master_str;
-	    if ( ap_master_switch_node->getBoolValue() ) {
+	    if ( ap_master_switch_node->getBool() ) {
 		ap_master_str = "autopilot";
 	    } else {
 		ap_master_str = "manual flight";
 	    }
 	    event_log( "Master control switch:", ap_master_str.c_str() );
 	}
-	last_ap_mode = ap_master_switch_node->getBoolValue();
+	last_ap_mode = ap_master_switch_node->getBool();
     }
     
     static string last_fcs_mode = "";
-    string fcs_mode = fcs_mode_node->getStringValue();
-    if ( ap_master_switch_node->getBoolValue() ) {
+    string fcs_mode = fcs_mode_node->getString();
+    if ( ap_master_switch_node->getBool() ) {
 	if ( last_fcs_mode != fcs_mode ) {
 	    if ( event_log_on ) {
 		event_log( "control mode changed to:", fcs_mode.c_str() );
@@ -221,12 +221,12 @@ void control_update(double dt)
 		pitch_lock_node->setStringValue( "elevator" );
 		pointing_lock_node->setStringValue( "on" );
 
-		float target_roll_deg = roll_deg_node->getFloatValue();
+		float target_roll_deg = roll_deg_node->getDouble();
 		if ( target_roll_deg > 45.0 ) { target_roll_deg = 45.0; }
 		if ( target_roll_deg < -45.0 ) { target_roll_deg = -45.0; }
 		target_roll_deg_node->setFloatValue( target_roll_deg );
 
-		float target_pitch_base_deg = pitch_deg_node->getFloatValue();
+		float target_pitch_base_deg = pitch_deg_node->getDouble();
 		if ( target_pitch_base_deg > 15.0 ) {
 		    target_pitch_base_deg = 15.0;
 		}
@@ -270,7 +270,7 @@ void control_update(double dt)
 	SGWayPoint wp;
 	int route_size = 0;
 
-	string task_name = task_name_node->getStringValue();
+	string task_name = task_name_node->getString();
 	if ( task_name == "route" ) {
 	    if ( route_mgr != NULL ) {
 		route_size = route_mgr->size();
@@ -300,7 +300,7 @@ void control_update(double dt)
 	
 	if ( remote_link_on ) {
 	    bool result = remote_link_ap( buf, pkt_size,
-					  ap_console_skip->getIntValue() );
+					  ap_console_skip->getLong() );
 	    if ( result ) {
 		wp_index++;
 		if ( wp_index > route_size ) {
@@ -310,7 +310,7 @@ void control_update(double dt)
 	}
 
 	if ( log_to_file ) {
-	    log_ap( buf, pkt_size, ap_logging_skip->getIntValue() );
+	    log_ap( buf, pkt_size, ap_logging_skip->getLong() );
 	}
     }
 }

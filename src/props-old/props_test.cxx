@@ -50,11 +50,11 @@ static double getNum (int index) { return 1.0 / index; }
 static void
 show_values (const SGPropertyNode * node)
 {
-  cout << "Bool: " << (node->getBoolValue() ? "true" : "false") << endl;
+  cout << "Bool: " << (node->getBool() ? "true" : "false") << endl;
   cout << "Int: " << node->getIntValue() << endl;
   cout << "Float: " << node->getDouble() << endl;
   cout << "Double: " << node->getDouble() << endl;
-  cout << "String: " << node->getStringValue() << endl;
+  cout << "String: " << node->getString() << endl;
 }
 
 

@@ -100,7 +100,7 @@ bool AuraCircleMgr::init() {
 bool AuraCircleMgr::update() {
     // printf("circle update\n");
 
-    string direction_str = direction_node->getStringValue();
+    string direction_str = direction_node->getString();
     double direction = 1.0;
     if ( direction_str == (string)"right" ) {
 	direction = -1.0;
