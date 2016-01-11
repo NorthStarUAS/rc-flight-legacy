@@ -176,12 +176,12 @@ static bool parse_gpsd_sentence( const char *sentence ) {
     }
 
     if ( gpsd_cmd == "F" ) {
-	gps_device_name->setStringValue( gpsd_arg.c_str() );
+	gps_device_name->setString( gpsd_arg.c_str() );
     } else if ( gpsd_cmd == "N" ) {
 	if ( gpsd_arg == "0" ) {
-	    gps_nmode->setStringValue( "nmea ascii" );
+	    gps_nmode->setString( "nmea ascii" );
         } else {
-	    gps_nmode->setStringValue( "binary" );
+	    gps_nmode->setString( "binary" );
         }
     } else if ( gpsd_cmd == "O" && 
                 (gpsd_arg == "GGA" || gpsd_arg == "GLL" ||
@@ -192,18 +192,18 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	//
 	// example: GPSD,O=RMC 1232073262.000 0.005 45.138145
 	// -93.157083 285.50 3.60 1.80 181.4300 0.046 0.000 ? 7.20 ? 3
-	gps_unix_sec_node->setDoubleValue( atof(token[1].c_str()) );
-	gps_lat_node->setDoubleValue( atof(token[3].c_str()) );
-	gps_lon_node->setDoubleValue( atof(token[4].c_str()) );
+	gps_unix_sec_node->setDouble( atof(token[1].c_str()) );
+	gps_lat_node->setDouble( atof(token[3].c_str()) );
+	gps_lon_node->setDouble( atof(token[4].c_str()) );
 	if ( token[5] != "?" ) {
-	    gps_alt_node->setDoubleValue( atof(token[5].c_str()) );
+	    gps_alt_node->setDouble( atof(token[5].c_str()) );
         }
 	if ( token[8] != "?" && token[9] != "?" ) {
 	    double course_deg = atof( token[8].c_str() );
 	    double speed_mps = atof( token[9].c_str() );
 	    double angle_rad = (90.0 - course_deg) * SGD_DEGREES_TO_RADIANS;
-	    gps_vn_node->setDoubleValue( sin(angle_rad) * speed_mps );
-	    gps_ve_node->setDoubleValue( cos(angle_rad) * speed_mps );
+	    gps_vn_node->setDouble( sin(angle_rad) * speed_mps );
+	    gps_ve_node->setDouble( cos(angle_rad) * speed_mps );
 	    /* printf("mps=%.1f deg=%.1f rad=%.3f vn=%.1f ve=%.1f\n",
 		   speed_mps, course_deg, angle_rad,
 		   gps_vn_node->getDouble(),
@@ -215,11 +215,11 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	//    last_unix_time = gps_data.date;
 	// }
 	if ( token[10] != "?" ) {
-	    gps_vd_node->setDoubleValue( -atof(token[10].c_str()) );
+	    gps_vd_node->setDouble( -atof(token[10].c_str()) );
 	}
 	if ( gps_unix_sec_node->getDouble() > last_gps_sec ) {
 	    last_gps_sec = gps_unix_sec_node->getDouble();
-	    gps_timestamp_node->setDoubleValue( get_Time() );
+	    gps_timestamp_node->setDouble( get_Time() );
 	    new_position = true;
 	}
     } else if ( gpsd_cmd == "Y" && 
@@ -231,7 +231,7 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	// 1:11 21 302 26 1:18 20 125 38 1:32 17 304 28 1:9 8 41 14
 	// 1:51 36 199 37 0:
 	//
-	// gps_satellites->setStringValue( sentence );
+	// gps_satellites->setString( sentence );
 #if 0 // depricated ... could have original been a bug in gpsd for this gps?
     } else if ( gpsd_cmd == "O" &&
                 (gpsd_arg == "MID2" || gpsd_arg == "MID4") ) {

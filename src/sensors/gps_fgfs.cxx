@@ -130,15 +130,15 @@ bool fgfs_gps_update() {
 	float ve = *(float *)buf; buf += 4;
 	float vd = *(float *)buf; buf += 4;
 
-	gps_timestamp_node->setDoubleValue( get_Time() );
-	gps_lat_node->setDoubleValue( lat );
-	gps_lon_node->setDoubleValue( lon );
-	gps_alt_node->setDoubleValue( alt );
-	gps_vn_node->setDoubleValue( vn );
-	gps_ve_node->setDoubleValue( ve );
-	gps_vd_node->setDoubleValue( vd );
+	gps_timestamp_node->setDouble( get_Time() );
+	gps_lat_node->setDouble( lat );
+	gps_lon_node->setDouble( lon );
+	gps_alt_node->setDouble( alt );
+	gps_vn_node->setDouble( vn );
+	gps_ve_node->setDouble( ve );
+	gps_vd_node->setDouble( vd );
 	gps_satellites_node->setIntValue( 8 ); // fake a solid number
-	gps_unix_sec_node->setDoubleValue( time );
+	gps_unix_sec_node->setDouble( time );
 	gps_status_node->setIntValue( 2 ); // valid fix
     }
 

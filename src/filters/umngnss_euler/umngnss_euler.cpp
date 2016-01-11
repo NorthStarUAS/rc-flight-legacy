@@ -191,25 +191,25 @@ bool umngnss_euler_update() {
 	double psi = s->eul[0];
 	if ( psi < 0 ) { psi += SGD_2PI; }
 	if ( psi > SGD_2PI ) { psi -= SGD_2PI; }
-	filter_timestamp_node->setDoubleValue( imu[0] );
-	filter_phi_node->setDoubleValue( s->eul[2] * SG_RADIANS_TO_DEGREES );
-	filter_theta_node->setDoubleValue( s->eul[1] * SG_RADIANS_TO_DEGREES );
-	filter_psi_node->setDoubleValue( psi * SG_RADIANS_TO_DEGREES );
-	filter_lat_node->setDoubleValue( s->pos[0] * SG_RADIANS_TO_DEGREES );
-	filter_lon_node->setDoubleValue( s->pos[1] * SG_RADIANS_TO_DEGREES );
-	filter_alt_node->setDoubleValue( -s->pos[2] );
-	filter_vn_node->setDoubleValue( s->vel[0] );
-	filter_ve_node->setDoubleValue( s->vel[1] );
-	filter_vd_node->setDoubleValue( s->vel[2] );
+	filter_timestamp_node->setDouble( imu[0] );
+	filter_phi_node->setDouble( s->eul[2] * SG_RADIANS_TO_DEGREES );
+	filter_theta_node->setDouble( s->eul[1] * SG_RADIANS_TO_DEGREES );
+	filter_psi_node->setDouble( psi * SG_RADIANS_TO_DEGREES );
+	filter_lat_node->setDouble( s->pos[0] * SG_RADIANS_TO_DEGREES );
+	filter_lon_node->setDouble( s->pos[1] * SG_RADIANS_TO_DEGREES );
+	filter_alt_node->setDouble( -s->pos[2] );
+	filter_vn_node->setDouble( s->vel[0] );
+	filter_ve_node->setDouble( s->vel[1] );
+	filter_vd_node->setDouble( s->vel[2] );
 	filter_status_node->setStringValue("valid");
 
-	filter_alt_feet_node->setDoubleValue( -s->pos[2] * SG_METER_TO_FEET );
-	filter_track_node->setDoubleValue( 90 - atan2(s->vel[0], s->vel[1])
+	filter_alt_feet_node->setDouble( -s->pos[2] * SG_METER_TO_FEET );
+	filter_track_node->setDouble( 90 - atan2(s->vel[0], s->vel[1])
 	 				* SG_RADIANS_TO_DEGREES );
-	filter_vel_node->setDoubleValue( sqrt( s->vel[0] * s->vel[0]
+	filter_vel_node->setDouble( sqrt( s->vel[0] * s->vel[0]
 	 				    + s->vel[1] * s->vel[1] ) );
         filter_vert_speed_fps_node
-            ->setDoubleValue( -s->vel[2] * SG_METER_TO_FEET );
+            ->setDouble( -s->vel[2] * SG_METER_TO_FEET );
 
 	fresh_data = true;
     }

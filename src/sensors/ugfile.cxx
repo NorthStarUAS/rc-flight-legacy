@@ -371,16 +371,16 @@ void ugfile_close() {
 
 bool ugfile_get_imu() {
     if ( imu_data_valid ) {
-	imu_timestamp_node->setDoubleValue( imu_data.time );
-	imu_p_node->setDoubleValue( imu_data.p );
-	imu_q_node->setDoubleValue( imu_data.q );
-	imu_r_node->setDoubleValue( imu_data.r );
-	imu_ax_node->setDoubleValue( imu_data.ax );
-	imu_ay_node->setDoubleValue( imu_data.ay );
-	imu_az_node->setDoubleValue( imu_data.az );
-	imu_hx_node->setDoubleValue( imu_data.hx );
-	imu_hy_node->setDoubleValue( imu_data.hy );
-	imu_hz_node->setDoubleValue( imu_data.hz );
+	imu_timestamp_node->setDouble( imu_data.time );
+	imu_p_node->setDouble( imu_data.p );
+	imu_q_node->setDouble( imu_data.q );
+	imu_r_node->setDouble( imu_data.r );
+	imu_ax_node->setDouble( imu_data.ax );
+	imu_ay_node->setDouble( imu_data.ay );
+	imu_az_node->setDouble( imu_data.az );
+	imu_hx_node->setDouble( imu_data.hx );
+	imu_hy_node->setDouble( imu_data.hy );
+	imu_hz_node->setDouble( imu_data.hz );
     }
 
     return imu_data_valid;
@@ -389,14 +389,14 @@ bool ugfile_get_imu() {
 
 bool ugfile_get_gps() {
     if ( gps_data_valid ) {
-	gps_timestamp_node->setDoubleValue( gps_data.time );
-	gps_lat_node->setDoubleValue( gps_data.lat );
-	gps_lon_node->setDoubleValue( gps_data.lon );
-	gps_alt_node->setDoubleValue( gps_data.alt );
-	gps_vn_node->setDoubleValue( gps_data.vn );
-	gps_ve_node->setDoubleValue( gps_data.ve );
-	gps_vd_node->setDoubleValue( gps_data.vd );
-	gps_unix_sec_node->setDoubleValue( gps_data.date );
+	gps_timestamp_node->setDouble( gps_data.time );
+	gps_lat_node->setDouble( gps_data.lat );
+	gps_lon_node->setDouble( gps_data.lon );
+	gps_alt_node->setDouble( gps_data.alt );
+	gps_vn_node->setDouble( gps_data.vn );
+	gps_ve_node->setDouble( gps_data.ve );
+	gps_vd_node->setDouble( gps_data.vd );
+	gps_unix_sec_node->setDouble( gps_data.date );
     }
 
     return gps_data_valid;

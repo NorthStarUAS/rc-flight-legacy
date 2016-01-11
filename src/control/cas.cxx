@@ -189,7 +189,7 @@ void UGCAS::update() {
     new_roll += roll_delta;
     if ( new_roll < -45.0 ) { new_roll = -45.0; }
     if ( new_roll > 45.0 ) { new_roll = 45.0; }
-    target_roll_deg_node->setDoubleValue( new_roll );
+    target_roll_deg_node->setDouble( new_roll );
 
     double pitch_cmd = 0.0;
     if ( elevator >= elev_center + elev_dz ) {
@@ -210,7 +210,7 @@ void UGCAS::update() {
 	= target_pitch_base_deg_node->getDouble() + pitch_delta;
     if ( new_pitch_base < -15.0 ) { new_pitch_base = -15.0; }
     if ( new_pitch_base > 15.0 ) { new_pitch_base = 15.0; }
-    target_pitch_base_deg_node->setDoubleValue( new_pitch_base );
+    target_pitch_base_deg_node->setDouble( new_pitch_base );
 
     // map throttle [0 ... 1] to [-mp ... mp] for throttle pitch offset
     // where mp is the max pitch bias.  This "simulates" the natural
@@ -220,7 +220,7 @@ void UGCAS::update() {
     double pitch_throttle_delta
 	= (pilot_throttle_node->getDouble() * 2.0 - 1.0) * mp;
     double new_pitch = new_pitch_base + pitch_throttle_delta;
-    target_pitch_deg_node->setDoubleValue( new_pitch );
+    target_pitch_deg_node->setDouble( new_pitch );
 
     // this is a hard coded hack, but pass through throttle and rudder here
     throttle_output_node->setFloatValue( pilot_throttle_node->getDouble() );

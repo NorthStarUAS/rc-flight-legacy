@@ -272,13 +272,13 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	} else if ( gpsFix == 3 ) {
 	    // passed basic sanity checks and gps is reporting a 3d fix
 	    new_position = true;
-	    gps_timestamp_node->setDoubleValue( get_Time() );
-	    gps_lat_node->setDoubleValue( wgs84.getLatitudeDeg() );
-	    gps_lon_node->setDoubleValue( wgs84.getLongitudeDeg() );
-	    gps_alt_node->setDoubleValue( wgs84.getElevationM() );
-	    gps_vn_node->setDoubleValue( vel_ned.x() );
-	    gps_ve_node->setDoubleValue( vel_ned.y() );
-	    gps_vd_node->setDoubleValue( vel_ned.z() );
+	    gps_timestamp_node->setDouble( get_Time() );
+	    gps_lat_node->setDouble( wgs84.getLatitudeDeg() );
+	    gps_lon_node->setDouble( wgs84.getLongitudeDeg() );
+	    gps_alt_node->setDouble( wgs84.getElevationM() );
+	    gps_vn_node->setDouble( vel_ned.x() );
+	    gps_ve_node->setDouble( vel_ned.y() );
+	    gps_vd_node->setDouble( vel_ned.z() );
 	    // printf("        %.10f %.10f %.2f - %.2f %.2f %.2f\n",
 	    //        wgs84.getLatitudeDeg(),
 	    //        wgs84.getLongitudeDeg(),
@@ -293,7 +293,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    double unixSecs = julianDate * 86400.0;
 	    double unixFract = unixSecs - floor(unixSecs);
 	    struct timeval time;
-	    gps_unix_sec_node->setDoubleValue( unixSecs );
+	    gps_unix_sec_node->setDouble( unixSecs );
 #if 0
 	    if ( unixSecs > 1263154775 && !set_system_time) {
 		printf("Setting system time to %.3f\n", unixSecs);

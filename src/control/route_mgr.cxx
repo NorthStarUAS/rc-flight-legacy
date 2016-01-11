@@ -97,13 +97,13 @@ void FGRouteMgr::bind() {
     // sanity check, set some conservative values if none are provided
     // in the autopilot config
     if ( bank_limit_node->getDouble() < 0.1 ) {
-	bank_limit_node->setDoubleValue( 20.0 );
+	bank_limit_node->setDouble( 20.0 );
     }
     if ( L1_period_node->getDouble() < 0.1 ) {
-	L1_period_node->setDoubleValue( 25.0 );
+	L1_period_node->setDouble( 25.0 );
     }
     if ( L1_damping_node->getDouble() < 0.1 ) {
-	L1_damping_node->setDoubleValue( 0.7 );
+	L1_damping_node->setDouble( 0.7 );
     }
 
     xtrack_gain_node = pyGetNode( "/task/route/xtrack-steer-gain", true );
@@ -210,8 +210,8 @@ void FGRouteMgr::update() {
             double dist_m = cos( angle_rad ) * direct_distance;
 	    /* printf("direct_dist = %.1f angle = %.1f dist_m = %.1f\n",
 	              direct_distance, angle, dist_m); */
-	    xtrack_dist_m->setDoubleValue( xtrack_m );
-	    proj_dist_m->setDoubleValue( dist_m );
+	    xtrack_dist_m->setDouble( xtrack_m );
+	    proj_dist_m->setDouble( dist_m );
 
 	    // compute cross-track steering compensation
 	    double xtrack_gain = xtrack_gain_node->getDouble();
@@ -315,7 +315,7 @@ void FGRouteMgr::update() {
                 nav_course -= 360.0;
             }
 
-	    target_course_deg->setDoubleValue( nav_course );
+	    target_course_deg->setDouble( nav_course );
 
 	    // target bank angle computed here
 
@@ -343,7 +343,7 @@ void FGRouteMgr::update() {
 	    if ( target_bank_deg > bank_limit_deg ) {
 		target_bank_deg = bank_limit_deg;
 	    }
-	    ap_roll_node->setDoubleValue( target_bank_deg );
+	    ap_roll_node->setDouble( target_bank_deg );
 
 	    wp_agl_m = wp.get_target_agl_m();
 	    wp_msl_m = wp.get_target_alt_m();
@@ -414,9 +414,9 @@ void FGRouteMgr::update() {
     // specified.  Preference is given to agl if both agl & msl are
     // set.
     if ( wp_agl_m > 1.0 ) {
-	target_agl_node->setDoubleValue( wp_agl_m * SG_METER_TO_FEET );
+	target_agl_node->setDouble( wp_agl_m * SG_METER_TO_FEET );
     } else if ( wp_msl_m > 1.0 ) {
-	target_msl_node->setDoubleValue( wp_msl_m * SG_METER_TO_FEET );
+	target_msl_node->setDouble( wp_msl_m * SG_METER_TO_FEET );
     }
 
     double gs_mps = groundspeed_node->getDouble();

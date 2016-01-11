@@ -398,7 +398,7 @@ int main( int argc, char **argv ) {
         } else if ( strcmp( argv[i], "--altitude-offset" ) == 0 ) {
             ++i;
             if ( i < argc ) {
-                alt_offset_node->setDoubleValue( atof( argv[i] ) );
+                alt_offset_node->setDouble( atof( argv[i] ) );
             } else {
                 usage( argv[0] );
                 exit( -1 );

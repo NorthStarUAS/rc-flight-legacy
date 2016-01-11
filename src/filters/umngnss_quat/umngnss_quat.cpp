@@ -115,16 +115,16 @@ static void umn2props(void) {
     double psi = nav_data.psi;
     if ( psi < 0 ) { psi += SGD_2PI; }
     if ( psi > SGD_2PI ) { psi -= SGD_2PI; }
-    filter_timestamp_node->setDoubleValue( imu_data.time );
-    filter_phi_node->setDoubleValue( nav_data.phi * SG_RADIANS_TO_DEGREES );
-    filter_theta_node->setDoubleValue( nav_data.the * SG_RADIANS_TO_DEGREES );
-    filter_psi_node->setDoubleValue( psi * SG_RADIANS_TO_DEGREES );
-    filter_lat_node->setDoubleValue( nav_data.lat * SG_RADIANS_TO_DEGREES );
-    filter_lon_node->setDoubleValue( nav_data.lon * SG_RADIANS_TO_DEGREES );
-    filter_alt_node->setDoubleValue( nav_data.alt );
-    filter_vn_node->setDoubleValue( nav_data.vn );
-    filter_ve_node->setDoubleValue( nav_data.ve );
-    filter_vd_node->setDoubleValue( nav_data.vd );
+    filter_timestamp_node->setDouble( imu_data.time );
+    filter_phi_node->setDouble( nav_data.phi * SG_RADIANS_TO_DEGREES );
+    filter_theta_node->setDouble( nav_data.the * SG_RADIANS_TO_DEGREES );
+    filter_psi_node->setDouble( psi * SG_RADIANS_TO_DEGREES );
+    filter_lat_node->setDouble( nav_data.lat * SG_RADIANS_TO_DEGREES );
+    filter_lon_node->setDouble( nav_data.lon * SG_RADIANS_TO_DEGREES );
+    filter_alt_node->setDouble( nav_data.alt );
+    filter_vn_node->setDouble( nav_data.vn );
+    filter_ve_node->setDouble( nav_data.ve );
+    filter_vd_node->setDouble( nav_data.vd );
     if ( nav_data.err_type == data_valid ||
 	 nav_data.err_type == TU_only ||
 	 nav_data.err_type == gps_aided )
@@ -134,20 +134,20 @@ static void umn2props(void) {
 	filter_status_node->setStringValue("invalid");
     }
 
-    filter_p_bias_node->setDoubleValue( nav_data.gb[0] );
-    filter_q_bias_node->setDoubleValue( nav_data.gb[1] );
-    filter_r_bias_node->setDoubleValue( nav_data.gb[2] );
-    filter_ax_bias_node->setDoubleValue( nav_data.ab[0] );
-    filter_ay_bias_node->setDoubleValue( nav_data.ab[1] );
-    filter_az_bias_node->setDoubleValue( nav_data.ab[2] );
+    filter_p_bias_node->setDouble( nav_data.gb[0] );
+    filter_q_bias_node->setDouble( nav_data.gb[1] );
+    filter_r_bias_node->setDouble( nav_data.gb[2] );
+    filter_ax_bias_node->setDouble( nav_data.ab[0] );
+    filter_ay_bias_node->setDouble( nav_data.ab[1] );
+    filter_az_bias_node->setDouble( nav_data.ab[2] );
     
-    filter_alt_feet_node->setDoubleValue( nav_data.alt * SG_METER_TO_FEET );
-    filter_track_node->setDoubleValue( 90 - atan2(nav_data.vn, nav_data.ve)
+    filter_alt_feet_node->setDouble( nav_data.alt * SG_METER_TO_FEET );
+    filter_track_node->setDouble( 90 - atan2(nav_data.vn, nav_data.ve)
 				       * SG_RADIANS_TO_DEGREES );
-    filter_vel_node->setDoubleValue( sqrt(nav_data.vn * nav_data.vn
+    filter_vel_node->setDouble( sqrt(nav_data.vn * nav_data.vn
 					  + nav_data.ve * nav_data.ve) );
     filter_vert_speed_fps_node
-	->setDoubleValue( -nav_data.vd * SG_METER_TO_FEET );
+	->setDouble( -nav_data.vd * SG_METER_TO_FEET );
 }
 
 

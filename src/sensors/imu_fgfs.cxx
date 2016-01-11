@@ -100,9 +100,9 @@ static void bind_airdata_output( string rootname ) {
     // note we don't leak here because we are getting a pointer back
     // into the global property structure
     tmp_node = pyGetNode("/sensors/APM2/board-vcc", true);
-    tmp_node->setDoubleValue( 5.0 );
+    tmp_node->setDouble( 5.0 );
     tmp_node = pyGetNode("/sensors/airdata/temp-degC", true);
-    tmp_node->setDoubleValue( 15.0 );
+    tmp_node->setDouble( 15.0 );
 
     airdata_inited = true;
 }
@@ -195,36 +195,36 @@ bool fgfs_imu_update() {
 	float yaw_truth = *(float *)buf; buf += 4;
 
 	double cur_time = get_Time();
-	imu_timestamp_node->setDoubleValue( cur_time );
-	imu_p_node->setDoubleValue( p );
-	imu_q_node->setDoubleValue( q );
-	imu_r_node->setDoubleValue( r );
-	imu_ax_node->setDoubleValue( ax );
-	imu_ay_node->setDoubleValue( ay );
-	imu_az_node->setDoubleValue( az );
-	imu_hx_node->setDoubleValue( 0.0 );
-	imu_hy_node->setDoubleValue( 0.0 );
-	imu_hz_node->setDoubleValue( 0.0 );
-	imu_roll_truth_node->setDoubleValue( roll_truth );
-	imu_pitch_truth_node->setDoubleValue( pitch_truth );
-	imu_yaw_truth_node->setDoubleValue( yaw_truth );
+	imu_timestamp_node->setDouble( cur_time );
+	imu_p_node->setDouble( p );
+	imu_q_node->setDouble( q );
+	imu_r_node->setDouble( r );
+	imu_ax_node->setDouble( ax );
+	imu_ay_node->setDouble( ay );
+	imu_az_node->setDouble( az );
+	imu_hx_node->setDouble( 0.0 );
+	imu_hy_node->setDouble( 0.0 );
+	imu_hz_node->setDouble( 0.0 );
+	imu_roll_truth_node->setDouble( roll_truth );
+	imu_pitch_truth_node->setDouble( pitch_truth );
+	imu_yaw_truth_node->setDouble( yaw_truth );
 
 	if ( airdata_inited ) {
-	    airdata_timestamp_node->setDoubleValue( cur_time );
-	    airdata_airspeed_node->setDoubleValue( airspeed );
+	    airdata_timestamp_node->setDouble( cur_time );
+	    airdata_airspeed_node->setDouble( airspeed );
 	    const double inhg2mbar = 33.8638866667;
-	    airdata_pressure_node->setDoubleValue( pressure * inhg2mbar );
+	    airdata_pressure_node->setDouble( pressure * inhg2mbar );
 
 	    // fake volt/amp values here for no better place to do it
 	    static double last_time = cur_time;
 	    static double mah = 0.0;
 	    double thr = act_throttle_node->getDouble();
-	    fake_extern_volts_node->setDoubleValue(16.0 - thr);
-	    fake_extern_amps_node->setDoubleValue(thr * 12.0);
+	    fake_extern_volts_node->setDouble(16.0 - thr);
+	    fake_extern_amps_node->setDouble(thr * 12.0);
 	    double dt = cur_time - last_time;
 	    mah += thr*12.0 * (1000.0/3600.0) * dt;
 	    last_time = cur_time;
-	    fake_extern_current_node->setDoubleValue( mah );
+	    fake_extern_current_node->setDouble( mah );
 	}
     }
 

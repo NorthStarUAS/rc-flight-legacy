@@ -29,7 +29,7 @@ int main() {
     }
 
     // set a value
-    q0->setDoubleValue(5.4321);
+    q0->setDouble(5.4321);
 
     // read and print the value
     printf("imu[0]/q = %.5f\n", q0->getDouble());

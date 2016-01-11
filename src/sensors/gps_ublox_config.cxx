@@ -277,7 +277,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 		settimeofday(&time, NULL);
 		// first time through, restamp this packet with the
 		// "reset" system time to avoid a huge dt
-		gps_timestamp_node->setDoubleValue( get_Time() );
+		gps_timestamp_node->setDouble( get_Time() );
 	    }
 #endif
 	}

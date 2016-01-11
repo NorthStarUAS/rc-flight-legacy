@@ -325,36 +325,36 @@ static void bind_props() {
 
 // update gps property nodes 
 static void update_gps_nodes( struct gps *gpspacket ) {
-    gps_timestamp_node->setDoubleValue( gpspacket->timestamp );
-    gps_lat_node->setDoubleValue( gpspacket->lat );
-    gps_lon_node->setDoubleValue( gpspacket->lon );
-    gps_alt_node->setDoubleValue( gpspacket->alt );
-    gps_ve_node->setDoubleValue( gpspacket->vn );
-    gps_vn_node->setDoubleValue( gpspacket->ve );
-    gps_vd_node->setDoubleValue( gpspacket->vd );
-    gps_unix_sec_node->setDoubleValue( gpspacket->gps_time );
+    gps_timestamp_node->setDouble( gpspacket->timestamp );
+    gps_lat_node->setDouble( gpspacket->lat );
+    gps_lon_node->setDouble( gpspacket->lon );
+    gps_alt_node->setDouble( gpspacket->alt );
+    gps_ve_node->setDouble( gpspacket->vn );
+    gps_vn_node->setDouble( gpspacket->ve );
+    gps_vd_node->setDouble( gpspacket->vd );
+    gps_unix_sec_node->setDouble( gpspacket->gps_time );
     gps_satellites_node->setIntValue( gpspacket->satellites );
 }
 
 // update imu property nodes 
 static void update_imu_nodes( struct imu *imupacket ) {
-    imu_timestamp_node->setDoubleValue( imupacket->timestamp );
-    imu_p_node->setDoubleValue( imupacket->p );
-    imu_q_node->setDoubleValue( imupacket->q );
-    imu_r_node->setDoubleValue( imupacket->r );
-    imu_ax_node->setDoubleValue( imupacket->ax );
-    imu_ay_node->setDoubleValue( imupacket->ay );
-    imu_az_node->setDoubleValue( imupacket->az );
-    imu_hx_node->setDoubleValue( imupacket->hx );
-    imu_hy_node->setDoubleValue( imupacket->hy );
-    imu_hz_node->setDoubleValue( imupacket->hz );
-    imu_temp_node->setDoubleValue( imupacket->temp );
+    imu_timestamp_node->setDouble( imupacket->timestamp );
+    imu_p_node->setDouble( imupacket->p );
+    imu_q_node->setDouble( imupacket->q );
+    imu_r_node->setDouble( imupacket->r );
+    imu_ax_node->setDouble( imupacket->ax );
+    imu_ay_node->setDouble( imupacket->ay );
+    imu_az_node->setDouble( imupacket->az );
+    imu_hx_node->setDouble( imupacket->hx );
+    imu_hy_node->setDouble( imupacket->hy );
+    imu_hz_node->setDouble( imupacket->hz );
+    imu_temp_node->setDouble( imupacket->temp );
     imu_status_node->setIntValue( imupacket->status );
 }
 
 // update air data property nodes 
 static void update_airdata_nodes( struct airdata *airpacket ) {
-    airdata_timestamp_node->setDoubleValue( airpacket->timestamp );
+    airdata_timestamp_node->setDouble( airpacket->timestamp );
     airdata_pressure_node->setFloatValue( airpacket->pressure );
     airdata_temperature_node->setFloatValue( airpacket->temperature );
     airdata_altitude_node->setFloatValue( airpacket->altitude );
@@ -370,22 +370,22 @@ static void update_airdata_nodes( struct airdata *airpacket ) {
 
 // update filter property nodes
 static void update_filter_nodes( struct filter *filterpacket ) {
-    filter_timestamp_node->setDoubleValue( filterpacket->timestamp );
-    filter_lat_node->setDoubleValue( filterpacket->lat );
-    filter_lon_node->setDoubleValue( filterpacket->lon );
-    filter_alt_node->setDoubleValue( filterpacket->alt );
-    filter_vn_node->setDoubleValue( filterpacket->vn );
-    filter_ve_node->setDoubleValue( filterpacket->ve );
-    filter_vd_node->setDoubleValue( filterpacket->vd );
-    filter_phi_node->setDoubleValue( filterpacket->phi );
-    filter_theta_node->setDoubleValue( filterpacket->theta );
-    filter_psi_node->setDoubleValue( filterpacket->psi );
+    filter_timestamp_node->setDouble( filterpacket->timestamp );
+    filter_lat_node->setDouble( filterpacket->lat );
+    filter_lon_node->setDouble( filterpacket->lon );
+    filter_alt_node->setDouble( filterpacket->alt );
+    filter_vn_node->setDouble( filterpacket->vn );
+    filter_ve_node->setDouble( filterpacket->ve );
+    filter_vd_node->setDouble( filterpacket->vd );
+    filter_phi_node->setDouble( filterpacket->phi );
+    filter_theta_node->setDouble( filterpacket->theta );
+    filter_psi_node->setDouble( filterpacket->psi );
     filter_status_node->setIntValue( filterpacket->status );
 }
 
 // update actuator property nodes
 static void update_actuator_nodes( struct actuator *actpacket ) {
-    act_timestamp_node->setDoubleValue( actpacket->timestamp );
+    act_timestamp_node->setDouble( actpacket->timestamp );
     act_aileron_node->setFloatValue( actpacket->ail );
     act_elevator_node->setFloatValue( actpacket->ele );
     act_throttle_node->setFloatValue( actpacket->thr );
@@ -400,7 +400,7 @@ static void update_actuator_nodes( struct actuator *actpacket ) {
 
 // update pilot input property nodes
 static void update_pilot_nodes( struct pilot *pilotpacket ) {
-    pilot_timestamp_node->setDoubleValue( pilotpacket->timestamp );
+    pilot_timestamp_node->setDouble( pilotpacket->timestamp );
     pilot_aileron_node->setFloatValue( pilotpacket->ail );
     pilot_elevator_node->setFloatValue( pilotpacket->ele );
     pilot_throttle_node->setFloatValue( pilotpacket->thr );
@@ -415,7 +415,7 @@ static void update_pilot_nodes( struct pilot *pilotpacket ) {
 
 // update autopilot status property nodes
 static void update_ap_nodes( struct apstatus *appacket ) {
-    ap_timestamp_node->setDoubleValue( appacket->timestamp );
+    ap_timestamp_node->setDouble( appacket->timestamp );
     ap_hdg_node->setFloatValue( appacket->target_heading_deg );
     ap_roll_node->setFloatValue( appacket->target_roll_deg );
     ap_altitude_node->setFloatValue( appacket->target_altitude_msl_ft );
@@ -433,15 +433,15 @@ static void update_ap_nodes( struct apstatus *appacket ) {
 	    = route_node->getChild("wpt", appacket->wp_index, true);
 	SGPropertyNode *lon_node = wpt_node->getChild("lon-deg", 0, true);
 	SGPropertyNode *lat_node = wpt_node->getChild("lat-deg", 0, true);
-	lon_node->setDoubleValue( appacket->wp_lon );
-	lat_node->setDoubleValue( appacket->wp_lat );
+	lon_node->setDouble( appacket->wp_lon );
+	lat_node->setDouble( appacket->wp_lat );
     } else {
 	SGPropertyNode *wpt_node
 	    = route_node->getChild("home", 0, true);
 	SGPropertyNode *lon_node = wpt_node->getChild("lon-deg", 0, true);
 	SGPropertyNode *lat_node = wpt_node->getChild("lat-deg", 0, true);
-	lon_node->setDoubleValue( appacket->wp_lon );
-	lat_node->setDoubleValue( appacket->wp_lat );
+	lon_node->setDouble( appacket->wp_lon );
+	lat_node->setDouble( appacket->wp_lat );
      }
 }
 
@@ -522,7 +522,7 @@ void compute_derived_data( struct gps *gpspacket,
 	in_flight = true;
     }
 #endif
-    flight_flying_status->setDoubleValue( in_flight );
+    flight_flying_status->setDouble( in_flight );
 
     // update timers
     static double last_time_sec = filterpacket->timestamp;
@@ -533,14 +533,14 @@ void compute_derived_data( struct gps *gpspacket,
     if ( in_flight ) {
 	double timer = flight_total_timer->getDouble();
 	timer += dt;
-	flight_total_timer->setDoubleValue( timer );
+	flight_total_timer->setDouble( timer );
     }
 
     // autopilot timer
     if ( in_flight && pilot_channel5_node->getDouble() < 0.5 ) {
 	double timer = flight_auto_timer->getDouble();
 	timer += dt;
-	flight_auto_timer->setDoubleValue( timer );
+	flight_auto_timer->setDouble( timer );
 
     }
 
@@ -549,7 +549,7 @@ void compute_derived_data( struct gps *gpspacket,
 	double vel_ms = filter_speed_node->getDouble() * SG_KT_TO_MPS;
 	double od = flight_odometer->getDouble();
 	od += vel_ms * dt;
-	flight_odometer->setDoubleValue( od );
+	flight_odometer->setDouble( od );
     }
 
     // estimate ground altitude (average altitude when not flying
@@ -561,7 +561,7 @@ void compute_derived_data( struct gps *gpspacket,
 	} else {
 	    ground_alt_filter = 0.999 * ground_alt_filter + 0.001 * alt;
 	}
-	ground_alt_node->setDoubleValue(ground_alt_filter);
+	ground_alt_node->setDouble(ground_alt_filter);
 	// printf("(%.4f)ground alt = %.2f\n", filter_timestamp_node->getDouble(), ground_alt_filter);
     }
 
@@ -572,8 +572,8 @@ void compute_derived_data( struct gps *gpspacket,
     vd = filterpacket->vd;
     hdg = (SGD_PI * 0.5 - atan2(vn, ve)) * SG_RADIANS_TO_DEGREES;
     speed = sqrt( vn*vn + ve*ve + vd*vd ) * SG_MPS_TO_KT;
-    filter_track_node->setDoubleValue( hdg );
-    filter_speed_node->setDoubleValue( speed );
+    filter_track_node->setDouble( hdg );
+    filter_speed_node->setDouble( speed );
 
     // smooth vertical speed
     static double filter_climb = 0.0;
@@ -584,14 +584,14 @@ void compute_derived_data( struct gps *gpspacket,
     climb = -vd * SG_METER_TO_FEET * 60.0;
 # endif
     filter_climb = 0.99 * filter_climb + 0.01 * climb;
-    filter_climb_node->setDoubleValue( filter_climb );
+    filter_climb_node->setDouble( filter_climb );
 
     // Estimate wind direction and speed based on ground track speed
     // versus aircraft heading and indicated airspeed.
 #ifdef HAVE_AIRDATA_WIND
-    wind_deg_node->setDoubleValue( airpacket->wind_dir );
-    wind_speed_node->setDoubleValue( airpacket->wind_speed );
-    pitot_scale_node->setDoubleValue( airpacket->pitot_scale );
+    wind_deg_node->setDouble( airpacket->wind_dir );
+    wind_speed_node->setDouble( airpacket->wind_speed );
+    pitot_scale_node->setDouble( airpacket->pitot_scale );
 #else
     // only estimate wind/pitot scale if in flight (that's the only
     // time the assumptions that go into this estimator are valid.)
@@ -609,8 +609,8 @@ void compute_derived_data( struct gps *gpspacket,
 	    
 	double wind_deg = 90 - atan2( filt_wn, filt_we ) * SGD_RADIANS_TO_DEGREES;
 	if ( wind_deg < 0 ) { wind_deg += 360.0; }
-	wind_deg_node->setDoubleValue( wind_deg );
-	wind_speed_node->setDoubleValue(
+	wind_deg_node->setDouble( wind_deg );
+	wind_speed_node->setDouble(
 	        sqrt( filt_we*filt_we + filt_wn*filt_wn ) * SG_MPS_TO_KT
 	);
 
@@ -631,7 +631,7 @@ void compute_derived_data( struct gps *gpspacket,
 	}
 
 	pitot_scale_filt = 0.999 * pitot_scale_filt + 0.001 * pitot_scale;
-	pitot_scale_node->setDoubleValue( pitot_scale_filt );
+	pitot_scale_node->setDouble( pitot_scale_filt );
 	//printf("pitot_scale_filt = %.2f\n", pitot_scale_filt);
 	printf("%.2f %.1f %.1f\n", filterpacket->timestamp, airpacket->airspeed, true_speed_kt);
     }
@@ -728,16 +728,16 @@ void compute_derived_data( struct gps *gpspacket,
 			 &ll_wgs84, &lr_wgs84, &ul_wgs84, &ur_wgs84 );
 	// printf("Camera shot @ %.8f %.8f\n", lookat_wgs84.getLongitudeDeg(),
 	//        lookat_wgs84.getLatitudeDeg());
-	payload_lookat_lon_node->setDoubleValue(lookat_wgs84.getLongitudeDeg());
-	payload_lookat_lat_node->setDoubleValue(lookat_wgs84.getLatitudeDeg());
-	payload_ll_lon_node->setDoubleValue( ll_wgs84.getLongitudeDeg() );
-	payload_ll_lat_node->setDoubleValue( ll_wgs84.getLatitudeDeg() );
-	payload_lr_lon_node->setDoubleValue( lr_wgs84.getLongitudeDeg() );
-	payload_lr_lat_node->setDoubleValue( lr_wgs84.getLatitudeDeg() );
-	payload_ul_lon_node->setDoubleValue( ul_wgs84.getLongitudeDeg() );
-	payload_ul_lat_node->setDoubleValue( ul_wgs84.getLatitudeDeg() );
-	payload_ur_lon_node->setDoubleValue( ur_wgs84.getLongitudeDeg() );
-	payload_ur_lat_node->setDoubleValue( ur_wgs84.getLatitudeDeg() );
+	payload_lookat_lon_node->setDouble(lookat_wgs84.getLongitudeDeg());
+	payload_lookat_lat_node->setDouble(lookat_wgs84.getLatitudeDeg());
+	payload_ll_lon_node->setDouble( ll_wgs84.getLongitudeDeg() );
+	payload_ll_lat_node->setDouble( ll_wgs84.getLatitudeDeg() );
+	payload_lr_lon_node->setDouble( lr_wgs84.getLongitudeDeg() );
+	payload_lr_lat_node->setDouble( lr_wgs84.getLatitudeDeg() );
+	payload_ul_lon_node->setDouble( ul_wgs84.getLongitudeDeg() );
+	payload_ul_lat_node->setDouble( ul_wgs84.getLatitudeDeg() );
+	payload_ur_lon_node->setDouble( ur_wgs84.getLongitudeDeg() );
+	payload_ur_lat_node->setDouble( ur_wgs84.getLatitudeDeg() );
     }
 }
 

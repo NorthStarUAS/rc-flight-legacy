@@ -89,6 +89,9 @@ static SGVec3d gyro_bias;
 static bool bind_properties( string rootname ) {
     // initialize property nodes
     imu_node = pyGetNode("/sensors/imu");
+    gps_node = pyGetNode("/sensors/gps");
+    filter_node = pyGetNode(rootname);
+
     //imu_timestamp_node = pyGetNode("/sensors/imu/timestamp");
     //imu_p_node = pyGetNode("/sensors/imu/p-rad_sec", true);
     //imu_q_node = pyGetNode("/sensors/imu/q-rad_sec", true);
@@ -101,33 +104,33 @@ static bool bind_properties( string rootname ) {
     //imu_hz_node = pyGetNode("/sensors/imu/hz", true);
 
     // initialize gps property nodes
-    gps_time_stamp_node = pyGetNode("/sensors/gps/time-stamp", true);
-    gps_lat_node = pyGetNode("/sensors/gps/latitude-deg", true);
-    gps_lon_node = pyGetNode("/sensors/gps/longitude-deg", true);
-    gps_alt_node = pyGetNode("/sensors/gps/altitude-m", true);
-    gps_ve_node = pyGetNode("/sensors/gps/ve-ms", true);
-    gps_vn_node = pyGetNode("/sensors/gps/vn-ms", true);
-    gps_vd_node = pyGetNode("/sensors/gps/vd-ms", true);
+    //gps_time_stamp_node = pyGetNode("/sensors/gps/time-stamp", true);
+    //gps_lat_node = pyGetNode("/sensors/gps/latitude-deg", true);
+    //gps_lon_node = pyGetNode("/sensors/gps/longitude-deg", true);
+    //gps_alt_node = pyGetNode("/sensors/gps/altitude-m", true);
+    //gps_ve_node = pyGetNode("/sensors/gps/ve-ms", true);
+    //gps_vn_node = pyGetNode("/sensors/gps/vn-ms", true);
+    //gps_vd_node = pyGetNode("/sensors/gps/vd-ms", true);
 
     // initialize ahrs output nodes 
-    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
-    filter_theta_node = outputroot->getChild("pitch-deg", 0, true);
-    filter_phi_node = outputroot->getChild("roll-deg", 0, true);
-    filter_psi_node = outputroot->getChild("heading-deg", 0, true);
-    filter_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    filter_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    filter_alt_node = outputroot->getChild("altitude-m", 0, true);
-    filter_vn_node = outputroot->getChild("vn-ms", 0, true);
-    filter_ve_node = outputroot->getChild("ve-ms", 0, true);
-    filter_vd_node = outputroot->getChild("vd-ms", 0, true);
-    filter_status_node = outputroot->getChild("navigation",0, true);
-    filter_status_node->setStringValue("invalid");
+    //SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
+    ////filter_theta_node = outputroot->getChild("pitch-deg", 0, true);
+    //filter_phi_node = outputroot->getChild("roll-deg", 0, true);
+    //filter_psi_node = outputroot->getChild("heading-deg", 0, true);
+    //filter_lat_node = outputroot->getChild("latitude-deg", 0, true);
+    //filter_lon_node = outputroot->getChild("longitude-deg", 0, true);
+    //filter_alt_node = outputroot->getChild("altitude-m", 0, true);
+    //filter_vn_node = outputroot->getChild("vn-ms", 0, true);
+    //filter_ve_node = outputroot->getChild("ve-ms", 0, true);
+    //filter_vd_node = outputroot->getChild("vd-ms", 0, true);
+    //filter_status_node = outputroot->getChild("navigation",0, true);
+    //filter_status_node->setString("invalid");
 
-    filter_alt_feet_node = outputroot->getChild("altitude-ft", 0, true);
-    filter_track_node = outputroot->getChild("groundtrack-deg", 0, true);
-    filter_vel_node = outputroot->getChild("groundspeed-ms", 0, true);
-    filter_vert_speed_fps_node
-        = outputroot->getChild("vertical-speed-fps", 0, true);
+    //filter_alt_feet_node = outputroot->getChild("altitude-ft", 0, true);
+    //filter_track_node = outputroot->getChild("groundtrack-deg", 0, true);
+    //filter_vel_node = outputroot->getChild("groundspeed-ms", 0, true);
+    //filter_vert_speed_fps_node
+    //    = outputroot->getChild("vertical-speed-fps", 0, true);
 
     return true;
 }
@@ -479,49 +482,48 @@ int curt_adns_update( double imu_dt ) {
     static double last_gps_time = 0.0;
 
     if ( GPS_age() < 1 && !init_pos ) {
-	last_gps_time = gps_time_stamp_node->getDouble();
-	SGGeod pos = SGGeod::fromDegM( gps_lon_node->getDouble(),
-				       gps_lat_node->getDouble(),
-				       gps_alt_node->getDouble() );
-	SGVec3d vel = SGVec3d( gps_vn_node->getDouble(),
-			       gps_ve_node->getDouble(),
-			       gps_vd_node->getDouble() );
+	last_gps_time = gps_node.getDouble("timestamp");
+	SGGeod pos = SGGeod::fromDegM( gps_node.getDouble("longitude_deg"),
+				       gps_node.getDouble("latitude_deg"),
+				       gps_node.getDouble("altitude_m") );
+	SGVec3d vel = SGVec3d( gps_node.getDouble("vn_ms"),
+			       gps_node.getDouble("ve_ms"),
+			       gps_node.getDouble("vd_ms") );
 	// vel[0] = 0.0; vel[1] = 0.0; vel[2] = 0.0; // test values
 	set_initial_conditions( pos, vel );
 	init_pos = true;
     }	    
     if ( init_pos ) {
-	double imu_time = imu_timestamp_node->getDouble();
-	SGVec3d gyro = SGVec3d( imu_p_node->getDouble(),
-				imu_q_node->getDouble(),
-				imu_r_node->getDouble() );
-	SGVec3d accel = SGVec3d( imu_ax_node->getDouble(),
-				 imu_ay_node->getDouble(),
-				 imu_az_node->getDouble() );
-	SGVec3d mag = SGVec3d( imu_hx_node->getDouble(),
-			       imu_hy_node->getDouble(),
-			       imu_hz_node->getDouble() );
+	double imu_time = imu_node.getDouble("timestamp");
+	SGVec3d gyro = SGVec3d( imu_node.getDouble("p_rad_sec"),
+				imu_node.getDouble("q_rad_sec"),
+				imu_node.getDouble("r_rad_sec") );
+	SGVec3d accel = SGVec3d( imu_node.getDouble("ax_mps_sec"),
+				 imu_node.getDouble("ay_mps_sec"),
+				 imu_node.getDouble("az_mps_sec") );
+	SGVec3d mag = SGVec3d( imu_node.getDouble("hx"),
+			       imu_node.getDouble("hy"),
+			       imu_node.getDouble("hz") );
 
 	// imu_dt = 0.02;
 	// gyro = SGVec3d(0.0, 0.0, 0.01745); // 0.01745 = 1 deg/sec
 	// accel = SGVec3d(1.0, 0.0, 0.0);    // m/s
 	propagate_ins( imu_dt, gyro, accel, mag );
 
-	double gps_time = gps_time_stamp_node->getDouble();
+	double gps_time = gps_node.getDouble("timestamp");
 	if ( gps_time > last_gps_time ) {
 	    double gps_dt = gps_time - last_gps_time;
 	    last_gps_time = gps_time;
 
-	    SGGeod gps_pos = SGGeod::fromDegM( gps_lon_node->getDouble(),
-					       gps_lat_node->getDouble(),
-					       gps_alt_node->getDouble() );
-	    SGVec3d gps_vel = SGVec3d( gps_vn_node->getDouble(),
-				       gps_ve_node->getDouble(),
-				       gps_vd_node->getDouble() );
+	    SGGeod gps_pos = SGGeod::fromDegM( gps_node.getDouble("longitude_deg"),
+					       gps_node.getDouble("latitude_deg"),
+					       gps_node.getDouble("altitude_m") );
+	    SGVec3d gps_vel = SGVec3d( gps_node.getDouble("vn_ms"),
+				       gps_node.getDouble("ve_ms"),
+				       gps_node.getDouble("vd_ms") );
 
 	    update_ins( gps_dt, gps_pos, gps_vel );
 	}
-
 
 	double phi_deg, theta_deg, psi_deg;
 	// SGQuatd ned2body_est = ned2body * ned2body_correction;
@@ -537,24 +539,26 @@ int curt_adns_update( double imu_dt ) {
 	*/
 
 	// publish values to property tree
-	filter_phi_node->setDoubleValue( phi_deg );
-	filter_theta_node->setDoubleValue( theta_deg );
-	filter_psi_node->setDoubleValue( psi_deg );
-	filter_lat_node->setDoubleValue( pos_geod.getLatitudeDeg() );
-	filter_lon_node->setDoubleValue( pos_geod.getLongitudeDeg() );
-	filter_alt_node->setDoubleValue( pos_geod.getElevationM() );
-	filter_vn_node->setDoubleValue( vel_ned[0] );
-	filter_ve_node->setDoubleValue( vel_ned[1] );
-	filter_vd_node->setDoubleValue( vel_ned[2] );
-	filter_status_node->setStringValue("valid");
+	filter_node.setDouble( "roll_deg", phi_deg );
+	filter_node.setDouble( "pitch_deg", theta_deg );
+	filter_node.setDouble( "heading_deg", psi_deg );
+	filter_node.setDouble( "latitude_deg", pos_geod.getLatitudeDeg() );
+	filter_node.setDouble( "longitude_deg", pos_geod.getLongitudeDeg() );
+	filter_node.setDouble( "altitude_m", pos_geod.getElevationM() );
+	filter_node.setDouble( "vn_ms", vel_ned[0] );
+	filter_node.setDouble( "ve_ms", vel_ned[1] );
+	filter_node.setDouble( "vd_ms", vel_ned[2] );
+	filter_node.setString( "navigation", "valid" );
 
-	filter_alt_feet_node->setDoubleValue( pos_geod.getElevationFt() );
-	filter_track_node->setDoubleValue( 90 - atan2(vel_ned[0], vel_ned[1])
-	 				* SG_RADIANS_TO_DEGREES );
-	filter_vel_node->setDoubleValue( sqrt( vel_ned[0] * vel_ned[0]
-	 				    + vel_ned[1] * vel_ned[1] ) );
-        filter_vert_speed_fps_node
-	->setDoubleValue( -vel_ned[2] * SG_METER_TO_FEET );
+	filter_node.setDouble( "altitude_ft", pos_geod.getElevationFt() );
+	filter_node.setDouble( "groundtrack_deg",
+				90 - atan2(vel_ned[0], vel_ned[1])
+				* SG_RADIANS_TO_DEGREES );
+	filter_node.setDouble( "groundspeed_ms",
+				sqrt( vel_ned[0] * vel_ned[0]
+				      + vel_ned[1] * vel_ned[1] ) );
+        filter_node.setDouble( "vertical_speed_fps",
+			       -vel_ned[2] * SG_METER_TO_FEET );
     }
 
     return 1;

@@ -301,7 +301,7 @@ PropsChannel::foundTerminator()
 		    child = NULL;
 		}
 		if ( child ) {
-		    child->setStringValue(value.c_str());
+		    child->setString(value.c_str());
 		    if ( mode == PROMPT ) {
 			// now fetch and write out the new value as confirmation
 			// of the change

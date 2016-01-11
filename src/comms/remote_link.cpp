@@ -448,9 +448,9 @@ static void remote_link_execute_command( const string command ) {
 	    = fgGetNode("/task/home/azimuth-deg", true );
 	SGPropertyNode *home_set_node
 	    = fgGetNode("/task/home/valid", true );
-	home_lon_node->setDoubleValue( lon );
-	home_lat_node->setDoubleValue( lat );
-	home_azimuth_node->setDoubleValue( azimuth_deg );
+	home_lon_node->setDouble( lon );
+	home_lat_node->setDouble( lat );
+	home_azimuth_node->setDouble( azimuth_deg );
 	home_set_node->setBoolValue( true );
     } else if ( token[0] == "route" && token.size() >= 5 ) {
 	// find the active route manager
@@ -501,17 +501,17 @@ static void remote_link_execute_command( const string command ) {
             double agl_ft = atof( token[2].c_str() );
             SGPropertyNode *target_agl_node
                 = fgGetNode( "/autopilot/settings/target-agl-ft", true );
-            target_agl_node->setDoubleValue( agl_ft );
+            target_agl_node->setDouble( agl_ft );
         } else if ( token[1] == "msl-ft" ) {
             double msl_ft = atof( token[2].c_str() );
             SGPropertyNode *target_msl_node
                 = fgGetNode( "/autopilot/settings/target-msl-ft", true );
-            target_msl_node->setDoubleValue( msl_ft );
+            target_msl_node->setDouble( msl_ft );
         } else if ( token[1] == "speed-kt" ) {
             double speed_kt = atof( token[2].c_str() );
             SGPropertyNode *speed_kt_node
                 = fgGetNode( "/autopilot/settings/target-speed-kt", true );
-            speed_kt_node->setDoubleValue( speed_kt );
+            speed_kt_node->setDouble( speed_kt );
         }
     } else if ( token[0] == "fcs-update" ) {
 	packetizer->decode_fcs_update(token);
@@ -538,15 +538,15 @@ static void remote_link_execute_command( const string command ) {
 	    double north = atof( token[2].c_str() );
 	    SGPropertyNode *north_node
                 = fgGetNode( "/pointing/vector/north", true );
-	    north_node->setDoubleValue( north );
+	    north_node->setDouble( north );
 	    double east = atof( token[3].c_str() );
 	    SGPropertyNode *east_node
                 = fgGetNode( "/pointing/vector/east", true );
-	    east_node->setDoubleValue( east );
+	    east_node->setDouble( east );
 	    double down = atof( token[4].c_str() );
 	    SGPropertyNode *down_node
                 = fgGetNode( "/pointing/vector/down", true );
-	    down_node->setDoubleValue( down );
+	    down_node->setDouble( down );
 	} else if ( token[1] == "wgs84" ) {
 	    // set wgs84 lookat mode
 	    SGPropertyNode *mode_node
@@ -556,17 +556,17 @@ static void remote_link_execute_command( const string command ) {
 	    double lon = atof( token[2].c_str() );
 	    SGPropertyNode *lon_node
                 = fgGetNode( "/pointing/wgs84/longitude-deg", true );
-	    lon_node->setDoubleValue( lon );
+	    lon_node->setDouble( lon );
 	    double lat = atof( token[3].c_str() );
 	    SGPropertyNode *lat_node
                 = fgGetNode( "/pointing/wgs84/latitude-deg", true );
-	    lat_node->setDoubleValue( lat );
+	    lat_node->setDouble( lat );
 	    SGPropertyNode *ground_node
 		= fgGetNode( "/position/altitude-ground-m", true );
 	    double ground = ground_node->getDoubleValue();
 	    SGPropertyNode *alt_node
                 = fgGetNode( "/pointing/wgs84/altitude-m", true );
-	    alt_node->setDoubleValue( ground );
+	    alt_node->setDouble( ground );
 	}
     }
 }
@@ -692,7 +692,7 @@ bool remote_link_command() {
 	// register that we've received this message correctly
 	link_sequence_num->setIntValue( sequence );
 	last_sequence_num = sequence;
-	link_message_time_sec->setDoubleValue( get_Time() );
+	link_message_time_sec->setDouble( get_Time() );
     }
 
     return true;

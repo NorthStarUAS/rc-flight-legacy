@@ -77,7 +77,7 @@ FGPIDController::FGPIDController( SGPropertyNode *node ):
     if ( y_scale_node == NULL ) {
 	// create with default value
 	y_scale_node = input_node->getChild( "scale", 0, true );
-	y_scale_node->setDoubleValue( 1.0 );
+	y_scale_node->setDouble( 1.0 );
     }
     y_offset_node = input_node->getChild( "offset", 0, true );
 
@@ -92,7 +92,7 @@ FGPIDController::FGPIDController( SGPropertyNode *node ):
     if ( r_scale_node == NULL ) {
 	// create with default value
 	r_scale_node = reference_node->getChild( "scale", 0, true );
-	r_scale_node->setDoubleValue( 1.0 );
+	r_scale_node->setDouble( 1.0 );
     }
     r_offset_node = reference_node->getChild( "offset", 0, true );
 
@@ -118,13 +118,13 @@ FGPIDController::FGPIDController( SGPropertyNode *node ):
     if ( beta_node == NULL ) {
 	// create with default value
 	beta_node = config_node->getChild( "beta", 0, true );
-	beta_node->setDoubleValue( 1.0 );
+	beta_node->setDouble( 1.0 );
     }
     alpha_node = config_node->getChild( "alpha" );
     if ( alpha_node == NULL ) {
 	// create with default value
 	alpha_node = config_node->getChild( "alpha", 0, true );
-	alpha_node->setDoubleValue( 0.1 );
+	alpha_node->setDouble( 0.1 );
     }
 
     gamma_node = config_node->getChild( "gamma", 0, true );
@@ -300,7 +300,7 @@ void FGPIDController::update( double dt ) {
     if ( enabled ) {
 	// Copy the result to the output node(s)
 	for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-	  output_list[i]->setDoubleValue( u_n );
+	  output_list[i]->setDouble( u_n );
 	}
     } else {
 	// Mirror the output value while we are not enabled so there
@@ -355,7 +355,7 @@ FGPISimpleController::FGPISimpleController( SGPropertyNode *node ):
     if ( y_scale_node == NULL ) {
 	// create with default value
 	y_scale_node = input_node->getChild( "scale", 0, true );
-	y_scale_node->setDoubleValue( 1.0 );
+	y_scale_node->setDouble( 1.0 );
     }
 
     // reference
@@ -369,7 +369,7 @@ FGPISimpleController::FGPISimpleController( SGPropertyNode *node ):
     if ( r_scale_node == NULL ) {
 	// create with default value
 	r_scale_node = reference_node->getChild( "scale", 0, true );
-	r_scale_node->setDoubleValue( 1.0 );
+	r_scale_node->setDouble( 1.0 );
     }
 
     // output
@@ -442,7 +442,7 @@ void FGPISimpleController::update( double dt ) {
         if ( debug ) printf("clamped output = %.3f\n", clamp_output);
 
         for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-            output_list[i]->setDoubleValue( clamp_output );
+            output_list[i]->setDouble( clamp_output );
         }
     }
 }
@@ -519,7 +519,7 @@ void FGPredictor::update( double dt ) {
             double output = ivalue + (1.0 - filter_gain) * (average * seconds) + filter_gain * (current * seconds);
 
             for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-                output_list[i]->setDoubleValue( output );
+                output_list[i]->setDouble( output );
             }
         }
         last_value = ivalue;
@@ -593,7 +593,7 @@ void FGDigitalFilter::update(double dt)
             output.push_front(alpha * input[0] + 
                               (1 - alpha) * output[0]);
             for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-                output_list[i]->setDoubleValue( output[0] );
+                output_list[i]->setDouble( output[0] );
             }
             output.resize(1);
         } 
@@ -604,7 +604,7 @@ void FGDigitalFilter::update(double dt)
                               2 * (1 - alpha) * output[0] -
                               (1 - alpha) * (1 - alpha) * output[1]);
             for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-                output_list[i]->setDoubleValue( output[0] );
+                output_list[i]->setDouble( output[0] );
             }
             output.resize(2);
         }
@@ -613,7 +613,7 @@ void FGDigitalFilter::update(double dt)
             output.push_front(output[0] + 
                               (input[0] - input.back()) / samples);
             for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-                output_list[i]->setDoubleValue( output[0] );
+                output_list[i]->setDouble( output[0] );
             }
             output.resize(1);
         }
@@ -635,7 +635,7 @@ void FGDigitalFilter::update(double dt)
             }
 
             for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-                output_list[i]->setDoubleValue( output[0] );
+                output_list[i]->setDouble( output[0] );
             }
 	    output.resize(1);
         }
@@ -747,8 +747,8 @@ static void update_helper( double dt ) {
             average = a;
         }
 
-        lookahead5->setDoubleValue( v + average * 5.0 );
-        lookahead10->setDoubleValue( v + average * 10.0 );
+        lookahead5->setDouble( v + average * 5.0 );
+        lookahead10->setDouble( v + average * 10.0 );
         v_last = v;
     }
 #endif
@@ -785,7 +785,7 @@ static void update_helper( double dt ) {
 
     static SGPropertyNode *wind_heading_error
         = pyGetNode( "/autopilot/settings/wind-heading-error-deg", true );
-    wind_heading_error->setDoubleValue( hdg_error );
+    wind_heading_error->setDouble( hdg_error );
 #endif
 
 #if 0
@@ -806,7 +806,7 @@ static void update_helper( double dt ) {
     diff = target_wind_true->getDouble() - true_hdg->getDouble();
     if ( diff < -180.0 ) { diff += 360.0; }
     if ( diff > 180.0 ) { diff -= 360.0; }
-    wind_true_error->setDoubleValue( diff );
+    wind_true_error->setDouble( diff );
 #endif
 
 #if 0
@@ -817,7 +817,7 @@ static void update_helper( double dt ) {
     static SGPropertyNode *phi_node
 	= pyGetNode("/orientation/roll-deg", true);
     double roll = phi_node->getDouble();
-    roll_squared->setDoubleValue( roll * roll );
+    roll_squared->setDouble( roll * roll );
 #endif
 
 }

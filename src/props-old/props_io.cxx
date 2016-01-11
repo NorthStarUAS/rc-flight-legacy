@@ -258,9 +258,9 @@ PropsVisitor::endElement (const char * name)
     } else if (st.type == "float") {
       ret = st.node->setFloatValue(atof(_data.c_str()));
     } else if (st.type == "double") {
-      ret = st.node->setDoubleValue(strtod(_data.c_str(), 0));
+      ret = st.node->setDouble(strtod(_data.c_str(), 0));
     } else if (st.type == "string") {
-      ret = st.node->setStringValue(_data.c_str());
+      ret = st.node->setString(_data.c_str());
     } else if (st.type == "unspecified") {
       ret = st.node->setUnspecifiedValue(_data.c_str());
     } else {
@@ -587,11 +587,11 @@ copyProperties (const SGPropertyNode *in, SGPropertyNode *out)
 	retval = false;
       break;
     case SGPropertyNode::DOUBLE:
-      if (!out->setDoubleValue(in->getDouble()))
+      if (!out->setDouble(in->getDouble()))
 	retval = false;
       break;
     case SGPropertyNode::STRING:
-      if (!out->setStringValue(in->getString()))
+      if (!out->setString(in->getString()))
 	retval = false;
       break;
     case SGPropertyNode::UNSPECIFIED:

@@ -281,7 +281,7 @@ PropsChannel::foundTerminator()
 		    value += tokens[i];
 		}
 		node->getNode( tokens[1].c_str(), true )
-		    ->setStringValue(value.c_str());
+		    ->setString(value.c_str());
 
 		if ( mode == PROMPT ) {
 		    // now fetch and write out the new value as confirmation

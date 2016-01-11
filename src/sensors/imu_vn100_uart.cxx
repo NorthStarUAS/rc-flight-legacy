@@ -288,45 +288,45 @@ static bool imu_vn100_uart_parse_msg( char *msg_buf, int size )
 	double val, p, q, r;
 	val = atof( tokens[1].c_str() );
 	// hx_filter = 0.75*hx_filter + 0.25*val;
-	imu_hx_node->setDoubleValue( val );
+	imu_hx_node->setDouble( val );
 
 	val = atof( tokens[2].c_str() );
 	// hy_filter = 0.75*hy_filter + 0.25*val;
-	imu_hy_node->setDoubleValue( val );
+	imu_hy_node->setDouble( val );
 
 	val = atof( tokens[3].c_str() );
 	// hz_filter = 0.75*hz_filter + 0.25*val;
-	imu_hz_node->setDoubleValue( val );
+	imu_hz_node->setDouble( val );
 
 	val = atof( tokens[4].c_str() );
 	// ax_filter = 0.75*ax_filter + 0.25*val;
-	imu_ax_node->setDoubleValue( val );
+	imu_ax_node->setDouble( val );
 
 	val = atof( tokens[5].c_str() );
 	// ay_filter = 0.75*ay_filter + 0.25*val;
-	imu_ay_node->setDoubleValue( val );
+	imu_ay_node->setDouble( val );
 
 	val = atof( tokens[6].c_str() );
 	// az_filter = 0.75*az_filter + 0.25*val;
-	imu_az_node->setDoubleValue( val );
+	imu_az_node->setDouble( val );
 
 	p = val = atof( tokens[7].c_str() );
 	// p_filter = 0.75*p_filter + 0.25*val;
-	imu_p_node->setDoubleValue( val - p_bias );
+	imu_p_node->setDouble( val - p_bias );
 
 	q = val = atof( tokens[8].c_str() );
 	// q_filter = 0.75*q_filter + 0.25*val;
-	imu_q_node->setDoubleValue( val - q_bias );
+	imu_q_node->setDouble( val - q_bias );
 
 	r = val = atof( tokens[9].c_str() );
 	// r_filter = 0.75*r_filter + 0.25*val;
-	imu_r_node->setDoubleValue( val - r_bias );
+	imu_r_node->setDouble( val - r_bias );
 
 	val = atof( tokens[10].c_str() );
 	// r_filter = 0.75*r_filter + 0.25*val;
-	imu_temp_node->setDoubleValue( val );
+	imu_temp_node->setDouble( val );
 
-	imu_timestamp_node->setDoubleValue( current_time );
+	imu_timestamp_node->setDouble( current_time );
 
 	if ( !bias_ready ) {
 	    // average first 15 seconds of steady state gyro values and

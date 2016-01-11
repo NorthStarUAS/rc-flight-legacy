@@ -167,47 +167,47 @@ static bool imu_vn100_spi_parse_msg( uint8_t *msg_buf, int size )
 
     fptr = (float *)&msg_buf[i]; i += 4;
     // hx_filter = 0.75*hx_filter + 0.25*(*fptr);
-    imu_hx_node->setDoubleValue( *fptr );
+    imu_hx_node->setDouble( *fptr );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     // hy_filter = 0.75*hy_filter + 0.25**fptr;
-    imu_hy_node->setDoubleValue( *fptr );
+    imu_hy_node->setDouble( *fptr );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     // hz_filter = 0.75*hz_filter + 0.25**fptr;
-    imu_hz_node->setDoubleValue( *fptr );
+    imu_hz_node->setDouble( *fptr );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     // ax_filter = 0.75*ax_filter + 0.25**fptr;
-    imu_ax_node->setDoubleValue( *fptr );
+    imu_ax_node->setDouble( *fptr );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     // ay_filter = 0.75*ay_filter + 0.25**fptr;
-    imu_ay_node->setDoubleValue( *fptr );
+    imu_ay_node->setDouble( *fptr );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     // az_filter = 0.75*az_filter + 0.25**fptr;
-    imu_az_node->setDoubleValue( *fptr );
+    imu_az_node->setDouble( *fptr );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     p = *fptr;
     // p_filter = 0.75*p_filter + 0.25*p;
-    imu_p_node->setDoubleValue( p - p_bias );
+    imu_p_node->setDouble( p - p_bias );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     q = *fptr;
     // q_filter = 0.75*q_filter + 0.25*q;
-    imu_q_node->setDoubleValue( q - q_bias );
+    imu_q_node->setDouble( q - q_bias );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     r = *fptr;
     // r_filter = 0.75*r_filter + 0.25*r;
-    imu_r_node->setDoubleValue( r - r_bias );
+    imu_r_node->setDouble( r - r_bias );
 
     fptr = (float *)&msg_buf[i]; i += 4;
-    imu_temp_node->setDoubleValue( *fptr );
+    imu_temp_node->setDouble( *fptr );
 
-    imu_timestamp_node->setDoubleValue( current_time );
+    imu_timestamp_node->setDouble( current_time );
 
     if ( !bias_ready ) {
 	// average first 15 seconds of steady state gyro values and
@@ -224,9 +224,9 @@ static bool imu_vn100_spi_parse_msg( uint8_t *msg_buf, int size )
 	    p_bias = p_sum / (double)count;
 	    q_bias = q_sum / (double)count;
 	    r_bias = r_sum / (double)count;
-	    imu_p_bias_node->setDoubleValue( p_bias );
-	    imu_q_bias_node->setDoubleValue( q_bias );
-	    imu_r_bias_node->setDoubleValue( r_bias );
+	    imu_p_bias_node->setDouble( p_bias );
+	    imu_q_bias_node->setDouble( q_bias );
+	    imu_r_bias_node->setDouble( r_bias );
 	} else {
 	    bias_ready = true;
 	    if ( display_on ) {

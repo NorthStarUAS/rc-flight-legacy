@@ -70,10 +70,10 @@ bool AuraCircleMgr::bind() {
     // sanity check, set some conservative values if none are provided
     // in the autopilot config
     if ( bank_limit_node->getDouble() < 0.1 ) {
-	bank_limit_node->setDoubleValue( 20.0 );
+	bank_limit_node->setDouble( 20.0 );
     }
     if ( L1_period_node->getDouble() < 0.1 ) {
-	L1_period_node->setDoubleValue( 25.0 );
+	L1_period_node->setDouble( 25.0 );
     }
 
     fcs_mode_node = pyGetNode("/config/fcs/mode", true);
@@ -145,7 +145,7 @@ bool AuraCircleMgr::update() {
 	if ( target_crs > 360.0 ) { target_crs -= 360.0; }
 	if ( target_crs < 0.0 ) { target_crs += 360.0; }
     }
-    target_course_deg->setDoubleValue( target_crs );
+    target_course_deg->setDouble( target_crs );
     /*if ( display_on ) {
 	printf("rad=%.0f act=%.0f ideal crs=%.1f tgt crs=%.1f\n",
 	       radius_m, dist_m, ideal_crs, target_crs);
@@ -196,7 +196,7 @@ bool AuraCircleMgr::update() {
     //printf("   circle: tgt bank = %.0f  bank limit = %.0f\n",
     //	   target_bank_deg, bank_limit_deg);
 
-    ap_roll_node->setDoubleValue( target_bank_deg );
+    ap_roll_node->setDouble( target_bank_deg );
 
     // printf("circle: ground_crs = %.1f aircraft_hdg = %.1f\n",
     //	   course_deg, hd_deg );
@@ -219,9 +219,9 @@ SGWayPoint AuraCircleMgr::get_center() {
 
 
 void AuraCircleMgr::set_direction( const string direction ) {
-    direction_node->setStringValue( direction.c_str() );
+    direction_node->setString( direction.c_str() );
 }
 
 void AuraCircleMgr::set_radius( const double radius_m ) {
-    radius_node->setDoubleValue( radius_m );
+    radius_node->setDouble( radius_m );
 }

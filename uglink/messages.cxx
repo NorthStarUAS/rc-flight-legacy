@@ -1064,7 +1064,7 @@ int serial_read( SGSerialPort *serial, SGIOChannel *log,
 	double elapsed_sec = current_read_sec - first_read_sec;
 	if ( elapsed_sec > 0.0 ) {
 	    double byte_rate = total_bytes / elapsed_sec;
-	    telemetry_rate_node->setDoubleValue(byte_rate);
+	    telemetry_rate_node->setDouble(byte_rate);
 	}
     }
 

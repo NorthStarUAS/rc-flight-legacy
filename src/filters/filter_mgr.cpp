@@ -253,9 +253,9 @@ static void update_euler_rates() {
 	double phi_dot = p + q * sin(phi) * tan(the) + r * cos(phi) * tan(the);
 	double the_dot = q * cos(phi) - r * sin(phi);
 	double psi_dot = q * sin(phi) / cos(the) + r * cos(phi) / cos(the);
-	filter_phi_dot_node->setDoubleValue(phi_dot);
-	filter_the_dot_node->setDoubleValue(the_dot);
-	filter_psi_dot_node->setDoubleValue(psi_dot);
+	filter_phi_dot_node->setDouble(phi_dot);
+	filter_the_dot_node->setDouble(the_dot);
+	filter_psi_dot_node->setDouble(psi_dot);
 	/* printf("dt=%.3f q=%.3f q(ned)=%.3f phi(dot)=%.3f\n",
 	   dt,imu_q_node->getDoubleValue(), dq/dt, phi_dot);  */
 	/* printf("%.3f %.3f %.3f %.3f\n",
@@ -284,13 +284,13 @@ static void update_ground() {
 	// ground reference altitude averaged current altitude over
 	// first 30 seconds while on the ground
 	ground_alt_filt.update( filter_alt_m_node->getDouble(), dt );
-	filter_ground_alt_m_node->setDoubleValue( ground_alt_filt.get_value() );
+	filter_ground_alt_m_node->setDouble( ground_alt_filt.get_value() );
     }
 
     float agl_m = filter_alt_m_node->getDouble()
 	- ground_alt_filt.get_value();
-    filter_alt_agl_m_node->setDoubleValue( agl_m );
-    filter_alt_agl_ft_node->setDoubleValue( agl_m * SG_METER_TO_FEET );
+    filter_alt_agl_m_node->setDouble( agl_m );
+    filter_alt_agl_ft_node->setDouble( agl_m * SG_METER_TO_FEET );
 
     last_time = cur_time;
 }
@@ -331,10 +331,10 @@ static void update_wind() {
     if ( wind_deg < 0 ) { wind_deg += 360.0; }
     double wind_speed_kt = sqrt( filt_we*filt_we + filt_wn*filt_wn ) * SG_MPS_TO_KT;
 
-    est_wind_speed_kt->setDoubleValue( wind_speed_kt );
-    est_wind_dir_deg->setDoubleValue( wind_deg );
-    est_wind_east_mps->setDoubleValue( filt_we );
-    est_wind_north_mps->setDoubleValue( filt_wn );
+    est_wind_speed_kt->setDouble( wind_speed_kt );
+    est_wind_dir_deg->setDouble( wind_deg );
+    est_wind_east_mps->setDouble( filt_we );
+    est_wind_north_mps->setDouble( filt_wn );
 
     // estimate pitot tube bias
     double true_e = filt_we + filter_ve_node->getDoubleValue();
@@ -344,10 +344,10 @@ static void update_wind() {
     if ( true_deg < 0 ) { true_deg += 360.0; }
     double true_speed_kt = sqrt( true_e*true_e + true_n*true_n ) * SG_MPS_TO_KT;
 
-    true_airspeed_kt->setDoubleValue( true_speed_kt );
-    true_heading_deg->setDoubleValue( true_deg );
-    true_air_east_mps->setDoubleValue( true_e );
-    true_air_north_mps->setDoubleValue( true_n );
+    true_airspeed_kt->setDouble( true_speed_kt );
+    true_heading_deg->setDouble( true_deg );
+    true_air_east_mps->setDouble( true_e );
+    true_air_north_mps->setDouble( true_n );
 
     double pitot_scale = 1.0;
     if ( airspeed_kt > 1.0 ) {
@@ -358,7 +358,7 @@ static void update_wind() {
     }
 
     pitot_scale_filt = 0.9995 * pitot_scale_filt + 0.0005 * pitot_scale;
-    est_pitot_scale_factor->setDoubleValue( pitot_scale_filt );
+    est_pitot_scale_factor->setDouble( pitot_scale_filt );
 
     // if ( display_on ) {
     //   printf("true: %.2f kt  %.1f deg (scale = %.4f)\n", true_speed_kt, true_deg, pitot_scale_filt);

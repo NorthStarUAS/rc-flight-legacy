@@ -355,7 +355,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	    if ( token[10] == "F" ) {
 		alt_m *= SG_FEET_TO_METER;
 	    }
-	    gps_alt_node->setDoubleValue( alt_m );
+	    gps_alt_node->setDouble( alt_m );
 
 	    float geoid_sep_m = atof( token[11].c_str() );
 	    if ( token[12] == "F" ) {
@@ -369,7 +369,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	    if ( dt > 0.001 ) {
 		vspeed_mps = da / dt;
 	    }
-	    gps_vd_node->setDoubleValue( -vspeed_mps );
+	    gps_vd_node->setDouble( -vspeed_mps );
 
 	    last_gsec = gsec;
 	    last_alt_m = alt_m;
@@ -391,11 +391,11 @@ static bool parse_nmea_msg( char *payload, int size )
 	    // data whenever a valid rmc string is read.
 
 	    new_position = true;
-	    gps_timestamp_node->setDoubleValue( get_Time() );
+	    gps_timestamp_node->setDouble( get_Time() );
 
 	    // compute unix time (time_t)
 	    double unix_sec = date_time_to_unix_sec( token[9], token[1] );
-	    gps_unix_sec_node->setDoubleValue( unix_sec );
+	    gps_unix_sec_node->setDouble( unix_sec );
 	    if ( ! set_system_time ) {
 		set_system_time = true;
 		time_t sec = (time_t)unix_sec;
@@ -412,7 +412,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	    if ( token[4] == "S" ) {
 		lat_deg *= -1.0;
 	    }
-	    gps_lat_node->setDoubleValue( lat_deg );
+	    gps_lat_node->setDouble( lat_deg );
 
 	    dd = atof( token[5].substr(0, 3).c_str() );
 	    mm = atof( token[5].substr(3).c_str() );
@@ -420,7 +420,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	    if ( token[6] == "W" ) {
 		lon_deg *= -1.0;
 	    }
-	    gps_lon_node->setDoubleValue( lon_deg );
+	    gps_lon_node->setDouble( lon_deg );
 
 	    float speed_kts = atof( token[7].c_str() );
 	    float course_deg = atof( token[8].c_str() );
@@ -428,8 +428,8 @@ static bool parse_nmea_msg( char *payload, int size )
 	    // compute speed/course to vel NED
 	    double speed_mps = speed_kts * SG_KT_TO_MPS;
 	    double angle_rad = (90.0 - course_deg) * SGD_DEGREES_TO_RADIANS;
-	    gps_vn_node->setDoubleValue( sin(angle_rad) * speed_mps );
-	    gps_ve_node->setDoubleValue( cos(angle_rad) * speed_mps );
+	    gps_vn_node->setDouble( sin(angle_rad) * speed_mps );
+	    gps_ve_node->setDouble( cos(angle_rad) * speed_mps );
 
 #if 0
 	    if ( display_on ) {
@@ -453,7 +453,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	}
     } else if ( token[0] == "PMTK705" && token.size() == 5 ) {
 	string firmware = token[1] + "," + token[2] + "," + token[3];
-	gps_firmware_node->setStringValue( firmware.c_str() );
+	gps_firmware_node->setString( firmware.c_str() );
 	printf("MediaTek: firmware rev: %s\n", firmware.c_str() );
     } else {
 	if ( display_on ) {

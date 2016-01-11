@@ -766,21 +766,21 @@ bool UGPacketizer::decode_fcs_update(vector <string> tokens) {
 	}
 
 	SGPropertyNode *Kp = config->getNode("Kp", true);
-	Kp->setDoubleValue( atof(tokens[1].c_str()) );
+	Kp->setDouble( atof(tokens[1].c_str()) );
 	SGPropertyNode *beta = config->getNode("beta", true);
-	beta->setDoubleValue( atof(tokens[2].c_str()) );
+	beta->setDouble( atof(tokens[2].c_str()) );
 	SGPropertyNode *alpha = config->getNode("alpha", true);
-	alpha->setDoubleValue( atof(tokens[3].c_str()) );
+	alpha->setDouble( atof(tokens[3].c_str()) );
 	SGPropertyNode *gamma = config->getNode("gamma", true);
-	gamma->setDoubleValue( atof(tokens[4].c_str()) );
+	gamma->setDouble( atof(tokens[4].c_str()) );
 	SGPropertyNode *Ti = config->getNode("Ti", true);
-	Ti->setDoubleValue( atof(tokens[5].c_str()) );
+	Ti->setDouble( atof(tokens[5].c_str()) );
 	SGPropertyNode *Td = config->getNode("Td", true);
-	Td->setDoubleValue( atof(tokens[6].c_str()) );
+	Td->setDouble( atof(tokens[6].c_str()) );
 	SGPropertyNode *min = config->getNode("u_min", true);
-	min->setDoubleValue( atof(tokens[7].c_str()) );
+	min->setDouble( atof(tokens[7].c_str()) );
 	SGPropertyNode *max = config->getNode("u_max", true);
-	max->setDoubleValue( atof(tokens[8].c_str()) );
+	max->setDouble( atof(tokens[8].c_str()) );
 
 	return true;
     } else if ( tokens.size() == 5 ) {
@@ -797,13 +797,13 @@ bool UGPacketizer::decode_fcs_update(vector <string> tokens) {
 	}
 
 	SGPropertyNode *Kp = config->getNode("Kp", true);
-	Kp->setDoubleValue( atof(tokens[1].c_str()) );
+	Kp->setDouble( atof(tokens[1].c_str()) );
 	SGPropertyNode *Ki = config->getNode("Ki", true);
-	Ki->setDoubleValue( atof(tokens[2].c_str()) );
+	Ki->setDouble( atof(tokens[2].c_str()) );
 	SGPropertyNode *min = config->getNode("u_min", true);
-	min->setDoubleValue( atof(tokens[3].c_str()) );
+	min->setDouble( atof(tokens[3].c_str()) );
 	SGPropertyNode *max = config->getNode("u_max", true);
-	max->setDoubleValue( atof(tokens[4].c_str()) );
+	max->setDouble( atof(tokens[4].c_str()) );
 
 	return true;
      } else {

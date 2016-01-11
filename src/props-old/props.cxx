@@ -1382,7 +1382,7 @@ SGPropertyNode::setFloatValue (float value)
 }
 
 bool
-SGPropertyNode::setDoubleValue (double value)
+SGPropertyNode::setDouble (double value)
 {
 				// Shortcut for common case
   if (_attr == (READ|WRITE) && _type == DOUBLE)
@@ -1398,7 +1398,7 @@ SGPropertyNode::setDoubleValue (double value)
 
   switch (_type) {
   case ALIAS:
-    result = _value.alias->setDoubleValue(value);
+    result = _value.alias->setDouble(value);
     break;
   case BOOL:
     result = set_bool(value == 0.0L ? false : true);
@@ -1433,7 +1433,7 @@ SGPropertyNode::setDoubleValue (double value)
 }
 
 bool
-SGPropertyNode::setStringValue (const char * value)
+SGPropertyNode::setString (const char * value)
 {
 				// Shortcut for common case
   if (_attr == (READ|WRITE) && _type == STRING)
@@ -1448,7 +1448,7 @@ SGPropertyNode::setStringValue (const char * value)
 
   switch (_type) {
   case ALIAS:
-    result = _value.alias->setStringValue(value);
+    result = _value.alias->setString(value);
     break;
   case BOOL:
     result = set_bool((compare_strings(value, "true")
@@ -1629,7 +1629,7 @@ SGPropertyNode::tie (const SGRawValue<double> &rawValue, bool useDefault)
   _value.double_val = rawValue.clone();
 
   if (useDefault)
-    setDoubleValue(old_val);
+    setDouble(old_val);
 
   return true;
 
@@ -1652,7 +1652,7 @@ SGPropertyNode::tie (const SGRawValue<const char *> &rawValue, bool useDefault)
   _value.string_val = rawValue.clone();
 
   if (useDefault)
-    setStringValue(old_val.c_str());
+    setString(old_val.c_str());
 
   return true;
 }
@@ -1918,9 +1918,9 @@ SGPropertyNode::setFloatValue (const char * relative_path, float value)
  * Set a double value for another node.
  */
 bool
-SGPropertyNode::setDoubleValue (const char * relative_path, double value)
+SGPropertyNode::setDouble (const char * relative_path, double value)
 {
-  return getNode(relative_path, true)->setDoubleValue(value);
+  return getNode(relative_path, true)->setDouble(value);
 }
 
 
@@ -1928,9 +1928,9 @@ SGPropertyNode::setDoubleValue (const char * relative_path, double value)
  * Set a string value for another node.
  */
 bool
-SGPropertyNode::setStringValue (const char * relative_path, const char * value)
+SGPropertyNode::setString (const char * relative_path, const char * value)
 {
-  return getNode(relative_path, true)->setStringValue(value);
+  return getNode(relative_path, true)->setString(value);
 }
 
 

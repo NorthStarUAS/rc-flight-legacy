@@ -137,7 +137,7 @@ static void compute_magvar() {
 	magvar_rad = magvar_init_deg_node->getDouble()
 	    * SGD_DEGREES_TO_RADIANS;
     }
-    gps_magvar_deg_node->setDoubleValue( magvar_rad * SG_RADIANS_TO_DEGREES );
+    gps_magvar_deg_node->setDouble( magvar_rad * SG_RADIANS_TO_DEGREES );
 }
 
 

@@ -1080,7 +1080,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 
 	    static float filter_vcc = analog[5];
 	    filter_vcc = 0.9999 * filter_vcc + 0.0001 * analog[5];
-	    APM2_board_vcc_node->setDoubleValue( filter_vcc );
+	    APM2_board_vcc_node->setDouble( filter_vcc );
 
 	    float extern_volts = analog[1] * (filter_vcc/1024.0) * volt_div_ratio;
 	    extern_volt_filt = 0.995 * extern_volt_filt + 0.005 * extern_volts;
@@ -1667,15 +1667,15 @@ bool APM2_imu_update() {
 	    last_imu_timestamp = imu_timestamp;
 	}
 
-	imu_p_node->setDoubleValue( p_raw );
-	imu_q_node->setDoubleValue( q_raw );
-	imu_r_node->setDoubleValue( r_raw );
-	imu_ax_node->setDoubleValue( ax_cal.calibrate(ax_raw, temp_C) );
-	imu_ay_node->setDoubleValue( ay_cal.calibrate(ay_raw, temp_C) );
-	imu_az_node->setDoubleValue( az_cal.calibrate(az_raw, temp_C) );
+	imu_p_node->setDouble( p_raw );
+	imu_q_node->setDouble( q_raw );
+	imu_r_node->setDouble( r_raw );
+	imu_ax_node->setDouble( ax_cal.calibrate(ax_raw, temp_C) );
+	imu_ay_node->setDouble( ay_cal.calibrate(ay_raw, temp_C) );
+	imu_az_node->setDouble( az_cal.calibrate(az_raw, temp_C) );
 
-	imu_timestamp_node->setDoubleValue( imu_timestamp );
-	imu_temp_node->setDoubleValue( imu_sensors[6] * temp_scale );
+	imu_timestamp_node->setDouble( imu_timestamp );
+	imu_temp_node->setDouble( imu_sensors[6] * temp_scale );
     }
 
     return true;
@@ -1753,22 +1753,22 @@ bool APM2_gps_update() {
 	return false;
     }
 
-    gps_timestamp_node->setDoubleValue(gps_sensors.timestamp);
-    gps_day_secs_node->setDoubleValue(gps_sensors.time / 1000.0);
-    gps_date_node->setDoubleValue(gps_sensors.date);
-    gps_lat_node->setDoubleValue(gps_sensors.latitude / 10000000.0);
-    gps_lon_node->setDoubleValue(gps_sensors.longitude / 10000000.0);
+    gps_timestamp_node->setDouble(gps_sensors.timestamp);
+    gps_day_secs_node->setDouble(gps_sensors.time / 1000.0);
+    gps_date_node->setDouble(gps_sensors.date);
+    gps_lat_node->setDouble(gps_sensors.latitude / 10000000.0);
+    gps_lon_node->setDouble(gps_sensors.longitude / 10000000.0);
     double alt_m = gps_sensors.altitude / 100.0;
-    gps_alt_node->setDoubleValue( alt_m );
-    gps_vn_node->setDoubleValue( gps_sensors.vel_north * 0.01 );
-    gps_ve_node->setDoubleValue( gps_sensors.vel_east * 0.01 );
-    gps_vd_node->setDoubleValue( gps_sensors.vel_down * 0.01 );
+    gps_alt_node->setDouble( alt_m );
+    gps_vn_node->setDouble( gps_sensors.vel_north * 0.01 );
+    gps_ve_node->setDouble( gps_sensors.vel_east * 0.01 );
+    gps_vd_node->setDouble( gps_sensors.vel_down * 0.01 );
     gps_satellites_node->setIntValue(gps_sensors.num_sats);
     gps_pdop_node->setFloatValue(gps_sensors.pdop * 0.01);
     gps_status_node->setIntValue( gps_sensors.status );
     double unix_secs = ublox_date_time_to_unix_sec( gps_sensors.date,
 					            gps_sensors.time );
-    gps_unix_sec_node->setDoubleValue( unix_secs );
+    gps_unix_sec_node->setDouble( unix_secs );
 
     return true;
 }
@@ -1803,7 +1803,7 @@ bool APM2_airdata_update() {
 	    }
 	}
 
-	airdata_timestamp_node->setDoubleValue( cur_time );
+	airdata_timestamp_node->setDouble( cur_time );
 
 	// basic pressure to airspeed formula: v = sqrt((2/p) * q)
 	// where v = velocity, q = dynamic pressure (pitot tube sensor
@@ -1838,14 +1838,14 @@ bool APM2_airdata_update() {
 	if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
 	float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
 	float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
-	airdata_airspeed_mps_node->setDoubleValue( airspeed_mps );
-	airdata_airspeed_kt_node->setDoubleValue( airspeed_kt );
+	airdata_airspeed_mps_node->setDouble( airspeed_mps );
+	airdata_airspeed_kt_node->setDouble( airspeed_kt );
 
 	// publish sensor values
-	airdata_pressure_node->setDoubleValue( airdata.pressure / 100.0 );
-	airdata_temperature_node->setDoubleValue( airdata.temp / 10.0 );
-	airdata_climb_rate_mps_node->setDoubleValue( airdata.climb_rate );
-	airdata_climb_rate_fps_node->setDoubleValue( airdata.climb_rate * SG_METER_TO_FEET );
+	airdata_pressure_node->setDouble( airdata.pressure / 100.0 );
+	airdata_temperature_node->setDouble( airdata.temp / 10.0 );
+	airdata_climb_rate_mps_node->setDouble( airdata.climb_rate );
+	airdata_climb_rate_fps_node->setDouble( airdata.climb_rate * SG_METER_TO_FEET );
 
 	fresh_data = true;
     }
@@ -1872,31 +1872,31 @@ bool APM2_pilot_update() {
 
     float val;
 
-    pilot_timestamp_node->setDoubleValue( pilot_in_timestamp );
+    pilot_timestamp_node->setDouble( pilot_in_timestamp );
 
     val = normalize_pulse( pilot_input[0], true );
-    pilot_aileron_node->setDoubleValue( val );
+    pilot_aileron_node->setDouble( val );
 
     val = normalize_pulse( pilot_input[1], true );
-    pilot_elevator_node->setDoubleValue( val );
+    pilot_elevator_node->setDouble( val );
 
     val = normalize_pulse( pilot_input[2], false );
-    pilot_throttle_node->setDoubleValue( val );
+    pilot_throttle_node->setDouble( val );
 
     val = normalize_pulse( pilot_input[3], true );
-    pilot_rudder_node->setDoubleValue( val );
+    pilot_rudder_node->setDouble( val );
 
     val = normalize_pulse( pilot_input[4], true );
-    pilot_channel5_node->setDoubleValue( val );
+    pilot_channel5_node->setDouble( val );
 
     val = normalize_pulse( pilot_input[5], true );
-    pilot_channel6_node->setDoubleValue( val );
+    pilot_channel6_node->setDouble( val );
 
     val = normalize_pulse( pilot_input[6], true );
-    pilot_channel7_node->setDoubleValue( val );
+    pilot_channel7_node->setDouble( val );
 
     val = normalize_pulse( pilot_input[7], true );
-    pilot_channel8_node->setDoubleValue( val );
+    pilot_channel8_node->setDouble( val );
 
     pilot_manual_node->setIntValue( pilot_channel8_node->getDouble() > 0 );
 

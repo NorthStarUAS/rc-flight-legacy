@@ -193,7 +193,7 @@ static void update_pressure_helpers() {
     // Compute altitude on a standard day
     double tmp1 = pow((P0/P), 1.0/5.257) - 1.0;
     double alt_m = (tmp1 * (T + 273.15)) / 0.0065;
-    pressure_alt_node->setDoubleValue( alt_m );
+    pressure_alt_node->setDouble( alt_m );
 
     //
     // 2. Filter/Smooth Altitude and airspeed to reduce noise
@@ -221,10 +221,10 @@ static void update_pressure_helpers() {
 
 
     // publish values
-    airspeed_node->setDoubleValue( Pt /* raw */ );
-    airspeed_smoothed_node->setDoubleValue( airspeed_filt.get_value() );
-    pressure_alt_smoothed_node->setDoubleValue( pressure_alt_filt.get_value() );
-    ground_alt_press_m_node->setDoubleValue( ground_alt_filt.get_value() );
+    airspeed_node->setDouble( Pt /* raw */ );
+    airspeed_smoothed_node->setDouble( airspeed_filt.get_value() );
+    pressure_alt_smoothed_node->setDouble( pressure_alt_filt.get_value() );
+    ground_alt_press_m_node->setDouble( ground_alt_filt.get_value() );
 
     //
     // 3. Compute a filtered error difference between gps altitude and
@@ -256,7 +256,7 @@ static void update_pressure_helpers() {
 
     // T = h*0.0065 / ((P0/P)^(1/5.257) - 1) - 273.15
     double T_est = ((true_alt_m * 0.0065) / tmp1) - 273.15;
-    true_oat_node->setDoubleValue( T_est );
+    true_oat_node->setDouble( T_est );
 
     //
     // 5.0 Compute some other stuff
@@ -270,15 +270,15 @@ static void update_pressure_helpers() {
     last_time = cur_time;
 
     // publish values to property tree
-    pressure_error_m_node->setDoubleValue( Ps_filt_err.get_value() );
-    true_alt_m_node->setDoubleValue( true_alt_m );
-    true_alt_ft_node->setDoubleValue( true_alt_m * SG_METER_TO_FEET );
-    true_agl_m_node->setDoubleValue( true_agl_m );
-    true_agl_ft_node->setDoubleValue( true_agl_m * SG_METER_TO_FEET );
-    agl_alt_m_node->setDoubleValue( pressure_alt_filt.get_value() - ground_alt_filt.get_value() );
-    agl_alt_ft_node->setDoubleValue( (pressure_alt_filt.get_value() - ground_alt_filt.get_value() )
+    pressure_error_m_node->setDouble( Ps_filt_err.get_value() );
+    true_alt_m_node->setDouble( true_alt_m );
+    true_alt_ft_node->setDouble( true_alt_m * SG_METER_TO_FEET );
+    true_agl_m_node->setDouble( true_agl_m );
+    true_agl_ft_node->setDouble( true_agl_m * SG_METER_TO_FEET );
+    agl_alt_m_node->setDouble( pressure_alt_filt.get_value() - ground_alt_filt.get_value() );
+    agl_alt_ft_node->setDouble( (pressure_alt_filt.get_value() - ground_alt_filt.get_value() )
 				     * SG_METER_TO_FEET );
-    vert_fps_node->setDoubleValue( climb_filt.get_value() * SG_METER_TO_FEET );
+    vert_fps_node->setDouble( climb_filt.get_value() * SG_METER_TO_FEET );
 
     // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
     //        pressure_alt_filt, navpacket.alt, true_alt_m, climb_filt.get_value());

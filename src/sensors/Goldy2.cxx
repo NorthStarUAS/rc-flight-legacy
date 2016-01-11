@@ -167,9 +167,9 @@ static void bind_airdata_output( string rootname ) {
     // note we don't leak here because we are getting a pointer back
     // into the global property structure
     tmp_node = pyGetNode("/sensors/APM2/board-vcc", true);
-    tmp_node->setDoubleValue( 5.0 );
+    tmp_node->setDouble( 5.0 );
     tmp_node = pyGetNode("/sensors/airdata/temp-degC", true);
-    tmp_node->setDoubleValue( 15.0 );
+    tmp_node->setDouble( 15.0 );
 
     airdata_inited = true;
 }
@@ -415,13 +415,13 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	} else if ( gpsFix == 3 ) {
 	    // passed basic sanity checks and gps is reporting a 3d fix
 	    new_position = true;
-	    gps_timestamp_node->setDoubleValue( get_Time() );
-	    gps_lat_node->setDoubleValue( wgs84.getLatitudeDeg() );
-	    gps_lon_node->setDoubleValue( wgs84.getLongitudeDeg() );
-	    gps_alt_node->setDoubleValue( wgs84.getElevationM() );
-	    gps_vn_node->setDoubleValue( vel_ned.x() );
-	    gps_ve_node->setDoubleValue( vel_ned.y() );
-	    gps_vd_node->setDoubleValue( vel_ned.z() );
+	    gps_timestamp_node->setDouble( get_Time() );
+	    gps_lat_node->setDouble( wgs84.getLatitudeDeg() );
+	    gps_lon_node->setDouble( wgs84.getLongitudeDeg() );
+	    gps_alt_node->setDouble( wgs84.getElevationM() );
+	    gps_vn_node->setDouble( vel_ned.x() );
+	    gps_ve_node->setDouble( vel_ned.y() );
+	    gps_vd_node->setDouble( vel_ned.z() );
 	    // printf("        %.10f %.10f %.2f - %.2f %.2f %.2f\n",
 	    //        wgs84.getLatitudeDeg(),
 	    //        wgs84.getLongitudeDeg(),
@@ -436,7 +436,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    double unixSecs = julianDate * 86400.0;
 	    double unixFract = unixSecs - floor(unixSecs);
 	    struct timeval time;
-	    gps_unix_sec_node->setDoubleValue( unixSecs );
+	    gps_unix_sec_node->setDouble( unixSecs );
 #if 0
 	    if ( unixSecs > 1263154775 && !set_system_time) {
 		printf("Setting system time to %.3f\n", unixSecs);
@@ -799,26 +799,26 @@ bool goldy2_imu_update() {
 	last_imu_internal_time = imu_sensors.time;
 
 	double cur_time = get_Time();
-	imu_timestamp_node->setDoubleValue( cur_time );
-	imu_p_node->setDoubleValue( imu_sensors.gyroX );
-	imu_q_node->setDoubleValue( imu_sensors.gyroY );
-	imu_r_node->setDoubleValue( imu_sensors.gyroZ );
-	imu_ax_node->setDoubleValue( imu_sensors.accelX );
-	imu_ay_node->setDoubleValue( imu_sensors.accelY );
-	imu_az_node->setDoubleValue( imu_sensors.accelZ );
-	imu_hx_node->setDoubleValue( imu_sensors.magX );
-	imu_hy_node->setDoubleValue( imu_sensors.magY );
-	imu_hz_node->setDoubleValue( imu_sensors.magZ );
-	imu_temp_node->setDoubleValue( imu_sensors.temp );
-	imu_pressure_node->setDoubleValue( imu_sensors.pressure );
-	imu_roll_node->setDoubleValue( imu_sensors.roll );
-	imu_pitch_node->setDoubleValue( imu_sensors.pitch );
-	imu_yaw_node->setDoubleValue( imu_sensors.yaw );
+	imu_timestamp_node->setDouble( cur_time );
+	imu_p_node->setDouble( imu_sensors.gyroX );
+	imu_q_node->setDouble( imu_sensors.gyroY );
+	imu_r_node->setDouble( imu_sensors.gyroZ );
+	imu_ax_node->setDouble( imu_sensors.accelX );
+	imu_ay_node->setDouble( imu_sensors.accelY );
+	imu_az_node->setDouble( imu_sensors.accelZ );
+	imu_hx_node->setDouble( imu_sensors.magX );
+	imu_hy_node->setDouble( imu_sensors.magY );
+	imu_hz_node->setDouble( imu_sensors.magZ );
+	imu_temp_node->setDouble( imu_sensors.temp );
+	imu_pressure_node->setDouble( imu_sensors.pressure );
+	imu_roll_node->setDouble( imu_sensors.roll );
+	imu_pitch_node->setDouble( imu_sensors.pitch );
+	imu_yaw_node->setDouble( imu_sensors.yaw );
 
 	// if ( airdata_inited ) {
-	//     airdata_timestamp_node->setDoubleValue( cur_time );
+	//     airdata_timestamp_node->setDouble( cur_time );
 	//     const double inhg2mbar = 33.8638866667;
-	//     airdata_pressure_node->setDoubleValue( pressure * inhg2mbar );
+	//     airdata_pressure_node->setDouble( pressure * inhg2mbar );
 	// }
     }
 
@@ -854,11 +854,11 @@ bool goldy2_gps_update() {
 }
 
 bool goldy2_pilot_update() {
-    pilot_timestamp_node->setDoubleValue(get_Time());
-    pilot_aileron_node->setDoubleValue((rcin[2] - 992.0) / 820.0);
-    pilot_elevator_node->setDoubleValue((rcin[3] - 992.0) / 820.0);
-    pilot_throttle_node->setDoubleValue((rcin[1] - 172.0) / 1640.0);
-    pilot_rudder_node->setDoubleValue((rcin[4] - 992.0) / 820.0);
+    pilot_timestamp_node->setDouble(get_Time());
+    pilot_aileron_node->setDouble((rcin[2] - 992.0) / 820.0);
+    pilot_elevator_node->setDouble((rcin[3] - 992.0) / 820.0);
+    pilot_throttle_node->setDouble((rcin[1] - 172.0) / 1640.0);
+    pilot_rudder_node->setDouble((rcin[4] - 992.0) / 820.0);
     if ( rcin[0] < 992 ) {
         pilot_manual_node->setIntValue(0);
     } else {

@@ -97,14 +97,14 @@ test_value ()
 
   cout << "Testing coercion from double (expect 1.0/3.0)" << endl;
   node = new SGPropertyNode;
-  node->setDoubleValue(1.0/3.0);
+  node->setDouble(1.0/3.0);
   show_values(node);
   delete node;
   cout << endl;
 
   cout << "Testing coercion from string (expect 10e4)" << endl;
   node = new SGPropertyNode;
-  node->setStringValue("10e4");
+  node->setString("10e4");
   show_values(node);
   delete node;
   cout << endl;
@@ -138,12 +138,12 @@ test_value ()
   cout << endl;
 
   cout << "Testing coercion to bool from double (expect 1.1)" << endl;
-  node->setDoubleValue(1.1);
+  node->setDouble(1.1);
   show_values(node);
   cout << endl;
 
   cout << "Testing coercion to bool from string (expect 1e10)" << endl;
-  node->setStringValue("1e10");
+  node->setString("1e10");
   show_values(node);
   cout << endl;
 
@@ -284,24 +284,24 @@ test_property_nodes ()
   SGPropertyNode * child = root.getChild("foo", 0, true);
 
   SGPropertyNode *grandchild = child->getChild("bar", 0, true);
-  grandchild->setDoubleValue(100);
+  grandchild->setDouble(100);
   grandchild = child->getChild("bar", 1, true);
-  grandchild->setDoubleValue(200);
+  grandchild->setDouble(200);
   grandchild = child->getChild("bar", 2, true);
-  grandchild->setDoubleValue(300);
+  grandchild->setDouble(300);
   grandchild = child->getChild("bar", 3, true);
-  grandchild->setDoubleValue(400);
+  grandchild->setDouble(400);
 
   child = root.getChild("hack", 0, true);
 
   grandchild = child->getChild("bar", 0, true);
-  grandchild->setDoubleValue(100);
+  grandchild->setDouble(100);
   grandchild = child->getChild("bar", 3, true);
-  grandchild->setDoubleValue(200);
+  grandchild->setDouble(200);
   grandchild = child->getChild("bar", 1, true);
-  grandchild->setDoubleValue(300);
+  grandchild->setDouble(300);
   grandchild = child->getChild("bar", 2, true);
-  grandchild->setDoubleValue(400);
+  grandchild->setDouble(400);
   dump_node(&root);
 
   cout << "Trying path (expect /foo[0]/bar[0])" << endl;
