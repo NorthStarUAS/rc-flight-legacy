@@ -10,7 +10,7 @@
 #include "include/globaldefs.h"
 
 #include "init/globals.hxx" 	// packetizer
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "sensors/gps_mgr.hxx"
 #include "util/strutils.hxx"
 #include "util/timing.h"
@@ -494,7 +494,7 @@ static void remote_link_execute_command( const string command ) {
     } else if ( token[0] == "task" ) {
 	SGPropertyNode *mission_command
 	    = fgGetNode( "/task/command-request", true );
-	mission_command->setStringValue( command.c_str() );
+	mission_command->setString( command.c_str() );
     } else if ( token[0] == "ap" && token.size() == 3 ) {
         // specify an autopilot target
         if ( token[1] == "agl-ft" ) {
@@ -519,7 +519,7 @@ static void remote_link_execute_command( const string command ) {
 	string prop_name = token[1];
 	string value = token[2];
 	SGPropertyNode *node = fgGetNode( prop_name.c_str() );
-	node->setStringValue( value.c_str() );
+	node->setString( value.c_str() );
     } else if ( token[0] == "wp" && token.size() == 5 ) {
         // specify new waypoint coordinates for a waypoint
         // int index = atoi( token[1].c_str() );
@@ -533,7 +533,7 @@ static void remote_link_execute_command( const string command ) {
 	    // set ned-vector lookat mode
 	    SGPropertyNode *mode_node
                 = fgGetNode( "/pointing/lookat-mode", true );
-	    mode_node->setStringValue("ned-vector");
+	    mode_node->setString("ned-vector");
 	    // specify new lookat ned coordinates
 	    double north = atof( token[2].c_str() );
 	    SGPropertyNode *north_node
@@ -551,7 +551,7 @@ static void remote_link_execute_command( const string command ) {
 	    // set wgs84 lookat mode
 	    SGPropertyNode *mode_node
                 = fgGetNode( "/pointing/lookat-mode", true );
-	    mode_node->setStringValue("wgs84");
+	    mode_node->setString("wgs84");
 	    // specify new lookat ned coordinates
 	    double lon = atof( token[2].c_str() );
 	    SGPropertyNode *lon_node
@@ -563,7 +563,7 @@ static void remote_link_execute_command( const string command ) {
 	    lat_node->setDouble( lat );
 	    SGPropertyNode *ground_node
 		= fgGetNode( "/position/altitude-ground-m", true );
-	    double ground = ground_node->getDoubleValue();
+	    double ground = ground_node->getDouble();
 	    SGPropertyNode *alt_node
                 = fgGetNode( "/pointing/wgs84/altitude-m", true );
 	    alt_node->setDouble( ground );

@@ -7,7 +7,7 @@
 #include <sys/time.h>
 #include <zlib.h>
 
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "props/props_io.hxx"
 #include "util/timing.h"
 

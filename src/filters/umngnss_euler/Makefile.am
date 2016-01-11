@@ -12,4 +12,4 @@ libumngnss_euler_a_SOURCES = \
 	strapdown.h strapdown.c \
 	worldcoord.h worldcoord.c
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@

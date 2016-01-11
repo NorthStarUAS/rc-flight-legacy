@@ -7,14 +7,13 @@
 #define _AURA_UMN_GNSS_EULER_H
 
 
+#include "python/pyprops.hxx"
+
 #include <string>
-
-#include "props/props.hxx"
-
 using std::string;
 
 
-int umngnss_euler_init( string rootname, SGPropertyNode *config );
+int umngnss_euler_init( string rootname, pyPropertyNode *config );
 bool umngnss_euler_update();
 int umngnss_euler_close();
 

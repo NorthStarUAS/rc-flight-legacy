@@ -29,43 +29,6 @@ static pyPropertyNode imu_node;
 static pyPropertyNode gps_node;
 static pyPropertyNode filter_node;
 
-//static SGPropertyNode *imu_timestamp_node = NULL;
-//static SGPropertyNode *imu_p_node = NULL;
-//static SGPropertyNode *imu_q_node = NULL;
-//static SGPropertyNode *imu_r_node = NULL;
-//static SGPropertyNode *imu_ax_node = NULL;
-//static SGPropertyNode *imu_ay_node = NULL;
-//static SGPropertyNode *imu_az_node = NULL;
-//static SGPropertyNode *imu_hx_node = NULL;
-//static SGPropertyNode *imu_hy_node = NULL;
-//static SGPropertyNode *imu_hz_node = NULL;
-
-// gps property nodes
-//static SGPropertyNode *gps_time_stamp_node = NULL;
-//static SGPropertyNode *gps_lat_node = NULL;
-//static SGPropertyNode *gps_lon_node = NULL;
-//static SGPropertyNode *gps_alt_node = NULL;
-//static SGPropertyNode *gps_ve_node = NULL;
-//static SGPropertyNode *gps_vn_node = NULL;
-//static SGPropertyNode *gps_vd_node = NULL;
-
-// adns output nodes
-//static SGPropertyNode *filter_theta_node = NULL;
-//static SGPropertyNode *filter_phi_node = NULL;
-//static SGPropertyNode *filter_psi_node = NULL;
-//static SGPropertyNode *filter_lat_node = NULL;
-//static SGPropertyNode *filter_lon_node = NULL;
-//static SGPropertyNode *filter_alt_node = NULL;
-//static SGPropertyNode *filter_vn_node = NULL;
-//static SGPropertyNode *filter_ve_node = NULL;
-//static SGPropertyNode *filter_vd_node = NULL;
-//static SGPropertyNode *filter_status_node = NULL;
-
-//static SGPropertyNode *filter_alt_feet_node = NULL;
-//static SGPropertyNode *filter_track_node = NULL;
-//static SGPropertyNode *filter_vel_node = NULL;
-//static SGPropertyNode *filter_vert_speed_fps_node = NULL;
-
 //
 static bool init_pos = false;
 
@@ -91,53 +54,15 @@ static bool bind_properties( string rootname ) {
     imu_node = pyGetNode("/sensors/imu");
     gps_node = pyGetNode("/sensors/gps");
     filter_node = pyGetNode(rootname);
-
-    //imu_timestamp_node = pyGetNode("/sensors/imu/timestamp");
-    //imu_p_node = pyGetNode("/sensors/imu/p-rad_sec", true);
-    //imu_q_node = pyGetNode("/sensors/imu/q-rad_sec", true);
-    //imu_r_node = pyGetNode("/sensors/imu/r-rad_sec", true);
-    //imu_ax_node = pyGetNode("/sensors/imu/ax-mps_sec", true);
-    //imu_ay_node = pyGetNode("/sensors/imu/ay-mps_sec", true);
-    //imu_az_node = pyGetNode("/sensors/imu/az-mps_sec", true);
-    //imu_hx_node = pyGetNode("/sensors/imu/hx", true);
-    //imu_hy_node = pyGetNode("/sensors/imu/hy", true);
-    //imu_hz_node = pyGetNode("/sensors/imu/hz", true);
-
-    // initialize gps property nodes
-    //gps_time_stamp_node = pyGetNode("/sensors/gps/time-stamp", true);
-    //gps_lat_node = pyGetNode("/sensors/gps/latitude-deg", true);
-    //gps_lon_node = pyGetNode("/sensors/gps/longitude-deg", true);
-    //gps_alt_node = pyGetNode("/sensors/gps/altitude-m", true);
-    //gps_ve_node = pyGetNode("/sensors/gps/ve-ms", true);
-    //gps_vn_node = pyGetNode("/sensors/gps/vn-ms", true);
-    //gps_vd_node = pyGetNode("/sensors/gps/vd-ms", true);
-
-    // initialize ahrs output nodes 
-    //SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
-    ////filter_theta_node = outputroot->getChild("pitch-deg", 0, true);
-    //filter_phi_node = outputroot->getChild("roll-deg", 0, true);
-    //filter_psi_node = outputroot->getChild("heading-deg", 0, true);
-    //filter_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    //filter_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    //filter_alt_node = outputroot->getChild("altitude-m", 0, true);
-    //filter_vn_node = outputroot->getChild("vn-ms", 0, true);
-    //filter_ve_node = outputroot->getChild("ve-ms", 0, true);
-    //filter_vd_node = outputroot->getChild("vd-ms", 0, true);
-    //filter_status_node = outputroot->getChild("navigation",0, true);
-    //filter_status_node->setString("invalid");
-
-    //filter_alt_feet_node = outputroot->getChild("altitude-ft", 0, true);
-    //filter_track_node = outputroot->getChild("groundtrack-deg", 0, true);
-    //filter_vel_node = outputroot->getChild("groundspeed-ms", 0, true);
-    //filter_vert_speed_fps_node
-    //    = outputroot->getChild("vertical-speed-fps", 0, true);
-
+ 
     return true;
 }
 
 
 int curt_adns_init( string rootname ) {
     bind_properties( rootname );
+
+    filter_node.setString( "navigation", "invalid" );
     init_pos = false;
 
     return 1;

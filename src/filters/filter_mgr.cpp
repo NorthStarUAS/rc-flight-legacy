@@ -20,7 +20,7 @@
 #include "filters/umngnss_quat/umngnss_quat.h"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "util/lowpass.hxx"
 #include "util/myprof.h"
 
@@ -236,18 +236,18 @@ void Filter_init() {
 
 
 static void update_euler_rates() {
-    double phi = filter_phi_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-    double the = filter_theta_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;
-    /*double psi = filter_psi_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS;*/
+    double phi = filter_phi_node->getDouble() * SGD_DEGREES_TO_RADIANS;
+    double the = filter_theta_node->getDouble() * SGD_DEGREES_TO_RADIANS;
+    /*double psi = filter_psi_node->getDouble() * SGD_DEGREES_TO_RADIANS;*/
 
     // direct computation of euler rates given body rates and estimated
     // attitude (based on googled references):
     // http://www.princeton.edu/~stengel/MAE331Lecture9.pdf
     // http://www.mathworks.com/help/aeroblks/customvariablemass6dofeulerangles.html
 
-    double p = imu_p_node->getDoubleValue();
-    double q = imu_q_node->getDoubleValue();
-    double r = imu_r_node->getDoubleValue();
+    double p = imu_p_node->getDouble();
+    double q = imu_q_node->getDouble();
+    double r = imu_r_node->getDouble();
 
     if ( SGD_PI_2 - fabs(the) > 0.00001 ) {
 	double phi_dot = p + q * sin(phi) * tan(the) + r * cos(phi) * tan(the);
@@ -257,9 +257,9 @@ static void update_euler_rates() {
 	filter_the_dot_node->setDouble(the_dot);
 	filter_psi_dot_node->setDouble(psi_dot);
 	/* printf("dt=%.3f q=%.3f q(ned)=%.3f phi(dot)=%.3f\n",
-	   dt,imu_q_node->getDoubleValue(), dq/dt, phi_dot);  */
+	   dt,imu_q_node->getDouble(), dq/dt, phi_dot);  */
 	/* printf("%.3f %.3f %.3f %.3f\n",
-	   cur_time,imu_q_node->getDoubleValue(), dq/dt, the_dot); */
+	   cur_time,imu_q_node->getDouble(), dq/dt, the_dot); */
    }
 }
 
@@ -267,7 +267,7 @@ static void update_euler_rates() {
 static void update_ground() {
     static double last_time = 0.0;
 
-    double cur_time = filter_timestamp_node->getDoubleValue();
+    double cur_time = filter_timestamp_node->getDouble();
     double dt = cur_time - last_time;
     if ( dt > 1.0 ) {
 	dt = 1.0;		// keep dt smallish
@@ -303,7 +303,7 @@ static void update_wind() {
     // versus aircraft heading and indicated airspeed.
     static double pitot_scale_filt = 1.0;
 
-    double airspeed_kt = airdata_airspeed_node->getDoubleValue();
+    double airspeed_kt = airdata_airspeed_node->getDouble();
     if ( airspeed_kt < 15.0 ) {
 	// indicated airspeed < 15 kts (hopefully) indicating we are
 	// not flying and thus the assumptions the following code is
@@ -317,11 +317,11 @@ static void update_wind() {
     }
 
     double psi = SGD_PI_2
-	- filter_psi_node->getDoubleValue() * SG_DEGREES_TO_RADIANS;
+	- filter_psi_node->getDouble() * SG_DEGREES_TO_RADIANS;
     double ue = cos(psi) * (airspeed_kt * pitot_scale_filt * SG_KT_TO_MPS);
     double un = sin(psi) * (airspeed_kt * pitot_scale_filt * SG_KT_TO_MPS);
-    double we = ue - filter_ve_node->getDoubleValue();
-    double wn = un - filter_vn_node->getDoubleValue();
+    double we = ue - filter_ve_node->getDouble();
+    double wn = un - filter_vn_node->getDouble();
 
     static double filt_we = 0.0, filt_wn = 0.0;
     filt_we = 0.9998 * filt_we + 0.0002 * we;
@@ -337,8 +337,8 @@ static void update_wind() {
     est_wind_north_mps->setDouble( filt_wn );
 
     // estimate pitot tube bias
-    double true_e = filt_we + filter_ve_node->getDoubleValue();
-    double true_n = filt_wn + filter_vn_node->getDoubleValue();
+    double true_e = filt_we + filter_ve_node->getDouble();
+    double true_n = filt_wn + filter_vn_node->getDouble();
 
     double true_deg = 90 - atan2( true_n, true_e ) * SGD_RADIANS_TO_DEGREES;
     if ( true_deg < 0 ) { true_deg += 360.0; }
@@ -369,7 +369,7 @@ static void update_wind() {
 bool Filter_update() {
     filter_prof.start();
 
-    double imu_time = imu_timestamp_node->getDoubleValue();
+    double imu_time = imu_timestamp_node->getDouble();
     double imu_dt = imu_time - last_imu_time;
     bool fresh_filter_data = false;
 
@@ -428,7 +428,7 @@ bool Filter_update() {
 #if 0
     static SGPropertyNode *tp = fgGetNode("/sensors/imu/pitch-truth-deg", true);
     static SGPropertyNode *ep = fgGetNode("/orientation/pitch-deg", true);
-    printf("pitch error: %.2f (true = %.2f est = %.2f)\n", ep->getDoubleValue() - tp->getDoubleValue(), tp->getDoubleValue(), ep->getDoubleValue());
+    printf("pitch error: %.2f (true = %.2f est = %.2f)\n", ep->getDouble() - tp->getDouble(), tp->getDouble(), ep->getDouble());
 #endif
 
     return fresh_filter_data;

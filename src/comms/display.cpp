@@ -9,7 +9,7 @@
 
 #include "include/globaldefs.h"
 
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "sensors/gps_mgr.hxx"
 #include "util/timing.h"
 
@@ -150,24 +150,24 @@ void display_message()
     }
 
     printf("[m/s^2]:ax  = %6.3f ay  = %6.3f az  = %6.3f \n",
-	   imu_ax_node->getDoubleValue(),
-	   imu_ay_node->getDoubleValue(),
-	   imu_az_node->getDoubleValue());
+	   imu_ax_node->getDouble(),
+	   imu_ay_node->getDouble(),
+	   imu_az_node->getDouble());
     printf("[deg/s]:p   = %6.3f q   = %6.3f r   = %6.3f \n",
-	   imu_p_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES,
-	   imu_q_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES,
-	   imu_r_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES);
+	   imu_p_node->getDouble() * SGD_RADIANS_TO_DEGREES,
+	   imu_q_node->getDouble() * SGD_RADIANS_TO_DEGREES,
+	   imu_r_node->getDouble() * SGD_RADIANS_TO_DEGREES);
     printf("[Gauss]:hx  = %6.3f hy  = %6.3f hz  = %6.3f \n",
-	   imu_hx_node->getDoubleValue(),
-	   imu_hy_node->getDoubleValue(),
-	   imu_hz_node->getDoubleValue());
+	   imu_hx_node->getDouble(),
+	   imu_hy_node->getDouble(),
+	   imu_hz_node->getDouble());
     printf("[deg  ]:phi = %6.2f the = %6.2f psi = %6.2f \n",
-	   filter_phi_node->getDoubleValue(),
-	   filter_theta_node->getDoubleValue(),
-	   filter_psi_node->getDoubleValue());
+	   filter_phi_node->getDouble(),
+	   filter_theta_node->getDouble(),
+	   filter_psi_node->getDouble());
     printf("[     ]:Palt  = %6.3f Pspd  = %6.3f             \n",
-	   airdata_altitude_node->getDoubleValue(),
-	   airdata_airspeed_node->getDoubleValue());
+	   airdata_altitude_node->getDouble(),
+	   airdata_airspeed_node->getDouble());
 #if 0
     // gyro bias from mnav filter
     printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n",
@@ -178,33 +178,33 @@ void display_message()
 
     if ( GPS_age() < 10.0 ) {
 	time_t current_time = gps_unix_sec_node->getLong();
-	double remainder = gps_unix_sec_node->getDoubleValue() - current_time;
+	double remainder = gps_unix_sec_node->getDouble() - current_time;
 	struct tm *date = gmtime(&current_time);
         printf("[GPS  ]:date = %04d/%02d/%02d %02d:%02d:%05.2f\n",
 	       date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
 	       date->tm_hour, date->tm_min, date->tm_sec + remainder);
         printf("[GPS  ]:lon = %f[deg], lat = %f[deg], alt = %f[m], age = %.2f\n",
-	       gps_lon_node->getDoubleValue(), gps_lat_node->getDoubleValue(),
-	       gps_alt_node->getDoubleValue(), GPS_age());
+	       gps_lon_node->getDouble(), gps_lat_node->getDouble(),
+	       gps_alt_node->getDouble(), GPS_age());
     } else {
 	printf("[GPS  ]:[%0f seconds old]\n", GPS_age());
     }
 
     if ( strcmp( filter_status_node->getString(), "valid" ) == 0 ) {
         printf("[filter]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",
-	       filter_lon_node->getDoubleValue(),
-	       filter_lat_node->getDoubleValue(),
-	       filter_alt_node->getDoubleValue());	
+	       filter_lon_node->getDouble(),
+	       filter_lat_node->getDouble(),
+	       filter_alt_node->getDouble());	
     } else {
 	printf("[filter]:[No Valid Data]\n");
     }
 
     printf("[act  ]: %.2f %.2f %.2f %.2f %.2f\n",
-	   act_aileron_node->getDoubleValue(),
-	   act_elevator_node->getDoubleValue(),
-	   act_throttle_node->getDoubleValue(),
-	   act_rudder_node->getDoubleValue(),
-	   act_channel5_node->getDoubleValue());
+	   act_aileron_node->getDouble(),
+	   act_elevator_node->getDouble(),
+	   act_throttle_node->getDouble(),
+	   act_rudder_node->getDouble(),
+	   act_channel5_node->getDouble());
     printf("[health]: cmdseq = %d  tgtwp = %d  loadavg = %.2f  vcc = %.2f\n",
            link_seq_num->getLong(), target_waypoint->getLong(),
            system_loadavg_node->getDouble(),

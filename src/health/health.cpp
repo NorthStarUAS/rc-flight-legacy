@@ -9,7 +9,7 @@
 #include "comms/packetizer.hxx"
 #include "comms/remote_link.h"
 #include "init/globals.hxx"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "util/timing.h"
 
 #include "health.h"
@@ -39,9 +39,9 @@ bool health_update() {
 
     /*
     healthpacket.target_altitude_ft
-        = ground_ref->getDoubleValue() * SG_METER_TO_FEET
-        + pressure_error_m_node->getDoubleValue() * SG_METER_TO_FEET
-          + ap_agl->getDoubleValue();
+        = ground_ref->getDouble() * SG_METER_TO_FEET
+        + pressure_error_m_node->getDouble() * SG_METER_TO_FEET
+          + ap_agl->getDouble();
     */
 
     loadavg_update();

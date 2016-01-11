@@ -171,55 +171,55 @@ void control_update(double dt)
 	    }
 
 	    // turn on pointing (universally for now)
-	    pointing_lock_node->setStringValue( "on" );
-	    lookat_mode_node->setStringValue( "ned-vector" );
+	    pointing_lock_node->setString( "on" );
+	    lookat_mode_node->setString( "ned-vector" );
 	    ned_n_node->setFloatValue( 0.0 );
 	    ned_e_node->setFloatValue( 0.0 );
 	    ned_d_node->setFloatValue( 1.0 );
 
 	    if ( fcs_mode == "inactive" ) {
 		// unset all locks for "inactive"
-		roll_lock_node->setStringValue( "" );
-		yaw_lock_node->setStringValue( "" );
-		altitude_lock_node->setStringValue( "" );
-		speed_lock_node->setStringValue( "" );
-		pitch_lock_node->setStringValue( "" );
+		roll_lock_node->setString( "" );
+		yaw_lock_node->setString( "" );
+		altitude_lock_node->setString( "" );
+		speed_lock_node->setString( "" );
+		pitch_lock_node->setString( "" );
 	    } else if ( fcs_mode == "basic" ) {
 		// set lock modes for "basic" inner loops only
-		roll_lock_node->setStringValue( "aileron" );
-		yaw_lock_node->setStringValue( "autocoord" );
-		altitude_lock_node->setStringValue( "" );
-		speed_lock_node->setStringValue( "" );
-		pitch_lock_node->setStringValue( "elevator" );
+		roll_lock_node->setString( "aileron" );
+		yaw_lock_node->setString( "autocoord" );
+		altitude_lock_node->setString( "" );
+		speed_lock_node->setString( "" );
+		pitch_lock_node->setString( "elevator" );
 	    } else if ( fcs_mode == "roll" ) {
 		// set lock modes for roll only
-		roll_lock_node->setStringValue( "aileron" );
-		yaw_lock_node->setStringValue( "" );
-		altitude_lock_node->setStringValue( "" );
-		speed_lock_node->setStringValue( "" );
-		pitch_lock_node->setStringValue( "" );
+		roll_lock_node->setString( "aileron" );
+		yaw_lock_node->setString( "" );
+		altitude_lock_node->setString( "" );
+		speed_lock_node->setString( "" );
+		pitch_lock_node->setString( "" );
 	    } else if ( fcs_mode == "roll+pitch" ) {
 		// set lock modes for roll and pitch
-		roll_lock_node->setStringValue( "aileron" );
-		yaw_lock_node->setStringValue( "" );
-		altitude_lock_node->setStringValue( "" );
-		speed_lock_node->setStringValue( "" );
-		pitch_lock_node->setStringValue( "elevator" );
+		roll_lock_node->setString( "aileron" );
+		yaw_lock_node->setString( "" );
+		altitude_lock_node->setString( "" );
+		speed_lock_node->setString( "" );
+		pitch_lock_node->setString( "elevator" );
 	    } else if ( fcs_mode == "basic+alt+speed" ) {
 		// set lock modes for "basic" + alt hold
-		roll_lock_node->setStringValue( "aileron" );
-		yaw_lock_node->setStringValue( "autocoord" );
-		altitude_lock_node->setStringValue( "throttle" );
-		speed_lock_node->setStringValue( "pitch" );
-		pitch_lock_node->setStringValue( "elevator" );
+		roll_lock_node->setString( "aileron" );
+		yaw_lock_node->setString( "autocoord" );
+		altitude_lock_node->setString( "throttle" );
+		speed_lock_node->setString( "pitch" );
+		pitch_lock_node->setString( "elevator" );
 	    } else if ( fcs_mode == "cas" ) {
 		// set lock modes for "cas"
-		roll_lock_node->setStringValue( "aileron" );
-		yaw_lock_node->setStringValue( "" );
-		altitude_lock_node->setStringValue( "" );
-		speed_lock_node->setStringValue( "" );
-		pitch_lock_node->setStringValue( "elevator" );
-		pointing_lock_node->setStringValue( "on" );
+		roll_lock_node->setString( "aileron" );
+		yaw_lock_node->setString( "" );
+		altitude_lock_node->setString( "" );
+		speed_lock_node->setString( "" );
+		pitch_lock_node->setString( "elevator" );
+		pointing_lock_node->setString( "on" );
 
 		float target_roll_deg = roll_deg_node->getDouble();
 		if ( target_roll_deg > 45.0 ) { target_roll_deg = 45.0; }
@@ -240,12 +240,12 @@ void control_update(double dt)
     } else {
 	if ( fcs_mode != "" ) {
 	    // autopilot is just de-activated, clear lock modes
-	    roll_lock_node->setStringValue( "" );
-	    yaw_lock_node->setStringValue( "" );
-	    altitude_lock_node->setStringValue( "" );
-	    speed_lock_node->setStringValue( "" );
-	    pitch_lock_node->setStringValue( "" );
-	    pointing_lock_node->setStringValue( "" );
+	    roll_lock_node->setString( "" );
+	    yaw_lock_node->setString( "" );
+	    altitude_lock_node->setString( "" );
+	    speed_lock_node->setString( "" );
+	    pitch_lock_node->setString( "" );
+	    pointing_lock_node->setString( "" );
 	}
 	last_fcs_mode = "";
     }
@@ -289,9 +289,9 @@ void control_update(double dt)
 
 	// special case send home as a route waypoint with id = 65535
 	if ( wp_index == route_size ) {
-	    wp = SGWayPoint( home_lon_node->getDoubleValue(),
-			     home_lat_node->getDoubleValue(),
-			     home_alt_node->getDoubleValue() );
+	    wp = SGWayPoint( home_lon_node->getDouble(),
+			     home_lat_node->getDouble(),
+			     home_alt_node->getDouble() );
 	    index = 65535;
 	}
 

@@ -9,7 +9,7 @@
 
 #include <string>
 
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 
 using std::string;
 

@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include "include/globaldefs.h"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "sensors/gps_mgr.hxx"
 
 #include "umngnss_quat.h"
@@ -85,21 +85,21 @@ static SGPropertyNode *tau_g_node = NULL;
 // update the imu_data and gps_data structures with most recent sensor
 // data prior to calling the filter init or update routines
 static void props2umn(void) {
-    imu_data.time = imu_timestamp_node->getDoubleValue();
-    imu_data.p = imu_p_node->getDoubleValue();
-    imu_data.q = imu_q_node->getDoubleValue();
-    imu_data.r = imu_r_node->getDoubleValue();
-    imu_data.ax = imu_ax_node->getDoubleValue();
-    imu_data.ay = imu_ay_node->getDoubleValue();
-    imu_data.az = imu_az_node->getDoubleValue();
+    imu_data.time = imu_timestamp_node->getDouble();
+    imu_data.p = imu_p_node->getDouble();
+    imu_data.q = imu_q_node->getDouble();
+    imu_data.r = imu_r_node->getDouble();
+    imu_data.ax = imu_ax_node->getDouble();
+    imu_data.ay = imu_ay_node->getDouble();
+    imu_data.az = imu_az_node->getDouble();
     
-    gps_data.time = gps_timestamp_node->getDoubleValue();
-    gps_data.lat = gps_lat_node->getDoubleValue();
-    gps_data.lon = gps_lon_node->getDoubleValue();
-    gps_data.alt = gps_alt_node->getDoubleValue();
-    gps_data.vn = gps_vn_node->getDoubleValue();
-    gps_data.ve = gps_ve_node->getDoubleValue();
-    gps_data.vd = gps_vd_node->getDoubleValue();
+    gps_data.time = gps_timestamp_node->getDouble();
+    gps_data.lat = gps_lat_node->getDouble();
+    gps_data.lon = gps_lon_node->getDouble();
+    gps_data.alt = gps_alt_node->getDouble();
+    gps_data.vn = gps_vn_node->getDouble();
+    gps_data.ve = gps_ve_node->getDouble();
+    gps_data.vd = gps_vd_node->getDouble();
 
     static double last_gps_time = 0.0;
     if ( gps_data.time > last_gps_time ) {
@@ -129,9 +129,9 @@ static void umn2props(void) {
 	 nav_data.err_type == TU_only ||
 	 nav_data.err_type == gps_aided )
     {
-	filter_status_node->setStringValue("valid");
+	filter_status_node->setString("valid");
     } else {
-	filter_status_node->setStringValue("invalid");
+	filter_status_node->setString("invalid");
     }
 
     filter_p_bias_node->setDouble( nav_data.gb[0] );
@@ -187,7 +187,7 @@ void umngnss_quat_init( string rootname, SGPropertyNode *config ) {
     filter_ve_node = outputroot->getChild("ve-ms", 0, true);
     filter_vd_node = outputroot->getChild("vd-ms", 0, true);
     filter_status_node = outputroot->getChild("navigation",0, true);
-    filter_status_node->setStringValue("invalid");
+    filter_status_node->setString("invalid");
 
     filter_alt_feet_node = outputroot->getChild("altitude-ft", 0, true);
     filter_track_node = outputroot->getChild("groundtrack-deg", 0, true);

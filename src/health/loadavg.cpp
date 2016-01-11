@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "comms/display.h"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 
 #include "loadavg.h"
 
