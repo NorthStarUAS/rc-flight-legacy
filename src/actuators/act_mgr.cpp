@@ -288,11 +288,11 @@ bool Actuator_update() {
 	int size = packetizer->packetize_actuator( buf );
 
 	if ( remote_link_on ) {
-	    remote_link_actuator( buf, size, remote_link_node.getLong("actuator-skip") );
+	    remote_link_actuator( buf, size, remote_link_node.getLong("actuator_skip") );
 	}
 
 	if ( log_to_file ) {
-	    log_actuator( buf, size, logging_node.getLong("actuator-skip") );
+	    log_actuator( buf, size, logging_node.getLong("actuator_skip") );
 	}
     }
 

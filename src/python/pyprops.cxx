@@ -66,7 +66,7 @@ pyPropertyNode pyPropertyNode::getChild(const char *name, int index)
     str << (string)name << '[' << index << ']';
     string ename = str.str();
     printf("ename = %s\n", ename.c_str());
-    return getChild(ename.c_str());    
+    return getChild(ename.c_str());
 }
 
 // return true if pObj pointer is NULL

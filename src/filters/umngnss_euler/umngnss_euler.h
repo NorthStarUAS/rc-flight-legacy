@@ -13,7 +13,7 @@
 using std::string;
 
 
-int umngnss_euler_init( string rootname, pyPropertyNode *config );
+int umngnss_euler_init( pyPropertyNode *base, pyPropertyNode *config );
 bool umngnss_euler_update();
 int umngnss_euler_close();
 

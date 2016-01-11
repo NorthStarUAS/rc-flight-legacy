@@ -49,18 +49,18 @@ static SGVec3d gyro_bias;
 
 
 // bind to property tree
-static bool bind_properties( string rootname ) {
+static bool bind_properties( pyPropertyNode *base ) {
     // initialize property nodes
     imu_node = pyGetNode("/sensors/imu");
     gps_node = pyGetNode("/sensors/gps");
-    filter_node = pyGetNode(rootname);
+    filter_node = *base;
  
     return true;
 }
 
 
-int curt_adns_init( string rootname ) {
-    bind_properties( rootname );
+int curt_adns_init( pyPropertyNode *base, pyPropertyNode *config ) {
+    bind_properties( base );
 
     filter_node.setString( "navigation", "invalid" );
     init_pos = false;

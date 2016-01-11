@@ -100,11 +100,11 @@ static void umn2props(void) {
 }
 
 
-void umngnss_quat_init( string rootname, pyPropertyNode *config ) {
+void umngnss_quat_init( pyPropertyNode *base, pyPropertyNode *config ) {
     // initialize property nodes
     imu_node = pyGetNode("/sensors/imu");
     gps_node = pyGetNode("/sensors/gps");
-    filter_node = pyGetNode(rootname);
+    filter_node = *base;
     filter_node.setString( "navigation", "invalid" );
 
 #if 0

@@ -8,4 +8,4 @@ noinst_LIBRARIES = libfilters.a
 libfilters_a_SOURCES = \
 	filter_mgr.cpp filter_mgr.h
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@

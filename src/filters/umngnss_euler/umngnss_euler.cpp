@@ -21,11 +21,11 @@ static pyPropertyNode gps_node;
 static pyPropertyNode filter_node;
 
 
-int umngnss_euler_init( string rootname, pyPropertyNode *config ) {
+int umngnss_euler_init( pyPropertyNode *base, pyPropertyNode *config ) {
     // initialize imu property nodes
     imu_node = pyGetNode("/sensors/imu");
     gps_node = pyGetNode("/sensors/gps");
-    filter_node = pyGetNode(rootname);
+    filter_node = *base;
 
     filter_node.setString( "navigation", "invalid" );
     int result = umn_adns_init();
