@@ -1,5 +1,3 @@
-python_PYTHON = props.py
-
 noinst_LIBRARIES = libpyprops.a
 
 include_HEADERS = \
