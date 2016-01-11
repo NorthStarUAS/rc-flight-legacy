@@ -13,7 +13,7 @@
 #include "comms/display.h"
 #include "comms/logging.h"
 #include "init/globals.hxx"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "sensors/calibrate.hxx"
 #include "util/timing.h"
 
@@ -533,7 +533,7 @@ static void bind_imu_output( string rootname ) {
 	return;
     }
 
-    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
 
     imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
@@ -563,7 +563,7 @@ static void bind_gps_output( string rootname ) {
 	return;
     }
 
-    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
     gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     gps_day_secs_node = outputroot->getChild("day-seconds", 0, true);
     gps_date_node = outputroot->getChild("date", 0, true);
@@ -588,16 +588,16 @@ static void bind_act_nodes() {
 	return;
     }
 
-    act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
-    act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
-    act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
-    act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);
-    act_rudder_node = fgGetNode("/actuators/actuator/channel", 3, true);
-    act_channel5_node = fgGetNode("/actuators/actuator/channel", 4, true);
-    act_channel6_node = fgGetNode("/actuators/actuator/channel", 5, true);
-    act_channel7_node = fgGetNode("/actuators/actuator/channel", 6, true);
-    act_channel8_node = fgGetNode("/actuators/actuator/channel", 7, true);
-    act_status_node = fgGetNode("/actuators/actuator/status", true);
+    act_timestamp_node = pyGetNode("/actuators/actuator/time-stamp", true);
+    act_aileron_node = pyGetNode("/actuators/actuator/channel", 0, true);
+    act_elevator_node = pyGetNode("/actuators/actuator/channel", 1, true);
+    act_throttle_node = pyGetNode("/actuators/actuator/channel", 2, true);
+    act_rudder_node = pyGetNode("/actuators/actuator/channel", 3, true);
+    act_channel5_node = pyGetNode("/actuators/actuator/channel", 4, true);
+    act_channel6_node = pyGetNode("/actuators/actuator/channel", 5, true);
+    act_channel7_node = pyGetNode("/actuators/actuator/channel", 6, true);
+    act_channel8_node = pyGetNode("/actuators/actuator/channel", 7, true);
+    act_status_node = pyGetNode("/actuators/actuator/status", true);
 
     actuator_inited = true;
 }
@@ -608,7 +608,7 @@ static void bind_airdata_output( string rootname ) {
 	return;
     }
 
-    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
 
     airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     airdata_pressure_node = outputroot->getChild("pressure-mbar", 0, true);
@@ -630,17 +630,17 @@ static void bind_pilot_controls( string rootname ) {
 	return;
     }
 
-    pilot_timestamp_node = fgGetNode("/sensors/pilot/time-stamp", true);
-    pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", true);
-    pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", true);
-    pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", true);
-    pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", true);
-    pilot_channel5_node = fgGetNode("/sensors/pilot/channel", 4, true);
-    pilot_channel6_node = fgGetNode("/sensors/pilot/channel", 5, true);
-    pilot_channel7_node = fgGetNode("/sensors/pilot/channel", 6, true);
-    pilot_channel8_node = fgGetNode("/sensors/pilot/channel", 7, true);
-    pilot_manual_node = fgGetNode("/sensors/pilot/manual", true);
-    pilot_status_node = fgGetNode("/sensors/pilot/status", true);
+    pilot_timestamp_node = pyGetNode("/sensors/pilot/time-stamp", true);
+    pilot_aileron_node = pyGetNode("/sensors/pilot/aileron", true);
+    pilot_elevator_node = pyGetNode("/sensors/pilot/elevator", true);
+    pilot_throttle_node = pyGetNode("/sensors/pilot/throttle", true);
+    pilot_rudder_node = pyGetNode("/sensors/pilot/rudder", true);
+    pilot_channel5_node = pyGetNode("/sensors/pilot/channel", 4, true);
+    pilot_channel6_node = pyGetNode("/sensors/pilot/channel", 5, true);
+    pilot_channel7_node = pyGetNode("/sensors/pilot/channel", 6, true);
+    pilot_channel8_node = pyGetNode("/sensors/pilot/channel", 7, true);
+    pilot_manual_node = pyGetNode("/sensors/pilot/manual", true);
+    pilot_status_node = pyGetNode("/sensors/pilot/status", true);
 
     pilot_input_inited = true;
 }
@@ -703,62 +703,62 @@ static bool APM2_open() {
 	return true;
     }
 
-    APM2_device_node = fgGetNode("/config/sensors/APM2/device");
+    APM2_device_node = pyGetNode("/config/sensors/APM2/device");
     if ( APM2_device_node != NULL ) {
 	device_name = APM2_device_node->getStringValue();
     }
-    APM2_baud_node = fgGetNode("/config/sensors/APM2/baud");
+    APM2_baud_node = pyGetNode("/config/sensors/APM2/baud");
     if ( APM2_baud_node != NULL ) {
        baud = APM2_baud_node->getIntValue();
     }
-    APM2_volt_ratio_node = fgGetNode("/config/sensors/APM2/volt-divider-ratio");
+    APM2_volt_ratio_node = pyGetNode("/config/sensors/APM2/volt-divider-ratio");
     if ( APM2_volt_ratio_node != NULL ) {
-	volt_div_ratio = APM2_volt_ratio_node->getFloatValue();
+	volt_div_ratio = APM2_volt_ratio_node->getDouble();
     }
-    APM2_battery_cells_node = fgGetNode("/config/sensors/APM2/battery-cells");
+    APM2_battery_cells_node = pyGetNode("/config/sensors/APM2/battery-cells");
     if ( APM2_battery_cells_node != NULL ) {
-	battery_cells = APM2_battery_cells_node->getFloatValue();
+	battery_cells = APM2_battery_cells_node->getDouble();
     }
     if ( battery_cells < 1 ) { battery_cells = 1; }
-    APM2_amp_offset_node = fgGetNode("/config/sensors/APM2/external-amp-offset");
+    APM2_amp_offset_node = pyGetNode("/config/sensors/APM2/external-amp-offset");
     if ( APM2_amp_offset_node != NULL ) {
-	extern_amp_offset = APM2_amp_offset_node->getFloatValue();
+	extern_amp_offset = APM2_amp_offset_node->getDouble();
     }
-    APM2_amp_ratio_node = fgGetNode("/config/sensors/APM2/external-amp-ratio");
+    APM2_amp_ratio_node = pyGetNode("/config/sensors/APM2/external-amp-ratio");
     if ( APM2_amp_ratio_node != NULL ) {
-	extern_amp_ratio = APM2_amp_ratio_node->getFloatValue();
+	extern_amp_ratio = APM2_amp_ratio_node->getDouble();
     }
 
     for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
 	APM2_analog_nodes[i]
-	    = fgGetNode("/sensors/APM2/raw-analog/channel", i, true);
+	    = pyGetNode("/sensors/APM2/raw-analog/channel", i, true);
     }
-    APM2_pitot_calibrate_node = fgGetNode("/config/sensors/APM2/pitot-calibrate-factor");
+    APM2_pitot_calibrate_node = pyGetNode("/config/sensors/APM2/pitot-calibrate-factor");
     if ( APM2_pitot_calibrate_node != NULL ) {
-	pitot_calibrate = APM2_pitot_calibrate_node->getFloatValue();
+	pitot_calibrate = APM2_pitot_calibrate_node->getDouble();
     }
 
     // extra info node
-    APM2_extern_volt_node = fgGetNode("/sensors/APM2/extern-volt", true);
-    APM2_extern_cell_volt_node = fgGetNode("/sensors/APM2/extern-cell-volt", true);
-    APM2_extern_amp_node = fgGetNode("/sensors/APM2/extern-amps", true);
-    APM2_extern_amp_sum_node = fgGetNode("/sensors/APM2/extern-current-mah", true);
-    APM2_board_vcc_node = fgGetNode("/sensors/APM2/board-vcc", true);
+    APM2_extern_volt_node = pyGetNode("/sensors/APM2/extern-volt", true);
+    APM2_extern_cell_volt_node = pyGetNode("/sensors/APM2/extern-cell-volt", true);
+    APM2_extern_amp_node = pyGetNode("/sensors/APM2/extern-amps", true);
+    APM2_extern_amp_sum_node = pyGetNode("/sensors/APM2/extern-current-mah", true);
+    APM2_board_vcc_node = pyGetNode("/sensors/APM2/board-vcc", true);
     APM2_pilot_packet_count_node
-	= fgGetNode("/sensors/APM2/pilot-packet-count", true);
+	= pyGetNode("/sensors/APM2/pilot-packet-count", true);
     APM2_imu_packet_count_node
-	= fgGetNode("/sensors/APM2/imu-packet-count", true);
+	= pyGetNode("/sensors/APM2/imu-packet-count", true);
     APM2_gps_packet_count_node
-	= fgGetNode("/sensors/APM2/gps-packet-count", true);
+	= pyGetNode("/sensors/APM2/gps-packet-count", true);
     APM2_baro_packet_count_node
-	= fgGetNode("/sensors/APM2/baro-packet-count", true);
+	= pyGetNode("/sensors/APM2/baro-packet-count", true);
     APM2_analog_packet_count_node
-	= fgGetNode("/sensors/APM2/analog-packet-count", true);
+	= pyGetNode("/sensors/APM2/analog-packet-count", true);
     APM2_info_serial_number_node
-	= fgGetNode("/sensors/APM2/serial-number", true);
-    APM2_info_firmware_node = fgGetNode("/sensors/APM2/firmware-rev", true);
-    APM2_info_master_hz_node = fgGetNode("/sensors/APM2/master-hz", true);
-    APM2_info_baud_node = fgGetNode("/sensors/APM2/baud-rate", true);
+	= pyGetNode("/sensors/APM2/serial-number", true);
+    APM2_info_firmware_node = pyGetNode("/sensors/APM2/firmware-rev", true);
+    APM2_info_master_hz_node = pyGetNode("/sensors/APM2/master-hz", true);
+    APM2_info_baud_node = pyGetNode("/sensors/APM2/baud-rate", true);
 
     int baud_bits = B115200;
     if ( baud == 115200 ) {
@@ -817,11 +817,11 @@ bool APM2_imu_init( string rootname, SGPropertyNode *config ) {
 	double max_temp = 27.0;
 	SGPropertyNode *min_node = cal->getChild("min-temp-C");
 	if ( min_node != NULL ) {
-	    min_temp = min_node->getFloatValue();
+	    min_temp = min_node->getDouble();
 	}
 	SGPropertyNode *max_node = cal->getChild("max-temp-C");
 	if ( max_node != NULL ) {
-	    max_temp = max_node->getFloatValue();
+	    max_temp = max_node->getDouble();
 	}
 	
 	//p_cal.init( cal->getChild("p"), min_temp, max_temp );
@@ -952,10 +952,10 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 #if 0
 	    if ( display_on ) {
 		printf("%5.2f %5.2f %4.2f %5.2f %d\n",
-		       pilot_aileron_node->getDoubleValue(),
-		       pilot_elevator_node->getDoubleValue(),
-		       pilot_throttle_node->getDoubleValue(),
-		       pilot_rudder_node->getDoubleValue(),
+		       pilot_aileron_node->getDouble(),
+		       pilot_elevator_node->getDouble(),
+		       pilot_throttle_node->getDouble(),
+		       pilot_rudder_node->getDouble(),
 		       pilot_manual_node->getIntValue());
 	    }
 #endif
@@ -1304,7 +1304,7 @@ static bool APM2_send_config() {
     double timeout = 0.5;
 
     SGPropertyNode *APM2_serial_number_node
-	= fgGetNode("/config/sensors/APM2/setup-serial-number");
+	= pyGetNode("/config/sensors/APM2/setup-serial-number");
     if ( APM2_serial_number_node != NULL ) {
 	uint16_t serial_number = APM2_serial_number_node->getIntValue();
 	start_time = get_Time();    
@@ -1321,7 +1321,7 @@ static bool APM2_send_config() {
 	}
     }
 
-    SGPropertyNode *pwm_rates = fgGetNode("/config/actuators/actuator/pwm-rates");
+    SGPropertyNode *pwm_rates = pyGetNode("/config/actuators/actuator/pwm-rates");
     if ( pwm_rates != NULL ) {
 	for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
 	    act_rates[i] = 0; /* no change from default */
@@ -1346,12 +1346,12 @@ static bool APM2_send_config() {
 	}
     }
 
-    SGPropertyNode *gains = fgGetNode("/config/actuators/actuator/gains");
+    SGPropertyNode *gains = pyGetNode("/config/actuators/actuator/gains");
     if ( gains != NULL ) {
 	for ( int i = 0; i < gains->nChildren(); ++i ) {
 	    SGPropertyNode *channel_node = gains->getChild(i);
 	    int ch = channel_node->getIndex();
-	    float gain = channel_node->getFloatValue();
+	    float gain = channel_node->getDouble();
 	    if ( display_on ) {
 		printf("gain: %d %.2f\n", ch, gain);
 	    }
@@ -1371,7 +1371,7 @@ static bool APM2_send_config() {
 	}
     }
 
-    SGPropertyNode *mixing = fgGetNode("/config/actuators/actuator/mixing");
+    SGPropertyNode *mixing = pyGetNode("/config/actuators/actuator/mixing");
     if ( mixing != NULL ) {
 	for ( int i = 0; i < mixing->nChildren(); ++i ) {
 	    string mode = "";
@@ -1406,10 +1406,10 @@ static bool APM2_send_config() {
 		enable = enable_node->getBoolValue();
 	    }
 	    if ( gain1_node != NULL ) {
-		gain1 = gain1_node->getFloatValue();
+		gain1 = gain1_node->getDouble();
 	    }
 	    if ( gain2_node != NULL ) {
-		gain2 = gain2_node->getFloatValue();
+		gain2 = gain2_node->getDouble();
 	    }
 	    if ( display_on ) {
 		printf("mix: %s %d %.2f %.2f\n", mode.c_str(), enable,
@@ -1431,7 +1431,7 @@ static bool APM2_send_config() {
 	}
     }
 
-    SGPropertyNode *sas = fgGetNode("/config/actuators/actuator/sas");
+    SGPropertyNode *sas = pyGetNode("/config/actuators/actuator/sas");
     if ( sas != NULL ) {
 	for ( int i = 0; i < sas->nChildren(); ++i ) {
 	    string mode = "";
@@ -1458,7 +1458,7 @@ static bool APM2_send_config() {
 		    enable = enable_node->getBoolValue();
 		}
 		if ( gain_node != NULL ) {
-		    gain = gain_node->getFloatValue();
+		    gain = gain_node->getDouble();
 		}
 	    } else if ( section_name == "pilot-tune" ) {
 		SGPropertyNode *enable_node = section_node->getChild("enable");
@@ -1561,49 +1561,49 @@ static bool APM2_act_write() {
 	int val;
 	uint8_t hi, lo;
 
-	val = gen_pulse( act_aileron_node->getFloatValue(), true );
+	val = gen_pulse( act_aileron_node->getDouble(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_elevator_node->getFloatValue(), true );
+	val = gen_pulse( act_elevator_node->getDouble(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_throttle_node->getFloatValue(), false );
+	val = gen_pulse( act_throttle_node->getDouble(), false );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_rudder_node->getFloatValue(), true );
+	val = gen_pulse( act_rudder_node->getDouble(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_channel5_node->getFloatValue(), true );
+	val = gen_pulse( act_channel5_node->getDouble(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_channel6_node->getFloatValue(), true );
+	val = gen_pulse( act_channel6_node->getDouble(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_channel7_node->getFloatValue(), true );
+	val = gen_pulse( act_channel7_node->getDouble(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_channel8_node->getFloatValue(), true );
+	val = gen_pulse( act_channel8_node->getDouble(), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
@@ -1898,7 +1898,7 @@ bool APM2_pilot_update() {
     val = normalize_pulse( pilot_input[7], true );
     pilot_channel8_node->setDoubleValue( val );
 
-    pilot_manual_node->setIntValue( pilot_channel8_node->getDoubleValue() > 0 );
+    pilot_manual_node->setIntValue( pilot_channel8_node->getDouble() > 0 );
 
     return true;
 }

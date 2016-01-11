@@ -36,10 +36,7 @@ using std::string;
 using std::vector;
 using std::deque;
 
-#include <props/props.hxx>
-// #include </structure/subsystem_mgr.hxx>
-
-// #include <Main/fg_props.hxx>
+#include "python/pyprops.hxx"
 
 
 /**

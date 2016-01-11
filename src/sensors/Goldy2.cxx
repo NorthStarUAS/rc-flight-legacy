@@ -15,7 +15,7 @@
 #include "comms/netSocket.h"
 #include "math/SGMath.hxx"
 #include "math/SGGeodesy.hxx"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "util/timing.h"
 
 #include "util_goldy2.hxx"
@@ -113,7 +113,7 @@ struct imu_sensors_t {
 
 // initialize goldy2_imu input property nodes
 static void bind_input( SGPropertyNode *config ) {
-    goldy2_port_node = fgGetNode("/config/sensors/Goldy2/port");
+    goldy2_port_node = pyGetNode("/config/sensors/Goldy2/port");
     if ( goldy2_port_node != NULL ) {
 	port = goldy2_port_node->getIntValue();
     }
@@ -129,7 +129,7 @@ static void bind_imu_output( string rootname ) {
         return;
     }
 
-    outputroot = fgGetNode( rootname.c_str(), true );
+    outputroot = pyGetNode( rootname.c_str(), true );
 
     imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
@@ -154,7 +154,7 @@ static void bind_imu_output( string rootname ) {
 
 // initialize airdata output property nodes 
 static void bind_airdata_output( string rootname ) {
-    outputroot = fgGetNode( rootname.c_str(), true );
+    outputroot = pyGetNode( rootname.c_str(), true );
 
     airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     airdata_pressure_node = outputroot->getChild("pressure-mbar", 0, true);
@@ -164,9 +164,9 @@ static void bind_airdata_output( string rootname ) {
     SGPropertyNode *tmp_node;
     // note we don't leak here because we are getting a pointer back
     // into the global property structure
-    tmp_node = fgGetNode("/sensors/APM2/board-vcc", true);
+    tmp_node = pyGetNode("/sensors/APM2/board-vcc", true);
     tmp_node->setDoubleValue( 5.0 );
-    tmp_node = fgGetNode("/sensors/airdata/temp-degC", true);
+    tmp_node = pyGetNode("/sensors/airdata/temp-degC", true);
     tmp_node->setDoubleValue( 15.0 );
 
     airdata_inited = true;
@@ -179,7 +179,7 @@ static void bind_gps_output( string rootname ) {
         return;
     }
 
-    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
     gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     gps_day_secs_node = outputroot->getChild("day-seconds", 0, true);
     gps_date_node = outputroot->getChild("date", 0, true);
@@ -203,17 +203,17 @@ static void bind_pilot_controls( string rootname ) {
         return;
     }
 
-    pilot_timestamp_node = fgGetNode("/sensors/pilot/time-stamp", true);
-    pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", true);
-    pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", true);
-    pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", true);
-    pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", true);
-    pilot_channel5_node = fgGetNode("/sensors/pilot/channel", 4, true);
-    pilot_channel6_node = fgGetNode("/sensors/pilot/channel", 5, true);
-    pilot_channel7_node = fgGetNode("/sensors/pilot/channel", 6, true);
-    pilot_channel8_node = fgGetNode("/sensors/pilot/channel", 7, true);
-    pilot_manual_node = fgGetNode("/sensors/pilot/manual", true);
-    pilot_status_node = fgGetNode("/sensors/pilot/status", true);
+    pilot_timestamp_node = pyGetNode("/sensors/pilot/time-stamp", true);
+    pilot_aileron_node = pyGetNode("/sensors/pilot/aileron", true);
+    pilot_elevator_node = pyGetNode("/sensors/pilot/elevator", true);
+    pilot_throttle_node = pyGetNode("/sensors/pilot/throttle", true);
+    pilot_rudder_node = pyGetNode("/sensors/pilot/rudder", true);
+    pilot_channel5_node = pyGetNode("/sensors/pilot/channel", 4, true);
+    pilot_channel6_node = pyGetNode("/sensors/pilot/channel", 5, true);
+    pilot_channel7_node = pyGetNode("/sensors/pilot/channel", 6, true);
+    pilot_channel8_node = pyGetNode("/sensors/pilot/channel", 7, true);
+    pilot_manual_node = pyGetNode("/sensors/pilot/manual", true);
+    pilot_status_node = pyGetNode("/sensors/pilot/status", true);
 
     pilot_input_inited = true;
 }
@@ -828,7 +828,7 @@ bool goldy2_airdata_update() {
     bool fresh_data = false;
 
     static double last_time = 0.0;
-    double cur_time = airdata_timestamp_node->getDoubleValue();
+    double cur_time = airdata_timestamp_node->getDouble();
 
     if ( cur_time > last_time ) {
 	fresh_data = true;
@@ -842,7 +842,7 @@ bool goldy2_airdata_update() {
 
 bool goldy2_gps_update() {
     static double last_timestamp = 0.0;
-    double current_timestamp = gps_timestamp_node->getDoubleValue();
+    double current_timestamp = gps_timestamp_node->getDouble();
     if ( current_timestamp > last_timestamp ) {
         last_timestamp = current_timestamp;
         return true;

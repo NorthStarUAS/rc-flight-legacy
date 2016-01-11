@@ -823,7 +823,7 @@ bool UGTrack::export_raw_umn( const string &path ) {
 
 // export the whole flight data set as tab delimited files
 bool UGTrack::export_text_tab( const string &path ) {
-    SGPropertyNode *flying_wing_node = fgGetNode("/config/flying-wing-mode", true);
+    SGPropertyNode *flying_wing_node = pyGetNode("/config/flying-wing-mode", true);
     FILE *gps_fd = NULL;
     string gps_file = path + "/";
     gps_file += "gps.txt";
@@ -1049,7 +1049,7 @@ int serial_read( SGSerialPort *serial, SGIOChannel *log,
     int bytes_read = 0;
     static unsigned int total_bytes = 0;
     static SGPropertyNode *telemetry_rate_node
-	= fgGetNode("/comms/telemetry-input-bytes-per-sec", true);
+	= pyGetNode("/comms/telemetry-input-bytes-per-sec", true);
 
     bytes_read = serial->read_port( (char *)buf, length );
 

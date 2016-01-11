@@ -565,7 +565,7 @@ for line in fgps:
     # have a properly incrementing clock, it doens't really matter
     # what the zero reference point of time is.
     time, lat, lon, alt, vn, ve, vd, unixsec, sats, status = line.split()
-    if sats >= 4:
+    if int(sats) >= 4:
         gps = EKF.GPS( float(time), int(status), float(unixsec),
                        float(lat), float(lon), float(alt),
                        float(vn), float(ve), float(vd))

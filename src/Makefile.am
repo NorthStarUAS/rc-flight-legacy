@@ -11,5 +11,4 @@ SUBDIRS = \
 	python \
 	util \
 	sensors \
-	xml \
-	props
+	xml

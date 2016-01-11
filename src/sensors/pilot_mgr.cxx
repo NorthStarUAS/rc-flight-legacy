@@ -16,7 +16,7 @@
 #include "comms/remote_link.h"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "util/myprof.h"
 
 #include "APM2.hxx"
@@ -57,32 +57,32 @@ static SGPropertyNode *ap_master_switch_node = NULL;
 
 void PilotInput_init() {
     // pilot input property nodes
-    pilot_timestamp_node = fgGetNode("/sensors/pilot/time-stamp", true);
-    pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", true);
-    pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", true);
-    pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", true);
-    pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", true);
-    pilot_manual_node = fgGetNode("/sensors/pilot/manual", true);
-    pilot_channel6_node = fgGetNode("/sensors/pilot/channel", 5, true);
-    pilot_channel7_node = fgGetNode("/sensors/pilot/channel", 6, true);
-    pilot_channel8_node = fgGetNode("/sensors/pilot/channel", 7, true);
-    pilot_status_node = fgGetNode("/sensors/pilot/status", true);
+    pilot_timestamp_node = pyGetNode("/sensors/pilot/time-stamp", true);
+    pilot_aileron_node = pyGetNode("/sensors/pilot/aileron", true);
+    pilot_elevator_node = pyGetNode("/sensors/pilot/elevator", true);
+    pilot_throttle_node = pyGetNode("/sensors/pilot/throttle", true);
+    pilot_rudder_node = pyGetNode("/sensors/pilot/rudder", true);
+    pilot_manual_node = pyGetNode("/sensors/pilot/manual", true);
+    pilot_channel6_node = pyGetNode("/sensors/pilot/channel", 5, true);
+    pilot_channel7_node = pyGetNode("/sensors/pilot/channel", 6, true);
+    pilot_channel8_node = pyGetNode("/sensors/pilot/channel", 7, true);
+    pilot_status_node = pyGetNode("/sensors/pilot/status", true);
 
     // flight control output property nodes
-    output_aileron_node = fgGetNode("/controls/flight/aileron", true);
-    output_elevator_node = fgGetNode("/controls/flight/elevator", true);
-    output_throttle_node = fgGetNode("/controls/engine/throttle", true);
-    output_rudder_node = fgGetNode("/controls/flight/rudder", true);
+    output_aileron_node = pyGetNode("/controls/flight/aileron", true);
+    output_elevator_node = pyGetNode("/controls/flight/elevator", true);
+    output_throttle_node = pyGetNode("/controls/engine/throttle", true);
+    output_rudder_node = pyGetNode("/controls/flight/rudder", true);
 
     // initialize comm nodes
-    pilot_console_skip = fgGetNode("/config/remote-link/pilot-skip", true);
-    pilot_logging_skip = fgGetNode("/config/logging/pilot-skip", true);
+    pilot_console_skip = pyGetNode("/config/remote-link/pilot-skip", true);
+    pilot_logging_skip = pyGetNode("/config/logging/pilot-skip", true);
 
     // master autopilot switch
-    ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
+    ap_master_switch_node = pyGetNode("/autopilot/master-switch", true);
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/pilot-inputs", true);
+    SGPropertyNode *toplevel = pyGetNode("/config/sensors/pilot-inputs", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -119,7 +119,7 @@ bool PilotInput_update() {
     bool fresh_data = false;
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/pilot-inputs", true);
+    SGPropertyNode *toplevel = pyGetNode("/config/sensors/pilot-inputs", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -165,10 +165,10 @@ bool PilotInput_update() {
 	// values and improve continuity when switching from manual to
 	// AP mode.
 	if ( ! ap_master_switch_node->getBoolValue() ) {
-	    output_aileron_node->setFloatValue( pilot_aileron_node->getFloatValue() );
-	    output_elevator_node->setFloatValue( pilot_elevator_node->getFloatValue() );
-	    output_throttle_node->setFloatValue( pilot_throttle_node->getFloatValue() );
-	    output_rudder_node->setFloatValue( pilot_rudder_node->getFloatValue() );
+	    output_aileron_node->setFloatValue( pilot_aileron_node->getDouble() );
+	    output_elevator_node->setFloatValue( pilot_elevator_node->getDouble() );
+	    output_throttle_node->setFloatValue( pilot_throttle_node->getDouble() );
+	    output_rudder_node->setFloatValue( pilot_rudder_node->getDouble() );
 	}
 
 	if ( remote_link_on || log_to_file ) {
@@ -195,7 +195,7 @@ bool PilotInput_update() {
 
 void PilotInput_close() {
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/pilot-inputs", true);
+    SGPropertyNode *toplevel = pyGetNode("/config/sensors/pilot-inputs", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();

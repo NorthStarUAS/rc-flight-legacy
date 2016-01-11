@@ -583,11 +583,11 @@ copyProperties (const SGPropertyNode *in, SGPropertyNode *out)
 	retval = false;
       break;
     case SGPropertyNode::FLOAT:
-      if (!out->setFloatValue(in->getFloatValue()))
+      if (!out->setFloatValue(in->getDouble()))
 	retval = false;
       break;
     case SGPropertyNode::DOUBLE:
-      if (!out->setDoubleValue(in->getDoubleValue()))
+      if (!out->setDoubleValue(in->getDouble()))
 	retval = false;
       break;
     case SGPropertyNode::STRING:

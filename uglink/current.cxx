@@ -1,7 +1,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "include/globaldefs.h"
 
 #include "current.hxx"
@@ -148,157 +148,157 @@ static SGPropertyNode *ground_alt_node = NULL;
 
 // bind gps property nodes 
 static void bind_gps_nodes() {
-    gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
-    gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
-    gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
-    gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
-    gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
-    gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
-    gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
-    gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
-    gps_satellites_node = fgGetNode("/sensors/gps/satellites", true);
+    gps_timestamp_node = pyGetNode("/sensors/gps/time-stamp", true);
+    gps_lat_node = pyGetNode("/sensors/gps/latitude-deg", true);
+    gps_lon_node = pyGetNode("/sensors/gps/longitude-deg", true);
+    gps_alt_node = pyGetNode("/sensors/gps/altitude-m", true);
+    gps_ve_node = pyGetNode("/sensors/gps/ve-ms", true);
+    gps_vn_node = pyGetNode("/sensors/gps/vn-ms", true);
+    gps_vd_node = pyGetNode("/sensors/gps/vd-ms", true);
+    gps_unix_sec_node = pyGetNode("/sensors/gps/unix-time-sec", true);
+    gps_satellites_node = pyGetNode("/sensors/gps/satellites", true);
     gps_status_node = NULL;
 }
 
 // bind imu property nodes 
 static void bind_imu_nodes() {
-    imu_timestamp_node = fgGetNode("/sensors/imu/time-stamp", true);
-    imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
-    imu_q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
-    imu_r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
-    imu_ax_node = fgGetNode("/sensors/imu/ax-mps_sec", true);
-    imu_ay_node = fgGetNode("/sensors/imu/ay-mps_sec", true);
-    imu_az_node = fgGetNode("/sensors/imu/az-mps_sec", true);
-    imu_hx_node = fgGetNode("/sensors/imu/hx", true);
-    imu_hy_node = fgGetNode("/sensors/imu/hy", true);
-    imu_hz_node = fgGetNode("/sensors/imu/hz", true);
-    imu_temp_node = fgGetNode("/sensors/imu/temp_C", true);
-    imu_status_node = fgGetNode("/sensors/imu/status", true);
+    imu_timestamp_node = pyGetNode("/sensors/imu/time-stamp", true);
+    imu_p_node = pyGetNode("/sensors/imu/p-rad_sec", true);
+    imu_q_node = pyGetNode("/sensors/imu/q-rad_sec", true);
+    imu_r_node = pyGetNode("/sensors/imu/r-rad_sec", true);
+    imu_ax_node = pyGetNode("/sensors/imu/ax-mps_sec", true);
+    imu_ay_node = pyGetNode("/sensors/imu/ay-mps_sec", true);
+    imu_az_node = pyGetNode("/sensors/imu/az-mps_sec", true);
+    imu_hx_node = pyGetNode("/sensors/imu/hx", true);
+    imu_hy_node = pyGetNode("/sensors/imu/hy", true);
+    imu_hz_node = pyGetNode("/sensors/imu/hz", true);
+    imu_temp_node = pyGetNode("/sensors/imu/temp_C", true);
+    imu_status_node = pyGetNode("/sensors/imu/status", true);
 }
 
 // bind air data property nodes 
 static void bind_airdata_nodes() {
-    airdata_timestamp_node = fgGetNode("/sensors/airdata/time-stamp", true);
-    airdata_pressure_node = fgGetNode("/sensors/airdata/pressure-mbar", true);
-    airdata_temperature_node = fgGetNode("/sensors/airdata/temperature-degC", true);
-    airdata_altitude_node = fgGetNode("/sensors/airdata/altitude-pressure-m", true);
-    airdata_altitude_true_node = fgGetNode("/position/combined/altitude-true-m", true);
-    airdata_airspeed_node = fgGetNode("/sensors/airdata/airspeed-kt", true);
+    airdata_timestamp_node = pyGetNode("/sensors/airdata/time-stamp", true);
+    airdata_pressure_node = pyGetNode("/sensors/airdata/pressure-mbar", true);
+    airdata_temperature_node = pyGetNode("/sensors/airdata/temperature-degC", true);
+    airdata_altitude_node = pyGetNode("/sensors/airdata/altitude-pressure-m", true);
+    airdata_altitude_true_node = pyGetNode("/position/combined/altitude-true-m", true);
+    airdata_airspeed_node = pyGetNode("/sensors/airdata/airspeed-kt", true);
     airdata_climb_fpm_node
-	= fgGetNode("/sensors/airdata/vertical-speed-fpm", true);
+	= pyGetNode("/sensors/airdata/vertical-speed-fpm", true);
     airdata_accel_ktps_node
-	= fgGetNode("/sensors/airdata/acceleration-ktps", true);
-    airdata_wind_dir_node = fgGetNode("/sensors/airdata/wind-deg",true);
-    airdata_wind_speed_node = fgGetNode("/sensors/airdata/wind-kts",true);
-    airdata_pitot_scale_node = fgGetNode("/sensors/airdata/pitot-scale-factor",true);
-    airdata_status_node = fgGetNode("/sensors/airdata/status", true);
+	= pyGetNode("/sensors/airdata/acceleration-ktps", true);
+    airdata_wind_dir_node = pyGetNode("/sensors/airdata/wind-deg",true);
+    airdata_wind_speed_node = pyGetNode("/sensors/airdata/wind-kts",true);
+    airdata_pitot_scale_node = pyGetNode("/sensors/airdata/pitot-scale-factor",true);
+    airdata_status_node = pyGetNode("/sensors/airdata/status", true);
 }
 
 // bind filter property nodes
 static void bind_filter_nodes() {
-    filter_timestamp_node = fgGetNode("/filters/filter/time-stamp", true);
-    filter_theta_node = fgGetNode("/filters/filter/pitch-deg", true);
-    filter_phi_node = fgGetNode("/filters/filter/roll-deg", true);
-    filter_psi_node = fgGetNode("/filters/filter/heading-deg", true);
-    filter_lat_node = fgGetNode("/filters/filter/latitude-deg", true);
-    filter_lon_node = fgGetNode("/filters/filter/longitude-deg", true);
-    filter_alt_node = fgGetNode("/filters/filter/altitude-m", true);
-    filter_vn_node = fgGetNode("/filters/filter/vn-ms", true);
-    filter_ve_node = fgGetNode("/filters/filter/ve-ms", true);
-    filter_vd_node = fgGetNode("/filters/filter/vd-ms", true);
-    filter_status_node = fgGetNode("/filters/filter/status", true);
+    filter_timestamp_node = pyGetNode("/filters/filter/time-stamp", true);
+    filter_theta_node = pyGetNode("/filters/filter/pitch-deg", true);
+    filter_phi_node = pyGetNode("/filters/filter/roll-deg", true);
+    filter_psi_node = pyGetNode("/filters/filter/heading-deg", true);
+    filter_lat_node = pyGetNode("/filters/filter/latitude-deg", true);
+    filter_lon_node = pyGetNode("/filters/filter/longitude-deg", true);
+    filter_alt_node = pyGetNode("/filters/filter/altitude-m", true);
+    filter_vn_node = pyGetNode("/filters/filter/vn-ms", true);
+    filter_ve_node = pyGetNode("/filters/filter/ve-ms", true);
+    filter_vd_node = pyGetNode("/filters/filter/vd-ms", true);
+    filter_status_node = pyGetNode("/filters/filter/status", true);
 }
 
 // bind actuator property nodes
 static void bind_actuator_nodes() {
-    act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
-    act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
-    act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
-    act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);
-    act_rudder_node = fgGetNode("/actuators/actuator/channel", 3, true);
-    act_channel5_node = fgGetNode("/actuators/actuator/channel", 4, true);
-    act_channel6_node = fgGetNode("/actuators/actuator/channel", 5, true);
-    act_channel7_node = fgGetNode("/actuators/actuator/channel", 6, true);
-    act_channel8_node = fgGetNode("/actuators/actuator/channel", 7, true);
-    act_status_node = fgGetNode("/actuators/actuator/status", true);
+    act_timestamp_node = pyGetNode("/actuators/actuator/time-stamp", true);
+    act_aileron_node = pyGetNode("/actuators/actuator/channel", 0, true);
+    act_elevator_node = pyGetNode("/actuators/actuator/channel", 1, true);
+    act_throttle_node = pyGetNode("/actuators/actuator/channel", 2, true);
+    act_rudder_node = pyGetNode("/actuators/actuator/channel", 3, true);
+    act_channel5_node = pyGetNode("/actuators/actuator/channel", 4, true);
+    act_channel6_node = pyGetNode("/actuators/actuator/channel", 5, true);
+    act_channel7_node = pyGetNode("/actuators/actuator/channel", 6, true);
+    act_channel8_node = pyGetNode("/actuators/actuator/channel", 7, true);
+    act_status_node = pyGetNode("/actuators/actuator/status", true);
 }
 
 
 // bind pilot input property nodes
 static void bind_pilot_nodes() {
-    pilot_timestamp_node = fgGetNode("/sensors/pilot/time-stamp", true);
-    pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", true);
-    pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", true);
-    pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", true);
-    pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", true);
-    pilot_channel5_node = fgGetNode("/sensors/pilot/manual", true);
-    pilot_channel6_node = fgGetNode("/sensors/pilot/channel", 5, true);
-    pilot_channel7_node = fgGetNode("/sensors/pilot/channel", 6, true);
-    pilot_channel8_node = fgGetNode("/sensors/pilot/channel", 7, true);
-    pilot_status_node = fgGetNode("/sensors/pilot/status", true);
+    pilot_timestamp_node = pyGetNode("/sensors/pilot/time-stamp", true);
+    pilot_aileron_node = pyGetNode("/sensors/pilot/aileron", true);
+    pilot_elevator_node = pyGetNode("/sensors/pilot/elevator", true);
+    pilot_throttle_node = pyGetNode("/sensors/pilot/throttle", true);
+    pilot_rudder_node = pyGetNode("/sensors/pilot/rudder", true);
+    pilot_channel5_node = pyGetNode("/sensors/pilot/manual", true);
+    pilot_channel6_node = pyGetNode("/sensors/pilot/channel", 5, true);
+    pilot_channel7_node = pyGetNode("/sensors/pilot/channel", 6, true);
+    pilot_channel8_node = pyGetNode("/sensors/pilot/channel", 7, true);
+    pilot_status_node = pyGetNode("/sensors/pilot/status", true);
 }
 
 // bind autopilot status property nodes
 static void bind_ap_nodes() {
-    ap_timestamp_node = fgGetNode("/autopilot/time-stamp", true);
-    ap_hdg_node = fgGetNode( "/autopilot/settings/target-heading-deg",
+    ap_timestamp_node = pyGetNode("/autopilot/time-stamp", true);
+    ap_hdg_node = pyGetNode( "/autopilot/settings/target-heading-deg",
 			     true );
-    ap_roll_node = fgGetNode("/autopilot/settings/target-roll-deg", true);
-    ap_altitude_node = fgGetNode( "/autopilot/settings/target-msl-ft", true );
-    ap_climb_node = fgGetNode("/autopilot/internal/target-climb-rate-fps",
+    ap_roll_node = pyGetNode("/autopilot/settings/target-roll-deg", true);
+    ap_altitude_node = pyGetNode( "/autopilot/settings/target-msl-ft", true );
+    ap_climb_node = pyGetNode("/autopilot/internal/target-climb-rate-fps",
 			      true);
-    ap_pitch_node = fgGetNode( "/autopilot/settings/target-pitch-deg", true );
-    ap_theta_dot_node = fgGetNode( "/autopilot/settings/target-the-dot", true );
-    ap_speed_node = fgGetNode( "/autopilot/settings/target-speed-kt", true );
+    ap_pitch_node = pyGetNode( "/autopilot/settings/target-pitch-deg", true );
+    ap_theta_dot_node = pyGetNode( "/autopilot/settings/target-the-dot", true );
+    ap_speed_node = pyGetNode( "/autopilot/settings/target-speed-kt", true );
     ap_waypoint_target_node
-	= fgGetNode( "/autopilot/route/target-waypoint-index", true );
-    ap_route_size_node = fgGetNode( "/autopilot/route/size", true );
+	= pyGetNode( "/autopilot/route/target-waypoint-index", true );
+    ap_route_size_node = pyGetNode( "/autopilot/route/size", true );
 }
 
 
 // derived properties
 static void bind_derived_nodes() {
-    gps_track_node = fgGetNode("/sensors/gps/track-deg", true);
-    gps_speed_node = fgGetNode("/sensors/gps/speed-kt", true);
-    filter_track_node = fgGetNode("/filters/filter/track-deg", true);
-    filter_speed_node = fgGetNode("/filters/filter/speed-kt", true);
-    wind_deg_node = fgGetNode("/filters/wind-deg", true);
-    wind_speed_node = fgGetNode("/filters/wind-speed-kt", true);
-    pitot_scale_node = fgGetNode("/filters/pitot-scale-factor", true);
-    filter_climb_node = fgGetNode("/filters/climb-rate-fpm", true);
+    gps_track_node = pyGetNode("/sensors/gps/track-deg", true);
+    gps_speed_node = pyGetNode("/sensors/gps/speed-kt", true);
+    filter_track_node = pyGetNode("/filters/filter/track-deg", true);
+    filter_speed_node = pyGetNode("/filters/filter/speed-kt", true);
+    wind_deg_node = pyGetNode("/filters/wind-deg", true);
+    wind_speed_node = pyGetNode("/filters/wind-speed-kt", true);
+    pitot_scale_node = pyGetNode("/filters/pitot-scale-factor", true);
+    filter_climb_node = pyGetNode("/filters/climb-rate-fpm", true);
 
-    flight_flying_status = fgGetNode("/status/in-flight", true);
-    flight_total_timer = fgGetNode("/status/flight-timer-secs", true);
-    flight_auto_timer = fgGetNode("/status/autopilot-timer-secs", true);
-    flight_odometer = fgGetNode("/status/flight-odometer", true);
-    ground_alt_node = fgGetNode("/filters/ground-alt-m", true);
+    flight_flying_status = pyGetNode("/status/in-flight", true);
+    flight_total_timer = pyGetNode("/status/flight-timer-secs", true);
+    flight_auto_timer = pyGetNode("/status/autopilot-timer-secs", true);
+    flight_odometer = pyGetNode("/status/flight-odometer", true);
+    ground_alt_node = pyGetNode("/filters/ground-alt-m", true);
 }
 
 
 // bind system health property nodes
 static void bind_health_nodes() {
-    system_load_avg_node = fgGetNode("/status/system-load-avg", true);
-    avionics_vcc_node = fgGetNode("/status/input-vcc", true);
-    extern_volts_node = fgGetNode("/status/extern-volts", true);
-    extern_cell_volts_node = fgGetNode("/status/extern-cell-volts", true);
-    extern_amps_node = fgGetNode("/status/extern-amps", true);
-    extern_mah_node = fgGetNode("/status/extern-mah", true);
+    system_load_avg_node = pyGetNode("/status/system-load-avg", true);
+    avionics_vcc_node = pyGetNode("/status/input-vcc", true);
+    extern_volts_node = pyGetNode("/status/extern-volts", true);
+    extern_cell_volts_node = pyGetNode("/status/extern-cell-volts", true);
+    extern_amps_node = pyGetNode("/status/extern-amps", true);
+    extern_mah_node = pyGetNode("/status/extern-mah", true);
 }
 
 
 // bind payload property nodes
 static void bind_payload_nodes() {
-    payload_trigger_num_node = fgGetNode("/payload/camera/trigger-num", true);
-    payload_lookat_lon_node = fgGetNode("/payload/camera/lookat-lon-deg", true);
-    payload_lookat_lat_node = fgGetNode("/payload/camera/lookat-lat-deg", true);
-    payload_ll_lon_node = fgGetNode("/payload/camera/lower-left-lon-deg", true);
-    payload_ll_lat_node = fgGetNode("/payload/camera/lower-left-lat-deg", true);
-    payload_lr_lon_node = fgGetNode("/payload/camera/lower-right-lon-deg", true);
-    payload_lr_lat_node = fgGetNode("/payload/camera/lower-right-lat-deg", true);
-    payload_ul_lon_node = fgGetNode("/payload/camera/upper-left-lon-deg", true);
-    payload_ul_lat_node = fgGetNode("/payload/camera/upper-left-lat-deg", true);
-    payload_ur_lon_node = fgGetNode("/payload/camera/upper-right-lon-deg", true);
-    payload_ur_lat_node = fgGetNode("/payload/camera/upper-right-lat-deg", true);
+    payload_trigger_num_node = pyGetNode("/payload/camera/trigger-num", true);
+    payload_lookat_lon_node = pyGetNode("/payload/camera/lookat-lon-deg", true);
+    payload_lookat_lat_node = pyGetNode("/payload/camera/lookat-lat-deg", true);
+    payload_ll_lon_node = pyGetNode("/payload/camera/lower-left-lon-deg", true);
+    payload_ll_lat_node = pyGetNode("/payload/camera/lower-left-lat-deg", true);
+    payload_lr_lon_node = pyGetNode("/payload/camera/lower-right-lon-deg", true);
+    payload_lr_lat_node = pyGetNode("/payload/camera/lower-right-lat-deg", true);
+    payload_ul_lon_node = pyGetNode("/payload/camera/upper-left-lon-deg", true);
+    payload_ul_lat_node = pyGetNode("/payload/camera/upper-left-lat-deg", true);
+    payload_ur_lon_node = pyGetNode("/payload/camera/upper-right-lon-deg", true);
+    payload_ur_lat_node = pyGetNode("/payload/camera/upper-right-lat-deg", true);
 }
 
 
@@ -315,8 +315,8 @@ static void bind_props() {
     bind_derived_nodes();
 
     // command sequence node
-    link_seq_num = fgGetNode("/comms/remote-link/sequence-num", true);
-    use_ground_speed_node = fgGetNode("/config/use-ground-speed", true);
+    link_seq_num = pyGetNode("/comms/remote-link/sequence-num", true);
+    use_ground_speed_node = pyGetNode("/config/use-ground-speed", true);
 }
 
 
@@ -427,7 +427,7 @@ static void update_ap_nodes( struct apstatus *appacket ) {
     ap_route_size_node->setIntValue( appacket->route_size );
  
     // build/update the route
-    SGPropertyNode *route_node = fgGetNode("/autopilot/route", true);
+    SGPropertyNode *route_node = pyGetNode("/autopilot/route", true);
     if ( appacket->wp_index < 65535 ) {
 	SGPropertyNode *wpt_node
 	    = route_node->getChild("wpt", appacket->wp_index, true);
@@ -518,7 +518,7 @@ void compute_derived_data( struct gps *gpspacket,
 	in_flight = true;
     }
 #else
-    if ( filter_speed_node->getDoubleValue() > 15 ) {
+    if ( filter_speed_node->getDouble() > 15 ) {
 	in_flight = true;
     }
 #endif
@@ -531,14 +531,14 @@ void compute_derived_data( struct gps *gpspacket,
 
     // flight timer
     if ( in_flight ) {
-	double timer = flight_total_timer->getDoubleValue();
+	double timer = flight_total_timer->getDouble();
 	timer += dt;
 	flight_total_timer->setDoubleValue( timer );
     }
 
     // autopilot timer
-    if ( in_flight && pilot_channel5_node->getDoubleValue() < 0.5 ) {
-	double timer = flight_auto_timer->getDoubleValue();
+    if ( in_flight && pilot_channel5_node->getDouble() < 0.5 ) {
+	double timer = flight_auto_timer->getDouble();
 	timer += dt;
 	flight_auto_timer->setDoubleValue( timer );
 
@@ -546,23 +546,23 @@ void compute_derived_data( struct gps *gpspacket,
 
     // estimate distance traveled from filter velocity and dt
     if ( in_flight ) {
-	double vel_ms = filter_speed_node->getDoubleValue() * SG_KT_TO_MPS;
-	double od = flight_odometer->getDoubleValue();
+	double vel_ms = filter_speed_node->getDouble() * SG_KT_TO_MPS;
+	double od = flight_odometer->getDouble();
 	od += vel_ms * dt;
 	flight_odometer->setDoubleValue( od );
     }
 
     // estimate ground altitude (average altitude when not flying
     static double ground_alt_filter = -9999.9;
-    if ( ! in_flight && filter_timestamp_node->getDoubleValue() > 0.0 ) {
-	double alt = filter_alt_node->getDoubleValue();
+    if ( ! in_flight && filter_timestamp_node->getDouble() > 0.0 ) {
+	double alt = filter_alt_node->getDouble();
 	if ( ground_alt_filter < -1000 ) {
 	    ground_alt_filter = alt;
 	} else {
 	    ground_alt_filter = 0.999 * ground_alt_filter + 0.001 * alt;
 	}
 	ground_alt_node->setDoubleValue(ground_alt_filter);
-	// printf("(%.4f)ground alt = %.2f\n", filter_timestamp_node->getDoubleValue(), ground_alt_filter);
+	// printf("(%.4f)ground alt = %.2f\n", filter_timestamp_node->getDouble(), ground_alt_filter);
     }
 
     // compute ground track heading/speed
@@ -644,37 +644,37 @@ void compute_derived_data( struct gps *gpspacket,
     bool auto_mode = (pilot_channel8_node->getIntValue() < 0);
     static bool last_auto_mode = auto_mode;
 
-    bool throttle = (pilot_throttle_node->getDoubleValue() > 0.5);
+    bool throttle = (pilot_throttle_node->getDouble() > 0.5);
     static bool last_throttle = throttle;
 
-    //double timestamp =  filter_timestamp_node->getDoubleValue();
+    //double timestamp =  filter_timestamp_node->getDouble();
     //static double last_timestamp = timestamp;
     //double dt = timestamp - last_timestamp;
-    static double ol_roll = filter_psi_node->getDoubleValue();
-    static double ol_pitch = filter_psi_node->getDoubleValue();
-    static double ol_yaw = filter_psi_node->getDoubleValue();
+    static double ol_roll = filter_psi_node->getDouble();
+    static double ol_pitch = filter_psi_node->getDouble();
+    static double ol_yaw = filter_psi_node->getDouble();
 
     if ( !last_auto_mode && auto_mode ) {
-	ol_roll = filter_phi_node->getDoubleValue();
-	ol_pitch = filter_theta_node->getDoubleValue();
-	ol_yaw = filter_psi_node->getDoubleValue();
+	ol_roll = filter_phi_node->getDouble();
+	ol_pitch = filter_theta_node->getDouble();
+	ol_yaw = filter_psi_node->getDouble();
     }
     last_auto_mode = auto_mode;
 
     if ( !last_throttle && throttle ) {
-	ol_roll = filter_phi_node->getDoubleValue();
-	ol_pitch = filter_theta_node->getDoubleValue();
-	ol_yaw = filter_psi_node->getDoubleValue();
+	ol_roll = filter_phi_node->getDouble();
+	ol_pitch = filter_theta_node->getDouble();
+	ol_yaw = filter_psi_node->getDouble();
     }
     last_throttle = throttle;
 
     if ( dt > 0.0 ) {
 	double dp
-	    = (imu_p_node->getDoubleValue() * dt) * SGD_RADIANS_TO_DEGREES;
+	    = (imu_p_node->getDouble() * dt) * SGD_RADIANS_TO_DEGREES;
 	double dq
-	    = (imu_q_node->getDoubleValue() * dt) * SGD_RADIANS_TO_DEGREES;
+	    = (imu_q_node->getDouble() * dt) * SGD_RADIANS_TO_DEGREES;
 	double dr
-	    = (imu_r_node->getDoubleValue() * dt) * SGD_RADIANS_TO_DEGREES;
+	    = (imu_r_node->getDouble() * dt) * SGD_RADIANS_TO_DEGREES;
 	//printf("dr=%.3f imu_r=%.3f dt=%.3f\n
 	ol_roll += dp;
 	if ( ol_roll < -180.0 ) { ol_roll += 360.0; }
@@ -688,17 +688,17 @@ void compute_derived_data( struct gps *gpspacket,
     }
     /*if ( throttle ) {
 	printf("OL %.3f %.3f %.3f %.3f\n",
-	       filter_timestamp_node->getDoubleValue(),
-	       filter_theta_node->getDoubleValue(),
+	       filter_timestamp_node->getDouble(),
+	       filter_theta_node->getDouble(),
 	       ol_pitch,
-	       imu_q_node->getDoubleValue() * SGD_RADIANS_TO_DEGREES);
+	       imu_q_node->getDouble() * SGD_RADIANS_TO_DEGREES);
     }*/
     /*if ( in_flight ) {
 	// dump out throttle position vs airspeed vs climb
 	printf("SI %.2f %.1f %.0f\n", 
-	       act_throttle_node->getDoubleValue(),
-	       airdata_airspeed_node->getDoubleValue(),
-	       airdata_climb_fpm_node->getDoubleValue());
+	       act_throttle_node->getDouble(),
+	       airdata_airspeed_node->getDouble(),
+	       airdata_climb_fpm_node->getDouble());
     }*/
 
     // Compute camera target/coverage for each new shot
@@ -713,16 +713,16 @@ void compute_derived_data( struct gps *gpspacket,
     if ( payloadpacket->trigger_num != last_trigger_num ) {
 	last_trigger_num = payloadpacket->trigger_num;
 
-	// printf("alt = %.2f\n", filter_alt_node->getDoubleValue());
-	SGGeod cam_pos = SGGeod::fromDegM(filter_lon_node->getDoubleValue(),
-					  filter_lat_node->getDoubleValue(),
-					  filter_alt_node->getDoubleValue());
+	// printf("alt = %.2f\n", filter_alt_node->getDouble());
+	SGGeod cam_pos = SGGeod::fromDegM(filter_lon_node->getDouble(),
+					  filter_lat_node->getDouble(),
+					  filter_alt_node->getDouble());
 	SGGeod lookat_wgs84, ll_wgs84, lr_wgs84, ul_wgs84, ur_wgs84;
  
-	geolocate_image( cam_pos, ground_alt_node->getDoubleValue(),
-			 filter_phi_node->getDoubleValue(),
-			 filter_theta_node->getDoubleValue(),
-			 filter_psi_node->getDoubleValue(),
+	geolocate_image( cam_pos, ground_alt_node->getDouble(),
+			 filter_phi_node->getDouble(),
+			 filter_theta_node->getDouble(),
+			 filter_psi_node->getDouble(),
 			 h_mm, v_mm, focal_len_mm,
 			 &lookat_wgs84,
 			 &ll_wgs84, &lr_wgs84, &ul_wgs84, &ur_wgs84 );
@@ -746,14 +746,14 @@ string current_get_fcs_nav_string() {
     static int max_buf = 256;
     char buf[max_buf];
 
-    double filter_hdg = (SGD_PI * 0.5 - atan2(filter_vn_node->getDoubleValue(), filter_ve_node->getDoubleValue())) * SG_RADIANS_TO_DEGREES;
+    double filter_hdg = (SGD_PI * 0.5 - atan2(filter_vn_node->getDouble(), filter_ve_node->getDouble())) * SG_RADIANS_TO_DEGREES;
     snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.1f,%.1f,%.2f",
-	     imu_timestamp_node->getDoubleValue(),
-	     ap_hdg_node->getDoubleValue(),
-	     ap_roll_node->getDoubleValue(),
+	     imu_timestamp_node->getDouble(),
+	     ap_hdg_node->getDouble(),
+	     ap_roll_node->getDouble(),
 	     filter_hdg,
-	     filter_phi_node->getDoubleValue(),
-	     act_aileron_node->getDoubleValue());
+	     filter_phi_node->getDouble(),
+	     act_aileron_node->getDouble());
 
     return buf;
 }
@@ -763,12 +763,12 @@ string current_get_fcs_speed_string() {
     char buf[max_buf];
 
     snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.1f,%.1f,%.2f",
-	     imu_timestamp_node->getDoubleValue(),
-	     ap_speed_node->getDoubleValue(),
-	     ap_pitch_node->getDoubleValue(),
-	     airdata_airspeed_node->getDoubleValue(),
-	     filter_theta_node->getDoubleValue(),
-	     act_elevator_node->getDoubleValue());
+	     imu_timestamp_node->getDouble(),
+	     ap_speed_node->getDouble(),
+	     ap_pitch_node->getDouble(),
+	     airdata_airspeed_node->getDouble(),
+	     filter_theta_node->getDouble(),
+	     act_elevator_node->getDouble());
 
     return buf;
 }
@@ -778,11 +778,11 @@ string current_get_fcs_altitude_string() {
     char buf[max_buf];
 
     snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.2f",
-	     imu_timestamp_node->getDoubleValue(),
-	     ap_altitude_node->getDoubleValue(),
-	     // filter_alt_node->getDoubleValue(),
-	     airdata_altitude_true_node->getDoubleValue()*SG_METER_TO_FEET,
-	     act_throttle_node->getDoubleValue() );
+	     imu_timestamp_node->getDouble(),
+	     ap_altitude_node->getDouble(),
+	     // filter_alt_node->getDouble(),
+	     airdata_altitude_true_node->getDouble()*SG_METER_TO_FEET,
+	     act_throttle_node->getDouble() );
 
     return buf;
 }

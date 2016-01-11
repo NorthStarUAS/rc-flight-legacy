@@ -9,7 +9,7 @@
 
 #include "comms/netSocket.h"
 #include "init/globals.hxx"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "util/timing.h"
 
 #include "sensors/util_goldy2.hxx"
@@ -53,15 +53,15 @@ static void bind_input( SGPropertyNode *config ) {
 
 /// initialize actuator property nodes 
 static void bind_act_nodes() {
-    act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
-    act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
-    act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
-    act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);
-    act_rudder_node = fgGetNode("/actuators/actuator/channel", 3, true);
-    act_channel5_node = fgGetNode("/actuators/actuator/channel", 4, true);
-    act_channel6_node = fgGetNode("/actuators/actuator/channel", 5, true);
-    act_channel7_node = fgGetNode("/actuators/actuator/channel", 6, true);
-    act_channel8_node = fgGetNode("/actuators/actuator/channel", 7, true);
+    act_timestamp_node = pyGetNode("/actuators/actuator/time-stamp", true);
+    act_aileron_node = pyGetNode("/actuators/actuator/channel", 0, true);
+    act_elevator_node = pyGetNode("/actuators/actuator/channel", 1, true);
+    act_throttle_node = pyGetNode("/actuators/actuator/channel", 2, true);
+    act_rudder_node = pyGetNode("/actuators/actuator/channel", 3, true);
+    act_channel5_node = pyGetNode("/actuators/actuator/channel", 4, true);
+    act_channel6_node = pyGetNode("/actuators/actuator/channel", 5, true);
+    act_channel7_node = pyGetNode("/actuators/actuator/channel", 6, true);
+    act_channel8_node = pyGetNode("/actuators/actuator/channel", 7, true);
 }
 
 

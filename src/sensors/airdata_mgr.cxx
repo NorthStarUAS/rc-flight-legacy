@@ -16,7 +16,7 @@
 #include "comms/remote_link.h"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "util/lowpass.hxx"
 #include "util/myprof.h"
 
@@ -84,45 +84,45 @@ void AirData_init() {
     debug2b2.set_name("debug2b2 airdata console link");
 
     // initialize air data property nodes
-    airdata_timestamp_node = fgGetNode("/sensors/airdata/time-stamp", true);
-    airdata_airspeed_node = fgGetNode("/sensors/airdata/airspeed-kt", true);
-    airdata_pressure_node = fgGetNode("/sensors/airdata/pressure-mbar", true);
+    airdata_timestamp_node = pyGetNode("/sensors/airdata/time-stamp", true);
+    airdata_airspeed_node = pyGetNode("/sensors/airdata/airspeed-kt", true);
+    airdata_pressure_node = pyGetNode("/sensors/airdata/pressure-mbar", true);
 
     // input property nodes
-    filter_navigation_node = fgGetNode("/filters/filter/navigation", true);
-    filter_alt_node = fgGetNode("/position/filter/altitude-m", true);
-    filter_ground_node = fgGetNode("/position/filter/altitude-ground-m", true);
+    filter_navigation_node = pyGetNode("/filters/filter/navigation", true);
+    filter_alt_node = pyGetNode("/position/filter/altitude-m", true);
+    filter_ground_node = pyGetNode("/position/filter/altitude-ground-m", true);
 
     // filtered/computed output property nodes
-    pressure_alt_node = fgGetNode("/position/pressure/altitude-m", true);
-    pressure_alt_smoothed_node = fgGetNode("/position/pressure/altitude-smoothed-m", true);
-    airspeed_node = fgGetNode("/velocity/airspeed-kt", true);
-    airspeed_smoothed_node = fgGetNode("/velocity/airspeed-smoothed-kt", true);
+    pressure_alt_node = pyGetNode("/position/pressure/altitude-m", true);
+    pressure_alt_smoothed_node = pyGetNode("/position/pressure/altitude-smoothed-m", true);
+    airspeed_node = pyGetNode("/velocity/airspeed-kt", true);
+    airspeed_smoothed_node = pyGetNode("/velocity/airspeed-smoothed-kt", true);
 
-    true_alt_m_node = fgGetNode("/position/combined/altitude-true-m",true);
-    true_alt_ft_node = fgGetNode("/position/combined/altitude-true-ft",true);
-    true_agl_m_node = fgGetNode("/position/combined/altitude-agl-m",true);
-    true_agl_ft_node = fgGetNode("/position/combined/altitude-agl-ft",true);
-    agl_alt_m_node = fgGetNode("/position/pressure/altitude-agl-m", true);
-    agl_alt_ft_node = fgGetNode("/position/pressure/altitude-agl-ft", true);
+    true_alt_m_node = pyGetNode("/position/combined/altitude-true-m",true);
+    true_alt_ft_node = pyGetNode("/position/combined/altitude-true-ft",true);
+    true_agl_m_node = pyGetNode("/position/combined/altitude-agl-m",true);
+    true_agl_ft_node = pyGetNode("/position/combined/altitude-agl-ft",true);
+    agl_alt_m_node = pyGetNode("/position/pressure/altitude-agl-m", true);
+    agl_alt_ft_node = pyGetNode("/position/pressure/altitude-agl-ft", true);
 
     pressure_error_m_node
-	= fgGetNode("/position/pressure/pressure-error-m", true);
+	= pyGetNode("/position/pressure/pressure-error-m", true);
     vert_fps_node
-	= fgGetNode("/velocity/pressure-vertical-speed-fps",true);
+	= pyGetNode("/velocity/pressure-vertical-speed-fps",true);
     ground_alt_press_m_node
-        = fgGetNode("/position/pressure/altitude-ground-m", true);
-    true_oat_node = fgGetNode("/position/pressure/outside-air-temp-degC", true);
+        = pyGetNode("/position/pressure/altitude-ground-m", true);
+    true_oat_node = pyGetNode("/position/pressure/outside-air-temp-degC", true);
 
     // initialize comm nodes
-    airdata_console_skip = fgGetNode("/config/remote-link/airdata-skip", true);
-    airdata_logging_skip = fgGetNode("/config/logging/airdata-skip", true);
+    airdata_console_skip = pyGetNode("/config/remote-link/airdata-skip", true);
+    airdata_logging_skip = pyGetNode("/config/logging/airdata-skip", true);
 
     // initialize mission nodes
-    is_airborne_node = fgGetNode("/task/is-airborne", true);
+    is_airborne_node = pyGetNode("/task/is-airborne", true);
  
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
+    SGPropertyNode *toplevel = pyGetNode("/config/sensors/airdata-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -156,7 +156,7 @@ void AirData_init() {
 static void update_pressure_helpers() {
     static float pressure_alt_filt_last = 0.0;
     static double last_time = 0.0;
-    double cur_time = airdata_timestamp_node->getDoubleValue();
+    double cur_time = airdata_timestamp_node->getDouble();
 
     double dt = cur_time - last_time;
     if ( dt > 1.0 ) {
@@ -179,7 +179,7 @@ static void update_pressure_helpers() {
     // h = (((P0/P)^(1/5.257) - 1) * (T+273.15)) / 0.0065
     // T = h*0.0065 / ((P0/P)^(1/5.257) - 1) - 273.15
 
-    double P = airdata_pressure_node->getDoubleValue(); // sensed pressure
+    double P = airdata_pressure_node->getDouble(); // sensed pressure
     const double P0 = 1013.25;	// standard sea level pressure
 
     // The APM temp sensor is highly biased by board temp and cabin
@@ -199,9 +199,9 @@ static void update_pressure_helpers() {
     // 2. Filter/Smooth Altitude and airspeed to reduce noise
     //
 
-    float Pt = airdata_airspeed_node->getFloatValue();
-    float Ps = alt_m; /* pressure_alt_node->getFloatValue(); */
-    float filter_alt_m = filter_alt_node->getFloatValue();
+    float Pt = airdata_airspeed_node->getDouble();
+    float Ps = alt_m; /* pressure_alt_node->getDouble(); */
+    float filter_alt_m = filter_alt_node->getDouble();
 
     if ( !airdata_calibrated ) {
 	airdata_calibrated = true;
@@ -245,7 +245,7 @@ static void update_pressure_helpers() {
 
     // true altitude estimate - filter ground average is our best
     // estimate of true agl if altitude has not changed recently.
-    double true_agl_m = true_alt_m - filter_ground_node->getDoubleValue();
+    double true_agl_m = true_alt_m - filter_ground_node->getDouble();
 
     //
     // 4.0 Compute outside air temperature estimate based on 'true'
@@ -285,14 +285,14 @@ static void update_pressure_helpers() {
 
 #if 0
     // experimental section ... try to estimate thermal activity ...
-    static SGPropertyNode *throttle = fgGetNode("/controls/engine/throttle", true);
+    static SGPropertyNode *throttle = pyGetNode("/controls/engine/throttle", true);
     static double sum_x = 0.0;
     static double sum_y = 0.0;
     static double sum_x2 = 0.0;
     static double sum_y2 = 0.0;
     static double sum_xy = 0.0;
 
-    double x = throttle->getDoubleValue();
+    double x = throttle->getDouble();
     double y = climb_filt.get_value() * SG_METER_TO_FEET * 60.0; // fpm
     double n = 6000.0;		// 100hz * 60 sec
     double nfact = (n-1.0)/n;
@@ -319,7 +319,7 @@ bool AirData_update() {
     bool fresh_data = false;
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
+    SGPropertyNode *toplevel = pyGetNode("/config/sensors/airdata-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -380,7 +380,7 @@ bool AirData_update() {
 
 void AirData_recalibrate() {
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
+    SGPropertyNode *toplevel = pyGetNode("/config/sensors/airdata-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -417,7 +417,7 @@ void AirData_recalibrate() {
 
 void AirData_close() {
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/airdata-group", true);
+    SGPropertyNode *toplevel = pyGetNode("/config/sensors/airdata-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();

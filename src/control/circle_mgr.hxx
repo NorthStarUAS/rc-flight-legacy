@@ -11,8 +11,9 @@
 #ifndef _AURA_CIRCLE_MGR_HXX
 #define _AURA_CIRCLE_MGR_HXX
 
+#include "python/pyprops.hxx"
+
 #include "control/waypoint.hxx"
-#include "props/props.hxx"
 #include "util/timing.h"
 
 
@@ -21,31 +22,31 @@ class AuraCircleMgr {
 private:
 
     // automatic inputs
-    SGPropertyNode *lon_node;
-    SGPropertyNode *lat_node;
-    SGPropertyNode *alt_agl_node;
-    SGPropertyNode *true_heading_node;
-    SGPropertyNode *groundtrack_node;
-    SGPropertyNode *groundspeed_node;
+    pyPropertyNode lon_node;
+    pyPropertyNode lat_node;
+    pyPropertyNode alt_agl_node;
+    pyPropertyNode true_heading_node;
+    pyPropertyNode groundtrack_node;
+    pyPropertyNode groundspeed_node;
 
     // configuration nodes
-    SGPropertyNode *coord_lon_node;
-    SGPropertyNode *coord_lat_node;
-    SGPropertyNode *direction_node;
-    SGPropertyNode *radius_node;
-    SGPropertyNode *target_agl_node;
-    SGPropertyNode *target_speed_node;
-    SGPropertyNode *bank_limit_node;
-    SGPropertyNode *L1_period_node;
+    pyPropertyNode coord_lon_node;
+    pyPropertyNode coord_lat_node;
+    pyPropertyNode direction_node;
+    pyPropertyNode radius_node;
+    pyPropertyNode target_agl_node;
+    pyPropertyNode target_speed_node;
+    pyPropertyNode bank_limit_node;
+    pyPropertyNode L1_period_node;
 
     // autopilot settings
-    SGPropertyNode *fcs_mode_node;
-    SGPropertyNode *ap_agl_node;
-    SGPropertyNode *ap_roll_node;
-    SGPropertyNode *target_course_deg;
+    pyPropertyNode fcs_mode_node;
+    pyPropertyNode ap_agl_node;
+    pyPropertyNode ap_roll_node;
+    pyPropertyNode target_course_deg;
 
-    SGPropertyNode *wp_dist_m;
-    SGPropertyNode *wp_eta_sec;
+    pyPropertyNode wp_dist_m;
+    pyPropertyNode wp_eta_sec;
 
     bool bind();		// setup property node bindings
 

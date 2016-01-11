@@ -73,7 +73,7 @@ static void bind_imu_input( SGPropertyNode *config ) {
 
 // initialize imu output property nodes 
 static void bind_imu_output( string rootname ) {
-    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
 
     imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     imu_driver_running_node = outputroot->getChild("driver-running", 0, true);

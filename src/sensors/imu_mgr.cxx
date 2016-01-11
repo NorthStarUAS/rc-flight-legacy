@@ -14,7 +14,7 @@
 #include "comms/packetizer.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "util/myprof.h"
 #include "util/timing.h"
 
@@ -48,14 +48,14 @@ void IMU_init() {
     debug2a1.set_name("debug2a1 IMU read");
     debug2a2.set_name("debug2a2 IMU console link");
 
-    imu_timestamp_node = fgGetNode("/sensors/imu/time-stamp", true);
+    imu_timestamp_node = pyGetNode("/sensors/imu/time-stamp", true);
 
     // initialize comm nodes
-    imu_console_skip = fgGetNode("/config/remote-link/imu-skip", true);
-    imu_logging_skip = fgGetNode("/config/logging/imu-skip", true);
+    imu_console_skip = pyGetNode("/config/remote-link/imu-skip", true);
+    imu_logging_skip = pyGetNode("/config/logging/imu-skip", true);
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/imu-group", true);
+    SGPropertyNode *toplevel = pyGetNode("/config/sensors/imu-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -101,7 +101,7 @@ bool IMU_update() {
     bool fresh_data = false;
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/imu-group", true);
+    SGPropertyNode *toplevel = pyGetNode("/config/sensors/imu-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -143,7 +143,7 @@ bool IMU_update() {
 
     if ( fresh_data ) {
 	// for computing imu data age
-	imu_last_time = imu_timestamp_node->getDoubleValue();
+	imu_last_time = imu_timestamp_node->getDouble();
 
 	if ( remote_link_on || log_to_file ) {
 	    uint8_t buf[256];
@@ -167,7 +167,7 @@ bool IMU_update() {
 
 void IMU_close() {
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/imu-group", true);
+    SGPropertyNode *toplevel = pyGetNode("/config/sensors/imu-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();

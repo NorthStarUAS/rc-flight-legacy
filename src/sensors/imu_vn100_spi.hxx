@@ -14,7 +14,7 @@
 #include <string>
 
 #include "include/globaldefs.h"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 
 using std::string;
 

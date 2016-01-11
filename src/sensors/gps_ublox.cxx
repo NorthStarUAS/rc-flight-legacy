@@ -28,7 +28,7 @@ using std::string;
 #include "comms/logging.h"
 #include "math/SGMath.hxx"
 #include "math/SGGeodesy.hxx"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "util/strutils.hxx"
 #include "util/timing.h"
 #include "gps_mgr.hxx"
@@ -73,7 +73,7 @@ static void bind_input( SGPropertyNode *config ) {
 
 // initialize gpsd output property nodes 
 static void bind_output( string rootname ) {
-    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
     gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
     gps_lon_node = outputroot->getChild("longitude-deg", 0, true);

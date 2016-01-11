@@ -9,7 +9,7 @@
 #include <string.h>
 
 #include "comms/netSocket.h"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "util/timing.h"
 
 #include "imu_fgfs.hxx"
@@ -62,7 +62,7 @@ static void bind_input( SGPropertyNode *config ) {
 
 // initialize imu output property nodes 
 static void bind_imu_output( string rootname ) {
-    outputroot = fgGetNode( rootname.c_str(), true );
+    outputroot = pyGetNode( rootname.c_str(), true );
 
     imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
@@ -83,25 +83,25 @@ static void bind_imu_output( string rootname ) {
 
 // initialize airdata output property nodes 
 static void bind_airdata_output( string rootname ) {
-    outputroot = fgGetNode( rootname.c_str(), true );
+    outputroot = pyGetNode( rootname.c_str(), true );
 
     airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     airdata_airspeed_node = outputroot->getChild("airspeed-kt", 0, true);
     airdata_pressure_node = outputroot->getChild("pressure-mbar", 0, true);
 
-    act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);
-    fake_extern_volts_node = fgGetNode("/sensors/APM2/extern-volt", true);
-    fake_extern_amps_node  = fgGetNode("/sensors/APM2/extern-amps", true);
-    fake_extern_current_node  = fgGetNode("/sensors/APM2/extern-current-mah", true);
+    act_throttle_node = pyGetNode("/actuators/actuator/channel", 2, true);
+    fake_extern_volts_node = pyGetNode("/sensors/APM2/extern-volt", true);
+    fake_extern_amps_node  = pyGetNode("/sensors/APM2/extern-amps", true);
+    fake_extern_current_node  = pyGetNode("/sensors/APM2/extern-current-mah", true);
 
     // set some fake values (write them just once, so if there was an
     // unintended conflict, the actual sensor would overwrite these.)
     SGPropertyNode *tmp_node;
     // note we don't leak here because we are getting a pointer back
     // into the global property structure
-    tmp_node = fgGetNode("/sensors/APM2/board-vcc", true);
+    tmp_node = pyGetNode("/sensors/APM2/board-vcc", true);
     tmp_node->setDoubleValue( 5.0 );
-    tmp_node = fgGetNode("/sensors/airdata/temp-degC", true);
+    tmp_node = pyGetNode("/sensors/airdata/temp-degC", true);
     tmp_node->setDoubleValue( 15.0 );
 
     airdata_inited = true;
@@ -218,7 +218,7 @@ bool fgfs_imu_update() {
 	    // fake volt/amp values here for no better place to do it
 	    static double last_time = cur_time;
 	    static double mah = 0.0;
-	    double thr = act_throttle_node->getDoubleValue();
+	    double thr = act_throttle_node->getDouble();
 	    fake_extern_volts_node->setDoubleValue(16.0 - thr);
 	    fake_extern_amps_node->setDoubleValue(thr * 12.0);
 	    double dt = cur_time - last_time;
@@ -236,7 +236,7 @@ bool fgfs_airdata_update() {
     bool fresh_data = false;
 
     static double last_time = 0.0;
-    double cur_time = airdata_timestamp_node->getDoubleValue();
+    double cur_time = airdata_timestamp_node->getDouble();
 
     if ( cur_time > last_time ) {
 	fresh_data = true;

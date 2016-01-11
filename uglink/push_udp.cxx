@@ -45,17 +45,17 @@ int udp_open_sockets()
 {
     if ( ! props_inited ) {
 	props_inited = true;
-	alt_offset_node = fgGetNode("/config/alt-offset-m", true);
-	est_controls_node = fgGetNode("/config/estimate-controls", true);
-	use_groundtrack_hdg_node = fgGetNode("/config/use-groundtrack-heading",
+	alt_offset_node = pyGetNode("/config/alt-offset-m", true);
+	est_controls_node = pyGetNode("/config/estimate-controls", true);
+	use_groundtrack_hdg_node = pyGetNode("/config/use-groundtrack-heading",
 					     true);
-	use_ground_speed_node = fgGetNode("/config/use-ground-speed", true);
-	flying_wing_node = fgGetNode("/config/flying-wing-mode", true);
-	filter_speed_node = fgGetNode("/filters/filter/speed-kt", true);
-	wind_deg_node = fgGetNode("/filters/wind-deg", true);
-	wind_speed_node = fgGetNode("/filters/wind-speed-kt", true);
-	pitot_scale_node = fgGetNode("/filters/pitot-scale-factor", true);
-	filter_climb_node = fgGetNode("/filters/climb-rate-fpm", true);
+	use_ground_speed_node = pyGetNode("/config/use-ground-speed", true);
+	flying_wing_node = pyGetNode("/config/flying-wing-mode", true);
+	filter_speed_node = pyGetNode("/filters/filter/speed-kt", true);
+	wind_deg_node = pyGetNode("/filters/wind-deg", true);
+	wind_speed_node = pyGetNode("/filters/wind-speed-kt", true);
+	pitot_scale_node = pyGetNode("/filters/pitot-scale-factor", true);
+	filter_climb_node = pyGetNode("/filters/climb-rate-fpm", true);
     }
 
     if ( ! ctrls_sock.open( false ) ) {  // open a UDP socket
@@ -196,7 +196,7 @@ static void ugear2fg( struct gps *gpspacket,
     // Aero parameters
     fdm->longitude = filterpacket->lon * SG_DEGREES_TO_RADIANS;
     fdm->latitude = filterpacket->lat * SG_DEGREES_TO_RADIANS;
-    fdm->altitude = filterpacket->alt + alt_offset_node->getDoubleValue();
+    fdm->altitude = filterpacket->alt + alt_offset_node->getDouble();
     fdm->agl = -9999.0;
     fdm->phi = filterpacket->phi * SG_DEGREES_TO_RADIANS; // roll
     fdm->theta = filterpacket->theta * SG_DEGREES_TO_RADIANS; // pitch;
@@ -215,11 +215,11 @@ static void ugear2fg( struct gps *gpspacket,
     }
 
     if ( use_ground_speed_node->getBoolValue() ) {
-	fdm->vcas = filter_speed_node->getDoubleValue();
+	fdm->vcas = filter_speed_node->getDouble();
     } else {
 	fdm->vcas = airpacket->airspeed;
     }
-    fdm->climb_rate = filter_climb_node->getDoubleValue() / 60.0;
+    fdm->climb_rate = filter_climb_node->getDouble() / 60.0;
     // fdm->altitude = est_altitude_m;
 
     /* printf("%.3f, %.3f, %.3f, %.3f, %.8f, %.8f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
@@ -478,7 +478,7 @@ static void ugear2gui( struct gps *gpspacket,
     // Aero parameters
     gui->longitude = filterpacket->lon * SG_DEGREES_TO_RADIANS;
     gui->latitude = filterpacket->lat * SG_DEGREES_TO_RADIANS;
-    gui->altitude = filterpacket->alt + alt_offset_node->getDoubleValue();
+    gui->altitude = filterpacket->alt + alt_offset_node->getDouble();
     gui->agl = -9999.0;
     gui->phi = filterpacket->phi * SG_DEGREES_TO_RADIANS;     // roll
     gui->theta = filterpacket->theta * SG_DEGREES_TO_RADIANS; // pitch;
@@ -495,11 +495,11 @@ static void ugear2gui( struct gps *gpspacket,
     // printf("%.1f kts %.2f fps\n", speed_kts, climb_fps);
 
     if ( use_ground_speed_node->getBoolValue() ) {
-	gui->vcas = filter_speed_node->getDoubleValue();
+	gui->vcas = filter_speed_node->getDouble();
     } else {
 	gui->vcas = airpacket->airspeed;
     }
-    gui->climb_rate = (filter_climb_node->getDoubleValue()/60.0);
+    gui->climb_rate = (filter_climb_node->getDouble()/60.0);
     // gui->altitude = est_altitude_m;
 
     /* printf("%.3f, %.3f, %.3f, %.3f, %.8f, %.8f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
@@ -518,8 +518,8 @@ static void ugear2gui( struct gps *gpspacket,
     gui->cur_time = 0;
     gui->warp = 0;
     gui->ground_elev = 0;
-    gui->wind_deg = wind_deg_node->getDoubleValue();
-    gui->wind_kts = wind_speed_node->getDoubleValue();
+    gui->wind_deg = wind_deg_node->getDouble();
+    gui->wind_kts = wind_speed_node->getDouble();
 
     gui->wp_index = appacket->wp_index;
     gui->wp_lon = appacket->wp_lon;

@@ -85,7 +85,6 @@ AC_CONFIG_FILES([ \
         src/init/Makefile \
 	src/math/Makefile \
         src/payload/Makefile \
-        src/props/Makefile \
         src/python/Makefile \
         src/sensors/Makefile \
         src/util/Makefile \

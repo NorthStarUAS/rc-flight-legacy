@@ -1,11 +1,11 @@
 #ifndef _AURA_PACKETIZER_HXX
 #define _AURA_PACKETIZER_HXX
 
+#include "python/pyprops.hxx"
 
 #include <stdint.h>
 
 #include "control/route_mgr.hxx"
-#include "props/props.hxx"
 
 
 #define START_OF_MSG0 147	// 0x93
@@ -34,108 +34,108 @@ enum ugPacketType {
 class UGPacketizer {
 
     // gps property nodes
-    SGPropertyNode *gps_timestamp_node;
-    SGPropertyNode *gps_lat_node;
-    SGPropertyNode *gps_lon_node;
-    SGPropertyNode *gps_alt_node;
-    SGPropertyNode *gps_vn_node;
-    SGPropertyNode *gps_ve_node;
-    SGPropertyNode *gps_vd_node;
-    SGPropertyNode *gps_unix_sec_node;
-    SGPropertyNode *gps_satellites_node;
-    SGPropertyNode *gps_status_node;
+    pyPropertyNode gps_timestamp_node;
+    pyPropertyNode gps_lat_node;
+    pyPropertyNode gps_lon_node;
+    pyPropertyNode gps_alt_node;
+    pyPropertyNode gps_vn_node;
+    pyPropertyNode gps_ve_node;
+    pyPropertyNode gps_vd_node;
+    pyPropertyNode gps_unix_sec_node;
+    pyPropertyNode gps_satellites_node;
+    pyPropertyNode gps_status_node;
 
     // imu property nodes
-    SGPropertyNode *imu_timestamp_node;
-    SGPropertyNode *imu_p_node;
-    SGPropertyNode *imu_q_node;
-    SGPropertyNode *imu_r_node;
-    SGPropertyNode *imu_ax_node;
-    SGPropertyNode *imu_ay_node;
-    SGPropertyNode *imu_az_node;
-    SGPropertyNode *imu_hx_node;
-    SGPropertyNode *imu_hy_node;
-    SGPropertyNode *imu_hz_node;
-    SGPropertyNode *imu_temp_node;
-    SGPropertyNode *imu_status_node;
+    pyPropertyNode imu_timestamp_node;
+    pyPropertyNode imu_p_node;
+    pyPropertyNode imu_q_node;
+    pyPropertyNode imu_r_node;
+    pyPropertyNode imu_ax_node;
+    pyPropertyNode imu_ay_node;
+    pyPropertyNode imu_az_node;
+    pyPropertyNode imu_hx_node;
+    pyPropertyNode imu_hy_node;
+    pyPropertyNode imu_hz_node;
+    pyPropertyNode imu_temp_node;
+    pyPropertyNode imu_status_node;
 
     // air data property nodes
-    SGPropertyNode *airdata_timestamp_node;
-    SGPropertyNode *airdata_pressure_node;
-    SGPropertyNode *airdata_temperature_node;
-    SGPropertyNode *airdata_altitude_node;
-    SGPropertyNode *airdata_altitude_true_node;
-    SGPropertyNode *official_altitude_agl_node;
-    SGPropertyNode *airdata_airspeed_node;
-    SGPropertyNode *airdata_climb_fps_node;
-    SGPropertyNode *airdata_wind_dir_node;
-    SGPropertyNode *airdata_wind_speed_node;
-    SGPropertyNode *airdata_pitot_scale_node;
-    SGPropertyNode *airdata_status_node;
+    pyPropertyNode airdata_timestamp_node;
+    pyPropertyNode airdata_pressure_node;
+    pyPropertyNode airdata_temperature_node;
+    pyPropertyNode airdata_altitude_node;
+    pyPropertyNode airdata_altitude_true_node;
+    pyPropertyNode official_altitude_agl_node;
+    pyPropertyNode airdata_airspeed_node;
+    pyPropertyNode airdata_climb_fps_node;
+    pyPropertyNode airdata_wind_dir_node;
+    pyPropertyNode airdata_wind_speed_node;
+    pyPropertyNode airdata_pitot_scale_node;
+    pyPropertyNode airdata_status_node;
 
     // filter property nodes
-    SGPropertyNode *filter_timestamp_node;
-    SGPropertyNode *filter_theta_node;
-    SGPropertyNode *filter_phi_node;
-    SGPropertyNode *filter_psi_node;
-    SGPropertyNode *filter_lat_node;
-    SGPropertyNode *filter_lon_node;
-    SGPropertyNode *filter_alt_node;
-    SGPropertyNode *filter_vn_node;
-    SGPropertyNode *filter_ve_node;
-    SGPropertyNode *filter_vd_node;
-    SGPropertyNode *filter_status_node;
+    pyPropertyNode filter_timestamp_node;
+    pyPropertyNode filter_theta_node;
+    pyPropertyNode filter_phi_node;
+    pyPropertyNode filter_psi_node;
+    pyPropertyNode filter_lat_node;
+    pyPropertyNode filter_lon_node;
+    pyPropertyNode filter_alt_node;
+    pyPropertyNode filter_vn_node;
+    pyPropertyNode filter_ve_node;
+    pyPropertyNode filter_vd_node;
+    pyPropertyNode filter_status_node;
 
     // actuator property nodes
-    SGPropertyNode *act_timestamp_node;
-    SGPropertyNode *act_aileron_node;
-    SGPropertyNode *act_elevator_node;
-    SGPropertyNode *act_throttle_node;
-    SGPropertyNode *act_rudder_node;
-    SGPropertyNode *act_channel5_node;
-    SGPropertyNode *act_channel6_node;
-    SGPropertyNode *act_channel7_node;
-    SGPropertyNode *act_channel8_node;
-    SGPropertyNode *act_status_node;
+    pyPropertyNode act_timestamp_node;
+    pyPropertyNode act_aileron_node;
+    pyPropertyNode act_elevator_node;
+    pyPropertyNode act_throttle_node;
+    pyPropertyNode act_rudder_node;
+    pyPropertyNode act_channel5_node;
+    pyPropertyNode act_channel6_node;
+    pyPropertyNode act_channel7_node;
+    pyPropertyNode act_channel8_node;
+    pyPropertyNode act_status_node;
 
     // pilot input property nodes
-    SGPropertyNode *pilot_timestamp_node;
-    SGPropertyNode *pilot_aileron_node;
-    SGPropertyNode *pilot_elevator_node;
-    SGPropertyNode *pilot_throttle_node;
-    SGPropertyNode *pilot_rudder_node;
-    SGPropertyNode *pilot_channel5_node;
-    SGPropertyNode *pilot_channel6_node;
-    SGPropertyNode *pilot_channel7_node;
-    SGPropertyNode *pilot_channel8_node;
-    SGPropertyNode *pilot_status_node;
+    pyPropertyNode pilot_timestamp_node;
+    pyPropertyNode pilot_aileron_node;
+    pyPropertyNode pilot_elevator_node;
+    pyPropertyNode pilot_throttle_node;
+    pyPropertyNode pilot_rudder_node;
+    pyPropertyNode pilot_channel5_node;
+    pyPropertyNode pilot_channel6_node;
+    pyPropertyNode pilot_channel7_node;
+    pyPropertyNode pilot_channel8_node;
+    pyPropertyNode pilot_status_node;
 
     // autopilot status nodes
-    SGPropertyNode *pressure_ground_alt_node;
-    SGPropertyNode *pressure_error_node;
-    SGPropertyNode *ap_hdg;
-    SGPropertyNode *ap_roll;
-    SGPropertyNode *ap_altitude_agl;
-    SGPropertyNode *ap_altitude_msl;
-    SGPropertyNode *ap_climb;
-    SGPropertyNode *ap_pitch;
-    SGPropertyNode *ap_theta_dot;
-    SGPropertyNode *ap_speed;
-    SGPropertyNode *ap_waypoint;
+    pyPropertyNode pressure_ground_alt_node;
+    pyPropertyNode pressure_error_node;
+    pyPropertyNode ap_hdg;
+    pyPropertyNode ap_roll;
+    pyPropertyNode ap_altitude_agl;
+    pyPropertyNode ap_altitude_msl;
+    pyPropertyNode ap_climb;
+    pyPropertyNode ap_pitch;
+    pyPropertyNode ap_theta_dot;
+    pyPropertyNode ap_speed;
+    pyPropertyNode ap_waypoint;
 
     // system health nodes
-    SGPropertyNode *system_loadavg_node;
-    SGPropertyNode *avionics_vcc_node;
-    SGPropertyNode *extern_volt_node;
-    SGPropertyNode *extern_cell_volt_node;
-    SGPropertyNode *extern_amp_node;
-    SGPropertyNode *extern_mah_node;
+    pyPropertyNode system_loadavg_node;
+    pyPropertyNode avionics_vcc_node;
+    pyPropertyNode extern_volt_node;
+    pyPropertyNode extern_cell_volt_node;
+    pyPropertyNode extern_amp_node;
+    pyPropertyNode extern_mah_node;
 
     // payload status nodes
-    SGPropertyNode *payload_trigger_num_node;
+    pyPropertyNode payload_trigger_num_node;
 
     // console link nodes
-    SGPropertyNode *link_seq_num;
+    pyPropertyNode link_seq_num;
 
     void bind_gps_nodes();
     void bind_imu_nodes();

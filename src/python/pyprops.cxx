@@ -11,6 +11,11 @@ using std::string;
 
 // Constructor
 
+pyPropertyNode::pyPropertyNode()
+{
+    pObj = NULL;
+}
+
 pyPropertyNode::pyPropertyNode(PyObject *p)
 {
     pObj = p;
@@ -22,7 +27,40 @@ pyPropertyNode::~pyPropertyNode() {
     Py_XDECREF(pObj);
 }
 
-// getters
+// test if pObj has named child attribute
+bool pyPropertyNode::hasChild(const char *name) {
+    if ( pObj != NULL ) {
+	if ( PyObject_HasAttrString(pObj, name) ) {
+	    return true;
+	}
+    }
+    return false;
+}
+
+// Return a pyPropertyNode object that points to the named child
+pyPropertyNode pyPropertyNode::getChild(const char *childname, bool create)
+{
+    if ( pObj == NULL ) {
+	return pyPropertyNode();
+    }
+    PyObject *pValue = PyObject_CallMethod(pObj, "getChild", "sb",
+					   childname, create);
+    if (pValue == NULL) {
+	PyErr_Print();
+	fprintf(stderr,"Call failed\n");
+	return pyPropertyNode();
+    }
+
+    // give pValue over to the returned property node
+    return pyPropertyNode(pValue);
+}
+
+// return true if pObj pointer is NULL
+bool pyPropertyNode::isNull() {
+    return pObj == NULL;
+}    
+
+// value getters
 double pyPropertyNode::getDouble(const char *name) {
     double result = 0.0;
     if ( pObj != NULL ) {
@@ -112,7 +150,7 @@ string pyPropertyNode::getString(const char *name) {
     return result;
 }
 
-// setters
+// value setters
 bool pyPropertyNode::setDouble( const char *name, double val ) {
     if ( pObj != NULL ) {
 	PyObject *pFloat = PyFloat_FromDouble(val);
@@ -206,7 +244,7 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
 	Py_XDECREF(pPath);
 	Py_XDECREF(pCreate);
 	fprintf(stderr, "Cannot convert argument\n");
-	return pyPropertyNode(NULL);
+	return pyPropertyNode();
     }
     PyTuple_SetItem(pArgs, 0, pPath);
     PyTuple_SetItem(pArgs, 1, pCreate);
@@ -218,8 +256,8 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
     } else {
 	PyErr_Print();
 	fprintf(stderr,"Call failed\n");
-	return pyPropertyNode(NULL);
+	return pyPropertyNode();
     }
-    return pyPropertyNode(NULL);
+    return pyPropertyNode();
 }
 

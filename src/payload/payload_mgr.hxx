@@ -11,7 +11,7 @@
 #define _AURA_PAYLOAD_MGR_H
 
 
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 
 
 class UGPayloadMgr {

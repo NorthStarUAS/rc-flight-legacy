@@ -1,16 +1,16 @@
 #include <stdio.h>
 
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 
 int main() {
     // allocate the root property node to match extern/global in props.hxx
     props = new SGPropertyNode;
 
     // create new properties on the fly by specifying their paths
-    SGPropertyNode *imu0 = fgGetNode("/sensors/imu", 0, true);
-    SGPropertyNode *imu1 = fgGetNode("/sensors/imu", 1, true);
-    SGPropertyNode *p0 = fgGetNode("/sensors/imu/p", true);
-    SGPropertyNode *lat = fgGetNode("/sensors/gps/latitude-deg", true);
+    SGPropertyNode *imu0 = pyGetNode("/sensors/imu", 0, true);
+    SGPropertyNode *imu1 = pyGetNode("/sensors/imu", 1, true);
+    SGPropertyNode *p0 = pyGetNode("/sensors/imu/p", true);
+    SGPropertyNode *lat = pyGetNode("/sensors/gps/latitude-deg", true);
 
     // create new children of a parent
     SGPropertyNode *q0 = imu0->getChild("q", 0, true);
@@ -23,7 +23,7 @@ int main() {
 
     // test if a path exists
     SGPropertyNode *differential_press
-	= fgGetNode("/sensors/airdata/teensy/i2c_3/adc[14]");
+	= pyGetNode("/sensors/airdata/teensy/i2c_3/adc[14]");
     if ( differential_press == NULL ){
 	printf("adc[14] doesn't exist\n");
     }
@@ -32,7 +32,7 @@ int main() {
     q0->setDoubleValue(5.4321);
 
     // read and print the value
-    printf("imu[0]/q = %.5f\n", q0->getDoubleValue());
+    printf("imu[0]/q = %.5f\n", q0->getDouble());
 
     // read the value as an int
     printf("imu[0]/q (int) = %d\n", q0->getIntValue());

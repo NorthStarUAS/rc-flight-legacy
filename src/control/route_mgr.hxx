@@ -27,13 +27,13 @@
 # error This library requires C++
 #endif
 
+#include "python/pyprops.hxx"
+
 #include <string>
 #include <vector>
-
 using std::string;
 using std::vector;
 
-#include "props/props.hxx"
 #include "route.hxx"
 
 
@@ -74,41 +74,41 @@ private:
     SGRoute *standby;
 
     // route configuration tree
-    SGPropertyNode *config_props;
+    pyPropertyNode config_props;
 
     // home
-    SGPropertyNode *home_lon_node;
-    SGPropertyNode *home_lat_node;
-    SGPropertyNode *home_azimuth_node;
+    pyPropertyNode home_lon_node;
+    pyPropertyNode home_lat_node;
+    pyPropertyNode home_azimuth_node;
 
     double last_lon;
     double last_lat;
     double last_az;
 
     // route following configuration
-    SGPropertyNode *bank_limit_node;
-    SGPropertyNode *L1_period_node;
-    SGPropertyNode *L1_damping_node;
-    SGPropertyNode *xtrack_gain_node;
+    pyPropertyNode bank_limit_node;
+    pyPropertyNode L1_period_node;
+    pyPropertyNode L1_damping_node;
+    pyPropertyNode xtrack_gain_node;
 
     // automatic inputs
-    SGPropertyNode *lon_node;
-    SGPropertyNode *lat_node;
-    SGPropertyNode *alt_node;
-    SGPropertyNode *groundspeed_node;
-    SGPropertyNode *groundtrack_node;
+    pyPropertyNode lon_node;
+    pyPropertyNode lat_node;
+    pyPropertyNode alt_node;
+    pyPropertyNode groundspeed_node;
+    pyPropertyNode groundtrack_node;
 
     // automatic outputs
-    SGPropertyNode *target_heading_error_deg;
-    SGPropertyNode *target_course_deg;
-    SGPropertyNode *ap_roll_node;
-    SGPropertyNode *target_agl_node;
-    SGPropertyNode *target_msl_node;
-    SGPropertyNode *target_waypoint;
-    SGPropertyNode *wp_dist_m;
-    SGPropertyNode *wp_eta_sec;
-    SGPropertyNode *xtrack_dist_m;
-    SGPropertyNode *proj_dist_m;
+    pyPropertyNode target_heading_error_deg;
+    pyPropertyNode target_course_deg;
+    pyPropertyNode ap_roll_node;
+    pyPropertyNode target_agl_node;
+    pyPropertyNode target_msl_node;
+    pyPropertyNode target_waypoint;
+    pyPropertyNode wp_dist_m;
+    pyPropertyNode wp_eta_sec;
+    pyPropertyNode xtrack_dist_m;
+    pyPropertyNode proj_dist_m;
 
     // route behaviors
     StartMode start_mode;
@@ -129,7 +129,7 @@ public:
 
     void bind();
 
-    void init( SGPropertyNode *branch );
+    void init( pyPropertyNode *branch );
 
     // set route start mode
     inline void set_start_mode( enum StartMode mode ) {

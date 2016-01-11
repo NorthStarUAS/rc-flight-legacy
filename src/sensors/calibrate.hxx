@@ -23,7 +23,7 @@
 #ifndef _AURA_CALIBRATE_HXX
 #define _AURA_CALIBRATE_HXX
 
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 
 
 class UGCalibrate {

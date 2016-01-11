@@ -33,7 +33,7 @@
 using std::string;
 using std::vector;
 
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "route.hxx"
 
 

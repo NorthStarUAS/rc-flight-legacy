@@ -16,7 +16,7 @@ using std::string;
 
 #include "comms/display.h"
 #include "comms/netSocket.h"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "util/strutils.hxx"
 #include "util/timing.h"
 #include "gps_mgr.hxx"
@@ -67,7 +67,7 @@ static void bind_input( SGPropertyNode *config ) {
 
 // initialize gpsd output property nodes 
 static void bind_output( string rootname ) {
-    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
     gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
     gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
@@ -206,8 +206,8 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	    gps_ve_node->setDoubleValue( cos(angle_rad) * speed_mps );
 	    /* printf("mps=%.1f deg=%.1f rad=%.3f vn=%.1f ve=%.1f\n",
 		   speed_mps, course_deg, angle_rad,
-		   gps_vn_node->getDoubleValue(),
-		   gps_ve_node->getDoubleValue()); */
+		   gps_vn_node->getDouble(),
+		   gps_ve_node->getDouble()); */
 	}
 	// if ( gps_data.date > last_unix_time && last_unix_time > 0.0 ) {
 	//   gps_data.vd = (gps_data.alt - last_alt_m) * (gps_data.date - last_unix_time);
@@ -217,8 +217,8 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	if ( token[10] != "?" ) {
 	    gps_vd_node->setDoubleValue( -atof(token[10].c_str()) );
 	}
-	if ( gps_unix_sec_node->getDoubleValue() > last_gps_sec ) {
-	    last_gps_sec = gps_unix_sec_node->getDoubleValue();
+	if ( gps_unix_sec_node->getDouble() > last_gps_sec ) {
+	    last_gps_sec = gps_unix_sec_node->getDouble();
 	    gps_timestamp_node->setDoubleValue( get_Time() );
 	    new_position = true;
 	}
@@ -281,7 +281,7 @@ bool gpsd_get_gps() {
     // If more than 5 seconds has elapsed without seeing new data and
     // our last init attempt was more than 5 seconds ago, try
     // resending the init sequence.
-    double gps_timestamp = gps_timestamp_node->getDoubleValue();
+    double gps_timestamp = gps_timestamp_node->getDouble();
     if ( get_Time() > gps_timestamp + 5 && get_Time() > last_init_time + 5 ) {
 	gpsd_send_init();
     }

@@ -9,7 +9,7 @@
 
 #include "include/globaldefs.h"
 
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 
 
 // function prototypes

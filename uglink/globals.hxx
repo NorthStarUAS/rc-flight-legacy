@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 
 
 struct gps {

@@ -4,96 +4,68 @@
 // of Flightgear
 //
 
+#include "python/pyprops.hxx"
+
 #include <stdio.h>
 #include <string>
 #include <string.h>
 
 #include "comms/netSocket.h"
 #include "init/globals.hxx"
-#include "props/props.hxx"
 #include "util/timing.h"
 
 #include "act_fgfs.hxx"
-
 
 static netSocket sock;
 static int port = 0;
 static string hostname = "";
 
-// fgfs_imu property nodes
-static SGPropertyNode *configroot = NULL;
-static SGPropertyNode *act_host_node = NULL;
-static SGPropertyNode *act_port_node = NULL;
-
-// actuator property nodes
-static SGPropertyNode *act_timestamp_node = NULL;
-static SGPropertyNode *act_aileron_node = NULL;
-static SGPropertyNode *act_elevator_node = NULL;
-static SGPropertyNode *act_throttle_node = NULL;
-static SGPropertyNode *act_rudder_node = NULL;
-static SGPropertyNode *act_channel5_node = NULL;
-static SGPropertyNode *act_channel6_node = NULL;
-static SGPropertyNode *act_channel7_node = NULL;
-static SGPropertyNode *act_channel8_node = NULL;
+// property nodes
+static pyPropertyNode act_node;
+static pyPropertyNode ap_node;
+static pyPropertyNode orient_node;
+static pyPropertyNode pos_node;
+static pyPropertyNode route_node;
 
 // additional autopilot target nodes (note this is a hack, but we are
 // sending data back to FG in this module so it makes some sense to
 // include autopilot targets.)
-static SGPropertyNode *ap_target_bank_deg = NULL;
-static SGPropertyNode *ap_target_pitch_deg = NULL;
-static SGPropertyNode *ap_target_ground_track_deg = NULL;
-static SGPropertyNode *ap_target_climb_fps = NULL;
-static SGPropertyNode *filter_ground_alt_m_node = NULL;
-static SGPropertyNode *ap_altitude_agl = NULL;
-static SGPropertyNode *ap_target_speed_kt = NULL;
-static SGPropertyNode *ap_heading_deg = NULL;
-static SGPropertyNode *ap_ground_track_deg = NULL;
-static SGPropertyNode *ap_dist_m = NULL;
-static SGPropertyNode *ap_eta_sec = NULL;
+//static pyPropertyNode ap_heading_deg;
+//static pyPropertyNode ap_ground_track_deg;
+//static pyPropertyNode ap_dist_m;
+//static pyPropertyNode ap_eta_sec;
+//static pyPropertyNode filter_ground_alt_m_node;
 
 // initialize fgfs_gps input property nodes
-static void bind_input( SGPropertyNode *config ) {
-    act_host_node = config->getChild("host");
-    if ( act_host_node != NULL ) {
-	hostname = act_host_node->getStringValue();
+static void bind_input( pyPropertyNode *config ) {
+    if ( config->hasChild("host") ) {
+	hostname = config->getString("host");
     }
-    act_port_node = config->getChild("port");
-    if ( act_port_node != NULL ) {
-	port = act_port_node->getIntValue();
+    if ( config->hasChild("port") ) {
+	port = config->getLong("port");
     }
-    configroot = config;
 }
 
 
 /// initialize actuator property nodes 
 static void bind_act_nodes() {
-    act_timestamp_node = fgGetNode("/actuators/actuator/time-stamp", true);
-    act_aileron_node = fgGetNode("/actuators/actuator/channel", 0, true);
-    act_elevator_node = fgGetNode("/actuators/actuator/channel", 1, true);
-    act_throttle_node = fgGetNode("/actuators/actuator/channel", 2, true);
-    act_rudder_node = fgGetNode("/actuators/actuator/channel", 3, true);
-    act_channel5_node = fgGetNode("/actuators/actuator/channel", 4, true);
-    act_channel6_node = fgGetNode("/actuators/actuator/channel", 5, true);
-    act_channel7_node = fgGetNode("/actuators/actuator/channel", 6, true);
-    act_channel8_node = fgGetNode("/actuators/actuator/channel", 7, true);
+    act_node = pyGetNode("/actuators/actuator", true);
+    ap_node = pyGetNode("/autopilot/settings", true);
+    orient_node = pyGetNode("/orientation", true);
+    pos_node = pyGetNode("/position", true);
+    route_node = pyGetNode("/task/route", true);    
 
-    ap_target_bank_deg = fgGetNode("/autopilot/settings/target-roll-deg", true);
-    ap_target_pitch_deg = fgGetNode( "/autopilot/settings/target-pitch-deg", true );
-    ap_heading_deg = fgGetNode( "/orientation/heading-deg", true );
-    ap_target_ground_track_deg = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
-    ap_target_climb_fps = fgGetNode("/autopilot/internal/target-climb-rate-fps", true);
-    filter_ground_alt_m_node
-	= fgGetNode("/position/altitude-ground-m", true);
-    ap_altitude_agl = fgGetNode( "/autopilot/settings/target-agl-ft", true );
-    ap_target_speed_kt = fgGetNode( "/autopilot/settings/target-speed-kt", true );
-    ap_ground_track_deg = fgGetNode( "/orientation/groundtrack-deg", true );
-    ap_dist_m = fgGetNode( "/task/route/wp-dist-m", true );
-    ap_eta_sec =  fgGetNode( "/task/route/wp-eta-sec", true );
+    //ap_heading_deg = pyGetNode( "/orientation/heading-deg", true );
+    //filter_ground_alt_m_node
+    // = pyGetNode("/position/altitude-ground-m", true);
+    // ap_ground_track_deg = pyGetNode( "/orientation/groundtrack-deg", true );
+    //ap_dist_m = pyGetNode( "/task/route/wp-dist-m", true );
+    //ap_eta_sec =  pyGetNode( "/task/route/wp-eta-sec", true );
 }
 
 
 // function prototypes
-bool fgfs_act_init( SGPropertyNode *config ) {
+bool fgfs_act_init( pyPropertyNode *config ) {
     printf("actuator_init()\n");
 
     bind_input( config );
@@ -136,68 +108,68 @@ bool fgfs_act_update() {
     uint8_t packet_buf[fgfs_act_size];
     uint8_t *buf = packet_buf;
 
-    double time = act_timestamp_node->getDoubleValue();
+    double time = act_node.getDouble("timestamp");
     *(double *)buf = time; buf += 8;
 
-    float ail = act_aileron_node->getFloatValue();
+    float ail = act_node.getDouble("channel[0]");
     *(float *)buf = ail; buf += 4;
 
-    float ele = act_elevator_node->getFloatValue();
+    float ele = act_node.getDouble("channel[1]");
     *(float *)buf = ele; buf += 4;
 
-    float thr = act_throttle_node->getFloatValue();
+    float thr = act_node.getDouble("channel[2]");
     *(float *)buf = thr; buf += 4;
 
-    float rud = act_rudder_node->getFloatValue();
+    float rud = act_node.getDouble("channel[3]");
     *(float *)buf = rud; buf += 4;
 
-    float ch5 = act_channel5_node->getFloatValue();
+    float ch5 = act_node.getDouble("channel[4]");
     *(float *)buf = ch5; buf += 4;
 
-    float ch6 = act_channel6_node->getFloatValue();
+    float ch6 = act_node.getDouble("channel[5]");
     *(float *)buf = ch6; buf += 4;
 
-    float ch7 = act_channel7_node->getFloatValue();
+    float ch7 = act_node.getDouble("channel[6]");
     *(float *)buf = ch7; buf += 4;
 
-    float ch8 = act_channel8_node->getFloatValue();
+    float ch8 = act_node.getDouble("channel[7]");
     *(float *)buf = ch8; buf += 4;
 
-    float bank = ap_target_bank_deg->getFloatValue() * 100 + 18000.0;
+    float bank = ap_node.getDouble("target_roll_deg") * 100 + 18000.0;
     *(float *)buf = bank; buf += 4;
 
-    float pitch = ap_target_pitch_deg->getFloatValue() * 100 + 9000.0;
+    float pitch = ap_node.getDouble("target_pitch_deg") * 100 + 9000.0;
     *(float *)buf = pitch; buf += 4;
 
-    float target_track_offset = ap_target_ground_track_deg->getFloatValue()
-	- ap_heading_deg->getFloatValue();
+    float target_track_offset = ap_node.getDouble("target_groundtrack_deg")
+	- orient_node.getDouble("heading-deg");
     if ( target_track_offset < -180 ) { target_track_offset += 360.0; }
     if ( target_track_offset > 180 ) { target_track_offset -= 360.0; }
     float hdg = target_track_offset * 100 + 36000.0;
     *(float *)buf = hdg; buf += 4;
 
-    float climb = ap_target_climb_fps->getFloatValue() * 1000 + 100000.0;
+    float climb = ap_node.getDouble("target_climb_rate_fps") * 1000 + 100000.0;
     *(float *)buf = climb; buf += 4;
 
-    float alt_agl_ft = ap_altitude_agl->getFloatValue();
-    float ground_m = filter_ground_alt_m_node->getFloatValue();
+    float alt_agl_ft = ap_node.getDouble("target_agl_ft");
+    float ground_m = pos_node.getDouble("altitude-ground-m");
     float alt_msl_ft = (ground_m * SG_METER_TO_FEET + alt_agl_ft) * 100.0;
     *(float *)buf = alt_msl_ft; buf += 4;
 
-    float speed = ap_target_speed_kt->getFloatValue() * 100;
+    float speed = ap_node.getDouble("target-speed-kt") * 100;
     *(float *)buf = speed; buf += 4;
 
-    float track_offset = ap_ground_track_deg->getFloatValue()
-	- ap_heading_deg->getFloatValue();
+    float track_offset = orient_node.getDouble("groundtrack-deg")
+	- orient_node.getDouble("heading-deg");
     if ( track_offset < -180 ) { track_offset += 360.0; }
     if ( track_offset > 180 ) { track_offset -= 360.0; }
     float offset = track_offset * 100 + 36000.0;
     *(float *)buf = offset; buf += 4;
 
-    float dist = ap_dist_m->getFloatValue() / 10.0;
+    float dist = route_node.getDouble("wp-dist-m") / 10.0;
     *(float *)buf = dist; buf += 4;
 
-    float eta = ap_eta_sec->getFloatValue();
+    float eta = route_node.getDouble("wp-eta-sec");
     *(float *)buf = eta; buf += 4;
 
     if ( ulIsLittleEndian ) {

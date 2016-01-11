@@ -85,24 +85,24 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
         if ( cname == "id" ) {
             id = cval;
         } else if ( cname == "lon" ) {
-            target_lon = child->getDoubleValue();
+            target_lon = child->getDouble();
 	    mode = ABSOLUTE;
         } else if ( cname == "lat" ) {
-            target_lat = child->getDoubleValue();
+            target_lat = child->getDouble();
 	    mode = ABSOLUTE;
         } else if ( cname == "alt-ft" ) {
-            target_alt_m = child->getDoubleValue() * SG_FEET_TO_METER;
+            target_alt_m = child->getDouble() * SG_FEET_TO_METER;
         } else if ( cname == "agl-ft" ) {
-            target_agl_m = child->getDoubleValue() * SG_FEET_TO_METER;
+            target_agl_m = child->getDouble() * SG_FEET_TO_METER;
         } else if ( cname == "speed-kt" ) {
-            target_speed_kt = child->getDoubleValue();
+            target_speed_kt = child->getDouble();
         } else if ( cname == "bank-deg" ) {
-            target_bank_deg = child->getDoubleValue();
+            target_bank_deg = child->getDouble();
         } else if ( cname == "offset-heading-deg" ) {
-            offset_hdg_deg = child->getDoubleValue();
+            offset_hdg_deg = child->getDouble();
 	    mode = RELATIVE;
         } else if ( cname == "offset-dist-m" ) {
-            offset_dist_m = child->getDoubleValue();
+            offset_dist_m = child->getDouble();
 	    mode = RELATIVE;
         } else {
             printf("Error in waypoint config logic, " );

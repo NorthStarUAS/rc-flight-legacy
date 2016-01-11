@@ -1,3 +1,6 @@
+#ifndef _AURA_PYPROPS_HXX
+#define _AURA_PYPROPS_HXX
+
 #include <Python.h>
 
 #include <string>
@@ -11,18 +14,25 @@ class pyPropertyNode
 {
 public:
     // Constructor.
+    pyPropertyNode();
     pyPropertyNode(PyObject *p);
 
     // Destructor.
     ~pyPropertyNode();
 
-    // getters
+    bool hasChild( const char *name );
+    pyPropertyNode getChild( const char *name, bool create=false );
+
+    // return true if pObj pointer is NULL
+    bool isNull();
+    
+    // value getters
     double getDouble( const char *name ); // return value as a double
     long getLong( const char *name );	  // return value as a long
     bool getBool( const char *name );	  // return value as a boolean
     string getString( const char *name ); // return value as a string
     
-    // setters
+    // value setters
     bool setDouble( const char *name, double val ); // returns true if successful
     bool setLong( const char *name, long val );     // returns true if successful
     bool setBool( const char *name, bool val );     // returns true if successful
@@ -50,3 +60,4 @@ extern void pyPropsCleanup(void);
 // access in your update routines.
 pyPropertyNode pyGetNode(string abs_path, bool create=false);
 
+#endif // _AURA_PYPROPS_HXX

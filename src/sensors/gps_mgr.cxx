@@ -18,7 +18,7 @@
 #include "comms/remote_link.h"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "util/coremag.h"
 #include "util/myprof.h"
 #include "util/timing.h"
@@ -58,22 +58,22 @@ static bool set_system_time = false;
 
 
 void GPS_init() {
-    gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
-    gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
-    gps_status_node = fgGetNode("/sensors/gps/status", true);
-    gps_magvar_deg_node = fgGetNode("/sensors/gps/magvar-deg", true);
-    gps_settle_node = fgGetNode("/sensors/gps/settle", true);
+    gps_timestamp_node = pyGetNode("/sensors/gps/time-stamp", true);
+    gps_unix_sec_node = pyGetNode("/sensors/gps/unix-time-sec", true);
+    gps_status_node = pyGetNode("/sensors/gps/status", true);
+    gps_magvar_deg_node = pyGetNode("/sensors/gps/magvar-deg", true);
+    gps_settle_node = pyGetNode("/sensors/gps/settle", true);
     gps_settle_node->setBoolValue(false);
 
     // initialize magnetic variation property nodes
-    magvar_init_deg_node = fgGetNode("/config/filters/magvar-deg", true);
+    magvar_init_deg_node = pyGetNode("/config/filters/magvar-deg", true);
 
     // initialize comm nodes
-    gps_console_skip = fgGetNode("/config/remote-link/gps-skip", true);
-    gps_logging_skip = fgGetNode("/config/logging/gps-skip", true);
+    gps_console_skip = pyGetNode("/config/remote-link/gps-skip", true);
+    gps_logging_skip = pyGetNode("/config/logging/gps-skip", true);
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/gps-group", true);
+    SGPropertyNode *toplevel = pyGetNode("/config/sensors/gps-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -119,22 +119,22 @@ static void compute_magvar() {
 	 || strlen(magvar_init_deg_node->getStringValue()) == 0 )
     {
 	SGPropertyNode *date_node
-	    = fgGetNode("/sensors/gps/unix-time-sec", true);
+	    = pyGetNode("/sensors/gps/unix-time-sec", true);
 	SGPropertyNode *lat_node
-	    = fgGetNode("/sensors/gps/latitude-deg", true);
+	    = pyGetNode("/sensors/gps/latitude-deg", true);
 	SGPropertyNode *lon_node
-	    = fgGetNode("/sensors/gps/longitude-deg", true);
+	    = pyGetNode("/sensors/gps/longitude-deg", true);
 	SGPropertyNode *alt_node
-	    = fgGetNode("/sensors/gps/altitude-m", true);
+	    = pyGetNode("/sensors/gps/altitude-m", true);
 	long int jd = unixdate_to_julian_days( date_node->getIntValue() );
 	double field[6];
 	magvar_rad
-	    = calc_magvar( lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
-			   lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
-			   alt_node->getDoubleValue() / 1000.0,
+	    = calc_magvar( lat_node->getDouble() * SGD_DEGREES_TO_RADIANS,
+			   lon_node->getDouble() * SGD_DEGREES_TO_RADIANS,
+			   alt_node->getDouble() / 1000.0,
 			   jd, field );
     } else {
-	magvar_rad = magvar_init_deg_node->getDoubleValue()
+	magvar_rad = magvar_init_deg_node->getDouble()
 	    * SGD_DEGREES_TO_RADIANS;
     }
     gps_magvar_deg_node->setDoubleValue( magvar_rad * SG_RADIANS_TO_DEGREES );
@@ -148,7 +148,7 @@ bool GPS_update() {
     static int gps_state = 0;
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/gps-group", true);
+    SGPropertyNode *toplevel = pyGetNode("/config/sensors/gps-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();
@@ -188,7 +188,7 @@ bool GPS_update() {
 
     if ( fresh_data ) {
 	// for computing gps data age
-	gps_last_time = gps_timestamp_node->getDoubleValue();
+	gps_last_time = gps_timestamp_node->getDouble();
 
 	if ( remote_link_on || log_to_file ) {
 	    uint8_t buf[256];
@@ -205,9 +205,9 @@ bool GPS_update() {
     }
     if ( gps_status_node->getIntValue() == 2 && !gps_state ) {
 	const double gps_settle = 10.0;
-	static double gps_acq_time = gps_timestamp_node->getDoubleValue();
+	static double gps_acq_time = gps_timestamp_node->getDouble();
 	static double last_time = 0.0;
-	double cur_time = gps_timestamp_node->getDoubleValue();
+	double cur_time = gps_timestamp_node->getDouble();
 	// if ( display_on ) {
 	//     printf("gps first aquired = %.3f  cur time = %.3f\n",
 	//	   gps_acq_time, cur_time);
@@ -227,7 +227,7 @@ bool GPS_update() {
 	    gettimeofday( &system_time, NULL );
 	    double system_clock = (double)system_time.tv_sec +
 		(double)system_time.tv_usec / 1000000;
-	    double gps_clock = gps_unix_sec_node->getDoubleValue();
+	    double gps_clock = gps_unix_sec_node->getDouble();
 	    if ( fabs( system_clock - gps_clock ) > 300 ) {
 		// if system clock is off from gps clock by more than
 		// 300 seconds (5 minutes) attempt to set system clock
@@ -251,7 +251,7 @@ bool GPS_update() {
 	    
 	    if ( display_on ) {
 		printf("[gps_mgr] gps ready, magvar = %.2f (deg)\n",
-		       gps_magvar_deg_node->getDoubleValue() );
+		       gps_magvar_deg_node->getDouble() );
 	    }
 	} else {
 	    if ( display_on ) {
@@ -271,7 +271,7 @@ bool GPS_update() {
 void GPS_close() {
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/gps-group", true);
+    SGPropertyNode *toplevel = pyGetNode("/config/sensors/gps-group", true);
     for ( int i = 0; i < toplevel->nChildren(); ++i ) {
 	SGPropertyNode *section = toplevel->getChild(i);
 	string name = section->getName();

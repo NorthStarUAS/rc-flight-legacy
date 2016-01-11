@@ -1026,7 +1026,7 @@ SGPropertyNode::getBoolValue () const
     return get_double() == 0.0L ? false : true;
   case STRING:
   case UNSPECIFIED:
-    return (compare_strings(get_string(), "true") || getDoubleValue() != 0.0L);
+    return (compare_strings(get_string(), "true") || getDouble() != 0.0L);
   case NONE:
   default:
     return SGRawValue<bool>::DefaultValue;
@@ -1100,7 +1100,7 @@ SGPropertyNode::getLongValue () const
 }
 
 float 
-SGPropertyNode::getFloatValue () const
+SGPropertyNode::getDouble () const
 {
 				// Shortcut for common case
   if (_attr == (READ|WRITE) && _type == FLOAT)
@@ -1112,7 +1112,7 @@ SGPropertyNode::getFloatValue () const
     return SGRawValue<float>::DefaultValue;
   switch (_type) {
   case ALIAS:
-    return _value.alias->getFloatValue();
+    return _value.alias->getDouble();
   case BOOL:
     return float(get_bool());
   case INT:
@@ -1133,7 +1133,7 @@ SGPropertyNode::getFloatValue () const
 }
 
 double 
-SGPropertyNode::getDoubleValue () const
+SGPropertyNode::getDouble () const
 {
 				// Shortcut for common case
   if (_attr == (READ|WRITE) && _type == DOUBLE)
@@ -1146,7 +1146,7 @@ SGPropertyNode::getDoubleValue () const
 
   switch (_type) {
   case ALIAS:
-    return _value.alias->getDoubleValue();
+    return _value.alias->getDouble();
   case BOOL:
     return double(get_bool());
   case INT:
@@ -1599,7 +1599,7 @@ SGPropertyNode::tie (const SGRawValue<float> &rawValue, bool useDefault)
   useDefault = useDefault && hasValue();
   float old_val = 0.0;
   if (useDefault)
-    old_val = getFloatValue();
+    old_val = getDouble();
 
   clearValue();
   _type = FLOAT;
@@ -1621,7 +1621,7 @@ SGPropertyNode::tie (const SGRawValue<double> &rawValue, bool useDefault)
   useDefault = useDefault && hasValue();
   double old_val = 0.0;
   if (useDefault)
-    old_val = getDoubleValue();
+    old_val = getDouble();
 
   clearValue();
   _type = DOUBLE;
@@ -1686,14 +1686,14 @@ SGPropertyNode::untie ()
     break;
   }
   case FLOAT: {
-    float val = getFloatValue();
+    float val = getDouble();
     clearValue();
     _type = FLOAT;
     _local_val.float_val = val;
     break;
   }
   case DOUBLE: {
-    double val = getDoubleValue();
+    double val = getDouble();
     clearValue();
     _type = DOUBLE;
     _local_val.double_val = val;
@@ -1842,11 +1842,11 @@ SGPropertyNode::getLongValue (const char * relative_path,
  * Get a float value for another node.
  */
 float
-SGPropertyNode::getFloatValue (const char * relative_path,
+SGPropertyNode::getDouble (const char * relative_path,
 			       float defaultValue) const
 {
   const SGPropertyNode * node = getNode(relative_path);
-  return (node == 0 ? defaultValue : node->getFloatValue());
+  return (node == 0 ? defaultValue : node->getDouble());
 }
 
 
@@ -1854,11 +1854,11 @@ SGPropertyNode::getFloatValue (const char * relative_path,
  * Get a double value for another node.
  */
 double
-SGPropertyNode::getDoubleValue (const char * relative_path,
+SGPropertyNode::getDouble (const char * relative_path,
 				double defaultValue) const
 {
   const SGPropertyNode * node = getNode(relative_path);
-  return (node == 0 ? defaultValue : node->getDoubleValue());
+  return (node == 0 ? defaultValue : node->getDouble());
 }
 
 

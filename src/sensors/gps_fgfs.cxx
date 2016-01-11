@@ -9,7 +9,7 @@
 #include <string.h>
 
 #include "comms/netSocket.h"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "util/timing.h"
 
 #include "gps_fgfs.hxx"
@@ -47,7 +47,7 @@ static void bind_input( SGPropertyNode *config ) {
 
 /// initialize gps output property nodes 
 static void bind_gps_output( string rootname ) {
-    outputroot = fgGetNode( rootname.c_str(), true );
+    outputroot = pyGetNode( rootname.c_str(), true );
 
     gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
     gps_lat_node = outputroot->getChild("latitude-deg", 0, true);

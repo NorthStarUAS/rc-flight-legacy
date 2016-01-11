@@ -15,7 +15,7 @@
 #include <stdlib.h> // temp: exit()
 
 #include "include/globaldefs.h"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "sensors/gps_mgr.hxx"
 
 #include "math/SGMath.hxx"
@@ -83,28 +83,28 @@ static SGVec3d gyro_bias;
 // bind to property tree
 static bool bind_properties( string rootname ) {
     // initialize imu property nodes
-    imu_timestamp_node = fgGetNode("/sensors/imu/timestamp");
-    imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
-    imu_q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
-    imu_r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
-    imu_ax_node = fgGetNode("/sensors/imu/ax-mps_sec", true);
-    imu_ay_node = fgGetNode("/sensors/imu/ay-mps_sec", true);
-    imu_az_node = fgGetNode("/sensors/imu/az-mps_sec", true);
-    imu_hx_node = fgGetNode("/sensors/imu/hx", true);
-    imu_hy_node = fgGetNode("/sensors/imu/hy", true);
-    imu_hz_node = fgGetNode("/sensors/imu/hz", true);
+    imu_timestamp_node = pyGetNode("/sensors/imu/timestamp");
+    imu_p_node = pyGetNode("/sensors/imu/p-rad_sec", true);
+    imu_q_node = pyGetNode("/sensors/imu/q-rad_sec", true);
+    imu_r_node = pyGetNode("/sensors/imu/r-rad_sec", true);
+    imu_ax_node = pyGetNode("/sensors/imu/ax-mps_sec", true);
+    imu_ay_node = pyGetNode("/sensors/imu/ay-mps_sec", true);
+    imu_az_node = pyGetNode("/sensors/imu/az-mps_sec", true);
+    imu_hx_node = pyGetNode("/sensors/imu/hx", true);
+    imu_hy_node = pyGetNode("/sensors/imu/hy", true);
+    imu_hz_node = pyGetNode("/sensors/imu/hz", true);
 
     // initialize gps property nodes
-    gps_time_stamp_node = fgGetNode("/sensors/gps/time-stamp", true);
-    gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
-    gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
-    gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
-    gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
-    gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
-    gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
+    gps_time_stamp_node = pyGetNode("/sensors/gps/time-stamp", true);
+    gps_lat_node = pyGetNode("/sensors/gps/latitude-deg", true);
+    gps_lon_node = pyGetNode("/sensors/gps/longitude-deg", true);
+    gps_alt_node = pyGetNode("/sensors/gps/altitude-m", true);
+    gps_ve_node = pyGetNode("/sensors/gps/ve-ms", true);
+    gps_vn_node = pyGetNode("/sensors/gps/vn-ms", true);
+    gps_vd_node = pyGetNode("/sensors/gps/vd-ms", true);
 
     // initialize ahrs output nodes 
-    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
+    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
     filter_theta_node = outputroot->getChild("pitch-deg", 0, true);
     filter_phi_node = outputroot->getChild("roll-deg", 0, true);
     filter_psi_node = outputroot->getChild("heading-deg", 0, true);
@@ -473,45 +473,45 @@ int curt_adns_update( double imu_dt ) {
     static double last_gps_time = 0.0;
 
     if ( GPS_age() < 1 && !init_pos ) {
-	last_gps_time = gps_time_stamp_node->getDoubleValue();
-	SGGeod pos = SGGeod::fromDegM( gps_lon_node->getDoubleValue(),
-				       gps_lat_node->getDoubleValue(),
-				       gps_alt_node->getDoubleValue() );
-	SGVec3d vel = SGVec3d( gps_vn_node->getDoubleValue(),
-			       gps_ve_node->getDoubleValue(),
-			       gps_vd_node->getDoubleValue() );
+	last_gps_time = gps_time_stamp_node->getDouble();
+	SGGeod pos = SGGeod::fromDegM( gps_lon_node->getDouble(),
+				       gps_lat_node->getDouble(),
+				       gps_alt_node->getDouble() );
+	SGVec3d vel = SGVec3d( gps_vn_node->getDouble(),
+			       gps_ve_node->getDouble(),
+			       gps_vd_node->getDouble() );
 	// vel[0] = 0.0; vel[1] = 0.0; vel[2] = 0.0; // test values
 	set_initial_conditions( pos, vel );
 	init_pos = true;
     }	    
     if ( init_pos ) {
-	double imu_time = imu_timestamp_node->getDoubleValue();
-	SGVec3d gyro = SGVec3d( imu_p_node->getDoubleValue(),
-				imu_q_node->getDoubleValue(),
-				imu_r_node->getDoubleValue() );
-	SGVec3d accel = SGVec3d( imu_ax_node->getDoubleValue(),
-				 imu_ay_node->getDoubleValue(),
-				 imu_az_node->getDoubleValue() );
-	SGVec3d mag = SGVec3d( imu_hx_node->getDoubleValue(),
-			       imu_hy_node->getDoubleValue(),
-			       imu_hz_node->getDoubleValue() );
+	double imu_time = imu_timestamp_node->getDouble();
+	SGVec3d gyro = SGVec3d( imu_p_node->getDouble(),
+				imu_q_node->getDouble(),
+				imu_r_node->getDouble() );
+	SGVec3d accel = SGVec3d( imu_ax_node->getDouble(),
+				 imu_ay_node->getDouble(),
+				 imu_az_node->getDouble() );
+	SGVec3d mag = SGVec3d( imu_hx_node->getDouble(),
+			       imu_hy_node->getDouble(),
+			       imu_hz_node->getDouble() );
 
 	// imu_dt = 0.02;
 	// gyro = SGVec3d(0.0, 0.0, 0.01745); // 0.01745 = 1 deg/sec
 	// accel = SGVec3d(1.0, 0.0, 0.0);    // m/s
 	propagate_ins( imu_dt, gyro, accel, mag );
 
-	double gps_time = gps_time_stamp_node->getDoubleValue();
+	double gps_time = gps_time_stamp_node->getDouble();
 	if ( gps_time > last_gps_time ) {
 	    double gps_dt = gps_time - last_gps_time;
 	    last_gps_time = gps_time;
 
-	    SGGeod gps_pos = SGGeod::fromDegM( gps_lon_node->getDoubleValue(),
-					       gps_lat_node->getDoubleValue(),
-					       gps_alt_node->getDoubleValue() );
-	    SGVec3d gps_vel = SGVec3d( gps_vn_node->getDoubleValue(),
-				       gps_ve_node->getDoubleValue(),
-				       gps_vd_node->getDoubleValue() );
+	    SGGeod gps_pos = SGGeod::fromDegM( gps_lon_node->getDouble(),
+					       gps_lat_node->getDouble(),
+					       gps_alt_node->getDouble() );
+	    SGVec3d gps_vel = SGVec3d( gps_vn_node->getDouble(),
+				       gps_ve_node->getDouble(),
+				       gps_vd_node->getDouble() );
 
 	    update_ins( gps_dt, gps_pos, gps_vel );
 	}

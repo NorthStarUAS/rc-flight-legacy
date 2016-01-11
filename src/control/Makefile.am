@@ -9,4 +9,4 @@ libcontrol_a_SOURCES = \
 	waypoint.cxx waypoint.hxx \
 	xmlauto.cxx xmlauto.hxx
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@

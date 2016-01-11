@@ -14,7 +14,7 @@
 #include "comms/logging.h"
 #include "comms/remote_link.h"
 #include "init/globals.hxx"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 
 #include "payload_mgr.hxx"
 
@@ -34,11 +34,11 @@ UGPayloadMgr::~UGPayloadMgr() {
 
 
 void UGPayloadMgr::bind() {
-    // config_props = fgGetNode( "/config/payload", true );
+    // config_props = pyGetNode( "/config/payload", true );
 
     // initialize comm nodes
-    payload_console_skip = fgGetNode("/config/remote-link/payload-skip", true);
-    payload_logging_skip = fgGetNode("/config/logging/payload-skip", true);
+    payload_console_skip = pyGetNode("/config/remote-link/payload-skip", true);
+    payload_logging_skip = pyGetNode("/config/logging/payload-skip", true);
 }
 
 

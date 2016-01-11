@@ -15,7 +15,7 @@
 
 #include "control/control.h"
 #include "init/globals.hxx" 	// packetizer
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 #include "props/props_io.hxx"
 #include "util/strutils.hxx"
 
@@ -162,7 +162,7 @@ PropsChannel::foundTerminator()
 
     vector<string> tokens = split( cmd );
 
-    SGPropertyNode* node = fgGetNode( path.c_str() );
+    SGPropertyNode* node = pyGetNode( path.c_str() );
 
     if (!tokens.empty()) {
 	string command = tokens[0];
@@ -173,12 +173,12 @@ PropsChannel::foundTerminator()
 	    SGPropertyNode* dir = node;
 	    if (tokens.size() == 2) {
 		if ( tokens[1][0] == '/' ) {
-		    dir = fgGetNode( tokens[1].c_str() );
+		    dir = pyGetNode( tokens[1].c_str() );
 		} else {
 		    string s = path;
 		    s += "/";
 		    s += tokens[1];
-		    dir = fgGetNode( s.c_str() );
+		    dir = pyGetNode( s.c_str() );
 		}
 	    }
 

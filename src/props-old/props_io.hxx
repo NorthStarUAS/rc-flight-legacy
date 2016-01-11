@@ -12,7 +12,7 @@
 #ifndef __PROPS_IO_HXX
 #define __PROPS_IO_HXX
 
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 
 #include <stdio.h>
 

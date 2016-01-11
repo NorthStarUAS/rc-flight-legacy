@@ -1,7 +1,7 @@
 #include <cmath>
 
 #include "include/globaldefs.h"
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 
 #include "wind.hxx"
 
@@ -52,25 +52,25 @@ void wind_course( double ws_kt, double tas_kt, double wd_deg, double crs_deg,
 double wind_heading_diff( double current_crs_deg, double target_crs_deg ) {
     // wind estimates
     static SGPropertyNode *wind_speed_kt
-	= fgGetNode("/filters/wind-est/wind-speed-kt", true);
+	= pyGetNode("/filters/wind-est/wind-speed-kt", true);
     static SGPropertyNode *wind_dir_deg
-	= fgGetNode("/filters/wind-est/wind-dir-deg", true);
+	= pyGetNode("/filters/wind-est/wind-dir-deg", true);
     static SGPropertyNode *true_airspeed_kt
-	= fgGetNode("/filters/wind-est/true-airspeed-kt", true);
+	= pyGetNode("/filters/wind-est/true-airspeed-kt", true);
  
     double gs_kt = 0.0;
 
     double est_cur_hdg_deg = 0.0;
-    wind_course( wind_speed_kt->getDoubleValue(),
-		 true_airspeed_kt->getDoubleValue(),
-		 wind_dir_deg->getDoubleValue(),
+    wind_course( wind_speed_kt->getDouble(),
+		 true_airspeed_kt->getDouble(),
+		 wind_dir_deg->getDouble(),
 		 current_crs_deg,
 		 &est_cur_hdg_deg, &gs_kt );
 
     double est_nav_hdg_deg = 0.0;
-    wind_course( wind_speed_kt->getDoubleValue(),
-		 true_airspeed_kt->getDoubleValue(),
-		 wind_dir_deg->getDoubleValue(),
+    wind_course( wind_speed_kt->getDouble(),
+		 true_airspeed_kt->getDouble(),
+		 wind_dir_deg->getDouble(),
 		 target_crs_deg,
 		 &est_nav_hdg_deg, &gs_kt );
 

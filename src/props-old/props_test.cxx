@@ -52,8 +52,8 @@ show_values (const SGPropertyNode * node)
 {
   cout << "Bool: " << (node->getBoolValue() ? "true" : "false") << endl;
   cout << "Int: " << node->getIntValue() << endl;
-  cout << "Float: " << node->getFloatValue() << endl;
-  cout << "Double: " << node->getDoubleValue() << endl;
+  cout << "Float: " << node->getDouble() << endl;
+  cout << "Double: " << node->getDouble() << endl;
   cout << "String: " << node->getStringValue() << endl;
 }
 
