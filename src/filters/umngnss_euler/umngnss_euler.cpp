@@ -30,25 +30,6 @@ int umngnss_euler_init( string rootname, pyPropertyNode *config ) {
     filter_node.setString( "navigation", "invalid" );
     int result = umn_adns_init();
 
-#if 0
-    umn_adns_init_R( cov_gps_hpos_node.getDouble(),
-		     cov_gps_vpos_node.getDouble(),
-		     cov_gps_hvel_node.getDouble(),
-		     cov_gps_vvel_node.getDouble() );
-    umn_adns_init_Rw( sigma_w_f_node.getDouble(),
-		      sigma_w_g_node.getDouble(),
-		      sigma_c_f_node.getDouble(),
-		      sigma_c_g_node.getDouble(),
-		      tau_f_node.getDouble(),
-		      tau_g_node.getDouble() );
-    umn_adns_init_P( cov_gps_hpos_node.getDouble(),
-		     cov_gps_vpos_node.getDouble(),
-		     cov_gps_hvel_node.getDouble(),
-		     cov_gps_vvel_node.getDouble(),
-		     sigma_w_f_node.getDouble(), 
-		     sigma_w_g_node.getDouble() );
-#endif
-
     return result;
 }
 

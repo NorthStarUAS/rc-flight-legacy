@@ -8,4 +8,4 @@ libumngnss_quat_a_SOURCES = \
 	misc.c misc.h \
 	nav_functions.c nav_functions.h nav_interface.h
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@

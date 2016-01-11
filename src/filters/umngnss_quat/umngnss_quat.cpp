@@ -3,11 +3,12 @@
 //
 
 
+#include "python/pyprops.hxx"
+
 #include <math.h>
 #include <string.h>
 
 #include "include/globaldefs.h"
-#include "python/pyprops.hxx"
 #include "sensors/gps_mgr.hxx"
 
 #include "umngnss_quat.h"
@@ -21,85 +22,30 @@ static struct imu imu_data;
 static struct gps gps_data;
 static struct nav nav_data;
 
-// imu property nodes
-static SGPropertyNode *imu_timestamp_node = NULL;
-static SGPropertyNode *imu_p_node = NULL;
-static SGPropertyNode *imu_q_node = NULL;
-static SGPropertyNode *imu_r_node = NULL;
-static SGPropertyNode *imu_ax_node = NULL;
-static SGPropertyNode *imu_ay_node = NULL;
-static SGPropertyNode *imu_az_node = NULL;
-static SGPropertyNode *imu_hx_node = NULL;
-static SGPropertyNode *imu_hy_node = NULL;
-static SGPropertyNode *imu_hz_node = NULL;
-
-// gps property nodes
-static SGPropertyNode *gps_timestamp_node = NULL;
-static SGPropertyNode *gps_lat_node = NULL;
-static SGPropertyNode *gps_lon_node = NULL;
-static SGPropertyNode *gps_alt_node = NULL;
-static SGPropertyNode *gps_ve_node = NULL;
-static SGPropertyNode *gps_vn_node = NULL;
-static SGPropertyNode *gps_vd_node = NULL;
-static SGPropertyNode *gps_settle_node = NULL;
-
-// filter property nodes
-static SGPropertyNode *filter_timestamp_node = NULL;
-static SGPropertyNode *filter_theta_node = NULL;
-static SGPropertyNode *filter_phi_node = NULL;
-static SGPropertyNode *filter_psi_node = NULL;
-static SGPropertyNode *filter_lat_node = NULL;
-static SGPropertyNode *filter_lon_node = NULL;
-static SGPropertyNode *filter_alt_node = NULL;
-static SGPropertyNode *filter_vn_node = NULL;
-static SGPropertyNode *filter_ve_node = NULL;
-static SGPropertyNode *filter_vd_node = NULL;
-static SGPropertyNode *filter_status_node = NULL;
-
-static SGPropertyNode *filter_alt_feet_node = NULL;
-static SGPropertyNode *filter_track_node = NULL;
-static SGPropertyNode *filter_vel_node = NULL;
-static SGPropertyNode *filter_vert_speed_fps_node = NULL;
-
-static SGPropertyNode *filter_p_bias_node = NULL;
-static SGPropertyNode *filter_q_bias_node = NULL;
-static SGPropertyNode *filter_r_bias_node = NULL;
-static SGPropertyNode *filter_ax_bias_node = NULL;
-static SGPropertyNode *filter_ay_bias_node = NULL;
-static SGPropertyNode *filter_az_bias_node = NULL;
-
-#if 0
-static SGPropertyNode *cov_gps_hpos_node = NULL;
-static SGPropertyNode *cov_gps_vpos_node = NULL;
-static SGPropertyNode *cov_gps_hvel_node = NULL;
-static SGPropertyNode *cov_gps_vvel_node = NULL;
-static SGPropertyNode *sigma_w_f_node = NULL;
-static SGPropertyNode *sigma_w_g_node = NULL;
-static SGPropertyNode *sigma_c_f_node = NULL;
-static SGPropertyNode *sigma_c_g_node = NULL;
-static SGPropertyNode *tau_f_node = NULL;
-static SGPropertyNode *tau_g_node = NULL;
-#endif
+// property nodes
+static pyPropertyNode imu_node;
+static pyPropertyNode gps_node;
+static pyPropertyNode filter_node;
 
 
 // update the imu_data and gps_data structures with most recent sensor
 // data prior to calling the filter init or update routines
 static void props2umn(void) {
-    imu_data.time = imu_timestamp_node->getDouble();
-    imu_data.p = imu_p_node->getDouble();
-    imu_data.q = imu_q_node->getDouble();
-    imu_data.r = imu_r_node->getDouble();
-    imu_data.ax = imu_ax_node->getDouble();
-    imu_data.ay = imu_ay_node->getDouble();
-    imu_data.az = imu_az_node->getDouble();
+    imu_data.time = imu_node.getDouble("timestamp");
+    imu_data.p = imu_node.getDouble("p_rad_sec");
+    imu_data.q = imu_node.getDouble("q_rad_sec");
+    imu_data.r = imu_node.getDouble("r_rad_sec");
+    imu_data.ax = imu_node.getDouble("ax_rad_sec");
+    imu_data.ay = imu_node.getDouble("ay_rad_sec");
+    imu_data.az = imu_node.getDouble("az_rad_sec");
     
-    gps_data.time = gps_timestamp_node->getDouble();
-    gps_data.lat = gps_lat_node->getDouble();
-    gps_data.lon = gps_lon_node->getDouble();
-    gps_data.alt = gps_alt_node->getDouble();
-    gps_data.vn = gps_vn_node->getDouble();
-    gps_data.ve = gps_ve_node->getDouble();
-    gps_data.vd = gps_vd_node->getDouble();
+    gps_data.time = gps_node.getDouble("timestamp");
+    gps_data.lat = gps_node.getDouble("latitude_deg");
+    gps_data.lon = gps_node.getDouble("longitude_deg");
+    gps_data.alt = gps_node.getDouble("altitude_m");
+    gps_data.vn = gps_node.getDouble("vn_ms");
+    gps_data.ve = gps_node.getDouble("ve_ms");
+    gps_data.vd = gps_node.getDouble("vd_ms");
 
     static double last_gps_time = 0.0;
     if ( gps_data.time > last_gps_time ) {
@@ -115,105 +61,64 @@ static void umn2props(void) {
     double psi = nav_data.psi;
     if ( psi < 0 ) { psi += SGD_2PI; }
     if ( psi > SGD_2PI ) { psi -= SGD_2PI; }
-    filter_timestamp_node->setDouble( imu_data.time );
-    filter_phi_node->setDouble( nav_data.phi * SG_RADIANS_TO_DEGREES );
-    filter_theta_node->setDouble( nav_data.the * SG_RADIANS_TO_DEGREES );
-    filter_psi_node->setDouble( psi * SG_RADIANS_TO_DEGREES );
-    filter_lat_node->setDouble( nav_data.lat * SG_RADIANS_TO_DEGREES );
-    filter_lon_node->setDouble( nav_data.lon * SG_RADIANS_TO_DEGREES );
-    filter_alt_node->setDouble( nav_data.alt );
-    filter_vn_node->setDouble( nav_data.vn );
-    filter_ve_node->setDouble( nav_data.ve );
-    filter_vd_node->setDouble( nav_data.vd );
+    filter_node.setDouble( "timestamp", imu_data.time );
+    filter_node.setDouble( "roll_deg", nav_data.phi * SG_RADIANS_TO_DEGREES );
+    filter_node.setDouble( "pitch_deg", nav_data.the * SG_RADIANS_TO_DEGREES );
+    filter_node.setDouble( "heading_deg", psi * SG_RADIANS_TO_DEGREES );
+    filter_node.setDouble( "latitude_deg", nav_data.lat * SG_RADIANS_TO_DEGREES );
+    filter_node.setDouble( "longitude_deg", nav_data.lon * SG_RADIANS_TO_DEGREES );
+    filter_node.setDouble( "altitude_m", nav_data.alt );
+    filter_node.setDouble( "vn_ms", nav_data.vn );
+    filter_node.setDouble( "ve_ms", nav_data.ve );
+    filter_node.setDouble( "vd_ms", nav_data.vd );
     if ( nav_data.err_type == data_valid ||
 	 nav_data.err_type == TU_only ||
 	 nav_data.err_type == gps_aided )
     {
-	filter_status_node->setString("valid");
+	filter_node.setString( "navigation", "valid" );
     } else {
-	filter_status_node->setString("invalid");
+	filter_node.setString( "navigation", "invalid" );
     }
 
-    filter_p_bias_node->setDouble( nav_data.gb[0] );
-    filter_q_bias_node->setDouble( nav_data.gb[1] );
-    filter_r_bias_node->setDouble( nav_data.gb[2] );
-    filter_ax_bias_node->setDouble( nav_data.ab[0] );
-    filter_ay_bias_node->setDouble( nav_data.ab[1] );
-    filter_az_bias_node->setDouble( nav_data.ab[2] );
+    filter_node.setDouble( "p_bias", nav_data.gb[0] );
+    filter_node.setDouble( "q_bias", nav_data.gb[1] );
+    filter_node.setDouble( "r_bias", nav_data.gb[2] );
+    filter_node.setDouble( "ax_bias", nav_data.ab[0] );
+    filter_node.setDouble( "ay_bias", nav_data.ab[1] );
+    filter_node.setDouble( "az_bias", nav_data.ab[2] );
     
-    filter_alt_feet_node->setDouble( nav_data.alt * SG_METER_TO_FEET );
-    filter_track_node->setDouble( 90 - atan2(nav_data.vn, nav_data.ve)
-				       * SG_RADIANS_TO_DEGREES );
-    filter_vel_node->setDouble( sqrt(nav_data.vn * nav_data.vn
-					  + nav_data.ve * nav_data.ve) );
-    filter_vert_speed_fps_node
-	->setDouble( -nav_data.vd * SG_METER_TO_FEET );
+    filter_node.setDouble( "altitude_ft",
+			   nav_data.alt * SG_METER_TO_FEET );
+    filter_node.setDouble( "groundtrack_deg",
+			   90 - atan2(nav_data.vn, nav_data.ve)
+			   * SG_RADIANS_TO_DEGREES );
+    filter_node.setDouble( "groundspeed_ms",
+			   sqrt(nav_data.vn * nav_data.vn
+				+ nav_data.ve * nav_data.ve) );
+    filter_node.setDouble( "vertical_speed_fps",
+			   -nav_data.vd * SG_METER_TO_FEET );
 }
 
 
-void umngnss_quat_init( string rootname, SGPropertyNode *config ) {
-    // initialize imu property nodes
-    imu_timestamp_node = fgGetNode("/sensors/imu/time-stamp");
-    imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
-    imu_q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
-    imu_r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
-    imu_ax_node = fgGetNode("/sensors/imu/ax-mps_sec", true);
-    imu_ay_node = fgGetNode("/sensors/imu/ay-mps_sec", true);
-    imu_az_node = fgGetNode("/sensors/imu/az-mps_sec", true);
-    imu_hx_node = fgGetNode("/sensors/imu/hx", true);
-    imu_hy_node = fgGetNode("/sensors/imu/hy", true);
-    imu_hz_node = fgGetNode("/sensors/imu/hz", true);
-
-    // initialize gps property nodes
-    gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
-    gps_lat_node = fgGetNode("/sensors/gps/latitude-deg", true);
-    gps_lon_node = fgGetNode("/sensors/gps/longitude-deg", true);
-    gps_alt_node = fgGetNode("/sensors/gps/altitude-m", true);
-    gps_ve_node = fgGetNode("/sensors/gps/ve-ms", true);
-    gps_vn_node = fgGetNode("/sensors/gps/vn-ms", true);
-    gps_vd_node = fgGetNode("/sensors/gps/vd-ms", true);
-    gps_settle_node = fgGetNode("/sensors/gps/settle", true);
-
-    // initialize ahrs property nodes 
-    SGPropertyNode *outputroot = fgGetNode( rootname.c_str(), true );
-    filter_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    filter_theta_node = outputroot->getChild("pitch-deg", 0, true);
-    filter_phi_node = outputroot->getChild("roll-deg", 0, true);
-    filter_psi_node = outputroot->getChild("heading-deg", 0, true);
-    filter_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    filter_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    filter_alt_node = outputroot->getChild("altitude-m", 0, true);
-    filter_vn_node = outputroot->getChild("vn-ms", 0, true);
-    filter_ve_node = outputroot->getChild("ve-ms", 0, true);
-    filter_vd_node = outputroot->getChild("vd-ms", 0, true);
-    filter_status_node = outputroot->getChild("navigation",0, true);
-    filter_status_node->setString("invalid");
-
-    filter_alt_feet_node = outputroot->getChild("altitude-ft", 0, true);
-    filter_track_node = outputroot->getChild("groundtrack-deg", 0, true);
-    filter_vel_node = outputroot->getChild("groundspeed-ms", 0, true);
-    filter_vert_speed_fps_node
-        = outputroot->getChild("vertical-speed-fps", 0, true);
-
-    filter_p_bias_node = outputroot->getChild("p-bias", 0, true);
-    filter_q_bias_node = outputroot->getChild("q-bias", 0, true);
-    filter_r_bias_node = outputroot->getChild("r-bias", 0, true);
-    filter_ax_bias_node = outputroot->getChild("ax-bias", 0, true);
-    filter_ay_bias_node = outputroot->getChild("ay-bias", 0, true);
-    filter_az_bias_node = outputroot->getChild("az-bias", 0, true);
+void umngnss_quat_init( string rootname, pyPropertyNode *config ) {
+    // initialize property nodes
+    imu_node = pyGetNode("/sensors/imu");
+    gps_node = pyGetNode("/sensors/gps");
+    filter_node = pyGetNode(rootname);
+    filter_node.setString( "navigation", "invalid" );
 
 #if 0
     // set tuning value for specific gps and imu noise characteristics
-    cov_gps_hpos_node = config->getChild("cov-gps-hpos", 0, true);
-    cov_gps_vpos_node = config->getChild("cov-gps-vpos", 0, true);
-    cov_gps_hvel_node = config->getChild("cov-gps-hvel", 0, true);
-    cov_gps_vvel_node = config->getChild("cov-gps-vvel", 0, true);
-    sigma_w_f_node = config->getChild("sigma-w-f", 0, true);
-    sigma_w_g_node = config->getChild("sigma-w-g", 0, true);
-    sigma_c_f_node = config->getChild("sigma-c-f", 0, true);
-    sigma_c_g_node = config->getChild("sigma-c-g", 0, true);
-    tau_f_node = config->getChild("tau-f", 0, true);
-    tau_g_node = config->getChild("tau-g", 0, true);
+    cov_gps_hpos_node = config.getChild("cov-gps-hpos", 0, true);
+    cov_gps_vpos_node = config.getChild("cov-gps-vpos", 0, true);
+    cov_gps_hvel_node = config.getChild("cov-gps-hvel", 0, true);
+    cov_gps_vvel_node = config.getChild("cov-gps-vvel", 0, true);
+    sigma_w_f_node = config.getChild("sigma-w-f", 0, true);
+    sigma_w_g_node = config.getChild("sigma-w-g", 0, true);
+    sigma_c_f_node = config.getChild("sigma-c-f", 0, true);
+    sigma_c_g_node = config.getChild("sigma-c-g", 0, true);
+    tau_f_node = config.getChild("tau-f", 0, true);
+    tau_g_node = config.getChild("tau-g", 0, true);
 #endif
 }
 
@@ -227,7 +132,7 @@ bool umngnss_quat_update() {
     if ( umn_inited ) {
 	get_nav( &imu_data, &gps_data, &nav_data );
     } else {
-	if ( GPS_age() < 1.0 && gps_settle_node->getBool() ) {
+	if ( GPS_age() < 1.0 && gps_node.getBool("settle") ) {
 	    init_nav( &imu_data, &gps_data, &nav_data );
 	    umn_inited = true;
 	}
