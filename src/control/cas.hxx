@@ -27,13 +27,14 @@
 # error This library requires C++
 #endif
 
+#include "python/pyprops.hxx"
+
 #include <string>
 #include <vector>
 
 using std::string;
 using std::vector;
 
-#include "python/pyprops.hxx"
 #include "route.hxx"
 
 
@@ -53,39 +54,15 @@ public:
 
 private:
 
-    // route configuration
-    SGPropertyNode *config_props;
-
     // property nodes
-
-    SGPropertyNode *pilot_aileron_node;
-    SGPropertyNode *pilot_elevator_node;
-    SGPropertyNode *pilot_throttle_node;
-    SGPropertyNode *pilot_rudder_node;
-
-    SGPropertyNode *aileron_min_node;
-    SGPropertyNode *aileron_max_node;
-    SGPropertyNode *aileron_center_node;
-    SGPropertyNode *aileron_dz_node;
-    SGPropertyNode *aileron_full_rate_node;
-
-    SGPropertyNode *elevator_min_node;
-    SGPropertyNode *elevator_max_node;
-    SGPropertyNode *elevator_center_node;
-    SGPropertyNode *elevator_dz_node;
-    SGPropertyNode *elevator_full_rate_node;
-
-    SGPropertyNode *target_roll_deg_node;
-    SGPropertyNode *target_pitch_deg_node;
-    SGPropertyNode *target_pitch_base_deg_node;
-
-    SGPropertyNode *throttle_output_node;
-    SGPropertyNode *rudder_output_node;
-
-    // fcs mode
-    SGPropertyNode *ap_master_switch_node;
-    SGPropertyNode *cas_mode_node;
-
+    pyPropertyNode config_node;
+    pyPropertyNode pilot_node;
+    pyPropertyNode cas_aileron_node;
+    pyPropertyNode cas_elevator_node;
+    pyPropertyNode ap_node;
+    pyPropertyNode flight_node;
+    pyPropertyNode engine_node;
+    
     ugCASMode cas_mode;
 
     double last_time;
