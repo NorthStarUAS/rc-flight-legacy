@@ -13,4 +13,4 @@ libcomms_a_SOURCES = \
 	serial.cxx serial.hxx \
 	telnet.cxx telnet.hxx
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@

@@ -23,8 +23,8 @@ static pyPropertyNode filter_node;
 
 int umngnss_euler_init( pyPropertyNode *base, pyPropertyNode *config ) {
     // initialize imu property nodes
-    imu_node = pyGetNode("/sensors/imu");
-    gps_node = pyGetNode("/sensors/gps");
+    imu_node = pyGetNode("/sensors/imu", true);
+    gps_node = pyGetNode("/sensors/gps", true);
     filter_node = *base;
 
     filter_node.setString( "navigation", "invalid" );

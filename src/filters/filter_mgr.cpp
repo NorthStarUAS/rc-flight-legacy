@@ -29,7 +29,6 @@ using std::ostringstream;
 
 #include "filter_mgr.h"
 
-
 //
 // Global variables
 //
@@ -62,36 +61,8 @@ void Filter_init() {
     remote_link_node = pyGetNode("/config/remote_link", true);
     logging_node = pyGetNode("/config/logging", true);
 
-    //imu_timestamp_node = fgGetNode("/sensors/imu/time-stamp", true);
-    //imu_p_node = fgGetNode("/sensors/imu/p-rad_sec", true);
-    //imu_q_node = fgGetNode("/sensors/imu/q-rad_sec", true);
-    //imu_r_node = fgGetNode("/sensors/imu/r-rad_sec", true);
-    //imu_ax_node = fgGetNode("/sensors/imu/ax-mps_sec", true);
-    //imu_ay_node = fgGetNode("/sensors/imu/ay-mps_sec", true);
-    //imu_az_node = fgGetNode("/sensors/imu/az-mps_sec", true);
-    //imu_hx_node = fgGetNode("/sensors/imu/hx", true);
-    //imu_hy_node = fgGetNode("/sensors/imu/hy", true);
-    //imu_hz_node = fgGetNode("/sensors/imu/hz", true);
+    wind_node.setDouble( "pitot_scale_factor", 1.0 );
 
-    // airdata airspeed (unfiltered)
-    //airdata_airspeed_node = fgGetNode("/sensors/airdata/airspeed-kt", true);
-    //est_wind_speed_kt = fgGetNode("/filters/wind-est/wind-speed-kt", true);
-    //est_wind_dir_deg = fgGetNode("/filters/wind-est/wind-dir-deg", true);
-    //est_wind_east_mps = fgGetNode("/filters/wind-est/wind-east-mps", true);
-    //est_wind_north_mps = fgGetNode("/filters/wind-est/wind-north-mps", true);
-    //true_airspeed_kt = fgGetNode("/filters/wind-est/true-airspeed-kt", true);
-    //true_heading_deg = fgGetNode("/filters/wind-est/true-heading-deg", true);
-    //true_air_east_mps = fgGetNode("/filters/wind-est/true-airspeed-east-mps", true);
-    //true_air_north_mps = fgGetNode("/filters/wind-est/true-airspeed-north-mps", true);
-    //est_pitot_scale_factor = fgGetNode("/filters/wind-est/pitot-scale-factor", true);
-    //est_pitot_scale_factor->setFloatValue( 1.0 ); // initialize to 1.0
-
-    // initialize comm nodes
-    //filter_console_skip = fgGetNode("/config/remote-link/filter-skip", true);
-    //filter_logging_skip = fgGetNode("/config/logging/filter-skip", true);
-    
-    // initialize mission nodes
-    //is_airborne_node = fgGetNode("/task/is-airborne", true);
 
     // traverse configured modules
     pyPropertyNode toplevel = pyGetNode("/config/filters", true);

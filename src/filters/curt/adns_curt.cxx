@@ -51,8 +51,8 @@ static SGVec3d gyro_bias;
 // bind to property tree
 static bool bind_properties( pyPropertyNode *base ) {
     // initialize property nodes
-    imu_node = pyGetNode("/sensors/imu");
-    gps_node = pyGetNode("/sensors/gps");
+    imu_node = pyGetNode("/sensors/imu", true);
+    gps_node = pyGetNode("/sensors/gps", true);
     filter_node = *base;
  
     return true;
