@@ -512,8 +512,13 @@ static void remote_link_execute_command( const string command ) {
     } else if ( token[0] == "set" && token.size() == 3 ) {
 	string prop_name = token[1];
 	string value = token[2];
-	SGPropertyNode *node = fgGetNode( prop_name.c_str() );
-	node.setString( value.c_str() );
+	size_t pos = prop_name.rfind("/");
+	if ( pos != string::npos ) {
+	    string path = prop_name.substr(0, pos);
+	    string attr = prop_name.substr(pos+1);
+	    pyPropertyNode node = pyGetNode( path, true );
+	    node.setString( attr.c_str(), value );
+	}
     } else if ( token[0] == "wp" && token.size() == 5 ) {
         // specify new waypoint coordinates for a waypoint
         // int index = atoi( token[1].c_str() );
@@ -525,42 +530,29 @@ static void remote_link_execute_command( const string command ) {
     } else if ( token[0] == "la" && token.size() == 5 ) {
 	if ( token[1] == "ned" ) {
 	    // set ned-vector lookat mode
-	    SGPropertyNode *mode_node
-                = fgGetNode( "/pointing/lookat-mode", true );
-	    mode_node.setString("ned-vector");
+	    pyPropertyNode point_node = pyGetNode("/pointing", true);
+	    point_node.setString("lookat_mode", "ned_vector");
 	    // specify new lookat ned coordinates
+	    pyPropertyNode vector_node = pyGetNode("/pointing/vector", true);
 	    double north = atof( token[2].c_str() );
-	    SGPropertyNode *north_node
-                = fgGetNode( "/pointing/vector/north", true );
-	    north_node.setDouble( north );
 	    double east = atof( token[3].c_str() );
-	    SGPropertyNode *east_node
-                = fgGetNode( "/pointing/vector/east", true );
-	    east_node.setDouble( east );
 	    double down = atof( token[4].c_str() );
-	    SGPropertyNode *down_node
-                = fgGetNode( "/pointing/vector/down", true );
-	    down_node.setDouble( down );
+	    vector_node.setDouble( "north", north );
+	    vector_node.setDouble( "east", east );
+	    vector_node.setDouble( "down", down );
 	} else if ( token[1] == "wgs84" ) {
 	    // set wgs84 lookat mode
-	    SGPropertyNode *mode_node
-                = fgGetNode( "/pointing/lookat-mode", true );
-	    mode_node.setString("wgs84");
+	    pyPropertyNode point_node = pyGetNode("/pointing", true);
+	    point_node.setString("lookat_mode", "wgs84");
 	    // specify new lookat ned coordinates
+	    pyPropertyNode wgs84_node = pyGetNode("/pointing/wgs84", true);
+	    pyPropertyNode pos_node = pyGetNode("/position", true);
 	    double lon = atof( token[2].c_str() );
-	    SGPropertyNode *lon_node
-                = fgGetNode( "/pointing/wgs84/longitude-deg", true );
-	    lon_node.setDouble( lon );
 	    double lat = atof( token[3].c_str() );
-	    SGPropertyNode *lat_node
-                = fgGetNode( "/pointing/wgs84/latitude-deg", true );
-	    lat_node.setDouble( lat );
-	    SGPropertyNode *ground_node
-		= fgGetNode( "/position/altitude-ground-m", true );
-	    double ground = ground_node->getDouble();
-	    SGPropertyNode *alt_node
-                = fgGetNode( "/pointing/wgs84/altitude-m", true );
-	    alt_node.setDouble( ground );
+	    wgs84_node.setDouble( "longitude_deg", lon );
+	    wgs84_node.setDouble( "latitude_deg", lat );
+	    double ground = pos_node.getDouble("altitude_ground_m");
+	    wgs84_node.setDouble( "altitude_m", ground );
 	}
     }
 }
@@ -684,9 +676,9 @@ bool remote_link_command() {
 	remote_link_execute_command( cmd );
 
 	// register that we've received this message correctly
-	link_sequence_num->setIntValue( sequence );
+	remote_link_node.setLong( "sequence_num", sequence );
 	last_sequence_num = sequence;
-	link_message_time_sec.setDouble( get_Time() );
+	remote_link_node.setDouble( "last_message_sec", get_Time() );
     }
 
     return true;

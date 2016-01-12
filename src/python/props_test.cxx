@@ -1,5 +1,8 @@
 #include "pyprops.hxx"
 
+#include <string>
+using std::string;
+
 int main(int argc, char **argv) {
     // cleanup the python interpreter after all the main() and global
     // destructors are called
@@ -36,4 +39,9 @@ int main(int argc, char **argv) {
     string t2 = t1.getString("az");
     printf("t1.t2=%s\n", t2.c_str());
     printf("/sensors/imu[1] = %s\n", pyGetNode("/sensors/imu[1]").getString("az").c_str());
+
+    string fullpath = "/sensors/imu[1]/az";
+    int pos = fullpath.rfind("/");
+    printf("%d %s / %s\n", pos, fullpath.substr(0, pos).c_str(),
+	   fullpath.substr(pos+1).c_str() );
 }

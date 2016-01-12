@@ -47,7 +47,7 @@ public:
 // This function must be called first (before any pyPropertyNode
 // usage.) It sets up the python intepreter and imports the python
 // props module.
-void pyPropsInit(int argc, char **argv);
+extern void pyPropsInit(int argc, char **argv);
 
 // This function can be called from atexit() (after all the global
 // destructors are called) to properly shutdown and clean up the
@@ -59,9 +59,9 @@ extern void pyPropsCleanup(void);
 // recommended to call this function from initialization routines and
 // save the result.  Then use the pyPropertyNode for direct read/write
 // access in your update routines.
-pyPropertyNode pyGetNode(string abs_path, bool create=false);
+extern pyPropertyNode pyGetNode(string abs_path, bool create=false);
 
 // Write an xml file beginning with the specified node
-bool writeXML(string filename, pyPropertyNode *node);
+extern bool writeXML(string filename, pyPropertyNode *node);
     
 #endif // _AURA_PYPROPS_HXX
