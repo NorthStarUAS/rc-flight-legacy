@@ -44,28 +44,12 @@ class UGPacketizer {
     pyPropertyNode wind_node;
     pyPropertyNode act_node;
     pyPropertyNode pilot_node;
-
-    // autopilot status nodes
-    //pyPropertyNode pressure_ground_alt_node;
-    //pyPropertyNode pressure_error_node;
     pyPropertyNode ap_node;
     pyPropertyNode ap_internal_node;
     pyPropertyNode route_node;
-    
-
-    // system health nodes
     pyPropertyNode status_node;
     pyPropertyNode apm2_node;
-    //pyPropertyNode avionics_vcc_node;
-    //pyPropertyNode extern_volt_node;
-    //pyPropertyNode extern_cell_volt_node;
-    //pyPropertyNode extern_amp_node;
-    //pyPropertyNode extern_mah_node;
-
-    // payload status nodes
     pyPropertyNode payload_node;
-
-    // console link nodes
     pyPropertyNode remote_link_node;
 
 public:

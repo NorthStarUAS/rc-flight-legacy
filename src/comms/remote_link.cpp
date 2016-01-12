@@ -1,3 +1,5 @@
+#include "python/pyprops.hxx"
+
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -10,7 +12,6 @@
 #include "include/globaldefs.h"
 
 #include "init/globals.hxx" 	// packetizer
-#include "python/pyprops.hxx"
 #include "sensors/gps_mgr.hxx"
 #include "util/strutils.hxx"
 #include "util/timing.h"
@@ -34,9 +35,13 @@ enum ugLinkType {
     ugSOCKET
 };
 
-static SGPropertyNode *link_sequence_num = NULL;
-static SGPropertyNode *link_message_time_sec = NULL;
-static SGPropertyNode *link_bytes_per_frame = NULL;
+static pyPropertyNode remote_link_config;
+static pyPropertyNode remote_link_node;
+
+//static SGPropertyNode *link_sequence_num = NULL;
+//static SGPropertyNode *link_message_time_sec = NULL;
+//static SGPropertyNode *link_bytes_per_frame = NULL;
+
 bool remote_link_on = false;    // link to remote operator station
 static SGSerialPort serial_fd;
 static netBuffer serial_buffer(128);
@@ -46,13 +51,16 @@ static ugLinkType link_type = ugUNKNOWN;
 
 // set up the remote link
 void remote_link_init() {
-    SGPropertyNode *link_type_node = fgGetNode("/config/remote-link/type", true);
-    if ( strcmp(link_type_node->getString(), "uart") == 0 ) {
+    
+    remote_link_config = pyGetNode("/config/remote-link", true);
+    remote_link_node = pyGetNode("/comms/remote_link", true);
+
+    if ( remote_link_config.getString("type") == "uart" ) {
 	if ( display_on ) {
 	    printf("remote link: direct uart\n");
 	}
 	link_type = ugUART;
-    } else if ( strcmp(link_type_node->getString(), "uart-server") == 0 ) {
+    } else if ( remote_link_config.getString("type") == "uart-server" ) {
 	if ( display_on ) {
 	    printf("remote link: via network server\n");
 	}
@@ -60,29 +68,29 @@ void remote_link_init() {
     }
 
     if ( link_type == ugUART ) {
-	SGPropertyNode *link_dev = fgGetNode("/config/remote-link/device", true);
-	if ( ! serial_fd.open_port( link_dev->getString(), true ) ) {
+	//SGPropertyNode *link_dev = fgGetNode("/config/remote-link/device", true);
+	if ( ! serial_fd.open_port( remote_link_config.getString("device"), true ) ) {
 	    return;
 	}
 	serial_fd.set_baud( 115200 );
 
 	link_open = true;
     } else if ( link_type == ugSOCKET ) {
-	SGPropertyNode *link_host = fgGetNode("/config/remote-link/host", true);
-	SGPropertyNode *link_port = fgGetNode("/config/remote-link/port", true);
+	//SGPropertyNode *link_host = fgGetNode("/config/remote-link/host", true);
+	//SGPropertyNode *link_port = fgGetNode("/config/remote-link/port", true);
 	if ( ! link_socket.open(true) ) {
-	    printf("Error opening socket: %s:%d\n",
-		   link_host->getString(),
-		   link_port->getLong());
+	    printf("Error opening socket: %s:%ld\n",
+		   remote_link_config.getString("host").c_str(),
+		   remote_link_config.getLong("port"));
 	    return;
 	}
-	if ( link_socket.connect( link_host->getString(),
-				    link_port->getLong() ) < 0 )
+	if ( link_socket.connect( remote_link_config.getString("host").c_str(),
+				  remote_link_config.getLong("port") ) < 0 )
 	{
 	    if ( display_on ) {
-		printf("Error connecting socket: %s:%d\n",
-		       link_host->getString(),
-		       link_port->getLong());
+		printf("Error connecting socket: %s:%ld\n",
+		       remote_link_config.getString("host").c_str(),
+		       remote_link_config.getLong("port"));
 	    }
 	    return;
 	}
@@ -91,14 +99,13 @@ void remote_link_init() {
 	link_open = true;
     }
 
-    link_sequence_num = fgGetNode("/comms/remote-link/sequence-num", true);
-    link_sequence_num->setIntValue( 0 );
-    link_message_time_sec
-	= fgGetNode("/comms/remote-link/last-message-sec", true);
-    link_bytes_per_frame
-	= fgGetNode("/config/remote-link/write-bytes-per-frame", true);
-    if ( link_bytes_per_frame->getLong() == 0 ) {
-	link_bytes_per_frame->setIntValue(12);
+    remote_link_node.setLong("sequence_num", 0);
+    // link_message_time_sec
+    //	= fgGetNode("/comms/remote-link/last-message-sec", true);
+    // link_bytes_per_frame
+    //	= fgGetNode("/config/remote-link/write-bytes-per-frame", true);
+    if ( remote_link_config.getLong("write-bytes-per-frame") == 0 ) {
+	remote_link_config.setLong("write-bytes-per-frame", 12);
     }
 }
 
@@ -114,7 +121,7 @@ void remote_link_flush_serial() {
     // attempt better success by writing multiple small chunks to the
     // serial port (2 * 8 = 16 bytes per call attempted)
     const int loops = 1;
-    int bytes_per_frame = link_bytes_per_frame->getLong();
+    int bytes_per_frame = remote_link_config.getLong("write-bytes-per-frame");
 
     for ( int i = 0; i < loops; i++ ) {
 	int write_len = serial_buffer.getLength();
@@ -440,18 +447,11 @@ static void remote_link_execute_command( const string command ) {
         // double alt_ft = atof( token[3].c_str() );
         double azimuth_deg = atof( token[4].c_str() );
 
-	SGPropertyNode *home_lon_node
-	    = fgGetNode("/task/home/longitude-deg", true );
-	SGPropertyNode *home_lat_node
-	    = fgGetNode("/task/home/latitude-deg", true );
-	SGPropertyNode *home_azimuth_node
-	    = fgGetNode("/task/home/azimuth-deg", true );
-	SGPropertyNode *home_set_node
-	    = fgGetNode("/task/home/valid", true );
-	home_lon_node->setDouble( lon );
-	home_lat_node->setDouble( lat );
-	home_azimuth_node->setDouble( azimuth_deg );
-	home_set_node->setBoolValue( true );
+	pyPropertyNode home_node = pyGetNode("/task/home", true);
+	home_node.setDouble( "longitude_deg", lon );
+	home_node.setDouble( "latitude_deg", lat );
+	home_node.setDouble( "azimuth_deg", azimuth_deg );
+	home_node.setBool( "valid", true );
     } else if ( token[0] == "route" && token.size() >= 5 ) {
 	// find the active route manager
 	if ( route_mgr != NULL ) {
@@ -492,26 +492,20 @@ static void remote_link_execute_command( const string command ) {
 	    route_mgr->reposition();
 	}
     } else if ( token[0] == "task" ) {
-	SGPropertyNode *mission_command
-	    = fgGetNode( "/task/command-request", true );
-	mission_command->setString( command.c_str() );
+	pyPropertyNode task_node = pyGetNode("/task", true);
+	task_node.setString( "command_request", command.c_str() );
     } else if ( token[0] == "ap" && token.size() == 3 ) {
         // specify an autopilot target
+	pyPropertyNode ap_node = pyGetNode("/autopilot/settings", true);
         if ( token[1] == "agl-ft" ) {
             double agl_ft = atof( token[2].c_str() );
-            SGPropertyNode *target_agl_node
-                = fgGetNode( "/autopilot/settings/target-agl-ft", true );
-            target_agl_node->setDouble( agl_ft );
+            ap_node.setDouble( "target_agl_ft", agl_ft );
         } else if ( token[1] == "msl-ft" ) {
             double msl_ft = atof( token[2].c_str() );
-            SGPropertyNode *target_msl_node
-                = fgGetNode( "/autopilot/settings/target-msl-ft", true );
-            target_msl_node->setDouble( msl_ft );
+            ap_node.setDouble( "target_msl_ft", msl_ft );
         } else if ( token[1] == "speed-kt" ) {
             double speed_kt = atof( token[2].c_str() );
-            SGPropertyNode *speed_kt_node
-                = fgGetNode( "/autopilot/settings/target-speed-kt", true );
-            speed_kt_node->setDouble( speed_kt );
+            ap_node.setDouble( "target_speed_kt", speed_kt );
         }
     } else if ( token[0] == "fcs-update" ) {
 	packetizer->decode_fcs_update(token);
@@ -519,7 +513,7 @@ static void remote_link_execute_command( const string command ) {
 	string prop_name = token[1];
 	string value = token[2];
 	SGPropertyNode *node = fgGetNode( prop_name.c_str() );
-	node->setString( value.c_str() );
+	node.setString( value.c_str() );
     } else if ( token[0] == "wp" && token.size() == 5 ) {
         // specify new waypoint coordinates for a waypoint
         // int index = atoi( token[1].c_str() );
@@ -533,40 +527,40 @@ static void remote_link_execute_command( const string command ) {
 	    // set ned-vector lookat mode
 	    SGPropertyNode *mode_node
                 = fgGetNode( "/pointing/lookat-mode", true );
-	    mode_node->setString("ned-vector");
+	    mode_node.setString("ned-vector");
 	    // specify new lookat ned coordinates
 	    double north = atof( token[2].c_str() );
 	    SGPropertyNode *north_node
                 = fgGetNode( "/pointing/vector/north", true );
-	    north_node->setDouble( north );
+	    north_node.setDouble( north );
 	    double east = atof( token[3].c_str() );
 	    SGPropertyNode *east_node
                 = fgGetNode( "/pointing/vector/east", true );
-	    east_node->setDouble( east );
+	    east_node.setDouble( east );
 	    double down = atof( token[4].c_str() );
 	    SGPropertyNode *down_node
                 = fgGetNode( "/pointing/vector/down", true );
-	    down_node->setDouble( down );
+	    down_node.setDouble( down );
 	} else if ( token[1] == "wgs84" ) {
 	    // set wgs84 lookat mode
 	    SGPropertyNode *mode_node
                 = fgGetNode( "/pointing/lookat-mode", true );
-	    mode_node->setString("wgs84");
+	    mode_node.setString("wgs84");
 	    // specify new lookat ned coordinates
 	    double lon = atof( token[2].c_str() );
 	    SGPropertyNode *lon_node
                 = fgGetNode( "/pointing/wgs84/longitude-deg", true );
-	    lon_node->setDouble( lon );
+	    lon_node.setDouble( lon );
 	    double lat = atof( token[3].c_str() );
 	    SGPropertyNode *lat_node
                 = fgGetNode( "/pointing/wgs84/latitude-deg", true );
-	    lat_node->setDouble( lat );
+	    lat_node.setDouble( lat );
 	    SGPropertyNode *ground_node
 		= fgGetNode( "/position/altitude-ground-m", true );
 	    double ground = ground_node->getDouble();
 	    SGPropertyNode *alt_node
                 = fgGetNode( "/pointing/wgs84/altitude-m", true );
-	    alt_node->setDouble( ground );
+	    alt_node.setDouble( ground );
 	}
     }
 }
@@ -692,7 +686,7 @@ bool remote_link_command() {
 	// register that we've received this message correctly
 	link_sequence_num->setIntValue( sequence );
 	last_sequence_num = sequence;
-	link_message_time_sec->setDouble( get_Time() );
+	link_message_time_sec.setDouble( get_Time() );
     }
 
     return true;
