@@ -4,7 +4,9 @@
 #include <Python.h>
 
 #include <string>
+#include <vector>
 using std::string;
+using std::vector;
 
 
 //
@@ -26,6 +28,8 @@ public:
 
     bool isNull();		// return true if pObj pointer is NULL
     int getLen( const char *name); // return len of pObj if a list, else 0
+
+    vector <string> getChildren(); // return list of children
     
     // value getters
     double getDouble( const char *name ); // return value as a double

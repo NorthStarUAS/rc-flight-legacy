@@ -80,7 +80,30 @@ int pyPropertyNode::getLen(const char *name) {
 	return false;
     }
     PyObject *pValue = PyObject_CallMethod(pObj, "getLen", "s", name);
-    return PyInt_AsLong(pValue);
+    int len = PyInt_AsLong(pValue);
+    Py_DECREF(pValue);
+    return len;
+}    
+
+// return true if pObj is a list (enumerated)
+vector <string> pyPropertyNode::getChildren() {
+    vector <string> result;
+    if ( pObj != NULL ) {
+	PyObject *pList = PyObject_CallMethod(pObj, "getChildren", "");
+	if ( PyList_Check(pList) ) {
+	    int len = PyList_Size(pList);
+	    for ( int i = 0; i < len; i++ ) {
+		PyObject *pItem = PyList_GetItem(pList, i);
+		PyObject *pStr = PyObject_Str(pItem);
+		result.push_back( (string)PyString_AsString(pStr) );
+		Py_DECREF(pStr);
+		Py_DECREF(pItem);
+	    }
+	}
+	Py_DECREF(pList);
+    }
+    return result;
+    //return PyInt_AsLong(pValue);
 }    
 
 // value getters
