@@ -21,12 +21,14 @@
 // $Id: xmlauto.hxx,v 1.1 2007/03/20 20:39:49 curt Exp $
 
 
-#ifndef _XMLAUTO_HXX
-#define _XMLAUTO_HXX 1
+#ifndef _AURA_XMLAUTO_HXX
+#define _AURA_XMLAUTO_HXX
 
 #ifndef __cplusplus
 # error This library requires C++
 #endif
+
+#include "python/pyprops.hxx"
 
 #include <string>
 #include <vector>
@@ -35,8 +37,6 @@
 using std::string;
 using std::vector;
 using std::deque;
-
-#include "python/pyprops.hxx"
 
 
 /**
@@ -47,38 +47,43 @@ class FGXMLAutoComponent {
 
 protected:
 
-    SGPropertyNode *name_node;
-
-    SGPropertyNode *enable_prop;
-    SGPropertyNode *passive_mode;
+    pyPropertyNode pid_node;
+    pyPropertyNode enable_node;
+    pyPropertyNode input_node;
+    pyPropertyNode ref_node;
+    pyPropertyNode output_node;
+    pyPropertyNode config_node;
+    
+    //SGPropertyNode *passive_mode;
+    string enable_prop;
     string enable_value;
     bool honor_passive;
     bool enabled;
 
-    SGPropertyNode *input_prop;
-    SGPropertyNode *r_n_prop;
-    SGPropertyNode *r_n_value;
+    string input_prop;
+    string r_n_prop;
+    string r_n_value;
     // SGPropertyNode *output_node;
-    vector <SGPropertyNode *> output_list;
+    //vector <SGPropertyNode *> output_list;
+    vector <string> output_list;
 
 public:
 
     FGXMLAutoComponent() :
-      enable_prop( NULL ),
-      passive_mode( fgGetNode("/autopilot/locks/passive-mode", true) ),
+      //passive_mode( fgGetNode("/autopilot/locks/passive-mode", true) ),
       enable_value( "" ),
       honor_passive( false ),
-      enabled( false ),
-      input_prop( NULL ),
-      r_n_prop( NULL ),
-      r_n_value( NULL )
+      enabled( false )
+      //input_prop( NULL ),
+      //r_n_prop( NULL ),
+      //r_n_value( NULL )
     { }
 
     virtual ~FGXMLAutoComponent() {}
 
     virtual void update (double dt)=0;
     
-    inline const char *get_name() { return name_node->getStringValue(); }
+    inline const char *get_name() { return pid_node.getString("name").c_str(); }
 };
 
 
@@ -91,33 +96,29 @@ class FGPIDController : public FGXMLAutoComponent {
 private:
 
     // debug flag
-    SGPropertyNode *debug_node;
+    //SGPropertyNode *debug_node;
 
     // Input values
-    SGPropertyNode *y_n_node;                 // measured process value
-    SGPropertyNode *r_n_node;                 // reference (set point) value
-    SGPropertyNode *y_scale_node;             // scale process input from property system
-    SGPropertyNode *r_scale_node;             // scale reference input from property system
-    SGPropertyNode *y_offset_node;
-    SGPropertyNode *r_offset_node;
+    //SGPropertyNode *y_n_node;                 // measured process value
+    //SGPropertyNode *r_n_node;                 // reference (set point) value
 
     // Configuration values
-    SGPropertyNode *Ts_node;	              // time step (optional)
-    SGPropertyNode *Kp_node;                  // proportional gain
+    //SGPropertyNode *Ts_node;	              // time step (optional)
+    //SGPropertyNode *Kp_node;                  // proportional gain
 
-    SGPropertyNode *alpha_node;               // low pass filter weighing factor (usually 0.1)
-    SGPropertyNode *beta_node;                // process value weighing factor for
+    //SGPropertyNode *alpha_node;               // low pass filter weighing factor (usually 0.1)
+    //SGPropertyNode *beta_node;                // process value weighing factor for
                                 // calculating proportional error
                                 // (usually 1.0)
-    SGPropertyNode *gamma_node;               // process value weighing factor for
+    //SGPropertyNode *gamma_node;               // process value weighing factor for
                                 // calculating derivative error
                                 // (usually 0.0)
 
-    SGPropertyNode *Ti_node;                  // Integrator time (sec)
-    SGPropertyNode *Td_node;                  // Derivator time (sec)
+    //SGPropertyNode *Ti_node;                  // Integrator time (sec)
+    //SGPropertyNode *Td_node;                  // Derivator time (sec)
 
-    SGPropertyNode *u_min_node;               // Minimum output clamp
-    SGPropertyNode *u_max_node;               // Maximum output clamp
+    //SGPropertyNode *u_min_node;               // Minimum output clamp
+    //SGPropertyNode *u_max_node;               // Maximum output clamp
 
     // Previous state tracking values
     double ep_n_1;              // ep[n-1]  (prop error)
@@ -131,8 +132,8 @@ private:
     
 public:
 
-    FGPIDController( SGPropertyNode *node );
-    FGPIDController( SGPropertyNode *node, bool old );
+    FGPIDController( pyPropertyNode *pid_node );
+    FGPIDController( pyPropertyNode *pid_node, bool old );
     ~FGPIDController() {}
 
     void update_old( double dt );
@@ -150,32 +151,30 @@ private:
 
     // proportional component data
     bool proportional;
-    SGPropertyNode *Kp_node;
+    //SGPropertyNode *Kp_node;
 
     // integral component data
     bool integral;
-    SGPropertyNode *Ki_node;
+    //SGPropertyNode *Ki_node;
     double int_sum;
 
     // post functions for output
     bool clamp;
 
     // debug flag
-    SGPropertyNode *debug_node;
+    //SGPropertyNode *debug_node;
 
     // Input values
     double y_n;                 // measured process value
     double r_n;                 // reference (set point) value
-    SGPropertyNode *y_scale_node;             // scale process input from property system
-    SGPropertyNode *r_scale_node;             // scale reference input from property system
 
-    SGPropertyNode *u_min_node;               // Minimum output clamp
-    SGPropertyNode *u_max_node;               // Maximum output clamp
+    //SGPropertyNode *u_min_node;               // Minimum output clamp
+    //SGPropertyNode *u_max_node;               // Maximum output clamp
 
     
 public:
 
-    FGPISimpleController( SGPropertyNode *node );
+    FGPISimpleController( pyPropertyNode *pid_node );
     ~FGPISimpleController() {}
 
     void update( double dt );
@@ -204,7 +203,7 @@ private:
     
 public:
 
-    FGPredictor( SGPropertyNode *node );
+    FGPredictor( pyPropertyNode *pid_node );
     ~FGPredictor() {}
 
     void update( double dt );
@@ -237,7 +236,7 @@ private:
     bool debug;
 
 public:
-    FGDigitalFilter(SGPropertyNode *node);
+    FGDigitalFilter( pyPropertyNode *pid_node );
     ~FGDigitalFilter() {}
 
     void update(double dt);
@@ -271,9 +270,9 @@ protected:
 private:
 
     bool serviceable;
-    SGPropertyNode *config_props;
+    //SGPropertyNode *config_props;
     comp_list components;
 };
 
 
-#endif // _XMLAUTO_HXX
+#endif // _AURA_XMLAUTO_HXX
