@@ -63,7 +63,7 @@ pyPropertyNode pyPropertyNode::getChild(const char *name, int index)
 	return pyPropertyNode();
     }
     ostringstream str;
-    str << (string)name << '[' << index << ']';
+    str << name << '[' << index << ']';
     string ename = str.str();
     printf("ename = %s\n", ename.c_str());
     return getChild(ename.c_str());
@@ -221,6 +221,7 @@ bool pyPropertyNode::setString( const char *name, string val ) {
 // These only need to be looked up once and then saved
 static PyObject *pModuleProps = NULL;
 static PyObject *pFuncGetNode = NULL;
+static PyObject *pModuleXML = NULL;
 
 // This function must be called first (before any pyPropertyNode
 // usage.) It sets up the python intepreter and imports the python
@@ -242,6 +243,14 @@ void pyPropsInit(int argc, char **argv) {
 	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr, "Cannot find function 'getNode()'\n");
     }
+
+    // xml I/O system
+    pModuleXML = PyImport_ImportModule("props_xml");
+    if (pModuleXML == NULL) {
+        PyErr_Print();
+        fprintf(stderr, "Failed to load 'props_xml'\n");
+    }
+
 }
 
 // This function can be called prior to exit (after the last property
@@ -282,5 +291,39 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
 	return pyPropertyNode();
     }
     return pyPropertyNode();
+}
+
+bool writeXML(string filename, pyPropertyNode *node) {
+    // getNode() function
+    PyObject *pFuncSave = PyObject_GetAttrString(pModuleXML, "save");
+    if ( pFuncSave == NULL || ! PyCallable_Check(pFuncSave) ) {
+	if ( PyErr_Occurred() ) PyErr_Print();
+	fprintf(stderr, "Cannot find function 'save()'\n");
+	return false;
+    }
+    PyObject *pArgs = PyTuple_New(2);
+    PyObject *pPath = PyString_FromString(filename.c_str());
+    PyObject *pNode = node->pObj;
+    if (!pPath || !pNode) {
+	Py_DECREF(pArgs);
+	Py_XDECREF(pPath);
+	Py_XDECREF(pNode);
+	Py_XDECREF(pFuncSave);
+	fprintf(stderr, "Cannot convert argument\n");
+	return false;
+    }
+    PyTuple_SetItem(pArgs, 0, pPath);
+    PyTuple_SetItem(pArgs, 1, pNode);
+    PyObject *pValue = PyObject_CallObject(pFuncSave, pArgs);
+    Py_DECREF(pArgs);
+    Py_DECREF(pFuncSave);
+    if (pValue != NULL) {
+	// give pValue over to the returned property node
+	return PyObject_IsTrue(pValue);
+    } else {
+	PyErr_Print();
+	fprintf(stderr,"Call failed\n");
+    }
+    return false;
 }
 

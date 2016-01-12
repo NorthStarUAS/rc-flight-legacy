@@ -709,7 +709,7 @@ static bool APM2_open() {
     }
     APM2_baud_node = pyGetNode("/config/sensors/APM2/baud");
     if ( APM2_baud_node != NULL ) {
-       baud = APM2_baud_node->getIntValue();
+       baud = APM2_baud_node->getLong();
     }
     APM2_volt_ratio_node = pyGetNode("/config/sensors/APM2/volt-divider-ratio");
     if ( APM2_volt_ratio_node != NULL ) {
@@ -956,7 +956,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		       pilot_elevator_node->getDouble(),
 		       pilot_throttle_node->getDouble(),
 		       pilot_rudder_node->getDouble(),
-		       pilot_manual_node->getIntValue());
+		       pilot_manual_node->getLong());
 	    }
 #endif
 
@@ -1306,7 +1306,7 @@ static bool APM2_send_config() {
     SGPropertyNode *APM2_serial_number_node
 	= pyGetNode("/config/sensors/APM2/setup-serial-number");
     if ( APM2_serial_number_node != NULL ) {
-	uint16_t serial_number = APM2_serial_number_node->getIntValue();
+	uint16_t serial_number = APM2_serial_number_node->getLong();
 	start_time = get_Time();    
 	APM2_act_set_serial_number( serial_number );
 	last_ack_id = 0;
@@ -1329,7 +1329,7 @@ static bool APM2_send_config() {
 	for ( int i = 0; i < pwm_rates->nChildren(); ++i ) {
 	    SGPropertyNode *channel_node = pwm_rates->getChild(i);
 	    int ch = channel_node->getIndex();
-	    uint16_t rate_hz = channel_node->getIntValue();
+	    uint16_t rate_hz = channel_node->getLong();
 	    act_rates[ch] = rate_hz;
 	}
 	start_time = get_Time();    

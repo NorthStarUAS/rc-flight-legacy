@@ -54,7 +54,7 @@ static bool airdata_inited = false;
 static void bind_input( SGPropertyNode *config ) {
     imu_port_node = config->getChild("port");
     if ( imu_port_node != NULL ) {
-	port = imu_port_node->getIntValue();
+	port = imu_port_node->getLong();
     }
     configroot = config;
 }

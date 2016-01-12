@@ -575,7 +575,7 @@ copyProperties (const SGPropertyNode *in, SGPropertyNode *out)
 	retval = false;
       break;
     case SGPropertyNode::INT:
-      if (!out->setIntValue(in->getIntValue()))
+      if (!out->setIntValue(in->getLong()))
 	retval = false;
       break;
     case SGPropertyNode::LONG:

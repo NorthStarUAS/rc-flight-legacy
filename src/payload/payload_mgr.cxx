@@ -55,11 +55,11 @@ bool UGPayloadMgr::update() {
 	if ( remote_link_on ) {
 	    // printf("sending filter packet\n");
 	    remote_link_payload( buf, size,
-				 payload_console_skip->getIntValue() );
+				 payload_console_skip->getLong() );
 	}
 
 	if ( log_to_file ) {
-	    log_payload( buf, size, payload_logging_skip->getIntValue() );
+	    log_payload( buf, size, payload_logging_skip->getLong() );
 	}
     }
     return true;

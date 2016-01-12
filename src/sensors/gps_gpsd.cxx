@@ -55,7 +55,7 @@ static double last_init_time = 0.0;
 static void bind_input( SGPropertyNode *config ) {
     gpsd_port_node = config->getChild("port");
     if ( gpsd_port_node != NULL ) {
-	port = gpsd_port_node->getIntValue();
+	port = gpsd_port_node->getLong();
     }
     gpsd_host_node = config->getChild("host");
     if ( gpsd_host_node != NULL ) {

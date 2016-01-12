@@ -150,11 +150,11 @@ bool IMU_update() {
 	    int size = packetizer->packetize_imu( buf );
 
 	    if ( remote_link_on ) {
-		remote_link_imu( buf, size, imu_console_skip->getIntValue() );
+		remote_link_imu( buf, size, imu_console_skip->getLong() );
 	    }
 
 	    if ( log_to_file ) {
-		log_imu( buf, size, imu_logging_skip->getIntValue() );
+		log_imu( buf, size, imu_logging_skip->getLong() );
 	    }
 	}
     }

@@ -178,11 +178,11 @@ bool PilotInput_update() {
 	    if ( remote_link_on ) {
 		// printf("sending filter packet\n");
 		remote_link_pilot( buf, size,
-				    pilot_console_skip->getIntValue() );
+				    pilot_console_skip->getLong() );
 	    }
 
 	    if ( log_to_file ) {
-		log_pilot( buf, size, pilot_logging_skip->getIntValue() );
+		log_pilot( buf, size, pilot_logging_skip->getLong() );
 	    }
 	}
     }

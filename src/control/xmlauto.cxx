@@ -555,7 +555,7 @@ FGDigitalFilter::FGDigitalFilter(SGPropertyNode *node)
         } else if ( cname == "filter-time" ) {
             Tf = child->getDouble();
         } else if ( cname == "samples" ) {
-            samples = child->getIntValue();
+            samples = child->getLong();
         } else if ( cname == "max-rate-of-change" ) {
             rateOfChange = child->getDouble();
         } else if ( cname == "output" ) {

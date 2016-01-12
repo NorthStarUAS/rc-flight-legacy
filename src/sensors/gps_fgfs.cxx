@@ -39,7 +39,7 @@ static SGPropertyNode *gps_status_node = NULL;
 static void bind_input( SGPropertyNode *config ) {
     gps_port_node = config->getChild("port");
     if ( gps_port_node != NULL ) {
-	port = gps_port_node->getIntValue();
+	port = gps_port_node->getLong();
     }
     configroot = config;
 }

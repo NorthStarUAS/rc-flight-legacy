@@ -65,7 +65,7 @@ static void bind_input( SGPropertyNode *config ) {
     }
     gps_baud_node = config->getChild("baud");
     if ( gps_baud_node != NULL ) {
-	baud = gps_baud_node->getIntValue();
+	baud = gps_baud_node->getLong();
     }
     configroot = config;
 }

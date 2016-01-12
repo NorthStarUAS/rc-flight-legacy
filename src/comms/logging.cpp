@@ -1,3 +1,5 @@
+#include "python/pyprops.hxx"
+
 #include <sys/types.h>		// opendir() mkdir()
 #include <dirent.h>		// opendir()
 #include <stdio.h>		// sscanf()
@@ -7,8 +9,6 @@
 #include <sys/time.h>
 #include <zlib.h>
 
-#include "python/pyprops.hxx"
-#include "props/props_io.hxx"
 #include "util/timing.h"
 
 #include "checksum.h"
@@ -310,10 +310,8 @@ bool event_log( const char *hdr, const char *msg ) {
 
 // write out the imu calibration parameters associated with this data
 // (this allows us to later rederive the original raw sensor values.)
-bool log_imu_calibration( SGPropertyNode *config ) {
+bool log_imu_calibration( pyPropertyNode *config ) {
     SGPath file = flight_dir; file.append( "imucal.xml" );
 
-    writeProperties( file.str(), config, true );
-
-    return true;
+    return writeXML( file.str(), config );
 }

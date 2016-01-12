@@ -38,8 +38,8 @@ public:
     bool setLong( const char *name, long val );     // returns true if successful
     bool setBool( const char *name, bool val );     // returns true if successful
     bool setString( const char *name, string val ); // returns true if successful
-    
-private:
+
+    // semi-private
     PyObject *pObj;
 };
 
@@ -61,4 +61,7 @@ extern void pyPropsCleanup(void);
 // access in your update routines.
 pyPropertyNode pyGetNode(string abs_path, bool create=false);
 
+// Write an xml file beginning with the specified node
+bool writeXML(string filename, pyPropertyNode *node);
+    
 #endif // _AURA_PYPROPS_HXX

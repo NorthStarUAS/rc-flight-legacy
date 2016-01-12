@@ -32,120 +32,41 @@ enum ugPacketType {
 
 
 class UGPacketizer {
-
-    // gps property nodes
-    pyPropertyNode gps_timestamp_node;
-    pyPropertyNode gps_lat_node;
-    pyPropertyNode gps_lon_node;
-    pyPropertyNode gps_alt_node;
-    pyPropertyNode gps_vn_node;
-    pyPropertyNode gps_ve_node;
-    pyPropertyNode gps_vd_node;
-    pyPropertyNode gps_unix_sec_node;
-    pyPropertyNode gps_satellites_node;
-    pyPropertyNode gps_status_node;
-
-    // imu property nodes
-    pyPropertyNode imu_timestamp_node;
-    pyPropertyNode imu_p_node;
-    pyPropertyNode imu_q_node;
-    pyPropertyNode imu_r_node;
-    pyPropertyNode imu_ax_node;
-    pyPropertyNode imu_ay_node;
-    pyPropertyNode imu_az_node;
-    pyPropertyNode imu_hx_node;
-    pyPropertyNode imu_hy_node;
-    pyPropertyNode imu_hz_node;
-    pyPropertyNode imu_temp_node;
-    pyPropertyNode imu_status_node;
-
-    // air data property nodes
-    pyPropertyNode airdata_timestamp_node;
-    pyPropertyNode airdata_pressure_node;
-    pyPropertyNode airdata_temperature_node;
-    pyPropertyNode airdata_altitude_node;
-    pyPropertyNode airdata_altitude_true_node;
-    pyPropertyNode official_altitude_agl_node;
-    pyPropertyNode airdata_airspeed_node;
-    pyPropertyNode airdata_climb_fps_node;
-    pyPropertyNode airdata_wind_dir_node;
-    pyPropertyNode airdata_wind_speed_node;
-    pyPropertyNode airdata_pitot_scale_node;
-    pyPropertyNode airdata_status_node;
-
-    // filter property nodes
-    pyPropertyNode filter_timestamp_node;
-    pyPropertyNode filter_theta_node;
-    pyPropertyNode filter_phi_node;
-    pyPropertyNode filter_psi_node;
-    pyPropertyNode filter_lat_node;
-    pyPropertyNode filter_lon_node;
-    pyPropertyNode filter_alt_node;
-    pyPropertyNode filter_vn_node;
-    pyPropertyNode filter_ve_node;
-    pyPropertyNode filter_vd_node;
-    pyPropertyNode filter_status_node;
-
-    // actuator property nodes
-    pyPropertyNode act_timestamp_node;
-    pyPropertyNode act_aileron_node;
-    pyPropertyNode act_elevator_node;
-    pyPropertyNode act_throttle_node;
-    pyPropertyNode act_rudder_node;
-    pyPropertyNode act_channel5_node;
-    pyPropertyNode act_channel6_node;
-    pyPropertyNode act_channel7_node;
-    pyPropertyNode act_channel8_node;
-    pyPropertyNode act_status_node;
-
-    // pilot input property nodes
-    pyPropertyNode pilot_timestamp_node;
-    pyPropertyNode pilot_aileron_node;
-    pyPropertyNode pilot_elevator_node;
-    pyPropertyNode pilot_throttle_node;
-    pyPropertyNode pilot_rudder_node;
-    pyPropertyNode pilot_channel5_node;
-    pyPropertyNode pilot_channel6_node;
-    pyPropertyNode pilot_channel7_node;
-    pyPropertyNode pilot_channel8_node;
-    pyPropertyNode pilot_status_node;
+    // property nodes
+    pyPropertyNode gps_node;
+    pyPropertyNode imu_node;
+    pyPropertyNode airdata_node;
+    pyPropertyNode pos_node;
+    pyPropertyNode pos_pressure_node;
+    pyPropertyNode pos_combined_node;
+    pyPropertyNode vel_node;
+    pyPropertyNode filter_node;
+    pyPropertyNode wind_node;
+    pyPropertyNode act_node;
+    pyPropertyNode pilot_node;
 
     // autopilot status nodes
-    pyPropertyNode pressure_ground_alt_node;
-    pyPropertyNode pressure_error_node;
-    pyPropertyNode ap_hdg;
-    pyPropertyNode ap_roll;
-    pyPropertyNode ap_altitude_agl;
-    pyPropertyNode ap_altitude_msl;
-    pyPropertyNode ap_climb;
-    pyPropertyNode ap_pitch;
-    pyPropertyNode ap_theta_dot;
-    pyPropertyNode ap_speed;
-    pyPropertyNode ap_waypoint;
+    //pyPropertyNode pressure_ground_alt_node;
+    //pyPropertyNode pressure_error_node;
+    pyPropertyNode ap_node;
+    pyPropertyNode ap_internal_node;
+    pyPropertyNode route_node;
+    
 
     // system health nodes
-    pyPropertyNode system_loadavg_node;
-    pyPropertyNode avionics_vcc_node;
-    pyPropertyNode extern_volt_node;
-    pyPropertyNode extern_cell_volt_node;
-    pyPropertyNode extern_amp_node;
-    pyPropertyNode extern_mah_node;
+    pyPropertyNode status_node;
+    pyPropertyNode apm2_node;
+    //pyPropertyNode avionics_vcc_node;
+    //pyPropertyNode extern_volt_node;
+    //pyPropertyNode extern_cell_volt_node;
+    //pyPropertyNode extern_amp_node;
+    //pyPropertyNode extern_mah_node;
 
     // payload status nodes
-    pyPropertyNode payload_trigger_num_node;
+    pyPropertyNode payload_node;
 
     // console link nodes
-    pyPropertyNode link_seq_num;
-
-    void bind_gps_nodes();
-    void bind_imu_nodes();
-    void bind_airdata_nodes();
-    void bind_filter_nodes();
-    void bind_actuator_nodes();
-    void bind_pilot_nodes();
-    void bind_ap_nodes();
-    void bind_health_nodes();
-    void bind_payload_nodes();
+    pyPropertyNode remote_link_node;
 
 public:
 

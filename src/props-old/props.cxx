@@ -1034,7 +1034,7 @@ SGPropertyNode::getBool () const
 }
 
 int 
-SGPropertyNode::getIntValue () const
+SGPropertyNode::getLong () const
 {
 				// Shortcut for common case
   if (_attr == (READ|WRITE) && _type == INT)
@@ -1046,7 +1046,7 @@ SGPropertyNode::getIntValue () const
     return SGRawValue<int>::DefaultValue;
   switch (_type) {
   case ALIAS:
-    return _value.alias->getIntValue();
+    return _value.alias->getLong();
   case BOOL:
     return int(get_bool());
   case INT:
@@ -1555,7 +1555,7 @@ SGPropertyNode::tie (const SGRawValue<int> &rawValue, bool useDefault)
   useDefault = useDefault && hasValue();
   int old_val = 0;
   if (useDefault)
-    old_val = getIntValue();
+    old_val = getLong();
 
   clearValue();
   _type = INT;
@@ -1672,7 +1672,7 @@ SGPropertyNode::untie ()
     break;
   }
   case INT: {
-    int val = getIntValue();
+    int val = getLong();
     clearValue();
     _type = INT;
     _local_val.int_val = val;
@@ -1818,11 +1818,11 @@ SGPropertyNode::getBool (const char * relative_path,
  * Get an int value for another node.
  */
 int
-SGPropertyNode::getIntValue (const char * relative_path,
+SGPropertyNode::getLong (const char * relative_path,
 			     int defaultValue) const
 {
   const SGPropertyNode * node = getNode(relative_path);
-  return (node == 0 ? defaultValue : node->getIntValue());
+  return (node == 0 ? defaultValue : node->getLong());
 }
 
 

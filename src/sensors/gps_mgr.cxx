@@ -126,7 +126,7 @@ static void compute_magvar() {
 	    = pyGetNode("/sensors/gps/longitude-deg", true);
 	SGPropertyNode *alt_node
 	    = pyGetNode("/sensors/gps/altitude-m", true);
-	long int jd = unixdate_to_julian_days( date_node->getIntValue() );
+	long int jd = unixdate_to_julian_days( date_node->getLong() );
 	double field[6];
 	magvar_rad
 	    = calc_magvar( lat_node->getDouble() * SGD_DEGREES_TO_RADIANS,
@@ -195,15 +195,15 @@ bool GPS_update() {
 	    int size = packetizer->packetize_gps( buf );
 
 	    if ( remote_link_on ) {
-		remote_link_gps( buf, size, gps_console_skip->getIntValue() );
+		remote_link_gps( buf, size, gps_console_skip->getLong() );
 	    }
 
 	    if ( log_to_file ) {
-		log_gps( buf, size, gps_logging_skip->getIntValue() );
+		log_gps( buf, size, gps_logging_skip->getLong() );
 	    }
 	}
     }
-    if ( gps_status_node->getIntValue() == 2 && !gps_state ) {
+    if ( gps_status_node->getLong() == 2 && !gps_state ) {
 	const double gps_settle = 10.0;
 	static double gps_acq_time = gps_timestamp_node->getDouble();
 	static double last_time = 0.0;

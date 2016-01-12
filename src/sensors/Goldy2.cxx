@@ -117,7 +117,7 @@ struct imu_sensors_t {
 static void bind_input( SGPropertyNode *config ) {
     goldy2_port_node = pyGetNode("/config/sensors/Goldy2/port");
     if ( goldy2_port_node != NULL ) {
-	port = goldy2_port_node->getIntValue();
+	port = goldy2_port_node->getLong();
     }
     printf("Goldy2 port = %d\n", port);
 
