@@ -9,6 +9,8 @@
  *
  */
 
+#include "python/pyprops.hxx"
+
 #include <cstdio>
 #include <cmath>
 
@@ -19,29 +21,7 @@
 
 #include "circle_mgr.hxx"
 
-AuraCircleMgr::AuraCircleMgr() :
-    lon_node( NULL ),
-    lat_node( NULL ),
-    alt_agl_node( NULL ),
-    true_heading_node( NULL ),
-    groundtrack_node( NULL ),
-    groundspeed_node( NULL ),
-
-    coord_lon_node( NULL ),
-    coord_lat_node( NULL ),
-    direction_node( NULL ),
-    radius_node( NULL ),
-    target_agl_node( NULL ),
-    target_speed_node( NULL ),
-    bank_limit_node( NULL ),
-    L1_period_node( NULL ),
-
-    fcs_mode_node( NULL ),
-    ap_roll_node( NULL ),
-    target_course_deg( NULL ),
-    wp_dist_m( NULL ),
-    wp_eta_sec( NULL )
-{
+AuraCircleMgr::AuraCircleMgr() {
     bind();
 };
 
@@ -51,37 +31,47 @@ AuraCircleMgr::~AuraCircleMgr() {
 
 
 bool AuraCircleMgr::bind() {
-    lon_node = pyGetNode( "/position/longitude-deg", true );
-    lat_node = pyGetNode( "/position/latitude-deg", true );
-    alt_agl_node = pyGetNode("/position/altitude-agl-ft", true);
-    true_heading_node = pyGetNode( "/orientation/heading-deg", true );
-    groundtrack_node = pyGetNode( "/orientation/groundtrack-deg", true );
-    groundspeed_node = pyGetNode("/velocity/groundspeed-ms", true);
+    // property nodes
+    pos_node = pyGetNode("/position", true);
+    vel_node = pyGetNode("velocity", true);
+    orient_node = pyGetNode("/orientation", true);
+    circle_node = pyGetNode("/task/circle", true);
+    L1_node = pyGetNode("/config/fcs/autopilot/L1-controller", true);
+    fcs_node = pyGetNode("/config/fcs", true);
+    ap_node = pyGetNode("/autopilot/settings", true);
+    route_node = pyGetNode("/task/route", true);
 
-    coord_lon_node = pyGetNode( "/task/circle/longitude-deg", true );
-    coord_lat_node = pyGetNode( "/task/circle/latitude-deg", true );
-    direction_node = pyGetNode( "/task/circle/direction", true );
-    radius_node = pyGetNode( "/task/circle/radius-m", true );
-    target_agl_node = pyGetNode( "/task/circle/altitude-agl-ft", true );
-    target_speed_node = pyGetNode( "/task/circle/speed-kt", true );
+    //lon_node = pyGetNode( "/position/longitude-deg", true );
+    //lat_node = pyGetNode( "/position/latitude-deg", true );
+    //alt_agl_node = pyGetNode("/position/altitude-agl-ft", true);
+    //true_heading_node = pyGetNode( "/orientation/heading-deg", true );
+    //groundtrack_node = pyGetNode( "/orientation/groundtrack-deg", true );
+    //groundspeed_node = pyGetNode("/velocity/groundspeed-ms", true);
 
-    bank_limit_node = pyGetNode("/config/fcs/autopilot/L1-controller/bank-limit-deg", true );
-    L1_period_node = pyGetNode("/config/fcs/autopilot/L1-controller/period", true );
+    //coord_lon_node = pyGetNode( "/task/circle/longitude-deg", true );
+    //coord_lat_node = pyGetNode( "/task/circle/latitude-deg", true );
+    //direction_node = pyGetNode( "/task/circle/direction", true );
+    //radius_node = pyGetNode( "/task/circle/radius-m", true );
+    //target_agl_node = pyGetNode( "/task/circle/altitude-agl-ft", true );
+    //target_speed_node = pyGetNode( "/task/circle/speed-kt", true );
+
+    //bank_limit_node = pyGetNode("/config/fcs/autopilot/L1-controller/bank-limit-deg", true );
+    //L1_period_node = pyGetNode("/config/fcs/autopilot/L1-controller/period", true );
     // sanity check, set some conservative values if none are provided
     // in the autopilot config
-    if ( bank_limit_node->getDouble() < 0.1 ) {
-	bank_limit_node->setDouble( 20.0 );
+    if ( L1_node.getDouble( "bank_limit_deg" ) < 0.1 ) {
+	L1_node.setDouble( "bank_limit_deg", 20.0 );
     }
-    if ( L1_period_node->getDouble() < 0.1 ) {
-	L1_period_node->setDouble( 25.0 );
+    if ( L1_node.getDouble( "period" ) < 0.1 ) {
+	L1_node.setDouble( "period", 25.0 );
     }
 
-    fcs_mode_node = pyGetNode("/config/fcs/mode", true);
-    ap_roll_node = pyGetNode("/autopilot/settings/target-roll-deg", true);
-    target_course_deg = pyGetNode( "/autopilot/settings/target-groundtrack-deg", true );
+    //fcs_mode_node = pyGetNode("/config/fcs/mode", true);
+    //ap_roll_node = pyGetNode("/autopilot/settings/target-roll-deg", true);
+    //target_course_deg = pyGetNode( "/autopilot/settings/target-groundtrack-deg", true );
 
-    wp_dist_m = pyGetNode( "/task/route/wp-dist-m", true );
-    wp_eta_sec = pyGetNode( "/task/route/wp-eta-sec", true );
+    //wp_dist_m = pyGetNode( "/task/route/wp-dist-m", true );
+    //wp_eta_sec = pyGetNode( "/task/route/wp-eta-sec", true );
 
     return true;
 }
@@ -100,20 +90,20 @@ bool AuraCircleMgr::init() {
 bool AuraCircleMgr::update() {
     // printf("circle update\n");
 
-    string direction_str = direction_node->getString();
+    string direction_str = circle_node.getString("direction");
     double direction = 1.0;
-    if ( direction_str == (string)"right" ) {
+    if ( direction_str == "right" ) {
 	direction = -1.0;
     }
 
-    SGWayPoint target = SGWayPoint( coord_lon_node->getDouble(),
-				    coord_lat_node->getDouble() );
+    SGWayPoint target = SGWayPoint( circle_node.getDouble("longitude_deg"),
+				    circle_node.getDouble("latitude_deg") );
 
     // compute course and distance to center of target circle
     double course_deg;
     double dist_m;
-    target.CourseAndDistance( lon_node->getDouble(),
-			      lat_node->getDouble(),
+    target.CourseAndDistance( pos_node.getDouble("longitude_deg"),
+			      pos_node.getDouble("latitude_deg"),
 			      0.0, &course_deg, &dist_m );
 
     // compute ideal ground course to be on the circle perimeter if at
@@ -123,7 +113,7 @@ bool AuraCircleMgr::update() {
     if ( ideal_crs < 0.0 ) { ideal_crs += 360.0; }
 
     // (in)sanity check
-    double radius_m = radius_node->getDouble();
+    double radius_m = circle_node.getDouble("radius_m");
     if ( radius_m < 25.0 ) { radius_m = 25.0; }
 
     // compute a target ground course based on our actual radius distance
@@ -145,7 +135,7 @@ bool AuraCircleMgr::update() {
 	if ( target_crs > 360.0 ) { target_crs -= 360.0; }
 	if ( target_crs < 0.0 ) { target_crs += 360.0; }
     }
-    target_course_deg->setDouble( target_crs );
+    ap_node.setDouble( "target_groundtrack_deg", target_crs );
     /*if ( display_on ) {
 	printf("rad=%.0f act=%.0f ideal crs=%.1f tgt crs=%.1f\n",
 	       radius_m, dist_m, ideal_crs, target_crs);
@@ -153,12 +143,12 @@ bool AuraCircleMgr::update() {
 
     // new L1 'mathematical' response to error
 
-    double L1_period = L1_period_node->getDouble();	// gain
-    double gs_mps = groundspeed_node->getDouble();
+    double L1_period = L1_node.getDouble("period");	// gain
+    double gs_mps = vel_node.getDouble("groundspeed_ms");
     const double sqrt_of_2 = 1.41421356237309504880;
     double omegaA = sqrt_of_2 * SGD_PI / L1_period;
     double VomegaA = gs_mps * omegaA;
-    double course_error = groundtrack_node->getDouble() - target_crs;
+    double course_error = orient_node.getDouble("groundtrack_deg") - target_crs;
     if ( course_error < -180.0 ) { course_error += 360.0; }
     if ( course_error >  180.0 ) { course_error -= 360.0; }
     // accel: is the lateral acceleration we need to compensate for
@@ -186,7 +176,7 @@ bool AuraCircleMgr::update() {
     double target_bank = -atan( total_accel / gravity );
     double target_bank_deg = target_bank * SG_RADIANS_TO_DEGREES;
 
-    double bank_limit_deg = bank_limit_node->getDouble();
+    double bank_limit_deg = L1_node.getDouble("bank_limit_deg");
     if ( target_bank_deg < -bank_limit_deg ) {
 	target_bank_deg = -bank_limit_deg;
     }
@@ -196,16 +186,16 @@ bool AuraCircleMgr::update() {
     //printf("   circle: tgt bank = %.0f  bank limit = %.0f\n",
     //	   target_bank_deg, bank_limit_deg);
 
-    ap_roll_node->setDouble( target_bank_deg );
+    ap_node.setDouble( "target_roll_deg", target_bank_deg );
 
     // printf("circle: ground_crs = %.1f aircraft_hdg = %.1f\n",
     //	   course_deg, hd_deg );
 
-    wp_dist_m->setFloatValue( dist_m );
+    route_node.setDouble( "wp_dist_m", dist_m );
     if ( gs_mps > 0.1 ) {
-	wp_eta_sec->setFloatValue( dist_m / gs_mps );
+	route_node.setDouble( "wp_eta_sec", dist_m / gs_mps );
     } else {
-	wp_eta_sec->setFloatValue( 0.0 );
+	route_node.setDouble( "wp_eta_sec", 0.0 );
     }
 
     return true;
@@ -213,15 +203,15 @@ bool AuraCircleMgr::update() {
 
 
 SGWayPoint AuraCircleMgr::get_center() {
-    return SGWayPoint( coord_lon_node->getDouble(),
-		       coord_lat_node->getDouble() );
+    return SGWayPoint( circle_node.getDouble("longitude_deg"),
+		       circle_node.getDouble("latitude_deg") );
 }
 
 
 void AuraCircleMgr::set_direction( const string direction ) {
-    direction_node->setString( direction.c_str() );
+    circle_node.setString( "direction", direction.c_str() );
 }
 
 void AuraCircleMgr::set_radius( const double radius_m ) {
-    radius_node->setDouble( radius_m );
+    circle_node.setDouble( "radius_m", radius_m );
 }

@@ -20,33 +20,15 @@
 class AuraCircleMgr {
 
 private:
-
-    // automatic inputs
-    pyPropertyNode lon_node;
-    pyPropertyNode lat_node;
-    pyPropertyNode alt_agl_node;
-    pyPropertyNode true_heading_node;
-    pyPropertyNode groundtrack_node;
-    pyPropertyNode groundspeed_node;
-
-    // configuration nodes
-    pyPropertyNode coord_lon_node;
-    pyPropertyNode coord_lat_node;
-    pyPropertyNode direction_node;
-    pyPropertyNode radius_node;
-    pyPropertyNode target_agl_node;
-    pyPropertyNode target_speed_node;
-    pyPropertyNode bank_limit_node;
-    pyPropertyNode L1_period_node;
-
-    // autopilot settings
-    pyPropertyNode fcs_mode_node;
-    pyPropertyNode ap_agl_node;
-    pyPropertyNode ap_roll_node;
-    pyPropertyNode target_course_deg;
-
-    pyPropertyNode wp_dist_m;
-    pyPropertyNode wp_eta_sec;
+    // property nodes
+    pyPropertyNode pos_node;
+    pyPropertyNode vel_node;
+    pyPropertyNode orient_node;
+    pyPropertyNode circle_node;
+    pyPropertyNode L1_node;
+    pyPropertyNode fcs_node;
+    pyPropertyNode ap_node;
+    pyPropertyNode route_node;
 
     bool bind();		// setup property node bindings
 
