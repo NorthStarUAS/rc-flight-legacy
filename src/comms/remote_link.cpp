@@ -38,10 +38,6 @@ enum ugLinkType {
 static pyPropertyNode remote_link_config;
 static pyPropertyNode remote_link_node;
 
-//static SGPropertyNode *link_sequence_num = NULL;
-//static SGPropertyNode *link_message_time_sec = NULL;
-//static SGPropertyNode *link_bytes_per_frame = NULL;
-
 bool remote_link_on = false;    // link to remote operator station
 static SGSerialPort serial_fd;
 static netBuffer serial_buffer(128);
@@ -68,7 +64,6 @@ void remote_link_init() {
     }
 
     if ( link_type == ugUART ) {
-	//SGPropertyNode *link_dev = fgGetNode("/config/remote-link/device", true);
 	if ( ! serial_fd.open_port( remote_link_config.getString("device"), true ) ) {
 	    return;
 	}
@@ -76,8 +71,6 @@ void remote_link_init() {
 
 	link_open = true;
     } else if ( link_type == ugSOCKET ) {
-	//SGPropertyNode *link_host = fgGetNode("/config/remote-link/host", true);
-	//SGPropertyNode *link_port = fgGetNode("/config/remote-link/port", true);
 	if ( ! link_socket.open(true) ) {
 	    printf("Error opening socket: %s:%ld\n",
 		   remote_link_config.getString("host").c_str(),
@@ -100,10 +93,6 @@ void remote_link_init() {
     }
 
     remote_link_node.setLong("sequence_num", 0);
-    // link_message_time_sec
-    //	= fgGetNode("/comms/remote-link/last-message-sec", true);
-    // link_bytes_per_frame
-    //	= fgGetNode("/config/remote-link/write-bytes-per-frame", true);
     if ( remote_link_config.getLong("write-bytes-per-frame") == 0 ) {
 	remote_link_config.setLong("write-bytes-per-frame", 12);
     }

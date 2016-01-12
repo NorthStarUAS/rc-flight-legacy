@@ -11,12 +11,13 @@
 // modify it under the terms of the GNU LGPL
 //
 
+#include "python/pyprops.hxx"
+
 #include <sstream>
 
 #include "control/control.h"
 #include "init/globals.hxx" 	// packetizer
-#include "python/pyprops.hxx"
-#include "props/props_io.hxx"
+//#include "props/props_io.hxx"
 #include "util/strutils.hxx"
 
 #include "netChat.h"
@@ -116,6 +117,7 @@ PropsChannel::node_not_found_error( const string& node_name )
     push( getTerminator() );
 }
 
+#if 0
 // return a human readable form of the value "type"
 static string getValueTypeString( const SGPropertyNode *node )
 {
@@ -147,6 +149,7 @@ static string getValueTypeString( const SGPropertyNode *node )
 
     return result;
 }
+#endif
 
 /**
  * We have a command.
@@ -162,7 +165,7 @@ PropsChannel::foundTerminator()
 
     vector<string> tokens = split( cmd );
 
-    SGPropertyNode* node = pyGetNode( path.c_str() );
+    pyPropertyNode node = pyGetNode( path.c_str() );
 
     if (!tokens.empty()) {
 	string command = tokens[0];
@@ -170,19 +173,19 @@ PropsChannel::foundTerminator()
         if ( command == "null" ) {
             // do nothing!
 	} else if ( command == "ls" ) {
-	    SGPropertyNode* dir = node;
+	    pyPropertyNode dir = node;
 	    if (tokens.size() == 2) {
 		if ( tokens[1][0] == '/' ) {
-		    dir = pyGetNode( tokens[1].c_str() );
+		    dir = pyGetNode( tokens[1] );
 		} else {
 		    string s = path;
 		    s += "/";
 		    s += tokens[1];
-		    dir = pyGetNode( s.c_str() );
+		    dir = pyGetNode( s );
 		}
 	    }
 
-	    if ( dir != NULL ) {
+	    if ( ! dir.isNull() ) {
 		for ( int i = 0; i < dir->nChildren(); i++ ) {
 		    SGPropertyNode * child = dir->getChild(i);
 		    string line = child->getDisplayName(true);
