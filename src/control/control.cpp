@@ -49,71 +49,95 @@
 static FGXMLAutopilot ap;
 
 
-// autopilot control properties
-static SGPropertyNode *ap_master_switch_node = NULL;
-static SGPropertyNode *fcs_mode_node = NULL;
+// property nodes
+static pyPropertyNode ap_node;
+static pyPropertyNode ap_locks_node;
+static pyPropertyNode ap_settings_node;
+static pyPropertyNode fcs_node;
+static pyPropertyNode pointing_node;
+static pyPropertyNode pointing_vec_node;
+static pyPropertyNode orient_node;
+static pyPropertyNode remote_link_node;
+static pyPropertyNode logging_node;
+static pyPropertyNode task_node;
+static pyPropertyNode home_node;
 
-static SGPropertyNode *roll_lock_node = NULL;
-static SGPropertyNode *yaw_lock_node = NULL;
-static SGPropertyNode *altitude_lock_node = NULL;
-static SGPropertyNode *speed_lock_node = NULL;
-static SGPropertyNode *pitch_lock_node = NULL;
-static SGPropertyNode *pointing_lock_node = NULL;
+//static SGPropertyNode *ap_master_switch_node = NULL;
+//static SGPropertyNode *fcs_mode_node = NULL;
 
-static SGPropertyNode *lookat_mode_node = NULL;
-static SGPropertyNode *ned_n_node = NULL;
-static SGPropertyNode *ned_e_node = NULL;
-static SGPropertyNode *ned_d_node = NULL;
+//static SGPropertyNode *roll_lock_node = NULL;
+//static SGPropertyNode *yaw_lock_node = NULL;
+//static SGPropertyNode *altitude_lock_node = NULL;
+//static SGPropertyNode *speed_lock_node = NULL;
+//static SGPropertyNode *pitch_lock_node = NULL;
+//static SGPropertyNode *pointing_lock_node = NULL;
 
-static SGPropertyNode *roll_deg_node = NULL;
-static SGPropertyNode *pitch_deg_node = NULL;
-static SGPropertyNode *target_roll_deg_node = NULL;
-static SGPropertyNode *target_pitch_base_deg_node = NULL;
+//static SGPropertyNode *lookat_mode_node = NULL;
+//static SGPropertyNode *ned_n_node = NULL;
+//static SGPropertyNode *ned_e_node = NULL;
+//static SGPropertyNode *ned_d_node = NULL;
+
+//static SGPropertyNode *roll_deg_node = NULL;
+//static SGPropertyNode *pitch_deg_node = NULL;
+//static SGPropertyNode *target_roll_deg_node = NULL;
+//static SGPropertyNode *target_pitch_base_deg_node = NULL;
 
 // console/logging property nodes
-static SGPropertyNode *ap_console_skip = NULL;
-static SGPropertyNode *ap_logging_skip = NULL;
+//static SGPropertyNode *ap_console_skip = NULL;
+//static SGPropertyNode *ap_logging_skip = NULL;
 
 // home
-static SGPropertyNode *home_lon_node = NULL;
-static SGPropertyNode *home_lat_node = NULL;
-static SGPropertyNode *home_alt_node = NULL;
+//static SGPropertyNode *home_lon_node = NULL;
+//static SGPropertyNode *home_lat_node = NULL;
+//static SGPropertyNode *home_alt_node = NULL;
 
 // task
-static SGPropertyNode *task_name_node = NULL;
+//static SGPropertyNode *task_name_node = NULL;
 
 
 static void bind_properties() {
-    ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
-    fcs_mode_node = fgGetNode("/config/fcs/mode", true);
+    ap_node = pyGetNode( "/autopilot", true );
+    ap_locks_node = pyGetNode( "/autopilot/locks", true );
+    ap_settings_node = pyGetNode( "/autopilot/settings", true );
+    fcs_node = pyGetNode( "/config/fcs", true );
+    pointing_node = pyGetNode( "/pointing", true );
+    pointing_vec_node = pyGetNode( "/pointing/vector", true );
+    orient_node = pyGetNode( "/orientation", true );
+    remote_link_node = pyGetNode( "/config/remote-link", true );
+    logging_node = pyGetNode( "/config/logging", true );
+    task_node = pyGetNode( "/task", true );
+    home_node = pyGetNode( "/task/home", true );
+    
+    // ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
+    // fcs_mode_node = fgGetNode("/config/fcs/mode", true);
 
-    roll_lock_node = fgGetNode("/autopilot/locks/roll", true);
-    yaw_lock_node = fgGetNode("/autopilot/locks/yaw", true);
-    altitude_lock_node = fgGetNode("/autopilot/locks/altitude", true);
-    speed_lock_node = fgGetNode("/autopilot/locks/speed", true);
-    pitch_lock_node = fgGetNode("/autopilot/locks/pitch", true);
-    pointing_lock_node = fgGetNode("/autopilot/locks/pointing", true);
+    // roll_lock_node = fgGetNode("/autopilot/locks/roll", true);
+    // yaw_lock_node = fgGetNode("/autopilot/locks/yaw", true);
+    // altitude_lock_node = fgGetNode("/autopilot/locks/altitude", true);
+    // speed_lock_node = fgGetNode("/autopilot/locks/speed", true);
+    // pitch_lock_node = fgGetNode("/autopilot/locks/pitch", true);
+    // pointing_lock_node = fgGetNode("/autopilot/locks/pointing", true);
 
-    lookat_mode_node = fgGetNode("/pointing/lookat-mode", true);
-    ned_n_node = fgGetNode("/pointing/vector/north", true);
-    ned_e_node = fgGetNode("/pointing/vector/east", true);
-    ned_d_node = fgGetNode("/pointing/vector/down", true);
+    // lookat_mode_node = fgGetNode("/pointing/lookat-mode", true);
+    // ned_n_node = fgGetNode("/pointing/vector/north", true);
+    // ned_e_node = fgGetNode("/pointing/vector/east", true);
+    // ned_d_node = fgGetNode("/pointing/vector/down", true);
 
-    roll_deg_node = fgGetNode("/orientation/roll-deg", true);
-    pitch_deg_node = fgGetNode("/orientation/pitch-deg", true);
-    target_roll_deg_node
-	= fgGetNode("/autopilot/settings/target-roll-deg", true);
-    target_pitch_base_deg_node
-	= fgGetNode("/autopilot/settings/target-pitch-base-deg", true);
+    // roll_deg_node = fgGetNode("/orientation/roll-deg", true);
+    // pitch_deg_node = fgGetNode("/orientation/pitch-deg", true);
+    // target_roll_deg_node
+    // 	= fgGetNode("/autopilot/settings/target-roll-deg", true);
+    // target_pitch_base_deg_node
+    // 	= fgGetNode("/autopilot/settings/target-pitch-base-deg", true);
 
-    ap_console_skip = fgGetNode("/config/remote-link/autopilot-skip", true);
-    ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
+    // ap_console_skip = fgGetNode("/config/remote-link/autopilot-skip", true);
+    // ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
 
-    home_lon_node = fgGetNode("/task/home/longitude-deg", true );
-    home_lat_node = fgGetNode("/task/home/latitude-deg", true );
-    home_alt_node = fgGetNode("/task/home/altitude-ft", true );
+    // home_lon_node = fgGetNode("/task/home/longitude-deg", true );
+    // home_lat_node = fgGetNode("/task/home/latitude-deg", true );
+    // home_alt_node = fgGetNode("/task/home/altitude-ft", true );
 
-    task_name_node = fgGetNode("/task/current-task-id", true );
+    // task_name_node = fgGetNode("/task/current-task-id", true );
 }
 
 
@@ -151,103 +175,103 @@ void control_update(double dt)
 
     // log auto/manual mode changes
     static bool last_ap_mode = false;
-    if ( ap_master_switch_node->getBool() != last_ap_mode ) {
+    if ( ap_node.getBool("master_switch") != last_ap_mode ) {
 	if ( event_log_on ) {
 	    string ap_master_str;
-	    if ( ap_master_switch_node->getBool() ) {
+	    if ( ap_node.getBool("master_switch") ) {
 		ap_master_str = "autopilot";
 	    } else {
 		ap_master_str = "manual flight";
 	    }
 	    event_log( "Master control switch:", ap_master_str.c_str() );
 	}
-	last_ap_mode = ap_master_switch_node->getBool();
+	last_ap_mode = ap_node.getBool("master_switch");
     }
     
     static string last_fcs_mode = "";
-    string fcs_mode = fcs_mode_node->getString();
-    if ( ap_master_switch_node->getBool() ) {
+    string fcs_mode = fcs_node.getString("mode");
+    if ( ap_node.getBool("master_switch") ) {
 	if ( last_fcs_mode != fcs_mode ) {
 	    if ( event_log_on ) {
 		event_log( "control mode changed to:", fcs_mode.c_str() );
 	    }
 
 	    // turn on pointing (universally for now)
-	    pointing_lock_node->setString( "on" );
-	    lookat_mode_node->setString( "ned-vector" );
-	    ned_n_node->setFloatValue( 0.0 );
-	    ned_e_node->setFloatValue( 0.0 );
-	    ned_d_node->setFloatValue( 1.0 );
+	    ap_locks_node.setString( "pointing", "on" );
+	    pointing_node.setString( "lookat_mode", "ned-vector" );
+	    pointing_vec_node.setDouble( "north", 0.0 );
+	    pointing_vec_node.setDouble( "east", 0.0 );
+	    pointing_vec_node.setDouble( "down", 1.0 );
 
 	    if ( fcs_mode == "inactive" ) {
 		// unset all locks for "inactive"
-		roll_lock_node->setString( "" );
-		yaw_lock_node->setString( "" );
-		altitude_lock_node->setString( "" );
-		speed_lock_node->setString( "" );
-		pitch_lock_node->setString( "" );
+		ap_locks_node.setString( "roll", "" );
+		ap_locks_node.setString( "yaw", "" );
+		ap_locks_node.setString( "altitude", "" );
+		ap_locks_node.setString( "speed", "" );
+		ap_locks_node.setString( "pitch", "" );
 	    } else if ( fcs_mode == "basic" ) {
 		// set lock modes for "basic" inner loops only
-		roll_lock_node->setString( "aileron" );
-		yaw_lock_node->setString( "autocoord" );
-		altitude_lock_node->setString( "" );
-		speed_lock_node->setString( "" );
-		pitch_lock_node->setString( "elevator" );
+		ap_locks_node.setString( "roll", "aileron" );
+		ap_locks_node.setString( "yaw", "autocoord" );
+		ap_locks_node.setString( "altitude", "" );
+		ap_locks_node.setString( "speed", "" );
+		ap_locks_node.setString( "pitch", "elevator" );
 	    } else if ( fcs_mode == "roll" ) {
 		// set lock modes for roll only
-		roll_lock_node->setString( "aileron" );
-		yaw_lock_node->setString( "" );
-		altitude_lock_node->setString( "" );
-		speed_lock_node->setString( "" );
-		pitch_lock_node->setString( "" );
+		ap_locks_node.setString( "roll", "aileron" );
+		ap_locks_node.setString( "yaw", "" );
+		ap_locks_node.setString( "altitude", "" );
+		ap_locks_node.setString( "speed", "" );
+		ap_locks_node.setString( "pitch", "" );
 	    } else if ( fcs_mode == "roll+pitch" ) {
 		// set lock modes for roll and pitch
-		roll_lock_node->setString( "aileron" );
-		yaw_lock_node->setString( "" );
-		altitude_lock_node->setString( "" );
-		speed_lock_node->setString( "" );
-		pitch_lock_node->setString( "elevator" );
+		ap_locks_node.setString( "roll", "aileron" );
+		ap_locks_node.setString( "yaw", "" );
+		ap_locks_node.setString( "altitude", "" );
+		ap_locks_node.setString( "speed", "" );
+		ap_locks_node.setString( "pitch", "elevator" );
 	    } else if ( fcs_mode == "basic+alt+speed" ) {
 		// set lock modes for "basic" + alt hold
-		roll_lock_node->setString( "aileron" );
-		yaw_lock_node->setString( "autocoord" );
-		altitude_lock_node->setString( "throttle" );
-		speed_lock_node->setString( "pitch" );
-		pitch_lock_node->setString( "elevator" );
+		ap_locks_node.setString( "roll", "aileron" );
+		ap_locks_node.setString( "yaw", "autocoord" );
+		ap_locks_node.setString( "altitude", "throttle" );
+		ap_locks_node.setString( "speed", "pitch" );
+		ap_locks_node.setString( "pitch", "elevator" );
 	    } else if ( fcs_mode == "cas" ) {
 		// set lock modes for "cas"
-		roll_lock_node->setString( "aileron" );
-		yaw_lock_node->setString( "" );
-		altitude_lock_node->setString( "" );
-		speed_lock_node->setString( "" );
-		pitch_lock_node->setString( "elevator" );
-		pointing_lock_node->setString( "on" );
+		ap_locks_node.setString( "roll", "aileron" );
+		ap_locks_node.setString( "yaw", "" );
+		ap_locks_node.setString( "altitude", "" );
+		ap_locks_node.setString( "speed", "" );
+		ap_locks_node.setString( "pitch", "elevator" );
+		ap_locks_node.setString( "pointing", "on" );
 
-		float target_roll_deg = roll_deg_node->getDouble();
+		float target_roll_deg = orient_node.getDouble("roll_deg");
 		if ( target_roll_deg > 45.0 ) { target_roll_deg = 45.0; }
 		if ( target_roll_deg < -45.0 ) { target_roll_deg = -45.0; }
-		target_roll_deg_node->setFloatValue( target_roll_deg );
+		ap_settings_node.setDouble( "target_roll_deg", target_roll_deg );
 
-		float target_pitch_base_deg = pitch_deg_node->getDouble();
+		float target_pitch_base_deg = orient_node.getDouble("pitch_deg");
 		if ( target_pitch_base_deg > 15.0 ) {
 		    target_pitch_base_deg = 15.0;
 		}
 		if ( target_pitch_base_deg < -15.0 ) {
 		    target_pitch_base_deg = -15.0;
 		}
-		target_pitch_base_deg_node->setFloatValue( target_pitch_base_deg );
+		ap_settings_node.setDouble( "target_pitch_base_deg", target_pitch_base_deg );
 	    }
 	}
 	last_fcs_mode = fcs_mode;
     } else {
 	if ( fcs_mode != "" ) {
 	    // autopilot is just de-activated, clear lock modes
-	    roll_lock_node->setString( "" );
-	    yaw_lock_node->setString( "" );
-	    altitude_lock_node->setString( "" );
-	    speed_lock_node->setString( "" );
-	    pitch_lock_node->setString( "" );
-	    pointing_lock_node->setString( "" );
+	    ap_locks_node.setString( "roll", "" );
+	    ap_locks_node.setString( "yaw", "" );
+	    ap_locks_node.setString( "altitude", "" );
+	    ap_locks_node.setString( "speed", "" );
+	    ap_locks_node.setString( "pitch", "" );
+	    ap_locks_node.setString( "pointing", "" );
 	}
 	last_fcs_mode = "";
     }
@@ -272,7 +296,7 @@ void control_update(double dt)
 	SGWayPoint wp;
 	int route_size = 0;
 
-	string task_name = task_name_node->getString();
+	string task_name = task_node.getString("current_task_id");
 	if ( task_name == "route" ) {
 	    if ( route_mgr != NULL ) {
 		route_size = route_mgr->size();
@@ -291,9 +315,9 @@ void control_update(double dt)
 
 	// special case send home as a route waypoint with id = 65535
 	if ( wp_index == route_size ) {
-	    wp = SGWayPoint( home_lon_node->getDouble(),
-			     home_lat_node->getDouble(),
-			     home_alt_node->getDouble() );
+	    wp = SGWayPoint( home_node.getDouble("longitude_deg"),
+			     home_node.getDouble("latitude_deg"),
+			     home_node.getDouble("altitude_ft") );
 	    index = 65535;
 	}
 
@@ -302,7 +326,7 @@ void control_update(double dt)
 	
 	if ( remote_link_on ) {
 	    bool result = remote_link_ap( buf, pkt_size,
-					  ap_console_skip->getLong() );
+					  remote_link_node.getLong("autopilot_skip") );
 	    if ( result ) {
 		wp_index++;
 		if ( wp_index > route_size ) {
@@ -312,7 +336,7 @@ void control_update(double dt)
 	}
 
 	if ( log_to_file ) {
-	    log_ap( buf, pkt_size, ap_logging_skip->getLong() );
+	    log_ap( buf, pkt_size, logging_node.getLong("autopilot_skip") );
 	}
     }
 }

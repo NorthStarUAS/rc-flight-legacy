@@ -28,7 +28,7 @@ bool loadavg_update() {
         buf[4] = 0;
         if ( result == 1 ) {
             float load = atof(buf);
-            system_load_avg->setFloatValue(load);
+            system_load_avg->setDouble(load);
         } else {
 	    printf("fread() failed\n");
             fclose( fload );
