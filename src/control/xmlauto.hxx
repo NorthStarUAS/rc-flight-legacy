@@ -67,8 +67,8 @@ protected:
     // SGPropertyNode *output_node;
     //vector <SGPropertyNode *> output_list;
 
-    pyPropertyNode output_node;
-    vector <string> output_list;
+    vector <pyPropertyNode> output_node;
+    vector <string> output_attr;
 
     pyPropertyNode config_node;
 
@@ -241,7 +241,7 @@ private:
     bool debug;
 
 public:
-    FGDigitalFilter( pyPropertyNode *pid_node );
+    FGDigitalFilter( pyPropertyNode *config_node );
     ~FGDigitalFilter() {}
 
     void update(double dt);
