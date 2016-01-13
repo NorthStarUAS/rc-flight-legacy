@@ -722,27 +722,34 @@ void FGXMLAutopilot::unbind() {
 
 bool FGXMLAutopilot::build() {
     pyPropertyNode config_props = pyGetNode( "/config/fcs/autopilot", true );
-    SGPropertyNode *node;
-    int i;
 
-    int count = config_props->nChildren();
-    for ( i = 0; i < count; ++i ) {
-        node = config_props->getChild(i);
-        string name = node->getName();
-        // cout << name << endl;
-        if ( name == "pid-controller" ) {
-            FGXMLAutoComponent *c = new FGPIDController( node );
+    // FIXME: we have always depended on the order of children
+    // components here to ensure PID stages are run in the correct
+    // order, however that is a bad thing to assume ... especially now
+    // with pyprops!!!
+    vector <string> children = config_props.getChildren();
+    unsigned int count = children.size();
+    for ( unsigned int i = 0; i < count; ++i ) {
+        pyPropertyNode node = config_props.getChild(children[i].c_str());
+        string name = children[i];
+	size_t pos = name.find("[");
+	if ( pos != string::npos ) {
+	    name = name.substr(0, pos);
+	}
+        printf("%s\n", name.c_str());
+        if ( name == "pid_controller" ) {
+            FGXMLAutoComponent *c = new FGPIDController( &node );
             components.push_back( c );
-        } else if ( name == "pi-simple-controller" ) {
-            FGXMLAutoComponent *c = new FGPISimpleController( node );
+        } else if ( name == "pi_simple_controller" ) {
+            FGXMLAutoComponent *c = new FGPISimpleController( &node );
             components.push_back( c );
-        } else if ( name == "predict-simple" ) {
-            FGXMLAutoComponent *c = new FGPredictor( node );
+        } else if ( name == "predict_simple" ) {
+            FGXMLAutoComponent *c = new FGPredictor( &node );
             components.push_back( c );
         } else if ( name == "filter" ) {
-            FGXMLAutoComponent *c = new FGDigitalFilter( node );
+            FGXMLAutoComponent *c = new FGDigitalFilter( &node );
             components.push_back( c );
-	} else if ( name == "L1-controller" ) {
+	} else if ( name == "L1_controller" ) {
 	    // information placeholder, we don't do anything here.
         } else {
 	    printf("Unknown top level section: %s\n", name.c_str() );
