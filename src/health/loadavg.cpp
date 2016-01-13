@@ -10,11 +10,9 @@
 
 static FILE *fload;
 
-// static SGPropertyNode *system_load_avg = NULL;
 static pyPropertyNode system_node;
 
 bool loadavg_init() {
-    //system_load_avg = fgGetNode("/status/system-load-avg", true);
     system_node = pyGetNode("/status", true);
     return true;
 }
