@@ -79,8 +79,6 @@ FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
 	ref_attr = ref_prop.substr(pos+1);
 	ref_node = pyGetNode( path, true );
     }
-    //r_n_prop = ref_node.getString("prop");
-    //r_n_value = ref_node.getString( "value" );
 
     // output
     node = pid_node->getChild( "output", true );
@@ -106,8 +104,6 @@ FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
 	desiredTs = config_node.getDouble("Ts");
     }
             
-    //Kp_node = config_node->getChild( "Kp", 0, true );
-    //beta_node = config_node->getChild( "beta" );
     if ( !config_node.hasChild("beta") ) {
 	// create with default value
 	config_node.setDouble( "beta", 1.0 );
@@ -116,12 +112,6 @@ FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
 	// create with default value
 	config_node.setDouble( "alpha", 0.1 );
     }
-
-    //gamma_node = config_node->getChild( "gamma", 0, true );
-    //Ti_node = config_node->getChild( "Ti", 0, true );
-    //Td_node = config_node->getChild( "Td", 0, true );
-    //u_min_node = config_node->getChild( "u_min", 0, true );
-    //u_max_node = config_node->getChild( "u_max", 0, true );
 }
 
 
@@ -308,15 +298,11 @@ void FGPIDController::update( double dt ) {
 
 FGPISimpleController::FGPISimpleController( pyPropertyNode *pid_node ):
     proportional( false ),
-    //Kp_node( NULL ),
     integral( false ),
-    //Ki_node( NULL ),
     int_sum( 0.0 ),
     clamp( false ),
     y_n( 0.0 ),
     r_n( 0.0 )
-    //u_min_node( NULL ),
-    //u_max_node( NULL )
 {
     size_t pos;
 
@@ -373,10 +359,6 @@ FGPISimpleController::FGPISimpleController( pyPropertyNode *pid_node ):
  
     // config
     pyPropertyNode config_node = pid_node->getChild( "config", true );
-    //Kp_node = config_node->getChild( "Kp", 0, true );
-    //Ki_node = config_node->getChild( "Ki", 0, true );
-    //u_min_node = config_node->getChild( "u_min", 0, true );
-    //u_max_node = config_node->getChild( "u_max", 0, true );
 }
 
 

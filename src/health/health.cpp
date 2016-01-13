@@ -1,6 +1,8 @@
 // System health/status monitoring module
 
 
+#include "python/pyprops.hxx"
+
 #include <stdio.h>
 
 #include "include/globaldefs.h"
@@ -9,41 +11,28 @@
 #include "comms/packetizer.hxx"
 #include "comms/remote_link.h"
 #include "init/globals.hxx"
-#include "python/pyprops.hxx"
 #include "util/timing.h"
 
 #include "health.h"
 #include "loadavg.h"
 
 
-static SGPropertyNode *input_vcc_node = NULL;
-static SGPropertyNode *health_console_skip = NULL;
-static SGPropertyNode *health_logging_skip = NULL;
+static pyPropertyNode remote_link_node;
+static pyPropertyNode logging_node;
 
 
 bool health_init() {
     loadavg_init();
 
-    input_vcc_node = fgGetNode("/sensors/APM2/board-vcc", true);
-
     // initialize comm nodes
-    health_console_skip = fgGetNode("/config/remote-link/health-skip", true);
-    health_logging_skip = fgGetNode("/config/logging/health-skip", true);
+    remote_link_node = pyGetNode("/config/remote-link", true);
+    logging_node = pyGetNode("/config/logging", true);
 
     return true;
 }
 
 
 bool health_update() {
-    // static int wp_index = 0;
-
-    /*
-    healthpacket.target_altitude_ft
-        = ground_ref->getDouble() * SG_METER_TO_FEET
-        + pressure_error_m_node->getDouble() * SG_METER_TO_FEET
-          + ap_agl->getDouble();
-    */
-
     loadavg_update();
 
     if ( remote_link_on || log_to_file ) {
@@ -51,11 +40,11 @@ bool health_update() {
 	int size = packetizer->packetize_health( buf );
 
 	if ( remote_link_on ) {
-	    remote_link_health( buf, size, health_console_skip->getLong() );
+	    remote_link_health( buf, size, remote_link_node.getLong("health-skip") );
 	}
 
 	if ( log_to_file ) {
-	    log_health( buf, size, health_logging_skip->getLong() );
+	    log_health( buf, size, logging_node.getLong("health-skip") );
 	}
     }
 

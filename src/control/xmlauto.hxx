@@ -64,8 +64,6 @@ protected:
   
     string r_n_prop;
     string r_n_value;
-    // SGPropertyNode *output_node;
-    //vector <SGPropertyNode *> output_list;
 
     vector <pyPropertyNode> output_node;
     vector <string> output_attr;
@@ -75,13 +73,9 @@ protected:
 public:
 
     FGXMLAutoComponent() :
-      //passive_mode( fgGetNode("/autopilot/locks/passive-mode", true) ),
       enable_value( "" ),
       honor_passive( false ),
       enabled( false )
-      //input_prop( NULL ),
-      //r_n_prop( NULL ),
-      //r_n_value( NULL )
     { }
 
     virtual ~FGXMLAutoComponent() {}
@@ -100,31 +94,6 @@ class FGPIDController : public FGXMLAutoComponent {
 
 private:
 
-    // debug flag
-    //SGPropertyNode *debug_node;
-
-    // Input values
-    //SGPropertyNode *y_n_node;                 // measured process value
-    //SGPropertyNode *r_n_node;                 // reference (set point) value
-
-    // Configuration values
-    //SGPropertyNode *Ts_node;	              // time step (optional)
-    //SGPropertyNode *Kp_node;                  // proportional gain
-
-    //SGPropertyNode *alpha_node;               // low pass filter weighing factor (usually 0.1)
-    //SGPropertyNode *beta_node;                // process value weighing factor for
-                                // calculating proportional error
-                                // (usually 1.0)
-    //SGPropertyNode *gamma_node;               // process value weighing factor for
-                                // calculating derivative error
-                                // (usually 0.0)
-
-    //SGPropertyNode *Ti_node;                  // Integrator time (sec)
-    //SGPropertyNode *Td_node;                  // Derivator time (sec)
-
-    //SGPropertyNode *u_min_node;               // Minimum output clamp
-    //SGPropertyNode *u_max_node;               // Maximum output clamp
-
     // Previous state tracking values
     double ep_n_1;              // ep[n-1]  (prop error)
     double edf_n_1;             // edf[n-1] (derivative error)
@@ -132,8 +101,6 @@ private:
     double u_n_1;               // u[n-1]   (output)
     double desiredTs;            // desired sampling interval (sec)
     double elapsedTime;          // elapsed time (sec)
-    
-    
     
 public:
 
@@ -154,29 +121,17 @@ class FGPISimpleController : public FGXMLAutoComponent {
 
 private:
 
-    // proportional component data
-    bool proportional;
-    //SGPropertyNode *Kp_node;
-
-    // integral component data
-    bool integral;
-    //SGPropertyNode *Ki_node;
+    bool proportional;		// proportional component data
+    bool integral;		// integral component data
     double int_sum;
 
     // post functions for output
     bool clamp;
 
-    // debug flag
-    //SGPropertyNode *debug_node;
-
     // Input values
     double y_n;                 // measured process value
     double r_n;                 // reference (set point) value
 
-    //SGPropertyNode *u_min_node;               // Minimum output clamp
-    //SGPropertyNode *u_max_node;               // Maximum output clamp
-
-    
 public:
 
     FGPISimpleController( pyPropertyNode *pid_node );
@@ -275,7 +230,6 @@ protected:
 private:
 
     bool serviceable;
-    //SGPropertyNode *config_props;
     comp_list components;
 };
 
