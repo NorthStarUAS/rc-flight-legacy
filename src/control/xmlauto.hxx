@@ -48,24 +48,29 @@ class FGXMLAutoComponent {
 protected:
 
     pyPropertyNode pid_node;
-    pyPropertyNode enable_node;
-    pyPropertyNode input_node;
-    pyPropertyNode ref_node;
-    pyPropertyNode output_node;
-    pyPropertyNode config_node;
     
-    //SGPropertyNode *passive_mode;
-    string enable_prop;
+    pyPropertyNode enable_node;
+    string enable_attr;
     string enable_value;
     bool honor_passive;
     bool enabled;
 
-    string input_prop;
+    pyPropertyNode input_node;
+    string input_attr;
+    
+    pyPropertyNode ref_node;
+    string ref_attr;
+    string ref_value;
+  
     string r_n_prop;
     string r_n_value;
     // SGPropertyNode *output_node;
     //vector <SGPropertyNode *> output_list;
+
+    pyPropertyNode output_node;
     vector <string> output_list;
+
+    pyPropertyNode config_node;
 
 public:
 

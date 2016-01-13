@@ -21,8 +21,14 @@
 
 
 #include "python/pyprops.hxx"
+
 #include <math.h>
 #include <stdlib.h>
+
+#include <string>
+#include <sstream>
+using std::string;
+using std::ostringstream;
 
 #include "util/exception.hxx"
 #include "util/sg_path.hxx"
@@ -39,57 +45,76 @@ FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
     desiredTs( 0.00001 ),
     elapsedTime( 0.0 )
 {
+    size_t pos;
+    
     // enable
-    pyPropertyNode enable_node = pid_node->getChild("enable", true);
-    enable_prop = enable_node.getString("prop");
-    enable_value = enable_node.getString("value");
-    honor_passive = enable_node.getBool("honor_passive");
+    pyPropertyNode node = pid_node->getChild("enable", true);
+    string enable_prop = node.getString("prop");
+    enable_value = node.getString("value");
+    honor_passive = node.getBool("honor_passive");
+    pos = enable_prop.rfind("/");
+    if ( pos != string::npos ) {
+	string path = enable_prop.substr(0, pos);
+	enable_attr = enable_prop.substr(pos+1);
+	enable_node = pyGetNode( path, true );
+    }
 
     // input
-    pyPropertyNode input_node = pid_node->getChild("input", true);
-    input_prop = input_node.getString("prop");
+    node = pid_node->getChild("input", true);
+    string input_prop = node.getString("prop");
+    pos = input_prop.rfind("/");
+    if ( pos != string::npos ) {
+	string path = input_prop.substr(0, pos);
+	input_attr = input_prop.substr(pos+1);
+	input_node = pyGetNode( path, true );
+    }
 
     // reference
-    pyPropertyNode ref_node = pid_node->getChild("reference", true);
-    r_n_prop = ref_node.getString("prop");
-    r_n_value = ref_node.getString( "value" );
+    node = pid_node->getChild("reference", true);
+    string ref_prop = node.getString("prop");
+    ref_value = node.getString("value");
+    pos = input_prop.rfind("/");
+    if ( pos != string::npos ) {
+	string path = ref_prop.substr(0, pos);
+	ref_attr = ref_prop.substr(pos+1);
+	ref_node = pyGetNode( path, true );
+    }
+    //r_n_prop = ref_node.getString("prop");
+    //r_n_value = ref_node.getString( "value" );
 
     // output
     pyPropertyNode output_node = pid_node->getChild( "output", true );
-    int i = 0;
-    SGPropertyNode *output_prop;
-    while ( (output_prop = output_node->getChild("prop", i)) != NULL ) {
-	SGPropertyNode *tmp = pyGetNode( output_prop->getString(), true );
-	output_list.push_back( tmp );
-	i++;
+    unsigned int num = output_node.getLen("prop");
+    for ( unsigned int i = 0; i < num; ++i ) {
+	ostringstream str;
+	str << "prop" << '[' << i << ']';
+	string ename = str.str();
+	string prop = output_node.getString(ename.c_str());
+	output_list.push_back( prop );
     }
  
     // config
-    SGPropertyNode *config_node = pid_node->getChild( "config", 0, true );
-    Ts_node = config_node->getChild( "Ts" );
-    if ( Ts_node != NULL ) {
-	desiredTs = prop->getDouble();
+    pyPropertyNode config_node = pid_node->getChild( "config", true );
+    if ( config_node.hasChild("Ts") ) {
+	desiredTs = config_node.getDouble("Ts");
     }
             
-    Kp_node = config_node->getChild( "Kp", 0, true );
-    beta_node = config_node->getChild( "beta" );
-    if ( beta_node == NULL ) {
+    //Kp_node = config_node->getChild( "Kp", 0, true );
+    //beta_node = config_node->getChild( "beta" );
+    if ( !config_node.hasChild("beta") ) {
 	// create with default value
-	beta_node = config_node->getChild( "beta", 0, true );
-	beta_node->setDouble( 1.0 );
+	config_node.setDouble( "beta", 1.0 );
     }
-    alpha_node = config_node->getChild( "alpha" );
-    if ( alpha_node == NULL ) {
+    if ( !config_node.hasChild("alpha") ) {
 	// create with default value
-	alpha_node = config_node->getChild( "alpha", 0, true );
-	alpha_node->setDouble( 0.1 );
+	config_node.setDouble( "alpha", 0.1 );
     }
 
-    gamma_node = config_node->getChild( "gamma", 0, true );
-    Ti_node = config_node->getChild( "Ti", 0, true );
-    Td_node = config_node->getChild( "Td", 0, true );
-    u_min_node = config_node->getChild( "u_min", 0, true );
-    u_max_node = config_node->getChild( "u_max", 0, true );
+    //gamma_node = config_node->getChild( "gamma", 0, true );
+    //Ti_node = config_node->getChild( "Ti", 0, true );
+    //Td_node = config_node->getChild( "Td", 0, true );
+    //u_min_node = config_node->getChild( "u_min", 0, true );
+    //u_max_node = config_node->getChild( "u_max", 0, true );
 }
 
 
@@ -162,7 +187,7 @@ void FGPIDController::update( double dt ) {
     Ts = elapsedTime;
     elapsedTime = 0.0;
 
-    if (enable_prop != NULL && enable_prop->getString() == enable_value) {
+    if (!enable_node.isNull() && enable_node.getString("enable_attr") == enable_value) {
 	enabled = true;
     } else {
 	enabled = false;
@@ -174,19 +199,19 @@ void FGPIDController::update( double dt ) {
         if ( debug ) printf("Updating %s Ts = %.2f", get_name(), Ts );
 
         double y_n = 0.0;
-	y_n = input_prop->getDouble()
+	y_n = input_node.getDouble(input_attr.c_str());
 
         double r_n = 0.0;
-	if ( r_n_value != NULL ) {
-	    r_n = r_n_value->getDouble();
+	if ( ref_value != "" ) {
+	    r_n = atof(ref_value.c_str());
 	} else {
-            r_n = r_n_prop->getDouble();
+            r_n = ref_node.getDouble(ref_attr.c_str());
 	}
                       
         if ( debug ) printf("  input = %.3f ref = %.3f\n", y_n, r_n );
 
         // Calculates proportional error:
-        ep_n = beta_node->getDouble() * (r_n - y_n);
+        ep_n = config_node.getDouble("beta") * (r_n - y_n);
         if ( debug ) {
 	    printf( "  ep_n = %.3f", ep_n);
 	    printf( "  ep_n_1 = %.3f", ep_n_1);
@@ -197,13 +222,13 @@ void FGPIDController::update( double dt ) {
         if ( debug ) printf( " e_n = %.3f", e_n);
 
         // Calculates derivate error:
-        ed_n = gamma_node->getDouble() * r_n - y_n;
+        ed_n = config_node.getDouble("gamma") * r_n - y_n;
         if ( debug ) printf(" ed_n = %.3f", ed_n);
 
-	double Td = Td_node->getDouble();
+	double Td = config_node.getDouble("Td");
         if ( Td > 0.0 ) {
             // Calculates filter time:
-            Tf = alpha_node->getDouble() * Td;
+            Tf = config_node.getDouble("alpha") * Td;
             if ( debug ) printf(" Tf = %.3f", Tf);
 
             // Filters the derivate error:
@@ -215,8 +240,8 @@ void FGPIDController::update( double dt ) {
         }
 
         // Calculates the incremental output:
-	double Ti = Ti_node->getDouble();
-	double Kp = Kp_node->getDouble();
+	double Ti = config_node.getDouble("Ti");
+	double Kp = config_node.getDouble("Kp");
         if ( Ti > 0.0 ) {
             delta_u_n = Kp * ( (ep_n - ep_n_1)
                                + ((Ts/Ti) * e_n)
@@ -232,8 +257,8 @@ void FGPIDController::update( double dt ) {
         }
 
         // Integrator anti-windup logic:
-	double u_min = u_min_node->getDouble();
-	double u_max = u_max_node->getDouble();
+	double u_min = config_node.getDouble("u_min");
+	double u_max = config_node.getDouble("u_max");
         if ( delta_u_n > (u_max - u_n_1) ) {
             delta_u_n = u_max - u_n_1;
             if ( debug ) printf(" max saturation\n");
@@ -263,10 +288,10 @@ void FGPIDController::update( double dt ) {
 	// is less of a continuity break when this module is enabled
 
 	// pull output value from the corresponding property tree value
-	u_n = output_list[0]->getDouble();
+	u_n = output_list[0].getDouble();
 	// and clip
-	double u_min = u_min_node->getDouble();
-	double u_max = u_max_node->getDouble();
+	double u_min = u_min_node.getDouble();
+	double u_max = u_max_node.getDouble();
  	if ( u_n < u_min ) { u_n = u_min; }
 	if ( u_n > u_max ) { u_n = u_max; }
 	u_n_1 = u_n;
@@ -344,13 +369,13 @@ void FGPISimpleController::update( double dt ) {
 	bool debug = pid_node.getBool("debug");
         if ( debug ) printf("Updating %s\n", get_name());
         double input = 0.0;
-	input = input_prop->getDouble()
+	input = input_prop.getDouble()
 
         double r_n = 0.0;
 	if ( r_n_value != NULL ) {
-	    r_n = r_n_value->getDouble();
+	    r_n = r_n_value.getDouble();
 	} else {
-            r_n = r_n_prop->getDouble();
+            r_n = r_n_prop.getDouble();
 	}
                       
         double error = r_n - input;
@@ -359,13 +384,13 @@ void FGPISimpleController::update( double dt ) {
 
         double prop_comp = 0.0;
 
-	prop_comp = error * Kp_node->getDouble();
-	double u_min = u_min_node->getDouble();
-	double u_max = u_max_node->getDouble();
+	prop_comp = error * Kp_node.getDouble();
+	double u_min = u_min_node.getDouble();
+	double u_max = u_max_node.getDouble();
 	if ( prop_comp < u_min ) { prop_comp = u_min; }
 	if ( prop_comp > u_max ) { prop_comp = u_max; }
 
-	int_sum += error * Ki_node->getDouble() * dt;
+	int_sum += error * Ki_node.getDouble() * dt;
 
 	double pre_output = prop_comp + int_sum;
 	double clamp_output = pre_output;
@@ -401,9 +426,9 @@ FGPredictor::FGPredictor ( SGPropertyNode *node ):
 	if ( cname == "input" ) {
             input_prop = pyGetNode( child->getString(), true );
         } else if ( cname == "seconds" ) {
-            seconds = child->getDouble();
+            seconds = child.getDouble();
         } else if ( cname == "filter-gain" ) {
-            filter_gain = child->getDouble();
+            filter_gain = child.getDouble();
         } else if ( cname == "output" ) {
 	    SGPropertyNode *tmp = pyGetNode( child->getString(), true );
             output_list.push_back( tmp );
@@ -426,7 +451,7 @@ void FGPredictor::update( double dt ) {
     */
 
     if ( input_prop != NULL ) {
-        ivalue = input_prop->getDouble();
+        ivalue = input_prop.getDouble();
         // no sense if there isn't an input :-)
         enabled = true;
     } else {
@@ -486,11 +511,11 @@ FGDigitalFilter::FGDigitalFilter(SGPropertyNode *node)
         } else if ( cname == "input" ) {
             input_prop = pyGetNode( child->getString(), true );
         } else if ( cname == "filter-time" ) {
-            Tf = child->getDouble();
+            Tf = child.getDouble();
         } else if ( cname == "samples" ) {
             samples = child->getLong();
         } else if ( cname == "max-rate-of-change" ) {
-            rateOfChange = child->getDouble();
+            rateOfChange = child.getDouble();
         } else if ( cname == "output" ) {
             SGPropertyNode *tmp = pyGetNode( child->getString(), true );
             output_list.push_back( tmp );
@@ -504,7 +529,7 @@ FGDigitalFilter::FGDigitalFilter(SGPropertyNode *node)
 void FGDigitalFilter::update(double dt)
 {
     if ( input_prop != NULL ) {
-        input.push_front(input_prop->getDouble());
+        input.push_front(input_prop.getDouble());
         input.resize(samples + 1, 0.0);
         // no sense if there isn't an input :-)
         enabled = true;
@@ -671,7 +696,7 @@ static void update_helper( double dt ) {
     static double v_last = 0.0;  // last velocity
 
     if ( dt > 0.0 ) {
-        double v = vel->getDouble();
+        double v = vel.getDouble();
         double a = (v - v_last) / dt;
 
         if ( dt < 1.0 ) {
@@ -713,8 +738,8 @@ static void update_helper( double dt ) {
     // wind triangle math on the current and target ground courses.
     // This gives us a close estimate of how far we have to yaw the
     // aircraft nose to get on the target ground course.
-    double hdg_error = wind_heading_diff(groundtrack_deg->getDouble(),
-					 target_course_deg->getDouble());
+    double hdg_error = wind_heading_diff(groundtrack_deg.getDouble(),
+					 target_course_deg.getDouble());
 
     static SGPropertyNode *wind_heading_error
         = pyGetNode( "/autopilot/settings/wind-heading-error-deg", true );
@@ -736,7 +761,7 @@ static void update_helper( double dt ) {
     static SGPropertyNode *wind_true_error
         = pyGetNode( "/autopilot/internal/wind-true-error-deg", true );
 
-    diff = target_wind_true->getDouble() - true_hdg->getDouble();
+    diff = target_wind_true.getDouble() - true_hdg.getDouble();
     if ( diff < -180.0 ) { diff += 360.0; }
     if ( diff > 180.0 ) { diff -= 360.0; }
     wind_true_error->setDouble( diff );
@@ -749,7 +774,7 @@ static void update_helper( double dt ) {
         = pyGetNode( "/orientation/roll-deg-squared", true );
     static SGPropertyNode *phi_node
 	= pyGetNode("/orientation/roll-deg", true);
-    double roll = phi_node->getDouble();
+    double roll = phi_node.getDouble();
     roll_squared->setDouble( roll * roll );
 #endif
 
