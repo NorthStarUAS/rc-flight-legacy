@@ -83,14 +83,14 @@ test_value ()
 
   cout << "Testing coercion from int (expect 128)" << endl;
   node = new SGPropertyNode;
-  node->setIntValue(128);
+  node->setLong(128);
   show_values(node);
   delete node;
   cout << endl;
 
   cout << "Testing coercion from float (expect 1.0/3.0)" << endl;
   node = new SGPropertyNode;
-  node->setFloatValue(1.0/3.0);
+  node->setDouble(1.0/3.0);
   show_values(node);
   delete node;
   cout << endl;
@@ -128,12 +128,12 @@ test_value ()
   cout << endl;
 
   cout << "Testing coercion to bool from int (expect 1)" << endl;
-  node->setIntValue(1);
+  node->setLong(1);
   show_values(node);
   cout << endl;
 
   cout << "Testing coercion to bool from float (expect 1.1)" << endl;
-  node->setFloatValue(1.1);
+  node->setDouble(1.1);
   show_values(node);
   cout << endl;
 
@@ -173,7 +173,7 @@ test_value ()
   // Test tying to static functions.
 
   cout << "Create a new int value (expect 10)" << endl;
-  node->setIntValue(10);
+  node->setLong(10);
   show_values(node);
   cout << endl;
 
@@ -184,8 +184,8 @@ test_value ()
   cout << endl;
 
   cout << "Try changing value with no setter (expect 100)" << endl;
-  if (node->setIntValue(200))
-    cout << "*** setIntValue did not return false!!!" << endl;
+  if (node->setLong(200))
+    cout << "*** setLong did not return false!!!" << endl;
   show_values(node);
   cout << endl;
 
@@ -196,15 +196,15 @@ test_value ()
   cout << endl;
 
   cout << "Try changing value (expect 200)" << endl;
-  if (!node->setIntValue(200))
-    cout << "*** setIntValue RETURNED FALSE!!!" << endl;
+  if (!node->setLong(200))
+    cout << "*** setLong RETURNED FALSE!!!" << endl;
   show_values(node);
   cout << endl;
 
   // Test tying to indexed static functions.
 
   cout << "Create a new int value (expect 10)" << endl;
-  node->setIntValue(10);
+  node->setLong(10);
   show_values(node);
   cout << endl;
 
@@ -249,7 +249,7 @@ test_value ()
   node->untie();
 
   cout << "Change value (expect 50)" << endl;
-  if (!node->setIntValue(50))
+  if (!node->setLong(50))
     cout << "*** FAILED TO SET VALUE!!!" << endl;
   show_values(node);
   cout << endl;

@@ -369,7 +369,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 		satUsed++;
 	    }
 	}
- 	// gps_satellites_node->setIntValue( satUsed );
+ 	// gps_satellites_node->setLong( satUsed );
 	if ( 0 ) {
 	    printf("Satellite count = %d/%d\n", satUsed, numCh);
 	}

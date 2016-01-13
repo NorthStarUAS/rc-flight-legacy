@@ -137,9 +137,9 @@ bool fgfs_gps_update() {
 	gps_vn_node->setDouble( vn );
 	gps_ve_node->setDouble( ve );
 	gps_vd_node->setDouble( vd );
-	gps_satellites_node->setIntValue( 8 ); // fake a solid number
+	gps_satellites_node->setLong( 8 ); // fake a solid number
 	gps_unix_sec_node->setDouble( time );
-	gps_status_node->setIntValue( 2 ); // valid fix
+	gps_status_node->setLong( 2 ); // valid fix
     }
 
     return fresh_data;

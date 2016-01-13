@@ -252,11 +252,11 @@ PropsVisitor::endElement (const char * name)
       else
 	ret = st.node->setBoolValue(false);
     } else if (st.type == "int") {
-      ret = st.node->setIntValue(atoi(_data.c_str()));
+      ret = st.node->setLong(atoi(_data.c_str()));
     } else if (st.type == "long") {
       ret = st.node->setLongValue(strtol(_data.c_str(), 0, 0));
     } else if (st.type == "float") {
-      ret = st.node->setFloatValue(atof(_data.c_str()));
+      ret = st.node->setDouble(atof(_data.c_str()));
     } else if (st.type == "double") {
       ret = st.node->setDouble(strtod(_data.c_str(), 0));
     } else if (st.type == "string") {
@@ -575,7 +575,7 @@ copyProperties (const SGPropertyNode *in, SGPropertyNode *out)
 	retval = false;
       break;
     case SGPropertyNode::INT:
-      if (!out->setIntValue(in->getLong()))
+      if (!out->setLong(in->getLong()))
 	retval = false;
       break;
     case SGPropertyNode::LONG:
@@ -583,7 +583,7 @@ copyProperties (const SGPropertyNode *in, SGPropertyNode *out)
 	retval = false;
       break;
     case SGPropertyNode::FLOAT:
-      if (!out->setFloatValue(in->getDouble()))
+      if (!out->setDouble(in->getDouble()))
 	retval = false;
       break;
     case SGPropertyNode::DOUBLE:

@@ -1229,7 +1229,7 @@ SGPropertyNode::setBoolValue (bool value)
 }
 
 bool
-SGPropertyNode::setIntValue (int value)
+SGPropertyNode::setLong (int value)
 {
 				// Shortcut for common case
   if (_attr == (READ|WRITE) && _type == INT)
@@ -1245,7 +1245,7 @@ SGPropertyNode::setIntValue (int value)
 
   switch (_type) {
   case ALIAS:
-    result = _value.alias->setIntValue(value);
+    result = _value.alias->setLong(value);
     break;
   case BOOL:
     result = set_bool(value == 0 ? false : true);
@@ -1331,7 +1331,7 @@ SGPropertyNode::setLongValue (long value)
 }
 
 bool
-SGPropertyNode::setFloatValue (float value)
+SGPropertyNode::setDouble (float value)
 {
 				// Shortcut for common case
   if (_attr == (READ|WRITE) && _type == FLOAT)
@@ -1347,7 +1347,7 @@ SGPropertyNode::setFloatValue (float value)
 
   switch (_type) {
   case ALIAS:
-    result = _value.alias->setFloatValue(value);
+    result = _value.alias->setDouble(value);
     break;
   case BOOL:
     result = set_bool(value == 0.0 ? false : true);
@@ -1563,7 +1563,7 @@ SGPropertyNode::tie (const SGRawValue<int> &rawValue, bool useDefault)
   _value.int_val = rawValue.clone();
 
   if (useDefault)
-    setIntValue(old_val);
+    setLong(old_val);
 
   return true;
 }
@@ -1607,7 +1607,7 @@ SGPropertyNode::tie (const SGRawValue<float> &rawValue, bool useDefault)
   _value.float_val = rawValue.clone();
 
   if (useDefault)
-    setFloatValue(old_val);
+    setDouble(old_val);
 
   return true;
 }
@@ -1888,9 +1888,9 @@ SGPropertyNode::setBoolValue (const char * relative_path, bool value)
  * Set an int value for another node.
  */
 bool
-SGPropertyNode::setIntValue (const char * relative_path, int value)
+SGPropertyNode::setLong (const char * relative_path, int value)
 {
-  return getNode(relative_path, true)->setIntValue(value);
+  return getNode(relative_path, true)->setLong(value);
 }
 
 
@@ -1908,9 +1908,9 @@ SGPropertyNode::setLongValue (const char * relative_path, long value)
  * Set a float value for another node.
  */
 bool
-SGPropertyNode::setFloatValue (const char * relative_path, float value)
+SGPropertyNode::setDouble (const char * relative_path, float value)
 {
-  return getNode(relative_path, true)->setFloatValue(value);
+  return getNode(relative_path, true)->setDouble(value);
 }
 
 

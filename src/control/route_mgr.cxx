@@ -22,6 +22,8 @@
 //
 
 
+#include "python/pyprops.hxx"
+
 #include <math.h>
 #include <stdlib.h>
 
@@ -30,7 +32,6 @@
 #include "comms/remote_link.h"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "props/props_io.hxx"
 #include "sensors/gps_mgr.hxx"
 #include "util/exception.hxx"
 #include "util/sg_path.hxx"
@@ -43,32 +44,32 @@
 FGRouteMgr::FGRouteMgr() :
     active( new SGRoute ),
     standby( new SGRoute ),
-    config_props( NULL ),
-    home_lon_node( NULL ),
-    home_lat_node( NULL ),
-    home_azimuth_node( NULL ),
+    //config_props( NULL ),
+    //home_lon_node( NULL ),
+    //home_lat_node( NULL ),
+    //home_azimuth_node( NULL ),
     last_lon( 0.0 ),
     last_lat( 0.0 ),
     last_az( 0.0 ),
-    bank_limit_node( NULL ),
-    L1_period_node( NULL ),
-    L1_damping_node( NULL ),
-    xtrack_gain_node( NULL ),
-    lon_node( NULL ),
-    lat_node( NULL ),
-    alt_node( NULL ),
-    groundspeed_node( NULL ),
-    groundtrack_node( NULL ),
-    target_heading_error_deg( NULL ),
-    target_course_deg( NULL ),
-    ap_roll_node( NULL ),
-    target_agl_node( NULL ),
-    target_msl_node( NULL ),
-    target_waypoint( NULL ),
-    wp_dist_m( NULL ),
-    wp_eta_sec( NULL ),
-    xtrack_dist_m( NULL ),
-    proj_dist_m( NULL ),
+    // bank_limit_node( NULL ),
+    // L1_period_node( NULL ),
+    // L1_damping_node( NULL ),
+    // xtrack_gain_node( NULL ),
+    // lon_node( NULL ),
+    // lat_node( NULL ),
+    // alt_node( NULL ),
+    // groundspeed_node( NULL ),
+    // groundtrack_node( NULL ),
+    // target_heading_error_deg( NULL ),
+    // target_course_deg( NULL ),
+    // ap_roll_node( NULL ),
+    // target_agl_node( NULL ),
+    // target_msl_node( NULL ),
+    // target_waypoint( NULL ),
+    // wp_dist_m( NULL ),
+    // wp_eta_sec( NULL ),
+    // xtrack_dist_m( NULL ),
+    // proj_dist_m( NULL ),
     start_mode( FIRST_WPT ),
     follow_mode( XTRACK_LEG_HDG ),
     completion_mode( LOOP ),
@@ -86,55 +87,61 @@ FGRouteMgr::~FGRouteMgr() {
 
 // bind property nodes
 void FGRouteMgr::bind() {
-    home_lon_node = pyGetNode("/task/home/longitude-deg", true );
-    home_lat_node = pyGetNode("/task/home/latitude-deg", true );
-    home_azimuth_node = pyGetNode("/task/home/azimuth-deg", true );
+    // property nodes
+    pos_node = pyGetNode("/position", true);
+    vel_node = pyGetNode("velocity", true);
+    orient_node = pyGetNode("/orientation", true);
+    route_node = pyGetNode("/task/route", true);
+    L1_node = pyGetNode("/config/fcs/autopilot/L1-controller", true);
+    ap_node = pyGetNode("/autopilot/settings", true);
 
-    bank_limit_node = pyGetNode("/config/fcs/autopilot/L1-controller/bank-limit-deg", true);
-    L1_period_node = pyGetNode("/config/fcs/autopilot/L1-controller/period", true);
-    L1_damping_node = pyGetNode("/config/fcs/autopilot/L1-controller/damping", true);
+    // home_lon_node = pyGetNode("/task/home/longitude-deg", true );
+    // home_lat_node = pyGetNode("/task/home/latitude-deg", true );
+    // home_azimuth_node = pyGetNode("/task/home/azimuth-deg", true );
+
+    // bank_limit_node = pyGetNode("/config/fcs/autopilot/L1-controller/bank-limit-deg", true);
+    // L1_period_node = pyGetNode("/config/fcs/autopilot/L1-controller/period", true);
+    // L1_damping_node = pyGetNode("/config/fcs/autopilot/L1-controller/damping", true);
 
     // sanity check, set some conservative values if none are provided
     // in the autopilot config
-    if ( bank_limit_node->getDouble() < 0.1 ) {
-	bank_limit_node->setDouble( 20.0 );
+    if ( L1_node.getDouble( "bank_limit_deg" ) < 0.1 ) {
+	L1_node.setDouble( "bank_limit_deg", 20.0 );
     }
-    if ( L1_period_node->getDouble() < 0.1 ) {
-	L1_period_node->setDouble( 25.0 );
+    if ( L1_node.getDouble( "period" ) < 0.1 ) {
+	L1_node.setDouble( "period", 25.0 );
     }
-    if ( L1_damping_node->getDouble() < 0.1 ) {
-	L1_damping_node->setDouble( 0.7 );
+    if ( L1_node.getDouble("damping") < 0.1 ) {
+	L1_node.setDouble( "damping", 0.7 );
     }
 
-    xtrack_gain_node = pyGetNode( "/task/route/xtrack-steer-gain", true );
+    // xtrack_gain_node = pyGetNode( "/task/route/xtrack-steer-gain", true );
 
-    lon_node = pyGetNode( "/position/longitude-deg", true );
-    lat_node = pyGetNode( "/position/latitude-deg", true );
-    alt_node = pyGetNode( "/position/altitude-ft", true );
-    groundspeed_node = pyGetNode("/velocity/groundspeed-ms", true);
-    groundtrack_node = pyGetNode( "/orientation/groundtrack-deg", true );
+    // lon_node = pyGetNode( "/position/longitude-deg", true );
+    // lat_node = pyGetNode( "/position/latitude-deg", true );
+    // alt_node = pyGetNode( "/position/altitude-ft", true );
+    // groundspeed_node = pyGetNode("/velocity/groundspeed-ms", true);
+    // groundtrack_node = pyGetNode( "/orientation/groundtrack-deg", true );
 
-    ap_roll_node = pyGetNode("/autopilot/settings/target-roll-deg", true);
-    target_course_deg = pyGetNode( "/autopilot/settings/target-groundtrack-deg", true );
-    target_msl_node = pyGetNode( "/autopilot/settings/target-msl-ft", true );
-    target_agl_node = pyGetNode( "/autopilot/settings/target-agl-ft", true );
-    target_waypoint
-	= pyGetNode( "/task/route/target-waypoint-idx", true );
-    wp_dist_m = pyGetNode( "/task/route/wp-dist-m", true );
-    wp_eta_sec = pyGetNode( "/task/route/wp-eta-sec", true );
-    xtrack_dist_m = pyGetNode( "/task/route/xtrack-dist-m", true );
-    proj_dist_m = pyGetNode( "/task/route/projected-dist-m", true );
+    // ap_roll_node = pyGetNode("/autopilot/settings/target-roll-deg", true);
+    // target_course_deg = pyGetNode( "/autopilot/settings/target-groundtrack-deg", true );
+    // target_msl_node = pyGetNode( "/autopilot/settings/target-msl-ft", true );
+    // target_agl_node = pyGetNode( "/autopilot/settings/target-agl-ft", true );
+    // target_waypoint
+    // 	= pyGetNode( "/task/route/target-waypoint-idx", true );
+    // wp_dist_m = pyGetNode( "/task/route/wp-dist-m", true );
+    // wp_eta_sec = pyGetNode( "/task/route/wp-eta-sec", true );
+    // xtrack_dist_m = pyGetNode( "/task/route/xtrack-dist-m", true );
+    // proj_dist_m = pyGetNode( "/task/route/projected-dist-m", true );
 }
 
 
-void FGRouteMgr::init( SGPropertyNode *branch ) {
-    config_props = branch;
-
+void FGRouteMgr::init( pyPropertyNode *config_node ) {
     active->clear();
     standby->clear();
 
-    if ( config_props != NULL ) {
-	if ( ! build() ) {
+    if ( ! config_node->isNull() ) {
+	if ( ! build(config_node) ) {
 	    printf("Detected an internal inconsistency in the route\n");
 	    printf(" configuration.  See earlier errors for\n" );
 	    printf(" details.");
@@ -179,18 +186,18 @@ void FGRouteMgr::update() {
 		}
 	    }
 
-	    double L1_period = L1_period_node->getDouble();
-	    double L1_damping = L1_damping_node->getDouble();
-	    double gs_mps = groundspeed_node->getDouble();
+	    double L1_period = L1_node.getDouble("period");
+	    double L1_damping = L1_node.getDouble("damping");
+	    double gs_mps = vel_node.getDouble("groundspeed_ms");
 
 	    // track current waypoint of route (only if we have fresh gps data)
 	    SGWayPoint prev = active->get_previous();
 	    SGWayPoint wp = active->get_current();
 
 	    // compute direct-to course and distance
-	    wp.CourseAndDistance( lon_node->getDouble(),
-				  lat_node->getDouble(),
-				  alt_node->getDouble(),
+	    wp.CourseAndDistance( pos_node.getDouble("longitude_deg"),
+				  pos_node.getDouble("latitude_deg"),
+				  pos_node.getDouble("altitude_ft"),
 				  &direct_course, &direct_distance );
 
 	    // compute leg course and distance
@@ -210,11 +217,11 @@ void FGRouteMgr::update() {
             double dist_m = cos( angle_rad ) * direct_distance;
 	    /* printf("direct_dist = %.1f angle = %.1f dist_m = %.1f\n",
 	              direct_distance, angle, dist_m); */
-	    xtrack_dist_m->setDouble( xtrack_m );
-	    proj_dist_m->setDouble( dist_m );
+	    route_node.setDouble( "xtrack_dist_m", xtrack_m );
+	    route_node.setDouble( "projected_dist_m", dist_m );
 
 	    // compute cross-track steering compensation
-	    double xtrack_gain = xtrack_gain_node->getDouble();
+	    double xtrack_gain = route_node.getDouble("xtrack_steer_gain");
 	    double xtrack_comp = xtrack_m * xtrack_gain;
 	    if ( xtrack_comp < -45.0 ) { xtrack_comp = -45.0; }
 	    if ( xtrack_comp > 45.0 ) { xtrack_comp = 45.0; }
@@ -315,7 +322,7 @@ void FGRouteMgr::update() {
                 nav_course -= 360.0;
             }
 
-	    target_course_deg->setDouble( nav_course );
+	    ap_node.setDouble( "target_groundtrack_deg", nav_course );
 
 	    // target bank angle computed here
 
@@ -324,8 +331,8 @@ void FGRouteMgr::update() {
 	    const double sqrt_of_2 = 1.41421356237309504880;
 	    double omegaA = sqrt_of_2 * SGD_PI / L1_period;
 	    double VomegaA = gs_mps * omegaA;
-	    double course_error = groundtrack_node->getDouble()
-		- target_course_deg->getDouble();
+	    double course_error = orient_node.getDouble("groundtrack_deg")
+		- ap_node.getDouble("target_groundtrack_deg");
 	    if ( course_error < -180.0 ) { course_error += 360.0; }
 	    if ( course_error >  180.0 ) { course_error -= 360.0; }
 
@@ -336,14 +343,14 @@ void FGRouteMgr::update() {
 	    double target_bank = -atan( accel / gravity );
 	    target_bank_deg = target_bank * SG_RADIANS_TO_DEGREES;
 
-	    double bank_limit_deg = bank_limit_node->getDouble();
+	    double bank_limit_deg = L1_node.getDouble("bank_limit_deg");
 	    if ( target_bank_deg < -bank_limit_deg ) {
 		target_bank_deg = -bank_limit_deg;
 	    }
 	    if ( target_bank_deg > bank_limit_deg ) {
 		target_bank_deg = bank_limit_deg;
 	    }
-	    ap_roll_node->setDouble( target_bank_deg );
+	    ap_node.setDouble( "target_roll_deg", target_bank_deg );
 
 	    wp_agl_m = wp.get_target_agl_m();
 	    wp_msl_m = wp.get_target_alt_m();
@@ -391,7 +398,8 @@ void FGRouteMgr::update() {
 	    }
 
 	    // publish current target waypoint
-	    target_waypoint->setIntValue( active->get_waypoint_index() );
+	    route_node.setLong( "target_waypoint_idx",
+				active->get_waypoint_index() );
 
 	    // if ( display_on ) {
 	    // printf("route dist = %0f\n", dist_remaining_m);
@@ -408,35 +416,35 @@ void FGRouteMgr::update() {
 	/* mission_mgr.request_task_circle(); */
     }
 
-    wp_dist_m->setFloatValue( direct_distance );
+    route_node.setDouble( "wp_dist_m", direct_distance );
 
     // update target altitude based on waypoint target altitudes if
     // specified.  Preference is given to agl if both agl & msl are
     // set.
     if ( wp_agl_m > 1.0 ) {
-	target_agl_node->setDouble( wp_agl_m * SG_METER_TO_FEET );
+	ap_node.setDouble( "target_agl_ft", wp_agl_m * SG_METER_TO_FEET );
     } else if ( wp_msl_m > 1.0 ) {
-	target_msl_node->setDouble( wp_msl_m * SG_METER_TO_FEET );
+	ap_node.setDouble( "target_msl_ft", wp_msl_m * SG_METER_TO_FEET );
     }
 
-    double gs_mps = groundspeed_node->getDouble();
+    double gs_mps = vel_node.getDouble("groundspeed_ms");
     if ( gs_mps > 0.1 ) {
-	wp_eta_sec->setFloatValue( direct_distance / gs_mps );
+	route_node.setDouble( "wp_eta_sec", direct_distance / gs_mps );
     } else {
-	wp_eta_sec->setFloatValue( 0.0 );
+	route_node.setDouble( "wp_eta_sec", 0.0 );
     }
 
 #if 0
     if ( display_on ) {
 	SGPropertyNode *ground_deg = pyGetNode("/orientation/groundtrack-deg", true);
-	double gtd = ground_deg->getDouble();
+	double gtd = ground_deg.getDouble();
 	if ( gtd < 0 ) { gtd += 360.0; }
 	double diff = wp_course - gtd;
 	if ( diff < -180.0 ) { diff += 360.0; }
 	if ( diff > 180.0 ) { diff -= 360.0; }
 	SGPropertyNode *psi = pyGetNode("/orientation/heading-deg", true);
 	printf("true filt=%.1f true-wind-est=%.1f target-hd=%.1f\n",
-	       psi->getDouble(), true_deg, hd * SGD_RADIANS_TO_DEGREES);
+	       psi.getDouble(), true_deg, hd * SGD_RADIANS_TO_DEGREES);
 	printf("gt cur=%.1f target=%.1f diff=%.1f\n", gtd, wp_course, diff);
 	diff = hd*SGD_RADIANS_TO_DEGREES - true_deg;
 	if ( diff < -180.0 ) { diff += 360.0; }
@@ -466,7 +474,7 @@ bool FGRouteMgr::swap() {
 }
 
 
-bool FGRouteMgr::build() {
+bool FGRouteMgr::build( pyPropertyNode *config_node ) {
     standby->clear();
 
     SGPropertyNode *node;
@@ -557,9 +565,9 @@ SGWayPoint FGRouteMgr::make_waypoint( const string& wpt_string ) {
 
 
 bool FGRouteMgr::reposition() {
-    double home_lon = home_lon_node->getDouble();
-    double home_lat = home_lat_node->getDouble();
-    double home_az = home_azimuth_node->getDouble();
+    double home_lon = home_lon_node.getDouble();
+    double home_lat = home_lat_node.getDouble();
+    double home_az = home_azimuth_node.getDouble();
 
     SGWayPoint wp(home_lon, home_lat);
     return reposition_pattern(wp, home_az);
@@ -567,9 +575,9 @@ bool FGRouteMgr::reposition() {
 
 
 bool FGRouteMgr::reposition_if_necessary() {
-    double home_lon = home_lon_node->getDouble();
-    double home_lat = home_lat_node->getDouble();
-    double home_az = home_azimuth_node->getDouble();
+    double home_lon = home_lon_node.getDouble();
+    double home_lat = home_lat_node.getDouble();
+    double home_az = home_azimuth_node.getDouble();
 
     if ( fabs(home_lon - last_lon) > 0.000001 ||
 	 fabs(home_lat - last_lat) > 0.000001 ||

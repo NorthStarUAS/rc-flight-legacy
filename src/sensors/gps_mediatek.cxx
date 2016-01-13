@@ -343,10 +343,10 @@ static bool parse_nmea_msg( char *payload, int size )
 	// }
 
 	int fix_ind = atoi( token[6].c_str() );
-	gps_fix_type_node->setIntValue( fix_ind );
+	gps_fix_type_node->setLong( fix_ind );
 
 	int num_sats = atoi( token[7].c_str() );
-	gps_satellites_node->setIntValue( num_sats );
+	gps_satellites_node->setLong( num_sats );
 
 	float hdop = atof( token[8].c_str() );
 

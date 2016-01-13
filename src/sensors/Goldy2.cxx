@@ -388,14 +388,14 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
  
 	}
 
- 	gps_satellites_node->setIntValue( numSV );
+ 	gps_satellites_node->setLong( numSV );
  	gps_fix_value = gpsFix;
 	if ( gps_fix_value == 0 ) {
-	    gps_status_node->setIntValue( 0 );
+	    gps_status_node->setLong( 0 );
 	} else if ( gps_fix_value == 1 || gps_fix_value == 2 ) {
-	    gps_status_node->setIntValue( 1 );
+	    gps_status_node->setLong( 1 );
 	} else if ( gps_fix_value == 3 ) {
-	    gps_status_node->setIntValue( 2 );
+	    gps_status_node->setLong( 2 );
 	}
 
 	if ( fabs(ecefX) > 650000000
@@ -536,7 +536,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 		satUsed++;
 	    }
 	}
- 	// gps_satellites_node->setIntValue( satUsed );
+ 	// gps_satellites_node->setLong( satUsed );
 	if ( display_on && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("Satellite count = %d/%d\n", satUsed, numCh);
@@ -860,11 +860,11 @@ bool goldy2_pilot_update() {
     pilot_throttle_node->setDouble((rcin[1] - 172.0) / 1640.0);
     pilot_rudder_node->setDouble((rcin[4] - 992.0) / 820.0);
     if ( rcin[0] < 992 ) {
-        pilot_manual_node->setIntValue(0);
+        pilot_manual_node->setLong(0);
     } else {
-        pilot_manual_node->setIntValue(1);
+        pilot_manual_node->setLong(1);
     }
-    pilot_status_node->setIntValue(1);
+    pilot_status_node->setLong(1);
     return true;
 }
 

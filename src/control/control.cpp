@@ -62,38 +62,6 @@ static pyPropertyNode logging_node;
 static pyPropertyNode task_node;
 static pyPropertyNode home_node;
 
-//static SGPropertyNode *ap_master_switch_node = NULL;
-//static SGPropertyNode *fcs_mode_node = NULL;
-
-//static SGPropertyNode *roll_lock_node = NULL;
-//static SGPropertyNode *yaw_lock_node = NULL;
-//static SGPropertyNode *altitude_lock_node = NULL;
-//static SGPropertyNode *speed_lock_node = NULL;
-//static SGPropertyNode *pitch_lock_node = NULL;
-//static SGPropertyNode *pointing_lock_node = NULL;
-
-//static SGPropertyNode *lookat_mode_node = NULL;
-//static SGPropertyNode *ned_n_node = NULL;
-//static SGPropertyNode *ned_e_node = NULL;
-//static SGPropertyNode *ned_d_node = NULL;
-
-//static SGPropertyNode *roll_deg_node = NULL;
-//static SGPropertyNode *pitch_deg_node = NULL;
-//static SGPropertyNode *target_roll_deg_node = NULL;
-//static SGPropertyNode *target_pitch_base_deg_node = NULL;
-
-// console/logging property nodes
-//static SGPropertyNode *ap_console_skip = NULL;
-//static SGPropertyNode *ap_logging_skip = NULL;
-
-// home
-//static SGPropertyNode *home_lon_node = NULL;
-//static SGPropertyNode *home_lat_node = NULL;
-//static SGPropertyNode *home_alt_node = NULL;
-
-// task
-//static SGPropertyNode *task_name_node = NULL;
-
 
 static void bind_properties() {
     ap_node = pyGetNode( "/autopilot", true );
@@ -106,38 +74,7 @@ static void bind_properties() {
     remote_link_node = pyGetNode( "/config/remote-link", true );
     logging_node = pyGetNode( "/config/logging", true );
     task_node = pyGetNode( "/task", true );
-    home_node = pyGetNode( "/task/home", true );
-    
-    // ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
-    // fcs_mode_node = fgGetNode("/config/fcs/mode", true);
-
-    // roll_lock_node = fgGetNode("/autopilot/locks/roll", true);
-    // yaw_lock_node = fgGetNode("/autopilot/locks/yaw", true);
-    // altitude_lock_node = fgGetNode("/autopilot/locks/altitude", true);
-    // speed_lock_node = fgGetNode("/autopilot/locks/speed", true);
-    // pitch_lock_node = fgGetNode("/autopilot/locks/pitch", true);
-    // pointing_lock_node = fgGetNode("/autopilot/locks/pointing", true);
-
-    // lookat_mode_node = fgGetNode("/pointing/lookat-mode", true);
-    // ned_n_node = fgGetNode("/pointing/vector/north", true);
-    // ned_e_node = fgGetNode("/pointing/vector/east", true);
-    // ned_d_node = fgGetNode("/pointing/vector/down", true);
-
-    // roll_deg_node = fgGetNode("/orientation/roll-deg", true);
-    // pitch_deg_node = fgGetNode("/orientation/pitch-deg", true);
-    // target_roll_deg_node
-    // 	= fgGetNode("/autopilot/settings/target-roll-deg", true);
-    // target_pitch_base_deg_node
-    // 	= fgGetNode("/autopilot/settings/target-pitch-base-deg", true);
-
-    // ap_console_skip = fgGetNode("/config/remote-link/autopilot-skip", true);
-    // ap_logging_skip = fgGetNode("/config/logging/autopilot-skip", true);
-
-    // home_lon_node = fgGetNode("/task/home/longitude-deg", true );
-    // home_lat_node = fgGetNode("/task/home/latitude-deg", true );
-    // home_alt_node = fgGetNode("/task/home/altitude-ft", true );
-
-    // task_name_node = fgGetNode("/task/current-task-id", true );
+    home_node = pyGetNode( "/task/home", true );    
 }
 
 

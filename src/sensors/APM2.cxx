@@ -961,7 +961,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 #endif
 
 	    pilot_packet_counter++;
-	    APM2_pilot_packet_count_node->setIntValue( pilot_packet_counter );
+	    APM2_pilot_packet_count_node->setLong( pilot_packet_counter );
 
 	    new_data = true;
 	} else {
@@ -990,7 +990,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 #endif
 		      
 	    imu_packet_counter++;
-	    APM2_imu_packet_count_node->setIntValue( imu_packet_counter );
+	    APM2_imu_packet_count_node->setLong( imu_packet_counter );
 
 	    new_data = true;
 	} else {
@@ -1023,7 +1023,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 #endif
 		      
 	    gps_packet_counter++;
-	    APM2_gps_packet_count_node->setIntValue( gps_packet_counter );
+	    APM2_gps_packet_count_node->setLong( gps_packet_counter );
 
 	    new_data = true;
 	} else {
@@ -1046,7 +1046,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 #endif
 		      
 	    baro_packet_counter++;
-	    APM2_baro_packet_count_node->setIntValue( baro_packet_counter );
+	    APM2_baro_packet_count_node->setLong( baro_packet_counter );
 
 	    new_data = true;
 	} else {
@@ -1068,7 +1068,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		    // property tree here
 		    analog[i] = val / 1000.0;
 		}
-		APM2_analog_nodes[i]->setFloatValue( analog[i] );
+		APM2_analog_nodes[i]->setDouble( analog[i] );
 	    }
 
 	    // fill in property values that don't belong to some other
@@ -1091,10 +1091,10 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		analog[2], filter_vcc, extern_amp_ratio, extern_amps); */
 	    extern_amp_sum += extern_amps * dt * 0.277777778; // 0.2777... is 1000/3600 (conversion to milli-amp hours)
 
-	    APM2_extern_volt_node->setFloatValue( extern_volt_filt );
-	    APM2_extern_cell_volt_node->setFloatValue( cell_volt );
-	    APM2_extern_amp_node->setFloatValue( extern_amp_filt );
-	    APM2_extern_amp_sum_node->setFloatValue( extern_amp_sum );
+	    APM2_extern_volt_node->setDouble( extern_volt_filt );
+	    APM2_extern_cell_volt_node->setDouble( cell_volt );
+	    APM2_extern_amp_node->setDouble( extern_amp_filt );
+	    APM2_extern_amp_sum_node->setDouble( extern_amp_sum );
 
 #if 0
 	    if ( display_on ) {
@@ -1106,7 +1106,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 #endif
 		      
 	    analog_packet_counter++;
-	    APM2_analog_packet_count_node->setIntValue( analog_packet_counter );
+	    APM2_analog_packet_count_node->setLong( analog_packet_counter );
 
 	    new_data = true;
 	} else {
@@ -1129,10 +1129,10 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 #endif
 		      
-	    APM2_info_serial_number_node->setIntValue( serial_num );
-	    APM2_info_firmware_node->setIntValue( firmware_rev );
-	    APM2_info_master_hz_node->setIntValue( master_hz );
-	    APM2_info_baud_node->setIntValue( baud_rate );
+	    APM2_info_serial_number_node->setLong( serial_num );
+	    APM2_info_firmware_node->setLong( firmware_rev );
+	    APM2_info_master_hz_node->setLong( master_hz );
+	    APM2_info_baud_node->setLong( baud_rate );
 
 	    if ( first_time ) {
 		// log the data to events.txt
@@ -1546,14 +1546,14 @@ static bool APM2_act_write() {
     static double t = 0.0;
     t += 0.02;
     double dummy = sin(t);
-    act_aileron_node->setFloatValue(dummy);
-    act_elevator_node->setFloatValue(dummy);
-    act_throttle_node->setFloatValue((dummy/2)+0.5);
-    act_rudder_node->setFloatValue(dummy);
-    act_channel5_node->setFloatValue(dummy);
-    act_channel6_node->setFloatValue(dummy);
-    act_channel7_node->setFloatValue(dummy);
-    act_channel8_node->setFloatValue(dummy);
+    act_aileron_node->setDouble(dummy);
+    act_elevator_node->setDouble(dummy);
+    act_throttle_node->setDouble((dummy/2)+0.5);
+    act_rudder_node->setDouble(dummy);
+    act_channel5_node->setDouble(dummy);
+    act_channel6_node->setDouble(dummy);
+    act_channel7_node->setDouble(dummy);
+    act_channel8_node->setDouble(dummy);
 #endif
 
     // actuator data
@@ -1658,12 +1658,12 @@ bool APM2_imu_update() {
 	}
 
 	if ( imu_timestamp > last_imu_timestamp + 5.0 ) {
-	    //imu_p_bias_node->setFloatValue( p_cal.eval_bias( temp_C ) );
-	    //imu_q_bias_node->setFloatValue( q_cal.eval_bias( temp_C ) );
-	    //imu_r_bias_node->setFloatValue( r_cal.eval_bias( temp_C ) );
-	    imu_ax_bias_node->setFloatValue( ax_cal.eval_bias( temp_C ) );
-	    imu_ay_bias_node->setFloatValue( ay_cal.eval_bias( temp_C ) );
-	    imu_az_bias_node->setFloatValue( az_cal.eval_bias( temp_C ) );
+	    //imu_p_bias_node->setDouble( p_cal.eval_bias( temp_C ) );
+	    //imu_q_bias_node->setDouble( q_cal.eval_bias( temp_C ) );
+	    //imu_r_bias_node->setDouble( r_cal.eval_bias( temp_C ) );
+	    imu_ax_bias_node->setDouble( ax_cal.eval_bias( temp_C ) );
+	    imu_ay_bias_node->setDouble( ay_cal.eval_bias( temp_C ) );
+	    imu_az_bias_node->setDouble( az_cal.eval_bias( temp_C ) );
 	    last_imu_timestamp = imu_timestamp;
 	}
 
@@ -1763,9 +1763,9 @@ bool APM2_gps_update() {
     gps_vn_node->setDouble( gps_sensors.vel_north * 0.01 );
     gps_ve_node->setDouble( gps_sensors.vel_east * 0.01 );
     gps_vd_node->setDouble( gps_sensors.vel_down * 0.01 );
-    gps_satellites_node->setIntValue(gps_sensors.num_sats);
-    gps_pdop_node->setFloatValue(gps_sensors.pdop * 0.01);
-    gps_status_node->setIntValue( gps_sensors.status );
+    gps_satellites_node->setLong(gps_sensors.num_sats);
+    gps_pdop_node->setDouble(gps_sensors.pdop * 0.01);
+    gps_status_node->setLong( gps_sensors.status );
     double unix_secs = ublox_date_time_to_unix_sec( gps_sensors.date,
 					            gps_sensors.time );
     gps_unix_sec_node->setDouble( unix_secs );
@@ -1898,7 +1898,7 @@ bool APM2_pilot_update() {
     val = normalize_pulse( pilot_input[7], true );
     pilot_channel8_node->setDouble( val );
 
-    pilot_manual_node->setIntValue( pilot_channel8_node->getDouble() > 0 );
+    pilot_manual_node->setLong( pilot_channel8_node->getDouble() > 0 );
 
     return true;
 }

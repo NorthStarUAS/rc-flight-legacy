@@ -165,10 +165,10 @@ bool PilotInput_update() {
 	// values and improve continuity when switching from manual to
 	// AP mode.
 	if ( ! ap_master_switch_node->getBool() ) {
-	    output_aileron_node->setFloatValue( pilot_aileron_node->getDouble() );
-	    output_elevator_node->setFloatValue( pilot_elevator_node->getDouble() );
-	    output_throttle_node->setFloatValue( pilot_throttle_node->getDouble() );
-	    output_rudder_node->setFloatValue( pilot_rudder_node->getDouble() );
+	    output_aileron_node->setDouble( pilot_aileron_node->getDouble() );
+	    output_elevator_node->setDouble( pilot_elevator_node->getDouble() );
+	    output_throttle_node->setDouble( pilot_throttle_node->getDouble() );
+	    output_rudder_node->setDouble( pilot_rudder_node->getDouble() );
 	}
 
 	if ( remote_link_on || log_to_file ) {

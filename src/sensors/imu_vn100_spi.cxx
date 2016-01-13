@@ -152,13 +152,13 @@ static bool imu_vn100_spi_parse_msg( uint8_t *msg_buf, int size )
 
     uint32_t *iptr = NULL;
     iptr = (uint32_t *)&msg_buf[0]; /* running */
-    imu_driver_running_node->setIntValue( *iptr );
+    imu_driver_running_node->setLong( *iptr );
 
     iptr = (uint32_t *)&msg_buf[4]; /* call back counter */
-    imu_driver_callbacks_node->setIntValue( *iptr );
+    imu_driver_callbacks_node->setLong( *iptr );
 
     iptr = (uint32_t *)&msg_buf[8]; /* busy counter */
-    imu_driver_overruns_node->setIntValue( *iptr );
+    imu_driver_overruns_node->setLong( *iptr );
     
     float p, q, r;
     int i = 16;
