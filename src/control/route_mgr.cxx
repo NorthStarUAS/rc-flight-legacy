@@ -476,17 +476,14 @@ bool FGRouteMgr::swap() {
 
 bool FGRouteMgr::build( pyPropertyNode *config_node ) {
     standby->clear();
-
-    SGPropertyNode *node;
-    int i;
-
-    int count = config_props->nChildren();
-    for ( i = 0; i < count; ++i ) {
-        node = config_props->getChild(i);
-        string name = node->getName();
+    vector <string> children = config_node->getChildren();
+    unsigned int count = children.size();
+    for ( unsigned int i = 0; i < count; ++i ) {
+        string name = children[i];
+	pyPropertyNode child = config_node->getChild(name.c_str());
         // cout << name << endl;
         if ( name == "wpt" ) {
-            SGWayPoint wpt( node );
+            SGWayPoint wpt( &child );
             standby->add_waypoint( wpt );
 	} else if ( name == "enable" ) {
 	    // happily ignore this
@@ -495,9 +492,7 @@ bool FGRouteMgr::build( pyPropertyNode *config_node ) {
             return false;
         }
     }
-
     printf("loaded %d waypoints\n", standby->size());
-
     return true;
 }
 
@@ -565,9 +560,9 @@ SGWayPoint FGRouteMgr::make_waypoint( const string& wpt_string ) {
 
 
 bool FGRouteMgr::reposition() {
-    double home_lon = home_lon_node.getDouble();
-    double home_lat = home_lat_node.getDouble();
-    double home_az = home_azimuth_node.getDouble();
+    double home_lon = home_node.getDouble("longitude_deg");
+    double home_lat = home_node.getDouble("latitude_deg");
+    double home_az = home_node.getDouble("azimuth_deg");
 
     SGWayPoint wp(home_lon, home_lat);
     return reposition_pattern(wp, home_az);
@@ -575,9 +570,9 @@ bool FGRouteMgr::reposition() {
 
 
 bool FGRouteMgr::reposition_if_necessary() {
-    double home_lon = home_lon_node.getDouble();
-    double home_lat = home_lat_node.getDouble();
-    double home_az = home_azimuth_node.getDouble();
+    double home_lon = home_node.getDouble("longitude_deg");
+    double home_lat = home_node.getDouble("latitude_deg");
+    double home_az = home_node.getDouble("azimuth_deg");
 
     if ( fabs(home_lon - last_lon) > 0.000001 ||
 	 fabs(home_lat - last_lat) > 0.000001 ||
