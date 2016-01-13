@@ -8,6 +8,8 @@
  */
 
 
+#include "python/pyprops.hxx"
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -16,7 +18,6 @@
 #include "comms/remote_link.h"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "python/pyprops.hxx"
 #include "util/lowpass.hxx"
 #include "util/myprof.h"
 

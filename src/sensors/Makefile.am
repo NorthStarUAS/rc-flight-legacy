@@ -27,4 +27,4 @@ ublox_config_LDADD = \
 	../math/libmath.a \
 	../util/libutil.a
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@

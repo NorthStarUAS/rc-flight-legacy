@@ -14,7 +14,7 @@
 
 
 // function prototypes
-bool fgfs_imu_init( string rootname, SGPropertyNode *config );
+bool fgfs_imu_init( string rootname, pyPropertyNode *config );
 bool fgfs_imu_update();
 void fgfs_imu_close();
 
