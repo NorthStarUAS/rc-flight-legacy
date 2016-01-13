@@ -16,11 +16,6 @@
 
 class UGPayloadMgr {
 
-private:
-
-    // payload configuration tree
-    // SGPropertyNode *config_props;
-
 public:
 
     UGPayloadMgr();

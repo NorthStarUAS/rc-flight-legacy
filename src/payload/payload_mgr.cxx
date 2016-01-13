@@ -8,20 +8,21 @@
  * $Id: act_mgr.cpp,v 1.3 2009/08/25 15:04:01 curt Exp $
  */
 
+#include "python/pyprops.hxx"
+
 #include <cstdio>
 
 #include "comms/display.h"
 #include "comms/logging.h"
 #include "comms/remote_link.h"
 #include "init/globals.hxx"
-#include "python/pyprops.hxx"
 
 #include "payload_mgr.hxx"
 
 
 // comm property nodes
-static SGPropertyNode *payload_console_skip = NULL;
-static SGPropertyNode *payload_logging_skip = NULL;
+static pyPropertyNode remote_link_node;
+static pyPropertyNode logging_node;
 
 
 UGPayloadMgr::UGPayloadMgr()
@@ -34,11 +35,9 @@ UGPayloadMgr::~UGPayloadMgr() {
 
 
 void UGPayloadMgr::bind() {
-    // config_props = pyGetNode( "/config/payload", true );
-
     // initialize comm nodes
-    payload_console_skip = pyGetNode("/config/remote-link/payload-skip", true);
-    payload_logging_skip = pyGetNode("/config/logging/payload-skip", true);
+    remote_link_node = pyGetNode("/config/remote-link", true);
+    logging_node = pyGetNode("/config/logging", true);
 }
 
 
@@ -55,11 +54,11 @@ bool UGPayloadMgr::update() {
 	if ( remote_link_on ) {
 	    // printf("sending filter packet\n");
 	    remote_link_payload( buf, size,
-				 payload_console_skip->getLong() );
+				 remote_link_node.getLong("payload_skip") );
 	}
 
 	if ( log_to_file ) {
-	    log_payload( buf, size, payload_logging_skip->getLong() );
+	    log_payload( buf, size, logging_node.getLong("payload_skip") );
 	}
     }
     return true;
