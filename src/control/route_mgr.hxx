@@ -81,42 +81,9 @@ private:
     pyPropertyNode ap_node;
     pyPropertyNode home_node;
     
-    // route configuration tree
-    //pyPropertyNode config_props;
-
-    // home
-    //pyPropertyNode home_lon_node;
-    //pyPropertyNode home_lat_node;
-    //pyPropertyNode home_azimuth_node;
-
     double last_lon;
     double last_lat;
     double last_az;
-
-    // route following configuration
-    //pyPropertyNode bank_limit_node;
-    //pyPropertyNode L1_period_node;
-    //pyPropertyNode L1_damping_node;
-    //pyPropertyNode xtrack_gain_node;
-
-    // automatic inputs
-    //pyPropertyNode lon_node;
-    //pyPropertyNode lat_node;
-    //pyPropertyNode alt_node;
-    //pyPropertyNode groundspeed_node;
-    //pyPropertyNode groundtrack_node;
-
-    // automatic outputs
-    //pyPropertyNode target_heading_error_deg;
-    //pyPropertyNode target_course_deg;
-    //pyPropertyNode ap_roll_node;
-    //pyPropertyNode target_agl_node;
-    //pyPropertyNode target_msl_node;
-    //pyPropertyNode target_waypoint;
-    //pyPropertyNode wp_dist_m;
-    //pyPropertyNode wp_eta_sec;
-    //pyPropertyNode xtrack_dist_m;
-    //pyPropertyNode proj_dist_m;
 
     // route behaviors
     StartMode start_mode;

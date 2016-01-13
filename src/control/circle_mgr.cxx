@@ -41,22 +41,6 @@ bool AuraCircleMgr::bind() {
     ap_node = pyGetNode("/autopilot/settings", true);
     route_node = pyGetNode("/task/route", true);
 
-    //lon_node = pyGetNode( "/position/longitude-deg", true );
-    //lat_node = pyGetNode( "/position/latitude-deg", true );
-    //alt_agl_node = pyGetNode("/position/altitude-agl-ft", true);
-    //true_heading_node = pyGetNode( "/orientation/heading-deg", true );
-    //groundtrack_node = pyGetNode( "/orientation/groundtrack-deg", true );
-    //groundspeed_node = pyGetNode("/velocity/groundspeed-ms", true);
-
-    //coord_lon_node = pyGetNode( "/task/circle/longitude-deg", true );
-    //coord_lat_node = pyGetNode( "/task/circle/latitude-deg", true );
-    //direction_node = pyGetNode( "/task/circle/direction", true );
-    //radius_node = pyGetNode( "/task/circle/radius-m", true );
-    //target_agl_node = pyGetNode( "/task/circle/altitude-agl-ft", true );
-    //target_speed_node = pyGetNode( "/task/circle/speed-kt", true );
-
-    //bank_limit_node = pyGetNode("/config/fcs/autopilot/L1-controller/bank-limit-deg", true );
-    //L1_period_node = pyGetNode("/config/fcs/autopilot/L1-controller/period", true );
     // sanity check, set some conservative values if none are provided
     // in the autopilot config
     if ( L1_node.getDouble( "bank_limit_deg" ) < 0.1 ) {
@@ -65,13 +49,6 @@ bool AuraCircleMgr::bind() {
     if ( L1_node.getDouble( "period" ) < 0.1 ) {
 	L1_node.setDouble( "period", 25.0 );
     }
-
-    //fcs_mode_node = pyGetNode("/config/fcs/mode", true);
-    //ap_roll_node = pyGetNode("/autopilot/settings/target-roll-deg", true);
-    //target_course_deg = pyGetNode( "/autopilot/settings/target-groundtrack-deg", true );
-
-    //wp_dist_m = pyGetNode( "/task/route/wp-dist-m", true );
-    //wp_eta_sec = pyGetNode( "/task/route/wp-eta-sec", true );
 
     return true;
 }

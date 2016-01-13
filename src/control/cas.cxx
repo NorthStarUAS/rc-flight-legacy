@@ -52,37 +52,6 @@ void UGCAS::bind() {
     ap_node = pyGetNode("/autopilot/settings", true);
     flight_node = pyGetNode("/controls/flight", true);
     engine_node = pyGetNode("/controls/engine", true);
-    //pilot_aileron_node = pyGetNode("/sensors/pilot/aileron", true);
-    //pilot_elevator_node = pyGetNode("/sensors/pilot/elevator", true);
-    //pilot_throttle_node = pyGetNode("/sensors/pilot/throttle", true);
-    //pilot_rudder_node = pyGetNode("/sensors/pilot/rudder", true);
-
-    //aileron_min_node = pyGetNode("/config/cas/aileron/min", true);
-    //aileron_max_node = pyGetNode("/config/cas/aileron/max", true);
-    //aileron_center_node = pyGetNode("/config/cas/aileron/center", true);
-    //aileron_dz_node = pyGetNode("/config/cas/aileron/dead-zone", true);
-    //aileron_full_rate_node
-    // = pyGetNode("/config/cas/aileron/full-rate-degps", true);
-
-    //elevator_min_node = pyGetNode("/config/cas/elevator/min", true);
-    //elevator_max_node = pyGetNode("/config/cas/elevator/max", true);
-    //elevator_center_node = pyGetNode("/config/cas/elevator/center", true);
-    //elevator_dz_node = pyGetNode("/config/cas/aileron/dead-zone", true);
-    //elevator_full_rate_node
-    // = pyGetNode("/config/cas/elevator/full-rate-degps", true);
-
-    //target_roll_deg_node
-    //	= pyGetNode("/autopilot/settings/target-roll-deg", true);
-    //target_pitch_deg_node
-    //	= pyGetNode("/autopilot/settings/target-pitch-deg", true);
-    //target_pitch_base_deg_node
-    //	= pyGetNode("/autopilot/settings/target-pitch-base-deg", true);
-
-    //throttle_output_node = pyGetNode("/controls/engine/throttle", true);
-    //rudder_output_node = pyGetNode("/controls/flight/rudder", true);
-
-    //ap_master_switch_node = pyGetNode("/autopilot/master-switch", true);
-    //cas_mode_node = pyGetNode("/autopilot/cas-mode", true);
 }
 
 // initialize CAS system

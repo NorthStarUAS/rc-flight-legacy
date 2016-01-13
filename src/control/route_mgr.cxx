@@ -44,32 +44,9 @@
 FGRouteMgr::FGRouteMgr() :
     active( new SGRoute ),
     standby( new SGRoute ),
-    //config_props( NULL ),
-    //home_lon_node( NULL ),
-    //home_lat_node( NULL ),
-    //home_azimuth_node( NULL ),
     last_lon( 0.0 ),
     last_lat( 0.0 ),
     last_az( 0.0 ),
-    // bank_limit_node( NULL ),
-    // L1_period_node( NULL ),
-    // L1_damping_node( NULL ),
-    // xtrack_gain_node( NULL ),
-    // lon_node( NULL ),
-    // lat_node( NULL ),
-    // alt_node( NULL ),
-    // groundspeed_node( NULL ),
-    // groundtrack_node( NULL ),
-    // target_heading_error_deg( NULL ),
-    // target_course_deg( NULL ),
-    // ap_roll_node( NULL ),
-    // target_agl_node( NULL ),
-    // target_msl_node( NULL ),
-    // target_waypoint( NULL ),
-    // wp_dist_m( NULL ),
-    // wp_eta_sec( NULL ),
-    // xtrack_dist_m( NULL ),
-    // proj_dist_m( NULL ),
     start_mode( FIRST_WPT ),
     follow_mode( XTRACK_LEG_HDG ),
     completion_mode( LOOP ),
@@ -95,14 +72,6 @@ void FGRouteMgr::bind() {
     L1_node = pyGetNode("/config/fcs/autopilot/L1-controller", true);
     ap_node = pyGetNode("/autopilot/settings", true);
 
-    // home_lon_node = pyGetNode("/task/home/longitude-deg", true );
-    // home_lat_node = pyGetNode("/task/home/latitude-deg", true );
-    // home_azimuth_node = pyGetNode("/task/home/azimuth-deg", true );
-
-    // bank_limit_node = pyGetNode("/config/fcs/autopilot/L1-controller/bank-limit-deg", true);
-    // L1_period_node = pyGetNode("/config/fcs/autopilot/L1-controller/period", true);
-    // L1_damping_node = pyGetNode("/config/fcs/autopilot/L1-controller/damping", true);
-
     // sanity check, set some conservative values if none are provided
     // in the autopilot config
     if ( L1_node.getDouble( "bank_limit_deg" ) < 0.1 ) {
@@ -114,25 +83,6 @@ void FGRouteMgr::bind() {
     if ( L1_node.getDouble("damping") < 0.1 ) {
 	L1_node.setDouble( "damping", 0.7 );
     }
-
-    // xtrack_gain_node = pyGetNode( "/task/route/xtrack-steer-gain", true );
-
-    // lon_node = pyGetNode( "/position/longitude-deg", true );
-    // lat_node = pyGetNode( "/position/latitude-deg", true );
-    // alt_node = pyGetNode( "/position/altitude-ft", true );
-    // groundspeed_node = pyGetNode("/velocity/groundspeed-ms", true);
-    // groundtrack_node = pyGetNode( "/orientation/groundtrack-deg", true );
-
-    // ap_roll_node = pyGetNode("/autopilot/settings/target-roll-deg", true);
-    // target_course_deg = pyGetNode( "/autopilot/settings/target-groundtrack-deg", true );
-    // target_msl_node = pyGetNode( "/autopilot/settings/target-msl-ft", true );
-    // target_agl_node = pyGetNode( "/autopilot/settings/target-agl-ft", true );
-    // target_waypoint
-    // 	= pyGetNode( "/task/route/target-waypoint-idx", true );
-    // wp_dist_m = pyGetNode( "/task/route/wp-dist-m", true );
-    // wp_eta_sec = pyGetNode( "/task/route/wp-eta-sec", true );
-    // xtrack_dist_m = pyGetNode( "/task/route/xtrack-dist-m", true );
-    // proj_dist_m = pyGetNode( "/task/route/projected-dist-m", true );
 }
 
 
