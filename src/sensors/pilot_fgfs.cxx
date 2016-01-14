@@ -8,6 +8,10 @@
 #include "pilot_fgfs.hxx"
 
 
-bool fgfs_pilot_init( string rootname, SGPropertyNode *config ) { return true; }
-bool fgfs_pilot_update() { return true; }
+bool fgfs_pilot_init( pyPropertyNode *base, pyPropertyNode *config ) {
+    return true;
+}
+bool fgfs_pilot_update() {
+    return true;
+}
 void fgfs_pilot_close(){}
