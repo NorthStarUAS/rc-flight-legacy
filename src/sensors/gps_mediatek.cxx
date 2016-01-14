@@ -9,6 +9,8 @@
 
 // FIXME: VALIDATE NMEA CHECKSUMS!!!!
 
+#include "python/pyprops.hxx"
+
 #include <errno.h>		// errno
 #include <math.h>		// sin() cos()
 #include <sys/types.h>		// open()
@@ -30,7 +32,6 @@ using std::string;
 #include "comms/logging.h"
 #include "math/SGMath.hxx"
 #include "math/SGGeodesy.hxx"
-#include "python/pyprops.hxx"
 #include "util/strutils.hxx"
 #include "util/timing.h"
 #include "gps_mgr.hxx"
@@ -38,50 +39,50 @@ using std::string;
 #include "gps_mediatek.hxx"
 
 
-// gpsd property nodes
-static SGPropertyNode *configroot = NULL;
+// property nodes
+static pyPropertyNode gps_node;
+// static SGPropertyNode *configroot = NULL;
 
-static SGPropertyNode *gps_timestamp_node = NULL;
-static SGPropertyNode *gps_lat_node = NULL;
-static SGPropertyNode *gps_lon_node = NULL;
-static SGPropertyNode *gps_alt_node = NULL;
-static SGPropertyNode *gps_ve_node = NULL;
-static SGPropertyNode *gps_vn_node = NULL;
-static SGPropertyNode *gps_vd_node = NULL;
-static SGPropertyNode *gps_unix_sec_node = NULL;
-static SGPropertyNode *gps_satellites_node = NULL;
-static SGPropertyNode *gps_fix_type_node = NULL;
-static SGPropertyNode *gps_firmware_node = NULL;
-static SGPropertyNode *gps_device_name_node = NULL;
+// static SGPropertyNode *gps_timestamp_node = NULL;
+// static SGPropertyNode *gps_lat_node = NULL;
+// static SGPropertyNode *gps_lon_node = NULL;
+// static SGPropertyNode *gps_alt_node = NULL;
+// static SGPropertyNode *gps_ve_node = NULL;
+// static SGPropertyNode *gps_vn_node = NULL;
+// static SGPropertyNode *gps_vd_node = NULL;
+// static SGPropertyNode *gps_unix_sec_node = NULL;
+// static SGPropertyNode *gps_satellites_node = NULL;
+// static SGPropertyNode *gps_fix_type_node = NULL;
+// static SGPropertyNode *gps_firmware_node = NULL;
+// static SGPropertyNode *gps_device_name_node = NULL;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
 
 
 // initialize gpsd input property nodes
-static void bind_input( SGPropertyNode *config ) {
-    gps_device_name_node = config->getChild("device");
-    if ( gps_device_name_node != NULL ) {
-	device_name = gps_device_name_node->getString();
+static void bind_input( pyPropertyNode *config ) {
+    if ( config->hasChild("device") ) {
+	device_name = config->getString("device");
     }
-    configroot = config;
 }
 
 
 // initialize gpsd output property nodes 
-static void bind_output( string rootname ) {
-    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
-    gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    gps_alt_node = outputroot->getChild("altitude-m", 0, true);
-    gps_ve_node = outputroot->getChild("ve-ms", 0, true);
-    gps_vn_node = outputroot->getChild("vn-ms", 0, true);
-    gps_vd_node = outputroot->getChild("vd-ms", 0, true);
-    gps_satellites_node = outputroot->getChild("satellites", 0, true);
-    gps_fix_type_node = outputroot->getChild("fix-type", 0, true);
-    gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
-    gps_firmware_node = outputroot->getChild("firmware", 0, true);
+static void bind_output( pyPropertyNode *base ) {
+    gps_node = *base;
+    // SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
+    // gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    // gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
+    // gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
+    // gps_alt_node = outputroot->getChild("altitude-m", 0, true);
+    // gps_ve_node = outputroot->getChild("ve-ms", 0, true);
+    // gps_vn_node = outputroot->getChild("vn-ms", 0, true);
+    // gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+    // gps_satellites_node = outputroot->getChild("satellites", 0, true);
+    // gps_fix_type_node = outputroot->getChild("fix-type", 0, true);
+    // gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+    // gps_firmware_node = outputroot->getChild("firmware", 0, true);
 }
 
 
@@ -173,9 +174,9 @@ static int gps_send_cmd( string msg ) {
 }
 
 
-void gps_mediatek3329_init( string rootname, SGPropertyNode *config ) {
+void gps_mediatek3329_init( pyPropertyNode *base, pyPropertyNode *config ) {
     bind_input( config );
-    bind_output( rootname );
+    bind_output( base );
     gps_mediatek3329_open();
 
     // send setup strings (reference command set from datasheets in
@@ -343,10 +344,10 @@ static bool parse_nmea_msg( char *payload, int size )
 	// }
 
 	int fix_ind = atoi( token[6].c_str() );
-	gps_fix_type_node->setLong( fix_ind );
+	gps_node.setLong( "fix_type", fix_ind );
 
 	int num_sats = atoi( token[7].c_str() );
-	gps_satellites_node->setLong( num_sats );
+	gps_node.setLong( "satellites", num_sats );
 
 	float hdop = atof( token[8].c_str() );
 
@@ -355,7 +356,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	    if ( token[10] == "F" ) {
 		alt_m *= SG_FEET_TO_METER;
 	    }
-	    gps_alt_node->setDouble( alt_m );
+	    gps_node.setDouble( "altitude_m", alt_m );
 
 	    float geoid_sep_m = atof( token[11].c_str() );
 	    if ( token[12] == "F" ) {
@@ -369,7 +370,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	    if ( dt > 0.001 ) {
 		vspeed_mps = da / dt;
 	    }
-	    gps_vd_node->setDouble( -vspeed_mps );
+	    gps_node.setDouble( "vd_ms", -vspeed_mps );
 
 	    last_gsec = gsec;
 	    last_alt_m = alt_m;
@@ -391,11 +392,11 @@ static bool parse_nmea_msg( char *payload, int size )
 	    // data whenever a valid rmc string is read.
 
 	    new_position = true;
-	    gps_timestamp_node->setDouble( get_Time() );
+	    gps_node.setDouble( "timestamp", get_Time() );
 
 	    // compute unix time (time_t)
 	    double unix_sec = date_time_to_unix_sec( token[9], token[1] );
-	    gps_unix_sec_node->setDouble( unix_sec );
+	    gps_node.setDouble( "unix_time_sec", unix_sec );
 	    if ( ! set_system_time ) {
 		set_system_time = true;
 		time_t sec = (time_t)unix_sec;
@@ -412,7 +413,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	    if ( token[4] == "S" ) {
 		lat_deg *= -1.0;
 	    }
-	    gps_lat_node->setDouble( lat_deg );
+	    gps_node.setDouble( "latitude_deg", lat_deg );
 
 	    dd = atof( token[5].substr(0, 3).c_str() );
 	    mm = atof( token[5].substr(3).c_str() );
@@ -420,7 +421,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	    if ( token[6] == "W" ) {
 		lon_deg *= -1.0;
 	    }
-	    gps_lon_node->setDouble( lon_deg );
+	    gps_node.setDouble( "longitude_deg", lon_deg );
 
 	    float speed_kts = atof( token[7].c_str() );
 	    float course_deg = atof( token[8].c_str() );
@@ -428,8 +429,8 @@ static bool parse_nmea_msg( char *payload, int size )
 	    // compute speed/course to vel NED
 	    double speed_mps = speed_kts * SG_KT_TO_MPS;
 	    double angle_rad = (90.0 - course_deg) * SGD_DEGREES_TO_RADIANS;
-	    gps_vn_node->setDouble( sin(angle_rad) * speed_mps );
-	    gps_ve_node->setDouble( cos(angle_rad) * speed_mps );
+	    gps_node.setDouble( "vn_ms", sin(angle_rad) * speed_mps );
+	    gps_node.setDouble( "ve_ms", cos(angle_rad) * speed_mps );
 
 #if 0
 	    if ( display_on ) {
@@ -453,7 +454,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	}
     } else if ( token[0] == "PMTK705" && token.size() == 5 ) {
 	string firmware = token[1] + "," + token[2] + "," + token[3];
-	gps_firmware_node->setString( firmware.c_str() );
+	gps_node.setString( "firmware", firmware.c_str() );
 	printf("MediaTek: firmware rev: %s\n", firmware.c_str() );
     } else {
 	if ( display_on ) {
