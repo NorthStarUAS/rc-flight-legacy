@@ -4,12 +4,13 @@
 // of Flightgear
 //
 
+#include "python/pyprops.hxx"
+
 #include <stdio.h>
 #include <string>
 #include <string.h>
 
 #include "comms/netSocket.h"
-#include "python/pyprops.hxx"
 #include "util/timing.h"
 
 #include "gps_fgfs.hxx"
@@ -18,54 +19,54 @@
 static netSocket sock;
 static int port = 0;
 
-// fgfs_imu property nodes
-static SGPropertyNode *configroot = NULL;
-static SGPropertyNode *outputroot = NULL;
-static SGPropertyNode *gps_port_node = NULL;
+// property nodes
+static pyPropertyNode gps_node;
+// static SGPropertyNode *configroot = NULL;
+// static SGPropertyNode *outputroot = NULL;
+// static SGPropertyNode *gps_port_node = NULL;
 
-static SGPropertyNode *gps_timestamp_node = NULL;
-static SGPropertyNode *gps_lat_node = NULL;
-static SGPropertyNode *gps_lon_node = NULL;
-static SGPropertyNode *gps_alt_node = NULL;
-static SGPropertyNode *gps_ve_node = NULL;
-static SGPropertyNode *gps_vn_node = NULL;
-static SGPropertyNode *gps_vd_node = NULL;
-static SGPropertyNode *gps_satellites_node = NULL;
-static SGPropertyNode *gps_unix_sec_node = NULL;
-static SGPropertyNode *gps_status_node = NULL;
+// static SGPropertyNode *gps_timestamp_node = NULL;
+// static SGPropertyNode *gps_lat_node = NULL;
+// static SGPropertyNode *gps_lon_node = NULL;
+// static SGPropertyNode *gps_alt_node = NULL;
+// static SGPropertyNode *gps_ve_node = NULL;
+// static SGPropertyNode *gps_vn_node = NULL;
+// static SGPropertyNode *gps_vd_node = NULL;
+// static SGPropertyNode *gps_satellites_node = NULL;
+// static SGPropertyNode *gps_unix_sec_node = NULL;
+// static SGPropertyNode *gps_status_node = NULL;
 
 
 // initialize fgfs_gps input property nodes
-static void bind_input( SGPropertyNode *config ) {
-    gps_port_node = config->getChild("port");
-    if ( gps_port_node != NULL ) {
-	port = gps_port_node->getLong();
+static void bind_input( pyPropertyNode *config ) {
+    if ( gps_node.hasChild("port") ) {
+	port = gps_node.getLong("port");
     }
-    configroot = config;
 }
 
 
 /// initialize gps output property nodes 
-static void bind_gps_output( string rootname ) {
-    outputroot = pyGetNode( rootname.c_str(), true );
+static void bind_gps_output( pyPropertyNode *base ) {
+    gps_node = *base;
+    // outputroot = pyGetNode( rootname.c_str(), true );
 
-    gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    gps_alt_node = outputroot->getChild("altitude-m", 0, true);
-    gps_ve_node = outputroot->getChild("ve-ms", 0, true);
-    gps_vn_node = outputroot->getChild("vn-ms", 0, true);
-    gps_vd_node = outputroot->getChild("vd-ms", 0, true);
-    gps_satellites_node = outputroot->getChild("satellites", 0, true);
-    gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
-    gps_status_node = outputroot->getChild("status", 0, true);
+    // gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    // gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
+    // gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
+    // gps_alt_node = outputroot->getChild("altitude-m", 0, true);
+    // gps_ve_node = outputroot->getChild("ve-ms", 0, true);
+    // gps_vn_node = outputroot->getChild("vn-ms", 0, true);
+    // gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+    // gps_satellites_node = outputroot->getChild("satellites", 0, true);
+    // gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+    // gps_status_node = outputroot->getChild("status", 0, true);
 }
 
 
 // function prototypes
-bool fgfs_gps_init( string rootname, SGPropertyNode *config ) {
+bool fgfs_gps_init( pyPropertyNode *base, pyPropertyNode *config ) {
     bind_input( config );
-    bind_gps_output( rootname );
+    bind_gps_output( base );
 
     // open a UDP socket
     if ( ! sock.open( false ) ) {
@@ -130,16 +131,16 @@ bool fgfs_gps_update() {
 	float ve = *(float *)buf; buf += 4;
 	float vd = *(float *)buf; buf += 4;
 
-	gps_timestamp_node->setDouble( get_Time() );
-	gps_lat_node->setDouble( lat );
-	gps_lon_node->setDouble( lon );
-	gps_alt_node->setDouble( alt );
-	gps_vn_node->setDouble( vn );
-	gps_ve_node->setDouble( ve );
-	gps_vd_node->setDouble( vd );
-	gps_satellites_node->setLong( 8 ); // fake a solid number
-	gps_unix_sec_node->setDouble( time );
-	gps_status_node->setLong( 2 ); // valid fix
+	gps_node.setDouble( "timestamp", get_Time() );
+	gps_node.setDouble( "latitude_deg", lat );
+	gps_node.setDouble( "longitude_deg", lon );
+	gps_node.setDouble( "altitude_m", alt );
+	gps_node.setDouble( "vn_ms", vn );
+	gps_node.setDouble( "ve_ms", ve );
+	gps_node.setDouble( "vd_ms", vd );
+	gps_node.setLong( "satellites", 8 ); // fake a solid number
+	gps_node.setDouble( "unix_time_sec", time );
+	gps_node.setLong( "status", 2 ); // valid fix
     }
 
     return fresh_data;
