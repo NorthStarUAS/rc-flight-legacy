@@ -12,6 +12,8 @@
 #define _AURA_GPS_GPSD_HXX
 
 
+#include "python/pyprops.hxx"
+
 #include "include/globaldefs.h"
 
 

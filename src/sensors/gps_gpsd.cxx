@@ -8,15 +8,15 @@
  *
  */
 
-#include <string>
+#include "python/pyprops.hxx"
 
+#include <string>
 using std::string;
 
 #include "include/globaldefs.h"
 
 #include "comms/display.h"
 #include "comms/netSocket.h"
-#include "python/pyprops.hxx"
 #include "util/strutils.hxx"
 #include "util/timing.h"
 #include "gps_mgr.hxx"
@@ -24,68 +24,72 @@ using std::string;
 #include "gps_gpsd.hxx"
 
 
-// gpsd property nodes
-static SGPropertyNode *configroot = NULL;
+// property nodes
+static pyPropertyNode gps_node;
 
-static SGPropertyNode *gps_timestamp_node = NULL;
-static SGPropertyNode *gps_lat_node = NULL;
-static SGPropertyNode *gps_lon_node = NULL;
-static SGPropertyNode *gps_alt_node = NULL;
-static SGPropertyNode *gps_ve_node = NULL;
-static SGPropertyNode *gps_vn_node = NULL;
-static SGPropertyNode *gps_vd_node = NULL;
-static SGPropertyNode *gps_unix_sec_node = NULL;
+// static SGPropertyNode *configroot = NULL;
 
-static SGPropertyNode *gps_device_name = NULL;
-static SGPropertyNode *gps_satellites = NULL;
-static SGPropertyNode *gps_nmode = NULL;
+// static SGPropertyNode *gps_timestamp_node = NULL;
+// static SGPropertyNode *gps_lat_node = NULL;
+// static SGPropertyNode *gps_lon_node = NULL;
+// static SGPropertyNode *gps_alt_node = NULL;
+// static SGPropertyNode *gps_ve_node = NULL;
+// static SGPropertyNode *gps_vn_node = NULL;
+// static SGPropertyNode *gps_vd_node = NULL;
+// static SGPropertyNode *gps_unix_sec_node = NULL;
 
-static SGPropertyNode *gpsd_port_node = NULL;
-static SGPropertyNode *gpsd_host_node = NULL;
+// static SGPropertyNode *gps_device_name = NULL;
+// static SGPropertyNode *gps_satellites = NULL;
+// static SGPropertyNode *gps_nmode = NULL;
+
+// static SGPropertyNode *gpsd_port_node = NULL;
+// static SGPropertyNode *gpsd_host_node = NULL;
 
 
 static int port = 2947;
 static string host = "localhost";
+static string init_string;
 static netSocket gpsd_sock;
 static bool socket_connected = false;
 static double last_init_time = 0.0;
 
 
 // initialize gpsd input property nodes
-static void bind_input( SGPropertyNode *config ) {
-    gpsd_port_node = config->getChild("port");
-    if ( gpsd_port_node != NULL ) {
-	port = gpsd_port_node->getLong();
+static void bind_input( pyPropertyNode *config ) {
+    if ( config->hasChild("port") ) {
+	port = config->getLong("port");
     }
-    gpsd_host_node = config->getChild("host");
-    if ( gpsd_host_node != NULL ) {
-	host = gpsd_host_node->getString();
+    if ( config->hasChild("host") ) {
+	host = config->getString("host");
     }
-    configroot = config;
+    if ( config->hasChild("init_string") ) {
+	init_string = config->getString("init_string");
+    }
 }
 
 
 // initialize gpsd output property nodes 
-static void bind_output( string rootname ) {
-    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
-    gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    gps_alt_node = outputroot->getChild("altitude-m", 0, true);
-    gps_ve_node = outputroot->getChild("ve-ms", 0, true);
-    gps_vn_node = outputroot->getChild("vn-ms", 0, true);
-    gps_vd_node = outputroot->getChild("vd-ms", 0, true);
-    gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+static void bind_output( pyPropertyNode *base ) {
+    gps_node = *base;
+    // SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
+    // gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    // gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
+    // gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
+    // gps_alt_node = outputroot->getChild("altitude-m", 0, true);
+    // gps_ve_node = outputroot->getChild("ve-ms", 0, true);
+    // gps_vn_node = outputroot->getChild("vn-ms", 0, true);
+    // gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+    // gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
 
-    gps_device_name = outputroot->getChild("device-name", 0, true);
-    gps_satellites = outputroot->getChild("satellites", 0, true);
-    gps_nmode = outputroot->getChild("nmea-mode", 0, true);
+    // gps_device_name = outputroot->getChild("device-name", 0, true);
+    // gps_satellites = outputroot->getChild("satellites", 0, true);
+    // gps_nmode = outputroot->getChild("nmea-mode", 0, true);
 }
 
 
-void gpsd_init( string rootname, SGPropertyNode *config ) {
+void gpsd_init( pyPropertyNode *base, pyPropertyNode *config ) {
     bind_input( config );
-    bind_output( rootname );
+    bind_output( base );
 }
 
 
@@ -95,17 +99,12 @@ static void gpsd_send_init() {
 	return;
     }
 
-    for ( int i = 0; i < configroot->nChildren(); ++i ) {
-        SGPropertyNode *child = configroot->getChild(i);
-        string cname = child->getName();
-        string cval = child->getString();
-	if ( cname == "init-string" ) {
-	    if ( display_on ) {
-		printf("sending to gpsd: %s\n", cval.c_str());
-	    }
-	    if ( gpsd_sock.send( cval.c_str(), cval.length() ) < 0 ) {
-		socket_connected = false;
-	    }
+    if ( init_string != "" ) {
+	if ( display_on ) {
+	    printf("sending to gpsd: %s\n", init_string.c_str());
+	}
+	if ( gpsd_sock.send( init_string.c_str(), init_string.length() ) < 0 ) {
+	    socket_connected = false;
 	}
     }
 
@@ -176,12 +175,12 @@ static bool parse_gpsd_sentence( const char *sentence ) {
     }
 
     if ( gpsd_cmd == "F" ) {
-	gps_device_name->setString( gpsd_arg.c_str() );
+	gps_node.setString( "device_name", gpsd_arg.c_str() );
     } else if ( gpsd_cmd == "N" ) {
 	if ( gpsd_arg == "0" ) {
-	    gps_nmode->setString( "nmea ascii" );
+	    gps_node.setString( "nmea_mode", "nmea ascii" );
         } else {
-	    gps_nmode->setString( "binary" );
+	    gps_node.setString( "nmea_mode", "binary" );
         }
     } else if ( gpsd_cmd == "O" && 
                 (gpsd_arg == "GGA" || gpsd_arg == "GLL" ||
@@ -192,18 +191,18 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	//
 	// example: GPSD,O=RMC 1232073262.000 0.005 45.138145
 	// -93.157083 285.50 3.60 1.80 181.4300 0.046 0.000 ? 7.20 ? 3
-	gps_unix_sec_node->setDouble( atof(token[1].c_str()) );
-	gps_lat_node->setDouble( atof(token[3].c_str()) );
-	gps_lon_node->setDouble( atof(token[4].c_str()) );
+	gps_node.setDouble( "unix_time_sec", atof(token[1].c_str()) );
+	gps_node.setDouble( "latitude_deg", atof(token[3].c_str()) );
+	gps_node.setDouble( "longitude_deg", atof(token[4].c_str()) );
 	if ( token[5] != "?" ) {
-	    gps_alt_node->setDouble( atof(token[5].c_str()) );
+	    gps_node.setDouble( "altitude_m", atof(token[5].c_str()) );
         }
 	if ( token[8] != "?" && token[9] != "?" ) {
 	    double course_deg = atof( token[8].c_str() );
 	    double speed_mps = atof( token[9].c_str() );
 	    double angle_rad = (90.0 - course_deg) * SGD_DEGREES_TO_RADIANS;
-	    gps_vn_node->setDouble( sin(angle_rad) * speed_mps );
-	    gps_ve_node->setDouble( cos(angle_rad) * speed_mps );
+	    gps_node.setDouble( "vn_ms", sin(angle_rad) * speed_mps );
+	    gps_node.setDouble( "ve_ms", cos(angle_rad) * speed_mps );
 	    /* printf("mps=%.1f deg=%.1f rad=%.3f vn=%.1f ve=%.1f\n",
 		   speed_mps, course_deg, angle_rad,
 		   gps_vn_node->getDouble(),
@@ -215,11 +214,11 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	//    last_unix_time = gps_data.date;
 	// }
 	if ( token[10] != "?" ) {
-	    gps_vd_node->setDouble( -atof(token[10].c_str()) );
+	    gps_node.setDouble( "vd_ms", -atof(token[10].c_str()) );
 	}
-	if ( gps_unix_sec_node->getDouble() > last_gps_sec ) {
-	    last_gps_sec = gps_unix_sec_node->getDouble();
-	    gps_timestamp_node->setDouble( get_Time() );
+	if ( gps_node.getDouble("unix_time_sec") > last_gps_sec ) {
+	    last_gps_sec = gps_node.getDouble("unix_time_sec");
+	    gps_node.setDouble( "timestamp", get_Time() );
 	    new_position = true;
 	}
     } else if ( gpsd_cmd == "Y" && 
@@ -231,7 +230,7 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	// 1:11 21 302 26 1:18 20 125 38 1:32 17 304 28 1:9 8 41 14
 	// 1:51 36 199 37 0:
 	//
-	// gps_satellites->setString( sentence );
+	// gps_satellites.setString( sentence );
 #if 0 // depricated ... could have original been a bug in gpsd for this gps?
     } else if ( gpsd_cmd == "O" &&
                 (gpsd_arg == "MID2" || gpsd_arg == "MID4") ) {
@@ -281,7 +280,7 @@ bool gpsd_get_gps() {
     // If more than 5 seconds has elapsed without seeing new data and
     // our last init attempt was more than 5 seconds ago, try
     // resending the init sequence.
-    double gps_timestamp = gps_timestamp_node->getDouble();
+    double gps_timestamp = gps_node.getDouble("timestamp");
     if ( get_Time() > gps_timestamp + 5 && get_Time() > last_init_time + 5 ) {
 	gpsd_send_init();
     }
