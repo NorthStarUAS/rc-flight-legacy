@@ -7,6 +7,8 @@
  *
  */
 
+#include "python/pyprops.hxx"
+
 #include <stdio.h>
 
 #include "util/strutils.hxx"
@@ -41,18 +43,15 @@ UGCalibrate::~UGCalibrate()
 
 
 // load parameters from specified property subtree
-void UGCalibrate::init( SGPropertyNode *config, float min_temp, float max_temp )
+void UGCalibrate::init( pyPropertyNode *config, float min_temp, float max_temp )
 {
     defaults();
 
     _min_temp = min_temp;
     _max_temp = max_temp;
     
-    SGPropertyNode *node = NULL;
-    
-    node = config->getChild("bias");
-    if ( node != NULL ) {
-	string bias_str = node->getString();
+    if ( config->hasChild("bias") ) {
+	string bias_str = config->getString("bias");
 	vector<string> tokens = split( bias_str );
 	if ( tokens.size() == 1 ) {
 	    // constant bias
@@ -71,9 +70,8 @@ void UGCalibrate::init( SGPropertyNode *config, float min_temp, float max_temp )
 	    bias[2] = 0.0;
 	}
     }
-    node = config->getChild("scale");
-    if ( node != NULL ) {
-	string scale_str = node->getString();
+    if ( config->hasChild("scale") ) {
+	string scale_str = config->getString("scale");
 	vector<string> tokens = split( scale_str );
 	if ( tokens.size() == 1 ) {
 	    // constant scale
