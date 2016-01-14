@@ -51,38 +51,6 @@ static pyPropertyNode remote_link_node;
 static pyPropertyNode logging_node;
 static pyPropertyNode task_node;
 
-// static SGPropertyNode *airdata_timestamp_node = NULL;
-// static SGPropertyNode *airdata_airspeed_node = NULL;
-// static SGPropertyNode *airdata_pressure_node = NULL;
-
-// // input property nodes
-// static SGPropertyNode *filter_navigation_node = NULL;
-// static SGPropertyNode *filter_alt_node = NULL;
-// static SGPropertyNode *filter_ground_node = NULL;
-
-// // output property nodes
-// static SGPropertyNode *pressure_alt_node = NULL;
-// static SGPropertyNode *pressure_alt_smoothed_node = NULL;
-// static SGPropertyNode *airspeed_node = NULL;
-// static SGPropertyNode *airspeed_smoothed_node = NULL;
-// static SGPropertyNode *pressure_error_m_node = NULL;
-// static SGPropertyNode *true_alt_m_node = NULL;
-// static SGPropertyNode *true_alt_ft_node = NULL;
-// static SGPropertyNode *true_agl_m_node = NULL;
-// static SGPropertyNode *true_agl_ft_node = NULL;
-// static SGPropertyNode *agl_alt_m_node = NULL;
-// static SGPropertyNode *agl_alt_ft_node = NULL;
-// static SGPropertyNode *vert_fps_node = NULL;
-// static SGPropertyNode *ground_alt_press_m_node = NULL;
-// static SGPropertyNode *true_oat_node = NULL;
-
-// // comm property nodes
-// static SGPropertyNode *airdata_console_skip = NULL;
-// static SGPropertyNode *airdata_logging_skip = NULL;
-
-// // mission nodes
-// static SGPropertyNode *is_airborne_node = NULL;
-
 static myprofile debug2b1;
 static myprofile debug2b2;
 
@@ -104,44 +72,6 @@ void AirData_init() {
     logging_node = pyGetNode("/config/logging", true);
     task_node = pyGetNode("/task", true);
 
-    // // initialize air data property nodes
-    // airdata_timestamp_node = pyGetNode("/sensors/airdata/time-stamp", true);
-    // airdata_airspeed_node = pyGetNode("/sensors/airdata/airspeed-kt", true);
-    // airdata_pressure_node = pyGetNode("/sensors/airdata/pressure-mbar", true);
-
-    // // input property nodes
-    // filter_navigation_node = pyGetNode("/filters/filter/navigation", true);
-    // filter_alt_node = pyGetNode("/position/filter/altitude-m", true);
-    // filter_ground_node = pyGetNode("/position/filter/altitude-ground-m", true);
-
-    // // filtered/computed output property nodes
-    // pressure_alt_node = pyGetNode("/position/pressure/altitude-m", true);
-    // pressure_alt_smoothed_node = pyGetNode("/position/pressure/altitude-smoothed-m", true);
-    // airspeed_node = pyGetNode("/velocity/airspeed-kt", true);
-    // airspeed_smoothed_node = pyGetNode("/velocity/airspeed-smoothed-kt", true);
-
-    // true_alt_m_node = pyGetNode("/position/combined/altitude-true-m",true);
-    // true_alt_ft_node = pyGetNode("/position/combined/altitude-true-ft",true);
-    // true_agl_m_node = pyGetNode("/position/combined/altitude-agl-m",true);
-    // true_agl_ft_node = pyGetNode("/position/combined/altitude-agl-ft",true);
-    // agl_alt_m_node = pyGetNode("/position/pressure/altitude-agl-m", true);
-    // agl_alt_ft_node = pyGetNode("/position/pressure/altitude-agl-ft", true);
-
-    // pressure_error_m_node
-    // 	= pyGetNode("/position/pressure/pressure-error-m", true);
-    // vert_fps_node
-    // 	= pyGetNode("/velocity/pressure-vertical-speed-fps",true);
-    // ground_alt_press_m_node
-    //     = pyGetNode("/position/pressure/altitude-ground-m", true);
-    // true_oat_node = pyGetNode("/position/pressure/outside-air-temp-degC", true);
-
-    // // initialize comm nodes
-    // airdata_console_skip = pyGetNode("/config/remote-link/airdata-skip", true);
-    // airdata_logging_skip = pyGetNode("/config/logging/airdata-skip", true);
-
-    // // initialize mission nodes
-    // is_airborne_node = pyGetNode("/task/is-airborne", true);
- 
     // traverse configured modules
     pyPropertyNode toplevel = pyGetNode("/config/sensors/airdata_group", true);
     for ( int i = 0; i < toplevel.getLen("airdata"); i++ ) {

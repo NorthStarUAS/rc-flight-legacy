@@ -11,15 +11,15 @@
 #define _AURA_IMU_VN100_UART_HXX
 
 
-#include <string>
-
 #include "include/globaldefs.h"
-#include "python/pyprops.hxx"
 
+#include <string>
 using std::string;
 
+#include "python/pyprops.hxx"
 
-void imu_vn100_uart_init( string rootname, SGPropertyNode *config );
+
+void imu_vn100_uart_init( pyPropertyNode *base, pyPropertyNode *config );
 bool imu_vn100_uart_get();
 void imu_vn100_uart_close();
 

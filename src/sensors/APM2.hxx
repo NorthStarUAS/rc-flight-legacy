@@ -18,11 +18,11 @@ bool APM2_update();
 void APM2_close();
 bool APM2_request_baud( uint32_t baud );
 
-bool APM2_imu_init( string rootname, pyPropertyNode *config );
+bool APM2_imu_init( pyPropertyNode *base, pyPropertyNode *config );
 bool APM2_imu_update();
 void APM2_imu_close();
 
-bool APM2_gps_init( string rootname, pyPropertyNode *config  );
+bool APM2_gps_init( pyPropertyNode *base, pyPropertyNode *config  );
 bool APM2_gps_update();
 void APM2_gps_close();
 
@@ -34,7 +34,7 @@ bool APM2_airdata_update();
 void APM2_airdata_zero_airspeed();
 void APM2_airdata_close();
 
-bool APM2_pilot_init( string rootname );
+bool APM2_pilot_init( pyPropertyNode *base );
 bool APM2_pilot_update();
 void APM2_pilot_close();
 
