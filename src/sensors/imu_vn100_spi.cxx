@@ -7,6 +7,8 @@
  *
  */
 
+#include "python/pyprops.hxx"
+
 #include <errno.h>		// errno
 #include <fcntl.h>		// open()
 #include <math.h>		// fabs()
@@ -24,74 +26,63 @@
 
 
 // imu property nodes
-static SGPropertyNode *configroot = NULL;
+static pyPropertyNode imu_node;
 
-static SGPropertyNode *imu_device_name_node = NULL;
+// static SGPropertyNode *configroot = NULL;
 
-static SGPropertyNode *imu_timestamp_node = NULL;
-static SGPropertyNode *imu_driver_running_node = NULL;
-static SGPropertyNode *imu_driver_callbacks_node = NULL;
-static SGPropertyNode *imu_driver_overruns_node = NULL;
-static SGPropertyNode *imu_p_node = NULL;
-static SGPropertyNode *imu_q_node = NULL;
-static SGPropertyNode *imu_r_node = NULL;
-static SGPropertyNode *imu_ax_node = NULL;
-static SGPropertyNode *imu_ay_node = NULL;
-static SGPropertyNode *imu_az_node = NULL;
-static SGPropertyNode *imu_hx_node = NULL;
-static SGPropertyNode *imu_hy_node = NULL;
-static SGPropertyNode *imu_hz_node = NULL;
-static SGPropertyNode *imu_temp_node = NULL;
-static SGPropertyNode *imu_p_bias_node = NULL;
-static SGPropertyNode *imu_q_bias_node = NULL;
-static SGPropertyNode *imu_r_bias_node = NULL;
+// static SGPropertyNode *imu_device_name_node = NULL;
+
+// static SGPropertyNode *imu_timestamp_node = NULL;
+// static SGPropertyNode *imu_driver_running_node = NULL;
+// static SGPropertyNode *imu_driver_callbacks_node = NULL;
+// static SGPropertyNode *imu_driver_overruns_node = NULL;
+// static SGPropertyNode *imu_p_node = NULL;
+// static SGPropertyNode *imu_q_node = NULL;
+// static SGPropertyNode *imu_r_node = NULL;
+// static SGPropertyNode *imu_ax_node = NULL;
+// static SGPropertyNode *imu_ay_node = NULL;
+// static SGPropertyNode *imu_az_node = NULL;
+// static SGPropertyNode *imu_hx_node = NULL;
+// static SGPropertyNode *imu_hy_node = NULL;
+// static SGPropertyNode *imu_hz_node = NULL;
+// static SGPropertyNode *imu_temp_node = NULL;
+// static SGPropertyNode *imu_p_bias_node = NULL;
+// static SGPropertyNode *imu_q_bias_node = NULL;
+// static SGPropertyNode *imu_r_bias_node = NULL;
 
 static int fd = -1;
 static string device_name = "/dev/spike";
 
-// internal filter values
-/*static double p_filter = 0.0;
-static double q_filter = 0.0;
-static double r_filter = 0.0;
-static double ax_filter = 0.0;
-static double ay_filter = 0.0;
-static double az_filter = 0.0;
-static double hx_filter = 0.0;
-static double hy_filter = 0.0;
-static double hz_filter = 0.0;*/
-
 
 // initialize gpsd input property nodes
-static void bind_imu_input( SGPropertyNode *config ) {
-    imu_device_name_node = config->getChild("device");
-    if ( imu_device_name_node != NULL ) {
-	device_name = imu_device_name_node->getString();
+static void bind_imu_input( pyPropertyNode *config ) {
+    if ( config->hasChild("device") ) {
+	device_name = config->getString("device");
     }
-    configroot = config;
 }
 
 
 // initialize imu output property nodes 
-static void bind_imu_output( string rootname ) {
-    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
+static void bind_imu_output( pyPropertyNode *base ) {
+    imu_node = *base;
 
-    imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    imu_driver_running_node = outputroot->getChild("driver-running", 0, true);
-    imu_driver_callbacks_node = outputroot->getChild("driver-callbacks", 0, true);
-    imu_driver_overruns_node = outputroot->getChild("driver-overruns", 0, true);
-    imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
-    imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
-    imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
-    imu_ax_node = outputroot->getChild("ax-mps_sec", 0, true);
-    imu_ay_node = outputroot->getChild("ay-mps_sec", 0, true);
-    imu_az_node = outputroot->getChild("az-mps_sec", 0, true);
-    imu_hx_node = outputroot->getChild("hx", 0, true);
-    imu_hy_node = outputroot->getChild("hy", 0, true);
-    imu_hz_node = outputroot->getChild("hz", 0, true);
-    imu_temp_node = outputroot->getChild("temp_C", 0, true);
-    imu_p_bias_node = outputroot->getChild("p-bias", 0, true);
-    imu_q_bias_node = outputroot->getChild("q-bias", 0, true);
-    imu_r_bias_node = outputroot->getChild("r-bias", 0, true);
+    // imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    // imu_driver_running_node = outputroot->getChild("driver-running", 0, true);
+    // imu_driver_callbacks_node = outputroot->getChild("driver-callbacks", 0, true);
+    // imu_driver_overruns_node = outputroot->getChild("driver-overruns", 0, true);
+    // imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
+    // imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
+    // imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
+    // imu_ax_node = outputroot->getChild("ax-mps_sec", 0, true);
+    // imu_ay_node = outputroot->getChild("ay-mps_sec", 0, true);
+    // imu_az_node = outputroot->getChild("az-mps_sec", 0, true);
+    // imu_hx_node = outputroot->getChild("hx", 0, true);
+    // imu_hy_node = outputroot->getChild("hy", 0, true);
+    // imu_hz_node = outputroot->getChild("hz", 0, true);
+    // imu_temp_node = outputroot->getChild("temp_C", 0, true);
+    // imu_p_bias_node = outputroot->getChild("p-bias", 0, true);
+    // imu_q_bias_node = outputroot->getChild("q-bias", 0, true);
+    // imu_r_bias_node = outputroot->getChild("r-bias", 0, true);
 }
 
 
@@ -120,9 +111,9 @@ static bool imu_vn100_spi_open() {
 }
 
 
-void imu_vn100_spi_init( string rootname, SGPropertyNode *config ) {
+void imu_vn100_spi_init( pyPropertyNode *base, pyPropertyNode *config ) {
     bind_imu_input( config );
-    bind_imu_output( rootname );
+    bind_imu_output( base );
 
     imu_vn100_spi_open();
 }
@@ -152,13 +143,13 @@ static bool imu_vn100_spi_parse_msg( uint8_t *msg_buf, int size )
 
     uint32_t *iptr = NULL;
     iptr = (uint32_t *)&msg_buf[0]; /* running */
-    imu_driver_running_node->setLong( *iptr );
+    imu_node.setLong( "driver_running", *iptr );
 
     iptr = (uint32_t *)&msg_buf[4]; /* call back counter */
-    imu_driver_callbacks_node->setLong( *iptr );
+    imu_node.setLong( "driver_callbacks", *iptr );
 
     iptr = (uint32_t *)&msg_buf[8]; /* busy counter */
-    imu_driver_overruns_node->setLong( *iptr );
+    imu_node.setLong( "driver_overruns", *iptr );
     
     float p, q, r;
     int i = 16;
@@ -167,47 +158,47 @@ static bool imu_vn100_spi_parse_msg( uint8_t *msg_buf, int size )
 
     fptr = (float *)&msg_buf[i]; i += 4;
     // hx_filter = 0.75*hx_filter + 0.25*(*fptr);
-    imu_hx_node->setDouble( *fptr );
+    imu_node.setDouble( "hx", *fptr );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     // hy_filter = 0.75*hy_filter + 0.25**fptr;
-    imu_hy_node->setDouble( *fptr );
+    imu_node.setDouble( "hy", *fptr );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     // hz_filter = 0.75*hz_filter + 0.25**fptr;
-    imu_hz_node->setDouble( *fptr );
+    imu_node.setDouble( "hz", *fptr );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     // ax_filter = 0.75*ax_filter + 0.25**fptr;
-    imu_ax_node->setDouble( *fptr );
+    imu_node.setDouble( "ax_mps_sec", *fptr );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     // ay_filter = 0.75*ay_filter + 0.25**fptr;
-    imu_ay_node->setDouble( *fptr );
+    imu_node.setDouble( "ay_mps_sec", *fptr );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     // az_filter = 0.75*az_filter + 0.25**fptr;
-    imu_az_node->setDouble( *fptr );
+    imu_node.setDouble( "az_mps_sec", *fptr );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     p = *fptr;
     // p_filter = 0.75*p_filter + 0.25*p;
-    imu_p_node->setDouble( p - p_bias );
+    imu_node.setDouble( "p_rad_sec", p - p_bias );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     q = *fptr;
     // q_filter = 0.75*q_filter + 0.25*q;
-    imu_q_node->setDouble( q - q_bias );
+    imu_node.setDouble( "q_rad_sec", q - q_bias );
 
     fptr = (float *)&msg_buf[i]; i += 4;
     r = *fptr;
     // r_filter = 0.75*r_filter + 0.25*r;
-    imu_r_node->setDouble( r - r_bias );
+    imu_node.setDouble( "r_rad_sec", r - r_bias );
 
     fptr = (float *)&msg_buf[i]; i += 4;
-    imu_temp_node->setDouble( *fptr );
+    imu_node.setDouble( "temp_C", *fptr );
 
-    imu_timestamp_node->setDouble( current_time );
+    imu_node.setDouble( "timestamp", current_time );
 
     if ( !bias_ready ) {
 	// average first 15 seconds of steady state gyro values and
@@ -224,9 +215,9 @@ static bool imu_vn100_spi_parse_msg( uint8_t *msg_buf, int size )
 	    p_bias = p_sum / (double)count;
 	    q_bias = q_sum / (double)count;
 	    r_bias = r_sum / (double)count;
-	    imu_p_bias_node->setDouble( p_bias );
-	    imu_q_bias_node->setDouble( q_bias );
-	    imu_r_bias_node->setDouble( r_bias );
+	    imu_node.setDouble( "p_bias", p_bias );
+	    imu_node.setDouble( "q_bias", q_bias );
+	    imu_node.setDouble( "r_bias", r_bias );
 	} else {
 	    bias_ready = true;
 	    if ( display_on ) {

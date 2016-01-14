@@ -11,12 +11,12 @@
 #define _AURA_IMU_VN100_UART_HXX
 
 
-#include "include/globaldefs.h"
+#include "python/pyprops.hxx"
 
 #include <string>
 using std::string;
 
-#include "python/pyprops.hxx"
+#include "include/globaldefs.h"
 
 
 void imu_vn100_uart_init( pyPropertyNode *base, pyPropertyNode *config );

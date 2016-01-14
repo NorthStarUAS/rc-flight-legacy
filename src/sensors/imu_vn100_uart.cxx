@@ -7,6 +7,8 @@
  *
  */
 
+#include "python/pyprops.hxx"
+
 #include <errno.h>		// errno
 #include <fcntl.h>		// open()
 #include <math.h>		// fabs()
@@ -24,65 +26,24 @@
 #include "imu_vn100_uart.hxx"
 
 
-// imu property nodes
-static SGPropertyNode *configroot = NULL;
-
-static SGPropertyNode *imu_device_name_node = NULL;
-
-static SGPropertyNode *imu_timestamp_node = NULL;
-static SGPropertyNode *imu_p_node = NULL;
-static SGPropertyNode *imu_q_node = NULL;
-static SGPropertyNode *imu_r_node = NULL;
-static SGPropertyNode *imu_ax_node = NULL;
-static SGPropertyNode *imu_ay_node = NULL;
-static SGPropertyNode *imu_az_node = NULL;
-static SGPropertyNode *imu_hx_node = NULL;
-static SGPropertyNode *imu_hy_node = NULL;
-static SGPropertyNode *imu_hz_node = NULL;
-static SGPropertyNode *imu_temp_node = NULL;
+// imu nodes
+static pyPropertyNode imu_node;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
 
-// internal filter values
-/*static double p_filter = 0.0;
-static double q_filter = 0.0;
-static double r_filter = 0.0;
-static double ax_filter = 0.0;
-static double ay_filter = 0.0;
-static double az_filter = 0.0;
-static double hx_filter = 0.0;
-static double hy_filter = 0.0;
-static double hz_filter = 0.0;*/
-
 
 // initialize gpsd input property nodes
-static void bind_imu_input( SGPropertyNode *config ) {
-    imu_device_name_node = config->getChild("device");
-    if ( imu_device_name_node != NULL ) {
-	device_name = imu_device_name_node->getString();
+static void bind_imu_input( pyPropertyNode *config ) {
+    if ( config->hasChild("device") ) {
+	device_name = config->getString("device");
     }
-    configroot = config;
-
-    // SGPropertyNode *node = NULL;
 }
 
 
 // initialize imu output property nodes 
-static void bind_imu_output( string rootname ) {
-    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
-
-    imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
-    imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
-    imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
-    imu_ax_node = outputroot->getChild("ax-mps_sec", 0, true);
-    imu_ay_node = outputroot->getChild("ay-mps_sec", 0, true);
-    imu_az_node = outputroot->getChild("az-mps_sec", 0, true);
-    imu_hx_node = outputroot->getChild("hx", 0, true);
-    imu_hy_node = outputroot->getChild("hy", 0, true);
-    imu_hz_node = outputroot->getChild("hz", 0, true);
-    imu_temp_node = outputroot->getChild("temp_C", 0, true);
+static void bind_imu_output( pyPropertyNode *base ) {
+    imu_node = *base;
 }
 
 
@@ -221,9 +182,9 @@ static int imu_vn100_uart_send_cmd( string msg ) {
 }
 
 
-void imu_vn100_uart_init( string rootname, SGPropertyNode *config ) {
+void imu_vn100_uart_init( pyPropertyNode *base, pyPropertyNode *config ) {
     bind_imu_input( config );
-    bind_imu_output( rootname );
+    bind_imu_output( base );
 
     imu_vn100_uart_open_9600();
     sleep(1);
@@ -288,45 +249,45 @@ static bool imu_vn100_uart_parse_msg( char *msg_buf, int size )
 	double val, p, q, r;
 	val = atof( tokens[1].c_str() );
 	// hx_filter = 0.75*hx_filter + 0.25*val;
-	imu_hx_node->setDouble( val );
+	imu_node.setDouble( "hx", val );
 
 	val = atof( tokens[2].c_str() );
 	// hy_filter = 0.75*hy_filter + 0.25*val;
-	imu_hy_node->setDouble( val );
+	imu_node.setDouble( "hy", val );
 
 	val = atof( tokens[3].c_str() );
 	// hz_filter = 0.75*hz_filter + 0.25*val;
-	imu_hz_node->setDouble( val );
+	imu_node.setDouble( "hz", val );
 
 	val = atof( tokens[4].c_str() );
 	// ax_filter = 0.75*ax_filter + 0.25*val;
-	imu_ax_node->setDouble( val );
+	imu_node.setDouble( "ax_mps_sec", val );
 
 	val = atof( tokens[5].c_str() );
 	// ay_filter = 0.75*ay_filter + 0.25*val;
-	imu_ay_node->setDouble( val );
+	imu_node.setDouble( "ay_mps_sec", val );
 
 	val = atof( tokens[6].c_str() );
 	// az_filter = 0.75*az_filter + 0.25*val;
-	imu_az_node->setDouble( val );
+	imu_node.setDouble( "az_mps_sec", val );
 
 	p = val = atof( tokens[7].c_str() );
 	// p_filter = 0.75*p_filter + 0.25*val;
-	imu_p_node->setDouble( val - p_bias );
+	imu_node.setDouble( "p_rad_sec", val - p_bias );
 
 	q = val = atof( tokens[8].c_str() );
 	// q_filter = 0.75*q_filter + 0.25*val;
-	imu_q_node->setDouble( val - q_bias );
+	imu_node.setDouble( "q_rad_sec", val - q_bias );
 
 	r = val = atof( tokens[9].c_str() );
 	// r_filter = 0.75*r_filter + 0.25*val;
-	imu_r_node->setDouble( val - r_bias );
+	imu_node.setDouble( "r_rad_sec", val - r_bias );
 
 	val = atof( tokens[10].c_str() );
 	// r_filter = 0.75*r_filter + 0.25*val;
-	imu_temp_node->setDouble( val );
+	imu_node.setDouble( "temp_C", val );
 
-	imu_timestamp_node->setDouble( current_time );
+	imu_node.setDouble( "timestamp", current_time );
 
 	if ( !bias_ready ) {
 	    // average first 15 seconds of steady state gyro values and
