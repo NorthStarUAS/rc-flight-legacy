@@ -7,6 +7,8 @@
  *
  */
 
+#include "python/pyprops.hxx"
+
 #include <errno.h>		// errno
 #include <math.h>		// sin() cos()
 #include <sys/types.h>		// open()
@@ -28,7 +30,6 @@ using std::string;
 #include "comms/logging.h"
 #include "math/SGMath.hxx"
 #include "math/SGGeodesy.hxx"
-#include "python/pyprops.hxx"
 #include "util/strutils.hxx"
 #include "util/timing.h"
 #include "gps_mgr.hxx"
@@ -36,21 +37,22 @@ using std::string;
 #include "gps_ublox.hxx"
 
 
-// gpsd property nodes
-static SGPropertyNode *configroot = NULL;
+// property nodes
+static pyPropertyNode gps_node;
+// static SGPropertyNode *configroot = NULL;
 
-static SGPropertyNode *gps_timestamp_node = NULL;
-static SGPropertyNode *gps_lat_node = NULL;
-static SGPropertyNode *gps_lon_node = NULL;
-static SGPropertyNode *gps_alt_node = NULL;
-static SGPropertyNode *gps_ve_node = NULL;
-static SGPropertyNode *gps_vn_node = NULL;
-static SGPropertyNode *gps_vd_node = NULL;
-static SGPropertyNode *gps_unix_sec_node = NULL;
-static SGPropertyNode *gps_satellites_node = NULL;
-static SGPropertyNode *gps_status_node = NULL;
-static SGPropertyNode *gps_device_name_node = NULL;
-static SGPropertyNode *gps_baud_node = NULL;
+// static SGPropertyNode *gps_timestamp_node = NULL;
+// static SGPropertyNode *gps_lat_node = NULL;
+// static SGPropertyNode *gps_lon_node = NULL;
+// static SGPropertyNode *gps_alt_node = NULL;
+// static SGPropertyNode *gps_ve_node = NULL;
+// static SGPropertyNode *gps_vn_node = NULL;
+// static SGPropertyNode *gps_vd_node = NULL;
+// static SGPropertyNode *gps_unix_sec_node = NULL;
+// static SGPropertyNode *gps_satellites_node = NULL;
+// static SGPropertyNode *gps_status_node = NULL;
+// static SGPropertyNode *gps_device_name_node = NULL;
+// static SGPropertyNode *gps_baud_node = NULL;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
@@ -58,32 +60,30 @@ static int baud = 57600;
 static int gps_fix_value = 0;
 
 // initialize gpsd input property nodes
-static void bind_input( SGPropertyNode *config ) {
-    gps_device_name_node = config->getChild("device");
-    if ( gps_device_name_node != NULL ) {
-	device_name = gps_device_name_node->getString();
+static void bind_input( pyPropertyNode *config ) {
+    if ( config->hasChild("device") ) {
+	device_name = config->getString("device");
     }
-    gps_baud_node = config->getChild("baud");
-    if ( gps_baud_node != NULL ) {
-	baud = gps_baud_node->getLong();
+    if ( config->hasChild("baud") ) {
+	baud = config->getLong("baud");
     }
-    configroot = config;
 }
 
 
 // initialize gpsd output property nodes 
-static void bind_output( string rootname ) {
-    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
-    gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    gps_alt_node = outputroot->getChild("altitude-m", 0, true);
-    gps_ve_node = outputroot->getChild("ve-ms", 0, true);
-    gps_vn_node = outputroot->getChild("vn-ms", 0, true);
-    gps_vd_node = outputroot->getChild("vd-ms", 0, true);
-    gps_satellites_node = outputroot->getChild("satellites", 0, true);
-    gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
-    gps_status_node = outputroot->getChild("status", 0, true);
+static void bind_output( pyPropertyNode *base ) {
+    gps_node = *base;
+    // SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
+    // gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    // gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
+    // gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
+    // gps_alt_node = outputroot->getChild("altitude-m", 0, true);
+    // gps_ve_node = outputroot->getChild("ve-ms", 0, true);
+    // gps_vn_node = outputroot->getChild("vn-ms", 0, true);
+    // gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+    // gps_satellites_node = outputroot->getChild("satellites", 0, true);
+    // gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+    // gps_status_node = outputroot->getChild("status", 0, true);
 }
 
 
@@ -147,9 +147,9 @@ static bool gps_ublox_open() {
 }
 
 
-void gps_ublox_init( string rootname, SGPropertyNode *config ) {
+void gps_ublox_init( pyPropertyNode *base, pyPropertyNode *config ) {
     bind_input( config );
-    bind_output( rootname );
+    bind_output( base );
     gps_ublox_open();
 }
 
@@ -245,14 +245,14 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	SGVec3d vel_ned = ecef2ned.transform( vel_ecef );
 	// printf("my vel ned = %.2f %.2f %.2f\n", vel_ned.x(), vel_ned.y(), vel_ned.z());
 
- 	gps_satellites_node->setLong( numSV );
+ 	gps_node.setLong( "satellites", numSV );
  	gps_fix_value = gpsFix;
 	if ( gps_fix_value == 0 ) {
-	    gps_status_node->setLong( 0 );
+	    gps_node.setLong( "status", 0 );
 	} else if ( gps_fix_value == 1 || gps_fix_value == 2 ) {
-	    gps_status_node->setLong( 1 );
+	    gps_node.setLong( "status", 1 );
 	} else if ( gps_fix_value == 3 ) {
-	    gps_status_node->setLong( 2 );
+	    gps_node.setLong( "status", 2 );
 	}
 
 	if ( fabs(ecefX) > 650000000
@@ -272,13 +272,13 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	} else if ( gpsFix == 3 ) {
 	    // passed basic sanity checks and gps is reporting a 3d fix
 	    new_position = true;
-	    gps_timestamp_node->setDouble( get_Time() );
-	    gps_lat_node->setDouble( wgs84.getLatitudeDeg() );
-	    gps_lon_node->setDouble( wgs84.getLongitudeDeg() );
-	    gps_alt_node->setDouble( wgs84.getElevationM() );
-	    gps_vn_node->setDouble( vel_ned.x() );
-	    gps_ve_node->setDouble( vel_ned.y() );
-	    gps_vd_node->setDouble( vel_ned.z() );
+	    gps_node.setDouble( "timestamp", get_Time() );
+	    gps_node.setDouble( "latitude_deg", wgs84.getLatitudeDeg() );
+	    gps_node.setDouble( "longitude_deg", wgs84.getLongitudeDeg() );
+	    gps_node.setDouble( "altitude_m", wgs84.getElevationM() );
+	    gps_node.setDouble( "vn_ms", vel_ned.x() );
+	    gps_node.setDouble( "ve_ms", vel_ned.y() );
+	    gps_node.setDouble( "vd_ms", vel_ned.z() );
 	    // printf("        %.10f %.10f %.2f - %.2f %.2f %.2f\n",
 	    //        wgs84.getLatitudeDeg(),
 	    //        wgs84.getLongitudeDeg(),
@@ -293,7 +293,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    double unixSecs = julianDate * 86400.0;
 	    double unixFract = unixSecs - floor(unixSecs);
 	    struct timeval time;
-	    gps_unix_sec_node->setDouble( unixSecs );
+	    gps_node.setDouble( "unix_time_sec", unixSecs );
 #if 0
 	    if ( unixSecs > 1263154775 && !set_system_time) {
 		printf("Setting system time to %.3f\n", unixSecs);
@@ -393,7 +393,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 		satUsed++;
 	    }
 	}
- 	// gps_satellites_node->setLong( satUsed );
+ 	// gps_satellites_node.setLong( satUsed );
 	if ( display_on && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("Satellite count = %d/%d\n", satUsed, numCh);
