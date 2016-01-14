@@ -11,9 +11,11 @@
 #define _AURA_GPS_UBLOX_HXX
 
 
+#include "python/pyprops.hxx"
 #include "include/globaldefs.h"
 
-void gps_ublox_init( string rootname, SGPropertyNode *config );
+
+void gps_ublox_init( pyPropertyNode *base, pyPropertyNode *config );
 bool gps_ublox_update();
 void gps_ublox_close();
 

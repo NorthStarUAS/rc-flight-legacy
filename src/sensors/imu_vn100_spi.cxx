@@ -28,28 +28,6 @@
 // imu property nodes
 static pyPropertyNode imu_node;
 
-// static SGPropertyNode *configroot = NULL;
-
-// static SGPropertyNode *imu_device_name_node = NULL;
-
-// static SGPropertyNode *imu_timestamp_node = NULL;
-// static SGPropertyNode *imu_driver_running_node = NULL;
-// static SGPropertyNode *imu_driver_callbacks_node = NULL;
-// static SGPropertyNode *imu_driver_overruns_node = NULL;
-// static SGPropertyNode *imu_p_node = NULL;
-// static SGPropertyNode *imu_q_node = NULL;
-// static SGPropertyNode *imu_r_node = NULL;
-// static SGPropertyNode *imu_ax_node = NULL;
-// static SGPropertyNode *imu_ay_node = NULL;
-// static SGPropertyNode *imu_az_node = NULL;
-// static SGPropertyNode *imu_hx_node = NULL;
-// static SGPropertyNode *imu_hy_node = NULL;
-// static SGPropertyNode *imu_hz_node = NULL;
-// static SGPropertyNode *imu_temp_node = NULL;
-// static SGPropertyNode *imu_p_bias_node = NULL;
-// static SGPropertyNode *imu_q_bias_node = NULL;
-// static SGPropertyNode *imu_r_bias_node = NULL;
-
 static int fd = -1;
 static string device_name = "/dev/spike";
 
@@ -65,24 +43,6 @@ static void bind_imu_input( pyPropertyNode *config ) {
 // initialize imu output property nodes 
 static void bind_imu_output( pyPropertyNode *base ) {
     imu_node = *base;
-
-    // imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    // imu_driver_running_node = outputroot->getChild("driver-running", 0, true);
-    // imu_driver_callbacks_node = outputroot->getChild("driver-callbacks", 0, true);
-    // imu_driver_overruns_node = outputroot->getChild("driver-overruns", 0, true);
-    // imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
-    // imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
-    // imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
-    // imu_ax_node = outputroot->getChild("ax-mps_sec", 0, true);
-    // imu_ay_node = outputroot->getChild("ay-mps_sec", 0, true);
-    // imu_az_node = outputroot->getChild("az-mps_sec", 0, true);
-    // imu_hx_node = outputroot->getChild("hx", 0, true);
-    // imu_hy_node = outputroot->getChild("hy", 0, true);
-    // imu_hz_node = outputroot->getChild("hz", 0, true);
-    // imu_temp_node = outputroot->getChild("temp_C", 0, true);
-    // imu_p_bias_node = outputroot->getChild("p-bias", 0, true);
-    // imu_q_bias_node = outputroot->getChild("q-bias", 0, true);
-    // imu_r_bias_node = outputroot->getChild("r-bias", 0, true);
 }
 
 

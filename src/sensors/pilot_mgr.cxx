@@ -154,7 +154,7 @@ bool PilotInput_update() {
 	// autopilot on/off switch here.  In the future the master
 	// autopilot on/off switch may come from other sources. (?)
 	ap_master_switch_node
-	    ->setBoolValue( !pilot_manual_node->getBool() );
+	    ->setBool( !pilot_manual_node->getBool() );
 	// if ( display_on ) {
 	//    printf("autopilot = %d\n", ap_master_switch_node->getBool());
 	// }
