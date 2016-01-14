@@ -18,7 +18,7 @@ bool fgfs_imu_init( string rootname, pyPropertyNode *config );
 bool fgfs_imu_update();
 void fgfs_imu_close();
 
-bool fgfs_airdata_init( string rootname );
+bool fgfs_airdata_init( pyPropertyNode *base );
 bool fgfs_airdata_update();
 
 

@@ -24,7 +24,7 @@ public:
 
     bool hasChild(const char *name );
     pyPropertyNode getChild( const char *name, bool create=false );
-    pyPropertyNode getChild( const char *name, int index );
+    pyPropertyNode getChild( const char *name, int index, bool create=false );
 
     bool isNull();		// return true if pObj pointer is NULL
     int getLen( const char *name); // return len of pObj if a list, else 0

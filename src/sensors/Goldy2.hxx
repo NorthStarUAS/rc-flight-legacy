@@ -26,7 +26,7 @@ bool goldy2_gps_init( string rootname, pyPropertyNode *config  );
 bool goldy2_gps_update();
 void goldy2_gps_close();
 
-bool goldy2_airdata_init( string rootname, pyPropertyNode *config );
+bool goldy2_airdata_init( pyPropertyNode *base, pyPropertyNode *config );
 bool goldy2_airdata_update();
 void goldy2_airdata_close();
 

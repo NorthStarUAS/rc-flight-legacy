@@ -853,12 +853,12 @@ bool APM2_gps_init( string rootname, SGPropertyNode *config ) {
 }
 
 
-bool APM2_airdata_init( string rootname ) {
+bool APM2_airdata_init( pyPropertyNode *base ) {
     if ( ! APM2_open() ) {
 	return false;
     }
 
-    bind_airdata_output( rootname );
+    bind_airdata_output( base );
 
     return true;
 }

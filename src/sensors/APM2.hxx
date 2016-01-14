@@ -26,7 +26,7 @@ bool APM2_gps_init( string rootname, pyPropertyNode *config  );
 bool APM2_gps_update();
 void APM2_gps_close();
 
-bool APM2_airdata_init( string rootname );
+bool APM2_airdata_init( pyPropertyNode *base );
 bool APM2_airdata_update();
 // force an airspeed zero calibration (ideally with the aircraft on
 // the ground with the pitot tube perpendicular to the prevailing

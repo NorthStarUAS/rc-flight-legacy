@@ -57,7 +57,8 @@ pyPropertyNode pyPropertyNode::getChild(const char *name, bool create)
     return pyPropertyNode(pValue);
 }
 
-pyPropertyNode pyPropertyNode::getChild(const char *name, int index)
+pyPropertyNode pyPropertyNode::getChild(const char *name, int index,
+					bool create)
 {
     if ( pObj == NULL ) {
 	return pyPropertyNode();
@@ -66,7 +67,7 @@ pyPropertyNode pyPropertyNode::getChild(const char *name, int index)
     str << name << '[' << index << ']';
     string ename = str.str();
     printf("ename = %s\n", ename.c_str());
-    return getChild(ename.c_str());
+    return getChild(ename.c_str(), create);
 }
 
 // return true if pObj pointer is NULL
