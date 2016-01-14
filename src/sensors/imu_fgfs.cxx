@@ -4,12 +4,13 @@
 // of Flightgear
 //
 
+#include "python/pyprops.hxx"
+
 #include <stdio.h>
 #include <string>
 #include <string.h>
 
 #include "comms/netSocket.h"
-#include "python/pyprops.hxx"
 #include "util/timing.h"
 
 #include "imu_fgfs.hxx"
@@ -18,100 +19,102 @@
 static netSocket sock;
 static int port = 0;
 
-// fgfs_imu property nodes
-static SGPropertyNode *configroot = NULL;
-static SGPropertyNode *outputroot = NULL;
-static SGPropertyNode *imu_port_node = NULL;
+// property nodes
+static pyPropertyNode imu_node;
+static pyPropertyNode airdata_node;
+static pyPropertyNode act_node;
+static pyPropertyNode apm2_node;
 
-static SGPropertyNode *imu_timestamp_node = NULL;
-static SGPropertyNode *imu_p_node = NULL;
-static SGPropertyNode *imu_q_node = NULL;
-static SGPropertyNode *imu_r_node = NULL;
-static SGPropertyNode *imu_ax_node = NULL;
-static SGPropertyNode *imu_ay_node = NULL;
-static SGPropertyNode *imu_az_node = NULL;
-static SGPropertyNode *imu_hx_node = NULL;
-static SGPropertyNode *imu_hy_node = NULL;
-static SGPropertyNode *imu_hz_node = NULL;
+// static SGPropertyNode *configroot = NULL;
+// static SGPropertyNode *outputroot = NULL;
+// static SGPropertyNode *imu_port_node = NULL;
 
-static SGPropertyNode *airdata_timestamp_node = NULL;
-static SGPropertyNode *airdata_airspeed_node = NULL;
-static SGPropertyNode *airdata_pressure_node = NULL;
+// static SGPropertyNode *imu_timestamp_node = NULL;
+// static SGPropertyNode *imu_p_node = NULL;
+// static SGPropertyNode *imu_q_node = NULL;
+// static SGPropertyNode *imu_r_node = NULL;
+// static SGPropertyNode *imu_ax_node = NULL;
+// static SGPropertyNode *imu_ay_node = NULL;
+// static SGPropertyNode *imu_az_node = NULL;
+// static SGPropertyNode *imu_hx_node = NULL;
+// static SGPropertyNode *imu_hy_node = NULL;
+// static SGPropertyNode *imu_hz_node = NULL;
 
-static SGPropertyNode *imu_roll_truth_node = NULL;
-static SGPropertyNode *imu_pitch_truth_node = NULL;
-static SGPropertyNode *imu_yaw_truth_node = NULL;
+// static SGPropertyNode *airdata_timestamp_node = NULL;
+// static SGPropertyNode *airdata_airspeed_node = NULL;
+// static SGPropertyNode *airdata_pressure_node = NULL;
 
-static SGPropertyNode *act_throttle_node = NULL;
-static SGPropertyNode *fake_extern_volts_node = NULL;
-static SGPropertyNode *fake_extern_amps_node = NULL;
-static SGPropertyNode *fake_extern_current_node = NULL;
+// static SGPropertyNode *imu_roll_truth_node = NULL;
+// static SGPropertyNode *imu_pitch_truth_node = NULL;
+// static SGPropertyNode *imu_yaw_truth_node = NULL;
+
+// static SGPropertyNode *act_throttle_node = NULL;
+// static SGPropertyNode *fake_extern_volts_node = NULL;
+// static SGPropertyNode *fake_extern_amps_node = NULL;
+// static SGPropertyNode *fake_extern_current_node = NULL;
 
 static bool airdata_inited = false;
 
 
 // initialize fgfs_imu input property nodes
-static void bind_input( SGPropertyNode *config ) {
-    imu_port_node = config->getChild("port");
-    if ( imu_port_node != NULL ) {
-	port = imu_port_node->getLong();
+static void bind_input( pyPropertyNode *config ) {
+    if ( config->hasChild("port") ) {
+	port = config->getLong("port");
     }
-    configroot = config;
 }
 
 
 // initialize imu output property nodes 
-static void bind_imu_output( string rootname ) {
-    outputroot = pyGetNode( rootname.c_str(), true );
+static void bind_imu_output( pyPropertyNode *base ) {
+    imu_node = *base;
+    act_node = pyGetNode("/actuators/actuator", true);
+    apm2_node = pyGetNode("/sensors/apm2", true);
+    // set initial fake value
+    apm2_node.setDouble( "board_vcc", 5.0 );
 
-    imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
-    imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
-    imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
-    imu_ax_node = outputroot->getChild("ax-mps_sec", 0, true);
-    imu_ay_node = outputroot->getChild("ay-mps_sec", 0, true);
-    imu_az_node = outputroot->getChild("az-mps_sec", 0, true);
-    imu_hx_node = outputroot->getChild("hx", 0, true);
-    imu_hy_node = outputroot->getChild("hy", 0, true);
-    imu_hz_node = outputroot->getChild("hz", 0, true);
+    // outputroot = pyGetNode( rootname.c_str(), true );
 
-    imu_roll_truth_node = outputroot->getChild("roll-truth-deg", 0, true);
-    imu_pitch_truth_node = outputroot->getChild("pitch-truth-deg", 0, true);
-    imu_yaw_truth_node = outputroot->getChild("yaw-truth-deg", 0, true);
+    // imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    // imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
+    // imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
+    // imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
+    // imu_ax_node = outputroot->getChild("ax-mps_sec", 0, true);
+    // imu_ay_node = outputroot->getChild("ay-mps_sec", 0, true);
+    // imu_az_node = outputroot->getChild("az-mps_sec", 0, true);
+    // imu_hx_node = outputroot->getChild("hx", 0, true);
+    // imu_hy_node = outputroot->getChild("hy", 0, true);
+    // imu_hz_node = outputroot->getChild("hz", 0, true);
+
+    // imu_roll_truth_node = outputroot->getChild("roll-truth-deg", 0, true);
+    // imu_pitch_truth_node = outputroot->getChild("pitch-truth-deg", 0, true);
+    // imu_yaw_truth_node = outputroot->getChild("yaw-truth-deg", 0, true);
 }
 
 
 // initialize airdata output property nodes 
-static void bind_airdata_output( string rootname ) {
-    outputroot = pyGetNode( rootname.c_str(), true );
+static void bind_airdata_output( pyPropertyNode *base ) {
+    airdata_node = *base;
+    
+    // airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    // airdata_airspeed_node = outputroot->getChild("airspeed-kt", 0, true);
+    // airdata_pressure_node = outputroot->getChild("pressure-mbar", 0, true);
 
-    airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    airdata_airspeed_node = outputroot->getChild("airspeed-kt", 0, true);
-    airdata_pressure_node = outputroot->getChild("pressure-mbar", 0, true);
+    // act_throttle_node = pyGetNode("/actuators/actuator/channel", 2, true);
+    // fake_extern_volts_node = pyGetNode("/sensors/APM2/extern-volt", true);
+    // fake_extern_amps_node  = pyGetNode("/sensors/APM2/extern-amps", true);
+    // fake_extern_current_node  = pyGetNode("/sensors/APM2/extern-current-mah", true);
 
-    act_throttle_node = pyGetNode("/actuators/actuator/channel", 2, true);
-    fake_extern_volts_node = pyGetNode("/sensors/APM2/extern-volt", true);
-    fake_extern_amps_node  = pyGetNode("/sensors/APM2/extern-amps", true);
-    fake_extern_current_node  = pyGetNode("/sensors/APM2/extern-current-mah", true);
-
-    // set some fake values (write them just once, so if there was an
-    // unintended conflict, the actual sensor would overwrite these.)
-    SGPropertyNode *tmp_node;
-    // note we don't leak here because we are getting a pointer back
-    // into the global property structure
-    tmp_node = pyGetNode("/sensors/APM2/board-vcc", true);
-    tmp_node->setDouble( 5.0 );
-    tmp_node = pyGetNode("/sensors/airdata/temp-degC", true);
-    tmp_node->setDouble( 15.0 );
+    // set initial fake value
+    airdata_node.setDouble( "temp_degC", 15.0 );
 
     airdata_inited = true;
 }
 
 
 // function prototypes
-bool fgfs_imu_init( string rootname, SGPropertyNode *config ) {
+bool fgfs_imu_init( pyPropertyNode *base, pyPropertyNode *config ) {
     bind_input( config );
-    bind_imu_output( rootname );
+    bind_imu_output( base );
 
     // open a UDP socket
     if ( ! sock.open( false ) ) {
@@ -133,8 +136,8 @@ bool fgfs_imu_init( string rootname, SGPropertyNode *config ) {
 
 
 // function prototypes
-bool fgfs_airdata_init( string rootname ) {
-    bind_airdata_output( rootname );
+bool fgfs_airdata_init( pyPropertyNode *base ) {
+    bind_airdata_output( base );
 
     return true;
 }
@@ -195,36 +198,36 @@ bool fgfs_imu_update() {
 	float yaw_truth = *(float *)buf; buf += 4;
 
 	double cur_time = get_Time();
-	imu_timestamp_node->setDouble( cur_time );
-	imu_p_node->setDouble( p );
-	imu_q_node->setDouble( q );
-	imu_r_node->setDouble( r );
-	imu_ax_node->setDouble( ax );
-	imu_ay_node->setDouble( ay );
-	imu_az_node->setDouble( az );
-	imu_hx_node->setDouble( 0.0 );
-	imu_hy_node->setDouble( 0.0 );
-	imu_hz_node->setDouble( 0.0 );
-	imu_roll_truth_node->setDouble( roll_truth );
-	imu_pitch_truth_node->setDouble( pitch_truth );
-	imu_yaw_truth_node->setDouble( yaw_truth );
+	imu_node.setDouble( "timestamp", cur_time );
+	imu_node.setDouble( "p_rad_sec", p );
+	imu_node.setDouble( "q_rad_sec", q );
+	imu_node.setDouble( "r_rad_sec", r );
+	imu_node.setDouble( "ax_mps_sec", ax );
+	imu_node.setDouble( "ay_mps_sec", ay );
+	imu_node.setDouble( "az_mps_sec", az );
+	imu_node.setDouble( "hx", 0.0 );
+	imu_node.setDouble( "hy", 0.0 );
+	imu_node.setDouble( "hz", 0.0 );
+	imu_node.setDouble( "roll_truth_node", roll_truth );
+	imu_node.setDouble( "pitch_truth_node", pitch_truth );
+	imu_node.setDouble( "yaw_truth_node", yaw_truth );
 
 	if ( airdata_inited ) {
-	    airdata_timestamp_node->setDouble( cur_time );
-	    airdata_airspeed_node->setDouble( airspeed );
+	    airdata_node.setDouble( "timestamp", cur_time );
+	    airdata_node.setDouble( "airspeed_kt", airspeed );
 	    const double inhg2mbar = 33.8638866667;
-	    airdata_pressure_node->setDouble( pressure * inhg2mbar );
+	    airdata_node.setDouble( "pressure_mbar", pressure * inhg2mbar );
 
 	    // fake volt/amp values here for no better place to do it
 	    static double last_time = cur_time;
 	    static double mah = 0.0;
-	    double thr = act_throttle_node->getDouble();
-	    fake_extern_volts_node->setDouble(16.0 - thr);
-	    fake_extern_amps_node->setDouble(thr * 12.0);
+	    double thr = act_node.getDouble("channel[2]");
+	    apm2_node.setDouble("extern_volt", 16.0 - thr);
+	    apm2_node.setDouble("extern_amps", thr * 12.0);
 	    double dt = cur_time - last_time;
 	    mah += thr*12.0 * (1000.0/3600.0) * dt;
 	    last_time = cur_time;
-	    fake_extern_current_node->setDouble( mah );
+	    apm2_node.setDouble( "extern_current_mah", mah );
 	}
     }
 
@@ -236,7 +239,7 @@ bool fgfs_airdata_update() {
     bool fresh_data = false;
 
     static double last_time = 0.0;
-    double cur_time = airdata_timestamp_node->getDouble();
+    double cur_time = airdata_node.getDouble("timestamp");
 
     if ( cur_time > last_time ) {
 	fresh_data = true;

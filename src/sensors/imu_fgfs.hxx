@@ -8,9 +8,9 @@
 #define _AURA_IMU_FGFS_HXX
 
 
-#include "include/globaldefs.h"
-
 #include "python/pyprops.hxx"
+
+#include "include/globaldefs.h"
 
 
 // function prototypes
