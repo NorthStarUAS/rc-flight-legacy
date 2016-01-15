@@ -89,99 +89,6 @@ static pyPropertyNode act_node;
 static pyPropertyNode airdata_node;
 static pyPropertyNode analog_node;
 
-
-// // APM2 interface and config property nodes
-// static SGPropertyNode *configroot = NULL;
-// static SGPropertyNode *APM2_device_node = NULL;
-// static SGPropertyNode *APM2_baud_node = NULL;
-// static SGPropertyNode *APM2_volt_ratio_node = NULL;
-// static SGPropertyNode *APM2_battery_cells_node = NULL;
-// static SGPropertyNode *APM2_amp_offset_node = NULL;
-// static SGPropertyNode *APM2_amp_ratio_node = NULL;
-// static SGPropertyNode *APM2_analog_nodes[NUM_ANALOG_INPUTS];
-// static SGPropertyNode *APM2_pitot_calibrate_node = NULL;
-
-// // additional sensor info nodes (reported back from APM2)
-// static SGPropertyNode *APM2_extern_volt_node = NULL;
-// static SGPropertyNode *APM2_extern_cell_volt_node = NULL;
-// static SGPropertyNode *APM2_extern_amp_node = NULL;
-// static SGPropertyNode *APM2_extern_amp_sum_node = NULL;
-// static SGPropertyNode *APM2_board_vcc_node = NULL;
-// static SGPropertyNode *APM2_pilot_packet_count_node = NULL;
-// static SGPropertyNode *APM2_imu_packet_count_node = NULL;
-// static SGPropertyNode *APM2_gps_packet_count_node = NULL;
-// static SGPropertyNode *APM2_baro_packet_count_node = NULL;
-// static SGPropertyNode *APM2_analog_packet_count_node = NULL;
-// static SGPropertyNode *APM2_info_serial_number_node = NULL;
-// static SGPropertyNode *APM2_info_firmware_node = NULL;
-// static SGPropertyNode *APM2_info_master_hz_node = NULL;
-// static SGPropertyNode *APM2_info_baud_node = NULL;
-
-// // imu property nodes
-// static SGPropertyNode *imu_timestamp_node = NULL;
-// static SGPropertyNode *imu_p_node = NULL;
-// static SGPropertyNode *imu_q_node = NULL;
-// static SGPropertyNode *imu_r_node = NULL;
-// static SGPropertyNode *imu_ax_node = NULL;
-// static SGPropertyNode *imu_ay_node = NULL;
-// static SGPropertyNode *imu_az_node = NULL;
-// static SGPropertyNode *imu_hx_node = NULL;
-// static SGPropertyNode *imu_hy_node = NULL;
-// static SGPropertyNode *imu_hz_node = NULL;
-// static SGPropertyNode *imu_temp_node = NULL;
-// static SGPropertyNode *imu_ax_bias_node = NULL;
-// static SGPropertyNode *imu_ay_bias_node = NULL;
-// static SGPropertyNode *imu_az_bias_node = NULL;
-
-// // gps property nodes
-// static SGPropertyNode *gps_timestamp_node = NULL;
-// static SGPropertyNode *gps_day_secs_node = NULL;
-// static SGPropertyNode *gps_date_node = NULL;
-// static SGPropertyNode *gps_lat_node = NULL;
-// static SGPropertyNode *gps_lon_node = NULL;
-// static SGPropertyNode *gps_alt_node = NULL;
-// static SGPropertyNode *gps_ve_node = NULL;
-// static SGPropertyNode *gps_vn_node = NULL;
-// static SGPropertyNode *gps_vd_node = NULL;
-// static SGPropertyNode *gps_unix_sec_node = NULL;
-// static SGPropertyNode *gps_satellites_node = NULL;
-// static SGPropertyNode *gps_pdop_node = NULL;
-// static SGPropertyNode *gps_status_node = NULL;
-
-// // pilot input property nodes
-// static SGPropertyNode *pilot_timestamp_node = NULL;
-// static SGPropertyNode *pilot_aileron_node = NULL;
-// static SGPropertyNode *pilot_elevator_node = NULL;
-// static SGPropertyNode *pilot_throttle_node = NULL;
-// static SGPropertyNode *pilot_rudder_node = NULL;
-// static SGPropertyNode *pilot_channel5_node = NULL;
-// static SGPropertyNode *pilot_channel6_node = NULL;
-// static SGPropertyNode *pilot_channel7_node = NULL;
-// static SGPropertyNode *pilot_channel8_node = NULL;
-// static SGPropertyNode *pilot_manual_node = NULL;
-// static SGPropertyNode *pilot_status_node = NULL;
-
-// // actuator property nodes
-// static SGPropertyNode *act_timestamp_node = NULL;
-// static SGPropertyNode *act_aileron_node = NULL;
-// static SGPropertyNode *act_elevator_node = NULL;
-// static SGPropertyNode *act_throttle_node = NULL;
-// static SGPropertyNode *act_rudder_node = NULL;
-// static SGPropertyNode *act_channel5_node = NULL;
-// static SGPropertyNode *act_channel6_node = NULL;
-// static SGPropertyNode *act_channel7_node = NULL;
-// static SGPropertyNode *act_channel8_node = NULL;
-// static SGPropertyNode *act_status_node = NULL;
-
-// // air data nodes
-// static SGPropertyNode *airdata_timestamp_node = NULL;
-// static SGPropertyNode *airdata_pressure_node = NULL;
-// static SGPropertyNode *airdata_temperature_node = NULL;
-// static SGPropertyNode *airdata_climb_rate_mps_node = NULL;
-// static SGPropertyNode *airdata_climb_rate_fps_node = NULL;
-// static SGPropertyNode *airdata_airspeed_mps_node = NULL;
-// static SGPropertyNode *airdata_airspeed_kt_node = NULL;
-
 static bool master_opened = false;
 static bool imu_inited = false;
 static bool gps_inited = false;
@@ -200,10 +107,8 @@ static float extern_amp_sum = 0.0;
 static float pitot_calibrate = 1.0;
 static bool reverse_imu_mount = false;
 
-//static SGPropertyNode *act_config = NULL;
 static int last_ack_id = 0;
 static int last_ack_subid = 0;
-//static bool ack_baud_rate = false;
 
 static uint16_t act_rates[NUM_ACTUATORS] = { 50, 50, 50, 50, 50, 50, 50, 50 };
 
@@ -548,28 +453,7 @@ static void bind_imu_output( pyPropertyNode *base ) {
     if ( imu_inited ) {
 	return;
     }
-
     imu_node = *base;
-    // SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
-
-    // imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    // imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
-    // imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
-    // imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
-    // imu_ax_node = outputroot->getChild("ax-mps_sec", 0, true);
-    // imu_ay_node = outputroot->getChild("ay-mps_sec", 0, true);
-    // imu_az_node = outputroot->getChild("az-mps_sec", 0, true);
-    // imu_hx_node = outputroot->getChild("hx", 0, true);
-    // imu_hy_node = outputroot->getChild("hy", 0, true);
-    // imu_hz_node = outputroot->getChild("hz", 0, true);
-    // imu_temp_node = outputroot->getChild("temp_C", 0, true);
-    // //imu_p_bias_node = outputroot->getChild("p-bias", 0, true);
-    // //imu_q_bias_node = outputroot->getChild("q-bias", 0, true);
-    // //imu_r_bias_node = outputroot->getChild("r-bias", 0, true);
-    // imu_ax_bias_node = outputroot->getChild("ax-bias", 0, true);
-    // imu_ay_bias_node = outputroot->getChild("ay-bias", 0, true);
-    // imu_az_bias_node = outputroot->getChild("az-bias", 0, true);
-
     imu_inited = true;
 }
 
@@ -580,22 +464,6 @@ static void bind_gps_output( pyPropertyNode *base ) {
 	return;
     }
     gps_node = *base;
-    
-    // SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
-    // gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    // gps_day_secs_node = outputroot->getChild("day-seconds", 0, true);
-    // gps_date_node = outputroot->getChild("date", 0, true);
-    // gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    // gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    // gps_alt_node = outputroot->getChild("altitude-m", 0, true);
-    // gps_ve_node = outputroot->getChild("ve-ms", 0, true);
-    // gps_vn_node = outputroot->getChild("vn-ms", 0, true);
-    // gps_vd_node = outputroot->getChild("vd-ms", 0, true);
-    // gps_satellites_node = outputroot->getChild("satellites", 0, true);
-    // gps_status_node = outputroot->getChild("status", 0, true);
-    // gps_pdop_node = outputroot->getChild("pdop", 0, true);
-    // gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
-
     gps_inited = true;
 }
 
@@ -606,17 +474,6 @@ static void bind_act_nodes( pyPropertyNode *base ) {
 	return;
     }
     act_node = *base;
-    // act_timestamp_node = pyGetNode("/actuators/actuator/time-stamp", true);
-    // act_aileron_node = pyGetNode("/actuators/actuator/channel", 0, true);
-    // act_elevator_node = pyGetNode("/actuators/actuator/channel", 1, true);
-    // act_throttle_node = pyGetNode("/actuators/actuator/channel", 2, true);
-    // act_rudder_node = pyGetNode("/actuators/actuator/channel", 3, true);
-    // act_channel5_node = pyGetNode("/actuators/actuator/channel", 4, true);
-    // act_channel6_node = pyGetNode("/actuators/actuator/channel", 5, true);
-    // act_channel7_node = pyGetNode("/actuators/actuator/channel", 6, true);
-    // act_channel8_node = pyGetNode("/actuators/actuator/channel", 7, true);
-    // act_status_node = pyGetNode("/actuators/actuator/status", true);
-
     actuator_inited = true;
 }
 
@@ -626,19 +483,6 @@ static void bind_airdata_output( pyPropertyNode *base ) {
 	return;
     }
     airdata_node = *base;
-
-    // SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
-
-    // airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    // airdata_pressure_node = outputroot->getChild("pressure-mbar", 0, true);
-    // airdata_temperature_node = outputroot->getChild("temp-degC", 0, true);
-    // airdata_climb_rate_mps_node
-    // 	= outputroot->getChild("vertical-speed-mps", 0, true);
-    // airdata_climb_rate_fps_node
-    // 	= outputroot->getChild("vertical-speed-fps", 0, true);
-    // airdata_airspeed_mps_node = outputroot->getChild("airspeed-mps", 0, true);
-    // airdata_airspeed_kt_node = outputroot->getChild("airspeed-kt", 0, true);
-
     airdata_inited = true;
 }
 
@@ -649,19 +493,6 @@ static void bind_pilot_controls( pyPropertyNode *base ) {
 	return;
     }
     pilot_node = *base;
-
-    // pilot_timestamp_node = pyGetNode("/sensors/pilot/time-stamp", true);
-    // pilot_aileron_node = pyGetNode("/sensors/pilot/aileron", true);
-    // pilot_elevator_node = pyGetNode("/sensors/pilot/elevator", true);
-    // pilot_throttle_node = pyGetNode("/sensors/pilot/throttle", true);
-    // pilot_rudder_node = pyGetNode("/sensors/pilot/rudder", true);
-    // pilot_channel5_node = pyGetNode("/sensors/pilot/channel", 4, true);
-    // pilot_channel6_node = pyGetNode("/sensors/pilot/channel", 5, true);
-    // pilot_channel7_node = pyGetNode("/sensors/pilot/channel", 6, true);
-    // pilot_channel8_node = pyGetNode("/sensors/pilot/channel", 7, true);
-    // pilot_manual_node = pyGetNode("/sensors/pilot/manual", true);
-    // pilot_status_node = pyGetNode("/sensors/pilot/status", true);
-
     pilot_input_inited = true;
 }
 
@@ -1342,7 +1173,6 @@ static bool APM2_send_config() {
 
     int count;
     
-    //SGPropertyNode *pwm_rates = pyGetNode("/config/actuators/actuator/pwm-rates");
     pyPropertyNode pwm_node
 	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
     count = pwm_node.getLen("channel");
@@ -1375,8 +1205,6 @@ static bool APM2_send_config() {
     count = gain_node.getLen("channel");
     if ( count ) {
 	for ( int i = 0; i < count; i++ ) {
-	    //SGPropertyNode *channel_node = gains->getChild(i);
-	    //int ch = channel_node->getIndex();
 	    ostringstream str;
 	    str << "channel" << '[' << i << ']';
 	    string ename = str.str();
@@ -1411,11 +1239,6 @@ static bool APM2_send_config() {
 	    float gain1 = 0.0;
 	    float gain2 = 0.0;
 	    pyPropertyNode mix_node = mixing_node.getChild("mix", i, true);
-	    // SGPropertyNode *mix_node = mixing->getChild(i);
-	    // SGPropertyNode *mode_node = mix_node->getChild("mode");
-	    // SGPropertyNode *enable_node = mix_node->getChild("enable");
-	    // SGPropertyNode *gain1_node = mix_node->getChild("gain1");
-	    // SGPropertyNode *gain2_node = mix_node->getChild("gain2");
 	    if ( mix_node.hasChild("mode") ) {
 		mode = mix_node.getString("mode");
 		if ( mode == "auto-coordination" ) {
@@ -1471,13 +1294,8 @@ static bool APM2_send_config() {
 	int mode_id = 0;
 	bool enable = false;
 	float gain = 0.0;
-	//SGPropertyNode *section_node = sas->getChild(i);
-	//string section_name = section_node->getName();
 	pyPropertyNode sas_section = sas_node.getChild(children[i].c_str());
 	if ( children[i].substr(0,4) == "axis" ) {
-	    //SGPropertyNode *mode_node = section_node->getChild("mode");
-	    //SGPropertyNode *enable_node = section_node->getChild("enable");
-	    //SGPropertyNode *gain_node = section_node->getChild("gain");
 	    if ( sas_section.hasChild("mode") ) {
 		mode = sas_section.getString("mode");
 		if ( mode == "roll" ) {
@@ -1495,7 +1313,6 @@ static bool APM2_send_config() {
 		gain = sas_section.getDouble("gain");
 	    }
 	} else if ( children[i] == "pilot-tune" ) {
-	    // SGPropertyNode *enable_node = section_node->getChild("enable");
 	    mode_id = SAS_CH7_TUNE;
 	    mode = "ch7-tune";
 	    if ( sas_section.hasChild("enable") ) {

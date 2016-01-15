@@ -29,13 +29,17 @@ static int gps_fix_value = 0;
 static const int rcin_channels = 16;
 static uint16_t rcin[rcin_channels];
 
-// goldy2_imu property nodes
-static SGPropertyNode *configroot = NULL;
-static SGPropertyNode *outputroot = NULL;
-static SGPropertyNode *goldy2_port_node = NULL;
+// property nodes
+//static SGPropertyNode *configroot = NULL;
+//static SGPropertyNode *outputroot = NULL;
+//static SGPropertyNode *goldy2_port_node = NULL;
 
 // imu property nodes
 static pyPropertyNode imu_node;
+static pyPropertyNode gps_node;
+static pyPropertyNode airdata_node;
+static pyPropertyNode pilot_node;
+
 //static SGPropertyNode *imu_timestamp_node = NULL;
 //static SGPropertyNode *imu_p_node = NULL;
 //static SGPropertyNode *imu_q_node = NULL;
@@ -53,36 +57,36 @@ static pyPropertyNode imu_node;
 //static SGPropertyNode *imu_yaw_node = NULL;
 
 // airdata property nodes
-static SGPropertyNode *airdata_timestamp_node = NULL;
-static SGPropertyNode *airdata_pressure_node = NULL;
+// static SGPropertyNode *airdata_timestamp_node = NULL;
+// static SGPropertyNode *airdata_pressure_node = NULL;
 
-// gps property nodes
-static SGPropertyNode *gps_timestamp_node = NULL;
-static SGPropertyNode *gps_day_secs_node = NULL;
-static SGPropertyNode *gps_date_node = NULL;
-static SGPropertyNode *gps_lat_node = NULL;
-static SGPropertyNode *gps_lon_node = NULL;
-static SGPropertyNode *gps_alt_node = NULL;
-static SGPropertyNode *gps_ve_node = NULL;
-static SGPropertyNode *gps_vn_node = NULL;
-static SGPropertyNode *gps_vd_node = NULL;
-static SGPropertyNode *gps_unix_sec_node = NULL;
-static SGPropertyNode *gps_satellites_node = NULL;
-static SGPropertyNode *gps_pdop_node = NULL;
-static SGPropertyNode *gps_status_node = NULL;
+// // gps property nodes
+// static SGPropertyNode *gps_timestamp_node = NULL;
+// static SGPropertyNode *gps_day_secs_node = NULL;
+// static SGPropertyNode *gps_date_node = NULL;
+// static SGPropertyNode *gps_lat_node = NULL;
+// static SGPropertyNode *gps_lon_node = NULL;
+// static SGPropertyNode *gps_alt_node = NULL;
+// static SGPropertyNode *gps_ve_node = NULL;
+// static SGPropertyNode *gps_vn_node = NULL;
+// static SGPropertyNode *gps_vd_node = NULL;
+// static SGPropertyNode *gps_unix_sec_node = NULL;
+// static SGPropertyNode *gps_satellites_node = NULL;
+// static SGPropertyNode *gps_pdop_node = NULL;
+// static SGPropertyNode *gps_status_node = NULL;
 
-// pilot input property nodes
-static SGPropertyNode *pilot_timestamp_node = NULL;
-static SGPropertyNode *pilot_aileron_node = NULL;
-static SGPropertyNode *pilot_elevator_node = NULL;
-static SGPropertyNode *pilot_throttle_node = NULL;
-static SGPropertyNode *pilot_rudder_node = NULL;
-static SGPropertyNode *pilot_channel5_node = NULL;
-static SGPropertyNode *pilot_channel6_node = NULL;
-static SGPropertyNode *pilot_channel7_node = NULL;
-static SGPropertyNode *pilot_channel8_node = NULL;
-static SGPropertyNode *pilot_manual_node = NULL;
-static SGPropertyNode *pilot_status_node = NULL;
+// // pilot input property nodes
+// static SGPropertyNode *pilot_timestamp_node = NULL;
+// static SGPropertyNode *pilot_aileron_node = NULL;
+// static SGPropertyNode *pilot_elevator_node = NULL;
+// static SGPropertyNode *pilot_throttle_node = NULL;
+// static SGPropertyNode *pilot_rudder_node = NULL;
+// static SGPropertyNode *pilot_channel5_node = NULL;
+// static SGPropertyNode *pilot_channel6_node = NULL;
+// static SGPropertyNode *pilot_channel7_node = NULL;
+// static SGPropertyNode *pilot_channel8_node = NULL;
+// static SGPropertyNode *pilot_manual_node = NULL;
+// static SGPropertyNode *pilot_status_node = NULL;
 
 static bool master_init = false;
 static bool imu_inited = false;
@@ -114,114 +118,116 @@ struct imu_sensors_t {
 
 
 // initialize goldy2_imu input property nodes
-static void bind_input( SGPropertyNode *config ) {
-    goldy2_port_node = pyGetNode("/config/sensors/Goldy2/port");
-    if ( goldy2_port_node != NULL ) {
-	port = goldy2_port_node->getLong();
+static void bind_input( pyPropertyNode *config ) {
+    if ( config->hasChild("port") ) {
+	port = config->getLong("port");
     }
     printf("Goldy2 port = %d\n", port);
-
-    configroot = config;
 }
 
 
 // initialize imu output property nodes 
-static void bind_imu_output( string rootname ) {
+static void bind_imu_output( pyPropertyNode *base ) {
     if ( imu_inited ) {
         return;
     }
+    imu_node = *base;
+    
+    // outputroot = pyGetNode( rootname.c_str(), true );
 
-    outputroot = pyGetNode( rootname.c_str(), true );
+    // imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    // imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
+    // imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
+    // imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
+    // imu_ax_node = outputroot->getChild("ax-mps_sec", 0, true);
+    // imu_ay_node = outputroot->getChild("ay-mps_sec", 0, true);
+    // imu_az_node = outputroot->getChild("az-mps_sec", 0, true);
+    // imu_hx_node = outputroot->getChild("hx", 0, true);
+    // imu_hy_node = outputroot->getChild("hy", 0, true);
+    // imu_hz_node = outputroot->getChild("hz", 0, true);
+    // imu_temp_node = outputroot->getChild("temp", 0, true);
+    // imu_pressure_node = outputroot->getChild("pressure", 0, true);
 
-    imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
-    imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
-    imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
-    imu_ax_node = outputroot->getChild("ax-mps_sec", 0, true);
-    imu_ay_node = outputroot->getChild("ay-mps_sec", 0, true);
-    imu_az_node = outputroot->getChild("az-mps_sec", 0, true);
-    imu_hx_node = outputroot->getChild("hx", 0, true);
-    imu_hy_node = outputroot->getChild("hy", 0, true);
-    imu_hz_node = outputroot->getChild("hz", 0, true);
-    imu_temp_node = outputroot->getChild("temp", 0, true);
-    imu_pressure_node = outputroot->getChild("pressure", 0, true);
-
-    imu_roll_node = outputroot->getChild("roll-deg", 0, true);
-    imu_pitch_node = outputroot->getChild("pitch-deg", 0, true);
-    imu_yaw_node = outputroot->getChild("yaw-deg", 0, true);
+    // imu_roll_node = outputroot->getChild("roll-deg", 0, true);
+    // imu_pitch_node = outputroot->getChild("pitch-deg", 0, true);
+    // imu_yaw_node = outputroot->getChild("yaw-deg", 0, true);
 
     imu_inited = true;
 }
 
 
 // initialize airdata output property nodes 
-static void bind_airdata_output( string rootname ) {
-    outputroot = pyGetNode( rootname.c_str(), true );
+static void bind_airdata_output( pyPropertyNode *base ) {
+    if ( airdata_inited ) {
+	return;
+    }
+    airdata_node = *base;
+    // outputroot = pyGetNode( rootname.c_str(), true );
 
-    airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    airdata_pressure_node = outputroot->getChild("pressure-mbar", 0, true);
+    // airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    // airdata_pressure_node = outputroot->getChild("pressure-mbar", 0, true);
 
-    // set some fake values (write them just once, so if there was an
-    // unintended conflict, the actual sensor would overwrite these.)
-    SGPropertyNode *tmp_node;
-    // note we don't leak here because we are getting a pointer back
-    // into the global property structure
-    tmp_node = pyGetNode("/sensors/APM2/board-vcc", true);
-    tmp_node->setDouble( 5.0 );
-    tmp_node = pyGetNode("/sensors/airdata/temp-degC", true);
-    tmp_node->setDouble( 15.0 );
+    // // set some fake values (write them just once, so if there was an
+    // // unintended conflict, the actual sensor would overwrite these.)
+    // SGPropertyNode *tmp_node;
+    // // note we don't leak here because we are getting a pointer back
+    // // into the global property structure
+    // tmp_node = pyGetNode("/sensors/APM2/board-vcc", true);
+    // tmp_node->setDouble( 5.0 );
+    // tmp_node = pyGetNode("/sensors/airdata/temp-degC", true);
+    // tmp_node->setDouble( 15.0 );
 
     airdata_inited = true;
 }
 
 
 // initialize gps output property nodes
-static void bind_gps_output( string rootname ) {
+static void bind_gps_output( pyPropertyNode *base ) {
     if ( gps_inited ) {
         return;
     }
-
-    SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
-    gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    gps_day_secs_node = outputroot->getChild("day-seconds", 0, true);
-    gps_date_node = outputroot->getChild("date", 0, true);
-    gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    gps_alt_node = outputroot->getChild("altitude-m", 0, true);
-    gps_ve_node = outputroot->getChild("ve-ms", 0, true);
-    gps_vn_node = outputroot->getChild("vn-ms", 0, true);
-    gps_vd_node = outputroot->getChild("vd-ms", 0, true);
-    gps_satellites_node = outputroot->getChild("satellites", 0, true);
-    gps_status_node = outputroot->getChild("status", 0, true);
-    gps_pdop_node = outputroot->getChild("pdop", 0, true);
-    gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+    gps_node = *base;
+    // SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
+    // gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
+    // gps_day_secs_node = outputroot->getChild("day-seconds", 0, true);
+    // gps_date_node = outputroot->getChild("date", 0, true);
+    // gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
+    // gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
+    // gps_alt_node = outputroot->getChild("altitude-m", 0, true);
+    // gps_ve_node = outputroot->getChild("ve-ms", 0, true);
+    // gps_vn_node = outputroot->getChild("vn-ms", 0, true);
+    // gps_vd_node = outputroot->getChild("vd-ms", 0, true);
+    // gps_satellites_node = outputroot->getChild("satellites", 0, true);
+    // gps_status_node = outputroot->getChild("status", 0, true);
+    // gps_pdop_node = outputroot->getChild("pdop", 0, true);
+    // gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
 
     gps_inited = true;
 }
 
 // initialize pilot output property nodes
-static void bind_pilot_controls( string rootname ) {
+static void bind_pilot_controls( pyPropertyNode *base ) {
     if ( pilot_input_inited ) {
         return;
     }
-
-    pilot_timestamp_node = pyGetNode("/sensors/pilot/time-stamp", true);
-    pilot_aileron_node = pyGetNode("/sensors/pilot/aileron", true);
-    pilot_elevator_node = pyGetNode("/sensors/pilot/elevator", true);
-    pilot_throttle_node = pyGetNode("/sensors/pilot/throttle", true);
-    pilot_rudder_node = pyGetNode("/sensors/pilot/rudder", true);
-    pilot_channel5_node = pyGetNode("/sensors/pilot/channel", 4, true);
-    pilot_channel6_node = pyGetNode("/sensors/pilot/channel", 5, true);
-    pilot_channel7_node = pyGetNode("/sensors/pilot/channel", 6, true);
-    pilot_channel8_node = pyGetNode("/sensors/pilot/channel", 7, true);
-    pilot_manual_node = pyGetNode("/sensors/pilot/manual", true);
-    pilot_status_node = pyGetNode("/sensors/pilot/status", true);
+    pilot_node = *base;
+    // pilot_timestamp_node = pyGetNode("/sensors/pilot/time-stamp", true);
+    // pilot_aileron_node = pyGetNode("/sensors/pilot/aileron", true);
+    // pilot_elevator_node = pyGetNode("/sensors/pilot/elevator", true);
+    // pilot_throttle_node = pyGetNode("/sensors/pilot/throttle", true);
+    // pilot_rudder_node = pyGetNode("/sensors/pilot/rudder", true);
+    // pilot_channel5_node = pyGetNode("/sensors/pilot/channel", 4, true);
+    // pilot_channel6_node = pyGetNode("/sensors/pilot/channel", 5, true);
+    // pilot_channel7_node = pyGetNode("/sensors/pilot/channel", 6, true);
+    // pilot_channel8_node = pyGetNode("/sensors/pilot/channel", 7, true);
+    // pilot_manual_node = pyGetNode("/sensors/pilot/manual", true);
+    // pilot_status_node = pyGetNode("/sensors/pilot/status", true);
 
     pilot_input_inited = true;
 }
 
 
-bool goldy2_init( SGPropertyNode *config ) {
+bool goldy2_init( pyPropertyNode *config ) {
     if ( master_init ) {
         return true;
     }
@@ -250,44 +256,44 @@ bool goldy2_init( SGPropertyNode *config ) {
 
 
 // function prototypes
-bool goldy2_imu_init( string rootname, SGPropertyNode *config ) {
+bool goldy2_imu_init( pyPropertyNode *base, pyPropertyNode *config ) {
     if ( ! goldy2_init(config) ) {
         return false;
     }
 
-    bind_imu_output( rootname );
+    bind_imu_output( base );
 
     return true;
 }
 
 
 // function prototypes
-bool goldy2_airdata_init( string rootname, SGPropertyNode *config ) {
+bool goldy2_airdata_init( pyPropertyNode *base, pyPropertyNode *config ) {
     if ( ! goldy2_init(config) ) {
         return false;
     }
 
-    bind_airdata_output( rootname );
+    bind_airdata_output( base );
 
     return true;
 }
 
-bool goldy2_gps_init( string rootname, SGPropertyNode *config  ) {
+bool goldy2_gps_init( pyPropertyNode *base, pyPropertyNode *config  ) {
     if ( ! goldy2_init(config) ) {
         return false;
     }
 
-    bind_gps_output( rootname );
+    bind_gps_output( base );
 
     return true;
 }
 
-bool goldy2_pilot_init( string rootname, SGPropertyNode *config ) {
+bool goldy2_pilot_init( pyPropertyNode *base, pyPropertyNode *config ) {
     if ( ! goldy2_init(config) ) {
         return false;
     }
 
-    bind_pilot_controls( rootname );
+    bind_pilot_controls( base );
 
     return true;
 }
@@ -388,14 +394,14 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
  
 	}
 
- 	gps_satellites_node->setLong( numSV );
+ 	gps_node.setLong( "satellites", numSV );
  	gps_fix_value = gpsFix;
 	if ( gps_fix_value == 0 ) {
-	    gps_status_node->setLong( 0 );
+	    gps_node.setLong( "status", 0 );
 	} else if ( gps_fix_value == 1 || gps_fix_value == 2 ) {
-	    gps_status_node->setLong( 1 );
+	    gps_node.setLong( "status", 1 );
 	} else if ( gps_fix_value == 3 ) {
-	    gps_status_node->setLong( 2 );
+	    gps_node.setLong( "status", 2 );
 	}
 
 	if ( fabs(ecefX) > 650000000
@@ -415,13 +421,13 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	} else if ( gpsFix == 3 ) {
 	    // passed basic sanity checks and gps is reporting a 3d fix
 	    new_position = true;
-	    gps_timestamp_node->setDouble( get_Time() );
-	    gps_lat_node->setDouble( wgs84.getLatitudeDeg() );
-	    gps_lon_node->setDouble( wgs84.getLongitudeDeg() );
-	    gps_alt_node->setDouble( wgs84.getElevationM() );
-	    gps_vn_node->setDouble( vel_ned.x() );
-	    gps_ve_node->setDouble( vel_ned.y() );
-	    gps_vd_node->setDouble( vel_ned.z() );
+	    gps_node.setDouble( "timestamp", get_Time() );
+	    gps_node.setDouble( "latitude_deg", wgs84.getLatitudeDeg() );
+	    gps_node.setDouble( "longitude_deg", wgs84.getLongitudeDeg() );
+	    gps_node.setDouble( "altitude_m", wgs84.getElevationM() );
+	    gps_node.setDouble( "vn_ms", vel_ned.x() );
+	    gps_node.setDouble( "ve_ms", vel_ned.y() );
+	    gps_node.setDouble( "vd_ms", vel_ned.z() );
 	    // printf("        %.10f %.10f %.2f - %.2f %.2f %.2f\n",
 	    //        wgs84.getLatitudeDeg(),
 	    //        wgs84.getLongitudeDeg(),
@@ -436,7 +442,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    double unixSecs = julianDate * 86400.0;
 	    double unixFract = unixSecs - floor(unixSecs);
 	    struct timeval time;
-	    gps_unix_sec_node->setDouble( unixSecs );
+	    gps_node.setDouble( "unix_time_sec", unixSecs );
 #if 0
 	    if ( unixSecs > 1263154775 && !set_system_time) {
 		printf("Setting system time to %.3f\n", unixSecs);
@@ -536,7 +542,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 		satUsed++;
 	    }
 	}
- 	// gps_satellites_node->setLong( satUsed );
+ 	// gps_satellites_node.setLong( satUsed );
 	if ( display_on && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("Satellite count = %d/%d\n", satUsed, numCh);
@@ -799,27 +805,21 @@ bool goldy2_imu_update() {
 	last_imu_internal_time = imu_sensors.time;
 
 	double cur_time = get_Time();
-	imu_timestamp_node->setDouble( cur_time );
-	imu_p_node->setDouble( imu_sensors.gyroX );
-	imu_q_node->setDouble( imu_sensors.gyroY );
-	imu_r_node->setDouble( imu_sensors.gyroZ );
-	imu_ax_node->setDouble( imu_sensors.accelX );
-	imu_ay_node->setDouble( imu_sensors.accelY );
-	imu_az_node->setDouble( imu_sensors.accelZ );
-	imu_hx_node->setDouble( imu_sensors.magX );
-	imu_hy_node->setDouble( imu_sensors.magY );
-	imu_hz_node->setDouble( imu_sensors.magZ );
-	imu_temp_node->setDouble( imu_sensors.temp );
-	imu_pressure_node->setDouble( imu_sensors.pressure );
-	imu_roll_node->setDouble( imu_sensors.roll );
-	imu_pitch_node->setDouble( imu_sensors.pitch );
-	imu_yaw_node->setDouble( imu_sensors.yaw );
-
-	// if ( airdata_inited ) {
-	//     airdata_timestamp_node->setDouble( cur_time );
-	//     const double inhg2mbar = 33.8638866667;
-	//     airdata_pressure_node->setDouble( pressure * inhg2mbar );
-	// }
+	imu_node.setDouble( "timestamp", cur_time );
+	imu_node.setDouble( "p_rad_sec", imu_sensors.gyroX );
+	imu_node.setDouble( "q_rad_sec", imu_sensors.gyroY );
+	imu_node.setDouble( "r_rad_sec", imu_sensors.gyroZ );
+	imu_node.setDouble( "ax_mps_sec", imu_sensors.accelX );
+	imu_node.setDouble( "ay_mps_sec", imu_sensors.accelY );
+	imu_node.setDouble( "az_mps_sec", imu_sensors.accelZ );
+	imu_node.setDouble( "hx", imu_sensors.magX );
+	imu_node.setDouble( "hy", imu_sensors.magY );
+	imu_node.setDouble( "hz", imu_sensors.magZ );
+	imu_node.setDouble( "tempC", imu_sensors.temp );
+	imu_node.setDouble( "pressure", imu_sensors.pressure );
+	imu_node.setDouble( "roll_deg", imu_sensors.roll );
+	imu_node.setDouble( "pitch_deg", imu_sensors.pitch );
+	imu_node.setDouble( "yaw_deg", imu_sensors.yaw );
     }
 
     return fresh_data;
@@ -830,7 +830,7 @@ bool goldy2_airdata_update() {
     bool fresh_data = false;
 
     static double last_time = 0.0;
-    double cur_time = airdata_timestamp_node->getDouble();
+    double cur_time = airdata_node.getDouble("timestamp");
 
     if ( cur_time > last_time ) {
 	fresh_data = true;
@@ -844,7 +844,7 @@ bool goldy2_airdata_update() {
 
 bool goldy2_gps_update() {
     static double last_timestamp = 0.0;
-    double current_timestamp = gps_timestamp_node->getDouble();
+    double current_timestamp = gps_node.getDouble("timestamp");
     if ( current_timestamp > last_timestamp ) {
         last_timestamp = current_timestamp;
         return true;
@@ -854,17 +854,17 @@ bool goldy2_gps_update() {
 }
 
 bool goldy2_pilot_update() {
-    pilot_timestamp_node->setDouble(get_Time());
-    pilot_aileron_node->setDouble((rcin[2] - 992.0) / 820.0);
-    pilot_elevator_node->setDouble((rcin[3] - 992.0) / 820.0);
-    pilot_throttle_node->setDouble((rcin[1] - 172.0) / 1640.0);
-    pilot_rudder_node->setDouble((rcin[4] - 992.0) / 820.0);
+    pilot_node.setDouble( "timestamp", get_Time() );
+    pilot_node.setDouble( "aileron", (rcin[2] - 992.0) / 820.0);
+    pilot_node.setDouble( "elevator", (rcin[3] - 992.0) / 820.0);
+    pilot_node.setDouble( "throttle", (rcin[1] - 172.0) / 1640.0);
+    pilot_node.setDouble( "rudder", (rcin[4] - 992.0) / 820.0);
     if ( rcin[0] < 992 ) {
-        pilot_manual_node->setLong(0);
+        pilot_node.setBool("manual", false);
     } else {
-        pilot_manual_node->setLong(1);
+        pilot_node.setBool("manual", true);
     }
-    pilot_status_node->setLong(1);
+    pilot_node.setLong("status", 1);
     return true;
 }
 
