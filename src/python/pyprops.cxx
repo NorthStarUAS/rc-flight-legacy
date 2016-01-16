@@ -317,6 +317,42 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
     return pyPropertyNode();
 }
 
+bool readXML(string filename, pyPropertyNode *node) {
+    // getNode() function
+    PyObject *pFuncLoad = PyObject_GetAttrString(pModuleXML, "load");
+    if ( pFuncLoad == NULL || ! PyCallable_Check(pFuncLoad) ) {
+	if ( PyErr_Occurred() ) PyErr_Print();
+	fprintf(stderr, "Cannot find function 'load()'\n");
+	return false;
+    }
+    PyObject *pArgs = PyTuple_New(2);
+    PyObject *pPath = PyString_FromString(filename.c_str());
+    PyObject *pNode = node->pObj;
+    if (!pPath || !pNode) {
+	Py_DECREF(pArgs);
+	Py_XDECREF(pPath);
+	Py_XDECREF(pNode);
+	Py_XDECREF(pFuncLoad);
+	fprintf(stderr, "Cannot convert argument\n");
+	return false;
+    }
+    PyTuple_SetItem(pArgs, 0, pPath);
+    PyTuple_SetItem(pArgs, 1, pNode);
+    PyObject *pValue = PyObject_CallObject(pFuncLoad, pArgs);
+    Py_DECREF(pArgs);
+    Py_DECREF(pFuncLoad);
+    if (pValue != NULL) {
+	// give pValue over to the returned property node
+	bool result = PyObject_IsTrue(pValue);
+	Py_DECREF(pValue);
+	return result;
+    } else {
+	PyErr_Print();
+	fprintf(stderr,"Call failed\n");
+    }
+    return false;
+}
+
 bool writeXML(string filename, pyPropertyNode *node) {
     // getNode() function
     PyObject *pFuncSave = PyObject_GetAttrString(pModuleXML, "save");
@@ -343,7 +379,9 @@ bool writeXML(string filename, pyPropertyNode *node) {
     Py_DECREF(pFuncSave);
     if (pValue != NULL) {
 	// give pValue over to the returned property node
-	return PyObject_IsTrue(pValue);
+	bool result = PyObject_IsTrue(pValue);
+	Py_DECREF(pValue);
+	return result;
     } else {
 	PyErr_Print();
 	fprintf(stderr,"Call failed\n");

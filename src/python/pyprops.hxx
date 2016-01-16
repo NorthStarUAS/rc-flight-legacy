@@ -65,6 +65,9 @@ extern void pyPropsCleanup(void);
 // access in your update routines.
 extern pyPropertyNode pyGetNode(string abs_path, bool create=false);
 
+// Read an xml file and place the results at specified node
+extern bool readXML(string filename, pyPropertyNode *node);
+    
 // Write an xml file beginning with the specified node
 extern bool writeXML(string filename, pyPropertyNode *node);
     
