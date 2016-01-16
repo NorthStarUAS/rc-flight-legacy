@@ -81,9 +81,9 @@ void Filter_init() {
 	printf("filter: %d = %s\n", i, module.c_str());
 	if ( module == "curt" ) {
 	    curt_adns_init( &base, &section );
-	} else if ( module == "umn-euler" ) {
+	} else if ( module == "umn_euler" ) {
 	    umngnss_euler_init( &base, &section );
-	} else if ( module == "umn-quat" ) {
+	} else if ( module == "umn_quat" ) {
 	    umngnss_quat_init( &base, &section );
 	} else {
 	    printf("Unknown filter = '%s' in config file\n",
@@ -320,9 +320,9 @@ bool Filter_update() {
 	    // do nothing
 	} else if ( module == "curt" ) {
 	    fresh_filter_data = curt_adns_update( imu_dt );
-	} else if ( module == "umn-euler" ) {
+	} else if ( module == "umn_euler" ) {
 	    fresh_filter_data = umngnss_euler_update();
-	} else if ( module == "umn-quat" ) {
+	} else if ( module == "umn_quat" ) {
 	    fresh_filter_data = umngnss_quat_update();
 	}
     }
@@ -374,9 +374,9 @@ void Filter_close() {
 	}
 	if ( module == "null" ) {
 	    // do nothing
-	} else if ( module == "umn-euler" ) {
+	} else if ( module == "umn_euler" ) {
 	    umngnss_euler_close();
-	} else if ( module == "umn-quat" ) {
+	} else if ( module == "umn_quat" ) {
 	    umngnss_quat_close();
 	}
     }

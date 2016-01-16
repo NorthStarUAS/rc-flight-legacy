@@ -47,6 +47,8 @@ public:
     bool setBool( const char *name, bool val );     // returns true if successful
     bool setString( const char *name, string val ); // returns true if successful
 
+    void pretty_print();
+    
     // semi-private
     PyObject *pObj;
 };

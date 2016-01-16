@@ -90,7 +90,7 @@ void FGRouteMgr::init( pyPropertyNode *config_node ) {
     active->clear();
     standby->clear();
 
-    if ( ! config_node->isNull() ) {
+    if ( config_node != NULL ) {
 	if ( ! build(config_node) ) {
 	    printf("Detected an internal inconsistency in the route\n");
 	    printf(" configuration.  See earlier errors for\n" );

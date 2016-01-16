@@ -280,7 +280,7 @@ void FGPIDController::update( double dt ) {
 	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
 	    output_node[i].setDouble( output_attr[i].c_str(), u_n );
 	}
-    } else {
+    } else if ( output_node.size() > 0 ) {
 	// Mirror the output value while we are not enabled so there
 	// is less of a continuity break when this module is enabled
 

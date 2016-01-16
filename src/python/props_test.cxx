@@ -10,6 +10,17 @@ int main(int argc, char **argv) {
     
     pyPropsInit(argc, argv);
 
+    pyPropertyNode root_node = pyGetNode("/", true);
+    pyPropertyNode t1_node = root_node.getChild("task", true);
+    pyPropertyNode task_node = t1_node.getChild("home", true);
+    
+    for ( int i = 0; i < 1000; i++ ) {
+	printf("%d\n", i);
+	pyPropertyNode root_node = pyGetNode("/", true);
+	pyPropertyNode t1_node = root_node.getChild("task", true);
+	pyPropertyNode task_node = t1_node.getChild("home", true);
+    }
+
     pyPropertyNode imu_node = pyGetNode("/sensors/imu[2]");
     printf("before calling getDouble()\n");
     printf("az = %.2f\n", imu_node.getDouble("az"));
@@ -31,6 +42,7 @@ int main(int argc, char **argv) {
     printf("gps size = %d\n", sensors.getLen("gps"));
 
     pyGetNode("/sensors/imu[2]");
+    pyGetNode("/sensors/gps[8]", true);
     
     printf("/sensors/imu = %s\n", pyGetNode("/sensors").getString("imu").c_str());
     // this is nonsensical usage, but also causes a segfault which we
@@ -44,4 +56,12 @@ int main(int argc, char **argv) {
     int pos = fullpath.rfind("/");
     printf("%d %s / %s\n", pos, fullpath.substr(0, pos).c_str(),
 	   fullpath.substr(pos+1).c_str() );
+
+    pyPropertyNode sensors1 = pyGetNode("/sensors", true);
+    vector <string> children = sensors1.getChildren();
+    unsigned int count = children.size();
+    for ( int i = 0; i < count; i++ ) {
+	pyPropertyNode node = sensors1.getChild(children[i].c_str());
+	printf("%d %s\n", i, children[i].c_str());
+    }
 }

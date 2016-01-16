@@ -15,34 +15,40 @@ using std::ostringstream;
 
 pyPropertyNode::pyPropertyNode()
 {
+    printf("pyPropertyNode()\n");
     pObj = NULL;
 }
 
 pyPropertyNode::pyPropertyNode(const pyPropertyNode &node)
 {
+    // printf("visiting pyPropertyNode() copy constructor!\n");
     pObj = node.pObj;
     Py_INCREF(pObj);
 }
 
 pyPropertyNode::pyPropertyNode(PyObject *p)
 {
+    // printf("pyPropertyNode(pObj)\n");
     pObj = p;
 }
 
 // Destructor.
 pyPropertyNode::~pyPropertyNode() {
-    printf("~pyPropertyNode destructor\n");
+    // printf("~pyPropertyNode destructor\n");
     Py_DECREF(pObj);
+    pObj = NULL;
 }
 
 // Assignment operator
 pyPropertyNode & pyPropertyNode::operator= (const pyPropertyNode &node) {
+    // printf("Visiting pyPropertyNode operator=\n");
     if (this != &node) {
 	// protect against invalid self-assignment
 
 	if ( pObj != NULL ) {
 	    // 1: decrement current pObj reference because we are losing it
-	    Py_DECREF(pObj);
+	    printf("decrementing existing pObj before overwritting it\n");
+	    FIXME: Py_DECREF(pObj);
 	}
 
 	// 2: copy new value to pObj
@@ -118,20 +124,23 @@ vector <string> pyPropertyNode::getChildren() {
     vector <string> result;
     if ( pObj != NULL ) {
 	PyObject *pList = PyObject_CallMethod(pObj, "getChildren", "");
-	if ( PyList_Check(pList) ) {
-	    int len = PyList_Size(pList);
-	    for ( int i = 0; i < len; i++ ) {
-		PyObject *pItem = PyList_GetItem(pList, i);
-		PyObject *pStr = PyObject_Str(pItem);
-		result.push_back( (string)PyString_AsString(pStr) );
-		Py_DECREF(pStr);
-		Py_DECREF(pItem);
+	if ( pList != NULL ) {
+	    if ( PyList_Check(pList) ) {
+		int len = PyList_Size(pList);
+		for ( int i = 0; i < len; i++ ) {
+		    PyObject *pItem = PyList_GetItem(pList, i);
+		    // note: PyList_GetItem doens't incr ref count on
+		    // pItem (i.e. doesn't give us owner ship, so we
+		    // should not decref() it.
+		    PyObject *pStr = PyObject_Str(pItem);
+		    result.push_back( (string)PyString_AsString(pStr) );
+		    Py_DECREF(pStr);
+		}
 	    }
+	    Py_DECREF(pList);
 	}
-	Py_DECREF(pList);
     }
     return result;
-    //return PyInt_AsLong(pValue);
 }    
 
 // value getters
@@ -158,7 +167,7 @@ double pyPropertyNode::getDouble(const char *name) {
 		    printf("%s\n", s);
 		    Py_DECREF(pStr);
 		}
-		//Py_DECREF(pAttr);
+		Py_DECREF(pAttr);
 	    }
 	}
     }
@@ -201,7 +210,7 @@ bool pyPropertyNode::getBool(const char *name) {
 	if ( PyObject_HasAttrString(pObj, name) ) {
 	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
 	    if ( pAttr != NULL ) {
-		result = PyObject_IsTrue(pObj);
+		result = PyObject_IsTrue(pAttr);
 		Py_DECREF(pAttr);
 	    }
 	}
@@ -215,8 +224,9 @@ string pyPropertyNode::getString(const char *name) {
 	if ( PyObject_HasAttrString(pObj, name) ) {
 	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
 	    if ( pAttr != NULL ) {
-		PyObject *pStr = PyObject_Str(pObj);
+		PyObject *pStr = PyObject_Str(pAttr);
 		result = (string)PyString_AsString(pStr);
+		Py_DECREF(pStr);
 		Py_DECREF(pAttr);
 	    }
 	}
@@ -269,9 +279,23 @@ bool pyPropertyNode::setString( const char *name, string val ) {
     }
 }
 
+// Return a pyPropertyNode object that points to the named child
+void pyPropertyNode::pretty_print()
+{
+    if ( pObj == NULL ) {
+	printf("pretty_print(): Null pyPropertyNode()\n");
+    } else {
+	PyObject *pValue = PyObject_CallMethod(pObj, "pretty_print", "");
+	if (pValue == NULL) {
+	    PyErr_Print();
+	    fprintf(stderr,"Call failed\n");
+	}
+	Py_DECREF(pValue);
+    }
+}
+
 // These only need to be looked up once and then saved
 static PyObject *pModuleProps = NULL;
-static PyObject *pFuncGetNode = NULL;
 static PyObject *pModuleXML = NULL;
 
 // This function must be called first (before any pyPropertyNode
@@ -288,12 +312,6 @@ void pyPropsInit(int argc, char **argv) {
         PyErr_Print();
         fprintf(stderr, "Failed to load 'props'\n");
     }
-    // getNode() function
-    pFuncGetNode = PyObject_GetAttrString(pModuleProps, "getNode");
-    if ( pFuncGetNode == NULL || ! PyCallable_Check(pFuncGetNode) ) {
-	if ( PyErr_Occurred() ) PyErr_Print();
-	fprintf(stderr, "Cannot find function 'getNode()'\n");
-    }
 
     // xml I/O system
     pModuleXML = PyImport_ImportModule("props_xml");
@@ -308,8 +326,8 @@ void pyPropsInit(int argc, char **argv) {
 // node usage) to properly shutdown and clean up the python
 // interpreter.
 extern void pyPropsCleanup(void) {
-    Py_XDECREF(pFuncGetNode);
     Py_XDECREF(pModuleProps);
+    Py_XDECREF(pModuleXML);
     Py_Finalize();
 }
 
@@ -319,11 +337,54 @@ extern void pyPropsCleanup(void) {
 // save the result.  Then use the pyPropertyNode for direct read/write
 // access in your update routines.
 pyPropertyNode pyGetNode(string abs_path, bool create) {
-    PyObject *pArgs = PyTuple_New(2);
+    // python property system
+    PyObject *pModuleProps = PyImport_ImportModule("props");
+    if (pModuleProps == NULL) {
+        PyErr_Print();
+        fprintf(stderr, "Failed to load 'props'\n");
+    }
+
+    PyObject *pFuncGetNode = PyObject_GetAttrString(pModuleProps, "getNode");
+    if ( pFuncGetNode == NULL || ! PyCallable_Check(pFuncGetNode) ) {
+	if ( PyErr_Occurred() ) PyErr_Print();
+	fprintf(stderr, "Cannot find function 'getNode()'\n");
+    }
+
+    // FIXME decref pModuleProp and pFuncGetNode
+    
     PyObject *pPath = PyString_FromString(abs_path.c_str());
     PyObject *pCreate = PyBool_FromLong(create);
     if (!pPath || !pCreate) {
-	Py_DECREF(pArgs);
+	Py_XDECREF(pPath);
+	Py_XDECREF(pCreate);
+	fprintf(stderr, "Cannot convert argument\n");
+	return pyPropertyNode();
+    }
+    PyObject *pValue
+	= PyObject_CallFunctionObjArgs(pFuncGetNode, pPath, pCreate, NULL);
+    Py_DECREF(pPath);
+    Py_DECREF(pCreate);
+    if (pValue != NULL) {
+	// give pValue over to the returned property node
+	/*printf("pyGetNode() success, creating pyPropertyNode\n");
+	pyPropertyNode tmp(pValue);
+	printf("before return\n");*/
+	return pyPropertyNode(pValue);
+    } else {
+	PyErr_Print();
+	printf("Call failed\n");
+	return pyPropertyNode();
+    }
+    return pyPropertyNode();
+}
+
+#if 0
+pyPropertyNode pyGetNodeORIG(string abs_path, bool create) {
+    PyObject *pArgs = PyTuple_New(2);
+    PyObject *pPath = PyString_FromString(abs_path.c_str());
+    PyObject *pCreate = PyBool_FromLong(create);
+    if (!pArgs || !pPath || !pCreate) {
+	Py_XDECREF(pArgs);
 	Py_XDECREF(pPath);
 	Py_XDECREF(pCreate);
 	fprintf(stderr, "Cannot convert argument\n");
@@ -331,18 +392,28 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
     }
     PyTuple_SetItem(pArgs, 0, pPath);
     PyTuple_SetItem(pArgs, 1, pCreate);
-    PyObject *pValue = PyObject_CallObject(pFuncGetNode, pArgs);
-    Py_DECREF(pArgs);
-    if (pValue != NULL) {
-	// give pValue over to the returned property node
-	return pyPropertyNode(pValue);
-    } else {
-	PyErr_Print();
-	fprintf(stderr,"Call failed\n");
+    if ( PyCallable_Check(pFuncGetNode) ) {
+	PyObject *pValue = PyObject_CallObject(pFuncGetNode, pArgs);
+	Py_DECREF(pPath);
+	Py_DECREF(pCreate);
+	Py_DECREF(pArgs);
+	if (pValue != NULL) {
+	    // give pValue over to the returned property node
+	    printf("pyGetNode() success, creating pyPropertyNode\n");
+	    pyPropertyNode tmp(pValue);
+	    printf("before return\n");
+	    return tmp;
+	} else {
+	    PyErr_Print();
+	    printf("Call failed\n");
+	    return pyPropertyNode();
+	}
 	return pyPropertyNode();
+    } else {
+	printf("pFuncGetNode has become uncallable.\n");
     }
-    return pyPropertyNode();
 }
+#endif
 
 bool readXML(string filename, pyPropertyNode *node) {
     // getNode() function
