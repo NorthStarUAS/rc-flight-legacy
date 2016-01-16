@@ -683,7 +683,7 @@ void FGXMLAutopilot::init() {
     if ( ! build() ) {
 	printf("Detected an internal inconsistency in the autopilot\n");
 	printf(" configuration.  See earlier errors for\n" );
-	printf(" details.");
+	printf(" details.\n");
 	exit(-1);
     }        
 }

@@ -46,8 +46,6 @@ using std::ostringstream;
 #define ANALOG_PACKET_ID 54
 #define CONFIG_INFO_PACKET_ID 55
 
-#define ACT_COMMAND_PACKET_ID 60
-
 #define NUM_PILOT_INPUTS 8
 #define NUM_ACTUATORS 8
 #define NUM_IMU_SENSORS 7
@@ -1241,11 +1239,11 @@ static bool APM2_send_config() {
 	    pyPropertyNode mix_node = mixing_node.getChild("mix", i, true);
 	    if ( mix_node.hasChild("mode") ) {
 		mode = mix_node.getString("mode");
-		if ( mode == "auto-coordination" ) {
+		if ( mode == "auto_coordination" ) {
 		    mode_id = MIX_AUTOCOORDINATE;
-		} else if ( mode == "throttle-trim" ) {
+		} else if ( mode == "throttle_trim" ) {
 		    mode_id = MIX_THROTTLE_TRIM;
-		} else if ( mode == "flap-trim" ) {
+		} else if ( mode == "flap_trim" ) {
 		    mode_id = MIX_FLAP_TRIM;
 		} else if ( mode == "elevon" ) {
 		    mode_id = MIX_ELEVONS;
@@ -1253,7 +1251,7 @@ static bool APM2_send_config() {
 		    mode_id = MIX_FLAPERONS;
 		} else if ( mode == "vtail" ) {
 		    mode_id = MIX_VTAIL;
-		} else if ( mode == "diff-thrust" ) {
+		} else if ( mode == "diff_thrust" ) {
 		    mode_id = MIX_DIFF_THRUST;
 		}
 	    }

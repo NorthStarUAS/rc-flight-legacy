@@ -69,7 +69,7 @@ void FGRouteMgr::bind() {
     vel_node = pyGetNode("velocity", true);
     orient_node = pyGetNode("/orientation", true);
     route_node = pyGetNode("/task/route", true);
-    L1_node = pyGetNode("/config/fcs/autopilot/L1-controller", true);
+    L1_node = pyGetNode("/config/fcs/autopilot/L1_controller", true);
     ap_node = pyGetNode("/autopilot/settings", true);
 
     // sanity check, set some conservative values if none are provided
