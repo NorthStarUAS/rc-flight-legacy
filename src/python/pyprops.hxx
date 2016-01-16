@@ -17,10 +17,14 @@ class pyPropertyNode
 public:
     // Constructor.
     pyPropertyNode();
+    pyPropertyNode(const pyPropertyNode &node); // copy constructor
     pyPropertyNode(PyObject *p);
 
     // Destructor.
     ~pyPropertyNode();
+
+    // operator =
+    pyPropertyNode & operator= (const pyPropertyNode &node);
 
     bool hasChild(const char *name );
     pyPropertyNode getChild( const char *name, bool create=false );

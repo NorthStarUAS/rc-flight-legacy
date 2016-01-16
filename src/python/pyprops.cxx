@@ -18,6 +18,12 @@ pyPropertyNode::pyPropertyNode()
     pObj = NULL;
 }
 
+pyPropertyNode::pyPropertyNode(const pyPropertyNode &node)
+{
+    pObj = node.pObj;
+    Py_INCREF(pObj);
+}
+
 pyPropertyNode::pyPropertyNode(PyObject *p)
 {
     pObj = p;
@@ -26,7 +32,28 @@ pyPropertyNode::pyPropertyNode(PyObject *p)
 // Destructor.
 pyPropertyNode::~pyPropertyNode() {
     printf("~pyPropertyNode destructor\n");
-    Py_XDECREF(pObj);
+    Py_DECREF(pObj);
+}
+
+// Assignment operator
+pyPropertyNode & pyPropertyNode::operator= (const pyPropertyNode &node) {
+    if (this != &node) {
+	// protect against invalid self-assignment
+
+	if ( pObj != NULL ) {
+	    // 1: decrement current pObj reference because we are losing it
+	    Py_DECREF(pObj);
+	}
+
+	// 2: copy new value to pObj
+	pObj = node.pObj;
+
+	// 3: increment pObj ref count because we just created another
+	// reference to it.
+	Py_INCREF(pObj);
+    }
+    // by convention, always return *this
+    return *this;
 }
 
 // test if pObj has named child attribute
