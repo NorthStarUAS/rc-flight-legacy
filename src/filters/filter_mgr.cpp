@@ -65,9 +65,11 @@ void Filter_init() {
 
 
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/filters", true);
-    for ( int i = 0; i < toplevel.getLen("filter"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("filter", i);
+    pyPropertyNode group_node = pyGetNode("/config/filters", true);
+    vector<string> children = group_node.getChildren();
+    printf("Found %d filter sections\n", children.size());
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string module = section.getString("module");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -308,9 +310,10 @@ bool Filter_update() {
     if ( imu_dt < 0.0 ) { imu_dt = 0.01; }
 
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/filters", true);
-    for ( int i = 0; i < toplevel.getLen("filter"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("filter", i);
+    pyPropertyNode group_node = pyGetNode("/config/filters", true);
+    vector<string> children = group_node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string module = section.getString("module");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -364,9 +367,10 @@ bool Filter_update() {
 
 void Filter_close() {
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/filters", true);
-    for ( int i = 0; i < toplevel.getLen("filter"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("filter", i);
+    pyPropertyNode group_node = pyGetNode("/config/filters", true);
+    vector<string> children = group_node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string module = section.getString("module");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {

@@ -44,14 +44,14 @@ static double gps_last_time = -31557600.0; // default to t minus one year old
 static pyPropertyNode gps_node;
 static pyPropertyNode remote_link_node;
 static pyPropertyNode logging_node;
-static pyPropertyNode config_filters_node;
+static pyPropertyNode config_node;
 
 
 void GPS_init() {
     gps_node = pyGetNode("/sensors/gps", true);
     remote_link_node = pyGetNode("/config/remote_link", true);
     logging_node = pyGetNode("/config/logging", true);
-    config_filters_node = pyGetNode("/config/filters", true);
+    config_node = pyGetNode("/config", true);
     
     // gps_timestamp_node = pyGetNode("/sensors/gps/time-stamp", true);
     // gps_unix_sec_node = pyGetNode("/sensors/gps/unix-time-sec", true);
@@ -107,8 +107,8 @@ void GPS_init() {
 
 static void compute_magvar() {
     double magvar_rad = 0.0;
-    if ( ! config_filters_node.hasChild("magvar_deg") ||
-	 config_filters_node.getString("magvar_deg") == "auto" )
+    if ( ! config_node.hasChild("magvar_deg") ||
+	 config_node.getString("magvar_deg") == "auto" )
     {
 	long int jd = unixdate_to_julian_days( gps_node.getLong("unix_time_sec") );
 	double field[6];
@@ -120,7 +120,7 @@ static void compute_magvar() {
 			   gps_node.getDouble("altitude_m") / 1000.0,
 			   jd, field );
     } else {
-	magvar_rad = config_filters_node.getDouble("magvar_deg")
+	magvar_rad = config_node.getDouble("magvar_deg")
 	    * SGD_DEGREES_TO_RADIANS;
     }
     gps_node.setDouble( "magvar_deg", magvar_rad * SG_RADIANS_TO_DEGREES );

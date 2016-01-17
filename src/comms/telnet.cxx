@@ -219,6 +219,7 @@ PropsChannel::foundTerminator()
 			newpath = path + "/" + tokens[1];
 		    }
 		}
+		
 		pyPropertyNode newnode = pyGetNode(newpath);
 		if ( ! newnode.isNull() ) {
 		    path = newpath;
