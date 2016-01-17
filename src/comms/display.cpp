@@ -60,9 +60,9 @@ void display_message()
     }
 
     printf("[m/s^2]:ax  = %6.3f ay  = %6.3f az  = %6.3f \n",
-	   imu_node.getDouble("ax_mps"),
-	   imu_node.getDouble("ay_mps"),
-	   imu_node.getDouble("az_mps"));
+	   imu_node.getDouble("ax_mps_sec"),
+	   imu_node.getDouble("ay_mps_sec"),
+	   imu_node.getDouble("az_mps_sec"));
     printf("[deg/s]:p   = %6.3f q   = %6.3f r   = %6.3f \n",
 	   imu_node.getDouble("p_rad_sec") * SGD_RADIANS_TO_DEGREES,
 	   imu_node.getDouble("q_rad_sec") * SGD_RADIANS_TO_DEGREES,

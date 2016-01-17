@@ -73,9 +73,11 @@ void AirData_init() {
     task_node = pyGetNode("/task", true);
 
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/sensors/airdata_group", true);
-    for ( int i = 0; i < toplevel.getLen("airdata"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("airdata", i);
+    pyPropertyNode group_node = pyGetNode("/config/sensors/airdata_group", true);
+    vector<string> children = group_node.getChildren();
+    printf("Found %d airdata sections\n", children.size());
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -273,9 +275,10 @@ bool AirData_update() {
     bool fresh_data = false;
 
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/sensors/airdata_group", true);
-    for ( int i = 0; i < toplevel.getLen("airdata"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("airdata", i);
+    pyPropertyNode group_node = pyGetNode("/config/sensors/airdata_group", true);
+    vector<string> children = group_node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -328,9 +331,10 @@ bool AirData_update() {
 
 void AirData_recalibrate() {
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/sensors/airdata_group", true);
-    for ( int i = 0; i < toplevel.getLen("airdata"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("airdata", i);
+    pyPropertyNode group_node = pyGetNode("/config/sensors/airdata_group", true);
+    vector<string> children = group_node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -358,9 +362,10 @@ void AirData_recalibrate() {
 
 void AirData_close() {
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/sensors/airdata_group", true);
-    for ( int i = 0; i < toplevel.getLen("airdata"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("airdata", i);
+    pyPropertyNode group_node = pyGetNode("/config/sensors/airdata_group", true);
+    vector<string> children = group_node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {

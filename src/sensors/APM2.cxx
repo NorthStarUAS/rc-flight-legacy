@@ -1035,7 +1035,7 @@ static int APM2_read() {
     static uint8_t payload[500];
 
     // if ( display_on ) {
-    //   printf("read APM2, entry state = %d\n", state);
+    //    printf("read APM2, entry state = %d\n", state);
     // }
 
     bool new_data = false;
@@ -1045,7 +1045,7 @@ static int APM2_read() {
 	cksum_A = cksum_B = 0;
 	len = read( fd, input, 1 );
 	while ( len > 0 && input[0] != START_OF_MSG0 ) {
-	    // fprintf( stderr, "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
+	    //fprintf( stderr, "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
 	    len = read( fd, input, 1 );
 	}
 	if ( len > 0 && input[0] == START_OF_MSG0 ) {
@@ -1523,7 +1523,7 @@ bool APM2_imu_update() {
 	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
 
 	imu_node.setDouble( "timestamp", imu_timestamp );
-	imu_node.setDouble( "temp_C", imu_sensors[6] * temp_scale );
+	bool result = imu_node.setDouble( "temp_C", imu_sensors[6] * temp_scale );
     }
 
     return true;

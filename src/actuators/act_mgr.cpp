@@ -14,6 +14,11 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <string>
+#include <vector>
+using std::string;
+using std::vector;
+
 #include "comms/remote_link.h"
 #include "comms/logging.h"
 #include "include/globaldefs.h"
@@ -62,10 +67,11 @@ void Actuator_init() {
     logging_node = pyGetNode("/config/logging", true);
 
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/actuators", true);
-    for ( int i = 0; i < toplevel.getLen("actuator"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("actuator", i);
-
+    pyPropertyNode group_node = pyGetNode("/config/actuators", true);
+    vector<string> children = group_node.getChildren();
+    printf("Found %d actuator sections\n", children.size());
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string module = section.getString("module");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -255,9 +261,10 @@ bool Actuator_update() {
     }
 
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/actuators", true);
-    for ( int i = 0; i < toplevel.getLen("actuator"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("actuator", i);
+    pyPropertyNode group_node = pyGetNode("/config/actuators", true);
+    vector<string> children = group_node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string module = section.getString("module");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -304,9 +311,10 @@ bool Actuator_update() {
 
 void Actuators_close() {
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/actuators", true);
-    for ( int i = 0; i < toplevel.getLen("actuator"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("actuator", i);
+    pyPropertyNode group_node = pyGetNode("/config/actuators", true);
+    vector<string> children = group_node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string module = section.getString("module");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {

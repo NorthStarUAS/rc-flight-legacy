@@ -64,4 +64,20 @@ int main(int argc, char **argv) {
 	pyPropertyNode node = sensors1.getChild(children[i].c_str());
 	printf("%d %s\n", i, children[i].c_str());
     }
+
+    pyPropertyNode device = pyGetNode("/sensors/device", true);
+    device.setDouble("var1", 12.345);
+
+    pyPropertyNode device0 = pyGetNode("/sensors/device[0]", true);
+    device0.setDouble("var2", 54.321);
+
+    device.setDouble("var3", 99);
+    device0.setDouble("var4", 88);
+    
+    children = sensors.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	printf("sensor child = %s\n", children[i].c_str());
+    }
+
+    sensors.pretty_print();
 }

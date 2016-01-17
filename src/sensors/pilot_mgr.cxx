@@ -90,9 +90,11 @@ void PilotInput_init() {
     // ap_master_switch_node = pyGetNode("/autopilot/master-switch", true);
 
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/sensors/pilot_inputs", true);
-    for ( int i = 0; i < toplevel.getLen("pilot_input"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("pilot_input", i);
+    pyPropertyNode group_node = pyGetNode("/config/sensors/pilot_inputs", true);
+    vector<string> children = group_node.getChildren();
+    printf("Found %d pilot sections\n", children.size());
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -123,9 +125,10 @@ bool PilotInput_update() {
     bool fresh_data = false;
 
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/sensors/pilot_inputs", true);
-    for ( int i = 0; i < toplevel.getLen("pilot_input"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("pilot_input", i);
+    pyPropertyNode group_node = pyGetNode("/config/sensors/pilot_inputs", true);
+    vector<string> children = group_node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -191,9 +194,10 @@ bool PilotInput_update() {
 
 void PilotInput_close() {
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/sensors/pilot_inputs", true);
-    for ( int i = 0; i < toplevel.getLen("pilot_input"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("pilot_input", i);
+    pyPropertyNode group_node = pyGetNode("/config/sensors/pilot_inputs", true);
+    vector<string> children = group_node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {

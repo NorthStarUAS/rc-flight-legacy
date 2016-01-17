@@ -68,9 +68,11 @@ void GPS_init() {
     // gps_logging_skip = pyGetNode("/config/logging/gps-skip", true);
 
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/sensors/gps_group", true);
-    for ( int i = 0; i < toplevel.getLen("gps"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("gps", i);
+    pyPropertyNode group_node = pyGetNode("/config/sensors/gps_group", true);
+    vector<string> children = group_node.getChildren();
+    printf("Found %d gps sections\n", children.size());
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -132,9 +134,10 @@ bool GPS_update() {
     static int gps_state = 0;
 
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/sensors/gps_group", true);
-    for ( int i = 0; i < toplevel.getLen("gps"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("gps", i);
+    pyPropertyNode group_node = pyGetNode("/config/sensors/gps_group", true);
+    vector<string> children = group_node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -252,9 +255,10 @@ bool GPS_update() {
 void GPS_close() {
 
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/sensors/gps_group", true);
-    for ( int i = 0; i < toplevel.getLen("gps"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("gps", i);
+    pyPropertyNode group_node = pyGetNode("/config/sensors/gps_group", true);
+    vector<string> children = group_node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {

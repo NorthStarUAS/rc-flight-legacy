@@ -11,6 +11,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <string>
+#include <vector>
+using std::string;
+using std::vector;
+
 #include "comms/logging.h"
 #include "comms/remote_link.h"
 #include "comms/packetizer.hxx"
@@ -52,16 +57,18 @@ void IMU_init() {
     logging_node = pyGetNode("/config/logging", true);
 
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/sensors/imu_group", true);
-    for ( int i = 0; i < toplevel.getLen("imu"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("imu", i);
+    pyPropertyNode group_node = pyGetNode("/config/sensors/imu_group", true);
+    vector<string> children = group_node.getChildren();
+    printf("Found %d imu sections\n", children.size());
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}
 	    
-	pyPropertyNode parent = pyGetNode("/sensors/", true);
+	pyPropertyNode parent = pyGetNode("/sensors", true);
 	pyPropertyNode base = parent.getChild("imu", i, true);
 	printf("imu: %d = %s\n", i, source.c_str());
 	if ( source == "null" ) {
@@ -94,9 +101,10 @@ bool IMU_update() {
     bool fresh_data = false;
 
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/sensors/imu_group", true);
-    for ( int i = 0; i < toplevel.getLen("imu"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("imu", i);
+    pyPropertyNode group_node = pyGetNode("/config/sensors/imu_group", true);
+    vector<string> children = group_node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -154,9 +162,10 @@ bool IMU_update() {
 
 void IMU_close() {
     // traverse configured modules
-    pyPropertyNode toplevel = pyGetNode("/config/sensors/imu_group", true);
-    for ( int i = 0; i < toplevel.getLen("imu"); i++ ) {
-	pyPropertyNode section = toplevel.getChild("imu", i);
+    pyPropertyNode group_node = pyGetNode("/config/sensors/imu_group", true);
+    vector<string> children = group_node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	//printf("i = %d  name = %s source = %s\n",
