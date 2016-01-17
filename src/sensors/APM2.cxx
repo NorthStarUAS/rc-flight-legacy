@@ -965,11 +965,12 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	}
     } else if ( pkt_id == CONFIG_INFO_PACKET_ID ) {
 	static bool first_time = true;
-	if ( pkt_len == 10 ) {
+	if ( pkt_len == 12 ) {
 	    uint16_t serial_num = *(uint16_t *)payload; payload += 2;
 	    uint16_t firmware_rev = *(uint16_t *)payload; payload += 2;
 	    uint16_t master_hz = *(uint16_t *)payload; payload += 2;
 	    uint32_t baud_rate = *(uint32_t *)payload; payload += 4;
+	    uint16_t byte_rate = *(uint16_t *)payload; payload += 2;
 
 #if 0
 	    if ( display_on ) {
@@ -982,6 +983,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    apm2_node.setLong( "firmware_rev", firmware_rev );
 	    apm2_node.setLong( "master_hz", master_hz );
 	    apm2_node.setLong( "baud_rate", baud_rate );
+	    apm2_node.setLong( "byte_rate_sec", byte_rate );
 
 	    if ( first_time ) {
 		// log the data to events.txt
