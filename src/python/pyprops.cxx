@@ -15,7 +15,7 @@ using std::ostringstream;
 
 pyPropertyNode::pyPropertyNode()
 {
-    printf("pyPropertyNode()\n");
+    // printf("pyPropertyNode()\n");
     pObj = NULL;
 }
 
@@ -47,8 +47,8 @@ pyPropertyNode & pyPropertyNode::operator= (const pyPropertyNode &node) {
 
 	if ( pObj != NULL ) {
 	    // 1: decrement current pObj reference because we are losing it
-	    printf("decrementing existing pObj before overwritting it\n");
-	    FIXME: Py_DECREF(pObj);
+	    // printf("decrementing existing pObj before overwritting it\n");
+	    Py_DECREF(pObj);
 	}
 
 	// 2: copy new value to pObj
@@ -140,6 +140,17 @@ vector <string> pyPropertyNode::getChildren() {
 	    Py_DECREF(pList);
 	}
     }
+    return result;
+}    
+
+// return true if pObj/name is leaf
+bool pyPropertyNode::isLeaf(const char *name) {
+    if ( pObj == NULL ) {
+	return false;
+    }
+    PyObject *pValue = PyObject_CallMethod(pObj, "isLeaf", "s", name);
+    bool result = PyObject_IsTrue(pValue);
+    Py_DECREF(pValue);
     return result;
 }    
 

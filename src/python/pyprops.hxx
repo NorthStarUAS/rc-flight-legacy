@@ -34,6 +34,8 @@ public:
     int getLen( const char *name); // return len of pObj if a list, else 0
 
     vector <string> getChildren(); // return list of children
+
+    bool isLeaf( const char *name); // return true if pObj/name is leaf
     
     // value getters
     double getDouble( const char *name ); // return value as a double
