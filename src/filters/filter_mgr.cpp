@@ -93,36 +93,7 @@ void Filter_init() {
 	}
     }
 
-    // initialize output property nodes (after module initialization
-    // so we know that the reference properties will exist
-    //filter_timestamp_node = fgGetNode("/filters/time-stamp", true);
-    //filter_theta_node = fgGetNode("/orientation/pitch-deg", true);
-    //filter_phi_node = fgGetNode("/orientation/roll-deg", true);
-    //filter_psi_node = fgGetNode("/orientation/heading-deg", true);
-    //filter_lat_node = fgGetNode("/position/latitude-deg", true);
-    //filter_lon_node = fgGetNode("/position/longitude-deg", true);
-    //filter_alt_m_node = fgGetNode("/position/filter/altitude-m", true);
-    //filter_alt_ft_node = fgGetNode("/position/filter/altitude-ft", true);
-    //filter_vn_node = fgGetNode("/velocity/vn-ms", true);
-    //filter_ve_node = fgGetNode("/velocity/ve-ms", true);
-    //filter_vd_node = fgGetNode("/velocity/vd-ms", true);
-    //filter_status_node = fgGetNode("/health/navigation", true);
-
-    //filter_phi_dot_node = fgGetNode("/orientation/phi-dot-rad_sec", true);
-    //filter_the_dot_node = fgGetNode("/orientation/the-dot-rad_sec", true);
-    //filter_psi_dot_node = fgGetNode("/orientation/psi-dot-rad_sec", true);
-
-    //filter_track_node = fgGetNode("/orientation/groundtrack-deg", true);
-    //filter_vel_node = fgGetNode("/velocity/groundspeed-ms", true);
-    //filter_vert_speed_fps_node
-    // = fgGetNode("/velocity/vertical-speed-fps", true);
-    //filter_ground_alt_m_node
-    // = fgGetNode("/position/filter/altitude-ground-m", true);
-    //filter_alt_agl_m_node
-    // = fgGetNode("/position/filter/altitude-agl-m", true);
-    //filter_alt_agl_ft_node
-    //	= fgGetNode("/position/filter/altitude-agl-ft", true);
-
+    // FIXME: DO ALIASES (or copy)
     // if ( toplevel->nChildren() > 0 ) {
 	//filter_timestamp_node->alias("/filters/filter[0]/time-stamp");
 	//filter_theta_node->alias("/filters/filter[0]/pitch-deg");
@@ -141,13 +112,6 @@ void Filter_init() {
 	//filter_vel_node->alias("/filters/filter[0]/groundspeed-ms");
 	//filter_vert_speed_fps_node->alias("/filters/filter[0]/vertical-speed-fps");
     // }
-
-    // initialize altitude output nodes
-    //official_alt_m_node = fgGetNode("/position/altitude-m", true);
-    //official_alt_ft_node = fgGetNode("/position/altitude-ft", true);
-    //official_agl_m_node = fgGetNode("/position/altitude-agl-m", true);
-    //official_agl_ft_node = fgGetNode("/position/altitude-agl-ft", true);
-    //official_ground_m_node = fgGetNode("/position/altitude-ground-m", true);
 
     // select official source (currently AGL is pressure based,
     // absolute ground alt is based on average gps/filter value at
@@ -169,7 +133,6 @@ void Filter_init() {
 static void update_euler_rates() {
     double phi = orient_node.getDouble("roll_deg") * SGD_DEGREES_TO_RADIANS;
     double the = orient_node.getDouble("pitch_deg") * SGD_DEGREES_TO_RADIANS;
-    /*double psi = orientd_node.getDouble("heading_deg") * SGD_DEGREES_TO_RADIANS;*/
 
     // direct computation of euler rates given body rates and estimated
     // attitude (based on googled references):

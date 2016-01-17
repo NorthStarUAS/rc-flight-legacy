@@ -39,22 +39,7 @@ using std::string;
 #include "gps_mediatek.hxx"
 
 
-// property nodes
 static pyPropertyNode gps_node;
-// static SGPropertyNode *configroot = NULL;
-
-// static SGPropertyNode *gps_timestamp_node = NULL;
-// static SGPropertyNode *gps_lat_node = NULL;
-// static SGPropertyNode *gps_lon_node = NULL;
-// static SGPropertyNode *gps_alt_node = NULL;
-// static SGPropertyNode *gps_ve_node = NULL;
-// static SGPropertyNode *gps_vn_node = NULL;
-// static SGPropertyNode *gps_vd_node = NULL;
-// static SGPropertyNode *gps_unix_sec_node = NULL;
-// static SGPropertyNode *gps_satellites_node = NULL;
-// static SGPropertyNode *gps_fix_type_node = NULL;
-// static SGPropertyNode *gps_firmware_node = NULL;
-// static SGPropertyNode *gps_device_name_node = NULL;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
@@ -71,18 +56,6 @@ static void bind_input( pyPropertyNode *config ) {
 // initialize gpsd output property nodes 
 static void bind_output( pyPropertyNode *base ) {
     gps_node = *base;
-    // SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
-    // gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    // gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    // gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    // gps_alt_node = outputroot->getChild("altitude-m", 0, true);
-    // gps_ve_node = outputroot->getChild("ve-ms", 0, true);
-    // gps_vn_node = outputroot->getChild("vn-ms", 0, true);
-    // gps_vd_node = outputroot->getChild("vd-ms", 0, true);
-    // gps_satellites_node = outputroot->getChild("satellites", 0, true);
-    // gps_fix_type_node = outputroot->getChild("fix-type", 0, true);
-    // gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
-    // gps_firmware_node = outputroot->getChild("firmware", 0, true);
 }
 
 

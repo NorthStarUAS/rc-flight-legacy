@@ -38,57 +38,8 @@ static pyPropertyNode remote_link_node;
 static pyPropertyNode logging_node;
 static pyPropertyNode ap_node;
 
-// static SGPropertyNode *pilot_timestamp_node = NULL;
-// static SGPropertyNode *pilot_aileron_node = NULL;
-// static SGPropertyNode *pilot_elevator_node = NULL;
-// static SGPropertyNode *pilot_throttle_node = NULL;
-// static SGPropertyNode *pilot_rudder_node = NULL;
-// static SGPropertyNode *pilot_manual_node = NULL;
-// static SGPropertyNode *pilot_channel6_node = NULL;
-// static SGPropertyNode *pilot_channel7_node = NULL;
-// static SGPropertyNode *pilot_channel8_node = NULL;
-// static SGPropertyNode *pilot_status_node = NULL;
-
-// // flight control output property nodes
-// static SGPropertyNode *output_aileron_node = NULL;
-// static SGPropertyNode *output_elevator_node = NULL;
-// static SGPropertyNode *output_throttle_node = NULL;
-// static SGPropertyNode *output_rudder_node = NULL;
-
-// // comm property nodes
-// static SGPropertyNode *pilot_console_skip = NULL;
-// static SGPropertyNode *pilot_logging_skip = NULL;
-
-// // master autopilot switch
-// static SGPropertyNode *ap_master_switch_node = NULL;
-
 
 void PilotInput_init() {
-    // // pilot input property nodes
-    // pilot_timestamp_node = pyGetNode("/sensors/pilot/time-stamp", true);
-    // pilot_aileron_node = pyGetNode("/sensors/pilot/aileron", true);
-    // pilot_elevator_node = pyGetNode("/sensors/pilot/elevator", true);
-    // pilot_throttle_node = pyGetNode("/sensors/pilot/throttle", true);
-    // pilot_rudder_node = pyGetNode("/sensors/pilot/rudder", true);
-    // pilot_manual_node = pyGetNode("/sensors/pilot/manual", true);
-    // pilot_channel6_node = pyGetNode("/sensors/pilot/channel", 5, true);
-    // pilot_channel7_node = pyGetNode("/sensors/pilot/channel", 6, true);
-    // pilot_channel8_node = pyGetNode("/sensors/pilot/channel", 7, true);
-    // pilot_status_node = pyGetNode("/sensors/pilot/status", true);
-
-    // // flight control output property nodes
-    // output_aileron_node = pyGetNode("/controls/flight/aileron", true);
-    // output_elevator_node = pyGetNode("/controls/flight/elevator", true);
-    // output_throttle_node = pyGetNode("/controls/engine/throttle", true);
-    // output_rudder_node = pyGetNode("/controls/flight/rudder", true);
-
-    // // initialize comm nodes
-    // pilot_console_skip = pyGetNode("/config/remote-link/pilot-skip", true);
-    // pilot_logging_skip = pyGetNode("/config/logging/pilot-skip", true);
-
-    // // master autopilot switch
-    // ap_master_switch_node = pyGetNode("/autopilot/master-switch", true);
-
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/sensors/pilot_inputs", true);
     vector<string> children = group_node.getChildren();

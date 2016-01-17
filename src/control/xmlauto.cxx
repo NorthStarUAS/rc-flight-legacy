@@ -753,115 +753,11 @@ inline void SG_NORMALIZE_RANGE( T &val, const T min, const T max ) {
 
 
 /*
- * Update helper values
- */
-static void update_helper( double dt ) {
-#if 0
-    // Estimate speed in 5,10 seconds
-    static SGPropertyNode *vel = pyGetNode( "/velocity/airspeed-kt", true );
-    static SGPropertyNode *lookahead5
-        = pyGetNode( "/autopilot/internal/lookahead-5-sec-airspeed-kt", true );
-    static SGPropertyNode *lookahead10
-        = pyGetNode( "/autopilot/internal/lookahead-10-sec-airspeed-kt", true );
-
-    static double average = 0.0; // average/filtered prediction
-    static double v_last = 0.0;  // last velocity
-
-    if ( dt > 0.0 ) {
-        double v = vel.getDouble();
-        double a = (v - v_last) / dt;
-
-        if ( dt < 1.0 ) {
-            average = (1.0 - dt) * average + dt * a;
-        } else {
-            average = a;
-        }
-
-        lookahead5->setDouble( v + average * 5.0 );
-        lookahead10->setDouble( v + average * 10.0 );
-        v_last = v;
-    }
-#endif
-
-#if 0
-    // given the current wind estimate, compute the true heading
-    // required to fly the current ground course, then compute the
-    // true heading required to fly the target nav course.  Steer
-    // based on the heading difference in "true orientation" space
-    // rather than in ground track space.  This schedules our
-    // steering gain based on the wind vector automatically.  Note we
-    // do not use our actual true heading because our wind estimate
-    // and true heading estimate aren't perfect, winds can shift
-    // rapidly, and trusting average or old estimates can throw us way
-    // off.
-
-    double diff;
-
-    // real sensor data
-    static SGPropertyNode *groundtrack_deg
-        = pyGetNode( "/orientation/groundtrack-deg", true );
-
-    // wind estimates
-    // autopilot settings
-    static SGPropertyNode *target_course_deg
-        = pyGetNode( "/autopilot/settings/target-groundtrack-deg", true );
-
-    // compute heading error in aircraft heading space after doing
-    // wind triangle math on the current and target ground courses.
-    // This gives us a close estimate of how far we have to yaw the
-    // aircraft nose to get on the target ground course.
-    double hdg_error = wind_heading_diff(groundtrack_deg.getDouble(),
-					 target_course_deg.getDouble());
-
-    static SGPropertyNode *wind_heading_error
-        = pyGetNode( "/autopilot/settings/wind-heading-error-deg", true );
-    wind_heading_error->setDouble( hdg_error );
-#endif
-
-#if 0
-    // Calculate "wind compensated" groundtrack heading error
-    // normalized to +/- 180.0.  The ground track heading error can be
-    // misleading if there is wind.  we compute a wind compensated
-    // true heading difference so we know what heading we need to roll
-    // out at to achieve the target ground track heading.  The actual
-    // computations are performed in the route_mgr code, the wind
-    // estimation is performed in the filter_mgr code.
-    static SGPropertyNode *target_wind_true
-        = pyGetNode( "/filters/wind-est/target-heading-deg", true );
-    static SGPropertyNode *true_hdg
-        = pyGetNode( "/orientation/heading-deg", true );
-    static SGPropertyNode *wind_true_error
-        = pyGetNode( "/autopilot/internal/wind-true-error-deg", true );
-
-    diff = target_wind_true.getDouble() - true_hdg.getDouble();
-    if ( diff < -180.0 ) { diff += 360.0; }
-    if ( diff > 180.0 ) { diff -= 360.0; }
-    wind_true_error->setDouble( diff );
-#endif
-
-#if 0
-    // calculate the roll angle squared for the purpose of adding open
-    // loop elevator deflection in turns.
-    static SGPropertyNode *roll_squared
-        = pyGetNode( "/orientation/roll-deg-squared", true );
-    static SGPropertyNode *phi_node
-	= pyGetNode("/orientation/roll-deg", true);
-    double roll = phi_node.getDouble();
-    roll_squared->setDouble( roll * roll );
-#endif
-
-}
-
-
-/*
  * Update the list of autopilot components
  */
 
 void FGXMLAutopilot::update( double dt ) {
-    update_helper( dt );
-
-    unsigned int i;
-    for ( i = 0; i < components.size(); ++i ) {
+    for ( unsigned int i = 0; i < components.size(); ++i ) {
         components[i]->update( dt );
     }
 }

@@ -117,39 +117,6 @@ PropsChannel::node_not_found_error( const string& node_name )
     push( getTerminator() );
 }
 
-#if 0
-// return a human readable form of the value "type"
-static string getValueTypeString( const SGPropertyNode *node )
-{
-    string result;
-
-    if ( node == NULL )
-    {
-        return "unknown";
-    }
-
-    SGPropertyNode::Type type = node->getType();
-    if ( type == SGPropertyNode::UNSPECIFIED ) {
-        result = "unspecified";
-    } else if ( type == SGPropertyNode::NONE ) {
-        result = "none";
-    } else if ( type == SGPropertyNode::BOOL ) {
-        result = "bool";
-    } else if ( type == SGPropertyNode::INT ) {
-        result = "int";
-    } else if ( type == SGPropertyNode::LONG ) {
-        result = "long";
-    } else if ( type == SGPropertyNode::FLOAT ) {
-        result = "float";
-    } else if ( type == SGPropertyNode::DOUBLE ) {
-        result = "double";
-    } else if ( type == SGPropertyNode::STRING ) {
-        result = "string";
-    }
-
-    return result;
-}
-#endif
 
 /**
  * We have a command.

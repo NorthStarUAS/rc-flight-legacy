@@ -383,26 +383,6 @@ void FGRouteMgr::update() {
     } else {
 	route_node.setDouble( "wp_eta_sec", 0.0 );
     }
-
-#if 0
-    if ( display_on ) {
-	SGPropertyNode *ground_deg = pyGetNode("/orientation/groundtrack-deg", true);
-	double gtd = ground_deg.getDouble();
-	if ( gtd < 0 ) { gtd += 360.0; }
-	double diff = wp_course - gtd;
-	if ( diff < -180.0 ) { diff += 360.0; }
-	if ( diff > 180.0 ) { diff -= 360.0; }
-	SGPropertyNode *psi = pyGetNode("/orientation/heading-deg", true);
-	printf("true filt=%.1f true-wind-est=%.1f target-hd=%.1f\n",
-	       psi.getDouble(), true_deg, hd * SGD_RADIANS_TO_DEGREES);
-	printf("gt cur=%.1f target=%.1f diff=%.1f\n", gtd, wp_course, diff);
-	diff = hd*SGD_RADIANS_TO_DEGREES - true_deg;
-	if ( diff < -180.0 ) { diff += 360.0; }
-	if ( diff > 180.0 ) { diff -= 360.0; }
-	printf("wnd: cur=%.1f target=%.1f diff=%.1f\n",
-	       true_deg, hd * SGD_RADIANS_TO_DEGREES, diff);
-    }
-#endif
 }
 
 

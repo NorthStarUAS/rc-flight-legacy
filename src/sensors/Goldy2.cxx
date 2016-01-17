@@ -29,64 +29,10 @@ static int gps_fix_value = 0;
 static const int rcin_channels = 16;
 static uint16_t rcin[rcin_channels];
 
-// property nodes
-//static SGPropertyNode *configroot = NULL;
-//static SGPropertyNode *outputroot = NULL;
-//static SGPropertyNode *goldy2_port_node = NULL;
-
-// imu property nodes
 static pyPropertyNode imu_node;
 static pyPropertyNode gps_node;
 static pyPropertyNode airdata_node;
 static pyPropertyNode pilot_node;
-
-//static SGPropertyNode *imu_timestamp_node = NULL;
-//static SGPropertyNode *imu_p_node = NULL;
-//static SGPropertyNode *imu_q_node = NULL;
-//static SGPropertyNode *imu_r_node = NULL;
-//static SGPropertyNode *imu_ax_node = NULL;
-//static SGPropertyNode *imu_ay_node = NULL;
-//static SGPropertyNode *imu_az_node = NULL;
-//static SGPropertyNode *imu_hx_node = NULL;
-//static SGPropertyNode *imu_hy_node = NULL;
-//static SGPropertyNode *imu_hz_node = NULL;
-//static SGPropertyNode *imu_temp_node = NULL;
-//static SGPropertyNode *imu_pressure_node = NULL;
-//static SGPropertyNode *imu_roll_node = NULL;
-//static SGPropertyNode *imu_pitch_node = NULL;
-//static SGPropertyNode *imu_yaw_node = NULL;
-
-// airdata property nodes
-// static SGPropertyNode *airdata_timestamp_node = NULL;
-// static SGPropertyNode *airdata_pressure_node = NULL;
-
-// // gps property nodes
-// static SGPropertyNode *gps_timestamp_node = NULL;
-// static SGPropertyNode *gps_day_secs_node = NULL;
-// static SGPropertyNode *gps_date_node = NULL;
-// static SGPropertyNode *gps_lat_node = NULL;
-// static SGPropertyNode *gps_lon_node = NULL;
-// static SGPropertyNode *gps_alt_node = NULL;
-// static SGPropertyNode *gps_ve_node = NULL;
-// static SGPropertyNode *gps_vn_node = NULL;
-// static SGPropertyNode *gps_vd_node = NULL;
-// static SGPropertyNode *gps_unix_sec_node = NULL;
-// static SGPropertyNode *gps_satellites_node = NULL;
-// static SGPropertyNode *gps_pdop_node = NULL;
-// static SGPropertyNode *gps_status_node = NULL;
-
-// // pilot input property nodes
-// static SGPropertyNode *pilot_timestamp_node = NULL;
-// static SGPropertyNode *pilot_aileron_node = NULL;
-// static SGPropertyNode *pilot_elevator_node = NULL;
-// static SGPropertyNode *pilot_throttle_node = NULL;
-// static SGPropertyNode *pilot_rudder_node = NULL;
-// static SGPropertyNode *pilot_channel5_node = NULL;
-// static SGPropertyNode *pilot_channel6_node = NULL;
-// static SGPropertyNode *pilot_channel7_node = NULL;
-// static SGPropertyNode *pilot_channel8_node = NULL;
-// static SGPropertyNode *pilot_manual_node = NULL;
-// static SGPropertyNode *pilot_status_node = NULL;
 
 static bool master_init = false;
 static bool imu_inited = false;
@@ -132,25 +78,6 @@ static void bind_imu_output( pyPropertyNode *base ) {
         return;
     }
     imu_node = *base;
-    
-    // outputroot = pyGetNode( rootname.c_str(), true );
-
-    // imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    // imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
-    // imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
-    // imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
-    // imu_ax_node = outputroot->getChild("ax-mps_sec", 0, true);
-    // imu_ay_node = outputroot->getChild("ay-mps_sec", 0, true);
-    // imu_az_node = outputroot->getChild("az-mps_sec", 0, true);
-    // imu_hx_node = outputroot->getChild("hx", 0, true);
-    // imu_hy_node = outputroot->getChild("hy", 0, true);
-    // imu_hz_node = outputroot->getChild("hz", 0, true);
-    // imu_temp_node = outputroot->getChild("temp", 0, true);
-    // imu_pressure_node = outputroot->getChild("pressure", 0, true);
-
-    // imu_roll_node = outputroot->getChild("roll-deg", 0, true);
-    // imu_pitch_node = outputroot->getChild("pitch-deg", 0, true);
-    // imu_yaw_node = outputroot->getChild("yaw-deg", 0, true);
 
     imu_inited = true;
 }
@@ -162,20 +89,6 @@ static void bind_airdata_output( pyPropertyNode *base ) {
 	return;
     }
     airdata_node = *base;
-    // outputroot = pyGetNode( rootname.c_str(), true );
-
-    // airdata_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    // airdata_pressure_node = outputroot->getChild("pressure-mbar", 0, true);
-
-    // // set some fake values (write them just once, so if there was an
-    // // unintended conflict, the actual sensor would overwrite these.)
-    // SGPropertyNode *tmp_node;
-    // // note we don't leak here because we are getting a pointer back
-    // // into the global property structure
-    // tmp_node = pyGetNode("/sensors/APM2/board-vcc", true);
-    // tmp_node->setDouble( 5.0 );
-    // tmp_node = pyGetNode("/sensors/airdata/temp-degC", true);
-    // tmp_node->setDouble( 15.0 );
 
     airdata_inited = true;
 }
@@ -187,20 +100,6 @@ static void bind_gps_output( pyPropertyNode *base ) {
         return;
     }
     gps_node = *base;
-    // SGPropertyNode *outputroot = pyGetNode( rootname.c_str(), true );
-    // gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    // gps_day_secs_node = outputroot->getChild("day-seconds", 0, true);
-    // gps_date_node = outputroot->getChild("date", 0, true);
-    // gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    // gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    // gps_alt_node = outputroot->getChild("altitude-m", 0, true);
-    // gps_ve_node = outputroot->getChild("ve-ms", 0, true);
-    // gps_vn_node = outputroot->getChild("vn-ms", 0, true);
-    // gps_vd_node = outputroot->getChild("vd-ms", 0, true);
-    // gps_satellites_node = outputroot->getChild("satellites", 0, true);
-    // gps_status_node = outputroot->getChild("status", 0, true);
-    // gps_pdop_node = outputroot->getChild("pdop", 0, true);
-    // gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
 
     gps_inited = true;
 }
@@ -211,17 +110,6 @@ static void bind_pilot_controls( pyPropertyNode *base ) {
         return;
     }
     pilot_node = *base;
-    // pilot_timestamp_node = pyGetNode("/sensors/pilot/time-stamp", true);
-    // pilot_aileron_node = pyGetNode("/sensors/pilot/aileron", true);
-    // pilot_elevator_node = pyGetNode("/sensors/pilot/elevator", true);
-    // pilot_throttle_node = pyGetNode("/sensors/pilot/throttle", true);
-    // pilot_rudder_node = pyGetNode("/sensors/pilot/rudder", true);
-    // pilot_channel5_node = pyGetNode("/sensors/pilot/channel", 4, true);
-    // pilot_channel6_node = pyGetNode("/sensors/pilot/channel", 5, true);
-    // pilot_channel7_node = pyGetNode("/sensors/pilot/channel", 6, true);
-    // pilot_channel8_node = pyGetNode("/sensors/pilot/channel", 7, true);
-    // pilot_manual_node = pyGetNode("/sensors/pilot/manual", true);
-    // pilot_status_node = pyGetNode("/sensors/pilot/status", true);
 
     pilot_input_inited = true;
 }

@@ -54,13 +54,6 @@ double wind_heading_diff( double current_crs_deg, double target_crs_deg ) {
     // wind estimates
     static pyPropertyNode wind_node = pyGetNode("/filters/wind-est", true);
 
-    // static SGPropertyNode *wind_speed_kt
-    // 	= pyGetNode("/filters/wind-est/wind-speed-kt", true);
-    // static SGPropertyNode *wind_dir_deg
-    // 	= pyGetNode("/filters/wind-est/wind-dir-deg", true);
-    // static SGPropertyNode *true_airspeed_kt
-    // 	= pyGetNode("/filters/wind-est/true-airspeed-kt", true);
- 
     double gs_kt = 0.0;
 
     double est_cur_hdg_deg = 0.0;
