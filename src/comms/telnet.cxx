@@ -189,13 +189,13 @@ PropsChannel::foundTerminator()
 		vector <string> children = dir.getChildren();
 		for ( unsigned int i = 0; i < children.size(); i++ ) {
 		    string line = children[i];
-		    if ( dir.hasChild(children[i].c_str()) ) {
-			line += "/";
-		    } else {
+		    if ( dir.isLeaf(children[i].c_str()) ) {
 			if (mode == PROMPT) {
 			    string value = dir.getString(children[i].c_str());
 			    line += " =\t'" + value + "'\t";
 			}
+		    } else {
+			line += "/";
 		    }
 
 		    line += getTerminator();
@@ -205,8 +205,20 @@ PropsChannel::foundTerminator()
 		node_not_found_error( tokens[1] );
 	    }
 	} else if ( command == "cd" ) {
+	    // FIXME: should handle ".." (and maybe even .)
 	    if (tokens.size() == 2) {
-		string newpath = path + "/" + tokens[1];
+		string newpath = "";
+		if ( tokens[1][0] == '/' ) {
+		    // absolute path specified
+		    newpath = tokens[1];
+		} else {
+		    // relative path specified
+		    if ( path == "/" ) {
+			newpath = path + tokens[1];
+		    } else {
+			newpath = path + "/" + tokens[1];
+		    }
+		}
 		pyPropertyNode newnode = pyGetNode(newpath);
 		if ( ! newnode.isNull() ) {
 		    path = newpath;
