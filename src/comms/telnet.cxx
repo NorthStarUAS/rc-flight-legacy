@@ -37,6 +37,33 @@ static bool fcs_update_helper(string values) {
 
 }
 
+static string normalize_path(string raw_path) {
+    vector<string> tokens = split( raw_path, "/" );
+    vector<string> tmp;
+    unsigned int count = 0;
+    for ( unsigned int i = 1; i < tokens.size(); i++ ) {
+	if ( tokens[i] == ".." ) {
+	    if ( tmp.size() ) {
+		tmp.pop_back();
+	    }
+	} else if ( tokens[i] == "." ) {
+	    // do nothing
+	} else {
+	    tmp.push_back(tokens[i]);
+	}
+    }
+    string result = "";
+    for ( unsigned int i = 0; i < tmp.size(); i++ ) {
+	result += "/" + tmp[i];
+    }
+    if ( result == "" ) {
+	result = "/";
+    }
+    printf("Original path = %s\n", raw_path.c_str());
+    printf("new      path = %s\n", result.c_str());
+    return result;
+}
+
 /**
  * Props connection class.
  * This class represents a connection to props client.
@@ -186,9 +213,13 @@ PropsChannel::foundTerminator()
 			newpath = path + "/" + tokens[1];
 		    }
 		}
-		
+		newpath = normalize_path(newpath);
+
+		printf("newpath before = %s\n", newpath.c_str());
 		pyPropertyNode newnode = pyGetNode(newpath);
+		printf("newpath after = %s\n", newpath.c_str());
 		if ( ! newnode.isNull() ) {
+		    printf("path ok = %s\n", newpath.c_str());
 		    path = newpath;
 		} else {
 		    node_not_found_error( tokens[1] );
