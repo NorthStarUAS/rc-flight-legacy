@@ -169,8 +169,12 @@ double pyPropertyNode::getDouble(const char *name) {
 		    result = PyLong_AsLong(pAttr);
 		} else if ( PyString_Check(pAttr) ) {
 		    PyObject *pFloat = PyFloat_FromString(pAttr, NULL);
-		    result = PyFloat_AsDouble(pFloat);
-		    Py_DECREF(pFloat);
+		    if ( pFloat != NULL ) {
+			result = PyFloat_AsDouble(pFloat);
+			Py_DECREF(pFloat);
+		    } else {
+			printf("Warning conversion from string to float failed: %s\n", name);
+		    }
 		} else {
 		    printf("Unknown object type: '%s' ", pObj->ob_type->tp_name);
 		    PyObject *pStr = PyObject_Str(pObj);
