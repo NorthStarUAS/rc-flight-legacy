@@ -37,14 +37,20 @@ static double last_imu_time = 0.0;
 
 // property nodes
 static pyPropertyNode imu_node;
-static pyPropertyNode filter_node;
+static pyPropertyNode pos_node;
 static pyPropertyNode orient_node;
+static pyPropertyNode vel_node;
 static pyPropertyNode pos_filter_node;
+static pyPropertyNode pos_pressure_node;
+static pyPropertyNode pos_combined_node;
+static pyPropertyNode filter_node;
+static pyPropertyNode filter_group_node;
 static pyPropertyNode task_node;
 static pyPropertyNode airdata_node;
 static pyPropertyNode wind_node;
 static pyPropertyNode remote_link_node;
 static pyPropertyNode logging_node;
+static pyPropertyNode health_node;
 
 // initial values are the 'time factor'
 static LowPassFilter ground_alt_filt( 30.0 );
@@ -53,13 +59,20 @@ static bool ground_alt_calibrated = false;
 void Filter_init() {
     // initialize imu property nodes
     imu_node = pyGetNode("/sensors/imu", true);
+    pos_node = pyGetNode("/position", true);
     orient_node = pyGetNode("/orientation", true);
+    vel_node = pyGetNode("/velocity", true);
+    filter_node = pyGetNode("/filters/filter", true);
+    filter_group_node = pyGetNode("/filters", true);
     pos_filter_node = pyGetNode("/position/filter", true);
+    pos_pressure_node = pyGetNode("/position/pressure", true);
+    pos_combined_node = pyGetNode("/position/combined", true);
     task_node = pyGetNode("/task", true);
     airdata_node = pyGetNode("/sensors/airdata", true);
     wind_node = pyGetNode("/filters/wind-est", true);
     remote_link_node = pyGetNode("/config/remote_link", true);
     logging_node = pyGetNode("/config/logging", true);
+    health_node = pyGetNode("/health", true);
 
     wind_node.setDouble( "pitot_scale_factor", 1.0 );
 
@@ -67,7 +80,7 @@ void Filter_init() {
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/filters", true);
     vector<string> children = group_node.getChildren();
-    printf("Found %d filter sections\n", children.size());
+    printf("Found %ld filter sections\n", children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string module = section.getString("module");
@@ -171,21 +184,21 @@ static void update_ground() {
     // over the most recent 30 seconds that we are !is-airborne
     if ( !ground_alt_calibrated ) {
 	ground_alt_calibrated = true;
-	ground_alt_filt.init( pos_filter_node.getDouble("altitude-m") );
+	ground_alt_filt.init( filter_node.getDouble("altitude_m") );
     }
 
     if ( ! task_node.getBool("is_airborne") ) {
 	// ground reference altitude averaged current altitude over
 	// first 30 seconds while on the ground
-	ground_alt_filt.update( pos_filter_node.getDouble("altitude-m"), dt );
-	pos_filter_node.setDouble( "altitude-ground-m",
+	ground_alt_filt.update( filter_node.getDouble("altitude_m"), dt );
+	pos_filter_node.setDouble( "altitude_ground_m",
 				   ground_alt_filt.get_value() );
     }
 
-    float agl_m = pos_filter_node.getDouble( "altitude_m" )
+    float agl_m = filter_node.getDouble( "altitude_m" )
 	- ground_alt_filt.get_value();
-    pos_filter_node.setDouble( "altitude-agl-m", agl_m );
-    pos_filter_node.setDouble( "altitude-agl-ft", agl_m * SG_METER_TO_FEET );
+    pos_filter_node.setDouble( "altitude_agl_m", agl_m );
+    pos_filter_node.setDouble( "altitude_agl_ft", agl_m * SG_METER_TO_FEET );
 
     last_time = cur_time;
 }
@@ -261,6 +274,53 @@ static void update_wind() {
 }
 
 
+static void publish_values() {
+    orient_node.setDouble( "roll_deg", filter_node.getDouble("roll_deg") );
+    orient_node.setDouble( "pitch_deg", filter_node.getDouble("pitch_deg") );
+    orient_node.setDouble( "heading_deg", filter_node.getDouble("heading_deg") );
+    pos_node.setDouble( "latitude_deg", filter_node.getDouble("latitude_deg") );
+    pos_node.setDouble( "longitude_deg", filter_node.getDouble("longitude_deg") );
+    vel_node.setDouble( "vn_ms", filter_node.getDouble("vn_ms") );
+    vel_node.setDouble( "ve_ms", filter_node.getDouble("ve_ms") );
+    vel_node.setDouble( "vd_ms", filter_node.getDouble("vd_ms") );
+    filter_group_node.setDouble( "timestamp",
+				 filter_node.getDouble("timestamp") );
+    health_node.setString( "navigation",
+			   filter_node.getString("navigation") );
+    orient_node.setDouble( "groundtrack_deg",
+			   filter_node.getDouble("groundtrack_deg") );
+    vel_node.setDouble( "groundspeed_ms",
+			filter_node.getDouble("groundspeed_ms") );
+    vel_node.setDouble( "vertical_speed_fps",
+			filter_node.getDouble("vertical_speed_fps") );
+    
+    // select official source (currently AGL is pressure based,
+    // absolute ground alt is based on average gps/filter value at
+    // startup, and MSL altitude is based on pressure altitude -
+    // pressure error (pressure error computed as average difference
+    // between gps altitude and pressure altitude over time)):
+    //
+    // 1. /position/pressure
+    // 2. /position/filter
+    // 3. /position/combined
+    //official_alt_m_node->alias("/position/combined/altitude-true-m");
+    //official_alt_ft_node->alias("/position/combined/altitude-true-ft");
+    //official_agl_m_node->alias("/position/pressure/altitude-agl-m");
+    //official_agl_ft_node->alias("/position/pressure/altitude-agl-ft");
+    //official_ground_m_node->alias("/position/filter/altitude-ground-m");    
+
+    pos_node.setDouble( "altitude_m",
+			pos_combined_node.getDouble("altitude_true_m") );
+    pos_node.setDouble( "altitude_ft",
+			pos_combined_node.getDouble("altitude_true_ft") );
+    pos_node.setDouble( "altitude_agl_m",
+			pos_pressure_node.getDouble("altitude_agl_m") );
+    pos_node.setDouble( "altitude_agl_ft",
+			pos_pressure_node.getDouble("altitude_agl_ft") );
+    pos_node.setDouble( "altitude_ground_m",
+			pos_filter_node.getDouble("altitude_ground_m") );
+}
+
 bool Filter_update() {
     filter_prof.start();
 
@@ -299,6 +359,7 @@ bool Filter_update() {
 	update_euler_rates();
 	update_ground();
 	update_wind();
+	publish_values();
     }
 	     
     if ( remote_link_on || log_to_file ) {
