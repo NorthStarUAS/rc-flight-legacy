@@ -105,7 +105,7 @@ void display_message()
         printf("[filter]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",
 	       filter_node.getDouble("longitude_deg"),
 	       filter_node.getDouble("latitude_deg"),
-	       filter_node.getDouble("altitude_deg"));	
+	       filter_node.getDouble("altitude_m"));	
     } else {
 	printf("[filter]:[No Valid Data]\n");
     }
