@@ -1,7 +1,7 @@
 noinst_LIBRARIES = libumngnss_quat.a
 
 libumngnss_quat_a_SOURCES = \
-	umngnss_quat.cpp umngnss_quat.h \
+	umngnss_quat.cxx umngnss_quat.hxx \
 	EKF_15state_quat.c \
 	globaldefs.h \
 	matrix.c matrix.h \

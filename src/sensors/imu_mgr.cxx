@@ -16,8 +16,8 @@
 using std::string;
 using std::vector;
 
-#include "comms/logging.h"
-#include "comms/remote_link.h"
+#include "comms/logging.hxx"
+#include "comms/remote_link.hxx"
 #include "comms/packetizer.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"

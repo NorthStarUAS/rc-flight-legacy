@@ -12,9 +12,9 @@
 
 #include <cstdio>
 
-#include "comms/display.h"
-#include "comms/logging.h"
-#include "comms/remote_link.h"
+#include "comms/display.hxx"
+#include "comms/logging.hxx"
+#include "comms/remote_link.hxx"
 #include "init/globals.hxx"
 
 #include "payload_mgr.hxx"

@@ -28,17 +28,17 @@
 #include <math.h>
 #include <unistd.h>
 
-#include "comms/display.h"
-#include "comms/logging.h"
+#include "comms/display.hxx"
+#include "comms/logging.hxx"
 #include "comms/packetizer.hxx"
-#include "comms/remote_link.h"
+#include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 
 #include "include/util.h"
 #include "xmlauto.hxx"
 
-#include "control.h"
+#include "control.hxx"
 
 
 //

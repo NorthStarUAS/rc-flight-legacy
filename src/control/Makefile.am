@@ -3,7 +3,7 @@ noinst_LIBRARIES = libcontrol.a
 libcontrol_a_SOURCES = \
 	cas.cxx cas.hxx \
 	circle_mgr.cxx circle_mgr.hxx \
-	control.cpp control.h \
+	control.cxx control.hxx \
 	route.cxx route.hxx \
 	route_mgr.cxx route_mgr.hxx \
 	waypoint.cxx waypoint.hxx \

@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "checksum.h"
+#include "checksum.hxx"
 #include "include/globaldefs.h"
 
 #include "init/globals.hxx" 	// packetizer
@@ -16,14 +16,14 @@
 #include "util/strutils.hxx"
 #include "util/timing.h"
 
-#include "display.h"
-#include "logging.h"
+#include "display.hxx"
+#include "logging.hxx"
 #include "netBuffer.h"		// for netBuffer structure
 #include "netSocket.h"
 #include "packetizer.hxx"
 #include "serial.hxx"
 
-#include "remote_link.h"
+#include "remote_link.hxx"
 
 using std::string;
 

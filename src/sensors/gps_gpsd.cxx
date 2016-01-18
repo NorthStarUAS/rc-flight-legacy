@@ -15,7 +15,7 @@ using std::string;
 
 #include "include/globaldefs.h"
 
-#include "comms/display.h"
+#include "comms/display.hxx"
 #include "comms/netSocket.h"
 #include "util/strutils.hxx"
 #include "util/timing.h"

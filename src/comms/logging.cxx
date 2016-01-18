@@ -11,10 +11,10 @@
 
 #include "util/timing.h"
 
-#include "checksum.h"
+#include "checksum.hxx"
 #include "packetizer.hxx"
 
-#include "logging.h"
+#include "logging.hxx"
 
 // global variables for data file logging
 static gzFile fdata = NULL;

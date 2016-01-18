@@ -19,8 +19,8 @@
 using std::string;
 using std::vector;
 
-#include "comms/remote_link.h"
-#include "comms/logging.h"
+#include "comms/remote_link.hxx"
+#include "comms/logging.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 #include "util/myprof.h"
@@ -30,7 +30,7 @@ using std::vector;
 #include "act_goldy2.hxx"
 #include "sensors/APM2.hxx"
 
-#include "act_mgr.h"
+#include "act_mgr.hxx"
 
 //
 // Global variables

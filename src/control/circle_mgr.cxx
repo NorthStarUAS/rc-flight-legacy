@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <cmath>
 
-#include "comms/display.h"
+#include "comms/display.hxx"
 #include "control/waypoint.hxx"
 #include "include/globaldefs.h"
 #include "util/wind.hxx"

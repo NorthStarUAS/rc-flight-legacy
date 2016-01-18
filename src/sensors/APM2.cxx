@@ -17,8 +17,8 @@
 using std::string;
 using std::ostringstream;
 
-#include "comms/display.h"
-#include "comms/logging.h"
+#include "comms/display.hxx"
+#include "comms/logging.hxx"
 #include "init/globals.hxx"
 #include "sensors/calibrate.hxx"
 #include "util/timing.h"

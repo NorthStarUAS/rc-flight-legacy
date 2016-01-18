@@ -17,17 +17,17 @@
 using std::string;
 using std::ostringstream;
 
-#include "comms/remote_link.h"
-#include "comms/logging.h"
+#include "comms/remote_link.hxx"
+#include "comms/logging.hxx"
 #include "filters/curt/adns_curt.hxx"
-#include "filters/umngnss_euler/umngnss_euler.h"
-#include "filters/umngnss_quat/umngnss_quat.h"
+#include "filters/umngnss_euler/umngnss_euler.hxx"
+#include "filters/umngnss_quat/umngnss_quat.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 #include "util/lowpass.hxx"
 #include "util/myprof.h"
 
-#include "filter_mgr.h"
+#include "filter_mgr.hxx"
 
 //
 // Global variables

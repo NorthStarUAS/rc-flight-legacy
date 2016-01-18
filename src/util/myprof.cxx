@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "comms/logging.h"
+#include "comms/logging.hxx"
 
 #include "timing.h"
 

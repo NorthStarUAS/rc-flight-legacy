@@ -19,7 +19,7 @@
 
 #include "include/globaldefs.h"
 
-#include "comms/display.h"
+#include "comms/display.hxx"
 #include "util/strutils.hxx"
 #include "util/timing.h"
 

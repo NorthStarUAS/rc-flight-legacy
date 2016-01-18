@@ -7,14 +7,14 @@
 
 #include "include/globaldefs.h"
 
-#include "comms/logging.h"
+#include "comms/logging.hxx"
 #include "comms/packetizer.hxx"
-#include "comms/remote_link.h"
+#include "comms/remote_link.hxx"
 #include "init/globals.hxx"
 #include "util/timing.h"
 
-#include "health.h"
-#include "loadavg.h"
+#include "health.hxx"
+#include "loadavg.hxx"
 
 
 static pyPropertyNode remote_link_node;

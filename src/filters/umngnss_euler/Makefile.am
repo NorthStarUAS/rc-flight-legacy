@@ -1,7 +1,7 @@
 noinst_LIBRARIES = libumngnss_euler.a
 
 libumngnss_euler_a_SOURCES = \
-	umngnss_euler.cpp umngnss_euler.h \
+	umngnss_euler.cxx umngnss_euler.hxx \
 	adns.c adns.h \
 	earth.h earth.c \
 	eulerdcm.h eulerdcm.c \

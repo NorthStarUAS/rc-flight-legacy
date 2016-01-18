@@ -11,7 +11,7 @@
 #include "include/globaldefs.h"
 #include "sensors/gps_mgr.hxx"
 
-#include "umngnss_euler.h"
+#include "umngnss_euler.hxx"
 #include "adns.h"
 
 

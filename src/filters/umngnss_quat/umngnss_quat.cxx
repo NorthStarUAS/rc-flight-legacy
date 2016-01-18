@@ -11,7 +11,7 @@
 #include "include/globaldefs.h"
 #include "sensors/gps_mgr.hxx"
 
-#include "umngnss_quat.h"
+#include "umngnss_quat.hxx"
 #include "nav_interface.h"
 #include "globaldefs.h"
 

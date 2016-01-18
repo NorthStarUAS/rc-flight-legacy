@@ -12,8 +12,8 @@
 #include <string.h>
 #include <sys/time.h>  // settimeofday()
 
-#include "comms/display.h"
-#include "comms/logging.h"
+#include "comms/display.hxx"
+#include "comms/logging.hxx"
 #include "comms/netSocket.h"
 #include "math/SGMath.hxx"
 #include "math/SGGeodesy.hxx"

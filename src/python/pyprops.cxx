@@ -35,7 +35,7 @@ pyPropertyNode::pyPropertyNode(PyObject *p)
 // Destructor.
 pyPropertyNode::~pyPropertyNode() {
     // printf("~pyPropertyNode destructor\n");
-    Py_DECREF(pObj);
+    Py_XDECREF(pObj);
     pObj = NULL;
 }
 
@@ -341,6 +341,7 @@ void pyPropsInit(int argc, char **argv) {
 // node usage) to properly shutdown and clean up the python
 // interpreter.
 extern void pyPropsCleanup(void) {
+    printf("running pyPropsCleanup()\n");
     Py_XDECREF(pModuleProps);
     Py_XDECREF(pModuleXML);
     Py_Finalize();

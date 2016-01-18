@@ -13,15 +13,15 @@
 
 #include "python/pyprops.hxx"
 
+#include <unistd.h>
 #include <sstream>
 
-#include "control/control.h"
+#include "control/control.hxx"
 #include "init/globals.hxx" 	// packetizer
-//#include "props/props_io.hxx"
 #include "util/strutils.hxx"
 
 #include "netChat.h"
-#include "display.h"
+#include "display.hxx"
 #include "telnet.hxx"
 
 using std::stringstream;
@@ -312,10 +312,12 @@ PropsChannel::foundTerminator()
 		push( "usage: run <command>" );
 		push( getTerminator() );
 	    }
-         } else if ( command == "quit" ) {
+	} else if ( command == "quit" ) {
 	    close();
 	    shouldDelete();
 	    return;
+	} else if ( command == "exit-program" ) {
+	    exit(0);
 	} else if ( command == "data" ) {
 	    mode = DATA;
 	} else if ( command == "prompt" ) {

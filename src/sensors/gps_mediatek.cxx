@@ -28,8 +28,8 @@ using std::string;
 
 #include "include/globaldefs.h"
 
-#include "comms/display.h"
-#include "comms/logging.h"
+#include "comms/display.hxx"
+#include "comms/logging.hxx"
 #include "math/SGMath.hxx"
 #include "math/SGGeodesy.hxx"
 #include "util/strutils.hxx"

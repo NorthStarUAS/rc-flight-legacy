@@ -14,7 +14,7 @@
 #include "sensors/gps_mgr.hxx"
 #include "util/timing.h"
 
-#include "display.h"
+#include "display.hxx"
 
 bool display_on = false;   // dump summary to display periodically
 

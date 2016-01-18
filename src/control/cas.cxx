@@ -25,7 +25,7 @@
 #include <math.h>		// fabs()
 #include <stdio.h>
 
-#include "comms/display.h"
+#include "comms/display.hxx"
 #include "util/timing.h"
 
 #include "cas.hxx"

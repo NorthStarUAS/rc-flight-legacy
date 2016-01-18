@@ -14,8 +14,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "comms/logging.h"
-#include "comms/remote_link.h"
+#include "comms/logging.hxx"
+#include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 #include "util/myprof.h"

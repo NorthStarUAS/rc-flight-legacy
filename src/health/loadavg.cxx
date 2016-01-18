@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "comms/display.h"
+#include "comms/display.hxx"
 
-#include "loadavg.h"
+#include "loadavg.hxx"
 
 
 static FILE *fload;
