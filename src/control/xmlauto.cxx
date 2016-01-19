@@ -73,7 +73,7 @@ FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
     node = pid_node->getChild("reference", true);
     string ref_prop = node.getString("prop");
     ref_value = node.getString("value");
-    pos = input_prop.rfind("/");
+    pos = ref_prop.rfind("/");
     if ( pos != string::npos ) {
 	string path = ref_prop.substr(0, pos);
 	ref_attr = ref_prop.substr(pos+1);
@@ -87,7 +87,7 @@ FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
 	ostringstream str;
 	str << "prop" << '[' << i << ']';
 	string ename = str.str();
-	string output_prop = node.getString(ename.c_str());
+	string output_prop = node.getString(ename.c_str()); // FIXME: this will crash!
 	pos = output_prop.rfind("/");
 	if ( pos != string::npos ) {
 	    string path = output_prop.substr(0, pos);

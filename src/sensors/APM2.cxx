@@ -1148,7 +1148,7 @@ static int APM2_read() {
 // parameters are acknowledged.
 static bool APM2_send_config() {
     if ( display_on ) {
-	printf("APM2_send_config()\n");
+	printf("APM2_send_config(): begin\n");
     }
 
     double start_time = 0.0;
@@ -1173,8 +1173,13 @@ static bool APM2_send_config() {
 
     int count;
     
+    if ( display_on ) {
+	printf("APM2_send_config(): pwm_rates\n");
+    }
+
     pyPropertyNode pwm_node
 	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
+    // vector<string> children = pwm_node.getChildren();
     count = pwm_node.getLen("channel");
     if ( count ) {
 	for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
@@ -1198,6 +1203,10 @@ static bool APM2_send_config() {
 		return false;
 	    }
 	}
+    }
+
+    if ( display_on ) {
+	printf("APM2_send_config(): gains\n");
     }
 
     pyPropertyNode gain_node
@@ -1226,6 +1235,10 @@ static bool APM2_send_config() {
 		}
 	    }
 	}
+    }
+
+    if ( display_on ) {
+	printf("APM2_send_config(): mixing\n");
     }
 
     pyPropertyNode mixing_node
@@ -1286,6 +1299,10 @@ static bool APM2_send_config() {
 	}
     }
 
+    if ( display_on ) {
+	printf("APM2_send_config(): sas\n");
+    }
+
     pyPropertyNode sas_node = pyGetNode("/config/actuators/actuator/sas", true);
     vector <string> children = sas_node.getChildren();
     count = (int)children.size();
@@ -1338,6 +1355,10 @@ static bool APM2_send_config() {
 	    }
     }
 
+    if ( display_on ) {
+	printf("APM2_send_config(): eeprom\n");
+    }
+
     start_time = get_Time();    
     APM2_act_write_eeprom();
     last_ack_id = 0;
@@ -1349,6 +1370,10 @@ static bool APM2_send_config() {
 	    }
 	    return false;
 	}
+    }
+
+    if ( display_on ) {
+	printf("APM2_send_config(): end\n");
     }
 
     return true;

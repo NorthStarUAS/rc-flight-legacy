@@ -181,7 +181,7 @@ static void update_ground() {
     }
 
     // determine ground reference altitude.  Average filter altitude
-    // over the most recent 30 seconds that we are !is-airborne
+    // over the most recent 30 seconds that we are !is_airborne
     if ( !ground_alt_calibrated ) {
 	ground_alt_calibrated = true;
 	ground_alt_filt.init( filter_node.getDouble("altitude_m") );

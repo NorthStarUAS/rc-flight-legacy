@@ -51,7 +51,7 @@ void PilotInput_init() {
 	if ( !enabled ) {
 	    continue;
 	}
-	pyPropertyNode parent = pyGetNode("/sensors/", true);
+	pyPropertyNode parent = pyGetNode("/sensors", true);
 	pyPropertyNode base = parent.getChild("pilot_input", i, true);
 	printf("pilot: %d = %s\n", i, source.c_str());
 	if ( source == "null" ) {
