@@ -14,8 +14,10 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <sstream>
 #include <string>
 #include <vector>
+using std::ostringstream;
 using std::string;
 using std::vector;
 
@@ -61,7 +63,7 @@ void Actuator_init() {
     acts_node = pyGetNode("/actuators", true);
     act_node = pyGetNode("/actuators/actuator", true);
 #define NUM_ACTUATORS 8
-    act_node.setLen("channel", NUM_ACTUATORS-1, 0.0);
+    act_node.setLen("channel", NUM_ACTUATORS, 0.0);
     limits_node = pyGetNode("/config/actuators/limits", true);
     fcs_node = pyGetNode("/config/fcs", true);
     ap_node = pyGetNode("/autopilot", true);
@@ -79,15 +81,22 @@ void Actuator_init() {
 	if ( !enabled ) {
 	    continue;
 	}
+	
+	ostringstream str;
+	str << "/actuators/actuator" << '[' << i << ']';
+	string ename = str.str();
+	printf("ename = %s\n", ename.c_str());
+	pyPropertyNode base = pyGetNode(ename.c_str(), true);
+
 	printf("actuator: %d = %s\n", i, module.c_str());
 	if ( module == "null" ) {
 	    // do nothing
 	} else if ( module == "APM2" ) {
-	    APM2_act_init( &section );
+	    APM2_act_init( &base, &section );
 	} else if ( module == "fgfs" ) {
-	    fgfs_act_init( &section );
+	    fgfs_act_init( &base, &section );
 	} else if ( module == "Goldy2" ) {
-	    goldy2_act_init( &section );
+	    goldy2_act_init( &base, &section );
 	} else {
 	    printf("Unknown actuator = '%s' in config file\n",
 		   module.c_str());
@@ -262,8 +271,6 @@ bool Actuator_update() {
 	set_actuator_values_pilot();
     }
 
-    printf("begin actuator_update()\n");
-    
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/actuators", true);
     vector<string> children = group_node.getChildren();
@@ -287,8 +294,6 @@ bool Actuator_update() {
 		   module.c_str());
 	}
     }
-
-    printf("end actuator_update()\n");
 
     debug6a.stop();
 

@@ -61,28 +61,24 @@ void display_message()
 	init_props();
     }
 
-    printf("[m/s^2]:ax  = %6.3f ay  = %6.3f az  = %6.3f \n",
+    printf("[imu  ]:ax = %7.3f ay = %7.3f az = %7.3f [m/s^2]\n",
 	   imu_node.getDouble("ax_mps_sec"),
 	   imu_node.getDouble("ay_mps_sec"),
 	   imu_node.getDouble("az_mps_sec"));
-    printf("[deg/s]:p   = %6.3f q   = %6.3f r   = %6.3f \n",
+    printf("[imu  ]: p = %7.3f  q = %7.3f  r = %7.3f [deg/s]\n",
 	   imu_node.getDouble("p_rad_sec") * SGD_RADIANS_TO_DEGREES,
 	   imu_node.getDouble("q_rad_sec") * SGD_RADIANS_TO_DEGREES,
 	   imu_node.getDouble("r_rad_sec") * SGD_RADIANS_TO_DEGREES);
-    printf("[Gauss]:hx  = %6.3f hy  = %6.3f hz  = %6.3f \n",
+    /* printf("[Gauss]:hx  = %7.3f hy  = %7.3f hz  = %7.3f\n",
 	   imu_node.getDouble("hx"),
 	   imu_node.getDouble("hy"),
-	   imu_node.getDouble("hz"));
-    printf("[deg  ]:phi = %6.2f the = %6.2f psi = %6.2f \n",
-	   orient_node.getDouble("roll_deg"),
-	   orient_node.getDouble("pitch_deg"),
-	   orient_node.getDouble("heading_deg"));
-    printf("[     ]:Palt  = %6.3f Pspd  = %6.3f             \n",
+	   imu_node.getDouble("hz")); */
+    printf("[air  ]:Palt = %5.2f[m] Pspd = %4.1f[kt]\n",
 	   pos_pressure_node.getDouble("altitude_m"),
 	   airdata_node.getDouble("airspeed_kt"));
 #if 0
     // gyro bias from mnav filter
-    printf("[deg/s]:bp  = %6.3f,bq  = %6.3f,br  = %6.3f \n",
+    printf("[deg/s]:bp  = %7.3f,bq  = %7.3f,br  = %7.3f \n",
 	   xs[4] * SGD_RADIANS_TO_DEGREES,
 	   xs[5] * SGD_RADIANS_TO_DEGREES,
 	   xs[6] * SGD_RADIANS_TO_DEGREES);
@@ -92,24 +88,30 @@ void display_message()
 	time_t current_time = gps_node.getLong("unix_time_sec");
 	double remainder = gps_node.getDouble("unix_time_sec") - current_time;
 	struct tm *date = gmtime(&current_time);
-        printf("[GPS  ]:date = %04d/%02d/%02d %02d:%02d:%05.2f\n",
+        printf("[gps  ]:date = %04d/%02d/%02d %02d:%02d:%05.2f\n",
 	       date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
 	       date->tm_hour, date->tm_min, date->tm_sec + remainder);
-        printf("[GPS  ]:lon = %f[deg], lat = %f[deg], alt = %f[m], age = %.2f\n",
+        printf("[gps  ]:lon = %.6f lat = %.6f alt = %.1f[m] sats = %ld, age = %.2f\n",
 	       gps_node.getDouble("longitude_deg"),
 	       gps_node.getDouble("latitude_deg"),
-	       gps_node.getDouble("altitude_m"), GPS_age());
+	       gps_node.getDouble("altitude_m"),
+	       gps_node.getLong("satellites"),
+	       GPS_age());
     } else {
-	printf("[GPS  ]:[%0f seconds old]\n", GPS_age());
+	printf("[gps  ]:[%0f seconds old]\n", GPS_age());
     }
 
     if ( filter_node.getString("navigation") == "valid" ) {
-        printf("[filter]:lon = %f[deg], lat = %f[deg], alt = %f[m]\n",
+        printf("[filt ]:lon = %.6f lat = %.6f alt = %.1f[m]\n",
 	       filter_node.getDouble("longitude_deg"),
 	       filter_node.getDouble("latitude_deg"),
 	       filter_node.getDouble("altitude_m"));	
+	printf("[filt ]:phi = %5.1f the = %5.1f psi = %5.1f [deg]\n",
+	       orient_node.getDouble("roll_deg"),
+	       orient_node.getDouble("pitch_deg"),
+	       orient_node.getDouble("heading_deg"));
     } else {
-	printf("[filter]:[No Valid Data]\n");
+	printf("[filt ]:[No Valid Data]\n");
     }
 
     printf("[act  ]: %.2f %.2f %.2f %.2f %.2f\n",

@@ -13,7 +13,7 @@
 
 
 // function prototypes
-bool fgfs_act_init( pyPropertyNode *config );
+bool fgfs_act_init( pyPropertyNode *base, pyPropertyNode *config );
 bool fgfs_act_update();
 void fgfs_act_close();
 

@@ -38,7 +38,7 @@ bool APM2_pilot_init( pyPropertyNode *base );
 bool APM2_pilot_update();
 void APM2_pilot_close();
 
-bool APM2_act_init( pyPropertyNode *config );
+bool APM2_act_init( pyPropertyNode *base, pyPropertyNode *config );
 bool APM2_act_update();
 void APM2_act_close();
 

@@ -472,7 +472,7 @@ static void bind_act_nodes( pyPropertyNode *base ) {
 	return;
     }
     act_node = *base;
-    act_node.setLen("channel", NUM_ACTUATORS-1, 0.0);
+    act_node.setLen("channel", NUM_ACTUATORS, 0.0);
     actuator_inited = true;
 }
 
@@ -546,7 +546,7 @@ static bool APM2_open_device( int baud_bits ) {
     // bind main apm2 property nodes here for lack of a better place..
     apm2_node = pyGetNode("/sensors/APM2", true);
     analog_node = pyGetNode("/sensors/APM2/raw_analog", true);
-    analog_node.setLen("channel", NUM_ANALOG_INPUTS-1, 0.0);
+    analog_node.setLen("channel", NUM_ANALOG_INPUTS, 0.0);
     
     return true;
 }
@@ -723,7 +723,7 @@ bool APM2_pilot_init( pyPropertyNode *base ) {
 }
 
 
-bool APM2_act_init( pyPropertyNode *base ) {
+bool APM2_act_init( pyPropertyNode *base, pyPropertyNode *section ) {
     if ( ! APM2_open() ) {
 	return false;
     }
@@ -1486,7 +1486,7 @@ static bool APM2_act_write() {
 	buf[size++] = hi;
     }
   
-    act_node.pretty_print();
+    //act_node.pretty_print();
     
     // write packet
     len = write( fd, buf, size );
@@ -1512,8 +1512,6 @@ bool APM2_update() {
 bool APM2_imu_update() {
     static double last_imu_timestamp = 0.0;
 
-    printf("In APM2_imu_update()\n");
-    
     APM2_update();
 
     if ( imu_inited ) {

@@ -35,9 +35,9 @@ static void props2umn(void) {
     imu_data.p = imu_node.getDouble("p_rad_sec");
     imu_data.q = imu_node.getDouble("q_rad_sec");
     imu_data.r = imu_node.getDouble("r_rad_sec");
-    imu_data.ax = imu_node.getDouble("ax_rad_sec");
-    imu_data.ay = imu_node.getDouble("ay_rad_sec");
-    imu_data.az = imu_node.getDouble("az_rad_sec");
+    imu_data.ax = imu_node.getDouble("ax_mps_sec");
+    imu_data.ay = imu_node.getDouble("ay_mps_sec");
+    imu_data.az = imu_node.getDouble("az_mps_sec");
     
     gps_data.time = gps_node.getDouble("timestamp");
     gps_data.lat = gps_node.getDouble("latitude_deg");

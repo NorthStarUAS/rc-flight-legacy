@@ -13,7 +13,7 @@
 
 
 // function prototypes
-bool goldy2_act_init( pyPropertyNode *config );
+bool goldy2_act_init( pyPropertyNode *base, pyPropertyNode *config );
 bool goldy2_act_update();
 void goldy2_act_close();
 
