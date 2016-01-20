@@ -157,6 +157,7 @@ static int my_random( int max ) {
 
 
 void log_gps( uint8_t *buf, int size ) {
+    printf("log gps = %.2f\n", get_Time());
     log_packet( GPS_PACKET_V1, buf, size );
 }
 

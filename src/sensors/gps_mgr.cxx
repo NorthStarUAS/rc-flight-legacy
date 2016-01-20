@@ -41,14 +41,12 @@
 static double gps_last_time = -31557600.0; // default to t minus one year old
 
 static pyPropertyNode gps_node;
-static pyPropertyNode config_node;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
 
 void GPS_init() {
     gps_node = pyGetNode("/sensors/gps", true);
-    config_node = pyGetNode("/config", true);
     
     pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
     pyPropertyNode logging_node = pyGetNode("/config/logging", true);
@@ -95,6 +93,9 @@ void GPS_init() {
 
 static void compute_magvar() {
     double magvar_rad = 0.0;
+
+    pyPropertyNode config_node = pyGetNode("/config", true);
+    
     if ( ! config_node.hasChild("magvar_deg") ||
 	 config_node.getString("magvar_deg") == "auto" )
     {
@@ -239,7 +240,6 @@ bool GPS_update() {
 		}
 	    }
 
-	    
 	    if ( display_on ) {
 		printf("[gps_mgr] gps ready, magvar = %.2f (deg)\n",
 		       gps_node.getDouble("magvar_deg") );
