@@ -40,6 +40,8 @@ static void bind_input( pyPropertyNode *config ) {
 static void bind_imu_output( pyPropertyNode *base ) {
     imu_node = *base;
     act_node = pyGetNode("/actuators/actuator", true);
+#define NUM_ACTUATORS 8
+    act_node.setLen("channel", NUM_ACTUATORS, 0.0);
     apm2_node = pyGetNode("/sensors/apm2", true);
     // set initial fake value
     apm2_node.setDouble( "board_vcc", 5.0 );
@@ -167,7 +169,7 @@ bool fgfs_imu_update() {
 	    // fake volt/amp values here for no better place to do it
 	    static double last_time = cur_time;
 	    static double mah = 0.0;
-	    double thr = act_node.getDouble("channel[2]");
+	    double thr = act_node.getDouble("channel", 2);
 	    apm2_node.setDouble("extern_volt", 16.0 - thr);
 	    apm2_node.setDouble("extern_amps", thr * 12.0);
 	    double dt = cur_time - last_time;

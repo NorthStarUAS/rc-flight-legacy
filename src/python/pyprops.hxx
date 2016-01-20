@@ -31,7 +31,10 @@ public:
     pyPropertyNode getChild( const char *name, int index, bool create=false );
 
     bool isNull();		// return true if pObj pointer is NULL
+    
     int getLen( const char *name); // return len of pObj if a list, else 0
+    void setLen( const char *name, int size); // set len of name
+    void setLen( const char *name, int size, double init_val); // set len of name
 
     vector <string> getChildren(); // return list of children
 
@@ -42,17 +45,29 @@ public:
     long getLong( const char *name );	  // return value as a long
     bool getBool( const char *name );	  // return value as a boolean
     string getString( const char *name ); // return value as a string
-    
+
+    // indexed value getters
+    double getDouble( const char *name, int index ); // return value as a double
+    long getLong( const char *name, int index ); // return value as a long
+
     // value setters
     bool setDouble( const char *name, double val ); // returns true if successful
     bool setLong( const char *name, long val );     // returns true if successful
     bool setBool( const char *name, bool val );     // returns true if successful
     bool setString( const char *name, string val ); // returns true if successful
 
-    void pretty_print();
+    // indexed value setters
+    bool setDouble( const char *name, int index, double val  ); // returns true if successful
     
-    // semi-private
+    void pretty_print();
+
+ // semi-private: :-)
     PyObject *pObj;
+
+private:
+    // really private
+    double PyObject2Double(PyObject *pAttr);
+    long PyObject2Long(PyObject *pAttr);
 };
 
 

@@ -60,6 +60,8 @@ void Actuator_init() {
     engine_node = pyGetNode("/controls/engine", true);
     acts_node = pyGetNode("/actuators", true);
     act_node = pyGetNode("/actuators/actuator", true);
+#define NUM_ACTUATORS 8
+    act_node.setLen("channel", NUM_ACTUATORS-1, 0.0);
     limits_node = pyGetNode("/config/actuators/limits", true);
     fcs_node = pyGetNode("/config/fcs", true);
     ap_node = pyGetNode("/autopilot", true);
@@ -102,7 +104,7 @@ static void set_actuator_values_ap() {
     if ( aileron > limits_node.getDouble("aileron_max") ) {
 	aileron = limits_node.getDouble("aileron_max");
     }
-    act_node.setDouble( "channel[0]", aileron );
+    act_node.setDouble( "channel", 0, aileron );
 
     float elevator = flight_node.getDouble("elevator");
     if ( elevator < limits_node.getDouble("elevator_min") ) {
@@ -111,7 +113,7 @@ static void set_actuator_values_ap() {
     if ( elevator > limits_node.getDouble("elevator_max") ) {
 	elevator = limits_node.getDouble("elevator_max");
     }
-    act_node.setDouble( "channel[1]", elevator );
+    act_node.setDouble( "channel", 1, elevator );
 
     // rudder
     float rudder = flight_node.getDouble("rudder");
@@ -121,7 +123,7 @@ static void set_actuator_values_ap() {
     if ( rudder > limits_node.getDouble("rudder_max") ) {
 	rudder = limits_node.getDouble("rudder_max");
     }
-    act_node.setDouble( "channel[3]", rudder );
+    act_node.setDouble( "channel", 3, rudder );
 
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
@@ -186,7 +188,7 @@ static void set_actuator_values_ap() {
     if ( throttle > limits_node.getDouble("throttle_max") ) {
 	throttle = limits_node.getDouble("throttle_max");
     }
-    act_node.setDouble("channel[2]", throttle );
+    act_node.setDouble("channel", 2, throttle );
 
     static bool sas_throttle_override = false;
 
@@ -225,7 +227,7 @@ static void set_actuator_values_ap() {
     // started up.
     if ( ! sas_throttle_override ) {
 	if ( acts_node.getBool("throttle_safety") ) {
-	    act_node.setDouble("channel[2]", 0.0 );
+	    act_node.setDouble("channel", 2, 0.0 );
 	}
     }
 
@@ -260,6 +262,8 @@ bool Actuator_update() {
 	set_actuator_values_pilot();
     }
 
+    printf("begin actuator_update()\n");
+    
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/actuators", true);
     vector<string> children = group_node.getChildren();
@@ -283,6 +287,8 @@ bool Actuator_update() {
 		   module.c_str());
 	}
     }
+
+    printf("end actuator_update()\n");
 
     debug6a.stop();
 

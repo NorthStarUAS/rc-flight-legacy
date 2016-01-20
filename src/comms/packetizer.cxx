@@ -28,6 +28,8 @@ UGPacketizer::UGPacketizer() {
     filter_node = pyGetNode("/filters/filter", true);
     wind_node = pyGetNode("/filters/wind-est", true);
     act_node = pyGetNode("/actuators/actuator", true);
+#define NUM_ACTUATORS 8
+    act_node.setLen("channel", NUM_ACTUATORS, 0.0);
     pilot_node = pyGetNode("/sensors/pilot", true);
     ap_node = pyGetNode("/autopilot/settings", true);
     ap_internal_node = pyGetNode("/autopilot/internal", true);
@@ -319,28 +321,28 @@ int UGPacketizer::packetize_actuator( uint8_t *buf ) {
     // *(double *)buf = time; buf += 8;
     memcpy( buf, &time, 8 ); buf += 8;
 
-    int16_t ail = (int16_t)(act_node.getDouble("channel[0]") * 30000);
+    int16_t ail = (int16_t)(act_node.getDouble("channel", 0) * 30000);
     *(int16_t *)buf = ail; buf += 2;
 
-    int16_t ele = (int16_t)(act_node.getDouble("channel[1]") * 30000);
+    int16_t ele = (int16_t)(act_node.getDouble("channel", 1) * 30000);
     *(int16_t *)buf = ele; buf += 2;
 
-    uint16_t thr = (uint16_t)(act_node.getDouble("channel[2]") * 60000);
+    uint16_t thr = (uint16_t)(act_node.getDouble("channel", 2) * 60000);
     *(uint16_t *)buf = thr; buf += 2;
 
-    int16_t rud = (int16_t)(act_node.getDouble("channel[3]") * 30000);
+    int16_t rud = (int16_t)(act_node.getDouble("channel", 3) * 30000);
     *(int16_t *)buf = rud; buf += 2;
 
-    int16_t ch5 = (int16_t)(act_node.getDouble("channel[4]") * 30000);
+    int16_t ch5 = (int16_t)(act_node.getDouble("channel", 4) * 30000);
     *(int16_t *)buf = ch5; buf += 2;
 
-    int16_t ch6 = (int16_t)(act_node.getDouble("channel[5]") * 30000);
+    int16_t ch6 = (int16_t)(act_node.getDouble("channel", 5) * 30000);
     *(int16_t *)buf = ch6; buf += 2;
 
-    int16_t ch7 = (int16_t)(act_node.getDouble("channel[6]") * 30000);
+    int16_t ch7 = (int16_t)(act_node.getDouble("channel", 6) * 30000);
     *(int16_t *)buf = ch7; buf += 2;
 
-    int16_t ch8 = (int16_t)(act_node.getDouble("channel[7]") * 30000);
+    int16_t ch8 = (int16_t)(act_node.getDouble("channel", 7) * 30000);
     *(int16_t *)buf = ch8; buf += 2;
 
     uint8_t status = 0;
@@ -392,13 +394,13 @@ int UGPacketizer::packetize_pilot( uint8_t *buf ) {
     int16_t ch5 = (int16_t)(pilot_node.getDouble("manual") * 30000);
     *(int16_t *)buf = ch5; buf += 2;
 
-    int16_t ch6 = (int16_t)(pilot_node.getDouble("channel[5]") * 30000);
+    int16_t ch6 = (int16_t)(pilot_node.getDouble("channel", 5) * 30000);
     *(int16_t *)buf = ch6; buf += 2;
 
-    int16_t ch7 = (int16_t)(pilot_node.getDouble("channel[6]") * 30000);
+    int16_t ch7 = (int16_t)(pilot_node.getDouble("channel", 6) * 30000);
     *(int16_t *)buf = ch7; buf += 2;
 
-    int16_t ch8 = (int16_t)(pilot_node.getDouble("channel[7]") * 30000);
+    int16_t ch8 = (int16_t)(pilot_node.getDouble("channel", 7) * 30000);
     *(int16_t *)buf = ch8; buf += 2;
 
     uint8_t status = 0;
@@ -590,7 +592,7 @@ string UGPacketizer::get_fcs_nav_string() {
 	     ap_node.getDouble("target_roll_deg"),
 	     filter_hdg,
 	     filter_node.getDouble("roll_deg"),
-	     act_node.getDouble("channel[0]"));
+	     act_node.getDouble("channel", 0));
 
     return buf;
 }
@@ -605,7 +607,7 @@ string UGPacketizer::get_fcs_speed_string() {
 	     ap_node.getDouble("target_pitch_deg"),
 	     vel_node.getDouble("airspeed-smoothed-kt"),
 	     filter_node.getDouble("pitch_deg"),
-	     act_node.getDouble("channel[1]"));
+	     act_node.getDouble("channel", 1));
 
     return buf;
 }
@@ -618,7 +620,7 @@ string UGPacketizer::get_fcs_altitude_string() {
 	     imu_node.getDouble("timestamp"),
 	     ap_node.getDouble("target-agl-ft"),
 	     pos_node.getDouble("altitude-agl-ft"),
-	     act_node.getDouble("channel[2]") );
+	     act_node.getDouble("channel", 2) );
 
     return buf;
 }

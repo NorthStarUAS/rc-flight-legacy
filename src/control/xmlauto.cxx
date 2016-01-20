@@ -82,19 +82,24 @@ FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
 
     // output
     node = pid_node->getChild( "output", true );
-    unsigned int num = node.getLen("prop");
-    for ( unsigned int i = 0; i < num; ++i ) {
-	ostringstream str;
-	str << "prop" << '[' << i << ']';
-	string ename = str.str();
-	string output_prop = node.getString(ename.c_str()); // FIXME: this will crash!
-	pos = output_prop.rfind("/");
-	if ( pos != string::npos ) {
-	    string path = output_prop.substr(0, pos);
-	    string attr = output_prop.substr(pos+1);
-	    pyPropertyNode onode = pyGetNode( path, true );
-	    output_node.push_back( onode );
-	    output_attr.push_back( attr );
+    vector <string> children = node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); ++i ) {
+	if ( children[i].substr(0,4) == "prop" ) {
+	    string output_prop = node.getString(children[i].c_str());
+	    pos = output_prop.rfind("/");
+	    if ( pos != string::npos ) {
+		string path = output_prop.substr(0, pos);
+		string attr = output_prop.substr(pos+1);
+		pyPropertyNode onode = pyGetNode( path, true );
+		output_node.push_back( onode );
+		output_attr.push_back( attr );
+	    } else {
+		printf("WARNING: requested bad output path: %s\n",
+		       output_prop.c_str());
+	    }
+	} else {
+	    printf("WARNING: unknown tag in output section: %s\n",
+		   children[i].c_str());
 	}
     }
  
@@ -341,19 +346,24 @@ FGPISimpleController::FGPISimpleController( pyPropertyNode *pid_node ):
 
     // output
     node = pid_node->getChild( "output", true );
-    unsigned int num = node.getLen("prop");
-    for ( unsigned int i = 0; i < num; ++i ) {
-	ostringstream str;
-	str << "prop" << '[' << i << ']';
-	string ename = str.str();
-	string output_prop = node.getString(ename.c_str());
-	pos = output_prop.rfind("/");
-	if ( pos != string::npos ) {
-	    string path = output_prop.substr(0, pos);
-	    string attr = output_prop.substr(pos+1);
-	    pyPropertyNode onode = pyGetNode( path, true );
-	    output_node.push_back( onode );
-	    output_attr.push_back( attr );
+    vector <string> children = node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); ++i ) {
+	if ( children[i].substr(0,4) == "prop" ) {
+	    string output_prop = node.getString(children[i].c_str());
+	    pos = output_prop.rfind("/");
+	    if ( pos != string::npos ) {
+		string path = output_prop.substr(0, pos);
+		string attr = output_prop.substr(pos+1);
+		pyPropertyNode onode = pyGetNode( path, true );
+		output_node.push_back( onode );
+		output_attr.push_back( attr );
+	    } else {
+		printf("WARNING: requested bad output path: %s\n",
+		       output_prop.c_str());
+	    }
+	} else {
+	    printf("WARNING: unknown tag in output section: %s\n",
+		   children[i].c_str());
 	}
     }
  
@@ -456,19 +466,24 @@ FGPredictor::FGPredictor ( pyPropertyNode *config_node ):
     
     // output
     node = config_node->getChild( "output", true );
-    unsigned int num = node.getLen("prop");
-    for ( unsigned int i = 0; i < num; ++i ) {
-	ostringstream str;
-	str << "prop" << '[' << i << ']';
-	string ename = str.str();
-	string output_prop = node.getString(ename.c_str());
-	pos = output_prop.rfind("/");
-	if ( pos != string::npos ) {
-	    string path = output_prop.substr(0, pos);
-	    string attr = output_prop.substr(pos+1);
-	    pyPropertyNode onode = pyGetNode( path, true );
-	    output_node.push_back( onode );
-	    output_attr.push_back( attr );
+    vector <string> children = node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); ++i ) {
+	if ( children[i].substr(0,4) == "prop" ) {
+	    string output_prop = node.getString(children[i].c_str());
+	    pos = output_prop.rfind("/");
+	    if ( pos != string::npos ) {
+		string path = output_prop.substr(0, pos);
+		string attr = output_prop.substr(pos+1);
+		pyPropertyNode onode = pyGetNode( path, true );
+		output_node.push_back( onode );
+		output_attr.push_back( attr );
+	    } else {
+		printf("WARNING: requested bad output path: %s\n",
+		       output_prop.c_str());
+	    }
+	} else {
+	    printf("WARNING: unknown tag in output section: %s\n",
+		   children[i].c_str());
 	}
     }
 }
@@ -573,19 +588,24 @@ FGDigitalFilter::FGDigitalFilter( pyPropertyNode *config_node )
 
     // output
     node = config_node->getChild( "output", true );
-    unsigned int num = node.getLen("prop");
-    for ( unsigned int i = 0; i < num; ++i ) {
-	ostringstream str;
-	str << "prop" << '[' << i << ']';
-	string ename = str.str();
-	string output_prop = node.getString(ename.c_str());
-	pos = output_prop.rfind("/");
-	if ( pos != string::npos ) {
-	    string path = output_prop.substr(0, pos);
-	    string attr = output_prop.substr(pos+1);
-	    pyPropertyNode onode = pyGetNode( path, true );
-	    output_node.push_back( onode );
-	    output_attr.push_back( attr );
+    vector <string> children = node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); ++i ) {
+	if ( children[i].substr(0,4) == "prop" ) {
+	    string output_prop = node.getString(children[i].c_str());
+	    pos = output_prop.rfind("/");
+	    if ( pos != string::npos ) {
+		string path = output_prop.substr(0, pos);
+		string attr = output_prop.substr(pos+1);
+		pyPropertyNode onode = pyGetNode( path, true );
+		output_node.push_back( onode );
+		output_attr.push_back( attr );
+	    } else {
+		printf("WARNING: requested bad output path: %s\n",
+		       output_prop.c_str());
+	    }
+	} else {
+	    printf("WARNING: unknown tag in output section: %s\n",
+		   children[i].c_str());
 	}
     }
 

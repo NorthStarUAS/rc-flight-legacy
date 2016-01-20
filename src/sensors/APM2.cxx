@@ -472,6 +472,7 @@ static void bind_act_nodes( pyPropertyNode *base ) {
 	return;
     }
     act_node = *base;
+    act_node.setLen("channel", NUM_ACTUATORS-1, 0.0);
     actuator_inited = true;
 }
 
@@ -545,6 +546,7 @@ static bool APM2_open_device( int baud_bits ) {
     // bind main apm2 property nodes here for lack of a better place..
     apm2_node = pyGetNode("/sensors/APM2", true);
     analog_node = pyGetNode("/sensors/APM2/raw_analog", true);
+    analog_node.setLen("channel", NUM_ANALOG_INPUTS-1, 0.0);
     
     return true;
 }
@@ -914,10 +916,10 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		    // property tree here
 		    analog[i] = val / 1000.0;
 		}
-		ostringstream str;
-		str << "channel" << '[' << i << ']';
-		string ename = str.str();
-		analog_node.setDouble( ename.c_str(), analog[i] );
+		bool result = analog_node.setDouble( "channel", i, analog[i] );
+		if ( ! result ) {
+		    printf("channel write failed %d\n", i);
+		}
 	    }
 
 	    // fill in property values that don't belong to some other
@@ -1153,6 +1155,7 @@ static bool APM2_send_config() {
 
     double start_time = 0.0;
     double timeout = 0.5;
+    vector<string> children;
 
     pyPropertyNode apm2_config = pyGetNode("/config/sensors/APM2", true);
     if ( apm2_config.hasChild("setup_serial_number") ) {
@@ -1177,19 +1180,20 @@ static bool APM2_send_config() {
 	printf("APM2_send_config(): pwm_rates\n");
     }
 
+    // init all channels to default
+    for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
+	act_rates[i] = 0; /* no change from default */
+    }
     pyPropertyNode pwm_node
 	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
-    // vector<string> children = pwm_node.getChildren();
     count = pwm_node.getLen("channel");
-    if ( count ) {
+    if ( count > 0 ) {
 	for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
 	    act_rates[i] = 0; /* no change from default */
 	}
-	for ( int i = 0; i < count; ++i ) {
-	    ostringstream str;
-	    str << "channel" << '[' << i << ']';
-	    string ename = str.str();
-	    act_rates[i] = pwm_node.getLong(ename.c_str());
+	for ( unsigned int i = 0; i < count; i++ ) {
+	    act_rates[i] = pwm_node.getLong("channel", i);
+	    printf("channel[%d] = %d\n", i, act_rates[i]);
 	}
 	start_time = get_Time();    
 	APM2_act_set_pwm_rates( act_rates );
@@ -1214,10 +1218,7 @@ static bool APM2_send_config() {
     count = gain_node.getLen("channel");
     if ( count ) {
 	for ( int i = 0; i < count; i++ ) {
-	    ostringstream str;
-	    str << "channel" << '[' << i << ']';
-	    string ename = str.str();
-	    float gain = gain_node.getDouble(ename.c_str());
+	    float gain = gain_node.getDouble("channel", i);
 	    if ( display_on ) {
 		printf("gain: %d %.2f\n", i, gain);
 	    }
@@ -1304,7 +1305,7 @@ static bool APM2_send_config() {
     }
 
     pyPropertyNode sas_node = pyGetNode("/config/actuators/actuator/sas", true);
-    vector <string> children = sas_node.getChildren();
+    children = sas_node.getChildren();
     count = (int)children.size();
     for ( int i = 0; i < count; ++i ) {
 	string mode = "";
@@ -1436,55 +1437,57 @@ static bool APM2_act_write() {
 	int val;
 	uint8_t hi, lo;
 
-	val = gen_pulse( act_node.getDouble("channel[0]"), true );
+	val = gen_pulse( act_node.getDouble("channel", 0), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel[1]"), true );
+	val = gen_pulse( act_node.getDouble("channel", 1), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel[2]"), false );
+	val = gen_pulse( act_node.getDouble("channel", 2), false );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel[3]"), true );
+	val = gen_pulse( act_node.getDouble("channel", 3), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel[4]"), true );
+	val = gen_pulse( act_node.getDouble("channel", 4), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel[5]"), true );
+	val = gen_pulse( act_node.getDouble("channel", 5), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel[6]"), true );
+	val = gen_pulse( act_node.getDouble("channel", 6), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel[7]"), true );
+	val = gen_pulse( act_node.getDouble("channel", 7), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
     }
   
+    act_node.pretty_print();
+    
     // write packet
     len = write( fd, buf, size );
   
@@ -1508,6 +1511,8 @@ bool APM2_update() {
 
 bool APM2_imu_update() {
     static double last_imu_timestamp = 0.0;
+
+    printf("In APM2_imu_update()\n");
     
     APM2_update();
 
@@ -1622,30 +1627,36 @@ static double MTK16_date_time_to_unix_sec( int gdate, float gtime ) {
 
 
 bool APM2_gps_update() {
+    static double last_timestamp = 0.0;
+    
     APM2_update();
 
     if ( !gps_inited ) {
 	return false;
     }
 
-    gps_node.setDouble( "timestamp", gps_sensors.timestamp );
-    gps_node.setDouble( "day_seconds", gps_sensors.time / 1000.0 );
-    gps_node.setDouble( "date", gps_sensors.date );
-    gps_node.setDouble( "latitude_deg", gps_sensors.latitude / 10000000.0 );
-    gps_node.setDouble( "longitude_deg", gps_sensors.longitude / 10000000.0 );
-    double alt_m = gps_sensors.altitude / 100.0;
-    gps_node.setDouble( "altitude_m", alt_m );
-    gps_node.setDouble( "vn_ms", gps_sensors.vel_north * 0.01 );
-    gps_node.setDouble( "ve_ms", gps_sensors.vel_east * 0.01 );
-    gps_node.setDouble( "vd_ms", gps_sensors.vel_down * 0.01 );
-    gps_node.setLong( "satellites", gps_sensors.num_sats);
-    gps_node.setDouble( "pdop", gps_sensors.pdop * 0.01);
-    gps_node.setLong( "status", gps_sensors.status );
-    double unix_secs = ublox_date_time_to_unix_sec( gps_sensors.date,
-					            gps_sensors.time );
-    gps_node.setDouble( "unix_time_sec", unix_secs );
-
-    return true;
+    if ( gps_sensors.timestamp > last_timestamp ) {
+	gps_node.setDouble( "timestamp", gps_sensors.timestamp );
+	gps_node.setDouble( "day_seconds", gps_sensors.time / 1000.0 );
+	gps_node.setDouble( "date", gps_sensors.date );
+	gps_node.setDouble( "latitude_deg", gps_sensors.latitude / 10000000.0 );
+	gps_node.setDouble( "longitude_deg", gps_sensors.longitude / 10000000.0 );
+	double alt_m = gps_sensors.altitude / 100.0;
+	gps_node.setDouble( "altitude_m", alt_m );
+	gps_node.setDouble( "vn_ms", gps_sensors.vel_north * 0.01 );
+	gps_node.setDouble( "ve_ms", gps_sensors.vel_east * 0.01 );
+	gps_node.setDouble( "vd_ms", gps_sensors.vel_down * 0.01 );
+	gps_node.setLong( "satellites", gps_sensors.num_sats);
+	gps_node.setDouble( "pdop", gps_sensors.pdop * 0.01);
+	gps_node.setLong( "status", gps_sensors.status );
+	double unix_secs = ublox_date_time_to_unix_sec( gps_sensors.date,
+							gps_sensors.time );
+	gps_node.setDouble( "unix_time_sec", unix_secs );
+	last_timestamp = gps_sensors.timestamp;
+	return true;
+    } else {
+	return false;
+    }
 }
 
 

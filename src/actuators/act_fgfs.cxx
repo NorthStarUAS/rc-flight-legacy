@@ -41,6 +41,8 @@ static void bind_input( pyPropertyNode *config ) {
 /// initialize actuator property nodes 
 static void bind_act_nodes() {
     act_node = pyGetNode("/actuators/actuator", true);
+#define NUM_ACTUATORS 8
+    act_node.setLen("channel", NUM_ACTUATORS, 0.0);
     ap_node = pyGetNode("/autopilot/settings", true);
     orient_node = pyGetNode("/orientation", true);
     pos_node = pyGetNode("/position", true);
@@ -99,28 +101,28 @@ bool fgfs_act_update() {
     double time = act_node.getDouble("timestamp");
     *(double *)buf = time; buf += 8;
 
-    float ail = act_node.getDouble("channel[0]");
+    float ail = act_node.getDouble("channel", 0);
     *(float *)buf = ail; buf += 4;
 
-    float ele = act_node.getDouble("channel[1]");
+    float ele = act_node.getDouble("channel", 1);
     *(float *)buf = ele; buf += 4;
 
-    float thr = act_node.getDouble("channel[2]");
+    float thr = act_node.getDouble("channel", 2);
     *(float *)buf = thr; buf += 4;
 
-    float rud = act_node.getDouble("channel[3]");
+    float rud = act_node.getDouble("channel", 3);
     *(float *)buf = rud; buf += 4;
 
-    float ch5 = act_node.getDouble("channel[4]");
+    float ch5 = act_node.getDouble("channel", 4);
     *(float *)buf = ch5; buf += 4;
 
-    float ch6 = act_node.getDouble("channel[5]");
+    float ch6 = act_node.getDouble("channel", 5);
     *(float *)buf = ch6; buf += 4;
 
-    float ch7 = act_node.getDouble("channel[6]");
+    float ch7 = act_node.getDouble("channel", 6);
     *(float *)buf = ch7; buf += 4;
 
-    float ch8 = act_node.getDouble("channel[7]");
+    float ch8 = act_node.getDouble("channel", 7);
     *(float *)buf = ch8; buf += 4;
 
     float bank = ap_node.getDouble("target_roll_deg") * 100 + 18000.0;
