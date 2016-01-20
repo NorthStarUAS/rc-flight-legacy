@@ -155,9 +155,8 @@ vector <string> pyPropertyNode::getChildren() {
 		int len = PyList_Size(pList);
 		for ( int i = 0; i < len; i++ ) {
 		    PyObject *pItem = PyList_GetItem(pList, i);
-		    // note: PyList_GetItem doens't incr ref count on
-		    // pItem (i.e. doesn't give us owner ship, so we
-		    // should not decref() it.
+		    // note: PyList_GetItem doesn't give us ownership
+		    // of pItem so we should not decref() it.
 		    PyObject *pStr = PyObject_Str(pItem);
 		    result.push_back( (string)PyString_AsString(pStr) );
 		    Py_DECREF(pStr);
@@ -242,14 +241,12 @@ long pyPropertyNode::PyObject2Long(PyObject *pAttr) {
 double pyPropertyNode::getDouble(const char *name) {
     double result = 0.0;
     if ( pObj != NULL ) {
-	if ( PyObject_HasAttrString(pObj, name) ) {
-	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
-	    if ( pAttr != NULL ) {
-		result = PyObject2Double(pAttr);
-		Py_DECREF(pAttr);
-	    }
+	PyObject *pAttr = PyObject_GetAttrString(pObj, name);
+	if ( pAttr != NULL ) {
+	    result = PyObject2Double(pAttr);
+	    Py_DECREF(pAttr);
 	} else {
-	    printf("WARNING: request non-existent attr: %s\n", name);
+	    // printf("WARNING: request non-existent attr: %s\n", name);
 	}
     }
     return result;
@@ -258,14 +255,12 @@ double pyPropertyNode::getDouble(const char *name) {
 long pyPropertyNode::getLong(const char *name) {
     long result = 0;
     if ( pObj != NULL ) {
-	if ( PyObject_HasAttrString(pObj, name) ) {
-	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
-	    if ( pAttr != NULL ) {
-		result = PyObject2Long(pAttr);
-		Py_DECREF(pAttr);
-	    }
+	PyObject *pAttr = PyObject_GetAttrString(pObj, name);
+	if ( pAttr != NULL ) {
+	    result = PyObject2Long(pAttr);
+	    Py_DECREF(pAttr);
 	} else {
-	    printf("WARNING: request non-existent attr: %s\n", name);
+	    // printf("WARNING: request non-existent attr: %s\n", name);
 	}
     }
     return result;
@@ -274,14 +269,12 @@ long pyPropertyNode::getLong(const char *name) {
 bool pyPropertyNode::getBool(const char *name) {
     bool result = false;
     if ( pObj != NULL ) {
-	if ( PyObject_HasAttrString(pObj, name) ) {
-	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
-	    if ( pAttr != NULL ) {
-		result = PyObject_IsTrue(pAttr);
-		Py_DECREF(pAttr);
-	    }
+	PyObject *pAttr = PyObject_GetAttrString(pObj, name);
+	if ( pAttr != NULL ) {
+	    result = PyObject_IsTrue(pAttr);
+	    Py_DECREF(pAttr);
 	} else {
-	    printf("WARNING: request non-existent attr: %s\n", name);
+	    // printf("WARNING: request non-existent attr: %s\n", name);
 	}
     }
     return result;
@@ -290,16 +283,14 @@ bool pyPropertyNode::getBool(const char *name) {
 string pyPropertyNode::getString(const char *name) {
     string result = "";
     if ( pObj != NULL ) {
-	if ( PyObject_HasAttrString(pObj, name) ) {
-	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
-	    if ( pAttr != NULL ) {
-		PyObject *pStr = PyObject_Str(pAttr);
-		result = (string)PyString_AsString(pStr);
-		Py_DECREF(pStr);
-		Py_DECREF(pAttr);
-	    }
+	PyObject *pAttr = PyObject_GetAttrString(pObj, name);
+	if ( pAttr != NULL ) {
+	    PyObject *pStr = PyObject_Str(pAttr);
+	    result = (string)PyString_AsString(pStr);
+	    Py_DECREF(pStr);
+	    Py_DECREF(pAttr);
 	} else {
-	    printf("WARNING: request non-existent attr: %s\n", name);
+	    // printf("WARNING: request non-existent attr: %s\n", name);
 	}
     }
     return result;
@@ -309,22 +300,23 @@ string pyPropertyNode::getString(const char *name) {
 double pyPropertyNode::getDouble(const char *name, int index) {
     double result = 0.0;
     if ( pObj != NULL ) {
-	if ( PyObject_HasAttrString(pObj, name) ) {
-	    PyObject *pList = PyObject_GetAttrString(pObj, name);
-	    if ( pList != NULL ) {
-		if ( PyList_Check(pList) ) {
-		    if ( index < PyList_Size(pList) ) {
-			PyObject *pAttr = PyList_GetItem(pList, index);
-			if ( pAttr != NULL ) {
-			    result = PyObject2Double(pAttr);
-			    Py_DECREF(pAttr);
-			}
+	PyObject *pList = PyObject_GetAttrString(pObj, name);
+	if ( pList != NULL ) {
+	    if ( PyList_Check(pList) ) {
+		if ( index < PyList_Size(pList) ) {
+		    PyObject *pAttr = PyList_GetItem(pList, index);
+		    // note: PyList_GetItem doesn't give us ownership
+		    // of pItem so we should not decref() it.
+		    if ( pAttr != NULL ) {
+			result = PyObject2Double(pAttr);
 		    }
 		}
-		Py_DECREF(pList);
+	    } else {
+		printf("WARNING: request indexed value of plain node: %s!\n", name);
 	    }
+	    Py_DECREF(pList);
 	} else {
-	    printf("WARNING: request non-existent attr: %s\n", name);
+	    // printf("WARNING: request non-existent attr: %s[%d]\n", name, index);
 	}
     }
     return result;
@@ -333,22 +325,23 @@ double pyPropertyNode::getDouble(const char *name, int index) {
 long pyPropertyNode::getLong(const char *name, int index) {
     long result = 0;
     if ( pObj != NULL ) {
-	if ( PyObject_HasAttrString(pObj, name) ) {
-	    PyObject *pList = PyObject_GetAttrString(pObj, name);
-	    if ( pList != NULL ) {
-		if ( PyList_Check(pList) ) {
-		    if ( index < PyList_Size(pList) ) {
-			PyObject *pAttr = PyList_GetItem(pList, index);
-			if ( pAttr != NULL ) {
-			    result = PyObject2Long(pAttr);
-			    Py_DECREF(pAttr);
-			}
+	PyObject *pList = PyObject_GetAttrString(pObj, name);
+	if ( pList != NULL ) {
+	    if ( PyList_Check(pList) ) {
+		if ( index < PyList_Size(pList) ) {
+		    PyObject *pAttr = PyList_GetItem(pList, index);
+		    // note: PyList_GetItem doesn't give us ownership
+		    // of pItem so we should not decref() it.
+		    if ( pAttr != NULL ) {
+			result = PyObject2Long(pAttr);
 		    }
 		}
-		Py_DECREF(pList);
+	    } else {
+		printf("WARNING: request indexed value of plain node: %s!\n", name);
 	    }
+	    Py_DECREF(pList);
 	} else {
-	    printf("WARNING: request non-existent attr: %s\n", name);
+	    // printf("WARNING: request non-existent attr: %s[%d]\n", name, index);
 	}
     }
     return result;
