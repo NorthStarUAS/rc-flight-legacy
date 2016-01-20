@@ -40,32 +40,20 @@
 
 static double gps_last_time = -31557600.0; // default to t minus one year old
 
-// property nodes
 static pyPropertyNode gps_node;
-static pyPropertyNode remote_link_node;
-static pyPropertyNode logging_node;
 static pyPropertyNode config_node;
 
+static int remote_link_skip = 0;
+static int logging_skip = 0;
 
 void GPS_init() {
     gps_node = pyGetNode("/sensors/gps", true);
-    remote_link_node = pyGetNode("/config/remote_link", true);
-    logging_node = pyGetNode("/config/logging", true);
     config_node = pyGetNode("/config", true);
     
-    // gps_timestamp_node = pyGetNode("/sensors/gps/time-stamp", true);
-    // gps_unix_sec_node = pyGetNode("/sensors/gps/unix-time-sec", true);
-    // gps_status_node = pyGetNode("/sensors/gps/status", true);
-    // gps_magvar_deg_node = pyGetNode("/sensors/gps/magvar-deg", true);
-    // gps_settle_node = pyGetNode("/sensors/gps/settle", true);
-    // gps_settle_node->setBool(false);
-
-    // // initialize magnetic variation property nodes
-    // magvar_init_deg_node = pyGetNode("/config/filters/magvar-deg", true);
-
-    // // initialize comm nodes
-    // gps_console_skip = pyGetNode("/config/remote-link/gps-skip", true);
-    // gps_logging_skip = pyGetNode("/config/logging/gps-skip", true);
+    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
+    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
+    remote_link_skip = remote_link_node.getDouble("gps_skip");
+    logging_skip = remote_link_node.getDouble("gps_skip");
 
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/sensors/gps_group", true);
@@ -133,6 +121,9 @@ bool GPS_update() {
     bool fresh_data = false;
     static int gps_state = 0;
 
+    static int remote_link_count = remote_link_random( remote_link_skip );
+    static int logging_count = remote_link_random( logging_skip );
+
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/sensors/gps_group", true);
     vector<string> children = group_node.getChildren();
@@ -174,16 +165,32 @@ bool GPS_update() {
 	// for computing gps data age
 	gps_last_time = gps_node.getDouble("timestamp");
 
-	if ( remote_link_on || log_to_file ) {
+	bool send_remote_link = false;
+	if ( remote_link_on ) {
+	    remote_link_count--;
+	    if ( remote_link_count < 0 ) {
+		send_remote_link = true;
+		remote_link_count = remote_link_skip;
+	    }
+	}
+	
+	bool send_logging = false;
+	if ( log_to_file ) {
+	    logging_count--;
+	    if ( logging_count < 0 ) {
+		send_logging = true;
+		logging_count = logging_skip;
+	    }
+	}
+	
+	if ( send_remote_link || send_logging ) {
 	    uint8_t buf[256];
 	    int size = packetizer->packetize_gps( buf );
-
-	    if ( remote_link_on ) {
-		remote_link_gps( buf, size, remote_link_node.getLong("gps_skip") );
+	    if ( send_remote_link ) {
+		remote_link_gps( buf, size );
 	    }
-
-	    if ( log_to_file ) {
-		log_gps( buf, size, logging_node.getLong("gps_skip") );
+	    if ( send_logging ) {
+		log_gps( buf, size );
 	    }
 	}
     }

@@ -239,27 +239,15 @@ static void remote_link_packet( const uint8_t packet_id,
 
 
 // return a random integer between 0 and max - 1
-static int my_random( int max ) {
+int remote_link_random( int max ) {
     int result = (int)(((double)random() / RAND_MAX) * max);
     // printf("link rand(%d) = %d\n", max, result);
     return result;
 }
 
 
-bool remote_link_gps( uint8_t *buf, int size, int skip_count ) {
-    // printf("remote link gps()\n");
-    if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
-
-    if ( skip > 0 ) {
-        --skip;
-        return false;
-    } else {
-        skip = skip_count;
-    }
-
+bool remote_link_gps( uint8_t *buf, int size ) {
     remote_link_packet( GPS_PACKET_V1, buf, size );
-
     return true;
 }
 
@@ -267,7 +255,7 @@ bool remote_link_gps( uint8_t *buf, int size, int skip_count ) {
 bool remote_link_imu( uint8_t *buf, int size, int skip_count  ) {
     // printf("remote link imu()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
+    static uint8_t skip = remote_link_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -285,7 +273,7 @@ bool remote_link_imu( uint8_t *buf, int size, int skip_count  ) {
 bool remote_link_airdata( uint8_t *buf, int size, int skip_count  ) {
     // printf("remote link airdata()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
+    static uint8_t skip = remote_link_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -304,7 +292,7 @@ bool remote_link_filter( uint8_t *buf, int size, int skip_count )
 {
     // printf("remote link filter()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
+    static uint8_t skip = remote_link_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -323,7 +311,7 @@ bool remote_link_actuator( uint8_t *buf, int size, int skip_count )
 {
     // printf("remote link actuator()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
+    static uint8_t skip = remote_link_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -342,7 +330,7 @@ bool remote_link_pilot( uint8_t *buf, int size, int skip_count )
 {
     // printf("remote link pilot()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
+    static uint8_t skip = remote_link_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -361,7 +349,7 @@ bool remote_link_ap( uint8_t *buf, int size, int skip_count )
 {
     // printf("remote link ap()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
+    static uint8_t skip = remote_link_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -380,7 +368,7 @@ bool remote_link_health( uint8_t *buf, int size, int skip_count )
 {
     // printf("remote link health()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
+    static uint8_t skip = remote_link_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;
@@ -399,7 +387,7 @@ bool remote_link_payload( uint8_t *buf, int size, int skip_count )
 {
     // printf("remote link payload()\n");
     if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
+    static uint8_t skip = remote_link_random(skip_count);
 
     if ( skip > 0 ) {
         --skip;

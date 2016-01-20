@@ -20,7 +20,7 @@ extern bool event_log_on;
 bool logging_init();
 bool logging_close();
 
-void log_gps( uint8_t *buf, int size, int skip_count );
+void log_gps( uint8_t *buf, int size );
 void log_imu( uint8_t *buf, int size, int skip_count );
 void log_airdata( uint8_t *buf, int size, int skip_count );
 void log_filter( uint8_t *buf, int size, int skip_count );
