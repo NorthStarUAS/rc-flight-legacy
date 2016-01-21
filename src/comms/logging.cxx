@@ -176,17 +176,7 @@ void log_filter( uint8_t *buf, int size ) {
 }
 
 
-void log_actuator( uint8_t *buf, int size, int skip_count ) {
-    if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
-
-    if ( skip > 0 ) {
-        --skip;
-        return;
-    } else {
-        skip = skip_count;
-    }
-
+void log_actuator( uint8_t *buf, int size ) {
     log_packet( ACTUATOR_PACKET_V1, buf, size );
 }
 

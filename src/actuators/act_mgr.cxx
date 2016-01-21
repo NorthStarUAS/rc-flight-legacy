@@ -46,12 +46,13 @@ static pyPropertyNode act_node;
 static pyPropertyNode limits_node;
 static pyPropertyNode fcs_node;
 static pyPropertyNode ap_node;
-static pyPropertyNode remote_link_node;
-static pyPropertyNode logging_node;
+static vector<pyPropertyNode> sections;
 
 static myprofile debug6a;
 static myprofile debug6b;
 
+static int remote_link_skip = 0;
+static int logging_skip = 0;
 
 void Actuator_init() {
     debug6a.set_name("debug6a act update and output");
@@ -67,8 +68,11 @@ void Actuator_init() {
     limits_node = pyGetNode("/config/actuators/limits", true);
     fcs_node = pyGetNode("/config/fcs", true);
     ap_node = pyGetNode("/autopilot", true);
-    remote_link_node = pyGetNode("/config/remote_link", true);
-    logging_node = pyGetNode("/config/logging", true);
+
+    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
+    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
+    remote_link_skip = remote_link_node.getDouble("gps_skip");
+    logging_skip = remote_link_node.getDouble("gps_skip");
 
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/actuators", true);
@@ -76,6 +80,7 @@ void Actuator_init() {
     printf("Found %d actuator sections\n", children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
+	sections.push_back(section);
 	string module = section.getString("module");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -271,13 +276,13 @@ bool Actuator_update() {
 	set_actuator_values_pilot();
     }
 
+    static int remote_link_count = remote_link_random( remote_link_skip );
+    static int logging_count = remote_link_random( logging_skip );
+
     // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/actuators", true);
-    vector<string> children = group_node.getChildren();
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	string module = section.getString("module");
-	bool enabled = section.getBool("enable");
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string module = sections[i].getString("module");
+	bool enabled = sections[i].getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}
@@ -299,18 +304,32 @@ bool Actuator_update() {
 
     debug6b.start();
 
-    if ( remote_link_on || log_to_file ) {
-	// actuators
-
+    bool send_remote_link = false;
+    if ( remote_link_on ) {
+	remote_link_count--;
+	if ( remote_link_count < 0 ) {
+	    send_remote_link = true;
+	    remote_link_count = remote_link_skip;
+	}
+    }
+	
+    bool send_logging = false;
+    if ( log_to_file ) {
+	logging_count--;
+	if ( logging_count < 0 ) {
+	    send_logging = true;
+	    logging_count = logging_skip;
+	}
+    }
+	
+    if ( send_remote_link || send_logging ) {
 	uint8_t buf[256];
 	int size = packetizer->packetize_actuator( buf );
-
-	if ( remote_link_on ) {
-	    remote_link_actuator( buf, size, remote_link_node.getLong("actuator_skip") );
+	if ( send_remote_link ) {
+	    remote_link_actuator( buf, size );
 	}
-
-	if ( log_to_file ) {
-	    log_actuator( buf, size, logging_node.getLong("actuator_skip") );
+	if ( send_logging ) {
+	    log_actuator( buf, size );
 	}
     }
 
@@ -322,12 +341,9 @@ bool Actuator_update() {
 
 void Actuators_close() {
     // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/actuators", true);
-    vector<string> children = group_node.getChildren();
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	string module = section.getString("module");
-	bool enabled = section.getBool("enable");
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string module = sections[i].getString("module");
+	bool enabled = sections[i].getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}
