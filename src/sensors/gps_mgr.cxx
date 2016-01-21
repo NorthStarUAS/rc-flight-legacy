@@ -41,8 +41,7 @@
 static double gps_last_time = -31557600.0; // default to t minus one year old
 
 static pyPropertyNode gps_node;
-static pyPropertyNode group_node;
-static vector<string> children;
+static vector<pyPropertyNode> sections;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
@@ -56,11 +55,12 @@ void GPS_init() {
     logging_skip = remote_link_node.getDouble("gps_skip");
 
     // traverse configured modules
-    group_node = pyGetNode("/config/sensors/gps_group", true);
-    children = group_node.getChildren();
+    pyPropertyNode group_node = pyGetNode("/config/sensors/gps_group", true);
+    vector<string> children = group_node.getChildren();
     printf("Found %d gps sections\n", children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
+	sections.push_back(section);
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -129,10 +129,9 @@ bool GPS_update() {
     static int logging_count = remote_link_random( logging_skip );
 
     // traverse configured modules
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	string source = section.getString("source");
-	bool enabled = section.getBool("enable");
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string source = sections[i].getString("source");
+	bool enabled = sections[i].getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}
@@ -264,10 +263,9 @@ bool GPS_update() {
 void GPS_close() {
 
     // traverse configured modules
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	string source = section.getString("source");
-	bool enabled = section.getBool("enable");
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string source = sections[i].getString("source");
+	bool enabled = sections[i].getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}
