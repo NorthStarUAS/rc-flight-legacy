@@ -41,6 +41,8 @@ using std::vector;
 static double imu_last_time = -31557600.0; // default to t minus one year old
 
 static pyPropertyNode imu_node;
+static pyPropertyNode group_node;
+static vector<string> children;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
@@ -61,8 +63,8 @@ void IMU_init() {
     logging_skip = remote_link_node.getDouble("imu_skip");
 
     // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/sensors/imu_group", true);
-    vector<string> children = group_node.getChildren();
+    group_node = pyGetNode("/config/sensors/imu_group", true);
+    children = group_node.getChildren();
     printf("Found %d imu sections\n", children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
@@ -108,8 +110,6 @@ bool IMU_update() {
     static int logging_count = remote_link_random( logging_skip );
 
     // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/sensors/imu_group", true);
-    vector<string> children = group_node.getChildren();
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
@@ -185,8 +185,6 @@ bool IMU_update() {
 
 void IMU_close() {
     // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/sensors/imu_group", true);
-    vector<string> children = group_node.getChildren();
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	string source = section.getString("source");
