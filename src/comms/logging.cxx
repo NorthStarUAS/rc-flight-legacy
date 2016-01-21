@@ -157,22 +157,11 @@ static int my_random( int max ) {
 
 
 void log_gps( uint8_t *buf, int size ) {
-    printf("log gps = %.2f\n", get_Time());
     log_packet( GPS_PACKET_V1, buf, size );
 }
 
 
-void log_imu( uint8_t *buf, int size, int skip_count ) {
-    if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
-
-    if ( skip > 0 ) {
-        --skip;
-        return;
-    } else {
-        skip = skip_count;
-    }
-
+void log_imu( uint8_t *buf, int size ) {
     log_packet( IMU_PACKET_V2, buf, size );
 }
 

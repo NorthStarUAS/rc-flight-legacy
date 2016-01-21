@@ -9,7 +9,7 @@ extern bool remote_link_on;
 
 void remote_link_init();
 bool remote_link_gps( uint8_t *buf, int size );
-bool remote_link_imu( uint8_t *buf, int size, int skip_count );
+bool remote_link_imu( uint8_t *buf, int size );
 bool remote_link_airdata( uint8_t *buf, int size, int skip_count );
 bool remote_link_filter( uint8_t *buf, int size, int skip_count );
 bool remote_link_actuator( uint8_t *buf, int size, int skip_count );

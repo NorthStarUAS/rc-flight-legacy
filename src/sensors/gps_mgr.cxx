@@ -195,6 +195,7 @@ bool GPS_update() {
 	    }
 	}
     }
+    
     if ( gps_node.getLong("status") == 2 && !gps_state ) {
 	const double gps_settle = 10.0;
 	static double gps_acq_time = gps_node.getDouble("timestamp");

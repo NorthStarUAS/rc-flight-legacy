@@ -41,8 +41,9 @@ using std::vector;
 static double imu_last_time = -31557600.0; // default to t minus one year old
 
 static pyPropertyNode imu_node;
-static pyPropertyNode remote_link_node;
-static pyPropertyNode logging_node;
+
+static int remote_link_skip = 0;
+static int logging_skip = 0;
 
 static myprofile debug2a1;
 static myprofile debug2a2;
@@ -53,8 +54,11 @@ void IMU_init() {
     debug2a2.set_name("debug2a2 IMU console link");
 
     imu_node = pyGetNode("/sensors/imu", true);
-    remote_link_node = pyGetNode("/config/remote_link", true);
-    logging_node = pyGetNode("/config/logging", true);
+
+    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
+    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
+    remote_link_skip = remote_link_node.getDouble("imu_skip");
+    logging_skip = remote_link_node.getDouble("imu_skip");
 
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/sensors/imu_group", true);
@@ -100,6 +104,9 @@ bool IMU_update() {
 
     bool fresh_data = false;
 
+    static int remote_link_count = remote_link_random( remote_link_skip );
+    static int logging_count = remote_link_random( logging_skip );
+
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/sensors/imu_group", true);
     vector<string> children = group_node.getChildren();
@@ -140,20 +147,36 @@ bool IMU_update() {
 	// for computing imu data age
 	imu_last_time = imu_node.getDouble("timestamp");
 
-	if ( remote_link_on || log_to_file ) {
+	bool send_remote_link = false;
+	if ( remote_link_on ) {
+	    remote_link_count--;
+	    if ( remote_link_count < 0 ) {
+		send_remote_link = true;
+		remote_link_count = remote_link_skip;
+	    }
+	}
+	
+	bool send_logging = false;
+	if ( log_to_file ) {
+	    logging_count--;
+	    if ( logging_count < 0 ) {
+		send_logging = true;
+		logging_count = logging_skip;
+	    }
+	}
+	
+	if ( send_remote_link || send_logging ) {
 	    uint8_t buf[256];
 	    int size = packetizer->packetize_imu( buf );
-
-	    if ( remote_link_on ) {
-		remote_link_imu( buf, size, remote_link_node.getLong("imu_skip") );
+	    if ( send_remote_link ) {
+		remote_link_imu( buf, size );
 	    }
-
-	    if ( log_to_file ) {
-		log_imu( buf, size, logging_node.getLong("imu_skip") );
+	    if ( send_logging ) {
+		log_imu( buf, size );
 	    }
 	}
     }
-
+    
     debug2a2.stop();
 
     return fresh_data;
