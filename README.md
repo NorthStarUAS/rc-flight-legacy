@@ -1,5 +1,6 @@
-WELCOME
-=======
+# aura-core
+
+## Welcome
 
 The MicroGear project is an advance embedded application for unmanned
 aircraft systems.  In includes a functioning open-source kalman filter
@@ -17,8 +18,7 @@ focuses on robustness, high performance, and minimal memory and disk
 footprints.
 
 
-CONFIGURE/COMPILING
-===================
+## Configure/Compiling
 
 1. Add the location of your arm cross compiler binaries to your path.
    This will probably look something like:
@@ -47,8 +47,7 @@ CONFIGURE/COMPILING
    target computer.
 
 
-MAGNETOMETER HARD IRON CALIBRATION
-==================================
+## Magnetometer Hard Iron Calibration
 
 Note that many calibration parameters are "hard" coded in the source.
 You will need to rerun "make" after any changes to the code.
