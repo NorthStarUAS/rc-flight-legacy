@@ -27,13 +27,13 @@
 # error This library requires C++
 #endif
 
+#include "python/pyprops.hxx"
+
 #include <string>
 #include <vector>
-
 using std::string;
 using std::vector;
 
-#include "props/props.hxx"
 #include "route.hxx"
 
 
@@ -73,42 +73,17 @@ private:
     SGRoute *active;
     SGRoute *standby;
 
-    // route configuration tree
-    SGPropertyNode *config_props;
-
-    // home
-    SGPropertyNode *home_lon_node;
-    SGPropertyNode *home_lat_node;
-    SGPropertyNode *home_azimuth_node;
-
+    pyPropertyNode pos_node;
+    pyPropertyNode vel_node;
+    pyPropertyNode orient_node;
+    pyPropertyNode route_node;
+    pyPropertyNode L1_node;
+    pyPropertyNode ap_node;
+    pyPropertyNode home_node;
+    
     double last_lon;
     double last_lat;
     double last_az;
-
-    // route following configuration
-    SGPropertyNode *bank_limit_node;
-    SGPropertyNode *L1_period_node;
-    SGPropertyNode *L1_damping_node;
-    SGPropertyNode *xtrack_gain_node;
-
-    // automatic inputs
-    SGPropertyNode *lon_node;
-    SGPropertyNode *lat_node;
-    SGPropertyNode *alt_node;
-    SGPropertyNode *groundspeed_node;
-    SGPropertyNode *groundtrack_node;
-
-    // automatic outputs
-    SGPropertyNode *target_heading_error_deg;
-    SGPropertyNode *target_course_deg;
-    SGPropertyNode *ap_roll_node;
-    SGPropertyNode *target_agl_node;
-    SGPropertyNode *target_msl_node;
-    SGPropertyNode *target_waypoint;
-    SGPropertyNode *wp_dist_m;
-    SGPropertyNode *wp_eta_sec;
-    SGPropertyNode *xtrack_dist_m;
-    SGPropertyNode *proj_dist_m;
 
     // route behaviors
     StartMode start_mode;
@@ -120,7 +95,7 @@ private:
 
     SGWayPoint make_waypoint( const string& wpt_string );
 
-    bool build();
+    bool build( pyPropertyNode *config_node );
 
 public:
 
@@ -129,7 +104,7 @@ public:
 
     void bind();
 
-    void init( SGPropertyNode *branch );
+    void init( pyPropertyNode *config_node );
 
     // set route start mode
     inline void set_start_mode( enum StartMode mode ) {

@@ -20,10 +20,16 @@
 //
 
 
+#include "python/pyprops.hxx"
+
 #include <math.h>
 #include <stdlib.h>
 
-#include "props/props_io.hxx"
+#include <string>
+#include <sstream>
+using std::string;
+using std::ostringstream;
+
 #include "util/exception.hxx"
 #include "util/sg_path.hxx"
 #include "util/wind.hxx"
@@ -31,23 +37,7 @@
 #include "xmlauto.hxx"
 
 
-FGPIDController::FGPIDController( SGPropertyNode *node ):
-    debug_node( NULL ),
-    y_n_node( NULL ),
-    r_n_node( NULL ),
-    y_scale_node( NULL ), 	// 1.0
-    r_scale_node( NULL ),	// 1.0
-    y_offset_node( NULL ),
-    r_offset_node( NULL ),
-    Ts_node( NULL ),
-    Kp_node( NULL ),
-    alpha_node( NULL ),		// 0.1
-    beta_node( NULL ),		// 1.0
-    gamma_node( NULL ),
-    Ti_node( NULL ),
-    Td_node( NULL ),
-    u_min_node( NULL ),
-    u_max_node( NULL ),
+FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
     ep_n_1( 0.0 ),
     edf_n_1( 0.0 ),
     edf_n_2( 0.0 ),
@@ -55,83 +45,78 @@ FGPIDController::FGPIDController( SGPropertyNode *node ):
     desiredTs( 0.00001 ),
     elapsedTime( 0.0 )
 {
-    name_node = node->getChild( "name", 0, true );
-    debug_node = node->getChild( "debug", 0, true );
-
-    // enable nodes
-    SGPropertyNode *enable_node = node->getChild( "enable", 0, true );
-    SGPropertyNode *prop = enable_node->getChild( "prop", 0, true );
-    enable_prop = fgGetNode( prop->getStringValue(), true );
-    SGPropertyNode *val = enable_node->getChild( "value", 0, true );
-    enable_value = val->getStringValue();
-    SGPropertyNode *pass = enable_node->getChild( "honor-passive", 0, true );
-    honor_passive = pass->getBoolValue();
+    size_t pos;
+    
+    // enable
+    pyPropertyNode node = pid_node->getChild("enable", true);
+    string enable_prop = node.getString("prop");
+    enable_value = node.getString("value");
+    honor_passive = node.getBool("honor_passive");
+    pos = enable_prop.rfind("/");
+    if ( pos != string::npos ) {
+	string path = enable_prop.substr(0, pos);
+	enable_attr = enable_prop.substr(pos+1);
+	enable_node = pyGetNode( path, true );
+    }
 
     // input
-    SGPropertyNode *input_node = node->getChild( "input", 0, true );
-    SGPropertyNode *input_name = input_node->getChild( "prop", 0, true );
-    if ( input_name != NULL ) {
-	input_prop = fgGetNode( input_name->getStringValue(), true );
+    node = pid_node->getChild("input", true);
+    string input_prop = node.getString("prop");
+    pos = input_prop.rfind("/");
+    if ( pos != string::npos ) {
+	string path = input_prop.substr(0, pos);
+	input_attr = input_prop.substr(pos+1);
+	input_node = pyGetNode( path, true );
     }
-    y_scale_node = input_node->getChild( "scale" );
-    if ( y_scale_node == NULL ) {
-	// create with default value
-	y_scale_node = input_node->getChild( "scale", 0, true );
-	y_scale_node->setDoubleValue( 1.0 );
-    }
-    y_offset_node = input_node->getChild( "offset", 0, true );
 
     // reference
-    SGPropertyNode *reference_node = node->getChild( "reference", 0, true );
-    SGPropertyNode *r_n_name = reference_node->getChild( "prop", 0, true );
-    if ( r_n_name != NULL ) {
-	r_n_prop = fgGetNode( r_n_name->getStringValue(), true );
+    node = pid_node->getChild("reference", true);
+    string ref_prop = node.getString("prop");
+    ref_value = node.getString("value");
+    pos = ref_prop.rfind("/");
+    if ( pos != string::npos ) {
+	string path = ref_prop.substr(0, pos);
+	ref_attr = ref_prop.substr(pos+1);
+	ref_node = pyGetNode( path, true );
     }
-    r_n_value = reference_node->getChild( "value" );
-    r_scale_node = reference_node->getChild( "scale" );
-    if ( r_scale_node == NULL ) {
-	// create with default value
-	r_scale_node = reference_node->getChild( "scale", 0, true );
-	r_scale_node->setDoubleValue( 1.0 );
-    }
-    r_offset_node = reference_node->getChild( "offset", 0, true );
 
     // output
-    SGPropertyNode *output_node = node->getChild( "output", 0, true );
-    int i = 0;
-    SGPropertyNode *output_prop;
-    while ( (output_prop = output_node->getChild("prop", i)) != NULL ) {
-	SGPropertyNode *tmp = fgGetNode( output_prop->getStringValue(), true );
-	output_list.push_back( tmp );
-	i++;
+    node = pid_node->getChild( "output", true );
+    vector <string> children = node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); ++i ) {
+	if ( children[i].substr(0,4) == "prop" ) {
+	    string output_prop = node.getString(children[i].c_str());
+	    pos = output_prop.rfind("/");
+	    if ( pos != string::npos ) {
+		string path = output_prop.substr(0, pos);
+		string attr = output_prop.substr(pos+1);
+		pyPropertyNode onode = pyGetNode( path, true );
+		output_node.push_back( onode );
+		output_attr.push_back( attr );
+	    } else {
+		printf("WARNING: requested bad output path: %s\n",
+		       output_prop.c_str());
+	    }
+	} else {
+	    printf("WARNING: unknown tag in output section: %s\n",
+		   children[i].c_str());
+	}
     }
  
     // config
-    SGPropertyNode *config_node = node->getChild( "config", 0, true );
-    Ts_node = config_node->getChild( "Ts" );
-    if ( Ts_node != NULL ) {
-	desiredTs = prop->getDoubleValue();
+    pyPropertyNode config_node = pid_node->getChild( "config", true );
+    if ( config_node.hasChild("Ts") ) {
+	desiredTs = config_node.getDouble("Ts");
     }
             
-    Kp_node = config_node->getChild( "Kp", 0, true );
-    beta_node = config_node->getChild( "beta" );
-    if ( beta_node == NULL ) {
+    if ( !config_node.hasChild("beta") ) {
 	// create with default value
-	beta_node = config_node->getChild( "beta", 0, true );
-	beta_node->setDoubleValue( 1.0 );
+	config_node.setDouble( "beta", 1.0 );
     }
-    alpha_node = config_node->getChild( "alpha" );
-    if ( alpha_node == NULL ) {
+    if ( !config_node.hasChild("alpha") ) {
 	// create with default value
-	alpha_node = config_node->getChild( "alpha", 0, true );
-	alpha_node->setDoubleValue( 0.1 );
+	config_node.setDouble( "alpha", 0.1 );
     }
-
-    gamma_node = config_node->getChild( "gamma", 0, true );
-    Ti_node = config_node->getChild( "Ti", 0, true );
-    Td_node = config_node->getChild( "Td", 0, true );
-    u_min_node = config_node->getChild( "u_min", 0, true );
-    u_max_node = config_node->getChild( "u_max", 0, true );
 }
 
 
@@ -204,33 +189,31 @@ void FGPIDController::update( double dt ) {
     Ts = elapsedTime;
     elapsedTime = 0.0;
 
-    if (enable_prop != NULL && enable_prop->getStringValue() == enable_value) {
+    if (!enable_node.isNull() && enable_node.getString("enable_attr") == enable_value) {
 	enabled = true;
     } else {
 	enabled = false;
     }
 
-    bool debug = debug_node->getBoolValue();
+    bool debug = pid_node.getBool("debug");
 
     if ( Ts > 0.0) {
         if ( debug ) printf("Updating %s Ts = %.2f", get_name(), Ts );
 
         double y_n = 0.0;
-	y_n = input_prop->getDoubleValue() * y_scale_node->getDoubleValue()
-	    + y_offset_node->getDoubleValue();
+	y_n = input_node.getDouble(input_attr.c_str());
 
         double r_n = 0.0;
-	if ( r_n_value != NULL ) {
-	    r_n = r_n_value->getDoubleValue();
+	if ( ref_value != "" ) {
+	    r_n = atof(ref_value.c_str());
 	} else {
-            r_n = r_n_prop->getDoubleValue() * r_scale_node->getDoubleValue()
-		+ r_offset_node->getDoubleValue();
+            r_n = ref_node.getDouble(ref_attr.c_str());
 	}
                       
         if ( debug ) printf("  input = %.3f ref = %.3f\n", y_n, r_n );
 
         // Calculates proportional error:
-        ep_n = beta_node->getDoubleValue() * (r_n - y_n);
+        ep_n = config_node.getDouble("beta") * (r_n - y_n);
         if ( debug ) {
 	    printf( "  ep_n = %.3f", ep_n);
 	    printf( "  ep_n_1 = %.3f", ep_n_1);
@@ -241,13 +224,13 @@ void FGPIDController::update( double dt ) {
         if ( debug ) printf( " e_n = %.3f", e_n);
 
         // Calculates derivate error:
-        ed_n = gamma_node->getDoubleValue() * r_n - y_n;
+        ed_n = config_node.getDouble("gamma") * r_n - y_n;
         if ( debug ) printf(" ed_n = %.3f", ed_n);
 
-	double Td = Td_node->getDoubleValue();
+	double Td = config_node.getDouble("Td");
         if ( Td > 0.0 ) {
             // Calculates filter time:
-            Tf = alpha_node->getDoubleValue() * Td;
+            Tf = config_node.getDouble("alpha") * Td;
             if ( debug ) printf(" Tf = %.3f", Tf);
 
             // Filters the derivate error:
@@ -259,8 +242,8 @@ void FGPIDController::update( double dt ) {
         }
 
         // Calculates the incremental output:
-	double Ti = Ti_node->getDoubleValue();
-	double Kp = Kp_node->getDoubleValue();
+	double Ti = config_node.getDouble("Ti");
+	double Kp = config_node.getDouble("Kp");
         if ( Ti > 0.0 ) {
             delta_u_n = Kp * ( (ep_n - ep_n_1)
                                + ((Ts/Ti) * e_n)
@@ -276,8 +259,8 @@ void FGPIDController::update( double dt ) {
         }
 
         // Integrator anti-windup logic:
-	double u_min = u_min_node->getDoubleValue();
-	double u_max = u_max_node->getDoubleValue();
+	double u_min = config_node.getDouble("u_min");
+	double u_max = config_node.getDouble("u_max");
         if ( delta_u_n > (u_max - u_n_1) ) {
             delta_u_n = u_max - u_n_1;
             if ( debug ) printf(" max saturation\n");
@@ -299,18 +282,18 @@ void FGPIDController::update( double dt ) {
 
     if ( enabled ) {
 	// Copy the result to the output node(s)
-	for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-	  output_list[i]->setDoubleValue( u_n );
+	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
+	    output_node[i].setDouble( output_attr[i].c_str(), u_n );
 	}
-    } else {
+    } else if ( output_node.size() > 0 ) {
 	// Mirror the output value while we are not enabled so there
 	// is less of a continuity break when this module is enabled
 
 	// pull output value from the corresponding property tree value
-	u_n = output_list[0]->getDoubleValue();
+	u_n = output_node[0].getDouble(output_attr[0].c_str());
 	// and clip
-	double u_min = u_min_node->getDoubleValue();
-	double u_max = u_max_node->getDoubleValue();
+	double u_min = config_node.getDouble("u_min");
+	double u_max = config_node.getDouble("u_max");
  	if ( u_n < u_min ) { u_n = u_min; }
 	if ( u_n > u_max ) { u_n = u_max; }
 	u_n_1 = u_n;
@@ -318,164 +301,191 @@ void FGPIDController::update( double dt ) {
 }
 
 
-FGPISimpleController::FGPISimpleController( SGPropertyNode *node ):
+FGPISimpleController::FGPISimpleController( pyPropertyNode *pid_node ):
     proportional( false ),
-    Kp_node( NULL ),
     integral( false ),
-    Ki_node( NULL ),
     int_sum( 0.0 ),
     clamp( false ),
-    debug_node( NULL ),
     y_n( 0.0 ),
-    r_n( 0.0 ),
-    y_scale_node( NULL ),
-    r_scale_node( NULL ),
-    u_min_node( NULL ),
-    u_max_node( NULL )
+    r_n( 0.0 )
 {
-    name_node = node->getChild( "name", 0, true );
-    debug_node = node->getChild( "debug", 0, true );
+    size_t pos;
 
-    // enable nodes
-    SGPropertyNode *enable_node = node->getChild( "enable", 0, true );
-    SGPropertyNode *prop = enable_node->getChild( "prop", 0, true );
-    enable_prop = fgGetNode( prop->getStringValue(), true );
-    SGPropertyNode *val = enable_node->getChild( "value", 0, true );
-    enable_value = val->getStringValue();
-    SGPropertyNode *pass = enable_node->getChild( "honor-passive", 0, true );
-    honor_passive = pass->getBoolValue();
+    // enable
+    pyPropertyNode node = pid_node->getChild("enable", true);
+    string enable_prop = node.getString("prop");
+    enable_value = node.getString("value");
+    honor_passive = node.getBool("honor_passive");
+    pos = enable_prop.rfind("/");
+    if ( pos != string::npos ) {
+	string path = enable_prop.substr(0, pos);
+	enable_attr = enable_prop.substr(pos+1);
+	enable_node = pyGetNode( path, true );
+    }
 
     // input
-    SGPropertyNode *input_node = node->getChild( "input", 0, true );
-    SGPropertyNode *input_name = input_node->getChild( "prop", 0, true );
-    if ( input_name != NULL ) {
-	input_prop = fgGetNode( input_name->getStringValue(), true );
-    }
-    y_scale_node = input_node->getChild( "scale" );
-    if ( y_scale_node == NULL ) {
-	// create with default value
-	y_scale_node = input_node->getChild( "scale", 0, true );
-	y_scale_node->setDoubleValue( 1.0 );
+    node = pid_node->getChild("input", true);
+    string input_prop = node.getString("prop");
+    pos = input_prop.rfind("/");
+    if ( pos != string::npos ) {
+	string path = input_prop.substr(0, pos);
+	input_attr = input_prop.substr(pos+1);
+	input_node = pyGetNode( path, true );
     }
 
     // reference
-    SGPropertyNode *reference_node = node->getChild( "reference", 0, true );
-    SGPropertyNode *r_n_name = reference_node->getChild( "prop", 0, true );
-    if ( r_n_name != NULL ) {
-	r_n_prop = fgGetNode( r_n_name->getStringValue(), true );
-    }
-    r_n_value = reference_node->getChild( "value" );
-    r_scale_node = reference_node->getChild( "scale" );
-    if ( r_scale_node == NULL ) {
-	// create with default value
-	r_scale_node = reference_node->getChild( "scale", 0, true );
-	r_scale_node->setDoubleValue( 1.0 );
+    node = pid_node->getChild("reference", true);
+    string ref_prop = node.getString("prop");
+    ref_value = node.getString("value");
+    pos = input_prop.rfind("/");
+    if ( pos != string::npos ) {
+	string path = ref_prop.substr(0, pos);
+	ref_attr = ref_prop.substr(pos+1);
+	ref_node = pyGetNode( path, true );
     }
 
     // output
-    SGPropertyNode *output_node = node->getChild( "output", 0, true );
-    int i = 0;
-    SGPropertyNode *output_prop;
-    while ( (output_prop = output_node->getChild("prop", i)) != NULL ) {
-	SGPropertyNode *tmp = fgGetNode( output_prop->getStringValue(), true );
-	output_list.push_back( tmp );
-	i++;
+    node = pid_node->getChild( "output", true );
+    vector <string> children = node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); ++i ) {
+	if ( children[i].substr(0,4) == "prop" ) {
+	    string output_prop = node.getString(children[i].c_str());
+	    pos = output_prop.rfind("/");
+	    if ( pos != string::npos ) {
+		string path = output_prop.substr(0, pos);
+		string attr = output_prop.substr(pos+1);
+		pyPropertyNode onode = pyGetNode( path, true );
+		output_node.push_back( onode );
+		output_attr.push_back( attr );
+	    } else {
+		printf("WARNING: requested bad output path: %s\n",
+		       output_prop.c_str());
+	    }
+	} else {
+	    printf("WARNING: unknown tag in output section: %s\n",
+		   children[i].c_str());
+	}
     }
  
     // config
-    SGPropertyNode *config_node = node->getChild( "config", 0, true );
-    Kp_node = config_node->getChild( "Kp", 0, true );
-    Ki_node = config_node->getChild( "Ki", 0, true );
-    u_min_node = config_node->getChild( "u_min", 0, true );
-    u_max_node = config_node->getChild( "u_max", 0, true );
+    pyPropertyNode config_node = pid_node->getChild( "config", true );
 }
 
 
 void FGPISimpleController::update( double dt ) {
-    if (enable_prop != NULL && enable_prop->getStringValue() == enable_value) {
-	if ( !enabled ) {
-	    // we have just been enabled, zero out int_sum
-	    int_sum = 0.0;
-	}
+    if (!enable_node.isNull() && enable_node.getString("enable_attr") == enable_value) {
 	enabled = true;
     } else {
 	enabled = false;
     }
 
-    if ( enabled ) {
-	bool debug = debug_node->getBoolValue();
-        if ( debug ) printf("Updating %s\n", get_name());
-        double input = 0.0;
-	input = input_prop->getDoubleValue() * y_scale_node->getDoubleValue();
+    bool debug = pid_node.getBool("debug");
+    if ( debug ) printf("Updating %s\n", get_name());
+    double input = 0.0;
+    input = input_node.getDouble(input_attr.c_str());
 
-        double r_n = 0.0;
-	if ( r_n_value != NULL ) {
-	    r_n = r_n_value->getDoubleValue();
-	} else {
-            r_n = r_n_prop->getDoubleValue() * r_scale_node->getDoubleValue();
-	}
+    double r_n = 0.0;
+    if ( ref_value != "" ) {
+	r_n = atof(ref_value.c_str());
+    } else {
+	r_n = ref_node.getDouble(ref_attr.c_str());
+    }
                       
-        double error = r_n - input;
-        if ( debug ) printf("input = %.3f reference = %.3f error = %.3f\n",
-			    input, r_n, error);
+    double error = r_n - input;
+    if ( debug ) printf("input = %.3f reference = %.3f error = %.3f\n",
+			input, r_n, error);
 
-        double prop_comp = 0.0;
+    double prop_comp = 0.0;
 
-	prop_comp = error * Kp_node->getDoubleValue();
-	double u_min = u_min_node->getDoubleValue();
-	double u_max = u_max_node->getDoubleValue();
-	if ( prop_comp < u_min ) { prop_comp = u_min; }
-	if ( prop_comp > u_max ) { prop_comp = u_max; }
+    prop_comp = error * config_node.getDouble("Kp");
+    double u_min = config_node.getDouble("u_min");
+    double u_max = config_node.getDouble("u_max");
+    if ( prop_comp < u_min ) { prop_comp = u_min; }
+    if ( prop_comp > u_max ) { prop_comp = u_max; }
 
-	int_sum += error * Ki_node->getDoubleValue() * dt;
+    int_sum += error * config_node.getDouble("Ki") * dt;
 
-	double pre_output = prop_comp + int_sum;
-	double clamp_output = pre_output;
-	if ( clamp_output < u_min ) { clamp_output = u_min; }
-	if ( clamp_output > u_max ) { clamp_output = u_max; }
-	if ( clamp_output != pre_output && integral ) {
-	    int_sum = clamp_output - prop_comp;
+    double pre_output = prop_comp + int_sum;
+    double clamp_output = pre_output;
+    if ( clamp_output < u_min ) { clamp_output = u_min; }
+    if ( clamp_output > u_max ) { clamp_output = u_max; }
+    if ( clamp_output != pre_output && integral ) {
+	int_sum = clamp_output - prop_comp;
+    }
+
+    if ( debug ) printf("prop_comp = %.3f int_sum = %.3f\n",
+			prop_comp, int_sum);
+    if ( debug ) printf("clamped output = %.3f\n", clamp_output);
+
+    if ( enabled ) {
+	// Copy the result to the output node(s)
+	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
+	    output_node[i].setDouble( output_attr[i].c_str(), clamp_output );
 	}
-
-        if ( debug ) printf("prop_comp = %.3f int_sum = %.3f\n",
-			    prop_comp, int_sum);
-        if ( debug ) printf("clamped output = %.3f\n", clamp_output);
-
-        for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-            output_list[i]->setDoubleValue( clamp_output );
-        }
     }
 }
 
 
-FGPredictor::FGPredictor ( SGPropertyNode *node ):
+FGPredictor::FGPredictor ( pyPropertyNode *config_node ):
     last_value ( 999999999.9 ),
     average ( 0.0 ),
     seconds( 0.0 ),
     filter_gain( 0.0 ),
-    debug_node( NULL ),
     ivalue( 0.0 )
 {
-    int i;
-    for ( i = 0; i < node->nChildren(); ++i ) {
-        SGPropertyNode *child = node->getChild(i);
-        string cname = child->getName();
-        string cval = child->getStringValue();
-        if ( cname == "name" ) {
-            name_node = child;
-        } else if ( cname == "debug" ) {
-            debug_node = child;
-        } else if ( cname == "input" ) {
-            input_prop = fgGetNode( child->getStringValue(), true );
-        } else if ( cname == "seconds" ) {
-            seconds = child->getDoubleValue();
-        } else if ( cname == "filter-gain" ) {
-            filter_gain = child->getDoubleValue();
-        } else if ( cname == "output" ) {
-	    SGPropertyNode *tmp = fgGetNode( child->getStringValue(), true );
-            output_list.push_back( tmp );
-        }
-    }   
+    size_t pos;
+
+    // enable
+    pyPropertyNode node = config_node->getChild("enable", true);
+    string enable_prop = node.getString("prop");
+    enable_value = node.getString("value");
+    honor_passive = node.getBool("honor_passive");
+    pos = enable_prop.rfind("/");
+    if ( pos != string::npos ) {
+	string path = enable_prop.substr(0, pos);
+	enable_attr = enable_prop.substr(pos+1);
+	enable_node = pyGetNode( path, true );
+    }
+
+    // input
+    node = config_node->getChild("input", true);
+    string input_prop = node.getString("prop");
+    pos = input_prop.rfind("/");
+    if ( pos != string::npos ) {
+	string path = input_prop.substr(0, pos);
+	input_attr = input_prop.substr(pos+1);
+	input_node = pyGetNode( path, true );
+    }
+
+    if ( config_node->hasChild("seconds") ) {
+	seconds = config_node->getDouble("seconds");
+    }
+    if ( config_node->hasChild("filter_gain") ) {
+	filter_gain = config_node->getDouble("filter_gain");
+    }
+    
+    // output
+    node = config_node->getChild( "output", true );
+    vector <string> children = node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); ++i ) {
+	if ( children[i].substr(0,4) == "prop" ) {
+	    string output_prop = node.getString(children[i].c_str());
+	    pos = output_prop.rfind("/");
+	    if ( pos != string::npos ) {
+		string path = output_prop.substr(0, pos);
+		string attr = output_prop.substr(pos+1);
+		pyPropertyNode onode = pyGetNode( path, true );
+		output_node.push_back( onode );
+		output_attr.push_back( attr );
+	    } else {
+		printf("WARNING: requested bad output path: %s\n",
+		       output_prop.c_str());
+	    }
+	} else {
+	    printf("WARNING: unknown tag in output section: %s\n",
+		   children[i].c_str());
+	}
+    }
 }
 
 void FGPredictor::update( double dt ) {
@@ -492,16 +502,15 @@ void FGPredictor::update( double dt ) {
 
     */
 
-    if ( input_prop != NULL ) {
-        ivalue = input_prop->getDoubleValue();
-        // no sense if there isn't an input :-)
-        enabled = true;
+    if (!enable_node.isNull() && enable_node.getString("enable_attr") == enable_value) {
+	enabled = true;
     } else {
-        enabled = false;
+	enabled = false;
     }
 
-    if ( enabled ) {
+    ivalue = input_node.getDouble(input_attr.c_str());
 
+    if ( enabled ) {
         // first time initialize average
         if (last_value >= 999999999.0) {
            last_value = ivalue;
@@ -518,50 +527,86 @@ void FGPredictor::update( double dt ) {
             // calculate output with filter gain adjustment
             double output = ivalue + (1.0 - filter_gain) * (average * seconds) + filter_gain * (current * seconds);
 
-            for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-                output_list[i]->setDoubleValue( output );
-            }
+	    // Copy the result to the output node(s)
+	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
+		output_node[i].setDouble( output_attr[i].c_str(), output );
+	    }
         }
         last_value = ivalue;
     }
 }
 
 
-FGDigitalFilter::FGDigitalFilter(SGPropertyNode *node)
+FGDigitalFilter::FGDigitalFilter( pyPropertyNode *config_node )
 {
+    size_t pos;
     samples = 1;
 
-    int i;
-    for ( i = 0; i < node->nChildren(); ++i ) {
-        SGPropertyNode *child = node->getChild(i);
-        string cname = child->getName();
-        string cval = child->getStringValue();
-        if ( cname == "name" ) {
-            name_node = child;
-        } else if ( cname == "debug" ) {
-            debug = child->getBoolValue();
-        } else if ( cname == "type" ) {
-            if ( cval == "exponential" ) {
-                filterType = exponential;
-            } else if (cval == "double-exponential") {
-                filterType = doubleExponential;
-            } else if (cval == "moving-average") {
-                filterType = movingAverage;
-            } else if (cval == "noise-spike") {
-                filterType = noiseSpike;
-            }
-        } else if ( cname == "input" ) {
-            input_prop = fgGetNode( child->getStringValue(), true );
-        } else if ( cname == "filter-time" ) {
-            Tf = child->getDoubleValue();
-        } else if ( cname == "samples" ) {
-            samples = child->getIntValue();
-        } else if ( cname == "max-rate-of-change" ) {
-            rateOfChange = child->getDoubleValue();
-        } else if ( cname == "output" ) {
-            SGPropertyNode *tmp = fgGetNode( child->getStringValue(), true );
-            output_list.push_back( tmp );
-        }
+    // enable
+    pyPropertyNode node = config_node->getChild("enable", true);
+    string enable_prop = node.getString("prop");
+    enable_value = node.getString("value");
+    honor_passive = node.getBool("honor_passive");
+    pos = enable_prop.rfind("/");
+    if ( pos != string::npos ) {
+	string path = enable_prop.substr(0, pos);
+	enable_attr = enable_prop.substr(pos+1);
+	enable_node = pyGetNode( path, true );
+    }
+
+    // input
+    node = config_node->getChild("input", true);
+    string input_prop = node.getString("prop");
+    pos = input_prop.rfind("/");
+    if ( pos != string::npos ) {
+	string path = input_prop.substr(0, pos);
+	input_attr = input_prop.substr(pos+1);
+	input_node = pyGetNode( path, true );
+    }
+
+    if ( config_node->hasChild("type") ) {
+	string cval = config_node->getString("type");
+	if ( cval == "exponential" ) {
+	    filterType = exponential;
+	} else if (cval == "double-exponential") {
+	    filterType = doubleExponential;
+	} else if (cval == "moving-average") {
+	    filterType = movingAverage;
+	} else if (cval == "noise-spike") {
+	    filterType = noiseSpike;
+	}
+    }
+    if ( config_node->hasChild("filter_time") ) {
+	Tf = config_node->getDouble("filter_time");
+    }
+    if ( config_node->hasChild("samples") ) {
+	samples = config_node->getLong("samples");
+    }
+    if ( config_node->hasChild("max_rate_of_change") ) {
+	rateOfChange = config_node->getDouble("max_rate_of_change");
+    }
+
+    // output
+    node = config_node->getChild( "output", true );
+    vector <string> children = node.getChildren();
+    for ( unsigned int i = 0; i < children.size(); ++i ) {
+	if ( children[i].substr(0,4) == "prop" ) {
+	    string output_prop = node.getString(children[i].c_str());
+	    pos = output_prop.rfind("/");
+	    if ( pos != string::npos ) {
+		string path = output_prop.substr(0, pos);
+		string attr = output_prop.substr(pos+1);
+		pyPropertyNode onode = pyGetNode( path, true );
+		output_node.push_back( onode );
+		output_attr.push_back( attr );
+	    } else {
+		printf("WARNING: requested bad output path: %s\n",
+		       output_prop.c_str());
+	    }
+	} else {
+	    printf("WARNING: unknown tag in output section: %s\n",
+		   children[i].c_str());
+	}
     }
 
     output.resize(2, 0.0);
@@ -570,14 +615,14 @@ FGDigitalFilter::FGDigitalFilter(SGPropertyNode *node)
 
 void FGDigitalFilter::update(double dt)
 {
-    if ( input_prop != NULL ) {
-        input.push_front(input_prop->getDoubleValue());
-        input.resize(samples + 1, 0.0);
-        // no sense if there isn't an input :-)
-        enabled = true;
+    if (!enable_node.isNull() && enable_node.getString("enable_attr") == enable_value) {
+	enabled = true;
     } else {
-        enabled = false;
+	enabled = false;
     }
+
+    input.push_front( input_node.getDouble(input_attr.c_str()) );
+    input.resize(samples + 1, 0.0);
 
     if ( enabled && dt > 0.0 ) {
         /*
@@ -592,9 +637,9 @@ void FGDigitalFilter::update(double dt)
             double alpha = 1 / ((Tf/dt) + 1);
             output.push_front(alpha * input[0] + 
                               (1 - alpha) * output[0]);
-            for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-                output_list[i]->setDoubleValue( output[0] );
-            }
+	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
+		output_node[i].setDouble( output_attr[i].c_str(), output[0] );
+	    }
             output.resize(1);
         } 
         else if (filterType == doubleExponential)
@@ -603,18 +648,18 @@ void FGDigitalFilter::update(double dt)
             output.push_front(alpha * alpha * input[0] + 
                               2 * (1 - alpha) * output[0] -
                               (1 - alpha) * (1 - alpha) * output[1]);
-            for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-                output_list[i]->setDoubleValue( output[0] );
-            }
+ 	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
+		output_node[i].setDouble( output_attr[i].c_str(), output[0] );
+	    }
             output.resize(2);
         }
         else if (filterType == movingAverage)
         {
             output.push_front(output[0] + 
                               (input[0] - input.back()) / samples);
-            for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-                output_list[i]->setDoubleValue( output[0] );
-            }
+ 	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
+		output_node[i].setDouble( output_attr[i].c_str(), output[0] );
+	    }
             output.resize(1);
         }
         else if (filterType == noiseSpike)
@@ -634,13 +679,12 @@ void FGDigitalFilter::update(double dt)
                 output.push_front(input[0]);
             }
 
-            for ( unsigned int i = 0; i < output_list.size(); ++i ) {
-                output_list[i]->setDoubleValue( output[0] );
-            }
+ 	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
+		output_node[i].setDouble( output_attr[i].c_str(), output[0] );
+	    }
 	    output.resize(1);
         }
-        if (debug)
-        {
+        if ( pid_node.getBool("debug") ) {
             printf("input: %.3f\toutput: %.3f\n", input[0], output[0]);
         }
     }
@@ -656,13 +700,11 @@ FGXMLAutopilot::~FGXMLAutopilot() {
 
  
 void FGXMLAutopilot::init() {
-    config_props = fgGetNode( "/config/fcs/autopilot", true );
-
     if ( ! build() ) {
-      printf("Detected an internal inconsistency in the autopilot\n");
-      printf(" configuration.  See earlier errors for\n" );
-      printf(" details.");
-      exit(-1);
+	printf("Detected an internal inconsistency in the autopilot\n");
+	printf(" configuration.  See earlier errors for\n" );
+	printf(" details.\n");
+	exit(-1);
     }        
 }
 
@@ -681,27 +723,35 @@ void FGXMLAutopilot::unbind() {
 }
 
 bool FGXMLAutopilot::build() {
-    SGPropertyNode *node;
-    int i;
+    pyPropertyNode config_props = pyGetNode( "/config/fcs/autopilot", true );
 
-    int count = config_props->nChildren();
-    for ( i = 0; i < count; ++i ) {
-        node = config_props->getChild(i);
-        string name = node->getName();
-        // cout << name << endl;
-        if ( name == "pid-controller" ) {
-            FGXMLAutoComponent *c = new FGPIDController( node );
+    // FIXME: we have always depended on the order of children
+    // components here to ensure PID stages are run in the correct
+    // order, however that is a bad thing to assume ... especially now
+    // with pyprops!!!
+    vector <string> children = config_props.getChildren();
+    unsigned int count = children.size();
+    for ( unsigned int i = 0; i < count; ++i ) {
+        pyPropertyNode node = config_props.getChild(children[i].c_str());
+        string name = children[i];
+	size_t pos = name.find("[");
+	if ( pos != string::npos ) {
+	    name = name.substr(0, pos);
+	}
+        printf("%s\n", name.c_str());
+        if ( name == "pid_controller" ) {
+            FGXMLAutoComponent *c = new FGPIDController( &node );
             components.push_back( c );
-        } else if ( name == "pi-simple-controller" ) {
-            FGXMLAutoComponent *c = new FGPISimpleController( node );
+        } else if ( name == "pi_simple_controller" ) {
+            FGXMLAutoComponent *c = new FGPISimpleController( &node );
             components.push_back( c );
-        } else if ( name == "predict-simple" ) {
-            FGXMLAutoComponent *c = new FGPredictor( node );
+        } else if ( name == "predict_simple" ) {
+            FGXMLAutoComponent *c = new FGPredictor( &node );
             components.push_back( c );
         } else if ( name == "filter" ) {
-            FGXMLAutoComponent *c = new FGDigitalFilter( node );
+            FGXMLAutoComponent *c = new FGDigitalFilter( &node );
             components.push_back( c );
-	} else if ( name == "L1-controller" ) {
+	} else if ( name == "L1_controller" ) {
 	    // information placeholder, we don't do anything here.
         } else {
 	    printf("Unknown top level section: %s\n", name.c_str() );
@@ -723,115 +773,11 @@ inline void SG_NORMALIZE_RANGE( T &val, const T min, const T max ) {
 
 
 /*
- * Update helper values
- */
-static void update_helper( double dt ) {
-#if 0
-    // Estimate speed in 5,10 seconds
-    static SGPropertyNode *vel = fgGetNode( "/velocity/airspeed-kt", true );
-    static SGPropertyNode *lookahead5
-        = fgGetNode( "/autopilot/internal/lookahead-5-sec-airspeed-kt", true );
-    static SGPropertyNode *lookahead10
-        = fgGetNode( "/autopilot/internal/lookahead-10-sec-airspeed-kt", true );
-
-    static double average = 0.0; // average/filtered prediction
-    static double v_last = 0.0;  // last velocity
-
-    if ( dt > 0.0 ) {
-        double v = vel->getDoubleValue();
-        double a = (v - v_last) / dt;
-
-        if ( dt < 1.0 ) {
-            average = (1.0 - dt) * average + dt * a;
-        } else {
-            average = a;
-        }
-
-        lookahead5->setDoubleValue( v + average * 5.0 );
-        lookahead10->setDoubleValue( v + average * 10.0 );
-        v_last = v;
-    }
-#endif
-
-#if 0
-    // given the current wind estimate, compute the true heading
-    // required to fly the current ground course, then compute the
-    // true heading required to fly the target nav course.  Steer
-    // based on the heading differnce in "true orientation" space
-    // rather than in ground track space.  This schedules our
-    // steerging gain based on the wind vector automatically.  Note we
-    // do not use our actual true heading because our wind estimate
-    // and true heading estimate aren't perfect, winds can shift
-    // rapidly, and trusting average or old estimates can throw us way
-    // off.
-
-    double diff;
-
-    // real sensor data
-    static SGPropertyNode *groundtrack_deg
-        = fgGetNode( "/orientation/groundtrack-deg", true );
-
-    // wind estimates
-    // autopilot settings
-    static SGPropertyNode *target_course_deg
-        = fgGetNode( "/autopilot/settings/target-groundtrack-deg", true );
-
-    // compute heading error in aircraft heading space after doing
-    // wind triangle math on the current and target ground courses.
-    // This gives us a close estimate of how far we have to yaw the
-    // aircraft nose to get on the target ground course.
-    double hdg_error = wind_heading_diff(groundtrack_deg->getDoubleValue(),
-					 target_course_deg->getDoubleValue());
-
-    static SGPropertyNode *wind_heading_error
-        = fgGetNode( "/autopilot/settings/wind-heading-error-deg", true );
-    wind_heading_error->setDoubleValue( hdg_error );
-#endif
-
-#if 0
-    // Calculate "wind compensated" groundtrack heading error
-    // normalized to +/- 180.0.  The ground track heading error can be
-    // misleading if there is wind.  we compute a wind compensated
-    // true heading difference so we know what heading we need to roll
-    // out at to achieve the target ground track heading.  The actual
-    // computations are performed in the route_mgr code, the wind
-    // estimation is performed in the filter_mgr code.
-    static SGPropertyNode *target_wind_true
-        = fgGetNode( "/filters/wind-est/target-heading-deg", true );
-    static SGPropertyNode *true_hdg
-        = fgGetNode( "/orientation/heading-deg", true );
-    static SGPropertyNode *wind_true_error
-        = fgGetNode( "/autopilot/internal/wind-true-error-deg", true );
-
-    diff = target_wind_true->getDoubleValue() - true_hdg->getDoubleValue();
-    if ( diff < -180.0 ) { diff += 360.0; }
-    if ( diff > 180.0 ) { diff -= 360.0; }
-    wind_true_error->setDoubleValue( diff );
-#endif
-
-#if 0
-    // calculate the roll angle squared for the purpose of adding open
-    // loop elevator deflection in turns.
-    static SGPropertyNode *roll_squared
-        = fgGetNode( "/orientation/roll-deg-squared", true );
-    static SGPropertyNode *phi_node
-	= fgGetNode("/orientation/roll-deg", true);
-    double roll = phi_node->getDoubleValue();
-    roll_squared->setDoubleValue( roll * roll );
-#endif
-
-}
-
-
-/*
  * Update the list of autopilot components
  */
 
 void FGXMLAutopilot::update( double dt ) {
-    update_helper( dt );
-
-    unsigned int i;
-    for ( i = 0; i < components.size(); ++i ) {
+    for ( unsigned int i = 0; i < components.size(); ++i ) {
         components[i]->update( dt );
     }
 }

@@ -7,13 +7,13 @@
 #define _AURA_ACT_FGFS_HXX
 
 
-#include "include/globaldefs.h"
+#include "python/pyprops.hxx"
 
-#include "props/props.hxx"
+#include "include/globaldefs.h"
 
 
 // function prototypes
-bool fgfs_act_init( SGPropertyNode *config );
+bool fgfs_act_init( pyPropertyNode *base, pyPropertyNode *config );
 bool fgfs_act_update();
 void fgfs_act_close();
 

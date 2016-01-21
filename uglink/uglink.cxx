@@ -16,7 +16,7 @@
 //#include <simgear/io/lowlevel.hxx> // endian tests
 #include "sg_file.hxx"
 //#include <simgear/math/sg_geodesy.hxx>
-//#include <simgear/props/props.hxx>
+//#include <simgear/python/pyprops.hxx>
 //#include <simgear/timing/timestamp.hxx>
 
 //#include <include/net_ctrls.hxx>
@@ -235,18 +235,18 @@ void usage( const string &argv0 ) {
 int main( int argc, char **argv ) {
     // initialize property system
     props = new SGPropertyNode;
-    alt_offset_node = fgGetNode("/config/alt-offset-m", true);
-    est_controls_node = fgGetNode("/config/estimate-controls", true);
-    use_groundtrack_hdg_node = fgGetNode("/config/use-groundtrack-heading",
+    alt_offset_node = pyGetNode("/config/alt-offset-m", true);
+    est_controls_node = pyGetNode("/config/estimate-controls", true);
+    use_groundtrack_hdg_node = pyGetNode("/config/use-groundtrack-heading",
 					 true);
-    use_ground_speed_node = fgGetNode("/config/use-ground-speed", true);
-    flying_wing_node = fgGetNode("/config/flying-wing-mode", true);
+    use_ground_speed_node = pyGetNode("/config/use-ground-speed", true);
+    flying_wing_node = pyGetNode("/config/flying-wing-mode", true);
 
     // timers/counters for end of run reporting
-    flight_total_timer = fgGetNode("/status/flight-timer-secs", true);
-    flight_auto_timer = fgGetNode("/status/autopilot-timer-secs", true);
-    flight_odometer = fgGetNode("/status/flight-odometer", true);
-    extern_mah_node = fgGetNode("/status/extern-mah", true);
+    flight_total_timer = pyGetNode("/status/flight-timer-secs", true);
+    flight_auto_timer = pyGetNode("/status/autopilot-timer-secs", true);
+    flight_odometer = pyGetNode("/status/flight-odometer", true);
+    extern_mah_node = pyGetNode("/status/extern-mah", true);
 
     // set some default values
     use_groundtrack_hdg_node->setBoolValue( false );
@@ -398,7 +398,7 @@ int main( int argc, char **argv ) {
         } else if ( strcmp( argv[i], "--altitude-offset" ) == 0 ) {
             ++i;
             if ( i < argc ) {
-                alt_offset_node->setDoubleValue( atof( argv[i] ) );
+                alt_offset_node->setDouble( atof( argv[i] ) );
             } else {
                 usage( argv[0] );
                 exit( -1 );
@@ -810,7 +810,7 @@ int main( int argc, char **argv ) {
 #if 0
 		double ail = pilotpacket.ail;
 		double ele = pilotpacket.ele;
-		if ( flying_wing_node->getBoolValue() ) {
+		if ( flying_wing_node->getBool() ) {
 		    double ch1 = pilotpacket.ail;
 		    double ch2 = pilotpacket.ele;
 		    double e = (ch1 - ch2) / 2.0;
@@ -918,10 +918,10 @@ int main( int argc, char **argv ) {
         cout << "Processed " << imu_count << " entries in "
              << total << " seconds." << endl;
 
-	printf("Total Flight Time = %.1f min\n", flight_total_timer->getDoubleValue() / 60.0);
-	printf("Total Autopilot Time = %.1f min\n", flight_auto_timer->getDoubleValue() / 60.0);
-	printf("Estimated Battery Usage = %.0f Mah\n", extern_mah_node->getDoubleValue());
-	printf("Estimated Distance Traveled = %.0f m %.2f nm\n", flight_odometer->getDoubleValue(), flight_odometer->getDoubleValue() * SG_METER_TO_NM );
+	printf("Total Flight Time = %.1f min\n", flight_total_timer->getDouble() / 60.0);
+	printf("Total Autopilot Time = %.1f min\n", flight_auto_timer->getDouble() / 60.0);
+	printf("Estimated Battery Usage = %.0f Mah\n", extern_mah_node->getDouble());
+	printf("Estimated Distance Traveled = %.0f m %.2f nm\n", flight_odometer->getDouble(), flight_odometer->getDouble() * SG_METER_TO_NM );
     } else if ( serialdev.length() ) {
         // process incoming data from the serial port
 

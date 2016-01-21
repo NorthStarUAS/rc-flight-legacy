@@ -14,7 +14,7 @@
 #include <sstream>
 
 #include <comms/netChat.h>
-#include <props/props.hxx>
+#include <python/pyprops.hxx>
 #include <props/props_io.hxx>
 #include <util/strutils.hxx>
 
@@ -151,7 +151,7 @@ PropsChannel::foundTerminator()
 
     vector<string> tokens = split( cmd );
 
-    SGPropertyNode* node = fgGetNode( path.c_str() );
+    SGPropertyNode* node = pyGetNode( path.c_str() );
 
     if (!tokens.empty()) {
 	string command = tokens[0];
@@ -164,12 +164,12 @@ PropsChannel::foundTerminator()
 	    SGPropertyNode* dir = node;
 	    if (tokens.size() == 2) {
 		if ( tokens[1][0] == '/' ) {
-		    dir = fgGetNode( tokens[1].c_str() );
+		    dir = pyGetNode( tokens[1].c_str() );
 		} else {
 		    string s = path;
 		    s += "/";
 		    s += tokens[1];
-		    dir = fgGetNode( s.c_str() );
+		    dir = pyGetNode( s.c_str() );
 		}
 	    }
 
@@ -182,7 +182,7 @@ PropsChannel::foundTerminator()
 			line += "/";
 		    } else {
 			if (mode == PROMPT) {
-			    string value = child->getStringValue();
+			    string value = child->getString();
 			    line += " =\t'" + value + "'\t(";
 			line += getValueTypeString( child );
 			line += ")";
@@ -223,7 +223,7 @@ PropsChannel::foundTerminator()
 	} else if ( command == "get" || command == "show" ) {
 	    if ( tokens.size() == 2 ) {
 		string tmp;
-		string value = node->getStringValue ( tokens[1].c_str(), "" );
+		string value = node->getString ( tokens[1].c_str(), "" );
 		if ( mode == PROMPT ) {
 		    tmp = tokens[1];
 		    tmp += " = '";
@@ -281,12 +281,12 @@ PropsChannel::foundTerminator()
 		    value += tokens[i];
 		}
 		node->getNode( tokens[1].c_str(), true )
-		    ->setStringValue(value.c_str());
+		    ->setString(value.c_str());
 
 		if ( mode == PROMPT ) {
 		    // now fetch and write out the new value as confirmation
 		    // of the change
-		    value = node->getStringValue ( tokens[1].c_str(), "" );
+		    value = node->getString ( tokens[1].c_str(), "" );
 		    tmp = tokens[1] + " = '" + value + "' (";
 		    tmp += getValueTypeString( node->getNode( tokens[1].c_str() ) );
 		    tmp += ")";

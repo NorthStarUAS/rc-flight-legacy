@@ -11,16 +11,17 @@
 // modify it under the terms of the GNU LGPL
 //
 
+#include "python/pyprops.hxx"
+
+#include <unistd.h>
 #include <sstream>
 
-#include "control/control.h"
+#include "control/control.hxx"
 #include "init/globals.hxx" 	// packetizer
-#include "props/props.hxx"
-#include "props/props_io.hxx"
 #include "util/strutils.hxx"
 
 #include "netChat.h"
-#include "display.h"
+#include "display.hxx"
 #include "telnet.hxx"
 
 using std::stringstream;
@@ -34,6 +35,33 @@ static bool fcs_update_helper(string values) {
 
     return packetizer->decode_fcs_update( tokens );
 
+}
+
+static string normalize_path(string raw_path) {
+    vector<string> tokens = split( raw_path, "/" );
+    vector<string> tmp;
+    unsigned int count = 0;
+    for ( unsigned int i = 1; i < tokens.size(); i++ ) {
+	if ( tokens[i] == ".." ) {
+	    if ( tmp.size() ) {
+		tmp.pop_back();
+	    }
+	} else if ( tokens[i] == "." ) {
+	    // do nothing
+	} else {
+	    tmp.push_back(tokens[i]);
+	}
+    }
+    string result = "";
+    for ( unsigned int i = 0; i < tmp.size(); i++ ) {
+	result += "/" + tmp[i];
+    }
+    if ( result == "" ) {
+	result = "/";
+    }
+    printf("Original path = %s\n", raw_path.c_str());
+    printf("new      path = %s\n", result.c_str());
+    return result;
 }
 
 /**
@@ -116,37 +144,6 @@ PropsChannel::node_not_found_error( const string& node_name )
     push( getTerminator() );
 }
 
-// return a human readable form of the value "type"
-static string getValueTypeString( const SGPropertyNode *node )
-{
-    string result;
-
-    if ( node == NULL )
-    {
-        return "unknown";
-    }
-
-    SGPropertyNode::Type type = node->getType();
-    if ( type == SGPropertyNode::UNSPECIFIED ) {
-        result = "unspecified";
-    } else if ( type == SGPropertyNode::NONE ) {
-        result = "none";
-    } else if ( type == SGPropertyNode::BOOL ) {
-        result = "bool";
-    } else if ( type == SGPropertyNode::INT ) {
-        result = "int";
-    } else if ( type == SGPropertyNode::LONG ) {
-        result = "long";
-    } else if ( type == SGPropertyNode::FLOAT ) {
-        result = "float";
-    } else if ( type == SGPropertyNode::DOUBLE ) {
-        result = "double";
-    } else if ( type == SGPropertyNode::STRING ) {
-        result = "string";
-    }
-
-    return result;
-}
 
 /**
  * We have a command.
@@ -162,7 +159,7 @@ PropsChannel::foundTerminator()
 
     vector<string> tokens = split( cmd );
 
-    SGPropertyNode* node = fgGetNode( path.c_str() );
+    pyPropertyNode node = pyGetNode( path.c_str() );
 
     if (!tokens.empty()) {
 	string command = tokens[0];
@@ -170,32 +167,29 @@ PropsChannel::foundTerminator()
         if ( command == "null" ) {
             // do nothing!
 	} else if ( command == "ls" ) {
-	    SGPropertyNode* dir = node;
+	    pyPropertyNode dir = node;
 	    if (tokens.size() == 2) {
 		if ( tokens[1][0] == '/' ) {
-		    dir = fgGetNode( tokens[1].c_str() );
+		    dir = pyGetNode( tokens[1] );
 		} else {
 		    string s = path;
 		    s += "/";
 		    s += tokens[1];
-		    dir = fgGetNode( s.c_str() );
+		    dir = pyGetNode( s );
 		}
 	    }
 
-	    if ( dir != NULL ) {
-		for ( int i = 0; i < dir->nChildren(); i++ ) {
-		    SGPropertyNode * child = dir->getChild(i);
-		    string line = child->getDisplayName(true);
-
-		    if ( child->nChildren() > 0 ) {
-			line += "/";
-		    } else {
+	    if ( ! dir.isNull() ) {
+		vector <string> children = dir.getChildren();
+		for ( unsigned int i = 0; i < children.size(); i++ ) {
+		    string line = children[i];
+		    if ( dir.isLeaf(children[i].c_str()) ) {
 			if (mode == PROMPT) {
-			    string value = child->getStringValue();
-			    line += " =\t'" + value + "'\t(";
-			line += getValueTypeString( child );
-			line += ")";
+			    string value = dir.getString(children[i].c_str());
+			    line += " =\t'" + value + "'\t";
 			}
+		    } else {
+			line += "/";
 		    }
 
 		    line += getTerminator();
@@ -205,41 +199,43 @@ PropsChannel::foundTerminator()
 		node_not_found_error( tokens[1] );
 	    }
 	} else if ( command == "cd" ) {
+	    // FIXME: should handle ".." (and maybe even .)
 	    if (tokens.size() == 2) {
-		SGPropertyNode *child = NULL;
-		try {
-		    child = node->getNode( tokens[1].c_str() );
-		} catch ( string &message ) {
-		    push( message.c_str() );
-		    push( getTerminator() );
-		    child = NULL;
+		string newpath = "";
+		if ( tokens[1][0] == '/' ) {
+		    // absolute path specified
+		    newpath = tokens[1];
+		} else {
+		    // relative path specified
+		    if ( path == "/" ) {
+			newpath = path + tokens[1];
+		    } else {
+			newpath = path + "/" + tokens[1];
+		    }
 		}
-		if ( child ) {
-		    node = child;
-		    path = node->getPath();
+		newpath = normalize_path(newpath);
+
+		printf("newpath before = %s\n", newpath.c_str());
+		pyPropertyNode newnode = pyGetNode(newpath);
+		printf("newpath after = %s\n", newpath.c_str());
+		if ( ! newnode.isNull() ) {
+		    printf("path ok = %s\n", newpath.c_str());
+		    path = newpath;
 		} else {
 		    node_not_found_error( tokens[1] );
 		}
 	    }
 	} else if ( command == "pwd" ) {
-	    string pwd = node->getPath();
-	    if (pwd.empty()) {
-		pwd = "/";
-	    }
-
-	    push( pwd.c_str() );
+	    push( path.c_str() );
 	    push( getTerminator() );
 	} else if ( command == "get" || command == "show" ) {
 	    if ( tokens.size() == 2 ) {
 		string tmp;
-		string value = node->getStringValue ( tokens[1].c_str(), "" );
+		string value = node.getString ( tokens[1].c_str() );
 		if ( mode == PROMPT ) {
 		    tmp = tokens[1];
 		    tmp += " = '";
 		    tmp += value;
-		    tmp += "' (";
-		    tmp += getValueTypeString( node->getNode( tokens[1].c_str() ) );
-		    tmp += ")";
 		} else {
 		    tmp = value;
 		}
@@ -292,26 +288,14 @@ PropsChannel::foundTerminator()
 		    }
 		    value += tokens[i];
 		}
-		SGPropertyNode *child = NULL;
-		try {
-		    child = node->getNode( tokens[1].c_str(), true );
-		} catch ( string &message ){
-		    push( message.c_str() );
+		node.setString( tokens[1].c_str(), value );
+		if ( mode == PROMPT ) {
+		    // now fetch and write out the new value as confirmation
+		    // of the change
+		    value = node.getString ( tokens[1].c_str() );
+		    tmp = tokens[1] + " = '" + value + "'";
+		    push( tmp.c_str() );
 		    push( getTerminator() );
-		    child = NULL;
-		}
-		if ( child ) {
-		    child->setStringValue(value.c_str());
-		    if ( mode == PROMPT ) {
-			// now fetch and write out the new value as confirmation
-			// of the change
-			value = node->getStringValue ( tokens[1].c_str(), "" );
-			tmp = tokens[1] + " = '" + value + "' (";
-			tmp += getValueTypeString( node->getNode( tokens[1].c_str() ) );
-			tmp += ")";
-			push( tmp.c_str() );
-			push( getTerminator() );
-		    }
 		}
 	    }
 	} else if ( command == "run" ) {
@@ -328,28 +312,12 @@ PropsChannel::foundTerminator()
 		push( "usage: run <command>" );
 		push( getTerminator() );
 	    }
-	} else if ( command == "dump" ) {
-	    stringstream buf;
-	    if ( tokens.size() <= 1 ) {
-		writeProperties( buf, node, true );
-		buf << ends; // null terminate the string
-		push( buf.str().c_str() );
-		push( getTerminator() );
-	    } else {
-		SGPropertyNode *child = node->getNode( tokens[1].c_str() );
-		if ( child ) {
-		    writeProperties ( buf, child, true );
-		    buf << ends; // null terminate the string
-		    push( buf.str().c_str() );
-		    push( getTerminator() );
-		} else {
-		    node_not_found_error( tokens[1] );
-		}
-	    }
-         } else if ( command == "quit" ) {
+	} else if ( command == "quit" ) {
 	    close();
 	    shouldDelete();
 	    return;
+	} else if ( command == "exit-program" ) {
+	    exit(0);
 	} else if ( command == "data" ) {
 	    mode = DATA;
 	} else if ( command == "prompt" ) {

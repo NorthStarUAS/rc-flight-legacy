@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # set the correct cross compiler.  This needs to be in the default path
-echo Default C compiler is \"${CC:="arm-angstrom-linux-gnueabi-gcc"}\"
-echo Default C++ compiler is \"${CXX:="arm-angstrom-linux-gnueabi-g++"}\"
+# echo Default C compiler is \"${CC:="arm-angstrom-linux-gnueabi-gcc"}\"
+# echo Default C++ compiler is \"${CXX:="arm-angstrom-linux-gnueabi-g++"}\"
 
 AUTO_MAKE_VERSION=`automake --version | head -1 | awk '{print $4}' | sed -e 's/\.\([0-9]*\).*/\1/'`
 if test $AUTO_MAKE_VERSION -lt 15; then
@@ -51,10 +51,13 @@ if [ -f config.cache ]; then
 fi
 
 echo ""
+echo "Now make a build directory (i.e. $ mkdir build)"
+echo "cd to the build directory (i.e. $ cd build)"
+echo ""
 echo "Now you are ready to run:"
 echo ""
-echo "./configure CC=arm-angstrom-linux-gnueabi-gcc CFLAGS=\"-Wall -O2\" CXX=arm-angstrom-linux-gnueabi-g++ CXXFLAGS=\"-Wall -O2\" --host=arm-angstrom-linux-gnueabi --prefix=/usr/local/ugear.overo-oe"
-echo ""
-echo "or ..."
-echo ""
-echo "../configure CFLAGS=\"-Wall -O3\" CXXFLAGS=\"-Wall -O3\" --prefix=/your/path/to/supporting/libs"
+#echo "./configure CC=arm-angstrom-linux-gnueabi-gcc CFLAGS=\"-Wall -O2\" CXX=arm-angstrom-linux-gnueabi-g++ CXXFLAGS=\"-Wall -O2\" --host=arm-angstrom-linux-gnueabi --prefix=/usr/local/ugear.overo-oe"
+#echo ""
+#echo "or ..."
+#echo ""
+echo "../configure CFLAGS=\"-Wall -O3\" CXXFLAGS=\"-Wall -O3\""

@@ -9,4 +9,4 @@ noinst_PROGRAMS = curtquat
 curtquat_SOURCES = \
 	curtquat.cpp
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@

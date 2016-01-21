@@ -23,7 +23,7 @@
 #ifndef _AURA_CALIBRATE_HXX
 #define _AURA_CALIBRATE_HXX
 
-#include "props/props.hxx"
+#include "python/pyprops.hxx"
 
 
 class UGCalibrate {
@@ -43,7 +43,7 @@ public:
     UGCalibrate();
     ~UGCalibrate();
 
-    void init( SGPropertyNode *config, float min_temp, float max_temp );
+    void init( pyPropertyNode *config, float min_temp, float max_temp );
 
     inline float eval_bias( float temp )  {
 	if ( temp < _min_temp ) { temp = _min_temp; }

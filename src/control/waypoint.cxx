@@ -20,12 +20,12 @@
 //
 
 
+#include "python/pyprops.hxx"
+
 #include <stdio.h>
 
 #include <include/globaldefs.h>
 #include <math/SGMath.hxx>
-
-// #include <util/polar3d.hxx>
 
 #include "waypoint.hxx"
 
@@ -64,7 +64,7 @@ SGWayPoint::SGWayPoint( const double field1, const double field2,
 }
 
 
-SGWayPoint::SGWayPoint( SGPropertyNode *node ):
+SGWayPoint::SGWayPoint( pyPropertyNode *config_node ):
     mode( ABSOLUTE ),
     target_lon( 0.0 ),
     target_lat( 0.0 ),
@@ -77,32 +77,33 @@ SGWayPoint::SGWayPoint( SGPropertyNode *node ):
     distance( 0.0 ),
     id( "" )
 {
-    int i;
-    for ( i = 0; i < node->nChildren(); ++i ) {
-        SGPropertyNode *child = node->getChild(i);
-        string cname = child->getName();
-        string cval = child->getStringValue();
+    vector <string> children = config_node->getChildren();
+    unsigned int count = children.size();
+    for ( unsigned int i = 0; i < count; ++i ) {
+        string cname = children[i];
+        pyPropertyNode child = config_node->getChild(cname.c_str());
+        string cval = config_node->getString(cname.c_str());
         if ( cname == "id" ) {
             id = cval;
         } else if ( cname == "lon" ) {
-            target_lon = child->getDoubleValue();
+            target_lon = config_node->getDouble("lon");
 	    mode = ABSOLUTE;
         } else if ( cname == "lat" ) {
-            target_lat = child->getDoubleValue();
+            target_lat = config_node->getDouble("lat");
 	    mode = ABSOLUTE;
         } else if ( cname == "alt-ft" ) {
-            target_alt_m = child->getDoubleValue() * SG_FEET_TO_METER;
+            target_alt_m = config_node->getDouble("alt_ft") * SG_FEET_TO_METER;
         } else if ( cname == "agl-ft" ) {
-            target_agl_m = child->getDoubleValue() * SG_FEET_TO_METER;
+            target_agl_m = config_node->getDouble("agl_ft") * SG_FEET_TO_METER;
         } else if ( cname == "speed-kt" ) {
-            target_speed_kt = child->getDoubleValue();
+            target_speed_kt = config_node->getDouble("speed_kt");
         } else if ( cname == "bank-deg" ) {
-            target_bank_deg = child->getDoubleValue();
+            target_bank_deg = config_node->getDouble("bank_deg");
         } else if ( cname == "offset-heading-deg" ) {
-            offset_hdg_deg = child->getDoubleValue();
+            offset_hdg_deg = config_node->getDouble("offset_heading_deg");
 	    mode = RELATIVE;
         } else if ( cname == "offset-dist-m" ) {
-            offset_dist_m = child->getDoubleValue();
+            offset_dist_m = config_node->getDouble("offset_dist_m");
 	    mode = RELATIVE;
         } else {
             printf("Error in waypoint config logic, " );

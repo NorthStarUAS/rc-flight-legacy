@@ -823,7 +823,7 @@ bool UGTrack::export_raw_umn( const string &path ) {
 
 // export the whole flight data set as tab delimited files
 bool UGTrack::export_text_tab( const string &path ) {
-    SGPropertyNode *flying_wing_node = fgGetNode("/config/flying-wing-mode", true);
+    SGPropertyNode *flying_wing_node = pyGetNode("/config/flying-wing-mode", true);
     FILE *gps_fd = NULL;
     string gps_file = path + "/";
     gps_file += "gps.txt";
@@ -924,7 +924,7 @@ bool UGTrack::export_text_tab( const string &path ) {
 	actpacket = get_actpt(i);
 	double ail = actpacket.ail;
 	double ele = actpacket.ele;
-	if ( flying_wing_node->getBoolValue() ) {
+	if ( flying_wing_node->getBool() ) {
 	    double ch1 = actpacket.ail;
 	    double ch2 = actpacket.ele;
 	    double e = (ch1 - ch2) / 2.0;
@@ -955,7 +955,7 @@ bool UGTrack::export_text_tab( const string &path ) {
 	pilotpacket = get_pilotpt(i);
 	double ail = pilotpacket.ail;
 	double ele = pilotpacket.ele;
-	if ( flying_wing_node->getBoolValue() ) {
+	if ( flying_wing_node->getBool() ) {
 	    double ch1 = pilotpacket.ail;
 	    double ch2 = pilotpacket.ele;
 	    double e = (ch1 - ch2) / 2.0;
@@ -1049,7 +1049,7 @@ int serial_read( SGSerialPort *serial, SGIOChannel *log,
     int bytes_read = 0;
     static unsigned int total_bytes = 0;
     static SGPropertyNode *telemetry_rate_node
-	= fgGetNode("/comms/telemetry-input-bytes-per-sec", true);
+	= pyGetNode("/comms/telemetry-input-bytes-per-sec", true);
 
     bytes_read = serial->read_port( (char *)buf, length );
 
@@ -1064,7 +1064,7 @@ int serial_read( SGSerialPort *serial, SGIOChannel *log,
 	double elapsed_sec = current_read_sec - first_read_sec;
 	if ( elapsed_sec > 0.0 ) {
 	    double byte_rate = total_bytes / elapsed_sec;
-	    telemetry_rate_node->setDoubleValue(byte_rate);
+	    telemetry_rate_node->setDouble(byte_rate);
 	}
     }
 

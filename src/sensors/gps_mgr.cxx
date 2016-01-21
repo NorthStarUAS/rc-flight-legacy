@@ -8,17 +8,18 @@
  */
 
 
+#include "python/pyprops.hxx"
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
 
-#include "comms/display.h"
-#include "comms/logging.h"
-#include "comms/remote_link.h"
+#include "comms/display.hxx"
+#include "comms/logging.hxx"
+#include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "props/props.hxx"
 #include "util/coremag.h"
 #include "util/myprof.h"
 #include "util/timing.h"
@@ -39,75 +40,54 @@
 
 static double gps_last_time = -31557600.0; // default to t minus one year old
 
-// gps property nodes
-static SGPropertyNode *gps_timestamp_node = NULL;
-static SGPropertyNode *gps_unix_sec_node = NULL;
-static SGPropertyNode *gps_status_node = NULL;
-static SGPropertyNode *gps_magvar_deg_node = NULL;
-static SGPropertyNode *gps_settle_node = NULL;
+static pyPropertyNode gps_node;
+static vector<pyPropertyNode> sections;
 
-// magnetic variation property nodes
-static SGPropertyNode *magvar_init_deg_node = NULL;
-
-// comm property nodes
-static SGPropertyNode *gps_console_skip = NULL;
-static SGPropertyNode *gps_logging_skip = NULL;
-
-// set system time from gps
-static bool set_system_time = false;
-
+static int remote_link_skip = 0;
+static int logging_skip = 0;
 
 void GPS_init() {
-    gps_timestamp_node = fgGetNode("/sensors/gps/time-stamp", true);
-    gps_unix_sec_node = fgGetNode("/sensors/gps/unix-time-sec", true);
-    gps_status_node = fgGetNode("/sensors/gps/status", true);
-    gps_magvar_deg_node = fgGetNode("/sensors/gps/magvar-deg", true);
-    gps_settle_node = fgGetNode("/sensors/gps/settle", true);
-    gps_settle_node->setBoolValue(false);
-
-    // initialize magnetic variation property nodes
-    magvar_init_deg_node = fgGetNode("/config/filters/magvar-deg", true);
-
-    // initialize comm nodes
-    gps_console_skip = fgGetNode("/config/remote-link/gps-skip", true);
-    gps_logging_skip = fgGetNode("/config/logging/gps-skip", true);
+    gps_node = pyGetNode("/sensors/gps", true);
+    
+    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
+    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
+    remote_link_skip = remote_link_node.getDouble("gps_skip");
+    logging_skip = logging_node.getDouble("gps_skip");
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/gps-group", true);
-    for ( int i = 0; i < toplevel->nChildren(); ++i ) {
-	SGPropertyNode *section = toplevel->getChild(i);
-	string name = section->getName();
-	if ( name == "gps" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-            bool enabled = section->getChild("enable", 0, true)->getBoolValue();
-            if ( !enabled ) {
-                continue;
-            }
-
-	    string basename = "/sensors/";
-	    basename += section->getDisplayName();
-	    printf("i = %d  name = %s source = %s %s\n",
-		   i, name.c_str(), source.c_str(), basename.c_str());
-	    if ( source == "null" ) {
-		// do nothing
-	    } else if ( source == "APM2" ) {
-		APM2_gps_init( basename, section );
-	    } else if ( source == "fgfs" ) {
-		fgfs_gps_init( basename, section );
-	    } else if ( source == "file" ) {
-		ugfile_gps_init( basename, section );
-	    } else if ( source == "Goldy2" ) {
-		goldy2_gps_init( basename, section );
-	    } else if ( source == "gpsd" ) {
-		gpsd_init( basename, section );
-	    } else if ( source == "mediatek" ) {
-		gps_mediatek3329_init( basename, section );
-	    } else if ( source == "ublox" ) {
-		gps_ublox_init( basename, section );
-	    } else {
-		printf("Unknown gps source = '%s' in config file\n",
-		       source.c_str());
-	    }
+    pyPropertyNode group_node = pyGetNode("/config/sensors/gps_group", true);
+    vector<string> children = group_node.getChildren();
+    printf("Found %d gps sections\n", children.size());
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
+	sections.push_back(section);
+	string source = section.getString("source");
+	bool enabled = section.getBool("enable");
+	if ( !enabled ) {
+	    continue;
+	}
+	pyPropertyNode parent = pyGetNode("/sensors", true);
+	pyPropertyNode base = parent.getChild("gps", i, true);
+	printf("imu: %d = %s\n", i, source.c_str());
+	if ( source == "null" ) {
+	    // do nothing
+	} else if ( source == "APM2" ) {
+	    APM2_gps_init( &base, &section );
+	} else if ( source == "fgfs" ) {
+	    fgfs_gps_init( &base, &section );
+	} else if ( source == "file" ) {
+	    ugfile_gps_init( &base, &section );
+	} else if ( source == "Goldy2" ) {
+	    goldy2_gps_init( &base, &section );
+	} else if ( source == "gpsd" ) {
+	    gpsd_init( &base, &section );
+	} else if ( source == "mediatek" ) {
+	    gps_mediatek3329_init( &base, &section );
+	} else if ( source == "ublox" ) {
+	    gps_ublox_init( &base, &section );
+	} else {
+	    printf("Unknown gps source = '%s' in config file\n",
+		   source.c_str());
 	}
     }
 }
@@ -115,29 +95,26 @@ void GPS_init() {
 
 static void compute_magvar() {
     double magvar_rad = 0.0;
-    if ( strcmp(magvar_init_deg_node->getStringValue(), "auto") == 0
-	 || strlen(magvar_init_deg_node->getStringValue()) == 0 )
+
+    pyPropertyNode config_node = pyGetNode("/config", true);
+    
+    if ( ! config_node.hasChild("magvar_deg") ||
+	 config_node.getString("magvar_deg") == "auto" )
     {
-	SGPropertyNode *date_node
-	    = fgGetNode("/sensors/gps/unix-time-sec", true);
-	SGPropertyNode *lat_node
-	    = fgGetNode("/sensors/gps/latitude-deg", true);
-	SGPropertyNode *lon_node
-	    = fgGetNode("/sensors/gps/longitude-deg", true);
-	SGPropertyNode *alt_node
-	    = fgGetNode("/sensors/gps/altitude-m", true);
-	long int jd = unixdate_to_julian_days( date_node->getIntValue() );
+	long int jd = unixdate_to_julian_days( gps_node.getLong("unix_time_sec") );
 	double field[6];
 	magvar_rad
-	    = calc_magvar( lat_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
-			   lon_node->getDoubleValue() * SGD_DEGREES_TO_RADIANS,
-			   alt_node->getDoubleValue() / 1000.0,
+	    = calc_magvar( gps_node.getDouble("latitude_deg")
+			   * SGD_DEGREES_TO_RADIANS,
+			   gps_node.getDouble("longitude_deg")
+			   * SGD_DEGREES_TO_RADIANS,
+			   gps_node.getDouble("altitude_m") / 1000.0,
 			   jd, field );
     } else {
-	magvar_rad = magvar_init_deg_node->getDoubleValue()
+	magvar_rad = config_node.getDouble("magvar_deg")
 	    * SGD_DEGREES_TO_RADIANS;
     }
-    gps_magvar_deg_node->setDoubleValue( magvar_rad * SG_RADIANS_TO_DEGREES );
+    gps_node.setDouble( "magvar_deg", magvar_rad * SG_RADIANS_TO_DEGREES );
 }
 
 
@@ -147,40 +124,38 @@ bool GPS_update() {
     bool fresh_data = false;
     static int gps_state = 0;
 
-    // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/gps-group", true);
-    for ( int i = 0; i < toplevel->nChildren(); ++i ) {
-	SGPropertyNode *section = toplevel->getChild(i);
-	string name = section->getName();
-	if ( name == "gps" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-            bool enabled = section->getChild("enable", 0, true)->getBoolValue();
-            if ( !enabled ) {
-                continue;
-            }
+    static int remote_link_count = remote_link_random( remote_link_skip );
+    static int logging_count = remote_link_random( logging_skip );
 
-	    // printf("i = %d  name = %s source = %s\n",
-	    //	   i, name.c_str(), source.c_str());
-	    if ( source == "null" ) {
-		// do nothing
-	    } else if ( source == "APM2" ) {
-		fresh_data = APM2_gps_update();
-	    } else if ( source == "fgfs" ) {
-		fresh_data = fgfs_gps_update();
-	    } else if ( source == "file" ) {
-		fresh_data = ugfile_get_gps();
-	    } else if ( source == "Goldy2" ) {
-		fresh_data = goldy2_gps_update();
-	    } else if ( source == "gpsd" ) {
-		fresh_data = gpsd_get_gps();
-	    } else if ( source == "mediatek" ) {
-		fresh_data = gps_mediatek3329_update();
-	    } else if ( source == "ublox" ) {
-		fresh_data = gps_ublox_update();
-	    } else {
-		printf("Unknown gps source = '%s' in config file\n",
-		       source.c_str());
-	    }
+    // traverse configured modules
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string source = sections[i].getString("source");
+	bool enabled = sections[i].getBool("enable");
+	if ( !enabled ) {
+	    continue;
+	}
+
+	// printf("i = %d  name = %s source = %s\n",
+	//	   i, name.c_str(), source.c_str());
+	if ( source == "null" ) {
+	    // do nothing
+	} else if ( source == "APM2" ) {
+	    fresh_data = APM2_gps_update();
+	} else if ( source == "fgfs" ) {
+	    fresh_data = fgfs_gps_update();
+	} else if ( source == "file" ) {
+	    fresh_data = ugfile_get_gps();
+	} else if ( source == "Goldy2" ) {
+	    fresh_data = goldy2_gps_update();
+	} else if ( source == "gpsd" ) {
+	    fresh_data = gpsd_get_gps();
+	} else if ( source == "mediatek" ) {
+	    fresh_data = gps_mediatek3329_update();
+	} else if ( source == "ublox" ) {
+	    fresh_data = gps_ublox_update();
+	} else {
+	    printf("Unknown gps source = '%s' in config file\n",
+		   source.c_str());
 	}
     }
 
@@ -188,26 +163,43 @@ bool GPS_update() {
 
     if ( fresh_data ) {
 	// for computing gps data age
-	gps_last_time = gps_timestamp_node->getDoubleValue();
+	gps_last_time = gps_node.getDouble("timestamp");
 
-	if ( remote_link_on || log_to_file ) {
+	bool send_remote_link = false;
+	if ( remote_link_on ) {
+	    remote_link_count--;
+	    if ( remote_link_count < 0 ) {
+		send_remote_link = true;
+		remote_link_count = remote_link_skip;
+	    }
+	}
+	
+	bool send_logging = false;
+	if ( log_to_file ) {
+	    logging_count--;
+	    if ( logging_count < 0 ) {
+		send_logging = true;
+		logging_count = logging_skip;
+	    }
+	}
+	
+	if ( send_remote_link || send_logging ) {
 	    uint8_t buf[256];
 	    int size = packetizer->packetize_gps( buf );
-
-	    if ( remote_link_on ) {
-		remote_link_gps( buf, size, gps_console_skip->getIntValue() );
+	    if ( send_remote_link ) {
+		remote_link_gps( buf, size );
 	    }
-
-	    if ( log_to_file ) {
-		log_gps( buf, size, gps_logging_skip->getIntValue() );
+	    if ( send_logging ) {
+		log_gps( buf, size );
 	    }
 	}
     }
-    if ( gps_status_node->getIntValue() == 2 && !gps_state ) {
+    
+    if ( gps_node.getLong("status") == 2 && !gps_state ) {
 	const double gps_settle = 10.0;
-	static double gps_acq_time = gps_timestamp_node->getDoubleValue();
+	static double gps_acq_time = gps_node.getDouble("timestamp");
 	static double last_time = 0.0;
-	double cur_time = gps_timestamp_node->getDoubleValue();
+	double cur_time = gps_node.getDouble("timestamp");
 	// if ( display_on ) {
 	//     printf("gps first aquired = %.3f  cur time = %.3f\n",
 	//	   gps_acq_time, cur_time);
@@ -215,7 +207,7 @@ bool GPS_update() {
 
 	if ( cur_time - gps_acq_time >= gps_settle ) {
 	    gps_state = 1;
-	    gps_settle_node->setBoolValue(true);
+	    gps_node.setBool("settle", true);
 
 	    // initialize magnetic variation
 	    compute_magvar();
@@ -227,7 +219,7 @@ bool GPS_update() {
 	    gettimeofday( &system_time, NULL );
 	    double system_clock = (double)system_time.tv_sec +
 		(double)system_time.tv_usec / 1000000;
-	    double gps_clock = gps_unix_sec_node->getDoubleValue();
+	    double gps_clock = gps_node.getDouble("unix_time_sec");
 	    if ( fabs( system_clock - gps_clock ) > 300 ) {
 		// if system clock is off from gps clock by more than
 		// 300 seconds (5 minutes) attempt to set system clock
@@ -239,7 +231,7 @@ bool GPS_update() {
 		if ( display_on ) {
 		    printf("System clock: %.2f\n", system_clock);
 		    printf("GPS clock: %.2f\n", gps_clock);
-		    printf("Setting system clock to sec: %d usec: %d\n",
+		    printf("Setting system clock to sec: %ld usec: %ld\n",
 			   newtime.tv_sec, newtime.tv_usec);
 		}
 		if ( settimeofday( &newtime, NULL ) != 0 ) {
@@ -248,10 +240,9 @@ bool GPS_update() {
 		}
 	    }
 
-	    
 	    if ( display_on ) {
 		printf("[gps_mgr] gps ready, magvar = %.2f (deg)\n",
-		       gps_magvar_deg_node->getDoubleValue() );
+		       gps_node.getDouble("magvar_deg") );
 	    }
 	} else {
 	    if ( display_on ) {
@@ -271,39 +262,33 @@ bool GPS_update() {
 void GPS_close() {
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/gps-group", true);
-    for ( int i = 0; i < toplevel->nChildren(); ++i ) {
-	SGPropertyNode *section = toplevel->getChild(i);
-	string name = section->getName();
-	if ( name == "gps" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-            bool enabled = section->getChild("enable", 0, true)->getBoolValue();
-            if ( !enabled ) {
-                continue;
-            }
-
-	    printf("i = %d  name = %s source = %s\n",
-		   i, name.c_str(), source.c_str());
-	    if ( source == "null" ) {
-		// do nothing
-	    } else if ( source == "APM2" ) {
-		APM2_gps_close();
-	    } else if ( source == "fgfs" ) {
-		fgfs_gps_close();
-	    } else if ( source == "file" ) {
-		ugfile_close();
-	    } else if ( source == "Goldy2" ) {
-		goldy2_gps_close();
-	    } else if ( source == "gpsd" ) {
-		// fixme
-	    } else if ( source == "mediatek" ) {
-		gps_mediatek3329_close();
-	    } else if ( source == "ublox" ) {
-		gps_ublox_close();
-	    } else {
-		printf("Unknown gps source = '%s' in config file\n",
-		       source.c_str());
-	    }
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string source = sections[i].getString("source");
+	bool enabled = sections[i].getBool("enable");
+	if ( !enabled ) {
+	    continue;
+	}
+	//printf("i = %d  name = %s source = %s\n",
+	//       i, name.c_str(), source.c_str());
+	if ( source == "null" ) {
+	    // do nothing
+	} else if ( source == "APM2" ) {
+	    APM2_gps_close();
+	} else if ( source == "fgfs" ) {
+	    fgfs_gps_close();
+	} else if ( source == "file" ) {
+	    ugfile_close();
+	} else if ( source == "Goldy2" ) {
+	    goldy2_gps_close();
+	} else if ( source == "gpsd" ) {
+	    // fixme
+	} else if ( source == "mediatek" ) {
+	    gps_mediatek3329_close();
+	} else if ( source == "ublox" ) {
+	    gps_ublox_close();
+	} else {
+	    printf("Unknown gps source = '%s' in config file\n",
+		   source.c_str());
 	}
     }
 }

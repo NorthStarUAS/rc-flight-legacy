@@ -17,5 +17,6 @@ On Linux (Fedora) computer:
 
 Network config: (required before beaglebone dns lookups will actually work)
 -> Select usb ethernet interface
+-> Select gear icon for settings.
 -> Select identity
 -> Firewall Zone -> trusted

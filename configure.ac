@@ -40,6 +40,20 @@ AC_SEARCH_LIBS(clock_gettime, [rt])
 AC_SEARCH_LIBS(cos, [m])
 AC_SEARCH_LIBS(gzopen, [z])
 
+dnl find python primary
+AM_PATH_PYTHON
+AC_PATH_PROGS([PYTHON_CONFIG],
+              [python$PYTHON_VERSION-config python-config],
+              [no],
+              [`dirname $PYTHON`])
+AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON.])])
+PYTHON_INCLUDES=`$PYTHON_CONFIG --includes`
+AC_MSG_RESULT([$PYTHON_INCLUDES])
+AC_SUBST(PYTHON_INCLUDES)
+PYTHON_LIBS=`$PYTHON_CONFIG --libs`
+AC_MSG_RESULT([$PYTHON_LIBS])
+AC_SUBST(PYTHON_LIBS)
+
 AM_CONFIG_HEADER(src/include/ugear_config.h)
 
 dnl automatic detection of pointing library
@@ -71,10 +85,9 @@ AC_CONFIG_FILES([ \
         src/init/Makefile \
 	src/math/Makefile \
         src/payload/Makefile \
-        src/props/Makefile \
+        src/python/Makefile \
         src/sensors/Makefile \
         src/util/Makefile \
-        src/xml/Makefile \
         uglink/Makefile \
         utils/Makefile \
         utils/admin/Makefile \

@@ -8,14 +8,14 @@
 #define _AURA_FILE_H
 
 
-#include "include/globaldefs.h"
+#include "python/pyprops.hxx"
 
-#include "props/props.hxx"
+#include "include/globaldefs.h"
 
 
 // function prototypes
-bool ugfile_imu_init( string rootname, SGPropertyNode *config );
-bool ugfile_gps_init( string rootname, SGPropertyNode *config );
+bool ugfile_imu_init( pyPropertyNode *base, pyPropertyNode *config );
+bool ugfile_gps_init( pyPropertyNode *base, pyPropertyNode *config );
 bool ugfile_read();
 void ugfile_close();
 

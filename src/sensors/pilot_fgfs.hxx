@@ -8,13 +8,13 @@
 #define _AURA_PILOT_FGFS_HXX
 
 
-#include "include/globaldefs.h"
+#include "python/pyprops.hxx"
 
-#include "props/props.hxx"
+#include "include/globaldefs.h"
 
 
 // function prototypes
-bool fgfs_pilot_init( string rootname, SGPropertyNode *config );
+bool fgfs_pilot_init( pyPropertyNode *base, pyPropertyNode *config );
 bool fgfs_pilot_update();
 void fgfs_pilot_close();
 

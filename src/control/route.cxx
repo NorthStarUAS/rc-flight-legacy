@@ -20,6 +20,8 @@
 //
 
 
+#include "python/pyprops.hxx"
+
 #include <math.h>
 
 #include "route.hxx"

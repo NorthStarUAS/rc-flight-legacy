@@ -28,10 +28,9 @@
 #endif
 
 
-#include <props/props.hxx>
+#include "python/pyprops.hxx"
 
 #include <string>
-
 using std::string;
 
 
@@ -100,7 +99,7 @@ public:
      * Construct a waypoint from a property sub tree
      * @param node a pointer to a property subtree with configuration values
      */
-    SGWayPoint( SGPropertyNode *node );
+    SGWayPoint( pyPropertyNode *config_node );
 
     /**
      * Construct a null waypoint

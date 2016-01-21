@@ -8,13 +8,13 @@
 #define _AURA_GPS_FGFS_HXX
 
 
-#include "include/globaldefs.h"
+#include "python/pyprops.hxx"
 
-#include "props/props.hxx"
+#include "include/globaldefs.h"
 
 
 // function prototypes
-bool fgfs_gps_init( string rootname, SGPropertyNode *config );
+bool fgfs_gps_init( pyPropertyNode *base, pyPropertyNode *config );
 bool fgfs_gps_update();
 void fgfs_gps_close();
 

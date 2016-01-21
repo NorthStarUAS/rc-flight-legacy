@@ -4,12 +4,13 @@
 // than from a live sensor)
 //
 
+#include "python/pyprops.hxx"
+
 #include <stdio.h>
 #include <string>
 #include <string.h>
 
 #include "include/globaldefs.h"
-#include "props/props.hxx"
 #include "util/timing.h"
 
 #include "gps_mgr.hxx"
@@ -67,31 +68,9 @@ static double real_time_offset = 0.0;
 // fixme: this should move over to the UMN INS/GNS module
 static NavState state;
 
-// ugfile property nodes
-static SGPropertyNode *configroot = NULL;
-static SGPropertyNode *outputroot = NULL;
-
-static SGPropertyNode *file_base_node = NULL;
-
-static SGPropertyNode *imu_timestamp_node = NULL;
-static SGPropertyNode *imu_p_node = NULL;
-static SGPropertyNode *imu_q_node = NULL;
-static SGPropertyNode *imu_r_node = NULL;
-static SGPropertyNode *imu_ax_node = NULL;
-static SGPropertyNode *imu_ay_node = NULL;
-static SGPropertyNode *imu_az_node = NULL;
-static SGPropertyNode *imu_hx_node = NULL;
-static SGPropertyNode *imu_hy_node = NULL;
-static SGPropertyNode *imu_hz_node = NULL;
-
-static SGPropertyNode *gps_timestamp_node = NULL;
-static SGPropertyNode *gps_lat_node = NULL;
-static SGPropertyNode *gps_lon_node = NULL;
-static SGPropertyNode *gps_alt_node = NULL;
-static SGPropertyNode *gps_vn_node = NULL;
-static SGPropertyNode *gps_ve_node = NULL;
-static SGPropertyNode *gps_vd_node = NULL;
-static SGPropertyNode *gps_unix_sec_node = NULL;
+// property nodes
+static pyPropertyNode imu_node;
+static pyPropertyNode gps_node;
 
 
 static bool read_imu() {
@@ -215,49 +194,27 @@ static bool read_gps() {
 
 
 // initialize gpsd input property nodes
-static void bind_input( SGPropertyNode *config ) {
-    file_base_node = config->getChild("name");
-    if ( file_base_node != NULL ) {
-	file_base_name = file_base_node->getStringValue();
+static void bind_input( pyPropertyNode *config ) {
+    if ( config->hasChild("name") ) {
+	file_base_name = config->getString("name");
     }
-    configroot = config;
 }
 
 
 /// initialize imu output property nodes 
-static void bind_imu_output( string rootname ) {
-    outputroot = fgGetNode( rootname.c_str(), true );
-
-    imu_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    imu_p_node = outputroot->getChild("p-rad_sec", 0, true);
-    imu_q_node = outputroot->getChild("q-rad_sec", 0, true);
-    imu_r_node = outputroot->getChild("r-rad_sec", 0, true);
-    imu_ax_node = outputroot->getChild("ax-mps_sec", 0, true);
-    imu_ay_node = outputroot->getChild("ay-mps_sec", 0, true);
-    imu_az_node = outputroot->getChild("az-mps_sec", 0, true);
-    imu_hx_node = outputroot->getChild("hx", 0, true);
-    imu_hy_node = outputroot->getChild("hy", 0, true);
-    imu_hz_node = outputroot->getChild("hz", 0, true);
+static void bind_imu_output( pyPropertyNode *base ) {
+    imu_node = *base;
 }
 
 
 // initialize gps output property nodes 
-static void bind_gps_output( string rootname ) {
-    outputroot = fgGetNode( rootname.c_str(), true );
-
-    gps_timestamp_node = outputroot->getChild("time-stamp", 0, true);
-    gps_lat_node = outputroot->getChild("latitude-deg", 0, true);
-    gps_lon_node = outputroot->getChild("longitude-deg", 0, true);
-    gps_alt_node = outputroot->getChild("altitude-m", 0, true);
-    gps_vn_node = outputroot->getChild("vn-ms", 0, true);
-    gps_ve_node = outputroot->getChild("ve-ms", 0, true);
-    gps_vd_node = outputroot->getChild("vd-ms", 0, true);
-    gps_unix_sec_node = outputroot->getChild("unix-time-sec", 0, true);
+static void bind_gps_output( pyPropertyNode *base ) {
+    gps_node = *base;
 }
 
 
 // function prototypes
-bool ugfile_imu_init( string rootname, SGPropertyNode *config ) {
+bool ugfile_imu_init( pyPropertyNode *base, pyPropertyNode *config ) {
     static bool inited = false;
 
     if ( inited ) {
@@ -268,7 +225,7 @@ bool ugfile_imu_init( string rootname, SGPropertyNode *config ) {
     }
 
     bind_input( config );
-    bind_imu_output( rootname );
+    bind_imu_output( base );
 
     string file_name = "";
 
@@ -313,7 +270,7 @@ bool ugfile_imu_init( string rootname, SGPropertyNode *config ) {
 }
 
 
-bool ugfile_gps_init( string rootname, SGPropertyNode *config ) {
+bool ugfile_gps_init( pyPropertyNode *base, pyPropertyNode *config ) {
     static bool inited = false;
 
     if ( inited ) {
@@ -323,7 +280,7 @@ bool ugfile_gps_init( string rootname, SGPropertyNode *config ) {
 	inited = true;
     }
 
-    bind_gps_output( rootname );
+    bind_gps_output( base );
 
     /* open gps input file */
     string file_name = file_base_name + ".gps";
@@ -371,16 +328,16 @@ void ugfile_close() {
 
 bool ugfile_get_imu() {
     if ( imu_data_valid ) {
-	imu_timestamp_node->setDoubleValue( imu_data.time );
-	imu_p_node->setDoubleValue( imu_data.p );
-	imu_q_node->setDoubleValue( imu_data.q );
-	imu_r_node->setDoubleValue( imu_data.r );
-	imu_ax_node->setDoubleValue( imu_data.ax );
-	imu_ay_node->setDoubleValue( imu_data.ay );
-	imu_az_node->setDoubleValue( imu_data.az );
-	imu_hx_node->setDoubleValue( imu_data.hx );
-	imu_hy_node->setDoubleValue( imu_data.hy );
-	imu_hz_node->setDoubleValue( imu_data.hz );
+	imu_node.setDouble( "timestamp", imu_data.time );
+	imu_node.setDouble( "p_rad_sec", imu_data.p );
+	imu_node.setDouble( "q_rad_sec", imu_data.q );
+	imu_node.setDouble( "r_rad_sec", imu_data.r );
+	imu_node.setDouble( "ax_mps_sec", imu_data.ax );
+	imu_node.setDouble( "ay_mps_sec", imu_data.ay );
+	imu_node.setDouble( "az_mps_sec", imu_data.az );
+	imu_node.setDouble( "hx", imu_data.hx );
+	imu_node.setDouble( "hy", imu_data.hy );
+	imu_node.setDouble( "hz", imu_data.hz );
     }
 
     return imu_data_valid;
@@ -389,14 +346,14 @@ bool ugfile_get_imu() {
 
 bool ugfile_get_gps() {
     if ( gps_data_valid ) {
-	gps_timestamp_node->setDoubleValue( gps_data.time );
-	gps_lat_node->setDoubleValue( gps_data.lat );
-	gps_lon_node->setDoubleValue( gps_data.lon );
-	gps_alt_node->setDoubleValue( gps_data.alt );
-	gps_vn_node->setDoubleValue( gps_data.vn );
-	gps_ve_node->setDoubleValue( gps_data.ve );
-	gps_vd_node->setDoubleValue( gps_data.vd );
-	gps_unix_sec_node->setDoubleValue( gps_data.date );
+	gps_node.setDouble( "timestamp", gps_data.time );
+	gps_node.setDouble( "longitude_deg", gps_data.lat );
+	gps_node.setDouble( "latitude_deg", gps_data.lon );
+	gps_node.setDouble( "altitude_m", gps_data.alt );
+	gps_node.setDouble( "vn_ms", gps_data.vn );
+	gps_node.setDouble( "ve_ms", gps_data.ve );
+	gps_node.setDouble( "vd_ms", gps_data.vd );
+	gps_node.setDouble( "unix_time_sec", gps_data.date );
     }
 
     return gps_data_valid;

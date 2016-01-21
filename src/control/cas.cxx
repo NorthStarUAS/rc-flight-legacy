@@ -20,10 +20,12 @@
 //
 
 
+#include "python/pyprops.hxx"
+
 #include <math.h>		// fabs()
 #include <stdio.h>
 
-#include "comms/display.h"
+#include "comms/display.hxx"
 #include "util/timing.h"
 
 #include "cas.hxx"
@@ -43,37 +45,13 @@ UGCAS::~UGCAS() {
 
 // bind property nodes
 void UGCAS::bind() {
-    pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", true);
-    pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", true);
-    pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", true);
-    pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", true);
-
-    aileron_min_node = fgGetNode("/config/cas/aileron/min", true);
-    aileron_max_node = fgGetNode("/config/cas/aileron/max", true);
-    aileron_center_node = fgGetNode("/config/cas/aileron/center", true);
-    aileron_dz_node = fgGetNode("/config/cas/aileron/dead-zone", true);
-    aileron_full_rate_node
-	= fgGetNode("/config/cas/aileron/full-rate-degps", true);
-
-    elevator_min_node = fgGetNode("/config/cas/elevator/min", true);
-    elevator_max_node = fgGetNode("/config/cas/elevator/max", true);
-    elevator_center_node = fgGetNode("/config/cas/elevator/center", true);
-    elevator_dz_node = fgGetNode("/config/cas/aileron/dead-zone", true);
-    elevator_full_rate_node
-	= fgGetNode("/config/cas/elevator/full-rate-degps", true);
-
-    target_roll_deg_node
-	= fgGetNode("/autopilot/settings/target-roll-deg", true);
-    target_pitch_deg_node
-	= fgGetNode("/autopilot/settings/target-pitch-deg", true);
-    target_pitch_base_deg_node
-	= fgGetNode("/autopilot/settings/target-pitch-base-deg", true);
-
-    throttle_output_node = fgGetNode("/controls/engine/throttle", true);
-    rudder_output_node = fgGetNode("/controls/flight/rudder", true);
-
-    ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
-    cas_mode_node = fgGetNode("/autopilot/cas-mode", true);
+    config_node = pyGetNode("/config", true);
+    pilot_node = pyGetNode("/sensors/pilot", true);
+    cas_aileron_node = pyGetNode("/config/cas/aileron", true);
+    cas_elevator_node = pyGetNode("/config/cas/elevator", true);
+    ap_node = pyGetNode("/autopilot/settings", true);
+    flight_node = pyGetNode("/controls/flight", true);
+    engine_node = pyGetNode("/controls/engine", true);
 }
 
 // initialize CAS system
@@ -86,7 +64,7 @@ void UGCAS::update() {
     double dt = current_time - last_time;
     last_time = current_time;
 
-    if ( !ap_master_switch_node->getBoolValue() ) {
+    if ( !ap_node.getBool("master_switch") ) {
 	// fcs master switch off, exit
 	return;
     }
@@ -106,8 +84,8 @@ void UGCAS::update() {
     static double elev_pos_span = 1.0;
     static double elev_neg_span = 1.0;
 
-    double aileron = pilot_aileron_node->getDoubleValue();
-    double elevator = pilot_elevator_node->getDoubleValue();
+    double aileron = pilot_node.getDouble("aileron");
+    double elevator = pilot_node.getDouble("elevator");
 
     if ( ! stats_ready ) {
 	if ( start_time < 0.0 ) {
@@ -139,17 +117,17 @@ void UGCAS::update() {
 	    }
 	}
     } else {
-	ail_max = aileron_max_node->getDoubleValue();
-	ail_min = aileron_min_node->getDoubleValue();
-	ail_center = aileron_center_node->getDoubleValue();
-	ail_dz = aileron_dz_node->getDoubleValue();
+	ail_max = cas_aileron_node.getDouble("max");
+	ail_min = cas_aileron_node.getDouble("min");
+	ail_center = cas_aileron_node.getDouble("center");
+	ail_dz = cas_aileron_node.getDouble("dead_zone");
 	ail_pos_span = ail_max - (ail_center + ail_dz);
 	ail_neg_span = (ail_center - ail_dz) - ail_min;
 
-	elev_max = elevator_max_node->getDoubleValue();
-	elev_min = elevator_min_node->getDoubleValue();
-	elev_center = elevator_center_node->getDoubleValue();
-	elev_dz = elevator_dz_node->getDoubleValue();
+	elev_max = cas_elevator_node.getDouble("max");
+	elev_min = cas_elevator_node.getDouble("min");
+	elev_center = cas_elevator_node.getDouble("center");
+	elev_dz = cas_elevator_node.getDouble("dead_zone");
 	elev_pos_span = elev_max - (elev_center + elev_dz);
 	elev_neg_span = (elev_center - elev_dz) - elev_min;
     }
@@ -166,12 +144,11 @@ void UGCAS::update() {
     if ( roll_cmd < 0 ) { roll_sign = -1; roll_cmd *= -1.0; }
 
     double roll_delta = 0.0;
-    double new_roll = target_roll_deg_node->getDoubleValue();
+    double new_roll = ap_node.getDouble("target_roll_deg");
     if ( fabs(roll_cmd) > 0.001 ) {
 	// pilot is inputing a roll command
-	roll_delta
-	    = roll_sign * roll_cmd * aileron_full_rate_node->getDoubleValue()
-	      * dt;
+	roll_delta = roll_sign * roll_cmd
+	    * cas_aileron_node.getDouble("full_rate_degps") * dt;
     } else {
 	// pilot stick is centered
 	if ( fabs(new_roll) <= 10.0 ) {
@@ -189,7 +166,7 @@ void UGCAS::update() {
     new_roll += roll_delta;
     if ( new_roll < -45.0 ) { new_roll = -45.0; }
     if ( new_roll > 45.0 ) { new_roll = 45.0; }
-    target_roll_deg_node->setDoubleValue( new_roll );
+    ap_node.setDouble( "target_roll_deg", new_roll );
 
     double pitch_cmd = 0.0;
     if ( elevator >= elev_center + elev_dz ) {
@@ -202,15 +179,14 @@ void UGCAS::update() {
     int pitch_sign = 1;
     if ( pitch_cmd < 0 ) { pitch_sign = -1; pitch_cmd *= -1.0; }
 
-    double pitch_delta
-	= pitch_sign * pitch_cmd /* * pitch_cmd */
-	* elevator_full_rate_node->getDoubleValue() * dt;
+    double pitch_delta = pitch_sign * pitch_cmd /* * pitch_cmd */
+	* cas_elevator_node.getDouble("full_rate_degps") * dt;
 
     double new_pitch_base
-	= target_pitch_base_deg_node->getDoubleValue() + pitch_delta;
+	= ap_node.getDouble("target_pitch_base_deg") + pitch_delta;
     if ( new_pitch_base < -15.0 ) { new_pitch_base = -15.0; }
     if ( new_pitch_base > 15.0 ) { new_pitch_base = 15.0; }
-    target_pitch_base_deg_node->setDoubleValue( new_pitch_base );
+    ap_node.setDouble( "target_pitch_base_deg", new_pitch_base );
 
     // map throttle [0 ... 1] to [-mp ... mp] for throttle pitch offset
     // where mp is the max pitch bias.  This "simulates" the natural
@@ -218,13 +194,13 @@ void UGCAS::update() {
     // manipulated.
     const double mp = 4.0; 	// degrees throttle pitch bias
     double pitch_throttle_delta
-	= (pilot_throttle_node->getFloatValue() * 2.0 - 1.0) * mp;
+	= (pilot_node.getDouble("throttle") * 2.0 - 1.0) * mp;
     double new_pitch = new_pitch_base + pitch_throttle_delta;
-    target_pitch_deg_node->setDoubleValue( new_pitch );
+    ap_node.setDouble( "target_pitch_deg", new_pitch );
 
     // this is a hard coded hack, but pass through throttle and rudder here
-    throttle_output_node->setFloatValue( pilot_throttle_node->getFloatValue() );
-    rudder_output_node->setFloatValue( pilot_rudder_node->getFloatValue() );
+    engine_node.setDouble( "throttle", pilot_node.getDouble("throttle") );
+    flight_node.setDouble( "rudder", pilot_node.getDouble("rudder") );
 
 #if 0
     static int ii = 0;

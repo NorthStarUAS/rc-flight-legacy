@@ -7,13 +7,13 @@
 #define _AURA_ACT_GOLDY2_HXX
 
 
-#include "include/globaldefs.h"
+#include "python/pyprops.hxx"
 
-#include "props/props.hxx"
+#include "include/globaldefs.h"
 
 
 // function prototypes
-bool goldy2_act_init( SGPropertyNode *config );
+bool goldy2_act_init( pyPropertyNode *base, pyPropertyNode *config );
 bool goldy2_act_update();
 void goldy2_act_close();
 

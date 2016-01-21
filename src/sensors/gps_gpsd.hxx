@@ -12,10 +12,12 @@
 #define _AURA_GPS_GPSD_HXX
 
 
+#include "python/pyprops.hxx"
+
 #include "include/globaldefs.h"
 
 
-void gpsd_init( string rootname, SGPropertyNode *config );
+void gpsd_init( pyPropertyNode *base, pyPropertyNode *config );
 bool gpsd_get_gps();
 void gpsd_close();
 

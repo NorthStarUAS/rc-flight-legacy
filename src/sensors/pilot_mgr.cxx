@@ -8,15 +8,16 @@
  */
 
 
+#include "python/pyprops.hxx"
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "comms/logging.h"
-#include "comms/remote_link.h"
+#include "comms/logging.hxx"
+#include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "props/props.hxx"
 #include "util/myprof.h"
 
 #include "APM2.hxx"
@@ -29,85 +30,48 @@
 // Global variables
 //
 
-// pilot input property nodes
-static SGPropertyNode *pilot_timestamp_node = NULL;
-static SGPropertyNode *pilot_aileron_node = NULL;
-static SGPropertyNode *pilot_elevator_node = NULL;
-static SGPropertyNode *pilot_throttle_node = NULL;
-static SGPropertyNode *pilot_rudder_node = NULL;
-static SGPropertyNode *pilot_manual_node = NULL;
-static SGPropertyNode *pilot_channel6_node = NULL;
-static SGPropertyNode *pilot_channel7_node = NULL;
-static SGPropertyNode *pilot_channel8_node = NULL;
-static SGPropertyNode *pilot_status_node = NULL;
+// property nodes
+static pyPropertyNode pilot_node;
+static pyPropertyNode flight_node;
+static pyPropertyNode engine_node;
+static pyPropertyNode ap_node;
+static vector<pyPropertyNode> sections;
 
-// flight control output property nodes
-static SGPropertyNode *output_aileron_node = NULL;
-static SGPropertyNode *output_elevator_node = NULL;
-static SGPropertyNode *output_throttle_node = NULL;
-static SGPropertyNode *output_rudder_node = NULL;
-
-// comm property nodes
-static SGPropertyNode *pilot_console_skip = NULL;
-static SGPropertyNode *pilot_logging_skip = NULL;
-
-// master autopilot switch
-static SGPropertyNode *ap_master_switch_node = NULL;
-
+static int remote_link_skip = 0;
+static int logging_skip = 0;
 
 void PilotInput_init() {
-    // pilot input property nodes
-    pilot_timestamp_node = fgGetNode("/sensors/pilot/time-stamp", true);
-    pilot_aileron_node = fgGetNode("/sensors/pilot/aileron", true);
-    pilot_elevator_node = fgGetNode("/sensors/pilot/elevator", true);
-    pilot_throttle_node = fgGetNode("/sensors/pilot/throttle", true);
-    pilot_rudder_node = fgGetNode("/sensors/pilot/rudder", true);
-    pilot_manual_node = fgGetNode("/sensors/pilot/manual", true);
-    pilot_channel6_node = fgGetNode("/sensors/pilot/channel", 5, true);
-    pilot_channel7_node = fgGetNode("/sensors/pilot/channel", 6, true);
-    pilot_channel8_node = fgGetNode("/sensors/pilot/channel", 7, true);
-    pilot_status_node = fgGetNode("/sensors/pilot/status", true);
-
-    // flight control output property nodes
-    output_aileron_node = fgGetNode("/controls/flight/aileron", true);
-    output_elevator_node = fgGetNode("/controls/flight/elevator", true);
-    output_throttle_node = fgGetNode("/controls/engine/throttle", true);
-    output_rudder_node = fgGetNode("/controls/flight/rudder", true);
-
-    // initialize comm nodes
-    pilot_console_skip = fgGetNode("/config/remote-link/pilot-skip", true);
-    pilot_logging_skip = fgGetNode("/config/logging/pilot-skip", true);
-
-    // master autopilot switch
-    ap_master_switch_node = fgGetNode("/autopilot/master-switch", true);
+    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
+    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
+    remote_link_skip = remote_link_node.getDouble("pilot_skip");
+    logging_skip = remote_link_node.getDouble("pilot_skip");
 
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/pilot-inputs", true);
-    for ( int i = 0; i < toplevel->nChildren(); ++i ) {
-	SGPropertyNode *section = toplevel->getChild(i);
-	string name = section->getName();
-	if ( name == "pilot-input" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
-	    if ( !enabled ) {
-		continue;
-	    }
-	    string basename = "/sensors/";
-	    basename += section->getDisplayName();
-	    printf("i = %d  name = %s source = %s %s\n",
-		   i, name.c_str(), source.c_str(), basename.c_str());
-	    if ( source == "null" ) {
-		// do nothing
-	    } else if ( source == "APM2" ) {
-		APM2_pilot_init( basename );
-	    } else if ( source == "fgfs" ) {
-		fgfs_pilot_init( basename, section );
-	    } else if ( source == "Goldy2" ) {
-		goldy2_pilot_init( basename, section );
-	    } else {
-		printf("Unknown pilot input source = '%s' in config file\n",
-		       source.c_str());
-	    }
+    pyPropertyNode group_node = pyGetNode("/config/sensors/pilot_inputs", true);
+    vector<string> children = group_node.getChildren();
+    printf("Found %d pilot sections\n", children.size());
+    for ( unsigned int i = 0; i < children.size(); i++ ) {
+	pyPropertyNode section = group_node.getChild(children[i].c_str());
+	sections.push_back(section);
+	string source = section.getString("source");
+	bool enabled = section.getBool("enable");
+	if ( !enabled ) {
+	    continue;
+	}
+	pyPropertyNode parent = pyGetNode("/sensors", true);
+	pyPropertyNode base = parent.getChild("pilot_input", i, true);
+	printf("pilot: %d = %s\n", i, source.c_str());
+	if ( source == "null" ) {
+	    // do nothing
+	} else if ( source == "APM2" ) {
+	    APM2_pilot_init( &base );
+	} else if ( source == "fgfs" ) {
+	    fgfs_pilot_init( &base, &section );
+	} else if ( source == "Goldy2" ) {
+	    goldy2_pilot_init( &base, &section );
+	} else {
+	    printf("Unknown pilot input source = '%s' in config file\n",
+		   source.c_str());
 	}
     }
 }
@@ -118,33 +82,27 @@ bool PilotInput_update() {
 
     bool fresh_data = false;
 
+    static int remote_link_count = remote_link_random( remote_link_skip );
+    static int logging_count = remote_link_random( logging_skip );
+
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/pilot-inputs", true);
-    for ( int i = 0; i < toplevel->nChildren(); ++i ) {
-	SGPropertyNode *section = toplevel->getChild(i);
-	string name = section->getName();
-	if ( name == "pilot-input" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-	    bool enabled = section->getChild("enable", 0, true)->getBoolValue();
-	    if ( !enabled ) {
-		continue;
-	    }
-	    string basename = "/sensors/";
-	    basename += section->getDisplayName();
-	    // printf("i = %d  name = %s source = %s %s\n",
-	    //	   i, name.c_str(), source.c_str(), basename.c_str());
-	    if ( source == "null" ) {
-		// do nothing
-	    } else if ( source == "APM2" ) {
-		fresh_data = APM2_pilot_update();
-	    } else if ( source == "fgfs" ) {
-		fresh_data = fgfs_pilot_update();
-	    } else if ( source == "Goldy2" ) {
-		fresh_data = goldy2_pilot_update();
-	    } else {
-		printf("Unknown pilot input source = '%s' in config file\n",
-		       source.c_str());
-	    }
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string source = sections[i].getString("source");
+	bool enabled = sections[i].getBool("enable");
+	if ( !enabled ) {
+	    continue;
+	}
+	if ( source == "null" ) {
+	    // do nothing
+	} else if ( source == "APM2" ) {
+	    fresh_data = APM2_pilot_update();
+	} else if ( source == "fgfs" ) {
+	    fresh_data = fgfs_pilot_update();
+	} else if ( source == "Goldy2" ) {
+	    fresh_data = goldy2_pilot_update();
+	} else {
+	    printf("Unknown pilot input source = '%s' in config file\n",
+		   source.c_str());
 	}
     }
 
@@ -153,10 +111,9 @@ bool PilotInput_update() {
 	// Hello this is a bit of a hack to hard code the master
 	// autopilot on/off switch here.  In the future the master
 	// autopilot on/off switch may come from other sources. (?)
-	ap_master_switch_node
-	    ->setBoolValue( !pilot_manual_node->getBoolValue() );
+	ap_node.setBool( "master_switch", !pilot_node.getBool("manual") );
 	// if ( display_on ) {
-	//    printf("autopilot = %d\n", ap_master_switch_node->getBoolValue());
+	//    printf("autopilot = %d\n", ap_master_switch_node->getBool());
 	// }
 
 	// Only in manual mode, do copy the pilot inputs to the main
@@ -164,25 +121,39 @@ bool PilotInput_update() {
 	// and allows the AP to seed it's components with trimmed
 	// values and improve continuity when switching from manual to
 	// AP mode.
-	if ( ! ap_master_switch_node->getBoolValue() ) {
-	    output_aileron_node->setFloatValue( pilot_aileron_node->getFloatValue() );
-	    output_elevator_node->setFloatValue( pilot_elevator_node->getFloatValue() );
-	    output_throttle_node->setFloatValue( pilot_throttle_node->getFloatValue() );
-	    output_rudder_node->setFloatValue( pilot_rudder_node->getFloatValue() );
+	if ( ! ap_node.getBool("master_switch") ) {
+	    flight_node.setDouble( "aileron", pilot_node.getDouble("aileron") );
+	    flight_node.setDouble( "elevator", pilot_node.getDouble("elevator") );
+	    engine_node.setDouble( "throttle", pilot_node.getDouble("throttle") );
+	    flight_node.setDouble( "rudder", pilot_node.getDouble("rudder") );
 	}
 
-	if ( remote_link_on || log_to_file ) {
+	bool send_remote_link = false;
+	if ( remote_link_on ) {
+	    remote_link_count--;
+	    if ( remote_link_count < 0 ) {
+		send_remote_link = true;
+		remote_link_count = remote_link_skip;
+	    }
+	}
+	
+	bool send_logging = false;
+	if ( log_to_file ) {
+	    logging_count--;
+	    if ( logging_count < 0 ) {
+		send_logging = true;
+		logging_count = logging_skip;
+	    }
+	}
+	
+	if ( send_remote_link || send_logging ) {
 	    uint8_t buf[256];
 	    int size = packetizer->packetize_pilot( buf );
-
-	    if ( remote_link_on ) {
-		// printf("sending filter packet\n");
-		remote_link_pilot( buf, size,
-				    pilot_console_skip->getIntValue() );
+	    if ( send_remote_link ) {
+		remote_link_pilot( buf, size );
 	    }
-
-	    if ( log_to_file ) {
-		log_pilot( buf, size, pilot_logging_skip->getIntValue() );
+	    if ( send_logging ) {
+		log_pilot( buf, size );
 	    }
 	}
     }
@@ -195,28 +166,23 @@ bool PilotInput_update() {
 
 void PilotInput_close() {
     // traverse configured modules
-    SGPropertyNode *toplevel = fgGetNode("/config/sensors/pilot-inputs", true);
-    for ( int i = 0; i < toplevel->nChildren(); ++i ) {
-	SGPropertyNode *section = toplevel->getChild(i);
-	string name = section->getName();
-	if ( name == "pilot-input" ) {
-	    string source = section->getChild("source", 0, true)->getStringValue();
-	    string basename = "/sensors/";
-	    basename += section->getDisplayName();
-	    // printf("i = %d  name = %s source = %s %s\n",
-	    //	   i, name.c_str(), source.c_str(), basename.c_str());
-	    if ( source == "null" ) {
-		// do nothing
-	    } else if ( source == "APM2" ) {
-		APM2_pilot_close();
-	    } else if ( source == "fgfs" ) {
-		fgfs_pilot_close();
-	    } else if ( source == "Goldy2" ) {
-		goldy2_pilot_close();
-	    } else {
-		printf("Unknown pilot input source = '%s' in config file\n",
-		       source.c_str());
-	    }
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string source = sections[i].getString("source");
+	bool enabled = sections[i].getBool("enable");
+	if ( !enabled ) {
+	    continue;
+	}
+	if ( source == "null" ) {
+	    // do nothing
+	} else if ( source == "APM2" ) {
+	    APM2_pilot_close();
+	} else if ( source == "fgfs" ) {
+	    fgfs_pilot_close();
+	} else if ( source == "Goldy2" ) {
+	    goldy2_pilot_close();
+	} else {
+	    printf("Unknown pilot input source = '%s' in config file\n",
+		   source.c_str());
 	}
     }
 }

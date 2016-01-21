@@ -8,7 +8,6 @@ SUBDIRS = \
 	init \
 	math \
 	payload \
+	python \
 	util \
-	sensors \
-	xml \
-	props
+	sensors
