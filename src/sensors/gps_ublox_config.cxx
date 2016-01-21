@@ -170,7 +170,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 			      uint16_t payload_length, uint8_t *payload )
 {
     bool new_position = false;
-    static bool set_system_time = false;
+    // static bool set_system_time = false;
 
     if ( msg_class == 0x01 && msg_id == 0x02 ) {
 	// NAV-POSLLH
@@ -188,8 +188,8 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	int32_t lat = *((int32_t *)(p+8));
 	int32_t height = *((int32_t *)(p+12));
 	int32_t hMSL = *((int32_t *)(p+16));
-	uint32_t hAcc = *((uint32_t *)(p+20));
-	uint32_t vAcc = *((uint32_t *)(p+24));
+	// uint32_t hAcc = *((uint32_t *)(p+20));
+	// uint32_t vAcc = *((uint32_t *)(p+24));
 	if ( 0 ) {
 	    printf("nav-posllh (%d) %d %d %d %d\n",
 		   iTOW, lon, lat, height, hMSL);
@@ -214,17 +214,17 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	int32_t fTOW = *((int32_t *)(p+4));
 	int16_t week = *((int16_t *)(p+8));
 	uint8_t gpsFix = p[10];
-	uint8_t flags = p[11];
+	// uint8_t flags = p[11];
 	int32_t ecefX = *((int32_t *)(p+12));
 	int32_t ecefY = *((int32_t *)(p+16));
 	int32_t ecefZ = *((int32_t *)(p+20));
-	uint32_t pAcc = *((uint32_t *)(p+24));
+	// uint32_t pAcc = *((uint32_t *)(p+24));
 	int32_t ecefVX = *((int32_t *)(p+28));
 	int32_t ecefVY = *((int32_t *)(p+32));
 	int32_t ecefVZ = *((int32_t *)(p+36));
-	uint32_t sAcc = *((uint32_t *)(p+40));
-	uint16_t pDOP = *((uint16_t *)(p+44));
-	uint8_t numSV = p[47];
+	// uint32_t sAcc = *((uint32_t *)(p+40));
+	// uint16_t pDOP = *((uint16_t *)(p+44));
+	// uint8_t numSV = p[47];
 	if ( 0 ) {
 	    printf("nav-sol (%d) %d %d %d %d %d [ %d %d %d ]\n",
 		   gpsFix, iTOW, fTOW, ecefX, ecefY, ecefZ,
@@ -233,10 +233,10 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	SGVec3d ecef( ecefX / 100.0, ecefY / 100.0, ecefZ / 100.0 );
 	SGGeod wgs84;
 	SGGeodesy::SGCartToGeod( ecef, wgs84 );
-	SGQuatd ecef2ned = SGQuatd::fromLonLat(wgs84);
+	// SGQuatd ecef2ned = SGQuatd::fromLonLat(wgs84);
 	SGVec3d vel_ecef( ecefVX / 100.0, ecefVY / 100.0, ecefVZ / 100.0 );
 	// SGVec3d vel_ecef = ecef2ned.backTransform(vel_ned);
-	SGVec3d vel_ned = ecef2ned.transform( vel_ecef );
+	// SGVec3d vel_ned = ecef2ned.transform( vel_ecef );
 	// printf("my vel ned = %.2f %.2f %.2f\n", vel_ned.x(), vel_ned.y(), vel_ned.z());
 
 	if ( fabs(ecefX) > 650000000
@@ -265,9 +265,9 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 		2444244.5; // 2444244.5 Julian date of GPS epoch (Jan 5 1980 at midnight)
 	    julianDate = julianDate - 2440587.5; // Subtract Julian Date of Unix Epoch (Jan 1 1970)
 
-	    double unixSecs = julianDate * 86400.0;
-	    double unixFract = unixSecs - floor(unixSecs);
-	    struct timeval time;
+	    // double unixSecs = julianDate * 86400.0;
+	    // double unixFract = unixSecs - floor(unixSecs);
+	    // struct timeval time;
 #if 0
 	    if ( unixSecs > 1263154775 && !set_system_time) {
 		printf("Setting system time to %.3f\n", unixSecs);
@@ -299,10 +299,10 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	int32_t velE = *((int32_t *)(p+8));
 	int32_t velD = *((int32_t *)(p+12));
 	uint32_t speed = *((uint32_t *)(p+16));
-	uint32_t gspeed = *((uint32_t *)(p+20));
+	// uint32_t gspeed = *((uint32_t *)(p+20));
 	int32_t heading = *((int32_t *)(p+24));
-	uint32_t sAcc = *((uint32_t *)(p+28));
-	uint32_t cAcc = *((uint32_t *)(p+32));
+	// uint32_t sAcc = *((uint32_t *)(p+28));
+	// uint32_t cAcc = *((uint32_t *)(p+32));
 	if ( 0 ) {
 	    printf("nav-velned (%d) %.2f %.2f %.2f s = %.2f h = %.2f\n",
 		   iTOW, velN / 100.0, velE / 100.0, velD / 100.0,
@@ -317,8 +317,8 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 
 	uint8_t *p = payload;
 	uint32_t iTOW = *((uint32_t *)(p+0));
-	uint32_t tAcc = *((uint32_t *)(p+4));
-	int32_t nano = *((int32_t *)(p+8));
+	// uint32_t tAcc = *((uint32_t *)(p+4));
+	// int32_t nano = *((int32_t *)(p+8));
 	int16_t year = *((int16_t *)(p+12));
 	uint8_t month = p[14];
 	uint8_t day = p[15];
@@ -356,13 +356,13 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	my_swap( payload, 0, 4);
 
 	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)(p+0));
+	// uint32_t iTOW = *((uint32_t *)(p+0));
 	uint8_t numCh = p[4];
-	uint8_t globalFlags = p[5];
+	// uint8_t globalFlags = p[5];
 	int satUsed = 0;
 	for ( int i = 0; i < numCh; i++ ) {
-	    uint8_t satid = p[9 + 12*i];
-	    uint8_t flags = p[10 + 12*i];
+	    // uint8_t satid = p[9 + 12*i];
+	    // uint8_t flags = p[10 + 12*i];
 	    uint8_t quality = p[11 + 12*i];
 	    // printf(" chn=%d satid=%d flags=%d quality=%d\n", i, satid, flags, quality);
 	    if ( quality > 3 ) {
@@ -721,9 +721,9 @@ int main( int argc, char **argv ) {
 	exit(-1);
     }
 
-    int num_tries = 5;
-    unsigned char payload[256];
-    unsigned int size = 0;
+    // int num_tries = 5;
+    // unsigned char payload[256];
+    // unsigned int size = 0;
 
     // Note: there is some hard coded assumptions right here:
     // - gps will be talking on it's uart1 port

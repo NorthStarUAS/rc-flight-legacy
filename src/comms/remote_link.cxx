@@ -185,6 +185,7 @@ static short link_read( const uint8_t *buf, const short size ) {
     }
 }
 
+#if 0
 static void gen_test_pattern( uint8_t *buf, int size ) {
     static uint8_t val = 0;
 
@@ -194,7 +195,7 @@ static void gen_test_pattern( uint8_t *buf, int size ) {
 
     val++;
 }
-
+#endif
 
 static void remote_link_packet( const uint8_t packet_id,
 				const uint8_t *packet_buf,

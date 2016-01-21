@@ -49,7 +49,7 @@ void PilotInput_init() {
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/sensors/pilot_inputs", true);
     vector<string> children = group_node.getChildren();
-    printf("Found %d pilot sections\n", children.size());
+    printf("Found %ld pilot sections\n", children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	sections.push_back(section);

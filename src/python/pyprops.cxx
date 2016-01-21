@@ -82,7 +82,8 @@ pyPropertyNode pyPropertyNode::getChild(const char *name, bool create)
     if ( pObj == NULL ) {
 	return pyPropertyNode();
     }
-    PyObject *pValue = PyObject_CallMethod(pObj, "getChild", "sb",
+    PyObject *pValue = PyObject_CallMethod(pObj,
+					   (char *)"getChild", (char *)"sb",
 					   name, create);
     if (pValue == NULL) {
 	PyErr_Print();
@@ -115,7 +116,9 @@ bool pyPropertyNode::isNull() {
 // return true if pObj is a list (enumerated)
 int pyPropertyNode::getLen(const char *name) {
     if ( pObj != NULL ) {
-	PyObject *pValue = PyObject_CallMethod(pObj, "getLen", "s", name);
+	PyObject *pValue = PyObject_CallMethod(pObj,
+					       (char *)"getLen", (char *)"s",
+					       name);
 	if ( pValue != NULL ) {
 	    int len = PyInt_AsLong(pValue);
 	    Py_DECREF(pValue);
@@ -128,7 +131,9 @@ int pyPropertyNode::getLen(const char *name) {
 // return true if pObj is a list (enumerated)
 void pyPropertyNode::setLen(const char *name, int size) {
     if ( pObj != NULL ) {
-	PyObject *pValue = PyObject_CallMethod(pObj, "setLen", "si", name, size);
+	PyObject *pValue = PyObject_CallMethod(pObj,
+					       (char *)"setLen", (char *)"si",
+					       name, size);
 	if ( pValue != NULL ) {
 	    Py_DECREF(pValue);
 	}
@@ -138,7 +143,9 @@ void pyPropertyNode::setLen(const char *name, int size) {
 // return true if pObj is a list (enumerated)
 void pyPropertyNode::setLen(const char *name, int size, double init_val) {
     if ( pObj != NULL ) {
-	PyObject *pValue = PyObject_CallMethod(pObj, "setLen", "sif", name, size, init_val);
+	PyObject *pValue = PyObject_CallMethod(pObj,
+					       (char *)"setLen", (char *)"sif",
+					       name, size, init_val);
 	if ( pValue != NULL ) {
 	    Py_DECREF(pValue);
 	}
@@ -149,7 +156,9 @@ void pyPropertyNode::setLen(const char *name, int size, double init_val) {
 vector <string> pyPropertyNode::getChildren() {
     vector <string> result;
     if ( pObj != NULL ) {
-	PyObject *pList = PyObject_CallMethod(pObj, "getChildren", "");
+	PyObject *pList = PyObject_CallMethod(pObj,
+					      (char *)"getChildren",
+					      (char *)"");
 	if ( pList != NULL ) {
 	    if ( PyList_Check(pList) ) {
 		int len = PyList_Size(pList);
@@ -173,7 +182,9 @@ bool pyPropertyNode::isLeaf(const char *name) {
     if ( pObj == NULL ) {
 	return false;
     }
-    PyObject *pValue = PyObject_CallMethod(pObj, "isLeaf", "s", name);
+    PyObject *pValue = PyObject_CallMethod(pObj,
+					   (char *)"isLeaf", (char *)"s",
+					   name);
     bool result = PyObject_IsTrue(pValue);
     Py_DECREF(pValue);
     return result;
@@ -425,7 +436,9 @@ void pyPropertyNode::pretty_print()
     if ( pObj == NULL ) {
 	printf("pretty_print(): Null pyPropertyNode()\n");
     } else {
-	PyObject *pValue = PyObject_CallMethod(pObj, "pretty_print", "");
+	PyObject *pValue = PyObject_CallMethod(pObj,
+					       (char *)"pretty_print",
+					       (char *)"");
 	if (pValue == NULL) {
 	    PyErr_Print();
 	    fprintf(stderr,"Call failed\n");

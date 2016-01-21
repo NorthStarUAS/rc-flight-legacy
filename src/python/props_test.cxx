@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     pyPropertyNode sensors1 = pyGetNode("/sensors", true);
     vector <string> children = sensors1.getChildren();
     unsigned int count = children.size();
-    for ( int i = 0; i < count; i++ ) {
+    for ( unsigned int i = 0; i < count; i++ ) {
 	pyPropertyNode node = sensors1.getChild(children[i].c_str());
 	printf("%d %s\n", i, children[i].c_str());
     }

@@ -77,7 +77,7 @@ void Actuator_init() {
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/actuators", true);
     vector<string> children = group_node.getChildren();
-    printf("Found %d actuator sections\n", children.size());
+    printf("Found %ld actuator sections\n", children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	sections.push_back(section);

@@ -135,7 +135,7 @@ bool AuraCircleMgr::update() {
 
     // ideal_accel: the steady state lateral accel we would expect
     // when we are in the groove exactly on our target radius
-    double ideal_accel = direction * gs_mps * gs_mps / radius_m;
+    // double ideal_accel = direction * gs_mps * gs_mps / radius_m;
 
     // circling acceleration needed for our current distance from center
     double turn_accel = direction * gs_mps * gs_mps / dist_m;

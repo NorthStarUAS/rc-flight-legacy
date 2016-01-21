@@ -157,12 +157,6 @@ static uint32_t baro_packet_counter = 0;
 static uint32_t analog_packet_counter = 0;
 
 
-// (Deprecated) initialize input property nodes
-static void bind_input( pyPropertyNode *config ) {
-    // configroot = config;
-}
-
-
 static void APM2_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
 {
     uint8_t c0 = 0;
@@ -189,28 +183,28 @@ bool APM2_request_baud( uint32_t baud ) {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 4;
-    int len;
+    /* int len; */
 
     // start of message sync bytes
     buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     // packet id (1 byte)
     buf[0] = BAUD_PACKET_ID;
     // packet length (1 byte)
     buf[1] = size;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     // actuator data
     *(uint32_t *)buf = baud;
   
     // write packet
-    len = write( fd, buf, size );
+    /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
     APM2_cksum( BAUD_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     return true;
 }
@@ -220,22 +214,22 @@ static bool APM2_act_write_eeprom() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
-    int len;
+    /* int len; */
 
     // start of message sync bytes
     buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     // packet id (1 byte)
     buf[0] = WRITE_EEPROM_PACKET_ID;
     // packet length (1 byte)
     buf[1] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     // check sum (2 bytes)
     APM2_cksum( WRITE_EEPROM_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     return true;
 }
@@ -245,17 +239,17 @@ static bool APM2_act_set_serial_number( uint16_t serial_number ) {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
-    int len;
-
+    /* int len */
+    
     // start of message sync bytes
     buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     // packet id (1 byte)
     buf[0] = SERIAL_NUMBER_PACKET_ID;
     // packet length (1 byte)
     buf[1] = 2;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     // actuator data
     uint8_t hi = serial_number / 256;
@@ -264,12 +258,12 @@ static bool APM2_act_set_serial_number( uint16_t serial_number ) {
     buf[size++] = hi;
   
     // write packet
-    len = write( fd, buf, size );
+    /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
     APM2_cksum( SERIAL_NUMBER_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     return true;
 }
@@ -279,17 +273,17 @@ static bool APM2_act_set_pwm_rates( uint16_t rates[NUM_ACTUATORS] ) {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
-    int len;
+    /* int len; */
 
     // start of message sync bytes
     buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     // packet id (1 byte)
     buf[0] = PWM_RATE_PACKET_ID;
     // packet length (1 byte)
     buf[1] = NUM_ACTUATORS * 2;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     // actuator data
     for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
@@ -301,12 +295,12 @@ static bool APM2_act_set_pwm_rates( uint16_t rates[NUM_ACTUATORS] ) {
     }
   
     // write packet
-    len = write( fd, buf, size );
+    /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
     APM2_cksum( PWM_RATE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     return true;
 }
@@ -317,17 +311,17 @@ static bool APM2_act_gain_mode( int channel, float gain)
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
-    int len;
+    /* int len; */
 
     // start of message sync bytes
     buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     // packet id (1 byte)
     buf[0] = ACT_GAIN_PACKET_ID;
     // packet length (1 byte)
     buf[1] = 3;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     buf[size++] = (uint8_t)channel;
 
@@ -342,12 +336,12 @@ static bool APM2_act_gain_mode( int channel, float gain)
     buf[size++] = hi;
     
     // write packet
-    len = write( fd, buf, size );
+    /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
     APM2_cksum( ACT_GAIN_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     return true;
 }
@@ -359,17 +353,17 @@ static bool APM2_act_mix_mode( int mode_id, bool enable,
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
-    int len;
+    /* int len; */
 
     // start of message sync bytes
     buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     // packet id (1 byte)
     buf[0] = MIX_MODE_PACKET_ID;
     // packet length (1 byte)
     buf[1] = 6;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     buf[size++] = mode_id;
     buf[size++] = enable;
@@ -392,12 +386,12 @@ static bool APM2_act_mix_mode( int mode_id, bool enable,
     buf[size++] = hi;
     
     // write packet
-    len = write( fd, buf, size );
+    /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
     APM2_cksum( MIX_MODE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     return true;
 }
@@ -408,17 +402,17 @@ static bool APM2_act_sas_mode( int mode_id, bool enable, float gain)
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
-    int len;
+    /* int len; */
 
     // start of message sync bytes
     buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     // packet id (1 byte)
     buf[0] = SAS_MODE_PACKET_ID;
     // packet length (1 byte)
     buf[1] = 4;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     buf[size++] = mode_id;
     buf[size++] = enable;
@@ -434,12 +428,12 @@ static bool APM2_act_sas_mode( int mode_id, bool enable, float gain)
     buf[size++] = hi;
     
     // write packet
-    len = write( fd, buf, size );
+    /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
     APM2_cksum( SAS_MODE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     return true;
 }
@@ -1190,7 +1184,7 @@ static bool APM2_send_config() {
 	for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
 	    act_rates[i] = 0; /* no change from default */
 	}
-	for ( unsigned int i = 0; i < count; i++ ) {
+	for ( int i = 0; i < count; i++ ) {
 	    act_rates[i] = pwm_node.getLong("channel", i);
 	    printf("channel[%d] = %d\n", i, act_rates[i]);
 	}
@@ -1404,17 +1398,17 @@ static bool APM2_act_write() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
-    int len;
+    /* int len; */
 
     // start of message sync bytes
     buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     // packet id (1 byte)
     buf[0] = FLIGHT_COMMAND_PACKET_ID;
     // packet length (1 byte)
     buf[1] = 2 * NUM_ACTUATORS;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
 #if 0
     // generate some test data
@@ -1488,12 +1482,12 @@ static bool APM2_act_write() {
     //act_node.pretty_print();
     
     // write packet
-    len = write( fd, buf, size );
+    /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
     APM2_cksum( FLIGHT_COMMAND_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    len = write( fd, buf, 2 );
+    /* len = */ write( fd, buf, 2 );
 
     return true;
 }
@@ -1552,7 +1546,7 @@ bool APM2_imu_update() {
 	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
 
 	imu_node.setDouble( "timestamp", imu_timestamp );
-	bool result = imu_node.setDouble( "temp_C", imu_sensors[6] * temp_scale );
+	imu_node.setDouble( "temp_C", imu_sensors[6] * temp_scale );
     }
 
     return true;
@@ -1578,6 +1572,7 @@ static double ublox_date_time_to_unix_sec( int week, float gtime ) {
     return unixSecs;
 }
 
+#if 0
 // This function works ONLY with the MTK16 date format (the ublox reports
 // weeks since the GPS epoch.)
 static double MTK16_date_time_to_unix_sec( int gdate, float gtime ) {
@@ -1621,7 +1616,7 @@ static double MTK16_date_time_to_unix_sec( int gdate, float gtime ) {
 
     return result;
 }
-
+#endif
 
 bool APM2_gps_update() {
     static double last_timestamp = 0.0;

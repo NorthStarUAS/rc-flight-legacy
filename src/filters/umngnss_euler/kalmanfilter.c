@@ -372,7 +372,7 @@ int kalmanfilter_update_state( KalmanFilter *kf )
  */
 int kalmanfilter_update_cov( KalmanFilter *kf )
 {
-    ivl_matrix *a, *b, *c;
+    ivl_matrix *a, *b /*, *c */;
 
     a = ivl_matrix_new( kf->K->nrows, kf->H->ncols );
 

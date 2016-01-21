@@ -70,6 +70,7 @@ bool goldy2_act_init( pyPropertyNode *base, pyPropertyNode *config ) {
 }
 
 
+#if 0
 // swap big/little endian bytes
 static void my_swap( uint8_t *buf, int index, int count )
 {
@@ -81,6 +82,7 @@ static void my_swap( uint8_t *buf, int index, int count )
         buf[index+count-i-1] = tmp;
     }
 }
+#endif
 
 
 bool goldy2_act_update() {

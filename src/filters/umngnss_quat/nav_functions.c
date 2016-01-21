@@ -77,9 +77,9 @@ MATRIX create_R(MATRIX e, MATRIX R)
 	/* This function is used to create the transformation matrix to get
 	 * phi_dot, the_dot and psi_dot from given pqr (body rate).
 	 */
-	double ph, th, ps;
+        double ph, th /*, ps */;
 	
-	ph = e[0][0]; th = e[1][0]; ps = e[2][0];
+	ph = e[0][0]; th = e[1][0]; /* ps = e[2][0]; */
 	
 	R[0][0] = 1.0;
 	R[0][1] = sin(ph)*tan(th);

@@ -37,7 +37,7 @@ int strapdown_er( double *pos, double *vel, double *eul, ivl_matrix *Cb2n,
     euler2dcm( eul, Cb2n->vector );
 
     local_gravity_old( pos, g );
-    double gtmp = g[2];
+    // double gtmp = g[2];
     local_gravity( pos[0], -pos[2], g );
     // printf("%.2f %.2f %.4f (%.4f %f)\n", pos[0], pos[2], g[2], gtmp, g[2]-gtmp);
     Rns = earth_radius_north( pos[0] );

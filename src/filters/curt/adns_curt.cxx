@@ -188,22 +188,21 @@ static int g_correction( double dt, SGVec3d gps_vel_ned ) {
 	last_gps_vel_ned = gps_vel_ned;
     }
 
-    double time_factor;
-    if ( dt > 0 ) {
-	time_factor = 1.0 / dt;
-    } else {
+    if ( dt <= 0 ) {
 	return 0;
     }
+
     // this will be close to zero if the velocity vector hasn't
     // changed much
-    SGVec3d gps_accel = (gps_vel_ned - last_gps_vel_ned) * time_factor;
+    // double time_factor = 1.0 / dt;
+    // SGVec3d gps_accel = (gps_vel_ned - last_gps_vel_ned) * time_factor;
 
     // evaluate the length of the total acceleration vector relative
     // to gravity
     double glen = glocal_ned[2] * dt;
     double accel_len = length(total_accel_sum_body);
-    double gps_accel_len = length(gps_accel);
-    double dlen = fabs(1.0 - accel_len/glen);
+    // double gps_accel_len = length(gps_accel);
+    // double dlen = fabs(1.0 - accel_len/glen);
 
     double y1 = sqrt( total_accel_sum_body[1] * total_accel_sum_body[1] +
 		      total_accel_sum_body[2] * total_accel_sum_body[2] );
@@ -298,12 +297,10 @@ static int v_correction( double dt, SGVec3d gps_vel_ned ) {
 	last_vel_ned = vel_ned;
     }
 
-    double time_factor;
-    if ( dt > 0 ) {
-	time_factor = 1.0 / dt;
-    } else {
+    if ( dt <= 0 ) {
 	return 0;
     }
+    double time_factor = 1.0 / dt;
     SGVec3d gps_accel = (gps_vel_ned - last_gps_vel_ned) * time_factor;
 
     // subtract gravity
@@ -419,7 +416,7 @@ int curt_adns_update( double imu_dt ) {
 	init_pos = true;
     }	    
     if ( init_pos ) {
-	double imu_time = imu_node.getDouble("timestamp");
+	// double imu_time = imu_node.getDouble("timestamp");
 	SGVec3d gyro = SGVec3d( imu_node.getDouble("p_rad_sec"),
 				imu_node.getDouble("q_rad_sec"),
 				imu_node.getDouble("r_rad_sec") );

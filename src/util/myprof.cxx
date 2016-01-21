@@ -1,9 +1,9 @@
+#include "python/pyprops.hxx"
+
 #include <stdio.h>
 
 #include "comms/logging.hxx"
-
 #include "timing.h"
-
 #include "myprof.h"
 
 myprofile::myprofile() {

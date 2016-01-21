@@ -231,7 +231,7 @@ static double date_time_to_unix_sec( string gdate, string gtime ) {
    t.tm_gmtoff = 0;
 
    // force timezone to GMT/UTC so mktime() does the proper conversion
-   tzname[0] = tzname[1] = "GMT";
+   tzname[0] = tzname[1] = (char *)"GMT";
    timezone = 0;
    daylight = 0;
    setenv("TZ", "UTC", 1);
@@ -322,7 +322,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	int num_sats = atoi( token[7].c_str() );
 	gps_node.setLong( "satellites", num_sats );
 
-	float hdop = atof( token[8].c_str() );
+	// float hdop = atof( token[8].c_str() );
 
 	if ( fix_ind > 0 ) {
 	    alt_m = atof( token[9].c_str() );
@@ -357,7 +357,7 @@ static bool parse_nmea_msg( char *payload, int size )
 	}
     } else if ( token[0] == "GPRMC" && token.size() == 13 ) {
 	// ex: $GPRMC,053740.000,A,2503.6319,N,12136.0099,E,2.69,79.65,100106,,,A*53
-	double gsec = gtime_to_gsec( token[1].c_str() );
+	// double gsec = gtime_to_gsec( token[1].c_str() );
 
 	if ( token[2] == "A" ) {
 	    // for the mediatek, the gga string is sent, followed by

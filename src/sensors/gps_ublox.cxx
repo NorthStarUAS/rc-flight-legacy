@@ -165,8 +165,8 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	int32_t lat = *((int32_t *)(p+8));
 	int32_t height = *((int32_t *)(p+12));
 	int32_t hMSL = *((int32_t *)(p+16));
-	uint32_t hAcc = *((uint32_t *)(p+20));
-	uint32_t vAcc = *((uint32_t *)(p+24));
+	// uint32_t hAcc = *((uint32_t *)(p+20));
+	// uint32_t vAcc = *((uint32_t *)(p+24));
 	if ( display_on && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("nav-posllh (%d) %d %d %d %d\n",
@@ -193,16 +193,16 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	int32_t fTOW = *((int32_t *)(p+4));
 	int16_t week = *((int16_t *)(p+8));
 	uint8_t gpsFix = p[10];
-	uint8_t flags = p[11];
+	// uint8_t flags = p[11];
 	int32_t ecefX = *((int32_t *)(p+12));
 	int32_t ecefY = *((int32_t *)(p+16));
 	int32_t ecefZ = *((int32_t *)(p+20));
-	uint32_t pAcc = *((uint32_t *)(p+24));
+	// uint32_t pAcc = *((uint32_t *)(p+24));
 	int32_t ecefVX = *((int32_t *)(p+28));
 	int32_t ecefVY = *((int32_t *)(p+32));
 	int32_t ecefVZ = *((int32_t *)(p+36));
-	uint32_t sAcc = *((uint32_t *)(p+40));
-	uint16_t pDOP = *((uint16_t *)(p+44));
+	// uint32_t sAcc = *((uint32_t *)(p+40));
+	// uint16_t pDOP = *((uint16_t *)(p+44));
 	uint8_t numSV = p[47];
 	if ( display_on && 0 ) {
 	    if ( gps_fix_value < 3 ) {
@@ -266,8 +266,8 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    julianDate = julianDate - 2440587.5; // Subtract Julian Date of Unix Epoch (Jan 1 1970)
 
 	    double unixSecs = julianDate * 86400.0;
-	    double unixFract = unixSecs - floor(unixSecs);
-	    struct timeval time;
+	    //double unixFract = unixSecs - floor(unixSecs);
+	    //struct timeval time;
 	    gps_node.setDouble( "unix_time_sec", unixSecs );
 #if 0
 	    if ( unixSecs > 1263154775 && !set_system_time) {
@@ -297,10 +297,10 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	int32_t velE = *((int32_t *)(p+8));
 	int32_t velD = *((int32_t *)(p+12));
 	uint32_t speed = *((uint32_t *)(p+16));
-	uint32_t gspeed = *((uint32_t *)(p+20));
+	// uint32_t gspeed = *((uint32_t *)(p+20));
 	int32_t heading = *((int32_t *)(p+24));
-	uint32_t sAcc = *((uint32_t *)(p+28));
-	uint32_t cAcc = *((uint32_t *)(p+32));
+	// uint32_t sAcc = *((uint32_t *)(p+28));
+	// uint32_t cAcc = *((uint32_t *)(p+32));
 	if ( display_on && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("nav-velned (%d) %.2f %.2f %.2f s = %.2f h = %.2f\n",
@@ -317,7 +317,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 
 	uint8_t *p = payload;
 	uint32_t iTOW = *((uint32_t *)(p+0));
-	uint32_t tAcc = *((uint32_t *)(p+4));
+	// uint32_t tAcc = *((uint32_t *)(p+4));
 	int32_t nano = *((int32_t *)(p+8));
 	int16_t year = *((int16_t *)(p+12));
 	uint8_t month = p[14];
@@ -355,13 +355,13 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	my_swap( payload, 0, 4);
 
 	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)(p+0));
+	// uint32_t iTOW = *((uint32_t *)(p+0));
 	uint8_t numCh = p[4];
-	uint8_t globalFlags = p[5];
+	// uint8_t globalFlags = p[5];
 	int satUsed = 0;
 	for ( int i = 0; i < numCh; i++ ) {
-	    uint8_t satid = p[9 + 12*i];
-	    uint8_t flags = p[10 + 12*i];
+	    // uint8_t satid = p[9 + 12*i];
+	    // uint8_t flags = p[10 + 12*i];
 	    uint8_t quality = p[11 + 12*i];
 	    // printf(" chn=%d satid=%d flags=%d quality=%d\n", i, satid, flags, quality);
 	    if ( quality > 3 ) {

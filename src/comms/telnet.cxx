@@ -40,7 +40,6 @@ static bool fcs_update_helper(string values) {
 static string normalize_path(string raw_path) {
     vector<string> tokens = split( raw_path, "/" );
     vector<string> tmp;
-    unsigned int count = 0;
     for ( unsigned int i = 1; i < tokens.size(); i++ ) {
 	if ( tokens[i] == ".." ) {
 	    if ( tmp.size() ) {

@@ -1306,7 +1306,7 @@ static
 	info = 8;
     } else if (*ldb < max(1,nrowb)) {
 	info = 10;
-    } else if (*ldc < max(1,*m)) {
+    } else if (*ldc < max(1,*m)) { /* should be ncola here instead of *m ? */
 	info = 13;
     }
     if (info != 0) {
