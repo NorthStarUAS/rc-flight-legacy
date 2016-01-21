@@ -47,9 +47,11 @@ static pyPropertyNode pos_filter_node;
 static pyPropertyNode pos_pressure_node;
 static pyPropertyNode pos_combined_node;
 static pyPropertyNode vel_node;
-static pyPropertyNode remote_link_node;
-static pyPropertyNode logging_node;
 static pyPropertyNode task_node;
+static vector<pyPropertyNode> sections;
+
+static int remote_link_skip = 0;
+static int logging_skip = 0;
 
 static myprofile debug2b1;
 static myprofile debug2b2;
@@ -68,9 +70,12 @@ void AirData_init() {
     pos_pressure_node = pyGetNode("/position/pressure", true);
     pos_combined_node = pyGetNode("/position/combined", true);
     vel_node = pyGetNode("/velocity", true);
-    remote_link_node = pyGetNode("/config/remote_link", true);
-    logging_node = pyGetNode("/config/logging", true);
     task_node = pyGetNode("/task", true);
+
+    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
+    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
+    remote_link_skip = remote_link_node.getDouble("airdata_skip");
+    logging_skip = remote_link_node.getDouble("airdata_skip");
 
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/sensors/airdata_group", true);
@@ -78,6 +83,7 @@ void AirData_init() {
     printf("Found %d airdata sections\n", children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
+	sections.push_back(section);
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -274,13 +280,13 @@ bool AirData_update() {
 
     bool fresh_data = false;
 
+    static int remote_link_count = remote_link_random( remote_link_skip );
+    static int logging_count = remote_link_random( logging_skip );
+
     // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/sensors/airdata_group", true);
-    vector<string> children = group_node.getChildren();
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	string source = section.getString("source");
-	bool enabled = section.getBool("enable");
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string source = sections[i].getString("source");
+	bool enabled = sections[i].getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}
@@ -305,18 +311,32 @@ bool AirData_update() {
     if ( fresh_data ) {
 	update_pressure_helpers();
 
-	if ( remote_link_on || log_to_file ) {
+	bool send_remote_link = false;
+	if ( remote_link_on ) {
+	    remote_link_count--;
+	    if ( remote_link_count < 0 ) {
+		send_remote_link = true;
+		remote_link_count = remote_link_skip;
+	    }
+	}
+	
+	bool send_logging = false;
+	if ( log_to_file ) {
+	    logging_count--;
+	    if ( logging_count < 0 ) {
+		send_logging = true;
+		logging_count = logging_skip;
+	    }
+	}
+	
+	if ( send_remote_link || send_logging ) {
 	    uint8_t buf[256];
 	    int size = packetizer->packetize_airdata( buf );
-
-	    if ( remote_link_on ) {
-		// printf("sending filter packet\n");
-		remote_link_airdata( buf, size,
-				     remote_link_node.getLong("airdata_skip") );
+	    if ( send_remote_link ) {
+		remote_link_airdata( buf, size );
 	    }
-
-	    if ( log_to_file ) {
-		log_airdata( buf, size, logging_node.getLong("airdata_skip") );
+	    if ( send_logging ) {
+		log_airdata( buf, size );
 	    }
 	}
     }
@@ -331,12 +351,9 @@ bool AirData_update() {
 
 void AirData_recalibrate() {
     // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/sensors/airdata_group", true);
-    vector<string> children = group_node.getChildren();
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	string source = section.getString("source");
-	bool enabled = section.getBool("enable");
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string source = sections[i].getString("source");
+	bool enabled = sections[i].getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}
@@ -362,12 +379,9 @@ void AirData_recalibrate() {
 
 void AirData_close() {
     // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/sensors/airdata_group", true);
-    vector<string> children = group_node.getChildren();
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	string source = section.getString("source");
-	bool enabled = section.getBool("enable");
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string source = sections[i].getString("source");
+	bool enabled = sections[i].getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}

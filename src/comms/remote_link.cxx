@@ -258,20 +258,8 @@ bool remote_link_imu( uint8_t *buf, int size  ) {
 }
 
 
-bool remote_link_airdata( uint8_t *buf, int size, int skip_count  ) {
-    // printf("remote link airdata()\n");
-    if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = remote_link_random(skip_count);
-
-    if ( skip > 0 ) {
-        --skip;
-        return false;
-    } else {
-        skip = skip_count;
-    }
-
+bool remote_link_airdata( uint8_t *buf, int size  ) {
     remote_link_packet( AIR_DATA_PACKET_V4, buf, size );
-
     return true;
 }
 
