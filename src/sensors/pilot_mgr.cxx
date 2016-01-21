@@ -34,18 +34,25 @@
 static pyPropertyNode pilot_node;
 static pyPropertyNode flight_node;
 static pyPropertyNode engine_node;
-static pyPropertyNode remote_link_node;
-static pyPropertyNode logging_node;
 static pyPropertyNode ap_node;
+static vector<pyPropertyNode> sections;
 
+static int remote_link_skip = 0;
+static int logging_skip = 0;
 
 void PilotInput_init() {
+    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
+    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
+    remote_link_skip = remote_link_node.getDouble("pilot_skip");
+    logging_skip = remote_link_node.getDouble("pilot_skip");
+
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/sensors/pilot_inputs", true);
     vector<string> children = group_node.getChildren();
     printf("Found %d pilot sections\n", children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
+	sections.push_back(section);
 	string source = section.getString("source");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -75,13 +82,13 @@ bool PilotInput_update() {
 
     bool fresh_data = false;
 
+    static int remote_link_count = remote_link_random( remote_link_skip );
+    static int logging_count = remote_link_random( logging_skip );
+
     // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/sensors/pilot_inputs", true);
-    vector<string> children = group_node.getChildren();
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	string source = section.getString("source");
-	bool enabled = section.getBool("enable");
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string source = sections[i].getString("source");
+	bool enabled = sections[i].getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}
@@ -121,18 +128,32 @@ bool PilotInput_update() {
 	    flight_node.setDouble( "rudder", pilot_node.getDouble("rudder") );
 	}
 
-	if ( remote_link_on || log_to_file ) {
+	bool send_remote_link = false;
+	if ( remote_link_on ) {
+	    remote_link_count--;
+	    if ( remote_link_count < 0 ) {
+		send_remote_link = true;
+		remote_link_count = remote_link_skip;
+	    }
+	}
+	
+	bool send_logging = false;
+	if ( log_to_file ) {
+	    logging_count--;
+	    if ( logging_count < 0 ) {
+		send_logging = true;
+		logging_count = logging_skip;
+	    }
+	}
+	
+	if ( send_remote_link || send_logging ) {
 	    uint8_t buf[256];
 	    int size = packetizer->packetize_pilot( buf );
-
-	    if ( remote_link_on ) {
-		// printf("sending filter packet\n");
-		remote_link_pilot( buf, size,
-				    remote_link_node.getLong("pilot_skip") );
+	    if ( send_remote_link ) {
+		remote_link_pilot( buf, size );
 	    }
-
-	    if ( log_to_file ) {
-		log_pilot( buf, size, logging_node.getLong("pilot_skip") );
+	    if ( send_logging ) {
+		log_pilot( buf, size );
 	    }
 	}
     }
@@ -145,12 +166,9 @@ bool PilotInput_update() {
 
 void PilotInput_close() {
     // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/sensors/pilot_inputs", true);
-    vector<string> children = group_node.getChildren();
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	string source = section.getString("source");
-	bool enabled = section.getBool("enable");
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string source = sections[i].getString("source");
+	bool enabled = sections[i].getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}

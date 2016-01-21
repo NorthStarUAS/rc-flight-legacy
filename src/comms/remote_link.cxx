@@ -302,21 +302,9 @@ bool remote_link_actuator( uint8_t *buf, int size, int skip_count )
 }
 
 
-bool remote_link_pilot( uint8_t *buf, int size, int skip_count )
+bool remote_link_pilot( uint8_t *buf, int size )
 {
-    // printf("remote link pilot()\n");
-    if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = remote_link_random(skip_count);
-
-    if ( skip > 0 ) {
-        --skip;
-        return false;
-    } else {
-        skip = skip_count;
-    }
-
     remote_link_packet( PILOT_INPUT_PACKET_V1, buf, size );
-
     return true;
 }
 
