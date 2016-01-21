@@ -2,103 +2,61 @@
 
 ## Welcome
 
-The MicroGear project is an advance embedded application for unmanned
-aircraft systems.  In includes a functioning open-source kalman filter
-for estimating attitude and location based on gps and inertial
-sensors.  It also includes an advance PID-based autopilot and a host
-of supporting libraries and cool functionality.  It leverages "easy
-XML" for config file parsing and several structures and libraries from
-the FlightGear project including the "property system" and a number
-advanced math routines.
+Aura-core is the heart of the AuraUAS project.  It is distrubted under
+the LGPL license except where noted (see the licenses subdirectory for
+details.)  AuraUAS is an advance embedded application for unmanned
+aircraft systems.  Aura-core includes:
 
-MicroGear is a UAV guidance, navigation, and control device
-application that is robust, highly capable, highly configurable, open,
-and interfaceable.  Along with high levels of capability, MicroGear
-focuses on robustness, high performance, and minimal memory and disk
-footprints.
+* An advanced 15-state EKF (extended kalman filter) developed by the
+  University of Minnesota Aerospace Engineering Department.
+  Internally the filter uses quaternion math to avoid gimbal lock
+  issues.
+
+* A sophisticated route management and following system.
+
+* A sophisticated circle hold system that holds precise circles even
+  in strong winds.
+
+* A flexible/configurable PID-based control system.  The primary PID
+  controller is provided in the 'velocity' form.  Gains and
+  configurations can be tuned from the ground in real time.
+
+* Flexible device driver system.
+
+* Property system: a system for managing and sharing hierarchically
+  organized data between program modules and scripts.
+
+* Native python script execution and integration on board.
+
+* Flexible actuator support.
+
+* Great circle and wgs84 distance and heading math.
+
+* Temperature/IMU calibration system.
+
+* System and health monitoring
 
 
 ## Configure/Compiling
 
-1. Add the location of your arm cross compiler binaries to your path.
-   This will probably look something like:
+Aura-core uses the automake/autoconf tool set and is built like many
+popular open-source projects.
 
-   export PATH=${PATH}:/home/curt/Projects/GumStix/gumstix-buildroot/build_arm_nofpu/staging_dir/bin
-   export PATH=${PATH}:/usr/local/arm/3.3.2/bin
+1. Run: "./autogen.sh" in the top source directory.
 
-   Not that there are some "setpath-*.sh" scripts in the toplevel
-   MicroGear tree.  These will need to be modified for your local
-   paths, but are there as an an example and for your convenience.
+2. Make a subdirectory called build (you can have multiple build
+   directories setup with different build options, for example,
+   supporting different architectures, debug vs. optimized release
+   builds, profiling builds, etc.)
 
-2. Run "./autogen.sh"
-
-3. Run "./configure CFLAGS="-Wall -O2" CXXFLAGS="-Wall -O2" --host=something-something"
-
-   For the "new" Overo/Verdex-pro Open Embedded tools you would use
-   --host=arm-angstrom-linux-gnueabi
-
-   For the "old" gumstix/verdex tree you would add the cross compilers
-   to your path and use --host=arm-linux
+3. Run "../configure CFLAGS="-Wall -O3" CXXFLAGS="-Wall -O3"
 
 4. Run "make"
 
-5. The resulting applications are called "ugear" and "decoder".  You will
-   find them in src/main/ and they will need to be copied over to the
-   target computer.
+## Future work
 
-
-## Magnetometer Hard Iron Calibration
-
-Note that many calibration parameters are "hard" coded in the source.
-You will need to rerun "make" after any changes to the code.
-
-Hard iron calibration parameters are set in ahrs.cpp, bBx, bBy, sfx, and sfy.
-
-Users need to fill out proper values for their unit if necessary (most
-likely will be necessary for you.)  The following link explains some
-of the underlying issues with magnetometer sensors as well as how to
-more effectively use them.
-
-    http://www.ssec.honeywell.com/magnetic/datasheets/amr.pdf
-
-Calibration procedure overview:
-
-Rotate the sensor at least one full revolution recording the sequence
-of hx, hy values (see --log-file on option.)  Plot the recorded hx,hy
-pairs and the data will form an ellipsoid, probably offset from the
-origin.
-
-The goal of the calibration procedure is to come up with horizontal &
-vertical offset and scaling factors that transform this offset
-ellipsoid back into a radius=1 circle centered on the origin.
-
-To do this, bBx, bBy are assigned the center poing of the ellipsoid
-(offset from the origin.)
-
-sfx, sfy are vertical and horizontal scaling factors that are
-multiplied against the recentered ellipsoid to stretch/squash it back
-into a r=1 circle.
-
-Any time the sensor is remounted, repositioned, or reoriented, the sensor
-will need to be recalibrated.
- 
-The default values in the code are for a situation where no hard iron
-calibration affects observed and no offset or rescaling is needed.
-
-    #define bBy 0.0
-    #define bBx 0.0
-    #define sfx 1.0
-    #define sfy 1.1
-
-As an example, we mount the sensor in the passenger foot well of a VW
-Jetta.  We drive two circles, plot hx, hy and observe the resulting
-ellipsoid.  In this case the ellipsoid is centered at 0.25, 0.65.  The
-total horizontal radius of the ellipsoid is about 0.5 and the vertical
-radius is about 0.375.  The both need to be scaled to 1.0 so sfx is
-set to 1/0.5 and sfy is set to 1/0.357
-
-    #define bBy 0.65
-    #define bBx 0.25
-    #define sfx (1.0 / 0.500)
-    #define sfy (1.0 / 0.375)
-
+Currently (at the time of writing) aura-core is just a set of
+libraries that can be stiched together from your own main() to produce
+a working autopilot.  The longer term goal is to provide a suitable
+main() here along with a Python based mission/task managment system so
+that aura-core is a complete, standalone, open-source autopilot system
