@@ -100,6 +100,7 @@ void IMU_init() {
 
 
 bool IMU_update() {
+    printf("IMU_update()\n");
     debug2a1.start();
 
     imu_prof.start();

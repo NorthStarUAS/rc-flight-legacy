@@ -119,6 +119,7 @@ static void compute_magvar() {
 
 
 bool GPS_update() {
+    printf("GPS_update()\n");
     gps_prof.start();
 
     bool fresh_data = false;
