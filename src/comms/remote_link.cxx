@@ -48,7 +48,7 @@ static ugLinkType link_type = ugUNKNOWN;
 // set up the remote link
 void remote_link_init() {
     
-    remote_link_config = pyGetNode("/config/remote-link", true);
+    remote_link_config = pyGetNode("/config/remote_link", true);
     remote_link_node = pyGetNode("/comms/remote_link", true);
 
     if ( remote_link_config.getString("type") == "uart" ) {

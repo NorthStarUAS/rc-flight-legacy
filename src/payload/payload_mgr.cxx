@@ -36,7 +36,7 @@ UGPayloadMgr::~UGPayloadMgr() {
 
 void UGPayloadMgr::bind() {
     // initialize comm nodes
-    remote_link_node = pyGetNode("/config/remote-link", true);
+    remote_link_node = pyGetNode("/config/remote_link", true);
     logging_node = pyGetNode("/config/logging", true);
 }
 

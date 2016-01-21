@@ -71,7 +71,7 @@ static void bind_properties() {
     pointing_node = pyGetNode( "/pointing", true );
     pointing_vec_node = pyGetNode( "/pointing/vector", true );
     orient_node = pyGetNode( "/orientation", true );
-    remote_link_node = pyGetNode( "/config/remote-link", true );
+    remote_link_node = pyGetNode( "/config/remote_link", true );
     logging_node = pyGetNode( "/config/logging", true );
     task_node = pyGetNode( "/task", true );
     home_node = pyGetNode( "/task/home", true );    
