@@ -48,13 +48,15 @@ static pyPropertyNode filter_group_node;
 static pyPropertyNode task_node;
 static pyPropertyNode airdata_node;
 static pyPropertyNode wind_node;
-static pyPropertyNode remote_link_node;
-static pyPropertyNode logging_node;
 static pyPropertyNode health_node;
+static vector<pyPropertyNode> sections;
 
 // initial values are the 'time factor'
 static LowPassFilter ground_alt_filt( 30.0 );
 static bool ground_alt_calibrated = false;
+
+static int remote_link_skip = 0;
+static int logging_skip = 0;
 
 void Filter_init() {
     // initialize imu property nodes
@@ -70,12 +72,14 @@ void Filter_init() {
     task_node = pyGetNode("/task", true);
     airdata_node = pyGetNode("/sensors/airdata", true);
     wind_node = pyGetNode("/filters/wind-est", true);
-    remote_link_node = pyGetNode("/config/remote_link", true);
-    logging_node = pyGetNode("/config/logging", true);
     health_node = pyGetNode("/health", true);
 
     wind_node.setDouble( "pitot_scale_factor", 1.0 );
-
+    
+    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
+    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
+    remote_link_skip = remote_link_node.getDouble("filter_skip");
+    logging_skip = remote_link_node.getDouble("filter_skip");
 
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/filters", true);
@@ -83,6 +87,7 @@ void Filter_init() {
     printf("Found %ld filter sections\n", children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
+	sections.push_back(section);
 	string module = section.getString("module");
 	bool enabled = section.getBool("enable");
 	if ( !enabled ) {
@@ -332,13 +337,13 @@ bool Filter_update() {
     if ( imu_dt > 1.0 ) { imu_dt = 0.01; }
     if ( imu_dt < 0.0 ) { imu_dt = 0.01; }
 
+    static int remote_link_count = remote_link_random( remote_link_skip );
+    static int logging_count = remote_link_random( logging_skip );
+
     // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/filters", true);
-    vector<string> children = group_node.getChildren();
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	string module = section.getString("module");
-	bool enabled = section.getBool("enable");
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string module = sections[i].getString("module");
+	bool enabled = sections[i].getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}
@@ -360,23 +365,37 @@ bool Filter_update() {
 	update_ground();
 	update_wind();
 	publish_values();
+
+	bool send_remote_link = false;
+	if ( remote_link_on ) {
+	    remote_link_count--;
+	    if ( remote_link_count < 0 ) {
+		send_remote_link = true;
+		remote_link_count = remote_link_skip;
+	    }
+	}
+	
+	bool send_logging = false;
+	if ( log_to_file ) {
+	    logging_count--;
+	    if ( logging_count < 0 ) {
+		send_logging = true;
+		logging_count = logging_skip;
+	    }
+	}
+	
+	if ( send_remote_link || send_logging ) {
+	    uint8_t buf[256];
+	    int size = packetizer->packetize_filter( buf );
+	    if ( send_remote_link ) {
+		remote_link_filter( buf, size );
+	    }
+	    if ( send_logging ) {
+		log_filter( buf, size );
+	    }
+	}
     }
 	     
-    if ( remote_link_on || log_to_file ) {
-	uint8_t buf[256];
-	int size = packetizer->packetize_filter( buf );
-
-	if ( remote_link_on ) {
-	    // printf("sending filter packet\n");
-	    remote_link_filter( buf, size,
-				remote_link_node.getLong("filter_skip") );
-	}
-
-	if ( log_to_file ) {
-	    log_filter( buf, size, logging_node.getLong("filter_skip") );
-	}
-    }
-
     last_imu_time = imu_time;
 
 #if 0
@@ -391,12 +410,9 @@ bool Filter_update() {
 
 void Filter_close() {
     // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/filters", true);
-    vector<string> children = group_node.getChildren();
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	string module = section.getString("module");
-	bool enabled = section.getBool("enable");
+    for ( unsigned int i = 0; i < sections.size(); i++ ) {
+	string module = sections[i].getString("module");
+	bool enabled = sections[i].getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}
