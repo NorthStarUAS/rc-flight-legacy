@@ -64,8 +64,8 @@ SGWayPoint::SGWayPoint( const double field1, const double field2,
 }
 
 
-SGWayPoint::SGWayPoint( pyPropertyNode *config_node ):
-    mode( ABSOLUTE ),
+SGWayPoint::SGWayPoint( pyPropertyNode *config ):
+    mode( INVALID ),
     target_lon( 0.0 ),
     target_lat( 0.0 ),
     target_alt_m( -9999.9 ),
@@ -77,42 +77,43 @@ SGWayPoint::SGWayPoint( pyPropertyNode *config_node ):
     distance( 0.0 ),
     id( "" )
 {
-    vector <string> children = config_node->getChildren();
-    unsigned int count = children.size();
-    for ( unsigned int i = 0; i < count; ++i ) {
-        string cname = children[i];
-        pyPropertyNode child = config_node->getChild(cname.c_str());
-        string cval = config_node->getString(cname.c_str());
-        if ( cname == "id" ) {
-            id = cval;
-        } else if ( cname == "lon" ) {
-            target_lon = config_node->getDouble("lon");
-	    mode = ABSOLUTE;
-        } else if ( cname == "lat" ) {
-            target_lat = config_node->getDouble("lat");
-	    mode = ABSOLUTE;
-        } else if ( cname == "alt-ft" ) {
-            target_alt_m = config_node->getDouble("alt_ft") * SG_FEET_TO_METER;
-        } else if ( cname == "agl-ft" ) {
-            target_agl_m = config_node->getDouble("agl_ft") * SG_FEET_TO_METER;
-        } else if ( cname == "speed-kt" ) {
-            target_speed_kt = config_node->getDouble("speed_kt");
-        } else if ( cname == "bank-deg" ) {
-            target_bank_deg = config_node->getDouble("bank_deg");
-        } else if ( cname == "offset-heading-deg" ) {
-            offset_hdg_deg = config_node->getDouble("offset_heading_deg");
-	    mode = RELATIVE;
-        } else if ( cname == "offset-dist-m" ) {
-            offset_dist_m = config_node->getDouble("offset_dist_m");
-	    mode = RELATIVE;
-        } else {
-            printf("Error in waypoint config logic, " );
-            if ( id.length() ) {
-                printf("Section = %s", id.c_str() );
-            }
-        }
+    if ( config->hasChild("id") ) {
+	id = config->getString("id");
     }
-    if ( mode == ABSOLUTE ) {
+    if ( config->hasChild("lon") ) {
+	target_lon = config->getDouble("lon");
+	mode = ABSOLUTE;
+    }
+    if ( config->hasChild("lat") ) {
+	target_lat = config->getDouble("lat");
+	mode = ABSOLUTE;
+    }
+    if ( config->hasChild("alt_ft") ) {
+	target_alt_m = config->getDouble("alt_ft") * SG_FEET_TO_METER;
+    }
+    if ( config->hasChild("agl_ft") ) {
+	target_agl_m = config->getDouble("agl_ft") * SG_FEET_TO_METER;
+    }
+    if ( config->hasChild("speed_kt") ) {
+	target_speed_kt = config->getDouble("speed_kt");
+    }
+    if ( config->hasChild("bank_deg") ) {
+	target_bank_deg = config->getDouble("bank_deg");
+    }
+    if ( config->hasChild("offset_heading_deg") ) {
+	offset_hdg_deg = config->getDouble("offset_heading_deg");
+	mode = RELATIVE;
+    }
+    if ( config->hasChild("offset_dist_m") ) {
+	offset_dist_m = config->getDouble("offset_dist_m");
+	mode = RELATIVE;
+    }
+    if ( mode == INVALID ) {
+	printf("Error in waypoint config logic, " );
+	if ( id.length() ) {
+	    printf("Section = %s", id.c_str() );
+        }
+    } else if ( mode == ABSOLUTE ) {
 	printf("WPT: %.6f %.6f %.0f (MSL) %.0f (AGL) %.0f (kts)\n",
 	       target_lon, target_lat, target_alt_m, target_agl_m,
 	       target_speed_kt);

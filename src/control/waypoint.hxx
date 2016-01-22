@@ -47,9 +47,10 @@ public:
      * <li> ABSOLUTE: coordinates are longitude, latitude (deg)
      * <li> RELATIVE: coordinates are distance (m), heading (deg)
      */
-    enum modetype { 
-	ABSOLUTE = 0,
-	RELATIVE = 1
+    enum modetype {
+	INVALID = 0,
+	ABSOLUTE = 1,
+	RELATIVE = 2
     };
 
 private:
@@ -99,7 +100,7 @@ public:
      * Construct a waypoint from a property sub tree
      * @param node a pointer to a property subtree with configuration values
      */
-    SGWayPoint( pyPropertyNode *config_node );
+    SGWayPoint( pyPropertyNode *config );
 
     /**
      * Construct a null waypoint
