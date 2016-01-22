@@ -1186,7 +1186,7 @@ static bool APM2_send_config() {
 	}
 	for ( int i = 0; i < count; i++ ) {
 	    act_rates[i] = pwm_node.getLong("channel", i);
-	    printf("channel[%d] = %d\n", i, act_rates[i]);
+	    printf("pwm_rates[%d] = %d\n", i, act_rates[i]);
 	}
 	start_time = get_Time();    
 	APM2_act_set_pwm_rates( act_rates );
