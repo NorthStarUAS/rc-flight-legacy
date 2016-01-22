@@ -93,8 +93,7 @@ void FGRouteMgr::init( pyPropertyNode *config_node ) {
     if ( config_node != NULL ) {
 	if ( ! build(config_node) ) {
 	    printf("Detected an internal inconsistency in the route\n");
-	    printf(" configuration.  See earlier errors for\n" );
-	    printf(" details.");
+	    printf(" configuration.  See earlier errors for details.\n" );
 	    exit(-1);
 	}
 
@@ -412,11 +411,11 @@ bool FGRouteMgr::build( pyPropertyNode *config_node ) {
         string name = children[i];
 	pyPropertyNode child = config_node->getChild(name.c_str());
         // cout << name << endl;
-        if ( name == "wpt" ) {
+        if ( name.substr(0,3) == "wpt" ) {
             SGWayPoint wpt( &child );
             standby->add_waypoint( wpt );
 	} else if ( name == "enable" ) {
-	    // happily ignore this
+	    // happily ignore this (FIXME? Do we need this tag here?)
         } else {
             printf("Unknown top level section: %s\n", name.c_str() );
             return false;
