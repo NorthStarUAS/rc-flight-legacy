@@ -61,13 +61,13 @@ public:
     
     void pretty_print();
 
- // semi-private: :-)
+    // semi-private (pretend you can't touch this!) : :-)
     PyObject *pObj;
 
 private:
     // really private
-    double PyObject2Double(PyObject *pAttr);
-    long PyObject2Long(PyObject *pAttr);
+    double PyObject2Double(const char *name, PyObject *pAttr);
+    long PyObject2Long(const char *name, PyObject *pAttr);
 };
 
 
