@@ -37,7 +37,7 @@ using std::ostringstream;
 #include "xmlauto.hxx"
 
 
-FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
+FGPIDController::FGPIDController( pyPropertyNode *init_node ):
     ep_n_1( 0.0 ),
     edf_n_1( 0.0 ),
     edf_n_2( 0.0 ),
@@ -46,9 +46,11 @@ FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
     elapsedTime( 0.0 )
 {
     size_t pos;
+
+    component_node = *init_node;
     
     // enable
-    pyPropertyNode node = pid_node->getChild("enable", true);
+    pyPropertyNode node = component_node.getChild("enable", true);
     string enable_prop = node.getString("prop");
     enable_value = node.getString("value");
     honor_passive = node.getBool("honor_passive");
@@ -60,7 +62,7 @@ FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
     }
 
     // input
-    node = pid_node->getChild("input", true);
+    node = component_node.getChild("input", true);
     string input_prop = node.getString("prop");
     pos = input_prop.rfind("/");
     if ( pos != string::npos ) {
@@ -70,7 +72,7 @@ FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
     }
 
     // reference
-    node = pid_node->getChild("reference", true);
+    node = component_node.getChild("reference", true);
     string ref_prop = node.getString("prop");
     ref_value = node.getString("value");
     pos = ref_prop.rfind("/");
@@ -81,7 +83,7 @@ FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
     }
 
     // output
-    node = pid_node->getChild( "output", true );
+    node = component_node.getChild( "output", true );
     vector <string> children = node.getChildren();
     for ( unsigned int i = 0; i < children.size(); ++i ) {
 	if ( children[i].substr(0,4) == "prop" ) {
@@ -104,7 +106,7 @@ FGPIDController::FGPIDController( pyPropertyNode *pid_node ):
     }
  
     // config
-    pyPropertyNode config_node = pid_node->getChild( "config", true );
+    config_node = component_node.getChild( "config", true );
     if ( config_node.hasChild("Ts") ) {
 	desiredTs = config_node.getDouble("Ts");
     }
@@ -189,16 +191,16 @@ void FGPIDController::update( double dt ) {
     Ts = elapsedTime;
     elapsedTime = 0.0;
 
-    if (!enable_node.isNull() && enable_node.getString("enable_attr") == enable_value) {
+    if (!enable_node.isNull() && enable_node.getString(enable_attr.c_str()) == enable_value) {
 	enabled = true;
     } else {
 	enabled = false;
     }
 
-    bool debug = pid_node.getBool("debug");
+    bool debug = component_node.getBool("debug");
 
     if ( Ts > 0.0) {
-        if ( debug ) printf("Updating %s Ts = %.2f", get_name(), Ts );
+        if ( debug ) printf("Updating %s Ts = %.2f", get_name().c_str(), Ts );
 
         double y_n = 0.0;
 	y_n = input_node.getDouble(input_attr.c_str());
@@ -301,7 +303,7 @@ void FGPIDController::update( double dt ) {
 }
 
 
-FGPISimpleController::FGPISimpleController( pyPropertyNode *pid_node ):
+FGPISimpleController::FGPISimpleController( pyPropertyNode *init_node ):
     proportional( false ),
     integral( false ),
     int_sum( 0.0 ),
@@ -311,8 +313,10 @@ FGPISimpleController::FGPISimpleController( pyPropertyNode *pid_node ):
 {
     size_t pos;
 
+    component_node = *init_node;
+
     // enable
-    pyPropertyNode node = pid_node->getChild("enable", true);
+    pyPropertyNode node = component_node.getChild("enable", true);
     string enable_prop = node.getString("prop");
     enable_value = node.getString("value");
     honor_passive = node.getBool("honor_passive");
@@ -324,7 +328,7 @@ FGPISimpleController::FGPISimpleController( pyPropertyNode *pid_node ):
     }
 
     // input
-    node = pid_node->getChild("input", true);
+    node = component_node.getChild("input", true);
     string input_prop = node.getString("prop");
     pos = input_prop.rfind("/");
     if ( pos != string::npos ) {
@@ -334,7 +338,7 @@ FGPISimpleController::FGPISimpleController( pyPropertyNode *pid_node ):
     }
 
     // reference
-    node = pid_node->getChild("reference", true);
+    node = component_node.getChild("reference", true);
     string ref_prop = node.getString("prop");
     ref_value = node.getString("value");
     pos = input_prop.rfind("/");
@@ -345,7 +349,7 @@ FGPISimpleController::FGPISimpleController( pyPropertyNode *pid_node ):
     }
 
     // output
-    node = pid_node->getChild( "output", true );
+    node = component_node.getChild( "output", true );
     vector <string> children = node.getChildren();
     for ( unsigned int i = 0; i < children.size(); ++i ) {
 	if ( children[i].substr(0,4) == "prop" ) {
@@ -368,19 +372,19 @@ FGPISimpleController::FGPISimpleController( pyPropertyNode *pid_node ):
     }
  
     // config
-    pyPropertyNode config_node = pid_node->getChild( "config", true );
+    config_node = component_node.getChild( "config", true );
 }
 
 
 void FGPISimpleController::update( double dt ) {
-    if (!enable_node.isNull() && enable_node.getString("enable_attr") == enable_value) {
+    if (!enable_node.isNull() && enable_node.getString(enable_attr.c_str()) == enable_value) {
 	enabled = true;
     } else {
 	enabled = false;
     }
 
-    bool debug = pid_node.getBool("debug");
-    if ( debug ) printf("Updating %s\n", get_name());
+    bool debug = component_node.getBool("debug");
+    if ( debug ) printf("Updating %s\n", get_name().c_str());
     double input = 0.0;
     input = input_node.getDouble(input_attr.c_str());
 
@@ -426,7 +430,7 @@ void FGPISimpleController::update( double dt ) {
 }
 
 
-FGPredictor::FGPredictor ( pyPropertyNode *config_node ):
+FGPredictor::FGPredictor ( pyPropertyNode *init_node ):
     last_value ( 999999999.9 ),
     average ( 0.0 ),
     seconds( 0.0 ),
@@ -435,8 +439,10 @@ FGPredictor::FGPredictor ( pyPropertyNode *config_node ):
 {
     size_t pos;
 
+    component_node = *init_node;
+
     // enable
-    pyPropertyNode node = config_node->getChild("enable", true);
+    pyPropertyNode node = component_node.getChild("enable", true);
     string enable_prop = node.getString("prop");
     enable_value = node.getString("value");
     honor_passive = node.getBool("honor_passive");
@@ -448,7 +454,7 @@ FGPredictor::FGPredictor ( pyPropertyNode *config_node ):
     }
 
     // input
-    node = config_node->getChild("input", true);
+    node = component_node.getChild("input", true);
     string input_prop = node.getString("prop");
     pos = input_prop.rfind("/");
     if ( pos != string::npos ) {
@@ -457,15 +463,15 @@ FGPredictor::FGPredictor ( pyPropertyNode *config_node ):
 	input_node = pyGetNode( path, true );
     }
 
-    if ( config_node->hasChild("seconds") ) {
-	seconds = config_node->getDouble("seconds");
+    if ( component_node.hasChild("seconds") ) {
+	seconds = component_node.getDouble("seconds");
     }
-    if ( config_node->hasChild("filter_gain") ) {
-	filter_gain = config_node->getDouble("filter_gain");
+    if ( component_node.hasChild("filter_gain") ) {
+	filter_gain = component_node.getDouble("filter_gain");
     }
     
     // output
-    node = config_node->getChild( "output", true );
+    node = component_node.getChild( "output", true );
     vector <string> children = node.getChildren();
     for ( unsigned int i = 0; i < children.size(); ++i ) {
 	if ( children[i].substr(0,4) == "prop" ) {
@@ -502,7 +508,7 @@ void FGPredictor::update( double dt ) {
 
     */
 
-    if (!enable_node.isNull() && enable_node.getString("enable_attr") == enable_value) {
+    if (!enable_node.isNull() && enable_node.getString(enable_attr.c_str()) == enable_value) {
 	enabled = true;
     } else {
 	enabled = false;
@@ -537,13 +543,15 @@ void FGPredictor::update( double dt ) {
 }
 
 
-FGDigitalFilter::FGDigitalFilter( pyPropertyNode *config_node )
+FGDigitalFilter::FGDigitalFilter( pyPropertyNode *init_node )
 {
     size_t pos;
     samples = 1;
 
+    component_node = *init_node;
+
     // enable
-    pyPropertyNode node = config_node->getChild("enable", true);
+    pyPropertyNode node = component_node.getChild("enable", true);
     string enable_prop = node.getString("prop");
     enable_value = node.getString("value");
     honor_passive = node.getBool("honor_passive");
@@ -555,7 +563,7 @@ FGDigitalFilter::FGDigitalFilter( pyPropertyNode *config_node )
     }
 
     // input
-    node = config_node->getChild("input", true);
+    node = component_node.getChild("input", true);
     string input_prop = node.getString("prop");
     pos = input_prop.rfind("/");
     if ( pos != string::npos ) {
@@ -564,8 +572,8 @@ FGDigitalFilter::FGDigitalFilter( pyPropertyNode *config_node )
 	input_node = pyGetNode( path, true );
     }
 
-    if ( config_node->hasChild("type") ) {
-	string cval = config_node->getString("type");
+    if ( component_node.hasChild("type") ) {
+	string cval = component_node.getString("type");
 	if ( cval == "exponential" ) {
 	    filterType = exponential;
 	} else if (cval == "double-exponential") {
@@ -576,18 +584,18 @@ FGDigitalFilter::FGDigitalFilter( pyPropertyNode *config_node )
 	    filterType = noiseSpike;
 	}
     }
-    if ( config_node->hasChild("filter_time") ) {
-	Tf = config_node->getDouble("filter_time");
+    if ( component_node.hasChild("filter_time") ) {
+	Tf = component_node.getDouble("filter_time");
     }
-    if ( config_node->hasChild("samples") ) {
-	samples = config_node->getLong("samples");
+    if ( component_node.hasChild("samples") ) {
+	samples = component_node.getLong("samples");
     }
-    if ( config_node->hasChild("max_rate_of_change") ) {
-	rateOfChange = config_node->getDouble("max_rate_of_change");
+    if ( component_node.hasChild("max_rate_of_change") ) {
+	rateOfChange = component_node.getDouble("max_rate_of_change");
     }
 
     // output
-    node = config_node->getChild( "output", true );
+    node = component_node.getChild( "output", true );
     vector <string> children = node.getChildren();
     for ( unsigned int i = 0; i < children.size(); ++i ) {
 	if ( children[i].substr(0,4) == "prop" ) {
@@ -615,7 +623,7 @@ FGDigitalFilter::FGDigitalFilter( pyPropertyNode *config_node )
 
 void FGDigitalFilter::update(double dt)
 {
-    if (!enable_node.isNull() && enable_node.getString("enable_attr") == enable_value) {
+    if (!enable_node.isNull() && enable_node.getString(enable_attr.c_str()) == enable_value) {
 	enabled = true;
     } else {
 	enabled = false;
@@ -684,7 +692,7 @@ void FGDigitalFilter::update(double dt)
 	    }
 	    output.resize(1);
         }
-        if ( pid_node.getBool("debug") ) {
+        if ( component_node.getBool("debug") ) {
             printf("input: %.3f\toutput: %.3f\n", input[0], output[0]);
         }
     }
@@ -730,15 +738,14 @@ bool FGXMLAutopilot::build() {
     // order, however that is a bad thing to assume ... especially now
     // with pyprops!!!
     vector <string> children = config_props.getChildren();
-    unsigned int count = children.size();
-    for ( unsigned int i = 0; i < count; ++i ) {
+    for ( unsigned int i = 0; i < children.size(); ++i ) {
         pyPropertyNode node = config_props.getChild(children[i].c_str());
         string name = children[i];
 	size_t pos = name.find("[");
 	if ( pos != string::npos ) {
 	    name = name.substr(0, pos);
 	}
-        printf("%s\n", name.c_str());
+        printf("ap stage: %s\n", name.c_str());
         if ( name == "pid_controller" ) {
             FGXMLAutoComponent *c = new FGPIDController( &node );
             components.push_back( c );

@@ -47,7 +47,7 @@ class FGXMLAutoComponent {
 
 protected:
 
-    pyPropertyNode pid_node;
+    pyPropertyNode component_node;
     
     pyPropertyNode enable_node;
     string enable_attr;
@@ -82,7 +82,7 @@ public:
 
     virtual void update (double dt)=0;
     
-    inline const char *get_name() { return pid_node.getString("name").c_str(); }
+    inline string get_name() { return component_node.getString("name"); }
 };
 
 
@@ -104,8 +104,8 @@ private:
     
 public:
 
-    FGPIDController( pyPropertyNode *pid_node );
-    FGPIDController( pyPropertyNode *pid_node, bool old );
+    FGPIDController( pyPropertyNode *init_node );
+    FGPIDController( pyPropertyNode *init_node, bool old );
     ~FGPIDController() {}
 
     void update_old( double dt );
@@ -134,7 +134,7 @@ private:
 
 public:
 
-    FGPISimpleController( pyPropertyNode *pid_node );
+    FGPISimpleController( pyPropertyNode *init_node );
     ~FGPISimpleController() {}
 
     void update( double dt );
@@ -163,7 +163,7 @@ private:
     
 public:
 
-    FGPredictor( pyPropertyNode *pid_node );
+    FGPredictor( pyPropertyNode *init_node );
     ~FGPredictor() {}
 
     void update( double dt );
@@ -196,7 +196,7 @@ private:
     bool debug;
 
 public:
-    FGDigitalFilter( pyPropertyNode *config_node );
+    FGDigitalFilter( pyPropertyNode *init_node );
     ~FGDigitalFilter() {}
 
     void update(double dt);
