@@ -43,7 +43,6 @@ static pyPropertyNode flight_node;
 static pyPropertyNode engine_node;
 static pyPropertyNode acts_node;
 static pyPropertyNode act_node;
-static pyPropertyNode limits_node;
 static pyPropertyNode fcs_node;
 static pyPropertyNode ap_node;
 static vector<pyPropertyNode> sections;
@@ -65,7 +64,6 @@ void Actuator_init() {
     act_node = pyGetNode("/actuators/actuator", true);
 #define NUM_ACTUATORS 8
     act_node.setLen("channel", NUM_ACTUATORS, 0.0);
-    limits_node = pyGetNode("/config/actuators/limits", true);
     fcs_node = pyGetNode("/config/fcs", true);
     ap_node = pyGetNode("/autopilot", true);
 
@@ -107,36 +105,29 @@ void Actuator_init() {
 		   module.c_str());
 	}
     }
+    // printf("At end of actuator_init()\n");
+    // act_node.pretty_print();
+    // act_node.setDouble("channel", 1, 0.5);
+    // printf("After setting double\n");
+    // act_node.pretty_print();
+    // act_node.setDouble("timestamp", 2.0);
+    // printf("After setting timestamp\n");
+    // act_node.pretty_print();
+    // act_node.getDouble("channel", 3);
+    // printf("After getting channel\n");
+    // act_node.pretty_print();
 }
 
 
 static void set_actuator_values_ap() {
     float aileron = flight_node.getDouble("aileron");
-    if ( aileron < limits_node.getDouble("aileron_min") ) {
-	aileron = limits_node.getDouble("aileron_min");
-    }
-    if ( aileron > limits_node.getDouble("aileron_max") ) {
-	aileron = limits_node.getDouble("aileron_max");
-    }
     act_node.setDouble( "channel", 0, aileron );
 
     float elevator = flight_node.getDouble("elevator");
-    if ( elevator < limits_node.getDouble("elevator_min") ) {
-	elevator = limits_node.getDouble("elevator_min");
-    }
-    if ( elevator > limits_node.getDouble("elevator_max") ) {
-	elevator = limits_node.getDouble("elevator_max");
-    }
     act_node.setDouble( "channel", 1, elevator );
 
     // rudder
     float rudder = flight_node.getDouble("rudder");
-    if ( rudder < limits_node.getDouble("rudder_min") ) {
-	rudder = limits_node.getDouble("rudder_min");
-    }
-    if ( rudder > limits_node.getDouble("rudder_max") ) {
-	rudder = limits_node.getDouble("rudder_max");
-    }
     act_node.setDouble( "channel", 3, rudder );
 
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
@@ -196,12 +187,6 @@ static void set_actuator_values_ap() {
     // throttle
 
     double throttle = engine_node.getDouble("throttle");
-    if ( throttle < limits_node.getDouble("throttle_min") ) {
-	throttle = limits_node.getDouble("throttle_min");
-    }
-    if ( throttle > limits_node.getDouble("throttle_max") ) {
-	throttle = limits_node.getDouble("throttle_max");
-    }
     act_node.setDouble("channel", 2, throttle );
 
     static bool sas_throttle_override = false;
@@ -268,11 +253,15 @@ static void set_actuator_values_pilot() {
 bool Actuator_update() {
     debug6a.start();
 
+    // printf("Actuator_update()\n");
+
     // time stamp for logging
     act_node.setDouble( "timestamp", get_Time() );
     if ( ap_node.getBool("master_switch") ) {
+	// printf("Setting actuator values (ap)\n");
 	set_actuator_values_ap();
     } else {
+	// printf("Setting actuator values (manual)\n");
 	set_actuator_values_pilot();
     }
 
@@ -299,6 +288,7 @@ bool Actuator_update() {
 		   module.c_str());
 	}
     }
+
 
     debug6a.stop();
 
