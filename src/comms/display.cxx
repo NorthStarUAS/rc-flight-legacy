@@ -61,14 +61,14 @@ void display_message()
 	init_props();
     }
 
-    printf("[imu  ]:ax = %7.3f ay = %7.3f az = %7.3f [m/s^2]\n",
-	   imu_node.getDouble("ax_mps_sec"),
-	   imu_node.getDouble("ay_mps_sec"),
-	   imu_node.getDouble("az_mps_sec"));
     printf("[imu  ]: p = %7.3f  q = %7.3f  r = %7.3f [deg/s]\n",
 	   imu_node.getDouble("p_rad_sec") * SGD_RADIANS_TO_DEGREES,
 	   imu_node.getDouble("q_rad_sec") * SGD_RADIANS_TO_DEGREES,
 	   imu_node.getDouble("r_rad_sec") * SGD_RADIANS_TO_DEGREES);
+    printf("[imu  ]:ax = %7.3f ay = %7.3f az = %7.3f [m/s^2]\n",
+	   imu_node.getDouble("ax_mps_sec"),
+	   imu_node.getDouble("ay_mps_sec"),
+	   imu_node.getDouble("az_mps_sec"));
     /* printf("[Gauss]:hx  = %7.3f hy  = %7.3f hz  = %7.3f\n",
 	   imu_node.getDouble("hx"),
 	   imu_node.getDouble("hy"),
@@ -126,6 +126,4 @@ void display_message()
            status_node.getDouble("system_load_avg"),
 	   apm2_node.getDouble("board_vcc"));
     printf("\n");
-
-    // printf("imu size = %d\n", sizeof( struct imu ) );
 }
