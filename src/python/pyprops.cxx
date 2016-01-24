@@ -297,8 +297,10 @@ string pyPropertyNode::getString(const char *name) {
 	PyObject *pAttr = PyObject_GetAttrString(pObj, name);
 	if ( pAttr != NULL ) {
 	    PyObject *pStr = PyObject_Str(pAttr);
-	    result = (string)PyString_AsString(pStr);
-	    Py_DECREF(pStr);
+	    if ( pStr != NULL ) {
+		result = (string)PyString_AsString(pStr);
+		Py_DECREF(pStr);
+	    }
 	    Py_DECREF(pAttr);
 	} else {
 	    // printf("WARNING: request non-existent attr: %s\n", name);
@@ -439,11 +441,12 @@ void pyPropertyNode::pretty_print()
 	PyObject *pValue = PyObject_CallMethod(pObj,
 					       (char *)"pretty_print",
 					       (char *)"");
-	if (pValue == NULL) {
+	if (pValue != NULL) {
+	    Py_DECREF(pValue);
+	} else {
 	    PyErr_Print();
 	    fprintf(stderr,"Call failed\n");
 	}
-	Py_DECREF(pValue);
     }
 }
 
