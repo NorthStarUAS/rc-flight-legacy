@@ -1478,9 +1478,7 @@ static bool APM2_act_write() {
 	buf[size++] = lo;
 	buf[size++] = hi;
     }
-  
-    //act_node.pretty_print();
-    
+
     // write packet
     /* len = */ write( fd, buf, size );
   

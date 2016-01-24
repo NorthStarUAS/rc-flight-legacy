@@ -132,7 +132,7 @@ bool fgfs_imu_update() {
 	}
 
 	uint8_t *buf = packet_buf;
-	// double time = *(double *)buf; buf += 8;
+	/*double time = *(double *)buf;*/ buf += 8;
 	float p = *(float *)buf; buf += 4;
 	float q = *(float *)buf; buf += 4;
 	float r = *(float *)buf; buf += 4;

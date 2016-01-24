@@ -68,7 +68,7 @@ void GPS_init() {
 	}
 	pyPropertyNode parent = pyGetNode("/sensors", true);
 	pyPropertyNode base = parent.getChild("gps", i, true);
-	printf("imu: %d = %s\n", i, source.c_str());
+	printf("gps: %d = %s\n", i, source.c_str());
 	if ( source == "null" ) {
 	    // do nothing
 	} else if ( source == "APM2" ) {

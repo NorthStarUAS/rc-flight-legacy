@@ -24,8 +24,8 @@ static pyPropertyNode gps_node;
 
 // initialize fgfs_gps input property nodes
 static void bind_input( pyPropertyNode *config ) {
-    if ( gps_node.hasChild("port") ) {
-	port = gps_node.getLong("port");
+    if ( config->hasChild("port") ) {
+	port = config->getLong("port");
     }
 }
 
