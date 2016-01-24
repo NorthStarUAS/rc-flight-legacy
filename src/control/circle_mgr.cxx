@@ -33,7 +33,7 @@ AuraCircleMgr::~AuraCircleMgr() {
 bool AuraCircleMgr::bind() {
     // property nodes
     pos_node = pyGetNode("/position", true);
-    vel_node = pyGetNode("velocity", true);
+    vel_node = pyGetNode("/velocity", true);
     orient_node = pyGetNode("/orientation", true);
     circle_node = pyGetNode("/task/circle", true);
     L1_node = pyGetNode("/config/fcs/autopilot/L1_controller", true);
@@ -82,7 +82,7 @@ bool AuraCircleMgr::update() {
     target.CourseAndDistance( pos_node.getDouble("longitude_deg"),
 			      pos_node.getDouble("latitude_deg"),
 			      0.0, &course_deg, &dist_m );
-
+    
     // compute ideal ground course to be on the circle perimeter if at
     // ideal radius
     double ideal_crs = course_deg + direction * 90;
@@ -92,7 +92,7 @@ bool AuraCircleMgr::update() {
     // (in)sanity check
     double radius_m = circle_node.getDouble("radius_m");
     if ( radius_m < 25.0 ) { radius_m = 25.0; }
-
+    
     // compute a target ground course based on our actual radius distance
     double target_crs = ideal_crs;
     if ( dist_m < radius_m ) {
@@ -113,10 +113,10 @@ bool AuraCircleMgr::update() {
 	if ( target_crs < 0.0 ) { target_crs += 360.0; }
     }
     ap_node.setDouble( "target_groundtrack_deg", target_crs );
-    /*if ( display_on ) {
-	printf("rad=%.0f act=%.0f ideal crs=%.1f tgt crs=%.1f\n",
-	       radius_m, dist_m, ideal_crs, target_crs);
-      }*/
+    // if ( display_on ) {
+    // 	printf("rad=%.0f act=%.0f ideal crs=%.1f tgt crs=%.1f\n",
+    // 	       radius_m, dist_m, ideal_crs, target_crs);
+    // }
 
     // new L1 'mathematical' response to error
 
@@ -160,13 +160,13 @@ bool AuraCircleMgr::update() {
     if ( target_bank_deg > bank_limit_deg ) {
 	target_bank_deg = bank_limit_deg;
     }
-    //printf("   circle: tgt bank = %.0f  bank limit = %.0f\n",
+    // printf("   circle: tgt bank = %.0f  bank limit = %.0f\n",
     //	   target_bank_deg, bank_limit_deg);
 
     ap_node.setDouble( "target_roll_deg", target_bank_deg );
 
-    // printf("circle: ground_crs = %.1f aircraft_hdg = %.1f\n",
-    //	   course_deg, hd_deg );
+    // printf("circle: ideal ground crs = %.1f aircraft ground crs = %.1f\n",
+    //	   course_deg, orient_node.getDouble("groundtrack_deg") );
 
     route_node.setDouble( "wp_dist_m", dist_m );
     if ( gs_mps > 0.1 ) {
