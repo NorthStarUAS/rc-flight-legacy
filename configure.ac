@@ -65,10 +65,7 @@ if test "x$enable_batch_mode" != "xno"; then
     AC_DEFINE([BATCH_MODE], 1, [Define to disable real time timing and run flat out])
 fi
 
-
 dnl code module selections
-
-LGPL_CLEAN="yes"
 
 AC_CONFIG_FILES([ \
 	Makefile \
@@ -100,24 +97,3 @@ AC_CONFIG_FILES([ \
 ])
 AC_OUTPUT
 
-echo
-echo LGPL_CLEAN = $LGPL_CLEAN
-
-if test "x$LGPL_CLEAN" = "xno"; then
-    cat <<LGPLEOF
-
-NOTICE: you have included certain modules in this configuration that
-are not LGPL compatible.
-
-You can use the --help option to configure for a complete list of
-available options.
-
-LGPLEOF
-else
-    cat <<LGPLEOF
-
-You have configured an LGPL clean build and may link these libraries
-into a larger proprietary application if desired.
-
-LGPLEOF
-fi
