@@ -99,7 +99,7 @@ void AirData_init() {
 	} else if ( source == "fgfs" ) {
 	    fgfs_airdata_init( &base );
 	} else if ( source == "Goldy2" ) {
-	    goldy2_airdata_init( &base, &section );
+	    goldy2_airdata_init( &base );
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());

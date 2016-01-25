@@ -64,9 +64,10 @@ struct imu_sensors_t {
 
 
 // initialize goldy2_imu input property nodes
-static void bind_input( pyPropertyNode *config ) {
-    if ( config->hasChild("port") ) {
-	port = config->getLong("port");
+static void bind_input() {
+    pyPropertyNode config = pyGetNode("/config/sensors/Goldy2", true);
+    if ( config.hasChild("port") ) {
+	port = config.getLong("port");
     }
     printf("Goldy2 port = %d\n", port);
 }
@@ -115,12 +116,12 @@ static void bind_pilot_controls( pyPropertyNode *base ) {
 }
 
 
-bool goldy2_init( pyPropertyNode *config ) {
+bool goldy2_init() {
     if ( master_init ) {
         return true;
     }
 
-    bind_input( config );
+    bind_input();
 
     // open a UDP socket
     if ( ! sock.open( false ) ) {
@@ -144,8 +145,8 @@ bool goldy2_init( pyPropertyNode *config ) {
 
 
 // function prototypes
-bool goldy2_imu_init( pyPropertyNode *base, pyPropertyNode *config ) {
-    if ( ! goldy2_init(config) ) {
+bool goldy2_imu_init( pyPropertyNode *base ) {
+    if ( ! goldy2_init() ) {
         return false;
     }
 
@@ -156,8 +157,8 @@ bool goldy2_imu_init( pyPropertyNode *base, pyPropertyNode *config ) {
 
 
 // function prototypes
-bool goldy2_airdata_init( pyPropertyNode *base, pyPropertyNode *config ) {
-    if ( ! goldy2_init(config) ) {
+bool goldy2_airdata_init( pyPropertyNode *base ) {
+    if ( ! goldy2_init() ) {
         return false;
     }
 
@@ -166,8 +167,8 @@ bool goldy2_airdata_init( pyPropertyNode *base, pyPropertyNode *config ) {
     return true;
 }
 
-bool goldy2_gps_init( pyPropertyNode *base, pyPropertyNode *config  ) {
-    if ( ! goldy2_init(config) ) {
+bool goldy2_gps_init( pyPropertyNode *base  ) {
+    if ( ! goldy2_init() ) {
         return false;
     }
 
@@ -176,8 +177,8 @@ bool goldy2_gps_init( pyPropertyNode *base, pyPropertyNode *config  ) {
     return true;
 }
 
-bool goldy2_pilot_init( pyPropertyNode *base, pyPropertyNode *config ) {
-    if ( ! goldy2_init(config) ) {
+bool goldy2_pilot_init( pyPropertyNode *base ) {
+    if ( ! goldy2_init() ) {
         return false;
     }
 

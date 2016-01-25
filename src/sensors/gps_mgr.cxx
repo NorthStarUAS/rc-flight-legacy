@@ -78,7 +78,7 @@ void GPS_init() {
 	} else if ( source == "file" ) {
 	    ugfile_gps_init( &base, &section );
 	} else if ( source == "Goldy2" ) {
-	    goldy2_gps_init( &base, &section );
+	    goldy2_gps_init( &base );
 	} else if ( source == "gpsd" ) {
 	    gpsd_init( &base, &section );
 	} else if ( source == "mediatek" ) {

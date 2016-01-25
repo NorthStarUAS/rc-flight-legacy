@@ -82,7 +82,7 @@ void IMU_init() {
 	} else if ( source == "APM2" ) {
 	    APM2_imu_init( &base, &section );
 	} else if ( source == "Goldy2" ) {
-	    goldy2_imu_init( &base, &section );
+	    goldy2_imu_init( &base );
 	} else if ( source == "fgfs" ) {
 	    fgfs_imu_init( &base, &section );
 	} else if ( source == "file" ) {

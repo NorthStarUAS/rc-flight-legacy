@@ -68,7 +68,7 @@ void PilotInput_init() {
 	} else if ( source == "fgfs" ) {
 	    fgfs_pilot_init( &base, &section );
 	} else if ( source == "Goldy2" ) {
-	    goldy2_pilot_init( &base, &section );
+	    goldy2_pilot_init( &base );
 	} else {
 	    printf("Unknown pilot input source = '%s' in config file\n",
 		   source.c_str());
