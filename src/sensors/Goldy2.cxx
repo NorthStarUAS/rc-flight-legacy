@@ -732,7 +732,10 @@ bool goldy2_airdata_update() {
 
 bool goldy2_gps_update() {
     static double last_timestamp = 0.0;
-    double current_timestamp = gps_node.getDouble("timestamp");
+    double current_timestamp = 0.0;
+    if ( gps_node.hasChild("timestamp") ) {
+	current_timestamp = gps_node.getDouble("timestamp");
+    }
     if ( current_timestamp > last_timestamp ) {
         last_timestamp = current_timestamp;
         return true;

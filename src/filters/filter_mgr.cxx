@@ -84,7 +84,7 @@ void Filter_init() {
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/filters", true);
     vector<string> children = group_node.getChildren();
-    printf("Found %ld filter sections\n", children.size());
+    printf("Found %d filter sections\n", children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	sections.push_back(section);
@@ -93,58 +93,20 @@ void Filter_init() {
 	if ( !enabled ) {
 	    continue;
 	}
-	ostringstream str;
-	str << "/filters/filter" << '[' << i << ']';
-	string ename = str.str();
-	printf("ename = %s\n", ename.c_str());
-	pyPropertyNode base = pyGetNode(ename.c_str(), true);
+	ostringstream output_path;
+	output_path << "/filters/filter" << '[' << i << ']';
 	printf("filter: %d = %s\n", i, module.c_str());
 	if ( module == "curt" ) {
-	    curt_adns_init( &base, &section );
+	    curt_adns_init( output_path.str(), &section );
 	} else if ( module == "umn_euler" ) {
-	    umngnss_euler_init( &base, &section );
+	    umngnss_euler_init( output_path.str(), &section );
 	} else if ( module == "umn_quat" ) {
-	    umngnss_quat_init( &base, &section );
+	    umngnss_quat_init( output_path.str(), &section );
 	} else {
 	    printf("Unknown filter = '%s' in config file\n",
 		   module.c_str());
 	}
     }
-
-    // FIXME: DO ALIASES (or copy)
-    // if ( toplevel->nChildren() > 0 ) {
-	//filter_timestamp_node->alias("/filters/filter[0]/time-stamp");
-	//filter_theta_node->alias("/filters/filter[0]/pitch-deg");
-	//filter_phi_node->alias("/filters/filter[0]/roll-deg");
-	//filter_psi_node->alias("/filters/filter[0]/heading-deg");
-	//filter_lat_node->alias("/filters/filter[0]/latitude-deg");
-	//filter_lon_node->alias("/filters/filter[0]/longitude-deg");
-	//filter_alt_m_node->alias("/filters/filter[0]/altitude-m");
-	//filter_vn_node->alias("/filters/filter[0]/vn-ms");
-	//filter_ve_node->alias("/filters/filter[0]/ve-ms");
-	//filter_vd_node->alias("/filters/filter[0]/vd-ms");
-	//filter_status_node->alias("/filters/filter[0]/navigation");
-
-	//filter_alt_ft_node->alias("/filters/filter[0]/altitude-ft");
-	//filter_track_node->alias("/filters/filter[0]/groundtrack-deg");
-	//filter_vel_node->alias("/filters/filter[0]/groundspeed-ms");
-	//filter_vert_speed_fps_node->alias("/filters/filter[0]/vertical-speed-fps");
-    // }
-
-    // select official source (currently AGL is pressure based,
-    // absolute ground alt is based on average gps/filter value at
-    // startup, and MSL altitude is based on pressure altitude -
-    // pressure error (pressure error computed as average difference
-    // between gps altitude and pressure altitude over time)):
-    //
-    // 1. /position/pressure
-    // 2. /position/filter
-    // 3. /position/combined
-    //official_alt_m_node->alias("/position/combined/altitude-true-m");
-    //official_alt_ft_node->alias("/position/combined/altitude-true-ft");
-    //official_agl_m_node->alias("/position/pressure/altitude-agl-m");
-    //official_agl_ft_node->alias("/position/pressure/altitude-agl-ft");
-    //official_ground_m_node->alias("/position/filter/altitude-ground-m");    
 }
 
 

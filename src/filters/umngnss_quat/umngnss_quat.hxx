@@ -13,7 +13,7 @@
 using std::string;
 
 
-void umngnss_quat_init( pyPropertyNode *base, pyPropertyNode *config );
+void umngnss_quat_init( string output_path, pyPropertyNode *config );
 bool umngnss_quat_update();
 void umngnss_quat_close();
 
