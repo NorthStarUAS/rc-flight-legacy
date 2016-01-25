@@ -206,6 +206,7 @@ double pyPropertyNode::PyObject2Double(const char *name, PyObject *pAttr) {
 		result = PyFloat_AsDouble(pFloat);
 		Py_DECREF(pFloat);
 	    } else {
+		PyErr_Print();
 		printf("WARNING: conversion from string to float failed\n");
 		PyObject *pStr = PyObject_Str(pAttr);
 		char *s = PyString_AsString(pStr);
@@ -239,6 +240,7 @@ long pyPropertyNode::PyObject2Long(const char *name, PyObject *pAttr) {
 		result = PyFloat_AsDouble(pFloat);
 		Py_DECREF(pFloat);
 	    } else {
+		PyErr_Print();
 		printf("WARNING: conversion from string to long failed\n");
 		PyObject *pStr = PyObject_Str(pAttr);
 		char *s = PyString_AsString(pStr);

@@ -58,6 +58,7 @@ FGPIDController::FGPIDController( pyPropertyNode *init_node ):
     if ( pos != string::npos ) {
 	string path = enable_prop.substr(0, pos);
 	enable_attr = enable_prop.substr(pos+1);
+	printf("path = %s attr = %s\n", path.c_str(), enable_attr.c_str());
 	enable_node = pyGetNode( path, true );
     }
 
@@ -68,6 +69,7 @@ FGPIDController::FGPIDController( pyPropertyNode *init_node ):
     if ( pos != string::npos ) {
 	string path = input_prop.substr(0, pos);
 	input_attr = input_prop.substr(pos+1);
+	printf("path = %s attr = %s\n", path.c_str(), input_attr.c_str());
 	input_node = pyGetNode( path, true );
     }
 
@@ -79,6 +81,7 @@ FGPIDController::FGPIDController( pyPropertyNode *init_node ):
     if ( pos != string::npos ) {
 	string path = ref_prop.substr(0, pos);
 	ref_attr = ref_prop.substr(pos+1);
+	printf("path = %s attr = %s\n", path.c_str(), ref_attr.c_str());
 	ref_node = pyGetNode( path, true );
     }
 
@@ -92,6 +95,7 @@ FGPIDController::FGPIDController( pyPropertyNode *init_node ):
 	    if ( pos != string::npos ) {
 		string path = output_prop.substr(0, pos);
 		string attr = output_prop.substr(pos+1);
+		printf("path = %s attr = %s\n", path.c_str(), attr.c_str());
 		pyPropertyNode onode = pyGetNode( path, true );
 		output_node.push_back( onode );
 		output_attr.push_back( attr );
