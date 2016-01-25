@@ -85,11 +85,11 @@ static void bind_imu_output( pyPropertyNode *base ) {
 
 
 // initialize airdata output property nodes 
-static void bind_airdata_output( pyPropertyNode *base ) {
+static void bind_airdata_output( string output_path ) {
     if ( airdata_inited ) {
 	return;
     }
-    airdata_node = *base;
+    airdata_node = pyGetNode(output_path, true);
 
     airdata_inited = true;
 }
@@ -157,12 +157,12 @@ bool goldy2_imu_init( pyPropertyNode *base ) {
 
 
 // function prototypes
-bool goldy2_airdata_init( pyPropertyNode *base ) {
+bool goldy2_airdata_init( string output_path ) {
     if ( ! goldy2_init() ) {
         return false;
     }
 
-    bind_airdata_output( base );
+    bind_airdata_output( output_path );
 
     return true;
 }
