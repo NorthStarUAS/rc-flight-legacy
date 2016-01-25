@@ -104,8 +104,8 @@ private:
     
 public:
 
-    FGPIDController( pyPropertyNode *init_node );
-    FGPIDController( pyPropertyNode *init_node, bool old );
+    FGPIDController( string config_path );
+    FGPIDController( string config_path, bool old );
     ~FGPIDController() {}
 
     void update_old( double dt );
@@ -134,7 +134,7 @@ private:
 
 public:
 
-    FGPISimpleController( pyPropertyNode *init_node );
+    FGPISimpleController( string config_path );
     ~FGPISimpleController() {}
 
     void update( double dt );
@@ -163,7 +163,7 @@ private:
     
 public:
 
-    FGPredictor( pyPropertyNode *init_node );
+    FGPredictor( string config_path );
     ~FGPredictor() {}
 
     void update( double dt );
@@ -196,7 +196,7 @@ private:
     bool debug;
 
 public:
-    FGDigitalFilter( pyPropertyNode *init_node );
+    FGDigitalFilter( string config_path );
     ~FGDigitalFilter() {}
 
     void update(double dt);

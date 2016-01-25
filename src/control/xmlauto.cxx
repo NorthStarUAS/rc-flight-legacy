@@ -37,7 +37,7 @@ using std::ostringstream;
 #include "xmlauto.hxx"
 
 
-FGPIDController::FGPIDController( pyPropertyNode *init_node ):
+FGPIDController::FGPIDController( string config_path ):
     ep_n_1( 0.0 ),
     edf_n_1( 0.0 ),
     edf_n_2( 0.0 ),
@@ -47,7 +47,7 @@ FGPIDController::FGPIDController( pyPropertyNode *init_node ):
 {
     size_t pos;
 
-    component_node = *init_node;
+    component_node = pyGetNode(config_path, true);
     
     // enable
     pyPropertyNode node = component_node.getChild("enable", true);
@@ -307,7 +307,7 @@ void FGPIDController::update( double dt ) {
 }
 
 
-FGPISimpleController::FGPISimpleController( pyPropertyNode *init_node ):
+FGPISimpleController::FGPISimpleController( string config_path ):
     proportional( false ),
     integral( false ),
     int_sum( 0.0 ),
@@ -317,7 +317,7 @@ FGPISimpleController::FGPISimpleController( pyPropertyNode *init_node ):
 {
     size_t pos;
 
-    component_node = *init_node;
+    component_node = pyGetNode(config_path, true);
 
     // enable
     pyPropertyNode node = component_node.getChild("enable", true);
@@ -434,7 +434,7 @@ void FGPISimpleController::update( double dt ) {
 }
 
 
-FGPredictor::FGPredictor ( pyPropertyNode *init_node ):
+FGPredictor::FGPredictor ( string config_path ):
     last_value ( 999999999.9 ),
     average ( 0.0 ),
     seconds( 0.0 ),
@@ -443,7 +443,7 @@ FGPredictor::FGPredictor ( pyPropertyNode *init_node ):
 {
     size_t pos;
 
-    component_node = *init_node;
+    component_node = pyGetNode(config_path);
 
     // enable
     pyPropertyNode node = component_node.getChild("enable", true);
@@ -547,12 +547,12 @@ void FGPredictor::update( double dt ) {
 }
 
 
-FGDigitalFilter::FGDigitalFilter( pyPropertyNode *init_node )
+FGDigitalFilter::FGDigitalFilter( string config_path )
 {
     size_t pos;
     samples = 1;
 
-    component_node = *init_node;
+    component_node = pyGetNode(config_path, true);
 
     // enable
     pyPropertyNode node = component_node.getChild("enable", true);
@@ -743,29 +743,30 @@ bool FGXMLAutopilot::build() {
     // with pyprops!!!
     vector <string> children = config_props.getChildren();
     for ( unsigned int i = 0; i < children.size(); ++i ) {
-        pyPropertyNode node = config_props.getChild(children[i].c_str());
+ 	ostringstream config_path;
+	config_path << "/config/fcs/autopilot/" << children[i];
         string name = children[i];
 	size_t pos = name.find("[");
 	if ( pos != string::npos ) {
-	    name = name.substr(0, pos);
+	     name = name.substr(0, pos);
 	}
-        printf("ap stage: %s\n", name.c_str());
+        printf("ap stage: %s\n", children[i].c_str());
         if ( name == "pid_controller" ) {
-            FGXMLAutoComponent *c = new FGPIDController( &node );
+            FGXMLAutoComponent *c = new FGPIDController( config_path.str() );
             components.push_back( c );
         } else if ( name == "pi_simple_controller" ) {
-            FGXMLAutoComponent *c = new FGPISimpleController( &node );
+            FGXMLAutoComponent *c = new FGPISimpleController( config_path.str() );
             components.push_back( c );
         } else if ( name == "predict_simple" ) {
-            FGXMLAutoComponent *c = new FGPredictor( &node );
+            FGXMLAutoComponent *c = new FGPredictor( config_path.str() );
             components.push_back( c );
         } else if ( name == "filter" ) {
-            FGXMLAutoComponent *c = new FGDigitalFilter( &node );
+            FGXMLAutoComponent *c = new FGDigitalFilter( config_path.str() );
             components.push_back( c );
 	} else if ( name == "L1_controller" ) {
 	    // information placeholder, we don't do anything here.
         } else {
-	    printf("Unknown top level section: %s\n", name.c_str() );
+	    printf("Unknown top level section: %s\n", children[i].c_str() );
             return false;
         }
     }
