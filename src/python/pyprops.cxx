@@ -262,10 +262,12 @@ long pyPropertyNode::PyObject2Long(const char *name, PyObject *pAttr) {
 double pyPropertyNode::getDouble(const char *name) {
     double result = 0.0;
     if ( pObj != NULL ) {
-	PyObject *pAttr = PyObject_GetAttrString(pObj, name);
-	if ( pAttr != NULL ) {
-	    result = PyObject2Double(name, pAttr);
-	    Py_DECREF(pAttr);
+	if ( PyObject_HasAttrString(pObj, name) ) {
+	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
+	    if ( pAttr != NULL ) {
+		result = PyObject2Double(name, pAttr);
+		Py_DECREF(pAttr);
+	    }
 	} else {
 	    // printf("WARNING: request non-existent attr: %s\n", name);
 	}
