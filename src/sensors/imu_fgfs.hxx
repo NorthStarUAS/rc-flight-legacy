@@ -14,11 +14,11 @@
 
 
 // function prototypes
-bool fgfs_imu_init( pyPropertyNode *base, pyPropertyNode *config );
+bool fgfs_imu_init( string output_path, pyPropertyNode *config );
 bool fgfs_imu_update();
 void fgfs_imu_close();
 
-bool fgfs_airdata_init( pyPropertyNode *base );
+bool fgfs_airdata_init( string output_path );
 bool fgfs_airdata_update();
 
 

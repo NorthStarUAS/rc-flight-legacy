@@ -31,15 +31,15 @@ static void bind_input( pyPropertyNode *config ) {
 
 
 /// initialize gps output property nodes 
-static void bind_gps_output( pyPropertyNode *base ) {
-    gps_node = *base;
+static void bind_gps_output( string output_path ) {
+    gps_node = pyGetNode(output_path, true);
 }
 
 
 // function prototypes
-bool fgfs_gps_init( pyPropertyNode *base, pyPropertyNode *config ) {
+bool fgfs_gps_init( string output_path, pyPropertyNode *config ) {
     bind_input( config );
-    bind_gps_output( base );
+    bind_gps_output( output_path );
 
     // open a UDP socket
     if ( ! sock.open( false ) ) {

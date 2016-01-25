@@ -37,8 +37,8 @@ static void bind_input( pyPropertyNode *config ) {
 
 
 // initialize imu output property nodes 
-static void bind_imu_output( pyPropertyNode *base ) {
-    imu_node = *base;
+static void bind_imu_output( string output_path ) {
+    imu_node = pyGetNode(output_path, true);
     act_node = pyGetNode("/actuators/actuator", true);
 #define NUM_ACTUATORS 8
     act_node.setLen("channel", NUM_ACTUATORS, 0.0);
@@ -49,8 +49,8 @@ static void bind_imu_output( pyPropertyNode *base ) {
 
 
 // initialize airdata output property nodes 
-static void bind_airdata_output( pyPropertyNode *base ) {
-    airdata_node = *base;
+static void bind_airdata_output( string output_path ) {
+    airdata_node = pyGetNode(output_path);
 
     // set initial fake value
     airdata_node.setDouble( "temp_degC", 15.0 );
@@ -60,9 +60,9 @@ static void bind_airdata_output( pyPropertyNode *base ) {
 
 
 // function prototypes
-bool fgfs_imu_init( pyPropertyNode *base, pyPropertyNode *config ) {
+bool fgfs_imu_init( string output_path, pyPropertyNode *config ) {
     bind_input( config );
-    bind_imu_output( base );
+    bind_imu_output( output_path );
 
     // open a UDP socket
     if ( ! sock.open( false ) ) {
@@ -84,8 +84,8 @@ bool fgfs_imu_init( pyPropertyNode *base, pyPropertyNode *config ) {
 
 
 // function prototypes
-bool fgfs_airdata_init( pyPropertyNode *base ) {
-    bind_airdata_output( base );
+bool fgfs_airdata_init( string output_path ) {
+    bind_airdata_output( output_path );
 
     return true;
 }

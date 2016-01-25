@@ -202,19 +202,19 @@ static void bind_input( pyPropertyNode *config ) {
 
 
 /// initialize imu output property nodes 
-static void bind_imu_output( pyPropertyNode *base ) {
-    imu_node = *base;
+static void bind_imu_output( string output_path ) {
+    imu_node = pyGetNode(output_path, true);
 }
 
 
 // initialize gps output property nodes 
-static void bind_gps_output( pyPropertyNode *base ) {
-    gps_node = *base;
+static void bind_gps_output( string output_path ) {
+    gps_node = pyGetNode(output_path, true);
 }
 
 
 // function prototypes
-bool ugfile_imu_init( pyPropertyNode *base, pyPropertyNode *config ) {
+bool ugfile_imu_init( string output_path, pyPropertyNode *config ) {
     static bool inited = false;
 
     if ( inited ) {
@@ -225,7 +225,7 @@ bool ugfile_imu_init( pyPropertyNode *base, pyPropertyNode *config ) {
     }
 
     bind_input( config );
-    bind_imu_output( base );
+    bind_imu_output( output_path );
 
     string file_name = "";
 
@@ -270,7 +270,7 @@ bool ugfile_imu_init( pyPropertyNode *base, pyPropertyNode *config ) {
 }
 
 
-bool ugfile_gps_init( pyPropertyNode *base, pyPropertyNode *config ) {
+bool ugfile_gps_init( string output_path, pyPropertyNode *config ) {
     static bool inited = false;
 
     if ( inited ) {
@@ -280,7 +280,7 @@ bool ugfile_gps_init( pyPropertyNode *base, pyPropertyNode *config ) {
 	inited = true;
     }
 
-    bind_gps_output( base );
+    bind_gps_output( output_path );
 
     /* open gps input file */
     string file_name = file_base_name + ".gps";

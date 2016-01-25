@@ -11,8 +11,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <sstream>
 #include <string>
 #include <vector>
+using std::ostringstream;
 using std::string;
 using std::vector;
 
@@ -73,24 +75,24 @@ void IMU_init() {
 	if ( !enabled ) {
 	    continue;
 	}
-	    
-	pyPropertyNode parent = pyGetNode("/sensors", true);
-	pyPropertyNode base = parent.getChild("imu", i, true);
+	ostringstream output_path;
+	output_path << "/sensors/imu" << '[' << i << ']';
+	printf("airdata: %d = %s\n", i, source.c_str());
 	printf("imu: %d = %s\n", i, source.c_str());
 	if ( source == "null" ) {
 	    // do nothing
 	} else if ( source == "APM2" ) {
-	    APM2_imu_init( &base, &section );
+	    APM2_imu_init( output_path.str(), &section );
 	} else if ( source == "Goldy2" ) {
-	    goldy2_imu_init( &base );
+	    goldy2_imu_init( output_path.str() );
 	} else if ( source == "fgfs" ) {
-	    fgfs_imu_init( &base, &section );
+	    fgfs_imu_init( output_path.str(), &section );
 	} else if ( source == "file" ) {
-	    ugfile_imu_init( &base, &section );
+	    ugfile_imu_init( output_path.str(), &section );
 	} else if ( source == "vn100" ) {
-	    imu_vn100_uart_init( &base, &section );
+	    imu_vn100_uart_init( output_path.str(), &section );
 	} else if ( source == "vn100-spi" ) {
-	    imu_vn100_spi_init( &base, &section );
+	    imu_vn100_spi_init( output_path.str(), &section );
 	} else {
 	    printf("Unknown imu source = '%s' in config file\n",
 		   source.c_str());

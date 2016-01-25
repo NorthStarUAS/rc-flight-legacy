@@ -16,7 +16,7 @@
 #include "include/globaldefs.h"
 
 
-void gps_ublox_init( pyPropertyNode *base, pyPropertyNode *config );
+void gps_ublox_init( string output_path, pyPropertyNode *config );
 bool gps_ublox_update();
 void gps_ublox_close();
 

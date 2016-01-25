@@ -440,51 +440,51 @@ static bool APM2_act_sas_mode( int mode_id, bool enable, float gain)
 
 
 // initialize imu output property nodes 
-static void bind_imu_output( pyPropertyNode *base ) {
+static void bind_imu_output( string output_node ) {
     if ( imu_inited ) {
 	return;
     }
-    imu_node = *base;
+    imu_node = pyGetNode(output_node, true);
     imu_inited = true;
 }
 
 
 // initialize gps output property nodes 
-static void bind_gps_output( pyPropertyNode *base ) {
+static void bind_gps_output( string output_path ) {
     if ( gps_inited ) {
 	return;
     }
-    gps_node = *base;
+    gps_node = pyGetNode(output_path);
     gps_inited = true;
 }
 
 
 // initialize actuator property nodes 
-static void bind_act_nodes( pyPropertyNode *base ) {
+static void bind_act_nodes( string output_path ) {
     if ( actuator_inited ) {
 	return;
     }
-    act_node = *base;
+    act_node = pyGetNode(output_path, true);
     act_node.setLen("channel", NUM_ACTUATORS, 0.0);
     actuator_inited = true;
 }
 
 // initialize airdata output property nodes 
-static void bind_airdata_output( pyPropertyNode *base ) {
+static void bind_airdata_output( string output_path ) {
     if ( airdata_inited ) {
 	return;
     }
-    airdata_node = *base;
+    airdata_node = pyGetNode(output_path, true);
     airdata_inited = true;
 }
 
 
 // initialize pilot output property nodes 
-static void bind_pilot_controls( pyPropertyNode *base ) {
+static void bind_pilot_controls( string output_path ) {
     if ( pilot_input_inited ) {
 	return;
     }
-    pilot_node = *base;
+    pilot_node = pyGetNode(output_path, true);
     pilot_input_inited = true;
 }
 
@@ -640,12 +640,12 @@ bool APM2_init( SGPropertyNode *config ) {
 #endif
 
 
-bool APM2_imu_init( pyPropertyNode *base, pyPropertyNode *config ) {
+bool APM2_imu_init( string output_path, pyPropertyNode *config ) {
     if ( ! APM2_open() ) {
 	return false;
     }
 
-    bind_imu_output( base );
+    bind_imu_output( output_path );
 
     if ( config->hasChild("reverse_imu_mount") ) {
 	reverse_imu_mount = config->getBool("reverse_imu_mount");
@@ -683,46 +683,45 @@ bool APM2_imu_init( pyPropertyNode *base, pyPropertyNode *config ) {
 }
 
 
-bool APM2_gps_init( pyPropertyNode *base, pyPropertyNode *config ) {
+bool APM2_gps_init( string output_path, pyPropertyNode *config ) {
     if ( ! APM2_open() ) {
 	return false;
     }
 
-    bind_gps_output( base );
+    bind_gps_output( output_path );
 
     return true;
 }
 
 
-bool APM2_airdata_init( pyPropertyNode *base ) {
+bool APM2_airdata_init( string output_path ) {
     if ( ! APM2_open() ) {
 	return false;
     }
 
-    bind_airdata_output( base );
+    bind_airdata_output( output_path );
 
     return true;
 }
 
 
-bool APM2_pilot_init( pyPropertyNode *base ) {
+bool APM2_pilot_init( string output_path ) {
     if ( ! APM2_open() ) {
 	return false;
     }
 
-    bind_pilot_controls( base );
+    bind_pilot_controls( output_path );
 
     return true;
 }
 
 
-bool APM2_act_init( pyPropertyNode *base, pyPropertyNode *section ) {
+bool APM2_act_init( string output_path, pyPropertyNode *section ) {
     if ( ! APM2_open() ) {
 	return false;
     }
 
-    //act_config = config;
-    bind_act_nodes( base );
+    bind_act_nodes( output_path );
 
     return true;
 }

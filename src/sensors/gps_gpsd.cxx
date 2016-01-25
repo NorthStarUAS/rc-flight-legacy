@@ -50,14 +50,14 @@ static void bind_input( pyPropertyNode *config ) {
 
 
 // initialize gpsd output property nodes 
-static void bind_output( pyPropertyNode *base ) {
-    gps_node = *base;
+static void bind_output( string output_path ) {
+    gps_node = pyGetNode(output_path, true);
 }
 
 
-void gpsd_init( pyPropertyNode *base, pyPropertyNode *config ) {
+void gpsd_init( string output_path, pyPropertyNode *config ) {
     bind_input( config );
-    bind_output( base );
+    bind_output( output_path );
 }
 
 

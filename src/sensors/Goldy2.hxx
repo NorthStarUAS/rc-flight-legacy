@@ -18,11 +18,11 @@ bool goldy2_open();
 bool goldy2_update();
 bool goldy2_close();
 
-bool goldy2_imu_init( pyPropertyNode *base );
+bool goldy2_imu_init( string output_path );
 bool goldy2_imu_update();
 void goldy2_imu_close();
 
-bool goldy2_gps_init( pyPropertyNode *base  );
+bool goldy2_gps_init( string output_path  );
 bool goldy2_gps_update();
 void goldy2_gps_close();
 
@@ -30,7 +30,7 @@ bool goldy2_airdata_init( string output_path );
 bool goldy2_airdata_update();
 void goldy2_airdata_close();
 
-bool goldy2_pilot_init( pyPropertyNode *base );
+bool goldy2_pilot_init( string output_path );
 bool goldy2_pilot_update();
 void goldy2_pilot_close();
 

@@ -15,7 +15,7 @@
 #include "include/globaldefs.h"
 
 
-void gps_mediatek3329_init( pyPropertyNode *base, pyPropertyNode *config );
+void gps_mediatek3329_init( string output_path, pyPropertyNode *config );
 bool gps_mediatek3329_update();
 void gps_mediatek3329_close();
 

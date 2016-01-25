@@ -84,22 +84,17 @@ void Actuator_init() {
 	if ( !enabled ) {
 	    continue;
 	}
-	
-	ostringstream str;
-	str << "/actuators/actuator" << '[' << i << ']';
-	string ename = str.str();
-	printf("ename = %s\n", ename.c_str());
-	pyPropertyNode base = pyGetNode(ename.c_str(), true);
-
+	ostringstream output_path;
+	output_path << "/actuators/actuator" << '[' << i << ']';
 	printf("actuator: %d = %s\n", i, module.c_str());
 	if ( module == "null" ) {
 	    // do nothing
 	} else if ( module == "APM2" ) {
-	    APM2_act_init( &base, &section );
+	    APM2_act_init( output_path.str(), &section );
 	} else if ( module == "fgfs" ) {
-	    fgfs_act_init( &base, &section );
+	    fgfs_act_init( output_path.str(), &section );
 	} else if ( module == "Goldy2" ) {
-	    goldy2_act_init( &base, &section );
+	    goldy2_act_init( output_path.str(), &section );
 	} else {
 	    printf("Unknown actuator = '%s' in config file\n",
 		   module.c_str());

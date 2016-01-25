@@ -14,7 +14,7 @@
 
 
 // function prototypes
-bool fgfs_pilot_init( pyPropertyNode *base, pyPropertyNode *config );
+bool fgfs_pilot_init( string output_path, pyPropertyNode *config );
 bool fgfs_pilot_update();
 void fgfs_pilot_close();
 

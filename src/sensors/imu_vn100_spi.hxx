@@ -19,7 +19,7 @@ using std::string;
 #include "include/globaldefs.h"
 
 
-void imu_vn100_spi_init( pyPropertyNode *base, pyPropertyNode *config );
+void imu_vn100_spi_init( string output_path, pyPropertyNode *config );
 bool imu_vn100_spi_get();
 void imu_vn100_spi_close();
 

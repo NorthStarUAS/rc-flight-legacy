@@ -41,8 +41,8 @@ static void bind_imu_input( pyPropertyNode *config ) {
 
 
 // initialize imu output property nodes 
-static void bind_imu_output( pyPropertyNode *base ) {
-    imu_node = *base;
+static void bind_imu_output( string output_path ) {
+    imu_node = pyGetNode(output_path, true);
 }
 
 
@@ -71,9 +71,9 @@ static bool imu_vn100_spi_open() {
 }
 
 
-void imu_vn100_spi_init( pyPropertyNode *base, pyPropertyNode *config ) {
+void imu_vn100_spi_init( string output_path, pyPropertyNode *config ) {
     bind_imu_input( config );
-    bind_imu_output( base );
+    bind_imu_output( output_path );
 
     imu_vn100_spi_open();
 }

@@ -37,19 +37,19 @@ static void bind_input( pyPropertyNode *config ) {
 
 
 /// initialize actuator property nodes 
-static void bind_act_nodes( pyPropertyNode *base ) {
-    act_node = *base;
+static void bind_act_nodes( string output_path ) {
+    act_node = pyGetNode(output_path, true);
 #define NUM_ACTUATORS 8
     act_node.setLen("channel", NUM_ACTUATORS, 0.0);
 }
 
 
 // function prototypes
-bool goldy2_act_init( pyPropertyNode *base, pyPropertyNode *config ) {
+bool goldy2_act_init( string output_path, pyPropertyNode *config ) {
     printf("actuator_init()\n");
 
     bind_input( config );
-    bind_act_nodes( base );
+    bind_act_nodes( output_path );
 
     // open a UDP socket
     if ( ! sock.open( false ) ) {

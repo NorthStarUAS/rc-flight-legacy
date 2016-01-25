@@ -98,16 +98,13 @@ void AirData_init() {
 	}
 	ostringstream output_path;
 	output_path << "/sensors/airdata" << '[' << i << ']';
-	//pyPropertyNode base = pyGetNode(ename.c_str(), true);
-	//pyPropertyNode parent = pyGetNode("/sensors", true);
-	//pyPropertyNode base = parent.getChild("airdata", i, true);
 	printf("airdata: %d = %s\n", i, source.c_str());
 	if ( source == "null" ) {
 	    // do nothing
 	} else if ( source == "APM2" ) {
-	    // APM2_airdata_init( &base );
+	    APM2_airdata_init( output_path.str() );
 	} else if ( source == "fgfs" ) {
-	    // fgfs_airdata_init( &base );
+	    fgfs_airdata_init( output_path.str() );
 	} else if ( source == "Goldy2" ) {
 	    goldy2_airdata_init( output_path.str() );
 	} else {

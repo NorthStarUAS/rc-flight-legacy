@@ -74,11 +74,11 @@ static void bind_input() {
 
 
 // initialize imu output property nodes 
-static void bind_imu_output( pyPropertyNode *base ) {
+static void bind_imu_output( string output_path ) {
     if ( imu_inited ) {
         return;
     }
-    imu_node = *base;
+    imu_node = pyGetNode(output_path, true);
 
     imu_inited = true;
 }
@@ -96,21 +96,21 @@ static void bind_airdata_output( string output_path ) {
 
 
 // initialize gps output property nodes
-static void bind_gps_output( pyPropertyNode *base ) {
+static void bind_gps_output( string output_path ) {
     if ( gps_inited ) {
         return;
     }
-    gps_node = *base;
+    gps_node = pyGetNode(output_path, true);
 
     gps_inited = true;
 }
 
 // initialize pilot output property nodes
-static void bind_pilot_controls( pyPropertyNode *base ) {
+static void bind_pilot_controls( string output_path ) {
     if ( pilot_input_inited ) {
         return;
     }
-    pilot_node = *base;
+    pilot_node = pyGetNode(output_path, true);
 
     pilot_input_inited = true;
 }
@@ -145,12 +145,12 @@ bool goldy2_init() {
 
 
 // function prototypes
-bool goldy2_imu_init( pyPropertyNode *base ) {
+bool goldy2_imu_init( string output_path ) {
     if ( ! goldy2_init() ) {
         return false;
     }
 
-    bind_imu_output( base );
+    bind_imu_output( output_path );
 
     return true;
 }
@@ -167,22 +167,22 @@ bool goldy2_airdata_init( string output_path ) {
     return true;
 }
 
-bool goldy2_gps_init( pyPropertyNode *base  ) {
+bool goldy2_gps_init( string output_path  ) {
     if ( ! goldy2_init() ) {
         return false;
     }
 
-    bind_gps_output( base );
+    bind_gps_output( output_path );
 
     return true;
 }
 
-bool goldy2_pilot_init( pyPropertyNode *base ) {
+bool goldy2_pilot_init( string output_path ) {
     if ( ! goldy2_init() ) {
         return false;
     }
 
-    bind_pilot_controls( base );
+    bind_pilot_controls( output_path );
 
     return true;
 }

@@ -14,7 +14,7 @@
 
 
 // function prototypes
-bool fgfs_gps_init( pyPropertyNode *base, pyPropertyNode *config );
+bool fgfs_gps_init( string output_path, pyPropertyNode *config );
 bool fgfs_gps_update();
 void fgfs_gps_close();
 

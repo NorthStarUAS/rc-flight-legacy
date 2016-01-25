@@ -14,8 +14,8 @@
 
 
 // function prototypes
-bool ugfile_imu_init( pyPropertyNode *base, pyPropertyNode *config );
-bool ugfile_gps_init( pyPropertyNode *base, pyPropertyNode *config );
+bool ugfile_imu_init( string output_path, pyPropertyNode *config );
+bool ugfile_gps_init( string output_path, pyPropertyNode *config );
 bool ugfile_read();
 void ugfile_close();
 

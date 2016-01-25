@@ -17,7 +17,7 @@
 #include "include/globaldefs.h"
 
 
-void gpsd_init( pyPropertyNode *base, pyPropertyNode *config );
+void gpsd_init( string output_path, pyPropertyNode *config );
 bool gpsd_get_gps();
 void gpsd_close();
 

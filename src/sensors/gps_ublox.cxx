@@ -57,8 +57,8 @@ static void bind_input( pyPropertyNode *config ) {
 
 
 // initialize gpsd output property nodes 
-static void bind_output( pyPropertyNode *base ) {
-    gps_node = *base;
+static void bind_output( string output_node ) {
+    gps_node = pyGetNode(output_node, true);
 }
 
 
@@ -122,9 +122,9 @@ static bool gps_ublox_open() {
 }
 
 
-void gps_ublox_init( pyPropertyNode *base, pyPropertyNode *config ) {
+void gps_ublox_init( string output_node, pyPropertyNode *config ) {
     bind_input( config );
-    bind_output( base );
+    bind_output( output_node );
     gps_ublox_open();
 }
 

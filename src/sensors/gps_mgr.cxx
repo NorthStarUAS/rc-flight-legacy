@@ -15,6 +15,13 @@
 #include <string.h>
 #include <sys/time.h>
 
+#include <sstream>
+#include <string>
+#include <vector>
+using std::ostringstream;
+using std::string;
+using std::vector;
+
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
 #include "comms/remote_link.hxx"
@@ -66,25 +73,25 @@ void GPS_init() {
 	if ( !enabled ) {
 	    continue;
 	}
-	pyPropertyNode parent = pyGetNode("/sensors", true);
-	pyPropertyNode base = parent.getChild("gps", i, true);
+	ostringstream output_path;
+	output_path << "/sensors/gps" << '[' << i << ']';
 	printf("gps: %d = %s\n", i, source.c_str());
 	if ( source == "null" ) {
 	    // do nothing
 	} else if ( source == "APM2" ) {
-	    APM2_gps_init( &base, &section );
+	    APM2_gps_init( output_path.str(), &section );
 	} else if ( source == "fgfs" ) {
-	    fgfs_gps_init( &base, &section );
+	    fgfs_gps_init( output_path.str(), &section );
 	} else if ( source == "file" ) {
-	    ugfile_gps_init( &base, &section );
+	    ugfile_gps_init( output_path.str(), &section );
 	} else if ( source == "Goldy2" ) {
-	    goldy2_gps_init( &base );
+	    goldy2_gps_init( output_path.str() );
 	} else if ( source == "gpsd" ) {
-	    gpsd_init( &base, &section );
+	    gpsd_init( output_path.str(), &section );
 	} else if ( source == "mediatek" ) {
-	    gps_mediatek3329_init( &base, &section );
+	    gps_mediatek3329_init( output_path.str(), &section );
 	} else if ( source == "ublox" ) {
-	    gps_ublox_init( &base, &section );
+	    gps_ublox_init( output_path.str(), &section );
 	} else {
 	    printf("Unknown gps source = '%s' in config file\n",
 		   source.c_str());
