@@ -688,7 +688,7 @@ bool goldy2_imu_update() {
 
     bool fresh_data = false;
 
-    if ( imu_sensors.time> last_imu_internal_time ) {
+    if ( imu_sensors.time > last_imu_internal_time ) {
 	fresh_data = true;
 	last_imu_internal_time = imu_sensors.time;
 

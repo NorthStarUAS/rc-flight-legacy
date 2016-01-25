@@ -297,7 +297,6 @@ bool AirData_update() {
 	if ( !enabled ) {
 	    continue;
 	}
-	string basename = "/sensors";
 	if ( source == "null" ) {
 	    // do nothing
 	} else if ( source == "APM2" ) {
