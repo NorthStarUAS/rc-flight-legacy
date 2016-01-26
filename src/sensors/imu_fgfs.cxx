@@ -50,7 +50,7 @@ static void bind_imu_output( string output_path ) {
 
 // initialize airdata output property nodes 
 static void bind_airdata_output( string output_path ) {
-    airdata_node = pyGetNode(output_path);
+    airdata_node = pyGetNode(output_path, true);
 
     // set initial fake value
     airdata_node.setDouble( "temp_degC", 15.0 );
