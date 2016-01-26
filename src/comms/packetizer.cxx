@@ -190,14 +190,14 @@ int UGPacketizer::packetize_airdata( uint8_t *buf ) {
     int16_t airspeed = (int16_t)(airspeed_kt * 100);
     *(int16_t *)buf = airspeed; buf += 2;
 
-    double alt_m = pos_pressure_node.getDouble("altitude-smoothed-m");
-    // double alt_m = pos_combined_node.getDouble("altitude-true-m");
-    // double alt_m = pos_node.getDouble("altitude-agl-ft") * 0.3048;
+    double alt_m = pos_pressure_node.getDouble("altitude_smoothed_m");
+    // double alt_m = pos_combined_node.getDouble("altitude_true_m");
+    // double alt_m = pos_node.getDouble("altitude_agl_ft") * 0.3048;
     float alt = alt_m;
     // *(float *)buf = alt; buf += 4;
     memcpy( buf, &alt, 4 ); buf+= 4;
 
-    float alt_true = pos_combined_node.getDouble("altitude-true-m");
+    float alt_true = pos_combined_node.getDouble("altitude_true_m");
     // *(float *)buf = alt_true; buf += 4;
     memcpy( buf, &alt_true, 4 ); buf+= 4;
 
@@ -213,7 +213,7 @@ int UGPacketizer::packetize_airdata( uint8_t *buf ) {
     uint8_t wind_kts = (uint8_t)(wind_node.getDouble("wind_speed_kt") * 4);
     *buf = wind_kts; buf += 1;
 
-    uint8_t pitot_scale = (uint8_t)(wind_node.getDouble("pitot-scale-factor")*100);
+    uint8_t pitot_scale = (uint8_t)(wind_node.getDouble("pitot_scale_factor")*100);
     *(uint8_t *)buf = pitot_scale; buf += 1;
 
     uint8_t status = airdata_node.getLong("status");
@@ -279,7 +279,7 @@ int UGPacketizer::packetize_filter( uint8_t *buf ) {
     int16_t theta = (int16_t)(filter_node.getDouble("pitch_deg") * 10);
     *(int16_t *)buf = theta; buf += 2;
 
-    int16_t psi = (int16_t)(filter_node.getDouble("yaw_deg") * 10);
+    int16_t psi = (int16_t)(filter_node.getDouble("heading_deg") * 10);
     *(int16_t *)buf = psi; buf += 2;
 
     int8_t seq = (int8_t)remote_link_node.getLong("sequence_num");
@@ -448,8 +448,8 @@ int UGPacketizer::packetize_ap( uint8_t *buf, uint8_t route_size,
     // compute target AP msl as:
     //   ground_alt(pressure) + altitude_agl(press) - error(press)
     float target_agl_ft = ap_node.getDouble("target_agl_ft");
-    float ground_m = pos_pressure_node.getDouble("altitude-ground-m");
-    float error_m = pos_pressure_node.getDouble("pressure-error-m");
+    float ground_m = pos_pressure_node.getDouble("altitude_ground_m");
+    float error_m = pos_pressure_node.getDouble("pressure_error_m");
     float alt_msl_ft = (ground_m + error_m) * SG_METER_TO_FEET + target_agl_ft;
     *(uint16_t *)buf = (uint16_t)alt_msl_ft; buf += 2;
 
@@ -465,7 +465,7 @@ int UGPacketizer::packetize_ap( uint8_t *buf, uint8_t route_size,
     int16_t speed = (int16_t)(ap_node.getDouble("target_speed_kt") * 10.0);
     *(int16_t *)buf = speed; buf += 2;
 
-    int target_wpt_index = route_node.getLong("target-waypoint-idx");
+    int target_wpt_index = route_node.getLong("target_waypoint_idx");
     if ( target_wpt_index >= route_size ) {
 	target_wpt_index = 0;
     }
@@ -605,7 +605,7 @@ string UGPacketizer::get_fcs_speed_string() {
 	     imu_node.getDouble("timestamp"),
 	     ap_node.getDouble("target_speed_kt"),
 	     ap_node.getDouble("target_pitch_deg"),
-	     vel_node.getDouble("airspeed-smoothed-kt"),
+	     vel_node.getDouble("airspeed_smoothed_kt"),
 	     filter_node.getDouble("pitch_deg"),
 	     act_node.getDouble("channel", 1));
 
@@ -618,8 +618,8 @@ string UGPacketizer::get_fcs_altitude_string() {
 
     snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.2f",
 	     imu_node.getDouble("timestamp"),
-	     ap_node.getDouble("target-agl-ft"),
-	     pos_node.getDouble("altitude-agl-ft"),
+	     ap_node.getDouble("target_agl_ft"),
+	     pos_node.getDouble("altitude_agl_ft"),
 	     act_node.getDouble("channel", 2) );
 
     return buf;
