@@ -98,7 +98,7 @@ void AirData_init() {
 	}
 	ostringstream output_path;
 	output_path << "/sensors/airdata" << '[' << i << ']';
-	printf("airdata: %d = %s\n", i, source.c_str());
+	printf("airdata: %d = %s (%s)\n", i, source.c_str(), output_path.str().c_str());
 	if ( source == "null" ) {
 	    // do nothing
 	} else if ( source == "APM2" ) {
@@ -207,7 +207,7 @@ static void update_pressure_helpers() {
 
     // true altitude estimate - filter ground average is our best
     // estimate of true agl if altitude has not changed recently.
-    double true_agl_m = true_alt_m - filter_node.getDouble("altitude_ground_m");
+    double true_agl_m = true_alt_m - pos_filter_node.getDouble("altitude_ground_m");
 
     //
     // 4.0 Compute outside air temperature estimate based on 'true'
