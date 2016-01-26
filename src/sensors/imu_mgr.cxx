@@ -66,7 +66,7 @@ void IMU_init() {
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/sensors/imu_group", true);
     vector<string>children = group_node.getChildren();
-    printf("Found %ld imu sections\n", children.size());
+    printf("Found %d imu sections\n", (int)children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	sections.push_back(section);
