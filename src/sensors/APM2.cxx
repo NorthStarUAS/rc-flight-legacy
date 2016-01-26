@@ -454,7 +454,7 @@ static void bind_gps_output( string output_path ) {
     if ( gps_inited ) {
 	return;
     }
-    gps_node = pyGetNode(output_path);
+    gps_node = pyGetNode(output_path, true);
     gps_inited = true;
 }
 
@@ -878,12 +878,10 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    airdata.temp = *(float *)payload; payload += 4;
 	    airdata.climb_rate = *(float *)payload; payload += 4;
 
-#if 0
-	    if ( display_on ) {
-		printf("baro %.3f %.1f %.1f %.1f\n", airdata.timestamp,
-			airdata.pressure, airdata.temp, airdata.climb_rate);
-	    }
-#endif
+	    // if ( display_on ) {
+	    // 	printf("baro %.3f %.1f %.1f %.1f\n", airdata.timestamp,
+	    // 		airdata.pressure, airdata.temp, airdata.climb_rate);
+	    // }
 		      
 	    baro_packet_counter++;
 	    apm2_node.setLong( "baro_packet_count", baro_packet_counter );
