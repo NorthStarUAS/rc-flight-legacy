@@ -84,7 +84,7 @@ void Filter_init() {
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/filters", true);
     vector<string> children = group_node.getChildren();
-    printf("Found %d filter sections\n", children.size());
+    printf("Found %d filter sections\n", (int)children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
 	pyPropertyNode section = group_node.getChild(children[i].c_str());
 	sections.push_back(section);
