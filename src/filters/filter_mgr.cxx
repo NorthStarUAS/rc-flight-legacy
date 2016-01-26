@@ -247,6 +247,8 @@ static void publish_values() {
     orient_node.setDouble( "heading_deg", filter_node.getDouble("heading_deg") );
     pos_node.setDouble( "latitude_deg", filter_node.getDouble("latitude_deg") );
     pos_node.setDouble( "longitude_deg", filter_node.getDouble("longitude_deg") );
+    pos_filter_node.setDouble("altitude_m", filter_node.getDouble("altitude_m"));
+    pos_filter_node.setDouble("altitude_ft", filter_node.getDouble("altitude_ft"));
     vel_node.setDouble( "vn_ms", filter_node.getDouble("vn_ms") );
     vel_node.setDouble( "ve_ms", filter_node.getDouble("ve_ms") );
     vel_node.setDouble( "vd_ms", filter_node.getDouble("vd_ms") );
