@@ -77,7 +77,6 @@ void IMU_init() {
 	}
 	ostringstream output_path;
 	output_path << "/sensors/imu" << '[' << i << ']';
-	printf("airdata: %d = %s\n", i, source.c_str());
 	printf("imu: %d = %s\n", i, source.c_str());
 	if ( source == "null" ) {
 	    // do nothing
