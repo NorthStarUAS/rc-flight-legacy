@@ -30,8 +30,6 @@
 using std::string;
 using std::ostringstream;
 
-#include "util/exception.hxx"
-#include "util/sg_path.hxx"
 #include "util/wind.hxx"
 
 #include "xmlauto.hxx"
@@ -743,26 +741,38 @@ bool FGXMLAutopilot::build() {
     // with pyprops!!!
     vector <string> children = config_props.getChildren();
     for ( unsigned int i = 0; i < children.size(); ++i ) {
- 	ostringstream config_path;
-	config_path << "/config/fcs/autopilot/" << children[i];
-        string name = children[i];
+	pyPropertyNode component = config_props.getChild(children[i].c_str(),
+							 true);
+        printf("ap stage: %s\n", children[i].c_str());
+	string name = children[i];
 	size_t pos = name.find("[");
 	if ( pos != string::npos ) {
-	     name = name.substr(0, pos);
+	    name = name.substr(0, pos);
 	}
-        printf("ap stage: %s\n", children[i].c_str());
-        if ( name == "pid_controller" ) {
-            FGXMLAutoComponent *c = new FGPIDController( config_path.str() );
-            components.push_back( c );
-        } else if ( name == "pi_simple_controller" ) {
-            FGXMLAutoComponent *c = new FGPISimpleController( config_path.str() );
-            components.push_back( c );
-        } else if ( name == "predict_simple" ) {
-            FGXMLAutoComponent *c = new FGPredictor( config_path.str() );
-            components.push_back( c );
-        } else if ( name == "filter" ) {
-            FGXMLAutoComponent *c = new FGDigitalFilter( config_path.str() );
-            components.push_back( c );
+	if ( name == "component" ) {
+	    ostringstream config_path;
+	    config_path << "/config/fcs/autopilot/" << children[i];
+	    string module = component.getString("module");
+	    if ( module == "pid_controller" ) {
+		FGXMLAutoComponent *c
+		    = new FGPIDController( config_path.str() );
+		components.push_back( c );
+	    } else if ( module == "pi_simple_controller" ) {
+		FGXMLAutoComponent *c
+		    = new FGPISimpleController( config_path.str() );
+		components.push_back( c );
+	    } else if ( module == "predict_simple" ) {
+		FGXMLAutoComponent *c
+		    = new FGPredictor( config_path.str() );
+		components.push_back( c );
+	    } else if ( module == "filter" ) {
+		FGXMLAutoComponent *c
+		    = new FGDigitalFilter( config_path.str() );
+		components.push_back( c );
+	    } else {
+		printf("Unknown AP module name: %s\n", module.c_str());
+		return false;
+	    }
 	} else if ( name == "L1_controller" ) {
 	    // information placeholder, we don't do anything here.
         } else {
