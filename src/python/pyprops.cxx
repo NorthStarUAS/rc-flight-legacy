@@ -466,14 +466,9 @@ void pyPropertyNode::pretty_print()
 static PyObject *pModuleProps = NULL;
 static PyObject *pModuleXML = NULL;
 
-// This function must be called first (before any pyPropertyNode
-// usage.) It sets up the python intepreter and imports the python
-// props module.
-void pyPropsInit(int argc, char **argv) {
-    Py_SetProgramName(argv[0]);	// optional but recommended
-    Py_Initialize();
-    PySys_SetArgv(argc, argv);	// for relative imports to work
-
+// This function must be called before any pyPropertyNode usage. It
+// imports the python props and props_xml modules.
+void pyPropsInit() {
     // python property system
     pModuleProps = PyImport_ImportModule("props");
     if (pModuleProps == NULL) {
@@ -490,14 +485,12 @@ void pyPropsInit(int argc, char **argv) {
 
 }
 
-// This function can be called prior to exit (after the last property
-// node usage) to properly shutdown and clean up the python
-// interpreter.
+// This function can be called before exit to properly free the module
+// handles we imported
 extern void pyPropsCleanup(void) {
     printf("running pyPropsCleanup()\n");
     Py_XDECREF(pModuleProps);
     Py_XDECREF(pModuleXML);
-    Py_Finalize();
 }
 
 // Return a pyPropertyNode object that points to the specified path in

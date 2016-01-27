@@ -1,10 +1,12 @@
 noinst_LIBRARIES = libpyprops.a
 
 include_HEADERS = \
-	pyprops.hxx
+	pyprops.hxx \
+	python_sys.hxx
 
 libpyprops_a_SOURCES = \
-	pyprops.cxx
+	pyprops.cxx \
+	python_sys.cxx
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@
 

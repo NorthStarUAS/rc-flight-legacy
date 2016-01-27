@@ -71,14 +71,12 @@ private:
 };
 
 
-// This function must be called first (before any pyPropertyNode
-// usage.) It sets up the python intepreter and imports the python
-// props module.
-extern void pyPropsInit(int argc, char **argv);
+// This function must be called before any pyPropertyNode usage. It
+// imports the python props and props_xml modules.
+extern void pyPropsInit();
 
-// This function can be called from atexit() (after all the global
-// destructors are called) to properly shutdown and clean up the
-// python interpreter.
+// This function can be called before exit to properly free the module
+// handles we imported
 extern void pyPropsCleanup(void);
 
 // Return a pyPropertyNode object that points to the specified path in
