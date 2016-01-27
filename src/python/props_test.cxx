@@ -1,3 +1,4 @@
+#include "python_sys.hxx"
 #include "pyprops.hxx"
 
 #include <string>
@@ -8,7 +9,8 @@ int main(int argc, char **argv) {
     // destructors are called
     atexit(pyPropsCleanup);
     
-    pyPropsInit(argc, argv);
+    AuraPythonInit(argc, argv);
+    pyPropsInit();
 
     pyPropertyNode root_node = pyGetNode("/", true);
     pyPropertyNode t1_node = root_node.getChild("task", true);
