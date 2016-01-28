@@ -30,7 +30,7 @@ def log(header="", message=""):
     global event_log_on
     global fevent
     if event_log_on and fevent:
-        line = "%.3f %s %s\n" % (root.status.frame_time, header, message)
+        line = "%.3f %s: %s\n" % (root.status.frame_time, header, message)
         fevent.write( line )
         fevent.flush()
         return True

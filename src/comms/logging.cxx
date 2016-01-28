@@ -86,7 +86,7 @@ bool logging_init() {
 
     events->init("comms.events");
     events->open(flight_dir.c_str());
-    events->log("Logging", "Starting");
+    events->log("Log", "Start");
     
     // file = flight_dir; file.append( "events.txt" );
     // if ( (fevent = fopen( file.c_str(), "w" )) == NULL ) {

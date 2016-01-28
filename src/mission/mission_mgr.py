@@ -32,22 +32,33 @@ class MissionMgr:
         for name in global_node.getChildren():
             task_node = global_node.getChild(name)
             task = self.make_task(task_node)
-            self.global_tasks.append( task )
+            if task != None:
+                self.global_tasks.append( task )
             
         print "sequential_tasks:"
         seq_node = self.missions_node.getChild("sequential_tasks", True)
         for name in seq_node.getChildren():
             task_node = seq_node.getChild(name)
             task = self.make_task(task_node)
-            self.seq_tasks.append( task )
+            if task != None:
+                self.seq_tasks.append( task )
 
         print "standby_tasks:"
         standby_node = self.missions_node.getChild("standby_tasks", True)
         for name in standby_node.getChildren():
             task_node = standby_node.getChild(name)
             task = self.make_task(task_node)
-            self.standby_tasks.append( task )
+            if task != None:
+                self.standby_tasks.append( task )
 
+        # activate all the tasks in the global queue
+        for task in self.global_tasks:
+            task.activate()
+            
+        # activate the first task on the sequential queue
+        if len(self.seq_tasks):
+            self.seq_tasks[0].activate()
+            
     def update(self):
         print "hello from MissionMgr.update()"
         

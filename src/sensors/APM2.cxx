@@ -980,15 +980,15 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    if ( first_time ) {
 		// log the data to events.txt
 		first_time = false;
-		char buf[32];
-		snprintf( buf, 32, "%d", serial_num );
-		events->log("APM2 Serial Number: ", buf );
-		snprintf( buf, 32, "%d", firmware_rev );
-		events->log("APM2 Firmware Revision: ", buf );
-		snprintf( buf, 32, "%d", master_hz );
-		events->log("APM2 Master Hz: ", buf );
-		snprintf( buf, 32, "%d", baud_rate );
-		events->log("APM2 Baud Rate: ", buf );
+		char buf[128];
+		snprintf( buf, 32, "Serial Number = %d", serial_num );
+		events->log("APM2", buf );
+		snprintf( buf, 32, "Firmware Revision = %d", firmware_rev );
+		events->log("APM2", buf );
+		snprintf( buf, 32, "Master Hz = %d", master_hz );
+		events->log("APM2", buf );
+		snprintf( buf, 32, "Baud Rate = %d", baud_rate );
+		events->log("APM2", buf );
 	    }
 	} else {
 	    if ( display_on ) {

@@ -1,3 +1,5 @@
+import comms.events
+
 from task import Task
 
 class IsAirborne(Task):
@@ -24,7 +26,7 @@ class IsAirborne(Task):
 
     def activate(self):
         self.active = True
-        event_log("mission", "On Ground")
+        comms.events.log("mission", "On Ground")
     
     def update(self):
         if not self.active:
