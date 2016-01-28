@@ -408,6 +408,8 @@ static void remote_link_execute_command( const string command ) {
 	if ( route_mgr != NULL ) {
 	    route_mgr->swap();
 	    route_mgr->reposition();
+	    pyPropertyNode task_node = pyGetNode("/task", true);
+	    task_node.setString( "command_request", "task,route" );
 	}
     } else if ( token[0] == "task" ) {
 	pyPropertyNode task_node = pyGetNode("/task", true);
