@@ -1,10 +1,12 @@
 noinst_LIBRARIES = libpyprops.a
 
 include_HEADERS = \
+	pymodule.hxx \
 	pyprops.hxx \
 	python_sys.hxx
 
 libpyprops_a_SOURCES = \
+	pymodule.cxx \
 	pyprops.cxx \
 	python_sys.cxx
 
