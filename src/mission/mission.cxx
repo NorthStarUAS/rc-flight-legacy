@@ -1,4 +1,4 @@
-#include "pymission.hxx"
+#include "mission.hxx"
 
 // These only need to be looked up once and then saved
 static PyObject *pModuleMission = NULL;
