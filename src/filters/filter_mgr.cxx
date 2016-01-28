@@ -48,7 +48,7 @@ static pyPropertyNode filter_group_node;
 static pyPropertyNode task_node;
 static pyPropertyNode airdata_node;
 static pyPropertyNode wind_node;
-static pyPropertyNode health_node;
+static pyPropertyNode status_node;
 static vector<pyPropertyNode> sections;
 
 // initial values are the 'time factor'
@@ -72,7 +72,7 @@ void Filter_init() {
     task_node = pyGetNode("/task", true);
     airdata_node = pyGetNode("/sensors/airdata", true);
     wind_node = pyGetNode("/filters/wind-est", true);
-    health_node = pyGetNode("/health", true);
+    status_node = pyGetNode("/status", true);
 
     wind_node.setDouble( "pitot_scale_factor", 1.0 );
     
@@ -254,7 +254,7 @@ static void publish_values() {
     vel_node.setDouble( "vd_ms", filter_node.getDouble("vd_ms") );
     filter_group_node.setDouble( "timestamp",
 				 filter_node.getDouble("timestamp") );
-    health_node.setString( "navigation",
+    status_node.setString( "navigation",
 			   filter_node.getString("navigation") );
     orient_node.setDouble( "groundtrack_deg",
 			   filter_node.getDouble("groundtrack_deg") );
