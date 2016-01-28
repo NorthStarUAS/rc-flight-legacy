@@ -38,9 +38,6 @@ using std::string;
 #include "health/health.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "mission/pymission.hxx"
-//#include "mission/mission_mgr.hxx"
-//#include "mission/tasks/task_route.hxx"
 #include "payload/payload_mgr.hxx"
 #include "sensors/airdata_mgr.hxx"
 #include "sensors/imu_mgr.hxx"
@@ -68,7 +65,7 @@ static bool enable_pointing = false;  // pan/tilt pointing module
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 
 // property nodes
-pyPropertyNode status_node;
+static pyPropertyNode status_node;
 
 // debug main loop "block" on gumstix verdex
 myprofile debug1;
@@ -221,7 +218,7 @@ void timer_handler (int signum)
     //
 
     if ( enable_mission ) {
-     	pyMissionUpdate();
+	mission_mgr->update();
     }
 
     if ( enable_cas ) {
@@ -510,7 +507,7 @@ int main( int argc, char **argv )
     }
 
     if ( enable_mission ) {
-	pyMissionInit();
+	mission_mgr->init("mission.mission_mgr");
     }
 
     if ( enable_cas ) {
