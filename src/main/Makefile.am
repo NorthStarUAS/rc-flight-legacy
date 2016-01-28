@@ -12,9 +12,9 @@ aura_LDADD = \
 	../health/libhealth.a \
 	../payload/libpayload.a \
 	../sensors/libsensors.a \
-	../comms/libcomms.a \
 	../init/libinit.a \
 	../control/libcontrol.a \
+	../comms/libcomms.a \
 	../math/libmath.a \
 	../util/libutil.a \
 	../python/libpyprops.a \

@@ -9,6 +9,7 @@
 #include "globals.hxx"
 
 
+pyModuleEventLog *events = NULL;
 UGPacketizer *packetizer = NULL;
 UGTelnet *telnet = NULL;
 AuraCircleMgr *circle_mgr = NULL;
@@ -17,6 +18,7 @@ pyModuleBase *mission_mgr = NULL;
 
 
 bool AuraCoreInit() {
+    events = new pyModuleEventLog;
     packetizer = new UGPacketizer;
     circle_mgr = new AuraCircleMgr;
     route_mgr = new FGRouteMgr;

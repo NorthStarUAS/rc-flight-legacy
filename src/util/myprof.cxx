@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "comms/logging.hxx"
+#include "init/globals.hxx"
 #include "timing.h"
 #include "myprof.h"
 
@@ -33,11 +34,11 @@ void myprofile::stop() {
     sum_time += last_interval;
     
     // log situations where a module took longer that 0.10 sec to execute
-    if ( event_log_on && (last_interval > 0.10) ) {
+    if ( last_interval > 0.10 ) {
 	char msg[256];
 	snprintf(msg, 256, "t1 = %.3f t2 = %.3f int = %.3f",
 		 start_time, stop_time, last_interval);
-	event_log( name.c_str(), msg );
+	events->log( name.c_str(), msg );
     }
 }
 

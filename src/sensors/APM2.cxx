@@ -982,13 +982,13 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		first_time = false;
 		char buf[32];
 		snprintf( buf, 32, "%d", serial_num );
-		event_log("APM2 Serial Number: ", buf );
+		events->log("APM2 Serial Number: ", buf );
 		snprintf( buf, 32, "%d", firmware_rev );
-		event_log("APM2 Firmware Revision: ", buf );
+		events->log("APM2 Firmware Revision: ", buf );
 		snprintf( buf, 32, "%d", master_hz );
-		event_log("APM2 Master Hz: ", buf );
+		events->log("APM2 Master Hz: ", buf );
 		snprintf( buf, 32, "%d", baud_rate );
-		event_log("APM2 Baud Rate: ", buf );
+		events->log("APM2 Baud Rate: ", buf );
 	    }
 	} else {
 	    if ( display_on ) {

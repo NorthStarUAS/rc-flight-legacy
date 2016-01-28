@@ -544,9 +544,7 @@ bool remote_link_command() {
         return false;
     }
     
-    if ( event_log_on ) {
-	event_log( "remote cmd rcvd", command_buf );
-    }
+    events->log( "remote cmd rcvd", command_buf );
 
     string cmd = command_buf;
 
@@ -564,9 +562,7 @@ bool remote_link_command() {
          || nmea_sum.c_str()[1] != cmd_sum[1])
     {
         // checksum failure
-	if ( event_log_on ) {
-	    event_log( "remote cmd rcvd", "failed check sum" );
-	}
+	events->log( "remote cmd rcvd", "failed check sum" );
 
         return false;
     }
@@ -590,9 +586,7 @@ bool remote_link_command() {
 	cmd = cmd.substr(pos + 1);
 
 	// execute command
-	if ( event_log_on ) {
-	    event_log( "remote cmd rcvd", "executed valid command" );
-	}
+	events->log( "remote cmd rcvd", "executed valid command" );
 	remote_link_execute_command( cmd );
 
 	// register that we've received this message correctly

@@ -18,7 +18,7 @@ public:
     bool init(const char *import_name);
     bool update();
     
-private:
+protected:
 
     PyObject *pModuleObj;
     

@@ -15,6 +15,7 @@
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
 #include "comms/netSocket.h"
+#include "init/globals.hxx"
 #include "math/SGMath.hxx"
 #include "math/SGGeodesy.hxx"
 #include "util/timing.h"
@@ -300,9 +301,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    // of the ecef coordinates is beyond this radius we know
 	    // we have bad data.  This means we won't toss data until
 	    // above about 423,000' MSL
-	    if ( event_log_on ) {
-		event_log( "ublox", "received bogus ecef data" );
-	    }
+	    events->log( "ublox", "received bogus ecef data" );
 	} else if ( wgs84.getElevationM() > 60000 ) {
 	    // sanity check: assume altitude > 60k meters (200k feet) is bad
 	} else if ( wgs84.getElevationM() < -1000 ) {

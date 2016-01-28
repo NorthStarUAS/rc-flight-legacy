@@ -90,7 +90,6 @@ void usage()
     printf("--log-dir path       : enable onboard data logging to path\n");
     printf("--log-servo in/out   : specify which servo data to log (out=default)\n");
     printf("--remote-link on/off : remote link enable or disabled\n");
-    printf("--events on/off      : log interesting events to events.txt\n");	
     printf("--display on/off     : dump periodic data to display\n");	
     printf("--help               : display this help messages\n\n");
     
@@ -114,6 +113,8 @@ void timer_handler (int signum)
     double dt = current_time - last_time;
     last_time = current_time;
 
+    status_node.setDouble("frame_time", current_time);
+    
     static int health_counter = 0;
     static int display_counter = 0;
     static int flush_counter = 0;
@@ -322,7 +323,8 @@ int main( int argc, char **argv )
     // initialize properties
     pyPropsInit();
     status_node = pyGetNode("/status", true);
-    
+    status_node.setDouble("frame_time", get_Time());
+
     // initialize profiling names
     imu_prof.set_name("imu");
     gps_prof.set_name("gps");
@@ -381,9 +383,6 @@ int main( int argc, char **argv )
     if ( p.hasChild("enable") ) {
 	log_to_file = p.getBool("enable");
     }
-    if ( p.hasChild("events") ) {
-	event_log_on = p.getBool("events");
-    }
     printf("log path = %s enabled = %d\n", log_path.c_str(), log_to_file);
 
     p = pyGetNode("/config/telnet", true);
@@ -434,10 +433,6 @@ int main( int argc, char **argv )
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) remote_link_on = true;
             if ( !strcmp(argv[iarg], "off") ) remote_link_on = false;
-        } else if ( !strcmp(argv[iarg],"--events") ) {
-            ++iarg;
-            if ( !strcmp(argv[iarg], "on") ) event_log_on = true;
-            if ( !strcmp(argv[iarg], "off") ) event_log_on = false;
         } else if ( !strcmp(argv[iarg],"--display") ) {
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) display_on = true;

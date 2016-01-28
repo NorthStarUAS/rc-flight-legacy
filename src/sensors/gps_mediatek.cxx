@@ -30,6 +30,7 @@ using std::string;
 
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
+#include "init/globals.hxx"
 #include "math/SGMath.hxx"
 #include "math/SGGeodesy.hxx"
 #include "util/strutils.hxx"
@@ -278,10 +279,8 @@ static bool parse_nmea_msg( char *payload, int size )
          || nmea_sum.c_str()[1] != msg_sum[1])
     {
         // checksum failure
-	if ( event_log_on ) {
-	    event_log( "mediatek", "checksum failed for message:" );
-	    event_log( "  mediatek", payload );
-	}
+	events->log( "mediatek", "checksum failed for message:" );
+	events->log( "  mediatek", payload );
 	if ( display_on ) {
 	    printf("mediatek: checksum failure %s (msg) != %02X (calc)\n", nmea_sum.c_str(), calc_nmea_cksum(msg.c_str()) );
 	    printf("mediatek: failed message: %s\n", payload);
