@@ -2,6 +2,7 @@ from props import root, getNode
 
 import task.is_airborne
 import task.home_mgr
+import task.lost_link
 
 class MissionMgr:
     def __init__(self):
@@ -24,6 +25,8 @@ class MissionMgr:
             result = task.is_airborne.IsAirborne(config_node)
         if task_name == 'home_manager':
             result = task.home_mgr.HomeMgr(config_node)
+        if task_name == 'lost_link':
+            result = task.lost_link.LostLink(config_node)
         else:
             print "mission_mgr: unknown task name:", task_name
         return result
