@@ -72,9 +72,7 @@ class MissionMgr:
             task.update()
             if task.is_complete():
 	        # current task is complete, close it and pop it off the list
-		comms.events.log("mission", "task complete:");
-		comms.events.log("   task", task.name)
-
+		comms.events.log("mission", "task complete: " + task.name);
                 # FIXME
 	        # if ( display_on ) {
 		#     printf("task complete: %s\n", front->get_name_cstr());
@@ -86,13 +84,36 @@ class MissionMgr:
                 if len(self.seq_tasks):
 	            task = self.seq_tasks[0]
 		    task.activate()
-		    comms.events.log("mission", "next task:")
-		    comms.events.log("   task", task.name)
+		    comms.events.log("mission", "next task: " + task.name)
         else:
 	    # sequential queue is empty so request the idle task
 	    self.request_task_idle()
         return True
 
+    def find_global_task(self, name):
+        for task in self.global_tasks:
+            if task.name == name:
+                return task
+        return None
+    
+    def find_seq_task(self, name):
+        for task in self.seq_tasks:
+            if task.name == name:
+                return task
+        return None
+    
+    def find_standby_task(self, name):
+        for task in self.standby_tasks:
+            if task.name == name:
+                return task
+        return None
+    
+    def find_standby_task_by_nickname(self, nickname):
+        for task in self.standby_tasks:
+            if task.nickname == nickname:
+                return task
+        return None
+    
     def process_command_request(self):
         command = self.task_node.getString("command_request");
         result = "successful: " + command; # let's be optimistic!
@@ -103,31 +124,31 @@ class MissionMgr:
             # previously happening.)  The 'resume' task will pop the
             # task off and resume the original task if it exists.
             if len(tokens) == 2 and tokens[1] == "home":
-                request_task_home()
+                self.request_task_home()
             elif len(tokens) == 2 and tokens[1] == "circle":
-                request_task_circle()
+                self.request_task_circle()
             elif len(tokens) == 4 and tokens[1] == "circle":
-                request_task_circle( tokens[2], tokens[3] )
+                self.request_task_circle( tokens[2], tokens[3] )
             elif len(tokens) == 2 and tokens[1] == "idle":
-                request_task_idle()
+                self.request_task_idle()
             elif len(tokens) == 2 and tokens[1] == "resume":
-                request_task_resume()
+                self.request_task_resume()
             elif len(tokens) == 2 and tokens[1] == "land":
                 wind_deg = self.wind_node.getDouble("wind_dir_deg")
-                request_task_land(wind_deg)
+                self.request_task_land(wind_deg)
             elif len(tokens) == 3 and tokens[1] == "land":
                 wind_deg = float(tokens[2])
-                request_task_land(wind_deg)
+                self.request_task_land(wind_deg)
             elif len(tokens) == 2 and tokens[1] == "preflight":
-                request_task_preflight()
+                self.request_task_preflight()
             elif len(tokens) == 2 and tokens[1] == "recalibrate":
-                request_task_recalibrate()
+                self.request_task_recalibrate()
             elif len(tokens) == 2 and tokens[1] == "route":
-                request_task_route()
+                self.request_task_route()
             else:
                 result = "syntax error: " + command # bummer
-            task_node.setString("command_request", "")
-            task_node.setString("command_result", result)
+            self.task_node.setString("command_request", "")
+            self.task_node.setString("command_result", result)
 
     def request_task_home(self):
         nickname = "circle_home";
@@ -139,7 +160,7 @@ class MissionMgr:
             if task.nickname == nickname:
 	        return
 
-        task = find_standby_task_by_nickname(nickname)
+        task = self.find_standby_task_by_nickname(nickname)
         if task:
 	    # activate task
 	    self.seq_tasks.insert(0, task)
@@ -148,8 +169,8 @@ class MissionMgr:
 	#    print "oops, couldn't find 'circle-home' task"
 
 
-    def request_task_circle( lon_deg=None, lat_deg=None, offset_hdg_deg=0.0,
-			     offset_dist_m=0.0 ):
+    def request_task_circle(self, lon_deg=None, lat_deg=None,
+                            offset_hdg_deg=0.0, offset_dist_m=0.0):
         lon = 0.0
         lat = 0.0
         if lon_deg == None or lat_deg == None:
@@ -194,7 +215,7 @@ class MissionMgr:
             if task.nickname == nickname:
                 return
 
-        task = find_standby_task_by_nickname( nickname )
+        task = self.find_standby_task_by_nickname( nickname )
         if task:
             # activate task
 	    self.seq_tasks.insert(0, task)
@@ -203,7 +224,7 @@ class MissionMgr:
         #    print "oops, couldn't find task by nickname:", nickname
 
         
-    def request_task_circle_setup( radius_m, direction ):
+    def request_task_circle_setup(self, radius_m, direction):
         # assumes we are in a circling state, but check just in case...
         if len(self.seq_tasks):
             task = self.seq_tasks[0]
@@ -211,7 +232,8 @@ class MissionMgr:
                 task.radius_m = radius_m
                 task.direction = direction
 
-    def request_task_circle_set_exit_conditions( exit_agl_ft, exit_heading_deg):
+    def request_task_circle_set_exit_conditions(self, exit_agl_ft,
+                                                exit_heading_deg):
         # setup the exit conditions (which the basic task request resets/clears)
         self.circle_node.setDouble( "exit_agl_ft", exit_agl_ft )
         self.circle_node.setDouble( "exit_heading_deg", exit_heading_deg )
@@ -221,14 +243,14 @@ class MissionMgr:
         # we would never get to the exit condition.)
         self.ap_node.setDouble( "target_agl_ft", exit_agl_ft )
 
-    def request_task_idle():
+    def request_task_idle(self):
         # sanity check, are we already in the requested state
         if len(self.seq_tasks):
             task = self.seq_tasks[0]
             if task.name == "idle":
                 return
 
-        task = find_standby_task( "idle" )
+        task = self.find_standby_task( "idle" )
         if task:
             # activate task
             self.seq_tasks.insert(0, task)
@@ -236,8 +258,7 @@ class MissionMgr:
         # FIXME else if display_on:
         #    print "oops, couldn't find 'idle' task"
 
-
-    def request_task_resume():
+    def request_task_resume(self):
         # look for any 'circle-coord' task at the front of the sequential
         # queue and remove it if it exists
         if len(self.seq_tasks):
@@ -246,7 +267,7 @@ class MissionMgr:
                 task.close()
 	        self.seq_tasks.pop(0)
 
-    def request_task_preflight():
+    def request_task_preflight(self):
         # sanity check, are we already in the requested state
         if len(self.seq_tasks):
             task = self.seq_tasks[0]
@@ -260,7 +281,7 @@ class MissionMgr:
         # FIXME else if display_on:
         #    print "oops, couldn't find 'preflight' task"
 
-    def request_task_recalibrate():
+    def request_task_recalibrate(self):
         # sanity check, are we already in the requested state
         if len(self.seq_tasks):
             task = self.seq_tasks[0]
@@ -274,7 +295,7 @@ class MissionMgr:
         # FIXME else if display_on:
         #    print "oops, couldn't find 'recalibrate' task"
 
-    def request_task_land( final_heading_deg ):
+    def request_task_land(self, final_heading_deg):
         # sanity check, are we already in the requested state
         if len(self.seq_tasks):
             task = self.seq_tasks[0]
@@ -290,7 +311,7 @@ class MissionMgr:
         self.seq_tasks.insert(0, task)
 	task.activate()
 
-    def request_task_route:
+    def request_task_route(self):
         # sanity check, are we already in the requested state
         if len(self.seq_tasks):
             task = self.seq_tasks[0]
