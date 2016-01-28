@@ -75,8 +75,8 @@ private:
 // imports the python props and props_xml modules.
 extern void pyPropsInit();
 
-// This function can be called before exit to properly free the module
-// handles we imported
+// This function can be called at exit to properly free resources
+// requested by init()
 extern void pyPropsCleanup(void);
 
 // Return a pyPropertyNode object that points to the specified path in

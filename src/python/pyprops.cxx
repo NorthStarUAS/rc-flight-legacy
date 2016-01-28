@@ -485,8 +485,8 @@ void pyPropsInit() {
 
 }
 
-// This function can be called before exit to properly free the module
-// handles we imported
+// This function can be called at exit to properly free resources
+// requested by init()
 extern void pyPropsCleanup(void) {
     printf("running pyPropsCleanup()\n");
     Py_XDECREF(pModuleProps);
@@ -499,20 +499,14 @@ extern void pyPropsCleanup(void) {
 // save the result.  Then use the pyPropertyNode for direct read/write
 // access in your update routines.
 pyPropertyNode pyGetNode(string abs_path, bool create) {
-    // python property system
-    PyObject *pModuleProps = PyImport_ImportModule("props");
-    if (pModuleProps == NULL) {
-        PyErr_Print();
-        fprintf(stderr, "Failed to load 'props'\n");
-    }
-
     PyObject *pFuncGetNode = PyObject_GetAttrString(pModuleProps, "getNode");
     if ( pFuncGetNode == NULL || ! PyCallable_Check(pFuncGetNode) ) {
 	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr, "Cannot find function 'getNode()'\n");
+	return pyPropertyNode();
     }
 
-    // FIXME decref pModuleProp and pFuncGetNode
+    // FIXME decref pFuncGetNode
     
     PyObject *pPath = PyString_FromString(abs_path.c_str());
     PyObject *pCreate = PyBool_FromLong(create);
@@ -539,43 +533,6 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
     }
     return pyPropertyNode();
 }
-
-#if 0
-pyPropertyNode pyGetNodeORIG(string abs_path, bool create) {
-    PyObject *pArgs = PyTuple_New(2);
-    PyObject *pPath = PyString_FromString(abs_path.c_str());
-    PyObject *pCreate = PyBool_FromLong(create);
-    if (!pArgs || !pPath || !pCreate) {
-	Py_XDECREF(pArgs);
-	Py_XDECREF(pPath);
-	Py_XDECREF(pCreate);
-	fprintf(stderr, "Cannot convert argument\n");
-	return pyPropertyNode();
-    }
-    PyTuple_SetItem(pArgs, 0, pPath);
-    PyTuple_SetItem(pArgs, 1, pCreate);
-    if ( PyCallable_Check(pFuncGetNode) ) {
-	PyObject *pValue = PyObject_CallObject(pFuncGetNode, pArgs);
-	Py_DECREF(pPath);
-	Py_DECREF(pCreate);
-	Py_DECREF(pArgs);
-	if (pValue != NULL) {
-	    // give pValue over to the returned property node
-	    printf("pyGetNode() success, creating pyPropertyNode\n");
-	    pyPropertyNode tmp(pValue);
-	    printf("before return\n");
-	    return tmp;
-	} else {
-	    PyErr_Print();
-	    printf("Call failed\n");
-	    return pyPropertyNode();
-	}
-	return pyPropertyNode();
-    } else {
-	printf("pFuncGetNode has become uncallable.\n");
-    }
-}
-#endif
 
 bool readXML(string filename, pyPropertyNode *node) {
     // getNode() function

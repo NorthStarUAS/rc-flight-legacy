@@ -10,4 +10,5 @@ SUBDIRS = \
 	payload \
 	python \
 	util \
-	sensors
+	sensors \
+	main

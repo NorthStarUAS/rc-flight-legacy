@@ -54,7 +54,7 @@ PYTHON_LIBS=`$PYTHON_CONFIG --libs`
 AC_MSG_RESULT([$PYTHON_LIBS])
 AC_SUBST(PYTHON_LIBS)
 
-AM_CONFIG_HEADER(src/include/ugear_config.h)
+AM_CONFIG_HEADER(src/include/aura_config.h)
 
 dnl automatic detection of pointing library
 
@@ -80,6 +80,7 @@ AC_CONFIG_FILES([ \
         src/health/Makefile \
         src/include/Makefile \
         src/init/Makefile \
+	src/main/Makefile \
 	src/math/Makefile \
         src/payload/Makefile \
         src/python/Makefile \

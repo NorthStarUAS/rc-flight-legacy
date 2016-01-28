@@ -615,7 +615,7 @@ static bool APM2_open() {
     }
 
     if ( ! APM2_open_device( baud_bits ) ) {
-	printf("device open failed ...");
+	printf("device open failed ...\n");
 	return false;
     }
 
