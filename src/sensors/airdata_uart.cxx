@@ -125,14 +125,14 @@ static bool airdata_parse(uint8_t *buf) {
     uint16_t diff_raw = buf[2] + (buf[3] << 8);
     double diff_range = diff_max - diff_min;
 
-    printf("static(raw) = %d\n", static_raw);
-    printf("diff(raw) = %d\n", diff_raw);
+    // printf("static(raw) = %d\n", static_raw);
+    // printf("diff(raw) = %d\n", diff_raw);
 
     double static_mbar = (static_raw - pmin) / (prange / static_range) + static_min;
     double diff_mbar = (diff_raw - pmin) / (prange / diff_range) + diff_min;
 
-    printf("static(mbar) = %.2f\n", static_mbar);
-    printf("diff(mbar) = %.2f\n", diff_mbar);
+    // printf("static(mbar) = %.2f\n", static_mbar);
+    // printf("diff(mbar) = %.2f\n", diff_mbar);
     
     airdata_node.setDouble( "timestamp", get_Time() );
     airdata_node.setDouble( "pressure_mbar", static_mbar );
@@ -160,7 +160,7 @@ static bool airdata_uart_read() {
     uint8_t input[500];
     static uint8_t payload[500];
 
-    printf("read airdata, entry state = %d\n", state);
+    // printf("read airdata, entry state = %d\n", state);
 
     bool new_data = false;
 
@@ -169,11 +169,11 @@ static bool airdata_uart_read() {
 	cksum_A = cksum_B = 0;
 	len = read( fd, input, 1 );
 	while ( len > 0 && input[0] != 0x55 ) {
-	    printf( "state0: len = %d val = %2X\n", len, input[0] );
+	    // printf( "state0: len = %d val = %2X\n", len, input[0] );
 	    len = read( fd, input, 1 );
 	}
 	if ( len > 0 && input[0] == 0x55 ) {
-	    // fprintf( stderr, "read 0xB5\n");
+	    // printf( "read 0xB5\n");
 	    state++;
 	}
     }
@@ -181,10 +181,10 @@ static bool airdata_uart_read() {
 	len = read( fd, input, 1 );
 	if ( len > 0 ) {
 	    if ( input[0] == 0x4d ) {
-		printf( "read 0x4d\n");
+		// printf( "read 0x4d\n");
 		state++;
 	    } else if ( input[0] == 0x55 ) {
-		printf( "read 0x55\n");
+		// printf( "read 0x55\n");
 	    } else {
 		state = 0;
 	    }
@@ -194,7 +194,7 @@ static bool airdata_uart_read() {
 	len = read( fd, input, 1 );
 	while ( len > 0 ) {
 	    payload[counter++] = input[0];
-	    printf( "%02X ", input[0] );
+	    // printf( "%02X ", input[0] );
 	    cksum_A += input[0];
 	    cksum_B += cksum_A;
 	    if ( counter >= payload_length ) {
@@ -204,7 +204,7 @@ static bool airdata_uart_read() {
 	}
 	if ( counter >= payload_length ) {
 	    state++;
-	    printf( "\n" );
+	    // printf( "\n" );
 	}
     }
     if ( state == 3 ) {
@@ -219,10 +219,10 @@ static bool airdata_uart_read() {
 	if ( len > 0 ) {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
-		printf("checksum passes!\n");
+		// printf("checksum passes!\n");
 		new_data = airdata_parse( payload );
 	    } else {
-		if ( display_on ) {
+		if ( display_on && 0 ) {
 		    printf("checksum failed %d %d (computed) != %d %d (message)\n",
 			   cksum_A, cksum_B, cksum_lo, cksum_hi );
 		}
