@@ -1,12 +1,10 @@
 noinst_LIBRARIES = libpyprops.a
 
 include_HEADERS = \
-	pymission.hxx \
 	pyprops.hxx \
 	python_sys.hxx
 
 libpyprops_a_SOURCES = \
-	pymission.cxx \
 	pyprops.cxx \
 	python_sys.cxx
 

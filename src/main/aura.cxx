@@ -8,7 +8,6 @@
 
 #include "python/python_sys.hxx"
 #include "python/pyprops.hxx"
-#include "python/pymission.hxx"
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -39,6 +38,7 @@ using std::string;
 #include "health/health.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
+#include "mission/pymission.hxx"
 //#include "mission/mission_mgr.hxx"
 //#include "mission/tasks/task_route.hxx"
 #include "payload/payload_mgr.hxx"

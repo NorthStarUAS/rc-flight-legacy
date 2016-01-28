@@ -7,6 +7,7 @@ SUBDIRS = \
 	include \
 	init \
 	math \
+	mission \
 	payload \
 	python \
 	util \
