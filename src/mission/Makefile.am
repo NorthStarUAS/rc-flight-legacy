@@ -1,9 +1,9 @@
-noinst_LIBRARIES = libpyprops.a
+# noinst_LIBRARIES = libmission.a
 
-include_HEADERS = \
-	pymission.hxx
+#include_HEADERS = \
+#	mission.hxx
 
-libpyprops_a_SOURCES = \
-	pymission.cxx
+#libmission_a_SOURCES = \
+#	mission.cxx
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@
