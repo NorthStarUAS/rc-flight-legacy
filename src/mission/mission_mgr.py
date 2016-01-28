@@ -1,6 +1,7 @@
 from props import root, getNode
 
 import task.is_airborne
+import task.home_mgr
 
 class MissionMgr:
     def __init__(self):
@@ -21,6 +22,8 @@ class MissionMgr:
         print "  make_task():", task_name
         if task_name == 'is_airborne':
             result = task.is_airborne.IsAirborne(config_node)
+        if task_name == 'home_manager':
+            result = task.home_mgr.HomeMgr(config_node)
         else:
             print "mission_mgr: unknown task name:", task_name
         return result
@@ -72,10 +75,10 @@ class MissionMgr:
             task.update()
             if task.is_complete():
 	        # current task is complete, close it and pop it off the list
-		comms.events.log("mission", "task complete: " + task.name);
+		comms.events.log("mission", "task complete: " + task.name)
                 # FIXME
 	        # if ( display_on ) {
-		#     printf("task complete: %s\n", front->get_name_cstr());
+		#     printf("task complete: %s\n", front->get_name_cstr())
 	        # }
                 task.close()
 	        self.seq_tasks.pop(0)
@@ -115,10 +118,10 @@ class MissionMgr:
         return None
     
     def process_command_request(self):
-        command = self.task_node.getString("command_request");
-        result = "successful: " + command; # let's be optimistic!
+        command = self.task_node.getString("command_request")
+        result = "successful: " + command # let's be optimistic!
         if len(command):
-            tokens = command.split(",");
+            tokens = command.split(",")
             # these commands 'push' a new task onto the front of the
             # sequential task queue (prioritizing over what was
             # previously happening.)  The 'resume' task will pop the
@@ -151,7 +154,7 @@ class MissionMgr:
             self.task_node.setString("command_result", result)
 
     def request_task_home(self):
-        nickname = "circle_home";
+        nickname = "circle_home"
         task = None
 
         # sanity check, are we already in the requested state
@@ -181,24 +184,24 @@ class MissionMgr:
             lon = float(lon_deg)
             lat = float(lat_deg)
 
-        nickname = "circle_target";
-        task = None;
+        nickname = "circle_target"
+        task = None
 
         # FIXME: offset heading/degree support
-        # SGGeoc orig;
-        # orig.setLongitudeDeg( lon_deg );
-        # orig.setLatitudeDeg( lat_deg );
+        # SGGeoc orig
+        # orig.setLongitudeDeg( lon_deg )
+        # orig.setLatitudeDeg( lat_deg )
 
         # if ( offset_dist_m > 0.1 ) {
-        #     double course = home_node.getDouble("azimuth_deg") + offset_hdg_deg;
-        #     if ( course < 0.0 ) { course += 360.0; }
-        #     if ( course > 360.0 ) { course -= 360.0; }
-        #     course = 360.0 - course; // invert to make this routine happy
+        #     double course = home_node.getDouble("azimuth_deg") + offset_hdg_deg
+        #     if ( course < 0.0 ) { course += 360.0 }
+        #     if ( course > 360.0 ) { course -= 360.0 }
+        #     course = 360.0 - course // invert to make this routine happy
 
-        #     SGGeoc result;
+        #     SGGeoc result
         #     SGGeodesy::advanceRadM( orig, course * SGD_DEGREES_TO_RADIANS,
-        #                             offset_dist_m, result );
-        #     orig = result;
+        #                             offset_dist_m, result )
+        #     orig = result
         # }
 
         # setup the target coordinates
@@ -206,8 +209,8 @@ class MissionMgr:
         self.circle_node.setDouble( "latitude_deg", lat_deg )
 
         # clear the exit condition settings
-        self.circle_node.setString( "exit_agl_ft", "" );
-        self.circle_node.setString( "exit_heading_deg", "" );
+        self.circle_node.setString( "exit_agl_ft", "" )
+        self.circle_node.setString( "exit_heading_deg", "" )
 
         # sanity check, are we already in the requested state
         if len(self.seq_tasks):
@@ -273,7 +276,7 @@ class MissionMgr:
             task = self.seq_tasks[0]
             if task.name == "preflight":
                 return
-        task = find_standby_task( "preflight" );
+        task = find_standby_task( "preflight" )
         if task:
             # activate task
             self.seq_tasks.insert(0, task)
@@ -301,7 +304,7 @@ class MissionMgr:
             task = self.seq_tasks[0]
             if task.name == "land":
                 return
-        task = find_standby_task( "land" );
+        task = find_standby_task( "land" )
         if not task:
             # FIXME if display_on:
             #     print "oops, couldn't find 'land' task"

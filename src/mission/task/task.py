@@ -3,7 +3,6 @@ class Task:
         self.name = "";
         self.nickname = "";
         self.active = False;
-        print "hello from Task class __init__()"
 
     def activate(self):
         pass

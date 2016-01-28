@@ -262,6 +262,8 @@ bool GPS_update() {
 	}
     }
 
+    gps_node.setDouble("data_age", GPS_age());
+    
     return fresh_data;
 }
 

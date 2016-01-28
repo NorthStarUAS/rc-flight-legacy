@@ -4,7 +4,7 @@ import comms.events
 from task import Task
 
 class IsAirborne(Task):
-    def __init__(self, task_node):
+    def __init__(self, config_node):
         Task.__init__(self)
         self.pos_node = getNode("/position", True)
         self.vel_node = getNode("/velocity", True)
@@ -14,12 +14,12 @@ class IsAirborne(Task):
         self.off_airspeed_kt = 0.0
         self.on_alt_agl_ft = 0.0
         self.on_airspeed_kt = 0.0
-        self.name = task_node.getString("name")
-        self.nickname = task_node.getString("nickname")
-        self.off_alt_agl_ft = task_node.getFloat("off_alt_agl_ft")
-        self.off_airspeed_kt = task_node.getFloat("off_airspeed_kt")
-        self.on_alt_agl_ft = task_node.getFloat("on_alt_agl_ft")
-        self.on_airspeed_kt = task_node.getFloat("on_airspeed_kt")
+        self.name = config_node.getString("name")
+        self.nickname = config_node.getString("nickname")
+        self.off_alt_agl_ft = config_node.getFloat("off_alt_agl_ft")
+        self.off_airspeed_kt = config_node.getFloat("off_airspeed_kt")
+        self.on_alt_agl_ft = config_node.getFloat("on_alt_agl_ft")
+        self.on_airspeed_kt = config_node.getFloat("on_airspeed_kt")
 
     def activate(self):
         self.active = True
@@ -42,7 +42,7 @@ class IsAirborne(Task):
 	        cond = False
 	    if cond:
 	        self.is_airborne = True
-	        task_node.setBool("is_airborne", True)
+	        self.task_node.setBool("is_airborne", True)
                 comms.events.log("mission", "Airborne")
         else:
             # if all conditions under their threshold, we are on the ground
