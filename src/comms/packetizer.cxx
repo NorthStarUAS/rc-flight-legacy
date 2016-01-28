@@ -201,7 +201,7 @@ int UGPacketizer::packetize_airdata( uint8_t *buf ) {
     // *(float *)buf = alt_true; buf += 4;
     memcpy( buf, &alt_true, 4 ); buf+= 4;
 
-    int16_t climb = (int16_t)((airdata_node.getDouble("vertical_speed_fps") * 60) * 10);
+    int16_t climb = (int16_t)((vel_node.getDouble("pressure_vertical_speed_fps") * 60) * 10);
     *(int16_t *)buf = climb; buf += 2;
 
     int16_t empty = (int16_t)(0);
