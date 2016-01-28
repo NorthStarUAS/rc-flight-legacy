@@ -60,9 +60,41 @@ class MissionMgr:
             self.seq_tasks[0].activate()
             
     def update(self):
-        print "hello from MissionMgr.update()"
-        
+        # FIXME: self.process_command_requests()
 
+        # run all tasks in the global queue
+        for task in self.global_tasks:
+            task.update()
+
+        if len(self.seq_tasks):
+            # run the first task in the sequential queue
+            task = self.seq_tasks[0]
+            root.tasks.current_task_id = task.name
+            task.update()
+            if task.is_complete():
+	        # current task is complete, close it and pop it off the list
+		comms.events.log("mission", "task complete:");
+		comms.events.log("   task", task.name)
+
+                # FIXME
+	        # if ( display_on ) {
+		#     printf("task complete: %s\n", front->get_name_cstr());
+	        # }
+                task.close()
+	        self.seq_tasks.pop(0)
+
+	        # activate next task if there is one
+                if len(self.seq_tasks):
+	            task = self.seq_tasks[0]
+		    task.activate()
+		    comms.events.log("mission", "next task:")
+		    comms.events.log("   task", task.name)
+        else:
+            pass
+	    # sequential queue is empty so request the idle task
+	    # FIXME: self.request_task_idle()
+        return True
+        
 m = MissionMgr()
 
 def init():

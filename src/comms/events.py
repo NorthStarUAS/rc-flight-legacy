@@ -3,21 +3,26 @@ from props import root, getNode
 
 event_log_on = False
 fevent = None
+logging_node = None
+status_node = None
 
 def init():
+    global logging_node
+    global status_node
+    logging_node = getNode("/config/logging", True)
+    status_node = getNode("/status", True)
     return True
 
 def open(path):
     global event_log_on
     global fevent
-    
+    global logging_node
+    global status_node
+
     if path == "":
         print "ERROR: invalid path in events.py:", path
         return
-    if root.config.logging.hasChild("events"):
-        event_log_on = root.config.logging.events
-    else:
-        event_log_on = False
+    event_log_on = logging_node.getBool("events")
     if event_log_on:
         try:
             filename = path + "/events.txt"
@@ -30,7 +35,8 @@ def log(header="", message=""):
     global event_log_on
     global fevent
     if event_log_on and fevent:
-        line = "%.3f %s: %s\n" % (root.status.frame_time, header, message)
+        line = "%.3f %s: %s\n" % (status_node.getFloat("frame_time"),
+                                  header, message)
         fevent.write( line )
         fevent.flush()
         return True
