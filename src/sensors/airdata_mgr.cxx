@@ -28,6 +28,7 @@ using std::vector;
 #include "util/lowpass.hxx"
 #include "util/myprof.h"
 
+#include "airdata_uart.hxx"
 #include "APM2.hxx"
 #include "Goldy2.hxx"
 #include "imu_fgfs.hxx"
@@ -101,6 +102,8 @@ void AirData_init() {
 	printf("airdata: %d = %s (%s)\n", i, source.c_str(), output_path.str().c_str());
 	if ( source == "null" ) {
 	    // do nothing
+	} else if ( source == "airdata_uart" ) {
+	    airdata_uart_init( output_path.str(), &section);
 	} else if ( source == "APM2" ) {
 	    APM2_airdata_init( output_path.str() );
 	} else if ( source == "fgfs" ) {
@@ -299,6 +302,8 @@ bool AirData_update() {
 	}
 	if ( source == "null" ) {
 	    // do nothing
+	} else if ( source == "airdata_uart" ) {
+	    fresh_data = airdata_uart_update();
 	} else if ( source == "APM2" ) {
 	    fresh_data = APM2_airdata_update();
 	} else if ( source == "fgfs" ) {
