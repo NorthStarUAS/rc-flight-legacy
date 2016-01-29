@@ -3,6 +3,7 @@ from props import root, getNode
 import task.is_airborne
 import task.home_mgr
 import task.lost_link
+import task.throttle_safety
 
 class MissionMgr:
     def __init__(self):
@@ -23,10 +24,12 @@ class MissionMgr:
         print "  make_task():", task_name
         if task_name == 'is_airborne':
             result = task.is_airborne.IsAirborne(config_node)
-        if task_name == 'home_manager':
+        elif task_name == 'home_manager':
             result = task.home_mgr.HomeMgr(config_node)
-        if task_name == 'lost_link':
+        elif task_name == 'lost_link':
             result = task.lost_link.LostLink(config_node)
+        elif task_name == 'throttle_safety':
+            result = task.throttle_safety.ThrottleSafety(config_node)
         else:
             print "mission_mgr: unknown task name:", task_name
         return result
