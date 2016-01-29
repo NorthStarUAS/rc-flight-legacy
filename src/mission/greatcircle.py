@@ -5,7 +5,7 @@ import math
 EPS = 0.0001
 
 d2r = math.pi / 180.0
-r2d = 1.0 / d2r
+r2d = 180.0 / math.pi
 rad2nm = (180.0 * 60.0) / math.pi
 nm2meter = 1852
 

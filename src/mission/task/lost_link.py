@@ -1,4 +1,4 @@
-import mission.mission_mgr
+#import mission.mission_mgr
 from props import root, getNode
 
 import comms.events

@@ -6,7 +6,7 @@
 from props import root, getNode
 
 import comms.events
-import mission.greatcircle
+import mission.mission_mgr
 from task import Task
 
 class Idle(Task):

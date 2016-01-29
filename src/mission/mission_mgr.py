@@ -1,8 +1,11 @@
 from props import root, getNode
 
+import comms.events
+
 import task.is_airborne
 import task.home_mgr
 import task.idle
+import task.launch
 import task.lost_link
 import task.throttle_safety
 
@@ -29,6 +32,8 @@ class MissionMgr:
             result = task.home_mgr.HomeMgr(config_node)
         elif task_name == 'idle':
             result = task.idle.Idle(config_node)
+        elif task_name == 'launch':
+            result = task.launch.Launch(config_node)
         elif task_name == 'lost_link':
             result = task.lost_link.LostLink(config_node)
         elif task_name == 'throttle_safety':
@@ -159,7 +164,7 @@ class MissionMgr:
             elif len(tokens) == 2 and tokens[1] == "resume":
                 self.request_task_resume()
             elif len(tokens) == 2 and tokens[1] == "land":
-                wind_deg = self.wind_node.getDouble("wind_dir_deg")
+                wind_deg = self.wind_node.getFloat("wind_dir_deg")
                 self.request_task_land(wind_deg)
             elif len(tokens) == 3 and tokens[1] == "land":
                 wind_deg = float(tokens[2])
@@ -200,8 +205,8 @@ class MissionMgr:
         lat = 0.0
         if lon_deg == None or lat_deg == None:
             # no coordinates specified, use current position
-            lon = self.pos_node.getDouble("longitude_deg")
-            lat = self.pos_node.getDouble("latitude_deg")
+            lon = self.pos_node.getFloat("longitude_deg")
+            lat = self.pos_node.getFloat("latitude_deg")
         else:
             lon = float(lon_deg)
             lat = float(lat_deg)
@@ -215,7 +220,7 @@ class MissionMgr:
         # orig.setLatitudeDeg( lat_deg )
 
         # if ( offset_dist_m > 0.1 ) {
-        #     double course = home_node.getDouble("azimuth_deg") + offset_hdg_deg
+        #     double course = home_node.getFloat("azimuth_deg") + offset_hdg_deg
         #     if ( course < 0.0 ) { course += 360.0 }
         #     if ( course > 360.0 ) { course -= 360.0 }
         #     course = 360.0 - course // invert to make this routine happy
@@ -227,8 +232,8 @@ class MissionMgr:
         # }
 
         # setup the target coordinates
-        self.circle_node.setDouble( "longitude_deg", lon_deg )
-        self.circle_node.setDouble( "latitude_deg", lat_deg )
+        self.circle_node.setFloat( "longitude_deg", lon )
+        self.circle_node.setFloat( "latitude_deg", lat )
 
         # clear the exit condition settings
         self.circle_node.setString( "exit_agl_ft", "" )
@@ -260,13 +265,13 @@ class MissionMgr:
     def request_task_circle_set_exit_conditions(self, exit_agl_ft,
                                                 exit_heading_deg):
         # setup the exit conditions (which the basic task request resets/clears)
-        self.circle_node.setDouble( "exit_agl_ft", exit_agl_ft )
-        self.circle_node.setDouble( "exit_heading_deg", exit_heading_deg )
+        self.circle_node.setFloat( "exit_agl_ft", exit_agl_ft )
+        self.circle_node.setFloat( "exit_heading_deg", exit_heading_deg )
 
         # set the autopilot to climb/descend to the requested
         # altitude.  (If the auotopilot is never commanded, presumably
         # we would never get to the exit condition.)
-        self.ap_node.setDouble( "target_agl_ft", exit_agl_ft )
+        self.ap_node.setFloat( "target_agl_ft", exit_agl_ft )
 
     def request_task_idle(self):
         # sanity check, are we already in the requested state
@@ -332,7 +337,7 @@ class MissionMgr:
             #     print "oops, couldn't find 'land' task"
             return
         # push landing task onto the todo list (and activate)
-        self.home_node.setDouble( "azimuth_deg", final_heading_deg )
+        self.home_node.setFloat( "azimuth_deg", final_heading_deg )
         self.push_seq_task(task)
 	task.activate()
 
