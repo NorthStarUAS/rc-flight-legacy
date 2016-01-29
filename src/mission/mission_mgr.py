@@ -84,7 +84,7 @@ class MissionMgr:
 		#     printf("task complete: %s\n", front->get_name_cstr())
 	        # }
                 task.close()
-	        self.seq_tasks.pop(0)
+	        self.pop_seq_task()
 
 	        # activate next task if there is one
                 if len(self.seq_tasks):
@@ -102,6 +102,19 @@ class MissionMgr:
                 return task
         return None
     
+    def front_seq_task(self):
+        if len(self.seq_tasks):
+            return self.seq_tasks[0]
+        else:
+            return None
+
+    def push_seq_task(self, task):
+	self.seq_tasks.insert(0, task)
+
+    def pop_seq_task(self):
+        if len(self.seq_tasks):
+            self.seq_tasks.pop(0)
+
     def find_seq_task(self, name):
         for task in self.seq_tasks:
             if task.name == name:
@@ -169,7 +182,7 @@ class MissionMgr:
         task = self.find_standby_task_by_nickname(nickname)
         if task:
 	    # activate task
-	    self.seq_tasks.insert(0, task)
+            self.push_seq_task(task)
 	    task.activate()
         # FIXME: elif display_on:
 	#    print "oops, couldn't find 'circle-home' task"
@@ -224,7 +237,7 @@ class MissionMgr:
         task = self.find_standby_task_by_nickname( nickname )
         if task:
             # activate task
-	    self.seq_tasks.insert(0, task)
+	    self.push_seq_task(task)
 	    task.activate()
         # FIXME else if display_on:
         #    print "oops, couldn't find task by nickname:", nickname
@@ -259,7 +272,7 @@ class MissionMgr:
         task = self.find_standby_task( "idle" )
         if task:
             # activate task
-            self.seq_tasks.insert(0, task)
+            self.push_seq_task(task)
 	    task.activate()
         # FIXME else if display_on:
         #    print "oops, couldn't find 'idle' task"
@@ -271,7 +284,7 @@ class MissionMgr:
             task = self.seq_tasks[0]
             if task.name == "circle-coord" or task.name == "land":
                 task.close()
-	        self.seq_tasks.pop(0)
+	        self.pop_seq_task()
 
     def request_task_preflight(self):
         # sanity check, are we already in the requested state
@@ -282,7 +295,7 @@ class MissionMgr:
         task = find_standby_task( "preflight" )
         if task:
             # activate task
-            self.seq_tasks.insert(0, task)
+            self.push_seq_task(task)
 	    task.activate()
         # FIXME else if display_on:
         #    print "oops, couldn't find 'preflight' task"
@@ -296,7 +309,7 @@ class MissionMgr:
         task = find_standby_task( "recalibrate" )
         if task:
             # activate task
-            self.seq_tasks.insert(0, task)
+            self.push_seq_task(task)
 	    task.activate()
         # FIXME else if display_on:
         #    print "oops, couldn't find 'recalibrate' task"
@@ -314,7 +327,7 @@ class MissionMgr:
             return
         # push landing task onto the todo list (and activate)
         self.home_node.setDouble( "azimuth_deg", final_heading_deg )
-        self.seq_tasks.insert(0, task)
+        self.push_seq_task(task)
 	task.activate()
 
     def request_task_route(self):
@@ -326,7 +339,7 @@ class MissionMgr:
         task = find_standby_task( "route" )
         if task:
             # activate task
-            self.seq_tasks.insert(0, task)
+            self.push_seq_task(task)
 	    task.activate()
         # FIXME else if display_on:
         #    print "oops, couldn't find 'route' task"

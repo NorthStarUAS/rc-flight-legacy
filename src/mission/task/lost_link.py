@@ -1,8 +1,8 @@
+import mission.mission_mgr
 from props import root, getNode
 
 import comms.events
 from task import Task
-import mission_mgr
 
 class LostLink(Task):
     def __init__(self, config_node):
@@ -10,7 +10,9 @@ class LostLink(Task):
         self.status_node = getNode("/status", True)
         self.task_node = getNode("/task", True)
         self.remote_link_node = getNode("/comms/remote_link", True)
+        self.remote_link_node.setString("link", "inactive")
         self.link_state = False
+        self.push_task = ""
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
         self.timeout_sec = config_node.getFloat("timeout_sec")
@@ -32,40 +34,45 @@ class LostLink(Task):
         # fallback in case we can't find the push_task or other desired
         # actions?
 
-        current_time = self.status_node.getFloat("frame_time")
-        last_message_sec = remote_link_node.getDouble("last_message_sec")
-        message_age = current_time - last_message_sec
-        print "update lost link task, msg age = %.1f timeout=%.1f" % (message_age, timeout_sec)
+        last_message_sec = self.remote_link_node.getFloat("last_message_sec")
 
-        if last_message_sec > 0.0 and message_age > self.timeout_sec:
-            # lost link state
-            if self.link_state:
-                self.link_state = False
-                comms.events.log("comms", "link timed out (lost) last_message=%.1f timeout_sec=%.1f" % (last_message_sec, self.timeout_sec))
-                # do lost link action here (iff airborne)
-                do_action =  task_node.getBool("is_airborne")
-                task = mission_mgr.find_standby_task_by_nickname( action )
-                if ( task and task_node.getBool("is_airborne") ):
-                    comms.events.log("comms", "action=" + task.name + "(" + action + ")")
-                    # activate task
-                    mission_mgr.m.push_seq_task( task )
-                    taskactivate()
-        else:
-            # good link state (or we never had a link)
-            if not self.link_state:
-                self.link_state = True
-                comms.events.log("comms", "link resumed")
-                # do resume link action here now.  We don't care if we
-                # are airborne or not, we just care if our "push task" is
-                # at the front of the sequential queue or not (even if we
-                # are on the ground now, we could have been airborne when
-                # the link was lost.)
-                task = mission_mgr.front_seq_task()
-                if task:
-                    if task.nickname == action:
-                        task.close()
-                        mission_mgr.pop_seq_task()
-    
+        if last_message_sec > 0.0:
+            current_time = self.status_node.getFloat("frame_time")
+            message_age = current_time - last_message_sec
+            # print "update lost link task, msg age = %.1f timeout=%.1f" % \
+            #       (message_age, self.timeout_sec)
+            if message_age > self.timeout_sec:
+                # lost link state
+                if self.link_state:
+                    self.link_state = False
+                    self.remote_link_node.setString("link", "lost")
+                    comms.events.log("comms", "link timed out (lost) last_message=%.1f timeout_sec=%.1f" % (last_message_sec, self.timeout_sec))
+                    # do lost link action here (iff airborne)
+                    task = mission.mission_mgr.m.find_standby_task_by_nickname( action )
+                    if ( task and self.task_node.getBool("is_airborne") ):
+                        comms.events.log("comms", "action=" + task.name + "(" + action + ")")
+                        # activate task
+                        mission.mission_mgr.m.push_seq_task( task )
+                        task.activate()
+                        self.push_task = action
+            else:
+                # good link state (or we never had a link)
+                if not self.link_state:
+                    self.link_state = True
+                    self.remote_link_node.setString("link", "ok")
+                    comms.events.log("comms", "link ok")
+                    # do resume link action here now.  We don't care
+                    # if we are airborne when undoing the action.
+                    if self.push_task != "":
+                        # we've pushed something on the task queue
+                        task = mission.mission_mgr.m.front_seq_task()
+                        if task:
+                            if task.nickname == action:
+                                # pop the front task, but only if we
+                                # were the ones that pushed on on
+                                task.close()
+                                mission.mission_mgr.m.pop_seq_task()
+
     def is_complete(self):
         return False
     
