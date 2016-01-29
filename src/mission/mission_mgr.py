@@ -2,6 +2,7 @@ from props import root, getNode
 
 import task.is_airborne
 import task.home_mgr
+import task.idle
 import task.lost_link
 import task.throttle_safety
 
@@ -26,6 +27,8 @@ class MissionMgr:
             result = task.is_airborne.IsAirborne(config_node)
         elif task_name == 'home_manager':
             result = task.home_mgr.HomeMgr(config_node)
+        elif task_name == 'idle':
+            result = task.idle.Idle(config_node)
         elif task_name == 'lost_link':
             result = task.lost_link.LostLink(config_node)
         elif task_name == 'throttle_safety':
@@ -77,7 +80,7 @@ class MissionMgr:
         if len(self.seq_tasks):
             # run the first task in the sequential queue
             task = self.seq_tasks[0]
-            root.tasks.current_task_id = task.name
+            self.task_node.setString("current_task_id", task.name)
             task.update()
             if task.is_complete():
 	        # current task is complete, close it and pop it off the list
