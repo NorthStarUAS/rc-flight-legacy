@@ -24,7 +24,7 @@ class IsAirborne(Task):
     def activate(self):
         self.active = True
         self.task_node.setBool("is_airborne", False)
-        comms.events.log("mission", "On Ground")
+        comms.events.log("mission", "on ground")
     
     def update(self):
         if not self.active:
@@ -43,7 +43,7 @@ class IsAirborne(Task):
 	    if cond:
 	        self.is_airborne = True
 	        self.task_node.setBool("is_airborne", True)
-                comms.events.log("mission", "Airborne")
+                comms.events.log("mission", "airborne")
         else:
             # if all conditions under their threshold, we are on the ground
             cond = True
@@ -56,7 +56,7 @@ class IsAirborne(Task):
             if cond:
                 self.is_airborne = False
                 self.task_node.setBool("is_airborne", False)
-                comms.events.log("mission", "On Ground")
+                comms.events.log("mission", "on ground")
 
     def is_complete(self):
         return False

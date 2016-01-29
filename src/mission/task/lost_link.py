@@ -23,7 +23,7 @@ class LostLink(Task):
 
     def activate(self):
         self.active = True
-        comms.events.log("mission", "On Ground")
+        comms.events.log("comms", "lost link monitor started")
     
     def update(self):
         if not self.active:
@@ -56,7 +56,7 @@ class LostLink(Task):
                         task.activate()
                         self.push_task = action
             else:
-                # good link state (or we never had a link)
+                # good link state
                 if not self.link_state:
                     self.link_state = True
                     self.remote_link_node.setString("link", "ok")
