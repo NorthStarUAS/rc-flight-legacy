@@ -1,6 +1,8 @@
 from props import root, getNode
+from geopy.distance import great_circle
 
 import comms.events
+import mission.greatcircle
 from task import Task
 
 class HomeMgr(Task):
@@ -36,8 +38,14 @@ class HomeMgr(Task):
                 self.home_node.setFloat("azimuth_deg", 0.0)
                 self.home_node.setBool("valid", True)
         else:
-            # FIXME: we could compute distance and bearing to home right here
-            pass
+            current = (self.pos_node.getFloat("latitude_deg"),
+                       self.pos_node.getFloat("longitude_deg"))
+            home = (self.home_node.getFloat("latitude_deg"),
+                    self.home_node.getFloat("longitude_deg"))
+            (course_deg, dist_m) = mission.greatcircle.course_and_dist(current, home)
+            self.home_node.setFloat("course_deg", course_deg)
+            self.home_node.setFloat("dist_m", dist_m)
+    
         return True
     
     def is_complete(self):
