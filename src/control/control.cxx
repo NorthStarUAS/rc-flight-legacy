@@ -119,7 +119,8 @@ void control_update(double dt)
 	} else {
 	    ap_master_str = "manual flight";
 	}
-	events->log( "Master control switch:", ap_master_str.c_str() );
+	string message = "master switch = " + ap_master_str;
+	events->log( "control", message.c_str() );
 	last_ap_mode = ap_node.getBool("master_switch");
     }
     
@@ -127,7 +128,8 @@ void control_update(double dt)
     string fcs_mode = fcs_node.getString("mode");
     if ( ap_node.getBool("master_switch") ) {
 	if ( last_fcs_mode != fcs_mode ) {
-	    events->log( "control mode changed to:", fcs_mode.c_str() );
+	    string message = "mode change = " + fcs_mode;
+	    events->log( "control", message.c_str() );
 
 	    // turn on pointing (universally for now)
 	    ap_locks_node.setString( "pointing", "on" );
