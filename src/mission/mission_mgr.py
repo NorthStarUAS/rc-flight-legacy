@@ -7,6 +7,7 @@ import task.home_mgr
 import task.idle
 import task.launch
 import task.lost_link
+import task.recalibrate
 import task.throttle_safety
 
 class MissionMgr:
@@ -36,6 +37,8 @@ class MissionMgr:
             result = task.launch.Launch(config_node)
         elif task_name == 'lost_link':
             result = task.lost_link.LostLink(config_node)
+        elif task_name == 'recalibrate':
+            result = task.recalibrate.Recalibrate(config_node)
         elif task_name == 'throttle_safety':
             result = task.throttle_safety.ThrottleSafety(config_node)
         else:
@@ -303,7 +306,7 @@ class MissionMgr:
             task = self.seq_tasks[0]
             if task.name == "preflight":
                 return
-        task = find_standby_task( "preflight" )
+        task = self.find_standby_task( "preflight" )
         if task:
             # activate task
             self.push_seq_task(task)
@@ -317,13 +320,14 @@ class MissionMgr:
             task = self.seq_tasks[0]
             if task.name == "recalibrate":
                 return
-        task = find_standby_task( "recalibrate" )
+        task = self.find_standby_task("recalibrate")
         if task:
             # activate task
             self.push_seq_task(task)
 	    task.activate()
-        # FIXME else if display_on:
-        #    print "oops, couldn't find 'recalibrate' task"
+        else:
+            # FIXME else if display_on:
+            print "oops, couldn't find 'recalibrate' task"
 
     def request_task_land(self, final_heading_deg):
         # sanity check, are we already in the requested state
@@ -331,7 +335,7 @@ class MissionMgr:
             task = self.seq_tasks[0]
             if task.name == "land":
                 return
-        task = find_standby_task( "land" )
+        task = self.find_standby_task( "land" )
         if not task:
             # FIXME if display_on:
             #     print "oops, couldn't find 'land' task"
@@ -347,7 +351,7 @@ class MissionMgr:
             task = self.seq_tasks[0]
             if task.name == "route":
                 return
-        task = find_standby_task( "route" )
+        task = self.find_standby_task( "route" )
         if task:
             # activate task
             self.push_seq_task(task)
