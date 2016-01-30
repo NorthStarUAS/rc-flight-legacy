@@ -50,6 +50,7 @@ static float true_alt_m = 0.0;
 
 // property nodes
 static pyPropertyNode airdata_node;
+static pyPropertyNode sensors_node;
 static pyPropertyNode filter_node;
 static pyPropertyNode pos_filter_node;
 static pyPropertyNode pos_pressure_node;
@@ -73,6 +74,7 @@ void AirData_init() {
     debug2b2.set_name("debug2b2 airdata console link");
 
     airdata_node = pyGetNode("/sensors/airdata", true);
+    sensors_node = pyGetNode("/sensors", true);
     filter_node = pyGetNode("/filters/filter", true);
     pos_filter_node = pyGetNode("/position/filter", true);
     pos_pressure_node = pyGetNode("/position/pressure", true);
@@ -352,6 +354,12 @@ bool AirData_update() {
 	}
     }
 
+    // check for and respond to an airdata recalibrate request
+    if (sensors_node.getBool("airdata_recalibrate") ) {
+	sensors_node.setBool("airdata_recalibrate", false);
+	AirData_recalibrate();
+    }
+    
     debug2b2.stop();
 
     air_prof.stop();
