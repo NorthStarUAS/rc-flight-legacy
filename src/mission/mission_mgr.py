@@ -7,6 +7,7 @@ import task.home_mgr
 import task.idle
 import task.launch
 import task.lost_link
+import task.preflight
 import task.recalibrate
 import task.throttle_safety
 
@@ -37,6 +38,8 @@ class MissionMgr:
             result = task.launch.Launch(config_node)
         elif task_name == 'lost_link':
             result = task.lost_link.LostLink(config_node)
+        elif task_name == 'preflight':
+            result = task.preflight.Preflight(config_node)
         elif task_name == 'recalibrate':
             result = task.recalibrate.Recalibrate(config_node)
         elif task_name == 'throttle_safety':
