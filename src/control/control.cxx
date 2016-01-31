@@ -110,6 +110,10 @@ void control_update(double dt)
     // for now.
     route_mgr->reposition_if_necessary();
 
+    if ( task_node.getString("current_task_id") == "circle" ) {
+	circle_mgr->update();
+    }
+    
     // log auto/manual mode changes
     static bool last_ap_mode = false;
     if ( ap_node.getBool("master_switch") != last_ap_mode ) {
