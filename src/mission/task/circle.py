@@ -80,16 +80,52 @@ class Circle(Task):
             self.task_node.setFloat("longitude_deg",
                                     self.coord_node.getFloat("longitude_deg"))
         if self.coord_node and self.coord_node.hasChild("latitude_deg"):
-            self.circle_node.setFloat("latitude_deg",
-                                      self.coord_node.getFloat("latitude_deg"))
+            self.task_node.setFloat("latitude_deg",
+                                    self.coord_node.getFloat("latitude_deg"))
         # circle_mgr update (code to fly the actual circle) is C++
         # code and located in src/control/ The circle_mgr->update()
         # routine is called from src/control/control.cxx:update()
         # whenever a circle hold task is active.
         
     def is_complete(self):
-        return False
+        done = False
+        # exit agl and exit heading specified
+        if self.task_node.getFloat("exit_agl_ft") > 0.0:
+            do_exit = True
+            exit_agl_ft = self.task_node.getFloat("exit_agl_ft")
+            alt_agl_ft = self.pos_node.getFloat("altitude_agl_ft")
+            if alt_agl_ft - exit_agl_ft > 25.0:
+                # not low enough
+                do_exit = False
+            exit_heading_deg = self.task_node.getFloat("exit_heading_deg")
+            heading_deg = self.orient_node.getFloat("groundtrack_deg")
+            if heading_deg < 0.0:
+                heading_deg += 360.0
+            hdg_error = heading_deg - exit_heading_deg
+            if hdg_error < -180.0:
+                hdg_error += 360.0
+            if hdg_error > 180.0:
+                hdg_error -= 360.0
+            if abs(hdg_error) > 10.0:
+                # not close enough
+                do_exit = False
+            done = do_exit
+        return done
     
     def close(self):
+        # restore the previous state
+        self.fcs_node.setString("mode", self.saved_fcs_mode)
+
+        self.task_node.setString("direction", self.saved_direction)
+        self.task_node.setFloat("radius_m", self.saved_radius_m)
+
+        # restore target agl if overridden by task
+        if self.target_agl_ft > 0.0:
+            self.ap_node.setFloat("target_agl_ft", self.saved_agl_ft)
+
+        # restore target speed if overridden by task
+        if self.target_speed_kt > 0.0:
+            self.ap_node.setFloat("target_speed_kt", saved_speed_kt)
+
         self.active = False
         return True
