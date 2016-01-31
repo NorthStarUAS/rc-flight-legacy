@@ -82,10 +82,11 @@ class Circle(Task):
         if self.coord_node and self.coord_node.hasChild("latitude_deg"):
             self.task_node.setFloat("latitude_deg",
                                     self.coord_node.getFloat("latitude_deg"))
-        # circle_mgr update (code to fly the actual circle) is C++
-        # code and located in src/control/ The circle_mgr->update()
-        # routine is called from src/control/control.cxx:update()
-        # whenever a circle hold task is active.
+        # circle_mgr update (code to fly the actual circle) is written
+        # in C++ and located in src/control/circle_mgr.cxx  The
+        # circle_mgr->update() routine is called from
+        # src/control/control.cxx:update() whenever a circle hold task
+        # is active.
         
     def is_complete(self):
         done = False
