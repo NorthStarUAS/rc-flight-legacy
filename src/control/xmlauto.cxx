@@ -733,7 +733,7 @@ void FGXMLAutopilot::unbind() {
 }
 
 bool FGXMLAutopilot::build() {
-    pyPropertyNode config_props = pyGetNode( "/config/fcs/autopilot", true );
+    pyPropertyNode config_props = pyGetNode( "/config/autopilot", true );
 
     // FIXME: we have always depended on the order of children
     // components here to ensure PID stages are run in the correct
@@ -751,7 +751,7 @@ bool FGXMLAutopilot::build() {
 	}
 	if ( name == "component" ) {
 	    ostringstream config_path;
-	    config_path << "/config/fcs/autopilot/" << children[i];
+	    config_path << "/config/autopilot/" << children[i];
 	    string module = component.getString("module");
 	    if ( module == "pid_controller" ) {
 		FGXMLAutoComponent *c

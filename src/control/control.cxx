@@ -67,7 +67,7 @@ static void bind_properties() {
     ap_node = pyGetNode( "/autopilot", true );
     ap_locks_node = pyGetNode( "/autopilot/locks", true );
     ap_settings_node = pyGetNode( "/autopilot/settings", true );
-    fcs_node = pyGetNode( "/config/fcs", true );
+    fcs_node = pyGetNode( "/config/autopilot", true );
     pointing_node = pyGetNode( "/pointing", true );
     pointing_vec_node = pyGetNode( "/pointing/vector", true );
     orient_node = pyGetNode( "/orientation", true );
@@ -85,7 +85,7 @@ void control_init() {
     bind_properties();
 
     // initialize and build the autopilot controller from the property
-    // tree config (/config/fcs/autopilot)
+    // tree config (/config/autopilot)
     ap.init();
 
     if ( display_on ) {

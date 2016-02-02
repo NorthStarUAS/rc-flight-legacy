@@ -64,7 +64,7 @@ void Actuator_init() {
     act_node = pyGetNode("/actuators/actuator", true);
 #define NUM_ACTUATORS 8
     act_node.setLen("channel", NUM_ACTUATORS, 0.0);
-    fcs_node = pyGetNode("/config/fcs", true);
+    fcs_node = pyGetNode("/config/autopilot", true);
     ap_node = pyGetNode("/autopilot", true);
 
     pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);

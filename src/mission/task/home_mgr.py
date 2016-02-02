@@ -1,5 +1,4 @@
 from props import root, getNode
-from geopy.distance import great_circle
 
 import comms.events
 import mission.greatcircle

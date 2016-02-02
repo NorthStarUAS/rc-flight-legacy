@@ -36,8 +36,8 @@ bool AuraCircleMgr::bind() {
     vel_node = pyGetNode("/velocity", true);
     orient_node = pyGetNode("/orientation", true);
     circle_node = pyGetNode("/task/circle", true);
-    L1_node = pyGetNode("/config/fcs/autopilot/L1_controller", true);
-    fcs_node = pyGetNode("/config/fcs", true);
+    L1_node = pyGetNode("/config/autopilot/L1_controller", true);
+    fcs_node = pyGetNode("/config/autopilot", true);
     ap_node = pyGetNode("/autopilot/settings", true);
     route_node = pyGetNode("/task/route", true);
 

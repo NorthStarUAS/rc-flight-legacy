@@ -13,7 +13,7 @@ class Launch(Task):
 
 	self.ap_node = getNode("/autopilot", True)
 	self.task_node = getNode("/task", True)
-	self.fcs_node = getNode("/config/fcs", True)
+	self.fcs_node = getNode("/config/autopilot", True)
 	self.pos_node = getNode("/position", True)
 	self.vel_node = getNode("/velocity", True)
 	self.orient_node = getNode("/orientation", True)

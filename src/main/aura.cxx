@@ -412,7 +412,7 @@ int main( int argc, char **argv )
     }
     printf("gps timeout = %.1f\n", gps_timeout_sec);
 
-    p = pyGetNode("/config/fcs", true);
+    p = pyGetNode("/config/autopilot", true);
     if ( p.hasChild("enable") ) {
 	enable_control = p.getBool("enable");
     }

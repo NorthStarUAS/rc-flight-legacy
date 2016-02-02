@@ -7,7 +7,7 @@ class Preflight(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.task_node = getNode("/task", True)
-        self.fcs_node = getNode("/config/fcs", True)
+        self.fcs_node = getNode("/config/autopilot", True)
         self.ap_node = getNode("/autopilot/settings", True)
         self.imu_node = getNode("/sensors/imu", True)
         self.saved_fcs_mode = ""
