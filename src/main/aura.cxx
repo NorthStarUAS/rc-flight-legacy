@@ -57,7 +57,6 @@ using std::string;
 
 static const int HEARTBEAT_HZ = 100;	 // master clock rate
 
-static bool enable_control = false;   // autopilot control module enabled/disabled
 static bool enable_mission = true;    // mission mgr module enabled/disabled
 static bool enable_cas     = false;   // cas module enabled/disabled
 static bool enable_telnet  = false;   // telnet command/monitor interface
@@ -226,13 +225,10 @@ void timer_handler (int signum)
 	cas.update();
     }
 
-    if ( enable_control ) {
-	control_prof.start();
-	control_update(dt);
-	control_prof.stop();
-
-	Actuator_update();
-    }
+    control_prof.start();
+    control_update(dt);
+    control_prof.stop();
+    Actuator_update();
 
     debug6.stop();
 
@@ -262,9 +258,7 @@ void timer_handler (int signum)
 	gps_prof.stats();
 	air_prof.stats();
 	filter_prof.stats();
-	if ( enable_control ) {
-	    control_prof.stats();
-	}
+	control_prof.stats();
 	health_prof.stats();
 	datalog_prof.stats();
 	main_prof.stats();
@@ -412,11 +406,6 @@ int main( int argc, char **argv )
     }
     printf("gps timeout = %.1f\n", gps_timeout_sec);
 
-    p = pyGetNode("/config/autopilot", true);
-    if ( p.hasChild("enable") ) {
-	enable_control = p.getBool("enable");
-    }
-
     p = pyGetNode("/config/mission", true);
     if ( p.hasChild("enable") ) {
 	enable_mission = p.getBool("enable");
@@ -493,13 +482,11 @@ int main( int argc, char **argv )
     // 	ati_pointing_init();
     // }
 
-    if ( enable_control ) {
-        // initialize the autopilot
-        control_init();
+    // initialize the autopilot
+    control_init();
 
-	// initialize the actuators
-	Actuator_init();
-    }
+    // initialize the actuators
+    Actuator_init();
 
     if ( enable_mission ) {
 	mission_mgr->init("mission.mission_mgr");
@@ -555,10 +542,8 @@ int main( int argc, char **argv )
     // 	ati_pointing_close();
     // }
     payload_mgr.close();
-    if ( enable_control ) {
-	control_close();
-	Actuator_close();
-    }
+    control_close();
+    Actuator_close();
 }
 
 
