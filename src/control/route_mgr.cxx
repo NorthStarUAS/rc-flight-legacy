@@ -48,7 +48,7 @@ FGRouteMgr::FGRouteMgr() :
     last_lat( 0.0 ),
     last_az( 0.0 ),
     start_mode( FIRST_WPT ),
-    follow_mode( XTRACK_LEG_HDG ),
+    // follow_mode( XTRACK_LEG_HDG ),
     completion_mode( LOOP ),
     dist_remaining_m( 0.0 )
 {
@@ -69,6 +69,7 @@ void FGRouteMgr::bind() {
     vel_node = pyGetNode("/velocity", true);
     orient_node = pyGetNode("/orientation", true);
     route_node = pyGetNode("/task/route", true);
+    home_node = pyGetNode("/task/home", true);
     L1_node = pyGetNode("/config/autopilot/L1_controller", true);
     ap_node = pyGetNode("/autopilot/settings", true);
 
@@ -83,8 +84,16 @@ void FGRouteMgr::bind() {
     if ( L1_node.getDouble("damping") < 0.1 ) {
 	L1_node.setDouble( "damping", 0.7 );
     }
+
+    // default follow mode
+    route_node.setString("follow_mode", "leader");
 }
 
+
+void FGRouteMgr::init() {
+    pyPropertyNode default_route = pyGetNode("/config/route", true);
+    init( &default_route );
+}
 
 void FGRouteMgr::init( pyPropertyNode *config_node ) {
     active->clear();
@@ -131,7 +140,7 @@ void FGRouteMgr::update() {
 		    active->increment_current();
 		} else {
 		    start_mode = FIRST_WPT;
-		    follow_mode = DIRECT;
+		    route_node.setString("follow_mode", "direct");
 		}
 	    }
 
@@ -181,10 +190,11 @@ void FGRouteMgr::update() {
 	    // distance remaining along the leg.
 	    nav_dist_m = direct_distance;
 
-	    if ( follow_mode == DIRECT ) {
+	    string follow_mode = route_node.getString("follow_mode");
+	    if ( follow_mode == "direct" ) {
 		// direct to
 		nav_course = direct_course;
-	    } else if ( follow_mode == XTRACK_DIRECT_HDG ) {
+	    } else if ( follow_mode == "xtrack_direct_hdg" ) {
 		// cross track steering
 		if ( (active->get_waypoint_index() == 0)
 		     && (completion_mode != LOOP) ) {
@@ -209,7 +219,7 @@ void FGRouteMgr::update() {
 		    // xtrack system can compensate for
 		    nav_course = direct_course;
 		}
-	    } else if ( follow_mode == XTRACK_LEG_HDG ) {
+	    } else if ( follow_mode == "xtrack_leg_hdg" ) {
 		// cross track steering
 		if ( (active->get_waypoint_index() == 0)
 		     && (completion_mode != LOOP) ) {
@@ -231,7 +241,7 @@ void FGRouteMgr::update() {
 		    nav_dist_m = dist_m;
 		    nav_course = leg_course - xtrack_comp;
 		}
-	    } else if ( follow_mode == LEADER ) {
+	    } else if ( follow_mode == "leader" ) {
 		double L1_dist = (1.0 / SGD_PI) * L1_damping * L1_period * gs_mps;
 		double wangle = 0.0;
 		if ( L1_dist < 0.01 ) {

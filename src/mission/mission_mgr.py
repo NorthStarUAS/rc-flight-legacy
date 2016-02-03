@@ -10,6 +10,7 @@ import task.launch
 import task.lost_link
 import task.preflight
 import task.recalibrate
+import task.route
 import task.throttle_safety
 
 class MissionMgr:
@@ -45,6 +46,8 @@ class MissionMgr:
             result = task.preflight.Preflight(config_node)
         elif task_name == 'recalibrate':
             result = task.recalibrate.Recalibrate(config_node)
+        elif task_name == 'route':
+            result = task.route.Route(config_node)
         elif task_name == 'throttle_safety':
             result = task.throttle_safety.ThrottleSafety(config_node)
         else:

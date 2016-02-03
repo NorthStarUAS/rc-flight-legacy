@@ -84,6 +84,9 @@ void control_init() {
 
     bind_properties();
 
+    circle_mgr->init();
+    route_mgr->init();
+    
     // initialize and build the autopilot controller from the property
     // tree config (/config/autopilot)
     ap.init();
@@ -112,6 +115,8 @@ void control_update(double dt)
 
     if ( task_node.getString("current_task_id") == "circle" ) {
 	circle_mgr->update();
+    } else if ( task_node.getString("current_task_id") == "route" ) {
+	route_mgr->update();
     }
     
     // log auto/manual mode changes

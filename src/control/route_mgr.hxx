@@ -51,13 +51,15 @@ public:
 	FIRST_LEG = 1,		// Go to 2nd waypoint along route leg
     };
 
+#if 0
     enum FollowMode {
 	DIRECT = 0,		// steer direct to next waypoint
 	XTRACK_LEG_HDG = 1,	// steer towards leg heading + xtrack
 	XTRACK_DIRECT_HDG = 2,	// steer direct oto next wpt + xtrack
 	LEADER = 3		// steer towards a projected lead point
     };
-
+#endif
+    
     enum CompletionMode {
 	LOOP = 0,		// loop the route when finished
 	CIRCLE_LAST_WPT = 1,	// circle the final waypoint in the route
@@ -87,7 +89,7 @@ private:
 
     // route behaviors
     StartMode start_mode;
-    FollowMode follow_mode;
+    // FollowMode follow_mode;
     CompletionMode completion_mode;
 
     // stats
@@ -104,6 +106,7 @@ public:
 
     void bind();
 
+    void init();
     void init( pyPropertyNode *config_node );
 
     // set route start mode
@@ -111,10 +114,12 @@ public:
 	start_mode = mode;
     }
 
+#if 0
     // set route follow mode
     inline void set_follow_mode( enum FollowMode mode ) {
 	follow_mode = mode;
     }
+#endif
 
     // set route completion mode
     inline void set_completion_mode( enum CompletionMode mode ) {

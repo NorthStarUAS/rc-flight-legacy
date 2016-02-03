@@ -75,6 +75,7 @@ class Circle(Task):
     def update(self):
         if not self.active:
             return False
+        
         # update circle center if task specifies a source/coord path
         if self.coord_node and self.coord_node.hasChild("longitude_deg"):
             self.task_node.setFloat("longitude_deg",
@@ -91,7 +92,7 @@ class Circle(Task):
     def is_complete(self):
         done = False
         # exit agl and exit heading specified
-        if self.task_node.getFloat("exit_agl_ft") > 0.0:
+        if self.task_node.getString("exit_agl_ft") != "":
             do_exit = True
             exit_agl_ft = self.task_node.getFloat("exit_agl_ft")
             alt_agl_ft = self.pos_node.getFloat("altitude_agl_ft")
