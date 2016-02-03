@@ -26,7 +26,6 @@ private:
     pyPropertyNode orient_node;
     pyPropertyNode circle_node;
     pyPropertyNode L1_node;
-    pyPropertyNode fcs_node;
     pyPropertyNode ap_node;
     pyPropertyNode route_node;
 

@@ -13,7 +13,7 @@ class Idle(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.task_node = getNode("/task", True)
-        self.fcs_node = getNode("/config/autopilot", True)
+        self.fcs_node = getNode("/autopilot", True)
         self.engine_node = getNode("/controls/engine", True)
         self.saved_fcs_mode = ""
         self.name = config_node.getString("name")

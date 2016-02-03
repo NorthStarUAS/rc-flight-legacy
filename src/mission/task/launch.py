@@ -13,7 +13,6 @@ class Launch(Task):
 
 	self.ap_node = getNode("/autopilot", True)
 	self.task_node = getNode("/task", True)
-	self.fcs_node = getNode("/config/autopilot", True)
 	self.pos_node = getNode("/position", True)
 	self.vel_node = getNode("/velocity", True)
 	self.orient_node = getNode("/orientation", True)
@@ -51,7 +50,7 @@ class Launch(Task):
         self.active = True
         # start with roll control only, we fix elevator to neutral until
         # flight speeds come up and steer the rudder directly
-        self.fcs_node.setString("mode", "roll");
+        self.ap_node.setString("mode", "roll");
         self.ap_settings_node.setFloat("target_roll_deg", 0.0)
         self.ap_settings_node.setFloat("target_agl_ft", self.mission_agl_ft)
         self.ap_settings_node.setFloat("target_speed_kt", self.target_speed_kt)
@@ -135,7 +134,7 @@ class Launch(Task):
                     # we've reached our flying/climbout airspeed,
                     # switch to pitch/elevator speed hold mode
                     self.ap_settings_node.setFloat("target_pitch_deg", self.orient_node.getFloat("pitch_deg"))
-                    self.fcs_node.setString("mode", "basic+alt+speed")
+                    self.ap_node.setString("mode", "basic+alt+speed")
 
         self.last_ap_master = self.ap_node.getBool("master_switch")
 

@@ -8,7 +8,7 @@ class Route(Task):
         Task.__init__(self)
         self.home_node = getNode("/task/home", True)
         self.route_node = getNode("/task/route", True)
-        self.fcs_node = getNode("/config/autopilot", True)
+        self.fcs_node = getNode("/autopilot", True)
         self.ap_node = getNode("/autopilot/settings", True)
 
         self.alt_agl_ft = 0.0

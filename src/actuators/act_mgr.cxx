@@ -43,7 +43,6 @@ static pyPropertyNode flight_node;
 static pyPropertyNode engine_node;
 static pyPropertyNode acts_node;
 static pyPropertyNode act_node;
-static pyPropertyNode fcs_node;
 static pyPropertyNode ap_node;
 static vector<pyPropertyNode> sections;
 
@@ -64,7 +63,6 @@ void Actuator_init() {
     act_node = pyGetNode("/actuators/actuator", true);
 #define NUM_ACTUATORS 8
     act_node.setLen("channel", NUM_ACTUATORS, 0.0);
-    fcs_node = pyGetNode("/config/autopilot", true);
     ap_node = pyGetNode("/autopilot", true);
 
     pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
@@ -187,7 +185,7 @@ static void set_actuator_values_ap() {
     static bool sas_throttle_override = false;
 
     if ( !sas_throttle_override ) {
-	if ( fcs_node.getString("mode") == "sas" ) {
+	if ( ap_node.getString("mode") == "sas" ) {
 	    // in sas mode require a sequence of zero throttle, full
 	    // throttle, and zero throttle again before throttle pass
 	    // through can become active under 100' AGL

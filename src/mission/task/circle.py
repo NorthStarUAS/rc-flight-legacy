@@ -9,7 +9,7 @@ class Circle(Task):
         self.pos_node = getNode("/position", True)
         self.orient_node = getNode("/orientation", True)
         self.task_node = getNode("/task/circle", True)
-        self.fcs_node = getNode("/config/autopilot", True)
+        self.fcs_node = getNode("/autopilot", True)
         self.ap_node = getNode("/autopilot/settings", True)
 
         self.coord_path = ""

@@ -67,7 +67,7 @@ static void bind_properties() {
     ap_node = pyGetNode( "/autopilot", true );
     ap_locks_node = pyGetNode( "/autopilot/locks", true );
     ap_settings_node = pyGetNode( "/autopilot/settings", true );
-    fcs_node = pyGetNode( "/config/autopilot", true );
+    fcs_node = pyGetNode( "/autopilot", true );
     pointing_node = pyGetNode( "/pointing", true );
     pointing_vec_node = pyGetNode( "/pointing/vector", true );
     orient_node = pyGetNode( "/orientation", true );
