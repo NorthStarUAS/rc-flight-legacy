@@ -47,9 +47,9 @@ FGRouteMgr::FGRouteMgr() :
     last_lon( 0.0 ),
     last_lat( 0.0 ),
     last_az( 0.0 ),
-    start_mode( FIRST_WPT ),
+    // start_mode( FIRST_WPT ),
     // follow_mode( XTRACK_LEG_HDG ),
-    completion_mode( LOOP ),
+    // completion_mode( LOOP ),
     dist_remaining_m( 0.0 )
 {
     bind();
@@ -85,8 +85,10 @@ void FGRouteMgr::bind() {
 	L1_node.setDouble( "damping", 0.7 );
     }
 
-    // default follow mode
+    // defaults
     route_node.setString("follow_mode", "leader");
+    route_node.setString("start_mode", "first_wpt");
+    route_node.setString("completion_mode", "loop");
 }
 
 
@@ -126,20 +128,21 @@ void FGRouteMgr::update() {
     if ( active->size() > 0 ) {
 	if ( GPS_age() < 10.0 ) {
 
-	    // route start up logic: if start_mode == FIRST_WPT then
+	    // route start up logic: if start_mode == first_wpt then
 	    // there is nothing to do, we simply continue to track wpt
 	    // 0 if that is the current waypoint.  If start_mode ==
-	    // FIRST_LEG, then if we are tracking wpt 0, then
-	    // increment it so we track the 2nd waypoint along the
-	    // first leg.  If you have provided a 1 point route and
-	    // request first_leg startup behavior, then don't do that
-	    // again, force sane route parameters instead!
-	    if ( (start_mode == FIRST_LEG)
+	    // "first_leg", then if we are tracking wpt 0, increment
+	    // it so we track the 2nd waypoint along the first leg.
+	    // If only a 1 point route is given along with first_leg
+	    // startup behavior, then don't do that again, force some
+	    // sort of sane route parameters instead!
+	    string start_mode = route_node.getString("start_mode");
+	    if ( (start_mode == "first_leg")
 		 && (active->get_waypoint_index() == 0) ) {
 		if ( active->size() > 1 ) {
 		    active->increment_current();
 		} else {
-		    start_mode = FIRST_WPT;
+		    route_node.setString("start_mode", "first_wpt");
 		    route_node.setString("follow_mode", "direct");
 		}
 	    }
@@ -191,19 +194,20 @@ void FGRouteMgr::update() {
 	    nav_dist_m = direct_distance;
 
 	    string follow_mode = route_node.getString("follow_mode");
+	    string completion_mode = route_node.getString("completion_mode");
 	    if ( follow_mode == "direct" ) {
 		// direct to
 		nav_course = direct_course;
 	    } else if ( follow_mode == "xtrack_direct_hdg" ) {
 		// cross track steering
 		if ( (active->get_waypoint_index() == 0)
-		     && (completion_mode != LOOP) ) {
+		     && (completion_mode != "loop") ) {
 		    // first waypoint is 'direct to' except for LOOP
 		    // routes which track the leg connecting the last
 		    // wpt to the first wpt.
 		    nav_course = direct_course;
 		} else if ( (active->get_waypoint_index() == active->size()-1)
-			    && (completion_mode == EXTEND_LAST_LEG) ) {
+			    && (completion_mode == "extend_last_leg") ) {
 		    // force leg heading logic on last leg so it is
 		    // possible to extend the center line beyond the
 		    // waypoint (if requested by completion mode.)
@@ -222,13 +226,13 @@ void FGRouteMgr::update() {
 	    } else if ( follow_mode == "xtrack_leg_hdg" ) {
 		// cross track steering
 		if ( (active->get_waypoint_index() == 0)
-		     && (completion_mode != LOOP) ) {
+		     && (completion_mode != "loop") ) {
 		    // first waypoint is 'direct to' except for LOOP
 		    // routes which track the leg connecting the last
 		    // wpt to the first wpt.
 		    nav_course = direct_course;
 		} else if ( (active->get_waypoint_index() == active->size()-1)
-			    && (completion_mode == EXTEND_LAST_LEG) ) {
+			    && (completion_mode == "extend_last_leg") ) {
 		    // force leg heading logic on last leg so it is
 		    // possible to extend the center line beyond the
 		    // waypoint (if requested by completion mode.)
@@ -327,12 +331,12 @@ void FGRouteMgr::update() {
 #endif
 
 	    // logic to mark completion of leg and move to next leg.
-	    if ( completion_mode == LOOP ) {
+	    if ( completion_mode == "loop" ) {
 		if ( nav_dist_m < 50.0 ) {
 		    active->set_acquired( true );
 		    active->increment_current();
 		}
-	    } else if ( completion_mode == CIRCLE_LAST_WPT ) {
+	    } else if ( completion_mode == "circle_last_wpt" ) {
 		if ( nav_dist_m < 50.0 ) {
 		    active->set_acquired( true );
 		    if ( active->get_waypoint_index() < active->size() - 1 ) {
@@ -345,7 +349,7 @@ void FGRouteMgr::update() {
 							0.0, 0.0);*/
 		    }
 		}
-	    } else if ( completion_mode == EXTEND_LAST_LEG ) {
+	    } else if ( completion_mode == "extend_last_leg" ) {
 		if ( nav_dist_m < 50.0 ) {
 		    active->set_acquired( true );
 		    if ( active->get_waypoint_index() < active->size() - 1 ) {

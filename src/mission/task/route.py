@@ -43,6 +43,8 @@ class Route(Task):
             self.ap_node.setFloat("target_agl_ft", self.alt_agl_ft)
 
         self.route_node.setString("follow_mode", "leader");
+        self.route_node.setString("start_mode", "first_wpt");
+        self.route_node.setString("completion_mode", "loop");
         
         comms.events.log("mission", "route")
     

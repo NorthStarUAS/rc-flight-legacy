@@ -46,19 +46,18 @@ class FGRouteMgr {
 
 public:
 
+#if 0
     enum StartMode {
 	FIRST_WPT = 0,		// Go to first waypoint
 	FIRST_LEG = 1,		// Go to 2nd waypoint along route leg
     };
 
-#if 0
     enum FollowMode {
 	DIRECT = 0,		// steer direct to next waypoint
 	XTRACK_LEG_HDG = 1,	// steer towards leg heading + xtrack
 	XTRACK_DIRECT_HDG = 2,	// steer direct oto next wpt + xtrack
 	LEADER = 3		// steer towards a projected lead point
     };
-#endif
     
     enum CompletionMode {
 	LOOP = 0,		// loop the route when finished
@@ -69,6 +68,7 @@ public:
 	// idea: return home and circle
 	// idea: rally points
     };
+#endif
 
 private:
 
@@ -88,9 +88,9 @@ private:
     double last_az;
 
     // route behaviors
-    StartMode start_mode;
+    // StartMode start_mode;
     // FollowMode follow_mode;
-    CompletionMode completion_mode;
+    // CompletionMode completion_mode;
 
     // stats
     double dist_remaining_m;
@@ -109,22 +109,22 @@ public:
     void init();
     void init( pyPropertyNode *config_node );
 
+#if 0
     // set route start mode
     inline void set_start_mode( enum StartMode mode ) {
 	start_mode = mode;
     }
 
-#if 0
     // set route follow mode
     inline void set_follow_mode( enum FollowMode mode ) {
 	follow_mode = mode;
     }
-#endif
 
     // set route completion mode
     inline void set_completion_mode( enum CompletionMode mode ) {
 	completion_mode = mode;
     }
+#endif
 
     void update();
 
