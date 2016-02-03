@@ -49,7 +49,7 @@ void UGCAS::bind() {
     pilot_node = pyGetNode("/sensors/pilot", true);
     cas_aileron_node = pyGetNode("/config/cas/aileron", true);
     cas_elevator_node = pyGetNode("/config/cas/elevator", true);
-    ap_node = pyGetNode("/autopilot/settings", true);
+    targets_node = pyGetNode("/autopilot/targets", true);
     flight_node = pyGetNode("/controls/flight", true);
     engine_node = pyGetNode("/controls/engine", true);
 }
@@ -64,7 +64,7 @@ void UGCAS::update() {
     double dt = current_time - last_time;
     last_time = current_time;
 
-    if ( !ap_node.getBool("master_switch") ) {
+    if ( !targets_node.getBool("master_switch") ) {
 	// fcs master switch off, exit
 	return;
     }
@@ -144,7 +144,7 @@ void UGCAS::update() {
     if ( roll_cmd < 0 ) { roll_sign = -1; roll_cmd *= -1.0; }
 
     double roll_delta = 0.0;
-    double new_roll = ap_node.getDouble("target_roll_deg");
+    double new_roll = targets_node.getDouble("roll_deg");
     if ( fabs(roll_cmd) > 0.001 ) {
 	// pilot is inputing a roll command
 	roll_delta = roll_sign * roll_cmd
@@ -166,7 +166,7 @@ void UGCAS::update() {
     new_roll += roll_delta;
     if ( new_roll < -45.0 ) { new_roll = -45.0; }
     if ( new_roll > 45.0 ) { new_roll = 45.0; }
-    ap_node.setDouble( "target_roll_deg", new_roll );
+    targets_node.setDouble( "roll_deg", new_roll );
 
     double pitch_cmd = 0.0;
     if ( elevator >= elev_center + elev_dz ) {
@@ -183,10 +183,10 @@ void UGCAS::update() {
 	* cas_elevator_node.getDouble("full_rate_degps") * dt;
 
     double new_pitch_base
-	= ap_node.getDouble("target_pitch_base_deg") + pitch_delta;
+	= targets_node.getDouble("pitch_base_deg") + pitch_delta;
     if ( new_pitch_base < -15.0 ) { new_pitch_base = -15.0; }
     if ( new_pitch_base > 15.0 ) { new_pitch_base = 15.0; }
-    ap_node.setDouble( "target_pitch_base_deg", new_pitch_base );
+    targets_node.setDouble( "pitch_base_deg", new_pitch_base );
 
     // map throttle [0 ... 1] to [-mp ... mp] for throttle pitch offset
     // where mp is the max pitch bias.  This "simulates" the natural
@@ -196,7 +196,7 @@ void UGCAS::update() {
     double pitch_throttle_delta
 	= (pilot_node.getDouble("throttle") * 2.0 - 1.0) * mp;
     double new_pitch = new_pitch_base + pitch_throttle_delta;
-    ap_node.setDouble( "target_pitch_deg", new_pitch );
+    targets_node.setDouble( "pitch_deg", new_pitch );
 
     // this is a hard coded hack, but pass through throttle and rudder here
     engine_node.setDouble( "throttle", pilot_node.getDouble("throttle") );

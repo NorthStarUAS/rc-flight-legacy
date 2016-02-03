@@ -80,7 +80,7 @@ private:
     pyPropertyNode orient_node;
     pyPropertyNode route_node;
     pyPropertyNode L1_node;
-    pyPropertyNode ap_node;
+    pyPropertyNode targets_node;
     pyPropertyNode home_node;
     
     double last_lon;

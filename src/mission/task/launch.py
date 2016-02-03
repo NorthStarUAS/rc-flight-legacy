@@ -16,7 +16,7 @@ class Launch(Task):
 	self.pos_node = getNode("/position", True)
 	self.vel_node = getNode("/velocity", True)
 	self.orient_node = getNode("/orientation", True)
-	self.ap_settings_node = getNode("/autopilot/settings", True)
+	self.targets_node = getNode("/autopilot/targets", True)
 	self.imu_node = getNode("/sensors/imu", True)
 	self.flight_node = getNode("/controls/flight", True)
 	self.engine_node = getNode("/controls/engine", True)
@@ -51,9 +51,9 @@ class Launch(Task):
         # start with roll control only, we fix elevator to neutral until
         # flight speeds come up and steer the rudder directly
         self.ap_node.setString("mode", "roll");
-        self.ap_settings_node.setFloat("target_roll_deg", 0.0)
-        self.ap_settings_node.setFloat("target_agl_ft", self.mission_agl_ft)
-        self.ap_settings_node.setFloat("target_speed_kt", self.target_speed_kt)
+        self.targets_node.setFloat("roll_deg", 0.0)
+        self.targets_node.setFloat("altitude_agl_ft", self.mission_agl_ft)
+        self.targets_node.setFloat("airspeed_kt", self.target_speed_kt)
     
     def update(self):
         if not self.active:
@@ -128,12 +128,12 @@ class Launch(Task):
                     roll = -self.roll_limit
                 if roll > self.roll_limit:
                     roll = self.roll_limit
-                self.ap_settings_node.setFloat("target_roll_deg", roll)
+                self.targets_node.setFloat("roll_deg", roll)
 
                 if self.vel_node.getFloat("airspeed_kt") > self.target_speed_kt:
                     # we've reached our flying/climbout airspeed,
                     # switch to pitch/elevator speed hold mode
-                    self.ap_settings_node.setFloat("target_pitch_deg", self.orient_node.getFloat("pitch_deg"))
+                    self.targets_node.setFloat("pitch_deg", self.orient_node.getFloat("pitch_deg"))
                     self.ap_node.setString("mode", "basic+alt+speed")
 
         self.last_ap_master = self.ap_node.getBool("master_switch")

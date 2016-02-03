@@ -71,7 +71,7 @@ void FGRouteMgr::bind() {
     route_node = pyGetNode("/task/route", true);
     home_node = pyGetNode("/task/home", true);
     L1_node = pyGetNode("/config/autopilot/L1_controller", true);
-    ap_node = pyGetNode("/autopilot/settings", true);
+    targets_node = pyGetNode("/autopilot/targets", true);
 
     // sanity check, set some conservative values if none are provided
     // in the autopilot config
@@ -285,7 +285,7 @@ void FGRouteMgr::update() {
                 nav_course -= 360.0;
             }
 
-	    ap_node.setDouble( "target_groundtrack_deg", nav_course );
+	    targets_node.setDouble( "groundtrack_deg", nav_course );
 
 	    // target bank angle computed here
 
@@ -295,7 +295,7 @@ void FGRouteMgr::update() {
 	    double omegaA = sqrt_of_2 * SGD_PI / L1_period;
 	    double VomegaA = gs_mps * omegaA;
 	    double course_error = orient_node.getDouble("groundtrack_deg")
-		- ap_node.getDouble("target_groundtrack_deg");
+		- targets_node.getDouble("groundtrack_deg");
 	    if ( course_error < -180.0 ) { course_error += 360.0; }
 	    if ( course_error >  180.0 ) { course_error -= 360.0; }
 
@@ -313,7 +313,7 @@ void FGRouteMgr::update() {
 	    if ( target_bank_deg > bank_limit_deg ) {
 		target_bank_deg = bank_limit_deg;
 	    }
-	    ap_node.setDouble( "target_roll_deg", target_bank_deg );
+	    targets_node.setDouble( "roll_deg", target_bank_deg );
 
 	    wp_agl_m = wp.get_target_agl_m();
 	    wp_msl_m = wp.get_target_alt_m();
@@ -385,9 +385,9 @@ void FGRouteMgr::update() {
     // specified.  Preference is given to agl if both agl & msl are
     // set.
     if ( wp_agl_m > 1.0 ) {
-	ap_node.setDouble( "target_agl_ft", wp_agl_m * SG_METER_TO_FEET );
+	targets_node.setDouble( "altitude_agl_ft", wp_agl_m * SG_METER_TO_FEET );
     } else if ( wp_msl_m > 1.0 ) {
-	ap_node.setDouble( "target_msl_ft", wp_msl_m * SG_METER_TO_FEET );
+	targets_node.setDouble( "target_msl_ft", wp_msl_m * SG_METER_TO_FEET );
     }
 
     double gs_mps = vel_node.getDouble("groundspeed_ms");

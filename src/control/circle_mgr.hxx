@@ -26,7 +26,7 @@ private:
     pyPropertyNode orient_node;
     pyPropertyNode circle_node;
     pyPropertyNode L1_node;
-    pyPropertyNode ap_node;
+    pyPropertyNode targets_node;
     pyPropertyNode route_node;
 
     bool bind();		// setup property node bindings

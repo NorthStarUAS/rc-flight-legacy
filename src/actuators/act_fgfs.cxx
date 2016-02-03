@@ -22,7 +22,7 @@ static string hostname = "";
 
 // property nodes
 static pyPropertyNode act_node;
-static pyPropertyNode ap_node;
+static pyPropertyNode targets_node;
 static pyPropertyNode orient_node;
 static pyPropertyNode pos_node;
 static pyPropertyNode route_node;
@@ -43,7 +43,7 @@ static void bind_act_nodes( string output_path ) {
     act_node = pyGetNode(output_path, true);
 #define NUM_ACTUATORS 8
     act_node.setLen("channel", NUM_ACTUATORS, 0.0);
-    ap_node = pyGetNode("/autopilot/settings", true);
+    targets_node = pyGetNode("/autopilot/targets", true);
     orient_node = pyGetNode("/orientation", true);
     pos_node = pyGetNode("/position", true);
     route_node = pyGetNode("/task/route", true);    
@@ -125,28 +125,29 @@ bool fgfs_act_update() {
     float ch8 = act_node.getDouble("channel", 7);
     *(float *)buf = ch8; buf += 4;
 
-    float bank = ap_node.getDouble("target_roll_deg") * 100 + 18000.0;
+    float bank = targets_node.getDouble("roll_deg") * 100 + 18000.0;
     *(float *)buf = bank; buf += 4;
 
-    float pitch = ap_node.getDouble("target_pitch_deg") * 100 + 9000.0;
+    float pitch = targets_node.getDouble("pitch_deg") * 100 + 9000.0;
     *(float *)buf = pitch; buf += 4;
 
-    float target_track_offset = ap_node.getDouble("target_groundtrack_deg")
+    float target_track_offset = targets_node.getDouble("groundtrack_deg")
 	- orient_node.getDouble("heading-deg");
     if ( target_track_offset < -180 ) { target_track_offset += 360.0; }
     if ( target_track_offset > 180 ) { target_track_offset -= 360.0; }
     float hdg = target_track_offset * 100 + 36000.0;
     *(float *)buf = hdg; buf += 4;
 
-    float climb = ap_node.getDouble("target_climb_rate_fps") * 1000 + 100000.0;
+    // FIXME: no longer used so wasted 4 bytes ...
+    float climb = targets_node.getDouble("climb_rate_fps") * 1000 + 100000.0;
     *(float *)buf = climb; buf += 4;
 
-    float alt_agl_ft = ap_node.getDouble("target_agl_ft");
+    float alt_agl_ft = targets_node.getDouble("altitude_agl_ft");
     float ground_m = pos_node.getDouble("altitude-ground-m");
     float alt_msl_ft = (ground_m * SG_METER_TO_FEET + alt_agl_ft) * 100.0;
     *(float *)buf = alt_msl_ft; buf += 4;
 
-    float speed = ap_node.getDouble("target-speed-kt") * 100;
+    float speed = targets_node.getDouble("target-speed-kt") * 100;
     *(float *)buf = speed; buf += 4;
 
     float track_offset = orient_node.getDouble("groundtrack-deg")

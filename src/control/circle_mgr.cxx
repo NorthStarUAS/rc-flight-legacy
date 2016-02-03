@@ -37,7 +37,7 @@ bool AuraCircleMgr::bind() {
     orient_node = pyGetNode("/orientation", true);
     circle_node = pyGetNode("/task/circle", true);
     L1_node = pyGetNode("/config/autopilot/L1_controller", true);
-    ap_node = pyGetNode("/autopilot/settings", true);
+    targets_node = pyGetNode("/autopilot/targets", true);
     route_node = pyGetNode("/task/route", true);
 
     // sanity check, set some conservative values if none are provided
@@ -110,7 +110,7 @@ bool AuraCircleMgr::update() {
 	if ( target_crs > 360.0 ) { target_crs -= 360.0; }
 	if ( target_crs < 0.0 ) { target_crs += 360.0; }
     }
-    ap_node.setDouble( "target_groundtrack_deg", target_crs );
+    targets_node.setDouble( "groundtrack_deg", target_crs );
     // if ( display_on ) {
     // 	printf("rad=%.0f act=%.0f ideal crs=%.1f tgt crs=%.1f\n",
     // 	       radius_m, dist_m, ideal_crs, target_crs);
@@ -161,7 +161,7 @@ bool AuraCircleMgr::update() {
     // printf("   circle: tgt bank = %.0f  bank limit = %.0f\n",
     //	   target_bank_deg, bank_limit_deg);
 
-    ap_node.setDouble( "target_roll_deg", target_bank_deg );
+    targets_node.setDouble( "roll_deg", target_bank_deg );
 
     // printf("circle: ideal ground crs = %.1f aircraft ground crs = %.1f\n",
     //	   course_deg, orient_node.getDouble("groundtrack_deg") );

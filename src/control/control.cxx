@@ -52,7 +52,7 @@ static FGXMLAutopilot ap;
 // property nodes
 static pyPropertyNode ap_node;
 static pyPropertyNode ap_locks_node;
-static pyPropertyNode ap_settings_node;
+static pyPropertyNode targets_node;
 static pyPropertyNode pointing_node;
 static pyPropertyNode pointing_vec_node;
 static pyPropertyNode orient_node;
@@ -65,7 +65,7 @@ static pyPropertyNode home_node;
 static void bind_properties() {
     ap_node = pyGetNode( "/autopilot", true );
     ap_locks_node = pyGetNode( "/autopilot/locks", true );
-    ap_settings_node = pyGetNode( "/autopilot/settings", true );
+    targets_node = pyGetNode( "/autopilot/targets", true );
     pointing_node = pyGetNode( "/pointing", true );
     pointing_vec_node = pyGetNode( "/pointing/vector", true );
     orient_node = pyGetNode( "/orientation", true );
@@ -192,7 +192,7 @@ void control_update(double dt)
 		float target_roll_deg = orient_node.getDouble("roll_deg");
 		if ( target_roll_deg > 45.0 ) { target_roll_deg = 45.0; }
 		if ( target_roll_deg < -45.0 ) { target_roll_deg = -45.0; }
-		ap_settings_node.setDouble( "target_roll_deg", target_roll_deg );
+		targets_node.setDouble( "roll_deg", target_roll_deg );
 
 		float target_pitch_base_deg = orient_node.getDouble("pitch_deg");
 		if ( target_pitch_base_deg > 15.0 ) {
@@ -201,7 +201,7 @@ void control_update(double dt)
 		if ( target_pitch_base_deg < -15.0 ) {
 		    target_pitch_base_deg = -15.0;
 		}
-		ap_settings_node.setDouble( "target_pitch_base_deg", target_pitch_base_deg );
+		targets_node.setDouble( "target_pitch_base_deg", target_pitch_base_deg );
 	    }
 	}
 	last_fcs_mode = fcs_mode;

@@ -59,7 +59,7 @@ private:
     pyPropertyNode pilot_node;
     pyPropertyNode cas_aileron_node;
     pyPropertyNode cas_elevator_node;
-    pyPropertyNode ap_node;
+    pyPropertyNode targets_node;
     pyPropertyNode flight_node;
     pyPropertyNode engine_node;
     

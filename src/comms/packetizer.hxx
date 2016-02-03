@@ -44,8 +44,7 @@ class UGPacketizer {
     pyPropertyNode wind_node;
     pyPropertyNode act_node;
     pyPropertyNode pilot_node;
-    pyPropertyNode ap_node;
-    pyPropertyNode ap_internal_node;
+    pyPropertyNode targets_node;
     pyPropertyNode route_node;
     pyPropertyNode status_node;
     pyPropertyNode apm2_node;

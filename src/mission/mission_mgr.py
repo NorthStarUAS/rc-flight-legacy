@@ -15,7 +15,7 @@ import task.throttle_safety
 
 class MissionMgr:
     def __init__(self):
-        self.ap_node = getNode("/autopilot/settings", True)
+        self.targets_node = getNode("/autopilot/targets", True)
         self.missions_node = getNode("/config/mission", True)
         self.pos_node = getNode("/position", True)
         self.task_node = getNode("/task", True)
@@ -283,7 +283,7 @@ class MissionMgr:
         # set the autopilot to climb/descend to the requested
         # altitude.  (If the auotopilot is never commanded, presumably
         # we would never get to the exit condition.)
-        self.ap_node.setFloat( "target_agl_ft", exit_agl_ft )
+        self.targets_node.setFloat( "altitude_agl_ft", exit_agl_ft )
 
     def request_task_idle(self):
         # sanity check, are we already in the requested state

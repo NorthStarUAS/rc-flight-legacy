@@ -31,8 +31,7 @@ UGPacketizer::UGPacketizer() {
 #define NUM_ACTUATORS 8
     act_node.setLen("channel", NUM_ACTUATORS, 0.0);
     pilot_node = pyGetNode("/sensors/pilot", true);
-    ap_node = pyGetNode("/autopilot/settings", true);
-    ap_internal_node = pyGetNode("/autopilot/internal", true);
+    targets_node = pyGetNode("/autopilot/targets", true);
     route_node = pyGetNode("/task/route", true);
     status_node = pyGetNode("/status", true);
     apm2_node = pyGetNode("/sensors/APM2", true);
@@ -439,30 +438,30 @@ int UGPacketizer::packetize_ap( uint8_t *buf, uint8_t route_size,
     // *(double *)buf = time; buf += 8;
     memcpy( buf, &time, 8 ); buf += 8;
 
-    int16_t hdg = (int16_t)(ap_node.getDouble("target_groundtrack_deg") * 10.0);
+    int16_t hdg = (int16_t)(targets_node.getDouble("groundtrack_deg") * 10.0);
     *(int16_t *)buf = hdg; buf += 2;
 
-    int16_t roll = (int16_t)(ap_node.getDouble("target_roll_deg") * 10.0);
+    int16_t roll = (int16_t)(targets_node.getDouble("roll_deg") * 10.0);
     *(int16_t *)buf = roll; buf += 2;
 
     // compute target AP msl as:
     //   ground_alt(pressure) + altitude_agl(press) - error(press)
-    float target_agl_ft = ap_node.getDouble("target_agl_ft");
+    float target_agl_ft = targets_node.getDouble("altitude_agl_ft");
     float ground_m = pos_pressure_node.getDouble("altitude_ground_m");
     float error_m = pos_pressure_node.getDouble("pressure_error_m");
     float alt_msl_ft = (ground_m + error_m) * SG_METER_TO_FEET + target_agl_ft;
     *(uint16_t *)buf = (uint16_t)alt_msl_ft; buf += 2;
 
-    int16_t climb = (int16_t)(ap_internal_node.getDouble("target_climb_rate_fps") * 10.0);
+    int16_t climb = (int16_t)(targets_node.getDouble("climb_rate_fps") * 10.0);
     *(int16_t *)buf = climb; buf += 2;
 
-    int16_t pitch = (int16_t)(ap_node.getDouble("target_pitch_deg") * 10.0);
+    int16_t pitch = (int16_t)(targets_node.getDouble("pitch_deg") * 10.0);
     *(int16_t *)buf = pitch; buf += 2;
 
-    int16_t theta_dot = (int16_t)(ap_node.getDouble("target_the_dot") * 1000.0);
+    int16_t theta_dot = (int16_t)(targets_node.getDouble("the_dot") * 1000.0);
     *(int16_t *)buf = theta_dot; buf += 2;
 
-    int16_t speed = (int16_t)(ap_node.getDouble("target_speed_kt") * 10.0);
+    int16_t speed = (int16_t)(targets_node.getDouble("airspeed_kt") * 10.0);
     *(int16_t *)buf = speed; buf += 2;
 
     int target_wpt_index = route_node.getLong("target_waypoint_idx");
@@ -588,8 +587,8 @@ string UGPacketizer::get_fcs_nav_string() {
     double filter_hdg = (SGD_PI * 0.5 - atan2(filter_node.getDouble("vn_ms"), filter_node.getDouble("ve_ms"))) * SG_RADIANS_TO_DEGREES;
     snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.1f,%.1f,%.2f",
 	     imu_node.getDouble("timestamp"),
-	     ap_node.getDouble("target_groundtrack_deg"),
-	     ap_node.getDouble("target_roll_deg"),
+	     targets_node.getDouble("groundtrack_deg"),
+	     targets_node.getDouble("roll_deg"),
 	     filter_hdg,
 	     filter_node.getDouble("roll_deg"),
 	     act_node.getDouble("channel", 0));
@@ -603,8 +602,8 @@ string UGPacketizer::get_fcs_speed_string() {
 
     snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.1f,%.1f,%.2f",
 	     imu_node.getDouble("timestamp"),
-	     ap_node.getDouble("target_speed_kt"),
-	     ap_node.getDouble("target_pitch_deg"),
+	     targets_node.getDouble("airspeed_kt"),
+	     targets_node.getDouble("pitch_deg"),
 	     vel_node.getDouble("airspeed_smoothed_kt"),
 	     filter_node.getDouble("pitch_deg"),
 	     act_node.getDouble("channel", 1));
@@ -618,7 +617,7 @@ string UGPacketizer::get_fcs_altitude_string() {
 
     snprintf(buf, max_buf, "%.2f,%.1f,%.1f,%.2f",
 	     imu_node.getDouble("timestamp"),
-	     ap_node.getDouble("target_agl_ft"),
+	     targets_node.getDouble("altitude_agl_ft"),
 	     pos_node.getDouble("altitude_agl_ft"),
 	     act_node.getDouble("channel", 2) );
 

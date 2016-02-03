@@ -10,7 +10,7 @@ class Circle(Task):
         self.orient_node = getNode("/orientation", True)
         self.task_node = getNode("/task/circle", True)
         self.ap_node = getNode("/autopilot", True)
-        self.ap_settings_node = getNode("/autopilot/settings", True)
+        self.targets_node = getNode("/autopilot/targets", True)
 
         self.coord_path = ""
         self.direction = "left"
@@ -60,13 +60,13 @@ class Circle(Task):
 
         # override target agl if requested by task
         if self.target_agl_ft > 0.0:
-            self.saved_agl_ft = self.ap_settings_node.getFloat("target_agl_ft")
-            self.ap_settings_node.setFloat("target_agl_ft", self.target_agl_ft)
+            self.saved_agl_ft = self.targets_node.getFloat("altitude_agl_ft")
+            self.targets_node.setFloat("altitude_agl_ft", self.target_agl_ft)
 
         # override target speed if requested by task
         if self.target_speed_kt > 0.0:
-            self.saved_speed_kt = self.ap_settings_node.getFloat("target_speed_kt")
-            self.ap_settings_node.setFloat("target_speed_kt", self.target_speed_kt)
+            self.saved_speed_kt = self.targets_node.getFloat("airspeed_kt")
+            self.targets_node.setFloat("airspeed_kt", self.target_speed_kt)
 
         # set fcs mode to basic+alt+speed
         self.ap_node.setString("mode", "basic+alt+speed")
@@ -123,11 +123,11 @@ class Circle(Task):
 
         # restore target agl if overridden by task
         if self.target_agl_ft > 0.0:
-            self.ap_settings_node.setFloat("target_agl_ft", self.saved_agl_ft)
+            self.targets_node.setFloat("altitude_agl_ft", self.saved_agl_ft)
 
         # restore target speed if overridden by task
         if self.target_speed_kt > 0.0:
-            self.ap_settings_node.setFloat("target_speed_kt", saved_speed_kt)
+            self.targets_node.setFloat("airspeed_kt", saved_speed_kt)
 
         self.active = False
         return True

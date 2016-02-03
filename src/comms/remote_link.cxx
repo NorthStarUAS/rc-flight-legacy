@@ -416,16 +416,16 @@ static void remote_link_execute_command( const string command ) {
 	task_node.setString( "command_request", command.c_str() );
     } else if ( token[0] == "ap" && token.size() == 3 ) {
         // specify an autopilot target
-	pyPropertyNode ap_node = pyGetNode("/autopilot/settings", true);
+	pyPropertyNode targets_node = pyGetNode("/autopilot/targets", true);
         if ( token[1] == "agl-ft" ) {
             double agl_ft = atof( token[2].c_str() );
-            ap_node.setDouble( "target_agl_ft", agl_ft );
+            targets_node.setDouble( "altitude_agl_ft", agl_ft );
         } else if ( token[1] == "msl-ft" ) {
             double msl_ft = atof( token[2].c_str() );
-            ap_node.setDouble( "target_msl_ft", msl_ft );
+            targets_node.setDouble( "target_msl_ft", msl_ft );
         } else if ( token[1] == "speed-kt" ) {
             double speed_kt = atof( token[2].c_str() );
-            ap_node.setDouble( "target_speed_kt", speed_kt );
+            targets_node.setDouble( "airspeed_kt", speed_kt );
         }
     } else if ( token[0] == "fcs-update" ) {
 	packetizer->decode_fcs_update(token);
