@@ -9,8 +9,8 @@ class Circle(Task):
         self.pos_node = getNode("/position", True)
         self.orient_node = getNode("/orientation", True)
         self.task_node = getNode("/task/circle", True)
-        self.fcs_node = getNode("/autopilot", True)
-        self.ap_node = getNode("/autopilot/settings", True)
+        self.ap_node = getNode("/autopilot", True)
+        self.ap_settings_node = getNode("/autopilot/settings", True)
 
         self.coord_path = ""
         self.direction = "left"
@@ -48,7 +48,7 @@ class Circle(Task):
         self.active = True
 
         # save existing state
-        self.saved_fcs_mode = self.fcs_node.getString("mode")
+        self.saved_fcs_mode = self.ap_node.getString("mode")
         self.saved_lon_deg = self.task_node.getFloat("longitude_deg")
         self.saved_lat_deg = self.task_node.getFloat("latitude_deg")
 
@@ -60,16 +60,16 @@ class Circle(Task):
 
         # override target agl if requested by task
         if self.target_agl_ft > 0.0:
-            self.saved_agl_ft = self.ap_node.getFloat("target_agl_ft")
-            self.ap_node.setFloat("target_agl_ft", self.target_agl_ft)
+            self.saved_agl_ft = self.ap_settings_node.getFloat("target_agl_ft")
+            self.ap_settings_node.setFloat("target_agl_ft", self.target_agl_ft)
 
         # override target speed if requested by task
         if self.target_speed_kt > 0.0:
-            self.saved_speed_kt = self.ap_node.getFloat("target_speed_kt")
-            self.ap_node.setFloat("target_speed_kt", self.target_speed_kt)
+            self.saved_speed_kt = self.ap_settings_node.getFloat("target_speed_kt")
+            self.ap_settings_node.setFloat("target_speed_kt", self.target_speed_kt)
 
         # set fcs mode to basic+alt+speed
-        self.fcs_node.setString("mode", "basic+alt+speed")
+        self.ap_node.setString("mode", "basic+alt+speed")
         comms.events.log("mission", "circle")
     
     def update(self):
@@ -116,18 +116,18 @@ class Circle(Task):
     
     def close(self):
         # restore the previous state
-        self.fcs_node.setString("mode", self.saved_fcs_mode)
+        self.ap_node.setString("mode", self.saved_fcs_mode)
 
         self.task_node.setString("direction", self.saved_direction)
         self.task_node.setFloat("radius_m", self.saved_radius_m)
 
         # restore target agl if overridden by task
         if self.target_agl_ft > 0.0:
-            self.ap_node.setFloat("target_agl_ft", self.saved_agl_ft)
+            self.ap_settings_node.setFloat("target_agl_ft", self.saved_agl_ft)
 
         # restore target speed if overridden by task
         if self.target_speed_kt > 0.0:
-            self.ap_node.setFloat("target_speed_kt", saved_speed_kt)
+            self.ap_settings_node.setFloat("target_speed_kt", saved_speed_kt)
 
         self.active = False
         return True

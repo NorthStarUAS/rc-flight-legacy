@@ -7,8 +7,8 @@ class Preflight(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.task_node = getNode("/task", True)
-        self.fcs_node = getNode("/autopilot", True)
-        self.ap_node = getNode("/autopilot/settings", True)
+        self.ap_node = getNode("/autopilot", True)
+        self.ap_settings_node = getNode("/autopilot/settings", True)
         self.imu_node = getNode("/sensors/imu", True)
         self.saved_fcs_mode = ""
         self.timer = 0.0
@@ -21,12 +21,12 @@ class Preflight(Task):
     def activate(self):
         # fixme, not if airborne!
         self.active = True
-        self.saved_fcs_mode = self.fcs_node.getString("mode")
+        self.saved_fcs_mode = self.ap_node.getString("mode")
         if not self.task_node.getBool("is_airborne"):
             # set fcs mode to roll+pitch (vanity mode)
-            self.fcs_node.setString("mode", "roll+pitch")
-            self.ap_node.setFloat( "target_roll_deg", 0.0 )
-            self.ap_node.setFloat( "target_pitch_deg", 0.0 )
+            self.ap_node.setString("mode", "roll+pitch")
+            self.ap_settings_node.setFloat( "target_roll_deg", 0.0 )
+            self.ap_settings_node.setFloat( "target_pitch_deg", 0.0 )
             # reset timer
             self.timer = 0.0
         else:
@@ -57,6 +57,6 @@ class Preflight(Task):
     
     def close(self):
         # restore the previous state
-        self.fcs_node.setString("mode", self.saved_fcs_mode)
+        self.ap_node.setString("mode", self.saved_fcs_mode)
         self.active = False
         return True

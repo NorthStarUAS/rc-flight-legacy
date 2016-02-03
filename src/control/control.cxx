@@ -53,7 +53,6 @@ static FGXMLAutopilot ap;
 static pyPropertyNode ap_node;
 static pyPropertyNode ap_locks_node;
 static pyPropertyNode ap_settings_node;
-static pyPropertyNode fcs_node;
 static pyPropertyNode pointing_node;
 static pyPropertyNode pointing_vec_node;
 static pyPropertyNode orient_node;
@@ -67,7 +66,6 @@ static void bind_properties() {
     ap_node = pyGetNode( "/autopilot", true );
     ap_locks_node = pyGetNode( "/autopilot/locks", true );
     ap_settings_node = pyGetNode( "/autopilot/settings", true );
-    fcs_node = pyGetNode( "/autopilot", true );
     pointing_node = pyGetNode( "/pointing", true );
     pointing_vec_node = pyGetNode( "/pointing/vector", true );
     orient_node = pyGetNode( "/orientation", true );
@@ -134,7 +132,7 @@ void control_update(double dt)
     }
     
     static string last_fcs_mode = "";
-    string fcs_mode = fcs_node.getString("mode");
+    string fcs_mode = ap_node.getString("mode");
     if ( ap_node.getBool("master_switch") ) {
 	if ( last_fcs_mode != fcs_mode ) {
 	    string message = "mode change = " + fcs_mode;

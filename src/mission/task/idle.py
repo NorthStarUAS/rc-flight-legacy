@@ -13,7 +13,7 @@ class Idle(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.task_node = getNode("/task", True)
-        self.fcs_node = getNode("/autopilot", True)
+        self.ap_node = getNode("/autopilot", True)
         self.engine_node = getNode("/controls/engine", True)
         self.saved_fcs_mode = ""
         self.name = config_node.getString("name")
@@ -23,12 +23,12 @@ class Idle(Task):
         self.active = True
 
         # save existing state
-        self.saved_fcs_mode = self.fcs_node.getString("mode")
+        self.saved_fcs_mode = self.ap_node.getString("mode")
         
 	# if not in the air, set a simple flight control mode that
 	# does not touch the throttle, and set throttle to idle.
 	if not self.task_node.getBool("is_airborne"):
-	    self.fcs_node.setString("mode", "basic")
+	    self.ap_node.setString("mode", "basic")
 	    self.engine_node.setFloat("throttle", 0.0)
     
     def update(self):
@@ -45,6 +45,6 @@ class Idle(Task):
         return False
     
     def close(self):
-        self.fcs_node.setString("mode", self.saved_fcs_mode)
+        self.ap_node.setString("mode", self.saved_fcs_mode)
         self.active = False
         return True

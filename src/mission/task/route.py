@@ -8,8 +8,8 @@ class Route(Task):
         Task.__init__(self)
         self.home_node = getNode("/task/home", True)
         self.route_node = getNode("/task/route", True)
-        self.fcs_node = getNode("/autopilot", True)
-        self.ap_node = getNode("/autopilot/settings", True)
+        self.ap_node = getNode("/autopilot", True)
+        self.ap_settings_node = getNode("/autopilot/settings", True)
 
         self.alt_agl_ft = 0.0
         self.speed_kt = 30.0
@@ -32,15 +32,15 @@ class Route(Task):
         self.active = True
 
         # save existing state
-        self.saved_fcs_mode = self.fcs_node.getString("mode")
-        self.saved_agl_ft = self.ap_node.getFloat("target_agl_ft")
-        self.saved_speed_kt = self.ap_node.getFloat("target_speed_kt")
+        self.saved_fcs_mode = self.ap_node.getString("mode")
+        self.saved_agl_ft = self.ap_settings_node.getFloat("target_agl_ft")
+        self.saved_speed_kt = self.ap_settings_node.getFloat("target_speed_kt")
 
         # set fcs mode to basic+alt+speed
-        self.fcs_node.setString("mode", "basic+alt+speed")
+        self.ap_node.setString("mode", "basic+alt+speed")
 
         if self.alt_agl_ft > 0.1:
-            self.ap_node.setFloat("target_agl_ft", self.alt_agl_ft)
+            self.ap_settings_node.setFloat("target_agl_ft", self.alt_agl_ft)
 
         self.route_node.setString("follow_mode", "leader");
         self.route_node.setString("start_mode", "first_wpt");
@@ -62,9 +62,9 @@ class Route(Task):
     
     def close(self):
         # restore the previous state
-        self.fcs_node.setString("mode", self.saved_fcs_mode)
-        self.ap_node.setFloat("target_agl_ft", self.saved_agl_ft)
-        self.ap_node.setFloat("target_speed_kt", self.saved_speed_kt)
+        self.ap_node.setString("mode", self.saved_fcs_mode)
+        self.ap_settings_node.setFloat("target_agl_ft", self.saved_agl_ft)
+        self.ap_settings_node.setFloat("target_speed_kt", self.saved_speed_kt)
 
         self.active = False
         return True
