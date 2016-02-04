@@ -52,7 +52,7 @@ void wind_course( double ws_kt, double tas_kt, double wd_deg, double crs_deg,
 
 double wind_heading_diff( double current_crs_deg, double target_crs_deg ) {
     // wind estimates
-    static pyPropertyNode wind_node = pyGetNode("/filters/wind-est", true);
+    static pyPropertyNode wind_node = pyGetNode("/filters/wind", true);
 
     double gs_kt = 0.0;
 

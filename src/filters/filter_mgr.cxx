@@ -71,7 +71,7 @@ void Filter_init() {
     pos_combined_node = pyGetNode("/position/combined", true);
     task_node = pyGetNode("/task", true);
     airdata_node = pyGetNode("/sensors/airdata", true);
-    wind_node = pyGetNode("/filters/wind-est", true);
+    wind_node = pyGetNode("/filters/wind", true);
     status_node = pyGetNode("/status", true);
 
     wind_node.setDouble( "pitot_scale_factor", 1.0 );

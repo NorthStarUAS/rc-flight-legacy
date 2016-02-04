@@ -26,7 +26,7 @@ UGPacketizer::UGPacketizer() {
     pos_combined_node = pyGetNode("/position/combined", true);
     vel_node = pyGetNode("/velocity", true);
     filter_node = pyGetNode("/filters/filter", true);
-    wind_node = pyGetNode("/filters/wind-est", true);
+    wind_node = pyGetNode("/filters/wind", true);
     act_node = pyGetNode("/actuators/actuator", true);
 #define NUM_ACTUATORS 8
     act_node.setLen("channel", NUM_ACTUATORS, 0.0);

@@ -6,6 +6,7 @@ import task.is_airborne
 import task.circle
 import task.home_mgr
 import task.idle
+import task.land
 import task.launch
 import task.lost_link
 import task.preflight
@@ -21,7 +22,7 @@ class MissionMgr:
         self.task_node = getNode("/task", True)
         self.circle_node = getNode("/task/circle", True)
         self.home_node = getNode("/task/home", True)
-        self.wind_node = getNode("/filters/wind-est", True)
+        self.wind_node = getNode("/filters/wind", True)
         self.global_tasks = []
         self.seq_tasks = []
         self.standby_tasks = []
@@ -38,6 +39,8 @@ class MissionMgr:
             result = task.home_mgr.HomeMgr(config_node)
         elif task_name == 'idle':
             result = task.idle.Idle(config_node)
+        elif task_name == 'land':
+            result = task.land.Land(config_node)
         elif task_name == 'launch':
             result = task.launch.Launch(config_node)
         elif task_name == 'lost_link':
