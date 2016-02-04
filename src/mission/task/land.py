@@ -94,7 +94,7 @@ class Land(Task):
             self.saved_speed_kt = targets_node.getFloat("airspeed_kt")
 
         self.ap_node.setString("mode", "basic+alt+speed")
-        self.targets_node.setFloat("target_airspeed_kt",
+        self.targets_node.setFloat("airspeed_kt",
                                    self.land_node.getFloat("approach_speed_kt"))
 
         # start at the beginning of the route (in case we inherit a
@@ -105,12 +105,17 @@ class Land(Task):
         self.active = True
         comms.events.log("mission", "land")
     
-    def cart2polar(x, y):
+    def cart2polar(self, x, y):
         # fixme: if display_on:
 	#    printf("approach %0f %0f\n", x, y);
         dist = math.sqrt(x*x + y*y)
         deg = math.atan2(x, y) * r2d
         return (dist, deg)
+
+    def polar2cart(self, deg, dist):
+        x = dist * math.sin(deg * d2r)
+        y = dist * math.cos(deg * d2r)
+        return (x, y)
 
     def update(self):
         if not self.active:
@@ -257,5 +262,61 @@ class Land(Task):
             return True;
 
     def close(self):
+        # restore the previous state
+        self.ap_node.setString("mode", self.saved_fcs_mode)
+        self.targets_node.setFloat("airspeed_kt", self.saved_speed_kt)
+        self.targets_node.setFloat("altitude_agl_ft", self.saved_agl_ft );
         self.active = False
+        return True
+
+    def build_approach(self):
+        # fixme: approach_mgr.clear_standby()
+
+        deg = 0.0
+        dist = 0.0
+
+        turn_radius_m = self.land_node.getFloat("turn_radius_m")
+        extend_final_leg_m = self.land_node.getFloat("extend_final_leg_m")
+        lateral_offset_m = self.land_node.getFloat("lateral_offset_m")
+        side = -1.0
+        dir = self.land_node.getString("direction")
+        if dir == "left":
+            side = -1.0
+        elif dir == "right":
+            side = 1.0
+
+        # setup a descending circle aligned with the final turn to
+        # final/base.  The actual approach route is simply two points.
+        # When at the correct altitude and exit heading, drop the
+        # circle and intercept the final approach.
+
+        final_leg_m = 2.0 * self.turn_radius_m + self.extend_final_leg_m
+
+        # fixme: if display_on:
+        #    printf("side = %.1f\n", side)
+
+        # start of final leg point
+        (dist, deg) = self.cart2polar(self.lateral_offset_m * side,
+                                      -self.final_leg_m)
+        # fixme: approach_mgr.new_waypoint(dist, deg, 0.0, 0)
+
+        # touchdown point
+        (dist, deg) = self.cart2polar(self.lateral_offset_m * side, 0.0)
+        # fixme: approach_mgr.new_waypoint( dist, deg, 0.0, 0 )
+
+        # set route modes
+        # fixme: approach_mgr.set_start_mode( FGRouteMgr::FIRST_WPT )
+        # fixme: approach_mgr.set_follow_mode( FGRouteMgr::LEADER )
+        # fixme: approach_mgr.set_completion_mode( FGRouteMgr::EXTEND_LAST_LEG )
+
+        # estimate approach length (final leg dist + 1/8 of the turning circle)
+        approach_len_m = final_leg_m + self.turn_radius_m * 2.0*math.pi * 0.125
+
+        # make the new route 'active'
+        # fixme: approach_mgr.swap()
+
+        # force a reposition on next update
+        self.last_lon = 0.0
+        self.last_lat = 0.0
+
         return True
