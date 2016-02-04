@@ -1,9 +1,12 @@
+import math
+
 from props import root, getNode
 
 import comms.events
 from task import Task
 
 d2r = math.pi / 180.0
+r2d = 180.0 / math.pi
 ft2m = 0.3048
 m2ft = 1.0 / ft2m
 
@@ -50,7 +53,7 @@ class Land(Task):
         self.land_node.setFloat("glideslope_deg", self.glideslope_deg)
         self.land_node.setFloat("turn_radius_m", self.turn_radius_m)
         # self.land_node.setInt("turn_steps", self.turn_steps) # depricated
-        self.land_node.setString("direction", self.direction.c_str())
+        self.land_node.setString("direction", self.direction)
         self.land_node.setFloat("extend_final_leg_m", self.extend_final_leg_m)
         self.land_node.setFloat("altitude_bias_ft", self.alt_bias_ft)
         self.land_node.setFloat("approach_speed_kt", self.approach_speed_kt)
@@ -75,23 +78,23 @@ class Land(Task):
         self.saved_speed_kt = 0.0
 
     def activate(self):
-        if not is_active():
+        if not self.active:
             # build the approach with the current property tree values
             self.build_approach()
 
             # compute the approach entry altitude from the designed
             # approach route length
-            self.entry_agl_ft = approach_len_m * m2ft
+            self.entry_agl_ft = self.approach_len_m * m2ft \
                 * math.tan( self.land_node.getFloat("glideslope_deg") * d2r )
             # fixme
             # if display_on:
             #     printf("Approach distance m = %.1f, entry agl ft = %.1f\n",
-            #            approach_len_m, entry_agl_ft)
+            #            self.approach_len_m, entry_agl_ft)
 
             # Save existing state
             self.saved_fcs_mode = self.ap_node.getString("mode")
-            self.saved_agl_ft = targets_node.getFloat("altitude_agl_ft")
-            self.saved_speed_kt = targets_node.getFloat("airspeed_kt")
+            self.saved_agl_ft = self.targets_node.getFloat("altitude_agl_ft")
+            self.saved_speed_kt = self.targets_node.getFloat("airspeed_kt")
 
         self.ap_node.setString("mode", "basic+alt+speed")
         self.targets_node.setFloat("airspeed_kt",
@@ -297,7 +300,7 @@ class Land(Task):
 
         # start of final leg point
         (dist, deg) = self.cart2polar(self.lateral_offset_m * side,
-                                      -self.final_leg_m)
+                                      -final_leg_m)
         # fixme: approach_mgr.new_waypoint(dist, deg, 0.0, 0)
 
         # touchdown point
@@ -310,7 +313,8 @@ class Land(Task):
         # fixme: approach_mgr.set_completion_mode( FGRouteMgr::EXTEND_LAST_LEG )
 
         # estimate approach length (final leg dist + 1/8 of the turning circle)
-        approach_len_m = final_leg_m + self.turn_radius_m * 2.0*math.pi * 0.125
+        self.approach_len_m = final_leg_m \
+                              + self.turn_radius_m * 2.0*math.pi * 0.125
 
         # make the new route 'active'
         # fixme: approach_mgr.swap()

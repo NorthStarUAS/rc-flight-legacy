@@ -33,7 +33,7 @@ class MissionMgr:
         print "  make_task():", task_name
         if task_name == 'is_airborne':
             result = task.is_airborne.IsAirborne(config_node)
-        if task_name == 'circle':
+        elif task_name == 'circle':
             result = task.circle.Circle(config_node)
         elif task_name == 'home_manager':
             result = task.home_mgr.HomeMgr(config_node)
