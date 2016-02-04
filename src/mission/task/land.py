@@ -127,7 +127,6 @@ class Land(Task):
 
         # fixme: route_mgr_prof.start()
         # fixme: (not needed?) reposition_if_necessary()
-        # fixme: approach_mgr.update()
 
         self.glideslope_rad = self.land_node.getFloat("glideslope_deg") * d2r
         self.extend_final_leg_m = self.land_node.getFloat("extend_final_leg_m")
@@ -275,8 +274,6 @@ class Land(Task):
         return True
 
     def build_approach(self):
-        # fixme: approach_mgr.clear_standby()
-
         deg = 0.0
         dist = 0.0
 
@@ -319,9 +316,6 @@ class Land(Task):
         # estimate approach length (final leg dist + 1/8 of the turning circle)
         self.approach_len_m = final_leg_m \
                               + self.turn_radius_m * 2.0*math.pi * 0.125
-
-        # make the new route 'active'
-        # fixme: approach_mgr.swap()
 
         # force a reposition on next update
         self.last_lon = 0.0
