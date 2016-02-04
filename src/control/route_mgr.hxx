@@ -97,7 +97,11 @@ private:
 
     SGWayPoint make_waypoint( const string& wpt_string );
 
+    // build a route from a property (sub) tree
     bool build( pyPropertyNode *config_node );
+    
+    // build a route from a string request
+    bool build( string request );
 
 public:
 

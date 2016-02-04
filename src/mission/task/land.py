@@ -13,8 +13,9 @@ m2ft = 1.0 / ft2m
 class Land(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.land_node = getNode("/task/land", True)
         self.task_node = getNode("/task", True)
+        self.land_node = getNode("/task/land", True)
+        self.route_node = getNode("/task/route", True)
         self.ap_node = getNode("/autopilot", True)
         self.pos_node = getNode("/position", True)
         self.vel_node = getNode("/velocity", True)
@@ -133,10 +134,11 @@ class Land(Task):
         self.alt_bias_ft = self.land_node.getFloat("altitude_bias_ft")
 
         # compute glideslope/target elevation
-        # FIXME: dist_m = approach_mgr.get_dist_remaining_m()
+        dist_m = self.route_node.getFloat("dist_remaining_m")
         alt_m = dist_m * math.tan(self.glideslope_rad)
         # FIXME: this conditional action gets overwritten immediate after
-        if approach_mgr.get_waypoint_index() == 0:
+        wpt_index = self.route_node.getInt("target_waypoint_idx")
+        if wpt_index == 0:
             # fly entry altitude to first waypoint
             self.targets_node.setFloat("altitude_agl_ft",
                                        self.entry_agl_ft + self.alt_bias_ft)
@@ -152,7 +154,7 @@ class Land(Task):
         alt_error_ft = self.pos_node.getFloat("altitude_agl_ft") - self.targets_node.getFloat("target_agl_ft")
         # current_glideslope_deg = math.atan2(self.pos_node.getFloat("altitude_agl_m), dist_m) * r2d
 
-        if approach_mgr.get_waypoint_index() <= 1:
+        if wpt_index <= 1:
             # still tracking first or second waypoint of approach
             # route... (in case we start the approach over the first
             # waypoint and immediately find ourself tracking the
@@ -298,20 +300,22 @@ class Land(Task):
         # fixme: if display_on:
         #    printf("side = %.1f\n", side)
 
+        # create and request approach route
+        route_request = "route"
         # start of final leg point
         (dist, deg) = self.cart2polar(self.lateral_offset_m * side,
                                       -final_leg_m)
-        # fixme: approach_mgr.new_waypoint(dist, deg, 0.0, 0)
-
+        route_request += ",0,%.2f,%.2f,-" % (deg, dist)
         # touchdown point
         (dist, deg) = self.cart2polar(self.lateral_offset_m * side, 0.0)
-        # fixme: approach_mgr.new_waypoint( dist, deg, 0.0, 0 )
+        route_request += ",0,%.2f,%.2f,-" % (deg, dist)
 
-        # set route modes
-        # fixme: approach_mgr.set_start_mode( FGRouteMgr::FIRST_WPT )
-        # fixme: approach_mgr.set_follow_mode( FGRouteMgr::LEADER )
-        # fixme: approach_mgr.set_completion_mode( FGRouteMgr::EXTEND_LAST_LEG )
-
+        # set route request and route modes
+        self.route_node.setString("route_request", route_request)
+        self.route_node.setString("start_mode", "first_wpt")
+        self.route_node.setString("follow_mode", "leader")
+        self.route_node.setString("completion_mode", "extend_last_leg")
+        
         # estimate approach length (final leg dist + 1/8 of the turning circle)
         self.approach_len_m = final_leg_m \
                               + self.turn_radius_m * 2.0*math.pi * 0.125

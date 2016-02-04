@@ -35,6 +35,7 @@
 #include "sensors/gps_mgr.hxx"
 #include "util/exception.hxx"
 #include "util/sg_path.hxx"
+#include "util/strutils.hxx"
 #include "util/wind.hxx"
 
 #include "waypoint.hxx"
@@ -125,6 +126,18 @@ void FGRouteMgr::update() {
     double wp_agl_m = 0.0;
     double wp_msl_m = 0.0;
 
+    string request = route_node.getString("route_request");
+    if ( request.length() ) {
+	if ( build(request) ) {
+	    swap();
+	    reposition();
+	    route_node.setString("request_result", "success");
+	} else {
+	    route_node.setString("request_result", "failed");
+	}		
+	route_node.setString("route_request", "");
+    }
+    
     if ( active->size() > 0 ) {
 	if ( GPS_age() < 10.0 ) {
 
@@ -321,6 +334,7 @@ void FGRouteMgr::update() {
 	    // estimate distance remaining to completion of route
 	    dist_remaining_m = nav_dist_m
 		+ active->get_remaining_distance_from_current_waypoint();
+	    route_node.setDouble("dist_remaining_m", dist_remaining_m);
 
 #if 0
 	    if ( display_on ) {
@@ -417,6 +431,7 @@ bool FGRouteMgr::swap() {
 }
 
 
+// build a route from a property (sub) tree
 bool FGRouteMgr::build( pyPropertyNode *config_node ) {
     standby->clear();
     vector <string> children = config_node->getChildren();
@@ -434,6 +449,32 @@ bool FGRouteMgr::build( pyPropertyNode *config_node ) {
             printf("Unknown top level section: %s\n", name.c_str() );
             return false;
         }
+    }
+    printf("loaded %d waypoints\n", standby->size());
+    return true;
+}
+
+
+// build a route from a string request
+bool FGRouteMgr::build( string request ) {
+    vector <string> token = split( request, "," );
+    if ( token.size() < 5 ) {
+	return false;
+    } else if ( route_mgr == NULL ) {
+	return false;
+    }
+    standby->clear();
+    unsigned int i = 1;
+    while ( i + 4 <= token.size() ) {
+	int mode = atoi( token[i].c_str() );
+	double field1 = atof( token[i+1].c_str() );
+	double field2 = atof( token[i+2].c_str() );
+	double agl_m = -9999.9;
+	if ( token[i+3] != "-" ) {
+	    agl_m = atof( token[i+3].c_str() ) * SG_FEET_TO_METER;
+	}
+	new_waypoint( field1, field2, agl_m, mode );
+	i += 4;
     }
     printf("loaded %d waypoints\n", standby->size());
     return true;

@@ -111,9 +111,10 @@ void control_update(double dt)
     // for now.
     route_mgr->reposition_if_necessary();
 
-    if ( task_node.getString("current_task_id") == "circle" ) {
+    string current_task = task_node.getString("current_task_id");
+    if ( current_task == "circle" ) {
 	circle_mgr->update();
-    } else if ( task_node.getString("current_task_id") == "route" ) {
+    } else if ( current_task == "route" || current_task == "land" ) {
 	route_mgr->update();
     }
     
