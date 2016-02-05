@@ -3,6 +3,7 @@ import math
 from props import root, getNode
 
 import comms.events
+import mission.mission_mgr
 from task import Task
 
 d2r = math.pi / 180.0
@@ -90,7 +91,7 @@ class Land(Task):
             # fixme
             # if display_on:
             #     printf("Approach distance m = %.1f, entry agl ft = %.1f\n",
-            #            self.approach_len_m, entry_agl_ft)
+            #            self.approach_len_m, self.entry_agl_ft)
 
             # Save existing state
             self.saved_fcs_mode = self.ap_node.getString("mode")
@@ -177,22 +178,22 @@ class Land(Task):
                 if exit_hdg > 360.0:
                     exit_hdg -= 360.0
 
-                radius_m = self.land_node.getFloat("turn_radius_m")
+                self.radius_m = self.land_node.getFloat("turn_radius_m")
                 offset_deg = 0.0
                 offset_dist = 0.0
-                (offset_dist, offset_deg) = self.cart2polar(radius_m*self.side, -2.0*self.radius_m - self.extend_final_leg_m)
+                (offset_dist, offset_deg) = self.cart2polar(self.radius_m*self.side, -2.0*self.radius_m - self.extend_final_leg_m)
 
                 # printf("entry_agl=%.1f bias_ft=%.1f\n",
-                #   entry_agl_ft, alt_bias_ft)
-                mission_mgr.request_task_circle(
+                #   self.entry_agl_ft, alt_bias_ft)
+                mission.mission_mgr.m.request_task_circle(
                         self.home_node.getFloat("longitude_deg"),
                         self.home_node.getFloat("latitude_deg"),
                         offset_deg, offset_dist )
-                mission_mgr.request_task_circle_setup(
+                mission.mission_mgr.m.request_task_circle_setup(
                         self.land_node.getFloat("turn_radius_m"),
                         dir )
-                mission_mgr.request_task_circle_set_exit_conditions(
-                        entry_agl_ft + alt_bias_ft, exit_hdg )
+                mission.mission_mgr.m.request_task_circle_set_exit_conditions(
+                        self.entry_agl_ft + self.alt_bias_ft, exit_hdg )
 
         # compute time to touchdown at current ground speed (assuming the
         # navigation system has lined us up properly
@@ -246,7 +247,7 @@ class Land(Task):
 
         # if ( display_on ) {
         #    printf("land dist = %.0f target alt = %.0f\n",
-        #           dist_m, alt_m * SG_METER_TO_FEET + alt_bias_ft)
+        #           dist_m, alt_m * SG_METER_TO_FEET + self.alt_bias_ft)
 
         # fixme: route_mgr_prof.stop()
 
