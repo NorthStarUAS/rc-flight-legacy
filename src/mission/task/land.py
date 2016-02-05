@@ -166,7 +166,7 @@ class Land(Task):
                 # approach direction (handedness)
                 exit_hdg = self.home_node.getFloat("azimuth_deg")
                 dir = "left"
-                if side < 0.0:
+                if self.side < 0.0:
                     exit_hdg += 45.0
                     dir = "left"
                 else:
@@ -180,7 +180,7 @@ class Land(Task):
                 radius_m = self.land_node.getFloat("turn_radius_m")
                 offset_deg = 0.0
                 offset_dist = 0.0
-                (offset_dist, offset_deg) = cart2polar(radius_m*side, -2.0*radius_m - extend_final_leg_m)
+                (offset_dist, offset_deg) = self.cart2polar(radius_m*self.side, -2.0*self.radius_m - self.extend_final_leg_m)
 
                 # printf("entry_agl=%.1f bias_ft=%.1f\n",
                 #   entry_agl_ft, alt_bias_ft)
@@ -206,10 +206,10 @@ class Land(Task):
         #    dist_m, ground_speed_ms, seconds_to_touchdown)
 
         # approach_speed_kt = approach_speed_node.getFloat()
-        flare_pitch_deg = self.land_node.getFloat("flare_pitch_deg")
-        flare_seconds = self.land_node.getFloat("flare_seconds")
+        self.flare_pitch_deg = self.land_node.getFloat("flare_pitch_deg")
+        self.flare_seconds = self.land_node.getFloat("flare_seconds")
 
-        if seconds_to_touchdown <= flare_seconds and not self.flare:
+        if seconds_to_touchdown <= self.flare_seconds and not self.flare:
             # within x seconds of touchdown horizontally.  Note these
             # are padded numbers because we don't know the truth
             # exactly ... we could easily be closer or lower or
@@ -218,30 +218,30 @@ class Land(Task):
             # target flare pitch (as configured in the task
             # definition.)
             self.flare = True
-            flare_start_time = self.imu_node.getFloat("timestamp")
-            approach_throttle = self.engine_node.getFloat("throttle")
-            approach_pitch = self.targets_node.getFloat("pitch_deg")
-            flare_pitch_range = approach_pitch - flare_pitch_deg
+            self.flare_start_time = self.imu_node.getFloat("timestamp")
+            self.approach_throttle = self.engine_node.getFloat("throttle")
+            self.approach_pitch = self.targets_node.getFloat("pitch_deg")
+            self.flare_pitch_range = self.approach_pitch - self.flare_pitch_deg
             self.ap_node.setString("mode", "basic")
 
         if self.flare:
-            if flare_seconds > 0.01:
-                elapsed = self.imu_node.getFloat("timestamp") - flare_start_time
-                percent = elapsed / flare_seconds
+            if self.flare_seconds > 0.01:
+                elapsed = self.imu_node.getFloat("timestamp") - self.flare_start_time
+                percent = elapsed / self.flare_seconds
                 if percent > 1.0:
                     percent = 1.0
                 self.targets_node.setFloat("pitch_deg",
-                                           approach_pitch
-                                           - percent * flare_pitch_range)
+                                           self.approach_pitch
+                                           - percent * self.flare_pitch_range)
                 self.engine_node.setFloat("throttle",
-                                          approach_throttle * (1.0 - percent))
+                                          self.approach_throttle * (1.0 - percent))
                 #printf("FLARE: elapsed=%.1f percent=%.2f speed=%.1f throttle=%.1f",
                 #       elapsed, percent,
-                #       approach_speed_kt - percent * flare_pitch_range,
-                #       approach_throttle * (1.0 - percent))
+                #       approach_speed_kt - percent * self.flare_pitch_range,
+                #       self.approach_throttle * (1.0 - percent))
             else:
                 # printf("FLARE!!!!\n")
-                self.targets_node.setFloat("pitch_deg", flare_pitch_deg)
+                self.targets_node.setFloat("pitch_deg", self.flare_pitch_deg)
                 self.engine_node.setFloat("throttle", 0.0)
 
         # if ( display_on ) {
@@ -277,15 +277,15 @@ class Land(Task):
         deg = 0.0
         dist = 0.0
 
-        turn_radius_m = self.land_node.getFloat("turn_radius_m")
-        extend_final_leg_m = self.land_node.getFloat("extend_final_leg_m")
-        lateral_offset_m = self.land_node.getFloat("lateral_offset_m")
-        side = -1.0
+        self.turn_radius_m = self.land_node.getFloat("turn_radius_m")
+        self.extend_final_leg_m = self.land_node.getFloat("extend_final_leg_m")
+        self.lateral_offset_m = self.land_node.getFloat("lateral_offset_m")
+        self.side = -1.0
         dir = self.land_node.getString("direction")
         if dir == "left":
-            side = -1.0
+            self.side = -1.0
         elif dir == "right":
-            side = 1.0
+            self.side = 1.0
 
         # setup a descending circle aligned with the final turn to
         # final/base.  The actual approach route is simply two points.
@@ -300,11 +300,11 @@ class Land(Task):
         # create and request approach route
         route_request = "route"
         # start of final leg point
-        (dist, deg) = self.cart2polar(self.lateral_offset_m * side,
+        (dist, deg) = self.cart2polar(self.lateral_offset_m * self.side,
                                       -final_leg_m)
         route_request += ",0,%.2f,%.2f,-" % (deg, dist)
         # touchdown point
-        (dist, deg) = self.cart2polar(self.lateral_offset_m * side, 0.0)
+        (dist, deg) = self.cart2polar(self.lateral_offset_m * self.side, 0.0)
         route_request += ",0,%.2f,%.2f,-" % (deg, dist)
 
         # set route request and route modes
