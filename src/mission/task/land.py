@@ -314,10 +314,10 @@ class Land(Task):
         # start of final leg point
         (dist, deg) = self.cart2polar(self.lateral_offset_m * self.side,
                                       -final_leg_m)
-        route_request += ",0,%.2f,%.2f,-" % (deg, dist)
+        route_request += ",0,%.2f,%.2f,-" % (dist, deg)
         # touchdown point
         (dist, deg) = self.cart2polar(self.lateral_offset_m * self.side, 0.0)
-        route_request += ",0,%.2f,%.2f,-" % (deg, dist)
+        route_request += ",0,%.2f,%.2f,-" % (dist, deg)
 
         # set route request and route modes
         self.route_node.setString("route_request", route_request)
