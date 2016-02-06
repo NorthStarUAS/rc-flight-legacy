@@ -14,6 +14,8 @@ import task.recalibrate
 import task.route
 import task.throttle_safety
 
+import mission.greatcircle
+
 class MissionMgr:
     def __init__(self):
         self.targets_node = getNode("/autopilot/targets", True)
@@ -234,17 +236,15 @@ class MissionMgr:
         # orig.setLongitudeDeg( lon_deg )
         # orig.setLatitudeDeg( lat_deg )
 
-        # if ( offset_dist_m > 0.1 ) {
-        #     double course = home_node.getFloat("azimuth_deg") + offset_hdg_deg
-        #     if ( course < 0.0 ) { course += 360.0 }
-        #     if ( course > 360.0 ) { course -= 360.0 }
-        #     course = 360.0 - course // invert to make this routine happy
+        if offset_dist_m > 0.1:
+            course = self.home_node.getFloat("azimuth_deg") + offset_hdg_deg
+            if course < 0.0:
+                course += 360.0
+            if course > 360.0:
+                course -= 360.0
+            course = 360.0 - course # invert to make this routine happy
 
-        #     SGGeoc result
-        #     SGGeodesy::advanceRadM( orig, course * SGD_DEGREES_TO_RADIANS,
-        #                             offset_dist_m, result )
-        #     orig = result
-        # }
+            (lat, lon) = mission.greatcircle.project_course_distance( (lat, lon), course, offset_dist_m)
 
         # setup the target coordinates
         self.circle_node.setFloat( "longitude_deg", lon )

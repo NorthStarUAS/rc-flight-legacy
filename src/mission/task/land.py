@@ -183,8 +183,8 @@ class Land(Task):
                 offset_dist = 0.0
                 (offset_dist, offset_deg) = self.cart2polar(self.radius_m*self.side, -2.0*self.radius_m - self.extend_final_leg_m)
 
-                # printf("entry_agl=%.1f bias_ft=%.1f\n",
-                #   self.entry_agl_ft, alt_bias_ft)
+                print "entry_agl=%.1f bias_ft=%.1f" % (self.entry_agl_ft, self.alt_bias_ft)
+                print "requesting circle descent task"
                 mission.mission_mgr.m.request_task_circle(
                         self.home_node.getFloat("longitude_deg"),
                         self.home_node.getFloat("latitude_deg"),
