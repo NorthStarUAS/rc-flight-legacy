@@ -216,8 +216,7 @@ class MissionMgr:
 	#    print "oops, couldn't find 'circle-home' task"
 
 
-    def request_task_circle(self, lon_deg=None, lat_deg=None,
-                            offset_hdg_deg=0.0, offset_dist_m=0.0):
+    def request_task_circle(self, lon_deg=None, lat_deg=None):
         lon = 0.0
         lat = 0.0
         if lon_deg == None or lat_deg == None:
@@ -230,21 +229,6 @@ class MissionMgr:
 
         nickname = "circle_target"
         task = None
-
-        # FIXME: offset heading/degree support
-        # SGGeoc orig
-        # orig.setLongitudeDeg( lon_deg )
-        # orig.setLatitudeDeg( lat_deg )
-
-        if offset_dist_m > 0.1:
-            course = self.home_node.getFloat("azimuth_deg") + offset_hdg_deg
-            if course < 0.0:
-                course += 360.0
-            if course > 360.0:
-                course -= 360.0
-            course = 360.0 - course # invert to make this routine happy
-
-            (lat, lon) = mission.greatcircle.project_course_distance( (lat, lon), course, offset_dist_m)
 
         # setup the target coordinates
         self.circle_node.setFloat( "longitude_deg", lon )
