@@ -128,13 +128,15 @@ void FGRouteMgr::update() {
 
     string request = route_node.getString("route_request");
     if ( request.length() ) {
+	string result = "";
 	if ( build(request) ) {
 	    swap();
 	    reposition();
-	    route_node.setString("request_result", "success");
+	    result = "success: " + request;
 	} else {
-	    route_node.setString("request_result", "failed");
+	    result = "failed: " + request;
 	}		
+	route_node.setString("request_result", result.c_str());
 	route_node.setString("route_request", "");
     }
     
