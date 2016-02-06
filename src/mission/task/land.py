@@ -136,6 +136,7 @@ class Land(Task):
         # compute glideslope/target elevation
         dist_m = self.route_node.getFloat("dist_remaining_m")
         alt_m = dist_m * math.tan(self.glideslope_rad)
+        print "dist = %.1f alt = %.1f" % (dist_m, alt_m)
         
         # FIXME: this conditional action gets overwritten immediate after
         wpt_index = self.route_node.getInt("target_waypoint_idx")
@@ -171,10 +172,10 @@ class Land(Task):
                 exit_hdg = final_heading_deg
                 dir = "left"
                 if self.side < 0.0:
-                    exit_hdg += 45.0
+                    exit_hdg += 30.0
                     dir = "left"
                 else:
-                    exit_hdg -= 45.0
+                    exit_hdg -= 30.0
                     dir = "right"
                 if exit_hdg < 0.0:
                     exit_hdg += 360.0
