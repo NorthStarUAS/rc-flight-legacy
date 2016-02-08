@@ -230,44 +230,64 @@ class MissionMgr:
         nickname = "circle_target"
         task = None
 
+        # sanity check, are we already in the requested state
+        if len(self.seq_tasks):
+            task = self.seq_tasks[0]
+            if task.nickname != nickname:
+                task = self.find_standby_task_by_nickname( nickname )
+                if task:
+                    # activate task
+                    self.push_seq_task(task)
+                    task.activate()
+            
         # setup the target coordinates
         self.circle_node.setFloat( "longitude_deg", lon )
         self.circle_node.setFloat( "latitude_deg", lat )
 
-        # clear the exit condition settings
-        self.circle_node.setString( "exit_agl_ft", "" )
-        self.circle_node.setString( "exit_heading_deg", "" )
-
-        # sanity check, are we already in the requested state
-        if len(self.seq_tasks):
-            task = self.seq_tasks[0]
-            if task.nickname == nickname:
-                return
-
-        task = self.find_standby_task_by_nickname( nickname )
-        if task:
-            # activate task
-	    self.push_seq_task(task)
-	    task.activate()
         # FIXME else if display_on:
         #    print "oops, couldn't find task by nickname:", nickname
 
         
-    def request_task_circle_setup(self, radius_m, direction):
-        # assumes we are in a circling state, but check just in case...
-        self.circle_node.setFloat("radius_m", radus_m)
-        self.circle_node.setString("direction", direction)
+    def request_task_circle_descent(self, lon_deg, lat_deg,
+                                    radius_m, direction,
+                                    exit_agl_ft, exit_heading_deg):
+        lon = 0.0
+        lat = 0.0
+        if lon_deg == None or lat_deg == None:
+            # no coordinates specified, use current position
+            lon = self.pos_node.getFloat("longitude_deg")
+            lat = self.pos_node.getFloat("latitude_deg")
+        else:
+            lon = float(lon_deg)
+            lat = float(lat_deg)
 
-    def request_task_circle_set_exit_conditions(self, exit_agl_ft,
-                                                exit_heading_deg):
-        # setup the exit conditions (which the basic task request resets/clears)
-        self.circle_node.setFloat( "exit_agl_ft", exit_agl_ft )
-        self.circle_node.setFloat( "exit_heading_deg", exit_heading_deg )
+        nickname = "circle_descent"
+        task = None
 
-        # set the autopilot to climb/descend to the requested
-        # altitude.  (If the auotopilot is never commanded, presumably
-        # we would never get to the exit condition.)
-        self.targets_node.setFloat( "altitude_agl_ft", exit_agl_ft )
+        # sanity check, are we already in the requested state
+        if len(self.seq_tasks):
+            task = self.seq_tasks[0]
+            if task.nickname != nickname:
+                task = self.find_standby_task_by_nickname( nickname )
+                if task:
+                    # activate task
+                    self.push_seq_task(task)
+                    task.activate()
+            
+                    # setup the target coordinates
+                    self.circle_node.setFloat( "longitude_deg", lon )
+                    self.circle_node.setFloat( "latitude_deg", lat )
+
+                    # circle configuration
+                    self.circle_node.setFloat("radius_m", radius_m)
+                    self.circle_node.setString("direction", direction)
+        
+                    # set the exit condition settings
+                    task.exit_agl_ft = exit_agl_ft
+                    task.exit_heading_deg = exit_heading_deg
+
+        # FIXME else if display_on:
+        #    print "oops, couldn't find task by nickname:", nickname
 
     def request_task_idle(self):
         # sanity check, are we already in the requested state

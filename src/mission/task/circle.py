@@ -17,6 +17,8 @@ class Circle(Task):
         self.radius_m = 100.0
         self.target_agl_ft = 0.0
         self.target_speed_kt = 0.0
+        self.exit_agl_ft = 0.0
+        self.exit_heading_deg = 0.0
         
         self.saved_fcs_mode = ""
         self.saved_lon_deg = 0.0
@@ -92,18 +94,16 @@ class Circle(Task):
     def is_complete(self):
         done = False
         # exit agl and exit heading specified
-        if self.task_node.getString("exit_agl_ft") != "":
+        if self.exit_agl_ft > 0.0:
             do_exit = True
-            exit_agl_ft = self.task_node.getFloat("exit_agl_ft")
             alt_agl_ft = self.pos_node.getFloat("altitude_agl_ft")
-            if alt_agl_ft - exit_agl_ft > 25.0:
+            if alt_agl_ft - self.exit_agl_ft > 25.0:
                 # not low enough
                 do_exit = False
-            exit_heading_deg = self.task_node.getFloat("exit_heading_deg")
             heading_deg = self.orient_node.getFloat("groundtrack_deg")
             if heading_deg < 0.0:
                 heading_deg += 360.0
-            hdg_error = heading_deg - exit_heading_deg
+            hdg_error = heading_deg - self.exit_heading_deg
             if hdg_error < -180.0:
                 hdg_error += 360.0
             if hdg_error > 180.0:

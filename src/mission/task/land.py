@@ -199,12 +199,11 @@ class Land(Task):
                 (cc_lat, cc_lon) = mission.greatcircle.project_course_distance( td, circle_offset_deg, offset_dist)
                 
                 print "requesting circle descent task"
-                mission.mission_mgr.m.request_task_circle(cc_lon, cc_lat)
-                mission.mission_mgr.m.request_task_circle_setup(self.radius_m,
-                                                                dir)
+                exit_agl_ft = self.entry_agl_ft + self.alt_bias_ft
+                mission.mission_mgr.m.request_task_circle_descent(cc_lon, cc_lat, self.radius_m, dir, exit_agl_ft, exit_hdg)
                 print "entry_agl=%.1f bias_ft=%.1f" % (self.entry_agl_ft, self.alt_bias_ft)
-                mission.mission_mgr.m.request_task_circle_set_exit_conditions(
-                        self.entry_agl_ft + self.alt_bias_ft, exit_hdg )
+                # instruct the autopilot to descend to exit altitude
+                self.targets_node.setFloat( "altitude_agl_ft", exit_agl_ft )
 
         # compute time to touchdown at current ground speed (assuming the
         # navigation system has lined us up properly
