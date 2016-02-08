@@ -172,10 +172,10 @@ class Land(Task):
                 exit_hdg = final_heading_deg
                 dir = "left"
                 if self.side < 0.0:
-                    exit_hdg += 30.0
+                    exit_hdg += 20.0
                     dir = "left"
                 else:
-                    exit_hdg -= 30.0
+                    exit_hdg -= 20.0
                     dir = "right"
                 if exit_hdg < 0.0:
                     exit_hdg += 360.0
@@ -186,7 +186,7 @@ class Land(Task):
                 x = self.radius_m * self.side
                 y = -2.0*self.radius_m - self.extend_final_leg_m
                 print "x,y:", (x, y)
-                (offset_dist, offset_deg) = self.cart2polar(self.radius_m*self.side, -2.0*self.radius_m - self.extend_final_leg_m)
+                (offset_dist, offset_deg) = self.cart2polar(x, y)
                 print "dist,deg:", (offset_dist, offset_deg)
                 circle_offset_deg = final_heading_deg + offset_deg
                 if circle_offset_deg < 0.0:

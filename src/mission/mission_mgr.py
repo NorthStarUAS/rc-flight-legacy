@@ -255,11 +255,8 @@ class MissionMgr:
         
     def request_task_circle_setup(self, radius_m, direction):
         # assumes we are in a circling state, but check just in case...
-        if len(self.seq_tasks):
-            task = self.seq_tasks[0]
-            if task.name == "circle-coord":
-                task.radius_m = radius_m
-                task.direction = direction
+        self.circle_node.setFloat("radius_m", radus_m)
+        self.circle_node.setString("direction", direction)
 
     def request_task_circle_set_exit_conditions(self, exit_agl_ft,
                                                 exit_heading_deg):
