@@ -136,7 +136,7 @@ class Land(Task):
         # compute glideslope/target elevation
         dist_m = self.route_node.getFloat("dist_remaining_m")
         alt_m = dist_m * math.tan(self.glideslope_rad)
-        print "dist = %.1f alt = %.1f" % (dist_m, alt_m)
+        # print "dist = %.1f alt = %.1f" % (dist_m, alt_m)
         
         # FIXME: this conditional action gets overwritten immediate after
         wpt_index = self.route_node.getInt("target_waypoint_idx")
@@ -154,7 +154,7 @@ class Land(Task):
 
         # compute error metrics
         alt_error_ft = self.pos_node.getFloat("altitude_agl_ft") - self.targets_node.getFloat("altitude_agl_ft")
-        print "alt_error_ft = %.1f" % alt_error_ft
+        # print "alt_error_ft = %.1f" % alt_error_ft
         # current_glideslope_deg = math.atan2(self.pos_node.getFloat("altitude_agl_m), dist_m) * r2d
 
         if wpt_index <= 1:
@@ -185,23 +185,23 @@ class Land(Task):
                 self.radius_m = self.land_node.getFloat("turn_radius_m")
                 x = self.radius_m * self.side
                 y = -2.0*self.radius_m - self.extend_final_leg_m
-                print "x,y:", (x, y)
+                #print "x,y:", (x, y)
                 (offset_dist, offset_deg) = self.cart2polar(x, y)
-                print "dist,deg:", (offset_dist, offset_deg)
+                #print "dist,deg:", (offset_dist, offset_deg)
                 circle_offset_deg = final_heading_deg + offset_deg
                 if circle_offset_deg < 0.0:
                     circle_offset_deg += 360.0
                 if circle_offset_deg > 360.0:
                     circle_offset_deg -= 360.0
-                print "circle_offset_deg:", circle_offset_deg
+                #print "circle_offset_deg:", circle_offset_deg
                 td = (self.home_node.getFloat("latitude_deg"),
                       self.home_node.getFloat("longitude_deg"))
                 (cc_lat, cc_lon) = mission.greatcircle.project_course_distance( td, circle_offset_deg, offset_dist)
                 
-                print "requesting circle descent task"
+                #print "requesting circle descent task"
                 exit_agl_ft = self.entry_agl_ft + self.alt_bias_ft
                 mission.mission_mgr.m.request_task_circle_descent(cc_lon, cc_lat, self.radius_m, dir, exit_agl_ft, exit_hdg)
-                print "entry_agl=%.1f bias_ft=%.1f" % (self.entry_agl_ft, self.alt_bias_ft)
+                #print "entry_agl=%.1f bias_ft=%.1f" % (self.entry_agl_ft, self.alt_bias_ft)
                 # instruct the autopilot to descend to exit altitude
                 self.targets_node.setFloat( "altitude_agl_ft", exit_agl_ft )
 
@@ -213,8 +213,8 @@ class Land(Task):
         else:
             seconds_to_touchdown = 1000.0 # lots
             
-        print "dist_m = %.1f gs = %.1f secs = %.1f" % \
-            (dist_m, ground_speed_ms, seconds_to_touchdown)
+        #print "dist_m = %.1f gs = %.1f secs = %.1f" % \
+        #    (dist_m, ground_speed_ms, seconds_to_touchdown)
 
         # approach_speed_kt = approach_speed_node.getFloat()
         self.flare_pitch_deg = self.land_node.getFloat("flare_pitch_deg")
