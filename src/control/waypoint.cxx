@@ -196,10 +196,10 @@ void SGWayPoint::update_relative_pos( const SGWayPoint &ref,
     target_lon = result.getLongitudeDeg();
     target_lat = result.getLatitudeDeg();
 
-    printf("ref_hdg = %.1f offset=%.1f course=%.1f dist=%.1f\n",
-	   ref_heading_deg, offset_hdg_deg,
-	   360.0 - course, offset_dist_m);
-    printf("ref = %.6f %.6f  new = %.6f %.6f\n",
-	   ref.get_target_lon(), ref.get_target_lat(),
-	   target_lon, target_lat);
+    // printf("ref_hdg = %.1f offset=%.1f course=%.1f dist=%.1f\n",
+    // 	   ref_heading_deg, offset_hdg_deg,
+    // 	   360.0 - course, offset_dist_m);
+    // printf("ref = %.6f %.6f  new = %.6f %.6f\n",
+    // 	   ref.get_target_lon(), ref.get_target_lat(),
+    // 	   target_lon, target_lat);
 }
