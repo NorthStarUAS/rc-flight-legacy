@@ -153,12 +153,12 @@ void pyPropertyNode::setLen(const char *name, int size, double init_val) {
 }    
 
 // return true if pObj is a list (enumerated)
-vector <string> pyPropertyNode::getChildren() {
+vector <string> pyPropertyNode::getChildren(bool expand) {
     vector <string> result;
     if ( pObj != NULL ) {
 	PyObject *pList = PyObject_CallMethod(pObj,
 					      (char *)"getChildren",
-					      (char *)"");
+					      (char *)"b", expand);
 	if ( pList != NULL ) {
 	    if ( PyList_Check(pList) ) {
 		int len = PyList_Size(pList);
@@ -332,7 +332,7 @@ double pyPropertyNode::getDouble(const char *name, int index) {
 		    if ( index < PyList_Size(pList) ) {
 			PyObject *pAttr = PyList_GetItem(pList, index);
 			// note: PyList_GetItem doesn't give us ownership
-			// of pItem so we should not decref() it.
+			// of pAttr so we should not decref() it.
 			if ( pAttr != NULL ) {
 			    result = PyObject2Double(name, pAttr);
 			}
@@ -357,9 +357,63 @@ long pyPropertyNode::getLong(const char *name, int index) {
 		    if ( index < PyList_Size(pList) ) {
 			PyObject *pAttr = PyList_GetItem(pList, index);
 			// note: PyList_GetItem doesn't give us ownership
-			// of pItem so we should not decref() it.
+			// of pAttr so we should not decref() it.
 			if ( pAttr != NULL ) {
 			    result = PyObject2Long(name, pAttr);
+			}
+		    }
+		} else {
+		    printf("WARNING: request indexed value of plain node: %s!\n", name);
+		}
+		Py_DECREF(pList);
+	    }
+	}
+    }
+    return result;
+}
+
+string pyPropertyNode::getString(const char *name, int index) {
+    string result = "";
+    if ( pObj != NULL ) {
+	if ( PyObject_HasAttrString(pObj, name) ) {
+	    PyObject *pList = PyObject_GetAttrString(pObj, name);
+	    if ( pList != NULL ) {
+		if ( PyList_Check(pList) ) {
+		    if ( index < PyList_Size(pList) ) {
+			PyObject *pAttr = PyList_GetItem(pList, index);
+			// note: PyList_GetItem doesn't give us ownership
+			// of pAttr so we should not decref() it.
+			if ( pAttr != NULL ) {
+			    PyObject *pStr = PyObject_Str(pAttr);
+			    if ( pStr != NULL ) {
+				result = (string)PyString_AsString(pStr);
+				Py_DECREF(pStr);
+			    }
+			}
+		    }
+		} else {
+		    printf("WARNING: request indexed value of plain node: %s!\n", name);
+		}
+		Py_DECREF(pList);
+	    }
+	}
+    }
+    return result;
+}
+
+bool pyPropertyNode::getBool(const char *name, int index) {
+    bool result = false;
+    if ( pObj != NULL ) {
+	if ( PyObject_HasAttrString(pObj, name) ) {
+	    PyObject *pList = PyObject_GetAttrString(pObj, name);
+	    if ( pList != NULL ) {
+		if ( PyList_Check(pList) ) {
+		    if ( index < PyList_Size(pList) ) {
+			PyObject *pAttr = PyList_GetItem(pList, index);
+			// note: PyList_GetItem doesn't give us ownership
+			// of pAttr so we should not decref() it.
+			if ( pAttr != NULL ) {
+			    result = PyObject_IsTrue(pAttr);
 			}
 		    }
 		} else {

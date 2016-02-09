@@ -36,19 +36,21 @@ public:
     void setLen( const char *name, int size); // set len of name
     void setLen( const char *name, int size, double init_val); // set len of name
 
-    vector <string> getChildren(); // return list of children
+    vector <string> getChildren(bool expand=true); // return list of children
 
     bool isLeaf( const char *name); // return true if pObj/name is leaf
     
     // value getters
     double getDouble( const char *name ); // return value as a double
     long getLong( const char *name );	  // return value as a long
-    bool getBool( const char *name );	  // return value as a boolean
+    bool getBool( const char *name );	  // return value as a bool
     string getString( const char *name ); // return value as a string
 
     // indexed value getters
     double getDouble( const char *name, int index ); // return value as a double
     long getLong( const char *name, int index ); // return value as a long
+    bool getBool( const char *name, int index ); // return value as a bool
+    string getString( const char *name, int index ); // return value as a string
 
     // value setters
     bool setDouble( const char *name, double val ); // returns true if successful
