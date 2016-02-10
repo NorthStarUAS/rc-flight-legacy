@@ -4,6 +4,16 @@
 # echo Default C compiler is \"${CC:="arm-angstrom-linux-gnueabi-gcc"}\"
 # echo Default C++ compiler is \"${CXX:="arm-angstrom-linux-gnueabi-g++"}\"
 
+# make automake happy
+if [ ! -f README ]; then
+    echo "linking README to README.md"
+    ln -s README.md README
+fi
+if [ ! -f NEWS ]; then
+    echo "linking NEWS to NEWS.md"
+    ln -s NEWS.md NEWS
+fi
+
 AUTO_MAKE_VERSION=`automake --version | head -1 | awk '{print $4}' | sed -e 's/\.\([0-9]*\).*/\1/'`
 if test $AUTO_MAKE_VERSION -lt 15; then
     echo ""
