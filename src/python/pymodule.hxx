@@ -6,6 +6,8 @@
 // nice.  (see examples in the code for now.)
 
 #include <Python.h>
+#include <string>
+using std::string;
 
 class pyModuleBase {
 
@@ -21,6 +23,7 @@ public:
 protected:
 
     PyObject *pModuleObj;
+    string module_name;
     
 };
 
