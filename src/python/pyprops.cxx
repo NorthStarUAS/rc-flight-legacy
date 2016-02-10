@@ -639,7 +639,8 @@ bool writeXML(string filename, pyPropertyNode *node) {
 	fprintf(stderr, "Cannot convert argument\n");
 	return false;
     }
-    PyObject *pValue = PyObject_CallFunctionObjArgs(pFuncSave, pPath, node->pObj);
+    PyObject *pValue = PyObject_CallFunctionObjArgs(pFuncSave, pPath,
+						    node->pObj, NULL);
     Py_DECREF(pPath);
     Py_DECREF(pFuncSave);
     if (pValue != NULL) {
