@@ -573,35 +573,9 @@ static bool APM2_open() {
 	extern_amp_ratio = apm2_config.getDouble("external_amp_ratio");
     }
 
-    // for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
-    // 	APM2_analog_nodes[i]
-    // 	    = pyGetNode("/sensors/APM2/raw-analog/channel", i, true);
-    // }
     if ( apm2_config.hasChild("pitot_calibrate_factor") ) {
 	pitot_calibrate = apm2_config.getDouble("pitot_calibrate_factor");
     }
-
-    // // extra info node
-    // APM2_extern_volt_node = pyGetNode("/sensors/APM2/extern-volt", true);
-    // APM2_extern_cell_volt_node = pyGetNode("/sensors/APM2/extern-cell-volt", true);
-    // APM2_extern_amp_node = pyGetNode("/sensors/APM2/extern-amps", true);
-    // APM2_extern_amp_sum_node = pyGetNode("/sensors/APM2/extern-current-mah", true);
-    // APM2_board_vcc_node = pyGetNode("/sensors/APM2/board-vcc", true);
-    // APM2_pilot_packet_count_node
-    // 	= pyGetNode("/sensors/APM2/pilot-packet-count", true);
-    // APM2_imu_packet_count_node
-    // 	= pyGetNode("/sensors/APM2/imu-packet-count", true);
-    // APM2_gps_packet_count_node
-    // 	= pyGetNode("/sensors/APM2/gps-packet-count", true);
-    // APM2_baro_packet_count_node
-    // 	= pyGetNode("/sensors/APM2/baro-packet-count", true);
-    // APM2_analog_packet_count_node
-    // 	= pyGetNode("/sensors/APM2/analog-packet-count", true);
-    // APM2_info_serial_number_node
-    // 	= pyGetNode("/sensors/APM2/serial-number", true);
-    // APM2_info_firmware_node = pyGetNode("/sensors/APM2/firmware-rev", true);
-    // APM2_info_master_hz_node = pyGetNode("/sensors/APM2/master-hz", true);
-    // APM2_info_baud_node = pyGetNode("/sensors/APM2/baud-rate", true);
 
     int baud_bits = B115200;
     if ( baud == 115200 ) {
