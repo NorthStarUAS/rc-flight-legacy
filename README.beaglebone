@@ -20,3 +20,12 @@ Network config: (required before beaglebone dns lookups will actually work)
 -> Select gear icon for settings.
 -> Select identity
 -> Firewall Zone -> trusted
+
+
+# Extra beaglebone packages to install (after flashing jessie
+  'console' 2gb image)
+
+- apt install build-essential
+- apt install git autoconf automake
+- apt install python-dev python-lxml
+- apt install zlib1g-dev
