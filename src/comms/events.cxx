@@ -7,7 +7,7 @@ pyModuleEventLog::pyModuleEventLog()
 bool pyModuleEventLog::open(const char *path)
 {
     if (pModuleObj == NULL) {
-	printf("ERROR: module.init() failed\n");
+	printf("ERROR: events.init() failed\n");
 	return false;
     }
     PyObject *pFuncOpen = PyObject_GetAttrString(pModuleObj, "open");
@@ -35,7 +35,7 @@ bool pyModuleEventLog::open(const char *path)
 bool pyModuleEventLog::log(const char *header, const char *message)
 {
     if (pModuleObj == NULL) {
-	printf("ERROR: module.init() failed\n");
+	printf("ERROR: events.init() failed\n");
 	return false;
     }
     PyObject *pFuncLog = PyObject_GetAttrString(pModuleObj, "log");

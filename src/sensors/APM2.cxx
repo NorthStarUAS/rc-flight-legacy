@@ -1295,48 +1295,66 @@ static bool APM2_send_config() {
     }
 
     pyPropertyNode sas_node = pyGetNode("/config/actuators/actuator/sas", true);
-    children = sas_node.getChildren();
+    children = sas_node.getChildren(false);
     count = (int)children.size();
     for ( int i = 0; i < count; ++i ) {
 	string mode = "";
 	int mode_id = 0;
 	bool enable = false;
 	float gain = 0.0;
-	pyPropertyNode sas_section = sas_node.getChild(children[i].c_str());
-	if ( children[i].substr(0,4) == "axis" ) {
-	    if ( sas_section.hasChild("mode") ) {
-		mode = sas_section.getString("mode");
-		if ( mode == "roll" ) {
-		    mode_id = SAS_ROLLAXIS;
-		} else if ( mode == "pitch" ) {
-		    mode_id = SAS_PITCHAXIS;
-		} else if ( mode == "yaw" ) {
-		    mode_id = SAS_YAWAXIS;
+	if ( children[i] == "axis" ) {
+	    for ( int j = 0; j < sas_node.getLen("axis"); j++ ) {
+		pyPropertyNode sas_section = sas_node.getChild("axis", j);
+		if ( sas_section.hasChild("mode") ) {
+		    mode = sas_section.getString("mode");
+		    if ( mode == "roll" ) {
+			mode_id = SAS_ROLLAXIS;
+		    } else if ( mode == "pitch" ) {
+			mode_id = SAS_PITCHAXIS;
+		    } else if ( mode == "yaw" ) {
+			mode_id = SAS_YAWAXIS;
+		    }
+		}
+		if ( sas_section.hasChild("enable") ) {
+		    enable = sas_section.getBool("enable");
+		}
+		if ( sas_section.hasChild("gain") ) {
+		    gain = sas_section.getDouble("gain");
+		}
+		if ( display_on ) {
+		    printf("sas: %s %d %.2f\n", mode.c_str(), enable, gain);
+		}
+		start_time = get_Time();    
+		APM2_act_sas_mode( mode_id, enable, gain );
+		last_ack_id = 0;
+		last_ack_subid = 0;
+		while ( (last_ack_id != SAS_MODE_PACKET_ID)
+			|| (last_ack_subid != mode_id) )
+		{
+		    APM2_read();
+		    if ( get_Time() > start_time + timeout ) {
+			printf("Timeout waiting for %s ACK\n", mode.c_str());
+			return false;
+		    }
 		}
 	    }
-	    if ( sas_section.hasChild("enable") ) {
-		enable = sas_section.getBool("enable");
-	    }
-	    if ( sas_section.hasChild("gain") ) {
-		gain = sas_section.getDouble("gain");
-	    }
-	} else if ( children[i] == "pilot-tune" ) {
+	} else if ( children[i] == "pilot_tune" ) {
+	    pyPropertyNode sas_section = sas_node.getChild(children[i].c_str());
 	    mode_id = SAS_CH7_TUNE;
-	    mode = "ch7-tune";
+	    mode = "ch7_tune";
 	    if ( sas_section.hasChild("enable") ) {
 		enable = sas_section.getBool("enable");
 	    }
 	    gain = 0.0; // not used
-	}
-	if ( display_on ) {
-	    printf("sas: %s %d %.2f\n", mode.c_str(), enable, gain);
-	}
-	start_time = get_Time();    
-	APM2_act_sas_mode( mode_id, enable, gain );
-	last_ack_id = 0;
-	last_ack_subid = 0;
-	while ( (last_ack_id != SAS_MODE_PACKET_ID)
-		|| (last_ack_subid != mode_id) )
+	    if ( display_on ) {
+		printf("sas: %s %d %.2f\n", mode.c_str(), enable, gain);
+	    }
+	    start_time = get_Time();    
+	    APM2_act_sas_mode( mode_id, enable, gain );
+	    last_ack_id = 0;
+	    last_ack_subid = 0;
+	    while ( (last_ack_id != SAS_MODE_PACKET_ID)
+		    || (last_ack_subid != mode_id) )
 	    {
 		APM2_read();
 		if ( get_Time() > start_time + timeout ) {
@@ -1344,6 +1362,7 @@ static bool APM2_send_config() {
 		    return false;
 		}
 	    }
+	}
     }
 
     if ( display_on ) {
