@@ -1,10 +1,7 @@
 noinst_LIBRARIES = libutil.a
 
-#	point3d.hxx
-#	polar3d.cxx polar3d.hxx
-
 libutil_a_SOURCES = \
-	coremag.cpp coremag.h \
+	coremag.cxx coremag.hxx \
 	exception.cxx exception.hxx \
 	lowpass.cxx lowpass.hxx \
 	myprof.cxx myprof.h \
