@@ -36,6 +36,9 @@
 #ifndef _AURA_COREMAG_H
 #define _AURA_COREMAG_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Convert date to Julian day 1950-2049 */
 unsigned long int yymmdd_to_julian_days( int yy, int mm, int dd );
@@ -43,11 +46,17 @@ unsigned long int yymmdd_to_julian_days( int yy, int mm, int dd );
 /* Convert unix date (seconds since the epoc) to Julian day: 1950-2049 */
 unsigned long int unixdate_to_julian_days( time_t current_time );
 
+/* return current clock date in julian days */
+unsigned long int now_to_julian_days();
+
 /* return variation (in degrees) given geodetic latitude (radians),
  * longitude (radians) ,height (km) and (Julian) date N and E lat and
  * long are positive, S and W negative
 */
 double calc_magvar( double lat, double lon, double h, long dat, double* field );
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif // _AURA_COREMAG_H

@@ -27,7 +27,7 @@ using std::vector;
 #include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "util/coremag.hxx"
+#include "util/coremag.h"
 #include "util/myprof.h"
 #include "util/timing.h"
 

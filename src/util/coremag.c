@@ -1,5 +1,5 @@
-// coremag.cxx -- compute local magnetic variation given position,
-//                altitude, and date
+// coremag.c -- compute local magnetic variation given position,
+//              altitude, and date
 //
 // This is an implementation of the NIMA (formerly DMA) WMM2000
 //
@@ -95,10 +95,12 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <include/globaldefs.h>
-#include <util/sg_inlines.h>
+#include "coremag.h"
 
-#include "coremag.hxx"
+// return the maximum of two values
+static int SG_MAX2(int a, int b) {
+    return a > b ? a : b;
+}
 
 static const double a = 6378.137;       /* semi-major axis (equatorial radius) of WGS84 ellipsoid */
 static const double b = 6356.7523142;   /* semi-minor axis referenced to the WGS84 ellipsoid */
@@ -211,6 +213,13 @@ unsigned long int unixdate_to_julian_days( time_t current_time )
     return yymmdd_to_julian_days( date->tm_year - 100,
 				  date->tm_mon + 1,
 				  date->tm_mday );
+}
+
+/* return current clock date in julian days */
+unsigned long int now_to_julian_days()
+{
+    time_t now = time(NULL);
+    return unixdate_to_julian_days(now);
 }
 
 

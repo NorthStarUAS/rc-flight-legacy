@@ -1,7 +1,7 @@
 noinst_LIBRARIES = libutil.a
 
 libutil_a_SOURCES = \
-	coremag.cxx coremag.hxx \
+	coremag.c coremag.h \
 	exception.cxx exception.hxx \
 	lowpass.cxx lowpass.hxx \
 	myprof.cxx myprof.h \
