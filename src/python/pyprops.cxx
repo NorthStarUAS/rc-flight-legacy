@@ -596,21 +596,16 @@ bool readXML(string filename, pyPropertyNode *node) {
 	fprintf(stderr, "Cannot find function 'load()'\n");
 	return false;
     }
-    PyObject *pArgs = PyTuple_New(2);
     PyObject *pPath = PyString_FromString(filename.c_str());
-    PyObject *pNode = node->pObj;
-    if (!pPath || !pNode) {
-	Py_DECREF(pArgs);
+    if (!pPath || !node->pObj) {
 	Py_XDECREF(pPath);
-	Py_XDECREF(pNode);
 	Py_XDECREF(pFuncLoad);
 	fprintf(stderr, "Cannot convert argument\n");
 	return false;
     }
-    PyTuple_SetItem(pArgs, 0, pPath);
-    PyTuple_SetItem(pArgs, 1, pNode);
-    PyObject *pValue = PyObject_CallObject(pFuncLoad, pArgs);
-    Py_DECREF(pArgs);
+    PyObject *pValue = PyObject_CallFunctionObjArgs(pFuncLoad, pPath,
+						    node->pObj, NULL);
+    Py_DECREF(pPath);
     Py_DECREF(pFuncLoad);
     if (pValue != NULL) {
 	// give pValue over to the returned property node
