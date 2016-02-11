@@ -1,1 +1,1 @@
-EXTRA_DIST = globaldefs.h ugear_config.h ugear_config.h.in util.h
+EXTRA_DIST = globaldefs.h util.h

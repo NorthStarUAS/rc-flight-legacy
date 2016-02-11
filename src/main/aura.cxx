@@ -82,9 +82,9 @@ myprofile debug7;
 //
 // usage message
 //
-void usage()
+void usage(char *progname)
 {
-    printf("\n./ugear --option1 on/off --option2 on/off --option3 ... \n");
+    printf("\n%s --option1 on/off --option2 on/off --option3 ... \n", progname);
     printf("--config path        : path to location of configuration file tree\n");
     printf("--log-dir path       : enable onboard data logging to path\n");
     printf("--log-servo in/out   : specify which servo data to log (out=default)\n");
@@ -433,10 +433,10 @@ int main( int argc, char **argv )
    	    // considered earlier in first pass
             ++iarg;
         } else if ( !strcmp(argv[iarg], "--help") ) {
-            usage();
+            usage(argv[0]);
         } else {
             printf("Unknown option \"%s\"\n", argv[iarg]);
-            usage();
+            usage(argv[0]);
         }
     }
 

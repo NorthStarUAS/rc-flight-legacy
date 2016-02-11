@@ -227,8 +227,8 @@ static void remote_link_packet( const uint8_t packet_id,
     ptr += packet_size;
 
     // check sum (2 bytes)
-    ugear_cksum( packet_id, packet_size, packet_buf, packet_size,
-		 &cksum0, &cksum1 );
+    aura_cksum( packet_id, packet_size, packet_buf, packet_size,
+		&cksum0, &cksum1 );
     ptr[0] = cksum0; ptr[1] = cksum1;
     /*if ( packet_id == 2 ) {
 	printf("cksum = %d %d\n", cksum0, cksum1);

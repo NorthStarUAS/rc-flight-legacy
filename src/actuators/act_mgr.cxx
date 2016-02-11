@@ -233,8 +233,8 @@ static void set_actuator_values_ap() {
 
 static void set_actuator_values_pilot() {
     // The following lines would act as a manual pass-through at the
-    // ugear level.  However, manaul pass-through is handled more
-    // efficiently (less latency) directly on APM2.x hardware.
+    // host computer level.  However, manaul pass-through is handled
+    // more efficiently (less latency) directly on APM2.x hardware.
     //
     // act_aileron_node.setDouble( pilot_aileron_node.getDouble() );
     // act_elevator_node.setDouble( pilot_elevator_node.getDouble() );

@@ -209,7 +209,7 @@ static bool parse_gpsd_sentence( const char *sentence ) {
 	// reports if "watcher" mode is set (1) or unset (0).  In watcher mode
 	// gpsd streams gps messages to the connected clients as they come in
 	// rather than waiting for the client to poll.  This is the default
-	// mode of operation for ugear.
+	// mode of operation.
     } else if ( gpsd_cmd == "X" ) {
 	// according to the docs, gpsd_arg will be 0 when the gps is offline
 	// or "n" with the timestamp of the most recent message
