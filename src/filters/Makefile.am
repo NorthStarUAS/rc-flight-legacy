@@ -1,5 +1,4 @@
 SUBDIRS = \
-	curt \
 	umngnss_euler \
 	umngnss_quat
 
