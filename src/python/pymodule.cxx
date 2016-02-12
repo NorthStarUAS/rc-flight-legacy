@@ -1,7 +1,8 @@
 #include "pymodule.hxx"
 
 pyModuleBase::pyModuleBase():
-    pModuleObj(NULL)
+    pModuleObj(NULL),
+    module_name("")
 {
 }
 
@@ -15,6 +16,7 @@ pyModuleBase::~pyModuleBase()
 bool pyModuleBase::init(const char *import_name)
 {
     printf("pyModule importing: %s\n", import_name);
+    module_name = import_name;
     pModuleObj = PyImport_ImportModule(import_name);
     if (pModuleObj == NULL) {
         PyErr_Print();
@@ -49,7 +51,7 @@ bool pyModuleBase::init(const char *import_name)
 
 bool pyModuleBase::update() {
     if (pModuleObj == NULL) {
-	printf("ERROR: module.init() failed\n");
+	printf("ERROR: module.init() failed (%s)\n", module_name.c_str());
 	return false;
     }
     PyObject *pFuncUpdate = PyObject_GetAttrString(pModuleObj, "update");
