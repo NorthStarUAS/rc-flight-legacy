@@ -19,7 +19,7 @@ using std::ostringstream;
 
 #include "comms/remote_link.hxx"
 #include "comms/logging.hxx"
-#include "filters/curt/adns_curt.hxx"
+//#include "filters/curt/adns_curt.hxx"
 #include "filters/umngnss_euler/umngnss_euler.hxx"
 #include "filters/umngnss_quat/umngnss_quat.hxx"
 #include "include/globaldefs.h"
@@ -96,13 +96,13 @@ void Filter_init() {
 	ostringstream output_path;
 	output_path << "/filters/filter" << '[' << i << ']';
 	printf("filter: %d = %s\n", i, module.c_str());
-	if ( module == "curt" ) {
-	    curt_adns_init( output_path.str(), &section );
-	} else if ( module == "umn_euler" ) {
+	if ( module == "umn_euler" ) {
 	    umngnss_euler_init( output_path.str(), &section );
 	} else if ( module == "umn_quat" ) {
 	    umngnss_quat_init( output_path.str(), &section );
-	} else {
+	// } else if ( module == "curt" ) {
+	//    curt_adns_init( output_path.str(), &section );
+	}	} else {
 	    printf("Unknown filter = '%s' in config file\n",
 		   module.c_str());
 	}
@@ -313,12 +313,12 @@ bool Filter_update() {
 	}
 	if ( module == "null" ) {
 	    // do nothing
-	} else if ( module == "curt" ) {
-	    fresh_filter_data = curt_adns_update( imu_dt );
 	} else if ( module == "umn_euler" ) {
 	    fresh_filter_data = umngnss_euler_update();
 	} else if ( module == "umn_quat" ) {
 	    fresh_filter_data = umngnss_quat_update();
+	// } else if ( module == "curt" ) {
+	//    fresh_filter_data = curt_adns_update( imu_dt );
 	}
     }
 
