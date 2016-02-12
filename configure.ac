@@ -72,7 +72,6 @@ AC_CONFIG_FILES([ \
         src/Makefile \
         src/actuators/Makefile \
         src/filters/Makefile \
-        src/filters/curt/Makefile \
         src/filters/umngnss_euler/Makefile \
         src/filters/umngnss_quat/Makefile \
         src/comms/Makefile \
