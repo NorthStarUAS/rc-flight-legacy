@@ -102,7 +102,7 @@ void Filter_init() {
 	    umngnss_quat_init( output_path.str(), &section );
 	// } else if ( module == "curt" ) {
 	//    curt_adns_init( output_path.str(), &section );
-	}	} else {
+	} else {
 	    printf("Unknown filter = '%s' in config file\n",
 		   module.c_str());
 	}
