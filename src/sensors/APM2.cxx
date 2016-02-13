@@ -1657,6 +1657,8 @@ bool APM2_airdata_update() {
 		analog0_sum += analog[0];
 		analog0_count++;
 		analog0_offset = analog0_sum / analog0_count;
+		//printf("a0 off=%.1f a0 sum=%.1f a0 count=%d\n",
+		//	analog0_offset, analog0_sum, analog0_count);
 	    } else {
 		airspeed_zero_start_time = get_Time();
 		analog0_sum = 0.0;
@@ -1753,18 +1755,17 @@ bool APM2_pilot_update() {
     pilot_node.setDouble( "rudder", val );
 
     val = normalize_pulse( pilot_input[4], true );
-    pilot_node.setDouble( "channel[4]", val );
+    pilot_node.setDouble( "channel", 4, val );
 
     val = normalize_pulse( pilot_input[5], true );
-    pilot_node.setDouble( "channel[5]", val );
+    pilot_node.setDouble( "channel", 5, val );
 
     val = normalize_pulse( pilot_input[6], true );
-    pilot_node.setDouble( "channel[6]", val );
+    pilot_node.setDouble( "channel", 6, val );
 
     val = normalize_pulse( pilot_input[7], true );
-    pilot_node.setDouble( "channel[7]", val );
-
-    pilot_node.setBool( "manual", pilot_input[7] > 0 );
+    pilot_node.setDouble( "channel", 7, val );
+    pilot_node.setBool( "manual", (val > 0) );
 
     return true;
 }
