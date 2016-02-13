@@ -46,7 +46,7 @@ UGCAS::~UGCAS() {
 // bind property nodes
 void UGCAS::bind() {
     config_node = pyGetNode("/config", true);
-    pilot_node = pyGetNode("/sensors/pilot", true);
+    pilot_node = pyGetNode("/sensors/pilot_input", true);
     cas_aileron_node = pyGetNode("/config/cas/aileron", true);
     cas_elevator_node = pyGetNode("/config/cas/elevator", true);
     targets_node = pyGetNode("/autopilot/targets", true);

@@ -485,6 +485,7 @@ static void bind_pilot_controls( string output_path ) {
 	return;
     }
     pilot_node = pyGetNode(output_path, true);
+    pilot_node.setLen("channel", NUM_ACTUATORS, 0.0);
     pilot_input_inited = true;
 }
 

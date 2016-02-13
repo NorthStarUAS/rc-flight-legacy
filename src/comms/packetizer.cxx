@@ -30,7 +30,7 @@ UGPacketizer::UGPacketizer() {
     act_node = pyGetNode("/actuators/actuator", true);
 #define NUM_ACTUATORS 8
     act_node.setLen("channel", NUM_ACTUATORS, 0.0);
-    pilot_node = pyGetNode("/sensors/pilot", true);
+    pilot_node = pyGetNode("/sensors/pilot_input", true);
     targets_node = pyGetNode("/autopilot/targets", true);
     route_node = pyGetNode("/task/route", true);
     status_node = pyGetNode("/status", true);

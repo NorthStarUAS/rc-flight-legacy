@@ -48,6 +48,11 @@ static int remote_link_skip = 0;
 static int logging_skip = 0;
 
 void PilotInput_init() {
+    pilot_node = pyGetNode("/sensors/pilot_input", true);
+    flight_node = pyGetNode("/controls/flight", true);
+    engine_node = pyGetNode("/controls/engine", true);
+    ap_node = pyGetNode("/autopilot", true);
+    
     pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
     pyPropertyNode logging_node = pyGetNode("/config/logging", true);
     remote_link_skip = remote_link_node.getDouble("pilot_skip");
