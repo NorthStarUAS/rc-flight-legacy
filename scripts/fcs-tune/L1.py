@@ -103,11 +103,11 @@ class L1Controller():
         print "update L1 params"
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
-        self.send_value(t, "/config/fcs/autopilot/L1-controller/bank-limit-deg",
+        self.send_value(t, "/config/autopilot/L1_controller/bank_limit_deg",
                         self.edit_bank_limit.text())
-        self.send_value(t, "/config/fcs/autopilot/L1-controller/period",
+        self.send_value(t, "/config/autopilot/L1_controller/period",
                         self.edit_L1_period.text())
-        self.send_value(t, "/config/fcs/autopilot/L1-controller/damping",
+        self.send_value(t, "/config/autopilot/L1_controller/damping",
                         self.edit_L1_damping.text())
         t.quit()
 
