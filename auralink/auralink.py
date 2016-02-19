@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
 import argparse
+import os
 import serial
 import subprocess
+import tempfile
 
 parser = argparse.ArgumentParser(description='aura link')
 parser.add_argument('--hertz', default=10, type=int, help='specify main loop rate')
@@ -26,8 +28,8 @@ except:
 def glean_ascii_message(c):
     pass
 
-START_OF_MSG0 = chr(147)
-START_OF_MSG1 = chr(224)
+START_OF_MSG0 = 147
+START_OF_MSG1 = 224
 
 state = 0
 pkt_id = 0
@@ -50,7 +52,7 @@ def serial_update():
         cksum_B = 0
         input = serial.read(1)
         while len(input) and input[0] != START_OF_MSG0:
-            print " state0 val:", int(input[0])
+            print " state0 val:", ord(input[0])
             glean_ascii_msgs(input[0])
             input = serial.read(1)
         if len(input) and input[0] == START_OF_MSG0:
@@ -72,13 +74,13 @@ def serial_update():
             pkt_id = input[0]
             cksum_A = (cksum_A + input[0]) & 0xff
             cksum_B = (cksum_B + cksum_A) & 0xff
-            print " pkt_id:", int(pkt_id)
+            print " pkt_id:", ord(pkt_id)
             state += 1
     if state == 3:
         input = serial.read(1)
         if len(input):
             pkt_len = input[0]
-            print " pkt_len:", int(pkt_len)
+            print " pkt_len:", ord(pkt_len)
             print " payload =",
             cksum_A = (cksum_A + input[0]) & 0xff
             cksum_B = (cksum_B + cksum_A) & 0xff
@@ -100,15 +102,15 @@ def serial_update():
         input = serial.read(1)
         if len(input):
             cksum_lo = input[0]
-            print " cksum_lo:", int(cksum_lo)
+            print " cksum_lo:", ord(cksum_lo)
             state += 1
     if state == 6:
         input = serial.read(1)
         if len(input):
             cksum_hi = input[0]
-            print " cksum_hi:", int(cksum_hi)
-            if int(cksum_A) == int(cksum_lo) and int(cksum_B) == int(cksum_hi):
-                print "checksum passes:", int(pkt_id)
+            print " cksum_hi:", ord(cksum_hi)
+            if ord(cksum_A) == ord(cksum_lo) and ord(cksum_B) == ord(cksum_hi):
+                print "checksum passes:", ord(pkt_id)
                 parse_msg(pkt_id, payload)
                 msg_id = pkt_id
             else:
@@ -117,7 +119,7 @@ def serial_update():
             # looking for next record
             state = 0
 
-    print "exit routine, msg_id:", int(msg_id)
+    print "exit routine, msg_id:", ord(msg_id)
     return msg_id
 
 
@@ -127,18 +129,18 @@ def validate_cksum(id, size, buf, cksum0, cksum1):
 
     c0 = (c0 + id) & 0xff
     c1 = (c1 + c0) & 0xff
-    print "c0 =", c0, "c1 =", c1
+    # print "c0 =", c0, "c1 =", c1
 
     c0 = (c0 + size) & 0xff
     c1 = (c1 + c0) & 0xff
-    print "c0 =", c0, "c1 =", c1
+    # print "c0 =", c0, "c1 =", c1
 
     for i in range(0, size):
-        c0 = (c0 + int(buf[i])) & 0xff
+        c0 = (c0 + ord(buf[i])) & 0xff
         c1 = (c1 + c0) & 0xff
-        print "c0 =", c0, "c1 =", c1, '[', int(buf[i]), ']'
+        # print "c0 =", c0, "c1 =", c1, '[', ord(buf[i]), ']'
 
-    print "c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")"
+    # print "c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")"
 
     if c0 == cksum0 and c1 == cksum1:
         return True
@@ -146,24 +148,26 @@ def validate_cksum(id, size, buf, cksum0, cksum1):
         return False
 
 def gzip_update(buf):
+    global counter
+    
     savebuf = ''
     print "gzip_update()"
 
     myeof = False
 
     # scan for sync characters
-    sync0 = int(buf[counter]); counter += 1
-    sync1 = int(buf[counter]); counter += 1
+    sync0 = ord(buf[counter]); counter += 1
+    sync1 = ord(buf[counter]); counter += 1
     while (sync0 != START_OF_MSG0 or sync1 != START_OF_MSG1) and counter < len(buf):
         sync0 = sync1
-        sync1 = int(buf[counter]); counter += 1
+        sync1 = ord(buf[counter]); counter += 1
         print "scanning for start of message:", counter, sync0, sync1
 
     print "found start of message ..."
 
     # read message id and size
-    id = int(buf[counter]); counter += 1
-    size = int(buf[counter]); counter += 1
+    id = ord(buf[counter]); counter += 1
+    size = ord(buf[counter]); counter += 1
     print "message =", id, "size =", size
 
     # load message
@@ -173,8 +177,8 @@ def gzip_update(buf):
 	print "ERROR: didn't read enough bytes!"
 
     # read checksum
-    cksum0 = int(buf[counter]); counter += 1
-    cksum1 = int(buf[counter]); counter += 1
+    cksum0 = ord(buf[counter]); counter += 1
+    cksum1 = ord(buf[counter]); counter += 1
     
     if validate_cksum(id, size, savebuf, cksum0, cksum1):
         print "check sum passed"
@@ -190,8 +194,15 @@ def gzip_update(buf):
 #    serial_update()
 
 
+(fd, filename) = tempfile.mkstemp()
+command = "zcat " + args.flight + " > " + filename
+print command
+os.system(command)
+
 try:
-    full = subprocess.check_output(["zcat", args.flight])
+    fd = open(filename, 'r')
+    full = fd.read()
+    os.remove(filename)
 except:
     # eat the expected error
     print "we should be able to ignore the zcat error"
