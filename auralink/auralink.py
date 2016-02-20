@@ -6,6 +6,10 @@ import serial
 import subprocess
 import tempfile
 
+from props import root, getNode
+
+import packer
+
 parser = argparse.ArgumentParser(description='aura link')
 parser.add_argument('--hertz', default=10, type=int, help='specify main loop rate')
 parser.add_argument('--flight', help='load specified flight log')
@@ -146,12 +150,47 @@ def validate_cksum(id, size, buf, cksum0, cksum1):
         return True
     else:
         return False
+    
+GPS_PACKET_V1 = 0
+IMU_PACKET_V1 = 1
+FILTER_PACKET_V1 = 2
+ACTUATOR_PACKET_V1 = 3
+PILOT_INPUT_PACKET_V1 = 4
+AP_STATUS_PACKET_V1 = 5
+AIRDATA_PACKET_V1 = 6
+SYSTEM_HEALTH_PACKET_V1 = 7
+AIRDATA_PACKET_V2 = 8
+AIRDATA_PACKET_V3 = 9
+AP_STATUS_PACKET_V2 = 10
+SYSTEM_HEALTH_PACKET_V2 = 11
+PAYLOAD_PACKET_V1 = 12
+AIRDATA_PACKET_V4 = 13
+SYSTEM_HEALTH_PACKET_V3 = 14
+IMU_PACKET_V2 = 15
 
-def gzip_update(buf):
+def parse_msg(id, buf):
+    if id == GPS_PACKET_V1:
+        packer.unpack_gps_v1(buf)
+    elif id == IMU_PACKET_V1:
+        packer.unpack_imu_v1(buf)
+    elif id == IMU_PACKET_V2:
+        packer.unpack_imu_v2(buf)
+    elif id == AIRDATA_PACKET_V1:
+        packer.unpack_airdata_v1(buf)
+    elif id == AIRDATA_PACKET_V2:
+        packer.unpack_airdata_v2(buf)
+    elif id == AIRDATA_PACKET_V3:
+        packer.unpack_airdata_v3(buf)
+    elif id == AIRDATA_PACKET_V4:
+        packer.unpack_airdata_v4(buf)
+    elif id == FILTER_PACKET_V1:
+        packer.unpack_filter_v1(buf)
+    
+def file_update(buf):
     global counter
     
     savebuf = ''
-    print "gzip_update()"
+    print "file_update()"
 
     myeof = False
 
@@ -182,9 +221,7 @@ def gzip_update(buf):
     
     if validate_cksum(id, size, savebuf, cksum0, cksum1):
         print "check sum passed"
-        #parse_msg( id, savebuf, gpspacket, imupacket, airpacket, filterpacket,
-	#	   actpacket, pilotpacket, appacket, healthpacket,
-	#	   payloadpacket )
+        parse_msg(id, savebuf)
         return id
 
     print "Check sum failure!"
@@ -210,4 +247,4 @@ except:
 print "len of decompressed file:", len(full)
 
 while True:
-    gzip_update(full)
+    file_update(full)
