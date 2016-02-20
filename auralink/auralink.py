@@ -185,6 +185,8 @@ def parse_msg(id, buf):
         packer.unpack_airdata_v4(buf)
     elif id == FILTER_PACKET_V1:
         packer.unpack_filter_v1(buf)
+    elif id == ACTUATOR_PACKET_V1:
+        packer.unpack_act_v1(buf)
     
 def file_update(buf):
     global counter

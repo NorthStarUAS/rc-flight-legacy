@@ -42,6 +42,12 @@ remote_link_node = getNode("/comms/remote_link", True);
 filter_v1_fmt = "<dddfhhhhhhBB"
 filter_v1_size = struct.calcsize(filter_v1_fmt)
 
+NUM_ACTUATORS = 8
+act_node = getNode("/actuators/actuator", True);
+act_node.setLen("channel", NUM_ACTUATORS, 0.0);
+act_v1_fmt = "<dhhHhhhhhB"
+act_v1_size = struct.calcsize(act_v1_fmt)
+
 def pack_gps_v1():
     buf = struct.pack(gps_v1_fmt,
                       gps_node.getFloat("timestamp"),
@@ -220,4 +226,32 @@ def unpack_filter_v1(buf):
     filter_node.setFloat("heading_deg", result[9] / 10.0)
     remote_link_node.setInt("sequence_num", result[10])
     filter_node.setInt("status", result[11])
+    
+def pack_act_v1():
+    buf = struct.pack(act_v1_fmt,
+                      act_node.getFloat("timestamp"),
+                      int(act_node.getFloatEnum("channel", 0) * 30000),
+                      int(act_node.getFloatEnum("channel", 1) * 30000),
+                      int(act_node.getFloatEnum("channel", 2) * 60000),
+                      int(act_node.getFloatEnum("channel", 3) * 30000),
+                      int(act_node.getFloatEnum("channel", 4) * 30000),
+                      int(act_node.getFloatEnum("channel", 5) * 30000),
+                      int(act_node.getFloatEnum("channel", 6) * 30000),
+                      int(act_node.getFloatEnum("channel", 7) * 30000),
+                      0)
+    return (buf, act_v1_size)
+
+def unpack_act_v1(buf):
+    result = struct.unpack(act_v1_fmt, buf)
+    print result
+    act_node.setFloat("timestamp", result[0])
+    act_node.setFloatEnum("channel", 0, result[1] / 30000.0)
+    act_node.setFloatEnum("channel", 1, result[2] / 30000.0)
+    act_node.setFloatEnum("channel", 2, result[3] / 60000.0)
+    act_node.setFloatEnum("channel", 3, result[4] / 30000.0)
+    act_node.setFloatEnum("channel", 4, result[5] / 30000.0)
+    act_node.setFloatEnum("channel", 5, result[6] / 30000.0)
+    act_node.setFloatEnum("channel", 6, result[7] / 30000.0)
+    act_node.setFloatEnum("channel", 7, result[8] / 30000.0)
+    act_node.setInt("status", result[9])
     
