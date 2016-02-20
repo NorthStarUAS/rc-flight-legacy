@@ -48,6 +48,11 @@ act_node.setLen("channel", NUM_ACTUATORS, 0.0);
 act_v1_fmt = "<dhhHhhhhhB"
 act_v1_size = struct.calcsize(act_v1_fmt)
 
+pilot_node = getNode("/sensors/pilot_input", True);
+pilot_node.setLen("channel", NUM_ACTUATORS, 0.0);
+pilot_v1_fmt = "<dhhHhhhhhB"
+pilot_v1_size = struct.calcsize(pilot_v1_fmt)
+
 def pack_gps_v1():
     buf = struct.pack(gps_v1_fmt,
                       gps_node.getFloat("timestamp"),
@@ -254,4 +259,32 @@ def unpack_act_v1(buf):
     act_node.setFloatEnum("channel", 6, result[7] / 30000.0)
     act_node.setFloatEnum("channel", 7, result[8] / 30000.0)
     act_node.setInt("status", result[9])
+    
+def pack_pilot_v1():
+    buf = struct.pack(pilot_v1_fmt,
+                      pilot_node.getFloat("timestamp"),
+                      int(pilot_node.getFloat("aileron") * 30000),
+                      int(pilot_node.getFloat("elevator") * 30000),
+                      int(pilot_node.getFloat("throttle") * 60000),
+                      int(pilot_node.getFloat("rudder") * 30000),
+                      int(pilot_node.getFloat("manual") * 30000),
+                      int(pilot_node.getFloatEnum("channel", 5) * 30000),
+                      int(pilot_node.getFloatEnum("channel", 6) * 30000),
+                      int(pilot_node.getFloatEnum("channel", 7) * 30000),
+                      0)
+    return (buf, pilot_v1_size)
+
+def unpack_pilot_v1(buf):
+    result = struct.unpack(pilot_v1_fmt, buf)
+    print result
+    pilot_node.setFloat("timestamp", result[0])
+    pilot_node.setFloat("aileron", result[1] / 30000.0)
+    pilot_node.setFloat("elevator", result[2] / 30000.0)
+    pilot_node.setFloat("throttle", result[3] / 60000.0)
+    pilot_node.setFloat("rudder", result[4] / 30000.0)
+    pilot_node.setFloat("manual", result[5] / 30000.0)
+    pilot_node.setFloatEnum("channel", 5, result[6] / 30000.0)
+    pilot_node.setFloatEnum("channel", 6, result[7] / 30000.0)
+    pilot_node.setFloatEnum("channel", 7, result[8] / 30000.0)
+    pilot_node.setInt("status", result[9])
     
