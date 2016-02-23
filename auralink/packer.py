@@ -4,6 +4,8 @@ from props import root, getNode
 
 # FIXME: we are hard coding status flag to zero in many places which
 # means we aren't using them properly (and/or wasting bytes)
+ft2m = 0.3048
+m2ft = 1.0 / ft2m
 
 # python struct package notes:
 #
@@ -52,6 +54,12 @@ pilot_node = getNode("/sensors/pilot_input", True);
 pilot_node.setLen("channel", NUM_ACTUATORS, 0.0);
 pilot_v1_fmt = "<dhhHhhhhhB"
 pilot_v1_size = struct.calcsize(pilot_v1_fmt)
+
+targets_node = getNode("/autopilot/targets", True);
+ap_status_v1_fmt = "<dhhHhhhhddHHB"
+ap_status_v1_size = struct.calcsize(pilot_v1_fmt)
+ap_status_v2_fmt = "<dhhHhhhhHddHHB"
+ap_status_v2_size = struct.calcsize(pilot_v2_fmt)
 
 def pack_gps_v1():
     buf = struct.pack(gps_v1_fmt,
@@ -287,4 +295,37 @@ def unpack_pilot_v1(buf):
     pilot_node.setFloatEnum("channel", 6, result[7] / 30000.0)
     pilot_node.setFloatEnum("channel", 7, result[8] / 30000.0)
     pilot_node.setInt("status", result[9])
+    
+def pack_ap_status_v2():
+    target_agl_ft = targets_node.getFloat("altitude_agl_ft")
+    ground_m = pos_pressure_node.getFloat("altitude_ground_m")
+    error_m = pos_pressure_node.getFloat("pressure_error_m")
+    target_msl_ft = (ground_m + error_m) * m2ft + target_agl_ft
+    
+    buf = struct.pack(ap_status_v1_fmt,
+                      imu_node.getFloat("timestamp"),
+                      int(targets_node.getFloat("groundtrack_deg") * 10),
+                      int(target_msl_ft),
+                      int(targets_node.getFloat("climb_rate_fps") * 10),
+                      int(targets_node.getFloat("pitch_deg") * 10),
+                      int(targets_node.getFloat("the_dot") * 1000),
+                      int(targets_node.getFloat("airspeed_kt") * 10),
+                      route_node.getInt("target_waypoint_idx"),
+                      int(ap_status_node.getFloatEnum("channel", 7) * 30000),
+                      0)
+    return (buf, ap_status_v1_size)
+
+def unpack_ap_status_v1(buf):
+    result = struct.unpack(ap_status_v1_fmt, buf)
+    print result
+    ap_status_node.setFloat("timestamp", result[0])
+    ap_status_node.setFloat("aileron", result[1] / 30000.0)
+    ap_status_node.setFloat("elevator", result[2] / 30000.0)
+    ap_status_node.setFloat("throttle", result[3] / 60000.0)
+    ap_status_node.setFloat("rudder", result[4] / 30000.0)
+    ap_status_node.setFloat("manual", result[5] / 30000.0)
+    ap_status_node.setFloatEnum("channel", 5, result[6] / 30000.0)
+    ap_status_node.setFloatEnum("channel", 6, result[7] / 30000.0)
+    ap_status_node.setFloatEnum("channel", 7, result[8] / 30000.0)
+    ap_status_node.setInt("status", result[9])
     

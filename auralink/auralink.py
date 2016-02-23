@@ -189,6 +189,10 @@ def parse_msg(id, buf):
         packer.unpack_act_v1(buf)
     elif id == PILOT_INPUT_PACKET_V1:
         packer.unpack_pilot_v1(buf)
+    elif id == AP_STATUS_PACKET_V1:
+        packer.unpack_ap_status_v1(buf)
+    elif id == AP_STATUS_PACKET_V2:
+        packer.unpack_ap_status_v2(buf)
  
 def file_update(buf):
     global counter
