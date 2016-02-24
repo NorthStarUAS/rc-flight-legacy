@@ -193,6 +193,12 @@ def parse_msg(id, buf):
         packer.unpack_ap_status_v1(buf)
     elif id == AP_STATUS_PACKET_V2:
         packer.unpack_ap_status_v2(buf)
+    elif id == SYSTEM_HEALTH_PACKET_V1:
+        packer.unpack_system_health_v1(buf)
+    elif id == SYSTEM_HEALTH_PACKET_V2:
+        packer.unpack_system_health_v2(buf)
+    elif id == SYSTEM_HEALTH_PACKET_V3:
+        packer.unpack_system_health_v3(buf)
  
 def file_update(buf):
     global counter
