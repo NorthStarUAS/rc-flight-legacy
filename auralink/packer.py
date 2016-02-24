@@ -56,10 +56,11 @@ pilot_v1_fmt = "<dhhHhhhhhB"
 pilot_v1_size = struct.calcsize(pilot_v1_fmt)
 
 targets_node = getNode("/autopilot/targets", True);
+route_node = getNode("/task/route", True)
 ap_status_v1_fmt = "<dhhHhhhhddHHB"
-ap_status_v1_size = struct.calcsize(pilot_v1_fmt)
+ap_status_v1_size = struct.calcsize(ap_status_v1_fmt)
 ap_status_v2_fmt = "<dhhHhhhhHddHHB"
-ap_status_v2_size = struct.calcsize(pilot_v2_fmt)
+ap_status_v2_size = struct.calcsize(ap_status_v2_fmt)
 
 def pack_gps_v1():
     buf = struct.pack(gps_v1_fmt,
@@ -305,27 +306,52 @@ def pack_ap_status_v2():
     buf = struct.pack(ap_status_v1_fmt,
                       imu_node.getFloat("timestamp"),
                       int(targets_node.getFloat("groundtrack_deg") * 10),
+                      int(targets_node.getFloat("roll_deg") * 10),
                       int(target_msl_ft),
                       int(targets_node.getFloat("climb_rate_fps") * 10),
                       int(targets_node.getFloat("pitch_deg") * 10),
                       int(targets_node.getFloat("the_dot") * 1000),
                       int(targets_node.getFloat("airspeed_kt") * 10),
-                      route_node.getInt("target_waypoint_idx"),
-                      int(ap_status_node.getFloatEnum("channel", 7) * 30000),
-                      0)
+                      route_node.getInt("target_waypoint_idx"), # FIXME
+                      route_node.getFloat("target_lon"), # FIXME
+                      route_node.getFloat("target_lat"), # FIXME
+                      route_node.getInt("index"), # FIXME
+                      route_node.getInt("size"), # FIXME
+                      remote_link_node.getInt("sequence_num"))
     return (buf, ap_status_v1_size)
 
 def unpack_ap_status_v1(buf):
     result = struct.unpack(ap_status_v1_fmt, buf)
     print result
-    ap_status_node.setFloat("timestamp", result[0])
-    ap_status_node.setFloat("aileron", result[1] / 30000.0)
-    ap_status_node.setFloat("elevator", result[2] / 30000.0)
-    ap_status_node.setFloat("throttle", result[3] / 60000.0)
-    ap_status_node.setFloat("rudder", result[4] / 30000.0)
-    ap_status_node.setFloat("manual", result[5] / 30000.0)
-    ap_status_node.setFloatEnum("channel", 5, result[6] / 30000.0)
-    ap_status_node.setFloatEnum("channel", 6, result[7] / 30000.0)
-    ap_status_node.setFloatEnum("channel", 7, result[8] / 30000.0)
-    ap_status_node.setInt("status", result[9])
+    #ap_status_node.setFloat("timestamp", result[0]) # FIXME (where should this go?)
+    targets_node.setFloat("groundtrack_deg", result[1] / 10.0)
+    targets_node.setFloat("roll_deg", result[2] / 10.0)
+    targets_node.setFloat("altitude_msl_ft", result[3])
+    targets_node.setFloat("climb_rate_fps", result[4] / 10.0)
+    targets_node.setFloat("pitch_deg", result[5] / 10.0)
+    targets_node.setFloat("airspeed_kt", result[6] / 10.0)
+    route_node.setInt("target_waypoint_idx", result[7]) # FIXME
+    route_node.setFloat("target_lon", result[8]) # FIXME
+    route_node.setFloat("target_lat", result[9]) # FIXME
+    route_node.setInt("index", result[10]) # FIXME
+    route_node.setInt("size", result[11]) # FIXME
+    remote_link_node.setInt("sequence_num", result[12])
+    
+def unpack_ap_status_v2(buf):
+    result = struct.unpack(ap_status_v2_fmt, buf)
+    print result
+    #ap_status_node.setFloat("timestamp", result[0]) #FIXME? where should this go
+    targets_node.setFloat("groundtrack_deg", result[1] / 10.0) # FIXME?
+    targets_node.setFloat("roll_deg", result[2] / 10.0)
+    targets_node.setFloat("altitude_msl_ft", result[3])
+    targets_node.setFloat("climb_rate_fps", result[4] / 10.0)
+    targets_node.setFloat("pitch_deg", result[5] / 10.0)
+    targets_node.setFloat("theta_dot", result[6] / 1000.0)
+    targets_node.setFloat("airspeed_kt", result[7] / 10.0)
+    route_node.setInt("target_waypoint_idx", result[8]) # FIXME
+    route_node.setFloat("target_lon", result[9]) # FIXME
+    route_node.setFloat("target_lat", result[10]) # FIXME
+    route_node.setInt("index", result[11]) # FIXME
+    route_node.setInt("size", result[12]) # FIXME
+    remote_link_node.setInt("sequence_num", result[13])
     
