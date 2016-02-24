@@ -24,33 +24,31 @@ args = argparser.parse_args()
 
 dt = 1.0 / float(args.hertz)
 
-try:
-    ser = serial.Serial(args.serial, args.baud, timeout=dt)
-except:
-    print "Cannot open:", args.serial
+if args.serial:
+    try:
+        ser = serial.Serial(args.serial, args.baud, timeout=dt)
+    except:
+        print "Cannot open:", args.serial
 
-def glean_ascii_message(c):
-    pass
-
-
-#while True:
-#    parser.serial_read()
+    while True:
+        parser.serial_read(ser)
 
 
-(fd, filename) = tempfile.mkstemp()
-command = "zcat " + args.flight + " > " + filename
-print command
-os.system(command)
+if args.flight:
+    (fd, filename) = tempfile.mkstemp()
+    command = "zcat " + args.flight + " > " + filename
+    print command
+    os.system(command)
 
-try:
-    fd = open(filename, 'r')
-    full = fd.read()
-    os.remove(filename)
-except:
-    # eat the expected error
-    print "we should be able to ignore the zcat error"
+    try:
+        fd = open(filename, 'r')
+        full = fd.read()
+        os.remove(filename)
+    except:
+        # eat the expected error
+        print "we should be able to ignore the zcat error"
 
-print "len of decompressed file:", len(full)
+    print "len of decompressed file:", len(full)
 
-while True:
-    parser.file_read(full)
+    while True:
+        parser.file_read(full)

@@ -89,76 +89,86 @@ cksum_lo = 0
 cksum_hi = 0
 payload = ''
 
-def serial_read():
-    len = 0
+# FIXME: I like this feature which can catch ascii messages injected
+# in the output, although with newest code and newest hardware with a
+# dedicated uart for messages, this is actually deprecated.
+def glean_ascii_msgs(c):
+    pass
+
+def serial_read(ser):
+    global state
+    global counter
+    global payload
+    
     input = ''
     msg_id = -1
-    print"enter update(), state:", state
+    # print "enter update(), state:", state
     if state == 0:
         counter = 0
         cksum_A = 0
         cksum_B = 0
-        input = serial.read(1)
-        while len(input) and input[0] != START_OF_MSG0:
-            print " state0 val:", ord(input[0])
+        input = ser.read(1)
+        while len(input) and ord(input[0]) != START_OF_MSG0:
+            # print " state0 val:", ord(input[0])
             glean_ascii_msgs(input[0])
-            input = serial.read(1)
-        if len(input) and input[0] == START_OF_MSG0:
-            print " read START_OF_MSG0"
+            input = ser.read(1)
+        if len(input) and ord(input[0]) == START_OF_MSG0:
+            # print " read START_OF_MSG0"
             state += 1
     if state == 1:
-        input = serial.read(1)
+        input = ser.read(1)
         if len(input):
-            if input[0] == START_OF_MSG1:
-                print " read START_OF_MSG1"
+            if ord(input[0]) == START_OF_MSG1:
+                # print " read START_OF_MSG1"
                 state += 1
-            elif input[0] == START_OF_MSG0:
-                print " read START_OF_MSG0"
+            elif ord(input[0]) == START_OF_MSG0:
+                # print " read START_OF_MSG0"
+                pass
             else:
                 state = 0
     if state == 2:
-        input = serial.read(1)
+        input = ser.read(1)
         if len(input):
-            pkt_id = input[0]
-            cksum_A = (cksum_A + input[0]) & 0xff
+            pkt_id = ord(input[0])
+            cksum_A = (cksum_A + ord(input[0])) & 0xff
             cksum_B = (cksum_B + cksum_A) & 0xff
-            print " pkt_id:", ord(pkt_id)
+            # print " pkt_id:", pkt_id
             state += 1
     if state == 3:
-        input = serial.read(1)
+        input = ser.read(1)
         if len(input):
-            pkt_len = input[0]
-            print " pkt_len:", ord(pkt_len)
-            print " payload =",
-            cksum_A = (cksum_A + input[0]) & 0xff
+            pkt_len = ord(input[0])
+            # print " pkt_len:", pkt_len
+            # print " payload =",
+            cksum_A = (cksum_A + ord(input[0])) & 0xff
             cksum_B = (cksum_B + cksum_A) & 0xff
             state += 1
     if state == 4:
-        input = serial.read(1)
+        input = ser.read(1)
         while len(input):
             counter += 1
             payload += input[0]
-            print "%02X" % input[0],
-            cksum_A = (cksum_A + input[0]) & 0xff
+            # print "%02X" % ord(input[0]),
+            cksum_A = (cksum_A + ord(input[0])) & 0xff
             cksum_B = (cksum_B + cksum_A) & 0xff
             if counter >= pkt_len:
                 state += 1
-                print ""
+                # print ""
                 break
-            input = serial.read(1)
+            input = ser.read(1)
     if state == 5:
-        input = serial.read(1)
+        input = ser.read(1)
         if len(input):
-            cksum_lo = input[0]
-            print " cksum_lo:", ord(cksum_lo)
+            cksum_lo = ord(input[0])
+            # print " cksum_lo:", cksum_lo
             state += 1
     if state == 6:
-        input = serial.read(1)
+        input = ser.read(1)
         if len(input):
-            cksum_hi = input[0]
-            print " cksum_hi:", ord(cksum_hi)
-            if ord(cksum_A) == ord(cksum_lo) and ord(cksum_B) == ord(cksum_hi):
-                print "checksum passes:", ord(pkt_id)
+            cksum_hi = ord(input[0])
+            # print " cksum_hi:", cksum_hi
+            if cksum_A == cksum_lo and cksum_B == cksum_hi:
+                # print "checksum passes:", pkt_id
                 parse_msg(pkt_id, payload)
                 msg_id = pkt_id
             else:
@@ -166,8 +176,9 @@ def serial_read():
             # this is the end of a record, reset state to 0 to start
             # looking for next record
             state = 0
+            payload = ''
 
-    print "exit routine, msg_id:", ord(msg_id)
+    # print "exit routine, msg_id:", msg_id
     return msg_id
 
 def file_read(buf):
