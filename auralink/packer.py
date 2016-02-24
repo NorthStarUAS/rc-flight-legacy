@@ -40,22 +40,22 @@ airdata_v4_fmt = "<dHhhffhhHBBB"
 airdata_v4_size = struct.calcsize(airdata_v4_fmt)
 
 filter_node = getNode("/filters/filter", True)
-remote_link_node = getNode("/comms/remote_link", True);
+remote_link_node = getNode("/comms/remote_link", True)
 filter_v1_fmt = "<dddfhhhhhhBB"
 filter_v1_size = struct.calcsize(filter_v1_fmt)
 
 NUM_ACTUATORS = 8
-act_node = getNode("/actuators/actuator", True);
-act_node.setLen("channel", NUM_ACTUATORS, 0.0);
+act_node = getNode("/actuators/actuator", True)
+act_node.setLen("channel", NUM_ACTUATORS, 0.0)
 act_v1_fmt = "<dhhHhhhhhB"
 act_v1_size = struct.calcsize(act_v1_fmt)
 
-pilot_node = getNode("/sensors/pilot_input", True);
-pilot_node.setLen("channel", NUM_ACTUATORS, 0.0);
+pilot_node = getNode("/sensors/pilot_input", True)
+pilot_node.setLen("channel", NUM_ACTUATORS, 0.0)
 pilot_v1_fmt = "<dhhHhhhhhB"
 pilot_v1_size = struct.calcsize(pilot_v1_fmt)
 
-targets_node = getNode("/autopilot/targets", True);
+targets_node = getNode("/autopilot/targets", True)
 route_node = getNode("/task/route", True)
 ap_status_v1_fmt = "<dhhHhhhhddHHB"
 ap_status_v1_size = struct.calcsize(ap_status_v1_fmt)
@@ -63,13 +63,17 @@ ap_status_v2_fmt = "<dhhHhhhhHddHHB"
 ap_status_v2_size = struct.calcsize(ap_status_v2_fmt)
 
 status_node = getNode("/status", True)
-apm2_node = getNode("/sensors/APM2", True);
+apm2_node = getNode("/sensors/APM2", True)
 system_health_v1_fmt = "<dHH"
 system_health_v1_size = struct.calcsize(system_health_v1_fmt)
 system_health_v2_fmt = "<dHHHHH"
 system_health_v2_size = struct.calcsize(system_health_v2_fmt)
 system_health_v3_fmt = "<dHHHHHH"
 system_health_v3_size = struct.calcsize(system_health_v3_fmt)
+
+payload_node = getNode("/payload", True)
+payload_v1_fmt = "<dH"
+payload_v1_size = struct.calcsize(payload_v1_fmt)
 
 def pack_gps_v1():
     buf = struct.pack(gps_v1_fmt,
@@ -373,7 +377,7 @@ def pack_system_health_v3():
                       int(apm2_node.getFloat("extern_cell_volt") * 1000),
                       int(apm2_node.getFloat("extern_amps") * 1000),
                       int(apm2_node.getFloat("extern_current_mah")))
-    return (buf, ap_status_v1_size)
+    return (buf, system_health_v3_size)
 
 def unpack_system_health_v1(buf):
     result = struct.unpack(system_health_v1_fmt, buf)
@@ -403,3 +407,15 @@ def unpack_system_health_v3(buf):
     apm2_node.setFloat("extern_amps", result[5] / 1000.0)
     apm2_node.setFloat("extern_current_mah", result[6])
 
+def pack_payload_v1():
+    buf = struct.pack(payload_v1_fmt,
+                      imu_node.getFloat("timestamp"),
+                      payload_node.getFloat("trigger_num"))
+    return (buf, payload_v1_size)
+
+def unpack_payload_v1(buf):
+    result = struct.unpack(payload_v1_fmt, buf)
+    print result
+    # payload_node.setFloat("timestamp", result[0]) # FIXME: where to write?
+    payload_node.setInt("trigger_num", result[1])
+    
