@@ -26,22 +26,17 @@ IMU_PACKET_V2 = 15
 def validate_cksum(id, size, buf, cksum0, cksum1):
     c0 = 0
     c1 = 0
-
     c0 = (c0 + id) & 0xff
     c1 = (c1 + c0) & 0xff
     # print "c0 =", c0, "c1 =", c1
-
     c0 = (c0 + size) & 0xff
     c1 = (c1 + c0) & 0xff
     # print "c0 =", c0, "c1 =", c1
-
     for i in range(0, size):
         c0 = (c0 + ord(buf[i])) & 0xff
         c1 = (c1 + c0) & 0xff
         # print "c0 =", c0, "c1 =", c1, '[', ord(buf[i]), ']'
-
     # print "c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")"
-
     if c0 == cksum0 and c1 == cksum1:
         return True
     else:
@@ -82,7 +77,8 @@ def parse_msg(id, buf):
         packer.unpack_payload_v1(buf)
     else:
         print "Unknown packet id:", id
- 
+
+# 'static' variables for the serial stream and file parsers
 state = 0
 pkt_id = 0
 pkt_len = 0
@@ -173,7 +169,6 @@ def serial_read():
 
     print "exit routine, msg_id:", ord(msg_id)
     return msg_id
-
 
 def file_read(buf):
     global counter
