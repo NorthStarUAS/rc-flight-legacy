@@ -9,6 +9,7 @@ import tempfile
 from props import root, getNode
 
 import parser
+import telnet
 
 argparser = argparse.ArgumentParser(description='aura link')
 argparser.add_argument('--hertz', default=10, type=int, help='specify main loop rate')
@@ -32,6 +33,7 @@ if args.serial:
 
     while True:
         parser.serial_read(ser)
+        telnet.update()
 
 
 if args.flight:
@@ -52,3 +54,4 @@ if args.flight:
 
     while True:
         parser.file_read(full)
+        telnet.update()
