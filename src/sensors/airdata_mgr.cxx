@@ -85,7 +85,7 @@ void AirData_init() {
     pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
     pyPropertyNode logging_node = pyGetNode("/config/logging", true);
     remote_link_skip = remote_link_node.getDouble("airdata_skip");
-    logging_skip = remote_link_node.getDouble("airdata_skip");
+    logging_skip = logging_node.getDouble("airdata_skip");
 
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/sensors/airdata_group", true);
