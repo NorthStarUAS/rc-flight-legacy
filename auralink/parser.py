@@ -76,7 +76,8 @@ def parse_msg(id, buf):
     elif id == PAYLOAD_PACKET_V1:
         packer.unpack_payload_v1(buf)
     else:
-        print "Unknown packet id:", id
+        # print "Unknown packet id:", id
+        pass
 
 # 'static' variables for the serial stream and file parsers
 state = 0
