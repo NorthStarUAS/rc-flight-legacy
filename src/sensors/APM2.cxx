@@ -48,7 +48,7 @@ using std::ostringstream;
 
 #define NUM_PILOT_INPUTS 8
 #define NUM_ACTUATORS 8
-#define NUM_IMU_SENSORS 7
+#define NUM_IMU_SENSORS 10
 #define NUM_ANALOG_INPUTS 6
 
 #define PWM_CENTER 1520
@@ -828,15 +828,6 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    gps_sensors.num_sats = *(uint8_t *)payload; payload += 1;
 	    gps_sensors.status = *(uint8_t *)payload; payload += 1;
 
-#if 0
-	    if ( display_on ) {
-		for ( int i = 0; i < NUM_IMU_SENSORS; i++ ) {
-		    printf("%d ", imu_sensors[i]);
-		}
-		printf("\n");
-	    }
-#endif
-		      
 	    gps_packet_counter++;
 	    apm2_node.setLong( "gps_packet_count", gps_packet_counter );
 
@@ -1507,14 +1498,19 @@ bool APM2_imu_update() {
 	double ax_raw = (double)imu_sensors[3] * accel_scale;
 	double ay_raw = (double)imu_sensors[4] * accel_scale;
 	double az_raw = (double)imu_sensors[5] * accel_scale;
-	double temp_C = (double)imu_sensors[6] * temp_scale;
+	int16_t hx = (int16_t)imu_sensors[6];
+	int16_t hy = (int16_t)imu_sensors[7];
+	int16_t hz = (int16_t)imu_sensors[8];
+	double temp_C = (double)imu_sensors[9] * temp_scale;
 
 	if ( reverse_imu_mount ) {
-	    // reverse roll/pitch gyros, and x/y accelerometers.
+	    // reverse roll/pitch gyros, and x/y accelerometers (and mags).
 	    p_raw = -p_raw;
 	    q_raw = -q_raw;
 	    ax_raw = -ax_raw;
 	    ay_raw = -ay_raw;
+	    hx = -hx;
+	    hy = -hy;
 	}
 
 	if ( imu_timestamp > last_imu_timestamp + 5.0 ) {
@@ -1527,15 +1523,17 @@ bool APM2_imu_update() {
 	    last_imu_timestamp = imu_timestamp;
 	}
 
+	imu_node.setDouble( "timestamp", imu_timestamp );
 	imu_node.setDouble( "p_rad_sec", p_raw );
 	imu_node.setDouble( "q_rad_sec", q_raw );
 	imu_node.setDouble( "r_rad_sec", r_raw );
 	imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
 	imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
 	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
-
-	imu_node.setDouble( "timestamp", imu_timestamp );
-	imu_node.setDouble( "temp_C", imu_sensors[6] * temp_scale );
+	imu_node.setLong( "hx", hx );
+	imu_node.setLong( "hy", hy );
+	imu_node.setLong( "hz", hz );
+	imu_node.setDouble( "temp_C", temp_C );
     }
 
     return true;
