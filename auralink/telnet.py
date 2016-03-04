@@ -13,7 +13,7 @@ class ChatHandler(asynchat.async_chat):
         self.set_terminator('\n')
         self.buffer = []
         self.path = '/'
-        self.mode = 'prompt'
+        self.prompt = True
  
     def collect_incoming_data(self, data):
         self.buffer.append(data)
@@ -46,7 +46,7 @@ class ChatHandler(asynchat.async_chat):
 		for child in children:
 		    line = child
 		    if node.isLeaf(child):
-			if self.mode == 'prompt':
+			if self.prompt:
 			    value = node.getString(child)
 			    line = line + ' =\t\"' + value + '"\t'
 		    else:
@@ -97,7 +97,7 @@ class ChatHandler(asynchat.async_chat):
                     node = getNode(self.path, True)
                     name = tokens[1]
 		value = node.getString(name)
-		if self.mode == 'prompt':
+		if self.prompt:
 		    self.push(tokens[1] + ' = "' + value + '"\n')
                 else:
                     self.push(value + '\n')
@@ -106,7 +106,7 @@ class ChatHandler(asynchat.async_chat):
 	# elif tokens[0] == 'fcs':
 	#     if len(tokens) == 2:
 	# 	string tmp = ""
-	# 	if mode == PROMPT:
+	# 	if self.prompt:
 	# 	    tmp = tokens[1]
 	# 	    tmp += " = "
 	# 	if tokens[1] == "heading":
@@ -126,7 +126,7 @@ class ChatHandler(asynchat.async_chat):
 	# elif tokens[0] == 'fcs-update':
 	#     if len(tokens) == 2:
 	# 	bool result = fcs_update_helper(tokens[1])
-	# 	if mode == PROMPT:
+	# 	if self.prompt:
 	# 	    string tmp
 	# 	    if result:
 	# 		tmp = "new values accepted ok"
@@ -158,7 +158,7 @@ class ChatHandler(asynchat.async_chat):
                     name = tokens[1]
 		value = ' '.join(tokens[2:])
 		node.setString(name, value)
-		if self.mode == 'prompt':
+		if self.prompt:
 		    # now fetch and write out the new value as confirmation
 		    # of the change
 		    value = node.getString(name)
@@ -187,13 +187,13 @@ class ChatHandler(asynchat.async_chat):
             self.push('usage: shutdown-server xyzzy\n')
             self.push('extra magic argument is required\n')
 	elif tokens[0] == 'data':
-	    self.mode = 'data'
+	    self.prompt = False
 	elif tokens[0] == 'prompt':
-	    self.mode = 'prompt'
+	    self.prompt = True
 	else:
             self.usage()
 
-        if self.mode == 'prompt':
+        if self.prompt:
             self.push('> ')
             
     def usage(self):
@@ -211,7 +211,7 @@ pwd                display your current path
 quit               terminate connection
 # run <command>      run built in command
 set <var> <val>    set <var> to a new <val>
-shutdown-server xyzzy  instruct host server to exit (requires magic argument)
+shutdown-server    instruct host server to exit (requires magic argument)
 """
         self.push(message)
     
