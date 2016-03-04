@@ -4,7 +4,7 @@
 import asynchat
 import asyncore
 import socket
-import props
+from props import root, getNode
  
 class ChatHandler(asynchat.async_chat):
     def __init__(self, sock):
@@ -21,7 +21,7 @@ class ChatHandler(asynchat.async_chat):
         msg = ''.join(self.buffer)
         print 'Received:', msg
         self.process_command(msg)
-        self.push(msg + '\n')
+        # self.push(msg + '\n')
         self.buffer = []
 
     def process_command(self, msg):
@@ -29,14 +29,16 @@ class ChatHandler(asynchat.async_chat):
         print tokens            # fixme: if display_on:
         if len(tokens) == 0:
             self.usage()
-            return False
-	if tokens[0] == 'ls':
+	elif tokens[0] == 'ls':
             newpath = self.path
-	    if tokens.size() == 2:
+	    if len(tokens) == 2:
 		if tokens[1][0] == '/':
 		    newpath = tokens[1]
 		else:
-		    newpath = self.path + '/' + tokens[1]
+                    if self.path[-1] == '/':
+		        newpath = self.path + tokens[1]
+                    else:
+		        newpath = self.path + '/' + tokens[1]
             newpath = self.normalize_path(newpath)
 	    node = getNode(newpath)
 	    if node:
@@ -55,11 +57,14 @@ class ChatHandler(asynchat.async_chat):
 		self.push('Error: ' + newpath + ' not found\n')
 	elif tokens[0] == 'cd':
             newpath = self.path
-	    if tokens.size() == 2:
+	    if len(tokens) == 2:
 		if tokens[1][0] == '/':
 		    newpath = tokens[1]
 		else:
-		    newpath = self.path + '/' + tokens[1]
+                    if self.path[-1] == '/':
+		        newpath = self.path + tokens[1]
+                    else:
+		        newpath = self.path + '/' + tokens[1]
             newpath = self.normalize_path(newpath)
 	    node = getNode(newpath)
 	    if node:
@@ -69,9 +74,8 @@ class ChatHandler(asynchat.async_chat):
 		self.push('Error: ' + newpath + ' not found\n')
 	elif tokens[0] == 'pwd':
 	    self.push(self.path + '\n' )
-	    push( getTerminator() )
 	elif tokens[0] == 'get' or tokens[0] == 'show':
-	    if tokens.size() == 2:
+	    if len(tokens) == 2:
                 node = getNode(self.path)
                 if node:
 		    value = node.getString(tokens[1])
@@ -82,44 +86,45 @@ class ChatHandler(asynchat.async_chat):
 		else:
 		    line = value
 		push(line + '\n')
-	elif tokens[0] == 'fcs':
-	    if tokens.size() == 2:
-		string tmp = ""
-		if mode == PROMPT:
-		    tmp = tokens[1]
-		    tmp += " = "
-		if tokens[1] == "heading":
-		    tmp += packetizer->get_fcs_nav_string()
-		elif tokens[1] == "speed":
-		    tmp += packetizer->get_fcs_speed_string()
-		elif tokens[1] == "altitude":
-		    tmp += packetizer->get_fcs_altitude_string()
-		elif tokens[1] == "all":
-		    tmp += packetizer->get_fcs_nav_string()
-		    tmp += ","
-		    tmp += packetizer->get_fcs_speed_string()
-		    tmp += ","
-		    tmp += packetizer->get_fcs_altitude_string()
-		push( tmp.c_str() )
-		push( getTerminator() )
-	elif tokens[0] == "fcs-update":
-	    if tokens.size() == 2:
-		bool result = fcs_update_helper(tokens[1])
-		if mode == PROMPT:
-		    string tmp
-		    if result:
-			tmp = "new values accepted ok"
-		    else:
-			tmp = "update failed!"
-		    push( tmp.c_str() )
-		    push( getTerminator() )
-	elif tokens[0] == "set":
-	    if tokens.size() >= 2:
-		string value = "", tmp
-		for (unsigned int i = 2; i < tokens.size(); i++:
+	# elif tokens[0] == 'fcs':
+	#     if len(tokens) == 2:
+	# 	string tmp = ""
+	# 	if mode == PROMPT:
+	# 	    tmp = tokens[1]
+	# 	    tmp += " = "
+	# 	if tokens[1] == "heading":
+	# 	    tmp += packetizer->get_fcs_nav_string()
+	# 	elif tokens[1] == "speed":
+	# 	    tmp += packetizer->get_fcs_speed_string()
+	# 	elif tokens[1] == "altitude":
+	# 	    tmp += packetizer->get_fcs_altitude_string()
+	# 	elif tokens[1] == "all":
+	# 	    tmp += packetizer->get_fcs_nav_string()
+	# 	    tmp += ","
+	# 	    tmp += packetizer->get_fcs_speed_string()
+	# 	    tmp += ","
+	# 	    tmp += packetizer->get_fcs_altitude_string()
+	# 	push( tmp.c_str() )
+	# 	push( getTerminator() )
+	# elif tokens[0] == "fcs-update":
+	#     if len(tokens) == 2:
+	# 	bool result = fcs_update_helper(tokens[1])
+	# 	if mode == PROMPT:
+	# 	    string tmp
+	# 	    if result:
+	# 		tmp = "new values accepted ok"
+	# 	    else:
+	# 		tmp = "update failed!"
+	# 	    push( tmp.c_str() )
+	# 	    push( getTerminator() )
+	elif tokens[0] == 'set':
+	    if len(tokens) >= 2:
+		value = ''
+                tmp = ''
+		for i in range(2..end):
 		    if i > 2:
-			value += " "
-		    value += tokens[i]
+			value = value + ' '
+		    value = value + tokens[i]
 		node.setString( tokens[1].c_str(), value )
 		if mode == PROMPT:
 		    # now fetch and write out the new value as confirmation
@@ -128,18 +133,18 @@ class ChatHandler(asynchat.async_chat):
 		    tmp = tokens[1] + " = '" + value + "'"
 		    push( tmp.c_str() )
 		    push( getTerminator() )
-	elif tokens[0] == "run":
-	    if tokens.size() == 2:
-		string command = tokens[1]
-		if command == "ap.reinit()":
-		    control_reinit()
-		else:
-		    push( "unknown command: " )
-		    push( tokens[1].c_str() )
-		    push( getTerminator() )
-	    else:
-		push( "usage: run <command>" )
-		push( getTerminator() )
+	# elif tokens[0] == "run":
+	#     if len(tokens) == 2:
+	# 	string command = tokens[1]
+	# 	if command == "ap.reinit()":
+	# 	    control_reinit()
+	# 	else:
+	# 	    push( "unknown command: " )
+	# 	    push( tokens[1].c_str() )
+	# 	    push( getTerminator() )
+	#     else:
+	# 	push( "usage: run <command>" )
+	# 	push( getTerminator() )
 	elif tokens[0] == "quit":
 	    close()
 	    shouldDelete()
@@ -147,11 +152,14 @@ class ChatHandler(asynchat.async_chat):
 	elif tokens[0] == 'exit-program':
 	    quit()
 	elif tokens[0] == 'data':
-	    mode = 'data'
+	    self.mode = 'data'
 	elif tokens[0] == 'prompt':
-	    mode = 'prompt'1
+	    self.mode = 'prompt'
 	else:
             self.usage()
+
+        if self.mode == 'prompt':
+            self.push('> ')
             
     def usage(self):
         message = """
@@ -171,19 +179,20 @@ set <var> <val>    set <var> to a new <val>
 """
         self.push(message)
     
-    def normalize_path(raw_path):
+    def normalize_path(self, raw_path):
         tokens = raw_path.split('/')
         tmp = []
         for t in tokens:
             if t == '..':
                 if len(tmp):
-                    tmp.pop_back()
+                    tmp.pop()
             elif t == ".":
                 # do nothing
                 pass
             else:
                 tmp.append(t)
-        if len(tmp):
+        print tmp
+        if len(tmp) > 1:
             sep = '/'
             result = sep.join(tmp)
         else:
