@@ -26,7 +26,6 @@ class ChatHandler(asynchat.async_chat):
 
     def process_command(self, msg):
         tokens = msg.split()
-        print tokens            # fixme: if display_on:
         if len(tokens) == 0:
             self.usage()
 	elif tokens[0] == 'ls':
@@ -146,8 +145,8 @@ class ChatHandler(asynchat.async_chat):
 	# 	push( "usage: run <command>" )
 	# 	push( getTerminator() )
 	elif tokens[0] == "quit":
-	    close()
-	    shouldDelete()
+	    self.close()
+	    #self.shouldDelete()
 	    return
 	elif tokens[0] == 'shutdown-server':
             if len(tokens) == 2:
