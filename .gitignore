@@ -3,12 +3,14 @@
 *.pyc
 aclocal.m4
 autom4te.cache/
+compile
 config.guess
 config.sub
 configure
 depcomp
 install-sh
 missing
+py-compile
 src/include/ugear_config.h.in
 build_linux-pc
 build_overo-oe
