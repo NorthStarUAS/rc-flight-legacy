@@ -4,6 +4,7 @@
 import asynchat
 import asyncore
 import socket
+import re
 from props import root, getNode
  
 class ChatHandler(asynchat.async_chat):
@@ -105,7 +106,7 @@ class ChatHandler(asynchat.async_chat):
 	# 	    tmp += packetizer->get_fcs_altitude_string()
 	# 	push( tmp.c_str() )
 	# 	push( getTerminator() )
-	# elif tokens[0] == "fcs-update":
+	# elif tokens[0] == 'fcs-update':
 	#     if len(tokens) == 2:
 	# 	bool result = fcs_update_helper(tokens[1])
 	# 	if mode == PROMPT:
@@ -117,36 +118,50 @@ class ChatHandler(asynchat.async_chat):
 	# 	    push( tmp.c_str() )
 	# 	    push( getTerminator() )
 	elif tokens[0] == 'set':
-	    if len(tokens) >= 2:
-		value = ''
-                tmp = ''
-		for i in range(2..end):
-		    if i > 2:
-			value = value + ' '
-		    value = value + tokens[i]
-		node.setString( tokens[1].c_str(), value )
-		if mode == PROMPT:
+	    if len(tokens) >= 3:
+                if re.search('/', tokens[1]):
+                    if tokens[1][0] == '/':
+                        # absolute path
+                        tmp = tokens[1].split('/')
+                    else:
+                        # relative path
+                        combinedpath = '/'.join([self.path, tokens[1]])
+                        combinedpath = self.normalize_path(combinedpath)
+                        tmp = combinedpath.split('/')
+                    tmppath = '/'.join(tmp[0:-1])
+                    if tmppath == '':
+                        tmppath = '/'
+                    node = getNode(tmppath, True)
+                    name = tmp[-1]
+                    print "tmppath:", tmppath
+                    print "node:", node
+                    print "name:", name
+                else:
+                    node = getNode(self.path)
+                    name = tokens[1]
+		value = ' '.join(tokens[2:])
+		node.setString(name, value)
+		if self.mode == 'prompt':
 		    # now fetch and write out the new value as confirmation
 		    # of the change
-		    value = node.getString ( tokens[1].c_str() )
-		    tmp = tokens[1] + " = '" + value + "'"
-		    push( tmp.c_str() )
-		    push( getTerminator() )
-	# elif tokens[0] == "run":
+		    value = node.getString(name)
+		    self.push(tokens[1] + ' = "' + value + '"\n')
+	    else:
+		self.push('usage: set attr value\n')
+	# elif tokens[0] == 'run':
 	#     if len(tokens) == 2:
 	# 	string command = tokens[1]
-	# 	if command == "ap.reinit()":
+	# 	if command == 'ap.reinit()':
 	# 	    control_reinit()
 	# 	else:
-	# 	    push( "unknown command: " )
+	# 	    push( 'unknown command: ' )
 	# 	    push( tokens[1].c_str() )
 	# 	    push( getTerminator() )
 	#     else:
-	# 	push( "usage: run <command>" )
+	# 	push( 'usage: run <command>' )
 	# 	push( getTerminator() )
-	elif tokens[0] == "quit":
+	elif tokens[0] == 'quit':
 	    self.close()
-	    #self.shouldDelete()
 	    return
 	elif tokens[0] == 'shutdown-server':
             if len(tokens) == 2:
@@ -185,21 +200,23 @@ shutdown-server xyzzy  instruct host server to exit (requires magic argument)
     
     def normalize_path(self, raw_path):
         tokens = raw_path.split('/')
-        tmp = []
+        print tokens
+        tmp = ['']
         for t in tokens:
             if t == '..':
-                if len(tmp):
+                if len(tmp) > 1:
                     tmp.pop()
-            elif t == ".":
+            elif t == '.':
                 # do nothing
+                pass
+            elif t == '':
+                # happens if we have double slashes
                 pass
             else:
                 tmp.append(t)
         print tmp
-        if len(tmp) > 1:
-            sep = '/'
-            result = sep.join(tmp)
-        else:
+        result = '/'.join(tmp)
+        if result == '':
             result = '/'
         print 'Original path:', raw_path
         print 'new      path:', result
