@@ -93,9 +93,6 @@ class ChatHandler(asynchat.async_chat):
                         tmppath = '/'
                     node = getNode(tmppath, True)
                     name = tmp[-1]
-                    #print "tmppath:", tmppath
-                    #print "node:", node
-                    #print "name:", name
                 else:
                     node = getNode(self.path, True)
                     name = tokens[1]
@@ -122,9 +119,6 @@ class ChatHandler(asynchat.async_chat):
                         tmppath = '/'
                     node = getNode(tmppath, True)
                     name = tmp[-1]
-                    print "tmppath:", tmppath
-                    print "node:", node
-                    print "name:", name
                 else:
                     node = getNode(self.path, True)
                     name = tokens[1]
@@ -216,7 +210,7 @@ shutdown-server    instruct host server to exit (requires magic argument)
     
     def normalize_path(self, raw_path):
         tokens = raw_path.split('/')
-        print tokens
+        #print tokens
         tmp = ['']
         for t in tokens:
             if t == '..':
@@ -230,12 +224,12 @@ shutdown-server    instruct host server to exit (requires magic argument)
                 pass
             else:
                 tmp.append(t)
-        print tmp
+        #print tmp
         result = '/'.join(tmp)
         if result == '':
             result = '/'
-        print 'Original path:', raw_path
-        print 'new      path:', result
+        #print 'Original path:', raw_path
+        #print 'new      path:', result
         return result
 
 class ChatServer(asyncore.dispatcher):

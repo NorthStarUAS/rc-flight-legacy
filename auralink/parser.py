@@ -1,4 +1,5 @@
 import packer
+import time
 
 # constants
 
@@ -100,7 +101,8 @@ def serial_read(ser):
     global state
     global counter
     global payload
-    
+
+    start_time = time.time()    # sec
     input = ''
     msg_id = -1
     # print "enter update(), state:", state
@@ -113,6 +115,10 @@ def serial_read(ser):
             # print " state0 val:", ord(input[0])
             glean_ascii_msgs(input[0])
             input = ser.read(1)
+            cur_time = time.time()
+            if cur_time > start_time + 0.1:
+                # don't get stuck on a stream that has no parsable data
+                return msg_id
         if len(input) and ord(input[0]) == START_OF_MSG0:
             # print " read START_OF_MSG0"
             state += 1
