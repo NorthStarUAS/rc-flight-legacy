@@ -27,7 +27,7 @@ enum ugPacketType {
     PAYLOAD_PACKET_V1 = 12,
     AIR_DATA_PACKET_V4 = 13,
     SYSTEM_HEALTH_PACKET_V3 = 14,
-    IMU_PACKET_V2 = 15,
+    IMU_PACKET_V2 = 15
 };
 
 
