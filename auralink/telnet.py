@@ -149,8 +149,12 @@ class ChatHandler(asynchat.async_chat):
 	    close()
 	    shouldDelete()
 	    return
-	elif tokens[0] == 'exit-program':
-	    quit()
+	elif tokens[0] == 'shutdown-server':
+            if len(tokens) == 2:
+                if tokens[1] == 'xyzzy':
+	            quit()
+            self.push('usage: shutdown-server xyzzy\n')
+            self.push('extra magic argument is required\n')
 	elif tokens[0] == 'data':
 	    self.mode = 'data'
 	elif tokens[0] == 'prompt':
@@ -176,6 +180,7 @@ pwd                display your current path
 quit               terminate connection
 # run <command>      run built in command
 set <var> <val>    set <var> to a new <val>
+shutdown-server xyzzy  instruct host server to exit (requires magic argument)
 """
         self.push(message)
     
