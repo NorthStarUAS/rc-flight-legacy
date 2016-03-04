@@ -20,15 +20,18 @@ class ChatHandler(asynchat.async_chat):
  
     def found_terminator(self):
         msg = ''.join(self.buffer)
-        print 'Received:', msg
+        print 'Received:', msg  # fixme: if display on
         self.process_command(msg)
-        # self.push(msg + '\n')
         self.buffer = []
 
     def process_command(self, msg):
         tokens = msg.split()
         if len(tokens) == 0:
             self.usage()
+	elif tokens[0] == 'data':
+	    self.prompt = False
+	elif tokens[0] == 'prompt':
+	    self.prompt = True
 	elif tokens[0] == 'ls':
             newpath = self.path
 	    if len(tokens) == 2:
@@ -103,37 +106,6 @@ class ChatHandler(asynchat.async_chat):
                     self.push(value + '\n')
 	    else:
 		self.push('usage: get [[/]path/]attr\n')
-	# elif tokens[0] == 'fcs':
-	#     if len(tokens) == 2:
-	# 	string tmp = ""
-	# 	if self.prompt:
-	# 	    tmp = tokens[1]
-	# 	    tmp += " = "
-	# 	if tokens[1] == "heading":
-	# 	    tmp += packetizer->get_fcs_nav_string()
-	# 	elif tokens[1] == "speed":
-	# 	    tmp += packetizer->get_fcs_speed_string()
-	# 	elif tokens[1] == "altitude":
-	# 	    tmp += packetizer->get_fcs_altitude_string()
-	# 	elif tokens[1] == "all":
-	# 	    tmp += packetizer->get_fcs_nav_string()
-	# 	    tmp += ","
-	# 	    tmp += packetizer->get_fcs_speed_string()
-	# 	    tmp += ","
-	# 	    tmp += packetizer->get_fcs_altitude_string()
-	# 	push( tmp.c_str() )
-	# 	push( getTerminator() )
-	# elif tokens[0] == 'fcs-update':
-	#     if len(tokens) == 2:
-	# 	bool result = fcs_update_helper(tokens[1])
-	# 	if self.prompt:
-	# 	    string tmp
-	# 	    if result:
-	# 		tmp = "new values accepted ok"
-	# 	    else:
-	# 		tmp = "update failed!"
-	# 	    push( tmp.c_str() )
-	# 	    push( getTerminator() )
 	elif tokens[0] == 'set':
 	    if len(tokens) >= 3:
                 if re.search('/', tokens[1]):
@@ -186,10 +158,37 @@ class ChatHandler(asynchat.async_chat):
 	            quit()
             self.push('usage: shutdown-server xyzzy\n')
             self.push('extra magic argument is required\n')
-	elif tokens[0] == 'data':
-	    self.prompt = False
-	elif tokens[0] == 'prompt':
-	    self.prompt = True
+	# elif tokens[0] == 'fcs':
+	#     if len(tokens) == 2:
+	# 	string tmp = ""
+	# 	if self.prompt:
+	# 	    tmp = tokens[1]
+	# 	    tmp += " = "
+	# 	if tokens[1] == "heading":
+	# 	    tmp += packetizer->get_fcs_nav_string()
+	# 	elif tokens[1] == "speed":
+	# 	    tmp += packetizer->get_fcs_speed_string()
+	# 	elif tokens[1] == "altitude":
+	# 	    tmp += packetizer->get_fcs_altitude_string()
+	# 	elif tokens[1] == "all":
+	# 	    tmp += packetizer->get_fcs_nav_string()
+	# 	    tmp += ","
+	# 	    tmp += packetizer->get_fcs_speed_string()
+	# 	    tmp += ","
+	# 	    tmp += packetizer->get_fcs_altitude_string()
+	# 	push( tmp.c_str() )
+	# 	push( getTerminator() )
+	# elif tokens[0] == 'fcs-update':
+	#     if len(tokens) == 2:
+	# 	bool result = fcs_update_helper(tokens[1])
+	# 	if self.prompt:
+	# 	    string tmp
+	# 	    if result:
+	# 		tmp = "new values accepted ok"
+	# 	    else:
+	# 		tmp = "update failed!"
+	# 	    push( tmp.c_str() )
+	# 	    push( getTerminator() )
 	else:
             self.usage()
 
@@ -200,17 +199,17 @@ class ChatHandler(asynchat.async_chat):
         message = """
 Valid commands are:
 
-cd <dir>           cd to a directory, '..' to move back
-data               switch to raw data mode
-dump [<dir>]       dump the current state (in xml)
-get <var>          show the value of a parameter
 help               show this help message
-ls [<dir>]         list directory
+data               switch to raw data mode
 prompt             switch to interactive mode (default)
+ls [<dir>]         list directory
+cd <dir>           cd to a directory, '..' to move back
 pwd                display your current path
-quit               terminate connection
-# run <command>      run built in command
+get <var>          show the value of a parameter
 set <var> <val>    set <var> to a new <val>
+dump [<dir>]       dump the current state (in xml)
+# run <command>      run built in command
+quit               terminate client connection
 shutdown-server    instruct host server to exit (requires magic argument)
 """
         self.push(message)
