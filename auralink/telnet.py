@@ -76,16 +76,33 @@ class ChatHandler(asynchat.async_chat):
 	    self.push(self.path + '\n' )
 	elif tokens[0] == 'get' or tokens[0] == 'show':
 	    if len(tokens) == 2:
-                node = getNode(self.path)
-                if node:
-		    value = node.getString(tokens[1])
+                if re.search('/', tokens[1]):
+                    if tokens[1][0] == '/':
+                        # absolute path
+                        tmp = tokens[1].split('/')
+                    else:
+                        # relative path
+                        combinedpath = '/'.join([self.path, tokens[1]])
+                        combinedpath = self.normalize_path(combinedpath)
+                        tmp = combinedpath.split('/')
+                    tmppath = '/'.join(tmp[0:-1])
+                    if tmppath == '':
+                        tmppath = '/'
+                    node = getNode(tmppath, True)
+                    name = tmp[-1]
+                    #print "tmppath:", tmppath
+                    #print "node:", node
+                    #print "name:", name
                 else:
-                    value = ''
-		if mode == 'prompt':
-		    line = tokens[1] + ' = "' + value + '"'
-		else:
-		    line = value
-		push(line + '\n')
+                    node = getNode(self.path, True)
+                    name = tokens[1]
+		value = node.getString(name)
+		if self.mode == 'prompt':
+		    self.push(tokens[1] + ' = "' + value + '"\n')
+                else:
+                    self.push(value + '\n')
+	    else:
+		self.push('usage: get [[/]path/]attr\n')
 	# elif tokens[0] == 'fcs':
 	#     if len(tokens) == 2:
 	# 	string tmp = ""
@@ -137,7 +154,7 @@ class ChatHandler(asynchat.async_chat):
                     print "node:", node
                     print "name:", name
                 else:
-                    node = getNode(self.path)
+                    node = getNode(self.path, True)
                     name = tokens[1]
 		value = ' '.join(tokens[2:])
 		node.setString(name, value)
@@ -147,7 +164,7 @@ class ChatHandler(asynchat.async_chat):
 		    value = node.getString(name)
 		    self.push(tokens[1] + ' = "' + value + '"\n')
 	    else:
-		self.push('usage: set attr value\n')
+		self.push('usage: set [[/]path/]attr value\n')
 	# elif tokens[0] == 'run':
 	#     if len(tokens) == 2:
 	# 	string command = tokens[1]
