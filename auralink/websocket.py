@@ -23,15 +23,16 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 def nullfunc():
     pass
 
-def update():
-    tornado.ioloop.IOLoop.instance().run_sync(nullfunc)
-    
 application = tornado.web.Application([
     (r'/ws', WSHandler),
 ])
 
 http_server = tornado.httpserver.HTTPServer(application)
-http_server.listen(8888)
 
-print 'Websocket server on http://localhost:8888/ws'
+def init(port=8888):
+    http_server.listen(port)
+    print 'Websocket server on http://localhost:' + str(port) + '/ws'
+    
+def update():
+    tornado.ioloop.IOLoop.instance().run_sync(nullfunc)
     
