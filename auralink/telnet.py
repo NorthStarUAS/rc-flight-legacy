@@ -249,7 +249,7 @@ class ChatServer(asyncore.dispatcher):
  
 server = ChatServer('localhost', 5050)
 
-print 'Serving on localhost:5050'
+print 'Telnet server on localhost:5050'
 
 def update():
     asyncore.loop(timeout=0, count=1)

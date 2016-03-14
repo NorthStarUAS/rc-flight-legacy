@@ -10,12 +10,13 @@ from props import root, getNode
 
 import parser
 import telnet
+import websocket
 
 argparser = argparse.ArgumentParser(description='aura link')
 argparser.add_argument('--hertz', default=10, type=int, help='specify main loop rate')
 argparser.add_argument('--flight', help='load specified flight log')
 argparser.add_argument('--export-text-tab', help='export to tab delimited file')
-argparser.add_argument('--serial', default='/dev/ttyUSB0', help='input serial port') 
+argparser.add_argument('--serial', help='input serial port') 
 argparser.add_argument('--baud', default=115200, type=int, help='serial port baud rate') 
 argparser.add_argument('--websocket-port', help='websocket port')
 argparser.add_argument('--skip-seconds', help='seconds to skip when processing flight log')
@@ -33,10 +34,9 @@ if args.serial:
 
     while True:
         parser.serial_read(ser)
+        websocket.update()
         telnet.update()
-
-
-if args.flight:
+elif args.flight:
     (fd, filename) = tempfile.mkstemp()
     command = "zcat " + args.flight + " > " + filename
     print command
@@ -54,4 +54,7 @@ if args.flight:
 
     while True:
         parser.file_read(full)
+        websocket.update()
         telnet.update()
+else:
+    print "No input source provided"    
