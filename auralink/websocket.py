@@ -9,6 +9,7 @@ from props import root, getNode
 class WSHandler(tornado.websocket.WebSocketHandler):
     def open(self):
         print 'new connection'
+        self.bind_props()
       
     def on_message(self, message):
         print 'message received:  %s' % message
@@ -29,7 +30,23 @@ class WSHandler(tornado.websocket.WebSocketHandler):
  
     def check_origin(self, origin):
         return True
-    
+
+    def bind_props(self):
+        print 'binding property nodes'
+        self.gps_node = getNode('/sensors/gps', True)
+        self.imu_node = getNode('/sensors/imu', True)
+        self.airdata_node = getNode('/sensors/airdata', True)
+        self.pilot_node = getNode('/sensors/pilot', True)
+        self.pos_combined_node = getNode('/position/combined', True)
+        self.filter_node = getNode('/filters/filter', True)
+        self.act_node = getNode('/actuators/actuator', True)
+        self.ap_node = getNode('/autopilot', True)
+        self.targets_node = getNode('/autopilot/targets', True)
+        self.route_node = getNode('/task/route', True)
+        self.status_node = getNode('/status', True)
+        self.cam_node = getNode('/payload/camera', True) 
+        self.wind_node = getNode('/filters/wind', True) 
+   
 def nullfunc():
     pass
 
