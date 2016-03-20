@@ -145,7 +145,7 @@ class Tuner(QtGui.QWidget):
 
         # Route follow parameters
         self.L1 = L1Controller(changefunc=self.onChange, host=host, port=port)
-        self.L1.parse_xml( root.find('L1-controller') )
+        self.L1.parse_xml( root.find('L1_controller') )
         self.tabs.addTab( self.L1.get_widget(), "L1" )
 
         # PID controller parameters

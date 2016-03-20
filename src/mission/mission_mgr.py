@@ -4,7 +4,7 @@ import comms.events
 
 import task.is_airborne
 import task.circle
-import taks.flaps_mgr
+import task.flaps_mgr
 import task.home_mgr
 import task.idle
 import task.land

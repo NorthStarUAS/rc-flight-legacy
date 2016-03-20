@@ -41,16 +41,18 @@ int update(serial)
                 cmd_send_index = cmd_send_index + 1
             else:
                 prime_state = False
-
-    # nothing to do if command queue empty
-    if cmd_queue.empty():
+    if len(cmd_queue):
+        # discard any pending heartbeat commands if we have real work
+        while len(cmd_queue) > 1 and cmd_queue[0] == 'hb':
+            cmd_queue.pop(0)
+        # send the command
+        command = cmd_queue[0]
+        result = serial_send(serial, cmd_send_index, command)
+        return cmd_send_index
+    else:
+        # nothing to do if command queue empty
         prime_state = True
         return 0
-
-    # send the command
-    command = cmd_queue.front()
-    result = serial_send(serial, cmd_send_index, command)
-    return cmd_send_index
 
 def add(command):
     print 'command queue:', command

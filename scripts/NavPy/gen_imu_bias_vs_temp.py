@@ -73,8 +73,8 @@ for line in fgps:
     time, lat, lon, alt, vn, ve, vd, unixsec, sats, status = line.split()
     if int(sats) >= 4:
         gps = EKF.GPS( float(time), int(status), float(unixsec),
-                                       float(lat), float(lon), float(alt),
-                                       float(vn), float(ve), float(vd))
+                       float(lat), float(lon), float(alt),
+                       float(vn), float(ve), float(vd))
         gps_data.append(gps)
 
 if len(gps_data) == 0:
@@ -132,7 +132,7 @@ for i, imu in enumerate(imu_raw):
     if imu.time >= gps_data[gps_index].time:
         gps_index += 1
     if gps_index >= len(gps_data):
-        # no more gps data, stick on the last record
+        # no more gps data, stay on the last record
         gps_index = len(gps_data)-1
     gps = gps_data[gps_index-1]
     #print "t(imu) = " + str(imu.time) + " t(gps) = " + str(gps.time)
