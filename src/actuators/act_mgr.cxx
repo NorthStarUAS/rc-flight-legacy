@@ -123,6 +123,9 @@ static void set_actuator_values_ap() {
     float rudder = flight_node.getDouble("rudder");
     act_node.setDouble( "channel", 3, rudder );
 
+    double flaps = flight_node.getDouble("flaps");
+    act_node.setDouble("channel", 5, flaps );
+
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
 

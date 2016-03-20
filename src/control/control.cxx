@@ -248,7 +248,7 @@ void control_update(double dt)
 		    index = wp_index;
 		}
 	    }
-	} else if ( task_name == "circle-coord" ) {
+	} else if ( task_name == "circle_coord" ) {
 	    if ( circle_mgr != NULL ) {
 		wp = circle_mgr->get_center();
 		route_size = 1;

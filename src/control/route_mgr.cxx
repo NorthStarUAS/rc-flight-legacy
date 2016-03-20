@@ -139,7 +139,8 @@ void FGRouteMgr::update() {
 	route_node.setString("request_result", result.c_str());
 	route_node.setString("route_request", "");
     }
-    
+
+    route_node.setLong("route_size", active->size());
     if ( active->size() > 0 ) {
 	if ( GPS_age() < 10.0 ) {
 

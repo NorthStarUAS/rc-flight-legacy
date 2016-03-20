@@ -1366,7 +1366,7 @@ static int gen_pulse( double val, bool symmetrical ) {
 	if ( val > 1.5 ) { val = 1.5; }
 	pulse = PWM_CENTER + (int)(PWM_HALF_RANGE * val);
     } else {
-	// i.e. throttle
+	// i.e. throttle, flaps
 	if ( val < 0.0 ) { val = 0.0; }
 	if ( val > 1.0 ) { val = 1.0; }
 	pulse = PWM_MIN + (int)(PWM_RANGE * val);
@@ -1442,7 +1442,7 @@ static bool APM2_act_write() {
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel", 5), true );
+	val = gen_pulse( act_node.getDouble("channel", 5), false );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
@@ -1756,8 +1756,8 @@ bool APM2_pilot_update() {
     val = normalize_pulse( pilot_input[4], true );
     pilot_node.setDouble( "channel", 4, val );
 
-    val = normalize_pulse( pilot_input[5], true );
-    pilot_node.setDouble( "channel", 5, val );
+    val = normalize_pulse( pilot_input[5], false );
+    pilot_node.setDouble( "flaps", val );
 
     val = normalize_pulse( pilot_input[6], true );
     pilot_node.setDouble( "channel", 6, val );

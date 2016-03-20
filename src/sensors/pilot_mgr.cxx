@@ -138,6 +138,7 @@ bool PilotInput_update() {
 	    flight_node.setDouble( "elevator", pilot_node.getDouble("elevator") );
 	    engine_node.setDouble( "throttle", pilot_node.getDouble("throttle") );
 	    flight_node.setDouble( "rudder", pilot_node.getDouble("rudder") );
+	    flight_node.setDouble( "flaps", pilot_node.getDouble("flaps") );
 	}
 
 	bool send_remote_link = false;
