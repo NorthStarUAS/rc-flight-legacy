@@ -247,9 +247,9 @@ class ChatServer(asyncore.dispatcher):
             print 'Incoming connection from %s' % repr(addr)
             handler = ChatHandler(sock)
  
-server = ChatServer('localhost', 5050)
-
-print 'Serving on localhost:5050'
+def init(port=5050):
+    server = ChatServer('localhost', port)
+    print 'Telnet server on localhost:' + str(port)
 
 def update():
     asyncore.loop(timeout=0, count=1)
