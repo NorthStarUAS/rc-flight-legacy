@@ -4,6 +4,7 @@ import comms.events
 
 import task.is_airborne
 import task.circle
+import taks.flaps_mgr
 import task.home_mgr
 import task.idle
 import task.land
@@ -37,6 +38,8 @@ class MissionMgr:
             result = task.is_airborne.IsAirborne(config_node)
         elif task_name == 'circle':
             result = task.circle.Circle(config_node)
+        elif task_name == 'flaps_manager':
+            result = task.flaps_mgr.FlapsMgr(config_node)
         elif task_name == 'home_manager':
             result = task.home_mgr.HomeMgr(config_node)
         elif task_name == 'idle':

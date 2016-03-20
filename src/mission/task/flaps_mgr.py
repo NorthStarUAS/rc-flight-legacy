@@ -12,7 +12,10 @@ class FlapsMgr(Task):
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
         self.last_time = 0.0
-        self.speed_secs = 5     # full range of motion over 5 seconds
+        if config_node.hasChild("speed_secs"):
+            self.speed_secs = config_node.getString("speed_secs")
+        else:
+            self.speed_secs = 5
 
     def activate(self):
         self.active = True

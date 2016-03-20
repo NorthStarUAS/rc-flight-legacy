@@ -21,6 +21,7 @@ class Land(Task):
         self.pos_node = getNode("/position", True)
         self.vel_node = getNode("/velocity", True)
         self.orient_node = getNode("/orientation", True)
+	self.flight_node = getNode("/controls/flight", True)
         self.engine_node = getNode("/controls/engine", True)
         self.imu_node = getNode("/sensors/imu", True)
         self.home_node = getNode("/task/home", True)
@@ -49,6 +50,8 @@ class Land(Task):
         self.flare_seconds = config_node.getFloat("flare_seconds")
         if self.flare_seconds < 0.1:
             self.flare_seconds = 5.0
+        if config_node.hasChild("flaps"):
+            self.flaps = config_node.getFloat("flaps")
 
         # copy to /task/land
         self.land_node.setFloat("lateral_offset_m", self.lateral_offset_m)
@@ -101,7 +104,8 @@ class Land(Task):
         self.ap_node.setString("mode", "basic+alt+speed")
         self.targets_node.setFloat("airspeed_kt",
                                    self.land_node.getFloat("approach_speed_kt"))
-
+        self.flight_node.setFloat("flaps_setpoint", self.flaps)
+        
         # start at the beginning of the route (in case we inherit a
         # partially flown approach from earlier in the flight)
         # approach_mgr.restart() # FIXME
@@ -281,6 +285,7 @@ class Land(Task):
         self.ap_node.setString("mode", self.saved_fcs_mode)
         self.targets_node.setFloat("airspeed_kt", self.saved_speed_kt)
         self.targets_node.setFloat("altitude_agl_ft", self.saved_agl_ft );
+        self.flight_node.setFloat("flaps_setpoint", 0.0)
         self.active = False
         return True
 

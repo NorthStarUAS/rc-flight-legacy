@@ -30,6 +30,7 @@ class Launch(Task):
         self.rudder_gain = 1.0
         self.rudder_max = 1.0
         self.control_limit = 1.0
+        self.flaps = 0.0
 
         self.last_ap_master = False
         self.last_imu_timestamp = 0.0
@@ -45,6 +46,7 @@ class Launch(Task):
         self.rudder_enable = config_node.getBool("rudder_enable")
         self.rudder_gain = config_node.getFloat("rudder_gain")
         self.rudder_max = config_node.getFloat("rudder_max")
+        self.flaps = config_node.getFloat("flaps")
 
     def activate(self):
         self.active = True
@@ -71,6 +73,7 @@ class Launch(Task):
                 self.relhdg = 0.0
                 self.last_imu_timestamp = imu_timestamp
                 self.control_limit = 1.0
+                self.flight_node.setFloat("flaps_setpoint", self.flaps)
 
             dt = imu_timestamp - self.last_imu_timestamp
             self.last_imu_timestamp = imu_timestamp
@@ -145,6 +148,7 @@ class Launch(Task):
                 # before we've feathered out the rudder input, let's
                 # leave the rudder centered.
                 self.flight_node.setFloat("rudder", 0.0)
+                self.flight_node.setFloat("flaps_setpoint", 0.0)
             return True
         return False
     
