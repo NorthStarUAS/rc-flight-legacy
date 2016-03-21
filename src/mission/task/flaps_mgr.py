@@ -14,6 +14,8 @@ class FlapsMgr(Task):
         self.last_time = 0.0
         if config_node.hasChild("speed_secs"):
             self.speed_secs = float(config_node.getString("speed_secs"))
+            if self.speed_secs < 1.0:
+                self.speed_secs = 1.0
         else:
             self.speed_secs = 5
 
