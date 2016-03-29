@@ -2,7 +2,7 @@
 
 ## Welcome
 
-Aura-core is the heart of the AuraUAS project.  It is distrubted under
+Aura-core is the heart of the AuraUAS project.  It is distributed under
 the LGPL license except where noted (see the licenses subdirectory for
 details.)  AuraUAS is an advance embedded application for unmanned
 aircraft systems.  Aura-core includes:
@@ -32,7 +32,7 @@ aircraft systems.  Aura-core includes:
 
 * Great circle and wgs84 distance and heading math.
 
-* Temperature/IMU calibration system.
+* Self learning IMU temperature calibration system.
 
 * System and health monitoring
 
@@ -53,10 +53,48 @@ popular open-source projects.
 
 4. Run "make"
 
-## Future work
 
-Currently (at the time of writing) aura-core is just a set of
-libraries that can be stiched together from your own main() to produce
-a working autopilot.  The longer term goal is to provide a suitable
-main() here along with a Python based mission/task managment system so
-that aura-core is a complete, standalone, open-source autopilot system
+## Development Road Map
+
+Recently aura-core became a complete standalone open-source autopilot.
+Development added a main() loop and an integrated python mission
+manager that is extensible with your own python code.  (Python is
+running right on board aircraft and playing a key functional role in
+the operation of the autopilot.)  The python integration has been
+tested in simulation and now in flight with excellent results.  Deeply
+integrating python into the core autopilot was a major strategic
+decision and perhaps a major distinguishing factor compared to many
+other autopilot ecosystems that currently exist and are being
+developed.
+
+Immediate development goals include:
+
+* rewriting the ground station link code in python, jettisoning a
+  significant amount of historic cruft, massively improving the
+  performance, as well as improving websocket compatibility with a
+  much wider variety of systems (i.e. adding iOS support.)
+
+* rewriting the sensor interface and then subsequently leveraging that
+  work to improve the determinism and reducing latency in the main
+  loop.
+
+Longer term goals include:
+
+* easier support for researchers and DIY'ers to add their own python
+  tasks and code deeply integrated into the main loop.
+
+* mavlink support.
+
+* more python.  Briefly: I like python, I like compact source code and
+  efficient representation of logic and ideas.  I equate code
+  efficiency with code that is easier to read and understand, as well
+  as less likely to hide obscure bugs.  I like that many people find
+  it easier to write python than C/C++.  I like the amazing breadth
+  and depth of it's supporting libraries.  I believe wise use of
+  python can bring substantial value to an open-source autopilot.  I
+  understand some people might be skeptical about such deep python
+  integration into the main autopilot system, and if you are one of
+  those people, I welcome you to Minnesota for a flight demo.
+
+* Modernization of the ground station interface (the visual
+  interactive portion.)
