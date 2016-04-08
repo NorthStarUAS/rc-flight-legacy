@@ -1,7 +1,8 @@
 /**
  *  \file: airdata_uart.cxx
  *
- * Airdata (UART) driver
+ * Driver for the Bolder Flight Systems airdata module (build on AMSYS pressure
+ * sensors.)
  *
  * Copyright (C) 2016 - Curtis L. Olson - curtolson@flightgear.org
  *
@@ -23,7 +24,7 @@
 #include "util/strutils.hxx"
 #include "util/timing.h"
 
-#include "airdata_uart.hxx"
+#include "airdata_bolder.hxx"
 
 
 // imu nodes
@@ -48,7 +49,7 @@ static void bind_imu_output( string output_path ) {
 
 
 // open the uart
-static bool airdata_uart_open() {
+static bool airdata_bolder_open() {
     if ( display_on ) {
 	printf("airdata on %s @ 115,200\n", device_name.c_str());
     }
@@ -97,11 +98,11 @@ static bool airdata_uart_open() {
 }
 
 
-void airdata_uart_init( string output_path, pyPropertyNode *config ) {
+void airdata_bolder_init( string output_path, pyPropertyNode *config ) {
     bind_imu_input( config );
     bind_imu_output( output_path );
 
-    airdata_uart_open();
+    airdata_bolder_open();
 }
 
 
@@ -171,7 +172,7 @@ static bool airdata_parse(uint8_t *buf) {
 }
 
 
-static bool airdata_uart_read() {
+static bool airdata_bolder_read() {
     static const int payload_length = 8;
 
     static int state = 0;
@@ -258,11 +259,11 @@ static bool airdata_uart_read() {
 }
 
 
-bool airdata_uart_update() {
+bool airdata_bolder_update() {
     // scan for new messages
     bool airdata_valid = false;
 
-    while ( airdata_uart_read() ) {
+    while ( airdata_bolder_read() ) {
 	airdata_valid = true;
     }
 
@@ -270,6 +271,6 @@ bool airdata_uart_update() {
  }
 
 
-void airdata_uart_close() {
+void airdata_bolder_close() {
     close(fd);
 }

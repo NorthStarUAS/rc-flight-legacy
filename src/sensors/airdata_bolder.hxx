@@ -1,14 +1,15 @@
 /**
- * \file: airdata_uart.hxx
+ * \file: airdata_bolder.hxx
  *
- * Airdata (UART) driver
+ * Driver for the Bolder Flight Systems airdata module (build on AMSYS pressure
+ * sensors.)
  *
  * Copyright (C) 2016 - Curtis L. Olson - curtolson@flightgear.org
  *
  */
 
-#ifndef _AURA_AIRDATA_UART_HXX
-#define _AURA_AIRDATA_UART_HXX
+#ifndef _AURA_AIRDATA_BOLDER_HXX
+#define _AURA_AIRDATA_BOLDER_HXX
 
 
 #include "python/pyprops.hxx"
@@ -19,9 +20,9 @@ using std::string;
 #include "include/globaldefs.h"
 
 
-void airdata_uart_init( string output_path, pyPropertyNode *config );
-bool airdata_uart_update();
-void airdata_uart_close();
+void airdata_bolder_init( string output_path, pyPropertyNode *config );
+bool airdata_bolder_update();
+void airdata_bolder_close();
 
 
-#endif // _AURA_AIRDATA_UART_HXX
+#endif // _AURA_AIRDATA_BOLDER_HXX
