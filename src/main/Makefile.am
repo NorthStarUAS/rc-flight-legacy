@@ -6,7 +6,6 @@ aura_SOURCES = \
 aura_LDADD = \
 	../actuators/libactuators.a \
 	../filters/libfilters.a \
-	../filters/umngnss_euler/libumngnss_euler.a \
 	../filters/umngnss_quat/libumngnss_quat.a \
 	../health/libhealth.a \
 	../payload/libpayload.a \

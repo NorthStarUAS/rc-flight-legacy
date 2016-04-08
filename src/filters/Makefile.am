@@ -1,5 +1,4 @@
 SUBDIRS = \
-	umngnss_euler \
 	umngnss_quat
 
 noinst_LIBRARIES = libfilters.a

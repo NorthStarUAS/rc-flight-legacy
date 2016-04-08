@@ -54,6 +54,16 @@ PYTHON_LIBS=`$PYTHON_CONFIG --libs`
 AC_MSG_RESULT([$PYTHON_LIBS])
 AC_SUBST(PYTHON_LIBS)
 
+dnl check for Eigen C++ matrix/vector/quaternion library
+AC_LANG_SAVE
+AC_LANG_CPLUSPLUS
+AC_CHECK_HEADERS([eigen3/Eigen/Core])
+AC_LANG_RESTORE
+if test "x$ac_cv_header_eigen3_Eigen_Core" != xyes; then
+   echo "configure error: eigen3 matrix libraries are required"
+   exit
+fi
+
 AM_CONFIG_HEADER(src/include/aura_config.h)
 
 dnl automatic detection of pointing library
@@ -72,7 +82,6 @@ AC_CONFIG_FILES([ \
         src/Makefile \
         src/actuators/Makefile \
         src/filters/Makefile \
-        src/filters/umngnss_euler/Makefile \
         src/filters/umngnss_quat/Makefile \
         src/comms/Makefile \
         src/control/Makefile \

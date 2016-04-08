@@ -58,9 +58,9 @@ popular open-source projects.
 
 Recently aura-core became a complete standalone open-source autopilot.
 Development added a main() loop and an integrated python mission
-manager that is extensible with your own python code.  (Python is
-running right on board aircraft and playing a key functional role in
-the operation of the autopilot.)  The python integration has been
+manager that is extensible with your own python code.  Python is
+running right on board the aircraft and playing a key functional role
+in the operation of the autopilot.  The python integration has been
 tested in simulation and now in flight with excellent results.  Deeply
 integrating python into the core autopilot was a major strategic
 decision and perhaps a major distinguishing factor compared to many
