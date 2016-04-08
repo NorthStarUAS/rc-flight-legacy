@@ -105,7 +105,7 @@ void airdata_uart_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-static bool airdata_parse(uint8_t *buf) {
+static bool airdata_parse_oldraw(uint8_t *buf) {
     // Sensor raw ADC range
     const int pmin = 3277;
     const int pmax = 29491;
@@ -150,8 +150,29 @@ static bool airdata_parse(uint8_t *buf) {
 }
 
 
+static bool airdata_parse(uint8_t *buf) {
+    double static_pa = *(float *)buf; buf += 4;
+    double diff_pa = *(float *)buf; buf += 4;
+
+    // printf("static(pa) = %.2f\n", static_pa);
+    // printf("diff(pa) = %.2f\n", diff_pa);
+    
+    airdata_node.setDouble( "timestamp", get_Time() );
+    airdata_node.setDouble( "pressure_mbar", (static_pa / 100.0) );
+
+    double pitot_calibrate = 1.0; // make configurable in the future?
+    if ( diff_pa < 0.0 ) { diff_pa = 0.0; } // avoid sqrt(neg_number) situation
+    float airspeed_mps = sqrt( 2*diff_pa / 1.225 ) * pitot_calibrate;
+    float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
+    airdata_node.setDouble( "airspeed_mps", airspeed_mps );
+    airdata_node.setDouble( "airspeed_kt", airspeed_kt );
+
+    return true;
+}
+
+
 static bool airdata_uart_read() {
-    static const int payload_length = 4;
+    static const int payload_length = 8;
 
     static int state = 0;
     static int counter = 0;
@@ -168,11 +189,11 @@ static bool airdata_uart_read() {
 	counter = 0;
 	cksum_A = cksum_B = 0;
 	len = read( fd, input, 1 );
-	while ( len > 0 && input[0] != 0x55 ) {
+	while ( len > 0 && input[0] != 0x42 ) {
 	    // printf( "state0: len = %d val = %2X\n", len, input[0] );
 	    len = read( fd, input, 1 );
 	}
-	if ( len > 0 && input[0] == 0x55 ) {
+	if ( len > 0 && input[0] == 0x42 ) {
 	    // printf( "read 0xB5\n");
 	    state++;
 	}
@@ -180,11 +201,11 @@ static bool airdata_uart_read() {
     if ( state == 1 ) {
 	len = read( fd, input, 1 );
 	if ( len > 0 ) {
-	    if ( input[0] == 0x4d ) {
-		// printf( "read 0x4d\n");
+	    if ( input[0] == 0x46 ) {
+		// printf( "read 0x46\n");
 		state++;
-	    } else if ( input[0] == 0x55 ) {
-		// printf( "read 0x55\n");
+	    } else if ( input[0] == 0x42 ) {
+		// printf( "read 0x42\n");
 	    } else {
 		state = 0;
 	    }
