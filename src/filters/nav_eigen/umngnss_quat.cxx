@@ -12,7 +12,7 @@
 #include "sensors/gps_mgr.hxx"
 
 #include "umngnss_quat.hxx"
-#include "nav_interface.h"
+#include "nav_interface.hxx"
 #include "globaldefs.h"
 
 // these are the important sensor and result structures used by the
@@ -146,6 +146,6 @@ bool umngnss_quat_update() {
 
 
 void umngnss_quat_close() {
-    close_nav();
+    // noop()
 }
 
