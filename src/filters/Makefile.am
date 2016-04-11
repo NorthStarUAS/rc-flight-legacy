@@ -1,5 +1,4 @@
-SUBDIRS = \
-	umngnss_quat
+SUBDIRS = nav_eigen umngnss_quat
 
 noinst_LIBRARIES = libfilters.a
 
