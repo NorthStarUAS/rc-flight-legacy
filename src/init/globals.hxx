@@ -11,6 +11,7 @@
 
 
 #include "comms/events.hxx"
+#include "comms/packer.hxx"
 #include "comms/packetizer.hxx"
 #include "comms/telnet.hxx"
 #include "control/circle_mgr.hxx"
@@ -19,6 +20,7 @@
 
 
 extern pyModuleEventLog *events;
+extern pyModulePacker *packer;
 extern UGPacketizer *packetizer;
 extern UGTelnet *telnet;
 extern AuraCircleMgr *circle_mgr;

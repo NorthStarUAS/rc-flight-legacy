@@ -84,7 +84,6 @@ bool logging_init() {
         return false;
     }
 
-    events->init("comms.events");
     events->open(flight_dir.c_str());
     events->log("Log", "Start");
     

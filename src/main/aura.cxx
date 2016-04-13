@@ -443,6 +443,10 @@ int main( int argc, char **argv )
     // initialize required aura-core structures
     AuraCoreInit();
 
+    // import and init some python modules
+    events->init("comms.events");
+    packer->init("comms.packer");
+
     // open remote link if requested
     if ( remote_link_on ) {
         remote_link_init();
