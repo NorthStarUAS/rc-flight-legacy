@@ -1,5 +1,5 @@
-// umngnss_quat.cpp -- C++/Property aware interface for GNSS/ADNS 15-state
-//                     kalman filter algorithm
+// aura_interface.cxx -- C++/Property aware interface for GNSS/ADNS 15-state
+//                       kalman filter algorithm
 //
 
 
@@ -8,19 +8,19 @@
 #include <math.h>
 #include <string.h>
 
-#include "include/globaldefs.h"
+//#include "include/globaldefs.h"
 #include "sensors/gps_mgr.hxx"
 
-#include "umngnss_quat.hxx"
+#include "aura_interface.hxx"
 #include "nav_interface.hxx"
-#include "globaldefs.h"
 
 // these are the important sensor and result structures used by the
 // UMN code.  To avoid pointers and dynamic allocation, create static
 // copies of these and use them henceforth.
-static struct imu imu_data;
-static struct gps gps_data;
-static struct nav nav_data;
+
+static IMUdata imu_data;
+static GPSdata gps_data;
+static NAVdata nav_data;
 
 // property nodes
 static pyPropertyNode imu_node;
@@ -38,7 +38,10 @@ static void props2umn(void) {
     imu_data.ax = imu_node.getDouble("ax_mps_sec");
     imu_data.ay = imu_node.getDouble("ay_mps_sec");
     imu_data.az = imu_node.getDouble("az_mps_sec");
-    
+    imu_data.hx = imu_node.getDouble("hx");
+    imu_data.hy = imu_node.getDouble("hy");
+    imu_data.hz = imu_node.getDouble("hz");
+
     gps_data.time = gps_node.getDouble("timestamp");
     gps_data.lat = gps_node.getDouble("latitude_deg");
     gps_data.lon = gps_node.getDouble("longitude_deg");
@@ -59,14 +62,14 @@ static void props2umn(void) {
 // returned by the umn filter init or update routines
 static void umn2props(void) {
     double psi = nav_data.psi;
-    if ( psi < 0 ) { psi += SGD_2PI; }
-    if ( psi > SGD_2PI ) { psi -= SGD_2PI; }
+    if ( psi < 0 ) { psi += M_PI*2.0; }
+    if ( psi > M_PI*2.0 ) { psi -= M_PI*2.0; }
     filter_node.setDouble( "timestamp", imu_data.time );
-    filter_node.setDouble( "roll_deg", nav_data.phi * SG_RADIANS_TO_DEGREES );
-    filter_node.setDouble( "pitch_deg", nav_data.the * SG_RADIANS_TO_DEGREES );
-    filter_node.setDouble( "heading_deg", psi * SG_RADIANS_TO_DEGREES );
-    filter_node.setDouble( "latitude_deg", nav_data.lat * SG_RADIANS_TO_DEGREES );
-    filter_node.setDouble( "longitude_deg", nav_data.lon * SG_RADIANS_TO_DEGREES );
+    filter_node.setDouble( "roll_deg", nav_data.phi * R2D );
+    filter_node.setDouble( "pitch_deg", nav_data.the * R2D );
+    filter_node.setDouble( "heading_deg", psi * R2D );
+    filter_node.setDouble( "latitude_deg", nav_data.lat * R2D );
+    filter_node.setDouble( "longitude_deg", nav_data.lon * R2D );
     filter_node.setDouble( "altitude_m", nav_data.alt );
     filter_node.setDouble( "vn_ms", nav_data.vn );
     filter_node.setDouble( "ve_ms", nav_data.ve );
@@ -88,19 +91,18 @@ static void umn2props(void) {
     filter_node.setDouble( "az_bias", nav_data.ab[2] );
     
     filter_node.setDouble( "altitude_ft",
-			   nav_data.alt * SG_METER_TO_FEET );
+			   nav_data.alt * M2F );
     filter_node.setDouble( "groundtrack_deg",
-			   90 - atan2(nav_data.vn, nav_data.ve)
-			   * SG_RADIANS_TO_DEGREES );
+			   90 - atan2(nav_data.vn, nav_data.ve) * R2D );
     filter_node.setDouble( "groundspeed_ms",
 			   sqrt(nav_data.vn * nav_data.vn
 				+ nav_data.ve * nav_data.ve) );
     filter_node.setDouble( "vertical_speed_fps",
-			   -nav_data.vd * SG_METER_TO_FEET );
+			   -nav_data.vd * M2F );
 }
 
 
-void umngnss_quat_init( string output_path, pyPropertyNode *config ) {
+void nav_eigen_init( string output_path, pyPropertyNode *config ) {
     // initialize property nodes
     imu_node = pyGetNode("/sensors/imu", true);
     gps_node = pyGetNode("/sensors/gps", true);
@@ -123,29 +125,29 @@ void umngnss_quat_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-bool umngnss_quat_update() {
-    static bool umn_inited = false;
+bool nav_eigen_update() {
+    static bool nav_inited = false;
 
     // fill in the UMN structures
     props2umn();
 
-    if ( umn_inited ) {
-	get_nav( &imu_data, &gps_data, &nav_data );
+    if ( nav_inited ) {
+	nav_data = get_nav( imu_data, gps_data );
     } else {
 	if ( GPS_age() < 1.0 && gps_node.getBool("settle") ) {
-	    init_nav( &imu_data, &gps_data, &nav_data );
-	    umn_inited = true;
+	    nav_data = init_nav( imu_data, gps_data );
+	    nav_inited = true;
 	}
     }
 
     // copy the nav_data results back to the property tree
     umn2props();
 
-    return umn_inited;
+    return nav_inited;
 }
 
 
-void umngnss_quat_close() {
+void nav_eigen_close() {
     // noop()
 }
 

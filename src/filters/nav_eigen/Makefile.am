@@ -1,9 +1,8 @@
-noinst_LIBRARIES = libumngnss_quat.a
+noinst_LIBRARIES = libnav_eigen.a
 
-libumngnss_quat_a_SOURCES = \
-	umngnss_quat.cxx umngnss_quat.hxx \
+libnav_eigen_a_SOURCES = \
+	aura_interface.cxx aura_interface.hxx \
 	EKF_15state_quat.cxx \
-	globaldefs.h \
 	nav_functions.cxx nav_functions.hxx nav_interface.h
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@

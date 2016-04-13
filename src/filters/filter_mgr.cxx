@@ -19,7 +19,7 @@ using std::ostringstream;
 
 #include "comms/remote_link.hxx"
 #include "comms/logging.hxx"
-//#include "filters/curt/adns_curt.hxx"
+#include "filters/nav_eigen/aura_interface.hxx"
 #include "filters/umngnss_quat/umngnss_quat.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
@@ -95,7 +95,11 @@ void Filter_init() {
 	ostringstream output_path;
 	output_path << "/filters/filter" << '[' << i << ']';
 	printf("filter: %d = %s\n", i, module.c_str());
-	if ( module == "umn_quat" ) {
+	if ( module == "null" ) {
+	    // do nothing
+	} else if ( module == "nav_eigen" ) {
+	    nav_eigen_init( output_path.str(), &section );
+	} else if ( module == "umn_quat" ) {
 	    umngnss_quat_init( output_path.str(), &section );
 	} else {
 	    printf("Unknown filter = '%s' in config file\n",
@@ -308,6 +312,8 @@ bool Filter_update() {
 	}
 	if ( module == "null" ) {
 	    // do nothing
+	} else if ( module == "nav_eigen" ) {
+	    fresh_filter_data = nav_eigen_update();
 	} else if ( module == "umn_quat" ) {
 	    fresh_filter_data = umngnss_quat_update();
 	}
@@ -373,6 +379,8 @@ void Filter_close() {
 	}
 	if ( module == "null" ) {
 	    // do nothing
+	} else if ( module == "nav_eigen" ) {
+	    nav_eigen_close();
 	} else if ( module == "umn_quat" ) {
 	    umngnss_quat_close();
 	}
