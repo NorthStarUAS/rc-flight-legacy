@@ -351,8 +351,8 @@ int main( int argc, char **argv )
 	pyPropertyNode props = pyGetNode("/", true);
         readXML( master.c_str(), &props);
         printf("Loaded configuration from %s\n", master.c_str());
-	writeXML( "debug.xml", &props);
-	props.pretty_print();
+	//writeXML( "debug.xml", &props);
+	//props.pretty_print();
 	pyPropertyNode config_node = pyGetNode("/config");
 	config_node.setString("root-path", root.c_str());
     } catch (const sg_exception &exc) {

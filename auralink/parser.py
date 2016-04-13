@@ -1,4 +1,6 @@
-import packer
+import sys
+sys.path.append("../src")
+import comms.packer
 import time
 
 # constants
