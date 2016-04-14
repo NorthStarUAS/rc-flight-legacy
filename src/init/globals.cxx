@@ -19,6 +19,7 @@ pyModuleBase *mission_mgr = NULL;
 
 
 bool AuraCoreInit() {
+    // create instances
     events = new pyModuleEventLog;
     packer = new pyModulePacker;
     packetizer = new UGPacketizer;
@@ -26,5 +27,10 @@ bool AuraCoreInit() {
     route_mgr = new FGRouteMgr;
     mission_mgr = new pyModuleBase;
 
+    // import and init the python modules
+    events->init("comms.events");
+    packer->init("comms.packer");
+    mission_mgr->init("mission.mission_mgr");
+    
     return true;
 }
