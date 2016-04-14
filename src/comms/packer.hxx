@@ -15,9 +15,10 @@ public:
     pyModulePacker();
     ~pyModulePacker() {}
 
-    bool open(const char *path);
+    // bool open(const char *path);
     // bool log(const char *header, const char *message);
-    bool close();
+    // bool close();
+    int pack_gps_v1(int index, uint8_t *buf);
     
 };
 
