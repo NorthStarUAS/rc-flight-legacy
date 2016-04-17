@@ -75,13 +75,13 @@ int pyModulePacker::pack_gps_v1(int index, uint8_t *buf) {
     int len = 0;
     if (pModuleObj == NULL) {
 	printf("ERROR: import packer failed\n");
-	return false;
+	return 0;
     }
     PyObject *pFuncLog = PyObject_GetAttrString(pModuleObj, "pack_gps_v1");
     if ( pFuncLog == NULL || ! PyCallable_Check(pFuncLog) ) {
 	if ( PyErr_Occurred() ) PyErr_Print();
 	printf("ERROR: cannot find function 'pack_gps_v1()'\n");
-	return false;
+	return 0;
     }
     PyObject *pResult = PyObject_CallFunction(pFuncLog, (char *)"d", index);
     if (pResult != NULL) {
@@ -97,7 +97,7 @@ int pyModulePacker::pack_gps_v1(int index, uint8_t *buf) {
     } else {
 	PyErr_Print();
 	printf("ERROR: call failed\n");
-	return false;
+	return 0;
     }
-    return false;
+    return 0;
 }

@@ -75,7 +75,10 @@ payload_node = getNode("/payload", True)
 payload_v1_fmt = "<dH"
 payload_v1_size = struct.calcsize(payload_v1_fmt)
 
-def pack_gps_v1():
+def init():
+    pass
+
+def pack_gps_v1(index):
     buf = struct.pack(gps_v1_fmt,
                       gps_node.getFloat("timestamp"),
                       gps_node.getFloat("latitude_deg"),
@@ -87,7 +90,7 @@ def pack_gps_v1():
                       gps_node.getFloat("unix_time_sec"),
                       gps_node.getInt("satellites"),
                       0)
-    return (buf, gps_v1_size)
+    return buf
 
 def unpack_gps_v1(buf):
     result = struct.unpack(gps_v1_fmt, buf)
@@ -103,7 +106,7 @@ def unpack_gps_v1(buf):
     gps_node.setInt("satellites", result[8])
     gps_node.setInt("status", result[9])
     
-def pack_imu_v2():
+def pack_imu_v2(index):
     buf = struct.pack(imu_v2_fmt,
                       imu_node.getFloat("timestamp"),
                       imu_node.getFloat("p_rad_sec"),
@@ -117,7 +120,7 @@ def pack_imu_v2():
                       imu_node.getFloat("hz"),
                       int(imu_node.getFloat("temp_C") * 10.0),
                       0)
-    return (buf, imu_v2_size)
+    return buf
 
 def unpack_imu_v1(buf):
     result = struct.unpack(imu_v1_fmt, buf)
@@ -150,7 +153,7 @@ def unpack_imu_v2(buf):
     imu_node.setFloat("temp_C", result[10] / 10.0)
     imu_node.setInt("status", result[10])
     
-def pack_airdata_v3():
+def pack_airdata_v3(index):
     buf = struct.pack(airdata_v3_fmt,
                       airdata_node.getFloat("timestamp"),
                       int(airdata_node.getFloat("pressure_mbar") * 10.0),
@@ -164,7 +167,7 @@ def pack_airdata_v3():
                       int(wind_node.getFloat("wind_speed_kt") * 4),
                       int(wind_node.getFloat("pitot_scale_factor") * 100),
                       airdata_node.getLong("status"))
-    return (buf, airdata_v3_size)
+    return buf
 
 def unpack_airdata_v1(buf):
     result = struct.unpack(airdata_v1_fmt, buf)
@@ -222,7 +225,7 @@ def unpack_airdata_v4(buf):
 
 # FIXME: airdata v5: range on temp, drop acceleration/empty field
 
-def pack_filter_v1():
+def pack_filter_v1(index):
     buf = struct.pack(filter_v1_fmt,
                       filter_node.getFloat("timestamp"),
                       filter_node.getFloat("latitude_deg"),
@@ -236,7 +239,7 @@ def pack_filter_v1():
                       int(filter_node.getFloat("heading_deg") * 10),
                       remote_link_node.getInt("sequence_num"),
                       0)
-    return (buf, filter_v1_size)
+    return buf
 
 def unpack_filter_v1(buf):
     result = struct.unpack(filter_v1_fmt, buf)
@@ -254,7 +257,7 @@ def unpack_filter_v1(buf):
     remote_link_node.setInt("sequence_num", result[10])
     filter_node.setInt("status", result[11])
     
-def pack_act_v1():
+def pack_act_v1(index):
     buf = struct.pack(act_v1_fmt,
                       act_node.getFloat("timestamp"),
                       int(act_node.getFloatEnum("channel", 0) * 30000),
@@ -266,7 +269,7 @@ def pack_act_v1():
                       int(act_node.getFloatEnum("channel", 6) * 30000),
                       int(act_node.getFloatEnum("channel", 7) * 30000),
                       0)
-    return (buf, act_v1_size)
+    return buf
 
 def unpack_act_v1(buf):
     result = struct.unpack(act_v1_fmt, buf)
@@ -282,7 +285,7 @@ def unpack_act_v1(buf):
     act_node.setFloatEnum("channel", 7, result[8] / 30000.0)
     act_node.setInt("status", result[9])
     
-def pack_pilot_v1():
+def pack_pilot_v1(index):
     buf = struct.pack(pilot_v1_fmt,
                       pilot_node.getFloat("timestamp"),
                       int(pilot_node.getFloat("aileron") * 30000),
@@ -294,7 +297,7 @@ def pack_pilot_v1():
                       int(pilot_node.getFloatEnum("channel", 6) * 30000),
                       int(pilot_node.getFloatEnum("channel", 7) * 30000),
                       0)
-    return (buf, pilot_v1_size)
+    return buf
 
 def unpack_pilot_v1(buf):
     result = struct.unpack(pilot_v1_fmt, buf)
@@ -310,7 +313,7 @@ def unpack_pilot_v1(buf):
     pilot_node.setFloatEnum("channel", 7, result[8] / 30000.0)
     pilot_node.setInt("status", result[9])
     
-def pack_ap_status_v2():
+def pack_ap_status_v2(index):
     target_agl_ft = targets_node.getFloat("altitude_agl_ft")
     ground_m = pos_pressure_node.getFloat("altitude_ground_m")
     error_m = pos_pressure_node.getFloat("pressure_error_m")
@@ -331,7 +334,7 @@ def pack_ap_status_v2():
                       route_node.getInt("index"), # FIXME
                       route_node.getInt("size"), # FIXME
                       remote_link_node.getInt("sequence_num"))
-    return (buf, ap_status_v1_size)
+    return buf
 
 def unpack_ap_status_v1(buf):
     result = struct.unpack(ap_status_v1_fmt, buf)
@@ -368,7 +371,7 @@ def unpack_ap_status_v2(buf):
     route_node.setInt("size", result[12]) # FIXME
     remote_link_node.setInt("sequence_num", result[13])
     
-def pack_system_health_v3():
+def pack_system_health_v3(index):
     buf = struct.pack(system_health_v3_fmt,
                       imu_node.getFloat("timestamp"),
                       int(status_node.getFloat("system_load_avg") * 100),
@@ -377,7 +380,7 @@ def pack_system_health_v3():
                       int(apm2_node.getFloat("extern_cell_volt") * 1000),
                       int(apm2_node.getFloat("extern_amps") * 1000),
                       int(apm2_node.getFloat("extern_current_mah")))
-    return (buf, system_health_v3_size)
+    return buf
 
 def unpack_system_health_v1(buf):
     result = struct.unpack(system_health_v1_fmt, buf)
@@ -407,11 +410,11 @@ def unpack_system_health_v3(buf):
     apm2_node.setFloat("extern_amps", result[5] / 1000.0)
     apm2_node.setFloat("extern_current_mah", result[6])
 
-def pack_payload_v1():
+def pack_payload_v1(index):
     buf = struct.pack(payload_v1_fmt,
                       imu_node.getFloat("timestamp"),
                       payload_node.getFloat("trigger_num"))
-    return (buf, payload_v1_size)
+    return buf
 
 def unpack_payload_v1(buf):
     result = struct.unpack(payload_v1_fmt, buf)
