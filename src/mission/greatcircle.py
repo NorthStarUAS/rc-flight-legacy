@@ -33,10 +33,13 @@ def course_and_dist(p1, p2):
             tc1_rad = 2.0 * math.pi
 
     # For starting points other than the poles:
-    if math.sin(lon2-lon1) < 0.0:
+    if dist_rad < 0.000000001:
+        # about a cm
+        tc1_rad = 0.0
+    elif math.sin(lon2-lon1) < 0.0:
         tc1_rad = math.acos((math.sin(lat2)-math.sin(lat1)*math.cos(dist_rad))/(math.sin(dist_rad)*math.cos(lat1)))    
     else:
-        tc1_rad = 2.0 * math.pi - math.acos((math.sin(lat2)-math.sin(lat1)*math.cos(dist_rad))/(math.sin(dist_rad)*math.cos(lat1)))    
+        tc1_rad = 2.0 * math.pi - math.acos((math.sin(lat2)-math.sin(lat1)*math.cos(dist_rad))/(math.sin(dist_rad)*math.cos(lat1)))
 
     dist_nm = dist_rad * rad2nm
     dist_m = dist_nm * nm2meter
