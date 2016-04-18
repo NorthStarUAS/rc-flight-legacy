@@ -14,7 +14,8 @@ m2ft = 1.0 / ft2m
 # h = int16_t, H = uint16_t
 # f = float, d = double
 
-gps_node = getNode("/sensors/gps", True)
+gps_node = getNode("/sensors/gps[0]", True)
+gps_nodes = []
 gps_v1_fmt = '<dddfhhhdBB'
 gps_v1_size = struct.calcsize(gps_v1_fmt)
 
@@ -79,32 +80,46 @@ def init():
     pass
 
 def pack_gps_v1(index):
+    if index >= len(gps_nodes):
+        for i in range(len(gps_nodes),index+1):
+            path = '/sensors/gps[%d]' % i
+            gps_nodes.append( getNode(path, True) )
+    node = gps_nodes[index]
+    
     buf = struct.pack(gps_v1_fmt,
-                      gps_node.getFloat("timestamp"),
-                      gps_node.getFloat("latitude_deg"),
-                      gps_node.getFloat("longitude_deg"),
-                      gps_node.getFloat("altitude_m"),
-                      int(gps_node.getFloat("vn_ms") * 100),
-                      int(gps_node.getFloat("ve_ms") * 100),
-                      int(gps_node.getFloat("vd_ms") * 100),
-                      gps_node.getFloat("unix_time_sec"),
-                      gps_node.getInt("satellites"),
+                      node.getFloat("timestamp"),
+                      node.getFloat("latitude_deg"),
+                      node.getFloat("longitude_deg"),
+                      node.getFloat("altitude_m"),
+                      int(node.getFloat("vn_ms") * 100),
+                      int(node.getFloat("ve_ms") * 100),
+                      int(node.getFloat("vd_ms") * 100),
+                      node.getFloat("unix_time_sec"),
+                      node.getInt("satellites"),
                       0)
     return buf
 
 def unpack_gps_v1(buf):
+    index = 0
+    if index >= len(gps_nodes):
+        for i in range(len(gps_nodes),index+1):
+            path = '/sensors/gps[%d]' % i
+            gps_nodes.append( getNode(path, True) )
+    node = gps_nodes[index]
+    
     result = struct.unpack(gps_v1_fmt, buf)
     print result
-    gps_node.setFloat("timestamp", result[0])
-    gps_node.setFloat("latitude_deg", result[1])
-    gps_node.setFloat("longitude_deg", result[2])
-    gps_node.setFloat("altitude_m", result[3])
-    gps_node.setFloat("vn_ms", result[4] / 100.0)
-    gps_node.setFloat("ve_ms", result[5] / 100.0)
-    gps_node.setFloat("vd_ms", result[6] / 100.0)
-    gps_node.setFloat("unix_time_sec", result[7])
-    gps_node.setInt("satellites", result[8])
-    gps_node.setInt("status", result[9])
+    
+    node.setFloat("timestamp", result[0])
+    node.setFloat("latitude_deg", result[1])
+    node.setFloat("longitude_deg", result[2])
+    node.setFloat("altitude_m", result[3])
+    node.setFloat("vn_ms", result[4] / 100.0)
+    node.setFloat("ve_ms", result[5] / 100.0)
+    node.setFloat("vd_ms", result[6] / 100.0)
+    node.setFloat("unix_time_sec", result[7])
+    node.setInt("satellites", result[8])
+    node.setInt("status", result[9])
     
 def pack_imu_v2(index):
     buf = struct.pack(imu_v2_fmt,

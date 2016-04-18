@@ -47,37 +47,37 @@ def validate_cksum(id, size, buf, cksum0, cksum1):
     
 def parse_msg(id, buf):
     if id == GPS_PACKET_V1:
-        packer.unpack_gps_v1(buf)
+        comms.packer.unpack_gps_v1(buf)
     elif id == IMU_PACKET_V1:
-        packer.unpack_imu_v1(buf)
+        comms.packer.unpack_imu_v1(buf)
     elif id == IMU_PACKET_V2:
-        packer.unpack_imu_v2(buf)
+        comms.packer.unpack_imu_v2(buf)
     elif id == AIRDATA_PACKET_V1:
-        packer.unpack_airdata_v1(buf)
+        comms.packer.unpack_airdata_v1(buf)
     elif id == AIRDATA_PACKET_V2:
-        packer.unpack_airdata_v2(buf)
+        comms.packer.unpack_airdata_v2(buf)
     elif id == AIRDATA_PACKET_V3:
-        packer.unpack_airdata_v3(buf)
+        comms.packer.unpack_airdata_v3(buf)
     elif id == AIRDATA_PACKET_V4:
-        packer.unpack_airdata_v4(buf)
+        comms.packer.unpack_airdata_v4(buf)
     elif id == FILTER_PACKET_V1:
-        packer.unpack_filter_v1(buf)
+        comms.packer.unpack_filter_v1(buf)
     elif id == ACTUATOR_PACKET_V1:
-        packer.unpack_act_v1(buf)
+        comms.packer.unpack_act_v1(buf)
     elif id == PILOT_INPUT_PACKET_V1:
-        packer.unpack_pilot_v1(buf)
+        comms.packer.unpack_pilot_v1(buf)
     elif id == AP_STATUS_PACKET_V1:
-        packer.unpack_ap_status_v1(buf)
+        comms.packer.unpack_ap_status_v1(buf)
     elif id == AP_STATUS_PACKET_V2:
-        packer.unpack_ap_status_v2(buf)
+        comms.packer.unpack_ap_status_v2(buf)
     elif id == SYSTEM_HEALTH_PACKET_V1:
-        packer.unpack_system_health_v1(buf)
+        comms.packer.unpack_system_health_v1(buf)
     elif id == SYSTEM_HEALTH_PACKET_V2:
-        packer.unpack_system_health_v2(buf)
+        comms.packer.unpack_system_health_v2(buf)
     elif id == SYSTEM_HEALTH_PACKET_V3:
-        packer.unpack_system_health_v3(buf)
+        comms.packer.unpack_system_health_v3(buf)
     elif id == PAYLOAD_PACKET_V1:
-        packer.unpack_payload_v1(buf)
+        comms.packer.unpack_payload_v1(buf)
     else:
         # print "Unknown packet id:", id
         pass

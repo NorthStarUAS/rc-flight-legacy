@@ -66,10 +66,10 @@ void GPS_init() {
     vector<string> children = group_node.getChildren();
     printf("Found %d gps sections\n", (int)children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	sections.push_back(section);
-	string source = section.getString("source");
-	bool enabled = section.getBool("enable");
+	pyPropertyNode section_node = group_node.getChild(children[i].c_str());
+	sections.push_back(section_node);
+	string source = section_node.getString("source");
+	bool enabled = section_node.getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}
@@ -79,19 +79,19 @@ void GPS_init() {
 	if ( source == "null" ) {
 	    // do nothing
 	} else if ( source == "APM2" ) {
-	    APM2_gps_init( output_path.str(), &section );
+	    APM2_gps_init( output_path.str(), &section_node );
 	} else if ( source == "fgfs" ) {
-	    fgfs_gps_init( output_path.str(), &section );
+	    fgfs_gps_init( output_path.str(), &section_node );
 	} else if ( source == "file" ) {
-	    ugfile_gps_init( output_path.str(), &section );
+	    ugfile_gps_init( output_path.str(), &section_node );
 	} else if ( source == "Goldy2" ) {
 	    goldy2_gps_init( output_path.str() );
 	} else if ( source == "gpsd" ) {
-	    gpsd_init( output_path.str(), &section );
+	    gpsd_init( output_path.str(), &section_node );
 	} else if ( source == "mediatek" ) {
-	    gps_mediatek3329_init( output_path.str(), &section );
+	    gps_mediatek3329_init( output_path.str(), &section_node );
 	} else if ( source == "ublox" ) {
-	    gps_ublox_init( output_path.str(), &section );
+	    gps_ublox_init( output_path.str(), &section_node );
 	} else {
 	    printf("Unknown gps source = '%s' in config file\n",
 		   source.c_str());
@@ -164,6 +164,32 @@ bool GPS_update() {
 	    printf("Unknown gps source = '%s' in config file\n",
 		   source.c_str());
 	}
+	
+	if ( fresh_data ) {
+	    // for computing gps data age
+	    gps_last_time = gps_node.getDouble("timestamp");
+
+	    bool send_remote_link = false;
+	    if ( remote_link_on && remote_link_count <= 0 ) {
+		send_remote_link = true;
+	    }
+	
+	    bool send_logging = false;
+	    if ( log_to_file && logging_count <= 0 ) {
+		send_logging = true;
+	    }
+	
+	    if ( send_remote_link || send_logging ) {
+		uint8_t buf[256];
+		int size = packer->pack_gps_v1( i, buf );
+		if ( send_remote_link ) {
+		    remote_link_gps( buf, size );
+		}
+		if ( send_logging ) {
+		    log_gps( buf, size );
+		}
+	    }
+	}
     }
 
     gps_prof.stop();
@@ -172,33 +198,12 @@ bool GPS_update() {
 	// for computing gps data age
 	gps_last_time = gps_node.getDouble("timestamp");
 
-	bool send_remote_link = false;
 	if ( remote_link_on ) {
 	    remote_link_count--;
-	    if ( remote_link_count < 0 ) {
-		send_remote_link = true;
-		remote_link_count = remote_link_skip;
-	    }
 	}
 	
-	bool send_logging = false;
 	if ( log_to_file ) {
 	    logging_count--;
-	    if ( logging_count < 0 ) {
-		send_logging = true;
-		logging_count = logging_skip;
-	    }
-	}
-	
-	if ( send_remote_link || send_logging ) {
-	    uint8_t buf[256];
-	    int size = packetizer->packetize_gps( buf );
-	    if ( send_remote_link ) {
-		remote_link_gps( buf, size );
-	    }
-	    if ( send_logging ) {
-		log_gps( buf, size );
-	    }
 	}
     }
     

@@ -6,6 +6,7 @@
 // nice.  (see examples in the code for now.)
 
 #include "python/pymodule.hxx"
+#include "python/pyprops.hxx"
 
 class pyModulePacker: public pyModuleBase {
 
@@ -15,9 +16,6 @@ public:
     pyModulePacker();
     ~pyModulePacker() {}
 
-    // bool open(const char *path);
-    // bool log(const char *header, const char *message);
-    // bool close();
     int pack_gps_v1(int index, uint8_t *buf);
     
 };
