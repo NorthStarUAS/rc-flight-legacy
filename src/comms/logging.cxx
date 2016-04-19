@@ -161,17 +161,17 @@ static int my_random( int max ) {
 
 
 void log_gps( uint8_t *buf, int size ) {
-    log_packet( GPS_PACKET_V1, buf, size );
+    log_packet( GPS_PACKET_V2, buf, size );
 }
 
 
 void log_imu( uint8_t *buf, int size ) {
-    log_packet( IMU_PACKET_V2, buf, size );
+    log_packet( IMU_PACKET_V3, buf, size );
 }
 
 
 void log_airdata( uint8_t *buf, int size ) {
-    log_packet( AIR_DATA_PACKET_V4, buf, size );
+    log_packet( AIRDATA_PACKET_V5, buf, size );
 }
 
 

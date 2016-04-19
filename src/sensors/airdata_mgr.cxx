@@ -232,8 +232,13 @@ static void update_pressure_helpers() {
     // compute rate of climb based on pressure altitude change
     float climb = (pressure_alt_filt.get_value() - pressure_alt_filt_last) / dt;
     pressure_alt_filt_last = pressure_alt_filt.get_value();
+    // sanity check, discard fabs(values) > 16 mps (3276.7 fpm)
+    if ( climb > 16.0 ) {
+	climb = 0.0;
+    } else if ( climb < -16.0 ) {
+	climb = 0.0;
+    }
     climb_filt.update( climb, dt );
-
     last_time = cur_time;
 
     // publish values to property tree
@@ -316,41 +321,45 @@ bool AirData_update() {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());
 	}
+	if ( fresh_data ) {
+	    if (i == 0) {
+		// these are computed from the primary airdata sensor
+		update_pressure_helpers();
+	    }
+
+	    bool send_remote_link = false;
+	    if ( remote_link_on && remote_link_count <= 0 ) {
+		send_remote_link = true;
+	    }
+	
+	    bool send_logging = false;
+	    if ( log_to_file && logging_count <= 0 ) {
+		send_logging = true;
+	    }
+	
+	    if ( send_remote_link || send_logging ) {
+		uint8_t buf[256];
+		int size = packer->pack_airdata( i, buf );
+		if ( send_remote_link ) {
+		    remote_link_airdata( buf, size );
+		}
+		if ( send_logging ) {
+		    log_airdata( buf, size );
+		}
+	    }
+	}
     }
 
     debug2b1.stop();
     debug2b2.start();
 
     if ( fresh_data ) {
-	update_pressure_helpers();
-
-	bool send_remote_link = false;
 	if ( remote_link_on ) {
 	    remote_link_count--;
-	    if ( remote_link_count < 0 ) {
-		send_remote_link = true;
-		remote_link_count = remote_link_skip;
-	    }
 	}
 	
-	bool send_logging = false;
 	if ( log_to_file ) {
 	    logging_count--;
-	    if ( logging_count < 0 ) {
-		send_logging = true;
-		logging_count = logging_skip;
-	    }
-	}
-	
-	if ( send_remote_link || send_logging ) {
-	    uint8_t buf[256];
-	    int size = packetizer->packetize_airdata( buf );
-	    if ( send_remote_link ) {
-		remote_link_airdata( buf, size );
-	    }
-	    if ( send_logging ) {
-		log_airdata( buf, size );
-	    }
 	}
     }
 

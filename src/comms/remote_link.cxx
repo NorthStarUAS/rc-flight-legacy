@@ -248,19 +248,19 @@ int remote_link_random( int max ) {
 
 
 bool remote_link_gps( uint8_t *buf, int size ) {
-    remote_link_packet( GPS_PACKET_V1, buf, size );
+    remote_link_packet( GPS_PACKET_V2, buf, size );
     return true;
 }
 
 
 bool remote_link_imu( uint8_t *buf, int size  ) {
-    remote_link_packet( IMU_PACKET_V2, buf, size );
+    remote_link_packet( IMU_PACKET_V3, buf, size );
     return true;
 }
 
 
 bool remote_link_airdata( uint8_t *buf, int size  ) {
-    remote_link_packet( AIR_DATA_PACKET_V4, buf, size );
+    remote_link_packet( AIRDATA_PACKET_V5, buf, size );
     return true;
 }
 

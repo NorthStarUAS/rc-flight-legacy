@@ -14,31 +14,34 @@ m2ft = 1.0 / ft2m
 # h = int16_t, H = uint16_t
 # f = float, d = double
 
-gps_node = getNode("/sensors/gps[0]", True)
+imu_timestamp = 0.0
+
 gps_nodes = []
 gps_v1_fmt = '<dddfhhhdBB'
 gps_v1_size = struct.calcsize(gps_v1_fmt)
+gps_v2_fmt = '<BdddfhhhdBB'
+gps_v2_size = struct.calcsize(gps_v2_fmt)
 
-imu_node = getNode("/sensors/imu", True)
+imu_nodes = []
 imu_v1_fmt = '<dfffffffffB'
 imu_v1_size = struct.calcsize(imu_v1_fmt)
 imu_v2_fmt = '<dfffffffffhB'
 imu_v2_size = struct.calcsize(imu_v2_fmt)
+imu_v3_fmt = '<BdfffffffffhB'
+imu_v3_size = struct.calcsize(imu_v3_fmt)
 
-airdata_node = getNode("/sensors/airdata", True)
+airdata_nodes = []
 pos_node = getNode("/position", True)
 pos_pressure_node = getNode("/position/pressure", True)
 pos_combined_node = getNode("/position/combined", True)
 vel_node = getNode("/velocity", True)
 wind_node = getNode("/filters/wind", True)
-airdata_v1_fmt = "<dhfhhB"
-airdata_v1_size = struct.calcsize(airdata_v1_fmt)
-airdata_v2_fmt = "<dhfhhHBBB"
-airdata_v2_size = struct.calcsize(airdata_v2_fmt)
 airdata_v3_fmt = "<dHhhfhhHBBB"
 airdata_v3_size = struct.calcsize(airdata_v3_fmt)
 airdata_v4_fmt = "<dHhhffhhHBBB"
 airdata_v4_size = struct.calcsize(airdata_v4_fmt)
+airdata_v5_fmt = "<BdHhhffhHBBB"
+airdata_v5_size = struct.calcsize(airdata_v5_fmt)
 
 filter_node = getNode("/filters/filter", True)
 remote_link_node = getNode("/comms/remote_link", True)
@@ -79,14 +82,14 @@ payload_v1_size = struct.calcsize(payload_v1_fmt)
 def init():
     pass
 
-def pack_gps_v1(index):
+def pack_gps_v2(index):
     if index >= len(gps_nodes):
         for i in range(len(gps_nodes),index+1):
             path = '/sensors/gps[%d]' % i
             gps_nodes.append( getNode(path, True) )
     node = gps_nodes[index]
-    
-    buf = struct.pack(gps_v1_fmt,
+    buf = struct.pack(gps_v2_fmt,
+                      index,
                       node.getFloat("timestamp"),
                       node.getFloat("latitude_deg"),
                       node.getFloat("longitude_deg"),
@@ -121,124 +124,215 @@ def unpack_gps_v1(buf):
     node.setInt("satellites", result[8])
     node.setInt("status", result[9])
     
-def pack_imu_v2(index):
-    buf = struct.pack(imu_v2_fmt,
-                      imu_node.getFloat("timestamp"),
-                      imu_node.getFloat("p_rad_sec"),
-                      imu_node.getFloat("q_rad_sec"),
-                      imu_node.getFloat("r_rad_sec"),
-                      imu_node.getFloat("ax_mps_sec"),
-                      imu_node.getFloat("ay_mps_sec"),
-                      imu_node.getFloat("az_mps_sec"),
-                      imu_node.getFloat("hx"),
-                      imu_node.getFloat("hy"),
-                      imu_node.getFloat("hz"),
-                      int(imu_node.getFloat("temp_C") * 10.0),
+def unpack_gps_v2(buf):
+    result = struct.unpack(gps_v2_fmt, buf)
+    print result
+
+    index = result[0]
+    if index >= len(gps_nodes):
+        for i in range(len(gps_nodes),index+1):
+            path = '/sensors/gps[%d]' % i
+            gps_nodes.append( getNode(path, True) )
+    node = gps_nodes[index]
+
+    node.setFloat("timestamp", result[1])
+    node.setFloat("latitude_deg", result[2])
+    node.setFloat("longitude_deg", result[3])
+    node.setFloat("altitude_m", result[4])
+    node.setFloat("vn_ms", result[5] / 100.0)
+    node.setFloat("ve_ms", result[6] / 100.0)
+    node.setFloat("vd_ms", result[7] / 100.0)
+    node.setFloat("unix_time_sec", result[8])
+    node.setInt("satellites", result[9])
+    node.setInt("status", result[10])
+    
+def pack_imu_v3(index):
+    if index >= len(imu_nodes):
+        for i in range(len(imu_nodes),index+1):
+            path = '/sensors/imu[%d]' % i
+            imu_nodes.append( getNode(path, True) )
+    node = imu_nodes[index]
+
+    imu_timestamp = node.getFloat("timestamp")
+    
+    buf = struct.pack(imu_v3_fmt,
+                      index,
+                      imu_timestamp,
+                      node.getFloat("p_rad_sec"),
+                      node.getFloat("q_rad_sec"),
+                      node.getFloat("r_rad_sec"),
+                      node.getFloat("ax_mps_sec"),
+                      node.getFloat("ay_mps_sec"),
+                      node.getFloat("az_mps_sec"),
+                      node.getFloat("hx"),
+                      node.getFloat("hy"),
+                      node.getFloat("hz"),
+                      int(node.getFloat("temp_C") * 10.0),
                       0)
     return buf
 
 def unpack_imu_v1(buf):
+    index = 0
+    if index >= len(imu_nodes):
+        for i in range(len(imu_nodes),index+1):
+            path = '/sensors/imu[%d]' % i
+            imu_nodes.append( getNode(path, True) )
+    node = imu_nodes[index]
+
     result = struct.unpack(imu_v1_fmt, buf)
     print result
-    imu_node.setFloat("timestamp", result[0])
-    imu_node.setFloat("p_rad_sec", result[1])
-    imu_node.setFloat("q_rad_sec", result[2])
-    imu_node.setFloat("r_rad_sec", result[3])
-    imu_node.setFloat("ax_mps_sec", result[4])
-    imu_node.setFloat("ay_mps_sec", result[5])
-    imu_node.setFloat("az_mps_sec", result[6])
-    imu_node.setFloat("hx", result[7])
-    imu_node.setFloat("hy", result[8])
-    imu_node.setFloat("hz", result[9])
-    imu_node.setInt("status", result[10])
+    
+    node.setFloat("timestamp", result[0])
+    node.setFloat("p_rad_sec", result[1])
+    node.setFloat("q_rad_sec", result[2])
+    node.setFloat("r_rad_sec", result[3])
+    node.setFloat("ax_mps_sec", result[4])
+    node.setFloat("ay_mps_sec", result[5])
+    node.setFloat("az_mps_sec", result[6])
+    node.setFloat("hx", result[7])
+    node.setFloat("hy", result[8])
+    node.setFloat("hz", result[9])
+    node.setInt("status", result[10])
 
 def unpack_imu_v2(buf):
+    index = 0
+    if index >= len(imu_nodes):
+        for i in range(len(imu_nodes),index+1):
+            path = '/sensors/imu[%d]' % i
+            imu_nodes.append( getNode(path, True) )
+    node = imu_nodes[index]
+
     result = struct.unpack(imu_v2_fmt, buf)
     print result
-    imu_node.setFloat("timestamp", result[0])
-    imu_node.setFloat("p_rad_sec", result[1])
-    imu_node.setFloat("q_rad_sec", result[2])
-    imu_node.setFloat("r_rad_sec", result[3])
-    imu_node.setFloat("ax_mps_sec", result[4])
-    imu_node.setFloat("ay_mps_sec", result[5])
-    imu_node.setFloat("az_mps_sec", result[6])
-    imu_node.setFloat("hx", result[7])
-    imu_node.setFloat("hy", result[8])
-    imu_node.setFloat("hz", result[9])
-    imu_node.setFloat("temp_C", result[10] / 10.0)
-    imu_node.setInt("status", result[10])
+
+    node.setFloat("timestamp", result[0])
+    node.setFloat("p_rad_sec", result[1])
+    node.setFloat("q_rad_sec", result[2])
+    node.setFloat("r_rad_sec", result[3])
+    node.setFloat("ax_mps_sec", result[4])
+    node.setFloat("ay_mps_sec", result[5])
+    node.setFloat("az_mps_sec", result[6])
+    node.setFloat("hx", result[7])
+    node.setFloat("hy", result[8])
+    node.setFloat("hz", result[9])
+    node.setFloat("temp_C", result[10] / 10.0)
+    node.setInt("status", result[10])
     
-def pack_airdata_v3(index):
-    buf = struct.pack(airdata_v3_fmt,
-                      airdata_node.getFloat("timestamp"),
-                      int(airdata_node.getFloat("pressure_mbar") * 10.0),
-                      int(airdata_node.getFloat("temp_degC") * 10.0),
+def unpack_imu_v3(buf):
+    result = struct.unpack(imu_v3_fmt, buf)
+    print result
+
+    index = result[0]
+    if index >= len(imu_nodes):
+        for i in range(len(imu_nodes),index+1):
+            path = '/sensors/imu[%d]' % i
+            imu_nodes.append( getNode(path, True) )
+    node = imu_nodes[index]
+
+    node.setFloat("timestamp", result[1])
+    node.setFloat("p_rad_sec", result[2])
+    node.setFloat("q_rad_sec", result[3])
+    node.setFloat("r_rad_sec", result[4])
+    node.setFloat("ax_mps_sec", result[5])
+    node.setFloat("ay_mps_sec", result[6])
+    node.setFloat("az_mps_sec", result[7])
+    node.setFloat("hx", result[8])
+    node.setFloat("hy", result[9])
+    node.setFloat("hz", result[10])
+    node.setFloat("temp_C", result[11] / 10.0)
+    node.setInt("status", result[12])
+    
+def pack_airdata_v5(index):
+    if index >= len(airdata_nodes):
+        for i in range(len(airdata_nodes),index+1):
+            path = '/sensors/airdata[%d]' % i
+            airdata_nodes.append( getNode(path, True) )
+    node = airdata_nodes[index]
+    
+    buf = struct.pack(airdata_v5_fmt,
+                      index,
+                      node.getFloat("timestamp"),
+                      int(node.getFloat("pressure_mbar") * 10.0),
+                      int(node.getFloat("temp_degC") * 100.0),
                       int(vel_node.getFloat("airspeed_smoothed_kt") * 100.0),
                       pos_pressure_node.getFloat("altitude_smoothed_m"),
                       pos_combined_node.getFloat("altitude_true_m"),
                       int(vel_node.getFloat("pressure_vertical_speed_fps") * 60 * 10),
-                      0, # empty
                       int(wind_node.getFloat("wind_dir_deg") * 100),
                       int(wind_node.getFloat("wind_speed_kt") * 4),
                       int(wind_node.getFloat("pitot_scale_factor") * 100),
-                      airdata_node.getLong("status"))
+                      node.getInt("status"))
     return buf
 
-def unpack_airdata_v1(buf):
-    result = struct.unpack(airdata_v1_fmt, buf)
-    print result
-    airdata_node.setFloat("timestamp", result[0])
-    vel_node.setFloat("airspeed_smoothed_kt", result[1] / 100.0)
-    pos_pressure_node.setFloat("altitude_smoothed_m", result[2])
-    vel_node.setFloat("pressure_vertical_speed_fps", (result[3] / 10.0) / 60.0)
-    airdata_node.setFloat("acceleration", result[4] / 100.0)
-    airdata_node.setInt("status", result[5])
-    
-def unpack_airdata_v2(buf):
-    result = struct.unpack(airdata_v2_fmt, buf)
-    print result
-    airdata_node.setFloat("timestamp", result[0])
-    vel_node.setFloat("airspeed_smoothed_kt", result[1] / 100.0)
-    pos_pressure_node.setFloat("altitude_smoothed_m", result[2])
-    vel_node.setFloat("pressure_vertical_speed_fps", (result[3] / 10.0) / 60.0)
-    airdata_node.setFloat("acceleration", result[4] / 100.0)
-    wind_node.setFloat("wind_dir_deg", result[5] / 100.0)
-    wind_node.setFloat("wind_speed_kt", result[6] / 4.0)
-    wind_node.setFloat("pitot_scale_factor", result[7] / 100.0)
-    airdata_node.setInt("status", result[8])
-    
 def unpack_airdata_v3(buf):
+    index = 0
+    if index >= len(airdata_nodes):
+        for i in range(len(airdata_nodes),index+1):
+            path = '/sensors/airdata[%d]' % i
+            airdata_nodes.append( getNode(path, True) )
+    node = airdata_nodes[index]
+
     result = struct.unpack(airdata_v3_fmt, buf)
     print result
-    airdata_node.setFloat("timestamp", result[0])
-    airdata_node.setFloat("pressure_mbar", result[1] / 10.0)
-    airdata_node.setFloat("temp_decC", result[2] / 10.0)
+    
+    node.setFloat("timestamp", result[0])
+    node.setFloat("pressure_mbar", result[1] / 10.0)
+    node.setFloat("temp_degC", result[2] / 10.0)
     vel_node.setFloat("airspeed_smoothed_kt", result[3] / 100.0)
     pos_pressure_node.setFloat("altitude_smoothed_m", result[4])
     vel_node.setFloat("pressure_vertical_speed_fps", (result[5] / 10.0) / 60.0)
-    airdata_node.setFloat("acceleration", result[6] / 100.0)
+    node.setFloat("acceleration", result[6] / 100.0)
     wind_node.setFloat("wind_dir_deg", result[7] / 100.0)
     wind_node.setFloat("wind_speed_kt", result[8] / 4.0)
     wind_node.setFloat("pitot_scale_factor", result[9] / 100.0)
-    airdata_node.setInt("status", result[10])
+    node.setInt("status", result[10])
 
 def unpack_airdata_v4(buf):
+    index = 0
+    if index >= len(airdata_nodes):
+        for i in range(len(airdata_nodes),index+1):
+            path = '/sensors/airdata[%d]' % i
+            airdata_nodes.append( getNode(path, True) )
+    node = airdata_nodes[index]
+
     result = struct.unpack(airdata_v4_fmt, buf)
     print result
-    airdata_node.setFloat("timestamp", result[0])
-    airdata_node.setFloat("pressure_mbar", result[1] / 10.0)
-    airdata_node.setFloat("temp_decC", result[2] / 10.0)
+    
+    node.setFloat("timestamp", result[0])
+    node.setFloat("pressure_mbar", result[1] / 10.0)
+    node.setFloat("temp_degC", result[2] / 10.0)
     vel_node.setFloat("airspeed_smoothed_kt", result[3] / 100.0)
     pos_pressure_node.setFloat("altitude_smoothed_m", result[4])
     pos_combined_node.setFloat("altitude_true_m", result[5])
     vel_node.setFloat("pressure_vertical_speed_fps", (result[6] / 10.0) / 60.0)
-    airdata_node.setFloat("acceleration", result[7] / 100.0)
+    node.setFloat("acceleration", result[7] / 100.0)
     wind_node.setFloat("wind_dir_deg", result[8] / 100.0)
     wind_node.setFloat("wind_speed_kt", result[9] / 4.0)
     wind_node.setFloat("pitot_scale_factor", result[10] / 100.0)
-    airdata_node.setInt("status", result[11])
+    node.setInt("status", result[11])
 
-# FIXME: airdata v5: range on temp, drop acceleration/empty field
+def unpack_airdata_v5(buf):
+    result = struct.unpack(airdata_v5_fmt, buf)
+    print result
+    
+    index = result[0]
+    if index >= len(airdata_nodes):
+        for i in range(len(airdata_nodes),index+1):
+            path = '/sensors/airdata[%d]' % i
+            airdata_nodes.append( getNode(path, True) )
+    node = airdata_nodes[index]
+
+    node.setFloat("timestamp", result[1])
+    node.setFloat("pressure_mbar", result[2] / 10.0)
+    node.setFloat("temp_degC", result[3] / 100.0)
+    vel_node.setFloat("airspeed_smoothed_kt", result[4] / 100.0)
+    pos_pressure_node.setFloat("altitude_smoothed_m", result[5])
+    pos_combined_node.setFloat("altitude_true_m", result[6])
+    vel_node.setFloat("pressure_vertical_speed_fps", (result[7] / 10.0) / 60.0)
+    wind_node.setFloat("wind_dir_deg", result[8] / 100.0)
+    wind_node.setFloat("wind_speed_kt", result[9] / 4.0)
+    wind_node.setFloat("pitot_scale_factor", result[10] / 100.0)
+    node.setInt("status", result[11])
 
 def pack_filter_v1(index):
     buf = struct.pack(filter_v1_fmt,
@@ -335,7 +429,7 @@ def pack_ap_status_v2(index):
     target_msl_ft = (ground_m + error_m) * m2ft + target_agl_ft
     
     buf = struct.pack(ap_status_v1_fmt,
-                      imu_node.getFloat("timestamp"),
+                      imu_timestamp,
                       int(targets_node.getFloat("groundtrack_deg") * 10),
                       int(targets_node.getFloat("roll_deg") * 10),
                       int(target_msl_ft),
@@ -388,7 +482,7 @@ def unpack_ap_status_v2(buf):
     
 def pack_system_health_v3(index):
     buf = struct.pack(system_health_v3_fmt,
-                      imu_node.getFloat("timestamp"),
+                      imu_timestamp,
                       int(status_node.getFloat("system_load_avg") * 100),
                       int(apm2_node.getFloat("board_vcc") * 1000),
                       int(apm2_node.getFloat("extern_volt") * 1000),
@@ -427,7 +521,7 @@ def unpack_system_health_v3(buf):
 
 def pack_payload_v1(index):
     buf = struct.pack(payload_v1_fmt,
-                      imu_node.getFloat("timestamp"),
+                      imu_timestamp,
                       payload_node.getFloat("trigger_num"))
     return buf
 

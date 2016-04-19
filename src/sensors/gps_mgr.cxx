@@ -166,9 +166,6 @@ bool GPS_update() {
 	}
 	
 	if ( fresh_data ) {
-	    // for computing gps data age
-	    gps_last_time = gps_node.getDouble("timestamp");
-
 	    bool send_remote_link = false;
 	    if ( remote_link_on && remote_link_count <= 0 ) {
 		send_remote_link = true;
@@ -181,7 +178,7 @@ bool GPS_update() {
 	
 	    if ( send_remote_link || send_logging ) {
 		uint8_t buf[256];
-		int size = packer->pack_gps_v1( i, buf );
+		int size = packer->pack_gps( i, buf );
 		if ( send_remote_link ) {
 		    remote_link_gps( buf, size );
 		}

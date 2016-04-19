@@ -16,8 +16,10 @@ public:
     pyModulePacker();
     ~pyModulePacker() {}
 
-    int pack_gps_v1(int index, uint8_t *buf);
-    
+    int pack(int index, const char *pack_function, uint8_t *buf);
+    int pack_gps(int index, uint8_t *buf);
+    int pack_imu(int index, uint8_t *buf);
+    int pack_airdata(int index, uint8_t *buf);
 };
 
 #endif // _AURA_PACKER_HXX
