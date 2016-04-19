@@ -281,7 +281,7 @@ bool remote_link_actuator( uint8_t *buf, int size )
 
 bool remote_link_pilot( uint8_t *buf, int size )
 {
-    remote_link_packet( PILOT_INPUT_PACKET_V1, buf, size );
+    remote_link_packet( PILOT_INPUT_PACKET_V2, buf, size );
     return true;
 }
 

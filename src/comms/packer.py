@@ -54,10 +54,11 @@ act_node.setLen("channel", NUM_ACTUATORS, 0.0)
 act_v1_fmt = "<dhhHhhhhhB"
 act_v1_size = struct.calcsize(act_v1_fmt)
 
-pilot_node = getNode("/sensors/pilot_input", True)
-pilot_node.setLen("channel", NUM_ACTUATORS, 0.0)
+pilot_nodes = []
 pilot_v1_fmt = "<dhhHhhhhhB"
 pilot_v1_size = struct.calcsize(pilot_v1_fmt)
+pilot_v2_fmt = "<BdhhHhhhhhB"
+pilot_v2_size = struct.calcsize(pilot_v2_fmt)
 
 targets_node = getNode("/autopilot/targets", True)
 route_node = getNode("/task/route", True)
@@ -394,33 +395,75 @@ def unpack_act_v1(buf):
     act_node.setFloatEnum("channel", 7, result[8] / 30000.0)
     act_node.setInt("status", result[9])
     
-def pack_pilot_v1(index):
-    buf = struct.pack(pilot_v1_fmt,
-                      pilot_node.getFloat("timestamp"),
-                      int(pilot_node.getFloat("aileron") * 30000),
-                      int(pilot_node.getFloat("elevator") * 30000),
-                      int(pilot_node.getFloat("throttle") * 60000),
-                      int(pilot_node.getFloat("rudder") * 30000),
-                      int(pilot_node.getFloat("manual") * 30000),
-                      int(pilot_node.getFloatEnum("channel", 5) * 30000),
-                      int(pilot_node.getFloatEnum("channel", 6) * 30000),
-                      int(pilot_node.getFloatEnum("channel", 7) * 30000),
+def pack_pilot_v2(index):
+    if index >= len(pilot_nodes):
+        for i in range(len(pilot_nodes),index+1):
+            path = '/sensors/pilot_input[%d]' % i
+            node = getNode(path, True)
+            node.setLen("channel", NUM_ACTUATORS, 0.0)
+            pilot_nodes.append( node )
+    node = pilot_nodes[index]
+    
+    buf = struct.pack(pilot_v2_fmt,
+                      index,
+                      node.getFloat("timestamp"),
+                      int(node.getFloat("aileron") * 30000),
+                      int(node.getFloat("elevator") * 30000),
+                      int(node.getFloat("throttle") * 60000),
+                      int(node.getFloat("rudder") * 30000),
+                      int(node.getFloat("manual") * 30000),
+                      int(node.getFloatEnum("channel", 5) * 30000),
+                      int(node.getFloatEnum("channel", 6) * 30000),
+                      int(node.getFloatEnum("channel", 7) * 30000),
                       0)
     return buf
 
 def unpack_pilot_v1(buf):
+    index = 0
+    if index >= len(pilot_nodes):
+        for i in range(len(pilot_nodes),index+1):
+            path = '/sensors/pilot_input[%d]' % i
+            node = getNode(path, True)
+            node.setLen("channel", NUM_ACTUATORS, 0.0)
+            pilot_nodes.append( node )
+    node = pilot_nodes[index]
+
     result = struct.unpack(pilot_v1_fmt, buf)
     print result
-    pilot_node.setFloat("timestamp", result[0])
-    pilot_node.setFloat("aileron", result[1] / 30000.0)
-    pilot_node.setFloat("elevator", result[2] / 30000.0)
-    pilot_node.setFloat("throttle", result[3] / 60000.0)
-    pilot_node.setFloat("rudder", result[4] / 30000.0)
-    pilot_node.setFloat("manual", result[5] / 30000.0)
-    pilot_node.setFloatEnum("channel", 5, result[6] / 30000.0)
-    pilot_node.setFloatEnum("channel", 6, result[7] / 30000.0)
-    pilot_node.setFloatEnum("channel", 7, result[8] / 30000.0)
-    pilot_node.setInt("status", result[9])
+    node.setFloat("timestamp", result[0])
+    node.setFloat("aileron", result[1] / 30000.0)
+    node.setFloat("elevator", result[2] / 30000.0)
+    node.setFloat("throttle", result[3] / 60000.0)
+    node.setFloat("rudder", result[4] / 30000.0)
+    node.setFloat("manual", result[5] / 30000.0)
+    node.setFloatEnum("channel", 5, result[6] / 30000.0)
+    node.setFloatEnum("channel", 6, result[7] / 30000.0)
+    node.setFloatEnum("channel", 7, result[8] / 30000.0)
+    node.setInt("status", result[9])
+    
+def unpack_pilot_v2(buf):
+    result = struct.unpack(pilot_v2_fmt, buf)
+    print result
+    
+    index = result[0]
+    if index >= len(pilot_nodes):
+        for i in range(len(pilot_nodes),index+1):
+            path = '/sensors/pilot_input[%d]' % i
+            node = getNode(path, True)
+            node.setLen("channel", NUM_ACTUATORS, 0.0)
+            pilot_nodes.append( node )
+    node = pilot_nodes[index]
+
+    node.setFloat("timestamp", result[1])
+    node.setFloat("aileron", result[2] / 30000.0)
+    node.setFloat("elevator", result[3] / 30000.0)
+    node.setFloat("throttle", result[4] / 60000.0)
+    node.setFloat("rudder", result[5] / 30000.0)
+    node.setFloat("manual", result[6] / 30000.0)
+    node.setFloatEnum("channel", 5, result[7] / 30000.0)
+    node.setFloatEnum("channel", 6, result[8] / 30000.0)
+    node.setFloatEnum("channel", 7, result[9] / 30000.0)
+    node.setInt("status", result[10])
     
 def pack_ap_status_v2(index):
     target_agl_ft = targets_node.getFloat("altitude_agl_ft")
