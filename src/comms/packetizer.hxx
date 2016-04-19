@@ -30,6 +30,7 @@ enum ugPacketType {
     AIRDATA_PACKET_V5 = 18,
     SYSTEM_HEALTH_PACKET_V4 = 19,
     PILOT_INPUT_PACKET_V2 = 20,
+    ACTUATOR_PACKET_V2 = 21,
 };
 
 

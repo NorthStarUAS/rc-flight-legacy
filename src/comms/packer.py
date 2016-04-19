@@ -49,10 +49,11 @@ filter_v1_fmt = "<dddfhhhhhhBB"
 filter_v1_size = struct.calcsize(filter_v1_fmt)
 
 NUM_ACTUATORS = 8
-act_node = getNode("/actuators/actuator", True)
-act_node.setLen("channel", NUM_ACTUATORS, 0.0)
+act_nodes = []
 act_v1_fmt = "<dhhHhhhhhB"
 act_v1_size = struct.calcsize(act_v1_fmt)
+act_v2_fmt = "<BdhhHhhhhhB"
+act_v2_size = struct.calcsize(act_v2_fmt)
 
 pilot_nodes = []
 pilot_v1_fmt = "<dhhHhhhhhB"
@@ -367,33 +368,76 @@ def unpack_filter_v1(buf):
     remote_link_node.setInt("sequence_num", result[10])
     filter_node.setInt("status", result[11])
     
-def pack_act_v1(index):
-    buf = struct.pack(act_v1_fmt,
-                      act_node.getFloat("timestamp"),
-                      int(act_node.getFloatEnum("channel", 0) * 30000),
-                      int(act_node.getFloatEnum("channel", 1) * 30000),
-                      int(act_node.getFloatEnum("channel", 2) * 60000),
-                      int(act_node.getFloatEnum("channel", 3) * 30000),
-                      int(act_node.getFloatEnum("channel", 4) * 30000),
-                      int(act_node.getFloatEnum("channel", 5) * 30000),
-                      int(act_node.getFloatEnum("channel", 6) * 30000),
-                      int(act_node.getFloatEnum("channel", 7) * 30000),
+def pack_act_v2(index):
+    if index >= len(act_nodes):
+        for i in range(len(act_nodes),index+1):
+            path = '/actuators/actuator[%d]' % i
+            node = getNode(path, True)
+            node.setLen("channel", NUM_ACTUATORS, 0.0)
+            act_nodes.append( node )
+    node = act_nodes[index]
+    
+    buf = struct.pack(act_v2_fmt,
+                      index,
+                      node.getFloat("timestamp"),
+                      int(node.getFloatEnum("channel", 0) * 30000),
+                      int(node.getFloatEnum("channel", 1) * 30000),
+                      int(node.getFloatEnum("channel", 2) * 60000),
+                      int(node.getFloatEnum("channel", 3) * 30000),
+                      int(node.getFloatEnum("channel", 4) * 30000),
+                      int(node.getFloatEnum("channel", 5) * 30000),
+                      int(node.getFloatEnum("channel", 6) * 30000),
+                      int(node.getFloatEnum("channel", 7) * 30000),
                       0)
     return buf
 
 def unpack_act_v1(buf):
+    index = 0
+    if index >= len(act_nodes):
+        for i in range(len(act_nodes),index+1):
+            path = '/actuators/actuator[%d]' % i
+            node = getNode(path, True)
+            node.setLen("channel", NUM_ACTUATORS, 0.0)
+            act_nodes.append( node )
+    node = act_nodes[index]
+    
     result = struct.unpack(act_v1_fmt, buf)
     print result
-    act_node.setFloat("timestamp", result[0])
-    act_node.setFloatEnum("channel", 0, result[1] / 30000.0)
-    act_node.setFloatEnum("channel", 1, result[2] / 30000.0)
-    act_node.setFloatEnum("channel", 2, result[3] / 60000.0)
-    act_node.setFloatEnum("channel", 3, result[4] / 30000.0)
-    act_node.setFloatEnum("channel", 4, result[5] / 30000.0)
-    act_node.setFloatEnum("channel", 5, result[6] / 30000.0)
-    act_node.setFloatEnum("channel", 6, result[7] / 30000.0)
-    act_node.setFloatEnum("channel", 7, result[8] / 30000.0)
-    act_node.setInt("status", result[9])
+
+    node.setFloat("timestamp", result[0])
+    node.setFloatEnum("channel", 0, result[1] / 30000.0)
+    node.setFloatEnum("channel", 1, result[2] / 30000.0)
+    node.setFloatEnum("channel", 2, result[3] / 60000.0)
+    node.setFloatEnum("channel", 3, result[4] / 30000.0)
+    node.setFloatEnum("channel", 4, result[5] / 30000.0)
+    node.setFloatEnum("channel", 5, result[6] / 30000.0)
+    node.setFloatEnum("channel", 6, result[7] / 30000.0)
+    node.setFloatEnum("channel", 7, result[8] / 30000.0)
+    node.setInt("status", result[9])
+    
+def unpack_act_v2(buf):
+    result = struct.unpack(act_v2_fmt, buf)
+    print result
+    
+    index = result[0]
+    if index >= len(act_nodes):
+        for i in range(len(act_nodes),index+1):
+            path = '/actuators/actuator[%d]' % i
+            node = getNode(path, True)
+            node.setLen("channel", NUM_ACTUATORS, 0.0)
+            act_nodes.append( node )
+    node = act_nodes[index]
+
+    node.setFloat("timestamp", result[1])
+    node.setFloatEnum("channel", 0, result[2] / 30000.0)
+    node.setFloatEnum("channel", 1, result[3] / 30000.0)
+    node.setFloatEnum("channel", 2, result[4] / 60000.0)
+    node.setFloatEnum("channel", 3, result[5] / 30000.0)
+    node.setFloatEnum("channel", 4, result[6] / 30000.0)
+    node.setFloatEnum("channel", 5, result[7] / 30000.0)
+    node.setFloatEnum("channel", 6, result[8] / 30000.0)
+    node.setFloatEnum("channel", 7, result[9] / 30000.0)
+    node.setInt("status", result[10])
     
 def pack_pilot_v2(index):
     if index >= len(pilot_nodes):

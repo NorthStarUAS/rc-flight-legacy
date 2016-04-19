@@ -56,3 +56,7 @@ int pyModulePacker::pack_health(int index, uint8_t *buf) {
 int pyModulePacker::pack_pilot(int index, uint8_t *buf) {
     return pack(index, "pack_pilot_v2", buf);
 }
+
+int pyModulePacker::pack_actuator(int index, uint8_t *buf) {
+    return pack(index, "pack_act_v2", buf);
+}

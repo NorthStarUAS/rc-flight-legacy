@@ -22,6 +22,7 @@ public:
     int pack_airdata(int index, uint8_t *buf);
     int pack_health(int index, uint8_t *buf);
     int pack_pilot(int index, uint8_t *buf);
+    int pack_actuator(int index, uint8_t *buf);
 };
 
 #endif // _AURA_PACKER_HXX

@@ -26,6 +26,7 @@ IMU_PACKET_V3 = 17
 AIRDATA_PACKET_V5 = 18
 SYSTEM_HEALTH_PACKET_V4 = 19
 PILOT_INPUT_PACKET_V2 = 20
+ACTUATOR_PACKET_V2 = 21
 
 # simple 2-byte checksum
 def validate_cksum(id, size, buf, cksum0, cksum1):
@@ -68,6 +69,8 @@ def parse_msg(id, buf):
         comms.packer.unpack_filter_v1(buf)
     elif id == ACTUATOR_PACKET_V1:
         comms.packer.unpack_act_v1(buf)
+    elif id == ACTUATOR_PACKET_V2:
+        comms.packer.unpack_act_v2(buf)
     elif id == PILOT_INPUT_PACKET_V1:
         comms.packer.unpack_pilot_v1(buf)
     elif id == PILOT_INPUT_PACKET_V2:
