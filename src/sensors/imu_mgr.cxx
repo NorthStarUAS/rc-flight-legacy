@@ -20,7 +20,6 @@ using std::vector;
 
 #include "comms/logging.hxx"
 #include "comms/remote_link.hxx"
-#include "comms/packetizer.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 #include "util/myprof.h"
@@ -173,7 +172,6 @@ bool IMU_update() {
 	    remote_link_count--;
 	}
 	
-	bool send_logging = false;
 	if ( log_to_file ) {
 	    logging_count--;
 	}
