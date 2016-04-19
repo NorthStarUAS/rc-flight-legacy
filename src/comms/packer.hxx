@@ -20,6 +20,7 @@ public:
     int pack_gps(int index, uint8_t *buf);
     int pack_imu(int index, uint8_t *buf);
     int pack_airdata(int index, uint8_t *buf);
+    int pack_health(int index, uint8_t *buf);
 };
 
 #endif // _AURA_PACKER_HXX

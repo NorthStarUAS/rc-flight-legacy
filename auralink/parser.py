@@ -14,7 +14,6 @@ FILTER_PACKET_V1 = 2
 ACTUATOR_PACKET_V1 = 3
 PILOT_INPUT_PACKET_V1 = 4
 AP_STATUS_PACKET_V1 = 5
-SYSTEM_HEALTH_PACKET_V1 = 7
 AIRDATA_PACKET_V3 = 9
 AP_STATUS_PACKET_V2 = 10
 SYSTEM_HEALTH_PACKET_V2 = 11
@@ -25,6 +24,7 @@ IMU_PACKET_V2 = 15
 GPS_PACKET_V2 = 16
 IMU_PACKET_V3 = 17
 AIRDATA_PACKET_V5 = 18
+SYSTEM_HEALTH_PACKET_V4 = 19
 
 # simple 2-byte checksum
 def validate_cksum(id, size, buf, cksum0, cksum1):
@@ -73,12 +73,12 @@ def parse_msg(id, buf):
         comms.packer.unpack_ap_status_v1(buf)
     elif id == AP_STATUS_PACKET_V2:
         comms.packer.unpack_ap_status_v2(buf)
-    elif id == SYSTEM_HEALTH_PACKET_V1:
-        comms.packer.unpack_system_health_v1(buf)
     elif id == SYSTEM_HEALTH_PACKET_V2:
         comms.packer.unpack_system_health_v2(buf)
     elif id == SYSTEM_HEALTH_PACKET_V3:
         comms.packer.unpack_system_health_v3(buf)
+    elif id == SYSTEM_HEALTH_PACKET_V4:
+        comms.packer.unpack_system_health_v4(buf)
     elif id == PAYLOAD_PACKET_V1:
         comms.packer.unpack_payload_v1(buf)
     else:

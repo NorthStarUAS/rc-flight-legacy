@@ -8,7 +8,6 @@
 #include "include/globaldefs.h"
 
 #include "comms/logging.hxx"
-#include "comms/packetizer.hxx"
 #include "comms/remote_link.hxx"
 #include "init/globals.hxx"
 #include "util/timing.h"
@@ -37,7 +36,7 @@ bool health_update() {
 
     if ( remote_link_on || log_to_file ) {
 	uint8_t buf[256];
-	int size = packetizer->packetize_health( buf );
+	int size = packer->pack_health( 0, buf );
 
 	if ( remote_link_on ) {
 	    remote_link_health( buf, size, remote_link_node.getLong("health-skip") );

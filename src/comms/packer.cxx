@@ -48,3 +48,7 @@ int pyModulePacker::pack_imu(int index, uint8_t *buf) {
 int pyModulePacker::pack_airdata(int index, uint8_t *buf) {
     return pack(index, "pack_airdata_v5", buf);
 }
+
+int pyModulePacker::pack_health(int index, uint8_t *buf) {
+    return pack(index, "pack_system_health_v4", buf);
+}

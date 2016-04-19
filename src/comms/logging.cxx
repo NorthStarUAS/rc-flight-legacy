@@ -216,7 +216,7 @@ void log_health( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    log_packet( SYSTEM_HEALTH_PACKET_V3, buf, size );
+    log_packet( SYSTEM_HEALTH_PACKET_V4, buf, size );
 }
 
 void log_payload( uint8_t *buf, int size, int skip_count ) {

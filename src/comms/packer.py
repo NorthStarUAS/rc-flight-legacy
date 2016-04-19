@@ -68,12 +68,12 @@ ap_status_v2_size = struct.calcsize(ap_status_v2_fmt)
 
 status_node = getNode("/status", True)
 apm2_node = getNode("/sensors/APM2", True)
-system_health_v1_fmt = "<dHH"
-system_health_v1_size = struct.calcsize(system_health_v1_fmt)
 system_health_v2_fmt = "<dHHHHH"
 system_health_v2_size = struct.calcsize(system_health_v2_fmt)
 system_health_v3_fmt = "<dHHHHHH"
 system_health_v3_size = struct.calcsize(system_health_v3_fmt)
+system_health_v4_fmt = "<BdHHHHHH"
+system_health_v4_size = struct.calcsize(system_health_v4_fmt)
 
 payload_node = getNode("/payload", True)
 payload_v1_fmt = "<dH"
@@ -480,8 +480,9 @@ def unpack_ap_status_v2(buf):
     route_node.setInt("size", result[12]) # FIXME
     remote_link_node.setInt("sequence_num", result[13])
     
-def pack_system_health_v3(index):
-    buf = struct.pack(system_health_v3_fmt,
+def pack_system_health_v4(index):
+    buf = struct.pack(system_health_v4_fmt,
+                      index,
                       imu_timestamp,
                       int(status_node.getFloat("system_load_avg") * 100),
                       int(apm2_node.getFloat("board_vcc") * 1000),
@@ -490,13 +491,6 @@ def pack_system_health_v3(index):
                       int(apm2_node.getFloat("extern_amps") * 1000),
                       int(apm2_node.getFloat("extern_current_mah")))
     return buf
-
-def unpack_system_health_v1(buf):
-    result = struct.unpack(system_health_v1_fmt, buf)
-    print result
-    # imu_node.setFloat("timestamp", result[0]) # fixme? where to write this value?
-    apm2_node.setFloat("board_vcc", result[1] / 1000.0)
-    status_node.setFloat("system_load_avg", result[2] / 100.0)
 
 def unpack_system_health_v2(buf):
     result = struct.unpack(system_health_v2_fmt, buf)
@@ -518,6 +512,20 @@ def unpack_system_health_v3(buf):
     apm2_node.setFloat("extern_cell_volt", result[4] / 1000.0)
     apm2_node.setFloat("extern_amps", result[5] / 1000.0)
     apm2_node.setFloat("extern_current_mah", result[6])
+
+def unpack_system_health_v4(buf):
+    result = struct.unpack(system_health_v4_fmt, buf)
+    print result
+
+    index = result[0]
+    
+    # imu_node.setFloat("timestamp", result[1]) # fixme? where to write this value?
+    status_node.setFloat("system_load_avg", result[2] / 100.0)
+    apm2_node.setFloat("board_vcc", result[3] / 1000.0)
+    apm2_node.setFloat("extern_volt", result[4] / 1000.0)
+    apm2_node.setFloat("extern_cell_volt", result[5] / 1000.0)
+    apm2_node.setFloat("extern_amps", result[6] / 1000.0)
+    apm2_node.setFloat("extern_current_mah", result[7])
 
 def pack_payload_v1(index):
     buf = struct.pack(payload_v1_fmt,
