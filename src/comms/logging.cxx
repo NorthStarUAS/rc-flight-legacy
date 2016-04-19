@@ -176,7 +176,7 @@ void log_airdata( uint8_t *buf, int size ) {
 
 
 void log_filter( uint8_t *buf, int size ) {
-    log_packet( FILTER_PACKET_V1, buf, size );
+    log_packet( FILTER_PACKET_V2, buf, size );
 }
 
 

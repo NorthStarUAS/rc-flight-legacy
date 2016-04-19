@@ -267,7 +267,7 @@ bool remote_link_airdata( uint8_t *buf, int size  ) {
 
 bool remote_link_filter( uint8_t *buf, int size )
 {
-    remote_link_packet( FILTER_PACKET_V1, buf, size );
+    remote_link_packet( FILTER_PACKET_V2, buf, size );
     return true;
 }
 

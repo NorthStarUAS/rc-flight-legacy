@@ -43,10 +43,12 @@ airdata_v4_size = struct.calcsize(airdata_v4_fmt)
 airdata_v5_fmt = "<BdHhhffhHBBB"
 airdata_v5_size = struct.calcsize(airdata_v5_fmt)
 
-filter_node = getNode("/filters/filter", True)
+filter_nodes = []
 remote_link_node = getNode("/comms/remote_link", True)
 filter_v1_fmt = "<dddfhhhhhhBB"
 filter_v1_size = struct.calcsize(filter_v1_fmt)
+filter_v2_fmt = "<BdddfhhhhhhBB"
+filter_v2_size = struct.calcsize(filter_v2_fmt)
 
 NUM_ACTUATORS = 8
 act_nodes = []
@@ -336,37 +338,76 @@ def unpack_airdata_v5(buf):
     wind_node.setFloat("pitot_scale_factor", result[10] / 100.0)
     node.setInt("status", result[11])
 
-def pack_filter_v1(index):
-    buf = struct.pack(filter_v1_fmt,
-                      filter_node.getFloat("timestamp"),
-                      filter_node.getFloat("latitude_deg"),
-                      filter_node.getFloat("longitude_deg"),
-                      filter_node.getFloat("altitude_m"),
-                      int(filter_node.getFloat("vn_ms") * 100),
-                      int(filter_node.getFloat("ve_ms") * 100),
-                      int(filter_node.getFloat("vd_ms") * 100),
-                      int(filter_node.getFloat("roll_deg") * 10),
-                      int(filter_node.getFloat("pitch_deg") * 10),
-                      int(filter_node.getFloat("heading_deg") * 10),
+def pack_filter_v2(index):
+    if index >= len(filter_nodes):
+        for i in range(len(filter_nodes),index+1):
+            path = '/filters/filter[%d]' % i
+            filter_nodes.append( getNode(path, True) )
+    node = filter_nodes[index]
+
+    buf = struct.pack(filter_v2_fmt,
+                      index,
+                      node.getFloat("timestamp"),
+                      node.getFloat("latitude_deg"),
+                      node.getFloat("longitude_deg"),
+                      node.getFloat("altitude_m"),
+                      int(node.getFloat("vn_ms") * 100),
+                      int(node.getFloat("ve_ms") * 100),
+                      int(node.getFloat("vd_ms") * 100),
+                      int(node.getFloat("roll_deg") * 10),
+                      int(node.getFloat("pitch_deg") * 10),
+                      int(node.getFloat("heading_deg") * 10),
                       remote_link_node.getInt("sequence_num"),
                       0)
     return buf
 
 def unpack_filter_v1(buf):
+    index = 0
+    if index >= len(filter_nodes):
+        for i in range(len(filter_nodes),index+1):
+            path = '/filters/filter[%d]' % i
+            filter_nodes.append( getNode(path, True) )
+    node = filter_nodes[index]
+
     result = struct.unpack(filter_v1_fmt, buf)
     print result
-    filter_node.setFloat("timestamp", result[0])
-    filter_node.setFloat("latitude_deg", result[1])
-    filter_node.setFloat("longitude_deg", result[2])
-    filter_node.setFloat("altitude_m", result[3])
-    filter_node.setFloat("vn_ms", result[4] / 100.0)
-    filter_node.setFloat("ve_ms", result[5] / 100.0)
-    filter_node.setFloat("vd_ms", result[6] / 100.0)
-    filter_node.setFloat("roll_deg", result[7] / 10.0)
-    filter_node.setFloat("pitch_deg", result[8] / 10.0)
-    filter_node.setFloat("heading_deg", result[9] / 10.0)
+    
+    node.setFloat("timestamp", result[0])
+    node.setFloat("latitude_deg", result[1])
+    node.setFloat("longitude_deg", result[2])
+    node.setFloat("altitude_m", result[3])
+    node.setFloat("vn_ms", result[4] / 100.0)
+    node.setFloat("ve_ms", result[5] / 100.0)
+    node.setFloat("vd_ms", result[6] / 100.0)
+    node.setFloat("roll_deg", result[7] / 10.0)
+    node.setFloat("pitch_deg", result[8] / 10.0)
+    node.setFloat("heading_deg", result[9] / 10.0)
     remote_link_node.setInt("sequence_num", result[10])
-    filter_node.setInt("status", result[11])
+    node.setInt("status", result[11])
+    
+def unpack_filter_v2(buf):
+    result = struct.unpack(filter_v2_fmt, buf)
+    print result
+    
+    index = result[0]
+    if index >= len(filter_nodes):
+        for i in range(len(filter_nodes),index+1):
+            path = '/filters/filter[%d]' % i
+            filter_nodes.append( getNode(path, True) )
+    node = filter_nodes[index]
+
+    node.setFloat("timestamp", result[1])
+    node.setFloat("latitude_deg", result[2])
+    node.setFloat("longitude_deg", result[3])
+    node.setFloat("altitude_m", result[4])
+    node.setFloat("vn_ms", result[5] / 100.0)
+    node.setFloat("ve_ms", result[6] / 100.0)
+    node.setFloat("vd_ms", result[7] / 100.0)
+    node.setFloat("roll_deg", result[8] / 10.0)
+    node.setFloat("pitch_deg", result[9] / 10.0)
+    node.setFloat("heading_deg", result[10] / 10.0)
+    remote_link_node.setInt("sequence_num", result[11])
+    node.setInt("status", result[12])
     
 def pack_act_v2(index):
     if index >= len(act_nodes):
