@@ -13,7 +13,6 @@
 #include "util/timing.h"
 
 #include "checksum.hxx"
-#include "packetizer.hxx"
 
 #include "logging.hxx"
 
@@ -219,18 +218,8 @@ void log_health( uint8_t *buf, int size, int skip_count ) {
     log_packet( SYSTEM_HEALTH_PACKET_V4, buf, size );
 }
 
-void log_payload( uint8_t *buf, int size, int skip_count ) {
-    if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
-
-    if ( skip > 0 ) {
-        --skip;
-        return;
-    } else {
-        skip = skip_count;
-    }
-
-    log_packet( PAYLOAD_PACKET_V1, buf, size );
+void log_payload( uint8_t *buf, int size ) {
+    log_packet( PAYLOAD_PACKET_V2, buf, size );
 }
 
 

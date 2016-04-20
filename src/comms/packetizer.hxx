@@ -32,6 +32,7 @@ enum ugPacketType {
     PILOT_INPUT_PACKET_V2 = 20,
     ACTUATOR_PACKET_V2 = 21,
     FILTER_PACKET_V2 = 22,
+    PAYLOAD_PACKET_V2 = 23,
 };
 
 

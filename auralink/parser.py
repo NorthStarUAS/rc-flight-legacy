@@ -28,6 +28,7 @@ SYSTEM_HEALTH_PACKET_V4 = 19
 PILOT_INPUT_PACKET_V2 = 20
 ACTUATOR_PACKET_V2 = 21
 FILTER_PACKET_V2 = 22
+PAYLOAD_PACKET_V2 = 23
 
 # simple 2-byte checksum
 def validate_cksum(id, size, buf, cksum0, cksum1):
@@ -90,6 +91,8 @@ def parse_msg(id, buf):
         comms.packer.unpack_system_health_v4(buf)
     elif id == PAYLOAD_PACKET_V1:
         comms.packer.unpack_payload_v1(buf)
+    elif id == PAYLOAD_PACKET_V2:
+        comms.packer.unpack_payload_v2(buf)
     else:
         print "Unknown packet id:", id
         pass

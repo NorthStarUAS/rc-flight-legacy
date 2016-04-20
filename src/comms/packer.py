@@ -82,6 +82,8 @@ system_health_v4_size = struct.calcsize(system_health_v4_fmt)
 payload_node = getNode("/payload", True)
 payload_v1_fmt = "<dH"
 payload_v1_size = struct.calcsize(payload_v1_fmt)
+payload_v2_fmt = "<BdH"
+payload_v2_size = struct.calcsize(payload_v2_fmt)
 
 def init():
     pass
@@ -657,6 +659,7 @@ def unpack_system_health_v4(buf):
 
 def pack_payload_v1(index):
     buf = struct.pack(payload_v1_fmt,
+                      index,
                       imu_timestamp,
                       payload_node.getFloat("trigger_num"))
     return buf
@@ -664,6 +667,7 @@ def pack_payload_v1(index):
 def unpack_payload_v1(buf):
     result = struct.unpack(payload_v1_fmt, buf)
     print result
-    # payload_node.setFloat("timestamp", result[0]) # FIXME: where to write?
-    payload_node.setInt("trigger_num", result[1])
+    index = payload[0]
+    payload_node.setFloat("timestamp", result[1])
+    payload_node.setInt("trigger_num", result[2])
     
