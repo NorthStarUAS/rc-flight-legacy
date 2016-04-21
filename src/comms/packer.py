@@ -657,8 +657,8 @@ def unpack_system_health_v4(buf):
     apm2_node.setFloat("extern_amps", result[6] / 1000.0)
     apm2_node.setFloat("extern_current_mah", result[7])
 
-def pack_payload_v1(index):
-    buf = struct.pack(payload_v1_fmt,
+def pack_payload_v2(index):
+    buf = struct.pack(payload_v2_fmt,
                       index,
                       imu_timestamp,
                       payload_node.getFloat("trigger_num"))
@@ -666,6 +666,12 @@ def pack_payload_v1(index):
 
 def unpack_payload_v1(buf):
     result = struct.unpack(payload_v1_fmt, buf)
+    print result
+    payload_node.setFloat("timestamp", result[0])
+    payload_node.setInt("trigger_num", result[1])
+    
+def unpack_payload_v2(buf):
+    result = struct.unpack(payload_v2_fmt, buf)
     print result
     index = payload[0]
     payload_node.setFloat("timestamp", result[1])

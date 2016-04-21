@@ -1147,10 +1147,12 @@ static bool APM2_send_config() {
 	for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
 	    act_rates[i] = 0; /* no change from default */
 	}
+	printf("pwm_rates: ");
 	for ( int i = 0; i < count; i++ ) {
 	    act_rates[i] = pwm_node.getLong("channel", i);
-	    printf("pwm_rates[%d] = %d\n", i, act_rates[i]);
+	    printf("%d ", act_rates[i]);
 	}
+	printf("\n");
 	start_time = get_Time();    
 	APM2_act_set_pwm_rates( act_rates );
 	last_ack_id = 0;
