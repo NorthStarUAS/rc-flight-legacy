@@ -103,7 +103,7 @@ pyPropertyNode pyPropertyNode::getChild(const char *name, int index,
     }
     ostringstream ename;
     ename << name << '[' << index << ']';
-    printf("ename = %s\n", ename.str().c_str());
+    // printf("ename = %s\n", ename.str().c_str());
     return getChild(ename.str().c_str(), create);
 }
 

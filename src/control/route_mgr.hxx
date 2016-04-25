@@ -55,6 +55,7 @@ private:
     pyPropertyNode vel_node;
     pyPropertyNode orient_node;
     pyPropertyNode route_node;
+    pyPropertyNode active_node;
     pyPropertyNode L1_node;
     pyPropertyNode targets_node;
     pyPropertyNode home_node;
@@ -63,13 +64,10 @@ private:
     double last_lat;
     double last_az;
 
-    // route behaviors
-    // StartMode start_mode;
-    // FollowMode follow_mode;
-    // CompletionMode completion_mode;
-
-    // stats
-    double dist_remaining_m;
+    int wp_counter;		// internal counter for dribbling
+				// active route into property tree
+    
+    double dist_remaining_m;	// stats
 
     SGWayPoint make_waypoint( const string& wpt_string );
 
@@ -89,7 +87,11 @@ public:
     void init();
     void init( pyPropertyNode *config_node );
 
+    // the master update routine with the task is active
     void update();
+
+    // background idle task for when not active
+    void idle();
 
     // swap the "active" and the "standby" routes, but only if the
     // "standby" route has some waypoints.

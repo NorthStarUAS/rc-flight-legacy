@@ -117,6 +117,7 @@ void control_update(double dt)
     } else if ( current_task == "route" || current_task == "land" ) {
 	route_mgr->update();
     }
+    route_mgr->idle();
     
     // log auto/manual mode changes
     static bool last_ap_mode = false;

@@ -48,6 +48,7 @@ FGRouteMgr::FGRouteMgr() :
     last_lon( 0.0 ),
     last_lat( 0.0 ),
     last_az( 0.0 ),
+    wp_counter( 0 ),
     dist_remaining_m( 0.0 )
 {
     bind();
@@ -67,6 +68,7 @@ void FGRouteMgr::bind() {
     vel_node = pyGetNode("/velocity", true);
     orient_node = pyGetNode("/orientation", true);
     route_node = pyGetNode("/task/route", true);
+    active_node = pyGetNode("/task/route/active", true);
     home_node = pyGetNode("/task/home", true);
     L1_node = pyGetNode("/config/autopilot/L1_controller", true);
     targets_node = pyGetNode("/autopilot/targets", true);
@@ -412,6 +414,24 @@ void FGRouteMgr::update() {
     }
 }
 
+
+void FGRouteMgr::idle() {
+    // dribble active route into the active_node tree (one
+    // waypoint per interation to keep the load consistent and
+    // light.)
+    int route_size = active->size();
+    active_node.setLong( "route_size", route_size );
+    if ( route_size > 0 ) {
+	if ( wp_counter >= route_size ) {
+	    wp_counter = 0;
+	}
+	SGWayPoint wp = active->get_waypoint(wp_counter);
+	pyPropertyNode wp_node = active_node.getChild("wpt", wp_counter, true);
+	wp_node.setDouble("longitude_deg", wp.get_target_lon());
+	wp_node.setDouble("latitude_deg", wp.get_target_lat());
+	wp_counter++;
+    }
+}
 
 bool FGRouteMgr::swap() {
     if ( !standby->size() ) {
