@@ -48,9 +48,6 @@ FGRouteMgr::FGRouteMgr() :
     last_lon( 0.0 ),
     last_lat( 0.0 ),
     last_az( 0.0 ),
-    // start_mode( FIRST_WPT ),
-    // follow_mode( XTRACK_LEG_HDG ),
-    // completion_mode( LOOP ),
     dist_remaining_m( 0.0 )
 {
     bind();

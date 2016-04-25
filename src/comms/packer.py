@@ -567,9 +567,9 @@ def pack_ap_status_v2(index):
                       int(targets_node.getFloat("pitch_deg") * 10),
                       int(targets_node.getFloat("the_dot") * 1000),
                       int(targets_node.getFloat("airspeed_kt") * 10),
-                      route_node.getInt("target_waypoint_idx"), # FIXME
-                      route_node.getFloat("target_lon"), # FIXME
-                      route_node.getFloat("target_lat"), # FIXME
+                      route_node.getInt("target_waypoint_idx"),
+                      route_node.getFloat("wp_lon"), # FIXME
+                      route_node.getFloat("wp_lat"), # FIXME
                       route_node.getInt("index"), # FIXME
                       route_node.getInt("size"), # FIXME
                       remote_link_node.getInt("sequence_num"))

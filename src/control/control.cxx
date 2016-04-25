@@ -259,8 +259,7 @@ void control_update(double dt)
 	// special case send home as a route waypoint with id = 65535
 	if ( wp_index == route_size ) {
 	    wp = SGWayPoint( home_node.getDouble("longitude_deg"),
-			     home_node.getDouble("latitude_deg"),
-			     home_node.getDouble("altitude_ft") );
+			     home_node.getDouble("latitude_deg"));
 	    index = 65535;
 	}
 
