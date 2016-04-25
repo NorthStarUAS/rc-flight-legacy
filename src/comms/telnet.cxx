@@ -179,7 +179,7 @@ PropsChannel::foundTerminator()
 	    }
 
 	    if ( ! dir.isNull() ) {
-		vector <string> children = dir.getChildren(false);
+		vector <string> children = dir.getChildren(true);
 		for ( unsigned int i = 0; i < children.size(); i++ ) {
 		    string line = children[i];
 		    if ( dir.isLeaf(children[i].c_str()) ) {
