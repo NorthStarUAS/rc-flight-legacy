@@ -26,7 +26,7 @@ void log_airdata( uint8_t *buf, int size );
 void log_filter( uint8_t *buf, int size );
 void log_actuator( uint8_t *buf, int size );
 void log_pilot( uint8_t *buf, int size );
-void log_ap( uint8_t *buf, int size, int skip_count );
+void log_ap( uint8_t *buf, int size );
 void log_health( uint8_t *buf, int size, int skip_count );
 void log_payload( uint8_t *buf, int size );
 

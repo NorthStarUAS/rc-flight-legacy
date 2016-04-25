@@ -33,6 +33,7 @@ enum ugPacketType {
     ACTUATOR_PACKET_V2 = 21,
     FILTER_PACKET_V2 = 22,
     PAYLOAD_PACKET_V2 = 23,
+    AP_STATUS_PACKET_V3 = 24,
 };
 
 

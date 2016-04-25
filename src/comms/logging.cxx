@@ -189,18 +189,8 @@ void log_pilot( uint8_t *buf, int size ) {
 }
 
 
-void log_ap( uint8_t *buf, int size, int skip_count ) {
-    if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
-
-    if ( skip > 0 ) {
-        --skip;
-        return;
-    } else {
-        skip = skip_count;
-    }
-
-    log_packet( AP_STATUS_PACKET_V2, buf, size );
+void log_ap( uint8_t *buf, int size ) {
+    log_packet( AP_STATUS_PACKET_V3, buf, size );
 }
 
 

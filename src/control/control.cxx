@@ -30,7 +30,7 @@
 
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
-#include "comms/packetizer.hxx"
+//#include "comms/packetizer.hxx"
 #include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
@@ -61,6 +61,8 @@ static pyPropertyNode logging_node;
 static pyPropertyNode task_node;
 static pyPropertyNode home_node;
 
+static int remote_link_skip = 0;
+static int logging_skip = 0;
 
 static void bind_properties() {
     ap_node = pyGetNode( "/autopilot", true );
@@ -81,6 +83,11 @@ void control_init() {
     // configuration file values
 
     bind_properties();
+
+    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
+    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
+    remote_link_skip = remote_link_node.getDouble("autopilot_skip");
+    logging_skip = logging_node.getDouble("autopilot_skip");
 
     circle_mgr->init();
     route_mgr->init();
@@ -105,6 +112,9 @@ void control_reinit() {
 
 void control_update(double dt)
 {
+    static int remote_link_count = remote_link_random( remote_link_skip );
+    static int logging_count = remote_link_random( logging_skip );
+
     // FIXME: there's probably a better place than this, but we need
     // to update the pattern routes every frame (even if the route
     // task is not active) and so the code to do this is going here
@@ -231,56 +241,37 @@ void control_update(double dt)
     // and circle hold point (all indicated on the ground station map.)
     // FIXME !!!
     
-    if ( remote_link_on || log_to_file ) {
-	// send one waypoint per message, then home location (with
-	// index = 65535)
-
-	static int wp_index = 0;
-	int index = 0;
-	SGWayPoint wp;
-	int route_size = 0;
-
-	string task_name = task_node.getString("current_task_id");
-	if ( task_name == "route" ) {
-	    if ( route_mgr != NULL ) {
-		route_size = route_mgr->size();
-		if ( route_size > 0 && wp_index < route_size ) {
-		    wp = route_mgr->get_waypoint( wp_index );
-		    index = wp_index;
-		}
-	    }
-	} else if ( task_name == "circle_coord" ) {
-	    if ( circle_mgr != NULL ) {
-		wp = circle_mgr->get_center();
-		route_size = 1;
-		index = wp_index;
-	    }
-	}
-
-	// special case send home as a route waypoint with id = 65535
-	if ( wp_index == route_size ) {
-	    wp = SGWayPoint( home_node.getDouble("longitude_deg"),
-			     home_node.getDouble("latitude_deg"));
-	    index = 65535;
-	}
-
-	uint8_t buf[256];
-	int pkt_size = packetizer->packetize_ap( buf, route_size, &wp, index );
+    bool send_remote_link = false;
+    if ( remote_link_on && remote_link_count <= 0 ) {
+	send_remote_link = true;
+	remote_link_count = remote_link_skip;
+    }
 	
-	if ( remote_link_on ) {
-	    bool result = remote_link_ap( buf, pkt_size,
-					  remote_link_node.getLong("autopilot_skip") );
-	    if ( result ) {
-		wp_index++;
-		if ( wp_index > route_size ) {
-		    wp_index = 0;
-		}
-	    }
+    bool send_logging = false;
+    if ( log_to_file && logging_count <= 0 ) {
+	send_logging = true;
+	logging_count = logging_skip;
+    }
+	
+    if ( send_remote_link || send_logging ) {
+	uint8_t buf[256];
+	int pkt_size = packer->pack_ap( 0, buf );
+	
+	if ( send_remote_link ) {
+	    remote_link_ap( buf, pkt_size );
 	}
 
-	if ( log_to_file ) {
-	    log_ap( buf, pkt_size, logging_node.getLong("autopilot_skip") );
+	if ( send_logging ) {
+	    log_ap( buf, pkt_size );
 	}
+    }
+    
+    if ( remote_link_on ) {
+	remote_link_count--;
+    }
+	
+    if ( log_to_file ) {
+	logging_count--;
     }
 }
 

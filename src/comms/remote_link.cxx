@@ -286,21 +286,10 @@ bool remote_link_pilot( uint8_t *buf, int size )
 }
 
 
-bool remote_link_ap( uint8_t *buf, int size, int skip_count )
+bool remote_link_ap( uint8_t *buf, int size )
 {
     // printf("remote link ap()\n");
-    if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = remote_link_random(skip_count);
-
-    if ( skip > 0 ) {
-        --skip;
-        return false;
-    } else {
-        skip = skip_count;
-    }
-
-    remote_link_packet( AP_STATUS_PACKET_V2, buf, size );
-
+    remote_link_packet( AP_STATUS_PACKET_V3, buf, size );
     return true;
 }
 

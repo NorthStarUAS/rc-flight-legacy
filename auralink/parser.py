@@ -29,6 +29,7 @@ PILOT_INPUT_PACKET_V2 = 20
 ACTUATOR_PACKET_V2 = 21
 FILTER_PACKET_V2 = 22
 PAYLOAD_PACKET_V2 = 23
+AP_STATUS_PACKET_V3 = 24
 
 # simple 2-byte checksum
 def validate_cksum(id, size, buf, cksum0, cksum1):
@@ -83,6 +84,8 @@ def parse_msg(id, buf):
         comms.packer.unpack_ap_status_v1(buf)
     elif id == AP_STATUS_PACKET_V2:
         comms.packer.unpack_ap_status_v2(buf)
+    elif id == AP_STATUS_PACKET_V3:
+        comms.packer.unpack_ap_status_v3(buf)
     elif id == SYSTEM_HEALTH_PACKET_V2:
         comms.packer.unpack_system_health_v2(buf)
     elif id == SYSTEM_HEALTH_PACKET_V3:

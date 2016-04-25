@@ -65,10 +65,16 @@ pilot_v2_size = struct.calcsize(pilot_v2_fmt)
 
 targets_node = getNode("/autopilot/targets", True)
 route_node = getNode("/task/route", True)
+active_node = getNode("/task/route/active", True)
+home_node = getNode("/task/home", True)
+circle_node = getNode("/task/circle", True)
+counter = 0
 ap_status_v1_fmt = "<dhhHhhhhddHHB"
 ap_status_v1_size = struct.calcsize(ap_status_v1_fmt)
 ap_status_v2_fmt = "<dhhHhhhhHddHHB"
 ap_status_v2_size = struct.calcsize(ap_status_v2_fmt)
+ap_status_v3_fmt = "<BdhhHhhhhHddHHB"
+ap_status_v3_size = struct.calcsize(ap_status_v2_fmt)
 
 status_node = getNode("/status", True)
 apm2_node = getNode("/sensors/APM2", True)
@@ -551,14 +557,35 @@ def unpack_pilot_v2(buf):
     node.setFloatEnum("channel", 6, result[8] / 30000.0)
     node.setFloatEnum("channel", 7, result[9] / 30000.0)
     node.setInt("status", result[10])
-    
-def pack_ap_status_v2(index):
+
+def pack_ap_status_v3(index):
+    global counter
     target_agl_ft = targets_node.getFloat("altitude_agl_ft")
     ground_m = pos_pressure_node.getFloat("altitude_ground_m")
     error_m = pos_pressure_node.getFloat("pressure_error_m")
     target_msl_ft = (ground_m + error_m) * m2ft + target_agl_ft
-    
-    buf = struct.pack(ap_status_v1_fmt,
+
+    route_size = active_node.getInt("route_size")
+    if route_size > 0 and counter < route_size:
+        wp_index = counter
+        wp_node = active_node.getChild('wpt[%d]' % wp_index)
+        if wp_node != None:
+            wp_lon = wp_node.getFloat("longitude_deg")
+            wp_lat = wp_node.getFloat("latitude_deg")
+        else:
+            wp_lon = 0.0
+            wp_lat = 0.0
+    elif counter == route_size:
+        wp_lon = circle_node.getFloat("longitude_deg")
+        wp_lat = circle_node.getFloat("latitude_deg")
+        wp_index = 65534
+    elif counter == route_size + 1:
+        wp_lon = home_node.getFloat("longitude_deg")
+        wp_lat = home_node.getFloat("latitude_deg")
+        wp_index = 65535
+
+    buf = struct.pack(ap_status_v3_fmt,
+                      index,
                       imu_timestamp,
                       int(targets_node.getFloat("groundtrack_deg") * 10),
                       int(targets_node.getFloat("roll_deg") * 10),
@@ -568,11 +595,16 @@ def pack_ap_status_v2(index):
                       int(targets_node.getFloat("the_dot") * 1000),
                       int(targets_node.getFloat("airspeed_kt") * 10),
                       route_node.getInt("target_waypoint_idx"),
-                      route_node.getFloat("wp_lon"), # FIXME
-                      route_node.getFloat("wp_lat"), # FIXME
-                      route_node.getInt("index"), # FIXME
-                      route_node.getInt("size"), # FIXME
+                      wp_lon,
+                      wp_lat,
+                      wp_index,
+                      route_size,
                       remote_link_node.getInt("sequence_num"))
+
+    counter = counter + 1
+    if counter >= route_size + 2:
+        counter = 0
+
     return buf
 
 def unpack_ap_status_v1(buf):
@@ -609,6 +641,27 @@ def unpack_ap_status_v2(buf):
     route_node.setInt("index", result[11]) # FIXME
     route_node.setInt("size", result[12]) # FIXME
     remote_link_node.setInt("sequence_num", result[13])
+    
+def unpack_ap_status_v3(buf):
+    result = struct.unpack(ap_status_v3_fmt, buf)
+    print result
+
+    index = result[0]
+
+    #ap_status_node.setFloat("timestamp", result[1]) #FIXME? where should this go
+    targets_node.setFloat("groundtrack_deg", result[2] / 10.0) # FIXME?
+    targets_node.setFloat("roll_deg", result[3] / 10.0)
+    targets_node.setFloat("altitude_msl_ft", result[4])
+    targets_node.setFloat("climb_rate_fps", result[5] / 10.0)
+    targets_node.setFloat("pitch_deg", result[6] / 10.0)
+    targets_node.setFloat("theta_dot", result[7] / 1000.0)
+    targets_node.setFloat("airspeed_kt", result[8] / 10.0)
+    route_node.setInt("target_waypoint_idx", result[9]) # FIXME
+    route_node.setFloat("target_lon", result[10]) # FIXME
+    route_node.setFloat("target_lat", result[11]) # FIXME
+    route_node.setInt("index", result[12]) # FIXME
+    route_node.setInt("size", result[13]) # FIXME
+    remote_link_node.setInt("sequence_num", result[14])
     
 def pack_system_health_v4(index):
     buf = struct.pack(system_health_v4_fmt,
@@ -673,7 +726,7 @@ def unpack_payload_v1(buf):
 def unpack_payload_v2(buf):
     result = struct.unpack(payload_v2_fmt, buf)
     print result
-    index = payload[0]
+    index = result[0]
     payload_node.setFloat("timestamp", result[1])
     payload_node.setInt("trigger_num", result[2])
     

@@ -25,6 +25,7 @@ public:
     int pack_actuator(int index, uint8_t *buf);
     int pack_filter(int index, uint8_t *buf);
     int pack_payload(int index, uint8_t *buf);
+    int pack_ap(int index, uint8_t *buf);
 };
 
 #endif // _AURA_PACKER_HXX
