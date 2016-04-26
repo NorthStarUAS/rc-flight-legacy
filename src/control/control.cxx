@@ -30,7 +30,6 @@
 
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
-//#include "comms/packetizer.hxx"
 #include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"

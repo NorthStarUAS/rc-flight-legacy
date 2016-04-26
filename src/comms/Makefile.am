@@ -10,7 +10,6 @@ libcomms_a_SOURCES = \
         netChat.cxx netChat.h \
         netSocket.cxx netSocket.h ul.h \
 	packer.cxx packer.hxx \
-	packetizer.cxx packetizer.hxx \
 	remote_link.cxx remote_link.hxx \
 	serial.cxx serial.hxx \
 	telnet.cxx telnet.hxx
