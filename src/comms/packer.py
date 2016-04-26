@@ -649,6 +649,11 @@ def unpack_ap_status_v3(buf):
     index = result[0]
 
     #ap_status_node.setFloat("timestamp", result[1]) #FIXME? where should this go
+    wp_lon = result[10]
+    wp_lat = result[11]
+    wp_index = result[12]
+    route_size = result[13]
+    
     targets_node.setFloat("groundtrack_deg", result[2] / 10.0) # FIXME?
     targets_node.setFloat("roll_deg", result[3] / 10.0)
     targets_node.setFloat("altitude_msl_ft", result[4])
@@ -656,11 +661,18 @@ def unpack_ap_status_v3(buf):
     targets_node.setFloat("pitch_deg", result[6] / 10.0)
     targets_node.setFloat("theta_dot", result[7] / 1000.0)
     targets_node.setFloat("airspeed_kt", result[8] / 10.0)
-    route_node.setInt("target_waypoint_idx", result[9]) # FIXME
-    route_node.setFloat("target_lon", result[10]) # FIXME
-    route_node.setFloat("target_lat", result[11]) # FIXME
-    route_node.setInt("index", result[12]) # FIXME
-    route_node.setInt("size", result[13]) # FIXME
+    route_node.setInt("target_waypoint_idx", result[9])
+    if wp_index < route_size:
+        wp_node = active_node.getChild('wpt[%d]' % wp_index, True)
+        wp_node.setFloat("longitude_deg", wp_lon)
+        wp_node.setFloat("latitude_deg", wp_lat)
+    elif wp_index == 65534:
+        circle_node.setFloat("longitude_deg", wp_lon)
+        circle_node.setFloat("latitude_deg", wp_lat)
+    elif wp_index == 65535:
+        home_node.setFloat("longitude_deg", wp_lon)
+        home_node.setFloat("latitude_deg", wp_lat)
+    active_node.setInt("route_size", route_size)
     remote_link_node.setInt("sequence_num", result[14])
     
 def pack_system_health_v4(index):

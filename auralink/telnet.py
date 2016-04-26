@@ -45,7 +45,7 @@ class ChatHandler(asynchat.async_chat):
             newpath = self.normalize_path(newpath)
 	    node = getNode(newpath)
 	    if node:
-		children = node.getChildren(False)
+		children = node.getChildren(True)
 		for child in children:
 		    line = child
 		    if node.isLeaf(child):
