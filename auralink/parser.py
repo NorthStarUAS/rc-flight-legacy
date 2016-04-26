@@ -120,7 +120,13 @@ def glean_ascii_msgs(c):
 def serial_read(ser):
     global state
     global counter
+    global pkt_id
+    global pkt_len
     global payload
+    global cksum_A
+    global cksum_B
+    global cksum_lo
+    global cksum_hi
 
     start_time = time.time()    # sec
     input = ''

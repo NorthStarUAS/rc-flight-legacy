@@ -35,6 +35,7 @@ if args.serial:
         ser = serial.Serial(args.serial, args.baud, timeout=dt)
     except:
         print "Cannot open:", args.serial
+        quit()
 
     while True:
         parser.serial_read(ser)
