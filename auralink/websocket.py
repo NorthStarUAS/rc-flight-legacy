@@ -14,16 +14,16 @@ class WSHandler(tornado.websocket.WebSocketHandler):
     def on_message(self, message):
         print 'message received:  %s' % message
         # Reverse Message and send it back
-        #print 'sending back message: %s' % message[::-1]
-        #self.write_message(message[::-1])
-        tmp = message.split('/')
-        tmppath = '/'.join(tmp[0:-1])
-        if tmppath == '':
-            tmppath = '/'
-        node = getNode(tmppath, True)
-        name = tmp[-1]
-        value = node.getString(name)
-        self.write_message(message + ': ' + value)
+        print 'sending back message: %s' % message[::-1]
+        self.write_message(message[::-1])
+        # tmp = message.split('/')
+        # tmppath = '/'.join(tmp[0:-1])
+        # if tmppath == '':
+        #     tmppath = '/'
+        # node = getNode(tmppath, True)
+        # name = tmp[-1]
+        # value = node.getString(name)
+        # self.write_message(message + ': ' + value)
         
     def on_close(self):
         print 'connection closed'
