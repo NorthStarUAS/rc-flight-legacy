@@ -123,7 +123,7 @@ def unpack_gps_v1(buf):
     node = gps_nodes[index]
     
     result = struct.unpack(gps_v1_fmt, buf)
-    print result
+    # print result
     
     node.setFloat("timestamp", result[0])
     node.setFloat("latitude_deg", result[1])
@@ -138,7 +138,7 @@ def unpack_gps_v1(buf):
     
 def unpack_gps_v2(buf):
     result = struct.unpack(gps_v2_fmt, buf)
-    print result
+    # print result
 
     index = result[0]
     if index >= len(gps_nodes):
@@ -192,7 +192,7 @@ def unpack_imu_v1(buf):
     node = imu_nodes[index]
 
     result = struct.unpack(imu_v1_fmt, buf)
-    print result
+    # print result
     
     node.setFloat("timestamp", result[0])
     node.setFloat("p_rad_sec", result[1])
@@ -215,7 +215,7 @@ def unpack_imu_v2(buf):
     node = imu_nodes[index]
 
     result = struct.unpack(imu_v2_fmt, buf)
-    print result
+    # print result
 
     node.setFloat("timestamp", result[0])
     node.setFloat("p_rad_sec", result[1])
@@ -232,7 +232,7 @@ def unpack_imu_v2(buf):
     
 def unpack_imu_v3(buf):
     result = struct.unpack(imu_v3_fmt, buf)
-    print result
+    # print result
 
     index = result[0]
     if index >= len(imu_nodes):
@@ -285,7 +285,7 @@ def unpack_airdata_v3(buf):
     node = airdata_nodes[index]
 
     result = struct.unpack(airdata_v3_fmt, buf)
-    print result
+    # print result
     
     node.setFloat("timestamp", result[0])
     node.setFloat("pressure_mbar", result[1] / 10.0)
@@ -308,7 +308,7 @@ def unpack_airdata_v4(buf):
     node = airdata_nodes[index]
 
     result = struct.unpack(airdata_v4_fmt, buf)
-    print result
+    # print result
     
     node.setFloat("timestamp", result[0])
     node.setFloat("pressure_mbar", result[1] / 10.0)
@@ -325,7 +325,7 @@ def unpack_airdata_v4(buf):
 
 def unpack_airdata_v5(buf):
     result = struct.unpack(airdata_v5_fmt, buf)
-    print result
+    # print result
     
     index = result[0]
     if index >= len(airdata_nodes):
@@ -378,7 +378,7 @@ def unpack_filter_v1(buf):
     node = filter_nodes[index]
 
     result = struct.unpack(filter_v1_fmt, buf)
-    print result
+    # print result
     
     node.setFloat("timestamp", result[0])
     node.setFloat("latitude_deg", result[1])
@@ -395,7 +395,7 @@ def unpack_filter_v1(buf):
     
 def unpack_filter_v2(buf):
     result = struct.unpack(filter_v2_fmt, buf)
-    print result
+    # print result
     
     index = result[0]
     if index >= len(filter_nodes):
@@ -451,7 +451,7 @@ def unpack_act_v1(buf):
     node = act_nodes[index]
     
     result = struct.unpack(act_v1_fmt, buf)
-    print result
+    # print result
 
     node.setFloat("timestamp", result[0])
     node.setFloatEnum("channel", 0, result[1] / 30000.0)
@@ -466,7 +466,7 @@ def unpack_act_v1(buf):
     
 def unpack_act_v2(buf):
     result = struct.unpack(act_v2_fmt, buf)
-    print result
+    # print result
     
     index = result[0]
     if index >= len(act_nodes):
@@ -522,7 +522,7 @@ def unpack_pilot_v1(buf):
     node = pilot_nodes[index]
 
     result = struct.unpack(pilot_v1_fmt, buf)
-    print result
+    # print result
     node.setFloat("timestamp", result[0])
     node.setFloat("aileron", result[1] / 30000.0)
     node.setFloat("elevator", result[2] / 30000.0)
@@ -536,7 +536,7 @@ def unpack_pilot_v1(buf):
     
 def unpack_pilot_v2(buf):
     result = struct.unpack(pilot_v2_fmt, buf)
-    print result
+    # print result
     
     index = result[0]
     if index >= len(pilot_nodes):
@@ -609,7 +609,7 @@ def pack_ap_status_v3(index):
 
 def unpack_ap_status_v1(buf):
     result = struct.unpack(ap_status_v1_fmt, buf)
-    print result
+    # print result
     #ap_status_node.setFloat("timestamp", result[0]) # FIXME (where should this go?)
     targets_node.setFloat("groundtrack_deg", result[1] / 10.0)
     targets_node.setFloat("roll_deg", result[2] / 10.0)
@@ -626,7 +626,7 @@ def unpack_ap_status_v1(buf):
     
 def unpack_ap_status_v2(buf):
     result = struct.unpack(ap_status_v2_fmt, buf)
-    print result
+    # print result
     #ap_status_node.setFloat("timestamp", result[0]) #FIXME? where should this go
     targets_node.setFloat("groundtrack_deg", result[1] / 10.0) # FIXME?
     targets_node.setFloat("roll_deg", result[2] / 10.0)
@@ -644,7 +644,7 @@ def unpack_ap_status_v2(buf):
     
 def unpack_ap_status_v3(buf):
     result = struct.unpack(ap_status_v3_fmt, buf)
-    print result
+    # print result
 
     index = result[0]
 
@@ -689,7 +689,7 @@ def pack_system_health_v4(index):
 
 def unpack_system_health_v2(buf):
     result = struct.unpack(system_health_v2_fmt, buf)
-    print result
+    # print result
     # imu_node.setFloat("timestamp", result[0]) # fixme? where to write this value?
     status_node.setFloat("system_load_avg", result[1] / 100.0)
     apm2_node.setFloat("board_vcc", result[2] / 1000.0)
@@ -699,7 +699,7 @@ def unpack_system_health_v2(buf):
 
 def unpack_system_health_v3(buf):
     result = struct.unpack(system_health_v3_fmt, buf)
-    print result
+    # print result
     # imu_node.setFloat("timestamp", result[0]) # fixme? where to write this value?
     status_node.setFloat("system_load_avg", result[1] / 100.0)
     apm2_node.setFloat("board_vcc", result[2] / 1000.0)
@@ -710,7 +710,7 @@ def unpack_system_health_v3(buf):
 
 def unpack_system_health_v4(buf):
     result = struct.unpack(system_health_v4_fmt, buf)
-    print result
+    # print result
 
     index = result[0]
     
@@ -731,13 +731,13 @@ def pack_payload_v2(index):
 
 def unpack_payload_v1(buf):
     result = struct.unpack(payload_v1_fmt, buf)
-    print result
+    # print result
     payload_node.setFloat("timestamp", result[0])
     payload_node.setInt("trigger_num", result[1])
     
 def unpack_payload_v2(buf):
     result = struct.unpack(payload_v2_fmt, buf)
-    print result
+    # print result
     index = result[0]
     payload_node.setFloat("timestamp", result[1])
     payload_node.setInt("trigger_num", result[2])

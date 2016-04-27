@@ -717,7 +717,10 @@ bool goldy2_airdata_update() {
     bool fresh_data = false;
 
     static double last_time = 0.0;
-    double cur_time = airdata_node.getDouble("timestamp");
+    double cur_time = 0.0;
+    if ( airdata_node.hasChild("timestamp") ) {
+        cur_time = airdata_node.getDouble("timestamp");
+    }
 
     if ( cur_time > last_time ) {
 	fresh_data = true;
@@ -744,6 +747,18 @@ bool goldy2_gps_update() {
 }
 
 bool goldy2_pilot_update() {
+    double default_val = 992;
+    for ( int i = 0; i <= 4; i++ ) {
+        if ( i == 0 ) {
+	    default_val = 1812;
+        } else if ( i == 1 ) {
+            default_val = 172;
+  	} else {
+	    default_val = 992;
+ 	}
+        if ( rcin[i] < 172 ) { rcin[i] = default_val; }
+        if ( rcin[i] > 1812 ) { rcin[i] = default_val; }
+    }
     pilot_node.setDouble( "timestamp", get_Time() );
     pilot_node.setDouble( "aileron", (rcin[2] - 992.0) / 820.0);
     pilot_node.setDouble( "elevator", (rcin[3] - 992.0) / 820.0);

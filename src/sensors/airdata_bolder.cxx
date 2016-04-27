@@ -31,7 +31,7 @@
 static pyPropertyNode airdata_node;
 
 static int fd = -1;
-static string device_name = "/dev/tty04";
+static string device_name = "/dev/ttyO4";
 
 
 // initialize gpsd input property nodes

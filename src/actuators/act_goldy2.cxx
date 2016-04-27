@@ -16,6 +16,11 @@
 #include "sensors/util_goldy2.hxx"
 #include "act_goldy2.hxx"
 
+#define PWM_CENTER 1520
+#define PWM_HALF_RANGE 413
+#define PWM_RANGE (PWM_HALF_RANGE * 2)
+#define PWM_MIN (PWM_CENTER - PWM_HALF_RANGE)
+#define PWM_MAX (PWM_CENTER + PWM_HALF_RANGE)
 
 static netSocket sock;
 static int port = 0;
@@ -23,6 +28,8 @@ static string hostname = "";
 
 // property nodes
 static pyPropertyNode act_node;
+static pyPropertyNode flight_node;
+static pyPropertyNode engine_node;
 
 
 // initialize goldy2 config property nodes
@@ -41,6 +48,8 @@ static void bind_act_nodes( string output_path ) {
     act_node = pyGetNode(output_path, true);
 #define NUM_ACTUATORS 8
     act_node.setLen("channel", NUM_ACTUATORS, 0.0);
+    flight_node = pyGetNode("/controls/flight", true);
+    engine_node = pyGetNode("/controls/engine", true);
 }
 
 
@@ -85,8 +94,28 @@ static void my_swap( uint8_t *buf, int index, int count )
 #endif
 
 
+// generate a pwm pulse length from a normalized [-1 to 1] or [0 to 1] range
+static int gen_pulse( double val, bool symmetrical ) {
+    int pulse = 0;
+
+    if ( symmetrical ) {
+	// i.e. aileron, rudder, elevator
+	if ( val < -1.5 ) { val = -1.5; }
+	if ( val > 1.5 ) { val = 1.5; }
+	pulse = PWM_CENTER + (int)(PWM_HALF_RANGE * val);
+    } else {
+	// i.e. throttle, flaps
+	if ( val < 0.0 ) { val = 0.0; }
+	if ( val > 1.0 ) { val = 1.0; }
+	pulse = PWM_MIN + (int)(PWM_RANGE * val);
+    }
+
+    return pulse;
+}
+
+
 bool goldy2_act_update() {
-    static uint16_t pos = 1000;
+    // static uint16_t pos = 1000;
     const int goldy2_act_size = 68;
     const int packet_size = 60;	// 6*n, n=10
     uint8_t packet_buf[goldy2_act_size];
@@ -100,17 +129,36 @@ bool goldy2_act_update() {
     *(uint8_t *)buf = packet_size; buf++; // LSB
     *(uint8_t *)buf = 0; buf++;		  // MSB
 
-    if (pos++ > 2000) {
-	pos = 1000;
-    }
+    // if (pos++ > 2000) { pos = 1000; }
 
+    double aileron = act_node.getDouble("channel", 0);
+    double elevator = act_node.getDouble("channel", 1);
+    double throttle = act_node.getDouble("channel", 2);
+    double left_cmd = elevator*0.5 - aileron*0.5;
+    double right_cmd = elevator*0.5 + aileron*0.5;
+    int left_pwm = gen_pulse( left_cmd, true );
+    int right_pwm = gen_pulse( right_cmd, true );
+    int thr_pwm = gen_pulse( throttle, false );
+
+    int val;
     for ( uint8_t i = 0; i < 10; i++ ) {
+        if ( i == 2 ) {
+            val = thr_pwm;
+        } else if ( i == 3 ) {
+	    val = left_pwm;
+	} else if ( i == 4 ) {
+	    val = right_pwm;
+	} else {
+	    val = PWM_CENTER;
+	}
+        // val = pos;
 	*(uint8_t *)buf = i; buf++;
 	*(uint8_t *)buf = 0; buf++; // 0 = PWM, 1 = angle control
-	*(uint16_t *)buf = pos; buf += 2;
+	*(uint16_t *)buf = val; buf += 2;
 	*(int16_t *)buf = 0; buf += 2;
     }
 
+ 
     uint16_t CRC = utilCRC16(start_buf+3, packet_size+3, 0);
     uint16_t CRC_msb = CRC / 256;
     uint16_t CRC_lsb = CRC - (CRC_msb * 256);
