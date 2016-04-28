@@ -10,7 +10,8 @@ cmd_recv_index = 0
 prime_state = True
 
 cmd_queue =  []
-last_delivered_time = 0.0
+last_sent_time = 0.0
+last_received_time = 0.0
 
 # calculate the nmea check sum
 def calc_nmea_cksum(sentence):
@@ -40,39 +41,44 @@ def serial_send(serial, sequence, command):
 def update(serial):
     global cmd_send_index
     global cmd_recv_index
-    global last_delivered_time
+    global last_sent_time
+    global last_received_time
     global prime_state
 
     # look at the remote's report of last message received from base
     sequence = remote_link_node.getInt('sequence_num')
     if sequence != cmd_recv_index:
-	last_delivered_time = time.time()
+	last_received_time = time.time()
 	cmd_recv_index = sequence
 
     # if current command has been received, advance to next command
-    print "sent = %d  recv = %d" % (cmd_send_index, cmd_recv_index)
     if cmd_recv_index == cmd_send_index:
         if len(cmd_queue):
             if not prime_state:
                 cmd_queue.pop(0)
-                cmd_send_index = cmd_send_index + 1
+                cmd_send_index = (cmd_send_index + 1) & 0xff
             else:
                 prime_state = False
 
     gen_heartbeat()
     
     if len(cmd_queue):
-        # discard any pending heartbeat commands if we have real work
-        while len(cmd_queue) > 1 and cmd_queue[0] == 'hb':
-            cmd_queue.pop(0)
-        # send the command
-        command = cmd_queue[0]
-        result = serial_send(serial, cmd_send_index, command)
-        return cmd_send_index
+        current_time = time.time()
+        if current_time > last_sent_time + 0.5:
+            # discard any pending heartbeat commands if we have real work
+            while len(cmd_queue) > 1 and cmd_queue[0] == 'hb':
+                cmd_queue.pop(0)
+            # send the command
+            command = cmd_queue[0]
+            result = serial_send(serial, cmd_send_index, command)
+            last_sent_time = current_time
+            print "sent = %d  recv = %d" % (cmd_send_index, cmd_recv_index)
+            return cmd_send_index
     else:
         # nothing to do if command queue empty
         prime_state = True
-        return 0
+        
+    return 0
 
 def add(command):
     print 'command queue:', command
@@ -89,16 +95,16 @@ def get_cmd_recv_index():
 
 # schedule a heartbeat message if needed.
 def gen_heartbeat():
-    global last_delivered_time
-    elapsed_sec = time.time() - last_delivered_time
+    global last_received_time
+    elapsed_sec = time.time() - last_received_time
     if cmd_queue_empty() and elapsed_sec > 10.0:
         add('hb')
         
 def remote_lost_link_predict():
-    global last_delivered_time
+    global last_received_time
     
     # print "last = %.2f  cur = %.2f", (last_delivered_time, current_time)
-    if last_delivered_time + 60 > time.time():
+    if last_received_time + 60 > time.time():
 	return True
     else:
 	return False
