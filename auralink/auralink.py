@@ -8,6 +8,8 @@ import tempfile
 
 from props import root, getNode
 
+import commands
+import current
 import parser
 import telnet
 import websocket
@@ -39,6 +41,8 @@ if args.serial:
 
     while True:
         parser.serial_read(ser)
+        current.compute_derived_data()
+        commands.update(ser)
         telnet.update()
         websocket.update()
 elif args.flight:

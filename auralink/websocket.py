@@ -1,5 +1,6 @@
 # tornado based websocket server
 
+import json
 import tornado
 import tornado.httpserver
 import tornado.websocket
@@ -14,8 +15,10 @@ class WSHandler(tornado.websocket.WebSocketHandler):
     def on_message(self, message):
         print 'message received:  %s' % message
         # Reverse Message and send it back
-        print 'sending back message: %s' % message[::-1]
-        self.write_message(message[::-1])
+        # print 'sending back message: %s' % message[::-1]
+        # self.write_message(message[::-1])
+
+        # I forget what exaclty this tries to do
         # tmp = message.split('/')
         # tmppath = '/'.join(tmp[0:-1])
         # if tmppath == '':
@@ -24,6 +27,24 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         # name = tmp[-1]
         # value = node.getString(name)
         # self.write_message(message + ': ' + value)
+
+        tokens = message.split()
+        print tokens
+        if tokens[0] == 'get':
+            if tokens[1] == 'update_json':
+                dict = {}
+                dict['lon'] = "%.8f" % self.filter_node.getFloat('longitude_deg')
+                dict['lat'] = "%.8f" % self.filter_node.getFloat('latitude_deg')
+                dict['alt_true'] = "%.1f" % self.pos_combined_node.getFloat('altitude_true_m')
+                dict['airspeed'] = "%.1f" % self.velocity_node.getFloat('airspeed_smoothed_kt')
+                dict['filter_psi'] = "%.1f" % self.filter_node.getFloat('heading_deg')
+                dict['filter_track'] = "%.1f" % self.filter_node.getFloat('track_deg')
+                dict['filter_speed'] = "%.1f" % self.filter_node.getFloat('speed_kt')
+                dict['wind_deg'] = "%.1f" % self.wind_node.getFloat('wind_dir_deg')
+                dict['wind_kts'] = "%.1f" % self.wind_node.getFloat('wind_speed_kt')
+                dict['gps_sats'] = "%d" % self.gps_node.getFloat('satellites')
+                print json.dumps(dict)
+                self.write_message('update_json ' + json.dumps(dict, separators=(',',':')) + '\r\n')
         
     def on_close(self):
         print 'connection closed'
@@ -37,8 +58,9 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         self.imu_node = getNode('/sensors/imu', True)
         self.airdata_node = getNode('/sensors/airdata', True)
         self.pilot_node = getNode('/sensors/pilot', True)
-        self.pos_combined_node = getNode('/position/combined', True)
         self.filter_node = getNode('/filters/filter', True)
+        self.pos_combined_node = getNode('/position/combined', True)
+        self.velocity_node = getNode('/velocity', True)
         self.act_node = getNode('/actuators/actuator', True)
         self.ap_node = getNode('/autopilot', True)
         self.targets_node = getNode('/autopilot/targets', True)
