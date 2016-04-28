@@ -95,8 +95,8 @@ void remote_link_init() {
     }
 
     remote_link_node.setLong("sequence_num", 0);
-    if ( remote_link_config.getLong("write-bytes-per-frame") == 0 ) {
-	remote_link_config.setLong("write-bytes-per-frame", 12);
+    if ( remote_link_config.getLong("write_bytes_per_frame") == 0 ) {
+	remote_link_config.setLong("write_bytes_per_frame", 12);
     }
 }
 
@@ -112,7 +112,7 @@ void remote_link_flush_serial() {
     // attempt better success by writing multiple small chunks to the
     // serial port (2 * 8 = 16 bytes per call attempted)
     const int loops = 1;
-    int bytes_per_frame = remote_link_config.getLong("write-bytes-per-frame");
+    int bytes_per_frame = remote_link_config.getLong("write_bytes_per_frame");
 
     for ( int i = 0; i < loops; i++ ) {
 	int write_len = serial_buffer.getLength();
@@ -151,7 +151,10 @@ static short link_write( const uint8_t *buf, const short size ) {
     if ( link_type == ugUART ) {
 	// stuff the request in a fifo buffer and then work on writing
 	// out the front end of the buffer.
-	serial_buffer.append((char *)buf, size);
+	bool result = serial_buffer.append((char *)buf, size);
+	if ( ! result and display_on ) {
+	    printf("remote link serial buffer overflow\n");
+	}
 
 	remote_link_flush_serial();
 
