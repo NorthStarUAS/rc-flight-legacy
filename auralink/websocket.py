@@ -66,9 +66,34 @@ class WSHandler(tornado.websocket.WebSocketHandler):
                 dict['flight_timer'] = "%.1f" % 0.0 # fixme
                 dict['airdata_temp'] = "%.1f" % self.airdata_node.getFloat('temp_degC')
                 dict['camera_trigger'] = "%d" % self.cam_node.getInt('trigger-num')
+                dict['camera_lookat_lon'] = "%d" % self.cam_node.getInt('lookat_lon_deg')
+                dict['camera_lookat_lat'] = "%d" % self.cam_node.getInt('lookat_lat_deg')
+                dict['camera_ll_lon'] = "%d" % self.cam_node.getInt('lower_left_lon_deg')
+                dict['camera_ll_lat'] = "%d" % self.cam_node.getInt('lower_left_lat_deg')
+                dict['camera_lr_lon'] = "%d" % self.cam_node.getInt('lower_right_lon_deg')
+                dict['camera_lr_lat'] = "%d" % self.cam_node.getInt('lower_right_lat_deg')
+                dict['camera_ul_lon'] = "%d" % self.cam_node.getInt('upper_left_lon_deg')
+                dict['camera_ul_lat'] = "%d" % self.cam_node.getInt('upper_left_lat_deg')
+                dict['camera_ur_lon'] = "%d" % self.cam_node.getInt('upper_right_lon_deg')
+                dict['camera_ur_lat'] = "%d" % self.cam_node.getInt('upper_right_lat_deg')
                 # print json.dumps(dict)
                 self.write_message('update_json ' + json.dumps(dict, separators=(',',':')) + '\r\n')
-        
+            elif tokens[1] == 'route':
+                route_size = self.active_node.getInt('route_size')
+                message = '%.8f %.8f %d %d' % \
+                           (self.home_node.getFloat('longitude_deg'), 
+                            self.home_node.getFloat('latitude_deg'),
+                            route_size,
+                            self.route_node.getInt('target_waypoint_idx'))
+                for i in range(0, route_size):
+                    wp_node = self.active_node.getChild('wpt[%d]' % i)
+                    if wp_node:
+                        message += ' %.8f %.8f' % \
+                                   (wp_node.getFloat('longitude_deg'), 
+                                    wp_node.getFloat('latitude_deg'))
+                    else:
+                        message += ' %.8f %.8f' % (0.0, 0.0)
+                self.write_message('route ' + message + '\r\n')
     def on_close(self):
         print 'connection closed'
  
@@ -88,6 +113,9 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         self.ap_node = getNode('/autopilot', True)
         self.targets_node = getNode('/autopilot/targets', True)
         self.route_node = getNode('/task/route', True)
+        self.active_node = getNode('/task/route/active', True)
+        self.home_node = getNode('/task/home', True)
+        self.circle_node = getNode('/task/circle', True)
         self.status_node = getNode('/status', True)
         self.cam_node = getNode('/payload/camera', True) 
         self.wind_node = getNode('/filters/wind', True) 

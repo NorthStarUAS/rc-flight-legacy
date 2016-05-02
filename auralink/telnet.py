@@ -5,8 +5,11 @@ import asynchat
 import asyncore
 import socket
 import re
+
 from props import root, getNode
- 
+
+import commands
+
 class ChatHandler(asynchat.async_chat):
     def __init__(self, sock):
         asynchat.async_chat.__init__(self, sock=sock)
@@ -131,6 +134,10 @@ class ChatHandler(asynchat.async_chat):
 		    self.push(tokens[1] + ' = "' + value + '"\n')
 	    else:
 		self.push('usage: set [[/]path/]attr value\n')
+	elif tokens[0] == 'send':
+            c = ' '
+            commands.add(c.join(tokens[1:]))
+            
 	# elif tokens[0] == 'run':
 	#     if len(tokens) == 2:
 	# 	string command = tokens[1]
