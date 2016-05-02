@@ -94,6 +94,9 @@ class WSHandler(tornado.websocket.WebSocketHandler):
                     else:
                         message += ' %.8f %.8f' % (0.0, 0.0)
                 self.write_message('route ' + message + '\r\n')
+        elif tokens[0] == 'send':
+            commands.add(str(tokens[1]))
+            
     def on_close(self):
         print 'connection closed'
  

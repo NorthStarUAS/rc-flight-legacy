@@ -137,7 +137,6 @@ class ChatHandler(asynchat.async_chat):
 	elif tokens[0] == 'send':
             c = ' '
             commands.add(c.join(tokens[1:]))
-            
 	# elif tokens[0] == 'run':
 	#     if len(tokens) == 2:
 	# 	string command = tokens[1]
