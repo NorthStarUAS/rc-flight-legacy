@@ -352,7 +352,7 @@ int main( int argc, char **argv )
         readXML( master.c_str(), &props);
         printf("Loaded configuration from %s\n", master.c_str());
 	//writeXML( "debug.xml", &props);
-	//props.pretty_print();
+	props.pretty_print();
 	pyPropertyNode config_node = pyGetNode("/config");
 	config_node.setString("root-path", root.c_str());
     } catch (const sg_exception &exc) {
@@ -487,10 +487,6 @@ int main( int argc, char **argv )
 
     // initialize the actuators
     Actuator_init();
-
-    if ( enable_mission ) {
-	mission_mgr->init("mission.mission_mgr");
-    }
 
     if ( enable_cas ) {
 	// initialize the cas system

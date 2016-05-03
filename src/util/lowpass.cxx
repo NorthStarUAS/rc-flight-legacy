@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "lowpass.hxx"
 
 LowPassFilter::LowPassFilter( float time_factor ) :
@@ -30,10 +32,8 @@ float LowPassFilter::update( float value, float dt ) {
     // rounding.)
     if ( weight_factor < 0.0 ) { weight_factor = 0.0; }
     if ( weight_factor > 1.0 ) { weight_factor = 1.0; }
-    
     filter_value = (1.0 - weight_factor) * filter_value
 	+ weight_factor * value;
-
     return filter_value;
 }
 

@@ -26,6 +26,12 @@ public:
     bool update();
     void close();
 
+private:
+    
+    int remote_link_skip;
+    int logging_skip;
+    int remote_link_count;
+    int logging_count;
 };
 
 

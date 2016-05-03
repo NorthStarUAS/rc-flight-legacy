@@ -10,7 +10,7 @@
 
 
 pyModuleEventLog *events = NULL;
-UGPacketizer *packetizer = NULL;
+pyModulePacker *packer = NULL;
 UGTelnet *telnet = NULL;
 AuraCircleMgr *circle_mgr = NULL;
 FGRouteMgr *route_mgr = NULL;
@@ -18,11 +18,17 @@ pyModuleBase *mission_mgr = NULL;
 
 
 bool AuraCoreInit() {
+    // create instances
     events = new pyModuleEventLog;
-    packetizer = new UGPacketizer;
+    packer = new pyModulePacker;
     circle_mgr = new AuraCircleMgr;
     route_mgr = new FGRouteMgr;
     mission_mgr = new pyModuleBase;
 
+    // import and init the python modules
+    events->init("comms.events");
+    packer->init("comms.packer");
+    mission_mgr->init("mission.mission_mgr");
+    
     return true;
 }

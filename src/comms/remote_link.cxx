@@ -7,11 +7,14 @@
 #include <unistd.h>
 
 #include <string>
+#include <sstream>
+using std::string;
+using std::ostringstream;
 
 #include "checksum.hxx"
 #include "include/globaldefs.h"
 
-#include "init/globals.hxx" 	// packetizer
+#include "init/globals.hxx"
 #include "sensors/gps_mgr.hxx"
 #include "util/strutils.hxx"
 #include "util/timing.h"
@@ -20,7 +23,6 @@
 #include "logging.hxx"
 #include "netBuffer.h"		// for netBuffer structure
 #include "netSocket.h"
-#include "packetizer.hxx"
 #include "serial.hxx"
 
 #include "remote_link.hxx"
@@ -79,22 +81,22 @@ void remote_link_init() {
 	}
 	if ( link_socket.connect( remote_link_config.getString("host").c_str(),
 				  remote_link_config.getLong("port") ) < 0 )
-	{
-	    if ( display_on ) {
-		printf("Error connecting socket: %s:%ld\n",
-		       remote_link_config.getString("host").c_str(),
-		       remote_link_config.getLong("port"));
+	    {
+		if ( display_on ) {
+		    printf("Error connecting socket: %s:%ld\n",
+			   remote_link_config.getString("host").c_str(),
+			   remote_link_config.getLong("port"));
+		}
+		return;
 	    }
-	    return;
-	}
 	link_socket.setBlocking( false );
 
 	link_open = true;
     }
 
     remote_link_node.setLong("sequence_num", 0);
-    if ( remote_link_config.getLong("write-bytes-per-frame") == 0 ) {
-	remote_link_config.setLong("write-bytes-per-frame", 12);
+    if ( remote_link_config.getLong("write_bytes_per_frame") == 0 ) {
+	remote_link_config.setLong("write_bytes_per_frame", 12);
     }
 }
 
@@ -110,7 +112,7 @@ void remote_link_flush_serial() {
     // attempt better success by writing multiple small chunks to the
     // serial port (2 * 8 = 16 bytes per call attempted)
     const int loops = 1;
-    int bytes_per_frame = remote_link_config.getLong("write-bytes-per-frame");
+    int bytes_per_frame = remote_link_config.getLong("write_bytes_per_frame");
 
     for ( int i = 0; i < loops; i++ ) {
 	int write_len = serial_buffer.getLength();
@@ -149,7 +151,10 @@ static short link_write( const uint8_t *buf, const short size ) {
     if ( link_type == ugUART ) {
 	// stuff the request in a fifo buffer and then work on writing
 	// out the front end of the buffer.
-	serial_buffer.append((char *)buf, size);
+	bool result = serial_buffer.append((char *)buf, size);
+	if ( ! result and display_on ) {
+	    printf("remote link serial buffer overflow\n");
+	}
 
 	remote_link_flush_serial();
 
@@ -231,8 +236,8 @@ static void remote_link_packet( const uint8_t packet_id,
 		&cksum0, &cksum1 );
     ptr[0] = cksum0; ptr[1] = cksum1;
     /*if ( packet_id == 2 ) {
-	printf("cksum = %d %d\n", cksum0, cksum1);
-    }*/
+      printf("cksum = %d %d\n", cksum0, cksum1);
+      }*/
 
     link_write( buf, packet_size + 6 );
     // printf(" end remote_link_packet()\n");
@@ -248,59 +253,48 @@ int remote_link_random( int max ) {
 
 
 bool remote_link_gps( uint8_t *buf, int size ) {
-    remote_link_packet( GPS_PACKET_V1, buf, size );
+    remote_link_packet( GPS_PACKET_V2, buf, size );
     return true;
 }
 
 
 bool remote_link_imu( uint8_t *buf, int size  ) {
-    remote_link_packet( IMU_PACKET_V2, buf, size );
+    remote_link_packet( IMU_PACKET_V3, buf, size );
     return true;
 }
 
 
 bool remote_link_airdata( uint8_t *buf, int size  ) {
-    remote_link_packet( AIR_DATA_PACKET_V4, buf, size );
+    remote_link_packet( AIRDATA_PACKET_V5, buf, size );
     return true;
 }
 
 
 bool remote_link_filter( uint8_t *buf, int size )
 {
-    remote_link_packet( FILTER_PACKET_V1, buf, size );
+    remote_link_packet( FILTER_PACKET_V2, buf, size );
     return true;
 }
 
 
 bool remote_link_actuator( uint8_t *buf, int size )
 {
-    remote_link_packet( ACTUATOR_PACKET_V1, buf, size );
+    remote_link_packet( ACTUATOR_PACKET_V2, buf, size );
     return true;
 }
 
 
 bool remote_link_pilot( uint8_t *buf, int size )
 {
-    remote_link_packet( PILOT_INPUT_PACKET_V1, buf, size );
+    remote_link_packet( PILOT_INPUT_PACKET_V2, buf, size );
     return true;
 }
 
 
-bool remote_link_ap( uint8_t *buf, int size, int skip_count )
+bool remote_link_ap( uint8_t *buf, int size )
 {
     // printf("remote link ap()\n");
-    if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = remote_link_random(skip_count);
-
-    if ( skip > 0 ) {
-        --skip;
-        return false;
-    } else {
-        skip = skip_count;
-    }
-
-    remote_link_packet( AP_STATUS_PACKET_V2, buf, size );
-
+    remote_link_packet( AP_STATUS_PACKET_V3, buf, size );
     return true;
 }
 
@@ -318,27 +312,15 @@ bool remote_link_health( uint8_t *buf, int size, int skip_count )
         skip = skip_count;
     }
 
-    remote_link_packet( SYSTEM_HEALTH_PACKET_V3, buf, size );
+    remote_link_packet( SYSTEM_HEALTH_PACKET_V4, buf, size );
 
     return true;
 }
 
 
-bool remote_link_payload( uint8_t *buf, int size, int skip_count )
+bool remote_link_payload( uint8_t *buf, int size )
 {
-    // printf("remote link payload()\n");
-    if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = remote_link_random(skip_count);
-
-    if ( skip > 0 ) {
-        --skip;
-        return false;
-    } else {
-        skip = skip_count;
-    }
-
-    remote_link_packet( PAYLOAD_PACKET_V1, buf, size );
-
+    remote_link_packet( PAYLOAD_PACKET_V2, buf, size );
     return true;
 }
 
@@ -428,7 +410,7 @@ static void remote_link_execute_command( const string command ) {
             targets_node.setDouble( "airspeed_kt", speed_kt );
         }
     } else if ( token[0] == "fcs-update" ) {
-	packetizer->decode_fcs_update(token);
+	decode_fcs_update(token);
     } else if ( token[0] == "set" && token.size() == 3 ) {
 	string prop_name = token[1];
 	string value = token[2];
@@ -596,4 +578,61 @@ bool remote_link_command() {
     }
 
     return true;
+}
+
+bool decode_fcs_update(vector <string> tokens) {
+    if ( tokens.size() > 0 && tokens[0] == "fcs-update" ) {
+	// remove initial keyword if needed
+	tokens.erase(tokens.begin());
+    }
+
+    if ( tokens.size() == 9 ) {
+	int i = atoi(tokens[0].c_str());
+	ostringstream str;
+	str << "/config/fcs/autopilot/pid-controller" << '[' << i << ']';
+	string ename = str.str();
+	pyPropertyNode pid = pyGetNode(ename);
+	if ( pid.isNull() ) {
+	    return false;
+	}
+
+	pyPropertyNode config = pid.getChild("config");
+	if ( config.isNull() ) {
+	    return false;
+	}
+	
+	config.setDouble( "Kp", atof(tokens[1].c_str()) );
+	config.setDouble( "beta", atof(tokens[2].c_str()) );
+	config.setDouble( "alpha", atof(tokens[3].c_str()) );
+	config.setDouble( "gamma", atof(tokens[4].c_str()) );
+	config.setDouble( "Ti", atof(tokens[5].c_str()) );
+	config.setDouble( "Td", atof(tokens[6].c_str()) );
+	config.setDouble( "u_min", atof(tokens[7].c_str()) );
+	config.setDouble( "u_max", atof(tokens[8].c_str()) );
+
+	return true;
+    } else if ( tokens.size() == 5 ) {
+	int i = atoi(tokens[0].c_str());
+	ostringstream str;
+	str << "/config/fcs/autopilot/pi-simple-controller" << '[' << i << ']';
+	string ename = str.str();
+	pyPropertyNode pid = pyGetNode(ename);
+	if ( pid.isNull() ) {
+	    return false;
+	}
+
+	pyPropertyNode config = pid.getChild("config");
+	if ( config.isNull() ) {
+	    return false;
+	}
+
+	config.setDouble( "Kp", atof(tokens[1].c_str()) );
+	config.setDouble( "Ki", atof(tokens[2].c_str()) );
+	config.setDouble( "u_min", atof(tokens[3].c_str()) );
+	config.setDouble( "u_max", atof(tokens[4].c_str()) );
+
+	return true;
+     } else {
+	return false;
+    }
 }

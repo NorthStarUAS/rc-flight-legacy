@@ -17,11 +17,11 @@
 #include <sstream>
 
 #include "control/control.hxx"
-#include "init/globals.hxx" 	// packetizer
 #include "util/strutils.hxx"
 
 #include "netChat.h"
 #include "display.hxx"
+#include "remote_link.hxx"
 #include "telnet.hxx"
 
 using std::stringstream;
@@ -33,7 +33,7 @@ static bool fcs_update_helper(string values) {
 
     vector<string> tokens = split( values, "," );
 
-    return packetizer->decode_fcs_update( tokens );
+    return decode_fcs_update( tokens );
 
 }
 
@@ -179,7 +179,7 @@ PropsChannel::foundTerminator()
 	    }
 
 	    if ( ! dir.isNull() ) {
-		vector <string> children = dir.getChildren(false);
+		vector <string> children = dir.getChildren(true);
 		for ( unsigned int i = 0; i < children.size(); i++ ) {
 		    string line = children[i];
 		    if ( dir.isLeaf(children[i].c_str()) ) {
@@ -241,6 +241,7 @@ PropsChannel::foundTerminator()
 		push( tmp.c_str() );
 		push( getTerminator() );
 	    }
+#if 0 /* I can't remember if this block of code is important */
 	} else if ( command == "fcs" ) {
 	    if ( tokens.size() == 2 ) {
 		string tmp = "";
@@ -264,6 +265,7 @@ PropsChannel::foundTerminator()
 		push( tmp.c_str() );
 		push( getTerminator() );
 	    }
+#endif
 	} else if ( command == "fcs-update" ) {
 	    if ( tokens.size() == 2 ) {
 		bool result = fcs_update_helper(tokens[1]);

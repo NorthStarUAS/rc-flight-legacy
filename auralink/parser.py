@@ -14,9 +14,6 @@ FILTER_PACKET_V1 = 2
 ACTUATOR_PACKET_V1 = 3
 PILOT_INPUT_PACKET_V1 = 4
 AP_STATUS_PACKET_V1 = 5
-AIRDATA_PACKET_V1 = 6
-SYSTEM_HEALTH_PACKET_V1 = 7
-AIRDATA_PACKET_V2 = 8
 AIRDATA_PACKET_V3 = 9
 AP_STATUS_PACKET_V2 = 10
 SYSTEM_HEALTH_PACKET_V2 = 11
@@ -24,6 +21,15 @@ PAYLOAD_PACKET_V1 = 12
 AIRDATA_PACKET_V4 = 13
 SYSTEM_HEALTH_PACKET_V3 = 14
 IMU_PACKET_V2 = 15
+GPS_PACKET_V2 = 16
+IMU_PACKET_V3 = 17
+AIRDATA_PACKET_V5 = 18
+SYSTEM_HEALTH_PACKET_V4 = 19
+PILOT_INPUT_PACKET_V2 = 20
+ACTUATOR_PACKET_V2 = 21
+FILTER_PACKET_V2 = 22
+PAYLOAD_PACKET_V2 = 23
+AP_STATUS_PACKET_V3 = 24
 
 # simple 2-byte checksum
 def validate_cksum(id, size, buf, cksum0, cksum1):
@@ -47,39 +53,51 @@ def validate_cksum(id, size, buf, cksum0, cksum1):
     
 def parse_msg(id, buf):
     if id == GPS_PACKET_V1:
-        packer.unpack_gps_v1(buf)
+        comms.packer.unpack_gps_v1(buf)
+    elif id == GPS_PACKET_V2:
+        comms.packer.unpack_gps_v2(buf)
     elif id == IMU_PACKET_V1:
-        packer.unpack_imu_v1(buf)
+        comms.packer.unpack_imu_v1(buf)
     elif id == IMU_PACKET_V2:
-        packer.unpack_imu_v2(buf)
-    elif id == AIRDATA_PACKET_V1:
-        packer.unpack_airdata_v1(buf)
-    elif id == AIRDATA_PACKET_V2:
-        packer.unpack_airdata_v2(buf)
+        comms.packer.unpack_imu_v2(buf)
+    elif id == IMU_PACKET_V3:
+        comms.packer.unpack_imu_v3(buf)
     elif id == AIRDATA_PACKET_V3:
-        packer.unpack_airdata_v3(buf)
+        comms.packer.unpack_airdata_v3(buf)
     elif id == AIRDATA_PACKET_V4:
-        packer.unpack_airdata_v4(buf)
+        comms.packer.unpack_airdata_v4(buf)
+    elif id == AIRDATA_PACKET_V5:
+        comms.packer.unpack_airdata_v5(buf)
     elif id == FILTER_PACKET_V1:
-        packer.unpack_filter_v1(buf)
+        comms.packer.unpack_filter_v1(buf)
+    elif id == FILTER_PACKET_V2:
+        comms.packer.unpack_filter_v2(buf)
     elif id == ACTUATOR_PACKET_V1:
-        packer.unpack_act_v1(buf)
+        comms.packer.unpack_act_v1(buf)
+    elif id == ACTUATOR_PACKET_V2:
+        comms.packer.unpack_act_v2(buf)
     elif id == PILOT_INPUT_PACKET_V1:
-        packer.unpack_pilot_v1(buf)
+        comms.packer.unpack_pilot_v1(buf)
+    elif id == PILOT_INPUT_PACKET_V2:
+        comms.packer.unpack_pilot_v2(buf)
     elif id == AP_STATUS_PACKET_V1:
-        packer.unpack_ap_status_v1(buf)
+        comms.packer.unpack_ap_status_v1(buf)
     elif id == AP_STATUS_PACKET_V2:
-        packer.unpack_ap_status_v2(buf)
-    elif id == SYSTEM_HEALTH_PACKET_V1:
-        packer.unpack_system_health_v1(buf)
+        comms.packer.unpack_ap_status_v2(buf)
+    elif id == AP_STATUS_PACKET_V3:
+        comms.packer.unpack_ap_status_v3(buf)
     elif id == SYSTEM_HEALTH_PACKET_V2:
-        packer.unpack_system_health_v2(buf)
+        comms.packer.unpack_system_health_v2(buf)
     elif id == SYSTEM_HEALTH_PACKET_V3:
-        packer.unpack_system_health_v3(buf)
+        comms.packer.unpack_system_health_v3(buf)
+    elif id == SYSTEM_HEALTH_PACKET_V4:
+        comms.packer.unpack_system_health_v4(buf)
     elif id == PAYLOAD_PACKET_V1:
-        packer.unpack_payload_v1(buf)
+        comms.packer.unpack_payload_v1(buf)
+    elif id == PAYLOAD_PACKET_V2:
+        comms.packer.unpack_payload_v2(buf)
     else:
-        # print "Unknown packet id:", id
+        print "Unknown packet id:", id
         pass
 
 # 'static' variables for the serial stream and file parsers
@@ -102,7 +120,13 @@ def glean_ascii_msgs(c):
 def serial_read(ser):
     global state
     global counter
+    global pkt_id
+    global pkt_len
     global payload
+    global cksum_A
+    global cksum_B
+    global cksum_lo
+    global cksum_hi
 
     start_time = time.time()    # sec
     input = ''

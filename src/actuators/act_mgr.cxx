@@ -98,17 +98,6 @@ void Actuator_init() {
 		   module.c_str());
 	}
     }
-    // printf("At end of actuator_init()\n");
-    // act_node.pretty_print();
-    // act_node.setDouble("channel", 1, 0.5);
-    // printf("After setting double\n");
-    // act_node.pretty_print();
-    // act_node.setDouble("timestamp", 2.0);
-    // printf("After setting timestamp\n");
-    // act_node.pretty_print();
-    // act_node.getDouble("channel", 3);
-    // printf("After getting channel\n");
-    // act_node.pretty_print();
 }
 
 
@@ -264,6 +253,8 @@ bool Actuator_update() {
     static int remote_link_count = remote_link_random( remote_link_skip );
     static int logging_count = remote_link_random( logging_skip );
 
+    bool fresh_data = true; // always true
+
     // traverse configured modules
     for ( unsigned int i = 0; i < sections.size(); i++ ) {
 	string module = sections[i].getString("module");
@@ -283,6 +274,30 @@ bool Actuator_update() {
 	    printf("Unknown actuator = '%s' in config file\n",
 		   module.c_str());
 	}
+	if ( fresh_data ) {
+	    bool send_remote_link = false;
+	    if ( remote_link_on && remote_link_count <= 0 ) {
+		send_remote_link = true;
+		remote_link_count = remote_link_skip;
+	    }
+	
+	    bool send_logging = false;
+	    if ( log_to_file && logging_count <= 0 ) {
+		send_logging = true;
+		logging_count = logging_skip;
+	    }
+	
+	    if ( send_remote_link || send_logging ) {
+		uint8_t buf[256];
+		int size = packer->pack_actuator( i, buf );
+		if ( send_remote_link ) {
+		    remote_link_actuator( buf, size );
+		}
+		if ( send_logging ) {
+		    log_actuator( buf, size );
+		}
+	    }
+	}
     }
 
 
@@ -290,32 +305,13 @@ bool Actuator_update() {
 
     debug6b.start();
 
-    bool send_remote_link = false;
-    if ( remote_link_on ) {
-	remote_link_count--;
-	if ( remote_link_count < 0 ) {
-	    send_remote_link = true;
-	    remote_link_count = remote_link_skip;
+    if ( fresh_data ) {
+	if ( remote_link_on ) {
+	    remote_link_count--;
 	}
-    }
 	
-    bool send_logging = false;
-    if ( log_to_file ) {
-	logging_count--;
-	if ( logging_count < 0 ) {
-	    send_logging = true;
-	    logging_count = logging_skip;
-	}
-    }
-	
-    if ( send_remote_link || send_logging ) {
-	uint8_t buf[256];
-	int size = packetizer->packetize_actuator( buf );
-	if ( send_remote_link ) {
-	    remote_link_actuator( buf, size );
-	}
-	if ( send_logging ) {
-	    log_actuator( buf, size );
+	if ( log_to_file ) {
+	    logging_count--;
 	}
     }
 

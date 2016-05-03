@@ -13,7 +13,6 @@
 #include "util/timing.h"
 
 #include "checksum.hxx"
-#include "packetizer.hxx"
 
 #include "logging.hxx"
 
@@ -84,7 +83,6 @@ bool logging_init() {
         return false;
     }
 
-    events->init("comms.events");
     events->open(flight_dir.c_str());
     events->log("Log", "Start");
     
@@ -162,47 +160,37 @@ static int my_random( int max ) {
 
 
 void log_gps( uint8_t *buf, int size ) {
-    log_packet( GPS_PACKET_V1, buf, size );
+    log_packet( GPS_PACKET_V2, buf, size );
 }
 
 
 void log_imu( uint8_t *buf, int size ) {
-    log_packet( IMU_PACKET_V2, buf, size );
+    log_packet( IMU_PACKET_V3, buf, size );
 }
 
 
 void log_airdata( uint8_t *buf, int size ) {
-    log_packet( AIR_DATA_PACKET_V4, buf, size );
+    log_packet( AIRDATA_PACKET_V5, buf, size );
 }
 
 
 void log_filter( uint8_t *buf, int size ) {
-    log_packet( FILTER_PACKET_V1, buf, size );
+    log_packet( FILTER_PACKET_V2, buf, size );
 }
 
 
 void log_actuator( uint8_t *buf, int size ) {
-    log_packet( ACTUATOR_PACKET_V1, buf, size );
+    log_packet( ACTUATOR_PACKET_V2, buf, size );
 }
 
 
 void log_pilot( uint8_t *buf, int size ) {
-    log_packet( PILOT_INPUT_PACKET_V1, buf, size );
+    log_packet( PILOT_INPUT_PACKET_V2, buf, size );
 }
 
 
-void log_ap( uint8_t *buf, int size, int skip_count ) {
-    if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
-
-    if ( skip > 0 ) {
-        --skip;
-        return;
-    } else {
-        skip = skip_count;
-    }
-
-    log_packet( AP_STATUS_PACKET_V2, buf, size );
+void log_ap( uint8_t *buf, int size ) {
+    log_packet( AP_STATUS_PACKET_V3, buf, size );
 }
 
 
@@ -217,21 +205,11 @@ void log_health( uint8_t *buf, int size, int skip_count ) {
         skip = skip_count;
     }
 
-    log_packet( SYSTEM_HEALTH_PACKET_V3, buf, size );
+    log_packet( SYSTEM_HEALTH_PACKET_V4, buf, size );
 }
 
-void log_payload( uint8_t *buf, int size, int skip_count ) {
-    if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = my_random(skip_count);
-
-    if ( skip > 0 ) {
-        --skip;
-        return;
-    } else {
-        skip = skip_count;
-    }
-
-    log_packet( PAYLOAD_PACKET_V1, buf, size );
+void log_payload( uint8_t *buf, int size ) {
+    log_packet( PAYLOAD_PACKET_V2, buf, size );
 }
 
 

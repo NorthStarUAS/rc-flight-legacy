@@ -9,7 +9,7 @@ libcomms_a_SOURCES = \
         netChannel.cxx netChannel.h \
         netChat.cxx netChat.h \
         netSocket.cxx netSocket.h ul.h \
-	packetizer.cxx packetizer.hxx \
+	packer.cxx packer.hxx \
 	remote_link.cxx remote_link.hxx \
 	serial.cxx serial.hxx \
 	telnet.cxx telnet.hxx

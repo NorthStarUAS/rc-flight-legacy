@@ -80,6 +80,9 @@ static NAVdata nav;
 ////////// BRT A lot of these multi line equations with temp matrices can be compressed
 	
 NAVdata init_nav(IMUdata imu, GPSdata gps) {
+    // configuration choices
+    bool internal_gyro_cal = false;
+
     I15.setIdentity();
     I3.setIdentity();
 
@@ -166,10 +169,12 @@ NAVdata init_nav(IMUdata imu, GPSdata gps) {
     nav.ab[0] = 0.0;
     nav.ab[1] = 0.0; 
     nav.ab[2] = 0.0;
-	
-    nav.gb[0] = imu.p;
-    nav.gb[1] = imu.q;
-    nav.gb[2] = imu.r;
+
+    if ( internal_gyro_cal ) {
+	nav.gb[0] = imu.p;
+	nav.gb[1] = imu.q;
+	nav.gb[2] = imu.r;
+    }
 	
     // Specific forces and Rotation Rate
     f_b(0) = imu.ax - nav.ab[0];

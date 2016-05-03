@@ -116,10 +116,33 @@ bool PilotInput_update() {
 	    printf("Unknown pilot input source = '%s' in config file\n",
 		   source.c_str());
 	}
+	if ( fresh_data ) {
+	    bool send_remote_link = false;
+	    if ( remote_link_on && remote_link_count <= 0 ) {
+		send_remote_link = true;
+		remote_link_count = remote_link_skip;
+	    }
+	
+	    bool send_logging = false;
+	    if ( log_to_file && logging_count <= 0 ) {
+		send_logging = true;
+		logging_count = logging_skip;
+	    }
+	
+	    if ( send_remote_link || send_logging ) {
+		uint8_t buf[256];
+		int size = packer->pack_pilot( i, buf );
+		if ( send_remote_link ) {
+		    remote_link_pilot( buf, size );
+		}
+		if ( send_logging ) {
+		    log_pilot( buf, size );
+		}
+	    }
+	}
     }
 
     if ( fresh_data ) {
-
 	// Hello this is a bit of a hack to hard code the master
 	// autopilot on/off switch here.  In the future the master
 	// autopilot on/off switch may come from other sources. (?)
@@ -141,33 +164,12 @@ bool PilotInput_update() {
 	    flight_node.setDouble( "flaps", pilot_node.getDouble("flaps") );
 	}
 
-	bool send_remote_link = false;
 	if ( remote_link_on ) {
 	    remote_link_count--;
-	    if ( remote_link_count < 0 ) {
-		send_remote_link = true;
-		remote_link_count = remote_link_skip;
-	    }
 	}
 	
-	bool send_logging = false;
 	if ( log_to_file ) {
 	    logging_count--;
-	    if ( logging_count < 0 ) {
-		send_logging = true;
-		logging_count = logging_skip;
-	    }
-	}
-	
-	if ( send_remote_link || send_logging ) {
-	    uint8_t buf[256];
-	    int size = packetizer->packetize_pilot( buf );
-	    if ( send_remote_link ) {
-		remote_link_pilot( buf, size );
-	    }
-	    if ( send_logging ) {
-		log_pilot( buf, size );
-	    }
 	}
     }
 

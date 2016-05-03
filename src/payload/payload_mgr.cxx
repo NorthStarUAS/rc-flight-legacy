@@ -20,12 +20,11 @@
 #include "payload_mgr.hxx"
 
 
-// comm property nodes
-static pyPropertyNode remote_link_node;
-static pyPropertyNode logging_node;
-
-
-UGPayloadMgr::UGPayloadMgr()
+UGPayloadMgr::UGPayloadMgr():
+    remote_link_skip(0),
+    logging_skip(0),
+    remote_link_count(0),
+    logging_count(0)
 {
 }
 
@@ -35,32 +34,58 @@ UGPayloadMgr::~UGPayloadMgr() {
 
 
 void UGPayloadMgr::bind() {
-    // initialize comm nodes
-    remote_link_node = pyGetNode("/config/remote_link", true);
-    logging_node = pyGetNode("/config/logging", true);
+    // pass
 }
 
 
 void UGPayloadMgr::init() {
     bind();
+    
+    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
+    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
+    remote_link_skip = remote_link_node.getDouble("payload_skip");
+    logging_skip = logging_node.getDouble("payload_skip");
 }
 
 
 bool UGPayloadMgr::update() {
-    if ( remote_link_on || log_to_file ) {
-	uint8_t buf[256];
-	int size = packetizer->packetize_payload( buf );
+    remote_link_count = remote_link_random( remote_link_skip );
+    logging_count = remote_link_random( logging_skip );
 
-	if ( remote_link_on ) {
-	    // printf("sending filter packet\n");
-	    remote_link_payload( buf, size,
-				 remote_link_node.getLong("payload_skip") );
+    bool fresh_data = true;
+    if ( fresh_data ) {
+	bool send_remote_link = false;
+	if ( remote_link_on && remote_link_count <= 0 ) {
+	    send_remote_link = true;
+	    remote_link_count = remote_link_skip;
 	}
-
+	
+	bool send_logging = false;
+	if ( log_to_file && logging_count <= 0 ) {
+	    send_logging = true;
+	    logging_count = logging_skip;
+	}
+	
+	if ( send_remote_link || send_logging ) {
+	    uint8_t buf[256];
+	    int size = packer->pack_payload( 0, buf );
+	    if ( send_remote_link ) {
+		remote_link_payload( buf, size );
+	    }
+	    if ( send_logging ) {
+		log_payload( buf, size );
+	    }
+	}
+	
+	if ( remote_link_on ) {
+	    remote_link_count--;
+	}
+	
 	if ( log_to_file ) {
-	    log_payload( buf, size, logging_node.getLong("payload_skip") );
+	    logging_count--;
 	}
     }
+
     return true;
 }
 

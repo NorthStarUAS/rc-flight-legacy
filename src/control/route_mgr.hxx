@@ -46,30 +46,6 @@ class FGRouteMgr {
 
 public:
 
-#if 0
-    enum StartMode {
-	FIRST_WPT = 0,		// Go to first waypoint
-	FIRST_LEG = 1,		// Go to 2nd waypoint along route leg
-    };
-
-    enum FollowMode {
-	DIRECT = 0,		// steer direct to next waypoint
-	XTRACK_LEG_HDG = 1,	// steer towards leg heading + xtrack
-	XTRACK_DIRECT_HDG = 2,	// steer direct oto next wpt + xtrack
-	LEADER = 3		// steer towards a projected lead point
-    };
-    
-    enum CompletionMode {
-	LOOP = 0,		// loop the route when finished
-	CIRCLE_LAST_WPT = 1,	// circle the final waypoint in the route
-	EXTEND_LAST_LEG = 2	// track the last route leg indefinitely
-	// idea: reverse and fly backwards to home
-	// idea: swap to standby route and fly that
-	// idea: return home and circle
-	// idea: rally points
-    };
-#endif
-
 private:
 
     SGRoute *active;
@@ -79,6 +55,7 @@ private:
     pyPropertyNode vel_node;
     pyPropertyNode orient_node;
     pyPropertyNode route_node;
+    pyPropertyNode active_node;
     pyPropertyNode L1_node;
     pyPropertyNode targets_node;
     pyPropertyNode home_node;
@@ -87,13 +64,10 @@ private:
     double last_lat;
     double last_az;
 
-    // route behaviors
-    // StartMode start_mode;
-    // FollowMode follow_mode;
-    // CompletionMode completion_mode;
-
-    // stats
-    double dist_remaining_m;
+    int wp_counter;		// internal counter for dribbling
+				// active route into property tree
+    
+    double dist_remaining_m;	// stats
 
     SGWayPoint make_waypoint( const string& wpt_string );
 
@@ -113,24 +87,11 @@ public:
     void init();
     void init( pyPropertyNode *config_node );
 
-#if 0
-    // set route start mode
-    inline void set_start_mode( enum StartMode mode ) {
-	start_mode = mode;
-    }
-
-    // set route follow mode
-    inline void set_follow_mode( enum FollowMode mode ) {
-	follow_mode = mode;
-    }
-
-    // set route completion mode
-    inline void set_completion_mode( enum CompletionMode mode ) {
-	completion_mode = mode;
-    }
-#endif
-
+    // the master update routine with the task is active
     void update();
+
+    // background idle task for when not active
+    void idle();
 
     // swap the "active" and the "standby" routes, but only if the
     // "standby" route has some waypoints.
