@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import argparse
+import datetime
 import os
 import serial
 import subprocess
@@ -39,22 +40,33 @@ if args.serial:
         print "Cannot open:", args.serial
         quit()
 
+    d = datetime.datetime.utcnow()
+    logfile = 'flight-' + d.strftime("%Y-%m-%d-%H:%M:%S") + '.log'
+    try:
+        f = open(logfile, 'wb')
+    except:
+        print "Cannot open:", logfile
+        quite()
+        
     while True:
-        parser.serial_read(ser)
+        parser.serial_read(ser, f)
         current.compute_derived_data()
         commands.update(ser)
         telnet.update()
         websocket.update()
 elif args.flight:
-    (fd, filename) = tempfile.mkstemp()
-    command = "zcat " + args.flight + " > " + filename
-    print command
-    os.system(command)
-
+    filename = args.flight
+    if args.flight.endswith('.gz'):
+        (fd, filename) = tempfile.mkstemp()
+        command = "zcat " + args.flight + " > " + filename
+        print command
+        os.system(command)
     try:
         fd = open(filename, 'r')
         full = fd.read()
-        os.remove(filename)
+        if args.flight.endswith('.gz'):
+            # remove temporary file name
+            os.remove(filename)
     except:
         # eat the expected error
         print "we should be able to ignore the zcat error"
@@ -62,8 +74,10 @@ elif args.flight:
     print "len of decompressed file:", len(full)
 
     while True:
-        parser.file_read(full)
-        telnet.update()
-        websocket.update()
+        try:
+            parser.file_read(full)
+        except:
+            print "end of file"
+            break
 else:
     print "No input source provided"    

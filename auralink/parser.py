@@ -102,6 +102,15 @@ def parse_msg(id, buf):
         print "Unknown packet id:", id
         pass
 
+def log_msg(f, pkt_id, pkt_len, payload, cksum_lo, cksum_hi):
+    f.write(chr(START_OF_MSG0))
+    f.write(chr(START_OF_MSG1))
+    f.write(chr(pkt_id))
+    f.write(chr(pkt_len))
+    f.write(payload)
+    f.write(chr(cksum_lo))
+    f.write(chr(cksum_hi))
+
 # 'static' variables for the serial stream and file parsers
 state = 0
 pkt_id = 0
@@ -125,7 +134,7 @@ def glean_ascii_msgs(c):
         print ascii_message
         ascii_message = ''
 
-def serial_read(ser):
+def serial_read(ser, f):
     global state
     global counter
     global pkt_id
@@ -211,6 +220,7 @@ def serial_read(ser):
             if cksum_A == cksum_lo and cksum_B == cksum_hi:
                 # print "checksum passes:", pkt_id
                 parse_msg(pkt_id, payload)
+                log_msg(f, pkt_id, pkt_len, payload, cksum_lo, cksum_hi)
                 msg_id = pkt_id
             else:
                 print "pkt id=%d checksum failed %d %d (computed) != %d %d (message)" % (pkt_id, cksum_A, cksum_B, cksum_lo, cksum_hi)
