@@ -1,7 +1,9 @@
 import sys
+import string
+import time
+
 sys.path.append("../src")
 import comms.packer
-import time
 
 # constants
 
@@ -114,8 +116,14 @@ payload = ''
 # FIXME: I like this feature which can catch ascii messages injected
 # in the output, although with newest code and newest hardware with a
 # dedicated uart for messages, this is actually deprecated.
+ascii_message = ''
 def glean_ascii_msgs(c):
-    pass
+    global ascii_message
+    if c in string.printable:
+        ascii_message += str(c)
+    elif len(ascii_message) > 4:
+        print ascii_message
+        ascii_message = ''
 
 def serial_read(ser):
     global state
@@ -205,7 +213,7 @@ def serial_read(ser):
                 parse_msg(pkt_id, payload)
                 msg_id = pkt_id
             else:
-                print "pkt=%d checksum failed %d %d (computed) != %d %d (message)\n" % (pkt_id, cksum_A, cksum_B, cksum_lo, cksum_hi)
+                print "pkt id=%d checksum failed %d %d (computed) != %d %d (message)" % (pkt_id, cksum_A, cksum_B, cksum_lo, cksum_hi)
             # this is the end of a record, reset state to 0 to start
             # looking for next record
             state = 0

@@ -31,7 +31,7 @@ def serial_send(serial, sequence, command):
     package = str(sequence) + ',' + command
     pkg_sum = "%02X" % calc_nmea_cksum(package)
     package = package + '*' + pkg_sum + '\n'
-    print 'writing:', package
+    print 'writing:', package.rstrip()
     result = serial.write(package)
     if result != len(package):
         print "ERROR: wrote %d of %d bytes to serial port!\n" % (result, len(package))
@@ -50,6 +50,7 @@ def update(serial):
     if sequence != cmd_recv_index:
 	last_received_time = time.time()
 	cmd_recv_index = sequence
+        print "received msg id =", cmd_recv_index
 
     # if current command has been received, advance to next command
     if cmd_recv_index == cmd_send_index:
@@ -72,7 +73,6 @@ def update(serial):
             command = cmd_queue[0]
             result = serial_send(serial, cmd_send_index, command)
             last_sent_time = current_time
-            print "sent = %d  recv = %d" % (cmd_send_index, cmd_recv_index)
             return cmd_send_index
     else:
         # nothing to do if command queue empty
