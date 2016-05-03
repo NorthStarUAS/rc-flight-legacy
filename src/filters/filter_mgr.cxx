@@ -325,28 +325,28 @@ bool Filter_update() {
 		update_wind();
 		publish_values();
 	    }
+	}
 
-	    bool send_remote_link = false;
-	    if ( remote_link_on && remote_link_count <= 0 ) {
-		send_remote_link = true;
-		remote_link_count = remote_link_skip;
-	    }
+	bool send_remote_link = false;
+	if ( remote_link_on && remote_link_count <= 0 ) {
+	    send_remote_link = true;
+	    remote_link_count = remote_link_skip;
+	}
 	
-	    bool send_logging = false;
-	    if ( log_to_file && logging_count <= 0 ) {
-		send_logging = true;
-		logging_count = logging_skip;
-	    }
+	bool send_logging = false;
+	if ( log_to_file && logging_count <= 0 ) {
+	    send_logging = true;
+	    logging_count = logging_skip;
+	}
 	
-	    if ( send_remote_link || send_logging ) {
-		uint8_t buf[256];
-		int size = packer->pack_filter( i, buf );
-		if ( send_remote_link ) {
-		    remote_link_filter( buf, size );
-		}
-		if ( send_logging ) {
-		    log_filter( buf, size );
-		}
+	if ( send_remote_link || send_logging ) {
+	    uint8_t buf[256];
+	    int size = packer->pack_filter( i, buf );
+	    if ( send_remote_link ) {
+		remote_link_filter( buf, size );
+	    }
+	    if ( send_logging ) {
+		log_filter( buf, size );
 	    }
 	}
     }
