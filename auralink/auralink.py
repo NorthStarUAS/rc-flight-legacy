@@ -2,10 +2,7 @@
 
 import argparse
 import datetime
-import os
 import serial
-import subprocess
-import tempfile
 
 from props import root, getNode
 
@@ -17,8 +14,6 @@ import websocket
 
 argparser = argparse.ArgumentParser(description='aura link')
 argparser.add_argument('--hertz', default=10, type=int, help='specify main loop rate')
-argparser.add_argument('--flight', help='load specified flight log')
-argparser.add_argument('--export-text-tab', help='export to tab delimited file')
 argparser.add_argument('--serial', help='input serial port') 
 argparser.add_argument('--baud', default=115200, type=int, help='serial port baud rate') 
 argparser.add_argument('--telnet-port', default=5050, help='telnet port')
@@ -54,30 +49,5 @@ if args.serial:
         commands.update(ser)
         telnet.update()
         websocket.update()
-elif args.flight:
-    filename = args.flight
-    if args.flight.endswith('.gz'):
-        (fd, filename) = tempfile.mkstemp()
-        command = "zcat " + args.flight + " > " + filename
-        print command
-        os.system(command)
-    try:
-        fd = open(filename, 'r')
-        full = fd.read()
-        if args.flight.endswith('.gz'):
-            # remove temporary file name
-            os.remove(filename)
-    except:
-        # eat the expected error
-        print "we should be able to ignore the zcat error"
-
-    print "len of decompressed file:", len(full)
-
-    while True:
-        try:
-            parser.file_read(full)
-        except:
-            print "end of file"
-            break
 else:
-    print "No input source provided"    
+    print "A serial port must be provided"    
