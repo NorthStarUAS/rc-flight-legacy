@@ -745,7 +745,7 @@ def unpack_system_health_v4(buf):
     apm2_node.setFloat("extern_volt", result[4] / 1000.0)
     apm2_node.setFloat("extern_cell_volt", result[5] / 1000.0)
     apm2_node.setFloat("extern_amps", result[6] / 1000.0)
-    apm2_node.setFloat("extern_current_mah", result[7] * 10.0)
+    apm2_node.setInt("extern_current_mah", result[7] * 10.0)
 
     return index
 
