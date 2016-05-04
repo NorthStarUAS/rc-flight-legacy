@@ -218,13 +218,14 @@ def serial_read(ser, f):
         if len(input):
             cksum_hi = ord(input[0])
             # print " cksum_hi:", cksum_hi
-            if cksum_A == cksum_lo and cksum_B == cksum_hi:
-                # print "checksum passes:", pkt_id
+            if cksum_A == cksum_lo and cksum_B == cksum_hi and pkt_len > 0:
+                print "checksum passes:", pkt_id, "len:", pkt_len
                 parse_msg(pkt_id, payload)
                 log_msg(f, pkt_id, pkt_len, payload, cksum_lo, cksum_hi)
                 msg_id = pkt_id
             else:
-                print "pkt id=%d checksum failed %d %d (computed) != %d %d (message)" % (pkt_id, cksum_A, cksum_B, cksum_lo, cksum_hi)
+                # print "pkt id=%d checksum failed %d %d (computed) != %d %d (message)" % (pkt_id, cksum_A, cksum_B, cksum_lo, cksum_hi)
+                print "pkt id=%d len=%d checksum failed" % (pkt_id, pkt_len)
             # this is the end of a record, reset state to 0 to start
             # looking for next record
             state = 0
@@ -237,8 +238,6 @@ def file_read(buf):
     global counter
     
     savebuf = ''
-    print "file_update()"
-
     myeof = False
 
     # scan for sync characters
