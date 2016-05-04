@@ -38,6 +38,10 @@ if args.flight:
     while True:
         try:
             (id, index) = parser.file_read(full)
+            if id == parser.GPS_PACKET_V2:
+                print "gps packet"
+            if id == parser.FILTER_PACKET_V2:
+                print "filter packet"
         except:
             print "end of file"
             break

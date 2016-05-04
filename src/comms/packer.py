@@ -696,6 +696,8 @@ def unpack_ap_status_v3(buf):
     return index
 
 def pack_system_health_v4(index):
+    dekamah = int(apm2_node.getFloat("extern_current_mah")) / 10
+    if dekamah > 65535: dekamah = 65535 # prevent overflowing the structure
     buf = struct.pack(system_health_v4_fmt,
                       index,
                       imu_timestamp,
@@ -704,7 +706,7 @@ def pack_system_health_v4(index):
                       int(apm2_node.getFloat("extern_volt") * 1000),
                       int(apm2_node.getFloat("extern_cell_volt") * 1000),
                       int(apm2_node.getFloat("extern_amps") * 1000),
-                      int(apm2_node.getFloat("extern_current_mah")))
+                      dekamah)
     return buf
 
 def unpack_system_health_v2(buf):
@@ -743,7 +745,7 @@ def unpack_system_health_v4(buf):
     apm2_node.setFloat("extern_volt", result[4] / 1000.0)
     apm2_node.setFloat("extern_cell_volt", result[5] / 1000.0)
     apm2_node.setFloat("extern_amps", result[6] / 1000.0)
-    apm2_node.setFloat("extern_current_mah", result[7])
+    apm2_node.setFloat("extern_current_mah", result[7] * 10.0)
 
     return index
 

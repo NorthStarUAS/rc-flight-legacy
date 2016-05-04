@@ -219,7 +219,7 @@ def serial_read(ser, f):
             cksum_hi = ord(input[0])
             # print " cksum_hi:", cksum_hi
             if cksum_A == cksum_lo and cksum_B == cksum_hi and pkt_len > 0:
-                print "checksum passes:", pkt_id, "len:", pkt_len
+                # print "checksum passes:", pkt_id, "len:", pkt_len
                 parse_msg(pkt_id, payload)
                 log_msg(f, pkt_id, pkt_len, payload, cksum_lo, cksum_hi)
                 msg_id = pkt_id
@@ -248,7 +248,7 @@ def file_read(buf):
         sync1 = ord(buf[counter]); counter += 1
         print "scanning for start of message:", counter, sync0, sync1
 
-    print "found start of message ..."
+    #print "found start of message ..."
 
     # read message id and size
     id = ord(buf[counter]); counter += 1
@@ -266,7 +266,7 @@ def file_read(buf):
     cksum1 = ord(buf[counter]); counter += 1
     
     if validate_cksum(id, size, savebuf, cksum0, cksum1):
-        print "check sum passed"
+        # print "check sum passed"
         index = parse_msg(id, savebuf)
         return (id, index)
 
