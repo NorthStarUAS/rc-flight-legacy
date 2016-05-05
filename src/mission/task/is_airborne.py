@@ -1,3 +1,6 @@
+# determine if aircraft if airborne or on the ground and time the
+# airborne seconds
+
 from props import root, getNode
 
 import comms.events
@@ -9,6 +12,7 @@ class IsAirborne(Task):
         self.pos_node = getNode("/position", True)
         self.vel_node = getNode("/velocity", True)
         self.task_node = getNode("/task", True)
+        self.status_node = getNode("/status", True)
         self.is_airborne = False
         self.off_alt_agl_ft = 0.0
         self.off_airspeed_kt = 0.0
@@ -20,7 +24,9 @@ class IsAirborne(Task):
         self.off_airspeed_kt = config_node.getFloat("off_airspeed_kt")
         self.on_alt_agl_ft = config_node.getFloat("on_alt_agl_ft")
         self.on_airspeed_kt = config_node.getFloat("on_airspeed_kt")
-
+        self.flight_accum = 0.0
+        self.flight_start = 0.0
+        
     def activate(self):
         self.active = True
         self.task_node.setBool("is_airborne", False)
@@ -43,6 +49,7 @@ class IsAirborne(Task):
 	    if cond:
 	        self.is_airborne = True
 	        self.task_node.setBool("is_airborne", True)
+                self.flight_start = status_node.getFloat('frame_time')
                 comms.events.log("mission", "airborne")
         else:
             # if all conditions under their threshold, we are on the ground
@@ -56,8 +63,19 @@ class IsAirborne(Task):
             if cond:
                 self.is_airborne = False
                 self.task_node.setBool("is_airborne", False)
+                # on ground, accumulate the elapsed airborne time
+                elapsed = status_node.getFloat('frame_time') - self.flight_start
+                self.flight_accum += elapsed
                 comms.events.log("mission", "on ground")
 
+        # compute total time aloft
+        if self.is_airborne:
+            flight_time = self.flight_accum + \
+                          status_node.getFloat('frame_time') - self.flight_start
+        else:
+            flight_time = self.flight_accum
+        self.task_node.setFloat('flight_timer', flight_time)
+        
     def is_complete(self):
         return False
     
