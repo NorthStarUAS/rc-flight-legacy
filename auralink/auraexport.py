@@ -119,6 +119,16 @@ if args.flight:
 else:
     print 'A flight log file must be provided'
 
+# last recorded time stamp
+filter_node = getNode('/filters/filter', True)
+total_time = filter_node.getFloat('timestamp')
+print "Flight log seconds: %.2f" % total_time
+
 for key in sorted(data):
-    print key, ':', len(data[key])
+    size = len(data[key])
+    rate = size / total_time
+    print '%-10s %5.1f/sec (%6d records)' % (key, rate, size)
+    f = open(key + '.txt', 'w')
+    for line in data[key]:
+        f.write(line + '\n')
 

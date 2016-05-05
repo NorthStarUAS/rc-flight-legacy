@@ -74,7 +74,7 @@ ap_status_v1_fmt = "<dhhHhhhhddHHB"
 ap_status_v1_size = struct.calcsize(ap_status_v1_fmt)
 ap_status_v2_fmt = "<dhhHhhhhHddHHB"
 ap_status_v2_size = struct.calcsize(ap_status_v2_fmt)
-ap_status_v3_fmt = "<BdhhHhhhhHddHHB"
+ap_status_v3_fmt = "<BdhhHhhhhHHddHHB"
 ap_status_v3_size = struct.calcsize(ap_status_v2_fmt)
 
 apm2_node = getNode("/sensors/APM2", True)
@@ -697,6 +697,7 @@ def pack_ap_status_v3(index):
                       int(targets_node.getFloat("pitch_deg") * 10),
                       int(targets_node.getFloat("the_dot") * 1000),
                       int(targets_node.getFloat("airspeed_kt") * 10),
+                      int(status_node.getFloat("flight_timer")),
                       route_node.getInt("target_waypoint_idx"),
                       wp_lon,
                       wp_lat,
@@ -765,10 +766,10 @@ def unpack_ap_status_v3(buf):
 
     index = result[0]
 
-    wp_lon = result[10]
-    wp_lat = result[11]
-    wp_index = result[12]
-    route_size = result[13]
+    wp_lon = result[11]
+    wp_lat = result[12]
+    wp_index = result[13]
+    route_size = result[14]
     
     targets_node.setFloat("timestamp", result[1])
     targets_node.setFloat("groundtrack_deg", result[2] / 10.0)
@@ -778,7 +779,8 @@ def unpack_ap_status_v3(buf):
     targets_node.setFloat("pitch_deg", result[6] / 10.0)
     targets_node.setFloat("theta_dot", result[7] / 1000.0)
     targets_node.setFloat("airspeed_kt", result[8] / 10.0)
-    route_node.setInt("target_waypoint_idx", result[9])
+    status_node.setFloat("flight_timer", result[9])
+    route_node.setInt("target_waypoint_idx", result[10])
     if wp_index < route_size:
         wp_node = active_node.getChild('wpt[%d]' % wp_index, True)
         wp_node.setFloat("longitude_deg", wp_lon)
@@ -790,7 +792,7 @@ def unpack_ap_status_v3(buf):
         home_node.setFloat("longitude_deg", wp_lon)
         home_node.setFloat("latitude_deg", wp_lat)
     active_node.setInt("route_size", route_size)
-    remote_link_node.setInt("sequence_num", result[14])
+    remote_link_node.setInt("sequence_num", result[15])
 
     return index
 
