@@ -114,6 +114,20 @@ def pack_gps_v2(index):
                       0)
     return buf
 
+def pack_gps_text(index, delim=','):
+    gps_node = getNode('/sensors/gps[%d]' % index, True)
+    data = [ '%.3f' % gps_node.getFloat('timestamp'),
+	     '%.10f' % gps_node.getFloat('latitude_deg'),
+             '%.10f' % gps_node.getFloat('longitude_deg'),
+             '%.2f' % gps_node.getFloat('altitude_m'),
+	     '%.4f' % gps_node.getFloat('vn_ms'),
+             '%.4f' % gps_node.getFloat('ve_ms'),
+             '%.4f' % gps_node.getFloat('vd_ms'),
+	     '%.3f' % gps_node.getFloat('unix_time_sec'),
+             '%d' % gps_node.getInt('satellites'),
+             '%d' % gps_node.getInt('status') ]
+    return delim.join(data)
+    
 def unpack_gps_v1(buf):
     index = 0
     if index >= len(gps_nodes):
@@ -185,6 +199,22 @@ def pack_imu_v3(index):
                       0)
     return buf
 
+def pack_imu_text(index, delim=','):
+    imu_node = getNode('/sensors/imu[%d]' % index, True)
+    data = [ '%.3f' % imu_node.getFloat('timestamp'),
+	     '%.4f' % imu_node.getFloat('p_rad_sec'),
+	     '%.4f' % imu_node.getFloat('q_rad_sec'),
+	     '%.4f' % imu_node.getFloat('r_rad_sec'),
+	     '%.4f' % imu_node.getFloat('ax_mps_sec'),
+	     '%.4f' % imu_node.getFloat('ay_mps_sec'),
+	     '%.4f' % imu_node.getFloat('az_mps_sec'),
+	     '%.3f' % imu_node.getFloat('hx'),
+             '%.3f' % imu_node.getFloat('hy'),
+             '%.3f' % imu_node.getFloat('hz'),
+	     '%.1f' % imu_node.getFloat('temp_C'),
+             '%d' % imu_node.getInt('status') ]
+    return delim.join(data)
+    
 def unpack_imu_v1(buf):
     index = 0
     if index >= len(imu_nodes):
@@ -280,6 +310,21 @@ def pack_airdata_v5(index):
                       int(wind_node.getFloat("pitot_scale_factor") * 100),
                       node.getInt("status"))
     return buf
+
+def pack_airdata_text(index, delim=','):
+    airdata_node = getNode('/sensors/airdata[%d]' % index, True)
+    data = [ '%.3f' % airdata_node.getFloat('timestamp'),
+	     '%.1f' % airdata_node.getFloat('pressure_mbar'),
+             '%.1f' % airdata_node.getFloat('temp_degC'),
+	     '%.1f' % vel_node.getFloat('airspeed_smoothed_kt'),
+	     '%.2f' % pos_pressure_node.getFloat('altitude_smoothed_m'),
+             '%.2f' % pos_combined_node.getFloat('altitude_true_m'),
+	     '%.2f' % (vel_node.getFloat('pressure_vertical_speed_fps')*60.0),
+	     '%.1f' % wind_node.getFloat('wind_dir_deg'),
+	     '%.1f' % wind_node.getFloat('wind_speed_kt'),
+             '%.2f' % wind_node.getFloat('pitot_scale_factor'),
+             '%d' % airdata_node.getInt('status') ]
+    return delim.join(data)
 
 def unpack_airdata_v3(buf):
     index = 0
@@ -377,6 +422,21 @@ def pack_filter_v2(index):
                       0)
     return buf
 
+def pack_filter_text(index, delim=','):
+    filter_node = getNode('/filters/filter[%d]' % index, True)
+    data = [ '%.3f' % filter_node.getFloat('timestamp'),
+	     '%.10f' % filter_node.getFloat('latitude_deg'),
+             '%.10f' % filter_node.getFloat('longitude_deg'),
+             '%.2f' % filter_node.getFloat('altitude_m'),
+	     '%.4f' % filter_node.getFloat('vn_ms'),
+             '%.4f' % filter_node.getFloat('ve_ms'),
+             '%.4f' % filter_node.getFloat('vd_ms'),
+	     '%.2f' % filter_node.getFloat('roll_deg'),
+             '%.2f' % filter_node.getFloat('pitch_deg'),
+             '%.2f' % filter_node.getFloat('heading_deg'),
+	     '%d' % filter_node.getInt('status') ]
+    return delim.join(data)
+
 def unpack_filter_v1(buf):
     index = 0
     if index >= len(filter_nodes):
@@ -450,6 +510,20 @@ def pack_act_v2(index):
                       0)
     return buf
 
+def pack_act_text(index, delim=','):
+    act_node = getNode('/actuators/actuator[%d]' % index, True)
+    data = [ '%.3f' % act_node.getFloat('timestamp'),
+	     '%.3f' % act_node.getFloatEnum('channel', 0),
+	     '%.3f' % act_node.getFloatEnum('channel', 1),
+	     '%.3f' % act_node.getFloatEnum('channel', 2),
+	     '%.3f' % act_node.getFloatEnum('channel', 3),
+	     '%.3f' % act_node.getFloatEnum('channel', 4),
+	     '%.3f' % act_node.getFloatEnum('channel', 5),
+	     '%.3f' % act_node.getFloatEnum('channel', 6),
+	     '%.3f' % act_node.getFloatEnum('channel', 7),
+	     '%d' % act_node.getInt('status') ]
+    return delim.join(data)
+
 def unpack_act_v1(buf):
     index = 0
     if index >= len(act_nodes):
@@ -522,6 +596,20 @@ def pack_pilot_v2(index):
                       int(node.getFloatEnum("channel", 7) * 30000),
                       0)
     return buf
+
+def pack_pilot_text(index, delim=','):
+    pilot_node = getNode('/sensors/pilot_input[%d]' % index, True)
+    data = [ '%.3f' % pilot_node.getFloat('timestamp'),
+	     '%.3f' % pilot_node.getFloat('aileron'),
+	     '%.3f' % pilot_node.getFloat('elevator'),
+	     '%.3f' % pilot_node.getFloat('throttle'),
+	     '%.3f' % pilot_node.getFloat('rudder'),
+	     '%.3f' % pilot_node.getFloat('manual'),
+	     '%.3f' % pilot_node.getFloatEnum('channel', 5),
+	     '%.3f' % pilot_node.getFloatEnum('channel', 6),
+	     '%.3f' % pilot_node.getFloatEnum('channel', 7),
+	     '%d' % pilot_node.getInt('status') ]
+    return delim.join(data)
 
 def unpack_pilot_v1(buf):
     index = 0
@@ -622,6 +710,17 @@ def pack_ap_status_v3(index):
 
     return buf
 
+def pack_ap_status_text(index, delim=','):
+    data = [ '%.3f' % targets_node.getFloat('timestamp'),
+	     '%.2f' % targets_node.getFloat('groundtrack_deg'),
+             '%.2f' % targets_node.getFloat('roll_deg'),
+	     '%.2f' % targets_node.getFloat('altitude_msl_ft'),
+             '%.2f' % targets_node.getFloat('climb_rate_fps'),
+	     '%.2f' % targets_node.getFloat('pitch_deg'),
+             '%.2f' % targets_node.getFloat('theta_dot'),
+	     '%.1f' % targets_node.getFloat('airspeed_kt') ]
+    return delim.join(data)
+
 def unpack_ap_status_v1(buf):
     result = struct.unpack(ap_status_v1_fmt, buf)
 
@@ -709,6 +808,16 @@ def pack_system_health_v4(index):
                       dekamah)
     return buf
 
+def pack_system_health_text(index, delim=','):
+    data = [ '%.3f' % status_node.getFloat('frame_timestamp'),
+	     '%.2f' % status_node.getFloat('system_load_avg'),
+             '%.2f' % apm2_node.getFloat('board_vcc'),
+	     '%.2f' % apm2_node.getFloat('extern_volt'),
+             '%.2f' % apm2_node.getFloat('extern_cell_volt'),
+	     '%.2f' % apm2_node.getFloat('extern_amps'),
+             '%.0f' % apm2_node.getFloat('extern_current_mah') ]
+    return delim.join(data)
+
 def unpack_system_health_v2(buf):
     result = struct.unpack(system_health_v2_fmt, buf)
 
@@ -755,6 +864,11 @@ def pack_payload_v2(index):
                       status_node.getFloat('frame_time'),
                       payload_node.getFloat("trigger_num"))
     return buf
+
+def pack_payload_text(index, delim=','):
+    data = [ '%.3f' % status_node.getFloat('frame_timestamp'),
+	     '%d' % payload_node.getInt('trigger_num') ]
+    return delim.join(data)
 
 def unpack_payload_v1(buf):
     result = struct.unpack(payload_v1_fmt, buf)

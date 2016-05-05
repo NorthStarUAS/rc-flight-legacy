@@ -253,7 +253,7 @@ def file_read(buf):
     # read message id and size
     id = ord(buf[counter]); counter += 1
     size = ord(buf[counter]); counter += 1
-    print "message =", id, "size =", size
+    # print "message =", id, "size =", size
 
     # load message
     try:
