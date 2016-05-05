@@ -15,6 +15,9 @@ press_node = getNode('/position/pressure', True)
 combined_node = getNode('/position/combined', True)
 wind_node = getNode('/filters/wind', True)
 targets_node = getNode('/autopilot/targets', True)
+status_node = getNode('/status', True)
+apm2_node = getNode("/sensors/APM2", True)
+payload_node = getNode("/payload", True)
 
 def generate_record(id, index):
     if id == parser.GPS_PACKET_V1 or id == parser.GPS_PACKET_V2:
@@ -114,6 +117,21 @@ def generate_record(id, index):
 		 "%.2f" % targets_node.getFloat('pitch_deg'),
                  "%.2f" % targets_node.getFloat('theta_dot'),
 		 "%.1f" % targets_node.getFloat('airspeed_kt') ]
+        print ','.join(data)
+        return ','.join(data)
+    elif id == parser.SYSTEM_HEALTH_PACKET_V2 or id == parser.SYSTEM_HEALTH_PACKET_V3 or id == parser.SYSTEM_HEALTH_PACKET_V4:
+        data = [ "%.3f" % status_node.getFloat('frame_timestamp'),
+	         "%.2f" % status_node.getFloat('system_load_avg'),
+                 "%.2f" % apm2_node.getFloat('board_vcc'),
+		 "%.2f" % apm2_node.getFloat('extern_volt'),
+                 "%.2f" % apm2_node.getFloat('extern_cell_volt'),
+		 "%.2f" % apm2_node.getFloat('extern_amps'),
+                 "%.0f" % apm2_node.getFloat('extern_current_mah') ]
+        print ','.join(data)
+        return ','.join(data)
+    elif id == parser.PAYLOAD_PACKET_V1 or id == parser.PAYLOAD_PACKET_V2:
+        data = [ "%.3f" % status_node.getFloat('frame_timestamp'),
+	         "%d" % payload_node.getInt('trigger_num') ]
         print ','.join(data)
         return ','.join(data)
 

@@ -700,7 +700,7 @@ def pack_system_health_v4(index):
     if dekamah > 65535: dekamah = 65535 # prevent overflowing the structure
     buf = struct.pack(system_health_v4_fmt,
                       index,
-                      imu_timestamp,
+                      status_node.getFloat('frame_time'),
                       int(status_node.getFloat("system_load_avg") * 100),
                       int(apm2_node.getFloat("board_vcc") * 1000),
                       int(apm2_node.getFloat("extern_volt") * 1000),
@@ -752,7 +752,7 @@ def unpack_system_health_v4(buf):
 def pack_payload_v2(index):
     buf = struct.pack(payload_v2_fmt,
                       index,
-                      imu_timestamp,
+                      status_node.getFloat('frame_time'),
                       payload_node.getFloat("trigger_num"))
     return buf
 
