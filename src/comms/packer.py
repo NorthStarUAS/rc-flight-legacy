@@ -75,7 +75,7 @@ ap_status_v1_size = struct.calcsize(ap_status_v1_fmt)
 ap_status_v2_fmt = "<dhhHhhhhHddHHB"
 ap_status_v2_size = struct.calcsize(ap_status_v2_fmt)
 ap_status_v3_fmt = "<BdhhHhhhhHHddHHB"
-ap_status_v3_size = struct.calcsize(ap_status_v2_fmt)
+ap_status_v3_size = struct.calcsize(ap_status_v3_fmt)
 
 apm2_node = getNode("/sensors/APM2", True)
 system_health_v2_fmt = "<dHHHHH"
