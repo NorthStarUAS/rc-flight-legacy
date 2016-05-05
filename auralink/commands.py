@@ -50,7 +50,7 @@ def update(serial):
     if sequence != cmd_recv_index:
 	last_received_time = time.time()
 	cmd_recv_index = sequence
-        print "received msg id =", cmd_recv_index
+        print "received msg seq:", cmd_recv_index
 
     # if current command has been received, advance to next command
     if cmd_recv_index == cmd_send_index:

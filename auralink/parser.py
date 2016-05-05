@@ -127,12 +127,12 @@ payload = ''
 # in the output, although with newest code and newest hardware with a
 # dedicated uart for messages, this is actually deprecated.
 ascii_message = ''
-def glean_ascii_msgs(c):
+def glean_ascii_msgs(c, display=False):
     global ascii_message
     if c in string.printable:
         ascii_message += str(c)
     elif len(ascii_message) > 4:
-        print ascii_message
+        if display: print ascii_message
         ascii_message = ''
 
 def serial_read(ser, f):
@@ -157,7 +157,7 @@ def serial_read(ser, f):
         input = ser.read(1)
         while len(input) and ord(input[0]) != START_OF_MSG0:
             # print " state0 val:", ord(input[0])
-            glean_ascii_msgs(input[0])
+            glean_ascii_msgs(input[0], display=False)
             input = ser.read(1)
             cur_time = time.time()
             if cur_time > start_time + 0.1:
