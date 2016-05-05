@@ -811,7 +811,8 @@ def pack_system_health_v4(index):
     return buf
 
 def pack_system_health_text(index, delim=','):
-    data = [ '%.3f' % status_node.getFloat('frame_timestamp'),
+    print status_node.getFloat('frame_time')
+    data = [ '%.3f' % status_node.getFloat('frame_time'),
 	     '%.2f' % status_node.getFloat('system_load_avg'),
              '%.2f' % apm2_node.getFloat('board_vcc'),
 	     '%.2f' % apm2_node.getFloat('extern_volt'),
@@ -835,7 +836,7 @@ def unpack_system_health_v2(buf):
 def unpack_system_health_v3(buf):
     result = struct.unpack(system_health_v3_fmt, buf)
 
-    # imu_node.setFloat("timestamp", result[0]) # fixme? where to write this value?
+    status_node.setFloat("frame_time", result[0])
     status_node.setFloat("system_load_avg", result[1] / 100.0)
     apm2_node.setFloat("board_vcc", result[2] / 1000.0)
     apm2_node.setFloat("extern_volt", result[3] / 1000.0)
@@ -850,7 +851,7 @@ def unpack_system_health_v4(buf):
 
     index = result[0]
     
-    # imu_node.setFloat("timestamp", result[1]) # fixme? where to write this value?
+    status_node.setFloat("frame_time", result[0])
     status_node.setFloat("system_load_avg", result[2] / 100.0)
     apm2_node.setFloat("board_vcc", result[3] / 1000.0)
     apm2_node.setFloat("extern_volt", result[4] / 1000.0)
@@ -868,7 +869,7 @@ def pack_payload_v2(index):
     return buf
 
 def pack_payload_text(index, delim=','):
-    data = [ '%.3f' % status_node.getFloat('frame_timestamp'),
+    data = [ '%.3f' % payload_node.getFloat('timestamp'),
 	     '%d' % payload_node.getInt('trigger_num') ]
     return delim.join(data)
 
