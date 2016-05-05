@@ -63,6 +63,7 @@ pilot_v1_size = struct.calcsize(pilot_v1_fmt)
 pilot_v2_fmt = "<BdhhHhhhhhB"
 pilot_v2_size = struct.calcsize(pilot_v2_fmt)
 
+status_node = getNode("/status", True)
 targets_node = getNode("/autopilot/targets", True)
 route_node = getNode("/task/route", True)
 active_node = getNode("/task/route/active", True)
@@ -76,7 +77,6 @@ ap_status_v2_size = struct.calcsize(ap_status_v2_fmt)
 ap_status_v3_fmt = "<BdhhHhhhhHddHHB"
 ap_status_v3_size = struct.calcsize(ap_status_v2_fmt)
 
-status_node = getNode("/status", True)
 apm2_node = getNode("/sensors/APM2", True)
 system_health_v2_fmt = "<dHHHHH"
 system_health_v2_size = struct.calcsize(system_health_v2_fmt)
@@ -601,7 +601,7 @@ def pack_ap_status_v3(index):
 
     buf = struct.pack(ap_status_v3_fmt,
                       index,
-                      imu_timestamp,
+                      status_node.getFloat('frame_time'),
                       int(targets_node.getFloat("groundtrack_deg") * 10),
                       int(targets_node.getFloat("roll_deg") * 10),
                       int(target_msl_ft),
@@ -625,7 +625,7 @@ def pack_ap_status_v3(index):
 def unpack_ap_status_v1(buf):
     result = struct.unpack(ap_status_v1_fmt, buf)
 
-    #ap_status_node.setFloat("timestamp", result[0]) # FIXME (where should this go?)
+    targets_node.setFloat("timestamp", result[0])
     targets_node.setFloat("groundtrack_deg", result[1] / 10.0)
     targets_node.setFloat("roll_deg", result[2] / 10.0)
     targets_node.setFloat("altitude_msl_ft", result[3])
@@ -644,7 +644,7 @@ def unpack_ap_status_v1(buf):
 def unpack_ap_status_v2(buf):
     result = struct.unpack(ap_status_v2_fmt, buf)
 
-    #ap_status_node.setFloat("timestamp", result[0]) #FIXME? where should this go
+    targets_node.setFloat("timestamp", result[0])
     targets_node.setFloat("groundtrack_deg", result[1] / 10.0) # FIXME?
     targets_node.setFloat("roll_deg", result[2] / 10.0)
     targets_node.setFloat("altitude_msl_ft", result[3])
@@ -666,13 +666,13 @@ def unpack_ap_status_v3(buf):
 
     index = result[0]
 
-    #ap_status_node.setFloat("timestamp", result[1]) #FIXME? where should this go
     wp_lon = result[10]
     wp_lat = result[11]
     wp_index = result[12]
     route_size = result[13]
     
-    targets_node.setFloat("groundtrack_deg", result[2] / 10.0) # FIXME?
+    targets_node.setFloat("timestamp", result[1])
+    targets_node.setFloat("groundtrack_deg", result[2] / 10.0)
     targets_node.setFloat("roll_deg", result[3] / 10.0)
     targets_node.setFloat("altitude_msl_ft", result[4])
     targets_node.setFloat("climb_rate_fps", result[5] / 10.0)
