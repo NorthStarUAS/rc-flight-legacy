@@ -14,6 +14,7 @@ vel_node = getNode('/velocity', True)
 press_node = getNode('/position/pressure', True)
 combined_node = getNode('/position/combined', True)
 wind_node = getNode('/filters/wind', True)
+targets_node = getNode('/autopilot/targets', True)
 
 def generate_record(id, index):
     if id == parser.GPS_PACKET_V1 or id == parser.GPS_PACKET_V2:
@@ -63,7 +64,6 @@ def generate_record(id, index):
         return ','.join(data)
     elif id == parser.ACTUATOR_PACKET_V1 or id == parser.ACTUATOR_PACKET_V2:
         filter_node = getNode('/filters/filter[%d]' % index, True)
-        record = "%.3f\t%.10f\t%.10f\t%.2f\t%.4f\t%.4f\t%.4f\t%.2f\t%.2f\t%.2f\t%d"
         data = [ "%.3f" % filter_node.getFloat('timestamp'),
 		 "%.10f" % filter_node.getFloat('latitude_deg'),
                  "%.10f" % filter_node.getFloat('longitude_deg'),
@@ -79,7 +79,6 @@ def generate_record(id, index):
         return ','.join(data)
     elif id == parser.FILTER_PACKET_V1 or id == parser.FILTER_PACKET_V2:
         act_node = getNode('/actuators/actuator[%d]' % index, True)
-        record = "%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%d"
         data = [ "%.3f" % act_node.getFloat('timestamp'),
 		 "%.3f" % act_node.getFloatEnum('channel', 0),
 		 "%.3f" % act_node.getFloatEnum('channel', 1),
@@ -94,7 +93,6 @@ def generate_record(id, index):
         return ','.join(data)
     elif id == parser.PILOT_INPUT_PACKET_V1 or id == parser.PILOT_INPUT_PACKET_V2:
         pilot_node = getNode('/sensors/pilot_input[%d]' % index, True)
-        record = "%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%d"
         data = [ "%.3f" % pilot_node.getFloat('timestamp'),
 		 "%.3f" % pilot_node.getFloat('aileron'),
 		 "%.3f" % pilot_node.getFloat('elevator'),
@@ -107,7 +105,20 @@ def generate_record(id, index):
 		 "%d" % pilot_node.getInt('status') ]
         print ','.join(data)
         return ','.join(data)
-    
+    elif id == parser.AP_STATUS_PACKET_V1 or id == parser.AP_STATUS_PACKET_V2 or id == parser.AP_STATUS_PACKET_V3:
+        data = [ "%.3f" % targets_node.getFloat('timestamp'),
+		 "%.2f" % targets_node.getFloat('groundtrack_deg'),
+                 "%.2f" % targets_node.getFloat('roll_deg'),
+		 "%.2f" % targets_node.getFloat('altitude_msl_ft'),
+                 "%.2f" % targets_node.getFloat('climb_rate_fps'),
+		 "%.2f" % targets_node.getFloat('pitch_deg'),
+                 "%.2f" % targets_node.getFloat('theta_dot'),
+		 "%.1f" % targets_node.getFloat('airspeed_kt') ]
+        print ','.join(data)
+        return ','.join(data)
+
+    # remote_link_node.setInt("sequence_num", result[14]) # include in system health....
+   
 argparser = argparse.ArgumentParser(description='aura export')
 argparser.add_argument('--flight', help='load specified flight log')
 argparser.add_argument('--skip-seconds', help='seconds to skip when processing flight log')
