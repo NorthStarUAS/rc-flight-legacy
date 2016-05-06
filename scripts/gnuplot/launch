@@ -1,5 +1,7 @@
 # plot launch parameters
 
+set datafile separator ","
+
 set xlabel "Launch Parameters"
 
 set ytics nomirror
@@ -7,7 +9,7 @@ set ylabel "Speed (kts)"
 set y2label "Pitch"
 set y2tics
 
-plot "air.txt" using 1:4 with lines title "Air Speed (kts)", \
-     "gps.txt" using 1:(sqrt($5*$5+$6*$6)*1.9438444924406046432) with lines title "GPS Speed (kts)", \
-     "filter.txt" using 1:(sqrt($5*$5+$6*$6)*1.9438444924406046432) with lines title "Filter Speed (kts)", \
-     "filter.txt" using 1:9 with lines axis x1y2 title "Actual Pitch (deg)"
+plot "air-0.txt" using 1:4 with lines title "Air Speed (kts)", \
+     "gps-0.txt" using 1:(sqrt($5*$5+$6*$6)*1.9438444924406046432) with lines title "GPS Speed (kts)", \
+     "filter-0.txt" using 1:(sqrt($5*$5+$6*$6)*1.9438444924406046432) with lines title "Filter Speed (kts)", \
+     "filter-0.txt" using 1:9 with lines axis x1y2 title "Actual Pitch (deg)"

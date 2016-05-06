@@ -1,6 +1,9 @@
 # plot attitude angles
-plot "filter.txt" using 1:8 with lines title "Roll (deg)", \
-     "filter.txt" using 1:9 with lines title "Pitch (deg)", \
-     "imu.txt" using 1:2 with lines title "roll rate", \
-     "imu.txt" using 1:3 with lines title "pitch rate", \
-     "imu.txt" using 1:4 with lines title "yaw rate"
+
+set datafile separator ","
+
+plot "filter-0.txt" using 1:8 with lines title "Roll (deg)", \
+     "filter-0.txt" using 1:9 with lines title "Pitch (deg)", \
+     "imu-0.txt" using 1:($2*57.2957795) with lines title "roll rate (deg/sec)", \
+     "imu-0.txt" using 1:($3*57.2957795) with lines title "pitch rate (deg/sec)", \
+     "imu-0.txt" using 1:($4*57.2957795) with lines title "yaw rate (deg/sec)"
