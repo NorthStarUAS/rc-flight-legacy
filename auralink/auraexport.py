@@ -14,6 +14,8 @@ import commands
 import current
 import parser
 
+m2nm   = 0.0005399568034557235 # meters to nautical miles
+
 def logical_category(id):
     if id == parser.GPS_PACKET_V1 or id == parser.GPS_PACKET_V2:
         return 'gps'
@@ -106,6 +108,7 @@ if args.flight:
     while True:
         try:
             (id, index) = parser.file_read(full)
+            current.compute_derived_data()
             category = logical_category(id)
             record = generate_record(category, index)
             key = '%s-%d' % (category, index)
@@ -121,8 +124,9 @@ else:
 
 # last recorded time stamp
 filter_node = getNode('/filters/filter', True)
+status_node = getNode('/status', True)
 total_time = filter_node.getFloat('timestamp')
-print "Flight log seconds: %.2f" % total_time
+apm2_node = getNode("/sensors/APM2", True)
 
 for key in sorted(data):
     size = len(data[key])
@@ -131,4 +135,12 @@ for key in sorted(data):
     f = open(key + '.txt', 'w')
     for line in data[key]:
         f.write(line + '\n')
+
+print
+print "Total log time: %.2f secs" % total_time
+print "On board flight timer: %.1f min" % (status_node.getFloat('flight_timer') / 60.0)
+print "Flight timer: %.1f min" % (status_node.getFloat('local_flight_timer') / 60.0)
+print "Autopilot time: %.1f min" % (status_node.getFloat('local_autopilot_timer') / 60.0)
+print "Distance flown: %.2fnm (%.2fkm)" % (status_node.getFloat('flight_odometer')*m2nm, status_node.getFloat('flight_odometer')*0.001)
+print "Battery Usage: %.0f mah" % apm2_node.getInt("extern_current_mah")
 

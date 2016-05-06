@@ -628,7 +628,7 @@ def unpack_pilot_v1(buf):
     node.setFloat("elevator", result[2] / 30000.0)
     node.setFloat("throttle", result[3] / 60000.0)
     node.setFloat("rudder", result[4] / 30000.0)
-    node.setBool("manual", result[5])
+    node.setBool("manual", result[5] / 30000.0 > 0.5)
     node.setFloatEnum("channel", 5, result[6] / 30000.0)
     node.setFloatEnum("channel", 6, result[7] / 30000.0)
     node.setFloatEnum("channel", 7, result[8] / 30000.0)
@@ -878,7 +878,7 @@ def unpack_payload_v1(buf):
     payload_node.setFloat("timestamp", result[0])
     payload_node.setInt("trigger_num", result[1])
 
-    return result
+    return 0
     
 def unpack_payload_v2(buf):
     result = struct.unpack(payload_v2_fmt, buf)
