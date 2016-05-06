@@ -811,7 +811,6 @@ def pack_system_health_v4(index):
     return buf
 
 def pack_system_health_text(index, delim=','):
-    print status_node.getFloat('frame_time')
     data = [ '%.3f' % status_node.getFloat('frame_time'),
 	     '%.2f' % status_node.getFloat('system_load_avg'),
              '%.2f' % apm2_node.getFloat('board_vcc'),
@@ -851,7 +850,7 @@ def unpack_system_health_v4(buf):
 
     index = result[0]
     
-    status_node.setFloat("frame_time", result[0])
+    status_node.setFloat("frame_time", result[1])
     status_node.setFloat("system_load_avg", result[2] / 100.0)
     apm2_node.setFloat("board_vcc", result[3] / 1000.0)
     apm2_node.setFloat("extern_volt", result[4] / 1000.0)
