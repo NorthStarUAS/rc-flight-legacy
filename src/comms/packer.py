@@ -60,7 +60,7 @@ act_v2_size = struct.calcsize(act_v2_fmt)
 pilot_nodes = []
 pilot_v1_fmt = "<dhhHhhhhhB"
 pilot_v1_size = struct.calcsize(pilot_v1_fmt)
-pilot_v2_fmt = "<BdhhHhhhhhB"
+pilot_v2_fmt = "<BdhhHhBhhhB"
 pilot_v2_size = struct.calcsize(pilot_v2_fmt)
 
 status_node = getNode("/status", True)
@@ -590,7 +590,7 @@ def pack_pilot_v2(index):
                       int(node.getFloat("elevator") * 30000),
                       int(node.getFloat("throttle") * 60000),
                       int(node.getFloat("rudder") * 30000),
-                      int(node.getFloat("manual") * 30000),
+                      node.getBool("manual"),
                       int(node.getFloatEnum("channel", 5) * 30000),
                       int(node.getFloatEnum("channel", 6) * 30000),
                       int(node.getFloatEnum("channel", 7) * 30000),
@@ -604,7 +604,7 @@ def pack_pilot_text(index, delim=','):
 	     '%.3f' % pilot_node.getFloat('elevator'),
 	     '%.3f' % pilot_node.getFloat('throttle'),
 	     '%.3f' % pilot_node.getFloat('rudder'),
-	     '%.3f' % pilot_node.getFloat('manual'),
+	     '%d' % pilot_node.getBool('manual'),
 	     '%.3f' % pilot_node.getFloatEnum('channel', 5),
 	     '%.3f' % pilot_node.getFloatEnum('channel', 6),
 	     '%.3f' % pilot_node.getFloatEnum('channel', 7),
@@ -628,7 +628,7 @@ def unpack_pilot_v1(buf):
     node.setFloat("elevator", result[2] / 30000.0)
     node.setFloat("throttle", result[3] / 60000.0)
     node.setFloat("rudder", result[4] / 30000.0)
-    node.setFloat("manual", result[5] / 30000.0)
+    node.setBool("manual", result[5])
     node.setFloatEnum("channel", 5, result[6] / 30000.0)
     node.setFloatEnum("channel", 6, result[7] / 30000.0)
     node.setFloatEnum("channel", 7, result[8] / 30000.0)
@@ -653,7 +653,7 @@ def unpack_pilot_v2(buf):
     node.setFloat("elevator", result[3] / 30000.0)
     node.setFloat("throttle", result[4] / 60000.0)
     node.setFloat("rudder", result[5] / 30000.0)
-    node.setFloat("manual", result[6] / 30000.0)
+    node.setBool("manual", result[6])
     node.setFloatEnum("channel", 5, result[7] / 30000.0)
     node.setFloatEnum("channel", 6, result[8] / 30000.0)
     node.setFloatEnum("channel", 7, result[9] / 30000.0)
