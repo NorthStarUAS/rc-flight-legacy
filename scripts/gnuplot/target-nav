@@ -1,11 +1,10 @@
 # plot target heading vs actual heaing vs roll angle versus actual roll angle
 
-#set ytics nomirror
-set ylabel "Angle"
-#set y2label "Aileron"
-#set y2tics
+set datafile separator ","
 
-plot "ap.txt" using 1:2 with lines title "Target Heading (deg)", \
-     "filter.txt" using 1:10 with lines title "Actual Heading (deg)", \
-     "ap.txt" using 1:3 with lines title "Target Roll (deg)", \
-     "filter.txt" using 1:8 with lines title "Actual Roll (deg)"
+set ylabel "Angle"
+
+plot "ap-0.txt" using 1:2 with lines title "Target Heading (deg)", \
+     "filter-0.txt" using 1:10 with lines title "Actual Heading (deg)", \
+     "ap-0.txt" using 1:3 with lines title "Target Roll (deg)", \
+     "filter-0.txt" using 1:8 with lines title "Actual Roll (deg)"

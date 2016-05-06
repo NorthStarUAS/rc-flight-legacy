@@ -1,5 +1,7 @@
 # plot wind and pitot tube scale estimates
 
+set datafile separator ","
+
 set xlabel "Wind Estimation Plot"
 set ylabel "Wind direction & speed"
 set y2label "Pitot Scale Factor"
@@ -7,6 +9,6 @@ set y2label "Pitot Scale Factor"
 set ytics nomirror
 set y2tics
 
-plot "air.txt" using 1:9 with lines title "Wind Dir (deg)", \
-     "air.txt" using 1:($10*10) with lines title "Wind Speed (kts*10)", \
-     "air.txt" using 1:11 with lines axis x1y2 title "Pitot Scale"
+plot "air-0.txt" using 1:9 with lines title "Wind Dir (deg)", \
+     "air-0.txt" using 1:($10*10) with lines title "Wind Speed (kts*10)", \
+     "air-0.txt" using 1:11 with lines axis x1y2 title "Pitot Scale"
