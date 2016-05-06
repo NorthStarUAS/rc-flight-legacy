@@ -703,7 +703,7 @@ def pack_ap_status_v3(index):
                       wp_lat,
                       wp_index,
                       route_size,
-                      remote_link_node.getInt("sequence_num"))
+                      remote_link_node.getInt("sequence_num") & 0xff)
 
     counter = counter + 1
     if counter >= route_size + 2:
