@@ -49,7 +49,7 @@ class IsAirborne(Task):
 	    if cond:
 	        self.is_airborne = True
 	        self.task_node.setBool("is_airborne", True)
-                self.flight_start = status_node.getFloat('frame_time')
+                self.flight_start = self.status_node.getFloat('frame_time')
                 comms.events.log("mission", "airborne")
         else:
             # if all conditions under their threshold, we are on the ground
@@ -64,14 +64,14 @@ class IsAirborne(Task):
                 self.is_airborne = False
                 self.task_node.setBool("is_airborne", False)
                 # on ground, accumulate the elapsed airborne time
-                elapsed = status_node.getFloat('frame_time') - self.flight_start
+                elapsed = self.status_node.getFloat('frame_time') - self.flight_start
                 self.flight_accum += elapsed
                 comms.events.log("mission", "on ground")
 
         # compute total time aloft
         if self.is_airborne:
             flight_time = self.flight_accum + \
-                          status_node.getFloat('frame_time') - self.flight_start
+                          self.status_node.getFloat('frame_time') - self.flight_start
         else:
             flight_time = self.flight_accum
         self.task_node.setFloat('flight_timer', flight_time)
