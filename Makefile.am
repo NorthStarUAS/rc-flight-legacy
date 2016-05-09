@@ -6,8 +6,7 @@ EXTRA_DIST = \
 	README.kernel \
 	xbow-release.txt
 
-# temporarily disabled ...SUBDIRS	= src uglink utils
-SUBDIRS	= src
+SUBDIRS	= src utils
 
 dist-hook:
 	( cd $(top_srcdir); tar --exclude=CVS -cf - data scripts ) \

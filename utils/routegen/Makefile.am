@@ -13,8 +13,9 @@ routegen_SOURCES = routegen.cpp
 routegen_LDADD = \
         ../../src/control/libcontrol.a \
         ../../src/math/libmath.a \
-	../../src/props/libsgprops.a \
-        ../../src/util/libutil.a
+        ../../src/util/libutil.a \
+	../../src/python/libpyprops.a \
+	@PYTHON_LIBS@
 
-AM_CPPFLAGS = -I$(VPATH)/../../src
+AM_CPPFLAGS = -I$(VPATH)/../../src @PYTHON_INCLUDES@
 

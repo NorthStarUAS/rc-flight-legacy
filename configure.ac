@@ -96,7 +96,6 @@ AC_CONFIG_FILES([ \
         src/python/Makefile \
         src/sensors/Makefile \
         src/util/Makefile \
-        uglink/Makefile \
         utils/Makefile \
         utils/admin/Makefile \
         utils/autohome/Makefile \

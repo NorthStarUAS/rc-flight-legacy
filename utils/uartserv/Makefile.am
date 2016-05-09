@@ -7,7 +7,6 @@ uartserv_SOURCES = \
 uartserv_LDADD = \
         ../../src/comms/libcomms.a \
         ../../src/control/libcontrol.a \
-	../../src/props/libsgprops.a \
         ../../src/util/libutil.a
 
 AM_CPPFLAGS = -I$(VPATH)/../../src
