@@ -220,7 +220,7 @@ if 'currently' in data:
         wind_deg = currently['windBearing']
     else:
         wind_deg = 0
-    print "Wind %.1f mph (%.1f kt) @ %d deg" % (wind_mph, wind_kts, wind_deg)
+    print "Wind %d deg @ %.1f kt (%.1f mph) @ " % (wind_deg, wind_kts, wind_mph, )
     if 'visibility' in currently:
         vis = currently['visibility']
         print 'Visibility:', '%.1f miles' % vis
