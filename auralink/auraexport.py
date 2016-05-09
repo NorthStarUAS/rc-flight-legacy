@@ -4,6 +4,7 @@ import argparse
 import os
 import sys
 import tempfile
+from progress.bar import Bar
 
 from props import root, getNode
 
@@ -103,11 +104,17 @@ if args.flight:
         # eat the expected error
         print 'we should be able to ignore the zcat error'
 
-    print 'len of decompressed file:', len(full)
+    divs = 500
+    size = len(full)
+    chunk_size = size / divs
+    threshold = chunk_size
+    print 'len of decompressed file:', size
+
+    bar = Bar('Parsing log file:', max = divs, suffix = '%(percent)d%% (%(eta)ds)')
 
     while True:
         try:
-            (id, index) = parser.file_read(full)
+            (id, index, counter) = parser.file_read(full)
             current.compute_derived_data()
             category = logical_category(id)
             record = generate_record(category, index)
@@ -116,7 +123,11 @@ if args.flight:
                 data[key].append(record)
             else:
                 data[key] = [ record ]
+            if counter > threshold:
+                threshold += chunk_size
+                bar.next()
         except:
+            bar.finish()
             print 'end of file'
             break
 else:
@@ -130,7 +141,10 @@ apm2_node = getNode("/sensors/APM2", True)
 
 for key in sorted(data):
     size = len(data[key])
-    rate = size / total_time
+    if total_time > 0.01:
+        rate = size / total_time
+    else:
+        rate = 0.0
     print '%-10s %5.1f/sec (%6d records)' % (key, rate, size)
     f = open(key + '.txt', 'w')
     for line in data[key]:

@@ -268,7 +268,7 @@ def file_read(buf):
     if validate_cksum(id, size, savebuf, cksum0, cksum1):
         # print "check sum passed"
         index = parse_msg(id, savebuf)
-        return (id, index)
+        return (id, index, counter)
 
     print "Check sum failure!"
-    return (-1, -1)
+    return (-1, -1, counter)
