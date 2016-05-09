@@ -308,7 +308,7 @@ void FGPIDController::update( double dt ) {
 FGPISimpleController::FGPISimpleController( string config_path ):
     proportional( false ),
     integral( false ),
-    int_sum( 0.0 ),
+    iterm( 0.0 ),
     clamp( false ),
     y_n( 0.0 ),
     r_n( 0.0 )
@@ -343,12 +343,14 @@ FGPISimpleController::FGPISimpleController( string config_path ):
     node = component_node.getChild("reference", true);
     string ref_prop = node.getString("prop");
     ref_value = node.getString("value");
-    pos = input_prop.rfind("/");
+    pos = ref_prop.rfind("/");
     if ( pos != string::npos ) {
 	string path = ref_prop.substr(0, pos);
 	ref_attr = ref_prop.substr(pos+1);
+	printf("path = %s attr = %s\n", path.c_str(), ref_attr.c_str());
 	ref_node = pyGetNode( path, true );
     }
+
 
     // output
     node = component_node.getChild( "output", true );
@@ -392,6 +394,7 @@ void FGPISimpleController::update( double dt ) {
 
     double r_n = 0.0;
     if ( ref_value != "" ) {
+	printf("nonzero ref_value\n");
 	r_n = atof(ref_value.c_str());
     } else {
 	r_n = ref_node.getDouble(ref_attr.c_str());
@@ -401,32 +404,32 @@ void FGPISimpleController::update( double dt ) {
     if ( debug ) printf("input = %.3f reference = %.3f error = %.3f\n",
 			input, r_n, error);
 
-    double prop_comp = 0.0;
-
-    prop_comp = error * config_node.getDouble("Kp");
     double u_min = config_node.getDouble("u_min");
     double u_max = config_node.getDouble("u_max");
-    if ( prop_comp < u_min ) { prop_comp = u_min; }
-    if ( prop_comp > u_max ) { prop_comp = u_max; }
 
-    int_sum += error * config_node.getDouble("Ki") * dt;
+    double pterm = error * config_node.getDouble("Kp");
 
-    double pre_output = prop_comp + int_sum;
-    double clamp_output = pre_output;
-    if ( clamp_output < u_min ) { clamp_output = u_min; }
-    if ( clamp_output > u_max ) { clamp_output = u_max; }
-    if ( clamp_output != pre_output && integral ) {
-	int_sum = clamp_output - prop_comp;
+    double i_comp = error * config_node.getDouble("Ki") * dt;
+    double pre_iterm = iterm + i_comp;
+    double pre_output = pterm + pre_iterm;
+
+    // test for non-saturation before updating the integrator
+    if ( pre_output > u_min && pre_output < u_max ) {
+	iterm += i_comp;
     }
 
-    if ( debug ) printf("prop_comp = %.3f int_sum = %.3f\n",
-			prop_comp, int_sum);
-    if ( debug ) printf("clamped output = %.3f\n", clamp_output);
+    double output = pterm + iterm;
+    if ( output < u_min ) { output = u_min; }
+    if ( output > u_max ) { output = u_max; }
+
+    if ( debug ) printf("pterm = %.3f iterm = %.3f\n",
+			pterm, iterm);
+    if ( debug ) printf("clamped output = %.3f\n", output);
 
     if ( enabled ) {
 	// Copy the result to the output node(s)
 	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-	    output_node[i].setDouble( output_attr[i].c_str(), clamp_output );
+	    output_node[i].setDouble( output_attr[i].c_str(), output );
 	}
     }
 }

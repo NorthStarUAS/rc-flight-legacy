@@ -123,7 +123,7 @@ private:
 
     bool proportional;		// proportional component data
     bool integral;		// integral component data
-    double int_sum;
+    double iterm;		// integral summer
 
     // post functions for output
     bool clamp;
