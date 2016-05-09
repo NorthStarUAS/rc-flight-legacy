@@ -276,13 +276,13 @@ bool Actuator_update() {
 	}
 	if ( fresh_data ) {
 	    bool send_remote_link = false;
-	    if ( remote_link_on && remote_link_count <= 0 ) {
+	    if ( remote_link_on && remote_link_count < 0 ) {
 		send_remote_link = true;
 		remote_link_count = remote_link_skip;
 	    }
 	
 	    bool send_logging = false;
-	    if ( log_to_file && logging_count <= 0 ) {
+	    if ( log_to_file && logging_count < 0 ) {
 		send_logging = true;
 		logging_count = logging_skip;
 	    }
