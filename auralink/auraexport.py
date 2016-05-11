@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import argparse
+import datetime
 import os
 import sys
 import tempfile
@@ -18,29 +19,29 @@ import auraparser
 m2nm   = 0.0005399568034557235 # meters to nautical miles
 
 def logical_category(id):
-    if id == parser.GPS_PACKET_V1 or id == parser.GPS_PACKET_V2:
+    if id == auraparser.GPS_PACKET_V1 or id == auraparser.GPS_PACKET_V2:
         return 'gps'
-    elif id == parser.IMU_PACKET_V1 or id == parser.IMU_PACKET_V2 \
-         or id == parser.IMU_PACKET_V3:
+    elif id == auraparser.IMU_PACKET_V1 or id == auraparser.IMU_PACKET_V2 \
+         or id == auraparser.IMU_PACKET_V3:
         return 'imu'
-    elif id == parser.AIRDATA_PACKET_V3 or id == parser.AIRDATA_PACKET_V4 \
-         or id == parser.AIRDATA_PACKET_V5:
+    elif id == auraparser.AIRDATA_PACKET_V3 or id == auraparser.AIRDATA_PACKET_V4 \
+         or id == auraparser.AIRDATA_PACKET_V5:
         return 'air'
-    elif id == parser.FILTER_PACKET_V1 or id == parser.FILTER_PACKET_V2:
+    elif id == auraparser.FILTER_PACKET_V1 or id == auraparser.FILTER_PACKET_V2:
         return 'filter'
-    elif id == parser.ACTUATOR_PACKET_V1 or id == parser.ACTUATOR_PACKET_V2:
+    elif id == auraparser.ACTUATOR_PACKET_V1 or id == auraparser.ACTUATOR_PACKET_V2:
         return 'act'
-    elif id == parser.PILOT_INPUT_PACKET_V1 \
-         or id == parser.PILOT_INPUT_PACKET_V2:
+    elif id == auraparser.PILOT_INPUT_PACKET_V1 \
+         or id == auraparser.PILOT_INPUT_PACKET_V2:
         return 'pilot'
-    elif id == parser.AP_STATUS_PACKET_V1 or id == parser.AP_STATUS_PACKET_V2 \
-         or id == parser.AP_STATUS_PACKET_V3:
+    elif id == auraparser.AP_STATUS_PACKET_V1 or id == auraparser.AP_STATUS_PACKET_V2 \
+         or id == auraparser.AP_STATUS_PACKET_V3:
         return 'ap'
-    elif id == parser.SYSTEM_HEALTH_PACKET_V2 \
-         or id == parser.SYSTEM_HEALTH_PACKET_V3 \
-         or id == parser.SYSTEM_HEALTH_PACKET_V4:
+    elif id == auraparser.SYSTEM_HEALTH_PACKET_V2 \
+         or id == auraparser.SYSTEM_HEALTH_PACKET_V3 \
+         or id == auraparser.SYSTEM_HEALTH_PACKET_V4:
         return 'health'
-    elif id == parser.PAYLOAD_PACKET_V1 or id == parser.PAYLOAD_PACKET_V2:
+    elif id == auraparser.PAYLOAD_PACKET_V1 or id == auraparser.PAYLOAD_PACKET_V2:
         return 'payload'
 
 # When a binary record of some id is read, it gets parsed into the
@@ -120,7 +121,7 @@ if args.flight:
 
     while True:
         try:
-            (id, index, counter) = parser.file_read(full)
+            (id, index, counter) = auraparser.file_read(full)
             if not located:
                 if gps_node.getInt('satellites') >= 5:
                     lat = gps_node.getFloat('latitude_deg')
@@ -180,6 +181,10 @@ try:
 except:
     print "you must sign up for a free apikey at forecast.io and insert it as a single line inside a file called ~/.forecastio (with no other text in the file)"
 print
+
+#utc = datetime.timezone(0)
+d = datetime.datetime.utcfromtimestamp(sec)
+print d.strftime("%Y-%m-%d-%H:%M:%S")
 
 url = 'https://api.forecast.io/forecast/' + apikey + '/%.8f,%.8f,%.d' % (lat, lon, sec)
 
