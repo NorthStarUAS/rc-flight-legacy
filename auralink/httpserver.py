@@ -136,6 +136,7 @@ def init(port=8888, html_root='.'):
 
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(port)
+    print 'Http server on http://localhost:' + str(port) + '/'
     print 'Websocket server on http://localhost:' + str(port) + '/ws'
     
 def update():
