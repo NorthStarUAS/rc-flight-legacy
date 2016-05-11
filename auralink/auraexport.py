@@ -13,7 +13,7 @@ import comms.packer
 
 import commands
 import current
-import parser
+import auraparser
 
 m2nm   = 0.0005399568034557235 # meters to nautical miles
 

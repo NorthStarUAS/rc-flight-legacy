@@ -127,13 +127,14 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 def nullfunc():
     pass
 
-application = tornado.web.Application([
-    (r'/ws', WSHandler),
-])
+def init(port=8888, html_root='.'):
+    application = tornado.web.Application([
+        (r'/ws', WSHandler),
+        (r'/(.*)', tornado.web.StaticFileHandler,
+         {'path': html_root, 'default_filename': 'index.html'}),
+    ])
 
-http_server = tornado.httpserver.HTTPServer(application)
-
-def init(port=8888):
+    http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(port)
     print 'Websocket server on http://localhost:' + str(port) + '/ws'
     
