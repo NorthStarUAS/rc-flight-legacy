@@ -19,8 +19,6 @@ argparser.add_argument('--baud', default=115200, type=int, help='serial port bau
 argparser.add_argument('--telnet-port', default=5050, help='telnet port')
 argparser.add_argument('--http-port', default=8888, help='http/ws port')
 argparser.add_argument('--html-root', default='.')
-argparser.add_argument('--skip-seconds', help='seconds to skip when processing flight log')
-argparser.add_argument('--no-real-time', help='run as fast as possible')
 
 args = argparser.parse_args()
 

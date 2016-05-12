@@ -31,7 +31,7 @@ class PlotFields():
                 return i+1
         return 1
 
-class Controller():
+class Component():
     def __init__(self, index, changefunc, host="localhost", port=6499, type="full"):
         self.index = index
         self.changefunc = changefunc
