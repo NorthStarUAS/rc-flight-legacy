@@ -389,6 +389,8 @@ void AirData_recalibrate() {
 	}
 	if ( source == "null" ) {
 	    // do nothing
+	} else if ( source == "airdata_bolder" ) {
+	    airdata_bolder_zero_airspeed();
 	} else if ( source == "APM2" ) {
 	    APM2_airdata_zero_airspeed();
 	} else if ( source == "fgfs" ) {

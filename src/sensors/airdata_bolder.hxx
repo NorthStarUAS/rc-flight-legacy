@@ -22,6 +22,7 @@ using std::string;
 
 void airdata_bolder_init( string output_path, pyPropertyNode *config );
 bool airdata_bolder_update();
+void airdata_bolder_zero_airspeed();
 void airdata_bolder_close();
 
 
