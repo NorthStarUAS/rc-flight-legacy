@@ -1,4 +1,5 @@
-sbin_PROGRAMS = autologin config_xtend pressanykey stopme
+#sbin_PROGRAMS = autologin config_xtend pressanykey stopme
+noinst_PROGRAMS = autologin config_xtend pressanykey stopme
 
 autologin_SOURCES = \
 	autologin.c
