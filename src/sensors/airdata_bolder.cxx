@@ -122,6 +122,7 @@ static bool airdata_parse(uint8_t *buf) {
     
     airdata_node.setDouble( "timestamp", get_Time() );
     airdata_node.setDouble( "pressure_mbar", (static_pa / 100.0) );
+    airdata_node.setDouble( "diff_pa", diff_pa);
 
     if ( ! airspeed_inited ) {
 	if ( airspeed_zero_start_time > 0 ) {
