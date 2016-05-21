@@ -33,6 +33,9 @@ static pyPropertyNode airdata_node;
 static int fd = -1;
 static string device_name = "/dev/ttyO4";
 
+static bool airspeed_inited = false;
+static double airspeed_zero_start_time = 0.0;
+
 
 // initialize gpsd input property nodes
 static void bind_imu_input( pyPropertyNode *config ) {
@@ -106,52 +109,11 @@ void airdata_bolder_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-static bool airdata_parse_oldraw(uint8_t *buf) {
-    // Sensor raw ADC range
-    const int pmin = 3277;
-    const int pmax = 29491;
-
-    // AMS 5812-0150-B
-    const double static_min = 758.4;  // mbar
-    const double static_max = 1206.0; // mbar
-
-    // AMS 5812-0003-D-B
-    const double diff_min = -20.68; // mbar
-    const double diff_max = 20.68;  // mbar
-    
-    int prange = pmax - pmin;
-    double static_range = static_max - static_min;
-
-    uint16_t static_raw = buf[0] + (buf[1] << 8);
-    uint16_t diff_raw = buf[2] + (buf[3] << 8);
-    double diff_range = diff_max - diff_min;
-
-    // printf("static(raw) = %d\n", static_raw);
-    // printf("diff(raw) = %d\n", diff_raw);
-
-    double static_mbar = (static_raw - pmin) / (prange / static_range) + static_min;
-    double diff_mbar = (diff_raw - pmin) / (prange / diff_range) + diff_min;
-
-    // printf("static(mbar) = %.2f\n", static_mbar);
-    // printf("diff(mbar) = %.2f\n", diff_mbar);
-    
-    airdata_node.setDouble( "timestamp", get_Time() );
-    airdata_node.setDouble( "pressure_mbar", static_mbar );
-
-    // 1 mbar = 100 Pa
-    const double pitot_calibrate = 1.0; // future config option?
-    double Pa = diff_mbar * 100.0;
-    if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
-    float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
-    float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
-    airdata_node.setDouble( "airspeed_mps", airspeed_mps );
-    airdata_node.setDouble( "airspeed_kt", airspeed_kt );
-
-    return true;
-}
-
-
 static bool airdata_parse(uint8_t *buf) {
+    static double diff_sum = 0.0;
+    static int diff_count = 0;
+    static float diff_offset = 0.0;
+
     double static_pa = *(float *)buf; buf += 4;
     double diff_pa = *(float *)buf; buf += 4;
 
@@ -161,7 +123,24 @@ static bool airdata_parse(uint8_t *buf) {
     airdata_node.setDouble( "timestamp", get_Time() );
     airdata_node.setDouble( "pressure_mbar", (static_pa / 100.0) );
 
+    if ( ! airspeed_inited ) {
+	if ( airspeed_zero_start_time > 0 ) {
+	    diff_sum += diff_pa;
+	    diff_count++;
+	    diff_offset = diff_sum / diff_count;
+	} else {
+	    airspeed_zero_start_time = get_Time();
+	    diff_sum = 0.0;
+	    diff_count = 0;
+	}
+	if ( get_Time() > airspeed_zero_start_time + 10.0 ) {
+	    //printf("diff_offset = %.2f\n", diff_offset);
+	    airspeed_inited = true;
+	}
+    }
+
     double pitot_calibrate = 1.0; // make configurable in the future?
+    diff_pa -= diff_offset;
     if ( diff_pa < 0.0 ) { diff_pa = 0.0; } // avoid sqrt(neg_number) situation
     float airspeed_mps = sqrt( 2*diff_pa / 1.225 ) * pitot_calibrate;
     float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
@@ -169,6 +148,15 @@ static bool airdata_parse(uint8_t *buf) {
     airdata_node.setDouble( "airspeed_kt", airspeed_kt );
 
     return true;
+}
+
+
+// force an airspeed zero calibration (ideally with the aircraft on
+// the ground with the pitot tube perpendicular to the prevailing
+// wind.)
+void airdata_bolder_zero_airspeed() {
+    airspeed_inited = false;
+    airspeed_zero_start_time = 0.0;
 }
 
 

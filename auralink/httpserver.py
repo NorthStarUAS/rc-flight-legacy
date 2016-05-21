@@ -15,7 +15,8 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         self.bind_props()
       
     def on_message(self, message):
-        print 'message received:  %s' % message
+        # print 'message received:  %s' % message
+        
         # Reverse Message and send it back
         # print 'sending back message: %s' % message[::-1]
         # self.write_message(message[::-1])
@@ -31,7 +32,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         # self.write_message(message + ': ' + value)
 
         tokens = message.split()
-        print tokens
+        # print tokens
         if tokens[0] == 'get':
             if tokens[1] == 'update_json':
                 dict = {}

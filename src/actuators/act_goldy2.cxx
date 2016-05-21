@@ -135,7 +135,7 @@ bool goldy2_act_update() {
     double elevator = act_node.getDouble("channel", 1);
     double throttle = act_node.getDouble("channel", 2);
     double left_cmd = elevator*0.5 - aileron*0.5;
-    double right_cmd = elevator*0.5 + aileron*0.5;
+    double right_cmd = -elevator*0.5 - aileron*0.5;
     int left_pwm = gen_pulse( left_cmd, true );
     int right_pwm = gen_pulse( right_cmd, true );
     int thr_pwm = gen_pulse( throttle, false );
@@ -145,9 +145,9 @@ bool goldy2_act_update() {
         if ( i == 2 ) {
             val = thr_pwm;
         } else if ( i == 3 ) {
-	    val = left_pwm;
-	} else if ( i == 4 ) {
 	    val = right_pwm;
+	} else if ( i == 4 ) {
+	    val = left_pwm;
 	} else {
 	    val = PWM_CENTER;
 	}

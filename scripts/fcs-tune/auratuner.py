@@ -21,7 +21,7 @@ import time
 
 from circle import Circle
 #from route import Route
-from controller import Controller
+from component import Component
 from land import Land
 from L1 import L1Controller
 
@@ -72,7 +72,7 @@ class Tuner(QtGui.QWidget):
         super(Tuner, self).__init__()
         self.default_title = "FCS Tuner"
         self.circle = None
-        self.controllers = []
+        self.components = []
         self.initUI()
         self.load(filename, host=host, port=port)
         self.clean = True
@@ -149,17 +149,11 @@ class Tuner(QtGui.QWidget):
         self.tabs.addTab( self.L1.get_widget(), "L1" )
 
         # PID controller parameters
-        for i,pid_node in enumerate(root.findall('pid-controller')):
-            print "controller found..."
-            pid = Controller(index=i, changefunc=self.onChange, host=host, port=port, type="full")
+        for i,pid_node in enumerate(root.findall('component')):
+            print "component found..."
+            pid = Component(index=i, changefunc=self.onChange, host=host, port=port, type="full") # vs "simple"
             pid.parse_xml(pid_node)
-            self.controllers.append(pid)
-            self.tabs.addTab( pid.get_widget(), pid.get_name() )
-        for i,pid_node in enumerate(root.findall('pi-simple-controller')):
-            print "simple controller found..."
-            pid = Controller(index=i, changefunc=self.onChange, host=host, port=port, type="simple")
-            pid.parse_xml(pid_node)
-            self.controllers.append(pid)
+            self.component.append(pid)
             self.tabs.addTab( pid.get_widget(), pid.get_name() )
 
     def save(self):
@@ -191,7 +185,7 @@ def main():
     host = "localhost"
     #port = 6499
     #host = "192.168.1.64"
-    port = 5402
+    port = 5050
 
     app = QtGui.QApplication(sys.argv)
     filename = ""
