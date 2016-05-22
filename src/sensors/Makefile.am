@@ -12,7 +12,7 @@ libsensors_a_SOURCES = \
 	gps_gpsd.cxx gps_gpsd.hxx \
 	gps_fgfs.cxx gps_fgfs.hxx \
 	gps_mediatek.cxx gps_mediatek.hxx \
-	gps_ublox.cxx gps_ublox.hxx \
+	gps_ublox6.cxx gps_ublox6.hxx \
 	pilot_mgr.cxx pilot_mgr.hxx \
 	pilot_fgfs.cxx pilot_fgfs.hxx \
 	APM2.cxx APM2.hxx \

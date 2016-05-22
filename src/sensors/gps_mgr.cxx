@@ -36,7 +36,7 @@ using std::vector;
 #include "gps_fgfs.hxx"
 #include "gps_gpsd.hxx"
 #include "gps_mediatek.hxx"
-#include "gps_ublox.hxx"
+#include "gps_ublox6.hxx"
 #include "ugfile.hxx"
 
 #include "gps_mgr.hxx"
@@ -90,8 +90,8 @@ void GPS_init() {
 	    gpsd_init( output_path.str(), &section_node );
 	} else if ( source == "mediatek" ) {
 	    gps_mediatek3329_init( output_path.str(), &section_node );
-	} else if ( source == "ublox" ) {
-	    gps_ublox_init( output_path.str(), &section_node );
+	} else if ( source == "ublox6" ) {
+	    gps_ublox6_init( output_path.str(), &section_node );
 	} else {
 	    printf("Unknown gps source = '%s' in config file\n",
 		   source.c_str());
@@ -158,8 +158,8 @@ bool GPS_update() {
 	    fresh_data = gpsd_get_gps();
 	} else if ( source == "mediatek" ) {
 	    fresh_data = gps_mediatek3329_update();
-	} else if ( source == "ublox" ) {
-	    fresh_data = gps_ublox_update();
+	} else if ( source == "ublox6" ) {
+	    fresh_data = gps_ublox6_update();
 	} else {
 	    printf("Unknown gps source = '%s' in config file\n",
 		   source.c_str());
@@ -297,8 +297,8 @@ void GPS_close() {
 	    // fixme
 	} else if ( source == "mediatek" ) {
 	    gps_mediatek3329_close();
-	} else if ( source == "ublox" ) {
-	    gps_ublox_close();
+	} else if ( source == "ublox6" ) {
+	    gps_ublox6_close();
 	} else {
 	    printf("Unknown gps source = '%s' in config file\n",
 		   source.c_str());

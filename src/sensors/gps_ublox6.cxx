@@ -1,7 +1,7 @@
 /**
- * \file: gps_ublox.cxx
+ * \file: gps_ublox6.cxx
  *
- * u-blox 5 protocol driver
+ * u-blox 6 protocol driver
  *
  * Copyright (C) 2012 - Curtis L. Olson - curtolson@flightgear.org
  *
@@ -35,7 +35,7 @@ using std::string;
 #include "util/timing.h"
 #include "gps_mgr.hxx"
 
-#include "gps_ublox.hxx"
+#include "gps_ublox6.hxx"
 
 
 // property nodes
@@ -64,9 +64,9 @@ static void bind_output( string output_node ) {
 
 
 // send our configured init strings to configure gpsd the way we prefer
-static bool gps_ublox_open() {
+static bool gps_ublox6_open() {
     if ( display_on ) {
-	printf("ublox on %s\n", device_name.c_str());
+	printf("ublox6 on %s\n", device_name.c_str());
     }
 
     fd = open( device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
@@ -90,7 +90,7 @@ static bool gps_ublox_open() {
     } else if ( baud == 9600 ) {
 	config_baud = B9600;
     } else {
-	fprintf( stderr, "Ublox baud rate (%d) unsupported by driver, using back to 115200.\n", baud);
+	fprintf( stderr, "ublox6 baud rate (%d) unsupported by driver, using back to 115200.\n", baud);
     }
 
     // Configure New Serial Port Settings
@@ -123,10 +123,10 @@ static bool gps_ublox_open() {
 }
 
 
-void gps_ublox_init( string output_node, pyPropertyNode *config ) {
+void gps_ublox6_init( string output_node, pyPropertyNode *config ) {
     bind_input( config );
     bind_output( output_node );
-    gps_ublox_open();
+    gps_ublox6_open();
 }
 
 
@@ -144,8 +144,8 @@ static void my_swap( uint8_t *buf, int index, int count ) {
 }
 
 
-static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
-			     uint16_t payload_length, uint8_t *payload )
+static bool parse_ublox6_msg( uint8_t msg_class, uint8_t msg_id,
+			      uint16_t payload_length, uint8_t *payload )
 {
     bool new_position = false;
     static bool set_system_time = false;
@@ -238,7 +238,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    // of the ecef coordinates is beyond this radius we know
 	    // we have bad data.  This means we won't toss data until
 	    // above about 423,000' MSL
-	    events->log( "ublox", "received bogus ecef data" );
+	    events->log( "ublox6", "received bogus ecef data" );
 	} else if ( wgs84.getElevationM() > 60000 ) {
 	    // sanity check: assume altitude > 60k meters (200k feet) is bad
 	} else if ( wgs84.getElevationM() < -1000 ) {
@@ -376,7 +376,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
     } else {
 	if ( display_on && 0 ) {
 	    if ( gps_fix_value < 3 ) {
-		printf("UBLOX msg class = %d  msg id = %d\n",
+		printf("ublox6 msg class = %d  msg id = %d\n",
 		       msg_class, msg_id);
 	    }
 	}
@@ -385,7 +385,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
     return new_position;
 }
 
-static bool read_ublox() {
+static bool read_ublox6() {
     static int state = 0;
     static int msg_class = 0, msg_id = 0;
     static int length_lo = 0, length_hi = 0, payload_length = 0;
@@ -395,7 +395,7 @@ static bool read_ublox() {
     uint8_t input[500];
     static uint8_t payload[500];
 
-    // printf("read ublox, entry state = %d\n", state);
+    // printf("read ublox6, entry state = %d\n", state);
 
     bool new_position = false;
 
@@ -500,8 +500,8 @@ static bool read_ublox() {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// fprintf( stderr, "checksum passes (%d)!\n", msg_id );
-		new_position = parse_ublox_msg( msg_class, msg_id,
-						payload_length, payload );
+		new_position = parse_ublox6_msg( msg_class, msg_id,
+						 payload_length, payload );
 		state++;
 	    } else {
 		if ( display_on && 0 ) {
@@ -519,13 +519,13 @@ static bool read_ublox() {
 }
 
 
-bool gps_ublox_update() {
+bool gps_ublox6_update() {
     // run an iteration of the ublox scanner/parser
-    bool gps_data_valid = read_ublox();
+    bool gps_data_valid = read_ublox6();
 
     return gps_data_valid;
  }
 
 
-void gps_ublox_close() {
+void gps_ublox6_close() {
 }
