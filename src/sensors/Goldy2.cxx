@@ -748,7 +748,7 @@ bool goldy2_gps_update() {
 
 bool goldy2_pilot_update() {
     double default_val = 992;
-    for ( int i = 0; i <= 4; i++ ) {
+    for ( int i = 0; i < rcin_channels; i++ ) {
         if ( i == 0 ) {
 	    default_val = 1812;
         } else if ( i == 1 ) {
@@ -758,11 +758,12 @@ bool goldy2_pilot_update() {
  	}
         if ( rcin[i] < 172 ) { rcin[i] = default_val; }
         if ( rcin[i] > 1812 ) { rcin[i] = default_val; }
+	pilot_node.setDouble( "channel", i, rcin[i] );
     }
     pilot_node.setDouble( "timestamp", get_Time() );
+    pilot_node.setDouble( "throttle", (rcin[1] - 172.0) / 1640.0);
     pilot_node.setDouble( "aileron", (rcin[2] - 992.0) / 820.0);
     pilot_node.setDouble( "elevator", (rcin[3] - 992.0) / 820.0);
-    pilot_node.setDouble( "throttle", (rcin[1] - 172.0) / 1640.0);
     pilot_node.setDouble( "rudder", (rcin[4] - 992.0) / 820.0);
     if ( rcin[0] < 992 ) {
         pilot_node.setBool("manual", false);

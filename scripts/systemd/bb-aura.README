@@ -24,6 +24,10 @@ Troubleshooting:
 - uEnv.txt example, boot with systemd, enable specific uarts, disable hdmi
   which can generate RF noise that hinders gps:
 
+  ##Enable systemd
+  systemd=quiet init=/lib/systemd/systemd
+
+  ## or if that doesn't work, try this:
   cmdline=init=/lib/systemd/systemd
   cape_enable=capemgr.enable_partno=BB-UART1,BB-UART4
   cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
