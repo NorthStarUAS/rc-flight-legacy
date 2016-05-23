@@ -590,7 +590,7 @@ def pack_pilot_v2(index):
                       int(node.getFloat("elevator") * 30000),
                       int(node.getFloat("throttle") * 60000),
                       int(node.getFloat("rudder") * 30000),
-                      node.getBool("manual"),
+                      int(node.getBool("manual")),
                       int(node.getFloatEnum("channel", 5) * 30000),
                       int(node.getFloatEnum("channel", 6) * 30000),
                       int(node.getFloatEnum("channel", 7) * 30000),

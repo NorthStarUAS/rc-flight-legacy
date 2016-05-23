@@ -112,6 +112,7 @@ static void bind_pilot_controls( string output_path ) {
         return;
     }
     pilot_node = pyGetNode(output_path, true);
+    pilot_node.setLen("channel", rcin_channels, 0);
 
     pilot_input_inited = true;
 }
@@ -758,7 +759,7 @@ bool goldy2_pilot_update() {
  	}
         if ( rcin[i] < 172 ) { rcin[i] = default_val; }
         if ( rcin[i] > 1812 ) { rcin[i] = default_val; }
-	pilot_node.setDouble( "channel", i, rcin[i] );
+	pilot_node.setDouble( "channel", i, (rcin[i] - 992.0) / 820.0 );
     }
     pilot_node.setDouble( "timestamp", get_Time() );
     pilot_node.setDouble( "throttle", (rcin[1] - 172.0) / 1640.0);
