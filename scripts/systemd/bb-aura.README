@@ -1,6 +1,9 @@
 # configure a beaglebone (systemd) system to automatically start the aura
 # autopilot
 
+mkdir /root/bin
+cp bb-aura.sh /root/bin/
+
 cp bb-aura.service /lib/systemd/
 
 # note this needs to be a hard link, systemctl enable will refuse if it's a
@@ -24,11 +27,11 @@ Troubleshooting:
 - uEnv.txt example, boot with systemd, enable specific uarts, disable hdmi
   which can generate RF noise that hinders gps:
 
-  ##Enable systemd
-  systemd=quiet init=/lib/systemd/systemd
-
-  ## or if that doesn't work, try this:
-  cmdline=init=/lib/systemd/systemd
-  cape_enable=capemgr.enable_partno=BB-UART1,BB-UART4
+  ### specifically for Debian 7.9 (wheezy)
+  # Enable systemd
+  cmdline=quiet init=/lib/systemd/systemd
+  # enable specific UARTs
+  cape_enable=capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
+  # disable hdmi (generates gps interference)
   cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
 
