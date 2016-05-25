@@ -499,14 +499,14 @@ def pack_act_v2(index):
     buf = struct.pack(act_v2_fmt,
                       index,
                       node.getFloat("timestamp"),
-                      int(node.getFloatEnum("channel", 0) * 30000),
-                      int(node.getFloatEnum("channel", 1) * 30000),
+                      int(node.getFloatEnum("channel", 0) * 20000),
+                      int(node.getFloatEnum("channel", 1) * 20000),
                       int(node.getFloatEnum("channel", 2) * 60000),
-                      int(node.getFloatEnum("channel", 3) * 30000),
-                      int(node.getFloatEnum("channel", 4) * 30000),
-                      int(node.getFloatEnum("channel", 5) * 30000),
-                      int(node.getFloatEnum("channel", 6) * 30000),
-                      int(node.getFloatEnum("channel", 7) * 30000),
+                      int(node.getFloatEnum("channel", 3) * 20000),
+                      int(node.getFloatEnum("channel", 4) * 20000),
+                      int(node.getFloatEnum("channel", 5) * 20000),
+                      int(node.getFloatEnum("channel", 6) * 20000),
+                      int(node.getFloatEnum("channel", 7) * 20000),
                       0)
     return buf
 
@@ -562,14 +562,14 @@ def unpack_act_v2(buf):
     node = act_nodes[index]
 
     node.setFloat("timestamp", result[1])
-    node.setFloatEnum("channel", 0, result[2] / 30000.0)
-    node.setFloatEnum("channel", 1, result[3] / 30000.0)
+    node.setFloatEnum("channel", 0, result[2] / 20000.0)
+    node.setFloatEnum("channel", 1, result[3] / 20000.0)
     node.setFloatEnum("channel", 2, result[4] / 60000.0)
-    node.setFloatEnum("channel", 3, result[5] / 30000.0)
-    node.setFloatEnum("channel", 4, result[6] / 30000.0)
-    node.setFloatEnum("channel", 5, result[7] / 30000.0)
-    node.setFloatEnum("channel", 6, result[8] / 30000.0)
-    node.setFloatEnum("channel", 7, result[9] / 30000.0)
+    node.setFloatEnum("channel", 3, result[5] / 20000.0)
+    node.setFloatEnum("channel", 4, result[6] / 20000.0)
+    node.setFloatEnum("channel", 5, result[7] / 20000.0)
+    node.setFloatEnum("channel", 6, result[8] / 20000.0)
+    node.setFloatEnum("channel", 7, result[9] / 20000.0)
     node.setInt("status", result[10])
 
     return index
@@ -586,14 +586,14 @@ def pack_pilot_v2(index):
     buf = struct.pack(pilot_v2_fmt,
                       index,
                       node.getFloat("timestamp"),
-                      int(node.getFloat("aileron") * 30000),
-                      int(node.getFloat("elevator") * 30000),
+                      int(node.getFloat("aileron") * 20000),
+                      int(node.getFloat("elevator") * 20000),
                       int(node.getFloat("throttle") * 60000),
-                      int(node.getFloat("rudder") * 30000),
+                      int(node.getFloat("rudder") * 20000),
                       int(node.getBool("manual")),
-                      int(node.getFloatEnum("channel", 5) * 30000),
-                      int(node.getFloatEnum("channel", 6) * 30000),
-                      int(node.getFloatEnum("channel", 7) * 30000),
+                      int(node.getFloatEnum("channel", 5) * 20000),
+                      int(node.getFloatEnum("channel", 6) * 20000),
+                      int(node.getFloatEnum("channel", 7) * 20000),
                       0)
     return buf
 
@@ -649,14 +649,14 @@ def unpack_pilot_v2(buf):
     node = pilot_nodes[index]
 
     node.setFloat("timestamp", result[1])
-    node.setFloat("aileron", result[2] / 30000.0)
-    node.setFloat("elevator", result[3] / 30000.0)
+    node.setFloat("aileron", result[2] / 20000.0)
+    node.setFloat("elevator", result[3] / 20000.0)
     node.setFloat("throttle", result[4] / 60000.0)
-    node.setFloat("rudder", result[5] / 30000.0)
+    node.setFloat("rudder", result[5] / 20000.0)
     node.setBool("manual", result[6])
-    node.setFloatEnum("channel", 5, result[7] / 30000.0)
-    node.setFloatEnum("channel", 6, result[8] / 30000.0)
-    node.setFloatEnum("channel", 7, result[9] / 30000.0)
+    node.setFloatEnum("channel", 5, result[7] / 20000.0)
+    node.setFloatEnum("channel", 6, result[8] / 20000.0)
+    node.setFloatEnum("channel", 7, result[9] / 20000.0)
     node.setInt("status", result[10])
 
     return index
