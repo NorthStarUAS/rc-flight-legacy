@@ -25,6 +25,7 @@
 static netSocket sock;
 static int port = 0;
 static string hostname = "";
+static string output_mode = "angles";
 
 // property nodes
 static pyPropertyNode act_node;
@@ -39,6 +40,9 @@ static void bind_input( pyPropertyNode *config ) {
     }
     if ( config->hasChild("port") ) {
 	port = config->getLong("port");
+    }
+    if ( config->hasChild("output_mode") ) {
+	output_mode = config->getString("output_mode");
     }
 }
 
@@ -134,26 +138,45 @@ bool goldy2_act_update() {
     double aileron = act_node.getDouble("channel", 0);
     double elevator = act_node.getDouble("channel", 1);
     double throttle = act_node.getDouble("channel", 2);
-    double left_cmd = elevator*0.5 - aileron*0.5;
-    double right_cmd = -elevator*0.5 - aileron*0.5;
-    int left_pwm = gen_pulse( left_cmd, true );
-    int right_pwm = gen_pulse( right_cmd, true );
+    
     int thr_pwm = gen_pulse( throttle, false );
-
+    int left_act = 0;
+    int right_act = 0;
+    int zero_act = 0;
+    int units = 0; // 0 = PWM, 1 = angle control
+    
+    if ( output_mode == "pwm" ) {
+	double left_cmd = elevator*0.5 - aileron*0.5;
+	double right_cmd = -elevator*0.5 - aileron*0.5;
+	left_act = gen_pulse( left_cmd, true );
+	right_act = gen_pulse( right_cmd, true );
+	zero_act = PWM_CENTER;
+	units = 0;
+    } else if ( output_mode == "radians" ) {
+	left_act = (elevator - aileron) * 1000.0;
+	right_act = (elevator + aileron) * 1000.0;
+	zero_act = 0.0;
+	units = 1;
+    }
+    
     int val;
     for ( uint8_t i = 0; i < 10; i++ ) {
-        if ( i == 2 ) {
+	int ch_units = units;
+	if ( output_mode == "pwm" ) { units = 0; }
+	if ( output_mode == "radians" ) { units = 1; }
+	if ( i == 2 ) {
             val = thr_pwm;
+	    ch_units = 0;
         } else if ( i == 3 ) {
-	    val = right_pwm;
+	    val = right_act;
 	} else if ( i == 4 ) {
-	    val = left_pwm;
+	    val = left_act;
 	} else {
-	    val = PWM_CENTER;
+	    val = zero_act;
 	}
         // val = pos;
 	*(uint8_t *)buf = i; buf++;
-	*(uint8_t *)buf = 0; buf++; // 0 = PWM, 1 = angle control
+	*(uint8_t *)buf = ch_units; buf++;
 	*(uint16_t *)buf = val; buf += 2;
 	*(int16_t *)buf = 0; buf += 2;
     }
