@@ -25,7 +25,7 @@
 static netSocket sock;
 static int port = 0;
 static string hostname = "";
-static string output_mode = "angles";
+static string output_mode = "radians";
 
 // property nodes
 static pyPropertyNode act_node;
@@ -133,12 +133,12 @@ bool goldy2_act_update() {
     *(uint8_t *)buf = packet_size; buf++; // LSB
     *(uint8_t *)buf = 0; buf++;		  // MSB
 
-    // if (pos++ > 2000) { pos = 1000; }
-
     double aileron = act_node.getDouble("channel", 0);
     double elevator = act_node.getDouble("channel", 1);
     double throttle = act_node.getDouble("channel", 2);
     
+    // printf("ail=%.2f ele=%.2f\n", aileron, elevator);
+
     int thr_pwm = gen_pulse( throttle, false );
     int left_act = 0;
     int right_act = 0;
@@ -179,8 +179,13 @@ bool goldy2_act_update() {
         // val = pos;
 	*(uint8_t *)buf = i; buf++;
 	*(uint8_t *)buf = ch_units; buf++;
-	*(uint16_t *)buf = val; buf += 2;
-	*(int16_t *)buf = 0; buf += 2;
+        if ( ch_units == 0 ) {
+	    *(uint16_t *)buf = val; buf += 2;
+	    *(int16_t *)buf = 0; buf += 2;
+        } else {
+	    *(uint16_t *)buf = 0; buf += 2;
+	    *(int16_t *)buf = val; buf += 2;
+        }
     }
 
  
