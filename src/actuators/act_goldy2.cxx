@@ -143,7 +143,7 @@ bool goldy2_act_update() {
     int left_act = 0;
     int right_act = 0;
     int zero_act = 0;
-    int units = 0; // 0 = PWM, 1 = angle control
+    int units = 0; // 0 = PWM, 1 = angle control (radians)
     
     if ( output_mode == "pwm" ) {
 	double left_cmd = elevator*0.5 - aileron*0.5;
@@ -154,7 +154,11 @@ bool goldy2_act_update() {
 	units = 0;
     } else if ( output_mode == "radians" ) {
 	left_act = (elevator - aileron) * 1000.0;
+	if ( left_act < -1570 ) { left_act = -1570; }
+	if ( left_act > 1570 ) { left_act = 1570; }
 	right_act = (elevator + aileron) * 1000.0;
+	if ( right_act < -1570 ) { right_act = -1570; }
+	if ( right_act > 1570 ) { right_act = 1570; }
 	zero_act = 0.0;
 	units = 1;
     }
@@ -162,8 +166,6 @@ bool goldy2_act_update() {
     int val;
     for ( uint8_t i = 0; i < 10; i++ ) {
 	int ch_units = units;
-	if ( output_mode == "pwm" ) { units = 0; }
-	if ( output_mode == "radians" ) { units = 1; }
 	if ( i == 2 ) {
             val = thr_pwm;
 	    ch_units = 0;
