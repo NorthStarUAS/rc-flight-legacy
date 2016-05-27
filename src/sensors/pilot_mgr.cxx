@@ -143,14 +143,6 @@ bool PilotInput_update() {
     }
 
     if ( fresh_data ) {
-	// Hello this is a bit of a hack to hard code the master
-	// autopilot on/off switch here.  In the future the master
-	// autopilot on/off switch may come from other sources. (?)
-	ap_node.setBool( "master_switch", !pilot_node.getBool("manual") );
-	// if ( display_on ) {
-	//    printf("autopilot = %d\n", ap_master_switch_node->getBool());
-	// }
-
 	// Only in manual mode, do copy the pilot inputs to the main
 	// AP outputs.  This puts the pilot inputs in a standard place
 	// and allows the AP to seed it's components with trimmed
