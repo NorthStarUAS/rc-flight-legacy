@@ -34,7 +34,7 @@ bool APM2_airdata_update();
 void APM2_airdata_zero_airspeed();
 void APM2_airdata_close();
 
-bool APM2_pilot_init( string output_path );
+bool APM2_pilot_init( string output_path, pyPropertyNode *config );
 bool APM2_pilot_update();
 void APM2_pilot_close();
 

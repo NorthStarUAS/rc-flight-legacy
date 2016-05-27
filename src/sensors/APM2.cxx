@@ -111,6 +111,8 @@ static uint16_t act_rates[NUM_ACTUATORS] = { 50, 50, 50, 50, 50, 50, 50, 50 };
 
 static double pilot_in_timestamp = 0.0;
 static uint16_t pilot_input[NUM_PILOT_INPUTS]; // internal stash
+static string pilot_mapping[NUM_PILOT_INPUTS]; // channel->name mapping
+static bool pilot_symmetric[NUM_PILOT_INPUTS]; // normalization symmetry flag
 
 static double imu_timestamp = 0.0;
 static int16_t imu_sensors[NUM_IMU_SENSORS];
@@ -680,12 +682,25 @@ bool APM2_airdata_init( string output_path ) {
 }
 
 
-bool APM2_pilot_init( string output_path ) {
+bool APM2_pilot_init( string output_path, pyPropertyNode *config ) {
     if ( ! APM2_open() ) {
 	return false;
     }
 
     bind_pilot_controls( output_path );
+
+    if ( config->hasChild("channel") ) {
+	for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
+	    pilot_mapping[i] = config->getString("channel", i);
+	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
+	}
+    }
+    if ( config->hasChild("symmetric") ) {
+	for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
+	    pilot_symmetric[i] = config->getBool("symmetric", i);
+	    printf("pilot input: channel %d symmetry %d\n", i, pilot_symmetric[i]);
+	}
+    }
 
     return true;
 }
@@ -1743,30 +1758,11 @@ bool APM2_pilot_update() {
 
     pilot_node.setDouble( "timestamp", pilot_in_timestamp );
 
-    val = normalize_pulse( pilot_input[0], true );
-    pilot_node.setDouble( "aileron", val );
-
-    val = normalize_pulse( pilot_input[1], true );
-    pilot_node.setDouble( "elevator", val );
-
-    val = normalize_pulse( pilot_input[2], false );
-    pilot_node.setDouble( "throttle", val );
-
-    val = normalize_pulse( pilot_input[3], true );
-    pilot_node.setDouble( "rudder", val );
-
-    val = normalize_pulse( pilot_input[4], true );
-    pilot_node.setDouble( "channel", 4, val );
-
-    val = normalize_pulse( pilot_input[5], false );
-    pilot_node.setDouble( "flaps", val );
-
-    val = normalize_pulse( pilot_input[6], true );
-    pilot_node.setDouble( "channel", 6, val );
-
-    val = normalize_pulse( pilot_input[7], true );
-    pilot_node.setDouble( "channel", 7, val );
-    pilot_node.setBool( "manual", (val > 0) );
+    for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
+	val = normalize_pulse( pilot_input[i], pilot_symmetric[i] );
+	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
+	pilot_node.setDouble( "channel", i, val );
+    }
 
     return true;
 }

@@ -76,7 +76,7 @@ void PilotInput_init() {
 	if ( source == "null" ) {
 	    // do nothing
 	} else if ( source == "APM2" ) {
-	    APM2_pilot_init( output_path.str() );
+	    APM2_pilot_init( output_path.str(), &section );
 	} else if ( source == "fgfs" ) {
 	    fgfs_pilot_init( output_path.str(), &section );
 	} else if ( source == "Goldy2" ) {

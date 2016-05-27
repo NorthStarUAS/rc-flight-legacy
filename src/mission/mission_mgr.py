@@ -13,6 +13,7 @@ import task.lost_link
 import task.preflight
 import task.recalibrate
 import task.route
+import task.switches
 import task.throttle_safety
 
 import mission.greatcircle
@@ -56,6 +57,8 @@ class MissionMgr:
             result = task.recalibrate.Recalibrate(config_node)
         elif task_name == 'route':
             result = task.route.Route(config_node)
+        elif task_name == 'switches':
+            result = task.switches.Switches(config_node)
         elif task_name == 'throttle_safety':
             result = task.throttle_safety.ThrottleSafety(config_node)
         else:

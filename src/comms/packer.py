@@ -60,7 +60,7 @@ act_v2_size = struct.calcsize(act_v2_fmt)
 pilot_nodes = []
 pilot_v1_fmt = "<dhhHhhhhhB"
 pilot_v1_size = struct.calcsize(pilot_v1_fmt)
-pilot_v2_fmt = "<BdhhHhBhhhB"
+pilot_v2_fmt = "<BdhhhhhhhhB"
 pilot_v2_size = struct.calcsize(pilot_v2_fmt)
 
 status_node = getNode("/status", True)
@@ -586,11 +586,11 @@ def pack_pilot_v2(index):
     buf = struct.pack(pilot_v2_fmt,
                       index,
                       node.getFloat("timestamp"),
-                      int(node.getFloat("aileron") * 20000),
-                      int(node.getFloat("elevator") * 20000),
-                      int(node.getFloat("throttle") * 60000),
-                      int(node.getFloat("rudder") * 20000),
-                      int(node.getBool("manual")),
+                      int(node.getFloatEnum("channel", 0) * 20000),
+                      int(node.getFloatEnum("channel", 1) * 20000),
+                      int(node.getFloatEnum("channel", 2) * 20000),
+                      int(node.getFloatEnum("channel", 3) * 20000),
+                      int(node.getFloatEnum("channel", 4) * 20000),
                       int(node.getFloatEnum("channel", 5) * 20000),
                       int(node.getFloatEnum("channel", 6) * 20000),
                       int(node.getFloatEnum("channel", 7) * 20000),
@@ -600,11 +600,11 @@ def pack_pilot_v2(index):
 def pack_pilot_text(index, delim=','):
     pilot_node = getNode('/sensors/pilot_input[%d]' % index, True)
     data = [ '%.3f' % pilot_node.getFloat('timestamp'),
-	     '%.3f' % pilot_node.getFloat('aileron'),
-	     '%.3f' % pilot_node.getFloat('elevator'),
-	     '%.3f' % pilot_node.getFloat('throttle'),
-	     '%.3f' % pilot_node.getFloat('rudder'),
-	     '%d' % pilot_node.getBool('manual'),
+	     '%.3f' % pilot_node.getFloatEnum('channel', 0),
+	     '%.3f' % pilot_node.getFloatEnum('channel', 1),
+	     '%.3f' % pilot_node.getFloatEnum('channel', 2),
+	     '%.3f' % pilot_node.getFloatEnum('channel', 3),
+	     '%.3f' % pilot_node.getFloatEnum('channel', 4),
 	     '%.3f' % pilot_node.getFloatEnum('channel', 5),
 	     '%.3f' % pilot_node.getFloatEnum('channel', 6),
 	     '%.3f' % pilot_node.getFloatEnum('channel', 7),
@@ -649,11 +649,11 @@ def unpack_pilot_v2(buf):
     node = pilot_nodes[index]
 
     node.setFloat("timestamp", result[1])
-    node.setFloat("aileron", result[2] / 20000.0)
-    node.setFloat("elevator", result[3] / 20000.0)
-    node.setFloat("throttle", result[4] / 60000.0)
-    node.setFloat("rudder", result[5] / 20000.0)
-    node.setBool("manual", result[6])
+    node.setFloatEnum("channel", 0, result[2] / 20000.0)
+    node.setFloatEnum("channel", 1, result[3] / 20000.0)
+    node.setFloatEnum("channel", 2, result[4] / 20000.0)
+    node.setFloatEnum("channel", 3, result[5] / 20000.0)
+    node.setFloatEnum("channel", 4, result[6] / 20000.0)
     node.setFloatEnum("channel", 5, result[7] / 20000.0)
     node.setFloatEnum("channel", 6, result[8] / 20000.0)
     node.setFloatEnum("channel", 7, result[9] / 20000.0)
