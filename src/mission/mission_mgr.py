@@ -3,6 +3,7 @@ from props import root, getNode
 import comms.events
 
 import task.is_airborne
+import task.chirp
 import task.circle
 import task.flaps_mgr
 import task.home_mgr
@@ -37,6 +38,8 @@ class MissionMgr:
         print "  make_task():", task_name
         if task_name == 'is_airborne':
             result = task.is_airborne.IsAirborne(config_node)
+        elif task_name == 'chirp':
+            result = task.chirp.Chirp(config_node)
         elif task_name == 'circle':
             result = task.circle.Circle(config_node)
         elif task_name == 'flaps_manager':
