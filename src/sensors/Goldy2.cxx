@@ -29,6 +29,14 @@ static int port = 0;
 static int gps_fix_value = 0;
 static const int rcin_channels = 16;
 static uint16_t rcin[rcin_channels];
+static string pilot_mapping[rcin_channels]; // channel->name mapping
+static bool pilot_symmetric[rcin_channels]; // normalization symmetry flag
+
+#define SBUS_CENTER 992
+#define SBUS_HALF_RANGE 820
+#define SBUS_RANGE (SBUS_HALF_RANGE * 2)
+#define SBUS_MIN (SBUS_CENTER - SBUS_HALF_RANGE)
+#define SBUS_MAX (SBUS_CENTER + SBUS_HALF_RANGE)
 
 static pyPropertyNode imu_node;
 static pyPropertyNode gps_node;
@@ -179,12 +187,25 @@ bool goldy2_gps_init( string output_path  ) {
     return true;
 }
 
-bool goldy2_pilot_init( string output_path ) {
+bool goldy2_pilot_init( string output_path, pyPropertyNode *config ) {
     if ( ! goldy2_init() ) {
         return false;
     }
 
     bind_pilot_controls( output_path );
+    
+    if ( config->hasChild("channel") ) {
+	for ( int i = 0; i < rcin_channels; i++ ) {
+	    pilot_mapping[i] = config->getString("channel", i);
+	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
+	}
+    }
+    if ( config->hasChild("symmetric") ) {
+	for ( int i = 0; i < rcin_channels; i++ ) {
+	    pilot_symmetric[i] = config->getBool("symmetric", i);
+	    printf("pilot input: channel %d symmetry %d\n", i, pilot_symmetric[i]);
+	}
+    }
 
     return true;
 }
@@ -747,31 +768,44 @@ bool goldy2_gps_update() {
     }
 }
 
-bool goldy2_pilot_update() {
-    double default_val = 992;
-    for ( int i = 0; i < rcin_channels; i++ ) {
-        if ( i == 0 ) {
-	    default_val = 1812;
-        } else if ( i == 1 ) {
-            default_val = 172;
-  	} else {
-	    default_val = 992;
- 	}
-        if ( rcin[i] < 172 ) { rcin[i] = default_val; }
-        if ( rcin[i] > 1812 ) { rcin[i] = default_val; }
-	pilot_node.setDouble( "channel", i, (rcin[i] - 992.0) / 820.0 );
-    }
-    pilot_node.setDouble( "timestamp", get_Time() );
-    pilot_node.setDouble( "throttle", (rcin[1] - 172.0) / 1640.0);
-    pilot_node.setDouble( "aileron", (rcin[2] - 992.0) / 820.0);
-    pilot_node.setDouble( "elevator", (rcin[3] - 992.0) / 820.0);
-    pilot_node.setDouble( "rudder", (rcin[4] - 992.0) / 820.0);
-    if ( rcin[0] < 992 ) {
-        pilot_node.setBool("manual", false);
+// convert a sbus pulse length to a normalize [-1 to 1] or [0 to 1] range
+static float normalize_pulse( int pulse, bool symmetrical ) {
+    float result = 0.0;
+
+    if ( symmetrical ) {
+	// i.e. aileron, rudder, elevator
+	result = (pulse - SBUS_CENTER) / (float)SBUS_HALF_RANGE;
+	if ( result < -1.0 ) { result = -1.0; }
+	if ( result > 1.0 ) { result = 1.0; }
     } else {
-        pilot_node.setBool("manual", true);
+	// i.e. throttle
+	result = (pulse - SBUS_MIN) / (float)SBUS_RANGE;
+	if ( result < 0.0 ) { result = 0.0; }
+	if ( result > 1.0 ) { result = 1.0; }
     }
-    pilot_node.setLong("status", 1);
+
+    return result;
+}
+
+bool goldy2_pilot_update() {
+    pilot_node.setDouble( "timestamp", get_Time() );
+    float default_val = SBUS_CENTER;
+    for ( int i = 0; i < rcin_channels; i++ ) {
+	if ( i == 0 ) {
+	    // special case autopilot master switch on ch1
+	    default_val = SBUS_MAX;
+	} else if ( pilot_symmetric[i] ) {
+	    default_val = SBUS_CENTER;
+	} else {
+	    default_val = SBUS_MIN;
+	}
+        if ( rcin[i] < SBUS_MIN ) { rcin[i] = default_val; }
+        if ( rcin[i] > SBUS_MAX ) { rcin[i] = default_val; }
+	float val = normalize_pulse( rcin[i], pilot_symmetric[i] );
+	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
+	pilot_node.setDouble( "channel", i, val );
+    }
+
     return true;
 }
 

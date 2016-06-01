@@ -30,7 +30,7 @@ bool goldy2_airdata_init( string output_path );
 bool goldy2_airdata_update();
 void goldy2_airdata_close();
 
-bool goldy2_pilot_init( string output_path );
+bool goldy2_pilot_init( string output_path, pyPropertyNode *config );
 bool goldy2_pilot_update();
 void goldy2_pilot_close();
 
