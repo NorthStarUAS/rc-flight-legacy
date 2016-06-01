@@ -44,6 +44,7 @@ static pyPropertyNode engine_node;
 static pyPropertyNode acts_node;
 static pyPropertyNode act_node;
 static pyPropertyNode ap_node;
+static pyPropertyNode chirp_node;
 static vector<pyPropertyNode> sections;
 
 static myprofile debug6a;
@@ -64,7 +65,8 @@ void Actuator_init() {
 #define NUM_ACTUATORS 8
     act_node.setLen("channel", NUM_ACTUATORS, 0.0);
     ap_node = pyGetNode("/autopilot", true);
-
+    chirp_node = pyGetNode("/task/chirp", true);
+    
     pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
     pyPropertyNode logging_node = pyGetNode("/config/logging", true);
     remote_link_skip = remote_link_node.getDouble("actuator_skip");
@@ -102,17 +104,28 @@ void Actuator_init() {
 
 
 static void set_actuator_values_ap() {
+    double chirp_val = 0.0;
+    string chirp_inject = "";
+    if ( chirp_node.getBool("running") ) {
+	chirp_val = chirp_node.getDouble("chirp_val");
+	chirp_inject = chirp_node.getString("inject");
+    }
+    
     float aileron = flight_node.getDouble("aileron");
+    if ( chirp_inject == "aileron" ) { aileron += chirp_val; }
     act_node.setDouble( "channel", 0, aileron );
 
     float elevator = flight_node.getDouble("elevator");
+    if ( chirp_inject == "elevator" ) { elevator += chirp_val; }
     act_node.setDouble( "channel", 1, elevator );
 
     // rudder
     float rudder = flight_node.getDouble("rudder");
+    if ( chirp_inject == "rudder" ) { rudder += chirp_val; }
     act_node.setDouble( "channel", 3, rudder );
 
     double flaps = flight_node.getDouble("flaps");
+    if ( chirp_inject == "flaps" ) { flaps += chirp_val; }
     act_node.setDouble("channel", 5, flaps );
 
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
@@ -172,6 +185,7 @@ static void set_actuator_values_ap() {
     // throttle
 
     double throttle = engine_node.getDouble("throttle");
+    if ( chirp_inject == "throttle" ) { throttle += chirp_val; }
     act_node.setDouble("channel", 2, throttle );
 
     static bool sas_throttle_override = false;
