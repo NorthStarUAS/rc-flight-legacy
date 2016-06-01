@@ -75,6 +75,10 @@ class Chirp(Task):
             comms.events.log("chirp", "start freq %.2f rad/sec" % self.freq_start)
             comms.events.log("chirp", "amplitude %.2f deg" % self.amplitude)
 
+        if not trigger and self.last_trigger:
+            comms.events.log("chirp", "aborted by operator")
+            self.running = False
+            
         cur_time = self.imu_node.getFloat("timestamp")
         if cur_time > self.start_time + self.dur_sec and self.running:
             comms.events.log("chirp", "end freq %.2f rad/sec" % self.freq_end)

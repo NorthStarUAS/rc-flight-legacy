@@ -31,6 +31,7 @@ static const int rcin_channels = 16;
 static uint16_t rcin[rcin_channels];
 static string pilot_mapping[rcin_channels]; // channel->name mapping
 static bool pilot_symmetric[rcin_channels]; // normalization symmetry flag
+static bool pilot_invert[rcin_channels];    // invert input flag
 
 #define SBUS_CENTER 992
 #define SBUS_HALF_RANGE 820
@@ -204,6 +205,12 @@ bool goldy2_pilot_init( string output_path, pyPropertyNode *config ) {
 	for ( int i = 0; i < rcin_channels; i++ ) {
 	    pilot_symmetric[i] = config->getBool("symmetric", i);
 	    printf("pilot input: channel %d symmetry %d\n", i, pilot_symmetric[i]);
+	}
+    }
+    if ( config->hasChild("invert") ) {
+	for ( int i = 0; i < rcin_channels; i++ ) {
+	    pilot_invert[i] = config->getBool("invert", i);
+	    printf("pilot input: channel %d invert %d\n", i, pilot_invert[i]);
 	}
     }
 
@@ -802,6 +809,13 @@ bool goldy2_pilot_update() {
         if ( rcin[i] < SBUS_MIN ) { rcin[i] = default_val; }
         if ( rcin[i] > SBUS_MAX ) { rcin[i] = default_val; }
 	float val = normalize_pulse( rcin[i], pilot_symmetric[i] );
+	if ( pilot_invert[i] ) {
+	    if ( pilot_symmetric[i] ) {
+		val *= -1.0;
+	    } else {
+		val = 1.0 - val;
+	    }
+	}
 	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
 	pilot_node.setDouble( "channel", i, val );
     }
