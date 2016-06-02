@@ -172,63 +172,68 @@ print "Distance flown: %.2f nm (%.2f km)" % (status_node.getFloat('flight_odomet
 print "Battery Usage: %.0f mah" % apm2_node.getInt("extern_current_mah")
 print
 
+apikey = None
 try:
     from os.path import expanduser
     home = expanduser("~")
     f = open(home + '/.forecastio')
     apikey = f.read().rstrip()
-    print 'your forecast.io apikey:', apikey
 except:
     print "you must sign up for a free apikey at forecast.io and insert it as a single line inside a file called ~/.forecastio (with no other text in the file)"
-print
 
-#utc = datetime.timezone(0)
-d = datetime.datetime.utcfromtimestamp(sec)
-print d.strftime("%Y-%m-%d-%H:%M:%S")
+if not apikey:
+    print "Cannot lookup weather because no forecastio apikey found."
+elif sec < 1:
+    print "Cannot lookup weather because gps didn't report unix time."
+else:
+    print
+    #utc = datetime.timezone(0)
+    d = datetime.datetime.utcfromtimestamp(sec)
+    print d.strftime("%Y-%m-%d-%H:%M:%S")
 
-url = 'https://api.forecast.io/forecast/' + apikey + '/%.8f,%.8f,%.d' % (lat, lon, sec)
+    url = 'https://api.forecast.io/forecast/' + apikey + '/%.8f,%.8f,%.d' % (lat, lon, sec)
 
-import urllib, json
-response = urllib.urlopen(url)
-data = json.loads(response.read())
-mph2kt = 0.868976
-mb2inhg = 0.0295299830714
-if 'currently' in data:
-    currently = data['currently']
-    #for key in currently:
-    #    print key, ':', currently[key]
-    if 'icon' in currently:
-        icon = currently['icon']
-        print 'Summary:', icon
-    if 'temperature' in currently:
-        tempF = currently['temperature']
-        tempC = (tempF - 32.0) * 5 / 9
-        print 'Temp:', '%.1f F' % tempF, '(%.1f C)' % tempC
-    if 'dewPoint' in currently:
-        tempF = currently['dewPoint']
-        tempC = (tempF - 32.0) * 5 / 9
-        print 'Dewpoint:', '%.1f F' % tempF, '(%.1f C)' % tempC
-    if 'humidity' in currently:
-        hum = currently['humidity']
-        print 'Humidity:', '%.0f%%' % (hum * 100.0)
-    if 'pressure' in currently:
-        mbar = currently['pressure']
-        inhg = mbar * mb2inhg
-        print 'Pressure:', '%.2f inhg' % inhg, '(%.1f mbar)' % mbar
-    if 'windSpeed' in currently:
-        wind_mph = currently['windSpeed']
-        wind_kts = wind_mph * mph2kt
-    else:
-        wind_mph = 0
-        wind_kts = 0
-    if 'windBearing' in currently:
-        wind_deg = currently['windBearing']
-    else:
-        wind_deg = 0
-    print "Wind %d deg @ %.1f kt (%.1f mph) @ " % (wind_deg, wind_kts, wind_mph, )
-    if 'visibility' in currently:
-        vis = currently['visibility']
-        print 'Visibility:', '%.1f miles' % vis
-    if 'cloudCover' in currently:
-        cov = currently['cloudCover']
-        print 'Cloud Cover:', '%.0f%%' % (cov * 100.0)
+    import urllib, json
+    response = urllib.urlopen(url)
+    data = json.loads(response.read())
+    mph2kt = 0.868976
+    mb2inhg = 0.0295299830714
+    if 'currently' in data:
+        currently = data['currently']
+        #for key in currently:
+        #    print key, ':', currently[key]
+        if 'icon' in currently:
+            icon = currently['icon']
+            print 'Summary:', icon
+        if 'temperature' in currently:
+            tempF = currently['temperature']
+            tempC = (tempF - 32.0) * 5 / 9
+            print 'Temp:', '%.1f F' % tempF, '(%.1f C)' % tempC
+        if 'dewPoint' in currently:
+            tempF = currently['dewPoint']
+            tempC = (tempF - 32.0) * 5 / 9
+            print 'Dewpoint:', '%.1f F' % tempF, '(%.1f C)' % tempC
+        if 'humidity' in currently:
+            hum = currently['humidity']
+            print 'Humidity:', '%.0f%%' % (hum * 100.0)
+        if 'pressure' in currently:
+            mbar = currently['pressure']
+            inhg = mbar * mb2inhg
+            print 'Pressure:', '%.2f inhg' % inhg, '(%.1f mbar)' % mbar
+        if 'windSpeed' in currently:
+            wind_mph = currently['windSpeed']
+            wind_kts = wind_mph * mph2kt
+        else:
+            wind_mph = 0
+            wind_kts = 0
+        if 'windBearing' in currently:
+            wind_deg = currently['windBearing']
+        else:
+            wind_deg = 0
+        print "Wind %d deg @ %.1f kt (%.1f mph) @ " % (wind_deg, wind_kts, wind_mph, )
+        if 'visibility' in currently:
+            vis = currently['visibility']
+            print 'Visibility:', '%.1f miles' % vis
+        if 'cloudCover' in currently:
+            cov = currently['cloudCover']
+            print 'Cloud Cover:', '%.0f%%' % (cov * 100.0)
