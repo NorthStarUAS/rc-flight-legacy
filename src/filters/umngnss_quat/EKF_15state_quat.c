@@ -73,6 +73,9 @@ static double quat[4];
 static double denom, Re, Rn;
 static double tprev;
 
+/* configuration choices */
+int internal_gyro_cal = 0;
+
 
 void init_nav( struct imu *imuData_ptr, // imu structure (in)
 	       struct gps *gpsData_ptr, // gps structure (in)
@@ -189,9 +192,11 @@ void init_nav( struct imu *imuData_ptr, // imu structure (in)
     navData_ptr->ab[1] = 0.0; 
     navData_ptr->ab[2] = 0.0;
 	
-    navData_ptr->gb[0] = imuData_ptr->p;
-    navData_ptr->gb[1] = imuData_ptr->q;
-    navData_ptr->gb[2] = imuData_ptr->r;
+    if ( internal_gyro_cal ) {
+	navData_ptr->gb[0] = imuData_ptr->p;
+	navData_ptr->gb[1] = imuData_ptr->q;
+	navData_ptr->gb[2] = imuData_ptr->r;
+    }
 	
     // Specific forces and Rotation Rate
     f_b[0][0] = imuData_ptr->ax - navData_ptr->ab[0];
