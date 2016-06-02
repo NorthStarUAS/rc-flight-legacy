@@ -32,7 +32,7 @@ class PlotFields():
         return 1
 
 class Component():
-    def __init__(self, index, changefunc, host="localhost", port=6499, type="full"):
+    def __init__(self, index, changefunc, host="localhost", port=6499, type="pid"):
         self.index = index
         self.changefunc = changefunc
         self.host = host
@@ -74,7 +74,11 @@ class Component():
         self.edit_Kp.setFixedWidth(350)
         self.edit_Kp.textChanged.connect(self.onChange)
 
-        if self.type == "full":
+        if self.type == "pid":
+            self.edit_Ki = QtGui.QLineEdit()
+            self.edit_Ki.setFixedWidth(350)
+            self.edit_Ki.textChanged.connect(self.onChange)
+        elif self.type == "vel":
             self.edit_beta = QtGui.QLineEdit()
             self.edit_beta.setFixedWidth(350)
             self.edit_beta.textChanged.connect(self.onChange)
@@ -90,10 +94,6 @@ class Component():
             self.edit_Td = QtGui.QLineEdit()
             self.edit_Td.setFixedWidth(350)
             self.edit_Td.textChanged.connect(self.onChange)
-        else:
-            self.edit_Ki = QtGui.QLineEdit()
-            self.edit_Ki.setFixedWidth(350)
-            self.edit_Ki.textChanged.connect(self.onChange)
  
         self.edit_min = QtGui.QLineEdit()
         self.edit_min.setFixedWidth(350)
@@ -108,14 +108,14 @@ class Component():
         layout.addRow( "<b>Reference Prop:</b>", self.edit_ref )
         layout.addRow( "<b>Output Prop:</b>", self.edit_output )
         layout.addRow( "<b>Kp (global gain):</b>", self.edit_Kp )
-        if self.type == "full":
+        if self.type == "pid":
+            layout.addRow( "<b>Ki (integrator gain):</b>", self.edit_Ki )
+        elif self.type == "vel":
             layout.addRow( "<b>beta (input weight):</b>", self.edit_beta )
             layout.addRow( "<b>alpha (low pass filter):</b>", self.edit_alpha )
             layout.addRow( "<b>gamma:</b>", self.edit_gamma )
             layout.addRow( "<b>Ti (integrator time gain):</b>", self.edit_Ti )
             layout.addRow( "<b>Td (derivative time gain):</b>", self.edit_Td )
-        else:
-            layout.addRow( "<b>Ki (integrator gain):</b>", self.edit_Ki )
         layout.addRow( "<b>min (output limit):</b>", self.edit_min )
         layout.addRow( "<b>max (output limit):</b>", self.edit_max )
 
@@ -174,14 +174,14 @@ class Component():
         tmp = self.get_node('config')
         if tmp != None:
             self.edit_Kp.setText(self.get_value('Kp', parent=tmp))
-            if self.type == "full":
+            if self.type == "pid":
+                self.edit_Ki.setText(self.get_value('Ki', parent=tmp))
+            elif self.type == "vel":
                 self.edit_beta.setText(self.get_value('beta', parent=tmp))
                 self.edit_alpha.setText(self.get_value('alpha', parent=tmp))
                 self.edit_gamma.setText(self.get_value('gamma', parent=tmp))
                 self.edit_Ti.setText(self.get_value('Ti', parent=tmp))
                 self.edit_Td.setText(self.get_value('Td', parent=tmp))
-            else:
-                self.edit_Ki.setText(self.get_value('Ki', parent=tmp))
             self.edit_min.setText(self.get_value('u_min', parent=tmp))
             self.edit_max.setText(self.get_value('u_max', parent=tmp))
         self.original_values = self.value_array()
@@ -191,14 +191,14 @@ class Component():
         if tmp != None:
             result = []
             result.append( str(self.edit_Kp.text()) )
-            if self.type == "full":
+            if self.type == "pid":
+                result.append( str(self.edit_Ki.text()) )
+            elif self.type == "vel":
                 result.append( str(self.edit_beta.text()) )
                 result.append( str(self.edit_alpha.text()) )
                 result.append( str(self.edit_gamma.text()) )
                 result.append( str(self.edit_Ti.text()) )
                 result.append( str(self.edit_Td.text()) )
-            else:
-                result.append( str(self.edit_Ki.text()) )
             result.append( str(self.edit_min.text()) )
             result.append( str(self.edit_max.text()) )
             return result
@@ -219,7 +219,12 @@ class Component():
 
     def revert(self):
         # revert form
-        if self.type == "full":
+        if self.type == "pid":
+            self.edit_Kp.setText(self.original_values[0])
+            self.edit_Ki.setText(self.original_values[1])
+            self.edit_min.setText(self.original_values[2])
+            self.edit_max.setText(self.original_values[3])
+        elif self.type == "vel":
             self.edit_Kp.setText(self.original_values[0])
             self.edit_beta.setText(self.original_values[1])
             self.edit_alpha.setText(self.original_values[2])
@@ -228,11 +233,6 @@ class Component():
             self.edit_Td.setText(self.original_values[5])
             self.edit_min.setText(self.original_values[6])
             self.edit_max.setText(self.original_values[7])
-        else:
-            self.edit_Kp.setText(self.original_values[0])
-            self.edit_Ki.setText(self.original_values[1])
-            self.edit_min.setText(self.original_values[2])
-            self.edit_max.setText(self.original_values[3])
         # send original values to remote
         command = "fcs-update " + str(self.index)
         for value in self.original_values:

@@ -41,6 +41,10 @@ class DataFetcher():
     def update(self):
         self.t.send("fcs all")
         result = self.t.receive()
+        print "result '%s'" % result
+        if result == 'Valid commands are:':
+            print "fcs all not supported by remote server"
+            return    
         tokens = map(float, result.split(','))
         if tokens[3] < 0.0:
             tokens[3] += 360.0
@@ -150,10 +154,23 @@ class Tuner(QtGui.QWidget):
 
         # PID controller parameters
         for i,pid_node in enumerate(root.findall('component')):
-            print "component found..."
-            pid = Component(index=i, changefunc=self.onChange, host=host, port=port, type="full") # vs "simple"
+            e = pid_node.find('module')
+            if e != None and e.text != None:
+                comp_type = e.text
+            else:
+                comp_type = 'unknown'
+            print "component found:", comp_type
+            if comp_type == 'pi_simple_controller':
+                pid = Component(index=i, changefunc=self.onChange, host=host,
+                                port=port, type="pid")
+            elif comp_type == 'pid_controller':
+                pid = Component(index=i, changefunc=self.onChange, host=host,
+                                port=port, type="pid")
+            else:
+                print "unknown ..."
+                next
             pid.parse_xml(pid_node)
-            self.component.append(pid)
+            self.components.append(pid)
             self.tabs.addTab( pid.get_widget(), pid.get_name() )
 
     def save(self):
@@ -183,9 +200,9 @@ def usage():
 
 def main():
     host = "localhost"
-    #port = 6499
+    port = 6499
     #host = "192.168.1.64"
-    port = 5050
+    #port = 5050
 
     app = QtGui.QApplication(sys.argv)
     filename = ""
