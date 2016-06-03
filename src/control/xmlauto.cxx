@@ -311,6 +311,7 @@ FGPISimpleController::FGPISimpleController( string config_path ):
     iterm( 0.0 ),
     clamp( false ),
     y_n( 0.0 ),
+    y_n_1( 0.0 ),
     r_n( 0.0 )
 {
     size_t pos;
@@ -389,8 +390,7 @@ void FGPISimpleController::update( double dt ) {
 
     bool debug = component_node.getBool("debug");
     if ( debug ) printf("Updating %s\n", get_name().c_str());
-    double input = 0.0;
-    input = input_node.getDouble(input_attr.c_str());
+    y_n = input_node.getDouble(input_attr.c_str());
 
     double r_n = 0.0;
     if ( ref_value != "" ) {
@@ -400,25 +400,41 @@ void FGPISimpleController::update( double dt ) {
 	r_n = ref_node.getDouble(ref_attr.c_str());
     }
                       
-    double error = r_n - input;
+    double error = r_n - y_n;
     if ( debug ) printf("input = %.3f reference = %.3f error = %.3f\n",
-			input, r_n, error);
+			y_n, r_n, error);
 
     double u_min = config_node.getDouble("u_min");
     double u_max = config_node.getDouble("u_max");
 
-    double pterm = error * config_node.getDouble("Kp");
+    double Kp = config_node.getDouble("Kp");
+    double Ti = config_node.getDouble("Ti");
+    double Td = config_node.getDouble("Td");
+    double Ki = 0.0;
+    if ( Ti > 0.0001 ) {
+	Ki = Kp / Ti;
+    }
+    double Kd = Kp * Td;
+    
+    double pterm = Kp * error;
 
-    double i_comp = error * config_node.getDouble("Ki") * dt;
-    double pre_iterm = iterm + i_comp;
-    double pre_output = pterm + pre_iterm;
+    double i_comp = Ki * error * dt;
+    double pre_output = pterm + iterm + i_comp;
 
     // test for non-saturation before updating the integrator
     if ( pre_output > u_min && pre_output < u_max ) {
 	iterm += i_comp;
     }
 
-    double output = pterm + iterm;
+    // derivative term: observe that dError/dt = -dInput/dt (except
+    // when the setpoint changes (which we don't want to react to
+    // anyway.)  This approach avoids "derivative kick" when the set
+    // point changes.
+    double dy = y_n - y_n_1;
+    y_n_1 = y_n;
+    double dterm = Kd * -dy / dt;
+    
+    double output = pterm + iterm + dterm;
     if ( output < u_min ) { output = u_min; }
     if ( output > u_max ) { output = u_max; }
 
