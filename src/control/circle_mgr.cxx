@@ -126,6 +126,8 @@ bool AuraCircleMgr::update() {
     double course_error = orient_node.getDouble("groundtrack_deg") - target_crs;
     if ( course_error < -180.0 ) { course_error += 360.0; }
     if ( course_error >  180.0 ) { course_error -= 360.0; }
+    targets_node.setDouble( "course_error_deg", course_error );
+    
     // accel: is the lateral acceleration we need to compensate for
     // heading error
     double accel = 2.0 * sin(course_error * SG_DEGREES_TO_RADIANS) * VomegaA;

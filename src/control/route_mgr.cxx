@@ -313,6 +313,7 @@ void FGRouteMgr::update() {
 		- targets_node.getDouble("groundtrack_deg");
 	    if ( course_error < -180.0 ) { course_error += 360.0; }
 	    if ( course_error >  180.0 ) { course_error -= 360.0; }
+	    targets_node.setDouble( "course_error_deg", course_error );
 
 	    double accel = 2.0 * sin(course_error * SG_DEGREES_TO_RADIANS) * VomegaA;
 	    // double accel = 2.0 * gs_mps * gs_mps * sin(course_error * SG_DEGREES_TO_RADIANS) / L1;
