@@ -22,6 +22,18 @@ Network config: (required before beaglebone dns lookups will actually work)
 -> Firewall Zone -> trusted
 
 
+# Beaglebone 7.9 (wheezy) setup:
+
+- /boot/uEnv.txt:
+
+    cmdline=init=/lib/systemd/systemd
+    cape_enable=capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
+    cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
+
+- apt-get update
+  apt-get upgrade
+- apt-get install telnet minicom python-lxml libeigen3-dev
+
 # Extra beaglebone packages to install (after flashing jessie
   'console' 2gb image)
 

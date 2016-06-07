@@ -129,7 +129,8 @@ private:
     bool clamp;
 
     // Input values
-    double y_n;                 // measured process value
+    double y_n;                 // measured process value (input)
+    double y_n_1;		// previous process value (input)
     double r_n;                 // reference (set point) value
 
 public:

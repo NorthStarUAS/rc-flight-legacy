@@ -133,6 +133,10 @@ bool AuraCircleMgr::update() {
     double accel = 2.0 * sin(course_error * SG_DEGREES_TO_RADIANS) * VomegaA;
     // double accel = 2.0 * gs_mps * gs_mps * sin(course_error * SG_DEGREES_TO_RADIANS) / L1;
 
+    // printf("debug: %.5f\t%.5f\t%.5f\n", orient_node.getDouble("groundtrack_deg"), target_crs, course_error);
+    
+    // printf("debug: %.5f\t%.5f\t%.5f\n", course_error, VomegaA, accel);
+    
     // ideal_accel: the steady state lateral accel we would expect
     // when we are in the groove exactly on our target radius
     // double ideal_accel = direction * gs_mps * gs_mps / radius_m;
@@ -153,6 +157,8 @@ bool AuraCircleMgr::update() {
     double target_bank = -atan( total_accel / gravity );
     double target_bank_deg = target_bank * SG_RADIANS_TO_DEGREES;
 
+    // printf("debug: %.6f\t%.6f\t%.5f\n", accel, turn_accel, target_bank_deg);
+    
     double bank_limit_deg = L1_node.getDouble("bank_limit_deg");
     if ( target_bank_deg < -bank_limit_deg ) {
 	target_bank_deg = -bank_limit_deg;
