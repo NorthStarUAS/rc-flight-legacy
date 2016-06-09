@@ -447,7 +447,6 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    gps_time.tm_year = year - 1900;
 	    double unix_sec = (double)mktime( &gps_time );
 	    unix_sec += nano / 1000000000.0;
-	    printf("gps->unix time = %.2f\n", unix_sec);
 	    gps_node.setDouble( "unix_time_sec", unix_sec );
 	    gps_node.setDouble( "time_accuracy_ns", tAcc );
 	    
