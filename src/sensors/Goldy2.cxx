@@ -370,6 +370,102 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    }
 #endif
 	}
+    } else if ( msg_class == 0x01 && msg_id == 0x07 ) {
+	// NAV-PVT
+	my_swap( payload, 0, 4);
+	my_swap( payload, 4, 2);
+	my_swap( payload, 12, 4);
+	my_swap( payload, 16, 4);
+	my_swap( payload, 24, 4);
+	my_swap( payload, 28, 4);
+	my_swap( payload, 32, 4);
+	my_swap( payload, 36, 4);
+	my_swap( payload, 40, 4);
+	my_swap( payload, 44, 4);
+	my_swap( payload, 48, 4);
+	my_swap( payload, 52, 4);
+	my_swap( payload, 56, 4);
+	my_swap( payload, 60, 4);
+	my_swap( payload, 64, 4);
+	my_swap( payload, 68, 4);
+	my_swap( payload, 72, 4);
+	my_swap( payload, 76, 2);
+	my_swap( payload, 78, 2);
+	my_swap( payload, 80, 4);
+
+	uint8_t *p = payload;
+	uint32_t iTOW = *((uint32_t *)p+0);
+	int16_t year = *((uint16_t *)(p+4));
+	uint8_t month = p[6];
+	uint8_t day = p[7];
+	uint8_t hour = p[8];
+	uint8_t min = p[9];
+	uint8_t sec = p[10];
+	uint8_t valid = p[11];
+	uint32_t tAcc = *((uint32_t *)(p+12));
+	int32_t nano = *((int32_t *)(p+16));
+	uint8_t gpsFix = p[20];
+	uint8_t flags = p[21];
+	uint8_t numSV = p[23];
+	int32_t lon = *((int32_t *)(p+24));
+	int32_t lat = *((int32_t *)(p+28));
+	int32_t height = *((int32_t *)(p+32));
+	int32_t hMSL = *((int32_t *)(p+36));
+	uint32_t hAcc = *((uint32_t *)(p+40));
+	uint32_t vAcc = *((uint32_t *)(p+44));
+	int32_t velN = *((int32_t *)(p+48));
+	int32_t velE = *((int32_t *)(p+52));
+	int32_t velD = *((int32_t *)(p+56));
+	uint32_t gSpeed = *((uint32_t *)(p+60));
+	int32_t heading = *((int32_t *)(p+64));
+	uint32_t sAcc = *((uint32_t *)(p+68));
+	uint32_t headingAcc = *((uint32_t *)(p+72));
+	uint16_t pDOP = *((uint16_t *)(p+76));
+
+ 	gps_fix_value = gpsFix;
+	if ( gps_fix_value == 0 ) {
+	    gps_node.setLong( "status", 0 );
+	} else if ( gps_fix_value == 1 || gps_fix_value == 2 ) {
+	    gps_node.setLong( "status", 1 );
+	} else if ( gps_fix_value == 3 ) {
+	    gps_node.setLong( "status", 2 );
+	}
+	// printf("fix: %d lon: %.8f lat: %.8f\n", gpsFix, (float)lon, (float)lat);
+
+	if ( gpsFix == 3 ) {
+	    // gps thinks we have a good position
+ 	    new_position = true;
+
+	    gps_node.setDouble( "timestamp", get_Time() );
+
+	    struct tm gps_time;
+	    gps_time.tm_sec = sec;
+	    gps_time.tm_min = min;
+	    gps_time.tm_hour = hour;
+	    gps_time.tm_mday = day;
+	    gps_time.tm_mon = month - 1;
+	    gps_time.tm_year = year - 1900;
+	    double unix_sec = (double)mktime( &gps_time );
+	    unix_sec += nano / 1000000000.0;
+	    printf("gps->unix time = %.2f\n", unix_sec);
+	    gps_node.setDouble( "unix_time_sec", unix_sec );
+	    gps_node.setDouble( "time_accuracy_ns", tAcc );
+	    
+	    gps_node.setLong( "satellites", numSV );
+	    
+	    gps_node.setDouble( "latitude_deg", (float)lat / 10000000.0);
+	    gps_node.setDouble( "longitude_deg", (float)lon / 10000000.0);
+	    gps_node.setDouble( "altitude_m", (float)hMSL / 1000.0 );
+	    gps_node.setDouble( "vn_ms", (float)velN / 1000.0 );
+	    gps_node.setDouble( "ve_ms", (float)velE / 1000.0 );
+	    gps_node.setDouble( "vd_ms", (float)velD / 1000.0 );
+	    gps_node.setDouble( "horiz_accuracy_m", hAcc );
+	    gps_node.setDouble( "vert_accuracy_m", vAcc );
+	    gps_node.setDouble( "groundspeed_ms", gSpeed / 1000.0 );
+	    gps_node.setDouble( "groundtrack_deg", heading / 100000.0 );
+	    gps_node.setDouble( "heading_accuracy_deg", hAcc / 100000.0 );
+	    gps_node.setDouble( "pdop", pDOP / 100.0 );
+	}
    } else if ( msg_class == 0x01 && msg_id == 0x12 ) {
 	// NAV-VELNED
 	my_swap( payload, 0, 4);
