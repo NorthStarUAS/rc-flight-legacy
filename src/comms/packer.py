@@ -65,6 +65,7 @@ pilot_v2_size = struct.calcsize(pilot_v2_fmt)
 
 status_node = getNode("/status", True)
 targets_node = getNode("/autopilot/targets", True)
+task_node = getNode("/task", True)
 route_node = getNode("/task/route", True)
 active_node = getNode("/task/route/active", True)
 home_node = getNode("/task/home", True)
@@ -697,7 +698,7 @@ def pack_ap_status_v3(index):
                       int(targets_node.getFloat("pitch_deg") * 10),
                       int(targets_node.getFloat("the_dot") * 1000),
                       int(targets_node.getFloat("airspeed_kt") * 10),
-                      int(status_node.getFloat("flight_timer")),
+                      int(task_node.getFloat("flight_timer")),
                       route_node.getInt("target_waypoint_idx"),
                       wp_lon,
                       wp_lat,
