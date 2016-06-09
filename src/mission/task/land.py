@@ -52,6 +52,8 @@ class Land(Task):
             self.flare_seconds = 5.0
         if config_node.hasChild("flaps"):
             self.flaps = config_node.getFloat("flaps")
+        else:
+            self.flaps = 0.0
 
         # copy to /task/land
         self.land_node.setFloat("lateral_offset_m", self.lateral_offset_m)
