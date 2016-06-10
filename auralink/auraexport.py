@@ -150,7 +150,7 @@ if args.flight:
 else:
     print 'A flight log file must be provided'
 
-output_dir = os.path.dirname(os.path.realpath(args.flight))
+output_dir = os.path.dirname(os.path.realpath(filename))
 
 # last recorded time stamp
 filter_node = getNode('/filters/filter', True)
