@@ -55,6 +55,8 @@ static void props2umn(void) {
 	last_gps_time = gps_data.time;
 	// reset to zero by the EKF when this new data is consumed.
 	gps_data.newData = 1;
+    } else {
+	gps_data.newData = 0;
     }
 }
 

@@ -371,8 +371,6 @@ NAVdata get_nav(IMUdata imu, GPSdata gps) {
 	nav.ve = nav.ve + x(4);
 	nav.vd = nav.vd + x(5);
 		
-	// el stupido quat = Quaterniond(nav.quat[0], nav.quat[1], nav.quat[2], nav.quat[3]);
-		
 	// Attitude correction
 	dq = Quaterniond(1.0, x(6), x(7), x(8));
 	quat = (quat * dq).normalized();
