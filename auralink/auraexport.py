@@ -95,22 +95,26 @@ lat = 0.0
 sec = 0.0
 
 if args.flight:
-    filename = args.flight
-    if args.flight.endswith('.gz'):
-        (fd, filename) = tempfile.mkstemp()
-        command = 'zcat ' + args.flight + ' > ' + filename
+    if os.path.isdir(args.flight):
+        filename = os.path.join(args.flight, 'flight.dat.gz')
+    else:
+        filename = args.flight
+    print "filename:", filename
+    if filename.endswith('.gz'):
+        (fd, filetmp) = tempfile.mkstemp()
+        command = 'zcat ' + filename + ' > ' + filetmp
         print command
         os.system(command)
-    try:
+        fd = open(filetmp, 'r')
+    else:
         fd = open(filename, 'r')
-        full = fd.read()
-        if args.flight.endswith('.gz'):
-            # remove temporary file name
-            os.remove(filename)
-    except:
-        # eat the expected error
-        print 'we should be able to ignore the zcat error'
 
+    full = fd.read()
+
+    if filename.endswith('.gz'):
+        # remove temporary file name
+        os.remove(filetmp)
+        
     divs = 500
     size = len(full)
     chunk_size = size / divs
@@ -146,6 +150,8 @@ if args.flight:
 else:
     print 'A flight log file must be provided'
 
+output_dir = os.path.dirname(os.path.realpath(args.flight))
+
 # last recorded time stamp
 filter_node = getNode('/filters/filter', True)
 status_node = getNode('/status', True)
@@ -159,7 +165,8 @@ for key in sorted(data):
     else:
         rate = 0.0
     print '%-10s %5.1f/sec (%7d records)' % (key, rate, size)
-    f = open(key + '.txt', 'w')
+    filename = os.path.join(output_dir, key + ".txt")
+    f = open(filename, 'w')
     for line in data[key]:
         f.write(line + '\n')
 
