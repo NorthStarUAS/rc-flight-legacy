@@ -670,15 +670,14 @@ def pack_ap_status_v3(index):
     target_msl_ft = (ground_m + error_m) * m2ft + target_agl_ft
 
     route_size = active_node.getInt("route_size")
+    wp_lon = 0.0
+    wp_lat = 0.0
     if route_size > 0 and counter < route_size:
         wp_index = counter
         wp_node = active_node.getChild('wpt[%d]' % wp_index)
         if wp_node != None:
             wp_lon = wp_node.getFloat("longitude_deg")
             wp_lat = wp_node.getFloat("latitude_deg")
-        else:
-            wp_lon = 0.0
-            wp_lat = 0.0
     elif counter == route_size:
         wp_lon = circle_node.getFloat("longitude_deg")
         wp_lat = circle_node.getFloat("latitude_deg")
