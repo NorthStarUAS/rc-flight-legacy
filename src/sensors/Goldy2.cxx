@@ -922,8 +922,8 @@ bool goldy2_pilot_update() {
     if ( pilot_wing_mixing ) {
 	double l = pilot_node.getDouble("left_surface");
 	double r = pilot_node.getDouble("right_surface");
-	double ail = (l + r) * 0.25;
-	double ele = (l - r) * 0.25;
+	double ail = -(l + r) * 0.5;
+	double ele = (l - r) * 0.5;
 	pilot_node.setDouble("aileron", ail);
 	pilot_node.setDouble("elevator", ele);
     }
