@@ -399,22 +399,22 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	my_swap( payload, 80, 4);
 
 	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)p+0);
+	//uint32_t iTOW = *((uint32_t *)p+0);
 	int16_t year = *((uint16_t *)(p+4));
 	uint8_t month = p[6];
 	uint8_t day = p[7];
 	uint8_t hour = p[8];
 	uint8_t min = p[9];
 	uint8_t sec = p[10];
-	uint8_t valid = p[11];
+	//uint8_t valid = p[11];
 	uint32_t tAcc = *((uint32_t *)(p+12));
 	int32_t nano = *((int32_t *)(p+16));
 	uint8_t gpsFix = p[20];
-	uint8_t flags = p[21];
+	//uint8_t flags = p[21];
 	uint8_t numSV = p[23];
 	int32_t lon = *((int32_t *)(p+24));
 	int32_t lat = *((int32_t *)(p+28));
-	int32_t height = *((int32_t *)(p+32));
+	//int32_t height = *((int32_t *)(p+32));
 	int32_t hMSL = *((int32_t *)(p+36));
 	uint32_t hAcc = *((uint32_t *)(p+40));
 	uint32_t vAcc = *((uint32_t *)(p+44));
@@ -423,8 +423,8 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	int32_t velD = *((int32_t *)(p+56));
 	uint32_t gSpeed = *((uint32_t *)(p+60));
 	int32_t heading = *((int32_t *)(p+64));
-	uint32_t sAcc = *((uint32_t *)(p+68));
-	uint32_t headingAcc = *((uint32_t *)(p+72));
+	//uint32_t sAcc = *((uint32_t *)(p+68));
+	//uint32_t headingAcc = *((uint32_t *)(p+72));
 	uint16_t pDOP = *((uint16_t *)(p+76));
 
  	gps_fix_value = gpsFix;

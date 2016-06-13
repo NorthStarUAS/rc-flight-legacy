@@ -41,6 +41,7 @@ using std::vector;
 // property nodes
 static pyPropertyNode flight_node;
 static pyPropertyNode engine_node;
+static pyPropertyNode pilot_node;
 static pyPropertyNode acts_node;
 static pyPropertyNode act_node;
 static pyPropertyNode ap_node;
@@ -60,6 +61,7 @@ void Actuator_init() {
     // bind properties
     flight_node = pyGetNode("/controls/flight", true);
     engine_node = pyGetNode("/controls/engine", true);
+    pilot_node = pyGetNode("/sensors/pilot_input", true);
     acts_node = pyGetNode("/actuators", true);
     act_node = pyGetNode("/actuators/actuator", true);
 #define NUM_ACTUATORS 8
@@ -238,14 +240,37 @@ static void set_actuator_values_ap() {
 
 
 static void set_actuator_values_pilot() {
-    // The following lines would act as a manual pass-through at the
-    // host computer level.  However, manaul pass-through is handled
-    // more efficiently (less latency) directly on APM2.x hardware.
-    //
-    // act_aileron_node.setDouble( pilot_aileron_node.getDouble() );
-    // act_elevator_node.setDouble( pilot_elevator_node.getDouble() );
-    // act_throttle_node.setDouble( pilot_throttle_node.getDouble() );
-    // act_rudder_node.setDouble( pilot_rudder_node.getDouble() );
+    // The following lines would act as a manual (no-short-circuit)
+    // pass-through at the host flight computer level.  However,
+    // manaul pass-through is handled more efficiently (less latency)
+    // directly on APM2.x hardware.
+    double chirp_val = 0.0;
+    string chirp_inject = "";
+    if ( chirp_node.getBool("running") ) {
+	chirp_val = chirp_node.getDouble("chirp_val");
+	chirp_inject = chirp_node.getString("inject");
+    }
+    
+    float aileron = pilot_node.getDouble("aileron");
+    if ( chirp_inject == "aileron" ) { aileron += chirp_val; }
+    act_node.setDouble( "channel", 0, aileron );
+
+    float elevator = pilot_node.getDouble("elevator");
+    if ( chirp_inject == "elevator" ) { elevator += chirp_val; }
+    act_node.setDouble( "channel", 1, elevator );
+
+    // rudder
+    float rudder = pilot_node.getDouble("rudder");
+    if ( chirp_inject == "rudder" ) { rudder += chirp_val; }
+    act_node.setDouble( "channel", 3, rudder );
+
+    double flaps = pilot_node.getDouble("flaps");
+    if ( chirp_inject == "flaps" ) { flaps += chirp_val; }
+    act_node.setDouble("channel", 5, flaps );
+
+    double throttle = pilot_node.getDouble("throttle");
+    if ( chirp_inject == "throttle" ) { throttle += chirp_val; }
+    act_node.setDouble("channel", 2, throttle );
 }
 
 
@@ -260,7 +285,7 @@ bool Actuator_update() {
 	// printf("Setting actuator values (ap)\n");
 	set_actuator_values_ap();
     } else {
-	// printf("Setting actuator values (manual)\n");
+	// printf("Setting actuator values (manual passthough, no short circuit)\n");
 	set_actuator_values_pilot();
     }
 
