@@ -32,6 +32,7 @@ static uint16_t rcin[rcin_channels];
 static string pilot_mapping[rcin_channels]; // channel->name mapping
 static bool pilot_symmetric[rcin_channels]; // normalization symmetry flag
 static bool pilot_invert[rcin_channels];    // invert input flag
+static bool pilot_wing_mixing = false;	    // for now this is a bit of a hack
 
 #define SBUS_CENTER 992
 #define SBUS_HALF_RANGE 820
@@ -214,6 +215,10 @@ bool goldy2_pilot_init( string output_path, pyPropertyNode *config ) {
 	}
     }
 
+    if ( config->hasChild("wing_mixing") ) {
+	pilot_wing_mixing = config->getBool("wing_mixing");
+    }
+    
     return true;
 }
 
@@ -913,6 +918,14 @@ bool goldy2_pilot_update() {
 	}
 	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
 	pilot_node.setDouble( "channel", i, val );
+    }
+    if ( pilot_wing_mixing ) {
+	double l = pilot_node.getDouble("left_surface");
+	double r = pilot_node.getDouble("right_surface");
+	double ail = (l + r) * 0.25;
+	double ele = (l - r) * 0.25;
+	pilot_node.setDouble("aileron", ail);
+	pilot_node.setDouble("elevator", ele);
     }
 
     return true;
