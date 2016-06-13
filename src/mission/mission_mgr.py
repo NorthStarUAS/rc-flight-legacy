@@ -71,27 +71,30 @@ class MissionMgr:
     def init(self):
         print "global_tasks:"
         global_node = self.missions_node.getChild("global_tasks", True)
-        for name in global_node.getChildren():
-            config_node = global_node.getChild(name)
-            task = self.make_task(config_node)
-            if task != None:
-                self.global_tasks.append( task )
+        if global_node:
+            for name in global_node.getChildren():
+                config_node = global_node.getChild(name)
+                task = self.make_task(config_node)
+                if task != None:
+                    self.global_tasks.append( task )
             
         print "sequential_tasks:"
         seq_node = self.missions_node.getChild("sequential_tasks", True)
-        for name in seq_node.getChildren():
-            config_node = seq_node.getChild(name)
-            task = self.make_task(config_node)
-            if task != None:
-                self.seq_tasks.append( task )
+        if seq_node:
+            for name in seq_node.getChildren():
+                config_node = seq_node.getChild(name)
+                task = self.make_task(config_node)
+                if task != None:
+                    self.seq_tasks.append( task )
 
         print "standby_tasks:"
         standby_node = self.missions_node.getChild("standby_tasks", True)
-        for name in standby_node.getChildren():
-            config_node = standby_node.getChild(name)
-            task = self.make_task(config_node)
-            if task != None:
-                self.standby_tasks.append( task )
+        if standby_node:
+            for name in standby_node.getChildren():
+                config_node = standby_node.getChild(name)
+                task = self.make_task(config_node)
+                if task != None:
+                    self.standby_tasks.append( task )
 
         # activate all the tasks in the global queue
         for task in self.global_tasks:
