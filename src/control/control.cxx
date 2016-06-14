@@ -59,6 +59,7 @@ static pyPropertyNode remote_link_node;
 static pyPropertyNode logging_node;
 static pyPropertyNode task_node;
 static pyPropertyNode home_node;
+static pyPropertyNode comms_node;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
@@ -73,7 +74,8 @@ static void bind_properties() {
     remote_link_node = pyGetNode( "/config/remote_link", true );
     logging_node = pyGetNode( "/config/logging", true );
     task_node = pyGetNode( "/task", true );
-    home_node = pyGetNode( "/task/home", true );    
+    home_node = pyGetNode( "/task/home", true );
+    comms_node = pyGetNode( "/comms/remote_link", true);
 }
 
 
@@ -83,8 +85,6 @@ void control_init() {
 
     bind_properties();
 
-    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
-    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
     remote_link_skip = remote_link_node.getDouble("autopilot_skip");
     logging_skip = logging_node.getDouble("autopilot_skip");
 
@@ -258,9 +258,11 @@ void control_update(double dt)
 	
 	if ( send_remote_link ) {
 	    remote_link_ap( buf, pkt_size );
-	    int counter = remote_link_node.getLong("wp_counter");
+	    // do the counter dance with the packer (packer will reset
+	    // the count to zero at the appropriate time.)
+	    int counter = comms_node.getLong("wp_counter");
 	    counter++;
-	    remote_link_node.setLong("wp_counter", counter);
+	    comms_node.setLong("wp_counter", counter);
 	}
 
 	if ( send_logging ) {
