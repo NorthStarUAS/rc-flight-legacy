@@ -258,6 +258,9 @@ void control_update(double dt)
 	
 	if ( send_remote_link ) {
 	    remote_link_ap( buf, pkt_size );
+	    int counter = remote_link_node.getLong("wp_counter");
+	    counter++;
+	    remote_link_node.setLong("wp_counter", counter);
 	}
 
 	if ( send_logging ) {

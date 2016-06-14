@@ -70,7 +70,6 @@ route_node = getNode("/task/route", True)
 active_node = getNode("/task/route/active", True)
 home_node = getNode("/task/home", True)
 circle_node = getNode("/task/circle", True)
-counter = 0
 ap_status_v1_fmt = "<dhhHhhhhddHHB"
 ap_status_v1_size = struct.calcsize(ap_status_v1_fmt)
 ap_status_v2_fmt = "<dhhHhhhhHddHHB"
@@ -663,13 +662,21 @@ def unpack_pilot_v2(buf):
     return index
 
 def pack_ap_status_v3(index):
-    global counter
+    # handle the counter dance between the control module and the
+    # packer.  This allows us to trickle down routes to the ground
+    # station, but we don't want onboard logging to affect the counter
+    # state.
+    counter = remote_link_node.getInt("wp_counter")
+    route_size = active_node.getInt("route_size")
+    if counter >= route_size + 2:
+        counter = 0
+        remote_link_node.setInt("wp_counter", 0)
+
     target_agl_ft = targets_node.getFloat("altitude_agl_ft")
     ground_m = pos_pressure_node.getFloat("altitude_ground_m")
     error_m = pos_pressure_node.getFloat("pressure_error_m")
     target_msl_ft = (ground_m + error_m) * m2ft + target_agl_ft
 
-    route_size = active_node.getInt("route_size")
     wp_lon = 0.0
     wp_lat = 0.0
     if route_size > 0 and counter < route_size:
@@ -704,10 +711,6 @@ def pack_ap_status_v3(index):
                       wp_index,
                       route_size,
                       remote_link_node.getInt("sequence_num") & 0xff)
-
-    counter = counter + 1
-    if counter >= route_size + 2:
-        counter = 0
 
     return buf
 
@@ -763,6 +766,7 @@ def unpack_ap_status_v2(buf):
 
 def unpack_ap_status_v3(buf):
     result = struct.unpack(ap_status_v3_fmt, buf)
+    print result
 
     index = result[0]
 

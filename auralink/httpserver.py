@@ -47,7 +47,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
                 dict['wind_kts'] = "%.1f" % self.wind_node.getFloat('wind_speed_kt')
                 dict['gps_sats'] = "%d" % self.gps_node.getInt('satellites')
                 dict['lost_link'] = "%d" % commands.remote_lost_link_predict()
-                dict['control_mode'] = "%0f" % self.pilot_node.getFloatEnum('channel', 5)
+                dict['control_mode'] = "%0f" % (self.pilot_node.getFloatEnum('channel', 7) > 0.0)
                 dict['ap_hdg'] = "%.1f" % self.targets_node.getFloat('groundtrack_deg')
                 dict['airdata_climb'] = "%.2f" % (self.velocity_node.getFloat('pressure_vertical_speed_fps') * 60)
                 dict['ap_climb'] = "%.2f" % 0.0
@@ -109,7 +109,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         self.gps_node = getNode('/sensors/gps', True)
         self.imu_node = getNode('/sensors/imu', True)
         self.airdata_node = getNode('/sensors/airdata', True)
-        self.pilot_node = getNode('/sensors/pilot', True)
+        self.pilot_node = getNode('/sensors/pilot_input', True)
         self.filter_node = getNode('/filters/filter', True)
         self.pos_combined_node = getNode('/position/combined', True)
         self.velocity_node = getNode('/velocity', True)

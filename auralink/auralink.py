@@ -27,6 +27,16 @@ dt = 1.0 / float(args.hertz)
 telnet.init(args.telnet_port)
 httpserver.init(args.http_port, args.html_root)
 
+def new_logfile():
+    d = datetime.datetime.utcnow()
+    logfile = 'flight-' + d.strftime("%Y-%m-%d-%H:%M:%S") + '.log'
+    try:
+        f = open(logfile, 'wb')
+    except:
+        print "Cannot open:", logfile
+        quit()
+    return f
+  
 if args.serial:
     try:
         ser = serial.Serial(args.serial, args.baud, timeout=dt)
@@ -39,13 +49,7 @@ if args.serial:
             print p
         quit()
 
-    d = datetime.datetime.utcnow()
-    logfile = 'flight-' + d.strftime("%Y-%m-%d-%H:%M:%S") + '.log'
-    try:
-        f = open(logfile, 'wb')
-    except:
-        print "Cannot open:", logfile
-        quite()
+    f = new_logfile()
         
     while True:
         auraparser.serial_read(ser, f)
