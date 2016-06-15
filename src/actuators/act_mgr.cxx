@@ -251,11 +251,11 @@ static void set_actuator_values_pilot_pass_through() {
 	chirp_inject = chirp_node.getString("inject");
     }
     
-    float aileron = pilot_node.getDouble("aileron");
+    float aileron = -pilot_node.getDouble("aileron");
     if ( chirp_inject == "aileron" ) { aileron += chirp_val; }
     act_node.setDouble( "channel", 0, aileron );
 
-    float elevator = pilot_node.getDouble("elevator");
+    float elevator = -pilot_node.getDouble("elevator");
     if ( chirp_inject == "elevator" ) { elevator += chirp_val; }
     act_node.setDouble( "channel", 1, elevator );
 
