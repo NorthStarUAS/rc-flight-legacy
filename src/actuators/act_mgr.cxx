@@ -239,7 +239,7 @@ static void set_actuator_values_ap() {
 }
 
 
-static void set_actuator_values_pilot() {
+static void set_actuator_values_pilot_pass_through() {
     // The following lines would act as a manual (no-short-circuit)
     // pass-through at the host flight computer level.  However,
     // manaul pass-through is handled more efficiently (less latency)
@@ -282,11 +282,12 @@ bool Actuator_update() {
     // time stamp for logging
     act_node.setDouble( "timestamp", get_Time() );
     if ( ap_node.getBool("master_switch") ) {
-	// printf("Setting actuator values (ap)\n");
-	set_actuator_values_ap();
-    } else {
-	// printf("Setting actuator values (manual passthough, no short circuit)\n");
-	set_actuator_values_pilot();
+	string mode = ap_node.getString("flight_mode");
+	if ( mode == "pilot_pass_through" ) {
+	    set_actuator_values_pilot_pass_through();
+	} else {
+	    set_actuator_values_ap();
+	}
     }
 
     static int remote_link_count = remote_link_random( remote_link_skip );

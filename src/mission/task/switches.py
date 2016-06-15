@@ -40,16 +40,20 @@ class Switch():
         else:
             self.output_type = 'boolean'
             self.states = 2
-        if switch_node.hasChild("input_range"):
-            self.input_range = switch_node.getString("input_range")
-        else:
-            self.input_range = "normalized"
-            
+        self.choices = []
+        if self.output_type == 'choice':
+            self.states = switch_node.getLen('choice')
+            #print 'found:', self.states, 'choices'
+            if self.states > 0:
+                for i in range(self.states):
+                    choice = switch_node.getStringEnum('choice', i)
+                    #print ' choice:', choice
+                    self.choices.append(choice)
+            else:
+                self.states = 1
+                self.choices = [ 'switch_config_error' ]
         self.min = -1.0
         self.max = 1.0
-        if self.input_range == "normalized":
-            self.min = -1.0
-            self.max = 1.0
         self.range = self.max - self.min
         self.step = self.range / self.states
 
@@ -71,7 +75,10 @@ class Switch():
         #print "  state =", state
         if self.output_type == 'boolean':
             self.output_node.setBool(self.output_name, state)
-        
+        elif self.output_type == 'choice':
+            #print 'choice:', state, self.choices[state]
+            self.output_node.setString(self.output_name, self.choices[state])
+            
 class Switches(Task):
     def __init__(self, config_node):
         Task.__init__(self)
