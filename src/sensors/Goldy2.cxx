@@ -50,6 +50,7 @@ static bool imu_inited = false;
 static bool airdata_inited = false;
 static bool gps_inited = false;
 static bool pilot_input_inited = false;
+static bool edgewise_imu_mount = false;
 
 struct imu_sensors_t {
     uint64_t time;
@@ -157,12 +158,16 @@ bool goldy2_init() {
 
 
 // function prototypes
-bool goldy2_imu_init( string output_path ) {
+bool goldy2_imu_init( string output_path, pyPropertyNode *config ) {
     if ( ! goldy2_init() ) {
         return false;
     }
 
     bind_imu_output( output_path );
+    
+    if ( config->hasChild("edgewise_imu_mount") ) {
+	edgewise_imu_mount = config->getBool("edgewise_imu_mount");
+    }
 
     return true;
 }
@@ -822,15 +827,27 @@ bool goldy2_imu_update() {
 
 	double cur_time = get_Time();
 	imu_node.setDouble( "timestamp", cur_time );
-	imu_node.setDouble( "p_rad_sec", imu_sensors.gyroX );
-	imu_node.setDouble( "q_rad_sec", -imu_sensors.gyroZ );
-	imu_node.setDouble( "r_rad_sec", imu_sensors.gyroY );
-	imu_node.setDouble( "ax_mps_sec", imu_sensors.accelX );
-	imu_node.setDouble( "ay_mps_sec", -imu_sensors.accelZ );
-	imu_node.setDouble( "az_mps_sec", imu_sensors.accelY );
-	imu_node.setDouble( "hx", imu_sensors.magX );
-	imu_node.setDouble( "hy", -imu_sensors.magZ );
-	imu_node.setDouble( "hz", imu_sensors.magY );
+	if ( !edgewise_imu_mount ) {
+	    imu_node.setDouble( "p_rad_sec", imu_sensors.gyroX );
+	    imu_node.setDouble( "q_rad_sec", imu_sensors.gyroY );
+	    imu_node.setDouble( "r_rad_sec", imu_sensors.gyroZ );
+	    imu_node.setDouble( "ax_mps_sec", imu_sensors.accelX );
+	    imu_node.setDouble( "ay_mps_sec", imu_sensors.accelY );
+	    imu_node.setDouble( "az_mps_sec", imu_sensors.accelZ );
+	    imu_node.setDouble( "hx", imu_sensors.magX );
+	    imu_node.setDouble( "hy", imu_sensors.magY );
+	    imu_node.setDouble( "hz", imu_sensors.magZ );
+	} else {
+	    imu_node.setDouble( "p_rad_sec", imu_sensors.gyroX );
+	    imu_node.setDouble( "q_rad_sec", -imu_sensors.gyroZ );
+	    imu_node.setDouble( "r_rad_sec", imu_sensors.gyroY );
+	    imu_node.setDouble( "ax_mps_sec", imu_sensors.accelX );
+	    imu_node.setDouble( "ay_mps_sec", -imu_sensors.accelZ );
+	    imu_node.setDouble( "az_mps_sec", imu_sensors.accelY );
+	    imu_node.setDouble( "hx", imu_sensors.magX );
+	    imu_node.setDouble( "hy", -imu_sensors.magZ );
+	    imu_node.setDouble( "hz", imu_sensors.magY );
+	}
 	imu_node.setDouble( "tempC", imu_sensors.temp );
 	imu_node.setDouble( "pressure", imu_sensors.pressure );
 	imu_node.setDouble( "roll_deg", imu_sensors.roll );

@@ -766,7 +766,6 @@ def unpack_ap_status_v2(buf):
 
 def unpack_ap_status_v3(buf):
     result = struct.unpack(ap_status_v3_fmt, buf)
-    print result
 
     index = result[0]
 

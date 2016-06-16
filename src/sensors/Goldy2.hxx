@@ -18,7 +18,7 @@ bool goldy2_open();
 bool goldy2_update();
 bool goldy2_close();
 
-bool goldy2_imu_init( string output_path );
+bool goldy2_imu_init( string output_path, pyPropertyNode *config );
 bool goldy2_imu_update();
 void goldy2_imu_close();
 
