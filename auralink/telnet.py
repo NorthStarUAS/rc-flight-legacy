@@ -178,17 +178,12 @@ class ChatHandler(asynchat.async_chat):
 	# 	    tmp += packetizer->get_fcs_altitude_string()
 	# 	push( tmp.c_str() )
 	# 	push( getTerminator() )
-	# elif tokens[0] == 'fcs-update':
-	#     if len(tokens) == 2:
-	# 	bool result = fcs_update_helper(tokens[1])
-	# 	if self.prompt:
-	# 	    string tmp
-	# 	    if result:
-	# 		tmp = "new values accepted ok"
-	# 	    else:
-	# 		tmp = "update failed!"
-	# 	    push( tmp.c_str() )
-	# 	    push( getTerminator() )
+	elif tokens[0] == 'fcs-update':
+	    if len(tokens) == 2:
+                newcmd = "fcs-update," + tokens[1]
+                commands.add(newcmd)
+	        if self.prompt:
+                    self.push('command will be related to vehicle.\n')
 	else:
             self.usage()
 
