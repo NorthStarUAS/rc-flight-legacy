@@ -586,17 +586,15 @@ bool decode_fcs_update(vector <string> tokens) {
 	tokens.erase(tokens.begin());
     }
 
+    pyPropertyNode ap_config = pyGetNode("/config/autopilot", true);
+    int i = atoi(tokens[0].c_str());
     if ( tokens.size() == 9 ) {
-	int i = atoi(tokens[0].c_str());
-	ostringstream str;
-	str << "/config/fcs/autopilot/pid-controller" << '[' << i << ']';
-	string ename = str.str();
-	pyPropertyNode pid = pyGetNode(ename);
-	if ( pid.isNull() ) {
+	pyPropertyNode component = ap_config.getChild("component", i);
+	if ( component.isNull() ) {
 	    return false;
 	}
 
-	pyPropertyNode config = pid.getChild("config");
+	pyPropertyNode config = component.getChild("config");
 	if ( config.isNull() ) {
 	    return false;
 	}
@@ -611,25 +609,22 @@ bool decode_fcs_update(vector <string> tokens) {
 	config.setDouble( "u_max", atof(tokens[8].c_str()) );
 
 	return true;
-    } else if ( tokens.size() == 5 ) {
-	int i = atoi(tokens[0].c_str());
-	ostringstream str;
-	str << "/config/fcs/autopilot/pi-simple-controller" << '[' << i << ']';
-	string ename = str.str();
-	pyPropertyNode pid = pyGetNode(ename);
-	if ( pid.isNull() ) {
+    } else if ( tokens.size() == 6 ) {
+	pyPropertyNode component = ap_config.getChild("component", i);
+	if ( component.isNull() ) {
 	    return false;
 	}
 
-	pyPropertyNode config = pid.getChild("config");
+	pyPropertyNode config = component.getChild("config");
 	if ( config.isNull() ) {
 	    return false;
 	}
 
 	config.setDouble( "Kp", atof(tokens[1].c_str()) );
-	config.setDouble( "Ki", atof(tokens[2].c_str()) );
-	config.setDouble( "u_min", atof(tokens[3].c_str()) );
-	config.setDouble( "u_max", atof(tokens[4].c_str()) );
+	config.setDouble( "Ti", atof(tokens[2].c_str()) );
+	config.setDouble( "Td", atof(tokens[3].c_str()) );
+	config.setDouble( "u_min", atof(tokens[4].c_str()) );
+	config.setDouble( "u_max", atof(tokens[5].c_str()) );
 
 	return true;
      } else {
