@@ -2,22 +2,24 @@
 # -*- coding: utf-8 -*-
 
 """
-ugear fcs tuner 
+ugear task master 
 
 This program hopefully does something eventually ...
 
 author: Curtis L. Olson - curtolson@flightgear.org
 website: gallinazo.flightgear.org
-started: March 2014
+started: June 2016
 """
 
 import os.path
 import sys
 from PyQt4 import QtGui, QtCore
-import lxml.etree as ET
 import threading
 from collections import deque
 import time
+
+from props import root, getNode
+import props_xml
 
 from circle import Circle
 from land import Land
@@ -69,12 +71,12 @@ class DataFetcher():
             threading.Timer(self.dt, self.update).start()
 
 class Tuner(QtGui.QWidget):
-    def __init__(self, filename="", host="localhost", port=6499):
+    def __init__(self, host="localhost", port=6499):
         super(Tuner, self).__init__()
         self.default_title = "Aura Tasks"
         self.circle = None
         self.initUI()
-        self.load(filename, host=host, port=port)
+        self.load(host=host, port=port)
         self.clean = True
 
     def initUI(self):
@@ -108,32 +110,8 @@ class Tuner(QtGui.QWidget):
         self.resize(800, 700)
         self.show()
 
-    def load(self, filename, host="localhost", port=6499):
+    def load(self, host="localhost", port=6499):
         print "Tuner.load " + str(port)
-        basename = os.path.basename(str(filename))
-        fileroot, ext = os.path.splitext(basename)
-
-        if filename == "":
-            error = QtGui.QErrorMessage(self)
-            error.showMessage( "Error, you must specify an autopilot.xml config file name" )
-            return
-        elif not os.path.exists(filename):
-            error = QtGui.QErrorMessage(self)
-            error.showMessage( filename + ": does not exist" )
-            return
-
-        try:
-            self.xml = ET.parse(filename)
-        except:
-            error = QtGui.QErrorMessage(self)
-            error.showMessage( filename + ": xml parse error:\n"
-                               + str(sys.exc_info()[1]) )
-            return
-
-        self.filename = str(filename)
-        self.fileroot, ext = os.path.splitext(self.filename)
-
-        root = self.xml.getroot()
 
         # Circle hold parameters
         self.circle = Circle(changefunc=self.onChange, host=host, port=port)
@@ -185,7 +163,10 @@ def main():
     #df = DataFetcher(host=host, port=port)
     #df.update()
 
-    ex = Tuner(filename, host=host, port=port)
+    root = getNode('/', create=True)
+    props_xml.load(filename, root)
+    
+    ex = Tuner(host=host, port=port)
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
