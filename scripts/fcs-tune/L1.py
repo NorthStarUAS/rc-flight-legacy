@@ -76,7 +76,7 @@ class L1Controller():
 
     def parse_xml(self, node):
         self.xml = node
-        self.edit_bank_limit.setText(self.get_value('bank-limit-deg'))
+        self.edit_bank_limit.setText(self.get_value('bank_limit_deg'))
         self.edit_L1_period.setText(self.get_value('period'))
         self.edit_L1_damping.setText(self.get_value('damping'))
         self.original_values = self.value_array()
@@ -90,7 +90,7 @@ class L1Controller():
 
     def send_value(self, t, prop, val):
         if len(val):
-            if self.port == 5402:
+            if self.port == 5050:
                 command = "send set," + prop + "," + str(val)
                 print command
                 t.send(command)

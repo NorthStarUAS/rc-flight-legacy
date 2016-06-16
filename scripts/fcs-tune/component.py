@@ -7,20 +7,20 @@ class PlotFields():
     def __init__(self):
         self.fields = [ \
                         "time", \
-                        "/autopilot/settings/target-groundtrack-deg", \
-                        "/autopilot/settings/target-roll-deg", \
+                        "/autopilot/targets/groundtrack_deg", \
+                        "/autopilot/targets/roll_deg", \
                         "filter_hdg", \
-                        "/orientation/roll-deg", \
+                        "/orientation/roll_deg", \
                         "/controls/flight/aileron", \
                         "time", \
-                        "/autopilot/settings/target-speed-kt", \
-                        "/autopilot/settings/target-pitch-deg", \
-                        "/velocity/airspeed-kt", \
-                        "/orientation/pitch-deg", \
+                        "/autopilot/targets/speed_kt", \
+                        "/autopilot/targets/pitch_deg", \
+                        "/velocity/airspeed_kt", \
+                        "/orientation/pitch_deg", \
                         "/controls/flight/elevator", \
                         "time", \
-                        "/autopilot/settings/target-agl-ft", \
-                        "/position/altitude-agl-ft", \
+                        "/autopilot/targets/agl_ft", \
+                        "/position/altitude_agl_ft", \
                         "/controls/engine/throttle", \
                     ]
 
@@ -75,9 +75,12 @@ class Component():
         self.edit_Kp.textChanged.connect(self.onChange)
 
         if self.type == "pid":
-            self.edit_Ki = QtGui.QLineEdit()
-            self.edit_Ki.setFixedWidth(350)
-            self.edit_Ki.textChanged.connect(self.onChange)
+            self.edit_Ti = QtGui.QLineEdit()
+            self.edit_Ti.setFixedWidth(350)
+            self.edit_Ti.textChanged.connect(self.onChange)
+            self.edit_Td = QtGui.QLineEdit()
+            self.edit_Td.setFixedWidth(350)
+            self.edit_Td.textChanged.connect(self.onChange)
         elif self.type == "vel":
             self.edit_beta = QtGui.QLineEdit()
             self.edit_beta.setFixedWidth(350)
@@ -109,7 +112,8 @@ class Component():
         layout.addRow( "<b>Output Prop:</b>", self.edit_output )
         layout.addRow( "<b>Kp (global gain):</b>", self.edit_Kp )
         if self.type == "pid":
-            layout.addRow( "<b>Ki (integrator gain):</b>", self.edit_Ki )
+            layout.addRow( "<b>Ti (integrator time gain):</b>", self.edit_Ti )
+            layout.addRow( "<b>Td (derivative time gain):</b>", self.edit_Td )
         elif self.type == "vel":
             layout.addRow( "<b>beta (input weight):</b>", self.edit_beta )
             layout.addRow( "<b>alpha (low pass filter):</b>", self.edit_alpha )
@@ -124,7 +128,7 @@ class Component():
         toplayout.addWidget(cmd_group)
         cmd_layout = QtGui.QHBoxLayout()
         cmd_group.setLayout( cmd_layout )
-        cmd_layout.addWidget( QtGui.QLabel("<b>Stage Commands:</b> ") )
+        cmd_layout.addWidget( QtGui.QLabel("<b>Component Commands:</b> ") )
         update = QtGui.QPushButton('Update')
         update.clicked.connect(self.update)
         cmd_layout.addWidget(update)
@@ -175,7 +179,8 @@ class Component():
         if tmp != None:
             self.edit_Kp.setText(self.get_value('Kp', parent=tmp))
             if self.type == "pid":
-                self.edit_Ki.setText(self.get_value('Ki', parent=tmp))
+                self.edit_Ti.setText(self.get_value('Ti', parent=tmp))
+                self.edit_Td.setText(self.get_value('Td', parent=tmp))
             elif self.type == "vel":
                 self.edit_beta.setText(self.get_value('beta', parent=tmp))
                 self.edit_alpha.setText(self.get_value('alpha', parent=tmp))
@@ -192,7 +197,8 @@ class Component():
             result = []
             result.append( str(self.edit_Kp.text()) )
             if self.type == "pid":
-                result.append( str(self.edit_Ki.text()) )
+                result.append( str(self.edit_Ti.text()) )
+                result.append( str(self.edit_Td.text()) )
             elif self.type == "vel":
                 result.append( str(self.edit_beta.text()) )
                 result.append( str(self.edit_alpha.text()) )
@@ -209,7 +215,7 @@ class Component():
         command = "fcs-update " + str(self.index)
         for value in self.value_array():
             command += "," + value
-        #print "update: " + str(self.value_array())
+        # print "update: " + str(self.value_array())
         print command
         print self.port
         t = fgtelnet.FGTelnet(self.host, self.port)
@@ -221,7 +227,8 @@ class Component():
         # revert form
         if self.type == "pid":
             self.edit_Kp.setText(self.original_values[0])
-            self.edit_Ki.setText(self.original_values[1])
+            self.edit_Ti.setText(self.original_values[4])
+            self.edit_Td.setText(self.original_values[5])
             self.edit_min.setText(self.original_values[2])
             self.edit_max.setText(self.original_values[3])
         elif self.type == "vel":

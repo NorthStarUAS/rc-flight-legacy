@@ -165,7 +165,7 @@ class Tuner(QtGui.QWidget):
                                 port=port, type="pid")
             elif comp_type == 'pid_controller':
                 pid = Component(index=i, changefunc=self.onChange, host=host,
-                                port=port, type="pid")
+                                port=port, type="vel")
             else:
                 print "unknown ..."
                 next
@@ -200,9 +200,9 @@ def usage():
 
 def main():
     host = "localhost"
-    port = 6499
+    #port = 6499
     #host = "192.168.1.64"
-    #port = 5050
+    port = 5050
 
     app = QtGui.QApplication(sys.argv)
     filename = ""
@@ -212,8 +212,8 @@ def main():
     elif len(sys.argv) == 2:
         filename = sys.argv[1]
 
-    df = DataFetcher(host=host, port=port)
-    df.update()
+    #df = DataFetcher(host=host, port=port)
+    #df.update()
 
     ex = Tuner(filename, host=host, port=port)
     sys.exit(app.exec_())
