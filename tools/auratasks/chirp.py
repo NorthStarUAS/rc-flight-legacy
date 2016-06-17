@@ -73,7 +73,7 @@ class Chirp():
         toplayout.addWidget(cmd_group)
         cmd_layout = QtGui.QHBoxLayout()
         cmd_group.setLayout( cmd_layout )
-        cmd_layout.addWidget( QtGui.QLabel("<b>Task Commands: (engage with physical switch)</b> ") )
+        cmd_layout.addWidget( QtGui.QLabel("<b>Task Commands: (set params, then engage with physical switch)</b> ") )
         # circle = QtGui.QPushButton('Circle Here')
         # circle.clicked.connect(self.task_circle)
         # cmd_layout.addWidget(circle)
