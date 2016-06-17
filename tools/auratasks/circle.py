@@ -1,6 +1,7 @@
 from PyQt4 import QtGui, QtCore
 import subprocess
 
+from combobox_nowheel import QComboBoxNoWheel
 import fgtelnet
 
 class Circle():
@@ -31,16 +32,18 @@ class Circle():
         self.edit_speed = QtGui.QLineEdit()
         self.edit_speed.setFixedWidth(350)
         self.edit_speed.textChanged.connect(self.onChange)
-        self.edit_direction = QtGui.QLineEdit()
+        self.edit_direction = QComboBoxNoWheel()
         self.edit_direction.setFixedWidth(350)
-        self.edit_direction.textChanged.connect(self.onChange)
+        self.edit_direction.addItem('left')
+        self.edit_direction.addItem('right')
+        self.edit_direction.currentIndexChanged.connect(self.onChange)
         self.edit_radius = QtGui.QLineEdit()
         self.edit_radius.setFixedWidth(350)
         self.edit_radius.textChanged.connect(self.onChange)
 
         layout.addRow( "<b>Altitude AGL (ft):</b>", self.edit_alt )
         layout.addRow( "<b>Speed (kt):</b>", self.edit_speed )
-        layout.addRow( "<b>Direction (left/right):</b>", self.edit_direction )
+        layout.addRow( "<b>Direction:</b>", self.edit_direction )
         layout.addRow( "<b>Radius (m):</b>", self.edit_radius )
 
         # 'Parameter' button bar
@@ -76,6 +79,9 @@ class Circle():
 
         toplayout.addStretch(1)
 
+        # set initial values
+        self.revert()
+
         return toppage
 
     def get_widget(self):
@@ -83,7 +89,7 @@ class Circle():
 
     def send_value(self, t, prop, val):
         if len(val):
-            if self.port == 5402:
+            if self.port != 6499:
                 command = "send set," + prop + "," + str(val)
                 print command
                 t.send(command)
@@ -101,7 +107,7 @@ class Circle():
         self.send_value(t, "/autopilot/targets/airspeed_kt",
                         self.edit_speed.text())
         self.send_value(t, "/task/circle/direction",
-                        self.edit_direction.text())
+                        self.edit_direction.currentText())
         self.send_value(t, "/task/circle/radius_m",
                         self.edit_radius.text())
         t.quit()
@@ -111,7 +117,9 @@ class Circle():
         # revert form
         self.edit_alt.setText( self.original_values[0] )
         self.edit_speed.setText( self.original_values[1] )
-        self.edit_direction.setText( self.original_values[2] )
+        index = self.edit_direction.findText(self.original_values[2])
+        if index == None: index = 1
+        self.edit_direction.setCurrentIndex(index)
         self.edit_radius.setText( self.original_values[3] )
 
         # send original values to remote
@@ -121,7 +129,7 @@ class Circle():
         print "request circle hold at current location"
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
-        if self.port == 5402:
+        if self.port != 6499:
             t.send("send task,circle")
         else:
             t.send("set /task/command_request task,circle")
@@ -131,7 +139,7 @@ class Circle():
         print "request circle hold at home"
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
-        if self.port == 5402:
+        if self.port != 6499:
             t.send("send task,home")
         else:
             t.send("set /task/command_request task,home")
@@ -141,7 +149,7 @@ class Circle():
         print "request circle hold at current location"
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
-        if self.port == 5402:
+        if self.port != 6499:
             t.send("send task,resume")
         else:
             t.send("set /task/command_request task,resume")

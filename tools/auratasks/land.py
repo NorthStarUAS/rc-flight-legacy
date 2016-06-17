@@ -1,6 +1,7 @@
 from PyQt4 import QtGui, QtCore
 import subprocess
 
+from combobox_nowheel import QComboBoxNoWheel
 import fgtelnet
 
 class Land():
@@ -43,9 +44,11 @@ class Land():
         self.edit_turn_radius = QtGui.QLineEdit()
         self.edit_turn_radius.setFixedWidth(350)
         self.edit_turn_radius.textChanged.connect(self.onChange)
-        self.edit_direction = QtGui.QLineEdit()
+        self.edit_direction = QComboBoxNoWheel()
         self.edit_direction.setFixedWidth(350)
-        self.edit_direction.textChanged.connect(self.onChange)
+        self.edit_direction.addItem('left')
+        self.edit_direction.addItem('right')
+        self.edit_direction.currentIndexChanged.connect(self.onChange)
         self.edit_final_leg = QtGui.QLineEdit()
         self.edit_final_leg.setFixedWidth(350)
         self.edit_final_leg.textChanged.connect(self.onChange)
@@ -68,7 +71,7 @@ class Land():
         layout.addRow( "<b>TD Lateral Offset (m):</b>", self.edit_lat_offset )
         layout.addRow( "<b>Approach Glideslope (deg):</b>", self.edit_glideslope )
         layout.addRow( "<b>Final Turn Radius (m):</b>", self.edit_turn_radius )
-        layout.addRow( "<b>Turn Direction (left/right):</b>", self.edit_direction )
+        layout.addRow( "<b>Turn Direction:</b>", self.edit_direction )
         layout.addRow( "<b>Extend Final Leg Len (m):</b>", self.edit_final_leg )
         layout.addRow( "<b>Altitude Bias (ft):</b>", self.edit_alt_bias )
         layout.addRow( "<b>Approach Speed (kt):</b>", self.edit_appr_speed )
@@ -124,7 +127,7 @@ class Land():
 
     def send_value(self, t, prop, val):
         if len(val):
-            if self.port == 5402:
+            if self.port != 6499:
                 command = "send set," + prop + "," + str(val)
                 print command
                 t.send(command)
@@ -143,7 +146,7 @@ class Land():
         self.send_value(t, "/task/land/turn_radius_m",
                         self.edit_turn_radius.text())
         self.send_value(t, "/task/land/direction",
-                        self.edit_direction.text())
+                        self.edit_direction.currentText())
         self.send_value(t, "/task/land/extend_final_leg_m",
                         self.edit_final_leg.text())
         self.send_value(t, "/task/land/altitude_bias_ft",
@@ -177,7 +180,9 @@ class Land():
         self.edit_lat_offset.setText( self.original_values[0] )
         self.edit_glideslope.setText( self.original_values[1] )
         self.edit_turn_radius.setText( self.original_values[2] )
-        self.edit_direction.setText( self.original_values[3] )
+        index = self.edit_direction.findText(self.original_values[3])
+        if index == None: index = 1
+        self.edit_direction.setCurrentIndex(index)
         self.edit_final_leg.setText( self.original_values[4] )
         self.edit_alt_bias.setText( self.original_values[5] )
         self.edit_appr_speed.setText( self.original_values[6] )
@@ -216,7 +221,7 @@ class Land():
         az = self.edit_rwy_hdg.text()
         if len(az):
             cmd += "," + az
-        if self.port == 5402:
+        if self.port != 6499:
             t.send(str("send " + cmd))
         else:
             t.send(str("set /task/command_request " + cmd))
@@ -226,7 +231,7 @@ class Land():
         print "Resume route ..."
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
-        if self.port == 5402:
+        if self.port != 6499:
             t.send("send task,resume")
         else:
             t.send("set /task/command_request task,resume")

@@ -4,7 +4,9 @@
 """
 ugear task master 
 
-This program hopefully does something eventually ...
+This program is intended to be an interface to the mission/task system
+running on board the remote vehicle.  Initially the goal is to allow
+configuration and instantiation/cancelation of mission tasks.
 
 author: Curtis L. Olson - curtolson@flightgear.org
 website: gallinazo.flightgear.org
