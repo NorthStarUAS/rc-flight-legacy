@@ -121,31 +121,31 @@ class Tuner(QtGui.QWidget):
     def load(self, host="localhost", port=6499):
         print "Tuner.load " + str(port)
 
-        # Chirp page
-        self.chirp = Chirp(changefunc=self.onChange, host=host, port=port)
-        self.tabs.addTab( self.chirp.get_widget(), "Chirp" )
-
-        # Circle hold page
-        self.circle = Circle(changefunc=self.onChange, host=host, port=port)
-        self.tabs.addTab( self.circle.get_widget(), "Circle" )
-
-        # Land page
-        self.land = Land(changefunc=self.onChange, host=host, port=port)
-        self.tabs.addTab( self.land.get_widget(), "Land" )
-
-        # Launch page
-        self.launch = Launch(changefunc=self.onChange, host=host, port=port)
-        self.tabs.addTab( self.launch.get_widget(), "Launch" )
+        # Recalibrate page
+        self.recalibrate = Recalibrate(changefunc=self.onChange, host=host,
+                                       port=port)
+        self.tabs.addTab( self.recalibrate.get_widget(), "Recalibrate" )
 
         # Preflight page
         self.preflight = Preflight(changefunc=self.onChange, host=host,
                                    port=port)
         self.tabs.addTab( self.preflight.get_widget(), "Preflight" )
 
-        # Recalibrate page
-        self.recalibrate = Recalibrate(changefunc=self.onChange, host=host,
-                                       port=port)
-        self.tabs.addTab( self.recalibrate.get_widget(), "Recalibrate" )
+        # Launch page
+        self.launch = Launch(changefunc=self.onChange, host=host, port=port)
+        self.tabs.addTab( self.launch.get_widget(), "Launch" )
+
+        # Circle hold page
+        self.circle = Circle(changefunc=self.onChange, host=host, port=port)
+        self.tabs.addTab( self.circle.get_widget(), "Circle" )
+
+        # Chirp page
+        self.chirp = Chirp(changefunc=self.onChange, host=host, port=port)
+        self.tabs.addTab( self.chirp.get_widget(), "Chirp" )
+
+        # Land page
+        self.land = Land(changefunc=self.onChange, host=host, port=port)
+        self.tabs.addTab( self.land.get_widget(), "Land" )
 
     def save(self):
         print "called for save, but does nothing yet"
