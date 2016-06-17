@@ -93,9 +93,9 @@ class Land():
         sprc18 = QtGui.QPushButton('SPRC 18 (to S)')
         sprc18.clicked.connect(self.task_rwy_sprc18)
         param_layout.addWidget(sprc18)
-        #update = QtGui.QPushButton('Update')
-        #update.clicked.connect(self.update)
-        #param_layout.addWidget(update)
+        update = QtGui.QPushButton('Update')
+        update.clicked.connect(self.update)
+        param_layout.addWidget(update)
         revert = QtGui.QPushButton('Revert')
         revert.clicked.connect(self.revert)
         param_layout.addWidget(revert)
@@ -138,7 +138,8 @@ class Land():
 
     def update(self, t):
         print "update land params"
-
+        t = fgtelnet.FGTelnet(self.host, self.port)
+        t.send("data")
         self.send_value(t, "/task/land/lateral_offset_m",
                         self.edit_lat_offset.text())
         self.send_value(t, "/task/land/glideslope_deg",
@@ -169,7 +170,7 @@ class Land():
         if len(self.edit_rwy_hdg.text()):
             self.send_value(t, "/task/home/azimuth_deg",
                             self.edit_rwy_hdg.text())
-
+        t.quit()
 
     def revert(self):
         print str(self.original_values)
@@ -210,13 +211,11 @@ class Land():
     def task_land(self):
         print "Land!"
 
+        # send over current landing configuration and touchdown point
+        self.update()
+
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
-        #t.send("set /task/command_request task,land,5")
-
-        # send over current landing configuration and touchdown point
-        self.update(t)
-
         cmd = "task,land"
         az = self.edit_rwy_hdg.text()
         if len(az):

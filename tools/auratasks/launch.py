@@ -111,9 +111,10 @@ class Launch():
                 print command
                 t.send(command)
 
-    def update(self, t):
+    def update(self):
         print "update launch params"
-
+        t = fgtelnet.FGTelnet(self.host, self.port)
+        t.send("data")
         self.send_value(t, "/task/launch/speed_kt",
                         self.edit_speed.text())
         self.send_value(t, "/task/launch/completion_agl_ft",
@@ -130,6 +131,7 @@ class Launch():
                         self.edit_rudder_gain.text())
         self.send_value(t, "/task/launch/rudder_max",
                         self.rudder_max.text())
+        t.quit()
 
     def revert(self):
         print str(self.original_values)
@@ -144,25 +146,22 @@ class Launch():
         self.edit_rudder_enable.setCurrentIndex(index)
         self.edit_rudder_gain.setText( self.original_values[6] )
         self.rudder_max.setText( str(self.original_values[7]) )
+        
+        # send original values to remote
+        self.update()
 
     def task_launch(self):
         print "Launch!"
 
+        # send over current launching configuration
+        self.update()
+
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
-        #t.send("set /task/command_request task,launch,5")
-
-        # send over current launching configuration and touchdown point
-        self.update(t)
-
-        cmd = "task,launch"
-        az = self.edit_rwy_hdg.text()
-        if len(az):
-            cmd += "," + az
         if self.port != 6499:
-            t.send(str("send " + cmd))
+            t.send(str("send task,launch"))
         else:
-            t.send(str("set /task/command_request " + cmd))
+            t.send("set /task/command_request task,launch")
         t.quit()
 
     def task_resume(self):
