@@ -32,20 +32,6 @@ class Preflight():
 
         layout.addRow( "<b>Duration (sec):</b>", self.edit_duration )
 
-        # 'Parameter' button bar
-        param_group = QtGui.QFrame()
-        toplayout.addWidget(param_group)
-        param_layout = QtGui.QHBoxLayout()
-        param_group.setLayout( param_layout )
-        param_layout.addWidget( QtGui.QLabel("<b>Preflight Parameters:</b> ") )
-        update = QtGui.QPushButton('Update')
-        update.clicked.connect(self.update)
-        param_layout.addWidget(update)
-        revert = QtGui.QPushButton('Revert')
-        revert.clicked.connect(self.revert)
-        param_layout.addWidget(revert)
-        param_layout.addStretch(1)
-
         # 'Command' button bar
         cmd_group = QtGui.QFrame()
         toplayout.addWidget(cmd_group)
@@ -55,6 +41,9 @@ class Preflight():
         preflight = QtGui.QPushButton('Preflight mode')
         preflight.clicked.connect(self.task_preflight)
         cmd_layout.addWidget(preflight)
+        revert = QtGui.QPushButton('Revert')
+        revert.clicked.connect(self.revert)
+        cmd_layout.addWidget(revert)
         cmd_layout.addStretch(1)
 
         toplayout.addStretch(1)

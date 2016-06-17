@@ -21,31 +21,6 @@ class Recalibrate():
         toplayout = QtGui.QVBoxLayout()
         toppage.setLayout(toplayout)
 
-        page = QtGui.QFrame()
-        layout = QtGui.QFormLayout()
-        page.setLayout( layout )
-        toplayout.addWidget( page )
-
-        #self.edit_duration = QtGui.QLineEdit()
-        #self.edit_duration.setFixedWidth(350)
-        #self.edit_duration.textChanged.connect(self.onChange)
-
-        #layout.addRow( "<b>Duration (sec):</b>", self.edit_duration )
-
-        # 'Parameter' button bar
-        param_group = QtGui.QFrame()
-        toplayout.addWidget(param_group)
-        param_layout = QtGui.QHBoxLayout()
-        param_group.setLayout( param_layout )
-        #param_layout.addWidget( QtGui.QLabel("<b>Preflight Parameters:</b> ") )
-        #update = QtGui.QPushButton('Update')
-        #update.clicked.connect(self.update)
-        #param_layout.addWidget(update)
-        #revert = QtGui.QPushButton('Revert')
-        #revert.clicked.connect(self.revert)
-        #param_layout.addWidget(revert)
-        param_layout.addStretch(1)
-
         # 'Command' button bar
         cmd_group = QtGui.QFrame()
         toplayout.addWidget(cmd_group)
