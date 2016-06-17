@@ -23,6 +23,7 @@ import time
 from props import root, getNode
 import props_xml
 
+from chirp import Chirp
 from circle import Circle
 from land import Land
 
@@ -76,7 +77,9 @@ class Tuner(QtGui.QWidget):
     def __init__(self, host="localhost", port=6499):
         super(Tuner, self).__init__()
         self.default_title = "Aura Tasks"
-        self.circle = None
+        #self.chirp = None
+        #self.circle = None
+        #self.land = None
         self.initUI()
         self.load(host=host, port=port)
         self.clean = True
@@ -114,6 +117,10 @@ class Tuner(QtGui.QWidget):
 
     def load(self, host="localhost", port=6499):
         print "Tuner.load " + str(port)
+
+        # Chirp parameters
+        self.chirp = Chirp(changefunc=self.onChange, host=host, port=port)
+        self.tabs.addTab( self.chirp.get_widget(), "Chirp" )
 
         # Circle hold parameters
         self.circle = Circle(changefunc=self.onChange, host=host, port=port)
