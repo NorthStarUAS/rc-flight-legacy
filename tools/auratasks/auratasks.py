@@ -26,6 +26,7 @@ import props_xml
 from chirp import Chirp
 from circle import Circle
 from land import Land
+from preflight import Preflight
 
 import fgtelnet
 
@@ -129,6 +130,11 @@ class Tuner(QtGui.QWidget):
         # Land parameters
         self.land = Land(changefunc=self.onChange, host=host, port=port)
         self.tabs.addTab( self.land.get_widget(), "Land" )
+
+        # Preflight parameters
+        self.preflight = Preflight(changefunc=self.onChange, host=host,
+                                   port=port)
+        self.tabs.addTab( self.preflight.get_widget(), "Preflight" )
 
     def save(self):
         print "called for save, but does nothing yet"
