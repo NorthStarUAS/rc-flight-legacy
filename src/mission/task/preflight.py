@@ -14,10 +14,10 @@ class Preflight(Task):
         self.saved_fcs_mode = ""
         self.timer = 0.0
         self.last_imu_timestamp = 0.0
-        self.timeout_sec = 60.0
+        self.duration_sec = 60.0
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
-        self.timeout_sec = config_node.getFloat("timeout_sec")
+        self.duration_sec = config_node.getFloat("duration_sec")
 
     def activate(self):
         # fixme, not if airborne!
@@ -34,7 +34,7 @@ class Preflight(Task):
         else:
             # we are airborne, don't change modes and configure timer
             # to be already expired
-            self.timer = self.timeout_sec + 1.0
+            self.timer = self.duration_sec + 1.0
         self.last_imu_timestamp = self.imu_node.getFloat("timestamp")
         comms.events.log("mission", "preflight")
 
@@ -48,11 +48,11 @@ class Preflight(Task):
         self.timer += dt
 
     def is_complete(self):
-        # print "timer=%.1f timeout=%.1f" % (self.timer, self.timeout_sec)
+        # print "timer=%.1f duration=%.1f" % (self.timer, self.duration_sec)
         # complete when timer expires or we sense we are airborne
         # (sanity check!)
         done = False
-        if self.timer >= self.timeout_sec or \
+        if self.timer >= self.duration_sec or \
            self.task_node.getBool("is_airborne"):
 	    done = True
         return done
