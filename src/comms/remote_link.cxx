@@ -419,7 +419,11 @@ static void remote_link_execute_command( const string command ) {
 	    string path = prop_name.substr(0, pos);
 	    string attr = prop_name.substr(pos+1);
 	    pyPropertyNode node = pyGetNode( path, true );
-	    node.setString( attr.c_str(), value );
+	    if ( value == "True" or value == "False" ) {
+		node.setBool( attr.c_str(), (value != "False") );
+	    } else {
+		node.setString( attr.c_str(), value );
+	    }
 	}
     } else if ( token[0] == "wp" && token.size() == 5 ) {
         // specify new waypoint coordinates for a waypoint

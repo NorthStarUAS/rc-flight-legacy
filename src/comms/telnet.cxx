@@ -282,14 +282,18 @@ PropsChannel::foundTerminator()
 	    }
 	} else if ( command == "set" ) {
 	    if ( tokens.size() >= 2 ) {
-		string value = "", tmp;
+		string value = "", tmp = "";
 		for (unsigned int i = 2; i < tokens.size(); i++) {
 		    if ( i > 2 ) {
 			value += " ";
 		    }
 		    value += tokens[i];
 		}
-		node.setString( tokens[1].c_str(), value );
+		if ( value == "True" or value == "False" ) {
+		    node.setBool( tokens[1].c_str(), (value != "False") );
+		} else {
+		    node.setString( tokens[1].c_str(), value );
+		}
 		if ( mode == PROMPT ) {
 		    // now fetch and write out the new value as confirmation
 		    // of the change
