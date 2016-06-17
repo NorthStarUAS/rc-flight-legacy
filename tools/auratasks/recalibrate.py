@@ -26,7 +26,7 @@ class Recalibrate():
         toplayout.addWidget(cmd_group)
         cmd_layout = QtGui.QHBoxLayout()
         cmd_group.setLayout( cmd_layout )
-        cmd_layout.addWidget( QtGui.QLabel("<b>Task Commands:</b> ") )
+        cmd_layout.addWidget( QtGui.QLabel("<b>Commands:</b> ") )
         recalibrate = QtGui.QPushButton('Recalibrate')
         recalibrate.clicked.connect(self.task_recalibrate)
         cmd_layout.addWidget(recalibrate)

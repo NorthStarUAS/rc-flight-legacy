@@ -11,14 +11,17 @@ CRLF = '\r\n'
 
 class FGTelnet(Telnet):
     def __init__(self,host,port):
-        Telnet.__init__(self,host,port)
+        try:
+            Telnet.__init__(self,host,port)
+        except:
+            print "Cannot connect to:", host, port
         self.prompt = []
         self.prompt.append( re.compile('/[^>]*> ') )
         self.timeout = 2
         #Telnet.set_debuglevel(self,2)
 
     def help(self):
-        return
+        pass
 
     def ls(self,dir=None):
         """
@@ -39,7 +42,6 @@ class FGTelnet(Telnet):
         """Change directory."""
         self._putcmd('cd ' + dir)
         self._getresp()
-        return
 
     def pwd(self):
         """Display current path."""
@@ -60,13 +62,15 @@ class FGTelnet(Telnet):
         """Terminate connection"""
         self._putcmd('quit')
         self.close()
-        return
 
     # send one command to remote server
     def send(self,cmd):
         cmd = cmd + CRLF;
-        Telnet.write(self, cmd)
-        return
+        try:
+            Telnet.write(self, cmd)
+        except:
+            print "Telnet.write() failed"
+
 
     # read one response line from remote server
     def receive(self):
@@ -78,8 +82,10 @@ class FGTelnet(Telnet):
     # Internal: send one command to FlightGear
     def _putcmd(self,cmd):
         cmd = cmd + CRLF;
-        Telnet.write(self, cmd)
-        return
+        try:
+            Telnet.write(self, cmd)
+        except:
+            print "Telnet.write() failed"
 
     # Internal: get a response from FlightGear
     def _getresp(self):

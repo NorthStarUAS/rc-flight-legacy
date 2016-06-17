@@ -72,9 +72,6 @@ class Circle():
         home = QtGui.QPushButton('Go Home (and Circle)')
         home.clicked.connect(self.task_home)
         cmd_layout.addWidget(home)
-        resume = QtGui.QPushButton('Resume Route')
-        resume.clicked.connect(self.task_resume)
-        cmd_layout.addWidget(resume)
         cmd_layout.addStretch(1)
 
         toplayout.addStretch(1)
@@ -143,15 +140,5 @@ class Circle():
             t.send("send task,home")
         else:
             t.send("set /task/command_request task,home")
-        t.quit()
-
-    def task_resume(self):
-        print "request circle hold at current location"
-        t = fgtelnet.FGTelnet(self.host, self.port)
-        t.send("data")
-        if self.port != 6499:
-            t.send("send task,resume")
-        else:
-            t.send("set /task/command_request task,resume")
         t.quit()
 
