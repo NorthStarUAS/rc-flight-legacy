@@ -26,6 +26,7 @@ import props_xml
 from chirp import Chirp
 from circle import Circle
 from land import Land
+from launch import Launch
 from preflight import Preflight
 from recalibrate import Recalibrate
 
@@ -131,6 +132,10 @@ class Tuner(QtGui.QWidget):
         # Land page
         self.land = Land(changefunc=self.onChange, host=host, port=port)
         self.tabs.addTab( self.land.get_widget(), "Land" )
+
+        # Launch page
+        self.launch = Launch(changefunc=self.onChange, host=host, port=port)
+        self.tabs.addTab( self.launch.get_widget(), "Launch" )
 
         # Preflight page
         self.preflight = Preflight(changefunc=self.onChange, host=host,
