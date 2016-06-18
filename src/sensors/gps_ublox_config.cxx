@@ -495,13 +495,6 @@ int main( int argc, char **argv ) {
     // unsigned char payload[256];
     // unsigned int size = 0;
 
-    // Note: there is some hard coded assumptions right here:
-    // - gps will be talking on it's uart1 port
-    // - gps will be configured to talk at 57600
-    // - the cfg-msg string we send is actually acommplishing this and not something lese.
-
-    // Send the pre-generated message that will configure uart1 to
-    // 57600 baud on the gps
 
     gps_ublox_open( bauds[bindex] ); // detected baud rate
 
@@ -527,7 +520,7 @@ int main( int argc, char **argv ) {
     }
 
     // now send the message to save all these settings to nvram
-    msg = "CFG-CFG - 06 09 0D 00 00 00 00 00 FF FF 00 00 00 00 00 00 07";
+    string msg = "CFG-CFG - 06 09 0D 00 00 00 00 00 FF FF 00 00 00 00 00 00 07";
     printf("\n");
     printf("Sending %s\n", msg.c_str());
     gps_ublox_send_with_ack( msg.c_str(), 5, 0.5 );
