@@ -505,22 +505,6 @@ int main( int argc, char **argv ) {
 
     gps_ublox_open( bauds[bindex] ); // detected baud rate
 
-    string msg = "CFG-PRT - 06 00 14 00 01 00 00 00 C0 08 00 00 00 E1 00 00 07 00 07 00 00 00 00 00";
-    printf("\n");
-    printf("Sending %s\n", msg.c_str());
-    gps_ublox_send_with_ack( msg.c_str(), 5, 0.5 );
-
-    gps_ublox_close();
-
-    // Proceeding under the assumption that the baud rate change was
-    // successful.
-
-    // Now load the specified config file and send the data strings
-    // one by one (waiting for the proper ACK-ACK before going on to
-    // the next.)
-
-    gps_ublox_open( B57600 );	// newly configured baud rate
-
     FILE *cfg = fopen( config_file.c_str(), "r" );
     if ( cfg == NULL ) {
 	printf("Error opening %s (aborted)\n", config_file.c_str());
