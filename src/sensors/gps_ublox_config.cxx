@@ -165,6 +165,34 @@ static void my_swap( uint8_t *buf, int index, int count ) {
 #endif
 }
 
+static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
+			      uint16_t payload_length, uint8_t *payload )
+{
+    bool new_position = false;
+    // static bool set_system_time = false;
+
+    if ( msg_class == 0x05 && msg_id == 0x01 ) {
+	// ACK-ACK
+	ack_msg_class = payload[0];
+	ack_msg_id = payload[1];
+	/* printf("received an ACK-ACK for %02X %02X\n",
+	   ack_msg_class, ack_msg_id); */
+	ack_msg = true;
+    } else if ( msg_class == 0x05 && msg_id == 0x00 ) {
+	// ACK-NAK
+	printf("Received ACK-NAK\n");
+	ack_msg_class = payload[0];
+	ack_msg_id = payload[1];
+	ack_msg = false;
+    } else {
+	printf("UBLOX msg class = %02X  msg id = %02X\n",
+	       msg_class, msg_id);
+    }
+
+    return new_position;
+}
+
+
 static bool read_ublox_ubx() {
     static int state = 0;
     static int msg_class = 0, msg_id = 0;
@@ -280,6 +308,7 @@ static bool read_ublox_ubx() {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// fprintf( stderr, "checksum passes (%d)!\n", msg_id );
+		parse_ublox_msg( msg_class, msg_id, payload_length, payload );
 		new_message = true;
 		state++;
 	    } else {
