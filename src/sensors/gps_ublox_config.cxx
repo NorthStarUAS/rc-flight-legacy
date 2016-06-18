@@ -185,8 +185,8 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	ack_msg_id = payload[1];
 	ack_msg = false;
     } else {
-	printf("UBLOX msg class = %02X  msg id = %02X\n",
-	       msg_class, msg_id);
+	/* printf("UBLOX msg class = %02X  msg id = %02X\n",
+	   msg_class, msg_id); */
     }
 
     return new_position;
