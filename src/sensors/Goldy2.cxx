@@ -848,7 +848,7 @@ bool goldy2_imu_update() {
 	    imu_node.setDouble( "hy", -imu_sensors.magZ );
 	    imu_node.setDouble( "hz", imu_sensors.magY );
 	}
-	imu_node.setDouble( "tempC", imu_sensors.temp );
+	imu_node.setDouble( "temp_C", imu_sensors.temp );
 	imu_node.setDouble( "pressure", imu_sensors.pressure );
 	imu_node.setDouble( "roll_deg", imu_sensors.roll );
 	imu_node.setDouble( "pitch_deg", imu_sensors.pitch );
