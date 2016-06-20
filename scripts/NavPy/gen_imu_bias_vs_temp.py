@@ -43,16 +43,16 @@ if flight_path == None:
 
     
 # load imu/gps data files
-imu_file = flight_path + "/imu.txt"
+imu_file = flight_path + "/imu-0.txt"
 imucal_file = flight_path + "/imucal.xml"
-gps_file = flight_path + "/gps.txt"
-filter_file = flight_path + "/filter.txt"
-imu_bias_file = flight_path + "/imubias.txt"
+gps_file = flight_path + "/gps-0.txt"
+filter_file = flight_path + "/filter-0.txt"
+imu_bias_file = flight_path + "/imubias-0.txt"
 
 imu_data = []
 fimu = fileinput.input(imu_file)
 for line in fimu:
-    time, p, q, r, ax, ay, az, hx, hy, hz, temp, status = line.split()
+    time, p, q, r, ax, ay, az, hx, hy, hz, temp, status = re.split('[,\s]+', line.rstrip())
     imu = EKF.IMU( float(time), int(status),
                    float(p), float(q), float(r),
                    float(ax), float(ay), float(az),
@@ -70,7 +70,7 @@ for line in fgps:
     # for the pruposes of the insgns algorithm, it's only important to
     # have a properly incrementing clock, it doens't really matter
     # what the zero reference point of time is.
-    time, lat, lon, alt, vn, ve, vd, unixsec, sats, status = line.split()
+    time, lat, lon, alt, vn, ve, vd, unixsec, sats, status = re.split('[,\s]+', line.rstrip())
     if int(sats) >= 4:
         gps = EKF.GPS( float(time), int(status), float(unixsec),
                        float(lat), float(lon), float(alt),
@@ -85,7 +85,7 @@ if len(gps_data) == 0:
 filter_data = []
 ffilter = fileinput.input(filter_file)
 for line in ffilter:
-    time, lat, lon, alt, vn, ve, vd, phi, the, psi, status = line.split()
+    time, lat, lon, alt, vn, ve, vd, phi, the, psi, status = re.split('[,\s]+', line.rstrip())
     filter_data.append( np.array([time, lat, lon, alt, vn, ve, vd,
                                    phi, the, psi]) )
 filter_array =  np.nan*np.ones((len(filter_data),len(filter_data[0])))
