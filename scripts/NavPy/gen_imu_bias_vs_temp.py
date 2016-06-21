@@ -47,7 +47,7 @@ imu_file = flight_path + "/imu-0.txt"
 imucal_file = flight_path + "/imucal.xml"
 gps_file = flight_path + "/gps-0.txt"
 filter_file = flight_path + "/filter-0.txt"
-imu_bias_file = flight_path + "/imubias-0.txt"
+imu_bias_file = flight_path + "/imubias.txt"
 
 imu_data = []
 fimu = fileinput.input(imu_file)

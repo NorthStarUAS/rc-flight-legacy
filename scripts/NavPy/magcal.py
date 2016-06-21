@@ -18,7 +18,7 @@ args = argparser.parse_args()
 
 imu_file = os.path.join(args.flight, "imu-0.txt")
 filter_file = os.path.join(args.flight, "filter-0.txt")
-
+events_file = os.path.join(args.flight, "events.txt")
 imu_data = []
 fimu = fileinput.input(imu_file)
 for line in fimu:
@@ -60,9 +60,23 @@ norm = np.linalg.norm(mag_ned)
 mag_ned /= norm
 print mag_ned
 
+# read the events.txt file to determine when aircraft becomes airborne
+# (so we can ignore preflight values)
 xmin = x.min()
-#xmin = 1001
 xmax = x.max()
+fevents = fileinput.input(events_file)
+for line in fevents:
+    tokens = line.split()
+    if len(tokens) == 3 and tokens[2] == 'airborne':
+        xmin = float(tokens[0])
+        print "airborne (launch) at t =", xmin
+    if len(tokens) == 5 and tokens[3] == 'complete:' and tokens[4] == 'launch':
+        xmin = float(tokens[0])
+        print "flight begins at t =", xmin                    
+    if len(tokens) == 4 and float(tokens[0]) > 0 and tokens[2] == 'on' and tokens[3] == 'ground':
+        xmax = float(tokens[0])
+        print "flight complete at t =", xmax                    
+
 print "flight range = %.3f - %.3f (%.3f)" % (xmin, xmax, xmax-xmin)
 trange = xmax - xmin
 
@@ -76,13 +90,13 @@ for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
     N2B = navpy.angle2dcm(psi, the, phi, input_unit='deg')
     mag_ideal = N2B.dot(mag_ned)
     norm = np.linalg.norm(mag_ideal)
-    mag_ideal /= norm
+    #mag_ideal /= norm
     hx = imu_hx(x)
     hy = imu_hy(x)
     hz = imu_hz(x)
     mag_sense = np.array([hx, hy, hz])
     norm = np.linalg.norm(mag_sense)
-    mag_sense /= norm
+    #mag_sense /= norm
     ideal_array[i,:] = mag_ideal[:]
     sense_array[i,:] = mag_sense[:]
     #print mag_ideal[0], mag_ideal[1], mag_ideal[2], mag_sense[0], mag_sense[1], mag_sense[2]
@@ -103,18 +117,18 @@ hy_fit, res, _, _, _ = np.polyfit( sense_array[:,1], ideal_array[:,1], deg, full
 hz_fit, res, _, _, _ = np.polyfit( sense_array[:,2], ideal_array[:,2], deg, full=True )
 
 cal_fig, cal_mag = plt.subplots(3, sharex=True)
-xvals, yvals = gen_func(hx_fit, -1, 1, 0.1)
+xvals, yvals = gen_func(hx_fit, sense_array[:,0].min(), sense_array[:,0].max(), 0.1)
 cal_mag[0].plot(sense_array[:,0],ideal_array[:,0],'r.',xvals,yvals,label='hx')
 cal_mag[0].set_xlabel('(hx) Sensed Mag Value')
 cal_mag[0].set_ylabel('Ideal Mag Value')
 cal_mag[0].set_title('Magnetometer Calibration')
 
-xvals, yvals = gen_func(hy_fit, -1, 1, 0.1)
+xvals, yvals = gen_func(hy_fit, sense_array[:,1].min(), sense_array[:,1].max(), 0.1)
 cal_mag[1].plot(sense_array[:,1],ideal_array[:,1],'g.',xvals,yvals,'r',label='Filter')
 cal_mag[1].set_xlabel('(hy) Sensed Mag Value')
 cal_mag[1].set_ylabel('Ideal Mag Value')
 
-xvals, yvals = gen_func(hz_fit, -1, 1, 0.1)
+xvals, yvals = gen_func(hz_fit, sense_array[:,2].min(), sense_array[:,2].max(), 0.1)
 cal_mag[2].plot(sense_array[:,2],ideal_array[:,2],'b.',xvals,yvals,'g',label='Filter')
 cal_mag[2].set_xlabel('(hz) Sensed Mag Value')
 cal_mag[2].set_ylabel('Ideal Mag Value')
