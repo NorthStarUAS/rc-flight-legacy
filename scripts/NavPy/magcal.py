@@ -3,6 +3,7 @@
 import argparse
 import fileinput
 import geomag
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 import re
@@ -65,7 +66,10 @@ xmax = x.max()
 print "flight range = %.3f - %.3f (%.3f)" % (xmin, xmax, xmax-xmin)
 trange = xmax - xmin
 
-for x in np.linspace(xmin, xmax, trange*args.resample_hz):
+sense_array = np.nan*np.ones((trange*args.resample_hz,3))
+ideal_array = np.nan*np.ones((trange*args.resample_hz,3))
+
+for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
     phi = filter_phi(x)
     the = filter_the(x)
     psi = filter_psi(x)
@@ -79,4 +83,40 @@ for x in np.linspace(xmin, xmax, trange*args.resample_hz):
     mag_sense = np.array([hx, hy, hz])
     norm = np.linalg.norm(mag_sense)
     mag_sense /= norm
-    print mag_ideal[0], mag_ideal[1], mag_ideal[2], mag_sense[0], mag_sense[1], mag_sense[2]
+    ideal_array[i,:] = mag_ideal[:]
+    sense_array[i,:] = mag_sense[:]
+    #print mag_ideal[0], mag_ideal[1], mag_ideal[2], mag_sense[0], mag_sense[1], mag_sense[2]
+
+def gen_func( coeffs, min, max, step ):
+    xvals = []
+    yvals = []
+    func = np.poly1d(coeffs)
+    for x in np.arange(min, max+step, step):
+        y = func(x)
+        xvals.append(x)
+        yvals.append(y)
+    return xvals, yvals
+
+deg = 1
+hx_fit, res, _, _, _ = np.polyfit( sense_array[:,0], ideal_array[:,0], deg, full=True )
+hy_fit, res, _, _, _ = np.polyfit( sense_array[:,1], ideal_array[:,1], deg, full=True )
+hz_fit, res, _, _, _ = np.polyfit( sense_array[:,2], ideal_array[:,2], deg, full=True )
+
+cal_fig, cal_mag = plt.subplots(3, sharex=True)
+xvals, yvals = gen_func(hx_fit, -1, 1, 0.1)
+cal_mag[0].plot(sense_array[:,0],ideal_array[:,0],'r.',xvals,yvals,label='hx')
+cal_mag[0].set_xlabel('(hx) Sensed Mag Value')
+cal_mag[0].set_ylabel('Ideal Mag Value')
+cal_mag[0].set_title('Magnetometer Calibration')
+
+xvals, yvals = gen_func(hy_fit, -1, 1, 0.1)
+cal_mag[1].plot(sense_array[:,1],ideal_array[:,1],'g.',xvals,yvals,'r',label='Filter')
+cal_mag[1].set_xlabel('(hy) Sensed Mag Value')
+cal_mag[1].set_ylabel('Ideal Mag Value')
+
+xvals, yvals = gen_func(hz_fit, -1, 1, 0.1)
+cal_mag[2].plot(sense_array[:,2],ideal_array[:,2],'b.',xvals,yvals,'g',label='Filter')
+cal_mag[2].set_xlabel('(hz) Sensed Mag Value')
+cal_mag[2].set_ylabel('Ideal Mag Value')
+
+plt.show()
