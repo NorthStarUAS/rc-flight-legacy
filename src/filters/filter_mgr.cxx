@@ -36,6 +36,7 @@ static double last_imu_time = 0.0;
 
 // property nodes
 static pyPropertyNode imu_node;
+static pyPropertyNode gps_node;
 static pyPropertyNode pos_node;
 static pyPropertyNode orient_node;
 static pyPropertyNode vel_node;
@@ -60,6 +61,7 @@ static int logging_skip = 0;
 void Filter_init() {
     // initialize imu property nodes
     imu_node = pyGetNode("/sensors/imu", true);
+    gps_node = pyGetNode("/sensors/gps", true);
     pos_node = pyGetNode("/position", true);
     orient_node = pyGetNode("/orientation", true);
     vel_node = pyGetNode("/velocity", true);
@@ -255,10 +257,21 @@ static void publish_values() {
 				 filter_node.getDouble("timestamp") );
     status_node.setString( "navigation",
 			   filter_node.getString("navigation") );
-    orient_node.setDouble( "groundtrack_deg",
-			   filter_node.getDouble("groundtrack_deg") );
-    vel_node.setDouble( "groundspeed_ms",
-			filter_node.getDouble("groundspeed_ms") );
+    bool use_filter = true;
+    bool use_gps = false;
+    if ( use_filter ) {
+	orient_node.setDouble( "groundtrack_deg",
+			       filter_node.getDouble("groundtrack_deg") );
+	vel_node.setDouble( "groundspeed_ms",
+			    filter_node.getDouble("groundspeed_ms") );
+    } else if ( use_gps ) {
+	const double R2D = 57.295779513082323;
+	double vn = gps_node.getDouble("vn_ms");
+	double ve = gps_node.getDouble("ve_ms");
+	filter_node.setDouble( "groundtrack_deg", 90 - atan2(vn, ve) * R2D );
+	filter_node.setDouble( "groundspeed_ms", sqrt(vn*vn + ve*ve) );
+    }
+   
     vel_node.setDouble( "vertical_speed_fps",
 			filter_node.getDouble("vertical_speed_fps") );
     
