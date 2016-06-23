@@ -23,7 +23,7 @@ def compute_derived_data():
     vd = filter_node.getFloat("vd_ms")
     hdg = (math.pi * 0.5 - math.atan2(vn, ve)) * r2d
     vel_ms = math.sqrt( vn*vn + ve*ve + vd*vd )
-    filter_node.setFloat("track_deg", hdg)
+    filter_node.setFloat("groundtrack_deg", hdg)
     filter_node.setFloat("speed_ms", vel_ms)
 
     # local 'airborne' helper (not official)
