@@ -113,6 +113,7 @@ static double pilot_in_timestamp = 0.0;
 static uint16_t pilot_input[NUM_PILOT_INPUTS]; // internal stash
 static string pilot_mapping[NUM_PILOT_INPUTS]; // channel->name mapping
 static bool pilot_symmetric[NUM_PILOT_INPUTS]; // normalization symmetry flag
+static bool pilot_invert[NUM_PILOT_INPUTS];    // invert input flag
 
 static double imu_timestamp = 0.0;
 static int16_t imu_sensors[NUM_IMU_SENSORS];
@@ -699,6 +700,12 @@ bool APM2_pilot_init( string output_path, pyPropertyNode *config ) {
 	for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
 	    pilot_symmetric[i] = config->getBool("symmetric", i);
 	    printf("pilot input: channel %d symmetry %d\n", i, pilot_symmetric[i]);
+	}
+    }
+    if ( config->hasChild("invert") ) {
+	for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
+	    pilot_invert[i] = config->getBool("invert", i);
+	    printf("pilot input: channel %d invert %d\n", i, pilot_invert[i]);
 	}
     }
 
@@ -1760,6 +1767,13 @@ bool APM2_pilot_update() {
 
     for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
 	val = normalize_pulse( pilot_input[i], pilot_symmetric[i] );
+	if ( pilot_invert[i] ) {
+	    if ( pilot_symmetric[i] ) {
+		val *= -1.0;
+	    } else {
+		val = 1.0 - val;
+	    }
+	}
 	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
 	pilot_node.setDouble( "channel", i, val );
     }
