@@ -132,7 +132,7 @@ bool fgfs_act_update() {
     *(float *)buf = pitch; buf += 4;
 
     float target_track_offset = targets_node.getDouble("groundtrack_deg")
-	- orient_node.getDouble("heading-deg");
+	- orient_node.getDouble("heading_deg");
     if ( target_track_offset < -180 ) { target_track_offset += 360.0; }
     if ( target_track_offset > 180 ) { target_track_offset -= 360.0; }
     float hdg = target_track_offset * 100 + 36000.0;
@@ -143,24 +143,24 @@ bool fgfs_act_update() {
     *(float *)buf = climb; buf += 4;
 
     float alt_agl_ft = targets_node.getDouble("altitude_agl_ft");
-    float ground_m = pos_node.getDouble("altitude-ground-m");
+    float ground_m = pos_node.getDouble("altitude_ground_m");
     float alt_msl_ft = (ground_m * SG_METER_TO_FEET + alt_agl_ft) * 100.0;
     *(float *)buf = alt_msl_ft; buf += 4;
 
-    float speed = targets_node.getDouble("target-speed-kt") * 100;
+    float speed = targets_node.getDouble("target_speed_kt") * 100;
     *(float *)buf = speed; buf += 4;
 
-    float track_offset = orient_node.getDouble("groundtrack-deg")
-	- orient_node.getDouble("heading-deg");
+    float track_offset = orient_node.getDouble("groundtrack_deg")
+	- orient_node.getDouble("heading_deg");
     if ( track_offset < -180 ) { track_offset += 360.0; }
     if ( track_offset > 180 ) { track_offset -= 360.0; }
     float offset = track_offset * 100 + 36000.0;
     *(float *)buf = offset; buf += 4;
 
-    float dist = route_node.getDouble("wp-dist-m") / 10.0;
+    float dist = route_node.getDouble("wp_dist_m") / 10.0;
     *(float *)buf = dist; buf += 4;
 
-    float eta = route_node.getDouble("wp-eta-sec");
+    float eta = route_node.getDouble("wp_eta_sec");
     *(float *)buf = eta; buf += 4;
 
     if ( ulIsLittleEndian ) {
