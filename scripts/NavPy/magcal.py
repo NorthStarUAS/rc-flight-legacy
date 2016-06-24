@@ -62,20 +62,32 @@ print mag_ned
 
 # read the events.txt file to determine when aircraft becomes airborne
 # (so we can ignore preflight values)
-xmin = x.min()
-xmax = x.max()
+xmin = None
+xmax = None
 fevents = fileinput.input(events_file)
 for line in fevents:
     tokens = line.split()
-    if len(tokens) == 3 and tokens[2] == 'airborne':
+    if len(tokens) == 3 and tokens[2] == 'airborne' and not xmin:
         xmin = float(tokens[0])
         print "airborne (launch) at t =", xmin
-    if len(tokens) == 5 and tokens[3] == 'complete:' and tokens[4] == 'launch':
+    if len(tokens) == 5 and tokens[3] == 'complete:' and tokens[4] == 'launch' and not xmax:
+        # haven't found a max yet, so update min
         xmin = float(tokens[0])
         print "flight begins at t =", xmin                    
-    if len(tokens) == 4 and float(tokens[0]) > 0 and tokens[2] == 'on' and tokens[3] == 'ground':
-        xmax = float(tokens[0])
-        print "flight complete at t =", xmax                    
+    if len(tokens) == 4 and float(tokens[0]) > 0 and tokens[2] == 'on' and tokens[3] == 'ground' and not xmax:
+        t = float(tokens[0])
+        if t - xmin > 60:
+            xmax = float(tokens[0])
+            print "flight complete at t =", xmax
+        else:
+            print "warning ignoring sub 1 minute hop"
+
+if not xmin:
+    print "warning no launch event found"
+    xmin = x.min()
+if not xmax:
+    print "warning no land event found"
+    xmax = x.max()
 
 print "flight range = %.3f - %.3f (%.3f)" % (xmin, xmax, xmax-xmin)
 trange = xmax - xmin
