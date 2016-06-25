@@ -13,33 +13,64 @@ import navpy
 
 argparser = argparse.ArgumentParser(description='magcal')
 argparser.add_argument('--flight', help='flight log directory')
+argparser.add_argument('--sentera', help='sentera flight log directory')
 argparser.add_argument('--resample-hz', type=float, default=100.0, help='resample rate (hz)')
 args = argparser.parse_args()
 
-imu_file = os.path.join(args.flight, "imu-0.txt")
-filter_file = os.path.join(args.flight, "filter-0.txt")
-events_file = os.path.join(args.flight, "events.txt")
-imu_data = []
-fimu = fileinput.input(imu_file)
-for line in fimu:
-    time, p, q, r, ax, ay, az, hx, hy, hz, temp, status = re.split('[,\s]+', line.rstrip())
-    imu_data.append( [time, p, q, r, ax, ay, az, hx, hy, hz, temp] )
-if not len(imu_data):
-    print "No imu records loaded, cannot continue..."
-    sys.exit()
-    
-filter_data = []
-ffilter = fileinput.input(filter_file)
-for line in ffilter:
-    time, lat, lon, alt, vn, ve, vd, phi, the, psi, status = re.split('[,\s]+', line.rstrip())
-    filter_data.append( [time, lat, lon, alt, vn, ve, vd, phi, the, psi] )
-if not len(filter_data):
-    print "No imu records loaded, cannot continue..."
-    sys.exit()
+if args.flight:
+    imu_file = os.path.join(args.flight, "imu-0.txt")
+    filter_file = os.path.join(args.flight, "filter-0.txt")
+    events_file = os.path.join(args.flight, "events.txt")
+    imu_data = []
+    fimu = fileinput.input(imu_file)
+    for line in fimu:
+        time, p, q, r, ax, ay, az, hx, hy, hz, temp, status = re.split('[,\s]+', line.rstrip())
+        imu_data.append( [time, p, q, r, ax, ay, az, hx, hy, hz, temp] )
+    if not len(imu_data):
+        print "No imu records loaded, cannot continue..."
+        sys.exit()
 
-imu_data = np.array(imu_data, dtype=float)
+    filter_data = []
+    ffilter = fileinput.input(filter_file)
+    for line in ffilter:
+        time, lat, lon, alt, vn, ve, vd, phi, the, psi, status = re.split('[,\s]+', line.rstrip())
+        filter_data.append( [time, lat, lon, alt, vn, ve, vd, phi, the, psi] )
+    if not len(filter_data):
+        print "No imu records loaded, cannot continue..."
+        sys.exit()
+elif args.sentera:
+    imu_file = os.path.join(args.sentera, "imu.csv")
+    filter_file = os.path.join(args.sentera, "filter-post.txt")
+    imu_data = []
+    fimu = fileinput.input(imu_file)
+    for line in fimu:
+        try:
+            time, p, q, r, ax, ay, az, hx, hy, hz, temp = re.split('[,\s]+', line.rstrip())
+            imu_data.append( [float(time)/1000000.0, p, q, r, ax, ay, az, hx, hy, hz, temp] )
+        except:
+            print line.rstrip()
+    if not len(imu_data):
+        print "No imu records loaded, cannot continue..."
+        sys.exit()
+
+    filter_data = []
+    ffilter = fileinput.input(filter_file)
+    for line in ffilter:
+        time, lat, lon, alt, vn, ve, vd, phi, the, psi, status = re.split('[,\s]+', line.rstrip())
+        filter_data.append( [time, lat, lon, alt, vn, ve, vd, phi, the, psi] )
+    if not len(filter_data):
+        print "No imu records loaded, cannot continue..."
+        sys.exit()
+     
+imu_data = np.array(imu_data, dtype=np.float64)
 x = imu_data[:,0]
+print 'x:', x
+print 'imu_data:', imu_data[:,7]
+print 'hx range:', imu_data[:,7].min(), imu_data[:,7].max()
+print 'hy range:', imu_data[:,8].min(), imu_data[:,8].max()
+print 'hz range:', imu_data[:,9].min(), imu_data[:,9].max()
 imu_hx = InterpolatedUnivariateSpline(x, imu_data[:,7])
+print imu_hx(x[0])
 imu_hy = InterpolatedUnivariateSpline(x, imu_data[:,8])
 imu_hz = InterpolatedUnivariateSpline(x, imu_data[:,9])
 
@@ -64,23 +95,24 @@ print mag_ned
 # (so we can ignore preflight values)
 xmin = None
 xmax = None
-fevents = fileinput.input(events_file)
-for line in fevents:
-    tokens = line.split()
-    if len(tokens) == 3 and tokens[2] == 'airborne' and not xmin:
-        xmin = float(tokens[0])
-        print "airborne (launch) at t =", xmin
-    if len(tokens) == 5 and tokens[3] == 'complete:' and tokens[4] == 'launch' and not xmax:
-        # haven't found a max yet, so update min
-        xmin = float(tokens[0])
-        print "flight begins at t =", xmin                    
-    if len(tokens) == 4 and float(tokens[0]) > 0 and tokens[2] == 'on' and tokens[3] == 'ground' and not xmax:
-        t = float(tokens[0])
-        if t - xmin > 60:
-            xmax = float(tokens[0])
-            print "flight complete at t =", xmax
-        else:
-            print "warning ignoring sub 1 minute hop"
+if args.flight:
+    fevents = fileinput.input(events_file)
+    for line in fevents:
+        tokens = line.split()
+        if len(tokens) == 3 and tokens[2] == 'airborne' and not xmin:
+            xmin = float(tokens[0])
+            print "airborne (launch) at t =", xmin
+        if len(tokens) == 5 and tokens[3] == 'complete:' and tokens[4] == 'launch' and not xmax:
+            # haven't found a max yet, so update min
+            xmin = float(tokens[0])
+            print "flight begins at t =", xmin                    
+        if len(tokens) == 4 and float(tokens[0]) > 0 and tokens[2] == 'on' and tokens[3] == 'ground' and not xmax:
+            t = float(tokens[0])
+            if t - xmin > 60:
+                xmax = float(tokens[0])
+                print "flight complete at t =", xmax
+            else:
+                print "warning ignoring sub 1 minute hop"
 
 if not xmin:
     print "warning no launch event found"
@@ -99,6 +131,7 @@ for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
     phi = filter_phi(x)
     the = filter_the(x)
     psi = filter_psi(x)
+    #print phi, the, psi
     N2B = navpy.angle2dcm(psi, the, phi, input_unit='deg')
     mag_ideal = N2B.dot(mag_ned)
     norm = np.linalg.norm(mag_ideal)
@@ -106,14 +139,17 @@ for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
     hx = imu_hx(x)
     hy = imu_hy(x)
     hz = imu_hz(x)
+    #print hx, hy, hz
     mag_sense = np.array([hx, hy, hz])
-    norm = np.linalg.norm(mag_sense)
-    #mag_sense /= norm
+    #print mag_sense
+    #norm = np.linalg.norm(mag_sense)
+    #ag_sense /= norm
     ideal_array[i,:] = mag_ideal[:]
     sense_array[i,:] = mag_sense[:]
     #print mag_ideal[0], mag_ideal[1], mag_ideal[2], mag_sense[0], mag_sense[1], mag_sense[2]
 
 def gen_func( coeffs, min, max, step ):
+    print min, max, step
     xvals = []
     yvals = []
     func = np.poly1d(coeffs)
@@ -128,6 +164,7 @@ hx_fit, res, _, _, _ = np.polyfit( sense_array[:,0], ideal_array[:,0], deg, full
 hy_fit, res, _, _, _ = np.polyfit( sense_array[:,1], ideal_array[:,1], deg, full=True )
 hz_fit, res, _, _, _ = np.polyfit( sense_array[:,2], ideal_array[:,2], deg, full=True )
 
+print sense_array[:,0]
 cal_fig, cal_mag = plt.subplots(3, sharex=True)
 xvals, yvals = gen_func(hx_fit, sense_array[:,0].min(), sense_array[:,0].max(), 0.1)
 cal_mag[0].plot(sense_array[:,0],ideal_array[:,0],'r.',xvals,yvals,label='hx')
