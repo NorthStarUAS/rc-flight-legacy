@@ -164,7 +164,10 @@ hx_fit, res, _, _, _ = np.polyfit( sense_array[:,0], ideal_array[:,0], deg, full
 hy_fit, res, _, _, _ = np.polyfit( sense_array[:,1], ideal_array[:,1], deg, full=True )
 hz_fit, res, _, _, _ = np.polyfit( sense_array[:,2], ideal_array[:,2], deg, full=True )
 
-print sense_array[:,0]
+hx_fit_inv, res, _, _, _ = np.polyfit( ideal_array[:,0], sense_array[:,0], deg, full=True )
+
+print hx_fit, hy_fit, hz_fit
+
 cal_fig, cal_mag = plt.subplots(3, sharex=True)
 xvals, yvals = gen_func(hx_fit, sense_array[:,0].min(), sense_array[:,0].max(), 0.1)
 cal_mag[0].plot(sense_array[:,0],ideal_array[:,0],'r.',xvals,yvals,label='hx')
