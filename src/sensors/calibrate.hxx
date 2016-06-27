@@ -24,6 +24,7 @@
 #define _AURA_CALIBRATE_HXX
 
 #include "python/pyprops.hxx"
+#include "util/poly1d.hxx"
 
 
 class UGCalibrate {
@@ -33,8 +34,8 @@ private:
     float _min_temp;		// temp (C)
     float _max_temp;		// temp (C)
     
-    float bias[3];
-    float scale[3];
+    AuraPoly1d bias;
+    AuraPoly1d scale;
 
     void defaults();
 
@@ -48,13 +49,13 @@ public:
     inline float eval_bias( float temp )  {
 	if ( temp < _min_temp ) { temp = _min_temp; }
 	if ( temp > _max_temp ) { temp = _max_temp; }
-	return bias[0]*temp*temp + bias[1]*temp + bias[2];
+	return bias.eval(temp);
     }
 
     inline float eval_scale( float temp )  {
 	if ( temp < _min_temp ) { temp = _min_temp; }
 	if ( temp > _max_temp ) { temp = _max_temp; }
-	return scale[0]*temp*temp + scale[1]*temp + scale[2];
+	return scale.eval(temp);
     }
     
     inline float calibrate( float x, float temp ) {

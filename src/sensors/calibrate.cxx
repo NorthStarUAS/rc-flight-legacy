@@ -20,13 +20,11 @@ void UGCalibrate::defaults()
 {
     _min_temp = 27.0;
     _max_temp = 27.0;
-    
-    bias[0] = 0.0;
-    bias[1] = 0.0;
-    bias[2] = 0.0;
-    scale[0] = 0.0;
-    scale[1] = 0.0;
-    scale[2] = 1.0;
+
+    vector<double> bias_coeffs {0.0, 0.0, 0.0};
+    vector<double> scale_coeffs {0.0, 0.0, 1.0};
+    bias = AuraPoly1d(bias_coeffs);
+    scale = AuraPoly1d(scale_coeffs);
 }
 
 
@@ -53,42 +51,20 @@ void UGCalibrate::init( pyPropertyNode *config, float min_temp, float max_temp )
     if ( config->hasChild("bias") ) {
 	string bias_str = config->getString("bias");
 	vector<string> tokens = split( bias_str );
-	if ( tokens.size() == 1 ) {
-	    // constant bias
-	    bias[0] = 0.0;
-	    bias[1] = 0.0;
-	    bias[2] = atof( tokens[0].c_str() );
-	} else if ( tokens.size() == 3 ) {
-	    // 2nd degree polynomial fit
-	    bias[0] = atof( tokens[0].c_str() );
-	    bias[1] = atof( tokens[1].c_str() );
-	    bias[2] = atof( tokens[2].c_str() );
-	} else {
-	    // error, set zero biase
-	    bias[0] = 0.0;
-	    bias[1] = 0.0;
-	    bias[2] = 0.0;
+	vector<double> bias_coeffs;
+	for ( unsigned int i = 0; i < tokens.size(); i++ ) {
+	    bias_coeffs.push_back( atof(tokens[i].c_str()) );
 	}
+	bias = AuraPoly1d(bias_coeffs);
     }
     if ( config->hasChild("scale") ) {
 	string scale_str = config->getString("scale");
 	vector<string> tokens = split( scale_str );
-	if ( tokens.size() == 1 ) {
-	    // constant scale
-	    scale[0] = 0.0;
-	    scale[1] = 0.0;
-	    scale[2] = atof( tokens[0].c_str() );
-	} else if ( tokens.size() == 3 ) {
-	    // 2nd degree polynomial fit
-	    scale[0] = atof( tokens[0].c_str() );
-	    scale[1] = atof( tokens[1].c_str() );
-	    scale[2] = atof( tokens[2].c_str() );
-	} else {
-	    // error, set 1.0 scale
-	    scale[0] = 0.0;
-	    scale[1] = 0.0;
-	    scale[2] = 1.0;
+	vector<double> scale_coeffs;
+	for ( unsigned int i = 0; i < tokens.size(); i++ ) {
+	    scale_coeffs.push_back( atof(tokens[i].c_str()) );
 	}
+	scale = AuraPoly1d(scale_coeffs);
     }
     // printf("bias = %.6f %.6f %.6f, scale = %.4f\n",
     //        bias[0], bias[1], bias[2], scale);
