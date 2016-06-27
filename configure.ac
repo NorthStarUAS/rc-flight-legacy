@@ -83,6 +83,7 @@ AC_CONFIG_FILES([ \
         src/actuators/Makefile \
         src/filters/Makefile \
         src/filters/nav_eigen/Makefile \
+        src/filters/nav_eigen_mag/Makefile \
         src/filters/umngnss_quat/Makefile \
         src/comms/Makefile \
         src/control/Makefile \

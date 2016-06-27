@@ -5,6 +5,7 @@ libutil_a_SOURCES = \
 	exception.cxx exception.hxx \
 	lowpass.cxx lowpass.hxx \
 	myprof.cxx myprof.h \
+	poly1d.hxx \
 	sg_inlines.h \
 	sg_path.cxx sg_path.hxx \
 	SGReferenced.hxx SGSharedPtr.hxx \
