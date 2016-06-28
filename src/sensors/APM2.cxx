@@ -146,12 +146,12 @@ static float analog[NUM_ANALOG_INPUTS];     // internal stash
 static bool airspeed_inited = false;
 static double airspeed_zero_start_time = 0.0;
 
-//static UGCalibrate p_cal;
-//static UGCalibrate q_cal;
-//static UGCalibrate r_cal;
-static UGCalibrate ax_cal;
-static UGCalibrate ay_cal;
-static UGCalibrate az_cal;
+//static AuraCal p_cal;
+//static AuraCal q_cal;
+//static AuraCal r_cal;
+static AuraCal ax_cal;
+static AuraCal ay_cal;
+static AuraCal az_cal;
 
 static uint32_t pilot_packet_counter = 0;
 static uint32_t imu_packet_counter = 0;
@@ -1538,12 +1538,12 @@ bool APM2_imu_update() {
 	}
 
 	if ( imu_timestamp > last_imu_timestamp + 5.0 ) {
-	    //imu_p_bias_node.setDouble( p_cal.eval_bias( temp_C ) );
-	    //imu_q_bias_node.setDouble( q_cal.eval_bias( temp_C ) );
+	    //imu_p_bias_node.setDouble( p_cal.get_bias( temp_C ) );
+	    //imu_q_bias_node.setDouble( q_cal.get_bias( temp_C ) );
 	    //imu_r_bias_node.setDouble( r_cal.eval_bias( temp_C ) );
-	    imu_node.setDouble( "ax_bias", ax_cal.eval_bias( temp_C ) );
-	    imu_node.setDouble( "ay_bias", ay_cal.eval_bias( temp_C ) );
-	    imu_node.setDouble( "az_bias", az_cal.eval_bias( temp_C ) );
+	    imu_node.setDouble( "ax_bias", ax_cal.get_bias( temp_C ) );
+	    imu_node.setDouble( "ay_bias", ay_cal.get_bias( temp_C ) );
+	    imu_node.setDouble( "az_bias", az_cal.get_bias( temp_C ) );
 	    last_imu_timestamp = imu_timestamp;
 	}
 

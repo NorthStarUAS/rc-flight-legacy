@@ -27,7 +27,7 @@
 #include "util/poly1d.hxx"
 
 
-class UGCalibrate {
+class AuraCal {
 
 private:
 
@@ -41,26 +41,26 @@ private:
 
 public:
 
-    UGCalibrate();
-    ~UGCalibrate();
+    AuraCal();
+    ~AuraCal();
 
     void init( pyPropertyNode *config, float min_temp, float max_temp );
 
-    inline float eval_bias( float temp )  {
+    inline float get_bias( float temp )  {
 	if ( temp < _min_temp ) { temp = _min_temp; }
 	if ( temp > _max_temp ) { temp = _max_temp; }
 	return bias.eval(temp);
     }
 
-    inline float eval_scale( float temp )  {
+    inline float get_scale( float temp )  {
 	if ( temp < _min_temp ) { temp = _min_temp; }
 	if ( temp > _max_temp ) { temp = _max_temp; }
 	return scale.eval(temp);
     }
     
     inline float calibrate( float x, float temp ) {
-	float b = eval_bias( temp );
-	float s = eval_scale( temp );
+	float b = get_bias( temp );
+	float s = get_scale( temp );
 	// printf("sensor @ %.1f: %.3f -> %.3f\n", temp, x, (x - bias) * scale);
 	return (x - b) * s;
     }

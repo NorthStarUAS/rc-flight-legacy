@@ -16,7 +16,7 @@
 #include "calibrate.hxx"
 
 // set parameters to default zero bias and 1.0 scaling factor
-void UGCalibrate::defaults()
+void AuraCal::defaults()
 {
     _min_temp = 27.0;
     _max_temp = 27.0;
@@ -28,20 +28,20 @@ void UGCalibrate::defaults()
 }
 
 
-UGCalibrate::UGCalibrate()
+AuraCal::AuraCal()
 {
     defaults();
 }
 
 
-UGCalibrate::~UGCalibrate()
+AuraCal::~AuraCal()
 {
     // nothing to do
 }
 
 
 // load parameters from specified property subtree
-void UGCalibrate::init( pyPropertyNode *config, float min_temp, float max_temp )
+void AuraCal::init( pyPropertyNode *config, float min_temp, float max_temp )
 {
     defaults();
 
