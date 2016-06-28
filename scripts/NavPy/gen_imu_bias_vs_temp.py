@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import os.path
+import argparse
+import os
 import sys
 import fileinput
 import re
@@ -15,39 +16,17 @@ import imucal
 np.set_printoptions(precision=5,suppress=True)
 plt.close()
 
-def usage():
-    print "Usage: " + sys.argv[0] + " <flight_dir>"
-    sys.exit()
+argparser = argparse.ArgumentParser(description='generate imu temp vs. bias data points')
+argparser.add_argument('--flight', required=True, help='aura flight log directory')
+argparser.add_argument('--no-back-correct', action='store_true', help='do not invert the calibration to get back to original raw sensor values.')
+args = argparser.parse_args()
 
-#back_correct = True
-back_correct = False
-flight_path = None
-
-for i, arg in enumerate(sys.argv):
-    if i == 0:
-        # skip program name
-        continue
-    elif arg == "-h" or arg == "--help":
-        usage()
-    elif arg == "--no-back-correct":
-        back_correct = False
-    elif re.search("^--", arg):
-        print "unknown option: ", arg
-        usage()
-    else:
-        flight_path = arg
-
-if flight_path == None:
-    print "no flight_dir provided"
-    usage()
-
-    
 # load imu/gps data files
-imu_file = flight_path + "/imu-0.txt"
-imucal_file = flight_path + "/imucal.xml"
-gps_file = flight_path + "/gps-0.txt"
-filter_file = flight_path + "/filter-0.txt"
-imu_bias_file = flight_path + "/imubias.txt"
+imu_file = os.path.join(args.flight, "imu-0.txt")
+imucal_file = os.path.join(args.flight, "imucal.xml")
+gps_file = os.path.join(args.flight, "gps-0.txt")
+filter_file = os.path.join(args.flight, "filter-0.txt")
+imu_bias_file = os.path.join(args.flight, "imubias.txt")
 
 imu_data = []
 fimu = fileinput.input(imu_file)
@@ -92,12 +71,12 @@ filter_array =  np.nan*np.ones((len(filter_data),len(filter_data[0])))
 for i, row in enumerate(filter_data):
     filter_array[i,:] = row[:]
 
-# Back Correct the Calibration to get raw values
-if back_correct:
+# Back Correct the Calibration to get original raw values
+if args.no_back_correct:
+    imu_raw = imu_data
+else:
     cal = imucal.Calibration(imucal_file)
     imu_raw = cal.back_correct(imu_data)
-else:
-    imu_raw = imu_data
 
 # =========================== Results ===============================
 drl = len(imu_data)
@@ -210,7 +189,9 @@ nsig = 3
 istart = idx_init[0]
 istop = drl
 
-if back_correct:
+if args.no_back_correct:
+    pass
+else:
     # write output imu vs temp bias file (discard data points associated
     # with lower than flying speed because this is an indication aircraft
     # is probably still on the ground and hasn't had a chance for the bias
