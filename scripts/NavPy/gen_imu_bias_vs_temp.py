@@ -75,6 +75,7 @@ for i, row in enumerate(filter_data):
 if args.no_back_correct:
     imu_raw = imu_data
 else:
+    print 'back correcting imu data (to get original raw sensor values)'
     cal = imucal.Calibration(imucal_file)
     imu_raw = cal.back_correct(imu_data)
 
