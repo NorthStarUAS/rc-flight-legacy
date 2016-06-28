@@ -21,6 +21,7 @@ using std::ostringstream;
 #include "comms/logging.hxx"
 #include "init/globals.hxx"
 #include "sensors/cal_temp.hxx"
+#include "util/poly1d.hxx"
 #include "util/timing.h"
 
 #include "APM2.hxx"
@@ -152,6 +153,9 @@ static double airspeed_zero_start_time = 0.0;
 static AuraCalTemp ax_cal;
 static AuraCalTemp ay_cal;
 static AuraCalTemp az_cal;
+static AuraPoly1d hx_cal;
+static AuraPoly1d hy_cal;
+static AuraPoly1d hz_cal;
 
 static uint32_t pilot_packet_counter = 0;
 static uint32_t imu_packet_counter = 0;
@@ -650,6 +654,19 @@ bool APM2_imu_init( string output_path, pyPropertyNode *config ) {
 	pyPropertyNode az_node = cal.getChild("az");
 	az_cal.init( &az_node, min_temp, max_temp );
 
+	// mag calibration is currently modeled as a straight up
+	// linear fit and is more simple than the IMU calibration
+	// system: mag_cal = fit(mag_sense)
+	if ( cal.hasChild("hx_fit") ) {
+	    hx_cal = AuraPoly1d(cal.getString("hx_fit"));	    
+	}
+	if ( cal.hasChild("hy_fit") ) {
+	    hy_cal = AuraPoly1d(cal.getString("hy_fit"));	    
+	}
+	if ( cal.hasChild("hz_fit") ) {
+	    hz_cal = AuraPoly1d(cal.getString("hz_fit"));	    
+	}
+	
 	// save the imu calibration parameters with the data file so that
 	// later the original raw sensor values can be derived.
 	if ( log_to_file ) {
@@ -1554,9 +1571,9 @@ bool APM2_imu_update() {
 	imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
 	imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
 	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
-	imu_node.setLong( "hx", hx );
-	imu_node.setLong( "hy", hy );
-	imu_node.setLong( "hz", hz );
+	imu_node.setLong( "hx", hx_cal.eval(hx) );
+	imu_node.setLong( "hy", hy_cal.eval(hy) );
+	imu_node.setLong( "hz", hz_cal.eval(hz) );
 	imu_node.setDouble( "temp_C", temp_C );
     }
 

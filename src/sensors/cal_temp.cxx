@@ -50,9 +50,11 @@ void AuraCalTemp::init( pyPropertyNode *config, float min_temp, float max_temp )
     
     if ( config->hasChild("bias") ) {
 	bias = AuraPoly1d(config->getString("bias"));
+	bias.print();
     }
     if ( config->hasChild("scale") ) {
 	scale = AuraPoly1d(config->getString("scale"));
+	scale.print();
     }
     // printf("bias = %.6f %.6f %.6f, scale = %.4f\n",
     //        bias[0], bias[1], bias[2], scale);

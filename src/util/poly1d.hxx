@@ -36,22 +36,26 @@ public:
 	}
     }
     AuraPoly1d( string coeffs_str ) {
+	//printf("poly1d: %s\n", coeffs_str.c_str());
 	if ( coeffs_str != "" ) {
 	    vector<string> tokens = split( coeffs_str );
 	    _coeffs.clear();
 	    for ( unsigned int i = 0; i < tokens.size(); i++ ) {
+		//printf(" %s\n", tokens[i].c_str());
 		_coeffs.push_back( atof(tokens[i].c_str()) );
 	    }
 	} else {
 	    _coeffs = vector<double> { 1.0, 0.0 };
 	}
+	//printf(" -> ");
+	//print();
     }
 
     
     ~AuraPoly1d() { }
 
     inline double eval( double x )  {
-	unsigned int size = _coeffs.size() - 1;
+	unsigned int size = _coeffs.size();
 	double exp = 1.0;
 	double sum = 0.0;	   
 	for ( int i = size - 1; i >= 0; i-- ) {
@@ -59,6 +63,14 @@ public:
 	    exp *= x;
 	}
 	return sum;
+    }
+
+    inline void print() {
+	unsigned int size = _coeffs.size();
+	for ( int i = size - 1; i >= 0; i-- ) {
+	    printf("(%d) %.8f, ", i, _coeffs[i]);
+	}
+	printf("\n");
     }
 };
 
