@@ -46,7 +46,7 @@ gps_data = []
 fgps = fileinput.input(gps_file)
 for line in fgps:
     # note the avior logs unix time of the gps record, not tow, but
-    # for the pruposes of the insgns algorithm, it's only important to
+    # for the purposes of the insgns algorithm, it's only important to
     # have a properly incrementing clock, it doens't really matter
     # what the zero reference point of time is.
     time, lat, lon, alt, vn, ve, vd, unixsec, sats, status = re.split('[,\s]+', line.rstrip())
@@ -75,7 +75,7 @@ for i, row in enumerate(filter_data):
 if args.no_back_correct:
     imu_raw = imu_data
 else:
-    print 'back correcting imu data (to get original raw sensor values)'
+    print 'back correcting imu data (to get original raw values)'
     cal = imucal.Calibration(imucal_file)
     imu_raw = cal.back_correct(imu_data)
 
@@ -86,6 +86,8 @@ for line in fevents:
     tokens = line.split()
     if len(tokens) == 6 and tokens[1] == 'APM2:' and tokens[2] == 'Serial' and tokens[3] == 'Number':
         apm2_sn = int(tokens[5])
+    elif len(tokens) == 5 and tokens[1] == 'APM2' and tokens[2] == 'Serial' and tokens[3] == 'Number:':
+        apm2_sn = int(tokens[4])
 if apm2_sn:
     print 'APM2 s/n: ', apm2_sn
 else:
@@ -122,13 +124,13 @@ gps_index = 1
 nav_init = False
 for i, imu in enumerate(imu_raw):
     # walk the gps counter forward as needed
-    if imu.time >= gps_data[gps_index].time:
+    while gps_index < len(gps_data) and imu.time >= gps_data[gps_index].time:
         gps_index += 1
     if gps_index >= len(gps_data):
         # no more gps data, stay on the last record
         gps_index = len(gps_data)-1
     gps = gps_data[gps_index-1]
-    #print "t(imu) = " + str(imu.time) + " t(gps) = " + str(gps.time)
+    #print "t(imu) =", imu.time, "t(gps) =", gps.time
 
     # update the filter
     plot_time[i] = imu.time

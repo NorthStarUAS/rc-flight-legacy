@@ -156,6 +156,8 @@ class Filter():
         # CPU time are consistent
         # If this fails, re-initialize the filter. There must have been a glitch
         if NEW_GNSS_FLAG:
+            #print self.tcpu, self.last_tcpu, self.tcpu-self.last_tcpu
+            #print self.tow, self.last_tow, self.tow-self.last_tow
             if abs((self.tcpu-self.last_tcpu) - (self.tow-self.last_tow)) > 0.5:
                 self.TU_COUNT = 0
                 self.NAV_INIT = False
