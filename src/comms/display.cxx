@@ -61,18 +61,18 @@ void display_message()
 	init_props();
     }
 
-    printf("[imu  ]: p = %7.3f  q = %7.3f  r = %7.3f [deg/s]\n",
+    printf("[imu  ]: gyro = %.3f %.3f %.3f [deg/s] ",
 	   imu_node.getDouble("p_rad_sec") * SGD_RADIANS_TO_DEGREES,
 	   imu_node.getDouble("q_rad_sec") * SGD_RADIANS_TO_DEGREES,
 	   imu_node.getDouble("r_rad_sec") * SGD_RADIANS_TO_DEGREES);
-    printf("[imu  ]:ax = %7.3f ay = %7.3f az = %7.3f [m/s^2]\n",
+    printf("accel = %.3f %.3f %.3f [m/s^2]\n",
 	   imu_node.getDouble("ax_mps_sec"),
 	   imu_node.getDouble("ay_mps_sec"),
 	   imu_node.getDouble("az_mps_sec"));
-    /* printf("[Gauss]:hx  = %7.3f hy  = %7.3f hz  = %7.3f\n",
+    printf("[mag  ]: %.3f %.3f %.3f\n",
 	   imu_node.getDouble("hx"),
 	   imu_node.getDouble("hy"),
-	   imu_node.getDouble("hz")); */
+	   imu_node.getDouble("hz"));
     printf("[air  ]:Palt = %5.2f[m] Pspd = %4.1f[kt]\n",
 	   pos_pressure_node.getDouble("altitude_m"),
 	   airdata_node.getDouble("airspeed_kt"));
