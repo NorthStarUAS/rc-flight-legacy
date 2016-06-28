@@ -26,16 +26,24 @@ private:
 public:
 
     AuraPoly1d() {
-	_coeffs.clear();
+	_coeffs = vector<double> { 1.0, 0.0 }; // y = 1*x + 0; y = x
     }
     AuraPoly1d( vector<double> coeffs ) {
-	_coeffs = coeffs;
+	if ( coeffs.size() ) {
+	    _coeffs = coeffs;
+	} else {
+	    _coeffs = vector<double> { 1.0, 0.0 };
+	}
     }
     AuraPoly1d( string coeffs_str ) {
-	vector<string> tokens = split( coeffs_str );
-	_coeffs.clear();
-	for ( unsigned int i = 0; i < tokens.size(); i++ ) {
-	    _coeffs.push_back( atof(tokens[i].c_str()) );
+	if ( coeffs_str != "" ) {
+	    vector<string> tokens = split( coeffs_str );
+	    _coeffs.clear();
+	    for ( unsigned int i = 0; i < tokens.size(); i++ ) {
+		_coeffs.push_back( atof(tokens[i].c_str()) );
+	    }
+	} else {
+	    _coeffs = vector<double> { 1.0, 0.0 };
 	}
     }
 
