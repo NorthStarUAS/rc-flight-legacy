@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import os.path
+import argparse
 import os
 import sys
 import fileinput
@@ -8,30 +8,22 @@ import fileinput
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-import insgps_quat_15state
-import navpy
 
 import imucal
 
-np.set_printoptions(precision=5,suppress=True)
-plt.close()
+argparser = argparse.ArgumentParser(description='fit imu bias data')
+argparser.add_argument('--cal-dir', required=True, help='calibration directory')
+args = argparser.parse_args()
 
-def usage():
-    print "Usage: " + sys.argv[0] + " <flightdir_root>"
-
-if len(sys.argv) < 2:
-    usage()
-    sys.exit()
-
-cal_file = sys.argv[1] + "/imucal.xml"
+cal_file = os.path.join(args.cal_dir, "imucal.xml")
 
 bias_files = []
-# find all the imubias.txt files in the given tree
-for path, dirs, files in os.walk(sys.argv[1]):
+# find all the *-imubias.txt files in the given tree
+for path, dirs, files in os.walk(args.cal_dir):
     if files:
         for file in files:
-            if file == 'imubias.txt':
-                bias_files.append( os.path.join(path,file) )
+            if file.endswith('-imubias.txt'):
+                bias_files.append( os.path.join(path, file) )
 
 # load imu bias data files
 bias_data = []
