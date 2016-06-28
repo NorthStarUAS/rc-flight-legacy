@@ -1,8 +1,8 @@
 /**
- * \file: calibrate.hxx
+ * \file: cal_temp.hxx
  *
 
- * Callibration helper class.  This rolls two concepts together into a
+ * Temp calibration helper class.  This rolls two concepts together into a
  * single class:
 
  * a temperature bias fit function, currently a 2nd degree polynomal
@@ -20,14 +20,14 @@
  *
  */
 
-#ifndef _AURA_CALIBRATE_HXX
-#define _AURA_CALIBRATE_HXX
+#ifndef _AURA_CAL_TEMP_HXX
+#define _AURA_CAL_TEMP_HXX
 
 #include "python/pyprops.hxx"
 #include "util/poly1d.hxx"
 
 
-class AuraCal {
+class AuraCalTemp {
 
 private:
 
@@ -41,8 +41,8 @@ private:
 
 public:
 
-    AuraCal();
-    ~AuraCal();
+    AuraCalTemp();
+    ~AuraCalTemp();
 
     void init( pyPropertyNode *config, float min_temp, float max_temp );
 
@@ -66,4 +66,4 @@ public:
     }
 };
 
-#endif // _AURA_CALIBRATE_HXX
+#endif // _AURA_CAL_TEMP_HXX

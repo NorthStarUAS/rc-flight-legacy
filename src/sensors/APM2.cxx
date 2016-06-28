@@ -20,7 +20,7 @@ using std::ostringstream;
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
 #include "init/globals.hxx"
-#include "sensors/calibrate.hxx"
+#include "sensors/cal_temp.hxx"
 #include "util/timing.h"
 
 #include "APM2.hxx"
@@ -146,12 +146,12 @@ static float analog[NUM_ANALOG_INPUTS];     // internal stash
 static bool airspeed_inited = false;
 static double airspeed_zero_start_time = 0.0;
 
-//static AuraCal p_cal;
-//static AuraCal q_cal;
-//static AuraCal r_cal;
-static AuraCal ax_cal;
-static AuraCal ay_cal;
-static AuraCal az_cal;
+//static AuraCalTemp p_cal;
+//static AuraCalTemp q_cal;
+//static AuraCalTemp r_cal;
+static AuraCalTemp ax_cal;
+static AuraCalTemp ay_cal;
+static AuraCalTemp az_cal;
 
 static uint32_t pilot_packet_counter = 0;
 static uint32_t imu_packet_counter = 0;

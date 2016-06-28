@@ -3,7 +3,7 @@ noinst_LIBRARIES = libsensors.a
 libsensors_a_SOURCES = \
 	airdata_mgr.cxx airdata_mgr.hxx \
 	airdata_bolder.cxx airdata_bolder.hxx \
-	calibrate.hxx calibrate.cxx \
+	cal_temp.hxx cal_temp.cxx \
         imu_mgr.cxx imu_mgr.hxx \
 	imu_fgfs.cxx imu_fgfs.hxx \
 	imu_vn100_uart.cxx imu_vn100_uart.hxx \

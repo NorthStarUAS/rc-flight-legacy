@@ -1,7 +1,7 @@
 /**
- * \file: calibrate.cxx
+ * \file: cal_temp.cxx
  *
- * Callibration helper class
+ * Calibration helper class
  *
  * Copyright (C) 2015 - Curtis L. Olson curtolson@flightgear.org
  *
@@ -13,10 +13,10 @@
 
 #include "util/strutils.hxx"
 
-#include "calibrate.hxx"
+#include "cal_temp.hxx"
 
 // set parameters to default zero bias and 1.0 scaling factor
-void AuraCal::defaults()
+void AuraCalTemp::defaults()
 {
     _min_temp = 27.0;
     _max_temp = 27.0;
@@ -28,20 +28,20 @@ void AuraCal::defaults()
 }
 
 
-AuraCal::AuraCal()
+AuraCalTemp::AuraCalTemp()
 {
     defaults();
 }
 
 
-AuraCal::~AuraCal()
+AuraCalTemp::~AuraCalTemp()
 {
     // nothing to do
 }
 
 
 // load parameters from specified property subtree
-void AuraCal::init( pyPropertyNode *config, float min_temp, float max_temp )
+void AuraCalTemp::init( pyPropertyNode *config, float min_temp, float max_temp )
 {
     defaults();
 
