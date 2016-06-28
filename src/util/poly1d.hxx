@@ -10,8 +10,12 @@
 #ifndef _AURA_POLY1D_HXX
 #define _AURA_POLY1D_HXX
 
+#include <string>
 #include <vector>
+using std::string;
 using std::vector;
+
+#include "util/strutils.hxx"
 
 class AuraPoly1d {
 
@@ -21,10 +25,20 @@ private:
 
 public:
 
-    AuraPoly1d() { }
+    AuraPoly1d() {
+	_coeffs.clear();
+    }
     AuraPoly1d( vector<double> coeffs ) {
 	_coeffs = coeffs;
     }
+    AuraPoly1d( string coeffs_str ) {
+	vector<string> tokens = split( coeffs_str );
+	_coeffs.clear();
+	for ( unsigned int i = 0; i < tokens.size(); i++ ) {
+	    _coeffs.push_back( atof(tokens[i].c_str()) );
+	}
+    }
+
     
     ~AuraPoly1d() { }
 

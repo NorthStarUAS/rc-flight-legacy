@@ -49,22 +49,10 @@ void AuraCalTemp::init( pyPropertyNode *config, float min_temp, float max_temp )
     _max_temp = max_temp;
     
     if ( config->hasChild("bias") ) {
-	string bias_str = config->getString("bias");
-	vector<string> tokens = split( bias_str );
-	vector<double> bias_coeffs;
-	for ( unsigned int i = 0; i < tokens.size(); i++ ) {
-	    bias_coeffs.push_back( atof(tokens[i].c_str()) );
-	}
-	bias = AuraPoly1d(bias_coeffs);
+	bias = AuraPoly1d(config->getString("bias"));
     }
     if ( config->hasChild("scale") ) {
-	string scale_str = config->getString("scale");
-	vector<string> tokens = split( scale_str );
-	vector<double> scale_coeffs;
-	for ( unsigned int i = 0; i < tokens.size(); i++ ) {
-	    scale_coeffs.push_back( atof(tokens[i].c_str()) );
-	}
-	scale = AuraPoly1d(scale_coeffs);
+	scale = AuraPoly1d(config->getString("scale"));
     }
     // printf("bias = %.6f %.6f %.6f, scale = %.4f\n",
     //        bias[0], bias[1], bias[2], scale);
