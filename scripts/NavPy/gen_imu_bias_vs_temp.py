@@ -2,7 +2,6 @@
 
 import argparse
 import os
-import sys
 import fileinput
 import re
 
@@ -18,7 +17,9 @@ plt.close()
 
 argparser = argparse.ArgumentParser(description='generate imu temp vs. bias data points')
 argparser.add_argument('--flight', required=True, help='aura flight log directory')
+argparser.add_argument('--cal', required=True, help='calibration log directory')
 argparser.add_argument('--no-back-correct', action='store_true', help='do not invert the calibration to get back to original raw sensor values.')
+argparser.add_argument('--plot', action='store_true', help='plot results.')
 args = argparser.parse_args()
 
 # load imu/gps data files
@@ -26,7 +27,7 @@ imu_file = os.path.join(args.flight, "imu-0.txt")
 imucal_file = os.path.join(args.flight, "imucal.xml")
 gps_file = os.path.join(args.flight, "gps-0.txt")
 filter_file = os.path.join(args.flight, "filter-0.txt")
-imu_bias_file = os.path.join(args.flight, "imubias.txt")
+events_file = os.path.join(args.flight, "events.txt")
 
 imu_data = []
 fimu = fileinput.input(imu_file)
@@ -36,11 +37,10 @@ for line in fimu:
                    float(p), float(q), float(r),
                    float(ax), float(ay), float(az),
                    float(temp) )
-
     imu_data.append( imu )
 if len(imu_data) == 0:
     print "No imu records loaded, cannot continue..."
-    sys.exit()
+    quit()
 
 gps_data = []
 fgps = fileinput.input(gps_file)
@@ -58,7 +58,7 @@ for line in fgps:
 
 if len(gps_data) == 0:
     print "No gps records loaded, cannot continue..."
-    sys.exit()
+    quit()
 
 # load filter records if they exist (for comparison purposes)
 filter_data = []
@@ -77,6 +77,19 @@ if args.no_back_correct:
 else:
     cal = imucal.Calibration(imucal_file)
     imu_raw = cal.back_correct(imu_data)
+
+# Read the events file for IMU make / serial number
+apm2_sn = None
+fevents = fileinput.input(events_file)
+for line in fevents:
+    tokens = line.split()
+    if len(tokens) == 6 and tokens[1] == 'APM2:' and tokens[2] == 'Serial' and tokens[3] == 'Number':
+        apm2_sn = int(tokens[5])
+if apm2_sn:
+    print 'APM2 s/n: ', apm2_sn
+else:
+    print 'Cannot determine APM2 serial number from events.txt file'
+    quit()
 
 # =========================== Results ===============================
 drl = len(imu_data)
@@ -196,6 +209,14 @@ else:
     # with lower than flying speed because this is an indication aircraft
     # is probably still on the ground and hasn't had a chance for the bias
     # estimates to converge)
+
+    cal_dir = os.path.join(args.cal, "apm2_" + str(apm2_sn))
+    if not os.path.exists(cal_dir):
+        os.makedirs(cal_dir)
+    filename = os.path.basename(os.path.abspath(args.flight)) + "-imubias.txt"
+    imu_bias_file = os.path.join(cal_dir, filename)
+    print "cal file:", imu_bias_file
+
     min_vel = 5 # mps
     f = open(imu_bias_file, 'w')
     i = istart
@@ -213,6 +234,10 @@ else:
 
 # ============================= INS PLOTS ======================================
 
+if not args.plot:
+    # exit here if plots not requested
+    quit()
+    
 pos_fig, pos_ax = plt.subplots(1)
 #pos_ax.plot(gnss_ned[:,1],gnss_ned[:,0],'*',label='GNSS')
 pos_ax.plot(ref_ned[:,1],ref_ned[:,0],'*',label='Raw GPS')
