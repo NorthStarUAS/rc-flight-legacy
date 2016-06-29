@@ -7,17 +7,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import re
-from scipy.interpolate import InterpolatedUnivariateSpline
+#from scipy.interpolate import InterpolatedUnivariateSpline
+from scipy import interpolate
 
 import navpy
 
 argparser = argparse.ArgumentParser(description='magcal')
 argparser.add_argument('--flight', help='flight log directory')
 argparser.add_argument('--sentera', help='sentera flight log directory')
+argparser.add_argument('--cal', required=True, help='calibration log directory')
 argparser.add_argument('--resample-hz', type=float, default=100.0, help='resample rate (hz)')
+argparser.add_argument('--plot', action='store_true', help='plot results.')
 args = argparser.parse_args()
 
 if args.flight:
+    # load IMU (+ mag) data
     imu_file = os.path.join(args.flight, "imu-0.txt")
     filter_file = os.path.join(args.flight, "filter-0.txt")
     events_file = os.path.join(args.flight, "events.txt")
@@ -25,11 +29,14 @@ if args.flight:
     fimu = fileinput.input(imu_file)
     for line in fimu:
         time, p, q, r, ax, ay, az, hx, hy, hz, temp, status = re.split('[,\s]+', line.rstrip())
+        if abs(float(hx)) > 500:
+            print "line:", line
         imu_data.append( [time, p, q, r, ax, ay, az, hx, hy, hz, temp] )
     if not len(imu_data):
         print "No imu records loaded, cannot continue..."
         sys.exit()
 
+    # load filter (attitude estimate) data
     filter_data = []
     ffilter = fileinput.input(filter_file)
     for line in ffilter:
@@ -69,16 +76,16 @@ print 'imu_data:', imu_data[:,7]
 print 'hx range:', imu_data[:,7].min(), imu_data[:,7].max()
 print 'hy range:', imu_data[:,8].min(), imu_data[:,8].max()
 print 'hz range:', imu_data[:,9].min(), imu_data[:,9].max()
-imu_hx = InterpolatedUnivariateSpline(x, imu_data[:,7])
+imu_hx = interpolate.interp1d(x, imu_data[:,7])
 print imu_hx(x[0])
-imu_hy = InterpolatedUnivariateSpline(x, imu_data[:,8])
-imu_hz = InterpolatedUnivariateSpline(x, imu_data[:,9])
+imu_hy = interpolate.interp1d(x, imu_data[:,8])
+imu_hz = interpolate.interp1d(x, imu_data[:,9])
 
 filter_data = np.array(filter_data, dtype=float)
 x = filter_data[:,0]
-filter_phi = InterpolatedUnivariateSpline(x, filter_data[:,7])
-filter_the = InterpolatedUnivariateSpline(x, filter_data[:,8])
-filter_psi = InterpolatedUnivariateSpline(x, filter_data[:,9])
+filter_phi = interpolate.interp1d(x, filter_data[:,7])
+filter_the = interpolate.interp1d(x, filter_data[:,8])
+filter_psi = interpolate.interp1d(x, filter_data[:,9])
 
 # determine ideal magnetometer in ned coordinates
 base_lat = filter_data[0][1]
@@ -92,7 +99,8 @@ mag_ned /= norm
 print mag_ned
 
 # read the events.txt file to determine when aircraft becomes airborne
-# (so we can ignore preflight values)
+# (so we can ignore preflight values.)  Update: also to read the IMU
+# serial number.
 xmin = None
 xmax = None
 if args.flight:
@@ -102,18 +110,27 @@ if args.flight:
         if len(tokens) == 3 and tokens[2] == 'airborne' and not xmin:
             xmin = float(tokens[0])
             print "airborne (launch) at t =", xmin
-        if len(tokens) == 5 and tokens[3] == 'complete:' and tokens[4] == 'launch' and not xmax:
+        elif len(tokens) == 5 and tokens[3] == 'complete:' and tokens[4] == 'launch' and not xmax:
             # haven't found a max yet, so update min
             xmin = float(tokens[0])
             print "flight begins at t =", xmin                    
-        if len(tokens) == 4 and float(tokens[0]) > 0 and tokens[2] == 'on' and tokens[3] == 'ground' and not xmax:
+        elif len(tokens) == 4 and float(tokens[0]) > 0 and tokens[2] == 'on' and tokens[3] == 'ground' and not xmax:
             t = float(tokens[0])
             if t - xmin > 60:
                 xmax = float(tokens[0])
                 print "flight complete at t =", xmax
             else:
                 print "warning ignoring sub 1 minute hop"
-
+        elif len(tokens) == 6 and tokens[1] == 'APM2:' and tokens[2] == 'Serial' and tokens[3] == 'Number':
+            apm2_sn = int(tokens[5])
+        elif len(tokens) == 5 and tokens[1] == 'APM2' and tokens[2] == 'Serial' and tokens[3] == 'Number:':
+            apm2_sn = int(tokens[4])
+    if apm2_sn:
+        print 'APM2 s/n: ', apm2_sn
+    else:
+        print 'Cannot determine APM2 serial number from events.txt file'
+        quit()
+    
 if not xmin:
     print "warning no launch event found"
     xmin = x.min()
@@ -121,6 +138,12 @@ if not xmax:
     print "warning no land event found"
     xmax = x.max()
 
+# sanity check in case imu data log ends before events.txt
+if xmin < x.min():
+    xmin = x.min()
+if xmax > x.max():
+    xmax = x.max()
+    
 print "flight range = %.3f - %.3f (%.3f)" % (xmin, xmax, xmax-xmin)
 trange = xmax - xmin
 
@@ -139,7 +162,8 @@ for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
     hx = imu_hx(x)
     hy = imu_hy(x)
     hz = imu_hz(x)
-    #print hx, hy, hz
+    if abs(hx) > 500:
+        print "oops:", hx, hy, hz
     mag_sense = np.array([hx, hy, hz])
     #print mag_sense
     #norm = np.linalg.norm(mag_sense)
@@ -148,8 +172,26 @@ for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
     sense_array[i,:] = mag_sense[:]
     #print mag_ideal[0], mag_ideal[1], mag_ideal[2], mag_sense[0], mag_sense[1], mag_sense[2]
 
-def gen_func( coeffs, min, max, step ):
-    print min, max, step
+if args.flight:
+    # write calibration data to file (so we can aggregate over
+    # multiple flights later
+    cal_dir = os.path.join(args.cal, "apm2_" + str(apm2_sn))
+    if not os.path.exists(cal_dir):
+        os.makedirs(cal_dir)
+    filename = os.path.basename(os.path.abspath(args.flight)) + "-mags.txt"
+    mags_file = os.path.join(cal_dir, filename)
+    print "mags file:", mags_file
+    f = open(mags_file, 'w')
+    for i in range(ideal_array.shape[0]):
+        f.write( "%.4f %.4f %.4f %.4f %.4f %.4f\n" %
+                 (sense_array[i][0], sense_array[i][1], sense_array[i][2],
+                  ideal_array[i][0], ideal_array[i][1], ideal_array[i][2]))
+    f.close()
+
+    
+def gen_func( coeffs, min, max, steps ):
+    print min, max, steps
+    step = (max - min) / steps
     xvals = []
     yvals = []
     func = np.poly1d(coeffs)
@@ -168,21 +210,22 @@ hx_fit_inv, res, _, _, _ = np.polyfit( ideal_array[:,0], sense_array[:,0], deg, 
 
 print hx_fit, hy_fit, hz_fit
 
-cal_fig, cal_mag = plt.subplots(3, sharex=True)
-xvals, yvals = gen_func(hx_fit, sense_array[:,0].min(), sense_array[:,0].max(), 0.1)
-cal_mag[0].plot(sense_array[:,0],ideal_array[:,0],'r.',xvals,yvals,label='hx')
-cal_mag[0].set_xlabel('(hx) Sensed Mag Value')
-cal_mag[0].set_ylabel('Ideal Mag Value')
-cal_mag[0].set_title('Magnetometer Calibration')
+if args.plot:
+    cal_fig, cal_mag = plt.subplots(3, sharex=True)
+    xvals, yvals = gen_func(hx_fit, sense_array[:,0].min(), sense_array[:,0].max(), 100)
+    cal_mag[0].plot(sense_array[:,0],ideal_array[:,0],'r.',xvals,yvals,label='hx')
+    cal_mag[0].set_xlabel('(hx) Sensed Mag Value')
+    cal_mag[0].set_ylabel('Ideal Mag Value')
+    cal_mag[0].set_title('Magnetometer Calibration')
 
-xvals, yvals = gen_func(hy_fit, sense_array[:,1].min(), sense_array[:,1].max(), 0.1)
-cal_mag[1].plot(sense_array[:,1],ideal_array[:,1],'g.',xvals,yvals,'r',label='Filter')
-cal_mag[1].set_xlabel('(hy) Sensed Mag Value')
-cal_mag[1].set_ylabel('Ideal Mag Value')
+    xvals, yvals = gen_func(hy_fit, sense_array[:,1].min(), sense_array[:,1].max(), 100)
+    cal_mag[1].plot(sense_array[:,1],ideal_array[:,1],'g.',xvals,yvals,'r',label='Filter')
+    cal_mag[1].set_xlabel('(hy) Sensed Mag Value')
+    cal_mag[1].set_ylabel('Ideal Mag Value')
 
-xvals, yvals = gen_func(hz_fit, sense_array[:,2].min(), sense_array[:,2].max(), 0.1)
-cal_mag[2].plot(sense_array[:,2],ideal_array[:,2],'b.',xvals,yvals,'g',label='Filter')
-cal_mag[2].set_xlabel('(hz) Sensed Mag Value')
-cal_mag[2].set_ylabel('Ideal Mag Value')
+    xvals, yvals = gen_func(hz_fit, sense_array[:,2].min(), sense_array[:,2].max(), 100)
+    cal_mag[2].plot(sense_array[:,2],ideal_array[:,2],'b.',xvals,yvals,'g',label='Filter')
+    cal_mag[2].set_xlabel('(hz) Sensed Mag Value')
+    cal_mag[2].set_ylabel('Ideal Mag Value')
 
-plt.show()
+    plt.show()
