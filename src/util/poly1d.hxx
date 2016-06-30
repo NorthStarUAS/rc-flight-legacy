@@ -26,13 +26,15 @@ private:
 public:
 
     AuraPoly1d() {
-	_coeffs = vector<double> { 1.0, 0.0 }; // y = 1*x + 0; y = x
+	_coeffs = vector<double>(2,0);
+        _coeffs[0] = 1.0; // y = 1*x + 0; y = x
     }
     AuraPoly1d( vector<double> coeffs ) {
 	if ( coeffs.size() ) {
 	    _coeffs = coeffs;
 	} else {
-	    _coeffs = vector<double> { 1.0, 0.0 };
+	    _coeffs = vector<double>(2,0);
+            _coeffs[0] = 1.0; // y = 1*x + 0; y = x
 	}
     }
     AuraPoly1d( string coeffs_str ) {
@@ -45,7 +47,8 @@ public:
 		_coeffs.push_back( atof(tokens[i].c_str()) );
 	    }
 	} else {
-	    _coeffs = vector<double> { 1.0, 0.0 };
+	    _coeffs = vector<double>(2,0);
+            _coeffs[0] = 1.0; // y = 1*x + 0; y = x
 	}
 	//printf(" -> ");
 	//print();

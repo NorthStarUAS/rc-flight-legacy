@@ -21,8 +21,9 @@ void AuraCalTemp::defaults()
     _min_temp = 27.0;
     _max_temp = 27.0;
 
-    vector<double> bias_coeffs {0.0, 0.0, 0.0};
-    vector<double> scale_coeffs {0.0, 0.0, 1.0};
+    vector<double> bias_coeffs(3,0);
+    vector<double> scale_coeffs(3,0);
+    scale_coeffs[2] = 1.0;
     bias = AuraPoly1d(bias_coeffs);
     scale = AuraPoly1d(scale_coeffs);
 }
