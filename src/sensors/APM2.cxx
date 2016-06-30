@@ -1571,6 +1571,9 @@ bool APM2_imu_update() {
 	imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
 	imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
 	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
+	imu_node.setLong( "hx_raw", hx );
+	imu_node.setLong( "hy_raw", hy );
+	imu_node.setLong( "hz_raw", hz );
 	imu_node.setLong( "hx", hx_cal.eval(hx) );
 	imu_node.setLong( "hy", hy_cal.eval(hy) );
 	imu_node.setLong( "hz", hz_cal.eval(hz) );
