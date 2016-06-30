@@ -41,7 +41,7 @@ for bias_file in bias_files:
         if max_temp == None or t > max_temp:
             max_temp = t
 
-print "Temp range: %.1f - %.1f\n" % (min_temp, max_temp)
+print "Temp range (C): %.1f - %.1f\n" % (min_temp, max_temp)
         
 if len(bias_data) == 0:
     print "No bias records loaded, cannot continue..."
@@ -73,7 +73,7 @@ if len(mag_data) == 0:
 # =========================== Results ===============================
 bias_array = np.array(bias_data, dtype=np.float64)
 bias_len = bias_array.shape[0]
-print "temps:", bias_array[:,1]
+print "temp range:", bias_array[:,1].min(), bias_array[:,1].max()
 
 mag_array = np.array(mag_data, dtype=np.float64)
 mag_len = mag_array.shape[0]
