@@ -132,6 +132,19 @@ Matrix<double,3,3> sk(Matrix<double,3,1> w) {
     return C;
 }
 
+// depricated
+void qmult(double *p, double *q, double *r) {
+    /* Quaternion Multiplication: r = p x q */
+    int i;
+	
+    for(i=0;i<3;i++) r[i] = 0.0;
+	
+    r[0] = p[0]*q[0] - (p[1]*q[1] + p[2]*q[2] + p[3]*q[3]);
+    r[1] = p[0]*q[1] + q[0]*p[1] + p[2]*q[3] - p[3]*q[2];
+    r[2] = p[0]*q[2] + q[0]*p[2] + p[3]*q[1] - p[1]*q[3];
+    r[3] = p[0]*q[3] + q[0]*p[3] + p[1]*q[2] - p[2]*q[1];
+}
+
 // Quaternion to euler angle: returns phi, the, psi as a vector
 Matrix<double,3,1> quat2eul(Quaterniond q) {
     double q0, q1, q2, q3;

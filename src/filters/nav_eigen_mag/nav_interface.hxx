@@ -11,8 +11,8 @@
  * $Id: nav_interface.h 757 2012-01-04 21:57:48Z murch $
  */
 
-#ifndef NAV_INTERFACE_HXX_
-#define NAV_INTERFACE_HXX_
+#ifndef NAV_EIGEN_MAG_INTERFACE_H_
+#define NAV_EIGEN_MAG_INTERFACE_H_
 
 
 struct IMUdata {
@@ -69,15 +69,15 @@ struct NAVdata {
 };
 
 const double g = 9.814;
-const double D2R = M_PI / 180.0; // degrees to radians
+const double D2R = M_PI / 180.0;
 const double R2D = 180.0 / M_PI; // radians to degrees
 const double F2M = 0.3048;	 // feets to meters
 const double M2F = 1.0 / F2M;	 // meters to feets
 
 /// Standard function to initialize the navigation filter.
-NAVdata init_nav(IMUdata imu, GPSdata gps);
+NAVdata init_nav_mag(IMUdata imu, GPSdata gps);
 
 /// Standard function to call the navigation filter.
-NAVdata get_nav(IMUdata imu, GPSdata gps);
+NAVdata get_nav_mag(IMUdata imu, GPSdata gps);
 
 #endif

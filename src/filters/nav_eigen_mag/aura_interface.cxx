@@ -134,10 +134,10 @@ bool nav_eigen_mag_update() {
     props2umn();
 
     if ( nav_inited ) {
-	nav_data = get_nav( imu_data, gps_data );
+	nav_data = get_nav_mag( imu_data, gps_data );
     } else {
 	if ( GPS_age() < 1.0 && gps_node.getBool("settle") ) {
-	    nav_data = init_nav( imu_data, gps_data );
+	    nav_data = init_nav_mag( imu_data, gps_data );
 	    nav_inited = true;
 	}
     }

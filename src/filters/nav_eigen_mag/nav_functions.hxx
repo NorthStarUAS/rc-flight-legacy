@@ -21,8 +21,8 @@
  */
 
 //#include "matrix.h"
-#ifndef NAV_FUNCTIONS_HXX_
-#define NAV_FUNCTIONS_HXX_
+#ifndef NAV_FUNCTIONS_H_
+#define NAV_FUNCTIONS_H_
 
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
@@ -56,6 +56,8 @@ Matrix<double,3,1> ecef2ned(Matrix<double,3,1> ecef, Matrix<double,3,1> pos_ref)
 Matrix<double,3,1> lla2ecef(Matrix<double,3,1> lla);
 
 Matrix<double,3,3> sk(Matrix<double,3,1> w);
+
+void qmult(double *p, double *q, double *r);
 
 Matrix<double,3,1> quat2eul(Quaterniond q);
 
