@@ -22,6 +22,9 @@ class Calibration():
         self.ax_scale = np.array([0.0, 0.0, 1.0])
         self.ay_scale = np.array([0.0, 0.0, 1.0])
         self.az_scale = np.array([0.0, 0.0, 1.0])
+        self.hx_fit = np.array([1.0, 0.0])
+        self.hy_fit = np.array([1.0, 0.0])
+        self.hz_fit = np.array([1.0, 0.0])
         if cal_file:
             self.load(cal_file)
 
@@ -72,8 +75,8 @@ class Calibration():
             print filename + ": xml parse error:\n" + str(sys.exc_info()[1])
             return
         root = self.xml.getroot()
-        self.min_temp = self.myfloat(root.find('min-temp-C').text)
-        self.max_temp = self.myfloat(root.find('max-temp-C').text)
+        self.min_temp = self.myfloat(root.find('min_temp_C').text)
+        self.max_temp = self.myfloat(root.find('max_temp_C').text)
         
         node = root.find('p')
         if len(node):
@@ -117,6 +120,21 @@ class Calibration():
             p1, p2, p3 = node.find('scale').text.split()
             self.az_scale = np.array([p1, p2, p3], dtype=np.float64)
 
+        node = root.find('hx_fit')
+        if node:
+            coeffs = node.text.split()
+            self.hx_fit = np.array(coeffs, type=np.float64)
+
+        node = root.find('hy_fit')
+        if node:
+            coeffs = node.text.split()
+            self.hy_fit = np.array(coeffs, type=np.float64)
+
+        node = root.find('hz_fit')
+        if node:
+            coeffs = node.text.split()
+            self.hz_fit = np.array(coeffs, type=np.float64)
+            
     def load(self, cal_file):
         extension = os.path.splitext(cal_file)[1]
         if extension == ".txt":
@@ -133,8 +151,8 @@ class Calibration():
         # save a configuration file
     def save_xml(self, cal_file):
         root = ET.Element('PropertyList')
-        self.update_node(root, 'min-temp-C', self.min_temp)
-        self.update_node(root, 'max-temp-C', self.max_temp)
+        self.update_node(root, 'min_temp_C', self.min_temp)
+        self.update_node(root, 'max_temp_C', self.max_temp)
 
         sensor = ET.SubElement(root, 'p')
         p = self.p_bias
@@ -172,6 +190,15 @@ class Calibration():
         p = self.az_scale
         self.update_node(sensor, 'scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
 
+        p = self.hx_fit
+        self.update_node(root, 'hx_fit', "%.8f %.8f" % (p[0], p[1]))
+
+        p = self.hy_fit
+        self.update_node(root, 'hy_fit', "%.8f %.8f" % (p[0], p[1]))
+
+        p = self.hz_fit
+        self.update_node(root, 'hz_fit', "%.8f %.8f" % (p[0], p[1]))
+
         self.xml = ET.ElementTree(root)
         try:
             self.xml.write(cal_file, encoding="us-ascii",
@@ -195,6 +222,9 @@ class Calibration():
         ax_scale_func = np.poly1d(self.ax_scale)
         ay_scale_func = np.poly1d(self.ay_scale)
         az_scale_func = np.poly1d(self.az_scale)
+        hx_fit_func = np.poly1d(self.hx_fit)
+        hy_fit_func = np.poly1d(self.hy_fit)
+        hz_fit_func = np.poly1d(self.hz_fit)
         for imu in imu_data:
             newimu = copy.copy(imu)
             t = imu.temp
@@ -208,6 +238,9 @@ class Calibration():
             newimu.ax = (imu.ax - ax_bias_func(t)) * ax_scale_func(t)
             newimu.ay = (imu.ay - ay_bias_func(t)) * ay_scale_func(t)
             newimu.az = (imu.az - az_bias_func(t)) * az_scale_func(t)
+            newimu.hx = hx_fit_func(imu.hx)
+            newimu.hy = hx_fit_func(imu.hy)
+            newimu.hz = hx_fit_func(imu.hz)
             imu_corrected.append(newimu)
         return imu_corrected
     
@@ -227,6 +260,9 @@ class Calibration():
         ax_scale_func = np.poly1d(self.ax_scale)
         ay_scale_func = np.poly1d(self.ay_scale)
         az_scale_func = np.poly1d(self.az_scale)
+        #hx_inv_func = np.array([ 1.0, self.hx_fit[1]], type=np.float64) / self.hx_fit[0]
+        #hy_inv_func = np.array([ 1.0, self.hy_fit[1]], type=np.float64) / self.hy_fit[0]
+        #hz_inv_func = np.array([ 1.0, self.hz_fit[1]], type=np.float64) / self.hz_fit[0]
         for imu in imu_data:
             newimu = copy.copy(imu)
             t = imu.temp
@@ -240,5 +276,11 @@ class Calibration():
             newimu.ax = imu.ax / ax_scale_func(t) + ax_bias_func(t)
             newimu.ay = imu.ay / ay_scale_func(t) + ay_bias_func(t)
             newimu.az = imu.az / az_scale_func(t) + az_bias_func(t)
+            #newimu.hx = hx_inv_func(imu.hx)
+            #newimu.hy = hx_inv_func(imu.hy)
+            #newimu.hz = hx_inv_func(imu.hz)
+            #newimu.hx = imu.hx
+            #newimu.hy = imu.hy
+            #newimu.hz = imu.hz
             imu_corrected.append(newimu)
         return imu_corrected
