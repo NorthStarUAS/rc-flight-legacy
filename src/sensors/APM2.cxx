@@ -1571,12 +1571,14 @@ bool APM2_imu_update() {
 	imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
 	imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
 	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
+	//printf("mags: %d %d %d\n", hx, hy, hz);
 	imu_node.setLong( "hx_raw", hx );
 	imu_node.setLong( "hy_raw", hy );
 	imu_node.setLong( "hz_raw", hz );
-	imu_node.setLong( "hx", hx_cal.eval(hx) );
-	imu_node.setLong( "hy", hy_cal.eval(hy) );
-	imu_node.setLong( "hz", hz_cal.eval(hz) );
+	imu_node.setDouble( "hx", hx_cal.eval(hx) );
+	imu_node.setDouble( "hy", hy_cal.eval(hy) );
+	imu_node.setDouble( "hz", hz_cal.eval(hz) );
+	//printf("mags: %.0f %.0f %.0f\n", hx_cal.eval(hx), hy_cal.eval(hy), hz_cal.eval(hz));
 	imu_node.setDouble( "temp_C", temp_C );
     }
 
