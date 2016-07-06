@@ -18,6 +18,7 @@
 #include "init/globals.hxx"
 #include "math/SGMath.hxx"
 #include "math/SGGeodesy.hxx"
+#include "util/poly1d.hxx"
 #include "util/timing.h"
 
 #include "util_goldy2.hxx"
@@ -51,6 +52,10 @@ static bool airdata_inited = false;
 static bool gps_inited = false;
 static bool pilot_input_inited = false;
 static string imu_orientation = "normal";
+
+static AuraPoly1d hx_cal;
+static AuraPoly1d hy_cal;
+static AuraPoly1d hz_cal;
 
 struct imu_sensors_t {
     uint64_t time;
@@ -167,6 +172,47 @@ bool goldy2_imu_init( string output_path, pyPropertyNode *config ) {
     
     if ( config->hasChild("imu_orientation") ) {
 	imu_orientation = config->getString("imu_orientation");
+    }
+
+    if ( config->hasChild("calibration") ) {
+	pyPropertyNode cal = config->getChild("calibration");
+	// double min_temp = 27.0;
+	// double max_temp = 27.0;
+	// if ( cal.hasChild("min_temp_C") ) {
+	//     min_temp = cal.getDouble("min_temp_C");
+	// }
+	// if ( cal.hasChild("max_temp_C") ) {
+	//     max_temp = cal.getDouble("max_temp_C");
+	// }
+	
+	// //p_cal.init( cal->getChild("p"), min_temp, max_temp );
+	// //q_cal.init( cal->getChild("q"), min_temp, max_temp );
+	// //r_cal.init( cal->getChild("r"), min_temp, max_temp );
+	// pyPropertyNode ax_node = cal.getChild("ax");
+	// ax_cal.init( &ax_node, min_temp, max_temp );
+	// pyPropertyNode ay_node = cal.getChild("ay");
+	// ay_cal.init( &ay_node, min_temp, max_temp );
+	// pyPropertyNode az_node = cal.getChild("az");
+	// az_cal.init( &az_node, min_temp, max_temp );
+
+	// mag calibration is currently modeled as a straight up
+	// linear fit and is more simple than the IMU calibration
+	// system: mag_cal = fit(mag_sense)
+	if ( cal.hasChild("hx_fit") ) {
+	    hx_cal = AuraPoly1d(cal.getString("hx_fit"));	    
+	}
+	if ( cal.hasChild("hy_fit") ) {
+	    hy_cal = AuraPoly1d(cal.getString("hy_fit"));	    
+	}
+	if ( cal.hasChild("hz_fit") ) {
+	    hz_cal = AuraPoly1d(cal.getString("hz_fit"));	    
+	}
+	
+	// save the imu calibration parameters with the data file so that
+	// later the original raw sensor values can be derived.
+	if ( log_to_file ) {
+	    log_imu_calibration( &cal );
+	}
     }
 
     return true;
@@ -834,9 +880,12 @@ bool goldy2_imu_update() {
 	    imu_node.setDouble( "ax_mps_sec", imu_sensors.accelX );
 	    imu_node.setDouble( "ay_mps_sec", imu_sensors.accelY );
 	    imu_node.setDouble( "az_mps_sec", imu_sensors.accelZ );
-	    imu_node.setDouble( "hx", imu_sensors.magX );
-	    imu_node.setDouble( "hy", imu_sensors.magY );
-	    imu_node.setDouble( "hz", imu_sensors.magZ );
+	    imu_node.setDouble( "hx_raw", imu_sensors.magX );
+	    imu_node.setDouble( "hy_raw", imu_sensors.magY );
+	    imu_node.setDouble( "hz_raw", imu_sensors.magZ );
+	    imu_node.setDouble( "hx", hx_cal.eval(imu_sensors.magX) );
+	    imu_node.setDouble( "hy", hy_cal.eval(imu_sensors.magY) );
+	    imu_node.setDouble( "hz", hz_cal.eval(imu_sensors.magZ) );
 	} else if ( imu_orientation == "edgewise" ) {
 	    imu_node.setDouble( "p_rad_sec", imu_sensors.gyroX );
 	    imu_node.setDouble( "q_rad_sec", -imu_sensors.gyroZ );
@@ -844,9 +893,12 @@ bool goldy2_imu_update() {
 	    imu_node.setDouble( "ax_mps_sec", imu_sensors.accelX );
 	    imu_node.setDouble( "ay_mps_sec", -imu_sensors.accelZ );
 	    imu_node.setDouble( "az_mps_sec", imu_sensors.accelY );
-	    imu_node.setDouble( "hx", imu_sensors.magX );
-	    imu_node.setDouble( "hy", -imu_sensors.magZ );
-	    imu_node.setDouble( "hz", imu_sensors.magY );
+	    imu_node.setDouble( "hx_raw", imu_sensors.magX );
+	    imu_node.setDouble( "hy_raw", -imu_sensors.magZ );
+	    imu_node.setDouble( "hz_raw", imu_sensors.magY );
+	    imu_node.setDouble( "hx", hx_cal.eval(imu_sensors.magX) );
+	    imu_node.setDouble( "hy", hy_cal.eval(-imu_sensors.magZ) );
+	    imu_node.setDouble( "hz", hz_cal.eval(imu_sensors.magY) );
 	} else if ( imu_orientation == "reverse" ) {
 	    imu_node.setDouble( "p_rad_sec", -imu_sensors.gyroX );
 	    imu_node.setDouble( "q_rad_sec", -imu_sensors.gyroY );
@@ -854,9 +906,12 @@ bool goldy2_imu_update() {
 	    imu_node.setDouble( "ax_mps_sec", -imu_sensors.accelX );
 	    imu_node.setDouble( "ay_mps_sec", -imu_sensors.accelY );
 	    imu_node.setDouble( "az_mps_sec", imu_sensors.accelZ );
-	    imu_node.setDouble( "hx", -imu_sensors.magX );
-	    imu_node.setDouble( "hy", -imu_sensors.magY );
-	    imu_node.setDouble( "hz", imu_sensors.magZ );
+	    imu_node.setDouble( "hx_raw", -imu_sensors.magX );
+	    imu_node.setDouble( "hy_raw", -imu_sensors.magY );
+	    imu_node.setDouble( "hz_raw", imu_sensors.magZ );
+	    imu_node.setDouble( "hx", hx_cal.eval(-imu_sensors.magX) );
+	    imu_node.setDouble( "hy", hy_cal.eval(-imu_sensors.magY) );
+	    imu_node.setDouble( "hz", hz_cal.eval(imu_sensors.magZ) );
 	}
 	imu_node.setDouble( "temp_C", imu_sensors.temp );
 	imu_node.setDouble( "pressure", imu_sensors.pressure );
