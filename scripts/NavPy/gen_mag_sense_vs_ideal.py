@@ -16,6 +16,7 @@ argparser = argparse.ArgumentParser(description='magcal')
 argparser.add_argument('--flight', help='flight log directory')
 argparser.add_argument('--sentera', help='sentera flight log directory')
 argparser.add_argument('--cal', required=True, help='calibration log directory')
+argparser.add_argument('--imu-sn', help='specify imu serial number')
 argparser.add_argument('--resample-hz', type=float, default=100.0, help='resample rate (hz)')
 argparser.add_argument('--plot', action='store_true', help='plot results.')
 args = argparser.parse_args()
@@ -103,6 +104,7 @@ print mag_ned
 # serial number.
 xmin = None
 xmax = None
+imu_sn = None
 if args.flight:
     fevents = fileinput.input(events_file)
     for line in fevents:
@@ -122,14 +124,20 @@ if args.flight:
             else:
                 print "warning ignoring sub 1 minute hop"
         elif len(tokens) == 6 and tokens[1] == 'APM2:' and tokens[2] == 'Serial' and tokens[3] == 'Number':
-            apm2_sn = int(tokens[5])
+            imu_sn = 'apm2_' + tokens[5]
         elif len(tokens) == 5 and tokens[1] == 'APM2' and tokens[2] == 'Serial' and tokens[3] == 'Number:':
-            apm2_sn = int(tokens[4])
-    if apm2_sn:
-        print 'APM2 s/n: ', apm2_sn
+            imu_sn = 'apm2_' + tokens[4]
+    if imu_sn:
+        print 'IMU s/n: ', imu_sn
     else:
-        print 'Cannot determine APM2 serial number from events.txt file'
-        quit()
+        print 'Cannot determine IMU serial number from events.txt file'
+        if args.imu_sn:
+            imu_sn = args.imu_sn
+            print 'Using serial number from command line:', imu_sn
+
+if not imu_sn:
+    print 'Cannot continue without an IMU serial number'
+    quit()
     
 if not xmin:
     print "warning no launch event found"
@@ -175,7 +183,7 @@ for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
 if args.flight:
     # write calibration data to file (so we can aggregate over
     # multiple flights later
-    cal_dir = os.path.join(args.cal, "apm2_" + str(apm2_sn))
+    cal_dir = os.path.join(args.cal, imu_sn)
     if not os.path.exists(cal_dir):
         os.makedirs(cal_dir)
     filename = os.path.basename(os.path.abspath(args.flight)) + "-mags.txt"

@@ -41,12 +41,11 @@ for bias_file in bias_files:
         if max_temp == None or t > max_temp:
             max_temp = t
 
-print "Temp range (C): %.1f - %.1f\n" % (min_temp, max_temp)
-        
 if len(bias_data) == 0:
-    print "No bias records loaded, cannot continue..."
-    sys.exit()
-
+    print "No accel bias records loaded..."
+else:
+    print "Accel bias temp range (C): %.1f - %.1f\n" % (min_temp, max_temp)
+        
 mag_files = []
 # find all the *-mags.txt files in the given tree
 for path, dirs, files in os.walk(args.cal_dir):
@@ -71,50 +70,52 @@ if len(mag_data) == 0:
 
 
 # =========================== Results ===============================
-bias_array = np.array(bias_data, dtype=np.float64)
-bias_len = bias_array.shape[0]
-print "temp range:", bias_array[:,1].min(), bias_array[:,1].max()
-
-mag_array = np.array(mag_data, dtype=np.float64)
-mag_len = mag_array.shape[0]
-mag_min = mag_array[:,0:3].min() # note: [:,start_index:length]
-mag_max = mag_array[:,0:3].max()
-print "mag range:", mag_min, mag_max
-
 nosave = imucal.Calibration()
 cal = imucal.Calibration()
 
-nosave.p_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,2], 2, full=True )
-print "p coefficients = ", nosave.p_bias
-print "p residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
-nosave.q_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,3], 2, full=True )
-print "q coefficients = ", nosave.q_bias
-print "q residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
-nosave.r_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,4], 2, full=True )
-print "r coefficients = ", nosave.r_bias
-print "r residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
-cal.ax_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,5], 2, full=True )
-print "ax coefficients = ", cal.ax_bias
-print "ax residual = ", math.sqrt(res[0]/bias_len)
-cal.ay_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,6], 2, full=True )
-print "ay coefficients = ", cal.ay_bias
-print "ay residual = ", math.sqrt(res[0]/bias_len)
-cal.az_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,7], 2, full=True )
-print "az coefficients = ", cal.az_bias
-print "az residual = ", math.sqrt(res[0]/bias_len)
+if len(bias_data):
+    bias_array = np.array(bias_data, dtype=np.float64)
+    bias_len = bias_array.shape[0]
+    print "temp range:", bias_array[:,1].min(), bias_array[:,1].max()
 
-cal.min_temp = min_temp
-cal.max_temp = max_temp
+    nosave.p_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,2], 2, full=True )
+    print "p coefficients = ", nosave.p_bias
+    print "p residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
+    nosave.q_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,3], 2, full=True )
+    print "q coefficients = ", nosave.q_bias
+    print "q residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
+    nosave.r_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,4], 2, full=True )
+    print "r coefficients = ", nosave.r_bias
+    print "r residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
+    cal.ax_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,5], 2, full=True )
+    print "ax coefficients = ", cal.ax_bias
+    print "ax residual = ", math.sqrt(res[0]/bias_len)
+    cal.ay_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,6], 2, full=True )
+    print "ay coefficients = ", cal.ay_bias
+    print "ay residual = ", math.sqrt(res[0]/bias_len)
+    cal.az_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,7], 2, full=True )
+    print "az coefficients = ", cal.az_bias
+    print "az residual = ", math.sqrt(res[0]/bias_len)
 
-cal.hx_fit, res, _, _, _ = np.polyfit( mag_array[:,0], mag_array[:,3], 1, full=True )
-print "hx coefficients = ", cal.hx_fit
-print "hx residual = ", math.sqrt(res[0]/mag_len)
-cal.hy_fit, res, _, _, _ = np.polyfit( mag_array[:,1], mag_array[:,4], 1, full=True )
-print "hy coefficients = ", cal.hy_fit
-print "hy residual = ", math.sqrt(res[0]/mag_len)
-cal.hz_fit, res, _, _, _ = np.polyfit( mag_array[:,2], mag_array[:,5], 1, full=True )
-print "hz coefficients = ", cal.hz_fit
-print "hz residual = ", math.sqrt(res[0]/mag_len)
+    cal.min_temp = min_temp
+    cal.max_temp = max_temp
+
+if len(mag_data):
+    mag_array = np.array(mag_data, dtype=np.float64)
+    mag_len = mag_array.shape[0]
+    mag_min = mag_array[:,0:3].min() # note: [:,start_index:length]
+    mag_max = mag_array[:,0:3].max()
+    print "mag range:", mag_min, mag_max
+
+    cal.hx_fit, res, _, _, _ = np.polyfit( mag_array[:,0], mag_array[:,3], 1, full=True )
+    print "hx coefficients = ", cal.hx_fit
+    print "hx residual = ", math.sqrt(res[0]/mag_len)
+    cal.hy_fit, res, _, _, _ = np.polyfit( mag_array[:,1], mag_array[:,4], 1, full=True )
+    print "hy coefficients = ", cal.hy_fit
+    print "hy residual = ", math.sqrt(res[0]/mag_len)
+    cal.hz_fit, res, _, _, _ = np.polyfit( mag_array[:,2], mag_array[:,5], 1, full=True )
+    print "hz coefficients = ", cal.hz_fit
+    print "hz residual = ", math.sqrt(res[0]/mag_len)
 
 cal.save_xml(cal_file)
 
@@ -150,39 +151,41 @@ if False:
     cal_gyro[2].set_ylabel('$b_{gz}$ (deg/s)')
     #cal_gyro[2].set_title('Gyro Bias vs. Temp')
 
-cal_fig, cal_accel = plt.subplots(3, sharex=True)
-xvals, yvals = gen_func(cal.ax_bias, min_temp, max_temp, 100)
-cal_accel[0].plot(bias_array[:,1],bias_array[:,5],'r.',xvals,yvals,label='Filter')
-cal_accel[0].set_xlabel('Temp (C)')
-cal_accel[0].set_ylabel('$b_{ax}$ (m/s^2)')
-cal_accel[0].set_title('Accel Bias vs. Temp')
-xvals, yvals = gen_func(cal.ay_bias, min_temp, max_temp, 100)
-cal_accel[1].plot(bias_array[:,1],bias_array[:,6],'g.',xvals,yvals,label='Filter')
-cal_accel[1].set_xlabel('Temp (C)')
-cal_accel[1].set_ylabel('$b_{ay}$ (m/s^2)')
-#cal_accel[1].set_title('Accel Bias vs. Temp')
-xvals, yvals = gen_func(cal.az_bias, min_temp, max_temp, 100)
-cal_accel[2].plot(bias_array[:,1],bias_array[:,7],'b.',xvals,yvals,'g',label='Filter')
-cal_accel[2].set_xlabel('Temp (C)')
-cal_accel[2].set_ylabel('$b_{az}$ (m/s^2)')
-#cal_accel[2].set_title('Accel Bias vs. Temp')
+if len(bias_data):
+    cal_fig, cal_accel = plt.subplots(3, sharex=True)
+    xvals, yvals = gen_func(cal.ax_bias, min_temp, max_temp, 100)
+    cal_accel[0].plot(bias_array[:,1],bias_array[:,5],'r.',xvals,yvals,label='Filter')
+    cal_accel[0].set_xlabel('Temp (C)')
+    cal_accel[0].set_ylabel('$b_{ax}$ (m/s^2)')
+    cal_accel[0].set_title('Accel Bias vs. Temp')
+    xvals, yvals = gen_func(cal.ay_bias, min_temp, max_temp, 100)
+    cal_accel[1].plot(bias_array[:,1],bias_array[:,6],'g.',xvals,yvals,label='Filter')
+    cal_accel[1].set_xlabel('Temp (C)')
+    cal_accel[1].set_ylabel('$b_{ay}$ (m/s^2)')
+    #cal_accel[1].set_title('Accel Bias vs. Temp')
+    xvals, yvals = gen_func(cal.az_bias, min_temp, max_temp, 100)
+    cal_accel[2].plot(bias_array[:,1],bias_array[:,7],'b.',xvals,yvals,'g',label='Filter')
+    cal_accel[2].set_xlabel('Temp (C)')
+    cal_accel[2].set_ylabel('$b_{az}$ (m/s^2)')
+    #cal_accel[2].set_title('Accel Bias vs. Temp')
 
-mag_fig, mag_fit = plt.subplots(3, sharex=True)
-xvals, yvals = gen_func(cal.hx_fit, mag_min, mag_max, 100)
-mag_fit[0].plot(mag_array[:,0],mag_array[:,3],'r.',xvals,yvals,label='Filter')
-mag_fit[0].set_xlabel('Sensed hx (adc)')
-mag_fit[0].set_ylabel('True hx (norm)')
-mag_fit[0].set_title('Mag Calibration')
-xvals, yvals = gen_func(cal.hy_fit, mag_min, mag_max, 100)
-mag_fit[1].plot(mag_array[:,1],mag_array[:,4],'g.',xvals,yvals,label='Filter')
-mag_fit[1].set_xlabel('Sensed hy (adc)')
-mag_fit[1].set_ylabel('True hx (norm)')
-#mag_fit[1].set_title('Accel Bias vs. Temp')
-xvals, yvals = gen_func(cal.hz_fit, mag_min, mag_max, 100)
-mag_fit[2].plot(mag_array[:,2],mag_array[:,5],'b.',xvals,yvals,'g',label='Filter')
-mag_fit[2].set_xlabel('Sensed hz (adc)')
-mag_fit[2].set_ylabel('True hx (norm)')
-#mag_fit[2].set_title('Accel Bias vs. Temp')
+if len(mag_data):
+    mag_fig, mag_fit = plt.subplots(3, sharex=True)
+    xvals, yvals = gen_func(cal.hx_fit, mag_min, mag_max, 100)
+    mag_fit[0].plot(mag_array[:,0],mag_array[:,3],'r.',xvals,yvals,label='Filter')
+    mag_fit[0].set_xlabel('Sensed hx (adc)')
+    mag_fit[0].set_ylabel('True hx (norm)')
+    mag_fit[0].set_title('Mag Calibration')
+    xvals, yvals = gen_func(cal.hy_fit, mag_min, mag_max, 100)
+    mag_fit[1].plot(mag_array[:,1],mag_array[:,4],'g.',xvals,yvals,label='Filter')
+    mag_fit[1].set_xlabel('Sensed hy (adc)')
+    mag_fit[1].set_ylabel('True hx (norm)')
+    #mag_fit[1].set_title('Accel Bias vs. Temp')
+    xvals, yvals = gen_func(cal.hz_fit, mag_min, mag_max, 100)
+    mag_fit[2].plot(mag_array[:,2],mag_array[:,5],'b.',xvals,yvals,'g',label='Filter')
+    mag_fit[2].set_xlabel('Sensed hz (adc)')
+    mag_fit[2].set_ylabel('True hx (norm)')
+    #mag_fit[2].set_title('Accel Bias vs. Temp')
 
 plt.show()
 
