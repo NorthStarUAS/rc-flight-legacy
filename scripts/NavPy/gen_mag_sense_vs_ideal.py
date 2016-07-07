@@ -21,6 +21,8 @@ argparser.add_argument('--resample-hz', type=float, default=100.0, help='resampl
 argparser.add_argument('--plot', action='store_true', help='plot results.')
 args = argparser.parse_args()
 
+g = 9.81
+
 if args.flight:
     # load IMU (+ mag) data
     imu_file = os.path.join(args.flight, "imu-0.txt")
@@ -54,12 +56,15 @@ elif args.sentera:
     for line in fimu:
         try:
             time, p, q, r, ax, ay, az, hx, hy, hz, temp = re.split('[,\s]+', line.rstrip())
-            imu_data.append( [float(time)/1000000.0, p, q, r, ax, ay, az, hx, hy, hz, temp] )
+            imu_data.append( [float(time)/1000000.0,
+                              -float(p), float(q), -float(r),
+                              -float(ax)*g, float(ay)*g, -float(az)*g,
+                              -float(hx), float(hy), -float(hz), temp] )
         except:
             print line.rstrip()
     if not len(imu_data):
         print "No imu records loaded, cannot continue..."
-        sys.exit()
+        quit()
 
     filter_data = []
     ffilter = fileinput.input(filter_file)
@@ -72,21 +77,24 @@ elif args.sentera:
      
 imu_data = np.array(imu_data, dtype=np.float64)
 x = imu_data[:,0]
-print 'x:', x
 print 'imu_data:', imu_data[:,7]
 print 'hx range:', imu_data[:,7].min(), imu_data[:,7].max()
 print 'hy range:', imu_data[:,8].min(), imu_data[:,8].max()
 print 'hz range:', imu_data[:,9].min(), imu_data[:,9].max()
-imu_hx = interpolate.interp1d(x, imu_data[:,7])
-print imu_hx(x[0])
-imu_hy = interpolate.interp1d(x, imu_data[:,8])
-imu_hz = interpolate.interp1d(x, imu_data[:,9])
+imu_hx = interpolate.interp1d(x, imu_data[:,7], bounds_error=False, fill_value=0.0)
+imu_hy = interpolate.interp1d(x, imu_data[:,8], bounds_error=False, fill_value=0.0)
+imu_hz = interpolate.interp1d(x, imu_data[:,9], bounds_error=False, fill_value=0.0)
 
 filter_data = np.array(filter_data, dtype=float)
 x = filter_data[:,0]
+filter_alt = interpolate.interp1d(x, filter_data[:,3])
 filter_phi = interpolate.interp1d(x, filter_data[:,7])
 filter_the = interpolate.interp1d(x, filter_data[:,8])
 filter_psi = interpolate.interp1d(x, filter_data[:,9])
+alt_min = filter_data[:,3].min()
+alt_max = filter_data[:,3].max()
+alt_cutoff = (alt_max + alt_min) * 0.5
+print "Alt range =", alt_min, alt_max, "cutoff =", alt_cutoff
 
 # determine ideal magnetometer in ned coordinates
 base_lat = filter_data[0][1]
@@ -131,10 +139,11 @@ if args.flight:
         print 'IMU s/n: ', imu_sn
     else:
         print 'Cannot determine IMU serial number from events.txt file'
-        if args.imu_sn:
-            imu_sn = args.imu_sn
-            print 'Using serial number from command line:', imu_sn
 
+if args.imu_sn:
+    imu_sn = args.imu_sn
+    print 'Using serial number from command line:', imu_sn
+    
 if not imu_sn:
     print 'Cannot continue without an IMU serial number'
     quit()
@@ -155,10 +164,11 @@ if xmax > x.max():
 print "flight range = %.3f - %.3f (%.3f)" % (xmin, xmax, xmax-xmin)
 trange = xmax - xmin
 
-sense_array = np.nan*np.ones((trange*args.resample_hz,3))
-ideal_array = np.nan*np.ones((trange*args.resample_hz,3))
+sense_data = []
+ideal_data = []
 
 for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
+    alt = filter_alt(x)
     phi = filter_phi(x)
     the = filter_the(x)
     psi = filter_psi(x)
@@ -176,9 +186,17 @@ for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
     #print mag_sense
     #norm = np.linalg.norm(mag_sense)
     #ag_sense /= norm
-    ideal_array[i,:] = mag_ideal[:]
-    sense_array[i,:] = mag_sense[:]
+    if args.flight:
+        ideal_data.append( mag_ideal[:].tolist() )
+        sense_data.append( mag_sense[:].tolist() )
+    elif args.sentera and alt >= alt_cutoff:
+        ideal_data.append( mag_ideal[:].tolist() )
+        sense_data.append( mag_sense[:].tolist() )
+
     #print mag_ideal[0], mag_ideal[1], mag_ideal[2], mag_sense[0], mag_sense[1], mag_sense[2]
+    
+ideal_array = np.array(ideal_data, dtype=np.float64)
+sense_array = np.array(sense_data, dtype=np.float64)
 
 if args.flight:
     # write calibration data to file (so we can aggregate over
