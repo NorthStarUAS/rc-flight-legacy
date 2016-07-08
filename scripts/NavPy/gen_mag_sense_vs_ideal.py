@@ -56,10 +56,19 @@ elif args.sentera:
     for line in fimu:
         try:
             time, p, q, r, ax, ay, az, hx, hy, hz, temp = re.split('[,\s]+', line.rstrip())
-            imu_data.append( [float(time)/1000000.0,
-                              -float(p), float(q), -float(r),
-                              -float(ax)*g, float(ay)*g, -float(az)*g,
-                              -float(hx), float(hy), -float(hz), temp] )
+            mag_orienation = 'older'
+            if mag_orienation == 'older':
+                imu_data.append( [float(time)/1000000.0,
+                                  -float(p), float(q), -float(r),
+                                  -float(ax)*g, float(ay)*g, -float(az)*g,
+                                  -float(hx), float(hy), -float(hz),
+                                  float(temp)] )
+            elif mag_orientation == 'newer':
+                imu_data.append( [float(time)/1000000.0,
+                                  -float(p), float(q), -float(r),
+                                  -float(ax)*g, float(ay)*g, -float(az)*g,
+                                  -float(hy), float(hx), float(hz),
+                                  float(temp)] )
         except:
             print line.rstrip()
     if not len(imu_data):
@@ -93,7 +102,7 @@ filter_the = interpolate.interp1d(x, filter_data[:,8])
 filter_psi = interpolate.interp1d(x, filter_data[:,9])
 alt_min = filter_data[:,3].min()
 alt_max = filter_data[:,3].max()
-alt_cutoff = (alt_max + alt_min) * 0.5
+alt_cutoff = alt_min + (alt_max - alt_min) * 0.75
 print "Alt range =", alt_min, alt_max, "cutoff =", alt_cutoff
 
 # determine ideal magnetometer in ned coordinates
@@ -198,21 +207,25 @@ for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
 ideal_array = np.array(ideal_data, dtype=np.float64)
 sense_array = np.array(sense_data, dtype=np.float64)
 
+# write calibration data to file (so we can aggregate over
+# multiple flights later
 if args.flight:
-    # write calibration data to file (so we can aggregate over
-    # multiple flights later
-    cal_dir = os.path.join(args.cal, imu_sn)
-    if not os.path.exists(cal_dir):
-        os.makedirs(cal_dir)
-    filename = os.path.basename(os.path.abspath(args.flight)) + "-mags.txt"
-    mags_file = os.path.join(cal_dir, filename)
-    print "mags file:", mags_file
-    f = open(mags_file, 'w')
-    for i in range(ideal_array.shape[0]):
-        f.write( "%.4f %.4f %.4f %.4f %.4f %.4f\n" %
-                 (sense_array[i][0], sense_array[i][1], sense_array[i][2],
-                  ideal_array[i][0], ideal_array[i][1], ideal_array[i][2]))
-    f.close()
+    data_dir = os.path.abspath(args.flight)
+elif args.sentera:
+    data_dir = os.path.abspath(args.sentera)
+    
+cal_dir = os.path.join(args.cal, imu_sn)
+if not os.path.exists(cal_dir):
+    os.makedirs(cal_dir)
+filename = os.path.basename(data_dir) + "-mags.txt"
+mags_file = os.path.join(cal_dir, filename)
+print "mags file:", mags_file
+f = open(mags_file, 'w')
+for i in range(ideal_array.shape[0]):
+    f.write( "%.4f %.4f %.4f %.4f %.4f %.4f\n" %
+             (sense_array[i][0], sense_array[i][1], sense_array[i][2],
+              ideal_array[i][0], ideal_array[i][1], ideal_array[i][2]))
+f.close()
 
     
 def gen_func( coeffs, min, max, steps ):
