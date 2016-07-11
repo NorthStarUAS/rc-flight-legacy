@@ -3,14 +3,16 @@
 import argparse
 import fileinput
 import geomag
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import re
-#from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy import interpolate
+import sys
 
 import navpy
+import transformations
 
 argparser = argparse.ArgumentParser(description='magcal')
 argparser.add_argument('--flight', help='flight log directory')
@@ -56,8 +58,8 @@ elif args.sentera:
     for line in fimu:
         try:
             time, p, q, r, ax, ay, az, hx, hy, hz, temp = re.split('[,\s]+', line.rstrip())
-            mag_orienation = 'older'
-            if mag_orienation == 'older':
+            mag_orientation = 'newer'
+            if mag_orientation == 'older':
                 imu_data.append( [float(time)/1000000.0,
                                   -float(p), float(q), -float(r),
                                   -float(ax)*g, float(ay)*g, -float(az)*g,
@@ -70,6 +72,7 @@ elif args.sentera:
                                   -float(hy), float(hx), float(hz),
                                   float(temp)] )
         except:
+            print sys.exc_info()
             print line.rstrip()
     if not len(imu_data):
         print "No imu records loaded, cannot continue..."
@@ -82,7 +85,7 @@ elif args.sentera:
         filter_data.append( [time, lat, lon, alt, vn, ve, vd, phi, the, psi] )
     if not len(filter_data):
         print "No imu records loaded, cannot continue..."
-        sys.exit()
+        quit()
      
 imu_data = np.array(imu_data, dtype=np.float64)
 x = imu_data[:,0]
@@ -207,6 +210,10 @@ for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
 ideal_array = np.array(ideal_data, dtype=np.float64)
 sense_array = np.array(sense_data, dtype=np.float64)
 
+affine = transformations.affine_matrix_from_points(sense_array.T, ideal_array.T)
+print "affine:"
+print affine
+
 # write calibration data to file (so we can aggregate over
 # multiple flights later
 if args.flight:
@@ -249,22 +256,79 @@ hx_fit_inv, res, _, _, _ = np.polyfit( ideal_array[:,0], sense_array[:,0], deg, 
 
 print hx_fit, hy_fit, hz_fit
 
+# test
+import mag
+m = mag.Magnetometer(F=1.0)
+m.calibrate_bulk(sense_array)
+print "b:", m.b
+print "A_1:", m.A_1
+
+hx_curt = np.poly1d(hx_fit)
+hy_curt = np.poly1d(hy_fit)
+hz_curt = np.poly1d(hz_fit)
+curt_data = []
+ef_data = []
+for s in sense_data:
+    cfx = hx_curt(s[0])
+    cfy = hy_curt(s[1])
+    cfz = hz_curt(s[2])
+    curt = np.array( [cfx, cfy, cfz] )
+    norm = np.linalg.norm(curt)
+    #curt /= norm
+    curt_data.append(curt)
+
+    ef = m.map(s)
+    norm = np.linalg.norm(ef)
+    #ef /= norm
+    ef_data.append(ef)
+    #print 's:', s, 'cf:', curt, 'ef:', ef
+curt_array = np.array(curt_data)
+ef_array = np.array(ef_data)
+
+# generate affine mapping
+af_data = []
+for s in sense_array:
+    hs = np.hstack( [s, 1.0] )
+    af = np.dot(affine, hs)
+    norm = np.linalg.norm(af)
+    #af /= norm
+    af_data.append(af)
+    #print 's:', s, 'af:', af
+af_array = np.array(af_data)
+
+
 if args.plot:
     cal_fig, cal_mag = plt.subplots(3, sharex=True)
+    cal_mag[0].plot(sense_array[:,0],ideal_array[:,0],'r.',alpha=0.5,label='EKF Cal')
+    cal_mag[0].plot(sense_array[:,0],af_array[:,0],'b.',alpha=0.5,label='Ellipsoid Cal')
     xvals, yvals = gen_func(hx_fit, sense_array[:,0].min(), sense_array[:,0].max(), 100)
-    cal_mag[0].plot(sense_array[:,0],ideal_array[:,0],'r.',xvals,yvals,label='hx')
-    cal_mag[0].set_xlabel('(hx) Sensed Mag Value')
-    cal_mag[0].set_ylabel('Ideal Mag Value')
+    cal_mag[0].plot(xvals,yvals,'g',label='EKF Fit')
+    cal_mag[0].set_xlabel('(hx) Sensed Mag')
+    cal_mag[0].set_ylabel('(hx) Ideal Mag Est')
     cal_mag[0].set_title('Magnetometer Calibration')
+    cal_mag[0].legend(loc=0)
 
+    cal_mag[1].plot(sense_array[:,1],ideal_array[:,1],'r.',alpha=0.5,label='hy')
+    cal_mag[1].plot(sense_array[:,1],af_array[:,1],'b.',alpha=0.5,label='hy')
     xvals, yvals = gen_func(hy_fit, sense_array[:,1].min(), sense_array[:,1].max(), 100)
-    cal_mag[1].plot(sense_array[:,1],ideal_array[:,1],'g.',xvals,yvals,'r',label='Filter')
-    cal_mag[1].set_xlabel('(hy) Sensed Mag Value')
-    cal_mag[1].set_ylabel('Ideal Mag Value')
+    cal_mag[1].plot(xvals,yvals,'g',label='hx')
+    cal_mag[1].set_xlabel('(hy) Sensed Mag')
+    cal_mag[1].set_ylabel('(hy) Ideal Mag Est')
 
+    cal_mag[2].plot(sense_array[:,2],ideal_array[:,2],'r.',alpha=0.5,label='hy')
+    cal_mag[2].plot(sense_array[:,2],af_array[:,2],'b.',alpha=0.5,label='hy')
     xvals, yvals = gen_func(hz_fit, sense_array[:,2].min(), sense_array[:,2].max(), 100)
-    cal_mag[2].plot(sense_array[:,2],ideal_array[:,2],'b.',xvals,yvals,'g',label='Filter')
-    cal_mag[2].set_xlabel('(hz) Sensed Mag Value')
-    cal_mag[2].set_ylabel('Ideal Mag Value')
+    cal_mag[2].plot(xvals,yvals,'g',label='hx')
+    cal_mag[2].set_xlabel('(hz) Sensed Mag')
+    cal_mag[2].set_ylabel('(hx) Ideal Mag')
 
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    #ax.scatter(sense_array[:,0], sense_array[:,1], sense_array[:,2])
+    ax.scatter(curt_array[:,0], curt_array[:,1], curt_array[:,2], c='b',alpha=0.5)
+    ax.scatter(af_array[:,0], af_array[:,1], af_array[:,2], c='r',alpha=0.5)
+    ax.set_xlabel('hx')
+    ax.set_ylabel('hy')
+    ax.set_zlabel('hz')
     plt.show()
+
