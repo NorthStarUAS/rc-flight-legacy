@@ -617,11 +617,9 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    }
 	}
     } else {
-	if ( display_on && 0 ) {
-	    if ( gps_fix_value < 3 ) {
-		printf("UBLOX msg class = %d  msg id = %d\n",
-		       msg_class, msg_id);
-	    }
+	if ( display_on ) {
+	    printf("UBLOX msg class = %d  msg id = %d\n",
+		   msg_class, msg_id);
 	}
     }
 
