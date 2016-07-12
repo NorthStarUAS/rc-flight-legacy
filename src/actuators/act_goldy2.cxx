@@ -187,17 +187,17 @@ bool goldy2_act_update() {
 	int right_flap_act = 0;
 	int left_flap_act = 0;
 	if ( output_mode == "pwm" ) {
-	    ele_act = gen_pulse( elevator, true );
-	    rud_act = gen_pulse( rudder, true );
+	    ele_act = gen_pulse( -elevator, true );
+	    rud_act = gen_pulse( -rudder, true );
 	    right_ail_act = gen_pulse( aileron, true );
 	    left_ail_act = gen_pulse( -aileron, true );
 	    right_flap_act = gen_pulse( flaps, true );
 	    left_flap_act = gen_pulse( flaps, true );
 	} else if ( output_mode == "radians" ) {
-	    ele_act = elevator * 1000.0;
+	    ele_act = -elevator * 1000.0;
 	    if ( ele_act < -1570 ) { ele_act = -1570; }
 	    if ( ele_act > 1570 ) { ele_act = 1570; }
-	    rud_act = rudder * 1000.0;
+	    rud_act = -rudder * 1000.0;
 	    if ( rud_act < -1570 ) { rud_act = -1570; }
 	    if ( rud_act > 1570 ) { rud_act = 1570; }
 	    right_ail_act = aileron * 1000.0;
