@@ -262,44 +262,46 @@ hx_fit_inv, res, _, _, _ = np.polyfit( ideal_array[:,0], sense_array[:,0], deg, 
 
 print hx_fit, hy_fit, hz_fit
 
-# test
-import mag
-m = mag.Magnetometer(F=1.0)
-m.calibrate_bulk(sense_array)
-print "b:", m.b
-print "A_1:", m.A_1
+ellipse_fit = False
+if ellipse_fit:
+    # test
+    import mag
+    m = mag.Magnetometer(F=1.0)
+    m.calibrate_bulk(sense_array)
+    print "b:", m.b
+    print "A_1:", m.A_1
 
-hx_curt = np.poly1d(hx_fit)
-hy_curt = np.poly1d(hy_fit)
-hz_curt = np.poly1d(hz_fit)
-curt_data = []
-ef_data = []
-for s in sense_data:
-    cfx = hx_curt(s[0])
-    cfy = hy_curt(s[1])
-    cfz = hz_curt(s[2])
-    curt = np.array( [cfx, cfy, cfz] )
-    norm = np.linalg.norm(curt)
-    #curt /= norm
-    curt_data.append(curt)
+    hx_curt = np.poly1d(hx_fit)
+    hy_curt = np.poly1d(hy_fit)
+    hz_curt = np.poly1d(hz_fit)
+    curt_data = []
+    ef_data = []
+    for s in sense_data:
+        cfx = hx_curt(s[0])
+        cfy = hy_curt(s[1])
+        cfz = hz_curt(s[2])
+        curt = np.array( [cfx, cfy, cfz] )
+        norm = np.linalg.norm(curt)
+        #curt /= norm
+        curt_data.append(curt)
 
-    ef = m.map(s)
-    norm = np.linalg.norm(ef)
-    #ef /= norm
-    ef_data.append(ef)
-    #print 's:', s, 'cf:', curt, 'ef:', ef
-curt_array = np.array(curt_data)
-ef_array = np.array(ef_data)
+        ef = m.map(s)
+        norm = np.linalg.norm(ef)
+        #ef /= norm
+        ef_data.append(ef)
+        #print 's:', s, 'cf:', curt, 'ef:', ef
+    curt_array = np.array(curt_data)
+    ef_array = np.array(ef_data)
 
-affine = transformations.affine_matrix_from_points(sense_array.T, ef_array.T)
-print "affine ef:"
-print affine
-scale, shear, angles, translate, perspective = transformations.decompose_matrix(affine)
-print ' scale:', scale
-print ' shear:', shear
-print ' angles:', angles
-print ' trans:', translate
-print ' persp:', perspective
+    affine = transformations.affine_matrix_from_points(sense_array.T, ef_array.T)
+    print "affine ef:"
+    print affine
+    scale, shear, angles, translate, perspective = transformations.decompose_matrix(affine)
+    print ' scale:', scale
+    print ' shear:', shear
+    print ' angles:', angles
+    print ' trans:', translate
+    print ' persp:', perspective
 
 # generate affine mapping
 af_data = []
