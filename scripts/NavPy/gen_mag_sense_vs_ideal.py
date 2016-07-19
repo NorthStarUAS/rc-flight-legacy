@@ -213,6 +213,12 @@ sense_array = np.array(sense_data, dtype=np.float64)
 affine = transformations.affine_matrix_from_points(sense_array.T, ideal_array.T)
 print "affine:"
 print affine
+scale, shear, angles, translate, perspective = transformations.decompose_matrix(affine)
+print ' scale:', scale
+print ' shear:', shear
+print ' angles:', angles
+print ' trans:', translate
+print ' persp:', perspective
 
 # write calibration data to file (so we can aggregate over
 # multiple flights later
@@ -285,6 +291,16 @@ for s in sense_data:
 curt_array = np.array(curt_data)
 ef_array = np.array(ef_data)
 
+affine = transformations.affine_matrix_from_points(sense_array.T, ef_array.T)
+print "affine ef:"
+print affine
+scale, shear, angles, translate, perspective = transformations.decompose_matrix(affine)
+print ' scale:', scale
+print ' shear:', shear
+print ' angles:', angles
+print ' trans:', translate
+print ' persp:', perspective
+
 # generate affine mapping
 af_data = []
 for s in sense_array:
@@ -299,28 +315,31 @@ af_array = np.array(af_data)
 
 if args.plot:
     cal_fig, cal_mag = plt.subplots(3, sharex=True)
-    cal_mag[0].plot(sense_array[:,0],ideal_array[:,0],'r.',alpha=0.5,label='EKF Cal')
-    cal_mag[0].plot(sense_array[:,0],af_array[:,0],'b.',alpha=0.5,label='Ellipsoid Cal')
+    cal_mag[0].plot(sense_array[:,0],ideal_array[:,0],'r.',alpha=0.5,label='EKF Estimate')
+    cal_mag[0].plot(sense_array[:,0],ef_array[:,0],'b.',alpha=0.5,label='Ellipsoid Cal')
+    cal_mag[0].plot(sense_array[:,0],af_array[:,0],'g.',alpha=0.5,label='Affine Cal')
     xvals, yvals = gen_func(hx_fit, sense_array[:,0].min(), sense_array[:,0].max(), 100)
-    cal_mag[0].plot(xvals,yvals,'g',label='EKF Fit')
+    cal_mag[0].plot(xvals,yvals,'y',label='EKF Fit')
     cal_mag[0].set_xlabel('(hx) Sensed Mag')
     cal_mag[0].set_ylabel('(hx) Ideal Mag Est')
     cal_mag[0].set_title('Magnetometer Calibration')
     cal_mag[0].legend(loc=0)
 
     cal_mag[1].plot(sense_array[:,1],ideal_array[:,1],'r.',alpha=0.5,label='hy')
-    cal_mag[1].plot(sense_array[:,1],af_array[:,1],'b.',alpha=0.5,label='hy')
+    cal_mag[1].plot(sense_array[:,1],ef_array[:,1],'b.',alpha=0.5,label='hy')
+    cal_mag[1].plot(sense_array[:,1],af_array[:,1],'g.',alpha=0.5,label='hy')
     xvals, yvals = gen_func(hy_fit, sense_array[:,1].min(), sense_array[:,1].max(), 100)
-    cal_mag[1].plot(xvals,yvals,'g',label='hx')
+    cal_mag[1].plot(xvals,yvals,'y',label='hx')
     cal_mag[1].set_xlabel('(hy) Sensed Mag')
     cal_mag[1].set_ylabel('(hy) Ideal Mag Est')
 
-    cal_mag[2].plot(sense_array[:,2],ideal_array[:,2],'r.',alpha=0.5,label='hy')
-    cal_mag[2].plot(sense_array[:,2],af_array[:,2],'b.',alpha=0.5,label='hy')
+    cal_mag[2].plot(sense_array[:,2],ideal_array[:,2],'r.',alpha=0.5,label='hz')
+    cal_mag[2].plot(sense_array[:,2],ef_array[:,2],'b.',alpha=0.5,label='hz')
+    cal_mag[2].plot(sense_array[:,2],af_array[:,2],'g.',alpha=0.5,label='hz')
     xvals, yvals = gen_func(hz_fit, sense_array[:,2].min(), sense_array[:,2].max(), 100)
-    cal_mag[2].plot(xvals,yvals,'g',label='hx')
+    cal_mag[2].plot(xvals,yvals,'y',label='hz')
     cal_mag[2].set_xlabel('(hz) Sensed Mag')
-    cal_mag[2].set_ylabel('(hx) Ideal Mag')
+    cal_mag[2].set_ylabel('(hz) Ideal Mag')
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
