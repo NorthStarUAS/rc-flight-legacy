@@ -89,9 +89,6 @@ elif args.sentera:
      
 imu_data = np.array(imu_data, dtype=np.float64)
 x = imu_data[:,0]
-#print 'hx range:', imu_data[:,7].min(), imu_data[:,7].max()
-#print 'hy range:', imu_data[:,8].min(), imu_data[:,8].max()
-#print 'hz range:', imu_data[:,9].min(), imu_data[:,9].max()
 imu_hx = interpolate.interp1d(x, imu_data[:,7], bounds_error=False, fill_value=0.0)
 imu_hy = interpolate.interp1d(x, imu_data[:,8], bounds_error=False, fill_value=0.0)
 imu_hz = interpolate.interp1d(x, imu_data[:,9], bounds_error=False, fill_value=0.0)
@@ -235,34 +232,11 @@ filename = os.path.basename(data_dir) + "-mags.txt"
 mags_file = os.path.join(cal_dir, filename)
 print "mags file:", mags_file
 f = open(mags_file, 'w')
-for i in range(ideal_array.shape[0]):
+for i in range(sense_array.shape[0]):
     f.write( "%.4f %.4f %.4f %.4f %.4f %.4f\n" %
              (sense_array[i][0], sense_array[i][1], sense_array[i][2],
               ideal_array[i][0], ideal_array[i][1], ideal_array[i][2]))
 f.close()
-
-    
-# def gen_func( coeffs, min, max, steps ):
-#     print min, max, steps
-#     step = (max - min) / steps
-#     xvals = []
-#     yvals = []
-#     func = np.poly1d(coeffs)
-#     for x in np.arange(min, max+step, step):
-#         y = func(x)
-#         xvals.append(x)
-#         yvals.append(y)
-#     return xvals, yvals
-
-# individual axis linear fitting
-#deg = 1
-#hx_fit, res, _, _, _ = np.polyfit( sense_array[:,0], ideal_array[:,0], deg, full=True )
-#hy_fit, res, _, _, _ = np.polyfit( sense_array[:,1], ideal_array[:,1], deg, full=True )
-#hz_fit, res, _, _, _ = np.polyfit( sense_array[:,2], ideal_array[:,2], deg, full=True )
-
-#hx_fit_inv, res, _, _, _ = np.polyfit( ideal_array[:,0], sense_array[:,0], deg, full=True )
-
-#print hx_fit, hy_fit, hz_fit
 
 # generate affine mapping
 af_data = []
@@ -281,8 +255,6 @@ if args.plot:
     cal_fig, cal_mag = plt.subplots(3, sharex=True)
     cal_mag[0].plot(sense_array[:,0],ideal_array[:,0],'r.',alpha=0.5,label='EKF Estimate')
     cal_mag[0].plot(sense_array[:,0],af_array[:,0],'g.',alpha=0.5,label='Affine Cal')
-    #xvals, yvals = gen_func(hx_fit, sense_array[:,0].min(), sense_array[:,0].max(), 100)
-    #cal_mag[0].plot(xvals,yvals,'y',label='EKF Fit')
     cal_mag[0].set_xlabel('(hx) Sensed Mag')
     cal_mag[0].set_ylabel('(hx) Ideal Mag Est')
     cal_mag[0].set_title('Magnetometer Calibration')
@@ -290,21 +262,16 @@ if args.plot:
 
     cal_mag[1].plot(sense_array[:,1],ideal_array[:,1],'r.',alpha=0.5,label='hy')
     cal_mag[1].plot(sense_array[:,1],af_array[:,1],'g.',alpha=0.5,label='hy')
-    #xvals, yvals = gen_func(hy_fit, sense_array[:,1].min(), sense_array[:,1].max(), 100)
-    #cal_mag[1].plot(xvals,yvals,'y',label='hx')
     cal_mag[1].set_xlabel('(hy) Sensed Mag')
     cal_mag[1].set_ylabel('(hy) Ideal Mag Est')
 
     cal_mag[2].plot(sense_array[:,2],ideal_array[:,2],'r.',alpha=0.5,label='hz')
     cal_mag[2].plot(sense_array[:,2],af_array[:,2],'g.',alpha=0.5,label='hz')
-    #xvals, yvals = gen_func(hz_fit, sense_array[:,2].min(), sense_array[:,2].max(), 100)
-    #cal_mag[2].plot(xvals,yvals,'y',label='hz')
     cal_mag[2].set_xlabel('(hz) Sensed Mag')
     cal_mag[2].set_ylabel('(hz) Ideal Mag')
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    #ax.scatter(sense_array[:,0], sense_array[:,1], sense_array[:,2])
     ax.scatter(ideal_array[:,0], ideal_array[:,1], ideal_array[:,2], c='b',alpha=0.5,label='Ideal Mag (EKF)')
     ax.scatter(af_array[:,0], af_array[:,1], af_array[:,2], c='r',alpha=0.5,label='Calibrated Mag')
     ax.set_xlabel('hx')
