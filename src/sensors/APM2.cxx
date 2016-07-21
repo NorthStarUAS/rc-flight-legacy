@@ -11,6 +11,7 @@
 #include <termios.h>		// tcgetattr() et. al.
 #include <unistd.h>		// tcgetattr() et. al.
 #include <string.h>		// memset(), strerror()
+#include <math.h>		// M_PI
 
 #include <string>
 #include <sstream>
@@ -162,6 +163,17 @@ static uint32_t imu_packet_counter = 0;
 static uint32_t gps_packet_counter = 0;
 static uint32_t baro_packet_counter = 0;
 static uint32_t analog_packet_counter = 0;
+
+// pulled from apm2-sensors.ino
+static const float d2r = M_PI / 180.0;
+static const float g = 9.81;
+
+static const float _gyro_lsb_per_dps = 65536 / 1000; // +/- 500dps
+static const float _accel_lsb_per_dps = 65536 / 8;   // +/- 4g
+
+static const float MPU6000_gyro_scale = d2r / _gyro_lsb_per_dps;
+static const float MPU6000_accel_scale = g / _accel_lsb_per_dps;
+static const float MPU6000_temp_scale = 0.02;
 
 
 static void APM2_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
@@ -1529,20 +1541,16 @@ bool APM2_imu_update() {
     APM2_update();
 
     if ( imu_inited ) {
-	const double gyro_scale = 0.0174532 / 16.4;
-	const double accel_scale = 9.81 / 4096.0;
-	const double temp_scale = 0.02;
-
-	double p_raw = (double)imu_sensors[0] * gyro_scale;
-	double q_raw = (double)imu_sensors[1] * gyro_scale;
-	double r_raw = (double)imu_sensors[2] * gyro_scale;
-	double ax_raw = (double)imu_sensors[3] * accel_scale;
-	double ay_raw = (double)imu_sensors[4] * accel_scale;
-	double az_raw = (double)imu_sensors[5] * accel_scale;
+	double p_raw = (double)imu_sensors[0] * MPU6000_gyro_scale;
+	double q_raw = (double)imu_sensors[1] * MPU6000_gyro_scale;
+	double r_raw = (double)imu_sensors[2] * MPU6000_gyro_scale;
+	double ax_raw = (double)imu_sensors[3] * MPU6000_accel_scale;
+	double ay_raw = (double)imu_sensors[4] * MPU6000_accel_scale;
+	double az_raw = (double)imu_sensors[5] * MPU6000_accel_scale;
 	int16_t hx = (int16_t)imu_sensors[6];
 	int16_t hy = (int16_t)imu_sensors[7];
 	int16_t hz = (int16_t)imu_sensors[8];
-	double temp_C = (double)imu_sensors[9] * temp_scale;
+	double temp_C = (double)imu_sensors[9] * MPU6000_temp_scale;
 
 	if ( reverse_imu_mount ) {
 	    // reverse roll/pitch gyros, and x/y accelerometers (and mags).
