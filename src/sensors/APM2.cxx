@@ -18,6 +18,13 @@
 using std::string;
 using std::ostringstream;
 
+// #include <iostream>
+// using std::cout;
+// using std::endl;
+
+#include <eigen3/Eigen/Core>
+using namespace Eigen;
+
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
 #include "init/globals.hxx"
@@ -154,9 +161,7 @@ static double airspeed_zero_start_time = 0.0;
 static AuraCalTemp ax_cal;
 static AuraCalTemp ay_cal;
 static AuraCalTemp az_cal;
-static AuraPoly1d hx_cal;
-static AuraPoly1d hy_cal;
-static AuraPoly1d hz_cal;
+static Matrix<double,4,4> mag_cal;
 
 static uint32_t pilot_packet_counter = 0;
 static uint32_t imu_packet_counter = 0;
@@ -666,17 +671,25 @@ bool APM2_imu_init( string output_path, pyPropertyNode *config ) {
 	pyPropertyNode az_node = cal.getChild("az");
 	az_cal.init( &az_node, min_temp, max_temp );
 
-	// mag calibration is currently modeled as a straight up
-	// linear fit and is more simple than the IMU calibration
-	// system: mag_cal = fit(mag_sense)
-	if ( cal.hasChild("hx_fit") ) {
-	    hx_cal = AuraPoly1d(cal.getString("hx_fit"));	    
-	}
-	if ( cal.hasChild("hy_fit") ) {
-	    hy_cal = AuraPoly1d(cal.getString("hy_fit"));	    
-	}
-	if ( cal.hasChild("hz_fit") ) {
-	    hz_cal = AuraPoly1d(cal.getString("hz_fit"));	    
+	if ( cal.hasChild("mag_affine") ) {
+	    string tokens_str = cal.getString("mag_affine");
+	    vector<string> tokens = split(tokens_str);
+	    if ( tokens.size() == 16 ) {
+		int r = 0, c = 0;
+		for ( unsigned int i = 0; i < 16; i++ ) {
+		    mag_cal(r,c) = atof(tokens[i].c_str());
+		    c++;
+		    if ( c > 3 ) {
+			c = 0;
+			r++;
+		    }
+		}
+	    } else {
+		printf("ERROR: wrong number of elements for mag_cal affine matrix!\n");
+		mag_cal.setIdentity();
+	    }
+	} else {
+	    mag_cal.setIdentity();
 	}
 	
 	// save the imu calibration parameters with the data file so that
@@ -1579,14 +1592,14 @@ bool APM2_imu_update() {
 	imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
 	imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
 	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
-	//printf("mags: %d %d %d\n", hx, hy, hz);
 	imu_node.setLong( "hx_raw", hx );
 	imu_node.setLong( "hy_raw", hy );
 	imu_node.setLong( "hz_raw", hz );
-	imu_node.setDouble( "hx", hx_cal.eval(hx) );
-	imu_node.setDouble( "hy", hy_cal.eval(hy) );
-	imu_node.setDouble( "hz", hz_cal.eval(hz) );
-	//printf("mags: %.0f %.0f %.0f\n", hx_cal.eval(hx), hy_cal.eval(hy), hz_cal.eval(hz));
+	Matrix<double,4,1> hs = {(double)hx, (double)hy, (double)hz, 1.0};
+	Matrix<double,4,1> hc = mag_cal * hs;
+	imu_node.setDouble( "hx", hc(0) );
+	imu_node.setDouble( "hy", hc(1) );
+	imu_node.setDouble( "hz", hc(2) );
 	imu_node.setDouble( "temp_C", temp_C );
     }
 
