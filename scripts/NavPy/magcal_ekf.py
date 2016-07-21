@@ -193,7 +193,7 @@ for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
     if abs(hx) > 500:
         print "oops:", hx, hy, hz
     mag_sense = np.array([hx, hy, hz])
-    #print mag_sense
+    # print mag_sense
     if args.flight:
         ideal_data.append( mag_ideal[:].tolist() )
         sense_data.append( mag_sense[:].tolist() )
@@ -210,6 +210,7 @@ sense_array = np.array(sense_data, dtype=np.float64)
 
 affine = transformations.affine_matrix_from_points(sense_array.T, ideal_array.T)
 print "affine:"
+np.set_printoptions(precision=10,suppress=True)
 print affine
 scale, shear, angles, translate, perspective = transformations.decompose_matrix(affine)
 print ' scale:', scale

@@ -149,7 +149,7 @@ if args.resample_hz:
 
     sense_array = np.array(sense_data, dtype=np.float64)
 else:
-    sense_array = imu_array[:7,9]
+    sense_array = imu_array[:,7:10]
     
 # write calibration data to file (so we can aggregate over
 # multiple flights later
@@ -157,7 +157,7 @@ if args.flight:
     data_dir = os.path.abspath(args.flight)
 elif args.sentera:
     data_dir = os.path.abspath(args.sentera)
-    
+
 cal_dir = os.path.join(args.cal, imu_sn)
 if not os.path.exists(cal_dir):
     os.makedirs(cal_dir)
@@ -178,7 +178,7 @@ print "b:", m.b
 print "A_1:", m.A_1
 
 ef_data = []
-for s in sense_data:
+for s in sense_array:
     ef = m.map(s)
     norm = np.linalg.norm(ef)
     #ef /= norm
@@ -188,6 +188,7 @@ ef_array = np.array(ef_data)
 
 affine = transformations.affine_matrix_from_points(sense_array.T, ef_array.T)
 print "affine ef:"
+np.set_printoptions(precision=10,suppress=True)
 print affine
 scale, shear, angles, translate, perspective = transformations.decompose_matrix(affine)
 print ' scale:', scale
