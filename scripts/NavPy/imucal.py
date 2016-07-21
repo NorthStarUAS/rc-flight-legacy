@@ -22,9 +22,8 @@ class Calibration():
         self.ax_scale = np.array([0.0, 0.0, 1.0])
         self.ay_scale = np.array([0.0, 0.0, 1.0])
         self.az_scale = np.array([0.0, 0.0, 1.0])
-        self.hx_fit = np.array([1.0, 0.0])
-        self.hy_fit = np.array([1.0, 0.0])
-        self.hz_fit = np.array([1.0, 0.0])
+        self.mag_affine = np.identity(4)
+        self.mag_affine_inv = np.linalg.inv(self.mag_affine)
         if cal_file:
             self.load(cal_file)
 
@@ -120,21 +119,22 @@ class Calibration():
             p1, p2, p3 = node.find('scale').text.split()
             self.az_scale = np.array([p1, p2, p3], dtype=np.float64)
 
-        node = root.find('hx_fit')
-        if node:
-            coeffs = node.text.split()
-            self.hx_fit = np.array(coeffs, type=np.float64)
-
-        node = root.find('hy_fit')
-        if node:
-            coeffs = node.text.split()
-            self.hy_fit = np.array(coeffs, type=np.float64)
-
-        node = root.find('hz_fit')
-        if node:
-            coeffs = node.text.split()
-            self.hz_fit = np.array(coeffs, type=np.float64)
-            
+        node = root.find('mag_affine')
+        if len(node):
+            r = 0
+            c = 0
+            tokens = node.text.split()
+            if len(tokens) == 16:
+                for i, x in enumerate(tokens):
+                    self.mag_affine[r,c] = float(x)
+                    c += 1
+                    if c > 3:
+                        c = 0
+                        r += 1
+                self.mag_affine_inv = np.inv(self.mag_affine)
+            else:
+                print "mag_affine requires 16 values"
+                
     def load(self, cal_file):
         extension = os.path.splitext(cal_file)[1]
         if extension == ".txt":
@@ -190,15 +190,12 @@ class Calibration():
         p = self.az_scale
         self.update_node(sensor, 'scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
 
-        p = self.hx_fit
-        self.update_node(root, 'hx_fit', "%.8f %.8f" % (p[0], p[1]))
-
-        p = self.hy_fit
-        self.update_node(root, 'hy_fit', "%.8f %.8f" % (p[0], p[1]))
-
-        p = self.hz_fit
-        self.update_node(root, 'hz_fit', "%.8f %.8f" % (p[0], p[1]))
-
+        affine_str = []
+        for x in self.mag_affine.flat:
+            affine_str.append('%.10f' % x)
+        print ' '.join(affine_str)
+        self.update_node(root, 'mag_affine', ' '.join(affine_str))
+        
         self.xml = ET.ElementTree(root)
         try:
             self.xml.write(cal_file, encoding="us-ascii",
@@ -222,9 +219,6 @@ class Calibration():
         ax_scale_func = np.poly1d(self.ax_scale)
         ay_scale_func = np.poly1d(self.ay_scale)
         az_scale_func = np.poly1d(self.az_scale)
-        hx_fit_func = np.poly1d(self.hx_fit)
-        hy_fit_func = np.poly1d(self.hy_fit)
-        hz_fit_func = np.poly1d(self.hz_fit)
         for imu in imu_data:
             newimu = copy.copy(imu)
             t = imu.temp
@@ -238,9 +232,13 @@ class Calibration():
             newimu.ax = (imu.ax - ax_bias_func(t)) * ax_scale_func(t)
             newimu.ay = (imu.ay - ay_bias_func(t)) * ay_scale_func(t)
             newimu.az = (imu.az - az_bias_func(t)) * az_scale_func(t)
-            newimu.hx = hx_fit_func(imu.hx)
-            newimu.hy = hx_fit_func(imu.hy)
-            newimu.hz = hx_fit_func(imu.hz)
+            hs = [imu.hx, imu.hy, imu.hz, 1.0]
+            hf = np.dot(self.mag_affine, hs)
+            norm = np.linalg.norm(hf[:3])
+            #hf[:3] /= norm
+            newimu.hx = hf[0]
+            newimu.hy = hf[1]
+            newimu.hz = hf[2]
             imu_corrected.append(newimu)
         return imu_corrected
     
@@ -260,9 +258,6 @@ class Calibration():
         ax_scale_func = np.poly1d(self.ax_scale)
         ay_scale_func = np.poly1d(self.ay_scale)
         az_scale_func = np.poly1d(self.az_scale)
-        #hx_inv_func = np.array([ 1.0, self.hx_fit[1]], type=np.float64) / self.hx_fit[0]
-        #hy_inv_func = np.array([ 1.0, self.hy_fit[1]], type=np.float64) / self.hy_fit[0]
-        #hz_inv_func = np.array([ 1.0, self.hz_fit[1]], type=np.float64) / self.hz_fit[0]
         for imu in imu_data:
             newimu = copy.copy(imu)
             t = imu.temp
@@ -276,11 +271,12 @@ class Calibration():
             newimu.ax = imu.ax / ax_scale_func(t) + ax_bias_func(t)
             newimu.ay = imu.ay / ay_scale_func(t) + ay_bias_func(t)
             newimu.az = imu.az / az_scale_func(t) + az_bias_func(t)
-            #newimu.hx = hx_inv_func(imu.hx)
-            #newimu.hy = hx_inv_func(imu.hy)
-            #newimu.hz = hx_inv_func(imu.hz)
-            #newimu.hx = imu.hx
-            #newimu.hy = imu.hy
-            #newimu.hz = imu.hz
+            # hs = [imu.hx, imu.hy, imu.hz, 1.0]
+            # hf = np.dot(self.mag_affine_inv, hs)
+            # norm = np.linalg.norm(hf[:3])
+            # #hf[:3] /= norm
+            # newimu.hx = hf[0]
+            # newimu.hy = hf[1]
+            # newimu.hz = hf[2]
             imu_corrected.append(newimu)
         return imu_corrected
