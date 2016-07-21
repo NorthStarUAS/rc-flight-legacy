@@ -12,6 +12,8 @@ from scipy import interpolate
 import sys
 
 import navpy
+
+import imucal
 import transformations
 
 argparser = argparse.ArgumentParser(description='magcal')
@@ -158,17 +160,14 @@ if args.flight:
 elif args.sentera:
     data_dir = os.path.abspath(args.sentera)
 
-cal_dir = os.path.join(args.cal, imu_sn)
-if not os.path.exists(cal_dir):
-    os.makedirs(cal_dir)
-filename = os.path.basename(data_dir) + "-mags.txt"
-mags_file = os.path.join(cal_dir, filename)
-print "mags file:", mags_file
-f = open(mags_file, 'w')
-for i in range(sense_array.shape[0]):
-    f.write( "%.4f %.4f %.4f 0.0 0.0 0.0\n" %
-             (sense_array[i][0], sense_array[i][1], sense_array[i][2]))
-f.close()
+# filename = os.path.basename(data_dir) + "-mags.txt"
+# mags_file = os.path.join(cal_dir, filename)
+# print "mags file:", mags_file
+# f = open(mags_file, 'w')
+# for i in range(sense_array.shape[0]):
+#     f.write( "%.4f %.4f %.4f 0.0 0.0 0.0\n" %
+#              (sense_array[i][0], sense_array[i][1], sense_array[i][2]))
+# f.close()
 
 # test
 import mag
@@ -197,6 +196,14 @@ print ' angles:', angles
 print ' trans:', translate
 print ' persp:', perspective
 
+cal_dir = os.path.join(args.cal, imu_sn)
+if not os.path.exists(cal_dir):
+    os.makedirs(cal_dir)
+cal_file = os.path.join(cal_dir, "imucal.xml")
+cal = imucal.Calibration(cal_file)
+cal.mag_affine = affine
+cal.save_xml(cal_file)
+   
 # generate affine mapping
 af_data = []
 for i, s in enumerate(sense_array):
