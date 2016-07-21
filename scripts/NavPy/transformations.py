@@ -191,6 +191,7 @@ from __future__ import division, print_function
 import math
 
 import numpy
+import scipy.sparse.linalg
 
 __version__ = '2013.06.29'
 __docformat__ = 'restructuredtext en'
@@ -879,7 +880,7 @@ def orthogonalization_matrix(lengths, angles):
         [ 0.0,                          0.0,    0.0, 1.0]])
 
 
-def affine_matrix_from_points(v0, v1, shear=True, scale=True, usesvd=True):
+def affine_matrix_from_points(v0, v1, shear=True, scale=True, usesvd=True, usesparse=False):
     """Return affine transform matrix to register two point sets.
 
     v0 and v1 are shape (ndims, \*) arrays of at least ndims non-homogeneous
@@ -943,7 +944,10 @@ def affine_matrix_from_points(v0, v1, shear=True, scale=True, usesvd=True):
     if shear:
         # Affine transformation
         A = numpy.concatenate((v0, v1), axis=0)
-        u, s, vh = numpy.linalg.svd(A.T)
+        if usesparse:
+            u, s, vh = scipy.sparse.linalg.svds(A.T, k=3)
+        else:
+            u, s, vh = numpy.linalg.svd(A.T)
         vh = vh[:ndims].T
         B = vh[:ndims]
         C = vh[ndims:2*ndims]
