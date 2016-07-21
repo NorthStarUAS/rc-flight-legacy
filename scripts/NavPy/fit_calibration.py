@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import imucal
+import transformations
 
 argparser = argparse.ArgumentParser(description='fit imu bias data')
 argparser.add_argument('--cal-dir', required=True, help='calibration directory')
@@ -102,20 +103,25 @@ if len(bias_data):
 
 if len(mag_data):
     mag_array = np.array(mag_data, dtype=np.float64)
-    mag_len = mag_array.shape[0]
-    mag_min = mag_array[:,0:3].min() # note: [:,start_index:length]
-    mag_max = mag_array[:,0:3].max()
-    print "mag range:", mag_min, mag_max
+    print 'mag_array:', mag_array
+    #mag_len = mag_array.shape[0]
+    #mag_min = mag_array[:,0:3].min() # note: [:,start_index:length]
+    #mag_max = mag_array[:,0:3].max()
+    #print "mag range:", mag_min, mag_max
 
-    cal.hx_fit, res, _, _, _ = np.polyfit( mag_array[:,0], mag_array[:,3], 1, full=True )
-    print "hx coefficients = ", cal.hx_fit
-    print "hx residual = ", math.sqrt(res[0]/mag_len)
-    cal.hy_fit, res, _, _, _ = np.polyfit( mag_array[:,1], mag_array[:,4], 1, full=True )
-    print "hy coefficients = ", cal.hy_fit
-    print "hy residual = ", math.sqrt(res[0]/mag_len)
-    cal.hz_fit, res, _, _, _ = np.polyfit( mag_array[:,2], mag_array[:,5], 1, full=True )
-    print "hz coefficients = ", cal.hz_fit
-    print "hz residual = ", math.sqrt(res[0]/mag_len)
+    ideal_array = mag_array[:,3:6]
+    sense_array = mag_array[:,0:3]
+
+    affine = transformations.affine_matrix_from_points(sense_array.T, ideal_array.T, usesparse=True)
+    print "affine:"
+    np.set_printoptions(precision=10,suppress=True)
+    print affine
+    scale, shear, angles, translate, perspective = transformations.decompose_matrix(affine)
+    print ' scale:', scale
+    print ' shear:', shear
+    print ' angles:', angles
+    print ' trans:', translate
+    print ' persp:', perspective
 
 cal.save_xml(cal_file)
 
@@ -171,18 +177,15 @@ if len(bias_data):
 
 if len(mag_data):
     mag_fig, mag_fit = plt.subplots(3, sharex=True)
-    xvals, yvals = gen_func(cal.hx_fit, mag_min, mag_max, 100)
-    mag_fit[0].plot(mag_array[:,0],mag_array[:,3],'r.',xvals,yvals,label='Filter')
+    mag_fit[0].plot(mag_array[:,0],mag_array[:,3],'r.',label='Filter')
     mag_fit[0].set_xlabel('Sensed hx (adc)')
     mag_fit[0].set_ylabel('True hx (norm)')
     mag_fit[0].set_title('Mag Calibration')
-    xvals, yvals = gen_func(cal.hy_fit, mag_min, mag_max, 100)
-    mag_fit[1].plot(mag_array[:,1],mag_array[:,4],'g.',xvals,yvals,label='Filter')
+    mag_fit[1].plot(mag_array[:,1],mag_array[:,4],'g.',label='Filter')
     mag_fit[1].set_xlabel('Sensed hy (adc)')
     mag_fit[1].set_ylabel('True hx (norm)')
     #mag_fit[1].set_title('Accel Bias vs. Temp')
-    xvals, yvals = gen_func(cal.hz_fit, mag_min, mag_max, 100)
-    mag_fit[2].plot(mag_array[:,2],mag_array[:,5],'b.',xvals,yvals,'g',label='Filter')
+    mag_fit[2].plot(mag_array[:,2],mag_array[:,5],'b.','g',label='Filter')
     mag_fit[2].set_xlabel('Sensed hz (adc)')
     mag_fit[2].set_ylabel('True hx (norm)')
     #mag_fit[2].set_title('Accel Bias vs. Temp')
