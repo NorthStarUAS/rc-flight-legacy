@@ -20,6 +20,7 @@ using std::ostringstream;
 #include "comms/remote_link.hxx"
 #include "comms/logging.hxx"
 #include "filters/nav_eigen/aura_interface.hxx"
+#include "filters/nav_eigen_mag/aura_interface.hxx"
 #include "filters/umngnss_quat/umngnss_quat.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
@@ -101,6 +102,8 @@ void Filter_init() {
 	    // do nothing
 	} else if ( module == "nav_eigen" ) {
 	    nav_eigen_init( output_path.str(), &section );
+	} else if ( module == "nav_eigen_mag" ) {
+	    nav_eigen_mag_init( output_path.str(), &section );
 	} else if ( module == "umn_quat" ) {
 	    umngnss_quat_init( output_path.str(), &section );
 	} else {
@@ -258,7 +261,7 @@ static void publish_values() {
     status_node.setString( "navigation",
 			   filter_node.getString("navigation") );
     bool use_filter = true;
-    bool use_gps = false;
+    bool use_gps = !use_filter;
     if ( use_filter ) {
 	orient_node.setDouble( "groundtrack_deg",
 			       filter_node.getDouble("groundtrack_deg") );
@@ -327,6 +330,8 @@ bool Filter_update() {
 	    // do nothing
 	} else if ( module == "nav_eigen" ) {
 	    fresh_filter_data = nav_eigen_update();
+	} else if ( module == "nav_eigen_mag" ) {
+	    fresh_filter_data = nav_eigen_mag_update();
 	} else if ( module == "umn_quat" ) {
 	    fresh_filter_data = umngnss_quat_update();
 	}
@@ -405,6 +410,8 @@ void Filter_close() {
 	    // do nothing
 	} else if ( module == "nav_eigen" ) {
 	    nav_eigen_close();
+	} else if ( module == "nav_eigen_mag" ) {
+	    nav_eigen_mag_close();
 	} else if ( module == "umn_quat" ) {
 	    umngnss_quat_close();
 	}

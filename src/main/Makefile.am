@@ -7,6 +7,7 @@ aura_LDADD = \
 	../actuators/libactuators.a \
 	../filters/libfilters.a \
 	../filters/nav_eigen/libnav_eigen.a \
+	../filters/nav_eigen_mag/libnav_eigen_mag.a \
 	../filters/umngnss_quat/libumngnss_quat.a \
 	../health/libhealth.a \
 	../payload/libpayload.a \

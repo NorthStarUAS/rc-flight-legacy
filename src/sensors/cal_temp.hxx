@@ -1,8 +1,8 @@
 /**
- * \file: calibrate.hxx
+ * \file: cal_temp.hxx
  *
 
- * Callibration helper class.  This rolls two concepts together into a
+ * Temp calibration helper class.  This rolls two concepts together into a
  * single class:
 
  * a temperature bias fit function, currently a 2nd degree polynomal
@@ -20,49 +20,50 @@
  *
  */
 
-#ifndef _AURA_CALIBRATE_HXX
-#define _AURA_CALIBRATE_HXX
+#ifndef _AURA_CAL_TEMP_HXX
+#define _AURA_CAL_TEMP_HXX
 
 #include "python/pyprops.hxx"
+#include "util/poly1d.hxx"
 
 
-class UGCalibrate {
+class AuraCalTemp {
 
 private:
 
     float _min_temp;		// temp (C)
     float _max_temp;		// temp (C)
     
-    float bias[3];
-    float scale[3];
+    AuraPoly1d bias;
+    AuraPoly1d scale;
 
     void defaults();
 
 public:
 
-    UGCalibrate();
-    ~UGCalibrate();
+    AuraCalTemp();
+    ~AuraCalTemp();
 
     void init( pyPropertyNode *config, float min_temp, float max_temp );
 
-    inline float eval_bias( float temp )  {
+    inline float get_bias( float temp )  {
 	if ( temp < _min_temp ) { temp = _min_temp; }
 	if ( temp > _max_temp ) { temp = _max_temp; }
-	return bias[0]*temp*temp + bias[1]*temp + bias[2];
+	return bias.eval(temp);
     }
 
-    inline float eval_scale( float temp )  {
+    inline float get_scale( float temp )  {
 	if ( temp < _min_temp ) { temp = _min_temp; }
 	if ( temp > _max_temp ) { temp = _max_temp; }
-	return scale[0]*temp*temp + scale[1]*temp + scale[2];
+	return scale.eval(temp);
     }
     
     inline float calibrate( float x, float temp ) {
-	float b = eval_bias( temp );
-	float s = eval_scale( temp );
+	float b = get_bias( temp );
+	float s = get_scale( temp );
 	// printf("sensor @ %.1f: %.3f -> %.3f\n", temp, x, (x - bias) * scale);
 	return (x - b) * s;
     }
 };
 
-#endif // _AURA_CALIBRATE_HXX
+#endif // _AURA_CAL_TEMP_HXX

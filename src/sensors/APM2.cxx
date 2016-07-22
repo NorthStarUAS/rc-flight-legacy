@@ -11,16 +11,25 @@
 #include <termios.h>		// tcgetattr() et. al.
 #include <unistd.h>		// tcgetattr() et. al.
 #include <string.h>		// memset(), strerror()
+#include <math.h>		// M_PI
 
 #include <string>
 #include <sstream>
 using std::string;
 using std::ostringstream;
 
+// #include <iostream>
+// using std::cout;
+// using std::endl;
+
+#include <eigen3/Eigen/Core>
+using namespace Eigen;
+
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
 #include "init/globals.hxx"
-#include "sensors/calibrate.hxx"
+#include "sensors/cal_temp.hxx"
+#include "util/poly1d.hxx"
 #include "util/timing.h"
 
 #include "APM2.hxx"
@@ -146,18 +155,30 @@ static float analog[NUM_ANALOG_INPUTS];     // internal stash
 static bool airspeed_inited = false;
 static double airspeed_zero_start_time = 0.0;
 
-//static UGCalibrate p_cal;
-//static UGCalibrate q_cal;
-//static UGCalibrate r_cal;
-static UGCalibrate ax_cal;
-static UGCalibrate ay_cal;
-static UGCalibrate az_cal;
+//static AuraCalTemp p_cal;
+//static AuraCalTemp q_cal;
+//static AuraCalTemp r_cal;
+static AuraCalTemp ax_cal;
+static AuraCalTemp ay_cal;
+static AuraCalTemp az_cal;
+static Matrix4d mag_cal;
 
 static uint32_t pilot_packet_counter = 0;
 static uint32_t imu_packet_counter = 0;
 static uint32_t gps_packet_counter = 0;
 static uint32_t baro_packet_counter = 0;
 static uint32_t analog_packet_counter = 0;
+
+// pulled from apm2-sensors.ino
+static const float d2r = M_PI / 180.0;
+static const float g = 9.81;
+
+static const float _gyro_lsb_per_dps = 65536 / 1000; // +/- 500dps
+static const float _accel_lsb_per_dps = 65536 / 8;   // +/- 4g
+
+static const float MPU6000_gyro_scale = d2r / _gyro_lsb_per_dps;
+static const float MPU6000_accel_scale = g / _accel_lsb_per_dps;
+static const float MPU6000_temp_scale = 0.02;
 
 
 static void APM2_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
@@ -650,6 +671,27 @@ bool APM2_imu_init( string output_path, pyPropertyNode *config ) {
 	pyPropertyNode az_node = cal.getChild("az");
 	az_cal.init( &az_node, min_temp, max_temp );
 
+	if ( cal.hasChild("mag_affine") ) {
+	    string tokens_str = cal.getString("mag_affine");
+	    vector<string> tokens = split(tokens_str);
+	    if ( tokens.size() == 16 ) {
+		int r = 0, c = 0;
+		for ( unsigned int i = 0; i < 16; i++ ) {
+		    mag_cal(r,c) = atof(tokens[i].c_str());
+		    c++;
+		    if ( c > 3 ) {
+			c = 0;
+			r++;
+		    }
+		}
+	    } else {
+		printf("ERROR: wrong number of elements for mag_cal affine matrix!\n");
+		mag_cal.setIdentity();
+	    }
+	} else {
+	    mag_cal.setIdentity();
+	}
+	
 	// save the imu calibration parameters with the data file so that
 	// later the original raw sensor values can be derived.
 	if ( log_to_file ) {
@@ -1512,20 +1554,16 @@ bool APM2_imu_update() {
     APM2_update();
 
     if ( imu_inited ) {
-	const double gyro_scale = 0.0174532 / 16.4;
-	const double accel_scale = 9.81 / 4096.0;
-	const double temp_scale = 0.02;
-
-	double p_raw = (double)imu_sensors[0] * gyro_scale;
-	double q_raw = (double)imu_sensors[1] * gyro_scale;
-	double r_raw = (double)imu_sensors[2] * gyro_scale;
-	double ax_raw = (double)imu_sensors[3] * accel_scale;
-	double ay_raw = (double)imu_sensors[4] * accel_scale;
-	double az_raw = (double)imu_sensors[5] * accel_scale;
+	double p_raw = (double)imu_sensors[0] * MPU6000_gyro_scale;
+	double q_raw = (double)imu_sensors[1] * MPU6000_gyro_scale;
+	double r_raw = (double)imu_sensors[2] * MPU6000_gyro_scale;
+	double ax_raw = (double)imu_sensors[3] * MPU6000_accel_scale;
+	double ay_raw = (double)imu_sensors[4] * MPU6000_accel_scale;
+	double az_raw = (double)imu_sensors[5] * MPU6000_accel_scale;
 	int16_t hx = (int16_t)imu_sensors[6];
 	int16_t hy = (int16_t)imu_sensors[7];
 	int16_t hz = (int16_t)imu_sensors[8];
-	double temp_C = (double)imu_sensors[9] * temp_scale;
+	double temp_C = (double)imu_sensors[9] * MPU6000_temp_scale;
 
 	if ( reverse_imu_mount ) {
 	    // reverse roll/pitch gyros, and x/y accelerometers (and mags).
@@ -1538,12 +1576,12 @@ bool APM2_imu_update() {
 	}
 
 	if ( imu_timestamp > last_imu_timestamp + 5.0 ) {
-	    //imu_p_bias_node.setDouble( p_cal.eval_bias( temp_C ) );
-	    //imu_q_bias_node.setDouble( q_cal.eval_bias( temp_C ) );
+	    //imu_p_bias_node.setDouble( p_cal.get_bias( temp_C ) );
+	    //imu_q_bias_node.setDouble( q_cal.get_bias( temp_C ) );
 	    //imu_r_bias_node.setDouble( r_cal.eval_bias( temp_C ) );
-	    imu_node.setDouble( "ax_bias", ax_cal.eval_bias( temp_C ) );
-	    imu_node.setDouble( "ay_bias", ay_cal.eval_bias( temp_C ) );
-	    imu_node.setDouble( "az_bias", az_cal.eval_bias( temp_C ) );
+	    imu_node.setDouble( "ax_bias", ax_cal.get_bias( temp_C ) );
+	    imu_node.setDouble( "ay_bias", ay_cal.get_bias( temp_C ) );
+	    imu_node.setDouble( "az_bias", az_cal.get_bias( temp_C ) );
 	    last_imu_timestamp = imu_timestamp;
 	}
 
@@ -1554,9 +1592,14 @@ bool APM2_imu_update() {
 	imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
 	imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
 	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
-	imu_node.setLong( "hx", hx );
-	imu_node.setLong( "hy", hy );
-	imu_node.setLong( "hz", hz );
+	imu_node.setLong( "hx_raw", hx );
+	imu_node.setLong( "hy_raw", hy );
+	imu_node.setLong( "hz_raw", hz );
+	Vector4d hs((double)hx, (double)hy, (double)hz, 1.0);
+	Vector4d hc = mag_cal * hs;
+	imu_node.setDouble( "hx", hc(0) );
+	imu_node.setDouble( "hy", hc(1) );
+	imu_node.setDouble( "hz", hc(2) );
 	imu_node.setDouble( "temp_C", temp_C );
     }
 

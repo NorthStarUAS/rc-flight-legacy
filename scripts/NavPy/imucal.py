@@ -22,6 +22,8 @@ class Calibration():
         self.ax_scale = np.array([0.0, 0.0, 1.0])
         self.ay_scale = np.array([0.0, 0.0, 1.0])
         self.az_scale = np.array([0.0, 0.0, 1.0])
+        self.mag_affine = np.identity(4)
+        self.mag_affine_inv = np.linalg.inv(self.mag_affine)
         if cal_file:
             self.load(cal_file)
 
@@ -72,8 +74,8 @@ class Calibration():
             print filename + ": xml parse error:\n" + str(sys.exc_info()[1])
             return
         root = self.xml.getroot()
-        self.min_temp = self.myfloat(root.find('min-temp-C').text)
-        self.max_temp = self.myfloat(root.find('max-temp-C').text)
+        self.min_temp = self.myfloat(root.find('min_temp_C').text)
+        self.max_temp = self.myfloat(root.find('max_temp_C').text)
         
         node = root.find('p')
         if len(node):
@@ -117,6 +119,22 @@ class Calibration():
             p1, p2, p3 = node.find('scale').text.split()
             self.az_scale = np.array([p1, p2, p3], dtype=np.float64)
 
+        node = root.find('mag_affine')
+        if len(node):
+            r = 0
+            c = 0
+            tokens = node.text.split()
+            if len(tokens) == 16:
+                for i, x in enumerate(tokens):
+                    self.mag_affine[r,c] = float(x)
+                    c += 1
+                    if c > 3:
+                        c = 0
+                        r += 1
+                self.mag_affine_inv = np.inv(self.mag_affine)
+            else:
+                print "mag_affine requires 16 values"
+                
     def load(self, cal_file):
         extension = os.path.splitext(cal_file)[1]
         if extension == ".txt":
@@ -133,8 +151,8 @@ class Calibration():
         # save a configuration file
     def save_xml(self, cal_file):
         root = ET.Element('PropertyList')
-        self.update_node(root, 'min-temp-C', self.min_temp)
-        self.update_node(root, 'max-temp-C', self.max_temp)
+        self.update_node(root, 'min_temp_C', self.min_temp)
+        self.update_node(root, 'max_temp_C', self.max_temp)
 
         sensor = ET.SubElement(root, 'p')
         p = self.p_bias
@@ -172,6 +190,12 @@ class Calibration():
         p = self.az_scale
         self.update_node(sensor, 'scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
 
+        affine_str = []
+        for x in self.mag_affine.flat:
+            affine_str.append('%.10f' % x)
+        print ' '.join(affine_str)
+        self.update_node(root, 'mag_affine', ' '.join(affine_str))
+        
         self.xml = ET.ElementTree(root)
         try:
             self.xml.write(cal_file, encoding="us-ascii",
@@ -208,6 +232,13 @@ class Calibration():
             newimu.ax = (imu.ax - ax_bias_func(t)) * ax_scale_func(t)
             newimu.ay = (imu.ay - ay_bias_func(t)) * ay_scale_func(t)
             newimu.az = (imu.az - az_bias_func(t)) * az_scale_func(t)
+            hs = [imu.hx, imu.hy, imu.hz, 1.0]
+            hf = np.dot(self.mag_affine, hs)
+            norm = np.linalg.norm(hf[:3])
+            #hf[:3] /= norm
+            newimu.hx = hf[0]
+            newimu.hy = hf[1]
+            newimu.hz = hf[2]
             imu_corrected.append(newimu)
         return imu_corrected
     
@@ -240,5 +271,12 @@ class Calibration():
             newimu.ax = imu.ax / ax_scale_func(t) + ax_bias_func(t)
             newimu.ay = imu.ay / ay_scale_func(t) + ay_bias_func(t)
             newimu.az = imu.az / az_scale_func(t) + az_bias_func(t)
+            # hs = [imu.hx, imu.hy, imu.hz, 1.0]
+            # hf = np.dot(self.mag_affine_inv, hs)
+            # norm = np.linalg.norm(hf[:3])
+            # #hf[:3] /= norm
+            # newimu.hx = hf[0]
+            # newimu.hy = hf[1]
+            # newimu.hz = hf[2]
             imu_corrected.append(newimu)
         return imu_corrected
