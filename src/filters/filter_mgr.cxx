@@ -54,6 +54,10 @@ static vector<pyPropertyNode> sections;
 
 // initial values are the 'time factor'
 static LowPassFilter ground_alt_filt( 30.0 );
+static LowPassFilter we_filt( 60.0 );
+static LowPassFilter wn_filt( 60.0 );
+static LowPassFilter pitot_scale_filt( 30.0 );
+
 static bool ground_alt_calibrated = false;
 
 static int remote_link_skip = 0;
@@ -111,6 +115,8 @@ void Filter_init() {
 		   module.c_str());
 	}
     }
+
+    pitot_scale_filt.init(1.0);
 }
 
 
@@ -142,15 +148,7 @@ static void update_euler_rates() {
 }
 
 
-static void update_ground() {
-    static double last_time = 0.0;
-
-    double cur_time = filter_node.getDouble("timestamp");
-    double dt = cur_time - last_time;
-    if ( dt > 1.0 ) {
-	dt = 1.0;		// keep dt smallish
-    }
-
+static void update_ground(double dt) {
     // determine ground reference altitude.  Average filter altitude
     // over the most recent 30 seconds that we are !is_airborne
     if ( !ground_alt_calibrated ) {
@@ -170,54 +168,53 @@ static void update_ground() {
 	- ground_alt_filt.get_value();
     pos_filter_node.setDouble( "altitude_agl_m", agl_m );
     pos_filter_node.setDouble( "altitude_agl_ft", agl_m * SG_METER_TO_FEET );
-
-    last_time = cur_time;
 }
 
 
 // onboard wind estimate (requires airspeed, true heading, and ground
-// velocity fector)
-static void update_wind() {
+// velocity vector)
+static void update_wind(double dt) {
     // Estimate wind direction and speed based on ground track speed
     // versus aircraft heading and indicated airspeed.
-    static double pitot_scale_filt = 1.0;
 
     double airspeed_kt = airdata_node.getDouble("airspeed_kt");
-    if ( airspeed_kt < 15.0 ) {
-	// indicated airspeed < 15 kts (hopefully) indicating we are
-	// not flying and thus the assumptions the following code is
-	// based on do not yet apply so we should exit now.  We are
-	// assuming that we won't see > 15 kts sitting still on the
-	// ground and that our stall speed is above 15 kts.  Is there
-	// a more reliable way to determine if we are "flying"
-	// vs. "not flying"?
-
+    if ( ! task_node.getBool("is_airborne") ) {
+	// System predicts we are not flying.  The wind estimation
+	// code only works in flight.
 	return;
     }
 
     double psi = SGD_PI_2
 	- orient_node.getDouble("heading_deg") * SG_DEGREES_TO_RADIANS;
-    double ue = cos(psi) * (airspeed_kt * pitot_scale_filt * SG_KT_TO_MPS);
-    double un = sin(psi) * (airspeed_kt * pitot_scale_filt * SG_KT_TO_MPS);
+    double pitot_scale = pitot_scale_filt.get_value();
+    double ue = cos(psi) * (airspeed_kt * pitot_scale * SG_KT_TO_MPS);
+    double un = sin(psi) * (airspeed_kt * pitot_scale * SG_KT_TO_MPS);
     double we = ue - filter_node.getDouble("ve_ms");
     double wn = un - filter_node.getDouble("vn_ms");
 
-    static double filt_we = 0.0, filt_wn = 0.0;
-    filt_we = 0.9998 * filt_we + 0.0002 * we;
-    filt_wn = 0.9998 * filt_wn + 0.0002 * wn;
+    //static double filt_we = 0.0, filt_wn = 0.0;
+    //filt_we = 0.9998 * filt_we + 0.0002 * we;
+    //filt_wn = 0.9998 * filt_wn + 0.0002 * wn;
+    we_filt.update(we, dt);
+    wn_filt.update(wn, dt);
 
-    double wind_deg = 90 - atan2( filt_wn, filt_we ) * SGD_RADIANS_TO_DEGREES;
+    double we_filt_val = we_filt.get_value();
+    double wn_filt_val = wn_filt.get_value();
+    
+    double wind_deg = 90
+	- atan2( wn_filt_val, we_filt_val ) * SGD_RADIANS_TO_DEGREES;
     if ( wind_deg < 0 ) { wind_deg += 360.0; }
-    double wind_speed_kt = sqrt( filt_we*filt_we + filt_wn*filt_wn ) * SG_MPS_TO_KT;
+    double wind_speed_kt = sqrt( we_filt_val*we_filt_val
+				 + wn_filt_val*wn_filt_val ) * SG_MPS_TO_KT;
 
     wind_node.setDouble( "wind_speed_kt", wind_speed_kt );
     wind_node.setDouble( "wind_dir_deg", wind_deg );
-    wind_node.setDouble( "wind_east_mps", filt_we );
-    wind_node.setDouble( "wind_north_mps", filt_wn );
+    wind_node.setDouble( "wind_east_mps", we_filt_val );
+    wind_node.setDouble( "wind_north_mps", wn_filt_val );
 
     // estimate pitot tube bias
-    double true_e = filt_we + filter_node.getDouble("ve_ms");
-    double true_n = filt_wn + filter_node.getDouble("vn_ms");
+    double true_e = we_filt_val + filter_node.getDouble("ve_ms");
+    double true_n = wn_filt_val + filter_node.getDouble("vn_ms");
 
     double true_deg = 90 - atan2( true_n, true_e ) * SGD_RADIANS_TO_DEGREES;
     if ( true_deg < 0 ) { true_deg += 360.0; }
@@ -225,19 +222,19 @@ static void update_wind() {
 
     wind_node.setDouble( "true_airspeed_kt", true_speed_kt );
     wind_node.setDouble( "true_heading_deg", true_deg );
-    wind_node.setDouble( "true-airspeed-east-mps", true_e );
+    wind_node.setDouble( "true_airspeed_east_mps", true_e );
     wind_node.setDouble( "true_airspeed_north_mps", true_n );
 
-    double pitot_scale = 1.0;
+    double ps = 1.0;
     if ( airspeed_kt > 1.0 ) {
-	pitot_scale = true_speed_kt / airspeed_kt;
+	ps = true_speed_kt / airspeed_kt;
 	// don't let the scale factor exceed some reasonable limits
-	if ( pitot_scale < 0.75 ) { pitot_scale = 0.75;	}
-	if ( pitot_scale > 1.25 ) { pitot_scale = 1.25; }
+	if ( ps < 0.75 ) { ps = 0.75;	}
+	if ( ps > 1.25 ) { ps = 1.25; }
     }
 
-    pitot_scale_filt = 0.9995 * pitot_scale_filt + 0.0005 * pitot_scale;
-    wind_node.setDouble( "pitot_scale_factor", pitot_scale_filt );
+    pitot_scale_filt.update(ps, dt);
+    wind_node.setDouble( "pitot_scale_factor", pitot_scale_filt.get_value() );
 
     // if ( display_on ) {
     //   printf("true: %.2f kt  %.1f deg (scale = %.4f)\n", true_speed_kt, true_deg, pitot_scale_filt);
@@ -339,8 +336,8 @@ bool Filter_update() {
 	    if ( i == 0 ) {
 		// only for primary filter
 		update_euler_rates();
-		update_ground();
-		update_wind();
+		update_ground(imu_dt);
+		update_wind(imu_dt);
 		publish_values();
 	    }
 	}
@@ -372,11 +369,6 @@ bool Filter_update() {
     filter_prof.stop();
 
     if ( fresh_filter_data ) {
-	update_euler_rates();
-	update_ground();
-	update_wind();
-	publish_values();
-
 	if ( remote_link_on ) {
 	    remote_link_count--;
 	}
