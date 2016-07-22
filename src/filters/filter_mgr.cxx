@@ -261,7 +261,7 @@ static void publish_values() {
     status_node.setString( "navigation",
 			   filter_node.getString("navigation") );
     bool use_filter = true;
-    bool use_gps = false;
+    bool use_gps = !use_filter;
     if ( use_filter ) {
 	orient_node.setDouble( "groundtrack_deg",
 			       filter_node.getDouble("groundtrack_deg") );

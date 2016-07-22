@@ -161,7 +161,7 @@ static double airspeed_zero_start_time = 0.0;
 static AuraCalTemp ax_cal;
 static AuraCalTemp ay_cal;
 static AuraCalTemp az_cal;
-static Matrix<double,4,4> mag_cal;
+static Matrix4d mag_cal;
 
 static uint32_t pilot_packet_counter = 0;
 static uint32_t imu_packet_counter = 0;
@@ -1595,8 +1595,8 @@ bool APM2_imu_update() {
 	imu_node.setLong( "hx_raw", hx );
 	imu_node.setLong( "hy_raw", hy );
 	imu_node.setLong( "hz_raw", hz );
-	Matrix<double,4,1> hs = {(double)hx, (double)hy, (double)hz, 1.0};
-	Matrix<double,4,1> hc = mag_cal * hs;
+	Vector4d hs((double)hx, (double)hy, (double)hz, 1.0);
+	Vector4d hc = mag_cal * hs;
 	imu_node.setDouble( "hx", hc(0) );
 	imu_node.setDouble( "hy", hc(1) );
 	imu_node.setDouble( "hz", hc(2) );
