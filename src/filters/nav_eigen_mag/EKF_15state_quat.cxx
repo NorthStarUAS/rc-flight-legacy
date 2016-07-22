@@ -61,16 +61,26 @@ const double P_GB_INIT = 0.01745;  //5 deg/s
 const double Rew = 6.359058719353925e+006; // earth radius
 const double Rns = 6.386034030458164e+006; // earth radius
 
-Matrix<double,15,15> F, PHI, P, Qw, Q, ImKH, KRKt, I15 /* identity */;
-Matrix<double,15,12> G;
-Matrix<double,15,9> K;
-Matrix<double,15,1> x;
-Matrix<double,12,12> Rw;
-Matrix<double,9,15> H;
-Matrix<double,9,9> R;
-Matrix<double,9,1> y;
-Matrix<double,3,3> C_N2B, C_B2N, I3 /* identity */, temp33;
-Matrix<double,3,1> grav, f_b, om_ib, nr, pos_ins_ecef, pos_ins_ned, pos_gps, pos_gps_ecef, pos_gps_ned, dx, mag_ned;
+// define some types for notational convenience and consistency
+typedef Matrix<double,9,9> Matrix9d;
+typedef Matrix<double,12,12> Matrix12d;
+typedef Matrix<double,15,15> Matrix15d;
+typedef Matrix<double,9,15> Matrix9x15d;
+typedef Matrix<double,15,9> Matrix15x9d;
+typedef Matrix<double,15,12> Matrix15x12d;
+typedef Matrix<double,9,1> Vector9d;
+typedef Matrix<double,15,1> Vector15d;
+
+Matrix15d F, PHI, P, Qw, Q, ImKH, KRKt, I15 /* identity */;
+Matrix15x12d G;
+Matrix15x9d K;
+Vector15d x;
+Matrix12d Rw;
+Matrix9x15d H;
+Matrix9d R;
+Vector9d y;
+Matrix3d C_N2B, C_B2N, I3 /* identity */, temp33;
+Vector3d grav, f_b, om_ib, nr, pos_ins_ecef, pos_ins_ned, pos_gps, pos_gps_ecef, pos_gps_ned, dx, mag_ned;
 
 static Quaterniond quat; // fixme, make state persist here, not in nav
 static double denom, Re, Rn;
@@ -93,7 +103,7 @@ NAVdata init_nav_mag(IMUdata imu, GPSdata gps) {
 	
     // ... H
     H.topLeftCorner(6,6).setIdentity();
-    
+
     // first order correlation + white noise, tau = time constant for correlation
     // gain on white noise plus gain on correlation
     // Rw small - trust time update, Rw more - lean on measurement update
@@ -142,8 +152,7 @@ NAVdata init_nav_mag(IMUdata imu, GPSdata gps) {
     mag_ned(1) = field[4];
     mag_ned(2) = field[5];
     mag_ned.normalize();
-    //cout << "Ideal mag vector (ned): " << mag_ned << endl;
-
+    // cout << "Ideal mag vector (ned): " << mag_ned << endl;
     // // initial heading
     // double init_psi_rad = 90.0*D2R;
     // if ( fabs(mag_ned[0][0]) > 0.0001 || fabs(mag_ned[0][1]) > 0.0001 ) {
@@ -218,7 +227,7 @@ NAVdata get_nav_mag(IMUdata imu, GPSdata gps) {
     double tnow = imu.time;
     double imu_dt = tnow - tprev;
     tprev = tnow;		
-	
+
     // ==================  Time Update  ===================
 
     // AHRS Transformations
@@ -227,8 +236,8 @@ NAVdata get_nav_mag(IMUdata imu, GPSdata gps) {
 	
     // Attitude Update
     // ... Calculate Navigation Rate
-    Matrix<double,3,1> vel_vec(nav.vn, nav.ve, nav.vd);
-    Matrix<double,3,1> pos_vec(nav.lat, nav.lon, nav.alt);
+    Vector3d vel_vec(nav.vn, nav.ve, nav.vd);
+    Vector3d pos_vec(nav.lat, nav.lon, nav.alt);
 	
     nr = navrate(vel_vec,pos_vec);  /* note: unused, llarate used instead */
 	
@@ -241,7 +250,7 @@ NAVdata get_nav_mag(IMUdata imu, GPSdata gps) {
         quat = Quaterniond(-quat.w(), -quat.x(), -quat.y(), -quat.z());
     }
     
-    Matrix<double,3,1> att_vec = quat2eul(quat);
+    Vector3d att_vec = quat2eul(quat);
     nav.phi = att_vec(0);
     nav.the = att_vec(1);
     nav.psi = att_vec(2);
@@ -332,10 +341,10 @@ NAVdata get_nav_mag(IMUdata imu, GPSdata gps) {
 	gps.newData = 0; // Reset the flag
 		
 	// Position, converted to NED
-	Matrix<double,3,1> pos_vec(nav.lat, nav.lon, nav.alt);
+	Vector3d pos_vec(nav.lat, nav.lon, nav.alt);
 	pos_ins_ecef = lla2ecef(pos_vec);
 
-	Matrix<double,3,1> pos_ref = pos_vec;
+	Vector3d pos_ref = pos_vec;
 	pos_ref(2) = 0.0;
 	pos_ins_ned = ecef2ned(pos_ins_ecef, pos_ref);
 		
@@ -348,28 +357,28 @@ NAVdata get_nav_mag(IMUdata imu, GPSdata gps) {
 	pos_gps_ned = ecef2ned(pos_gps_ecef, pos_ref);
 
 	// measured mag vector (body frame)
-	Matrix<double,3,1> mag_sense;
+	Vector3d mag_sense;
 	mag_sense(0) = imu.hx;
 	mag_sense(1) = imu.hy;
 	mag_sense(2) = imu.hz;
 	mag_sense.normalize();
-
-	Matrix<double,3,1> mag_error; // magnetometer measurement error
+	
+	Vector3d mag_error; // magnetometer measurement error
 	bool mag_error_in_ned = false;
 	if ( mag_error_in_ned ) {
 	    // rotate measured mag vector into ned frame (then normalized)
-	    Matrix<double,3,1> mag_sense_ned = C_B2N * mag_sense;
+	    Vector3d mag_sense_ned = C_B2N * mag_sense;
 	    mag_sense_ned.normalize();
 	    mag_error = mag_sense_ned - mag_ned;
 	} else {
 	    // rotate ideal mag vector into body frame (then normalized)
-	    Matrix<double,3,1> mag_ideal = C_N2B * mag_ned;
+	    Vector3d mag_ideal = C_N2B * mag_ned;
 	    mag_ideal.normalize();
 	    mag_error = mag_sense - mag_ideal;
 	    // cout << "mag_error:" << mag_error << endl;
 
 	    // Matrix<double,3,3> tmp1 = C_N2B * sk(mag_ned);
-	    Matrix<double,3,3> tmp1 = sk(mag_sense) * 2.0;
+	    Matrix3d tmp1 = sk(mag_sense) * 2.0;
 	    for ( int j = 0; j < 3; j++ ) {
 		for ( int i = 0; i < 3; i++ ) {
 		    H(6+i,6+j) = tmp1(i,j);
@@ -426,7 +435,7 @@ NAVdata get_nav_mag(IMUdata imu, GPSdata gps) {
 	dq = Quaterniond(1.0, x(6), x(7), x(8));
 	quat = (quat * dq).normalized();
 		
-	Matrix<double,3,1> att_vec = quat2eul(quat);
+	Vector3d att_vec = quat2eul(quat);
 	nav.phi = att_vec(0);
 	nav.the = att_vec(1);
 	nav.psi = att_vec(2);

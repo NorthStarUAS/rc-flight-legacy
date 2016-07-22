@@ -80,4 +80,4 @@ NAVdata init_nav(IMUdata imu, GPSdata gps);
 /// Standard function to call the navigation filter.
 NAVdata get_nav(IMUdata imu, GPSdata gps);
 
-#endif
+#endif // NAV_INTERFACE_HXX_

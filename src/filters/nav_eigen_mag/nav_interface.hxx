@@ -11,8 +11,8 @@
  * $Id: nav_interface.h 757 2012-01-04 21:57:48Z murch $
  */
 
-#ifndef NAV_EIGEN_MAG_INTERFACE_H_
-#define NAV_EIGEN_MAG_INTERFACE_H_
+#ifndef NAV_EIGEN_MAG_INTERFACE_HXX_
+#define NAV_EIGEN_MAG_INTERFACE_HXX_
 
 
 struct IMUdata {
@@ -80,4 +80,4 @@ NAVdata init_nav_mag(IMUdata imu, GPSdata gps);
 /// Standard function to call the navigation filter.
 NAVdata get_nav_mag(IMUdata imu, GPSdata gps);
 
-#endif
+#endif // NAV_EIGEN_MAG_INTERFACE_HXX_
