@@ -1,5 +1,5 @@
 //
-// avior.cxx - top level "main" program
+// aura.cxx - top level "main" program
 //
 // Written by Curtis Olson, curtolson <at> gmail <dot> com.
 // Started 2007.
@@ -16,7 +16,6 @@
 #include <fcntl.h>
 #include <sys/time.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <string.h>
 #include <sys/resource.h>
 #include <unistd.h>
@@ -48,7 +47,7 @@ using std::string;
 #include "util/sg_path.hxx"
 #include "util/timing.h"
 
-//#include "pointing/atipointing.hxx"
+#include "sensors/APM2.hxx"
 
 
 //
@@ -96,16 +95,15 @@ void usage(char *progname)
 }	
 
 
-// Main work routine.  Please note that by default, the timer signal
-// is ignored while the signal handler routine is being executed.
-// This behavior can be changed by setting the SA_NODEFER flag in the
-// sa structure.
-void timer_handler (int signum)
+void main_work_loop()
 {
     main_prof.start();
 
     debug1.start();
 
+    // read the APM2 sensor head until we receive an IMU packet
+    APM2_update();
+    
     // master "dt"
     static double last_time = 0.0;
     double current_time = get_Time();
@@ -301,10 +299,6 @@ int main( int argc, char **argv )
 	}
     }
 
-    // structures for setting up timer handler
-    struct sigaction sa;
-    struct itimerval timer;
-
     // destroy things in the correct order
     // atexit(AuraPythonCleanup);
     
@@ -496,36 +490,10 @@ int main( int argc, char **argv )
     // intialize random number generator
     srandom( time(NULL) );
 
-#ifndef BATCH_MODE
-    // Install timer_handler as the signal handler for SIGALRM (alarm
-    // timing is based on wall clock)
-    memset (&sa, 0, sizeof (sa));
-    sa.sa_handler = &timer_handler;
-
-    sigaction (SIGALRM, &sa, NULL);
-
-    // Configure the timer to expire after 10,000 usec (1/100th of a second)
-    timer.it_value.tv_sec = 0;
-    timer.it_value.tv_usec = (1000000 / HEARTBEAT_HZ);
-    // ... and every 10 msec after that (100hz)
-    timer.it_interval.tv_sec = 0;
-    timer.it_interval.tv_usec = (1000000 / HEARTBEAT_HZ);
-    // Start a real timer. It counts down based on the wall clock
-    setitimer (ITIMER_REAL, &timer, NULL);
-#endif
-
     printf("Everything inited ... ready to run\n");
 
-    // enter a do nothing "main" loop.  The real work is done in the
-    // timer_handler() callback which is run every time the alarm is
-    // generated (100hz default)
     while ( true ) {
-#ifndef BATCH_MODE
-	// printf("main(): sleeping\n");
-	sleep(1);
-#else
-	timer_handler( 0 );
-#endif
+	main_work_loop();
     }
 
     // close and exit

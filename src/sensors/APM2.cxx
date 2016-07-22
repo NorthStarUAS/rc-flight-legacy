@@ -101,6 +101,7 @@ static bool gps_inited = false;
 static bool airdata_inited = false;
 static bool pilot_input_inited = false;
 static bool actuator_inited = false;
+bool APM2_actuator_configured = false; // externally visible
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
@@ -521,7 +522,8 @@ static bool APM2_open_device( int baud_bits ) {
 	       baud_bits);
     }
 
-    fd = open( device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
+    // fd = open( device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
+    fd = open( device_name.c_str(), O_RDWR | O_NOCTTY );
     if ( fd < 0 ) {
         fprintf( stderr, "open serial: unable to open %s - %s\n",
                  device_name.c_str(), strerror(errno) );
@@ -559,7 +561,7 @@ static bool APM2_open_device( int baud_bits ) {
     }
 
     // Enable non-blocking IO (one more time for good measure)
-    fcntl(fd, F_SETFL, O_NONBLOCK);
+    // fcntl(fd, F_SETFL, O_NONBLOCK);
 
     // bind main apm2 property nodes here for lack of a better place..
     apm2_node = pyGetNode("/sensors/APM2", true);
@@ -1540,9 +1542,9 @@ static bool APM2_act_write() {
 
 
 bool APM2_update() {
-    // read any pending APM2 data (and parse any completed messages)
-    while ( APM2_read() > 0 );
-    // APM2_read_tmp();
+    // read APM2 packets until we receive an IMU packet, this will be
+    // the trigger to continue
+    while ( APM2_read() != IMU_PACKET_ID );
 
     return true;
 }
@@ -1550,8 +1552,6 @@ bool APM2_update() {
 
 bool APM2_imu_update() {
     static double last_imu_timestamp = 0.0;
-
-    APM2_update();
 
     if ( imu_inited ) {
 	double p_raw = (double)imu_sensors[0] * MPU6000_gyro_scale;
@@ -1675,8 +1675,6 @@ static double MTK16_date_time_to_unix_sec( int gdate, float gtime ) {
 bool APM2_gps_update() {
     static double last_timestamp = 0.0;
     
-    APM2_update();
-
     if ( !gps_inited ) {
 	return false;
     }
@@ -1707,8 +1705,6 @@ bool APM2_gps_update() {
 
 
 bool APM2_airdata_update() {
-    APM2_update();
-
     bool fresh_data = false;
     static double analog0_sum = 0.0;
     static int analog0_count = 0;
@@ -1798,8 +1794,6 @@ void APM2_airdata_zero_airspeed() {
 
 
 bool APM2_pilot_update() {
-    APM2_update();
-
     if ( !pilot_input_inited ) {
 	return false;
     }
@@ -1826,14 +1820,12 @@ bool APM2_pilot_update() {
 
 
 bool APM2_act_update() {
-    static bool actuator_configured = false;
-    
     if ( !actuator_inited ) {
 	return false;
     }
 
-    if ( !actuator_configured ) {
-	actuator_configured = APM2_send_config();
+    if ( !APM2_actuator_configured ) {
+	APM2_actuator_configured = APM2_send_config();
     }
     
     // send actuator commands to APM2 servo subsystem

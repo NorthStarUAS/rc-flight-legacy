@@ -41,6 +41,6 @@ void APM2_pilot_close();
 bool APM2_act_init( string output_path, pyPropertyNode *config );
 bool APM2_act_update();
 void APM2_act_close();
-
+extern bool APM2_actuator_configured;
 
 #endif // _AURA_APM2_HXX

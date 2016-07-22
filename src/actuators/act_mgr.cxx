@@ -13,6 +13,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <sstream>
 #include <string>
@@ -93,6 +94,15 @@ void Actuator_init() {
 	    // do nothing
 	} else if ( module == "APM2" ) {
 	    APM2_act_init( output_path.str(), &section );
+	    // don't go anywhere until the acuator is configured.
+	    // this will also force the APM2 into binary mode as soon
+	    // as it starts seeing our binary config packets coming
+	    // in.
+	    APM2_act_update();
+	    while ( ! APM2_actuator_configured ) {
+		usleep(250000);
+		APM2_act_update();
+	    }
 	} else if ( module == "fgfs" ) {
 	    fgfs_act_init( output_path.str(), &section );
 	} else if ( module == "Goldy2" ) {
