@@ -97,13 +97,13 @@ void usage(char *progname)
 
 void main_work_loop()
 {
-    main_prof.start();
-
     debug1.start();
 
     // read the APM2 sensor head until we receive an IMU packet
     APM2_update();
     
+    main_prof.start();
+
     // master "dt"
     static double last_time = 0.0;
     double current_time = get_Time();
@@ -262,8 +262,8 @@ void main_work_loop()
 	main_prof.stats();
     }
 
-    // round robin flushing of logging streams (update at 1 hz)
-    if ( flush_counter >= HEARTBEAT_HZ ) {
+    // flush of logging stream (update at 1 hz^H^H^Hfull rate)
+    if ( flush_counter >= 0 /*HEARTBEAT_HZ*/ ) {
 	datalog_prof.start();
 	flush_counter = 0;
 	if ( log_to_file ) {
@@ -325,12 +325,6 @@ int main( int argc, char **argv )
     datalog_prof.set_name("datalogger");
     main_prof.set_name("main");
     
-    // tmp, dive deeper
-    ctr1_prof.set_name("ctrl1");
-    ctr2_prof.set_name("ctrl2");
-    ctr3_prof.set_name("ctrl3");
-    ctr4_prof.set_name("ctrl4");
-
     // debugging
     debug1.set_name("debug1 (var updates)");
     debug2.set_name("debug2 (inputs)");
@@ -344,8 +338,10 @@ int main( int argc, char **argv )
     debug6.set_name("debug6 (ap+actuator)");
     debug7.set_name("debug7 (logging)");
 
-    printf("Main clock resolution:\n");
-    print_Time_Resolution();
+    if ( display_on ) {
+	printf("Main clock resolution:\n");
+	print_Time_Resolution();
+    }
     
     // load master config file
     SGPath master( root );

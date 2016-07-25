@@ -113,7 +113,6 @@ void control_reinit() {
 
 void control_update(double dt)
 {
-    ctr1_prof.start();
     static int remote_link_count = remote_link_random( remote_link_skip );
     static int logging_count = remote_link_random( logging_skip );
 
@@ -122,9 +121,7 @@ void control_update(double dt)
     // task is not active) and so the code to do this is going here
     // for now.
     route_mgr->reposition_if_necessary();
-    ctr1_prof.stop();
 
-    ctr2_prof.start();
     string current_task = task_node.getString("current_task_id");
     if ( current_task == "circle" ) {
 	circle_mgr->update();
@@ -132,7 +129,6 @@ void control_update(double dt)
 	route_mgr->update();
     }
     route_mgr->idle();
-    ctr2_prof.stop();
     
     // log auto/manual mode changes
     static bool last_ap_mode = false;
@@ -239,16 +235,13 @@ void control_update(double dt)
     // keeps the differential metric up to date, tracks manual inputs,
     // and keeps more continuity in the flight when the mode is
     // switched to autopilot.
-    ctr3_prof.start();
     ap.update( dt );
-    ctr3_prof.stop();
     
     // FIXME !!!
     // I want a departure route, an approach route, and mission route,
     // and circle hold point (all indicated on the ground station map.)
     // FIXME !!!
 
-    ctr4_prof.start();
     bool send_remote_link = false;
     if ( remote_link_on && remote_link_count < 0 ) {
 	send_remote_link = true;
@@ -278,7 +271,6 @@ void control_update(double dt)
 	    log_ap( buf, pkt_size );
 	}
     }
-    ctr4_prof.stop();
     
     if ( remote_link_on ) {
 	remote_link_count--;
@@ -287,11 +279,6 @@ void control_update(double dt)
     if ( log_to_file ) {
 	logging_count--;
     }
-
-    /*ctr1_prof.stats();
-    ctr2_prof.stats();
-    ctr3_prof.stats();
-    ctr4_prof.stats();*/
 }
 
 

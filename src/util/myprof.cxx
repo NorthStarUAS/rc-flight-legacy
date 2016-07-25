@@ -74,9 +74,3 @@ myprofile route_mgr_prof;
 myprofile health_prof;
 myprofile datalog_prof;
 myprofile main_prof;
-
-// tmp, dive deeper
-myprofile ctr1_prof;
-myprofile ctr2_prof;
-myprofile ctr3_prof;
-myprofile ctr4_prof;
