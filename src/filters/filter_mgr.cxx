@@ -25,7 +25,7 @@ using std::ostringstream;
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 #include "util/lowpass.hxx"
-#include "util/myprof.h"
+#include "util/myprof.hxx"
 
 #include "filter_mgr.hxx"
 

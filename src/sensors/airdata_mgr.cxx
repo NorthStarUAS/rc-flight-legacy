@@ -26,7 +26,7 @@ using std::vector;
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 #include "util/lowpass.hxx"
-#include "util/myprof.h"
+#include "util/myprof.hxx"
 
 #include "airdata_bolder.hxx"
 #include "APM2.hxx"

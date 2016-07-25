@@ -43,7 +43,7 @@ using std::string;
 #include "sensors/gps_mgr.hxx"
 #include "sensors/pilot_mgr.hxx"
 #include "util/exception.hxx"
-#include "util/myprof.h"
+#include "util/myprof.hxx"
 #include "util/sg_path.hxx"
 #include "util/timing.h"
 

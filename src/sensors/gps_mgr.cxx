@@ -28,7 +28,7 @@ using std::vector;
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 #include "util/coremag.h"
-#include "util/myprof.h"
+#include "util/myprof.hxx"
 #include "util/timing.h"
 
 #include "APM2.hxx"

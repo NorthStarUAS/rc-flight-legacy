@@ -26,7 +26,7 @@ using std::vector;
 #include "comms/logging.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "util/myprof.h"
+#include "util/myprof.hxx"
 #include "util/timing.h"
 
 #include "act_fgfs.hxx"

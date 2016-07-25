@@ -39,8 +39,6 @@
 
 #include "control.hxx"
 
-#include "util/myprof.h"
-
 
 //
 // global variables

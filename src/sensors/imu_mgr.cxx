@@ -22,7 +22,7 @@ using std::vector;
 #include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "util/myprof.h"
+#include "util/myprof.hxx"
 #include "util/timing.h"
 
 #include "sensors/APM2.hxx"

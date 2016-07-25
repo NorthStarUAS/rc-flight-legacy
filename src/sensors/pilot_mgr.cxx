@@ -25,7 +25,7 @@ using std::vector;
 #include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "util/myprof.h"
+#include "util/myprof.hxx"
 
 #include "APM2.hxx"
 #include "Goldy2.hxx"

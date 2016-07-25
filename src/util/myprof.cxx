@@ -5,7 +5,7 @@
 #include "comms/logging.hxx"
 #include "init/globals.hxx"
 #include "timing.h"
-#include "myprof.h"
+#include "myprof.hxx"
 
 myprofile::myprofile() {
     init_time = 0.0;
