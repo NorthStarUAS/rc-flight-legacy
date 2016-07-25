@@ -325,6 +325,7 @@ int main( int argc, char **argv )
     route_mgr_prof.set_name("filter");
     health_prof.set_name("health");
     datalog_prof.set_name("datalogger");
+    sync_prof.set_name("sync");
     main_prof.set_name("main");
     
     // debugging
