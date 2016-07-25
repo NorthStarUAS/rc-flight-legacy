@@ -100,10 +100,11 @@ void main_work_loop()
     debug1.start();
 
     // read the APM2 sensor head until we receive an IMU packet
+    sync_prof.start();
     APM2_update();
+    sync_prof.stop();
     
     main_prof.start();
-
     // master "dt"
     static double last_time = 0.0;
     double current_time = get_Time();
@@ -259,6 +260,7 @@ void main_work_loop()
 	control_prof.stats();
 	health_prof.stats();
 	datalog_prof.stats();
+	sync_prof.stats();
 	main_prof.stats();
     }
 

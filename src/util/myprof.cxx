@@ -74,3 +74,4 @@ myprofile route_mgr_prof;
 myprofile health_prof;
 myprofile datalog_prof;
 myprofile main_prof;
+myprofile sync_prof;

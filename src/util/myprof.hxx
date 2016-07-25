@@ -43,6 +43,7 @@ extern myprofile route_mgr_prof;
 extern myprofile health_prof;
 extern myprofile datalog_prof;
 extern myprofile main_prof;
+extern myprofile sync_prof;
 
 
 #endif // _AURA_MYPROF_H
