@@ -42,5 +42,10 @@ extern myprofile health_prof;
 extern myprofile datalog_prof;
 extern myprofile main_prof;
 
+// tmp, dive deeper
+extern myprofile ctr1_prof;
+extern myprofile ctr2_prof;
+extern myprofile ctr3_prof;
+extern myprofile ctr4_prof;
 
 #endif // _AURA_MYPROF_H

@@ -324,6 +324,12 @@ int main( int argc, char **argv )
     health_prof.set_name("health");
     datalog_prof.set_name("datalogger");
     main_prof.set_name("main");
+    
+    // tmp, dive deeper
+    ctr1_prof.set_name("ctrl1");
+    ctr2_prof.set_name("ctrl2");
+    ctr3_prof.set_name("ctrl3");
+    ctr4_prof.set_name("ctrl4");
 
     // debugging
     debug1.set_name("debug1 (var updates)");
