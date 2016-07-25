@@ -344,6 +344,9 @@ int main( int argc, char **argv )
     debug6.set_name("debug6 (ap+actuator)");
     debug7.set_name("debug7 (logging)");
 
+    printf("Main clock resolution:\n");
+    print_Time_Resolution();
+    
     // load master config file
     SGPath master( root );
     master.append( "main.xml" );

@@ -288,10 +288,10 @@ void control_update(double dt)
 	logging_count--;
     }
 
-    ctr1_prof.stats();
+    /*ctr1_prof.stats();
     ctr2_prof.stats();
     ctr3_prof.stats();
-    ctr4_prof.stats();
+    ctr4_prof.stats();*/
 }
 
 

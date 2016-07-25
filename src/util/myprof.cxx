@@ -11,6 +11,8 @@ myprofile::myprofile() {
     init_time = 0.0;
     count = 0;
     sum_time = 0.0;
+    max_interval = 0.0;
+    min_interval = 1000.0;
 }
 
 myprofile::~myprofile() {
@@ -40,6 +42,13 @@ void myprofile::stop() {
 		 start_time, stop_time, last_interval);
 	events->log( name.c_str(), msg );
     }
+
+    if ( last_interval < min_interval ) {
+	min_interval = last_interval;
+    }
+    if ( last_interval > max_interval ) {
+	max_interval = last_interval;
+    }
 }
 
 void myprofile::stats() {
@@ -48,9 +57,9 @@ void myprofile::stats() {
     if ( total_time > 1.0 ) {
 	avg_hz = (double)count / total_time;
     }
-    printf( "%s: avg = %.4f count = %d total = %.4f (last = %.4f) avg hz=%.3f\n",
+    printf( "%s avg: %.4f num: %d tot: %.4f (range: %.4f-%.4f) hz: %.3f\n",
 	    name.c_str(), sum_time / (double)count,
-	    count, sum_time, last_interval, avg_hz );
+	    count, sum_time, min_interval, max_interval, avg_hz );
 }
 
 

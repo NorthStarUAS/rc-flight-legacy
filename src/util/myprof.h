@@ -14,6 +14,8 @@ class myprofile {
   double init_time;
   double start_time;
   double end_time;
+  double min_interval;
+  double max_interval;
   double last_interval;
   double sum_time;
   string name;

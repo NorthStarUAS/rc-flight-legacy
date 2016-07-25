@@ -1076,6 +1076,7 @@ static int APM2_read() {
 	    //fprintf( stderr, "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
 	    len = read( fd, input, 1 );
 	    giveup_counter++;
+	    printf("giveup_counter = %d\n", giveup_counter);
 	}
 	if ( len > 0 && input[0] == START_OF_MSG0 ) {
 	    // fprintf( stderr, "read START_OF_MSG0\n");
