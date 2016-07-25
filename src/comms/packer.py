@@ -116,7 +116,7 @@ def pack_gps_v2(index):
 
 def pack_gps_text(index, delim=','):
     gps_node = getNode('/sensors/gps[%d]' % index, True)
-    data = [ '%.3f' % gps_node.getFloat('timestamp'),
+    data = [ '%.4f' % gps_node.getFloat('timestamp'),
 	     '%.10f' % gps_node.getFloat('latitude_deg'),
              '%.10f' % gps_node.getFloat('longitude_deg'),
              '%.2f' % gps_node.getFloat('altitude_m'),
@@ -201,7 +201,7 @@ def pack_imu_v3(index):
 
 def pack_imu_text(index, delim=','):
     imu_node = getNode('/sensors/imu[%d]' % index, True)
-    data = [ '%.3f' % imu_node.getFloat('timestamp'),
+    data = [ '%.4f' % imu_node.getFloat('timestamp'),
 	     '%.4f' % imu_node.getFloat('p_rad_sec'),
 	     '%.4f' % imu_node.getFloat('q_rad_sec'),
 	     '%.4f' % imu_node.getFloat('r_rad_sec'),
@@ -313,7 +313,7 @@ def pack_airdata_v5(index):
 
 def pack_airdata_text(index, delim=','):
     airdata_node = getNode('/sensors/airdata[%d]' % index, True)
-    data = [ '%.3f' % airdata_node.getFloat('timestamp'),
+    data = [ '%.4f' % airdata_node.getFloat('timestamp'),
 	     '%.1f' % airdata_node.getFloat('pressure_mbar'),
              '%.1f' % airdata_node.getFloat('temp_degC'),
 	     '%.1f' % vel_node.getFloat('airspeed_smoothed_kt'),
@@ -424,7 +424,7 @@ def pack_filter_v2(index):
 
 def pack_filter_text(index, delim=','):
     filter_node = getNode('/filters/filter[%d]' % index, True)
-    data = [ '%.3f' % filter_node.getFloat('timestamp'),
+    data = [ '%.4f' % filter_node.getFloat('timestamp'),
 	     '%.10f' % filter_node.getFloat('latitude_deg'),
              '%.10f' % filter_node.getFloat('longitude_deg'),
              '%.2f' % filter_node.getFloat('altitude_m'),
@@ -512,7 +512,7 @@ def pack_act_v2(index):
 
 def pack_act_text(index, delim=','):
     act_node = getNode('/actuators/actuator[%d]' % index, True)
-    data = [ '%.3f' % act_node.getFloat('timestamp'),
+    data = [ '%.4f' % act_node.getFloat('timestamp'),
 	     '%.3f' % act_node.getFloatEnum('channel', 0),
 	     '%.3f' % act_node.getFloatEnum('channel', 1),
 	     '%.3f' % act_node.getFloatEnum('channel', 2),
@@ -599,7 +599,7 @@ def pack_pilot_v2(index):
 
 def pack_pilot_text(index, delim=','):
     pilot_node = getNode('/sensors/pilot_input[%d]' % index, True)
-    data = [ '%.3f' % pilot_node.getFloat('timestamp'),
+    data = [ '%.4f' % pilot_node.getFloat('timestamp'),
 	     '%.3f' % pilot_node.getFloatEnum('channel', 0),
 	     '%.3f' % pilot_node.getFloatEnum('channel', 1),
 	     '%.3f' % pilot_node.getFloatEnum('channel', 2),
@@ -715,7 +715,7 @@ def pack_ap_status_v3(index):
     return buf
 
 def pack_ap_status_text(index, delim=','):
-    data = [ '%.3f' % targets_node.getFloat('timestamp'),
+    data = [ '%.4f' % targets_node.getFloat('timestamp'),
 	     '%.2f' % targets_node.getFloat('groundtrack_deg'),
              '%.2f' % targets_node.getFloat('roll_deg'),
 	     '%.2f' % targets_node.getFloat('altitude_msl_ft'),
@@ -814,7 +814,7 @@ def pack_system_health_v4(index):
     return buf
 
 def pack_system_health_text(index, delim=','):
-    data = [ '%.3f' % status_node.getFloat('frame_time'),
+    data = [ '%.4f' % status_node.getFloat('frame_time'),
 	     '%.2f' % status_node.getFloat('system_load_avg'),
              '%.2f' % apm2_node.getFloat('board_vcc'),
 	     '%.2f' % apm2_node.getFloat('extern_volt'),
@@ -871,7 +871,7 @@ def pack_payload_v2(index):
     return buf
 
 def pack_payload_text(index, delim=','):
-    data = [ '%.3f' % payload_node.getFloat('timestamp'),
+    data = [ '%.4f' % payload_node.getFloat('timestamp'),
 	     '%d' % payload_node.getInt('trigger_num') ]
     return delim.join(data)
 
