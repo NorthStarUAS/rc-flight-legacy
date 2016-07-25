@@ -1059,6 +1059,7 @@ static int APM2_read() {
     int len;
     uint8_t input[500];
     static uint8_t payload[500];
+    int giveup_counter = 0;
 
     // if ( display_on ) {
     //    printf("read APM2, entry state = %d\n", state);
@@ -1070,9 +1071,11 @@ static int APM2_read() {
 	counter = 0;
 	cksum_A = cksum_B = 0;
 	len = read( fd, input, 1 );
-	while ( len > 0 && input[0] != START_OF_MSG0 ) {
+	giveup_counter = 0;
+	while ( len > 0 && input[0] != START_OF_MSG0 && giveup_counter < 100 ) {
 	    //fprintf( stderr, "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
 	    len = read( fd, input, 1 );
+	    giveup_counter++;
 	}
 	if ( len > 0 && input[0] == START_OF_MSG0 ) {
 	    // fprintf( stderr, "read START_OF_MSG0\n");
