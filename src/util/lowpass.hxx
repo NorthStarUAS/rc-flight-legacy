@@ -17,11 +17,23 @@ private:
     
 public:
     
+    LowPassFilter();
     LowPassFilter( double time_factor );
     ~LowPassFilter();
-    void init( double value );
+    
+    inline void init( double value ) {
+	filter_value = value;
+    }
+    
+    inline void set_time_factor( double time_factor ) {
+	_time_factor = time_factor;
+    }
+    
     double update( double value, double dt );
-    double get_value();
+    
+    inline double get_value() {
+	return filter_value;
+    }
 };
 
 

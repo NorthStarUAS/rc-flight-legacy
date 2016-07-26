@@ -2,17 +2,18 @@
 
 #include "lowpass.hxx"
 
+LowPassFilter::LowPassFilter() :
+    filter_value( 0.0 )
+{
+}
+
 LowPassFilter::LowPassFilter( double time_factor ) :
     filter_value( 0.0 )
 {
-   _time_factor = time_factor;
+    set_time_factor( time_factor );
 }
 
 LowPassFilter::~LowPassFilter() {}
-
-void LowPassFilter::init( double value ) {
-    filter_value = value;
-}
 
 double LowPassFilter::update( double value, double dt ) {
     // Weight factor (wf): the actual low pass filter value for the
@@ -34,9 +35,5 @@ double LowPassFilter::update( double value, double dt ) {
     if ( weight_factor > 1.0 ) { weight_factor = 1.0; }
     filter_value = (1.0 - weight_factor) * filter_value
 	+ weight_factor * value;
-    return filter_value;
-}
-
-double LowPassFilter::get_value() {
     return filter_value;
 }
