@@ -29,7 +29,7 @@ using namespace Eigen;
 #include "comms/logging.hxx"
 #include "init/globals.hxx"
 #include "sensors/cal_temp.hxx"
-#include "util/lowpass.hxx"
+#include "util/linearfit.hxx"
 #include "util/poly1d.hxx"
 #include "util/timing.h"
 
@@ -130,7 +130,7 @@ static double imu_timestamp = 0.0;
 static uint32_t imu_micros = 0;
 static int16_t imu_sensors[NUM_IMU_SENSORS];
 
-static LowPassFilter imu_time_offset(200.0);
+static LinearFitFilter imu_offset(200.0);
 
 struct gps_sensors_t {
     double timestamp;
@@ -1558,10 +1558,12 @@ bool APM2_update() {
 
 
 bool APM2_imu_update() {
-    static double last_imu_timestamp = 0.0;
-    double dt = imu_timestamp - last_imu_timestamp;
-    last_imu_timestamp = imu_timestamp;
+    // note using hard coded dt later which is hard coded to match the IMU dt
+    // static double last_imu_timestamp = 0.0;
+    // double dt = imu_timestamp - last_imu_timestamp; 
+    // last_imu_timestamp = imu_timestamp;
     static double last_bias_update = 0.0;
+    static uint32_t last_imu_micros = 0;
     
     if ( imu_inited ) {
 	double p_raw = (double)imu_sensors[0] * MPU6000_gyro_scale;
@@ -1595,24 +1597,36 @@ bool APM2_imu_update() {
 	    last_bias_update = imu_timestamp;
 	}
 
-	// timestamp dance
+	// timestamp dance: this is a little jig that I do to make a
+	// more consistent time stamp that still is in the host
+	// reference frame.  Assumes the APM2 clock drifts relative to
+	// host clock.  Assumes the APM2 imu stamp dt is very stable.
+	// Assumes the host system is not-real time and there may be
+	// momentary external disruptions to execution. The code
+	// estimates the error (difference) between APM2 clock and
+	// host clock.  Then builds a real time linear fit of APM2
+	// clock versus difference with the host.  This linear fit is
+	// used to estimate the current error (smoothly), add that to
+	// the APM2 clock and derive a more regular/stable IMU time
+	// stamp (versus just sampling current host time.)
+	
+	// imu_micros &= 0xffffff; // 24 bits = 16.7 microseconds roll over
+	
 	double imu_rem_sec = (double)imu_micros / 1000000.0;
 	double diff = imu_timestamp - imu_rem_sec;
-	if ( fabs(diff - imu_time_offset.get_value()) > 1.0 ) {
-	    // filter too far from reality reset
-	    imu_time_offset.init(diff);
-	    if ( display_on ) {
-		printf("Reset imu offset filter: %.4f\n", diff);
-	    }
-	} else {
-	    imu_time_offset.update(diff, dt);
+	if ( last_imu_micros > imu_micros ) {
+	    events->log("APM2", "micros() rolled over\n");
+	    imu_offset.reset();
 	}
-	/* printf("imu offset = %.4f diff=%.4f dt=%.4f\n",
-	   imu_time_offset.get_value(), diff, dt); */
+	imu_offset.update(imu_rem_sec, diff, 0.01);
+	double fit_diff = imu_offset.get_value(imu_rem_sec);
+	// printf("fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
+	//        fit_diff, diff, imu_rem_sec + fit_diff );
+
+	last_imu_micros = imu_micros;
 	
 	//imu_node.setDouble( "timestamp", imu_timestamp );
-	imu_node.setDouble( "timestamp",
-			    imu_rem_sec + imu_time_offset.get_value() );
+	imu_node.setDouble( "timestamp", imu_rem_sec + fit_diff );
 	imu_node.setLong( "imu_micros", imu_micros );
 	imu_node.setDouble( "imu_sec", (double)imu_micros / 1000000.0 );
 	imu_node.setDouble( "p_rad_sec", p_raw );
