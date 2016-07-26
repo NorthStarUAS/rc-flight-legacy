@@ -29,6 +29,7 @@ using namespace Eigen;
 #include "comms/logging.hxx"
 #include "init/globals.hxx"
 #include "sensors/cal_temp.hxx"
+#include "util/lowpass.hxx"
 #include "util/poly1d.hxx"
 #include "util/timing.h"
 
@@ -126,7 +127,10 @@ static bool pilot_symmetric[NUM_PILOT_INPUTS]; // normalization symmetry flag
 static bool pilot_invert[NUM_PILOT_INPUTS];    // invert input flag
 
 static double imu_timestamp = 0.0;
+static uint32_t imu_micros = 0;
 static int16_t imu_sensors[NUM_IMU_SENSORS];
+
+static LowPassFilter imu_time_offset(200.0);
 
 struct gps_sensors_t {
     double timestamp;
@@ -851,14 +855,13 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	}
     } else if ( pkt_id == IMU_PACKET_ID ) {
-	if ( pkt_len == NUM_IMU_SENSORS * 2 ) {
-	    uint8_t lo, hi;
-
+	if ( pkt_len == 4 + NUM_IMU_SENSORS * 2 ) {
 	    imu_timestamp = get_Time();
-
+	    imu_micros = *(uint32_t *)payload; payload += 4;
+	    //printf("%d\n", imu_micros);
+	    
 	    for ( int i = 0; i < NUM_IMU_SENSORS; i++ ) {
-		lo = payload[0 + 2*i]; hi = payload[1 + 2*i];
-		imu_sensors[i] = hi*256 + lo;
+		imu_sensors[i] = *(int16_t *)payload; payload += 2;
 	    }
 
 #if 0
@@ -1073,10 +1076,10 @@ static int APM2_read() {
 	len = read( fd, input, 1 );
 	giveup_counter = 0;
 	while ( len > 0 && input[0] != START_OF_MSG0 && giveup_counter < 100 ) {
-	    //fprintf( stderr, "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
+	    // fprintf( stderr, "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
 	    len = read( fd, input, 1 );
 	    giveup_counter++;
-	    //fprintf( stderr, "giveup_counter = %d\n", giveup_counter);
+	    // fprintf( stderr, "giveup_counter = %d\n", giveup_counter);
 	}
 	if ( len > 0 && input[0] == START_OF_MSG0 ) {
 	    // fprintf( stderr, "read START_OF_MSG0\n");
@@ -1087,10 +1090,10 @@ static int APM2_read() {
 	len = read( fd, input, 1 );
 	if ( len > 0 ) {
 	    if ( input[0] == START_OF_MSG1 ) {
-		// fprintf( stderr, "read START_OF_MSG1\n");
+		//fprintf( stderr, "read START_OF_MSG1\n");
 		state++;
 	    } else if ( input[0] == START_OF_MSG0 ) {
-		// fprintf( stderr, "read START_OF_MSG0\n");
+		//fprintf( stderr, "read START_OF_MSG0\n");
 	    } else {
 		state = 0;
 	    }
@@ -1102,7 +1105,7 @@ static int APM2_read() {
 	    pkt_id = input[0];
 	    cksum_A += input[0];
 	    cksum_B += cksum_A;
-	    // fprintf( stderr, "pkt_id = %d\n", pkt_id );
+	    //fprintf( stderr, "pkt_id = %d\n", pkt_id );
 	    state++;
 	}
     }
@@ -1111,7 +1114,7 @@ static int APM2_read() {
 	if ( len > 0 ) {
 	    pkt_len = input[0];
 	    if ( pkt_len < 256 ) {
-		// fprintf( stderr, "pkt_len = %d\n", pkt_len );
+		//fprintf( stderr, "pkt_len = %d\n", pkt_len );
 		cksum_A += input[0];
 		cksum_B += cksum_A;
 		state++;
@@ -1150,7 +1153,7 @@ static int APM2_read() {
 	if ( len > 0 ) {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
-		// printf( "checksum passes (%d)!\n", pkt_id );
+		// printf( "checksum passes (%d)\n", pkt_id );
 		new_data = APM2_parse( pkt_id, pkt_len, payload );
 	    } else {
 		if ( display_on ) {
@@ -1556,7 +1559,10 @@ bool APM2_update() {
 
 bool APM2_imu_update() {
     static double last_imu_timestamp = 0.0;
-
+    double dt = imu_timestamp - last_imu_timestamp;
+    last_imu_timestamp = imu_timestamp;
+    static double last_bias_update = 0.0;
+    
     if ( imu_inited ) {
 	double p_raw = (double)imu_sensors[0] * MPU6000_gyro_scale;
 	double q_raw = (double)imu_sensors[1] * MPU6000_gyro_scale;
@@ -1579,17 +1585,36 @@ bool APM2_imu_update() {
 	    hy = -hy;
 	}
 
-	if ( imu_timestamp > last_imu_timestamp + 5.0 ) {
+	if ( imu_timestamp > last_bias_update + 5.0 ) {
 	    //imu_p_bias_node.setDouble( p_cal.get_bias( temp_C ) );
 	    //imu_q_bias_node.setDouble( q_cal.get_bias( temp_C ) );
 	    //imu_r_bias_node.setDouble( r_cal.eval_bias( temp_C ) );
 	    imu_node.setDouble( "ax_bias", ax_cal.get_bias( temp_C ) );
 	    imu_node.setDouble( "ay_bias", ay_cal.get_bias( temp_C ) );
 	    imu_node.setDouble( "az_bias", az_cal.get_bias( temp_C ) );
-	    last_imu_timestamp = imu_timestamp;
+	    last_bias_update = imu_timestamp;
 	}
 
-	imu_node.setDouble( "timestamp", imu_timestamp );
+	// timestamp dance
+	double imu_rem_sec = (double)imu_micros / 1000000.0;
+	double diff = imu_timestamp - imu_rem_sec;
+	if ( fabs(diff - imu_time_offset.get_value()) > 1.0 ) {
+	    // filter too far from reality reset
+	    imu_time_offset.init(diff);
+	    if ( display_on ) {
+		printf("Reset imu offset filter: %.4f\n", diff);
+	    }
+	} else {
+	    imu_time_offset.update(diff, dt);
+	}
+	/* printf("imu offset = %.4f diff=%.4f dt=%.4f\n",
+	   imu_time_offset.get_value(), diff, dt); */
+	
+	//imu_node.setDouble( "timestamp", imu_timestamp );
+	imu_node.setDouble( "timestamp",
+			    imu_rem_sec + imu_time_offset.get_value() );
+	imu_node.setLong( "imu_micros", imu_micros );
+	imu_node.setDouble( "imu_sec", (double)imu_micros / 1000000.0 );
 	imu_node.setDouble( "p_rad_sec", p_raw );
 	imu_node.setDouble( "q_rad_sec", q_raw );
 	imu_node.setDouble( "r_rad_sec", r_raw );
