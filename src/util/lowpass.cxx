@@ -2,7 +2,7 @@
 
 #include "lowpass.hxx"
 
-LowPassFilter::LowPassFilter( float time_factor ) :
+LowPassFilter::LowPassFilter( double time_factor ) :
     filter_value( 0.0 )
 {
    _time_factor = time_factor;
@@ -10,14 +10,14 @@ LowPassFilter::LowPassFilter( float time_factor ) :
 
 LowPassFilter::~LowPassFilter() {}
 
-void LowPassFilter::init( float value ) {
+void LowPassFilter::init( double value ) {
     filter_value = value;
 }
 
-float LowPassFilter::update( float value, float dt ) {
+double LowPassFilter::update( double value, double dt ) {
     // Weight factor (wf): the actual low pass filter value for the
     // current dt.
-    float weight_factor;
+    double weight_factor;
     if ( _time_factor > 0.0 ) {
 	weight_factor = dt / _time_factor;
     } else {
@@ -37,6 +37,6 @@ float LowPassFilter::update( float value, float dt ) {
     return filter_value;
 }
 
-float LowPassFilter::get_value() {
+double LowPassFilter::get_value() {
     return filter_value;
 }

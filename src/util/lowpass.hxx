@@ -10,18 +10,18 @@ private:
     // Time factor (tf): length of time (sec) to low pass filter the
     // input over.  A time value of zero will result in the filter
     // output being equal to the raw input at each time step.
-    float _time_factor;
+    double _time_factor;
 
     // the current filter value
-    float filter_value;
+    double filter_value;
     
 public:
     
-    LowPassFilter( float time_factor );
+    LowPassFilter( double time_factor );
     ~LowPassFilter();
-    void init( float value );
-    float update( float value, float dt );
-    float get_value();
+    void init( double value );
+    double update( double value, double dt );
+    double get_value();
 };
 
 
