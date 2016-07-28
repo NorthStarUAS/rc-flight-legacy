@@ -16,8 +16,8 @@
 #include "sensors/util_goldy2.hxx"
 #include "act_goldy2.hxx"
 
-#define PWM_CENTER 1520
-#define PWM_HALF_RANGE 413
+#define PWM_CENTER 1500
+#define PWM_HALF_RANGE 513
 #define PWM_RANGE (PWM_HALF_RANGE * 2)
 #define PWM_MIN (PWM_CENTER - PWM_HALF_RANGE)
 #define PWM_MAX (PWM_CENTER + PWM_HALF_RANGE)
@@ -148,6 +148,7 @@ bool goldy2_act_update() {
     // printf("ail=%.2f ele=%.2f\n", aileron, elevator);
 
     int thr_pwm = gen_pulse( throttle, false );
+    // printf("thr pwm = %d\n", thr_pwm);
     int zero_act = 0;
     int units = 0; // 0 = PWM, 1 = angle control (radians)
     
