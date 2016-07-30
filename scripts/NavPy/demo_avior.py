@@ -30,6 +30,7 @@ for line in fimu:
     imu = insgps_quat_15state.IMU( float(time), int(status),
                                    float(p), float(q), float(r),
                                    float(ax), float(ay), float(az),
+                                   float(hx), float(hy), float(hz),
                                    float(temp) )
     imu_data.append( imu )
 if len(imu_data) == 0:
