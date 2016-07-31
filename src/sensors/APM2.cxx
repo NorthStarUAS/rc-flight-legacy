@@ -19,10 +19,6 @@
 using std::string;
 using std::ostringstream;
 
-// #include <iostream>
-// using std::cout;
-// using std::endl;
-
 #include <eigen3/Eigen/Core>
 using namespace Eigen;
 
@@ -1550,21 +1546,10 @@ static bool APM2_act_write() {
 
 
 bool APM2_update() {
-    //int bytes_available;
-    //ioctl(fd, FIONREAD, &bytes_available);
-    // printf("ba = %d\n", bytes_available);
-
-    // read APM2 packets until we receive an IMU packet, this will be
-    // the trigger to continue
-    //int pkt_id = APM2_read();
-    //ioctl(fd, FIONREAD, &bytes_available);
-    //while ( pkt_id != IMU_PACKET_ID || bytes_available > 32 ) {
-	//pkt_id = APM2_read();
-        //ioctl(fd, FIONREAD, &bytes_available);
-        // printf("  ba = %d\n", bytes_available);
-    //};
-    // read packets until we receive an IMU packet and the uart buffer is
-    // mostly empty
+    // read packets until we receive an IMU packet and the uart buffer
+    // is mostly empty.  The IMU packet (combined with being caught up
+    // reading the uart buffer is our signal to run an interation of
+    // the main loop.
     while ( true ) {
         int pkt_id = APM2_read();
         if ( pkt_id == IMU_PACKET_ID ) {
