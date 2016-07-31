@@ -29,6 +29,7 @@ class myprofile {
   void start();
   void stop();
   void stats();
+  inline double get_last_interval() { return last_interval; }
 };
 
 

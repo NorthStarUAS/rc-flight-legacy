@@ -99,6 +99,7 @@ void main_work_loop()
 {
     debug1.start();
 
+    // printf("apm loop:\n");
     // read the APM2 sensor head until we receive an IMU packet
     sync_prof.start();
     APM2_update();

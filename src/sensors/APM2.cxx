@@ -12,6 +12,7 @@
 #include <unistd.h>		// tcgetattr() et. al.
 #include <string.h>		// memset(), strerror()
 #include <math.h>		// M_PI
+#include <sys/ioctl.h>
 
 #include <string>
 #include <sstream>
@@ -1158,7 +1159,7 @@ static int APM2_read() {
 	    } else {
 		if ( display_on ) {
 		    // printf("checksum failed %d %d (computed) != %d %d (message)\n",
-		    //	   cksum_A, cksum_B, cksum_lo, cksum_hi );
+		    //        cksum_A, cksum_B, cksum_lo, cksum_hi );
 		}
 	    }
 	    // this is the end of a record, reset state to 0 to start
@@ -1549,9 +1550,31 @@ static bool APM2_act_write() {
 
 
 bool APM2_update() {
+    //int bytes_available;
+    //ioctl(fd, FIONREAD, &bytes_available);
+    // printf("ba = %d\n", bytes_available);
+
     // read APM2 packets until we receive an IMU packet, this will be
     // the trigger to continue
-    while ( APM2_read() != IMU_PACKET_ID );
+    //int pkt_id = APM2_read();
+    //ioctl(fd, FIONREAD, &bytes_available);
+    //while ( pkt_id != IMU_PACKET_ID || bytes_available > 32 ) {
+	//pkt_id = APM2_read();
+        //ioctl(fd, FIONREAD, &bytes_available);
+        // printf("  ba = %d\n", bytes_available);
+    //};
+    // read packets until we receive an IMU packet and the uart buffer is
+    // mostly empty
+    while ( true ) {
+        int pkt_id = APM2_read();
+        if ( pkt_id == IMU_PACKET_ID ) {
+	    int bytes_available = 0;
+            ioctl(fd, FIONREAD, &bytes_available);
+	    if ( bytes_available < 32 ) {
+		break;
+            }
+        }
+    }
 
     return true;
 }
