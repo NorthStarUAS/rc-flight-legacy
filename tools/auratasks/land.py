@@ -140,7 +140,7 @@ class Land():
                 print command
                 t.send(command)
 
-    def update(self, t):
+    def update(self):
         print "update land params"
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")

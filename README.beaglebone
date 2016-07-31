@@ -41,3 +41,14 @@ Network config: (required before beaglebone dns lookups will actually work)
 - apt install git autoconf automake
 - apt install python-dev python-lxml
 - apt install zlib1g-dev
+
+# remove stuff we don't need that could cause performance disruptions
+systemctl disable jekyll-autorun.service
+systemctl disable bonescript-autorun.service
+systemctl disable apache2.service
+(wicd.service?)
+
+apt-get remove --purge nodejs
+apt-get remove --purge xrdp
+apt-get remove --purge tightvncserver
+apt-get remove apache2
