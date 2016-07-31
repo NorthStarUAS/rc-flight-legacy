@@ -14,6 +14,7 @@ import transformations
 
 argparser = argparse.ArgumentParser(description='fit imu bias data')
 argparser.add_argument('--cal-dir', required=True, help='calibration directory')
+argparser.add_argument('--imu-model', required=True, help='goldy or apm2')
 args = argparser.parse_args()
 
 cal_file = os.path.join(args.cal_dir, "imucal.xml")
@@ -74,28 +75,42 @@ if len(mag_data) == 0:
 nosave = imucal.Calibration()
 cal = imucal.Calibration()
 
+# select which components to update
+if args.imu_model == 'apm2':
+    bias_cal = nosave
+    accel_cal = cal
+    mag_cal = cal
+elif args.imu_model == 'goldy2':
+    bias_cal = cal
+    accel_cal = cal
+    mag_cal = cal
+else:
+    print 'unknown imu model:', args.imu_model
+    quit()
+    
 if len(bias_data):
     bias_array = np.array(bias_data, dtype=np.float64)
     bias_len = bias_array.shape[0]
     print "temp range:", bias_array[:,1].min(), bias_array[:,1].max()
 
-    nosave.p_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,2], 2, full=True )
-    print "p coefficients = ", nosave.p_bias
+    bias_cal.p_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,2], 2, full=True )
+    print "p coefficients = ", bias_cal.p_bias
     print "p residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
-    nosave.q_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,3], 2, full=True )
-    print "q coefficients = ", nosave.q_bias
+    bias_cal.q_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,3], 2, full=True )
+    print "q coefficients = ", bias_cal.q_bias
     print "q residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
-    nosave.r_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,4], 2, full=True )
-    print "r coefficients = ", nosave.r_bias
+    bias_cal.r_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,4], 2, full=True )
+    print "r coefficients = ", bias_cal.r_bias
     print "r residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
-    cal.ax_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,5], 2, full=True )
-    print "ax coefficients = ", cal.ax_bias
+    
+    accel_cal.ax_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,5], 2, full=True )
+    print "ax coefficients = ", accel_cal.ax_bias
     print "ax residual = ", math.sqrt(res[0]/bias_len)
-    cal.ay_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,6], 2, full=True )
-    print "ay coefficients = ", cal.ay_bias
+    accel_cal.ay_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,6], 2, full=True )
+    print "ay coefficients = ", accel_cal.ay_bias
     print "ay residual = ", math.sqrt(res[0]/bias_len)
-    cal.az_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,7], 2, full=True )
-    print "az coefficients = ", cal.az_bias
+    accel_cal.az_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,7], 2, full=True )
+    print "az coefficients = ", accel_cal.az_bias
     print "az residual = ", math.sqrt(res[0]/bias_len)
 
     cal.min_temp = min_temp
@@ -113,6 +128,7 @@ if len(mag_data):
     sense_array = mag_array[:,0:3]
 
     affine = transformations.affine_matrix_from_points(sense_array.T, ideal_array.T, usesparse=True)
+    mag_cal.mag_affine = affine
     print "affine:"
     np.set_printoptions(precision=10,suppress=True)
     print affine
@@ -139,19 +155,19 @@ def gen_func( coeffs, min, max, steps ):
         yvals.append(y)
     return xvals, yvals
 
-if False:
+if True:
     cal_fig, cal_gyro = plt.subplots(3, sharex=True)
-    xvals, yvals = gen_func(nosave.p_bias, min_temp, max_temp, 100)
+    xvals, yvals = gen_func(cal.p_bias, min_temp, max_temp, 100)
     cal_gyro[0].plot(bias_array[:,1],np.rad2deg(bias_array[:,2]),'r.',xvals,np.rad2deg(yvals),label='Filter')
     cal_gyro[0].set_xlabel('Temp (C)')
     cal_gyro[0].set_ylabel('$b_{gx}$ (deg/s)')
     cal_gyro[0].set_title('Gyro Bias vs. Temp')
-    xvals, yvals = gen_func(nosave.q_bias, min_temp, max_temp, 100)
+    xvals, yvals = gen_func(cal.q_bias, min_temp, max_temp, 100)
     cal_gyro[1].plot(bias_array[:,1],np.rad2deg(bias_array[:,3]),'g.',xvals,np.rad2deg(yvals), label='Filter')
     cal_gyro[1].set_xlabel('Temp (C)')
     cal_gyro[1].set_ylabel('$b_{gy}$ (deg/s)')
     #cal_gyro[1].set_title('Gyro Bias vs. Temp')
-    xvals, yvals = gen_func(nosave.r_bias, min_temp, max_temp, 100)
+    xvals, yvals = gen_func(cal.r_bias, min_temp, max_temp, 100)
     cal_gyro[2].plot(bias_array[:,1],np.rad2deg(bias_array[:,4]),'b.',xvals,np.rad2deg(yvals),'g', label='Filter')
     cal_gyro[2].set_xlabel('Temp (C)')
     cal_gyro[2].set_ylabel('$b_{gz}$ (deg/s)')
@@ -185,7 +201,7 @@ if len(mag_data):
     mag_fit[1].set_xlabel('Sensed hy (adc)')
     mag_fit[1].set_ylabel('True hx (norm)')
     #mag_fit[1].set_title('Accel Bias vs. Temp')
-    mag_fit[2].plot(mag_array[:,2],mag_array[:,5],'b.','g',label='Filter')
+    mag_fit[2].plot(mag_array[:,2],mag_array[:,5],'b.',label='Filter')
     mag_fit[2].set_xlabel('Sensed hz (adc)')
     mag_fit[2].set_ylabel('True hx (norm)')
     #mag_fit[2].set_title('Accel Bias vs. Temp')

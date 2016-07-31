@@ -4,7 +4,7 @@ import navpy
 import wgs84
 
 class IMU():
-    def __init__(self, time, valid, p, q, r, ax, ay, az, temp):
+    def __init__(self, time, valid, p, q, r, ax, ay, az, hx, hy, hz, temp):
         self.time = time
         self.valid = valid
         self.p = p
@@ -13,6 +13,9 @@ class IMU():
         self.ax = ax
         self.ay = ay
         self.az = az
+        self.hx = hx
+        self.hy = hy
+        self.hz = hz
         self.temp = temp
 
 class GPS():

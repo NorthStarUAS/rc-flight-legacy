@@ -18,6 +18,7 @@ plt.close()
 argparser = argparse.ArgumentParser(description='generate imu temp vs. bias data points')
 argparser.add_argument('--flight', required=True, help='aura flight log directory')
 argparser.add_argument('--cal', required=True, help='calibration log directory')
+argparser.add_argument('--imu-sn', help='specify imu serial number')
 argparser.add_argument('--no-back-correct', action='store_true', help='do not invert the calibration to get back to original raw sensor values.')
 argparser.add_argument('--plot', action='store_true', help='plot results.')
 args = argparser.parse_args()
@@ -33,10 +34,11 @@ imu_data = []
 fimu = fileinput.input(imu_file)
 for line in fimu:
     time, p, q, r, ax, ay, az, hx, hy, hz, temp, status = re.split('[,\s]+', line.rstrip())
-    imu = EKF.IMU( float(time), int(status),
-                   float(p), float(q), float(r),
-                   float(ax), float(ay), float(az),
-                   float(temp) )
+    imu = [ float(time),
+            float(p), float(q), float(r),
+            float(ax), float(ay), float(az),
+            float(hx), float(hy), float(hz),
+            float(temp), int(status) ]
     imu_data.append( imu )
 if len(imu_data) == 0:
     print "No imu records loaded, cannot continue..."
@@ -80,18 +82,23 @@ else:
     imu_raw = cal.back_correct(imu_data)
 
 # Read the events file for IMU make / serial number
-apm2_sn = None
+imu_sn = None
 fevents = fileinput.input(events_file)
 for line in fevents:
     tokens = line.split()
     if len(tokens) == 6 and tokens[1] == 'APM2:' and tokens[2] == 'Serial' and tokens[3] == 'Number':
-        apm2_sn = int(tokens[5])
+        imu_sn = int(tokens[5])
     elif len(tokens) == 5 and tokens[1] == 'APM2' and tokens[2] == 'Serial' and tokens[3] == 'Number:':
-        apm2_sn = int(tokens[4])
-if apm2_sn:
-    print 'APM2 s/n: ', apm2_sn
-else:
-    print 'Cannot determine APM2 serial number from events.txt file'
+        imu_sn = int(tokens[4])
+if imu_sn:
+    print 'APM2 s/n: ', imu_sn
+    
+if args.imu_sn:
+    imu_sn = args.imu_sn
+    print 'Using serial number from command line:', imu_sn
+
+if not imu_sn:
+    print 'Cannot determine APM2 serial number from events.txt file and no serial number provided on the command line'
     quit()
 
 # =========================== Results ===============================
@@ -122,7 +129,13 @@ filter = EKF.Filter()
 
 gps_index = 1
 nav_init = False
-for i, imu in enumerate(imu_raw):
+for i, imu_list in enumerate(imu_raw):
+    imu = EKF.IMU( imu_list[0], imu_list[11],
+                   imu_list[1], imu_list[2], imu_list[3],
+                   imu_list[4], imu_list[5], imu_list[6],
+                   imu_list[7], imu_list[8], imu_list[9],
+                   imu_list[10] )
+
     # walk the gps counter forward as needed
     while gps_index < len(gps_data) and imu.time >= gps_data[gps_index].time:
         gps_index += 1
@@ -213,7 +226,12 @@ else:
     # is probably still on the ground and hasn't had a chance for the bias
     # estimates to converge)
 
-    cal_dir = os.path.join(args.cal, "apm2_" + str(apm2_sn))
+    if not args.imu_sn:
+        # determined from events.txt file, mid-pend 'apm2_'
+        cal_dir = os.path.join(args.cal, "apm2_" + str(imu_sn))
+    else:
+        # provided on command line, no-pend nothing
+        cal_dir = os.path.join(args.cal, str(imu_sn))
     if not os.path.exists(cal_dir):
         os.makedirs(cal_dir)
     filename = os.path.basename(os.path.abspath(args.flight)) + "-imubias.txt"

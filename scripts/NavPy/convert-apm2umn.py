@@ -83,21 +83,22 @@ for line in fapm:
         imu = EKF.IMU( float(time), 1,
                        float(p), float(q), float(r),
                        float(ax), float(ay), float(az),
+                       0.0, 0.0, 0.0,
                        float(baro_temp) )
         imu_data.append(imu)
-    elif token[0] == "IMU":
-        time = float(token[1]) / 1000.0
-        p = -float(token[2])
-        q = -float(token[3])
-        r = float(token[4])
-        ax = -float(token[5])
-        ay = -float(token[6])
-        az = float(token[7])
-        imu = EKF.IMU( float(time), 1,
-                       float(p), float(q), float(r),
-                       float(ax), float(ay), float(az),
-                       float(baro_temp) )
-        imu_data.append(imu)
+    # elif token[0] == "IMU":
+    #     time = float(token[1]) / 1000.0
+    #     p = -float(token[2])
+    #     q = -float(token[3])
+    #     r = float(token[4])
+    #     ax = -float(token[5])
+    #     ay = -float(token[6])
+    #     az = float(token[7])
+    #     imu = EKF.IMU( float(time), 1,
+    #                    float(p), float(q), float(r),
+    #                    float(ax), float(ay), float(az),
+    #                    float(baro_temp) )
+    #     imu_data.append(imu)
     elif token[0] == "EKF1":
         time = float(token[1]) / 1000.0
         phi = float(token[2])

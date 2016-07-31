@@ -2,9 +2,11 @@ import copy
 import lxml.etree as ET
 import numpy as np
 import os.path
+import sys
 
 class Calibration():
     def __init__(self, cal_file=None):
+        self.valid = False
         # defined temp range
         self.min_temp = 27.0
         self.max_temp = 27.0
@@ -27,39 +29,6 @@ class Calibration():
         if cal_file:
             self.load(cal_file)
 
-    # load a configuration from file
-    def load_text_deprecated(self, cal_file):
-        try:
-            f = open(cal_file, 'r')
-        except:
-            print "can't open calibration file for reading: ", cal_file
-            return
-        p1, p2, p3 = f.readline().split()
-        self.p_bias = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = f.readline().split()
-        self.q_bias = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = f.readline().split()
-        self.r_bias = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = f.readline().split()
-        self.ax_bias = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = f.readline().split()
-        self.ay_bias = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = f.readline().split()
-        self.az_bias = np.array([p1, p2, p3], dtype=np.float64)
-
-        p1, p2, p3 = f.readline().split()
-        self.p_scale = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = f.readline().split()
-        self.q_scale = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = f.readline().split()
-        self.r_scale = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = f.readline().split()
-        self.ax_scale = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = f.readline().split()
-        self.ay_scale = np.array([p1, p2, p3], dtype=np.float64)
-        p1, p2, p3 = f.readline().split()
-        self.az_scale = np.array([p1, p2, p3], dtype=np.float64)
-
     def myfloat(self, input):
         if input == "":
             return 0.0
@@ -71,8 +40,8 @@ class Calibration():
         try:
             self.xml = ET.parse(str(cal_file))
         except:
-            print filename + ": xml parse error:\n" + str(sys.exc_info()[1])
-            return
+            print cal_file + ": xml parse error:\n" + str(sys.exc_info()[1])
+            return False
         root = self.xml.getroot()
         self.min_temp = self.myfloat(root.find('min_temp_C').text)
         self.max_temp = self.myfloat(root.find('max_temp_C').text)
@@ -120,7 +89,7 @@ class Calibration():
             self.az_scale = np.array([p1, p2, p3], dtype=np.float64)
 
         node = root.find('mag_affine')
-        if len(node):
+        if node and len(node):
             r = 0
             c = 0
             tokens = node.text.split()
@@ -134,13 +103,20 @@ class Calibration():
                 self.mag_affine_inv = np.inv(self.mag_affine)
             else:
                 print "mag_affine requires 16 values"
-                
+
+        return True
+    
     def load(self, cal_file):
         extension = os.path.splitext(cal_file)[1]
-        if extension == ".txt":
-            self.load_text_deprecated(cal_file)
-        elif extension == ".xml":
-            self.load_xml(cal_file)
+        if extension == ".xml":
+            if os.path.exists(cal_file):
+                if self.load_xml(cal_file):
+                    self.valid = True
+            else:
+                print 'no cal file found'
+        else:
+            print 'Unknown cal file extenstion:', extension
+            quit()
             
     def update_node(self, parent, node, value):
         e = parent.find(node)
@@ -220,31 +196,37 @@ class Calibration():
         ay_scale_func = np.poly1d(self.ay_scale)
         az_scale_func = np.poly1d(self.az_scale)
         for imu in imu_data:
-            newimu = copy.copy(imu)
-            t = imu.temp
-            if t < self.min_temp:
-                t = self.min_temp
-            if t > self.max_temp:
-                t = self.max_temp    
-            newimu.p = (imu.p - p_bias_func(t)) * p_scale_func(t)
-            newimu.q = (imu.q - q_bias_func(t)) * q_scale_func(t)
-            newimu.r = (imu.r - r_bias_func(t)) * r_scale_func(t)
-            newimu.ax = (imu.ax - ax_bias_func(t)) * ax_scale_func(t)
-            newimu.ay = (imu.ay - ay_bias_func(t)) * ay_scale_func(t)
-            newimu.az = (imu.az - az_bias_func(t)) * az_scale_func(t)
-            hs = [imu.hx, imu.hy, imu.hz, 1.0]
+            time = imu[0]
+            temp = imu[10]
+            status = imu[11]
+            if temp < self.min_temp:
+                temp = self.min_temp
+            if temp > self.max_temp:
+                temp = self.max_temp    
+            p = (imu[1] - p_bias_func(temp)) * p_scale_func(temp)
+            q = (imu[2] - q_bias_func(temp)) * q_scale_func(temp)
+            r = (imu[3] - r_bias_func(temp)) * r_scale_func(temp)
+            ax = (imu[4] - ax_bias_func(temp)) * ax_scale_func(temp)
+            ay = (imu[5] - ay_bias_func(temp)) * ay_scale_func(temp)
+            az = (imu[6] - az_bias_func(temp)) * az_scale_func(temp)
+            hs = [imu[7], imu[8], imu[9], 1.0]
             hf = np.dot(self.mag_affine, hs)
             norm = np.linalg.norm(hf[:3])
             #hf[:3] /= norm
-            newimu.hx = hf[0]
-            newimu.hy = hf[1]
-            newimu.hz = hf[2]
+            hx = hf[0]
+            hy = hf[1]
+            hz = hf[2]
+            # imu[10] is measured temp, not clipped temp
+            newimu = [ time, p, q, r, ax, ay, az, hx, hy, hz, imu[10], status ]
             imu_corrected.append(newimu)
         return imu_corrected
     
     # back correct the IMU data given the current bias and scale errors
     # (i.e. assuming corrected data, generate the raw values)
     def back_correct(self, imu_data):
+        if not self.valid:
+            return imu_data
+        
         imu_corrected = []
         p_bias_func = np.poly1d(self.p_bias)
         q_bias_func = np.poly1d(self.q_bias)
@@ -259,24 +241,27 @@ class Calibration():
         ay_scale_func = np.poly1d(self.ay_scale)
         az_scale_func = np.poly1d(self.az_scale)
         for imu in imu_data:
-            newimu = copy.copy(imu)
-            t = imu.temp
-            if t < self.min_temp:
-                t = self.min_temp
-            if t > self.max_temp:
-                t = self.max_temp    
-            newimu.p = imu.p / p_scale_func(t) + p_bias_func(t)
-            newimu.q = imu.q / q_scale_func(t) + q_bias_func(t)
-            newimu.r = imu.r / r_scale_func(t) + r_bias_func(t)
-            newimu.ax = imu.ax / ax_scale_func(t) + ax_bias_func(t)
-            newimu.ay = imu.ay / ay_scale_func(t) + ay_bias_func(t)
-            newimu.az = imu.az / az_scale_func(t) + az_bias_func(t)
-            # hs = [imu.hx, imu.hy, imu.hz, 1.0]
-            # hf = np.dot(self.mag_affine_inv, hs)
-            # norm = np.linalg.norm(hf[:3])
+            time = imu[0]
+            temp = imu[10]
+            status = imu[11]
+            if temp < self.min_temp:
+                temp = self.min_temp
+            if temp > self.max_temp:
+                temp = self.max_temp    
+            p = imu[1] / p_scale_func(temp) + p_bias_func(temp)
+            q = imu[2] / q_scale_func(temp) + q_bias_func(temp)
+            r = imu[3] / r_scale_func(temp) + r_bias_func(temp)
+            ax = imu[4] / ax_scale_func(temp) + ax_bias_func(temp)
+            ay = imu[5] / ay_scale_func(temp) + ay_bias_func(temp)
+            az = imu[6] / az_scale_func(temp) + az_bias_func(temp)
+            hs = [imu[7], imu[8], imu[9], 1.0]
+            hf = np.dot(self.mag_affine_inv, hs)
+            norm = np.linalg.norm(hf[:3])
             # #hf[:3] /= norm
-            # newimu.hx = hf[0]
-            # newimu.hy = hf[1]
-            # newimu.hz = hf[2]
+            hx = hf[0]
+            hy = hf[1]
+            hz = hf[2]
+            # imu[10] is measured temp, not clipped temp
+            newimu = [ time, p, q, r, ax, ay, az, hx, hy, hz, imu[10], status ]
             imu_corrected.append(newimu)
         return imu_corrected

@@ -12,6 +12,8 @@ from scipy import interpolate
 import sys
 
 import navpy
+
+import imucal
 import transformations
 
 argparser = argparse.ArgumentParser(description='magcal')
@@ -29,14 +31,20 @@ if args.flight:
     # load IMU (+ mag) data
     imu_file = os.path.join(args.flight, "imu-0.txt")
     filter_file = os.path.join(args.flight, "filter-0.txt")
+    imucal_file = os.path.join(args.flight, "imucal.xml")
     events_file = os.path.join(args.flight, "events.txt")
     imu_data = []
     fimu = fileinput.input(imu_file)
     for line in fimu:
         time, p, q, r, ax, ay, az, hx, hy, hz, temp, status = re.split('[,\s]+', line.rstrip())
-        if abs(float(hx)) > 500:
+        if abs(float(hx)) > 1000:
             print "line:", line
-        imu_data.append( [time, p, q, r, ax, ay, az, hx, hy, hz, temp] )
+        imu = [ float(time),
+                float(p), float(q), float(r),
+                float(ax), float(ay), float(az),
+                float(hx), float(hy), float(hz),
+                float(temp), int(status) ]
+        imu_data.append( imu )
     if not len(imu_data):
         print "No imu records loaded, cannot continue..."
         sys.exit()
@@ -50,6 +58,12 @@ if args.flight:
     if not len(filter_data):
         print "No filter records loaded, cannot continue..."
         quit()
+
+    # load calibration file (for this flight) and back correct for
+    # original raw sensor values
+    cal = imucal.Calibration(imucal_file)
+    imu_raw = cal.back_correct(imu_data)
+
 elif args.sentera:
     imu_file = os.path.join(args.sentera, "imu.csv")
     filter_file = os.path.join(args.sentera, "filter-post.txt")
@@ -190,7 +204,7 @@ for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
     hx = imu_hx(x)
     hy = imu_hy(x)
     hz = imu_hz(x)
-    if abs(hx) > 500:
+    if abs(hx) > 1000:
         print "oops:", hx, hy, hz
     mag_sense = np.array([hx, hy, hz])
     # print mag_sense
