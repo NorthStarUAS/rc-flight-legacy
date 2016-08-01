@@ -1555,7 +1555,7 @@ bool APM2_update() {
         if ( pkt_id == IMU_PACKET_ID ) {
 	    int bytes_available = 0;
             ioctl(fd, FIONREAD, &bytes_available);
-	    if ( bytes_available < 32 ) {
+	    if ( bytes_available < 64 ) {
 		break;
             }
         }
