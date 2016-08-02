@@ -27,6 +27,7 @@ using namespace Eigen;
 #include "init/globals.hxx"
 #include "sensors/cal_temp.hxx"
 #include "util/linearfit.hxx"
+#include "util/lowpass.hxx"
 #include "util/poly1d.hxx"
 #include "util/timing.h"
 
@@ -56,7 +57,7 @@ using namespace Eigen;
 #define NUM_PILOT_INPUTS 8
 #define NUM_ACTUATORS 8
 #define NUM_IMU_SENSORS 10
-#define NUM_ANALOG_INPUTS 6
+#define NUM_ANALOG_INPUTS 4
 
 #define PWM_CENTER 1520
 #define PWM_HALF_RANGE 413
@@ -152,7 +153,8 @@ struct air_data_t {
     float airspeed;
 } airdata;
 
-static float analog[NUM_ANALOG_INPUTS];     // internal stash
+static LowPassFilter analog_filt[NUM_ANALOG_INPUTS];
+static float analog[NUM_ANALOG_INPUTS];
 
 static bool airspeed_inited = false;
 static double airspeed_zero_start_time = 0.0;
@@ -581,6 +583,10 @@ static bool APM2_open() {
 
     pyPropertyNode apm2_config = pyGetNode("/config/sensors/APM2", true);
 
+    for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
+	analog_filt[i].set_time_factor(0.5);
+    }
+    
     if ( apm2_config.hasChild("device") ) {
 	device_name = apm2_config.getString("device");
     }
@@ -807,8 +813,6 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 			uint8_t *payload )
 {
     bool new_data = false;
-    static float extern_volt_filt = 0.0;
-    static float extern_amp_filt = 0.0;
 
     if ( pkt_id == ACK_PACKET_ID ) {
 	if ( display_on ) {
@@ -926,17 +930,12 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	}
     } else if ( pkt_id == ANALOG_PACKET_ID ) {
 	if ( pkt_len == 2 * NUM_ANALOG_INPUTS ) {
-	    uint8_t lo, hi;
 	    for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
-		lo = payload[0 + 2*i]; hi = payload[1 + 2*i];
-		float val = (float)(hi*256 + lo);
-		if ( i != 5 ) {
-		    // tranmitted value is left shifted 6 bits (*64)
-		    analog[i] = val / 64.0;
-		} else {
-		    // special case APM2 specific sensor values, write to
-		    // property tree here
-		    analog[i] = val / 1000.0;
+		analog_filt[i].update(*(uint16_t *)payload, 0.01);
+		payload += 2;
+		analog[i] = analog_filt[i].get_value() ;
+		if ( i == 0 ) {
+		    analog[i] /= 1000.0;
 		}
 		bool result = analog_node.setDouble( "channel", i, analog[i] );
 		if ( ! result ) {
@@ -951,22 +950,24 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    double dt = analog_timestamp - last_analog_timestamp;
 	    last_analog_timestamp = analog_timestamp;
 
-	    static float filter_vcc = analog[5];
-	    filter_vcc = 0.9999 * filter_vcc + 0.0001 * analog[5];
-	    apm2_node.setDouble( "board_vcc", filter_vcc );
+	    static LowPassFilter vcc_filt(10.0);
+	    vcc_filt.update(analog[0], dt);
+	    apm2_node.setDouble( "board_vcc", vcc_filt.get_value() );
 
-	    float extern_volts = analog[1] * (filter_vcc/1024.0) * volt_div_ratio;
-	    extern_volt_filt = 0.995 * extern_volt_filt + 0.005 * extern_volts;
-	    float cell_volt = extern_volt_filt / (float)battery_cells;
-	    float extern_amps = ((analog[2] * (filter_vcc/1024.0)) - extern_amp_offset) * extern_amp_ratio;
-	    extern_amp_filt = 0.99 * extern_amp_filt + 0.01 * extern_amps;
+	    float extern_volts = analog[2] * (vcc_filt.get_value()/1024.0) * volt_div_ratio;
+	    static LowPassFilter extern_volt_filt(2.0);
+	    extern_volt_filt.update(extern_volts, dt);
+	    float cell_volt = extern_volt_filt.get_value() / (float)battery_cells;
+	    float extern_amps = ((analog[3] * (vcc_filt.get_value()/1024.0)) - extern_amp_offset) * extern_amp_ratio;
+	    static LowPassFilter extern_amp_filt(1.0);
+	    extern_amp_filt.update(extern_amps, dt);
 	    /*printf("a[2]=%.1f vcc=%.2f ratio=%.2f amps=%.2f\n",
-		analog[2], filter_vcc, extern_amp_ratio, extern_amps); */
-	    extern_amp_sum += extern_amps * dt * 0.277777778; // 0.2777... is 1000/3600 (conversion to milli-amp hours)
+		analog[2], vcc_filt, extern_amp_ratio, extern_amps); */
+	    extern_amp_sum += extern_amp_filt.get_value() * dt * 0.277777778; // 0.2777... is 1000/3600 (conversion to milli-amp hours)
 
-	    apm2_node.setDouble( "extern_volt", extern_volt_filt );
+	    apm2_node.setDouble( "extern_volt", extern_volt_filt.get_value() );
 	    apm2_node.setDouble( "extern_cell_volt", cell_volt );
-	    apm2_node.setDouble( "extern_amps", extern_amp_filt );
+	    apm2_node.setDouble( "extern_amps", extern_amp_filt.get_value() );
 	    apm2_node.setDouble( "extern_current_mah", extern_amp_sum );
 
 #if 0
@@ -1757,32 +1758,36 @@ bool APM2_gps_update() {
 
 bool APM2_airdata_update() {
     bool fresh_data = false;
-    static double analog0_sum = 0.0;
-    static int analog0_count = 0;
-    static float analog0_offset = 0.0;
-    static float analog0_filter = 0.0;
+    static double pitot_sum = 0.0;
+    static int pitot_count = 0;
+    static float pitot_offset = 0.0;
+    static LowPassFilter pitot_filt(0.2);
 
     if ( airdata_inited ) {
 	double cur_time = airdata.timestamp;
 
+	pitot_filt.update(analog[1], 0.01);
+
 	if ( ! airspeed_inited ) {
-	    if ( airspeed_zero_start_time > 0 ) {
-		analog0_sum += analog[0];
-		analog0_count++;
-		analog0_offset = analog0_sum / analog0_count;
-		//printf("a0 off=%.1f a0 sum=%.1f a0 count=%d\n",
-		//	analog0_offset, analog0_sum, analog0_count);
+	    if ( airspeed_zero_start_time > 0.0 ) {
+		pitot_sum += pitot_filt.get_value();
+		pitot_count++;
+		pitot_offset = pitot_sum / (double)pitot_count;
+		/* printf("a1 raw=%.1f filt=%.1f a1 off=%.1f a1 sum=%.1f a1 count=%d\n",
+		   analog[1], pitot_filt.get_value(), pitot_offset, pitot_sum,
+		   pitot_count); */
 	    } else {
 		airspeed_zero_start_time = get_Time();
-		analog0_sum = 0.0;
-		analog0_count = 0;
-		analog0_filter = analog[0];
+		pitot_sum = 0.0;
+		pitot_count = 0;
+		pitot_filt.init(analog[1]);
 	    }
 	    if ( cur_time > airspeed_zero_start_time + 10.0 ) {
-		//printf("analog0_offset = %.2f\n", analog0_offset);
+		//printf("pitot_offset = %.2f\n", pitot_offset);
 		airspeed_inited = true;
 	    }
 	}
+
 
 	airdata_node.setDouble( "timestamp", cur_time );
 
@@ -1807,15 +1812,11 @@ bool APM2_airdata_update() {
 	// This yields a theoretical maximum speed sensor reading of
 	// about 81mps (156 kts)
 
-	// hard coded filter (probably should use constants from the
-	// config file, or zero itself out on init.)
-	analog0_filter = 0.95 * analog0_filter + 0.05 * analog[0];
-
 	// choose between using raw pitot value or filtered pitot value
-	float analog0 = analog[0];
-	// float analog0 = analog0_filt;
+	//float pitot = analog[1];
+	float pitot = pitot_filt.get_value();
 	
-	float Pa = (analog0 - analog0_offset) * 5.083;
+	float Pa = (pitot - pitot_offset) * 5.083;
 	if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
 	float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
 	float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;

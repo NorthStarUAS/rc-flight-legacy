@@ -14,19 +14,24 @@ private:
 
     // the current filter value
     double filter_value;
+
+    // have we been inited
+    bool inited;
     
 public:
     
     LowPassFilter();
     LowPassFilter( double time_factor );
+    LowPassFilter( double time_factor, double init );
     ~LowPassFilter();
-    
-    inline void init( double value ) {
-	filter_value = value;
-    }
     
     inline void set_time_factor( double time_factor ) {
 	_time_factor = time_factor;
+    }
+    
+    inline void init( double value ) {
+	filter_value = value;
+	inited = true;
     }
     
     double update( double value, double dt );

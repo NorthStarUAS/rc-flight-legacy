@@ -2,20 +2,35 @@
 
 #include "lowpass.hxx"
 
-LowPassFilter::LowPassFilter() :
-    filter_value( 0.0 )
+LowPassFilter::LowPassFilter()
 {
+    set_time_factor( 1.0 );
+    filter_value = 0.0;
+    inited = false;
 }
 
-LowPassFilter::LowPassFilter( double time_factor ) :
-    filter_value( 0.0 )
+LowPassFilter::LowPassFilter( double time_factor )
 {
     set_time_factor( time_factor );
+    filter_value = 0.0;
+    inited = false;
+}
+
+LowPassFilter::LowPassFilter( double time_factor, double init )
+{
+    set_time_factor( time_factor );
+    filter_value = init;
+    inited = true;
 }
 
 LowPassFilter::~LowPassFilter() {}
 
 double LowPassFilter::update( double value, double dt ) {
+    if ( ! inited ) {
+	filter_value = value;
+	inited = true;
+    }
+    
     // Weight factor (wf): the actual low pass filter value for the
     // current dt.
     double weight_factor;
