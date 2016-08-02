@@ -73,7 +73,7 @@ if len(mag_data) == 0:
 
 # =========================== Results ===============================
 nosave = imucal.Calibration()
-cal = imucal.Calibration()
+cal = imucal.Calibration(cal_file)
 
 # select which components to update
 if args.imu_model == 'apm2':
