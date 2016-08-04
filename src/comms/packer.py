@@ -800,7 +800,7 @@ def unpack_ap_status_v3(buf):
     return index
 
 def pack_system_health_v4(index):
-    dekamah = int(apm2_node.getFloat("extern_current_mah")) / 10
+    dekamah = int(apm2_node.getFloat("extern_current_mah") / 10)
     if dekamah > 65535: dekamah = 65535 # prevent overflowing the structure
     buf = struct.pack(system_health_v4_fmt,
                       index,
