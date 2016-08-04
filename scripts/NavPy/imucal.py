@@ -89,7 +89,7 @@ class Calibration():
             self.az_scale = np.array([p1, p2, p3], dtype=np.float64)
 
         node = root.find('mag_affine')
-        if node and len(node):
+        if node != None:
             r = 0
             c = 0
             tokens = node.text.split()
@@ -100,9 +100,11 @@ class Calibration():
                     if c > 3:
                         c = 0
                         r += 1
-                self.mag_affine_inv = np.inv(self.mag_affine)
+                self.mag_affine_inv = np.linalg.inv(self.mag_affine)
             else:
                 print "mag_affine requires 16 values"
+            #print 'mag_affine:\n', self.mag_affine
+            #print 'mag_affine_inv:\n', self.mag_affine_inv
 
         return True
     

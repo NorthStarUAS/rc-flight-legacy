@@ -62,7 +62,7 @@ if args.flight:
     # load calibration file (for this flight) and back correct for
     # original raw sensor values
     cal = imucal.Calibration(imucal_file)
-    imu_raw = cal.back_correct(imu_data)
+    imu_data = cal.back_correct(imu_data)
 
 elif args.sentera:
     imu_file = os.path.join(args.sentera, "imu.csv")
@@ -160,7 +160,7 @@ if args.flight:
         elif len(tokens) == 5 and tokens[1] == 'APM2' and tokens[2] == 'Serial' and tokens[3] == 'Number:':
             imu_sn = 'apm2_' + tokens[4]
     if imu_sn:
-        print 'IMU s/n: ', imu_sn
+        print 'IMU s/n:', imu_sn
     else:
         print 'Cannot determine IMU serial number from events.txt file'
 
