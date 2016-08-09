@@ -96,9 +96,9 @@ static void umn2props(void) {
 			   nav_data.alt * M2F );
     filter_node.setDouble( "groundtrack_deg",
 			   90 - atan2(nav_data.vn, nav_data.ve) * R2D );
-    filter_node.setDouble( "groundspeed_ms",
-			   sqrt(nav_data.vn * nav_data.vn
-				+ nav_data.ve * nav_data.ve) );
+    double gs_ms = sqrt(nav_data.vn * nav_data.vn + nav_data.ve * nav_data.ve);
+    filter_node.setDouble( "groundspeed_ms", gs_ms );
+    filter_node.setDouble( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
     filter_node.setDouble( "vertical_speed_fps",
 			   -nav_data.vd * M2F );
 }
