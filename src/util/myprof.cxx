@@ -69,6 +69,7 @@ myprofile gps_prof;
 myprofile air_prof;
 myprofile pilot_prof;
 myprofile filter_prof;
+myprofile mission_prof;
 myprofile control_prof;
 myprofile route_mgr_prof;
 myprofile health_prof;
