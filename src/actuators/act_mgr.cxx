@@ -49,15 +49,15 @@ static pyPropertyNode ap_node;
 static pyPropertyNode chirp_node;
 static vector<pyPropertyNode> sections;
 
-static myprofile debug6a;
-static myprofile debug6b;
+static myprofile debug_act1;
+static myprofile debug_act2;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
 
 void Actuator_init() {
-    debug6a.set_name("debug6a act update and output");
-    debug6b.set_name("debug6b act console logging");
+    debug_act1.set_name("debug_act1 act update and output");
+    debug_act2.set_name("debug_act2 act console logging");
 
     // bind properties
     flight_node = pyGetNode("/controls/flight", true);
@@ -285,7 +285,7 @@ static void set_actuator_values_pilot_pass_through() {
 
 
 bool Actuator_update() {
-    debug6a.start();
+    debug_act1.start();
 
     // printf("Actuator_update()\n");
 
@@ -299,6 +299,8 @@ bool Actuator_update() {
 	    set_actuator_values_ap();
 	}
     }
+
+    debug_act1.stop();
 
     static int remote_link_count = remote_link_random( remote_link_skip );
     static int logging_count = remote_link_random( logging_skip );
@@ -315,7 +317,9 @@ bool Actuator_update() {
 	if ( module == "null" ) {
 	    // do nothing
 	} else if ( module == "APM2" ) {
+            debug_act2.start();
 	    APM2_act_update();
+            debug_act2.stop();
 	} else if ( module == "fgfs" ) {
 	    fgfs_act_update();
 	} else if ( module == "Goldy2" ) {
@@ -351,10 +355,6 @@ bool Actuator_update() {
     }
 
 
-    debug6a.stop();
-
-    debug6b.start();
-
     if ( fresh_data ) {
 	if ( remote_link_on ) {
 	    remote_link_count--;
@@ -365,7 +365,13 @@ bool Actuator_update() {
 	}
     }
 
-    debug6b.stop();
+    // static int dcount = 0;
+    // dcount++;
+    // if ( dcount > 200 ) {
+    //     debug_act1.stats();
+    //     debug_act2.stats();
+    //     dcount = 0;
+    // }
 
     return true;
 }
