@@ -22,6 +22,26 @@ Network config: (required before beaglebone dns lookups will actually work)
 -> Firewall Zone -> trusted
 
 
+If apt-get upgrade fails with odd led_aging.sh messages, then:
+Replace the existing /etc/init.d/led_aging.sh script with:
+
+#!/bin/sh -e
+### BEGIN INIT INFO
+# Provides:          led_aging.sh
+# Required-Start:    $local_fs
+# Required-Stop:     $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start LED aging
+# Description:       Starts LED aging (whatever that is)
+### END INIT INFO
+
+x=$(/bin/ps -ef | /bin/grep "[l]ed_acc")
+if [ ! -n "$x" -a -x /usr/bin/led_acc ]; then
+    /usr/bin/led_acc &
+fi
+
+
 # Beaglebone 7.9 (wheezy) setup:
 
 - /boot/uEnv.txt:
@@ -29,6 +49,14 @@ Network config: (required before beaglebone dns lookups will actually work)
     cmdline=init=/lib/systemd/systemd
     cape_enable=capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
     cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
+
+- alternative for /boot/uboot/uEnv.txt
+
+    ##Enable systemd
+    systemd=quiet init=/lib/systemd/systemd
+    
+    #Disable HDMI, enable some uarts
+    optargs="capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4"
 
 - apt-get update
   apt-get upgrade
@@ -45,7 +73,7 @@ Network config: (required before beaglebone dns lookups will actually work)
 # remove wicd
 apt-get remove python-wicd wicd-cli wicd wicd-curses wicd-daemon wicd-gtk wicd-kde
 
-# fix up /etc/network/interfaces for eth0
+# then fix up /etc/network/interfaces for eth0
 
 # remove stuff we don't need that could cause performance disruptions
 systemctl disable jekyll-autorun.service
@@ -56,4 +84,8 @@ apt-get remove --purge nodejs
 apt-get remove --purge xrdp
 apt-get remove --purge tightvncserver
 apt-get remove apache2
-apt-get autoremove  # remove remaining unused dependencies
+apt-get autoremove    # remove remaining unused dependencies
+
+# Upgrade stock wheezy kernel (hopefully for better uart performance)
+
+http://elinux.org/Beagleboard:BeagleBoneBlack_Debian#Kernel_Upgrade
