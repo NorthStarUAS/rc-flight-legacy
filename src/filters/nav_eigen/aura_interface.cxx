@@ -8,7 +8,7 @@
 #include <math.h>
 #include <string.h>
 
-//#include "include/globaldefs.h"
+#include "include/globaldefs.h"
 #include "sensors/gps_mgr.hxx"
 
 #include "aura_interface.hxx"

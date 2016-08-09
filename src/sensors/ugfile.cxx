@@ -28,6 +28,11 @@ typedef struct
     double accelbias[3];
 } NavState;
 
+enum errdefs {
+    NotValid,			/* data not valid */
+    ChecksumError,		/* check sum error (and data invalid) */
+    ValidData,			/* data recently valid */
+};
 
 struct gps {
     double time;

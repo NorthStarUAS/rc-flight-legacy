@@ -8,14 +8,6 @@
 
 #include <stdint.h>
 
-
-enum errdefs {
-    NotValid,			/* data not valid */
-    ChecksumError,		/* check sum error (and data invalid) */
-    ValidData,			/* data recently valid */
-};
-
-
 // A varienty of constants
 
 /** For divide by zero avoidance, this will be close enough to zero */
