@@ -42,7 +42,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
                 dict['airspeed'] = "%.1f" % self.velocity_node.getFloat('airspeed_smoothed_kt')
                 dict['filter_psi'] = "%.1f" % self.filter_node.getFloat('heading_deg')
                 dict['filter_track'] = "%.1f" % self.filter_node.getFloat('groundtrack_deg')
-                dict['filter_speed'] = "%.1f" % self.filter_node.getFloat('speed_kt')
+                dict['filter_speed'] = "%.1f" % self.filter_node.getFloat('groundspeed_ms')
                 dict['wind_deg'] = "%.1f" % self.wind_node.getFloat('wind_dir_deg')
                 dict['wind_kts'] = "%.1f" % self.wind_node.getFloat('wind_speed_kt')
                 dict['gps_sats'] = "%d" % self.gps_node.getInt('satellites')
