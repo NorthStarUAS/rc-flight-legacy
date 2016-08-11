@@ -30,8 +30,8 @@ using std::vector;
 
 #include "airdata_bolder.hxx"
 #include "APM2.hxx"
+#include "FGFS.hxx"
 #include "Goldy2.hxx"
-#include "imu_fgfs.hxx"
 
 #include "airdata_mgr.hxx"
 

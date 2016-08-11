@@ -32,8 +32,8 @@ using std::vector;
 #include "util/timing.h"
 
 #include "APM2.hxx"
+#include "FGFS.hxx"
 #include "Goldy2.hxx"
-#include "gps_fgfs.hxx"
 #include "gps_gpsd.hxx"
 #include "gps_mediatek.hxx"
 #include "gps_ublox6.hxx"

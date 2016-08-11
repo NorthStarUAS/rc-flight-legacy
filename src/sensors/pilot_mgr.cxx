@@ -28,8 +28,8 @@ using std::vector;
 #include "util/myprof.hxx"
 
 #include "APM2.hxx"
+#include "FGFS.hxx"
 #include "Goldy2.hxx"
-#include "pilot_fgfs.hxx"
 
 #include "pilot_mgr.hxx"
 
