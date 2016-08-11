@@ -30,7 +30,7 @@ static void bind_input( pyPropertyNode *config ) {
 }
 
 
-/// initialize gps output property nodes 
+// initialize gps output property nodes 
 static void bind_gps_output( string output_path ) {
     gps_node = pyGetNode(output_path, true);
 }
