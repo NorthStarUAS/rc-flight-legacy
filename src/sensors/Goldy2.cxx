@@ -1,7 +1,6 @@
 //
-// FILE: goldy2_imu.cxx
-// DESCRIPTION: aquire live sensor data from a live running instance
-// of Flightgear
+// FILE: Goldy2.cxx
+// DESCRIPTION: aquire sensor data from Goldy2 FMU (via ethernet)
 //
 
 #include "python/pyprops.hxx"

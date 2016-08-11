@@ -1,7 +1,6 @@
 //
-// FILE: imu_fgfs.hxx
-// DESCRIPTION: aquire live sensor data from a live running instance
-// of Flightgear
+// FILE: Goldy2.hxx
+// DESCRIPTION: aquire sensor data from Goldy2 FMU (via ethernet)
 //
 
 #ifndef _AURA_GOLDY2_HXX
