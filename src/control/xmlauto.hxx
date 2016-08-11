@@ -90,7 +90,7 @@ public:
  * Roy Ovesen's PID controller
  */
 
-class FGPIDController : public FGXMLAutoComponent {
+class FGPIDVelComponent : public FGXMLAutoComponent {
 
 private:
 
@@ -104,9 +104,9 @@ private:
     
 public:
 
-    FGPIDController( string config_path );
-    FGPIDController( string config_path, bool old );
-    ~FGPIDController() {}
+    FGPIDVelComponent( string config_path );
+    FGPIDVelComponent( string config_path, bool old );
+    ~FGPIDVelComponent() {}
 
     void update_old( double dt );
     void update( double dt );
@@ -114,10 +114,10 @@ public:
 
 
 /**
- * A simplistic P [ + I ] PID controller
+ * A standard P [[ + I] + D] controller
  */
 
-class FGPISimpleController : public FGXMLAutoComponent {
+class FGPIDComponent : public FGXMLAutoComponent {
 
 private:
 
@@ -135,8 +135,8 @@ private:
 
 public:
 
-    FGPISimpleController( string config_path );
-    ~FGPISimpleController() {}
+    FGPIDComponent( string config_path );
+    ~FGPIDComponent() {}
 
     void update( double dt );
 };

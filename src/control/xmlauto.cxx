@@ -35,7 +35,7 @@ using std::ostringstream;
 #include "xmlauto.hxx"
 
 
-FGPIDController::FGPIDController( string config_path ):
+FGPIDVelComponent::FGPIDVelComponent( string config_path ):
     ep_n_1( 0.0 ),
     edf_n_1( 0.0 ),
     edf_n_2( 0.0 ),
@@ -175,7 +175,7 @@ FGPIDController::FGPIDController( string config_path ):
  * u_n
  */
 
-void FGPIDController::update( double dt ) {
+void FGPIDVelComponent::update( double dt ) {
     double ep_n;            // proportional error with reference weighing
     double e_n;             // error
     double ed_n;            // derivative error
@@ -305,7 +305,7 @@ void FGPIDController::update( double dt ) {
 }
 
 
-FGPISimpleController::FGPISimpleController( string config_path ):
+FGPIDComponent::FGPIDComponent( string config_path ):
     proportional( false ),
     integral( false ),
     iterm( 0.0 ),
@@ -381,7 +381,7 @@ FGPISimpleController::FGPISimpleController( string config_path ):
 }
 
 
-void FGPISimpleController::update( double dt ) {
+void FGPIDComponent::update( double dt ) {
     if (!enable_node.isNull() && enable_node.getString(enable_attr.c_str()) == enable_value) {
 	enabled = true;
     } else {
@@ -771,13 +771,13 @@ bool FGXMLAutopilot::build() {
 	    ostringstream config_path;
 	    config_path << "/config/autopilot/" << children[i];
 	    string module = component.getString("module");
-	    if ( module == "pid_controller" ) {
+	    if ( module == "pid_vel_component" ) {
 		FGXMLAutoComponent *c
-		    = new FGPIDController( config_path.str() );
+		    = new FGPIDVelComponent( config_path.str() );
 		components.push_back( c );
-	    } else if ( module == "pi_simple_controller" ) {
+	    } else if ( module == "pid_component" ) {
 		FGXMLAutoComponent *c
-		    = new FGPISimpleController( config_path.str() );
+		    = new FGPIDComponent( config_path.str() );
 		components.push_back( c );
 	    } else if ( module == "predict_simple" ) {
 		FGXMLAutoComponent *c

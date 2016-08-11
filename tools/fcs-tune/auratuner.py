@@ -160,10 +160,10 @@ class Tuner(QtGui.QWidget):
             else:
                 comp_type = 'unknown'
             print "component found:", comp_type
-            if comp_type == 'pi_simple_controller':
+            if comp_type == 'pid_component':
                 pid = Component(index=i, changefunc=self.onChange, host=host,
                                 port=port, type="pid")
-            elif comp_type == 'pid_controller':
+            elif comp_type == 'pid_vel_component':
                 pid = Component(index=i, changefunc=self.onChange, host=host,
                                 port=port, type="vel")
             else:
