@@ -51,6 +51,7 @@ using std::string;
 // update() routine
 #include "sensors/APM2.hxx"
 #include "sensors/FGFS.hxx"
+#include "sensors/Goldy2.hxx"
 
 // sync modes
 enum SyncMode {
@@ -125,8 +126,7 @@ void main_work_loop()
     } else if ( sync_source == SYNC_FGFS ) {
 	FGFS_update();
     } else if ( sync_source == SYNC_GOLDY2 ) {
-	// placeholder Goldy2_update();
-	printf("Goldy2 main loop sync not yet implemented.\n");
+	goldy2_update();
     }
     sync_prof.stop();
     

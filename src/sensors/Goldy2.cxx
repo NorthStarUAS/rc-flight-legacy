@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/time.h>  // settimeofday()
 
 #include "comms/display.hxx"
@@ -152,8 +153,10 @@ bool goldy2_init() {
 	return false;
     }
 
+#if 0 // we are using blocking for main loop sync now
     // don't block waiting for input
     sock.setBlocking( false );
+#endif
 
     master_init = true;
 
@@ -758,10 +761,10 @@ static bool scan_ublox(uint8_t *packet, int packet_len) {
 }
 
 // parse packets
-bool goldy2_parse( uint8_t *buf, int size ) {
+static int goldy2_parse( uint8_t *buf, int size ) {
     if ( size < 8 ) {
         printf("goldy packet corruption!\n");
-	return false;
+	return 0;
     }
     // printf("  header = %c %c %c\n", buf[0], buf[1], buf[2]);
     // printf("  type id = 0x%02x size = %d\n", buf[3], size);
@@ -772,13 +775,13 @@ bool goldy2_parse( uint8_t *buf, int size ) {
     // printf("  Computed CRC = %d\n", utilCRC16(buf+3, len+3, 0));
     if ( CRC != utilCRC16(buf+3, len+3, 0) ) {
 	printf("goldy packet CRC mismatch!\n");
-	return false;
+	return 0;
     }
 
     // check header
     if ( buf[0] != 'U' || buf[1] != 'M' || buf[2] != 'N' ) {
 	printf("goldy packet header invalid\n");
-	return false;
+	return 0;
     }
     if ( buf[3] == 0x81 && len == 76 ) {
 	// IMU packet
@@ -829,34 +832,47 @@ bool goldy2_parse( uint8_t *buf, int size ) {
 
     } else {
 	// printf("goldy unknown packet or wrong length.\n");
-	return false;
+	return 0;
     }
 
-    return true;
+    return buf[3];
 }
 
 
-// main input parsing function
-bool goldy2_update() {
+// read and parse the next incoming packet
+static int goldy2_read() {
     const int goldy2_max_size = 2048;
     uint8_t packet_buf[goldy2_max_size];
-
-    // printf("checking for packet ...\n");
-
-    int result;
-    while ( (result = sock.recv(packet_buf, goldy2_max_size, 0)) >= 0 ) {
-        // printf("Read a packet, len = %d\n", result);
-	goldy2_parse(packet_buf, result);
+    
+    int result = sock.recv(packet_buf, goldy2_max_size, 0);
+    if ( result > 0 ) {
+	int pkt_id = goldy2_parse(packet_buf, result);
+	return pkt_id;
     }
 
+    return 0;
+}
+
+// main input parsing function
+bool goldy2_update() {
+    // printf("checking for packet ...\n");
+    while ( true ) {
+	int pkt_id = goldy2_read();
+	if ( pkt_id == 0x81 /* IMU */ ) {
+	    int bytes_available = 0;
+            ioctl(sock.getHandle(), FIONREAD, &bytes_available);
+	    if ( bytes_available < 76 /* IMU packet len */ ) {
+		break;
+            }
+	}
+    }
+    
     return true;
 }
 
 
 bool goldy2_imu_update() {
     static uint64_t last_imu_internal_time = 0;
-
-    goldy2_update();
 
     if ( imu_inited ) {
         // do some stuff
