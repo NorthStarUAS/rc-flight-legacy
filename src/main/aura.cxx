@@ -1,7 +1,7 @@
 //
 // aura.cxx - top level "main" program
 //
-// Written by Curtis Olson, curtolson <at> gmail <dot> com.
+// Written by Curtis Olson, curtolson <at> flightgear <dot> org.
 // Started 2007.
 // This code is released into the public domain.
 // 
@@ -139,9 +139,8 @@ void main_work_loop()
 
     status_node.setDouble("frame_time", current_time);
     
+    static double display_timer = get_Time();
     static int health_counter = 0;
-    static int display_counter = 0;
-    static int flush_counter = 0;
 
     static int count = 0;
 
@@ -149,8 +148,6 @@ void main_work_loop()
     // printf ("timer expired %d times\n", count);
 
     health_counter++;
-    display_counter++;
-    flush_counter++;
 
     debug1.stop();
 
@@ -280,11 +277,9 @@ void main_work_loop()
 
     payload_mgr.update();
 
-    // sensor summary dispay (update at 0.5hz)
-    if ( display_on && display_counter
-	 >= (HEARTBEAT_HZ * 2 /* divide by 0.5 */) )
-    {
-	display_counter = 0;
+    // sensor summary display @ 2 second interval
+    if ( display_on && get_Time() >= display_timer + 2.0 ) {
+	display_timer += 2.0;
 	display_message();
 	imu_prof.stats();
 	gps_prof.stats();
@@ -308,9 +303,8 @@ void main_work_loop()
     }
 
     // flush of logging stream (update at full rate)
-    if ( flush_counter >= 0 ) {
+    if ( true ) {
 	datalog_prof.start();
-	flush_counter = 0;
 	if ( log_to_file ) {
 	    flush_data();
 	}
