@@ -239,7 +239,7 @@ bool FGFS_update() {
 	if ( !bytes_available ) {
 	    break;
         }
-	printf("looping: %d bytes available in imu sock buffer\n", bytes_available);
+	// printf("looping: %d bytes available in imu sock buffer\n", bytes_available);
     }
 
     return true;

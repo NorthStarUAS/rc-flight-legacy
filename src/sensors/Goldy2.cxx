@@ -864,6 +864,7 @@ bool goldy2_update() {
 	    if ( bytes_available < 76 /* IMU packet len */ ) {
 		break;
             }
+	    // printf("looping: %d bytes available in imu sock buffer\n", bytes_available);
 	}
     }
     
