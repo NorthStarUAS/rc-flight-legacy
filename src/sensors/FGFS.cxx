@@ -5,6 +5,8 @@
 
 #include "python/pyprops.hxx"
 
+#include <sys/ioctl.h>
+
 #include "comms/netSocket.h"
 #include "util/timing.h"
 
@@ -89,9 +91,11 @@ bool fgfs_imu_init( string output_path, pyPropertyNode *config ) {
 	return false;
     }
 
+#if 0 // we are using blocking for main loop sync now
     // don't block waiting for input
     sock_imu.setBlocking( false );
-
+#endif
+    
     return true;
 }
 
@@ -145,14 +149,14 @@ static void my_swap( uint8_t *buf, int index, int count )
 }
 
 
-bool fgfs_imu_update() {
+static bool fgfs_imu_sync_update() {
     const int fgfs_imu_size = 52;
     uint8_t packet_buf[fgfs_imu_size];
 
     bool fresh_data = false;
 
     int result;
-    while ( (result = sock_imu.recv(packet_buf, fgfs_imu_size, 0))
+    if ( (result = sock_imu.recv(packet_buf, fgfs_imu_size, 0))
 	    == fgfs_imu_size )
     {
 	fresh_data = true;
@@ -223,6 +227,31 @@ bool fgfs_imu_update() {
     return fresh_data;
 }
 
+bool FGFS_update() {
+    // read packets until we receive an IMU packet and the socket
+    // buffer is empty.  The IMU packet (combined with being caught up
+    // reading the buffer is our signal to run an interation of the
+    // main loop.
+    int bytes_available = 0;
+    while ( true ) {
+        fgfs_imu_sync_update();
+	ioctl(sock_imu.getHandle(), FIONREAD, &bytes_available);
+	if ( !bytes_available ) {
+	    break;
+        }
+	printf("looping: %d bytes available in imu sock buffer\n", bytes_available);
+    }
+
+    return true;
+}
+
+
+// called by imu_mgr, will always be true because the main loop sync
+// actually takes care of the work and there will always be (by
+// definition) fresh imu data when the imu_mgr calls this routine.
+bool fgfs_imu_update() {
+    return true;
+}
 
 bool fgfs_airdata_update() {
     bool fresh_data = false;

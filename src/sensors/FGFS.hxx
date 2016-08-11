@@ -8,9 +8,7 @@
 
 
 // function prototypes
-bool fgfs_open();
-bool fgfs_update();
-bool fgfs_close();
+bool FGFS_update();
 
 bool fgfs_imu_init( string output_path, pyPropertyNode *config );
 bool fgfs_imu_update();
@@ -23,7 +21,6 @@ void fgfs_airdata_close();
 bool fgfs_gps_init( string output_path, pyPropertyNode *config );
 bool fgfs_gps_update();
 void fgfs_gps_close();
-//bool fgfs_gps_get();
 
 bool fgfs_pilot_init( string output_path, pyPropertyNode *config );
 bool fgfs_pilot_update();

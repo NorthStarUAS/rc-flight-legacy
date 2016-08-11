@@ -47,15 +47,27 @@ using std::string;
 #include "util/sg_path.hxx"
 #include "util/timing.h"
 
+// we include the sensors here that support syncing from their main
+// update() routine
 #include "sensors/APM2.hxx"
+#include "sensors/FGFS.hxx"
 
+// sync modes
+enum SyncMode {
+    SYNC_NONE,
+    SYNC_APM2,
+    SYNC_FGFS,
+    SYNC_GOLDY2
+};
 
 //
 // Configuration settings
 //
 
-static const int HEARTBEAT_HZ = 100;	 // master clock rate
+static const int HEARTBEAT_HZ = 100;  // master clock rate
 
+static SyncMode sync_source = SYNC_NONE;   // main loop sync source
+    
 static bool enable_mission = true;    // mission mgr module enabled/disabled
 static bool enable_cas     = false;   // cas module enabled/disabled
 static bool enable_telnet  = false;   // telnet command/monitor interface
@@ -104,7 +116,18 @@ void main_work_loop()
     // printf("apm loop:\n");
     // read the APM2 sensor head until we receive an IMU packet
     sync_prof.start();
-    APM2_update();
+    if ( sync_source == SYNC_NONE ) {
+	if ( display_on ) {
+	    printf("No main loop sync source discovered.\n");
+	}
+    } else if ( sync_source == SYNC_APM2 ) {
+	APM2_update();
+    } else if ( sync_source == SYNC_FGFS ) {
+	FGFS_update();
+    } else if ( sync_source == SYNC_GOLDY2 ) {
+	// placeholder Goldy2_update();
+	printf("Goldy2 main loop sync not yet implemented.\n");
+    }
     sync_prof.stop();
     
     main_prof.start();
@@ -284,8 +307,8 @@ void main_work_loop()
         // debug7.stats();
     }
 
-    // flush of logging stream (update at 1 hz^H^H^Hfull rate)
-    if ( flush_counter >= 0 /*HEARTBEAT_HZ*/ ) {
+    // flush of logging stream (update at full rate)
+    if ( flush_counter >= 0 ) {
 	datalog_prof.start();
 	flush_counter = 0;
 	if ( log_to_file ) {
@@ -436,6 +459,19 @@ int main( int argc, char **argv )
 	enable_mission = p.getBool("enable");
     }
 
+    // auto-detect IMU main loop sync source
+    p = pyGetNode("/config/sensors/imu_group/imu", true);
+    if ( p.hasChild("source") ) {
+	string source = p.getString("source");
+	if ( source == "APM2" ) {
+	    sync_source = SYNC_APM2;
+	} else if ( source == "fgfs" ) {
+	    sync_source = SYNC_FGFS;
+	} else if ( source == "Goldy2" ) {
+	    sync_source = SYNC_GOLDY2;
+	}
+    }
+    
     // Parse the command line: pass #2 allows command line options to
     // override config file options
     for ( iarg = 1; iarg < argc; iarg++ ) {
