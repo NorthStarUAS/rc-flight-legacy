@@ -5,21 +5,23 @@ libsensors_a_SOURCES = \
 	airdata_bolder.cxx airdata_bolder.hxx \
 	cal_temp.hxx cal_temp.cxx \
         imu_mgr.cxx imu_mgr.hxx \
-	imu_fgfs.cxx imu_fgfs.hxx \
 	imu_vn100_uart.cxx imu_vn100_uart.hxx \
 	imu_vn100_spi.cxx imu_vn100_spi.hxx \
 	gps_mgr.cxx gps_mgr.hxx \
 	gps_gpsd.cxx gps_gpsd.hxx \
-	gps_fgfs.cxx gps_fgfs.hxx \
 	gps_mediatek.cxx gps_mediatek.hxx \
 	gps_ublox6.cxx gps_ublox6.hxx \
 	gps_ublox7.cxx gps_ublox7.hxx \
 	pilot_mgr.cxx pilot_mgr.hxx \
-	pilot_fgfs.cxx pilot_fgfs.hxx \
 	APM2.cxx APM2.hxx \
+	FGFS.cxx FGFS.hxx \
 	util_goldy2.cxx util_goldy2.hxx \
 	Goldy2.cxx Goldy2.hxx \
 	ugfile.cxx ugfile.hxx
+
+# imu_fgfs.cxx imu_fgfs.hxx
+# gps_fgfs.cxx gps_fgfs.hxx
+# pilot_fgfs.cxx pilot_fgfs.hxx
 
 bin_PROGRAMS = ublox-config
 

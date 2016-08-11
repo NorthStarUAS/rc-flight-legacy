@@ -1,26 +1,25 @@
 //
-// FILE: fgfs_imu.cxx
-// DESCRIPTION: aquire live sensor data from a live running instance
-// of Flightgear
+// FILE: FGFS.cxx
+// DESCRIPTION: aquire live sensor data from an running copy of Flightgear
 //
 
 #include "python/pyprops.hxx"
 
-#include <stdio.h>
-#include <string>
-#include <string.h>
-
 #include "comms/netSocket.h"
 #include "util/timing.h"
 
-#include "imu_fgfs.hxx"
+#include "FGFS.hxx"
 
 
-static netSocket sock;
-static int port = 0;
+static netSocket sock_imu;
+static netSocket sock_gps;
+
+static int port_imu = 0;
+static int port_gps = 0;
 
 // property nodes
 static pyPropertyNode imu_node;
+static pyPropertyNode gps_node;
 static pyPropertyNode airdata_node;
 static pyPropertyNode act_node;
 static pyPropertyNode apm2_node;
@@ -29,9 +28,17 @@ static bool airdata_inited = false;
 
 
 // initialize fgfs_imu input property nodes
-static void bind_input( pyPropertyNode *config ) {
+static void bind_imu_input( pyPropertyNode *config ) {
     if ( config->hasChild("port") ) {
-	port = config->getLong("port");
+	port_imu = config->getLong("port");
+    }
+}
+
+
+// initialize fgfs_gps input property nodes
+static void bind_gps_input( pyPropertyNode *config ) {
+    if ( config->hasChild("port") ) {
+	port_gps = config->getLong("port");
     }
 }
 
@@ -48,6 +55,12 @@ static void bind_imu_output( string output_path ) {
 }
 
 
+// initialize gps output property nodes 
+static void bind_gps_output( string output_path ) {
+    gps_node = pyGetNode(output_path, true);
+}
+
+
 // initialize airdata output property nodes 
 static void bind_airdata_output( string output_path ) {
     airdata_node = pyGetNode(output_path, true);
@@ -61,32 +74,60 @@ static void bind_airdata_output( string output_path ) {
 
 // function prototypes
 bool fgfs_imu_init( string output_path, pyPropertyNode *config ) {
-    bind_input( config );
+    bind_imu_input( config );
     bind_imu_output( output_path );
 
     // open a UDP socket
-    if ( ! sock.open( false ) ) {
+    if ( ! sock_imu.open( false ) ) {
 	printf("Error opening imu input socket\n");
 	return false;
     }
 
     // bind ...
-    if ( sock.bind( "", port ) == -1 ) {
-	printf("error binding to port %d\n", port );
+    if ( sock_imu.bind( "", port_imu ) == -1 ) {
+	printf("error binding to port %d\n", port_imu );
 	return false;
     }
 
     // don't block waiting for input
-    sock.setBlocking( false );
+    sock_imu.setBlocking( false );
+
+    return true;
+}
+
+
+bool fgfs_airdata_init( string output_path ) {
+    bind_airdata_output( output_path );
 
     return true;
 }
 
 
 // function prototypes
-bool fgfs_airdata_init( string output_path ) {
-    bind_airdata_output( output_path );
+bool fgfs_gps_init( string output_path, pyPropertyNode *config ) {
+    bind_gps_input( config );
+    bind_gps_output( output_path );
 
+    // open a UDP socket
+    if ( ! sock_gps.open( false ) ) {
+	printf("Error opening imu input socket\n");
+	return false;
+    }
+
+    // bind ...
+    if ( sock_gps.bind( "", port_gps ) == -1 ) {
+	printf("error binding to port %d\n", port_gps );
+	return false;
+    }
+
+    // don't block waiting for input
+    sock_gps.setBlocking( false );
+
+    return true;
+}
+
+
+bool fgfs_pilot_init( string output_path, pyPropertyNode *config ) {
     return true;
 }
 
@@ -111,7 +152,7 @@ bool fgfs_imu_update() {
     bool fresh_data = false;
 
     int result;
-    while ( (result = sock.recv(packet_buf, fgfs_imu_size, 0))
+    while ( (result = sock_imu.recv(packet_buf, fgfs_imu_size, 0))
 	    == fgfs_imu_size )
     {
 	fresh_data = true;
@@ -199,6 +240,70 @@ bool fgfs_airdata_update() {
 }
 
 
+bool fgfs_gps_update() {
+    const int fgfs_gps_size = 40;
+    uint8_t packet_buf[fgfs_gps_size];
+
+    bool fresh_data = false;
+
+    int result;
+    while ( (result = sock_gps.recv(packet_buf, fgfs_gps_size, 0))
+	    == fgfs_gps_size )
+    {
+	fresh_data = true;
+
+	if ( ulIsLittleEndian ) {
+	    my_swap( packet_buf, 0, 8 );
+	    my_swap( packet_buf, 8, 8 );
+	    my_swap( packet_buf, 16, 8 );
+	    my_swap( packet_buf, 24, 4 );
+	    my_swap( packet_buf, 28, 4 );
+	    my_swap( packet_buf, 32, 4 );
+	    my_swap( packet_buf, 36, 4 );
+	}
+
+	uint8_t *buf = packet_buf;
+	double time = *(double *)buf; buf += 8;
+	double lat = *(double *)buf; buf += 8;
+	double lon = *(double *)buf; buf += 8;
+	float alt = *(float *)buf; buf += 4;
+	float vn = *(float *)buf; buf += 4;
+	float ve = *(float *)buf; buf += 4;
+	float vd = *(float *)buf; buf += 4;
+
+	gps_node.setDouble( "timestamp", get_Time() );
+	gps_node.setDouble( "latitude_deg", lat );
+	gps_node.setDouble( "longitude_deg", lon );
+	gps_node.setDouble( "altitude_m", alt );
+	gps_node.setDouble( "vn_ms", vn );
+	gps_node.setDouble( "ve_ms", ve );
+	gps_node.setDouble( "vd_ms", vd );
+	gps_node.setLong( "satellites", 8 ); // fake a solid number
+	gps_node.setDouble( "unix_time_sec", time );
+	gps_node.setLong( "status", 2 ); // valid fix
+    }
+
+    return fresh_data;
+}
+
+
+bool fgfs_pilot_update() {
+    return true;
+}
+
+
 void fgfs_imu_close() {
-    sock.close();
+    sock_imu.close();
+}
+
+void fgfs_airdata_close() {
+    // no op
+}
+
+void fgfs_gps_close() {
+    sock_gps.close();
+}
+
+void fgfs_pilot_close() {
+    // no op
 }
