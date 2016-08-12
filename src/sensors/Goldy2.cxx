@@ -18,6 +18,7 @@
 #include "init/globals.hxx"
 #include "math/SGMath.hxx"
 #include "math/SGGeodesy.hxx"
+#include "util/linearfit.hxx"
 #include "util/poly1d.hxx"
 #include "util/timing.h"
 
@@ -52,6 +53,9 @@ static bool airdata_inited = false;
 static bool gps_inited = false;
 static bool pilot_input_inited = false;
 static string imu_orientation = "normal";
+
+static double imu_timestamp = 0.0;
+static LinearFitFilter imu_offset(200.0);
 
 static AuraPoly1d hx_cal;
 static AuraPoly1d hy_cal;
@@ -785,6 +789,7 @@ static int goldy2_parse( uint8_t *buf, int size ) {
     }
     if ( buf[3] == 0x81 && len == 76 ) {
 	// IMU packet
+	imu_timestamp = get_Time();
         uint8_t *payload = buf + 6;
 	uint64_t time_ls = *(uint32_t *)payload; payload += 4;
 	uint64_t time_ms = *(uint32_t *)payload; payload += 4;
@@ -883,10 +888,7 @@ bool goldy2_imu_update() {
 
     if ( imu_sensors.time > last_imu_internal_time ) {
 	fresh_data = true;
-	last_imu_internal_time = imu_sensors.time;
 
-	double cur_time = get_Time();
-	imu_node.setDouble( "timestamp", cur_time );
 	if ( imu_orientation == "" || imu_orientation == "normal" ) {
 	    imu_node.setDouble( "p_rad_sec", imu_sensors.gyroX );
 	    imu_node.setDouble( "q_rad_sec", imu_sensors.gyroY );
@@ -932,6 +934,34 @@ bool goldy2_imu_update() {
 	imu_node.setDouble( "roll_deg", imu_sensors.roll );
 	imu_node.setDouble( "pitch_deg", imu_sensors.pitch );
 	imu_node.setDouble( "yaw_deg", imu_sensors.yaw );
+
+	// timestamp dance: this is a little jig that I do to make a
+	// more consistent time stamp that still is in the host
+	// reference frame.  Assumes the FMU clock drifts relative to
+	// host clock.  Assumes the FMU imu stamp dt is very stable.
+	// Assumes the host system is not-real time and there may be
+	// momentary external disruptions to execution. The code
+	// estimates the error (difference) between FMU clock and
+	// host clock.  Then builds a real time linear fit of FMU
+	// clock versus difference with the host.  This linear fit is
+	// used to estimate the current error (smoothly), add that to
+	// the FMU clock and derive a more regular/stable IMU time
+	// stamp (versus just sampling current host time.)
+	
+	double imu_remote_sec = (double)imu_sensors.time / 1000000.0;
+	double diff = imu_timestamp - imu_remote_sec;
+	if ( last_imu_internal_time > imu_sensors.time ) {
+	    events->log("FMU", "micros() rolled over\n");
+	    imu_offset.reset();
+	}
+	imu_offset.update(imu_remote_sec, diff, 0.01);
+	double fit_diff = imu_offset.get_value(imu_remote_sec);
+	// printf("fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
+	//        fit_diff, diff, imu_remote_sec + fit_diff );
+	imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
+
+	last_imu_internal_time = imu_sensors.time;
+
     }
 
     return fresh_data;

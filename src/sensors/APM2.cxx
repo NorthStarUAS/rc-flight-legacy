@@ -1623,21 +1623,21 @@ bool APM2_imu_update() {
 	
 	// imu_micros &= 0xffffff; // 24 bits = 16.7 microseconds roll over
 	
-	double imu_rem_sec = (double)imu_micros / 1000000.0;
-	double diff = imu_timestamp - imu_rem_sec;
+	double imu_remote_sec = (double)imu_micros / 1000000.0;
+	double diff = imu_timestamp - imu_remote_sec;
 	if ( last_imu_micros > imu_micros ) {
 	    events->log("APM2", "micros() rolled over\n");
 	    imu_offset.reset();
 	}
-	imu_offset.update(imu_rem_sec, diff, 0.01);
-	double fit_diff = imu_offset.get_value(imu_rem_sec);
+	imu_offset.update(imu_remote_sec, diff, 0.01);
+	double fit_diff = imu_offset.get_value(imu_remote_sec);
 	// printf("fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
-	//        fit_diff, diff, imu_rem_sec + fit_diff );
+	//        fit_diff, diff, imu_remote_sec + fit_diff );
 
 	last_imu_micros = imu_micros;
 	
 	//imu_node.setDouble( "timestamp", imu_timestamp );
-	imu_node.setDouble( "timestamp", imu_rem_sec + fit_diff );
+	imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
 	imu_node.setLong( "imu_micros", imu_micros );
 	imu_node.setDouble( "imu_sec", (double)imu_micros / 1000000.0 );
 	imu_node.setDouble( "p_rad_sec", p_raw );
