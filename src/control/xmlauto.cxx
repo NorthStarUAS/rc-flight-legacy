@@ -415,17 +415,15 @@ void FGPIDComponent::update( double dt ) {
 	Ki = Kp / Ti;
     }
     double Kd = Kp * Td;
-    
+
+    // proportional term (and preclamp)
     double pterm = Kp * error;
+    if ( pterm < u_min ) { pterm = u_min; }
+    if ( pterm > u_max ) { pterm = u_max; }
 
-    double i_comp = Ki * error * dt;
-    double pre_output = pterm + iterm + i_comp;
-
-    // test for non-saturation before updating the integrator
-    if ( pre_output > u_min && pre_output < u_max ) {
-	iterm += i_comp;
-    }
-
+    // integral term
+    iterm += Ki * error * dt;
+    
     // derivative term: observe that dError/dt = -dInput/dt (except
     // when the setpoint changes (which we don't want to react to
     // anyway.)  This approach avoids "derivative kick" when the set
@@ -433,10 +431,22 @@ void FGPIDComponent::update( double dt ) {
     double dy = y_n - y_n_1;
     y_n_1 = y_n;
     double dterm = Kd * -dy / dt;
+
+    // test for non-saturation before updating the integrator
+    // double pre_output = pterm + iterm + i_comp;
+    // if ( pre_output > u_min && pre_output < u_max ) {
+    //   iterm += i_comp;
+    // }
     
     double output = pterm + iterm + dterm;
-    if ( output < u_min ) { output = u_min; }
-    if ( output > u_max ) { output = u_max; }
+    if ( output < u_min ) {
+	iterm += u_min - output;
+	output = u_min;
+    }
+    if ( output > u_max ) {
+	iterm -= output - u_max;
+	output = u_max;
+    }
 
     if ( debug ) printf("pterm = %.3f iterm = %.3f\n",
 			pterm, iterm);
