@@ -956,8 +956,8 @@ bool goldy2_imu_update() {
 	}
 	imu_offset.update(imu_remote_sec, diff, 0.01);
 	double fit_diff = imu_offset.get_value(imu_remote_sec);
-	// printf("fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
-	//        fit_diff, diff, imu_remote_sec + fit_diff );
+	// printf("imu = %.6f fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
+	//        imu_remote_sec, fit_diff, diff, imu_remote_sec + fit_diff );
 	imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
 
 	last_imu_internal_time = imu_sensors.time;
