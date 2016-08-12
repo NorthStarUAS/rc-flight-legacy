@@ -89,3 +89,8 @@ apt-get autoremove    # remove remaining unused dependencies
 # Upgrade stock wheezy kernel (hopefully for better uart performance)
 
 http://elinux.org/Beagleboard:BeagleBoneBlack_Debian#Kernel_Upgrade
+
+cd /opt/scripts/tools/
+git pull
+./update_kernel.sh
+reboot
