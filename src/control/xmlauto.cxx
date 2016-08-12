@@ -432,12 +432,6 @@ void FGPIDComponent::update( double dt ) {
     y_n_1 = y_n;
     double dterm = Kd * -dy / dt;
 
-    // test for non-saturation before updating the integrator
-    // double pre_output = pterm + iterm + i_comp;
-    // if ( pre_output > u_min && pre_output < u_max ) {
-    //   iterm += i_comp;
-    // }
-    
     double output = pterm + iterm + dterm;
     if ( output < u_min ) {
 	iterm += u_min - output;
@@ -457,6 +451,9 @@ void FGPIDComponent::update( double dt ) {
 	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
 	    output_node[i].setDouble( output_attr[i].c_str(), output );
 	}
+    } else {
+	// Force iterm to zero so we don't activate with maximum windup
+	iterm = 0.0;
     }
 }
 
