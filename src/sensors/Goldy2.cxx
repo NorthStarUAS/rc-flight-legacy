@@ -12,14 +12,18 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>  // settimeofday()
 
+#include <eigen3/Eigen/Core>
+using namespace Eigen;
+
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
 #include "comms/netSocket.h"
 #include "init/globals.hxx"
 #include "math/SGMath.hxx"
 #include "math/SGGeodesy.hxx"
+#include "sensors/cal_temp.hxx"
 #include "util/linearfit.hxx"
-#include "util/poly1d.hxx"
+//#include "util/poly1d.hxx"
 #include "util/timing.h"
 
 #include "util_goldy2.hxx"
@@ -57,9 +61,13 @@ static string imu_orientation = "normal";
 static double imu_timestamp = 0.0;
 static LinearFitFilter imu_offset(200.0);
 
-static AuraPoly1d hx_cal;
-static AuraPoly1d hy_cal;
-static AuraPoly1d hz_cal;
+static AuraCalTemp p_cal;
+static AuraCalTemp q_cal;
+static AuraCalTemp r_cal;
+static AuraCalTemp ax_cal;
+static AuraCalTemp ay_cal;
+static AuraCalTemp az_cal;
+static Matrix4d mag_cal;
 
 struct imu_sensors_t {
     uint64_t time;
@@ -182,38 +190,50 @@ bool goldy2_imu_init( string output_path, pyPropertyNode *config ) {
 
     if ( config->hasChild("calibration") ) {
 	pyPropertyNode cal = config->getChild("calibration");
-	// double min_temp = 27.0;
-	// double max_temp = 27.0;
-	// if ( cal.hasChild("min_temp_C") ) {
-	//     min_temp = cal.getDouble("min_temp_C");
-	// }
-	// if ( cal.hasChild("max_temp_C") ) {
-	//     max_temp = cal.getDouble("max_temp_C");
-	// }
+	double min_temp = 27.0;
+	double max_temp = 27.0;
+	if ( cal.hasChild("min_temp_C") ) {
+	    min_temp = cal.getDouble("min_temp_C");
+	}
+	if ( cal.hasChild("max_temp_C") ) {
+	    max_temp = cal.getDouble("max_temp_C");
+	}
 	
-	// //p_cal.init( cal->getChild("p"), min_temp, max_temp );
-	// //q_cal.init( cal->getChild("q"), min_temp, max_temp );
-	// //r_cal.init( cal->getChild("r"), min_temp, max_temp );
-	// pyPropertyNode ax_node = cal.getChild("ax");
-	// ax_cal.init( &ax_node, min_temp, max_temp );
-	// pyPropertyNode ay_node = cal.getChild("ay");
-	// ay_cal.init( &ay_node, min_temp, max_temp );
-	// pyPropertyNode az_node = cal.getChild("az");
-	// az_cal.init( &az_node, min_temp, max_temp );
+	pyPropertyNode p_node = cal.getChild("p");
+	p_cal.init( &p_node, min_temp, max_temp );
+	pyPropertyNode q_node = cal.getChild("q");
+	q_cal.init( &q_node, min_temp, max_temp );
+	pyPropertyNode r_node = cal.getChild("r");
+	r_cal.init( &r_node, min_temp, max_temp );
 
-	// mag calibration is currently modeled as a straight up
-	// linear fit and is more simple than the IMU calibration
-	// system: mag_cal = fit(mag_sense)
-	if ( cal.hasChild("hx_fit") ) {
-	    hx_cal = AuraPoly1d(cal.getString("hx_fit"));	    
+	pyPropertyNode ax_node = cal.getChild("ax");
+	ax_cal.init( &ax_node, min_temp, max_temp );
+	pyPropertyNode ay_node = cal.getChild("ay");
+	ay_cal.init( &ay_node, min_temp, max_temp );
+	pyPropertyNode az_node = cal.getChild("az");
+	az_cal.init( &az_node, min_temp, max_temp );
+
+	if ( cal.hasChild("mag_affine") ) {
+	    string tokens_str = cal.getString("mag_affine");
+	    vector<string> tokens = split(tokens_str);
+	    if ( tokens.size() == 16 ) {
+		int r = 0, c = 0;
+		for ( unsigned int i = 0; i < 16; i++ ) {
+		    mag_cal(r,c) = atof(tokens[i].c_str());
+		    c++;
+		    if ( c > 3 ) {
+			c = 0;
+			r++;
+		    }
+		}
+	    } else {
+		printf("ERROR: wrong number of elements for mag_cal affine matrix!\n");
+		mag_cal.setIdentity();
+	    }
+	} else {
+	    mag_cal.setIdentity();
 	}
-	if ( cal.hasChild("hy_fit") ) {
-	    hy_cal = AuraPoly1d(cal.getString("hy_fit"));	    
-	}
-	if ( cal.hasChild("hz_fit") ) {
-	    hz_cal = AuraPoly1d(cal.getString("hz_fit"));	    
-	}
-	
+
 	// save the imu calibration parameters with the data file so that
 	// later the original raw sensor values can be derived.
 	if ( log_to_file ) {
@@ -889,46 +909,61 @@ bool goldy2_imu_update() {
     if ( imu_sensors.time > last_imu_internal_time ) {
 	fresh_data = true;
 
+	double p_raw = 0.0, q_raw = 0.0, r_raw = 0.0;
+	double ax_raw = 0.0, ay_raw = 0.0, az_raw = 0.0;
+	double hx_raw = 0.0, hy_raw = 0.0, hz_raw = 0.0;
 	if ( imu_orientation == "" || imu_orientation == "normal" ) {
-	    imu_node.setDouble( "p_rad_sec", imu_sensors.gyroX );
-	    imu_node.setDouble( "q_rad_sec", imu_sensors.gyroY );
-	    imu_node.setDouble( "r_rad_sec", imu_sensors.gyroZ );
-	    imu_node.setDouble( "ax_mps_sec", imu_sensors.accelX );
-	    imu_node.setDouble( "ay_mps_sec", imu_sensors.accelY );
-	    imu_node.setDouble( "az_mps_sec", imu_sensors.accelZ );
-	    imu_node.setDouble( "hx_raw", imu_sensors.magX );
-	    imu_node.setDouble( "hy_raw", imu_sensors.magY );
-	    imu_node.setDouble( "hz_raw", imu_sensors.magZ );
-	    imu_node.setDouble( "hx", hx_cal.eval(imu_sensors.magX) );
-	    imu_node.setDouble( "hy", hy_cal.eval(imu_sensors.magY) );
-	    imu_node.setDouble( "hz", hz_cal.eval(imu_sensors.magZ) );
+	    p_raw = imu_sensors.gyroX;
+	    q_raw = imu_sensors.gyroY;
+	    r_raw = imu_sensors.gyroZ;
+	    ax_raw = imu_sensors.accelX;
+	    ay_raw = imu_sensors.accelY;
+	    az_raw = imu_sensors.accelZ;
+	    hx_raw = imu_sensors.magX;
+	    hy_raw = imu_sensors.magY;
+	    hz_raw = imu_sensors.magZ;
 	} else if ( imu_orientation == "edgewise" ) {
-	    imu_node.setDouble( "p_rad_sec", imu_sensors.gyroX );
-	    imu_node.setDouble( "q_rad_sec", -imu_sensors.gyroZ );
-	    imu_node.setDouble( "r_rad_sec", imu_sensors.gyroY );
-	    imu_node.setDouble( "ax_mps_sec", imu_sensors.accelX );
-	    imu_node.setDouble( "ay_mps_sec", -imu_sensors.accelZ );
-	    imu_node.setDouble( "az_mps_sec", imu_sensors.accelY );
-	    imu_node.setDouble( "hx_raw", imu_sensors.magX );
-	    imu_node.setDouble( "hy_raw", -imu_sensors.magZ );
-	    imu_node.setDouble( "hz_raw", imu_sensors.magY );
-	    imu_node.setDouble( "hx", hx_cal.eval(imu_sensors.magX) );
-	    imu_node.setDouble( "hy", hy_cal.eval(-imu_sensors.magZ) );
-	    imu_node.setDouble( "hz", hz_cal.eval(imu_sensors.magY) );
+	    p_raw = imu_sensors.gyroX;
+	    q_raw = -imu_sensors.gyroZ;
+	    r_raw = imu_sensors.gyroY;
+	    ax_raw = imu_sensors.accelX;
+	    ay_raw = -imu_sensors.accelZ;
+	    az_raw = imu_sensors.accelY;
+	    hx_raw = imu_sensors.magX;
+	    hy_raw = -imu_sensors.magZ;
+	    hz_raw = imu_sensors.magY;
 	} else if ( imu_orientation == "reverse" ) {
-	    imu_node.setDouble( "p_rad_sec", -imu_sensors.gyroX );
-	    imu_node.setDouble( "q_rad_sec", -imu_sensors.gyroY );
-	    imu_node.setDouble( "r_rad_sec", imu_sensors.gyroZ );
-	    imu_node.setDouble( "ax_mps_sec", -imu_sensors.accelX );
-	    imu_node.setDouble( "ay_mps_sec", -imu_sensors.accelY );
-	    imu_node.setDouble( "az_mps_sec", imu_sensors.accelZ );
-	    imu_node.setDouble( "hx_raw", -imu_sensors.magX );
-	    imu_node.setDouble( "hy_raw", -imu_sensors.magY );
-	    imu_node.setDouble( "hz_raw", imu_sensors.magZ );
-	    imu_node.setDouble( "hx", hx_cal.eval(-imu_sensors.magX) );
-	    imu_node.setDouble( "hy", hy_cal.eval(-imu_sensors.magY) );
-	    imu_node.setDouble( "hz", hz_cal.eval(imu_sensors.magZ) );
+	    p_raw = -imu_sensors.gyroX;
+	    q_raw = -imu_sensors.gyroY;
+	    r_raw = imu_sensors.gyroZ;
+	    ax_raw = -imu_sensors.accelX;
+	    ay_raw = -imu_sensors.accelY;
+	    az_raw = imu_sensors.accelZ;
+	    hx_raw = -imu_sensors.magX;
+	    hy_raw = -imu_sensors.magY;
+	    hz_raw = imu_sensors.magZ;
+	} else {
+	    printf("unknown imu orientation: %s\n", imu_orientation.c_str());
 	}
+	double temp_C = imu_sensors.temp;
+	
+	imu_node.setDouble( "p_rad_sec", p_cal.calibrate(p_raw, temp_C) );
+	imu_node.setDouble( "q_rad_sec", q_cal.calibrate(q_raw, temp_C) );
+	imu_node.setDouble( "r_rad_sec", r_cal.calibrate(r_raw, temp_C) );
+	imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
+	imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
+	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
+
+	imu_node.setDouble( "hx_raw", hx_raw );
+	imu_node.setDouble( "hy_raw", hy_raw );
+	imu_node.setDouble( "hz_raw", hz_raw );
+	
+	Vector4d hs((double)hx_raw, (double)hy_raw, (double)hz_raw, 1.0);
+	Vector4d hc = mag_cal * hs;
+	imu_node.setDouble( "hx", hc(0) );
+	imu_node.setDouble( "hy", hc(1) );
+	imu_node.setDouble( "hz", hc(2) );
+
 	imu_node.setDouble( "temp_C", imu_sensors.temp );
 	imu_node.setDouble( "pressure", imu_sensors.pressure );
 	imu_node.setDouble( "roll_deg", imu_sensors.roll );

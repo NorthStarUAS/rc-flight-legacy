@@ -28,7 +28,7 @@ using namespace Eigen;
 #include "sensors/cal_temp.hxx"
 #include "util/linearfit.hxx"
 #include "util/lowpass.hxx"
-#include "util/poly1d.hxx"
+//#include "util/poly1d.hxx"
 #include "util/timing.h"
 
 #include "APM2.hxx"
