@@ -33,7 +33,6 @@ class Launch(Task):
         self.flaps = 0.0
 
         self.last_ap_master = False
-        self.last_imu_timestamp = 0.0
         self.relhdg = 0.0
         
         self.name = config_node.getString("name")
@@ -57,7 +56,7 @@ class Launch(Task):
         self.targets_node.setFloat("altitude_agl_ft", self.mission_agl_ft)
         self.targets_node.setFloat("airspeed_kt", self.target_speed_kt)
     
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
         
@@ -66,17 +65,11 @@ class Launch(Task):
         # zero with the rudder until flying/climbing
 
         if self.ap_node.getBool("master_switch"):
-            imu_timestamp = self.imu_node.getFloat("timestamp")
-
             if not self.last_ap_master:
                 # reset on entering AP mode
                 self.relhdg = 0.0
-                self.last_imu_timestamp = imu_timestamp
                 self.control_limit = 1.0
                 self.flight_node.setFloat("flaps_setpoint", self.flaps)
-
-            dt = imu_timestamp - self.last_imu_timestamp
-            self.last_imu_timestamp = imu_timestamp
 
             throttle_time_sec = 2.0 # hard code for now (fixme: move to config)
             if dt > 0.0:

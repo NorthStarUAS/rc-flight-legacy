@@ -18,7 +18,7 @@ public:
     virtual ~pyModuleBase();
 
     bool init(const char *import_name);
-    bool update();
+    bool update( double dt );
     
 protected:
 

@@ -25,7 +25,7 @@ class LostLink(Task):
         self.active = True
         comms.events.log("comms", "lost link monitor started")
     
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
         

@@ -13,7 +13,6 @@ class Preflight(Task):
         self.flight_node = getNode("/controls/flight", True)
         self.saved_fcs_mode = ""
         self.timer = 0.0
-        self.last_imu_timestamp = 0.0
         self.duration_sec = 60.0
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
@@ -35,16 +34,12 @@ class Preflight(Task):
             # we are airborne, don't change modes and configure timer
             # to be already expired
             self.timer = self.duration_sec + 1.0
-        self.last_imu_timestamp = self.imu_node.getFloat("timestamp")
         comms.events.log("mission", "preflight")
 
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
         # print "preflight & updating"
-        self.imu_timestamp = self.imu_node.getFloat("timestamp")
-        dt = self.imu_timestamp - self.last_imu_timestamp
-        self.last_imu_timestamp = self.imu_timestamp
         self.timer += dt
 
     def is_complete(self):

@@ -49,7 +49,7 @@ bool pyModuleBase::init(const char *import_name)
 }
 
 
-bool pyModuleBase::update() {
+bool pyModuleBase::update( double dt ) {
     if (pModuleObj == NULL) {
 	printf("ERROR: module.init() failed (%s)\n", module_name.c_str());
 	return false;
@@ -63,7 +63,7 @@ bool pyModuleBase::update() {
 
     // FIXME decref pFuncUpdate
     
-    PyObject *pValue = PyObject_CallFunction(pFuncUpdate, NULL);
+    PyObject *pValue = PyObject_CallFunction(pFuncUpdate, (char *)"d", dt);
     if (pValue != NULL) {
 	bool result = PyObject_IsTrue(pValue);
 	Py_DECREF(pValue);

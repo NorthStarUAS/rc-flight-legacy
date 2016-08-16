@@ -136,7 +136,7 @@ class Land(Task):
         y = dist * math.cos(deg * d2r)
         return (x, y)
 
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
 

@@ -57,7 +57,7 @@ class Chirp(Task):
     def activate(self):
         self.active = True
     
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
 

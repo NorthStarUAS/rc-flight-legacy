@@ -48,7 +48,7 @@ class Route(Task):
         
         comms.events.log("mission", "route")
     
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
         # route_mgr update (code to fly the actual route) is written

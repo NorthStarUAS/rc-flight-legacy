@@ -239,7 +239,7 @@ void main_work_loop()
 
     mission_prof.start();
     if ( enable_mission ) {
-	mission_mgr->update();
+	mission_mgr->update(dt);
     }
     mission_prof.stop();
 

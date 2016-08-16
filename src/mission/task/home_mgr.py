@@ -18,7 +18,7 @@ class HomeMgr(Task):
     def activate(self):
         self.active = True
     
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
         if not self.home_node.getBool("valid"):

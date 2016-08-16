@@ -23,7 +23,7 @@ class ThrottleSafety(Task):
         self.active = True
         comms.events.log("safety", "throttle_safety: " + str(self.master_safety))
     
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
 

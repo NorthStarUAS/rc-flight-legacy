@@ -32,7 +32,7 @@ class IsAirborne(Task):
         self.task_node.setBool("is_airborne", False)
         comms.events.log("mission", "on ground")
     
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
 

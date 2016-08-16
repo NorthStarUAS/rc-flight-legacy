@@ -74,7 +74,7 @@ class Circle(Task):
         self.ap_node.setString("mode", "basic+alt+speed")
         comms.events.log("mission", "circle")
     
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
         

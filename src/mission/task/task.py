@@ -7,7 +7,7 @@ class Task:
     def activate(self):
         pass
     
-    def update(self):
+    def update(self, dt):
         pass
     
     def is_complete(self):

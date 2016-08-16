@@ -31,7 +31,7 @@ class Idle(Task):
 	    self.ap_node.setString("mode", "basic")
 	    self.engine_node.setFloat("throttle", 0.0)
     
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
         

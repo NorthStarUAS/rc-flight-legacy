@@ -11,7 +11,6 @@ class FlapsMgr(Task):
         
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
-        self.last_time = 0.0
         if config_node.hasChild("speed_secs"):
             self.speed_secs = float(config_node.getString("speed_secs"))
             if self.speed_secs < 1.0:
@@ -22,15 +21,11 @@ class FlapsMgr(Task):
     def activate(self):
         self.active = True
         comms.events.log("flap_mgr", "active")
-        self.last_time = self.imu_node.getFloat("timestamp")
     
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
 
-        cur_time = self.imu_node.getFloat("timestamp")
-        dt = cur_time - self.last_time
-        self.last_time = cur_time
         target_value = self.flight_node.getFloat("flaps_setpoint")
         current_value = self.flight_node.getFloat("flaps")
         df = target_value - current_value

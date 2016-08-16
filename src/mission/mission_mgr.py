@@ -104,18 +104,18 @@ class MissionMgr:
         if len(self.seq_tasks):
             self.seq_tasks[0].activate()
 
-    def update(self):
+    def update(self, dt):
         self.process_command_request()
 
         # run all tasks in the global queue
         for task in self.global_tasks:
-            task.update()
+            task.update(dt)
 
         if len(self.seq_tasks):
             # run the first task in the sequential queue
             task = self.seq_tasks[0]
             self.task_node.setString("current_task_id", task.name)
-            task.update()
+            task.update(dt)
             if task.is_complete():
 	        # current task is complete, close it and pop it off the list
 		comms.events.log("mission", "task complete: " + task.name)
@@ -389,5 +389,5 @@ m = MissionMgr()
 def init():
     m.init()
 
-def update():
-    m.update()
+def update(dt):
+    m.update(dt)

@@ -57,7 +57,7 @@ class Switch():
         self.range = self.max - self.min
         self.step = self.range / self.states
 
-    def update(self):
+    def update(self, dt):
         if not self.valid:
             return
 
@@ -99,11 +99,11 @@ class Switches(Task):
     def activate(self):
         self.active = True
     
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
         for i, switch in enumerate(self.switches):
-            switch.update()
+            switch.update(dt)
 
     def is_complete(self):
         return False

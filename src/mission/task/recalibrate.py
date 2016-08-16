@@ -19,7 +19,7 @@ class Recalibrate(Task):
         self.completed = False
         comms.events.log("mission", "recalibrate task")
     
-    def update(self):
+    def update(self, dt):
         if not self.active:
             return False
 
