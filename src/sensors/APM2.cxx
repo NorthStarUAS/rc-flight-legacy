@@ -809,6 +809,93 @@ static float normalize_pulse( int pulse, bool symmetrical ) {
     return result;
 }
 
+static bool APM2_imu_update_internal() {
+    static double last_bias_update = 0.0;
+    
+    if ( imu_inited ) {
+	double p_raw = (double)imu_sensors[0] * MPU6000_gyro_scale;
+	double q_raw = (double)imu_sensors[1] * MPU6000_gyro_scale;
+	double r_raw = (double)imu_sensors[2] * MPU6000_gyro_scale;
+	double ax_raw = (double)imu_sensors[3] * MPU6000_accel_scale;
+	double ay_raw = (double)imu_sensors[4] * MPU6000_accel_scale;
+	double az_raw = (double)imu_sensors[5] * MPU6000_accel_scale;
+	int16_t hx = (int16_t)imu_sensors[6];
+	int16_t hy = (int16_t)imu_sensors[7];
+	int16_t hz = (int16_t)imu_sensors[8];
+	double temp_C = (double)imu_sensors[9] * MPU6000_temp_scale;
+
+	if ( reverse_imu_mount ) {
+	    // reverse roll/pitch gyros, and x/y accelerometers (and mags).
+	    p_raw = -p_raw;
+	    q_raw = -q_raw;
+	    ax_raw = -ax_raw;
+	    ay_raw = -ay_raw;
+	    hx = -hx;
+	    hy = -hy;
+	}
+
+	if ( imu_timestamp > last_bias_update + 5.0 ) {
+	    //imu_p_bias_node.setDouble( p_cal.get_bias( temp_C ) );
+	    //imu_q_bias_node.setDouble( q_cal.get_bias( temp_C ) );
+	    //imu_r_bias_node.setDouble( r_cal.eval_bias( temp_C ) );
+	    imu_node.setDouble( "ax_bias", ax_cal.get_bias( temp_C ) );
+	    imu_node.setDouble( "ay_bias", ay_cal.get_bias( temp_C ) );
+	    imu_node.setDouble( "az_bias", az_cal.get_bias( temp_C ) );
+	    last_bias_update = imu_timestamp;
+	}
+
+	// timestamp dance: this is a little jig that I do to make a
+	// more consistent time stamp that still is in the host
+	// reference frame.  Assumes the APM2 clock drifts relative to
+	// host clock.  Assumes the APM2 imu stamp dt is very stable.
+	// Assumes the host system is not-real time and there may be
+	// momentary external disruptions to execution. The code
+	// estimates the error (difference) between APM2 clock and
+	// host clock.  Then builds a real time linear fit of APM2
+	// clock versus difference with the host.  This linear fit is
+	// used to estimate the current error (smoothly), add that to
+	// the APM2 clock and derive a more regular/stable IMU time
+	// stamp (versus just sampling current host time.)
+	
+	// imu_micros &= 0xffffff; // 24 bits = 16.7 microseconds roll over
+	
+	static uint32_t last_imu_micros = 0;
+	double imu_remote_sec = (double)imu_micros / 1000000.0;
+	double diff = imu_timestamp - imu_remote_sec;
+	if ( last_imu_micros > imu_micros ) {
+	    events->log("APM2", "micros() rolled over\n");
+	    imu_offset.reset();
+	}
+	imu_offset.update(imu_remote_sec, diff, 0.01);
+	double fit_diff = imu_offset.get_value(imu_remote_sec);
+	// printf("fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
+	//        fit_diff, diff, imu_remote_sec + fit_diff );
+
+	last_imu_micros = imu_micros;
+	
+	imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
+	imu_node.setLong( "imu_micros", imu_micros );
+	imu_node.setDouble( "imu_sec", (double)imu_micros / 1000000.0 );
+	imu_node.setDouble( "p_rad_sec", p_raw );
+	imu_node.setDouble( "q_rad_sec", q_raw );
+	imu_node.setDouble( "r_rad_sec", r_raw );
+	imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
+	imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
+	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
+	imu_node.setLong( "hx_raw", hx );
+	imu_node.setLong( "hy_raw", hy );
+	imu_node.setLong( "hz_raw", hz );
+	Vector4d hs((double)hx, (double)hy, (double)hz, 1.0);
+	Vector4d hc = mag_cal * hs;
+	imu_node.setDouble( "hx", hc(0) );
+	imu_node.setDouble( "hy", hc(1) );
+	imu_node.setDouble( "hz", hc(2) );
+	imu_node.setDouble( "temp_C", temp_C );
+    }
+
+    return true;
+}
+
 static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 			uint8_t *payload )
 {
@@ -876,6 +963,9 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		      
 	    imu_packet_counter++;
 	    apm2_node.setLong( "imu_packet_count", imu_packet_counter );
+
+	    // update the propery tree and timestamps
+	    APM2_imu_update_internal();
 
 	    new_data = true;
 	} else {
@@ -1574,95 +1664,10 @@ double APM2_update() {
 }
 
 
+// this keeps the imu_mgr happy, but the real work to update the
+// property tree is performed right away when we receive and parse the
+// packet.
 bool APM2_imu_update() {
-    // note using hard coded dt later which is hard coded to match the IMU dt
-    // static double last_imu_timestamp = 0.0;
-    // double dt = imu_timestamp - last_imu_timestamp; 
-    // last_imu_timestamp = imu_timestamp;
-    static double last_bias_update = 0.0;
-    static uint32_t last_imu_micros = 0;
-    
-    if ( imu_inited ) {
-	double p_raw = (double)imu_sensors[0] * MPU6000_gyro_scale;
-	double q_raw = (double)imu_sensors[1] * MPU6000_gyro_scale;
-	double r_raw = (double)imu_sensors[2] * MPU6000_gyro_scale;
-	double ax_raw = (double)imu_sensors[3] * MPU6000_accel_scale;
-	double ay_raw = (double)imu_sensors[4] * MPU6000_accel_scale;
-	double az_raw = (double)imu_sensors[5] * MPU6000_accel_scale;
-	int16_t hx = (int16_t)imu_sensors[6];
-	int16_t hy = (int16_t)imu_sensors[7];
-	int16_t hz = (int16_t)imu_sensors[8];
-	double temp_C = (double)imu_sensors[9] * MPU6000_temp_scale;
-
-	if ( reverse_imu_mount ) {
-	    // reverse roll/pitch gyros, and x/y accelerometers (and mags).
-	    p_raw = -p_raw;
-	    q_raw = -q_raw;
-	    ax_raw = -ax_raw;
-	    ay_raw = -ay_raw;
-	    hx = -hx;
-	    hy = -hy;
-	}
-
-	if ( imu_timestamp > last_bias_update + 5.0 ) {
-	    //imu_p_bias_node.setDouble( p_cal.get_bias( temp_C ) );
-	    //imu_q_bias_node.setDouble( q_cal.get_bias( temp_C ) );
-	    //imu_r_bias_node.setDouble( r_cal.eval_bias( temp_C ) );
-	    imu_node.setDouble( "ax_bias", ax_cal.get_bias( temp_C ) );
-	    imu_node.setDouble( "ay_bias", ay_cal.get_bias( temp_C ) );
-	    imu_node.setDouble( "az_bias", az_cal.get_bias( temp_C ) );
-	    last_bias_update = imu_timestamp;
-	}
-
-	// timestamp dance: this is a little jig that I do to make a
-	// more consistent time stamp that still is in the host
-	// reference frame.  Assumes the APM2 clock drifts relative to
-	// host clock.  Assumes the APM2 imu stamp dt is very stable.
-	// Assumes the host system is not-real time and there may be
-	// momentary external disruptions to execution. The code
-	// estimates the error (difference) between APM2 clock and
-	// host clock.  Then builds a real time linear fit of APM2
-	// clock versus difference with the host.  This linear fit is
-	// used to estimate the current error (smoothly), add that to
-	// the APM2 clock and derive a more regular/stable IMU time
-	// stamp (versus just sampling current host time.)
-	
-	// imu_micros &= 0xffffff; // 24 bits = 16.7 microseconds roll over
-	
-	double imu_remote_sec = (double)imu_micros / 1000000.0;
-	double diff = imu_timestamp - imu_remote_sec;
-	if ( last_imu_micros > imu_micros ) {
-	    events->log("APM2", "micros() rolled over\n");
-	    imu_offset.reset();
-	}
-	imu_offset.update(imu_remote_sec, diff, 0.01);
-	double fit_diff = imu_offset.get_value(imu_remote_sec);
-	// printf("fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
-	//        fit_diff, diff, imu_remote_sec + fit_diff );
-
-	last_imu_micros = imu_micros;
-	
-	//imu_node.setDouble( "timestamp", imu_timestamp );
-	imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
-	imu_node.setLong( "imu_micros", imu_micros );
-	imu_node.setDouble( "imu_sec", (double)imu_micros / 1000000.0 );
-	imu_node.setDouble( "p_rad_sec", p_raw );
-	imu_node.setDouble( "q_rad_sec", q_raw );
-	imu_node.setDouble( "r_rad_sec", r_raw );
-	imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
-	imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
-	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
-	imu_node.setLong( "hx_raw", hx );
-	imu_node.setLong( "hy_raw", hy );
-	imu_node.setLong( "hz_raw", hz );
-	Vector4d hs((double)hx, (double)hy, (double)hz, 1.0);
-	Vector4d hc = mag_cal * hs;
-	imu_node.setDouble( "hx", hc(0) );
-	imu_node.setDouble( "hy", hc(1) );
-	imu_node.setDouble( "hz", hc(2) );
-	imu_node.setDouble( "temp_C", temp_C );
-    }
-
     return true;
 }
 
