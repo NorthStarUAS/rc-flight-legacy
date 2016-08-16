@@ -22,24 +22,28 @@ Network config: (required before beaglebone dns lookups will actually work)
 -> Firewall Zone -> trusted
 
 
-If apt-get upgrade fails with odd led_aging.sh messages, then:
-Replace the existing /etc/init.d/led_aging.sh script with:
+# for really old wheezy installs (like what might come onboard the
+# beaglebone when you first purchase it ... if you don't update the
+# root image.)
 
-#!/bin/sh -e
-### BEGIN INIT INFO
-# Provides:          led_aging.sh
-# Required-Start:    $local_fs
-# Required-Stop:     $local_fs
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
-# Short-Description: Start LED aging
-# Description:       Starts LED aging (whatever that is)
-### END INIT INFO
+  If apt-get upgrade fails with odd led_aging.sh messages, then:
+  Replace the existing /etc/init.d/led_aging.sh script with:
 
-x=$(/bin/ps -ef | /bin/grep "[l]ed_acc")
-if [ ! -n "$x" -a -x /usr/bin/led_acc ]; then
-    /usr/bin/led_acc &
-fi
+  #!/bin/sh -e
+  ### BEGIN INIT INFO
+  # Provides:          led_aging.sh
+  # Required-Start:    $local_fs
+  # Required-Stop:     $local_fs
+  # Default-Start:     2 3 4 5
+  # Default-Stop:      0 1 6
+  # Short-Description: Start LED aging
+  # Description:       Starts LED aging (whatever that is)
+  ### END INIT INFO
+
+  x=$(/bin/ps -ef | /bin/grep "[l]ed_acc")
+  if [ ! -n "$x" -a -x /usr/bin/led_acc ]; then
+     /usr/bin/led_acc &
+  fi
 
 
 # Beaglebone 7.9 (wheezy) setup:
@@ -58,39 +62,62 @@ fi
     #Disable HDMI, enable some uarts
     optargs="capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4"
 
+# Beaglebone 8.4 (jessie) setup:
+
+- /boot/uEnv.txt:
+
+    # AuraUAS
+    cape_disable=bone_capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
+    cape_enable=bone_capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
+
+
+# Upgrade system to latest security and bug fix patches
+
 - apt-get update
-  apt-get upgrade
+- apt-get upgrade
+
+
+# Install extra required and/or useful things
+
 - apt-get install telnet minicom python-lxml libeigen3-dev
 
-# Extra beaglebone packages to install (after flashing jessie
-  'console' 2gb image)
-
-- apt install build-essential
-- apt install git autoconf automake
-- apt install python-dev python-lxml
-- apt install zlib1g-dev
 
 # remove wicd
-apt-get remove python-wicd wicd-cli wicd wicd-curses wicd-daemon wicd-gtk wicd-kde
+
+- apt-get remove python-wicd wicd-cli wicd wicd-curses wicd-daemon wicd-gtk wicd-kde
 
 # then fix up /etc/network/interfaces for eth0
 
+
 # remove stuff we don't need that could cause performance disruptions
-systemctl disable jekyll-autorun.service
-systemctl disable bonescript-autorun.service
-systemctl disable apache2.service
 
-apt-get remove --purge nodejs
-apt-get remove --purge xrdp
-apt-get remove --purge tightvncserver
-apt-get remove apache2
-apt-get autoremove    # remove remaining unused dependencies
+- apt-get remove --purge nodejs
+- apt-get remove --purge xrdp
+- apt-get remove --purge tightvncserver
+- apt-get remove lxqt-common lxqt-panel lxqt-runner lxqt-session 
+- apt-get remove --purge apache2 apache2-bin apache2-data apache2-utils
+- apt-get autoremove    # remove remaining unused dependencies
 
-# Upgrade stock wheezy kernel (hopefully for better uart performance)
 
-http://elinux.org/Beagleboard:BeagleBoneBlack_Debian#Kernel_Upgrade
+# disable service (for good measure), ok if these aren't found now
 
-cd /opt/scripts/tools/
-git pull
-./update_kernel.sh
-reboot
+- systemctl disable jekyll-autorun.service
+- systemctl disable bonescript-autorun.service
+- systemctl disable apache2.service
+
+
+# (future todo ...)
+
+- see if we can complete disable debian user autologin stuff, and/or
+  migrate aura over to run under the debian user instead of root.
+
+
+# Upgrade stock kernel (for sure do this for older wheezy install to
+  get far better uart performance)
+
+  http://elinux.org/Beagleboard:BeagleBoneBlack_Debian#Kernel_Upgrade
+
+  cd /opt/scripts/tools/
+  git pull
+  ./update_kernel.sh
+  reboot
