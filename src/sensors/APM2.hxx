@@ -14,7 +14,7 @@
 
 // function prototypes
 
-bool APM2_update();
+double APM2_update();
 void APM2_close();
 bool APM2_request_baud( uint32_t baud );
 

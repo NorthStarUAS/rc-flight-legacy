@@ -14,7 +14,7 @@
 
 // function prototypes
 bool goldy2_open();
-bool goldy2_update();
+double goldy2_update();
 bool goldy2_close();
 
 bool goldy2_imu_init( string output_path, pyPropertyNode *config );

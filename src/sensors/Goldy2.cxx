@@ -878,9 +878,13 @@ static int goldy2_read() {
     return 0;
 }
 
-// main input parsing function
-bool goldy2_update() {
+// Read goldy2 packets using IMU packet as the main timing reference.
+// Returns the dt from the IMU perspective, not the localhost
+// perspective.  This should generally be far more accurate and
+// consistent.
+double goldy2_update() {
     // printf("checking for packet ...\n");
+    double last_time = imu_node.getDouble( "timestamp" );
     while ( true ) {
 	int pkt_id = goldy2_read();
 	if ( pkt_id == 0x81 /* IMU */ ) {
@@ -892,8 +896,9 @@ bool goldy2_update() {
 	    // printf("looping: %d bytes available in imu sock buffer\n", bytes_available);
 	}
     }
-    
-    return true;
+    double cur_time = imu_node.getDouble( "timestamp" );
+
+    return cur_time - last_time;
 }
 
 

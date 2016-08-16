@@ -76,6 +76,7 @@ static bool enable_pointing = false;  // pan/tilt pointing module
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 
 // property nodes
+static pyPropertyNode imu_node;
 static pyPropertyNode status_node;
 
 // debug main loop "block" on gumstix verdex
@@ -117,27 +118,24 @@ void main_work_loop()
     // printf("apm loop:\n");
     // read the APM2 sensor head until we receive an IMU packet
     sync_prof.start();
+    double dt = 0.0;
     if ( sync_source == SYNC_NONE ) {
 	if ( display_on ) {
 	    printf("No main loop sync source discovered.\n");
 	}
     } else if ( sync_source == SYNC_APM2 ) {
-	APM2_update();
+	dt = APM2_update();
     } else if ( sync_source == SYNC_FGFS ) {
-	FGFS_update();
+	dt = FGFS_update();
     } else if ( sync_source == SYNC_GOLDY2 ) {
-	goldy2_update();
+	dt = goldy2_update();
     }
+    status_node.setDouble("frame_time", imu_node.getDouble( "timestamp" ));
+    status_node.setDouble("dt", dt);
     sync_prof.stop();
     
     main_prof.start();
-    // master "dt"
-    static double last_time = 0.0;
-    double current_time = get_Time();
-    double dt = current_time - last_time;
-    last_time = current_time;
-
-    status_node.setDouble("frame_time", current_time);
+    
     
     static double display_timer = get_Time();
     static int health_counter = 0;
@@ -351,6 +349,7 @@ int main( int argc, char **argv )
     pyPropsInit();
     status_node = pyGetNode("/status", true);
     status_node.setDouble("frame_time", get_Time());
+    imu_node = pyGetNode("/sensors/imu", true);
 
     // initialize profiling names
     imu_prof.set_name("imu");

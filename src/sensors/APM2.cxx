@@ -1548,23 +1548,29 @@ static bool APM2_act_write() {
 }
 
 
-bool APM2_update() {
+// Read APM2 packets using IMU packet as the main timing reference.
+// Returns the dt from the IMU perspective, not the localhost
+// perspective.  This should generally be far more accurate and
+// consistent.
+double APM2_update() {
     // read packets until we receive an IMU packet and the uart buffer
     // is mostly empty.  The IMU packet (combined with being caught up
     // reading the uart buffer is our signal to run an interation of
     // the main loop.
+    double last_time = imu_node.getDouble( "timestamp" );
+    int bytes_available = 0;
     while ( true ) {
         int pkt_id = APM2_read();
         if ( pkt_id == IMU_PACKET_ID ) {
-	    int bytes_available = 0;
             ioctl(fd, FIONREAD, &bytes_available);
 	    if ( bytes_available < 64 ) {
 		break;
             }
         }
     }
+    double cur_time = imu_node.getDouble( "timestamp" );
 
-    return true;
+    return cur_time - last_time;
 }
 
 

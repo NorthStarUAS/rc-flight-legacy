@@ -227,11 +227,16 @@ static bool fgfs_imu_sync_update() {
     return fresh_data;
 }
 
-bool FGFS_update() {
+// Read fgfs packets using IMU packet as the main timing reference.
+// Returns the dt from the IMU perspective, not the localhost
+// perspective.  This should generally be far more accurate and
+// consistent.
+double FGFS_update() {
     // read packets until we receive an IMU packet and the socket
     // buffer is empty.  The IMU packet (combined with being caught up
     // reading the buffer is our signal to run an interation of the
     // main loop.
+    double last_time = imu_node.getDouble( "timestamp" );
     int bytes_available = 0;
     while ( true ) {
         fgfs_imu_sync_update();
@@ -242,7 +247,9 @@ bool FGFS_update() {
 	// printf("looping: %d bytes available in imu sock buffer\n", bytes_available);
     }
 
-    return true;
+    double cur_time = imu_node.getDouble( "timestamp" );
+
+    return cur_time - last_time;
 }
 
 

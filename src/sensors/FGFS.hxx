@@ -8,7 +8,7 @@
 
 
 // function prototypes
-bool FGFS_update();
+double FGFS_update();
 
 bool fgfs_imu_init( string output_path, pyPropertyNode *config );
 bool fgfs_imu_update();
