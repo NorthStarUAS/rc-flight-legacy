@@ -19,10 +19,7 @@ import threading
 from collections import deque
 import time
 
-from circle import Circle
-#from route import Route
 from component import Component
-from land import Land
 from L1 import L1Controller
 
 import fgtelnet
@@ -75,7 +72,6 @@ class Tuner(QtGui.QWidget):
     def __init__(self, filename="", host="localhost", port=6499):
         super(Tuner, self).__init__()
         self.default_title = "FCS Tuner"
-        self.circle = None
         self.components = []
         self.initUI()
         self.load(filename, host=host, port=port)
@@ -138,14 +134,6 @@ class Tuner(QtGui.QWidget):
         self.fileroot, ext = os.path.splitext(self.filename)
 
         root = self.xml.getroot()
-
-        # Circle hold parameters
-        self.circle = Circle(changefunc=self.onChange, host=host, port=port)
-        self.tabs.addTab( self.circle.get_widget(), "Circle" )
-
-        # Land parameters
-        self.land = Land(changefunc=self.onChange, host=host, port=port)
-        self.tabs.addTab( self.land.get_widget(), "Land" )
 
         # Route follow parameters
         self.L1 = L1Controller(changefunc=self.onChange, host=host, port=port)

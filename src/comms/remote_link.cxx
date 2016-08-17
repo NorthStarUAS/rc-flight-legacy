@@ -585,24 +585,32 @@ bool remote_link_command() {
 }
 
 bool decode_fcs_update(vector <string> tokens) {
-    if ( tokens.size() > 0 && tokens[0] == "fcs-update" ) {
+    // valid sizes will be 7 or 10 at this point
+    if ( tokens.size() >= 7 && tokens[0] == "fcs-update" ) {
 	// remove initial keyword if needed
 	tokens.erase(tokens.begin());
     }
 
     pyPropertyNode ap_config = pyGetNode("/config/autopilot", true);
+    
     int i = atoi(tokens[0].c_str());
-    if ( tokens.size() == 9 ) {
-	pyPropertyNode component = ap_config.getChild("component", i);
-	if ( component.isNull() ) {
-	    return false;
-	}
+    pyPropertyNode component = ap_config.getChild("component", i);
+    if ( component.isNull() ) {
+	return false;
+    }
 
-	pyPropertyNode config = component.getChild("config");
-	if ( config.isNull() ) {
-	    return false;
-	}
+    pyPropertyNode config = component.getChild("config");
+    if ( config.isNull() ) {
+	return false;
+    }
 	
+    if ( tokens.size() == 6 ) {
+	config.setDouble( "Kp", atof(tokens[1].c_str()) );
+	config.setDouble( "Ti", atof(tokens[2].c_str()) );
+	config.setDouble( "Td", atof(tokens[3].c_str()) );
+	config.setDouble( "u_min", atof(tokens[4].c_str()) );
+	config.setDouble( "u_max", atof(tokens[5].c_str()) );
+    } else if ( tokens.size() == 9 ) {
 	config.setDouble( "Kp", atof(tokens[1].c_str()) );
 	config.setDouble( "beta", atof(tokens[2].c_str()) );
 	config.setDouble( "alpha", atof(tokens[3].c_str()) );
@@ -611,27 +619,9 @@ bool decode_fcs_update(vector <string> tokens) {
 	config.setDouble( "Td", atof(tokens[6].c_str()) );
 	config.setDouble( "u_min", atof(tokens[7].c_str()) );
 	config.setDouble( "u_max", atof(tokens[8].c_str()) );
-
-	return true;
-    } else if ( tokens.size() == 6 ) {
-	pyPropertyNode component = ap_config.getChild("component", i);
-	if ( component.isNull() ) {
-	    return false;
-	}
-
-	pyPropertyNode config = component.getChild("config");
-	if ( config.isNull() ) {
-	    return false;
-	}
-
-	config.setDouble( "Kp", atof(tokens[1].c_str()) );
-	config.setDouble( "Ti", atof(tokens[2].c_str()) );
-	config.setDouble( "Td", atof(tokens[3].c_str()) );
-	config.setDouble( "u_min", atof(tokens[4].c_str()) );
-	config.setDouble( "u_max", atof(tokens[5].c_str()) );
-
-	return true;
-     } else {
+    } else {
 	return false;
     }
+
+    return true;
 }
