@@ -299,6 +299,101 @@ bool goldy2_pilot_init( string output_path, pyPropertyNode *config ) {
     return true;
 }
 
+static bool goldy2_imu_update_internal() {
+    static uint64_t last_imu_internal_time = 0;
+
+    double p_raw = 0.0, q_raw = 0.0, r_raw = 0.0;
+    double ax_raw = 0.0, ay_raw = 0.0, az_raw = 0.0;
+    double hx_raw = 0.0, hy_raw = 0.0, hz_raw = 0.0;
+    if ( imu_orientation == "" || imu_orientation == "normal" ) {
+	p_raw = imu_sensors.gyroX;
+	q_raw = imu_sensors.gyroY;
+	r_raw = imu_sensors.gyroZ;
+	ax_raw = imu_sensors.accelX;
+	ay_raw = imu_sensors.accelY;
+	az_raw = imu_sensors.accelZ;
+	hx_raw = imu_sensors.magX;
+	hy_raw = imu_sensors.magY;
+	hz_raw = imu_sensors.magZ;
+    } else if ( imu_orientation == "edgewise" ) {
+	p_raw = imu_sensors.gyroX;
+	q_raw = -imu_sensors.gyroZ;
+	r_raw = imu_sensors.gyroY;
+	ax_raw = imu_sensors.accelX;
+	ay_raw = -imu_sensors.accelZ;
+	az_raw = imu_sensors.accelY;
+	hx_raw = imu_sensors.magX;
+	hy_raw = -imu_sensors.magZ;
+	hz_raw = imu_sensors.magY;
+    } else if ( imu_orientation == "reverse" ) {
+	p_raw = -imu_sensors.gyroX;
+	q_raw = -imu_sensors.gyroY;
+	r_raw = imu_sensors.gyroZ;
+	ax_raw = -imu_sensors.accelX;
+	ay_raw = -imu_sensors.accelY;
+	az_raw = imu_sensors.accelZ;
+	hx_raw = -imu_sensors.magX;
+	hy_raw = -imu_sensors.magY;
+	hz_raw = imu_sensors.magZ;
+    } else {
+	printf("unknown imu orientation: %s\n", imu_orientation.c_str());
+    }
+    double temp_C = imu_sensors.temp;
+	
+    imu_node.setDouble( "p_rad_sec", p_cal.calibrate(p_raw, temp_C) );
+    imu_node.setDouble( "q_rad_sec", q_cal.calibrate(q_raw, temp_C) );
+    imu_node.setDouble( "r_rad_sec", r_cal.calibrate(r_raw, temp_C) );
+    imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
+    imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
+    imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
+
+    imu_node.setDouble( "hx_raw", hx_raw );
+    imu_node.setDouble( "hy_raw", hy_raw );
+    imu_node.setDouble( "hz_raw", hz_raw );
+	
+    Vector4d hs((double)hx_raw, (double)hy_raw, (double)hz_raw, 1.0);
+    Vector4d hc = mag_cal * hs;
+    imu_node.setDouble( "hx", hc(0) );
+    imu_node.setDouble( "hy", hc(1) );
+    imu_node.setDouble( "hz", hc(2) );
+
+    imu_node.setDouble( "temp_C", imu_sensors.temp );
+    imu_node.setDouble( "pressure", imu_sensors.pressure );
+    imu_node.setDouble( "roll_deg", imu_sensors.roll );
+    imu_node.setDouble( "pitch_deg", imu_sensors.pitch );
+    imu_node.setDouble( "yaw_deg", imu_sensors.yaw );
+
+    // timestamp dance: this is a little jig that I do to make a
+    // more consistent time stamp that still is in the host
+    // reference frame.  Assumes the FMU clock drifts relative to
+    // host clock.  Assumes the FMU imu stamp dt is very stable.
+    // Assumes the host system is not-real time and there may be
+    // momentary external disruptions to execution. The code
+    // estimates the error (difference) between FMU clock and
+    // host clock.  Then builds a real time linear fit of FMU
+    // clock versus difference with the host.  This linear fit is
+    // used to estimate the current error (smoothly), add that to
+    // the FMU clock and derive a more regular/stable IMU time
+    // stamp (versus just sampling current host time.)
+	
+    double imu_remote_sec = (double)imu_sensors.time / 1000000.0;
+    double diff = imu_timestamp - imu_remote_sec;
+    if ( last_imu_internal_time > imu_sensors.time ) {
+	events->log("FMU", "micros() rolled over\n");
+	imu_offset.reset();
+    }
+    imu_offset.update(imu_remote_sec, diff, 0.01);
+    double fit_diff = imu_offset.get_value(imu_remote_sec);
+    // printf("imu = %.6f fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
+    //        imu_remote_sec, fit_diff, diff, imu_remote_sec + fit_diff );
+    imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
+
+    last_imu_internal_time = imu_sensors.time;
+
+    return true;
+}
+
+
 // swap big/little endian bytes
 static void my_swap( uint8_t *buf, int index, int count )
 {
@@ -843,6 +938,9 @@ static int goldy2_parse( uint8_t *buf, int size ) {
 	imu_sensors.yaw = *(float *)payload; payload += 4;
 	imu_sensors.pitch = *(float *)payload; payload += 4;
 	imu_sensors.roll = *(float *)payload; payload += 4;
+	
+	// update the propery tree and timestamps
+	goldy2_imu_update_internal();
     } else if ( buf[3] == 0x82 ) {
 	// printf("GPS Packet len = %d\n", len);
         uint8_t *payload = buf + 6;
@@ -902,111 +1000,12 @@ double goldy2_update() {
 }
 
 
+// this keeps the imu_mgr happy, but the real work to update the
+// property tree is performed right away when we receive and parse the
+// packet.
 bool goldy2_imu_update() {
-    static uint64_t last_imu_internal_time = 0;
-
-    if ( imu_inited ) {
-        // do some stuff
-    }
-
-    bool fresh_data = false;
-
-    if ( imu_sensors.time > last_imu_internal_time ) {
-	fresh_data = true;
-
-	double p_raw = 0.0, q_raw = 0.0, r_raw = 0.0;
-	double ax_raw = 0.0, ay_raw = 0.0, az_raw = 0.0;
-	double hx_raw = 0.0, hy_raw = 0.0, hz_raw = 0.0;
-	if ( imu_orientation == "" || imu_orientation == "normal" ) {
-	    p_raw = imu_sensors.gyroX;
-	    q_raw = imu_sensors.gyroY;
-	    r_raw = imu_sensors.gyroZ;
-	    ax_raw = imu_sensors.accelX;
-	    ay_raw = imu_sensors.accelY;
-	    az_raw = imu_sensors.accelZ;
-	    hx_raw = imu_sensors.magX;
-	    hy_raw = imu_sensors.magY;
-	    hz_raw = imu_sensors.magZ;
-	} else if ( imu_orientation == "edgewise" ) {
-	    p_raw = imu_sensors.gyroX;
-	    q_raw = -imu_sensors.gyroZ;
-	    r_raw = imu_sensors.gyroY;
-	    ax_raw = imu_sensors.accelX;
-	    ay_raw = -imu_sensors.accelZ;
-	    az_raw = imu_sensors.accelY;
-	    hx_raw = imu_sensors.magX;
-	    hy_raw = -imu_sensors.magZ;
-	    hz_raw = imu_sensors.magY;
-	} else if ( imu_orientation == "reverse" ) {
-	    p_raw = -imu_sensors.gyroX;
-	    q_raw = -imu_sensors.gyroY;
-	    r_raw = imu_sensors.gyroZ;
-	    ax_raw = -imu_sensors.accelX;
-	    ay_raw = -imu_sensors.accelY;
-	    az_raw = imu_sensors.accelZ;
-	    hx_raw = -imu_sensors.magX;
-	    hy_raw = -imu_sensors.magY;
-	    hz_raw = imu_sensors.magZ;
-	} else {
-	    printf("unknown imu orientation: %s\n", imu_orientation.c_str());
-	}
-	double temp_C = imu_sensors.temp;
-	
-	imu_node.setDouble( "p_rad_sec", p_cal.calibrate(p_raw, temp_C) );
-	imu_node.setDouble( "q_rad_sec", q_cal.calibrate(q_raw, temp_C) );
-	imu_node.setDouble( "r_rad_sec", r_cal.calibrate(r_raw, temp_C) );
-	imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
-	imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
-	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
-
-	imu_node.setDouble( "hx_raw", hx_raw );
-	imu_node.setDouble( "hy_raw", hy_raw );
-	imu_node.setDouble( "hz_raw", hz_raw );
-	
-	Vector4d hs((double)hx_raw, (double)hy_raw, (double)hz_raw, 1.0);
-	Vector4d hc = mag_cal * hs;
-	imu_node.setDouble( "hx", hc(0) );
-	imu_node.setDouble( "hy", hc(1) );
-	imu_node.setDouble( "hz", hc(2) );
-
-	imu_node.setDouble( "temp_C", imu_sensors.temp );
-	imu_node.setDouble( "pressure", imu_sensors.pressure );
-	imu_node.setDouble( "roll_deg", imu_sensors.roll );
-	imu_node.setDouble( "pitch_deg", imu_sensors.pitch );
-	imu_node.setDouble( "yaw_deg", imu_sensors.yaw );
-
-	// timestamp dance: this is a little jig that I do to make a
-	// more consistent time stamp that still is in the host
-	// reference frame.  Assumes the FMU clock drifts relative to
-	// host clock.  Assumes the FMU imu stamp dt is very stable.
-	// Assumes the host system is not-real time and there may be
-	// momentary external disruptions to execution. The code
-	// estimates the error (difference) between FMU clock and
-	// host clock.  Then builds a real time linear fit of FMU
-	// clock versus difference with the host.  This linear fit is
-	// used to estimate the current error (smoothly), add that to
-	// the FMU clock and derive a more regular/stable IMU time
-	// stamp (versus just sampling current host time.)
-	
-	double imu_remote_sec = (double)imu_sensors.time / 1000000.0;
-	double diff = imu_timestamp - imu_remote_sec;
-	if ( last_imu_internal_time > imu_sensors.time ) {
-	    events->log("FMU", "micros() rolled over\n");
-	    imu_offset.reset();
-	}
-	imu_offset.update(imu_remote_sec, diff, 0.01);
-	double fit_diff = imu_offset.get_value(imu_remote_sec);
-	// printf("imu = %.6f fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
-	//        imu_remote_sec, fit_diff, diff, imu_remote_sec + fit_diff );
-	imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
-
-	last_imu_internal_time = imu_sensors.time;
-
-    }
-
-    return fresh_data;
+    return true;
 }
-
 
 bool goldy2_airdata_update() {
     bool fresh_data = false;
