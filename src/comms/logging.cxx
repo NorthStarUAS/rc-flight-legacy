@@ -18,12 +18,10 @@
 
 // global variables for data file logging
 static gzFile fdata = NULL;
-//static FILE *fevent = NULL;
 
 bool log_to_file = false;  // log to file is enabled/disabled
 SGPath log_path;	   // base log path
 static SGPath flight_dir;  // dir containing all our logged data
-//bool event_log_on = false; // events log written to events.txt
 
 // scan the base path for fltNNNN directories.  Return the biggest
 // flight number
@@ -86,12 +84,6 @@ bool logging_init() {
     events->open(flight_dir.c_str());
     events->log("Log", "Start");
     
-    // file = flight_dir; file.append( "events.txt" );
-    // if ( (fevent = fopen( file.c_str(), "w" )) == NULL ) {
-    // 	printf("Cannot open %s\n", file.c_str());
-    // 	return false;
-    // }
-
     return true;
 }
 
@@ -100,7 +92,6 @@ bool logging_close() {
     // close files
 
     gzclose(fdata);
-    // fclose(fevent);
 
     return true;
 }
@@ -219,18 +210,6 @@ void flush_data() {
 }
 
 
-// bool event_log( const char *hdr, const char *msg ) {
-//     if ( fevent == NULL ) {
-// 	return false;
-//     }
-
-//     fprintf( fevent, "%.3f %s %s\n", get_Time(), hdr, msg );
-//     fflush( fevent );
-
-//     return true;
-// }
-
-
 // write out the imu calibration parameters associated with this data
 // (this allows us to later rederive the original raw sensor values.)
 bool log_imu_calibration( pyPropertyNode *config ) {
@@ -238,6 +217,7 @@ bool log_imu_calibration( pyPropertyNode *config ) {
     file.append( "imucal.xml" );
     return writeXML( file.str(), config );
 }
+
 
 // write out the autopilot configuration
 bool log_ap_configuration() {

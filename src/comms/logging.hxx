@@ -13,7 +13,6 @@
 
 extern bool log_to_file;
 extern SGPath log_path;
-//extern bool event_log_on;
 
 // global functions
 
@@ -31,8 +30,6 @@ void log_health( uint8_t *buf, int size, int skip_count );
 void log_payload( uint8_t *buf, int size );
 
 void flush_data();
-
-//bool event_log( const char *hdr, const char *msg );
 
 bool log_imu_calibration( pyPropertyNode *config );
 bool log_ap_configuration();
