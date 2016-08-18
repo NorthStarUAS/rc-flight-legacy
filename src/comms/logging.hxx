@@ -35,6 +35,6 @@ void flush_data();
 //bool event_log( const char *hdr, const char *msg );
 
 bool log_imu_calibration( pyPropertyNode *config );
-
+bool log_ap_configuration();
 
 #endif // _AURA_LOGGING_H

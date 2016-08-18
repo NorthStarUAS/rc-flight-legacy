@@ -30,6 +30,7 @@
 using std::string;
 using std::ostringstream;
 
+#include "comms/logging.hxx"
 #include "util/wind.hxx"
 
 #include "xmlauto.hxx"
@@ -740,7 +741,8 @@ void FGXMLAutopilot::init() {
 	printf("Detected an internal inconsistency in the autopilot\n");
 	printf("configuration.  See earlier errors for details.\n" );
 	exit(-1);
-    }        
+    }
+    log_ap_configuration();
 }
 
 

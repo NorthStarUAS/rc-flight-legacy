@@ -234,7 +234,15 @@ void flush_data() {
 // write out the imu calibration parameters associated with this data
 // (this allows us to later rederive the original raw sensor values.)
 bool log_imu_calibration( pyPropertyNode *config ) {
-    SGPath file = flight_dir; file.append( "imucal.xml" );
-
+    SGPath file = flight_dir;
+    file.append( "imucal.xml" );
     return writeXML( file.str(), config );
+}
+
+// write out the autopilot configuration
+bool log_ap_configuration() {
+    pyPropertyNode config_props = pyGetNode( "/config/autopilot", true );
+    SGPath file = flight_dir;
+    file.append( "apconfig.xml" );
+    return writeXML( file.str(), &config_props );
 }
