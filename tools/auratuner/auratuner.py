@@ -30,7 +30,7 @@ class DataFetcher():
         self.hz = 10
         self.dt = 1.0 / float(self.hz)
         self.seconds = 100
-        self.lines = deque()
+        self.samples = deque()
         self.t = fgtelnet.FGTelnet(host, port)
         self.t.send("data")
         self.count = 1
@@ -45,27 +45,18 @@ class DataFetcher():
         tokens = map(float, result.split(','))
         if tokens[3] < 0.0:
             tokens[3] += 360.0
-            #print str(tokens[3])
-        #tokens[5] *= 25.0
-        #tokens[11] *= 25.0
-        #tokens[15] *= 200.0
-        line = " ".join(map(str, tokens))
+        #line = " ".join(map(str, tokens))
         #print line
-        self.lines.append(line)
-        while len(self.lines) > self.hz * self.seconds:
-            self.lines.popleft()
-        #print len(self.lines)
-        if self.count >= self.hz:
-            #print "updating output file"
-            self.count = 0
-            f = open("plotdata", "w")
-            for line in self.lines:
-                f.write(line + "\n")
-            f.close()
+        self.samples.append(tokens)
+        while len(self.samples) > self.hz * self.seconds:
+            self.samples.popleft()
+        #print len(self.samples)
         
         self.count += 1
         #time.sleep(self.dt)
         if not data_fetcher_quit:
+            # Timer spawns a thread that executes the function after
+            # the specified time interval
             threading.Timer(self.dt, self.update).start()
 
 class Tuner(QtGui.QWidget):
@@ -200,8 +191,8 @@ def main():
     elif len(sys.argv) == 2:
         filename = sys.argv[1]
 
-    #df = DataFetcher(host=host, port=port)
-    #df.update()
+    df = DataFetcher(host=host, port=port)
+    df.update()
 
     ex = Tuner(filename, host=host, port=port)
     sys.exit(app.exec_())
