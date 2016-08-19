@@ -20,11 +20,10 @@ class ChatHandler(asynchat.async_chat):
         
         self.imu_node = getNode("/sensors/imu", True)
         self.targets_node = getNode("/autopilot/targets", True)
-        self.orient_node = getNode("/orientation", True)
-	self.flight_node = getNode("/controls/flight", True)
-        self.engine_node = getNode("/controls/engine", True)
+        self.filter_node = getNode("/filters/filter", True)
+	self.act_node = getNode("/actuators/actuator", True)
         self.vel_node = getNode("/velocity", True)
-        self.pos_node = getNode("/position", True)
+        self.pos_comb_node = getNode("/position/combined", True)
 
     def collect_incoming_data(self, data):
         self.buffer.append(data)
@@ -38,23 +37,24 @@ class ChatHandler(asynchat.async_chat):
     def gen_fcs_nav_string(self):
         result = [ self.targets_node.getFloat('groundtrack_deg'),
                    self.targets_node.getFloat('roll_deg'),
-                   self.orient_node.getFloat('heading_deg'),
-                   self.orient_node.getFloat('roll_deg'),
-                   self.flight_node.getFloat('aileron') ]
+                   self.filter_node.getFloat('heading_deg'),
+                   self.filter_node.getFloat('roll_deg'),
+                   self.act_node.getFloatEnum('channel', 0) ]
         return ','.join(map(str, result))
 
     def gen_fcs_speed_string(self):
-        result = [ self.targets_node.getFloat('speed_kt'),
+        result = [ self.targets_node.getFloat('airspeed_kt'),
                    self.targets_node.getFloat('pitch_deg'),
-                   self.vel_node.getFloat('airspeed_kt'),
-                   self.orient_node.getFloat('pitch_deg'),
-                   self.flight_node.getFloat('elevator') ]
+                   self.vel_node.getFloat('airspeed_smoothed_kt'),
+                   self.filter_node.getFloat('pitch_deg'),
+                   self.act_node.getFloatEnum('channel', 1) ]
         return ','.join(map(str, result))
 
     def gen_fcs_altitude_string(self):
-        result = [ self.targets_node.getFloat('altitude_agl_ft'),
-                   self.pos_node.getFloat('altitude_agl_ft'),
-                   self.engine_node.getFloat('throttle') ]
+        m2ft = 1.0 / 0.3048
+        result = [ self.targets_node.getFloat('altitude_msl_ft'),
+                   self.pos_comb_node.getFloat('altitude_true_m') * m2ft,
+                   self.act_node.getFloatEnum('channel', 2) ]
         return ','.join(map(str, result))
 
     def process_command(self, msg):

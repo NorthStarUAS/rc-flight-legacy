@@ -10,7 +10,7 @@ class Fetcher():
     def __init__(self):
         self.hz = 10
         self.dt = 1.0 / float(self.hz)
-        self.seconds = 100
+        self.seconds = 30
         self.samples = deque()
         self.t = None
         self.points = None
@@ -35,7 +35,9 @@ class Fetcher():
         #line = " ".join(map(str, tokens))
         #print line
         self.samples.append(tokens)
-        while len(self.samples) > self.hz * self.seconds:
+        cur_time = tokens[0]
+        cutoff_time = cur_time - self.seconds
+        while len(self.samples) > 1 and self.samples[0][0] < cutoff_time:
             self.samples.popleft()
         #print len(self.samples)
 
@@ -46,9 +48,9 @@ class Fetcher():
             threading.Timer(self.dt, self.update_data).start()
 
     def get_data(self):
-        print 'shape:', np.array(self.samples).shape
-        shape = np.array(self.samples).shape
-        return np.random.rand(shape[0], shape[1])
-        # return np.array(self.samples)
+        #print 'shape:', np.array(self.samples).shape
+        #shape = np.array(self.samples).shape
+        #return np.random.rand(shape[0], shape[1])
+        return np.array(self.samples)
     
 df = Fetcher()

@@ -15,21 +15,20 @@ class PlotFields():
             "filter_hdg",
             "/orientation/roll_deg",
             "/controls/flight/aileron",
-            "/autopilot/targets/speed_kt",
+            "/autopilot/targets/airspeed_kt",
             "/autopilot/targets/pitch_deg",
-            "/velocity/airspeed_kt",
+            "/velocity/airspeed_smoothed_kt",
             "/orientation/pitch_deg",
             "/controls/flight/elevator",
-            "/autopilot/targets/agl_ft",
+            "/autopilot/targets/altitude_agl_ft",
             "/position/altitude_agl_ft",
             "/controls/engine/throttle",
         ]
 
     def get_index(self, field):
-        # gnuplot numbers fields starting with 1
         for i,f in enumerate(self.fields):
             if f == field:
-                return i+1
+                return i
         return 1
 
 class Component():
@@ -257,12 +256,43 @@ class Component():
         input = self.fields.get_index( self.edit_input.text() )
         ref = self.fields.get_index( self.edit_ref.text() )
         output = self.fields.get_index( self.edit_output.text() )
-
+        print input, ref, output
+        
         plt.ion()
+        ax1 = plt.gca()
+        ax2 = ax1.twinx()
         data = fetcher.df.get_data()
-        points = plt.plot(data[:,0], data[:,1])[0]
+        p1 = ax1.plot(data[:,0], data[:,input], 'b', label='current')[0]
+        p2 = ax1.plot(data[:,0], data[:,ref], 'g', label='target')[0]
+        p3 = ax2.plot(data[:,0], data[:,output], 'r', label='output')[0]
+        ax1.set_xlabel('time (sec)')
+        if 'deg' in self.edit_input.text():
+            ax1.set_ylabel('degrees')
+        elif 'ft' in self.edit_input.text():
+            ax1.set_ylabel('feet')
+        elif 'kt' in self.edit_input.text():
+            ax1.set_ylabel('kts')
+        else:
+            ax1.set_ylabel('unknown')
+        if 'deg' in self.edit_output.text():
+            ax2.set_ylabel('degree')
+        elif 'flight' in self.edit_output.text() or 'engine' in self.edit_output.text():
+            ax2.set_ylabel('actuator norm')
+        else:
+            ax2.set_ylabel('unknown')
+            
+        ax1.legend(loc=2)
+        ax2.legend(loc=3)
+        ax1.set_title(self.edit_name.text())
+        
         while True:
             data = fetcher.df.get_data()
-            points.set_data(data[:,0], data[:,1])
-            plt.pause(0.05)
-            time.sleep(1)
+            p1.set_data(data[:,0], data[:,input])
+            p2.set_data(data[:,0], data[:,ref])
+            p3.set_data(data[:,0], data[:,output])
+            ax1.relim()
+            ax1.autoscale_view()
+            ax2.relim()
+            ax2.autoscale_view()
+            plt.pause(0.25)
+            #time.sleep(0.25)
