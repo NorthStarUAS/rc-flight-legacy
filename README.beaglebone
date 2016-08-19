@@ -122,3 +122,5 @@ Network config: (required before beaglebone dns lookups will actually work)
   git pull
   ./update_kernel.sh
   reboot
+
+  linux-firmware-image-3.8.13-bone80 (1wheezy) 

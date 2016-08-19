@@ -38,6 +38,12 @@ class L1Controller():
         layout.addRow( "<b>Bank Limit (deg):</b>", self.edit_bank_limit )
         layout.addRow( "<b>L1 Period (10-25):</b>", self.edit_L1_period )
         layout.addRow( "<b>L1 Damping (0.7):</b>", self.edit_L1_damping )
+        
+        note_group = QtGui.QFrame()
+        toplayout.addWidget(note_group)
+        note_layout = QtGui.QVBoxLayout()
+        note_group.setLayout( note_layout )
+        note_layout.addWidget( QtGui.QLabel("<b>Note</b>: Set L1 period for good circle hold first, then set L1 damping to fine tune route following.") )
 
         # 'Command' button bar
         cmd_group = QtGui.QFrame()
