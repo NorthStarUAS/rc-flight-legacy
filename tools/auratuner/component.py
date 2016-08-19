@@ -1,28 +1,29 @@
+import matplotlib.pyplot as plt
 from PyQt4 import QtGui, QtCore
 import subprocess
+import time
 
+import fetcher
 import fgtelnet
 
 class PlotFields():
     def __init__(self):
-        self.fields = [ \
-                        "time", \
-                        "/autopilot/targets/groundtrack_deg", \
-                        "/autopilot/targets/roll_deg", \
-                        "filter_hdg", \
-                        "/orientation/roll_deg", \
-                        "/controls/flight/aileron", \
-                        "time", \
-                        "/autopilot/targets/speed_kt", \
-                        "/autopilot/targets/pitch_deg", \
-                        "/velocity/airspeed_kt", \
-                        "/orientation/pitch_deg", \
-                        "/controls/flight/elevator", \
-                        "time", \
-                        "/autopilot/targets/agl_ft", \
-                        "/position/altitude_agl_ft", \
-                        "/controls/engine/throttle", \
-                    ]
+        self.fields = [
+            "time",
+            "/autopilot/targets/groundtrack_deg",
+            "/autopilot/targets/roll_deg",
+            "filter_hdg",
+            "/orientation/roll_deg",
+            "/controls/flight/aileron",
+            "/autopilot/targets/speed_kt",
+            "/autopilot/targets/pitch_deg",
+            "/velocity/airspeed_kt",
+            "/orientation/pitch_deg",
+            "/controls/flight/elevator",
+            "/autopilot/targets/agl_ft",
+            "/position/altitude_agl_ft",
+            "/controls/engine/throttle",
+        ]
 
     def get_index(self, field):
         # gnuplot numbers fields starting with 1
@@ -256,25 +257,12 @@ class Component():
         input = self.fields.get_index( self.edit_input.text() )
         ref = self.fields.get_index( self.edit_ref.text() )
         output = self.fields.get_index( self.edit_output.text() )
-        script_name = "plot-stage-" + str(self.index) + ".plt"
-        f = open(script_name, "w")
-        f.write("set xlabel \"" + self.edit_name.text() + "\"\n")
-        f.write("set ytics nomirror\n")
-        f.write("set y2tic\n")
-        f.write("set y2range [" + self.edit_min.text() + ":" + self.edit_max.text() + "]\n")
-        f.write("plot \"plotdata\" using 1:" + str(input) + " with lines title \"" + self.edit_input.text() + "\", ")
-        f.write(" \"plotdata\" using 1:" + str(ref) + " with lines title \"" + self.edit_ref.text() + "\", ")
-        f.write(" \"plotdata\" using 1:" + str(output) + " with lines axis x1y2 title \"" + self.edit_output.text() + "\"\n")
-        f.close()
 
-        cmd = "gnuplot -e \"config='" + script_name + "'\" loop.plt"
-        print cmd
-
-        command = []
-        command.append("gnuplot")
-        command.append("-e")
-        command.append("config='" + script_name + "'")
-        command.append("loop.plt")
-        pid = subprocess.Popen(command).pid
-        print "spawned plot command = " + str(pid)
-
+        plt.ion()
+        data = fetcher.df.get_data()
+        points = plt.plot(data[:,0], data[:,1])[0]
+        while True:
+            data = fetcher.df.get_data()
+            points.set_data(data[:,0], data[:,1])
+            plt.pause(0.05)
+            time.sleep(1)

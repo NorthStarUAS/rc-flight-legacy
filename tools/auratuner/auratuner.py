@@ -15,49 +15,12 @@ import os.path
 import sys
 from PyQt4 import QtGui, QtCore
 import lxml.etree as ET
-import threading
-from collections import deque
-import time
 
 from component import Component
 from L1 import L1Controller
 
-import fgtelnet
+import fetcher
 
-data_fetcher_quit = False
-class DataFetcher():
-    def __init__(self, host="localhost", port=6499):
-        self.hz = 10
-        self.dt = 1.0 / float(self.hz)
-        self.seconds = 100
-        self.samples = deque()
-        self.t = fgtelnet.FGTelnet(host, port)
-        self.t.send("data")
-        self.count = 1
-
-    def update(self):
-        self.t.send("fcs all")
-        result = self.t.receive()
-        print "result '%s'" % result
-        if result == 'Valid commands are:':
-            print "fcs all not supported by remote server"
-            return    
-        tokens = map(float, result.split(','))
-        if tokens[3] < 0.0:
-            tokens[3] += 360.0
-        #line = " ".join(map(str, tokens))
-        #print line
-        self.samples.append(tokens)
-        while len(self.samples) > self.hz * self.seconds:
-            self.samples.popleft()
-        #print len(self.samples)
-        
-        self.count += 1
-        #time.sleep(self.dt)
-        if not data_fetcher_quit:
-            # Timer spawns a thread that executes the function after
-            # the specified time interval
-            threading.Timer(self.dt, self.update).start()
 
 class Tuner(QtGui.QWidget):
     def __init__(self, filename="", host="localhost", port=6499):
@@ -157,7 +120,7 @@ class Tuner(QtGui.QWidget):
 
     def quit(self):
         global data_fetcher_quit
-        data_fetcher_quit = True
+        fetcher.data_fetcher_quit = True
         QtCore.QCoreApplication.instance().quit()
 
     def onChange(self):
@@ -191,8 +154,8 @@ def main():
     elif len(sys.argv) == 2:
         filename = sys.argv[1]
 
-    df = DataFetcher(host=host, port=port)
-    df.update()
+    fetcher.df.connect(host, port)
+    fetcher.df.update_data()
 
     ex = Tuner(filename, host=host, port=port)
     sys.exit(app.exec_())

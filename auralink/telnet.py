@@ -36,8 +36,7 @@ class ChatHandler(asynchat.async_chat):
         self.buffer = []
 
     def gen_fcs_nav_string(self):
-        result = [ self.imu_node.getFloat('timestamp'),
-                   self.targets_node.getFloat('groundtrack_deg'),
+        result = [ self.targets_node.getFloat('groundtrack_deg'),
                    self.targets_node.getFloat('roll_deg'),
                    self.orient_node.getFloat('heading_deg'),
                    self.orient_node.getFloat('roll_deg'),
@@ -45,8 +44,7 @@ class ChatHandler(asynchat.async_chat):
         return ','.join(map(str, result))
 
     def gen_fcs_speed_string(self):
-        result = [ self.imu_node.getFloat('timestamp'),
-                   self.targets_node.getFloat('speed_kt'),
+        result = [ self.targets_node.getFloat('speed_kt'),
                    self.targets_node.getFloat('pitch_deg'),
                    self.vel_node.getFloat('airspeed_kt'),
                    self.orient_node.getFloat('pitch_deg'),
@@ -54,8 +52,7 @@ class ChatHandler(asynchat.async_chat):
         return ','.join(map(str, result))
 
     def gen_fcs_altitude_string(self):
-        result = [ self.imu_node.getFloat('timestamp'),
-                   self.targets_node.getFloat('altitude_agl_ft'),
+        result = [ self.targets_node.getFloat('altitude_agl_ft'),
                    self.pos_node.getFloat('altitude_agl_ft'),
                    self.engine_node.getFloat('throttle') ]
         return ','.join(map(str, result))
@@ -198,12 +195,16 @@ class ChatHandler(asynchat.async_chat):
 	 	    tmp = tokens[1]
 	 	    tmp += " = "
 	 	if tokens[1] == "heading":
+                    tmp = str(self.imu_node.getFloat('timestamp')) + ','
 	 	    tmp += self.gen_fcs_nav_string()
 	 	elif tokens[1] == "speed":
+                    tmp = str(self.imu_node.getFloat('timestamp')) + ','
 	 	    tmp += self.gen_fcs_speed_string()
 	 	elif tokens[1] == "altitude":
+                    tmp = str(self.imu_node.getFloat('timestamp')) + ','
 	 	    tmp += self.gen_fcs_altitude_string()
 	 	elif tokens[1] == "all":
+                    tmp = str(self.imu_node.getFloat('timestamp')) + ','
 	 	    tmp += self.gen_fcs_nav_string()
 	 	    tmp += ","
 	 	    tmp += self.gen_fcs_speed_string()
