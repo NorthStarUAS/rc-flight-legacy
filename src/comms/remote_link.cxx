@@ -137,10 +137,11 @@ void remote_link_flush_serial() {
 	    }
 	}
     }
+    // printf("remote link bytes pending = %d\n", serial_buffer.getLength());
 }
 
 
-static short link_write( const uint8_t *buf, const short size ) {
+static void link_append( const uint8_t *buf, const short size ) {
     if ( ! link_open ) {
 	// attempt to establish a socket connection if we aren't
 	// connected (this could happen if the server shutdown or
@@ -155,10 +156,6 @@ static short link_write( const uint8_t *buf, const short size ) {
 	if ( ! result and display_on ) {
 	    printf("remote link serial buffer overflow\n");
 	}
-
-	remote_link_flush_serial();
-
-	return 0; // return value not used right now
     } else if ( link_type == ugSOCKET ) {
 	int result = 0;
 	if ( link_open ) {
@@ -174,9 +171,6 @@ static short link_write( const uint8_t *buf, const short size ) {
 		}
 	    }
 	}
-	return result;
-    } else {
-	return 0;
     }
 }
 
@@ -239,7 +233,7 @@ static void remote_link_packet( const uint8_t packet_id,
       printf("cksum = %d %d\n", cksum0, cksum1);
       }*/
 
-    link_write( buf, packet_size + 6 );
+    link_append( buf, packet_size + 6 );
     // printf(" end remote_link_packet()\n");
 }
 

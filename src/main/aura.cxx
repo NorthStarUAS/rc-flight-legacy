@@ -210,7 +210,7 @@ void main_work_loop()
     debug4.start();
 
     //
-    // External Communication section
+    // External Command section
     //
 
     if ( remote_link_on ) {
@@ -296,6 +296,15 @@ void main_work_loop()
 	    flush_data();
 	}
 	datalog_prof.stop();
+    }
+
+    //
+    // Remote telemetry section
+    //
+
+    if ( remote_link_on ) {
+	// dribble pending bytes down the serial port
+	remote_link_flush_serial();
     }
 
     debug7.stop();
