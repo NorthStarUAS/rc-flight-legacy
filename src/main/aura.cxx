@@ -89,9 +89,6 @@ myprofile debug2d;
 myprofile debug3;
 myprofile debug4;
 myprofile debug5;
-myprofile debug6;
-myprofile debug6a;
-myprofile debug6b;
 myprofile debug7;
 
 //
@@ -180,8 +177,9 @@ void main_work_loop()
     debug3.start();
 
     //
-    // Attitude Determination and Navigation section
+    // State Estimation section
     //
+    
     if ( fresh_imu_data ) {
 	Filter_update();
     }
@@ -193,14 +191,26 @@ void main_work_loop()
 	status_node.setString("navigation", "invalid");
     }
 
-    /* FIXME: TEMPORARY */ /* logging_navstate(); */
+    //
+    // Core Flight Control section
+    //
+
+    if ( enable_cas ) {
+	cas.update();
+    }
+
+    control_prof.start();
+    control_update(dt);
+    control_prof.stop();
+
+    Actuator_update();
 
     debug3.stop();
 
     debug4.start();
 
     //
-    // Read commands from ground station section
+    // External Communication section
     //
 
     if ( remote_link_on ) {
@@ -231,10 +241,8 @@ void main_work_loop()
     // 	ati_pointing_update( dt );
     // }
 
-    debug6.start();
-
     //
-    // Control section
+    // Mission and Task section
     //
 
     mission_prof.start();
@@ -242,22 +250,6 @@ void main_work_loop()
 	mission_mgr->update(dt);
     }
     mission_prof.stop();
-
-    if ( enable_cas ) {
-	cas.update();
-    }
-
-    debug6a.start();
-    control_prof.start();
-    control_update(dt);
-    control_prof.stop();
-    debug6a.stop();
-
-    debug6b.start();
-    Actuator_update();
-    debug6b.stop();
-
-    debug6.stop();
 
     debug7.start();
 
@@ -294,9 +286,6 @@ void main_work_loop()
         // debug3.stats();
         // debug4.stats();
         // debug5.stats();
-        // debug6.stats();
-        // debug6a.stats();
-        // debug6b.stats();
         // debug7.stats();
     }
 
@@ -379,9 +368,6 @@ int main( int argc, char **argv )
     debug3.set_name("debug3 (filter+nav)");
     debug4.set_name("debug4 (console)");
     debug5.set_name("debug5 (telnet)");
-    debug6.set_name("debug6 (ap+actuator)");
-    debug6a.set_name("debug6 (a)");
-    debug6b.set_name("debug6 (b)");
     debug7.set_name("debug7 (logging)");
 
     if ( display_on ) {
