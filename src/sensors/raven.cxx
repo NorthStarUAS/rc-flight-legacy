@@ -41,7 +41,10 @@ static bool master_opened = false;
 
 #define FLIGHT_COMMAND_PACKET_ID 23
 
-#define NUM_ACTUATORS 10	// must match the raven firmware
+#define RAVEN_NUM_POTS 10	// must match the raven firmware
+#define RAVEN_NUM_AINS 5	// must match the raven firmware
+#define RAVEN_NUM_ACTS 10	// must match the raven firmware
+
 #define PWM_CENTER 1520
 #define PWM_HALF_RANGE 413
 #define PWM_RANGE (PWM_HALF_RANGE * 2)
@@ -61,14 +64,17 @@ static void bind_airdata_input( pyPropertyNode *config ) {
 // initialize imu output property nodes 
 static void bind_airdata_output( string output_path ) {
     airdata_node = pyGetNode(output_path, true);
+    airdata_node.setLen("pots", RAVEN_NUM_POTS, 0.0);
+    airdata_node.setLen("ains", RAVEN_NUM_AINS, 0.0);
 }
 
 
 // initialize actuator property nodes 
 static void bind_act_nodes( string output_path ) {
     act_node = pyGetNode(output_path, true);
-    act_node.setLen("channel", NUM_ACTUATORS, 0.0);
+    act_node.setLen("channel", RAVEN_NUM_ACTS, 0.0);
 }
+
 
 // open the uart
 static bool raven_open() {
@@ -126,7 +132,7 @@ static bool raven_open() {
 }
 
 
-void raven_init( string output_path, pyPropertyNode *config ) {
+void raven_airdata_init( string output_path, pyPropertyNode *config ) {
     bind_airdata_input( config );
     bind_airdata_output( output_path );
 
@@ -134,44 +140,36 @@ void raven_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-static bool raven_parse(uint8_t *buf) {
-    static double diff_sum = 0.0;
-    static int diff_count = 0;
-    static float diff_offset = 0.0;
+static bool raven_parse(uint8_t pkt_id, uint8_t pkt_len, uint8_t *buf) {
+    for ( int i = 0; i < RAVEN_NUM_POTS; i++ ) {
+	airdata_node.setDouble("pots", i, *(uint16_t *)buf);
+	//printf("%d ", *(uint16_t *)buf);
+	buf += 2;
+    }
 
-    double static_pa = *(float *)buf; buf += 4;
-    double diff_pa = *(float *)buf; buf += 4;
-
-    // printf("static(pa) = %.2f\n", static_pa);
-    // printf("diff(pa) = %.2f\n", diff_pa);
-    
-    airdata_node.setDouble( "timestamp", get_Time() );
-    airdata_node.setDouble( "pressure_mbar", (static_pa / 100.0) );
-    airdata_node.setDouble( "diff_pa", diff_pa);
-
-    double pitot_calibrate = 1.0; // make configurable in the future?
-    diff_pa -= diff_offset;
-    if ( diff_pa < 0.0 ) { diff_pa = 0.0; } // avoid sqrt(neg_number) situation
-    float airspeed_mps = sqrt( 2*diff_pa / 1.225 ) * pitot_calibrate;
-    float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
-    airdata_node.setDouble( "airspeed_mps", airspeed_mps );
-    airdata_node.setDouble( "airspeed_kt", airspeed_kt );
-
+    for ( int i = 0; i < RAVEN_NUM_AINS; i++ ) {
+	airdata_node.setDouble("ains", i, *(uint16_t *)buf);
+	//printf("%d ", *(uint16_t *)buf);
+	buf += 2;
+    }
+    //printf("\n");
     return true;
 }
 
 
-static bool raven_read() {
-    static const int payload_length = 8;
-
+static int raven_read() {
     static int state = 0;
+    static int pkt_id = 0;
+    static int pkt_len = 0;
     static int counter = 0;
     static uint8_t cksum_A = 0, cksum_B = 0, cksum_lo = 0, cksum_hi = 0;
     int len;
     uint8_t input[500];
     static uint8_t payload[500];
 
-    // printf("read airdata, entry state = %d\n", state);
+    // if ( display_on ) {
+    //    printf("read raven, entry state = %d\n", state);
+    // }
 
     bool new_data = false;
 
@@ -179,23 +177,26 @@ static bool raven_read() {
 	counter = 0;
 	cksum_A = cksum_B = 0;
 	len = read( fd, input, 1 );
-	while ( len > 0 && input[0] != 0x42 ) {
-	    // printf( "state0: len = %d val = %2X\n", len, input[0] );
+	printf("%c", input[0]);
+	return 0;
+	
+	while ( len > 0 && input[0] != START_OF_MSG0 ) {
+	    // fprintf( stderr, "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
 	    len = read( fd, input, 1 );
 	}
-	if ( len > 0 && input[0] == 0x42 ) {
-	    // printf( "read 0xB5\n");
+	if ( len > 0 && input[0] == START_OF_MSG0 ) {
+	    // fprintf( stderr, "read START_OF_MSG0\n");
 	    state++;
 	}
     }
     if ( state == 1 ) {
 	len = read( fd, input, 1 );
 	if ( len > 0 ) {
-	    if ( input[0] == 0x46 ) {
-		// printf( "read 0x46\n");
+	    if ( input[0] == START_OF_MSG1 ) {
+		//fprintf( stderr, "read START_OF_MSG1\n");
 		state++;
-	    } else if ( input[0] == 0x42 ) {
-		// printf( "read 0x42\n");
+	    } else if ( input[0] == START_OF_MSG0 ) {
+		//fprintf( stderr, "read START_OF_MSG0\n");
 	    } else {
 		state = 0;
 	    }
@@ -203,39 +204,64 @@ static bool raven_read() {
     }
     if ( state == 2 ) {
 	len = read( fd, input, 1 );
-	while ( len > 0 ) {
-	    payload[counter++] = input[0];
-	    // printf( "%02X ", input[0] );
+	if ( len > 0 ) {
+	    pkt_id = input[0];
 	    cksum_A += input[0];
 	    cksum_B += cksum_A;
-	    if ( counter >= payload_length ) {
+	    //fprintf( stderr, "pkt_id = %d\n", pkt_id );
+	    state++;
+	}
+    }
+    if ( state == 3 ) {
+	len = read( fd, input, 1 );
+	if ( len > 0 ) {
+	    pkt_len = input[0];
+	    if ( pkt_len < 256 ) {
+		//fprintf( stderr, "pkt_len = %d\n", pkt_len );
+		cksum_A += input[0];
+		cksum_B += cksum_A;
+		state++;
+	    } else {
+		state = 0;
+	    }
+	}
+    }
+    if ( state == 4 ) {
+	len = read( fd, input, 1 );
+	while ( len > 0 ) {
+	    payload[counter++] = input[0];
+	    // fprintf( stderr, "%02X ", input[0] );
+	    cksum_A += input[0];
+	    cksum_B += cksum_A;
+	    if ( counter >= pkt_len ) {
 		break;
 	    }
 	    len = read( fd, input, 1 );
 	}
-	if ( counter >= payload_length ) {
+
+	if ( counter >= pkt_len ) {
 	    state++;
-	    // printf( "\n" );
+	    // fprintf( stderr, "\n" );
 	}
     }
-    if ( state == 3 ) {
+    if ( state == 5 ) {
 	len = read( fd, input, 1 );
 	if ( len > 0 ) {
 	    cksum_lo = input[0];
 	    state++;
 	}
     }
-    if ( state == 4 ) {
+    if ( state == 6 ) {
 	len = read( fd, input, 1 );
 	if ( len > 0 ) {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
-		// printf("checksum passes!\n");
-		new_data = raven_parse( payload );
+		// printf( "checksum passes (%d)\n", pkt_id );
+		new_data = raven_parse( pkt_id, pkt_len, payload );
 	    } else {
-		if ( display_on && 0 ) {
-		    printf("checksum failed %d %d (computed) != %d %d (message)\n",
-			   cksum_A, cksum_B, cksum_lo, cksum_hi );
+		if ( display_on ) {
+		    // printf("checksum failed %d %d (computed) != %d %d (message)\n",
+		    //        cksum_A, cksum_B, cksum_lo, cksum_hi );
 		}
 	    }
 	    // this is the end of a record, reset state to 0 to start
@@ -244,11 +270,15 @@ static bool raven_read() {
 	}
     }
 
-    return new_data;
+    if ( new_data ) {
+	return pkt_id;
+    } else {
+	return 0;
+    }
 }
 
 
-bool raven_update() {
+bool raven_airdata_update() {
     // scan for new messages
     bool data_valid = false;
 
@@ -260,7 +290,7 @@ bool raven_update() {
  }
 
 
-void raven_close() {
+void raven_airdata_close() {
     close(fd);
 }
 
@@ -308,6 +338,7 @@ static void raven_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size,
 
 static bool raven_act_write() {
     uint8_t buf[256];
+    uint8_t *packet = buf;
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
     /* int len; */
@@ -319,63 +350,41 @@ static bool raven_act_write() {
     // packet id (1 byte)
     buf[0] = FLIGHT_COMMAND_PACKET_ID;
     // packet length (1 byte)
-    buf[1] = 2 * NUM_ACTUATORS;
+    buf[1] = 2 * RAVEN_NUM_ACTS;
     /* len = */ write( fd, buf, 2 );
 
-    // actuator data
-    if ( NUM_ACTUATORS == 8 ) {
-	int val;
-	uint8_t hi, lo;
+    int val;
 
-	val = gen_pulse( act_node.getDouble("channel", 0), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
+    val = gen_pulse( act_node.getDouble("channel", 0), true );
+    *(uint16_t *)packet = val; packet += 2;
 
-	val = gen_pulse( act_node.getDouble("channel", 1), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
+    val = gen_pulse( act_node.getDouble("channel", 1), true );
+    *(uint16_t *)packet = val; packet += 2;
 
-	val = gen_pulse( act_node.getDouble("channel", 2), false );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
+    val = gen_pulse( act_node.getDouble("channel", 2), false );
+    *(uint16_t *)packet = val; packet += 2;
 
-	val = gen_pulse( act_node.getDouble("channel", 3), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
+    val = gen_pulse( act_node.getDouble("channel", 3), true );
+    *(uint16_t *)packet = val; packet += 2;
 
-	val = gen_pulse( act_node.getDouble("channel", 4), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
+    val = gen_pulse( act_node.getDouble("channel", 4), true );
+    *(uint16_t *)packet = val; packet += 2;
 
-	val = gen_pulse( act_node.getDouble("channel", 5), false );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
+    val = gen_pulse( act_node.getDouble("channel", 5), false );
+    *(uint16_t *)packet = val; packet += 2;
 
-	val = gen_pulse( act_node.getDouble("channel", 6), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
+    val = gen_pulse( act_node.getDouble("channel", 6), true );
+    *(uint16_t *)packet = val; packet += 2;
 
-	val = gen_pulse( act_node.getDouble("channel", 7), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-    }
+    val = gen_pulse( act_node.getDouble("channel", 7), true );
+    *(uint16_t *)packet = val; packet += 2;
 
+    val = gen_pulse( 0.0, true );
+    *(uint16_t *)packet = val; packet += 2;
+    
+    val = gen_pulse( 0.0, true );
+    *(uint16_t *)packet = val; packet += 2;
+    
     // write packet
     /* len = */ write( fd, buf, size );
   

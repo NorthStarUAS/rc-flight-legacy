@@ -32,6 +32,7 @@ using std::vector;
 #include "act_fgfs.hxx"
 #include "act_goldy2.hxx"
 #include "sensors/APM2.hxx"
+#include "sensors/raven.hxx"
 
 #include "act_mgr.hxx"
 
@@ -107,6 +108,8 @@ void Actuator_init() {
 	    fgfs_act_init( output_path.str(), &section );
 	} else if ( module == "Goldy2" ) {
 	    goldy2_act_init( output_path.str(), &section );
+	} else if ( module == "raven" ) {
+	    raven_act_init( output_path.str(), &section );
 	} else {
 	    printf("Unknown actuator = '%s' in config file\n",
 		   module.c_str());
@@ -324,6 +327,8 @@ bool Actuator_update() {
 	    fgfs_act_update();
 	} else if ( module == "Goldy2" ) {
 	    goldy2_act_update();
+	} else if ( module == "raven" ) {
+	    raven_act_update();
 	} else {
 	    printf("Unknown actuator = '%s' in config file\n",
 		   module.c_str());
@@ -393,6 +398,8 @@ void Actuators_close() {
 	    fgfs_act_close();
 	} else if ( module == "Goldy2" ) {
 	    goldy2_act_close();
+	} else if ( module == "raven" ) {
+	    raven_act_close();
 	} else {
 	    printf("Unknown actuator = '%s' in config file\n",
 		   module.c_str());

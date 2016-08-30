@@ -32,6 +32,7 @@ using std::vector;
 #include "APM2.hxx"
 #include "FGFS.hxx"
 #include "Goldy2.hxx"
+#include "raven.hxx"
 
 #include "airdata_mgr.hxx"
 
@@ -112,6 +113,8 @@ void AirData_init() {
 	    fgfs_airdata_init( output_path.str() );
 	} else if ( source == "Goldy2" ) {
 	    goldy2_airdata_init( output_path.str() );
+	} else if ( source == "raven" ) {
+	    raven_airdata_init( output_path.str(), &section );
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());
@@ -317,6 +320,8 @@ bool AirData_update() {
 	    fresh_data = fgfs_airdata_update();
 	} else if ( source == "Goldy2" ) {
 	    fresh_data = goldy2_airdata_update();
+	} else if ( source == "raven" ) {
+	    fresh_data = raven_airdata_update();
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());
@@ -397,6 +402,8 @@ void AirData_recalibrate() {
 	    // do nothing
 	} else if ( source == "Goldy2" ) {
 	    // do nothing
+	} else if ( source == "raven" ) {
+	    // do nothing
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());
@@ -425,6 +432,8 @@ void AirData_close() {
 	    // nop
 	} else if ( source == "Goldy2" ) {
 	    goldy2_airdata_close();
+	} else if ( source == "raven" ) {
+	    raven_airdata_close();
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());

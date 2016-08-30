@@ -27,7 +27,7 @@
 #include "airdata_bolder.hxx"
 
 
-// imu nodes
+// property nodes
 static pyPropertyNode airdata_node;
 
 static int fd = -1;
@@ -38,7 +38,7 @@ static double airspeed_zero_start_time = 0.0;
 
 
 // initialize gpsd input property nodes
-static void bind_imu_input( pyPropertyNode *config ) {
+static void bind_airdata_input( pyPropertyNode *config ) {
     if ( config->hasChild("device") ) {
 	device_name = config->getString("device");
     }
@@ -46,7 +46,7 @@ static void bind_imu_input( pyPropertyNode *config ) {
 
 
 // initialize imu output property nodes 
-static void bind_imu_output( string output_path ) {
+static void bind_airdata_output( string output_path ) {
     airdata_node = pyGetNode(output_path, true);
 }
 
@@ -102,8 +102,8 @@ static bool airdata_bolder_open() {
 
 
 void airdata_bolder_init( string output_path, pyPropertyNode *config ) {
-    bind_imu_input( config );
-    bind_imu_output( output_path );
+    bind_airdata_input( config );
+    bind_airdata_output( output_path );
 
     airdata_bolder_open();
 }

@@ -17,11 +17,8 @@ libsensors_a_SOURCES = \
 	FGFS.cxx FGFS.hxx \
 	util_goldy2.cxx util_goldy2.hxx \
 	Goldy2.cxx Goldy2.hxx \
+	raven.hxx raven.cxx \
 	ugfile.cxx ugfile.hxx
-
-# imu_fgfs.cxx imu_fgfs.hxx
-# gps_fgfs.cxx gps_fgfs.hxx
-# pilot_fgfs.cxx pilot_fgfs.hxx
 
 bin_PROGRAMS = ublox-config
 
