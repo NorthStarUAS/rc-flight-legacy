@@ -5,6 +5,7 @@
 
 #include "python/pyprops.hxx"
 
+#include <stdlib.h>		// drand48()
 #include <sys/ioctl.h>
 
 #include "comms/netSocket.h"
@@ -306,6 +307,13 @@ bool fgfs_gps_update() {
 	float vn = *(float *)buf; buf += 4;
 	float ve = *(float *)buf; buf += 4;
 	float vd = *(float *)buf; buf += 4;
+
+	// add some random white noise
+	double vel_noise = 0.2;
+	double vel_offset = vel_noise * 0.5;
+	vn += drand48()*vel_noise - vel_offset;
+	ve += drand48()*vel_noise - vel_offset;
+	vd += drand48()*vel_noise - vel_offset;
 
 	gps_node.setDouble( "timestamp", get_Time() );
 	gps_node.setDouble( "latitude_deg", lat );
