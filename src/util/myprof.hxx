@@ -8,28 +8,31 @@ using std::string;
 
 class myprofile {
 
- private:
+private:
 
-  int count;
-  double init_time;
-  double start_time;
-  double end_time;
-  double min_interval;
-  double max_interval;
-  double last_interval;
-  double sum_time;
-  string name;
+    int count;
+    double init_time;
+    double start_time;
+    double end_time;
+    double min_interval;
+    double max_interval;
+    double last_interval;
+    double sum_time;
+    string name;
+    bool enabled;
 
- public:
+public:
 
-  myprofile();
-  ~myprofile();
+    myprofile();
+    ~myprofile();
 
-  void set_name( const string _name );
-  void start();
-  void stop();
-  void stats();
-  inline double get_last_interval() { return last_interval; }
+    void set_name( const string _name );
+    void start();
+    void stop();
+    void stats();
+    inline double get_last_interval() { return last_interval; }
+    inline void enable() { enabled = true; }
+    inline void disable() { enabled = false; }
 };
 
 

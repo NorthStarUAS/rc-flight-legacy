@@ -364,6 +364,10 @@ int main( int argc, char **argv )
     datalog_prof.set_name("logger");
     sync_prof.set_name("sync");
     main_prof.set_name("main");
+
+    // only enable sync and main by default
+    sync_prof.enable();
+    main_prof.enable();
     
     // debugging
     debug1.set_name("debug1 (var updates)");

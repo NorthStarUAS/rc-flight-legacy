@@ -13,6 +13,7 @@ myprofile::myprofile() {
     sum_time = 0.0;
     max_interval = 0.0;
     min_interval = 1000.0;
+    enabled = false;
 }
 
 myprofile::~myprofile() {
@@ -23,6 +24,10 @@ void myprofile::set_name( const string _name ) {
 }
 
 void myprofile::start() {
+    if ( !enabled ) {
+	return;
+    }
+    
     if ( init_time <= 0.0001 ) {
 	init_time = get_Time();
     }
@@ -31,6 +36,10 @@ void myprofile::start() {
 }
 
 void myprofile::stop() {
+    if ( !enabled ) {
+	return;
+    }
+    
     double stop_time = get_Time();
     last_interval = stop_time - start_time;
     sum_time += last_interval;
@@ -52,6 +61,10 @@ void myprofile::stop() {
 }
 
 void myprofile::stats() {
+    if ( !enabled ) {
+	return;
+    }
+    
     double total_time = get_Time() - init_time;
     double avg_hz = 0.0;
     if ( total_time > 1.0 ) {
