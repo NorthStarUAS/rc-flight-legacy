@@ -71,8 +71,7 @@ static void bind_airdata_output( string output_path ) {
 
 // initialize actuator property nodes 
 static void bind_act_nodes( string output_path ) {
-    act_node = pyGetNode(output_path, true);
-    act_node.setLen("channel", RAVEN_NUM_ACTS, 0.0);
+    act_node = pyGetNode("/actuators/actuator", true);
 }
 
 
@@ -177,8 +176,8 @@ static int raven_read() {
 	counter = 0;
 	cksum_A = cksum_B = 0;
 	len = read( fd, input, 1 );
-	printf("%c", input[0]);
-	return 0;
+	//printf("%c", input[0]);
+	//return 0;
 	
 	while ( len > 0 && input[0] != START_OF_MSG0 ) {
 	    // fprintf( stderr, "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
@@ -338,9 +337,8 @@ static void raven_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size,
 
 static bool raven_act_write() {
     uint8_t buf[256];
-    uint8_t *packet = buf;
     uint8_t cksum0, cksum1;
-    uint8_t size = 0;
+    uint8_t size = 2 * RAVEN_NUM_ACTS;
     /* int len; */
 
     // start of message sync bytes
@@ -350,11 +348,12 @@ static bool raven_act_write() {
     // packet id (1 byte)
     buf[0] = FLIGHT_COMMAND_PACKET_ID;
     // packet length (1 byte)
-    buf[1] = 2 * RAVEN_NUM_ACTS;
+    buf[1] = size;
     /* len = */ write( fd, buf, 2 );
 
+    uint8_t *packet = buf;
     int val;
-
+    
     val = gen_pulse( act_node.getDouble("channel", 0), true );
     *(uint16_t *)packet = val; packet += 2;
 
