@@ -293,7 +293,7 @@ void main_work_loop()
     if ( true ) {
 	datalog_prof.start();
 	if ( log_to_file ) {
-	    flush_data();
+	    log_flush();
 	}
 	datalog_prof.stop();
     }
@@ -366,6 +366,12 @@ int main( int argc, char **argv )
     // only enable sync and main by default
     sync_prof.enable();
     main_prof.enable();
+
+    imu_prof.enable();
+    gps_prof.enable();
+    control_prof.enable();
+    air_prof.enable();
+    datalog_prof.enable();
     
     // debugging
     debug1.set_name("debug1 (var updates)");

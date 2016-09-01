@@ -13,10 +13,13 @@
 #include "util/timing.h"
 
 #include "checksum.hxx"
+#include "display.hxx"
+#include "netBuffer.h"		// for netBuffer structure
 
 #include "logging.hxx"
 
 // global variables for data file logging
+static netBuffer log_buffer(1024);
 static gzFile fdata = NULL;
 
 bool log_to_file = false;  // log to file is enabled/disabled
@@ -97,8 +100,12 @@ bool logging_close() {
 }
 
 
-static int log_write( const uint8_t *buf, const short size ) {
-    return gzwrite( fdata, buf, size );
+static int log_queue( const uint8_t *buf, const short size ) {
+    bool result = log_buffer.append((char *)buf, size);
+    if ( ! result and display_on ) {
+	printf("log buffer overflow\n");
+    }
+    return result;
 }
 
 
@@ -137,7 +144,7 @@ static void log_packet( const uint8_t packet_id,
 	printf("cksum = %d %d\n", cksum0, cksum1);
     }*/
 
-    log_write( buf, packet_size + 6 );
+    log_queue( buf, packet_size + 6 );
     // printf(" end log_packet()\n");
 }
 
@@ -204,8 +211,13 @@ void log_payload( uint8_t *buf, int size ) {
 }
 
 
-void flush_data() {
-    // printf("flush data\n");
+void log_flush() {
+    int size = log_buffer.getLength();
+    if ( size > 0 ) {
+	// printf("flush log data (bytes=%d)\n", size);
+	int result = gzwrite( fdata, log_buffer.getData(), size );
+	log_buffer.remove(0, result);
+    }
     gzflush( fdata, Z_SYNC_FLUSH );
 }
 

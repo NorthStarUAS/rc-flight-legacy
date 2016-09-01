@@ -29,7 +29,7 @@ void log_ap( uint8_t *buf, int size );
 void log_health( uint8_t *buf, int size, int skip_count );
 void log_payload( uint8_t *buf, int size );
 
-void flush_data();
+void log_flush();
 
 bool log_imu_calibration( pyPropertyNode *config );
 bool log_ap_configuration();
