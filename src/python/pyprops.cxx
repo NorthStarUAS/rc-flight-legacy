@@ -37,7 +37,7 @@ pyPropertyNode::~pyPropertyNode() {
     // printf("~pyPropertyNode destructor\n");
     if ( pObj == NULL ) {
 	printf("WARNING: calling destructor on null pyPropertyNode\n");
-	Py_DECREF(pObj);
+	//Py_DECREF(pObj);
     }
     Py_XDECREF(pObj);
     pObj = NULL;
