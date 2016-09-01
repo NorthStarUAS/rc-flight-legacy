@@ -742,7 +742,7 @@ void FGXMLAutopilot::init() {
 	printf("configuration.  See earlier errors for details.\n" );
 	exit(-1);
     }
-    log_ap_configuration();
+    log_ap_config();
 }
 
 
