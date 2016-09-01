@@ -32,6 +32,7 @@ void log_payload( uint8_t *buf, int size );
 void log_flush();
 
 bool log_imu_calibration( pyPropertyNode *config );
-bool log_ap_configuration();
+bool log_ap_config();
+bool log_master_config();
 
 #endif // _AURA_LOGGING_H

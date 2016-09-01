@@ -232,9 +232,17 @@ bool log_imu_calibration( pyPropertyNode *config ) {
 
 
 // write out the autopilot configuration
-bool log_ap_configuration() {
+bool log_ap_config() {
     pyPropertyNode config_props = pyGetNode( "/config/autopilot", true );
     SGPath file = flight_dir;
-    file.append( "apconfig.xml" );
+    file.append( "ap-config.xml" );
     return writeXML( file.str(), &config_props );
+}
+
+// write out the master configuration tree
+bool log_master_config() {
+    pyPropertyNode root = pyGetNode( "/config", true );
+    SGPath file = flight_dir;
+    file.append( "master-config.xml" );
+    return writeXML( file.str(), &root );
 }

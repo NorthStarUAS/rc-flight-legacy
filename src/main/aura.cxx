@@ -555,6 +555,9 @@ int main( int argc, char **argv )
     // intialize random number generator
     srandom( time(NULL) );
 
+    // log the master config tree
+    log_master_config();
+    
     printf("Everything inited ... ready to run\n");
 
     while ( true ) {
