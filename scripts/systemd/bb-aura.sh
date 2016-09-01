@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# set fastest cpu performance possible
-cpufreq-set -g performance
-
 # nice range is -20 to 20 with -20 being the highest priority.  -10 should be
 # a good balanced number.
 NICE=-10

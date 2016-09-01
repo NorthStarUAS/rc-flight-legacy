@@ -107,6 +107,13 @@ Network config: (required before beaglebone dns lookups will actually work)
 - systemctl disable apache2.service
 
 
+# Force highest peformance mode
+
+- vi /etc/init.d/cpufrequtils (line #43)
+
+  GOVERNOR="performance"
+
+
 # (future todo ...)
 
 - see if we can complete disable debian user autologin stuff, and/or
