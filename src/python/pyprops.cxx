@@ -306,16 +306,28 @@ bool pyPropertyNode::getBool(const char *name) {
 string pyPropertyNode::getString(const char *name) {
     string result = "";
     if ( pObj != NULL ) {
-	if ( PyObject_HasAttrString(pObj, name) ) {
-	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
-	    if ( pAttr != NULL ) {
-		PyObject *pStr = PyObject_Str(pAttr);
-		if ( pStr != NULL ) {
-		    result = (string)PyString_AsString(pStr);
-		    Py_DECREF(pStr);
+	// test for normal vs. enumerated request
+	char *pos = strchr((char *)name, '[');
+	if ( pos == NULL ) {
+	    // normal request
+	    if ( PyObject_HasAttrString(pObj, name) ) {
+		PyObject *pAttr = PyObject_GetAttrString(pObj, name);
+		if ( pAttr != NULL ) {
+		    PyObject *pStr = PyObject_Str(pAttr);
+		    if ( pStr != NULL ) {
+			result = (string)PyString_AsString(pStr);
+			Py_DECREF(pStr);
+		    }
+		    Py_DECREF(pAttr);
 		}
-		Py_DECREF(pAttr);
 	    }
+	} else {
+	    // enumerated request
+	    pos[0] = '\0';
+	    pos++;
+	    int index = atoi(pos);
+	    printf("%s %d\n", name, index);
+	    result = getString(name, index);
 	}
     }
     return result;
