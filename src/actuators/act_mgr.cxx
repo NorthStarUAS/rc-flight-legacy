@@ -84,8 +84,6 @@ void Actuator_init() {
 	if ( !enabled ) {
 	    continue;
 	}
-	ostringstream output_path;
-	output_path << "/actuators/actuator" << '[' << i << ']';
 	printf("actuator: %d = %s\n", i, module.c_str());
 	if ( module == "null" ) {
 	    // do nothing
@@ -105,7 +103,7 @@ void Actuator_init() {
 	} else if ( module == "Goldy2" ) {
 	    goldy2_act_init( &section );
 	} else if ( module == "raven" ) {
-	    raven_act_init( output_path.str(), &section );
+	    raven_act_init( &section );
 	} else {
 	    printf("Unknown actuator = '%s' in config file\n",
 		   module.c_str());

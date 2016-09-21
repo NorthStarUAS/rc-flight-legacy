@@ -23,7 +23,7 @@ void raven_airdata_init( string output_path, pyPropertyNode *config );
 bool raven_airdata_update();
 void raven_airdata_close();
 
-bool raven_act_init( string output_path, pyPropertyNode *config );
+bool raven_act_init( pyPropertyNode *config );
 bool raven_act_update();
 void raven_act_close();
 

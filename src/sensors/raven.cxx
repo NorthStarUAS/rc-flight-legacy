@@ -54,6 +54,8 @@ static double airspeed_zero_start_time = 0.0;
 #define PWM_MIN (PWM_CENTER - PWM_HALF_RANGE)
 #define PWM_MAX (PWM_CENTER + PWM_HALF_RANGE)
 
+static string act_input[RAVEN_NUM_ACTS];
+static float act_gain[RAVEN_NUM_ACTS];
 
 
 // initialize gpsd input property nodes
@@ -73,8 +75,8 @@ static void bind_airdata_output( string output_path ) {
 
 
 // initialize actuator property nodes 
-static void bind_act_nodes( string output_path ) {
-    act_node = pyGetNode("/actuators/actuator", true);
+static void bind_act_nodes() {
+    act_node = pyGetNode("/actuators", true);
 }
 
 
@@ -389,36 +391,12 @@ static bool raven_act_write() {
 
     uint8_t *packet = buf;
     int val;
-    
-    val = gen_pulse( act_node.getDouble("channel", 0), true );
-    *(uint16_t *)packet = val; packet += 2;
 
-    val = gen_pulse( act_node.getDouble("channel", 1), true );
-    *(uint16_t *)packet = val; packet += 2;
-
-    val = gen_pulse( act_node.getDouble("channel", 2), false );
-    *(uint16_t *)packet = val; packet += 2;
-
-    val = gen_pulse( act_node.getDouble("channel", 3), true );
-    *(uint16_t *)packet = val; packet += 2;
-
-    val = gen_pulse( act_node.getDouble("channel", 4), true );
-    *(uint16_t *)packet = val; packet += 2;
-
-    val = gen_pulse( act_node.getDouble("channel", 5), false );
-    *(uint16_t *)packet = val; packet += 2;
-
-    val = gen_pulse( act_node.getDouble("channel", 6), true );
-    *(uint16_t *)packet = val; packet += 2;
-
-    val = gen_pulse( act_node.getDouble("channel", 7), true );
-    *(uint16_t *)packet = val; packet += 2;
-
-    val = gen_pulse( 0.0, true );
-    *(uint16_t *)packet = val; packet += 2;
-    
-    val = gen_pulse( 0.0, true );
-    *(uint16_t *)packet = val; packet += 2;
+    for ( int i = 0; i < RAVEN_NUM_ACTS; i++ ) {
+	val = gen_pulse( act_node.getDouble(act_input[i].c_str())
+			 * act_gain[i], true );
+	*(uint16_t *)packet = val; packet += 2;
+    }
     
     // write packet
     /* len = */ write( fd, buf, size );
@@ -432,12 +410,23 @@ static bool raven_act_write() {
 }
 
 
-bool raven_act_init( string output_path, pyPropertyNode *section ) {
+bool raven_act_init( pyPropertyNode *section ) {
+    bind_act_nodes();
+
+    int inputs = section->getLen("channel");
+    printf("Found %d channel definitions\n", inputs);
+    for ( int i = 0; i < inputs; i++ ) {
+	pyPropertyNode channel = section->getChild("channel", i);
+	if ( !channel.isNull() ) {
+	    act_input[i] = channel.getString("input");
+	    act_gain[i] = channel.getDouble("gain");
+	    printf(" channel: %d = %s (%.2f)\n", i, act_input[i].c_str(), act_gain[i]);
+	}
+    }
+
     if ( ! raven_open() ) {
 	return false;
     }
-
-    bind_act_nodes( output_path );
 
     return true;
 }
