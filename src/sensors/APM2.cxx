@@ -488,12 +488,11 @@ static void bind_gps_output( string output_path ) {
 
 
 // initialize actuator property nodes 
-static void bind_act_nodes( string output_path ) {
+static void bind_act_nodes() {
     if ( actuator_inited ) {
 	return;
     }
-    act_node = pyGetNode(output_path, true);
-    act_node.setLen("channel", NUM_ACTUATORS, 0.0);
+    act_node = pyGetNode("/actuators", true);
     actuator_inited = true;
 }
 
@@ -764,12 +763,12 @@ bool APM2_pilot_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-bool APM2_act_init( string output_path, pyPropertyNode *section ) {
+bool APM2_act_init( pyPropertyNode *section ) {
     if ( ! APM2_open() ) {
 	return false;
     }
 
-    bind_act_nodes( output_path );
+    bind_act_nodes();
 
     return true;
 }
@@ -1557,69 +1556,54 @@ static bool APM2_act_write() {
     buf[1] = 2 * NUM_ACTUATORS;
     /* len = */ write( fd, buf, 2 );
 
-#if 0
-    // generate some test data
-    static double t = 0.0;
-    t += 0.02;
-    double dummy = sin(t);
-    act_aileron_node.setDouble(dummy);
-    act_elevator_node.setDouble(dummy);
-    act_throttle_node.setDouble((dummy/2)+0.5);
-    act_rudder_node.setDouble(dummy);
-    act_channel5_node.setDouble(dummy);
-    act_channel6_node.setDouble(dummy);
-    act_channel7_node.setDouble(dummy);
-    act_channel8_node.setDouble(dummy);
-#endif
-
     // actuator data
     if ( NUM_ACTUATORS == 8 ) {
 	int val;
 	uint8_t hi, lo;
 
-	val = gen_pulse( act_node.getDouble("channel", 0), true );
+	val = gen_pulse( act_node.getDouble("aileron"), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel", 1), true );
+	val = gen_pulse( act_node.getDouble("elevator"), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel", 2), false );
+	val = gen_pulse( act_node.getDouble("throttle"), false );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel", 3), true );
+	val = gen_pulse( act_node.getDouble("rudder"), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel", 4), true );
+	val = gen_pulse( act_node.getDouble("channel5"), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel", 5), false );
+	val = gen_pulse( act_node.getDouble("flaps"), false );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel", 6), true );
+	val = gen_pulse( act_node.getDouble("channel6"), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel", 7), true );
+	val = gen_pulse( act_node.getDouble("channel7"), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;

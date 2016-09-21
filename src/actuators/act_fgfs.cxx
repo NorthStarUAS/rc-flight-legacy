@@ -39,10 +39,8 @@ static void bind_input( pyPropertyNode *config ) {
 
 
 /// initialize actuator property nodes 
-static void bind_act_nodes( string output_path ) {
-    act_node = pyGetNode(output_path, true);
-#define NUM_ACTUATORS 8
-    act_node.setLen("channel", NUM_ACTUATORS, 0.0);
+static void bind_act_nodes() {
+    act_node = pyGetNode("/actuators", true);
     targets_node = pyGetNode("/autopilot/targets", true);
     orient_node = pyGetNode("/orientation", true);
     pos_node = pyGetNode("/position", true);
@@ -51,11 +49,11 @@ static void bind_act_nodes( string output_path ) {
 
 
 // function prototypes
-bool fgfs_act_init( string output_path, pyPropertyNode *config ) {
+bool fgfs_act_init( pyPropertyNode *config ) {
     printf("actuator_init()\n");
 
     bind_input( config );
-    bind_act_nodes(output_path);
+    bind_act_nodes();
 
     // open a UDP socket
     if ( ! sock.open( false ) ) {
@@ -101,28 +99,28 @@ bool fgfs_act_update() {
     double time = act_node.getDouble("timestamp");
     *(double *)buf = time; buf += 8;
 
-    float ail = act_node.getDouble("channel", 0);
+    float ail = act_node.getDouble("aileron");
     *(float *)buf = ail; buf += 4;
 
-    float ele = act_node.getDouble("channel", 1);
+    float ele = act_node.getDouble("elevator");
     *(float *)buf = ele; buf += 4;
 
-    float thr = act_node.getDouble("channel", 2);
+    float thr = act_node.getDouble("throttle");
     *(float *)buf = thr; buf += 4;
 
-    float rud = act_node.getDouble("channel", 3);
+    float rud = act_node.getDouble("rudder");
     *(float *)buf = rud; buf += 4;
 
-    float ch5 = act_node.getDouble("channel", 4);
+    float ch5 = act_node.getDouble("channel5");
     *(float *)buf = ch5; buf += 4;
 
-    float ch6 = act_node.getDouble("channel", 5);
+    float ch6 = act_node.getDouble("channel6");
     *(float *)buf = ch6; buf += 4;
 
-    float ch7 = act_node.getDouble("channel", 6);
+    float ch7 = act_node.getDouble("channel7");
     *(float *)buf = ch7; buf += 4;
 
-    float ch8 = act_node.getDouble("channel", 7);
+    float ch8 = act_node.getDouble("channel8");
     *(float *)buf = ch8; buf += 4;
 
     float bank = targets_node.getDouble("roll_deg") * 100 + 18000.0;

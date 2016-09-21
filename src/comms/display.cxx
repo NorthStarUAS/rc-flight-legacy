@@ -44,9 +44,7 @@ static void init_props() {
     filter_node = pyGetNode("/filters/filter", true);
     orient_node = pyGetNode("/orientation", true);
     pos_pressure_node = pyGetNode("/position/pressure", true);
-    act_node = pyGetNode("/actuators/actuator", true);
-#define NUM_ACTUATORS 8
-    act_node.setLen("channel", NUM_ACTUATORS, 0.0);
+    act_node = pyGetNode("/actuators", true);
     remote_link_node = pyGetNode("/comms/remote_link", true);
     route_node = pyGetNode("/task/route", true);
     status_node = pyGetNode("/status", true);
@@ -115,11 +113,11 @@ void display_message()
     }
 
     printf("[act  ]: %.2f %.2f %.2f %.2f %.2f\n",
-	   act_node.getDouble("channel", 0),
-	   act_node.getDouble("channel", 1),
-	   act_node.getDouble("channel", 2),
-	   act_node.getDouble("channel", 3),
-	   act_node.getDouble("channel", 4));
+	   act_node.getDouble("aileron"),
+	   act_node.getDouble("elevator"),
+	   act_node.getDouble("throttle"),
+	   act_node.getDouble("rudder"),
+	   act_node.getDouble("flaps"));
     printf("[health]: cmdseq = %ld  tgtwp = %ld  loadavg = %.2f  vcc = %.2f\n",
            remote_link_node.getLong("sequence_num"),
 	   route_node.getLong("target_waypoint_idx"),

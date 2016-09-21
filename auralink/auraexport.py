@@ -198,7 +198,7 @@ else:
     d = datetime.datetime.utcfromtimestamp(sec)
     print d.strftime("%Y-%m-%d-%H:%M:%S")
 
-    url = 'https://api.forecast.io/forecast/' + apikey + '/%.8f,%.8f,%.d' % (lat, lon, sec)
+    url = 'https://api.darksky.net/forecast/' + apikey + '/%.8f,%.8f,%.d' % (lat, lon, sec)
 
     import urllib, json
     response = urllib.urlopen(url)

@@ -49,9 +49,7 @@ static void bind_gps_input( pyPropertyNode *config ) {
 // initialize imu output property nodes 
 static void bind_imu_output( string output_path ) {
     imu_node = pyGetNode(output_path, true);
-    act_node = pyGetNode("/actuators/actuator", true);
-#define NUM_ACTUATORS 8
-    act_node.setLen("channel", NUM_ACTUATORS, 0.0);
+    act_node = pyGetNode("/actuators", true);
     apm2_node = pyGetNode("/sensors/apm2", true);
     // set initial fake value
     apm2_node.setDouble( "board_vcc", 5.0 );
@@ -215,7 +213,7 @@ static bool fgfs_imu_sync_update() {
 	    // fake volt/amp values here for no better place to do it
 	    static double last_time = cur_time;
 	    static double mah = 0.0;
-	    double thr = act_node.getDouble("channel", 2);
+	    double thr = act_node.getDouble("throttle");
 	    apm2_node.setDouble("extern_volt", 16.0 - thr);
 	    apm2_node.setDouble("extern_amps", thr * 12.0);
 	    double dt = cur_time - last_time;

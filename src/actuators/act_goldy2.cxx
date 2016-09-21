@@ -52,21 +52,19 @@ static void bind_input( pyPropertyNode *config ) {
 
 
 /// initialize actuator property nodes 
-static void bind_act_nodes( string output_path ) {
-    act_node = pyGetNode(output_path, true);
-#define NUM_ACTUATORS 8
-    act_node.setLen("channel", NUM_ACTUATORS, 0.0);
+static void bind_act_nodes() {
+    act_node = pyGetNode("/actuators", true);
     flight_node = pyGetNode("/controls/flight", true);
     engine_node = pyGetNode("/controls/engine", true);
 }
 
 
 // function prototypes
-bool goldy2_act_init( string output_path, pyPropertyNode *config ) {
+bool goldy2_act_init( pyPropertyNode *config ) {
     printf("actuator_init()\n");
 
     bind_input( config );
-    bind_act_nodes( output_path );
+    bind_act_nodes();
 
     // open a UDP socket
     if ( ! sock.open( false ) ) {
@@ -138,12 +136,12 @@ bool goldy2_act_update() {
     *(uint8_t *)buf = packet_size; buf++; // LSB
     *(uint8_t *)buf = 0; buf++;		  // MSB
 
-    double aileron = act_node.getDouble("channel", 0);
-    double elevator = act_node.getDouble("channel", 1);
-    double throttle = act_node.getDouble("channel", 2);
-    double rudder = act_node.getDouble("channel", 3);
-    // double gear = act_node.getDouble("channel", 4);
-    double flaps = act_node.getDouble("channel", 5);
+    double aileron = act_node.getDouble("aileron");
+    double elevator = act_node.getDouble("elevator");
+    double throttle = act_node.getDouble("throttle");
+    double rudder = act_node.getDouble("rudder");
+    // double gear = act_node.getDouble("channel5");
+    double flaps = act_node.getDouble("flaps");
     
     // printf("ail=%.2f ele=%.2f\n", aileron, elevator);
 
