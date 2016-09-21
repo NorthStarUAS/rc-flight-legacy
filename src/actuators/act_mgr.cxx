@@ -129,19 +129,23 @@ static void set_actuator_values_ap() {
     float aileron = flight_node.getDouble("aileron");
     if ( chirp_inject == "aileron" ) { aileron += chirp_val; }
     act_node.setDouble( "channel", 0, aileron );
+    act_node.setDouble( "aileron", aileron );
 
     float elevator = flight_node.getDouble("elevator");
     if ( chirp_inject == "elevator" ) { elevator += chirp_val; }
     act_node.setDouble( "channel", 1, elevator );
+    act_node.setDouble( "elevator", elevator );
 
     // rudder
     float rudder = flight_node.getDouble("rudder");
     if ( chirp_inject == "rudder" ) { rudder += chirp_val; }
     act_node.setDouble( "channel", 3, rudder );
+    act_node.setDouble( "rudder", rudder );
 
     double flaps = flight_node.getDouble("flaps");
     if ( chirp_inject == "flaps" ) { flaps += chirp_val; }
     act_node.setDouble("channel", 5, flaps );
+    act_node.setDouble("flaps", flaps );
 
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
@@ -202,6 +206,7 @@ static void set_actuator_values_ap() {
     double throttle = engine_node.getDouble("throttle");
     if ( chirp_inject == "throttle" ) { throttle += chirp_val; }
     act_node.setDouble("channel", 2, throttle );
+    act_node.setDouble("throttle", throttle );
 
     static bool sas_throttle_override = false;
 
@@ -241,6 +246,7 @@ static void set_actuator_values_ap() {
     if ( ! sas_throttle_override ) {
 	if ( acts_node.getBool("throttle_safety") ) {
 	    act_node.setDouble("channel", 2, 0.0 );
+	    act_node.setDouble("throttle", 0.0 );
 	}
     }
 
@@ -267,23 +273,28 @@ static void set_actuator_values_pilot_pass_through() {
     float aileron = -pilot_node.getDouble("aileron");
     if ( chirp_inject == "aileron" ) { aileron += chirp_val; }
     act_node.setDouble( "channel", 0, aileron );
+    act_node.setDouble( "aileron", aileron );
 
     float elevator = -pilot_node.getDouble("elevator");
     if ( chirp_inject == "elevator" ) { elevator += chirp_val; }
     act_node.setDouble( "channel", 1, elevator );
+    act_node.setDouble( "elevator", elevator );
 
     // rudder
     float rudder = pilot_node.getDouble("rudder");
     if ( chirp_inject == "rudder" ) { rudder += chirp_val; }
     act_node.setDouble( "channel", 3, rudder );
+    act_node.setDouble( "rudder", rudder );
 
     double flaps = pilot_node.getDouble("flaps");
     if ( chirp_inject == "flaps" ) { flaps += chirp_val; }
     act_node.setDouble("channel", 5, flaps );
+    act_node.setDouble("flaps", flaps );
 
     double throttle = pilot_node.getDouble("throttle");
     if ( chirp_inject == "throttle" ) { throttle += chirp_val; }
     act_node.setDouble("channel", 2, throttle );
+    act_node.setDouble("throttle", throttle );
 }
 
 
