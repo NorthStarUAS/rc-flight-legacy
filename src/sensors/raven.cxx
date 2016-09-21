@@ -36,6 +36,9 @@ static string device_name = "/dev/ttyO4";
 
 static bool master_opened = false;
 
+static bool airspeed_inited = false;
+static double airspeed_zero_start_time = 0.0;
+
 #define START_OF_MSG0 147
 #define START_OF_MSG1 224
 
@@ -140,6 +143,10 @@ void raven_airdata_init( string output_path, pyPropertyNode *config ) {
 
 
 static bool raven_parse(uint8_t pkt_id, uint8_t pkt_len, uint8_t *buf) {
+    static double diff_sum = 0.0;
+    static int diff_count = 0;
+    static float diff_offset = 0.0;
+
     for ( int i = 0; i < RAVEN_NUM_POTS; i++ ) {
 	airdata_node.setDouble("pots", i, *(uint16_t *)buf);
 	//printf("%d ", *(uint16_t *)buf);
@@ -151,7 +158,36 @@ static bool raven_parse(uint8_t pkt_id, uint8_t pkt_len, uint8_t *buf) {
 	//printf("%d ", *(uint16_t *)buf);
 	buf += 2;
     }
-    //printf("\n");
+    
+    float static_pa = *(float *)buf; buf += 4;
+    float diff_pa = *(float *)buf; buf += 4;
+    airdata_node.setDouble( "pressure_mbar", (static_pa / 100.0) );
+    airdata_node.setDouble( "diff_pa", diff_pa);
+    
+    if ( ! airspeed_inited ) {
+	if ( airspeed_zero_start_time > 0 ) {
+	    diff_sum += diff_pa;
+	    diff_count++;
+	    diff_offset = diff_sum / diff_count;
+	} else {
+	    airspeed_zero_start_time = get_Time();
+	    diff_sum = 0.0;
+	    diff_count = 0;
+	}
+	if ( get_Time() > airspeed_zero_start_time + 10.0 ) {
+	    //printf("diff_offset = %.2f\n", diff_offset);
+	    airspeed_inited = true;
+	}
+    }
+
+    double pitot_calibrate = 1.0; // make configurable in the future?
+    diff_pa -= diff_offset;
+    if ( diff_pa < 0.0 ) { diff_pa = 0.0; } // avoid sqrt(neg_number) situation
+    float airspeed_mps = sqrt( 2*diff_pa / 1.225 ) * pitot_calibrate;
+    float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
+    airdata_node.setDouble( "airspeed_mps", airspeed_mps );
+    airdata_node.setDouble( "airspeed_kt", airspeed_kt );
+   
     return true;
 }
 
