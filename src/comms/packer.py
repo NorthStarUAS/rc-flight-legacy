@@ -4,6 +4,7 @@ from props import root, getNode
 
 # FIXME: we are hard coding status flag to zero in many places which
 # means we aren't using them properly (and/or wasting bytes)
+
 ft2m = 0.3048
 m2ft = 1.0 / ft2m
 
@@ -90,6 +91,8 @@ payload_v1_fmt = "<dH"
 payload_v1_size = struct.calcsize(payload_v1_fmt)
 payload_v2_fmt = "<BdH"
 payload_v2_size = struct.calcsize(payload_v2_fmt)
+
+raven_v1_fmt = "<BdHHHHHHHHHHffff"
 
 def init():
     pass

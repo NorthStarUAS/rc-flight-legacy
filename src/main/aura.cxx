@@ -335,7 +335,7 @@ int main( int argc, char **argv )
     }
 
     // destroy things in the correct order
-    // atexit(AuraPythonCleanup);
+    atexit(AuraPythonCleanup);
     
     // initialize network library
     netInit( NULL, NULL );

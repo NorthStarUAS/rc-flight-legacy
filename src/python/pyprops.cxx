@@ -37,7 +37,7 @@ pyPropertyNode::~pyPropertyNode() {
     // printf("~pyPropertyNode destructor\n");
     if ( pObj == NULL ) {
 	printf("WARNING: calling destructor on null pyPropertyNode\n");
-	//Py_DECREF(pObj);
+	// Py_DECREF(pObj);
     }
     Py_XDECREF(pObj);
     pObj = NULL;
@@ -323,11 +323,18 @@ string pyPropertyNode::getString(const char *name) {
 	    }
 	} else {
 	    // enumerated request
-	    pos[0] = '\0';
+	    // this is a little goofy, but this code typically only runs
+            // on an interactive telnet request, and we don't want to 
+            // modify the request string in place.
+	    string base = name;
+	    size_t basepos = base.find("[");
+	    if ( basepos != string::npos ) {
+	        base = base.substr(0, basepos);
+	    }
 	    pos++;
 	    int index = atoi(pos);
-	    printf("%s %d\n", name, index);
-	    result = getString(name, index);
+	    result = getString(base.c_str(), index);
+	    // printf("%s %d %s\n", name, index, result.c_str());
 	}
     }
     return result;

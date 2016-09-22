@@ -151,18 +151,22 @@ static bool raven_parse(uint8_t pkt_id, uint8_t pkt_len, uint8_t *buf) {
 
     for ( int i = 0; i < RAVEN_NUM_POTS; i++ ) {
 	airdata_node.setDouble("pots", i, *(uint16_t *)buf);
-	//printf("%d ", *(uint16_t *)buf);
+	// printf("%d ", *(uint16_t *)buf);
 	buf += 2;
     }
 
     for ( int i = 0; i < RAVEN_NUM_AINS; i++ ) {
 	airdata_node.setDouble("ains", i, *(uint16_t *)buf);
-	//printf("%d ", *(uint16_t *)buf);
+	// printf("%d ", *(uint16_t *)buf);
 	buf += 2;
     }
     
     float static_pa = *(float *)buf; buf += 4;
     float diff_pa = *(float *)buf; buf += 4;
+    
+    float rpm0 = *(float *)buf; buf += 4;
+    float rpm1 = *(float *)buf; buf += 4;
+
     airdata_node.setDouble( "pressure_mbar", (static_pa / 100.0) );
     airdata_node.setDouble( "diff_pa", diff_pa);
     
@@ -189,7 +193,10 @@ static bool raven_parse(uint8_t pkt_id, uint8_t pkt_len, uint8_t *buf) {
     float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
     airdata_node.setDouble( "airspeed_mps", airspeed_mps );
     airdata_node.setDouble( "airspeed_kt", airspeed_kt );
-   
+
+    airdata_node.setDouble( "rpm0", rpm0 );
+    airdata_node.setDouble( "rpm1", rpm1 );
+
     return true;
 }
 
