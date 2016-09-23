@@ -43,6 +43,8 @@ def logical_category(id):
         return 'health'
     elif id == auraparser.PAYLOAD_PACKET_V1 or id == auraparser.PAYLOAD_PACKET_V2:
         return 'payload'
+    elif id == auraparser.RAVEN_PACKET_V1:
+        return 'raven'
 
 # When a binary record of some id is read, it gets parsed into the
 # property tree structure.  The following code simple calls the
@@ -76,6 +78,9 @@ def generate_record(category, index, delim=','):
         return record
     elif category == 'payload':
         record = comms.packer.pack_payload_text(index, delim)
+        return record
+    elif category == 'raven':
+        record = comms.packer.pack_raven_text(index, delim)
         return record
     # remote_link_node.setInt('sequence_num', result[14]) # include in system health....
 

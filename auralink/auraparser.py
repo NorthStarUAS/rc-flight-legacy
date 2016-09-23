@@ -32,6 +32,7 @@ ACTUATOR_PACKET_V2 = 21
 FILTER_PACKET_V2 = 22
 PAYLOAD_PACKET_V2 = 23
 AP_STATUS_PACKET_V3 = 24
+RAVEN_PACKET_V1 = 25
 
 # simple 2-byte checksum
 def validate_cksum(id, size, buf, cksum0, cksum1):
@@ -99,6 +100,8 @@ def parse_msg(id, buf):
             index = comms.packer.unpack_payload_v1(buf)
         elif id == PAYLOAD_PACKET_V2:
             index = comms.packer.unpack_payload_v2(buf)
+        elif id == RAVEN_PACKET_V1:
+            index = comms.packer.unpack_raven_v1(buf)
         else:
             print "Unknown packet id:", id
             index = 0
