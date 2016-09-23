@@ -52,6 +52,11 @@ class Switch():
             else:
                 self.states = 1
                 self.choices = [ 'switch_config_error' ]
+        if switch_node.hasChild("force_true"):
+            self.force_true = True
+        else:
+            self.force_true = False
+            
         self.min = -1.0
         self.max = 1.0
         self.range = self.max - self.min
@@ -74,7 +79,10 @@ class Switch():
         state = int((input_val - self.min) / self.step)
         #print "  state =", state
         if self.output_type == 'boolean':
-            self.output_node.setBool(self.output_name, state)
+            if self.force_true:
+                self.output_node.setBool(self.output_name, True)
+            else:
+                self.output_node.setBool(self.output_name, state)
         elif self.output_type == 'choice':
             #print 'choice:', state, self.choices[state]
             self.output_node.setString(self.output_name, self.choices[state])
