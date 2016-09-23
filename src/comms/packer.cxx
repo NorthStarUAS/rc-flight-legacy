@@ -72,3 +72,7 @@ int pyModulePacker::pack_payload(int index, uint8_t *buf) {
 int pyModulePacker::pack_ap(int index, uint8_t *buf) {
     return pack(index, "pack_ap_status_v3", buf);
 }
+
+int pyModulePacker::pack_raven(int index, uint8_t *buf) {
+    return pack(index, "pack_raven_v1", buf);
+}

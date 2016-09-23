@@ -34,6 +34,7 @@ enum ugPacketType {
     FILTER_PACKET_V2 = 22,
     PAYLOAD_PACKET_V2 = 23,
     AP_STATUS_PACKET_V3 = 24,
+    RAVEN_PACKET_V1 = 25,
 };
 
 class pyModulePacker: public pyModuleBase {
@@ -54,6 +55,7 @@ public:
     int pack_filter(int index, uint8_t *buf);
     int pack_payload(int index, uint8_t *buf);
     int pack_ap(int index, uint8_t *buf);
+    int pack_raven(int index, uint8_t *buf);
 };
 
 #endif // _AURA_PACKER_HXX

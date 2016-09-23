@@ -92,7 +92,9 @@ payload_v1_size = struct.calcsize(payload_v1_fmt)
 payload_v2_fmt = "<BdH"
 payload_v2_size = struct.calcsize(payload_v2_fmt)
 
-raven_v1_fmt = "<BdHHHHHHHHHHffff"
+raven_v1_fmt = "<BdHHHHHHHHHHffffB"
+raven_v1_size = struct.calcsize(raven_v1_fmt)
+
 
 def init():
     pass
@@ -178,6 +180,8 @@ def unpack_gps_v2(buf):
     return index
 
 def pack_imu_v3(index):
+    global imu_timestamp
+    
     if index >= len(imu_nodes):
         for i in range(len(imu_nodes),index+1):
             path = '/sensors/imu[%d]' % i
@@ -538,16 +542,24 @@ def unpack_act_v1(buf):
 
 def unpack_act_v2(buf):
     result = struct.unpack(act_v2_fmt, buf)
-    act_node.setFloat("timestamp", result[1])
-    act_node.setFloat("aileron", result[2] / 20000.0)
-    act_node.setFloat("elevator", result[3] / 20000.0)
-    act_node.setFloat("throttle", result[4] / 60000.0)
-    act_node.setFloat("rudder", result[5] / 20000.0)
-    act_node.setFloat("channel5", result[6] / 20000.0)
-    act_node.setFloat("flaps", result[7] / 20000.0)
-    act_node.setFloat("channel7", result[8] / 20000.0)
-    act_node.setFloat("channel8", result[9] / 20000.0)
-    act_node.setInt("status", result[10])
+    
+    index = result[0]
+    if index >= len(airdata_nodes):
+        for i in range(len(airdata_nodes),index+1):
+            path = '/sensors/airdata[%d]' % i
+            airdata_nodes.append( getNode(path, True) )
+    node = airdata_nodes[index]
+    
+    node.setFloat("timestamp", result[1])
+    node.setFloat("aileron", result[2] / 20000.0)
+    node.setFloat("elevator", result[3] / 20000.0)
+    node.setFloat("throttle", result[4] / 60000.0)
+    node.setFloat("rudder", result[5] / 20000.0)
+    node.setFloat("channel5", result[6] / 20000.0)
+    node.setFloat("flaps", result[7] / 20000.0)
+    node.setFloat("channel7", result[8] / 20000.0)
+    node.setFloat("channel8", result[9] / 20000.0)
+    node.setInt("status", result[10])
 
     return index
 
@@ -869,3 +881,83 @@ def unpack_payload_v2(buf):
     payload_node.setInt("trigger_num", result[2])
 
     return index
+
+# raven is currently a special airdata node, but it is much more than
+# that.
+def pack_raven_v1(index):
+    global imu_timestamp
+    
+    if index >= len(airdata_nodes):
+        for i in range(len(airdata_nodes),index+1):
+            path = '/sensors/airdata[%d]' % i
+            airdata_nodes.append( getNode(path, True) )
+    node = airdata_nodes[index]
+    buf = struct.pack(raven_v1_fmt,
+                      index,
+                      imu_timestamp,
+                      node.getIntEnum("pots", 0),
+                      node.getIntEnum("pots", 1),
+                      node.getIntEnum("pots", 2),
+                      node.getIntEnum("pots", 3),
+                      node.getIntEnum("pots", 4),
+                      node.getIntEnum("pots", 5),
+                      node.getIntEnum("pots", 6),
+                      node.getIntEnum("pots", 7),
+                      node.getIntEnum("pots", 8),
+                      node.getIntEnum("pots", 9),
+                      node.getFloat("diff_pa"),
+                      node.getFloat("pressure_mbar"),
+                      node.getFloat("rpm0"),
+                      node.getFloat("rpm1"),
+                      0)
+    return buf
+
+def pack_raven_text(index, delim=','):
+    node = getNode('/sensors/airdata[%d]' % index, True)
+    data = [ '%.4f' % node.getFloat('timestamp'),
+             '%d' % node.getIntEnum('pots', 0),
+             '%d' % node.getIntEnum('pots', 1),
+             '%d' % node.getIntEnum('pots', 2),
+             '%d' % node.getIntEnum('pots', 3),
+             '%d' % node.getIntEnum('pots', 4),
+             '%d' % node.getIntEnum('pots', 5),
+             '%d' % node.getIntEnum('pots', 6),
+             '%d' % node.getIntEnum('pots', 7),
+             '%d' % node.getIntEnum('pots', 8),
+             '%d' % node.getIntEnum('pots', 9),
+             '%.4f' % node.getFloat('diff_pa'),
+	     '%.4f' % node.getFloat('pressure_mbar'),
+             '%.2f' % node.getFloat('rpm0'),
+             '%.2f' % node.getFloat('rpm1'),
+             '%d' % node.getInt('status') ]
+    return delim.join(data)
+    
+def unpack_raven_v1(buf):
+    result = struct.unpack(raven_v1_fmt, buf)
+
+    index = result[0]
+    if index >= len(airdata_nodes):
+        for i in range(len(airdata_nodes),index+1):
+            path = '/sensors/airdata[%d]' % i
+            airdata_nodes.append( getNode(path, True) )
+    node = airdata_nodes[index]
+
+    node.setFloat("timestamp", result[1])
+    node.setIntEnum("pots", 0, result[2])
+    node.setIntEnum("pots", 1, result[3])
+    node.setIntEnum("pots", 2, result[4])
+    node.setIntEnum("pots", 3, result[5])
+    node.setIntEnum("pots", 4, result[6])
+    node.setIntEnum("pots", 5, result[7])
+    node.setIntEnum("pots", 6, result[8])
+    node.setIntEnum("pots", 7, result[9])
+    node.setIntEnum("pots", 8, result[10])
+    node.setIntEnum("pots", 9, result[11])
+    node.setFloat("diff_pa", result[12])
+    node.setFloat("pressure_mbar", result[13])
+    node.setFloat("rpm0", result[14])
+    node.setFloat("rpm1", result[15])
+    node.setInt("status", result[16])
+
+    return index
+

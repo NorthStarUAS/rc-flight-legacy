@@ -210,6 +210,10 @@ void log_payload( uint8_t *buf, int size ) {
     log_packet( PAYLOAD_PACKET_V2, buf, size );
 }
 
+void log_raven( uint8_t *buf, int size ) {
+    log_packet( RAVEN_PACKET_V1, buf, size );
+}
+
 
 void log_flush() {
     int size = log_buffer.getLength();

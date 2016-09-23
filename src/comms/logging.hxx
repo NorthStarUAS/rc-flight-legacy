@@ -28,6 +28,7 @@ void log_pilot( uint8_t *buf, int size );
 void log_ap( uint8_t *buf, int size );
 void log_health( uint8_t *buf, int size, int skip_count );
 void log_payload( uint8_t *buf, int size );
+void log_raven( uint8_t *buf, int size );
 
 void log_flush();
 
