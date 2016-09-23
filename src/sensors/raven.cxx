@@ -69,6 +69,7 @@ static void bind_airdata_input( pyPropertyNode *config ) {
 // initialize imu output property nodes 
 static void bind_airdata_output( string output_path ) {
     airdata_node = pyGetNode(output_path, true);
+    airdata_node.setString("module", "raven");
     airdata_node.setLen("pots", RAVEN_NUM_POTS, 0.0);
     airdata_node.setLen("ains", RAVEN_NUM_AINS, 0.0);
 }

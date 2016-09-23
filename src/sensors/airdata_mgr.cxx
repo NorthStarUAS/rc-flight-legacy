@@ -341,22 +341,36 @@ bool AirData_update() {
 	    bool send_logging = false;
 	    if ( log_to_file && logging_count < 0 ) {
 		send_logging = true;
-		logging_count = logging_skip;
 	    }
 	
 	    if ( send_remote_link || send_logging ) {
 		uint8_t buf[256];
-		int size = packer->pack_airdata( i, buf );
-		if ( send_remote_link ) {
-		    remote_link_airdata( buf, size );
-		}
-		if ( send_logging ) {
-		    log_airdata( buf, size );
+		if ( source != "raven" ) {
+		    int size = packer->pack_airdata( i, buf );
+		    if ( send_remote_link ) {
+			remote_link_airdata( buf, size );
+		    }
+		    if ( send_logging ) {
+			log_airdata( buf, size );
+		    }
+		} else {
+		    int size = packer->pack_raven( i, buf );
+		    //if ( send_remote_link ) {
+		    //  remote_link_airdata( buf, size );
+		    // }
+		    if ( send_logging ) {
+			log_raven( buf, size );
+		    }
+  
 		}
 	    }
 	}
     }
 
+    if ( log_to_file && logging_count < 0 ) {
+	logging_count = logging_skip;
+    }
+	
     debug2b1.stop();
     debug2b2.start();
 
