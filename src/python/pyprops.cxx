@@ -537,10 +537,11 @@ void pyPropertyNode::pretty_print()
 
 // These only need to be looked up once and then saved
 static PyObject *pModuleProps = NULL;
+static PyObject *pModuleJSON = NULL;
 static PyObject *pModuleXML = NULL;
 
 // This function must be called before any pyPropertyNode usage. It
-// imports the python props and props_xml modules.
+// imports the python props and props_json/xml modules.
 void pyPropsInit() {
     // python property system
     pModuleProps = PyImport_ImportModule("props");
@@ -549,6 +550,13 @@ void pyPropsInit() {
         fprintf(stderr, "Failed to load 'props'\n");
     }
 
+    // Json I/O system
+    pModuleJSON = PyImport_ImportModule("props_json");
+    if (pModuleJSON == NULL) {
+        PyErr_Print();
+        fprintf(stderr, "Failed to load 'props_json'\n");
+    }
+    
     // xml I/O system
     pModuleXML = PyImport_ImportModule("props_xml");
     if (pModuleXML == NULL) {
@@ -641,6 +649,68 @@ bool readXML(string filename, pyPropertyNode *node) {
 bool writeXML(string filename, pyPropertyNode *node) {
     // getNode() function
     PyObject *pFuncSave = PyObject_GetAttrString(pModuleXML, "save");
+    if ( pFuncSave == NULL || ! PyCallable_Check(pFuncSave) ) {
+	if ( PyErr_Occurred() ) PyErr_Print();
+	fprintf(stderr, "Cannot find function 'save()'\n");
+	return false;
+    }
+    PyObject *pPath = PyString_FromString(filename.c_str());
+    if (!pPath || !node->pObj) {
+	Py_XDECREF(pPath);
+	Py_XDECREF(pFuncSave);
+	fprintf(stderr, "Cannot convert argument\n");
+	return false;
+    }
+    PyObject *pValue = PyObject_CallFunctionObjArgs(pFuncSave, pPath,
+						    node->pObj, NULL);
+    Py_DECREF(pPath);
+    Py_DECREF(pFuncSave);
+    if (pValue != NULL) {
+	// give pValue over to the returned property node
+	bool result = PyObject_IsTrue(pValue);
+	Py_DECREF(pValue);
+	return result;
+    } else {
+	PyErr_Print();
+	fprintf(stderr,"Call failed\n");
+    }
+    return false;
+}
+
+bool readJSON(string filename, pyPropertyNode *node) {
+    // getNode() function
+    PyObject *pFuncLoad = PyObject_GetAttrString(pModuleJSON, "load");
+    if ( pFuncLoad == NULL || ! PyCallable_Check(pFuncLoad) ) {
+	if ( PyErr_Occurred() ) PyErr_Print();
+	fprintf(stderr, "Cannot find function 'load()'\n");
+	return false;
+    }
+    PyObject *pPath = PyString_FromString(filename.c_str());
+    if (!pPath || !node->pObj) {
+	Py_XDECREF(pPath);
+	Py_XDECREF(pFuncLoad);
+	fprintf(stderr, "Cannot convert argument\n");
+	return false;
+    }
+    PyObject *pValue = PyObject_CallFunctionObjArgs(pFuncLoad, pPath,
+						    node->pObj, NULL);
+    Py_DECREF(pPath);
+    Py_DECREF(pFuncLoad);
+    if (pValue != NULL) {
+	// give pValue over to the returned property node
+	bool result = PyObject_IsTrue(pValue);
+	Py_DECREF(pValue);
+	return result;
+    } else {
+	PyErr_Print();
+	fprintf(stderr,"Call failed\n");
+    }
+    return false;
+}
+
+bool writeJSON(string filename, pyPropertyNode *node) {
+    // getNode() function
+    PyObject *pFuncSave = PyObject_GetAttrString(pModuleJSON, "save");
     if ( pFuncSave == NULL || ! PyCallable_Check(pFuncSave) ) {
 	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr, "Cannot find function 'save()'\n");
