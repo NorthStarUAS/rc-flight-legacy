@@ -46,22 +46,6 @@ Network config: (required before beaglebone dns lookups will actually work)
   fi
 
 
-# Beaglebone 7.9 (wheezy) setup:
-
-- /boot/uEnv.txt:
-
-    cmdline=init=/lib/systemd/systemd
-    cape_enable=capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
-    cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
-
-- alternative for /boot/uboot/uEnv.txt
-
-    ##Enable systemd
-    systemd=quiet init=/lib/systemd/systemd
-    
-    #Disable HDMI, enable some uarts
-    optargs="capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4"
-
 # Beaglebone 8.4 (jessie) setup:
 
 - /boot/uEnv.txt:
@@ -69,6 +53,22 @@ Network config: (required before beaglebone dns lookups will actually work)
     # AuraUAS
     cape_disable=bone_capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
     cape_enable=bone_capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
+
+# (depricated) Beaglebone 7.9 (wheezy) setup:
+
+  - /boot/uEnv.txt:
+
+    cmdline=init=/lib/systemd/systemd
+    cape_enable=capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
+    cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
+
+  - alternative for /boot/uboot/uEnv.txt
+
+    ##Enable systemd
+    systemd=quiet init=/lib/systemd/systemd
+    
+    #Disable HDMI, enable some uarts
+    optargs="capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4"
 
 
 # Upgrade system to latest security and bug fix patches

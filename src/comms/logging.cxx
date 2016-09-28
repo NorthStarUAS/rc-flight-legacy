@@ -230,8 +230,13 @@ void log_flush() {
 // (this allows us to later rederive the original raw sensor values.)
 bool log_imu_calibration( pyPropertyNode *config ) {
     SGPath file = flight_dir;
-    file.append( "imucal.xml" );
-    return writeXML( file.str(), config );
+    SGPath xmlfile = file;
+    xmlfile.append( "imucal.xml" );
+    writeXML( xmlfile.str(), config );
+    SGPath jsonfile = file;
+    jsonfile.append( "imucal.json" );
+    writeJSON( jsonfile.str(), config );
+    return true;
 }
 
 
@@ -239,14 +244,24 @@ bool log_imu_calibration( pyPropertyNode *config ) {
 bool log_ap_config() {
     pyPropertyNode config_props = pyGetNode( "/config/autopilot", true );
     SGPath file = flight_dir;
-    file.append( "ap-config.xml" );
-    return writeXML( file.str(), &config_props );
+    SGPath xmlfile = file;
+    xmlfile.append( "ap-config.xml" );
+    writeXML( xmlfile.str(), &config_props );
+    SGPath jsonfile = file;
+    jsonfile.append( "ap-config.json" );
+    writeJSON( jsonfile.str(), &config_props );
+    return true;
 }
 
 // write out the master configuration tree
 bool log_master_config() {
     pyPropertyNode root = pyGetNode( "/config", true );
     SGPath file = flight_dir;
-    file.append( "master-config.xml" );
-    return writeXML( file.str(), &root );
+    SGPath xmlfile = file;
+    xmlfile.append( "master-config.xml" );
+    writeXML( xmlfile.str(), &root );
+    SGPath jsonfile = file;
+    jsonfile.append( "master-config.json" );
+    writeJSON( jsonfile.str(), &root );
+    return true;
 }

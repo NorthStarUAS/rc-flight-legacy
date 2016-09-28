@@ -22,6 +22,8 @@ argparser.add_argument('--sentera', help='sentera flight log directory')
 argparser.add_argument('--cal', required=True, help='calibration log directory')
 argparser.add_argument('--imu-sn', help='specify imu serial number')
 argparser.add_argument('--resample-hz', type=float, default=100.0, help='resample rate (hz)')
+argparser.add_argument('--xmin', type=float, help='start time')
+argparser.add_argument('--xmax', type=float, help='end time')
 argparser.add_argument('--plot', action='store_true', help='plot results.')
 args = argparser.parse_args()
 
@@ -171,11 +173,18 @@ if args.imu_sn:
 if not imu_sn:
     print 'Cannot continue without an IMU serial number'
     quit()
-    
+
+if args.xmin:
+    xmin = args.xmin
+    print 'xmin provided:', xmin
 if not xmin:
     print "warning no launch event found"
     xmin = x.min()
-if not xmax:
+    
+if args.xmax:
+    xmax = args.xmax
+    print 'xmax provided:', xmax
+else:
     print "warning no land event found"
     xmax = x.max()
 
