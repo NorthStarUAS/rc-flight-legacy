@@ -60,6 +60,62 @@ static Matrix4d mag_cal;
 #define START_OF_MSG0 0x42
 #define START_OF_MSG1 0x46
 
+/* soc */
+float volt;
+uint8_t voltBuffer[sizeof(volt)];
+
+struct sbusData {
+  int mode;
+  int thrEnable;
+  float channels[14];
+  uint8_t failSafe;
+  uint16_t lostFrames;
+};
+sbusData x8rData;
+uint8_t sbusBuffer[sizeof(x8rData)];
+
+struct gpsData {
+  unsigned long   iTOW;			  ///< [ms], GPS time of the navigation epoch
+  unsigned short  utcYear;		  ///< [year], Year (UTC)
+  unsigned char   utcMonth;		  ///< [month], Month, range 1..12 (UTC)
+  unsigned char   utcDay;		  ///< [day], Day of month, range 1..31 (UTC)
+  unsigned char   utcHour;		  ///< [hour], Hour of day, range 0..23 (UTC)
+  unsigned char   utcMin;		  ///< [min], Minute of hour, range 0..59 (UTC)
+  unsigned char   utcSec;		  ///< [s], Seconds of minute, range 0..60 (UTC)
+  unsigned char   valid;		  ///< [ND], Validity flags
+  unsigned long   tAcc;			  ///< [ns], Time accuracy estimate (UTC)
+  long            utcNano;		  ///< [ns], Fraction of second, range -1e9 .. 1e9 (UTC)
+  unsigned char   fixType;		  ///< [ND], GNSSfix Type: 0: no fix, 1: dead reckoning only, 2: 2D-fix, 3: 3D-fix, 4: GNSS + dead reckoning combined, 5: time only fix
+  unsigned char   flags;		  ///< [ND], Fix status flags
+  unsigned char   flags2;		  ///< [ND], Additional flags
+  unsigned char   numSV;		  ///< [ND], Number of satellites used in Nav Solution
+  double          lon;			  ///< [deg], Longitude
+  double          lat;			  ///< [deg], Latitude
+  double          height;		  ///< [m], Height above ellipsoid 
+  double          hMSL;			  ///< [m], Height above mean sea level
+  double          hAcc;			  ///< [m], Horizontal accuracy estimate
+  double          vAcc;			  ///< [m], Vertical accuracy estimate
+  double          velN;			  ///< [m/s], NED north velocity
+  double          velE;			  ///< [m/s], NED east velocity
+  double          velD;			  ///< [m/s], NED down velocity
+  double          gSpeed;		  ///< [m/s], Ground Speed (2-D)
+  long            heading;		  ///< [deg], Heading of motion (2-D)
+  double          sAcc;			  ///< [m/s], Speed accuracy estimate
+  unsigned long   headingAcc;	  ///< [deg], Heading accuracy estimate (both motion and vehicle)
+  unsigned short  pDOP;			  ///< [ND], Position DOP
+  long			  headVeh;		  ///< [deg], Heading of vehicle (2-D)
+};
+gpsData uBloxData;
+uint8_t gpsBuffer[sizeof(uBloxData)];
+
+uint8_t raven0SensorBuffer[38];
+
+uint8_t socHeader[2] = {0x42, 0x46};
+uint8_t CK[2];
+uint8_t socBuffer[sizeof(socHeader) + sizeof(voltBuffer) + sizeof(sbusBuffer) + sizeof(gpsBuffer) - 4 + sizeof(raven0SensorBuffer) + sizeof(CK)];
+
+int pkt_len = sizeof(socBuffer);
+
 #define FLIGHT_COMMAND_PACKET_ID 23
 
 #define RAVEN_NUM_POTS 10	// must match the raven firmware
@@ -255,7 +311,7 @@ void pika_airdata_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-static bool pika_parse(uint8_t pkt_id, uint8_t pkt_len, uint8_t *buf) {
+static bool pika_parse( uint8_t *buf) {
     static double diff_sum = 0.0;
     static int diff_count = 0;
     static float diff_offset = 0.0;
@@ -314,8 +370,6 @@ static bool pika_parse(uint8_t pkt_id, uint8_t pkt_len, uint8_t *buf) {
 
 static int pika_read() {
     static int state = 0;
-    static int pkt_id = 0;
-    static int pkt_len = 0;
     static int counter = 0;
     static uint8_t cksum_A = 0, cksum_B = 0, cksum_lo = 0, cksum_hi = 0;
     int len;
@@ -332,15 +386,15 @@ static int pika_read() {
 	counter = 0;
 	cksum_A = cksum_B = 0;
 	len = read( fd, input, 1 );
-	fprintf( stderr, "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
+	printf( "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
 	//return 0;
 	
 	while ( len > 0 && input[0] != START_OF_MSG0 ) {
-	    fprintf( stderr, "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
+	    printf( "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
 	    len = read( fd, input, 1 );
 	}
 	if ( len > 0 && input[0] == START_OF_MSG0 ) {
-	    fprintf( stderr, "read START_OF_MSG0\n");
+	    printf( "read START_OF_MSG0\n");
 	    state++;
 	}
     }
@@ -348,7 +402,7 @@ static int pika_read() {
 	len = read( fd, input, 1 );
 	if ( len > 0 ) {
 	    if ( input[0] == START_OF_MSG1 ) {
-		fprintf( stderr, "read START_OF_MSG1\n");
+		printf( "read START_OF_MSG1\n");
 		state++;
 	    } else if ( input[0] == START_OF_MSG0 ) {
 		//fprintf( stderr, "read START_OF_MSG0\n");
@@ -359,33 +413,9 @@ static int pika_read() {
     }
     if ( state == 2 ) {
 	len = read( fd, input, 1 );
-	if ( len > 0 ) {
-	    pkt_id = input[0];
-	    cksum_A += input[0];
-	    cksum_B += cksum_A;
-	    //fprintf( stderr, "pkt_id = %d\n", pkt_id );
-	    state++;
-	}
-    }
-    if ( state == 3 ) {
-	len = read( fd, input, 1 );
-	if ( len > 0 ) {
-	    pkt_len = input[0];
-	    if ( pkt_len < 256 ) {
-		//fprintf( stderr, "pkt_len = %d\n", pkt_len );
-		cksum_A += input[0];
-		cksum_B += cksum_A;
-		state++;
-	    } else {
-		state = 0;
-	    }
-	}
-    }
-    if ( state == 4 ) {
-	len = read( fd, input, 1 );
 	while ( len > 0 ) {
 	    payload[counter++] = input[0];
-	    // fprintf( stderr, "%02X ", input[0] );
+	    printf( "%02X ", input[0] );
 	    cksum_A += input[0];
 	    cksum_B += cksum_A;
 	    if ( counter >= pkt_len ) {
@@ -396,28 +426,26 @@ static int pika_read() {
 
 	if ( counter >= pkt_len ) {
 	    state++;
-	    // fprintf( stderr, "\n" );
+	    printf( "\n" );
 	}
     }
-    if ( state == 5 ) {
+    if ( state == 3 ) {
 	len = read( fd, input, 1 );
 	if ( len > 0 ) {
 	    cksum_lo = input[0];
 	    state++;
 	}
     }
-    if ( state == 6 ) {
+    if ( state == 4 ) {
 	len = read( fd, input, 1 );
 	if ( len > 0 ) {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
-		// printf( "checksum passes (%d)\n", pkt_id );
-		new_data = pika_parse( pkt_id, pkt_len, payload );
+		printf( "checksum passes\n" );
+		new_data = pika_parse( payload );
 	    } else {
-		if ( display_on ) {
-		    // printf("checksum failed %d %d (computed) != %d %d (message)\n",
-		    //        cksum_A, cksum_B, cksum_lo, cksum_hi );
-		}
+		printf("checksum failed %d %d (computed) != %d %d (message)\n",
+		       cksum_A, cksum_B, cksum_lo, cksum_hi );
 	    }
 	    // this is the end of a record, reset state to 0 to start
 	    // looking for next record
@@ -426,9 +454,9 @@ static int pika_read() {
     }
 
     if ( new_data ) {
-	return pkt_id;
+	return true;
     } else {
-	return 0;
+	return false;
     }
 }
 
