@@ -10,7 +10,6 @@ class L1Controller():
         self.port = port
         self.original_values = [ "30", "15", "0.7" ]
         self.container = self.make_page()
-        self.xml = None
 
     def onChange(self):
         self.changefunc()
@@ -80,11 +79,10 @@ class L1Controller():
             parent = self.xml
         return parent.find(child)
 
-    def parse_xml(self, node):
-        self.xml = node
-        self.edit_bank_limit.setText(self.get_value('bank_limit_deg'))
-        self.edit_L1_period.setText(self.get_value('period'))
-        self.edit_L1_damping.setText(self.get_value('damping'))
+    def parse(self, node):
+        self.edit_bank_limit.setText(node.getString('bank_limit_deg'))
+        self.edit_L1_period.setText(node.getString('period'))
+        self.edit_L1_damping.setText(node.getString('damping'))
         self.original_values = self.value_array()
 
     def value_array(self):

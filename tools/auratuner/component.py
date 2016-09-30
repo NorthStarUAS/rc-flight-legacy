@@ -39,7 +39,6 @@ class Component():
         self.port = port
         self.type = type
         self.container = self.make_page()
-        self.xml = None
         self.fields = PlotFields()
 
     def onChange(self):
@@ -148,68 +147,45 @@ class Component():
     def get_name(self):
         return self.edit_name.text()
 
-    def get_value(self, child, parent=None):
-        if parent == None:
-            parent = self.xml
-        e = parent.find(child)
-        if e != None and e.text != None:
-            return e.text
-        else:
-            return ""
-
-    def get_node(self, child, parent=None):
-        if parent == None:
-            parent = self.xml
-        return parent.find(child)
-
-    def parse_xml(self, node):
-        self.xml = node
-        self.edit_name.setText(self.get_value('name'))
-        self.edit_desc.setText(self.get_value('description'))
-        tmp = self.get_node('input')
-        if tmp != None:
-            self.edit_input.setText(self.get_value('prop', parent=tmp))
-        tmp = self.get_node('reference')
-        if tmp != None:
-            self.edit_ref.setText(self.get_value('prop', parent=tmp))
-        tmp = self.get_node('output')
-        if tmp != None:
-            self.edit_output.setText(self.get_value('prop', parent=tmp))
-        tmp = self.get_node('config')
-        if tmp != None:
-            self.edit_Kp.setText(self.get_value('Kp', parent=tmp))
-            if self.type == "pid":
-                self.edit_Ti.setText(self.get_value('Ti', parent=tmp))
-                self.edit_Td.setText(self.get_value('Td', parent=tmp))
-            elif self.type == "vel":
-                self.edit_beta.setText(self.get_value('beta', parent=tmp))
-                self.edit_alpha.setText(self.get_value('alpha', parent=tmp))
-                self.edit_gamma.setText(self.get_value('gamma', parent=tmp))
-                self.edit_Ti.setText(self.get_value('Ti', parent=tmp))
-                self.edit_Td.setText(self.get_value('Td', parent=tmp))
-            self.edit_min.setText(self.get_value('u_min', parent=tmp))
-            self.edit_max.setText(self.get_value('u_max', parent=tmp))
+    def parse(self, node):
+        self.edit_name.setText(node.getString('name'))
+        self.edit_desc.setText(node.getString('description'))
+        tmp = node.getChild('input', True)
+        self.edit_input.setText(tmp.getString('prop'))
+        tmp = node.getChild('reference', True)
+        self.edit_ref.setText(tmp.getString('prop'))
+        tmp = node.getChild('output', True)
+        self.edit_output.setText(tmp.getString('prop'))
+        tmp = node.getChild('config', True)
+        self.edit_Kp.setText(tmp.getString('Kp'))
+        if self.type == "pid":
+            self.edit_Ti.setText(tmp.getString('Ti'))
+            self.edit_Td.setText(tmp.getString('Td'))
+        elif self.type == "vel":
+            self.edit_beta.setText(tmp.getString('beta'))
+            self.edit_alpha.setText(tmp.getString('alpha'))
+            self.edit_gamma.setText(tmp.getString('gamma'))
+            self.edit_Ti.setText(tmp.getString('Ti'))
+            self.edit_Td.setText(tmp.getString('Td'))
+        self.edit_min.setText(tmp.getString('u_min'))
+        self.edit_max.setText(tmp.getString('u_max'))
         self.original_values = self.value_array()
 
     def value_array(self):
-        tmp = self.get_node('config')
-        if tmp != None:
-            result = []
-            result.append( str(self.edit_Kp.text()) )
-            if self.type == "pid":
-                result.append( str(self.edit_Ti.text()) )
-                result.append( str(self.edit_Td.text()) )
-            elif self.type == "vel":
-                result.append( str(self.edit_beta.text()) )
-                result.append( str(self.edit_alpha.text()) )
-                result.append( str(self.edit_gamma.text()) )
-                result.append( str(self.edit_Ti.text()) )
-                result.append( str(self.edit_Td.text()) )
-            result.append( str(self.edit_min.text()) )
-            result.append( str(self.edit_max.text()) )
-            return result
-        else:
-            return None
+        result = []
+        result.append( str(self.edit_Kp.text()) )
+        if self.type == "pid":
+            result.append( str(self.edit_Ti.text()) )
+            result.append( str(self.edit_Td.text()) )
+        elif self.type == "vel":
+            result.append( str(self.edit_beta.text()) )
+            result.append( str(self.edit_alpha.text()) )
+            result.append( str(self.edit_gamma.text()) )
+            result.append( str(self.edit_Ti.text()) )
+            result.append( str(self.edit_Td.text()) )
+        result.append( str(self.edit_min.text()) )
+        result.append( str(self.edit_max.text()) )
+        return result
 
     def update(self):
         command = "fcs-update " + str(self.index)

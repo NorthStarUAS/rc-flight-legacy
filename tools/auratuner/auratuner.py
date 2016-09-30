@@ -14,7 +14,9 @@ started: March 2014
 import os.path
 import sys
 from PyQt4 import QtGui, QtCore
-import lxml.etree as ET
+
+from props import root, getNode
+import props_json
 
 from component import Component
 from L1 import L1Controller
@@ -69,7 +71,7 @@ class Tuner(QtGui.QWidget):
 
         if filename == "":
             error = QtGui.QErrorMessage(self)
-            error.showMessage( "Error, you must specify an autopilot.xml config file name" )
+            error.showMessage( "Error, you must specify an autopilot config file name" )
             return
         elif not os.path.exists(filename):
             error = QtGui.QErrorMessage(self)
@@ -77,31 +79,31 @@ class Tuner(QtGui.QWidget):
             return
 
         try:
-            self.xml = ET.parse(filename)
+            props_json.load(filename, root)
         except:
             error = QtGui.QErrorMessage(self)
-            error.showMessage( filename + ": xml parse error:\n"
+            error.showMessage( filename + ": parse error:\n"
                                + str(sys.exc_info()[1]) )
             return
 
         self.filename = str(filename)
         self.fileroot, ext = os.path.splitext(self.filename)
 
-        root = self.xml.getroot()
-
         # Route follow parameters
         self.L1 = L1Controller(changefunc=self.onChange, host=host, port=port)
-        self.L1.parse_xml( root.find('L1_controller') )
+        L1_node = getNode('/L1_controller', create=True)
+        self.L1.parse( L1_node )
         self.tabs.addTab( self.L1.get_widget(), "L1" )
 
         # PID controller parameters
-        for i,pid_node in enumerate(root.findall('component')):
-            e = pid_node.find('module')
-            if e != None and e.text != None:
-                comp_type = e.text
-            else:
-                comp_type = 'unknown'
-            print "component found:", comp_type
+        print root.getChild('component')
+        len = root.getLen('component')
+        #comp_node = getNode('/component', create=True)
+        for i in range(len):
+            node_name = 'component[%d]' % i
+            print node_name
+            node = root.getChild(node_name)
+            comp_type = node.getString('module')
             if comp_type == 'pid_component':
                 pid = Component(index=i, changefunc=self.onChange, host=host,
                                 port=port, type="pid")
@@ -111,7 +113,7 @@ class Tuner(QtGui.QWidget):
             else:
                 print "unknown ..."
                 next
-            pid.parse_xml(pid_node)
+            pid.parse(node)
             self.components.append(pid)
             self.tabs.addTab( pid.get_widget(), pid.get_name() )
 
