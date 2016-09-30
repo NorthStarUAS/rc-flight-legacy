@@ -30,6 +30,7 @@ using std::vector;
 #include "sensors/Goldy2.hxx"
 #include "sensors/imu_vn100_spi.hxx"
 #include "sensors/imu_vn100_uart.hxx"
+#include "sensors/pika.hxx"
 #include "sensors/ugfile.hxx"
 
 #include "imu_mgr.hxx"
@@ -81,12 +82,14 @@ void IMU_init() {
 	    // do nothing
 	} else if ( source == "APM2" ) {
 	    APM2_imu_init( output_path.str(), &section );
-	} else if ( source == "Goldy2" ) {
-	    goldy2_imu_init( output_path.str(), &section );
 	} else if ( source == "fgfs" ) {
 	    fgfs_imu_init( output_path.str(), &section );
 	} else if ( source == "file" ) {
 	    ugfile_imu_init( output_path.str(), &section );
+	} else if ( source == "Goldy2" ) {
+	    goldy2_imu_init( output_path.str(), &section );
+	} else if ( source == "pika" ) {
+	    pika_imu_init( output_path.str(), &section );
 	} else if ( source == "vn100" ) {
 	    imu_vn100_uart_init( output_path.str(), &section );
 	} else if ( source == "vn100-spi" ) {
@@ -120,13 +123,15 @@ bool IMU_update() {
 	    // do nothing
 	} else if ( source == "APM2" ) {
 	    fresh_data = APM2_imu_update();
-	} else if ( source == "Goldy2" ) {
-	    fresh_data = goldy2_imu_update();
 	} else if ( source == "fgfs" ) {
 	    fresh_data = fgfs_imu_update();
 	} else if ( source == "file" ) {
 	    ugfile_read();
 	    fresh_data = ugfile_get_imu();
+	} else if ( source == "Goldy2" ) {
+	    fresh_data = goldy2_imu_update();
+	} else if ( source == "pika" ) {
+	    fresh_data = pika_imu_update();
 	} else if ( source == "vn100" ) {
 	    fresh_data = imu_vn100_uart_get();
 	} else if ( source == "vn100-spi" ) {
@@ -199,12 +204,14 @@ void IMU_close() {
 	    // do nothing
 	} else if ( source == "APM2" ) {
 	    APM2_imu_close();
-	} else if ( source == "Goldy2" ) {
-	    goldy2_imu_close();
 	} else if ( source == "fgfs" ) {
 	    fgfs_imu_close();
 	} else if ( source == "file" ) {
 	    ugfile_close();
+	} else if ( source == "Goldy2" ) {
+	    goldy2_imu_close();
+	} else if ( source == "pika" ) {
+	    pika_imu_close();
 	} else if ( source == "vn100" ) {
 	    imu_vn100_uart_close();
 	} else if ( source == "vn100-spi" ) {

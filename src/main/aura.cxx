@@ -52,13 +52,15 @@ using std::string;
 #include "sensors/APM2.hxx"
 #include "sensors/FGFS.hxx"
 #include "sensors/Goldy2.hxx"
+#include "sensors/pika.hxx"
 
 // sync modes
 enum SyncMode {
     SYNC_NONE,
     SYNC_APM2,
     SYNC_FGFS,
-    SYNC_GOLDY2
+    SYNC_GOLDY2,
+    SYNC_PIKA
 };
 
 //
@@ -126,6 +128,8 @@ void main_work_loop()
 	dt = FGFS_update();
     } else if ( sync_source == SYNC_GOLDY2 ) {
 	dt = goldy2_update();
+    } else if ( sync_source == SYNC_PIKA ) {
+	dt = pika_update();
     }
     status_node.setDouble("frame_time", imu_node.getDouble( "timestamp" ));
     status_node.setDouble("dt", dt);
@@ -467,6 +471,8 @@ int main( int argc, char **argv )
 	    sync_source = SYNC_FGFS;
 	} else if ( source == "Goldy2" ) {
 	    sync_source = SYNC_GOLDY2;
+	} else if ( source == "pika" ) {
+	    sync_source = SYNC_PIKA;
 	}
     }
     
