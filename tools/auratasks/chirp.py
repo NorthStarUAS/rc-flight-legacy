@@ -12,7 +12,6 @@ class Chirp():
         self.port = port
         self.original_values = [ "0.5", "7", "20", "5", "aileron" ]
         self.container = self.make_page()
-        self.xml = None
 
     def onChange(self):
         self.changefunc()

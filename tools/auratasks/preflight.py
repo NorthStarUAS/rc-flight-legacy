@@ -11,7 +11,6 @@ class Preflight():
         self.port = port
         self.original_values = [ "60" ]
         self.container = self.make_page()
-        self.xml = None
 
     def onChange(self):
         self.changefunc()

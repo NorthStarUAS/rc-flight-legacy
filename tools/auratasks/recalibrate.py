@@ -11,7 +11,6 @@ class Recalibrate():
         self.port = port
         self.original_values = []
         self.container = self.make_page()
-        self.xml = None
 
     def onChange(self):
         self.changefunc()

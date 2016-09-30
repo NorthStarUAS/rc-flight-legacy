@@ -11,7 +11,6 @@ class Circle():
         self.port = port
         self.original_values = [ "", "", "left", "100" ]
         self.container = self.make_page()
-        self.xml = None
 
     def onChange(self):
         self.changefunc()

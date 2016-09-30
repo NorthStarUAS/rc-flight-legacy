@@ -11,7 +11,6 @@ class Launch():
         self.port = port
         self.original_values = [ "20", "150", "300", "0.5", "10.0", "True", "-0.03", "0.5" ]
         self.container = self.make_page()
-        self.xml = None
 
     def onChange(self):
         self.changefunc()

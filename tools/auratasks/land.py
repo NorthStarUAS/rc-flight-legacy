@@ -11,7 +11,6 @@ class Land():
         self.port = port
         self.original_values = [ "0", "5", "75", "left", "50", "10", "25", "0", "5" ]
         self.container = self.make_page()
-        self.xml = None
 
     def onChange(self):
         self.changefunc()
@@ -224,9 +223,11 @@ class Land():
         if len(az):
             cmd += "," + az
         if self.port != 6499:
-            t.send(str("send " + cmd))
+            cmd = 'send ' + cmd
         else:
-            t.send(str("set /task/command_request " + cmd))
+            cmd = 'set /task/command_request ' + cmd
+        print 'sending:', cmd
+        t.send(str(cmd))
         t.quit()
 
     def task_resume(self):
