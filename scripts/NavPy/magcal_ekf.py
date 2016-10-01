@@ -21,7 +21,7 @@ argparser.add_argument('--flight', help='flight log directory')
 argparser.add_argument('--sentera', help='sentera flight log directory')
 argparser.add_argument('--cal', required=True, help='calibration log directory')
 argparser.add_argument('--imu-sn', help='specify imu serial number')
-argparser.add_argument('--resample-hz', type=float, default=100.0, help='resample rate (hz)')
+argparser.add_argument('--resample-hz', type=float, default=5.0, help='resample rate (hz)')
 argparser.add_argument('--xmin', type=float, help='start time')
 argparser.add_argument('--xmax', type=float, help='end time')
 argparser.add_argument('--plot', action='store_true', help='plot results.')
@@ -184,7 +184,7 @@ if not xmin:
 if args.xmax:
     xmax = args.xmax
     print 'xmax provided:', xmax
-else:
+if not xmax:
     print "warning no land event found"
     xmax = x.max()
 

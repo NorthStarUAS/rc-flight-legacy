@@ -4,8 +4,12 @@ import numpy as np
 import os.path
 import sys
 
+from props import PropertyNode, root, getNode
+import props_json
+import props_xml
+
 class Calibration():
-    def __init__(self, cal_file=None):
+    def __init__(self):
         self.valid = False
         # defined temp range
         self.min_temp = 27.0
@@ -26,158 +30,138 @@ class Calibration():
         self.az_scale = np.array([0.0, 0.0, 1.0])
         self.mag_affine = np.identity(4)
         self.mag_affine_inv = np.linalg.inv(self.mag_affine)
-        if cal_file:
-            self.load(cal_file)
 
-    def myfloat(self, input):
-        if input == "":
-            return 0.0
-        else:
-            return float(input)
-        
     # load/parse an xml calibration file
-    def load_xml(self, cal_file):
+    def load(self, cal_file):
+        config = PropertyNode()
         try:
-            self.xml = ET.parse(str(cal_file))
+            if props_json.load(cal_file, config):
+                self.valid = True
+            else:
+                return False
         except:
-            print cal_file + ": xml parse error:\n" + str(sys.exc_info()[1])
+            print cal_file + ": load error:\n" + str(sys.exc_info()[1])
             return False
-        root = self.xml.getroot()
-        self.min_temp = self.myfloat(root.find('min_temp_C').text)
-        self.max_temp = self.myfloat(root.find('max_temp_C').text)
         
-        node = root.find('p')
-        if len(node):
-            p1, p2, p3 = node.find('bias').text.split()
+        self.min_temp = config.getFloat('min_temp_C')
+        self.max_temp = config.getFloat('max_temp_C')
+        
+        node = config.getChild('p')
+        if node:
+            p1, p2, p3 = node.getString('bias').split()
             self.p_bias = np.array([p1, p2, p3], dtype=np.float64)
-            p1, p2, p3 = node.find('scale').text.split()
+            p1, p2, p3 = node.getString('scale').split()
             self.p_scale = np.array([p1, p2, p3], dtype=np.float64)
 
-        node = root.find('q')
-        if len(node):
-            p1, p2, p3 = node.find('bias').text.split()
+        node = config.getChild('q')
+        if node:
+            p1, p2, p3 = node.getString('bias').split()
             self.q_bias = np.array([p1, p2, p3], dtype=np.float64)
-            p1, p2, p3 = node.find('scale').text.split()
+            p1, p2, p3 = node.getString('scale').split()
             self.q_scale = np.array([p1, p2, p3], dtype=np.float64)
 
-        node = root.find('r')
-        if len(node):
-            p1, p2, p3 = node.find('bias').text.split()
+        node = config.getChild('r')
+        if node:
+            p1, p2, p3 = node.getString('bias').split()
             self.r_bias = np.array([p1, p2, p3], dtype=np.float64)
-            p1, p2, p3 = node.find('scale').text.split()
+            p1, p2, p3 = node.getString('scale').split()
             self.r_scale = np.array([p1, p2, p3], dtype=np.float64)
 
-        node = root.find('ax')
-        if len(node):
-            p1, p2, p3 = node.find('bias').text.split()
+        node = config.getChild('ax')
+        if node:
+            p1, p2, p3 = node.getString('bias').split()
             self.ax_bias = np.array([p1, p2, p3], dtype=np.float64)
-            p1, p2, p3 = node.find('scale').text.split()
+            p1, p2, p3 = node.getString('scale').split()
             self.ax_scale = np.array([p1, p2, p3], dtype=np.float64)
 
-        node = root.find('ay')
-        if len(node):
-            p1, p2, p3 = node.find('bias').text.split()
+        node = config.getChild('ay')
+        if node:
+            p1, p2, p3 = node.getString('bias').split()
             self.ay_bias = np.array([p1, p2, p3], dtype=np.float64)
-            p1, p2, p3 = node.find('scale').text.split()
+            p1, p2, p3 = node.getString('scale').split()
             self.ay_scale = np.array([p1, p2, p3], dtype=np.float64)
 
-        node = root.find('az')
-        if len(node):
-            p1, p2, p3 = node.find('bias').text.split()
+        node = config.getChild('az')
+        if node:
+            p1, p2, p3 = node.getString('bias').split()
             self.az_bias = np.array([p1, p2, p3], dtype=np.float64)
-            p1, p2, p3 = node.find('scale').text.split()
+            p1, p2, p3 = node.getString('scale').split()
             self.az_scale = np.array([p1, p2, p3], dtype=np.float64)
 
-        node = root.find('mag_affine')
-        if node != None:
+        tokens = config.getString('mag_affine').split()
+        if len(tokens) == 16:
             r = 0
             c = 0
-            tokens = node.text.split()
-            if len(tokens) == 16:
-                for i, x in enumerate(tokens):
-                    self.mag_affine[r,c] = float(x)
-                    c += 1
-                    if c > 3:
-                        c = 0
-                        r += 1
-                self.mag_affine_inv = np.linalg.inv(self.mag_affine)
-            else:
-                print "mag_affine requires 16 values"
-            #print 'mag_affine:\n', self.mag_affine
-            #print 'mag_affine_inv:\n', self.mag_affine_inv
+            for i, x in enumerate(tokens):
+                self.mag_affine[r,c] = float(x)
+                c += 1
+                if c > 3:
+                    c = 0
+                    r += 1
+            self.mag_affine_inv = np.linalg.inv(self.mag_affine)
+        else:
+            print "mag_affine requires 16 values"
+        #print 'mag_affine:\n', self.mag_affine
+        #print 'mag_affine_inv:\n', self.mag_affine_inv
 
         return True
     
-    def load(self, cal_file):
-        extension = os.path.splitext(cal_file)[1]
-        if extension == ".xml":
-            if os.path.exists(cal_file):
-                if self.load_xml(cal_file):
-                    self.valid = True
-            else:
-                print 'no cal file found'
-        else:
-            print 'Unknown cal file extenstion:', extension
-            quit()
-            
     def update_node(self, parent, node, value):
         e = parent.find(node)
         if e == None:
             e = ET.SubElement(parent, node)
         e.text = str(value)
 
-        # save a configuration file
-    def save_xml(self, cal_file):
-        root = ET.Element('PropertyList')
-        self.update_node(root, 'min_temp_C', self.min_temp)
-        self.update_node(root, 'max_temp_C', self.max_temp)
+    # save a configuration file
+    def save(self, cal_file):
+        config = PropertyNode()
+        config.setFloat('min_temp_C', self.min_temp)
+        config.setFloat('max_temp_C', self.max_temp)
 
-        sensor = ET.SubElement(root, 'p')
+        node = config.getChild('p', create=True)
         p = self.p_bias
-        self.update_node(sensor, 'bias', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
+        node.setString('bias', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
         p = self.p_scale
-        self.update_node(sensor, 'scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
+        node.setString('scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
 
-        sensor = ET.SubElement(root, 'q')
+        node = config.getChild('q', create=True)
         p = self.q_bias
-        self.update_node(sensor, 'bias', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
+        node.setString('bias', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
         p = self.q_scale
-        self.update_node(sensor, 'scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
+        node.setString('scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
 
-        sensor = ET.SubElement(root, 'r')
+        node = config.getChild('r', create=True)
         p = self.r_bias
-        self.update_node(sensor, 'bias', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
+        node.setString('bias', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
         p = self.r_scale
-        self.update_node(sensor, 'scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
+        node.setString('scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
 
-        sensor = ET.SubElement(root, 'ax')
+        node = config.getChild('ax', create=True)
         p = self.ax_bias
-        self.update_node(sensor, 'bias', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
+        node.setString('bias', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
         p = self.ax_scale
-        self.update_node(sensor, 'scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
+        node.setString('scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
 
-        sensor = ET.SubElement(root, 'ay')
+        node = config.getChild('ay', create=True)
         p = self.ay_bias
-        self.update_node(sensor, 'bias', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
+        node.setString('bias', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
         p = self.ay_scale
-        self.update_node(sensor, 'scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
+        node.setString('scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
 
-        sensor = ET.SubElement(root, 'az')
+        node = config.getChild('az', create=True)
         p = self.az_bias
-        self.update_node(sensor, 'bias', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
+        node.setString('bias', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
         p = self.az_scale
-        self.update_node(sensor, 'scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
+        node.setString('scale', "%.8f %.8f %.8f" % (p[0], p[1], p[2]))
 
         affine_str = []
         for x in self.mag_affine.flat:
             affine_str.append('%.10f' % x)
         print ' '.join(affine_str)
-        self.update_node(root, 'mag_affine', ' '.join(affine_str))
+        config.setString('mag_affine', ' '.join(affine_str))
         
-        self.xml = ET.ElementTree(root)
         try:
-            self.xml.write(cal_file, encoding="us-ascii",
-                           xml_declaration=False, pretty_print=True)
+            props_json.save(cal_file, config)
         except:
             print "error saving " + cal_file + ": " + str(sys.exc_info()[1])
             return

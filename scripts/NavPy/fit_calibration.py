@@ -17,7 +17,7 @@ argparser.add_argument('--cal-dir', required=True, help='calibration directory')
 argparser.add_argument('--imu-model', required=True, help='goldy or apm2')
 args = argparser.parse_args()
 
-cal_file = os.path.join(args.cal_dir, "imucal.xml")
+cal_file = os.path.join(args.cal_dir, "imucal.json")
 
 bias_files = []
 # find all the *-imubias.txt files in the given tree
@@ -73,7 +73,10 @@ if len(mag_data) == 0:
 
 # =========================== Results ===============================
 nosave = imucal.Calibration()
-cal = imucal.Calibration(cal_file)
+cal = imucal.Calibration()
+if not cal.load(cal_file):
+    print "no existing calibration file found"
+    quit()
 
 # select which components to update
 if args.imu_model == 'apm2':
@@ -139,7 +142,7 @@ if len(mag_data):
     print ' trans:', translate
     print ' persp:', perspective
 
-cal.save_xml(cal_file)
+cal.save(cal_file)
 
    
 # ============================= PLOTS ======================================
