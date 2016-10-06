@@ -528,17 +528,16 @@ def pack_act_text(index, delim=','):
 def unpack_act_v1(buf):
     result = struct.unpack(act_v1_fmt, buf)
     act_node.setFloat("timestamp", result[0])
-    act_node.setFloatEnum("aileron", result[1] / 30000.0)
-    act_node.setFloatEnum("elevator", result[2] / 30000.0)
-    act_node.setFloatEnum("throttle", result[3] / 60000.0)
-    act_node.setFloatEnum("rudder", result[4] / 30000.0)
-    act_node.setFloatEnum("channel5", result[5] / 30000.0)
-    act_node.setFloatEnum("flaps", result[6] / 30000.0)
-    act_node.setFloatEnum("channel7", result[7] / 30000.0)
-    act_node.setFloatEnum("channel8", result[8] / 30000.0)
+    act_node.setFloat("aileron", result[1] / 30000.0)
+    act_node.setFloat("elevator", result[2] / 30000.0)
+    act_node.setFloat("throttle", result[3] / 60000.0)
+    act_node.setFloat("rudder", result[4] / 30000.0)
+    act_node.setFloat("channel5", result[5] / 30000.0)
+    act_node.setFloat("flaps", result[6] / 30000.0)
+    act_node.setFloat("channel7", result[7] / 30000.0)
+    act_node.setFloat("channel8", result[8] / 30000.0)
     act_node.setInt("status", result[9])
-
-    return index
+    return 0
 
 def unpack_act_v2(buf):
     result = struct.unpack(act_v2_fmt, buf)
