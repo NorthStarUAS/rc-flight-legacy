@@ -78,7 +78,8 @@ if args.no_back_correct:
     imu_raw = imu_data
 else:
     print 'back correcting imu data (to get original raw values)'
-    cal = imucal.Calibration(imucal_file)
+    cal = imucal.Calibration()
+    cal.load(imucal_file)
     imu_raw = cal.back_correct(imu_data)
 
 # Read the events file for IMU make / serial number

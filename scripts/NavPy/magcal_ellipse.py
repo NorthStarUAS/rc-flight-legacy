@@ -153,22 +153,6 @@ if args.resample_hz:
 else:
     sense_array = imu_array[:,7:10]
     
-# write calibration data to file (so we can aggregate over
-# multiple flights later
-if args.flight:
-    data_dir = os.path.abspath(args.flight)
-elif args.sentera:
-    data_dir = os.path.abspath(args.sentera)
-
-# filename = os.path.basename(data_dir) + "-mags.txt"
-# mags_file = os.path.join(cal_dir, filename)
-# print "mags file:", mags_file
-# f = open(mags_file, 'w')
-# for i in range(sense_array.shape[0]):
-#     f.write( "%.4f %.4f %.4f 0.0 0.0 0.0\n" %
-#              (sense_array[i][0], sense_array[i][1], sense_array[i][2]))
-# f.close()
-
 # test
 import mag
 m = mag.Magnetometer(F=1.0)
@@ -199,10 +183,11 @@ print ' persp:', perspective
 cal_dir = os.path.join(args.cal, imu_sn)
 if not os.path.exists(cal_dir):
     os.makedirs(cal_dir)
-cal_file = os.path.join(cal_dir, "imucal.xml")
-cal = imucal.Calibration(cal_file)
+cal_file = os.path.join(cal_dir, "imucal.json")
+cal = imucal.Calibration()
+cal.load(cal_file)
 cal.mag_affine = affine
-cal.save_xml(cal_file)
+cal.save(cal_file)
    
 # generate affine mapping
 af_data = []
@@ -216,6 +201,26 @@ for i, s in enumerate(sense_array):
     #print '  ef:', ef_array[i]
     #print '  af:', af[:3]
 af_array = np.array(af_data)
+
+# write calibration data points to file (so we can aggregate over
+# multiple flights later
+if args.flight:
+    data_dir = os.path.abspath(args.flight)
+elif args.sentera:
+    data_dir = os.path.abspath(args.sentera)
+    
+cal_dir = os.path.join(args.cal, imu_sn)
+if not os.path.exists(cal_dir):
+    os.makedirs(cal_dir)
+filename = os.path.basename(data_dir) + "-mags.txt"
+mags_file = os.path.join(cal_dir, filename)
+print "mags file:", mags_file
+f = open(mags_file, 'w')
+for i in range(sense_array.shape[0]):
+    f.write( "%.4f %.4f %.4f %.4f %.4f %.4f\n" %
+             (sense_array[i][0], sense_array[i][1], sense_array[i][2],
+              af_array[i][0], af_array[i][1], af_array[i][2]))
+f.close()
 
 if args.plot:
     cal_fig, cal_mag = plt.subplots(3, sharex=True)

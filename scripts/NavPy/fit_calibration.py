@@ -158,6 +158,9 @@ def gen_func( coeffs, min, max, steps ):
         yvals.append(y)
     return xvals, yvals
 
+if min_temp == None: min_temp = 27.0
+if max_temp == None: max_temp = 27.0
+
 if True:
     cal_fig, cal_gyro = plt.subplots(3, sharex=True)
     xvals, yvals = gen_func(cal.p_bias, min_temp, max_temp, 100)
