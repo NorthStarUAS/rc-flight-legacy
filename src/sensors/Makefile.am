@@ -17,7 +17,8 @@ libsensors_a_SOURCES = \
 	FGFS.cxx FGFS.hxx \
 	Goldy2.cxx Goldy2.hxx \
 	pika.hxx pika.cxx \
-	raven.hxx raven.cxx \
+	raven1.hxx raven1.cxx \
+	raven2.hxx raven2.cxx \
 	ugfile.cxx ugfile.hxx \
 	util_goldy2.cxx util_goldy2.hxx
 

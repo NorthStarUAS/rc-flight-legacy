@@ -1,5 +1,5 @@
 /**
- *  \file: airdata_uart.cxx
+ *  \file: raven2.cxx
  *
  * Driver for the Bolder Flight Systems airdata module (build on AMSYS pressure
  * sensors.)
@@ -24,7 +24,7 @@
 #include "util/strutils.hxx"
 #include "util/timing.h"
 
-#include "raven.hxx"
+#include "raven2.hxx"
 
 
 // property nodes
@@ -54,8 +54,8 @@ static double airspeed_zero_start_time = 0.0;
 #define PWM_MIN (PWM_CENTER - PWM_HALF_RANGE)
 #define PWM_MAX (PWM_CENTER + PWM_HALF_RANGE)
 
-static string act_input[RAVEN_NUM_ACTS];
-static float act_gain[RAVEN_NUM_ACTS];
+static string raven2_act_input[RAVEN_NUM_ACTS];
+static float raven2_act_gain[RAVEN_NUM_ACTS];
 
 
 // initialize gpsd input property nodes
@@ -69,7 +69,7 @@ static void bind_airdata_input( pyPropertyNode *config ) {
 // initialize imu output property nodes 
 static void bind_airdata_output( string output_path ) {
     airdata_node = pyGetNode(output_path, true);
-    airdata_node.setString("module", "raven");
+    airdata_node.setString("module", "raven2");
     airdata_node.setLen("pots", RAVEN_NUM_POTS, 0.0);
     airdata_node.setLen("ains", RAVEN_NUM_AINS, 0.0);
 }
@@ -82,13 +82,13 @@ static void bind_act_nodes() {
 
 
 // open the uart
-static bool raven_open() {
+static bool raven2_open() {
     if ( master_opened ) {
 	return true;
     }
     
     if ( display_on ) {
-	printf("raven on %s @ 115,200\n", device_name.c_str());
+	printf("raven2 on %s @ 115,200\n", device_name.c_str());
     }
 
     fd = open( device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
@@ -137,15 +137,15 @@ static bool raven_open() {
 }
 
 
-void raven_airdata_init( string output_path, pyPropertyNode *config ) {
+void raven2_airdata_init( string output_path, pyPropertyNode *config ) {
     bind_airdata_input( config );
     bind_airdata_output( output_path );
 
-    raven_open();
+    raven2_open();
 }
 
 
-static bool raven_parse(uint8_t pkt_id, uint8_t pkt_len, uint8_t *buf) {
+static bool raven2_parse(uint8_t pkt_id, uint8_t pkt_len, uint8_t *buf) {
     static double diff_sum = 0.0;
     static int diff_count = 0;
     static float diff_offset = 0.0;
@@ -202,7 +202,7 @@ static bool raven_parse(uint8_t pkt_id, uint8_t pkt_len, uint8_t *buf) {
 }
 
 
-static int raven_read() {
+static int raven2_read() {
     static int state = 0;
     static int pkt_id = 0;
     static int pkt_len = 0;
@@ -302,7 +302,7 @@ static int raven_read() {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// printf( "checksum passes (%d)\n", pkt_id );
-		new_data = raven_parse( pkt_id, pkt_len, payload );
+		new_data = raven2_parse( pkt_id, pkt_len, payload );
 	    } else {
 		if ( display_on ) {
 		    // printf("checksum failed %d %d (computed) != %d %d (message)\n",
@@ -323,11 +323,11 @@ static int raven_read() {
 }
 
 
-bool raven_airdata_update() {
+bool raven2_airdata_update() {
     // scan for new messages
     bool data_valid = false;
 
-    while ( raven_read() ) {
+    while ( raven2_read() ) {
 	data_valid = true;
     }
 
@@ -335,7 +335,7 @@ bool raven_airdata_update() {
  }
 
 
-void raven_airdata_close() {
+void raven2_airdata_close() {
     close(fd);
 }
 
@@ -381,7 +381,7 @@ static void raven_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size,
 }
 
 
-static bool raven_act_write() {
+static bool raven2_act_write() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 2 * RAVEN_NUM_ACTS;
@@ -401,8 +401,8 @@ static bool raven_act_write() {
     int val;
 
     for ( int i = 0; i < RAVEN_NUM_ACTS; i++ ) {
-	val = gen_pulse( act_node.getDouble(act_input[i].c_str())
-			 * act_gain[i], true );
+	val = gen_pulse( act_node.getDouble(raven2_act_input[i].c_str())
+			 * raven2_act_gain[i], true );
 	*(uint16_t *)packet = val; packet += 2;
     }
     
@@ -418,7 +418,7 @@ static bool raven_act_write() {
 }
 
 
-bool raven_act_init( pyPropertyNode *section ) {
+bool raven2_act_init( pyPropertyNode *section ) {
     bind_act_nodes();
 
     int inputs = section->getLen("channel");
@@ -426,13 +426,13 @@ bool raven_act_init( pyPropertyNode *section ) {
     for ( int i = 0; i < inputs; i++ ) {
 	pyPropertyNode channel = section->getChild("channel", i);
 	if ( !channel.isNull() ) {
-	    act_input[i] = channel.getString("input");
-	    act_gain[i] = channel.getDouble("gain");
-	    printf(" channel: %d = %s (%.2f)\n", i, act_input[i].c_str(), act_gain[i]);
+	    raven2_act_input[i] = channel.getString("input");
+	    raven2_act_gain[i] = channel.getDouble("gain");
+	    printf(" channel: %d = %s (%.2f)\n", i, raven2_act_input[i].c_str(), raven2_act_gain[i]);
 	}
     }
 
-    if ( ! raven_open() ) {
+    if ( ! raven2_open() ) {
 	return false;
     }
 
@@ -440,13 +440,13 @@ bool raven_act_init( pyPropertyNode *section ) {
 }
 
 
-bool raven_act_update() {
+bool raven2_act_update() {
     // send actuator commands to APM2 servo subsystem
-    raven_act_write();
+    raven2_act_write();
 
     return true;
 }
 
-void raven_act_close() {
+void raven2_act_close() {
     // no-op
 }
