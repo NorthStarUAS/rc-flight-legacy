@@ -512,7 +512,6 @@ def pack_act_v2(index):
     return buf
 
 def pack_act_text(index, delim=','):
-    act_node = getNode('/actuators/actuator[%d]' % index, True)
     data = [ '%.4f' % act_node.getFloat('timestamp'),
 	     '%.3f' % act_node.getFloat('aileron'),
 	     '%.3f' % act_node.getFloat('elevator'),
@@ -541,24 +540,17 @@ def unpack_act_v1(buf):
 
 def unpack_act_v2(buf):
     result = struct.unpack(act_v2_fmt, buf)
-    
     index = result[0]
-    if index >= len(airdata_nodes):
-        for i in range(len(airdata_nodes),index+1):
-            path = '/sensors/airdata[%d]' % i
-            airdata_nodes.append( getNode(path, True) )
-    node = airdata_nodes[index]
-    
-    node.setFloat("timestamp", result[1])
-    node.setFloat("aileron", result[2] / 20000.0)
-    node.setFloat("elevator", result[3] / 20000.0)
-    node.setFloat("throttle", result[4] / 60000.0)
-    node.setFloat("rudder", result[5] / 20000.0)
-    node.setFloat("channel5", result[6] / 20000.0)
-    node.setFloat("flaps", result[7] / 20000.0)
-    node.setFloat("channel7", result[8] / 20000.0)
-    node.setFloat("channel8", result[9] / 20000.0)
-    node.setInt("status", result[10])
+    act_node.setFloat("timestamp", result[1])
+    act_node.setFloat("aileron", result[2] / 20000.0)
+    act_node.setFloat("elevator", result[3] / 20000.0)
+    act_node.setFloat("throttle", result[4] / 60000.0)
+    act_node.setFloat("rudder", result[5] / 20000.0)
+    act_node.setFloat("channel5", result[6] / 20000.0)
+    act_node.setFloat("flaps", result[7] / 20000.0)
+    act_node.setFloat("channel7", result[8] / 20000.0)
+    act_node.setFloat("channel8", result[9] / 20000.0)
+    act_node.setInt("status", result[10])
 
     return index
 
