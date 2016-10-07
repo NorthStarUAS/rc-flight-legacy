@@ -370,7 +370,7 @@ static bool parse_ublox7_msg( uint8_t msg_class, uint8_t msg_id,
 	    gps_node.setDouble( "vert_accuracy_m", vAcc );
 	    gps_node.setDouble( "groundspeed_ms", gSpeed / 1000.0 );
 	    gps_node.setDouble( "groundtrack_deg", heading / 100000.0 );
-	    gps_node.setDouble( "heading_accuracy_deg", hAcc / 100000.0 );
+	    gps_node.setDouble( "heading_accuracy_deg", headingAcc / 100000.0 );
 	    gps_node.setDouble( "pdop", pDOP / 100.0 );
 	}
    } else if ( msg_class == 0x01 && msg_id == 0x12 ) {
