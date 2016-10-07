@@ -56,6 +56,7 @@ static double airspeed_zero_start_time = 0.0;
 
 static string raven2_act_input[RAVEN_NUM_ACTS];
 static float raven2_act_gain[RAVEN_NUM_ACTS];
+static float raven2_act_bias[RAVEN_NUM_ACTS];
 
 
 // initialize gpsd input property nodes
@@ -402,7 +403,8 @@ static bool raven2_act_write() {
 
     for ( int i = 0; i < RAVEN_NUM_ACTS; i++ ) {
 	val = gen_pulse( act_node.getDouble(raven2_act_input[i].c_str())
-			 * raven2_act_gain[i], true );
+			 * raven2_act_gain[i]
+                         + raven2_act_bias[i], true );
 	*(uint16_t *)packet = val; packet += 2;
     }
     
@@ -428,6 +430,7 @@ bool raven2_act_init( pyPropertyNode *section ) {
 	if ( !channel.isNull() ) {
 	    raven2_act_input[i] = channel.getString("input");
 	    raven2_act_gain[i] = channel.getDouble("gain");
+	    raven2_act_bias[i] = channel.getDouble("bias");
 	    printf(" channel: %d = %s (%.2f)\n", i, raven2_act_input[i].c_str(), raven2_act_gain[i]);
 	}
     }
