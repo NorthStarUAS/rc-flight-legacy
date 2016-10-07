@@ -46,12 +46,12 @@ class Land(Task):
         self.approach_speed_kt = config_node.getFloat("approach_speed_kt")
         if self.approach_speed_kt < 0.1:
             self.approach_speed_kt = 25.0
-        self.fast_descent_gain = config_node.getFloat("fast_decent_gain")
-        if self.fast_descent_gain < 0.1:
-            self.fast_descent_gain = 0.25
-        self.fast_descent_max = config_node.getFloat("fast_decent_max")
-        if self.fast_descent_max < 0.1:
-            self.fast_descent_max = 5.0
+        #self.fast_descent_gain = config_node.getFloat("fast_decent_gain")
+        #if self.fast_descent_gain < 0.1:
+        #    self.fast_descent_gain = 0.25
+        #self.fast_descent_max = config_node.getFloat("fast_decent_max")
+        #if self.fast_descent_max < 0.1:
+        #    self.fast_descent_max = 5.0
         if self.approach_speed_kt < 0.1:
             self.approach_speed_kt = 25.0
         self.flare_pitch_deg = config_node.getFloat("flare_pitch_deg")
@@ -173,12 +173,12 @@ class Land(Task):
 
         # adjust target speed if postive altitude error
         target_speed = self.approach_speed_kt
-        if alt_error_ft > 0.0:
-            speed_adjust = alt_error_ft * self.fast_descent_gain
-            if speed_adjust > self.fast_descent_max:
-                speed_adjust = self.fast_descent_max
-            target_speed += speed_adjust
-            #print 'appr kts =', target_speed
+        # if alt_error_ft > 0.0:
+        #     speed_adjust = alt_error_ft * self.fast_descent_gain
+        #     if speed_adjust > self.fast_descent_max:
+        #         speed_adjust = self.fast_descent_max
+        #     target_speed += speed_adjust
+        #     #print 'appr kts =', target_speed
         self.targets_node.setFloat("airspeed_kt", target_speed)
         
         if wpt_index <= 1:
