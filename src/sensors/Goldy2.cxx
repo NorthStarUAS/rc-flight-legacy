@@ -607,7 +607,7 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	} else if ( gps_fix_value == 3 ) {
 	    gps_node.setLong( "status", 2 );
 	}
-	// printf("fix: %d lon: %.8f lat: %.8f\n", gpsFix, (float)lon, (float)lat);
+	// printf("fix: %d lon: %.8f lat: %.8f\n", gpsFix, (double)lon, (double)lat);
 
 	if ( gpsFix == 3 ) {
 	    // gps thinks we have a good position
@@ -629,8 +629,8 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    
 	    gps_node.setLong( "satellites", numSV );
 	    
-	    gps_node.setDouble( "latitude_deg", (float)lat / 10000000.0);
-	    gps_node.setDouble( "longitude_deg", (float)lon / 10000000.0);
+	    gps_node.setDouble( "latitude_deg", (double)lat / 10000000.0);
+	    gps_node.setDouble( "longitude_deg", (double)lon / 10000000.0);
 	    gps_node.setDouble( "altitude_m", (float)hMSL / 1000.0 );
 	    gps_node.setDouble( "vn_ms", (float)velN / 1000.0 );
 	    gps_node.setDouble( "ve_ms", (float)velE / 1000.0 );
