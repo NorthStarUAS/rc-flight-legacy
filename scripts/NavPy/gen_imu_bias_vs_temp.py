@@ -25,7 +25,7 @@ args = argparser.parse_args()
 
 # load imu/gps data files
 imu_file = os.path.join(args.flight, "imu-0.txt")
-imucal_file = os.path.join(args.flight, "imucal.xml")
+imucal_file = os.path.join(args.flight, "imucal.json")
 gps_file = os.path.join(args.flight, "gps-0.txt")
 filter_file = os.path.join(args.flight, "filter-0.txt")
 events_file = os.path.join(args.flight, "events.txt")

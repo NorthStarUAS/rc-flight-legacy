@@ -33,7 +33,7 @@ if args.flight:
     # load IMU (+ mag) data
     imu_file = os.path.join(args.flight, "imu-0.txt")
     filter_file = os.path.join(args.flight, "filter-0.txt")
-    imucal_file = os.path.join(args.flight, "imucal.xml")
+    imucal_file = os.path.join(args.flight, "imucal.json")
     events_file = os.path.join(args.flight, "events.txt")
     imu_data = []
     fimu = fileinput.input(imu_file)
@@ -63,7 +63,8 @@ if args.flight:
 
     # load calibration file (for this flight) and back correct for
     # original raw sensor values
-    cal = imucal.Calibration(imucal_file)
+    cal = imucal.Calibration()
+    cal.load(imucal_file)
     imu_data = cal.back_correct(imu_data)
 
 elif args.sentera:
