@@ -538,8 +538,8 @@ if len(sys.argv) != 2:
 flight_path = sys.argv[1]
 
 # load imu/gps data files
-imu_file = flight_path + "/imu.txt"
-gps_file = flight_path + "/gps.txt"
+imu_file = flight_path + "/imu-0.txt"
+gps_file = flight_path + "/gps-0.txt"
 imu_bias_file = flight_path + "/imubias.txt"
 cal_file = flight_path + "/imucal.xml"
 cal_file_per_flight = flight_path + "/imucal-scale.xml"
