@@ -52,8 +52,6 @@ class Land(Task):
         #self.fast_descent_max = config_node.getFloat("fast_decent_max")
         #if self.fast_descent_max < 0.1:
         #    self.fast_descent_max = 5.0
-        if self.approach_speed_kt < 0.1:
-            self.approach_speed_kt = 25.0
         self.flare_pitch_deg = config_node.getFloat("flare_pitch_deg")
         self.flare_seconds = config_node.getFloat("flare_seconds")
         if self.flare_seconds < 0.1:
