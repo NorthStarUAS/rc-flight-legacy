@@ -38,7 +38,7 @@ int pyModulePacker::pack(int index, const char *pack_function, uint8_t *buf) {
 }
 
 int pyModulePacker::pack_gps(int index, uint8_t *buf) {
-    return pack(index, "pack_gps_v2", buf);
+    return pack(index, "pack_gps_v3", buf);
 }
 
 int pyModulePacker::pack_imu(int index, uint8_t *buf) {

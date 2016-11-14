@@ -158,7 +158,7 @@ static int my_random( int max ) {
 
 
 void log_gps( uint8_t *buf, int size ) {
-    log_packet( GPS_PACKET_V2, buf, size );
+    log_packet( GPS_PACKET_V3, buf, size );
 }
 
 

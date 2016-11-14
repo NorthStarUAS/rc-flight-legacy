@@ -19,7 +19,7 @@ import auraparser
 m2nm   = 0.0005399568034557235 # meters to nautical miles
 
 def logical_category(id):
-    if id == auraparser.GPS_PACKET_V1 or id == auraparser.GPS_PACKET_V2:
+    if id == auraparser.GPS_PACKET_V1 or id == auraparser.GPS_PACKET_V2 or id == auraparser.GPS_PACKET_V3:
         return 'gps'
     elif id == auraparser.IMU_PACKET_V1 or id == auraparser.IMU_PACKET_V2 \
          or id == auraparser.IMU_PACKET_V3:
@@ -45,6 +45,8 @@ def logical_category(id):
         return 'payload'
     elif id == auraparser.RAVEN_PACKET_V1:
         return 'raven'
+    else:
+        return 'unknown-packet-id'
 
 # When a binary record of some id is read, it gets parsed into the
 # property tree structure.  The following code simple calls the

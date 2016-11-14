@@ -33,6 +33,7 @@ FILTER_PACKET_V2 = 22
 PAYLOAD_PACKET_V2 = 23
 AP_STATUS_PACKET_V3 = 24
 RAVEN_PACKET_V1 = 25
+GPS_PACKET_V3 = 26
 
 # simple 2-byte checksum
 def validate_cksum(id, size, buf, cksum0, cksum1):
@@ -60,6 +61,8 @@ def parse_msg(id, buf):
             index = comms.packer.unpack_gps_v1(buf)
         elif id == GPS_PACKET_V2:
             index = comms.packer.unpack_gps_v2(buf)
+        elif id == GPS_PACKET_V3:
+            index = comms.packer.unpack_gps_v3(buf)
         elif id == IMU_PACKET_V1:
             index = comms.packer.unpack_imu_v1(buf)
         elif id == IMU_PACKET_V2:

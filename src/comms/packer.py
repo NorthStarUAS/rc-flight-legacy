@@ -13,6 +13,7 @@ m2ft = 1.0 / ft2m
 # < means use little endian order, no byte alignment
 # b = int8_t, B = uint8_t
 # h = int16_t, H = uint16_t
+# l = int32_t, L = uint32_t
 # f = float, d = double
 
 imu_timestamp = 0.0
@@ -22,6 +23,8 @@ gps_v1_fmt = '<dddfhhhdBB'
 gps_v1_size = struct.calcsize(gps_v1_fmt)
 gps_v2_fmt = '<BdddfhhhdBB'
 gps_v2_size = struct.calcsize(gps_v2_fmt)
+gps_v3_fmt = '<BdddfhhhdBHHHB'
+gps_v3_size = struct.calcsize(gps_v3_fmt)
 
 imu_nodes = []
 imu_v1_fmt = '<dfffffffffB'
@@ -99,13 +102,13 @@ raven_v1_size = struct.calcsize(raven_v1_fmt)
 def init():
     pass
 
-def pack_gps_v2(index):
+def pack_gps_v3(index):
     if index >= len(gps_nodes):
         for i in range(len(gps_nodes),index+1):
             path = '/sensors/gps[%d]' % i
             gps_nodes.append( getNode(path, True) )
     node = gps_nodes[index]
-    buf = struct.pack(gps_v2_fmt,
+    buf = struct.pack(gps_v3_fmt,
                       index,
                       node.getFloat("timestamp"),
                       node.getFloat("latitude_deg"),
@@ -116,7 +119,10 @@ def pack_gps_v2(index):
                       int(node.getFloat("vd_ms") * 100),
                       node.getFloat("unix_time_sec"),
                       node.getInt("satellites"),
-                      0)
+                      node.getFloat('horiz_accuracy_m') * 100,
+                      node.getFloat('vert_accuracy_m') * 100,
+                      node.getFloat('pdop') * 100,
+                      node.getInt('fixType'))
     return buf
 
 def pack_gps_text(index, delim=','):
@@ -130,7 +136,10 @@ def pack_gps_text(index, delim=','):
              '%.4f' % gps_node.getFloat('vd_ms'),
 	     '%.3f' % gps_node.getFloat('unix_time_sec'),
              '%d' % gps_node.getInt('satellites'),
-             '%d' % gps_node.getInt('status') ]
+             '%.2f' % gps_node.getFloat('horiz_accuracy_m'),
+             '%.2f' % gps_node.getFloat('vert_accuracy_m'),
+             '%.2f' % gps_node.getFloat('pdop'),
+             '%d' % gps_node.getInt('fixType') ]
     return delim.join(data)
     
 def unpack_gps_v1(buf):
@@ -176,6 +185,33 @@ def unpack_gps_v2(buf):
     node.setFloat("unix_time_sec", result[8])
     node.setInt("satellites", result[9])
     node.setInt("status", result[10])
+
+    return index
+
+def unpack_gps_v3(buf):
+    result = struct.unpack(gps_v3_fmt, buf)
+
+    index = result[0]
+    if index >= len(gps_nodes):
+        for i in range(len(gps_nodes),index+1):
+            path = '/sensors/gps[%d]' % i
+            gps_nodes.append( getNode(path, True) )
+    node = gps_nodes[index]
+
+    node.setFloat("timestamp", result[1])
+    node.setFloat("latitude_deg", result[2])
+    node.setFloat("longitude_deg", result[3])
+    node.setFloat("altitude_m", result[4])
+    node.setFloat("vn_ms", result[5] / 100.0)
+    node.setFloat("ve_ms", result[6] / 100.0)
+    node.setFloat("vd_ms", result[7] / 100.0)
+    node.setFloat("unix_time_sec", result[8])
+    node.setInt("satellites", result[9])
+    node.setFloat('horiz_accuracy_m', result[10] / 100.0)
+    node.setFloat('vert_accuracy_m', result[11] / 100.0)
+    node.setFloat('pdop', result[12] / 100.0)
+    node.setInt('fixType', result[13])
+    node.setInt("status", 0)
 
     return index
 

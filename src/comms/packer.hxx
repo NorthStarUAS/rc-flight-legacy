@@ -35,6 +35,7 @@ enum ugPacketType {
     PAYLOAD_PACKET_V2 = 23,
     AP_STATUS_PACKET_V3 = 24,
     RAVEN_PACKET_V1 = 25,
+    GPS_PACKET_V3 = 26,
 };
 
 class pyModulePacker: public pyModuleBase {

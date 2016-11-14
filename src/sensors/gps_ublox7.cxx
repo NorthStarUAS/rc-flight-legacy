@@ -312,7 +312,7 @@ static bool parse_ublox7_msg( uint8_t msg_class, uint8_t msg_id,
 	uint8_t valid = p[11];
 	uint32_t tAcc = *((uint32_t *)(p+12));
 	int32_t nano = *((int32_t *)(p+16));
-	uint8_t gpsFix = p[20];
+	uint8_t fixType = p[20];
 	uint8_t flags = p[21];
 	uint8_t numSV = p[23];
 	int32_t lon = *((int32_t *)(p+24));
@@ -330,7 +330,7 @@ static bool parse_ublox7_msg( uint8_t msg_class, uint8_t msg_id,
 	uint32_t headingAcc = *((uint32_t *)(p+72));
 	uint16_t pDOP = *((uint16_t *)(p+76));
 
- 	gps_fix_value = gpsFix;
+ 	gps_fix_value = fixType;
 	if ( gps_fix_value == 0 ) {
 	    gps_node.setLong( "status", 0 );
 	} else if ( gps_fix_value == 1 || gps_fix_value == 2 ) {
@@ -338,9 +338,9 @@ static bool parse_ublox7_msg( uint8_t msg_class, uint8_t msg_id,
 	} else if ( gps_fix_value == 3 ) {
 	    gps_node.setLong( "status", 2 );
 	}
-	// printf("fix: %d lon: %.8f lat: %.8f\n", gpsFix, (double)lon, (double)lat);
+	// printf("fix: %d lon: %.8f lat: %.8f\n", fixType, (double)lon, (double)lat);
 
-	if ( gpsFix == 3 ) {
+	if ( fixType == 3 ) {
 	    // gps thinks we have a good position
  	    new_position = true;
 
@@ -366,12 +366,13 @@ static bool parse_ublox7_msg( uint8_t msg_class, uint8_t msg_id,
 	    gps_node.setDouble( "vn_ms", (float)velN / 1000.0 );
 	    gps_node.setDouble( "ve_ms", (float)velE / 1000.0 );
 	    gps_node.setDouble( "vd_ms", (float)velD / 1000.0 );
-	    gps_node.setDouble( "horiz_accuracy_m", hAcc );
-	    gps_node.setDouble( "vert_accuracy_m", vAcc );
+	    gps_node.setDouble( "horiz_accuracy_m", hAcc / 1000.0 );
+	    gps_node.setDouble( "vert_accuracy_m", vAcc / 1000.0 );
 	    gps_node.setDouble( "groundspeed_ms", gSpeed / 1000.0 );
 	    gps_node.setDouble( "groundtrack_deg", heading / 100000.0 );
 	    gps_node.setDouble( "heading_accuracy_deg", headingAcc / 100000.0 );
 	    gps_node.setDouble( "pdop", pDOP / 100.0 );
+	    gps_node.setLong( "fixType", fixType);
 	}
    } else if ( msg_class == 0x01 && msg_id == 0x12 ) {
 	// NAV-VELNED

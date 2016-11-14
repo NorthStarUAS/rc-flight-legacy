@@ -247,7 +247,7 @@ int remote_link_random( int max ) {
 
 
 bool remote_link_gps( uint8_t *buf, int size ) {
-    remote_link_packet( GPS_PACKET_V2, buf, size );
+    remote_link_packet( GPS_PACKET_V3, buf, size );
     return true;
 }
 
