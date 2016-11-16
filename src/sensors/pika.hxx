@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef _AURA_BFS_RAVEN_HXX
-#define _AURA_BFS_RAVEN_HXX
+#ifndef _AURA_BFS_PIKA_HXX
+#define _AURA_BFS_PIKA_HXX
 
 
 #include "python/pyprops.hxx"
@@ -32,4 +32,4 @@ bool pika_act_init( pyPropertyNode *config );
 bool pika_act_update();
 void pika_act_close();
 
-#endif // _AURA_BFS_RAVEN_HXX
+#endif // _AURA_BFS_PIKA_HXX

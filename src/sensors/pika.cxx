@@ -316,6 +316,8 @@ static bool pika_parse( uint8_t *buf) {
     static int diff_count = 0;
     static float diff_offset = 0.0;
 
+    printf("voltage = %.3f\n", *(float *)buf);
+
     for ( int i = 0; i < RAVEN_NUM_POTS; i++ ) {
 	airdata_node.setDouble("pots", i, *(uint16_t *)buf);
 	// printf("%d ", *(uint16_t *)buf);
@@ -373,8 +375,8 @@ static int pika_read() {
     static int counter = 0;
     static uint8_t cksum_A = 0, cksum_B = 0, cksum_lo = 0, cksum_hi = 0;
     int len;
-    uint8_t input[500];
-    static uint8_t payload[500];
+    uint8_t input[512];
+    static uint8_t payload[512];
 
     if ( display_on ) {
         printf("read pika, entry state = %d\n", state);
