@@ -31,7 +31,11 @@ using namespace Eigen;
 #include "util/timing.h"
 
 #include "pika.hxx"
+#include "pika_sensorData.h"
 
+// payload struct and size
+static struct sensors payload;
+const int payloadSize = sizeof(payload);
 
 // property nodes
 static pyPropertyNode airdata_node;
@@ -59,62 +63,6 @@ static Matrix4d mag_cal;
 
 #define START_OF_MSG0 0x42
 #define START_OF_MSG1 0x46
-
-/* soc */
-float volt;
-uint8_t voltBuffer[sizeof(volt)];
-
-struct sbusData {
-  int mode;
-  int thrEnable;
-  float channels[14];
-  uint8_t failSafe;
-  uint16_t lostFrames;
-};
-sbusData x8rData;
-uint8_t sbusBuffer[sizeof(x8rData)];
-
-struct gpsData {
-  unsigned long   iTOW;			  ///< [ms], GPS time of the navigation epoch
-  unsigned short  utcYear;		  ///< [year], Year (UTC)
-  unsigned char   utcMonth;		  ///< [month], Month, range 1..12 (UTC)
-  unsigned char   utcDay;		  ///< [day], Day of month, range 1..31 (UTC)
-  unsigned char   utcHour;		  ///< [hour], Hour of day, range 0..23 (UTC)
-  unsigned char   utcMin;		  ///< [min], Minute of hour, range 0..59 (UTC)
-  unsigned char   utcSec;		  ///< [s], Seconds of minute, range 0..60 (UTC)
-  unsigned char   valid;		  ///< [ND], Validity flags
-  unsigned long   tAcc;			  ///< [ns], Time accuracy estimate (UTC)
-  long            utcNano;		  ///< [ns], Fraction of second, range -1e9 .. 1e9 (UTC)
-  unsigned char   fixType;		  ///< [ND], GNSSfix Type: 0: no fix, 1: dead reckoning only, 2: 2D-fix, 3: 3D-fix, 4: GNSS + dead reckoning combined, 5: time only fix
-  unsigned char   flags;		  ///< [ND], Fix status flags
-  unsigned char   flags2;		  ///< [ND], Additional flags
-  unsigned char   numSV;		  ///< [ND], Number of satellites used in Nav Solution
-  double          lon;			  ///< [deg], Longitude
-  double          lat;			  ///< [deg], Latitude
-  double          height;		  ///< [m], Height above ellipsoid 
-  double          hMSL;			  ///< [m], Height above mean sea level
-  double          hAcc;			  ///< [m], Horizontal accuracy estimate
-  double          vAcc;			  ///< [m], Vertical accuracy estimate
-  double          velN;			  ///< [m/s], NED north velocity
-  double          velE;			  ///< [m/s], NED east velocity
-  double          velD;			  ///< [m/s], NED down velocity
-  double          gSpeed;		  ///< [m/s], Ground Speed (2-D)
-  long            heading;		  ///< [deg], Heading of motion (2-D)
-  double          sAcc;			  ///< [m/s], Speed accuracy estimate
-  unsigned long   headingAcc;	  ///< [deg], Heading accuracy estimate (both motion and vehicle)
-  unsigned short  pDOP;			  ///< [ND], Position DOP
-  long			  headVeh;		  ///< [deg], Heading of vehicle (2-D)
-};
-gpsData uBloxData;
-uint8_t gpsBuffer[sizeof(uBloxData)];
-
-uint8_t raven0SensorBuffer[38];
-
-uint8_t socHeader[2] = {0x42, 0x46};
-uint8_t CK[2];
-uint8_t socBuffer[sizeof(socHeader) + sizeof(voltBuffer) + sizeof(sbusBuffer) + sizeof(gpsBuffer) - 4 + sizeof(raven0SensorBuffer) + sizeof(CK)];
-
-int pkt_len = sizeof(socBuffer);
 
 #define FLIGHT_COMMAND_PACKET_ID 23
 
@@ -296,6 +244,27 @@ bool pika_imu_init( string output_path, pyPropertyNode *config ) {
 // property tree is performed right away when we receive and parse the
 // packet.
 bool pika_imu_update() {
+    double temp_C = payload.imu_temp_c;
+	
+    imu_node.setDouble( "p_rad_sec", payload.imu_gyro_rads[0] );
+    imu_node.setDouble( "q_rad_sec", payload.imu_gyro_rads[1] );
+    imu_node.setDouble( "r_rad_sec", payload.imu_gyro_rads[2] );
+    imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(payload.imu_accel_mss[0], temp_C) );
+    imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(payload.imu_accel_mss[1], temp_C) );
+    imu_node.setDouble( "az_mps_sec", az_cal.calibrate(payload.imu_accel_mss[2], temp_C) );
+
+    imu_node.setDouble( "hx_raw", payload.imu_mag_uTesla[0] );
+    imu_node.setDouble( "hy_raw", payload.imu_mag_uTesla[1] );
+    imu_node.setDouble( "hz_raw", payload.imu_mag_uTesla[2] );
+	
+    Vector4d hs((double)payload.imu_mag_uTesla[0], (double)payload.imu_mag_uTesla[1], (double)payload.imu_mag_uTesla[2], 1.0);
+    Vector4d hc = mag_cal * hs;
+    imu_node.setDouble( "hx", hc(0) );
+    imu_node.setDouble( "hy", hc(1) );
+    imu_node.setDouble( "hz", hc(2) );
+
+    imu_node.setDouble( "temp_C", temp_C );
+
     return true;
 }
 
@@ -311,92 +280,33 @@ void pika_airdata_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-static bool pika_parse( uint8_t *buf) {
-    static double diff_sum = 0.0;
-    static int diff_count = 0;
-    static float diff_offset = 0.0;
-
-    printf("voltage = %.3f\n", *(float *)buf);
-
-    for ( int i = 0; i < RAVEN_NUM_POTS; i++ ) {
-	airdata_node.setDouble("pots", i, *(uint16_t *)buf);
-	// printf("%d ", *(uint16_t *)buf);
-	buf += 2;
-    }
-
-    for ( int i = 0; i < RAVEN_NUM_AINS; i++ ) {
-	airdata_node.setDouble("ains", i, *(uint16_t *)buf);
-	// printf("%d ", *(uint16_t *)buf);
-	buf += 2;
-    }
-    
-    float static_pa = *(float *)buf; buf += 4;
-    float diff_pa = *(float *)buf; buf += 4;
-    
-    float rpm0 = *(float *)buf; buf += 4;
-    float rpm1 = *(float *)buf; buf += 4;
-
-    airdata_node.setDouble( "pressure_mbar", (static_pa / 100.0) );
-    airdata_node.setDouble( "diff_pa", diff_pa);
-    
-    if ( ! airspeed_inited ) {
-	if ( airspeed_zero_start_time > 0 ) {
-	    diff_sum += diff_pa;
-	    diff_count++;
-	    diff_offset = diff_sum / diff_count;
-	} else {
-	    airspeed_zero_start_time = get_Time();
-	    diff_sum = 0.0;
-	    diff_count = 0;
-	}
-	if ( get_Time() > airspeed_zero_start_time + 10.0 ) {
-	    //printf("diff_offset = %.2f\n", diff_offset);
-	    airspeed_inited = true;
-	}
-    }
-
-    double pitot_calibrate = 1.0; // make configurable in the future?
-    diff_pa -= diff_offset;
-    if ( diff_pa < 0.0 ) { diff_pa = 0.0; } // avoid sqrt(neg_number) situation
-    float airspeed_mps = sqrt( 2*diff_pa / 1.225 ) * pitot_calibrate;
-    float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
-    airdata_node.setDouble( "airspeed_mps", airspeed_mps );
-    airdata_node.setDouble( "airspeed_kt", airspeed_kt );
-
-    airdata_node.setDouble( "rpm0", rpm0 );
-    airdata_node.setDouble( "rpm1", rpm1 );
-
-    return true;
-}
-
-
-static int pika_read() {
+static bool pika_read() {
     static int state = 0;
     static int counter = 0;
     static uint8_t cksum_A = 0, cksum_B = 0, cksum_lo = 0, cksum_hi = 0;
     int len;
     uint8_t input[512];
-    static uint8_t payload[512];
+    static uint8_t *payload_ptr;
 
-    if ( display_on ) {
-        printf("read pika, entry state = %d\n", state);
-    }
+    //if ( display_on ) {
+    //    printf("read pika, entry state = %d\n", state);
+    //}
 
     bool new_data = false;
 
     if ( state == 0 ) {
 	counter = 0;
+	payload_ptr = (uint8_t *)(&payload);
 	cksum_A = cksum_B = 0;
 	len = read( fd, input, 1 );
-	printf( "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
-	//return 0;
+	//printf( "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
 	
 	while ( len > 0 && input[0] != START_OF_MSG0 ) {
-	    printf( "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
+	    //printf( "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
 	    len = read( fd, input, 1 );
 	}
 	if ( len > 0 && input[0] == START_OF_MSG0 ) {
-	    printf( "read START_OF_MSG0\n");
+	    //printf( "read START_OF_MSG0\n");
 	    state++;
 	}
     }
@@ -404,7 +314,7 @@ static int pika_read() {
 	len = read( fd, input, 1 );
 	if ( len > 0 ) {
 	    if ( input[0] == START_OF_MSG1 ) {
-		printf( "read START_OF_MSG1\n");
+		//printf( "read START_OF_MSG1\n");
 		state++;
 	    } else if ( input[0] == START_OF_MSG0 ) {
 		//fprintf( stderr, "read START_OF_MSG0\n");
@@ -416,19 +326,19 @@ static int pika_read() {
     if ( state == 2 ) {
 	len = read( fd, input, 1 );
 	while ( len > 0 ) {
-	    payload[counter++] = input[0];
-	    printf( "%02X ", input[0] );
+	    payload_ptr[counter++] = input[0];
+	    //printf( "%02X ", input[0] );
 	    cksum_A += input[0];
 	    cksum_B += cksum_A;
-	    if ( counter >= pkt_len ) {
+	    if ( counter >= payloadSize ) {
 		break;
 	    }
 	    len = read( fd, input, 1 );
 	}
 
-	if ( counter >= pkt_len ) {
+	if ( counter >= payloadSize ) {
 	    state++;
-	    printf( "\n" );
+	    //printf( "\n" );
 	}
     }
     if ( state == 3 ) {
@@ -443,8 +353,8 @@ static int pika_read() {
 	if ( len > 0 ) {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
-		printf( "checksum passes\n" );
-		new_data = pika_parse( payload );
+		//printf( "checksum passes\n" );
+		new_data = true;
 	    } else {
 		printf("checksum failed %d %d (computed) != %d %d (message)\n",
 		       cksum_A, cksum_B, cksum_lo, cksum_hi );
@@ -472,7 +382,7 @@ double pika_update() {
     double last_time = imu_node.getDouble( "timestamp" );
     int bytes_available = 0;
     while ( true ) {
-        int pkt_id = pika_read();
+        bool result = pika_read();
         ioctl(fd, FIONREAD, &bytes_available);
 	if ( bytes_available < 64 ) {
 	    break;
