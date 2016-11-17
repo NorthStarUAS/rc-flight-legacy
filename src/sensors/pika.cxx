@@ -1,12 +1,12 @@
 /**
- *  \file: airdata_uart.cxx
- *
- * Driver for the Bolder Flight Systems airdata module (build on AMSYS pressure
- * sensors.)
- *
- * Copyright (C) 2016 - Curtis L. Olson - curtolson@flightgear.org
- *
- */
+*  \file: airdata_uart.cxx
+*
+* Driver for the Bolder Flight Systems airdata module (build on AMSYS pressure
+* sensors.)
+*
+* Copyright (C) 2016 - Curtis L. Olson - curtolson@flightgear.org
+*
+*/
 
 #include "python/pyprops.hxx"
 
@@ -42,6 +42,7 @@ static pyPropertyNode airdata_node;
 static pyPropertyNode act_node;
 static pyPropertyNode imu_node;
 static pyPropertyNode gps_node;
+static pyPropertyNode pilot_node;
 
 static int fd = -1;
 static string device_name = "/dev/ttyO4";
@@ -49,6 +50,7 @@ static string device_name = "/dev/ttyO4";
 static bool master_opened = false;
 static bool imu_inited = false;
 static bool gps_inited = false;
+static bool pilot_input_inited = false;
 
 static bool reverse_imu_mount = false;
 
@@ -66,20 +68,15 @@ static Matrix4d mag_cal;
 #define START_OF_MSG0 0x42
 #define START_OF_MSG1 0x46
 
-#define FLIGHT_COMMAND_PACKET_ID 23
+#define PIKA_NUM_ACTUATORS 14	// must match the pika firmware
 
-#define RAVEN_NUM_POTS 10	// must match the raven firmware
-#define RAVEN_NUM_AINS 5	// must match the raven firmware
-#define RAVEN_NUM_ACTS 10	// must match the raven firmware
+#define FLIGHT_COMMAND_PACKET_ID 23
 
 #define PWM_CENTER 1520
 #define PWM_HALF_RANGE 413
 #define PWM_RANGE (PWM_HALF_RANGE * 2)
 #define PWM_MIN (PWM_CENTER - PWM_HALF_RANGE)
 #define PWM_MAX (PWM_CENTER + PWM_HALF_RANGE)
-
-static string act_input[RAVEN_NUM_ACTS];
-static float act_gain[RAVEN_NUM_ACTS];
 
 
 // initialize gpsd input property nodes
@@ -94,8 +91,6 @@ static void bind_airdata_input( pyPropertyNode *config ) {
 static void bind_airdata_output( string output_path ) {
     airdata_node = pyGetNode(output_path, true);
     airdata_node.setString("module", "pika");
-    airdata_node.setLen("pots", RAVEN_NUM_POTS, 0.0);
-    airdata_node.setLen("ains", RAVEN_NUM_AINS, 0.0);
 }
 
 
@@ -110,15 +105,15 @@ static bool pika_open() {
     if ( master_opened ) {
 	return true;
     }
-    
+
     if ( display_on ) {
 	printf("pika on %s @ 921,600\n", device_name.c_str());
     }
 
     fd = open( device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
     if ( fd < 0 ) {
-        fprintf( stderr, "open serial: unable to open %s - %s\n",
-                 device_name.c_str(), strerror(errno) );
+	fprintf( stderr, "open serial: unable to open %s - %s\n",
+		 device_name.c_str(), strerror(errno) );
 	return false;
     }
 
@@ -131,15 +126,15 @@ static bool pika_open() {
 
     // Configure New Serial Port Settings
     config.c_cflag     = B921600 | // bps rate
-                         CS8	 | // 8n1
-                         CLOCAL	 | // local connection, no modem
-                         CREAD;	   // enable receiving chars
+	CS8	 | // 8n1
+	CLOCAL	 | // local connection, no modem
+	CREAD;	   // enable receiving chars
     config.c_iflag     = IGNPAR;   // ignore parity bits
     config.c_oflag     = 0;
     config.c_lflag     = 0;
     config.c_cc[VTIME] = 0;
     config.c_cc[VMIN]  = 0;	   // block 'read' from returning until at
-                                   // least 1 character is received
+    // least 1 character is received
 
     // Flush Serial Port I/O buffer
     tcflush(fd, TCIOFLUSH);
@@ -147,8 +142,8 @@ static bool pika_open() {
     // Set New Serial Port Settings
     int ret = tcsetattr( fd, TCSANOW, &config );
     if ( ret > 0 ) {
-        fprintf( stderr, "error configuring device: %s - %s\n",
-                 device_name.c_str(), strerror(errno) );
+	fprintf( stderr, "error configuring device: %s - %s\n",
+		 device_name.c_str(), strerror(errno) );
 	return false;
     }
 
@@ -156,7 +151,7 @@ static bool pika_open() {
     fcntl(fd, F_SETFL, O_NONBLOCK);
 
     master_opened = true;
-    
+
     return true;
 }
 
@@ -186,6 +181,16 @@ static void bind_gps_output( string output_path ) {
     gps_inited = true;
 }
 
+// initialize pilot output property nodes 
+static void bind_pilot_controls( string output_path ) {
+    if ( pilot_input_inited ) {
+	return;
+    }
+    pilot_node = pyGetNode(output_path, true);
+    pilot_node.setLen("channel", PIKA_NUM_ACTUATORS, 0.0);
+    pilot_input_inited = true;
+}
+
 
 bool pika_imu_init( string output_path, pyPropertyNode *config ) {
     if ( ! pika_open() ) {
@@ -197,7 +202,7 @@ bool pika_imu_init( string output_path, pyPropertyNode *config ) {
     if ( config->hasChild("reverse_imu_mount") ) {
 	reverse_imu_mount = config->getBool("reverse_imu_mount");
     }
-    
+
     if ( config->hasChild("calibration") ) {
 	pyPropertyNode cal = config->getChild("calibration");
 	double min_temp = 27.0;
@@ -208,7 +213,7 @@ bool pika_imu_init( string output_path, pyPropertyNode *config ) {
 	if ( cal.hasChild("max_temp_C") ) {
 	    max_temp = cal.getDouble("max_temp_C");
 	}
-	
+
 	//p_cal.init( cal->getChild("p"), min_temp, max_temp );
 	//q_cal.init( cal->getChild("q"), min_temp, max_temp );
 	//r_cal.init( cal->getChild("r"), min_temp, max_temp );
@@ -239,14 +244,14 @@ bool pika_imu_init( string output_path, pyPropertyNode *config ) {
 	} else {
 	    mag_cal.setIdentity();
 	}
-	
+
 	// save the imu calibration parameters with the data file so that
 	// later the original raw sensor values can be derived.
 	if ( log_to_file ) {
 	    log_imu_calibration( &cal );
 	}
     }
-    
+
     return true;
 }
 
@@ -257,6 +262,16 @@ bool pika_gps_init( string output_path, pyPropertyNode *config ) {
     }
 
     bind_gps_output( output_path );
+
+    return true;
+}
+
+bool pika_pilot_init( string output_path, pyPropertyNode *config ) {
+    if ( ! pika_open() ) {
+	return false;
+    }
+
+    bind_pilot_controls( output_path );
 
     return true;
 }
@@ -296,6 +311,10 @@ void pika_imu_close() {
 }
 
 void pika_gps_close() {
+    // noop
+}
+
+void pika_pilot_close() {
     // noop
 }
 
@@ -474,6 +493,25 @@ bool pika_gps_update() {
     }
 }
 
+
+bool pika_pilot_update() {
+    if ( !pilot_input_inited ) {
+	return false;
+    }
+
+    float val;
+
+    pilot_node.setDouble( "timestamp", imu_node.getDouble("timestamp") );
+
+    for ( int i = 0; i < PIKA_NUM_ACTUATORS; i++ ) {
+	pilot_node.setDouble( "channel", i, payload.sbus_channels[i] );
+    }
+
+    return true;
+}
+
+
+
 bool pika_airdata_update() {
     // scan for new messages
     bool data_valid = false;
@@ -483,7 +521,7 @@ bool pika_airdata_update() {
     }
 
     return data_valid;
- }
+}
 
 
 void pika_airdata_close() {
@@ -532,6 +570,7 @@ static void pika_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, 
 }
 
 
+#if 0
 static bool pika_act_write() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
@@ -567,6 +606,7 @@ static bool pika_act_write() {
 
     return true;
 }
+#endif
 
 
 bool pika_act_init( pyPropertyNode *section ) {
@@ -577,9 +617,7 @@ bool pika_act_init( pyPropertyNode *section ) {
     for ( int i = 0; i < inputs; i++ ) {
 	pyPropertyNode channel = section->getChild("channel", i);
 	if ( !channel.isNull() ) {
-	    act_input[i] = channel.getString("input");
-	    act_gain[i] = channel.getDouble("gain");
-	    printf(" channel: %d = %s (%.2f)\n", i, act_input[i].c_str(), act_gain[i]);
+	    //printf(" channel: %d = %s (%.2f)\n", i, act_input[i].c_str(), act_gain[i]);
 	}
     }
 
@@ -593,7 +631,7 @@ bool pika_act_init( pyPropertyNode *section ) {
 
 bool pika_act_update() {
     // send actuator commands to APM2 servo subsystem
-    pika_act_write();
+    // pika_act_write();
 
     return true;
 }

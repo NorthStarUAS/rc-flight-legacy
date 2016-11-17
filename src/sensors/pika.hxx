@@ -32,6 +32,10 @@ void pika_airdata_init( string output_path, pyPropertyNode *config );
 bool pika_airdata_update();
 void pika_airdata_close();
 
+bool pika_pilot_init( string output_path, pyPropertyNode *config );
+bool pika_pilot_update();
+void pika_pilot_close();
+
 bool pika_act_init( pyPropertyNode *config );
 bool pika_act_update();
 void pika_act_close();
