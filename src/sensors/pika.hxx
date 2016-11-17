@@ -24,6 +24,10 @@ bool pika_imu_init( string output_path, pyPropertyNode *config );
 bool pika_imu_update();
 void pika_imu_close();
 
+bool pika_gps_init( string output_path, pyPropertyNode *config );
+bool pika_gps_update();
+void pika_gps_close();
+
 void pika_airdata_init( string output_path, pyPropertyNode *config );
 bool pika_airdata_update();
 void pika_airdata_close();

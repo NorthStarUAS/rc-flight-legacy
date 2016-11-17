@@ -41,12 +41,14 @@ const int payloadSize = sizeof(payload);
 static pyPropertyNode airdata_node;
 static pyPropertyNode act_node;
 static pyPropertyNode imu_node;
+static pyPropertyNode gps_node;
 
 static int fd = -1;
 static string device_name = "/dev/ttyO4";
 
 static bool master_opened = false;
 static bool imu_inited = false;
+static bool gps_inited = false;
 
 static bool reverse_imu_mount = false;
 
@@ -175,6 +177,15 @@ static void bind_imu_output( string output_node ) {
     imu_inited = true;
 }
 
+// initialize gps output property nodes 
+static void bind_gps_output( string output_path ) {
+    if ( gps_inited ) {
+	return;
+    }
+    gps_node = pyGetNode(output_path, true);
+    gps_inited = true;
+}
+
 
 bool pika_imu_init( string output_path, pyPropertyNode *config ) {
     if ( ! pika_open() ) {
@@ -240,10 +251,22 @@ bool pika_imu_init( string output_path, pyPropertyNode *config ) {
 }
 
 
+bool pika_gps_init( string output_path, pyPropertyNode *config ) {
+    if ( ! pika_open() ) {
+	return false;
+    }
+
+    bind_gps_output( output_path );
+
+    return true;
+}
+
+
 // this keeps the imu_mgr happy, but the real work to update the
 // property tree is performed right away when we receive and parse the
 // packet.
 bool pika_imu_update() {
+    imu_node.setDouble( "timestamp", get_Time() );
     double temp_C = payload.imu_temp_c;
 	
     imu_node.setDouble( "p_rad_sec", payload.imu_gyro_rads[0] );
@@ -270,6 +293,10 @@ bool pika_imu_update() {
 
 void pika_imu_close() {
     pika_close();
+}
+
+void pika_gps_close() {
+    // noop
 }
 
 void pika_airdata_init( string output_path, pyPropertyNode *config ) {
@@ -393,6 +420,59 @@ double pika_update() {
     return cur_time - last_time;
 }
 
+
+bool pika_gps_update() {
+    static int gps_fix_value = 0;
+    static double last_timestamp = 0.0;
+    double current_timestamp = 0.0;
+    if ( gps_node.hasChild("timestamp") ) {
+	current_timestamp = gps_node.getDouble("timestamp");
+    }
+
+    gps_fix_value = payload.gps_fixType;
+    if ( gps_fix_value == 0 ) {
+	gps_node.setLong( "status", 0 );
+    } else if ( gps_fix_value == 1 || gps_fix_value == 2 ) {
+	gps_node.setLong( "status", 1 );
+    } else if ( gps_fix_value == 3 ) {
+	gps_node.setLong( "status", 2 );
+    }
+    // printf("fix: %d lon: %.8f lat: %.8f\n", payload.gps_fixType, payload.gps_lon_rad, payload.gps_lat_rad);
+
+    gps_node.setDouble( "timestamp", get_Time() );
+
+    struct tm gps_time;
+    gps_time.tm_sec = payload.gps_utcSec;
+    gps_time.tm_min = payload.gps_utcMin;
+    gps_time.tm_hour = payload.gps_utcHour;
+    gps_time.tm_mday = payload.gps_utcDay;
+    gps_time.tm_mon = payload.gps_utcMonth - 1;
+    gps_time.tm_year = payload.gps_utcYear - 1900;
+    double unix_sec = (double)mktime( &gps_time );
+    unix_sec += payload.gps_utcNano / 1000000000.0;
+    gps_node.setDouble( "unix_time_sec", unix_sec );
+    gps_node.setDouble( "time_accuracy_ns", payload.gps_tAcc );
+	    
+    gps_node.setLong( "satellites", payload.gps_numSV );
+	    
+    gps_node.setDouble( "latitude_deg", payload.gps_lat_rad * SGD_RADIANS_TO_DEGREES );
+    gps_node.setDouble( "longitude_deg", payload.gps_lon_rad * SGD_RADIANS_TO_DEGREES );
+    gps_node.setDouble( "altitude_m", payload.gps_hMSL_m );
+    gps_node.setDouble( "vn_ms", payload.gps_velN_mps );
+    gps_node.setDouble( "ve_ms", payload.gps_velE_mps );
+    gps_node.setDouble( "vd_ms", payload.gps_velD_mps );
+    gps_node.setDouble( "horiz_accuracy_m", payload.gps_hAcc_m );
+    gps_node.setDouble( "vert_accuracy_m", payload.gps_vAcc_m );
+    gps_node.setDouble( "pdop", payload.gps_pDOP );
+    gps_node.setLong( "fixType", payload.gps_fixType);
+
+    if ( current_timestamp > last_timestamp ) {
+        last_timestamp = current_timestamp;
+        return true;
+    } else {
+        return false;
+    }
+}
 
 bool pika_airdata_update() {
     // scan for new messages

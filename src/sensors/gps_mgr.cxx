@@ -34,6 +34,7 @@ using std::vector;
 #include "APM2.hxx"
 #include "FGFS.hxx"
 #include "Goldy2.hxx"
+#include "pika.hxx"
 #include "gps_gpsd.hxx"
 #include "gps_mediatek.hxx"
 #include "gps_ublox6.hxx"
@@ -87,6 +88,8 @@ void GPS_init() {
 	    ugfile_gps_init( output_path.str(), &section_node );
 	} else if ( source == "Goldy2" ) {
 	    goldy2_gps_init( output_path.str() );
+	} else if ( source == "pika" ) {
+	    pika_gps_init( output_path.str(), &section_node );
 	} else if ( source == "gpsd" ) {
 	    gpsd_init( output_path.str(), &section_node );
 	} else if ( source == "mediatek" ) {
@@ -157,6 +160,8 @@ bool GPS_update() {
 	    fresh_data = ugfile_get_gps();
 	} else if ( source == "Goldy2" ) {
 	    fresh_data = goldy2_gps_update();
+	} else if ( source == "pika" ) {
+	    fresh_data = pika_gps_update();
 	} else if ( source == "gpsd" ) {
 	    fresh_data = gpsd_get_gps();
 	} else if ( source == "mediatek" ) {
@@ -298,6 +303,8 @@ void GPS_close() {
 	    ugfile_close();
 	} else if ( source == "Goldy2" ) {
 	    goldy2_gps_close();
+	} else if ( source == "pika" ) {
+	    pika_gps_close();
 	} else if ( source == "gpsd" ) {
 	    // fixme
 	} else if ( source == "mediatek" ) {
