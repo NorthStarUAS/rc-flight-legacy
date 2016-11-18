@@ -50,6 +50,7 @@ static string device_name = "/dev/ttyO4";
 static bool master_opened = false;
 static bool imu_inited = false;
 static bool gps_inited = false;
+static bool airdata_inited = false;
 static bool pilot_input_inited = false;
 
 static bool reverse_imu_mount = false;
@@ -79,18 +80,14 @@ static Matrix4d mag_cal;
 #define PWM_MAX (PWM_CENTER + PWM_HALF_RANGE)
 
 
-// initialize gpsd input property nodes
-static void bind_airdata_input( pyPropertyNode *config ) {
-    if ( config->hasChild("device") ) {
-	device_name = config->getString("device");
-    }
-}
-
-
 // initialize imu output property nodes 
 static void bind_airdata_output( string output_path ) {
+    if ( airdata_inited ) {
+	return;
+    }
     airdata_node = pyGetNode(output_path, true);
     airdata_node.setString("module", "pika");
+    airdata_inited = true;
 }
 
 
@@ -319,10 +316,7 @@ void pika_pilot_close() {
 }
 
 void pika_airdata_init( string output_path, pyPropertyNode *config ) {
-    bind_airdata_input( config );
     bind_airdata_output( output_path );
-
-    pika_open();
 }
 
 
@@ -499,8 +493,6 @@ bool pika_pilot_update() {
 	return false;
     }
 
-    float val;
-
     pilot_node.setDouble( "timestamp", imu_node.getDouble("timestamp") );
 
     for ( int i = 0; i < PIKA_NUM_ACTUATORS; i++ ) {
@@ -513,14 +505,39 @@ bool pika_pilot_update() {
 
 
 bool pika_airdata_update() {
-    // scan for new messages
-    bool data_valid = false;
+    static double diff_sum = 0.0;
+    static int diff_count = 0;
+    static float diff_offset = 0.0;
 
-    while ( pika_read() ) {
-	data_valid = true;
+    airdata_node.setDouble( "timestamp", get_Time() );
+    airdata_node.setDouble( "pressure_mbar", (payload.airdata_staticPress_pa / 100.0) );
+    airdata_node.setDouble( "diff_pa", payload.airdata_diffPress_pa);
+
+    if ( ! airspeed_inited ) {
+	if ( airspeed_zero_start_time > 0 ) {
+	    diff_sum += payload.airdata_diffPress_pa;
+	    diff_count++;
+	    diff_offset = diff_sum / diff_count;
+	} else {
+	    airspeed_zero_start_time = get_Time();
+	    diff_sum = 0.0;
+	    diff_count = 0;
+	}
+	if ( get_Time() > airspeed_zero_start_time + 10.0 ) {
+	    //printf("diff_offset = %.2f\n", diff_offset);
+	    airspeed_inited = true;
+	}
     }
 
-    return data_valid;
+    double pitot_calibrate = 1.0; // make configurable in the future?
+    double diff_pa = payload.airdata_diffPress_pa - diff_offset;
+    if ( diff_pa < 0.0 ) { diff_pa = 0.0; } // avoid sqrt(neg_number) situation
+    float airspeed_mps = sqrt( 2*diff_pa / 1.225 ) * pitot_calibrate;
+    float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
+    airdata_node.setDouble( "airspeed_mps", airspeed_mps );
+    airdata_node.setDouble( "airspeed_kt", airspeed_kt );
+
+    return true;
 }
 
 
