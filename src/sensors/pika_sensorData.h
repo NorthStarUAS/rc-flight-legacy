@@ -65,6 +65,12 @@ struct sensors
     uint16_t sbus_lostFrames;   // counter number of lost frames
     uint8_t sbus_autoMode;      // bool autopilot enabled (sbus channel 0)
     uint8_t sbus_thrEnable;     // bool throttle enabled (sbus channel 1)
+
+   // uint16_t pot[10];           // potentiometer data
+   // uint16_t ain[5];            // analog input data
+
+    float airdata_staticPress_pa; // static pressure, pa
+    float airdata_diffPress_pa;	  // differential pressure, pa
 };
 #pragma pack(pop)   /* restore original alignment from stack */
 
