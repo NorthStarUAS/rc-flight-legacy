@@ -119,10 +119,8 @@ static int last_ack_subid = 0;
 static uint16_t act_rates[NUM_ACTUATORS] = { 50, 50, 50, 50, 50, 50, 50, 50 };
 
 static double pilot_in_timestamp = 0.0;
-static uint16_t pilot_input[NUM_PILOT_INPUTS]; // internal stash
+static float pilot_input[NUM_PILOT_INPUTS]; // internal stash
 static string pilot_mapping[NUM_PILOT_INPUTS]; // channel->name mapping
-static bool pilot_symmetric[NUM_PILOT_INPUTS]; // normalization symmetry flag
-static bool pilot_invert[NUM_PILOT_INPUTS];    // invert input flag
 
 static double imu_timestamp = 0.0;
 static uint32_t imu_micros = 0;
@@ -746,18 +744,6 @@ bool APM2_pilot_init( string output_path, pyPropertyNode *config ) {
 	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
 	}
     }
-    if ( config->hasChild("symmetric") ) {
-	for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
-	    pilot_symmetric[i] = config->getBool("symmetric", i);
-	    printf("pilot input: channel %d symmetry %d\n", i, pilot_symmetric[i]);
-	}
-    }
-    if ( config->hasChild("invert") ) {
-	for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
-	    pilot_invert[i] = config->getBool("invert", i);
-	    printf("pilot input: channel %d invert %d\n", i, pilot_invert[i]);
-	}
-    }
 
     return true;
 }
@@ -918,7 +904,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 
 	    for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
 		lo = payload[0 + 2*i]; hi = payload[1 + 2*i];
-		pilot_input[i] = hi*256 + lo;
+		pilot_input[i] = (float)(hi*256 + lo) / 16384.0;
 	    }
 
 #if 0
@@ -1852,14 +1838,7 @@ bool APM2_pilot_update() {
     pilot_node.setDouble( "timestamp", pilot_in_timestamp );
 
     for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
-	val = normalize_pulse( pilot_input[i], pilot_symmetric[i] );
-	if ( pilot_invert[i] ) {
-	    if ( pilot_symmetric[i] ) {
-		val *= -1.0;
-	    } else {
-		val = 1.0 - val;
-	    }
-	}
+	val = pilot_input[i];
 	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
 	pilot_node.setDouble( "channel", i, val );
     }
