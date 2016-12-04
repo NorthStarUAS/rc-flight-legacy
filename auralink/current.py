@@ -44,7 +44,11 @@ def compute_derived_data():
         status_node.setFloat('local_flight_timer', timer)
 
     # local autopilot timer
-    if in_flight and not pilot_node.getBool('manual'):
+    ap_enabled = False
+    if pilot_node.getFloatEnum("channel", 7) > 0:
+        ap_enabled = True
+        
+    if in_flight and ap_enabled:
         timer = status_node.getFloat('local_autopilot_timer')
         timer += dt
         status_node.setFloat('local_autopilot_timer', timer)
