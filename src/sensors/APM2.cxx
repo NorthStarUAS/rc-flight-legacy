@@ -898,13 +898,10 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	}
     } else if ( pkt_id == PILOT_PACKET_ID ) {
 	if ( pkt_len == NUM_PILOT_INPUTS * 2 ) {
-	    uint8_t lo, hi;
-
 	    pilot_in_timestamp = get_Time();
-
 	    for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
-		lo = payload[0 + 2*i]; hi = payload[1 + 2*i];
-		pilot_input[i] = (float)(hi*256 + lo) / 16384.0;
+                int16_t val = *(int16_t *)payload; payload += 2;
+		pilot_input[i] = (float)val / 16384.0;
 	    }
 
 #if 0
