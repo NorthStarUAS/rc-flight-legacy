@@ -29,8 +29,6 @@ using std::string;
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
 #include "init/globals.hxx"
-#include "math/SGMath.hxx"
-#include "math/SGGeodesy.hxx"
 #include "util/strutils.hxx"
 #include "util/timing.h"
 #include "gps_mgr.hxx"
@@ -151,133 +149,12 @@ static bool parse_ublox8_msg( uint8_t msg_class, uint8_t msg_id,
     static bool set_system_time = false;
 
     if ( msg_class == 0x01 && msg_id == 0x02 ) {
-	// NAV-POSLLH
-	my_swap( payload, 0, 4);
-	my_swap( payload, 4, 4);
-	my_swap( payload, 8, 4);
-	my_swap( payload, 12, 4);
-	my_swap( payload, 16, 4);
-	my_swap( payload, 20, 4);
-	my_swap( payload, 24, 4);
-
-	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)p+0);
-	int32_t lon = *((int32_t *)(p+4));
-	int32_t lat = *((int32_t *)(p+8));
-	int32_t height = *((int32_t *)(p+12));
-	int32_t hMSL = *((int32_t *)(p+16));
-	// uint32_t hAcc = *((uint32_t *)(p+20));
-	// uint32_t vAcc = *((uint32_t *)(p+24));
-	if ( display_on && 0 ) {
-	    if ( gps_fix_value < 3 ) {
-		printf("nav-posllh (%d) %d %d %d %d\n",
-		       iTOW, lon, lat, height, hMSL);
-	    }
-	}
+	// NAV-POSLLH: Please refer to the ublox6 driver (here or in the
+	// code history) for a nav-posllh parser
     } else if ( msg_class == 0x01 && msg_id == 0x06 ) {
-	// NAV-SOL
-	my_swap( payload, 0, 4);
-	my_swap( payload, 4, 4);
-	my_swap( payload, 8, 2);
-	my_swap( payload, 12, 4);
-	my_swap( payload, 16, 4);
-	my_swap( payload, 20, 4);
-	my_swap( payload, 24, 4);
-	my_swap( payload, 28, 4);
-	my_swap( payload, 32, 4);
-	my_swap( payload, 36, 4);
-	my_swap( payload, 40, 4);
-	my_swap( payload, 44, 2);
-
-	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)(p+0));
-	int32_t fTOW = *((int32_t *)(p+4));
-	int16_t week = *((int16_t *)(p+8));
-	uint8_t gpsFix = p[10];
-	// uint8_t flags = p[11];
-	int32_t ecefX = *((int32_t *)(p+12));
-	int32_t ecefY = *((int32_t *)(p+16));
-	int32_t ecefZ = *((int32_t *)(p+20));
-	// uint32_t pAcc = *((uint32_t *)(p+24));
-	int32_t ecefVX = *((int32_t *)(p+28));
-	int32_t ecefVY = *((int32_t *)(p+32));
-	int32_t ecefVZ = *((int32_t *)(p+36));
-	// uint32_t sAcc = *((uint32_t *)(p+40));
-	// uint16_t pDOP = *((uint16_t *)(p+44));
-	uint8_t numSV = p[47];
-	if ( display_on && 0 ) {
-	    if ( gps_fix_value < 3 ) {
-		printf("nav-sol (%d) %d %d %d %d %d [ %d %d %d ]\n",
-		       gpsFix, iTOW, fTOW, ecefX, ecefY, ecefZ,
-		       ecefVX, ecefVY, ecefVZ);
-	    }
-	}
-	SGVec3d ecef( ecefX / 100.0, ecefY / 100.0, ecefZ / 100.0 );
-	SGGeod wgs84;
-	SGGeodesy::SGCartToGeod( ecef, wgs84 );
-	SGQuatd ecef2ned = SGQuatd::fromLonLat(wgs84);
-	SGVec3d vel_ecef( ecefVX / 100.0, ecefVY / 100.0, ecefVZ / 100.0 );
-	// SGVec3d vel_ecef = ecef2ned.backTransform(vel_ned);
-	SGVec3d vel_ned = ecef2ned.transform( vel_ecef );
-	// printf("my vel ned = %.2f %.2f %.2f\n", vel_ned.x(), vel_ned.y(), vel_ned.z());
-
- 	gps_node.setLong( "satellites", numSV );
- 	gps_fix_value = gpsFix;
-	if ( gps_fix_value == 0 ) {
-	    gps_node.setLong( "status", 0 );
-	} else if ( gps_fix_value == 1 || gps_fix_value == 2 ) {
-	    gps_node.setLong( "status", 1 );
-	} else if ( gps_fix_value == 3 ) {
-	    gps_node.setLong( "status", 2 );
-	}
-
-	if ( fabs(ecefX) > 650000000
-	     || fabs(ecefY) > 650000000
-	     || fabs(ecefZ) > 650000000 ) {
-	    // earth radius is about 6371km (637,100,000 cm).  If one
-	    // of the ecef coordinates is beyond this radius we know
-	    // we have bad data.  This means we won't toss data until
-	    // above about 423,000' MSL
-	    events->log( "ublox8", "received bogus ecef data" );
-	} else if ( wgs84.getElevationM() > 60000 ) {
-	    // sanity check: assume altitude > 60k meters (200k feet) is bad
-	} else if ( wgs84.getElevationM() < -1000 ) {
-	    // sanity check: assume altitude < -1000 meters (-3000 feet) is bad
-	} else if ( gpsFix == 3 ) {
-	    // passed basic sanity checks and gps is reporting a 3d fix
-	    new_position = true;
-	    gps_node.setDouble( "timestamp", get_Time() );
-	    gps_node.setDouble( "latitude_deg", wgs84.getLatitudeDeg() );
-	    gps_node.setDouble( "longitude_deg", wgs84.getLongitudeDeg() );
-	    gps_node.setDouble( "altitude_m", wgs84.getElevationM() );
-	    gps_node.setDouble( "vn_ms", vel_ned.x() );
-	    gps_node.setDouble( "ve_ms", vel_ned.y() );
-	    gps_node.setDouble( "vd_ms", vel_ned.z() );
-	    // printf("        %.10f %.10f %.2f - %.2f %.2f %.2f\n",
-	    //        wgs84.getLatitudeDeg(),
-	    //        wgs84.getLongitudeDeg(),
-	    //        wgs84.getElevationM(),
-	    //        vel_ned.x(), vel_ned.y(), vel_ned.z() );
-
-	    double julianDate = (week * 7.0) + 
-		(0.001 * iTOW) / 86400.0 +  //86400 = seconds in 1 day
-		2444244.5; // 2444244.5 Julian date of GPS epoch (Jan 5 1980 at midnight)
-	    julianDate = julianDate - 2440587.5; // Subtract Julian Date of Unix Epoch (Jan 1 1970)
-
-	    double unixSecs = julianDate * 86400.0;
-	    //double unixFract = unixSecs - floor(unixSecs);
-	    //struct timeval time;
-	    gps_node.setDouble( "unix_time_sec", unixSecs );
-#if 0
-	    if ( unixSecs > 1263154775 && !set_system_time) {
-		printf("Setting system time to %.3f\n", unixSecs);
-		set_system_time = true;
-		time.tv_sec = floor(unixSecs);
-		time.tv_usec = floor(unixFract * 1000000.);
-		settimeofday(&time, NULL);
-	    }
-#endif
-	}
+	// NAV-SOL: Please refer to the ublox6 driver (here or in the
+	// code history) for a nav-sol parser that transforms eced
+	// pos/vel to lla pos/ned vel.
     } else if ( msg_class == 0x01 && msg_id == 0x07 ) {
 	// NAV-PVT
 	my_swap( payload, 0, 4);
@@ -375,76 +252,11 @@ static bool parse_ublox8_msg( uint8_t msg_class, uint8_t msg_id,
 	gps_node.setDouble( "pdop", pDOP / 100.0 );
 	gps_node.setLong( "fixType", fixType);
    } else if ( msg_class == 0x01 && msg_id == 0x12 ) {
-	// NAV-VELNED
-	my_swap( payload, 0, 4);
-	my_swap( payload, 4, 4);
-	my_swap( payload, 8, 4);
-	my_swap( payload, 12, 4);
-	my_swap( payload, 16, 4);
-	my_swap( payload, 20, 4);
-	my_swap( payload, 24, 4);
-	my_swap( payload, 28, 4);
-	my_swap( payload, 32, 4);
-
-	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)p+0);
-	int32_t velN = *((int32_t *)(p+4));
-	int32_t velE = *((int32_t *)(p+8));
-	int32_t velD = *((int32_t *)(p+12));
-	uint32_t speed = *((uint32_t *)(p+16));
-	// uint32_t gspeed = *((uint32_t *)(p+20));
-	int32_t heading = *((int32_t *)(p+24));
-	// uint32_t sAcc = *((uint32_t *)(p+28));
-	// uint32_t cAcc = *((uint32_t *)(p+32));
-	if ( display_on && 0 ) {
-	    if ( gps_fix_value < 3 ) {
-		printf("nav-velned (%d) %.2f %.2f %.2f s = %.2f h = %.2f\n",
-		       iTOW, velN / 100.0, velE / 100.0, velD / 100.0,
-		       speed / 100.0, heading / 100000.0);
-	    }
-	}
+	// NAV-VELNED: Please refer to the ublox6 driver (here or in the
+	// code history) for a nav-velned parser
     } else if ( msg_class == 0x01 && msg_id == 0x21 ) {
-	// NAV-TIMEUTC
-	my_swap( payload, 0, 4);
-	my_swap( payload, 4, 4);
-	my_swap( payload, 8, 4);
-	my_swap( payload, 12, 2);
-
-	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)(p+0));
-	// uint32_t tAcc = *((uint32_t *)(p+4));
-	int32_t nano = *((int32_t *)(p+8));
-	int16_t year = *((int16_t *)(p+12));
-	uint8_t month = p[14];
-	uint8_t day = p[15];
-	uint8_t hour = p[16];
-	uint8_t min = p[17];
-	uint8_t sec = p[18];
-	uint8_t valid = p[19];
-	if ( display_on && 0 ) {
-	    if ( gps_fix_value < 3 ) {
-		printf("nav-timeutc (%d) %02x %04d/%02d/%02d %02d:%02d:%02d\n",
-		       iTOW, valid, year, month, day, hour, min, sec);
-	    }
-	}
-	if ( !set_system_time && year > 2009 ) {
-	    set_system_time = true;
-	    printf("set system clock: nav-timeutc (%d) %02x %04d/%02d/%02d %02d:%02d:%02d\n",
-		   iTOW, valid, year, month, day, hour, min, sec);
-	    struct tm gps_time;
-	    gps_time.tm_sec = sec;
-	    gps_time.tm_min = min;
-	    gps_time.tm_hour = hour;
-	    gps_time.tm_mday = day;
-	    gps_time.tm_mon = month - 1;
-	    gps_time.tm_year = year - 1900;
-	    time_t unix_sec = mktime( &gps_time );
-	    printf("gps->unix time = %d\n", (int)unix_sec);
-	    struct timeval fulltime;
-	    fulltime.tv_sec = unix_sec;
-	    fulltime.tv_usec = nano / 1000;
-	    settimeofday( &fulltime, NULL );
-	}
+	// NAV-TIMEUTC: Please refer to the ublox6 driver (here or in the
+	// code history) for a nav-timeutc parser
     } else if ( msg_class == 0x01 && msg_id == 0x30 ) {
 	// NAV-SVINFO (partial parse)
 	my_swap( payload, 0, 4);
