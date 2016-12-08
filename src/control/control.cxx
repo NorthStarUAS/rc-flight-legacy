@@ -88,7 +88,6 @@ void control_init() {
     remote_link_skip = remote_link_node.getDouble("autopilot_skip");
     logging_skip = logging_node.getDouble("autopilot_skip");
 
-    circle_mgr->init();
     route_mgr->init();
     
     // initialize and build the autopilot controller from the property
@@ -121,9 +120,7 @@ void control_update(double dt)
     route_mgr->reposition_if_necessary();
 
     string current_task = task_node.getString("current_task_id");
-    if ( current_task == "circle" ) {
-	circle_mgr->update();
-    } else if ( current_task == "route" || current_task == "land" ) {
+    if ( current_task == "route" || current_task == "land" ) {
 	route_mgr->update();
     }
     route_mgr->idle();
