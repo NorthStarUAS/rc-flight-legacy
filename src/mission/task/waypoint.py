@@ -11,6 +11,7 @@ class Waypoint:
         self.lat_deg = 0.0
         self.hdg_deg = 0.0
         self.dist_m = 0.0
+        self.segment_dist_m = 0.0
 
     def build(self, config):
         if config.hasChild("lon_deg"):
@@ -38,6 +39,8 @@ class Waypoint:
             course = ref_heading_deg + self.hdg_deg
             if course < 0.0: course += 360.0
             if course > 360.0: course -= 360.0
-            (self.lat_deg, self.lon_deg, recip_deg) = libnav_core.geo_direct_wgs84(lat_deg, lon_deg, course, self.dist_m)
+            (self.lat_deg, self.lon_deg, recip_deg) = \
+                libnav_core.geo_direct_wgs84(lat_deg, lon_deg,
+                                             course, self.dist_m)
         else:
-            print "Error: attempt to update relative position of absolute waypoint"
+            print "Error: cannot update relative position of absolute waypoint"
