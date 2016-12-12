@@ -1,3 +1,5 @@
+import math
+
 import sys
 sys.path.append('/usr/local/lib')
 import libnav_core
@@ -6,6 +8,7 @@ from props import root, getNode
 
 import comms.events
 from task import Task
+import waypoint
 
 d2r = math.pi / 180.0
 r2d = 180.0 / math.pi
@@ -94,18 +97,22 @@ class Route(Task):
     def build(self, config_node):
         self.standby = []       # clear standby route
         for child_name in config_node.getChildren():
-            if child_name[:3] == 'wpt':
+            if child_name == 'name':
+                # ignore this for now
+                pass                
+            elif child_name[:3] == 'wpt':
                 child = config_node.getChild(child_name)
                 wp = waypoint.Waypoint()
                 wp.build(child)
                 self.standby.append(wp)
             elif child_name == 'enable':
-                # we do nothing on this tag right now
+                # we do nothing on this tag right now, fixme: remove
+                # this tag from all routes?
                 pass
             else:
                 print 'Unknown top level section:', child_name
                 return False
-        print 'loaded %d waypoints' % len(standby)
+        print 'loaded %d waypoints' % len(self.standby)
         return True
 
     # build a route from a string request
@@ -187,7 +194,7 @@ class Route(Task):
                     wp.update_relative_pos(home_lon, home_lat, home_az)
 	    if display_on:
 	        print "ROUTE pattern updated: %.6f %.6f (course = %.1f)" % \
-                    (home_lon, home_lat, home_az)	        }
+                    (home_lon, home_lat, home_az)
 	    self.last_lon = home_lon
 	    self.last_lat = home_lat
 	    self.last_az = home_az
@@ -332,7 +339,7 @@ class Route(Task):
 
                 omegaA = sqrt_of_2 * math.pi / L1_period
                 VomegaA = gs_mps * omegaA
-                course_error = self.orient_node.getFloat('groundtrack_deg')
+                course_error = self.orient_node.getFloat('groundtrack_deg') \
                     - nav_course
                 if course_error < -180.0: course_error += 360.0
                 if course_error > 180.0: course_error -= 360.0
@@ -349,17 +356,14 @@ class Route(Task):
                 self.targets_node.setFloat( 'roll_deg', target_bank_deg )
 
                 # estimate distance remaining to completion of route
-                dist_remaining_m = nav_dist_m
-                    + active->get_remaining_distance_from_current_waypoint()
+                dist_remaining_m = nav_dist_m + \
+                    self.get_remaining_distance_from_current_waypoint()
                 self.route_node.setFloat('dist_remaining_m', dist_remaining_m)
 
-    #if 0
-                if ( display_on ) {
-                    printf('next leg: %.1f  to end: %.1f  wpt=%d of %d\n',
-                           nav_dist_m, dist_remaining_m,
-                           active->get_waypoint_index(), active->size())
-                }
-    #endif
+                # if display_on:
+                #     printf('next leg: %.1f  to end: %.1f  wpt=%d of %d\n',
+                #            nav_dist_m, dist_remaining_m,
+                #            active->get_waypoint_index(), active->size())
 
                 # logic to mark completion of leg and move to next leg.
                 if completion_mode == 'loop':
@@ -393,6 +397,7 @@ class Route(Task):
                 # printf('route dist = %0f\n', dist_remaining_m)
                 # }
         else:
+            pass
             # FIXME: we've been commanded to follow a route, but no
             # route has been defined.
 
