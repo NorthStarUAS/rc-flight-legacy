@@ -107,14 +107,6 @@ class Circle(Task):
             self.circle_node.setFloat("latitude_deg",
                                     self.coord_node.getFloat("latitude_deg"))
 
-        # circle_mgr update (code to fly the actual circle) is written
-        # in C++ and located in src/control/circle_mgr.cxx  The
-        # circle_mgr->update() routine is called from
-        # src/control/control.cxx:update() whenever a circle hold task
-        # is active.
-
-        print "circle update"
-
         direction_str = self.circle_node.getString("direction")
         direction = 1.0
         if direction_str == "right":
