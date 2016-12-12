@@ -158,7 +158,40 @@ class Route(Task):
             self.current_wp += 1
         else:
             self.current_wp = 0
-            
+
+    def dribble(self):
+        # dribble active route into the active_node tree (one waypoint
+        # per interation to keep the load consistent and light.)
+        route_size = len(self.active)
+        self.active_node.setInt('route_size', route_size)
+        if route_size > 0:
+            if self.wp_counter >= route_size:
+                self.wp_counter = 0
+            wp = self.active[self.wp_counter]
+            wp_str = 'wpt[%d]' % self.wp_counter
+            wp_node = self.active_node.getChild(wp_str, True)
+            wp_node.setFloat("longitude_deg", wp.lon_deg)
+            wp_node.setFloat("latitude_deg", wp.lat_deg)
+            self.wp_counter += 1
+
+    def reposition(self):
+        home_lon = self.home_node.getDouble("longitude_deg");
+        home_lat = self.home_node.getDouble("latitude_deg");
+        home_az = self.home_node.getDouble("azimuth_deg");
+
+        if ( abs(home_lon - self.last_lon) > 0.000001 or
+	     abs(home_lat - self.last_lat) > 0.000001 or
+	     abs(home_az - self.last_az) > 0.001 ):
+            for wp in self.active:
+                if wp.mode == 'relative':
+                    wp.update_relative_pos(home_lon, home_lat, home_az)
+	    if display_on:
+	        print "ROUTE pattern updated: %.6f %.6f (course = %.1f)" % \
+                    (home_lon, home_lat, home_az)	        }
+	    self.last_lon = home_lon
+	    self.last_lat = home_lat
+	    self.last_az = home_az
+     
     def update(self, dt):
         if not self.active:
             return False
@@ -376,6 +409,9 @@ class Route(Task):
             self.route_node.setFloat('wp_eta_sec', direct_distance / gs_mps)
         else:
             self.route_node.setFloat('wp_eta_sec', 0.0)
+
+        # dribble active route into property tree
+        self.dribble()
 
     def is_complete(self):
         return False
