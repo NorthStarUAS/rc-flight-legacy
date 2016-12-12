@@ -13,14 +13,12 @@
 #include "comms/events.hxx"
 #include "comms/packer.hxx"
 #include "comms/telnet.hxx"
-#include "control/route_mgr.hxx"
 #include "python/pymodule.hxx"
 
 
 extern pyModuleEventLog *events;
 extern pyModulePacker *packer;
 extern UGTelnet *telnet;
-extern FGRouteMgr *route_mgr;
 extern pyModuleBase *mission_mgr;
 
 

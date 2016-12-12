@@ -32,7 +32,6 @@ using std::string;
 #include "comms/netSocket.h"	// netInit()
 #include "control/cas.hxx"
 #include "control/control.hxx"
-#include "control/route_mgr.hxx"
 #include "filters/filter_mgr.hxx"
 #include "health/health.hxx"
 #include "include/globaldefs.h"
@@ -361,7 +360,6 @@ int main( int argc, char **argv )
     filter_prof.set_name("filter");
     mission_prof.set_name("mission");
     control_prof.set_name("control");
-    route_mgr_prof.set_name("filter");
     health_prof.set_name("health");
     datalog_prof.set_name("logger");
     sync_prof.set_name("sync");

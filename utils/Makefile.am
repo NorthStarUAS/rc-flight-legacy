@@ -3,5 +3,4 @@ SUBDIRS = \
 	autohome \
 	benchmarks \
 	geo \
-	routegen \
 	uartserv

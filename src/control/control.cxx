@@ -88,8 +88,6 @@ void control_init() {
     remote_link_skip = remote_link_node.getDouble("autopilot_skip");
     logging_skip = logging_node.getDouble("autopilot_skip");
 
-    route_mgr->init();
-    
     // initialize and build the autopilot controller from the property
     // tree config (/config/autopilot)
     ap.init();
@@ -113,18 +111,6 @@ void control_update(double dt)
     static int remote_link_count = remote_link_random( remote_link_skip );
     static int logging_count = remote_link_random( logging_skip );
 
-    // FIXME: there's probably a better place than this, but we need
-    // to update the pattern routes every frame (even if the route
-    // task is not active) and so the code to do this is going here
-    // for now.
-    route_mgr->reposition_if_necessary();
-
-    string current_task = task_node.getString("current_task_id");
-    if ( current_task == "route" || current_task == "land" ) {
-	route_mgr->update();
-    }
-    route_mgr->idle();
-    
     // log auto/manual mode changes
     static bool last_ap_mode = false;
     if ( ap_node.getBool("master_switch") != last_ap_mode ) {
