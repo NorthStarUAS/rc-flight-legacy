@@ -11,7 +11,7 @@ class Waypoint:
         self.lat_deg = 0.0
         self.hdg_deg = 0.0
         self.dist_m = 0.0
-        self.segment_dist_m = 0.0
+        self.leg_dist_m = 0.0
 
     def build(self, config):
         if config.hasChild("lon_deg"):

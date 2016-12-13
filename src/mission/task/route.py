@@ -23,15 +23,18 @@ class Route(Task):
         self.orient_node = getNode('/orientation', True)
         self.home_node = getNode('/task/home', True)
         self.route_node = getNode('/task/route', True)
+        self.active_route_node = getNode('/task/route/active', True)
         self.L1_node = getNode('/config/autopilot/L1_controller', True)
         self.ap_node = getNode('/autopilot', True)
         self.targets_node = getNode('/autopilot/targets', True)
+        self.gps_node = getNode('/sensors/gps', True)
+        self.comms_node = getNode('/comms', True)
 
         self.alt_agl_ft = 0.0
         self.speed_kt = 30.0
 
-        self.active = []        # actual routes
-        self.standby = []
+        self.active_route = []        # actual routes
+        self.standby_route = []
         self.current_wp = 0
         self.acquired = False
         
@@ -95,7 +98,7 @@ class Route(Task):
 
     # build route from a property tree node
     def build(self, config_node):
-        self.standby = []       # clear standby route
+        self.standby_route = []       # clear standby route
         for child_name in config_node.getChildren():
             if child_name == 'name':
                 # ignore this for now
@@ -104,7 +107,7 @@ class Route(Task):
                 child = config_node.getChild(child_name)
                 wp = waypoint.Waypoint()
                 wp.build(child)
-                self.standby.append(wp)
+                self.standby_route.append(wp)
             elif child_name == 'enable':
                 # we do nothing on this tag right now, fixme: remove
                 # this tag from all routes?
@@ -112,7 +115,7 @@ class Route(Task):
             else:
                 print 'Unknown top level section:', child_name
                 return False
-        print 'loaded %d waypoints' % len(self.standby)
+        print 'loaded %d waypoints' % len(self.standby_route)
         return True
 
     # build a route from a string request
@@ -120,7 +123,7 @@ class Route(Task):
         tokens = request.split(',')
         if len(tokens) < 5:
             return False
-        self.standby = []       # clear standby
+        self.standby_route = []       # clear standby
         i = 1
         while i + 4 <= len(tokens):
             mode = int(tokens[i])
@@ -133,35 +136,35 @@ class Route(Task):
                 wp.mode = 'absolute'
                 wp.lon_deg = float(tokens[i+1])
                 wp.lat_deg = float(tokens[i+2])
-            self.standby.append(wp)
+            self.standby_route.append(wp)
             i += 4;
         print 'loaded %d waypoints' % len(standby)
         return True
 
     # swap active and standby routes
     def swap(self):
-        tmp = self.active
-        self.active = self.standby
-        self.standby = tmp
+        tmp = self.active_route
+        self.active_route = self.standby_route
+        self.standby_route = tmp
         self.current_wp = 0     # make sure we start at beginning
 
     def get_current_wp(self):
-        if self.current_wp >= 0 and self.current_wp < len(self.active):
-            return self.active[self.current_wp]
+        if self.current_wp >= 0 and self.current_wp < len(self.active_route):
+            return self.active_route[self.current_wp]
         else:
             return None
         
     def get_previous_wp(self):
         prev = self.current_wp - 1
         if prev < 0:
-            prev = len(self.active) - 1
-        if prev >= 0 and prev < len(self.active):
-            return self.active[prev]
+            prev = len(self.active_route) - 1
+        if prev >= 0 and prev < len(self.active_route):
+            return self.active_route[prev]
         else:
             return None
 
     def increment_current_wp(self):
-        if self.current_wp < len(self.active) - 1:
+        if self.current_wp < len(self.active_route) - 1:
             self.current_wp += 1
         else:
             self.current_wp = 0
@@ -169,46 +172,56 @@ class Route(Task):
     def dribble(self):
         # dribble active route into the active_node tree (one waypoint
         # per interation to keep the load consistent and light.)
-        route_size = len(self.active)
-        self.active_node.setInt('route_size', route_size)
+        route_size = len(self.active_route)
+        self.active_route_node.setInt('route_size', route_size)
         if route_size > 0:
             if self.wp_counter >= route_size:
                 self.wp_counter = 0
-            wp = self.active[self.wp_counter]
+            wp = self.active_route[self.wp_counter]
             wp_str = 'wpt[%d]' % self.wp_counter
-            wp_node = self.active_node.getChild(wp_str, True)
+            wp_node = self.active_route_node.getChild(wp_str, True)
             wp_node.setFloat("longitude_deg", wp.lon_deg)
             wp_node.setFloat("latitude_deg", wp.lat_deg)
+
+            if self.wp_counter < route_size - 1:
+                # compute leg course and distance
+                next = self.active_route[self.wp_counter+1]
+                (leg_course, reverse_course, leg_dist) = \
+                    libnav_core.geo_inverse_wgs84( wp.lon_deg, wp.lat_deg,
+                                                   next.lon_deg, next.lat_deg)
+                wp.leg_dist_m = leg_dist
             self.wp_counter += 1
 
     def reposition(self):
-        home_lon = self.home_node.getDouble("longitude_deg");
-        home_lat = self.home_node.getDouble("latitude_deg");
-        home_az = self.home_node.getDouble("azimuth_deg");
+        home_lon = self.home_node.getFloat("longitude_deg");
+        home_lat = self.home_node.getFloat("latitude_deg");
+        home_az = self.home_node.getFloat("azimuth_deg");
 
         if ( abs(home_lon - self.last_lon) > 0.000001 or
 	     abs(home_lat - self.last_lat) > 0.000001 or
 	     abs(home_az - self.last_az) > 0.001 ):
-            for wp in self.active:
+            for wp in self.active_route:
                 if wp.mode == 'relative':
                     wp.update_relative_pos(home_lon, home_lat, home_az)
-	    if display_on:
+	    if self.comms_node.getBool('display_on'):
 	        print "ROUTE pattern updated: %.6f %.6f (course = %.1f)" % \
                     (home_lon, home_lat, home_az)
 	    self.last_lon = home_lon
 	    self.last_lat = home_lat
 	    self.last_az = home_az
-     
+            
+    def get_remaining_distance_from_next_waypoint(self):
+        result = 0
+        for wp in self.active_route[self.current_wp:] :
+            result += wp.leg_dist_m
+        return result
+    
     def update(self, dt):
         if not self.active:
             return False
         
-        # route_mgr update (code to fly the actual route) is written
-        # in C++ and located in src/control/route_mgr.cxx The
-        # route_mgr->update() routine is called from
-        # src/control/control.cxx:update() whenever a route following
-        # task is active.
-
+        self.reposition()
+        
         nav_course = 0.0
         nav_dist_m = 0.0
 
@@ -224,9 +237,9 @@ class Route(Task):
             self.route_node.setString('request_result', result)
             self.route_node.setString('route_request', '')
 
-        route_node.setInt('route_size', len(self.active))
-        if len(self.active) > 0:
-            if GPS_age() < 10.0:
+        self.route_node.setInt('route_size', len(self.active_route))
+        if len(self.active_route) > 0:
+            if self.gps_node.getFloat("data_age") < 10.0:
                 # track current waypoint of route (only!) if we have
                 # recent gps data
 
@@ -241,7 +254,7 @@ class Route(Task):
                 # parameters instead!
                 start_mode = self.route_node.getString('start_mode')
                 if start_mode == 'first_leg' and self.current_wp == 0:
-                    if len(self.active) > 1:
+                    if len(self.active_route) > 1:
                         self.current_wp += 1
                     else:
                         self.route_node.setString('start_mode', 'first_wpt')
@@ -259,12 +272,12 @@ class Route(Task):
                 pos_lat = self.pos_node.getFloat("latitude_deg")
                 (direct_course, reverse_course, direct_dist) = \
                     libnav_core.geo_inverse_wgs84( pos_lon, pos_lat,
-                                                   wp.lon_deg, wp_lat_deg)
+                                                   wp.lon_deg, wp.lat_deg)
 
                 # compute leg course and distance
                 (leg_course, reverse_course, leg_dist) = \
-                    libnav_core.geo_inverse_wgs84( prev.lon_deg, prev_lat_deg,
-                                                   wp.lon_deg, wp_lat_deg)
+                    libnav_core.geo_inverse_wgs84( prev.lon_deg, prev.lat_deg,
+                                                   wp.lon_deg, wp.lat_deg)
 
                 # difference between ideal (leg) course and direct course
                 angle = leg_course - direct_course
@@ -273,17 +286,17 @@ class Route(Task):
 
                 # compute cross-track error
                 angle_rad = angle * d2r
-                xtrack_m = math.sin(angle_rad) * direct_distance
-                dist_m = math.cos(angle_rad) * direct_distance
-                # print 'direct_dist = %.1f angle = %.1f dist_m = %.1f\n' % (direct_distance, angle, dist_m)
-                self.route_node.setDouble( 'xtrack_dist_m', xtrack_m )
-                self.route_node.setDouble( 'projected_dist_m', dist_m )
+                xtrack_m = math.sin(angle_rad) * direct_dist
+                dist_m = math.cos(angle_rad) * direct_dist
+                # print 'direct_dist = %.1f angle = %.1f dist_m = %.1f\n' % (direct_dist, angle, dist_m)
+                self.route_node.setFloat( 'xtrack_dist_m', xtrack_m )
+                self.route_node.setFloat( 'projected_dist_m', dist_m )
 
                 # default distance for waypoint acquisition = direct
                 # distance to the target waypoint.  This can be
                 # overridden later by leg following and replaced with
                 # distance remaining along the leg.
-                nav_dist_m = direct_distance
+                nav_dist_m = direct_dist
 
                 follow_mode = self.route_node.getString('follow_mode')
                 completion_mode = self.route_node.getString('completion_mode')
@@ -325,7 +338,7 @@ class Route(Task):
                         # direct to first waypoint until we've
                         # acquired this route
                         nav_course = direct_course
-                        nav_dist_m = direct_distance
+                        nav_dist_m = direct_dist
 
                     # printf('direct=%.1f angle=%.1f nav=%.1f L1=%.1f xtrack=%.1f wangle=%.1f nav_dist=%.1f\n', direct_course, angle, nav_course, L1_dist, xtrack_m, wangle, nav_dist_m)
 
@@ -348,7 +361,7 @@ class Route(Task):
                 accel = 2.0 * math.sin(course_error * d2r) * VomegaA
 
                 target_bank_deg = -math.atan( accel / gravity ) * r2d
-                bank_limit_deg = L1_node.getFloat('bank_limit_deg')
+                bank_limit_deg = self.L1_node.getFloat('bank_limit_deg')
                 if target_bank_deg < -bank_limit_deg:
                     target_bank_deg = -bank_limit_deg
                 if target_bank_deg > bank_limit_deg:
@@ -357,7 +370,7 @@ class Route(Task):
 
                 # estimate distance remaining to completion of route
                 dist_remaining_m = nav_dist_m + \
-                    self.get_remaining_distance_from_current_waypoint()
+                    self.get_remaining_distance_from_next_waypoint()
                 self.route_node.setFloat('dist_remaining_m', dist_remaining_m)
 
                 # if display_on:
@@ -373,7 +386,7 @@ class Route(Task):
                 elif completion_mode == 'circle_last_wpt':
                     if nav_dist_m < 50.0:
                         self.acquired = True
-                        if self.current_wp < len(self.active) - 1:
+                        if self.current_wp < len(self.active_route) - 1:
                             self.increment_current()
                         else:
                             wp = self.get_current()
@@ -384,7 +397,7 @@ class Route(Task):
                 elif completion_mode == 'extend_last_leg':
                     if nav_dist_m < 50.0:
                         self.acquired = True
-                        if self.current_wp < len(self.active) - 1:
+                        if self.current_wp < len(self.active_route) - 1:
                             self.increment_current()
                         else:
                             # follow the last leg forever
@@ -407,11 +420,11 @@ class Route(Task):
             # FIXME: need to go to circle mode somehow here!!!!
             # mission_mgr.request_task_circle()
 
-        self.route_node.setFloat('wp_dist_m', direct_distance)
+        self.route_node.setFloat('wp_dist_m', direct_dist)
 
         gs_mps = self.vel_node.getFloat('groundspeed_ms')
         if gs_mps > 0.1:
-            self.route_node.setFloat('wp_eta_sec', direct_distance / gs_mps)
+            self.route_node.setFloat('wp_eta_sec', direct_dist / gs_mps)
         else:
             self.route_node.setFloat('wp_eta_sec', 0.0)
 
