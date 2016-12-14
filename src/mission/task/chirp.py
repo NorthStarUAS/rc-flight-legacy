@@ -73,7 +73,7 @@ class Chirp(Task):
             self.k = (self.freq_end - self.freq_start) / (2 * self.dur_sec)
             self.running = True
             comms.events.log("chirp", "start freq %.2f rad/sec" % self.freq_start)
-            comms.events.log("chirp", "amplitude %.2f deg" % self.amplitude)
+            comms.events.log("chirp", "amplitude %.2f" % self.amplitude)
 
         if not trigger and self.last_trigger:
             comms.events.log("chirp", "aborted by operator")
