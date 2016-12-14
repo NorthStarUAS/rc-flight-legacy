@@ -487,8 +487,15 @@ int main( int argc, char **argv )
             if ( !strcmp(argv[iarg], "off") ) remote_link_on = false;
         } else if ( !strcmp(argv[iarg],"--display") ) {
             ++iarg;
-            if ( !strcmp(argv[iarg], "on") ) display_on = true;
-            if ( !strcmp(argv[iarg], "off") ) display_on = false;
+	    p = pyGetNode("/comms", true);
+            if ( !strcmp(argv[iarg], "on") ) {
+		p.setBool("display_on", true);
+		display_on = true;
+	    }
+            if ( !strcmp(argv[iarg], "off") ) {
+		p.setBool("display_on", false);
+		display_on = false;
+	    }
         } else if ( !strcmp(argv[iarg], "--config" )  ) {
    	    // considered earlier in first pass
             ++iarg;
