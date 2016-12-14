@@ -273,11 +273,14 @@ class Route(Task):
                 (direct_course, reverse_course, direct_dist) = \
                     libnav_core.geo_inverse_wgs84( pos_lon, pos_lat,
                                                    wp.lon_deg, wp.lat_deg)
-
+                print pos_lat, pos_lon, ":", wp.lat_deg, wp.lon_deg
+                print ' course to:', direct_course, 'dist:', direct_dist
+                
                 # compute leg course and distance
                 (leg_course, reverse_course, leg_dist) = \
                     libnav_core.geo_inverse_wgs84( prev.lon_deg, prev.lat_deg,
                                                    wp.lon_deg, wp.lat_deg)
+                print ' leg course:', leg_course, 'dist:', leg_dist
 
                 # difference between ideal (leg) course and direct course
                 angle = leg_course - direct_course
@@ -373,21 +376,19 @@ class Route(Task):
                     self.get_remaining_distance_from_next_waypoint()
                 self.route_node.setFloat('dist_remaining_m', dist_remaining_m)
 
-                # if display_on:
-                #     printf('next leg: %.1f  to end: %.1f  wpt=%d of %d\n',
-                #            nav_dist_m, dist_remaining_m,
-                #            active->get_waypoint_index(), active->size())
+                if self.comms_node.getBool('display_on'):
+                    print 'next leg: %.1f  to end: %.1f  wpt=%d of %d' % (nav_dist_m, dist_remaining_m, self.current_wp, len(self.active_route))
 
                 # logic to mark completion of leg and move to next leg.
                 if completion_mode == 'loop':
                     if nav_dist_m < 50.0:
                         self.acquired = True
-                        self.increment_current()
+                        self.increment_current_wp()
                 elif completion_mode == 'circle_last_wpt':
                     if nav_dist_m < 50.0:
                         self.acquired = True
                         if self.current_wp < len(self.active_route) - 1:
-                            self.increment_current()
+                            self.increment_current_wp()
                         else:
                             wp = self.get_current()
                             # FIXME: NEED TO GO TO CIRCLE MODE HERE SOME HOW!!!
@@ -398,7 +399,7 @@ class Route(Task):
                     if nav_dist_m < 50.0:
                         self.acquired = True
                         if self.current_wp < len(self.active_route) - 1:
-                            self.increment_current()
+                            self.increment_current_wp()
                         else:
                             # follow the last leg forever
                             pass
