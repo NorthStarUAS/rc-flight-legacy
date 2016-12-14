@@ -203,6 +203,7 @@ class Route(Task):
             for wp in self.active_route:
                 if wp.mode == 'relative':
                     wp.update_relative_pos(home_lon, home_lat, home_az)
+                    print 'WPT:', wp.hdg_deg, wp.dist_m, wp.lat_deg, wp.lon_deg
 	    if self.comms_node.getBool('display_on'):
 	        print "ROUTE pattern updated: %.6f %.6f (course = %.1f)" % \
                     (home_lon, home_lat, home_az)
@@ -271,16 +272,17 @@ class Route(Task):
                 pos_lon = self.pos_node.getFloat("longitude_deg")
                 pos_lat = self.pos_node.getFloat("latitude_deg")
                 (direct_course, reverse_course, direct_dist) = \
-                    libnav_core.geo_inverse_wgs84( pos_lon, pos_lat,
-                                                   wp.lon_deg, wp.lat_deg)
-                print pos_lat, pos_lon, ":", wp.lat_deg, wp.lon_deg
-                print ' course to:', direct_course, 'dist:', direct_dist
+                    libnav_core.geo_inverse_wgs84( pos_lat, pos_lon,
+                                                   wp.lat_deg, wp.lon_deg)
+                #print pos_lat, pos_lon, ":", wp.lat_deg, wp.lon_deg
+                #print ' course to:', direct_course, 'dist:', direct_dist
                 
                 # compute leg course and distance
                 (leg_course, reverse_course, leg_dist) = \
-                    libnav_core.geo_inverse_wgs84( prev.lon_deg, prev.lat_deg,
-                                                   wp.lon_deg, wp.lat_deg)
-                print ' leg course:', leg_course, 'dist:', leg_dist
+                    libnav_core.geo_inverse_wgs84( prev.lat_deg, prev.lon_deg,
+                                                   wp.lat_deg, wp.lon_deg)
+                #print prev.lat_deg, prev.lon_deg, " ", wp.lat_deg, wp.lon_deg
+                #print ' leg course:', leg_course, 'dist:', leg_dist
 
                 # difference between ideal (leg) course and direct course
                 angle = leg_course - direct_course
@@ -376,8 +378,8 @@ class Route(Task):
                     self.get_remaining_distance_from_next_waypoint()
                 self.route_node.setFloat('dist_remaining_m', dist_remaining_m)
 
-                if self.comms_node.getBool('display_on'):
-                    print 'next leg: %.1f  to end: %.1f  wpt=%d of %d' % (nav_dist_m, dist_remaining_m, self.current_wp, len(self.active_route))
+                #if self.comms_node.getBool('display_on'):
+                #    print 'next leg: %.1f  to end: %.1f  wpt=%d of %d' % (nav_dist_m, dist_remaining_m, self.current_wp, len(self.active_route))
 
                 # logic to mark completion of leg and move to next leg.
                 if completion_mode == 'loop':
