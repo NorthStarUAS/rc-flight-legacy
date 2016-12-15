@@ -35,9 +35,6 @@
 using std::string;
 using std::vector;
 
-#include "route.hxx"
-
-
 /**
  * Top level route manager class
  * 

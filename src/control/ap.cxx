@@ -33,7 +33,7 @@ using std::ostringstream;
 #include "comms/logging.hxx"
 #include "util/wind.hxx"
 
-#include "xmlauto.hxx"
+#include "ap.hxx"
 
 
 FGPIDVelComponent::FGPIDVelComponent( string config_path ):

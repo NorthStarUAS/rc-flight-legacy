@@ -35,7 +35,7 @@
 #include "init/globals.hxx"
 
 #include "include/util.h"
-#include "xmlauto.hxx"
+#include "ap.hxx"
 
 #include "control.hxx"
 
