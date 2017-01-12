@@ -114,7 +114,7 @@ void AuraPID::update( double dt ) {
 
     double r_n = 0.0;
     if ( ref_value != "" ) {
-	printf("nonzero ref_value\n");
+	// printf("nonzero ref_value\n");
 	r_n = atof(ref_value.c_str());
     } else {
 	r_n = ref_node.getDouble(ref_attr.c_str());

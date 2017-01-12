@@ -88,6 +88,9 @@ AuraSummer::AuraSummer ( string config_path )
 		   children[i].c_str());
 	}
     }
+    
+    // config
+    config_node = component_node.getChild( "config", true );
 }
 
 void AuraSummer::update( double dt ) {
@@ -98,10 +101,19 @@ void AuraSummer::update( double dt ) {
     }
 
     if ( enabled ) {
+	bool debug = component_node.getBool("debug");
+	if ( debug ) printf("Updating %s\n", get_name().c_str());
 	double sum = 0.0;
 	for ( unsigned int i = 0; i < input_node.size(); i++ ) {
-	    sum += input_node[i].getDouble( input_attr[i].c_str() );
+	    double val = input_node[i].getDouble( input_attr[i].c_str() );
+	    sum += val;
+	    if (debug) printf("  %s = %.3f\n", input_attr[i].c_str(), val);
 	}
+	double u_min = config_node.getDouble("u_min");
+	double u_max = config_node.getDouble("u_max");
+	if ( sum < u_min ) { sum = u_min; }
+	if ( sum > u_max ) { sum = u_max; }
+	if (debug) printf("  sum = %.3f\n", sum);
 	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
 	    output_node[i].setDouble( output_attr[i].c_str(), sum );
 	}
