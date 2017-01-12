@@ -111,7 +111,8 @@ class Switches(Task):
         if not self.active:
             return False
         for i, switch in enumerate(self.switches):
-            switch.update(dt)
+            if switch != None:
+                switch.update(dt)
 
     def is_complete(self):
         return False

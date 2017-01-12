@@ -1,12 +1,14 @@
 noinst_LIBRARIES = libcontrol.a
 
 libcontrol_a_SOURCES = \
+	ap.cxx ap.hxx \
 	cas.cxx cas.hxx \
-	circle_mgr.cxx circle_mgr.hxx \
+	component.hxx \
 	control.cxx control.hxx \
-	route.cxx route.hxx \
-	route_mgr.cxx route_mgr.hxx \
-	waypoint.cxx waypoint.hxx \
-	xmlauto.cxx xmlauto.hxx
+	dig_filter.cxx dig_filter.hxx \
+	pid.cxx pid.hxx \
+	pid_vel.cxx pid_vel.hxx \
+	predictor.cxx predictor.hxx \
+	summer.cxx summer.hxx
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@

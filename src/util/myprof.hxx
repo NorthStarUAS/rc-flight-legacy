@@ -44,7 +44,6 @@ extern myprofile pilot_prof;
 extern myprofile filter_prof;
 extern myprofile mission_prof;
 extern myprofile control_prof;
-extern myprofile route_mgr_prof;
 extern myprofile health_prof;
 extern myprofile datalog_prof;
 extern myprofile main_prof;

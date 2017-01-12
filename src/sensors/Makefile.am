@@ -9,7 +9,6 @@ libsensors_a_SOURCES = \
 	imu_vn100_spi.cxx imu_vn100_spi.hxx \
 	gps_mgr.cxx gps_mgr.hxx \
 	gps_gpsd.cxx gps_gpsd.hxx \
-	gps_mediatek.cxx gps_mediatek.hxx \
 	gps_ublox6.cxx gps_ublox6.hxx \
 	gps_ublox8.cxx gps_ublox8.hxx \
 	pilot_mgr.cxx pilot_mgr.hxx \
