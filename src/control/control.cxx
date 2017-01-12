@@ -40,12 +40,8 @@
 #include "control.hxx"
 
 
-//
 // global variables
-//
-
-// the "FlightGear" autopilot
-static FGXMLAutopilot ap;
+static AuraAutopilot ap;
 
 
 // property nodes

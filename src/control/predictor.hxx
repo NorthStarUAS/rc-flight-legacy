@@ -1,8 +1,6 @@
-// ap.hxx - a flexible generic way to build autopilots
+// predictor.hxx - predict a future sensor value
 //
-// Written by Curtis Olson, started January 2004.
-//
-// Copyright (C) 2004-2017  Curtis L. Olson - curtolson@flightgear.org
+// Copyright (C) 2004-2017  Curtis L. Olson  - curtolson@flightgear.org
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -18,53 +16,33 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: xmlauto.hxx,v 1.1 2007/03/20 20:39:49 curt Exp $
 
-
-#ifndef _AURA_AUTOPILOT_HXX
-#define _AURA_AUTOPILOT_HXX
-
-#ifndef __cplusplus
-# error This library requires C++
-#endif
-
-#include "python/pyprops.hxx"
-
-#include <vector>
-using std::vector;
+#include <string>
+using std::string;
 
 #include "component.hxx"
 
 
-/**
- * Model an autopilot system.
- * 
- */
-
-class AuraAutopilot {
-
-public:
-
-    AuraAutopilot() {}
-    ~AuraAutopilot() {}
-
-    void init();
-    void reinit();
-    void bind();
-    void unbind();
-    void update( double dt );
-
-    bool build();
-
-protected:
-
-    typedef vector<APComponent *> comp_list;
+class AuraPredictor : public APComponent {
 
 private:
 
-    bool serviceable;
-    comp_list components;
+    // proportional component data
+    double last_value;
+    double average;
+    double seconds;
+    double filter_gain;
+
+    // debug flag
+    bool debug_node;
+
+    // Input values
+    double ivalue;                 // input value
+    
+public:
+
+    AuraPredictor( string config_path );
+    ~AuraPredictor() {}
+
+    void update( double dt );
 };
-
-
-#endif // _AURA_AUTOPILOT_HXX

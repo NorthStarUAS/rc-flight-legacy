@@ -1,8 +1,8 @@
-// ap.hxx - a flexible generic way to build autopilots
+// pid.hxx - a standard pid controller
 //
 // Written by Curtis Olson, started January 2004.
 //
-// Copyright (C) 2004-2017  Curtis L. Olson - curtolson@flightgear.org
+// Copyright (C) 2004-2017  Curtis L. Olson  - curtolson@flightgear.org
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Library General Public
@@ -18,53 +18,36 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// $Id: xmlauto.hxx,v 1.1 2007/03/20 20:39:49 curt Exp $
 
 
-#ifndef _AURA_AUTOPILOT_HXX
-#define _AURA_AUTOPILOT_HXX
-
-#ifndef __cplusplus
-# error This library requires C++
-#endif
-
-#include "python/pyprops.hxx"
-
-#include <vector>
-using std::vector;
+#include <string>
+using std::string;
 
 #include "component.hxx"
 
 
-/**
- * Model an autopilot system.
- * 
- */
-
-class AuraAutopilot {
-
-public:
-
-    AuraAutopilot() {}
-    ~AuraAutopilot() {}
-
-    void init();
-    void reinit();
-    void bind();
-    void unbind();
-    void update( double dt );
-
-    bool build();
-
-protected:
-
-    typedef vector<APComponent *> comp_list;
+class AuraPID : public APComponent {
 
 private:
 
-    bool serviceable;
-    comp_list components;
+    bool proportional;		// proportional component data
+    bool integral;		// integral component data
+    double iterm;		// integral summer
+
+    // post functions for output
+    bool clamp;
+
+    // Input values
+    double y_n;                 // measured process value (input)
+    double y_n_1;		// previous process value (input)
+    double r_n;                 // reference (set point) value
+
+public:
+
+    AuraPID( string config_path );
+    ~AuraPID() {}
+
+    void update( double dt );
 };
 
 
-#endif // _AURA_AUTOPILOT_HXX
