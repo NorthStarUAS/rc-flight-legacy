@@ -8,6 +8,7 @@ libcontrol_a_SOURCES = \
 	dig_filter.cxx dig_filter.hxx \
 	pid.cxx pid.hxx \
 	pid_vel.cxx pid_vel.hxx \
-	predictor.cxx predictor.hxx
+	predictor.cxx predictor.hxx \
+	summer.cxx summer.hxx
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@

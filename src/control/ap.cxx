@@ -37,6 +37,7 @@ using std::ostringstream;
 #include "pid.hxx"
 #include "pid_vel.hxx"
 #include "predictor.hxx"
+#include "summer.hxx"
 
 
 void AuraAutopilot::init() {
@@ -98,6 +99,10 @@ bool AuraAutopilot::build() {
 	    } else if ( module == "filter" ) {
 		APComponent *c
 		    = new AuraDigitalFilter( config_path.str() );
+		components.push_back( c );
+	    } else if ( module == "summer" ) {
+		APComponent *c
+		    = new AuraSummer( config_path.str() );
 		components.push_back( c );
 	    } else {
 		printf("Unknown AP module name: %s\n", module.c_str());
