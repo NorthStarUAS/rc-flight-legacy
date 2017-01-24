@@ -13,70 +13,78 @@ import sys
 
 import navpy
 
+from nav.data import flight_data, flight_interp
+
 import imucal
 import transformations
 
-argparser = argparse.ArgumentParser(description='magcal')
-argparser.add_argument('--flight', help='flight log directory')
-argparser.add_argument('--sentera', help='sentera flight log directory')
-argparser.add_argument('--cal', required=True, help='calibration log directory')
-argparser.add_argument('--imu-sn', help='specify imu serial number')
-argparser.add_argument('--resample-hz', type=float, help='resample rate (hz)')
-argparser.add_argument('--plot', action='store_true', help='plot results.')
-args = argparser.parse_args()
+parser = argparse.ArgumentParser(description='magcal')
+parser.add_argument('--flight', help='load specified aura flight log')
+parser.add_argument('--aura-flight', help='load specified aura flight log')
+parser.add_argument('--px4-sdlog2', help='load specified px4 sdlog2 (csv) flight log')
+parser.add_argument('--px4-ulog', help='load specified px4 ulog (csv) base path')
+parser.add_argument('--umn-flight', help='load specified .mat flight log')
+parser.add_argument('--sentera-flight', help='load specified sentera flight log')
+parser.add_argument('--sentera2-flight', help='load specified sentera2 flight log')
+parser.add_argument('--cal', required=True, help='calibration log directory')
+parser.add_argument('--imu-sn', help='specify imu serial number')
+parser.add_argument('--resample-hz', default=10.0, type=float, help='resample rate (hz)')
+parser.add_argument('--plot', action='store_true', help='plot results.')
+args = parser.parse_args()
 
 g = 9.81
 
 if args.flight:
-    # load IMU (+ mag) data
-    imu_file = os.path.join(args.flight, "imu-0.txt")
-    events_file = os.path.join(args.flight, "events.txt")
-    imu_data = []
-    fimu = fileinput.input(imu_file)
-    for line in fimu:
-        time, p, q, r, ax, ay, az, hx, hy, hz, temp, status = re.split('[,\s]+', line.rstrip())
-        if abs(float(hx)) > 500:
-            print "line:", line
-        imu_data.append( [time, p, q, r, ax, ay, az, hx, hy, hz, temp] )
-    if not len(imu_data):
-        print "No imu records loaded, cannot continue..."
-        quit()
-elif args.sentera:
-    imu_file = os.path.join(args.sentera, "imu.csv")
-    filter_file = os.path.join(args.sentera, "filter-post.txt")
-    imu_data = []
-    fimu = fileinput.input(imu_file)
-    for line in fimu:
-        try:
-            time, p, q, r, ax, ay, az, hx, hy, hz, temp = re.split('[,\s]+', line.rstrip())
-            mag_orientation = 'newer'
-            if mag_orientation == 'older':
-                imu_data.append( [float(time)/1000000.0,
-                                  -float(p), float(q), -float(r),
-                                  -float(ax)*g, float(ay)*g, -float(az)*g,
-                                  -float(hx), float(hy), -float(hz),
-                                  float(temp)] )
-            elif mag_orientation == 'newer':
-                imu_data.append( [float(time)/1000000.0,
-                                  -float(p), float(q), -float(r),
-                                  -float(ax)*g, float(ay)*g, -float(az)*g,
-                                  -float(hy), float(hx), float(hz),
-                                  float(temp)] )
-        except:
-            print sys.exc_info()
-            print line.rstrip()
-    if not len(imu_data):
-        print "No imu records loaded, cannot continue..."
-        quit()
-     
-imu_array = np.array(imu_data, dtype=np.float64)
-x = imu_array[:,0]
-#print 'hx range:', imu_array[:,7].min(), imu_array[:,7].max()
-#print 'hy range:', imu_array[:,8].min(), imu_array[:,8].max()
-#print 'hz range:', imu_array[:,9].min(), imu_array[:,9].max()
-imu_hx = interpolate.interp1d(x, imu_array[:,7], bounds_error=False, fill_value=0.0)
-imu_hy = interpolate.interp1d(x, imu_array[:,8], bounds_error=False, fill_value=0.0)
-imu_hz = interpolate.interp1d(x, imu_array[:,9], bounds_error=False, fill_value=0.0)
+    loader = 'aura'
+    path = args.flight
+elif args.aura_flight:
+    loader = 'aura'
+    path = args.aura_flight
+elif args.px4_sdlog2:
+    loader = 'px4_sdlog2'
+    path = args.px4_sdlog2
+elif args.px4_ulog:
+    loader = 'px4_ulog'
+    path = args.px4_ulog
+elif args.sentera_flight:
+    loader = 'sentera1'
+    path = args.sentera_flight
+elif args.sentera2_flight:
+    loader = 'sentera2'
+    path = args.sentera2_flight
+elif args.umn_flight:
+    loader = 'umn1'
+    path = args.umn_flight
+else:
+    loader = None
+    path = None
+if 'recalibrate' in args:
+    recal_file = args.recalibrate
+else:
+    recal_file = None
+
+data = flight_data.load(loader, path, recal_file)
+interp = flight_interp.FlightInterpolate()
+interp.build(data)
+
+print "imu records:", len(data['imu'])
+print "gps records:", len(data['gps'])
+if 'air' in data:
+    print "airdata records:", len(data['air'])
+print "filter records:", len(data['filter'])
+if 'pilot' in data:
+    print "pilot records:", len(data['pilot'])
+if 'act' in data:
+    print "act records:", len(data['act'])
+if len(data['imu']) == 0:
+    print "not enough data loaded to continue."
+    quit()
+
+#imu_array = np.array(imu_data, dtype=np.float64)
+#x = imu_array[:,0]
+#imu_hx = interpolate.interp1d(x, imu_array[:,7], bounds_error=False, fill_value=0.0)
+#imu_hy = interpolate.interp1d(x, imu_array[:,8], bounds_error=False, fill_value=0.0)
+#imu_hz = interpolate.interp1d(x, imu_array[:,9], bounds_error=False, fill_value=0.0)
 
 # read the events.txt file to determine when aircraft becomes airborne
 # (so we can ignore preflight values.)  Update: also to read the IMU
@@ -121,16 +129,16 @@ if not imu_sn:
     
 if not xmin:
     print "warning no launch event found"
-    xmin = x.min()
+    xmin = interp.imu_time.min()
 if not xmax:
     print "warning no land event found"
-    xmax = x.max()
+    xmax = interp.imu_time.max()
 
 # sanity check in case imu data log ends before events.txt
-if xmin < x.min():
-    xmin = x.min()
-if xmax > x.max():
-    xmax = x.max()
+if xmin < interp.imu_time.min():
+    xmin = interp.imu_time.min()
+if xmax > interp.imu_time.max():
+    xmax = interp.imu_time.max()
     
 print "flight range = %.3f - %.3f (%.3f)" % (xmin, xmax, xmax-xmin)
 trange = xmax - xmin
@@ -138,9 +146,9 @@ trange = xmax - xmin
 if args.resample_hz:
     sense_data = []
     for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
-        hx = imu_hx(x)
-        hy = imu_hy(x)
-        hz = imu_hz(x)
+        hx = interp.imu_hx(x)
+        hy = interp.imu_hy(x)
+        hz = interp.imu_hz(x)
         if abs(hx) > 500:
             print "oops:", hx, hy, hz
         mag_sense = np.array([hx, hy, hz])
@@ -206,9 +214,11 @@ af_array = np.array(af_data)
 # multiple flights later
 if args.flight:
     data_dir = os.path.abspath(args.flight)
-elif args.sentera:
-    data_dir = os.path.abspath(args.sentera)
-    
+elif args.sentera_flight:
+    data_dir = os.path.abspath(args.sentera_flight)
+elif args.px4_sdlog2:
+    data_dir = os.path.dirname(os.path.abspath(args.px4_sdlog2))
+   
 cal_dir = os.path.join(args.cal, imu_sn)
 if not os.path.exists(cal_dir):
     os.makedirs(cal_dir)
