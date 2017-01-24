@@ -218,6 +218,8 @@ for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
         print "oops:", hx, hy, hz
     mag_sense = np.array([hx, hy, hz])
     # print mag_sense
+    if abs(psi) < 0.1:
+        print mag_sense, mag_ideal
     if args.flight:
         ideal_data.append( mag_ideal[:].tolist() )
         sense_data.append( mag_sense[:].tolist() )
