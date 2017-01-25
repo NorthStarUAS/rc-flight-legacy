@@ -72,7 +72,6 @@ AuraPID::AuraPID( string config_path ):
 	ref_node = pyGetNode( path, true );
     }
 
-
     // output
     node = component_node.getChild( "output", true );
     vector <string> children = node.getChildren();
@@ -136,10 +135,8 @@ void AuraPID::update( double dt ) {
     }
     double Kd = Kp * Td;
 
-    // proportional term (and preclamp)
+    // proportional term
     double pterm = Kp * error;
-    if ( pterm < u_min ) { pterm = u_min; }
-    if ( pterm > u_max ) { pterm = u_max; }
 
     // integral term
     iterm += Ki * error * dt;
