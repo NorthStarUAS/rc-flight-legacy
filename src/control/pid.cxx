@@ -123,6 +123,7 @@ void AuraPID::update( double dt ) {
     if ( debug ) printf("input = %.3f reference = %.3f error = %.3f\n",
 			y_n, r_n, error);
 
+    double u_trim = config_node.getDouble("u_trim");
     double u_min = config_node.getDouble("u_min");
     double u_max = config_node.getDouble("u_max");
 
@@ -136,7 +137,7 @@ void AuraPID::update( double dt ) {
     double Kd = Kp * Td;
 
     // proportional term
-    double pterm = Kp * error;
+    double pterm = Kp * error + u_trim;
 
     // integral term
     iterm += Ki * error * dt;
