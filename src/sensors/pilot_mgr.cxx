@@ -28,6 +28,7 @@ using std::vector;
 #include "util/myprof.hxx"
 
 #include "APM2.hxx"
+#include "Aura3.hxx"
 #include "FGFS.hxx"
 #include "Goldy2.hxx"
 #include "pika.hxx"
@@ -78,6 +79,8 @@ void PilotInput_init() {
 	    // do nothing
 	} else if ( source == "APM2" ) {
 	    APM2_pilot_init( output_path.str(), &section );
+	} else if ( source == "Aura3" ) {
+	    Aura3_pilot_init( output_path.str(), &section );
 	} else if ( source == "fgfs" ) {
 	    fgfs_pilot_init( output_path.str(), &section );
 	} else if ( source == "Goldy2" ) {
@@ -111,6 +114,8 @@ bool PilotInput_update() {
 	    // do nothing
 	} else if ( source == "APM2" ) {
 	    fresh_data = APM2_pilot_update();
+	} else if ( source == "Aura3" ) {
+	    fresh_data = Aura3_pilot_update();
 	} else if ( source == "fgfs" ) {
 	    fresh_data = fgfs_pilot_update();
 	} else if ( source == "Goldy2" ) {
@@ -188,6 +193,8 @@ void PilotInput_close() {
 	    // do nothing
 	} else if ( source == "APM2" ) {
 	    APM2_pilot_close();
+	} else if ( source == "Aura3" ) {
+	    Aura3_pilot_close();
 	} else if ( source == "fgfs" ) {
 	    fgfs_pilot_close();
 	} else if ( source == "Goldy2" ) {

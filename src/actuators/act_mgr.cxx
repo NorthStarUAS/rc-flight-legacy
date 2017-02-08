@@ -32,6 +32,7 @@ using std::vector;
 #include "act_fgfs.hxx"
 #include "act_goldy2.hxx"
 #include "sensors/APM2.hxx"
+#include "sensors/Aura3.hxx"
 #include "sensors/raven1.hxx"
 #include "sensors/raven2.hxx"
 
@@ -98,6 +99,17 @@ void Actuator_init() {
 	    while ( ! APM2_actuator_configured ) {
 		usleep(250000);
 		APM2_act_update();
+	    }
+	} else if ( module == "Aura3" ) {
+	    Aura3_act_init( &section );
+	    // don't go anywhere until the acuator is configured.
+	    // this will also force the Aura3 into binary mode as soon
+	    // as it starts seeing our binary config packets coming
+	    // in.
+	    Aura3_act_update();
+	    while ( ! Aura3_actuator_configured ) {
+		usleep(250000);
+		Aura3_act_update();
 	    }
 	} else if ( module == "fgfs" ) {
 	    fgfs_act_init( &section );
@@ -253,7 +265,7 @@ static void set_actuator_values_pilot_pass_through() {
     // The following lines would act as a manual (no-short-circuit)
     // pass-through at the host flight computer level.  However,
     // manaul pass-through is handled more efficiently (less latency)
-    // directly on APM2.x hardware.
+    // directly on APM2/Aura3 hardware.
     double chirp_val = 0.0;
     string chirp_inject = "";
     if ( chirp_node.getBool("running") ) {
@@ -261,11 +273,11 @@ static void set_actuator_values_pilot_pass_through() {
 	chirp_inject = chirp_node.getString("inject");
     }
     
-    float aileron = -pilot_node.getDouble("aileron");
+    float aileron = pilot_node.getDouble("aileron");
     if ( chirp_inject == "aileron" ) { aileron += chirp_val; }
     act_node.setDouble( "aileron", aileron );
 
-    float elevator = -pilot_node.getDouble("elevator");
+    float elevator = pilot_node.getDouble("elevator");
     if ( chirp_inject == "elevator" ) { elevator += chirp_val; }
     act_node.setDouble( "elevator", elevator );
 
@@ -319,6 +331,10 @@ bool Actuator_update() {
 	} else if ( module == "APM2" ) {
             debug_act2.start();
 	    APM2_act_update();
+            debug_act2.stop();
+	} else if ( module == "Aura3" ) {
+            debug_act2.start();
+	    Aura3_act_update();
             debug_act2.stop();
 	} else if ( module == "fgfs" ) {
 	    fgfs_act_update();
@@ -393,6 +409,8 @@ void Actuators_close() {
 	    // do nothing
 	} else if ( module == "APM2" ) {
 	    APM2_act_close();
+	} else if ( module == "Aura3" ) {
+	    Aura3_act_close();
 	} else if ( module == "fgfs" ) {
 	    fgfs_act_close();
 	} else if ( module == "Goldy2" ) {

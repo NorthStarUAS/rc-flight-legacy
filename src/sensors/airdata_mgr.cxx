@@ -30,6 +30,7 @@ using std::vector;
 
 #include "airdata_bolder.hxx"
 #include "APM2.hxx"
+#include "Aura3.hxx"
 #include "FGFS.hxx"
 #include "Goldy2.hxx"
 #include "pika.hxx"
@@ -111,6 +112,8 @@ void AirData_init() {
 	    airdata_bolder_init( output_path.str(), &section);
 	} else if ( source == "APM2" ) {
 	    APM2_airdata_init( output_path.str() );
+	} else if ( source == "Aura3" ) {
+	    Aura3_airdata_init( output_path.str() );
 	} else if ( source == "fgfs" ) {
 	    fgfs_airdata_init( output_path.str() );
 	} else if ( source == "Goldy2" ) {
@@ -322,6 +325,8 @@ bool AirData_update() {
 	    fresh_data = airdata_bolder_update();
 	} else if ( source == "APM2" ) {
 	    fresh_data = APM2_airdata_update();
+	} else if ( source == "Aura3" ) {
+	    fresh_data = Aura3_airdata_update();
 	} else if ( source == "fgfs" ) {
 	    fresh_data = fgfs_airdata_update();
 	} else if ( source == "Goldy2" ) {
@@ -420,8 +425,8 @@ void AirData_recalibrate() {
 	    // do nothing
 	} else if ( source == "airdata_bolder" ) {
 	    airdata_bolder_zero_airspeed();
-	} else if ( source == "APM2" ) {
-	    APM2_airdata_zero_airspeed();
+	} else if ( source == "Aura3" ) {
+	    Aura3_airdata_zero_airspeed();
 	} else if ( source == "fgfs" ) {
 	    // do nothing
 	} else if ( source == "Goldy2" ) {
@@ -452,6 +457,8 @@ void AirData_close() {
 	    // do nothing
 	} else if ( source == "APM2" ) {
 	    APM2_airdata_close();
+	} else if ( source == "Aura3" ) {
+	    Aura3_airdata_close();
 	} else if ( source == "fgfs" ) {
 	    // nop
 	} else if ( source == "Goldy2" ) {

@@ -1,6 +1,6 @@
 //
-// FILE: APM2.cxx
-// DESCRIPTION: interact with APM2 with "sensor head" firmware
+// FILE: Aura3.cxx
+// DESCRIPTION: interact with Aura3 (Teensy/Pika) sensor head
 //
 
 #include "python/pyprops.hxx"
@@ -31,7 +31,7 @@ using namespace Eigen;
 //#include "util/poly1d.hxx"
 #include "util/timing.h"
 
-#include "APM2.hxx"
+#include "Aura3.hxx"
 
 #define START_OF_MSG0 147
 #define START_OF_MSG1 224
@@ -55,7 +55,7 @@ using namespace Eigen;
 #define CONFIG_INFO_PACKET_ID 55
 
 #define NUM_PILOT_INPUTS 8
-#define NUM_ACTUATORS 8
+#define NUM_ACTUATORS 5
 #define NUM_IMU_SENSORS 10
 #define NUM_ANALOG_INPUTS 6
 
@@ -100,11 +100,11 @@ static bool gps_inited = false;
 static bool airdata_inited = false;
 static bool pilot_input_inited = false;
 static bool actuator_inited = false;
-bool APM2_actuator_configured = false; // externally visible
+bool Aura3_actuator_configured = false; // externally visible
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
-static int baud = 230400;
+static int baud = 250000;
 static float volt_div_ratio = 100; // a nonsense value
 static int battery_cells = 4;
 static float extern_amp_offset = 0.0;
@@ -116,7 +116,7 @@ static bool reverse_imu_mount = false;
 static int last_ack_id = 0;
 static int last_ack_subid = 0;
 
-static uint16_t act_rates[NUM_ACTUATORS] = { 50, 50, 50, 50, 50, 50, 50, 50 };
+static uint16_t act_rates[NUM_ACTUATORS] = { 50, 50, 50, 50, 50 };
 
 static double pilot_in_timestamp = 0.0;
 static float pilot_input[NUM_PILOT_INPUTS]; // internal stash
@@ -172,18 +172,21 @@ static uint32_t baro_packet_counter = 0;
 static uint32_t analog_packet_counter = 0;
 
 // pulled from apm2-sensors.ino
-static const float d2r = M_PI / 180.0;
-static const float g = 9.81;
+const float _pi = 3.14159265358979323846;
+const float _g = 9.807;
+const float _d2r = _pi / 180.0;
 
-static const float _gyro_lsb_per_dps = 65536 / 1000; // +/- 500dps
-static const float _accel_lsb_per_dps = 65536 / 8;   // +/- 4g
+const float _gyro_lsb_per_dps = 32767.5 / 500;  // -500 to +500 spread across 65535
+const float gyroScale = _d2r / _gyro_lsb_per_dps;
 
-static const float MPU6000_gyro_scale = d2r / _gyro_lsb_per_dps;
-static const float MPU6000_accel_scale = g / _accel_lsb_per_dps;
-static const float MPU6000_temp_scale = 0.02;
+const float _accel_lsb_per_dps = 32767.5 / 8;   // -4g to +4g spread across 65535
+const float accelScale = _g / _accel_lsb_per_dps;
+
+const float magScale = 0.01;
+const float tempScale = 0.01;
 
 
-static void APM2_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
+static void Aura3_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
 {
     uint8_t c0 = 0;
     uint8_t c1 = 0;
@@ -205,7 +208,7 @@ static void APM2_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, 
 
 
 #if 0
-bool APM2_request_baud( uint32_t baud ) {
+bool Aura3_request_baud( uint32_t baud ) {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 4;
@@ -228,7 +231,7 @@ bool APM2_request_baud( uint32_t baud ) {
     /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
-    APM2_cksum( BAUD_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    Aura3_cksum( BAUD_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     /* len = */ write( fd, buf, 2 );
 
@@ -236,7 +239,7 @@ bool APM2_request_baud( uint32_t baud ) {
 }
 #endif
 
-static bool APM2_act_write_eeprom() {
+static bool Aura3_act_write_eeprom() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
@@ -253,7 +256,7 @@ static bool APM2_act_write_eeprom() {
     /* len = */ write( fd, buf, 2 );
 
     // check sum (2 bytes)
-    APM2_cksum( WRITE_EEPROM_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    Aura3_cksum( WRITE_EEPROM_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     /* len = */ write( fd, buf, 2 );
 
@@ -261,7 +264,7 @@ static bool APM2_act_write_eeprom() {
 }
 
 
-static bool APM2_act_set_serial_number( uint16_t serial_number ) {
+static bool Aura3_act_set_serial_number( uint16_t serial_number ) {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
@@ -287,7 +290,7 @@ static bool APM2_act_set_serial_number( uint16_t serial_number ) {
     /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
-    APM2_cksum( SERIAL_NUMBER_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    Aura3_cksum( SERIAL_NUMBER_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     /* len = */ write( fd, buf, 2 );
 
@@ -295,7 +298,7 @@ static bool APM2_act_set_serial_number( uint16_t serial_number ) {
 }
 
 
-static bool APM2_act_set_pwm_rates( uint16_t rates[NUM_ACTUATORS] ) {
+static bool Aura3_act_set_pwm_rates( uint16_t rates[NUM_ACTUATORS] ) {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
@@ -324,7 +327,7 @@ static bool APM2_act_set_pwm_rates( uint16_t rates[NUM_ACTUATORS] ) {
     /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
-    APM2_cksum( PWM_RATE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    Aura3_cksum( PWM_RATE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     /* len = */ write( fd, buf, 2 );
 
@@ -332,7 +335,7 @@ static bool APM2_act_set_pwm_rates( uint16_t rates[NUM_ACTUATORS] ) {
 }
 
 
-static bool APM2_act_gain_mode( int channel, float gain)
+static bool Aura3_act_gain_mode( int channel, float gain)
 {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
@@ -365,7 +368,7 @@ static bool APM2_act_gain_mode( int channel, float gain)
     /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
-    APM2_cksum( ACT_GAIN_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    Aura3_cksum( ACT_GAIN_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     /* len = */ write( fd, buf, 2 );
 
@@ -373,7 +376,7 @@ static bool APM2_act_gain_mode( int channel, float gain)
 }
 
 
-static bool APM2_act_mix_mode( int mode_id, bool enable,
+static bool Aura3_act_mix_mode( int mode_id, bool enable,
 			       float gain1, float gain2)
 {
     uint8_t buf[256];
@@ -415,7 +418,7 @@ static bool APM2_act_mix_mode( int mode_id, bool enable,
     /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
-    APM2_cksum( MIX_MODE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    Aura3_cksum( MIX_MODE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     /* len = */ write( fd, buf, 2 );
 
@@ -423,7 +426,7 @@ static bool APM2_act_mix_mode( int mode_id, bool enable,
 }
 
 
-static bool APM2_act_sas_mode( int mode_id, bool enable, float gain)
+static bool Aura3_act_sas_mode( int mode_id, bool enable, float gain)
 {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
@@ -457,7 +460,7 @@ static bool APM2_act_sas_mode( int mode_id, bool enable, float gain)
     /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
-    APM2_cksum( SAS_MODE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    Aura3_cksum( SAS_MODE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     /* len = */ write( fd, buf, 2 );
 
@@ -516,9 +519,9 @@ static void bind_pilot_controls( string output_path ) {
 
 
 // send our configured init strings to configure gpsd the way we prefer
-static bool APM2_open_device( int baud_bits ) {
+static bool Aura3_open_device( int baud_bits ) {
     if ( display_on ) {
-	printf("APM2 Sensor Head on %s @ %d(code) baud\n", device_name.c_str(),
+	printf("Aura3 Sensor Head on %s @ %d(code) baud\n", device_name.c_str(),
 	       baud_bits);
     }
 
@@ -564,8 +567,8 @@ static bool APM2_open_device( int baud_bits ) {
     // fcntl(fd, F_SETFL, O_NONBLOCK);
 
     // bind main apm2 property nodes here for lack of a better place..
-    apm2_node = pyGetNode("/sensors/APM2", true);
-    analog_node = pyGetNode("/sensors/APM2/raw_analog", true);
+    apm2_node = pyGetNode("/sensors/Aura3", true);
+    analog_node = pyGetNode("/sensors/Aura3/raw_analog", true);
     analog_node.setLen("channel", NUM_ANALOG_INPUTS, 0.0);
     
     return true;
@@ -573,12 +576,12 @@ static bool APM2_open_device( int baud_bits ) {
 
 
 // send our configured init strings to configure gpsd the way we prefer
-static bool APM2_open() {
+static bool Aura3_open() {
     if ( master_opened ) {
 	return true;
     }
 
-    pyPropertyNode apm2_config = pyGetNode("/config/sensors/APM2", true);
+    pyPropertyNode apm2_config = pyGetNode("/config/sensors/Aura3", true);
 
     for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
 	analog_filt[i].set_time_factor(0.5);
@@ -608,18 +611,16 @@ static bool APM2_open() {
 	pitot_calibrate = apm2_config.getDouble("pitot_calibrate_factor");
     }
 
-    int baud_bits = B115200;
+    int baud_bits = B500000;
     if ( baud == 115200 ) {
 	baud_bits = B115200;
-    } else if ( baud == 230400 ) {
-	baud_bits = B230400;
     } else if ( baud == 500000 ) {
 	baud_bits = B500000;
      } else {
 	printf("unsupported baud rate = %d\n", baud);
     }
 
-    if ( ! APM2_open_device( baud_bits ) ) {
+    if ( ! Aura3_open_device( baud_bits ) ) {
 	printf("device open failed ...\n");
 	return false;
     }
@@ -633,20 +634,20 @@ static bool APM2_open() {
 
 
 #if 0
-bool APM2_init( SGPropertyNode *config ) {
-    printf("APM2_init()\n");
+bool Aura3_init( SGPropertyNode *config ) {
+    printf("Aura3_init()\n");
 
     bind_input( config );
 
-    bool result = APM2_open();
+    bool result = Aura3_open();
 
     return result;
 }
 #endif
 
 
-bool APM2_imu_init( string output_path, pyPropertyNode *config ) {
-    if ( ! APM2_open() ) {
+bool Aura3_imu_init( string output_path, pyPropertyNode *config ) {
+    if ( ! Aura3_open() ) {
 	return false;
     }
 
@@ -709,8 +710,8 @@ bool APM2_imu_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-bool APM2_gps_init( string output_path, pyPropertyNode *config ) {
-    if ( ! APM2_open() ) {
+bool Aura3_gps_init( string output_path, pyPropertyNode *config ) {
+    if ( ! Aura3_open() ) {
 	return false;
     }
 
@@ -720,8 +721,8 @@ bool APM2_gps_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-bool APM2_airdata_init( string output_path ) {
-    if ( ! APM2_open() ) {
+bool Aura3_airdata_init( string output_path ) {
+    if ( ! Aura3_open() ) {
 	return false;
     }
 
@@ -731,8 +732,8 @@ bool APM2_airdata_init( string output_path ) {
 }
 
 
-bool APM2_pilot_init( string output_path, pyPropertyNode *config ) {
-    if ( ! APM2_open() ) {
+bool Aura3_pilot_init( string output_path, pyPropertyNode *config ) {
+    if ( ! Aura3_open() ) {
 	return false;
     }
 
@@ -749,8 +750,8 @@ bool APM2_pilot_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-bool APM2_act_init( pyPropertyNode *section ) {
-    if ( ! APM2_open() ) {
+bool Aura3_act_init( pyPropertyNode *section ) {
+    if ( ! Aura3_open() ) {
 	return false;
     }
 
@@ -794,20 +795,20 @@ static float normalize_pulse( int pulse, bool symmetrical ) {
     return result;
 }
 
-static bool APM2_imu_update_internal() {
+static bool Aura3_imu_update_internal() {
     static double last_bias_update = 0.0;
     
     if ( imu_inited ) {
-	double p_raw = (double)imu_sensors[0] * MPU6000_gyro_scale;
-	double q_raw = (double)imu_sensors[1] * MPU6000_gyro_scale;
-	double r_raw = (double)imu_sensors[2] * MPU6000_gyro_scale;
-	double ax_raw = (double)imu_sensors[3] * MPU6000_accel_scale;
-	double ay_raw = (double)imu_sensors[4] * MPU6000_accel_scale;
-	double az_raw = (double)imu_sensors[5] * MPU6000_accel_scale;
-	int16_t hx = (int16_t)imu_sensors[6];
-	int16_t hy = (int16_t)imu_sensors[7];
-	int16_t hz = (int16_t)imu_sensors[8];
-	double temp_C = (double)imu_sensors[9] * MPU6000_temp_scale;
+	float ax_raw = (float)imu_sensors[0] * accelScale;
+	float ay_raw = (float)imu_sensors[1] * accelScale;
+	float az_raw = (float)imu_sensors[2] * accelScale;
+	float p_raw = (float)imu_sensors[3] * gyroScale;
+	float q_raw = (float)imu_sensors[4] * gyroScale;
+	float r_raw = (float)imu_sensors[5] * gyroScale;
+	float hx = (float)imu_sensors[6] * magScale;
+	float hy = (float)imu_sensors[7] * magScale;
+	float hz = (float)imu_sensors[8] * magScale;
+	float temp_C = (float)imu_sensors[9] * tempScale;
 
 	if ( reverse_imu_mount ) {
 	    // reverse roll/pitch gyros, and x/y accelerometers (and mags).
@@ -831,15 +832,15 @@ static bool APM2_imu_update_internal() {
 
 	// timestamp dance: this is a little jig that I do to make a
 	// more consistent time stamp that still is in the host
-	// reference frame.  Assumes the APM2 clock drifts relative to
-	// host clock.  Assumes the APM2 imu stamp dt is very stable.
+	// reference frame.  Assumes the Aura3 clock drifts relative to
+	// host clock.  Assumes the Aura3 imu stamp dt is very stable.
 	// Assumes the host system is not-real time and there may be
 	// momentary external disruptions to execution. The code
-	// estimates the error (difference) between APM2 clock and
-	// host clock.  Then builds a real time linear fit of APM2
+	// estimates the error (difference) between Aura3 clock and
+	// host clock.  Then builds a real time linear fit of Aura3
 	// clock versus difference with the host.  This linear fit is
 	// used to estimate the current error (smoothly), add that to
-	// the APM2 clock and derive a more regular/stable IMU time
+	// the Aura3 clock and derive a more regular/stable IMU time
 	// stamp (versus just sampling current host time.)
 	
 	// imu_micros &= 0xffffff; // 24 bits = 16.7 microseconds roll over
@@ -848,7 +849,7 @@ static bool APM2_imu_update_internal() {
 	double imu_remote_sec = (double)imu_micros / 1000000.0;
 	double diff = imu_timestamp - imu_remote_sec;
 	if ( last_imu_micros > imu_micros ) {
-	    events->log("APM2", "micros() rolled over\n");
+	    events->log("Aura3", "micros() rolled over\n");
 	    imu_offset.reset();
 	}
 	imu_offset.update(imu_remote_sec, diff, 0.01);
@@ -881,7 +882,7 @@ static bool APM2_imu_update_internal() {
     return true;
 }
 
-static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
+static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 			uint8_t *payload )
 {
     bool new_data = false;
@@ -894,7 +895,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    last_ack_id = payload[0];
 	    last_ack_subid = payload[1];
 	} else {
-	    printf("APM2: packet size mismatch in ACK\n");
+	    printf("Aura3: packet size mismatch in ACK\n");
 	}
     } else if ( pkt_id == PILOT_PACKET_ID ) {
 	if ( pkt_len == NUM_PILOT_INPUTS * 2 ) {
@@ -921,7 +922,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("APM2: packet size mismatch in pilot input\n");
+		printf("Aura3: packet size mismatch in pilot input\n");
 	    }
 	}
     } else if ( pkt_id == IMU_PACKET_ID ) {
@@ -947,12 +948,12 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    apm2_node.setLong( "imu_packet_count", imu_packet_counter );
 
 	    // update the propery tree and timestamps
-	    APM2_imu_update_internal();
+	    Aura3_imu_update_internal();
 
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("APM2: packet size mismatch in imu input\n");
+		printf("Aura3: packet size mismatch in imu input\n");
 	    }
 	}
     } else if ( pkt_id == GPS_PACKET_ID ) {
@@ -976,7 +977,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("APM2: packet size mismatch in gps input\n");
+		printf("Aura3: packet size mismatch in gps input\n");
 	    }
 	}
     } else if ( pkt_id == BARO_PACKET_ID ) {
@@ -997,7 +998,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("APM2: packet size mismatch in barometer input\n");
+		printf("Aura3: packet size mismatch in barometer input\n");
 	    }
 	}
     } else if ( pkt_id == ANALOG_PACKET_ID ) {
@@ -1059,7 +1060,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("APM2: packet size mismatch in analog input\n");
+		printf("Aura3: packet size mismatch in analog input\n");
 	    }
 	}
     } else if ( pkt_id == CONFIG_INFO_PACKET_ID ) {
@@ -1089,22 +1090,22 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		first_time = false;
 		char buf[128];
 		snprintf( buf, 32, "Serial Number = %d", serial_num );
-		events->log("APM2", buf );
+		events->log("Aura3", buf );
 		snprintf( buf, 32, "Firmware Revision = %d", firmware_rev );
-		events->log("APM2", buf );
+		events->log("Aura3", buf );
 		snprintf( buf, 32, "Master Hz = %d", master_hz );
-		events->log("APM2", buf );
+		events->log("Aura3", buf );
 		snprintf( buf, 32, "Baud Rate = %d", baud_rate );
-		events->log("APM2", buf );
+		events->log("Aura3", buf );
 	    }
 	} else {
 	    if ( display_on ) {
-		printf("APM2: packet size mismatch in config info\n");
+		printf("Aura3: packet size mismatch in config info\n");
 	    }
 	}
     } else {
 	if ( display_on ) {
-	    printf("APM2: unknown packet id = %d\n", pkt_id);
+	    printf("Aura3: unknown packet id = %d\n", pkt_id);
 	}
     }
 
@@ -1113,7 +1114,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 
 
 #if 0
-static void APM2_read_tmp() {
+static void Aura3_read_tmp() {
     int len;
     uint8_t input[16];
     len = read( fd, input, 1 );
@@ -1125,7 +1126,7 @@ static void APM2_read_tmp() {
 #endif
 
 
-static int APM2_read() {
+static int Aura3_read() {
     static int state = 0;
     static int pkt_id = 0;
     static int pkt_len = 0;
@@ -1137,7 +1138,7 @@ static int APM2_read() {
     int giveup_counter = 0;
 
     // if ( display_on ) {
-    //    printf("read APM2, entry state = %d\n", state);
+    //    printf("read Aura3, entry state = %d\n", state);
     // }
 
     bool new_data = false;
@@ -1226,7 +1227,7 @@ static int APM2_read() {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// printf( "checksum passes (%d)\n", pkt_id );
-		new_data = APM2_parse( pkt_id, pkt_len, payload );
+		new_data = Aura3_parse( pkt_id, pkt_len, payload );
 	    } else {
 		if ( display_on ) {
 		    // printf("checksum failed %d %d (computed) != %d %d (message)\n",
@@ -1247,25 +1248,25 @@ static int APM2_read() {
 }
 
 
-// send a full configuration to APM2 and return true only when all
+// send a full configuration to Aura3 and return true only when all
 // parameters are acknowledged.
-static bool APM2_send_config() {
+static bool Aura3_send_config() {
     if ( display_on ) {
-	printf("APM2_send_config(): begin\n");
+	printf("Aura3_send_config(): begin\n");
     }
 
     double start_time = 0.0;
     double timeout = 0.5;
     vector<string> children;
 
-    pyPropertyNode apm2_config = pyGetNode("/config/sensors/APM2", true);
+    pyPropertyNode apm2_config = pyGetNode("/config/sensors/Aura3", true);
     if ( apm2_config.hasChild("setup_serial_number") ) {
 	uint16_t serial_number = apm2_config.getLong("setup_serial_number");
 	start_time = get_Time();    
-	APM2_act_set_serial_number( serial_number );
+	Aura3_act_set_serial_number( serial_number );
 	last_ack_id = 0;
 	while ( (last_ack_id != SERIAL_NUMBER_PACKET_ID) ) {
-	    APM2_read();
+	    Aura3_read();
 	    if ( get_Time() > start_time + timeout ) {
 		if ( display_on ) {
 		    printf("Timeout waiting for set serial_number ack...\n");
@@ -1278,7 +1279,7 @@ static bool APM2_send_config() {
     int count;
     
     if ( display_on ) {
-	printf("APM2_send_config(): pwm_rates\n");
+	printf("Aura3_send_config(): pwm_rates\n");
     }
 
     // init all channels to default
@@ -1299,10 +1300,10 @@ static bool APM2_send_config() {
 	}
 	printf("\n");
 	start_time = get_Time();    
-	APM2_act_set_pwm_rates( act_rates );
+	Aura3_act_set_pwm_rates( act_rates );
 	last_ack_id = 0;
 	while ( (last_ack_id != PWM_RATE_PACKET_ID) ) {
-	    APM2_read();
+	    Aura3_read();
 	    if ( get_Time() > start_time + timeout ) {
 		if ( display_on ) {
 		    printf("Timeout waiting for pwm_rate ack...\n");
@@ -1313,7 +1314,7 @@ static bool APM2_send_config() {
     }
 
     if ( display_on ) {
-	printf("APM2_send_config(): gains\n");
+	printf("Aura3_send_config(): gains\n");
     }
 
     pyPropertyNode gain_node
@@ -1326,13 +1327,13 @@ static bool APM2_send_config() {
 		printf("gain: %d %.2f\n", i, gain);
 	    }
 	    start_time = get_Time();    
-	    APM2_act_gain_mode( i, gain );
+	    Aura3_act_gain_mode( i, gain );
 	    last_ack_id = 0;
 	    last_ack_subid = 0;
 	    while ( (last_ack_id != ACT_GAIN_PACKET_ID)
 		    || (last_ack_subid != i) )
 	    {
-		APM2_read();
+		Aura3_read();
 		if ( get_Time() > start_time + timeout ) {
 		    printf("Timeout waiting for gain %d ACK\n", i);
 		    return false;
@@ -1342,7 +1343,7 @@ static bool APM2_send_config() {
     }
 
     if ( display_on ) {
-	printf("APM2_send_config(): mixing\n");
+	printf("Aura3_send_config(): mixing\n");
     }
 
     pyPropertyNode mixing_node
@@ -1388,13 +1389,13 @@ static bool APM2_send_config() {
 		       gain1, gain2);
 	    }
 	    start_time = get_Time();    
-	    APM2_act_mix_mode( mode_id, enable, gain1, gain2);
+	    Aura3_act_mix_mode( mode_id, enable, gain1, gain2);
 	    last_ack_id = 0;
 	    last_ack_subid = 0;
 	    while ( (last_ack_id != MIX_MODE_PACKET_ID)
 		    || (last_ack_subid != mode_id) )
 	     {
-		APM2_read();
+		Aura3_read();
 		if ( get_Time() > start_time + timeout ) {
 		    printf("Timeout waiting for %s ACK\n", mode.c_str());
 		    return false;
@@ -1404,7 +1405,7 @@ static bool APM2_send_config() {
     }
 
     if ( display_on ) {
-	printf("APM2_send_config(): sas\n");
+	printf("Aura3_send_config(): sas\n");
     }
 
     pyPropertyNode sas_node = pyGetNode("/config/actuators/actuator/sas", true);
@@ -1438,13 +1439,13 @@ static bool APM2_send_config() {
 		    printf("sas: %s %d %.2f\n", mode.c_str(), enable, gain);
 		}
 		start_time = get_Time();    
-		APM2_act_sas_mode( mode_id, enable, gain );
+		Aura3_act_sas_mode( mode_id, enable, gain );
 		last_ack_id = 0;
 		last_ack_subid = 0;
 		while ( (last_ack_id != SAS_MODE_PACKET_ID)
 			|| (last_ack_subid != mode_id) )
 		{
-		    APM2_read();
+		    Aura3_read();
 		    if ( get_Time() > start_time + timeout ) {
 			printf("Timeout waiting for %s ACK\n", mode.c_str());
 			return false;
@@ -1463,13 +1464,13 @@ static bool APM2_send_config() {
 		printf("sas: %s %d %.2f\n", mode.c_str(), enable, gain);
 	    }
 	    start_time = get_Time();    
-	    APM2_act_sas_mode( mode_id, enable, gain );
+	    Aura3_act_sas_mode( mode_id, enable, gain );
 	    last_ack_id = 0;
 	    last_ack_subid = 0;
 	    while ( (last_ack_id != SAS_MODE_PACKET_ID)
 		    || (last_ack_subid != mode_id) )
 	    {
-		APM2_read();
+		Aura3_read();
 		if ( get_Time() > start_time + timeout ) {
 		    printf("Timeout waiting for %s ACK\n", mode.c_str());
 		    return false;
@@ -1479,14 +1480,14 @@ static bool APM2_send_config() {
     }
 
     if ( display_on ) {
-	printf("APM2_send_config(): eeprom\n");
+	printf("Aura3_send_config(): eeprom\n");
     }
 
     start_time = get_Time();    
-    APM2_act_write_eeprom();
+    Aura3_act_write_eeprom();
     last_ack_id = 0;
     while ( (last_ack_id != WRITE_EEPROM_PACKET_ID) ) {
-	APM2_read();
+	Aura3_read();
 	if ( get_Time() > start_time + timeout ) {
 	    if ( display_on ) {
 		printf("Timeout waiting for write EEPROM ack...\n");
@@ -1496,7 +1497,7 @@ static bool APM2_send_config() {
     }
 
     if ( display_on ) {
-	printf("APM2_send_config(): end\n");
+	printf("Aura3_send_config(): end\n");
     }
 
     return true;
@@ -1523,7 +1524,7 @@ static int gen_pulse( double val, bool symmetrical ) {
 }
 
 
-static bool APM2_act_write() {
+static bool Aura3_act_write() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = 0;
@@ -1540,9 +1541,15 @@ static bool APM2_act_write() {
     /* len = */ write( fd, buf, 2 );
 
     // actuator data
-    if ( NUM_ACTUATORS == 8 ) {
+    if ( NUM_ACTUATORS == 5 ) {
 	int val;
 	uint8_t hi, lo;
+
+	val = gen_pulse( act_node.getDouble("throttle"), false );
+	hi = val / 256;
+	lo = val - (hi * 256);
+	buf[size++] = lo;
+	buf[size++] = hi;
 
 	val = gen_pulse( act_node.getDouble("aileron"), true );
 	hi = val / 256;
@@ -1556,19 +1563,7 @@ static bool APM2_act_write() {
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("throttle"), false );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-
 	val = gen_pulse( act_node.getDouble("rudder"), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-
-	val = gen_pulse( act_node.getDouble("channel5"), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
@@ -1579,25 +1574,13 @@ static bool APM2_act_write() {
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
-
-	val = gen_pulse( act_node.getDouble("channel6"), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-
-	val = gen_pulse( act_node.getDouble("channel7"), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
     }
 
     // write packet
     /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
-    APM2_cksum( FLIGHT_COMMAND_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    Aura3_cksum( FLIGHT_COMMAND_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     /* len = */ write( fd, buf, 2 );
 
@@ -1605,11 +1588,11 @@ static bool APM2_act_write() {
 }
 
 
-// Read APM2 packets using IMU packet as the main timing reference.
+// Read Aura3 packets using IMU packet as the main timing reference.
 // Returns the dt from the IMU perspective, not the localhost
 // perspective.  This should generally be far more accurate and
 // consistent.
-double APM2_update() {
+double Aura3_update() {
     // read packets until we receive an IMU packet and the uart buffer
     // is mostly empty.  The IMU packet (combined with being caught up
     // reading the uart buffer is our signal to run an interation of
@@ -1617,7 +1600,7 @@ double APM2_update() {
     double last_time = imu_node.getDouble( "timestamp" );
     int bytes_available = 0;
     while ( true ) {
-        int pkt_id = APM2_read();
+        int pkt_id = Aura3_read();
         if ( pkt_id == IMU_PACKET_ID ) {
             ioctl(fd, FIONREAD, &bytes_available);
 	    if ( bytes_available < 64 ) {
@@ -1634,7 +1617,7 @@ double APM2_update() {
 // this keeps the imu_mgr happy, but the real work to update the
 // property tree is performed right away when we receive and parse the
 // packet.
-bool APM2_imu_update() {
+bool Aura3_imu_update() {
     return true;
 }
 
@@ -1704,7 +1687,7 @@ static double MTK16_date_time_to_unix_sec( int gdate, float gtime ) {
 }
 #endif
 
-bool APM2_gps_update() {
+bool Aura3_gps_update() {
     static double last_timestamp = 0.0;
     
     if ( !gps_inited ) {
@@ -1736,7 +1719,7 @@ bool APM2_gps_update() {
 }
 
 
-bool APM2_airdata_update() {
+bool Aura3_airdata_update() {
     bool fresh_data = false;
     static double pitot_sum = 0.0;
     static int pitot_count = 0;
@@ -1782,7 +1765,7 @@ bool APM2_airdata_update() {
 	// The MPXV5004DP has a full scale span of 3.9V, Maximum
 	// pressure reading is 0.57psi (4000Pa)
 
-	// Example (APM2): With a 10bit ADC (APM2) we record a value
+	// Example (Aura3): With a 10bit ADC (Aura3) we record a value
 	// of 230 (0-1024) at zero velocity.  The sensor saturates at
 	// a value of about 1017 (4000psi).  Thus:
 
@@ -1819,13 +1802,13 @@ bool APM2_airdata_update() {
 // force an airspeed zero calibration (ideally with the aircraft on
 // the ground with the pitot tube perpendicular to the prevailing
 // wind.)
-void APM2_airdata_zero_airspeed() {
+void Aura3_airdata_zero_airspeed() {
     airspeed_inited = false;
     airspeed_zero_start_time = 0.0;
 }
 
 
-bool APM2_pilot_update() {
+bool Aura3_pilot_update() {
     if ( !pilot_input_inited ) {
 	return false;
     }
@@ -1844,49 +1827,49 @@ bool APM2_pilot_update() {
 }
 
 
-bool APM2_act_update() {
+bool Aura3_act_update() {
     if ( !actuator_inited ) {
 	return false;
     }
 
-    if ( !APM2_actuator_configured ) {
-	APM2_actuator_configured = APM2_send_config();
+    if ( !Aura3_actuator_configured ) {
+	Aura3_actuator_configured = Aura3_send_config();
     }
     
-    // send actuator commands to APM2 servo subsystem
-    APM2_act_write();
+    // send actuator commands to Aura3 servo subsystem
+    Aura3_act_write();
 
     return true;
 }
 
 
-void APM2_close() {
+void Aura3_close() {
     close(fd);
 
     master_opened = false;
 }
 
 
-void APM2_imu_close() {
-    APM2_close();
+void Aura3_imu_close() {
+    Aura3_close();
 }
 
 
-void APM2_gps_close() {
-    APM2_close();
+void Aura3_gps_close() {
+    Aura3_close();
 }
 
 
-void APM2_airdata_close() {
-    APM2_close();
+void Aura3_airdata_close() {
+    Aura3_close();
 }
 
 
-void APM2_pilot_close() {
-    APM2_close();
+void Aura3_pilot_close() {
+    Aura3_close();
 }
 
 
-void APM2_act_close() {
-    APM2_close();
+void Aura3_act_close() {
+    Aura3_close();
 }

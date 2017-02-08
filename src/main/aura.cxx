@@ -49,6 +49,7 @@ using std::string;
 // we include the sensors here that support syncing from their main
 // update() routine
 #include "sensors/APM2.hxx"
+#include "sensors/Aura3.hxx"
 #include "sensors/FGFS.hxx"
 #include "sensors/Goldy2.hxx"
 #include "sensors/pika.hxx"
@@ -57,6 +58,7 @@ using std::string;
 enum SyncMode {
     SYNC_NONE,
     SYNC_APM2,
+    SYNC_AURA3,
     SYNC_FGFS,
     SYNC_GOLDY2,
     SYNC_PIKA
@@ -114,7 +116,7 @@ void main_work_loop()
     debug1.start();
 
     // printf("apm loop:\n");
-    // read the APM2 sensor head until we receive an IMU packet
+    // read the sensors until we receive an IMU packet
     sync_prof.start();
     double dt = 0.0;
     if ( sync_source == SYNC_NONE ) {
@@ -123,6 +125,8 @@ void main_work_loop()
 	}
     } else if ( sync_source == SYNC_APM2 ) {
 	dt = APM2_update();
+    } else if ( sync_source == SYNC_AURA3 ) {
+	dt = Aura3_update();
     } else if ( sync_source == SYNC_FGFS ) {
 	dt = FGFS_update();
     } else if ( sync_source == SYNC_GOLDY2 ) {
@@ -408,7 +412,8 @@ int main( int argc, char **argv )
         printf("*** Cannot load master config file: %s\n", master.c_str());
 	printf("*** \n%s\n***\n", exc.getFormattedMessage().c_str());
         printf("\n");
-        sleep(1);
+        printf("Cannot continue without a valid configuration, sorry.\n");
+        exit(1);
     }
 
     // extract configuration values from the property tree (which is
@@ -465,6 +470,8 @@ int main( int argc, char **argv )
 	string source = p.getString("source");
 	if ( source == "APM2" ) {
 	    sync_source = SYNC_APM2;
+        } else if ( source == "Aura3" ) {
+	    sync_source = SYNC_AURA3;
 	} else if ( source == "fgfs" ) {
 	    sync_source = SYNC_FGFS;
 	} else if ( source == "Goldy2" ) {

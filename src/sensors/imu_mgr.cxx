@@ -26,6 +26,7 @@ using std::vector;
 #include "util/timing.h"
 
 #include "sensors/APM2.hxx"
+#include "sensors/Aura3.hxx"
 #include "sensors/FGFS.hxx"
 #include "sensors/Goldy2.hxx"
 #include "sensors/imu_vn100_spi.hxx"
@@ -82,6 +83,8 @@ void IMU_init() {
 	    // do nothing
 	} else if ( source == "APM2" ) {
 	    APM2_imu_init( output_path.str(), &section );
+	} else if ( source == "Aura3" ) {
+	    Aura3_imu_init( output_path.str(), &section );
 	} else if ( source == "fgfs" ) {
 	    fgfs_imu_init( output_path.str(), &section );
 	} else if ( source == "file" ) {
@@ -123,6 +126,8 @@ bool IMU_update() {
 	    // do nothing
 	} else if ( source == "APM2" ) {
 	    fresh_data = APM2_imu_update();
+	} else if ( source == "Aura3" ) {
+	    fresh_data = Aura3_imu_update();
 	} else if ( source == "fgfs" ) {
 	    fresh_data = fgfs_imu_update();
 	} else if ( source == "file" ) {
@@ -204,6 +209,8 @@ void IMU_close() {
 	    // do nothing
 	} else if ( source == "APM2" ) {
 	    APM2_imu_close();
+	} else if ( source == "Aura3" ) {
+	    Aura3_imu_close();
 	} else if ( source == "fgfs" ) {
 	    fgfs_imu_close();
 	} else if ( source == "file" ) {
