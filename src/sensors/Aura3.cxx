@@ -128,20 +128,39 @@ static int16_t imu_sensors[NUM_IMU_SENSORS];
 
 static LinearFitFilter imu_offset(200.0);
 
-static struct gps_sensors_t {
-    double timestamp;
-    uint32_t time;
-    uint32_t date;
-    int32_t latitude;
-    int32_t longitude;
-    int32_t altitude;
-    int16_t vel_north;
-    int16_t vel_east;
-    int16_t vel_down;
-    int16_t pdop;
-    uint8_t num_sats;
-    uint8_t status;
-} gps_sensors;
+#pragma pack(push)              // save current alignment
+#pragma pack(1)                 // set alignment to 1 byte boundary
+static struct nav_pvt_t {
+    uint32_t iTOW;
+    int16_t year;
+    uint8_t month;
+    uint8_t day;
+    uint8_t hour;
+    uint8_t min;
+    uint8_t sec;
+    uint8_t valid;
+    uint32_t tAcc;
+    int32_t nano;
+    uint8_t fixType;
+    uint8_t flags;
+    uint8_t numSV;
+    int32_t lon;
+    int32_t lat;
+    int32_t height;
+    int32_t hMSL;
+    uint32_t hAcc;
+    uint32_t vAcc;
+    int32_t velN;
+    int32_t velE;
+    int32_t velD;
+    uint32_t gSpeed;
+    int32_t heading;
+    uint32_t sAcc;
+    uint32_t headingAcc;
+    uint16_t pDOP;
+} nav_pvt;
+# pragma pack(pop)              // restore original alignment
+static double nav_pvt_timestamp = 0;
 
 static struct air_data_t {
     double timestamp;
@@ -957,27 +976,16 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	}
     } else if ( pkt_id == GPS_PACKET_ID ) {
-	if ( pkt_len == 30 ) {
-	    gps_sensors.timestamp = get_Time();
-	    gps_sensors.time = *(uint32_t *)payload; payload += 4;
-	    gps_sensors.date = *(uint32_t *)payload; payload += 4;
-	    gps_sensors.latitude = *(int32_t *)payload; payload += 4;
-	    gps_sensors.longitude = *(int32_t *)payload; payload += 4;
-	    gps_sensors.altitude = *(int32_t *)payload; payload += 4;
-	    gps_sensors.vel_north = *(int16_t *)payload; payload += 2;
-	    gps_sensors.vel_east = *(int16_t *)payload; payload += 2;
-	    gps_sensors.vel_down = *(int16_t *)payload; payload += 2;
-	    gps_sensors.pdop = *(int16_t *)payload; payload += 2;
-	    gps_sensors.num_sats = *(uint8_t *)payload; payload += 1;
-	    gps_sensors.status = *(uint8_t *)payload; payload += 1;
-
+	if ( pkt_len == sizeof(nav_pvt) ) {
+	    nav_pvt_timestamp = get_Time();
+            nav_pvt = *(nav_pvt_t *)(payload);
 	    gps_packet_counter++;
 	    apm2_node.setLong( "gps_packet_count", gps_packet_counter );
-
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
 		printf("Aura3: packet size mismatch in gps input\n");
+                printf("got %d, expected %d\n", pkt_len, sizeof(nav_pvt));
 	    }
 	}
     } else if ( pkt_id == BARO_PACKET_ID ) {
@@ -1694,24 +1702,42 @@ bool Aura3_gps_update() {
 	return false;
     }
 
-    if ( gps_sensors.timestamp > last_timestamp ) {
-	gps_node.setDouble( "timestamp", gps_sensors.timestamp );
-	gps_node.setDouble( "day_seconds", gps_sensors.time / 1000.0 );
-	gps_node.setDouble( "date", gps_sensors.date );
-	gps_node.setDouble( "latitude_deg", gps_sensors.latitude / 10000000.0 );
-	gps_node.setDouble( "longitude_deg", gps_sensors.longitude / 10000000.0 );
-	double alt_m = gps_sensors.altitude / 100.0;
-	gps_node.setDouble( "altitude_m", alt_m );
-	gps_node.setDouble( "vn_ms", gps_sensors.vel_north * 0.01 );
-	gps_node.setDouble( "ve_ms", gps_sensors.vel_east * 0.01 );
-	gps_node.setDouble( "vd_ms", gps_sensors.vel_down * 0.01 );
-	gps_node.setLong( "satellites", gps_sensors.num_sats);
-	gps_node.setDouble( "pdop", gps_sensors.pdop * 0.01);
-	gps_node.setLong( "status", gps_sensors.status );
-	double unix_secs = ublox_date_time_to_unix_sec( gps_sensors.date,
-							gps_sensors.time );
-	gps_node.setDouble( "unix_time_sec", unix_secs );
-	last_timestamp = gps_sensors.timestamp;
+    if ( nav_pvt_timestamp > last_timestamp ) {
+	gps_node.setDouble( "timestamp", nav_pvt_timestamp );
+	gps_node.setLong( "year", nav_pvt.year );
+	gps_node.setLong( "month", nav_pvt.month );
+	gps_node.setLong( "day", nav_pvt.day );
+	gps_node.setLong( "hour", nav_pvt.hour );
+	gps_node.setLong( "min", nav_pvt.min );
+	gps_node.setLong( "sec", nav_pvt.sec );
+	gps_node.setDouble( "latitude_deg", nav_pvt.lat / 10000000.0 );
+	gps_node.setDouble( "longitude_deg", nav_pvt.lon / 10000000.0 );
+	gps_node.setDouble( "altitude_m", nav_pvt.hMSL / 1000.0 );
+	gps_node.setDouble( "vn_ms", nav_pvt.velN / 1000.0 );
+	gps_node.setDouble( "ve_ms", nav_pvt.velE / 1000.0 );
+	gps_node.setDouble( "vd_ms", nav_pvt.velD / 1000.0 );
+	gps_node.setLong( "satellites", nav_pvt.numSV);
+	gps_node.setDouble( "pdop", nav_pvt.pDOP / 100.0 );
+        gps_node.setLong( "fixType", nav_pvt.fixType );
+        // backwards compatibility
+	if ( nav_pvt.fixType == 0 ) {
+	    gps_node.setLong( "status", 0 );
+	} else if ( nav_pvt.fixType == 1 || nav_pvt.fixType == 2 ) {
+	    gps_node.setLong( "status", 1 );
+	} else if ( nav_pvt.fixType == 3 ) {
+	    gps_node.setLong( "status", 2 );
+	}
+        struct tm gps_time;
+	gps_time.tm_sec = nav_pvt.sec;
+	gps_time.tm_min = nav_pvt.min;
+	gps_time.tm_hour = nav_pvt.hour;
+	gps_time.tm_mday = nav_pvt.day;
+	gps_time.tm_mon = nav_pvt.month - 1;
+	gps_time.tm_year = nav_pvt.year - 1900;
+	double unix_sec = (double)mktime( &gps_time ) - timezone;
+	unix_sec += nav_pvt.nano / 1000000000.0;
+	gps_node.setDouble( "unix_time_sec", unix_sec );
+	last_timestamp = nav_pvt_timestamp;
 	return true;
     } else {
 	return false;

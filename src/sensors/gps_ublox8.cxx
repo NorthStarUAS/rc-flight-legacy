@@ -231,7 +231,7 @@ static bool parse_ublox8_msg( uint8_t msg_class, uint8_t msg_id,
 	gps_time.tm_mday = day;
 	gps_time.tm_mon = month - 1;
 	gps_time.tm_year = year - 1900;
-	double unix_sec = (double)mktime( &gps_time );
+	double unix_sec = (double)mktime( &gps_time ) - timezone;
 	unix_sec += nano / 1000000000.0;
 	gps_node.setDouble( "unix_time_sec", unix_sec );
 	gps_node.setDouble( "time_accuracy_ns", tAcc );
@@ -432,7 +432,7 @@ bool gps_ublox8_update() {
     bool gps_data_valid = read_ublox8();
 
     return gps_data_valid;
- }
+}
 
 
 void gps_ublox8_close() {

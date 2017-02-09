@@ -342,7 +342,7 @@ static bool parse_ublox6_msg( uint8_t msg_class, uint8_t msg_id,
 	    gps_time.tm_mday = day;
 	    gps_time.tm_mon = month - 1;
 	    gps_time.tm_year = year - 1900;
-	    time_t unix_sec = mktime( &gps_time );
+	    time_t unix_sec = mktime( &gps_time ) - timezone;
 	    printf("gps->unix time = %d\n", (int)unix_sec);
 	    struct timeval fulltime;
 	    fulltime.tv_sec = unix_sec;

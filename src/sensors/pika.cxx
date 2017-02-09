@@ -461,7 +461,7 @@ bool pika_gps_update() {
     gps_time.tm_mday = payload.gps_utcDay;
     gps_time.tm_mon = payload.gps_utcMonth - 1;
     gps_time.tm_year = payload.gps_utcYear - 1900;
-    double unix_sec = (double)mktime( &gps_time );
+    double unix_sec = (double)mktime( &gps_time ) - timezone;
     unix_sec += payload.gps_utcNano / 1000000000.0;
     gps_node.setDouble( "unix_time_sec", unix_sec );
     gps_node.setDouble( "time_accuracy_ns", payload.gps_tAcc );

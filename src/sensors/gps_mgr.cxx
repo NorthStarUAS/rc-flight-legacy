@@ -32,6 +32,7 @@ using std::vector;
 #include "util/timing.h"
 
 #include "APM2.hxx"
+#include "Aura3.hxx"
 #include "FGFS.hxx"
 #include "Goldy2.hxx"
 #include "pika.hxx"
@@ -81,6 +82,8 @@ void GPS_init() {
 	    // do nothing
 	} else if ( source == "APM2" ) {
 	    APM2_gps_init( output_path.str(), &section_node );
+	} else if ( source == "Aura3" ) {
+	    Aura3_gps_init( output_path.str(), &section_node );
 	} else if ( source == "fgfs" ) {
 	    fgfs_gps_init( output_path.str(), &section_node );
 	} else if ( source == "file" ) {
@@ -151,6 +154,8 @@ bool GPS_update() {
 	    // do nothing
 	} else if ( source == "APM2" ) {
 	    fresh_data = APM2_gps_update();
+	} else if ( source == "Aura3" ) {
+	    fresh_data = Aura3_gps_update();
 	} else if ( source == "fgfs" ) {
 	    fresh_data = fgfs_gps_update();
 	} else if ( source == "file" ) {
@@ -292,6 +297,8 @@ void GPS_close() {
 	    // do nothing
 	} else if ( source == "APM2" ) {
 	    APM2_gps_close();
+	} else if ( source == "Aura3" ) {
+	    Aura3_gps_close();
 	} else if ( source == "fgfs" ) {
 	    fgfs_gps_close();
 	} else if ( source == "file" ) {
