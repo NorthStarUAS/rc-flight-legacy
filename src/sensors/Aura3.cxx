@@ -38,13 +38,9 @@ using namespace Eigen;
 
 #define ACK_PACKET_ID 20
 
-#define PWM_RATE_PACKET_ID 21
-#define BAUD_PACKET_ID 22
+#define CONFIG_PACKET_ID 21
+//#define BAUD_PACKET_ID 22
 #define FLIGHT_COMMAND_PACKET_ID 23
-#define ACT_GAIN_PACKET_ID 24
-#define MIX_MODE_PACKET_ID 25
-#define SAS_MODE_PACKET_ID 26
-#define SERIAL_NUMBER_PACKET_ID 27
 #define WRITE_EEPROM_PACKET_ID 28
 
 #define PILOT_PACKET_ID 50
@@ -54,10 +50,10 @@ using namespace Eigen;
 #define ANALOG_PACKET_ID 54
 #define CONFIG_INFO_PACKET_ID 55
 
-#define NUM_PILOT_INPUTS 8
-#define NUM_ACTUATORS 5
+#define NUM_PILOT_INPUTS 16
 #define NUM_IMU_SENSORS 10
 #define NUM_ANALOG_INPUTS 6
+#define PWM_CHANNELS 5
 
 #define PWM_CENTER 1520
 #define PWM_HALF_RANGE 413
@@ -116,7 +112,7 @@ static bool reverse_imu_mount = false;
 static int last_ack_id = 0;
 static int last_ack_subid = 0;
 
-static uint16_t act_rates[NUM_ACTUATORS] = { 50, 50, 50, 50, 50 };
+// static uint16_t act_rates[PWM_CHANNELS] = { 50, 50, 50, 50, 50 };
 
 static double pilot_in_timestamp = 0.0;
 static float pilot_input[NUM_PILOT_INPUTS]; // internal stash
@@ -128,8 +124,56 @@ static int16_t imu_sensors[NUM_IMU_SENSORS];
 
 static LinearFitFilter imu_offset(200.0);
 
-#pragma pack(push)              // save current alignment
-#pragma pack(1)                 // set alignment to 1 byte boundary
+#pragma pack(push, 1)           // set alignment to 1 byte boundary
+
+// configuration structure
+typedef struct {
+    int version;
+    
+    /* hz for pwm output signal, 50hz default for analog servos, maximum rate is servo dependent:
+       digital servos can usually do 200-250hz
+       analog servos and ESC's typically require 50hz */
+    uint16_t pwm_hz[PWM_CHANNELS];
+    
+    /* actuator gain (reversing/scaling) */
+    float act_gain[PWM_CHANNELS];
+    
+    /* mixing modes */
+    bool mix_autocoord;
+    bool mix_throttle_trim;
+    bool mix_flap_trim;
+    bool mix_elevon;
+    bool mix_flaperon;
+    bool mix_vtail;
+    bool mix_diff_thrust;
+
+    /* mixing gains */
+    float mix_Gac; // aileron gain for autocoordination
+    float mix_Get; // elevator trim w/ throttle gain
+    float mix_Gef; // elevator trim w/ flap gain
+    float mix_Gea; // aileron gain for elevons
+    float mix_Gee; // elevator gain for elevons
+    float mix_Gfa; // aileron gain for flaperons
+    float mix_Gff; // flaps gain for flaperons
+    float mix_Gve; // elevator gain for vtail
+    float mix_Gvr; // rudder gain for vtail
+    float mix_Gtt; // throttle gain for diff thrust
+    float mix_Gtr; // rudder gain for diff thrust
+    
+    /* sas modes */
+    bool sas_rollaxis;
+    bool sas_pitchaxis;
+    bool sas_yawaxis;
+    bool sas_ch7tune;
+
+    /* sas gains */
+    float sas_rollgain;
+    float sas_pitchgain;
+    float sas_yawgain;
+    float sas_ch7gain;
+} config_t;
+
+// gps structure
 static struct nav_pvt_t {
     uint32_t iTOW;
     int16_t year;
@@ -159,7 +203,9 @@ static struct nav_pvt_t {
     uint32_t headingAcc;
     uint16_t pDOP;
 } nav_pvt;
-# pragma pack(pop)              // restore original alignment
+#pragma pack(pop)              // restore original alignment
+
+config_t config;
 static double nav_pvt_timestamp = 0;
 
 static struct air_data_t {
@@ -283,203 +329,27 @@ static bool Aura3_act_write_eeprom() {
 }
 
 
-static bool Aura3_act_set_serial_number( uint16_t serial_number ) {
+static bool Aura3_write_config() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
-    uint8_t size = 0;
-    /* int len */
+    uint8_t size = sizeof(config);
+    // uint8_t len;
     
     // start of message sync bytes
     buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
     /* len = */ write( fd, buf, 2 );
 
     // packet id (1 byte)
-    buf[0] = SERIAL_NUMBER_PACKET_ID;
+    buf[0] = CONFIG_PACKET_ID;
     // packet length (1 byte)
-    buf[1] = 2;
+    buf[1] = size;
     /* len = */ write( fd, buf, 2 );
 
-    // actuator data
-    uint8_t hi = serial_number / 256;
-    uint8_t lo = serial_number - (hi * 256);
-    buf[size++] = lo;
-    buf[size++] = hi;
-  
     // write packet
-    /* len = */ write( fd, buf, size );
+    /* len = */ write( fd, &config, size );
   
     // check sum (2 bytes)
-    Aura3_cksum( SERIAL_NUMBER_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
-
-    return true;
-}
-
-
-static bool Aura3_act_set_pwm_rates( uint16_t rates[NUM_ACTUATORS] ) {
-    uint8_t buf[256];
-    uint8_t cksum0, cksum1;
-    uint8_t size = 0;
-    /* int len; */
-
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = PWM_RATE_PACKET_ID;
-    // packet length (1 byte)
-    buf[1] = NUM_ACTUATORS * 2;
-    /* len = */ write( fd, buf, 2 );
-
-    // actuator data
-    for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
-	uint16_t val = rates[i];
-	uint8_t hi = val / 256;
-	uint8_t lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
-    }
-  
-    // write packet
-    /* len = */ write( fd, buf, size );
-  
-    // check sum (2 bytes)
-    Aura3_cksum( PWM_RATE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
-
-    return true;
-}
-
-
-static bool Aura3_act_gain_mode( int channel, float gain)
-{
-    uint8_t buf[256];
-    uint8_t cksum0, cksum1;
-    uint8_t size = 0;
-    /* int len; */
-
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = ACT_GAIN_PACKET_ID;
-    // packet length (1 byte)
-    buf[1] = 3;
-    /* len = */ write( fd, buf, 2 );
-
-    buf[size++] = (uint8_t)channel;
-
-    uint16_t val;
-    uint8_t hi, lo;
-    
-    // gain
-    val = 32767 + gain * 10000;
-    hi = val / 256;
-    lo = val - (hi * 256);
-    buf[size++] = lo;
-    buf[size++] = hi;
-    
-    // write packet
-    /* len = */ write( fd, buf, size );
-  
-    // check sum (2 bytes)
-    Aura3_cksum( ACT_GAIN_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
-
-    return true;
-}
-
-
-static bool Aura3_act_mix_mode( int mode_id, bool enable,
-			       float gain1, float gain2)
-{
-    uint8_t buf[256];
-    uint8_t cksum0, cksum1;
-    uint8_t size = 0;
-    /* int len; */
-
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = MIX_MODE_PACKET_ID;
-    // packet length (1 byte)
-    buf[1] = 6;
-    /* len = */ write( fd, buf, 2 );
-
-    buf[size++] = mode_id;
-    buf[size++] = enable;
-
-    uint16_t val;
-    uint8_t hi, lo;
-    
-    // gain1
-    val = 32767 + gain1 * 10000;
-    hi = val / 256;
-    lo = val - (hi * 256);
-    buf[size++] = lo;
-    buf[size++] = hi;
-    
-    // gain2
-    val = 32767 + gain2 * 10000;
-    hi = val / 256;
-    lo = val - (hi * 256);
-    buf[size++] = lo;
-    buf[size++] = hi;
-    
-    // write packet
-    /* len = */ write( fd, buf, size );
-  
-    // check sum (2 bytes)
-    Aura3_cksum( MIX_MODE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
-
-    return true;
-}
-
-
-static bool Aura3_act_sas_mode( int mode_id, bool enable, float gain)
-{
-    uint8_t buf[256];
-    uint8_t cksum0, cksum1;
-    uint8_t size = 0;
-    /* int len; */
-
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = SAS_MODE_PACKET_ID;
-    // packet length (1 byte)
-    buf[1] = 4;
-    /* len = */ write( fd, buf, 2 );
-
-    buf[size++] = mode_id;
-    buf[size++] = enable;
-
-    uint16_t val;
-    uint8_t hi, lo;
-    
-    // gain
-    val = 32767 + gain * 10000;
-    hi = val / 256;
-    lo = val - (hi * 256);
-    buf[size++] = lo;
-    buf[size++] = hi;
-    
-    // write packet
-    /* len = */ write( fd, buf, size );
-  
-    // check sum (2 bytes)
-    Aura3_cksum( SAS_MODE_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    Aura3_cksum( CONFIG_PACKET_ID, size, (uint8_t *)&config, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     /* len = */ write( fd, buf, 2 );
 
@@ -532,7 +402,7 @@ static void bind_pilot_controls( string output_path ) {
 	return;
     }
     pilot_node = pyGetNode(output_path, true);
-    pilot_node.setLen("channel", NUM_ACTUATORS, 0.0);
+    pilot_node.setLen("channel", NUM_PILOT_INPUTS, 0.0);
     pilot_input_inited = true;
 }
 
@@ -887,9 +757,9 @@ static bool Aura3_imu_update_internal() {
 	imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
 	imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
 	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
-	imu_node.setLong( "hx_raw", hx );
-	imu_node.setLong( "hy_raw", hy );
-	imu_node.setLong( "hz_raw", hz );
+	imu_node.setDouble( "hx_raw", hx );
+	imu_node.setDouble( "hy_raw", hy );
+	imu_node.setDouble( "hz_raw", hz );
 	Vector4d hs((double)hx, (double)hy, (double)hz, 1.0);
 	Vector4d hc = mag_cal * hs;
 	imu_node.setDouble( "hx", hc(0) );
@@ -985,7 +855,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	} else {
 	    if ( display_on ) {
 		printf("Aura3: packet size mismatch in gps input\n");
-                printf("got %d, expected %d\n", pkt_len, sizeof(nav_pvt));
+                printf("got %d, expected %d\n", pkt_len, (int)sizeof(nav_pvt));
 	    }
 	}
     } else if ( pkt_id == BARO_PACKET_ID ) {
@@ -1157,7 +1027,7 @@ static int Aura3_read() {
 	len = read( fd, input, 1 );
 	giveup_counter = 0;
 	while ( len > 0 && input[0] != START_OF_MSG0 && giveup_counter < 100 ) {
-	    // fprintf( stderr, "state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
+	    // printf("state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
 	    len = read( fd, input, 1 );
 	    giveup_counter++;
 	    // fprintf( stderr, "giveup_counter = %d\n", giveup_counter);
@@ -1256,11 +1126,64 @@ static int Aura3_read() {
 }
 
 
+// reset pwm output rates to safe startup defaults
+static void pwm_rate_defaults() {
+    for ( int i = 0; i < PWM_CHANNELS; i++ ) {
+         config.pwm_hz[i] = 50;    
+    }
+}
+
+// reset actuator gains (reversing) to startup defaults
+static void act_gain_defaults() {
+    for ( int i = 0; i < PWM_CHANNELS; i++ ) {
+        config.act_gain[i] = 1.0;
+    }
+}
+
+// reset sas parameters to startup defaults
+static void sas_defaults() {
+    config.sas_rollaxis = false;
+    config.sas_pitchaxis = false;
+    config.sas_yawaxis = false;
+    config.sas_ch7tune = false;
+
+    config.sas_rollgain = 0.0;
+    config.sas_pitchgain = 0.0;
+    config.sas_yawgain = 0.0;
+    config.sas_ch7gain = 2.0;
+};
+
+
+// reset mixing parameters to startup defaults
+static void mixing_defaults() {
+    config.mix_autocoord = false;
+    config.mix_throttle_trim = false;
+    config.mix_flap_trim = false;
+    config.mix_elevon = false;
+    config.mix_flaperon = false;
+    config.mix_vtail = false;
+    config.mix_diff_thrust = false;
+
+    config.mix_Gac = 0.5;       // aileron gain for autocoordination
+    config.mix_Get = -0.1;      // elevator trim w/ throttle gain
+    config.mix_Gef = 0.1;       // elevator trim w/ flap gain
+
+    config.mix_Gea = 1.0;       // aileron gain for elevons
+    config.mix_Gee = 1.0;       // elevator gain for elevons
+    config.mix_Gfa = 1.0;       // aileron gain for flaperons
+    config.mix_Gff = 1.0;       // flaps gain for flaperons
+    config.mix_Gve = 1.0;       // elevator gain for vtail
+    config.mix_Gvr = 1.0;       // rudder gain for vtail
+    config.mix_Gtt = 1.0;       // throttle gain for diff thrust
+    config.mix_Gtr = 0.1;       // rudder gain for diff thrust
+};
+
+
 // send a full configuration to Aura3 and return true only when all
 // parameters are acknowledged.
 static bool Aura3_send_config() {
     if ( display_on ) {
-	printf("Aura3_send_config(): begin\n");
+	printf("Aura3: building config structure.\n");
     }
 
     double start_time = 0.0;
@@ -1268,90 +1191,33 @@ static bool Aura3_send_config() {
     vector<string> children;
 
     pyPropertyNode apm2_config = pyGetNode("/config/sensors/Aura3", true);
-    if ( apm2_config.hasChild("setup_serial_number") ) {
-	uint16_t serial_number = apm2_config.getLong("setup_serial_number");
-	start_time = get_Time();    
-	Aura3_act_set_serial_number( serial_number );
-	last_ack_id = 0;
-	while ( (last_ack_id != SERIAL_NUMBER_PACKET_ID) ) {
-	    Aura3_read();
-	    if ( get_Time() > start_time + timeout ) {
-		if ( display_on ) {
-		    printf("Timeout waiting for set serial_number ack...\n");
-		}
-		return false;
-	    }
-	}
-    }
+
+    // set all parameters to defaults
+    pwm_rate_defaults();
+    act_gain_defaults();
+    mixing_defaults();
+    sas_defaults();
 
     int count;
     
-    if ( display_on ) {
-	printf("Aura3_send_config(): pwm_rates\n");
-    }
-
-    // init all channels to default
-    for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
-	act_rates[i] = 0; /* no change from default */
-    }
     pyPropertyNode pwm_node
 	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
     count = pwm_node.getLen("channel");
-    if ( count > 0 ) {
-	for ( int i = 0; i < NUM_ACTUATORS; i++ ) {
-	    act_rates[i] = 0; /* no change from default */
-	}
-	printf("pwm_rates: ");
-	for ( int i = 0; i < count; i++ ) {
-	    act_rates[i] = pwm_node.getLong("channel", i);
-	    printf("%d ", act_rates[i]);
-	}
-	printf("\n");
-	start_time = get_Time();    
-	Aura3_act_set_pwm_rates( act_rates );
-	last_ack_id = 0;
-	while ( (last_ack_id != PWM_RATE_PACKET_ID) ) {
-	    Aura3_read();
-	    if ( get_Time() > start_time + timeout ) {
-		if ( display_on ) {
-		    printf("Timeout waiting for pwm_rate ack...\n");
-		}
-		return false;
-	    }
-	}
-    }
-
-    if ( display_on ) {
-	printf("Aura3_send_config(): gains\n");
+    for ( int i = 0; i < count; i++ ) {
+        config.pwm_hz[i] = pwm_node.getLong("channel", i);
+        if ( display_on ) {
+            printf("pwm_hz[%d] = %d\n", i, config.pwm_hz[i]);
+        }
     }
 
     pyPropertyNode gain_node
 	= pyGetNode("/config/actuators/actuator/gains", true);
     count = gain_node.getLen("channel");
-    if ( count ) {
-	for ( int i = 0; i < count; i++ ) {
-	    float gain = gain_node.getDouble("channel", i);
-	    if ( display_on ) {
-		printf("gain: %d %.2f\n", i, gain);
-	    }
-	    start_time = get_Time();    
-	    Aura3_act_gain_mode( i, gain );
-	    last_ack_id = 0;
-	    last_ack_subid = 0;
-	    while ( (last_ack_id != ACT_GAIN_PACKET_ID)
-		    || (last_ack_subid != i) )
-	    {
-		Aura3_read();
-		if ( get_Time() > start_time + timeout ) {
-		    printf("Timeout waiting for gain %d ACK\n", i);
-		    return false;
-		}
-	    }
-	}
-    }
-
-    if ( display_on ) {
-	printf("Aura3_send_config(): mixing\n");
+    for ( int i = 0; i < count; i++ ) {
+        config.act_gain[i] = gain_node.getDouble("channel", i);
+        if ( display_on ) {
+            printf("act_gain[%d] = %.2f\n", i, config.act_gain[i]);
+        }
     }
 
     pyPropertyNode mixing_node
@@ -1365,24 +1231,6 @@ static bool Aura3_send_config() {
 	    float gain1 = 0.0;
 	    float gain2 = 0.0;
 	    pyPropertyNode mix_node = mixing_node.getChild("mix", i, true);
-	    if ( mix_node.hasChild("mode") ) {
-		mode = mix_node.getString("mode");
-		if ( mode == "auto_coordination" ) {
-		    mode_id = MIX_AUTOCOORDINATE;
-		} else if ( mode == "throttle_trim" ) {
-		    mode_id = MIX_THROTTLE_TRIM;
-		} else if ( mode == "flap_trim" ) {
-		    mode_id = MIX_FLAP_TRIM;
-		} else if ( mode == "elevon" ) {
-		    mode_id = MIX_ELEVONS;
-		} else if ( mode == "flaperon" ) {
-		    mode_id = MIX_FLAPERONS;
-		} else if ( mode == "vtail" ) {
-		    mode_id = MIX_VTAIL;
-		} else if ( mode == "diff_thrust" ) {
-		    mode_id = MIX_DIFF_THRUST;
-		}
-	    }
 	    if ( mix_node.hasChild("enable") ) {
 		enable = mix_node.getBool("enable");
 	    }
@@ -1392,28 +1240,40 @@ static bool Aura3_send_config() {
 	    if ( mix_node.hasChild("gain2") ) {
 		gain2 = mix_node.getDouble("gain2");
 	    }
+	    if ( mix_node.hasChild("mode") ) {
+		mode = mix_node.getString("mode");
+		if ( mode == "auto_coordination" ) {
+                    config.mix_autocoord = enable;
+                    config.mix_Gac = gain1;
+		} else if ( mode == "throttle_trim" ) {
+                    config.mix_throttle_trim = enable;
+                    config.mix_Get = gain1;
+		} else if ( mode == "flap_trim" ) {
+                    config.mix_flap_trim = enable;
+                    config.mix_Gef = gain1;
+		} else if ( mode == "elevon" ) {
+                    config.mix_elevon = enable;
+                    config.mix_Gea = gain1;
+                    config.mix_Gee = gain2;
+		} else if ( mode == "flaperon" ) {
+                    config.mix_flaperon = enable;
+                    config.mix_Gfa = gain1;
+                    config.mix_Gff = gain2;
+		} else if ( mode == "vtail" ) {
+                    config.mix_vtail = enable;
+                    config.mix_Gve = gain1;
+                    config.mix_Gvr = gain2;
+		} else if ( mode == "diff_thrust" ) {
+                    config.mix_diff_thrust = enable;
+                    config.mix_Gtt = gain1;
+                    config.mix_Gtr = gain2;
+		}
+	    }
 	    if ( display_on ) {
 		printf("mix: %s %d %.2f %.2f\n", mode.c_str(), enable,
 		       gain1, gain2);
 	    }
-	    start_time = get_Time();    
-	    Aura3_act_mix_mode( mode_id, enable, gain1, gain2);
-	    last_ack_id = 0;
-	    last_ack_subid = 0;
-	    while ( (last_ack_id != MIX_MODE_PACKET_ID)
-		    || (last_ack_subid != mode_id) )
-	     {
-		Aura3_read();
-		if ( get_Time() > start_time + timeout ) {
-		    printf("Timeout waiting for %s ACK\n", mode.c_str());
-		    return false;
-		}
-	    }
 	}
-    }
-
-    if ( display_on ) {
-	printf("Aura3_send_config(): sas\n");
     }
 
     pyPropertyNode sas_node = pyGetNode("/config/actuators/actuator/sas", true);
@@ -1427,70 +1287,61 @@ static bool Aura3_send_config() {
 	if ( children[i] == "axis" ) {
 	    for ( int j = 0; j < sas_node.getLen("axis"); j++ ) {
 		pyPropertyNode sas_section = sas_node.getChild("axis", j);
-		if ( sas_section.hasChild("mode") ) {
-		    mode = sas_section.getString("mode");
-		    if ( mode == "roll" ) {
-			mode_id = SAS_ROLLAXIS;
-		    } else if ( mode == "pitch" ) {
-			mode_id = SAS_PITCHAXIS;
-		    } else if ( mode == "yaw" ) {
-			mode_id = SAS_YAWAXIS;
-		    }
-		}
 		if ( sas_section.hasChild("enable") ) {
 		    enable = sas_section.getBool("enable");
 		}
 		if ( sas_section.hasChild("gain") ) {
 		    gain = sas_section.getDouble("gain");
 		}
+		if ( sas_section.hasChild("mode") ) {
+		    mode = sas_section.getString("mode");
+		    if ( mode == "roll" ) {
+                        config.sas_rollaxis = enable;
+                        config.sas_rollgain = gain;
+		    } else if ( mode == "pitch" ) {
+                        config.sas_pitchaxis = enable;
+                        config.sas_pitchgain = gain;
+		    } else if ( mode == "yaw" ) {
+                        config.sas_yawaxis = enable;
+                        config.sas_yawgain = gain;
+		    }
+		}
 		if ( display_on ) {
 		    printf("sas: %s %d %.2f\n", mode.c_str(), enable, gain);
 		}
-		start_time = get_Time();    
-		Aura3_act_sas_mode( mode_id, enable, gain );
-		last_ack_id = 0;
-		last_ack_subid = 0;
-		while ( (last_ack_id != SAS_MODE_PACKET_ID)
-			|| (last_ack_subid != mode_id) )
-		{
-		    Aura3_read();
-		    if ( get_Time() > start_time + timeout ) {
-			printf("Timeout waiting for %s ACK\n", mode.c_str());
-			return false;
-		    }
-		}
 	    }
 	} else if ( children[i] == "pilot_tune" ) {
-	    pyPropertyNode sas_section = sas_node.getChild(children[i].c_str());
+	    pyPropertyNode sas_section = sas_node.getChild("pilot_tune");
 	    mode_id = SAS_CH7_TUNE;
 	    mode = "ch7_tune";
 	    if ( sas_section.hasChild("enable") ) {
-		enable = sas_section.getBool("enable");
+		config.sas_ch7tune = sas_section.getBool("enable");
 	    }
-	    gain = 0.0; // not used
 	    if ( display_on ) {
-		printf("sas: %s %d %.2f\n", mode.c_str(), enable, gain);
-	    }
-	    start_time = get_Time();    
-	    Aura3_act_sas_mode( mode_id, enable, gain );
-	    last_ack_id = 0;
-	    last_ack_subid = 0;
-	    while ( (last_ack_id != SAS_MODE_PACKET_ID)
-		    || (last_ack_subid != mode_id) )
-	    {
-		Aura3_read();
-		if ( get_Time() > start_time + timeout ) {
-		    printf("Timeout waiting for %s ACK\n", mode.c_str());
-		    return false;
-		}
+		printf("sas: %s %d\n", mode.c_str(), enable);
 	    }
 	}
     }
 
     if ( display_on ) {
-	printf("Aura3_send_config(): eeprom\n");
+	printf("Aura3: transmitting config ...\n");
+    }
+    start_time = get_Time();    
+    Aura3_write_config();
+    last_ack_id = 0;
+    while ( (last_ack_id != CONFIG_PACKET_ID) ) {
+	Aura3_read();
+	if ( get_Time() > start_time + timeout ) {
+	    if ( display_on ) {
+		printf("Timeout waiting for write config ack...\n");
+	    }
+	    return false;
+	}
     }
 
+    if ( display_on ) {
+	printf("Aura3: requesting save config ...\n");
+    }
     start_time = get_Time();    
     Aura3_act_write_eeprom();
     last_ack_id = 0;
@@ -1545,11 +1396,11 @@ static bool Aura3_act_write() {
     // packet id (1 byte)
     buf[0] = FLIGHT_COMMAND_PACKET_ID;
     // packet length (1 byte)
-    buf[1] = 2 * NUM_ACTUATORS;
+    buf[1] = 2 * PWM_CHANNELS;
     /* len = */ write( fd, buf, 2 );
 
     // actuator data
-    if ( NUM_ACTUATORS == 5 ) {
+    if ( PWM_CHANNELS == 5 ) {
 	int val;
 	uint8_t hi, lo;
 
@@ -1629,71 +1480,6 @@ bool Aura3_imu_update() {
     return true;
 }
 
-
-// This function works ONLY with the UBLOX date format (the ublox reports
-// weeks since the GPS epoch.)
-static double ublox_date_time_to_unix_sec( int week, float gtime ) {
-    double julianDate = (week * 7.0) + 
-	(0.001 * gtime) / 86400.0 +  // 86400 = seconds in 1 day
-	2444244.5; // 2444244.5 Julian date of GPS epoch (Jan 5 1980 at midnight)
-    julianDate = julianDate - 2440587.5; // Subtract Julian Date of Unix Epoch (Jan 1 1970)
-
-    double unixSecs = julianDate * 86400.0;
-
-    // hardcoded handling of leap seconds
-    unixSecs -= 17.0;
-
-    /* printf("unix time from gps = %.0f system = %.0f\n", unixSecs,
-       system("date +%s")); */
-
-    return unixSecs;
-}
-
-#if 0
-// This function works ONLY with the MTK16 date format (the ublox reports
-// weeks since the GPS epoch.)
-static double MTK16_date_time_to_unix_sec( int gdate, float gtime ) {
-    gtime /= 1000.0;
-    int hour = (int)(gtime / 3600); gtime -= hour * 3600;
-    int min = (int)(gtime / 60); gtime -= min * 60;
-    int isec = (int)gtime; gtime -= isec;
-    float fsec = gtime;
-
-    int day = gdate / 10000; gdate -= day * 10000;
-    int mon = gdate / 100; gdate -= mon * 100;
-    int year = gdate;
-
-    // printf("%02d:%02d:%02d + %.3f  %02d / %02d / %02d\n", hour, min,
-    //        isec, fsec, day, mon,
-    //        year );
-
-    struct tm t;
-    t.tm_sec = isec;
-    t.tm_min = min;
-    t.tm_hour = hour;
-    t.tm_mday = day;
-    t.tm_mon = mon - 1;
-    t.tm_year = year + 100;
-    t.tm_gmtoff = 0;
-
-    // force timezone to GMT/UTC so mktime() does the proper conversion
-    tzname[0] = tzname[1] = (char *)"GMT";
-    timezone = 0;
-    daylight = 0;
-    setenv("TZ", "UTC", 1);
-    
-    // printf("%d\n", mktime(&t));
-    // printf("tzname[0]=%s, tzname[1]=%s, timezone=%d, daylight=%d\n",
-    //        tzname[0], tzname[1], timezone, daylight);
-
-    double result = (double)mktime(&t);
-    result += fsec;
-
-    // printf("unix time = %.0f\n", result);
-
-    return result;
-}
-#endif
 
 bool Aura3_gps_update() {
     static double last_timestamp = 0.0;
