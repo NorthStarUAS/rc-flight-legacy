@@ -39,21 +39,21 @@ using namespace Eigen;
 #define ACK_PACKET_ID 20
 
 #define CONFIG_PACKET_ID 21
-//#define BAUD_PACKET_ID 22
-#define FLIGHT_COMMAND_PACKET_ID 23
-#define WRITE_EEPROM_PACKET_ID 28
+#define FLIGHT_COMMAND_PACKET_ID 22
+#define WRITE_EEPROM_PACKET_ID 23
 
 #define PILOT_PACKET_ID 50
 #define IMU_PACKET_ID 51
 #define GPS_PACKET_ID 52
-#define BARO_PACKET_ID 53
+#define AIRDATA_PACKET_ID 53
 #define ANALOG_PACKET_ID 54
-#define CONFIG_INFO_PACKET_ID 55
+#define STATUS_INFO_PACKET_ID 55
 
 #define NUM_PILOT_INPUTS 16
 #define NUM_IMU_SENSORS 10
 #define NUM_ANALOG_INPUTS 6
 #define PWM_CHANNELS 5
+#define AP_CHANNELS 6
 
 #define PWM_CENTER 1520
 #define PWM_HALF_RANGE 413
@@ -82,7 +82,7 @@ using namespace Eigen;
 #define SAS_YAWAXIS 3
 #define SAS_CH7_TUNE 10
 
-static pyPropertyNode apm2_node;
+static pyPropertyNode aura3_node;
 static pyPropertyNode imu_node;
 static pyPropertyNode gps_node;
 static pyPropertyNode pilot_node;
@@ -111,8 +111,6 @@ static bool reverse_imu_mount = false;
 
 static int last_ack_id = 0;
 static int last_ack_subid = 0;
-
-// static uint16_t act_rates[PWM_CHANNELS] = { 50, 50, 50, 50, 50 };
 
 static double pilot_in_timestamp = 0.0;
 static float pilot_input[NUM_PILOT_INPUTS]; // internal stash
@@ -210,10 +208,8 @@ static double nav_pvt_timestamp = 0;
 
 static struct air_data_t {
     double timestamp;
-    float pressure;
-    float temp;
-    float climb_rate;
-    float airspeed;
+    float static_pres_pa;
+    float diff_pres_pa;
 } airdata;
 
 static LowPassFilter analog_filt[NUM_ANALOG_INPUTS];
@@ -233,7 +229,7 @@ static Matrix4d mag_cal;
 static uint32_t pilot_packet_counter = 0;
 static uint32_t imu_packet_counter = 0;
 static uint32_t gps_packet_counter = 0;
-static uint32_t baro_packet_counter = 0;
+static uint32_t airdata_packet_counter = 0;
 static uint32_t analog_packet_counter = 0;
 
 // pulled from apm2-sensors.ino
@@ -456,7 +452,7 @@ static bool Aura3_open_device( int baud_bits ) {
     // fcntl(fd, F_SETFL, O_NONBLOCK);
 
     // bind main apm2 property nodes here for lack of a better place..
-    apm2_node = pyGetNode("/sensors/Aura3", true);
+    aura3_node = pyGetNode("/sensors/Aura3", true);
     analog_node = pyGetNode("/sensors/Aura3/raw_analog", true);
     analog_node.setLen("channel", NUM_ANALOG_INPUTS, 0.0);
     
@@ -650,40 +646,6 @@ bool Aura3_act_init( pyPropertyNode *section ) {
 }
 
 
-#if 0
-// swap big/little endian bytes
-static void my_swap( uint8_t *buf, int index, int count )
-{
-    int i;
-    uint8_t tmp;
-    for ( i = 0; i < count / 2; ++i ) {
-        tmp = buf[index+i];
-        buf[index+i] = buf[index+count-i-1];
-        buf[index+count-i-1] = tmp;
-    }
-}
-#endif
-
-
-// convert a pwm pulse length to a normalize [-1 to 1] or [0 to 1] range
-static float normalize_pulse( int pulse, bool symmetrical ) {
-    float result = 0.0;
-
-    if ( symmetrical ) {
-	// i.e. aileron, rudder, elevator
-	result = (pulse - PWM_CENTER) / (float)PWM_HALF_RANGE;
-	if ( result < -1.0 ) { result = -1.0; }
-	if ( result > 1.0 ) { result = 1.0; }
-    } else {
-	// i.e. throttle
-	result = (pulse - PWM_MIN) / (float)PWM_RANGE;
-	if ( result < 0.0 ) { result = 0.0; }
-	if ( result > 1.0 ) { result = 1.0; }
-    }
-
-    return result;
-}
-
 static bool Aura3_imu_update_internal() {
     static double last_bias_update = 0.0;
     
@@ -806,7 +768,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 #endif
 
 	    pilot_packet_counter++;
-	    apm2_node.setLong( "pilot_packet_count", pilot_packet_counter );
+	    aura3_node.setLong( "pilot_packet_count", pilot_packet_counter );
 
 	    new_data = true;
 	} else {
@@ -834,7 +796,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 #endif
 		      
 	    imu_packet_counter++;
-	    apm2_node.setLong( "imu_packet_count", imu_packet_counter );
+	    aura3_node.setLong( "imu_packet_count", imu_packet_counter );
 
 	    // update the propery tree and timestamps
 	    Aura3_imu_update_internal();
@@ -850,7 +812,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    nav_pvt_timestamp = get_Time();
             nav_pvt = *(nav_pvt_t *)(payload);
 	    gps_packet_counter++;
-	    apm2_node.setLong( "gps_packet_count", gps_packet_counter );
+	    aura3_node.setLong( "gps_packet_count", gps_packet_counter );
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
@@ -858,25 +820,24 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
                 printf("got %d, expected %d\n", pkt_len, (int)sizeof(nav_pvt));
 	    }
 	}
-    } else if ( pkt_id == BARO_PACKET_ID ) {
-	if ( pkt_len == 12 ) {
+    } else if ( pkt_id == AIRDATA_PACKET_ID ) {
+	if ( pkt_len == 8 ) {
 	    airdata.timestamp = get_Time();
-	    airdata.pressure = *(float *)payload; payload += 4;
-	    airdata.temp = *(float *)payload; payload += 4;
-	    airdata.climb_rate = *(float *)payload; payload += 4;
+	    airdata.static_pres_pa = *(float *)payload; payload += 4;
+	    airdata.diff_pres_pa = *(float *)payload; payload += 4;
 
 	    // if ( display_on ) {
-	    // 	printf("baro %.3f %.1f %.1f %.1f\n", airdata.timestamp,
-	    // 		airdata.pressure, airdata.temp, airdata.climb_rate);
+	    // 	printf("airdata %.3f %.2f %.2f\n", airdata.timestamp,
+	    // 		airdata.static_pres_pa, airdata.diff_pres_pa);
 	    // }
 		      
-	    baro_packet_counter++;
-	    apm2_node.setLong( "baro_packet_count", baro_packet_counter );
+	    airdata_packet_counter++;
+	    aura3_node.setLong( "airdata_packet_count", airdata_packet_counter );
 
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("Aura3: packet size mismatch in barometer input\n");
+		printf("Aura3: packet size mismatch in airdata input\n");
 	    }
 	}
     } else if ( pkt_id == ANALOG_PACKET_ID ) {
@@ -905,7 +866,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 
 	    static LowPassFilter vcc_filt(10.0);
 	    vcc_filt.update(analog[5], dt);
-	    apm2_node.setDouble( "board_vcc", vcc_filt.get_value() );
+	    aura3_node.setDouble( "board_vcc", vcc_filt.get_value() );
 
 	    float extern_volts = analog[1] * (vcc_filt.get_value()/1024.0) * volt_div_ratio;
 	    static LowPassFilter extern_volt_filt(2.0);
@@ -918,10 +879,10 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 		analog[2], vcc_filt, extern_amp_ratio, extern_amps); */
 	    extern_amp_sum += extern_amp_filt.get_value() * dt * 0.277777778; // 0.2777... is 1000/3600 (conversion to milli-amp hours)
 
-	    apm2_node.setDouble( "extern_volt", extern_volt_filt.get_value() );
-	    apm2_node.setDouble( "extern_cell_volt", cell_volt );
-	    apm2_node.setDouble( "extern_amps", extern_amp_filt.get_value() );
-	    apm2_node.setDouble( "extern_current_mah", extern_amp_sum );
+	    aura3_node.setDouble( "extern_volt", extern_volt_filt.get_value() );
+	    aura3_node.setDouble( "extern_cell_volt", cell_volt );
+	    aura3_node.setDouble( "extern_amps", extern_amp_filt.get_value() );
+	    aura3_node.setDouble( "extern_current_mah", extern_amp_sum );
 
 #if 0
 	    if ( display_on ) {
@@ -933,7 +894,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 #endif
 		      
 	    analog_packet_counter++;
-	    apm2_node.setLong( "analog_packet_count", analog_packet_counter );
+	    aura3_node.setLong( "analog_packet_count", analog_packet_counter );
 
 	    new_data = true;
 	} else {
@@ -941,14 +902,15 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 		printf("Aura3: packet size mismatch in analog input\n");
 	    }
 	}
-    } else if ( pkt_id == CONFIG_INFO_PACKET_ID ) {
+    } else if ( pkt_id == STATUS_INFO_PACKET_ID ) {
 	static bool first_time = true;
-	if ( pkt_len == 12 ) {
+	if ( pkt_len == 14 ) {
 	    uint16_t serial_num = *(uint16_t *)payload; payload += 2;
 	    uint16_t firmware_rev = *(uint16_t *)payload; payload += 2;
 	    uint16_t master_hz = *(uint16_t *)payload; payload += 2;
 	    uint32_t baud_rate = *(uint32_t *)payload; payload += 4;
 	    uint16_t byte_rate = *(uint16_t *)payload; payload += 2;
+            uint16_t pwr_v = *(uint16_t *)payload; payload += 2;
 
 #if 0
 	    if ( display_on ) {
@@ -957,11 +919,12 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 #endif
 		      
-	    apm2_node.setLong( "serial_number", serial_num );
-	    apm2_node.setLong( "firmware_rev", firmware_rev );
-	    apm2_node.setLong( "master_hz", master_hz );
-	    apm2_node.setLong( "baud_rate", baud_rate );
-	    apm2_node.setLong( "byte_rate_sec", byte_rate );
+	    aura3_node.setLong( "serial_number", serial_num );
+	    aura3_node.setLong( "firmware_rev", firmware_rev );
+	    aura3_node.setLong( "master_hz", master_hz );
+	    aura3_node.setLong( "baud_rate", baud_rate );
+	    aura3_node.setLong( "byte_rate_sec", byte_rate );
+            aura3_node.setDouble( "avionics_vcc", (float)pwr_v / 100.0);
 
 	    if ( first_time ) {
 		// log the data to events.txt
@@ -1027,7 +990,7 @@ static int Aura3_read() {
 	len = read( fd, input, 1 );
 	giveup_counter = 0;
 	while ( len > 0 && input[0] != START_OF_MSG0 && giveup_counter < 100 ) {
-	    // printf("state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
+	    printf("state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
 	    len = read( fd, input, 1 );
 	    giveup_counter++;
 	    // fprintf( stderr, "giveup_counter = %d\n", giveup_counter);
@@ -1226,7 +1189,6 @@ static bool Aura3_send_config() {
     if ( count ) {
 	for ( int i = 0; i < count; i++ ) {
 	    string mode = "";
-	    int mode_id = 0;
 	    bool enable = false;
 	    float gain1 = 0.0;
 	    float gain2 = 0.0;
@@ -1281,7 +1243,6 @@ static bool Aura3_send_config() {
     count = (int)children.size();
     for ( int i = 0; i < count; ++i ) {
 	string mode = "";
-	int mode_id = 0;
 	bool enable = false;
 	float gain = 0.0;
 	if ( children[i] == "axis" ) {
@@ -1312,7 +1273,6 @@ static bool Aura3_send_config() {
 	    }
 	} else if ( children[i] == "pilot_tune" ) {
 	    pyPropertyNode sas_section = sas_node.getChild("pilot_tune");
-	    mode_id = SAS_CH7_TUNE;
 	    mode = "ch7_tune";
 	    if ( sas_section.hasChild("enable") ) {
 		config.sas_ch7tune = sas_section.getBool("enable");
@@ -1363,30 +1323,11 @@ static bool Aura3_send_config() {
 }
 
 
-// generate a pwm pulse length from a normalized [-1 to 1] or [0 to 1] range
-static int gen_pulse( double val, bool symmetrical ) {
-    int pulse = 0;
-
-    if ( symmetrical ) {
-	// i.e. aileron, rudder, elevator
-	if ( val < -1.5 ) { val = -1.5; }
-	if ( val > 1.5 ) { val = 1.5; }
-	pulse = PWM_CENTER + (int)(PWM_HALF_RANGE * val);
-    } else {
-	// i.e. throttle, flaps
-	if ( val < 0.0 ) { val = 0.0; }
-	if ( val > 1.0 ) { val = 1.0; }
-	pulse = PWM_MIN + (int)(PWM_RANGE * val);
-    }
-
-    return pulse;
-}
-
-
 static bool Aura3_act_write() {
     uint8_t buf[256];
+    uint8_t *p = buf;
     uint8_t cksum0, cksum1;
-    uint8_t size = 0;
+    uint8_t size = 2 * AP_CHANNELS;
     /* int len; */
 
     // start of message sync bytes
@@ -1396,43 +1337,30 @@ static bool Aura3_act_write() {
     // packet id (1 byte)
     buf[0] = FLIGHT_COMMAND_PACKET_ID;
     // packet length (1 byte)
-    buf[1] = 2 * PWM_CHANNELS;
+    buf[1] = size;
     /* len = */ write( fd, buf, 2 );
 
     // actuator data
-    if ( PWM_CHANNELS == 5 ) {
+    if ( AP_CHANNELS == 6 ) {
 	int val;
-	uint8_t hi, lo;
 
-	val = gen_pulse( act_node.getDouble("throttle"), false );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
+	val = act_node.getDouble("throttle") * 16384.0;
+        *(int16_t *)p = val; p += 2;
 
-	val = gen_pulse( act_node.getDouble("aileron"), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
+	val = act_node.getDouble("aileron") * 16384.0;
+        *(int16_t *)p = val; p += 2;
 
-	val = gen_pulse( act_node.getDouble("elevator"), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
+	val = act_node.getDouble("elevator") * 16384.0;
+        *(int16_t *)p = val; p += 2;
 
-	val = gen_pulse( act_node.getDouble("rudder"), true );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
+	val = act_node.getDouble("rudder") * 16384.0;
+        *(int16_t *)p = val; p += 2;
 
-	val = gen_pulse( act_node.getDouble("flaps"), false );
-	hi = val / 256;
-	lo = val - (hi * 256);
-	buf[size++] = lo;
-	buf[size++] = hi;
+	val = act_node.getDouble("flaps") * 16384.0;
+        *(int16_t *)p = val; p += 2;
+
+	val = act_node.getDouble("gear") * 16384.0;
+        *(int16_t *)p = val; p += 2;
     }
 
     // write packet
@@ -1541,11 +1469,10 @@ bool Aura3_airdata_update() {
     if ( airdata_inited ) {
 	double cur_time = airdata.timestamp;
 
-	pitot_filt.update(analog[0], 0.01);
-
+	pitot_filt.update(airdata.diff_pres_pa, 0.01);
 	if ( ! airspeed_inited ) {
 	    if ( airspeed_zero_start_time > 0.0 ) {
-		pitot_sum += pitot_filt.get_value();
+		pitot_sum += airdata.diff_pres_pa;
 		pitot_count++;
 		pitot_offset = pitot_sum / (double)pitot_count;
 		/* printf("a1 raw=%.1f filt=%.1f a1 off=%.1f a1 sum=%.1f a1 count=%d\n",
@@ -1555,14 +1482,13 @@ bool Aura3_airdata_update() {
 		airspeed_zero_start_time = get_Time();
 		pitot_sum = 0.0;
 		pitot_count = 0;
-		pitot_filt.init(analog[0]);
+		pitot_filt.init(airdata.diff_pres_pa);
 	    }
 	    if ( cur_time > airspeed_zero_start_time + 10.0 ) {
 		//printf("pitot_offset = %.2f\n", pitot_offset);
 		airspeed_inited = true;
 	    }
 	}
-
 
 	airdata_node.setDouble( "timestamp", cur_time );
 
@@ -1588,10 +1514,10 @@ bool Aura3_airdata_update() {
 	// about 81mps (156 kts)
 
 	// choose between using raw pitot value or filtered pitot value
-	float pitot = analog[0];
+	float pitot = airdata.diff_pres_pa;
 	// float pitot = pitot_filt.get_value();
 	
-	float Pa = (pitot - pitot_offset) * 5.083;
+	float Pa = (pitot - pitot_offset);
 	if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
 	float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
 	float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
@@ -1599,10 +1525,8 @@ bool Aura3_airdata_update() {
 	airdata_node.setDouble( "airspeed_kt", airspeed_kt );
 
 	// publish sensor values
-	airdata_node.setDouble( "pressure_mbar", airdata.pressure / 100.0 );
-	airdata_node.setDouble( "temp_degC", airdata.temp / 10.0 );
-	airdata_node.setDouble( "vertical_speed_mps", airdata.climb_rate );
-	airdata_node.setDouble( "vertical_speed_fps", airdata.climb_rate * SG_METER_TO_FEET );
+	airdata_node.setDouble( "pressure_mbar", airdata.static_pres_pa / 100.0 );
+	airdata_node.setDouble( "diff_pressure_pa", airdata.diff_pres_pa );
 
 	fresh_data = true;
     }

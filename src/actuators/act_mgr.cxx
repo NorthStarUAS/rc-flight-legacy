@@ -152,6 +152,9 @@ static void set_actuator_values_ap() {
     if ( chirp_inject == "flaps" ) { flaps += chirp_val; }
     act_node.setDouble("flaps", flaps );
 
+    double gear = flight_node.getDouble("gear");
+    act_node.setDouble("gear", gear );
+
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
 
@@ -289,6 +292,9 @@ static void set_actuator_values_pilot_pass_through() {
     double flaps = pilot_node.getDouble("flaps");
     if ( chirp_inject == "flaps" ) { flaps += chirp_val; }
     act_node.setDouble("flaps", flaps );
+
+    double gear = pilot_node.getDouble("gear");
+    act_node.setDouble("gear", gear );
 
     double throttle = pilot_node.getDouble("throttle");
     if ( chirp_inject == "throttle" ) { throttle += chirp_val; }

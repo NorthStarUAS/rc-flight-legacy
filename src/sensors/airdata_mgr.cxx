@@ -227,18 +227,7 @@ static void update_pressure_helpers() {
     double true_agl_m = true_alt_m - pos_filter_node.getDouble("altitude_ground_m");
 
     //
-    // 4.0 Compute outside air temperature estimate based on 'true'
-    // altitude fed back into the above formula.  Note if this seems
-    // way off from reality then the math has been cross checked and
-    // consider there may be a bias in the pressure sensor
-    //
-
-    // T = h*0.0065 / ((P0/P)^(1/5.257) - 1) - 273.15
-    double T_est = ((true_alt_m * 0.0065) / tmp1) - 273.15;
-    pos_pressure_node.setDouble( "outside_air_temp_degC", T_est );
-
-    //
-    // 5.0 Compute some other stuff
+    // 4. Compute some other stuff
     // 
 
     // compute rate of climb based on pressure altitude change
