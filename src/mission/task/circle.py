@@ -2,7 +2,7 @@ import math
 
 import sys
 sys.path.append('/usr/local/lib')
-import libnav_core
+import nav.wgs84
 
 from props import root, getNode
 
@@ -119,7 +119,7 @@ class Circle(Task):
         pos_lon = self.pos_node.getFloat("longitude_deg")
         pos_lat = self.pos_node.getFloat("latitude_deg")
         (course_deg, reverse_deg, dist_m) = \
-            libnav_core.geo_inverse_wgs84( pos_lat, pos_lon,
+            nav.wgs84.geo_inverse_wgs84( pos_lat, pos_lon,
                                            center_lat, center_lon )
 
         # compute ideal ground course to be on the circle perimeter if at

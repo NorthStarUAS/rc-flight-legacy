@@ -84,8 +84,11 @@ def generate_record(category, index, delim=','):
     elif category == 'raven':
         record = comms.packer.pack_raven_text(index, delim)
         return record
-    # remote_link_node.setInt('sequence_num', result[14]) # include in system health....
-
+    # elif category == 'error':
+    #     error_node = getNode("/autopilot/errors", True)
+    #     data = [ '%.4f' % error_node.getFloat('timestamp'),
+    #              '%.1f' % error_node.getFloat('roll_error') ]
+    #     return delim.join(data)
 
 argparser = argparse.ArgumentParser(description='aura export')
 argparser.add_argument('--flight', help='load specified flight log')

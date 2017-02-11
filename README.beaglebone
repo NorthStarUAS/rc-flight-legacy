@@ -21,6 +21,8 @@ Network config: (required before beaglebone dns lookups will actually work)
 -> Select identity
 -> Firewall Zone -> trusted
 
+Finally (?) Turn off usb ethernet and reactivate it.
+
 
 # for really old wheezy installs (like what might come onboard the
 # beaglebone when you first purchase it ... if you don't update the

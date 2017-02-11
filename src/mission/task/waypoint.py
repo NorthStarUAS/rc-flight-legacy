@@ -1,6 +1,6 @@
 import sys
 sys.path.append('/usr/local/lib')
-import libnav_core
+import nav.wgs84
 
 from props import root, getNode
 
@@ -40,7 +40,7 @@ class Waypoint:
             if course < 0.0: course += 360.0
             if course > 360.0: course -= 360.0
             (self.lat_deg, self.lon_deg, recip_deg) = \
-                libnav_core.geo_direct_wgs84(lat_deg, lon_deg,
+                nav.wgs84.geo_direct_wgs84(lat_deg, lon_deg,
                                              course, self.dist_m)
         else:
             print "Error: cannot update relative position of absolute waypoint"

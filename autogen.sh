@@ -61,9 +61,12 @@ if [ -f config.cache ]; then
 fi
 
 echo ""
-echo "Now make a build directory (i.e. $ mkdir build)"
-echo "cd to the build directory (i.e. $ cd build)"
-echo ""
 echo "Now you are ready to run:"
 echo ""
-echo "../configure --prefix=/root CFLAGS=\"-Wall -O3\" CXXFLAGS=\"-Wall -O3\""
+echo "  mkdir build; cd build"
+echo "  ../configure --prefix=/root CFLAGS=\"-Wall -O3\" CXXFLAGS=\"-Wall -O3\""
+echo ""
+echo "or perhaps:"
+echo ""
+echo "  mkdir build_arm; cd build_arm"
+echo   "../configure --prefix=/root CC=arm-linux-gnueabi-gcc CFLAGS=\"-Wall -O3\" CXX=arm-linux-gnueabi-g++ CXXFLAGS=\"-Wall -O3\" --host arm-linux-gnueabi"

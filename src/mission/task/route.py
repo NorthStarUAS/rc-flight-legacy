@@ -2,7 +2,7 @@ import math
 
 import sys
 sys.path.append('/usr/local/lib')
-import libnav_core
+import nav.wgs84
 
 from props import root, getNode
 
@@ -187,7 +187,7 @@ class Route(Task):
                 # compute leg course and distance
                 next = self.active_route[self.wp_counter+1]
                 (leg_course, reverse_course, leg_dist) = \
-                    libnav_core.geo_inverse_wgs84( wp.lon_deg, wp.lat_deg,
+                    nav.wgs84.geo_inverse_wgs84( wp.lon_deg, wp.lat_deg,
                                                    next.lon_deg, next.lat_deg)
                 wp.leg_dist_m = leg_dist
             self.wp_counter += 1
@@ -272,14 +272,14 @@ class Route(Task):
                 pos_lon = self.pos_node.getFloat("longitude_deg")
                 pos_lat = self.pos_node.getFloat("latitude_deg")
                 (direct_course, reverse_course, direct_dist) = \
-                    libnav_core.geo_inverse_wgs84( pos_lat, pos_lon,
+                    nav.wgs84.geo_inverse_wgs84( pos_lat, pos_lon,
                                                    wp.lat_deg, wp.lon_deg)
                 #print pos_lat, pos_lon, ":", wp.lat_deg, wp.lon_deg
                 #print ' course to:', direct_course, 'dist:', direct_dist
                 
                 # compute leg course and distance
                 (leg_course, reverse_course, leg_dist) = \
-                    libnav_core.geo_inverse_wgs84( prev.lat_deg, prev.lon_deg,
+                    nav.wgs84.geo_inverse_wgs84( prev.lat_deg, prev.lon_deg,
                                                    wp.lat_deg, wp.lon_deg)
                 #print prev.lat_deg, prev.lon_deg, " ", wp.lat_deg, wp.lon_deg
                 #print ' leg course:', leg_course, 'dist:', leg_dist
