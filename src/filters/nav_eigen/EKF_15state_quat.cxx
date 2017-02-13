@@ -38,9 +38,9 @@ const double SIG_W_AZ = 0.05;
 const double SIG_W_GX = 0.00175; // rad/s (0.1 deg/s)
 const double SIG_W_GY = 0.00175;
 const double SIG_W_GZ = 0.00175;
-const double SIG_A_D  = 0.1;	 // 5e-2*g
+const double SIG_A_D  = 0.01;	 // value that leads to reasonable bias plots
 const double TAU_A    = 100.0;
-const double SIG_G_D  = 0.00873; // 0.1 deg/s
+const double SIG_G_D  = 0.00025; // value that leads to reasonable bias plots
 const double TAU_G    = 50.0;
 
 const double SIG_GPS_P_NE = 3.0;
@@ -146,30 +146,8 @@ NAVdata init_nav(IMUdata imu, GPSdata gps) {
     nav.the = asin(imu.ax/g); 
     // phi from Ay, aircraft at rest
     nav.phi = asin(imu.ay/(g*cos(nav.the))); 
-    nav.psi = 0.0;
+    nav.psi = 90*D2R - atan2(imu.hx, imu.hy);
 
-    // fixme: for now match the reference implementation so we can
-    // compare intermediate calculations.
-    nav.the = 8*D2R;
-    nav.phi = 0*D2R;
-    nav.psi = 90.0*D2R;
-
-    /*
-      if((imu.hy) > 0){
-      nav.psi = 90*D2R - atan(imu.hx / imu.hy);
-      }
-      else if((imu.hy) < 0){
-      nav.psi = 270*D2R - atan(imu.hx / imu.hy) - 360*D2R;
-      }
-      else if((imu.hy) == 0){
-      if((imu.hx) < 0){
-      nav.psi = 180*D2R;
-      }
-      else{
-      nav.psi = 0.0;
-      }
-      }*/
-	
     quat = eul2quat(nav.phi, nav.the, nav.psi);
     nav.quat[0] = quat.w();
     nav.quat[1] = quat.x();
