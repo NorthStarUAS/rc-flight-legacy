@@ -153,6 +153,16 @@ bool PilotInput_update() {
     }
 
     if ( fresh_data ) {
+        // log receiver fail safe changes
+        static bool last_fail_safe = false;
+        if ( pilot_node.getBool("fail_safe") != last_fail_safe ) {
+            char buf[128];
+            snprintf( buf, 32, "Receiver fail safe = %d",
+                      pilot_node.getBool("fail_safe") );
+            events->log("Aura3", buf );
+            last_fail_safe = pilot_node.getBool("fail_safe");
+        }
+        
 	// Only in manual mode, do copy the pilot inputs to the main
 	// AP outputs.  This puts the pilot inputs in a standard place
 	// and allows the AP to seed it's components with trimmed

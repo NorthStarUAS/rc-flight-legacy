@@ -49,7 +49,7 @@ using namespace Eigen;
 #define ANALOG_PACKET_ID 54
 #define STATUS_INFO_PACKET_ID 55
 
-#define NUM_PILOT_INPUTS 16
+#define NUM_PILOT_INPUTS 18
 #define NUM_IMU_SENSORS 10
 #define NUM_ANALOG_INPUTS 6
 #define PWM_CHANNELS 5
@@ -114,6 +114,7 @@ static int last_ack_subid = 0;
 
 static double pilot_in_timestamp = 0.0;
 static float pilot_input[NUM_PILOT_INPUTS]; // internal stash
+static uint8_t pilot_flags = 0x00;
 static string pilot_mapping[NUM_PILOT_INPUTS]; // channel->name mapping
 
 static double imu_timestamp = 0.0;
@@ -749,12 +750,13 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    printf("Aura3: packet size mismatch in ACK\n");
 	}
     } else if ( pkt_id == PILOT_PACKET_ID ) {
-	if ( pkt_len == NUM_PILOT_INPUTS * 2 ) {
+	if ( pkt_len == (NUM_PILOT_INPUTS-2) * 2 + 1 ) {
 	    pilot_in_timestamp = get_Time();
-	    for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
+	    for ( int i = 0; i < (NUM_PILOT_INPUTS-2); i++ ) {
                 int16_t val = *(int16_t *)payload; payload += 2;
 		pilot_input[i] = (float)val / 16384.0;
 	    }
+            pilot_flags = *(uint8_t *)payload; payload += 1;
 
 #if 0
 	    if ( display_on ) {
@@ -990,7 +992,7 @@ static int Aura3_read() {
 	len = read( fd, input, 1 );
 	giveup_counter = 0;
 	while ( len > 0 && input[0] != START_OF_MSG0 && giveup_counter < 100 ) {
-	    printf("state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
+	    // printf("state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
 	    len = read( fd, input, 1 );
 	    giveup_counter++;
 	    // fprintf( stderr, "giveup_counter = %d\n", giveup_counter);
@@ -1557,6 +1559,29 @@ bool Aura3_pilot_update() {
 	val = pilot_input[i];
 	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
 	pilot_node.setDouble( "channel", i, val );
+    }
+
+    // sbus ch17 (channel[16])
+    if ( pilot_flags & 0x01 ) {
+        pilot_node.setDouble( "channel", 16, 1.0 );
+    } else {
+        pilot_node.setDouble( "channel", 16, 0.0 );
+    }
+    // sbus ch18 (channel[17])
+    if ( pilot_flags & (1 << 1) ) {
+        pilot_node.setDouble( "channel", 17, 1.0 );
+    } else {
+        pilot_node.setDouble( "channel", 17, 0.0 );
+    }
+    if ( pilot_flags & (1 << 2) ) {
+        pilot_node.setBool( "frame_lost", true );
+    } else {
+        pilot_node.setBool( "frame_lost", false );
+    }
+    if ( pilot_flags & (1 << 3) ) {
+        pilot_node.setBool( "fail_safe", true );
+    } else {
+        pilot_node.setBool( "fail_safe", false );
     }
 
     return true;
