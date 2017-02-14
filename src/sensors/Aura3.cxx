@@ -100,7 +100,7 @@ bool Aura3_actuator_configured = false; // externally visible
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
-static int baud = 250000;
+static int baud = 500000;
 static float volt_div_ratio = 100; // a nonsense value
 static int battery_cells = 4;
 static float extern_amp_offset = 0.0;
