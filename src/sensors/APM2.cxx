@@ -1750,7 +1750,7 @@ bool APM2_airdata_update() {
 
 	if ( ! airspeed_inited ) {
 	    if ( airspeed_zero_start_time > 0.0 ) {
-		pitot_sum += pitot_filt.get_value();
+		pitot_sum += analog[0];
 		pitot_count++;
 		pitot_offset = pitot_sum / (double)pitot_count;
 		/* printf("a1 raw=%.1f filt=%.1f a1 off=%.1f a1 sum=%.1f a1 count=%d\n",
