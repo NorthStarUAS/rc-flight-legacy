@@ -268,39 +268,6 @@ static void Aura3_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size,
     *cksum1 = c1;
 }
 
-
-#if 0
-bool Aura3_request_baud( uint32_t baud ) {
-    uint8_t buf[256];
-    uint8_t cksum0, cksum1;
-    uint8_t size = 4;
-    /* int len; */
-
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = BAUD_PACKET_ID;
-    // packet length (1 byte)
-    buf[1] = size;
-    /* len = */ write( fd, buf, 2 );
-
-    // actuator data
-    *(uint32_t *)buf = baud;
-  
-    // write packet
-    /* len = */ write( fd, buf, size );
-  
-    // check sum (2 bytes)
-    Aura3_cksum( BAUD_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
-
-    return true;
-}
-#endif
-
 static bool Aura3_act_write_eeprom() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
