@@ -19,7 +19,7 @@ flight_dir = ''      # dir containing all our logged data
 
 # remote logging support
 sock = None
-port = 6500
+port = 6550
 hostname = "127.0.0.1"
 udp_logging_inited = False
 
@@ -77,7 +77,6 @@ def udp_logging_init():
     try:
         sock = socket.socket(socket.AF_INET,    # Internet
                              socket.SOCK_DGRAM) # UDP
-        sock.bind(hostname, port)
     except:
 	print 'Error opening logging socket'
 	return False
@@ -162,11 +161,8 @@ def log_packet( packet_id, packet_buf, packet_size ):
     log_queue( buf )
 
     if udp_logging_inited:
-        print 'packet_buf:', type(packet_buf)
-        print 'port:', type(port)
-        print 'hostname:', type(hostname)
-        result = sock.sendto(packet_buf, (port, hostname))
-        if result != packet_size + 6:
+        result = sock.sendto(packet_buf, (hostname, port))
+        if result != packet_size:
             print 'error transmitting udp log packet'
     else:
         udp_logging_init()
