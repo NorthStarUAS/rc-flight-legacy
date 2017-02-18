@@ -8,6 +8,11 @@
 #include "python/pymodule.hxx"
 #include "python/pyprops.hxx"
 
+// These constants are replicated from logging.py and can be
+// deprecated as soon as the serial telemetry module is ported to
+// python, otherwise any changes to packet id's must be and versions
+// must be updated in both places.
+
 #define START_OF_MSG0 147	// 0x93
 #define START_OF_MSG1 224	// 0xE0
 
