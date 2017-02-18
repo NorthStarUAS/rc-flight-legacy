@@ -6,6 +6,7 @@ import re
 import socket
 
 from props import root, getNode
+import props_json
 
 # global variables for data file logging
 log_buffer = []
@@ -17,10 +18,38 @@ log_path = ''
 flight_dir = ''      # dir containing all our logged data
 
 # remote logging support
-#static netSocket sock
-#static int port = 0
-#static string hostname = ""
-#static bool udp_logging_inited = false
+sock = None
+port = 6500
+hostname = "127.0.0.1"
+udp_logging_inited = False
+
+START_OF_MSG0 = 147
+START_OF_MSG1 = 224
+
+GPS_PACKET_V1 = 0
+IMU_PACKET_V1 = 1
+FILTER_PACKET_V1 = 2
+ACTUATOR_PACKET_V1 = 3
+PILOT_INPUT_PACKET_V1 = 4
+AP_STATUS_PACKET_V1 = 5
+AIRDATA_PACKET_V3 = 9
+AP_STATUS_PACKET_V2 = 10
+SYSTEM_HEALTH_PACKET_V2 = 11
+PAYLOAD_PACKET_V1 = 12
+AIRDATA_PACKET_V4 = 13
+SYSTEM_HEALTH_PACKET_V3 = 14
+IMU_PACKET_V2 = 15
+GPS_PACKET_V2 = 16
+IMU_PACKET_V3 = 17
+AIRDATA_PACKET_V5 = 18
+SYSTEM_HEALTH_PACKET_V4 = 19
+PILOT_INPUT_PACKET_V2 = 20
+ACTUATOR_PACKET_V2 = 21
+FILTER_PACKET_V2 = 22
+PAYLOAD_PACKET_V2 = 23
+AP_STATUS_PACKET_V3 = 24
+RAVEN_PACKET_V1 = 25
+GPS_PACKET_V3 = 26
 
 # scan the base path for fltNNNN directories.  Return the biggest
 # flight number
@@ -29,22 +58,26 @@ def max_flight_num():
     if not os.path.isdir( log_path ):
         print 'Flight data directory does not exist:', log_path
         return max
-    for f in os.path.listdir( log_path ):
-        if os.path.isfile(f):
-            print 'file:', f
-            p = re.compile('\d+')
-            m = p.match(f)
+    p = re.compile('\d+$')
+    for f in os.listdir( log_path ):
+        dir = os.path.join(log_path, f)
+        if os.path.isdir(dir):
+            m = p.search(dir)
             val = int(m.group())
             if val > max: max = val
     return max
 
 def udp_logging_init():
+    global udp_logging_inited
+    global sock
+    
     port = 6500
     ip = '127.0.0.1'
     # open a UDP socket
     try:
         sock = socket.socket(socket.AF_INET,    # Internet
                              socket.SOCK_DGRAM) # UDP
+        sock.bind(hostname, port)
     except:
 	print 'Error opening logging socket'
 	return False
@@ -53,9 +86,13 @@ def udp_logging_init():
 
 
 def init():
+    global log_path
+    global fdata
+    
     logging_node = getNode('/config/logging')
     log_path = logging_node.getString('path')
-    
+    print 'Log path:', log_path
+
     # find the biggest flight number logged so far
     max = max_flight_num()
     print 'Max log dir index:', max
@@ -93,7 +130,7 @@ def log_queue( data ):
     log_buffer.append(data)
 
 # simple 2-byte checksum
-def compute_cksum(id, size, buf):
+def compute_cksum(id, buf, size):
     c0 = 0
     c1 = 0
     c0 = (c0 + id) & 0xff
@@ -107,10 +144,7 @@ def compute_cksum(id, size, buf):
         c1 = (c1 + c0) & 0xff
         # print "c0 =", c0, "c1 =", c1, '[', ord(buf[i]), ']'
     # print "c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")"
-    if c0 == cksum0 and c1 == cksum1:
-        return True
-    else:
-        return False
+    return (c0, c1)
 
 def log_packet( packet_id, packet_buf, packet_size ):
     buf = ''
@@ -118,17 +152,20 @@ def log_packet( packet_id, packet_buf, packet_size ):
     buf += chr(START_OF_MSG1)   # start of message sync bytes
     buf += chr(packet_id)       # packet id (1 byte)
     buf += chr(packet_size)     # packet size (1 byte)
-    buf += data                 # copy packet data
+    buf += packet_buf           # copy packet data
 
     # check sum (2 bytes)
     (cksum0, cksum1) = compute_cksum( packet_id, packet_buf, packet_size)
     buf += chr(cksum0)
     buf += chr(cksum1)
 
-    log_queue( buf, packet_size + 6 )
+    log_queue( buf )
 
     if udp_logging_inited:
-        result = sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
+        print 'packet_buf:', type(packet_buf)
+        print 'port:', type(port)
+        print 'hostname:', type(hostname)
+        result = sock.sendto(packet_buf, (port, hostname))
         if result != packet_size + 6:
             print 'error transmitting udp log packet'
     else:
