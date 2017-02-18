@@ -226,7 +226,7 @@ void control_update(double dt)
     }
 	
     bool send_logging = false;
-    if ( log_to_file && logging_count < 0 ) {
+    if ( logging_count < 0 ) {
 	send_logging = true;
 	logging_count = logging_skip;
     }
@@ -245,7 +245,7 @@ void control_update(double dt)
 	}
 
 	if ( send_logging ) {
-	    log_ap( buf, pkt_size );
+	    logging->log_ap( buf, pkt_size );
 	}
     }
     
@@ -253,9 +253,7 @@ void control_update(double dt)
 	remote_link_count--;
     }
 	
-    if ( log_to_file ) {
-	logging_count--;
-    }
+    logging_count--;
 }
 
 

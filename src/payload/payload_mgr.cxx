@@ -61,7 +61,7 @@ bool UGPayloadMgr::update() {
 	}
 	
 	bool send_logging = false;
-	if ( log_to_file && logging_count < 0 ) {
+	if ( logging_count < 0 ) {
 	    send_logging = true;
 	    logging_count = logging_skip;
 	}
@@ -73,7 +73,7 @@ bool UGPayloadMgr::update() {
 		remote_link_payload( buf, size );
 	    }
 	    if ( send_logging ) {
-		log_payload( buf, size );
+		logging->log_payload( buf, size );
 	    }
 	}
 	
@@ -81,9 +81,7 @@ bool UGPayloadMgr::update() {
 	    remote_link_count--;
 	}
 	
-	if ( log_to_file ) {
-	    logging_count--;
-	}
+        logging_count--;
     }
 
     return true;

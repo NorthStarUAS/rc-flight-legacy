@@ -34,18 +34,14 @@ bool health_init() {
 bool health_update() {
     loadavg_update();
 
-    if ( remote_link_on || log_to_file ) {
-	uint8_t buf[256];
-	int size = packer->pack_health( 0, buf );
+    uint8_t buf[256];
+    int size = packer->pack_health( 0, buf );
 
-	if ( remote_link_on ) {
-	    remote_link_health( buf, size, remote_link_node.getLong("health_skip") );
-	}
-
-	if ( log_to_file ) {
-	    log_health( buf, size, logging_node.getLong("health_skip") );
-	}
+    if ( remote_link_on ) {
+        remote_link_health( buf, size, remote_link_node.getLong("health_skip") );
     }
+
+    logging->log_health( buf, size );
 
     return true;
 }

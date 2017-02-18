@@ -153,7 +153,7 @@ bool IMU_update() {
 	    }
 	
 	    bool send_logging = false;
-	    if ( log_to_file && logging_count < 0 ) {
+	    if ( logging_count < 0 ) {
 		send_logging = true;
 		logging_count = logging_skip;
 	    }
@@ -165,7 +165,7 @@ bool IMU_update() {
 		    remote_link_imu( buf, size );
 		}
 		if ( send_logging ) {
-		    log_imu( buf, size );
+		    logging->log_imu( buf, size );
 		}
 	    }
 	}
@@ -184,9 +184,7 @@ bool IMU_update() {
 	    remote_link_count--;
 	}
 	
-	if ( log_to_file ) {
-	    logging_count--;
-	}
+        logging_count--;
     }
     
     debug2a2.stop();

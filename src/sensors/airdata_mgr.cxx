@@ -343,7 +343,7 @@ bool AirData_update() {
 	    }
 	
 	    bool send_logging = false;
-	    if ( log_to_file && logging_count < 0 ) {
+	    if ( logging_count < 0 ) {
 		send_logging = true;
 	    }
 	
@@ -355,7 +355,7 @@ bool AirData_update() {
 			remote_link_airdata( buf, size );
 		    }
 		    if ( send_logging ) {
-			log_airdata( buf, size );
+			logging->log_airdata( buf, size );
 		    }
 		} else {
 		    int size = packer->pack_raven( i, buf );
@@ -363,7 +363,7 @@ bool AirData_update() {
 		    //  remote_link_airdata( buf, size );
 		    // }
 		    if ( send_logging ) {
-			log_raven( buf, size );
+			logging->log_raven( buf, size );
 		    }
   
 		}
@@ -371,7 +371,7 @@ bool AirData_update() {
 	}
     }
 
-    if ( log_to_file && logging_count < 0 ) {
+    if ( logging_count < 0 ) {
 	logging_count = logging_skip;
     }
 	
@@ -383,9 +383,7 @@ bool AirData_update() {
 	    remote_link_count--;
 	}
 	
-	if ( log_to_file ) {
-	    logging_count--;
-	}
+        logging_count--;
     }
 
     // check for and respond to an airdata recalibrate request

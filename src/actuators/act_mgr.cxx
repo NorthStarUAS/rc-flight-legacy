@@ -362,7 +362,7 @@ bool Actuator_update() {
 	    }
 	
 	    bool send_logging = false;
-	    if ( log_to_file && logging_count < 0 ) {
+	    if ( logging_count < 0 ) {
 		send_logging = true;
 		logging_count = logging_skip;
 	    }
@@ -374,7 +374,7 @@ bool Actuator_update() {
 		    remote_link_actuator( buf, size );
 		}
 		if ( send_logging ) {
-		    log_actuator( buf, size );
+		    logging->log_actuator( buf, size );
 		}
 	    }
 	}
@@ -386,9 +386,7 @@ bool Actuator_update() {
 	    remote_link_count--;
 	}
 	
-	if ( log_to_file ) {
-	    logging_count--;
-	}
+        logging_count--;
     }
 
     // static int dcount = 0;

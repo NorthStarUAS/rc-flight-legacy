@@ -101,8 +101,6 @@ void usage(char *progname)
 {
     printf("\n%s --option1 on/off --option2 on/off --option3 ... \n", progname);
     printf("--config path        : path to location of configuration file tree\n");
-    printf("--log-dir path       : enable onboard data logging to path\n");
-    printf("--log-servo in/out   : specify which servo data to log (out=default)\n");
     printf("--remote-link on/off : remote link enable or disabled\n");
     printf("--display on/off     : dump periodic data to display\n");	
     printf("--help               : display this help messages\n\n");
@@ -299,9 +297,7 @@ void main_work_loop()
     // flush of logging stream (update at full rate)
     if ( true ) {
 	datalog_prof.start();
-	if ( log_to_file ) {
-	    log_flush();
-	}
+        logging->update();
 	datalog_prof.stop();
     }
 
@@ -423,15 +419,6 @@ int main( int argc, char **argv )
 
     pyPropertyNode p;
 
-    p = pyGetNode("/config/logging", true);
-    if ( p.hasChild("path") ) {
-	log_path.set( p.getString("path") );
-    }
-    if ( p.hasChild("enable") ) {
-	log_to_file = p.getBool("enable");
-    }
-    printf("log path = %s enabled = %d\n", log_path.c_str(), log_to_file);
-
     p = pyGetNode("/config/telnet", true);
     if ( p.hasChild("enable") ) {
 	enable_telnet = p.getBool("enable");
@@ -484,11 +471,7 @@ int main( int argc, char **argv )
     // Parse the command line: pass #2 allows command line options to
     // override config file options
     for ( iarg = 1; iarg < argc; iarg++ ) {
-        if ( !strcmp(argv[iarg], "--log-dir" )  ) {
-            ++iarg;
-            log_path.set( argv[iarg] );
-            log_to_file = true;
-        } else if ( !strcmp(argv[iarg], "--remote-link" )  ) {
+        if ( !strcmp(argv[iarg], "--remote-link" )  ) {
             ++iarg;
             if ( !strcmp(argv[iarg], "on") ) remote_link_on = true;
             if ( !strcmp(argv[iarg], "off") ) remote_link_on = false;
@@ -523,14 +506,6 @@ int main( int argc, char **argv )
     // open remote link if requested
     if ( remote_link_on ) {
         remote_link_init();
-    }
-
-    // open logging files if requested
-    if ( log_to_file ) {
-        if ( !logging_init() ) {
-            printf("Warning: error opening one or more data files, logging disabled\n");
-            log_to_file = false;
-        }
     }
 
     // Initialize communication with the selected IMU
@@ -574,7 +549,7 @@ int main( int argc, char **argv )
     srandom( time(NULL) );
 
     // log the master config tree
-    log_master_config();
+    logging->write_configs();
     
     printf("Everything inited ... ready to run\n");
 
@@ -594,6 +569,7 @@ int main( int argc, char **argv )
     payload_mgr.close();
     control_close();
     Actuator_close();
+    logging->close();
 }
 
 

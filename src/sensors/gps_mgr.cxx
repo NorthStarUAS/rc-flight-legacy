@@ -183,7 +183,7 @@ bool GPS_update() {
 	    }
 	
 	    bool send_logging = false;
-	    if ( log_to_file && logging_count < 0 ) {
+	    if ( logging_count < 0 ) {
 		send_logging = true;
 		logging_count = logging_skip;
 	    }
@@ -195,7 +195,7 @@ bool GPS_update() {
 		    remote_link_gps( buf, size );
 		}
 		if ( send_logging ) {
-		    log_gps( buf, size );
+		    logging->log_gps( buf, size );
 		}
 	    }
 	}
@@ -211,9 +211,7 @@ bool GPS_update() {
 	    remote_link_count--;
 	}
 	
-	if ( log_to_file ) {
-	    logging_count--;
-	}
+        logging_count--;
     }
     
     if ( gps_node.getLong("status") == 2 && !gps_state ) {

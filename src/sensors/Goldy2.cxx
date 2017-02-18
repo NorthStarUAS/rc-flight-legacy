@@ -236,9 +236,7 @@ bool goldy2_imu_init( string output_path, pyPropertyNode *config ) {
 
 	// save the imu calibration parameters with the data file so that
 	// later the original raw sensor values can be derived.
-	if ( log_to_file ) {
-	    log_imu_calibration( &cal );
-	}
+        write_imu_calibration( &cal );
     }
 
     return true;

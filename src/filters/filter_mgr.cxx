@@ -349,7 +349,7 @@ bool Filter_update() {
 	}
 	
 	bool send_logging = false;
-	if ( log_to_file && logging_count < 0 ) {
+	if ( logging_count < 0 ) {
 	    send_logging = true;
 	    logging_count = logging_skip;
 	}
@@ -361,7 +361,7 @@ bool Filter_update() {
 		remote_link_filter( buf, size );
 	    }
 	    if ( send_logging ) {
-		log_filter( buf, size );
+		logging->log_filter( buf, size );
 	    }
 	}
     }
@@ -373,9 +373,7 @@ bool Filter_update() {
 	    remote_link_count--;
 	}
 	
-	if ( log_to_file ) {
-	    logging_count--;
-	}
+        logging_count--;
     }
 	     
     last_imu_time = imu_time;

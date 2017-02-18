@@ -1,5 +1,6 @@
 import __builtin__ # open()
 from props import root, getNode
+import props_json
 
 event_log_on = False
 fevent = None
