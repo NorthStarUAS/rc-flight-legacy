@@ -12,16 +12,17 @@ import props_json
 log_buffer = []
 fdata = None
 
-logging_node = None
-log_to_file = False  # log to file is enabled/disabled
+logging_node = getNode('/config/logging')
+
+enable_file = False             # log to file enabled/disabled
+enable_udp = False              # log to a udp port enabled/disabled
 log_path = ''
-flight_dir = ''      # dir containing all our logged data
+flight_dir = ''                 # dir containing all our logged data
 
 # remote logging support
 sock = None
 port = 6550
 hostname = "127.0.0.1"
-udp_logging_inited = False
 
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
@@ -67,29 +68,10 @@ def max_flight_num():
             if val > max: max = val
     return max
 
-def udp_logging_init():
-    global udp_logging_inited
-    global sock
-    
-    port = 6500
-    ip = '127.0.0.1'
-    # open a UDP socket
-    try:
-        sock = socket.socket(socket.AF_INET,    # Internet
-                             socket.SOCK_DGRAM) # UDP
-    except:
-	print 'Error opening logging socket'
-	return False
-    udp_logging_inited = True
-    return True
-
-
-def init():
-    global log_path
+def init_file_logging():
+    global enable_file
     global fdata
     
-    logging_node = getNode('/config/logging')
-    log_path = logging_node.getString('path')
     print 'Log path:', log_path
 
     # find the biggest flight number logged so far
@@ -105,6 +87,7 @@ def init():
         logging_node.setString('flight_dir', flight_dir)
     except:
         print 'Error creating:', flight_dir
+        return False
 
     # open the logging files
     file = os.path.join(flight_dir, 'flight.dat.gz')
@@ -114,10 +97,38 @@ def init():
         print 'Cannot open:', file
         return False
 
-    # fixme:
-    # events->open(flight_dir.c_str())
-    # events->log("Log", "Start")
+    return True
+
+def init_udp_logging():
+    global sock
+    try:
+        # open a UDP socket
+        sock = socket.socket(socket.AF_INET,    # Internet
+                             socket.SOCK_DGRAM) # UDP
+    except:
+	print 'Error opening logging socket'
+	return False
+    return True
+
+def init():
+    global log_path
+    global enable_file
+    global enable_udp
     
+    log_path = logging_node.getString('path')
+    log_host = logging_node.getString('hostname')
+    log_port = logging_node.getInt('port')
+    
+    if log_path != '':
+        if init_file_logging():
+            enable_file = True      # success
+        # fixme:
+        # events->open(flight_dir.c_str())
+        # events->log("Log", "Start")
+    if log_host != '' and log_port > 0:
+        if init_udp_logging():
+            enable_udp = True
+        
     return True
 
 def close():
@@ -158,14 +169,13 @@ def log_packet( packet_id, packet_buf, packet_size ):
     buf += chr(cksum0)
     buf += chr(cksum1)
 
-    log_queue( buf )
+    if enable_file:
+        log_queue( buf )
 
-    if udp_logging_inited:
+    if enable_udp:
         result = sock.sendto(packet_buf, (hostname, port))
         if result != packet_size:
             print 'error transmitting udp log packet'
-    else:
-        udp_logging_init()
 
 def log_gps( buf, size ):
     log_packet( GPS_PACKET_V3, buf, size )
