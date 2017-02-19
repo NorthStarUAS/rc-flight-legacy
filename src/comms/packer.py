@@ -998,26 +998,25 @@ def pack_event_v1(message):
 
     # support an index value, but for now it will always be zero
     event_v1_fmt = '<BdB%ds' % len(message)
-    print 'pack:', len(message), struct.calcsize(event_v1_fmt)
+    #print 'pack:', len(message), struct.calcsize(event_v1_fmt)
     buf = struct.pack(event_v1_fmt, 0, imu_timestamp, len(message), message)
-    print 'pack event len:', len(buf)
+    #print 'pack event len:', len(buf)
     return buf
 
 def pack_event_text(index, delim=','):
-    print 'start of event_text()'
     data = [ '%.4f' % event_node.getFloat('timestamp'),
              '%s' % event_node.getString('message') ]
     return delim.join(data)
     
 def unpack_event_v1(buf):
-    print 'buf len:', len(buf)
+    #print 'buf len:', len(buf)
     # unpack without knowing full size
     (index, timestamp, size) = struct.unpack("<BdB", buf[:10])
-    print 'unpack header len:', struct.calcsize("<BdB")
-    print 'expected size:', size
-    print 'maybe the message:', buf[10:]
+    #print 'unpack header len:', struct.calcsize("<BdB")
+    #print 'expected size:', size
+    #print 'maybe the message:', buf[10:]
     message = struct.unpack("%ds" % size, buf[10:])
-    print 'message:', timestamp, message[0]
+    #print 'message:', timestamp, message[0]
     
     #result = struct.unpack(event_v1_fmt, buf)
 
@@ -1025,6 +1024,6 @@ def unpack_event_v1(buf):
     event_node.setFloat("timestamp", timestamp)
     event_node.setString("message", message[0])
 
-    print 'end of unpack event'
+    #print 'end of unpack event'
     return index
 

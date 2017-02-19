@@ -15,10 +15,7 @@ public:
     pyModuleEventLog();
     ~pyModuleEventLog() {}
 
-    bool open(const char *path);
     bool log(const char *header, const char *message);
-    bool close();
-    
 };
 
 #endif // _AURA_EVENTS_HXX
