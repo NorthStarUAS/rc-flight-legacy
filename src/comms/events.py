@@ -2,51 +2,23 @@ import __builtin__ # open()
 from props import root, getNode
 import props_json
 
-event_log_on = False
-fevent = None
-logging_node = None
-status_node = None
+import logging
+import packer
 
 def init():
-    global logging_node
-    global status_node
-    logging_node = getNode("/config/logging", True)
-    status_node = getNode("/status", True)
     return True
 
 def open(path):
-    global event_log_on
-    global fevent
-    global logging_node
-    global status_node
+    # 'events' are now sent to logging stream
+    return True
 
-    if path == "":
-        print "ERROR: invalid path in events.py:", path
-        return
-    event_log_on = logging_node.getBool("events")
-    if event_log_on:
-        try:
-            filename = path + "/events.txt"
-            fevent = __builtin__.open(filename, 'w')
-            print "opened event log file:", filename
-        except:
-            print "Warning: unable to open event log file:", filename
-
+# pack and send message
 def log(header="", message=""):
-    global event_log_on
-    global fevent
-    if event_log_on and fevent:
-        line = "%.3f %s: %s\n" % (status_node.getFloat("frame_time"),
-                                  header, message)
-        fevent.write( line )
-        fevent.flush()
-        return True
-    else:
-        return False
+    event_string = '%s: %s' % (header, message)
+    buf = packer.pack_event_v1(event_string)
+    logging.log_event(buf, len(buf))
+    return True
 
 def close():
-    global event_log_on
-    global fevent
-    if event_long_on:
-        fevent.close()
+    # 'events' are now sent to logging stream
     return True

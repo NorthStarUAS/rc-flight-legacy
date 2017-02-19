@@ -15,6 +15,7 @@ m2ft = 1.0 / ft2m
 # h = int16_t, H = uint16_t
 # l = int32_t, L = uint32_t
 # f = float, d = double
+# p = pascal string (variable length with system adding len as first byte)
 
 imu_timestamp = 0.0
 
@@ -97,6 +98,10 @@ payload_v2_size = struct.calcsize(payload_v2_fmt)
 
 raven_v1_fmt = "<BdHHHHHHHHHHffffB"
 raven_v1_size = struct.calcsize(raven_v1_fmt)
+
+event_node = getNode("/status/event", True)
+# event_v1_fmt = "<Bd%ds"
+# this packet will be variable length so size and fmt string are dynamic
 
 
 def init():
@@ -986,5 +991,40 @@ def unpack_raven_v1(buf):
     node.setFloat("rpm1", result[15])
     node.setInt("status", result[16])
 
+    return index
+
+def pack_event_v1(message):
+    global imu_timestamp
+
+    # support an index value, but for now it will always be zero
+    event_v1_fmt = '<BdB%ds' % len(message)
+    print 'pack:', len(message), struct.calcsize(event_v1_fmt)
+    buf = struct.pack(event_v1_fmt, 0, imu_timestamp, len(message), message)
+    print 'pack event len:', len(buf)
+    return buf
+
+def pack_event_text(index, delim=','):
+    print 'start of event_text()'
+    data = [ '%.4f' % event_node.getFloat('timestamp'),
+             '%s' % event_node.getString('message') ]
+    return delim.join(data)
+    
+def unpack_event_v1(buf):
+    print 'buf len:', len(buf)
+    # unpack without knowing full size
+    (index, timestamp, size) = struct.unpack("<BdB", buf[:10])
+    print 'unpack header len:', struct.calcsize("<BdB")
+    print 'expected size:', size
+    print 'maybe the message:', buf[10:]
+    message = struct.unpack("%ds" % size, buf[10:])
+    print 'message:', timestamp, message[0]
+    
+    #result = struct.unpack(event_v1_fmt, buf)
+
+    #index = result[0]
+    event_node.setFloat("timestamp", timestamp)
+    event_node.setString("message", message[0])
+
+    print 'end of unpack event'
     return index
 

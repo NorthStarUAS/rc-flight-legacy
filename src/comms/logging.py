@@ -51,6 +51,7 @@ PAYLOAD_PACKET_V2 = 23
 AP_STATUS_PACKET_V3 = 24
 RAVEN_PACKET_V1 = 25
 GPS_PACKET_V3 = 26
+EVENT_PACKET_V1 = 27
 
 # scan the base path for fltNNNN directories.  Return the biggest
 # flight number
@@ -173,8 +174,8 @@ def log_packet( packet_id, packet_buf, packet_size ):
         log_queue( buf )
 
     if enable_udp:
-        result = sock.sendto(packet_buf, (hostname, port))
-        if result != packet_size:
+        result = sock.sendto(buf, (hostname, port))
+        if result != packet_size + 6:
             print 'error transmitting udp log packet'
 
 def log_gps( buf, size ):
@@ -206,6 +207,9 @@ def log_payload( buf, size ):
 
 def log_raven( buf, size ):
     log_packet( RAVEN_PACKET_V1, buf, size )
+
+def log_event( buf, size ):
+    log_packet( EVENT_PACKET_V1, buf, size )
 
 # write all pending data and flush
 def update():

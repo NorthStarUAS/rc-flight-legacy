@@ -34,6 +34,7 @@ PAYLOAD_PACKET_V2 = 23
 AP_STATUS_PACKET_V3 = 24
 RAVEN_PACKET_V1 = 25
 GPS_PACKET_V3 = 26
+EVENT_PACKET_V1 = 27
 
 # simple 2-byte checksum
 def validate_cksum(id, size, buf, cksum0, cksum1):
@@ -56,61 +57,63 @@ def validate_cksum(id, size, buf, cksum0, cksum1):
         return False
     
 def parse_msg(id, buf):
-    try:
-        if id == GPS_PACKET_V1:
-            index = comms.packer.unpack_gps_v1(buf)
-        elif id == GPS_PACKET_V2:
-            index = comms.packer.unpack_gps_v2(buf)
-        elif id == GPS_PACKET_V3:
-            index = comms.packer.unpack_gps_v3(buf)
-        elif id == IMU_PACKET_V1:
-            index = comms.packer.unpack_imu_v1(buf)
-        elif id == IMU_PACKET_V2:
-            index = comms.packer.unpack_imu_v2(buf)
-        elif id == IMU_PACKET_V3:
-            index = comms.packer.unpack_imu_v3(buf)
-        elif id == AIRDATA_PACKET_V3:
-            index = comms.packer.unpack_airdata_v3(buf)
-        elif id == AIRDATA_PACKET_V4:
-            index = comms.packer.unpack_airdata_v4(buf)
-        elif id == AIRDATA_PACKET_V5:
-            index = comms.packer.unpack_airdata_v5(buf)
-        elif id == FILTER_PACKET_V1:
-            index = comms.packer.unpack_filter_v1(buf)
-        elif id == FILTER_PACKET_V2:
-            index = comms.packer.unpack_filter_v2(buf)
-        elif id == ACTUATOR_PACKET_V1:
-            index = comms.packer.unpack_act_v1(buf)
-        elif id == ACTUATOR_PACKET_V2:
-            index = comms.packer.unpack_act_v2(buf)
-        elif id == PILOT_INPUT_PACKET_V1:
-            index = comms.packer.unpack_pilot_v1(buf)
-        elif id == PILOT_INPUT_PACKET_V2:
-            index = comms.packer.unpack_pilot_v2(buf)
-        elif id == AP_STATUS_PACKET_V1:
-            index = comms.packer.unpack_ap_status_v1(buf)
-        elif id == AP_STATUS_PACKET_V2:
-            index = comms.packer.unpack_ap_status_v2(buf)
-        elif id == AP_STATUS_PACKET_V3:
-            index = comms.packer.unpack_ap_status_v3(buf)
-        elif id == SYSTEM_HEALTH_PACKET_V2:
-            index = comms.packer.unpack_system_health_v2(buf)
-        elif id == SYSTEM_HEALTH_PACKET_V3:
-            index = comms.packer.unpack_system_health_v3(buf)
-        elif id == SYSTEM_HEALTH_PACKET_V4:
-            index = comms.packer.unpack_system_health_v4(buf)
-        elif id == PAYLOAD_PACKET_V1:
-            index = comms.packer.unpack_payload_v1(buf)
-        elif id == PAYLOAD_PACKET_V2:
-            index = comms.packer.unpack_payload_v2(buf)
-        elif id == RAVEN_PACKET_V1:
-            index = comms.packer.unpack_raven_v1(buf)
-        else:
-            print "Unknown packet id:", id
-            index = 0
-    except:
-        print "Error unpacking packet id:", id
+    # try:
+    if id == GPS_PACKET_V1:
+        index = comms.packer.unpack_gps_v1(buf)
+    elif id == GPS_PACKET_V2:
+        index = comms.packer.unpack_gps_v2(buf)
+    elif id == GPS_PACKET_V3:
+        index = comms.packer.unpack_gps_v3(buf)
+    elif id == IMU_PACKET_V1:
+        index = comms.packer.unpack_imu_v1(buf)
+    elif id == IMU_PACKET_V2:
+        index = comms.packer.unpack_imu_v2(buf)
+    elif id == IMU_PACKET_V3:
+        index = comms.packer.unpack_imu_v3(buf)
+    elif id == AIRDATA_PACKET_V3:
+        index = comms.packer.unpack_airdata_v3(buf)
+    elif id == AIRDATA_PACKET_V4:
+        index = comms.packer.unpack_airdata_v4(buf)
+    elif id == AIRDATA_PACKET_V5:
+        index = comms.packer.unpack_airdata_v5(buf)
+    elif id == FILTER_PACKET_V1:
+        index = comms.packer.unpack_filter_v1(buf)
+    elif id == FILTER_PACKET_V2:
+        index = comms.packer.unpack_filter_v2(buf)
+    elif id == ACTUATOR_PACKET_V1:
+        index = comms.packer.unpack_act_v1(buf)
+    elif id == ACTUATOR_PACKET_V2:
+        index = comms.packer.unpack_act_v2(buf)
+    elif id == PILOT_INPUT_PACKET_V1:
+        index = comms.packer.unpack_pilot_v1(buf)
+    elif id == PILOT_INPUT_PACKET_V2:
+        index = comms.packer.unpack_pilot_v2(buf)
+    elif id == AP_STATUS_PACKET_V1:
+        index = comms.packer.unpack_ap_status_v1(buf)
+    elif id == AP_STATUS_PACKET_V2:
+        index = comms.packer.unpack_ap_status_v2(buf)
+    elif id == AP_STATUS_PACKET_V3:
+        index = comms.packer.unpack_ap_status_v3(buf)
+    elif id == SYSTEM_HEALTH_PACKET_V2:
+        index = comms.packer.unpack_system_health_v2(buf)
+    elif id == SYSTEM_HEALTH_PACKET_V3:
+        index = comms.packer.unpack_system_health_v3(buf)
+    elif id == SYSTEM_HEALTH_PACKET_V4:
+        index = comms.packer.unpack_system_health_v4(buf)
+    elif id == PAYLOAD_PACKET_V1:
+        index = comms.packer.unpack_payload_v1(buf)
+    elif id == PAYLOAD_PACKET_V2:
+        index = comms.packer.unpack_payload_v2(buf)
+    elif id == RAVEN_PACKET_V1:
+        index = comms.packer.unpack_raven_v1(buf)
+    elif id == EVENT_PACKET_V1:
+        index = comms.packer.unpack_event_v1(buf)
+    else:
+        print "Unknown packet id:", id
         index = 0
+    # except:
+    #     print "Error unpacking packet id:", id
+    #     index = 0
     return index
 
 def log_msg(f, pkt_id, pkt_len, payload, cksum_lo, cksum_hi):
@@ -258,7 +261,7 @@ def file_read(buf):
         sync1 = ord(buf[counter]); counter += 1
         print "scanning for start of message:", counter, sync0, sync1
 
-    #print "found start of message ..."
+    # print "found start of message ..."
 
     # read message id and size
     id = ord(buf[counter]); counter += 1

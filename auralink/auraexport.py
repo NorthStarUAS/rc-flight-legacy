@@ -45,6 +45,8 @@ def logical_category(id):
         return 'payload'
     elif id == auraparser.RAVEN_PACKET_V1:
         return 'raven'
+    elif id == auraparser.EVENT_PACKET_V1:
+        return 'event'
     else:
         return 'unknown-packet-id'
 
@@ -83,6 +85,10 @@ def generate_record(category, index, delim=','):
         return record
     elif category == 'raven':
         record = comms.packer.pack_raven_text(index, delim)
+        return record
+    elif category == 'event':
+        record = comms.packer.pack_event_text(index, delim)
+        print record
         return record
     # elif category == 'error':
     #     error_node = getNode("/autopilot/errors", True)
@@ -142,10 +148,11 @@ if args.flight:
                     lon = gps_node.getFloat('longitude_deg')
                     sec = gps_node.getFloat('unix_time_sec')
                     located = True
-            current.compute_derived_data()
+                    current.compute_derived_data()
             category = logical_category(id)
             record = generate_record(category, index)
             key = '%s-%d' % (category, index)
+            # print 'key:', key
             if key in data:
                 data[key].append(record)
             else:
