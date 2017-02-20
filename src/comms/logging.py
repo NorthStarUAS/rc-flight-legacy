@@ -21,8 +21,8 @@ flight_dir = ''                 # dir containing all our logged data
 
 # remote logging support
 sock = None
-port = 6550
-hostname = "127.0.0.1"
+udp_port = 6550
+udp_host = "127.0.0.1"
 
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
@@ -113,12 +113,14 @@ def init_udp_logging():
 
 def init():
     global log_path
+    global udp_host
+    global udp_port
     global enable_file
     global enable_udp
     
     log_path = logging_node.getString('path')
-    log_host = logging_node.getString('hostname')
-    log_port = logging_node.getInt('port')
+    udp_host = logging_node.getString('hostname')
+    udp_port = logging_node.getInt('port')
     
     if log_path != '':
         if init_file_logging():
@@ -126,7 +128,7 @@ def init():
         # fixme:
         # events->open(flight_dir.c_str())
         # events->log("Log", "Start")
-    if log_host != '' and log_port > 0:
+    if udp_host != '' and udp_port > 0:
         if init_udp_logging():
             enable_udp = True
         
@@ -174,7 +176,7 @@ def log_packet( packet_id, packet_buf, packet_size ):
         log_queue( buf )
 
     if enable_udp:
-        result = sock.sendto(buf, (hostname, port))
+        result = sock.sendto(buf, (udp_host, udp_port))
         if result != packet_size + 6:
             print 'error transmitting udp log packet'
 
