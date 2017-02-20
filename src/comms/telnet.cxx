@@ -17,6 +17,7 @@
 #include <sstream>
 
 #include "control/control.hxx"
+#include "init/globals.hxx"
 #include "util/strutils.hxx"
 
 #include "netChat.h"
@@ -30,11 +31,7 @@ using std::ends;
 
 static bool fcs_update_helper(string values) {
     printf("fcs_update_helper\n");
-
-    vector<string> tokens = split( values, "," );
-
-    return decode_fcs_update( tokens );
-
+    return remote_link->decode_fcs_update( values.c_str() );
 }
 
 static string normalize_path(string raw_path) {

@@ -13,6 +13,7 @@
 #include "comms/events.hxx"
 #include "comms/logging.hxx"
 #include "comms/packer.hxx"
+#include "comms/remote_link.hxx"
 #include "comms/telnet.hxx"
 #include "python/pymodule.hxx"
 
@@ -20,6 +21,7 @@
 extern pyModuleEventLog *events;
 extern pyModuleLogging *logging;
 extern pyModulePacker *packer;
+extern pyModuleRemoteLink *remote_link;
 extern UGTelnet *telnet;
 extern pyModuleBase *mission_mgr;
 

@@ -104,8 +104,8 @@ void control_reinit() {
 
 void control_update(double dt)
 {
-    static int remote_link_count = remote_link_random( remote_link_skip );
-    static int logging_count = remote_link_random( logging_skip );
+    static int remote_link_count = 0;
+    static int logging_count = 0;
 
     // log auto/manual mode changes
     static bool last_ap_mode = false;
@@ -220,7 +220,7 @@ void control_update(double dt)
     // FIXME !!!
 
     bool send_remote_link = false;
-    if ( remote_link_on && remote_link_count < 0 ) {
+    if ( remote_link_count < 0 ) {
 	send_remote_link = true;
 	remote_link_count = remote_link_skip;
     }
@@ -236,7 +236,7 @@ void control_update(double dt)
 	int pkt_size = packer->pack_ap( 0, buf );
 	
 	if ( send_remote_link ) {
-	    remote_link_message( buf, pkt_size );
+	    remote_link->send_message( buf, pkt_size );
 	    // do the counter dance with the packer (packer will reset
 	    // the count to zero at the appropriate time.)
 	    int counter = comms_node.getLong("wp_counter");
@@ -249,10 +249,7 @@ void control_update(double dt)
 	}
     }
     
-    if ( remote_link_on ) {
-	remote_link_count--;
-    }
-	
+    remote_link_count--;
     logging_count--;
 }
 

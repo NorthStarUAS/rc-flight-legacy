@@ -218,14 +218,12 @@ void main_work_loop()
     // External Command section
     //
 
-    if ( remote_link_on ) {
-	// check for incoming command data
-	remote_link_command();
+    // check for incoming command data
+    remote_link->command();
 
-	// dribble a bit more out of the serial port if there is
-	// something pending
-	remote_link_flush_serial();
-    }
+    // dribble a bit more out of the serial port if there is
+    // something pending
+    remote_link->flush_serial();
 
     debug4.stop();
 
@@ -305,10 +303,8 @@ void main_work_loop()
     // Remote telemetry section
     //
 
-    if ( remote_link_on ) {
-	// dribble pending bytes down the serial port
-	remote_link_flush_serial();
-    }
+    // dribble pending bytes down the serial port
+    remote_link->flush_serial();
 
     debug7.stop();
 
@@ -471,11 +467,7 @@ int main( int argc, char **argv )
     // Parse the command line: pass #2 allows command line options to
     // override config file options
     for ( iarg = 1; iarg < argc; iarg++ ) {
-        if ( !strcmp(argv[iarg], "--remote-link" )  ) {
-            ++iarg;
-            if ( !strcmp(argv[iarg], "on") ) remote_link_on = true;
-            if ( !strcmp(argv[iarg], "off") ) remote_link_on = false;
-        } else if ( !strcmp(argv[iarg],"--display") ) {
+        if ( !strcmp(argv[iarg],"--display") ) {
             ++iarg;
 	    p = pyGetNode("/comms", true);
             if ( !strcmp(argv[iarg], "on") ) {
@@ -504,9 +496,7 @@ int main( int argc, char **argv )
     AuraCoreInit();
 
     // open remote link if requested
-    if ( remote_link_on ) {
-        remote_link_init();
-    }
+    remote_link->open();
 
     // Initialize communication with the selected IMU
     IMU_init();

@@ -1,19 +1,35 @@
 #ifndef _AURA_REMOTE_LINK_HXX
 #define _AURA_REMOTE_LINK_HXX
 
+#include "python/pyprops.hxx"
+
+// import a python module and call it's init() and update() routines
+// requires imported python modules to follow some basic rules to play
+// nice.  (see examples in the code for now.)
+
+#include "python/pymodule.hxx"
 
 #include <stdint.h>
-
 #include <string>
 #include <vector>
 
-extern bool remote_link_on;
+class pyModuleRemoteLink: public pyModuleBase {
 
-void remote_link_init();
-bool remote_link_message( uint8_t *buf, int size );
-bool remote_link_command();
-void remote_link_flush_serial();
-int remote_link_random( int max ); // return a random integer between 0 and max - 1
-bool decode_fcs_update(vector <string> tokens);
+public:
+    
+    // constructor / destructor
+    pyModuleRemoteLink();
+    ~pyModuleRemoteLink() {}
+
+    bool open();
+    void send_message( uint8_t *buf, int size );
+    bool command();
+    bool flush_serial();
+    bool decode_fcs_update( const char *buf );
+
+private:
+
+    bool remote_link_on;
+};
 
 #endif // _AURA_REMOTE_LINK_HXX

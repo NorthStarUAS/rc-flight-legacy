@@ -17,7 +17,7 @@ bool pyModuleLogging::open(const char *path)
     PyObject *pFuncOpen = PyObject_GetAttrString(pModuleObj, "open");
     if ( pFuncOpen == NULL || ! PyCallable_Check(pFuncOpen) ) {
 	if ( PyErr_Occurred() ) PyErr_Print();
-	printf("ERROR: cannot find function 'update()'\n");
+	printf("ERROR: cannot find function 'open()'\n");
 	return false;
     }
 

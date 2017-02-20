@@ -37,10 +37,7 @@ bool health_update() {
     uint8_t buf[256];
     int size = packer->pack_health( 0, buf );
 
-    if ( remote_link_on ) {
-        remote_link_message( buf, size );
-    }
-
+    remote_link->send_message( buf, size );
     logging->log_message( buf, size );
 
     return true;

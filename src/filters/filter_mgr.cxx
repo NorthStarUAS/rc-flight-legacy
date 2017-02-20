@@ -313,8 +313,8 @@ bool Filter_update() {
     if ( imu_dt > 1.0 ) { imu_dt = 0.01; }
     if ( imu_dt < 0.0 ) { imu_dt = 0.01; }
 
-    static int remote_link_count = remote_link_random( remote_link_skip );
-    static int logging_count = remote_link_random( logging_skip );
+    static int remote_link_count = 0;
+    static int logging_count = 0;
 
     // traverse configured modules
     for ( unsigned int i = 0; i < sections.size(); i++ ) {
@@ -343,7 +343,7 @@ bool Filter_update() {
 	}
 
 	bool send_remote_link = false;
-	if ( remote_link_on && remote_link_count < 0 ) {
+	if ( remote_link_count < 0 ) {
 	    send_remote_link = true;
 	    remote_link_count = remote_link_skip;
 	}
@@ -358,7 +358,7 @@ bool Filter_update() {
 	    uint8_t buf[256];
 	    int size = packer->pack_filter( i, buf );
 	    if ( send_remote_link ) {
-		remote_link_message( buf, size );
+		remote_link->send_message( buf, size );
 	    }
 	    if ( send_logging ) {
 		logging->log_message( buf, size );
@@ -369,10 +369,7 @@ bool Filter_update() {
     filter_prof.stop();
 
     if ( fresh_filter_data ) {
-	if ( remote_link_on ) {
-	    remote_link_count--;
-	}
-	
+        remote_link_count--;
         logging_count--;
     }
 	     
