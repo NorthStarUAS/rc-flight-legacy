@@ -236,7 +236,7 @@ void control_update(double dt)
 	int pkt_size = packer->pack_ap( 0, buf );
 	
 	if ( send_remote_link ) {
-	    remote_link_ap( buf, pkt_size );
+	    remote_link_message( buf, pkt_size );
 	    // do the counter dance with the packer (packer will reset
 	    // the count to zero at the appropriate time.)
 	    int counter = comms_node.getLong("wp_counter");
@@ -245,7 +245,7 @@ void control_update(double dt)
 	}
 
 	if ( send_logging ) {
-	    logging->log_ap( buf, pkt_size );
+	    logging->log_message( buf, pkt_size );
 	}
     }
     

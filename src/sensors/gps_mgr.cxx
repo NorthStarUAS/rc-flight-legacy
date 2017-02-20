@@ -192,10 +192,10 @@ bool GPS_update() {
 		uint8_t buf[256];
 		int size = packer->pack_gps( i, buf );
 		if ( send_remote_link ) {
-		    remote_link_gps( buf, size );
+		    remote_link_message( buf, size );
 		}
 		if ( send_logging ) {
-		    logging->log_gps( buf, size );
+		    logging->log_message( buf, size );
 		}
 	    }
 	}

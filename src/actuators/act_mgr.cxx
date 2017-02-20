@@ -371,10 +371,10 @@ bool Actuator_update() {
 		uint8_t buf[256];
 		int size = packer->pack_actuator( i, buf );
 		if ( send_remote_link ) {
-		    remote_link_actuator( buf, size );
+		    remote_link_message( buf, size );
 		}
 		if ( send_logging ) {
-		    logging->log_actuator( buf, size );
+		    logging->log_message( buf, size );
 		}
 	    }
 	}

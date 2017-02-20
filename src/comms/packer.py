@@ -8,6 +8,36 @@ from props import root, getNode
 ft2m = 0.3048
 m2ft = 1.0 / ft2m
 
+START_OF_MSG0 = 147
+START_OF_MSG1 = 224
+
+# packet id definitions
+GPS_PACKET_V1 = 0
+IMU_PACKET_V1 = 1
+FILTER_PACKET_V1 = 2
+ACTUATOR_PACKET_V1 = 3
+PILOT_INPUT_PACKET_V1 = 4
+AP_STATUS_PACKET_V1 = 5
+AIRDATA_PACKET_V3 = 9
+AP_STATUS_PACKET_V2 = 10
+SYSTEM_HEALTH_PACKET_V2 = 11
+PAYLOAD_PACKET_V1 = 12
+AIRDATA_PACKET_V4 = 13
+SYSTEM_HEALTH_PACKET_V3 = 14
+IMU_PACKET_V2 = 15
+GPS_PACKET_V2 = 16
+IMU_PACKET_V3 = 17
+AIRDATA_PACKET_V5 = 18
+SYSTEM_HEALTH_PACKET_V4 = 19
+PILOT_INPUT_PACKET_V2 = 20
+ACTUATOR_PACKET_V2 = 21
+FILTER_PACKET_V2 = 22
+PAYLOAD_PACKET_V2 = 23
+AP_STATUS_PACKET_V3 = 24
+RAVEN_PACKET_V1 = 25
+GPS_PACKET_V3 = 26
+EVENT_PACKET_V1 = 27
+
 # python struct package notes:
 #
 # < means use little endian order, no byte alignment
@@ -107,6 +137,37 @@ event_node = getNode("/status/event", True)
 def init():
     pass
 
+# simple 2-byte checksum
+def compute_cksum(id, buf, size):
+    c0 = 0
+    c1 = 0
+    c0 = (c0 + id) & 0xff
+    c1 = (c1 + c0) & 0xff
+    # print "c0 =", c0, "c1 =", c1
+    c0 = (c0 + size) & 0xff
+    c1 = (c1 + c0) & 0xff
+    # print "c0 =", c0, "c1 =", c1
+    for i in range(0, size):
+        c0 = (c0 + ord(buf[i])) & 0xff
+        c1 = (c1 + c0) & 0xff
+        # print "c0 =", c0, "c1 =", c1, '[', ord(buf[i]), ']'
+    # print "c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")"
+    return (c0, c1)
+
+# wrap payload in header bytes, id, length, payload, and compute checksums
+def wrap_packet( packet_id, payload ):
+    size = len(payload)
+    buf = ''
+    buf += chr(START_OF_MSG0)   # start of message sync bytes
+    buf += chr(START_OF_MSG1)   # start of message sync bytes
+    buf += chr(packet_id)       # packet id (1 byte)
+    buf += chr(size)     # packet size (1 byte)
+    buf += payload              # copy payload
+    (cksum0, cksum1) = compute_cksum( packet_id, payload, size)
+    buf += chr(cksum0)          # check sum byte 1
+    buf += chr(cksum1)          # check sum byte 2
+    return buf
+    
 def pack_gps_v3(index):
     if index >= len(gps_nodes):
         for i in range(len(gps_nodes),index+1):
@@ -128,7 +189,7 @@ def pack_gps_v3(index):
                       node.getFloat('vert_accuracy_m') * 100,
                       node.getFloat('pdop') * 100,
                       node.getInt('fixType'))
-    return buf
+    return wrap_packet(GPS_PACKET_V3, buf)
 
 def pack_gps_text(index, delim=','):
     gps_node = getNode('/sensors/gps[%d]' % index, True)
@@ -245,7 +306,7 @@ def pack_imu_v3(index):
                       node.getFloat("hz"),
                       int(node.getFloat("temp_C") * 10.0),
                       0)
-    return buf
+    return wrap_packet(IMU_PACKET_V3, buf)
 
 def pack_imu_text(index, delim=','):
     imu_node = getNode('/sensors/imu[%d]' % index, True)
@@ -357,7 +418,7 @@ def pack_airdata_v5(index):
                       int(wind_node.getFloat("wind_speed_kt") * 4),
                       int(wind_node.getFloat("pitot_scale_factor") * 100),
                       node.getInt("status"))
-    return buf
+    return wrap_packet(AIRDATA_PACKET_V5, buf)
 
 def pack_airdata_text(index, delim=','):
     airdata_node = getNode('/sensors/airdata[%d]' % index, True)
@@ -468,7 +529,7 @@ def pack_filter_v2(index):
                       int(node.getFloat("heading_deg") * 10),
                       remote_link_node.getInt("sequence_num"),
                       0)
-    return buf
+    return wrap_packet(FILTER_PACKET_V2, buf)
 
 def pack_filter_text(index, delim=','):
     filter_node = getNode('/filters/filter[%d]' % index, True)
@@ -550,7 +611,7 @@ def pack_act_v2(index):
                       int(act_node.getFloat("channel7") * 20000),
                       int(act_node.getFloat("channel8") * 20000),
                       0)
-    return buf
+    return wrap_packet(ACTUATOR_PACKET_V2, buf)
 
 def pack_act_text(index, delim=','):
     data = [ '%.4f' % act_node.getFloat('timestamp'),
@@ -616,7 +677,7 @@ def pack_pilot_v2(index):
                       int(node.getFloatEnum("channel", 6) * 20000),
                       int(node.getFloatEnum("channel", 7) * 20000),
                       0)
-    return buf
+    return wrap_packet(PILOT_INPUT_PACKET_V2, buf)
 
 def pack_pilot_text(index, delim=','):
     pilot_node = getNode('/sensors/pilot_input[%d]' % index, True)
@@ -733,8 +794,8 @@ def pack_ap_status_v3(index):
                       wp_index,
                       route_size,
                       remote_link_node.getInt("sequence_num") & 0xff)
-
-    return buf
+    #print index, status_node.getFloat('frame_time'), int(targets_node.getFloat("groundtrack_deg") * 10), int(targets_node.getFloat("roll_deg") * 10), int(target_msl_ft), int(targets_node.getFloat("climb_rate_fps") * 10), int(targets_node.getFloat("pitch_deg") * 10), int(targets_node.getFloat("the_dot") * 1000), int(targets_node.getFloat("airspeed_kt") * 10), int(task_node.getFloat("flight_timer")), route_node.getInt("target_waypoint_idx"), wp_lon, wp_lat, wp_index, route_size,  remote_link_node.getInt("sequence_num") & 0xff
+    return wrap_packet(AP_STATUS_PACKET_V3, buf)
 
 def pack_ap_status_text(index, delim=','):
     data = [ '%.4f' % targets_node.getFloat('timestamp'),
@@ -833,7 +894,7 @@ def pack_system_health_v4(index):
                       int(apm2_node.getFloat("extern_cell_volt") * 1000),
                       int(apm2_node.getFloat("extern_amps") * 1000),
                       dekamah)
-    return buf
+    return wrap_packet(SYSTEM_HEALTH_PACKET_V4, buf)
 
 def pack_system_health_text(index, delim=','):
     data = [ '%.4f' % status_node.getFloat('frame_time'),
@@ -890,7 +951,7 @@ def pack_payload_v2(index):
                       index,
                       status_node.getFloat('frame_time'),
                       payload_node.getFloat("trigger_num"))
-    return buf
+    return wrap_packet(PAYLOAD_PACKET_V2, buf)
 
 def pack_payload_text(index, delim=','):
     data = [ '%.4f' % payload_node.getFloat('timestamp'),
@@ -942,7 +1003,7 @@ def pack_raven_v1(index):
                       node.getFloat("rpm0"),
                       node.getFloat("rpm1"),
                       0)
-    return buf
+    return wrap_packet(RAVEN_PACKET_V1, buf)
 
 def pack_raven_text(index, delim=','):
     node = getNode('/sensors/airdata[%d]' % index, True)
@@ -1001,7 +1062,7 @@ def pack_event_v1(message):
     #print 'pack:', len(message), struct.calcsize(event_v1_fmt)
     buf = struct.pack(event_v1_fmt, 0, imu_timestamp, len(message), message)
     #print 'pack event len:', len(buf)
-    return buf
+    return wrap_packet(EVENT_PACKET_V1, buf)
 
 def pack_event_text(index, delim=','):
     data = [ '%.4f' % event_node.getFloat('timestamp'),

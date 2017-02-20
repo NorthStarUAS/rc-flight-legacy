@@ -15,5 +15,5 @@ def update():
 def log(header="", message=""):
     event_string = '%s: %s' % (header, message)
     buf = packer.pack_event_v1(event_string)
-    logging.log_event(buf, len(buf))
+    logging.log_message(buf)
     return True

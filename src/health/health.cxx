@@ -38,10 +38,10 @@ bool health_update() {
     int size = packer->pack_health( 0, buf );
 
     if ( remote_link_on ) {
-        remote_link_health( buf, size, remote_link_node.getLong("health_skip") );
+        remote_link_message( buf, size );
     }
 
-    logging->log_health( buf, size );
+    logging->log_message( buf, size );
 
     return true;
 }

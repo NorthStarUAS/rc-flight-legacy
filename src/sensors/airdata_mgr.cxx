@@ -352,10 +352,10 @@ bool AirData_update() {
 		if ( source != "raven1" and source != "raven2" ) {
 		    int size = packer->pack_airdata( i, buf );
 		    if ( send_remote_link ) {
-			remote_link_airdata( buf, size );
+			remote_link_message( buf, size );
 		    }
 		    if ( send_logging ) {
-			logging->log_airdata( buf, size );
+			logging->log_message( buf, size );
 		    }
 		} else {
 		    int size = packer->pack_raven( i, buf );
@@ -363,7 +363,7 @@ bool AirData_update() {
 		    //  remote_link_airdata( buf, size );
 		    // }
 		    if ( send_logging ) {
-			logging->log_raven( buf, size );
+			logging->log_message( buf, size );
 		    }
   
 		}

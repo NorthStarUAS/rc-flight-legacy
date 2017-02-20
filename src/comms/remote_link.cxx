@@ -197,44 +197,10 @@ static void gen_test_pattern( uint8_t *buf, int size ) {
 }
 #endif
 
-static void remote_link_packet( const uint8_t packet_id,
-				const uint8_t *packet_buf,
+static void remote_link_packet( const uint8_t *packet_buf,
 				const int packet_size )
 {
-    const int MAX_PACKET_SIZE = 256;
-
-    // printf(" begin remote_link_packet()\n");
-    uint8_t buf[MAX_PACKET_SIZE];
-    uint8_t *ptr = buf;
-    uint8_t cksum0, cksum1;
-
-    // start of message sync bytes
-    ptr[0] = START_OF_MSG0; ptr[1] = START_OF_MSG1;
-    ptr += 2;
-
-    // packet id (1 byte)
-    ptr[0] = packet_id;
-    ptr += 1;
-
-    // packet size (1 byte)
-    ptr[0] = packet_size;
-    ptr += 1;
-
-    // gen_test_pattern( (uint8_t *)packet_buf, packet_size );
-
-    // copy packet data
-    memmove( ptr, packet_buf, packet_size );
-    ptr += packet_size;
-
-    // check sum (2 bytes)
-    aura_cksum( packet_id, packet_size, packet_buf, packet_size,
-		&cksum0, &cksum1 );
-    ptr[0] = cksum0; ptr[1] = cksum1;
-    /*if ( packet_id == 2 ) {
-      printf("cksum = %d %d\n", cksum0, cksum1);
-      }*/
-
-    link_append( buf, packet_size + 6 );
+    link_append( packet_buf, packet_size );
     // printf(" end remote_link_packet()\n");
 }
 
@@ -247,75 +213,8 @@ int remote_link_random( int max ) {
 }
 
 
-bool remote_link_gps( uint8_t *buf, int size ) {
-    remote_link_packet( GPS_PACKET_V3, buf, size );
-    return true;
-}
-
-
-bool remote_link_imu( uint8_t *buf, int size  ) {
-    remote_link_packet( IMU_PACKET_V3, buf, size );
-    return true;
-}
-
-
-bool remote_link_airdata( uint8_t *buf, int size  ) {
-    remote_link_packet( AIRDATA_PACKET_V5, buf, size );
-    return true;
-}
-
-
-bool remote_link_filter( uint8_t *buf, int size )
-{
-    remote_link_packet( FILTER_PACKET_V2, buf, size );
-    return true;
-}
-
-
-bool remote_link_actuator( uint8_t *buf, int size )
-{
-    remote_link_packet( ACTUATOR_PACKET_V2, buf, size );
-    return true;
-}
-
-
-bool remote_link_pilot( uint8_t *buf, int size )
-{
-    remote_link_packet( PILOT_INPUT_PACKET_V2, buf, size );
-    return true;
-}
-
-
-bool remote_link_ap( uint8_t *buf, int size )
-{
-    // printf("remote link ap()\n");
-    remote_link_packet( AP_STATUS_PACKET_V3, buf, size );
-    return true;
-}
-
-
-bool remote_link_health( uint8_t *buf, int size, int skip_count )
-{
-    // printf("remote link health()\n");
-    if ( skip_count < 0 ) { skip_count = 0; }
-    static uint8_t skip = remote_link_random(skip_count);
-
-    if ( skip > 0 ) {
-        --skip;
-        return false;
-    } else {
-        skip = skip_count;
-    }
-
-    remote_link_packet( SYSTEM_HEALTH_PACKET_V4, buf, size );
-
-    return true;
-}
-
-
-bool remote_link_payload( uint8_t *buf, int size )
-{
-    remote_link_packet( PAYLOAD_PACKET_V2, buf, size );
+bool remote_link_message( uint8_t *buf, int size ) {
+    remote_link_packet( buf, size );
     return true;
 }
 

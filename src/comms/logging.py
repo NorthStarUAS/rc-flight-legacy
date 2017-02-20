@@ -131,7 +131,6 @@ def init():
     if udp_host != '' and udp_port > 0:
         if init_udp_logging():
             enable_udp = True
-        
     return True
 
 def close():
@@ -142,76 +141,14 @@ def close():
 def log_queue( data ):
     log_buffer.append(data)
 
-# simple 2-byte checksum
-def compute_cksum(id, buf, size):
-    c0 = 0
-    c1 = 0
-    c0 = (c0 + id) & 0xff
-    c1 = (c1 + c0) & 0xff
-    # print "c0 =", c0, "c1 =", c1
-    c0 = (c0 + size) & 0xff
-    c1 = (c1 + c0) & 0xff
-    # print "c0 =", c0, "c1 =", c1
-    for i in range(0, size):
-        c0 = (c0 + ord(buf[i])) & 0xff
-        c1 = (c1 + c0) & 0xff
-        # print "c0 =", c0, "c1 =", c1, '[', ord(buf[i]), ']'
-    # print "c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")"
-    return (c0, c1)
-
-def log_packet( packet_id, packet_buf, packet_size ):
-    buf = ''
-    buf += chr(START_OF_MSG0)   # start of message sync bytes
-    buf += chr(START_OF_MSG1)   # start of message sync bytes
-    buf += chr(packet_id)       # packet id (1 byte)
-    buf += chr(packet_size)     # packet size (1 byte)
-    buf += packet_buf           # copy packet data
-
-    # check sum (2 bytes)
-    (cksum0, cksum1) = compute_cksum( packet_id, packet_buf, packet_size)
-    buf += chr(cksum0)
-    buf += chr(cksum1)
-
+def log_message( buf ):
     if enable_file:
         log_queue( buf )
 
     if enable_udp:
         result = sock.sendto(buf, (udp_host, udp_port))
-        if result != packet_size + 6:
+        if result != len(buf):
             print 'error transmitting udp log packet'
-
-def log_gps( buf, size ):
-    log_packet( GPS_PACKET_V3, buf, size )
-
-def log_imu( buf, size ):
-    log_packet( IMU_PACKET_V3, buf, size )
-
-def log_airdata( buf, size ):
-    log_packet( AIRDATA_PACKET_V5, buf, size )
-
-def log_filter( buf, size ):
-    log_packet( FILTER_PACKET_V2, buf, size )
-
-def log_actuator( buf, size ):
-    log_packet( ACTUATOR_PACKET_V2, buf, size )
-
-def log_pilot( buf, size ):
-    log_packet( PILOT_INPUT_PACKET_V2, buf, size )
-
-def log_ap( buf, size ):
-    log_packet( AP_STATUS_PACKET_V3, buf, size )
-
-def log_health( buf, size ):
-    log_packet( SYSTEM_HEALTH_PACKET_V4, buf, size )
-
-def log_payload( buf, size ):
-    log_packet( PAYLOAD_PACKET_V2, buf, size )
-
-def log_raven( buf, size ):
-    log_packet( RAVEN_PACKET_V1, buf, size )
-
-def log_event( buf, size ):
-    log_packet( EVENT_PACKET_V1, buf, size )
 
 # write all pending data and flush
 def update():

@@ -358,10 +358,10 @@ bool Filter_update() {
 	    uint8_t buf[256];
 	    int size = packer->pack_filter( i, buf );
 	    if ( send_remote_link ) {
-		remote_link_filter( buf, size );
+		remote_link_message( buf, size );
 	    }
 	    if ( send_logging ) {
-		logging->log_filter( buf, size );
+		logging->log_message( buf, size );
 	    }
 	}
     }
