@@ -46,7 +46,7 @@ using std::vector;
 // initial values are the 'time factor'
 static LowPassFilter pressure_alt_filt( 0.1 );
 static LowPassFilter ground_alt_filt( 30.0 );
-static LowPassFilter airspeed_filt( 0.5 );
+static LowPassFilter airspeed_filt( 0.1 );
 static LowPassFilter Ps_filt_err( 300.0 );
 static LowPassFilter climb_filt( 1.0 );
 
