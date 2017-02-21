@@ -16,6 +16,7 @@ remote_link_node = getNode('/comms/remote_link', True)
 
 remote_link_on = False    # link to remote operator station
 ser = None
+serial_buf = ''
 max_serial_buffer = 128
 link_open = False
 
@@ -41,9 +42,10 @@ def init():
     if not remote_link_config.getInt('write_bytes_per_frame'):
 	remote_link_config.setInt('write_bytes_per_frame', 12)
 
-# write as many bytes out of the serial_buffer to the uart as the
+# write as many bytes out of the serial_buf to the uart as the
 # driver will accept.
 def flush_serial():
+    global serial_buf
     if not link_open:
 	# device not open, or link type is not uart
 	return
@@ -51,12 +53,12 @@ def flush_serial():
     # attempt better success by writing multiple small chunks to the
     # serial port (2 * 8 = 16 bytes per call attempted)
     bytes_per_frame = remote_link_config.getInt('write_bytes_per_frame')
-    write_len = len(serial_buffer)
+    write_len = len(serial_buf)
     if write_len > bytes_per_frame:
         write_len = bytes_per_frame
     if write_len:
-        bytes_written = ser.write( serial_buffer[:write_len] )
-        print 'avail = %d  written = %d' % (len(serial_buffer), bytes_written)
+        bytes_written = ser.write( serial_buf[:write_len] )
+        print 'avail = %d  written = %d' % (len(serial_buf), bytes_written)
         if bytes_written < 0:
             # perror('serial write')
             pass
@@ -65,10 +67,12 @@ def flush_serial():
             pass
         else:
             # something was written
-            serial_buffer = serial_buff[bytes_written:]
-    print 'remote link bytes pending:', len(serial_buffer)
+            serial_buf = serial_buf[bytes_written:]
+    print 'remote link bytes pending:', len(serial_buf)
 
 def link_append( data ):
+    global serial_buf
+    
     # stuff the request in a fifo buffer and then work on writing out
     # the front end of the buffer.
     if len(serial_buf) + len(data) <= max_serial_buffer:
