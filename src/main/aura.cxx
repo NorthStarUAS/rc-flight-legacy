@@ -495,9 +495,6 @@ int main( int argc, char **argv )
     // initialize required aura-core structures
     AuraCoreInit();
 
-    // open remote link if requested
-    remote_link->open();
-
     // Initialize communication with the selected IMU
     IMU_init();
 

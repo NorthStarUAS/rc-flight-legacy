@@ -19,6 +19,8 @@ ser = None
 max_serial_buffer = 128
 link_open = False
 
+print 'remote_link.py' loaded
+
 # set up the remote link
 def init():
     global ser
