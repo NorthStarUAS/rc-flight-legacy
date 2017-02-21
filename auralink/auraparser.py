@@ -162,14 +162,14 @@ def serial_read(ser, f):
     start_time = time.time()    # sec
     input = ''
     msg_id = -1
-    # print "enter update(), state:", state
+    print "enter update(), state:", state
     if state == 0:
         counter = 0
         cksum_A = 0
         cksum_B = 0
         input = ser.read(1)
         while len(input) and ord(input[0]) != START_OF_MSG0:
-            # print " state0 val:", ord(input[0])
+            print " state0 val:", ord(input[0])
             glean_ascii_msgs(input[0], display=False)
             input = ser.read(1)
             cur_time = time.time()
@@ -177,7 +177,7 @@ def serial_read(ser, f):
                 # don't get stuck on a stream that has no parsable data
                 return msg_id
         if len(input) and ord(input[0]) == START_OF_MSG0:
-            # print " read START_OF_MSG0"
+            print " read START_OF_MSG0"
             state += 1
     if state == 1:
         input = ser.read(1)

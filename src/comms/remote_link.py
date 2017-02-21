@@ -17,7 +17,7 @@ remote_link_node = getNode('/comms/remote_link', True)
 remote_link_on = False    # link to remote operator station
 ser = None
 serial_buf = ''
-max_serial_buffer = 128
+max_serial_buffer = 256
 link_open = False
 
 print 'remote_link.py loaded'
@@ -29,7 +29,7 @@ def init():
     
     device = remote_link_config.getString('device')
     try:
-        ser = serial.Serial(device, 115200, timeout=0)
+        ser = serial.Serial(device, 115200, timeout=0, write_timeout=0)
     except:
         print 'Opening remote link failed:', device
 	return False
@@ -50,15 +50,15 @@ def flush_serial():
 	# device not open, or link type is not uart
 	return
 
-    # attempt better success by writing multiple small chunks to the
-    # serial port (2 * 8 = 16 bytes per call attempted)
+    # write a constrained chunk of available bytes per frame to avoid
+    # overflowing the system serial port buffer
     bytes_per_frame = remote_link_config.getInt('write_bytes_per_frame')
     write_len = len(serial_buf)
     if write_len > bytes_per_frame:
         write_len = bytes_per_frame
     if write_len:
         bytes_written = ser.write( serial_buf[:write_len] )
-        print 'avail = %d  written = %d' % (len(serial_buf), bytes_written)
+        # print 'avail = %d  written = %d' % (len(serial_buf), bytes_written)
         if bytes_written < 0:
             # perror('serial write')
             pass
@@ -68,9 +68,9 @@ def flush_serial():
         else:
             # something was written
             serial_buf = serial_buf[bytes_written:]
-    print 'remote link bytes pending:', len(serial_buf)
+    # print 'remote link bytes pending:', len(serial_buf)
 
-def link_append( data ):
+def send_message( buf ):
     global serial_buf
     
     # stuff the request in a fifo buffer and then work on writing out
@@ -81,9 +81,6 @@ def link_append( data ):
     elif comms_node.getBool('display_on'):
 	print 'remote link serial buffer overflow'
         return False
-
-def send_message( buf ):
-    return link_append( buf )
 
 route_request = []
 def execute_command( command ):
