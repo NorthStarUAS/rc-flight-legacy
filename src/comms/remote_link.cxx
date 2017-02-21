@@ -118,10 +118,10 @@ bool pyModuleRemoteLink::decode_fcs_update( const char *buf ) {
 	printf("ERROR: import logging module failed\n");
 	return false;
     }
-    PyObject *pFuncLog = PyObject_GetAttrString(pModuleObj, "send_message");
+    PyObject *pFuncLog = PyObject_GetAttrString(pModuleObj, "decode_fcs_update");
     if ( pFuncLog == NULL || ! PyCallable_Check(pFuncLog) ) {
 	if ( PyErr_Occurred() ) PyErr_Print();
-	printf("ERROR: cannot find function 'send_message()'\n");
+	printf("ERROR: cannot find function 'decode_fcs_update()'\n");
 	return false;
     }
     PyObject *pResult = PyObject_CallFunction(pFuncLog, (char *)"s", buf);

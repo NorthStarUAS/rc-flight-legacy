@@ -29,7 +29,7 @@ def init():
     
     device = remote_link_config.getString('device')
     try:
-        ser = serial.Serial(device, 115200, timeout=0, write_timeout=0)
+        ser = serial.Serial(port=device, baudrate=115200, timeout=0, write_timeout=0)
     except:
         print 'Opening remote link failed:', device
 	return False
@@ -191,9 +191,9 @@ def read_link_command():
 def calc_nmea_cksum(sentence):
     sum = 0
     print 'nmea: sentence'
-    sum = sentence[0] & 0xff
+    sum = ord(sentence[0]) & 0xff
     for c in sentence[1:]:
-        sum ^= (c & 0xff)
+        sum ^= (ord(c) & 0xff)
     print 'sum:', sum
     return sum
 
