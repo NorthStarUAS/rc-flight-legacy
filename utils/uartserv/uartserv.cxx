@@ -13,9 +13,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "comms/serial.hxx"
 
 #include "netbuffer.hxx"
+#include "serial.hxx"
 
 
 void usage() {

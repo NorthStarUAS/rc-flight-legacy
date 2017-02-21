@@ -2,7 +2,8 @@ noinst_PROGRAMS = uartserv
 
 uartserv_SOURCES = \
 	uartserv.cxx \
-	netbuffer.cxx netbuffer.hxx
+	netbuffer.cxx netbuffer.hxx \
+	serial.cxx serial.hxx
 
 uartserv_LDADD = \
         ../../src/comms/libcomms.a \

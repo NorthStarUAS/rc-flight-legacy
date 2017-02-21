@@ -11,7 +11,6 @@ libcomms_a_SOURCES = \
         netSocket.cxx netSocket.h ul.h \
 	packer.cxx packer.hxx \
 	remote_link.cxx remote_link.hxx \
-	serial.cxx serial.hxx \
 	telnet.cxx telnet.hxx
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@
