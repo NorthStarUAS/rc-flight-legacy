@@ -19,7 +19,7 @@ ser = None
 max_serial_buffer = 128
 link_open = False
 
-print 'remote_link.py' loaded
+print 'remote_link.py loaded'
 
 # set up the remote link
 def init():
@@ -43,7 +43,7 @@ def init():
 
 # write as many bytes out of the serial_buffer to the uart as the
 # driver will accept.
-def remote_link_flush_serial():
+def flush_serial():
     if not link_open:
 	# device not open, or link type is not uart
 	return
@@ -82,7 +82,7 @@ def send_message( buf ):
     return link_append( buf )
 
 route_request = []
-def remote_link_execute_command( command ):
+def execute_command( command ):
     global route_request
     
     if command == '':
@@ -199,7 +199,7 @@ def calc_nmea_cksum(sentence):
 # read, parse, and execute incomming commands, return True if a valid
 # command received, False otherwise.
 last_sequence_num = -1
-def remote_link_command():
+def command():
     global last_sequence_num
     
     result = read_link_command()
