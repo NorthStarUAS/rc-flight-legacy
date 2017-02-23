@@ -78,16 +78,17 @@ class ChatHandler(asynchat.async_chat):
             newpath = self.normalize_path(newpath)
 	    node = getNode(newpath)
 	    if node:
-		children = node.getChildren()
+		children = node.getChildren(expand=False)
 		for child in children:
                     if node.isEnum(child):
+                        line = ''
                         for i in range(node.getLen(child)):
 		            if node.isLeaf(child):
 			        value = node.getStringEnum(child, i)
-                                line = '%s[%d]' % (child, i)
+                                line += '%s[%d]' % (child, i)
 			        line += ' =\t\"' + value + '"\t' + '\n'
                             else:
-                                line = '%s[%d]/' % (child, i) + '\n'
+                                line += '%s[%d]/' % (child, i) + '\n'
                     else:
 		        if node.isLeaf(child):
 			    value = node.getString(child)
