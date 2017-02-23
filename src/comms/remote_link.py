@@ -123,8 +123,8 @@ def execute_command( command ):
         elif tokens[1] == 'speed-kt':
             speed_kt = float( tokens[2] )
             targets_node.setFloat( 'airspeed_kt', speed_kt )
-        elif tokens[0] == 'fcs-update':
-	    decode_fcs_update( tokens )
+    elif tokens[0] == 'fcs-update':
+	decode_fcs_update( command )
     elif tokens[0] == 'set' and len(tokens) >= 3:
         if tokens[1][0] == '/':
             # absolute path
@@ -267,13 +267,14 @@ def decode_fcs_update(command):
     if not config:
 	return False
 	
-    if len(tokens) == 6:
+    if len(tokens) == 7:
 	config.setFloat( 'Kp', float(tokens[1]) )
 	config.setFloat( 'Ti', float(tokens[2]) )
 	config.setFloat( 'Td', float(tokens[3]) )
 	config.setFloat( 'u_min', float(tokens[4]) )
 	config.setFloat( 'u_max', float(tokens[5]) )
-    elif len(tokens) == 9:
+	config.setFloat( 'u_trim', float(tokens[6]) )
+    elif len(tokens) == 10:
 	config.setFloat( 'Kp', float(tokens[1]) )
 	config.setFloat( 'beta', float(tokens[2]) )
 	config.setFloat( 'alpha', float(tokens[3]) )
@@ -282,6 +283,7 @@ def decode_fcs_update(command):
 	config.setFloat( 'Td', float(tokens[6]) )
 	config.setFloat( 'u_min', float(tokens[7]) )
 	config.setFloat( 'u_max', float(tokens[8]) )
+	config.setFloat( 'u_trim', float(tokens[6]) )
     else:
 	return False
 

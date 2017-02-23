@@ -121,10 +121,10 @@ class Route(Task):
     # build a route from a string request
     def build_str(self, request):
         tokens = request.split(',')
-        if len(tokens) < 5:
+        if len(tokens) < 4:
             return False
         self.standby_route = []       # clear standby
-        i = 1
+        i = 0
         while i + 4 <= len(tokens):
             mode = int(tokens[i])
             wp = waypoint.Waypoint()
@@ -138,7 +138,7 @@ class Route(Task):
                 wp.lat_deg = float(tokens[i+2])
             self.standby_route.append(wp)
             i += 4;
-        print 'loaded %d waypoints' % len(standby)
+        print 'Loaded %d waypoints' % len(self.standby_route)
         return True
 
     # swap active and standby routes

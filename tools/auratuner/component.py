@@ -103,6 +103,9 @@ class Component():
         self.edit_max = QtGui.QLineEdit()
         self.edit_max.setFixedWidth(350)
         self.edit_max.textChanged.connect(self.onChange)
+        self.edit_trim = QtGui.QLineEdit()
+        self.edit_trim.setFixedWidth(350)
+        self.edit_trim.textChanged.connect(self.onChange)
 
         layout.addRow( "<b>Stage Name:</b>", self.edit_name )
         layout.addRow( "<b>Description:</b>", self.edit_desc )
@@ -121,6 +124,7 @@ class Component():
             layout.addRow( "<b>Td (derivative time gain):</b>", self.edit_Td )
         layout.addRow( "<b>min (output limit):</b>", self.edit_min )
         layout.addRow( "<b>max (output limit):</b>", self.edit_max )
+        layout.addRow( "<b>trim (P output for zero error):</b>", self.edit_trim )
 
         # 'Command' button bar
         cmd_group = QtGui.QFrame()
@@ -169,6 +173,7 @@ class Component():
             self.edit_Td.setText(tmp.getString('Td'))
         self.edit_min.setText(tmp.getString('u_min'))
         self.edit_max.setText(tmp.getString('u_max'))
+        self.edit_trim.setText(tmp.getString('u_trim'))
         self.original_values = self.value_array()
 
     def value_array(self):
@@ -185,6 +190,7 @@ class Component():
             result.append( str(self.edit_Td.text()) )
         result.append( str(self.edit_min.text()) )
         result.append( str(self.edit_max.text()) )
+        result.append( str(self.edit_trim.text()) )
         return result
 
     def update(self):
@@ -207,6 +213,7 @@ class Component():
             self.edit_Td.setText(self.original_values[5])
             self.edit_min.setText(self.original_values[2])
             self.edit_max.setText(self.original_values[3])
+            self.edit_trim.setText(self.original_values[6])
         elif self.type == "vel":
             self.edit_Kp.setText(self.original_values[0])
             self.edit_beta.setText(self.original_values[1])
@@ -216,6 +223,7 @@ class Component():
             self.edit_Td.setText(self.original_values[5])
             self.edit_min.setText(self.original_values[6])
             self.edit_max.setText(self.original_values[7])
+            self.edit_trim.setText(self.original_values[8])
         # send original values to remote
         command = "fcs-update " + str(self.index)
         for value in self.original_values:
