@@ -5,6 +5,7 @@ import props_json
 
 import events
 
+status_node = getNode( '/status', True)
 route_node = getNode( '/task/route', True )
 task_node = getNode( '/task', True )
 home_node = getNode( '/task/home', True )
@@ -70,7 +71,7 @@ def flush_serial():
             serial_buf = serial_buf[bytes_written:]
     # print 'remote link bytes pending:', len(serial_buf)
 
-def send_message( buf ):
+def send_message( data ):
     global serial_buf
     
     # stuff the request in a fifo buffer and then work on writing out
@@ -244,7 +245,8 @@ def command():
 	# register that we've received this message correctly
 	remote_link_node.setInt( 'sequence_num', sequence )
 	last_sequence_num = sequence
-	remote_link_node.setFloat( 'last_message_sec', get_Time() )
+        timestamp = status_node->getDouble('frame_time')
+	remote_link_node.setFloat( 'last_message_sec', timestamp )
 
     return True
 
