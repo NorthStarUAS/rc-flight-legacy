@@ -297,25 +297,28 @@ static bool Aura3_write_config() {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
     uint8_t size = sizeof(config);
-    // uint8_t len;
     
     // start of message sync bytes
     buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
+    write( fd, buf, 2 );
 
     // packet id (1 byte)
     buf[0] = CONFIG_PACKET_ID;
     // packet length (1 byte)
     buf[1] = size;
-    /* len = */ write( fd, buf, 2 );
+    write( fd, buf, 2 );
 
-    // write packet
-    /* len = */ write( fd, &config, size );
-  
+    // write packet byte-wise
+    uint8_t *p = (uint8_t *)&config;
+    for ( int i = 0; i < size; i++ ) {
+        write( fd, p, 1 );
+        p++;
+    }
+    
     // check sum (2 bytes)
     Aura3_cksum( CONFIG_PACKET_ID, size, (uint8_t *)&config, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
+    write( fd, buf, 2 );
 
     return true;
 }
