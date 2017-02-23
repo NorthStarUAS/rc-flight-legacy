@@ -164,60 +164,15 @@ class ChatHandler(asynchat.async_chat):
 		    self.push(tokens[1] + ' = "' + value + '"\n')
 	    else:
 		self.push('usage: set [[/]path/]attr value\n')
-	elif tokens[0] == 'send':
-            c = ' '
-            commands.add(c.join(tokens[1:]))
-	# elif tokens[0] == 'run':
-	#     if len(tokens) == 2:
-	# 	string command = tokens[1]
-	# 	if command == 'ap.reinit()':
-	# 	    control_reinit()
-	# 	else:
-	# 	    push( 'unknown command: ' )
-	# 	    push( tokens[1].c_str() )
-	# 	    push( getTerminator() )
-	#     else:
-	# 	push( 'usage: run <command>' )
-	# 	push( getTerminator() )
 	elif tokens[0] == 'quit':
 	    self.close()
 	    return
-	elif tokens[0] == 'shutdown-server':
+	elif tokens[0] == 'shutdown-application':
             if len(tokens) == 2:
                 if tokens[1] == 'xyzzy':
 	            quit()
-            self.push('usage: shutdown-server xyzzy\n')
+            self.push('usage: shutdown-application xyzzy\n')
             self.push('extra magic argument is required\n')
-	elif tokens[0] == 'fcs':
-	    if len(tokens) == 2:
-	 	tmp = ""
-	 	if self.prompt:
-	 	    tmp = tokens[1]
-	 	    tmp += " = "
-	 	if tokens[1] == "heading":
-                    tmp = str(self.imu_node.getFloat('timestamp')) + ','
-	 	    tmp += self.gen_fcs_nav_string()
-	 	elif tokens[1] == "speed":
-                    tmp = str(self.imu_node.getFloat('timestamp')) + ','
-	 	    tmp += self.gen_fcs_speed_string()
-	 	elif tokens[1] == "altitude":
-                    tmp = str(self.imu_node.getFloat('timestamp')) + ','
-	 	    tmp += self.gen_fcs_altitude_string()
-	 	elif tokens[1] == "all":
-                    tmp = str(self.imu_node.getFloat('timestamp')) + ','
-	 	    tmp += self.gen_fcs_nav_string()
-	 	    tmp += ","
-	 	    tmp += self.gen_fcs_speed_string()
-	 	    tmp += ","
-	 	    tmp += self.gen_fcs_altitude_string()
-                tmp += '\n'
-	 	self.push( tmp )
-	elif tokens[0] == 'fcs-update':
-	    if len(tokens) == 2:
-                newcmd = "fcs-update," + tokens[1]
-                commands.add(newcmd)
-	        if self.prompt:
-                    self.push('command will be related to vehicle.\n')
 	else:
             self.usage()
 
@@ -237,9 +192,8 @@ pwd                display your current path
 get <var>          show the value of a parameter
 set <var> <val>    set <var> to a new <val>
 dump [<dir>]       dump the current state (in xml)
-# run <command>      run built in command
-quit               terminate client connection
-shutdown-server    instruct host server to exit (requires magic argument)
+quit               exit the client telnet session
+shutdown-application xyzzy      terminate the host application
 """
         self.push(message)
     
@@ -295,6 +249,7 @@ def init(port=6499):
     else:
         telnet_enabled = False
 
-def update():
+def update(dt=0):
+    # dt is unused but makes pyModuleBase happy
     if telnet_enabled:
         asyncore.loop(timeout=0, count=1)
