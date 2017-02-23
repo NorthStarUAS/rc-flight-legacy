@@ -21,8 +21,6 @@ serial_buf = ''
 max_serial_buffer = 256
 link_open = False
 
-print 'remote_link.py loaded'
-
 # set up the remote link
 def init():
     global ser
@@ -48,7 +46,7 @@ def init():
 def flush_serial():
     global serial_buf
     if not link_open:
-	# device not open, or link type is not uart
+	# device not open
 	return
 
     # write a constrained chunk of available bytes per frame to avoid
@@ -71,16 +69,16 @@ def flush_serial():
             serial_buf = serial_buf[bytes_written:]
     # print 'remote link bytes pending:', len(serial_buf)
 
+# append the request data to a fifo buffer if space available.  A
+# separate function will flush the data in even chunks to avoid
+# saturating the telemetry link.
 def send_message( data ):
     global serial_buf
-    
-    # stuff the request in a fifo buffer and then work on writing out
-    # the front end of the buffer.
     if len(serial_buf) + len(data) <= max_serial_buffer:
         serial_buf += data
         return True
     elif comms_node.getBool('display_on'):
-	print 'remote link serial buffer overflow'
+	print 'remote link serial buffer overflow, size:', len(serial_buf), 'add:', len(data), 'limit:', max_serial_buffer
         return False
 
 route_request = []
@@ -191,11 +189,11 @@ def read_link_command():
 # calculate the nmea check sum
 def calc_nmea_cksum(sentence):
     sum = 0
-    print 'nmea: sentence'
+    # print 'nmea: sentence'
     sum = ord(sentence[0]) & 0xff
     for c in sentence[1:]:
         sum ^= (ord(c) & 0xff)
-    print 'sum:', sum
+    # print 'sum:', sum
     return sum
 
 # read, parse, and execute incomming commands, return True if a valid
@@ -245,7 +243,7 @@ def command():
 	# register that we've received this message correctly
 	remote_link_node.setInt( 'sequence_num', sequence )
 	last_sequence_num = sequence
-        timestamp = status_node->getDouble('frame_time')
+        timestamp = status_node.getFloat('frame_time')
 	remote_link_node.setFloat( 'last_message_sec', timestamp )
 
     return True

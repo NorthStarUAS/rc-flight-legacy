@@ -229,7 +229,7 @@ class Route(Task):
         request = self.route_node.getString('route_request')
         if len(request):
             result = ''
-            if build_str(request):
+            if self.build_str(request):
                 self.swap()
                 self.reposition()
                 result = 'success: ' + request
