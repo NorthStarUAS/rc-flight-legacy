@@ -1,4 +1,8 @@
+import math
+
 from props import root, getNode
+
+r2d = 180.0 / math.pi
 
 # initialize property nodes
 comms_node = getNode('/comms', True)
@@ -26,7 +30,7 @@ def show(message):
 # periodic console summary of attitude/location estimate
 def status_summary():
     if comms_node.getBool('display_on'):
-        print '[imu  ]: gyro = %.3f %.3f %.3f [deg/s]' % \
+        print '[imu  ]:gyro = %.3f %.3f %.3f [deg/s]' % \
             (imu_node.getFloat('p_rad_sec') * r2d,
              imu_node.getFloat('q_rad_sec') * r2d,
              imu_node.getFloat('r_rad_sec') * r2d),
@@ -34,7 +38,7 @@ def status_summary():
             (imu_node.getFloat('ax_mps_sec'),
              imu_node.getFloat('ay_mps_sec'),
              imu_node.getFloat('az_mps_sec'))
-        print '[mag  ]: %.3f %.3f %.3f' % \
+        print '[mag  ]:%.3f %.3f %.3f' % \
             (imu_node.getFloat('hx'),
              imu_node.getFloat('hy'),
              imu_node.getFloat('hz'))
@@ -54,7 +58,7 @@ def status_summary():
                 (gps_node.getFloat('longitude_deg'),
                  gps_node.getFloat('latitude_deg'),
                  gps_node.getFloat('altitude_m'),
-                 gps_node.getLong('satellites'),
+                 gps_node.getInt('satellites'),
                  gps_node.getFloat('data_age'))
         else:
             print '[gps  ]: age =', gps_node.getFloat('data_age')
@@ -71,15 +75,15 @@ def status_summary():
         else:
             print '[filt ]:[No Valid Data]'
 
-        print '[act  ]: %.2f %.2f %.2f %.2f %.2f' % \
+        print '[act  ]:%.2f %.2f %.2f %.2f %.2f' % \
             (act_node.getFloat('aileron'),
              act_node.getFloat('elevator'),
              act_node.getFloat('throttle'),
              act_node.getFloat('rudder'),
              act_node.getFloat('flaps'))
-        print '[health]: cmdseq = %ld  tgtwp = %ld  loadavg = %.2f  vcc = %.2f' % \
-            (remote_link_node.getLong('sequence_num'),
-             route_node.getLong('target_waypoint_idx'),
+        print '[hlth ]:cmdseq = %ld  tgtwp = %ld  loadavg = %.2f  vcc = %.2f' % \
+            (remote_link_node.getInt('sequence_num'),
+             route_node.getInt('target_waypoint_idx'),
              status_node.getFloat('system_load_avg'),
              apm2_node.getFloat('board_vcc'))
         print
