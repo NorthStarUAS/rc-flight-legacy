@@ -10,8 +10,8 @@
 #include <string>
 #include <string.h>
 
-#include "comms/netSocket.h"
 #include "init/globals.hxx"
+#include "util/netSocket.h"
 #include "util/timing.h"
 
 #include "act_fgfs.hxx"

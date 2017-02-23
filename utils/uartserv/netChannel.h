@@ -51,7 +51,7 @@
 #ifndef NET_CHANNEL_H
 #define NET_CHANNEL_H
 
-#include "comms/netSocket.h"
+#include "util/netSocket.h"
 
 class netChannel : public netSocket
 {

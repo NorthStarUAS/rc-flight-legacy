@@ -8,7 +8,7 @@
 #include <stdlib.h>		// drand48()
 #include <sys/ioctl.h>
 
-#include "comms/netSocket.h"
+#include "util/netSocket.h"
 #include "util/timing.h"
 
 #include "FGFS.hxx"

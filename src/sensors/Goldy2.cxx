@@ -17,12 +17,12 @@ using namespace Eigen;
 
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
-#include "comms/netSocket.h"
 #include "init/globals.hxx"
 #include "math/SGMath.hxx"
 #include "math/SGGeodesy.hxx"
 #include "sensors/cal_temp.hxx"
 #include "util/linearfit.hxx"
+#include "util/netSocket.h"
 //#include "util/poly1d.hxx"
 #include "util/timing.h"
 

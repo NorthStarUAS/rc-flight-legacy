@@ -29,7 +29,6 @@ using std::string;
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
 #include "comms/remote_link.hxx"
-#include "comms/netSocket.h"	// netInit()
 #include "control/cas.hxx"
 #include "control/control.hxx"
 #include "filters/filter_mgr.hxx"
@@ -43,6 +42,7 @@ using std::string;
 #include "sensors/pilot_mgr.hxx"
 #include "util/exception.hxx"
 #include "util/myprof.hxx"
+#include "util/netSocket.h"	// netInit()
 #include "util/sg_path.hxx"
 #include "util/timing.h"
 
