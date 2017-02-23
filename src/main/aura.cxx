@@ -232,10 +232,7 @@ void main_work_loop()
     //
     // Read commands from telnet interface
     //
-
-    if ( enable_telnet ) {
-	telnet->process();
-    }
+    telnet->update(0);
 
     debug5.stop();
 
@@ -414,20 +411,6 @@ int main( int argc, char **argv )
     // the command line will override what is in the config.xml file.
 
     pyPropertyNode p;
-
-    p = pyGetNode("/config/telnet", true);
-    if ( p.hasChild("enable") ) {
-	enable_telnet = p.getBool("enable");
-    }
-    if ( enable_telnet ) {
-	if ( p.hasChild("port") ) {
-	    telnet = new UGTelnet( p.getLong("port") );
-	    telnet->open();
-	} else {
-	    printf("No telnet port defined, disabling telnet interface\n");
-	    enable_telnet = false;
-	}
-    }
 
     p = pyGetNode("/config/pointing", true);
     if ( p.hasChild("enable") ){

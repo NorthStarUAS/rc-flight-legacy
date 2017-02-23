@@ -13,8 +13,8 @@ pyModuleEventLog *events = NULL;
 pyModuleLogging *logging = NULL;
 pyModulePacker *packer = NULL;
 pyModuleRemoteLink *remote_link = NULL;
-UGTelnet *telnet = NULL;
 pyModuleBase *mission_mgr = NULL;
+pyModuleBase *telnet = NULL;
 
 
 bool AuraCoreInit() {
@@ -24,13 +24,15 @@ bool AuraCoreInit() {
     packer = new pyModulePacker;
     remote_link = new pyModuleRemoteLink;
     mission_mgr = new pyModuleBase;
-
+    telnet = new pyModuleBase;
+    
     // import and init the python modules
     packer->init("comms.packer");
     logging->init("comms.logging");
     remote_link->init("comms.remote_link");
     events->init("comms.events");
     mission_mgr->init("mission.mission_mgr");
+    telnet->init("comms.telnet");
     
     return true;
 }
