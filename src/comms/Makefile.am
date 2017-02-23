@@ -9,7 +9,6 @@ libcomms_a_SOURCES = \
         netChat.cxx netChat.h \
         netSocket.cxx netSocket.h ul.h \
 	packer.cxx packer.hxx \
-	remote_link.cxx remote_link.hxx \
-	telnet.cxx telnet.hxx
+	remote_link.cxx remote_link.hxx
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@
