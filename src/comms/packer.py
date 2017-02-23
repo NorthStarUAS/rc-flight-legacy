@@ -724,8 +724,7 @@ def unpack_pilot_v2(buf):
     index = result[0]
     if index >= len(pilot_nodes):
         for i in range(len(pilot_nodes),index+1):
-            path = '/sensors/pilot_input[%d]' % i
-            node = getNode(path, True)
+            node = getNode('/sensors/pilot_input[%d]' % i, True)
             node.setLen("channel", NUM_ACTUATORS, 0.0)
             pilot_nodes.append( node )
     node = pilot_nodes[index]

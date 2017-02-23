@@ -78,16 +78,22 @@ class ChatHandler(asynchat.async_chat):
             newpath = self.normalize_path(newpath)
 	    node = getNode(newpath)
 	    if node:
-		children = node.getChildren(True)
+		children = node.getChildren()
 		for child in children:
-		    line = child
-		    if node.isLeaf(child):
-			if self.prompt:
+                    if node.isEnum(child):
+                        for i in range(node.getLen(child)):
+		            if node.isLeaf(child):
+			        value = node.getStringEnum(child, i)
+                                line = '%s[%d]' % (child, i)
+			        line += ' =\t\"' + value + '"\t' + '\n'
+                            else:
+                                line = '%s[%d]/' % (child, i) + '\n'
+                    else:
+		        if node.isLeaf(child):
 			    value = node.getString(child)
-			    line = line + ' =\t\"' + value + '"\t'
-		    else:
-			line += '/'
-		    line += '\n'
+			    line = child + ' =\t\"' + value + '"\t' + '\n'
+                        else:
+                            line = child + '/' + '\n'
 		    self.push(line)
 	    else:
 		self.push('Error: ' + newpath + ' not found\n')
