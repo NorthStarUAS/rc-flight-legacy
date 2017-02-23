@@ -10,6 +10,7 @@
 #define AURA_GLOBALS_HXX
 
 
+#include "comms/display.hxx"
 #include "comms/events.hxx"
 #include "comms/logging.hxx"
 #include "comms/packer.hxx"
@@ -17,6 +18,7 @@
 #include "python/pymodule.hxx"
 
 
+extern pyModuleDisplay *display;
 extern pyModuleEventLog *events;
 extern pyModuleLogging *logging;
 extern pyModulePacker *packer;

@@ -81,6 +81,7 @@ static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 // property nodes
 static pyPropertyNode imu_node;
 static pyPropertyNode status_node;
+static pyPropertyNode comms_node;
 
 // debug main loop "block" on gumstix verdex
 myprofile debug1;
@@ -113,6 +114,9 @@ void main_work_loop()
 {
     debug1.start();
 
+    // update display_on variable
+    display_on = comms_node.getBool("display_on");
+    
     // printf("apm loop:\n");
     // read the sensors until we receive an IMU packet
     sync_prof.start();
@@ -270,7 +274,7 @@ void main_work_loop()
     // sensor summary display @ 2 second interval
     if ( display_on && get_Time() >= display_timer + 2.0 ) {
 	display_timer += 2.0;
-	display_message();
+	display->status_summary();
 	imu_prof.stats();
 	gps_prof.stats();
 	air_prof.stats();
@@ -341,6 +345,7 @@ int main( int argc, char **argv )
 
     // initialize properties
     pyPropsInit();
+    comms_node = pyGetNode("/comms", true);
     status_node = pyGetNode("/status", true);
     status_node.setDouble("frame_time", get_Time());
     imu_node = pyGetNode("/sensors/imu", true);
@@ -452,15 +457,13 @@ int main( int argc, char **argv )
     for ( iarg = 1; iarg < argc; iarg++ ) {
         if ( !strcmp(argv[iarg],"--display") ) {
             ++iarg;
-	    p = pyGetNode("/comms", true);
             if ( !strcmp(argv[iarg], "on") ) {
-		p.setBool("display_on", true);
 		display_on = true;
 	    }
             if ( !strcmp(argv[iarg], "off") ) {
-		p.setBool("display_on", false);
 		display_on = false;
 	    }
+            comms_node.setBool("display_on", display_on);
         } else if ( !strcmp(argv[iarg], "--config" )  ) {
    	    // considered earlier in first pass
             ++iarg;

@@ -1,19 +1,24 @@
-#ifndef _AURA_DISPLAY_H
-#define _AURA_DISPLAY_H
+#ifndef _AURA_DISPLAY_HXX
+#define _AURA_DISPLAY_HXX
 
-// #include <stdint.h>
+// import a python module and call it's init() and update() routines
+// requires imported python modules to follow some basic rules to play
+// nice.  (see examples in the code for now.)
 
-//#include "include/globaldefs.h"
-
-// global variables
+#include "python/pymodule.hxx"
 
 extern bool display_on;
 
-// global functions
+class pyModuleDisplay: public pyModuleBase {
 
-bool display_init();
-bool disaply_close();
+public:
 
-void display_message();
+    // constructor / destructor
+    pyModuleDisplay();
+    ~pyModuleDisplay() {}
 
-#endif // _AURA_DISPLAY_H
+    bool show(const char *message);
+    void status_summary();
+};
+
+#endif // _AURA_DISPLAY_HXX

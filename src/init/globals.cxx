@@ -9,6 +9,7 @@
 #include "globals.hxx"
 
 
+pyModuleDisplay *display = NULL;
 pyModuleEventLog *events = NULL;
 pyModuleLogging *logging = NULL;
 pyModulePacker *packer = NULL;
@@ -19,6 +20,7 @@ pyModuleBase *telnet = NULL;
 
 bool AuraCoreInit() {
     // create instances
+    display = new pyModuleDisplay;
     events = new pyModuleEventLog;
     logging = new pyModuleLogging;
     packer = new pyModulePacker;
@@ -27,6 +29,7 @@ bool AuraCoreInit() {
     telnet = new pyModuleBase;
     
     // import and init the python modules
+    display->init("comms.display");
     packer->init("comms.packer");
     logging->init("comms.logging");
     remote_link->init("comms.remote_link");
