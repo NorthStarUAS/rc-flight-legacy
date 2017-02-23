@@ -3,6 +3,7 @@ noinst_PROGRAMS = uartserv
 uartserv_SOURCES = \
 	uartserv.cxx \
 	netbuffer.cxx netbuffer.hxx \
+        netChannel.cxx netChannel.h \
 	serial.cxx serial.hxx
 
 uartserv_LDADD = \

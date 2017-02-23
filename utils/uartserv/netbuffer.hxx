@@ -76,7 +76,7 @@
 #ifndef NET_BUFFER_H
 #define NET_BUFFER_H
 
-#include "comms/netChannel.h"
+#include "netChannel.h"
 #include "serial.hxx"
 
 
