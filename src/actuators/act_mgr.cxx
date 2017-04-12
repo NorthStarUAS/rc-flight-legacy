@@ -276,7 +276,7 @@ static void set_actuator_values_pilot_pass_through() {
 	chirp_inject = chirp_node.getString("inject");
     }
     
-    float aileron = pilot_node.getDouble("aileron");
+    float aileron = -pilot_node.getDouble("aileron");
     if ( chirp_inject == "aileron" ) { aileron += chirp_val; }
     act_node.setDouble( "aileron", aileron );
 
