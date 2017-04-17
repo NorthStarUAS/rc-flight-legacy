@@ -1,0 +1,13 @@
+https://mmatyas.github.io/blog/servo-short-cross-compilation-guide
+
+qemu-debootstrap --arch=armhf --verbose jessie rootfs-jessie-armhf
+
+<go get a coffee>
+
+# chroot rootfs-jessie-armhf
+
+  # apt install automake make git g++ libeigen3-dev 
+  # apt install python-dev libboost-python-dev python-serial python-lxml
+
+
+
