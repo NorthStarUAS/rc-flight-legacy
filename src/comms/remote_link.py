@@ -74,6 +74,10 @@ def flush_serial():
 # saturating the telemetry link.
 def send_message( data ):
     global serial_buf
+    if ser == None:
+        # remote serial link not available
+        return False
+        
     if len(serial_buf) + len(data) <= max_serial_buffer:
         serial_buf += data
         return True
@@ -169,6 +173,10 @@ def execute_command( command ):
 command_buf = ''
 def read_link_command():
     global command_buf
+    
+    if ser == None:
+        # remote link open failed
+        return ''
     
     # read character by character until we run out of data or find a '\n'
     # if we run out of data, save what we have so far and start with that for
