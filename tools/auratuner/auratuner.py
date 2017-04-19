@@ -110,6 +110,9 @@ class Tuner(QtGui.QWidget):
             elif comp_type == 'pid_vel_component':
                 pid = Component(index=i, changefunc=self.onChange, host=host,
                                 port=port, type="vel")
+            elif comp_type == 'summer':
+                pid = Component(index=i, changefunc=self.onChange, host=host,
+                                port=port, type="sum")
             else:
                 print "unknown ..."
                 next

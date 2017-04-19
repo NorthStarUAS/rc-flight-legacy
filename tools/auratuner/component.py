@@ -60,9 +60,17 @@ class Component():
         self.edit_desc = QtGui.QLineEdit()
         self.edit_desc.setFixedWidth(350)
         self.edit_desc.textChanged.connect(self.onChange)
-        self.edit_input = QtGui.QLineEdit()
-        self.edit_input.setFixedWidth(350)
-        self.edit_input.textChanged.connect(self.onChange)
+        if self.type == "pid" or self.type == "vel":
+            self.edit_input = QtGui.QLineEdit()
+            self.edit_input.setFixedWidth(350)
+            self.edit_input.textChanged.connect(self.onChange)
+        elif self.type == "sum":
+            self.edit_input = []
+            for i in range(4):
+                edit_input = QtGui.QLineEdit()
+                edit_input.setFixedWidth(350)
+                edit_input.textChanged.connect(self.onChange)
+                self.edit_input.append(edit_input)
         self.edit_ref = QtGui.QLineEdit()
         self.edit_ref.setFixedWidth(350)
         self.edit_ref.textChanged.connect(self.onChange)
@@ -109,10 +117,16 @@ class Component():
 
         layout.addRow( "<b>Stage Name:</b>", self.edit_name )
         layout.addRow( "<b>Description:</b>", self.edit_desc )
-        layout.addRow( "<b>Input Prop:</b>", self.edit_input )
-        layout.addRow( "<b>Reference Prop:</b>", self.edit_ref )
+        if self.type == "pid" or self.type == "vel":
+            layout.addRow( "<b>Input Prop:</b>", self.edit_input )
+        elif self.type == "sum":
+            for i in range(4):
+                layout.addRow( "<b>Input Prop:</b>", self.edit_input[i] )
+        if self.type == "pid" or self.type == "vel":
+            layout.addRow( "<b>Reference Prop:</b>", self.edit_ref )
         layout.addRow( "<b>Output Prop:</b>", self.edit_output )
-        layout.addRow( "<b>Kp (global gain):</b>", self.edit_Kp )
+        if self.type == "pid" or self.type == "vel":
+            layout.addRow( "<b>Kp (global gain):</b>", self.edit_Kp )
         if self.type == "pid":
             layout.addRow( "<b>Ti (integrator time gain):</b>", self.edit_Ti )
             layout.addRow( "<b>Td (derivative time gain):</b>", self.edit_Td )
@@ -124,7 +138,9 @@ class Component():
             layout.addRow( "<b>Td (derivative time gain):</b>", self.edit_Td )
         layout.addRow( "<b>min (output limit):</b>", self.edit_min )
         layout.addRow( "<b>max (output limit):</b>", self.edit_max )
-        layout.addRow( "<b>trim (P output for zero error):</b>", self.edit_trim )
+        if self.type == "pid" or self.type == "vel":
+            layout.addRow( "<b>trim (P output for zero error):</b>",
+                           self.edit_trim )
 
         # 'Command' button bar
         cmd_group = QtGui.QFrame()
@@ -154,8 +170,15 @@ class Component():
     def parse(self, node):
         self.edit_name.setText(node.getString('name'))
         self.edit_desc.setText(node.getString('description'))
-        tmp = node.getChild('input', True)
-        self.edit_input.setText(tmp.getString('prop'))
+        if self.type == "pid" or self.type == "vel":
+            tmp = node.getChild('input', True)
+            self.edit_input.setText(tmp.getString('prop'))
+        elif self.type == "sum":
+            tmp = node.getChild('input', True)
+            len = tmp.getLen('prop')
+            for i in range(len):
+                prop = tmp.getStringEnum('prop', i)
+                self.edit_input[i].setText(prop)
         tmp = node.getChild('reference', True)
         self.edit_ref.setText(tmp.getString('prop'))
         tmp = node.getChild('output', True)
@@ -178,7 +201,8 @@ class Component():
 
     def value_array(self):
         result = []
-        result.append( str(self.edit_Kp.text()) )
+        if self.type == "pid" or self.type == "vel":
+            result.append( str(self.edit_Kp.text()) )
         if self.type == "pid":
             result.append( str(self.edit_Ti.text()) )
             result.append( str(self.edit_Td.text()) )
@@ -190,7 +214,8 @@ class Component():
             result.append( str(self.edit_Td.text()) )
         result.append( str(self.edit_min.text()) )
         result.append( str(self.edit_max.text()) )
-        result.append( str(self.edit_trim.text()) )
+        if self.type == "pid" or self.type == "vel":
+            result.append( str(self.edit_trim.text()) )
         return result
 
     def update(self):
