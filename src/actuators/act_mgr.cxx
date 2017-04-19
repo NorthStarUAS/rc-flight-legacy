@@ -48,7 +48,7 @@ static pyPropertyNode engine_node;
 static pyPropertyNode pilot_node;
 static pyPropertyNode act_node;
 static pyPropertyNode ap_node;
-static pyPropertyNode chirp_node;
+static pyPropertyNode signal_node;
 static vector<pyPropertyNode> sections;
 
 static myprofile debug_act1;
@@ -64,10 +64,10 @@ void Actuator_init() {
     // bind properties
     flight_node = pyGetNode("/controls/flight", true);
     engine_node = pyGetNode("/controls/engine", true);
+    signal_node = pyGetNode("/controls/signal", true);
     pilot_node = pyGetNode("/sensors/pilot_input", true);
     act_node = pyGetNode("/actuators", true);
     ap_node = pyGetNode("/autopilot", true);
-    chirp_node = pyGetNode("/task/chirp", true);
     
     pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
     pyPropertyNode logging_node = pyGetNode("/config/logging", true);
@@ -128,28 +128,28 @@ void Actuator_init() {
 
 
 static void set_actuator_values_ap() {
-    double chirp_val = 0.0;
-    string chirp_inject = "";
-    if ( chirp_node.getBool("running") ) {
-	chirp_val = chirp_node.getDouble("chirp_val");
-	chirp_inject = chirp_node.getString("inject");
+    double signal_val = 0.0;
+    string signal_inject = "";
+    if ( signal_node.getBool("running") ) {
+	signal_val = signal_node.getDouble("value");
+	signal_inject = signal_node.getString("inject");
     }
     
     float aileron = flight_node.getDouble("aileron");
-    if ( chirp_inject == "aileron" ) { aileron += chirp_val; }
+    if ( signal_inject == "aileron" ) { aileron += signal_val; }
     act_node.setDouble( "aileron", aileron );
 
     float elevator = flight_node.getDouble("elevator");
-    if ( chirp_inject == "elevator" ) { elevator += chirp_val; }
+    if ( signal_inject == "elevator" ) { elevator += signal_val; }
     act_node.setDouble( "elevator", elevator );
 
     // rudder
     float rudder = flight_node.getDouble("rudder");
-    if ( chirp_inject == "rudder" ) { rudder += chirp_val; }
+    if ( signal_inject == "rudder" ) { rudder += signal_val; }
     act_node.setDouble( "rudder", rudder );
 
     double flaps = flight_node.getDouble("flaps");
-    if ( chirp_inject == "flaps" ) { flaps += chirp_val; }
+    if ( signal_inject == "flaps" ) { flaps += signal_val; }
     act_node.setDouble("flaps", flaps );
 
     double gear = flight_node.getDouble("gear");
@@ -212,7 +212,7 @@ static void set_actuator_values_ap() {
     // throttle
 
     double throttle = engine_node.getDouble("throttle");
-    if ( chirp_inject == "throttle" ) { throttle += chirp_val; }
+    if ( signal_inject == "throttle" ) { throttle += signal_val; }
     act_node.setDouble("throttle", throttle );
 
     static bool sas_throttle_override = false;
@@ -269,35 +269,35 @@ static void set_actuator_values_pilot_pass_through() {
     // pass-through at the host flight computer level.  However,
     // manaul pass-through is handled more efficiently (less latency)
     // directly on APM2/Aura3 hardware.
-    double chirp_val = 0.0;
-    string chirp_inject = "";
-    if ( chirp_node.getBool("running") ) {
-	chirp_val = chirp_node.getDouble("chirp_val");
-	chirp_inject = chirp_node.getString("inject");
+    double signal_val = 0.0;
+    string signal_inject = "";
+    if ( signal_node.getBool("running") ) {
+	signal_val = signal_node.getDouble("value");
+	signal_inject = signal_node.getString("inject");
     }
     
     float aileron = pilot_node.getDouble("aileron");
-    if ( chirp_inject == "aileron" ) { aileron += chirp_val; }
+    if ( signal_inject == "aileron" ) { aileron += signal_val; }
     act_node.setDouble( "aileron", aileron );
 
     float elevator = pilot_node.getDouble("elevator");
-    if ( chirp_inject == "elevator" ) { elevator += chirp_val; }
+    if ( signal_inject == "elevator" ) { elevator += signal_val; }
     act_node.setDouble( "elevator", elevator );
 
     // rudder
     float rudder = pilot_node.getDouble("rudder");
-    if ( chirp_inject == "rudder" ) { rudder += chirp_val; }
+    if ( signal_inject == "rudder" ) { rudder += signal_val; }
     act_node.setDouble( "rudder", rudder );
 
     double flaps = pilot_node.getDouble("flaps");
-    if ( chirp_inject == "flaps" ) { flaps += chirp_val; }
+    if ( signal_inject == "flaps" ) { flaps += signal_val; }
     act_node.setDouble("flaps", flaps );
 
     double gear = pilot_node.getDouble("gear");
     act_node.setDouble("gear", gear );
 
     double throttle = pilot_node.getDouble("throttle");
-    if ( chirp_inject == "throttle" ) { throttle += chirp_val; }
+    if ( signal_inject == "throttle" ) { throttle += signal_val; }
     act_node.setDouble("throttle", throttle );
 }
 
