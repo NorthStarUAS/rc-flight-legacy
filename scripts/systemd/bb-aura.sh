@@ -8,4 +8,4 @@ cd $HOME
 # a good balanced number.
 NICE=-10
 
-nice -n $NICE $HOME/bin/aura --python_path $HOME/src/aura-core/src --remote-link on > /var/log/aura.log
+nice -n $NICE $HOME/bin/aura --python_path $HOME/src/aura-core/src > /var/log/aura.log
