@@ -28,7 +28,7 @@ def init():
     
     device = remote_link_config.getString('device')
     try:
-        ser = serial.Serial(port=device, baudrate=115200, timeout=0, write_timeout=0)
+        ser = serial.Serial(port=device, baudrate=115200, timeout=0, writeTimeout=0)
     except:
         print 'Opening remote link failed:', device
 	return False
