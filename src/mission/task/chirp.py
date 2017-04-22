@@ -8,11 +8,9 @@ from task import Task
 class Chirp(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.flight_node = getNode("/controls/flight", True)
         self.imu_node = getNode("/sensors/imu", True)
-        self.act_node = getNode("/actuators/actuator", True)
         self.chirp_node = getNode("/task/chirp", True)
-        
+        self.signal_node = getNode("/controls/signal", True)
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
         self.start_time = 0.0
@@ -50,7 +48,7 @@ class Chirp(Task):
             self.inject = config_node.getString("inject")
         else:
             self.inject = "aileron"
-        self.chirp_node.setString("inject", self.inject)
+        self.signal_node.setString("inject", self.inject)
         self.last_trigger = True # so we don't start out with a trigger event
         self.running = False
         
@@ -68,10 +66,10 @@ class Chirp(Task):
             self.freq_end = self.chirp_node.getFloat("freq_end_rad_sec")
             self.dur_sec = self.chirp_node.getFloat("duration_sec")
             self.amplitude = self.chirp_node.getFloat("amplitude")
-            self.inject = self.chirp_node.getString("inject")
             self.start_time = self.imu_node.getFloat("timestamp")
             self.k = (self.freq_end - self.freq_start) / (2 * self.dur_sec)
             self.running = True
+            comms.events.log("chirp", self.signal_node.getString("inject"))
             comms.events.log("chirp", "start freq %.2f rad/sec" % self.freq_start)
             comms.events.log("chirp", "amplitude %.2f" % self.amplitude)
 
@@ -87,13 +85,13 @@ class Chirp(Task):
         if self.running:
             t = cur_time - self.start_time
             chirp = self.amplitude * math.sin(self.freq_start*t + self.k*t*t)
-            self.chirp_node.setFloat("chirp_val", chirp)
-            self.chirp_node.setFloat("progress", t)
+            self.signal_node.setFloat("value", chirp)
+            self.signal_node.setFloat("progress", t)
         else:
-            self.chirp_node.setFloat("chirp_val", 0.0)
-            self.chirp_node.setFloat("progress", 0.0)
+            self.signal_node.setFloat("value", 0.0)
+            self.signal_node.setFloat("progress", 0.0)
 
-        self.chirp_node.setBool("running", self.running)
+        self.signal_node.setBool("running", self.running)
         self.last_trigger = trigger
         
     def is_complete(self):

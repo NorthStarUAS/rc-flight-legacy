@@ -26,7 +26,10 @@ class Fetcher():
         self.t.send("fcs all")
         result = self.t.receive()
         print "result '%s'" % result
-        if result == 'Valid commands are:':
+        if result == '':
+            # probably no server running
+            return
+        elif result == 'Valid commands are:':
             print "fcs all not supported by remote server"
             return    
         tokens = map(float, result.split(','))

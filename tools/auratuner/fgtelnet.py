@@ -11,7 +11,12 @@ CRLF = '\r\n'
 
 class FGTelnet(Telnet):
     def __init__(self,host,port):
-        Telnet.__init__(self,host,port)
+        self.inited = False
+        try:
+            Telnet.__init__(self,host,port)
+            self.inited = True
+        except:
+            print "Telnet initialization failed (no auralink server running?)"
         self.prompt = []
         self.prompt.append( re.compile('/[^>]*> ') )
         self.timeout = 2
@@ -64,12 +69,16 @@ class FGTelnet(Telnet):
 
     # send one command to remote server
     def send(self,cmd):
+        if not self.inited:
+            return
         cmd = cmd + CRLF;
         Telnet.write(self, cmd)
         return
 
     # read one response line from remote server
     def receive(self):
+        if not self.inited:
+            return ''
         resp = Telnet.read_until(self, '\n', self.timeout)
         # Remove the terminating prompt.
         # Everything preceding it is the response.
@@ -77,12 +86,16 @@ class FGTelnet(Telnet):
 
     # Internal: send one command to FlightGear
     def _putcmd(self,cmd):
+        if not self.inited:
+            return
         cmd = cmd + CRLF;
         Telnet.write(self, cmd)
         return
 
     # Internal: get a response from FlightGear
     def _getresp(self):
+        if not self.inited:
+            return
         (i,match,resp) = Telnet.expect(self, self.prompt, self.timeout)
         # Remove the terminating prompt.
         # Everything preceding it is the response.
