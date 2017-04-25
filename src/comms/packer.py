@@ -37,6 +37,7 @@ AP_STATUS_PACKET_V3 = 24
 RAVEN_PACKET_V1 = 25
 GPS_PACKET_V3 = 26
 EVENT_PACKET_V1 = 27
+COMMAND_PACKET_V1 = 28
 
 # python struct package notes:
 #
@@ -1086,4 +1087,19 @@ def unpack_event_v1(buf):
 
     #print 'end of unpack event'
     return index
+
+def pack_command_v1(sequence, message):
+    if len(message) > 255:
+        print "Error: command message too long, len =", len(message)
+        message = 'command too long'
+    # support an index value, but for now it will always be zero
+    command_v1_fmt = '<BB%ds' % len(message)
+    buf = struct.pack(command_v1_fmt, sequence & 0xFF, len(message), message)
+    return wrap_packet(COMMAND_PACKET_V1, buf)
+
+def unpack_command_v1(buf):
+    # unpack without knowing full size
+    (sequence, size) = struct.unpack("<BB", buf[:2])
+    message = struct.unpack("%ds" % size, buf[2:])
+    return sequence, message[0]
 
