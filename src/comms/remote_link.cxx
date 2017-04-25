@@ -6,34 +6,6 @@ pyModuleRemoteLink::pyModuleRemoteLink()
 {
 }
 
-// bool pyModuleRemoteLink::open()
-// {
-//     if (pModuleObj == NULL) {
-// 	printf("ERROR: remote_link.init() failed\n");
-// 	return false;
-//     }
-//     PyObject *pFuncOpen = PyObject_GetAttrString(pModuleObj, "open");
-//     if ( pFuncOpen == NULL || ! PyCallable_Check(pFuncOpen) ) {
-// 	if ( PyErr_Occurred() ) PyErr_Print();
-// 	printf("ERROR: cannot find function 'open()'\n");
-// 	return false;
-//     }
-
-//     // FIXME decref pFuncOpen
-    
-//     PyObject *pValue = PyObject_CallFunction(pFuncOpen, NULL);
-//     if (pValue != NULL) {
-// 	bool result = PyObject_IsTrue(pValue);
-// 	Py_DECREF(pValue);
-// 	return result;
-//     } else {
-// 	PyErr_Print();
-// 	printf("ERROR: call failed\n");
-// 	return false;
-//     }
-//     return false;
-// }
-
 void pyModuleRemoteLink::send_message( uint8_t *buf, int size ) {
     if (pModuleObj == NULL) {
 	printf("ERROR: import logging module failed\n");
