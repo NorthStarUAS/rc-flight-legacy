@@ -1,9 +1,11 @@
 import serial
-
+import serial_parser
 from props import root, getNode
 import props_json
 
 import events
+import packer
+import serial_parser
 
 status_node = getNode( '/status', True)
 route_node = getNode( '/task/route', True )
@@ -17,6 +19,7 @@ remote_link_node = getNode('/comms/remote_link', True)
 
 remote_link_on = False    # link to remote operator station
 ser = None
+parser = None
 serial_buf = ''
 max_serial_buffer = 256
 link_open = False
@@ -24,11 +27,13 @@ link_open = False
 # set up the remote link
 def init():
     global ser
+    global parser
     global link_open
     
     device = remote_link_config.getString('device')
     try:
         ser = serial.Serial(port=device, baudrate=115200, timeout=0, writeTimeout=0)
+        parser = serial_parser.serial_parser(ser)
     except:
         print 'Opening remote link failed:', device
 	return False
@@ -174,35 +179,17 @@ command_buf = ''
 def read_link_command():
     global command_buf
     
-    if ser == None:
+    if parser == None:
         # remote link open failed
-        return ''
+        return -1, ''
     
-    # read character by character until we run out of data or find a '\n'
-    # if we run out of data, save what we have so far and start with that for
-    # the next call.
-    input = ser.read(1)
-    while len(input) and input[0] != '\n':
-        command_buf += input[0]
-        input = ser.read(1)
-
-    if len(input) and input[0] == '\n':
-        result = command_buf
-        command_buf = ''
-        return result
+    pkt_id = parser.read()
+    if pkt_id >= packer.COMMAND_PACKET_V1:
+        seq, message = packer.unpack_command_v1(parser.payload)
+        return seq, message
     else:
-        return ''
+        return -1, ''
 
-
-# calculate the nmea check sum
-def calc_nmea_cksum(sentence):
-    sum = 0
-    # print 'nmea: sentence'
-    sum = ord(sentence[0]) & 0xff
-    for c in sentence[1:]:
-        sum ^= (ord(c) & 0xff)
-    # print 'sum:', sum
-    return sum
 
 # read, parse, and execute incomming commands, return True if a valid
 # command received, False otherwise.
@@ -210,43 +197,16 @@ last_sequence_num = -1
 def command():
     global last_sequence_num
     
-    result = read_link_command()
-    if result == '':
+    sequence, command = read_link_command()
+    if sequence < 0:
         return False
     
-    events.log( 'remote cmd rcvd', result )
-
-    # validate check sum
-    if len(result) < 4:
-        # bogus command
-        return False
-
-    nmea_sum = result[-2:]
-    cmd = result[:-3]
-    cmd_sum = '%02X' % calc_nmea_cksum(cmd)
-
-    if nmea_sum != cmd_sum:
-        # checksum failure
-	events.log( 'remote cmd rcvd', 'failed check sum' )
-        return False
-
-    # parse the command
-    tokens = cmd.split(',')
-    if len(tokens) < 2:
-        # bogus command
-        return False
-
-    # extract command sequence number
-    sequence = int( tokens[0] )
-
     # ignore repeated commands (including roll over logic)
     if sequence != last_sequence_num:
-	# remainder
-	cmd = ','.join(tokens[1:])
-
 	# execute command
-	events.log( 'remote cmd rcvd', 'executed valid command' )
-	execute_command( cmd )
+        events.log( 'remote command',
+                    "executed: (%d) %s" % (sequence, command) )
+	execute_command( command )
 
 	# register that we've received this message correctly
 	remote_link_node.setInt( 'sequence_num', sequence )
