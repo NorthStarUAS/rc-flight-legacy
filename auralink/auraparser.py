@@ -1,14 +1,11 @@
+import datetime
 import sys
-import string
-import time
 
 sys.path.append("../src")
 import comms.packer
+import comms.serial_parser
 
 # constants
-
-START_OF_MSG0 = 147
-START_OF_MSG1 = 224
 
 GPS_PACKET_V1 = 0
 IMU_PACKET_V1 = 1
@@ -35,6 +32,23 @@ AP_STATUS_PACKET_V3 = 24
 RAVEN_PACKET_V1 = 25
 GPS_PACKET_V3 = 26
 EVENT_PACKET_V1 = 27
+COMMAND_PACKET_V1 = 28
+
+parser = None
+f = None
+
+def init(serial):
+    global parser
+    parser = comms.serial_parser.serial_parser(serial)
+    new_logfile()
+    
+def update():
+    global parser
+    pkt_id = parser.read()
+    if pkt_id >= 0:
+        parse_msg(pkt_id, parser.payload)
+        log_msg(f, pkt_id, parser.pkt_len, parser.payload,
+                parser.cksum_lo, parser.cksum_hi)
 
 # simple 2-byte checksum
 def validate_cksum(id, size, buf, cksum0, cksum1):
@@ -56,6 +70,17 @@ def validate_cksum(id, size, buf, cksum0, cksum1):
     else:
         return False
     
+def new_logfile():
+    global f
+    
+    d = datetime.datetime.utcnow()
+    logfile = 'flight-' + d.strftime("%Y-%m-%d-%H:%M:%S") + '.log'
+    try:
+        f = open(logfile, 'wb')
+    except:
+        print "Cannot open:", logfile
+        quit()
+  
 def parse_msg(id, buf):
     # try:
     if id == GPS_PACKET_V1:
@@ -117,135 +142,13 @@ def parse_msg(id, buf):
     return index
 
 def log_msg(f, pkt_id, pkt_len, payload, cksum_lo, cksum_hi):
-    f.write(chr(START_OF_MSG0))
-    f.write(chr(START_OF_MSG1))
+    f.write(chr(comms.serial_parser.START_OF_MSG0))
+    f.write(chr(comms.serial_parser.START_OF_MSG1))
     f.write(chr(pkt_id))
     f.write(chr(pkt_len))
     f.write(payload)
     f.write(chr(cksum_lo))
     f.write(chr(cksum_hi))
-
-# 'static' variables for the serial stream and file parsers
-state = 0
-pkt_id = 0
-pkt_len = 0
-counter = 0
-cksum_A = 0
-cksum_B = 0
-cksum_lo = 0
-cksum_hi = 0
-payload = ''
-
-# FIXME: I like this feature which can catch ascii messages injected
-# in the output, although with newest code and newest hardware with a
-# dedicated uart for messages, this is actually deprecated.
-ascii_message = ''
-def glean_ascii_msgs(c, display=False):
-    global ascii_message
-    if c in string.printable:
-        ascii_message += str(c)
-    elif len(ascii_message) > 4:
-        if display: print ascii_message
-        ascii_message = ''
-
-def serial_read(ser, f):
-    global state
-    global counter
-    global pkt_id
-    global pkt_len
-    global payload
-    global cksum_A
-    global cksum_B
-    global cksum_lo
-    global cksum_hi
-
-    start_time = time.time()    # sec
-    input = ''
-    msg_id = -1
-    # print "enter update(), state:", state
-    if state == 0:
-        counter = 0
-        cksum_A = 0
-        cksum_B = 0
-        input = ser.read(1)
-        while len(input) and ord(input[0]) != START_OF_MSG0:
-            # print " state0 val:", ord(input[0])
-            glean_ascii_msgs(input[0], display=False)
-            input = ser.read(1)
-            cur_time = time.time()
-            if cur_time > start_time + 0.1:
-                # don't get stuck on a stream that has no parsable data
-                return msg_id
-        if len(input) and ord(input[0]) == START_OF_MSG0:
-            # print " read START_OF_MSG0"
-            state += 1
-    if state == 1:
-        input = ser.read(1)
-        if len(input):
-            if ord(input[0]) == START_OF_MSG1:
-                # print " read START_OF_MSG1"
-                state += 1
-            elif ord(input[0]) == START_OF_MSG0:
-                # print " read START_OF_MSG0"
-                pass
-            else:
-                state = 0
-    if state == 2:
-        input = ser.read(1)
-        if len(input):
-            pkt_id = ord(input[0])
-            cksum_A = (cksum_A + ord(input[0])) & 0xff
-            cksum_B = (cksum_B + cksum_A) & 0xff
-            # print " pkt_id:", pkt_id
-            state += 1
-    if state == 3:
-        input = ser.read(1)
-        if len(input):
-            pkt_len = ord(input[0])
-            # print " pkt_len:", pkt_len
-            # print " payload =",
-            cksum_A = (cksum_A + ord(input[0])) & 0xff
-            cksum_B = (cksum_B + cksum_A) & 0xff
-            state += 1
-    if state == 4:
-        input = ser.read(1)
-        while len(input):
-            counter += 1
-            payload += input[0]
-            # print "%02X" % ord(input[0]),
-            cksum_A = (cksum_A + ord(input[0])) & 0xff
-            cksum_B = (cksum_B + cksum_A) & 0xff
-            if counter >= pkt_len:
-                state += 1
-                # print ""
-                break
-            input = ser.read(1)
-    if state == 5:
-        input = ser.read(1)
-        if len(input):
-            cksum_lo = ord(input[0])
-            # print " cksum_lo:", cksum_lo
-            state += 1
-    if state == 6:
-        input = ser.read(1)
-        if len(input):
-            cksum_hi = ord(input[0])
-            # print " cksum_hi:", cksum_hi
-            if cksum_A == cksum_lo and cksum_B == cksum_hi and pkt_len > 0:
-                # print "checksum passes:", pkt_id, "len:", pkt_len
-                parse_msg(pkt_id, payload)
-                log_msg(f, pkt_id, pkt_len, payload, cksum_lo, cksum_hi)
-                msg_id = pkt_id
-            else:
-                # print "pkt id=%d checksum failed %d %d (computed) != %d %d (message)" % (pkt_id, cksum_A, cksum_B, cksum_lo, cksum_hi)
-                print "pkt id=%d len=%d checksum failed" % (pkt_id, pkt_len)
-            # this is the end of a record, reset state to 0 to start
-            # looking for next record
-            state = 0
-            payload = ''
-
-    # print "exit routine, msg_id:", msg_id
-    return msg_id
 
 def file_read(buf):
     global counter
@@ -256,7 +159,7 @@ def file_read(buf):
     # scan for sync characters
     sync0 = ord(buf[counter]); counter += 1
     sync1 = ord(buf[counter]); counter += 1
-    while (sync0 != START_OF_MSG0 or sync1 != START_OF_MSG1) and counter < len(buf):
+    while (sync0 != comms.serial_parser.START_OF_MSG0 or sync1 != comms.serial_parser.START_OF_MSG1) and counter < len(buf):
         sync0 = sync1
         sync1 = ord(buf[counter]); counter += 1
         print "scanning for start of message:", counter, sync0, sync1
