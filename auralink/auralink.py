@@ -9,6 +9,7 @@ import commands
 import current
 import auraparser
 import httpserver
+import joystick
 import telnet
 
 argparser = argparse.ArgumentParser(description='aura link')
