@@ -2,6 +2,10 @@ import time
 
 from props import root, getNode
 
+import sys
+sys.path.append("../src")
+import comms.packer
+
 filter_node = getNode('/filters/filter', True)
 remote_link_node = getNode('/comms/remote_link', True)
 
@@ -13,28 +17,13 @@ cmd_queue =  []
 last_sent_time = 0.0
 last_received_time = 0.0
 
-# calculate the nmea check sum
-def calc_nmea_cksum(sentence):
-    sum = 0
-    # print sentence
-    size = len(sentence)
-    sum = ord(sentence[0])
-    for i in range(1, size):
-        # print sentence[i],
-        sum = (sum ^ ord(sentence[i])) & 0xff
-    # print
-    # print "sum = %02x\n" % sum
-    return sum
-
 # package and send the serial command, returns number of bytes written
 def serial_send(serial, sequence, command):
-    package = str(sequence) + ',' + command
-    pkg_sum = "%02X" % calc_nmea_cksum(package)
-    package = package + '*' + pkg_sum + '\n'
-    print 'writing:', package.rstrip()
-    result = serial.write(package)
-    if result != len(package):
-        print "ERROR: wrote %d of %d bytes to serial port!\n" % (result, len(package))
+    packet = comms.packer.pack_command_v1(sequence, command)
+    print 'writing:', sequence, command
+    result = serial.write(packet)
+    if result != len(packet):
+        print "ERROR: wrote %d of %d bytes to serial port!\n" % (result, len(packet))
     return result
 
 # send current command until acknowledged
