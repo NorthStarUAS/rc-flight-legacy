@@ -88,7 +88,6 @@ def generate_record(category, index, delim=','):
         return record
     elif category == 'event':
         record = comms.packer.pack_event_text(index, delim)
-        print record
         return record
     # elif category == 'error':
     #     error_node = getNode("/autopilot/errors", True)
@@ -148,7 +147,7 @@ if args.flight:
                     lon = gps_node.getFloat('longitude_deg')
                     sec = gps_node.getFloat('unix_time_sec')
                     located = True
-                    current.compute_derived_data()
+            current.compute_derived_data()
             category = logical_category(id)
             record = generate_record(category, index)
             key = '%s-%d' % (category, index)
