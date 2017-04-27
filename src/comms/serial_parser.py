@@ -21,8 +21,7 @@ def glean_ascii_msgs(c, display=False):
         ascii_message = ''
 
 class serial_parser():
-    def __init__(self, port):
-        self.port = port
+    def __init__(self):
         self.state = 0
         self.pkt_id = 0
         self.pkt_len = 0
@@ -33,7 +32,7 @@ class serial_parser():
         self.cksum_hi = 0
         self.payload = ''
 
-    def read(self):
+    def read(self, ser):
         start_time = time.time()    # sec
         input = ''
         # print "enter update(), state:", self.state
@@ -42,11 +41,11 @@ class serial_parser():
             self.payload = ''
             self.cksum_A = 0
             self.cksum_B = 0
-            input = self.port.read(1)
+            input = ser.read(1)
             while len(input) and ord(input[0]) != START_OF_MSG0:
                 # print " state0 val:", ord(input[0])
                 glean_ascii_msgs(input[0], display=False)
-                input = self.port.read(1)
+                input = ser.read(1)
                 cur_time = time.time()
                 if cur_time > start_time + 0.1:
                     # don't get stuck on a stream that has no parsable data
@@ -55,7 +54,7 @@ class serial_parser():
                 # print " read START_OF_MSG0"
                 self.state += 1
         if self.state == 1:
-            input = self.port.read(1)
+            input = ser.read(1)
             if len(input):
                 if ord(input[0]) == START_OF_MSG1:
                     # print " read START_OF_MSG1"
@@ -66,7 +65,7 @@ class serial_parser():
                 else:
                     self.state = 0
         if self.state == 2:
-            input = self.port.read(1)
+            input = ser.read(1)
             if len(input):
                 self.pkt_id = ord(input[0])
                 self.cksum_A = (self.cksum_A + ord(input[0])) & 0xff
@@ -74,7 +73,7 @@ class serial_parser():
                 # print " pkt_id:", self.pkt_id
                 self.state += 1
         if self.state == 3:
-            input = self.port.read(1)
+            input = ser.read(1)
             if len(input):
                 self.pkt_len = ord(input[0])
                 # print " pkt_len:", self.pkt_len
@@ -83,7 +82,7 @@ class serial_parser():
                 self.cksum_B = (self.cksum_B + self.cksum_A) & 0xff
                 self.state += 1
         if self.state == 4:
-            input = self.port.read(1)
+            input = ser.read(1)
             while len(input):
                 self.counter += 1
                 self.payload += input[0]
@@ -94,15 +93,15 @@ class serial_parser():
                     self.state += 1
                     # print ""
                     break
-                input = self.port.read(1)
+                input = ser.read(1)
         if self.state == 5:
-            input = self.port.read(1)
+            input = ser.read(1)
             if len(input):
                 self.cksum_lo = ord(input[0])
                 # print " cksum_lo:", self.cksum_lo
                 self.state += 1
         if self.state == 6:
-            input = self.port.read(1)
+            input = ser.read(1)
             if len(input):
                 self.cksum_hi = ord(input[0])
                 # print " cksum_hi:", self.cksum_hi

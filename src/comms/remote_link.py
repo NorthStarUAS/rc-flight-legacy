@@ -1,5 +1,4 @@
 import serial
-import serial_parser
 from props import root, getNode
 import props_json
 
@@ -33,7 +32,7 @@ def init():
     device = remote_link_config.getString('device')
     try:
         ser = serial.Serial(port=device, baudrate=115200, timeout=0, writeTimeout=0)
-        parser = serial_parser.serial_parser(ser)
+        parser = serial_parser.serial_parser()
     except:
         print 'Opening remote link failed:', device
 	return False
@@ -175,15 +174,14 @@ def execute_command( command ):
 	    ground = pos_node.getFloat('altitude_ground_m')
 	    wgs84_node.setFloat( 'altitude_m', ground )
 
-command_buf = ''
 def read_link_command():
-    global command_buf
+    global ser
     
     if parser == None:
         # remote link open failed
         return -1, ''
     
-    pkt_id = parser.read()
+    pkt_id = parser.read(ser)
     if pkt_id >= packer.COMMAND_PACKET_V1:
         seq, message = packer.unpack_command_v1(parser.payload)
         return seq, message
