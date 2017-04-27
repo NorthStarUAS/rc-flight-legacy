@@ -29,7 +29,7 @@ httpserver.init(args.http_port, args.html_root)
 
 try:
     ser = serial.Serial(args.serial, args.baud, timeout=dt)
-    auraparser.init(ser)
+    auraparser.init()
 except:
     print "Cannot open:", args.serial
     import serial.tools.list_ports
@@ -40,7 +40,7 @@ except:
     quit()
 
 while True:
-    auraparser.update()
+    auraparser.update(ser)
     current.compute_derived_data()
     commands.update(ser)
     telnet.update()

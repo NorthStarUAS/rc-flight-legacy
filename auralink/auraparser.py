@@ -37,14 +37,14 @@ COMMAND_PACKET_V1 = 28
 parser = None
 f = None
 
-def init(serial):
+def init():
     global parser
-    parser = comms.serial_parser.serial_parser(serial)
+    parser = comms.serial_parser.serial_parser()
     new_logfile()
     
-def update():
+def update(ser):
     global parser
-    pkt_id = parser.read()
+    pkt_id = parser.read(ser)
     if pkt_id >= 0:
         parse_msg(pkt_id, parser.payload)
         log_msg(f, pkt_id, parser.pkt_len, parser.payload,
