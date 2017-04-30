@@ -68,7 +68,7 @@ AuraPID::AuraPID( string config_path ):
     if ( pos != string::npos ) {
 	string path = ref_prop.substr(0, pos);
 	ref_attr = ref_prop.substr(pos+1);
-	printf("path = %s attr = %s\n", path.c_str(), ref_attr.c_str());
+	// printf("path = %s attr = %s\n", path.c_str(), ref_attr.c_str());
 	ref_node = pyGetNode( path, true );
     }
 
