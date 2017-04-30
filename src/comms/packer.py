@@ -2,6 +2,8 @@ import struct
 
 from props import root, getNode
 
+from packet_id import *
+
 # FIXME: we are hard coding status flag to zero in many places which
 # means we aren't using them properly (and/or wasting bytes)
 
@@ -10,34 +12,6 @@ m2ft = 1.0 / ft2m
 
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
-
-# packet id definitions
-GPS_PACKET_V1 = 0
-IMU_PACKET_V1 = 1
-FILTER_PACKET_V1 = 2
-ACTUATOR_PACKET_V1 = 3
-PILOT_INPUT_PACKET_V1 = 4
-AP_STATUS_PACKET_V1 = 5
-AIRDATA_PACKET_V3 = 9
-AP_STATUS_PACKET_V2 = 10
-SYSTEM_HEALTH_PACKET_V2 = 11
-PAYLOAD_PACKET_V1 = 12
-AIRDATA_PACKET_V4 = 13
-SYSTEM_HEALTH_PACKET_V3 = 14
-IMU_PACKET_V2 = 15
-GPS_PACKET_V2 = 16
-IMU_PACKET_V3 = 17
-AIRDATA_PACKET_V5 = 18
-SYSTEM_HEALTH_PACKET_V4 = 19
-PILOT_INPUT_PACKET_V2 = 20
-ACTUATOR_PACKET_V2 = 21
-FILTER_PACKET_V2 = 22
-PAYLOAD_PACKET_V2 = 23
-AP_STATUS_PACKET_V3 = 24
-RAVEN_PACKET_V1 = 25
-GPS_PACKET_V3 = 26
-EVENT_PACKET_V1 = 27
-COMMAND_PACKET_V1 = 28
 
 # python struct package notes:
 #

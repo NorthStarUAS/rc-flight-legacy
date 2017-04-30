@@ -8,6 +8,8 @@ import socket
 from props import root, getNode
 import props_json
 
+from packet_id import *
+
 # global variables for data file logging
 log_buffer = []
 fdata = None
@@ -26,32 +28,6 @@ udp_host = "127.0.0.1"
 
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
-
-GPS_PACKET_V1 = 0
-IMU_PACKET_V1 = 1
-FILTER_PACKET_V1 = 2
-ACTUATOR_PACKET_V1 = 3
-PILOT_INPUT_PACKET_V1 = 4
-AP_STATUS_PACKET_V1 = 5
-AIRDATA_PACKET_V3 = 9
-AP_STATUS_PACKET_V2 = 10
-SYSTEM_HEALTH_PACKET_V2 = 11
-PAYLOAD_PACKET_V1 = 12
-AIRDATA_PACKET_V4 = 13
-SYSTEM_HEALTH_PACKET_V3 = 14
-IMU_PACKET_V2 = 15
-GPS_PACKET_V2 = 16
-IMU_PACKET_V3 = 17
-AIRDATA_PACKET_V5 = 18
-SYSTEM_HEALTH_PACKET_V4 = 19
-PILOT_INPUT_PACKET_V2 = 20
-ACTUATOR_PACKET_V2 = 21
-FILTER_PACKET_V2 = 22
-PAYLOAD_PACKET_V2 = 23
-AP_STATUS_PACKET_V3 = 24
-RAVEN_PACKET_V1 = 25
-GPS_PACKET_V3 = 26
-EVENT_PACKET_V1 = 27
 
 # scan the base path for fltNNNN directories.  Return the biggest
 # flight number
