@@ -10,6 +10,7 @@ from progress.bar import Bar
 from props import root, getNode
 
 sys.path.append("../src")
+from comms.packet_id import *
 import comms.packer
 
 import commands
@@ -19,33 +20,33 @@ import auraparser
 m2nm   = 0.0005399568034557235 # meters to nautical miles
 
 def logical_category(id):
-    if id == auraparser.GPS_PACKET_V1 or id == auraparser.GPS_PACKET_V2 or id == auraparser.GPS_PACKET_V3:
+    if id == GPS_PACKET_V1 or id == GPS_PACKET_V2 or id == GPS_PACKET_V3:
         return 'gps'
-    elif id == auraparser.IMU_PACKET_V1 or id == auraparser.IMU_PACKET_V2 \
-         or id == auraparser.IMU_PACKET_V3:
+    elif id == IMU_PACKET_V1 or id == IMU_PACKET_V2 \
+         or id == IMU_PACKET_V3:
         return 'imu'
-    elif id == auraparser.AIRDATA_PACKET_V3 or id == auraparser.AIRDATA_PACKET_V4 \
-         or id == auraparser.AIRDATA_PACKET_V5:
+    elif id == AIRDATA_PACKET_V3 or id == AIRDATA_PACKET_V4 \
+         or id == AIRDATA_PACKET_V5:
         return 'air'
-    elif id == auraparser.FILTER_PACKET_V1 or id == auraparser.FILTER_PACKET_V2:
+    elif id == FILTER_PACKET_V1 or id == FILTER_PACKET_V2:
         return 'filter'
-    elif id == auraparser.ACTUATOR_PACKET_V1 or id == auraparser.ACTUATOR_PACKET_V2:
+    elif id == ACTUATOR_PACKET_V1 or id == ACTUATOR_PACKET_V2:
         return 'act'
-    elif id == auraparser.PILOT_INPUT_PACKET_V1 \
-         or id == auraparser.PILOT_INPUT_PACKET_V2:
+    elif id == PILOT_INPUT_PACKET_V1 \
+         or id == PILOT_INPUT_PACKET_V2:
         return 'pilot'
-    elif id == auraparser.AP_STATUS_PACKET_V1 or id == auraparser.AP_STATUS_PACKET_V2 \
-         or id == auraparser.AP_STATUS_PACKET_V3:
+    elif id == AP_STATUS_PACKET_V1 or id == AP_STATUS_PACKET_V2 \
+         or id == AP_STATUS_PACKET_V3:
         return 'ap'
-    elif id == auraparser.SYSTEM_HEALTH_PACKET_V2 \
-         or id == auraparser.SYSTEM_HEALTH_PACKET_V3 \
-         or id == auraparser.SYSTEM_HEALTH_PACKET_V4:
+    elif id == SYSTEM_HEALTH_PACKET_V2 \
+         or id == SYSTEM_HEALTH_PACKET_V3 \
+         or id == SYSTEM_HEALTH_PACKET_V4:
         return 'health'
-    elif id == auraparser.PAYLOAD_PACKET_V1 or id == auraparser.PAYLOAD_PACKET_V2:
+    elif id == PAYLOAD_PACKET_V1 or id == PAYLOAD_PACKET_V2:
         return 'payload'
-    elif id == auraparser.RAVEN_PACKET_V1:
+    elif id == RAVEN_PACKET_V1:
         return 'raven'
-    elif id == auraparser.EVENT_PACKET_V1:
+    elif id == EVENT_PACKET_V1:
         return 'event'
     else:
         return 'unknown-packet-id'
