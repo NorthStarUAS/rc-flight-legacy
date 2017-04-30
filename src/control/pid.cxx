@@ -170,8 +170,17 @@ void AuraPID::update( double dt ) {
 	    output_node[i].setDouble( output_attr[i].c_str(), output );
 	}
     } else {
-	// Force iterm to zero so we don't activate with maximum windup
-	iterm = 0.0;
+        // back compute an iterm that will produce zero initial
+        // transient when activating this component
+        double u_n = output_node[0].getDouble(output_attr[0].c_str());
+	// and clip
+	double u_min = config_node.getDouble("u_min");
+	double u_max = config_node.getDouble("u_max");
+ 	if ( u_n < u_min ) { u_n = u_min; }
+	if ( u_n > u_max ) { u_n = u_max; }
+        iterm = u_n - pterm;
+        // Force iterm to zero so we don't activate with maximum windup
+        // iterm = 0.0;
     }
 }
 
