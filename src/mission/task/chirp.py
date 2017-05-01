@@ -74,7 +74,10 @@ class Chirp(Task):
             comms.events.log("chirp", "amplitude %.2f" % self.amplitude)
 
         if not trigger and self.last_trigger:
-            comms.events.log("chirp", "aborted by operator")
+            if self.running:
+                # only log an event if the abort happens when the
+                # chirp is running
+                comms.events.log("chirp", "aborted by operator")
             self.running = False
             
         cur_time = self.imu_node.getFloat("timestamp")
