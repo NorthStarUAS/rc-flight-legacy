@@ -332,7 +332,7 @@ class Land(Task):
         #    printf("side = %.1f\n", side)
 
         # create and request approach route
-        route_request = "route"
+        route_request = ""
         # start of final leg point
         (dist, deg) = self.cart2polar(self.lateral_offset_m * self.side,
                                       -final_leg_m)
