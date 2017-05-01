@@ -179,8 +179,6 @@ void AuraPID::update( double dt ) {
  	if ( u_n < u_min ) { u_n = u_min; }
 	if ( u_n > u_max ) { u_n = u_max; }
         iterm = u_n - pterm;
-        // Force iterm to zero so we don't activate with maximum windup
-        // iterm = 0.0;
     }
 }
 
