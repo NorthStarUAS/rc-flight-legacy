@@ -37,7 +37,6 @@ class Land(Task):
         self.turn_radius_m = config_node.getFloat("turn_radius_m")
         if self.turn_radius_m < 1.0:
             self.turn_radius_m = 75.0
-        # self.turn_steps = config_node.getFloat("turn_steps") # depricated
         self.direction = config_node.getString("direction")
         if self.direction == "":
             self.direction = "left"
@@ -46,12 +45,6 @@ class Land(Task):
         self.approach_speed_kt = config_node.getFloat("approach_speed_kt")
         if self.approach_speed_kt < 0.1:
             self.approach_speed_kt = 25.0
-        #self.fast_descent_gain = config_node.getFloat("fast_decent_gain")
-        #if self.fast_descent_gain < 0.1:
-        #    self.fast_descent_gain = 0.25
-        #self.fast_descent_max = config_node.getFloat("fast_decent_max")
-        #if self.fast_descent_max < 0.1:
-        #    self.fast_descent_max = 5.0
         self.flare_pitch_deg = config_node.getFloat("flare_pitch_deg")
         self.flare_seconds = config_node.getFloat("flare_seconds")
         if self.flare_seconds < 0.1:
@@ -65,7 +58,6 @@ class Land(Task):
         self.land_node.setFloat("lateral_offset_m", self.lateral_offset_m)
         self.land_node.setFloat("glideslope_deg", self.glideslope_deg)
         self.land_node.setFloat("turn_radius_m", self.turn_radius_m)
-        # self.land_node.setInt("turn_steps", self.turn_steps) # depricated
         self.land_node.setString("direction", self.direction)
         self.land_node.setFloat("extend_final_leg_m", self.extend_final_leg_m)
         self.land_node.setFloat("altitude_bias_ft", self.alt_bias_ft)
