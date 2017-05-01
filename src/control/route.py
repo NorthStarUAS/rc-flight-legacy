@@ -158,7 +158,7 @@ def dribble():
             wp.leg_dist_m = leg_dist
         wp_counter += 1
 
-def reposition():
+def reposition(force=False):
     global last_lon
     global last_lat
     global last_az
@@ -167,7 +167,7 @@ def reposition():
     home_lat = home_node.getFloat("latitude_deg");
     home_az = home_node.getFloat("azimuth_deg");
 
-    if ( abs(home_lon - last_lon) > 0.000001 or
+    if ( force or abs(home_lon - last_lon) > 0.000001 or
          abs(home_lat - last_lat) > 0.000001 or
          abs(home_az - last_az) > 0.001 ):
         for wp in active_route:
@@ -206,7 +206,7 @@ def update(dt):
         result = ''
         if build_str(request):
             swap()
-            reposition()
+            reposition(force=True)
             result = 'success: ' + request
         else:
             result = 'failed: ' + request
