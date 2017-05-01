@@ -33,6 +33,7 @@
 #include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
+#include "python/pymodule.hxx"
 
 #include "include/util.h"
 #include "ap.hxx"
@@ -41,6 +42,7 @@
 
 
 // global variables
+static pyModuleBase navigation;
 static AuraAutopilot ap;
 
 
@@ -84,6 +86,9 @@ void control_init() {
     remote_link_skip = remote_link_node.getDouble("autopilot_skip");
     logging_skip = logging_node.getDouble("autopilot_skip");
 
+    // initialize the navigation module
+    navigation.init("control.navigation");
+    
     // initialize and build the autopilot controller from the property
     // tree config (/config/autopilot)
     ap.init();
@@ -208,6 +213,9 @@ void control_update(double dt)
 	last_fcs_mode = "";
     }
 
+    // navigation update
+    navigation.update(dt);
+        
     // update the autopilot stages (even in manual flight mode.)  This
     // keeps the differential metric up to date, tracks manual inputs,
     // and keeps more continuity in the flight when the mode is
