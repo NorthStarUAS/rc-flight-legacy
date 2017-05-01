@@ -138,9 +138,6 @@ class Land(Task):
         if not self.active:
             return False
 
-        # fixme: route_mgr_prof.start()
-        # fixme: (not needed?) reposition_if_necessary()
-
         self.glideslope_rad = self.land_node.getFloat("glideslope_deg") * d2r
         self.extend_final_leg_m = self.land_node.getFloat("extend_final_leg_m")
         self.alt_bias_ft = self.land_node.getFloat("altitude_bias_ft")
@@ -148,7 +145,7 @@ class Land(Task):
         # compute glideslope/target elevation
         dist_m = self.route_node.getFloat("dist_remaining_m")
         alt_m = dist_m * math.tan(self.glideslope_rad)
-        # print "dist = %.1f alt = %.1f" % (dist_m, alt_m)
+        print "dist = %.1f alt = %.1f" % (dist_m, alt_m)
         
         # FIXME: this conditional action gets overwritten immediate after
         wpt_index = self.route_node.getInt("target_waypoint_idx")
@@ -332,11 +329,10 @@ class Land(Task):
         #    printf("side = %.1f\n", side)
 
         # create and request approach route
-        route_request = ""
         # start of final leg point
         (dist, deg) = self.cart2polar(self.lateral_offset_m * self.side,
                                       -final_leg_m)
-        route_request += ",0,%.2f,%.2f,-" % (dist, deg)
+        route_request = "0,%.2f,%.2f,-" % (dist, deg)
         # touchdown point
         (dist, deg) = self.cart2polar(self.lateral_offset_m * self.side, 0.0)
         route_request += ",0,%.2f,%.2f,-" % (dist, deg)
