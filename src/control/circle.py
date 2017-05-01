@@ -110,7 +110,10 @@ def update(dt):
     accel = 2.0 * math.sin(course_error * d2r) * VomegaA
 
     # circling acceleration needed for our current distance from center
-    turn_accel = direction * gs_mps * gs_mps / dist_m
+    if dist_m > 0.1:
+        turn_accel = direction * gs_mps * gs_mps / dist_m
+    else:
+        turn_accel = 0.0
 
     # compute desired acceleration = acceleration required for course
     # correction + acceleration required to maintain turn at current

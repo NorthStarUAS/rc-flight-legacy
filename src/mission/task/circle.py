@@ -9,11 +9,6 @@ from props import root, getNode
 import comms.events
 from task import Task
 
-d2r = math.pi / 180.0
-r2d = 180.0 / math.pi
-sqrt_of_2 = math.sqrt(2.0)
-gravity = 9.81                  # m/sec^2
-
 class Circle(Task):
     def __init__(self, config_node):
         Task.__init__(self)
