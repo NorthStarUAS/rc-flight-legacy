@@ -183,13 +183,17 @@ def reposition():
 
 def get_remaining_distance_from_next_waypoint():
     result = 0
+    print "wp dist:", 
     for wp in active_route[current_wp:] :
         result += wp.leg_dist_m
+        print wp.leg_dist_m,
+    print "result:", result
     return result
     
 def update(dt):
     global current_wp
     global acquired
+    global distance_remaining
     
     reposition()
 
