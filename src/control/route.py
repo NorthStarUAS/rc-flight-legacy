@@ -50,15 +50,6 @@ def init():
     route_node.setString('follow_mode', 'leader');
     route_node.setString('start_mode', 'first_wpt');
     route_node.setString('completion_mode', 'loop');
-
-    # FIXME ...
-    # load a route if included in config tree
-    #if build(config_node):
-    #    swap()
-    #else:
-    #    print 'Detected an internal inconsistency in the route'
-    #    print ' configuration.  See earlier errors for details.'
-    #    quit()
         
 # build route from a property tree node
 def build(config_node):
@@ -198,7 +189,7 @@ def get_remaining_distance_from_next_waypoint():
     
 def update(dt):
     global current_wp
-    global aquired
+    global acquired
     
     reposition()
 

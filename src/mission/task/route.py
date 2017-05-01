@@ -3,6 +3,8 @@ import math
 from props import root, getNode
 
 import comms.events
+import control.route
+
 from task import Task
 
 class Route(Task):
@@ -27,14 +29,13 @@ class Route(Task):
         self.alt_agl_ft = config_node.getFloat('altitude_agl_ft')
         self.speed_kt = config_node.getFloat('speed_kt')
 
-        print "task/route fixme ..."
         # load a route if included in config tree
-        # if self.build(config_node):
-        #     self.swap()
-        # else:
-        #     print 'Detected an internal inconsistency in the route'
-	#     print ' configuration.  See earlier errors for details.'
-	#     quit()
+        if control.route.build(config_node):
+            control.route.swap()
+        else:
+            print 'Detected an internal inconsistency in the route'
+	    print ' configuration.  See earlier errors for details.'
+	    quit()
             
     def activate(self):
         self.active = True
