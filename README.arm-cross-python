@@ -1,5 +1,8 @@
 https://mmatyas.github.io/blog/servo-short-cross-compilation-guide
 
+dnf install debootstrap qemu qemu-user-static
+dnf provides '*/qemu-debootstrap'
+
 qemu-debootstrap --arch=armhf --verbose jessie rootfs-jessie-armhf
 
 <go get a coffee>

@@ -15,13 +15,18 @@ On Linux (Fedora) computer:
 # iptables --append FORWARD --in-interface enp0s20u1 -j ACCEPT
 # echo 1 > /proc/sys/net/ipv4/ip_forward
 
+On my home desktop:
+# iptables --table nat --append POSTROUTING --out-interface enp7s0 -j MASQUERADE
+# iptables --append FORWARD --in-interface enp0s22f2u2 -j ACCEPT
+# echo 1 > /proc/sys/net/ipv4/ip_forward
+
 Network config: (required before beaglebone dns lookups will actually work)
 -> Select usb ethernet interface
 -> Select gear icon for settings.
 -> Select identity
 -> Firewall Zone -> trusted
 
-Finally (?) Turn off usb ethernet and reactivate it.
+Finally, turn off usb ethernet and reactivate it.
 
 
 # for really old wheezy installs (like what might come onboard the
@@ -48,48 +53,17 @@ Finally (?) Turn off usb ethernet and reactivate it.
   fi
 
 
-# Beaglebone 8.4 (jessie) setup:
+# Beaglebone 8.6 (jessie) setup:
 
 - /boot/uEnv.txt:
-
     # AuraUAS
     cape_disable=bone_capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
     cape_enable=bone_capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
 
-# (depricated) Beaglebone 7.9 (wheezy) setup:
-
-  - /boot/uEnv.txt:
-
-    cmdline=init=/lib/systemd/systemd
-    cape_enable=capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
-    cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
-
-  - alternative for /boot/uboot/uEnv.txt
-
-    ##Enable systemd
-    systemd=quiet init=/lib/systemd/systemd
-    
-    #Disable HDMI, enable some uarts
-    optargs="capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4"
-
-
-# Upgrade system to latest security and bug fix patches
-
-- apt-get update
-- apt-get upgrade
-
-
-# Install extra required and/or useful things
-
-- apt-get install telnet minicom python-lxml libeigen3-dev
-
-
 # remove wicd
-
 - apt-get remove python-wicd wicd-cli wicd wicd-curses wicd-daemon wicd-gtk wicd-kde
 
 # then fix up /etc/network/interfaces for eth0
-
 
 # remove stuff we don't need that could cause performance disruptions
 
@@ -101,6 +75,27 @@ Finally (?) Turn off usb ethernet and reactivate it.
 
 - apt-get autoremove    # remove remaining unused dependencies
 
+# remove stuff that takes up disk space
+  - dpkg-query -W --showformat='${Installed-Size;10}\t${Package}\n' | sort -k1,1n
+  - apt remove --purge ti-llvm-3.6 chromium-browser
+  - apt remove --purge c9-core-installer libllvm3.9 ti-opencl firmware-am57xx-opencl-monitor bone101 oxygen-icon-theme
+  - apt remove upm libllvm3.5
+
+# Remove any abandoned packages (installed previously to support
+# something that was removed and is no longer needed.)
+
+  - apt-get autoremove
+
+# Upgrade system to latest security and bug fix patches
+
+- apt update
+- apt upgrade
+
+
+# Install extra required and/or useful things
+
+- apt install telnet minicom python-lxml libeigen3-dev zlib1g-dev
+- apt install libboost-python-dev
 
 # disable service (for good measure), ok if these aren't found now
 
@@ -132,4 +127,12 @@ Finally (?) Turn off usb ethernet and reactivate it.
   ./update_kernel.sh
   reboot
 
-  linux-firmware-image-3.8.13-bone80 (1wheezy) 
+  linux-firmware-image-3.8.13-bone80 (1wheezy)
+
+# setup swap file (ex: if needed for giant boost/python compiles)
+
+ mkdir -p /var/cache/swap/
+ dd if=/dev/zero of=/var/cache/swap/swapfile bs=1M count=(size in MB)
+ chmod 0600 /var/cache/swap/swapfile
+ mkswap /var/cache/swap/swapfile
+ swapon /var/cache/swap/swapfile
