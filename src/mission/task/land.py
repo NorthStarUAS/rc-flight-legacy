@@ -18,6 +18,7 @@ class Land(Task):
         self.land_node = getNode("/task/land", True)
         self.route_node = getNode("/task/route", True)
         self.ap_node = getNode("/autopilot", True)
+        self.nav_node = getNode("/navigation", True)
         self.pos_node = getNode("/position", True)
         self.vel_node = getNode("/velocity", True)
         self.orient_node = getNode("/orientation", True)
@@ -79,6 +80,7 @@ class Land(Task):
         self.flare_pitch_range = 0.0
 
         self.saved_fcs_mode = ""
+        self.saved_nav_mode = ""
         self.saved_agl_ft = 0.0
         self.saved_speed_kt = 0.0
 
@@ -98,10 +100,12 @@ class Land(Task):
 
             # Save existing state
             self.saved_fcs_mode = self.ap_node.getString("mode")
+            self.saved_nav_mode = self.nav_node.getString("mode")
             self.saved_agl_ft = self.targets_node.getFloat("altitude_agl_ft")
             self.saved_speed_kt = self.targets_node.getFloat("airspeed_kt")
 
         self.ap_node.setString("mode", "basic+alt+speed")
+        self.nav_node.setString("mode", "route")
         self.targets_node.setFloat("airspeed_kt",
                                    self.land_node.getFloat("approach_speed_kt"))
         self.flight_node.setFloat("flaps_setpoint", self.flaps)
@@ -137,7 +141,7 @@ class Land(Task):
         # compute glideslope/target elevation
         dist_m = self.route_node.getFloat("dist_remaining_m")
         alt_m = dist_m * math.tan(self.glideslope_rad)
-        print "dist = %.1f alt = %.1f" % (dist_m, alt_m)
+        # print "dist = %.1f alt = %.1f" % (dist_m, alt_m)
         
         # FIXME: this conditional action gets overwritten immediate after
         wpt_index = self.route_node.getInt("target_waypoint_idx")
@@ -290,6 +294,7 @@ class Land(Task):
     def close(self):
         # restore the previous state
         self.ap_node.setString("mode", self.saved_fcs_mode)
+        self.nav_node.setString("mode", self.saved_nav_mode)
         self.targets_node.setFloat("airspeed_kt", self.saved_speed_kt)
         self.targets_node.setFloat("altitude_agl_ft", self.saved_agl_ft );
         self.flight_node.setFloat("flaps_setpoint", 0.0)
