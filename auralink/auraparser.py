@@ -122,6 +122,7 @@ def log_msg(f, pkt_id, pkt_len, payload, cksum_lo, cksum_hi):
     f.write(chr(cksum_lo))
     f.write(chr(cksum_hi))
 
+counter = 0
 def file_read(buf):
     global counter
     
