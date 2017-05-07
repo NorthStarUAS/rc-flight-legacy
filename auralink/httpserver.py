@@ -6,6 +6,7 @@ import tornado.httpserver
 import tornado.websocket
 
 from props import root, getNode
+import props_json
 
 import commands
 
@@ -21,7 +22,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         # print 'sending back message: %s' % message[::-1]
         # self.write_message(message[::-1])
 
-        # I forget what exaclty this tries to do
+        # I forget what exactly this tries to do
         # tmp = message.split('/')
         # tmppath = '/'.join(tmp[0:-1])
         # if tmppath == '':
@@ -34,7 +35,12 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         tokens = message.split()
         # print tokens
         if tokens[0] == 'get':
-            if tokens[1] == 'update_json':
+            if tokens[1] == 'full_json':
+                dict_mirror = {}
+                props_json.buildDict(dict_mirror, root)
+                fulls = json.dumps(dict_mirror)
+                self.write_message('full_json ' + json.dumps(dict_mirror, separators=(',',':')) + '\r\n')
+            elif tokens[1] == 'update_json':
                 dict = {}
                 dict['lon'] = "%.8f" % self.filter_node.getFloat('longitude_deg')
                 dict['lat'] = "%.8f" % self.filter_node.getFloat('latitude_deg')
