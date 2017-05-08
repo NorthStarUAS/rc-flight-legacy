@@ -36,7 +36,7 @@ def logical_category(id):
          or id == PILOT_INPUT_PACKET_V2:
         return 'pilot'
     elif id == AP_STATUS_PACKET_V1 or id == AP_STATUS_PACKET_V2 \
-         or id == AP_STATUS_PACKET_V3:
+         or id == AP_STATUS_PACKET_V3 or id == AP_STATUS_PACKET_V4:
         return 'ap'
     elif id == SYSTEM_HEALTH_PACKET_V2 \
          or id == SYSTEM_HEALTH_PACKET_V3 \

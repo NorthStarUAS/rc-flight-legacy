@@ -91,6 +91,8 @@ def parse_msg(id, buf):
         index = comms.packer.unpack_ap_status_v2(buf)
     elif id == AP_STATUS_PACKET_V3:
         index = comms.packer.unpack_ap_status_v3(buf)
+    elif id == AP_STATUS_PACKET_V4:
+        index = comms.packer.unpack_ap_status_v4(buf)
     elif id == SYSTEM_HEALTH_PACKET_V2:
         index = comms.packer.unpack_system_health_v2(buf)
     elif id == SYSTEM_HEALTH_PACKET_V3:
