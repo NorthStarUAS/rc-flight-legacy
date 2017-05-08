@@ -189,8 +189,7 @@ for key in sorted(data):
 
 print
 print "Total log time: %.1f min" % (total_time / 60.0)
-print "On board flight timer: %.1f min" % (status_node.getFloat('flight_timer') / 60.0)
-print "Flight timer: %.1f min" % (status_node.getFloat('local_flight_timer') / 60.0)
+print "Flight timer: %.1f min" % (status_node.getFloat('flight_timer') / 60.0)
 print "Autopilot time: %.1f min" % (status_node.getFloat('local_autopilot_timer') / 60.0)
 print "Distance flown: %.2f nm (%.2f km)" % (status_node.getFloat('flight_odometer')*m2nm, status_node.getFloat('flight_odometer')*0.001)
 print "Battery Usage: %.0f mah" % apm2_node.getInt("extern_current_mah")

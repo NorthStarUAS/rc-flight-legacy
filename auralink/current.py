@@ -27,23 +27,17 @@ def compute_derived_data():
     filter_node.setFloat("groundtrack_deg", hdg)
     filter_node.setFloat("speed_ms", vel_ms)
 
+    # compute frame dt
+    current_time = filter_node.getFloat('timestamp')
+    dt = current_time - last_time
+    last_time = current_time
+
     # local 'airborne' helper (not official)
     if vel_node.getFloat('airspeed_smoothed_kt') > 15:
         in_flight = True
     else:
         in_flight = False
     
-    # compute frame dt
-    current_time = filter_node.getFloat('timestamp')
-    dt = current_time - last_time
-    last_time = current_time
-
-    # local flight timer
-    if in_flight:
-        timer = status_node.getFloat('local_flight_timer')
-        timer += dt
-        status_node.setFloat('local_flight_timer', timer)
-
     # local autopilot timer
     ap_enabled = False
     if pilot_node.getFloatEnum("channel", 7) > 0:
