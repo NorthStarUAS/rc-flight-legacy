@@ -36,6 +36,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         # print tokens
         if tokens[0] == 'get':
             if tokens[1] == 'full_json':
+                commands.remote_lost_link_predict()
                 dict_mirror = {}
                 props_json.buildDict(dict_mirror, root)
                 fulls = json.dumps(dict_mirror)

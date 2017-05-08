@@ -94,7 +94,7 @@ def remote_lost_link_predict():
     
     # print "last = %.2f  cur = %.2f", (last_delivered_time, current_time)
     if last_received_time + 60 > time.time():
-	return True
+        remote_link_node.setString("link_state", "ok")
     else:
-	return False
+        remote_link_node.setString("link_state", "lost")
 
