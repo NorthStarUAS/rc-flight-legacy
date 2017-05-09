@@ -77,6 +77,8 @@ def parse_msg(id, buf):
         index = comms.packer.unpack_filter_v1(buf)
     elif id == FILTER_PACKET_V2:
         index = comms.packer.unpack_filter_v2(buf)
+    elif id == FILTER_PACKET_V3:
+        index = comms.packer.unpack_filter_v3(buf)
     elif id == ACTUATOR_PACKET_V1:
         index = comms.packer.unpack_act_v1(buf)
     elif id == ACTUATOR_PACKET_V2:

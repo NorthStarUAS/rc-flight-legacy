@@ -28,7 +28,8 @@ def logical_category(id):
     elif id == AIRDATA_PACKET_V3 or id == AIRDATA_PACKET_V4 \
          or id == AIRDATA_PACKET_V5:
         return 'air'
-    elif id == FILTER_PACKET_V1 or id == FILTER_PACKET_V2:
+    elif id == FILTER_PACKET_V1 or id == FILTER_PACKET_V2 \
+         or id == FILTER_PACKET_V3:
         return 'filter'
     elif id == ACTUATOR_PACKET_V1 or id == ACTUATOR_PACKET_V2:
         return 'act'

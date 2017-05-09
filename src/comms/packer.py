@@ -59,6 +59,8 @@ filter_v1_fmt = "<dddfhhhhhhBB"
 filter_v1_size = struct.calcsize(filter_v1_fmt)
 filter_v2_fmt = "<BdddfhhhhhhBB"
 filter_v2_size = struct.calcsize(filter_v2_fmt)
+filter_v3_fmt = "<BdddfhhhhhhhhhhhhBB"
+filter_v3_size = struct.calcsize(filter_v3_fmt)
 
 NUM_ACTUATORS = 8
 act_node = getNode("/actuators", True)
@@ -281,7 +283,7 @@ def pack_imu_v3(index):
                       node.getFloat("hx"),
                       node.getFloat("hy"),
                       node.getFloat("hz"),
-                      int(node.getFloat("temp_C") * 10.0),
+                      int(round(node.getFloat("temp_C") * 10.0)),
                       0)
     return wrap_packet(IMU_PACKET_V3, buf)
 
@@ -374,7 +376,7 @@ def unpack_imu_v3(buf):
     node.setInt("status", result[12])
 
     return index
-    
+
 def pack_airdata_v5(index):
     if index >= len(airdata_nodes):
         for i in range(len(airdata_nodes),index+1):
@@ -508,6 +510,35 @@ def pack_filter_v2(index):
                       0)
     return wrap_packet(FILTER_PACKET_V2, buf)
 
+def pack_filter_v3(index):
+    if index >= len(filter_nodes):
+        for i in range(len(filter_nodes),index+1):
+            path = '/filters/filter[%d]' % i
+            filter_nodes.append( getNode(path, True) )
+    node = filter_nodes[index]
+
+    buf = struct.pack(filter_v3_fmt,
+                      index,
+                      node.getFloat("timestamp"),
+                      node.getFloat("latitude_deg"),
+                      node.getFloat("longitude_deg"),
+                      node.getFloat("altitude_m"),
+                      int(node.getFloat("vn_ms") * 100),
+                      int(node.getFloat("ve_ms") * 100),
+                      int(node.getFloat("vd_ms") * 100),
+                      int(node.getFloat("roll_deg") * 10),
+                      int(node.getFloat("pitch_deg") * 10),
+                      int(node.getFloat("heading_deg") * 10),
+                      int(round(node.getFloat("p_bias") * 1000.0)),
+                      int(round(node.getFloat("q_bias") * 1000.0)),
+                      int(round(node.getFloat("r_bias") * 1000.0)),
+                      int(round(node.getFloat("ax_bias") * 1000.0)),
+                      int(round(node.getFloat("ay_bias") * 1000.0)),
+                      int(round(node.getFloat("az_bias") * 1000.0)),
+                      remote_link_node.getInt("sequence_num"),
+                      0)
+    return wrap_packet(FILTER_PACKET_V3, buf)
+
 def pack_filter_text(index, delim=','):
     filter_node = getNode('/filters/filter[%d]' % index, True)
     data = [ '%.4f' % filter_node.getFloat('timestamp'),
@@ -570,6 +601,37 @@ def unpack_filter_v2(buf):
     node.setFloat("heading_deg", result[10] / 10.0)
     remote_link_node.setInt("sequence_num", result[11])
     node.setInt("status", result[12])
+
+    return index
+
+def unpack_filter_v3(buf):
+    result = struct.unpack(filter_v3_fmt, buf)
+    
+    index = result[0]
+    if index >= len(filter_nodes):
+        for i in range(len(filter_nodes),index+1):
+            path = '/filters/filter[%d]' % i
+            filter_nodes.append( getNode(path, True) )
+    node = filter_nodes[index]
+
+    node.setFloat("timestamp", result[1])
+    node.setFloat("latitude_deg", result[2])
+    node.setFloat("longitude_deg", result[3])
+    node.setFloat("altitude_m", result[4])
+    node.setFloat("vn_ms", result[5] / 100.0)
+    node.setFloat("ve_ms", result[6] / 100.0)
+    node.setFloat("vd_ms", result[7] / 100.0)
+    node.setFloat("roll_deg", result[8] / 10.0)
+    node.setFloat("pitch_deg", result[9] / 10.0)
+    node.setFloat("heading_deg", result[10] / 10.0)
+    node.setFloat("p_bias", result[11] / 1000.0)
+    node.setFloat("q_bias", result[12] / 1000.0)
+    node.setFloat("r_bias", result[13] / 1000.0)
+    node.setFloat("ax_bias", result[14] / 1000.0)
+    node.setFloat("ay_bias", result[15] / 1000.0)
+    node.setFloat("az_bias", result[16] / 1000.0)
+    remote_link_node.setInt("sequence_num", result[17])
+    node.setInt("status", result[18])
 
     return index
 
