@@ -154,7 +154,7 @@ def dribble():
             next = active_route[wp_counter+1]
             (leg_course, reverse_course, leg_dist) = \
                 nav.wgs84.geo_inverse_wgs84( wp.lon_deg, wp.lat_deg,
-                                               next.lon_deg, next.lat_deg)
+                                             next.lon_deg, next.lat_deg)
             wp.leg_dist_m = leg_dist
         wp_counter += 1
 
