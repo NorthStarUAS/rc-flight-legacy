@@ -34,7 +34,7 @@ last_lon = 0.0
 last_lat = 0.0
 last_az = 0.0
 wp_counter = 0
-dist_remaining = 0.0
+dist_valid = False
 
 def init():
     # sanity check, set some conservative values if none are
@@ -133,9 +133,14 @@ def increment_current_wp():
     else:
         current_wp = 0
 
-def dribble():
+def dribble(reset=False):
     global wp_counter
+    global dist_valid
     
+    if reset:
+        wp_counter = 0
+        dist_value = False
+        
     # dribble active route into the active_node tree (one waypoint
     # per interation to keep the load consistent and light.)
     route_size = len(active_route)
@@ -143,6 +148,7 @@ def dribble():
     if route_size > 0:
         if wp_counter >= route_size:
             wp_counter = 0
+            dist_valid = True
         wp = active_route[wp_counter]
         wp_str = 'wpt[%d]' % wp_counter
         wp_node = active_route_node.getChild(wp_str, True)
@@ -190,7 +196,6 @@ def get_remaining_distance_from_next_waypoint():
 def update(dt):
     global current_wp
     global acquired
-    global distance_remaining
     
     reposition()
 
@@ -205,6 +210,7 @@ def update(dt):
             swap()
             reposition(force=True)
             result = 'success: ' + request
+            dribble(reset=True)
         else:
             result = 'failed: ' + request
         route_node.setString('request_result', result)
@@ -346,8 +352,11 @@ def update(dt):
             targets_node.setFloat( 'roll_deg', target_bank_deg )
 
             # estimate distance remaining to completion of route
-            dist_remaining_m = nav_dist_m + \
-                get_remaining_distance_from_next_waypoint()
+            if dist_valid:
+                dist_remaining_m = nav_dist_m + \
+                                   get_remaining_distance_from_next_waypoint()
+            else:
+                dist_remaining_m = 1000 # lots
             route_node.setFloat('dist_remaining_m', dist_remaining_m)
 
             #if comms_node.getBool('display_on'):
