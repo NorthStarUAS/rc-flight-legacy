@@ -57,9 +57,10 @@ def update(dt):
         center_lat = pos_lat
 
     # compute course and distance to center of target circle
+    # fixme: should reverse this and direction sense to match 'land.py' and make more sense
     (course_deg, reverse_deg, dist_m) = \
         nav.wgs84.geo_inverse_wgs84( pos_lat, pos_lon,
-                                       center_lat, center_lon )
+                                     center_lat, center_lon )
 
     # compute ideal ground course to be on the circle perimeter if at
     # ideal radius
