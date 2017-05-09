@@ -1,5 +1,9 @@
 import math
 
+import sys
+sys.path.append('/usr/local/lib')
+import nav.wgs84
+
 from props import root, getNode
 
 import comms.events
@@ -15,7 +19,9 @@ class Land(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.task_node = getNode("/task", True)
+        self.home_node = getNode("/task/home", True)
         self.land_node = getNode("/task/land", True)
+        self.circle_node = getNode("/task/circle", True)
         self.route_node = getNode("/task/route", True)
         self.ap_node = getNode("/autopilot", True)
         self.nav_node = getNode("/navigation", True)
@@ -25,7 +31,6 @@ class Land(Task):
 	self.flight_node = getNode("/controls/flight", True)
         self.engine_node = getNode("/controls/engine", True)
         self.imu_node = getNode("/sensors/imu", True)
-        self.home_node = getNode("/task/home", True)
         self.targets_node = getNode("/autopilot/targets", True)
 
         # get task configuration parameters
@@ -66,18 +71,16 @@ class Land(Task):
         self.land_node.setFloat("flare_pitch_deg", self.flare_pitch_deg)
         self.land_node.setFloat("flare_seconds", self.flare_seconds)
 
-        self.last_lon = 0.0
-        self.last_lat = 0.0
-        self.last_az = 0.0
-
         self.side = -1.0
-        self.approach_len_m = 0.0
-        self.entry_agl_ft = 0.0
         self.flare = False
         self.flare_start_time = 0.0
         self.approach_throttle = 0.0
         self.approach_pitch = 0.0
         self.flare_pitch_range = 0.0
+        self.final_heading_deg = 0.0
+        self.final_leg_m = 0.0
+        self.circle_capture = False
+        self.gs_capture = False
 
         self.saved_fcs_mode = ""
         self.saved_nav_mode = ""
@@ -89,15 +92,6 @@ class Land(Task):
             # build the approach with the current property tree values
             self.build_approach()
 
-            # compute the approach entry altitude from the designed
-            # approach route length
-            self.entry_agl_ft = self.approach_len_m * m2ft \
-                * math.tan( self.land_node.getFloat("glideslope_deg") * d2r )
-            # fixme
-            # if display_on:
-            #     printf("Approach distance m = %.1f, entry agl ft = %.1f\n",
-            #            self.approach_len_m, self.entry_agl_ft)
-
             # Save existing state
             self.saved_fcs_mode = self.ap_node.getString("mode")
             self.saved_nav_mode = self.nav_node.getString("mode")
@@ -105,7 +99,7 @@ class Land(Task):
             self.saved_speed_kt = self.targets_node.getFloat("airspeed_kt")
 
         self.ap_node.setString("mode", "basic+alt+speed")
-        self.nav_node.setString("mode", "route")
+        self.nav_node.setString("mode", "circle")
         self.targets_node.setFloat("airspeed_kt",
                                    self.land_node.getFloat("approach_speed_kt"))
         self.flight_node.setFloat("flaps_setpoint", self.flaps)
@@ -113,6 +107,8 @@ class Land(Task):
         # start at the beginning of the route (in case we inherit a
         # partially flown approach from earlier in the flight)
         # approach_mgr.restart() # FIXME
+        self.circle_capture = False
+        self.gs_capture = False
         self.flare = False
 
         self.active = True
@@ -138,88 +134,73 @@ class Land(Task):
         self.extend_final_leg_m = self.land_node.getFloat("extend_final_leg_m")
         self.alt_bias_ft = self.land_node.getFloat("altitude_bias_ft")
 
-        # compute glideslope/target elevation
-        dist_m = self.route_node.getFloat("dist_remaining_m")
-        alt_m = dist_m * math.tan(self.glideslope_rad)
-        # print "dist = %.1f alt = %.1f" % (dist_m, alt_m)
-        
-        # FIXME: this conditional action gets overwritten immediate after
-        wpt_index = self.route_node.getInt("target_waypoint_idx")
-        if wpt_index == 0:
-            # fly entry altitude to first waypoint
-            self.targets_node.setFloat("altitude_agl_ft",
-                                       self.entry_agl_ft + self.alt_bias_ft)
+        mode = self.nav_node.getString('mode')
+        if mode == 'circle':
+            # circle descent portion of the approach
+            pos_lon = self.pos_node.getFloat("longitude_deg")
+            pos_lat = self.pos_node.getFloat("latitude_deg")
+            center_lon = self.circle_node.getFloat("longitude_deg")
+            center_lat = self.circle_node.getFloat("latitude_deg")
+            # compute course and distance to center of target circle
+            (course_deg, reverse_deg, cur_dist_m) = \
+                nav.wgs84.geo_inverse_wgs84( center_lat, center_lon,
+                                             pos_lat, pos_lon )
+            # test for circle capture
+            if not self.circle_capture:
+                err = abs(cur_dist_m - self.turn_radius_m)
+                fraction = err / self.turn_radius_m
+                print 'heading to circle:', err, fraction
+                if fraction > 0.75 and fraction < 1.25:
+                    # within 25% of circle radius, call the circle capture
+                    comms.events.log("land", "descent circle capture")
+                    self.circle_capture = True
+                    
+            # compute portion of circle remaining to tangent point
+            current_crs = course_deg + self.side * 90
+            if current_crs > 360.0: current_crs -= 360.0
+            if current_crs < 0.0: current_crs += 360.0
+            diff = current_crs - self.final_heading_deg
+            if diff < -180.0: diff += 360.0
+            if diff > 180.0: diff -= 360.0
+            # print 'diff:', self.orient_node.getFloat('groundtrack_deg'), current_crs, self.final_heading_deg, diff
+            if self.circle_capture and diff > -10:
+                # within 180 degrees towards tangent point (or just
+                # slightly passed)
+                dist_m = (diff * math.pi / 180.0) * cur_dist_m \
+                         + self.final_leg_m
+            else:
+                dist_m = math.pi * cur_dist_m + self.final_leg_m
+            if self.circle_capture and self.gs_capture:
+                # we are on the circle and on the glide slope, lets
+                # look for our exit point
+                if abs(diff) <= 10.0:
+                    comms.events.log("land", "transition to final")
+                    self.nav_node.setString("mode", "route")
         else:
-            # fly glide slope after first waypoint
-            self.targets_node.setFloat("altitude_agl_ft",
-                                       alt_m * m2ft + self.alt_bias_ft )
+            # on final approach
+            dist_m = self.route_node.getFloat("dist_remaining_m")
+
+        # compute glideslope/target elevation
+        alt_m = dist_m * math.tan(self.glideslope_rad)
+        print ' ', mode, "dist = %.1f alt = %.1f" % (dist_m, alt_m)
+
         # fly glide slope after first waypoint
         self.targets_node.setFloat("altitude_agl_ft",
                                    alt_m * m2ft + self.alt_bias_ft )
 
         # compute error metrics
         alt_error_ft = self.pos_node.getFloat("altitude_agl_ft") - self.targets_node.getFloat("altitude_agl_ft")
-        # print "alt_error_ft = %.1f" % alt_error_ft
-        # current_glideslope_deg = math.atan2(self.pos_node.getFloat("altitude_agl_m), dist_m) * r2d
+        gs_error = math.atan2(alt_error_ft * 0.3048, dist_m) * r2d
+        print "alt_error_ft = %.1f" % alt_error_ft, "gs err = %.1f" % gs_error
 
-        # adjust target speed if postive altitude error
-        target_speed = self.approach_speed_kt
-        # if alt_error_ft > 0.0:
-        #     speed_adjust = alt_error_ft * self.fast_descent_gain
-        #     if speed_adjust > self.fast_descent_max:
-        #         speed_adjust = self.fast_descent_max
-        #     target_speed += speed_adjust
-        #     #print 'appr kts =', target_speed
-        self.targets_node.setFloat("airspeed_kt", target_speed)
+        if self.circle_capture and not self.gs_capture:
+            # on the circle, but haven't intercepted gs
+            print 'waiting for gs intercept'
+            if gs_error <= 1.0:
+                # 1 degree or less glide slope error, call the gs captured
+                comms.events.log("land", "glide slope capture")
+                self.gs_capture = True
         
-        if wpt_index <= 1:
-            # still tracking first or second waypoint of approach
-            # route... (in case we start the approach over the first
-            # waypoint and immediately find ourself tracking the
-            # second one.)
-            if alt_error_ft > 50.0:
-                # more than 50' higher than target altitude, command a
-                # circle descent to the approach entry altitude.
-
-                # compute descending circle exit heading based on
-                # approach direction (handedness)
-                final_heading_deg = self.home_node.getFloat("azimuth_deg")
-                exit_hdg = final_heading_deg
-                dir = "left"
-                if self.side < 0.0:
-                    exit_hdg += 20.0
-                    dir = "left"
-                else:
-                    exit_hdg -= 20.0
-                    dir = "right"
-                if exit_hdg < 0.0:
-                    exit_hdg += 360.0
-                if exit_hdg > 360.0:
-                    exit_hdg -= 360.0
-
-                self.radius_m = self.land_node.getFloat("turn_radius_m")
-                x = self.radius_m * self.side
-                y = -2.0*self.radius_m - self.extend_final_leg_m
-                #print "x,y:", (x, y)
-                (offset_dist, offset_deg) = self.cart2polar(x, y)
-                #print "dist,deg:", (offset_dist, offset_deg)
-                circle_offset_deg = final_heading_deg + offset_deg
-                if circle_offset_deg < 0.0:
-                    circle_offset_deg += 360.0
-                if circle_offset_deg > 360.0:
-                    circle_offset_deg -= 360.0
-                #print "circle_offset_deg:", circle_offset_deg
-                td = (self.home_node.getFloat("latitude_deg"),
-                      self.home_node.getFloat("longitude_deg"))
-                (cc_lat, cc_lon) = mission.greatcircle.project_course_distance( td, circle_offset_deg, offset_dist)
-                
-                #print "requesting circle descent task"
-                exit_agl_ft = self.entry_agl_ft + self.alt_bias_ft
-                mission.mission_mgr.m.request_task_circle_descent(cc_lon, cc_lat, self.radius_m, dir, exit_agl_ft, exit_hdg)
-                #print "entry_agl=%.1f bias_ft=%.1f" % (self.entry_agl_ft, self.alt_bias_ft)
-                # instruct the autopilot to descend to exit altitude
-                self.targets_node.setFloat( "altitude_agl_ft", exit_agl_ft )
-
         # compute time to touchdown at current ground speed (assuming the
         # navigation system has lined us up properly
         ground_speed_ms = self.vel_node.getFloat("groundspeed_ms")
@@ -274,8 +255,6 @@ class Land(Task):
         #    printf("land dist = %.0f target alt = %.0f\n",
         #           dist_m, alt_m * SG_METER_TO_FEET + self.alt_bias_ft)
 
-        # fixme: route_mgr_prof.stop()
-
     def is_complete(self):
         return False
 
@@ -302,9 +281,15 @@ class Land(Task):
         return True
 
     def build_approach(self):
-        deg = 0.0
-        dist = 0.0
+        # Setup a descending circle tangent to the final approach
+        # path.  The touchdown point is 'home' and the final heading
+        # is home azimuth.  The final approach route is simply two
+        # points.  A circle decent if flown until the glideslope is
+        # captured and then at the correct exit point the task
+        # switches to route following mode.  Altitude/decent is
+        # managed by this task.
 
+        # fetch parameters
         self.turn_radius_m = self.land_node.getFloat("turn_radius_m")
         self.extend_final_leg_m = self.land_node.getFloat("extend_final_leg_m")
         self.lateral_offset_m = self.land_node.getFloat("lateral_offset_m")
@@ -314,21 +299,35 @@ class Land(Task):
             self.side = -1.0
         elif dir == "right":
             self.side = 1.0
+        self.final_heading_deg = self.home_node.getFloat("azimuth_deg")
 
-        # setup a descending circle aligned with the final turn to
-        # final/base.  The actual approach route is simply two points.
-        # When at the correct altitude and exit heading, drop the
-        # circle and intercept the final approach.
+        # final leg length
+        self.final_leg_m = 2.0 * self.turn_radius_m + self.extend_final_leg_m
 
-        final_leg_m = 2.0 * self.turn_radius_m + self.extend_final_leg_m
+        # compute center of decending circle
+        x = self.turn_radius_m * self.side
+        y = 2 * self.turn_radius_m + self.extend_final_leg_m
+        (offset_dist, offset_deg) = self.cart2polar(x, -y)
+        circle_offset_deg = self.final_heading_deg + offset_deg
+        if circle_offset_deg < 0.0:
+            circle_offset_deg += 360.0
+        if circle_offset_deg > 360.0:
+            circle_offset_deg -= 360.0
+        #print "circle_offset_deg:", circle_offset_deg
+        td = (self.home_node.getFloat("latitude_deg"),
+              self.home_node.getFloat("longitude_deg"))
+        (cc_lat, cc_lon) = mission.greatcircle.project_course_distance( td, circle_offset_deg, offset_dist)
 
-        # fixme: if display_on:
-        #    printf("side = %.1f\n", side)
+        # configure circle task
+        self.circle_node.setFloat('latitude_deg', cc_lat)
+        self.circle_node.setFloat('longitude_deg', cc_lon)
+        self.circle_node.setString('direction', dir)
+        self.circle_node.setFloat('radius_m', self.turn_radius_m)
 
         # create and request approach route
         # start of final leg point
         (dist, deg) = self.cart2polar(self.lateral_offset_m * self.side,
-                                      -final_leg_m)
+                                      -self.final_leg_m)
         route_request = "0,%.2f,%.2f,-" % (dist, deg)
         # touchdown point
         (dist, deg) = self.cart2polar(self.lateral_offset_m * self.side, 0.0)
@@ -340,16 +339,8 @@ class Land(Task):
         self.route_node.setString("follow_mode", "leader")
         self.route_node.setString("completion_mode", "extend_last_leg")
         
-        # estimate approach length (final leg dist + 1/8 of the turning circle)
-        self.approach_len_m = final_leg_m \
-                              + self.turn_radius_m * 2.0*math.pi * 0.125
-
-        # seed route dist_remaining_m value so it is not zero or lef
+        # seed route dist_remaining_m value so it is not zero or left
         # over from previous route.
-        self.route_node.setFloat("dist_remaining_m", self.approach_len_m)
-
-        # force a reposition on next update
-        self.last_lon = 0.0
-        self.last_lat = 0.0
+        self.route_node.setFloat("dist_remaining_m", self.final_leg_m)
 
         return True

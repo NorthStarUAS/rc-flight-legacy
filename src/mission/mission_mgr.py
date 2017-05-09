@@ -8,7 +8,8 @@ import task.circle
 import task.flaps_mgr
 import task.home_mgr
 import task.idle
-import task.land
+import task.land1
+import task.land2
 import task.launch
 import task.lost_link
 import task.preflight
@@ -48,8 +49,10 @@ class MissionMgr:
             result = task.home_mgr.HomeMgr(config_node)
         elif task_name == 'idle':
             result = task.idle.Idle(config_node)
+        elif task_name == 'land1':
+            result = task.land1.Land(config_node)
         elif task_name == 'land':
-            result = task.land.Land(config_node)
+            result = task.land2.Land(config_node)
         elif task_name == 'launch':
             result = task.launch.Launch(config_node)
         elif task_name == 'lost_link':
