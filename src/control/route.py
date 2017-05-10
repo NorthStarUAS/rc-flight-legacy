@@ -355,9 +355,7 @@ def update(dt):
             if dist_valid:
                 dist_remaining_m = nav_dist_m + \
                                    get_remaining_distance_from_next_waypoint()
-            else:
-                dist_remaining_m = 1000 # lots
-            route_node.setFloat('dist_remaining_m', dist_remaining_m)
+                route_node.setFloat('dist_remaining_m', dist_remaining_m)
 
             #if comms_node.getBool('display_on'):
             #    print 'next leg: %.1f  to end: %.1f  wpt=%d of %d' % (nav_dist_m, dist_remaining_m, current_wp, len(active_route))
