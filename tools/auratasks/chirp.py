@@ -123,7 +123,7 @@ class Chirp():
         if ampl_str == "": ampl_str = "0.0"
         ampl = "%.3f" % (float(ampl_str) * math.pi / 180.0)
         self.send_value(t, "/task/chirp/amplitude", ampl)
-        self.send_value(t, "/task/chirp/inject", self.edit_inject.currentText())
+        self.send_value(t, "/controls/signal/inject", self.edit_inject.currentText())
         t.quit()
 
     def revert(self):
