@@ -7,6 +7,7 @@ import nav.wgs84
 from props import root, getNode
 
 import comms.events
+import control.route
 import mission.mission_mgr
 from task import Task
 
@@ -79,6 +80,7 @@ class Land(Task):
         self.flare_pitch_range = 0.0
         self.final_heading_deg = 0.0
         self.final_leg_m = 0.0
+        self.dist_rem_m = 0.0
         self.circle_capture = False
         self.gs_capture = False
 
@@ -164,33 +166,41 @@ class Land(Task):
             if diff > 180.0: diff -= 360.0
             # print 'diff:', self.orient_node.getFloat('groundtrack_deg'), current_crs, self.final_heading_deg, diff
             if self.circle_capture and diff > -10:
-                # within 180 degrees towards tangent point (or just
-                # slightly passed)
-                dist_m = (diff * math.pi / 180.0) * cur_dist_m \
-                         + self.final_leg_m
+                # circling, captured gs, and within 180 degrees
+                # towards tangent point (or just slightly passed)
+                self.dist_rem_m = (diff * math.pi / 180.0) * cur_dist_m \
+                                  + self.final_leg_m
             else:
-                dist_m = math.pi * cur_dist_m + self.final_leg_m
+                self.dist_rem_m = math.pi * cur_dist_m + self.final_leg_m
             if self.circle_capture and self.gs_capture:
                 # we are on the circle and on the glide slope, lets
-                # look for our exit point
+                # look for our lateral exit point
                 if abs(diff) <= 10.0:
                     comms.events.log("land", "transition to final")
                     self.nav_node.setString("mode", "route")
         else:
             # on final approach
-            dist_m = self.route_node.getFloat("dist_remaining_m")
+            if control.route.dist_valid:
+                self.dist_rem_m = self.route_node.getFloat("dist_remaining_m")
 
         # compute glideslope/target elevation
-        alt_m = dist_m * math.tan(self.glideslope_rad)
-        print ' ', mode, "dist = %.1f alt = %.1f" % (dist_m, alt_m)
+        alt_m = self.dist_rem_m * math.tan(self.glideslope_rad)
+        print ' ', mode, "dist = %.1f alt = %.1f" % (self.dist_rem_m, alt_m)
 
-        # fly glide slope after first waypoint
-        self.targets_node.setFloat("altitude_agl_ft",
-                                   alt_m * m2ft + self.alt_bias_ft )
+        # set target altitude
+        if not self.gs_capture:
+            # compute minimum altitude before gs capture
+            min_dist_m = math.pi * cur_dist_m + self.final_leg_m
+            min_alt_m = min_dist_m * math.tan(self.glideslope_rad)
+            self.targets_node.setFloat("altitude_agl_ft",
+                                       min_alt_m * m2ft + self.alt_bias_ft )
+        else:
+            self.targets_node.setFloat("altitude_agl_ft",
+                                       alt_m * m2ft + self.alt_bias_ft )
 
         # compute error metrics
         alt_error_ft = self.pos_node.getFloat("altitude_agl_ft") - self.targets_node.getFloat("altitude_agl_ft")
-        gs_error = math.atan2(alt_error_ft * 0.3048, dist_m) * r2d
+        gs_error = math.atan2(alt_error_ft * 0.3048, self.dist_rem_m) * r2d
         print "alt_error_ft = %.1f" % alt_error_ft, "gs err = %.1f" % gs_error
 
         if self.circle_capture and not self.gs_capture:
@@ -205,12 +215,12 @@ class Land(Task):
         # navigation system has lined us up properly
         ground_speed_ms = self.vel_node.getFloat("groundspeed_ms")
         if ground_speed_ms > 0.01:
-            seconds_to_touchdown = dist_m / ground_speed_ms
+            seconds_to_touchdown = self.dist_rem_m / ground_speed_ms
         else:
             seconds_to_touchdown = 1000.0 # lots
             
-        #print "dist_m = %.1f gs = %.1f secs = %.1f" % \
-        #    (dist_m, ground_speed_ms, seconds_to_touchdown)
+        #print "dist_rem_m = %.1f gs = %.1f secs = %.1f" % \
+        #    (self.dist_rem_m, ground_speed_ms, seconds_to_touchdown)
 
         # approach_speed_kt = approach_speed_node.getFloat()
         self.flare_pitch_deg = self.land_node.getFloat("flare_pitch_deg")
@@ -253,7 +263,7 @@ class Land(Task):
 
         # if ( display_on ) {
         #    printf("land dist = %.0f target alt = %.0f\n",
-        #           dist_m, alt_m * SG_METER_TO_FEET + self.alt_bias_ft)
+        #           self.dist_rem_m, alt_m * SG_METER_TO_FEET + self.alt_bias_ft)
 
     def is_complete(self):
         return False
