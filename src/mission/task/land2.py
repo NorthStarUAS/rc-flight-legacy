@@ -153,7 +153,8 @@ class Land(Task):
                 fraction = err / self.turn_radius_m
                 print 'heading to circle:', err, fraction
                 if fraction > 0.75 and fraction < 1.25:
-                    # within 25% of circle radius, call the circle capture
+                    # within 25% of target circle radius, call the
+                    # circle capture
                     comms.events.log("land", "descent circle capture")
                     self.circle_capture = True
                     
