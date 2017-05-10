@@ -151,7 +151,7 @@ class Land(Task):
             if not self.circle_capture:
                 err = abs(cur_dist_m - self.turn_radius_m)
                 fraction = err / self.turn_radius_m
-                print 'heading to circle:', err, fraction
+                #print 'heading to circle:', err, fraction
                 if fraction > 0.75 and fraction < 1.25:
                     # within 25% of target circle radius, call the
                     # circle capture
@@ -186,7 +186,7 @@ class Land(Task):
 
         # compute glideslope/target elevation
         alt_m = self.dist_rem_m * math.tan(self.glideslope_rad)
-        print ' ', mode, "dist = %.1f alt = %.1f" % (self.dist_rem_m, alt_m)
+        #print ' ', mode, "dist = %.1f alt = %.1f" % (self.dist_rem_m, alt_m)
 
         # set target altitude
         if not self.gs_capture:
@@ -200,13 +200,13 @@ class Land(Task):
                                        alt_m * m2ft + self.alt_bias_ft )
 
         # compute error metrics
-        alt_error_ft = self.pos_node.getFloat("altitude_agl_ft") - self.targets_node.getFloat("altitude_agl_ft")
-        gs_error = math.atan2(alt_error_ft * 0.3048, self.dist_rem_m) * r2d
-        print "alt_error_ft = %.1f" % alt_error_ft, "gs err = %.1f" % gs_error
+        alt_error_ft = self.pos_node.getFloat("altitude_agl_ft") - (alt_m * m2ft)
+        gs_error = math.atan2(alt_error_ft * ft2m, self.dist_rem_m) * r2d
+        #print "alt_error_ft = %.1f" % alt_error_ft, "gs err = %.1f" % gs_error
 
         if self.circle_capture and not self.gs_capture:
             # on the circle, but haven't intercepted gs
-            print 'waiting for gs intercept'
+            #print 'waiting for gs intercept'
             if gs_error <= 1.0:
                 # 1 degree or less glide slope error, call the gs captured
                 comms.events.log("land", "glide slope capture")
@@ -235,6 +235,7 @@ class Land(Task):
             # pull throttle to idle, while smoothly pitching to the
             # target flare pitch (as configured in the task
             # definition.)
+            comms.events.log("land", "start flare")
             self.flare = True
             self.flare_start_time = self.imu_node.getFloat("timestamp")
             self.approach_throttle = self.engine_node.getFloat("throttle")
