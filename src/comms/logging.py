@@ -36,13 +36,14 @@ def max_flight_num():
     if not os.path.isdir( log_path ):
         print 'Flight data directory does not exist:', log_path
         return max
-    p = re.compile('\d+$')
+    p = re.compile('flt(\d+)$')
     for f in os.listdir( log_path ):
         dir = os.path.join(log_path, f)
         if os.path.isdir(dir):
             m = p.search(dir)
-            val = int(m.group())
-            if val > max: max = val
+            if m:
+                val = int(m.group(1))
+                if val > max: max = val
     return max
 
 def init_file_logging():
