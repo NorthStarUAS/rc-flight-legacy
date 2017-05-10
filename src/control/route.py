@@ -139,7 +139,7 @@ def dribble(reset=False):
     
     if reset:
         wp_counter = 0
-        dist_value = False
+        dist_valid = False
         
     # dribble active route into the active_node tree (one waypoint
     # per interation to keep the load consistent and light.)
