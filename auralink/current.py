@@ -25,7 +25,8 @@ def compute_derived_data():
     hdg = (math.pi * 0.5 - math.atan2(vn, ve)) * r2d
     vel_ms = math.sqrt( vn*vn + ve*ve + vd*vd )
     filter_node.setFloat("groundtrack_deg", hdg)
-    filter_node.setFloat("speed_ms", vel_ms)
+    filter_node.setFloat("groundspeed_ms", vel_ms)
+    filter_node.setFloat("groundspeed_kt", vel_ms * mps2kt)
 
     # compute frame dt
     current_time = filter_node.getFloat('timestamp')
