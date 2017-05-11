@@ -188,16 +188,18 @@ class Land(Task):
         alt_m = self.dist_rem_m * math.tan(self.glideslope_rad)
         #print ' ', mode, "dist = %.1f alt = %.1f" % (self.dist_rem_m, alt_m)
 
-        # set target altitude
+        # Set target altitude.  (Fly prior target altitude until we
+        # intercept the circle)
+        cur_target_alt = self.targets_node.getFloat("altitude_agl_ft")
         if not self.gs_capture:
             # compute minimum altitude before gs capture
             min_dist_m = math.pi * cur_dist_m + self.final_leg_m
             min_alt_m = min_dist_m * math.tan(self.glideslope_rad)
-            self.targets_node.setFloat("altitude_agl_ft",
-                                       min_alt_m * m2ft + self.alt_bias_ft )
+            new_target_alt = min_alt_m * m2ft + self.alt_bias_ft
         else:
-            self.targets_node.setFloat("altitude_agl_ft",
-                                       alt_m * m2ft + self.alt_bias_ft )
+            new_target_alt = alt_m * m2ft + self.alt_bias_ft
+        if self.circle_capture and new_target_alt < cur_target_alt:
+                self.targets_node.setFloat("altitude_agl_ft", new_target_alt)
 
         # compute error metrics
         alt_error_ft = self.pos_node.getFloat("altitude_agl_ft") - (alt_m * m2ft)
