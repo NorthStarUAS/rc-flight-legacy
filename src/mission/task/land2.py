@@ -166,13 +166,19 @@ class Land(Task):
             if diff < -180.0: diff += 360.0
             if diff > 180.0: diff -= 360.0
             # print 'diff:', self.orient_node.getFloat('groundtrack_deg'), current_crs, self.final_heading_deg, diff
-            if self.circle_capture and diff > -10:
-                # circling, captured gs, and within 180 degrees
-                # towards tangent point (or just slightly passed)
-                self.dist_rem_m = (diff * math.pi / 180.0) * cur_dist_m \
-                                  + self.final_leg_m
+            if self.circle_capture:
+                if diff > -10:
+                    # circling, captured gs, and within 180 degrees
+                    # towards tangent point (or just slightly passed)
+                    self.dist_rem_m = (diff * math.pi / 180.0) * cur_dist_m \
+                                      + self.final_leg_m
+                else:
+                    self.dist_rem_m = math.pi * cur_dist_m + self.final_leg_m
             else:
-                self.dist_rem_m = math.pi * cur_dist_m + self.final_leg_m
+                # distance to center of descent circle + 1/2 of the
+                # target circle radius + final approach leg
+                self.dist_rem_m = cur_dist_m + math.pi * self.turn_radius_m \
+                                  + self.final_leg_m
             if self.circle_capture and self.gs_capture:
                 # we are on the circle and on the glide slope, lets
                 # look for our lateral exit point
@@ -188,8 +194,7 @@ class Land(Task):
         alt_m = self.dist_rem_m * math.tan(self.glideslope_rad)
         #print ' ', mode, "dist = %.1f alt = %.1f" % (self.dist_rem_m, alt_m)
 
-        # Set target altitude.  (Fly prior target altitude until we
-        # intercept the circle)
+        # Set target altitude.  (Don't exceed prior altitude setting.)
         cur_target_alt = self.targets_node.getFloat("altitude_agl_ft")
         if not self.gs_capture:
             # compute minimum altitude before gs capture
@@ -198,8 +203,8 @@ class Land(Task):
             new_target_alt = min_alt_m * m2ft + self.alt_bias_ft
         else:
             new_target_alt = alt_m * m2ft + self.alt_bias_ft
-        if self.circle_capture and new_target_alt < cur_target_alt:
-                self.targets_node.setFloat("altitude_agl_ft", new_target_alt)
+        if new_target_alt < cur_target_alt:
+            self.targets_node.setFloat("altitude_agl_ft", new_target_alt)
 
         # compute error metrics
         alt_error_ft = self.pos_node.getFloat("altitude_agl_ft") - (alt_m * m2ft)
