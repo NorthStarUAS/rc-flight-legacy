@@ -149,8 +149,7 @@ class Land(Task):
                                              pos_lat, pos_lon )
             # test for circle capture
             if not self.circle_capture:
-                err = abs(cur_dist_m - self.turn_radius_m)
-                fraction = err / self.turn_radius_m
+                fraction = abs(cur_dist_m / self.turn_radius_m)
                 #print 'heading to circle:', err, fraction
                 if fraction > 0.75 and fraction < 1.25:
                     # within 25% of target circle radius, call the
