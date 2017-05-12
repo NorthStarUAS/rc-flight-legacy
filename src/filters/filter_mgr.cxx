@@ -239,6 +239,16 @@ static void update_wind(double dt) {
     // if ( display_on ) {
     //   printf("true: %.2f kt  %.1f deg (scale = %.4f)\n", true_speed_kt, true_deg, pitot_scale_filt);
     // }
+
+    // now estimate ground speed/track based on airdata and wind estimate
+    double ve_est = ue - we_filt_val;
+    double vn_est = un - wn_filt_val;
+    double groundtrack_est_deg = 90 - atan2( vn_est, ve_est ) * SGD_RADIANS_TO_DEGREES;
+    if ( groundtrack_est_deg < 0 ) { groundtrack_est_deg += 360.0; }
+    double groundspeed_est_ms = sqrt( ve_est*ve_est + vn_est*vn_est );
+    double groundspeed_est_kt = groundspeed_est_ms * SG_MPS_TO_KT;
+    vel_node.setDouble( "groundspeed_est_ms", groundspeed_est_ms );
+    orient_node.setDouble( "groundtrack_est_deg", groundtrack_est_deg );
 }
 
 
@@ -290,14 +300,30 @@ static void publish_values() {
     //official_agl_ft_node->alias("/position/pressure/altitude-agl-ft");
     //official_ground_m_node->alias("/position/filter/altitude-ground-m");    
 
+    // the following block favors the baro based altimeter, but can
+    // suffer from cabin pressure change bias, temperature bias, or
+    // other unexplained biases.
+    // pos_node.setDouble( "altitude_m",
+    //     		pos_combined_node.getDouble("altitude_true_m") );
+    // pos_node.setDouble( "altitude_ft",
+    //     		pos_combined_node.getDouble("altitude_true_ft") );
+    // pos_node.setDouble( "altitude_agl_m",
+    //     		pos_pressure_node.getDouble("altitude_agl_m") );
+    // pos_node.setDouble( "altitude_agl_ft",
+    //     		pos_pressure_node.getDouble("altitude_agl_ft") );
+    // pos_node.setDouble( "altitude_ground_m",
+    //     		pos_filter_node.getDouble("altitude_ground_m") );
+
+    // the following block favor the filter based altitude which can
+    // be adversely affected (significantly) by gps altitude errors.
     pos_node.setDouble( "altitude_m",
-			pos_combined_node.getDouble("altitude_true_m") );
+			pos_filter_node.getDouble("altitude_m") );
     pos_node.setDouble( "altitude_ft",
-			pos_combined_node.getDouble("altitude_true_ft") );
+			pos_filter_node.getDouble("altitude_ft") );
     pos_node.setDouble( "altitude_agl_m",
-			pos_pressure_node.getDouble("altitude_agl_m") );
+			pos_filter_node.getDouble("altitude_agl_m") );
     pos_node.setDouble( "altitude_agl_ft",
-			pos_pressure_node.getDouble("altitude_agl_ft") );
+			pos_filter_node.getDouble("altitude_agl_ft") );
     pos_node.setDouble( "altitude_ground_m",
 			pos_filter_node.getDouble("altitude_ground_m") );
 }
