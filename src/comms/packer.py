@@ -1168,9 +1168,8 @@ def unpack_event_v1(buf):
         name = parts[-1]
         node.setString(name, value)
     else:
-        pass
-        #event_node.setFloat("timestamp", timestamp)
-        #event_node.setString("message", message[0])
+        event_node.setFloat("timestamp", timestamp)
+        event_node.setString("message", message[0])
 
     #print 'end of unpack event'
     return index
