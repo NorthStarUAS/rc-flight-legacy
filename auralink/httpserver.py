@@ -40,7 +40,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
                 dict_mirror = {}
                 props_json.buildDict(dict_mirror, root)
                 fulls = json.dumps(dict_mirror)
-                self.write_message('full_json ' + json.dumps(dict_mirror, separators=(',',':')) + '\r\n')
+                self.write_message(json.dumps(dict_mirror, separators=(',',':')) + '\r\n')
             elif tokens[1] == 'update_json':
                 dict = {}
                 dict['lon'] = "%.8f" % self.filter_node.getFloat('longitude_deg')
