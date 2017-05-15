@@ -17,3 +17,12 @@ def gen_requests():
         if ident_node.getString('call_sign') == '':
             requests_pending = True
             commands.add('get,/config/identity/call_sign')
+        if ident_node.getString('make') == '':
+            requests_pending = True
+            commands.add('get,/config/identity/make')
+        if ident_node.getString('model') == '':
+            requests_pending = True
+            commands.add('get,/config/identity/model')
+        if ident_node.getString('serial_number') == '':
+            requests_pending = True
+            commands.add('get,/config/identity/serial_number')
