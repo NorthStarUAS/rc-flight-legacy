@@ -39,8 +39,8 @@ class WSHandler(tornado.websocket.WebSocketHandler):
                 commands.remote_lost_link_predict()
                 dict_mirror = {}
                 props_json.buildDict(dict_mirror, root)
-                fulls = json.dumps(dict_mirror)
-                self.write_message(json.dumps(dict_mirror, separators=(',',':')) + '\r\n')
+                self.write_message(json.dumps(dict_mirror, separators=(',',':'),
+                                              sort_keys=True) + '\r\n')
             elif tokens[1] == 'update_json':
                 dict = {}
                 dict['lon'] = "%.8f" % self.filter_node.getFloat('longitude_deg')
