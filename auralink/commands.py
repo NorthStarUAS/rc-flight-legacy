@@ -9,7 +9,7 @@ import comms.packer
 filter_node = getNode('/filters/filter', True)
 remote_link_node = getNode('/comms/remote_link', True)
 
-cmd_send_index = 0
+cmd_send_index = 1
 cmd_recv_index = 0
 prime_state = True
 
