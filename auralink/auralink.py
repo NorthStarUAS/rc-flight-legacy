@@ -10,6 +10,7 @@ import current
 import auraparser
 import httpserver
 import joystick
+import requests
 import telnet
 
 argparser = argparse.ArgumentParser(description='aura link')
@@ -42,6 +43,7 @@ except:
 while True:
     auraparser.update(ser)
     current.compute_derived_data()
+    requests.gen_requests()
     commands.update(ser)
     telnet.update()
     httpserver.update()

@@ -1,3 +1,4 @@
+import re
 import struct
 
 from props import root, getNode
@@ -109,9 +110,8 @@ raven_v1_fmt = "<BdHHHHHHHHHHffffB"
 raven_v1_size = struct.calcsize(raven_v1_fmt)
 
 event_node = getNode("/status/event", True)
-# event_v1_fmt = "<Bd%ds"
+# event_v1_fmt = "<BdB%ds"
 # this packet will be variable length so size and fmt string are dynamic
-
 
 def init():
     pass
@@ -1154,10 +1154,22 @@ def unpack_event_v1(buf):
     #print 'message:', timestamp, message[0]
     
     #result = struct.unpack(event_v1_fmt, buf)
-
     #index = result[0]
-    event_node.setFloat("timestamp", timestamp)
-    event_node.setString("message", message[0])
+    m = re.match('get: (.*)$', message[0])
+    if m:
+        (prop, value) = m.group(1).split(',')
+        print prop, value
+        # absolute path
+        parts = prop.split('/')
+        node_path = '/'.join(parts[0:-1])
+        if node_path == '':
+            node_path = '/'
+        node = getNode(node_path, True)
+        name = parts[-1]
+        node.setString(name, value)
+    else:
+        event_node.setFloat("timestamp", timestamp)
+        event_node.setString("message", message[0])
 
     #print 'end of unpack event'
     return index

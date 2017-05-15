@@ -218,7 +218,7 @@ static bool fgfs_imu_sync_update() {
             apm2_node.setDouble("extern_cell_volt", (16.0 - thr) / 4.0);
 	    apm2_node.setDouble("extern_amps", thr * 12.0);
 	    double dt = cur_time - last_time;
-	    mah += thr*12.0 * (1000.0/3600.0) * dt;
+	    mah += thr*75.0 * (1000.0/3600.0) * dt;
 	    last_time = cur_time;
 	    apm2_node.setDouble( "extern_current_mah", mah );
 	}
