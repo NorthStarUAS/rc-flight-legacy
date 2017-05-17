@@ -93,6 +93,7 @@ static pyPropertyNode pilot_node;
 static pyPropertyNode act_node;
 static pyPropertyNode airdata_node;
 static pyPropertyNode analog_node;
+static pyPropertyNode config_power_node;
 
 static bool master_opened = false;
 static bool imu_inited = false;
@@ -567,7 +568,7 @@ static bool APM2_open_device( int baud_bits ) {
     apm2_node = pyGetNode("/sensors/APM2", true);
     analog_node = pyGetNode("/sensors/APM2/raw_analog", true);
     analog_node.setLen("channel", NUM_ANALOG_INPUTS, 0.0);
-    
+
     return true;
 }
 
@@ -579,6 +580,7 @@ static bool APM2_open() {
     }
 
     pyPropertyNode apm2_config = pyGetNode("/config/sensors/APM2", true);
+    config_power_node = pyGetNode("/confit/power", true);
 
     for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
 	analog_filt[i].set_time_factor(0.5);
@@ -593,10 +595,6 @@ static bool APM2_open() {
     if ( apm2_config.hasChild("volt_divider_ratio") ) {
 	volt_div_ratio = apm2_config.getDouble("volt_divider_ratio");
     }
-    if ( apm2_config.hasChild("battery_cells") ) {
-	battery_cells = apm2_config.getDouble("battery_cells");
-    }
-    if ( battery_cells < 1 ) { battery_cells = 1; }
     if ( apm2_config.hasChild("external_amp_offset") ) {
 	extern_amp_offset = apm2_config.getDouble("external_amp_offset");
     }
@@ -607,6 +605,11 @@ static bool APM2_open() {
     if ( apm2_config.hasChild("pitot_calibrate_factor") ) {
 	pitot_calibrate = apm2_config.getDouble("pitot_calibrate_factor");
     }
+
+    if ( config_power_node.hasChild("battery_cells") ) {
+	battery_cells = config_power_node.getLong("battery_cells");
+    }
+    if ( battery_cells < 1 ) { battery_cells = 1; }
 
     int baud_bits = B115200;
     if ( baud == 115200 ) {

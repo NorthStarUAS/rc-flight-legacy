@@ -26,6 +26,7 @@ static pyPropertyNode gps_node;
 static pyPropertyNode airdata_node;
 static pyPropertyNode act_node;
 static pyPropertyNode apm2_node;
+static pyPropertyNode config_power_node;
 
 static bool airdata_inited = false;
 
@@ -50,6 +51,7 @@ static void bind_gps_input( pyPropertyNode *config ) {
 static void bind_imu_output( string output_path ) {
     imu_node = pyGetNode(output_path, true);
     act_node = pyGetNode("/actuators", true);
+    config_power_node = pyGetNode("/config/power", true);
     apm2_node = pyGetNode("/sensors/APM2", true);
     // set initial fake value
     apm2_node.setDouble( "board_vcc", 5.05 );
@@ -215,7 +217,9 @@ static bool fgfs_imu_sync_update() {
 	    static double mah = 0.0;
 	    double thr = act_node.getDouble("throttle");
 	    apm2_node.setDouble("extern_volt", 16.0 - thr);
-            apm2_node.setDouble("extern_cell_volt", (16.0 - thr) / 4.0);
+            int cells = config_power_node.getLong("battery_cells");
+            if ( cells < 1 ) { cells = 4; }
+            apm2_node.setDouble("extern_cell_volt", (16.0 - thr) / cells);
 	    apm2_node.setDouble("extern_amps", thr * 12.0);
 	    double dt = cur_time - last_time;
 	    mah += thr*75.0 * (1000.0/3600.0) * dt;
