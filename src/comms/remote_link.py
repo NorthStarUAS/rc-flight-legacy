@@ -194,7 +194,7 @@ def read_link_command():
         return -1, ''
     
     pkt_id = parser.read(ser)
-    if pkt_id >= packer.COMMAND_PACKET_V1:
+    if pkt_id == packer.COMMAND_PACKET_V1:
         seq, message = packer.unpack_command_v1(parser.payload)
         return seq, message
     else:
