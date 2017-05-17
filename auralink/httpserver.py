@@ -68,7 +68,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
                 dict['pitot_scale'] = "%.1f" % self.wind_node.getFloat('pitot_scale_factor')
                 dict['avionics_vcc'] = "%.2f" % self.apm2_node.getFloat('board_vcc')
                 dict['main_volts'] = "%.2f" % self.apm2_node.getFloat('extern_volt')
-                dict['cell_volts'] = "%.2f" % self.apm2_node.getFloat('extern_cell_volt')
+                dict['cell_volts'] = "%.2f" % self.apm2_node.getFloat('extern_cell_volts')
                 dict['main_amps'] = "%.2f" % self.apm2_node.getFloat('extern_amps')
                 dict['main_mah'] = "%.2f" % self.apm2_node.getFloat('extern_current_mah')
                 dict['flight_timer'] = "%0f" % self.status_node.getFloat('flight_timer')

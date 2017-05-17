@@ -219,7 +219,7 @@ static bool fgfs_imu_sync_update() {
 	    apm2_node.setDouble("extern_volts", 16.0 - thr);
             int cells = config_power_node.getLong("battery_cells");
             if ( cells < 1 ) { cells = 4; }
-            apm2_node.setDouble("extern_cell_volt", (16.0 - thr) / cells);
+            apm2_node.setDouble("extern_cell_volts", (16.0 - thr) / cells);
 	    apm2_node.setDouble("extern_amps", thr * 12.0);
 	    double dt = cur_time - last_time;
 	    mah += thr*75.0 * (1000.0/3600.0) * dt;

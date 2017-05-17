@@ -1041,7 +1041,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    extern_amp_sum += extern_amp_filt.get_value() * dt * 0.277777778; // 0.2777... is 1000/3600 (conversion to milli-amp hours)
 
 	    apm2_node.setDouble( "extern_volts", extern_volt_filt.get_value() );
-	    apm2_node.setDouble( "extern_cell_volt", cell_volt );
+	    apm2_node.setDouble( "extern_cell_volts", cell_volt );
 	    apm2_node.setDouble( "extern_amps", extern_amp_filt.get_value() );
 	    apm2_node.setDouble( "extern_current_mah", extern_amp_sum );
 

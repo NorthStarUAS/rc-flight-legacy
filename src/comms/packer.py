@@ -965,7 +965,7 @@ def pack_system_health_v4(index):
                       int(status_node.getFloat("system_load_avg") * 100),
                       int(apm2_node.getFloat("board_vcc") * 1000),
                       int(apm2_node.getFloat("extern_volts") * 1000),
-                      int(apm2_node.getFloat("extern_cell_volt") * 1000),
+                      int(apm2_node.getFloat("extern_cell_volts") * 1000),
                       int(apm2_node.getFloat("extern_amps") * 1000),
                       dekamah)
     return wrap_packet(SYSTEM_HEALTH_PACKET_V4, buf)
@@ -975,7 +975,7 @@ def pack_system_health_text(index, delim=','):
 	     '%.2f' % status_node.getFloat('system_load_avg'),
              '%.2f' % apm2_node.getFloat('board_vcc'),
 	     '%.2f' % apm2_node.getFloat('extern_volts'),
-             '%.2f' % apm2_node.getFloat('extern_cell_volt'),
+             '%.2f' % apm2_node.getFloat('extern_cell_volts'),
 	     '%.2f' % apm2_node.getFloat('extern_amps'),
              '%.0f' % apm2_node.getFloat('extern_current_mah') ]
     return delim.join(data)
@@ -999,7 +999,7 @@ def unpack_system_health_v3(buf):
     status_node.setFloat("system_load_avg", result[1] / 100.0)
     apm2_node.setFloat("board_vcc", result[2] / 1000.0)
     apm2_node.setFloat("extern_volts", result[3] / 1000.0)
-    apm2_node.setFloat("extern_cell_volt", result[4] / 1000.0)
+    apm2_node.setFloat("extern_cell_volts", result[4] / 1000.0)
     apm2_node.setFloat("extern_amps", result[5] / 1000.0)
     apm2_node.setFloat("extern_current_mah", result[6])
 
@@ -1014,7 +1014,7 @@ def unpack_system_health_v4(buf):
     status_node.setFloat("system_load_avg", result[2] / 100.0)
     apm2_node.setFloat("board_vcc", result[3] / 1000.0)
     apm2_node.setFloat("extern_volts", result[4] / 1000.0)
-    apm2_node.setFloat("extern_cell_volt", result[5] / 1000.0)
+    apm2_node.setFloat("extern_cell_volts", result[5] / 1000.0)
     apm2_node.setFloat("extern_amps", result[6] / 1000.0)
     apm2_node.setInt("extern_current_mah", result[7] * 10.0)
 
