@@ -8,6 +8,7 @@ pilot_node = getNode('/sensors/pilot_input', True)
 status_node = getNode('/status', True)
 vel_node = getNode("/velocity", True)
 targets_node = getNode("/autopilot/targets", True)
+apm2_node = getNode("/sensors/APM2", True)
 
 r2d = 180.0 / math.pi
 mps2kt = 1.9438444924406046432
@@ -59,3 +60,7 @@ def compute_derived_data():
     roll_error = targets_node.getFloat('roll_deg') - filter_node.getFloat('roll_deg')
     #print 'error %.4f,%.1f' % (filter_node.getFloat('timestamp'), roll_error)
                         
+    volts = apm2_node.getFloat("extern_volts")
+    amps = apm2_node.getFloat("extern_amps")
+    watts = volts * amps
+    apm2_node.setFloat("extern_watts", watts)

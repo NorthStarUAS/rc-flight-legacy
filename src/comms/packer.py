@@ -964,7 +964,7 @@ def pack_system_health_v4(index):
                       status_node.getFloat('frame_time'),
                       int(status_node.getFloat("system_load_avg") * 100),
                       int(apm2_node.getFloat("board_vcc") * 1000),
-                      int(apm2_node.getFloat("extern_volt") * 1000),
+                      int(apm2_node.getFloat("extern_volts") * 1000),
                       int(apm2_node.getFloat("extern_cell_volt") * 1000),
                       int(apm2_node.getFloat("extern_amps") * 1000),
                       dekamah)
@@ -974,7 +974,7 @@ def pack_system_health_text(index, delim=','):
     data = [ '%.4f' % status_node.getFloat('frame_time'),
 	     '%.2f' % status_node.getFloat('system_load_avg'),
              '%.2f' % apm2_node.getFloat('board_vcc'),
-	     '%.2f' % apm2_node.getFloat('extern_volt'),
+	     '%.2f' % apm2_node.getFloat('extern_volts'),
              '%.2f' % apm2_node.getFloat('extern_cell_volt'),
 	     '%.2f' % apm2_node.getFloat('extern_amps'),
              '%.0f' % apm2_node.getFloat('extern_current_mah') ]
@@ -986,7 +986,7 @@ def unpack_system_health_v2(buf):
     # imu_node.setFloat("timestamp", result[0]) # fixme? where to write this value?
     status_node.setFloat("system_load_avg", result[1] / 100.0)
     apm2_node.setFloat("board_vcc", result[2] / 1000.0)
-    apm2_node.setFloat("extern_volt", result[3] / 1000.0)
+    apm2_node.setFloat("extern_volts", result[3] / 1000.0)
     apm2_node.setFloat("extern_amps", result[5] / 1000.0)
     apm2_node.setFloat("extern_current_mah", result[6])
 
@@ -998,7 +998,7 @@ def unpack_system_health_v3(buf):
     status_node.setFloat("frame_time", result[0])
     status_node.setFloat("system_load_avg", result[1] / 100.0)
     apm2_node.setFloat("board_vcc", result[2] / 1000.0)
-    apm2_node.setFloat("extern_volt", result[3] / 1000.0)
+    apm2_node.setFloat("extern_volts", result[3] / 1000.0)
     apm2_node.setFloat("extern_cell_volt", result[4] / 1000.0)
     apm2_node.setFloat("extern_amps", result[5] / 1000.0)
     apm2_node.setFloat("extern_current_mah", result[6])
@@ -1013,7 +1013,7 @@ def unpack_system_health_v4(buf):
     status_node.setFloat("frame_time", result[1])
     status_node.setFloat("system_load_avg", result[2] / 100.0)
     apm2_node.setFloat("board_vcc", result[3] / 1000.0)
-    apm2_node.setFloat("extern_volt", result[4] / 1000.0)
+    apm2_node.setFloat("extern_volts", result[4] / 1000.0)
     apm2_node.setFloat("extern_cell_volt", result[5] / 1000.0)
     apm2_node.setFloat("extern_amps", result[6] / 1000.0)
     apm2_node.setInt("extern_current_mah", result[7] * 10.0)

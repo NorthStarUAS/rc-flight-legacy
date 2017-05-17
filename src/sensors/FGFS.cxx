@@ -216,7 +216,7 @@ static bool fgfs_imu_sync_update() {
 	    static double last_time = cur_time;
 	    static double mah = 0.0;
 	    double thr = act_node.getDouble("throttle");
-	    apm2_node.setDouble("extern_volt", 16.0 - thr);
+	    apm2_node.setDouble("extern_volts", 16.0 - thr);
             int cells = config_power_node.getLong("battery_cells");
             if ( cells < 1 ) { cells = 4; }
             apm2_node.setDouble("extern_cell_volt", (16.0 - thr) / cells);
