@@ -52,7 +52,7 @@ using namespace Eigen;
 #define NUM_PILOT_INPUTS 18
 #define NUM_IMU_SENSORS 10
 #define NUM_ANALOG_INPUTS 6
-#define PWM_CHANNELS 5
+#define PWM_CHANNELS 8
 #define AP_CHANNELS 6
 
 #define PWM_CENTER 1520
@@ -210,6 +210,9 @@ static double nav_pvt_timestamp = 0;
 
 static struct air_data_t {
     double timestamp;
+    float bme_pres_pa;
+    float bme_temp_C;
+    float bme_hum;
     float static_pres_pa;
     float diff_pres_pa;
 } airdata;
@@ -794,8 +797,11 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	}
     } else if ( pkt_id == AIRDATA_PACKET_ID ) {
-	if ( pkt_len == 8 ) {
+	if ( pkt_len == 20 ) {
 	    airdata.timestamp = get_Time();
+	    airdata.bme_pres_pa = *(float *)payload; payload += 4;
+	    airdata.bme_temp_C = *(float *)payload; payload += 4;
+	    airdata.bme_hum = *(float *)payload; payload += 4;
 	    airdata.static_pres_pa = *(float *)payload; payload += 4;
 	    airdata.diff_pres_pa = *(float *)payload; payload += 4;
 
@@ -1498,6 +1504,8 @@ bool Aura3_airdata_update() {
 	airdata_node.setDouble( "airspeed_kt", airspeed_kt );
 
 	// publish sensor values
+	airdata_node.setDouble( "bme_pres_mbar", airdata.bme_pres_pa / 100.0 );	airdata_node.setDouble( "temp_C", airdata.bme_temp_C );
+	airdata_node.setDouble( "humidity", airdata.bme_hum );
 	airdata_node.setDouble( "pressure_mbar", airdata.static_pres_pa / 100.0 );
 	airdata_node.setDouble( "diff_pressure_pa", airdata.diff_pres_pa );
 
