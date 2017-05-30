@@ -3,7 +3,7 @@ import math
 from props import root, getNode
 
 airdata_node = getNode('/sensors/airdata', True)
-filter_node = getNode('/filters/filter', True)
+filter_node = getNode('/filters/filter[0]', True)
 pilot_node = getNode('/sensors/pilot_input', True)
 status_node = getNode('/status', True)
 vel_node = getNode("/velocity", True)

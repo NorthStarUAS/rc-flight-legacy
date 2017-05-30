@@ -113,7 +113,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
     def bind_props(self):
         print 'binding property nodes'
-        self.gps_node = getNode('/sensors/gps', True)
+        self.gps_node = getNode('/sensors/gps[0]', True)
         self.imu_node = getNode('/sensors/imu', True)
         self.airdata_node = getNode('/sensors/airdata', True)
         self.pilot_node = getNode('/sensors/pilot_input', True)
