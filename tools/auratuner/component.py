@@ -216,6 +216,7 @@ class Component():
         result.append( str(self.edit_max.text()) )
         if self.type == "pid" or self.type == "vel":
             result.append( str(self.edit_trim.text()) )
+        print result
         return result
 
     def update(self):
@@ -234,11 +235,11 @@ class Component():
         # revert form
         if self.type == "pid":
             self.edit_Kp.setText(self.original_values[0])
-            self.edit_Ti.setText(self.original_values[4])
-            self.edit_Td.setText(self.original_values[5])
-            self.edit_min.setText(self.original_values[2])
-            self.edit_max.setText(self.original_values[3])
-            self.edit_trim.setText(self.original_values[6])
+            self.edit_Ti.setText(self.original_values[1])
+            self.edit_Td.setText(self.original_values[2])
+            self.edit_min.setText(self.original_values[3])
+            self.edit_max.setText(self.original_values[4])
+            self.edit_trim.setText(self.original_values[5])
         elif self.type == "vel":
             self.edit_Kp.setText(self.original_values[0])
             self.edit_beta.setText(self.original_values[1])
