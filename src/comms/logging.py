@@ -49,6 +49,7 @@ def max_flight_num():
 def init_file_logging():
     global enable_file
     global fdata
+    global flight_dir
     
     print 'Log path:', log_path
 
