@@ -85,8 +85,9 @@ def send_message( data ):
     if len(serial_buf) + len(data) <= max_serial_buffer:
         serial_buf += data
         return True
-    elif comms_node.getBool('display_on'):
-	print 'remote link serial buffer overflow, size:', len(serial_buf), 'add:', len(data), 'limit:', max_serial_buffer
+    else:
+        if comms_node.getBool('display_on'):
+	    print 'remote link serial buffer overflow, size:', len(serial_buf), 'add:', len(data), 'limit:', max_serial_buffer
         return False
 
 route_request = []
