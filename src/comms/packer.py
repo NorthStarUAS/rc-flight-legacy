@@ -551,6 +551,12 @@ def pack_filter_text(index, delim=','):
 	     '%.2f' % filter_node.getFloat('roll_deg'),
              '%.2f' % filter_node.getFloat('pitch_deg'),
              '%.2f' % filter_node.getFloat('heading_deg'),
+             '%.3f' % filter_node.getFloat('p_bias'),
+             '%.3f' % filter_node.getFloat('q_bias'),
+             '%.3f' % filter_node.getFloat('r_bias'),
+             '%.3f' % filter_node.getFloat('ax_bias'),
+             '%.3f' % filter_node.getFloat('ay_bias'),
+             '%.3f' % filter_node.getFloat('az_bias'),
 	     '%d' % filter_node.getInt('status') ]
     return delim.join(data)
 
@@ -1158,7 +1164,7 @@ def unpack_event_v1(buf):
     m = re.match('get: (.*)$', message[0])
     if m:
         (prop, value) = m.group(1).split(',')
-        print prop, value
+        # print prop, value
         # absolute path
         parts = prop.split('/')
         node_path = '/'.join(parts[0:-1])
