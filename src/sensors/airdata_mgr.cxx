@@ -158,8 +158,11 @@ static void update_pressure_helpers() {
     // h = (((P0/P)^(1/5.257) - 1) * (T+273.15)) / 0.0065
     // T = h*0.0065 / ((P0/P)^(1/5.257) - 1) - 273.15
 
-    double P = airdata_node.getDouble("pressure_mbar"); // sensed pressure
     const double P0 = 1013.25;	// standard sea level pressure
+    double P = airdata_node.getDouble("pressure_mbar"); // sensed pressure
+    if ( P < 0.1 ) {
+        P = P0;
+    }
 
     // The APM temp sensor is highly biased by board temp and cabin
     // interior temperature (not OAT), so it really makes more sense
