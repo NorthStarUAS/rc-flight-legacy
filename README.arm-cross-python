@@ -1,5 +1,7 @@
 https://mmatyas.github.io/blog/servo-short-cross-compilation-guide
 
+# For Fedora
+
 dnf install debootstrap qemu qemu-user-static
 dnf provides '*/qemu-debootstrap'
 
@@ -7,10 +9,10 @@ qemu-debootstrap --arch=armhf --verbose jessie rootfs-jessie-armhf
 
 <go get a coffee>
 
-# chroot rootfs-jessie-armhf
+$ sudo chroot rootfs-jessie-armhf
 
-  # apt install automake make git g++ libeigen3-dev 
-  # apt install python-dev libboost-python-dev python-serial python-lxml
+  sh# apt install automake make git g++ libeigen3-dev 
+  sh# apt install python-dev libboost-python-dev python-serial python-lxml
 
 
 
