@@ -27,19 +27,13 @@ imu_timestamp = 0.0
 
 gps_nodes = []
 gps_v1_fmt = '<dddfhhhdBB'
-gps_v1_size = struct.calcsize(gps_v1_fmt)
 gps_v2_fmt = '<BdddfhhhdBB'
-gps_v2_size = struct.calcsize(gps_v2_fmt)
 gps_v3_fmt = '<BdddfhhhdBHHHB'
-gps_v3_size = struct.calcsize(gps_v3_fmt)
 
 imu_nodes = []
 imu_v1_fmt = '<dfffffffffB'
-imu_v1_size = struct.calcsize(imu_v1_fmt)
 imu_v2_fmt = '<dfffffffffhB'
-imu_v2_size = struct.calcsize(imu_v2_fmt)
 imu_v3_fmt = '<BdfffffffffhB'
-imu_v3_size = struct.calcsize(imu_v3_fmt)
 
 airdata_nodes = []
 pos_node = getNode("/position", True)
@@ -48,35 +42,26 @@ pos_combined_node = getNode("/position/combined", True)
 vel_node = getNode("/velocity", True)
 wind_node = getNode("/filters/wind", True)
 airdata_v3_fmt = "<dHhhfhhHBBB"
-airdata_v3_size = struct.calcsize(airdata_v3_fmt)
 airdata_v4_fmt = "<dHhhffhhHBBB"
-airdata_v4_size = struct.calcsize(airdata_v4_fmt)
 airdata_v5_fmt = "<BdHhhffhHBBB"
-airdata_v5_size = struct.calcsize(airdata_v5_fmt)
 
 filter_nodes = []
 remote_link_node = getNode("/comms/remote_link", True)
 filter_v1_fmt = "<dddfhhhhhhBB"
-filter_v1_size = struct.calcsize(filter_v1_fmt)
 filter_v2_fmt = "<BdddfhhhhhhBB"
-filter_v2_size = struct.calcsize(filter_v2_fmt)
 filter_v3_fmt = "<BdddfhhhhhhhhhhhhBB"
-filter_v3_size = struct.calcsize(filter_v3_fmt)
 
 NUM_ACTUATORS = 8
 act_node = getNode("/actuators", True)
 act_v1_fmt = "<dhhHhhhhhB"
-act_v1_size = struct.calcsize(act_v1_fmt)
 act_v2_fmt = "<BdhhHhhhhhB"
-act_v2_size = struct.calcsize(act_v2_fmt)
 
 pilot_nodes = []
 pilot_v1_fmt = "<dhhHhhhhhB"
-pilot_v1_size = struct.calcsize(pilot_v1_fmt)
 pilot_v2_fmt = "<BdhhhhhhhhB"
-pilot_v2_size = struct.calcsize(pilot_v2_fmt)
 
 status_node = getNode("/status", True)
+ap_node = getNode("/autopilot", True)
 targets_node = getNode("/autopilot/targets", True)
 task_node = getNode("/task", True)
 route_node = getNode("/task/route", True)
@@ -84,30 +69,21 @@ active_node = getNode("/task/route/active", True)
 home_node = getNode("/task/home", True)
 circle_node = getNode("/task/circle", True)
 ap_status_v1_fmt = "<dhhHhhhhddHHB"
-ap_status_v1_size = struct.calcsize(ap_status_v1_fmt)
 ap_status_v2_fmt = "<dhhHhhhhHddHHB"
-ap_status_v2_size = struct.calcsize(ap_status_v2_fmt)
 ap_status_v3_fmt = "<BdhhHhhhhHHddHHB"
-ap_status_v3_size = struct.calcsize(ap_status_v3_fmt)
 ap_status_v4_fmt = "<BdhhHHhhHHddHHB"
-ap_status_v4_size = struct.calcsize(ap_status_v3_fmt)
+ap_status_v5_fmt = "<BdBhhHHhhHHddHHB"
 
 apm2_node = getNode("/sensors/APM2", True)
 system_health_v2_fmt = "<dHHHHH"
-system_health_v2_size = struct.calcsize(system_health_v2_fmt)
 system_health_v3_fmt = "<dHHHHHH"
-system_health_v3_size = struct.calcsize(system_health_v3_fmt)
 system_health_v4_fmt = "<BdHHHHHH"
-system_health_v4_size = struct.calcsize(system_health_v4_fmt)
 
 payload_node = getNode("/payload", True)
 payload_v1_fmt = "<dH"
-payload_v1_size = struct.calcsize(payload_v1_fmt)
 payload_v2_fmt = "<BdH"
-payload_v2_size = struct.calcsize(payload_v2_fmt)
 
 raven_v1_fmt = "<BdHHHHHHHHHHffffB"
-raven_v1_size = struct.calcsize(raven_v1_fmt)
 
 event_node = getNode("/status/event", True)
 # event_v1_fmt = "<BdB%ds"
@@ -787,7 +763,14 @@ def unpack_pilot_v2(buf):
 
     return index
 
-def pack_ap_status_v4(index):
+def pack_ap_status_v5(index):
+    # status flags (up to 8 could be supported)
+    flags = 0
+    if ap_node.getBool("master_switch"):
+        flags |= (1 << 0)
+    if ap_node.getBool("pilot_pass_through"):
+        flags |= (1 << 1)
+    
     # handle the counter dance between the control module and the
     # packer.  This allows us to trickle down routes to the ground
     # station, but we don't want onboard logging to affect the counter
@@ -824,9 +807,10 @@ def pack_ap_status_v4(index):
         wp_index = 65535
 
     #print index,                   status_node.getFloat('frame_time'),                      int(targets_node.getFloat("groundtrack_deg") * 10),                      int(targets_node.getFloat("roll_deg") * 10),                      int(target_msl_ft),                      int(targets_node.getFloat("climb_rate_fps") * 10),                      int(targets_node.getFloat("pitch_deg") * 10),                      int(targets_node.getFloat("the_dot") * 1000),                      int(targets_node.getFloat("airspeed_kt") * 10),                      int(task_node.getFloat("flight_timer")),                      route_node.getInt("target_waypoint_idx"),                      wp_lon,                      wp_lat,                      wp_index,                      route_size,                      remote_link_node.getInt("sequence_num")
-    buf = struct.pack(ap_status_v4_fmt,
+    buf = struct.pack(ap_status_v5_fmt,
                       index,
                       status_node.getFloat('frame_time'),
+                      flags,
                       int(round(targets_node.getFloat("groundtrack_deg") * 10)),
                       int(round(targets_node.getFloat("roll_deg") * 10)),
                       int(round(target_msl_ft)),
@@ -841,10 +825,12 @@ def pack_ap_status_v4(index):
                       route_size,
                       remote_link_node.getInt("sequence_num") & 0xff)
     #print index, status_node.getFloat('frame_time'), int(targets_node.getFloat("groundtrack_deg") * 10), int(targets_node.getFloat("roll_deg") * 10), int(target_msl_ft), int(targets_node.getFloat("climb_rate_fps") * 10), int(targets_node.getFloat("pitch_deg") * 10), int(targets_node.getFloat("the_dot") * 1000), int(targets_node.getFloat("airspeed_kt") * 10), int(task_node.getFloat("flight_timer")), route_node.getInt("target_waypoint_idx"), wp_lon, wp_lat, wp_index, route_size,  remote_link_node.getInt("sequence_num") & 0xff
-    return wrap_packet(AP_STATUS_PACKET_V4, buf)
+    return wrap_packet(AP_STATUS_PACKET_V5, buf)
 
 def pack_ap_status_text(index, delim=','):
     data = [ '%.4f' % targets_node.getFloat('timestamp'),
+             '%d' % ap_node.getBool("master_switch"),
+             '%d' % ap_node.getBool("pilot_pass_through"),
 	     '%.2f' % targets_node.getFloat('groundtrack_deg'),
              '%.2f' % targets_node.getFloat('roll_deg'),
 	     '%.2f' % targets_node.getFloat('altitude_msl_ft'),
@@ -959,6 +945,43 @@ def unpack_ap_status_v4(buf):
         home_node.setFloat("latitude_deg", wp_lat)
     active_node.setInt("route_size", route_size)
     remote_link_node.setInt("sequence_num", result[14])
+
+    return index
+
+def unpack_ap_status_v5(buf):
+    result = struct.unpack(ap_status_v5_fmt, buf)
+
+    index = result[0]
+
+    wp_lon = result[11]
+    wp_lat = result[12]
+    wp_index = result[13]
+    route_size = result[14]
+    
+    targets_node.setFloat("timestamp", result[1])
+    flags = result[2]
+    ap_node.setBool("master_switch", flags & (1<<0))
+    ap_node.setBool("pilot_pass_through", flags & (1<<1))
+    targets_node.setFloat("groundtrack_deg", result[3] / 10.0)
+    targets_node.setFloat("roll_deg", result[4] / 10.0)
+    targets_node.setFloat("altitude_msl_ft", result[5])
+    pos_node.setFloat("altitude_ground_m", result[6])
+    targets_node.setFloat("pitch_deg", result[7] / 10.0)
+    targets_node.setFloat("airspeed_kt", result[8] / 10.0)
+    status_node.setFloat("flight_timer", result[9])
+    route_node.setInt("target_waypoint_idx", result[10])
+    if wp_index < route_size:
+        wp_node = active_node.getChild('wpt[%d]' % wp_index, True)
+        wp_node.setFloat("longitude_deg", wp_lon)
+        wp_node.setFloat("latitude_deg", wp_lat)
+    elif wp_index == 65534:
+        circle_node.setFloat("longitude_deg", wp_lon)
+        circle_node.setFloat("latitude_deg", wp_lat)
+    elif wp_index == 65535:
+        home_node.setFloat("longitude_deg", wp_lon)
+        home_node.setFloat("latitude_deg", wp_lat)
+    active_node.setInt("route_size", route_size)
+    remote_link_node.setInt("sequence_num", result[15])
 
     return index
 
@@ -1139,9 +1162,7 @@ def pack_event_v1(message):
 
     # support an index value, but for now it will always be zero
     event_v1_fmt = '<BdB%ds' % len(message)
-    #print 'pack:', len(message), struct.calcsize(event_v1_fmt)
     buf = struct.pack(event_v1_fmt, 0, imu_timestamp, len(message), message)
-    #print 'pack event len:', len(buf)
     return wrap_packet(EVENT_PACKET_V1, buf)
 
 def pack_event_text(index, delim=','):
