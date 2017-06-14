@@ -1581,13 +1581,13 @@ static bool APM2_act_write() {
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel6"), true );
+	val = gen_pulse( act_node.getDouble("channel7"), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
 	buf[size++] = hi;
 
-	val = gen_pulse( act_node.getDouble("channel7"), true );
+	val = gen_pulse( act_node.getDouble("channel8"), true );
 	hi = val / 256;
 	lo = val - (hi * 256);
 	buf[size++] = lo;
