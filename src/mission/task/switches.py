@@ -34,12 +34,10 @@ class Switch():
             self.output_name = tmp[-1]
         else:
             self.valid = False
+        self.output_type = 'boolean'
+        self.states = 2
         if switch_node.hasChild("output_type"):
             self.output_type = switch_node.getString("output_type")
-            self.states = 2
-        else:
-            self.output_type = 'boolean'
-            self.states = 2
         self.choices = []
         if self.output_type == 'choice':
             self.states = switch_node.getLen('choice')
@@ -76,8 +74,15 @@ class Switch():
         #print "  input_name =", self.input_name
         #print "  step =", self.step
         #print "  input children:", self.input_node.getChildren()
-        state = int((input_val - self.min) / self.step)
+        if self.states == 2:
+            if input_val < -0.1:
+                state = 0
+            else:
+                state = 1
+        else:
+            state = int((input_val - self.min) / self.step)
         #print "  state =", state
+            
         if self.output_type == 'boolean':
             if self.force_true:
                 self.output_node.setBool(self.output_name, True)
