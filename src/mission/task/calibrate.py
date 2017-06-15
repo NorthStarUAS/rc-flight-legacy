@@ -3,7 +3,7 @@ from props import root, getNode
 import comms.events
 from task import Task
 
-class Recalibrate(Task):
+class Calibrate(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.sensors_node = getNode("/sensors", True)
@@ -17,7 +17,7 @@ class Recalibrate(Task):
     def activate(self):
         self.active = True
         self.completed = False
-        comms.events.log("mission", "recalibrate task")
+        comms.events.log("mission", "calibrate task")
     
     def update(self, dt):
         if not self.active:
@@ -37,11 +37,11 @@ class Recalibrate(Task):
                 # position as a side effect.
                 self.home_node.setBool("valid", False)
 
-            # recalibrate ground elevation: this should settle in
+            # calibrate ground elevation: this should settle in
             # about 30 seconds if we just leave the plane sit ...
 
             # airspeed
-            self.sensors_node.setBool("airdata_recalibrate", True)
+            self.sensors_node.setBool("airdata_calibrate", True)
 
         # run once and then we are done.  The completed flag is set to
         # false when the task is activated so this task can be pushed

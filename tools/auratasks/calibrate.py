@@ -4,7 +4,7 @@ import subprocess
 from combobox_nowheel import QComboBoxNoWheel
 import fgtelnet
 
-class Recalibrate():
+class Calibrate():
     def __init__(self, changefunc, host="localhost", port=6499):
         self.changefunc = changefunc
         self.host = host
@@ -26,9 +26,9 @@ class Recalibrate():
         cmd_layout = QtGui.QHBoxLayout()
         cmd_group.setLayout( cmd_layout )
         cmd_layout.addWidget( QtGui.QLabel("<b>Commands:</b> ") )
-        recalibrate = QtGui.QPushButton('Recalibrate')
-        recalibrate.clicked.connect(self.task_recalibrate)
-        cmd_layout.addWidget(recalibrate)
+        calibrate = QtGui.QPushButton('Calibrate')
+        calibrate.clicked.connect(self.task_calibrate)
+        cmd_layout.addWidget(calibrate)
         cmd_layout.addStretch(1)
 
         toplayout.addStretch(1)
@@ -68,13 +68,13 @@ class Recalibrate():
         # send original values to remote
         self.update()
 
-    def task_recalibrate(self):
-        print "request recalibreate task"
+    def task_calibrate(self):
+        print "request calibreate task"
         self.update()
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
         if self.port != 6499:
-            t.send("send task,recalibrate")
+            t.send("send task,calibrate")
         else:
-            t.send("set /task/command_request task,recalibrate")
+            t.send("set /task/command_request task,calibrate")
         t.quit()

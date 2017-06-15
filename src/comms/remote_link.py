@@ -144,7 +144,7 @@ def execute_command( command ):
         name = parts[-1]
         value = node.getString(name)
         if value == '': value = 'undefined'
-        print tokens[0], '=', value
+        # print tokens[0], '=', value
         events.log( 'get', '%s,%s' % (tokens[1], value), send_to_remote=True )
     elif tokens[0] == 'set' and len(tokens) >= 3:
         if tokens[1][0] == '/':
