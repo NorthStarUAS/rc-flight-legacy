@@ -74,7 +74,6 @@ static SyncMode sync_source = SYNC_NONE;   // main loop sync source
     
 static bool enable_mission = true;    // mission mgr module enabled/disabled
 static bool enable_cas     = false;   // cas module enabled/disabled
-static bool enable_telnet  = false;   // telnet command/monitor interface
 static bool enable_pointing = false;  // pan/tilt pointing module
 static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
 
