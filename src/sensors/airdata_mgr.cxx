@@ -386,10 +386,10 @@ bool AirData_update() {
         logging_count--;
     }
 
-    // check for and respond to an airdata recalibrate request
-    if (sensors_node.getBool("airdata_recalibrate") ) {
-	sensors_node.setBool("airdata_recalibrate", false);
-	AirData_recalibrate();
+    // check for and respond to an airdata calibrate request
+    if (sensors_node.getBool("airdata_calibrate") ) {
+	sensors_node.setBool("airdata_calibrate", false);
+	AirData_calibrate();
     }
     
     debug2b2.stop();
@@ -400,7 +400,7 @@ bool AirData_update() {
 }
 
 
-void AirData_recalibrate() {
+void AirData_calibrate() {
     // traverse configured modules
     for ( unsigned int i = 0; i < sections.size(); i++ ) {
 	string source = sections[i].getString("source");
@@ -412,6 +412,8 @@ void AirData_recalibrate() {
 	    // do nothing
 	} else if ( source == "airdata_bolder" ) {
 	    airdata_bolder_zero_airspeed();
+	} else if ( source == "APM2" ) {
+	    APM2_airdata_zero_airspeed();
 	} else if ( source == "Aura3" ) {
 	    Aura3_airdata_zero_airspeed();
 	} else if ( source == "fgfs" ) {

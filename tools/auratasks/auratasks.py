@@ -27,7 +27,7 @@ from circle import Circle
 from land import Land
 from launch import Launch
 from preflight import Preflight
-from recalibrate import Recalibrate
+from calibrate import Calibrate
 
 import fgtelnet
 
@@ -76,10 +76,10 @@ class Tuner(QtGui.QWidget):
     def load(self, host="localhost", port=6499):
         print "Tuner.load " + str(port)
 
-        # Recalibrate page
-        self.recalibrate = Recalibrate(changefunc=self.onChange, host=host,
+        # Calibrate page
+        self.calibrate = Calibrate(changefunc=self.onChange, host=host,
                                        port=port)
-        self.tabs.addTab( self.recalibrate.get_widget(), "Recalibrate" )
+        self.tabs.addTab( self.calibrate.get_widget(), "Calibrate" )
 
         # Preflight page
         self.preflight = Preflight(changefunc=self.onChange, host=host,

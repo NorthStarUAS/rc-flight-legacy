@@ -14,7 +14,7 @@ import task.land2
 import task.launch
 import task.lost_link
 import task.preflight
-import task.recalibrate
+import task.calibrate
 import task.route
 import task.switches
 import task.throttle_safety
@@ -62,8 +62,8 @@ class MissionMgr:
             result = task.lost_link.LostLink(config_node)
         elif task_name == 'preflight':
             result = task.preflight.Preflight(config_node)
-        elif task_name == 'recalibrate':
-            result = task.recalibrate.Recalibrate(config_node)
+        elif task_name == 'calibrate':
+            result = task.calibrate.Calibrate(config_node)
         elif task_name == 'route':
             result = task.route.Route(config_node)
         elif task_name == 'switches':
@@ -206,8 +206,8 @@ class MissionMgr:
                 self.request_task_land(wind_deg)
             elif len(tokens) == 2 and tokens[1] == "preflight":
                 self.request_task_preflight()
-            elif len(tokens) == 2 and tokens[1] == "recalibrate":
-                self.request_task_recalibrate()
+            elif len(tokens) == 2 and tokens[1] == "calibrate":
+                self.request_task_calibrate()
             elif len(tokens) == 2 and tokens[1] == "route":
                 self.request_task_route()
             else:
@@ -345,20 +345,20 @@ class MissionMgr:
         # FIXME else if display_on:
         #    print "oops, couldn't find 'preflight' task"
 
-    def request_task_recalibrate(self):
+    def request_task_calibrate(self):
         # sanity check, are we already in the requested state
         if len(self.seq_tasks):
             task = self.seq_tasks[0]
-            if task.name == "recalibrate":
+            if task.name == "calibrate":
                 return
-        task = self.find_standby_task("recalibrate")
+        task = self.find_standby_task("calibrate")
         if task:
             # activate task
             self.push_seq_task(task)
 	    task.activate()
         else:
             # FIXME else if display_on:
-            print "oops, couldn't find 'recalibrate' task"
+            print "oops, couldn't find 'calibrate' task"
 
     def request_task_land(self, final_heading_deg):
         # sanity check, are we already in the requested state
