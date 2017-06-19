@@ -1,3 +1,18 @@
+Update your beaglebone to the newest root image:
+
+    https://beagleboard.org/latest-images
+
+To create an updater sd card from a linux host (example):
+
+    dd if=bone-debian-8.7-iot-armhf-2017-03-19-4gb.img of=/dev/sdd bs=1M
+
+Boot the newly flashed beaglebone and login as debian/temppwd
+
+    $ sudo bash
+    # adduser aura --groups admin
+      Full Name []: AuraUAS
+      password: aura
+      
 Getting the beaglebone to route through the usb net connection to the wide
 internet via your Fedora host computer (some other ubuntu based instructions
 don't seem to quite work.)
@@ -29,53 +44,29 @@ Network config: (required before beaglebone dns lookups will actually work)
 Finally, turn off usb ethernet and reactivate it.
 
 
-# for really old wheezy installs (like what might come onboard the
-# beaglebone when you first purchase it ... if you don't update the
-# root image.)
-
-  If apt-get upgrade fails with odd led_aging.sh messages, then:
-  Replace the existing /etc/init.d/led_aging.sh script with:
-
-  #!/bin/sh -e
-  ### BEGIN INIT INFO
-  # Provides:          led_aging.sh
-  # Required-Start:    $local_fs
-  # Required-Stop:     $local_fs
-  # Default-Start:     2 3 4 5
-  # Default-Stop:      0 1 6
-  # Short-Description: Start LED aging
-  # Description:       Starts LED aging (whatever that is)
-  ### END INIT INFO
-
-  x=$(/bin/ps -ef | /bin/grep "[l]ed_acc")
-  if [ ! -n "$x" -a -x /usr/bin/led_acc ]; then
-     /usr/bin/led_acc &
-  fi
-
-
-# Beaglebone 8.6 (jessie) setup:
+# Beaglebone 8.7 (non-gui) (jessie) setup:
 
 - /boot/uEnv.txt:
     # AuraUAS
     cape_disable=bone_capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
     cape_enable=bone_capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
 
-# remove wicd
-- apt-get remove python-wicd wicd-cli wicd wicd-curses wicd-daemon wicd-gtk wicd-kde
+# remove wicd (gui version)
+- apt remove python-wicd wicd-cli wicd wicd-curses wicd-daemon wicd-gtk wicd-kde
 
-# then fix up /etc/network/interfaces for eth0
+# then fix up /etc/network/interfaces for eth0 (if you want ethernet
+  support, which can delay booting.)
 
 # remove stuff we don't need that could cause performance disruptions
 
-- apt-get remove --purge nodejs
-- apt-get remove --purge xrdp
-- apt-get remove --purge tightvncserver
-- apt-get remove --purge lxqt-common lxqt-panel lxqt-runner lxqt-session 
-- apt-get remove --purge apache2 apache2-bin apache2-data apache2-utils
+- apt remove --purge nodejs
+- apt remove --purge apache2 apache2-bin apache2-data apache2-utils
 
-- apt-get autoremove    # remove remaining unused dependencies
+# (gui?):
 
-# remove stuff that takes up disk space
+- apt remove --purge xrdp tightvncserver lxqt-common lxqt-panel lxqt-runner lxqt-session
+
+# remove stuff that takes up disk space (gui?)
   - dpkg-query -W --showformat='${Installed-Size;10}\t${Package}\n' | sort -k1,1n
   - apt remove --purge ti-llvm-3.6 chromium-browser
   - apt remove --purge c9-core-installer libllvm3.9 ti-opencl firmware-am57xx-opencl-monitor bone101 oxygen-icon-theme
@@ -86,16 +77,19 @@ Finally, turn off usb ethernet and reactivate it.
 
   - apt-get autoremove
 
-# Upgrade system to latest security and bug fix patches
+# Download the available package databases:
 
-- apt update
-- apt upgrade
+  - apt update
 
+# Upgrade system to latest security and bug fix patches (caution,
+# lately has been screwing up the usb/ethernet interface) might want
+# to skip the udpate/upgrade step.
+
+  - apt upgrade
 
 # Install extra required and/or useful things
 
-- apt install telnet minicom python-lxml libeigen3-dev zlib1g-dev
-- apt install libboost-python-dev
+- apt install telnet minicom python-lxml libeigen3-dev zlib1g-dev libboost-python-dev
 
 # disable service (for good measure), ok if these aren't found now
 
@@ -127,12 +121,17 @@ Finally, turn off usb ethernet and reactivate it.
   ./update_kernel.sh
   reboot
 
-  linux-firmware-image-3.8.13-bone80 (1wheezy)
+  linux-firmware-image-4.4.68-ti-r109 (1jessie)
 
 # setup swap file (ex: if needed for giant boost/python compiles)
 
- mkdir -p /var/cache/swap/
- dd if=/dev/zero of=/var/cache/swap/swapfile bs=1M count=(size in MB)
- chmod 0600 /var/cache/swap/swapfile
- mkswap /var/cache/swap/swapfile
- swapon /var/cache/swap/swapfile
+  mkdir -p /var/cache/swap/
+  dd if=/dev/zero of=/var/cache/swap/swapfile bs=1M count=(size in MB)
+  chmod 0600 /var/cache/swap/swapfile
+  mkswap /var/cache/swap/swapfile
+  swapon /var/cache/swap/swapfile
+
+# to remove swap file (to free up massive disk space):
+
+  swapoff /var/cache/swap/swapfile
+  rm /var/cache/swap/swapfile
