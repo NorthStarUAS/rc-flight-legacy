@@ -1,3 +1,7 @@
+Note: June 20, 2017:
+
+    Last tested with: bone-debian-8.7-iot-armhf-2017-03-19-4gb.img
+
 Update your beaglebone to the newest root image:
 
     https://beagleboard.org/latest-images
@@ -9,9 +13,10 @@ To create an updater sd card from a linux host (example):
 Boot the newly flashed beaglebone and login as debian/temppwd
 
     $ sudo bash
-    # adduser aura --groups admin
-      Full Name []: AuraUAS
+    # adduser aura
       password: aura
+      Full Name []: AuraUAS
+    # usermod -aG admin aura
       
 Getting the beaglebone to route through the usb net connection to the wide
 internet via your Fedora host computer (some other ubuntu based instructions
@@ -51,22 +56,22 @@ Finally, turn off usb ethernet and reactivate it.
     cape_disable=bone_capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
     cape_enable=bone_capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
 
-# remove wicd (gui version)
+# remove wicd (if gui image)
 - apt remove python-wicd wicd-cli wicd wicd-curses wicd-daemon wicd-gtk wicd-kde
 
 # then fix up /etc/network/interfaces for eth0 (if you want ethernet
-  support, which can delay booting.)
+  support, which can delay booting if not connected.)
 
 # remove stuff we don't need that could cause performance disruptions
 
 - apt remove --purge nodejs
 - apt remove --purge apache2 apache2-bin apache2-data apache2-utils
 
-# (gui?):
+# (if gui image?):
 
 - apt remove --purge xrdp tightvncserver lxqt-common lxqt-panel lxqt-runner lxqt-session
 
-# remove stuff that takes up disk space (gui?)
+# check/remove stuff that takes up disk space (if gui image?)
   - dpkg-query -W --showformat='${Installed-Size;10}\t${Package}\n' | sort -k1,1n
   - apt remove --purge ti-llvm-3.6 chromium-browser
   - apt remove --purge c9-core-installer libllvm3.9 ti-opencl firmware-am57xx-opencl-monitor bone101 oxygen-icon-theme
@@ -85,30 +90,18 @@ Finally, turn off usb ethernet and reactivate it.
 # lately has been screwing up the usb/ethernet interface) might want
 # to skip the udpate/upgrade step.
 
-  - apt upgrade
+  caution --> apt upgrade <-- caution
 
 # Install extra required and/or useful things
 
 - apt install telnet minicom python-lxml libeigen3-dev zlib1g-dev libboost-python-dev
 
-# disable service (for good measure), ok if these aren't found now
-
-- systemctl disable jekyll-autorun.service
-- systemctl disable bonescript-autorun.service
-- systemctl disable apache2.service
-
 
 # Force highest peformance mode
 
-- vi /etc/init.d/cpufrequtils (line #43)
+- edit file: /etc/init.d/cpufrequtils (line #43)
 
   GOVERNOR="performance"
-
-
-# (future todo ...)
-
-- see if we can complete disable debian user autologin stuff, and/or
-  migrate aura over to run under the debian user instead of root.
 
 
 # Upgrade stock kernel (for sure do this for older wheezy install to
@@ -123,15 +116,48 @@ Finally, turn off usb ethernet and reactivate it.
 
   linux-firmware-image-4.4.68-ti-r109 (1jessie)
 
-# setup swap file (ex: if needed for giant boost/python compiles)
 
-  mkdir -p /var/cache/swap/
-  dd if=/dev/zero of=/var/cache/swap/swapfile bs=1M count=(size in MB)
-  chmod 0600 /var/cache/swap/swapfile
-  mkswap /var/cache/swap/swapfile
-  swapon /var/cache/swap/swapfile
+# setup onboard software repositories (note choice of referencing
+# github repositories directly, but requires net access to update
+# versus referencing a local --mirror repository which doesn't require
+# internet access, just visibility to a host via usb network, but
+# requires setting up and maintaining the --mirror repositories.)
 
-# to remove swap file (to free up massive disk space):
+  mkdir Source
+  cd Source
+  git clone curt@192.168.7.1:GIT/navigation.git
+  git clone curt@192.168.7.1:GIT/aura-props.git
+  git clone curt@192.168.7.1:GIT/aura-data.git
+  git clone curt@192.168.7.1:GIT/aura-core.git
 
-  swapoff /var/cache/swap/swapfile
-  rm /var/cache/swap/swapfile
+# build/install aura-props package
+
+  cd aura-props/
+  ./setup.py build
+  sudo ./setup.py install
+  
+# build/install 'navigation' package
+
+  # setup swap file first
+  sudo mkdir -p /var/cache/swap/
+  sudo dd if=/dev/zero of=/var/cache/swap/swapfile bs=1M count=768 (size in MB)
+  sudo chmod 0600 /var/cache/swap/swapfile
+  sudo mkswap /var/cache/swap/swapfile
+  sudo swapon /var/cache/swap/swapfile
+
+  cd navigation
+  ./setup.py build
+  sudo ./setup.py install
+  
+  # remove swap file (to free up a big chunk of disk space):
+  sudo swapoff /var/cache/swap/swapfile
+  sudo rm /var/cache/swap/swapfile
+
+# build/install aura-core package
+
+  cd aura-core
+  ./autogen.sh
+  mkdir build; cd build
+  ../configure --prefix=/usr/local CFLAGS="-Wall -O3" CXXFLAGS="-Wall -O3"
+  make
+  sudo make install
