@@ -1,6 +1,4 @@
-Note: June 20, 2017:
-
-    Last tested with: bone-debian-8.7-iot-armhf-2017-03-19-4gb.img
+June 20, 2017:  Last tested with bone-debian-8.7-iot-armhf-2017-03-19-4gb.img
 
 Update your beaglebone to the newest root image:
 
@@ -161,3 +159,20 @@ Finally, turn off usb ethernet and reactivate it.
   ../configure --prefix=/usr/local CFLAGS="-Wall -O3" CXXFLAGS="-Wall -O3"
   make
   sudo make install
+
+# configuration
+
+  (as aura$)
+  cd
+  ln -s Source/aura-data/config .
+  cd config
+  ln -s main-aura3.json main.json
+
+# test run (assuming Goldy3 cape w/ Aura3 firmware is installed)
+# verify imu info is updating at minimum, overall update rates, load
+# avg if gps connected, verify gps position and ekf orientation
+
+  cd ~/Source/aura-core/build
+  ./src/main/aura --python_path ../src --config ../../aura-data/config/ --display on
+  
+
