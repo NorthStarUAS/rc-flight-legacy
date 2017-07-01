@@ -71,7 +71,7 @@ def update(dt):
     # (in)sanity check
     if circle_node.hasChild("radius_m"):
         radius_m = circle_node.getFloat("radius_m")
-        if radius_m < 50: radius_m = 50
+        if radius_m < 35: radius_m = 35
     else:
         radius_m = 100
 
