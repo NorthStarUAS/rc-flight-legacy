@@ -28,6 +28,7 @@ using std::ostringstream;
 #include "util/myprof.hxx"
 
 #include "filter_mgr.hxx"
+#include "tecs.hxx"
 
 //
 // Global variables
@@ -364,6 +365,7 @@ bool Filter_update() {
 		update_euler_rates();
 		update_ground(imu_dt);
 		update_wind(imu_dt);
+                update_tecs();
 		publish_values();
 	    }
 	}
