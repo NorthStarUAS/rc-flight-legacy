@@ -1,9 +1,5 @@
 import math
 
-import sys
-sys.path.append('/usr/local/lib')
-import nav.wgs84
-
 from props import root, getNode
 
 import comms.events
