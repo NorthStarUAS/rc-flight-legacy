@@ -58,9 +58,14 @@ static pyPropertyNode logging_node;
 static pyPropertyNode task_node;
 static pyPropertyNode home_node;
 static pyPropertyNode comms_node;
+static pyPropertyNode pos_node;
+static pyPropertyNode vel_node;
+static pyPropertyNode tecs_node;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
+
+static const float g = 9.81;
 
 static void bind_properties() {
     ap_node = pyGetNode( "/autopilot", true );
@@ -74,6 +79,9 @@ static void bind_properties() {
     task_node = pyGetNode( "/task", true );
     home_node = pyGetNode( "/task/home", true );
     comms_node = pyGetNode( "/comms/remote_link", true);
+    pos_node = pyGetNode( "/position", true);
+    vel_node = pyGetNode( "/velocity", true);
+    tecs_node = pyGetNode( "/tecs", true);
 }
 
 
@@ -104,6 +112,12 @@ void control_reinit() {
     // all stages (i.e. real time gain tuning)
 
     ap.reinit();
+}
+
+
+static double tecs_compute(double alt_m, double vel_mps, double mass) {
+    double total_energy = mass * ( g * alt_m + 0.5 * vel_mps * vel_mps );
+    return total_energy;
 }
 
 
@@ -213,7 +227,18 @@ void control_update(double dt)
 	last_fcs_mode = "";
     }
 
-    // navigation update
+    // TECS experiment
+    double current_tecs = tecs_compute( pos_node.getDouble("altitude_agl_m"),
+                                        vel_node.getDouble("airspeed_kt")*SG_KT_TO_MPS,
+                                        2.5 /* mass kg */);
+    double target_tecs = tecs_compute( targets_node.getDouble("altitude_agl_ft")*SG_FEET_TO_METER,
+                                       targets_node.getDouble("airspeed_kt")*SG_KT_TO_MPS,
+                                       2.5 /* mass kg */);
+
+    tecs_node.setDouble("tecs", current_tecs);
+    targets_node.setDouble("tecs", target_tecs);
+    
+    // navigation update (circle or route heading)
     navigation.update(dt);
         
     // update the autopilot stages (even in manual flight mode.)  This
