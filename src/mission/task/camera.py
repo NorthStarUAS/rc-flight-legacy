@@ -62,7 +62,7 @@ class Camera(Task):
         cur_time = self.imu_node.getFloat("timestamp")
         force_trigger = False
         if self.trigger_state:
-            if cur_time > self.trigger_time + 0.2:
+            if cur_time > self.trigger_time + 0.1:
                 # release trigger
                 self.trigger_state = False
                 self.act_node.setFloat(self.trigger_name, 0.0)
