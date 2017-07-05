@@ -93,7 +93,7 @@ static pyPropertyNode pilot_node;
 static pyPropertyNode act_node;
 static pyPropertyNode airdata_node;
 static pyPropertyNode analog_node;
-static pyPropertyNode config_power_node;
+static pyPropertyNode config_specs_node;
 
 static bool master_opened = false;
 static bool imu_inited = false;
@@ -580,7 +580,7 @@ static bool APM2_open() {
     }
 
     pyPropertyNode apm2_config = pyGetNode("/config/sensors/APM2", true);
-    config_power_node = pyGetNode("/confit/power", true);
+    config_specs_node = pyGetNode("/config/specs", true);
 
     for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
 	analog_filt[i].set_time_factor(0.5);
@@ -606,8 +606,8 @@ static bool APM2_open() {
 	pitot_calibrate = apm2_config.getDouble("pitot_calibrate_factor");
     }
 
-    if ( config_power_node.hasChild("battery_cells") ) {
-	battery_cells = config_power_node.getLong("battery_cells");
+    if ( config_specs_node.hasChild("battery_cells") ) {
+	battery_cells = config_specs_node.getLong("battery_cells");
     }
     if ( battery_cells < 1 ) { battery_cells = 1; }
 
