@@ -5,8 +5,7 @@ from props import root, getNode
 import commands
 
 ident_node = getNode('/config/identity', True)
-power_node = getNode('/config/power', True)
-speed_node = getNode('/config/speed', True)
+specs_node = getNode('/config/specs', True)
 
 requests_pending = True
 def gen_requests():
@@ -29,19 +28,19 @@ def gen_requests():
             requests_pending = True
             commands.add('get,/config/identity/serial_number')
             
-        if power_node.getString('battery_cells') == '':
+        if specs_node.getString('battery_cells') == '':
             requests_pending = True
-            commands.add('get,/config/power/battery_cells')
-        if power_node.getString('battery_mah') == '':
+            commands.add('get,/config/specs/battery_cells')
+        if specs_node.getString('battery_mah') == '':
             requests_pending = True
-            commands.add('get,/config/power/battery_mah')
+            commands.add('get,/config/specs/battery_mah')
             
-        if speed_node.getString('cruise_kt') == '':
+        if specs_node.getString('cruise_kt') == '':
             requests_pending = True
-            commands.add('get,/config/speed/cruise_kt')
-        if speed_node.getString('max_kt') == '':
+            commands.add('get,/config/specs/cruise_kt')
+        if specs_node.getString('max_kt') == '':
             requests_pending = True
-            commands.add('get,/config/speed/max_kt')
-        if speed_node.getString('min_kt') == '':
+            commands.add('get,/config/specs/max_kt')
+        if specs_node.getString('min_kt') == '':
             requests_pending = True
-            commands.add('get,/config/speed/min_kt')
+            commands.add('get,/config/specs/min_kt')
