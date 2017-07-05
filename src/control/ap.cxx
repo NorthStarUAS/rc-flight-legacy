@@ -42,7 +42,7 @@ using std::ostringstream;
 
 void AuraAutopilot::init() {
     if ( ! build() ) {
-	printf("Detected an internal inconsistency in the autopilot\n");
+	printf("AP: Detected an internal inconsistency in the autopilot\n");
 	printf("configuration.  See earlier errors for details.\n" );
 	exit(-1);
     }
@@ -108,8 +108,10 @@ bool AuraAutopilot::build() {
 		return false;
 	    }
 	} else if ( name == "L1_controller" ) {
-	    // information placeholder, we don't do anything here.
-        } else {
+	    // configuration placeholder, we don't do anything here.
+	} else if ( name == "TECS_controller" ) {
+	    // configuration placeholder, we don't do anything here.
+         } else {
 	    printf("Unknown top level section: %s\n", children[i].c_str() );
             return false;
         }

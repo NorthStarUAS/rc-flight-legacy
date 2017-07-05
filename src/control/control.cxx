@@ -31,7 +31,6 @@
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
 #include "comms/remote_link.hxx"
-#include "filters/tecs.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 #include "python/pymodule.hxx"
@@ -214,9 +213,6 @@ void control_update(double dt)
 	last_fcs_mode = "";
     }
 
-    // update tecs target
-    update_tecs_target();
-    
     // navigation update (circle or route heading)
     navigation.update(dt);
         

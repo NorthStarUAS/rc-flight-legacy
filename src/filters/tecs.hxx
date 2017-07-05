@@ -1,5 +1,2 @@
-// compute the current total energy
+// compute various energy metrics and errors
 void update_tecs();
-
-// compute the target total energy
-void update_tecs_target();
