@@ -392,18 +392,17 @@ int main( int argc, char **argv )
     // load master config file
     SGPath master( root );
     master.append( "main.json" );
-    try {
-	pyPropertyNode props = pyGetNode("/", true);
-        readJSON( master.c_str(), &props);
+    pyPropertyNode props = pyGetNode("/", true);
+    bool result = readJSON( master.c_str(), &props);
+    if ( result ) {
         printf("Loaded configuration from %s\n", master.c_str());
-	//writeJSON( "debug.json", &props);
-	props.pretty_print();
-	pyPropertyNode config_node = pyGetNode("/config");
-	config_node.setString("root-path", root.c_str());
-    } catch (const sg_exception &exc) {
+        //writeJSON( "debug.json", &props);
+        props.pretty_print();
+        pyPropertyNode config_node = pyGetNode("/config");
+        config_node.setString("root-path", root.c_str());
+    } else {
         printf("\n");
         printf("*** Cannot load master config file: %s\n", master.c_str());
-	printf("*** \n%s\n***\n", exc.getFormattedMessage().c_str());
         printf("\n");
         printf("Cannot continue without a valid configuration, sorry.\n");
         exit(1);
