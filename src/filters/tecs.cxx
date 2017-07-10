@@ -29,11 +29,6 @@ static bool tecs_inited = false;
 static double mass_kg = 2.5;
 static const float g = 9.81;
 
-static double tecs_compute(double alt_m, double vel_mps, double mass) {
-    double energy_tot = mass * ( g * alt_m + 0.5 * vel_mps * vel_mps );
-    return energy_tot;
-}
-
 
 static void init_tecs() {
     pos_node = pyGetNode( "/position", true);
@@ -47,7 +42,7 @@ static void init_tecs() {
     if ( m > 0.01 ) {
         mass_kg = m;
     }
-    
+
     tecs_inited = true;
 }
 
@@ -90,8 +85,21 @@ void update_tecs() {
     tecs_node.setDouble("error_total", error_total);
     tecs_node.setDouble("error_pot", error_pot);
     tecs_node.setDouble("error_kin", error_kin);
+    
+    // compute min & max kinetic energy
+    double min_kt = specs_node.getDouble("min_kt");
+    if ( min_kt < 15 ) { min_kt = 15;}
+    double min_mps = min_kt * SG_KT_TO_MPS;
+    double min_kinetic = 0.5 * mass_kg * min_mps * min_mps;
+    double min_error = min_kinetic - energy_kin;
 
-    // Weighted kin + pot error
+    double max_kt = specs_node.getDouble("max_kt");
+    if ( max_kt < 15 ) { max_kt = 2 * min_kt; }
+    double max_mps = max_kt * SG_KT_TO_MPS;
+    double max_kinetic = 0.5 * mass_kg * max_mps * max_mps;
+    double max_error = max_kinetic - energy_kin;
+    
+    // Weighted kinetic + potential error
     double weight = tecs_node.getDouble("weight");
     if ( weight < 0.0 ) {
         weight = 0.0;
@@ -101,6 +109,9 @@ void update_tecs() {
         tecs_node.setDouble("weight", weight);
     }
     double error_blend =  (1.0 - weight) * error_kin - weight * error_pot;
+    // printf("%.1f  %.1f  %.1f\n", min_error, error_blend, max_error);
+    if ( error_blend < min_error ) { error_blend = min_error; }
+    if ( error_blend > max_error ) { error_blend = max_error; }
     tecs_node.setDouble("error_blend", error_blend);
         
 }
