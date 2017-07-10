@@ -37,6 +37,7 @@
 
 #include "include/util.h"
 #include "ap.hxx"
+#include "tecs.hxx"
 
 #include "control.hxx"
 
@@ -212,6 +213,9 @@ void control_update(double dt)
 	}
 	last_fcs_mode = "";
     }
+
+    // update tecs (total energy) values and error metrics
+    update_tecs();
 
     // navigation update (circle or route heading)
     navigation.update(dt);

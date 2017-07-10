@@ -35,7 +35,7 @@ static void init_tecs() {
     vel_node = pyGetNode( "/velocity", true);
     specs_node = pyGetNode( "/config/specs", true);
     targets_node = pyGetNode( "/autopilot/targets", true);
-    tecs_node = pyGetNode( "/filters/tecs", true);
+    tecs_node = pyGetNode( "/autopilot/tecs", true);
     tecs_config_node = pyGetNode( "/config/TECS_controller", true);
 
     double m = specs_node.getDouble("mass_kg");

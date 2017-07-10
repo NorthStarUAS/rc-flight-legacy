@@ -28,7 +28,6 @@ using std::ostringstream;
 #include "util/myprof.hxx"
 
 #include "filter_mgr.hxx"
-#include "tecs.hxx"
 
 //
 // Global variables
@@ -247,7 +246,7 @@ static void update_wind(double dt) {
     double groundtrack_est_deg = 90 - atan2( vn_est, ve_est ) * SGD_RADIANS_TO_DEGREES;
     if ( groundtrack_est_deg < 0 ) { groundtrack_est_deg += 360.0; }
     double groundspeed_est_ms = sqrt( ve_est*ve_est + vn_est*vn_est );
-    double groundspeed_est_kt = groundspeed_est_ms * SG_MPS_TO_KT;
+    // double groundspeed_est_kt = groundspeed_est_ms * SG_MPS_TO_KT;
     vel_node.setDouble( "groundspeed_est_ms", groundspeed_est_ms );
     orient_node.setDouble( "groundtrack_est_deg", groundtrack_est_deg );
 }
@@ -365,7 +364,6 @@ bool Filter_update() {
 		update_euler_rates();
 		update_ground(imu_dt);
 		update_wind(imu_dt);
-                update_tecs();
 		publish_values();
 	    }
 	}
