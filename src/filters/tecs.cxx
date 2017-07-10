@@ -43,6 +43,10 @@ static void init_tecs() {
         mass_kg = m;
     }
 
+    if ( ! tecs_node.hasChild("weight") ) {
+        tecs_node.setDouble("weight", 0.5);
+    }
+    
     tecs_inited = true;
 }
 
@@ -64,15 +68,14 @@ void update_tecs() {
     tecs_node.setDouble("energy_total", energy_total);
     tecs_node.setDouble("energy_pot", energy_pot);
     tecs_node.setDouble("energy_kin", energy_kin);
-
+    
     // Target energy
     double target_alt_m = targets_node.getDouble("altitude_agl_ft") * SG_FEET_TO_METER;
     double target_vel_mps = targets_node.getDouble("airspeed_kt") * SG_KT_TO_MPS;
-
     double target_pot = mass_kg * g * target_alt_m;
     double target_kin = 0.5 * mass_kg * target_vel_mps * target_vel_mps;
     double target_total = target_pot + target_kin;
-
+    
     tecs_node.setDouble("target_total", target_total);
     tecs_node.setDouble("target_pot", target_pot);
     tecs_node.setDouble("target_kin", target_kin);
@@ -81,12 +84,8 @@ void update_tecs() {
     double error_pot = target_pot - energy_pot;
     double error_kin = target_kin - energy_kin;
     double error_total = error_pot + error_kin;
-    
-    tecs_node.setDouble("error_total", error_total);
-    tecs_node.setDouble("error_pot", error_pot);
-    tecs_node.setDouble("error_kin", error_kin);
-    
-    // compute min & max kinetic energy
+
+    // Compute min & max kinetic energy
     double min_kt = specs_node.getDouble("min_kt");
     if ( min_kt < 15 ) { min_kt = 15;}
     double min_mps = min_kt * SG_KT_TO_MPS;
@@ -98,6 +97,20 @@ void update_tecs() {
     double max_mps = max_kt * SG_KT_TO_MPS;
     double max_kinetic = 0.5 * mass_kg * max_mps * max_mps;
     double max_error = max_kinetic - energy_kin;
+
+    // Guard against overspeed situations (presumably we've hit our
+    // max pitch up limit and have enough power to accelerate past our
+    // top speed.)  Is there a way to limit error_total using energy
+    // error metrics?  Or do we just live with the potential of
+    // overspeed climbs with over powered aircraft?
+    if ( max_error < 0 ) {
+        // we are too fast
+        // printf("overspeed: %.1f %.1f %.1f\n", error_total, error_kin, error_pot);
+    }     
+        
+    tecs_node.setDouble("error_total", error_total);
+    tecs_node.setDouble("error_pot", error_pot);
+    tecs_node.setDouble("error_kin", error_kin);
     
     // Weighted kinetic + potential error
     double weight = tecs_node.getDouble("weight");
@@ -110,8 +123,11 @@ void update_tecs() {
     }
     double error_blend =  (1.0 - weight) * error_kin - weight * error_pot;
     // printf("%.1f  %.1f  %.1f\n", min_error, error_blend, max_error);
+
+    // enforce speed limits (in energy error space)
     if ( error_blend < min_error ) { error_blend = min_error; }
     if ( error_blend > max_error ) { error_blend = max_error; }
+    
     tecs_node.setDouble("error_blend", error_blend);
         
 }
