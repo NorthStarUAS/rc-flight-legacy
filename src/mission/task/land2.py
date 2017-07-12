@@ -1,13 +1,10 @@
 import math
 
-import sys
-sys.path.append('/usr/local/lib')
-import nav.wgs84
-
 from props import root, getNode
 
 import comms.events
 import control.route
+import mission.greatcircle as gc
 import mission.mission_mgr
 from task import Task
 
@@ -144,9 +141,9 @@ class Land(Task):
             center_lon = self.circle_node.getFloat("longitude_deg")
             center_lat = self.circle_node.getFloat("latitude_deg")
             # compute course and distance to center of target circle
-            (course_deg, reverse_deg, cur_dist_m) = \
-                nav.wgs84.geo_inverse_wgs84( center_lat, center_lon,
-                                             pos_lat, pos_lon )
+            (course_deg, cur_dist_m) = \
+                gc.course_and_dist( (center_lat, center_lon),
+                                    (pos_lat, pos_lon) )
             # test for circle capture
             if not self.circle_capture:
                 fraction = abs(cur_dist_m / self.turn_radius_m)

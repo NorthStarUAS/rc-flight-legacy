@@ -1,8 +1,7 @@
-import sys
-sys.path.append('/usr/local/lib')
-import nav.wgs84
-
 from props import root, getNode
+
+import mission.greatcircle as gc
+
 
 class Waypoint:
     def __init__(self):
@@ -39,8 +38,8 @@ class Waypoint:
             course = ref_heading_deg + self.hdg_deg
             if course < 0.0: course += 360.0
             if course > 360.0: course -= 360.0
-            (self.lat_deg, self.lon_deg, recip_deg) = \
-                nav.wgs84.geo_direct_wgs84(lat_deg, lon_deg,
-                                             course, self.dist_m)
+            (self.lat_deg, self.lon_deg) = \
+                gc.project_course_distance( (lat_deg, lon_deg),
+                                            course, self.dist_m )
         else:
             print "Error: cannot update relative position of absolute waypoint"
