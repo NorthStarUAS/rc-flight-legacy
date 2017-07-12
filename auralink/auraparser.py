@@ -46,7 +46,7 @@ def new_logfile():
     global f
     
     d = datetime.datetime.utcnow()
-    logfile = 'flight-' + d.strftime("%Y-%m-%d-%H:%M:%S") + '.log'
+    logfile = 'flight-' + d.strftime("%Y%m%d-%H%M%S") + '.log'
     try:
         f = open(logfile, 'wb')
     except:
