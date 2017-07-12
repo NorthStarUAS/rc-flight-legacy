@@ -121,13 +121,13 @@ void update_tecs() {
         weight = 1.0;
         tecs_node.setDouble("weight", weight);
     }
-    double error_blend =  (1.0 - weight) * error_kin - weight * error_pot;
-    // printf("%.1f  %.1f  %.1f\n", min_error, error_blend, max_error);
+    double error_diff =  (1.0 - weight) * error_kin - weight * error_pot;
+    // printf("%.1f  %.1f  %.1f\n", min_error, error_diff, max_error);
 
     // enforce speed limits (in energy error space)
-    if ( error_blend < min_error ) { error_blend = min_error; }
-    if ( error_blend > max_error ) { error_blend = max_error; }
+    if ( error_diff < min_error ) { error_diff = min_error; }
+    if ( error_diff > max_error ) { error_diff = max_error; }
     
-    tecs_node.setDouble("error_blend", error_blend);
+    tecs_node.setDouble("error_diff", error_diff);
         
 }
