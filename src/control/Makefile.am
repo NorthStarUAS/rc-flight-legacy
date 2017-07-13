@@ -12,4 +12,4 @@ libcontrol_a_SOURCES = \
 	summer.cxx summer.hxx \
 	tecs.cxx tecs.hxx
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..

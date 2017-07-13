@@ -18,9 +18,6 @@ aura_LDADD = \
 	../math/libmath.a \
 	../util/libutil.a \
 	../python/libpyprops.a \
-	@PYTHON_LIBS@
+	-lpython2.7
 
-AM_CPPFLAGS = \
-	-I$(top_srcdir)/src \
-	-I$(top_builddir)/src \
-	@PYTHON_INCLUDES@
+AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src

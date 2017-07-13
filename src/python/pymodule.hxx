@@ -5,7 +5,7 @@
 // requires imported python modules to follow some basic rules to play
 // nice.  (see examples in the code for now.)
 
-#include <Python.h>
+#include <python2.7/Python.h>
 #include <string>
 using std::string;
 

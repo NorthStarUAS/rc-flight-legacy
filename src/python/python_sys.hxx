@@ -1,7 +1,7 @@
 #ifndef _AURA_PYTHON_SYS_HXX
 #define _AURA_PYTHOS_SYS_HXX
 
-#include <Python.h>
+#include <python2.7/Python.h>
 
 #include <string>
 using std::string;

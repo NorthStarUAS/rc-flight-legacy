@@ -6,4 +6,4 @@
 #libmission_a_SOURCES = \
 #	mission.cxx
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@
+# AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..

@@ -5,4 +5,4 @@ libnav_eigen_a_SOURCES = \
 	EKF_15state_quat.cxx \
 	nav_functions.cxx nav_functions.hxx nav_interface.hxx
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..

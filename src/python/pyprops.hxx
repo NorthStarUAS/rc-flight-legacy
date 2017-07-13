@@ -1,7 +1,7 @@
 #ifndef _AURA_PYPROPS_HXX
 #define _AURA_PYPROPS_HXX
 
-#include <Python.h>
+#include <python2.7/Python.h>
 
 #include <string>
 #include <vector>

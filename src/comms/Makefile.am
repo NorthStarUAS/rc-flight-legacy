@@ -7,4 +7,4 @@ libcomms_a_SOURCES = \
 	packer.cxx packer.hxx \
 	remote_link.cxx remote_link.hxx
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..

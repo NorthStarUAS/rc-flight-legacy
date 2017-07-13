@@ -40,19 +40,21 @@ AC_SEARCH_LIBS(clock_gettime, [rt])
 AC_SEARCH_LIBS(cos, [m])
 AC_SEARCH_LIBS(gzopen, [z])
 
-dnl find python primary
-AM_PATH_PYTHON
-AC_PATH_PROGS([PYTHON_CONFIG],
-              [python$PYTHON_VERSION-config python-config],
-              [no],
-              [`dirname $PYTHON`])
-AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON.])])
-PYTHON_INCLUDES=`$PYTHON_CONFIG --includes`
-AC_MSG_RESULT([$PYTHON_INCLUDES])
-AC_SUBST(PYTHON_INCLUDES)
-PYTHON_LIBS=`$PYTHON_CONFIG --libs`
-AC_MSG_RESULT([$PYTHON_LIBS])
-AC_SUBST(PYTHON_LIBS)
+# dnl find python primary
+# AM_PATH_PYTHON
+# AC_PATH_PROGS([PYTHON_CONFIG],
+#               [python$PYTHON_VERSION-config python-config],
+#               [no],
+#               [`dirname $PYTHON`])
+# AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON.])])
+# PYTHON_INCLUDES=`$PYTHON_CONFIG --includes`
+# PYTHON_INCLUDES=""
+# AC_MSG_RESULT([$PYTHON_INCLUDES])
+# AC_SUBST(PYTHON_INCLUDES)
+# PYTHON_LIBS=`$PYTHON_CONFIG --libs`
+# PYTHON_LIBS="-lpython2.7"
+# AC_MSG_RESULT([$PYTHON_LIBS])
+# AC_SUBST(PYTHON_LIBS)
 
 dnl check for Eigen C++ matrix/vector/quaternion library
 AC_LANG_SAVE

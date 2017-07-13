@@ -15,4 +15,4 @@ libutil_a_SOURCES = \
 	wind.cxx wind.hxx \
         netSocket.cxx netSocket.h ul.h
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../.. @PYTHON_INCLUDES@
+AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
