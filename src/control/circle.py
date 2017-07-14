@@ -113,17 +113,24 @@ def update(dt):
     else:
         turn_accel = 0.0
 
+    # allow a crude fudge factor for non-straight airframes or imu
+    # mounting errors.  This is essentially the bank angle that yields
+    # zero turn rate
+    bank_bias_deg = L1_node.getFloat("bank_bias_deg");
+
     # compute desired acceleration = acceleration required for course
     # correction + acceleration required to maintain turn at current
     # distance from center.
     total_accel = accel + turn_accel
 
     target_bank = -math.atan( total_accel / gravity )
-    target_bank_deg = target_bank * r2d
+    target_bank_deg = target_bank * r2d + bank_bias_deg
 
     bank_limit_deg = L1_node.getFloat("bank_limit_deg")
-    if target_bank_deg < -bank_limit_deg: target_bank_deg = -bank_limit_deg
-    if target_bank_deg > bank_limit_deg: target_bank_deg = bank_limit_deg
+    if target_bank_deg < -bank_limit_deg + bank_bias_deg:
+        target_bank_deg = -bank_limit_deg + bank_bias_deg
+    if target_bank_deg > bank_limit_deg + bank_bias_deg:
+        target_bank_deg = bank_limit_deg + bank_bias_deg
 
     targets_node.setFloat( "roll_deg", target_bank_deg )
 

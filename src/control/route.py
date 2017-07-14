@@ -327,6 +327,11 @@ def update(dt):
 
             targets_node.setFloat( 'groundtrack_deg', nav_course )
 
+            # allow a crude fudge factor for non-straight airframes or
+            # imu mounting errors.  This is essentially the bank angle
+            # that yields zero turn rate
+            bank_bias_deg = L1_node.getFloat("bank_bias_deg");
+
             # target bank angle computed here
             target_bank_deg = 0.0
 
@@ -340,12 +345,13 @@ def update(dt):
 
             accel = 2.0 * math.sin(course_error * d2r) * VomegaA
 
-            target_bank_deg = -math.atan( accel / gravity ) * r2d
+            target_bank_deg = -math.atan( accel / gravity )*r2d + bank_bias_deg
+            
             bank_limit_deg = L1_node.getFloat('bank_limit_deg')
-            if target_bank_deg < -bank_limit_deg:
-                target_bank_deg = -bank_limit_deg
-            if target_bank_deg > bank_limit_deg:
-                target_bank_deg = bank_limit_deg
+            if target_bank_deg < -bank_limit_deg + bank_bias_deg:
+                target_bank_deg = -bank_limit_deg + bank_bias_deg
+            if target_bank_deg > bank_limit_deg + bank_bias_deg:
+                target_bank_deg = bank_limit_deg + bank_bias_deg
             targets_node.setFloat( 'roll_deg', target_bank_deg )
 
             # estimate distance remaining to completion of route
