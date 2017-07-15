@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/select.h>
 
 #include "netbuffer.hxx"
 #include "serial.hxx"
