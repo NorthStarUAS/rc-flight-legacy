@@ -34,6 +34,7 @@ using std::ostringstream;
 
 #include "ap.hxx"
 #include "dig_filter.hxx"
+#include "dtss.hxx"
 #include "pid.hxx"
 #include "pid_vel.hxx"
 #include "predictor.hxx"
@@ -90,6 +91,10 @@ bool AuraAutopilot::build() {
 	    } else if ( module == "pid_component" ) {
 		APComponent *c
 		    = new AuraPID( config_path.str() );
+		components.push_back( c );
+	    } else if ( module == "dtss_component" ) {
+		APComponent *c
+		    = new AuraDTSS( config_path.str() );
 		components.push_back( c );
 	    } else if ( module == "predict_simple" ) {
 		APComponent *c

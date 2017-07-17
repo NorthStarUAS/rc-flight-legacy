@@ -57,9 +57,6 @@ protected:
     string ref_attr;
     string ref_value;
   
-    string r_n_prop;
-    string r_n_value;
-
     vector <pyPropertyNode> output_node;
     vector <string> output_attr;
 
