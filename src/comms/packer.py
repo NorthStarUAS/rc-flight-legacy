@@ -72,7 +72,7 @@ ap_status_v1_fmt = "<dhhHhhhhddHHB"
 ap_status_v2_fmt = "<dhhHhhhhHddHHB"
 ap_status_v3_fmt = "<BdhhHhhhhHHddHHB"
 ap_status_v4_fmt = "<BdhhHHhhHHddHHB"
-ap_status_v5_fmt = "<BdBhhHHhhHHddHHB"
+ap_status_v5_fmt = "<BdBhhHhhhHHddHHB"
 
 apm2_node = getNode("/sensors/APM2", True)
 system_health_v2_fmt = "<dHHHHH"
@@ -823,8 +823,12 @@ def pack_ap_status_v5(index):
                       wp_lat,
                       wp_index,
                       route_size,
-                      remote_link_node.getInt("sequence_num") & 0xff)
-    #print index, status_node.getFloat('frame_time'), int(targets_node.getFloat("groundtrack_deg") * 10), int(targets_node.getFloat("roll_deg") * 10), int(target_msl_ft), int(targets_node.getFloat("climb_rate_fps") * 10), int(targets_node.getFloat("pitch_deg") * 10), int(targets_node.getFloat("the_dot") * 1000), int(targets_node.getFloat("airspeed_kt") * 10), int(task_node.getFloat("flight_timer")), route_node.getInt("target_waypoint_idx"), wp_lon, wp_lat, wp_index, route_size,  remote_link_node.getInt("sequence_num") & 0xff
+                      remote_link_node.getInt("sequence_num"))
+    # print 'B:', index, flags, remote_link_node.getInt("sequence_num")
+    # print 'd:', status_node.getFloat('frame_time'), wp_lon, wp_lat
+    # print 'h:', int(round(targets_node.getFloat("groundtrack_deg") * 10)), int(round(targets_node.getFloat("roll_deg") * 10)),
+    # print 'H:', int(round(target_msl_ft)), int(round(ground_m)),
+    # int(round(targets_node.getFloat("pitch_deg") * 10)), int(round(targets_node.getFloat("airspeed_kt") * 10)), int(round(task_node.getFloat("flight_timer"))), route_node.getInt("target_waypoint_idx"), wp_index, route_size, 
     return wrap_packet(AP_STATUS_PACKET_V5, buf)
 
 def pack_ap_status_text(index, delim=','):
