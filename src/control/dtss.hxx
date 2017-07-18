@@ -37,8 +37,7 @@ class AuraDTSS : public APComponent {
 
 private:
 
-    int rows;
-    int cols;
+    int nx, nz, nu;
     bool first_time;
 
     VectorXd x, z, z_prev, u;
@@ -49,6 +48,9 @@ private:
 
     vector <pyPropertyNode> inputs_node;
     vector <string> inputs_attr;
+    
+    vector <pyPropertyNode> outputs_node;
+    vector <string> outputs_attr;
 
 public:
 

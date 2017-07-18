@@ -27,8 +27,9 @@
 
 
 AuraDTSS::AuraDTSS( string config_path ):
-    rows(1),
-    cols(1),
+    nx(1),
+    nz(1),
+    nu(1),
     first_time(true),
     clamp( false )
 {
@@ -48,15 +49,17 @@ AuraDTSS::AuraDTSS( string config_path ):
 	enable_node = pyGetNode( path, true );
     }
 
+    vector <string> children;
+    
     // inputs
     node = component_node.getChild( "inputs", true );
-    vector <string> children = node.getChildren();
-    cols = children.size();
-    printf("dtss: %d inputs\n", children.size());
+    children = node.getChildren();
+    nz = children.size();
+    printf("dtss: %d input(s)\n", children.size());
     for ( unsigned int i = 0; i < children.size(); ++i ) {
 	if ( children[i].substr(0,4) == "prop" ) {
 	    string input_prop = node.getString(children[i].c_str());
-            printf("dtss: %s\n", input_prop.c_str());
+            printf("  %s\n", input_prop.c_str());
 	    pos = input_prop.rfind("/");
 	    if ( pos != string::npos ) {
 		string path = input_prop.substr(0, pos);
@@ -74,19 +77,22 @@ AuraDTSS::AuraDTSS( string config_path ):
 	}
     }
 
-    // output
-    node = component_node.getChild( "output", true );
-    /*vector <string>*/ children = node.getChildren();
+    // outputs
+    node = component_node.getChild( "outputs", true );
+    children = node.getChildren();
+    nu = children.size();
+    printf("dtss: %d output(s)\n", children.size());
     for ( unsigned int i = 0; i < children.size(); ++i ) {
 	if ( children[i].substr(0,4) == "prop" ) {
 	    string output_prop = node.getString(children[i].c_str());
+            printf("  %s\n", output_prop.c_str());
 	    pos = output_prop.rfind("/");
 	    if ( pos != string::npos ) {
 		string path = output_prop.substr(0, pos);
 		string attr = output_prop.substr(pos+1);
 		pyPropertyNode onode = pyGetNode( path, true );
-		output_node.push_back( onode );
-		output_attr.push_back( attr );
+		outputs_node.push_back( onode );
+		outputs_attr.push_back( attr );
 	    } else {
 		printf("WARNING: requested bad output path: %s\n",
 		       output_prop.c_str());
@@ -101,64 +107,63 @@ AuraDTSS::AuraDTSS( string config_path ):
     
     // A matrix
     len = component_node.getLen("A");
-    if ( len % cols == 0 ) {
-        rows = len / cols;
-    } else {
+    int nx = round(sqrt(len));
+    if ( nx * nx != len ) {
         printf("A improperly sized, len = %d\n", len);
-        rows = len / cols + 1;
+        nx = (int)sqrt(len);
     }
-    A = MatrixXd(rows, cols);
-    for ( unsigned int r = 0; r < rows; ++r ) {
-        for ( unsigned int c = 0; c < cols; ++c ) {
-            A(r,c) = component_node.getDouble("A", r*cols + c);
+    A = MatrixXd(nx, nx);
+    for ( unsigned int r = 0; r < nx; ++r ) {
+        for ( unsigned int c = 0; c < nx; ++c ) {
+            A(r,c) = component_node.getDouble("A", r*nx + c);
         }
     }
     std::cout << A << std::endl;
     
     // B matrix
     len = component_node.getLen("B");
-    if ( len != rows * cols ) {
+    if ( len != nx * nz ) {
         printf("B improperly sized, len = %d\n", len);
     }
-    B = MatrixXd(rows, cols);
-    for ( unsigned int r = 0; r < rows; ++r ) {
-        for ( unsigned int c = 0; c < cols; ++c ) {
-            B(r,c) = component_node.getDouble("B", r*cols + c);
+    B = MatrixXd(nx, nz);
+    for ( unsigned int r = 0; r < nx; ++r ) {
+        for ( unsigned int c = 0; c < nz; ++c ) {
+            B(r,c) = component_node.getDouble("B", r*nz + c);
         }
     }
     std::cout << B << std::endl;
     
     // C matrix
     len = component_node.getLen("C");
-    if ( len != rows * cols ) {
+    if ( len != nu * nx ) {
         printf("C improperly sized, len = %d\n", len);
     }
-    C = MatrixXd(rows, cols);
-    for ( unsigned int r = 0; r < rows; ++r ) {
-        for ( unsigned int c = 0; c < cols; ++c ) {
-            C(r,c) = component_node.getDouble("C", r*cols + c);
+    C = MatrixXd(nu, nx);
+    for ( unsigned int r = 0; r < nu; ++r ) {
+        for ( unsigned int c = 0; c < nx; ++c ) {
+            C(r,c) = component_node.getDouble("C", r*nx + c);
         }
     }
     std::cout << C << std::endl;
     
     // D matrix
     len = component_node.getLen("D");
-    if ( len != rows * cols ) {
+    if ( len != nu * nz ) {
         printf("D improperly sized, len = %d\n", len);
     }
-    D = MatrixXd(rows, cols);
-    for ( unsigned int r = 0; r < rows; ++r ) {
-        for ( unsigned int c = 0; c < cols; ++c ) {
-            D(r,c) = component_node.getDouble("D", r*cols + c);
+    D = MatrixXd(nu, nz);
+    for ( unsigned int r = 0; r < nu; ++r ) {
+        for ( unsigned int c = 0; c < nz; ++c ) {
+            D(r,c) = component_node.getDouble("D", r*nz + c);
         }
     }
     std::cout << D << std::endl;
 
     // initial state is zero
-    x = VectorXd(cols);
-    z = VectorXd(cols);
-    z_prev = VectorXd(cols);
-    u = VectorXd(cols);
+    x = VectorXd(nx);
+    z = VectorXd(nz);
+    z_prev = VectorXd(nz);
+    u = VectorXd(nu);
     x.setZero();
     z.setZero();
     z_prev.setZero();
@@ -180,7 +185,7 @@ void AuraDTSS::update( double dt ) {
     if ( debug ) printf("Updating %s\n", get_name().c_str());
 
     // assemble input vector
-    for ( unsigned int i = 0; i < cols; ++i ) {
+    for ( unsigned int i = 0; i < nz; ++i ) {
         z(i) = inputs_node[i].getDouble(inputs_attr[i].c_str());
     }
     
@@ -192,6 +197,8 @@ void AuraDTSS::update( double dt ) {
         u = C*x + D*z;
     }
     z_prev = z;
+
+    std::cout << "u: " << u << std::endl;
     
     // y_n = input_node.getDouble(input_attr.c_str());
 
