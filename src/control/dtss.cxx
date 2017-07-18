@@ -162,12 +162,12 @@ AuraDTSS::AuraDTSS( string config_path ):
     x = VectorXd(nx);
     z = VectorXd(nz);
     z_prev = VectorXd(nz);
-    z_trim = VectorXd(nz);
+    /*z_trim = VectorXd(nz);*/
     u = VectorXd(nu);
     x.setZero();
     z.setZero();
     z_prev.setZero();
-    z_trim.setZero();
+    /*z_trim.setZero();*/
     u.setZero();
     
     // config
@@ -199,12 +199,12 @@ void AuraDTSS::update( double dt ) {
     // update states
     if ( first_time ) {
         first_time = false;
-        z_trim = z;
-        z -= z_trim;
+        /*z_trim = z;*/
+        /*z -= z_trim;*/
         x.setZero();
         u = C*x + D*z;
     } else {
-        z -= z_trim;
+        /*z -= z_trim;*/
         x = A*x + B*z_prev;
         u = C*x + D*z;
     }
