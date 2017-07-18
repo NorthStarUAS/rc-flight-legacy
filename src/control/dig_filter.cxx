@@ -101,6 +101,9 @@ AuraDigitalFilter::AuraDigitalFilter( string config_path )
     input.resize(samples + 1, 0.0);
 }
 
+void AuraDigitalFilter::reset() {
+}
+
 void AuraDigitalFilter::update(double dt)
 {
     if (!enable_node.isNull() && enable_node.getString(enable_attr.c_str()) == enable_value) {

@@ -87,6 +87,10 @@ AuraPredictor::AuraPredictor ( string config_path ):
     }
 }
 
+void AuraPredictor::reset() {
+}
+
+
 void AuraPredictor::update( double dt ) {
     /*
        Simple moving average filter converts input value to predicted value "seconds".

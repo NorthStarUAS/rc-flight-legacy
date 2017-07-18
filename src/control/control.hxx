@@ -3,7 +3,7 @@
 
 
 void control_init();
-void control_reinit();
+void control_reset();
 void control_update(double dt);
 void control_close();
 

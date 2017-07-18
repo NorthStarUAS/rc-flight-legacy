@@ -113,6 +113,10 @@ AuraPIDVel::AuraPIDVel( string config_path ):
 }
 
 
+void AuraPIDVel::reset() {
+}
+
+
 /*
  * Roy Vegard Ovesen:
  *

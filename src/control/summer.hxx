@@ -38,5 +38,6 @@ public:
     AuraSummer( string config_path );
     ~AuraSummer() {}
 
+    void reset();
     void update( double dt );
 };

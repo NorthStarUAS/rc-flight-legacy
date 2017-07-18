@@ -37,26 +37,27 @@ class AuraDTSS : public APComponent {
 
 private:
 
-    int nx, nz, nu;
+    unsigned int nx, nz, nu;
     bool first_time;
 
-    VectorXd x, z, z_prev, u;
+    VectorXd x, z, z_prev, z_trim, u;
     MatrixXd A, B, C, D;
     
-    // post functions for output
-    bool clamp;
-
     vector <pyPropertyNode> inputs_node;
     vector <string> inputs_attr;
     
     vector <pyPropertyNode> outputs_node;
     vector <string> outputs_attr;
 
+    vector <double> u_min;
+    vector <double> u_max;
+    
 public:
 
     AuraDTSS( string config_path );
     ~AuraDTSS() {}
 
+    void reset();
     void update( double dt );
 };
 

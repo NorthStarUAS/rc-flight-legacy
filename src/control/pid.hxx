@@ -30,12 +30,11 @@ class AuraPID : public APComponent {
 
 private:
 
+    bool do_reset;
+    
     bool proportional;		// proportional component data
     bool integral;		// integral component data
     double iterm;		// integral summer
-
-    // post functions for output
-    bool clamp;
 
     // Input values
     double y_n;                 // measured process value (input)
@@ -47,6 +46,7 @@ public:
     AuraPID( string config_path );
     ~AuraPID() {}
 
+    void reset();
     void update( double dt );
 };
 

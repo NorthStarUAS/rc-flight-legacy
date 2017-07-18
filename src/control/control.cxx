@@ -100,11 +100,10 @@ void control_init() {
 }
 
 
-void control_reinit() {
-    // reread autopilot configuration from the property tree and reset
-    // all stages (i.e. real time gain tuning)
-
-    ap.reinit();
+// send a reset signal to all ap modules that support it.
+void control_reset() {
+    printf("control reset\n");
+    ap.reset();
 }
 
 
@@ -118,6 +117,7 @@ void control_update(double dt)
     if ( ap_node.getBool("master_switch") != last_ap_mode ) {
 	string ap_master_str;
 	if ( ap_node.getBool("master_switch") ) {
+            control_reset();
 	    ap_master_str = "autopilot";
 	} else {
 	    ap_master_str = "manual flight";

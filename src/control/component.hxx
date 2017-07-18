@@ -72,7 +72,8 @@ public:
 
     virtual ~APComponent() {}
 
-    virtual void update (double dt)=0;
+    virtual void reset() = 0;
+    virtual void update( double dt ) = 0;
     
     inline string get_name() { return component_node.getString("name"); }
 };

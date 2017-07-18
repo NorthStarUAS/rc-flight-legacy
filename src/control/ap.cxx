@@ -50,18 +50,12 @@ void AuraAutopilot::init() {
 }
 
 
-void AuraAutopilot::reinit() {
-    components.clear();
-    init();
-    build();
+void AuraAutopilot::reset() {
+    for ( unsigned int i = 0; i < components.size(); ++i ) {
+        components[i]->reset();
+    }
 }
 
-
-void AuraAutopilot::bind() {
-}
-
-void AuraAutopilot::unbind() {
-}
 
 bool AuraAutopilot::build() {
     pyPropertyNode config_props = pyGetNode( "/config/autopilot", true );

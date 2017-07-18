@@ -43,7 +43,7 @@ public:
     AuraPIDVel( string config_path, bool old );
     ~AuraPIDVel() {}
 
-    void update_old( double dt );
+    void reset();
     void update( double dt );
 };
 

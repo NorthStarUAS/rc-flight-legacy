@@ -30,8 +30,7 @@ AuraDTSS::AuraDTSS( string config_path ):
     nx(1),
     nz(1),
     nu(1),
-    first_time(true),
-    clamp( false )
+    first_time(true)
 {
     size_t pos;
 
@@ -80,34 +79,34 @@ AuraDTSS::AuraDTSS( string config_path ):
     // outputs
     node = component_node.getChild( "outputs", true );
     children = node.getChildren();
-    nu = children.size();
-    printf("dtss: %d output(s)\n", children.size());
-    for ( unsigned int i = 0; i < children.size(); ++i ) {
-	if ( children[i].substr(0,4) == "prop" ) {
-	    string output_prop = node.getString(children[i].c_str());
-            printf("  %s\n", output_prop.c_str());
-	    pos = output_prop.rfind("/");
-	    if ( pos != string::npos ) {
-		string path = output_prop.substr(0, pos);
-		string attr = output_prop.substr(pos+1);
-		pyPropertyNode onode = pyGetNode( path, true );
-		outputs_node.push_back( onode );
-		outputs_attr.push_back( attr );
-	    } else {
-		printf("WARNING: requested bad output path: %s\n",
-		       output_prop.c_str());
-	    }
-	} else {
-	    printf("WARNING: unknown tag in output section: %s\n",
-		   children[i].c_str());
-	}
+    nu = component_node.getLen( "outputs" );
+    printf("dtss: %d output(s)\n", nu);
+    for ( unsigned int i = 0; i < nu; ++i ) {
+        pyPropertyNode child = component_node.getChild( "outputs", i, true );
+        string output_prop = child.getString("prop");        
+        pos = output_prop.rfind("/");
+        double min = child.getDouble("u_min");  
+        double max = child.getDouble("u_max");
+        printf("  %s [%.2f, %.2f]\n", output_prop.c_str(), min, max);
+        if ( pos != string::npos ) {
+            string path = output_prop.substr(0, pos);
+            string attr = output_prop.substr(pos+1);
+            pyPropertyNode onode = pyGetNode( path, true );
+            outputs_node.push_back( onode );
+            outputs_attr.push_back( attr );
+            u_min.push_back( min );
+            u_max.push_back( max );
+        } else {
+            printf("WARNING: requested bad output path: %s\n",
+                   output_prop.c_str());
+        }
     }
 
-    int len;
+    unsigned int len;
     
     // A matrix
     len = component_node.getLen("A");
-    int nx = round(sqrt(len));
+    nx = round(sqrt(len));
     if ( nx * nx != len ) {
         printf("A improperly sized, len = %d\n", len);
         nx = (int)sqrt(len);
@@ -163,14 +162,21 @@ AuraDTSS::AuraDTSS( string config_path ):
     x = VectorXd(nx);
     z = VectorXd(nz);
     z_prev = VectorXd(nz);
+    z_trim = VectorXd(nz);
     u = VectorXd(nu);
     x.setZero();
     z.setZero();
     z_prev.setZero();
+    z_trim.setZero();
     u.setZero();
     
     // config
     config_node = component_node.getChild( "config", true );
+}
+
+
+void AuraDTSS::reset() {
+    first_time = true;
 }
 
 
@@ -188,89 +194,30 @@ void AuraDTSS::update( double dt ) {
     for ( unsigned int i = 0; i < nz; ++i ) {
         z(i) = inputs_node[i].getDouble(inputs_attr[i].c_str());
     }
-    
+    std::cout << "z: " << z << std::endl;
+
+    // update states
     if ( first_time ) {
         first_time = false;
+        z_trim = z;
+        z -= z_trim;
+        x.setZero();
         u = C*x + D*z;
     } else {
+        z -= z_trim;
         x = A*x + B*z_prev;
         u = C*x + D*z;
     }
     z_prev = z;
 
+    // write outputs
     std::cout << "u: " << u << std::endl;
-    
-    // y_n = input_node.getDouble(input_attr.c_str());
-
-    // double r_n = 0.0;
-    // if ( ref_value != "" ) {
-    //     // printf("nonzero ref_value\n");
-    //     r_n = atof(ref_value.c_str());
-    // } else {
-    //     r_n = ref_node.getDouble(ref_attr.c_str());
-    // }
-                      
-    // double error = r_n - y_n;
-    // if ( debug ) printf("input = %.3f reference = %.3f error = %.3f\n",
-    //     		y_n, r_n, error);
-
-    // double u_trim = config_node.getDouble("u_trim");
-    // double u_min = config_node.getDouble("u_min");
-    // double u_max = config_node.getDouble("u_max");
-
-    // double Kp = config_node.getDouble("Kp");
-    // double Ti = config_node.getDouble("Ti");
-    // double Td = config_node.getDouble("Td");
-    // double Ki = 0.0;
-    // if ( Ti > 0.0001 ) {
-    //     Ki = Kp / Ti;
-    // }
-    // double Kd = Kp * Td;
-
-    // // proportional term
-    // double pterm = Kp * error + u_trim;
-
-    // // integral term
-    // iterm += Ki * error * dt;
-    
-    // // derivative term: observe that dError/dt = -dInput/dt (except
-    // // when the setpoint changes (which we don't want to react to
-    // // anyway.)  This approach avoids "derivative kick" when the set
-    // // point changes.
-    // double dy = y_n - y_n_1;
-    // y_n_1 = y_n;
-    // double dterm = Kd * -dy / dt;
-
-    // double output = pterm + iterm + dterm;
-    // if ( output < u_min ) {
-    //     iterm += u_min - output;
-    //     output = u_min;
-    // }
-    // if ( output > u_max ) {
-    //     iterm -= output - u_max;
-    //     output = u_max;
-    // }
-
-    // if ( debug ) printf("pterm = %.3f iterm = %.3f\n",
-    //     		pterm, iterm);
-    // if ( debug ) printf("clamped output = %.3f\n", output);
-
-    // if ( enabled ) {
-    //     // Copy the result to the output node(s)
-    //     for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-    //         output_node[i].setDouble( output_attr[i].c_str(), output );
-    //     }
-    // } else {
-    //     // back compute an iterm that will produce zero initial
-    //     // transient when activating this component
-    //     double u_n = output_node[0].getDouble(output_attr[0].c_str());
-    //     // and clip
-    //     double u_min = config_node.getDouble("u_min");
-    //     double u_max = config_node.getDouble("u_max");
-    //     if ( u_n < u_min ) { u_n = u_min; }
-    //     if ( u_n > u_max ) { u_n = u_max; }
-    //     iterm = u_n - pterm;
-    // }
+    for ( unsigned int i = 0; i < nu; ++i ) {
+        double value = u(i);
+        if ( value < u_min[i] ) { value = u_min[i]; }
+        if ( value > u_max[i] ) { value = u_max[i]; }
+        outputs_node[i].setDouble( outputs_attr[i].c_str(), value );
+    }
 }
 
 

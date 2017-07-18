@@ -49,9 +49,7 @@ public:
     ~AuraAutopilot() {}
 
     void init();
-    void reinit();
-    void bind();
-    void unbind();
+    void reset();
     void update( double dt );
 
     bool build();

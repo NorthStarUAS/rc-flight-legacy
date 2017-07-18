@@ -44,5 +44,6 @@ public:
     AuraPredictor( string config_path );
     ~AuraPredictor() {}
 
+    void reset();
     void update( double dt );
 };

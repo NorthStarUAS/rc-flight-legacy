@@ -26,10 +26,10 @@
 
 
 AuraPID::AuraPID( string config_path ):
+    do_reset(true),
     proportional( false ),
     integral( false ),
     iterm( 0.0 ),
-    clamp( false ),
     y_n( 0.0 ),
     y_n_1( 0.0 ),
     r_n( 0.0 )
@@ -100,6 +100,11 @@ AuraPID::AuraPID( string config_path ):
 }
 
 
+void AuraPID::reset() {
+    do_reset = true;
+}
+
+
 void AuraPID::update( double dt ) {
     if (!enable_node.isNull() && enable_node.getString(enable_attr.c_str()) == enable_value) {
 	enabled = true;
@@ -162,23 +167,28 @@ void AuraPID::update( double dt ) {
 
     if ( debug ) printf("pterm = %.3f iterm = %.3f\n",
 			pterm, iterm);
-    if ( debug ) printf("clamped output = %.3f\n", output);
 
-    if ( enabled ) {
+    if ( !enabled ) {
+        // force a reset when first enabled
+        do_reset = true;
+    } else { // enabled
+        if ( do_reset ) {
+            // back compute an iterm that will produce zero initial
+            // transient when activating this component
+            double u_n = output_node[0].getDouble(output_attr[0].c_str());
+            // and clip
+            double u_min = config_node.getDouble("u_min");
+            double u_max = config_node.getDouble("u_max");
+            if ( u_n < u_min ) { u_n = u_min; }
+            if ( u_n > u_max ) { u_n = u_max; }
+            iterm = u_n - pterm;
+            do_reset = false;
+        }
+    
 	// Copy the result to the output node(s)
 	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
 	    output_node[i].setDouble( output_attr[i].c_str(), output );
 	}
-    } else {
-        // back compute an iterm that will produce zero initial
-        // transient when activating this component
-        double u_n = output_node[0].getDouble(output_attr[0].c_str());
-	// and clip
-	double u_min = config_node.getDouble("u_min");
-	double u_max = config_node.getDouble("u_max");
- 	if ( u_n < u_min ) { u_n = u_min; }
-	if ( u_n > u_max ) { u_n = u_max; }
-        iterm = u_n - pterm;
     }
 }
 

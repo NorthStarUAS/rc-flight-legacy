@@ -93,6 +93,10 @@ AuraSummer::AuraSummer ( string config_path )
     config_node = component_node.getChild( "config", true );
 }
 
+void AuraSummer::reset() {
+    // noop
+}
+
 void AuraSummer::update( double dt ) {
     if (!enable_node.isNull() && enable_node.getString(enable_attr.c_str()) == enable_value) {
 	enabled = true;

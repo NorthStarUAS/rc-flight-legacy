@@ -24,6 +24,7 @@ using std::vector;
 
 #include "comms/remote_link.hxx"
 #include "comms/logging.hxx"
+#include "control/control.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 #include "util/myprof.hxx"
@@ -56,6 +57,9 @@ static myprofile debug_act2;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
+
+static string last_flight_mode = "";
+
 
 void Actuator_init() {
     debug_act1.set_name("debug_act1 act update and output");
@@ -311,6 +315,10 @@ bool Actuator_update() {
     act_node.setDouble( "timestamp", get_Time() );
     if ( ap_node.getBool("master_switch") ) {
 	string mode = ap_node.getString("flight_mode");
+        if ( mode != last_flight_mode ) {
+            control_reset();
+            last_flight_mode = mode;
+        }
 	if ( mode == "pilot_pass_through" ) {
 	    set_actuator_values_pilot_pass_through();
 	} else {

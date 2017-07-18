@@ -55,5 +55,6 @@ public:
     AuraDigitalFilter( string config_path );
     ~AuraDigitalFilter() {}
 
+    void reset();
     void update(double dt);
 };
