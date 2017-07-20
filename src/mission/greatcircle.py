@@ -36,10 +36,20 @@ def course_and_dist(p1, p2):
     if dist_rad < 0.000000001:
         # about a cm
         tc1_rad = 0.0
-    elif math.sin(lon2-lon1) < 0.0:
-        tc1_rad = math.acos((math.sin(lat2)-math.sin(lat1)*math.cos(dist_rad))/(math.sin(dist_rad)*math.cos(lat1)))    
     else:
-        tc1_rad = 2.0 * math.pi - math.acos((math.sin(lat2)-math.sin(lat1)*math.cos(dist_rad))/(math.sin(dist_rad)*math.cos(lat1)))
+        num1 = math.sin(lat2) - math.sin(lat1)*math.cos(dist_rad)
+        den1 = math.sin(dist_rad) * math.cos(lat1)
+        tmp1 = num1 / den1
+        if tmp1 < -1.0:
+            #print "CLIPPING TMP1 to -1.0!"
+            tmp1 = -1.0
+        if tmp1 > 1.0:
+            #print "CLIPPING TMP1 to 1.0!"
+            tmp1 = 1.0
+        if math.sin(lon2-lon1) < 0.0:
+            tc1_rad = math.acos(tmp1)
+        else:
+            tc1_rad = 2.0 * math.pi - math.acos(tmp1)
 
     dist_nm = dist_rad * rad2nm
     dist_m = dist_nm * nm2meter
