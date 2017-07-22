@@ -817,7 +817,7 @@ def pack_ap_status_v5(index):
                       int(round(ground_m)),
                       int(round(targets_node.getFloat("pitch_deg") * 10)),
                       int(round(targets_node.getFloat("airspeed_kt") * 10)),
-                      int(round(task_node.getFloat("flight_timer"))),
+                      int(round(task_node.getFloat("flight_timer"))) % 64800,
                       route_node.getInt("target_waypoint_idx"),
                       wp_lon,
                       wp_lat,
