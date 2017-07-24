@@ -100,7 +100,9 @@ void control_init() {
 }
 
 
-// send a reset signal to all ap modules that support it.
+// send a reset signal to all ap modules that support it.  This gives each
+// component a chance to update it's state to reset for current conditions,
+// eliminate transients, etc.
 void control_reset() {
     printf("control reset\n");
     ap.reset();
@@ -117,7 +119,7 @@ void control_update(double dt)
     if ( ap_node.getBool("master_switch") != last_ap_mode ) {
 	string ap_master_str;
 	if ( ap_node.getBool("master_switch") ) {
-            control_reset();
+            control_reset();    // transient mitigation
 	    ap_master_str = "autopilot";
 	} else {
 	    ap_master_str = "manual flight";
@@ -133,6 +135,8 @@ void control_update(double dt)
 	if ( last_fcs_mode != fcs_mode ) {
 	    string message = "mode change = " + fcs_mode;
 	    events->log( "control", message.c_str() );
+
+            control_reset();    // transient mitigation
 
 	    // turn on pointing (universally for now)
 	    ap_locks_node.setString( "pointing", "on" );
