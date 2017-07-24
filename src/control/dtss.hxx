@@ -40,7 +40,7 @@ private:
     unsigned int nx, nz, nu;
     bool first_time;
 
-    VectorXd x, z, z_prev, /*z_trim,*/ u;
+    VectorXd x, z, u;
     MatrixXd A, B, C, D;
     
     vector <pyPropertyNode> inputs_node;
@@ -51,6 +51,7 @@ private:
 
     vector <double> u_min;
     vector <double> u_max;
+    vector <double> u_trim;
     
 public:
 

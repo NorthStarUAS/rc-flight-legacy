@@ -87,6 +87,7 @@ AuraDTSS::AuraDTSS( string config_path ):
         pos = output_prop.rfind("/");
         double min = child.getDouble("u_min");  
         double max = child.getDouble("u_max");
+        double trim = child.getDouble("u_trim");
         printf("  %s [%.2f, %.2f]\n", output_prop.c_str(), min, max);
         if ( pos != string::npos ) {
             string path = output_prop.substr(0, pos);
@@ -96,6 +97,7 @@ AuraDTSS::AuraDTSS( string config_path ):
             outputs_attr.push_back( attr );
             u_min.push_back( min );
             u_max.push_back( max );
+            u_trim.push_back( trim );
         } else {
             printf("WARNING: requested bad output path: %s\n",
                    output_prop.c_str());
@@ -161,13 +163,9 @@ AuraDTSS::AuraDTSS( string config_path ):
     // initial state is zero
     x = VectorXd(nx);
     z = VectorXd(nz);
-    z_prev = VectorXd(nz);
-    /*z_trim = VectorXd(nz);*/
     u = VectorXd(nu);
     x.setZero();
     z.setZero();
-    z_prev.setZero();
-    /*z_trim.setZero();*/
     u.setZero();
     
     // config
@@ -190,30 +188,31 @@ void AuraDTSS::update( double dt ) {
     bool debug = component_node.getBool("debug");
     if ( debug ) printf("Updating %s\n", get_name().c_str());
 
-    // assemble input vector
-    for ( unsigned int i = 0; i < nz; ++i ) {
-        z(i) = inputs_node[i].getDouble(inputs_attr[i].c_str());
-    }
-    std::cout << "z: " << z << std::endl;
 
     // update states
     if ( first_time ) {
         first_time = false;
-        /*z_trim = z;*/
-        /*z -= z_trim;*/
         x.setZero();
+        for ( unsigned int i = 0; i < nz; ++i ) {
+            z(i) = inputs_node[i].getDouble(inputs_attr[i].c_str());
+        }
         u = C*x + D*z;
     } else {
-        /*z -= z_trim;*/
-        x = A*x + B*z_prev;
+        x = A*x + B*z;
+        for ( unsigned int i = 0; i < nz; ++i ) {
+            z(i) = inputs_node[i].getDouble(inputs_attr[i].c_str());
+        }
         u = C*x + D*z;
     }
-    z_prev = z;
 
+    if ( debug ) {
+        std::cout << "z: " << z << std::endl;
+        std::cout << "u: " << u << std::endl;
+    }
+    
     // write outputs
-    std::cout << "u: " << u << std::endl;
     for ( unsigned int i = 0; i < nu; ++i ) {
-        double value = u(i);
+        double value = u(i) + u_trim[i];
         if ( value < u_min[i] ) { value = u_min[i]; }
         if ( value > u_max[i] ) { value = u_max[i]; }
         outputs_node[i].setDouble( outputs_attr[i].c_str(), value );
