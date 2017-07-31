@@ -190,8 +190,7 @@ void AuraDTSS::update( double dt ) {
 
     // construct the M matrix
     MatrixXd M(nx + nz, nx + nz);
-    
-    M.topLeftCorner(nx,nx) = A *dt;
+    M.topLeftCorner(nx,nx) = A * dt;
     M.topRightCorner(nx,nz) = B * dt;
     M.bottomRows(nz).setZero();
 
@@ -205,7 +204,8 @@ void AuraDTSS::update( double dt ) {
     S += T / 2.0;
     T *= M;                     // M^3
     S += T / 6.0;
-    
+
+    // extract the F & G matrices
     MatrixXd F(nx, nx);
     F = S.topLeftCorner(nx, nx);
     MatrixXd G(nx, nz);
