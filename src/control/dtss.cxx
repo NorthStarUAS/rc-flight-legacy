@@ -188,6 +188,28 @@ void AuraDTSS::update( double dt ) {
     bool debug = component_node.getBool("debug");
     if ( debug ) printf("Updating %s\n", get_name().c_str());
 
+    // construct the M matrix
+    MatrixXd M(nx + nz, nx + nz);
+    
+    M.topLeftCorner(nx,nx) = A *dt;
+    M.topRightCorner(nx,nz) = B * dt;
+    M.bottomRows(nz).setZero();
+
+    // construct the S matrix = I + M + M^2/2 + M^3/6
+    MatrixXd S(nx + nz, nx + nz);
+    S.setIdentity();
+    MatrixXd T(nx + nz, nx + nz);
+    T = M;                      // M
+    S += T;
+    T *= M;                     // M^2
+    S += T / 2.0;
+    T *= M;                     // M^3
+    S += T / 6.0;
+    
+    MatrixXd F(nx, nx);
+    F = S.topLeftCorner(nx, nx);
+    MatrixXd G(nx, nz);
+    G = S.topRightCorner(nx, nz);
 
     // update states
     if ( first_time ) {
@@ -198,7 +220,7 @@ void AuraDTSS::update( double dt ) {
         }
         u = C*x + D*z;
     } else {
-        x = A*x + B*z;
+        x = F*x + G*z;
         for ( unsigned int i = 0; i < nz; ++i ) {
             z(i) = inputs_node[i].getDouble(inputs_attr[i].c_str());
         }
