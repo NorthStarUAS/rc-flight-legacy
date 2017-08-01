@@ -58,7 +58,7 @@ static myprofile debug_act2;
 static int remote_link_skip = 0;
 static int logging_skip = 0;
 
-static string last_flight_mode = "";
+static bool last_pass_through = false;
 
 
 void Actuator_init() {
@@ -314,14 +314,14 @@ bool Actuator_update() {
     // time stamp for logging
     act_node.setDouble( "timestamp", get_Time() );
     if ( ap_node.getBool("master_switch") ) {
-	string mode = ap_node.getString("flight_mode");
-        if ( mode != last_flight_mode ) {
-            control_reset();
-            last_flight_mode = mode;
-        }
-	if ( mode == "pilot_pass_through" ) {
+	bool pass_through = ap_node.getBool("pilot_pass_through");
+	if ( pass_through ) {
 	    set_actuator_values_pilot_pass_through();
 	} else {
+            if ( pass_through != last_pass_through ) {
+                control_reset();
+                last_pass_through = pass_through;
+            }
 	    set_actuator_values_ap();
 	}
     }
