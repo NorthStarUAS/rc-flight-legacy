@@ -30,7 +30,7 @@ AuraDTSS::AuraDTSS( string config_path ):
     nx(1),
     nz(1),
     nu(1),
-    first_time(true)
+    do_reset(true)
 {
     size_t pos;
 
@@ -167,14 +167,21 @@ AuraDTSS::AuraDTSS( string config_path ):
     x.setZero();
     z.setZero();
     u.setZero();
-    
+
+    // allocate internally used matrices
+    M = MatrixXd(nx + nz, nx + nz);
+    S = MatrixXd(nx + nz, nx + nz);
+    T = MatrixXd(nx + nz, nx + nz);
+    F = MatrixXd(nx, nx);
+    G = MatrixXd(nx, nz);
+
     // config
     config_node = component_node.getChild( "config", true );
 }
 
 
 void AuraDTSS::reset() {
-    first_time = true;
+    do_reset = true;
 }
 
 
@@ -189,15 +196,12 @@ void AuraDTSS::update( double dt ) {
     if ( debug ) printf("Updating %s\n", get_name().c_str());
 
     // construct the M matrix
-    MatrixXd M(nx + nz, nx + nz);
     M.topLeftCorner(nx,nx) = A * dt;
     M.topRightCorner(nx,nz) = B * dt;
     M.bottomRows(nz).setZero();
 
-    // construct the S matrix = I + M + M^2/2 + M^3/6
-    MatrixXd S(nx + nz, nx + nz);
+    // compute the S matrix = I + M + M^2/2 + M^3/6
     S.setIdentity();
-    MatrixXd T(nx + nz, nx + nz);
     T = M;                      // M
     S += T;
     T *= M;                     // M^2
@@ -206,14 +210,12 @@ void AuraDTSS::update( double dt ) {
     S += T / 6.0;
 
     // extract the F & G matrices
-    MatrixXd F(nx, nx);
     F = S.topLeftCorner(nx, nx);
-    MatrixXd G(nx, nz);
     G = S.topRightCorner(nx, nz);
 
     // update states
-    if ( first_time ) {
-        first_time = false;
+    if ( do_reset ) {
+        do_reset = false;
         x.setZero();
         for ( unsigned int i = 0; i < nz; ++i ) {
             z(i) = inputs_node[i].getDouble(inputs_attr[i].c_str());
@@ -231,13 +233,15 @@ void AuraDTSS::update( double dt ) {
         std::cout << "z: " << z << std::endl;
         std::cout << "u: " << u << std::endl;
     }
-    
-    // write outputs
-    for ( unsigned int i = 0; i < nu; ++i ) {
-        double value = u(i) + u_trim[i];
-        if ( value < u_min[i] ) { value = u_min[i]; }
-        if ( value > u_max[i] ) { value = u_max[i]; }
-        outputs_node[i].setDouble( outputs_attr[i].c_str(), value );
+
+    if ( enabled ) {
+        // write outputs
+        for ( unsigned int i = 0; i < nu; ++i ) {
+            double value = u(i) + u_trim[i];
+            if ( value < u_min[i] ) { value = u_min[i]; }
+            if ( value > u_max[i] ) { value = u_max[i]; }
+            outputs_node[i].setDouble( outputs_attr[i].c_str(), value );
+        }
     }
 }
 

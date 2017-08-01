@@ -38,10 +38,11 @@ class AuraDTSS : public APComponent {
 private:
 
     unsigned int nx, nz, nu;
-    bool first_time;
+    bool do_reset;
 
     VectorXd x, z, u;
     MatrixXd A, B, C, D;
+    MatrixXd M, S, T, F, G;
     
     vector <pyPropertyNode> inputs_node;
     vector <string> inputs_attr;
