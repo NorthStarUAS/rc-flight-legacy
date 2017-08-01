@@ -313,18 +313,18 @@ bool Actuator_update() {
 
     // time stamp for logging
     act_node.setDouble( "timestamp", get_Time() );
+    bool pass_through = ap_node.getBool("pilot_pass_through");
     if ( ap_node.getBool("master_switch") ) {
-	bool pass_through = ap_node.getBool("pilot_pass_through");
 	if ( pass_through ) {
 	    set_actuator_values_pilot_pass_through();
 	} else {
             if ( pass_through != last_pass_through ) {
                 control_reset();
-                last_pass_through = pass_through;
             }
 	    set_actuator_values_ap();
 	}
     }
+    last_pass_through = pass_through;
 
     debug_act1.stop();
 
