@@ -54,6 +54,10 @@ class Switch():
             self.force_true = True
         else:
             self.force_true = False
+        if switch_node.hasChild("invert"):
+            self.invert = switch_node.getBool("invert")
+        else:
+            self.invert = False
             
         self.min = -1.0
         self.max = 1.0
@@ -66,6 +70,8 @@ class Switch():
 
         #print "switch update:"
         input_val = self.input_node.getFloat(self.input_name)
+        if self.invert:
+            input_val = -input_val
         if input_val < self.min: input_val = self.min
         if input_val > self.max: input_val = self.max
         #print "  range:", self.min, self.max
