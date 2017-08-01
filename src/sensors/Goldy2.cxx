@@ -986,7 +986,12 @@ double goldy2_update() {
 	if ( pkt_id == 0x81 /* IMU */ ) {
 	    int bytes_available = 0;
             ioctl(sock.getHandle(), FIONREAD, &bytes_available);
-	    if ( bytes_available < 76 /* IMU packet len */ ) {
+            if ( bytes_available < 512 /* IMU packet len */ ) {
+                // bigger values == break out and process data even though we
+                // are slightly backed up (play more catchup).
+                // Smaller values == throw more frames away, even if we get
+                // a bit behind.
+                // printf("%d ", bytes_available);
 		break;
             }
 	    // printf("looping: %d bytes available in imu sock buffer\n", bytes_available);
