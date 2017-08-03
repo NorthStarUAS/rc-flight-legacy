@@ -13,6 +13,7 @@ import task.land1
 import task.land2
 import task.launch
 import task.lost_link
+import task.mode_mgr
 import task.preflight
 import task.calibrate
 import task.route
@@ -60,6 +61,8 @@ class MissionMgr:
             result = task.launch.Launch(config_node)
         elif task_name == 'lost_link':
             result = task.lost_link.LostLink(config_node)
+        elif task_name == 'mode_manager':
+            result = task.mode_mgr.ModeMgr(config_node)
         elif task_name == 'preflight':
             result = task.preflight.Preflight(config_node)
         elif task_name == 'calibrate':

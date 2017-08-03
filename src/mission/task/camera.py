@@ -92,8 +92,8 @@ class Camera(Task):
             self.trigger_state = True
             self.act_node.setFloat(self.trigger_name, 0.68)
             comms.events.log("camera", "%.8f %.8f %.1f" % (self.last_lat, self.last_lon, self.pos_node.getFloat('altitude_m')))
-            if self.comms_node.getBool('display_on'):
-                print "camera: %.1f %.8f %.8f %.1f" % (cur_time, self.last_lat, self.last_lon, self.pos_node.getFloat('altitude_m'))
+            #if self.comms_node.getBool('display_on'):
+            #    print "camera: %.1f %.8f %.8f %.1f" % (cur_time, self.last_lat, self.last_lon, self.pos_node.getFloat('altitude_m'))
         
     def is_complete(self):
         return False

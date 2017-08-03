@@ -114,108 +114,24 @@ void control_update(double dt)
     static int remote_link_count = 0;
     static int logging_count = 0;
 
-    // log auto/manual mode changes
-    static bool last_ap_mode = false;
-    if ( ap_node.getBool("master_switch") != last_ap_mode ) {
-	string ap_master_str;
+    // manage control system component reset cases (make this
+    // implicite per component when enable flag changes?)
+    static bool last_master_switch = false;
+    bool master_switch = ap_node.getBool("master_switch");
+    if ( master_switch != last_master_switch ) {
 	if ( ap_node.getBool("master_switch") ) {
             control_reset();    // transient mitigation
-	    ap_master_str = "autopilot";
-	} else {
-	    ap_master_str = "manual flight";
 	}
-	string message = "master switch = " + ap_master_str;
-	events->log( "control", message.c_str() );
-	last_ap_mode = ap_node.getBool("master_switch");
+	last_master_switch = ap_node.getBool("master_switch");
     }
     
     static string last_fcs_mode = "";
     string fcs_mode = ap_node.getString("mode");
-    if ( ap_node.getBool("master_switch") ) {
+    if ( master_switch ) {
 	if ( last_fcs_mode != fcs_mode ) {
-	    string message = "mode change = " + fcs_mode;
-	    events->log( "control", message.c_str() );
-
             control_reset();    // transient mitigation
-
-	    // turn on pointing (universally for now)
-	    ap_locks_node.setString( "pointing", "on" );
-	    pointing_node.setString( "lookat_mode", "ned-vector" );
-	    pointing_vec_node.setDouble( "north", 0.0 );
-	    pointing_vec_node.setDouble( "east", 0.0 );
-	    pointing_vec_node.setDouble( "down", 1.0 );
-
-	    if ( fcs_mode == "inactive" ) {
-		// unset all locks for "inactive"
-		ap_locks_node.setString( "roll", "" );
-		ap_locks_node.setString( "yaw", "" );
-		ap_locks_node.setString( "altitude", "" );
-		ap_locks_node.setString( "speed", "" );
-		ap_locks_node.setString( "pitch", "" );
-	    } else if ( fcs_mode == "basic" ) {
-		// set lock modes for "basic" inner loops only
-		ap_locks_node.setString( "roll", "aileron" );
-		ap_locks_node.setString( "yaw", "autocoord" );
-		ap_locks_node.setString( "altitude", "" );
-		ap_locks_node.setString( "speed", "" );
-		ap_locks_node.setString( "pitch", "elevator" );
-	    } else if ( fcs_mode == "roll" ) {
-		// set lock modes for roll only
-		ap_locks_node.setString( "roll", "aileron" );
-		ap_locks_node.setString( "yaw", "" );
-		ap_locks_node.setString( "altitude", "" );
-		ap_locks_node.setString( "speed", "" );
-		ap_locks_node.setString( "pitch", "" );
-	    } else if ( fcs_mode == "roll+pitch" ) {
-		// set lock modes for roll and pitch
-		ap_locks_node.setString( "roll", "aileron" );
-		ap_locks_node.setString( "yaw", "" );
-		ap_locks_node.setString( "altitude", "" );
-		ap_locks_node.setString( "speed", "" );
-		ap_locks_node.setString( "pitch", "elevator" );
-	    } else if ( fcs_mode == "basic+alt+speed" ) {
-		// set lock modes for "basic" + alt hold
-		ap_locks_node.setString( "roll", "aileron" );
-		ap_locks_node.setString( "yaw", "autocoord" );
-		ap_locks_node.setString( "altitude", "throttle" );
-		ap_locks_node.setString( "speed", "pitch" );
-		ap_locks_node.setString( "pitch", "elevator" );
-	    } else if ( fcs_mode == "cas" ) {
-		// set lock modes for "cas"
-		ap_locks_node.setString( "roll", "aileron" );
-		ap_locks_node.setString( "yaw", "" );
-		ap_locks_node.setString( "altitude", "" );
-		ap_locks_node.setString( "speed", "" );
-		ap_locks_node.setString( "pitch", "elevator" );
-		ap_locks_node.setString( "pointing", "on" );
-
-		float target_roll_deg = orient_node.getDouble("roll_deg");
-		if ( target_roll_deg > 45.0 ) { target_roll_deg = 45.0; }
-		if ( target_roll_deg < -45.0 ) { target_roll_deg = -45.0; }
-		targets_node.setDouble( "roll_deg", target_roll_deg );
-
-		float target_pitch_base_deg = orient_node.getDouble("pitch_deg");
-		if ( target_pitch_base_deg > 15.0 ) {
-		    target_pitch_base_deg = 15.0;
-		}
-		if ( target_pitch_base_deg < -15.0 ) {
-		    target_pitch_base_deg = -15.0;
-		}
-		targets_node.setDouble( "target_pitch_base_deg", target_pitch_base_deg );
-	    }
 	}
 	last_fcs_mode = fcs_mode;
-    } else {
-	if ( fcs_mode != "" ) {
-	    // autopilot is just de-activated, clear lock modes
-	    ap_locks_node.setString( "roll", "" );
-	    ap_locks_node.setString( "yaw", "" );
-	    ap_locks_node.setString( "altitude", "" );
-	    ap_locks_node.setString( "speed", "" );
-	    ap_locks_node.setString( "pitch", "" );
-	    ap_locks_node.setString( "pointing", "" );
-	}
-	last_fcs_mode = "";
     }
 
     // update tecs (total energy) values and error metrics
