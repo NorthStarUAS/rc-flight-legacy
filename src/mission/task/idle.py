@@ -3,7 +3,7 @@
 # flying, it means the mission manager ran out of things to do and has
 # requested a circle hold over the current position.
 
-from props import root, getNode
+from props import getNode
 
 import comms.events
 import mission.mission_mgr

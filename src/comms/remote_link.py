@@ -1,5 +1,5 @@
 import serial
-from props import root, getNode
+from props import getNode
 import props_json
 
 import events

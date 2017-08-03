@@ -1,4 +1,4 @@
-from props import root, getNode
+from props import getNode
 
 import mission.greatcircle as gc
 

@@ -5,7 +5,7 @@ import os
 import re
 import socket
 
-from props import root, getNode
+from props import getNode
 import props_json
 
 from packet_id import *

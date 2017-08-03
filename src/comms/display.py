@@ -1,6 +1,6 @@
 import math
 
-from props import root, getNode
+from props import getNode
 
 r2d = 180.0 / math.pi
 

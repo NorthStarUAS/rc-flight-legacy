@@ -1,6 +1,6 @@
 # high level navigation modes
 
-from props import root, getNode
+from props import getNode
 
 import circle
 import route

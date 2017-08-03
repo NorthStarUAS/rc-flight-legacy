@@ -1,7 +1,7 @@
 import re
 import struct
 
-from props import root, getNode
+from props import getNode
 
 from packet_id import *
 

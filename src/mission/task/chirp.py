@@ -1,6 +1,6 @@
 import math
 
-from props import root, getNode
+from props import getNode
 
 import comms.events
 from task import Task

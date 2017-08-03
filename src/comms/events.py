@@ -1,5 +1,4 @@
-import __builtin__ # open()
-from props import root, getNode
+from props import getNode
 import props_json
 
 import logging
