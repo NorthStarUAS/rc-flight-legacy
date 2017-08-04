@@ -6,7 +6,7 @@ set ytics nomirror
 set y2label "Throttle"
 set y2tics
 
-plot "ap-0.txt" using 1:4 with lines title "Target Altitude (MSL)", \
+plot "ap-0.txt" using 1:6 with lines title "Target Altitude (MSL)", \
      "air-0.txt" using 1:($5/0.3048) with lines title "Baro Altitude", \
      "gps-0.txt" using 1:($4/0.3048) with lines title "GPS Altitude", \
      "filter-0.txt" using 1:($4/0.3048) with lines title "Filter Altitude", \
