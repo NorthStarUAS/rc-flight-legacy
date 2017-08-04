@@ -35,26 +35,38 @@ AuraDTSS::AuraDTSS( string config_path ):
     size_t pos;
 
     component_node = pyGetNode(config_path, true);
+    vector <string> children;
 
     // enable
-    pyPropertyNode node = component_node.getChild("enable", true);
-    string enable_prop = node.getString("prop");
-    enable_value = node.getString("value");
-    honor_passive = node.getBool("honor_passive");
-    pos = enable_prop.rfind("/");
-    if ( pos != string::npos ) {
-	string path = enable_prop.substr(0, pos);
-	enable_attr = enable_prop.substr(pos+1);
-	enable_node = pyGetNode( path, true );
+    pyPropertyNode node = component_node.getChild( "enable", true );
+    children = node.getChildren();
+    printf("enables: %ld prop(s)\n", children.size());
+    for ( unsigned int i = 0; i < children.size(); ++i ) {
+	if ( children[i].substr(0,4) == "prop" ) {
+	    string enable_prop = node.getString(children[i].c_str());
+            printf("  %s\n", enable_prop.c_str());
+	    pos = enable_prop.rfind("/");
+	    if ( pos != string::npos ) {
+		string path = enable_prop.substr(0, pos);
+		string attr = enable_prop.substr(pos+1);
+		pyPropertyNode en_node = pyGetNode( path, true );
+		enables_node.push_back( en_node );
+		enables_attr.push_back( attr );
+	    } else {
+		printf("WARNING: requested bad enable path: %s\n",
+		       enable_prop.c_str());
+	    }
+	} else {
+	    printf("WARNING: unknown tag in enable section: %s\n",
+		   children[i].c_str());
+	}
     }
-
-    vector <string> children;
     
     // inputs
     node = component_node.getChild( "inputs", true );
     children = node.getChildren();
     nz = children.size();
-    printf("dtss: %d input(s)\n", children.size());
+    printf("dtss: %ld input(s)\n", children.size());
     for ( unsigned int i = 0; i < children.size(); ++i ) {
 	if ( children[i].substr(0,4) == "prop" ) {
 	    string input_prop = node.getString(children[i].c_str());
@@ -67,11 +79,11 @@ AuraDTSS::AuraDTSS( string config_path ):
 		inputs_node.push_back( inode );
 		inputs_attr.push_back( attr );
 	    } else {
-		printf("WARNING: requested bad output path: %s\n",
+		printf("WARNING: requested bad input path: %s\n",
 		       input_prop.c_str());
 	    }
 	} else {
-	    printf("WARNING: unknown tag in output section: %s\n",
+	    printf("WARNING: unknown tag in input section: %s\n",
 		   children[i].c_str());
 	}
     }
@@ -186,10 +198,13 @@ void AuraDTSS::reset() {
 
 
 void AuraDTSS::update( double dt ) {
-    if (!enable_node.isNull() && enable_node.getString(enable_attr.c_str()) == enable_value) {
-	enabled = true;
-    } else {
-	enabled = false;
+    // test if all of the provided enable flags are true
+    enabled = true;
+    for ( unsigned int i = 0; i < enables_node.size(); i++ ) {
+        if ( !enables_node[i].getBool(enables_attr[i].c_str()) ) {
+            enabled = false;
+            break;
+        }
     }
 
     bool debug = component_node.getBool("debug");

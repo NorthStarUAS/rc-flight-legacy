@@ -62,5 +62,3 @@ public:
     void reset();
     void update( double dt );
 };
-
-

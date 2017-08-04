@@ -44,9 +44,9 @@ protected:
 
     pyPropertyNode component_node;
     
-    pyPropertyNode enable_node;
-    string enable_attr;
-    string enable_value;
+    vector <pyPropertyNode> enables_node;
+    vector <string> enables_attr;
+
     bool honor_passive;
     bool enabled;
 
@@ -65,7 +65,6 @@ protected:
 public:
 
     APComponent() :
-      enable_value( "" ),
       honor_passive( false ),
       enabled( false )
     { }

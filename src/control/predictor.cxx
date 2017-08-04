@@ -33,17 +33,31 @@ AuraPredictor::AuraPredictor ( string config_path ):
     size_t pos;
 
     component_node = pyGetNode(config_path);
-
+    vector <string> children;
+    
     // enable
-    pyPropertyNode node = component_node.getChild("enable", true);
-    string enable_prop = node.getString("prop");
-    enable_value = node.getString("value");
-    honor_passive = node.getBool("honor_passive");
-    pos = enable_prop.rfind("/");
-    if ( pos != string::npos ) {
-	string path = enable_prop.substr(0, pos);
-	enable_attr = enable_prop.substr(pos+1);
-	enable_node = pyGetNode( path, true );
+    pyPropertyNode node = component_node.getChild( "enable", true );
+    children = node.getChildren();
+    printf("enables: %ld prop(s)\n", children.size());
+    for ( unsigned int i = 0; i < children.size(); ++i ) {
+	if ( children[i].substr(0,4) == "prop" ) {
+	    string enable_prop = node.getString(children[i].c_str());
+            printf("  %s\n", enable_prop.c_str());
+	    pos = enable_prop.rfind("/");
+	    if ( pos != string::npos ) {
+		string path = enable_prop.substr(0, pos);
+		string attr = enable_prop.substr(pos+1);
+		pyPropertyNode en_node = pyGetNode( path, true );
+		enables_node.push_back( en_node );
+		enables_attr.push_back( attr );
+	    } else {
+		printf("WARNING: requested bad enable path: %s\n",
+		       enable_prop.c_str());
+	    }
+	} else {
+	    printf("WARNING: unknown tag in enable section: %s\n",
+		   children[i].c_str());
+	}
     }
 
     // input
@@ -65,7 +79,7 @@ AuraPredictor::AuraPredictor ( string config_path ):
     
     // output
     node = component_node.getChild( "output", true );
-    vector <string> children = node.getChildren();
+    children = node.getChildren();
     for ( unsigned int i = 0; i < children.size(); ++i ) {
 	if ( children[i].substr(0,4) == "prop" ) {
 	    string output_prop = node.getString(children[i].c_str());
@@ -105,10 +119,13 @@ void AuraPredictor::update( double dt ) {
 
     */
 
-    if (!enable_node.isNull() && enable_node.getString(enable_attr.c_str()) == enable_value) {
-	enabled = true;
-    } else {
-	enabled = false;
+    // test if all of the provided enable flags are true
+    enabled = true;
+    for ( unsigned int i = 0; i < enables_node.size(); i++ ) {
+        if ( !enables_node[i].getBool(enables_attr[i].c_str()) ) {
+            enabled = false;
+            break;
+        }
     }
 
     ivalue = input_node.getDouble(input_attr.c_str());

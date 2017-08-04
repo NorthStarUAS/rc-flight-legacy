@@ -49,7 +49,6 @@ static AuraAutopilot ap;
 
 // property nodes
 static pyPropertyNode ap_node;
-static pyPropertyNode ap_locks_node;
 static pyPropertyNode targets_node;
 static pyPropertyNode pointing_node;
 static pyPropertyNode pointing_vec_node;
@@ -65,7 +64,6 @@ static int logging_skip = 0;
 
 static void bind_properties() {
     ap_node = pyGetNode( "/autopilot", true );
-    ap_locks_node = pyGetNode( "/autopilot/locks", true );
     targets_node = pyGetNode( "/autopilot/targets", true );
     pointing_node = pyGetNode( "/pointing", true );
     pointing_vec_node = pyGetNode( "/pointing/vector", true );
