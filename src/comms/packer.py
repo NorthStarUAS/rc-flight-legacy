@@ -463,29 +463,6 @@ def unpack_airdata_v5(buf):
 
     return index
 
-def pack_filter_v2(index):
-    if index >= len(filter_nodes):
-        for i in range(len(filter_nodes),index+1):
-            path = '/filters/filter[%d]' % i
-            filter_nodes.append( getNode(path, True) )
-    node = filter_nodes[index]
-
-    buf = struct.pack(filter_v2_fmt,
-                      index,
-                      node.getFloat("timestamp"),
-                      node.getFloat("latitude_deg"),
-                      node.getFloat("longitude_deg"),
-                      node.getFloat("altitude_m"),
-                      int(node.getFloat("vn_ms") * 100),
-                      int(node.getFloat("ve_ms") * 100),
-                      int(node.getFloat("vd_ms") * 100),
-                      int(node.getFloat("roll_deg") * 10),
-                      int(node.getFloat("pitch_deg") * 10),
-                      int(node.getFloat("heading_deg") * 10),
-                      remote_link_node.getInt("sequence_num"),
-                      0)
-    return wrap_packet(FILTER_PACKET_V2, buf)
-
 def pack_filter_v3(index):
     if index >= len(filter_nodes):
         for i in range(len(filter_nodes),index+1):
@@ -505,9 +482,9 @@ def pack_filter_v3(index):
                       int(node.getFloat("roll_deg") * 10),
                       int(node.getFloat("pitch_deg") * 10),
                       int(node.getFloat("heading_deg") * 10),
-                      int(round(node.getFloat("p_bias") * 1000.0)),
-                      int(round(node.getFloat("q_bias") * 1000.0)),
-                      int(round(node.getFloat("r_bias") * 1000.0)),
+                      int(round(node.getFloat("p_bias") * 10000.0)),
+                      int(round(node.getFloat("q_bias") * 10000.0)),
+                      int(round(node.getFloat("r_bias") * 10000.0)),
                       int(round(node.getFloat("ax_bias") * 1000.0)),
                       int(round(node.getFloat("ay_bias") * 1000.0)),
                       int(round(node.getFloat("az_bias") * 1000.0)),
@@ -527,9 +504,9 @@ def pack_filter_text(index, delim=','):
 	     '%.2f' % filter_node.getFloat('roll_deg'),
              '%.2f' % filter_node.getFloat('pitch_deg'),
              '%.2f' % filter_node.getFloat('heading_deg'),
-             '%.3f' % filter_node.getFloat('p_bias'),
-             '%.3f' % filter_node.getFloat('q_bias'),
-             '%.3f' % filter_node.getFloat('r_bias'),
+             '%.4f' % filter_node.getFloat('p_bias'),
+             '%.4f' % filter_node.getFloat('q_bias'),
+             '%.4f' % filter_node.getFloat('r_bias'),
              '%.3f' % filter_node.getFloat('ax_bias'),
              '%.3f' % filter_node.getFloat('ay_bias'),
              '%.3f' % filter_node.getFloat('az_bias'),
@@ -606,9 +583,9 @@ def unpack_filter_v3(buf):
     node.setFloat("roll_deg", result[8] / 10.0)
     node.setFloat("pitch_deg", result[9] / 10.0)
     node.setFloat("heading_deg", result[10] / 10.0)
-    node.setFloat("p_bias", result[11] / 1000.0)
-    node.setFloat("q_bias", result[12] / 1000.0)
-    node.setFloat("r_bias", result[13] / 1000.0)
+    node.setFloat("p_bias", result[11] / 10000.0)
+    node.setFloat("q_bias", result[12] / 10000.0)
+    node.setFloat("r_bias", result[13] / 10000.0)
     node.setFloat("ax_bias", result[14] / 1000.0)
     node.setFloat("ay_bias", result[15] / 1000.0)
     node.setFloat("az_bias", result[16] / 1000.0)
