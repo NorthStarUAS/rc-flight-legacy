@@ -40,12 +40,12 @@ const double SIG_W_GY = 0.00175;
 const double SIG_W_GZ = 0.00175;
 const double SIG_A_D  = 0.02;	 // value that leads to reasonable bias plots
 const double TAU_A    = 100.0;
-const double SIG_G_D  = 0.00025; // value that leads to reasonable bias plots
+const double SIG_G_D  = 0.0005;  // value that leads to reasonable bias plots
 const double TAU_G    = 50.0;
 
 const double SIG_GPS_P_NE = 3.0;
 const double SIG_GPS_P_D  = 5.0;
-const double SIG_GPS_V    = 1.0;
+const double SIG_GPS_V    = 0.5;
 
 const double P_P_INIT = 10.0;
 const double P_V_INIT = 1.0;
