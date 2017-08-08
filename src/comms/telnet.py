@@ -163,7 +163,37 @@ class ChatHandler(asynchat.async_chat):
                     node = getNode(self.path, True)
                     name = tokens[1]
 		value = ' '.join(tokens[2:])
-		node.setString(name, value)
+                
+                done = False
+                # test for int
+                if not done:
+                    result = re.match('[-+]?\d+', value)
+                    if result and result.group(0) == value:
+                        print 'int:', value
+                        node.setInt(name, int(value))
+                        done = True
+                # test for float
+                if not done:
+                    result = re.match('[-+]?\d*\.\d+', value)
+                    if result and result.group(0) == value:
+                        print 'float:', value
+                        node.setFloat(name, float(value))
+                        done = True
+                # test for bool
+                if not done:
+                    if value == 'True' or value == 'true':
+                        print 'bool:', True
+                        node.setBool(name, True)
+                        done = True
+                if not done:
+                    if value == 'False' or value == 'false':
+                        print 'bool:', False
+                        node.setBool(name, False)
+                        done = True
+                # fall back to string
+                if not done:
+		    node.setString(name, value)
+                    
 		if self.prompt:
 		    # now fetch and write out the new value as confirmation
 		    # of the change
