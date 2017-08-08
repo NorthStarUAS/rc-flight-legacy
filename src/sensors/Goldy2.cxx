@@ -1067,12 +1067,12 @@ bool goldy2_pilot_update() {
     // individual channels periodically.  Only look at first 7
     // channels.
     bool ok = true;
-    for ( int i = 0; i < 6; i++ ) {
+    for ( int i = 0; i < 7; i++ ) {
         if ( rcin[i] < SBUS_MIN ) { ok = false; }
         if ( rcin[i] > SBUS_MAX ) { ok = false; }
-        printf("%d ", rcin[i]);
+        // printf("%d ", rcin[i]);
     }
-    printf("\n");
+    // printf("\n");
     if ( ! ok ) {
 	events->log("Goldy2", "detected bad sbus packet (ignoring).\n");
         return false;
