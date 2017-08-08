@@ -46,6 +46,7 @@ private:
     
     vector <pyPropertyNode> inputs_node;
     vector <string> inputs_attr;
+    VectorXd z_trim;
     
     vector <pyPropertyNode> outputs_node;
     vector <string> outputs_attr;

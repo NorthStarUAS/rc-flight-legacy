@@ -33,7 +33,8 @@ AuraDTSS::AuraDTSS( string config_path ):
     do_reset(true)
 {
     size_t pos;
-
+    unsigned int len;
+    
     component_node = pyGetNode(config_path, true);
     vector <string> children;
 
@@ -88,6 +89,17 @@ AuraDTSS::AuraDTSS( string config_path ):
 	}
     }
 
+    // z_trim
+    z_trim = VectorXd(nz);
+    len = component_node.getLen("z_trim");
+    if ( len != nz ) {
+        printf("WARNING: wrong number of elements for z_trim vector: %d\n", len);
+    } else {
+        for ( unsigned int i = 0; i < len; ++i ) {
+            z_trim(i) = component_node.getDouble("z_trim", i);
+        }
+    }
+    
     // outputs
     node = component_node.getChild( "outputs", true );
     children = node.getChildren();
@@ -116,8 +128,6 @@ AuraDTSS::AuraDTSS( string config_path ):
         }
     }
 
-    unsigned int len;
-    
     // A matrix
     len = component_node.getLen("A");
     nx = round(sqrt(len));
@@ -235,13 +245,13 @@ void AuraDTSS::update( double dt ) {
         for ( unsigned int i = 0; i < nz; ++i ) {
             z(i) = inputs_node[i].getDouble(inputs_attr[i].c_str());
         }
-        u = C*x + D*z;
+        u = C*x + D*(z - z_trim);
     } else {
         x = F*x + G*z;
         for ( unsigned int i = 0; i < nz; ++i ) {
             z(i) = inputs_node[i].getDouble(inputs_attr[i].c_str());
         }
-        u = C*x + D*z;
+        u = C*x + D*(z - z_trim);
     }
 
     if ( debug ) {
