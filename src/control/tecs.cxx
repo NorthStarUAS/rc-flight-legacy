@@ -112,7 +112,7 @@ void update_tecs() {
     tecs_node.setDouble("error_pot", error_pot);
     tecs_node.setDouble("error_kin", error_kin);
     
-    // Weighted kinetic + potential error
+    // Weighted kinetic - weighted potential error
     double weight = tecs_node.getDouble("weight");
     if ( weight < 0.0 ) {
         weight = 0.0;
