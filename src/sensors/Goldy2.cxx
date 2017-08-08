@@ -1063,6 +1063,20 @@ static float normalize_pulse( int pulse, bool symmetrical ) {
 }
 
 bool goldy2_pilot_update() {
+    // quick sanity check (Goldy2 can spit out garbage on random
+    // individual channels periodically)
+    bool ok = true;
+    for ( int i = 0; i < rcin_channels; i++ ) {
+        if ( rcin[i] < SBUS_MIN ) { ok = false; }
+        if ( rcin[i] > SBUS_MAX ) { ok = false; }
+        printf("%d ", rcin[i]);
+    }
+    printf("\n");
+    if ( ! ok ) {
+	events->log("Goldy2", "detected bad sbus packet (ignoring).\n");
+        return false;
+    }
+    
     pilot_node.setDouble( "timestamp", get_Time() );
     float default_val = SBUS_CENTER;
     for ( int i = 0; i < rcin_channels; i++ ) {
