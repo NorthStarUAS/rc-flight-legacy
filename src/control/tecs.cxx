@@ -129,5 +129,4 @@ void update_tecs() {
     if ( error_diff > max_error ) { error_diff = max_error; }
     
     tecs_node.setDouble("error_diff", error_diff);
-        
 }
