@@ -112,8 +112,8 @@ void control_update(double dt)
     static int remote_link_count = 0;
     static int logging_count = 0;
 
-    // manage control system component reset cases (make this
-    // implicite per component when enable flag changes?)
+    // call for a global fcs component reset when activating ap master
+    // switch
     static bool last_master_switch = false;
     bool master_switch = ap_node.getBool("master_switch");
     if ( master_switch != last_master_switch ) {
@@ -123,15 +123,6 @@ void control_update(double dt)
 	last_master_switch = ap_node.getBool("master_switch");
     }
     
-    static string last_fcs_mode = "";
-    string fcs_mode = ap_node.getString("mode");
-    if ( master_switch ) {
-	if ( last_fcs_mode != fcs_mode ) {
-            control_reset();    // transient mitigation
-	}
-	last_fcs_mode = fcs_mode;
-    }
-
     // update tecs (total energy) values and error metrics
     update_tecs();
 
@@ -144,11 +135,6 @@ void control_update(double dt)
     // switched to autopilot.
     ap.update( dt );
     
-    // FIXME !!!
-    // I want a departure route, an approach route, and mission route,
-    // and circle hold point (all indicated on the ground station map.)
-    // FIXME !!!
-
     bool send_remote_link = false;
     if ( remote_link_count < 0 ) {
 	send_remote_link = true;
