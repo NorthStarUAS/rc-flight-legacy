@@ -186,7 +186,7 @@ void AuraPID::update( double dt ) {
 			pterm, iterm);
 
     if ( !enabled ) {
-        // force a reset when first enabled
+        // this will force a reset when component becomes enabled
         do_reset = true;
     } else { // enabled
         if ( do_reset ) {

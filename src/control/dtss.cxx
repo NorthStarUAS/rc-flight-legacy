@@ -259,7 +259,10 @@ void AuraDTSS::update( double dt ) {
         std::cout << "u: " << u << std::endl;
     }
 
-    if ( enabled ) {
+    if ( !enabled ) {
+        // this will force a reset when component becomes enabled
+        do_reset = true;
+    } else {
         // write outputs
         for ( unsigned int i = 0; i < nu; ++i ) {
             double value = u(i) + u_trim[i];
