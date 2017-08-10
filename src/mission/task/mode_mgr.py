@@ -35,8 +35,6 @@ class ModeMgr(Task):
             if master_switch:
                 comms.events.log('control', 'ap master switch: on (auto)')
             else:
-                # clear flight control mode when ap master is off
-                self.ap_node.setString('mode', '')
                 comms.events.log('control', 'ap master switch: off (manual)')
             self.last_master_switch = master_switch
 
