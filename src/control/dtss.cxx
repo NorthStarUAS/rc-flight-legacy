@@ -247,7 +247,7 @@ void AuraDTSS::update( double dt ) {
         }
         u = C*x + D*(z - z_trim);
     } else {
-        x = F*x + G*z;
+        x = F*x + G*(z - z_trim);
         for ( unsigned int i = 0; i < nz; ++i ) {
             z(i) = inputs_node[i].getDouble(inputs_attr[i].c_str());
         }
