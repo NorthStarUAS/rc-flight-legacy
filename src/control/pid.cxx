@@ -164,6 +164,20 @@ void AuraPID::update( double dt ) {
     // integral term
     iterm += Ki * error * dt;
     
+    // if the reset flag is set, back compute an iterm that will
+    // produce zero initial transient (overwriting the existing
+    // iterm) then unset the do_reset flag.
+    if ( do_reset ) {
+        double u_n = output_node[0].getDouble(output_attr[0].c_str());
+        // and clip
+        double u_min = config_node.getDouble("u_min");
+        double u_max = config_node.getDouble("u_max");
+        if ( u_n < u_min ) { u_n = u_min; }
+        if ( u_n > u_max ) { u_n = u_max; }
+        iterm = u_n - pterm;
+        do_reset = false;
+    }
+    
     // derivative term: observe that dError/dt = -dInput/dt (except
     // when the setpoint changes (which we don't want to react to
     // anyway.)  This approach avoids "derivative kick" when the set
@@ -188,20 +202,7 @@ void AuraPID::update( double dt ) {
     if ( !enabled ) {
         // this will force a reset when component becomes enabled
         do_reset = true;
-    } else { // enabled
-        if ( do_reset ) {
-            // back compute an iterm that will produce zero initial
-            // transient when activating this component
-            double u_n = output_node[0].getDouble(output_attr[0].c_str());
-            // and clip
-            double u_min = config_node.getDouble("u_min");
-            double u_max = config_node.getDouble("u_max");
-            if ( u_n < u_min ) { u_n = u_min; }
-            if ( u_n > u_max ) { u_n = u_max; }
-            iterm = u_n - pterm;
-            do_reset = false;
-        }
-    
+    } else {
 	// Copy the result to the output node(s)
 	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
 	    output_node[i].setDouble( output_attr[i].c_str(), output );
