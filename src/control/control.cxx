@@ -102,7 +102,7 @@ void control_init() {
 // component a chance to update it's state to reset for current conditions,
 // eliminate transients, etc.
 void control_reset() {
-    printf("control reset\n");
+    events->log("controls", "global reset called");
     ap.reset();
 }
 
