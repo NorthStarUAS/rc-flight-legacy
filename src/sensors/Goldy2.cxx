@@ -1074,7 +1074,7 @@ bool goldy2_pilot_update() {
     }
     // printf("\n");
     if ( ! ok ) {
-	events->log("Goldy2", "detected bad sbus packet (ignoring).\n");
+	events->log("Goldy2", "detected bad sbus packet (ignoring)");
         return false;
     }
     
