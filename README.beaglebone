@@ -68,6 +68,7 @@ Finally, turn off usb ethernet and reactivate it.
 # (if gui image?):
 
 - apt remove --purge xrdp tightvncserver lxqt-common lxqt-panel lxqt-runner lxqt-session
+- apt-get remove gnome-accessibility-themes gnome-icon-theme
 
 # check/remove stuff that takes up disk space (if gui image?)
   - dpkg-query -W --showformat='${Installed-Size;10}\t${Package}\n' | sort -k1,1n
@@ -92,7 +93,8 @@ Finally, turn off usb ethernet and reactivate it.
 
 # Install extra required and/or useful things
 
-- apt install telnet minicom python-lxml libeigen3-dev zlib1g-dev libboost-python-dev
+- apt install telnet minicom python-lxml libeigen3-dev zlib1g-dev
+- apt install libboost-python-dev (may no longer need?)
 
 
 # Force highest peformance mode
@@ -127,6 +129,15 @@ Finally, turn off usb ethernet and reactivate it.
   git clone curt@192.168.7.1:GIT/aura-props.git
   git clone curt@192.168.7.1:GIT/aura-data.git
   git clone curt@192.168.7.1:GIT/aura-core.git
+
+  # finding the software repositories on the web: https://github.com/AuraUAS
+  mkdir Source
+  cd Source
+  git clone https://github.com/AuraUAS/navigation.git
+  git clone https://github.com/AuraUAS/aura-props.git
+  git clone https://github.com/AuraUAS/aura-data.git
+  git clone https://github.com/AuraUAS/aura-core.git 
+
 
 # build/install aura-props package
 
