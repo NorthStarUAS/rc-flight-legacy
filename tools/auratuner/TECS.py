@@ -8,7 +8,7 @@ class TECS():
         self.changefunc = changefunc
         self.host = host
         self.port = port
-        self.original_values = [ "3", "0.5", "20", "35" ]
+        self.original_values = [ "3", "1.0", "20", "35" ]
         self.container = self.make_page()
 
     def onChange(self):
@@ -38,7 +38,7 @@ class TECS():
         self.edit_max_kt.textChanged.connect(self.onChange)
 
         layout.addRow( "<b>Aircraft Total Flying Mass (kg):</b>", self.edit_mass )
-        layout.addRow( "<b>TECS pitch weight (0.0 - 1.0):</b>", self.edit_weight )
+        layout.addRow( "<b>TECS pitch weight (0.0 - 2.0):</b>", self.edit_weight )
         layout.addRow( "<b>Minimum speed (kts):</b>", self.edit_min_kt )
         layout.addRow( "<b>Maximum speed (kts):</b>", self.edit_max_kt )
         
@@ -47,14 +47,15 @@ class TECS():
         note_layout = QtGui.QVBoxLayout()
         note_group.setLayout( note_layout )
         note_layout.addWidget( QtGui.QLabel(
-"""<b>Notes</b>:<br>
+"""
+<b>Notes</b>:
 <ul>
   <li>Mass should represent total flying weight including batteries and payload.</li>
   <li>TECS weight:
     <ul>
       <li>0.0 = pitch controls airspeed, ignores altitude errors.</li>
-      <li>1.0 = pitch controls altitude, ignore airspeed errors.</li>
-      <li>Default = 0.5.</li>
+      <li>2.0 = pitch controls altitude, ignore airspeed errors.</li>
+      <li>1.0 = default value, should work well as a starting point.</li>
       <li>For any particular aircraft, you may want to 'slide' this value<br>
           towards the least noisy sensor or the value you care more about.</li>
     <ul>

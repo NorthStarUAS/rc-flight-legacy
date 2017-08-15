@@ -48,9 +48,9 @@ class L1Controller():
         note_group.setLayout( note_layout )
         note_layout.addWidget( QtGui.QLabel(
 """
-<b>Notes</b>:<br>
+<b>Notes</b>:
 <ul>
-  <li>Set L1 period for good circle hold first, then set L1 damping to
+  <li>Tune L1 period for good circle hold first, then tune L1 damping to
       fine tune route following.</li>
 <ul>
 """
