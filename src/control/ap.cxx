@@ -108,8 +108,8 @@ bool AuraAutopilot::build() {
 	    }
 	} else if ( name == "L1_controller" ) {
 	    // configuration placeholder, we don't do anything here.
-	// } else if ( name == "TECS_controller" ) {
-	//     // configuration placeholder, we don't do anything here.
+	} else if ( name == "TECS" ) {
+            // configuration placeholder, we don't do anything here.
          } else {
 	    printf("Unknown top level section: %s\n", children[i].c_str() );
             return false;

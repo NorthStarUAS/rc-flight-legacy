@@ -26,27 +26,22 @@ static pyPropertyNode tecs_config_node;
 
 static bool tecs_inited = false;
 
-static double mass_kg = 2.5;
 static const float g = 9.81;
 
 
 static void init_tecs() {
     pos_node = pyGetNode( "/position", true);
     vel_node = pyGetNode( "/velocity", true);
-    specs_node = pyGetNode( "/config/specs", true);
     targets_node = pyGetNode( "/autopilot/targets", true);
     tecs_node = pyGetNode( "/autopilot/tecs", true);
-    tecs_config_node = pyGetNode( "/config/TECS_controller", true);
+    tecs_config_node = pyGetNode( "/config/autopilot/TECS", true);
 
-    double m = specs_node.getDouble("mass_kg");
-    if ( m > 0.01 ) {
-        mass_kg = m;
-    }
-
+    // force a default weight value if the field is empty (so we can
+    // differentiate "" from 0.0
     if ( ! tecs_node.hasChild("weight") ) {
         tecs_node.setDouble("weight", 0.5);
     }
-    
+
     tecs_inited = true;
 }
 
@@ -57,6 +52,9 @@ void update_tecs() {
         init_tecs();
     }
 
+    double mass_kg = tecs_config_node.getDouble("mass_kg");
+    if ( mass_kg < 0.01 ) { mass_kg = 2.5; }
+    
     // Current energy
     double alt_m = pos_node.getDouble("altitude_agl_m");
     double vel_mps = vel_node.getDouble("airspeed_kt") * SG_KT_TO_MPS;
@@ -86,13 +84,13 @@ void update_tecs() {
     double error_total = error_pot + error_kin;
 
     // Compute min & max kinetic energy
-    double min_kt = specs_node.getDouble("min_kt");
+    double min_kt = tecs_config_node.getDouble("min_kt");
     if ( min_kt < 15 ) { min_kt = 15;}
     double min_mps = min_kt * SG_KT_TO_MPS;
     double min_kinetic = 0.5 * mass_kg * min_mps * min_mps;
     double min_error = min_kinetic - energy_kin;
 
-    double max_kt = specs_node.getDouble("max_kt");
+    double max_kt = tecs_config_node.getDouble("max_kt");
     if ( max_kt < 15 ) { max_kt = 2 * min_kt; }
     double max_mps = max_kt * SG_KT_TO_MPS;
     double max_kinetic = 0.5 * mass_kg * max_mps * max_mps;
