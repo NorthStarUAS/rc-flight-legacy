@@ -775,25 +775,25 @@ static void my_swap( uint8_t *buf, int index, int count )
 }
 #endif
 
-
+// note: APM2 firmware now already outputs pilot control values in the
+// normalized range.
+//
 // convert a pwm pulse length to a normalize [-1 to 1] or [0 to 1] range
-static float normalize_pulse( int pulse, bool symmetrical ) {
-    float result = 0.0;
-
-    if ( symmetrical ) {
-	// i.e. aileron, rudder, elevator
-	result = (pulse - PWM_CENTER) / (float)PWM_HALF_RANGE;
-	if ( result < -1.0 ) { result = -1.0; }
-	if ( result > 1.0 ) { result = 1.0; }
-    } else {
-	// i.e. throttle
-	result = (pulse - PWM_MIN) / (float)PWM_RANGE;
-	if ( result < 0.0 ) { result = 0.0; }
-	if ( result > 1.0 ) { result = 1.0; }
-    }
-
-    return result;
-}
+// static float normalize_pulse( int pulse, bool symmetrical ) {
+//     float result = 0.0;
+//     if ( symmetrical ) {
+// 	// i.e. aileron, rudder, elevator
+// 	result = (pulse - PWM_CENTER) / (float)PWM_HALF_RANGE;
+// 	if ( result < -1.0 ) { result = -1.0; }
+// 	if ( result > 1.0 ) { result = 1.0; }
+//     } else {
+// 	// i.e. throttle
+// 	result = (pulse - PWM_MIN) / (float)PWM_RANGE;
+// 	if ( result < 0.0 ) { result = 0.0; }
+// 	if ( result > 1.0 ) { result = 1.0; }
+//     }
+//     return result;
+// }
 
 static bool APM2_imu_update_internal() {
     static double last_bias_update = 0.0;
