@@ -152,8 +152,8 @@ static struct air_data_t {
     float airspeed;
 } airdata;
 
-static LowPassFilter analog_filt[NUM_ANALOG_INPUTS];
-static float analog[NUM_ANALOG_INPUTS];
+// static LowPassFilter analog_filt[NUM_ANALOG_INPUTS];
+static float raw_analog[NUM_ANALOG_INPUTS];
 
 static bool airspeed_inited = false;
 static double airspeed_zero_start_time = 0.0;
@@ -582,9 +582,9 @@ static bool APM2_open() {
     pyPropertyNode apm2_config = pyGetNode("/config/sensors/APM2", true);
     config_specs_node = pyGetNode("/config/specs", true);
 
-    for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
-	analog_filt[i].set_time_factor(0.5);
-    }
+    // for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
+    //     analog_filt[i].set_time_factor(0.5);
+    // }
     
     if ( apm2_config.hasChild("device") ) {
 	device_name = apm2_config.getString("device");
@@ -1004,15 +1004,16 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
     } else if ( pkt_id == ANALOG_PACKET_ID ) {
 	if ( pkt_len == 2 * NUM_ANALOG_INPUTS ) {
 	    for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
-		analog_filt[i].update(*(uint16_t *)payload, 0.01);
+		//analog_filt[i].update(*(uint16_t *)payload, 0.01);
+		//raw_analog[i] = analog_filt[i].get_value() ;
+                raw_analog[i] = *(uint16_t *)payload;
 		payload += 2;
-		analog[i] = analog_filt[i].get_value() ;
 		if ( i == 5 ) {
-		    analog[i] /= 1000.0;
+		    raw_analog[i] /= 1000.0;
 		} else {
-		    analog[i] /= 64.0;
+		    raw_analog[i] /= 64.0;
 		}
-		bool result = analog_node.setDouble( "channel", i, analog[i] );
+		bool result = analog_node.setDouble( "channel", i, raw_analog[i] );
 		if ( ! result ) {
 		    printf("channel write failed %d\n", i);
 		}
@@ -1026,18 +1027,18 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    last_analog_timestamp = analog_timestamp;
 
 	    static LowPassFilter vcc_filt(10.0);
-	    vcc_filt.update(analog[5], dt);
+	    vcc_filt.update(raw_analog[5], dt);
 	    apm2_node.setDouble( "board_vcc", vcc_filt.get_value() );
 
-	    float extern_volts = analog[1] * (vcc_filt.get_value()/1024.0) * volt_div_ratio;
+	    float extern_volts = raw_analog[1] * (vcc_filt.get_value()/1024.0) * volt_div_ratio;
 	    static LowPassFilter extern_volt_filt(2.0);
 	    extern_volt_filt.update(extern_volts, dt);
 	    float cell_volt = extern_volt_filt.get_value() / (float)battery_cells;
-	    float extern_amps = ((analog[2] * (vcc_filt.get_value()/1024.0)) - extern_amp_offset) * extern_amp_ratio;
+	    float extern_amps = ((raw_analog[2] * (vcc_filt.get_value()/1024.0)) - extern_amp_offset) * extern_amp_ratio;
 	    static LowPassFilter extern_amp_filt(1.0);
 	    extern_amp_filt.update(extern_amps, dt);
 	    /*printf("a[2]=%.1f vcc=%.2f ratio=%.2f amps=%.2f\n",
-		analog[2], vcc_filt, extern_amp_ratio, extern_amps); */
+		raw_analog[2], vcc_filt, extern_amp_ratio, extern_amps); */
 	    extern_amp_sum += extern_amp_filt.get_value() * dt * 0.277777778; // 0.2777... is 1000/3600 (conversion to milli-amp hours)
 
 	    apm2_node.setDouble( "extern_volts", extern_volt_filt.get_value() );
@@ -1048,7 +1049,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 #if 0
 	    if ( display_on ) {
 		for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
-		    printf("%.2f ", (float)analog[i] / 64.0);
+		    printf("%.2f ", (float)raw_analog[i] / 64.0);
 		}
 		printf("\n");
 	    }
@@ -1747,28 +1748,27 @@ bool APM2_airdata_update() {
     if ( airdata_inited ) {
 	double cur_time = airdata.timestamp;
 
-	pitot_filt.update(analog[0], 0.01);
+	pitot_filt.update(raw_analog[0], 0.01);
 
 	if ( ! airspeed_inited ) {
 	    if ( airspeed_zero_start_time > 0.0 ) {
-		pitot_sum += analog[0];
+		pitot_sum += raw_analog[0];
 		pitot_count++;
 		pitot_offset = pitot_sum / (double)pitot_count;
 		/* printf("a1 raw=%.1f filt=%.1f a1 off=%.1f a1 sum=%.1f a1 count=%d\n",
-		   analog[0], pitot_filt.get_value(), pitot_offset, pitot_sum,
+		   raw_analog[0], pitot_filt.get_value(), pitot_offset, pitot_sum,
 		   pitot_count); */
 	    } else {
 		airspeed_zero_start_time = get_Time();
 		pitot_sum = 0.0;
 		pitot_count = 0;
-		pitot_filt.init(analog[0]);
+		pitot_filt.init(raw_analog[0]);
 	    }
 	    if ( cur_time > airspeed_zero_start_time + 10.0 ) {
 		//printf("pitot_offset = %.2f\n", pitot_offset);
 		airspeed_inited = true;
 	    }
 	}
-
 
 	airdata_node.setDouble( "timestamp", cur_time );
 
@@ -1794,7 +1794,7 @@ bool APM2_airdata_update() {
 	// about 81mps (156 kts)
 
 	// choose between using raw pitot value or filtered pitot value
-	float pitot = analog[0];
+	float pitot = raw_analog[0];
 	// float pitot = pitot_filt.get_value();
 	
 	float Pa = (pitot - pitot_offset) * 5.083;
