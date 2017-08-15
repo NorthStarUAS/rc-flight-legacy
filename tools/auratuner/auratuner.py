@@ -18,8 +18,9 @@ from PyQt4 import QtGui, QtCore
 from props import root, getNode
 import props_json
 
-from component import Component
 from L1 import L1Controller
+from TECS import TECS
+from component import Component
 
 import fetcher
 
@@ -89,11 +90,17 @@ class Tuner(QtGui.QWidget):
         self.filename = str(filename)
         self.fileroot, ext = os.path.splitext(self.filename)
 
-        # Route follow parameters
+        # L1 Route follow parameters
         self.L1 = L1Controller(changefunc=self.onChange, host=host, port=port)
         L1_node = getNode('/L1_controller', create=True)
         self.L1.parse( L1_node )
         self.tabs.addTab( self.L1.get_widget(), "L1" )
+
+        # TECS parameters
+        self.TECS = TECS(changefunc=self.onChange, host=host, port=port)
+        TECS_node = getNode('/TECS', create=True)
+        self.TECS.parse( TECS_node )
+        self.tabs.addTab( self.TECS.get_widget(), "TECS" )
 
         # PID controller parameters
         print root.getChild('component')

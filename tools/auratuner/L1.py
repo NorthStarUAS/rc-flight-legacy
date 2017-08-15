@@ -8,7 +8,7 @@ class L1Controller():
         self.changefunc = changefunc
         self.host = host
         self.port = port
-        self.original_values = [ "30", "15", "0.7" ]
+        self.original_values = [ "30", "0", "15", "0.7" ]
         self.container = self.make_page()
 
     def onChange(self):
@@ -27,6 +27,9 @@ class L1Controller():
         self.edit_bank_limit = QtGui.QLineEdit()
         self.edit_bank_limit.setFixedWidth(350)
         self.edit_bank_limit.textChanged.connect(self.onChange)
+        self.edit_bank_bias = QtGui.QLineEdit()
+        self.edit_bank_bias.setFixedWidth(350)
+        self.edit_bank_bias.textChanged.connect(self.onChange)
         self.edit_L1_period = QtGui.QLineEdit()
         self.edit_L1_period.setFixedWidth(350)
         self.edit_L1_period.textChanged.connect(self.onChange)
@@ -35,6 +38,7 @@ class L1Controller():
         self.edit_L1_damping.textChanged.connect(self.onChange)
 
         layout.addRow( "<b>Bank Limit (deg):</b>", self.edit_bank_limit )
+        layout.addRow( "<b>Bank Bias (deg):</b>", self.edit_bank_bias )
         layout.addRow( "<b>L1 Period (10-25):</b>", self.edit_L1_period )
         layout.addRow( "<b>L1 Damping (0.7):</b>", self.edit_L1_damping )
         
@@ -42,7 +46,15 @@ class L1Controller():
         toplayout.addWidget(note_group)
         note_layout = QtGui.QVBoxLayout()
         note_group.setLayout( note_layout )
-        note_layout.addWidget( QtGui.QLabel("<b>Note</b>: Set L1 period for good circle hold first, then set L1 damping to fine tune route following.") )
+        note_layout.addWidget( QtGui.QLabel(
+"""
+<b>Notes</b>:<br>
+<ul>
+  <li>Set L1 period for good circle hold first, then set L1 damping to
+      fine tune route following.</li>
+<ul>
+"""
+        ) )
 
         # 'Command' button bar
         cmd_group = QtGui.QFrame()
@@ -81,6 +93,7 @@ class L1Controller():
 
     def parse(self, node):
         self.edit_bank_limit.setText(node.getString('bank_limit_deg'))
+        self.edit_bank_bias.setText(node.getString('bank_bias_deg'))
         self.edit_L1_period.setText(node.getString('period'))
         self.edit_L1_damping.setText(node.getString('damping'))
         self.original_values = self.value_array()
@@ -88,6 +101,7 @@ class L1Controller():
     def value_array(self):
         result = []
         result.append( str(self.edit_bank_limit.text()) )
+        result.append( str(self.edit_bank_bias.text()) )
         result.append( str(self.edit_L1_period.text()) )
         result.append( str(self.edit_L1_damping.text()) )
         return result
@@ -109,6 +123,8 @@ class L1Controller():
         t.send("data")
         self.send_value(t, "/config/autopilot/L1_controller/bank_limit_deg",
                         self.edit_bank_limit.text())
+        self.send_value(t, "/config/autopilot/L1_controller/bank_bias_deg",
+                        self.edit_bank_bias.text())
         self.send_value(t, "/config/autopilot/L1_controller/period",
                         self.edit_L1_period.text())
         self.send_value(t, "/config/autopilot/L1_controller/damping",
@@ -119,19 +135,20 @@ class L1Controller():
         print str(self.original_values)
         # revert form
         self.edit_bank_limit.setText( self.original_values[0] )
-        self.edit_L1_period.setText( self.original_values[1] )
-        self.edit_L1_damping.setText( self.original_values[2] )
+        self.edit_bank_bias.setText( self.original_values[1] )
+        self.edit_L1_period.setText( self.original_values[2] )
+        self.edit_L1_damping.setText( self.original_values[3] )
 
         # send original values to remote
         self.update()
 
-    def task_resume(self):
-        print "Resume route ..."
-        t = fgtelnet.FGTelnet(self.host, self.port)
-        t.send("data")
-        if self.port == 5402:
-            t.send("send task,resume")
-        else:
-            t.send("set /task/command-request task,resume")
-        t.quit()
+    # def task_resume(self):
+    #     print "Resume route ..."
+    #     t = fgtelnet.FGTelnet(self.host, self.port)
+    #     t.send("data")
+    #     if self.port == 5402:
+    #         t.send("send task,resume")
+    #     else:
+    #         t.send("set /task/command-request task,resume")
+    #     t.quit()
 
