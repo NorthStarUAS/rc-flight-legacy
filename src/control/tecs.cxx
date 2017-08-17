@@ -38,8 +38,8 @@ static void init_tecs() {
 
     // force a default weight value if the field is empty (so we can
     // differentiate "" from 0.0
-    if ( ! tecs_node.hasChild("weight") ) {
-        tecs_node.setDouble("weight", 1.0);
+    if ( ! tecs_config_node.hasChild("weight") ) {
+        tecs_config_node.setDouble("weight", 1.0);
     }
 
     tecs_inited = true;
@@ -111,13 +111,13 @@ void update_tecs() {
     tecs_node.setDouble("error_kin", error_kin);
     
     // Weighted kinetic - weighted potential error
-    double weight = tecs_node.getDouble("weight");
+    double weight = tecs_config_node.getDouble("weight");
     if ( weight < 0.0 ) {
         weight = 0.0;
-        tecs_node.setDouble("weight", weight);
+        tecs_config_node.setDouble("weight", weight);
     } else if ( weight > 2.0 ) {
         weight = 2.0;
-        tecs_node.setDouble("weight", weight);
+        tecs_config_node.setDouble("weight", weight);
     }
     double error_diff =  (2.0 - weight) * error_kin - weight * error_pot;
     // printf("%.1f  %.1f  %.1f\n", min_error, error_diff, max_error);
