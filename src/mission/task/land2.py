@@ -203,7 +203,7 @@ class Land(Task):
             self.targets_node.setFloat("altitude_agl_ft", new_target_alt)
 
         # compute error metrics
-        alt_error_ft = self.pos_node.getFloat("altitude_agl_ft") - (alt_m * m2ft)
+        alt_error_ft = self.pos_node.getFloat("altitude_agl_ft") - (alt_m * m2ft + self.alt_bias_ft)
         gs_error = math.atan2(alt_error_ft * ft2m, self.dist_rem_m) * r2d
         #print "alt_error_ft = %.1f" % alt_error_ft, "gs err = %.1f" % gs_error
 
