@@ -951,10 +951,10 @@ def pack_ap_status_csv(index):
     row['altitude_msl_ft'] = '%.2f' % targets_node.getFloat('altitude_msl_ft')
     row['pitch_deg'] = '%.2f' % targets_node.getFloat('pitch_deg')
     row['airspeed_kt'] = '%.1f' % targets_node.getFloat('airspeed_kt')
-    row['ground_m'] = '%.1f' % pos_node.getFloat("ground_m")
+    row['altitude_ground_m'] = '%.1f' % pos_node.getFloat("altitude_ground_m")
     keys = ['timestamp', 'master_switch', 'pilot_pass_through',
             'groundtrack_deg', 'roll_deg', 'altitude_msl_ft', 'pitch_deg',
-            'airspeed_kt', 'ground_m']
+            'airspeed_kt', 'altitude_ground_m']
     return row, keys
 
 def unpack_ap_status_v1(buf):
