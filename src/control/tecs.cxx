@@ -57,7 +57,7 @@ void update_tecs() {
     
     // Current energy
     double alt_m = pos_node.getDouble("altitude_agl_m");
-    double vel_mps = vel_node.getDouble("airspeed_kt") * SG_KT_TO_MPS;
+    double vel_mps = vel_node.getDouble("airspeed_smoothed_kt") * SG_KT_TO_MPS;
 
     double energy_pot = mass_kg * g * alt_m;
     double energy_kin = 0.5 * mass_kg * vel_mps * vel_mps;
