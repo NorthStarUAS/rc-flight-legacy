@@ -4,5 +4,5 @@ set datafile separator ","
 
 set xlabel "Flight Path"
 
-plot "filter-0.txt" using 3:2 with lines title "Filter Path", \
-     "gps-0.txt" using 3:2 with lines title "GPS Path"
+plot "filter-0.csv" using 3:2 with lines title "Filter Path", \
+     "gps-0.csv" using 3:2 with lines title "GPS Path"

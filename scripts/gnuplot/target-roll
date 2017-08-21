@@ -6,9 +6,9 @@ set ytics nomirror
 set y2label "Aileron"
 set y2tics
 
-plot "act-0.txt" using 1:2 with lines axis x1y2 title "AP Aileron Defl", \
-  "pilot-0.txt" using 1:2 with lines axis x1y2 title "Pilot Aileron Defl", \
-  "error.txt" using 1:2 with lines title "Roll Error"
-  # "ap-0.txt" using 1:3 with lines title "Target Roll (deg)", \
-  # "filter-0.txt" using 1:8 with lines title "Actual Roll (deg)"
+plot "act-0.csv" using 1:2 with lines axis x1y2 title "AP Aileron Defl", \
+     "pilot-0.csv" using 1:2 with lines axis x1y2 title "Pilot Aileron Defl", \
+     "ap-0.csv" using 1:5 with lines title "Target Roll (deg)", \
+     "filter-0.csv" using 1:8 with lines title "Actual Roll (deg)"
+     # "error.csv" using 1:2 with lines title "Roll Error"
   

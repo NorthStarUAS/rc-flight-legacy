@@ -2,9 +2,9 @@
 
 set datafile separator ","
 
-plot "filter-0.txt" using 1:5 with lines title "vn(est)", \
-     "filter-0.txt" using 1:6 with lines title "ve(est)", \
-     "filter-0.txt" using 1:7 with lines title "vd(est)", \
-     "gps-0.txt" using 1:5 with lines title "vn(gps)", \
-     "gps-0.txt" using 1:6 with lines title "ve(gps)", \
-     "gps-0.txt" using 1:7 with lines title "vd(gps)"
+plot "filter-0.csv" using 1:5 with lines title "vn(est)", \
+     "filter-0.csv" using 1:6 with lines title "ve(est)", \
+     "filter-0.csv" using 1:7 with lines title "vd(est)", \
+     "gps-0.csv" using 1:5 with lines title "vn(gps)", \
+     "gps-0.csv" using 1:6 with lines title "ve(gps)", \
+     "gps-0.csv" using 1:7 with lines title "vd(gps)"
