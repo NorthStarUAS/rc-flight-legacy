@@ -6,12 +6,10 @@ set ytics nomirror
 set y2label "Throttle"
 set y2tics
 
-plot "ap-0.txt" using 1:6 with lines title "Target Altitude (MSL)", \
-     "air-0.txt" using 1:($5/0.3048) with lines title "Baro Altitude", \
-     "gps-0.txt" using 1:($4/0.3048) with lines title "GPS Altitude", \
-     "filter-0.txt" using 1:($4/0.3048) with lines title "Filter Altitude", \
-     "air-0.txt" using 1:($6/0.3048) with lines title "Fused Altitude", \
-     "ap-0.txt" using 1:($5*60) with lines title "Target Climb (FPM)", \
-     "air-0.txt" using 1:7 with lines title "Climb Rate (FPM)", \
-     "act-0.txt" using 1:4 with lines axis x1y2 title "AP Throttle", \
-     "pilot-0.txt" using 1:4 with lines axis x1y2 title "Pilot Throttle"
+plot "ap-0.csv" using 1:6 with lines title "Target Altitude (MSL)", \
+     "air-0.csv" using 1:($5/0.3048) with lines title "Baro Altitude", \
+     "gps-0.csv" using 1:($4/0.3048) with lines title "GPS Altitude", \
+     "filter-0.csv" using 1:($4/0.3048) with lines title "Filter Altitude", \
+     "air-0.csv" using 1:($6/0.3048) with lines title "Fused Altitude", \
+     "act-0.csv" using 1:4 with lines axis x1y2 title "AP Throttle", \
+     "pilot-0.csv" using 1:4 with lines axis x1y2 title "Pilot Throttle"

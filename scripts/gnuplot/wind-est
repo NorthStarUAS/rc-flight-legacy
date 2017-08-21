@@ -9,6 +9,6 @@ set y2label "Pitot Scale Factor"
 set ytics nomirror
 set y2tics
 
-plot "air-0.txt" using 1:8 with lines title "Wind Dir (deg)", \
-     "air-0.txt" using 1:($9*10) with lines title "Wind Speed (kts*10)", \
-     "air-0.txt" using 1:10 with lines axis x1y2 title "Pitot Scale"
+plot "air-0.csv" using 1:7 with lines title "Wind Dir (deg)", \
+     "air-0.csv" using 1:($8*10) with lines title "Wind Speed (kts*10)", \
+     "air-0.csv" using 1:9 with lines axis x1y2 title "Pitot Scale"
