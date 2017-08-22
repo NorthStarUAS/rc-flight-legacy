@@ -168,13 +168,17 @@ void AuraPID::update( double dt ) {
     // produce zero initial transient (overwriting the existing
     // iterm) then unset the do_reset flag.
     if ( do_reset ) {
-        double u_n = output_node[0].getDouble(output_attr[0].c_str());
-        // and clip
-        double u_min = config_node.getDouble("u_min");
-        double u_max = config_node.getDouble("u_max");
-        if ( u_n < u_min ) { u_n = u_min; }
-        if ( u_n > u_max ) { u_n = u_max; }
-        iterm = u_n - pterm;
+        if ( Ti > 0.0001 ) {
+            double u_n = output_node[0].getDouble(output_attr[0].c_str());
+            // and clip
+            double u_min = config_node.getDouble("u_min");
+            double u_max = config_node.getDouble("u_max");
+            if ( u_n < u_min ) { u_n = u_min; }
+            if ( u_n > u_max ) { u_n = u_max; }
+            iterm = u_n - pterm;
+        } else {
+            iterm = 0.0;
+        }
         do_reset = false;
     }
     
