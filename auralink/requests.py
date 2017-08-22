@@ -6,6 +6,7 @@ import commands
 
 ident_node = getNode('/config/identity', True)
 specs_node = getNode('/config/specs', True)
+tecs_node = getNode('/config/autopilot/TECS', True)
 
 requests_pending = True
 def gen_requests():
@@ -38,9 +39,9 @@ def gen_requests():
         if specs_node.getString('cruise_kt') == '':
             requests_pending = True
             commands.add('get,/config/specs/cruise_kt')
-        if specs_node.getString('max_kt') == '':
+        if tecs_node.getString('max_kt') == '':
             requests_pending = True
-            commands.add('get,/config/specs/max_kt')
-        if specs_node.getString('min_kt') == '':
+            commands.add('get,/config/autopilot/TECS/max_kt')
+        if tecs_node.getString('min_kt') == '':
             requests_pending = True
-            commands.add('get,/config/specs/min_kt')
+            commands.add('get,/config/autopilot/TECS/min_kt')

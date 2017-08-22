@@ -36,10 +36,13 @@ static void init_tecs() {
     tecs_node = pyGetNode( "/autopilot/tecs", true);
     tecs_config_node = pyGetNode( "/config/autopilot/TECS", true);
 
-    // force a default weight value if the field is empty (so we can
+    // force default weight values if the field is empty (so we can
     // differentiate "" from 0.0
-    if ( ! tecs_config_node.hasChild("weight") ) {
-        tecs_config_node.setDouble("weight", 1.0);
+    if ( ! tecs_config_node.hasChild("weight_tot") ) {
+        tecs_config_node.setDouble("weight_tot", 1.0);
+    }
+    if ( ! tecs_config_node.hasChild("weight_bal") ) {
+        tecs_config_node.setDouble("weight_bal", 1.0);
     }
 
     tecs_inited = true;
@@ -55,6 +58,26 @@ void update_tecs() {
     double mass_kg = tecs_config_node.getDouble("mass_kg");
     if ( mass_kg < 0.01 ) { mass_kg = 2.5; }
     
+    // total weight factor
+    double wt = tecs_config_node.getDouble("weight_tot");
+    if ( wt < 0.0 ) {
+        wt = 0.0;
+        tecs_config_node.setDouble("weight_tot", wt);
+    } else if ( wt > 2.0 ) {
+        wt = 2.0;
+        tecs_config_node.setDouble("weight_tot", wt);
+    }
+    
+    // balance weight factor
+    double wb = tecs_config_node.getDouble("weight_bal");
+    if ( wb < 0.0 ) {
+        wb = 0.0;
+        tecs_config_node.setDouble("weight_bal", wb);
+    } else if ( wb > 2.0 ) {
+        wb = 2.0;
+        tecs_config_node.setDouble("weight_bal", wb);
+    }
+
     // Current energy
     double alt_m = pos_node.getDouble("altitude_agl_m");
     double vel_mps = vel_node.getDouble("airspeed_smoothed_kt") * SG_KT_TO_MPS;
@@ -81,7 +104,7 @@ void update_tecs() {
     // Error metrics
     double error_pot = target_pot - energy_pot;
     double error_kin = target_kin - energy_kin;
-    double error_total = error_pot + error_kin;
+    double error_total = wt * error_pot + (2.0 - wt) * error_kin;
 
     // Compute min & max kinetic energy
     double min_kt = tecs_config_node.getDouble("min_kt");
@@ -110,16 +133,7 @@ void update_tecs() {
     tecs_node.setDouble("error_pot", error_pot);
     tecs_node.setDouble("error_kin", error_kin);
     
-    // Weighted kinetic - weighted potential error
-    double weight = tecs_config_node.getDouble("weight");
-    if ( weight < 0.0 ) {
-        weight = 0.0;
-        tecs_config_node.setDouble("weight", weight);
-    } else if ( weight > 2.0 ) {
-        weight = 2.0;
-        tecs_config_node.setDouble("weight", weight);
-    }
-    double error_diff =  (2.0 - weight) * error_kin - weight * error_pot;
+    double error_diff =  (2.0 - wb) * error_kin - wb * error_pot;
     // printf("%.1f  %.1f  %.1f\n", min_error, error_diff, max_error);
 
     // enforce speed limits (in energy error space)

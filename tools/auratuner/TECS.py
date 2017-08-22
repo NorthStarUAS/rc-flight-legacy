@@ -8,7 +8,7 @@ class TECS():
         self.changefunc = changefunc
         self.host = host
         self.port = port
-        self.original_values = [ "3", "1.0", "20", "35" ]
+        self.original_values = [ "3", "1.0", "1.0", "20", "35" ]
         self.container = self.make_page()
 
     def onChange(self):
@@ -27,9 +27,12 @@ class TECS():
         self.edit_mass = QtGui.QLineEdit()
         self.edit_mass.setFixedWidth(350)
         self.edit_mass.textChanged.connect(self.onChange)
-        self.edit_weight = QtGui.QLineEdit()
-        self.edit_weight.setFixedWidth(350)
-        self.edit_weight.textChanged.connect(self.onChange)
+        self.edit_weight_tot = QtGui.QLineEdit()
+        self.edit_weight_tot.setFixedWidth(350)
+        self.edit_weight_tot.textChanged.connect(self.onChange)
+        self.edit_weight_bal = QtGui.QLineEdit()
+        self.edit_weight_bal.setFixedWidth(350)
+        self.edit_weight_bal.textChanged.connect(self.onChange)
         self.edit_min_kt = QtGui.QLineEdit()
         self.edit_min_kt.setFixedWidth(350)
         self.edit_min_kt.textChanged.connect(self.onChange)
@@ -38,7 +41,8 @@ class TECS():
         self.edit_max_kt.textChanged.connect(self.onChange)
 
         layout.addRow( "<b>Aircraft Total Flying Mass (kg):</b>", self.edit_mass )
-        layout.addRow( "<b>TECS pitch weight (0.0 - 2.0):</b>", self.edit_weight )
+        layout.addRow( "<b>TECS energy total weight (0.0 - 2.0):</b>", self.edit_weight_tot )
+        layout.addRow( "<b>TECS energy balance weight (0.0 - 2.0):</b>", self.edit_weight_bal )
         layout.addRow( "<b>Minimum speed (kts):</b>", self.edit_min_kt )
         layout.addRow( "<b>Maximum speed (kts):</b>", self.edit_max_kt )
         
@@ -51,7 +55,16 @@ class TECS():
 <b>Notes</b>:
 <ul>
   <li>Mass should represent total flying weight including batteries and payload.</li>
-  <li>TECS weight:
+  <li>TECS total energy weight:
+    <ul>
+      <li>0.0 = total energy is 2 * kinetic energy, ignore altitude errors.</li>
+      <li>2.0 = total energy is 2 * potential energy, ignore speed errors.</li>
+      <li>1.0 = default value, typically optimal for most situations.</li>
+      <li>For any particular aircraft, you may want to 'slide' this value<br>
+          towards the least noisy sensor or the value you care more about.</li>
+    <ul>
+  </li>
+  <li>TECS energy balance weight:
     <ul>
       <li>0.0 = pitch controls airspeed, ignores altitude errors.</li>
       <li>2.0 = pitch controls altitude, ignore airspeed errors.</li>
@@ -104,7 +117,8 @@ class TECS():
 
     def parse(self, node):
         self.edit_mass.setText(node.getString('mass_kg'))
-        self.edit_weight.setText(node.getString('weight'))
+        self.edit_weight_tot.setText(node.getString('weight_tot'))
+        self.edit_weight_bal.setText(node.getString('weight_bal'))
         self.edit_min_kt.setText(node.getString('min_kt'))
         self.edit_max_kt.setText(node.getString('max_kt'))
         self.original_values = self.value_array()
@@ -112,7 +126,8 @@ class TECS():
     def value_array(self):
         result = []
         result.append( str(self.edit_mass.text()) )
-        result.append( str(self.edit_weight.text()) )
+        result.append( str(self.edit_weight_tot.text()) )
+        result.append( str(self.edit_weight_bal.text()) )
         result.append( str(self.edit_min_kt.text()) )
         result.append( str(self.edit_max_kt.text()) )
         return result
@@ -134,8 +149,10 @@ class TECS():
         t.send("data")
         self.send_value(t, "/config/autopilot/TECS/mass_deg",
                         self.edit_mass.text())
-        self.send_value(t, "/config/autopilot/TECS/weight",
-                        self.edit_weight.text())
+        self.send_value(t, "/config/autopilot/TECS/weight_tot",
+                        self.edit_weight_tot.text())
+        self.send_value(t, "/config/autopilot/TECS/weight_bal",
+                        self.edit_weight_bal.text())
         self.send_value(t, "/config/autopilot/TECS/min_kt",
                         self.edit_min_kt.text())
         self.send_value(t, "/config/autopilot/TECS/max_kt",
@@ -146,9 +163,10 @@ class TECS():
         print str(self.original_values)
         # revert form
         self.edit_mass.setText( self.original_values[0] )
-        self.edit_weight.setText( self.original_values[1] )
-        self.edit_min_kt.setText( self.original_values[2] )
-        self.edit_max_kt.setText( self.original_values[3] )
+        self.edit_weight_tot.setText( self.original_values[1] )
+        self.edit_weight_bal.setText( self.original_values[2] )
+        self.edit_min_kt.setText( self.original_values[3] )
+        self.edit_max_kt.setText( self.original_values[4] )
 
         # send original values to remote
         self.update()
