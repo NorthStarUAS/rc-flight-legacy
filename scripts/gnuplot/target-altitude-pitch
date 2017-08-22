@@ -6,8 +6,8 @@ set ytics nomirror
 set y2label "Satellites"
 set y2tics
 
-plot "ap-0.txt" using 1:4 with lines title "Target Altitude (MSL)", \
-     "filter-0.txt" using 1:($4/0.3048) with lines title "Filter Altitude (MSL)",\
-     "air-0.txt" using 1:($5/0.3048) with lines title "Baro Altitude", \
-     "gps-0.txt" using 1:($4/0.3048) with lines title "GPS Altitude (MSL)", \
-     "gps-0.txt" using 1:9 with lines axis x1y2 title "Satellites"
+plot "ap-0.csv" using 1:6 with lines title "Target Altitude (MSL)", \
+     "filter-0.csv" using 1:($4/0.3048) with lines title "Filter Altitude (MSL)",\
+     "air-0.csv" using 1:($5/0.3048) with lines title "Baro Altitude", \
+     "gps-0.csv" using 1:($4/0.3048) with lines title "GPS Altitude (MSL)", \
+     "gps-0.csv" using 1:9 with lines axis x1y2 title "Satellites"

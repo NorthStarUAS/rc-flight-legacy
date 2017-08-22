@@ -2,5 +2,5 @@
 
 set datafile separator ","
 
-plot "ap-0.txt" using 1:8 with lines title "Target Speed (kts)", \
-     "air-0.txt" using 1:4 with lines title "Actual Speed (kts)"
+plot "ap-0.csv" using 1:8 with lines title "Target Speed (kts)", \
+     "air-0.csv" using 1:4 with lines title "Actual Speed (kts)"
