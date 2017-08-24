@@ -201,7 +201,6 @@ static void update_pressure_helpers() {
 	ground_alt_filt.update( Ps, dt );
     }
 
-
     // publish values
     vel_node.setDouble( "airspeed_kt", Pt /* raw */ );
     vel_node.setDouble( "airspeed_smoothed_kt", airspeed_filt.get_value() );

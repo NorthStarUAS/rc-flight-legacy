@@ -1738,18 +1738,47 @@ bool APM2_gps_update() {
 }
 
 
+/*
+ * http://www-users.cs.york.ac.uk/~fisher/cgi-bin/mkfscript
+ *
+ * filtertype	=	Butterworth
+ * passtype	=	Lowpass
+ * ripple	=	
+ * order	=	2
+ * samplerate	=	100
+ * corner1	=	0.628
+ * corner2	=	
+ * adzero	=	
+ * logmin	=
+ */
+static float pitot_butter_filt(float input) {
+    const int NZEROS = 2;
+    const int NPOLES = 2;
+    const float GAIN = 2.641105045e+03;
+    static float xv[NZEROS+1], yv[NPOLES+1];
+    
+    xv[0] = xv[1]; xv[1] = xv[2]; 
+    xv[2] = input / GAIN;
+    yv[0] = yv[1]; yv[1] = yv[2]; 
+    yv[2] = (xv[0] + xv[2]) + 2 * xv[1]
+        + ( -0.9457257978 * yv[0]) + (  1.9442112802 * yv[1]);
+    return yv[2];
+}
+
 bool APM2_airdata_update() {
     bool fresh_data = false;
     static double pitot_sum = 0.0;
     static int pitot_count = 0;
     static float pitot_offset = 0.0;
     static LowPassFilter pitot_filt(0.2);
-
+    float pitot_butter = 0.0;
+    
     if ( airdata_inited ) {
 	double cur_time = airdata.timestamp;
 
 	pitot_filt.update(raw_analog[0], 0.01);
-
+        pitot_butter = pitot_butter_filt(raw_analog[0]);
+        
 	if ( ! airspeed_inited ) {
 	    if ( airspeed_zero_start_time > 0.0 ) {
 		pitot_sum += raw_analog[0];
@@ -1793,10 +1822,13 @@ bool APM2_airdata_update() {
 	// This yields a theoretical maximum speed sensor reading of
 	// about 81mps (156 kts)
 
-	// choose between using raw pitot value or filtered pitot value
-	float pitot = raw_analog[0];
+	// choose between using raw pitot value, low pass filtered
+	// pitot value, or butterworth filtered pitot value
+        
+	// float pitot = raw_analog[0];
 	// float pitot = pitot_filt.get_value();
-	
+	float pitot = pitot_butter;
+        
 	float Pa = (pitot - pitot_offset) * 5.083;
 	if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
 	float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
