@@ -1746,7 +1746,7 @@ bool APM2_gps_update() {
  * ripple	=	
  * order	=	2
  * samplerate	=	100
- * corner1	=	0.628
+ * corner1	=	1
  * corner2	=	
  * adzero	=	
  * logmin	=
@@ -1754,14 +1754,14 @@ bool APM2_gps_update() {
 static float pitot_butter_filt(float input) {
     const int NZEROS = 2;
     const int NPOLES = 2;
-    const float GAIN = 2.641105045e+03;
+    const float GAIN = 1.058546241e+03;
     static float xv[NZEROS+1], yv[NPOLES+1];
     
     xv[0] = xv[1]; xv[1] = xv[2]; 
     xv[2] = input / GAIN;
     yv[0] = yv[1]; yv[1] = yv[2]; 
     yv[2] = (xv[0] + xv[2]) + 2 * xv[1]
-        + ( -0.9457257978 * yv[0]) + (  1.9442112802 * yv[1]);
+        + ( -0.9149758348  * yv[0]) + (  1.9111970674 * yv[1]);
     return yv[2];
 }
 
