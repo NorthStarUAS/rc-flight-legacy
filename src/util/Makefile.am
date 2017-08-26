@@ -1,6 +1,7 @@
 noinst_LIBRARIES = libutil.a
 
 libutil_a_SOURCES = \
+	butter.cxx butter.hxx \
 	coremag.c coremag.h \
 	exception.cxx exception.hxx \
 	linearfit.cxx linearfit.hxx \
@@ -16,3 +17,8 @@ libutil_a_SOURCES = \
         netSocket.cxx netSocket.h ul.h
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
+
+noinst_PROGRAMS = butter_test
+
+butter_test_SOURCES = butter_test.cxx
+butter_test_LDADD = libutil.a
