@@ -20,10 +20,6 @@ public:
     
     void gen_coefficients(int order, int samplerate, double cutoff);
     double update( double raw_value );
-    
-    inline double get_value() {
-	return 0.0;
-    }
 };
 
 
