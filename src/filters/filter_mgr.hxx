@@ -9,8 +9,8 @@
  */
 
 
-#ifndef _AURA_FILTER_MGR_H
-#define _AURA_FILTER_MGR_H
+#ifndef _AURA_FILTER_MGR_HXX
+#define _AURA_FILTER_MGR_HXX
 
 
 void Filter_init();
@@ -18,4 +18,4 @@ bool Filter_update();
 void Filter_close();
 
 
-#endif // _AURA_FILTER_MGR_H
+#endif // _AURA_FILTER_MGR_HXX
