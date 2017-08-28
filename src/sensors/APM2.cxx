@@ -26,9 +26,9 @@ using namespace Eigen;
 #include "comms/logging.hxx"
 #include "init/globals.hxx"
 #include "sensors/cal_temp.hxx"
+#include "util/butter.hxx"
 #include "util/linearfit.hxx"
 #include "util/lowpass.hxx"
-//#include "util/poly1d.hxx"
 #include "util/timing.h"
 
 #include "APM2.hxx"
@@ -128,6 +128,8 @@ static uint32_t imu_micros = 0;
 static int16_t imu_sensors[NUM_IMU_SENSORS];
 
 static LinearFitFilter imu_offset(200.0);
+static ButterworthFilter pitot_filter(2, 100, 1);
+static LowPassFilter pitot_filt_old(0.2);
 
 static struct gps_sensors_t {
     double timestamp;
@@ -1738,46 +1740,46 @@ bool APM2_gps_update() {
 }
 
 
-/*
- * http://www-users.cs.york.ac.uk/~fisher/cgi-bin/mkfscript
- *
- * filtertype	=	Butterworth
- * passtype	=	Lowpass
- * ripple	=	
- * order	=	2
- * samplerate	=	100
- * corner1	=	1
- * corner2	=	
- * adzero	=	
- * logmin	=
- */
-static float pitot_butter_filt(float input) {
-    const int NZEROS = 2;
-    const int NPOLES = 2;
-    const float GAIN = 1.058546241e+03;
-    static float xv[NZEROS+1], yv[NPOLES+1];
+// /*
+//  * http://www-users.cs.york.ac.uk/~fisher/cgi-bin/mkfscript
+//  *
+//  * filtertype	=	Butterworth
+//  * passtype	=	Lowpass
+//  * ripple	=	
+//  * order	=	2
+//  * samplerate	=	100
+//  * corner1	=	1
+//  * corner2	=	
+//  * adzero	=	
+//  * logmin	=
+//  */
+// static float pitot_butter_filt(float input) {
+//     const int NZEROS = 2;
+//     const int NPOLES = 2;
+//     const float GAIN = 1.058546241e+03;
+//     static float xv[NZEROS+1], yv[NPOLES+1];
     
-    xv[0] = xv[1]; xv[1] = xv[2]; 
-    xv[2] = input / GAIN;
-    yv[0] = yv[1]; yv[1] = yv[2]; 
-    yv[2] = (xv[0] + xv[2]) + 2 * xv[1]
-        + ( -0.9149758348  * yv[0]) + (  1.9111970674 * yv[1]);
-    return yv[2];
-}
+//     xv[0] = xv[1]; xv[1] = xv[2]; 
+//     xv[2] = input / GAIN;
+//     yv[0] = yv[1]; yv[1] = yv[2]; 
+//     yv[2] = (xv[0] + xv[2]) + 2 * xv[1]
+//         + ( -0.9149758348  * yv[0]) + (  1.9111970674 * yv[1]);
+//     return yv[2];
+// }
+
 
 bool APM2_airdata_update() {
     bool fresh_data = false;
     static double pitot_sum = 0.0;
     static int pitot_count = 0;
     static float pitot_offset = 0.0;
-    static LowPassFilter pitot_filt(0.2);
     float pitot_butter = 0.0;
     
     if ( airdata_inited ) {
 	double cur_time = airdata.timestamp;
 
-	pitot_filt.update(raw_analog[0], 0.01);
-        pitot_butter = pitot_butter_filt(raw_analog[0]);
+	pitot_filt_old.update(raw_analog[0], 0.01);
+        pitot_butter = pitot_filter.update(raw_analog[0]);
         
 	if ( ! airspeed_inited ) {
 	    if ( airspeed_zero_start_time > 0.0 ) {
@@ -1785,13 +1787,13 @@ bool APM2_airdata_update() {
 		pitot_count++;
 		pitot_offset = pitot_sum / (double)pitot_count;
 		/* printf("a1 raw=%.1f filt=%.1f a1 off=%.1f a1 sum=%.1f a1 count=%d\n",
-		   raw_analog[0], pitot_filt.get_value(), pitot_offset, pitot_sum,
+		   raw_analog[0], pitot_filt_old.get_value(), pitot_offset, pitot_sum,
 		   pitot_count); */
 	    } else {
 		airspeed_zero_start_time = get_Time();
 		pitot_sum = 0.0;
 		pitot_count = 0;
-		pitot_filt.init(raw_analog[0]);
+		pitot_filt_old.init(raw_analog[0]);
 	    }
 	    if ( cur_time > airspeed_zero_start_time + 10.0 ) {
 		//printf("pitot_offset = %.2f\n", pitot_offset);
@@ -1826,7 +1828,7 @@ bool APM2_airdata_update() {
 	// pitot value, or butterworth filtered pitot value
         
 	// float pitot = raw_analog[0];
-	// float pitot = pitot_filt.get_value();
+	// float pitot = pitot_filt_old.get_value();
 	float pitot = pitot_butter;
         
 	float Pa = (pitot - pitot_offset) * 5.083;
