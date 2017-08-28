@@ -5,6 +5,7 @@
 #include "butter.hxx"
 #include "lowpass.hxx"
 
+// cutoff freq of 1
 static float pitot_butter_filt(float input) {
     const int NZEROS = 2;
     const int NPOLES = 2;
@@ -20,8 +21,8 @@ static float pitot_butter_filt(float input) {
 }
 
 int main() {
-    ButterworthFilter bf(2, 100, 2);
-    LowPassFilter lp(0.1);
+    ButterworthFilter bf(2, 100, 1.5);
+    LowPassFilter lp(0.5);
 
     float dt = 0.01; // 100hz
     float time = 0.0;
