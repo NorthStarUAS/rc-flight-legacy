@@ -5,24 +5,8 @@
 
 ButterworthFilter::ButterworthFilter(int order, int samplerate, double cutoff)
 {
-    gen_coefficients(order, samplerate, cutoff);
-}
-
-ButterworthFilter::~ButterworthFilter() {
-    delete[] A;
-    delete[] d1;
-    delete[] d2;
-    delete[] w0;
-    delete[] w1;
-    delete[] w2;   
-}
-
-
-void ButterworthFilter::gen_coefficients( int order, int samplerate,
-                                          double half_cutoff )
-{
     int n = order / 2;
-    double a = tan( M_PI * half_cutoff / samplerate );
+    double a = tan( M_PI * cutoff / samplerate );
     double a2 = a*a;
     A = new double[n];
     d1 = new double[n];
@@ -38,6 +22,15 @@ void ButterworthFilter::gen_coefficients( int order, int samplerate,
         d1[i] = 2.0*(1-a2)/s;
         d2[i] = -(a2 - 2.0*a*r + 1.0)/s;
     }
+}
+
+ButterworthFilter::~ButterworthFilter() {
+    delete[] A;
+    delete[] d1;
+    delete[] d2;
+    delete[] w0;
+    delete[] w1;
+    delete[] w2;   
 }
 
 double ButterworthFilter::update( double x ) {

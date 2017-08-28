@@ -15,10 +15,9 @@ private:
     
 public:
     
-    ButterworthFilter(int order, int samplerate, double half_cutoff);
+    ButterworthFilter(int order, int samplerate, double cutoff);
     ~ButterworthFilter();
     
-    void gen_coefficients(int order, int samplerate, double cutoff);
     double update( double raw_value );
 };
 
