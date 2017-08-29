@@ -162,7 +162,11 @@ void AuraPID::update( double dt ) {
     double pterm = Kp * error + u_trim;
 
     // integral term
-    iterm += Ki * error * dt;
+    if ( Ti > 0.0001 ) {
+        iterm += Ki * error * dt;
+    } else {
+        iterm = 0.0;
+    }
     
     // if the reset flag is set, back compute an iterm that will
     // produce zero initial transient (overwriting the existing
@@ -192,11 +196,15 @@ void AuraPID::update( double dt ) {
 
     double output = pterm + iterm + dterm;
     if ( output < u_min ) {
-	iterm += u_min - output;
+        if ( Ti > 0.0001 ) {
+            iterm += u_min - output;
+        }
 	output = u_min;
     }
     if ( output > u_max ) {
-	iterm -= output - u_max;
+        if ( Ti > 0.0001 ) {
+            iterm -= output - u_max;
+        }
 	output = u_max;
     }
 
