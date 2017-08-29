@@ -6,15 +6,45 @@ airdata_node = getNode('/sensors/airdata', True)
 filter_node = getNode('/filters/filter[0]', True)
 pilot_node = getNode('/sensors/pilot_input', True)
 status_node = getNode('/status', True)
+pos_node = getNode("/position", True)
 vel_node = getNode("/velocity", True)
 targets_node = getNode("/autopilot/targets", True)
+tecs_node = getNode("/autopilot/tecs", True)
 apm2_node = getNode("/sensors/APM2", True)
+tecs_config_node = getNode("/config/autopilot/TECS", True)
 
 r2d = 180.0 / math.pi
 mps2kt = 1.9438444924406046432
 kt2mps = 0.5144444444444444444
+ft2m = 0.3048
+g = 9.81
 
 last_time = 0.0
+
+def compute_tecs():
+    mass_kg = tecs_config_node.getFloat("mass_kg")
+    if mass_kg < 0.01: mass_kg = 3.0
+    wt = tecs_config_node.getFloat("weight_tot")
+    wb = tecs_config_node.getFloat("weight_bal")
+    alt_m = filter_node.getFloat("altitude_m")
+    vel_mps = vel_node.getFloat("airspeed_smoothed_kt") * kt2mps
+    target_alt_m = targets_node.getFloat("altitude_msl_ft") * ft2m
+    target_vel_mps = targets_node.getFloat("airspeed_kt") * kt2mps
+    
+    energy_pot = mass_kg * g * alt_m
+    energy_kin = 0.5 * mass_kg * vel_mps * vel_mps
+
+    target_pot = mass_kg * g * target_alt_m
+    target_kin = 0.5 * mass_kg * target_vel_mps * target_vel_mps
+
+    error_pot = target_pot - energy_pot
+    error_kin = target_kin - energy_kin
+    error_total = wt * error_pot + (2.0 - wt) * error_kin
+    error_bal =  (2.0 - wb) * error_kin - wb * error_pot
+
+    tecs_node.setFloat("energy_total", energy_pot + energy_kin )
+    tecs_node.setFloat("target_total", target_pot + target_kin )
+    tecs_node.setFloat("error_diff", error_bal)
 
 def compute_derived_data():
     global last_time
@@ -64,3 +94,6 @@ def compute_derived_data():
     amps = apm2_node.getFloat("extern_amps")
     watts = volts * amps
     apm2_node.setFloat("extern_watts", watts)
+
+    # TECS
+    compute_tecs()
