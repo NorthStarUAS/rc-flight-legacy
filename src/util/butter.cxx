@@ -15,6 +15,7 @@ ButterworthFilter::ButterworthFilter(int order, int samplerate, double cutoff)
     w1 = new double[n];
     w2 = new double[n];
 
+    // generate coefficients
     for ( int i = 0; i < n; ++i ) {
         double r = sin(M_PI*(2.0*i+1.0)/(4.0*n));
         double s = a2 + 2.0*a*r + 1.0;
