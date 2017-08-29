@@ -45,3 +45,6 @@ def gen_requests():
         if tecs_node.getString('min_kt') == '':
             requests_pending = True
             commands.add('get,/config/autopilot/TECS/min_kt')
+        if tecs_node.getString('mass_kg') == '':
+            requests_pending = True
+            commands.add('get,/config/autopilot/TECS/mass_kg')
