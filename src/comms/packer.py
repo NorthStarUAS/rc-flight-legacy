@@ -63,6 +63,7 @@ pilot_v2_fmt = "<BdhhhhhhhhB"
 status_node = getNode("/status", True)
 ap_node = getNode("/autopilot", True)
 targets_node = getNode("/autopilot/targets", True)
+tecs_node = getNode("/autopilot/tecs", True)
 task_node = getNode("/task", True)
 route_node = getNode("/task/route", True)
 active_node = getNode("/task/route/active", True)
@@ -952,9 +953,11 @@ def pack_ap_status_csv(index):
     row['pitch_deg'] = '%.2f' % targets_node.getFloat('pitch_deg')
     row['airspeed_kt'] = '%.1f' % targets_node.getFloat('airspeed_kt')
     row['altitude_ground_m'] = '%.1f' % pos_node.getFloat("altitude_ground_m")
+    row['tecs_target_tot'] = '%.4f' % tecs_node.getFloat("target_total")
     keys = ['timestamp', 'master_switch', 'pilot_pass_through',
             'groundtrack_deg', 'roll_deg', 'altitude_msl_ft', 'pitch_deg',
-            'airspeed_kt', 'altitude_ground_m']
+            'airspeed_kt', 'altitude_ground_m',
+            'tecs_target_tot']
     return row, keys
 
 def unpack_ap_status_v1(buf):
