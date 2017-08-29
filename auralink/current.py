@@ -22,10 +22,18 @@ g = 9.81
 last_time = 0.0
 
 def compute_tecs():
+    if filter_node.getFloat('timestamp') < 0.01:
+        # do nothing if filter not inited
+        return
+    
     mass_kg = tecs_config_node.getFloat("mass_kg")
-    if mass_kg < 0.01: mass_kg = 3.0
+    if mass_kg < 0.01:
+        mass_kg = 3.0
     wt = tecs_config_node.getFloat("weight_tot")
-    wb = tecs_config_node.getFloat("weight_bal")
+    if tecs_config_node.hasChild("weight_bal"):
+        wb = tecs_config_node.getFloat("weight_bal")
+    else:
+        wb = 1.0
     alt_m = filter_node.getFloat("altitude_m")
     vel_mps = vel_node.getFloat("airspeed_smoothed_kt") * kt2mps
     target_alt_m = targets_node.getFloat("altitude_msl_ft") * ft2m
@@ -39,6 +47,7 @@ def compute_tecs():
 
     error_pot = target_pot - energy_pot
     error_kin = target_kin - energy_kin
+    # print filter_node.getFloat('timestamp'), 'target_alt:', target_alt_m, 'tgt_pot:', target_pot, 'E_pot:', energy_pot, 'Err_kin:', error_kin, 'Err_pot:', error_pot
     error_total = wt * error_pot + (2.0 - wt) * error_kin
     error_bal =  (2.0 - wb) * error_kin - wb * error_pot
 
