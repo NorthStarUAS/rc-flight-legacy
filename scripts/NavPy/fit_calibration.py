@@ -75,8 +75,7 @@ if len(mag_data) == 0:
 nosave = imucal.Calibration()
 cal = imucal.Calibration()
 if not cal.load(cal_file):
-    print "no existing calibration file found"
-    quit()
+    print "Warning: no existing calibration file found, seeding default values."
 
 # select which components to update
 if args.imu_model == 'apm2':
