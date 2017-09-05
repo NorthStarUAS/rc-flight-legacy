@@ -97,23 +97,29 @@ if len(bias_data):
 
     bias_cal.p_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,2], 2, full=True )
     print "p coefficients = ", bias_cal.p_bias
-    print "p residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
+    if len(res):
+        print "p residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
     bias_cal.q_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,3], 2, full=True )
     print "q coefficients = ", bias_cal.q_bias
-    print "q residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
+    if len(res):
+        print "q residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
     bias_cal.r_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,4], 2, full=True )
     print "r coefficients = ", bias_cal.r_bias
-    print "r residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
+    if len(res):
+        print "r residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
     
     accel_cal.ax_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,5], 2, full=True )
     print "ax coefficients = ", accel_cal.ax_bias
-    print "ax residual = ", math.sqrt(res[0]/bias_len)
+    if len(res):
+        print "ax residual = ", math.sqrt(res[0]/bias_len)
     accel_cal.ay_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,6], 2, full=True )
     print "ay coefficients = ", accel_cal.ay_bias
-    print "ay residual = ", math.sqrt(res[0]/bias_len)
+    if len(res):
+        print "ay residual = ", math.sqrt(res[0]/bias_len)
     accel_cal.az_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,7], 2, full=True )
     print "az coefficients = ", accel_cal.az_bias
-    print "az residual = ", math.sqrt(res[0]/bias_len)
+    if len(res):
+        print "az residual = ", math.sqrt(res[0]/bias_len)
 
     cal.min_temp = min_temp
     cal.max_temp = max_temp
@@ -147,6 +153,8 @@ cal.save(cal_file)
 # ============================= PLOTS ======================================
 
 def gen_func( coeffs, min, max, steps ):
+    if abs(max-min) < 0.0001:
+        max = min + 0.1
     xvals = []
     yvals = []
     step = (max - min) / steps
