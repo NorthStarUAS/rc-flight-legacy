@@ -9,7 +9,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-import imucal
+from aurauas.flightdata import imucal
 import transformations
 
 argparser = argparse.ArgumentParser(description='fit imu bias data')

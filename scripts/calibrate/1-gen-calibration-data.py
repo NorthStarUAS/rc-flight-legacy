@@ -37,54 +37,18 @@ if 'recalibrate' in args:
 else:
     recal_file = None
 
+# load the flight data
 data, flight_format = flight_loader.load(args.flight, recal_file)
-interp = flight_interp.FlightInterpolate()
-interp.build(data)
-
 print "imu records:", len(data['imu'])
 print "gps records:", len(data['gps'])
-if 'air' in data:
-    print "airdata records:", len(data['air'])
-print "filter records:", len(data['filter'])
-if 'pilot' in data:
-    print "pilot records:", len(data['pilot'])
-if 'act' in data:
-    print "act records:", len(data['act'])
+print "filter records:", len(data['gps'])
 if len(data['imu']) == 0:
     print "not enough data loaded to continue."
     quit()
 
-# imu_data = np.array(imu_data, dtype=np.float64)
-# x = imu_data[:,0]
-# imu_hx = interpolate.interp1d(x, imu_data[:,7], bounds_error=False, fill_value=0.0)
-# imu_hy = interpolate.interp1d(x, imu_data[:,8], bounds_error=False, fill_value=0.0)
-# imu_hz = interpolate.interp1d(x, imu_data[:,9], bounds_error=False, fill_value=0.0)
-
-# filter_data = np.array(filter_data, dtype=float)
-# x = filter_data[:,0]
-# filter_alt = interpolate.interp1d(x, filter_data[:,3])
-# filter_phi = interpolate.interp1d(x, filter_data[:,7])
-# filter_the = interpolate.interp1d(x, filter_data[:,8])
-# filter_psi = interpolate.interp1d(x, filter_data[:,9])
-alt_min = alt_max = data['gps'][0].alt
-for f in data['gps']:
-    if f.alt < alt_min: alt_min = f.alt
-    if f.alt > alt_max: alt_max = f.alt
-alt_cutoff = alt_min + (alt_max - alt_min) * 0.25
-print "Alt range =", alt_min, alt_max, "cutoff =", alt_cutoff
-
-# determine ideal magnetometer in ned coordinates
-base_lat = data['gps'][0].lat
-base_lon = data['gps'][0].lon
-print "starting at:", base_lat, base_lon
-gm = geomag.geomag.GeoMag("/usr/lib/python2.7/site-packages/geomag/WMM.COF")
-mag = gm.GeoMag(base_lat, base_lon)
-mag_ned = np.array( [mag.bx, mag.by, mag.bz] )
-print 'raw mag vector:', mag_ned
-norm = np.linalg.norm(mag_ned)
-print '          norm:', norm
-mag_ned /= norm
-print '    normalized:', mag_ned
+# build the interpolation tables
+interp = flight_interp.FlightInterpolate()
+interp.build(data)
 
 # read the events-0.csv file to determine when aircraft becomes airborne
 # (so we can ignore preflight values.)  Update: also to read the IMU
@@ -107,7 +71,7 @@ if flight_format == 'aura_csv':
             elif len(tokens) == 4 and tokens[2] == 'complete:' and tokens[3] == 'launch' and not xmax:
                 # haven't found a max yet, so update min
                 xmin = time
-                print "flight begins at t =", xmin                    
+                print "mission begins at t =", xmin                    
             elif len(tokens) == 3 and time > 0 and tokens[1] == 'on' and tokens[2] == 'ground' and not xmax:
                 t = time
                 if t - xmin > 60:
@@ -152,6 +116,58 @@ if xmax > interp.imu_time.max():
     
 print "flight range = %.3f - %.3f (%.3f)" % (xmin, xmax, xmax-xmin)
 trange = xmax - xmin
+
+alt_min = alt_max = data['gps'][0].alt
+for f in data['gps']:
+    if f.alt < alt_min: alt_min = f.alt
+    if f.alt > alt_max: alt_max = f.alt
+alt_cutoff = alt_min + (alt_max - alt_min) * 0.25
+print "Alt range =", alt_min, alt_max, "(for non-AuraUAS formats) cutoff =", alt_cutoff
+
+# write the IMU temp vs. bias data file
+cal_dir = os.path.join(args.cal, "apm2_" + str(imu_sn))
+print "Calibration directory:", cal_dir
+if not os.path.exists(cal_dir):
+    os.makedirs(cal_dir)
+
+basename = os.path.basename(os.path.abspath(args.flight)) + "-imubias.txt"
+cal_file = os.path.join(cal_dir, basename)
+print "IMU calibration file:", cal_file
+
+f = open(cal_file, 'w')
+
+for filt in data['filter']:
+    time = filt.time
+    if time >= xmin and time <= xmax:
+        # if we are processing an aura format or we are above
+        # cutoff altitude then log entries
+        if flight_format == 'aura_csv' or flight_format or 'aura_txt' or alt >= alt_cutoff:
+            f.write( "%.3f %.1f %.4f %.4f %.4f %.4f %.4f %.4f\n" %
+                     (filt.time, interp.imu_temp(filt.time),
+                      filt.p_bias, filt.q_bias, filt.r_bias,
+                      filt.ax_bias, filt.ay_bias, filt.az_bias) )
+
+f.close()
+
+# Now on to the magnetometer ...
+
+# Determine ideal magnetometer vector in ned coordinates
+
+base_lat = data['gps'][0].lat
+base_lon = data['gps'][0].lon
+print "flight starts at:", base_lat, base_lon
+gm = geomag.geomag.GeoMag("/usr/lib/python2.7/site-packages/geomag/WMM.COF")
+mag = gm.GeoMag(base_lat, base_lon)
+mag_ned = np.array( [mag.bx, mag.by, mag.bz] )
+print '  raw mag vector:', mag_ned
+norm = np.linalg.norm(mag_ned)
+print '  norm:', norm
+mag_ned /= norm
+print '  normalized:', mag_ned
+
+# generate array of sensed mag vector vs. rotated ideal mag vector (at
+# this point we are fully trusting the EKF attitude estimate and the
+# WMM for our calibration.)
 
 sense_data = []
 ideal_data = []
