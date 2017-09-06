@@ -702,28 +702,28 @@ def pack_act_v2(index):
 
 def pack_act_text(index, delim=','):
     data = [ '%.4f' % act_node.getFloat('timestamp'),
-	     '%.3f' % act_node.getFloat('aileron'),
-	     '%.3f' % act_node.getFloat('elevator'),
-	     '%.3f' % act_node.getFloat('throttle'),
-	     '%.3f' % act_node.getFloat('rudder'),
-	     '%.3f' % act_node.getFloat('channel5'),
-	     '%.3f' % act_node.getFloat('flaps'),
-	     '%.3f' % act_node.getFloat('channel7'),
-	     '%.3f' % act_node.getFloat('channel8'),
+	     '%.5f' % act_node.getFloat('aileron'),
+	     '%.5f' % act_node.getFloat('elevator'),
+	     '%.5f' % act_node.getFloat('throttle'),
+	     '%.5f' % act_node.getFloat('rudder'),
+	     '%.5f' % act_node.getFloat('channel5'),
+	     '%.5f' % act_node.getFloat('flaps'),
+	     '%.5f' % act_node.getFloat('channel7'),
+	     '%.5f' % act_node.getFloat('channel8'),
 	     '%d' % act_node.getInt('status') ]
     return delim.join(data)
 
 def pack_act_csv(index):
     row = dict()
     row['timestamp'] = '%.4f' % act_node.getFloat('timestamp')
-    row['aileron_norm'] = '%.3f' % act_node.getFloat('aileron')
-    row['elevator_norm'] = '%.3f' % act_node.getFloat('elevator')
-    row['throttle_norm'] = '%.3f' % act_node.getFloat('throttle')
-    row['rudder_norm'] = '%.3f' % act_node.getFloat('rudder')
-    row['channel5_norm'] = '%.3f' % act_node.getFloat('channel5')
-    row['flaps_norm'] = '%.3f' % act_node.getFloat('flaps')
-    row['channel7_norm'] = '%.3f' % act_node.getFloat('channel7')
-    row['channel8_norm'] = '%.3f' % act_node.getFloat('channel8')
+    row['aileron_norm'] = '%.4f' % act_node.getFloat('aileron')
+    row['elevator_norm'] = '%.4f' % act_node.getFloat('elevator')
+    row['throttle_norm'] = '%.4f' % act_node.getFloat('throttle')
+    row['rudder_norm'] = '%.4f' % act_node.getFloat('rudder')
+    row['channel5_norm'] = '%.4f' % act_node.getFloat('channel5')
+    row['flaps_norm'] = '%.4f' % act_node.getFloat('flaps')
+    row['channel7_norm'] = '%.4f' % act_node.getFloat('channel7')
+    row['channel8_norm'] = '%.4f' % act_node.getFloat('channel8')
     row['status'] = '%d' % act_node.getInt('status')
     keys = ['timestamp', 'aileron_norm', 'elevator_norm', 'throttle_norm',
             'rudder_norm', 'channel5_norm', 'flaps_norm', 'channel7_norm',
