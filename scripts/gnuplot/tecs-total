@@ -1,0 +1,16 @@
+# plot total energy parameters
+
+set datafile separator ","
+
+set ytics nomirror
+set y2label "Throttle"
+set y2tics
+
+plot "ap-0.csv" using 1:6 with lines title "Target Altitude (MSL)", \
+     "ap-0.csv" using 1:($8*10) with lines title "Target Airspeed (kt*10)", \
+     "ap-0.csv" using 1:($10/10) with lines title "Target Total Energy /10", \
+     "filter-0.csv" using 1:($4/0.3048) with lines title "Filter Altitude", \
+     "air-0.csv" using 1:($4*10) with lines title "Airspeed (kt*10)", \
+     "air-0.csv" using 1:($10/10) with lines title "Total Energy /10", \
+     "act-0.csv" using 1:4 with lines axis x1y2 title "AP Throttle", \
+     "pilot-0.csv" using 1:4 with lines axis x1y2 title "Pilot Throttle"
