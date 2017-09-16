@@ -133,6 +133,13 @@ class Land(Task):
         self.extend_final_leg_m = self.land_node.getFloat("extend_final_leg_m")
         self.alt_bias_ft = self.land_node.getFloat("altitude_bias_ft")
 
+        # compute minimum 'safe' altitude
+        safe_dist_m = math.pi * self.turn_radius_m + self.final_leg_m
+        safe_alt_ft = safe_dist_m * math.tan(self.glideslope_rad) * m2ft
+
+        # position on circle descent
+        circle_pos = 0
+        
         mode = self.nav_node.getString('mode')
         if mode == 'circle':
             # circle descent portion of the approach
@@ -158,15 +165,15 @@ class Land(Task):
             current_crs = course_deg + self.side * 90
             if current_crs > 360.0: current_crs -= 360.0
             if current_crs < 0.0: current_crs += 360.0
-            diff = current_crs - self.final_heading_deg
-            if diff < -180.0: diff += 360.0
-            if diff > 180.0: diff -= 360.0
-            # print 'diff:', self.orient_node.getFloat('groundtrack_deg'), current_crs, self.final_heading_deg, diff
+            circle_pos = current_crs - self.final_heading_deg
+            if circle_pos < -180.0: circle_pos += 360.0
+            if circle_pos > 180.0: circle_pos -= 360.0
+            # print 'circle_pos:', self.orient_node.getFloat('groundtrack_deg'), current_crs, self.final_heading_deg, circle_pos
             angle_rem_rad = math.pi
-            if self.circle_capture and diff > -10:
+            if self.circle_capture and circle_pos > -10:
                 # circling, captured circle, and within 180 degrees
                 # towards tangent point (or just slightly passed)
-                angle_rem_rad = diff * math.pi / 180.0
+                angle_rem_rad = circle_pos * math.pi / 180.0
 
             # distance to edge of circle + remaining circumfrance of
             # circle + final approach leg
@@ -177,7 +184,7 @@ class Land(Task):
             if self.circle_capture and self.gs_capture:
                 # we are on the circle and on the glide slope, lets
                 # look for our lateral exit point
-                if abs(diff) <= 10.0:
+                if abs(circle_pos) <= 10.0:
                     comms.events.log("land", "transition to final")
                     self.nav_node.setString("mode", "route")
         else:
@@ -189,22 +196,37 @@ class Land(Task):
         alt_m = self.dist_rem_m * math.tan(self.glideslope_rad)
         # print ' ', mode, "dist = %.1f alt = %.1f" % (self.dist_rem_m, alt_m)
 
-        # Set target altitude.  (Don't exceed prior altitude setting.)
+        # Compute target altitude.
+        cur_alt = self.pos_node.getFloat("altitude_agl_ft")
         cur_target_alt = self.targets_node.getFloat("altitude_agl_ft")
         new_target_alt = alt_m * m2ft + self.alt_bias_ft
-        if new_target_alt < cur_target_alt:
-            self.targets_node.setFloat("altitude_agl_ft", new_target_alt)
 
-        # compute error metrics
-        alt_error_ft = self.pos_node.getFloat("altitude_agl_ft") - (alt_m * m2ft + self.alt_bias_ft)
+        # prior to glide slope capture, never allow target altitude
+        # lower than safe altitude
+        if not self.gs_capture:
+            # print 'safe:', safe_alt_ft, 'new:', new_target_alt
+            if new_target_alt < safe_alt_ft:
+                new_target_alt = safe_alt_ft
+        
+        # We want to avoid wasting energy needlessly gaining altitude.
+        # Once the approach has started, never raise the target
+        # altitude.
+        if new_target_alt > cur_target_alt:
+            new_target_alt = cur_target_alt
+                
+        self.targets_node.setFloat("altitude_agl_ft", new_target_alt)
+
+        # compute error metrics relative to ideal glide slope
+        alt_error_ft = cur_alt - (alt_m * m2ft + self.alt_bias_ft)
         gs_error = math.atan2(alt_error_ft * ft2m, self.dist_rem_m) * r2d
         #print "alt_error_ft = %.1f" % alt_error_ft, "gs err = %.1f" % gs_error
 
         if self.circle_capture and not self.gs_capture:
             # on the circle, but haven't intercepted gs
             #print 'waiting for gs intercept'
-            if gs_error <= 1.0:
-                # 1 degree or less glide slope error, call the gs captured
+            if gs_error <= 1.0 and circle_pos >= 0:
+                # 1 degree or less glide slope error and on the 2nd
+                # half of the circle, call the gs captured
                 comms.events.log("land", "glide slope capture")
                 self.gs_capture = True
         
