@@ -135,7 +135,8 @@ class Land(Task):
 
         # compute minimum 'safe' altitude
         safe_dist_m = math.pi * self.turn_radius_m + self.final_leg_m
-        safe_alt_ft = safe_dist_m * math.tan(self.glideslope_rad) * m2ft
+        safe_alt_ft = safe_dist_m * math.tan(self.glideslope_rad) * m2ft \
+                      + self.alt_bias_ft
 
         # position on circle descent
         circle_pos = 0
