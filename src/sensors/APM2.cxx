@@ -128,7 +128,7 @@ static uint32_t imu_micros = 0;
 static int16_t imu_sensors[NUM_IMU_SENSORS];
 
 static LinearFitFilter imu_offset(200.0);
-static ButterworthFilter pitot_filter(2, 100, 1.5); // 1.0 to 2.0
+static ButterworthFilter pitot_filter(2, 100, 2.0); // 1.0 to 2.0
 
 static struct gps_sensors_t {
     double timestamp;
