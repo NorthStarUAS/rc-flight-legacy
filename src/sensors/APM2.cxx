@@ -128,7 +128,11 @@ static uint32_t imu_micros = 0;
 static int16_t imu_sensors[NUM_IMU_SENSORS];
 
 static LinearFitFilter imu_offset(200.0);
-static ButterworthFilter pitot_filter(2, 100, 2.0); // 1.0 to 2.0
+
+// 2nd order filter, 100hz sample rate expected, 3rd field is cutoff freq.
+// higher freq value == noisier, a value near 1 hz should work well
+// for airspeed.
+static ButterworthFilter pitot_filter(2, 100, 0.8);
 
 static struct gps_sensors_t {
     double timestamp;
