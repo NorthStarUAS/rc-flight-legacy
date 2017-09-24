@@ -44,6 +44,7 @@ auraparser.init()
 while True:
     auraparser.update(ser)
     current.compute_derived_data()
+    joystick.update()
     requests.gen_requests()
     commands.update(ser)
     telnet.update()

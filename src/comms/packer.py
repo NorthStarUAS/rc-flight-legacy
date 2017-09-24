@@ -74,6 +74,7 @@ ap_status_v2_fmt = "<dhhHhhhhHddHHB"
 ap_status_v3_fmt = "<BdhhHhhhhHHddHHB"
 ap_status_v4_fmt = "<BdhhHHhhHHddHHB"
 ap_status_v5_fmt = "<BdBhhHhhhHHddHHB"
+ap_status_v6_fmt = "<BdBhhHhhhHHddHHBHB"
 
 apm2_node = getNode("/sensors/APM2", True)
 system_health_v2_fmt = "<dHHHHH"
@@ -864,7 +865,7 @@ def unpack_pilot_v2(buf):
 
     return index
 
-def pack_ap_status_v5(index):
+def pack_ap_status_v6(index):
     # status flags (up to 8 could be supported)
     flags = 0
     if ap_node.getBool("master_switch"):
@@ -892,6 +893,7 @@ def pack_ap_status_v5(index):
 
     wp_lon = 0.0
     wp_lat = 0.0
+    task_attr = 0
     if route_size > 0 and counter < route_size:
         wp_index = counter
         wp_node = active_node.getChild('wpt[%d]' % wp_index)
@@ -902,13 +904,23 @@ def pack_ap_status_v5(index):
         wp_lon = circle_node.getFloat("longitude_deg")
         wp_lat = circle_node.getFloat("latitude_deg")
         wp_index = 65534
+        task_attr = int(round(circle_node.getFloat("radius_m") * 10))
+        if task_attr > 32767: task_attr = 32767
     elif counter == route_size + 1:
         wp_lon = home_node.getFloat("longitude_deg")
         wp_lat = home_node.getFloat("latitude_deg")
         wp_index = 65535
+    
+    task_id = 0                 # code for unknown or not set
+    if task_node.getString("current_task_id") == 'circle':
+        task_id = 1
+    elif task_node.getString("current_task_id") == 'route':
+        task_id = 2
+    elif task_node.getString("current_task_id") == 'land':
+        task_id = 3
 
     #print index,                   status_node.getFloat('frame_time'),                      int(targets_node.getFloat("groundtrack_deg") * 10),                      int(targets_node.getFloat("roll_deg") * 10),                      int(target_msl_ft),                      int(targets_node.getFloat("climb_rate_fps") * 10),                      int(targets_node.getFloat("pitch_deg") * 10),                      int(targets_node.getFloat("the_dot") * 1000),                      int(targets_node.getFloat("airspeed_kt") * 10),                      int(task_node.getFloat("flight_timer")),                      route_node.getInt("target_waypoint_idx"),                      wp_lon,                      wp_lat,                      wp_index,                      route_size,                      remote_link_node.getInt("sequence_num")
-    buf = struct.pack(ap_status_v5_fmt,
+    buf = struct.pack(ap_status_v6_fmt,
                       index,
                       status_node.getFloat('frame_time'),
                       flags,
@@ -924,13 +936,15 @@ def pack_ap_status_v5(index):
                       wp_lat,
                       wp_index,
                       route_size,
+                      task_id,
+                      task_attr,
                       remote_link_node.getInt("sequence_num"))
     # print 'B:', index, flags, remote_link_node.getInt("sequence_num")
     # print 'd:', status_node.getFloat('frame_time'), wp_lon, wp_lat
     # print 'h:', int(round(targets_node.getFloat("groundtrack_deg") * 10)), int(round(targets_node.getFloat("roll_deg") * 10)),
     # print 'H:', int(round(target_msl_ft)), int(round(ground_m)),
     # int(round(targets_node.getFloat("pitch_deg") * 10)), int(round(targets_node.getFloat("airspeed_kt") * 10)), int(round(task_node.getFloat("flight_timer"))), route_node.getInt("target_waypoint_idx"), wp_index, route_size, 
-    return wrap_packet(AP_STATUS_PACKET_V5, buf)
+    return wrap_packet(AP_STATUS_PACKET_V6, buf)
 
 def pack_ap_status_text(index, delim=','):
     data = [ '%.4f' % targets_node.getFloat('timestamp'),
@@ -1105,6 +1119,46 @@ def unpack_ap_status_v5(buf):
         home_node.setFloat("latitude_deg", wp_lat)
     active_node.setInt("route_size", route_size)
     remote_link_node.setInt("sequence_num", result[15])
+
+    return index
+
+def unpack_ap_status_v6(buf):
+    result = struct.unpack(ap_status_v6_fmt, buf)
+
+    index = result[0]
+
+    wp_lon = result[11]
+    wp_lat = result[12]
+    wp_index = result[13]
+    route_size = result[14]
+    task_id = result[15]
+    task_attrib = result[16]
+    
+    targets_node.setFloat("timestamp", result[1])
+    flags = result[2]
+    ap_node.setBool("master_switch", flags & (1<<0))
+    ap_node.setBool("pilot_pass_through", flags & (1<<1))
+    targets_node.setFloat("groundtrack_deg", result[3] / 10.0)
+    targets_node.setFloat("roll_deg", result[4] / 10.0)
+    targets_node.setFloat("altitude_msl_ft", result[5])
+    pos_node.setFloat("altitude_ground_m", result[6])
+    targets_node.setFloat("pitch_deg", result[7] / 10.0)
+    targets_node.setFloat("airspeed_kt", result[8] / 10.0)
+    status_node.setFloat("flight_timer", result[9])
+    route_node.setInt("target_waypoint_idx", result[10])
+    if wp_index < route_size:
+        wp_node = active_node.getChild('wpt[%d]' % wp_index, True)
+        wp_node.setFloat("longitude_deg", wp_lon)
+        wp_node.setFloat("latitude_deg", wp_lat)
+    elif wp_index == 65534:
+        circle_node.setFloat("longitude_deg", wp_lon)
+        circle_node.setFloat("latitude_deg", wp_lat)
+        circle_node.setFloat("radius_m", task_attrib / 10.0)
+    elif wp_index == 65535:
+        home_node.setFloat("longitude_deg", wp_lon)
+        home_node.setFloat("latitude_deg", wp_lat)
+    active_node.setInt("route_size", route_size)
+    remote_link_node.setInt("sequence_num", result[17])
 
     return index
 
