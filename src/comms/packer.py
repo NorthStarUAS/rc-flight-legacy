@@ -1157,6 +1157,15 @@ def unpack_ap_status_v6(buf):
     elif wp_index == 65535:
         home_node.setFloat("longitude_deg", wp_lon)
         home_node.setFloat("latitude_deg", wp_lat)
+    if task_id == 1:
+        task_node.setString("current_task_id", "circle");
+    elif task_id == 2:
+        task_node.setString("current_task_id", "route");
+    elif task_id == 3:
+        task_node.setString("current_task_id", "land");
+    else:
+        task_node.setString("current_task_id", "unknown");
+                
     active_node.setInt("route_size", route_size)
     remote_link_node.setInt("sequence_num", result[17])
 
