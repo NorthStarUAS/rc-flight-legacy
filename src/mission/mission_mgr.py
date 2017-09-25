@@ -28,6 +28,7 @@ class MissionMgr:
         self.missions_node = getNode("/config/mission", True)
         self.pos_node = getNode("/position", True)
         self.task_node = getNode("/task", True)
+        self.preflight_node = getNode("/task/preflight", True)
         self.circle_node = getNode("/task/circle", True)
         self.home_node = getNode("/task/home", True)
         self.wind_node = getNode("/filters/wind", True)
@@ -202,13 +203,13 @@ class MissionMgr:
             elif len(tokens) == 2 and tokens[1] == "resume":
                 self.request_task_resume()
             elif len(tokens) == 2 and tokens[1] == "land":
-                wind_deg = self.wind_node.getFloat("wind_dir_deg")
-                self.request_task_land(wind_deg)
+                hdg_deg = self.wind_node.getFloat("wind_dir_deg")
+                self.request_task_land(hdg_deg)
             elif len(tokens) == 3 and tokens[1] == "land":
-                wind_deg = float(tokens[2])
-                self.request_task_land(wind_deg)
-            elif len(tokens) == 2 and tokens[1] == "preflight":
-                self.request_task_preflight()
+                hdg_deg = float(tokens[2])
+                self.request_task_land(hdg_deg)
+            elif len(tokens) == 3 and tokens[1] == "preflight":
+                self.request_task_preflight(tokens[2])
             elif len(tokens) == 2 and tokens[1] == "calibrate":
                 self.request_task_calibrate()
             elif len(tokens) == 2 and tokens[1] == "route":
@@ -334,12 +335,13 @@ class MissionMgr:
                 task.close()
 	        self.pop_seq_task()
 
-    def request_task_preflight(self):
+    def request_task_preflight(self, duration):
         # sanity check, are we already in the requested state
         if len(self.seq_tasks):
             task = self.seq_tasks[0]
             if task.name == "preflight":
                 return
+        self.preflight_node.setFloat("duration_sec", duration)
         task = self.find_standby_task( "preflight" )
         if task:
             # activate task

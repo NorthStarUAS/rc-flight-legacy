@@ -7,6 +7,7 @@ class Preflight(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.task_node = getNode("/task", True)
+        self.preflight_node = getNode("/task", True)
         self.ap_node = getNode("/autopilot", True)
         self.targets_node = getNode("/autopilot/targets", True)
         self.imu_node = getNode("/sensors/imu", True)
@@ -16,8 +17,12 @@ class Preflight(Task):
         self.duration_sec = 60.0
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
-        self.duration_sec = config_node.getFloat("duration_sec")
 
+        # copy to /task/preflight
+        if config_node.hasChild("duration_sec"):
+            self.duration_sec = config_node.getFloat("duration_sec")
+        self.preflight_node.setFloat("duration_sec", self.duration_sec)
+        
     def activate(self):
         # fixme, not if airborne!
         self.active = True
@@ -33,7 +38,7 @@ class Preflight(Task):
         else:
             # we are airborne, don't change modes and configure timer
             # to be already expired
-            self.timer = self.duration_sec + 1.0
+            self.timer = self.preflight_node.getFloat("duration_sec") + 1.0
         comms.events.log("mission", "preflight")
 
     def update(self, dt):
@@ -47,7 +52,7 @@ class Preflight(Task):
         # complete when timer expires or we sense we are airborne
         # (sanity check!)
         done = False
-        if self.timer >= self.duration_sec or \
+        if self.timer >= self.preflight_node.getFloat("duration_sec") or \
            self.task_node.getBool("is_airborne"):
 	    done = True
         return done
