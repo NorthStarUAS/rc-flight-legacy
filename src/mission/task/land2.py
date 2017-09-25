@@ -336,7 +336,7 @@ class Land(Task):
         self.final_leg_m = 2.0 * self.turn_radius_m + self.extend_final_leg_m
 
         # compute center of decending circle
-        x = self.turn_radius_m * self.side
+        x = self.turn_radius_m * self.side - self.lateral_offset_m * self.side
         y = 2 * self.turn_radius_m + self.extend_final_leg_m
         (offset_dist, offset_deg) = self.cart2polar(x, -y)
         circle_offset_deg = self.final_heading_deg + offset_deg
@@ -357,11 +357,11 @@ class Land(Task):
 
         # create and request approach route
         # start of final leg point
-        (dist, deg) = self.cart2polar(self.lateral_offset_m * self.side,
+        (dist, deg) = self.cart2polar(-self.lateral_offset_m * self.side,
                                       -self.final_leg_m)
         route_request = "0,%.2f,%.2f,-" % (dist, deg)
         # touchdown point
-        (dist, deg) = self.cart2polar(self.lateral_offset_m * self.side, 0.0)
+        (dist, deg) = self.cart2polar(-self.lateral_offset_m * self.side, 0.0)
         route_request += ",0,%.2f,%.2f,-" % (dist, deg)
 
         # set route request and route modes
