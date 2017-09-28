@@ -5,7 +5,7 @@
 
 ButterworthFilter::ButterworthFilter(int order, int samplerate, double cutoff)
 {
-    int n = order / 2;
+    n = order / 2;
     double a = tan( M_PI * cutoff / samplerate );
     double a2 = a*a;
     A = new double[n];
@@ -34,7 +34,8 @@ ButterworthFilter::~ButterworthFilter() {
     delete[] w2;   
 }
 
-double ButterworthFilter::update( double x ) {
+double ButterworthFilter::update( double raw_value ) {
+    double x = raw_value;
     for ( int i = 0; i < n; ++i ) {
         w0[i] = d1[i]*w1[i] + d2[i]*w2[i] + x;
         x = A[i]*(w0[i] + 2.0*w1[i] + w2[i]);
