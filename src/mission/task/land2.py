@@ -5,7 +5,7 @@ from props import getNode
 import comms.events
 import control.route
 import mission.greatcircle as gc
-import mission.mission_mgr
+#import mission.mission_mgr
 from task import Task
 
 d2r = math.pi / 180.0

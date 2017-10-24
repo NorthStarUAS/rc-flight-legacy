@@ -129,7 +129,7 @@ class Circle(Task):
 
         # restore target speed if overridden by task
         if self.target_speed_kt > 0.0:
-            self.targets_node.setFloat("airspeed_kt", saved_speed_kt)
+            self.targets_node.setFloat("airspeed_kt", self.saved_speed_kt)
 
         self.active = False
         return True

@@ -1,4 +1,4 @@
-#import mission.mission_mgr
+import mission.mission_mgr
 from props import getNode
 
 import comms.events
@@ -14,7 +14,6 @@ class LostLink(Task):
         self.link_state = False
         self.push_task = ""
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
         self.timeout_sec = config_node.getFloat("timeout_sec")
         if self.timeout_sec < 1.0:
             # set a sane default if none provided
@@ -46,15 +45,15 @@ class LostLink(Task):
                 if self.link_state:
                     self.link_state = False
                     self.remote_link_node.setString("link", "lost")
-                    comms.events.log("comms", "link timed out (lost) last_message=%.1f timeout_sec=%.1f" % (last_message_sec, self.timeout_sec))
+                    comms.events.log("comms", "link timed out (lost) last_message=%.1f timeout_sec=%.1f action=%s" % (last_message_sec, self.timeout_sec, self.action))
                     # do lost link action here (iff airborne)
-                    task = mission.mission_mgr.m.find_standby_task_by_nickname( action )
+                    task = mission.mission_mgr.m.find_standby_task_by_nickname( self.action )
                     if ( task and self.task_node.getBool("is_airborne") ):
-                        comms.events.log("comms", "action=" + task.name + "(" + action + ")")
+                        comms.events.log("comms", "action=" + task.name + "(" + self.action + ")")
                         # activate task
                         mission.mission_mgr.m.push_seq_task( task )
                         task.activate()
-                        self.push_task = action
+                        self.push_task = self.action
             else:
                 # good link state
                 if not self.link_state:
@@ -67,7 +66,7 @@ class LostLink(Task):
                         # we've pushed something on the task queue
                         task = mission.mission_mgr.m.front_seq_task()
                         if task:
-                            if task.nickname == action:
+                            if task.nickname == self.action:
                                 # pop the front task, but only if we
                                 # were the ones that pushed on on
                                 task.close()

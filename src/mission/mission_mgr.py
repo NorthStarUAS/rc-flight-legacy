@@ -172,15 +172,17 @@ class MissionMgr:
         return None
     
     def find_standby_task(self, name):
-        for task in self.standby_tasks:
-            if task.name == name:
-                return task
+        if name != "":
+            for task in self.standby_tasks:
+                if task.name == name:
+                    return task
         return None
     
     def find_standby_task_by_nickname(self, nickname):
-        for task in self.standby_tasks:
-            if task.nickname == nickname:
-                return task
+        if nickname != "":
+            for task in self.standby_tasks:
+                if task.nickname == nickname:
+                    return task
         return None
     
     def process_command_request(self):
