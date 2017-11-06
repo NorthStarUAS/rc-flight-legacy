@@ -9,6 +9,7 @@ from props import root, getNode
 import props_json
 
 import commands
+import projects
 
 class WSHandler(tornado.websocket.WebSocketHandler):
     def open(self):
@@ -23,12 +24,20 @@ class WSHandler(tornado.websocket.WebSocketHandler):
             if args == 'full_json':
                 commands.remote_lost_link_predict()
                 dict_mirror = {}
+                root.setBool("main_magic", True)
                 props_json.buildDict(dict_mirror, root)
                 self.write_message(json.dumps(dict_mirror, separators=(',',':'),
                                               sort_keys=True) + '\r\n')
         elif command == 'send':
             # request relay 'args' string up to aircraft
             commands.add(args)
+        elif command == 'get_projects':
+            print "request for list of all projects"
+            json_str = projects.load()
+            print 'project json:', json_str
+            self.write_message(json_str + '\r\n')
+        elif command == 'update_project':
+            projects.update_project(args)
             
     def on_close(self):
         print 'connection closed'
