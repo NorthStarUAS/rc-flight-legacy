@@ -31,7 +31,7 @@ def save( json_dict ):
         print 'error writing:', projects_file, str(sys.exc_info()[1])
 
 # update or create project by name
-def update_project( new_json ):
+def update_name( new_json ):
     json_str = load()
     current_projects = json.loads(json_str)
     new = json.loads( new_json )
@@ -39,4 +39,12 @@ def update_project( new_json ):
     areas = new["areas"]
     current_projects[name] = areas
     current_projects["projects_magic"] = True
+    save(current_projects)
+    
+# delete project
+def delete_name( name ):
+    print 'delete project:', name
+    json_str = load()
+    current_projects = json.loads(json_str)
+    current_projects.pop(name, None)
     save(current_projects)

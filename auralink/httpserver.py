@@ -31,14 +31,16 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         elif command == 'send':
             # request relay 'args' string up to aircraft
             commands.add(args)
-        elif command == 'get_projects':
+        elif command == 'projects_get':
             print "request for list of all projects"
             json_str = projects.load()
             print 'project json:', json_str
             self.write_message(json_str + '\r\n')
-        elif command == 'update_project':
-            projects.update_project(args)
-            
+        elif command == 'projects_update':
+            projects.update_name(args)
+        elif command == 'projects_delete':
+            projects.delete_name(args)
+
     def on_close(self):
         print 'connection closed'
  
