@@ -347,7 +347,7 @@ class Land(Task):
         #print "circle_offset_deg:", circle_offset_deg
         td = (self.home_node.getFloat("latitude_deg"),
               self.home_node.getFloat("longitude_deg"))
-        (cc_lat, cc_lon) = mission.greatcircle.project_course_distance( td, circle_offset_deg, offset_dist)
+        (cc_lat, cc_lon) = gc.project_course_distance( td, circle_offset_deg, offset_dist)
 
         # configure circle task
         self.circle_node.setFloat('latitude_deg', cc_lat)
