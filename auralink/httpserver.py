@@ -30,7 +30,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
                                               sort_keys=True) + '\r\n')
         elif command == 'send':
             # request relay 'args' string up to aircraft
-            commands.add(args)
+            commands.add(str(args))
         elif command == 'projects_get':
             print "request for list of all projects"
             json_str = projects.load()
