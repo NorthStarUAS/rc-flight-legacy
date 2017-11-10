@@ -44,10 +44,24 @@ class Excite(Task):
         self.excite_node.setString("target", self.target)
         event_log += self.type + ' ' + self.target
 
-        self.dur_sec = self.exp_node.getFloat("duration_sec")
-        if self.dur_sec < 1:  self.dur_sec = 1
-        if self.dur_sec > 100: self.dur_sec = 100
-        event_log += ' ' + str(self.dur_sec)
+        # duration is the time of the total excitation, but we want to
+        # specify pulse and doublet duration as the length of one unit.
+        if self.type == "oms" or self.type == "chirp":
+            self.dur_sec = self.exp_node.getFloat("duration_sec")
+            if self.dur_sec < 1:  self.dur_sec = 1
+            if self.dur_sec > 100: self.dur_sec = 100
+            event_log += ' ' + str(self.dur_sec)
+        else:
+            unit_sec = self.exp_node.getFloat("duration_sec")
+            if self.type == "pulse":
+                self.dur_sec = unit_sec
+            elif self.type == "doublet":
+                self.dur_sec = 2 * unit_sec
+            elif self.type == "doublet121":
+                self.dur_sec = 4 * unit_sec
+            elif self.type == "doublet3211":
+                self.dur_sec = 7 * unit_sec
+            event_log += ' ' + str(unit_sec)
 
         if self.type != "oms":
             self.amplitude = self.exp_node.getFloat("amplitude")
@@ -101,8 +115,8 @@ class Excite(Task):
     def update_experiment(self, t):
         progress = t / self.dur_sec
         signal = 0.0
-        if self.type == 'chirp':
-            signal = self.amplitude * math.sin(self.freq_start*t + self.k*t*t)
+        if self.type == 'pulse':
+            signal = self.amplitude
         elif self.type == 'doublet':
             if progress >= 0.5:
                 signal = -self.amplitude
@@ -124,6 +138,8 @@ class Excite(Task):
                 signal = -self.amplitude
             else:
                 signal = self.amplitude
+        elif self.type == 'chirp':
+            signal = self.amplitude * math.sin(self.freq_start*t + self.k*t*t)
         elif self.type == 'oms':
             # Optimal MultiSine
 	    n = len(self.freq_rps)
@@ -131,8 +147,6 @@ class Excite(Task):
 	    for i in range(n):
 		signal += self.scale * self.amplitude[i] \
                           * math.cos(self.freq_rps[i] * t + self.phase_rad[i])
-        elif self.type == 'pulse':
-            signal = self.amplitude
 
         self.excite_node.setFloat("signal", signal)
         self.excite_node.setFloat("progress", progress)
