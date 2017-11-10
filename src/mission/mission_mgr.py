@@ -4,12 +4,11 @@ import comms.events
 
 import task.is_airborne
 import task.camera
-import task.chirp
 import task.circle
+import task.excite
 import task.flaps_mgr
 import task.home_mgr
 import task.idle
-import task.land1
 import task.land2
 import task.launch
 import task.lost_link
@@ -44,18 +43,16 @@ class MissionMgr:
             result = task.is_airborne.IsAirborne(config_node)
         elif task_name == 'camera':
             result = task.camera.Camera(config_node)
-        elif task_name == 'chirp':
-            result = task.chirp.Chirp(config_node)
         elif task_name == 'circle':
             result = task.circle.Circle(config_node)
+        elif task_name == 'excite':
+            result = task.excite.Excite(config_node)
         elif task_name == 'flaps_manager':
             result = task.flaps_mgr.FlapsMgr(config_node)
         elif task_name == 'home_manager':
             result = task.home_mgr.HomeMgr(config_node)
         elif task_name == 'idle':
             result = task.idle.Idle(config_node)
-        elif task_name == 'land1':
-            result = task.land1.Land(config_node)
         elif task_name == 'land':
             result = task.land2.Land(config_node)
         elif task_name == 'launch':
