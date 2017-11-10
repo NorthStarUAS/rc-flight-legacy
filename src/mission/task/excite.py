@@ -48,11 +48,12 @@ class Excite(Task):
         if self.dur_sec < 1:  self.dur_sec = 1
         if self.dur_sec > 100: self.dur_sec = 100
         event_log += ' ' + str(self.dur_sec)
-        
-        self.amplitude = self.exp_node.getFloat("amplitude")
-        if self.amplitude < 0.001:  self.amplitude = 0.001
-        if self.amplitude > 1: self.amplitude = 1
-        event_log += ' ' + str(self.amplitude)
+
+        if self.type != "oms":
+            self.amplitude = self.exp_node.getFloat("amplitude")
+            if self.amplitude < 0.001:  self.amplitude = 0.001
+            if self.amplitude > 1: self.amplitude = 1
+            event_log += ' ' + str(self.amplitude)
         
         if self.type == "chirp":
             # rad/sec is hz*2*pi
@@ -67,7 +68,31 @@ class Excite(Task):
             event_log += ' ' + str(self.freq_end)
             
             self.k = (self.freq_end - self.freq_start) / (2 * self.dur_sec)
-            
+        elif self.type == "oms":
+            self.freq_rps = []
+            n = self.exp_node.getLen("freq_rps")
+            if n > 0:
+                for i in range(n):
+                    v = self.exp_node.getFloatEnum("freq_rps", i)
+                    self.freq_rps.append(v)
+            self.phase_rad = []
+            n = self.exp_node.getLen("phase_rad")
+            if n > 0:
+                for i in range(n):
+                    v = self.exp_node.getFloatEnum("phase_rad", i)
+                    self.phase_rad.append(v)
+            self.amplitude = []
+            n = self.exp_node.getLen("amplitude")
+            if n > 0:
+                for i in range(n):
+                    v = self.exp_node.getFloatEnum("amplitude", i)
+                    self.amplitude.append(v)
+            self.scale = math.sqrt(1.0 / n)
+
+            event_log += ' ' + str(self.freq_rps)
+            event_log += ' ' + str(self.phase_rad)
+            event_log += ' ' + str(self.amplitude)
+                
         self.start_time = self.imu_node.getFloat("timestamp")
         self.running = True
 
@@ -75,6 +100,7 @@ class Excite(Task):
 
     def update_experiment(self, t):
         progress = t / self.dur_sec
+        signal = 0.0
         if self.type == 'chirp':
             signal = self.amplitude * math.sin(self.freq_start*t + self.k*t*t)
         elif self.type == 'doublet':
@@ -98,6 +124,16 @@ class Excite(Task):
                 signal = -self.amplitude
             else:
                 signal = self.amplitude
+        elif self.type == 'oms':
+            # Optimal MultiSine
+	    n = len(self.freq_rps)
+	    signal = 0.0
+	    for i in range(n):
+		signal += self.scale * self.amplitude[i] \
+                          * math.cos(self.freq_rps[i] * t + self.phase_rad[i])
+        elif self.type == 'pulse':
+            signal = self.amplitude
+
         self.excite_node.setFloat("signal", signal)
         self.excite_node.setFloat("progress", progress)
 
