@@ -132,28 +132,17 @@ void Actuator_init() {
 
 
 static void set_actuator_values_ap() {
-    double signal_val = 0.0;
-    string signal_target = "";
-    if ( excite_node.getBool("running") ) {
-	signal_val = excite_node.getDouble("signal");
-	signal_target = excite_node.getString("target");
-    }
-    
     float aileron = flight_node.getDouble("aileron");
-    if ( signal_target == "aileron" ) { aileron += signal_val; }
     act_node.setDouble( "aileron", aileron );
 
     float elevator = flight_node.getDouble("elevator");
-    if ( signal_target == "elevator" ) { elevator += signal_val; }
     act_node.setDouble( "elevator", elevator );
 
     // rudder
     float rudder = flight_node.getDouble("rudder");
-    if ( signal_target == "rudder" ) { rudder += signal_val; }
     act_node.setDouble( "rudder", rudder );
 
     double flaps = flight_node.getDouble("flaps");
-    if ( signal_target == "flaps" ) { flaps += signal_val; }
     act_node.setDouble("flaps", flaps );
 
     double gear = flight_node.getDouble("gear");
@@ -216,11 +205,29 @@ static void set_actuator_values_ap() {
     // throttle
 
     double throttle = engine_node.getDouble("throttle");
-    if ( signal_target == "throttle" ) { throttle += signal_val; }
     act_node.setDouble("throttle", throttle );
 
+    // add in excitation signals if excitation task is running
+    if ( excite_node.getBool("running") ) {
+        float signal = 0.0;
+        string target = "";
+        int n = excite_node.getLong("channels");
+        for ( int i = 0; i < n; i++ ) {
+            signal = excite_node.getDouble("signal", i);
+            target = excite_node.getString("target", i);
+            float act_val = act_node.getDouble(target.c_str());
+            act_val += signal;
+            if ( target == "throttle" ) {
+                if ( act_val < 0.0 ) { act_val = 0.0; }
+            } else {
+                if ( act_val < -1.0 ) { act_val = -1.0; }
+            }
+            if ( act_val > 1.0 ) { act_val = 1.0; }
+            act_node.setDouble(target.c_str(), act_val);
+        }
+    }
+    
     static bool sas_throttle_override = false;
-
     if ( !sas_throttle_override ) {
 	if ( ap_node.getString("mode") == "sas" ) {
 	    // in sas mode require a sequence of zero throttle, full

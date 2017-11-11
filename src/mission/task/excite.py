@@ -37,15 +37,23 @@ class Excite(Task):
 
         self.exp_node = self.config_node.getChild("experiment[%d]" % self.index)
 
-        event_log = ''
-        
         self.type = self.exp_node.getString('type')
-        self.target = self.exp_node.getString("target")
-        self.excite_node.setString("target", self.target)
-        event_log += self.type + ' ' + self.target
+        event_log = self.type
 
-        # duration is the time of the total excitation, but we want to
-        # specify pulse and doublet duration as the length of one unit.
+        self.target = []
+        self.channels = self.exp_node.getLen("target")
+        self.excite_node.setInt("channels", self.channels)
+        self.excite_node.setLen("signal", self.channels, 0.0)
+        self.excite_node.setLen("target", self.channels, "")
+        for i in range(self.channels):
+            v = self.exp_node.getStringEnum("target", i)
+            self.target.append(v)
+            self.excite_node.setStringEnum("target", i, v)
+        event_log += ' ' + str(self.target)
+
+        # For chirp and oms duration is the time of the total
+        # excitation.  For pulse and doublet duration is the length of
+        # one unit.
         if self.type == "oms" or self.type == "chirp":
             self.dur_sec = self.exp_node.getFloat("duration_sec")
             if self.dur_sec < 1:  self.dur_sec = 1
@@ -63,93 +71,100 @@ class Excite(Task):
                 self.dur_sec = 7 * unit_sec
             event_log += ' ' + str(unit_sec)
 
-        if self.type != "oms":
-            self.amplitude = self.exp_node.getFloat("amplitude")
-            if self.amplitude < 0.001:  self.amplitude = 0.001
-            if self.amplitude > 1: self.amplitude = 1
-            event_log += ' ' + str(self.amplitude)
+        self.amplitude = []
+        n = self.exp_node.getLen("amplitude")
+        for i in range(n):
+            v = self.exp_node.getFloatEnum("amplitude", i)
+            self.amplitude.append(v)
+        event_log += ' ' + str(self.amplitude)
         
         if self.type == "chirp":
             # rad/sec is hz*2*pi
-            self.freq_start = self.exp_node.getFloat("freq_start_rad_sec")
-            if self.freq_start < 0.1:   self.freq_start = 0.1
-            if self.freq_start > 100.0: self.freq_start = 100.0
+            self.freq_start = []
+            n = self.exp_node.getLen("freq_start_rad_sec")
+            for i in range(n):
+                v = self.exp_node.getFloatEnum("freq_start_rad_sec", i)
+                if v < 0.1:   v = 0.1
+                if v > 100.0: v = 100.0
+                self.freq_start.append(v)
             event_log += ' ' + str(self.freq_start)
             
-            self.freq_end = self.exp_node.getFloat("freq_end_rad_sec")
-            if self.freq_end < 0.1:  self.freq_end = 0.1
-            if self.freq_end > 100.0: self.freq_end = 100.0
+            self.freq_end = []
+            n = self.exp_node.getLen("freq_end_rad_sec")
+            for i in range(n):
+                v = self.exp_node.getFloatEnum("freq_end_rad_sec", i)
+                if v < 0.1:   v = 0.1
+                if v > 100.0: v = 100.0
+                self.freq_end.append(v)
             event_log += ' ' + str(self.freq_end)
-            
-            self.k = (self.freq_end - self.freq_start) / (2 * self.dur_sec)
+
+            if len(self.freq_start) == len(self.freq_end):
+                n = len(self.freq_start)
+                self.k = []
+                for i in range(n):
+                    v = (self.freq_end[i] - self.freq_start[i]) / (2 * self.dur_sec)
+                    self.k.append(v)
         elif self.type == "oms":
             self.freq_rps = []
             n = self.exp_node.getLen("freq_rps")
-            if n > 0:
-                for i in range(n):
-                    v = self.exp_node.getFloatEnum("freq_rps", i)
-                    self.freq_rps.append(v)
+            for i in range(n):
+                v = self.exp_node.getFloatEnum("freq_rps", i)
+                self.freq_rps.append(v)
             self.phase_rad = []
             n = self.exp_node.getLen("phase_rad")
-            if n > 0:
-                for i in range(n):
-                    v = self.exp_node.getFloatEnum("phase_rad", i)
-                    self.phase_rad.append(v)
-            self.amplitude = []
-            n = self.exp_node.getLen("amplitude")
-            if n > 0:
-                for i in range(n):
-                    v = self.exp_node.getFloatEnum("amplitude", i)
-                    self.amplitude.append(v)
+            for i in range(n):
+                v = self.exp_node.getFloatEnum("phase_rad", i)
+                self.phase_rad.append(v)
             self.scale = math.sqrt(1.0 / n)
-
-            event_log += ' ' + str(self.freq_rps)
-            event_log += ' ' + str(self.phase_rad)
-            event_log += ' ' + str(self.amplitude)
                 
         self.start_time = self.imu_node.getFloat("timestamp")
         self.running = True
 
         comms.events.log("excite", event_log)
+        if self.type == "oms":
+            # log oms arrays separately because they could get big
+            comms.events.log("excite", str(self.freq_rps))
+            comms.events.log("excite", str(self.phase_rad))
+            comms.events.log("excite", str(self.amplitude))
 
     def update_experiment(self, t):
         progress = t / self.dur_sec
-        signal = 0.0
-        if self.type == 'pulse':
-            signal = self.amplitude
-        elif self.type == 'doublet':
-            if progress >= 0.5:
-                signal = -self.amplitude
-            else:
-                signal = self.amplitude
-        elif self.type == 'doublet121':
-            if progress >= 0.75:
-                signal = self.amplitude
-            elif progress >= 0.25:
-                signal = -self.amplitude
-            else:
-                signal = self.amplitude
-        elif self.type == 'doublet3211':
-            if progress >= (6.0 / 7.0):
-                signal = -self.amplitude
-            elif progress >= (5.0 / 7.0):
-                signal = self.amplitude
-            elif progress >= (3.0 / 7.0):
-                signal = -self.amplitude
-            else:
-                signal = self.amplitude
-        elif self.type == 'chirp':
-            signal = self.amplitude * math.sin(self.freq_start*t + self.k*t*t)
-        elif self.type == 'oms':
-            # Optimal MultiSine
-	    n = len(self.freq_rps)
-	    signal = 0.0
-	    for i in range(n):
-		signal += self.scale * self.amplitude[i] \
-                          * math.cos(self.freq_rps[i] * t + self.phase_rad[i])
-
-        self.excite_node.setFloat("signal", signal)
         self.excite_node.setFloat("progress", progress)
+        for i in range(self.channels):
+            signal = 0.0
+            if self.type == 'pulse':
+                signal = self.amplitude[i]
+            elif self.type == 'doublet':
+                if progress >= 0.5:
+                    signal = -self.amplitude[i]
+                else:
+                    signal = self.amplitude[i]
+            elif self.type == 'doublet121':
+                if progress >= 0.75:
+                    signal = self.amplitude[i]
+                elif progress >= 0.25:
+                    signal = -self.amplitude[i]
+                else:
+                    signal = self.amplitude[i]
+            elif self.type == 'doublet3211':
+                if progress >= (6.0 / 7.0):
+                    signal = -self.amplitude[i]
+                elif progress >= (5.0 / 7.0):
+                    signal = self.amplitude[i]
+                elif progress >= (3.0 / 7.0):
+                    signal = -self.amplitude[i]
+                else:
+                    signal = self.amplitude[i]
+            elif self.type == 'chirp':
+                signal = self.amplitude[i] * math.sin(self.freq_start[i]*t + self.k[i]*t*t)
+            elif self.type == 'oms':
+                # Optimal MultiSine
+                n = len(self.freq_rps) / self.channels
+                signal = 0.0
+                for j in range(n*i, n*i+n):
+                    signal += self.scale * self.amplitude[j] \
+                              * math.cos(self.freq_rps[j] * t + self.phase_rad[j])
+            self.excite_node.setFloatEnum("signal", i, signal)
 
     def end_experiment(self, abort=False):
         if abort:
@@ -158,7 +173,9 @@ class Excite(Task):
             comms.events.log("excite", "aborted by operator")
         else:
             comms.events.log("excite", "completed")
-        self.excite_node.setFloat("signal", 0.0)
+        n = len(self.target)
+        for i in range(n):
+            self.excite_node.setFloatEnum("signal", i, 0.0)
         self.excite_node.setFloat("progress", 0.0)
         self.running = False
 
