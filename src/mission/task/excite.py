@@ -115,7 +115,9 @@ class Excite(Task):
             for i in range(n):
                 v = self.exp_node.getFloatEnum("phase_rad", i)
                 self.phase_rad.append(v)
-            self.scale = math.sqrt(1.0 / n)
+            
+            n_coeffs = n / self.channels
+            self.scale = math.sqrt(1.0 / n_coeffs)
                 
         self.start_time = self.imu_node.getFloat("timestamp")
         self.running = True
