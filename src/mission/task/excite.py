@@ -12,6 +12,14 @@ from task import Task
 # aircraft will stay on condition better and there still should be
 # enough excitation for all the post flight analysis.
 
+# 'self.index' implements an experiment indexing scheme.  This enables
+# the operator to queue an arbitarily long sequence of different
+# excitations that can be run in sequence automatically.  Anticipating
+# some external source could set the experiment number, we need to
+# validate the index before using it.  Also anticipating the external
+# source could be a transmitter toggle switch, the index will wrap
+# around when it exceeds the allowable values.
+
 class Excite(Task):
     def __init__(self, config_node):
         Task.__init__(self)
@@ -32,6 +40,8 @@ class Excite(Task):
     def start_experiment(self):
         max = self.config_node.getLen('experiment')
         print 'number of experiments:', max
+        if self.index < 0:
+            self.index = max - 1
         if self.index >= max:
             self.index = 0
 
@@ -76,7 +86,7 @@ class Excite(Task):
         for i in range(n):
             v = self.exp_node.getFloatEnum("amplitude", i)
             self.amplitude.append(v)
-        event_log += ' ' + str(self.amplitude)
+        event_log += ' ' + 'ampl: ' + str(self.amplitude)
         
         if self.type == "chirp":
             # rad/sec is hz*2*pi
@@ -125,9 +135,8 @@ class Excite(Task):
         comms.events.log("excite", event_log)
         if self.type == "oms":
             # log oms arrays separately because they could get big
-            comms.events.log("excite", str(self.freq_rps))
-            comms.events.log("excite", str(self.phase_rad))
-            comms.events.log("excite", str(self.amplitude))
+            comms.events.log("excite", 'freq: ' + str(self.freq_rps))
+            comms.events.log("excite", 'phase: ' + str(self.phase_rad))
 
     def update_experiment(self, t):
         progress = t / self.dur_sec
@@ -172,13 +181,17 @@ class Excite(Task):
         if abort:
             # only log an event if the abort happens when the
             # excitation is running
+            self.excite_node.setFloat("progress", 0.0)
             comms.events.log("excite", "aborted by operator")
         else:
+            # experiment ran to completion, increment experiment
+            # index.
+            self.excite_node.setFloat("progress", 1.0)
+            self.index += 1
             comms.events.log("excite", "completed")
         n = len(self.target)
         for i in range(n):
             self.excite_node.setFloatEnum("signal", i, 0.0)
-        self.excite_node.setFloat("progress", 0.0)
         self.running = False
 
     def update(self, dt):
@@ -209,7 +222,8 @@ class Excite(Task):
         
     def is_complete(self):
         # this is intended to be a global task such that is_complete()
-        # will never actually be called
+        # will never actually be called (the individual experiements
+        # are sequenced and timed within this task.)
         return False
     
     def close(self):
