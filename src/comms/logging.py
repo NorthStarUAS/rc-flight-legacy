@@ -96,9 +96,9 @@ def init():
     global enable_file
     global enable_udp
     
-    log_path = logging_node.getString('path')
-    udp_host = logging_node.getString('hostname')
-    udp_port = logging_node.getInt('port')
+    log_path = logging_node['path']
+    udp_host = logging_node['hostname']
+    udp_port = logging_node['port']
     
     if log_path != '':
         if init_file_logging():

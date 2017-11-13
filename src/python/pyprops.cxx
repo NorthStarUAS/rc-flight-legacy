@@ -10,6 +10,14 @@ using std::string;
 using std::ostringstream;
 
 
+// These global pointers only need to be looked up once and then
+// saved.  This is handled by pyPropsInit() which should be called
+// before any other property system functions
+
+static PyObject *pModuleProps = NULL;
+static PyObject *pModuleJSON = NULL;
+static PyObject *pModuleXML = NULL;
+
 
 // Constructor
 
@@ -68,7 +76,6 @@ pyPropertyNode & pyPropertyNode::operator= (const pyPropertyNode &node) {
 
 // test if pObj has named child attribute
 bool pyPropertyNode::hasChild(const char *name) {
-    printf("In hasChild()\n");
     bool result = false;
     if ( pObj != NULL ) {
         PyObject *pString = PyString_FromString(name);
@@ -83,31 +90,37 @@ bool pyPropertyNode::hasChild(const char *name) {
 // Return a pyPropertyNode object that points to the named child
 pyPropertyNode pyPropertyNode::getChild(const char *name, bool create)
 {
-    printf("getChild() not yet ported\n");
-    return pyPropertyNode();
-    
     if ( pObj == NULL ) {
 	return pyPropertyNode();
-    }
-    PyObject *pValue = PyObject_CallMethod(pObj,
-					   (char *)"getChild", (char *)"sb",
-					   name, create);
-    if (pValue == NULL) {
-	PyErr_Print();
-	fprintf(stderr,"Call failed\n");
-	return pyPropertyNode();
-    }
+    } else {
+        PyObject *pFunc = PyObject_GetAttrString(pModuleProps, "getChild");
+        if ( pFunc == NULL || ! PyCallable_Check(pFunc) ) {
+            if ( PyErr_Occurred() ) PyErr_Print();
+            fprintf(stderr, "Cannot find function 'getChild()'\n");
+            return pyPropertyNode();
+        }
+        PyObject *pName = PyString_FromString(name);
+        PyObject *pCreate = PyBool_FromLong((long)create);
+        PyObject *pValue
+            = PyObject_CallFunctionObjArgs(pFunc, pObj, pName, pCreate, NULL);
+        Py_DECREF(pFunc);
+        Py_DECREF(pName);
+        Py_DECREF(pCreate);
+        
+	if (pValue == NULL) {
+	    if ( PyErr_Occurred() ) PyErr_Print();
+	    fprintf(stderr,"Call failed\n");
+            return pyPropertyNode();
+	}
 
-    // give pValue over to the returned property node
-    return pyPropertyNode(pValue);
+        // give pValue over to the returned property node
+        return pyPropertyNode(pValue);
+    }
 }
 
 pyPropertyNode pyPropertyNode::getChild(const char *name, int index,
 					bool create)
 {
-    printf("getChild(index) not yet ported\n");
-    return pyPropertyNode();
-    
     if ( pObj == NULL ) {
 	return pyPropertyNode();
     }
@@ -232,7 +245,7 @@ double pyPropertyNode::PyObject2Double(const char *name, PyObject *pAttr) {
 		result = PyFloat_AsDouble(pFloat);
 		Py_DECREF(pFloat);
 	    } else {
-		PyErr_Print();
+		if ( PyErr_Occurred() ) PyErr_Print();
 		printf("WARNING: conversion from string to float failed\n");
 		PyObject *pStr = PyObject_Str(pAttr);
 		char *s = PyString_AsString(pStr);
@@ -266,7 +279,7 @@ long pyPropertyNode::PyObject2Long(const char *name, PyObject *pAttr) {
 		result = PyFloat_AsDouble(pFloat);
 		Py_DECREF(pFloat);
 	    } else {
-		PyErr_Print();
+		if ( PyErr_Occurred() ) PyErr_Print();
 		printf("WARNING: conversion from string to long failed\n");
 		PyObject *pStr = PyObject_Str(pAttr);
 		char *s = PyString_AsString(pStr);
@@ -288,15 +301,15 @@ long pyPropertyNode::PyObject2Long(const char *name, PyObject *pAttr) {
 double pyPropertyNode::getDouble(const char *name) {
     double result = 0.0;
     if ( pObj != NULL ) {
-	if ( PyObject_HasAttrString(pObj, name) ) {
-	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
-	    if ( pAttr != NULL ) {
-		result = PyObject2Double(name, pAttr);
-		Py_DECREF(pAttr);
-	    }
+        PyObject *pName = PyString_FromString(name);
+        PyObject *pResult = PyObject_GetItem(pObj, pName);
+        if ( pResult != NULL ) {
+            result = PyObject2Double(name, pResult);
+            Py_DECREF(pResult);
 	} else {
-	    // printf("WARNING: request non-existent attr: %s\n", name);
+	    printf("WARNING: request non-existent key: %s\n", name);
 	}
+        Py_DECREF(pName);
     }
     return result;
 }
@@ -304,13 +317,15 @@ double pyPropertyNode::getDouble(const char *name) {
 long pyPropertyNode::getLong(const char *name) {
     long result = 0;
     if ( pObj != NULL ) {
-	if ( PyObject_HasAttrString(pObj, name) ) {
-	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
-	    if ( pAttr != NULL ) {
-		result = PyObject2Long(name, pAttr);
-		Py_DECREF(pAttr);
-	    }
+        PyObject *pName = PyString_FromString(name);
+        PyObject *pResult = PyObject_GetItem(pObj, pName);
+        if ( pResult != NULL ) {
+            result = PyObject2Long(name, pResult);
+            Py_DECREF(pResult);
+	} else {
+	    printf("WARNING: request non-existent key: %s\n", name);
 	}
+        Py_DECREF(pName);
     }
     return result;
 }
@@ -318,18 +333,23 @@ long pyPropertyNode::getLong(const char *name) {
 bool pyPropertyNode::getBool(const char *name) {
     bool result = false;
     if ( pObj != NULL ) {
-	if ( PyObject_HasAttrString(pObj, name) ) {
-	    PyObject *pAttr = PyObject_GetAttrString(pObj, name);
-	    if ( pAttr != NULL ) {
-		result = PyObject_IsTrue(pAttr);
-		Py_DECREF(pAttr);
-	    }
+        PyObject *pName = PyString_FromString(name);
+        PyObject *pResult = PyObject_GetItem(pObj, pName);
+        if ( pResult != NULL ) {
+            result = PyObject_IsTrue(pResult);
+            Py_DECREF(pResult);
+	} else {
+	    printf("WARNING: request non-existent key: %s\n", name);
 	}
+        Py_DECREF(pName);
     }
     return result;
 }
 
 string pyPropertyNode::getString(const char *name) {
+    printf("getString() not yet ported\n");
+    return "";
+    
     string result = "";
     if ( pObj != NULL ) {
 	// test for normal vs. enumerated request
@@ -368,6 +388,9 @@ string pyPropertyNode::getString(const char *name) {
 
 // indexed value getters
 double pyPropertyNode::getDouble(const char *name, int index) {
+    printf("getDouble(idx) not yet ported\n");
+    return 0.0;
+    
     double result = 0.0;
     if ( pObj != NULL ) {
 	if ( PyObject_HasAttrString(pObj, name) ) {
@@ -393,6 +416,9 @@ double pyPropertyNode::getDouble(const char *name, int index) {
 }
 
 long pyPropertyNode::getLong(const char *name, int index) {
+    printf("getLong(idx) not yet ported\n");
+    return 0;
+    
     long result = 0;
     if ( pObj != NULL ) {
 	if ( PyObject_HasAttrString(pObj, name) ) {
@@ -418,6 +444,9 @@ long pyPropertyNode::getLong(const char *name, int index) {
 }
 
 string pyPropertyNode::getString(const char *name, int index) {
+    printf("getString(idx) not yet ported\n");
+    return "";
+
     string result = "";
     if ( pObj != NULL ) {
 	if ( PyObject_HasAttrString(pObj, name) ) {
@@ -447,6 +476,9 @@ string pyPropertyNode::getString(const char *name, int index) {
 }
 
 bool pyPropertyNode::getBool(const char *name, int index) {
+    printf("getBool(idx) not yet ported\n");
+    return "";
+    
     bool result = false;
     if ( pObj != NULL ) {
 	if ( PyObject_HasAttrString(pObj, name) ) {
@@ -474,11 +506,11 @@ bool pyPropertyNode::getBool(const char *name, int index) {
 // value setters
 bool pyPropertyNode::setDouble( const char *name, double val ) {
     if ( pObj != NULL ) {
-        PyObject *pString = PyString_FromString(name);
-	PyObject *pFloat = PyFloat_FromDouble(val);
-	int result = PyObject_SetItem(pObj, pString, pFloat);
-	Py_DECREF(pFloat);
-	Py_DECREF(pString);
+        PyObject *pName = PyString_FromString(name);
+	PyObject *pVal = PyFloat_FromDouble(val);
+	int result = PyObject_SetItem(pObj, pName, pVal);
+	Py_DECREF(pVal);
+	Py_DECREF(pName);
 	return result != -1;
     } else {
 	return false;
@@ -526,6 +558,9 @@ bool pyPropertyNode::setString( const char *name, string val ) {
 
 // indexed value setters
 bool pyPropertyNode::setDouble( const char *name, int index, double val ) {
+    printf("setDouble(idx) not yet ported\n");
+    return false;
+    
     if ( pObj != NULL ) {
 	PyObject *pList = PyObject_GetAttrString(pObj, name);
 	if ( pList != NULL ) {
@@ -551,25 +586,20 @@ bool pyPropertyNode::setDouble( const char *name, int index, double val ) {
     return true;
 }
 
-// These only need to be looked up once and then saved
-static PyObject *pModuleProps = NULL;
-static PyObject *pModuleJSON = NULL;
-static PyObject *pModuleXML = NULL;
-
 // This function must be called before any pyPropertyNode usage. It
 // imports the python props and props_json/xml modules.
 void pyPropsInit() {
     // python property system
     pModuleProps = PyImport_ImportModule("props");
     if (pModuleProps == NULL) {
-        PyErr_Print();
+        if ( PyErr_Occurred() ) PyErr_Print();
         fprintf(stderr, "Failed to load 'props'\n");
     }
 
     // Json I/O system
     pModuleJSON = PyImport_ImportModule("props_json");
     if (pModuleJSON == NULL) {
-        PyErr_Print();
+        if ( PyErr_Occurred() ) PyErr_Print();
         fprintf(stderr, "Failed to load 'props_json'\n");
     }
 }
@@ -588,6 +618,7 @@ extern void pyPropsCleanup(void) {
 // save the result.  Then use the pyPropertyNode for direct read/write
 // access in your update routines.
 pyPropertyNode pyGetNode(string abs_path, bool create) {
+    PyErr_Clear();
     PyObject *pFuncGetNode = PyObject_GetAttrString(pModuleProps, "getNode");
     if ( pFuncGetNode == NULL || ! PyCallable_Check(pFuncGetNode) ) {
 	if ( PyErr_Occurred() ) PyErr_Print();
@@ -616,7 +647,7 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
 	printf("before return\n");*/
 	return pyPropertyNode(pValue);
     } else {
-	PyErr_Print();
+	if ( PyErr_Occurred() ) PyErr_Print();
 	printf("Call failed\n");
 	return pyPropertyNode();
     }
@@ -648,7 +679,7 @@ bool readXML(string filename, pyPropertyNode *node) {
 	Py_DECREF(pValue);
 	return result;
     } else {
-	PyErr_Print();
+	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
     }
     return false;
@@ -679,7 +710,7 @@ bool writeXML(string filename, pyPropertyNode *node) {
 	Py_DECREF(pValue);
 	return result;
     } else {
-	PyErr_Print();
+	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
     }
     return false;
@@ -709,7 +740,7 @@ bool readJSONtoRoot(string filename) {
 	Py_DECREF(pValue);
 	return result;
     } else {
-	PyErr_Print();
+	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
     }
     return false;
@@ -740,7 +771,7 @@ bool writeJSON(string filename, pyPropertyNode *node) {
 	Py_DECREF(pValue);
 	return result;
     } else {
-	PyErr_Print();
+	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
     }
     return false;
@@ -764,7 +795,7 @@ void pyPropertyNode::pretty_print()
 	if (pValue != NULL) {
 	    Py_DECREF(pValue);
 	} else {
-	    PyErr_Print();
+	    if ( PyErr_Occurred() ) PyErr_Print();
 	    fprintf(stderr,"Call failed\n");
 	}
     }

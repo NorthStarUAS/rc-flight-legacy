@@ -1,7 +1,7 @@
 import re
 import struct
 
-from props import getNode
+from props import getNode, getBool, getInt
 
 from packet_id import *
 
@@ -868,17 +868,17 @@ def unpack_pilot_v2(buf):
 def pack_ap_status_v6(index):
     # status flags (up to 8 could be supported)
     flags = 0
-    if ap_node.getBool("master_switch"):
+    if ap_node["master_switch"]:
         flags |= (1 << 0)
-    if ap_node.getBool("pilot_pass_through"):
+    if ap_node["pilot_pass_through"]:
         flags |= (1 << 1)
     
     # handle the counter dance between the control module and the
     # packer.  This allows us to trickle down routes to the ground
     # station, but we don't want onboard logging to affect the counter
     # state.
-    counter = remote_link_node.getInt("wp_counter")
-    route_size = active_node.getInt("route_size")
+    counter = getInt(remote_link_node, "wp_counter")
+    route_size = getInt(active_node, "route_size")
     if counter >= route_size + 2:
         counter = 0
         remote_link_node.setInt("wp_counter", 0)

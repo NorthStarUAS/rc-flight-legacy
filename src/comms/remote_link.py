@@ -29,7 +29,7 @@ def init():
     global parser
     global link_open
     
-    device = remote_link_config.getString('device')
+    device = remote_link_config['device']
     try:
         ser = serial.Serial(port=device, baudrate=115200, timeout=0, writeTimeout=0)
         parser = serial_parser.serial_parser()
