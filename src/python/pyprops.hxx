@@ -95,7 +95,7 @@ extern bool readXML(string filename, pyPropertyNode *node);
 extern bool writeXML(string filename, pyPropertyNode *node);
     
 // Read a json file and place the results at specified node
-extern bool readJSON(string filename, pyPropertyNode *node);
+extern bool readJSONtoRoot(string filename);
     
 // Write a json file beginning with the specified node
 extern bool writeJSON(string filename, pyPropertyNode *node);

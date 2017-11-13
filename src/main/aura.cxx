@@ -393,7 +393,7 @@ int main( int argc, char **argv )
     SGPath master( root );
     master.append( "main.json" );
     pyPropertyNode props = pyGetNode("/", true);
-    bool result = readJSON( master.c_str(), &props);
+    bool result = readJSONtoRoot( master.c_str());
     if ( result ) {
         printf("Loaded configuration from %s\n", master.c_str());
         //writeJSON( "debug.json", &props);

@@ -556,14 +556,6 @@ void pyPropsInit() {
         PyErr_Print();
         fprintf(stderr, "Failed to load 'props_json'\n");
     }
-    
-    // xml I/O system
-    pModuleXML = PyImport_ImportModule("props_xml");
-    if (pModuleXML == NULL) {
-        PyErr_Print();
-        fprintf(stderr, "Failed to load 'props_xml'\n");
-    }
-
 }
 
 // This function can be called at exit to properly free resources
@@ -677,23 +669,22 @@ bool writeXML(string filename, pyPropertyNode *node) {
     return false;
 }
 
-bool readJSON(string filename, pyPropertyNode *node) {
+bool readJSONtoRoot(string filename) {
     // getNode() function
-    PyObject *pFuncLoad = PyObject_GetAttrString(pModuleJSON, "load");
+    PyObject *pFuncLoad = PyObject_GetAttrString(pModuleJSON, "load_to_root");
     if ( pFuncLoad == NULL || ! PyCallable_Check(pFuncLoad) ) {
 	if ( PyErr_Occurred() ) PyErr_Print();
-	fprintf(stderr, "Cannot find function 'load()'\n");
+	fprintf(stderr, "Cannot find function 'load_to_root()'\n");
 	return false;
     }
     PyObject *pPath = PyString_FromString(filename.c_str());
-    if (!pPath || !node->pObj) {
+    if ( !pPath ) {
 	Py_XDECREF(pPath);
 	Py_XDECREF(pFuncLoad);
 	fprintf(stderr, "Cannot convert argument\n");
 	return false;
     }
-    PyObject *pValue = PyObject_CallFunctionObjArgs(pFuncLoad, pPath,
-						    node->pObj, NULL);
+    PyObject *pValue = PyObject_CallFunctionObjArgs(pFuncLoad, pPath, NULL);
     Py_DECREF(pPath);
     Py_DECREF(pFuncLoad);
     if (pValue != NULL) {
