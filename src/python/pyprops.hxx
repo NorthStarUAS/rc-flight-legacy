@@ -74,7 +74,7 @@ private:
 
 
 // This function must be called before any pyPropertyNode usage. It
-// imports the python props and props_xml modules.
+// imports the python props and props_xml/json modules.
 extern void pyPropsInit();
 
 // This function can be called at exit to properly free resources
