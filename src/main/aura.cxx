@@ -346,6 +346,7 @@ int main( int argc, char **argv )
     pyPropsInit();
     comms_node = pyGetNode("/comms", true);
     status_node = pyGetNode("/status", true);
+    printf("main0\n");
     status_node.setDouble("frame_time", get_Time());
     imu_node = pyGetNode("/sensors/imu", true);
 
@@ -399,7 +400,7 @@ int main( int argc, char **argv )
         //writeJSON( "debug.json", &props);
         props.pretty_print();
         pyPropertyNode config_node = pyGetNode("/config");
-        config_node.setString("root-path", root.c_str());
+        config_node.setString("root_path", root.c_str());
     } else {
         printf("\n");
         printf("*** Cannot load master config file: %s\n", master.c_str());

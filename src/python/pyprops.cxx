@@ -68,17 +68,24 @@ pyPropertyNode & pyPropertyNode::operator= (const pyPropertyNode &node) {
 
 // test if pObj has named child attribute
 bool pyPropertyNode::hasChild(const char *name) {
+    printf("In hasChild()\n");
+    bool result = false;
     if ( pObj != NULL ) {
-	if ( PyObject_HasAttrString(pObj, name) ) {
-	    return true;
-	}
+        PyObject *pString = PyString_FromString(name);
+	PyObject *result_obj = PyObject_GetItem(pObj, pString);
+        result = (result_obj != NULL );
+        Py_DECREF(pString);
+        Py_DECREF(result_obj);
     }
-    return false;
+    return result;
 }
 
 // Return a pyPropertyNode object that points to the named child
 pyPropertyNode pyPropertyNode::getChild(const char *name, bool create)
 {
+    printf("getChild() not yet ported\n");
+    return pyPropertyNode();
+    
     if ( pObj == NULL ) {
 	return pyPropertyNode();
     }
@@ -98,6 +105,9 @@ pyPropertyNode pyPropertyNode::getChild(const char *name, bool create)
 pyPropertyNode pyPropertyNode::getChild(const char *name, int index,
 					bool create)
 {
+    printf("getChild(index) not yet ported\n");
+    return pyPropertyNode();
+    
     if ( pObj == NULL ) {
 	return pyPropertyNode();
     }
@@ -114,6 +124,9 @@ bool pyPropertyNode::isNull() {
 
 // return length of attr if it is a list (enumerated)
 int pyPropertyNode::getLen(const char *name) {
+    printf("getLen not yet ported\n");
+    return 0;
+    
     if ( pObj != NULL ) {
 	PyObject *pValue = PyObject_CallMethod(pObj,
 					       (char *)"getLen",
@@ -130,6 +143,9 @@ int pyPropertyNode::getLen(const char *name) {
 
 // return true if pObj is a list (enumerated)
 void pyPropertyNode::setLen(const char *name, int size) {
+    printf("setLen() not yet ported\n");
+    return;
+    
     if ( pObj != NULL ) {
 	PyObject *pValue = PyObject_CallMethod(pObj,
 					       (char *)"setLen", (char *)"si",
@@ -142,6 +158,9 @@ void pyPropertyNode::setLen(const char *name, int size) {
 
 // return true if pObj is a list (enumerated)
 void pyPropertyNode::setLen(const char *name, int size, double init_val) {
+    printf("setLen(init) not yet ported\n");
+    return;
+    
     if ( pObj != NULL ) {
 	PyObject *pValue = PyObject_CallMethod(pObj,
 					       (char *)"setLen", (char *)"sif",
@@ -155,6 +174,10 @@ void pyPropertyNode::setLen(const char *name, int size, double init_val) {
 // return true if pObj is a list (enumerated)
 vector <string> pyPropertyNode::getChildren(bool expand) {
     vector <string> result;
+
+    printf("getChildren not yet ported\n");
+    return result;
+    
     if ( pObj != NULL ) {
 	PyObject *pList = PyObject_CallMethod(pObj,
 					      (char *)"getChildren",
@@ -179,6 +202,9 @@ vector <string> pyPropertyNode::getChildren(bool expand) {
 
 // return true if pObj/name is leaf
 bool pyPropertyNode::isLeaf(const char *name) {
+    printf("isLeaf() not yet ported\n");
+    return false;
+    
     if ( pObj == NULL ) {
 	return false;
     }
@@ -448,9 +474,11 @@ bool pyPropertyNode::getBool(const char *name, int index) {
 // value setters
 bool pyPropertyNode::setDouble( const char *name, double val ) {
     if ( pObj != NULL ) {
+        PyObject *pString = PyString_FromString(name);
 	PyObject *pFloat = PyFloat_FromDouble(val);
-	int result = PyObject_SetAttrString(pObj, name, pFloat);
+	int result = PyObject_SetItem(pObj, pString, pFloat);
 	Py_DECREF(pFloat);
+	Py_DECREF(pString);
 	return result != -1;
     } else {
 	return false;
@@ -459,9 +487,11 @@ bool pyPropertyNode::setDouble( const char *name, double val ) {
 
 bool pyPropertyNode::setLong( const char *name, long val ) {
     if ( pObj != NULL ) {
+        PyObject *pString = PyString_FromString(name);
 	PyObject *pLong = PyLong_FromLong(val);
-	int result = PyObject_SetAttrString(pObj, name, pLong);
+	int result = PyObject_SetItem(pObj, pString, pLong);
 	Py_DECREF(pLong);
+	Py_DECREF(pString);
 	return result != -1;
     } else {
 	return false;
@@ -470,9 +500,11 @@ bool pyPropertyNode::setLong( const char *name, long val ) {
 
 bool pyPropertyNode::setBool( const char *name, bool val ) {
     if ( pObj != NULL ) {
+        PyObject *pString = PyString_FromString(name);
 	PyObject *pBool = PyBool_FromLong((long)val);
-	int result = PyObject_SetAttrString(pObj, name, pBool);
+	int result = PyObject_SetItem(pObj, pString, pBool);
 	Py_DECREF(pBool);
+	Py_DECREF(pString);
 	return result != -1;
     } else {
 	return false;
@@ -481,9 +513,11 @@ bool pyPropertyNode::setBool( const char *name, bool val ) {
 
 bool pyPropertyNode::setString( const char *name, string val ) {
     if ( pObj != NULL ) {
-	PyObject *pString = PyString_FromString(val.c_str());
-	int result = PyObject_SetAttrString(pObj, name, pString);
-	Py_DECREF(pString);
+        PyObject *pName = PyString_FromString(name);
+	PyObject *pVal = PyString_FromString(val.c_str());
+	int result = PyObject_SetItem(pObj, pName, pVal);
+	Py_DECREF(pVal);
+	Py_DECREF(pName);
 	return result != -1;
     } else {
 	return false;
@@ -515,24 +549,6 @@ bool pyPropertyNode::setDouble( const char *name, int index, double val ) {
 	return false;
     }
     return true;
-}
-
-// Return a pyPropertyNode object that points to the named child
-void pyPropertyNode::pretty_print()
-{
-    if ( pObj == NULL ) {
-	printf("pretty_print(): Null pyPropertyNode()\n");
-    } else {
-	PyObject *pValue = PyObject_CallMethod(pObj,
-					       (char *)"pretty_print",
-					       (char *)"");
-	if (pValue != NULL) {
-	    Py_DECREF(pValue);
-	} else {
-	    PyErr_Print();
-	    fprintf(stderr,"Call failed\n");
-	}
-    }
 }
 
 // These only need to be looked up once and then saved
@@ -728,5 +744,29 @@ bool writeJSON(string filename, pyPropertyNode *node) {
 	fprintf(stderr,"Call failed\n");
     }
     return false;
+}
+
+// Return a pyPropertyNode object that points to the named child
+void pyPropertyNode::pretty_print()
+{
+    if ( pObj == NULL ) {
+	printf("pretty_print(): Null pyPropertyNode()\n");
+    } else {
+        PyObject *pFunc = PyObject_GetAttrString(pModuleProps, "pretty_print");
+        if ( pFunc == NULL || ! PyCallable_Check(pFunc) ) {
+            if ( PyErr_Occurred() ) PyErr_Print();
+            fprintf(stderr, "Cannot find function 'pretty_print()'\n");
+            return;
+        }
+	PyObject *pValue
+            = PyObject_CallFunctionObjArgs(pFunc, pObj, NULL);
+        Py_DECREF(pFunc);
+	if (pValue != NULL) {
+	    Py_DECREF(pValue);
+	} else {
+	    PyErr_Print();
+	    fprintf(stderr,"Call failed\n");
+	}
+    }
 }
 
