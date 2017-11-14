@@ -86,7 +86,7 @@ pyPropertyNode pyPropertyNode::getChild(const char *name, bool create)
 					   (char *)"getChild", (char *)"sb",
 					   name, create);
     if (pValue == NULL) {
-	PyErr_Print();
+	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
 	return pyPropertyNode();
     }
@@ -206,7 +206,7 @@ double pyPropertyNode::PyObject2Double(const char *name, PyObject *pAttr) {
 		result = PyFloat_AsDouble(pFloat);
 		Py_DECREF(pFloat);
 	    } else {
-		PyErr_Print();
+		if ( PyErr_Occurred() ) PyErr_Print();
 		printf("WARNING: conversion from string to float failed\n");
 		PyObject *pStr = PyObject_Str(pAttr);
 		char *s = PyString_AsString(pStr);
@@ -240,7 +240,7 @@ long pyPropertyNode::PyObject2Long(const char *name, PyObject *pAttr) {
 		result = PyFloat_AsDouble(pFloat);
 		Py_DECREF(pFloat);
 	    } else {
-		PyErr_Print();
+		if ( PyErr_Occurred() ) PyErr_Print();
 		printf("WARNING: conversion from string to long failed\n");
 		PyObject *pStr = PyObject_Str(pAttr);
 		char *s = PyString_AsString(pStr);
@@ -529,7 +529,7 @@ void pyPropertyNode::pretty_print()
 	if (pValue != NULL) {
 	    Py_DECREF(pValue);
 	} else {
-	    PyErr_Print();
+	    if ( PyErr_Occurred() ) PyErr_Print();
 	    fprintf(stderr,"Call failed\n");
 	}
     }
@@ -546,21 +546,21 @@ void pyPropsInit() {
     // python property system
     pModuleProps = PyImport_ImportModule("props");
     if (pModuleProps == NULL) {
-        PyErr_Print();
+        if ( PyErr_Occurred() ) PyErr_Print();
         fprintf(stderr, "Failed to load 'props'\n");
     }
 
     // Json I/O system
     pModuleJSON = PyImport_ImportModule("props_json");
     if (pModuleJSON == NULL) {
-        PyErr_Print();
+        if ( PyErr_Occurred() ) PyErr_Print();
         fprintf(stderr, "Failed to load 'props_json'\n");
     }
     
     // xml I/O system
     pModuleXML = PyImport_ImportModule("props_xml");
     if (pModuleXML == NULL) {
-        PyErr_Print();
+        if ( PyErr_Occurred() ) PyErr_Print();
         fprintf(stderr, "Failed to load 'props_xml'\n");
     }
 
@@ -608,7 +608,7 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
 	printf("before return\n");*/
 	return pyPropertyNode(pValue);
     } else {
-	PyErr_Print();
+	if ( PyErr_Occurred() ) PyErr_Print();
 	printf("Call failed\n");
 	return pyPropertyNode();
     }
@@ -640,7 +640,7 @@ bool readXML(string filename, pyPropertyNode *node) {
 	Py_DECREF(pValue);
 	return result;
     } else {
-	PyErr_Print();
+	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
     }
     return false;
@@ -671,7 +671,7 @@ bool writeXML(string filename, pyPropertyNode *node) {
 	Py_DECREF(pValue);
 	return result;
     } else {
-	PyErr_Print();
+	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
     }
     return false;
@@ -702,7 +702,7 @@ bool readJSON(string filename, pyPropertyNode *node) {
 	Py_DECREF(pValue);
 	return result;
     } else {
-	PyErr_Print();
+	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
     }
     return false;
@@ -733,7 +733,7 @@ bool writeJSON(string filename, pyPropertyNode *node) {
 	Py_DECREF(pValue);
 	return result;
     } else {
-	PyErr_Print();
+	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
     }
     return false;
