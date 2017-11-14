@@ -10,7 +10,6 @@ using std::string;
 using std::ostringstream;
 
 
-
 // Constructor
 
 pyPropertyNode::pyPropertyNode()
@@ -85,8 +84,8 @@ pyPropertyNode pyPropertyNode::getChild(const char *name, bool create)
     PyObject *pValue = PyObject_CallMethod(pObj,
 					   (char *)"getChild", (char *)"sb",
 					   name, create);
+    if ( PyErr_Occurred() ) PyErr_Print();
     if (pValue == NULL) {
-	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
 	return pyPropertyNode();
     }
@@ -119,6 +118,7 @@ int pyPropertyNode::getLen(const char *name) {
 					       (char *)"getLen",
 					       (char *)"s",
 					       name);
+        if ( PyErr_Occurred() ) PyErr_Print();
 	if ( pValue != NULL ) {
 	    int len = PyInt_AsLong(pValue);
 	    Py_DECREF(pValue);
@@ -134,6 +134,7 @@ void pyPropertyNode::setLen(const char *name, int size) {
 	PyObject *pValue = PyObject_CallMethod(pObj,
 					       (char *)"setLen", (char *)"si",
 					       name, size);
+        if ( PyErr_Occurred() ) PyErr_Print();
 	if ( pValue != NULL ) {
 	    Py_DECREF(pValue);
 	}
@@ -146,6 +147,7 @@ void pyPropertyNode::setLen(const char *name, int size, double init_val) {
 	PyObject *pValue = PyObject_CallMethod(pObj,
 					       (char *)"setLen", (char *)"sif",
 					       name, size, init_val);
+        if ( PyErr_Occurred() ) PyErr_Print();
 	if ( pValue != NULL ) {
 	    Py_DECREF(pValue);
 	}
@@ -159,6 +161,7 @@ vector <string> pyPropertyNode::getChildren(bool expand) {
 	PyObject *pList = PyObject_CallMethod(pObj,
 					      (char *)"getChildren",
 					      (char *)"b", expand);
+        if ( PyErr_Occurred() ) PyErr_Print();
 	if ( pList != NULL ) {
 	    if ( PyList_Check(pList) ) {
 		int len = PyList_Size(pList);
@@ -185,6 +188,7 @@ bool pyPropertyNode::isLeaf(const char *name) {
     PyObject *pValue = PyObject_CallMethod(pObj,
 					   (char *)"isLeaf", (char *)"s",
 					   name);
+    if ( PyErr_Occurred() ) PyErr_Print();
     bool result = PyObject_IsTrue(pValue);
     Py_DECREF(pValue);
     return result;
@@ -526,10 +530,10 @@ void pyPropertyNode::pretty_print()
 	PyObject *pValue = PyObject_CallMethod(pObj,
 					       (char *)"pretty_print",
 					       (char *)"");
+        if ( PyErr_Occurred() ) PyErr_Print();
 	if (pValue != NULL) {
 	    Py_DECREF(pValue);
 	} else {
-	    if ( PyErr_Occurred() ) PyErr_Print();
 	    fprintf(stderr,"Call failed\n");
 	}
     }
@@ -545,22 +549,22 @@ static PyObject *pModuleXML = NULL;
 void pyPropsInit() {
     // python property system
     pModuleProps = PyImport_ImportModule("props");
+    if ( PyErr_Occurred() ) PyErr_Print();
     if (pModuleProps == NULL) {
-        if ( PyErr_Occurred() ) PyErr_Print();
         fprintf(stderr, "Failed to load 'props'\n");
     }
 
     // Json I/O system
     pModuleJSON = PyImport_ImportModule("props_json");
+    if ( PyErr_Occurred() ) PyErr_Print();
     if (pModuleJSON == NULL) {
-        if ( PyErr_Occurred() ) PyErr_Print();
         fprintf(stderr, "Failed to load 'props_json'\n");
     }
     
     // xml I/O system
     pModuleXML = PyImport_ImportModule("props_xml");
+    if ( PyErr_Occurred() ) PyErr_Print();
     if (pModuleXML == NULL) {
-        if ( PyErr_Occurred() ) PyErr_Print();
         fprintf(stderr, "Failed to load 'props_xml'\n");
     }
 
@@ -581,8 +585,8 @@ extern void pyPropsCleanup(void) {
 // access in your update routines.
 pyPropertyNode pyGetNode(string abs_path, bool create) {
     PyObject *pFuncGetNode = PyObject_GetAttrString(pModuleProps, "getNode");
+    if ( PyErr_Occurred() ) PyErr_Print();
     if ( pFuncGetNode == NULL || ! PyCallable_Check(pFuncGetNode) ) {
-	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr, "Cannot find function 'getNode()'\n");
 	return pyPropertyNode();
     }
@@ -599,6 +603,7 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
     }
     PyObject *pValue
 	= PyObject_CallFunctionObjArgs(pFuncGetNode, pPath, pCreate, NULL);
+    if ( PyErr_Occurred() ) PyErr_Print();
     Py_DECREF(pPath);
     Py_DECREF(pCreate);
     if (pValue != NULL) {
@@ -608,7 +613,6 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
 	printf("before return\n");*/
 	return pyPropertyNode(pValue);
     } else {
-	if ( PyErr_Occurred() ) PyErr_Print();
 	printf("Call failed\n");
 	return pyPropertyNode();
     }
@@ -618,8 +622,8 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
 bool readXML(string filename, pyPropertyNode *node) {
     // getNode() function
     PyObject *pFuncLoad = PyObject_GetAttrString(pModuleXML, "load");
+    if ( PyErr_Occurred() ) PyErr_Print();
     if ( pFuncLoad == NULL || ! PyCallable_Check(pFuncLoad) ) {
-	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr, "Cannot find function 'load()'\n");
 	return false;
     }
@@ -632,6 +636,7 @@ bool readXML(string filename, pyPropertyNode *node) {
     }
     PyObject *pValue = PyObject_CallFunctionObjArgs(pFuncLoad, pPath,
 						    node->pObj, NULL);
+    if ( PyErr_Occurred() ) PyErr_Print();
     Py_DECREF(pPath);
     Py_DECREF(pFuncLoad);
     if (pValue != NULL) {
@@ -640,7 +645,6 @@ bool readXML(string filename, pyPropertyNode *node) {
 	Py_DECREF(pValue);
 	return result;
     } else {
-	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
     }
     return false;
@@ -649,8 +653,8 @@ bool readXML(string filename, pyPropertyNode *node) {
 bool writeXML(string filename, pyPropertyNode *node) {
     // getNode() function
     PyObject *pFuncSave = PyObject_GetAttrString(pModuleXML, "save");
+    if ( PyErr_Occurred() ) PyErr_Print();
     if ( pFuncSave == NULL || ! PyCallable_Check(pFuncSave) ) {
-	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr, "Cannot find function 'save()'\n");
 	return false;
     }
@@ -663,6 +667,7 @@ bool writeXML(string filename, pyPropertyNode *node) {
     }
     PyObject *pValue = PyObject_CallFunctionObjArgs(pFuncSave, pPath,
 						    node->pObj, NULL);
+    if ( PyErr_Occurred() ) PyErr_Print();
     Py_DECREF(pPath);
     Py_DECREF(pFuncSave);
     if (pValue != NULL) {
@@ -671,7 +676,6 @@ bool writeXML(string filename, pyPropertyNode *node) {
 	Py_DECREF(pValue);
 	return result;
     } else {
-	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
     }
     return false;
@@ -680,8 +684,8 @@ bool writeXML(string filename, pyPropertyNode *node) {
 bool readJSON(string filename, pyPropertyNode *node) {
     // getNode() function
     PyObject *pFuncLoad = PyObject_GetAttrString(pModuleJSON, "load");
+    if ( PyErr_Occurred() ) PyErr_Print();
     if ( pFuncLoad == NULL || ! PyCallable_Check(pFuncLoad) ) {
-	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr, "Cannot find function 'load()'\n");
 	return false;
     }
@@ -694,6 +698,7 @@ bool readJSON(string filename, pyPropertyNode *node) {
     }
     PyObject *pValue = PyObject_CallFunctionObjArgs(pFuncLoad, pPath,
 						    node->pObj, NULL);
+    if ( PyErr_Occurred() ) PyErr_Print();
     Py_DECREF(pPath);
     Py_DECREF(pFuncLoad);
     if (pValue != NULL) {
@@ -702,7 +707,6 @@ bool readJSON(string filename, pyPropertyNode *node) {
 	Py_DECREF(pValue);
 	return result;
     } else {
-	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
     }
     return false;
@@ -711,8 +715,8 @@ bool readJSON(string filename, pyPropertyNode *node) {
 bool writeJSON(string filename, pyPropertyNode *node) {
     // getNode() function
     PyObject *pFuncSave = PyObject_GetAttrString(pModuleJSON, "save");
+    if ( PyErr_Occurred() ) PyErr_Print();
     if ( pFuncSave == NULL || ! PyCallable_Check(pFuncSave) ) {
-	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr, "Cannot find function 'save()'\n");
 	return false;
     }
@@ -725,6 +729,7 @@ bool writeJSON(string filename, pyPropertyNode *node) {
     }
     PyObject *pValue = PyObject_CallFunctionObjArgs(pFuncSave, pPath,
 						    node->pObj, NULL);
+    if ( PyErr_Occurred() ) PyErr_Print();
     Py_DECREF(pPath);
     Py_DECREF(pFuncSave);
     if (pValue != NULL) {
@@ -733,7 +738,6 @@ bool writeJSON(string filename, pyPropertyNode *node) {
 	Py_DECREF(pValue);
 	return result;
     } else {
-	if ( PyErr_Occurred() ) PyErr_Print();
 	fprintf(stderr,"Call failed\n");
     }
     return false;
