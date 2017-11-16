@@ -131,7 +131,7 @@ void Actuator_init() {
 }
 
 
-static void set_actuator_values_ap() {
+static void set_actuator_values() {
     float aileron = flight_node.getDouble("aileron");
     act_node.setDouble( "aileron", aileron );
 
@@ -329,16 +329,18 @@ bool Actuator_update() {
 
     // time stamp for logging
     act_node.setDouble( "timestamp", get_Time() );
+    set_actuator_values();
+    
     bool pass_through = ap_node.getBool("pilot_pass_through");
     if ( ap_node.getBool("master_switch") ) {
 // #if 0 // FIXME/fixme: Disable pilot input so we can set control surface positions through telnet interface for calibration
         if ( pass_through ) {
-	    set_actuator_values_pilot_pass_through();
+	    // set_actuator_values_pilot_pass_through();
 	} else {
             if ( pass_through != last_pass_through ) {
-                control_reset();
+                // control_reset();
             }
-	    set_actuator_values_ap();
+	    // set_actuator_values_ap();
 	}
 // #endif
     }
