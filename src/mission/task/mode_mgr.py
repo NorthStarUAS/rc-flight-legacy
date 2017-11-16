@@ -39,12 +39,15 @@ class ModeMgr(Task):
             self.last_master_switch = master_switch
 
         # high level mode name
-        fcs_mode = self.ap_node.getString('mode')
-        
+        if master_switch:
+            fcs_mode = self.ap_node.getString('mode')
+        else:
+            fcs_mode = 'manual'
+            
         # manage detailed enable switches from high level mode
         if self.last_fcs_mode != fcs_mode:
             comms.events.log('control', 'mode change = ' + fcs_mode)
-            if fcs_mode == '':
+            if fcs_mode == '' or fcs_mode == 'manual':
                 # unset all locks if no mode defined
                 self.locks_node.setBool( 'roll', False )
                 self.locks_node.setBool( 'yaw', False )
