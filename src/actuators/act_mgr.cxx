@@ -310,6 +310,26 @@ static void set_actuator_values_pilot_pass_through() {
     double throttle = pilot_node.getDouble("throttle");
     if ( signal_target == "throttle" ) { throttle += signal_val; }
     act_node.setDouble("throttle", throttle );
+    
+    // add in excitation signals if excitation task is running
+    if ( excite_node.getBool("running") ) {
+        float signal = 0.0;
+        string target = "";
+        int n = excite_node.getLong("channels");
+        for ( int i = 0; i < n; i++ ) {
+            signal = excite_node.getDouble("signal", i);
+            target = excite_node.getString("target", i);
+            float act_val = act_node.getDouble(target.c_str());
+            act_val += signal;
+            if ( target == "throttle" ) {
+                if ( act_val < 0.0 ) { act_val = 0.0; }
+            } else {
+                if ( act_val < -1.0 ) { act_val = -1.0; }
+            }
+            if ( act_val > 1.0 ) { act_val = 1.0; }
+            act_node.setDouble(target.c_str(), act_val);
+        }
+    }
 }
 
 
@@ -322,7 +342,8 @@ bool Actuator_update() {
     act_node.setDouble( "timestamp", get_Time() );
     bool pass_through = ap_node.getBool("pilot_pass_through");
     if ( ap_node.getBool("master_switch") ) {
-	if ( pass_through ) {
+// #if 0 // FIXME/fixme: Disable pilot input so we can set control surface positions through telnet interface for calibration
+        if ( pass_through ) {
 	    set_actuator_values_pilot_pass_through();
 	} else {
             if ( pass_through != last_pass_through ) {
@@ -330,6 +351,7 @@ bool Actuator_update() {
             }
 	    set_actuator_values_ap();
 	}
+// #endif
     }
     last_pass_through = pass_through;
 
