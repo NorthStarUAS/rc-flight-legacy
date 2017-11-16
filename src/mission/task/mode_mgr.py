@@ -43,7 +43,7 @@ class ModeMgr(Task):
             fcs_mode = self.ap_node.getString('mode')
         else:
             fcs_mode = 'manual'
-            
+
         # manage detailed enable switches from high level mode
         if self.last_fcs_mode != fcs_mode:
             comms.events.log('control', 'mode change = ' + fcs_mode)
