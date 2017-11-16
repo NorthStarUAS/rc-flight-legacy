@@ -7,7 +7,7 @@ class Preflight(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.task_node = getNode("/task", True)
-        self.preflight_node = getNode("/task", True)
+        self.preflight_node = getNode("/task/preflight", True)
         self.ap_node = getNode("/autopilot", True)
         self.targets_node = getNode("/autopilot/targets", True)
         self.imu_node = getNode("/sensors/imu", True)
