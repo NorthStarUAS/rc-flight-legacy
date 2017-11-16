@@ -49,30 +49,24 @@ static AuraAutopilot ap;
 
 // property nodes
 static pyPropertyNode ap_node;
-static pyPropertyNode targets_node;
-static pyPropertyNode pointing_node;
-static pyPropertyNode pointing_vec_node;
-static pyPropertyNode orient_node;
 static pyPropertyNode remote_link_node;
 static pyPropertyNode logging_node;
-static pyPropertyNode task_node;
-static pyPropertyNode home_node;
 static pyPropertyNode comms_node;
+static pyPropertyNode pilot_node;
+static pyPropertyNode flight_node;
+static pyPropertyNode engine_node;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
 
 static void bind_properties() {
     ap_node = pyGetNode( "/autopilot", true );
-    targets_node = pyGetNode( "/autopilot/targets", true );
-    pointing_node = pyGetNode( "/pointing", true );
-    pointing_vec_node = pyGetNode( "/pointing/vector", true );
-    orient_node = pyGetNode( "/orientation", true );
     remote_link_node = pyGetNode( "/config/remote_link", true );
     logging_node = pyGetNode( "/config/logging", true );
-    task_node = pyGetNode( "/task", true );
-    home_node = pyGetNode( "/task/home", true );
     comms_node = pyGetNode( "/comms/remote_link", true);
+    pilot_node = pyGetNode("/sensors/pilot_input", true);
+    flight_node = pyGetNode("/controls/flight", true);
+    engine_node = pyGetNode("/controls/engine", true);
 }
 
 
@@ -106,6 +100,31 @@ void control_reset() {
     ap.reset();
 }
 
+static void copy_pilot_inputs() {
+    // This function copies the pilot inputs to the flight/engine
+    // outputs.  This creates a manual pass through mode.  Consider
+    // that manaul pass-through is handled with less latency directly
+    // on APM2/BFS/Aura3 hardware if available.
+    
+    float aileron = pilot_node.getDouble("aileron");
+    flight_node.setDouble( "aileron", aileron );
+
+    float elevator = pilot_node.getDouble("elevator");
+    flight_node.setDouble( "elevator", elevator );
+
+    float rudder = pilot_node.getDouble("rudder");
+    flight_node.setDouble( "rudder", rudder );
+
+    double flaps = pilot_node.getDouble("flaps");
+    flight_node.setDouble("flaps", flaps );
+
+    double gear = pilot_node.getDouble("gear");
+    flight_node.setDouble("gear", gear );
+
+    double throttle = pilot_node.getDouble("throttle");
+    engine_node.setDouble("throttle", throttle );
+}
+
 
 void control_update(double dt)
 {
@@ -130,10 +149,17 @@ void control_update(double dt)
     navigation.update(dt);
         
     // update the autopilot stages (even in manual flight mode.)  This
-    // keeps the differential metric up to date, tracks manual inputs,
+    // keeps the differential value up to date, tracks manual inputs,
     // and keeps more continuity in the flight when the mode is
     // switched to autopilot.
     ap.update( dt );
+
+    // copy pilot inputs to flight control outputs with not in
+    // autopilot mode or in a pilot_pass_through mode
+    bool pass_through = ap_node.getBool("pilot_pass_through");
+    if ( !master_switch or pass_through ) {
+        copy_pilot_inputs();
+    }
     
     bool send_remote_link = false;
     if ( remote_link_count < 0 ) {
