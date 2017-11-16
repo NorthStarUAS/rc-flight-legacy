@@ -86,10 +86,10 @@ class Switch():
                 self.states = 1
                 self.choices = [ 'switch_config_error' ]
                 
-        if self.output_type == 'boolean' and switch_node.hasChild("force_true"):
-            self.force_true = True
+        if self.output_type == 'boolean' and switch_node.hasChild("force_value"):
+            self.force_value = switch_node.getBool("force_value")
         else:
-            self.force_true = False
+            self.force_value = None
             
         if switch_node.hasChild("invert"):
             self.invert = switch_node.getBool("invert")
@@ -129,8 +129,8 @@ class Switch():
         #print "  state =", state
             
         if self.output_type == 'boolean':
-            if self.force_true:
-                self.output_node.setBool(self.output_name, True)
+            if self.force_value != None:
+                self.output_node.setBool(self.output_name, self.force_value)
             else:
                 self.output_node.setBool(self.output_name, state)
         elif self.output_type == 'choice':
