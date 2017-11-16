@@ -280,35 +280,24 @@ static void set_actuator_values_pilot_pass_through() {
     // pass-through at the host flight computer level.  However,
     // manaul pass-through is handled more efficiently (less latency)
     // directly on APM2/Aura3 hardware.
-    double signal_val = 0.0;
-    string signal_target = "";
-    if ( excite_node.getBool("running") ) {
-	signal_val = excite_node.getDouble("signal");
-	signal_target = excite_node.getString("target");
-    }
     
     float aileron = pilot_node.getDouble("aileron");
-    if ( signal_target == "aileron" ) { aileron += signal_val; }
     act_node.setDouble( "aileron", aileron );
 
     float elevator = pilot_node.getDouble("elevator");
-    if ( signal_target == "elevator" ) { elevator += signal_val; }
     act_node.setDouble( "elevator", elevator );
 
     // rudder
     float rudder = pilot_node.getDouble("rudder");
-    if ( signal_target == "rudder" ) { rudder += signal_val; }
     act_node.setDouble( "rudder", rudder );
 
     double flaps = pilot_node.getDouble("flaps");
-    if ( signal_target == "flaps" ) { flaps += signal_val; }
     act_node.setDouble("flaps", flaps );
 
     double gear = pilot_node.getDouble("gear");
     act_node.setDouble("gear", gear );
 
     double throttle = pilot_node.getDouble("throttle");
-    if ( signal_target == "throttle" ) { throttle += signal_val; }
     act_node.setDouble("throttle", throttle );
     
     // add in excitation signals if excitation task is running
