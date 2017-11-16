@@ -145,7 +145,7 @@ Finally, turn off usb ethernet and reactivate it.
   ./setup.py build
   sudo ./setup.py install
   
-# build/install 'navigation' package
+# build/install 'navigation' package (no longer needed, please skip)
 
   # setup swap file first
   sudo mkdir -p /var/cache/swap/
@@ -167,23 +167,28 @@ Finally, turn off usb ethernet and reactivate it.
   cd aura-core
   ./autogen.sh
   mkdir build; cd build
-  ../configure --prefix=/usr/local CFLAGS="-Wall -O3" CXXFLAGS="-Wall -O3"
+  ../configure --prefix=/usr/local/AuraUAS CFLAGS="-Wall -O3" CXXFLAGS="-Wall -O3"
   make
   sudo make install
 
+# setup FlightData directory
+
+  sudo mkdir /usr/local/AuraUAS/FlightData
+  
 # configuration
 
-  (as aura$)
-  cd
-  ln -s Source/aura-data/config .
-  cd config
-  ln -s main-aura3.json main.json
+  sudo ln -s /home/aura/Source/aura-config/config /usr/local/AuraUAS/config
+
+  (then as aura$)
+  cd ~/Source/aura-config/config
+  ln -s main-<aircraft_name>.json main.json
 
 # test run (assuming Goldy3 cape w/ Aura3 firmware is installed)
 # verify imu info is updating at minimum, overall update rates, load
 # avg if gps connected, verify gps position and ekf orientation
 
-  cd ~/Source/aura-core/build
-  ./src/main/aura --python_path ../src --config ../../aura-data/config/ --display on
+  sudo bash
+  cd
+  /usr/local/AuraUAS/bin/aura --python_path /home/aura/Source/aura-core/src --config /usr/local/AuraUAS/config/ --display on
   
-
+# setup the systemd autorun scripts
