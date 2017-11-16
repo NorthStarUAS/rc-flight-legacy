@@ -5,7 +5,7 @@ if [ "$#" -ne 1 ]; then
     exit
 fi
 
-CUTOFFDATE="2016-09-27"
+CUTOFFDATE="2017-06-23"
 
 echo "Scanning $1 for files older than $CUTOFFDATE"
 echo "Current date is:"
