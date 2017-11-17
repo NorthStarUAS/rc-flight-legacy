@@ -58,8 +58,6 @@ static myprofile debug_act2;
 static int remote_link_skip = 0;
 static int logging_skip = 0;
 
-static bool last_pass_through = false;
-
 
 void Actuator_init() {
     debug_act1.set_name("debug_act1 act update and output");
@@ -275,53 +273,6 @@ static void set_actuator_values() {
 }
 
 
-static void set_actuator_values_pilot_pass_through() {
-    // The following lines would act as a manual (no-short-circuit)
-    // pass-through at the host flight computer level.  However,
-    // manaul pass-through is handled more efficiently (less latency)
-    // directly on APM2/Aura3 hardware.
-    
-    float aileron = pilot_node.getDouble("aileron");
-    act_node.setDouble( "aileron", aileron );
-
-    float elevator = pilot_node.getDouble("elevator");
-    act_node.setDouble( "elevator", elevator );
-
-    // rudder
-    float rudder = pilot_node.getDouble("rudder");
-    act_node.setDouble( "rudder", rudder );
-
-    double flaps = pilot_node.getDouble("flaps");
-    act_node.setDouble("flaps", flaps );
-
-    double gear = pilot_node.getDouble("gear");
-    act_node.setDouble("gear", gear );
-
-    double throttle = pilot_node.getDouble("throttle");
-    act_node.setDouble("throttle", throttle );
-    
-    // add in excitation signals if excitation task is running
-    if ( excite_node.getBool("running") ) {
-        float signal = 0.0;
-        string target = "";
-        int n = excite_node.getLong("channels");
-        for ( int i = 0; i < n; i++ ) {
-            signal = excite_node.getDouble("signal", i);
-            target = excite_node.getString("target", i);
-            float act_val = act_node.getDouble(target.c_str());
-            act_val += signal;
-            if ( target == "throttle" ) {
-                if ( act_val < 0.0 ) { act_val = 0.0; }
-            } else {
-                if ( act_val < -1.0 ) { act_val = -1.0; }
-            }
-            if ( act_val > 1.0 ) { act_val = 1.0; }
-            act_node.setDouble(target.c_str(), act_val);
-        }
-    }
-}
-
-
 bool Actuator_update() {
     debug_act1.start();
 
@@ -331,21 +282,6 @@ bool Actuator_update() {
     act_node.setDouble( "timestamp", get_Time() );
     set_actuator_values();
     
-    bool pass_through = ap_node.getBool("pilot_pass_through");
-    if ( ap_node.getBool("master_switch") ) {
-// #if 0 // FIXME/fixme: Disable pilot input so we can set control surface positions through telnet interface for calibration
-        if ( pass_through ) {
-	    // set_actuator_values_pilot_pass_through();
-	} else {
-            if ( pass_through != last_pass_through ) {
-                // control_reset();
-            }
-	    // set_actuator_values_ap();
-	}
-// #endif
-    }
-    last_pass_through = pass_through;
-
     debug_act1.stop();
 
     static int remote_link_count = 0;
