@@ -151,6 +151,8 @@ static bool raven1_parse(uint8_t pkt_id, uint8_t pkt_len, uint8_t *buf) {
     static double diff_sum = 0.0;
     static int diff_count = 0;
     static float diff_offset = 0.0;
+    
+    airdata_node.setDouble( "timestamp", get_Time() );
 
     for ( int i = 0; i < RAVEN_NUM_POTS; i++ ) {
 	airdata_node.setDouble("pots", i, *(uint16_t *)buf);
