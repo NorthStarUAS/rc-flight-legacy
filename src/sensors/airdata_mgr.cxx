@@ -77,7 +77,7 @@ void AirData_init() {
     debug2b1.set_name("debug2b1 airdata update");
     debug2b2.set_name("debug2b2 airdata console link");
 
-    airdata_node = pyGetNode("/sensors/airdata", true);
+    // airdata_node = pyGetNode("/sensors/airdata", true);
     sensors_node = pyGetNode("/sensors", true);
     filter_node = pyGetNode("/filters/filter", true);
     pos_filter_node = pyGetNode("/position/filter", true);
@@ -128,6 +128,19 @@ void AirData_init() {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());
 	}
+
+        if ( section.getBool("primary") ) {
+            // this section claims to be primary
+            if ( airdata_node.isNull() ) {
+                // no other section has claimed primary yet.
+                airdata_node = pyGetNode(output_path.str(), true);
+            }
+        }
+    }
+
+    if ( airdata_node.isNull() ) {
+        // no one claimed primary, set to default index [0]
+        airdata_node = pyGetNode("/sensors/airdata", true);
     }
 }
 
