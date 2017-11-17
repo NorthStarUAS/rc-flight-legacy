@@ -346,11 +346,6 @@ bool AirData_update() {
 		   source.c_str());
 	}
 	if ( fresh_data ) {
-	    if (i == 0) {
-		// these are computed from the primary airdata sensor
-		update_pressure_helpers();
-	    }
-
 	    bool send_remote_link = false;
 	    if ( remote_link_count < 0 ) {
 		send_remote_link = true;
@@ -380,11 +375,13 @@ bool AirData_update() {
 		    if ( send_logging ) {
 			logging->log_message( buf, size );
 		    }
-  
 		}
 	    }
 	}
     }
+
+    // these are computed from the primary airdata sensor
+    update_pressure_helpers();
 
     if ( logging_count < 0 ) {
 	logging_count = logging_skip;
