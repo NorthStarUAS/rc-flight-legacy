@@ -8,7 +8,7 @@ r2d = 180.0 / math.pi
 comms_node = getNode('/comms', True)
 imu_node = getNode('/sensors/imu', True)
 gps_node = getNode('/sensors/gps', True)
-airdata_node = getNode('/sensors/airdata', True)
+velocity_node = getNode('/velocity', True)
 filter_node = getNode('/filters/filter', True)
 orient_node = getNode('/orientation', True)
 pos_pressure_node = getNode('/position/pressure', True)
@@ -44,7 +44,7 @@ def status_summary():
              imu_node.getFloat('hz'))
         print '[air  ]:Palt = %5.2f[m] Pspd = %4.1f[kt]' % \
             (pos_pressure_node.getFloat('altitude_m'),
-             airdata_node.getFloat('airspeed_kt'))
+             velocity_node.getFloat('airspeed_kt'))
 
         if gps_node.getFloat('data_age') < 10.0:
             print '[gps  ]:date = %04d/%02d/%02d %02d:%02d:%02d' % \
