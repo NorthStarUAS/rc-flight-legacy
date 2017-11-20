@@ -7,14 +7,8 @@ under the LGPL license except where noted (see the licenses
 subdirectory for details.)  AuraUAS is an embedded autopilot
 application for unmanned aircraft systems.
 
-Watch AuraUAS in action, raw and unedited:
-
-    https://www.youtube.com/channel/UC_AWqZyWYvnA-h9MMcbNYyA
-
-Please visit my blog for a variety of AuraUAS related projects and
-background information:
-
-    http://gallinazo.flightgear.org/
+* [Watch AuraUAS in action, raw and unedited](https://www.youtube.com/channel/UC_AWqZyWYvnA-h9MMcbNYyA)
+* [Visit my blog for a variety of AuraUAS related projects and background information](http://gallinazo.flightgear.org/)
 
 Aura-core includes:
 
