@@ -31,7 +31,6 @@ using std::vector;
 #include "Aura3.hxx"
 #include "FGFS.hxx"
 #include "Goldy2.hxx"
-#include "pika.hxx"
 
 #include "pilot_mgr.hxx"
 
@@ -85,8 +84,6 @@ void PilotInput_init() {
 	    fgfs_pilot_init( output_path.str(), &section );
 	} else if ( source == "Goldy2" ) {
 	    goldy2_pilot_init( output_path.str(), &section );
-	} else if ( source == "pika" ) {
-	    pika_pilot_init( output_path.str(), &section );
 	} else {
 	    printf("Unknown pilot input source = '%s' in config file\n",
 		   source.c_str());
@@ -120,8 +117,6 @@ bool PilotInput_update() {
 	    fresh_data = fgfs_pilot_update();
 	} else if ( source == "Goldy2" ) {
 	    fresh_data = goldy2_pilot_update();
-	} else if ( source == "pika" ) {
-	    fresh_data = pika_pilot_update();
 	} else {
 	    printf("Unknown pilot input source = '%s' in config file\n",
 		   source.c_str());
@@ -204,8 +199,6 @@ void PilotInput_close() {
 	    fgfs_pilot_close();
 	} else if ( source == "Goldy2" ) {
 	    goldy2_pilot_close();
-	} else if ( source == "pika" ) {
-	    pika_pilot_close();
 	} else {
 	    printf("Unknown pilot input source = '%s' in config file\n",
 		   source.c_str());

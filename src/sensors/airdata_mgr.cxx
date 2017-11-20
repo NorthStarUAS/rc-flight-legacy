@@ -33,7 +33,6 @@ using std::vector;
 #include "Aura3.hxx"
 #include "FGFS.hxx"
 #include "Goldy2.hxx"
-#include "pika.hxx"
 #include "raven1.hxx"
 #include "raven2.hxx"
 
@@ -118,8 +117,6 @@ void AirData_init() {
 	    fgfs_airdata_init( output_path.str() );
 	} else if ( source == "Goldy2" ) {
 	    goldy2_airdata_init( output_path.str() );
-	} else if ( source == "pika" ) {
-	    pika_airdata_init( output_path.str(), &section );
 	} else if ( source == "raven1" ) {
 	    raven1_airdata_init( output_path.str(), &section );
 	} else if ( source == "raven2" ) {
@@ -335,8 +332,6 @@ bool AirData_update() {
 	    fresh_data = fgfs_airdata_update();
 	} else if ( source == "Goldy2" ) {
 	    fresh_data = goldy2_airdata_update();
-	} else if ( source == "pika" ) {
-	    fresh_data = pika_airdata_update();
 	} else if ( source == "raven1" ) {
 	    fresh_data = raven1_airdata_update();
 	} else if ( source == "raven2" ) {
@@ -461,8 +456,6 @@ void AirData_close() {
 	    // nop
 	} else if ( source == "Goldy2" ) {
 	    goldy2_airdata_close();
-	} else if ( source == "pika" ) {
-	    pika_airdata_close();
 	} else if ( source == "raven1" ) {
 	    raven1_airdata_close();
 	} else if ( source == "raven2" ) {
