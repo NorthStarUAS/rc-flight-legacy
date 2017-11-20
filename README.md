@@ -5,7 +5,18 @@
 Aura-core is the heart of the AuraUAS project.  It is distributed
 under the LGPL license except where noted (see the licenses
 subdirectory for details.)  AuraUAS is an embedded autopilot
-application for unmanned aircraft systems.  Aura-core includes:
+application for unmanned aircraft systems.
+
+Watch AuraUAS in action, raw and unedited:
+
+    https://www.youtube.com/channel/UC_AWqZyWYvnA-h9MMcbNYyA
+
+Please visit my blog for a variety of AuraUAS related projects and
+background information:
+
+    http://gallinazo.flightgear.org/
+
+Aura-core includes:
 
 * An advanced 15-state EKF (extended kalman filter) developed by the
   University of Minnesota Aerospace Engineering Department.
@@ -78,7 +89,7 @@ Immediate development goals include:
 * Add support for computing survey routes on board the aircraft.  (The
   issue here is the brittleness and time required to send 100's of
   waypoints up to an aircraft over a radio modem link.  Instead we can
-  just send the area to be covered and some camera paramenters and the
+  just send the area to be covered and some camera parameters and the
   aircraft can compute it's route internally.)
 
 * Redesign and modernize the inexpensive reference hardware. 
