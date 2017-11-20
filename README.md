@@ -2,24 +2,30 @@
 
 ## Welcome
 
-Aura-core is the heart of the AuraUAS project.  It is distributed under
-the LGPL license except where noted (see the licenses subdirectory for
-details.)  AuraUAS is an advance embedded application for unmanned
-aircraft systems.  Aura-core includes:
+Aura-core is the heart of the AuraUAS project.  It is distributed
+under the LGPL license except where noted (see the licenses
+subdirectory for details.)  AuraUAS is an embedded autopilot
+application for unmanned aircraft systems.  Aura-core includes:
 
 * An advanced 15-state EKF (extended kalman filter) developed by the
   University of Minnesota Aerospace Engineering Department.
   Internally the filter uses quaternion math to avoid gimbal lock
   issues.
 
-* A sophisticated route management and following system.
+* A sophisticated route management and waypoint following system.
 
 * A sophisticated circle hold system that holds precise circles even
   in strong winds.
 
-* A flexible/configurable PID-based control system.  The primary PID
-  controller is provided in the 'velocity' form.  Gains and
-  configurations can be tuned from the ground in real time.
+* A flexible/configurable PID-based control system.  Several
+  controller options are available including a classic PID controller
+  and a velocity form controller, along with digital filters and
+  summers.  These can be mixed and matched to create multistage
+  control systems.  Gains and configurations can be tuned from the
+  ground in real time.
+
+* TECS values are computed and available as inputs to the PID
+  controllers.
 
 * Flexible device driver system.
 
@@ -30,7 +36,7 @@ aircraft systems.  Aura-core includes:
 
 * Flexible actuator support.
 
-* Great circle and wgs84 distance and heading math.
+* Great circle distance and heading math.
 
 * Self learning IMU temperature calibration system.
 
@@ -69,32 +75,20 @@ developed.
 
 Immediate development goals include:
 
-* rewriting the ground station link code in python, jettisoning a
-  significant amount of historic cruft, massively improving the
-  performance, as well as improving websocket compatibility with a
-  much wider variety of systems (i.e. adding iOS support.)
+* Add support for computing survey routes on board the aircraft.  (The
+  issue here is the brittleness and time required to send 100's of
+  waypoints up to an aircraft over a radio modem link.  Instead we can
+  just send the area to be covered and some camera paramenters and the
+  aircraft can compute it's route internally.)
 
-* rewriting the sensor interface and then subsequently leveraging that
-  work to improve the determinism and reducing latency in the main
-  loop.
+* Redesign and modernize the inexpensive reference hardware. 
 
 Longer term goals include:
 
-* easier support for researchers and DIY'ers to add their own python
+* Streamline and expand the surveying capabilities of this system.
+
+* Easier support for researchers and DIY'ers to add their own python
   tasks and code deeply integrated into the main loop.
-
-* mavlink support.
-
-* more python.  Briefly: I like python, I like compact source code and
-  efficient representation of logic and ideas.  I equate code
-  efficiency with code that is easier to read and understand, as well
-  as less likely to hide obscure bugs.  I like that many people find
-  it easier to write python than C/C++.  I like the amazing breadth
-  and depth of it's supporting libraries.  I believe wise use of
-  python can bring substantial value to an open-source autopilot.  I
-  understand some people might be skeptical about such deep python
-  integration into the main autopilot system, and if you are one of
-  those people, I welcome you to Minnesota for a flight demo.
 
 * Modernization of the ground station interface (the visual
   interactive portion.)
