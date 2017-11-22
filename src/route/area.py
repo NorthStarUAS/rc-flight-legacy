@@ -43,7 +43,6 @@ class Area():
             print 'i:', i, self.edges[i].pretty()
             p = intersect_line_vs_seg(line, self.edges[i])
             if p != False:
-                print 'plot:', p.x, p.y
                 result.append(p)
         print '  result:', result
         return result
@@ -64,12 +63,10 @@ def slice(area, dir, step):
 
     # project all the area points onto the direction line
     proj = []
-    dist = []
     for p in area.points:
         r, d = project_point_on_line(p, dir)
         print '   orig:', p.pretty(), 'proj:', r.pretty(), 'dist:', d
         proj.append((r,d))
-        dist.append(d)
 
     for p,d in proj:
         print 'test:', p, d
@@ -93,6 +90,7 @@ def slice(area, dir, step):
     # the perpendicular line and find the two extreme point
     # intersections.
     done = False
+    toggle = False
     while not done:
         # update cut line start point
         start.x += dirx * step
@@ -103,8 +101,42 @@ def slice(area, dir, step):
         end = point.Point(start.x + cutx, start.y + cuty)
         cut_line = Line(start, end)
 
-        pts = area.intersect_with_line(cut_line)
-        if len(pts) < 2:
+        cut_pts = area.intersect_with_line(cut_line)
+        if len(cut_pts) < 2:
             done = True
         else:
-            pass
+            # project all the intersection points onto the cut line.
+            # They are already on the cut line, but this function also
+            # returns the signed distance along the cut line which is
+            # information we need now.
+            proj = []
+            for p in cut_pts:
+                r, d = project_point_on_line(p, cut_line)
+                print '   cut:', p.pretty(), 'proj:', r.pretty(), 'dist:', d
+                proj.append((r,d))
+            # and find the min/max distance points
+            min_index = None
+            min_dist = None
+            max_index = None
+            max_dist = None
+            for i, (p, d) in enumerate(proj):
+                print 'i:', i, 'p:', p, 'd:', d
+                if min_dist == None or d < min_dist:
+                    min_index = i
+                    min_dist = d
+                    print '  ', p.pretty()
+                if max_dist == None or d > max_dist:
+                    max_index = i
+                    max_dist = d
+                    print '  ', p.pretty()
+            minp = cut_pts[min_index]
+            maxp = cut_pts[max_index]
+            print 'min:', minp.pretty(), 'max:', maxp.pretty()
+            if toggle:
+                print 'plot:', minp.x, minp.y
+                print 'plot:', maxp.x, maxp.y
+            else:
+                print 'plot:', maxp.x, maxp.y
+                print 'plot:', minp.x, minp.y
+            toggle = not toggle
+                
