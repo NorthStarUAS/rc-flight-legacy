@@ -29,12 +29,16 @@ if p:
 else:
     print "No segment intersection detected"
 
-p1 = Point(-3, -4)
-p2 = Point(5, -2)
-p3 = Point(6, 4)
-p4 = Point(-1, 3)
+poly = [ Point(-3, -4),
+         Point(-2, -4.5),
+         Point(-0.5, 0),
+         Point(1, -3.5),
+         Point(5, -2),
+         Point(6, 4),
+         Point(1, 1),
+         Point(-1, 2.6) ]
 
-a1 = Area([p1, p2, p3, p4])
+a1 = Area(poly)
 print 'area polygon:', a1.pretty()
 print 'area center point:', a1.center()
 
@@ -60,4 +64,4 @@ print 'side:', p.pretty(), line1.pretty(), '=', side_of_line(p, line1)
 print 'cut:'
 #advance_dir = Line(Point(0,0), Point(1,-0.2))
 advance_dir = Line(Point(0,0), Point(0.2, 1))
-slice(a1, advance_dir, 0.25)
+slice(a1, advance_dir, step=0.25, extend=1)

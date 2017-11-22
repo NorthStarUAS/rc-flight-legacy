@@ -21,6 +21,9 @@ class Area():
         self.edges.append(e)
         for e in self.edges:
             print 'edge:', e.pretty()
+            print 'plot:', e.p1.x, e.p1.y
+            print 'plot:', e.p2.x, e.p2.y
+            print 'plot: '
         
     def pretty(self):
         result = []
@@ -49,7 +52,7 @@ class Area():
 
 # slice an Area() with a cut line perpendicular to the given dir
 # Line() and advancing along the direction Line()
-def slice(area, dir, step):
+def slice(area, dir, step, extend):
     print 'slice:'
     
     # dir 'vector' (normalized)
@@ -85,6 +88,9 @@ def slice(area, dir, step):
 
     print ' start point index:', min_index, 'min dist:', min_dist, area.points[min_index].pretty(), proj[min_index][0].pretty()
     start = point.make_copy( area.points[min_index] )
+    # update cut line start point
+    start.x += dirx * step * 0.5
+    start.y += diry * step * 0.5
 
     # walk through the polygon in 'dir' direction it slicing it with
     # the perpendicular line and find the two extreme point
@@ -92,9 +98,6 @@ def slice(area, dir, step):
     done = False
     toggle = False
     while not done:
-        # update cut line start point
-        start.x += dirx * step
-        start.y += diry * step
         print '    ', start.pretty()
         
         # create cut line
@@ -133,10 +136,14 @@ def slice(area, dir, step):
             maxp = cut_pts[max_index]
             print 'min:', minp.pretty(), 'max:', maxp.pretty()
             if toggle:
-                print 'plot:', minp.x, minp.y
-                print 'plot:', maxp.x, maxp.y
+                print 'plot:', minp.x - cutx*extend, minp.y - cuty*extend
+                print 'plot:', maxp.x + cutx*extend, maxp.y + cuty*extend
             else:
-                print 'plot:', maxp.x, maxp.y
-                print 'plot:', minp.x, minp.y
+                print 'plot:', maxp.x + cutx*extend, maxp.y + cuty*extend
+                print 'plot:', minp.x - cutx*extend, minp.y - cuty*extend
             toggle = not toggle
-                
+        # update cut line start point at the end of the loop
+        start.x += dirx * step
+        start.y += diry * step
+
+        
