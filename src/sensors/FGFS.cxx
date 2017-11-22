@@ -8,6 +8,13 @@
 #include <stdlib.h>		// drand48()
 #include <sys/ioctl.h>
 
+#include <eigen3/Eigen/Core>
+//#include <eigen3/Eigen/Geometry>
+using namespace Eigen;
+#include <iostream>
+using std::cout;
+using std::endl;
+
 #include "util/netSocket.h"
 #include "util/timing.h"
 
@@ -191,14 +198,29 @@ static bool fgfs_imu_sync_update() {
 	float pitch_truth = *(float *)buf; buf += 4;
 	float yaw_truth = *(float *)buf; buf += 4;
 
+        // simulate an off kilter imu mounting
+        Vector3d gv = Vector3d(p, q, r);
+        Vector3d av = Vector3d(ax, ay, az);
+        double a_deg = imu_node.getDouble("bank_bias_deg");
+        double a_rad = a_deg * M_PI / 180.0;
+        double sina = sin(a_rad);
+        double cosa = cos(a_rad);
+        Matrix3d R;
+        R << 1.0,   0.0,  0.0,
+             0.0, cosa,  sina,
+             0.0, -sina, cosa;
+        Vector3d ngv = R * gv;
+        Vector3d nav = R * av;
+        //cout << av << endl << nav << endl << endl;
+        
 	double cur_time = get_Time();
 	imu_node.setDouble( "timestamp", cur_time );
-	imu_node.setDouble( "p_rad_sec", p );
-	imu_node.setDouble( "q_rad_sec", q );
-	imu_node.setDouble( "r_rad_sec", r );
-	imu_node.setDouble( "ax_mps_sec", ax );
-	imu_node.setDouble( "ay_mps_sec", ay );
-	imu_node.setDouble( "az_mps_sec", az );
+	imu_node.setDouble( "p_rad_sec", ngv(0) );
+	imu_node.setDouble( "q_rad_sec", ngv(1) );
+	imu_node.setDouble( "r_rad_sec", ngv(2) );
+	imu_node.setDouble( "ax_mps_sec", nav(0) );
+	imu_node.setDouble( "ay_mps_sec", nav(1) );
+	imu_node.setDouble( "az_mps_sec", nav(2) );
 	imu_node.setDouble( "hx", 0.0 );
 	imu_node.setDouble( "hy", 0.0 );
 	imu_node.setDouble( "hz", 0.0 );

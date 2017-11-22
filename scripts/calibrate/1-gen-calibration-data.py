@@ -136,16 +136,19 @@ print "IMU calibration file:", cal_file
 
 f = open(cal_file, 'w')
 
+min_vel = 7.5                   # mps
 for filt in data['filter']:
     time = filt.time
     if time >= xmin and time <= xmax:
         # if we are processing an aura format or we are above
         # cutoff altitude then log entries
         if flight_format == 'aura_csv' or flight_format or 'aura_txt' or alt >= alt_cutoff:
-            f.write( "%.3f %.1f %.4f %.4f %.4f %.4f %.4f %.4f\n" %
-                     (filt.time, interp.imu_temp(filt.time),
-                      filt.p_bias, filt.q_bias, filt.r_bias,
-                      filt.ax_bias, filt.ay_bias, filt.az_bias) )
+            vel = math.sqrt(filt.vn*filt.vn + filt.ve*filt.ve)
+            if vel >= min_vel:
+                f.write( "%.3f %.1f %.4f %.4f %.4f %.4f %.4f %.4f\n" %
+                         (filt.time, interp.imu_temp(filt.time),
+                          filt.p_bias, filt.q_bias, filt.r_bias,
+                          filt.ax_bias, filt.ay_bias, filt.az_bias) )
 
 f.close()
 

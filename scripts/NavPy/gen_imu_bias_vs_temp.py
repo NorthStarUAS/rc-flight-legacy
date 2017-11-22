@@ -51,7 +51,16 @@ for line in fgps:
     # for the purposes of the insgns algorithm, it's only important to
     # have a properly incrementing clock, it doens't really matter
     # what the zero reference point of time is.
-    time, lat, lon, alt, vn, ve, vd, unixsec, sats, status = re.split('[,\s]+', line.rstrip())
+    tokens = re.split('[,\s]+', line.rstrip())
+    time = tokens[0]
+    lat = tokens[1]
+    lon = tokens[2]
+    alt = tokens[3]
+    vn = tokens[4]
+    ve = tokens[5]
+    vd = tokens[6]
+    unixsec = tokens[7]
+    sats = tokens[8]
     if int(sats) >= 4:
         gps = EKF.GPS( float(time), int(status), float(unixsec),
                        float(lat), float(lon), float(alt),

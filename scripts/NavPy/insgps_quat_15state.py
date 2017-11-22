@@ -94,8 +94,8 @@ class Filter():
         self.stateInnov = np.nan*np.ones(6)
 
     def init_process_noise(self,
-                           sig_w_ax=0.3, sig_w_ay=0.3, sig_w_az=0.3,
-                           sig_w_gx_deg=0.3, sig_w_gy_deg=0.3, sig_w_gz_deg=0.3,
+                           sig_w_ax=0.05, sig_w_ay=0.05, sig_w_az=0.05,
+                           sig_w_gx_deg=0.1, sig_w_gy_deg=0.1, sig_w_gz_deg=0.1,
                            sig_a_d_g=5e-3, sig_g_d_deg=0.05,
                            tau_a=100.0, tau_g=50.0):
         # initialize process noise

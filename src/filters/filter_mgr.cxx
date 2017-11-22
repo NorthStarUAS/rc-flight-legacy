@@ -24,9 +24,9 @@ using std::ostringstream;
 #include "filters/umngnss_quat/umngnss_quat.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "util/lowpass.hxx"
 #include "util/myprof.hxx"
 
+#include "ground.hxx"
 #include "wind.hxx"
 
 #include "filter_mgr.hxx"
@@ -48,14 +48,8 @@ static pyPropertyNode pos_pressure_node;
 static pyPropertyNode pos_combined_node;
 static pyPropertyNode filter_node;
 static pyPropertyNode filter_group_node;
-static pyPropertyNode task_node;
 static pyPropertyNode status_node;
 static vector<pyPropertyNode> sections;
-
-// initial values are the 'time factor'
-static LowPassFilter ground_alt_filt( 30.0 );
-
-static bool ground_alt_calibrated = false;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
@@ -72,7 +66,6 @@ void Filter_init() {
     pos_filter_node = pyGetNode("/position/filter", true);
     pos_pressure_node = pyGetNode("/position/pressure", true);
     pos_combined_node = pyGetNode("/position/combined", true);
-    task_node = pyGetNode("/task", true);
     status_node = pyGetNode("/status", true);
 
     pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
@@ -109,6 +102,9 @@ void Filter_init() {
 	}
     }
 
+    // initialize ground estimator
+    init_ground();
+    
     // initialize wind estimator
     init_wind();
 }
@@ -139,29 +135,6 @@ static void update_euler_rates() {
 	/* printf("%.3f %.3f %.3f %.3f\n",
 	   cur_time,imu_node.getDouble("q_rad_sec"), dq/dt, the_dot); */
    }
-}
-
-
-static void update_ground(double dt) {
-    // determine ground reference altitude.  Average filter altitude
-    // over the most recent 30 seconds that we are !is_airborne
-    if ( !ground_alt_calibrated ) {
-	ground_alt_calibrated = true;
-	ground_alt_filt.init( filter_node.getDouble("altitude_m") );
-    }
-
-    if ( ! task_node.getBool("is_airborne") ) {
-	// ground reference altitude averaged current altitude over
-	// first 30 seconds while on the ground
-	ground_alt_filt.update( filter_node.getDouble("altitude_m"), dt );
-	pos_filter_node.setDouble( "altitude_ground_m",
-				   ground_alt_filt.get_value() );
-    }
-
-    float agl_m = filter_node.getDouble( "altitude_m" )
-	- ground_alt_filt.get_value();
-    pos_filter_node.setDouble( "altitude_agl_m", agl_m );
-    pos_filter_node.setDouble( "altitude_agl_ft", agl_m * SG_METER_TO_FEET );
 }
 
 

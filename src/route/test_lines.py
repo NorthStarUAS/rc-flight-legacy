@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from point import *
 from line import *
 from area import *
 
@@ -16,13 +17,13 @@ p4 = Point(2, 0)
 line1 = Line(p1, p2)
 line2 = Line(p3, p4)
 
-p = intersect_line_v_line(line1, line2)
+p = intersect_line_vs_line(line1, line2)
 if p:
     print "Lines intersect:", p.pretty()
 else:
     print "No single intersection point detected"
 
-p = intersect_seg_v_seg(line1, line2)
+p = intersect_seg_vs_seg(line1, line2)
 if p:
     print "Segments intersect:", p.pretty()
 else:
@@ -57,5 +58,5 @@ p = Point(1,1)
 print 'side:', p.pretty(), line1.pretty(), '=', side_of_line(p, line1)
 
 print 'cut:'
-advance_dir = Line(Point(0,0), Point(-1,1))
-slice(a1, advance_dir)
+advance_dir = Line(Point(0,0), Point(1,-0.2))
+slice(a1, advance_dir, 0.25)

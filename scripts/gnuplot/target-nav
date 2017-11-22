@@ -4,7 +4,7 @@ set datafile separator ","
 
 set ylabel "Angle"
 
-plot "ap-0.txt" using 1:4 with lines title "Target Heading (deg)", \
-     "filter-0.txt" using 1:10 with lines title "Actual Heading (deg)", \
-     "ap-0.txt" using 1:5 with lines title "Target Roll (deg)", \
-     "filter-0.txt" using 1:8 with lines title "Actual Roll (deg)"
+plot "ap-0.csv" using 1:4 with lines title "Target Heading (deg)", \
+     "filter-0.csv" using 1:10 with lines title "Actual Heading (deg)", \
+     "ap-0.csv" using 1:5 with lines title "Target Roll (deg)", \
+     "filter-0.csv" using 1:8 with lines title "Actual Roll (deg)"
