@@ -96,7 +96,7 @@ def slice(area, dir, step, extend):
     # the perpendicular line and find the two extreme point
     # intersections.
     done = False
-    toggle = False
+    slices = []
     while not done:
         print '    ', start.pretty()
         
@@ -135,15 +135,46 @@ def slice(area, dir, step, extend):
             minp = cut_pts[min_index]
             maxp = cut_pts[max_index]
             print 'min:', minp.pretty(), 'max:', maxp.pretty()
-            if toggle:
-                print 'plot:', minp.x - cutx*extend, minp.y - cuty*extend
-                print 'plot:', maxp.x + cutx*extend, maxp.y + cuty*extend
-            else:
-                print 'plot:', maxp.x + cutx*extend, maxp.y + cuty*extend
-                print 'plot:', minp.x - cutx*extend, minp.y - cuty*extend
-            toggle = not toggle
+            slices.append( (point.Point(start.x, start.y), min_dist, max_dist) )
         # update cut line start point at the end of the loop
         start.x += dirx * step
         start.y += diry * step
 
-        
+    size = len(slices)
+    i = 0
+    toggle = True
+    while i < size:
+        print 'i:', i
+        if i > 0:
+            (s0, min0, max0) = slices[i-1]
+        else:
+            (s0, min0, max0) = slices[i]
+        (s1, min1, max1) = slices[i]
+        if i < size - 1:
+            (s2, min2, max2) = slices[i+1]
+        else:
+            (s2, min2, max2) = slices[i]
+        min = min1
+        if  toggle:
+            if min0 < min: min = min0
+        else:
+            if min2 < min: min = min2
+        max = max1
+        if not toggle:
+            if max0 > max: max = max0
+        else:
+            if max2 > max: max = max2
+        p1 = point.Point(s1.x + cutx*(min - extend),
+                         s1.y + cuty*(min - extend))
+        p2 = point.Point(s1.x + cutx*(max + extend),
+                         s1.y + cuty*(max + extend))
+        if toggle:
+            print 'plot:', p1.x, p1.y
+            print 'plot:', p2.x, p2.y
+        else:
+            print 'plot:', p2.x, p2.y
+            print 'plot:', p1.x, p1.y
+        i += 1
+        toggle = not toggle
+
+            

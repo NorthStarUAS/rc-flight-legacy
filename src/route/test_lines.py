@@ -63,5 +63,8 @@ print 'side:', p.pretty(), line1.pretty(), '=', side_of_line(p, line1)
 
 print 'cut:'
 #advance_dir = Line(Point(0,0), Point(1,-0.2))
-advance_dir = Line(Point(0,0), Point(0.2, 1))
+#advance_dir = Line(Point(0,0), Point(0.2, 1))
+import random
+random.seed()
+advance_dir = Line(Point(0,0), Point(random.random()-0.5, random.random()-0.5))
 slice(a1, advance_dir, step=0.25, extend=1)
