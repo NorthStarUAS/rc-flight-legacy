@@ -67,4 +67,4 @@ print 'cut:'
 import random
 random.seed()
 advance_dir = Line(Point(0,0), Point(random.random()-0.5, random.random()-0.5))
-slice(a1, advance_dir, step=0.25, extend=1)
+slice(a1, advance_dir, step=random.random()*0.5, extend=0.5)
