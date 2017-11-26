@@ -38,9 +38,16 @@ poly = [ Point(-3, -4),
          Point(1, 1),
          Point(-1, 2.6) ]
 
+# shrink poly
+for p in poly:
+    p.x /= 100.0
+    p.y /= 100.0
+
 a1 = Area(poly)
+ref = a1.center()
 print 'area polygon:', a1.pretty()
-print 'area center point:', a1.center()
+print 'area center point:', ref.pretty()
+a1.debug_edges()
 
 print line1.slope()
 print line2.slope()
@@ -61,6 +68,9 @@ print 'side:', p.pretty(), line1.pretty(), '=', side_of_line(p, line1)
 p = Point(1,1)
 print 'side:', p.pretty(), line1.pretty(), '=', side_of_line(p, line1)
 
+cart = geod2cart( ref, a1 )
+geod = cart2geod( ref, cart )
+    
 print 'cut:'
 #advance_dir = Line(Point(0,0), Point(1,-0.2))
 #advance_dir = Line(Point(0,0), Point(0.2, 1))

@@ -1,8 +1,17 @@
 # this import forces a float result even when dividing two integers
-from __future__ import division 
+from __future__ import division
+
+import math
+
+import sys
+sys.path.append('..')
+import mission.greatcircle as gc
 
 import point
 from line import *
+
+d2r = math.pi / 180
+r2d = 180 / math.pi
 
 class Area():
     def __init__(self, points):
@@ -19,25 +28,27 @@ class Area():
         p2 = self.points[0]
         e = Line(p1, p2)
         self.edges.append(e)
-        for e in self.edges:
-            print 'edge:', e.pretty()
-            print 'plot:', e.p1.x, e.p1.y
-            print 'plot:', e.p2.x, e.p2.y
-            print 'plot: '
         
     def pretty(self):
         result = []
         for p in self.points:
             result.append(p.pretty())
         return result
-        
+
+    def debug_edges(self):
+        for e in self.edges:
+            print 'edge:', e.pretty()
+            print 'plot:', e.p1.x, e.p1.y
+            print 'plot:', e.p2.x, e.p2.y
+            print 'plot: '
+
     def center(self):
         sumx = 0
         sumy = 0
         for p in self.points:
             sumx += p.x
             sumy += p.y
-        return sumx / len(self.points), sumy / len(self.points)
+        return point.Point( sumx / len(self.points), sumy / len(self.points) )
 
     def intersect_with_line(self, line):
         result = []
@@ -50,6 +61,31 @@ class Area():
         print '  result:', result
         return result
 
+# convert coordinates from geodetic (lon/lat) to cartesian
+def geod2cart(ref, geod):
+    print 'geod2cart()'
+    result = []
+    for p in geod.points:
+        # expects points as [lat, lon]
+        heading, dist = gc.course_and_dist( [ref.y, ref.x], [p.y, p.x] )
+        angle = (90 - heading) * d2r
+        x = math.cos(angle) * dist
+        y = math.sin(angle) * dist
+        print p.pretty(), 'hdg:', heading, 'dist:', dist, 'cart:', x, y
+        result.append( point.Point(x, y) )
+    return Area(result)
+        
+# convert coordinates from cartesian to geodetic (lon/lat)
+def cart2geod(ref, cart):
+    print 'cart2geod()'
+    result = []
+    for p in cart.points:
+        heading = 90 - math.atan2(p.y, p.x) * r2d
+        dist = math.sqrt(p.x*p.x + p.y*p.y)
+        lat, lon = gc.project_course_distance( [ref.y, ref.x], heading, dist )
+        print p.pretty(), 'hdg:', heading, 'dist:', dist, 'geod:', lon, lat
+    
+    
 # slice an Area() with a cut line perpendicular to the given dir
 # Line() and advancing along the direction Line()
 def slice(area, dir, step, extend):

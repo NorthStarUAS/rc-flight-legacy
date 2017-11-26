@@ -10,4 +10,3 @@ class Point():
 
 def make_copy(source):
     return Point(source.x, source.y)
-        
