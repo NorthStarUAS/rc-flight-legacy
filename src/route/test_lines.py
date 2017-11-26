@@ -68,7 +68,7 @@ print 'side:', p.pretty(), line1.pretty(), '=', side_of_line(p, line1)
 p = Point(1,1)
 print 'side:', p.pretty(), line1.pretty(), '=', side_of_line(p, line1)
 
-cart = geod2cart( ref, a1 )
+cart = geod2cart( ref, a1.points )
 geod = cart2geod( ref, cart )
     
 print 'cut:'

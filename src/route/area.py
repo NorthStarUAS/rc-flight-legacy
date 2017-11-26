@@ -61,11 +61,11 @@ class Area():
         print '  result:', result
         return result
 
-# convert coordinates from geodetic (lon/lat) to cartesian
-def geod2cart(ref, geod):
+# convert list of Point coordinates from geodetic (lon/lat) to cartesian
+def geod2cart(ref, geod_points):
     print 'geod2cart()'
     result = []
-    for p in geod.points:
+    for p in geod_points:
         # expects points as [lat, lon]
         heading, dist = gc.course_and_dist( [ref.y, ref.x], [p.y, p.x] )
         angle = (90 - heading) * d2r
@@ -73,17 +73,19 @@ def geod2cart(ref, geod):
         y = math.sin(angle) * dist
         print p.pretty(), 'hdg:', heading, 'dist:', dist, 'cart:', x, y
         result.append( point.Point(x, y) )
-    return Area(result)
+    return result
         
-# convert coordinates from cartesian to geodetic (lon/lat)
-def cart2geod(ref, cart):
+# convert list of Point coordinates from cartesian to geodetic (lon/lat)
+def cart2geod(ref, cart_points):
     print 'cart2geod()'
     result = []
-    for p in cart.points:
+    for p in cart_points:
         heading = 90 - math.atan2(p.y, p.x) * r2d
         dist = math.sqrt(p.x*p.x + p.y*p.y)
         lat, lon = gc.project_course_distance( [ref.y, ref.x], heading, dist )
         print p.pretty(), 'hdg:', heading, 'dist:', dist, 'geod:', lon, lat
+        result.append( point.Point(lon, lat) )
+    return result
     
     
 # slice an Area() with a cut line perpendicular to the given dir
