@@ -8,6 +8,7 @@ sys.path.append('..')
 import mission.greatcircle as gc
 
 import point
+import vector
 from line import *
 
 d2r = math.pi / 180
@@ -94,18 +95,19 @@ def slice(area, dir, step, extend):
     print 'slice:'
     
     # dir 'vector' (normalized)
-    dirx, diry = dir.vector_norm()
-    print 'direction vector:', (dirx, diry)
+    dir_norm = vector.norm(dir)
+    print 'direction vector:', dir_norm.pretty()
 
     # cut 'vector' (normalized)
-    cutx = -diry
-    cuty = dirx
+    cutx = -dir_norm.y
+    cuty = dir_norm.x
     print 'cut vector:', (cutx, cuty)
 
     # project all the area points onto the direction line
     proj = []
+    adv_line = Line( point.Point(0,0), point.Point(dir.x, dir.y) )
     for p in area.points:
-        r, d = project_point_on_line(p, dir)
+        r, d = project_point_on_line(p, adv_line)
         print '   orig:', p.pretty(), 'proj:', r.pretty(), 'dist:', d
         proj.append((r,d))
 
@@ -125,10 +127,10 @@ def slice(area, dir, step, extend):
         print '  ', p.pretty()
 
     print ' start point index:', min_index, 'min dist:', min_dist, area.points[min_index].pretty(), proj[min_index][0].pretty()
-    start = point.make_copy( area.points[min_index] )
+    start = point.Point( area.points[min_index].x, area.points[min_index].y )
     # update cut line start point
-    start.x += dirx * step * 0.5
-    start.y += diry * step * 0.5
+    start.x += dir_norm.x * step * 0.5
+    start.y += dir_norm.y * step * 0.5
 
     # walk through the polygon in 'dir' direction it slicing it with
     # the perpendicular line and find the two extreme point
@@ -175,8 +177,8 @@ def slice(area, dir, step, extend):
             print 'min:', minp.pretty(), 'max:', maxp.pretty()
             slices.append( (point.Point(start.x, start.y), min_dist, max_dist) )
         # update cut line start point at the end of the loop
-        start.x += dirx * step
-        start.y += diry * step
+        start.x += dir_norm.x * step
+        start.y += dir_norm.y * step
 
     size = len(slices)
     i = 0

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from point import *
+import vector
 from line import *
 from area import *
 
@@ -39,9 +40,9 @@ poly = [ Point(-3, -4),
          Point(-1, 2.6) ]
 
 # shrink poly
-for p in poly:
-    p.x /= 100.0
-    p.y /= 100.0
+#for p in poly:
+#    p.x /= 100.0
+#    p.y /= 100.0
 
 a1 = Area(poly)
 ref = a1.center()
@@ -76,5 +77,5 @@ print 'cut:'
 #advance_dir = Line(Point(0,0), Point(0.2, 1))
 import random
 random.seed()
-advance_dir = Line(Point(0,0), Point(random.random()-0.5, random.random()-0.5))
+advance_dir = vector.Vector(random.random()-0.5, random.random()-0.5)
 slice(a1, advance_dir, step=random.random()*0.5, extend=0.5)

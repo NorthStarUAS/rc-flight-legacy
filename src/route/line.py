@@ -28,13 +28,6 @@ class Line():
             return dy / dx
         else:
             return False
-
-    # return the normalized direction vector of the line
-    def vector_norm(self):
-        dy = self.p2.y - self.p1.y
-        dx = self.p2.x - self.p1.x
-        dist = math.sqrt(dx*dx + dy*dy)
-        return dx / dist, dy / dist
     
 # compute the intersection of two infinite lines
 def intersect_line_vs_line(line1, line2):

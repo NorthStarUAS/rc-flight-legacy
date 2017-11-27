@@ -7,6 +7,3 @@ class Point():
 
     def pretty(self):
         return (self.x, self.y)
-
-def make_copy(source):
-    return Point(source.x, source.y)
