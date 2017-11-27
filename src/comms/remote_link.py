@@ -91,8 +91,10 @@ def send_message( data ):
         return False
 
 route_request = []
+survey_request = {}
 def execute_command( command ):
     global route_request
+    global survey_request
     
     if command == '':
         # no valid tokens
@@ -119,6 +121,22 @@ def execute_command( command ):
     elif tokens[0] == 'route_end' and len(tokens) == 1:
 	route_node.setString( 'route_request', ','.join(route_request) )
 	task_node.setString( 'command_request', 'task,route' )
+    elif tokens[0] == 'survey_start' and len(tokens) == 6:
+        for i, tok in enumerate(tokens):
+            if tokens[i] == 'undefined':
+                tokens[i] = 0.0
+        survey_request['agl_ft'] = float( tokens[1] )
+        survey_request['overlap_perc'] = float( tokens[2] )
+        survey_request['sidelap_perc'] = float( tokens[3] )
+        survey_request['forward_fov'] = float( tokens[4] )
+        survey_request['lateral_fov'] = float( tokens[5] )
+        survey_request['area'] = []
+    elif tokens[0] == 'survey_cont' and len(tokens) > 2:
+        for i in range(1, len(tokens), 2):
+            wpt = ( float(tokens[i]), float(tokens[i+1]) )
+            survey_request['area'].append( wpt )            
+    elif tokens[0] == 'survey_end' and len(tokens) == 1:
+        print 'survey request:', survey_request
     elif tokens[0] == 'task':
 	task_node.setString( 'command_request', command )
     elif tokens[0] == 'ap' and len(tokens) == 3:
