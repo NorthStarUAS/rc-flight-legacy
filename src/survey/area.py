@@ -183,6 +183,7 @@ def slice(area, dir, step, extend):
     size = len(slices)
     i = 0
     toggle = True
+    route = []
     while i < size:
         print 'i:', i
         if i > 0:
@@ -211,10 +212,15 @@ def slice(area, dir, step, extend):
         if toggle:
             print 'plot:', p1.x, p1.y
             print 'plot:', p2.x, p2.y
+            route.append(p1)
+            route.append(p2)
         else:
             print 'plot:', p2.x, p2.y
             print 'plot:', p1.x, p1.y
+            route.append(p2)
+            route.append(p1)
         i += 1
         toggle = not toggle
 
-            
+    # and finally return the result
+    return route
