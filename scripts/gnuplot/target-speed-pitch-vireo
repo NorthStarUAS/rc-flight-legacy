@@ -1,0 +1,16 @@
+# plot pitch vs. speed parameters
+
+set datafile separator ","
+
+set ytics nomirror
+set y2label "Elevator"
+set y2tics
+
+plot \
+     "ap-0.txt" using 1:10 with lines title "Target Airspeed (kts)", \
+     "air-0.txt" using 1:4 with lines title "Indicated Airspeed (kts)", \
+     "air-0.txt" using 1:($4*$11) with lines title "True Airspeed (kts)", \
+     "ap-0.txt" using 1:8 with lines title "Target Pitch (deg)", \
+     "filter-0.txt" using 1:9 with lines title "Actual Pitch (deg)", \
+     "act-0.txt" using 1:3 with lines axis x1y2 title "AP Elevator Defl", \
+     "pilot-0.txt" using 1:($4-$5)*0.5 with lines axis x1y2 title "Pilot Elevator Defl"
