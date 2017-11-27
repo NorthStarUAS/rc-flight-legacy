@@ -9,7 +9,7 @@ import mission.greatcircle as gc
 
 import point
 import vector
-from line import *
+import line
 
 d2r = math.pi / 180
 r2d = 180 / math.pi
@@ -22,12 +22,12 @@ class Area():
         for i in range(size):
             p1 = self.points[i]
             p2 = self.points[i + 1]
-            e = Line(p1, p2)
+            e = line.Line(p1, p2)
             self.edges.append(e)
         # close the perimeter
         p1 = self.points[size]
         p2 = self.points[0]
-        e = Line(p1, p2)
+        e = line.Line(p1, p2)
         self.edges.append(e)
         
     def pretty(self):
@@ -51,12 +51,12 @@ class Area():
             sumy += p.y
         return point.Point( sumx / len(self.points), sumy / len(self.points) )
 
-    def intersect_with_line(self, line):
+    def intersect_with_line(self, cut):
         result = []
         size = len(self.edges)
         for i in range(size):
             print 'i:', i, self.edges[i].pretty()
-            p = intersect_line_vs_seg(line, self.edges[i])
+            p = line.intersect_line_vs_seg(cut, self.edges[i])
             if p != False:
                 result.append(p)
         print '  result:', result
@@ -105,9 +105,9 @@ def slice(area, dir, step, extend):
 
     # project all the area points onto the direction line
     proj = []
-    adv_line = Line( point.Point(0,0), point.Point(dir.x, dir.y) )
+    adv_line = line.Line( point.Point(0,0), point.Point(dir.x, dir.y) )
     for p in area.points:
-        r, d = project_point_on_line(p, adv_line)
+        r, d = line.project_point_on_line(p, adv_line)
         print '   orig:', p.pretty(), 'proj:', r.pretty(), 'dist:', d
         proj.append((r,d))
 
@@ -142,7 +142,7 @@ def slice(area, dir, step, extend):
         
         # create cut line
         end = point.Point(start.x + cutx, start.y + cuty)
-        cut_line = Line(start, end)
+        cut_line = line.Line(start, end)
 
         cut_pts = area.intersect_with_line(cut_line)
         if len(cut_pts) < 2:
@@ -154,7 +154,7 @@ def slice(area, dir, step, extend):
             # information we need now.
             proj = []
             for p in cut_pts:
-                r, d = project_point_on_line(p, cut_line)
+                r, d = line.project_point_on_line(p, cut_line)
                 print '   cut:', p.pretty(), 'proj:', r.pretty(), 'dist:', d
                 proj.append((r,d))
             # and find the min/max distance points

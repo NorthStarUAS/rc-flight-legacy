@@ -7,6 +7,7 @@ from __future__ import division
 import math
 
 import point
+import vector
         
 class Line():
     def __init__(self, p1, p2):
@@ -19,15 +20,12 @@ class Line():
     def pretty(self):
         return self.p1.pretty(), self.p2.pretty()
 
-    # return the slope of the line (if it is not vertical/infinite)
-    def slope(self):
-        # dy/dx or (y2 - y1) / (x2 - x1)
+    # return a normalized vector representing the direction of the line
+    def direction(self):
         dy = self.p2.y - self.p1.y
         dx = self.p2.x - self.p1.x
-        if dx != 0:
-            return dy / dx
-        else:
-            return False
+        dir = vector.Vector(dx, dy)
+        return vector.norm(dir)
     
 # compute the intersection of two infinite lines
 def intersect_line_vs_line(line1, line2):

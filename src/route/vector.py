@@ -2,13 +2,10 @@
 
 import math
 
-class Vector():
-    def __init__(self, x=0.0, y=0.0):
-        self.x = x
-        self.y = y
+import point
 
-    def pretty(self):
-        return (self.x, self.y)
+class Vector(point.Point):
+    pass
 
 # return a normalized vector
 def norm(v):

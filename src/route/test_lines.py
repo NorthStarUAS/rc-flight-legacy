@@ -50,8 +50,8 @@ print 'area polygon:', a1.pretty()
 print 'area center point:', ref.pretty()
 a1.debug_edges()
 
-print line1.slope()
-print line2.slope()
+print 'line1 dir:', line1.direction().pretty()
+print 'line2 dir:', line2.direction().pretty()
 
 p = Point(0,2)
 print 'dist:', p.pretty(), line1.pretty(), '=', distance_to_line(p, line1)
