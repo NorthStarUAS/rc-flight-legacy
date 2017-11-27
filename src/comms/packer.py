@@ -1145,6 +1145,12 @@ def unpack_ap_status_v6(buf):
     targets_node.setFloat("pitch_deg", result[7] / 10.0)
     targets_node.setFloat("airspeed_kt", result[8] / 10.0)
     status_node.setFloat("flight_timer", result[9])
+    if route_size != active_node.getInt("route_size"):
+        # route size change, zero all the waypoint coordinates
+        for i in range(active_node.getInt("route_size")):
+            wp_node = active_node.getChild('wpt[%d]' % i, True)
+            wp_node.setFloat("longitude_deg", 0)
+            wp_node.setFloat("latitude_deg", 0)
     route_node.setInt("target_waypoint_idx", result[10])
     if wp_index < route_size:
         wp_node = active_node.getChild('wpt[%d]' % wp_index, True)

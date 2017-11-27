@@ -123,15 +123,16 @@ def execute_command( command ):
     elif tokens[0] == 'route_end' and len(tokens) == 1:
 	route_node.setString( 'route_request', ','.join(route_request) )
 	task_node.setString( 'command_request', 'task,route' )
-    elif tokens[0] == 'survey_start' and len(tokens) == 6:
+    elif tokens[0] == 'survey_start' and len(tokens) == 7:
         for i, tok in enumerate(tokens):
             if tokens[i] == 'undefined':
                 tokens[i] = 0.0
         survey_request['agl_ft'] = float( tokens[1] )
-        survey_request['overlap_perc'] = float( tokens[2] )
-        survey_request['sidelap_perc'] = float( tokens[3] )
-        survey_request['forward_fov'] = float( tokens[4] )
-        survey_request['lateral_fov'] = float( tokens[5] )
+        survey_request['extend_m'] = float( tokens[2] )
+        survey_request['overlap_perc'] = float( tokens[3] )
+        survey_request['sidelap_perc'] = float( tokens[4] )
+        survey_request['forward_fov'] = float( tokens[5] )
+        survey_request['lateral_fov'] = float( tokens[6] )
         survey_request['area'] = []
     elif tokens[0] == 'survey_cont' and len(tokens) > 2:
         for i in range(1, len(tokens), 2):

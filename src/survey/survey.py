@@ -14,14 +14,19 @@ d2r = math.pi / 180.0
 
 wind_node = getNode("/filters/wind", True)
 task_node = getNode( '/task', True )
+targets_node = getNode( '/autopilot/targets', True )
 
 def do_survey( request ):
     # validate the inputs
     print 'do survey:', request
     if 'agl_ft' in request:
-        agl_m = request['agl_ft'] * ft2m
+        agl_ft = request['agl_ft']
     else:
-        agl_m = 200 * ft2m
+        agl_ft = 200
+    if 'extend_m' in request:
+        extend_m = request['extend_m']
+    else:
+        extend_m = 50
     if 'overlap_perc' in request:
         flap = request['overlap_perc']
     else:
@@ -58,12 +63,21 @@ def do_survey( request ):
         # little or no wind
         advance_dir = vector.Vector(0, 1) # north
 
+    # survey altitude
+    if agl_ft >= 100 and agl_ft <= 400:
+        # autoset target altitude if the value is reasonably sane
+        # (otherwise leave it up to the operator to set the altitude
+        # from the gcs)
+        targets_node.setFloat( 'altitude_agl_ft', agl_ft )
+    agl_m = agl_ft * ft2m
+
     # compute sidelap step in m
     fov2_tan = math.tan(lfov*0.5 * d2r)
     slap_dist_m = 2 * fov2_tan * agl_m * (1.0 - slap)
 
     # slice the area and make the route
-    cart_route = area.slice(cart_area, advance_dir, step=slap_dist_m, extend=50)
+    cart_route = area.slice(cart_area, advance_dir, step=slap_dist_m,
+                            extend=extend_m)
     geod_route = area.cart2geod( ref, cart_route )
 
     # assemble the route
@@ -83,4 +97,3 @@ def do_survey( request ):
 
     # dribble
     control.route.dribble(reset=True)
-    
