@@ -6,6 +6,8 @@ import events
 import packer
 import serial_parser
 
+import survey.survey
+
 status_node = getNode( '/status', True)
 route_node = getNode( '/task/route', True )
 task_node = getNode( '/task', True )
@@ -136,7 +138,7 @@ def execute_command( command ):
             wpt = ( float(tokens[i]), float(tokens[i+1]) )
             survey_request['area'].append( wpt )            
     elif tokens[0] == 'survey_end' and len(tokens) == 1:
-        print 'survey request:', survey_request
+        survey.survey.do_survey(survey_request)
     elif tokens[0] == 'task':
 	task_node.setString( 'command_request', command )
     elif tokens[0] == 'ap' and len(tokens) == 3:
