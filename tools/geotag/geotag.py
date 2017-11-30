@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser(description='Geotag a set of images from the sp
 parser.add_argument('--flight', required=True, help='AuraUAS flight data log directory')
 parser.add_argument('--images', required=True, help='Directory containing the images')
 parser.add_argument('--hz', default=100, type=int, help='sample rate')
+parser.add_argument('--shift-time', type=float, help='manual time shift')
 parser.add_argument('--no-plot', dest='plot', action='store_false', help='do not show correlation plots')
 parser.add_argument('--write', action='store_true', help='update geotags on source images')
 parser.set_defaults(plot=True)
@@ -84,10 +85,9 @@ for f in files:
     t = datetime.time(int(hour), int(minute), int(second))
     dt = datetime.datetime.combine(d, t) 
     unixtime = dt.strftime('%s')
-    # print unixtime
     images.append([float(unixtime), name])
 
-# generate triggers signal
+# generate images signal
 if len(images) < 1:
     print 'No images found'
     quit()
@@ -95,7 +95,7 @@ min_image = float(images[0][0])
 max_image = float(images[-1][0])
 print min_image, max_image, 'num images:', len(images)
 signal = [0.0] * int((max_image-min_image)*args.hz + 1)
-width = 2.0                       # seconds
+width = 4.0                       # seconds
 for i in images:
     time = i[0]
     index = int((time-min_image) * args.hz)
@@ -104,28 +104,38 @@ for i in images:
         #print i, x, math.cos(x)
         if (index + i) >= 0 and (index + i) < len(signal):
             val = math.cos(x) * 0.99
-            if val > 0.00001:
+            # max
+            if val > signal[index + i]:
                 signal[index + i] = val
+            # sum
+            # signal[index + i] += val
 images_signal = np.array(signal)
 
 print "running correlation between images and triggers"
 #ycorr = np.correlate(trigger_signal, images_signal, mode='full')
 ycorr = np.convolve(trigger_signal, images_signal, mode='valid')
 
-max_index = np.argmax(ycorr)
+if args.shift_time:
+    # override correlation result
+    shift = args.shift_time
+    max_index = shift * args.hz
+else:
+    max_index = np.argmax(ycorr)
+    
 print "len triggers:", len(trigger_signal)
 print "len images:", len(images_signal)
 print "max index:", max_index
 shift = float(max_index) / args.hz
-print "time shift: %.2f" % (shift)
-raw_offset = min_image - min_trig
-print "raw offset:", raw_offset
-offset = raw_offset - shift
-print "corrected offset:", offset
+print "relative time shift: %.2f" % (shift)
+if len(trigger_signal) < len(images_signal):
+    # should be ok
+    pass
+else:
+    print "I DON'T KNOW WHAT TO DO HERE ... FIGURE IT OUT!  But might be ok?"
 
 if args.plot:
     plt.figure(1)
-    plt.plot(np.array(range(0, len(trigger_signal))),
+    plt.plot(np.array(range(0, len(trigger_signal))) + max_index,
              trigger_signal, label='triggers')
     plt.plot(np.array(range(0, len(images_signal))),
              images_signal, label='images')
@@ -181,26 +191,33 @@ def closest_trigger(time):
     #                              float(tokens[2]),
     #                              float(tokens[3]) ])
     index = 0
-    diff = 99999999.0
+    diff = None
     for i, t in enumerate(triggers):
-        d = abs(time - t[0])
-        if d < diff:
+        d = time - t[0]
+        if diff == None or (d >= 0 and d < diff):
             diff = d
             index = i
-    print '  closest trigger:', triggers[index]
-    return index
+    print '  closest trigger:', triggers[index], 'diff:', diff
+    if diff != None and diff >= 0 and diff <= 10:
+        return index
+    else:
+        return None
     
-#offset = max_index - len(trigger_signal)
-#offset = max_index - len(images_signal)
-#offset = 0
-#print "offset:", offset
-
 # traverse the image list and geotag
 for i in images:
     time = i[0]
     image = i[1]
-    print image, 'log time:', time - raw_offset
-    index = closest_trigger(time - raw_offset)
+    print image,
+    print '  unix:', time
+    print '  min_image:', min_image
+    print '  shift:', shift
+    print '  min_trigger:', min_trig
+    log_time = time - min_image - shift + min_trig
+    print ' trigger:', time - min_image - shift + min_trig
+    index = closest_trigger(log_time)
+    if index == None:
+        print 'no trigger event found for this image'
+        continue
     trigger = triggers[index]
     lat = trigger[1]
     lon = trigger[2]
