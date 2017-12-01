@@ -5,9 +5,11 @@ from props import getNode
 import mission.greatcircle as gc
 import comms.events
 import waypoint
+import windtri
 
 d2r = math.pi / 180.0
 r2d = 180.0 / math.pi
+kt2mps = 0.5144444444444444444
 sqrt_of_2 = math.sqrt(2.0)
 gravity = 9.81                  # m/sec^2
 
@@ -21,6 +23,7 @@ L1_node = getNode('/config/autopilot/L1_controller', True)
 targets_node = getNode('/autopilot/targets', True)
 gps_node = getNode('/sensors/gps', True)
 comms_node = getNode('/comms', True)
+wind_node = getNode('/filters/wind', True)
 
 active_route = []        # actual routes
 standby_route = []
@@ -189,7 +192,57 @@ def get_remaining_distance_from_next_waypoint():
     for wp in active_route[current_wp:] :
         result += wp.leg_dist_m
     return result
-    
+
+# Given wind speed, wind direction, and true airspeed (from the
+# property tree), as well as a current ground course, and a target
+# ground course, compute the estimated true heading (psi, aircraft
+# body heading) difference that will take us from the current ground
+# course to the target ground course.
+#
+# Note: this produces accurate tracking, even if the wind estimate is
+# wrong.  The primary affect of a poor wind estimate is sub-optimal
+# heading error gain.  i.e. the when the current course and target
+# course are aligned, this function alawys produces zero error.
+#
+# ... and oh by the way, est_cur_hdg_deg and gs1_kt won't exactly
+# match truth if the wind estimate has any error at all, but we care
+# about the relative heading error, so this function will produce the
+# 'correct' heading error.
+def wind_heading_error( current_crs_deg, target_crs_deg ):
+    ws_kt = wind_node.getFloat("wind_speed_kt")
+    tas_kt = wind_node.getFloat("true_airspeed_kt")
+    wd_deg = wind_node.getFloat("wind_dir_deg")
+    (est_cur_hdg_deg, gs1_kt) = windtri.wind_course( ws_kt, tas_kt, wd_deg,
+                                                     current_crs_deg )
+    (est_nav_hdg_deg, gs2_kt) = windtri.wind_course( ws_kt, tas_kt, wd_deg,
+		                                     target_crs_deg )
+    # print 'cur gnd:', current_crs_deg, 'target:', target_crs_deg
+    if est_cur_hdg_deg != None and est_nav_hdg_deg != None:
+        # life is good
+        # print ' cur:', est_cur_hdg_deg, 'gs1:', gs1_kt
+        # print ' nav:', est_nav_hdg_deg, 'gs2:', gs2_kt
+        hdg_error = est_cur_hdg_deg - est_nav_hdg_deg
+    else:
+	# Yikes, course cannot be flown, wind too strong!  Compute a
+	# heading error relative to the wind 'from' direction.  This
+	# will cause the aircraft to point it's nose into the wind and
+	# kite.  This minimizes a bad situation and gives the operator
+	# maximum time to take corrective action.  But hurry and do
+	# something!
+        
+        # point to next waypoint (probably less good than pointing into
+        # the wind.)
+        # hdg_error = orient_node.getFloat('heading_deg') - target_crs_deg
+
+        # point to wind (will probably slide laterally due to some
+        # inevitable assymetries in bank angle verus turn rate):
+        hdg_error = orient_node.getFloat('heading_deg') - wd_deg
+
+    if hdg_error < -180: hdg_error += 360
+    if hdg_error > 180: hdg_error -= 360
+    # print ' body err:', hdg_error
+    return hdg_error
+
 def update(dt):
     global current_wp
     global acquired
@@ -239,6 +292,9 @@ def update(dt):
             L1_period = L1_node.getFloat('period')
             L1_damping = L1_node.getFloat('damping')
             gs_mps = vel_node.getFloat('groundspeed_ms')
+            groundtrack_deg = orient_node.getFloat('groundtrack_deg')
+            tas_kt = wind_node.getFloat("true_airspeed_kt")
+            tas_mps = tas_kt * kt2mps
 
             prev = get_previous_wp()
             wp = get_current_wp()
@@ -294,12 +350,14 @@ def update(dt):
                 # reference code.
                 pass
             elif follow_mode == 'leader':
+                # scale our L1_dist (something like a target heading
+                # gain) proportional to ground speed
                 L1_dist = (1.0 / math.pi) * L1_damping * L1_period * gs_mps
                 wangle = 0.0
-                if L1_dist < 0.01:
-                    # ground speed <= 0.0 (problem?!?)
-                    nav_course = direct_course
-                elif L1_dist <= abs(xtrack_m):
+                if L1_dist < 1.0:
+                    # ground really small or negative (problem?!?)
+                    L1_dist = 1.0
+                if L1_dist <= abs(xtrack_m):
                     # beyond L1 distance, steer as directly toward
                     # leg as allowed
                     wangle = 0.0
@@ -335,15 +393,21 @@ def update(dt):
             # target bank angle computed here
             target_bank_deg = 0.0
 
+            # heading error is computed with wind triangles so this is
+            # the actual body heading error, not the ground track
+            # error, thus Vomega is computed with tas_mps, not gs_mps
             omegaA = sqrt_of_2 * math.pi / L1_period
-            VomegaA = gs_mps * omegaA
-            course_error = orient_node.getFloat('groundtrack_deg') \
-                - nav_course
-            if course_error < -180.0: course_error += 360.0
-            if course_error > 180.0: course_error -= 360.0
-            targets_node.setFloat( 'course_error_deg', course_error )
+            #VomegaA = gs_mps * omegaA
+            #course_error = orient_node.getFloat('groundtrack_deg') \
+            #               - nav_course
+            VomegaA = tas_mps * omegaA
+            # print 'gt:', groundtrack_deg, 'nc:', nav_course, 'error:', groundtrack_deg - nav_course
+            hdg_error = wind_heading_error(groundtrack_deg, nav_course)
+            if hdg_error < -180.0: hdg_error += 360.0
+            if hdg_error > 180.0: hdg_error -= 360.0
+            targets_node.setFloat( 'heading_error_deg', hdg_error )
 
-            accel = 2.0 * math.sin(course_error * d2r) * VomegaA
+            accel = 2.0 * math.sin(hdg_error * d2r) * VomegaA
 
             target_bank_deg = -math.atan( accel / gravity )*r2d + bank_bias_deg
             
