@@ -13,6 +13,10 @@ import pyexiv2
 
 from aurauas.flightdata import flight_loader, flight_interp
 
+# helpful constants
+d2r = math.pi / 180.0
+r2d = 180.0 / math.pi
+
 parser = argparse.ArgumentParser(description='Geotag a set of images from the specified flight data log.')
 
 parser.add_argument('--flight', required=True, help='AuraUAS flight data log directory')
@@ -25,7 +29,8 @@ parser.set_defaults(plot=True)
 args = parser.parse_args()
 
 # load flight data
-data, flight_format = flight_loader.load(args.flight, recal_file)
+print 'Loading flight data:', args.flight
+data, flight_format = flight_loader.load(args.flight)
 interp = flight_interp.FlightInterpolate()
 interp.build(data)
 
@@ -56,13 +61,14 @@ if os.path.exists(event_file):
                                   float(tokens[1]),
                                   float(tokens[2]),
                                   float(tokens[3]) ])
+
 # generate trigger signal
 if len(triggers) < 1:
     print 'No camera trigger events found'
     quit()
 min_trig = triggers[0][0]
 max_trig = triggers[-1][0]
-print min_trig, max_trig, len(triggers)
+print min_trig, max_trig, 'total triggers:', len(triggers)
 signal = [0.0] * int((max_trig-min_trig)*args.hz + 1)
 for t in triggers:
     time = t[0]
@@ -70,7 +76,6 @@ for t in triggers:
     signal[index] = 1
 trigger_signal = np.array(signal)
 
-# generate images signal
 # load list of images
 files = []
 for file in os.listdir(args.images):
@@ -78,7 +83,8 @@ for file in os.listdir(args.images):
         files.append(file)
 files.sort()
 images = []
-# read image timestamp
+
+# read image exif timestamp (and convert to unix seconds)
 for f in files:
     name = os.path.join(args.images, f)
     print name
@@ -118,7 +124,7 @@ for i in images:
             # signal[index + i] += val
 images_signal = np.array(signal)
 
-print "running correlation between images and triggers"
+print "running correlation between image and trigger signals"
 #ycorr = np.correlate(trigger_signal, images_signal, mode='full')
 ycorr = np.convolve(trigger_signal, images_signal, mode='valid')
 
@@ -193,10 +199,6 @@ def decimal_to_dms(decimal):
     return [Fraction(n) for n in (degrees, minutes, remainder * 60)]
 
 def closest_trigger(time):
-    #triggers.append([ float(row['timestamp']),
-    #                              float(tokens[1]),
-    #                              float(tokens[2]),
-    #                              float(tokens[3]) ])
     index = 0
     diff = None
     for i, t in enumerate(triggers):
@@ -209,7 +211,48 @@ def closest_trigger(time):
         return index
     else:
         return None
-    
+
+# traverse the image list and create output csv file
+output_file = os.path.join(args.images, 'pix4d.csv')
+with open(output_file, 'w') as csvfile:
+    writer = csv.DictWriter( csvfile,
+                             fieldnames=['File Name',
+                                         'Lat (decimal degrees)',
+                                         'Lon (decimal degrees)',
+                                         'Alt (meters MSL)',
+                                         'Roll (decimal degrees)',
+                                         'Pitch (decimal degrees)',
+                                         'Yaw (decimal degrees)'] )
+    writer.writeheader()
+    for i in images:
+        time = i[0]
+        image = i[1]
+        print image
+        log_time = time - min_image - shift + min_trig
+        print image, ' trigger:', log_time
+        index = closest_trigger(log_time)
+        if index == None:
+            print 'no trigger event found for this image'
+            continue
+        trigger = triggers[index]
+        trigger_time = trigger[0]
+        lat_deg = interp.filter_lat(trigger_time)*r2d
+        lon_deg = interp.filter_lon(trigger_time)*r2d
+        alt_m = interp.filter_alt(trigger_time)
+        roll_deg = interp.filter_phi(trigger_time)*r2d
+        pitch_deg = interp.filter_the(trigger_time)*r2d
+        psix = interp.filter_psix(trigger_time)
+        psiy = interp.filter_psiy(trigger_time)
+        yaw_deg = math.atan2(psiy, psix)*r2d
+        if yaw_deg < 0: yaw_deg += 360.0
+        writer.writerow( { 'File Name': os.path.basename(image),
+                           'Lat (decimal degrees)': "%.10f" % lat_deg,
+                           'Lon (decimal degrees)': "%.10f" % lon_deg,
+                           'Alt (meters MSL)': "%.2f" % alt_m,
+                           'Roll (decimal degrees)': "%.2f" % roll_deg,
+                           'Pitch (decimal degrees)': "%.2f" % pitch_deg,
+                           'Yaw (decimal degrees)': "%.2f" % yaw_deg } )
+
 # traverse the image list and geotag
 for i in images:
     time = i[0]
@@ -231,6 +274,17 @@ for i in images:
     lon = trigger[2]
     msl = trigger[3]
     
+    lat_deg = interp.filter_lat(time)*r2d
+    lon_deg = interp.filter_lon(time)*r2d
+    altitude_m = interp.filter_alt(time)
+    roll_deg = interp.filter_phi(time)*r2d
+    pitch_deg = interp.filter_the(time)*r2d
+    psix = interp.filter_psix(time)
+    psiy = interp.filter_psiy(time)
+    yaw_deg = math.atan2(psiy, psix)*r2d
+
+    print lat, interp.filter_lat(trigger_time)*r2d, lon, interp.filter_lon(trigger_time)*r2d, msl, interp.filter_alt(trigger_time)
+
     # update geotag in exif data
     exif = pyexiv2.ImageMetadata(image)
     exif.read()
