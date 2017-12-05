@@ -11,6 +11,8 @@ import numpy as np
 import os
 import pyexiv2
 
+from aurauas.flightdata import flight_loader, flight_interp
+
 parser = argparse.ArgumentParser(description='Geotag a set of images from the specified flight data log.')
 
 parser.add_argument('--flight', required=True, help='AuraUAS flight data log directory')
@@ -22,7 +24,12 @@ parser.add_argument('--write', action='store_true', help='update geotags on sour
 parser.set_defaults(plot=True)
 args = parser.parse_args()
 
-# load triggers
+# load flight data
+data, flight_format = flight_loader.load(args.flight, recal_file)
+interp = flight_interp.FlightInterpolate()
+interp.build(data)
+
+# load camera triggers (from the events file)
 triggers = []
 airborne = False
 ap = False
@@ -219,6 +226,7 @@ for i in images:
         print 'no trigger event found for this image'
         continue
     trigger = triggers[index]
+    trigger_time = trigger[0]
     lat = trigger[1]
     lon = trigger[2]
     msl = trigger[3]
