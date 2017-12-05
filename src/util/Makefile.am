@@ -13,7 +13,6 @@ libutil_a_SOURCES = \
 	SGReferenced.hxx SGSharedPtr.hxx \
 	strutils.hxx strutils.cxx \
         timing.cpp timing.h \
-	wind.cxx wind.hxx \
         netSocket.cxx netSocket.h ul.h
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
