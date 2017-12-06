@@ -8,9 +8,7 @@ libutil_a_SOURCES = \
 	lowpass.cxx lowpass.hxx \
 	myprof.cxx myprof.h \
 	poly1d.hxx \
-	sg_inlines.h \
 	sg_path.cxx sg_path.hxx \
-	SGReferenced.hxx SGSharedPtr.hxx \
 	strutils.hxx strutils.cxx \
         timing.cpp timing.h \
         netSocket.cxx netSocket.h ul.h
