@@ -102,7 +102,6 @@ AC_CONFIG_FILES([ \
         utils/autohome/Makefile \
         utils/benchmarks/Makefile \
         utils/dynamichome/Makefile \
-        utils/routegen/Makefile \
         utils/uartserv/Makefile \
 ])
 AC_OUTPUT
