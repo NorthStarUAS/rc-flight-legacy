@@ -15,7 +15,6 @@ aura_LDADD = \
 	../init/libinit.a \
 	../control/libcontrol.a \
 	../comms/libcomms.a \
-	../math/libmath.a \
 	../util/libutil.a \
 	../python/libpyprops.a \
 	-lpython2.7

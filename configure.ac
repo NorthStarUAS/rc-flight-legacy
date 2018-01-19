@@ -93,7 +93,6 @@ AC_CONFIG_FILES([ \
         src/include/Makefile \
         src/init/Makefile \
 	src/main/Makefile \
-	src/math/Makefile \
         src/payload/Makefile \
         src/python/Makefile \
         src/sensors/Makefile \
@@ -103,7 +102,6 @@ AC_CONFIG_FILES([ \
         utils/autohome/Makefile \
         utils/benchmarks/Makefile \
         utils/dynamichome/Makefile \
-        utils/geo/Makefile \
         utils/routegen/Makefile \
         utils/uartserv/Makefile \
 ])

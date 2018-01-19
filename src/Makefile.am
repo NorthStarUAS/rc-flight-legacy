@@ -6,7 +6,6 @@ SUBDIRS = \
 	health \
 	include \
 	init \
-	math \
 	payload \
 	python \
 	util \

@@ -13,13 +13,15 @@
 #include <sys/time.h>  // settimeofday()
 
 #include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
 using namespace Eigen;
 
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
 #include "init/globals.hxx"
-#include "math/SGMath.hxx"
-#include "math/SGGeodesy.hxx"
+//#include "math/SGMath.hxx"
+//#include "math/SGGeodesy.hxx"
+#include "util/geodesy.hxx"
 #include "sensors/cal_temp.hxx"
 #include "util/linearfit.hxx"
 #include "util/netSocket.h"
@@ -473,19 +475,15 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 		   gpsFix, iTOW, fTOW, ecefX, ecefY, ecefZ,
 		   ecefVX, ecefVY, ecefVZ);
 	}
-	SGVec3d ecef( ecefX / 100.0, ecefY / 100.0, ecefZ / 100.0 );
-	SGGeod wgs84;
-	SGGeodesy::SGCartToGeod( ecef, wgs84 );
-	SGQuatd ecef2ned = SGQuatd::fromLonLat(wgs84);
-	SGVec3d vel_ecef( ecefVX / 100.0, ecefVY / 100.0, ecefVZ / 100.0 );
-	// SGVec3d vel_ecef = ecef2ned.backTransform(vel_ned);
-	SGVec3d vel_ned = ecef2ned.transform( vel_ecef );
+	Vector3d ecef( ecefX / 100.0, ecefY / 100.0, ecefZ / 100.0 );
+	Vector3d wgs84 = ecef2lla(ecef);
+	Quaterniond ecef2ned = fromLonLatRad(wgs84[1], wgs84[0]);
+	Vector3d vel_ecef( ecefVX / 100.0, ecefVY / 100.0, ecefVZ / 100.0 );
+	Vector3d vel_ned = quat_backtransform(ecef2ned, vel_ecef);
 	if ( display_on && 0 ) {
 	    printf("my vel ned = %.2f %.2f %.2f\n", vel_ned.x(), vel_ned.y(), vel_ned.z());
 	    printf("wgs84 = %.10f, %.10f, %.2f\n",
-                    wgs84.getLatitudeDeg(), wgs84.getLongitudeDeg(),
-                    wgs84.getElevationM() );
- 
+                   wgs84[0] * 180.0 / M_PI, wgs84[1] * 180.0 / M_PI, wgs84[2] );
 	}
 
  	gps_node.setLong( "satellites", numSV );
@@ -506,17 +504,17 @@ static bool parse_ublox_msg( uint8_t msg_class, uint8_t msg_id,
 	    // we have bad data.  This means we won't toss data until
 	    // above about 423,000' MSL
 	    events->log( "ublox", "received bogus ecef data" );
-	} else if ( wgs84.getElevationM() > 60000 ) {
+	} else if ( wgs84[2] > 60000 ) {
 	    // sanity check: assume altitude > 60k meters (200k feet) is bad
-	} else if ( wgs84.getElevationM() < -1000 ) {
+	} else if ( wgs84[2] < -1000 ) {
 	    // sanity check: assume altitude < -1000 meters (-3000 feet) is bad
 	} else if ( gpsFix == 3 ) {
 	    // passed basic sanity checks and gps is reporting a 3d fix
 	    new_position = true;
 	    gps_node.setDouble( "timestamp", get_Time() );
-	    gps_node.setDouble( "latitude_deg", wgs84.getLatitudeDeg() );
-	    gps_node.setDouble( "longitude_deg", wgs84.getLongitudeDeg() );
-	    gps_node.setDouble( "altitude_m", wgs84.getElevationM() );
+	    gps_node.setDouble( "latitude_deg", wgs84[0] * 180.0 / M_PI );
+	    gps_node.setDouble( "longitude_deg", wgs84[1] * 180.0 / M_PI );
+	    gps_node.setDouble( "altitude_m", wgs84[2] );
 	    gps_node.setDouble( "vn_ms", vel_ned.x() );
 	    gps_node.setDouble( "ve_ms", vel_ned.y() );
 	    gps_node.setDouble( "vd_ms", vel_ned.z() );
