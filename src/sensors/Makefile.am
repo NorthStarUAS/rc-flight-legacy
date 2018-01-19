@@ -25,8 +25,6 @@ bin_PROGRAMS = ublox-config
 
 ublox_config_SOURCES = gps_ublox_config.cxx
 
-ublox_config_LDADD = \
-	../math/libmath.a \
-	../util/libutil.a
+ublox_config_LDADD = ../util/libutil.a
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..

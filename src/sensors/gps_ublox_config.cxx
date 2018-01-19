@@ -25,8 +25,6 @@ using std::string;
 
 #include "include/globaldefs.h"
 
-//#include "math/SGMath.hxx"
-//#include "math/SGGeodesy.hxx"
 #include "util/strutils.hxx"
 #include "util/timing.h"
 
