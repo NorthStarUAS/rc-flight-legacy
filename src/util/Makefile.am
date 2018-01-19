@@ -4,6 +4,7 @@ libutil_a_SOURCES = \
 	butter.cxx butter.hxx \
 	coremag.c coremag.h \
 	exception.cxx exception.hxx \
+	geodesy.cxx geodesy.hxx \
 	linearfit.cxx linearfit.hxx \
 	lowpass.cxx lowpass.hxx \
 	myprof.cxx myprof.h \
@@ -15,7 +16,10 @@ libutil_a_SOURCES = \
 
 AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
 
-noinst_PROGRAMS = butter_test
+noinst_PROGRAMS = butter_test # geodesy_test
 
 butter_test_SOURCES = butter_test.cxx
 butter_test_LDADD = libutil.a
+
+#geodesy_test_SOURCES = geodesy_test.cxx
+#geodesy_test_LDADD = ../math/libmath.a libutil.a 
