@@ -83,6 +83,7 @@ using namespace Eigen;
 #define SAS_CH7_TUNE 10
 
 static pyPropertyNode aura3_node;
+static pyPropertyNode power_node;
 static pyPropertyNode imu_node;
 static pyPropertyNode gps_node;
 static pyPropertyNode pilot_node;
@@ -237,7 +238,7 @@ static uint32_t gps_packet_counter = 0;
 static uint32_t airdata_packet_counter = 0;
 static uint32_t analog_packet_counter = 0;
 
-// pulled from apm2-sensors.ino
+// pulled from aura-sensors.ino
 const float _pi = 3.14159265358979323846;
 const float _g = 9.807;
 const float _d2r = _pi / 180.0;
@@ -426,8 +427,9 @@ static bool Aura3_open_device( int baud_bits ) {
     // Enable non-blocking IO (one more time for good measure)
     // fcntl(fd, F_SETFL, O_NONBLOCK);
 
-    // bind main apm2 property nodes here for lack of a better place..
+    // bind main property nodes here for lack of a better place..
     aura3_node = pyGetNode("/sensors/Aura3", true);
+    power_node = pyGetNode("/sensors/power", true);
     analog_node = pyGetNode("/sensors/Aura3/raw_analog", true);
     analog_node.setLen("channel", NUM_ANALOG_INPUTS, 0.0);
     
@@ -441,31 +443,31 @@ static bool Aura3_open() {
 	return true;
     }
 
-    pyPropertyNode apm2_config = pyGetNode("/config/sensors/Aura3", true);
+    pyPropertyNode aura3_config = pyGetNode("/config/sensors/Aura3", true);
     config_specs_node = pyGetNode("/config/specs", true);
 
     for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
 	analog_filt[i].set_time_factor(0.5);
     }
     
-    if ( apm2_config.hasChild("device") ) {
-	device_name = apm2_config.getString("device");
+    if ( aura3_config.hasChild("device") ) {
+	device_name = aura3_config.getString("device");
     }
-    if ( apm2_config.hasChild("baud") ) {
-       baud = apm2_config.getLong("baud");
+    if ( aura3_config.hasChild("baud") ) {
+       baud = aura3_config.getLong("baud");
     }
-    if ( apm2_config.hasChild("volt_divider_ratio") ) {
-	volt_div_ratio = apm2_config.getDouble("volt_divider_ratio");
+    if ( aura3_config.hasChild("volt_divider_ratio") ) {
+	volt_div_ratio = aura3_config.getDouble("volt_divider_ratio");
     }
-    if ( apm2_config.hasChild("external_amp_offset") ) {
-	extern_amp_offset = apm2_config.getDouble("external_amp_offset");
+    if ( aura3_config.hasChild("external_amp_offset") ) {
+	extern_amp_offset = aura3_config.getDouble("external_amp_offset");
     }
-    if ( apm2_config.hasChild("external_amp_ratio") ) {
-	extern_amp_ratio = apm2_config.getDouble("external_amp_ratio");
+    if ( aura3_config.hasChild("external_amp_ratio") ) {
+	extern_amp_ratio = aura3_config.getDouble("external_amp_ratio");
     }
 
-    if ( apm2_config.hasChild("pitot_calibrate_factor") ) {
-	pitot_calibrate = apm2_config.getDouble("pitot_calibrate_factor");
+    if ( aura3_config.hasChild("pitot_calibrate_factor") ) {
+	pitot_calibrate = aura3_config.getDouble("pitot_calibrate_factor");
     }
     
     if ( config_specs_node.hasChild("battery_cells") ) {
@@ -883,13 +885,14 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	}
     } else if ( pkt_id == STATUS_INFO_PACKET_ID ) {
 	static bool first_time = true;
-	if ( pkt_len == 14 ) {
+	if ( pkt_len == 16 ) {
 	    uint16_t serial_num = *(uint16_t *)payload; payload += 2;
 	    uint16_t firmware_rev = *(uint16_t *)payload; payload += 2;
 	    uint16_t master_hz = *(uint16_t *)payload; payload += 2;
 	    uint32_t baud_rate = *(uint32_t *)payload; payload += 4;
 	    uint16_t byte_rate = *(uint16_t *)payload; payload += 2;
             uint16_t pwr_v = *(uint16_t *)payload; payload += 2;
+            uint16_t avionics_v = *(uint16_t *)payload; payload += 2;
 
 #if 0
 	    if ( display_on ) {
@@ -903,8 +906,12 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    aura3_node.setLong( "master_hz", master_hz );
 	    aura3_node.setLong( "baud_rate", baud_rate );
 	    aura3_node.setLong( "byte_rate_sec", byte_rate );
-            aura3_node.setDouble( "avionics_vcc", (float)pwr_v / 100.0);
+            power_node.setDouble( "main_vcc", (float)pwr_v / 100.0);
+            power_node.setDouble( "avionics_vcc", (float)avionics_v / 100.0);
 
+            float cell_volt = (float)pwr_v / 100.0 / (float)battery_cells;
+            power_node.setDouble( "cell_vcc", cell_volt );
+ 
 	    if ( first_time ) {
 		// log the data to events.txt
 		first_time = false;
@@ -1131,8 +1138,6 @@ static bool Aura3_send_config() {
     double start_time = 0.0;
     double timeout = 0.5;
     vector<string> children;
-
-    pyPropertyNode apm2_config = pyGetNode("/config/sensors/Aura3", true);
 
     // set all parameters to defaults
     pwm_rate_defaults();
@@ -1369,7 +1374,7 @@ double Aura3_update() {
         int pkt_id = Aura3_read();
         if ( pkt_id == IMU_PACKET_ID ) {
             ioctl(fd, FIONREAD, &bytes_available);
-	    if ( bytes_available < 64 ) {
+	    if ( bytes_available < 128 ) {
 		break;
             }
         }

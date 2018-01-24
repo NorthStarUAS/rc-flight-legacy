@@ -87,6 +87,7 @@ using namespace Eigen;
 #define SAS_CH7_TUNE 10
 
 static pyPropertyNode apm2_node;
+static pyPropertyNode power_node;
 static pyPropertyNode imu_node;
 static pyPropertyNode gps_node;
 static pyPropertyNode pilot_node;
@@ -571,6 +572,7 @@ static bool APM2_open_device( int baud_bits ) {
 
     // bind main apm2 property nodes here for lack of a better place..
     apm2_node = pyGetNode("/sensors/APM2", true);
+    power_node = pyGetNode("/sensors/power", true);
     analog_node = pyGetNode("/sensors/APM2/raw_analog", true);
     analog_node.setLen("channel", NUM_ANALOG_INPUTS, 0.0);
 
@@ -1033,7 +1035,7 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 
 	    static LowPassFilter vcc_filt(10.0);
 	    vcc_filt.update(raw_analog[5], dt);
-	    apm2_node.setDouble( "board_vcc", vcc_filt.get_value() );
+	    power_node.setDouble( "avionics_vcc", vcc_filt.get_value() );
 
 	    float extern_volts = raw_analog[1] * (vcc_filt.get_value()/1024.0) * volt_div_ratio;
 	    static LowPassFilter extern_volt_filt(2.0);
@@ -1046,10 +1048,10 @@ static bool APM2_parse( uint8_t pkt_id, uint8_t pkt_len,
 		raw_analog[2], vcc_filt, extern_amp_ratio, extern_amps); */
 	    extern_amp_sum += extern_amp_filt.get_value() * dt * 0.277777778; // 0.2777... is 1000/3600 (conversion to milli-amp hours)
 
-	    apm2_node.setDouble( "extern_volts", extern_volt_filt.get_value() );
-	    apm2_node.setDouble( "extern_cell_volts", cell_volt );
-	    apm2_node.setDouble( "extern_amps", extern_amp_filt.get_value() );
-	    apm2_node.setDouble( "extern_current_mah", extern_amp_sum );
+	    power_node.setDouble( "main_vcc", extern_volt_filt.get_value() );
+	    power_node.setDouble( "cell_vcc", cell_volt );
+	    power_node.setDouble( "main_amps", extern_amp_filt.get_value() );
+	    power_node.setDouble( "total_mah", extern_amp_sum );
 
 #if 0
 	    if ( display_on ) {
