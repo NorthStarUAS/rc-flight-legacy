@@ -10,7 +10,7 @@ pos_node = getNode("/position", True)
 vel_node = getNode("/velocity", True)
 targets_node = getNode("/autopilot/targets", True)
 tecs_node = getNode("/autopilot/tecs", True)
-apm2_node = getNode("/sensors/APM2", True)
+power_node = getNode("/sensors/power", True)
 tecs_config_node = getNode("/config/autopilot/TECS", True)
 
 r2d = 180.0 / math.pi
@@ -99,10 +99,10 @@ def compute_derived_data():
     roll_error = targets_node.getFloat('roll_deg') - filter_node.getFloat('roll_deg')
     #print 'error %.4f,%.1f' % (filter_node.getFloat('timestamp'), roll_error)
                         
-    volts = apm2_node.getFloat("extern_volts")
-    amps = apm2_node.getFloat("extern_amps")
+    volts = power_node.getFloat("main_vcc")
+    amps = power_node.getFloat("main_amps")
     watts = volts * amps
-    apm2_node.setFloat("extern_watts", watts)
+    power_node.setFloat("main_watts", watts)
 
     # TECS
     compute_tecs()

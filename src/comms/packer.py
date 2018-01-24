@@ -76,7 +76,7 @@ ap_status_v4_fmt = "<BdhhHHhhHHddHHB"
 ap_status_v5_fmt = "<BdBhhHhhhHHddHHB"
 ap_status_v6_fmt = "<BdBhhHhhhHHddHHBHB"
 
-power_node = getNode("/sensors/APM2", True)
+power_node = getNode("/sensors/power", True)
 system_health_v2_fmt = "<dHHHHH"
 system_health_v3_fmt = "<dHHHHHH"
 system_health_v4_fmt = "<BdHHHHHH"
