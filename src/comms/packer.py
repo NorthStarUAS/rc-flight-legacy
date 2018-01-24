@@ -76,7 +76,7 @@ ap_status_v4_fmt = "<BdhhHHhhHHddHHB"
 ap_status_v5_fmt = "<BdBhhHhhhHHddHHB"
 ap_status_v6_fmt = "<BdBhhHhhhHHddHHBHB"
 
-apm2_node = getNode("/sensors/APM2", True)
+power_node = getNode("/sensors/APM2", True)
 system_health_v2_fmt = "<dHHHHH"
 system_health_v3_fmt = "<dHHHHHH"
 system_health_v4_fmt = "<BdHHHHHH"
@@ -1178,38 +1178,38 @@ def unpack_ap_status_v6(buf):
     return index
 
 def pack_system_health_v4(index):
-    dekamah = int(apm2_node.getFloat("extern_current_mah") / 10)
+    dekamah = int(power_node.getFloat("total_mah") / 10)
     if dekamah > 65535: dekamah = 65535 # prevent overflowing the structure
     buf = struct.pack(system_health_v4_fmt,
                       index,
                       status_node.getFloat('frame_time'),
                       int(status_node.getFloat("system_load_avg") * 100),
-                      int(apm2_node.getFloat("board_vcc") * 1000),
-                      int(apm2_node.getFloat("extern_volts") * 1000),
-                      int(apm2_node.getFloat("extern_cell_volts") * 1000),
-                      int(apm2_node.getFloat("extern_amps") * 1000),
+                      int(power_node.getFloat("avionics_vcc") * 1000),
+                      int(power_node.getFloat("main_vcc") * 1000),
+                      int(power_node.getFloat("cell_vcc") * 1000),
+                      int(power_node.getFloat("main_amps") * 1000),
                       dekamah)
     return wrap_packet(SYSTEM_HEALTH_PACKET_V4, buf)
 
 def pack_system_health_text(index, delim=','):
     data = [ '%.4f' % status_node.getFloat('frame_time'),
 	     '%.2f' % status_node.getFloat('system_load_avg'),
-             '%.2f' % apm2_node.getFloat('board_vcc'),
-	     '%.2f' % apm2_node.getFloat('extern_volts'),
-             '%.2f' % apm2_node.getFloat('extern_cell_volts'),
-	     '%.2f' % apm2_node.getFloat('extern_amps'),
-             '%.0f' % apm2_node.getFloat('extern_current_mah') ]
+             '%.2f' % power_node.getFloat('avionics_vcc'),
+	     '%.2f' % power_node.getFloat('main_vcc'),
+             '%.2f' % power_node.getFloat('cell_vcc'),
+	     '%.2f' % power_node.getFloat('main_amps'),
+             '%.0f' % power_node.getFloat('total_mah') ]
     return delim.join(data)
 
 def pack_system_health_csv(index):
     row = dict()
     row['timestamp'] = '%.4f' % status_node.getFloat('frame_time')
     row['system_load_avg'] = '%.2f' % status_node.getFloat('system_load_avg')
-    row['board_vcc'] = '%.2f' % apm2_node.getFloat('board_vcc')
-    row['extern_volts'] = '%.2f' % apm2_node.getFloat('extern_volts')
-    row['extern_cell_volts'] = '%.2f' % apm2_node.getFloat('extern_cell_volts')
-    row['extern_amps'] = '%.2f' % apm2_node.getFloat('extern_amps')
-    row['extern_current_mah'] = '%.0f' % apm2_node.getFloat('extern_current_mah')
+    row['board_vcc'] = '%.2f' % power_node.getFloat('avionics_vcc')
+    row['extern_volts'] = '%.2f' % power_node.getFloat('main_vcc')
+    row['extern_cell_volts'] = '%.2f' % power_node.getFloat('cell_vcc')
+    row['extern_amps'] = '%.2f' % power_node.getFloat('main_amps')
+    row['extern_current_mah'] = '%.0f' % power_node.getFloat('total_mah')
     keys = ['timestamp', 'system_load_avg', 'board_vcc', 'extern_volts',
             'extern_cell_volts', 'extern_amps', 'extern_current_mah']
     return row, keys
@@ -1219,10 +1219,10 @@ def unpack_system_health_v2(buf):
 
     # imu_node.setFloat("timestamp", result[0]) # fixme? where to write this value?
     status_node.setFloat("system_load_avg", result[1] / 100.0)
-    apm2_node.setFloat("board_vcc", result[2] / 1000.0)
-    apm2_node.setFloat("extern_volts", result[3] / 1000.0)
-    apm2_node.setFloat("extern_amps", result[5] / 1000.0)
-    apm2_node.setFloat("extern_current_mah", result[6])
+    power_node.setFloat("avionics_vcc", result[2] / 1000.0)
+    power_node.setFloat("main_vcc", result[3] / 1000.0)
+    power_node.setFloat("main_amps", result[5] / 1000.0)
+    power_node.setFloat("total_mah", result[6])
 
     return 0
 
@@ -1231,11 +1231,11 @@ def unpack_system_health_v3(buf):
 
     status_node.setFloat("frame_time", result[0])
     status_node.setFloat("system_load_avg", result[1] / 100.0)
-    apm2_node.setFloat("board_vcc", result[2] / 1000.0)
-    apm2_node.setFloat("extern_volts", result[3] / 1000.0)
-    apm2_node.setFloat("extern_cell_volts", result[4] / 1000.0)
-    apm2_node.setFloat("extern_amps", result[5] / 1000.0)
-    apm2_node.setFloat("extern_current_mah", result[6])
+    power_node.setFloat("avionics_vcc", result[2] / 1000.0)
+    power_node.setFloat("main_vcc", result[3] / 1000.0)
+    power_node.setFloat("cell_vcc", result[4] / 1000.0)
+    power_node.setFloat("main_amps", result[5] / 1000.0)
+    power_node.setFloat("total_mah", result[6])
 
     return 0
 
@@ -1246,11 +1246,11 @@ def unpack_system_health_v4(buf):
     
     status_node.setFloat("frame_time", result[1])
     status_node.setFloat("system_load_avg", result[2] / 100.0)
-    apm2_node.setFloat("board_vcc", result[3] / 1000.0)
-    apm2_node.setFloat("extern_volts", result[4] / 1000.0)
-    apm2_node.setFloat("extern_cell_volts", result[5] / 1000.0)
-    apm2_node.setFloat("extern_amps", result[6] / 1000.0)
-    apm2_node.setInt("extern_current_mah", result[7] * 10.0)
+    power_node.setFloat("avionics_vcc", result[3] / 1000.0)
+    power_node.setFloat("main_vcc", result[4] / 1000.0)
+    power_node.setFloat("cell_vcc", result[5] / 1000.0)
+    power_node.setFloat("main_amps", result[6] / 1000.0)
+    power_node.setInt("total_mah", result[7] * 10.0)
 
     return index
 
