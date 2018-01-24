@@ -1205,13 +1205,13 @@ def pack_system_health_csv(index):
     row = dict()
     row['timestamp'] = '%.4f' % status_node.getFloat('frame_time')
     row['system_load_avg'] = '%.2f' % status_node.getFloat('system_load_avg')
-    row['board_vcc'] = '%.2f' % power_node.getFloat('avionics_vcc')
-    row['extern_volts'] = '%.2f' % power_node.getFloat('main_vcc')
-    row['extern_cell_volts'] = '%.2f' % power_node.getFloat('cell_vcc')
-    row['extern_amps'] = '%.2f' % power_node.getFloat('main_amps')
-    row['extern_current_mah'] = '%.0f' % power_node.getFloat('total_mah')
-    keys = ['timestamp', 'system_load_avg', 'board_vcc', 'extern_volts',
-            'extern_cell_volts', 'extern_amps', 'extern_current_mah']
+    row['avionics_vcc'] = '%.2f' % power_node.getFloat('avionics_vcc')
+    row['main_vcc'] = '%.2f' % power_node.getFloat('main_vcc')
+    row['cell_vcc'] = '%.2f' % power_node.getFloat('cell_vcc')
+    row['main_amps'] = '%.2f' % power_node.getFloat('main_amps')
+    row['total_mah'] = '%.0f' % power_node.getFloat('total_mah')
+    keys = ['timestamp', 'system_load_avg', 'avionics_vcc', 'main_vcc',
+            'cell_vcc', 'main_amps', 'total_mah']
     return row, keys
 
 def unpack_system_health_v2(buf):

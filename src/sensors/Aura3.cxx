@@ -845,26 +845,6 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    double dt = analog_timestamp - last_analog_timestamp;
 	    last_analog_timestamp = analog_timestamp;
 
-	    static LowPassFilter vcc_filt(10.0);
-	    vcc_filt.update(analog[5], dt);
-	    aura3_node.setDouble( "board_vcc", vcc_filt.get_value() );
-
-	    float extern_volts = analog[1] * (vcc_filt.get_value()/1024.0) * volt_div_ratio;
-	    static LowPassFilter extern_volt_filt(2.0);
-	    extern_volt_filt.update(extern_volts, dt);
-	    float cell_volt = extern_volt_filt.get_value() / (float)battery_cells;
-	    float extern_amps = ((analog[2] * (vcc_filt.get_value()/1024.0)) - extern_amp_offset) * extern_amp_ratio;
-	    static LowPassFilter extern_amp_filt(1.0);
-	    extern_amp_filt.update(extern_amps, dt);
-	    /*printf("a[2]=%.1f vcc=%.2f ratio=%.2f amps=%.2f\n",
-		analog[2], vcc_filt, extern_amp_ratio, extern_amps); */
-	    extern_amp_sum += extern_amp_filt.get_value() * dt * 0.277777778; // 0.2777... is 1000/3600 (conversion to milli-amp hours)
-
-	    aura3_node.setDouble( "extern_volts", extern_volt_filt.get_value() );
-	    aura3_node.setDouble( "extern_cell_volts", cell_volt );
-	    aura3_node.setDouble( "extern_amps", extern_amp_filt.get_value() );
-	    aura3_node.setDouble( "extern_current_mah", extern_amp_sum );
-
 #if 0
 	    if ( display_on ) {
 		for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {

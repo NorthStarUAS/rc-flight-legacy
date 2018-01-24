@@ -16,7 +16,7 @@ act_node = getNode('/actuators', True)
 remote_link_node = getNode('/comms/remote_link', True)
 route_node = getNode('/task/route', True)
 status_node = getNode('/status', True)
-apm2_node = getNode('/sensors/APM2', True)
+power_node = getNode('/sensors/APM2', True)
 
 # make the C++ interface happy
 def init():
@@ -85,5 +85,5 @@ def status_summary():
             (remote_link_node.getInt('sequence_num'),
              route_node.getInt('target_waypoint_idx'),
              status_node.getFloat('system_load_avg'),
-             apm2_node.getFloat('board_vcc'))
+             power_node.getFloat('avionics_vcc'))
         print
