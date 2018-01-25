@@ -214,8 +214,8 @@ static struct air_data_t {
     float bme_pres_pa;
     float bme_temp_C;
     float bme_hum;
-    float static_pres_pa;
     float diff_pres_pa;
+    float temp_C;
 } airdata;
 
 static LowPassFilter analog_filt[NUM_ANALOG_INPUTS];
@@ -804,12 +804,12 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    airdata.bme_pres_pa = *(float *)payload; payload += 4;
 	    airdata.bme_temp_C = *(float *)payload; payload += 4;
 	    airdata.bme_hum = *(float *)payload; payload += 4;
-	    airdata.static_pres_pa = *(float *)payload; payload += 4;
 	    airdata.diff_pres_pa = *(float *)payload; payload += 4;
+	    airdata.temp_C = *(float *)payload; payload += 4;
 
 	    // if ( display_on ) {
 	    // 	printf("airdata %.3f %.2f %.2f\n", airdata.timestamp,
-	    // 		airdata.static_pres_pa, airdata.diff_pres_pa);
+	    // 		airdata.temp_C, airdata.diff_pres_pa);
 	    // }
 		      
 	    airdata_packet_counter++;
@@ -1487,11 +1487,12 @@ bool Aura3_airdata_update() {
 	float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
 	airdata_node.setDouble( "airspeed_mps", airspeed_mps );
 	airdata_node.setDouble( "airspeed_kt", airspeed_kt );
+	airdata_node.setDouble( "temp_C", airdata.temp_C );
 
 	// publish sensor values
-	airdata_node.setDouble( "bme_pres_mbar", airdata.bme_pres_pa / 100.0 );	airdata_node.setDouble( "temp_C", airdata.bme_temp_C );
+	airdata_node.setDouble( "pressure_mbar", airdata.bme_pres_pa / 100.0 );
+	airdata_node.setDouble( "bme_temp_C", airdata.bme_temp_C );
 	airdata_node.setDouble( "humidity", airdata.bme_hum );
-	airdata_node.setDouble( "pressure_mbar", airdata.static_pres_pa / 100.0 );
 	airdata_node.setDouble( "diff_pressure_pa", airdata.diff_pres_pa );
 
 	fresh_data = true;
