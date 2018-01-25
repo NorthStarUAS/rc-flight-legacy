@@ -407,7 +407,7 @@ def pack_airdata_v5(index):
                       index,
                       node.getFloat("timestamp"),
                       int(node.getFloat("pressure_mbar") * 10.0),
-                      int(node.getFloat("temp_degC") * 100.0),
+                      int(node.getFloat("temp_C") * 100.0),
                       int(vel_node.getFloat("airspeed_smoothed_kt") * 100.0),
                       pos_pressure_node.getFloat("altitude_smoothed_m"),
                       pos_combined_node.getFloat("altitude_true_m"),
