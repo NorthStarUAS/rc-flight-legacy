@@ -422,7 +422,7 @@ def pack_airdata_text(index, delim=','):
     airdata_node = getNode('/sensors/airdata[%d]' % index, True)
     data = [ '%.4f' % airdata_node.getFloat('timestamp'),
 	     '%.1f' % airdata_node.getFloat('pressure_mbar'),
-             '%.1f' % airdata_node.getFloat('temp_degC'),
+             '%.1f' % airdata_node.getFloat('temp_C'),
 	     '%.1f' % vel_node.getFloat('airspeed_smoothed_kt'),
 	     '%.2f' % pos_pressure_node.getFloat('altitude_smoothed_m'),
              '%.2f' % pos_combined_node.getFloat('altitude_true_m'),
@@ -438,7 +438,7 @@ def pack_airdata_csv(index):
     row = dict()
     row['timestamp'] = '%.4f' % airdata_node.getFloat('timestamp')
     row['pressure_mbar'] = '%.1f' % airdata_node.getFloat('pressure_mbar')
-    row['temp_C'] = '%.1f' % airdata_node.getFloat('temp_degC')
+    row['temp_C'] = '%.1f' % airdata_node.getFloat('temp_C')
     row['airspeed_smoothed_kt'] = '%.1f' % vel_node.getFloat('airspeed_smoothed_kt')
     row['altitude_smoothed_m'] = '%.2f' % pos_pressure_node.getFloat('altitude_smoothed_m')
     row['altitude_true_m'] = '%.2f' % pos_combined_node.getFloat('altitude_true_m')
@@ -466,7 +466,7 @@ def unpack_airdata_v3(buf):
     
     node.setFloat("timestamp", result[0])
     node.setFloat("pressure_mbar", result[1] / 10.0)
-    node.setFloat("temp_degC", result[2] / 10.0)
+    node.setFloat("temp_C", result[2] / 10.0)
     vel_node.setFloat("airspeed_smoothed_kt", result[3] / 100.0)
     pos_pressure_node.setFloat("altitude_smoothed_m", result[4])
     vel_node.setFloat("pressure_vertical_speed_fps", (result[5] / 10.0) / 60.0)
@@ -490,7 +490,7 @@ def unpack_airdata_v4(buf):
     
     node.setFloat("timestamp", result[0])
     node.setFloat("pressure_mbar", result[1] / 10.0)
-    node.setFloat("temp_degC", result[2] / 10.0)
+    node.setFloat("temp_C", result[2] / 10.0)
     vel_node.setFloat("airspeed_smoothed_kt", result[3] / 100.0)
     pos_pressure_node.setFloat("altitude_smoothed_m", result[4])
     pos_combined_node.setFloat("altitude_true_m", result[5])
@@ -515,7 +515,7 @@ def unpack_airdata_v5(buf):
 
     node.setFloat("timestamp", result[1])
     node.setFloat("pressure_mbar", result[2] / 10.0)
-    node.setFloat("temp_degC", result[3] / 100.0)
+    node.setFloat("temp_C", result[3] / 100.0)
     vel_node.setFloat("airspeed_smoothed_kt", result[4] / 100.0)
     pos_pressure_node.setFloat("altitude_smoothed_m", result[5])
     pos_combined_node.setFloat("altitude_true_m", result[6])
