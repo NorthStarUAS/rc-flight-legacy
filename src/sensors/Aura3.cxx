@@ -26,9 +26,9 @@ using namespace Eigen;
 #include "comms/logging.hxx"
 #include "init/globals.hxx"
 #include "sensors/cal_temp.hxx"
+#include "util/butter.hxx"
 #include "util/linearfit.hxx"
 #include "util/lowpass.hxx"
-//#include "util/poly1d.hxx"
 #include "util/timing.h"
 
 #include "Aura3.hxx"
@@ -46,7 +46,7 @@ using namespace Eigen;
 #define IMU_PACKET_ID 51
 #define GPS_PACKET_ID 52
 #define AIRDATA_PACKET_ID 53
-#define ANALOG_PACKET_ID 54
+//#define ANALOG_PACKET_ID 54
 #define STATUS_INFO_PACKET_ID 55
 
 #define NUM_PILOT_INPUTS 18
@@ -89,7 +89,7 @@ static pyPropertyNode gps_node;
 static pyPropertyNode pilot_node;
 static pyPropertyNode act_node;
 static pyPropertyNode airdata_node;
-static pyPropertyNode analog_node;
+//static pyPropertyNode analog_node;
 static pyPropertyNode config_specs_node;
 
 static bool master_opened = false;
@@ -124,6 +124,11 @@ static uint32_t imu_micros = 0;
 static int16_t imu_sensors[NUM_IMU_SENSORS];
 
 static LinearFitFilter imu_offset(200.0);
+
+// 2nd order filter, 100hz sample rate expected, 3rd field is cutoff freq.
+// higher freq value == noisier, a value near 1 hz should work well
+// for airspeed.
+static ButterworthFilter pitot_filter(2, 100, 0.8);
 
 #pragma pack(push, 1)           // set alignment to 1 byte boundary
 
@@ -218,8 +223,8 @@ static struct air_data_t {
     float temp_C;
 } airdata;
 
-static LowPassFilter analog_filt[NUM_ANALOG_INPUTS];
-static float analog[NUM_ANALOG_INPUTS];
+//static LowPassFilter analog_filt[NUM_ANALOG_INPUTS];
+//static float analog[NUM_ANALOG_INPUTS];
 
 static bool airspeed_inited = false;
 static double airspeed_zero_start_time = 0.0;
@@ -236,7 +241,7 @@ static uint32_t pilot_packet_counter = 0;
 static uint32_t imu_packet_counter = 0;
 static uint32_t gps_packet_counter = 0;
 static uint32_t airdata_packet_counter = 0;
-static uint32_t analog_packet_counter = 0;
+//static uint32_t analog_packet_counter = 0;
 
 // pulled from aura-sensors.ino
 const float _pi = 3.14159265358979323846;
@@ -430,8 +435,8 @@ static bool Aura3_open_device( int baud_bits ) {
     // bind main property nodes here for lack of a better place..
     aura3_node = pyGetNode("/sensors/Aura3", true);
     power_node = pyGetNode("/sensors/power", true);
-    analog_node = pyGetNode("/sensors/Aura3/raw_analog", true);
-    analog_node.setLen("channel", NUM_ANALOG_INPUTS, 0.0);
+    //analog_node = pyGetNode("/sensors/Aura3/raw_analog", true);
+    //analog_node.setLen("channel", NUM_ANALOG_INPUTS, 0.0);
     
     return true;
 }
@@ -446,9 +451,9 @@ static bool Aura3_open() {
     pyPropertyNode aura3_config = pyGetNode("/config/sensors/Aura3", true);
     config_specs_node = pyGetNode("/config/specs", true);
 
-    for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
-	analog_filt[i].set_time_factor(0.5);
-    }
+    //for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
+    //  analog_filt[i].set_time_factor(0.5);
+    //}
     
     if ( aura3_config.hasChild("device") ) {
 	device_name = aura3_config.getString("device");
@@ -821,48 +826,48 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 		printf("Aura3: packet size mismatch in airdata input\n");
 	    }
 	}
-    } else if ( pkt_id == ANALOG_PACKET_ID ) {
-	if ( pkt_len == 2 * NUM_ANALOG_INPUTS ) {
-	    for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
-		analog_filt[i].update(*(uint16_t *)payload, 0.01);
-		payload += 2;
-		analog[i] = analog_filt[i].get_value() ;
-		if ( i == 5 ) {
-		    analog[i] /= 1000.0;
-		} else {
-		    analog[i] /= 64.0;
-		}
-		bool result = analog_node.setDouble( "channel", i, analog[i] );
-		if ( ! result ) {
-		    printf("channel write failed %d\n", i);
-		}
-	    }
+//     } else if ( pkt_id == ANALOG_PACKET_ID ) {
+// 	if ( pkt_len == 2 * NUM_ANALOG_INPUTS ) {
+// 	    for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
+// 		analog_filt[i].update(*(uint16_t *)payload, 0.01);
+// 		payload += 2;
+// 		analog[i] = analog_filt[i].get_value() ;
+// 		if ( i == 5 ) {
+// 		    analog[i] /= 1000.0;
+// 		} else {
+// 		    analog[i] /= 64.0;
+// 		}
+// 		bool result = analog_node.setDouble( "channel", i, analog[i] );
+// 		if ( ! result ) {
+// 		    printf("channel write failed %d\n", i);
+// 		}
+// 	    }
 
-	    // fill in property values that don't belong to some other
-	    // sub system right now.
-	    double analog_timestamp = get_Time();
-	    static double last_analog_timestamp = analog_timestamp;
-	    double dt = analog_timestamp - last_analog_timestamp;
-	    last_analog_timestamp = analog_timestamp;
+// 	    // fill in property values that don't belong to some other
+// 	    // sub system right now.
+// 	    double analog_timestamp = get_Time();
+// 	    static double last_analog_timestamp = analog_timestamp;
+// 	    double dt = analog_timestamp - last_analog_timestamp;
+// 	    last_analog_timestamp = analog_timestamp;
 
-#if 0
-	    if ( display_on ) {
-		for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
-		    printf("%.2f ", (float)analog[i] / 64.0);
-		}
-		printf("\n");
-	    }
-#endif
+// #if 0
+// 	    if ( display_on ) {
+// 		for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
+// 		    printf("%.2f ", (float)analog[i] / 64.0);
+// 		}
+// 		printf("\n");
+// 	    }
+// #endif
 		      
-	    analog_packet_counter++;
-	    aura3_node.setLong( "analog_packet_count", analog_packet_counter );
+// 	    analog_packet_counter++;
+// 	    aura3_node.setLong( "analog_packet_count", analog_packet_counter );
 
-	    new_data = true;
-	} else {
-	    if ( display_on ) {
-		printf("Aura3: packet size mismatch in analog input\n");
-	    }
-	}
+// 	    new_data = true;
+// 	} else {
+//	    if ( display_on ) {
+//		printf("Aura3: packet size mismatch in analog input\n");
+//	    }
+//	}
     } else if ( pkt_id == STATUS_INFO_PACKET_ID ) {
 	static bool first_time = true;
 	if ( pkt_len == 16 ) {
@@ -1433,7 +1438,8 @@ bool Aura3_airdata_update() {
     if ( airdata_inited ) {
 	double cur_time = airdata.timestamp;
 
-	pitot_filt.update(airdata.diff_pres_pa, 0.01);
+	float pitot_butter = pitot_filter.update(airdata.diff_pres_pa);
+        
 	if ( ! airspeed_inited ) {
 	    if ( airspeed_zero_start_time > 0.0 ) {
 		pitot_sum += airdata.diff_pres_pa;
@@ -1446,7 +1452,6 @@ bool Aura3_airdata_update() {
 		airspeed_zero_start_time = get_Time();
 		pitot_sum = 0.0;
 		pitot_count = 0;
-		pitot_filt.init(airdata.diff_pres_pa);
 	    }
 	    if ( cur_time > airspeed_zero_start_time + 10.0 ) {
 		//printf("pitot_offset = %.2f\n", pitot_offset);
@@ -1478,8 +1483,8 @@ bool Aura3_airdata_update() {
 	// about 81mps (156 kts)
 
 	// choose between using raw pitot value or filtered pitot value
-	float pitot = airdata.diff_pres_pa;
-	// float pitot = pitot_filt.get_value();
+	// float pitot = airdata.diff_pres_pa;
+	float pitot = pitot_butter;
 	
 	float Pa = (pitot - pitot_offset);
 	if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
