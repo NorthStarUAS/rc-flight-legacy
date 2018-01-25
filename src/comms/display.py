@@ -16,7 +16,7 @@ act_node = getNode('/actuators', True)
 remote_link_node = getNode('/comms/remote_link', True)
 route_node = getNode('/task/route', True)
 status_node = getNode('/status', True)
-power_node = getNode('/sensors/APM2', True)
+power_node = getNode('/sensors/power', True)
 
 # make the C++ interface happy
 def init():
