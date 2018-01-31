@@ -61,7 +61,7 @@ static bool pilot_input_inited = false;
 static string imu_orientation = "normal";
 
 static double imu_timestamp = 0.0;
-static LinearFitFilter imu_offset(200.0);
+static LinearFitFilter imu_offset(200.0, 0.01);
 
 static AuraCalTemp p_cal;
 static AuraCalTemp q_cal;
@@ -382,7 +382,7 @@ static bool goldy2_imu_update_internal() {
 	events->log("FMU", "micros() rolled over\n");
 	imu_offset.reset();
     }
-    imu_offset.update(imu_remote_sec, diff, 0.01);
+    imu_offset.update(imu_remote_sec, diff);
     double fit_diff = imu_offset.get_value(imu_remote_sec);
     // printf("imu = %.6f fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
     //        imu_remote_sec, fit_diff, diff, imu_remote_sec + fit_diff );

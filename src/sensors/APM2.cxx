@@ -128,7 +128,7 @@ static double imu_timestamp = 0.0;
 static uint32_t imu_micros = 0;
 static int16_t imu_sensors[NUM_IMU_SENSORS];
 
-static LinearFitFilter imu_offset(200.0);
+static LinearFitFilter imu_offset(200.0, 0.01);
 
 // 2nd order filter, 100hz sample rate expected, 3rd field is cutoff freq.
 // higher freq value == noisier, a value near 1 hz should work well
@@ -859,7 +859,7 @@ static bool APM2_imu_update_internal() {
 	    events->log("APM2", "micros() rolled over\n");
 	    imu_offset.reset();
 	}
-	imu_offset.update(imu_remote_sec, diff, 0.01);
+	imu_offset.update(imu_remote_sec, diff);
 	double fit_diff = imu_offset.get_value(imu_remote_sec);
 	// printf("fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
 	//        fit_diff, diff, imu_remote_sec + fit_diff );

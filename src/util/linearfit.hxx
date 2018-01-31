@@ -5,11 +5,15 @@
 // internal terms so it should track changes over time and slowly
 // forget history
 
+// this class requires a hardwired dt set at initialization.  A
+// variable dt can lead to incorrect output.
+
 class LinearFitFilter {
     
 private:
     
     double _time_factor;
+    double _dt;
     int n;
     
     double sum_x;
@@ -24,10 +28,10 @@ private:
 
 public:
     
-    LinearFitFilter( double time_factor );
+    LinearFitFilter( double time_factor, double dt );
     ~LinearFitFilter();
     void init( double value );
-    void update( double x, double y, double dt );
+    void update( double x, double y );
     void reset();
     inline double get_value( double x ) {
 	return a1*x + a0;

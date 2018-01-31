@@ -3,7 +3,7 @@
 
 #include "linearfit.hxx"
 
-LinearFitFilter::LinearFitFilter( double time_factor ):
+LinearFitFilter::LinearFitFilter( double time_factor, double dt ):
     n(0),
     sum_x(0.0),
     sum_y(0.0),
@@ -14,12 +14,13 @@ LinearFitFilter::LinearFitFilter( double time_factor ):
     a1(1.0)
 {
     _time_factor = time_factor;
+    _dt = dt;
 }
 
 LinearFitFilter::~LinearFitFilter() {};
 
-void LinearFitFilter::update( double x, double y, double dt ) {
-    int max_n = _time_factor / dt;
+void LinearFitFilter::update( double x, double y ) {
+    int max_n = _time_factor / _dt;
     n++;
     double wf = 1.0;
     if ( n > max_n ) {
