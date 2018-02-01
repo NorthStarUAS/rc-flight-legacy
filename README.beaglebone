@@ -39,17 +39,20 @@ On my home desktop:
 # echo 1 > /proc/sys/net/ipv4/ip_forward
 
 Network config: (required before beaglebone dns lookups will actually work)
--> Select usb ethernet interface
--> Select gear icon for settings.
--> Select identity
--> Firewall Zone -> trusted
+  Pre-Fedora 27
+    -> Select usb ethernet interface
+    -> Select gear icon for settings.
+    -> Select identity
+    -> Firewall Zone -> trusted
+    -> Finally, turn off usb ethernet and reactivate it.
+  Fedora 27
+    -> Install/launch firewall gnome app
+    -> select usb interface
+    -> select trusted zone
 
-Finally, turn off usb ethernet and reactivate it.
+# Beaglebone 8.7 (iot/non-gui) (jessie) setup:
 
-
-# Beaglebone 8.7 (non-gui) (jessie) setup:
-
-- /boot/uEnv.txt:
+- /boot/uEnv.txt: (is this needed for debian 9.2?)
     # AuraUAS
     cape_disable=bone_capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
     cape_enable=bone_capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
@@ -65,10 +68,10 @@ Finally, turn off usb ethernet and reactivate it.
 - apt remove --purge nodejs
 - apt remove --purge apache2 apache2-bin apache2-data apache2-utils
 
-# (if gui image?):
+# (if gui image):
 
 - apt remove --purge xrdp tightvncserver lxqt-common lxqt-panel lxqt-runner lxqt-session
-- apt-get remove gnome-accessibility-themes gnome-icon-theme
+- apt remove gnome-accessibility-themes gnome-icon-theme
 
 # check/remove stuff that takes up disk space (if gui image?)
   - dpkg-query -W --showformat='${Installed-Size;10}\t${Package}\n' | sort -k1,1n
@@ -79,7 +82,7 @@ Finally, turn off usb ethernet and reactivate it.
 # Remove any abandoned packages (installed previously to support
 # something that was removed and is no longer needed.)
 
-  - apt-get autoremove
+  - apt autoremove
 
 # Download the available package databases:
 
@@ -93,7 +96,7 @@ Finally, turn off usb ethernet and reactivate it.
 
 # Install extra required and/or useful things
 
-- apt install telnet minicom python-lxml libeigen3-dev zlib1g-dev
+- apt install telnet minicom python-lxml python-serial libeigen3-dev zlib1g-dev
 - apt install libboost-python-dev (may no longer need?)
 
 
@@ -125,17 +128,15 @@ Finally, turn off usb ethernet and reactivate it.
 
   mkdir Source
   cd Source
-  git clone curt@192.168.7.1:GIT/navigation.git
   git clone curt@192.168.7.1:GIT/aura-props.git
-  git clone curt@192.168.7.1:GIT/aura-data.git
+  git clone curt@192.168.7.1:GIT/aura-config.git
   git clone curt@192.168.7.1:GIT/aura-core.git
 
   # finding the software repositories on the web: https://github.com/AuraUAS
   mkdir Source
   cd Source
-  git clone https://github.com/AuraUAS/navigation.git
   git clone https://github.com/AuraUAS/aura-props.git
-  git clone https://github.com/AuraUAS/aura-data.git
+  git clone https://github.com/AuraUAS/aura-config.git
   git clone https://github.com/AuraUAS/aura-core.git 
 
 
