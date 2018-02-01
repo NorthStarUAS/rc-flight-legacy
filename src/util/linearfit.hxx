@@ -6,7 +6,9 @@
 // forget history
 
 // this class requires a hardwired dt set at initialization.  A
-// variable dt can lead to incorrect output.
+// variable dt can lead to incorrect output.  Hopefully the calling
+// layer can manage to call the update() function at close to the
+// provided dt.
 
 class LinearFitFilter {
     
