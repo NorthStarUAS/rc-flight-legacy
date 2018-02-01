@@ -5,6 +5,10 @@
 # echo Default C++ compiler is \"${CXX:="arm-angstrom-linux-gnueabi-g++"}\"
 
 # make automake happy
+if [ ! -f COPYING ]; then
+    echo "linking COPYING to LICENSE"
+    ln -s LICENSE COPYING
+fi
 if [ ! -f README ]; then
     echo "linking README to README.md"
     ln -s README.md README
