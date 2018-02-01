@@ -1,12 +1,8 @@
 Please see the licenses/ directory for the various open-source licenses
 governing specific sections of this code.
 
-Where not otherwise stated, the license terms for this project are LGPL
-as defined in the licenses/LGPL-2.0.txt file or optional a newer version
-of the LGPL license if available.
+Where not otherwise stated, the license terms for this project are MIT
+(see licenses/LICENSE.)
 
-The UMN EKF code is covered by the UMN open-source license terms defind in
-licenses/LICENSE-UMN.txt
-
-Portions of the xml code are covered the the Mozilla Public License as 
-defined in the file licenses/MPL-1.1.txt
+The UMN EKF code is covered by the UMN open-source license terms
+defined in licenses/LICENSE-UMN.txt
