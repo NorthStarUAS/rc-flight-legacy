@@ -57,6 +57,8 @@ Network config: (required before beaglebone dns lookups will actually work)
     cape_disable=bone_capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
     cape_enable=bone_capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
 
+    for beaglebone black rev C, disable universal cape manager (?)
+    
 # remove wicd (if gui image)
 - apt remove python-wicd wicd-cli wicd wicd-curses wicd-daemon wicd-gtk wicd-kde
 

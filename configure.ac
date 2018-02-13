@@ -56,28 +56,17 @@ AC_SEARCH_LIBS(gzopen, [z])
 # AC_MSG_RESULT([$PYTHON_LIBS])
 # AC_SUBST(PYTHON_LIBS)
 
-dnl check for Eigen C++ matrix/vector/quaternion library
+dnl check for Eigen C++ matrix/vector/quaternion headers
 AC_LANG_SAVE
 AC_LANG_CPLUSPLUS
 AC_CHECK_HEADERS([eigen3/Eigen/Core])
 AC_LANG_RESTORE
 if test "x$ac_cv_header_eigen3_Eigen_Core" != xyes; then
-   echo "configure error: eigen3 matrix libraries are required"
+   echo "configure error: Eigen matrix headers are required"
    exit
 fi
 
 AM_CONFIG_HEADER(src/include/aura_config.h)
-
-dnl automatic detection of pointing library
-
-dnl code configuration selections
-
-AC_ARG_ENABLE(batch-mode, [  --enable-batch-mode    Disable real-time clock/timing for running in batch mode], [enable_batch_mode="$enableval"], [enable_batch_mode="no"] )
-if test "x$enable_batch_mode" != "xno"; then
-    AC_DEFINE([BATCH_MODE], 1, [Define to disable real time timing and run flat out])
-fi
-
-dnl code module selections
 
 AC_CONFIG_FILES([ \
 	Makefile \
