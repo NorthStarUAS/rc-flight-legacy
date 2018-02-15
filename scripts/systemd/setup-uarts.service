@@ -1,0 +1,10 @@
+[Unit] 
+Description=Configure BB pins to enable specific uarts
+After=syslog.target network.target 
+
+[Service] 
+Type=simple 
+ExecStart=/usr/local/AuraUAS/bin/setup-uarts.sh 
+
+[Install] 
+WantedBy=multi-user.target
