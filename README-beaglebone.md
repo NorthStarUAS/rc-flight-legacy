@@ -47,7 +47,7 @@ Boot the newly flashed beaglebone and login as debian/temppwd
       
 ## Setup host/beaglebone Network Relay
 
-The beaglebone canm route through the usb net connection to the wide
+The beaglebone can route through the usb net connection to the wide
 internet via your Fedora host computer (some other ubuntu based
 instructions don't seem to quite work.)
 
@@ -109,7 +109,7 @@ Remove wicd (if gui image)
 Ethernet setup.
 
 - Note 1: enabling eth0 can generate some gps interference close to
-  the beaglebone, so use caution and sufficent antenna separation if
+  the beaglebone, so use caution and sufficient antenna separation if
   your use case requires this.)
 - Note 2: enabling eth0 without it plugged in can introduce extra boot
   delays.
@@ -147,7 +147,7 @@ Install extra required and/or useful things
     apt install telnet minicom python-lxml python-serial libeigen3-dev zlib1g-dev rapidjson-dev
 
 
-Force highest peformance mode (already the default in debian >= 9)
+Force highest performance mode (already the default in debian >= 9)
 
     vi /etc/init.d/cpufrequtils (line #43)
     GOVERNOR="performance"
@@ -199,7 +199,7 @@ available RAM.  This might be useful for running a really big task
     sudo mkswap /var/cache/swap/swapfile
     sudo swapon /var/cache/swap/swapfile
 
-Don't forget to remove theswap file (to free up a big chunk of disk space):
+Don't forget to remove the swap file (to free up a big chunk of disk space):
 
     sudo swapoff /var/cache/swap/swapfile
     sudo rm /var/cache/swap/swapfile
