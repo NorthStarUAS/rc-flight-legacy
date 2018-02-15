@@ -131,6 +131,7 @@ static LinearFitFilter imu_offset(200.0, 0.01);
 static ButterworthFilter pitot_filter(2, 100, 0.8);
 
 static uint32_t parse_errors = 0;
+static uint32_t skipped_frames = 0;
 
 #pragma pack(push, 1)           // set alignment to 1 byte boundary
 
@@ -1364,14 +1365,19 @@ double Aura3_update() {
         int pkt_id = Aura3_read();
         if ( pkt_id == IMU_PACKET_ID ) {
             ioctl(fd, FIONREAD, &bytes_available);
-	    if ( bytes_available < 128 ) {
+	    if ( bytes_available < 256 ) {
+                // a smaller value here means more skipping ahead and
+                // less catching up.
 		break;
+            } else {
+                skipped_frames++;
             }
         }
     }
 
     // track communication errors from FMU
     aura3_node.setLong("parse_errors", parse_errors);
+    aura3_node.setLong("skipped_frames", skipped_frames);
     
     double cur_time = imu_node.getDouble( "timestamp" );
 
