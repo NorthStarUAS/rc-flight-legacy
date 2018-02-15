@@ -1,9 +1,0 @@
-Example for "out of tree" build:
-
-$ ./autogen.sh
-$ mkdir build
-$ cd build
-$ ../configure CFLAGS="-Wall -O3" CXXFLAGS="-Wall -O3"
-$ make
-$ make install
-
