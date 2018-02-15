@@ -219,6 +219,15 @@ Network config: (required before beaglebone dns lookups will actually work)
   
 # setup the systemd autorun scripts
 
-New way to enable beaglebone uarts?
+Enable beaglebone uarts:
 
     https://electronics.trev.id.au/2018/02/09/get-uart-serial-ports-working-beaglebone-black/
+
+  # UART1 (beaglebone black)
+  config-pin p9.24 uart
+  config-pin p9.26 uart
+ 
+  # UART4 (beaglebone black)
+  config-pin p9.11 uart
+  config-pin p9.13 uart
+  
