@@ -130,6 +130,8 @@ static LinearFitFilter imu_offset(200.0, 0.01);
 // for airspeed.
 static ButterworthFilter pitot_filter(2, 100, 0.8);
 
+static uint32_t parse_errors = 0;
+
 #pragma pack(push, 1)           // set alignment to 1 byte boundary
 
 // configuration structure
@@ -980,6 +982,7 @@ static int Aura3_read() {
 	    } else if ( input[0] == START_OF_MSG0 ) {
 		//fprintf( stderr, "read START_OF_MSG0\n");
 	    } else {
+                parse_errors++;
 		state = 0;
 	    }
 	}
@@ -1004,6 +1007,7 @@ static int Aura3_read() {
 		cksum_B += cksum_A;
 		state++;
 	    } else {
+                parse_errors++;
 		state = 0;
 	    }
 	}
@@ -1041,6 +1045,7 @@ static int Aura3_read() {
 		// printf( "checksum passes (%d)\n", pkt_id );
 		new_data = Aura3_parse( pkt_id, pkt_len, payload );
 	    } else {
+                parse_errors++;
 		if ( display_on ) {
 		    // printf("checksum failed %d %d (computed) != %d %d (message)\n",
 		    //        cksum_A, cksum_B, cksum_lo, cksum_hi );
@@ -1364,6 +1369,10 @@ double Aura3_update() {
             }
         }
     }
+
+    // track communication errors from FMU
+    aura3_node.setLong("parse_errors", parse_errors);
+    
     double cur_time = imu_node.getDouble( "timestamp" );
 
     return cur_time - last_time;
