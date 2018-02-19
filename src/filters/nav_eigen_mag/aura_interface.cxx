@@ -11,12 +11,16 @@
 //#include "include/globaldefs.h"
 #include "sensors/gps_mgr.hxx"
 
+#include "../nav_common/constants.hxx"
+
 #include "aura_interface.hxx"
-#include "nav_interface.hxx"
+#include "EKF_15state_mag.hxx"
 
 // these are the important sensor and result structures used by the
 // UMN code.  To avoid pointers and dynamic allocation, create static
 // copies of these and use them henceforth.
+
+static EKF15mag filter;
 
 static IMUdata imu_data;
 static GPSdata gps_data;
@@ -85,12 +89,12 @@ static void umn2props(void) {
 	filter_node.setString( "navigation", "invalid" );
     }
 
-    filter_node.setDouble( "p_bias", nav_data.gb[0] );
-    filter_node.setDouble( "q_bias", nav_data.gb[1] );
-    filter_node.setDouble( "r_bias", nav_data.gb[2] );
-    filter_node.setDouble( "ax_bias", nav_data.ab[0] );
-    filter_node.setDouble( "ay_bias", nav_data.ab[1] );
-    filter_node.setDouble( "az_bias", nav_data.ab[2] );
+    filter_node.setDouble( "p_bias", nav_data.gbx );
+    filter_node.setDouble( "q_bias", nav_data.gby );
+    filter_node.setDouble( "r_bias", nav_data.gbz );
+    filter_node.setDouble( "ax_bias", nav_data.abx );
+    filter_node.setDouble( "ay_bias", nav_data.aby );
+    filter_node.setDouble( "az_bias", nav_data.abz );
     
     filter_node.setDouble( "altitude_ft",
 			   nav_data.alt * M2F );
@@ -134,10 +138,10 @@ bool nav_eigen_mag_update() {
     props2umn();
 
     if ( nav_inited ) {
-	nav_data = get_nav_mag( imu_data, gps_data );
+	nav_data = filter.update( imu_data, gps_data );
     } else {
 	if ( GPS_age() < 1.0 && gps_node.getBool("settle") ) {
-	    nav_data = init_nav_mag( imu_data, gps_data );
+	    nav_data = filter.init( imu_data, gps_data );
 	    nav_inited = true;
 	}
     }

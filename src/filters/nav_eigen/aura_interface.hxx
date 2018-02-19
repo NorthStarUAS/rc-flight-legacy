@@ -12,7 +12,6 @@
 #include <string>
 using std::string;
 
-
 void nav_eigen_init( string output_path, pyPropertyNode *config );
 bool nav_eigen_update();
 void nav_eigen_close();

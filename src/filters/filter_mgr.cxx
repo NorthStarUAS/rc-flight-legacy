@@ -21,7 +21,6 @@ using std::ostringstream;
 #include "comms/logging.hxx"
 #include "filters/nav_eigen/aura_interface.hxx"
 #include "filters/nav_eigen_mag/aura_interface.hxx"
-#include "filters/umngnss_quat/umngnss_quat.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 #include "util/myprof.hxx"
@@ -94,8 +93,6 @@ void Filter_init() {
 	    nav_eigen_init( output_path.str(), &section );
 	} else if ( module == "nav_eigen_mag" ) {
 	    nav_eigen_mag_init( output_path.str(), &section );
-	} else if ( module == "umn_quat" ) {
-	    umngnss_quat_init( output_path.str(), &section );
 	} else {
 	    printf("Unknown filter = '%s' in config file\n",
 		   module.c_str());
@@ -241,8 +238,6 @@ bool Filter_update() {
 	    fresh_filter_data = nav_eigen_update();
 	} else if ( module == "nav_eigen_mag" ) {
 	    fresh_filter_data = nav_eigen_mag_update();
-	} else if ( module == "umn_quat" ) {
-	    fresh_filter_data = umngnss_quat_update();
 	}
 	if ( fresh_filter_data ) {
 	    if ( i == 0 ) {
@@ -311,8 +306,6 @@ void Filter_close() {
 	    nav_eigen_close();
 	} else if ( module == "nav_eigen_mag" ) {
 	    nav_eigen_mag_close();
-	} else if ( module == "umn_quat" ) {
-	    umngnss_quat_close();
 	}
     }
 }

@@ -73,9 +73,9 @@ AC_CONFIG_FILES([ \
         src/Makefile \
         src/actuators/Makefile \
         src/filters/Makefile \
+        src/filters/nav_common/Makefile \
         src/filters/nav_eigen/Makefile \
         src/filters/nav_eigen_mag/Makefile \
-        src/filters/umngnss_quat/Makefile \
         src/comms/Makefile \
         src/control/Makefile \
         src/health/Makefile \

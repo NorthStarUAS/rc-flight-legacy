@@ -19,7 +19,7 @@ static double ra2 = 1/(EQURAD*EQURAD);
 static double e2 = E2;
 static double e4 = E2*E2;
 
-Vector3d ecef2lla(const Vector3d cart) {
+Vector3d ecef2lla_for_ublox6(const Vector3d cart) {
     // according to
     // H. Vermeille,
     // Direct transformation from geocentric to geodetic ccordinates,

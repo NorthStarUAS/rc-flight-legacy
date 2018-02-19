@@ -217,7 +217,7 @@ static bool parse_ublox6_msg( uint8_t msg_class, uint8_t msg_id,
 	    }
 	}
 	Vector3d ecef( ecefX / 100.0, ecefY / 100.0, ecefZ / 100.0 );
-	Vector3d wgs84 = ecef2lla(ecef);
+	Vector3d wgs84 = ecef2lla_for_ublox6(ecef);
 	Quaterniond ecef2ned = fromLonLatRad(wgs84[1], wgs84[0]);
 	Vector3d vel_ecef( ecefVX / 100.0, ecefVY / 100.0, ecefVZ / 100.0 );
 	Vector3d vel_ned = quat_backtransform(ecef2ned, vel_ecef);
