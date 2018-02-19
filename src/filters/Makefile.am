@@ -1,4 +1,4 @@
-SUBDIRS = nav_common nav_eigen nav_eigen_mag
+SUBDIRS = nav_common nav_eigen nav_eigen_float nav_eigen_mag
 
 noinst_LIBRARIES = libfilters.a
 

@@ -20,6 +20,7 @@ using std::ostringstream;
 #include "comms/remote_link.hxx"
 #include "comms/logging.hxx"
 #include "filters/nav_eigen/aura_interface.hxx"
+#include "filters/nav_eigen_float/aura_interface.hxx"
 #include "filters/nav_eigen_mag/aura_interface.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
@@ -91,6 +92,8 @@ void Filter_init() {
 	    // do nothing
 	} else if ( module == "nav_eigen" ) {
 	    nav_eigen_init( output_path.str(), &section );
+	} else if ( module == "nav_eigen_float" ) {
+	    nav_eigen_float_init( output_path.str(), &section );
 	} else if ( module == "nav_eigen_mag" ) {
 	    nav_eigen_mag_init( output_path.str(), &section );
 	} else {
@@ -236,6 +239,8 @@ bool Filter_update() {
 	    // do nothing
 	} else if ( module == "nav_eigen" ) {
 	    fresh_filter_data = nav_eigen_update();
+	} else if ( module == "nav_eigen_float" ) {
+	    fresh_filter_data = nav_eigen_float_update();
 	} else if ( module == "nav_eigen_mag" ) {
 	    fresh_filter_data = nav_eigen_mag_update();
 	}
@@ -304,6 +309,8 @@ void Filter_close() {
 	    // do nothing
 	} else if ( module == "nav_eigen" ) {
 	    nav_eigen_close();
+	} else if ( module == "nav_eigen_float" ) {
+	    nav_eigen_float_close();
 	} else if ( module == "nav_eigen_mag" ) {
 	    nav_eigen_mag_close();
 	}
