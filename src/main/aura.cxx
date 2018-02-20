@@ -364,6 +364,7 @@ int main( int argc, char **argv )
 
     imu_prof.enable();
     gps_prof.enable();
+    filter_prof.enable();
     control_prof.enable();
     air_prof.enable();
     datalog_prof.enable();
