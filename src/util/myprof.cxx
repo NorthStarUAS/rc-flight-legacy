@@ -70,9 +70,10 @@ void myprofile::stats() {
     if ( total_time > 1.0 ) {
 	avg_hz = (double)count / total_time;
     }
-    printf( "%s avg: %.4f num: %d tot: %.4f (range: %.4f-%.4f) hz: %.3f\n",
-	    name.c_str(), sum_time / (double)count,
-	    count, sum_time, min_interval, max_interval, avg_hz );
+    printf( "%s avg: %.2f(ms) num: %d tot: %.4f(s) (range: %.2f-%.2f) hz: %.1f\n",
+	    name.c_str(), 1000.0 * sum_time / (double)count,
+	    count, sum_time, 1000.0 * min_interval, 1000.0 * max_interval,
+            avg_hz );
 }
 
 
