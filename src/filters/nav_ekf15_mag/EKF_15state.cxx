@@ -315,8 +315,7 @@ void EKF15_mag::time_update(IMUdata imu) {
 
 void EKF15_mag::measurement_update(IMUdata imu, GPSdata gps) {
     // ==================  GPS Update  ===================
-    gps.newData = 0; // Reset the flag
-		
+
     // Position, converted to NED
     Vector3d pos_vec(nav.lat, nav.lon, nav.alt);
     pos_ins_ecef = lla2ecef(pos_vec);
