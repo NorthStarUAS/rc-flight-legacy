@@ -28,7 +28,7 @@ struct GPSdata {
     double lat, lon, alt;	// rad, meter
     double vn, ve, vd;		// m/sec
     int sats;
-    bool newData;
+    bool newData;               // depricate as soon as possible
 };
 
 struct Airdata {

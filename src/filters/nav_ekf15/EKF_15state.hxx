@@ -14,8 +14,8 @@
  *
  */
 
-#ifndef NAV_15STATE_HXX
-#define NAV_15STATE_HXX
+#ifndef NAV_EKF_15STATE_HXX
+#define NAV_EKF_15STATE_HXX
 
 
 #include <math.h>
@@ -27,18 +27,18 @@ using namespace Eigen;
 #include "../nav_common/structs.hxx"
 
 // usefule constants
-const double g = 9.814;
-const double D2R = M_PI / 180.0;
+const float g = 9.814;
+const float D2R = M_PI / 180.0;
 
 // define some types for notational convenience and consistency
-typedef Matrix<double,6,6> Matrix6d;
-typedef Matrix<double,12,12> Matrix12d;
-typedef Matrix<double,15,15> Matrix15d;
-typedef Matrix<double,6,15> Matrix6x15d;
-typedef Matrix<double,15,6> Matrix15x6d;
-typedef Matrix<double,15,12> Matrix15x12d;
-typedef Matrix<double,6,1> Vector6d;
-typedef Matrix<double,15,1> Vector15d;
+typedef Matrix<float,6,6> Matrix6f;
+typedef Matrix<float,12,12> Matrix12f;
+typedef Matrix<float,15,15> Matrix15f;
+typedef Matrix<float,6,15> Matrix6x15f;
+typedef Matrix<float,15,6> Matrix15x6f;
+typedef Matrix<float,15,12> Matrix15x12f;
+typedef Matrix<float,6,1> Vector6f;
+typedef Matrix<float,15,1> Vector15f;
 
 class EKF15 {
 
@@ -55,28 +55,32 @@ public:
     void default_config();
 
     // main interface
-    NAVdata init(IMUdata imu, GPSdata gps);
-    NAVdata update(IMUdata imu, GPSdata gps);
+    void init(IMUdata imu, GPSdata gps);
+    void time_update(IMUdata imu);
+    void measurement_update(GPSdata gps);
+    
+    NAVdata get_nav();
     
 private:
 
-    Matrix15d F, PHI, P, Qw, Q, ImKH, KRKt, I15 /* identity */;
-    Matrix15x12d G;
-    Matrix15x6d K;
-    Vector15d x;
-    Matrix12d Rw;
-    Matrix6x15d H;
-    Matrix6d R;
-    Vector6d y;
-    Matrix3d C_N2B, C_B2N, I3 /* identity */, temp33;
-    Vector3d grav, f_b, om_ib, nr, pos_ins_ecef, pos_ins_ned, pos_gps, pos_gps_ecef, pos_gps_ned, dx, mag_ned;
+    Matrix15f F, PHI, P, Qw, Q, ImKH, KRKt, I15 /* identity */;
+    Matrix15x12f G;
+    Matrix15x6f K;
+    Vector15f x;
+    Matrix12f Rw;
+    Matrix6x15f H;
+    Matrix6f R;
+    Vector6f y;
+    Matrix3f C_N2B, C_B2N, I3 /* identity */, temp33;
+    Vector3d pos_ins_ecef, pos_gps, pos_gps_ecef;
+    Vector3f grav, f_b, om_ib, /*nr,*/ pos_ins_ned, pos_gps_ned, dx, mag_ned;
 
-    Quaterniond quat;
-    double tprev;
+    Quaternionf quat;
 
+    IMUdata imu_last;
     NAVconfig config;
     NAVdata nav;
 };
 
 
-#endif // NAV_15STATE_HXX
+#endif // NAV_EKF_15STATE_HXX

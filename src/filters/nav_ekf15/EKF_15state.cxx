@@ -19,18 +19,15 @@ using std::cout;
 using std::endl;
 #include <stdio.h>
 
-#include "../nav_common/constants.hxx"
-#include "../nav_common/coremag.h"
-#include "../nav_common/nav_functions.hxx"
+#include "../nav_common/nav_functions_float.hxx"
+#include "EKF_15state.hxx"
 
-#include "EKF_15state_mag.hxx"
-
-const double P_P_INIT = 10.0;
-const double P_V_INIT = 1.0;
-const double P_A_INIT = 0.34906;   // 20 deg
-const double P_HDG_INIT = 3.14159; // 180 deg
-const double P_AB_INIT = 0.9810;   // 0.5*g
-const double P_GB_INIT = 0.01745;  // 5 deg/s
+const float P_P_INIT = 10.0;
+const float P_V_INIT = 1.0;
+const float P_A_INIT = 0.34906;   // 20 deg
+const float P_HDG_INIT = 3.14159; // 180 deg
+const float P_AB_INIT = 0.9810;   // 0.5*g
+const float P_GB_INIT = 0.01745;  // 5 deg/s
 
 const double Rew = 6.359058719353925e+006; // earth radius
 const double Rns = 6.386034030458164e+006; // earth radius
@@ -43,15 +40,15 @@ const double Rns = 6.386034030458164e+006; // earth radius
 // lot of these multi line equations with temp matrices can be
 // compressed.
 
-void EKF15mag::set_config(NAVconfig config) {
+void EKF15::set_config(NAVconfig config) {
     this->config = config;
 }
 
-NAVconfig EKF15mag::get_config() {
+NAVconfig EKF15::get_config() {
     return config;
 }
 
-void EKF15mag::default_config()
+void EKF15::default_config()
 {
     config.sig_w_ax = 0.05;     // Std dev of Accelerometer Wide Band Noise (m/s^2)
     config.sig_w_ay = 0.05;
@@ -70,13 +67,13 @@ void EKF15mag::default_config()
     config.sig_mag      = 0.3;  // Magnetometer measurement noise std dev (normalized -1 to 1)
 }
 
-NAVdata EKF15mag::init(IMUdata imu, GPSdata gps) {
+void EKF15::init(IMUdata imu, GPSdata gps) {
     I15.setIdentity();
     I3.setIdentity();
 
     // Assemble the matrices
     // .... gravity, g
-    grav = Vector3d(0.0, 0.0, g);
+    grav = Vector3f(0.0, 0.0, g);
 	
     // ... H
     H.setZero();
@@ -105,8 +102,7 @@ NAVdata EKF15mag::init(IMUdata imu, GPSdata gps) {
     R.setZero();
     R(0,0) = config.sig_gps_p_ne*config.sig_gps_p_ne;	 R(1,1) = config.sig_gps_p_ne*config.sig_gps_p_ne;  R(2,2) = config.sig_gps_p_d*config.sig_gps_p_d;
     R(3,3) = config.sig_gps_v_ne*config.sig_gps_v_ne;	 R(4,4) = config.sig_gps_v_ne*config.sig_gps_v_ne;  R(5,5) = config.sig_gps_v_d*config.sig_gps_v_d;
-    R(6,6) = config.sig_mag*config.sig_mag;            R(7,7) = config.sig_mag*config.sig_mag;            R(8,8) = config.sig_mag*config.sig_mag;
-   
+	
     // ... update P in get_nav
     nav.Pp0 = P(0,0);	  nav.Pp1 = P(1,1);	nav.Pp2 = P(2,2);
     nav.Pv0 = P(3,3);	  nav.Pv1 = P(4,4);	nav.Pv2 = P(5,5);
@@ -124,29 +120,6 @@ NAVdata EKF15mag::init(IMUdata imu, GPSdata gps) {
     nav.ve = gps.ve;
     nav.vd = gps.vd;
 	
-    // ideal magnetic vector
-    long int jd = now_to_julian_days();
-    double field[6];
-    calc_magvar( nav.lat, nav.lon,
-		 nav.alt / 1000.0, jd, field );
-    mag_ned(0) = field[3];
-    mag_ned(1) = field[4];
-    mag_ned(2) = field[5];
-    mag_ned.normalize();
-    cout << field[0] << " " << field[1] << " " << field[2] << endl;
-    cout << "Ideal mag vector (ned): " << mag_ned << endl;
-    // // initial heading
-    // double init_psi_rad = 90.0*D2R;
-    // if ( fabs(mag_ned[0][0]) > 0.0001 || fabs(mag_ned[0][1]) > 0.0001 ) {
-    // 	init_psi_rad = atan2(mag_ned[0][1], mag_ned[0][0]);
-    // }
-
-    // fixme: for now match the reference implementation so we can
-    // compare intermediate calculations.
-    // nav.the = 0*D2R;
-    // nav.phi = 0*D2R;
-    // nav.psi = 90.0*D2R;
-
     // ... and initialize states with IMU Data, theta from Ax, aircraft
     // at rest
     nav.the = asin(imu.ax/g); 
@@ -155,10 +128,6 @@ NAVdata EKF15mag::init(IMUdata imu, GPSdata gps) {
     nav.psi = 90*D2R - atan2(imu.hx, imu.hy);
 	
     quat = eul2quat(nav.phi, nav.the, nav.psi);
-    nav.qw = quat.w();
-    nav.qx = quat.x();
-    nav.qy = quat.y();
-    nav.qz = quat.z();
 	
     nav.abx = 0.0;
     nav.aby = 0.0; 
@@ -168,33 +137,19 @@ NAVdata EKF15mag::init(IMUdata imu, GPSdata gps) {
     nav.gby = imu.q;
     nav.gbz = imu.r;
 	
-    // Specific forces and Rotation Rate
-    f_b(0) = imu.ax - nav.abx;
-    f_b(1) = imu.ay - nav.aby;
-    f_b(2) = imu.az - nav.abz;
+    imu_last = imu;
 	
-    om_ib(0) = imu.p - nav.gbx;
-    om_ib(1) = imu.q - nav.gby;
-    om_ib(2) = imu.r - nav.gbz;
-	
-    // Time during initialization
-    tprev = imu.time;
-	
-    //nav.init = 1;
     nav.time = imu.time;
     nav.err_type = data_valid;
-
-    return nav;
 }
 
 // Main get_nav filter function
-NAVdata EKF15mag::update(IMUdata imu, GPSdata gps) {
+void EKF15::time_update(IMUdata imu) {
     // compute time-elapsed 'dt'
     // This compute the navigation state at the DAQ's Time Stamp
-    double tnow = imu.time;
-    double imu_dt = tnow - tprev;
-    tprev = tnow;		
-
+    float imu_dt = imu.time - imu_last.time;
+    nav.time = imu.time;
+    
     // ==================  Time Update  ===================
 
     // AHRS Transformations
@@ -203,21 +158,45 @@ NAVdata EKF15mag::update(IMUdata imu, GPSdata gps) {
 	
     // Attitude Update
     // ... Calculate Navigation Rate
-    Vector3d vel_vec(nav.vn, nav.ve, nav.vd);
+    Vector3f vel_vec(nav.vn, nav.ve, nav.vd);
     Vector3d pos_vec(nav.lat, nav.lon, nav.alt);
-	
-    nr = navrate(vel_vec,pos_vec);  /* note: unused, llarate used instead */
-	
-    Quaterniond dq;
-    dq = Quaterniond(1.0, 0.5*om_ib(0)*imu_dt, 0.5*om_ib(1)*imu_dt, 0.5*om_ib(2)*imu_dt);
+
+    if ( false ) {
+        // Get the new Specific forces and Rotation Rate from previous
+        // frame (k) to use in this frame (k+1).  Rectangular
+        // integration.
+        f_b(0) = imu_last.ax - nav.abx;
+        f_b(1) = imu_last.ay - nav.aby;
+        f_b(2) = imu_last.az - nav.abz;
+
+        om_ib(0) = imu_last.p - nav.gbx;
+        om_ib(1) = imu_last.q - nav.gby;
+        om_ib(2) = imu_last.r - nav.gbz;
+    } else {
+        // Combine the Specific forces and Rotation Rate from previous
+        // frame (k) with current frame (k+1) to use in this frame
+        // (k+1).  Trapazoidal integration.
+        f_b(0) = 0.5 * (imu_last.ax + imu.ax) - nav.abx;
+        f_b(1) = 0.5 * (imu_last.ay + imu.ay) - nav.aby;
+        f_b(2) = 0.5 * (imu_last.az + imu.az) - nav.abz;
+
+        om_ib(0) = 0.5 * (imu_last.p + imu.p) - nav.gbx;
+        om_ib(1) = 0.5 * (imu_last.q + imu.q) - nav.gby;
+        om_ib(2) = 0.5 * (imu_last.r + imu.r) - nav.gbz;
+    }
+
+    imu_last = imu;
+
+    Quaternionf dq = Quaternionf(1.0, 0.5*om_ib(0)*imu_dt, 0.5*om_ib(1)*imu_dt, 0.5*om_ib(2)*imu_dt);
+    
     quat = (quat * dq).normalized();
 
     if (quat.w() < 0) {
         // Avoid quaternion flips sign
-        quat = Quaterniond(-quat.w(), -quat.x(), -quat.y(), -quat.z());
+        quat = Quaternionf(-quat.w(), -quat.x(), -quat.y(), -quat.z());
     }
     
-    Vector3d att_vec = quat2eul(quat);
+    Vector3f att_vec = quat2eul(quat);
     nav.phi = att_vec(0);
     nav.the = att_vec(1);
     nav.psi = att_vec(2);
@@ -241,7 +220,7 @@ NAVdata EKF15mag::update(IMUdata imu, GPSdata gps) {
     // ... pos2gs
     F(0,3) = 1.0; 	F(1,4) = 1.0; 	F(2,5) = 1.0;
     // ... gs2pos
-    F(5,2) = -2 * g / EARTH_RADIUS;
+    F(5,2) = -2 * g / EarthRadius;
 	
     // ... gs2att
     temp33 = C_B2N * sk(f_b);
@@ -302,143 +281,92 @@ NAVdata EKF15mag::update(IMUdata imu, GPSdata gps) {
     nav.Pgbx = P(12,12);  nav.Pgby = P(13,13);  nav.Pgbz = P(14,14);
 
     // ==================  DONE TU  ===================
-	
-    if ( gps.newData ) {
-	// ==================  GPS Update  ===================
-	gps.newData = 0; // Reset the flag
-		
-	// Position, converted to NED
-	Vector3d pos_vec(nav.lat, nav.lon, nav.alt);
-	pos_ins_ecef = lla2ecef(pos_vec);
+}
 
-	Vector3d pos_ref = pos_vec;
-	pos_ref(2) = 0.0;
-	pos_ins_ned = ecef2ned(pos_ins_ecef, pos_ref);
+void EKF15::measurement_update(GPSdata gps) {
+    // ==================  GPS Update  ===================
 		
-	pos_gps(0) = gps.lat*D2R;
-	pos_gps(1) = gps.lon*D2R;
-	pos_gps(2) = gps.alt;
-		
-	pos_gps_ecef = lla2ecef(pos_gps);
-		
-	pos_gps_ned = ecef2ned(pos_gps_ecef, pos_ref);
+    // Position, converted to NED
+    Vector3d pos_vec(nav.lat, nav.lon, nav.alt);
+    pos_ins_ecef = lla2ecef(pos_vec);
 
-	// measured mag vector (body frame)
-	Vector3d mag_sense;
-	mag_sense(0) = imu.hx;
-	mag_sense(1) = imu.hy;
-	mag_sense(2) = imu.hz;
-	mag_sense.normalize();
-	
-	Vector3d mag_error; // magnetometer measurement error
-	bool mag_error_in_ned = false;
-	if ( mag_error_in_ned ) {
-	    // rotate measured mag vector into ned frame (then normalized)
-	    Vector3d mag_sense_ned = C_B2N * mag_sense;
-	    mag_sense_ned.normalize();
-	    mag_error = mag_sense_ned - mag_ned;
-	} else {
-	    // rotate ideal mag vector into body frame (then normalized)
-	    Vector3d mag_ideal = C_N2B * mag_ned;
-	    mag_ideal.normalize();
-	    mag_error = mag_sense - mag_ideal;
-	    // cout << "mag_error:" << mag_error << endl;
+    Vector3d pos_ref = pos_vec;
+    pos_ref(2) = 0.0;
+    pos_ins_ned = ecef2ned(pos_ins_ecef, pos_ref);
+		
+    pos_gps(0) = gps.lat*D2R;
+    pos_gps(1) = gps.lon*D2R;
+    pos_gps(2) = gps.alt;
+		
+    pos_gps_ecef = lla2ecef(pos_gps);
+		
+    pos_gps_ned = ecef2ned(pos_gps_ecef, pos_ref);
 
-	    // Matrix<double,3,3> tmp1 = C_N2B * sk(mag_ned);
-	    Matrix3d tmp1 = sk(mag_sense) * 2.0;
-	    for ( int j = 0; j < 3; j++ ) {
-		for ( int i = 0; i < 3; i++ ) {
-		    H(6+i,6+j) = tmp1(i,j);
-		}
-	    }
-	}
+    // Create Measurement: y
+    y(0) = pos_gps_ned(0) - pos_ins_ned(0);
+    y(1) = pos_gps_ned(1) - pos_ins_ned(1);
+    y(2) = pos_gps_ned(2) - pos_ins_ned(2);
+		
+    y(3) = gps.vn - nav.vn;
+    y(4) = gps.ve - nav.ve;
+    y(5) = gps.vd - nav.vd;
+		
+    // Kalman Gain
+    // K = P*H'*inv(H*P*H'+R)
+    K = P * H.transpose() * (H * P * H.transpose() + R).inverse();
+		
+    // Covariance Update
+    ImKH = I15 - K * H;	                // ImKH = I - K*H
+		
+    KRKt = K * R * K.transpose();		// KRKt = K*R*K'
+		
+    P = ImKH * P * ImKH.transpose() + KRKt;	// P = ImKH*P*ImKH' + KRKt
+		
+    nav.Pp0 = P(0,0);     nav.Pp1 = P(1,1);     nav.Pp2 = P(2,2);
+    nav.Pv0 = P(3,3);     nav.Pv1 = P(4,4);     nav.Pv2 = P(5,5);
+    nav.Pa0 = P(6,6);     nav.Pa1 = P(7,7);     nav.Pa2 = P(8,8);
+    nav.Pabx = P(9,9);    nav.Paby = P(10,10);  nav.Pabz = P(11,11);
+    nav.Pgbx = P(12,12);  nav.Pgby = P(13,13);  nav.Pgbz = P(14,14);
+		
+    // State Update
+    x = K * y;
+    double denom = fabs(1.0 - (ECC2 * sin(nav.lat) * sin(nav.lat)));
+    double denom_sqrt = sqrt(denom);
+    double Re = EarthRadius / denom_sqrt;
+    double Rn = EarthRadius * (1-ECC2) * denom_sqrt / denom;
+    nav.alt = nav.alt - x(2);
+    nav.lat = nav.lat + x(0)/(Re + nav.alt);
+    nav.lon = nav.lon + x(1)/(Rn + nav.alt)/cos(nav.lat);
+		
+    nav.vn = nav.vn + x(3);
+    nav.ve = nav.ve + x(4);
+    nav.vd = nav.vd + x(5);
+		
+    // Attitude correction
+    Quaternionf dq = Quaternionf(1.0, x(6), x(7), x(8));
+    quat = (quat * dq).normalized();
+		
+    Vector3f att_vec = quat2eul(quat);
+    nav.phi = att_vec(0);
+    nav.the = att_vec(1);
+    nav.psi = att_vec(2);
+	
+    nav.abx += x(9);
+    nav.aby += x(10);
+    nav.abz += x(11);
 
-	// Create Measurement: y
-	y(0) = pos_gps_ned(0) - pos_ins_ned(0);
-	y(1) = pos_gps_ned(1) - pos_ins_ned(1);
-	y(2) = pos_gps_ned(2) - pos_ins_ned(2);
-		
-	y(3) = gps.vn - nav.vn;
-	y(4) = gps.ve - nav.ve;
-	y(5) = gps.vd - nav.vd;
-		
-	y(6) = mag_error(0);
-	y(7) = mag_error(1);
-	y(8) = mag_error(2);
-	
-	// Kalman Gain
-	// K = P*H'*inv(H*P*H'+R)
-	K = P * H.transpose() * (H * P * H.transpose() + R).inverse();
-		
-	// Covariance Update
-	ImKH = I15 - K * H;	                // ImKH = I - K*H
-		
-	KRKt = K * R * K.transpose();		// KRKt = K*R*K'
-		
-	P = ImKH * P * ImKH.transpose() + KRKt;	// P = ImKH*P*ImKH' + KRKt
-		
-	nav.Pp0 = P(0,0);     nav.Pp1 = P(1,1);     nav.Pp2 = P(2,2);
-	nav.Pv0 = P(3,3);     nav.Pv1 = P(4,4);     nav.Pv2 = P(5,5);
-	nav.Pa0 = P(6,6);     nav.Pa1 = P(7,7);     nav.Pa2 = P(8,8);
-	nav.Pabx = P(9,9);    nav.Paby = P(10,10);  nav.Pabz = P(11,11);
-	nav.Pgbx = P(12,12);  nav.Pgby = P(13,13);  nav.Pgbz = P(14,14);
-		
-	// State Update
-	x = K * y;
-	double denom = fabs(1.0 - (ECC2 * sin(nav.lat) * sin(nav.lat)));
-        double denom_sqrt = sqrt(denom);
-	double Re = EARTH_RADIUS / denom_sqrt;
-	double Rn = EARTH_RADIUS * (1-ECC2) * denom_sqrt / denom;
-	nav.alt = nav.alt - x(2);
-	nav.lat = nav.lat + x(0)/(Re + nav.alt);
-	nav.lon = nav.lon + x(1)/(Rn + nav.alt)/cos(nav.lat);
-		
-	nav.vn = nav.vn + x(3);
-	nav.ve = nav.ve + x(4);
-	nav.vd = nav.vd + x(5);
-		
-	// Attitude correction
-	dq = Quaterniond(1.0, x(6), x(7), x(8));
-	quat = (quat * dq).normalized();
-		
-	Vector3d att_vec = quat2eul(quat);
-	nav.phi = att_vec(0);
-	nav.the = att_vec(1);
-	nav.psi = att_vec(2);
-	
-	nav.abx += x(9);
-	nav.aby += x(10);
-	nav.abz += x(11);
+    nav.gbx += x(12);
+    nav.gby += x(13);
+    nav.gbz += x(14);
+}
 
-	nav.gbx += x(12);
-	nav.gby += x(13);
-	nav.gbz += x(14);
-    }
-	
+
+NAVdata EKF15::get_nav() {
     nav.qw = quat.w();
     nav.qx = quat.x();
     nav.qy = quat.y();
     nav.qz = quat.z();
 	
-    // Remove current estimated biases from rate gyro and accels
-    imu.p -= nav.gbx;
-    imu.q -= nav.gby;
-    imu.r -= nav.gbz;
-    imu.ax -= nav.abx;
-    imu.ay -= nav.aby;
-    imu.az -= nav.abz;
-
-    // Get the new Specific forces and Rotation Rate,
-    // use in the next time update
-    f_b(0) = imu.ax;
-    f_b(1) = imu.ay;
-    f_b(2) = imu.az;
-
-    om_ib(0) = imu.p;
-    om_ib(1) = imu.q;
-    om_ib(2) = imu.r;
-
-    nav.time = imu.time;
     return nav;
 }
 
@@ -450,12 +378,14 @@ NAVdata EKF15mag::update(IMUdata imu, GPSdata gps) {
 #include <boost/python.hpp>
 using namespace boost::python;
 
-BOOST_PYTHON_MODULE(EKF15_mag)
+BOOST_PYTHON_MODULE(EKF15)
 {
-    class_<EKF15mag>("EKF15_mag")
-        .def("set_config", &EKF15mag::set_config)
-        .def("init", &EKF15mag::init)
-        .def("update", &EKF15mag::update)
+    class_<EKF15>("EKF15")
+        .def("set_config", &EKF15::set_config)
+        .def("init", &EKF15::init)
+        .def("time_update", &EKF15::time_update)
+        .def("measurement_update", &EKF15::measurement_update)
+        .def("get_nav", &EKF15::get_nav)
     ;
 }
 

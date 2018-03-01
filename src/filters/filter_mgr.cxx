@@ -19,9 +19,8 @@ using std::ostringstream;
 
 #include "comms/remote_link.hxx"
 #include "comms/logging.hxx"
-#include "filters/nav_eigen/aura_interface.hxx"
-#include "filters/nav_eigen_float/aura_interface.hxx"
-#include "filters/nav_eigen_mag/aura_interface.hxx"
+#include "filters/nav_ekf15/aura_interface.hxx"
+#include "filters/nav_ekf15_mag/aura_interface.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
 #include "util/myprof.hxx"
@@ -90,12 +89,10 @@ void Filter_init() {
 	printf("filter: %d = %s\n", i, module.c_str());
 	if ( module == "null" ) {
 	    // do nothing
-	} else if ( module == "nav_eigen" ) {
-	    nav_eigen_init( output_path.str(), &section );
-	} else if ( module == "nav_eigen_float" ) {
-	    nav_eigen_float_init( output_path.str(), &section );
-	} else if ( module == "nav_eigen_mag" ) {
-	    nav_eigen_mag_init( output_path.str(), &section );
+	} else if ( module == "nav-ekf15" ) {
+	    nav_ekf15_init( output_path.str(), &section );
+	} else if ( module == "nav-ekf15-mag" ) {
+	    nav_ekf15_mag_init( output_path.str(), &section );
 	} else {
 	    printf("Unknown filter = '%s' in config file\n",
 		   module.c_str());
@@ -237,12 +234,10 @@ bool Filter_update() {
 	}
 	if ( module == "null" ) {
 	    // do nothing
-	} else if ( module == "nav_eigen" ) {
-	    fresh_filter_data = nav_eigen_update();
-	} else if ( module == "nav_eigen_float" ) {
-	    fresh_filter_data = nav_eigen_float_update();
-	} else if ( module == "nav_eigen_mag" ) {
-	    fresh_filter_data = nav_eigen_mag_update();
+	} else if ( module == "nav-ekf15" ) {
+	    fresh_filter_data = nav_ekf15_update();
+	} else if ( module == "nav-ekf15-mag" ) {
+	    fresh_filter_data = nav_ekf15_mag_update();
 	}
 	if ( fresh_filter_data ) {
 	    if ( i == 0 ) {
@@ -307,12 +302,10 @@ void Filter_close() {
 	}
 	if ( module == "null" ) {
 	    // do nothing
-	} else if ( module == "nav_eigen" ) {
-	    nav_eigen_close();
-	} else if ( module == "nav_eigen_float" ) {
-	    nav_eigen_float_close();
-	} else if ( module == "nav_eigen_mag" ) {
-	    nav_eigen_mag_close();
+	} else if ( module == "nav-ekf15" ) {
+	    nav_ekf15_close();
+	} else if ( module == "nav-ekf15-mag" ) {
+	    nav_ekf15_mag_close();
 	}
     }
 }

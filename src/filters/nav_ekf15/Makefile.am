@@ -1,6 +1,6 @@
-noinst_LIBRARIES = libnav_eigen.a
+noinst_LIBRARIES = libnav_ekf15.a
 
-libnav_eigen_a_SOURCES = \
+libnav_ekf15_a_SOURCES = \
 	aura_interface.cxx aura_interface.hxx \
 	EKF_15state.cxx EKF_15state.hxx
 

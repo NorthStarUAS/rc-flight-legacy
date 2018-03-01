@@ -8,19 +8,19 @@
 #include <math.h>
 #include <string.h>
 
-//#include "include/globaldefs.h"
+#include "include/globaldefs.h"
 #include "sensors/gps_mgr.hxx"
 
 #include "../nav_common/constants.hxx"
 
 #include "aura_interface.hxx"
-#include "EKF_15state_mag.hxx"
+#include "EKF_15state.hxx"
 
 // these are the important sensor and result structures used by the
 // UMN code.  To avoid pointers and dynamic allocation, create static
 // copies of these and use them henceforth.
 
-static EKF15mag filter;
+static EKF15 filter;
 
 static IMUdata imu_data;
 static GPSdata gps_data;
@@ -53,15 +53,6 @@ static void props2umn(void) {
     gps_data.vn = gps_node.getDouble("vn_ms");
     gps_data.ve = gps_node.getDouble("ve_ms");
     gps_data.vd = gps_node.getDouble("vd_ms");
-
-    static double last_gps_time = 0.0;
-    if ( gps_data.time > last_gps_time ) {
-	last_gps_time = gps_data.time;
-	// reset to zero by the EKF when this new data is consumed.
-	gps_data.newData = 1;
-    } else {
-	gps_data.newData = 0;
-    }
 }
 
 // update the property tree values from the nav_data structure
@@ -100,15 +91,15 @@ static void umn2props(void) {
 			   nav_data.alt * M2F );
     filter_node.setDouble( "groundtrack_deg",
 			   90 - atan2(nav_data.vn, nav_data.ve) * R2D );
-    filter_node.setDouble( "groundspeed_ms",
-			   sqrt(nav_data.vn * nav_data.vn
-				+ nav_data.ve * nav_data.ve) );
+    double gs_ms = sqrt(nav_data.vn * nav_data.vn + nav_data.ve * nav_data.ve);
+    filter_node.setDouble( "groundspeed_ms", gs_ms );
+    filter_node.setDouble( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
     filter_node.setDouble( "vertical_speed_fps",
 			   -nav_data.vd * M2F );
 }
 
 
-void nav_eigen_mag_init( string output_path, pyPropertyNode *config ) {
+void nav_ekf15_init( string output_path, pyPropertyNode *config ) {
     // initialize property nodes
     imu_node = pyGetNode("/sensors/imu", true);
     gps_node = pyGetNode("/sensors/gps", true);
@@ -131,17 +122,24 @@ void nav_eigen_mag_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-bool nav_eigen_mag_update() {
+bool nav_ekf15_update() {
     static bool nav_inited = false;
+    static double last_gps_time = 0.0;
 
     // fill in the UMN structures
     props2umn();
 
     if ( nav_inited ) {
-	nav_data = filter.update( imu_data, gps_data );
+	filter.time_update( imu_data );
+        if ( gps_data.time > last_gps_time ) {
+            last_gps_time = gps_data.time;
+            filter.measurement_update( gps_data );
+        }
+        nav_data = filter.get_nav();
     } else {
 	if ( GPS_age() < 1.0 && gps_node.getBool("settle") ) {
-	    nav_data = filter.init( imu_data, gps_data );
+	    filter.init( imu_data, gps_data );
+            nav_data = filter.get_nav();
 	    nav_inited = true;
 	}
     }
@@ -153,7 +151,7 @@ bool nav_eigen_mag_update() {
 }
 
 
-void nav_eigen_mag_close() {
+void nav_ekf15_close() {
     // noop()
 }
 
