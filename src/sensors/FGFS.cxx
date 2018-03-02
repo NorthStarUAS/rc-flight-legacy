@@ -9,12 +9,14 @@
 #include <sys/ioctl.h>
 
 #include <eigen3/Eigen/Core>
-//#include <eigen3/Eigen/Geometry>
+#include <eigen3/Eigen/Geometry>
 using namespace Eigen;
 #include <iostream>
 using std::cout;
 using std::endl;
 
+#include "filters/nav_common/coremag.h"
+#include "filters/nav_common/nav_functions_float.hxx"
 #include "util/netSocket.h"
 #include "util/timing.h"
 
@@ -37,6 +39,11 @@ static pyPropertyNode config_specs_node;
 
 static bool airdata_inited = false;
 
+static const float D2R = M_PI / 180.0;
+
+Vector3f mag_ned;
+Quaternionf q_N2B;
+Matrix3f C_N2B;
 
 // initialize fgfs_imu input property nodes
 static void bind_imu_input( pyPropertyNode *config ) {
@@ -199,20 +206,27 @@ static bool fgfs_imu_sync_update() {
 	float yaw_truth = *(float *)buf; buf += 4;
 
         // simulate an off kilter imu mounting
-        Vector3d gv = Vector3d(p, q, r);
-        Vector3d av = Vector3d(ax, ay, az);
-        double a_deg = imu_node.getDouble("bank_bias_deg");
-        double a_rad = a_deg * M_PI / 180.0;
-        double sina = sin(a_rad);
-        double cosa = cos(a_rad);
-        Matrix3d R;
+        Vector3f gv = Vector3f(p, q, r);
+        Vector3f av = Vector3f(ax, ay, az);
+        float a_deg = imu_node.getDouble("bank_bias_deg");
+        float a_rad = a_deg * D2R;
+        float sina = sin(a_rad);
+        float cosa = cos(a_rad);
+        Matrix3f R;
         R << 1.0,   0.0,  0.0,
              0.0, cosa,  sina,
              0.0, -sina, cosa;
-        Vector3d ngv = R * gv;
-        Vector3d nav = R * av;
+        Vector3f ngv = R * gv;
+        Vector3f nav = R * av;
         //cout << av << endl << nav << endl << endl;
-        
+
+        // generate fake magnetometer readings
+        q_N2B = eul2quat(roll_truth * D2R, pitch_truth * D2R, yaw_truth * D2R);
+        // rotate ideal mag vector into body frame (then normalized)
+        Vector3f mag_body = q_N2B.inverse() * mag_ned;
+        mag_body.normalize();
+        // cout << "mag vector (body): " << mag_body(0) << " " << mag_body(1) << " " << mag_body(2) << endl;
+
 	double cur_time = get_Time();
 	imu_node.setDouble( "timestamp", cur_time );
 	imu_node.setDouble( "p_rad_sec", ngv(0) );
@@ -221,12 +235,12 @@ static bool fgfs_imu_sync_update() {
 	imu_node.setDouble( "ax_mps_sec", nav(0) );
 	imu_node.setDouble( "ay_mps_sec", nav(1) );
 	imu_node.setDouble( "az_mps_sec", nav(2) );
-	imu_node.setDouble( "hx", 0.0 );
-	imu_node.setDouble( "hy", 0.0 );
-	imu_node.setDouble( "hz", 0.0 );
-	imu_node.setDouble( "roll_truth_node", roll_truth );
-	imu_node.setDouble( "pitch_truth_node", pitch_truth );
-	imu_node.setDouble( "yaw_truth_node", yaw_truth );
+	imu_node.setDouble( "hx", mag_body(0) );
+	imu_node.setDouble( "hy", mag_body(1) );
+	imu_node.setDouble( "hz", mag_body(2) );
+	imu_node.setDouble( "roll_truth", roll_truth );
+	imu_node.setDouble( "pitch_truth", pitch_truth );
+	imu_node.setDouble( "yaw_truth", yaw_truth );
 
 	if ( airdata_inited ) {
 	    airdata_node.setDouble( "timestamp", cur_time );
@@ -333,13 +347,25 @@ bool fgfs_gps_update() {
 	float ve = *(float *)buf; buf += 4;
 	float vd = *(float *)buf; buf += 4;
 
-	// add some random white noise
-	double vel_noise = 0.2;
-	double vel_offset = vel_noise * 0.5;
-	vn += drand48()*vel_noise - vel_offset;
-	ve += drand48()*vel_noise - vel_offset;
-	vd += drand48()*vel_noise - vel_offset;
-
+        if ( false ) {
+            // add some random white noise
+            double vel_noise = 0.1;
+            double vel_offset = vel_noise * 0.5;
+            vn += drand48()*vel_noise - vel_offset;
+            ve += drand48()*vel_noise - vel_offset;
+            vd += drand48()*vel_noise - vel_offset;
+        }
+        
+        // compute ideal magnetic vector in ned frame
+        long int jd = now_to_julian_days();
+        double field[6];
+        calc_magvar( lat*D2R, lon*D2R, alt / 1000.0, jd, field );
+        mag_ned(0) = field[3];
+        mag_ned(1) = field[4];
+        mag_ned(2) = field[5];
+        mag_ned.normalize();
+        // cout << "mag vector (ned): " << mag_ned(0) << " " << mag_ned(1) << " " << mag_ned(2) << endl;
+        
 	gps_node.setDouble( "timestamp", get_Time() );
 	gps_node.setDouble( "latitude_deg", lat );
 	gps_node.setDouble( "longitude_deg", lon );
