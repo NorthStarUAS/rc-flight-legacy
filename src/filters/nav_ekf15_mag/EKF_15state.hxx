@@ -28,7 +28,6 @@ using namespace Eigen;
 
 // usefule constants
 const float g = 9.814;
-const float D2R = M_PI / 180.0;
 
 // define some types for notational convenience and consistency
 typedef Matrix<float,9,9>   Matrix9f;

@@ -375,7 +375,7 @@ double calc_magvar( double lat, double lon, double h, long dat, double* field )
     field[4]=Y;
     field[5]=Z;   /* output fields */
 
-    printf("hx=%.2f hy=%.2f hz=%.2f\n", X, Y, Z);
+    /* printf("hx=%.2f hy=%.2f hz=%.2f\n", X, Y, Z); */
     
     /* find variation in radians */
     /* return zero variation at magnetic pole X=Y=0. */

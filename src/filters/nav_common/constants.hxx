@@ -6,7 +6,7 @@
 #define EARTH_RATE   0.00007292115   		/* rotation rate of earth (rad/sec) */
 #define EARTH_RADIUS 6378137.0         		/* earth semi-major axis radius (m) */
 #define ECCENTRICITY 0.0818191908426 		/* major eccentricity of earth ellipsoid */
-#define ECC2	     0.0066943799901 		/* major eccentricity squared */
+// #define ECC2	     0.0066943799901 		/* major eccentricity squared */
 #define FLATTENING   0.0033528106650 		/* flattening of the ellipsoid */
 #define GRAVITY_0    9.7803730       		/* zeroth coefficient for gravity model */
 #define GRAVITY_1    0.0052891       		/* first coefficient for the gravity model */ 
@@ -23,6 +23,7 @@
 #define E2         fabs(1 - _SQUASH*_SQUASH)
 
 /* additional constants */
+const double D2R = M_PI / 180.0; // degrees to radians
 const double R2D = 180.0 / M_PI; // radians to degrees
 const double F2M = 0.3048;       // feets to meters
 const double M2F = 1.0 / F2M;    // meters to feets
