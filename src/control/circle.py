@@ -80,8 +80,6 @@ def update(dt):
         # circling radius
         offset_deg = direction * 90.0 * (1.0 - dist_m / radius_m)
         target_crs += offset_deg
-        if target_crs > 360.0: target_crs -= 360.0
-        if target_crs < 0.0: target_crs += 360.0
     elif dist_m > radius_m:
         # outside circle, adjust target heading to tighten our
         # circling radius
@@ -89,8 +87,8 @@ def update(dt):
         if offset_dist > radius_m: offset_dist = radius_m
         offset_deg = direction * 90 * offset_dist / radius_m
         target_crs -= offset_deg
-        if target_crs > 360.0: target_crs -= 360.0
-        if target_crs < 0.0: target_crs += 360.0
+    if target_crs > 360.0: target_crs -= 360.0
+    if target_crs < 0.0: target_crs += 360.0
     targets_node.setFloat( "groundtrack_deg", target_crs )
 
     # L1 'mathematical' response to error
