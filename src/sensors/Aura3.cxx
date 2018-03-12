@@ -1160,8 +1160,10 @@ static bool Aura3_send_config() {
                 config.imu_orient[i] = imu_node.getDouble("orientation", i);
             }
         } else {
-            printf("imu orienation improper matrix size\n");
+            printf("WARNING: imu orienation improper matrix size\n");
         }
+    } else {
+        printf("Note: no imu orientation defined, default is identity matrix\n");
     }
     
     pyPropertyNode pwm_node
