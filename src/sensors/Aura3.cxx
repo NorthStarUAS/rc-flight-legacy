@@ -80,7 +80,7 @@ using namespace Eigen;
 #define SAS_ROLLAXIS 1
 #define SAS_PITCHAXIS 2
 #define SAS_YAWAXIS 3
-#define SAS_CH7_TUNE 10
+#define SAS_TUNE 10
 
 static pyPropertyNode aura3_node;
 static pyPropertyNode power_node;
@@ -173,13 +173,13 @@ typedef struct {
     bool sas_rollaxis;
     bool sas_pitchaxis;
     bool sas_yawaxis;
-    bool sas_ch7tune;
+    bool sas_tune;
 
     /* sas gains */
     float sas_rollgain;
     float sas_pitchgain;
     float sas_yawgain;
-    float sas_ch7gain;
+    float sas_max_gain;
 } config_t;
 
 // gps structure
@@ -1097,12 +1097,12 @@ static void sas_defaults() {
     config.sas_rollaxis = false;
     config.sas_pitchaxis = false;
     config.sas_yawaxis = false;
-    config.sas_ch7tune = false;
+    config.sas_tune = false;
 
     config.sas_rollgain = 0.0;
     config.sas_pitchgain = 0.0;
     config.sas_yawgain = 0.0;
-    config.sas_ch7gain = 2.0;
+    config.sas_global_gain = 2.0;
 };
 
 
@@ -1152,7 +1152,7 @@ static bool Aura3_send_config() {
     int count;
 
     pyPropertyNode imu_node
-        = pyGetNode("/config/sensors/Aura3/imu_group/imu", true);
+        = pyGetNode("/config/sensors/imu_group/imu", true);
     if ( imu_node.hasChild("orientation") ) {
         int len = imu_node.getLen("orientation");
         if ( len == 9 ) {
@@ -1276,12 +1276,11 @@ static bool Aura3_send_config() {
 	    }
 	} else if ( children[i] == "pilot_tune" ) {
 	    pyPropertyNode sas_section = sas_node.getChild("pilot_tune");
-	    mode = "ch7_tune";
 	    if ( sas_section.hasChild("enable") ) {
-		config.sas_ch7tune = sas_section.getBool("enable");
+		config.sas_tune = sas_section.getBool("enable");
 	    }
 	    if ( display_on ) {
-		printf("sas: %s %d\n", mode.c_str(), enable);
+		printf("sas: global tune %d\n", enable);
 	    }
 	}
     }
