@@ -135,28 +135,22 @@ void EKF15_mag::init(IMUdata imu, GPSdata gps) {
     mag_ned.normalize();
     cout << field[0] << " " << field[1] << " " << field[2] << endl;
     cout << "Ideal mag vector (ned): " << mag_ned << endl;
-    // // initial heading
-    // double init_psi_rad = 90.0*D2R;
-    // if ( fabs(mag_ned[0][0]) > 0.0001 || fabs(mag_ned[0][1]) > 0.0001 ) {
-    // 	init_psi_rad = atan2(mag_ned[0][1], mag_ned[0][0]);
-    // }
-
-    // fixme: for now match the reference implementation so we can
-    // compare intermediate calculations.
-    // nav.the = 0*D2R;
-    // nav.phi = 0*D2R;
-    // nav.psi = 90.0*D2R;
 
     // ... and initialize states with IMU Data, theta from Ax, aircraft
     // at rest
     nav.the = asin(imu.ax/g); 
     // phi from Ay, aircraft at rest
     nav.phi = asin(imu.ay/(g*cos(nav.the)));
+    
     // this is atan2(x, -y) because the aircraft body X,Y axis are
     // swapped with the cartesion axes from the top down perspective
-    nav.psi = 90*D2R - atan2(imu.hx, -imu.hy);
+    // nav.psi = 90*D2R - atan2(imu.hx, -imu.hy);
     // printf("ekf: hx: %.2f hy: %.2f psi: %.2f\n", imu.hx, imu.hy, nav.psi*R2D);
     // printf("atan2: %.2f\n", atan2(imu.hx, -imu.hy)*R2D);
+
+    // tilt compensated heading
+    nav.psi = atan2(imu.hz*sin(nav.phi)-imu.hy*cos(nav.phi),imu.hx*cos(nav.the)+imu.hy*sin(nav.the)*sin(nav.phi)+imu.hz*sin(nav.the)*cos(nav.phi));
+    printf("tilt compensated psi: %.2f\n", nav.psi*R2D);
 	
     quat = eul2quat(nav.phi, nav.the, nav.psi);
     nav.qw = quat.w();
