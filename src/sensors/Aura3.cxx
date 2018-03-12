@@ -136,6 +136,9 @@ static uint32_t skipped_frames = 0;
 typedef struct {
     int version;
     
+    /* IMU orientation matrix */
+    float imu_orient[9];
+    
     /* hz for pwm output signal, 50hz default for analog servos, maximum rate is servo dependent:
        digital servos can usually do 200-250hz
        analog servos and ESC's typically require 50hz */
@@ -1065,6 +1068,16 @@ static int Aura3_read() {
 }
 
 
+// set imu orientation to identity
+static void imu_orientation_defaults() {
+    float ident[] = { 1.0, 0.0, 0.0,
+                      0.0, 1.0, 0.0,
+                      0.0, 0.0, 1.0};
+    for ( int i = 0; i < 9; i++ ) {
+        config.imu_orient[i] = ident[i];
+    }
+}
+
 // reset pwm output rates to safe startup defaults
 static void pwm_rate_defaults() {
     for ( int i = 0; i < PWM_CHANNELS; i++ ) {
@@ -1130,12 +1143,26 @@ static bool Aura3_send_config() {
     vector<string> children;
 
     // set all parameters to defaults
+    imu_orientation_defaults();
     pwm_rate_defaults();
     act_gain_defaults();
     mixing_defaults();
     sas_defaults();
 
     int count;
+
+    pyPropertyNode imu_node
+        = pyGetNode("/config/sensors/Aura3/imu_group/imu", true);
+    if ( imu_node.hasChild("orientation") ) {
+        int len = imu_node.getLen("orientation");
+        if ( len == 9 ) {
+            for ( int i = 0; i < len; i++ ) {
+                config.imu_orient[i] = imu_node.getDouble("orientation", i);
+            }
+        } else {
+            printf("imu orienation improper matrix size\n");
+        }
+    }
     
     pyPropertyNode pwm_node
 	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
