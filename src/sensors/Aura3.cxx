@@ -101,15 +101,12 @@ static bool actuator_inited = false;
 bool Aura3_actuator_configured = false; // externally visible
 
 static int fd = -1;
-static string device_name = "/dev/ttyS0";
+static string device_name = "/dev/ttyS4";
 static int baud = 500000;
 static float volt_div_ratio = 100; // a nonsense value
 static int battery_cells = 4;
-static float extern_amp_offset = 0.0;
-static float extern_amp_ratio = 0.1; // a nonsense value
-static float extern_amp_sum = 0.0;
 static float pitot_calibrate = 1.0;
-static bool reverse_imu_mount = false;
+static string imu_orientation = "normal";
 
 static int last_ack_id = 0;
 static int last_ack_subid = 0;
@@ -467,12 +464,6 @@ static bool Aura3_open() {
     if ( aura3_config.hasChild("volt_divider_ratio") ) {
 	volt_div_ratio = aura3_config.getDouble("volt_divider_ratio");
     }
-    if ( aura3_config.hasChild("external_amp_offset") ) {
-	extern_amp_offset = aura3_config.getDouble("external_amp_offset");
-    }
-    if ( aura3_config.hasChild("external_amp_ratio") ) {
-	extern_amp_ratio = aura3_config.getDouble("external_amp_ratio");
-    }
 
     if ( aura3_config.hasChild("pitot_calibrate_factor") ) {
 	pitot_calibrate = aura3_config.getDouble("pitot_calibrate_factor");
@@ -525,10 +516,10 @@ bool Aura3_imu_init( string output_path, pyPropertyNode *config ) {
 
     bind_imu_output( output_path );
 
-    if ( config->hasChild("reverse_imu_mount") ) {
-	reverse_imu_mount = config->getBool("reverse_imu_mount");
+    if ( config->hasChild("imu_orientation") ) {
+	imu_orientation = config->getString("imu_orientation");
     }
-    
+
     if ( config->hasChild("calibration") ) {
 	pyPropertyNode cal = config->getChild("calibration");
 	double min_temp = 27.0;
@@ -635,26 +626,34 @@ static bool Aura3_imu_update_internal() {
     static double last_bias_update = 0.0;
     
     if ( imu_inited ) {
-	float ax_raw = (float)imu_sensors[0] * accelScale;
-	float ay_raw = (float)imu_sensors[1] * accelScale;
-	float az_raw = (float)imu_sensors[2] * accelScale;
-	float p_raw = (float)imu_sensors[3] * gyroScale;
-	float q_raw = (float)imu_sensors[4] * gyroScale;
-	float r_raw = (float)imu_sensors[5] * gyroScale;
-	float hx = (float)imu_sensors[6] * magScale;
-	float hy = (float)imu_sensors[7] * magScale;
-	float hz = (float)imu_sensors[8] * magScale;
-	float temp_C = (float)imu_sensors[9] * tempScale;
+        float p_raw = 0.0, q_raw = 0.0, r_raw = 0.0;
+        float ax_raw = 0.0, ay_raw = 0.0, az_raw = 0.0;
+        float hx_raw = 0.0, hy_raw = 0.0, hz_raw = 0.0;
+        if ( imu_orientation == "" || imu_orientation == "normal" ) {
+            ax_raw = (float)imu_sensors[0] * accelScale;
+            ay_raw = (float)imu_sensors[1] * accelScale;
+            az_raw = (float)imu_sensors[2] * accelScale;
+            p_raw = (float)imu_sensors[3] * gyroScale;
+            q_raw = (float)imu_sensors[4] * gyroScale;
+            r_raw = (float)imu_sensors[5] * gyroScale;
+            hx_raw = (float)imu_sensors[6] * magScale;
+            hy_raw = (float)imu_sensors[7] * magScale;
+            hz_raw = (float)imu_sensors[8] * magScale;
+        } else if ( imu_orientation == "reverse" ) {
+            ax_raw = -(float)imu_sensors[0] * accelScale;
+            ay_raw = -(float)imu_sensors[1] * accelScale;
+            az_raw = (float)imu_sensors[2] * accelScale;
+            p_raw = -(float)imu_sensors[3] * gyroScale;
+            q_raw = -(float)imu_sensors[4] * gyroScale;
+            r_raw = (float)imu_sensors[5] * gyroScale;
+            hx_raw = -(float)imu_sensors[6] * magScale;
+            hy_raw = -(float)imu_sensors[7] * magScale;
+            hz_raw = (float)imu_sensors[8] * magScale;
+        } else {
+            printf("unknown imu orientation: %s\n", imu_orientation.c_str());
+        }
 
-	if ( reverse_imu_mount ) {
-	    // reverse roll/pitch gyros, and x/y accelerometers (and mags).
-	    p_raw = -p_raw;
-	    q_raw = -q_raw;
-	    ax_raw = -ax_raw;
-	    ay_raw = -ay_raw;
-	    hx = -hx;
-	    hy = -hy;
-	}
+        float temp_C = (float)imu_sensors[9] * tempScale;
 
 	if ( imu_timestamp > last_bias_update + 5.0 ) {
 	    //imu_p_bias_node.setDouble( p_cal.get_bias( temp_C ) );
@@ -704,10 +703,10 @@ static bool Aura3_imu_update_internal() {
 	imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
 	imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
 	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
-	imu_node.setDouble( "hx_raw", hx );
-	imu_node.setDouble( "hy_raw", hy );
-	imu_node.setDouble( "hz_raw", hz );
-	Vector4d hs((double)hx, (double)hy, (double)hz, 1.0);
+	imu_node.setDouble( "hx_raw", hx_raw );
+	imu_node.setDouble( "hy_raw", hy_raw );
+	imu_node.setDouble( "hz_raw", hz_raw );
+	Vector4d hs((double)hx_raw, (double)hy_raw, (double)hz_raw, 1.0);
 	Vector4d hc = mag_cal * hs;
 	imu_node.setDouble( "hx", hc(0) );
 	imu_node.setDouble( "hy", hc(1) );
