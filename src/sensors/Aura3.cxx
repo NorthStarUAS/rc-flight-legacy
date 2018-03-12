@@ -1102,7 +1102,7 @@ static void sas_defaults() {
     config.sas_rollgain = 0.0;
     config.sas_pitchgain = 0.0;
     config.sas_yawgain = 0.0;
-    config.sas_global_gain = 2.0;
+    config.sas_max_gain = 2.0;
 };
 
 
