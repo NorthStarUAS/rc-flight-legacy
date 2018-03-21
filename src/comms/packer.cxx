@@ -38,39 +38,39 @@ int pyModulePacker::pack(int index, const char *pack_function, uint8_t *buf) {
 }
 
 int pyModulePacker::pack_gps(int index, uint8_t *buf) {
-    return pack(index, "pack_gps_v3", buf);
+    return pack(index, "pack_gps_v4", buf);
 }
 
 int pyModulePacker::pack_imu(int index, uint8_t *buf) {
-    return pack(index, "pack_imu_v3", buf);
+    return pack(index, "pack_imu_v4", buf);
 }
 
 int pyModulePacker::pack_airdata(int index, uint8_t *buf) {
-    return pack(index, "pack_airdata_v5", buf);
+    return pack(index, "pack_airdata_v6", buf);
 }
 
 int pyModulePacker::pack_health(int index, uint8_t *buf) {
-    return pack(index, "pack_system_health_v4", buf);
+    return pack(index, "pack_system_health_v5", buf);
 }
 
 int pyModulePacker::pack_pilot(int index, uint8_t *buf) {
-    return pack(index, "pack_pilot_v2", buf);
+    return pack(index, "pack_pilot_v3", buf);
 }
 
 int pyModulePacker::pack_actuator(int index, uint8_t *buf) {
-    return pack(index, "pack_act_v2", buf);
+    return pack(index, "pack_act_v3", buf);
 }
 
 int pyModulePacker::pack_filter(int index, uint8_t *buf) {
-    return pack(index, "pack_filter_v3", buf);
+    return pack(index, "pack_filter_v4", buf);
 }
 
 int pyModulePacker::pack_payload(int index, uint8_t *buf) {
-    return pack(index, "pack_payload_v2", buf);
+    return pack(index, "pack_payload_v3", buf);
 }
 
 int pyModulePacker::pack_ap(int index, uint8_t *buf) {
-    return pack(index, "pack_ap_status_v6", buf);
+    return pack(index, "pack_ap_status_v7", buf);
 }
 
 int pyModulePacker::pack_raven(int index, uint8_t *buf) {
