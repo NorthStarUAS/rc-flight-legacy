@@ -61,54 +61,66 @@ def parse_msg(id, buf):
         index = comms.packer.unpack_gps_v2(buf)
     elif id == GPS_PACKET_V3:
         index = comms.packer.unpack_gps_v3(buf)
+    elif id == GPS_PACKET_V4:
+        index = comms.packer.unpack_gps_v4(buf)
     elif id == IMU_PACKET_V1:
         index = comms.packer.unpack_imu_v1(buf)
     elif id == IMU_PACKET_V2:
         index = comms.packer.unpack_imu_v2(buf)
     elif id == IMU_PACKET_V3:
         index = comms.packer.unpack_imu_v3(buf)
+    elif id == IMU_PACKET_V4:
+        index = comms.packer.unpack_imu_v4(buf)
     elif id == AIRDATA_PACKET_V3:
         index = comms.packer.unpack_airdata_v3(buf)
     elif id == AIRDATA_PACKET_V4:
         index = comms.packer.unpack_airdata_v4(buf)
     elif id == AIRDATA_PACKET_V5:
         index = comms.packer.unpack_airdata_v5(buf)
+    elif id == AIRDATA_PACKET_V6:
+        index = comms.packer.unpack_airdata_v6(buf)
     elif id == FILTER_PACKET_V1:
         index = comms.packer.unpack_filter_v1(buf)
     elif id == FILTER_PACKET_V2:
         index = comms.packer.unpack_filter_v2(buf)
     elif id == FILTER_PACKET_V3:
         index = comms.packer.unpack_filter_v3(buf)
+    elif id == FILTER_PACKET_V4:
+        index = comms.packer.unpack_filter_v4(buf)
     elif id == ACTUATOR_PACKET_V1:
         index = comms.packer.unpack_act_v1(buf)
     elif id == ACTUATOR_PACKET_V2:
         index = comms.packer.unpack_act_v2(buf)
+    elif id == ACTUATOR_PACKET_V3:
+        index = comms.packer.unpack_act_v3(buf)
     elif id == PILOT_INPUT_PACKET_V1:
         index = comms.packer.unpack_pilot_v1(buf)
     elif id == PILOT_INPUT_PACKET_V2:
         index = comms.packer.unpack_pilot_v2(buf)
-    elif id == AP_STATUS_PACKET_V1:
-        index = comms.packer.unpack_ap_status_v1(buf)
-    elif id == AP_STATUS_PACKET_V2:
-        index = comms.packer.unpack_ap_status_v2(buf)
-    elif id == AP_STATUS_PACKET_V3:
-        index = comms.packer.unpack_ap_status_v3(buf)
+    elif id == PILOT_INPUT_PACKET_V3:
+        index = comms.packer.unpack_pilot_v3(buf)
     elif id == AP_STATUS_PACKET_V4:
         index = comms.packer.unpack_ap_status_v4(buf)
     elif id == AP_STATUS_PACKET_V5:
         index = comms.packer.unpack_ap_status_v5(buf)
     elif id == AP_STATUS_PACKET_V6:
         index = comms.packer.unpack_ap_status_v6(buf)
+    elif id == AP_STATUS_PACKET_V7:
+        index = comms.packer.unpack_ap_status_v7(buf)
     elif id == SYSTEM_HEALTH_PACKET_V2:
         index = comms.packer.unpack_system_health_v2(buf)
     elif id == SYSTEM_HEALTH_PACKET_V3:
         index = comms.packer.unpack_system_health_v3(buf)
     elif id == SYSTEM_HEALTH_PACKET_V4:
         index = comms.packer.unpack_system_health_v4(buf)
+    elif id == SYSTEM_HEALTH_PACKET_V5:
+        index = comms.packer.unpack_system_health_v5(buf)
     elif id == PAYLOAD_PACKET_V1:
         index = comms.packer.unpack_payload_v1(buf)
     elif id == PAYLOAD_PACKET_V2:
         index = comms.packer.unpack_payload_v2(buf)
+    elif id == PAYLOAD_PACKET_V3:
+        index = comms.packer.unpack_payload_v3(buf)
     elif id == RAVEN_PACKET_V1:
         index = comms.packer.unpack_raven_v1(buf)
     elif id == EVENT_PACKET_V1:

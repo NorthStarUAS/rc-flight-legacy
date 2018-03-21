@@ -79,7 +79,7 @@ if flight_format == 'aura_csv':
                     print "flight complete at t =", xmax
                 else:
                     print "warning ignoring sub 1 minute hop"
-            elif len(tokens) == 5 and tokens[0] == 'APM2:' and tokens[1] == 'Serial' and tokens[2] == 'Number':
+            elif len(tokens) == 5 and (tokens[0] == 'APM2:' or tokens[0] == 'Aura3:') and tokens[1] == 'Serial' and tokens[2] == 'Number':
                 auto_sn = int(tokens[4])
             elif len(tokens) == 4 and tokens[0] == 'APM2' and tokens[1] == 'Serial' and tokens[2] == 'Number:':
                 auto_sn = int(tokens[3])

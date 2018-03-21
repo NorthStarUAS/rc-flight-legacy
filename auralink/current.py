@@ -81,7 +81,7 @@ def compute_derived_data():
     
     # local autopilot timer
     ap_enabled = False
-    if pilot_node.getFloatEnum("channel", 7) > 0:
+    if pilot_node.getFloatEnum("channel", 0) > 0:
         ap_enabled = True
         
     if in_flight and ap_enabled:

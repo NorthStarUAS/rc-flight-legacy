@@ -20,31 +20,32 @@ import auraparser
 m2nm   = 0.0005399568034557235 # meters to nautical miles
 
 def logical_category(id):
-    if id == GPS_PACKET_V1 or id == GPS_PACKET_V2 or id == GPS_PACKET_V3:
+    if id == GPS_PACKET_V1 or id == GPS_PACKET_V2 or id == GPS_PACKET_V3 \
+       or id == GPS_PACKET_V4:
         return 'gps'
     elif id == IMU_PACKET_V1 or id == IMU_PACKET_V2 \
-         or id == IMU_PACKET_V3:
+         or id == IMU_PACKET_V3 or id == IMU_PACKET_V4:
         return 'imu'
     elif id == AIRDATA_PACKET_V3 or id == AIRDATA_PACKET_V4 \
-         or id == AIRDATA_PACKET_V5:
+         or id == AIRDATA_PACKET_V5 or id == AIRDATA_PACKET_V5:
         return 'air'
     elif id == FILTER_PACKET_V1 or id == FILTER_PACKET_V2 \
-         or id == FILTER_PACKET_V3:
+         or id == FILTER_PACKET_V3 or id == FILTER_PACKET_V4:
         return 'filter'
-    elif id == ACTUATOR_PACKET_V1 or id == ACTUATOR_PACKET_V2:
+    elif id == ACTUATOR_PACKET_V1 or id == ACTUATOR_PACKET_V2 \
+         or id == ACTUATOR_PACKET_V3:
         return 'act'
-    elif id == PILOT_INPUT_PACKET_V1 \
-         or id == PILOT_INPUT_PACKET_V2:
+    elif id == PILOT_INPUT_PACKET_V1 or id == PILOT_INPUT_PACKET_V2 \
+         or id == PILOT_INPUT_PACKET_V3:
         return 'pilot'
-    elif id == AP_STATUS_PACKET_V1 or id == AP_STATUS_PACKET_V2 \
-         or id == AP_STATUS_PACKET_V3 or id == AP_STATUS_PACKET_V4 \
-         or id == AP_STATUS_PACKET_V5 or id == AP_STATUS_PACKET_V6:
+    elif id == id == AP_STATUS_PACKET_V4 or id == AP_STATUS_PACKET_V5 \
+         or id == AP_STATUS_PACKET_V6 or id == AP_STATUS_PACKET_V7:
         return 'ap'
-    elif id == SYSTEM_HEALTH_PACKET_V2 \
-         or id == SYSTEM_HEALTH_PACKET_V3 \
-         or id == SYSTEM_HEALTH_PACKET_V4:
+    elif id == SYSTEM_HEALTH_PACKET_V2 or id == SYSTEM_HEALTH_PACKET_V3 \
+         or id == SYSTEM_HEALTH_PACKET_V4 or id == SYSTEM_HEALTH_PACKET_V5:
         return 'health'
-    elif id == PAYLOAD_PACKET_V1 or id == PAYLOAD_PACKET_V2:
+    elif id == PAYLOAD_PACKET_V1 or id == PAYLOAD_PACKET_V2 \
+         or id == PAYLOAD_PACKET_V3:
         return 'payload'
     elif id == RAVEN_PACKET_V1:
         return 'raven'
