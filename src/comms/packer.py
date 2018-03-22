@@ -131,7 +131,7 @@ def wrap_packet( packet_id, payload ):
     buf += chr(cksum1)          # check sum byte 2
     return buf
     
-def pack_gps_v4(index):
+def pack_gps_bin(index):
     if index >= len(gps_nodes):
         for i in range(len(gps_nodes),index+1):
             path = '/sensors/gps[%d]' % i
@@ -292,7 +292,7 @@ def unpack_gps_v4(buf):
 
     return index
 
-def pack_imu_v4(index):
+def pack_imu_bin(index):
     global imu_timestamp
     
     if index >= len(imu_nodes):
@@ -454,7 +454,7 @@ def unpack_imu_v4(buf):
 
     return index
 
-def pack_airdata_v6(index):
+def pack_airdata_bin(index):
     if index >= len(airdata_nodes):
         for i in range(len(airdata_nodes),index+1):
             path = '/sensors/airdata[%d]' % i
@@ -609,7 +609,7 @@ def unpack_airdata_v6(buf):
 
     return index
 
-def pack_filter_v4(index):
+def pack_filter_bin(index):
     if index >= len(filter_nodes):
         for i in range(len(filter_nodes),index+1):
             path = '/filters/filter[%d]' % i
@@ -797,7 +797,7 @@ def unpack_filter_v4(buf):
 
     return index
 
-def pack_act_v3(index):
+def pack_act_bin(index):
     if index > 0:
         return
     buf = struct.pack(act_v3_fmt,
@@ -890,7 +890,7 @@ def unpack_act_v3(buf):
 
     return index
 
-def pack_pilot_v3(index):
+def pack_pilot_bin(index):
     if index >= len(pilot_nodes):
         for i in range(len(pilot_nodes),index+1):
             path = '/sensors/pilot_input[%d]' % i
@@ -1018,7 +1018,7 @@ def unpack_pilot_v3(buf):
 
     return index
 
-def pack_ap_status_v7(index):
+def pack_ap_status_bin(index):
     # status flags (up to 8 could be supported)
     flags = 0
     if ap_node.getBool("master_switch"):
@@ -1311,7 +1311,7 @@ def unpack_ap_status_v7(buf):
 
     return index
 
-def pack_system_health_v5(index):
+def pack_system_health_bin(index):
     dekamah = int(power_node.getFloat("total_mah") / 10)
     if dekamah > 65535: dekamah = 65535 # prevent overflowing the structure
     buf = struct.pack(system_health_v5_fmt,
@@ -1403,7 +1403,7 @@ def unpack_system_health_v5(buf):
 
     return index
 
-def pack_payload_v3(index):
+def pack_payload_bin(index):
     buf = struct.pack(payload_v3_fmt,
                       index,
                       status_node.getFloat('frame_time'),
@@ -1450,7 +1450,7 @@ def unpack_payload_v3(buf):
 
 # raven is currently a special airdata node, but it is much more than
 # that.
-def pack_raven_v1(index):
+def pack_raven_bin(index):
     global imu_timestamp
     
     if index >= len(airdata_nodes):
@@ -1551,7 +1551,7 @@ def unpack_raven_v1(buf):
 
     return index
 
-def pack_event_v1(message):
+def pack_event_bin(message):
     global imu_timestamp
 
     # support an index value, but for now it will always be zero
@@ -1602,7 +1602,7 @@ def unpack_event_v1(buf):
     #print 'end of unpack event'
     return index
 
-def pack_command_v1(sequence, message):
+def pack_command_bin(sequence, message):
     if len(message) > 255:
         print "Error: command message too long, len =", len(message)
         message = 'command too long'

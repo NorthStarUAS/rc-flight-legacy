@@ -20,7 +20,7 @@ last_received_time = 0.0
 # package and send the serial command, returns number of bytes written
 def serial_send(serial, sequence, command):
     print 'writing:', sequence, command
-    packet = comms.packer.pack_command_v1(sequence, command)
+    packet = comms.packer.pack_command_bin(sequence, command)
     result = serial.write(packet)
     if result != len(packet):
         print "ERROR: wrote %d of %d bytes to serial port!\n" % (result, len(packet))
