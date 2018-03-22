@@ -80,18 +80,6 @@ static pyPropertyNode imu_node;
 static pyPropertyNode status_node;
 static pyPropertyNode comms_node;
 
-// debug main loop "block" on gumstix verdex
-myprofile debug1;
-myprofile debug2;
-myprofile debug2a;
-myprofile debug2b;
-myprofile debug2c;
-myprofile debug2d;
-myprofile debug3;
-myprofile debug4;
-myprofile debug5;
-myprofile debug7;
-
 //
 // usage message
 //
@@ -109,8 +97,6 @@ void usage(char *progname)
 
 void main_work_loop()
 {
-    debug1.start();
-
     // update display_on variable
     display_on = comms_node.getBool("display_on");
     
@@ -148,37 +134,21 @@ void main_work_loop()
 
     health_counter++;
 
-    debug1.stop();
-
-    debug2.start();
-
     //
     // Sensor input section
     //
 
-    debug2a.start();
     // Fetch the next data packet from the IMU.
     bool fresh_imu_data = IMU_update();
-    debug2a.stop();
 
-    debug2b.start();
     // Fetch air data if available
     AirData_update();
-    debug2b.stop();
 
-    debug2c.start();
     // Fetch GPS data if available.
     GPS_update();
-    debug2c.stop();
 
-    debug2d.start();
     // Fetch Pilot Inputs
     PilotInput_update();
-    debug2d.stop();
-
-    debug2.stop();
-
-    debug3.start();
 
     //
     // State Estimation section
@@ -209,10 +179,6 @@ void main_work_loop()
 
     Actuator_update();
 
-    debug3.stop();
-
-    debug4.start();
-
     //
     // External Command section
     //
@@ -224,16 +190,10 @@ void main_work_loop()
     // something pending
     remote_link->flush_serial();
 
-    debug4.stop();
-
-    debug5.start();
-
     //
     // Read commands from telnet interface
     //
     telnet->update(0);
-
-    debug5.stop();
 
     // if ( enable_pointing ) {
     // 	// Update pointing module
@@ -249,8 +209,6 @@ void main_work_loop()
 	mission_mgr->update(dt);
     }
     mission_prof.stop();
-
-    debug7.start();
 
     //
     // Data logging and Telemetry dump section
@@ -280,12 +238,6 @@ void main_work_loop()
 	datalog_prof.stats();
 	sync_prof.stats();
 	main_prof.stats();
-        // debug1.stats();
-        // debug2.stats();
-        // debug3.stats();
-        // debug4.stats();
-        // debug5.stats();
-        // debug7.stats();
     }
 
     // flush of logging stream (update at full rate)
@@ -301,8 +253,6 @@ void main_work_loop()
 
     // dribble pending bytes down the serial port
     remote_link->flush_serial();
-
-    debug7.stop();
 
     main_prof.stop();
 }
@@ -369,18 +319,6 @@ int main( int argc, char **argv )
     air_prof.enable();
     datalog_prof.enable();
     
-    // debugging
-    debug1.set_name("debug1 (var updates)");
-    debug2.set_name("debug2 (inputs)");
-    debug2a.set_name("debug2a (IMU)");
-    debug2b.set_name("debug2b (AirData)");
-    debug2c.set_name("debug2c (GPS)");
-    debug2d.set_name("debug2d (Pilot)");
-    debug3.set_name("debug3 (filter+nav)");
-    debug4.set_name("debug4 (console)");
-    debug5.set_name("debug5 (telnet)");
-    debug7.set_name("debug7 (logging)");
-
     if ( display_on ) {
 	printf("Main clock resolution:\n");
 	print_Time_Resolution();

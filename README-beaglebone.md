@@ -119,6 +119,7 @@ Ethernet setup.
 Remove stuff we don't need that could cause performance disruptions
 
     apt remove --purge c9-core-installer nodejs bonescript bone101
+    rm -rf /usr/local/lib/node_modules/
     apt remove --purge apache2 apache2-bin apache2-data apache2-utils
 
 (If gui image):
@@ -145,7 +146,6 @@ something that was removed and is no longer needed.)
 Install extra required and/or useful things
 
     apt install telnet minicom python-lxml python-serial libeigen3-dev zlib1g-dev rapidjson-dev
-
 
 Force highest performance mode (already the default in debian >= 9)
 

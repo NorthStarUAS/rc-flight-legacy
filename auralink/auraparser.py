@@ -36,10 +36,11 @@ def validate_cksum(id, size, buf, cksum0, cksum1):
         c0 = (c0 + ord(buf[i])) & 0xff
         c1 = (c1 + c0) & 0xff
         # print "c0 =", c0, "c1 =", c1, '[', ord(buf[i]), ']'
-    # print "c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")"
+        # print "c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")"
     if c0 == cksum0 and c1 == cksum1:
         return True
     else:
+        print "c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")"
         return False
     
 def new_logfile():
