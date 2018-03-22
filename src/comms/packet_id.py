@@ -46,7 +46,7 @@ SYSTEM_HEALTH_PACKET_V5 = 41
 
 PAYLOAD_PACKET_V1 = 12
 PAYLOAD_PACKET_V2 = 23
-PAYLOAD_PACKET_V2 = 42          # last id assigned
+PAYLOAD_PACKET_V3 = 42          # last id assigned
 
 EVENT_PACKET_V1 = 27
 
