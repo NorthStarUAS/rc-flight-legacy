@@ -686,8 +686,8 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    printf("Aura3: packet size mismatch in ACK\n");
 	}
     } else if ( pkt_id == PILOT_PACKET_ID ) {
-	if ( pkt_len == sizeof(pilot_in_t) ) {
-            pilot_in_t *pilot_in = (pilot_in_t *)payload;
+	if ( pkt_len == sizeof(pilot_packet_t) ) {
+            pilot_packet_t *pilot_in = (pilot_packet_t *)payload;
 	    pilot_in_timestamp = get_Time();
 	    for ( int i = 0; i < SBUS_CHANNELS; i++ ) {
 		pilot_input[i] = (float)pilot_in->channel[i] / 16384.0;
@@ -715,13 +715,14 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	}
     } else if ( pkt_id == IMU_PACKET_ID ) {
-	if ( pkt_len == 4 + NUM_IMU_SENSORS * 2 ) {
+	if ( pkt_len == sizeof(imu_packet_t) ) {
+            imu_packet_t *imu = (imu_packet_t *)payload;
 	    imu_timestamp = get_Time();
-	    imu_micros = *(uint32_t *)payload; payload += 4;
+	    imu_micros = imu->micros;
 	    //printf("%d\n", imu_micros);
 	    
 	    for ( int i = 0; i < NUM_IMU_SENSORS; i++ ) {
-		imu_sensors[i] = *(int16_t *)payload; payload += 2;
+		imu_sensors[i] = imu->channel[i];
 	    }
 
 #if 0

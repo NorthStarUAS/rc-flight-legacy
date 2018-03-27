@@ -40,7 +40,7 @@ using std::string;
 #include "sensors/imu_mgr.hxx"
 #include "sensors/gps_mgr.hxx"
 #include "sensors/pilot_mgr.hxx"
-#include "util/exception.hxx"
+// #include "util/exception.hxx"
 #include "util/myprof.hxx"
 #include "util/netSocket.h"	// netInit()
 #include "util/sg_path.hxx"

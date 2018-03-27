@@ -3,7 +3,6 @@ noinst_LIBRARIES = libutil.a
 libutil_a_SOURCES = \
 	butter.cxx butter.hxx \
 	coremag.c coremag.h \
-	exception.cxx exception.hxx \
 	geodesy.cxx geodesy.hxx \
 	linearfit.cxx linearfit.hxx \
 	lowpass.cxx lowpass.hxx \

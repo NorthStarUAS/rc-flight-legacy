@@ -60,15 +60,22 @@ typedef struct {
 
 
 //////////////////////////////////////////////////////
-// communication structures
+// communication structures (note: some of these
+// structures may have altered types or units to
+// minimize packet lengths.)
 //////////////////////////////////////////////////////
 
 // pilot input (from RC system)
-
 typedef struct {
     int16_t channel[SBUS_CHANNELS];
     uint8_t flags;
-} pilot_in_t;
+} pilot_packet_t;
+
+// imu
+typedef struct {
+    uint32_t micros;
+    int16_t channel[10];
+} imu_packet_t;
 
 #pragma pack(pop)
 
