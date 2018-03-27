@@ -49,7 +49,7 @@ using std::string;
 // we include the sensors here that support syncing from their main
 // update() routine
 #include "sensors/APM2.hxx"
-#include "sensors/Aura3.hxx"
+#include "sensors/Aura3/Aura3.hxx"
 #include "sensors/FGFS.hxx"
 #include "sensors/Goldy2.hxx"
 

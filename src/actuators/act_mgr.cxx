@@ -33,7 +33,7 @@ using std::vector;
 #include "act_fgfs.hxx"
 #include "act_goldy2.hxx"
 #include "sensors/APM2.hxx"
-#include "sensors/Aura3.hxx"
+#include "sensors/Aura3/Aura3.hxx"
 #include "sensors/raven1.hxx"
 #include "sensors/raven2.hxx"
 

@@ -12,6 +12,7 @@ aura_LDADD = \
 	../health/libhealth.a \
 	../payload/libpayload.a \
 	../sensors/libsensors.a \
+	../sensors/Aura3/libAura3.a \
 	../init/libinit.a \
 	../control/libcontrol.a \
 	../comms/libcomms.a \

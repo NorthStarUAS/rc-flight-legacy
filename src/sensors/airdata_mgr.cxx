@@ -30,7 +30,7 @@ using std::vector;
 
 #include "airdata_bolder.hxx"
 #include "APM2.hxx"
-#include "Aura3.hxx"
+#include "Aura3/Aura3.hxx"
 #include "FGFS.hxx"
 #include "Goldy2.hxx"
 #include "raven1.hxx"

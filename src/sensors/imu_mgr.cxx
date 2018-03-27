@@ -26,7 +26,7 @@ using std::vector;
 #include "util/timing.h"
 
 #include "sensors/APM2.hxx"
-#include "sensors/Aura3.hxx"
+#include "sensors/Aura3/Aura3.hxx"
 #include "sensors/FGFS.hxx"
 #include "sensors/Goldy2.hxx"
 #include "sensors/imu_vn100_spi.hxx"

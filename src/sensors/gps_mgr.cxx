@@ -32,7 +32,7 @@ using std::vector;
 #include "util/timing.h"
 
 #include "APM2.hxx"
-#include "Aura3.hxx"
+#include "Aura3/Aura3.hxx"
 #include "FGFS.hxx"
 #include "Goldy2.hxx"
 #include "gps_gpsd.hxx"

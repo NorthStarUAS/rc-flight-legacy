@@ -85,6 +85,7 @@ AC_CONFIG_FILES([ \
         src/payload/Makefile \
         src/python/Makefile \
         src/sensors/Makefile \
+        src/sensors/Aura3/Makefile \
         src/util/Makefile \
         utils/Makefile \
         utils/admin/Makefile \

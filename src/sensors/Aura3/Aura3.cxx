@@ -32,6 +32,7 @@ using namespace Eigen;
 #include "util/timing.h"
 
 #include "Aura3.hxx"
+#include "structs.h"
 
 #define START_OF_MSG0 147
 #define START_OF_MSG1 224
@@ -49,7 +50,6 @@ using namespace Eigen;
 //#define ANALOG_PACKET_ID 54
 #define STATUS_INFO_PACKET_ID 55
 
-#define NUM_PILOT_INPUTS 18
 #define NUM_IMU_SENSORS 10
 #define NUM_ANALOG_INPUTS 6
 #define PWM_CHANNELS 8
@@ -112,9 +112,9 @@ static int last_ack_id = 0;
 static int last_ack_subid = 0;
 
 static double pilot_in_timestamp = 0.0;
-static float pilot_input[NUM_PILOT_INPUTS]; // internal stash
+static float pilot_input[SBUS_CHANNELS]; // internal stash
 static uint8_t pilot_flags = 0x00;
-static string pilot_mapping[NUM_PILOT_INPUTS]; // channel->name mapping
+static string pilot_mapping[SBUS_CHANNELS]; // channel->name mapping
 
 static double imu_timestamp = 0.0;
 static uint32_t imu_micros = 0;
@@ -131,56 +131,6 @@ static uint32_t parse_errors = 0;
 static uint32_t skipped_frames = 0;
 
 #pragma pack(push, 1)           // set alignment to 1 byte boundary
-
-// configuration structure
-typedef struct {
-    int version;
-    
-    /* IMU orientation matrix */
-    float imu_orient[9];
-    
-    /* hz for pwm output signal, 50hz default for analog servos, maximum rate is servo dependent:
-       digital servos can usually do 200-250hz
-       analog servos and ESC's typically require 50hz */
-    uint16_t pwm_hz[PWM_CHANNELS];
-    
-    /* actuator gain (reversing/scaling) */
-    float act_gain[PWM_CHANNELS];
-    
-    /* mixing modes */
-    bool mix_autocoord;
-    bool mix_throttle_trim;
-    bool mix_flap_trim;
-    bool mix_elevon;
-    bool mix_flaperon;
-    bool mix_vtail;
-    bool mix_diff_thrust;
-
-    /* mixing gains */
-    float mix_Gac; // aileron gain for autocoordination
-    float mix_Get; // elevator trim w/ throttle gain
-    float mix_Gef; // elevator trim w/ flap gain
-    float mix_Gea; // aileron gain for elevons
-    float mix_Gee; // elevator gain for elevons
-    float mix_Gfa; // aileron gain for flaperons
-    float mix_Gff; // flaps gain for flaperons
-    float mix_Gve; // elevator gain for vtail
-    float mix_Gvr; // rudder gain for vtail
-    float mix_Gtt; // throttle gain for diff thrust
-    float mix_Gtr; // rudder gain for diff thrust
-    
-    /* sas modes */
-    bool sas_rollaxis;
-    bool sas_pitchaxis;
-    bool sas_yawaxis;
-    bool sas_tune;
-
-    /* sas gains */
-    float sas_rollgain;
-    float sas_pitchgain;
-    float sas_yawgain;
-    float sas_max_gain;
-} config_t;
 
 // gps structure
 static struct nav_pvt_t {
@@ -382,7 +332,7 @@ static void bind_pilot_controls( string output_path ) {
 	return;
     }
     pilot_node = pyGetNode(output_path, true);
-    pilot_node.setLen("channel", NUM_PILOT_INPUTS, 0.0);
+    pilot_node.setLen("channel", SBUS_CHANNELS, 0.0);
     pilot_input_inited = true;
 }
 
@@ -604,7 +554,7 @@ bool Aura3_pilot_init( string output_path, pyPropertyNode *config ) {
     bind_pilot_controls( output_path );
 
     if ( config->hasChild("channel") ) {
-	for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
+	for ( int i = 0; i < SBUS_CHANNELS; i++ ) {
 	    pilot_mapping[i] = config->getString("channel", i);
 	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
 	}
@@ -721,7 +671,7 @@ static bool Aura3_imu_update_internal() {
 }
 
 static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
-			uint8_t *payload )
+                         uint8_t *payload )
 {
     bool new_data = false;
 
@@ -736,13 +686,13 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    printf("Aura3: packet size mismatch in ACK\n");
 	}
     } else if ( pkt_id == PILOT_PACKET_ID ) {
-	if ( pkt_len == (NUM_PILOT_INPUTS-2) * 2 + 1 ) {
+	if ( pkt_len == sizeof(pilot_in_t) ) {
+            pilot_in_t *pilot_in = (pilot_in_t *)payload;
 	    pilot_in_timestamp = get_Time();
-	    for ( int i = 0; i < (NUM_PILOT_INPUTS-2); i++ ) {
-                int16_t val = *(int16_t *)payload; payload += 2;
-		pilot_input[i] = (float)val / 16384.0;
+	    for ( int i = 0; i < SBUS_CHANNELS; i++ ) {
+		pilot_input[i] = (float)pilot_in->channel[i] / 16384.0;
 	    }
-            pilot_flags = *(uint8_t *)payload; payload += 1;
+            pilot_flags = pilot_in->flags;
 
 #if 0
 	    if ( display_on ) {
@@ -1567,7 +1517,7 @@ bool Aura3_pilot_update() {
 
     pilot_node.setDouble( "timestamp", pilot_in_timestamp );
 
-    for ( int i = 0; i < NUM_PILOT_INPUTS; i++ ) {
+    for ( int i = 0; i < SBUS_CHANNELS; i++ ) {
 	val = pilot_input[i];
 	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
 	pilot_node.setDouble( "channel", i, val );

@@ -1,3 +1,5 @@
+SUBDIRS = Aura3
+
 noinst_LIBRARIES = libsensors.a
 
 libsensors_a_SOURCES = \
@@ -13,7 +15,6 @@ libsensors_a_SOURCES = \
 	gps_ublox8.cxx gps_ublox8.hxx \
 	pilot_mgr.cxx pilot_mgr.hxx \
 	APM2.cxx APM2.hxx \
-	Aura3.cxx Aura3.hxx \
 	FGFS.cxx FGFS.hxx \
 	Goldy2.cxx Goldy2.hxx \
 	raven1.hxx raven1.cxx \
