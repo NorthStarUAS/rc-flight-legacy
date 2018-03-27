@@ -673,9 +673,10 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	if ( display_on ) {
 	    printf("Received ACK = %d %d\n", payload[0], payload[1]);
 	}
-	if ( pkt_len == 2 ) {
-	    last_ack_id = payload[0];
-	    last_ack_subid = payload[1];
+	if ( pkt_len == sizeof(ack_packet_t) ) {
+            ack_packet_t *ack = (ack_packet_t *)payload;
+            last_ack_id = ack->command_id;
+	    last_ack_subid = ack->subcommand_id;
 	} else {
 	    printf("Aura3: packet size mismatch in ACK\n");
 	}

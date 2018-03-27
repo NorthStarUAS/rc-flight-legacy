@@ -65,6 +65,12 @@ typedef struct {
 // minimize packet lengths.)
 //////////////////////////////////////////////////////
 
+// ack
+typedef struct {
+    uint8_t command_id;
+    uint8_t subcommand_id;
+} ack_packet_t;
+
 // pilot input (from RC system)
 typedef struct {
     int16_t channel[SBUS_CHANNELS]; // normalize from [-16384 to 16384] */

@@ -1313,6 +1313,7 @@ def unpack_ap_status_v7(buf):
 
 def pack_system_health_bin(index):
     dekamah = int(power_node.getFloat("total_mah") / 10)
+    if dekamah < 0: dekamah = 0 # prevent overflowing the structure
     if dekamah > 65535: dekamah = 65535 # prevent overflowing the structure
     buf = struct.pack(system_health_v5_fmt,
                       index,
