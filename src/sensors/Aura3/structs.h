@@ -86,6 +86,14 @@ typedef struct {
     float airdata_temp_C;
 } airdata_packet_t;
 
+// power
+typedef struct {
+    uint16_t int_main_v;
+    uint16_t avionics_v;
+    uint16_t ext_main_v;
+    uint16_t ext_main_amp;
+} power_packet_t;
+
 // status
 typedef struct {
     uint16_t serial_number;
@@ -93,10 +101,6 @@ typedef struct {
     uint16_t master_hz;
     uint32_t baud;
     uint16_t byte_rate;
-    uint16_t pwr1_v;
-    uint16_t pwr2_v;
-    uint16_t avionics_v;
-    uint16_t pwr_a;
 } status_packet_t;
 
 #pragma pack(pop)

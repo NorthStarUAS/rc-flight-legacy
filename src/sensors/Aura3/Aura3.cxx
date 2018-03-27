@@ -47,7 +47,7 @@ using namespace Eigen;
 #define IMU_PACKET_ID 51
 #define GPS_PACKET_ID 52
 #define AIRDATA_PACKET_ID 53
-//#define ANALOG_PACKET_ID 54
+#define POWER_PACKET_ID 54
 #define STATUS_INFO_PACKET_ID 55
 
 #define NUM_IMU_SENSORS 10
@@ -705,7 +705,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("Aura3: packet size mismatch in pilot input\n");
+		printf("Aura3: packet size mismatch in pilot input packet\n");
 	    }
 	}
     } else if ( pkt_id == IMU_PACKET_ID ) {
@@ -737,7 +737,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("Aura3: packet size mismatch in imu input\n");
+		printf("Aura3: packet size mismatch in imu packet\n");
 	    }
 	}
     } else if ( pkt_id == GPS_PACKET_ID ) {
@@ -749,7 +749,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("Aura3: packet size mismatch in gps input\n");
+		printf("Aura3: packet size mismatch in gps packet\n");
                 printf("got %d, expected %d\n", pkt_len, (int)sizeof(nav_pvt));
 	    }
 	}
@@ -768,51 +768,28 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("Aura3: packet size mismatch in airdata input\n");
+		printf("Aura3: packet size mismatch in airdata packet\n");
 	    }
 	}
-//     } else if ( pkt_id == ANALOG_PACKET_ID ) {
-// 	if ( pkt_len == 2 * NUM_ANALOG_INPUTS ) {
-// 	    for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
-// 		analog_filt[i].update(*(uint16_t *)payload, 0.01);
-// 		payload += 2;
-// 		analog[i] = analog_filt[i].get_value() ;
-// 		if ( i == 5 ) {
-// 		    analog[i] /= 1000.0;
-// 		} else {
-// 		    analog[i] /= 64.0;
-// 		}
-// 		bool result = analog_node.setDouble( "channel", i, analog[i] );
-// 		if ( ! result ) {
-// 		    printf("channel write failed %d\n", i);
-// 		}
-// 	    }
+    } else if ( pkt_id == POWER_PACKET_ID ) {
+	if ( pkt_len == sizeof(power_packet_t) ) {
+            power_packet_t *packet = (power_packet_t *)payload;
 
-// 	    // fill in property values that don't belong to some other
-// 	    // sub system right now.
-// 	    double analog_timestamp = get_Time();
-// 	    static double last_analog_timestamp = analog_timestamp;
-// 	    double dt = analog_timestamp - last_analog_timestamp;
-// 	    last_analog_timestamp = analog_timestamp;
+            power_node.setDouble( "main_vcc", (float)packet->int_main_v / 100.0);
+            power_node.setDouble( "ext_main_vcc", (float)packet->ext_main_v / 100.0);
+            power_node.setDouble( "avionics_vcc", (float)packet->avionics_v / 100.0);
 
-// #if 0
-// 	    if ( display_on ) {
-// 		for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
-// 		    printf("%.2f ", (float)analog[i] / 64.0);
-// 		}
-// 		printf("\n");
-// 	    }
-// #endif
-		      
-// 	    analog_packet_counter++;
-// 	    aura3_node.setLong( "analog_packet_count", analog_packet_counter );
-
-// 	    new_data = true;
-// 	} else {
-//	    if ( display_on ) {
-//		printf("Aura3: packet size mismatch in analog input\n");
-//	    }
-//	}
+            float cell_volt = (float)packet->int_main_v / 100.0 / (float)battery_cells;
+            float ext_cell_volt = (float)packet->ext_main_v / 100.0 / (float)battery_cells;
+            power_node.setDouble( "cell_vcc", cell_volt );
+            power_node.setDouble( "ext_cell_vcc", ext_cell_volt );
+            power_node.setDouble( "main_amps", (float)packet->ext_main_amp / 100.0);
+ 
+	} else {
+	    if ( display_on ) {
+		printf("Aura3: packet size mismatch in power packet\n");
+	    }
+	}
     } else if ( pkt_id == STATUS_INFO_PACKET_ID ) {
 	static bool first_time = true;
 	if ( pkt_len == sizeof(status_packet_t) ) {
@@ -830,15 +807,6 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    aura3_node.setLong( "master_hz", packet->master_hz );
 	    aura3_node.setLong( "baud_rate", packet->baud );
 	    aura3_node.setLong( "byte_rate_sec", packet->byte_rate );
-            power_node.setDouble( "main_vcc", (float)packet->pwr1_v / 100.0);
-            power_node.setDouble( "alt_main_vcc", (float)packet->pwr2_v / 100.0);
-            power_node.setDouble( "avionics_vcc", (float)packet->avionics_v / 100.0);
-
-            float cell_volt = (float)packet->pwr1_v / 100.0 / (float)battery_cells;
-            float alt_cell_volt = (float)packet->pwr2_v / 100.0 / (float)battery_cells;
-            power_node.setDouble( "cell_vcc", cell_volt );
-            power_node.setDouble( "alt_cell_vcc", alt_cell_volt );
-            power_node.setDouble( "main_amps", (float)packet->pwr_a / 100.0);
  
 	    if ( first_time ) {
 		// log the data to events.txt
@@ -855,7 +823,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	} else {
 	    if ( display_on ) {
-		printf("Aura3: packet size mismatch in config info\n");
+		printf("Aura3: packet size mismatch in status packet\n");
 	    }
 	}
     } else {
