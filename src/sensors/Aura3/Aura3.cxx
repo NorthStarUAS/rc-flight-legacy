@@ -754,7 +754,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	}
     } else if ( pkt_id == AIRDATA_PACKET_ID ) {
-	if ( pkt_len == 20 ) {
+	if ( pkt_len == sizeof(airdata_packet_t) ) {
             airdata_packet = *(airdata_packet_t *)payload;
 
 	    // if ( display_on ) {
