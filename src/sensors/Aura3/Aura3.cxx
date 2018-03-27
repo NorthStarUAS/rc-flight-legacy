@@ -1386,11 +1386,11 @@ bool Aura3_airdata_update() {
     if ( airdata_inited ) {
 	double cur_time = imu_timestamp;
 
-	float pitot_butter = pitot_filter.update(airdata_packet.airdata_diffPress_pa);
+	float pitot_butter = pitot_filter.update(airdata_packet.ext_diff_press_pa);
         
 	if ( ! airspeed_inited ) {
 	    if ( airspeed_zero_start_time > 0.0 ) {
-		pitot_sum += airdata_packet.airdata_diffPress_pa;
+		pitot_sum += airdata_packet.ext_diff_press_pa;
 		pitot_count++;
 		pitot_offset = pitot_sum / (double)pitot_count;
 		/* printf("a1 raw=%.1f filt=%.1f a1 off=%.1f a1 sum=%.1f a1 count=%d\n",
@@ -1440,13 +1440,13 @@ bool Aura3_airdata_update() {
 	float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
 	airdata_node.setDouble( "airspeed_mps", airspeed_mps );
 	airdata_node.setDouble( "airspeed_kt", airspeed_kt );
-	airdata_node.setDouble( "temp_C", airdata_packet.airdata_temp_C );
+	airdata_node.setDouble( "temp_C", airdata_packet.ext_temp_C );
 
 	// publish sensor values
-	airdata_node.setDouble( "pressure_mbar", airdata_packet.baro_press / 100.0 );
-	airdata_node.setDouble( "bme_temp_C", airdata_packet.baro_temp );
+	airdata_node.setDouble( "pressure_mbar", airdata_packet.baro_press_pa / 100.0 );
+	airdata_node.setDouble( "bme_temp_C", airdata_packet.baro_temp_C );
 	airdata_node.setDouble( "humidity", airdata_packet.baro_hum );
-	airdata_node.setDouble( "diff_pressure_pa", airdata_packet.airdata_diffPress_pa );
+	airdata_node.setDouble( "diff_pressure_pa", airdata_packet.ext_diff_press_pa );
 
 	fresh_data = true;
     }

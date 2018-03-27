@@ -67,7 +67,7 @@ typedef struct {
 
 // pilot input (from RC system)
 typedef struct {
-    int16_t channel[SBUS_CHANNELS];
+    int16_t channel[SBUS_CHANNELS]; // normalize from [-16384 to 16384] */
     uint8_t flags;
 } pilot_packet_t;
 
@@ -79,11 +79,12 @@ typedef struct {
 
 // airdata
 typedef struct {
-    float baro_press;
-    float baro_temp;
+    float baro_press_pa;
+    float baro_temp_C;
     float baro_hum;
-    float airdata_diffPress_pa;
-    float airdata_temp_C;
+    float ext_diff_press_pa;
+    float ext_static_press_pa;
+    float ext_temp_C;
 } airdata_packet_t;
 
 // power
