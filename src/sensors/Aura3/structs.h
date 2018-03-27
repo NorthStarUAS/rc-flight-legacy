@@ -77,6 +77,28 @@ typedef struct {
     int16_t channel[10];
 } imu_packet_t;
 
+// airdata
+typedef struct {
+    float baro_press;
+    float baro_temp;
+    float baro_hum;
+    float airdata_diffPress_pa;
+    float airdata_temp_C;
+} airdata_packet_t;
+
+// status
+typedef struct {
+    uint16_t serial_number;
+    uint16_t firmware_rev;
+    uint16_t master_hz;
+    uint32_t baud;
+    uint16_t byte_rate;
+    uint16_t pwr1_v;
+    uint16_t pwr2_v;
+    uint16_t avionics_v;
+    uint16_t pwr_a;
+} status_packet_t;
+
 #pragma pack(pop)
 
 

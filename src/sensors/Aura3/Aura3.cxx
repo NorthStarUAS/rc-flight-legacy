@@ -132,7 +132,7 @@ static uint32_t skipped_frames = 0;
 
 #pragma pack(push, 1)           // set alignment to 1 byte boundary
 
-// gps structure
+// gps structure (copied from aura-sensors/src/UBLOX8/UBLOX8.h)
 static struct nav_pvt_t {
     uint32_t iTOW;
     int16_t year;
@@ -167,15 +167,6 @@ static struct nav_pvt_t {
 config_t config;
 static double nav_pvt_timestamp = 0;
 
-static struct air_data_t {
-    double timestamp;
-    float bme_pres_pa;
-    float bme_temp_C;
-    float bme_hum;
-    float diff_pres_pa;
-    float temp_C;
-} airdata;
-
 //static LowPassFilter analog_filt[NUM_ANALOG_INPUTS];
 //static float analog[NUM_ANALOG_INPUTS];
 
@@ -209,6 +200,9 @@ const float accelScale = _g / _accel_lsb_per_dps;
 
 const float magScale = 0.01;
 const float tempScale = 0.01;
+
+
+airdata_packet_t airdata_packet;
 
 
 static void Aura3_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
@@ -761,12 +755,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	}
     } else if ( pkt_id == AIRDATA_PACKET_ID ) {
 	if ( pkt_len == 20 ) {
-	    airdata.timestamp = get_Time();
-	    airdata.bme_pres_pa = *(float *)payload; payload += 4;
-	    airdata.bme_temp_C = *(float *)payload; payload += 4;
-	    airdata.bme_hum = *(float *)payload; payload += 4;
-	    airdata.diff_pres_pa = *(float *)payload; payload += 4;
-	    airdata.temp_C = *(float *)payload; payload += 4;
+            airdata_packet = *(airdata_packet_t *)payload;
 
 	    // if ( display_on ) {
 	    // 	printf("airdata %.3f %.2f %.2f\n", airdata.timestamp,
@@ -826,14 +815,8 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 //	}
     } else if ( pkt_id == STATUS_INFO_PACKET_ID ) {
 	static bool first_time = true;
-	if ( pkt_len == 16 ) {
-	    uint16_t serial_num = *(uint16_t *)payload; payload += 2;
-	    uint16_t firmware_rev = *(uint16_t *)payload; payload += 2;
-	    uint16_t master_hz = *(uint16_t *)payload; payload += 2;
-	    uint32_t baud_rate = *(uint32_t *)payload; payload += 4;
-	    uint16_t byte_rate = *(uint16_t *)payload; payload += 2;
-            uint16_t pwr_v = *(uint16_t *)payload; payload += 2;
-            uint16_t avionics_v = *(uint16_t *)payload; payload += 2;
+	if ( pkt_len == sizeof(status_packet_t) ) {
+            status_packet_t *packet = (status_packet_t *)payload;
 
 #if 0
 	    if ( display_on ) {
@@ -842,28 +825,32 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 #endif
 		      
-	    aura3_node.setLong( "serial_number", serial_num );
-	    aura3_node.setLong( "firmware_rev", firmware_rev );
-	    aura3_node.setLong( "master_hz", master_hz );
-	    aura3_node.setLong( "baud_rate", baud_rate );
-	    aura3_node.setLong( "byte_rate_sec", byte_rate );
-            power_node.setDouble( "main_vcc", (float)pwr_v / 100.0);
-            power_node.setDouble( "avionics_vcc", (float)avionics_v / 100.0);
+	    aura3_node.setLong( "serial_number", packet->serial_number );
+	    aura3_node.setLong( "firmware_rev", packet->firmware_rev );
+	    aura3_node.setLong( "master_hz", packet->master_hz );
+	    aura3_node.setLong( "baud_rate", packet->baud );
+	    aura3_node.setLong( "byte_rate_sec", packet->byte_rate );
+            power_node.setDouble( "main_vcc", (float)packet->pwr1_v / 100.0);
+            power_node.setDouble( "alt_main_vcc", (float)packet->pwr2_v / 100.0);
+            power_node.setDouble( "avionics_vcc", (float)packet->avionics_v / 100.0);
 
-            float cell_volt = (float)pwr_v / 100.0 / (float)battery_cells;
+            float cell_volt = (float)packet->pwr1_v / 100.0 / (float)battery_cells;
+            float alt_cell_volt = (float)packet->pwr2_v / 100.0 / (float)battery_cells;
             power_node.setDouble( "cell_vcc", cell_volt );
+            power_node.setDouble( "alt_cell_vcc", alt_cell_volt );
+            power_node.setDouble( "main_amps", (float)packet->pwr_a / 100.0);
  
 	    if ( first_time ) {
 		// log the data to events.txt
 		first_time = false;
 		char buf[128];
-		snprintf( buf, 32, "Serial Number = %d", serial_num );
+		snprintf( buf, 32, "Serial Number = %d", packet->serial_number );
 		events->log("Aura3", buf );
-		snprintf( buf, 32, "Firmware Revision = %d", firmware_rev );
+		snprintf( buf, 32, "Firmware Revision = %d", packet->firmware_rev );
 		events->log("Aura3", buf );
-		snprintf( buf, 32, "Master Hz = %d", master_hz );
+		snprintf( buf, 32, "Master Hz = %d", packet->master_hz );
 		events->log("Aura3", buf );
-		snprintf( buf, 32, "Baud Rate = %d", baud_rate );
+		snprintf( buf, 32, "Baud Rate = %d", packet->baud );
 		events->log("Aura3", buf );
 	    }
 	} else {
@@ -1429,13 +1416,13 @@ bool Aura3_airdata_update() {
     static LowPassFilter pitot_filt(0.2);
 
     if ( airdata_inited ) {
-	double cur_time = airdata.timestamp;
+	double cur_time = imu_timestamp;
 
-	float pitot_butter = pitot_filter.update(airdata.diff_pres_pa);
+	float pitot_butter = pitot_filter.update(airdata_packet.airdata_diffPress_pa);
         
 	if ( ! airspeed_inited ) {
 	    if ( airspeed_zero_start_time > 0.0 ) {
-		pitot_sum += airdata.diff_pres_pa;
+		pitot_sum += airdata_packet.airdata_diffPress_pa;
 		pitot_count++;
 		pitot_offset = pitot_sum / (double)pitot_count;
 		/* printf("a1 raw=%.1f filt=%.1f a1 off=%.1f a1 sum=%.1f a1 count=%d\n",
@@ -1485,13 +1472,13 @@ bool Aura3_airdata_update() {
 	float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
 	airdata_node.setDouble( "airspeed_mps", airspeed_mps );
 	airdata_node.setDouble( "airspeed_kt", airspeed_kt );
-	airdata_node.setDouble( "temp_C", airdata.temp_C );
+	airdata_node.setDouble( "temp_C", airdata_packet.airdata_temp_C );
 
 	// publish sensor values
-	airdata_node.setDouble( "pressure_mbar", airdata.bme_pres_pa / 100.0 );
-	airdata_node.setDouble( "bme_temp_C", airdata.bme_temp_C );
-	airdata_node.setDouble( "humidity", airdata.bme_hum );
-	airdata_node.setDouble( "diff_pressure_pa", airdata.diff_pres_pa );
+	airdata_node.setDouble( "pressure_mbar", airdata_packet.baro_press / 100.0 );
+	airdata_node.setDouble( "bme_temp_C", airdata_packet.baro_temp );
+	airdata_node.setDouble( "humidity", airdata_packet.baro_hum );
+	airdata_node.setDouble( "diff_pressure_pa", airdata_packet.airdata_diffPress_pa );
 
 	fresh_data = true;
     }
