@@ -34,53 +34,12 @@ using namespace Eigen;
 #include "Aura3.hxx"
 #include "structs.h"
 
-#define START_OF_MSG0 147
-#define START_OF_MSG1 224
-
-#define ACK_PACKET_ID 20
-
-#define CONFIG_PACKET_ID 21
-#define FLIGHT_COMMAND_PACKET_ID 22
-#define WRITE_EEPROM_PACKET_ID 23
-
-#define PILOT_PACKET_ID 50
-#define IMU_PACKET_ID 51
-#define GPS_PACKET_ID 52
-#define AIRDATA_PACKET_ID 53
-#define POWER_PACKET_ID 54
-#define STATUS_INFO_PACKET_ID 55
+#include "setup_msg.h"
+#include "setup_pwm.h"
 
 #define NUM_IMU_SENSORS 10
 #define NUM_ANALOG_INPUTS 6
-#define PWM_CHANNELS 8
 #define AP_CHANNELS 6
-
-#define PWM_CENTER 1520
-#define PWM_HALF_RANGE 413
-#define PWM_RANGE (PWM_HALF_RANGE * 2)
-#define PWM_MIN (PWM_CENTER - PWM_HALF_RANGE)
-#define PWM_MAX (PWM_CENTER + PWM_HALF_RANGE)
-
-// Actuator gain (reversing) commands, format is cmd(byte) ch(byte) gain(float)
-#define ACT_GAIN_DEFAULTS 0
-#define ACT_GAIN_SET 1
-
-// Mix mode commands (format is cmd(byte), gain 1 (float), gain 2 (float)
-#define MIX_DEFAULTS 0
-#define MIX_AUTOCOORDINATE 1
-#define MIX_THROTTLE_TRIM 2
-#define MIX_FLAP_TRIM 3
-#define MIX_ELEVONS 4
-#define MIX_FLAPERONS 5
-#define MIX_VTAIL 6
-#define MIX_DIFF_THRUST 7
-
-// SAS mode commands (format is cmd(byte), gain)
-#define SAS_DEFAULTS 0
-#define SAS_ROLLAXIS 1
-#define SAS_PITCHAXIS 2
-#define SAS_YAWAXIS 3
-#define SAS_TUNE 10
 
 static pyPropertyNode aura3_node;
 static pyPropertyNode power_node;

@@ -1,19 +1,14 @@
 #ifndef AURA_STRUCTURES_H_INCLUDED
 #define AURA_STRUCTURES_H_INCLUDED
 
-#include "config_pwm.h"
-#include "config_sbus.h"
+#include "setup_pwm.h"
+#include "setup_sbus.h"
 
 
 #pragma pack(push, 1)           // set alignment to 1 byte boundary
 
-//////////////////////////////////////////////////////
 // master config (for messages and saving in eeprom)
-//////////////////////////////////////////////////////
-
 typedef struct {
-    int version;
-
     float imu_orient[9];        // IMU orientation matrix
     
     // pwm output signal hz, 50hz default for analog servos, maximum
@@ -57,13 +52,6 @@ typedef struct {
     float sas_yawgain;
     float sas_max_gain;
 } config_t;
-
-
-//////////////////////////////////////////////////////
-// communication structures (note: some of these
-// structures may have altered types or units to
-// minimize packet lengths.)
-//////////////////////////////////////////////////////
 
 // ack
 typedef struct {
