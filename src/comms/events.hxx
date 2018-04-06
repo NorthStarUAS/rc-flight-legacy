@@ -1,5 +1,4 @@
-#ifndef _AURA_EVENTS_HXX
-#define _AURA_EVENTS_HXX
+#pragma once
 
 // import a python module and call it's init() and update() routines
 // requires imported python modules to follow some basic rules to play
@@ -17,5 +16,3 @@ public:
 
     bool log(const char *header, const char *message);
 };
-
-#endif // _AURA_EVENTS_HXX

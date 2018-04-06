@@ -3,9 +3,7 @@
 //                       kalman filter algorithm
 //
 
-#ifndef _AURA_NAV_EKF15_INTERFACE_HXX
-#define _AURA_NAV_EFK15_INTERFACE_HXX
-
+#pragma once
 
 #include "python/pyprops.hxx"
 
@@ -15,6 +13,3 @@ using std::string;
 void nav_ekf15_init( string output_path, pyPropertyNode *config );
 bool nav_ekf15_update();
 void nav_ekf15_close();
-
-
-#endif // _AURA_NAV_EKF15_INTERFACE_HXX

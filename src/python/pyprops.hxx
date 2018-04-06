@@ -1,5 +1,4 @@
-#ifndef _AURA_PYPROPS_HXX
-#define _AURA_PYPROPS_HXX
+#pragma once
 
 #include <python2.7/Python.h>
 
@@ -7,7 +6,6 @@
 #include <vector>
 using std::string;
 using std::vector;
-
 
 //
 // C++ interface to a python PropertyNode()
@@ -99,5 +97,3 @@ extern bool readJSON(string filename, pyPropertyNode *node);
     
 // Write a json file beginning with the specified node
 extern bool writeJSON(string filename, pyPropertyNode *node);
-    
-#endif // _AURA_PYPROPS_HXX

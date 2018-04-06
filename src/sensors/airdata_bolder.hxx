@@ -8,9 +8,7 @@
  *
  */
 
-#ifndef _AURA_AIRDATA_BOLDER_HXX
-#define _AURA_AIRDATA_BOLDER_HXX
-
+#pragma once
 
 #include "python/pyprops.hxx"
 
@@ -19,11 +17,7 @@ using std::string;
 
 #include "include/globaldefs.h"
 
-
 void airdata_bolder_init( string output_path, pyPropertyNode *config );
 bool airdata_bolder_update();
 void airdata_bolder_zero_airspeed();
 void airdata_bolder_close();
-
-
-#endif // _AURA_AIRDATA_BOLDER_HXX

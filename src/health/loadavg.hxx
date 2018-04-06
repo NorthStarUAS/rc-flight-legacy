@@ -1,11 +1,6 @@
-// Stargate cpu load module
+// cpu load average module
 
-#ifndef _AURA_LOADAVG_H
-#define _AURA_LOADAVG_H
-
+#pragma once
 
 bool loadavg_init();
 bool loadavg_update();
-
-
-#endif // _AURA_LOADAVG_H

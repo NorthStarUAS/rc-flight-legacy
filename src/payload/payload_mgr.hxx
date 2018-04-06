@@ -7,12 +7,9 @@
  */
 
 
-#ifndef _AURA_PAYLOAD_MGR_H
-#define _AURA_PAYLOAD_MGR_H
-
+#pragma once
 
 #include "python/pyprops.hxx"
-
 
 class UGPayloadMgr {
 
@@ -37,6 +34,3 @@ private:
 
 // global reference to payload mgr (move to globals?)
 extern UGPayloadMgr payload_mgr;
-
-
-#endif // _AURA_PAYLOAD_MGR_H

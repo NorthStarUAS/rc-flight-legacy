@@ -19,12 +19,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 
-#ifndef _AURA_AP_COMPONENT_HXX
-#define _AURA_AP_COMPONENT_HXX
-
-#ifndef __cplusplus
-# error This library requires C++
-#endif
+#pragma once
 
 #include "python/pyprops.hxx"
 
@@ -76,6 +71,3 @@ public:
     
     inline string get_name() { return component_node.getString("name"); }
 };
-
-
-#endif // _AURA_AP_COMPONENT_HXX

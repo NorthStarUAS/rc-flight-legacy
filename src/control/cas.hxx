@@ -20,12 +20,7 @@
 //
 
 
-#ifndef _CAS_HXX
-#define _CAS_HXX
-
-#ifndef __cplusplus
-# error This library requires C++
-#endif
+#pragma once
 
 #include "python/pyprops.hxx"
 
@@ -86,6 +81,3 @@ public:
 
 
 extern UGCAS cas;		// global CAS object
-
-
-#endif // _CAS_HXX

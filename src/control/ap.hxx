@@ -21,12 +21,7 @@
 // $Id: xmlauto.hxx,v 1.1 2007/03/20 20:39:49 curt Exp $
 
 
-#ifndef _AURA_AUTOPILOT_HXX
-#define _AURA_AUTOPILOT_HXX
-
-#ifndef __cplusplus
-# error This library requires C++
-#endif
+#pragma once
 
 #include "python/pyprops.hxx"
 
@@ -63,6 +58,3 @@ private:
     bool serviceable;
     comp_list components;
 };
-
-
-#endif // _AURA_AUTOPILOT_HXX

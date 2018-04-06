@@ -37,8 +37,7 @@
 *
 ****/
 
-#ifndef NET_SOCKET_H
-#define NET_SOCKET_H
+#pragma once
 
 #include "ul.h"
 #include <errno.h>
@@ -109,7 +108,4 @@ int netInit () ;
 
 
 const char* netFormat ( const char* fmt, ... ) ;
-
-
-#endif // NET_SOCKET_H
 

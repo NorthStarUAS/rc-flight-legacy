@@ -7,9 +7,7 @@
  *
  */
 
-#ifndef _AURA_BFS_RAVEN2_HXX
-#define _AURA_BFS_RAVEN2_HXX
-
+#pragma once
 
 #include "python/pyprops.hxx"
 
@@ -26,5 +24,3 @@ void raven2_airdata_close();
 bool raven2_act_init( pyPropertyNode *config );
 bool raven2_act_update();
 void raven2_act_close();
-
-#endif // _AURA_BFS_RAVEN2_HXX

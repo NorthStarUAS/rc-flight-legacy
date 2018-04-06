@@ -7,15 +7,9 @@
  *
  */
 
-
-#ifndef _AURA_AIRDATA_MGR_HXX
-#define _AURA_AIRDATA_MGR_HXX
-
+#pragma once
 
 void AirData_init();
 bool AirData_update();
 void AirData_calibrate();
 void AirData_close();
-
-
-#endif // _AURA_AIRDATA_MGR_HXX

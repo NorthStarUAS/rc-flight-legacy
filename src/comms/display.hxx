@@ -1,5 +1,4 @@
-#ifndef _AURA_DISPLAY_HXX
-#define _AURA_DISPLAY_HXX
+#pragma once
 
 // import a python module and call it's init() and update() routines
 // requires imported python modules to follow some basic rules to play
@@ -20,5 +19,3 @@ public:
     bool show(const char *message);
     void status_summary();
 };
-
-#endif // _AURA_DISPLAY_HXX

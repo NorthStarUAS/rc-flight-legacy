@@ -17,7 +17,6 @@ bool loadavg_init() {
     return true;
 }
 
-
 bool loadavg_update() {
     char buf[5];
     int result = 0;

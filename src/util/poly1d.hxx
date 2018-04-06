@@ -7,8 +7,7 @@
  *
  */
 
-#ifndef _AURA_POLY1D_HXX
-#define _AURA_POLY1D_HXX
+#pragma once
 
 #include <string>
 #include <vector>
@@ -76,5 +75,3 @@ public:
 	printf("\n");
     }
 };
-
-#endif // _AURA_POLY1D_HXX

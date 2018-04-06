@@ -1,5 +1,4 @@
-#ifndef _AURA_LOW_PASS_FILTER_HXX
-#define _AURA_LOW_PASS_FILTER_HXX
+#pragma once
 
 // a class to implement a simple low pass filter
 
@@ -40,6 +39,3 @@ public:
 	return filter_value;
     }
 };
-
-
-#endif // _AURA_LOW_PASS_FILTER_HXX

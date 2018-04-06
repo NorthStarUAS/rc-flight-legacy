@@ -24,8 +24,7 @@
 // $Id: strutils.hxx,v 1.1 2008/04/04 06:22:43 curt Exp $
 
 
-#ifndef UG_STRUTILS_H
-#define UG_STRUTILS_H
+#pragma once
 
 #include <stdlib.h>
 
@@ -49,6 +48,3 @@ using std::vector;
  */
 vector<string>
 split( const string& s, const char* sep = 0, int maxsplit = 0 );
-
-
-#endif // UG_STRUTILS_H

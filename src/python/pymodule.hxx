@@ -1,9 +1,8 @@
-#ifndef _AURA_PYMODULE_HXX
-#define _AURA_PYMODULE_HXX
-
 // import a python module and call it's init() and update() routines
 // requires imported python modules to follow some basic rules to play
 // nice.  (see examples in the code for now.)
+
+#pragma once
 
 #include <python2.7/Python.h>
 #include <string>
@@ -26,5 +25,3 @@ protected:
     string module_name;
     
 };
-
-#endif // _AURA_PYMODULE_HXX

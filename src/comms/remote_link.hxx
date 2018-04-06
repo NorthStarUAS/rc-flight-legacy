@@ -1,5 +1,4 @@
-#ifndef _AURA_REMOTE_LINK_HXX
-#define _AURA_REMOTE_LINK_HXX
+#pragma once
 
 #include "python/pyprops.hxx"
 
@@ -31,5 +30,3 @@ private:
 
     bool remote_link_on;
 };
-
-#endif // _AURA_REMOTE_LINK_HXX

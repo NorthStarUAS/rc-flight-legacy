@@ -9,13 +9,8 @@
  */
 
 
-#ifndef _AURA_FILTER_MGR_HXX
-#define _AURA_FILTER_MGR_HXX
-
+#pragma once
 
 void Filter_init();
 bool Filter_update();
 void Filter_close();
-
-
-#endif // _AURA_FILTER_MGR_HXX

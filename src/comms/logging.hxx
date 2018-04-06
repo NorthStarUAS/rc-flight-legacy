@@ -1,5 +1,4 @@
-#ifndef _AURA_LOGGING_HXX
-#define _AURA_LOGGING_HXX
+#pragma once
 
 #include "python/pyprops.hxx"
 
@@ -30,5 +29,3 @@ public:
 // pointer without having to figure out how to propagate that to the
 // python system.
 bool write_imu_calibration( pyPropertyNode *config );
-
-#endif // _AURA_LOGGING_HXX

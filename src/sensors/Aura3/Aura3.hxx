@@ -3,9 +3,7 @@
 // DESCRIPTION: interact with Aura3 (Teensy/Pika) sensor head
 //
 
-#ifndef _AURA_AURA3_SENSORS_HXX
-#define _AURA_AURA3_SENSORS_HXX
-
+#pragma once
 
 #include "python/pyprops.hxx"
 
@@ -42,5 +40,3 @@ bool Aura3_act_init( pyPropertyNode *config );
 bool Aura3_act_update();
 void Aura3_act_close();
 extern bool Aura3_actuator_configured;
-
-#endif // _AURA_AURA3_SENSORS_HXX

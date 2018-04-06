@@ -1,9 +1,7 @@
-#ifndef AURA_STRUCTURES_H_INCLUDED
-#define AURA_STRUCTURES_H_INCLUDED
+#pragma once
 
 #include "setup_pwm.h"
 #include "setup_sbus.h"
-
 
 #pragma pack(push, 1)           // set alignment to 1 byte boundary
 
@@ -99,6 +97,3 @@ typedef struct {
 } status_packet_t;
 
 #pragma pack(pop)
-
-
-#endif // AURA_STRUCTURES_H_INCLUDED

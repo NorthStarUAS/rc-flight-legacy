@@ -1,5 +1,4 @@
-#ifndef _AURA_MYPROF_H
-#define _AURA_MYPROF_H
+#pragma once
 
 #include <string>
 
@@ -48,6 +47,3 @@ extern myprofile health_prof;
 extern myprofile datalog_prof;
 extern myprofile main_prof;
 extern myprofile sync_prof;
-
-
-#endif // _AURA_MYPROF_H

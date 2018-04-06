@@ -1,5 +1,4 @@
-#ifndef _AURA_PACKER_HXX
-#define _AURA_PACKER_HXX
+#pragma once
 
 // import a python module and call it's init() and update() routines
 // requires imported python modules to follow some basic rules to play
@@ -28,5 +27,3 @@ public:
     int pack_ap(int index, uint8_t *buf);
     int pack_raven(int index, uint8_t *buf);
 };
-
-#endif // _AURA_PACKER_HXX

@@ -1,6 +1,4 @@
-#ifndef AURA_CONFIG_PWM_H_INCLUDED
-#define AURA_CONFIG_PWM_H_INCLUDED
-
+#pragma once
 
 // max number of pwm output channels
 const int PWM_CHANNELS = 8;
@@ -27,6 +25,3 @@ const int servoFreq_hz = 50; // servo pwm update rate
 #define PWM_RANGE (PWM_HALF_RANGE * 2)
 #define PWM_MIN (PWM_CENTER - PWM_HALF_RANGE)
 #define PWM_MAX (PWM_CENTER + PWM_HALF_RANGE)
-
-
-#endif // AURA_CONFIG_PWM_H_INCLUDED

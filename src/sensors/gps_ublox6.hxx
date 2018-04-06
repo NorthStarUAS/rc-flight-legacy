@@ -7,18 +7,12 @@
  *
  */
 
-#ifndef _AURA_GPS_UBLOX6_HXX
-#define _AURA_GPS_UBLOX6_HXX
-
+#pragma once
 
 #include "python/pyprops.hxx"
 
 #include "include/globaldefs.h"
 
-
 void gps_ublox6_init( string output_path, pyPropertyNode *config );
 bool gps_ublox6_update();
 void gps_ublox6_close();
-
-
-#endif // _AURA_GPS_UBLOX6_HXX

@@ -1,6 +1,4 @@
-#ifndef AURA_CONFIG_MSG_H_INCLUDED
-#define AURA_CONFIG_MSG_H_INCLUDED
-
+#pragma once
 
 const uint8_t START_OF_MSG0 = 147;
 const uint8_t START_OF_MSG1 = 224;
@@ -17,6 +15,3 @@ const uint8_t GPS_PACKET_ID = 52;
 const uint8_t AIRDATA_PACKET_ID = 53;
 const uint8_t POWER_PACKET_ID = 54;
 const uint8_t STATUS_INFO_PACKET_ID = 55;
-
-
-#endif // AURA_CONFIG_MSG_H_INCLUDED

@@ -1,6 +1,3 @@
-#ifndef _AURA_LINEAR_FIT_FILTER_HXX
-#define _AURA_LINEAR_FIT_FILTER_HXX
-
 // a class to implement a simple linear fit using low pass filtered
 // internal terms so it should track changes over time and slowly
 // forget history
@@ -9,6 +6,8 @@
 // variable dt can lead to incorrect output.  Hopefully the calling
 // layer can manage to call the update() function at close to the
 // provided dt.
+
+#pragma once
 
 class LinearFitFilter {
     
@@ -39,6 +38,3 @@ public:
 	return a1*x + a0;
     }
 };
-
-
-#endif // _AURA_LINEAR_FIT_FILTER_HXX

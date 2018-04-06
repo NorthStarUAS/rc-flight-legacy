@@ -20,12 +20,10 @@
  *
  */
 
-#ifndef _AURA_CAL_TEMP_HXX
-#define _AURA_CAL_TEMP_HXX
+#pragma once
 
 #include "python/pyprops.hxx"
 #include "util/poly1d.hxx"
-
 
 class AuraCalTemp {
 
@@ -65,5 +63,3 @@ public:
 	return (x - b) * s;
     }
 };
-
-#endif // _AURA_CAL_TEMP_HXX

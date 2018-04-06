@@ -7,9 +7,7 @@
  *
  */
 
-#ifndef _AURA_IMU_VN100_SPI_HXX
-#define _AURA_IMU_VN100_SPI_HXX
-
+#pragma once
 
 #include "python/pyprops.hxx"
 
@@ -18,10 +16,6 @@ using std::string;
 
 #include "include/globaldefs.h"
 
-
 void imu_vn100_spi_init( string output_path, pyPropertyNode *config );
 bool imu_vn100_spi_get();
 void imu_vn100_spi_close();
-
-
-#endif // _AURA_IMU_VN100_SPI_HXX

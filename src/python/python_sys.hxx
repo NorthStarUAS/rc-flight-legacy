@@ -1,5 +1,4 @@
-#ifndef _AURA_PYTHON_SYS_HXX
-#define _AURA_PYTHOS_SYS_HXX
+#pragma once
 
 #include <python2.7/Python.h>
 
@@ -15,6 +14,3 @@ extern void AuraPythonInit(int argc, char **argv, string extra_module_path);
 // destructors are called) to properly shutdown and clean up the
 // python interpreter.
 extern void AuraPythonCleanup(void);
-
-
-#endif // _AURA_PYTHON_SYS_HXX

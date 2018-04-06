@@ -7,14 +7,8 @@
  *
  */
 
-
-#ifndef _AURA_PILOT_INPUT_MGR_HXX
-#define _AURA_PILOT_INPUT_MGR_HXX
-
+#pragma once
 
 void PilotInput_init();
 bool PilotInput_update();
 void PilotInput_close();
-
-
-#endif // _AURA_PILOT_INPUT_MGR_HXX

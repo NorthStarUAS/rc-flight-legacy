@@ -2,9 +2,7 @@
 // Global defintions used in the avionics program
 //
 
-#ifndef _AURA_GLOBALDEFS_H
-#define _AURA_GLOBALDEFS_H
-
+#pragma once
 
 #include <stdint.h>
 
@@ -66,5 +64,3 @@
 
 /** Knots to meters per second */
 #define SG_KT_TO_MPS        0.5144444444444444444
-
-#endif // _AURA_GLOBALDEFS_H

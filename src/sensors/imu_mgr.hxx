@@ -5,10 +5,7 @@
 // This code is released into the public domain.
 // 
 
-
-#ifndef _AURA_IMU_MGR_HXX
-#define _AURA_IMU_MGR_HXX
-
+#pragma once
 
 void IMU_init();
 bool IMU_update();
@@ -16,5 +13,3 @@ void IMU_close();
 
 // return imu data age in seconds
 double IMU_age();
-
-#endif // _AURA_IMU_MGR_HXX

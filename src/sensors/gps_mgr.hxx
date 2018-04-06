@@ -7,10 +7,7 @@
  *
  */
 
-
-#ifndef _AURA_GPS_MGR_HXX
-#define _AURA_GPS_MGR_HXX
-
+#pragma once
 
 void GPS_init();
 bool GPS_update();
@@ -18,6 +15,3 @@ void GPS_close();
 
 // return gps data age in seconds
 double GPS_age();
-
-
-#endif // _AURA_GPS_MGR_HXX

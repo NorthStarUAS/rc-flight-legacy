@@ -1,10 +1,9 @@
-#ifndef _AURA_BUTTER_FILTER_HXX
-#define _AURA_BUTTER_FILTER_HXX
-
 // a class to implement a butterworth filter, based on code and
 // explanation here:
 //
 //     http://www.exstrom.com/journal/sigproc/bwlpf.c
+
+#pragma once
 
 class ButterworthFilter {
     
@@ -20,6 +19,3 @@ public:
     
     double update( double raw_value );
 };
-
-
-#endif // _AURA_BUTTER_FILTER_HXX

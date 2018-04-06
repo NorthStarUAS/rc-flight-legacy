@@ -9,13 +9,8 @@
  */
 
 
-#ifndef _AURA_ACT_MGR_H
-#define _AURA_ACT_MGR_H
-
+#pragma once
 
 void Actuator_init();
 bool Actuator_update();
 void Actuator_close();
-
-
-#endif // _AURA_ACT_MGR_H

@@ -3,9 +3,7 @@
 // DESCRIPTION: aquire sensor data from Goldy2 FMU (via ethernet)
 //
 
-#ifndef _AURA_GOLDY2_HXX
-#define _AURA_GOLDY2_HXX
-
+#pragma once
 
 #include "python/pyprops.hxx"
 
@@ -32,5 +30,3 @@ void goldy2_airdata_close();
 bool goldy2_pilot_init( string output_path, pyPropertyNode *config );
 bool goldy2_pilot_update();
 void goldy2_pilot_close();
-
-#endif // _AURA_GOLDY2_HXX

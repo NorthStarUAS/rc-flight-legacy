@@ -1,9 +1,6 @@
-#ifndef _AURA_UTIL_H
-#define _AURA_UTIL_H
-
+#pragma once
 
 #include "include/globaldefs.h"
-
 
 // simple wrap around for -180 and + 180 
 inline double wraparound( double dta )
@@ -13,6 +10,3 @@ inline double wraparound( double dta )
    
     return dta;
 }	
-
-
-#endif // _AURA_UTIL_H

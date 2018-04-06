@@ -25,8 +25,7 @@
 // $Id: sg_path.hxx,v 1.1 2007/02/14 02:45:39 curt Exp $
 
 
-#ifndef _SG_PATH_HXX
-#define _SG_PATH_HXX
+#pragma once
 
 #include <sys/types.h>
 
@@ -160,8 +159,3 @@ string_list sgPathBranchSplit( const string &path );
  * Split a directory search path into a vector of individual paths
  */
 string_list sgPathSplit( const string &search_path );
-
-
-#endif // _SG_PATH_HXX
-
-

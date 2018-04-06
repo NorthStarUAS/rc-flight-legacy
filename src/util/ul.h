@@ -34,8 +34,7 @@
 //  - more to come (endian support, version ID)
 //
 
-#ifndef _INCLUDED_UL_H_
-#define _INCLUDED_UL_H_
+#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -846,6 +845,3 @@ extern int ulStrNEqual ( const char *s1, const char *s2, int len );
 extern int ulStrEqual ( const char *s1, const char *s2 );
 
 //lint -restore
-
-#endif
-

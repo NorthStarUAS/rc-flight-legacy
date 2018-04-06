@@ -9,15 +9,10 @@
  */
 
 
-#ifndef _CURT_ADNS_UMN_INTERFACE_HXX
-#define _CURT_ADNS_UMN_INTERFACE_HXX
+#pragma once
 
 #include "python/pyprops.hxx"
-
 
 int curt_adns_init( string output_path, pyPropertyNode *config );
 int curt_adns_update( double dt );
 int curt_adns_close();
-
-
-#endif // _CURT_ADNS_UMN_INTERFACE_HXX
