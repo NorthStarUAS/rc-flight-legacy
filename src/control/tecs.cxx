@@ -9,23 +9,27 @@
 // We observe: (1) Throttle (thrust, power) has a fairly direct affect
 // on the total energy of the system.  (2) Conservation of energy
 // suggests we can trade PE for KE and visa versa without affecting
-// the total energy of a system.  (3) In an otherwise stable system,
-// for small changes and small time periods, theta (pitch angle)
-// changes can be used to trade PE vs KE.
+// the total energy of a system.  (3) In an otherwise stable system
+// over short time periods, small changes in theta (target pitch
+// angle) can be used to trade PE vs KE.
+
+// Using KE/PE energy units scales altitude and airspeed errors
+// equivalently.  This is a convenience that helps produce a more
+// naturally balanced system.
 
 // This system computes potential energy *error* and kinetic energy
-// *error*.  Throttle is used to drive the sum of these errors to
-// zero.  Pitch angle is used to drive the difference of these errors
-// to zero.
+// *error*.  It is not technically a 'total energy' system.  Throttle
+// is used to drive the sum of these errors to zero.  Pitch angle is
+// used to drive the difference of these errors to zero.
 
-// Because of the way this system is formulated, we can establish a
-// max/min speed range.  These limits can be computed in terms of
-// energy error and used to limit the energy error sum and energy
-// error difference.  Thus (outside of sensor noise, turbulence, and
-// PID overshoot) the system will never command a combination of
-// throttle positition and pitch angle that will force those limits to
-// be exceeded.  This produces a well behaved system that will never
-// underspeed in a climb or overspeed in a dive.
+// Because of the way this system is formulated, we can establish
+// max/min speed limit that are computed in terms of energy error.
+// These limits can then be used to limit the energy error sum and
+// energy error difference.  Thus (outside of sensor noise,
+// turbulence, and PID overshoot) the system will never command a
+// combination of throttle positition and pitch angle that will force
+// those limits to be exceeded.  This produces a well behaved system
+// that will never command an over or underspeed configuration.
 
 #include "python/pyprops.hxx"
 #include "include/globaldefs.h"
