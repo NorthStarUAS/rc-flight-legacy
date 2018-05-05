@@ -152,3 +152,26 @@ void update_tecs() {
     tecs_node.setDouble("error_total", error_total);
     tecs_node.setDouble("error_diff", error_diff);
 }
+
+// Further notes:
+
+// This module simply computes the energy error sum and difference
+// (clamped for speed range limiting.)  These values are published in
+// the public property tree.
+
+// These values are then typicallly fed into the flight control
+// system.  The FCS definition for each aircraft is located in the
+// aura-config package.  Typically there would be 3 PID components
+// defined to complete the system:
+
+// 1. Input: error_total; Reference: 0; Output: throttle command
+// 2a. Input: error_diff; Reference: 0; Output: theta command (pitch angle)
+// 2b. Input: theta command; Reference: aircraft theta; Ouput: elevator command
+
+// For each of these PID compoents, suitably tuned gain values can be
+// given, along with range limits on the outputs.  So for example, a
+// maximum throttle setting could be established for highly powered
+// aircraft.  Max and min pitch angles (and elevator posiitions) can
+// be established.  It may make sense to limit some of these outputs
+// to configure some natural stall resistance or prevent over driving
+// the system.
