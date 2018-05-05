@@ -23,13 +23,12 @@
 // used to drive the difference of these errors to zero.
 
 // Because of the way this system is formulated, we can establish
-// max/min speed limit that are computed in terms of energy error.
+// max/min speed limits that are computed in terms of energy error.
 // These limits can then be used to limit the energy error sum and
 // energy error difference.  Thus (outside of sensor noise,
 // turbulence, and PID overshoot) the system will never command a
 // combination of throttle positition and pitch angle that will force
-// those limits to be exceeded.  This produces a well behaved system
-// that will never command an over or underspeed configuration.
+// those limits to be exceeded.
 
 #include "python/pyprops.hxx"
 #include "include/globaldefs.h"
@@ -122,7 +121,7 @@ void update_tecs() {
     double max_mps = max_kt * SG_KT_TO_MPS;
     double max_kinetic = 0.5 * mass_kg * max_mps * max_mps;
 
-    // Set min & max kinetic energy errors allowed (prevent us from
+    // Set min & max kinetic energy errors allowed (prevents us from
     // exceeding allowed kinetic energy range)
     double min_error = min_kinetic - energy_kin;
     double max_error = max_kinetic - energy_kin;
@@ -134,9 +133,9 @@ void update_tecs() {
     double error_total = error_pot + error_kin;
     double error_diff =  (2.0 - wb) * error_kin - wb * error_pot;
     
-    // Note: we can clamp the total error and error balance (in energy
-    // error space) to establish speed limits.  This prevents a large
-    // altitude error for over or underspeeding the aircraft.  Also,
+    // We can clamp the total error and error balance (in energy error
+    // space) to establish speed limits.  This prevents a large
+    // altitude error leading to over or underspeed conditions.  Also,
     // prevents over speeding in a climb if max pitch angle is
     // saturated.
     
