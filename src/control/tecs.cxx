@@ -88,8 +88,6 @@ void update_tecs() {
     double vel_mps = vel_node.getDouble("airspeed_smoothed_kt") * SG_KT_TO_MPS;
     double energy_pot = mass_kg * g * alt_m;
     double energy_kin = 0.5 * mass_kg * vel_mps * vel_mps;
-    double energy_total = energy_pot + energy_kin;
-    tecs_node.setDouble("energy_total", energy_total);
     tecs_node.setDouble("energy_pot", energy_pot);
     tecs_node.setDouble("energy_kin", energy_kin);
     

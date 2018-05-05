@@ -503,13 +503,13 @@ def pack_airdata_csv(index):
     row['wind_dir_deg'] = '%.1f' % wind_node.getFloat('wind_dir_deg')
     row['wind_speed_kt'] = '%.1f' % wind_node.getFloat('wind_speed_kt')
     row['pitot_scale_factor'] = '%.2f' % wind_node.getFloat('pitot_scale_factor')
-    row['tecs_energy_total'] = '%.2f' % tecs_node.getFloat('energy_total')
-    row['tecs_error_balance'] = '%.2f' % tecs_node.getFloat('error_diff')
+    row['tecs_error_total'] = '%.2f' % tecs_node.getFloat('error_total')
+    row['tecs_error_diff'] = '%.2f' % tecs_node.getFloat('error_diff')
     row['status'] = '%d' % airdata_node.getInt('status')
     keys = ['timestamp', 'pressure_mbar', 'temp_C', 'airspeed_smoothed_kt',
             'altitude_smoothed_m', 'altitude_true_m',
             'wind_dir_deg', 'wind_speed_kt', 'pitot_scale_factor',
-            'tecs_energy_total', 'tecs_error_balance', 'status']
+            'tecs_error_total', 'tecs_error_diff', 'status']
     return row, keys
 
 def unpack_airdata_v3(buf):
@@ -1113,6 +1113,8 @@ def pack_ap_status_text(index, delim=','):
     return delim.join(data)
 
 def pack_ap_status_csv(index):
+    # fixme: tecs_target_tot is really zero now because these values
+    # are computed in energy *error* terms
     row = dict()
     row['timestamp'] = '%.4f' % targets_node.getFloat('timestamp')
     row['master_switch'] = '%d' % ap_node.getBool("master_switch")
