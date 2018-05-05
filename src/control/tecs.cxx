@@ -1,17 +1,31 @@
 // Total Energy = Potential Energy (altitude) + Kinetic Energy (speed)
-// E(t) = E(p) + E(k)
-// E(t) = alt_m*kg*g + 0.5*vel^2
+// PE = alt_m * kg * g
+// KE = 0.5 * kg * vel^2
 
-// Controlling total energy with throttle can be more stable because
-// throttle changes can be coupled with pitch/speed/altitude changes
-// in ways that are aircraft specific.  Minimizing throttle change can
-// lead to more stable flight control.
+// This system controls altitude and airspeed with throttle and pitch
+// angle.  Throttle and pitch angle are used as analogs for power and
+// flight path angle.
 
-// For most precise speed management, use kinetic energy error to
-// drive a target pitch angle.  Using Kin_error - Pot_error (or some
-// weighted difference) to drive pitch angle could control the
-// distribution of energy between kinetic and potential, but could
-// lead to overspeed in descents and underspeed in climbs.
+// We observe: (1) Throttle (thrust, power) has a fairly direct affect
+// on the total energy of the system.  (2) Conservation of energy
+// suggests we can trade PE for KE and visa versa without affecting
+// the total energy of a system.  (3) In an otherwise stable system,
+// for small changes and small time periods, theta (pitch angle)
+// changes can be used to trade PE vs KE.
+
+// This system computes potential energy *error* and kinetic energy
+// *error*.  Throttle is used to drive the sum of these errors to
+// zero.  Pitch angle is used to drive the difference of these errors
+// to zero.
+
+// Because of the way this system is formulated, we can establish a
+// max/min speed range.  These limits can be computed in terms of
+// energy error and used to limit the energy error sum and energy
+// error difference.  Thus (outside of sensor noise, turbulence, and
+// PID overshoot) the system will never command a combination of
+// throttle positition and pitch angle that will force those limits to
+// be exceeded.  This produces a well behaved system that will never
+// underspeed in a climb or overspeed in a dive.
 
 #include "python/pyprops.hxx"
 #include "include/globaldefs.h"
@@ -27,7 +41,6 @@ static pyPropertyNode tecs_config_node;
 static bool tecs_inited = false;
 
 static const float g = 9.81;
-
 
 static void init_tecs() {
     pos_node = pyGetNode( "/position", true);
@@ -47,7 +60,6 @@ static void init_tecs() {
 
     tecs_inited = true;
 }
-
 
 // compute various energy metrics and errors
 void update_tecs() {
