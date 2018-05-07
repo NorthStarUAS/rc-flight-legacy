@@ -52,11 +52,13 @@ static void init_tecs() {
     tecs_node = pyGetNode( "/autopilot/tecs", true);
     tecs_config_node = pyGetNode( "/config/autopilot/TECS", true);
 
-    // ensure a default weighting factor is set
+    // quick sanity check
+    if ( tecs_config_node.getDouble("mass_kg") < 0.01 ) {
+        tecs_config_node.setDouble("mass_kg", 2.5);
+    }
     if ( ! tecs_config_node.hasChild("weight_bal") ) {
         tecs_config_node.setDouble("weight_bal", 1.0);
     }
-
     tecs_inited = true;
 }
 
@@ -67,17 +69,7 @@ void update_tecs() {
     }
 
     double mass_kg = tecs_config_node.getDouble("mass_kg");
-    if ( mass_kg < 0.01 ) { mass_kg = 2.5; }
-    
-    // balance weight factor
     double wb = tecs_config_node.getDouble("weight_bal");
-    if ( wb < 0.0 ) {
-        wb = 0.0;
-        tecs_config_node.setDouble("weight_bal", wb);
-    } else if ( wb > 2.0 ) {
-        wb = 2.0;
-        tecs_config_node.setDouble("weight_bal", wb);
-    }
 
     // Current energy
     double alt_m = pos_node.getDouble("altitude_agl_m");
