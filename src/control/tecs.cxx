@@ -52,11 +52,7 @@ static void init_tecs() {
     tecs_node = pyGetNode( "/autopilot/tecs", true);
     tecs_config_node = pyGetNode( "/config/autopilot/TECS", true);
 
-    // force default weight values if the field is empty (so we can
-    // differentiate "" from 0.0
-    // if ( ! tecs_config_node.hasChild("weight_tot") ) {
-    //     tecs_config_node.setDouble("weight_tot", 1.0);
-    // }
+    // ensure a default weighting factor is set
     if ( ! tecs_config_node.hasChild("weight_bal") ) {
         tecs_config_node.setDouble("weight_bal", 1.0);
     }
