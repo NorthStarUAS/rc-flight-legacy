@@ -147,7 +147,7 @@ void control_update(double dt)
 
     // navigation update (circle or route heading)
     navigation.update(dt);
-        
+
     // update the autopilot stages (even in manual flight mode.)  This
     // keeps the differential value up to date, tracks manual inputs,
     // and keeps more continuity in the flight when the mode is
