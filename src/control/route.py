@@ -202,7 +202,7 @@ def get_remaining_distance_from_next_waypoint():
 # Note: this produces accurate tracking, even if the wind estimate is
 # wrong.  The primary affect of a poor wind estimate is sub-optimal
 # heading error gain.  i.e. the when the current course and target
-# course are aligned, this function alawys produces zero error.
+# course are aligned, this function always produces zero error.
 #
 # ... and oh by the way, est_cur_hdg_deg and gs1_kt won't exactly
 # match truth if the wind estimate has any error at all, but we care
