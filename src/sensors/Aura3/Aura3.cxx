@@ -628,6 +628,10 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 {
     bool new_data = false;
 
+    static LowPassFilter avionics_vcc_filt(2.0);
+    static LowPassFilter int_main_vcc_filt(2.0);
+    static LowPassFilter ext_main_vcc_filt(2.0);
+
     if ( pkt_id == ACK_PACKET_ID ) {
 	if ( display_on ) {
 	    printf("Received ACK = %d %d\n", payload[0], payload[1]);
@@ -735,16 +739,20 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	if ( pkt_len == sizeof(power_packet_t) ) {
             power_packet_t *packet = (power_packet_t *)payload;
 
-            power_node.setDouble( "main_vcc", (float)packet->int_main_v / 100.0);
-            power_node.setDouble( "ext_main_vcc", (float)packet->ext_main_v / 100.0);
-            power_node.setDouble( "avionics_vcc", (float)packet->avionics_v / 100.0);
+            // we anticipate a 0.01 sec dt value
+            int_main_vcc_filt.update((float)packet->int_main_v / 100.0, 0.01);
+            ext_main_vcc_filt.update((float)packet->ext_main_v / 100.0, 0.01);
+            avionics_vcc_filt.update((float)packet->avionics_v / 100.0, 0.01);
 
-            float cell_volt = (float)packet->int_main_v / 100.0 / (float)battery_cells;
-            float ext_cell_volt = (float)packet->ext_main_v / 100.0 / (float)battery_cells;
+            power_node.setDouble( "main_vcc", int_main_vcc_filt.get_value() );
+            power_node.setDouble( "ext_main_vcc", ext_main_vcc_filt.get_value() );
+            power_node.setDouble( "avionics_vcc", avionics_vcc_filt.get_value() );
+
+            float cell_volt = int_main_vcc_filt.get_value() / (float)battery_cells;
+            float ext_cell_volt = ext_main_vcc_filt.get_value() / (float)battery_cells;
             power_node.setDouble( "cell_vcc", cell_volt );
             power_node.setDouble( "ext_cell_vcc", ext_cell_volt );
             power_node.setDouble( "main_amps", (float)packet->ext_main_amp / 100.0);
- 
 	} else {
 	    if ( display_on ) {
 		printf("Aura3: packet size mismatch in power packet\n");
