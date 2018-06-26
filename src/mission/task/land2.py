@@ -5,7 +5,6 @@ from props import getNode
 import comms.events
 import control.route
 import mission.greatcircle as gc
-#import mission.mission_mgr
 from task import Task
 
 d2r = math.pi / 180.0
@@ -30,6 +29,7 @@ class Land(Task):
         self.engine_node = getNode("/controls/engine", True)
         self.imu_node = getNode("/sensors/imu", True)
         self.targets_node = getNode("/autopilot/targets", True)
+        self.pilot_node = getNode("/sensors/pilot_input", True)
 
         # get task configuration parameters
         self.name = config_node.getString("name")
@@ -133,6 +133,10 @@ class Land(Task):
         self.extend_final_leg_m = self.land_node.getFloat("extend_final_leg_m")
         self.alt_bias_ft = self.land_node.getFloat("altitude_bias_ft")
 
+        # add ability for pilot to bias the glideslope altitude using
+        # stick/elevator (negative elevator is up.)
+        self.alt_bias_ft += -self.pilot_node.getFloat("elevator") * 25.0
+        
         # compute minimum 'safe' altitude
         safe_dist_m = math.pi * self.turn_radius_m + self.final_leg_m
         safe_alt_ft = safe_dist_m * math.tan(self.glideslope_rad) * m2ft \
@@ -176,7 +180,7 @@ class Land(Task):
                 # towards tangent point (or just slightly passed)
                 angle_rem_rad = circle_pos * math.pi / 180.0
 
-            # distance to edge of circle + remaining circumfrance of
+            # distance to edge of circle + remaining circumference of
             # circle + final approach leg
             self.dist_rem_m = (cur_dist_m - self.turn_radius_m) \
                               + angle_rem_rad * self.turn_radius_m \
