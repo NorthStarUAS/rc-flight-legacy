@@ -1813,7 +1813,7 @@ bool APM2_airdata_update() {
 
 	// publish sensor values
 	airdata_node.setDouble( "pressure_mbar", airdata.pressure / 100.0 );
-	airdata_node.setDouble( "temp_degC", airdata.temp / 10.0 );
+	airdata_node.setDouble( "temp_C", airdata.temp / 10.0 );
 	airdata_node.setDouble( "vertical_speed_mps", airdata.climb_rate );
 	airdata_node.setDouble( "vertical_speed_fps", airdata.climb_rate * SG_METER_TO_FEET );
 
