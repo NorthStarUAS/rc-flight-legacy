@@ -46,12 +46,19 @@ class Launch(Task):
         self.rudder_gain = config_node.getFloat("rudder_gain")
         self.rudder_max = config_node.getFloat("rudder_max")
         self.flaps = config_node.getFloat("flaps")
+        self.target_pitch_deg = None
+        if config_node.hasChild("target_pitch_deg"):
+            self.target_pitch_deg = config_node.getFloat("target_pitch_deg")
 
     def activate(self):
         self.active = True
         # start with roll control only, we fix elevator to neutral until
         # flight speeds come up and steer the rudder directly
-        self.ap_node.setString("mode", "roll");
+        if self.target_pitch_deg is None:
+            self.ap_node.setString("mode", "roll");
+        else:
+            self.ap_node.setString("mode", "roll+pitch")
+            self.targets_node.setFloat("pitch_deg", self.target_pitch_deg)
         self.targets_node.setFloat("roll_deg", 0.0)
         self.targets_node.setFloat("altitude_agl_ft", self.mission_agl_ft)
         self.targets_node.setFloat("airspeed_kt", self.target_speed_kt)
@@ -61,7 +68,7 @@ class Launch(Task):
             return False
         
         throttle_time_sec = 2.0 # hard code for now (fixme: move to config)
-        feather_time = 5.0      # fixme: another config option
+        feather_time = 5.0      # fixme: make this a configurable option
         
         is_airborne = self.task_node.getBool("is_airborne")
             
