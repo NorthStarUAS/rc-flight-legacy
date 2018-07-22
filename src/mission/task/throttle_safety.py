@@ -54,7 +54,6 @@ class ThrottleSafety(Task):
         else:
             # safety is off, check if we should turn it on
             make_safe = False
-            print(self.airborne_latch, self.safety_mode, is_airborne)
             if self.safety_mode == 'on_ground' and not is_airborne:
                 make_safe = True
             elif self.safety_mode == 'on_touchdown' and self.airborne_latch and not is_airborne:
