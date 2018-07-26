@@ -65,7 +65,6 @@ static int baud = 500000;
 static float volt_div_ratio = 100; // a nonsense value
 static int battery_cells = 4;
 static float pitot_calibrate = 1.0;
-static string imu_orientation = "normal";
 
 static int last_ack_id = 0;
 static int last_ack_subid = 0;
@@ -422,10 +421,6 @@ bool Aura3_imu_init( string output_path, pyPropertyNode *config ) {
 
     bind_imu_output( output_path );
 
-    if ( config->hasChild("imu_orientation") ) {
-	imu_orientation = config->getString("imu_orientation");
-    }
-
     if ( config->hasChild("calibration") ) {
 	pyPropertyNode cal = config->getChild("calibration");
 	double min_temp = 27.0;
@@ -535,29 +530,15 @@ static bool Aura3_imu_update_internal() {
         float p_raw = 0.0, q_raw = 0.0, r_raw = 0.0;
         float ax_raw = 0.0, ay_raw = 0.0, az_raw = 0.0;
         float hx_raw = 0.0, hy_raw = 0.0, hz_raw = 0.0;
-        if ( imu_orientation == "" || imu_orientation == "normal" ) {
-            ax_raw = (float)imu_sensors[0] * accelScale;
-            ay_raw = (float)imu_sensors[1] * accelScale;
-            az_raw = (float)imu_sensors[2] * accelScale;
-            p_raw = (float)imu_sensors[3] * gyroScale;
-            q_raw = (float)imu_sensors[4] * gyroScale;
-            r_raw = (float)imu_sensors[5] * gyroScale;
-            hx_raw = (float)imu_sensors[6] * magScale;
-            hy_raw = (float)imu_sensors[7] * magScale;
-            hz_raw = (float)imu_sensors[8] * magScale;
-        } else if ( imu_orientation == "reverse" ) {
-            ax_raw = -(float)imu_sensors[0] * accelScale;
-            ay_raw = -(float)imu_sensors[1] * accelScale;
-            az_raw = (float)imu_sensors[2] * accelScale;
-            p_raw = -(float)imu_sensors[3] * gyroScale;
-            q_raw = -(float)imu_sensors[4] * gyroScale;
-            r_raw = (float)imu_sensors[5] * gyroScale;
-            hx_raw = -(float)imu_sensors[6] * magScale;
-            hy_raw = -(float)imu_sensors[7] * magScale;
-            hz_raw = (float)imu_sensors[8] * magScale;
-        } else {
-            printf("unknown imu orientation: %s\n", imu_orientation.c_str());
-        }
+        ax_raw = (float)imu_sensors[0] * accelScale;
+        ay_raw = (float)imu_sensors[1] * accelScale;
+        az_raw = (float)imu_sensors[2] * accelScale;
+        p_raw = (float)imu_sensors[3] * gyroScale;
+        q_raw = (float)imu_sensors[4] * gyroScale;
+        r_raw = (float)imu_sensors[5] * gyroScale;
+        hx_raw = (float)imu_sensors[6] * magScale;
+        hy_raw = (float)imu_sensors[7] * magScale;
+        hz_raw = (float)imu_sensors[8] * magScale;
 
         float temp_C = (float)imu_sensors[9] * tempScale;
 
