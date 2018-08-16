@@ -5,9 +5,9 @@ from props import getNode
 import control.route
 import control.waypoint
 
-import point
-import vector
-import area
+import survey.point
+import survey.vector
+import survey.area
 
 ft2m = 0.3048
 d2r = math.pi / 180.0
@@ -18,7 +18,7 @@ targets_node = getNode( '/autopilot/targets', True )
 
 def do_survey( request ):
     # validate the inputs
-    print 'do survey:', request
+    print('do survey:', request)
     if 'agl_ft' in request:
         agl_ft = request['agl_ft']
     else:

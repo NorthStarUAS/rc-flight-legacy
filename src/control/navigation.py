@@ -2,8 +2,8 @@
 
 from props import getNode
 
-import circle
-import route
+import control.circle as circle
+import control.route as route
 
 nav_node = getNode("/navigation", True)
 

@@ -7,4 +7,4 @@ libAura3_a_SOURCES = \
 	setup_sbus.h \
 	structs.h
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
+AM_CPPFLAGS = $(PYTHON_INCLUDES) -I$(VPATH)/.. -I$(VPATH)/../..

@@ -8,9 +8,12 @@ using std::string;
 // This function must be called first (before any other python usage.)
 // It sets up the python intepreter.
 void AuraPythonInit(int argc, char **argv, string extra_module_path) {
-    Py_SetProgramName(argv[0]); // optional but recommended
+    wchar_t* program = Py_DecodeLocale(argv[0], NULL);
+    Py_SetProgramName(program); // optional but recommended
     Py_Initialize();
-    PySys_SetArgv(argc, argv);  // for relative imports to work
+    #if 0
+    PySys_SetArgv(argc, argv);  // for relative imports to work (not needed for python3?)
+    #endif
     if ( extra_module_path != "" ) {
 	ostringstream command;
 	command << "import sys\n";

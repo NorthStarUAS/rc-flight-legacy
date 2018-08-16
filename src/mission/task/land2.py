@@ -5,7 +5,7 @@ from props import getNode
 import comms.events
 import control.route
 import mission.greatcircle as gc
-from task import Task
+from mission.task.task import Task
 
 d2r = math.pi / 180.0
 r2d = 180.0 / math.pi
@@ -25,7 +25,7 @@ class Land(Task):
         self.pos_node = getNode("/position", True)
         self.vel_node = getNode("/velocity", True)
         self.orient_node = getNode("/orientation", True)
-	self.flight_node = getNode("/controls/flight", True)
+        self.flight_node = getNode("/controls/flight", True)
         self.engine_node = getNode("/controls/engine", True)
         self.imu_node = getNode("/sensors/imu", True)
         self.targets_node = getNode("/autopilot/targets", True)
@@ -102,7 +102,7 @@ class Land(Task):
         self.targets_node.setFloat("airspeed_kt",
                                    self.land_node.getFloat("approach_speed_kt"))
         self.flight_node.setFloat("flaps_setpoint", self.flaps)
-        
+
         # start at the beginning of the route (in case we inherit a
         # partially flown approach from earlier in the flight)
         # approach_mgr.restart() # FIXME
@@ -112,10 +112,10 @@ class Land(Task):
 
         self.active = True
         comms.events.log("mission", "land")
-    
+
     def cart2polar(self, x, y):
         # fixme: if display_on:
-	#    printf("approach %0f %0f\n", x, y);
+        #    printf("approach %0f %0f\n", x, y);
         dist = math.sqrt(x*x + y*y)
         deg = math.atan2(x, y) * r2d
         return (dist, deg)
@@ -136,7 +136,7 @@ class Land(Task):
         # add ability for pilot to bias the glideslope altitude using
         # stick/elevator (negative elevator is up.)
         self.alt_bias_ft += -self.pilot_node.getFloat("elevator") * 25.0
-        
+
         # compute minimum 'safe' altitude
         safe_dist_m = math.pi * self.turn_radius_m + self.final_leg_m
         safe_alt_ft = safe_dist_m * math.tan(self.glideslope_rad) * m2ft \
@@ -144,7 +144,7 @@ class Land(Task):
 
         # position on circle descent
         circle_pos = 0
-        
+
         mode = self.nav_node.getString('mode')
         if mode == 'circle':
             # circle descent portion of the approach
@@ -165,7 +165,7 @@ class Land(Task):
                     # circle capture
                     comms.events.log("land", "descent circle capture")
                     self.circle_capture = True
-                    
+
             # compute portion of circle remaining to tangent point
             current_crs = course_deg + self.side * 90
             if current_crs > 360.0: current_crs -= 360.0
@@ -212,13 +212,13 @@ class Land(Task):
             # print 'safe:', safe_alt_ft, 'new:', new_target_alt
             if new_target_alt < safe_alt_ft:
                 new_target_alt = safe_alt_ft
-        
+
         # We want to avoid wasting energy needlessly gaining altitude.
         # Once the approach has started, never raise the target
         # altitude.
         if new_target_alt > cur_target_alt:
             new_target_alt = cur_target_alt
-                
+
         self.targets_node.setFloat("altitude_agl_ft", new_target_alt)
 
         # compute error metrics relative to ideal glide slope
@@ -234,7 +234,7 @@ class Land(Task):
                 # half of the circle, call the gs captured
                 comms.events.log("land", "glide slope capture")
                 self.gs_capture = True
-        
+
         # compute time to touchdown at current ground speed (assuming the
         # navigation system has lined us up properly
         ground_speed_ms = self.vel_node.getFloat("groundspeed_ms")
@@ -242,7 +242,7 @@ class Land(Task):
             seconds_to_touchdown = self.dist_rem_m / ground_speed_ms
         else:
             seconds_to_touchdown = 1000.0 # lots
-            
+
         #print "dist_rem_m = %.1f gs = %.1f secs = %.1f" % \
         #    (self.dist_rem_m, ground_speed_ms, seconds_to_touchdown)
 
@@ -373,7 +373,7 @@ class Land(Task):
         self.route_node.setString("start_mode", "first_wpt")
         self.route_node.setString("follow_mode", "leader")
         self.route_node.setString("completion_mode", "extend_last_leg")
-        
+
         # seed route dist_remaining_m value so it is not zero or left
         # over from previous route.
         self.route_node.setFloat("dist_remaining_m", self.final_leg_m)

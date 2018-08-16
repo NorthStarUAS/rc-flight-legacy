@@ -4,7 +4,7 @@ from props import getNode
 
 import comms.events
 import mission.greatcircle as gc
-from task import Task
+from mission.task.task import Task
 
 d2r = math.pi / 180.0
 

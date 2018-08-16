@@ -120,7 +120,7 @@ int pyPropertyNode::getLen(const char *name) {
 					       name);
         if ( PyErr_Occurred() ) PyErr_Print();
 	if ( pValue != NULL ) {
-	    int len = PyInt_AsLong(pValue);
+	    int len = PyLong_AsLong(pValue);
 	    Py_DECREF(pValue);
 	    return len;
 	}
@@ -170,7 +170,7 @@ vector <string> pyPropertyNode::getChildren(bool expand) {
 		    // note: PyList_GetItem doesn't give us ownership
 		    // of pItem so we should not decref() it.
 		    PyObject *pStr = PyObject_Str(pItem);
-		    result.push_back( (string)PyString_AsString(pStr) );
+		    result.push_back( (string)PyUnicode_AsUTF8(pStr) );
 		    Py_DECREF(pStr);
 		}
 	    }
@@ -200,12 +200,12 @@ double pyPropertyNode::PyObject2Double(const char *name, PyObject *pAttr) {
     if ( pAttr != NULL ) {
 	if ( PyFloat_Check(pAttr) ) {
 	    result = PyFloat_AsDouble(pAttr);
-	} else if ( PyInt_Check(pAttr) ) {
-	    result = PyInt_AsLong(pAttr);
 	} else if ( PyLong_Check(pAttr) ) {
 	    result = PyLong_AsLong(pAttr);
-	} else if ( PyString_Check(pAttr) ) {
-	    PyObject *pFloat = PyFloat_FromString(pAttr, NULL);
+	} else if ( PyLong_Check(pAttr) ) {
+	    result = PyLong_AsLong(pAttr);
+	} else if ( PyBytes_Check(pAttr) ) {
+	    PyObject *pFloat = PyFloat_FromString(pAttr);
 	    if ( pFloat != NULL ) {
 		result = PyFloat_AsDouble(pFloat);
 		Py_DECREF(pFloat);
@@ -213,14 +213,14 @@ double pyPropertyNode::PyObject2Double(const char *name, PyObject *pAttr) {
 		if ( PyErr_Occurred() ) PyErr_Print();
 		printf("WARNING: conversion from string to float failed\n");
 		PyObject *pStr = PyObject_Str(pAttr);
-		char *s = PyString_AsString(pStr);
+		char *s = PyUnicode_AsUTF8(pStr);
 		printf("  %s='%s'\n", name, s);
 		Py_DECREF(pStr);
 	    }
 	} else {
 	    printf("Unknown object type: '%s' ", pObj->ob_type->tp_name);
 	    PyObject *pStr = PyObject_Str(pObj);
-	    char *s = PyString_AsString(pStr);
+	    char *s = PyUnicode_AsUTF8(pStr);
 	    printf("  %s='%s'\n", name, s);
 	    Py_DECREF(pStr);
 	}
@@ -234,12 +234,10 @@ long pyPropertyNode::PyObject2Long(const char *name, PyObject *pAttr) {
     if ( pAttr != NULL ) {
 	if ( PyLong_Check(pAttr) ) {
 	    result = PyLong_AsLong(pAttr);
-	} else if ( PyInt_Check(pAttr) ) {
-	    result = PyInt_AsLong(pAttr);
 	} else if ( PyFloat_Check(pAttr) ) {
 	    result = (long)PyFloat_AsDouble(pAttr);
-	} else if ( PyString_Check(pAttr) ) {
-	    PyObject *pFloat = PyFloat_FromString(pAttr, NULL);
+	} else if ( PyBytes_Check(pAttr) ) {
+	    PyObject *pFloat = PyFloat_FromString(pAttr);
 	    if ( pFloat != NULL ) {
 		result = PyFloat_AsDouble(pFloat);
 		Py_DECREF(pFloat);
@@ -247,14 +245,14 @@ long pyPropertyNode::PyObject2Long(const char *name, PyObject *pAttr) {
 		if ( PyErr_Occurred() ) PyErr_Print();
 		printf("WARNING: conversion from string to long failed\n");
 		PyObject *pStr = PyObject_Str(pAttr);
-		char *s = PyString_AsString(pStr);
+		char *s = PyUnicode_AsUTF8(pStr);
 		printf("  %s='%s'\n", name, s);
 		Py_DECREF(pStr);
 	    }
 	} else {
 	    printf("Unknown object type: '%s' ", pAttr->ob_type->tp_name);
 	    PyObject *pStr = PyObject_Str(pAttr);
-	    char *s = PyString_AsString(pStr);
+	    char *s = PyUnicode_AsUTF8(pStr);
 	    printf("  %s='%s'\n", name, s);
 	    Py_DECREF(pStr);
 	}
@@ -319,7 +317,7 @@ string pyPropertyNode::getString(const char *name) {
 		if ( pAttr != NULL ) {
 		    PyObject *pStr = PyObject_Str(pAttr);
 		    if ( pStr != NULL ) {
-			result = (string)PyString_AsString(pStr);
+			result = (string)PyUnicode_AsUTF8(pStr);
 			Py_DECREF(pStr);
 		    }
 		    Py_DECREF(pAttr);
@@ -409,7 +407,7 @@ string pyPropertyNode::getString(const char *name, int index) {
 			if ( pAttr != NULL ) {
 			    PyObject *pStr = PyObject_Str(pAttr);
 			    if ( pStr != NULL ) {
-				result = (string)PyString_AsString(pStr);
+				result = (string)PyUnicode_AsUTF8(pStr);
 				Py_DECREF(pStr);
 			    }
 			}
@@ -485,7 +483,7 @@ bool pyPropertyNode::setBool( const char *name, bool val ) {
 
 bool pyPropertyNode::setString( const char *name, string val ) {
     if ( pObj != NULL ) {
-	PyObject *pString = PyString_FromString(val.c_str());
+	PyObject *pString = PyBytes_FromString(val.c_str());
 	int result = PyObject_SetAttrString(pObj, name, pString);
 	Py_DECREF(pString);
 	return result != -1;
@@ -593,7 +591,7 @@ pyPropertyNode pyGetNode(string abs_path, bool create) {
 
     // FIXME decref pFuncGetNode
     
-    PyObject *pPath = PyString_FromString(abs_path.c_str());
+    PyObject *pPath = PyUnicode_FromString(abs_path.c_str());
     PyObject *pCreate = PyBool_FromLong(create);
     if (!pPath || !pCreate) {
 	Py_XDECREF(pPath);
@@ -627,7 +625,7 @@ bool readXML(string filename, pyPropertyNode *node) {
 	fprintf(stderr, "Cannot find function 'load()'\n");
 	return false;
     }
-    PyObject *pPath = PyString_FromString(filename.c_str());
+    PyObject *pPath = PyBytes_FromString(filename.c_str());
     if (!pPath || !node->pObj) {
 	Py_XDECREF(pPath);
 	Py_XDECREF(pFuncLoad);
@@ -658,7 +656,7 @@ bool writeXML(string filename, pyPropertyNode *node) {
 	fprintf(stderr, "Cannot find function 'save()'\n");
 	return false;
     }
-    PyObject *pPath = PyString_FromString(filename.c_str());
+    PyObject *pPath = PyBytes_FromString(filename.c_str());
     if (!pPath || !node->pObj) {
 	Py_XDECREF(pPath);
 	Py_XDECREF(pFuncSave);
@@ -689,7 +687,7 @@ bool readJSON(string filename, pyPropertyNode *node) {
 	fprintf(stderr, "Cannot find function 'load()'\n");
 	return false;
     }
-    PyObject *pPath = PyString_FromString(filename.c_str());
+    PyObject *pPath = PyUnicode_FromString(filename.c_str());
     if (!pPath || !node->pObj) {
 	Py_XDECREF(pPath);
 	Py_XDECREF(pFuncLoad);
@@ -720,7 +718,7 @@ bool writeJSON(string filename, pyPropertyNode *node) {
 	fprintf(stderr, "Cannot find function 'save()'\n");
 	return false;
     }
-    PyObject *pPath = PyString_FromString(filename.c_str());
+    PyObject *pPath = PyBytes_FromString(filename.c_str());
     if (!pPath || !node->pObj) {
 	Py_XDECREF(pPath);
 	Py_XDECREF(pFuncSave);

@@ -2,7 +2,7 @@
 
 import math
 
-import point
+import survey.point as point
 
 class Vector(point.Point):
     pass

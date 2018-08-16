@@ -3,7 +3,7 @@ import struct
 
 from props import getNode
 
-from packet_id import *
+from comms.packet_id import *
 
 # FIXME: we are hard coding status flag to zero in many places which
 # means we aren't using them properly (and/or wasting bytes)
@@ -111,7 +111,7 @@ def compute_cksum(id, buf, size):
     c1 = (c1 + c0) & 0xff
     # print "c0 =", c0, "c1 =", c1
     for i in range(0, size):
-        c0 = (c0 + ord(buf[i])) & 0xff
+        c0 = (c0 + buf[i]) & 0xff
         c1 = (c1 + c0) & 0xff
         # print "c0 =", c0, "c1 =", c1, '[', ord(buf[i]), ']'
     # print "c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")"
@@ -120,15 +120,15 @@ def compute_cksum(id, buf, size):
 # wrap payload in header bytes, id, length, payload, and compute checksums
 def wrap_packet( packet_id, payload ):
     size = len(payload)
-    buf = ''
-    buf += chr(START_OF_MSG0)   # start of message sync bytes
-    buf += chr(START_OF_MSG1)   # start of message sync bytes
-    buf += chr(packet_id)       # packet id (1 byte)
-    buf += chr(size)     # packet size (1 byte)
-    buf += payload              # copy payload
+    buf = bytearray()
+    buf.append(START_OF_MSG0)   # start of message sync bytes
+    buf.append(START_OF_MSG1)   # start of message sync bytes
+    buf.append(packet_id)       # packet id (1 byte)
+    buf.append(size)            # packet size (1 byte)
+    buf.extend(payload)         # copy payload
     (cksum0, cksum1) = compute_cksum( packet_id, payload, size)
-    buf += chr(cksum0)          # check sum byte 1
-    buf += chr(cksum1)          # check sum byte 2
+    buf.append(cksum0)          # check sum byte 1
+    buf.append(cksum1)          # check sum byte 2
     return buf
     
 def pack_gps_bin(index):
@@ -1415,7 +1415,8 @@ def pack_event_bin(message):
 
     # support an index value, but for now it will always be zero
     event_v1_fmt = '<BdB%ds' % len(message)
-    buf = struct.pack(event_v1_fmt, 0, imu_timestamp, len(message), message)
+    buf = struct.pack(event_v1_fmt, 0, imu_timestamp, len(message),
+                      str.encode(message))
     return wrap_packet(EVENT_PACKET_V1, buf)
 
 def pack_event_csv(index):
@@ -1457,7 +1458,7 @@ def unpack_event_v1(buf):
 
 def pack_command_bin(sequence, message):
     if len(message) > 255:
-        print "Error: command message too long, len =", len(message)
+        print("Error: command message too long, len =", len(message))
         message = 'command too long'
     # support an index value, but for now it will always be zero
     command_v1_fmt = '<BB%ds' % len(message)

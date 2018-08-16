@@ -25,11 +25,11 @@ import re
 from props import getNode
 
 import comms.events
-from task import Task
+from mission.task.task import Task
 
 class Switch():
     def __init__(self, switch_node):
-        print "switch:"
+        print("switch:")
         self.valid = True
         self.output_type = 'boolean'
         self.states = 2
@@ -41,7 +41,7 @@ class Switch():
             prop_name = switch_node.getString("input")
             (input_path, self.input_name) = os.path.split(prop_name)
             self.input_node = getNode(input_path, True)
-            print "  input_path:", prop_name
+            print("  input_path:", prop_name)
         else:
             self.valid = False
 
@@ -49,7 +49,7 @@ class Switch():
             prop_name = switch_node.getString("output")
             (output_path, self.output_name) = os.path.split(prop_name)
             self.output_node = getNode(output_path, True)
-            print "  output_path:", prop_name
+            print("  output_path:", prop_name)
         elif self.output_type == 'choice':
             # ok with no output prop
             pass
@@ -60,11 +60,11 @@ class Switch():
         self.choice_keys = []
         if self.output_type == 'choice':
             self.states = switch_node.getLen('outputs')
-            print '  switch choice, found:', self.states, 'choices'
+            print('  switch choice, found:', self.states, 'choices')
             if self.states > 0:
                 for i in range(self.states):
                     output = switch_node.getStringEnum('outputs', i)
-                    print '    output:', output
+                    print('    output:', output)
                     (node_name, key_name) = os.path.split(output)
                     self.choice_nodes.append( getNode(node_name, True) )
                     self.choice_keys.append( key_name )

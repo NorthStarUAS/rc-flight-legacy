@@ -22,8 +22,8 @@ int pyModulePacker::pack(int index, const char *pack_function, uint8_t *buf) {
     if (pResult != NULL) {
 	PyObject *pStr = PyObject_Str(pResult);
 	if ( pStr != NULL ) {
-	    char *ptr = PyString_AsString(pStr);
-	    len = PyString_Size(pStr);
+	    char *ptr = PyBytes_AsString(pStr);
+	    len = PyBytes_Size(pStr);
 	    memcpy((char *)buf, ptr, len);
 	    Py_DECREF(pStr);
 	}

@@ -3,7 +3,7 @@ import math
 from props import getNode
 
 import comms.events
-from task import Task
+from mission.task.task import Task
 
 # this task generates various excitation signals (chirps, doublets,
 # multi-sines) which can then be applied to various control inputs.
@@ -39,7 +39,7 @@ class Excite(Task):
     
     def start_experiment(self):
         max = self.config_node.getLen('experiment')
-        print 'number of experiments:', max
+        print('number of experiments:', max)
         if self.index < 0:
             self.index = max - 1
         if self.index >= max:

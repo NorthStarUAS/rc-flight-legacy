@@ -2,9 +2,9 @@ import serial
 from props import getNode
 import props_json
 
-import events
-import packer
-import serial_parser
+import comms.events
+import comms.packer
+import comms.serial_parser
 
 import survey.survey
 
@@ -36,24 +36,24 @@ def init():
         ser = serial.Serial(port=device, baudrate=115200, timeout=0, writeTimeout=0)
         parser = serial_parser.serial_parser()
     except:
-        print 'Opening remote link failed:', device
-	return False
+        print('Opening remote link failed:', device)
+        return False
     
     if comms_node.getBool('display_on'):
-	print 'remote link:', device
+        print('remote link:', device)
     link_open = True
 
     remote_link_node.setInt('sequence_num', 0)
     if not remote_link_config.getInt('write_bytes_per_frame'):
-	remote_link_config.setInt('write_bytes_per_frame', 12)
+        remote_link_config.setInt('write_bytes_per_frame', 12)
 
 # write as many bytes out of the serial_buf to the uart as the
 # driver will accept.
 def flush_serial():
     global serial_buf
     if not link_open:
-	# device not open
-	return
+        # device not open
+        return
 
     # write a constrained chunk of available bytes per frame to avoid
     # overflowing the system serial port buffer
@@ -89,7 +89,7 @@ def send_message( data ):
         return True
     else:
         if comms_node.getBool('display_on'):
-	    print 'remote link serial buffer overflow, size:', len(serial_buf), 'add:', len(data), 'limit:', max_serial_buffer
+            print('remote link serial buffer overflow, size:', len(serial_buf), 'add:', len(data), 'limit:', max_serial_buffer)
         return False
 
 route_request = []
@@ -112,17 +112,17 @@ def execute_command( command ):
         lat = float( tokens[2] )
         # alt_ft = float( tokens[3] )
         azimuth_deg = float( tokens[4] )
-	home_node.setFloat( 'longitude_deg', lon )
-	home_node.setFloat( 'latitude_deg', lat )
-	home_node.setFloat( 'azimuth_deg', azimuth_deg )
-	home_node.setBool( 'valid', True )
+        home_node.setFloat( 'longitude_deg', lon )
+        home_node.setFloat( 'latitude_deg', lat )
+        home_node.setFloat( 'azimuth_deg', azimuth_deg )
+        home_node.setBool( 'valid', True )
     elif tokens[0] == 'route' and len(tokens) >= 5:
-	route_request = tokens[1:]
+        route_request = tokens[1:]
     elif tokens[0] == 'route_cont' and len(tokens) >= 5:
         route_request += tokens[1:]
     elif tokens[0] == 'route_end' and len(tokens) == 1:
-	route_node.setString( 'route_request', ','.join(route_request) )
-	task_node.setString( 'command_request', 'task,route' )
+        route_node.setString( 'route_request', ','.join(route_request) )
+        task_node.setString( 'command_request', 'task,route' )
     elif tokens[0] == 'survey_start' and len(tokens) == 7:
         for i, tok in enumerate(tokens):
             if tokens[i] == 'undefined':
@@ -141,7 +141,7 @@ def execute_command( command ):
     elif tokens[0] == 'survey_end' and len(tokens) == 1:
         survey.survey.do_survey(survey_request)
     elif tokens[0] == 'task':
-	task_node.setString( 'command_request', command )
+        task_node.setString( 'command_request', command )
     elif tokens[0] == 'ap' and len(tokens) == 3:
         # specify an autopilot target
         if tokens[1] == 'agl-ft':
@@ -154,7 +154,7 @@ def execute_command( command ):
             speed_kt = float( tokens[2] )
             targets_node.setFloat( 'airspeed_kt', speed_kt )
     elif tokens[0] == 'fcs-update':
-	decode_fcs_update( command )
+        decode_fcs_update( command )
     elif tokens[0] == 'get' and len(tokens) == 2:
         # absolute path
         parts = tokens[1].split('/')
@@ -182,31 +182,31 @@ def execute_command( command ):
             # expecting a full path name to set
             pass
     elif tokens[0] == 'la' and len(tokens) == 5:
-	if tokens[1] == 'ned':
+        if tokens[1] == 'ned':
 	    # set ned-vector lookat mode
-	    point_node = getNode('/pointing', True)
-	    point_node.setString('lookat_mode', 'ned_vector')
+            point_node = getNode('/pointing', True)
+            point_node.setString('lookat_mode', 'ned_vector')
 	    # specify new lookat ned coordinates
-	    vector_node = getNode('/pointing/vector', True)
-	    north = float( tokens[2] )
-	    east = float( tokens[3] )
-	    down = float( tokens[4] )
-	    vector_node.setFloat( 'north', north )
-	    vector_node.setFloat( 'east', east )
-	    vector_node.setFloat( 'down', down )
+            vector_node = getNode('/pointing/vector', True)
+            north = float( tokens[2] )
+            east = float( tokens[3] )
+            down = float( tokens[4] )
+            vector_node.setFloat( 'north', north )
+            vector_node.setFloat( 'east', east )
+            vector_node.setFloat( 'down', down )
         elif tokens[1] == 'wgs84':
-	    # set wgs84 lookat mode
-	    point_node = getNode('/pointing', True)
-	    point_node.setString('lookat_mode', 'wgs84')
-	    # specify new lookat ned coordinates
-	    wgs84_node = getNode('/pointing/wgs84', True)
-	    pos_node = getNode('/position', True)
-	    lon = float( tokens[2] )
-	    lat = float( tokens[3] )
-	    wgs84_node.setFloat( 'longitude_deg', lon )
-	    wgs84_node.setFloat( 'latitude_deg', lat )
-	    ground = pos_node.getFloat('altitude_ground_m')
-	    wgs84_node.setFloat( 'altitude_m', ground )
+            # set wgs84 lookat mode
+            point_node = getNode('/pointing', True)
+            point_node.setString('lookat_mode', 'wgs84')
+            # specify new lookat ned coordinates
+            wgs84_node = getNode('/pointing/wgs84', True)
+            pos_node = getNode('/position', True)
+            lon = float( tokens[2] )
+            lat = float( tokens[3] )
+            wgs84_node.setFloat( 'longitude_deg', lon )
+            wgs84_node.setFloat( 'latitude_deg', lat )
+            ground = pos_node.getFloat('altitude_ground_m')
+            wgs84_node.setFloat( 'altitude_m', ground )
 
 def read_link_command():
     global ser
@@ -238,53 +238,53 @@ def command():
 	# execute command
         events.log( 'remote command',
                     "executed: (%d) %s" % (sequence, command) )
-	execute_command( command )
+        execute_command( command )
 
-	# register that we've received this message correctly
-	remote_link_node.setInt( 'sequence_num', sequence )
-	last_sequence_num = sequence
+        # register that we've received this message correctly
+        remote_link_node.setInt( 'sequence_num', sequence )
+        last_sequence_num = sequence
         timestamp = status_node.getFloat('frame_time')
-	remote_link_node.setFloat( 'last_message_sec', timestamp )
+        remote_link_node.setFloat( 'last_message_sec', timestamp )
 
     return True
 
 def decode_fcs_update(command):
     tokens = command.split(',')
-    
+
     # valid sizes will be 7 or 10 at this point
     if tokens[0] == 'fcs-update' and len(tokens) >= 7:
-	# remove initial keyword if it exists
-	del tokens[0]
+        # remove initial keyword if it exists
+        del tokens[0]
 
     ap_config = getNode( '/config/autopilot', True )
-    
+
     i = int(tokens[0])
     component = ap_config.getChild('component[%d]' % i)
     if not component:
-	return False
+        return False
 
     config = component.getChild('config')
     if not config:
-	return False
-	
+        return False
+
     if len(tokens) == 7:
-	config.setFloat( 'Kp', float(tokens[1]) )
-	config.setFloat( 'Ti', float(tokens[2]) )
-	config.setFloat( 'Td', float(tokens[3]) )
-	config.setFloat( 'u_min', float(tokens[4]) )
-	config.setFloat( 'u_max', float(tokens[5]) )
-	config.setFloat( 'u_trim', float(tokens[6]) )
+        config.setFloat( 'Kp', float(tokens[1]) )
+        config.setFloat( 'Ti', float(tokens[2]) )
+        config.setFloat( 'Td', float(tokens[3]) )
+        config.setFloat( 'u_min', float(tokens[4]) )
+        config.setFloat( 'u_max', float(tokens[5]) )
+        config.setFloat( 'u_trim', float(tokens[6]) )
     elif len(tokens) == 10:
-	config.setFloat( 'Kp', float(tokens[1]) )
-	config.setFloat( 'beta', float(tokens[2]) )
-	config.setFloat( 'alpha', float(tokens[3]) )
-	config.setFloat( 'gamma', float(tokens[4]) )
-	config.setFloat( 'Ti', float(tokens[5]) )
-	config.setFloat( 'Td', float(tokens[6]) )
-	config.setFloat( 'u_min', float(tokens[7]) )
-	config.setFloat( 'u_max', float(tokens[8]) )
-	config.setFloat( 'u_trim', float(tokens[6]) )
+        config.setFloat( 'Kp', float(tokens[1]) )
+        config.setFloat( 'beta', float(tokens[2]) )
+        config.setFloat( 'alpha', float(tokens[3]) )
+        config.setFloat( 'gamma', float(tokens[4]) )
+        config.setFloat( 'Ti', float(tokens[5]) )
+        config.setFloat( 'Td', float(tokens[6]) )
+        config.setFloat( 'u_min', float(tokens[7]) )
+        config.setFloat( 'u_max', float(tokens[8]) )
+        config.setFloat( 'u_trim', float(tokens[6]) )
     else:
-	return False
+        return False
 
     return True

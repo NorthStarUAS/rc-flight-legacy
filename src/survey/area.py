@@ -7,9 +7,9 @@ import sys
 sys.path.append('..')
 import mission.greatcircle as gc
 
-import point
-import vector
-import line
+import survey.point as point
+import survey.vector
+import survey.line
 
 d2r = math.pi / 180
 r2d = 180 / math.pi
@@ -38,10 +38,10 @@ class Area():
 
     def debug_edges(self):
         for e in self.edges:
-            print 'edge:', e.pretty()
-            print 'plot:', e.p1.x, e.p1.y
-            print 'plot:', e.p2.x, e.p2.y
-            print 'plot: '
+            print('edge:', e.pretty())
+            print('plot:', e.p1.x, e.p1.y)
+            print('plot:', e.p2.x, e.p2.y)
+            print('plot: ')
 
     def center(self):
         sumx = 0
@@ -55,16 +55,16 @@ class Area():
         result = []
         size = len(self.edges)
         for i in range(size):
-            print 'i:', i, self.edges[i].pretty()
+            print('i:', i, self.edges[i].pretty())
             p = line.intersect_line_vs_seg(cut, self.edges[i])
             if p != False:
                 result.append(p)
-        print '  result:', result
+        print('  result:', result)
         return result
 
 # convert list of Point coordinates from geodetic (lon/lat) to cartesian
 def geod2cart(ref, geod_points):
-    print 'geod2cart()'
+    print('geod2cart()')
     result = []
     for p in geod_points:
         # expects points as [lat, lon]
@@ -72,19 +72,19 @@ def geod2cart(ref, geod_points):
         angle = (90 - heading) * d2r
         x = math.cos(angle) * dist
         y = math.sin(angle) * dist
-        print p.pretty(), 'hdg:', heading, 'dist:', dist, 'cart:', x, y
+        print(p.pretty(), 'hdg:', heading, 'dist:', dist, 'cart:', x, y)
         result.append( point.Point(x, y) )
     return result
         
 # convert list of Point coordinates from cartesian to geodetic (lon/lat)
 def cart2geod(ref, cart_points):
-    print 'cart2geod()'
+    print('cart2geod()')
     result = []
     for p in cart_points:
         heading = 90 - math.atan2(p.y, p.x) * r2d
         dist = math.sqrt(p.x*p.x + p.y*p.y)
         lat, lon = gc.project_course_distance( [ref.y, ref.x], heading, dist )
-        print p.pretty(), 'hdg:', heading, 'dist:', dist, 'geod:', lon, lat
+        print(p.pretty(), 'hdg:', heading, 'dist:', dist, 'geod:', lon, lat)
         result.append( point.Point(lon, lat) )
     return result
     
@@ -92,27 +92,27 @@ def cart2geod(ref, cart_points):
 # slice an Area() with a cut line perpendicular to the given dir
 # Line() and advancing along the direction Line()
 def slice(area, dir, step, extend):
-    print 'slice:'
+    print('slice:')
     
     # dir 'vector' (normalized)
     dir_norm = vector.norm(dir)
-    print 'direction vector:', dir_norm.pretty()
+    print('direction vector:', dir_norm.pretty())
 
     # cut 'vector' (normalized)
     cutx = -dir_norm.y
     cuty = dir_norm.x
-    print 'cut vector:', (cutx, cuty)
+    print('cut vector:', (cutx, cuty))
 
     # project all the area points onto the direction line
     proj = []
     adv_line = line.Line( point.Point(0,0), point.Point(dir.x, dir.y) )
     for p in area.points:
         r, d = line.project_point_on_line(p, adv_line)
-        print '   orig:', p.pretty(), 'proj:', r.pretty(), 'dist:', d
+        print('   orig:', p.pretty(), 'proj:', r.pretty(), 'dist:', d)
         proj.append((r,d))
 
     for p,d in proj:
-        print 'test:', p, d
+        print('test:', p, d)
     
     # find the point with the most opposite distance with respect to
     # advance direction vector.  This will be the starting point for
@@ -120,13 +120,13 @@ def slice(area, dir, step, extend):
     min_index = None
     min_dist = None
     for i, (p, d) in enumerate(proj):
-        print 'i:', i, 'p:', p, 'd:', d
+        print('i:', i, 'p:', p, 'd:', d)
         if min_dist == None or d < min_dist:
             min_index = i
             min_dist = d
-        print '  ', p.pretty()
+        print('  ', p.pretty())
 
-    print ' start point index:', min_index, 'min dist:', min_dist, area.points[min_index].pretty(), proj[min_index][0].pretty()
+    print(' start point index:', min_index, 'min dist:', min_dist, area.points[min_index].pretty(), proj[min_index][0].pretty())
     start = point.Point( area.points[min_index].x, area.points[min_index].y )
     # update cut line start point
     start.x += dir_norm.x * step * 0.5
@@ -138,7 +138,7 @@ def slice(area, dir, step, extend):
     done = False
     slices = []
     while not done:
-        print '    ', start.pretty()
+        print('    ', start.pretty())
         
         # create cut line
         end = point.Point(start.x + cutx, start.y + cuty)
@@ -155,7 +155,7 @@ def slice(area, dir, step, extend):
             proj = []
             for p in cut_pts:
                 r, d = line.project_point_on_line(p, cut_line)
-                print '   cut:', p.pretty(), 'proj:', r.pretty(), 'dist:', d
+                print('   cut:', p.pretty(), 'proj:', r.pretty(), 'dist:', d)
                 proj.append((r,d))
             # and find the min/max distance points
             min_index = None
@@ -163,18 +163,18 @@ def slice(area, dir, step, extend):
             max_index = None
             max_dist = None
             for i, (p, d) in enumerate(proj):
-                print 'i:', i, 'p:', p, 'd:', d
+                print('i:', i, 'p:', p, 'd:', d)
                 if min_dist == None or d < min_dist:
                     min_index = i
                     min_dist = d
-                    print '  ', p.pretty()
+                    print('  ', p.pretty())
                 if max_dist == None or d > max_dist:
                     max_index = i
                     max_dist = d
-                    print '  ', p.pretty()
+                    print('  ', p.pretty())
             minp = cut_pts[min_index]
             maxp = cut_pts[max_index]
-            print 'min:', minp.pretty(), 'max:', maxp.pretty()
+            print('min:', minp.pretty(), 'max:', maxp.pretty())
             slices.append( (point.Point(start.x, start.y), min_dist, max_dist) )
         # update cut line start point at the end of the loop
         start.x += dir_norm.x * step
@@ -185,7 +185,7 @@ def slice(area, dir, step, extend):
     toggle = True
     route = []
     while i < size:
-        print 'i:', i
+        print('i:', i)
         if i > 0:
             (s0, min0, max0) = slices[i-1]
         else:
@@ -210,13 +210,13 @@ def slice(area, dir, step, extend):
         p2 = point.Point(s1.x + cutx*(max + extend),
                          s1.y + cuty*(max + extend))
         if toggle:
-            print 'plot:', p1.x, p1.y
-            print 'plot:', p2.x, p2.y
+            print('plot:', p1.x, p1.y)
+            print('plot:', p2.x, p2.y)
             route.append(p1)
             route.append(p2)
         else:
-            print 'plot:', p2.x, p2.y
-            print 'plot:', p1.x, p1.y
+            print('plot:', p2.x, p2.y)
+            print('plot:', p1.x, p1.y)
             route.append(p2)
             route.append(p1)
         i += 1

@@ -3,7 +3,7 @@ import math
 from props import getNode
 
 import comms.events
-from task import Task
+from mission.task.task import Task
 
 r2d = 180.0 / math.pi
 
@@ -11,15 +11,15 @@ class Launch(Task):
     def __init__(self, config_node):
         Task.__init__(self)
 
-	self.ap_node = getNode("/autopilot", True)
-	self.task_node = getNode("/task", True)
-	self.pos_node = getNode("/position", True)
-	self.vel_node = getNode("/velocity", True)
-	self.orient_node = getNode("/orientation", True)
-	self.targets_node = getNode("/autopilot/targets", True)
-	self.imu_node = getNode("/sensors/imu", True)
-	self.flight_node = getNode("/controls/flight", True)
-	self.engine_node = getNode("/controls/engine", True)
+        self.ap_node = getNode("/autopilot", True)
+        self.task_node = getNode("/task", True)
+        self.pos_node = getNode("/position", True)
+        self.vel_node = getNode("/velocity", True)
+        self.orient_node = getNode("/orientation", True)
+        self.targets_node = getNode("/autopilot/targets", True)
+        self.imu_node = getNode("/sensors/imu", True)
+        self.flight_node = getNode("/controls/flight", True)
+        self.engine_node = getNode("/controls/engine", True)
 
         self.complete_agl_ft = 150.0
         self.mission_agl_ft = 300.0
@@ -34,7 +34,7 @@ class Launch(Task):
 
         self.last_ap_master = False
         self.relhdg = 0.0
-        
+
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
         self.completion_agl_ft = config_node.getFloat("completion_agl_ft")
@@ -62,16 +62,16 @@ class Launch(Task):
         self.targets_node.setFloat("roll_deg", 0.0)
         self.targets_node.setFloat("altitude_agl_ft", self.mission_agl_ft)
         self.targets_node.setFloat("airspeed_kt", self.target_speed_kt)
-    
+
     def update(self, dt):
         if not self.active:
             return False
-        
+
         throttle_time_sec = 2.0 # hard code for now (fixme: move to config)
         feather_time = 5.0      # fixme: make this a configurable option
-        
+
         is_airborne = self.task_node.getBool("is_airborne")
-            
+
         # For wheeled take offs, track relative heading (initialized to
         # zero) when autopilot mode is engaged and steer that error to
         # zero with the rudder until flying/climbing
@@ -152,16 +152,16 @@ class Launch(Task):
         if self.pos_node.getFloat("altitude_agl_ft") >= self.complete_agl_ft:
             # raise flaps
             self.flight_node.setFloat("flaps_setpoint", 0.0)
-            
+
             # just in case we get to the completion altitude before
             # we've feathered out the rudder input, let's leave the
             # rudder centered.
             if self.rudder_enable:
                 self.flight_node.setFloat("rudder", 0.0)
-                
+
             return True
         return False
-    
+
     def close(self):
         self.active = False
         return True

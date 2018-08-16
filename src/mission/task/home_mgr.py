@@ -2,7 +2,7 @@ from props import getNode
 
 import comms.events
 import mission.greatcircle
-from task import Task
+from mission.task.task import Task
 
 class HomeMgr(Task):
     def __init__(self, config_node):

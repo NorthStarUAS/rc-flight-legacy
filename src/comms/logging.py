@@ -8,7 +8,7 @@ import socket
 from props import getNode
 import props_json
 
-from packet_id import *
+from comms.packet_id import *
 
 # global variables for data file logging
 log_buffer = []
@@ -34,7 +34,7 @@ START_OF_MSG1 = 224
 def max_flight_num():
     max = -1
     if not os.path.isdir( log_path ):
-        print 'Flight data directory does not exist:', log_path
+        print('Flight data directory does not exist:', log_path)
         return max
     p = re.compile('flt(\d+)$')
     for f in os.listdir( log_path ):
@@ -51,21 +51,21 @@ def init_file_logging():
     global fdata
     global flight_dir
     
-    print 'Log path:', log_path
+    print('Log path:', log_path)
 
     # find the biggest flight number logged so far
     max = max_flight_num()
-    print 'Max log dir index:', max
+    print('Max log dir index:', max)
 
     # make the new logging directory
     new_dir = 'flt%05d' % (max + 1)
     flight_dir = os.path.join(log_path, new_dir)
     try:
-        print 'Creating log dir:', flight_dir
+        print('Creating log dir:', flight_dir)
         os.mkdir(flight_dir)
         logging_node.setString('flight_dir', flight_dir)
     except:
-        print 'Error creating:', flight_dir
+        print('Error creating:', flight_dir)
         return False
 
     # open the logging files
@@ -73,7 +73,7 @@ def init_file_logging():
     try:
         fdata = gzip.open(file, 'wb')
     except:
-        print 'Cannot open:', file
+        print('Cannot open:', file)
         return False
 
     return True
@@ -85,8 +85,8 @@ def init_udp_logging():
         sock = socket.socket(socket.AF_INET,    # Internet
                              socket.SOCK_DGRAM) # UDP
     except:
-	print 'Error opening logging socket'
-	return False
+        print('Error opening logging socket')
+        return False
     return True
 
 def init():
@@ -126,7 +126,7 @@ def log_message( buf ):
     if enable_udp:
         result = sock.sendto(buf, (udp_host, udp_port))
         if result != len(buf):
-            print 'error transmitting udp log packet'
+            print('error transmitting udp log packet')
 
 # write all pending data and flush
 def update():

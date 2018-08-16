@@ -41,7 +41,7 @@ AC_SEARCH_LIBS(cos, [m])
 AC_SEARCH_LIBS(gzopen, [z])
 
 # dnl find python primary
-# AM_PATH_PYTHON
+# AM_PATH_PYTHON([3])
 # AC_PATH_PROGS([PYTHON_CONFIG],
 #               [python$PYTHON_VERSION-config python-config],
 #               [no],
@@ -55,6 +55,14 @@ AC_SEARCH_LIBS(gzopen, [z])
 # PYTHON_LIBS="-lpython2.7"
 # AC_MSG_RESULT([$PYTHON_LIBS])
 # AC_SUBST(PYTHON_LIBS)
+
+# To make the build more straight forward (hopefully) on cross compiled
+# devel environments, hard code the libpython libraries
+# you can use python3-config --includes --libs to find this info
+PYTHON_INCLUDES="-I/usr/include/python3.6m"
+PYTHON_LIBS="-lpython3.6m"
+AC_SUBST(PYTHON_INCLUDES)
+AC_SUBST(PYTHON_LIBS)
 
 dnl check for Eigen C++ matrix/vector/quaternion headers
 AC_LANG_SAVE

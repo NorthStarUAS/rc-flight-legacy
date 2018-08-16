@@ -6,8 +6,8 @@
 from __future__ import division 
 import math
 
-import point
-import vector
+import survey.point as point
+import survey.vector
         
 class Line():
     def __init__(self, p1, p2):
@@ -69,7 +69,7 @@ def intersect_line_vs_seg(line1, seg2):
     if p == False:
         return False
     else:
-        print 'p (inf):', p.pretty()
+        print('p (inf):', p.pretty())
         
     if p.x < seg2.p1.x and p.x < seg2.p2.x:
         return False
@@ -80,7 +80,7 @@ def intersect_line_vs_seg(line1, seg2):
     elif p.y > seg2.p1.y and p.y > seg2.p2.y:
         return False
     else:
-        print 'p: ', p.pretty()
+        print('p: ', p.pretty())
         return p
 
 # return the sign of x as -1 or 1

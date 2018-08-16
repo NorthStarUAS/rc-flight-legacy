@@ -18,6 +18,6 @@ aura_LDADD = \
 	../comms/libcomms.a \
 	../util/libutil.a \
 	../python/libpyprops.a \
-	-lpython2.7
+	$(PYTHON_LIBS)
 
-AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src
+AM_CPPFLAGS = $(PYTHON_INCLUDES) -I$(top_srcdir)/src -I$(top_builddir)/src

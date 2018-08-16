@@ -8,7 +8,7 @@ import re
 
 from props import getNode
 
-import commands
+#import commands
 
 class ChatHandler(asynchat.async_chat):
     def __init__(self, sock):
@@ -17,20 +17,20 @@ class ChatHandler(asynchat.async_chat):
         self.buffer = []
         self.path = '/'
         self.prompt = True
-        
+
         self.imu_node = getNode("/sensors/imu", True)
         self.targets_node = getNode("/autopilot/targets", True)
         self.filter_node = getNode("/filters/filter", True)
-	self.act_node = getNode("/actuators/actuator", True)
+        self.act_node = getNode("/actuators/actuator", True)
         self.vel_node = getNode("/velocity", True)
         self.pos_comb_node = getNode("/position/combined", True)
 
     def collect_incoming_data(self, data):
         self.buffer.append(data)
- 
+
     def found_terminator(self):
         msg = ''.join(self.buffer)
-        print 'Received:', msg  # fixme: if display on
+        print('Received:', msg)  # fixme: if display on
         self.process_command(msg)
         self.buffer = []
 
@@ -61,64 +61,64 @@ class ChatHandler(asynchat.async_chat):
         tokens = msg.split()
         if len(tokens) == 0:
             self.usage()
-	elif tokens[0] == 'data':
-	    self.prompt = False
-	elif tokens[0] == 'prompt':
-	    self.prompt = True
-	elif tokens[0] == 'ls':
+        elif tokens[0] == 'data':
+            self.prompt = False
+        elif tokens[0] == 'prompt':
+            self.prompt = True
+        elif tokens[0] == 'ls':
             newpath = self.path
-	    if len(tokens) == 2:
-		if tokens[1][0] == '/':
-		    newpath = tokens[1]
-		else:
+            if len(tokens) == 2:
+                if tokens[1][0] == '/':
+                    newpath = tokens[1]
+                else:
                     if self.path[-1] == '/':
-		        newpath = self.path + tokens[1]
+                        newpath = self.path + tokens[1]
                     else:
-		        newpath = self.path + '/' + tokens[1]
+                        newpath = self.path + '/' + tokens[1]
             newpath = self.normalize_path(newpath)
-	    node = getNode(newpath)
-	    if node:
-		children = node.getChildren(expand=False)
-		for child in children:
+            node = getNode(newpath)
+            if node:
+                children = node.getChildren(expand=False)
+                for child in children:
                     if node.isEnum(child):
                         line = ''
                         for i in range(node.getLen(child)):
-		            if node.isLeaf(child):
-			        value = node.getStringEnum(child, i)
+                            if node.isLeaf(child):
+                                value = node.getStringEnum(child, i)
                                 line += '%s[%d]' % (child, i)
-			        line += ' =\t\"' + value + '"\t' + '\n'
+                                line += ' =\t\"' + value + '"\t' + '\n'
                             else:
                                 line += '%s[%d]/' % (child, i) + '\n'
                     else:
-		        if node.isLeaf(child):
-			    value = node.getString(child)
-			    line = child + ' =\t\"' + value + '"\t' + '\n'
+                        if node.isLeaf(child):
+                            value = node.getString(child)
+                            line = child + ' =\t\"' + value + '"\t' + '\n'
                         else:
                             line = child + '/' + '\n'
-		    self.push(line)
-	    else:
-		self.push('Error: ' + newpath + ' not found\n')
-	elif tokens[0] == 'cd':
+                    self.push(line)
+            else:
+                self.push('Error: ' + newpath + ' not found\n')
+        elif tokens[0] == 'cd':
             newpath = self.path
-	    if len(tokens) == 2:
-		if tokens[1][0] == '/':
-		    newpath = tokens[1]
-		else:
+            if len(tokens) == 2:
+                if tokens[1][0] == '/':
+                    newpath = tokens[1]
+                else:
                     if self.path[-1] == '/':
-		        newpath = self.path + tokens[1]
+                        newpath = self.path + tokens[1]
                     else:
-		        newpath = self.path + '/' + tokens[1]
+                        newpath = self.path + '/' + tokens[1]
             newpath = self.normalize_path(newpath)
-	    node = getNode(newpath)
-	    if node:
-		self.push('path ok: ' + newpath + '\n')
-		self.path = newpath
-	    else:
-		self.push('Error: ' + newpath + ' not found\n')
-	elif tokens[0] == 'pwd':
-	    self.push(self.path + '\n' )
-	elif tokens[0] == 'get' or tokens[0] == 'show':
-	    if len(tokens) == 2:
+            node = getNode(newpath)
+            if node:
+                self.push('path ok: ' + newpath + '\n')
+                self.path = newpath
+            else:
+                self.push('Error: ' + newpath + ' not found\n')
+        elif tokens[0] == 'pwd':
+            self.push(self.path + '\n' )
+        elif tokens[0] == 'get' or tokens[0] == 'show':
+            if len(tokens) == 2:
                 if re.search('/', tokens[1]):
                     if tokens[1][0] == '/':
                         # absolute path
@@ -136,15 +136,15 @@ class ChatHandler(asynchat.async_chat):
                 else:
                     node = getNode(self.path, True)
                     name = tokens[1]
-		value = node.getString(name)
-		if self.prompt:
-		    self.push(tokens[1] + ' = "' + value + '"\n')
+                value = node.getString(name)
+                if self.prompt:
+                    self.push(tokens[1] + ' = "' + value + '"\n')
                 else:
                     self.push(value + '\n')
-	    else:
-		self.push('usage: get [[/]path/]attr\n')
-	elif tokens[0] == 'set':
-	    if len(tokens) >= 3:
+            else:
+                self.push('usage: get [[/]path/]attr\n')
+        elif tokens[0] == 'set':
+            if len(tokens) >= 3:
                 if re.search('/', tokens[1]):
                     if tokens[1][0] == '/':
                         # absolute path
@@ -162,60 +162,60 @@ class ChatHandler(asynchat.async_chat):
                 else:
                     node = getNode(self.path, True)
                     name = tokens[1]
-		value = ' '.join(tokens[2:])
-                
+                value = ' '.join(tokens[2:])
+
                 done = False
                 # test for int
                 if not done:
                     result = re.match('[-+]?\d+', value)
                     if result and result.group(0) == value:
-                        print 'int:', value
+                        print('int:', value)
                         node.setInt(name, int(value))
                         done = True
                 # test for float
                 if not done:
                     result = re.match('[-+]?\d*\.\d+', value)
                     if result and result.group(0) == value:
-                        print 'float:', value
+                        print('float:', value)
                         node.setFloat(name, float(value))
                         done = True
                 # test for bool
                 if not done:
                     if value == 'True' or value == 'true':
-                        print 'bool:', True
+                        print('bool:', True)
                         node.setBool(name, True)
                         done = True
                 if not done:
                     if value == 'False' or value == 'false':
-                        print 'bool:', False
+                        print('bool:', False)
                         node.setBool(name, False)
                         done = True
                 # fall back to string
                 if not done:
-		    node.setString(name, value)
-                    
-		if self.prompt:
-		    # now fetch and write out the new value as confirmation
-		    # of the change
-		    value = node.getString(name)
-		    self.push(tokens[1] + ' = "' + value + '"\n')
-	    else:
-		self.push('usage: set [[/]path/]attr value\n')
-	elif tokens[0] == 'quit':
-	    self.close()
-	    return
-	elif tokens[0] == 'shutdown-application':
+                    node.setString(name, value)
+
+                if self.prompt:
+                    # now fetch and write out the new value as confirmation
+                    # of the change
+                    value = node.getString(name)
+                    self.push(tokens[1] + ' = "' + value + '"\n')
+            else:
+                self.push('usage: set [[/]path/]attr value\n')
+        elif tokens[0] == 'quit':
+            self.close()
+            return
+        elif tokens[0] == 'shutdown-application':
             if len(tokens) == 2:
                 if tokens[1] == 'xyzzy':
-	            quit()
+                    quit()
             self.push('usage: shutdown-application xyzzy\n')
             self.push('extra magic argument is required\n')
-	else:
+        else:
             self.usage()
 
         if self.prompt:
             self.push('> ')
-            
+
     def usage(self):
         message = """
 Valid commands are:
@@ -233,7 +233,7 @@ quit               exit the client telnet session
 shutdown-application xyzzy      terminate the host application
 """
         self.push(message)
-    
+
     def normalize_path(self, raw_path):
         tokens = raw_path.split('/')
         #print tokens
@@ -262,27 +262,27 @@ class ChatServer(asyncore.dispatcher):
     def __init__(self, host, port):
         asyncore.dispatcher.__init__(self)
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.bind((host, port))
         self.listen(5)
- 
+
     def handle_accept(self):
         pair = self.accept()
         if pair is not None:
             sock, addr = pair
-            print 'Incoming connection from %s' % repr(addr)
+            print('Incoming connection from %s' % repr(addr))
             handler = ChatHandler(sock)
 
 telnet_enabled = False
 def init(port=6499):
     global telnet_enabled
-    
+
     telnet_node = getNode( '/config/telnet', True )
     port = telnet_node.getInt('port')
     if port:
         server = ChatServer('localhost', port)
         telnet_enabled = True
-        print 'Telnet server on localhost:' + str(port)
+        print('Telnet server on localhost:' + str(port))
     else:
         telnet_enabled = False
 

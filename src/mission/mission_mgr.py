@@ -2,22 +2,22 @@ from props import getNode
 
 import comms.events
 
-import task.is_airborne
-import task.camera
-import task.circle
-import task.excite
-import task.flaps_mgr
-import task.home_mgr
-import task.idle
-import task.land2
-import task.launch
-import task.lost_link
-import task.mode_mgr
-import task.preflight
-import task.calibrate
-import task.route
-import task.switches
-import task.throttle_safety
+import mission.task.is_airborne
+import mission.task.camera
+import mission.task.circle
+import mission.task.excite
+import mission.task.flaps_mgr
+import mission.task.home_mgr
+import mission.task.idle
+import mission.task.land2
+import mission.task.launch
+import mission.task.lost_link
+import mission.task.mode_mgr
+import mission.task.preflight
+import mission.task.calibrate
+import mission.task.route
+import mission.task.switches
+import mission.task.throttle_safety
 
 import mission.greatcircle
 
@@ -34,49 +34,49 @@ class MissionMgr:
         self.global_tasks = []
         self.seq_tasks = []
         self.standby_tasks = []
-        
+
     def make_task(self, config_node):
         result = None
         task_name = config_node.name
-        print "  make_task():", task_name
+        print("  make_task():", task_name)
         if task_name == 'is_airborne':
-            result = task.is_airborne.IsAirborne(config_node)
+            result = mission.task.is_airborne.IsAirborne(config_node)
         elif task_name == 'camera':
-            result = task.camera.Camera(config_node)
+            result = mission.task.camera.Camera(config_node)
         elif task_name == 'circle':
-            result = task.circle.Circle(config_node)
+            result = mission.task.circle.Circle(config_node)
         elif task_name == 'excite':
-            result = task.excite.Excite(config_node)
+            result = mission.task.excite.Excite(config_node)
         elif task_name == 'flaps_manager':
-            result = task.flaps_mgr.FlapsMgr(config_node)
+            result = mission.task.flaps_mgr.FlapsMgr(config_node)
         elif task_name == 'home_manager':
-            result = task.home_mgr.HomeMgr(config_node)
+            result = mission.task.home_mgr.HomeMgr(config_node)
         elif task_name == 'idle':
-            result = task.idle.Idle(config_node)
+            result = mission.task.idle.Idle(config_node)
         elif task_name == 'land':
-            result = task.land2.Land(config_node)
+            result = mission.task.land2.Land(config_node)
         elif task_name == 'launch':
-            result = task.launch.Launch(config_node)
+            result = mission.task.launch.Launch(config_node)
         elif task_name == 'lost_link':
-            result = task.lost_link.LostLink(config_node)
+            result = mission.task.lost_link.LostLink(config_node)
         elif task_name == 'mode_manager':
-            result = task.mode_mgr.ModeMgr(config_node)
+            result = mission.task.mode_mgr.ModeMgr(config_node)
         elif task_name == 'preflight':
-            result = task.preflight.Preflight(config_node)
+            result = mission.task.preflight.Preflight(config_node)
         elif task_name == 'calibrate':
-            result = task.calibrate.Calibrate(config_node)
+            result = mission.task.calibrate.Calibrate(config_node)
         elif task_name == 'route':
-            result = task.route.Route(config_node)
+            result = mission.task.route.Route(config_node)
         elif task_name == 'switches':
-            result = task.switches.Switches(config_node)
+            result = mission.task.switches.Switches(config_node)
         elif task_name == 'throttle_safety':
-            result = task.throttle_safety.ThrottleSafety(config_node)
+            result = mission.task.throttle_safety.ThrottleSafety(config_node)
         else:
-            print "mission_mgr: unknown task name:", task_name
+            print("mission_mgr: unknown task name:", task_name)
         return result
-    
+
     def init(self):
-        print "global_tasks:"
+        print("global_tasks:")
         global_node = self.missions_node.getChild("global_tasks", True)
         if global_node:
             for name in global_node.getChildren():
@@ -84,8 +84,8 @@ class MissionMgr:
                 task = self.make_task(config_node)
                 if task != None:
                     self.global_tasks.append( task )
-            
-        print "sequential_tasks:"
+
+        print("sequential_tasks:")
         seq_node = self.missions_node.getChild("sequential_tasks", True)
         if seq_node:
             for name in seq_node.getChildren():
@@ -94,7 +94,7 @@ class MissionMgr:
                 if task != None:
                     self.seq_tasks.append( task )
 
-        print "standby_tasks:"
+        print("standby_tasks:")
         standby_node = self.missions_node.getChild("standby_tasks", True)
         if standby_node:
             for name in standby_node.getChildren():
@@ -106,7 +106,7 @@ class MissionMgr:
         # activate all the tasks in the global queue
         for task in self.global_tasks:
             task.activate()
-            
+
         # activate the first task on the sequential queue
         if len(self.seq_tasks):
             self.seq_tasks[0].activate()
@@ -124,23 +124,23 @@ class MissionMgr:
             self.task_node.setString("current_task_id", task.name)
             task.update(dt)
             if task.is_complete():
-	        # current task is complete, close it and pop it off the list
-		comms.events.log("mission", "task complete: " + task.name)
+                # current task is complete, close it and pop it off the list
+                comms.events.log("mission", "task complete: " + task.name)
                 # FIXME
-	        # if ( display_on ) {
-		#     printf("task complete: %s\n", front->get_name_cstr())
-	        # }
+                # if ( display_on ) {
+                #     printf("task complete: %s\n", front->get_name_cstr())
+                # }
                 task.close()
-	        self.pop_seq_task()
+                self.pop_seq_task()
 
-	        # activate next task if there is one
+                # activate next task if there is one
                 if len(self.seq_tasks):
-	            task = self.seq_tasks[0]
-		    task.activate()
-		    comms.events.log("mission", "next task: " + task.name)
+                    task = self.seq_tasks[0]
+                    task.activate()
+                    comms.events.log("mission", "next task: " + task.name)
         if not len(self.seq_tasks):
-	    # sequential queue is empty so request the idle task
-	    self.request_task_idle()
+            # sequential queue is empty so request the idle task
+            self.request_task_idle()
         return True
 
     def find_global_task(self, name):
@@ -148,7 +148,7 @@ class MissionMgr:
             if task.name == name:
                 return task
         return None
-    
+
     def front_seq_task(self):
         if len(self.seq_tasks):
             return self.seq_tasks[0]
@@ -156,7 +156,7 @@ class MissionMgr:
             return None
 
     def push_seq_task(self, task):
-	self.seq_tasks.insert(0, task)
+        self.seq_tasks.insert(0, task)
 
     def pop_seq_task(self):
         if len(self.seq_tasks):
@@ -167,21 +167,21 @@ class MissionMgr:
             if task.name == name:
                 return task
         return None
-    
+
     def find_standby_task(self, name):
         if name != "":
             for task in self.standby_tasks:
                 if task.name == name:
                     return task
         return None
-    
+
     def find_standby_task_by_nickname(self, nickname):
         if nickname != "":
             for task in self.standby_tasks:
                 if task.nickname == nickname:
                     return task
         return None
-    
+
     def process_command_request(self):
         command = self.task_node.getString("command_request")
         result = "successful: " + command # let's be optimistic!
@@ -226,15 +226,15 @@ class MissionMgr:
         if len(self.seq_tasks):
             task = self.seq_tasks[0]
             if task.nickname == nickname:
-	        return
+                return
 
         task = self.find_standby_task_by_nickname(nickname)
         if task:
-	    # activate task
+            # activate task
             self.push_seq_task(task)
-	    task.activate()
+            task.activate()
         # FIXME: elif display_on:
-	#    print "oops, couldn't find 'circle-home' task"
+        #    print "oops, couldn't find 'circle-home' task"
 
 
     def request_task_circle(self, lon_deg=None, lat_deg=None):
@@ -260,7 +260,7 @@ class MissionMgr:
                     # activate task
                     self.push_seq_task(task)
                     task.activate()
-            
+
         # setup the target coordinates
         self.circle_node.setFloat( "longitude_deg", lon )
         self.circle_node.setFloat( "latitude_deg", lat )
@@ -268,7 +268,7 @@ class MissionMgr:
         # FIXME else if display_on:
         #    print "oops, couldn't find task by nickname:", nickname
 
-        
+
     def request_task_circle_descent(self, lon_deg, lat_deg,
                                     radius_m, direction,
                                     exit_agl_ft, exit_heading_deg):
@@ -294,7 +294,7 @@ class MissionMgr:
                     # activate task
                     self.push_seq_task(task)
                     task.activate()
-            
+
                     # setup the target coordinates
                     self.circle_node.setFloat( "longitude_deg", lon )
                     self.circle_node.setFloat( "latitude_deg", lat )
@@ -302,7 +302,7 @@ class MissionMgr:
                     # circle configuration
                     self.circle_node.setFloat("radius_m", radius_m)
                     self.circle_node.setString("direction", direction)
-        
+
                     # set the exit condition settings
                     task.exit_agl_ft = exit_agl_ft
                     task.exit_heading_deg = exit_heading_deg
@@ -321,7 +321,7 @@ class MissionMgr:
         if task:
             # activate task
             self.push_seq_task(task)
-	    task.activate()
+            task.activate()
         # FIXME else if display_on:
         #    print "oops, couldn't find 'idle' task"
 
@@ -332,7 +332,7 @@ class MissionMgr:
             task = self.seq_tasks[0]
             if task.name == "circle-coord" or task.name == "land":
                 task.close()
-	        self.pop_seq_task()
+                self.pop_seq_task()
 
     def request_task_preflight(self, duration):
         # sanity check, are we already in the requested state
@@ -345,7 +345,7 @@ class MissionMgr:
         if task:
             # activate task
             self.push_seq_task(task)
-	    task.activate()
+            task.activate()
         # FIXME else if display_on:
         #    print "oops, couldn't find 'preflight' task"
 
@@ -359,10 +359,10 @@ class MissionMgr:
         if task:
             # activate task
             self.push_seq_task(task)
-	    task.activate()
+            task.activate()
         else:
             # FIXME else if display_on:
-            print "oops, couldn't find 'calibrate' task"
+            print("oops, couldn't find 'calibrate' task")
 
     def request_task_land(self, final_heading_deg):
         # sanity check, are we already in the requested state
@@ -378,7 +378,7 @@ class MissionMgr:
         # push landing task onto the todo list (and activate)
         self.home_node.setFloat( "azimuth_deg", final_heading_deg )
         self.push_seq_task(task)
-	task.activate()
+        task.activate()
 
     def request_task_route(self):
         # sanity check, are we already in the requested state
@@ -390,7 +390,7 @@ class MissionMgr:
         if task:
             # activate task
             self.push_seq_task(task)
-	    task.activate()
+            task.activate()
         # FIXME else if display_on:
         #    print "oops, couldn't find 'route' task"
 

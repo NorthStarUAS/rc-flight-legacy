@@ -26,12 +26,12 @@ class Waypoint:
             self.dist_m = config.getFloat("dist_m")
             self.mode = 'relative'
         if self.mode == None:
-            print "Error in route waypoint config logic:"
+            print("Error in route waypoint config logic:")
             config.pretty_print("  ")
         elif self.mode == 'absolute':
-	    print "WPT: %.8f %.8f" % (self.lon_deg, self.lat_deg)
+            print("WPT: %.8f %.8f" % (self.lon_deg, self.lat_deg))
         elif self.mode == 'relative':
-	    print "WPT: %4.0f deg %.0f m" % (self.hdg_deg, self.dist_m)
+            print("WPT: %4.0f deg %.0f m" % (self.hdg_deg, self.dist_m))
 
     def update_relative_pos(self, lon_deg, lat_deg, ref_heading_deg):
         if self.mode == 'relative':
@@ -42,4 +42,4 @@ class Waypoint:
                 gc.project_course_distance( (lat_deg, lon_deg),
                                             course, self.dist_m )
         else:
-            print "Error: cannot update relative position of absolute waypoint"
+            print("Error: cannot update relative position of absolute waypoint")

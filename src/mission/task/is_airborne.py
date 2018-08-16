@@ -4,7 +4,7 @@
 from props import getNode
 
 import comms.events
-from task import Task
+from mission.task.task import Task
 
 class IsAirborne(Task):
     def __init__(self, config_node):
@@ -26,29 +26,29 @@ class IsAirborne(Task):
         self.on_airspeed_kt = config_node.getFloat("on_airspeed_kt")
         self.flight_accum = 0.0
         self.flight_start = 0.0
-        
+
     def activate(self):
         self.active = True
         self.task_node.setBool("is_airborne", False)
         comms.events.log("mission", "on ground")
-    
+
     def update(self, dt):
         if not self.active:
             return False
 
         if not self.is_airborne:
-	    # all conditions must be over the threshold in order to
-	    # become airborne
-	    cond = True
+            # all conditions must be over the threshold in order to
+            # become airborne
+            cond = True
             if self.off_alt_agl_ft > 0.001 and \
                self.pos_node.getFloat("altitude_agl_ft") < self.off_alt_agl_ft:
-	        cond = False
-	    if self.off_airspeed_kt > 0.001 and \
+                cond = False
+            if self.off_airspeed_kt > 0.001 and \
                self.vel_node.getFloat("airspeed_kt") < self.off_airspeed_kt:
-	        cond = False
-	    if cond:
-	        self.is_airborne = True
-	        self.task_node.setBool("is_airborne", True)
+                cond = False
+            if cond:
+                self.is_airborne = True
+                self.task_node.setBool("is_airborne", True)
                 self.flight_start = self.status_node.getFloat('frame_time')
                 comms.events.log("mission", "airborne")
         else:
@@ -75,10 +75,10 @@ class IsAirborne(Task):
         else:
             flight_time = self.flight_accum
         self.task_node.setFloat('flight_timer', flight_time)
-        
+
     def is_complete(self):
         return False
-    
+
     def close(self):
         self.active = False
         return True

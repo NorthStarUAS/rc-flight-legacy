@@ -28,4 +28,4 @@ ublox_config_SOURCES = gps_ublox_config.cxx
 
 ublox_config_LDADD = ../util/libutil.a
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
+AM_CPPFLAGS = $(PYTHON_INCLUDES) -I$(VPATH)/.. -I$(VPATH)/../..

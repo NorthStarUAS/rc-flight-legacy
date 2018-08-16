@@ -1,7 +1,7 @@
 from props import getNode
 
 import comms.events
-from task import Task
+from mission.task.task import Task
 
 class Preflight(Task):
     def __init__(self, config_node):
@@ -22,7 +22,7 @@ class Preflight(Task):
         if config_node.hasChild("duration_sec"):
             self.duration_sec = config_node.getFloat("duration_sec")
         self.preflight_node.setFloat("duration_sec", self.duration_sec)
-        
+
     def activate(self):
         # fixme, not if airborne!
         self.active = True
@@ -54,9 +54,9 @@ class Preflight(Task):
         done = False
         if self.timer >= self.preflight_node.getFloat("duration_sec") or \
            self.task_node.getBool("is_airborne"):
-	    done = True
+            done = True
         return done
-    
+
     def close(self):
         # restore the previous state
         self.ap_node.setString("mode", self.saved_fcs_mode)

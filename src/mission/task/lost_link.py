@@ -2,7 +2,7 @@ import mission.mission_mgr
 from props import getNode
 
 import comms.events
-from task import Task
+from mission.task.task import Task
 
 class LostLink(Task):
     def __init__(self, config_node):

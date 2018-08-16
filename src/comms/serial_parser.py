@@ -17,7 +17,7 @@ def glean_ascii_msgs(c, display=False):
     if c in string.printable:
         ascii_message += str(c)
     elif len(ascii_message) > 4:
-        if display: print ascii_message
+        if display: print(ascii_message)
         ascii_message = ''
 
 class serial_parser():
@@ -111,7 +111,7 @@ class serial_parser():
                     return self.pkt_id
                 else:
                     # print "pkt id=%d checksum failed %d %d (computed) != %d %d (message)" % (self.pkt_id, self.cksum_A, self.cksum_B, self.cksum_lo, self.cksum_hi)
-                    print "pkt id=%d len=%d checksum failed" % (self.pkt_id, self.pkt_len)
+                    print("pkt id=%d len=%d checksum failed" % (self.pkt_id, self.pkt_len))
                     self.state = 0
 
         return -1

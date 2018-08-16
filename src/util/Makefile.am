@@ -13,12 +13,9 @@ libutil_a_SOURCES = \
         timing.cpp timing.h \
         netSocket.cxx netSocket.h ul.h
 
-AM_CPPFLAGS = -I$(VPATH)/.. -I$(VPATH)/../..
+AM_CPPFLAGS = $(PYTHON_INCLUDES) -I$(VPATH)/.. -I$(VPATH)/../..
 
 noinst_PROGRAMS = butter_test # geodesy_test
 
 butter_test_SOURCES = butter_test.cxx
 butter_test_LDADD = libutil.a
-
-#geodesy_test_SOURCES = geodesy_test.cxx
-#geodesy_test_LDADD = ../math/libmath.a libutil.a 

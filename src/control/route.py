@@ -4,8 +4,8 @@ from props import getNode
 
 import mission.greatcircle as gc
 import comms.events
-import waypoint
-import windtri
+import control.waypoint as waypoint
+import control.windtri as windtri
 
 d2r = math.pi / 180.0
 r2d = 180.0 / math.pi
@@ -69,9 +69,9 @@ def build(config_node):
             # this tag from all routes?
             pass
         else:
-            print 'Unknown top level section:', child_name
+            print('Unknown top level section:', child_name)
             return False
-    print 'loaded %d waypoints' % len(standby_route)
+    print('loaded %d waypoints' % len(standby_route))
     return True
 
 # build a route from a string request
@@ -96,7 +96,7 @@ def build_str(request):
             wp.lat_deg = float(tokens[i+2])
         standby_route.append(wp)
         i += 4;
-    print 'Loaded %d waypoints' % len(standby_route)
+    print('Loaded %d waypoints' % len(standby_route))
     return True
 
 # swap active and standby routes
@@ -179,10 +179,10 @@ def reposition(force=False):
         for wp in active_route:
             if wp.mode == 'relative':
                 wp.update_relative_pos(home_lon, home_lat, home_az)
-                print 'WPT:', wp.hdg_deg, wp.dist_m, wp.lat_deg, wp.lon_deg
+                print('WPT:', wp.hdg_deg, wp.dist_m, wp.lat_deg, wp.lon_deg)
         if comms_node.getBool('display_on'):
-            print "ROUTE pattern updated: %.6f %.6f (course = %.1f)" % \
-                (home_lon, home_lat, home_az)
+            print("ROUTE pattern updated: %.6f %.6f (course = %.1f)" % \
+                  (home_lon, home_lat, home_az))
         last_lon = home_lon
         last_lat = home_lat
         last_az = home_az

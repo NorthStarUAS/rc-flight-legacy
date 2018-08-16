@@ -5,7 +5,7 @@ from props import getNode
 import comms.events
 import control.route
 
-from task import Task
+from mission.task.task import Task
 
 class Route(Task):
     def __init__(self, config_node):
@@ -33,10 +33,10 @@ class Route(Task):
         if control.route.build(config_node):
             control.route.swap()
         else:
-            print 'Detected an internal inconsistency in the route'
-	    print ' configuration.  See earlier errors for details.'
-	    quit()
-            
+            print('Detected an internal inconsistency in the route')
+            print(' configuration.  See earlier errors for details.')
+            quit()
+
     def activate(self):
         self.active = True
 
@@ -56,7 +56,7 @@ class Route(Task):
         self.route_node.setString('follow_mode', 'leader');
         self.route_node.setString('start_mode', 'first_wpt');
         self.route_node.setString('completion_mode', 'loop');
-        
+
         comms.events.log('mission', 'route')
 
     # build route from a property tree node
@@ -76,9 +76,9 @@ class Route(Task):
                 # this tag from all routes?
                 pass
             else:
-                print 'Unknown top level section:', child_name
+                print('Unknown top level section:', child_name)
                 return False
-        print 'loaded %d waypoints' % len(self.standby_route)
+        print('loaded %d waypoints' % len(self.standby_route))
         return True
 
     def update(self, dt):
@@ -87,7 +87,7 @@ class Route(Task):
 
     def is_complete(self):
         return False
-    
+
     def close(self):
         # restore the previous state
         self.ap_node.setString('mode', self.saved_fcs_mode)

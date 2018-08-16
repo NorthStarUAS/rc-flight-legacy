@@ -1,6 +1,6 @@
 #pragma once
 
-#include <python2.7/Python.h>
+#include <Python.h>
 
 #include <string>
 #include <vector>
