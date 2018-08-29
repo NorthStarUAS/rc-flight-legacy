@@ -48,9 +48,6 @@ def gen_requests():
         if tecs_config_node.getString('mass_kg') == '':
             requests_pending = True
             commands.add('get,/config/autopilot/TECS/mass_kg')
-        if tecs_config_node.getString('weight_tot') == '':
-            requests_pending = True
-            commands.add('get,/config/autopilot/TECS/weight_tot')
         if tecs_config_node.getString('weight_bal') == '':
             requests_pending = True
             commands.add('get,/config/autopilot/TECS/weight_bal')
