@@ -1,6 +1,7 @@
 noinst_LIBRARIES = libcontrol.a
 
 libcontrol_a_SOURCES = \
+	airshow.cxx airshow.hxx \
 	ap.cxx ap.hxx \
 	cas.cxx cas.hxx \
 	component.hxx \

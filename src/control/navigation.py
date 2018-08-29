@@ -16,3 +16,8 @@ def update(dt):
         circle.update(dt)
     elif nav_node.getString("mode") == 'route':
         route.update(dt)
+    # hack test (override target roll)
+    #targets_node = getNode("/autopilot/targets", True)
+    #hack_roll = targets_node.getFloat("hack_roll_deg")
+    #targets_node.setFloat("roll_deg", hack_roll)
+    

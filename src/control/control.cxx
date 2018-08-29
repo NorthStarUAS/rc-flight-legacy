@@ -36,6 +36,7 @@
 #include "python/pymodule.hxx"
 
 #include "include/util.h"
+#include "airshow.hxx"
 #include "ap.hxx"
 #include "tecs.hxx"
 
@@ -81,6 +82,8 @@ void control_init() {
 
     // initialize the navigation module
     navigation.init("control.navigation");
+
+    airshow_init();
     
     // initialize and build the autopilot controller from the property
     // tree config (/config/autopilot)
@@ -148,6 +151,9 @@ void control_update(double dt)
     // navigation update (circle or route heading)
     navigation.update(dt);
 
+    // fancy (?)
+    airshow_update();
+    
     // update the autopilot stages (even in manual flight mode.)  This
     // keeps the differential value up to date, tracks manual inputs,
     // and keeps more continuity in the flight when the mode is

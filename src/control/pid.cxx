@@ -129,6 +129,7 @@ void AuraPID::update( double dt ) {
         }
     }
 
+    bool degrees = component_node.getBool("degrees");
     bool debug = component_node.getBool("debug");
     if ( debug ) printf("Updating %s\n", get_name().c_str());
     y_n = input_node.getDouble(input_attr.c_str());
@@ -142,6 +143,13 @@ void AuraPID::update( double dt ) {
     }
                       
     double error = r_n - y_n;
+    if ( degrees ) {
+        if ( error < -180.0 ) {
+            error += 360.0;
+        } else if ( error > 180.0 ) {
+            error -= 360.0;
+        }
+    }
     if ( debug ) printf("input = %.3f reference = %.3f error = %.3f\n",
 			y_n, r_n, error);
 
