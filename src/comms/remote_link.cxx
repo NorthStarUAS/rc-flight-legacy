@@ -17,7 +17,7 @@ void pyModuleRemoteLink::send_message( uint8_t *buf, int size ) {
 	printf("ERROR: cannot find function 'send_message()'\n");
 	return;
     }
-    PyObject *pResult = PyObject_CallFunction(pFuncLog, (char *)"s#", buf, size);
+    PyObject *pResult = PyObject_CallFunction(pFuncLog, (char *)"y#", buf, size);
     if (pResult != NULL) {
 	Py_DECREF(pResult);
 	return;

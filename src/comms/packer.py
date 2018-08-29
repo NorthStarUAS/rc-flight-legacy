@@ -106,15 +106,15 @@ def compute_cksum(id, buf, size):
     c1 = 0
     c0 = (c0 + id) & 0xff
     c1 = (c1 + c0) & 0xff
-    # print "c0 =", c0, "c1 =", c1
+    #print("c0 =", c0, "c1 =", c1)
     c0 = (c0 + size) & 0xff
     c1 = (c1 + c0) & 0xff
-    # print "c0 =", c0, "c1 =", c1
+    #print("c0 =", c0, "c1 =", c1)
     for i in range(0, size):
         c0 = (c0 + buf[i]) & 0xff
         c1 = (c1 + c0) & 0xff
-        # print "c0 =", c0, "c1 =", c1, '[', ord(buf[i]), ']'
-    # print "c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")"
+        #print("c0 =", c0, "c1 =", c1, i, '[', buf[i], ']')
+    #print("c0 =", c0, "c1 =", c1)
     return (c0, c1)
 
 # wrap payload in header bytes, id, length, payload, and compute checksums
@@ -148,9 +148,9 @@ def pack_gps_bin(index):
                       int(node.getFloat("vd_ms") * 100),
                       node.getFloat("unix_time_sec"),
                       node.getInt("satellites"),
-                      node.getFloat('horiz_accuracy_m') * 100,
-                      node.getFloat('vert_accuracy_m') * 100,
-                      node.getFloat('pdop') * 100,
+                      int(node.getFloat('horiz_accuracy_m') * 100),
+                      int(node.getFloat('vert_accuracy_m') * 100),
+                      int(node.getFloat('pdop') * 100),
                       node.getInt('fixType'))
     return wrap_packet(GPS_PACKET_V4, buf)
 

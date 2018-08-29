@@ -22,9 +22,14 @@ int pyModulePacker::pack(int index, const char *pack_function, uint8_t *buf) {
     if (pResult != NULL) {
 	PyObject *pStr = PyObject_Str(pResult);
 	if ( pStr != NULL ) {
-	    char *ptr = PyBytes_AsString(pStr);
-	    len = PyBytes_Size(pStr);
-	    memcpy((char *)buf, ptr, len);
+            Py_ssize_t len = 0;
+	    const char *ptr = PyUnicode_AsUTF8AndSize(pStr, &len);
+            if ( ptr != NULL ) {
+                memcpy((char *)buf, ptr, len);
+            } else {
+                PyErr_Print();
+                printf("ERROR: call failed\n");
+            }
 	    Py_DECREF(pStr);
 	}
 	Py_DECREF(pResult);
