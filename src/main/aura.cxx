@@ -351,13 +351,11 @@ int main( int argc, char **argv )
     pyPropertyNode p;
 
     p = pyGetNode("/config/pointing", true);
-    printf("here1, %p\n", p);
     if ( p.hasChild("enable") ){
 	printf("Pointing = %s\n", p.getString("enable").c_str());
 	enable_pointing = p.getBool("enable");
 	printf("Pointing = %d\n", enable_pointing);
     }
-    printf("here2\n");
 
     p = pyGetNode("/config", true);
     if ( p.hasChild("gps_timeout_sec") ) {
