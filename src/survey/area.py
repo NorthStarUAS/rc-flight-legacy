@@ -8,8 +8,8 @@ sys.path.append('..')
 import mission.greatcircle as gc
 
 import survey.point as point
-import survey.vector
-import survey.line
+import survey.vector as vector
+import survey.line as line
 
 d2r = math.pi / 180
 r2d = 180 / math.pi

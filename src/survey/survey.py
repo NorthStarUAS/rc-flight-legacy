@@ -5,9 +5,9 @@ from props import getNode
 import control.route
 import control.waypoint
 
-import survey.point
-import survey.vector
-import survey.area
+import survey.point as point
+import survey.vector as vector
+import survey.area as area
 
 ft2m = 0.3048
 d2r = math.pi / 180.0
