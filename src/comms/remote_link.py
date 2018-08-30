@@ -94,18 +94,15 @@ def send_message( data ):
 
 route_request = []
 survey_request = {}
-def execute_command( command_bytes ):
+def execute_command( command ):
     global route_request
     global survey_request
 
-    command = command_bytes.decode()
-    print('received command:', command)
     if command == '':
         # no valid tokens
         return
 
     tokens = command.split(',')
-    print('tokens:', tokens)
     if tokens[0] == 'hb' and len(tokens) == 1:
         # heart beat, no action needed
         pass
@@ -159,7 +156,6 @@ def execute_command( command_bytes ):
     elif tokens[0] == 'fcs-update':
         decode_fcs_update( command )
     elif tokens[0] == 'get' and len(tokens) == 2:
-        print(tokens)
         # absolute path
         parts = tokens[1].split('/')
         node_path = '/'.join(parts[0:-1])
@@ -236,13 +232,14 @@ last_sequence_num = -1
 def command():
     global last_sequence_num
     
-    sequence, command = read_link_command()
+    sequence, command_bytes = read_link_command()
     if sequence < 0:
         return False
     
     # ignore repeated commands (including roll over logic)
     if sequence != last_sequence_num:
 	# execute command
+        command = command_bytes.decode()
         comms.events.log( 'remote command',
                           "executed: (%d) %s" % (sequence, command) )
         execute_command( command )
