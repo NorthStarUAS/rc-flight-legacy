@@ -483,7 +483,7 @@ bool pyPropertyNode::setBool( const char *name, bool val ) {
 
 bool pyPropertyNode::setString( const char *name, string val ) {
     if ( pObj != NULL ) {
-	PyObject *pString = PyBytes_FromString(val.c_str());
+	PyObject *pString = PyUnicode_FromString(val.c_str());
 	int result = PyObject_SetAttrString(pObj, name, pString);
 	Py_DECREF(pString);
 	return result != -1;
