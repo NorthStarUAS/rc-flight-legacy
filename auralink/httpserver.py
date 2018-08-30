@@ -13,13 +13,13 @@ import projects
 
 class WSHandler(tornado.websocket.WebSocketHandler):
     def open(self):
-        print 'new connection'
+        print('new connection')
         self.bind_props()
       
     def on_message(self, message):
-        # print 'message received:  %s' % message
+        # print('message received:  %s' % message)
         [command, args] = message.rstrip().split(' ', 1)
-        # print tokens
+        # print(tokens)
         if command == 'get':
             if args == 'full_json':
                 commands.remote_lost_link_predict()
@@ -32,9 +32,9 @@ class WSHandler(tornado.websocket.WebSocketHandler):
             # request relay 'args' string up to aircraft
             commands.add(str(args))
         elif command == 'projects_get':
-            print "request for list of all projects"
+            print("request for list of all projects")
             json_str = projects.load()
-            print 'project json:', json_str
+            print('project json:', json_str)
             self.write_message(json_str + '\r\n')
         elif command == 'projects_update':
             projects.update_name(args)
@@ -42,13 +42,13 @@ class WSHandler(tornado.websocket.WebSocketHandler):
             projects.delete_name(args)
 
     def on_close(self):
-        print 'connection closed'
+        print('connection closed')
  
     def check_origin(self, origin):
         return True
 
     def bind_props(self):
-        print 'binding property nodes'
+        print('binding property nodes')
         self.gps_node = getNode('/sensors/gps[0]', True)
         self.imu_node = getNode('/sensors/imu', True)
         self.airdata_node = getNode('/sensors/airdata', True)
@@ -80,8 +80,8 @@ def init(port=8888, html_root='.'):
 
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(port)
-    print 'Http server on http://localhost:' + str(port) + '/'
-    print 'Websocket server on http://localhost:' + str(port) + '/ws'
+    print('Http server on http://localhost:' + str(port) + '/')
+    print('Websocket server on http://localhost:' + str(port) + '/ws')
     
 def update():
     tornado.ioloop.IOLoop.instance().run_sync(nullfunc)

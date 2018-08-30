@@ -8,7 +8,7 @@ import os
 dir = os.path.dirname(__file__)
 
 projects_file = os.path.join(dir, 'projects.json')
-print 'map projects saved here:', projects_file
+print('map projects saved here:', projects_file)
 
 def load():
     if not os.path.isfile( projects_file ):
@@ -19,7 +19,7 @@ def load():
         f.close()
         return stream
     except:
-        print 'error reading:', projects_file
+        print('error reading:', projects_file)
         return ""
 
 def save( json_dict ):
@@ -28,7 +28,7 @@ def save( json_dict ):
         json.dump(json_dict, f, indent=4, sort_keys=True)
         f.close()
     except:
-        print 'error writing:', projects_file, str(sys.exc_info()[1])
+        print('error writing:', projects_file, str(sys.exc_info()[1]))
 
 # update or create project by name
 def update_name( new_json ):
@@ -43,7 +43,7 @@ def update_name( new_json ):
     
 # delete project
 def delete_name( name ):
-    print 'delete project:', name
+    print('delete project:', name)
     json_str = load()
     current_projects = json.loads(json_str)
     current_projects.pop(name, None)

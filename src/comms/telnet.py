@@ -13,7 +13,7 @@ from props import getNode
 class ChatHandler(asynchat.async_chat):
     def __init__(self, sock):
         asynchat.async_chat.__init__(self, sock=sock)
-        self.set_terminator('\n')
+        self.set_terminator(b'\n')
         self.buffer = []
         self.path = '/'
         self.prompt = True
@@ -26,7 +26,7 @@ class ChatHandler(asynchat.async_chat):
         self.pos_comb_node = getNode("/position/combined", True)
 
     def collect_incoming_data(self, data):
-        self.buffer.append(data)
+        self.buffer.append(data.decode())
 
     def found_terminator(self):
         msg = ''.join(self.buffer)
@@ -57,6 +57,9 @@ class ChatHandler(asynchat.async_chat):
                    self.act_node.getFloatEnum('channel', 2) ]
         return ','.join(map(str, result))
 
+    def my_push(self, msg):
+        self.push(str.encode(msg))
+        
     def process_command(self, msg):
         tokens = msg.split()
         if len(tokens) == 0:
@@ -95,9 +98,9 @@ class ChatHandler(asynchat.async_chat):
                             line = child + ' =\t\"' + value + '"\t' + '\n'
                         else:
                             line = child + '/' + '\n'
-                    self.push(line)
+                    self.my_push(line)
             else:
-                self.push('Error: ' + newpath + ' not found\n')
+                self.my_push('Error: ' + newpath + ' not found\n')
         elif tokens[0] == 'cd':
             newpath = self.path
             if len(tokens) == 2:
@@ -111,12 +114,12 @@ class ChatHandler(asynchat.async_chat):
             newpath = self.normalize_path(newpath)
             node = getNode(newpath)
             if node:
-                self.push('path ok: ' + newpath + '\n')
+                self.my_push('path ok: ' + newpath + '\n')
                 self.path = newpath
             else:
-                self.push('Error: ' + newpath + ' not found\n')
+                self.my_push('Error: ' + newpath + ' not found\n')
         elif tokens[0] == 'pwd':
-            self.push(self.path + '\n' )
+            self.my_push(self.path + '\n' )
         elif tokens[0] == 'get' or tokens[0] == 'show':
             if len(tokens) == 2:
                 if re.search('/', tokens[1]):
@@ -138,11 +141,11 @@ class ChatHandler(asynchat.async_chat):
                     name = tokens[1]
                 value = node.getString(name)
                 if self.prompt:
-                    self.push(tokens[1] + ' = "' + value + '"\n')
+                    self.my_push(tokens[1] + ' = "' + value + '"\n')
                 else:
-                    self.push(value + '\n')
+                    self.my_push(value + '\n')
             else:
-                self.push('usage: get [[/]path/]attr\n')
+                self.my_push('usage: get [[/]path/]attr\n')
         elif tokens[0] == 'set':
             if len(tokens) >= 3:
                 if re.search('/', tokens[1]):
@@ -198,9 +201,9 @@ class ChatHandler(asynchat.async_chat):
                     # now fetch and write out the new value as confirmation
                     # of the change
                     value = node.getString(name)
-                    self.push(tokens[1] + ' = "' + value + '"\n')
+                    self.my_push(tokens[1] + ' = "' + value + '"\n')
             else:
-                self.push('usage: set [[/]path/]attr value\n')
+                self.my_push('usage: set [[/]path/]attr value\n')
         elif tokens[0] == 'quit':
             self.close()
             return
@@ -208,13 +211,13 @@ class ChatHandler(asynchat.async_chat):
             if len(tokens) == 2:
                 if tokens[1] == 'xyzzy':
                     quit()
-            self.push('usage: shutdown-application xyzzy\n')
-            self.push('extra magic argument is required\n')
+            self.my_push('usage: shutdown-application xyzzy\n')
+            self.my_push('extra magic argument is required\n')
         else:
             self.usage()
 
         if self.prompt:
-            self.push('> ')
+            self.my_push('> ')
 
     def usage(self):
         message = """
@@ -232,7 +235,7 @@ dump [<dir>]       dump the current state (in xml)
 quit               exit the client telnet session
 shutdown-application xyzzy      terminate the host application
 """
-        self.push(message)
+        self.my_push(message)
 
     def normalize_path(self, raw_path):
         tokens = raw_path.split('/')

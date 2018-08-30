@@ -31,12 +31,12 @@ httpserver.init(args.http_port, args.html_root)
 try:
     ser = serial.Serial(args.serial, args.baud, timeout=dt)
 except:
-    print "Cannot open:", args.serial
+    print("Cannot open:", args.serial)
     import serial.tools.list_ports
     ports = list(serial.tools.list_ports.comports())
-    print "Available ports:"
+    print("Available ports:")
     for p in ports:
-        print p
+        print(p)
     quit()
     
 auraparser.init()

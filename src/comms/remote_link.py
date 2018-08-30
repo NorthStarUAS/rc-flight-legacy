@@ -21,7 +21,7 @@ remote_link_node = getNode('/comms/remote_link', True)
 remote_link_on = False    # link to remote operator station
 ser = None
 parser = None
-serial_buf = ''
+serial_buf = bytearray()
 max_serial_buffer = 256
 link_open = False
 
@@ -85,7 +85,7 @@ def send_message( data ):
         return False
         
     if len(serial_buf) + len(data) <= max_serial_buffer:
-        serial_buf += data
+        serial_buf.extend(data)
         return True
     else:
         if comms_node.getBool('display_on'):

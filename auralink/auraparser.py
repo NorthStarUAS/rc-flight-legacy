@@ -13,7 +13,7 @@ def init():
     global parser
     parser = comms.serial_parser.serial_parser()
     new_logfile()
-    
+
 def update(ser):
     global parser
     pkt_id = parser.read(ser)
@@ -40,20 +40,20 @@ def validate_cksum(id, size, buf, cksum0, cksum1):
     if c0 == cksum0 and c1 == cksum1:
         return True
     else:
-        print "c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")"
+        print("c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")")
         return False
-    
+
 def new_logfile():
     global f
-    
+
     d = datetime.datetime.utcnow()
     logfile = 'flight-' + d.strftime("%Y%m%d-%H%M%S") + '.log'
     try:
         f = open(logfile, 'wb')
     except:
-        print "Cannot open:", logfile
+        print("Cannot open:", logfile)
         quit()
-  
+
 def parse_msg(id, buf):
     # try:
     if id == GPS_PACKET_V1:
@@ -127,7 +127,7 @@ def parse_msg(id, buf):
     elif id == EVENT_PACKET_V1:
         index = comms.packer.unpack_event_v1(buf)
     else:
-        print "Unknown packet id:", id
+        print("Unknown packet id:", id)
         index = 0
     # except:
     #     print "Error unpacking packet id:", id
@@ -146,7 +146,7 @@ def log_msg(f, pkt_id, pkt_len, payload, cksum_lo, cksum_hi):
 counter = 0
 def file_read(buf):
     global counter
-    
+
     savebuf = ''
     myeof = False
 
@@ -156,7 +156,7 @@ def file_read(buf):
     while (sync0 != comms.serial_parser.START_OF_MSG0 or sync1 != comms.serial_parser.START_OF_MSG1) and counter < len(buf):
         sync0 = sync1
         sync1 = ord(buf[counter]); counter += 1
-        print "scanning for start of message:", counter, sync0, sync1
+        print("scanning for start of message:", counter, sync0, sync1)
 
     # print "found start of message ..."
 
@@ -169,16 +169,16 @@ def file_read(buf):
     try:
         savebuf = buf[counter:counter+size]; counter += size
     except:
-	print "ERROR: didn't read enough bytes!"
+        print("ERROR: didn't read enough bytes!")
 
     # read checksum
     cksum0 = ord(buf[counter]); counter += 1
     cksum1 = ord(buf[counter]); counter += 1
-    
+
     if validate_cksum(id, size, savebuf, cksum0, cksum1):
         # print "check sum passed"
         index = parse_msg(id, savebuf)
         return (id, index, counter)
 
-    print "Check sum failure!"
+    print("Check sum failure!")
     return (-1, -1, counter)

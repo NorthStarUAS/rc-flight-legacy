@@ -13,16 +13,16 @@ try:
     import pygame
     have_pygame = True
 except:
-    print "pygame import failed, joystick inactive"
+    print("pygame import failed, joystick inactive")
 
 if have_pygame:
     pygame.init()
     pygame.joystick.init()
     if pygame.joystick.get_count() > 0:
         have_joystick = True
-        print "Detected a joystick"
+        print("Detected a joystick")
     else:
-        print "no joysticks found"
+        print("no joysticks found")
         
 if have_joystick:
     j = pygame.joystick.Joystick(0)
@@ -44,7 +44,7 @@ def update():
         buttons[i] = j.get_button(i)
     for i in range(num_hats):
         hats[i] = j.get_hat(i)
-    print axes, buttons, hats
+    print(axes, buttons, hats)
     return axes
 
     

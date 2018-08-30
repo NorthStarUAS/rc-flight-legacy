@@ -19,11 +19,11 @@ last_received_time = 0.0
 
 # package and send the serial command, returns number of bytes written
 def serial_send(serial, sequence, command):
-    print 'writing:', sequence, command
+    print('writing:', sequence, command)
     packet = comms.packer.pack_command_bin(sequence, command)
     result = serial.write(packet)
     if result != len(packet):
-        print "ERROR: wrote %d of %d bytes to serial port!\n" % (result, len(packet))
+        print("ERROR: wrote %d of %d bytes to serial port!\n" % (result, len(packet)))
     return result
 
 # send current command until acknowledged
@@ -37,9 +37,9 @@ def update(serial):
     # look at the remote's report of last message received from base
     sequence = remote_link_node.getInt('sequence_num')
     if sequence != cmd_recv_index:
-	last_received_time = time.time()
-	cmd_recv_index = sequence
-        print "received ack:", cmd_recv_index
+        last_received_time = time.time()
+        cmd_recv_index = sequence
+        print("received ack:", cmd_recv_index)
 
     # if current command has been received, advance to next command
     if cmd_recv_index == cmd_send_index:
@@ -51,7 +51,7 @@ def update(serial):
                 prime_state = False
 
     gen_heartbeat()
-    
+
     if len(cmd_queue):
         current_time = time.time()
         if current_time > last_sent_time + 0.5:
@@ -66,12 +66,12 @@ def update(serial):
     else:
         # nothing to do if command queue empty
         prime_state = True
-        
+
     return 0
 
 def add(command):
-    print 'command queue:', command
-    cmd_queue.append(command)
+    print('command queue:', command)
+    cmd_queue.append(str.encode(command))
 
 def cmd_queue_size():
     return len(cmd_queue)
@@ -88,11 +88,11 @@ def gen_heartbeat():
     elapsed_sec = time.time() - last_received_time
     if cmd_queue_empty() and elapsed_sec > 10.0:
         add('hb')
-        
+
 def remote_lost_link_predict():
     global last_received_time
-    
-    # print "last = %.2f  cur = %.2f", (last_delivered_time, current_time)
+
+    # print("last = %.2f  cur = %.2f", (last_delivered_time, current_time))
     if last_received_time + 60 > time.time():
         remote_link_node.setString("link_state", "ok")
         return True
