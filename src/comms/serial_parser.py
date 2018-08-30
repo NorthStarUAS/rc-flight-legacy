@@ -14,7 +14,7 @@ START_OF_MSG1 = 224
 ascii_message = ''
 def glean_ascii_msgs(c, display=False):
     global ascii_message
-    if c in string.printable:
+    if str(c) in string.printable:
         ascii_message += str(c)
     elif len(ascii_message) > 4:
         if display: print(ascii_message)
@@ -30,36 +30,36 @@ class serial_parser():
         self.cksum_B = 0
         self.cksum_lo = 0
         self.cksum_hi = 0
-        self.payload = ''
+        self.payload = bytearray()
 
     def read(self, ser):
         start_time = time.time()    # sec
         input = ''
-        # print "enter update(), state:", self.state
+        #print("enter update(), state:", self.state)
         if self.state == 0:
             self.counter = 0
-            self.payload = ''
+            self.payload = bytearray()
             self.cksum_A = 0
             self.cksum_B = 0
             input = ser.read(1)
-            while len(input) and ord(input[0]) != START_OF_MSG0:
-                # print " state0 val:", ord(input[0])
+            while len(input) and input[0] != START_OF_MSG0:
+                # print(" state0 val:", input[0])
                 glean_ascii_msgs(input[0], display=False)
                 input = ser.read(1)
                 cur_time = time.time()
                 if cur_time > start_time + 0.1:
                     # don't get stuck on a stream that has no parsable data
                     return -1
-            if len(input) and ord(input[0]) == START_OF_MSG0:
-                # print " read START_OF_MSG0"
+            if len(input) and input[0] == START_OF_MSG0:
+                # print(" read START_OF_MSG0")
                 self.state += 1
         if self.state == 1:
             input = ser.read(1)
             if len(input):
-                if ord(input[0]) == START_OF_MSG1:
+                if input[0] == START_OF_MSG1:
                     # print " read START_OF_MSG1"
                     self.state += 1
-                elif ord(input[0]) == START_OF_MSG0:
+                elif input[0] == START_OF_MSG0:
                     # print " read START_OF_MSG0"
                     pass
                 else:
@@ -67,27 +67,27 @@ class serial_parser():
         if self.state == 2:
             input = ser.read(1)
             if len(input):
-                self.pkt_id = ord(input[0])
-                self.cksum_A = (self.cksum_A + ord(input[0])) & 0xff
+                self.pkt_id = input[0]
+                self.cksum_A = (self.cksum_A + input[0]) & 0xff
                 self.cksum_B = (self.cksum_B + self.cksum_A) & 0xff
-                # print " pkt_id:", self.pkt_id
+                #print(" pkt_id:", self.pkt_id)
                 self.state += 1
         if self.state == 3:
             input = ser.read(1)
             if len(input):
-                self.pkt_len = ord(input[0])
+                self.pkt_len = input[0]
                 # print " pkt_len:", self.pkt_len
                 # print " payload =",
-                self.cksum_A = (self.cksum_A + ord(input[0])) & 0xff
+                self.cksum_A = (self.cksum_A + input[0]) & 0xff
                 self.cksum_B = (self.cksum_B + self.cksum_A) & 0xff
                 self.state += 1
         if self.state == 4:
             input = ser.read(1)
             while len(input):
                 self.counter += 1
-                self.payload += input[0]
-                # print "%02X" % ord(input[0]),
-                self.cksum_A = (self.cksum_A + ord(input[0])) & 0xff
+                self.payload.append(input[0])
+                # print "%02X" % input[0],
+                self.cksum_A = (self.cksum_A + input[0]) & 0xff
                 self.cksum_B = (self.cksum_B + self.cksum_A) & 0xff
                 if self.counter >= self.pkt_len:
                     self.state += 1
@@ -97,13 +97,13 @@ class serial_parser():
         if self.state == 5:
             input = ser.read(1)
             if len(input):
-                self.cksum_lo = ord(input[0])
+                self.cksum_lo = input[0]
                 # print " cksum_lo:", self.cksum_lo
                 self.state += 1
         if self.state == 6:
             input = ser.read(1)
             if len(input):
-                self.cksum_hi = ord(input[0])
+                self.cksum_hi = input[0]
                 # print " cksum_hi:", self.cksum_hi
                 if self.cksum_A == self.cksum_lo and self.cksum_B == self.cksum_hi and self.pkt_len > 0:
                     #print "checksum passes:", self.pkt_id, "len:", self.pkt_len

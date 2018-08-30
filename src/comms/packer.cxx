@@ -7,7 +7,6 @@ pyModulePacker::pyModulePacker()
 }
 
 int pyModulePacker::pack(int index, const char *pack_function, uint8_t *buf) {
-    int len = 0;
     if (pModuleObj == NULL) {
 	printf("ERROR: import packer failed\n");
 	return 0;
@@ -20,19 +19,16 @@ int pyModulePacker::pack(int index, const char *pack_function, uint8_t *buf) {
     }
     PyObject *pResult = PyObject_CallFunction(pFuncLog, (char *)"i", index);
     if (pResult != NULL) {
-	PyObject *pStr = PyObject_Str(pResult);
-	if ( pStr != NULL ) {
-            Py_ssize_t len = 0;
-	    const char *ptr = PyUnicode_AsUTF8AndSize(pStr, &len);
-            if ( ptr != NULL ) {
-                memcpy((char *)buf, ptr, len);
-            } else {
-                PyErr_Print();
-                printf("ERROR: call failed\n");
-            }
-	    Py_DECREF(pStr);
-	}
+        const char *ptr = PyByteArray_AsString(pResult);
+        Py_ssize_t len = PyByteArray_Size(pResult);
+        if ( ptr != NULL ) {
+            memcpy((char *)buf, ptr, len);
+        } else {
+            PyErr_Print();
+            printf("ERROR: call failed\n");
+        }
 	Py_DECREF(pResult);
+        printf("returning %d\n", len);
 	return len;
     } else {
 	PyErr_Print();

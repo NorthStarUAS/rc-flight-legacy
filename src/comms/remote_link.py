@@ -34,11 +34,12 @@ def init():
     device = remote_link_config.getString('device')
     try:
         ser = serial.Serial(port=device, baudrate=115200, timeout=0, writeTimeout=0)
-        parser = serial_parser.serial_parser()
-    except:
+        parser = comms.serial_parser.serial_parser()
+    except Exception as e:
         print('Opening remote link failed:', device)
+        print(e)
         return False
-    
+
     if comms_node.getBool('display_on'):
         print('remote link:', device)
     link_open = True
@@ -73,7 +74,7 @@ def flush_serial():
         else:
             # something was written
             serial_buf = serial_buf[bytes_written:]
-    # print 'remote link bytes pending:', len(serial_buf)
+    print('remote link bytes pending:', len(serial_buf))
 
 # append the request data to a fifo buffer if space available.  A
 # separate function will flush the data in even chunks to avoid
@@ -85,6 +86,7 @@ def send_message( data ):
         return False
         
     if len(serial_buf) + len(data) <= max_serial_buffer:
+        print('buffering:', len(data))
         serial_buf.extend(data)
         return True
     else:
@@ -94,10 +96,11 @@ def send_message( data ):
 
 route_request = []
 survey_request = {}
-def execute_command( command ):
+def execute_command( command_bytes ):
     global route_request
     global survey_request
-    
+
+    command = str(command_bytes)
     if command == '':
         # no valid tokens
         return
@@ -168,7 +171,7 @@ def execute_command( command ):
         # print tokens[0], '=', value
         return_msg = 'get: %s,%s' % (tokens[1], value)
         remote_link.send_message(return_msg)
-        events.log('get', '%s,%s' % (tokens[1], value))
+        comms.events.log('get', '%s,%s' % (tokens[1], value))
     elif tokens[0] == 'set' and len(tokens) >= 3:
         if tokens[1][0] == '/':
             # absolute path
@@ -218,8 +221,8 @@ def read_link_command():
         return -1, ''
     
     pkt_id = parser.read(ser)
-    if pkt_id == packer.COMMAND_PACKET_V1:
-        seq, message = packer.unpack_command_v1(parser.payload)
+    if pkt_id == comms.packer.COMMAND_PACKET_V1:
+        seq, message = comms.packer.unpack_command_v1(parser.payload)
         return seq, message
     else:
         return -1, ''
@@ -238,8 +241,8 @@ def command():
     # ignore repeated commands (including roll over logic)
     if sequence != last_sequence_num:
 	# execute command
-        events.log( 'remote command',
-                    "executed: (%d) %s" % (sequence, command) )
+        comms.events.log( 'remote command',
+                          "executed: (%d) %s" % (sequence, command) )
         execute_command( command )
 
         # register that we've received this message correctly

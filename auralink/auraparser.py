@@ -135,13 +135,13 @@ def parse_msg(id, buf):
     return index
 
 def log_msg(f, pkt_id, pkt_len, payload, cksum_lo, cksum_hi):
-    f.write(chr(comms.serial_parser.START_OF_MSG0))
-    f.write(chr(comms.serial_parser.START_OF_MSG1))
-    f.write(chr(pkt_id))
-    f.write(chr(pkt_len))
+    f.write(bytes([comms.serial_parser.START_OF_MSG0]))
+    f.write(bytes([comms.serial_parser.START_OF_MSG1]))
+    f.write(bytes([pkt_id]))
+    f.write(bytes([pkt_len]))
     f.write(payload)
-    f.write(chr(cksum_lo))
-    f.write(chr(cksum_hi))
+    f.write(bytes([cksum_lo]))
+    f.write(bytes([cksum_hi]))
 
 counter = 0
 def file_read(buf):
