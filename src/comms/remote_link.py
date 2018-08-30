@@ -74,7 +74,6 @@ def flush_serial():
         else:
             # something was written
             serial_buf = serial_buf[bytes_written:]
-    print('remote link bytes pending:', len(serial_buf))
 
 # append the request data to a fifo buffer if space available.  A
 # separate function will flush the data in even chunks to avoid
@@ -86,7 +85,6 @@ def send_message( data ):
         return False
         
     if len(serial_buf) + len(data) <= max_serial_buffer:
-        print('buffering:', len(data))
         serial_buf.extend(data)
         return True
     else:
@@ -100,12 +98,14 @@ def execute_command( command_bytes ):
     global route_request
     global survey_request
 
-    command = str(command_bytes)
+    command = command_bytes.decode()
+    print('received command:', command)
     if command == '':
         # no valid tokens
         return
 
     tokens = command.split(',')
+    print('tokens:', tokens)
     if tokens[0] == 'hb' and len(tokens) == 1:
         # heart beat, no action needed
         pass
@@ -159,6 +159,7 @@ def execute_command( command_bytes ):
     elif tokens[0] == 'fcs-update':
         decode_fcs_update( command )
     elif tokens[0] == 'get' and len(tokens) == 2:
+        print(tokens)
         # absolute path
         parts = tokens[1].split('/')
         node_path = '/'.join(parts[0:-1])
@@ -170,7 +171,8 @@ def execute_command( command_bytes ):
         if value == '': value = 'undefined'
         # print tokens[0], '=', value
         return_msg = 'get: %s,%s' % (tokens[1], value)
-        remote_link.send_message(return_msg)
+        buf = comms.packer.pack_event_bin(return_msg)
+        send_message(buf)
         comms.events.log('get', '%s,%s' % (tokens[1], value))
     elif tokens[0] == 'set' and len(tokens) >= 3:
         if tokens[1][0] == '/':

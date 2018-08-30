@@ -156,9 +156,7 @@ bool IMU_update() {
 	    if ( send_remote_link || send_logging ) {
 		uint8_t buf[256];
 		int size = packer->pack_imu( i, buf );
-                printf("packed imu = %d\n", size);
 		if ( send_remote_link ) {
-                    printf("sending imu packet %d\n", size);
 		    remote_link->send_message( buf, size );
 		}
 		if ( send_logging ) {

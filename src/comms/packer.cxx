@@ -28,7 +28,6 @@ int pyModulePacker::pack(int index, const char *pack_function, uint8_t *buf) {
             printf("ERROR: call failed\n");
         }
 	Py_DECREF(pResult);
-        printf("returning %d\n", len);
 	return len;
     } else {
 	PyErr_Print();

@@ -129,7 +129,6 @@ def wrap_packet( packet_id, payload ):
     (cksum0, cksum1) = compute_cksum( packet_id, payload, size)
     buf.append(cksum0)          # check sum byte 1
     buf.append(cksum1)          # check sum byte 2
-    print('wrap len:', len(buf))
     return buf
     
 def pack_gps_bin(index):
@@ -301,7 +300,6 @@ def pack_imu_bin(index):
                       node.getFloat("hz"),
                       int(round(node.getFloat("temp_C") * 10.0)),
                       0)
-    print('imu', type(buf), len(buf))
     return wrap_packet(IMU_PACKET_V4, buf)
 
 def pack_imu_csv(index):
@@ -1440,7 +1438,7 @@ def unpack_event_v1(buf):
     
     #result = struct.unpack(event_v1_fmt, buf)
     #index = result[0]
-    m = re.match('get: (.*)$', message[0])
+    m = re.match('get: (.*)$', message[0].decode())
     if m:
         (prop, value) = m.group(1).split(',')
         # print prop, value
