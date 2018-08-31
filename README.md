@@ -65,35 +65,79 @@ popular open-source projects.
 4. Run "make"
 
 
-## Development Road Map
+## Development Philosophy
 
-Recently aura-core became a complete standalone open-source autopilot.
-Development added a main() loop and an integrated python mission
-manager that is extensible with your own python code.  Python is
-running right on board the aircraft and playing a key functional role
-in the operation of the autopilot.  The python integration has been
-tested in simulation and now in flight with excellent results.  Deeply
-integrating python into the core autopilot was a major strategic
-decision and perhaps a major distinguishing factor compared to many
-other autopilot ecosystems that currently exist and are being
-developed.
+AuraUAS is a complete (and independent) open-source autopilot.  It
+features an inexpensive DIY hardware option and a professionally built
+(pick and place) hardware option.  The design philosophy is built
+around creating a high quality, robust core set of features around a
+standardized hardware platform.  This is not a project that attempts
+to do everything for everyone with every possible sensor and every
+possible use case.  That approach adds tremendous complexity and other
+projects are pursuing this approach very effectively.
+
+Aircraft are designed and developed with light weight as a priority in
+every phase.  Analogous to that principle, AuraUAS is developed with
+simplicity as a priority.  Aircraft don't always end up as light as we
+would like and AuraUAS is not as simple to understand as I would like,
+but know that this is a priority and something we push for at every
+step.
+
+A core element of our 'simplicity' philosophy is that the autopilot
+code is divided into two main parts that run on separate processors.
+
+1. All the sensor data collection and PWM servo control and the manual
+   fail safe mode run on a Teensy-3.2 (or 3.6.)  The firmware is
+   developed in the arduino enviroment and addresses all the hard
+   real-time needs of the autopilot system using a simple interrupt
+   service routine model.
+
+2. All the higher level functionality runs on an embedded linux
+   platform.  Currently this is a beaglebone, but the code can easily
+   run on any linux-based system.  The linux code is single threaded
+   and uses non-blocking I/O strategies to maintain real-time 100hz
+   performance.
+
+   As part of the push towards simpler code, the linux-side
+   application is a hybrid mix of C++ and python3.  I have found that
+   I can easily maintain 100hz real-time performance, even with a
+   significant amount of python code in the main loop.  Opinions may
+   differ, but I find that python leads to 40-50% fewer lines of code,
+   and that code can be much more readable.  Embedded scripting also
+   enables powerful feature development without needing to modify the
+   core C++ code and recompile the firmware.
+
+Together, the system is comprised of two simpler applications compared
+to one giant monolithic application that is forced into using a
+complicated thread-based architecture to maintain near real-time
+performance (as is often found in other popular autopilot systems.)
+
+Over the past few years AuraUAS is evolved into a mature and stable
+autopilot system.  It is a rock solid work horse for many of the
+University research projects I support.  Still, with any system, there
+are always endless tiny feature changes and improvements to be made.
 
 Immediate development goals include:
 
-* Add support for computing survey routes on board the aircraft.  (The
+* Support for structured hdf5 data log export.
+
+* Python 3 port.  This is mostly completed, but needs further
+  end-to-end testing to catch any lingering issues.  The main
+  challenge involved python3's switch from C-style strings to 'wide'
+  strings, with the addition of bytearrray() to cover the need for
+  C-style strings.  This led to quite a few changes in the C++/python
+  hybrid API code.  In addition, some of the low level message parsing
+  code needed rework.
+
+* [done!] Implement a hand-thrown auto-launch task.  This is written
+  as a python task (within the python-based mission system) and
+  produces very very solid and stable launch results for hand thrown
+  airplanes (such as a Skywalker or Talon.)
+
+* [done!] Add support for computing survey routes on board the aircraft.  (The
   issue here is the brittleness and time required to send 100's of
   waypoints up to an aircraft over a radio modem link.  Instead we can
   just send the area to be covered and some camera parameters and the
   aircraft can compute it's route internally.)
 
-* Redesign and modernize the inexpensive reference hardware. 
-
-Longer term goals include:
-
-* Streamline and expand the surveying capabilities of this system.
-
-* Easier support for researchers and DIY'ers to add their own python
-  tasks and code deeply integrated into the main loop.
-
-* Modernization of the ground station interface (the visual
-  interactive portion.)
+* [done!] Redesign and modernize the inexpensive reference hardware. 
