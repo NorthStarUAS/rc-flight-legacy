@@ -111,10 +111,11 @@ code is divided into two main parts that run on separate processors.
    enables powerful feature development without needing to modify the
    core C++ code and recompile the firmware.
 
-Together, the system is comprised of two simpler applications compared
-to one giant monolithic application that is forced into using a
-complicated thread-based architecture to maintain near real-time
-performance (as is often found in other popular autopilot systems.)
+Together, the system is comprised of two simpler applications working
+together as a distributed system.  You can compare this to the typical
+open-source autopilot architecture that results in a giant monolithic
+application which uses a complicated (and often brittle) thread-based
+architecture to maintain near real-time performance.
 
 Over the past few years AuraUAS is evolved into a mature and stable
 autopilot system.  It is a rock solid work horse for many of the
