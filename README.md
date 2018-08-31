@@ -70,11 +70,15 @@ popular open-source projects.
 AuraUAS is a complete (and independent) open-source autopilot.  It
 features an inexpensive DIY hardware option and a professionally built
 (pick and place) hardware option.  The design philosophy is built
-around creating a high quality, robust core set of features around a
-standardized hardware platform.  This is not a project that attempts
-to do everything for everyone with every possible sensor and every
-possible use case.  That approach adds tremendous complexity and other
-projects are pursuing this approach very effectively.
+around creating a high quality, robust core set of features using a
+standardized hardware platform.  Hardware was selected to strike a
+balance between keeping the system inexpensive for a hobbyist budget,
+while maintaining very high standards of performance and robustness.
+
+This is not a project that attempts to do everything for everyone with
+every possible sensor and every possible use case.  That approach adds
+tremendous complexity and other projects are pursuing this approach
+very effectively.
 
 Aircraft are designed and developed with light weight as a priority in
 every phase.  Analogous to that principle, AuraUAS is developed with
