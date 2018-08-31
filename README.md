@@ -120,7 +120,7 @@ architecture to maintain near real-time performance.
 Over the past few years AuraUAS is evolved into a mature and stable
 autopilot system.  It is a rock solid work horse for many of the
 University research projects I support.  Still, with any system, there
-are always endless tiny feature changes and improvements to be made.
+are endless feature changes and improvements to be made.
 
 Immediate development goals include:
 
