@@ -1,8 +1,8 @@
 import math
 
 from props import getNode
+from auracore import wgs84
 
-import mission.greatcircle as gc
 import comms.events
 import control.waypoint as waypoint
 import control.windtri as windtri
@@ -158,9 +158,9 @@ def dribble(reset=False):
         if wp_counter < route_size - 1:
             # compute leg course and distance
             next = active_route[wp_counter+1]
-            (leg_course, leg_dist) = \
-                gc.course_and_dist( (wp.lat_deg, wp.lon_deg),
-                                    (next.lat_deg, next.lon_deg) )
+            (leg_course, rev_course, leg_dist) = \
+                wgs84.geo_inverse( wp.lat_deg, wp.lon_deg,
+                                   next.lat_deg, next.lon_deg )
             wp.leg_dist_m = leg_dist
         wp_counter += 1
 
@@ -302,16 +302,15 @@ def update(dt):
             # compute direct-to course and distance
             pos_lon = pos_node.getFloat("longitude_deg")
             pos_lat = pos_node.getFloat("latitude_deg")
-            (direct_course, direct_dist) = \
-                gc.course_and_dist( (pos_lat, pos_lon),
-                                    (wp.lat_deg, wp.lon_deg) )
+            (direct_course, rev_course, direct_dist) = \
+                wgs84.geo_inverse( pos_lat, pos_lon, wp.lat_deg, wp.lon_deg )
             #print pos_lat, pos_lon, ":", wp.lat_deg, wp.lon_deg
             #print ' course to:', direct_course, 'dist:', direct_dist
 
             # compute leg course and distance
-            (leg_course, leg_dist) = \
-                gc.course_and_dist( (prev.lat_deg, prev.lon_deg),
-                                    (wp.lat_deg, wp.lon_deg) )
+            (leg_course, rev_course, leg_dist) = \
+                wgs84.geo_inverse( prev.lat_deg, prev.lon_deg,
+                                   wp.lat_deg, wp.lon_deg )
             #print prev.lat_deg, prev.lon_deg, " ", wp.lat_deg, wp.lon_deg
             #print ' leg course:', leg_course, 'dist:', leg_dist
 

@@ -3,9 +3,7 @@ from __future__ import division
 
 import math
 
-import sys
-sys.path.append('..')
-import mission.greatcircle as gc
+from auracore import wgs84
 
 import survey.point as point
 import survey.vector as vector
@@ -68,7 +66,9 @@ def geod2cart(ref, geod_points):
     result = []
     for p in geod_points:
         # expects points as [lat, lon]
-        heading, dist = gc.course_and_dist( [ref.y, ref.x], [p.y, p.x] )
+        #heading, dist = gc.course_and_dist( [ref.y, ref.x], [p.y, p.x] )
+        (heading, reverse, dist) = \
+            wgs84.geo_inverse( ref.y, ref.x, p.y, p.x )
         angle = (90 - heading) * d2r
         x = math.cos(angle) * dist
         y = math.sin(angle) * dist
@@ -83,7 +83,8 @@ def cart2geod(ref, cart_points):
     for p in cart_points:
         heading = 90 - math.atan2(p.y, p.x) * r2d
         dist = math.sqrt(p.x*p.x + p.y*p.y)
-        lat, lon = gc.project_course_distance( [ref.y, ref.x], heading, dist )
+        #lat, lon = gc.project_course_distance( [ref.y, ref.x], heading, dist )
+        lat, lon, az2 = wgs84.geo_direct( ref.y, ref.x, heading, dist )
         print(p.pretty(), 'hdg:', heading, 'dist:', dist, 'geod:', lon, lat)
         result.append( point.Point(lon, lat) )
     return result

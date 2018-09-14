@@ -1,10 +1,10 @@
 import math
 
 from props import getNode
+from auracore import wgs84
 
 import comms.events
 import control.route
-import mission.greatcircle as gc
 from mission.task.task import Task
 
 d2r = math.pi / 180.0
@@ -153,9 +153,8 @@ class Land(Task):
             center_lon = self.circle_node.getFloat("longitude_deg")
             center_lat = self.circle_node.getFloat("latitude_deg")
             # compute course and distance to center of target circle
-            (course_deg, cur_dist_m) = \
-                gc.course_and_dist( (center_lat, center_lon),
-                                    (pos_lat, pos_lon) )
+            (course_deg, rev_deg, cur_dist_m) = \
+                wgs84.geo_inverse( center_lat, center_lon, pos_lat, pos_lon )
             # test for circle capture
             if not self.circle_capture:
                 fraction = abs(cur_dist_m / self.turn_radius_m)
@@ -349,9 +348,10 @@ class Land(Task):
         if circle_offset_deg > 360.0:
             circle_offset_deg -= 360.0
         #print "circle_offset_deg:", circle_offset_deg
-        td = (self.home_node.getFloat("latitude_deg"),
-              self.home_node.getFloat("longitude_deg"))
-        (cc_lat, cc_lon) = gc.project_course_distance( td, circle_offset_deg, offset_dist)
+        (cc_lat, cc_lon, az2) = \
+            wgs84.geo_direct( self.home_node.getFloat("latitude_deg"),
+                              self.home_node.getFloat("longitude_deg"),
+                              circle_offset_deg, offset_dist )
 
         # configure circle task
         self.circle_node.setFloat('latitude_deg', cc_lat)

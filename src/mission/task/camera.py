@@ -1,9 +1,9 @@
 import math
 
 from props import getNode
+from auracore import wgs84
 
 import comms.events
-import mission.greatcircle as gc
 from mission.task.task import Task
 
 d2r = math.pi / 180.0
@@ -75,9 +75,8 @@ class Camera(Task):
         # compute course and distance from previous trigger
         pos_lon = self.pos_node.getFloat("longitude_deg")
         pos_lat = self.pos_node.getFloat("latitude_deg")
-        (course_deg, dist_m) = \
-            gc.course_and_dist( (self.last_lat, self.last_lon),
-                                (pos_lat, pos_lon) )
+        (course_deg, rev_deg, dist_m) = \
+            wgs84.geo_inverse( self.last_lat, self.last_lon, pos_lat, pos_lon )
         agl = self.pos_node.getFloat('altitude_agl_m')
         thresh_dist_m = 2 * self.fov2_tan * agl * (1.0 - self.overlap)
         if dist_m >= thresh_dist_m and self.task_node.getBool('is_airborne'):
