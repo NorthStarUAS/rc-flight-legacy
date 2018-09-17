@@ -2,10 +2,10 @@ import math
 
 from props import getNode
 from auracore import wgs84
+from auracore import windtri
 
 import comms.events
 import control.waypoint as waypoint
-import control.windtri as windtri
 
 d2r = math.pi / 180.0
 r2d = 180.0 / math.pi
