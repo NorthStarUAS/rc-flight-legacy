@@ -19,8 +19,6 @@ import mission.task.route
 import mission.task.switches
 import mission.task.throttle_safety
 
-import mission.greatcircle
-
 class MissionMgr:
     def __init__(self):
         self.targets_node = getNode("/autopilot/targets", True)

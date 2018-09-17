@@ -1,7 +1,7 @@
 from props import getNode
+from auracore import wgs84
 
 import comms.events
-import mission.greatcircle
 from mission.task.task import Task
 
 class HomeMgr(Task):
@@ -41,7 +41,11 @@ class HomeMgr(Task):
                        self.pos_node.getFloat("longitude_deg"))
             home = (self.home_node.getFloat("latitude_deg"),
                     self.home_node.getFloat("longitude_deg"))
-            (course_deg, dist_m) = mission.greatcircle.course_and_dist(current, home)
+            (course_deg, rev_deg, dist_m) = \
+                wgs84.geo_inverse( self.pos_node.getFloat("latitude_deg"),
+                                   self.pos_node.getFloat("longitude_deg"),
+                                   self.home_node.getFloat("latitude_deg"),
+                                   self.home_node.getFloat("longitude_deg") )
             self.home_node.setFloat("course_deg", course_deg)
             self.home_node.setFloat("dist_m", dist_m)
     
