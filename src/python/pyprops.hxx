@@ -10,9 +10,9 @@ using std::vector;
 
 // a simple attribute caching class to save frequent and repeated
 // str->unicode conversion work.
-#include <map>
-using std::map;
-typedef map<string, PyObject *> attr_cache_t ;
+#include <unordered_map>
+using std::unordered_map;
+typedef unordered_map<string, PyObject *> attr_cache_t ;
 
 class pyAttrCache {
     
