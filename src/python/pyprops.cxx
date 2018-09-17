@@ -9,6 +9,8 @@
 using std::string;
 using std::ostringstream;
 
+pyAttrCache cache;
+
 
 // Constructor
 
@@ -68,7 +70,8 @@ pyPropertyNode & pyPropertyNode::operator= (const pyPropertyNode &node) {
 // test if pObj has named child attribute
 bool pyPropertyNode::hasChild(const char *name) {
     if ( pObj != NULL ) {
-	if ( PyObject_HasAttrString(pObj, name) ) {
+        PyObject *attrObj = cache.get_attr(name);
+	if ( PyObject_HasAttr(pObj, attrObj) ) {
 	    return true;
 	}
     }
@@ -264,7 +267,7 @@ long pyPropertyNode::PyObject2Long(const char *name, PyObject *pAttr) {
 double pyPropertyNode::getDouble(const char *name) {
     double result = 0.0;
     if ( pObj != NULL ) {
-        PyObject* attrObj = PyUnicode_FromString(name);
+        PyObject *attrObj = cache.get_attr(name);
 	if ( PyObject_HasAttr(pObj, attrObj) ) {
 	    PyObject *pAttr = PyObject_GetAttr(pObj, attrObj);
 	    if ( pAttr != NULL ) {
@@ -272,7 +275,6 @@ double pyPropertyNode::getDouble(const char *name) {
 		Py_DECREF(pAttr);
 	    }
 	}
-        Py_DECREF(attrObj);
     }
     return result;
 }
@@ -280,7 +282,7 @@ double pyPropertyNode::getDouble(const char *name) {
 long pyPropertyNode::getLong(const char *name) {
     long result = 0;
     if ( pObj != NULL ) {
-        PyObject* attrObj = PyUnicode_FromString(name);
+        PyObject *attrObj = cache.get_attr(name);
 	if ( PyObject_HasAttr(pObj, attrObj) ) {
 	    PyObject *pAttr = PyObject_GetAttr(pObj, attrObj);
 	    if ( pAttr != NULL ) {
@@ -288,7 +290,6 @@ long pyPropertyNode::getLong(const char *name) {
 		Py_DECREF(pAttr);
 	    }
 	}
-        Py_DECREF(attrObj);
     }
     return result;
 }
@@ -296,7 +297,7 @@ long pyPropertyNode::getLong(const char *name) {
 bool pyPropertyNode::getBool(const char *name) {
     bool result = false;
     if ( pObj != NULL ) {
-        PyObject* attrObj = PyUnicode_FromString(name);
+        PyObject *attrObj = cache.get_attr(name);
 	if ( PyObject_HasAttr(pObj, attrObj) ) {
 	    PyObject *pAttr = PyObject_GetAttr(pObj, attrObj);
 	    if ( pAttr != NULL ) {
@@ -304,7 +305,6 @@ bool pyPropertyNode::getBool(const char *name) {
 		Py_DECREF(pAttr);
 	    }
 	}
-        Py_DECREF(attrObj);
     }
     return result;
 }
@@ -316,7 +316,7 @@ string pyPropertyNode::getString(const char *name) {
 	char *pos = strchr((char *)name, '[');
 	if ( pos == NULL ) {
 	    // normal request
-            PyObject* attrObj = PyUnicode_FromString(name);
+            PyObject *attrObj = cache.get_attr(name);
 	    if ( PyObject_HasAttr(pObj, attrObj) ) {
 		PyObject *pAttr = PyObject_GetAttr(pObj, attrObj);
 		if ( pAttr != NULL ) {
@@ -328,7 +328,6 @@ string pyPropertyNode::getString(const char *name) {
 		    Py_DECREF(pAttr);
 		}
 	    }
-            Py_DECREF(attrObj);
 	} else {
 	    // enumerated request
 	    // this is a little goofy, but this code typically only runs
@@ -352,7 +351,7 @@ string pyPropertyNode::getString(const char *name) {
 double pyPropertyNode::getDouble(const char *name, int index) {
     double result = 0.0;
     if ( pObj != NULL ) {
-	PyObject* attrObj = PyUnicode_FromString(name);
+        PyObject *attrObj = cache.get_attr(name);
         if ( PyObject_HasAttr(pObj, attrObj) ) {
 	    PyObject *pList = PyObject_GetAttr(pObj, attrObj);
 	    if ( pList != NULL ) {
@@ -371,7 +370,6 @@ double pyPropertyNode::getDouble(const char *name, int index) {
 		Py_DECREF(pList);
 	    }
 	}
-        Py_DECREF(attrObj);
     }
     return result;
 }
@@ -379,7 +377,7 @@ double pyPropertyNode::getDouble(const char *name, int index) {
 long pyPropertyNode::getLong(const char *name, int index) {
     long result = 0;
     if ( pObj != NULL ) {
-	PyObject* attrObj = PyUnicode_FromString(name);
+        PyObject *attrObj = cache.get_attr(name);
         if ( PyObject_HasAttr(pObj, attrObj) ) {
 	    PyObject *pList = PyObject_GetAttr(pObj, attrObj);
 	    if ( pList != NULL ) {
@@ -398,7 +396,6 @@ long pyPropertyNode::getLong(const char *name, int index) {
 		Py_DECREF(pList);
 	    }
 	}
-        Py_DECREF(attrObj);
     }
     return result;
 }
@@ -406,7 +403,7 @@ long pyPropertyNode::getLong(const char *name, int index) {
 string pyPropertyNode::getString(const char *name, int index) {
     string result = "";
     if ( pObj != NULL ) {
-	PyObject* attrObj = PyUnicode_FromString(name);
+        PyObject *attrObj = cache.get_attr(name);
 	if ( PyObject_HasAttr(pObj, attrObj) ) {
 	    PyObject *pList = PyObject_GetAttr(pObj, attrObj);
 	    if ( pList != NULL ) {
@@ -429,7 +426,6 @@ string pyPropertyNode::getString(const char *name, int index) {
 		Py_DECREF(pList);
 	    }
 	}
-        Py_DECREF(attrObj);
     }
     return result;
 }
@@ -437,7 +433,7 @@ string pyPropertyNode::getString(const char *name, int index) {
 bool pyPropertyNode::getBool(const char *name, int index) {
     bool result = false;
     if ( pObj != NULL ) {
-	PyObject* attrObj = PyUnicode_FromString(name);
+        PyObject *attrObj = cache.get_attr(name);
 	if ( PyObject_HasAttr(pObj, attrObj) ) {
 	    PyObject *pList = PyObject_GetAttr(pObj, attrObj);
 	    if ( pList != NULL ) {
@@ -456,7 +452,6 @@ bool pyPropertyNode::getBool(const char *name, int index) {
 		Py_DECREF(pList);
 	    }
 	}
-        Py_DECREF(attrObj);
     }
     return result;
 }
@@ -464,8 +459,9 @@ bool pyPropertyNode::getBool(const char *name, int index) {
 // value setters
 bool pyPropertyNode::setDouble( const char *name, double val ) {
     if ( pObj != NULL ) {
+        PyObject *attrObj = cache.get_attr(name);
 	PyObject *pFloat = PyFloat_FromDouble(val);
-	int result = PyObject_SetAttrString(pObj, name, pFloat);
+	int result = PyObject_SetAttr(pObj, attrObj, pFloat);
 	Py_DECREF(pFloat);
 	return result != -1;
     } else {
@@ -475,8 +471,9 @@ bool pyPropertyNode::setDouble( const char *name, double val ) {
 
 bool pyPropertyNode::setLong( const char *name, long val ) {
     if ( pObj != NULL ) {
+        PyObject *attrObj = cache.get_attr(name);
 	PyObject *pLong = PyLong_FromLong(val);
-	int result = PyObject_SetAttrString(pObj, name, pLong);
+	int result = PyObject_SetAttr(pObj, attrObj, pLong);
 	Py_DECREF(pLong);
 	return result != -1;
     } else {
@@ -486,8 +483,9 @@ bool pyPropertyNode::setLong( const char *name, long val ) {
 
 bool pyPropertyNode::setBool( const char *name, bool val ) {
     if ( pObj != NULL ) {
+        PyObject *attrObj = cache.get_attr(name);
 	PyObject *pBool = PyBool_FromLong((long)val);
-	int result = PyObject_SetAttrString(pObj, name, pBool);
+	int result = PyObject_SetAttr(pObj, attrObj, pBool);
 	Py_DECREF(pBool);
 	return result != -1;
     } else {
@@ -497,8 +495,9 @@ bool pyPropertyNode::setBool( const char *name, bool val ) {
 
 bool pyPropertyNode::setString( const char *name, string val ) {
     if ( pObj != NULL ) {
+        PyObject *attrObj = cache.get_attr(name);
 	PyObject *pString = PyUnicode_FromString(val.c_str());
-	int result = PyObject_SetAttrString(pObj, name, pString);
+	int result = PyObject_SetAttr(pObj, attrObj, pString);
 	Py_DECREF(pString);
 	return result != -1;
     } else {
@@ -509,7 +508,8 @@ bool pyPropertyNode::setString( const char *name, string val ) {
 // indexed value setters
 bool pyPropertyNode::setDouble( const char *name, int index, double val ) {
     if ( pObj != NULL ) {
-	PyObject *pList = PyObject_GetAttrString(pObj, name);
+        PyObject *attrObj = cache.get_attr(name);
+	PyObject *pList = PyObject_GetAttr(pObj, attrObj);
 	if ( pList != NULL ) {
 	    if ( PyList_Check(pList) ) {
 		if ( index < PyList_Size(pList) ) {
@@ -596,7 +596,8 @@ extern void pyPropsCleanup(void) {
 // save the result.  Then use the pyPropertyNode for direct read/write
 // access in your update routines.
 pyPropertyNode pyGetNode(string abs_path, bool create) {
-    PyObject *pFuncGetNode = PyObject_GetAttrString(pModuleProps, "getNode");
+    PyObject *attrObj = cache.get_attr("getNode");
+    PyObject *pFuncGetNode = PyObject_GetAttr(pModuleProps, attrObj);
     if ( PyErr_Occurred() ) PyErr_Print();
     if ( pFuncGetNode == NULL || ! PyCallable_Check(pFuncGetNode) ) {
 	fprintf(stderr, "Cannot find function 'getNode()'\n");

@@ -7,6 +7,43 @@
 using std::string;
 using std::vector;
 
+
+// a simple attribute caching class to save frequent and repeated
+// str->unicode conversion work.
+#include <map>
+using std::map;
+typedef map<string, PyObject *> attr_cache_t ;
+
+class pyAttrCache {
+    
+private:
+    attr_cache_t cache;
+
+public:
+
+    pyAttrCache() {
+        cache.clear();
+    }
+    
+    ~pyAttrCache() {
+        cache.clear();
+    }
+
+    // return a cached attribute or create it
+    PyObject *get_attr(const char *name) {
+        attr_cache_t::iterator it;
+        it = cache.find(name);
+        if ( it != cache.end() ) {
+            return it->second;
+        } else {
+            PyObject* attr = PyUnicode_FromString(name);
+            cache[name] = attr;
+            return attr;
+        }
+    }
+};
+
+    
 //
 // C++ interface to a python PropertyNode()
 //
