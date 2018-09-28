@@ -60,7 +60,7 @@ AC_SEARCH_LIBS(gzopen, [z])
 # devel environments, hard code the libpython libraries
 # you can use python3-config --includes --libs to find this info
 PYTHON_INCLUDES="-I/usr/include/python3.6m"
-PYTHON_LIBS="-lpython3.6m"
+PYTHON_LIBS="-lpyprops -lpython3.6m"
 AC_SUBST(PYTHON_INCLUDES)
 AC_SUBST(PYTHON_LIBS)
 
@@ -68,11 +68,11 @@ dnl check for Eigen C++ matrix/vector/quaternion headers
 AC_LANG_SAVE
 AC_LANG_CPLUSPLUS
 AC_CHECK_HEADERS([eigen3/Eigen/Core])
-AC_LANG_RESTORE
 if test "x$ac_cv_header_eigen3_Eigen_Core" != xyes; then
    echo "configure error: Eigen matrix headers are required"
    exit
 fi
+AC_LANG_RESTORE
 
 AM_CONFIG_HEADER(src/include/aura_config.h)
 
