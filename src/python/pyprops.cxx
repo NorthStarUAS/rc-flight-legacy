@@ -9,6 +9,9 @@
 using std::string;
 using std::ostringstream;
 
+// 'cache' is a global c-string -> python unicode name cache.  This
+// conversion is relatively costly in python3, so this cache save
+// repeating the work many times each frame.
 pyAttrCache cache;
 
 
