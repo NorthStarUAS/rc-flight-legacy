@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include "dtss.hxx"
 

@@ -13,7 +13,7 @@
 #include "comms/logging.hxx"
 #include "comms/packer.hxx"
 #include "comms/remote_link.hxx"
-#include "python/pymodule.hxx"
+#include <pymodule.hxx>
 
 extern pyModuleDisplay *display;
 extern pyModuleEventLog *events;

@@ -8,7 +8,7 @@
  */
 
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <math.h>
 #include <stdio.h>

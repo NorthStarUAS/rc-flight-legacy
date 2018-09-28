@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 #include "include/globaldefs.h"
 
 void gps_ublox8_init( string output_path, pyPropertyNode *config );

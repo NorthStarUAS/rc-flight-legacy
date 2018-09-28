@@ -5,7 +5,7 @@
 // This code is released into the public domain.
 // 
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <math.h>
 #include <stdio.h>

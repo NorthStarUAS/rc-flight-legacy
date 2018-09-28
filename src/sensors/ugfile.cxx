@@ -4,7 +4,7 @@
 // than from a live sensor)
 //
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <stdio.h>
 #include <string>

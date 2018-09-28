@@ -8,7 +8,7 @@
  *
  */
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <string>
 using std::string;

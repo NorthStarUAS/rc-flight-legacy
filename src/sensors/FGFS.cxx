@@ -3,7 +3,7 @@
 // DESCRIPTION: aquire live sensor data from an running copy of Flightgear
 //
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <stdlib.h>		// drand48()
 #include <sys/ioctl.h>

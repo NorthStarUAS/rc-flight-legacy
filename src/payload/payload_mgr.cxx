@@ -8,7 +8,7 @@
  * $Id: act_mgr.cpp,v 1.3 2009/08/25 15:04:01 curt Exp $
  */
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <cstdio>
 

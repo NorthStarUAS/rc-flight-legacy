@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 class UGPayloadMgr {
 

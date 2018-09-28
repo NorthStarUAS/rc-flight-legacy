@@ -6,8 +6,8 @@
 // This code is released into the public domain.
 // 
 
-#include "python/python_sys.hxx"
-#include "python/pyprops.hxx"
+#include <python_sys.hxx>
+#include <pyprops.hxx>
 
 #include <stdio.h>
 #include <sys/types.h>

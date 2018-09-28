@@ -4,7 +4,7 @@
 // of Flightgear
 //
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <stdio.h>
 #include <string>

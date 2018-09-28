@@ -1,5 +1,5 @@
 #include "python_sys.hxx"
-#include "pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <string>
 using std::string;

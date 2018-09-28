@@ -19,7 +19,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <stdio.h>
 #include <sys/time.h>
@@ -33,7 +33,7 @@
 #include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
 #include "init/globals.hxx"
-#include "python/pymodule.hxx"
+#include <pymodule.hxx>
 
 #include "include/util.h"
 #include "ap.hxx"

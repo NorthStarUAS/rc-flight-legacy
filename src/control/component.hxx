@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <string>
 #include <vector>

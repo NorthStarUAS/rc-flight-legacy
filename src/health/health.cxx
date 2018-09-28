@@ -1,7 +1,7 @@
 // System health/status monitoring module
 
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <stdio.h>
 

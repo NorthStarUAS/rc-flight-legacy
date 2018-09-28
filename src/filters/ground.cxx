@@ -1,4 +1,4 @@
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include "include/globaldefs.h"
 #include "util/lowpass.hxx"

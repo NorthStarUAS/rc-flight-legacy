@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 #include "util/poly1d.hxx"
 
 class AuraCalTemp {

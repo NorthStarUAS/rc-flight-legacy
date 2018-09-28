@@ -7,7 +7,6 @@ SUBDIRS = \
 	include \
 	init \
 	payload \
-	python \
 	util \
 	sensors \
 	main

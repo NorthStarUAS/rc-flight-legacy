@@ -1,12 +1,12 @@
 #pragma once
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 // import a python module and call it's init() and update() routines
 // requires imported python modules to follow some basic rules to play
 // nice.  (see examples in the code for now.)
 
-#include "python/pymodule.hxx"
+#include <pymodule.hxx>
 
 class pyModuleLogging: public pyModuleBase {
 

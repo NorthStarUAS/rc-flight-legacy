@@ -3,7 +3,7 @@
 // DESCRIPTION: aquire sensor data from Goldy2 FMU (via ethernet)
 //
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <stdint.h>
 #include <stdio.h>

@@ -20,7 +20,7 @@
 //
 
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <math.h>		// fabs()
 #include <stdio.h>

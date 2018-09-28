@@ -1,4 +1,4 @@
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 #include "util/sg_path.hxx"
 
 #include "logging.hxx"

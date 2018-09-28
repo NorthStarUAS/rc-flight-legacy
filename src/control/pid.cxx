@@ -20,7 +20,7 @@
 //
 
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include "pid.hxx"
 

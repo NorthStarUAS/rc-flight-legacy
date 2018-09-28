@@ -4,7 +4,7 @@
 // requires imported python modules to follow some basic rules to play
 // nice.  (see examples in the code for now.)
 
-#include "python/pymodule.hxx"
+#include <pymodule.hxx>
 
 class pyModuleEventLog: public pyModuleBase {
 

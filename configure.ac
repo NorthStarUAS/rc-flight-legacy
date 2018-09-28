@@ -91,7 +91,6 @@ AC_CONFIG_FILES([ \
         src/init/Makefile \
 	src/main/Makefile \
         src/payload/Makefile \
-        src/python/Makefile \
         src/sensors/Makefile \
         src/sensors/Aura3/Makefile \
         src/util/Makefile \

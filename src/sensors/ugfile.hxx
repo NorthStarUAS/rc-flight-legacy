@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include "include/globaldefs.h"
 

@@ -3,7 +3,7 @@
 // DESCRIPTION: send actuator commands to Goldy2
 //
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <stdio.h>
 #include <string>

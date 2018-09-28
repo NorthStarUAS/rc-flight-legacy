@@ -3,7 +3,7 @@
 // DESCRIPTION: interact with Aura3 (Teensy/Pika) sensor head
 //
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <errno.h>		// errno
 #include <fcntl.h>		// open()

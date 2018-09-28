@@ -3,7 +3,7 @@
 // DESCRIPTION: interact with APM2 with "sensor head" firmware
 //
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 
 #include <errno.h>		// errno
 #include <fcntl.h>		// open()

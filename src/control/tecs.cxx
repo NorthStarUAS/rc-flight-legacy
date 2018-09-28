@@ -30,7 +30,7 @@
 // combination of throttle positition and pitch angle that will force
 // those limits to be exceeded.
 
-#include "python/pyprops.hxx"
+#include <pyprops.hxx>
 #include "include/globaldefs.h"
 
 // input/output nodes
