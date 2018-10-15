@@ -57,6 +57,42 @@ typedef struct {
     uint8_t subcommand_id;
 } ack_packet_t;
 
+// ublox8 nav_pvt structure (copied from aura-sensors/src/UBLOX8/UBLOX8.h)
+typedef struct {
+    uint32_t iTOW;
+    int16_t year;
+    uint8_t month;
+    uint8_t day;
+    uint8_t hour;
+    uint8_t min;
+    uint8_t sec;
+    uint8_t valid;
+    uint32_t tAcc;
+    int32_t nano;
+    uint8_t fixType;
+    uint8_t flags;
+    uint8_t flags2;
+    uint8_t numSV;
+    int32_t lon;
+    int32_t lat;
+    int32_t height;
+    int32_t hMSL;
+    uint32_t hAcc;
+    uint32_t vAcc;
+    int32_t velN;
+    int32_t velE;
+    int32_t velD;
+    uint32_t gSpeed;
+    int32_t heading;
+    uint32_t sAcc;
+    uint32_t headingAcc;
+    uint16_t pDOP;
+    uint8_t reserved[6];
+    int32_t headVeh;
+    int16_t magDec;
+    uint16_t magAcc;
+} aura_nav_pvt_t;
+
 // pilot input (from RC system)
 typedef struct {
     int16_t channel[SBUS_CHANNELS]; // normalize from [-16384 to 16384] */

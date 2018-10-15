@@ -88,40 +88,7 @@ static ButterworthFilter pitot_filter(2, 100, 0.8);
 static uint32_t parse_errors = 0;
 static uint32_t skipped_frames = 0;
 
-#pragma pack(push, 1)           // set alignment to 1 byte boundary
-
-// gps structure (copied from aura-sensors/src/UBLOX8/UBLOX8.h)
-static struct nav_pvt_t {
-    uint32_t iTOW;
-    int16_t year;
-    uint8_t month;
-    uint8_t day;
-    uint8_t hour;
-    uint8_t min;
-    uint8_t sec;
-    uint8_t valid;
-    uint32_t tAcc;
-    int32_t nano;
-    uint8_t fixType;
-    uint8_t flags;
-    uint8_t numSV;
-    int32_t lon;
-    int32_t lat;
-    int32_t height;
-    int32_t hMSL;
-    uint32_t hAcc;
-    uint32_t vAcc;
-    int32_t velN;
-    int32_t velE;
-    int32_t velD;
-    uint32_t gSpeed;
-    int32_t heading;
-    uint32_t sAcc;
-    uint32_t headingAcc;
-    uint16_t pDOP;
-} nav_pvt;
-#pragma pack(pop)              // restore original alignment
-
+aura_nav_pvt_t nav_pvt;
 config_t config;
 static double nav_pvt_timestamp = 0;
 
@@ -686,16 +653,16 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	}
     } else if ( pkt_id == GPS_PACKET_ID ) {
-	if ( pkt_len == sizeof(nav_pvt) ) {
+	if ( pkt_len == sizeof(aura_nav_pvt_t) ) {
 	    nav_pvt_timestamp = get_Time();
-            nav_pvt = *(nav_pvt_t *)(payload);
+            nav_pvt = *(aura_nav_pvt_t *)(payload);
 	    gps_packet_counter++;
 	    aura3_node.setLong( "gps_packet_count", gps_packet_counter );
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
 		printf("Aura3: packet size mismatch in gps packet\n");
-                printf("got %d, expected %d\n", pkt_len, (int)sizeof(nav_pvt));
+                printf("got %d, expected %d\n", pkt_len, (int)sizeof(aura_nav_pvt_t));
 	    }
 	}
     } else if ( pkt_id == AIRDATA_PACKET_ID ) {
