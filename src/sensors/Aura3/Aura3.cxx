@@ -902,7 +902,8 @@ static void imu_setup_defaults() {
 }
 
 // reset pwm output rates to safe startup defaults
-static void pwm_rate_defaults() {
+static void pwm_defaults() {
+    config.actuators.pwm_pin_layout = 0; // Marmot v1
     for ( int i = 0; i < PWM_CHANNELS; i++ ) {
          config.actuators.pwm_hz[i] = 50;    
     }
@@ -971,7 +972,7 @@ static bool Aura3_send_config() {
 
     // set all parameters to defaults
     imu_setup_defaults();
-    pwm_rate_defaults();
+    pwm_defaults();
     act_gain_defaults();
     mixing_defaults();
     sas_defaults();
@@ -1006,6 +1007,16 @@ static bool Aura3_send_config() {
         }
     }
             
+    if ( aura3_config.hasChild("board") ) {
+        string board = aura3_config.getString("board");
+        if ( board == "marmot_v1" ) {
+            config.actuators.pwm_pin_layout = 0;
+        } else if ( board == "aura_v2" ) {
+            config.actuators.pwm_pin_layout = 1;
+        } else {
+            printf("Warning: no valid PWM pin layout defined.\n");
+        }
+    }
     pyPropertyNode pwm_node
 	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
     count = pwm_node.getLen("channel");

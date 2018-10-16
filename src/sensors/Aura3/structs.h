@@ -51,7 +51,7 @@ typedef struct {
 
 // pilot input (from RC system)
 typedef struct {
-    int16_t channel[SBUS_CHANNELS]; // normalize from [-16384 to 16384] */
+    int16_t channel[SBUS_CHANNELS]; // normalized: [-16384, 16384]
     uint8_t flags;
 } pilot_packet_t;
 

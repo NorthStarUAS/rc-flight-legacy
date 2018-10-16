@@ -11,6 +11,8 @@ typedef struct {
 
 // Actuators Configuration
 typedef struct {
+    uint16_t pwm_pin_layout; // pwm pin arrangement, 0 = Marmot v1, 1 = Aura v2
+    
     // pwm output signal hz, 50hz default for analog servos, maximum
     // rate is servo dependent: digital servos can usually do
     // 200-250hz, analog servos and ESC's typically require 50hz
@@ -53,9 +55,16 @@ typedef struct {
     float sas_max_gain;
 } config_act_t;
 
+// Power Configuration
+typedef struct {
+    uint8_t avionics_pin;
+    uint8_t power_pin;
+    bool have_attopilot;
+} config_power_t;
+
 // LED Configuration
 typedef struct {
-    uint8_t pin;            // 0 = no LED
+    uint8_t pin;                // 0 = no LED
 } config_led_t;
 
 // master config (for messages and saving in eeprom)
