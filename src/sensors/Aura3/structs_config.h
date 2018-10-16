@@ -2,12 +2,14 @@
 
 #pragma pack(push,1)            // set alignment to 1 byte boundary
 
+// IMU Configuration
 typedef struct {
     uint8_t interface;          // 0 = SPI, 1 = I2C
     uint8_t pin_or_address;     // SPI CS pin or I2C address
     float orientation[9];       // IMU orientation matrix
 } config_imu_t;
 
+// Actuators Configuration
 typedef struct {
     // pwm output signal hz, 50hz default for analog servos, maximum
     // rate is servo dependent: digital servos can usually do
@@ -51,10 +53,16 @@ typedef struct {
     float sas_max_gain;
 } config_act_t;
 
+// LED Configuration
+typedef struct {
+    uint8_t pin;            // 0 = no LED
+} config_led_t;
+
 // master config (for messages and saving in eeprom)
 typedef struct {
     config_imu_t imu;
     config_act_t actuators;
+    config_led_t led;
 } config_t;
 
 #pragma pack(pop)

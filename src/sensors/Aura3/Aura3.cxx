@@ -49,6 +49,7 @@ static pyPropertyNode pilot_node;
 static pyPropertyNode act_node;
 static pyPropertyNode airdata_node;
 //static pyPropertyNode analog_node;
+static pyPropertyNode aura3_config;
 static pyPropertyNode config_specs_node;
 
 static bool master_opened = false;
@@ -190,8 +191,15 @@ static bool write_config_imu() {
     return true;
 }
 
-static bool Aura3_write_act_config() {
-    write_packet( CONFIG_ACTUATORS_PACKET_ID, (uint8_t *)&(config.actuators), sizeof(config.actuators) );
+static bool write_config_actuators() {
+    write_packet( CONFIG_ACTUATORS_PACKET_ID, (uint8_t *)&(config.actuators),
+                  sizeof(config.actuators) );
+    return true;
+}
+
+static bool write_config_led() {
+    write_packet( CONFIG_LED_PACKET_ID, (uint8_t *)&(config.led),
+                  sizeof(config.led) );
     return true;
 }
 
@@ -309,7 +317,7 @@ static bool Aura3_open() {
 	return true;
     }
 
-    pyPropertyNode aura3_config = pyGetNode("/config/sensors/Aura3", true);
+    aura3_config = pyGetNode("/config/sensors/Aura3", true);
     config_specs_node = pyGetNode("/config/specs", true);
 
     //for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
@@ -946,6 +954,10 @@ static void mixing_defaults() {
 };
 
 
+static void led_defaults() {
+    config.led.pin = 0;
+}
+
 // send a full configuration to Aura3 and return true only when all
 // parameters are acknowledged.
 static bool Aura3_send_config() {
@@ -963,6 +975,7 @@ static bool Aura3_send_config() {
     act_gain_defaults();
     mixing_defaults();
     sas_defaults();
+    led_defaults();
 
     int count;
 
@@ -1112,22 +1125,10 @@ static bool Aura3_send_config() {
 	}
     }
 
-    if ( display_on ) {
-	printf("Aura3: transmitting config ...\n");
+    if ( aura3_config.hasChild("led_pin") ) {
+        config.led.pin = aura3_config.getLong("led_pin");
     }
-    start_time = get_Time();    
-    Aura3_write_act_config();
-    last_ack_id = 0;
-    while ( (last_ack_id != CONFIG_ACTUATORS_PACKET_ID) ) {
-	Aura3_read();
-	if ( get_Time() > start_time + timeout ) {
-	    if ( display_on ) {
-		printf("Timeout waiting for write config ack...\n");
-	    }
-	    return false;
-	}
-    }
-
+    
     if ( display_on ) {
 	printf("Aura3: transmitting imu config ...\n");
     }
@@ -1138,7 +1139,39 @@ static bool Aura3_send_config() {
 	Aura3_read();
 	if ( get_Time() > start_time + timeout ) {
 	    if ( display_on ) {
-		printf("Timeout waiting for write config imu ack...\n");
+		printf("Timeout waiting for config imu ack...\n");
+	    }
+	    return false;
+	}
+    }
+
+    if ( display_on ) {
+	printf("Aura3: transmitting actuator config ...\n");
+    }
+    start_time = get_Time();    
+    write_config_actuators();
+    last_ack_id = 0;
+    while ( (last_ack_id != CONFIG_ACTUATORS_PACKET_ID) ) {
+	Aura3_read();
+	if ( get_Time() > start_time + timeout ) {
+	    if ( display_on ) {
+		printf("Timeout waiting for config actuators ack...\n");
+	    }
+	    return false;
+	}
+    }
+
+    if ( display_on ) {
+	printf("Aura3: transmitting led config ...\n");
+    }
+    start_time = get_Time();    
+    write_config_led();
+    last_ack_id = 0;
+    while ( (last_ack_id != CONFIG_LED_PACKET_ID) ) {
+	Aura3_read();
+	if ( get_Time() > start_time + timeout ) {
+	    if ( display_on ) {
+		printf("Timeout waiting for config led ack...\n");
 	    }
 	    return false;
 	}
