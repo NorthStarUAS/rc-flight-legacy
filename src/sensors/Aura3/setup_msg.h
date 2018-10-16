@@ -6,8 +6,8 @@ const uint8_t START_OF_MSG0 = 147;
 const uint8_t START_OF_MSG1 = 224;
 
 const uint8_t CONFIG_ACK_PACKET_ID = 20;
-const uint8_t CONFIG_PACKET_ID = 21;
-const uint8_t CONFIG_IMU_PACKET_ID = 22;
+const uint8_t CONFIG_IMU_PACKET_ID = 21;
+const uint8_t CONFIG_ACTUATORS_PACKET_ID = 22;
 const uint8_t WRITE_EEPROM_PACKET_ID = 29;
 
 const uint8_t FLIGHT_COMMAND_PACKET_ID = 30;

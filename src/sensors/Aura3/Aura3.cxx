@@ -184,18 +184,16 @@ static bool write_eeprom() {
 }
 
 
-static bool Aura3_write_config() {
-    // eventually depricate (being sent int parts?)
-    write_packet( CONFIG_PACKET_ID, (uint8_t *)&config, sizeof(config) );
-    return true;
-}
-
 static bool write_config_imu() {
     write_packet( CONFIG_IMU_PACKET_ID, (uint8_t *)&(config.imu),
                   sizeof(config.imu) );
     return true;
 }
 
+static bool Aura3_write_act_config() {
+    write_packet( CONFIG_ACTUATORS_PACKET_ID, (uint8_t *)&(config.actuators), sizeof(config.actuators) );
+    return true;
+}
 
 // initialize imu output property nodes 
 static void bind_imu_output( string output_node ) {
@@ -898,53 +896,53 @@ static void imu_setup_defaults() {
 // reset pwm output rates to safe startup defaults
 static void pwm_rate_defaults() {
     for ( int i = 0; i < PWM_CHANNELS; i++ ) {
-         config.pwm_hz[i] = 50;    
+         config.actuators.pwm_hz[i] = 50;    
     }
 }
 
 // reset actuator gains (reversing) to startup defaults
 static void act_gain_defaults() {
     for ( int i = 0; i < PWM_CHANNELS; i++ ) {
-        config.act_gain[i] = 1.0;
+        config.actuators.act_gain[i] = 1.0;
     }
 }
 
 // reset sas parameters to startup defaults
 static void sas_defaults() {
-    config.sas_rollaxis = false;
-    config.sas_pitchaxis = false;
-    config.sas_yawaxis = false;
-    config.sas_tune = false;
+    config.actuators.sas_rollaxis = false;
+    config.actuators.sas_pitchaxis = false;
+    config.actuators.sas_yawaxis = false;
+    config.actuators.sas_tune = false;
 
-    config.sas_rollgain = 0.0;
-    config.sas_pitchgain = 0.0;
-    config.sas_yawgain = 0.0;
-    config.sas_max_gain = 2.0;
+    config.actuators.sas_rollgain = 0.0;
+    config.actuators.sas_pitchgain = 0.0;
+    config.actuators.sas_yawgain = 0.0;
+    config.actuators.sas_max_gain = 2.0;
 };
 
 
 // reset mixing parameters to startup defaults
 static void mixing_defaults() {
-    config.mix_autocoord = false;
-    config.mix_throttle_trim = false;
-    config.mix_flap_trim = false;
-    config.mix_elevon = false;
-    config.mix_flaperon = false;
-    config.mix_vtail = false;
-    config.mix_diff_thrust = false;
+    config.actuators.mix_autocoord = false;
+    config.actuators.mix_throttle_trim = false;
+    config.actuators.mix_flap_trim = false;
+    config.actuators.mix_elevon = false;
+    config.actuators.mix_flaperon = false;
+    config.actuators.mix_vtail = false;
+    config.actuators.mix_diff_thrust = false;
 
-    config.mix_Gac = 0.5;       // aileron gain for autocoordination
-    config.mix_Get = -0.1;      // elevator trim w/ throttle gain
-    config.mix_Gef = 0.1;       // elevator trim w/ flap gain
+    config.actuators.mix_Gac = 0.5;       // aileron gain for autocoordination
+    config.actuators.mix_Get = -0.1;      // elevator trim w/ throttle gain
+    config.actuators.mix_Gef = 0.1;       // elevator trim w/ flap gain
 
-    config.mix_Gea = 1.0;       // aileron gain for elevons
-    config.mix_Gee = 1.0;       // elevator gain for elevons
-    config.mix_Gfa = 1.0;       // aileron gain for flaperons
-    config.mix_Gff = 1.0;       // flaps gain for flaperons
-    config.mix_Gve = 1.0;       // elevator gain for vtail
-    config.mix_Gvr = 1.0;       // rudder gain for vtail
-    config.mix_Gtt = 1.0;       // throttle gain for diff thrust
-    config.mix_Gtr = 0.1;       // rudder gain for diff thrust
+    config.actuators.mix_Gea = 1.0;       // aileron gain for elevons
+    config.actuators.mix_Gee = 1.0;       // elevator gain for elevons
+    config.actuators.mix_Gfa = 1.0;       // aileron gain for flaperons
+    config.actuators.mix_Gff = 1.0;       // flaps gain for flaperons
+    config.actuators.mix_Gve = 1.0;       // elevator gain for vtail
+    config.actuators.mix_Gvr = 1.0;       // rudder gain for vtail
+    config.actuators.mix_Gtt = 1.0;       // throttle gain for diff thrust
+    config.actuators.mix_Gtr = 0.1;       // rudder gain for diff thrust
 };
 
 
@@ -999,9 +997,9 @@ static bool Aura3_send_config() {
 	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
     count = pwm_node.getLen("channel");
     for ( int i = 0; i < count; i++ ) {
-        config.pwm_hz[i] = pwm_node.getLong("channel", i);
+        config.actuators.pwm_hz[i] = pwm_node.getLong("channel", i);
         if ( display_on ) {
-            printf("pwm_hz[%d] = %d\n", i, config.pwm_hz[i]);
+            printf("pwm_hz[%d] = %d\n", i, config.actuators.pwm_hz[i]);
         }
     }
 
@@ -1009,9 +1007,9 @@ static bool Aura3_send_config() {
 	= pyGetNode("/config/actuators/actuator/gains", true);
     count = gain_node.getLen("channel");
     for ( int i = 0; i < count; i++ ) {
-        config.act_gain[i] = gain_node.getDouble("channel", i);
+        config.actuators.act_gain[i] = gain_node.getDouble("channel", i);
         if ( display_on ) {
-            printf("act_gain[%d] = %.2f\n", i, config.act_gain[i]);
+            printf("act_gain[%d] = %.2f\n", i, config.actuators.act_gain[i]);
         }
     }
 
@@ -1037,30 +1035,30 @@ static bool Aura3_send_config() {
 	    if ( mix_node.hasChild("mode") ) {
 		mode = mix_node.getString("mode");
 		if ( mode == "auto_coordination" ) {
-                    config.mix_autocoord = enable;
-                    config.mix_Gac = gain1;
+                    config.actuators.mix_autocoord = enable;
+                    config.actuators.mix_Gac = gain1;
 		} else if ( mode == "throttle_trim" ) {
-                    config.mix_throttle_trim = enable;
-                    config.mix_Get = gain1;
+                    config.actuators.mix_throttle_trim = enable;
+                    config.actuators.mix_Get = gain1;
 		} else if ( mode == "flap_trim" ) {
-                    config.mix_flap_trim = enable;
-                    config.mix_Gef = gain1;
+                    config.actuators.mix_flap_trim = enable;
+                    config.actuators.mix_Gef = gain1;
 		} else if ( mode == "elevon" ) {
-                    config.mix_elevon = enable;
-                    config.mix_Gea = gain1;
-                    config.mix_Gee = gain2;
+                    config.actuators.mix_elevon = enable;
+                    config.actuators.mix_Gea = gain1;
+                    config.actuators.mix_Gee = gain2;
 		} else if ( mode == "flaperon" ) {
-                    config.mix_flaperon = enable;
-                    config.mix_Gfa = gain1;
-                    config.mix_Gff = gain2;
+                    config.actuators.mix_flaperon = enable;
+                    config.actuators.mix_Gfa = gain1;
+                    config.actuators.mix_Gff = gain2;
 		} else if ( mode == "vtail" ) {
-                    config.mix_vtail = enable;
-                    config.mix_Gve = gain1;
-                    config.mix_Gvr = gain2;
+                    config.actuators.mix_vtail = enable;
+                    config.actuators.mix_Gve = gain1;
+                    config.actuators.mix_Gvr = gain2;
 		} else if ( mode == "diff_thrust" ) {
-                    config.mix_diff_thrust = enable;
-                    config.mix_Gtt = gain1;
-                    config.mix_Gtr = gain2;
+                    config.actuators.mix_diff_thrust = enable;
+                    config.actuators.mix_Gtt = gain1;
+                    config.actuators.mix_Gtr = gain2;
 		}
 	    }
 	    if ( display_on ) {
@@ -1089,14 +1087,14 @@ static bool Aura3_send_config() {
 		if ( sas_section.hasChild("mode") ) {
 		    mode = sas_section.getString("mode");
 		    if ( mode == "roll" ) {
-                        config.sas_rollaxis = enable;
-                        config.sas_rollgain = gain;
+                        config.actuators.sas_rollaxis = enable;
+                        config.actuators.sas_rollgain = gain;
 		    } else if ( mode == "pitch" ) {
-                        config.sas_pitchaxis = enable;
-                        config.sas_pitchgain = gain;
+                        config.actuators.sas_pitchaxis = enable;
+                        config.actuators.sas_pitchgain = gain;
 		    } else if ( mode == "yaw" ) {
-                        config.sas_yawaxis = enable;
-                        config.sas_yawgain = gain;
+                        config.actuators.sas_yawaxis = enable;
+                        config.actuators.sas_yawgain = gain;
 		    }
 		}
 		if ( display_on ) {
@@ -1106,7 +1104,7 @@ static bool Aura3_send_config() {
 	} else if ( children[i] == "pilot_tune" ) {
 	    pyPropertyNode sas_section = sas_node.getChild("pilot_tune");
 	    if ( sas_section.hasChild("enable") ) {
-		config.sas_tune = sas_section.getBool("enable");
+		config.actuators.sas_tune = sas_section.getBool("enable");
 	    }
 	    if ( display_on ) {
 		printf("sas: global tune %d\n", enable);
@@ -1118,9 +1116,9 @@ static bool Aura3_send_config() {
 	printf("Aura3: transmitting config ...\n");
     }
     start_time = get_Time();    
-    Aura3_write_config();
+    Aura3_write_act_config();
     last_ack_id = 0;
-    while ( (last_ack_id != CONFIG_PACKET_ID) ) {
+    while ( (last_ack_id != CONFIG_ACTUATORS_PACKET_ID) ) {
 	Aura3_read();
 	if ( get_Time() > start_time + timeout ) {
 	    if ( display_on ) {
