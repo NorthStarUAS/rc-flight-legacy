@@ -150,58 +150,49 @@ static void Aura3_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size,
     *cksum1 = c1;
 }
 
-static bool Aura3_act_write_eeprom() {
+static bool write_packet(uint8_t packet_id, uint8_t *payload, uint8_t len) {
     uint8_t buf[256];
     uint8_t cksum0, cksum1;
-    uint8_t size = 0;
-    /* int len; */
-
+    
     // start of message sync bytes
     buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
+    write( fd, buf, 2 );
 
     // packet id (1 byte)
-    buf[0] = WRITE_EEPROM_PACKET_ID;
+    buf[0] = packet_id;
+
     // packet length (1 byte)
-    buf[1] = 0;
-    /* len = */ write( fd, buf, 2 );
+    buf[1] = len;
+    write( fd, buf, 2 );
 
+    if ( len > 0 ) {
+        // write payload
+        write( fd, payload, len );
+    }
+    
     // check sum (2 bytes)
-    Aura3_cksum( WRITE_EEPROM_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    Aura3_cksum( packet_id, len, payload, len, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
+    write( fd, buf, 2 );
 
+    return true;
+}
+
+static bool write_eeprom() {
+    write_packet( WRITE_EEPROM_PACKET_ID, NULL, 0 );
     return true;
 }
 
 
 static bool Aura3_write_config() {
-    uint8_t buf[256];
-    uint8_t cksum0, cksum1;
-    uint8_t size = sizeof(config);
-    
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    write( fd, buf, 2 );
+    // eventually depricate (being sent int parts?)
+    write_packet( CONFIG_PACKET_ID, (uint8_t *)&config, sizeof(config) );
+    return true;
+}
 
-    // packet id (1 byte)
-    buf[0] = CONFIG_PACKET_ID;
-    // packet length (1 byte)
-    buf[1] = size;
-    write( fd, buf, 2 );
-
-    // write packet byte-wise
-    uint8_t *p = (uint8_t *)&config;
-    for ( int i = 0; i < size; i++ ) {
-        write( fd, p, 1 );
-        p++;
-    }
-    
-    // check sum (2 bytes)
-    Aura3_cksum( CONFIG_PACKET_ID, size, (uint8_t *)&config, size, &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    write( fd, buf, 2 );
-
+static bool write_config_imu() {
+    write_packet( CONFIG_IMU_PACKET_ID, (uint8_t *)&(config.imu),
+                  sizeof(config.imu) );
     return true;
 }
 
@@ -580,7 +571,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
     static LowPassFilter int_main_vcc_filt(2.0);
     static LowPassFilter ext_main_vcc_filt(2.0);
 
-    if ( pkt_id == ACK_PACKET_ID ) {
+    if ( pkt_id == CONFIG_ACK_PACKET_ID ) {
 	if ( display_on ) {
 	    printf("Received ACK = %d %d\n", payload[0], payload[1]);
 	}
@@ -890,13 +881,17 @@ static int Aura3_read() {
 }
 
 
-// set imu orientation to identity
-static void imu_orientation_defaults() {
+// Setup imu defaults:
+// Marmot v1 has mpu9250 on SPI CS line 24
+// Aura v2 has mpu9250 on I2C Addr 0x68
+static void imu_setup_defaults() {
+    config.imu.interface = 0;       // SPI
+    config.imu.pin_or_address = 24; // CS pin
     float ident[] = { 1.0, 0.0, 0.0,
                       0.0, 1.0, 0.0,
                       0.0, 0.0, 1.0};
     for ( int i = 0; i < 9; i++ ) {
-        config.imu_orient[i] = ident[i];
+        config.imu.orientation[i] = ident[i];
     }
 }
 
@@ -965,7 +960,7 @@ static bool Aura3_send_config() {
     vector<string> children;
 
     // set all parameters to defaults
-    imu_orientation_defaults();
+    imu_setup_defaults();
     pwm_rate_defaults();
     act_gain_defaults();
     mixing_defaults();
@@ -979,7 +974,7 @@ static bool Aura3_send_config() {
         int len = imu_node.getLen("orientation");
         if ( len == 9 ) {
             for ( int i = 0; i < len; i++ ) {
-                config.imu_orient[i] = imu_node.getDouble("orientation", i);
+                config.imu.orientation[i] = imu_node.getDouble("orientation", i);
             }
         } else {
             printf("WARNING: imu orienation improper matrix size\n");
@@ -987,7 +982,19 @@ static bool Aura3_send_config() {
     } else {
         printf("Note: no imu orientation defined, default is identity matrix\n");
     }
-    
+    if ( imu_node.hasChild("interface") ) {
+        string interface = imu_node.getString("interface");
+        if ( interface == "spi" ) {
+            config.imu.interface = 0;
+            config.imu.pin_or_address = imu_node.getLong("cs_pin");
+        } else if ( interface == "i2c" ) {
+            config.imu.interface = 1;
+            config.imu.pin_or_address = imu_node.getLong("i2c_addr");
+        } else {
+            printf("Warning: unknown IMU interface = %s\n", interface.c_str());
+        }
+    }
+            
     pyPropertyNode pwm_node
 	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
     count = pwm_node.getLen("channel");
@@ -1124,10 +1131,26 @@ static bool Aura3_send_config() {
     }
 
     if ( display_on ) {
+	printf("Aura3: transmitting imu config ...\n");
+    }
+    start_time = get_Time();    
+    write_config_imu();
+    last_ack_id = 0;
+    while ( (last_ack_id != CONFIG_IMU_PACKET_ID) ) {
+	Aura3_read();
+	if ( get_Time() > start_time + timeout ) {
+	    if ( display_on ) {
+		printf("Timeout waiting for write config imu ack...\n");
+	    }
+	    return false;
+	}
+    }
+
+    if ( display_on ) {
 	printf("Aura3: requesting save config ...\n");
     }
     start_time = get_Time();    
-    Aura3_act_write_eeprom();
+    write_eeprom();
     last_ack_id = 0;
     while ( (last_ack_id != WRITE_EEPROM_PACKET_ID) ) {
 	Aura3_read();

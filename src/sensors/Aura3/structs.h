@@ -3,11 +3,13 @@
 #include "setup_pwm.h"
 #include "setup_sbus.h"
 
+#include "structs_config.h"
+
 #pragma pack(push, 1)           // set alignment to 1 byte boundary
 
 // master config (for messages and saving in eeprom)
 typedef struct {
-    float imu_orient[9];        // IMU orientation matrix
+    config_imu_t imu;
     
     // pwm output signal hz, 50hz default for analog servos, maximum
     // rate is servo dependent: digital servos can usually do
