@@ -185,6 +185,12 @@ static bool write_eeprom() {
 }
 
 
+static bool write_config_master() {
+    write_packet( CONFIG_MASTER_PACKET_ID, (uint8_t *)&(config.master),
+                  sizeof(config.master) );
+    return true;
+}
+
 static bool write_config_imu() {
     write_packet( CONFIG_IMU_PACKET_ID, (uint8_t *)&(config.imu),
                   sizeof(config.imu) );
@@ -887,6 +893,11 @@ static int Aura3_read() {
 }
 
 
+// master board selector defaults
+void master_defaults() {
+    config.master.board = 0;
+}
+
 // Setup imu defaults:
 // Marmot v1 has mpu9250 on SPI CS line 24
 // Aura v2 has mpu9250 on I2C Addr 0x68
@@ -903,7 +914,6 @@ static void imu_setup_defaults() {
 
 // reset pwm output rates to safe startup defaults
 static void pwm_defaults() {
-    config.actuators.pwm_pin_layout = 0; // Marmot v1
     for ( int i = 0; i < PWM_CHANNELS; i++ ) {
          config.actuators.pwm_hz[i] = 50;    
     }
@@ -971,6 +981,7 @@ static bool Aura3_send_config() {
     vector<string> children;
 
     // set all parameters to defaults
+    master_defaults();
     imu_setup_defaults();
     pwm_defaults();
     act_gain_defaults();
@@ -979,6 +990,17 @@ static bool Aura3_send_config() {
     led_defaults();
 
     int count;
+
+    if ( aura3_config.hasChild("board") ) {
+        string board = aura3_config.getString("board");
+        if ( board == "marmot_v1" ) {
+            config.master.board = 0;
+        } else if ( board == "aura_v2" ) {
+            config.master.board = 1;
+        } else {
+            printf("Warning: no valid PWM pin layout defined.\n");
+        }
+    }
 
     pyPropertyNode imu_node
         = pyGetNode("/config/sensors/imu_group/imu", true);
@@ -1007,16 +1029,6 @@ static bool Aura3_send_config() {
         }
     }
             
-    if ( aura3_config.hasChild("board") ) {
-        string board = aura3_config.getString("board");
-        if ( board == "marmot_v1" ) {
-            config.actuators.pwm_pin_layout = 0;
-        } else if ( board == "aura_v2" ) {
-            config.actuators.pwm_pin_layout = 1;
-        } else {
-            printf("Warning: no valid PWM pin layout defined.\n");
-        }
-    }
     pyPropertyNode pwm_node
 	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
     count = pwm_node.getLen("channel");
@@ -1140,6 +1152,22 @@ static bool Aura3_send_config() {
         config.led.pin = aura3_config.getLong("led_pin");
     }
     
+    if ( display_on ) {
+	printf("Aura3: transmitting master config ...\n");
+    }
+    start_time = get_Time();    
+    write_config_master();
+    last_ack_id = 0;
+    while ( (last_ack_id != CONFIG_MASTER_PACKET_ID) ) {
+	Aura3_read();
+	if ( get_Time() > start_time + timeout ) {
+	    if ( display_on ) {
+		printf("Timeout waiting for config master ack...\n");
+	    }
+	    return false;
+	}
+    }
+
     if ( display_on ) {
 	printf("Aura3: transmitting imu config ...\n");
     }

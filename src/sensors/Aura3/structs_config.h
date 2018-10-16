@@ -2,6 +2,11 @@
 
 #pragma pack(push,1)            // set alignment to 1 byte boundary
 
+// Master Board Configuratoin
+typedef struct {
+    uint8_t board;              // 0 = Marmot v1, 1 = Aura v2
+} config_master_t;
+
 // IMU Configuration
 typedef struct {
     uint8_t interface;          // 0 = SPI, 1 = I2C
@@ -11,8 +16,6 @@ typedef struct {
 
 // Actuators Configuration
 typedef struct {
-    uint16_t pwm_pin_layout; // pwm pin arrangement, 0 = Marmot v1, 1 = Aura v2
-    
     // pwm output signal hz, 50hz default for analog servos, maximum
     // rate is servo dependent: digital servos can usually do
     // 200-250hz, analog servos and ESC's typically require 50hz
@@ -69,6 +72,7 @@ typedef struct {
 
 // master config (for messages and saving in eeprom)
 typedef struct {
+    config_master_t master;
     config_imu_t imu;
     config_act_t actuators;
     config_led_t led;
