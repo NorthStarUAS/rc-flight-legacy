@@ -964,6 +964,9 @@ static void mixing_defaults() {
     config.actuators.mix_Gtr = 0.1;       // rudder gain for diff thrust
 };
 
+static void power_defaults() {
+    config.power.have_attopilot = false;
+}
 
 static void led_defaults() {
     config.led.pin = 0;
@@ -987,6 +990,7 @@ static bool Aura3_send_config() {
     act_gain_defaults();
     mixing_defaults();
     sas_defaults();
+    power_defaults();
     led_defaults();
 
     int count;
@@ -1000,6 +1004,10 @@ static bool Aura3_send_config() {
         } else {
             printf("Warning: no valid PWM pin layout defined.\n");
         }
+    }
+
+    if ( aura3_config.hasChild("have_attopilot") ) {
+        config.power.have_attopilot = aura3_config.getBool("have_attopilot");
     }
 
     pyPropertyNode imu_node
