@@ -209,6 +209,12 @@ static bool write_config_led() {
     return true;
 }
 
+static bool write_config_power() {
+    write_packet( CONFIG_POWER_PACKET_ID, (uint8_t *)&(config.power),
+                  sizeof(config.power) );
+    return true;
+}
+
 // initialize imu output property nodes 
 static void bind_imu_output( string output_node ) {
     if ( imu_inited ) {
@@ -1203,6 +1209,22 @@ static bool Aura3_send_config() {
 	if ( get_Time() > start_time + timeout ) {
 	    if ( display_on ) {
 		printf("Timeout waiting for config actuators ack...\n");
+	    }
+	    return false;
+	}
+    }
+
+    if ( display_on ) {
+	printf("Aura3: transmitting power config ...\n");
+    }
+    start_time = get_Time();    
+    write_config_power();
+    last_ack_id = 0;
+    while ( (last_ack_id != CONFIG_POWER_PACKET_ID) ) {
+	Aura3_read();
+	if ( get_Time() > start_time + timeout ) {
+	    if ( display_on ) {
+		printf("Timeout waiting for config power ack...\n");
 	    }
 	    return false;
 	}
