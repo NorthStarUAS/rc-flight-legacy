@@ -14,7 +14,7 @@ import transformations
 
 argparser = argparse.ArgumentParser(description='fit imu bias data')
 argparser.add_argument('--cal-dir', required=True, help='calibration directory')
-argparser.add_argument('--imu-model', required=True, help='goldy or apm2')
+argparser.add_argument('--imu-model', required=True, help='apm2')
 args = argparser.parse_args()
 
 cal_file = os.path.join(args.cal_dir, "imucal.json")
@@ -80,10 +80,6 @@ if not cal.load(cal_file):
 # select which components to update
 if args.imu_model == 'apm2':
     bias_cal = nosave
-    accel_cal = cal
-    mag_cal = cal
-elif args.imu_model == 'goldy2':
-    bias_cal = cal
     accel_cal = cal
     mag_cal = cal
 else:

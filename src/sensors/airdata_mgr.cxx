@@ -32,7 +32,6 @@ using std::vector;
 #include "APM2.hxx"
 #include "Aura3/Aura3.hxx"
 #include "FGFS.hxx"
-#include "Goldy2.hxx"
 
 #include "airdata_mgr.hxx"
 
@@ -113,8 +112,6 @@ void AirData_init() {
 	    Aura3_airdata_init( output_path.str() );
 	} else if ( source == "fgfs" ) {
 	    fgfs_airdata_init( output_path.str() );
-	} else if ( source == "Goldy2" ) {
-	    goldy2_airdata_init( output_path.str() );
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());
@@ -324,8 +321,6 @@ bool AirData_update() {
 	    fresh_data = Aura3_airdata_update();
 	} else if ( source == "fgfs" ) {
 	    fresh_data = fgfs_airdata_update();
-	} else if ( source == "Goldy2" ) {
-	    fresh_data = goldy2_airdata_update();
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());
@@ -402,8 +397,6 @@ void AirData_calibrate() {
 	    Aura3_airdata_zero_airspeed();
 	} else if ( source == "fgfs" ) {
 	    // do nothing
-	} else if ( source == "Goldy2" ) {
-	    // do nothing
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());
@@ -432,8 +425,6 @@ void AirData_close() {
 	    Aura3_airdata_close();
 	} else if ( source == "fgfs" ) {
 	    // nop
-	} else if ( source == "Goldy2" ) {
-	    goldy2_airdata_close();
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());
