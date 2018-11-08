@@ -33,8 +33,6 @@ using std::vector;
 #include "Aura3/Aura3.hxx"
 #include "FGFS.hxx"
 #include "Goldy2.hxx"
-#include "raven1.hxx"
-#include "raven2.hxx"
 
 #include "airdata_mgr.hxx"
 
@@ -117,10 +115,6 @@ void AirData_init() {
 	    fgfs_airdata_init( output_path.str() );
 	} else if ( source == "Goldy2" ) {
 	    goldy2_airdata_init( output_path.str() );
-	} else if ( source == "raven1" ) {
-	    raven1_airdata_init( output_path.str(), &section );
-	} else if ( source == "raven2" ) {
-	    raven2_airdata_init( output_path.str(), &section );
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());
@@ -332,10 +326,6 @@ bool AirData_update() {
 	    fresh_data = fgfs_airdata_update();
 	} else if ( source == "Goldy2" ) {
 	    fresh_data = goldy2_airdata_update();
-	} else if ( source == "raven1" ) {
-	    fresh_data = raven1_airdata_update();
-	} else if ( source == "raven2" ) {
-	    fresh_data = raven2_airdata_update();
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());
@@ -354,23 +344,13 @@ bool AirData_update() {
 	
 	    if ( send_remote_link || send_logging ) {
 		uint8_t buf[256];
-		if ( source != "raven1" and source != "raven2" ) {
-		    int size = packer->pack_airdata( i, buf );
-		    if ( send_remote_link ) {
-			remote_link->send_message( buf, size );
-		    }
-		    if ( send_logging ) {
-			logging->log_message( buf, size );
-		    }
-		} else {
-		    int size = packer->pack_raven( i, buf );
-		    //if ( send_remote_link ) {
-		    //  remote_link_airdata( buf, size );
-		    // }
-		    if ( send_logging ) {
-			logging->log_message( buf, size );
-		    }
-		}
+                int size = packer->pack_airdata( i, buf );
+                if ( send_remote_link ) {
+                    remote_link->send_message( buf, size );
+                }
+                if ( send_logging ) {
+                    logging->log_message( buf, size );
+                }
 	    }
 	}
     }
@@ -424,8 +404,6 @@ void AirData_calibrate() {
 	    // do nothing
 	} else if ( source == "Goldy2" ) {
 	    // do nothing
-	} else if ( source == "raven1" || source == "raven2" ) {
-	    // do nothing
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());
@@ -456,10 +434,6 @@ void AirData_close() {
 	    // nop
 	} else if ( source == "Goldy2" ) {
 	    goldy2_airdata_close();
-	} else if ( source == "raven1" ) {
-	    raven1_airdata_close();
-	} else if ( source == "raven2" ) {
-	    raven2_airdata_close();
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());

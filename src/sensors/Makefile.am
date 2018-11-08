@@ -17,8 +17,6 @@ libsensors_a_SOURCES = \
 	APM2.cxx APM2.hxx \
 	FGFS.cxx FGFS.hxx \
 	Goldy2.cxx Goldy2.hxx \
-	raven1.hxx raven1.cxx \
-	raven2.hxx raven2.cxx \
 	ugfile.cxx ugfile.hxx \
 	util_goldy2.cxx util_goldy2.hxx
 

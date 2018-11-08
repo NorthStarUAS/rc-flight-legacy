@@ -25,5 +25,4 @@ public:
     int pack_filter(int index, uint8_t *buf);
     int pack_payload(int index, uint8_t *buf);
     int pack_ap(int index, uint8_t *buf);
-    int pack_raven(int index, uint8_t *buf);
 };

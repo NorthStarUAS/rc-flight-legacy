@@ -26,14 +26,11 @@ START_OF_MSG1 = 224
 imu_timestamp = 0.0
 
 gps_nodes = []
-gps_v1_fmt = '<dddfhhhdBB'
 gps_v2_fmt = '<BdddfhhhdBB'
 gps_v3_fmt = '<BdddfhhhdBHHHB'
 gps_v4_fmt = '<BfddfhhhdBHHHB'
 
 imu_nodes = []
-imu_v1_fmt = '<dfffffffffB'
-imu_v2_fmt = '<dfffffffffhB'
 imu_v3_fmt = '<BdfffffffffhB'
 imu_v4_fmt = '<BffffffffffhB'
 
@@ -43,26 +40,21 @@ pos_pressure_node = getNode("/position/pressure", True)
 pos_combined_node = getNode("/position/combined", True)
 vel_node = getNode("/velocity", True)
 wind_node = getNode("/filters/wind", True)
-airdata_v3_fmt = "<dHhhfhhHBBB"
-airdata_v4_fmt = "<dHhhffhhHBBB"
 airdata_v5_fmt = "<BdHhhffhHBBB"
 airdata_v6_fmt = "<BfHhhffhHBBB"
 
 filter_nodes = []
 remote_link_node = getNode("/comms/remote_link", True)
-filter_v1_fmt = "<dddfhhhhhhBB"
 filter_v2_fmt = "<BdddfhhhhhhBB"
 filter_v3_fmt = "<BdddfhhhhhhhhhhhhBB"
 filter_v4_fmt = "<BfddfhhhhhhhhhhhhBB"
 
 NUM_ACTUATORS = 8
 act_node = getNode("/actuators", True)
-act_v1_fmt = "<dhhHhhhhhB"
 act_v2_fmt = "<BdhhHhhhhhB"
 act_v3_fmt = "<BfhhHhhhhhB"
 
 pilot_nodes = []
-pilot_v1_fmt = "<dhhHhhhhhB"
 pilot_v2_fmt = "<BdhhhhhhhhB"
 pilot_v3_fmt = "<BfhhhhhhhhB"
 
@@ -81,17 +73,12 @@ ap_status_v6_fmt = "<BdBhhHhhhHHddHHBHB"
 ap_status_v7_fmt = "<BfBhhHhhhHHddHHBHB"
 
 power_node = getNode("/sensors/power", True)
-system_health_v2_fmt = "<dHHHHH"
-system_health_v3_fmt = "<dHHHHHH"
 system_health_v4_fmt = "<BdHHHHHH"
 system_health_v5_fmt = "<BfHHHHHH"
 
 payload_node = getNode("/payload", True)
-payload_v1_fmt = "<dH"
 payload_v2_fmt = "<BdH"
 payload_v3_fmt = "<BfH"
-
-raven_v1_fmt = "<BdHHHHHHHHHHffffB"
 
 event_node = getNode("/status/event", True)
 # event_v1_fmt = "<BdB%ds"
@@ -175,29 +162,6 @@ def pack_gps_csv(index):
            'horiz_accuracy_m', 'vert_accuracy_m', 'pdop', 'fix_type']
     return row, keys
     
-def unpack_gps_v1(buf):
-    index = 0
-    if index >= len(gps_nodes):
-        for i in range(len(gps_nodes),index+1):
-            path = '/sensors/gps[%d]' % i
-            gps_nodes.append( getNode(path, True) )
-    node = gps_nodes[index]
-    
-    result = struct.unpack(gps_v1_fmt, buf)
-    
-    node.setFloat("timestamp", result[0])
-    node.setFloat("latitude_deg", result[1])
-    node.setFloat("longitude_deg", result[2])
-    node.setFloat("altitude_m", result[3])
-    node.setFloat("vn_ms", result[4] / 100.0)
-    node.setFloat("ve_ms", result[5] / 100.0)
-    node.setFloat("vd_ms", result[6] / 100.0)
-    node.setFloat("unix_time_sec", result[7])
-    node.setInt("satellites", result[8])
-    node.setInt("status", result[9])
-
-    return index
-
 def unpack_gps_v2(buf):
     result = struct.unpack(gps_v2_fmt, buf)
 
@@ -322,55 +286,6 @@ def pack_imu_csv(index):
             'hx', 'hy', 'hz', 'temp_C', 'status']
     return row, keys
     
-def unpack_imu_v1(buf):
-    index = 0
-    if index >= len(imu_nodes):
-        for i in range(len(imu_nodes),index+1):
-            path = '/sensors/imu[%d]' % i
-            imu_nodes.append( getNode(path, True) )
-    node = imu_nodes[index]
-
-    result = struct.unpack(imu_v1_fmt, buf)
-    
-    node.setFloat("timestamp", result[0])
-    node.setFloat("p_rad_sec", result[1])
-    node.setFloat("q_rad_sec", result[2])
-    node.setFloat("r_rad_sec", result[3])
-    node.setFloat("ax_mps_sec", result[4])
-    node.setFloat("ay_mps_sec", result[5])
-    node.setFloat("az_mps_sec", result[6])
-    node.setFloat("hx", result[7])
-    node.setFloat("hy", result[8])
-    node.setFloat("hz", result[9])
-    node.setInt("status", result[10])
-
-    return index
-
-def unpack_imu_v2(buf):
-    index = 0
-    if index >= len(imu_nodes):
-        for i in range(len(imu_nodes),index+1):
-            path = '/sensors/imu[%d]' % i
-            imu_nodes.append( getNode(path, True) )
-    node = imu_nodes[index]
-
-    result = struct.unpack(imu_v2_fmt, buf)
-
-    node.setFloat("timestamp", result[0])
-    node.setFloat("p_rad_sec", result[1])
-    node.setFloat("q_rad_sec", result[2])
-    node.setFloat("r_rad_sec", result[3])
-    node.setFloat("ax_mps_sec", result[4])
-    node.setFloat("ay_mps_sec", result[5])
-    node.setFloat("az_mps_sec", result[6])
-    node.setFloat("hx", result[7])
-    node.setFloat("hy", result[8])
-    node.setFloat("hz", result[9])
-    node.setFloat("temp_C", result[10] / 10.0)
-    node.setInt("status", result[10])
-
-    return index
-
 def unpack_imu_v3(buf):
     result = struct.unpack(imu_v3_fmt, buf)
 
@@ -463,55 +378,6 @@ def pack_airdata_csv(index):
             'wind_dir_deg', 'wind_speed_kt', 'pitot_scale_factor',
             'tecs_error_total', 'tecs_error_diff', 'status']
     return row, keys
-
-def unpack_airdata_v3(buf):
-    index = 0
-    if index >= len(airdata_nodes):
-        for i in range(len(airdata_nodes),index+1):
-            path = '/sensors/airdata[%d]' % i
-            airdata_nodes.append( getNode(path, True) )
-    node = airdata_nodes[index]
-
-    result = struct.unpack(airdata_v3_fmt, buf)
-    
-    node.setFloat("timestamp", result[0])
-    node.setFloat("pressure_mbar", result[1] / 10.0)
-    node.setFloat("temp_C", result[2] / 10.0)
-    vel_node.setFloat("airspeed_smoothed_kt", result[3] / 100.0)
-    pos_pressure_node.setFloat("altitude_smoothed_m", result[4])
-    vel_node.setFloat("pressure_vertical_speed_fps", (result[5] / 10.0) / 60.0)
-    node.setFloat("acceleration", result[6] / 100.0)
-    wind_node.setFloat("wind_dir_deg", result[7] / 100.0)
-    wind_node.setFloat("wind_speed_kt", result[8] / 4.0)
-    wind_node.setFloat("pitot_scale_factor", result[9] / 100.0)
-    node.setInt("status", result[10])
-
-    return index
-
-def unpack_airdata_v4(buf):
-    index = 0
-    if index >= len(airdata_nodes):
-        for i in range(len(airdata_nodes),index+1):
-            path = '/sensors/airdata[%d]' % i
-            airdata_nodes.append( getNode(path, True) )
-    node = airdata_nodes[index]
-
-    result = struct.unpack(airdata_v4_fmt, buf)
-    
-    node.setFloat("timestamp", result[0])
-    node.setFloat("pressure_mbar", result[1] / 10.0)
-    node.setFloat("temp_C", result[2] / 10.0)
-    vel_node.setFloat("airspeed_smoothed_kt", result[3] / 100.0)
-    pos_pressure_node.setFloat("altitude_smoothed_m", result[4])
-    pos_combined_node.setFloat("altitude_true_m", result[5])
-    vel_node.setFloat("pressure_vertical_speed_fps", (result[6] / 10.0) / 60.0)
-    node.setFloat("acceleration", result[7] / 100.0)
-    wind_node.setFloat("wind_dir_deg", result[8] / 100.0)
-    wind_node.setFloat("wind_speed_kt", result[9] / 4.0)
-    wind_node.setFloat("pitot_scale_factor", result[10] / 100.0)
-    node.setInt("status", result[11])
-
-    return index
 
 def unpack_airdata_v5(buf):
     result = struct.unpack(airdata_v5_fmt, buf)
@@ -615,31 +481,6 @@ def pack_filter_csv(index):
             'p_bias', 'q_bias', 'r_bias', 'ax_bias', 'ay_bias', 'az_bias',
             'status']
     return row, keys
-
-def unpack_filter_v1(buf):
-    index = 0
-    if index >= len(filter_nodes):
-        for i in range(len(filter_nodes),index+1):
-            path = '/filters/filter[%d]' % i
-            filter_nodes.append( getNode(path, True) )
-    node = filter_nodes[index]
-
-    result = struct.unpack(filter_v1_fmt, buf)
-    
-    node.setFloat("timestamp", result[0])
-    node.setFloat("latitude_deg", result[1])
-    node.setFloat("longitude_deg", result[2])
-    node.setFloat("altitude_m", result[3])
-    node.setFloat("vn_ms", result[4] / 100.0)
-    node.setFloat("ve_ms", result[5] / 100.0)
-    node.setFloat("vd_ms", result[6] / 100.0)
-    node.setFloat("roll_deg", result[7] / 10.0)
-    node.setFloat("pitch_deg", result[8] / 10.0)
-    node.setFloat("heading_deg", result[9] / 10.0)
-    remote_link_node.setInt("sequence_num", result[10])
-    node.setInt("status", result[11])
-
-    return index
 
 def unpack_filter_v2(buf):
     result = struct.unpack(filter_v2_fmt, buf)
@@ -762,20 +603,6 @@ def pack_act_csv(index):
             'channel8_norm', 'status']
     return row, keys
 
-def unpack_act_v1(buf):
-    result = struct.unpack(act_v1_fmt, buf)
-    act_node.setFloat("timestamp", result[0])
-    act_node.setFloat("aileron", result[1] / 30000.0)
-    act_node.setFloat("elevator", result[2] / 30000.0)
-    act_node.setFloat("throttle", result[3] / 60000.0)
-    act_node.setFloat("rudder", result[4] / 30000.0)
-    act_node.setFloat("channel5", result[5] / 30000.0)
-    act_node.setFloat("flaps", result[6] / 30000.0)
-    act_node.setFloat("channel7", result[7] / 30000.0)
-    act_node.setFloat("channel8", result[8] / 30000.0)
-    act_node.setInt("status", result[9])
-    return 0
-
 def unpack_act_v2(buf):
     result = struct.unpack(act_v2_fmt, buf)
     index = result[0]
@@ -848,31 +675,6 @@ def pack_pilot_csv(index):
             'channel[3]', 'channel[4]', 'channel[5]', 'channel[6]',
             'channel[7]', 'status']
     return row, keys
-
-def unpack_pilot_v1(buf):
-    index = 0
-    if index >= len(pilot_nodes):
-        for i in range(len(pilot_nodes),index+1):
-            path = '/sensors/pilot_input[%d]' % i
-            node = getNode(path, True)
-            node.setLen("channel", NUM_ACTUATORS, 0.0)
-            pilot_nodes.append( node )
-    node = pilot_nodes[index]
-
-    result = struct.unpack(pilot_v1_fmt, buf)
-
-    node.setFloat("timestamp", result[0])
-    node.setFloat("aileron", result[1] / 30000.0)
-    node.setFloat("elevator", result[2] / 30000.0)
-    node.setFloat("throttle", result[3] / 60000.0)
-    node.setFloat("rudder", result[4] / 30000.0)
-    node.setBool("manual", result[5] / 30000.0 > 0.5)
-    node.setFloatEnum("channel", 5, result[6] / 30000.0)
-    node.setFloatEnum("channel", 6, result[7] / 30000.0)
-    node.setFloatEnum("channel", 7, result[8] / 30000.0)
-    node.setInt("status", result[9])
-
-    return index
 
 def unpack_pilot_v2(buf):
     result = struct.unpack(pilot_v2_fmt, buf)
@@ -1232,31 +1034,6 @@ def pack_system_health_csv(index):
             'cell_vcc', 'main_amps', 'total_mah']
     return row, keys
 
-def unpack_system_health_v2(buf):
-    result = struct.unpack(system_health_v2_fmt, buf)
-
-    # imu_node.setFloat("timestamp", result[0]) # fixme? where to write this value?
-    status_node.setFloat("system_load_avg", result[1] / 100.0)
-    power_node.setFloat("avionics_vcc", result[2] / 1000.0)
-    power_node.setFloat("main_vcc", result[3] / 1000.0)
-    power_node.setFloat("main_amps", result[5] / 1000.0)
-    power_node.setFloat("total_mah", result[6])
-
-    return 0
-
-def unpack_system_health_v3(buf):
-    result = struct.unpack(system_health_v3_fmt, buf)
-
-    status_node.setFloat("frame_time", result[0])
-    status_node.setFloat("system_load_avg", result[1] / 100.0)
-    power_node.setFloat("avionics_vcc", result[2] / 1000.0)
-    power_node.setFloat("main_vcc", result[3] / 1000.0)
-    power_node.setFloat("cell_vcc", result[4] / 1000.0)
-    power_node.setFloat("main_amps", result[5] / 1000.0)
-    power_node.setFloat("total_mah", result[6])
-
-    return 0
-
 def unpack_system_health_v4(buf):
     result = struct.unpack(system_health_v4_fmt, buf)
 
@@ -1301,14 +1078,6 @@ def pack_payload_csv(index):
     keys = ['timestamp', 'trigger_num']
     return row, keys
 
-def unpack_payload_v1(buf):
-    result = struct.unpack(payload_v1_fmt, buf)
-
-    payload_node.setFloat("timestamp", result[0])
-    payload_node.setInt("trigger_num", result[1])
-
-    return 0
-    
 def unpack_payload_v2(buf):
     result = struct.unpack(payload_v2_fmt, buf)
 
@@ -1324,89 +1093,6 @@ def unpack_payload_v3(buf):
     index = result[0]
     payload_node.setFloat("timestamp", result[1])
     payload_node.setInt("trigger_num", result[2])
-
-    return index
-
-# raven is currently a special airdata node, but it is much more than
-# that.
-def pack_raven_bin(index):
-    global imu_timestamp
-    
-    if index >= len(airdata_nodes):
-        for i in range(len(airdata_nodes),index+1):
-            path = '/sensors/airdata[%d]' % i
-            airdata_nodes.append( getNode(path, True) )
-    node = airdata_nodes[index]
-    buf = struct.pack(raven_v1_fmt,
-                      index,
-                      imu_timestamp,
-                      node.getIntEnum("pots", 0),
-                      node.getIntEnum("pots", 1),
-                      node.getIntEnum("pots", 2),
-                      node.getIntEnum("pots", 3),
-                      node.getIntEnum("pots", 4),
-                      node.getIntEnum("pots", 5),
-                      node.getIntEnum("pots", 6),
-                      node.getIntEnum("pots", 7),
-                      node.getIntEnum("pots", 8),
-                      node.getIntEnum("pots", 9),
-                      node.getFloat("diff_pa"),
-                      node.getFloat("pressure_mbar"),
-                      node.getFloat("rpm0"),
-                      node.getFloat("rpm1"),
-                      0)
-    return wrap_packet(RAVEN_PACKET_V1, buf)
-
-def pack_raven_csv(index):
-    node = getNode('/sensors/airdata[%d]' % index, True)
-    row = dict()
-    row['timestamp'] = '%.4f' % node.getFloat('timestamp')
-    row['pots[0]'] = '%d' % node.getIntEnum('pots', 0)
-    row['pots[1]'] = '%d' % node.getIntEnum('pots', 1)
-    row['pots[2]'] = '%d' % node.getIntEnum('pots', 2)
-    row['pots[3]'] = '%d' % node.getIntEnum('pots', 3)
-    row['pots[4]'] = '%d' % node.getIntEnum('pots', 4)
-    row['pots[5]'] = '%d' % node.getIntEnum('pots', 5)
-    row['pots[6]'] = '%d' % node.getIntEnum('pots', 6)
-    row['pots[7]'] = '%d' % node.getIntEnum('pots', 7)
-    row['pots[8]'] = '%d' % node.getIntEnum('pots', 8)
-    row['pots[9]'] = '%d' % node.getIntEnum('pots', 9)
-    row['diff_pa'] = '%.4f' % node.getFloat('diff_pa')
-    row['pressure_mbar'] = '%.4f' % node.getFloat('pressure_mbar')
-    row['rpm0'] = '%.2f' % node.getFloat('rpm0')
-    row['rpm1'] = '%.2f' % node.getFloat('rpm1')
-    row['status'] = '%d' % node.getInt('status')
-    keys = ['timestamp', 'pots[0]', 'pots[1]', 'pots[2]', 'pots[3]',
-            'pots[4]', 'pots[5]', 'pots[6]', 'pots[7]', 'pots[8]', 'pots[9]',
-            'diff_pa', 'pressure_mbar', 'rpm0', 'rpm1', 'status']
-    return row, keys
-    
-def unpack_raven_v1(buf):
-    result = struct.unpack(raven_v1_fmt, buf)
-
-    index = result[0]
-    if index >= len(airdata_nodes):
-        for i in range(len(airdata_nodes),index+1):
-            path = '/sensors/airdata[%d]' % i
-            airdata_nodes.append( getNode(path, True) )
-    node = airdata_nodes[index]
-
-    node.setFloat("timestamp", result[1])
-    node.setIntEnum("pots", 0, result[2])
-    node.setIntEnum("pots", 1, result[3])
-    node.setIntEnum("pots", 2, result[4])
-    node.setIntEnum("pots", 3, result[5])
-    node.setIntEnum("pots", 4, result[6])
-    node.setIntEnum("pots", 5, result[7])
-    node.setIntEnum("pots", 6, result[8])
-    node.setIntEnum("pots", 7, result[9])
-    node.setIntEnum("pots", 8, result[10])
-    node.setIntEnum("pots", 9, result[11])
-    node.setFloat("diff_pa", result[12])
-    node.setFloat("pressure_mbar", result[13])
-    node.setFloat("rpm0", result[14])
-    node.setFloat("rpm1", result[15])
-    node.setInt("status", result[16])
 
     return index
 

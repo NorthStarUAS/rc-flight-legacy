@@ -23,35 +23,26 @@ import auraparser
 m2nm   = 0.0005399568034557235 # meters to nautical miles
 
 def logical_category(id):
-    if id == GPS_PACKET_V1 or id == GPS_PACKET_V2 or id == GPS_PACKET_V3 \
-       or id == GPS_PACKET_V4:
+    if id == GPS_PACKET_V2 or id == GPS_PACKET_V3 or id == GPS_PACKET_V4:
         return 'gps'
-    elif id == IMU_PACKET_V1 or id == IMU_PACKET_V2 \
-         or id == IMU_PACKET_V3 or id == IMU_PACKET_V4:
+    elif id == IMU_PACKET_V3 or id == IMU_PACKET_V4:
         return 'imu'
-    elif id == AIRDATA_PACKET_V3 or id == AIRDATA_PACKET_V4 \
-         or id == AIRDATA_PACKET_V5 or id == AIRDATA_PACKET_V6:
+    elif id == AIRDATA_PACKET_V5 or id == AIRDATA_PACKET_V6:
         return 'air'
-    elif id == FILTER_PACKET_V1 or id == FILTER_PACKET_V2 \
-         or id == FILTER_PACKET_V3 or id == FILTER_PACKET_V4:
+    elif id == FILTER_PACKET_V2 or id == FILTER_PACKET_V3 \
+         or id == FILTER_PACKET_V4:
         return 'filter'
-    elif id == ACTUATOR_PACKET_V1 or id == ACTUATOR_PACKET_V2 \
-         or id == ACTUATOR_PACKET_V3:
+    elif id == ACTUATOR_PACKET_V2 or id == ACTUATOR_PACKET_V3:
         return 'act'
-    elif id == PILOT_INPUT_PACKET_V1 or id == PILOT_INPUT_PACKET_V2 \
-         or id == PILOT_INPUT_PACKET_V3:
+    elif id == id == PILOT_INPUT_PACKET_V2 or id == PILOT_INPUT_PACKET_V3:
         return 'pilot'
     elif id == AP_STATUS_PACKET_V4 or id == AP_STATUS_PACKET_V5 \
          or id == AP_STATUS_PACKET_V6 or id == AP_STATUS_PACKET_V7:
         return 'ap'
-    elif id == SYSTEM_HEALTH_PACKET_V2 or id == SYSTEM_HEALTH_PACKET_V3 \
-         or id == SYSTEM_HEALTH_PACKET_V4 or id == SYSTEM_HEALTH_PACKET_V5:
+    elif id == SYSTEM_HEALTH_PACKET_V4 or id == SYSTEM_HEALTH_PACKET_V5:
         return 'health'
-    elif id == PAYLOAD_PACKET_V1 or id == PAYLOAD_PACKET_V2 \
-         or id == PAYLOAD_PACKET_V3:
+    elif id == PAYLOAD_PACKET_V2 or id == PAYLOAD_PACKET_V3:
         return 'payload'
-    elif id == RAVEN_PACKET_V1:
-        return 'raven'
     elif id == EVENT_PACKET_V1:
         return 'event'
     else:
@@ -81,8 +72,6 @@ def generate_record(category, index):
         return comms.packer.pack_system_health_csv(index)
     elif category == 'payload':
         return comms.packer.pack_payload_csv(index)
-    elif category == 'raven':
-        return comms.packer.pack_raven_csv(index)
     elif category == 'event':
         return comms.packer.pack_event_csv(index)
 

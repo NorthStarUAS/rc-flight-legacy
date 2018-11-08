@@ -59,8 +59,8 @@ AC_SEARCH_LIBS(gzopen, [z])
 # To make the build more straight forward (hopefully) on cross compiled
 # devel environments, hard code the libpython libraries
 # you can use python3-config --includes --libs to find this info
-PYTHON_INCLUDES="-I/usr/include/python3.6m"
-PYTHON_LIBS="-lpyprops -lpython3.6m"
+PYTHON_INCLUDES="-I/usr/include/python3.7m"
+PYTHON_LIBS="-lpyprops -lpython3.7m"
 AC_SUBST(PYTHON_INCLUDES)
 AC_SUBST(PYTHON_LIBS)
 
