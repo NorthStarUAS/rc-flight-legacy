@@ -76,7 +76,7 @@ class Circle(Task):
             self.targets_node.setFloat("airspeed_kt", self.target_speed_kt)
 
         # set modes
-        self.ap_node.setString("mode", "basic+alt+speed")
+        self.ap_node.setString("mode", "basic+tecs")
         self.nav_node.setString("mode", "circle")
         comms.events.log("mission", "circle")
     

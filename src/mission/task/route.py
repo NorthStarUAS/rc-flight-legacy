@@ -47,7 +47,7 @@ class Route(Task):
         self.saved_speed_kt = self.targets_node.getFloat('airspeed_kt')
 
         # set modes
-        self.ap_node.setString('mode', 'basic+alt+speed')
+        self.ap_node.setString('mode', 'basic+tecs')
         self.nav_node.setString('mode', 'route')
 
         if self.alt_agl_ft > 0.1:

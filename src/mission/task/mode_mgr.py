@@ -51,37 +51,32 @@ class ModeMgr(Task):
                 # unset all locks if no mode defined
                 self.locks_node.setBool( 'roll', False )
                 self.locks_node.setBool( 'yaw', False )
-                self.locks_node.setBool( 'altitude', False )
-                self.locks_node.setBool( 'speed', False )
                 self.locks_node.setBool( 'pitch', False )
+                self.locks_node.setBool( 'tecs', False )
             elif fcs_mode == 'basic':
                 # set lock modes for 'basic' inner loops only
                 self.locks_node.setBool( 'roll', True )
                 self.locks_node.setBool( 'yaw', True )
-                self.locks_node.setBool( 'altitude', False )
-                self.locks_node.setBool( 'speed', False )
                 self.locks_node.setBool( 'pitch', True )
+                self.locks_node.setBool( 'tecs', False )
             elif fcs_mode == 'roll':
                 # set lock modes for roll only
                 self.locks_node.setBool( 'roll', True )
                 self.locks_node.setBool( 'yaw', False )
-                self.locks_node.setBool( 'altitude', False )
-                self.locks_node.setBool( 'speed', False )
                 self.locks_node.setBool( 'pitch', False )
+                self.locks_node.setBool( 'tecs', False )
             elif fcs_mode == 'roll+pitch':
                 # set lock modes for roll and pitch
                 self.locks_node.setBool( 'roll', True )
                 self.locks_node.setBool( 'yaw', False )
-                self.locks_node.setBool( 'altitude', False )
-                self.locks_node.setBool( 'speed', False )
                 self.locks_node.setBool( 'pitch', True )
-            elif fcs_mode == 'basic+alt+speed':
+                self.locks_node.setBool( 'tecs', False )
+            elif fcs_mode == 'basic+tecs':
                 # set lock modes for 'basic' + alt hold + speed hold
                 self.locks_node.setBool( 'roll', True )
                 self.locks_node.setBool( 'yaw', True )
-                self.locks_node.setBool( 'altitude', True )
-                self.locks_node.setBool( 'speed', True )
                 self.locks_node.setBool( 'pitch', True )
+                self.locks_node.setBool( 'tecs', True )
             self.last_fcs_mode = fcs_mode
                 
     def is_complete(self):

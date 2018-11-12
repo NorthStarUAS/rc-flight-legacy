@@ -97,7 +97,7 @@ class Land(Task):
             self.saved_agl_ft = self.targets_node.getFloat("altitude_agl_ft")
             self.saved_speed_kt = self.targets_node.getFloat("airspeed_kt")
 
-        self.ap_node.setString("mode", "basic+alt+speed")
+        self.ap_node.setString("mode", "basic+tecs")
         self.nav_node.setString("mode", "circle")
         self.targets_node.setFloat("airspeed_kt",
                                    self.land_node.getFloat("approach_speed_kt"))

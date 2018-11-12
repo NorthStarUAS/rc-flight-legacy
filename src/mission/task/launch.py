@@ -144,7 +144,7 @@ class Launch(Task):
                 # we are flying or we've reached our flying/climbout
                 # airspeed: switch to normal flight mode
                 self.targets_node.setFloat("pitch_deg", self.orient_node.getFloat("pitch_deg"))
-                self.ap_node.setString("mode", "basic+alt+speed")
+                self.ap_node.setString("mode", "basic+tecs")
 
         self.last_ap_master = self.ap_node.getBool("master_switch")
 
