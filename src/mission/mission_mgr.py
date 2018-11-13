@@ -158,7 +158,8 @@ class MissionMgr:
 
     def pop_seq_task(self):
         if len(self.seq_tasks):
-            self.seq_tasks.pop(0)
+            task = self.seq_tasks.pop(0)
+            task.close()
 
     def find_seq_task(self, name):
         for task in self.seq_tasks:
@@ -211,6 +212,8 @@ class MissionMgr:
                 self.request_task_calibrate()
             elif len(tokens) == 2 and tokens[1] == "route":
                 self.request_task_route()
+            elif len(tokens) == 2 and tokens[1] == "pop":
+                self.pop_seq_task()
             else:
                 result = "syntax error: " + command # bummer
             self.task_node.setString("command_request", "")

@@ -2,6 +2,7 @@ from props import getNode
 
 import comms.events
 from mission.task.task import Task
+import mission.task.state
 
 class Preflight(Task):
     def __init__(self, config_node):
@@ -12,7 +13,7 @@ class Preflight(Task):
         self.targets_node = getNode("/autopilot/targets", True)
         self.imu_node = getNode("/sensors/imu", True)
         self.flight_node = getNode("/controls/flight", True)
-        self.saved_fcs_mode = ""
+        #self.saved_fcs_mode = ""
         self.timer = 0.0
         self.duration_sec = 60.0
         self.name = config_node.getString("name")
@@ -24,11 +25,13 @@ class Preflight(Task):
         self.preflight_node.setFloat("duration_sec", self.duration_sec)
 
     def activate(self):
-        # fixme, not if airborne!
         self.active = True
-        self.saved_fcs_mode = self.ap_node.getString("mode")
+
+        # save existing state
+        mission.task.state.save(modes=True)
+
         if not self.task_node.getBool("is_airborne"):
-            # set fcs mode to roll+pitch (vanity mode)
+            # set fcs mode to roll+pitch, aka vanity mode? :-)
             self.ap_node.setString("mode", "roll+pitch")
             self.targets_node.setFloat("roll_deg", 0.0)
             self.targets_node.setFloat("pitch_deg", 0.0)
@@ -59,6 +62,7 @@ class Preflight(Task):
 
     def close(self):
         # restore the previous state
-        self.ap_node.setString("mode", self.saved_fcs_mode)
+        mission.task.state.restore()
+        
         self.active = False
         return True

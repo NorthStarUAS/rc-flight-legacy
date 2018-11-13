@@ -160,7 +160,8 @@ class Launch(Task):
                 self.flight_node.setFloat("rudder", 0.0)
 
             return True
-        return False
+        else:
+            return False
 
     def close(self):
         self.active = False

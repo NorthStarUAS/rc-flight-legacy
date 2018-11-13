@@ -4,8 +4,8 @@ from props import getNode
 
 import comms.events
 import control.route
-
 from mission.task.task import Task
+import mission.task.state
 
 class Route(Task):
     def __init__(self, config_node):
@@ -17,11 +17,6 @@ class Route(Task):
 
         self.alt_agl_ft = 0.0
         self.speed_kt = 30.0
-
-        self.saved_fcs_mode = ''
-        self.saved_nav_mode = ''
-        self.saved_agl_ft = 0.0
-        self.saved_speed_kt = 0.0
 
         self.name = config_node.getString('name')
         self.nickname = config_node.getString('nickname')
@@ -41,10 +36,7 @@ class Route(Task):
         self.active = True
 
         # save existing state
-        self.saved_fcs_mode = self.ap_node.getString('mode')
-        self.saved_nav_mode = self.nav_node.getString('mode')
-        self.saved_agl_ft = self.targets_node.getFloat('altitude_agl_ft')
-        self.saved_speed_kt = self.targets_node.getFloat('airspeed_kt')
+        mission.task.state.save(modes=True, targets=True)
 
         # set modes
         self.ap_node.setString('mode', 'basic+tecs')
@@ -90,10 +82,7 @@ class Route(Task):
 
     def close(self):
         # restore the previous state
-        self.ap_node.setString('mode', self.saved_fcs_mode)
-        self.nav_node.setString('mode', self.saved_nav_mode)
-        self.targets_node.setFloat('altitude_agl_ft', self.saved_agl_ft)
-        self.targets_node.setFloat('airspeed_kt', self.saved_speed_kt)
+        mission.task.state.restore()
 
         self.active = False
         return True

@@ -6,6 +6,7 @@ from auracore import wgs84
 import comms.events
 import control.route
 from mission.task.task import Task
+import mission.task.state
 
 d2r = math.pi / 180.0
 r2d = 180.0 / math.pi
@@ -81,22 +82,14 @@ class Land(Task):
         self.circle_capture = False
         self.gs_capture = False
 
-        self.saved_fcs_mode = ""
-        self.saved_nav_mode = ""
-        self.saved_agl_ft = 0.0
-        self.saved_speed_kt = 0.0
-
     def activate(self):
         if not self.active:
             # build the approach with the current property tree values
             self.build_approach()
 
-            # Save existing state
-            self.saved_fcs_mode = self.ap_node.getString("mode")
-            self.saved_nav_mode = self.nav_node.getString("mode")
-            self.saved_agl_ft = self.targets_node.getFloat("altitude_agl_ft")
-            self.saved_speed_kt = self.targets_node.getFloat("airspeed_kt")
-
+        # Save existing state
+        mission.task.state.save(modes=True, circle=True, targets=True)
+        
         self.ap_node.setString("mode", "basic+tecs")
         self.nav_node.setString("mode", "circle")
         self.targets_node.setFloat("airspeed_kt",
@@ -306,11 +299,9 @@ class Land(Task):
 
     def close(self):
         # restore the previous state
-        self.ap_node.setString("mode", self.saved_fcs_mode)
-        self.nav_node.setString("mode", self.saved_nav_mode)
-        self.targets_node.setFloat("airspeed_kt", self.saved_speed_kt)
-        self.targets_node.setFloat("altitude_agl_ft", self.saved_agl_ft );
+        mission.task.state.restore()
         self.flight_node.setFloat("flaps_setpoint", 0.0)
+        
         self.active = False
         return True
 

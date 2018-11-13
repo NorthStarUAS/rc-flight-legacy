@@ -4,7 +4,7 @@ from props import getNode
 
 import comms.events
 from mission.task.task import Task
-import state
+import mission.task.state
 
 class Circle(Task):
     def __init__(self, config_node):
@@ -24,15 +24,6 @@ class Circle(Task):
         self.exit_agl_ft = 0.0
         self.exit_heading_deg = 0.0
         
-        # self.saved_fcs_mode = ""
-        # self.saved_nav_mode = ""
-        # self.saved_lon_deg = 0.0
-        # self.saved_lat_deg = 0.0
-        # self.saved_direction = ""
-        # self.saved_radius_m = 0.0
-        # self.saved_agl_ft = 0.0
-        # self.saved_speed_kt = 0.0
-
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
         self.coord_path = config_node.getString("coord_path")
@@ -54,23 +45,12 @@ class Circle(Task):
     def activate(self):
         self.active = True
 
-        # save existing state on the stack
+        # save existing state
         have_targets = False
         if self.target_agl_ft > 0 or self.target_speed_kt > 0:
             have_targets = True
-        state.save(modes=True, circle=True, targets=have_targets)
+        mission.task.state.save(modes=True, circle=True, targets=have_targets)
         
-        # self.saved_fcs_mode = self.ap_node.getString("mode")
-        # self.saved_nav_mode = self.nav_node.getString("mode")
-        # self.saved_lon_deg = self.circle_node.getFloat("longitude_deg")
-        # self.saved_lat_deg = self.circle_node.getFloat("latitude_deg")
-
-        # self.saved_direction = self.circle_node.getString("direction")
-        # self.circle_node.setString("direction", self.direction)
-
-        # self.saved_radius_m = self.circle_node.getFloat("radius_m")
-        # self.circle_node.setFloat("radius_m", self.radius_m)
-
         # override target agl if requested by task
         if self.target_agl_ft > 0.0:
             # self.saved_agl_ft = self.targets_node.getFloat("altitude_agl_ft")
@@ -123,21 +103,7 @@ class Circle(Task):
     
     def close(self):
         # restore the previous state
-        state.restore()
-
-        # self.ap_node.setString("mode", self.saved_fcs_mode)
-        # self.nav_node.setString("mode", self.saved_nav_mode)
-
-        # self.circle_node.setString("direction", self.saved_direction)
-        # self.circle_node.setFloat("radius_m", self.saved_radius_m)
-
-        # # restore target agl if overridden by task
-        # if self.target_agl_ft > 0.0:
-        #     self.targets_node.setFloat("altitude_agl_ft", self.saved_agl_ft)
-
-        # # restore target speed if overridden by task
-        # if self.target_speed_kt > 0.0:
-        #     self.targets_node.setFloat("airspeed_kt", self.saved_speed_kt)
+        mission.task.state.restore()
 
         self.active = False
         return True

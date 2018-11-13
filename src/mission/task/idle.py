@@ -8,6 +8,7 @@ from props import getNode
 import comms.events
 import mission.mission_mgr
 from mission.task.task import Task
+import mission.task.state
 
 class Idle(Task):
     def __init__(self, config_node):
@@ -15,7 +16,6 @@ class Idle(Task):
         self.task_node = getNode("/task", True)
         self.ap_node = getNode("/autopilot", True)
         self.engine_node = getNode("/controls/engine", True)
-        self.saved_fcs_mode = ""
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
 
@@ -23,13 +23,15 @@ class Idle(Task):
         self.active = True
 
         # save existing state
-        self.saved_fcs_mode = self.ap_node.getString("mode")
+        mission.task.state.save(modes=True)
 
         # if not in the air, set a simple flight control mode that
         # does not touch the throttle, and set throttle to idle.
         if not self.task_node.getBool("is_airborne"):
             self.ap_node.setString("mode", "basic")
             self.engine_node.setFloat("throttle", 0.0)
+            
+        comms.events.log("mission", "idle")
 
     def update(self, dt):
         if not self.active:
@@ -45,6 +47,8 @@ class Idle(Task):
         return False
 
     def close(self):
-        self.ap_node.setString("mode", self.saved_fcs_mode)
+        # restore the previous state
+        mission.task.state.restore()
+
         self.active = False
         return True

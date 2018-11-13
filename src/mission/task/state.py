@@ -2,6 +2,8 @@
 # this is used by tasks that wish change system state when they are activated
 # and restore the previous state when they complete.
 
+from props import getNode
+
 ap_node = getNode('/autopilot', True)
 nav_node = getNode('/navigation', True)
 targets_node = getNode('/autopilot/targets', True)
@@ -20,7 +22,7 @@ class State():
             self.circle['lon_deg'] = circle_node.getFloat("longitude_deg")
             self.circle['lat_deg'] = circle_node.getFloat("latitude_deg")
             self.circle['direction'] = circle_node.getString("direction")
-            self.circle['radius_m'] = _circle_node.getFloat("radius_m")
+            self.circle['radius_m'] = circle_node.getFloat("radius_m")
             
         self.targets = {}
         if save_targets:
