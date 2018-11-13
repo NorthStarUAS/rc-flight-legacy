@@ -1,8 +1,12 @@
+import math
+
 from props import getNode
 from auracore import wgs84
 
 import comms.events
 from mission.task.task import Task
+
+d2r = math.pi / 180.0
 
 class HomeMgr(Task):
     def __init__(self, config_node):
@@ -48,7 +52,13 @@ class HomeMgr(Task):
                                    self.home_node.getFloat("longitude_deg") )
             self.home_node.setFloat("course_deg", course_deg)
             self.home_node.setFloat("dist_m", dist_m)
-    
+            
+            # a mini cartesian (2d) system relative to home in meters
+            theta = rev_deg * d2r
+            x = math.sin(theta) * dist_m
+            y = math.cos(theta) * dist_m
+            self.home_node.setFloat("x_m", x)
+            self.home_node.setFloat("y_m", y)
         return True
     
     def is_complete(self):
