@@ -13,6 +13,7 @@ import mission.task.land2
 import mission.task.launch
 import mission.task.lost_link
 import mission.task.mode_mgr
+import mission.task.parametric
 import mission.task.preflight
 import mission.task.calibrate
 import mission.task.route
@@ -59,6 +60,8 @@ class MissionMgr:
             result = mission.task.lost_link.LostLink(config_node)
         elif task_name == 'mode_manager':
             result = mission.task.mode_mgr.ModeMgr(config_node)
+        elif task_name == 'parametric':
+            result = mission.task.parametric.Parametric(config_node)
         elif task_name == 'preflight':
             result = mission.task.preflight.Preflight(config_node)
         elif task_name == 'calibrate':
@@ -212,6 +215,8 @@ class MissionMgr:
                 self.request_task_calibrate()
             elif len(tokens) == 2 and tokens[1] == "route":
                 self.request_task_route()
+            elif len(tokens) == 2 and tokens[1] == "parametric":
+                self.request_task_parametric()
             elif len(tokens) == 2 and tokens[1] == "pop":
                 self.pop_seq_task()
             else:
@@ -395,6 +400,18 @@ class MissionMgr:
         # FIXME else if display_on:
         #    print "oops, couldn't find 'route' task"
 
+    def request_task_parametric(self):
+        # sanity check, are we already in the requested state
+        if len(self.seq_tasks):
+            task = self.seq_tasks[0]
+            if task.name == "parametric":
+                return
+        task = self.find_standby_task( "parametric" )
+        if task:
+            # activate task
+            self.push_seq_task(task)
+            task.activate()
+            
 m = MissionMgr()
 
 def init():
