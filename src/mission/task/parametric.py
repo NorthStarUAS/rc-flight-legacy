@@ -112,6 +112,7 @@ class Parametric(Task):
         self.ap_node = getNode("/autopilot", True)
         self.targets_node = getNode("/autopilot/targets", True)
         self.nav_node = getNode("/navigation", True)
+        self.tecs_node = getNode("/config/autopilot/TECS", True)
 
         self.t = 0.0
         self.direction = "left"
@@ -185,6 +186,16 @@ class Parametric(Task):
             h = factor*factor * x*x
             self.targets_node.setFloat('altitude_agl_ft', 200 + h)
 
+            # adjust target airspeed to be swoopy
+            min = self.tecs_node.getFloat("min_kt")
+            max = self.tecs_node.getFloat("max_kt")
+            range = max - min
+            v = range / (half_width*half_width) * x*x
+            airspeed_kt = max - v
+            if airspeed_kt < min:
+                airspeed_kt = min
+            self.targets_node.setFloat("airspeed_kt", airspeed_kt)
+            
     def is_complete(self):
         return False
     
