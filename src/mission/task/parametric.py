@@ -26,26 +26,57 @@ import mission.task.state
 # loop distance (may need to be adjusted for each specific parametric function)
 loop_t = math.pi * 2
 r2d = 180/math.pi
-half_width = 200
+half_width = 300
 half_height = 50
+vertical = 50
 
 # parameterized functions for x and y
-def fx(t):
-    return half_width * math.sin(t)
+loop_t = math.pi * 2
+def simple_func(t):
+    x = math.sin(t)
+    y = math.sin(2*t)
+    return ( half_width * x, half_height * y )
 
-def fy(t):
-    return half_height * math.sin(2*t)
+# Lemniscate of Bernoulli
+# https://en.wikipedia.org/wiki/Lemniscate_of_Bernoulli
+sqrt2 = math.sqrt(2)
+def lemniscate(t):
+    sint = math.sin(t)
+    cost = math.cos(t)
+    x = cost / (sint * sint + 1.0)
+    y = 2 * sqrt2 * cost*sint / (sint * sint + 1.0)
+    return ( half_width * x, half_height * y )
+
+# Rhodonea (Rose) function
+# https://en.wikipedia.org/wiki/Rose_(mathematics)
+# k = petal coefficient
+# if k is odd then k is the number of petals
+# if k is even then k is half the number of petals
+# if k is a half-integer (e.g. 1/2, 3/2, 5/2), the curve will be
+#    rose-shaped with 4k petals.
+# see the web link for more details on k
+loopt = math.pi
+def rose(t):
+    k = 3;
+    x = math.cos(k*t) * math.cos(t)
+    y = math.cos(k*t) * math.sin(t)
+    return ( half_width * x, half_width * y )
+    
+#func = simple_func
+#func = lemniscate
+func = rose
 
 # distance from specified point to value of curve at 't'
 def distance_t2xy(t, x, y):
-    dx = x - fx(t)
-    dy = y - fy(t)
+    (fx, fy) = func(t)
+    dx = x - fx
+    dy = y - fy
     return dx*dx + dy*dy
 
 # distance 2d distance between two t values
 def distance_t2t(t1, t2):
-    x1 = fx(t1); y1 = fy(t1)
-    x2 = fx(t2); y2 = fy(t2)
+    (x1, y1) = func(t1)
+    (x2, y2) = func(t2)
     dx = x2 - x1; dy = y2 - y1
     return math.sqrt(dx*dx + dy*dy)
 
@@ -53,10 +84,9 @@ def distance_t2t(t1, t2):
 def tangent_at_t(t, step):
     t1 = t - step
     t2 = t + step
-    x1 = fx(t1); x2 = fx(t2)
-    y1 = fy(t1); y2 = fy(t2)
-    dx = x2 - x1
-    dy = y2 - y1
+    (x1, y1) = func(t1)
+    (x2, y2) = func(t2)
+    dx = x2 - x1; dy = y2 - y1
     return math.pi*0.5 - math.atan2(dy, dx)
     
 def define_circle(p1, p2, p3):
@@ -87,17 +117,18 @@ def define_circle(p1, p2, p3):
 def curvature_at_t(t, step):
     t1 = t - step
     t2 = t + step
-    p1 = ( fx(t1), fy(t1) )
-    p2 = ( fx(t),  fy(t) )
-    p3 = ( fx(t2), fy(t2) )
+    p1 = func(t1)
+    p2 = func(t)
+    p3 = func(t2)
     return define_circle(p1, p2, p3)
     
 # optimization function: find the value of t that corresponds to the
 # point on the curve that is closest to the to the given x, y
 # coordinates.
 def find_best_t(x, y, initial_guess):
-    x0 = np.array([ initial_guess ])
-    res = minimize(distance_t2xy, x0, args=(x, y), tol=0.01,
+    x0 = [ initial_guess ]
+    bnds = [ (initial_guess, None) ]
+    res = minimize(distance_t2xy, x0, bounds=bnds, args=(x, y), tol=0.01,
                    options={'disp': False})
     # print(res)
     return res.x[0]
@@ -161,10 +192,9 @@ class Parametric(Task):
         self.t = find_best_t(x_m, y_m, initial_guess=self.t)
         if self.t > loop_t:
             self.t -= loop_t
-        print("t = %.4f  (%.4f, %.4f)\n" % (self.t, fx(self.t), fy(self.t)))
 
         (center, radius, direction) = curvature_at_t(self.t, self.step)
-        print("  radius: ", radius, direction)
+        print('t:', self.t, ' radius: ', radius, direction)
 
         if center != None:
             # project center back to lat, lon
@@ -181,8 +211,7 @@ class Parametric(Task):
 
             # adjust target altitude to be swoopy
             x = self.home_node.getFloat('dist_m')
-            swoop = 75         # altitude change in feet
-            factor = math.sqrt(swoop) / half_width
+            factor = math.sqrt(vertical) / half_width
             h = factor*factor * x*x
             self.targets_node.setFloat('altitude_agl_ft', 200 + h)
 
