@@ -773,6 +773,9 @@ def pack_ap_status_bin(index):
     task_id = 0                 # code for unknown or not set
     if task_node.getString("current_task_id") == 'circle':
         task_id = 1
+    elif task_node.getString("current_task_id") == 'parametric':
+        # draw like it's a circle
+        task_id = 1
     elif task_node.getString("current_task_id") == 'route':
         task_id = 2
     elif task_node.getString("current_task_id") == 'land':
