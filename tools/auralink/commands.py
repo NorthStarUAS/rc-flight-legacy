@@ -3,7 +3,7 @@ import time
 from props import root, getNode
 
 import sys
-sys.path.append("../src")
+sys.path.append("../../src")
 import comms.packer
 
 filter_node = getNode('/filters/filter', True)
