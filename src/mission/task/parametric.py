@@ -26,8 +26,8 @@ import mission.task.state
 # loop distance (may need to be adjusted for each specific parametric function)
 loop_t = math.pi * 2
 r2d = 180/math.pi
-half_width = 300
-half_height = 50
+half_width = 250
+half_height = 75
 vertical = 50
 
 # parameterized functions for x and y
@@ -55,9 +55,9 @@ def lemniscate(t):
 # if k is a half-integer (e.g. 1/2, 3/2, 5/2), the curve will be
 #    rose-shaped with 4k petals.
 # see the web link for more details on k
-loopt = math.pi
+loopt = 2*math.pi
 def rose(t):
-    k = 3;
+    k = 2
     x = math.cos(k*t) * math.cos(t)
     y = math.cos(k*t) * math.sin(t)
     return ( half_width * x, half_width * y )
