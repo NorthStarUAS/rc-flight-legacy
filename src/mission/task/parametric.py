@@ -133,6 +133,18 @@ def find_best_t(x, y, initial_guess):
     # print(res)
     return res.x[0]
 
+def find_next_t(x, y, initial_guess, dt):
+    t = initial_guess
+    d = distance_t2xy(t, x, y)
+    while True:
+        min_dist = d
+        min_t = t
+        t += dt
+        d = distance_t2xy(t, x, y)
+        if d > min_dist:
+            break
+    return min_t
+
 
 class Parametric(Task):
     def __init__(self, config_node):
@@ -189,7 +201,9 @@ class Parametric(Task):
         x_m = self.home_node.getFloat("x_m")
         y_m = self.home_node.getFloat("y_m")
 
-        self.t = find_best_t(x_m, y_m, initial_guess=self.t)
+        #self.t = find_best_t(x_m, y_m, initial_guess=self.t)
+        self.t = find_next_t(x_m, y_m, initial_guess=self.t,
+                             dt=1.0/self.loop_dist)
         if self.t > loop_t:
             self.t -= loop_t
 
