@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import argparse
 import os
@@ -13,18 +13,17 @@ from aurauas.flightdata import imucal
 import transformations
 
 argparser = argparse.ArgumentParser(description='fit imu bias data')
-argparser.add_argument('--cal-dir', required=True, help='calibration directory')
-argparser.add_argument('--imu-model', required=True, help='apm2')
+argparser.add_argument('--aircraft-dir', required=True, help='top level aircraft flight data directory')
 args = argparser.parse_args()
 
-cal_file = os.path.join(args.cal_dir, "imucal.json")
+cal_file = os.path.join(args.aircraft_dir, "imucal.json")
 
 bias_files = []
 # find all the *-imubias.txt files in the given tree
-for path, dirs, files in os.walk(args.cal_dir):
+for path, dirs, files in os.walk(args.aircraft_dir):
     if files:
         for file in files:
-            if file.endswith('-imubias.txt'):
+            if file == 'imubias.txt':
                 bias_files.append( os.path.join(path, file) )
 
 # load imu bias data files
@@ -32,7 +31,7 @@ bias_data = []
 min_temp = None
 max_temp = None
 for bias_file in bias_files:
-    print "loading bias data from: ", bias_file
+    print("loading bias data from: ", bias_file)
     f = fileinput.input(bias_file)
     for line in f:
         time, temp, p, q, r, ax, ay, az = line.split()
@@ -44,104 +43,100 @@ for bias_file in bias_files:
             max_temp = t
 
 if len(bias_data) == 0:
-    print "No accel bias records loaded..."
+    print("No accel bias records loaded...")
 else:
-    print "Accel bias temp range (C): %.1f - %.1f\n" % (min_temp, max_temp)
+    print("Accel bias temp range (C): %.1f - %.1f\n" % (min_temp, max_temp))
         
 mag_files = []
 # find all the *-mags.txt files in the given tree
-for path, dirs, files in os.walk(args.cal_dir):
+for path, dirs, files in os.walk(args.aircraft_dir):
     if files:
         for file in files:
-            if file.endswith('-mags.txt'):
+            if file == 'mags.txt':
                 mag_files.append( os.path.join(path, file) )
 
 # load imu bias data files
 mag_data = []
 for mag_file in mag_files:
-    print "loading mag data from: ", mag_file
+    print("loading mag data from: ", mag_file)
     f = fileinput.input(mag_file)
     for line in f:
         rawx, rawy, rawz, calx, caly, calz = line.split()
         if abs(float(rawx)) > 1000:
-            print line
+            print(line)
         mag_data.append( [rawx, rawy, rawz, calx, caly, calz] )
 
 if len(mag_data) == 0:
-    print "No mag records loaded..."
+    print("No mag records loaded...")
 
 
 # =========================== Results ===============================
 nosave = imucal.Calibration()
 cal = imucal.Calibration()
 if not cal.load(cal_file):
-    print "Warning: no existing calibration file found, seeding default values."
+    print("Warning: no existing calibration file found, seeding default values.")
 
 # select which components to update
-if args.imu_model == 'apm2':
-    bias_cal = nosave
-    accel_cal = cal
-    mag_cal = cal
-else:
-    print 'unknown imu model:', args.imu_model
-    quit()
+bias_cal = nosave
+accel_cal = cal
+mag_cal = cal
     
 if len(bias_data):
     bias_array = np.array(bias_data, dtype=np.float64)
     bias_len = bias_array.shape[0]
-    print "temp range:", bias_array[:,1].min(), bias_array[:,1].max()
+    print("temp range:", bias_array[:,1].min(), bias_array[:,1].max())
 
     bias_cal.p_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,2], 2, full=True )
-    print "p coefficients = ", bias_cal.p_bias
+    print("p coefficients = ", bias_cal.p_bias)
     if len(res):
-        print "p residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
+        print("p residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi)
     bias_cal.q_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,3], 2, full=True )
-    print "q coefficients = ", bias_cal.q_bias
+    print("q coefficients = ", bias_cal.q_bias)
     if len(res):
-        print "q residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
+        print("q residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi)
     bias_cal.r_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,4], 2, full=True )
-    print "r coefficients = ", bias_cal.r_bias
+    print("r coefficients = ", bias_cal.r_bias)
     if len(res):
-        print "r residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi
+        print("r residual = ", math.sqrt(res[0]/bias_len) * 180 / math.pi)
     
     accel_cal.ax_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,5], 2, full=True )
-    print "ax coefficients = ", accel_cal.ax_bias
+    print("ax coefficients = ", accel_cal.ax_bias)
     if len(res):
-        print "ax residual = ", math.sqrt(res[0]/bias_len)
+        print("ax residual = ", math.sqrt(res[0]/bias_len))
     accel_cal.ay_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,6], 2, full=True )
-    print "ay coefficients = ", accel_cal.ay_bias
+    print("ay coefficients = ", accel_cal.ay_bias)
     if len(res):
-        print "ay residual = ", math.sqrt(res[0]/bias_len)
+        print("ay residual = ", math.sqrt(res[0]/bias_len))
     accel_cal.az_bias, res, _, _, _ = np.polyfit( bias_array[:,1], bias_array[:,7], 2, full=True )
-    print "az coefficients = ", accel_cal.az_bias
+    print("az coefficients = ", accel_cal.az_bias)
     if len(res):
-        print "az residual = ", math.sqrt(res[0]/bias_len)
+        print("az residual = ", math.sqrt(res[0]/bias_len))
 
     cal.min_temp = min_temp
     cal.max_temp = max_temp
 
 if len(mag_data):
     mag_array = np.array(mag_data, dtype=np.float64)
-    print 'mag_array:', mag_array
+    print('mag_array:', mag_array)
     #mag_len = mag_array.shape[0]
     #mag_min = mag_array[:,0:3].min() # note: [:,start_index:length]
     #mag_max = mag_array[:,0:3].max()
-    #print "mag range:", mag_min, mag_max
+    #print("mag range:", mag_min, mag_max
 
     ideal_array = mag_array[:,3:6]
     sense_array = mag_array[:,0:3]
 
     affine = transformations.affine_matrix_from_points(sense_array.T, ideal_array.T, usesparse=True)
     mag_cal.mag_affine = affine
-    print "affine:"
+    print("affine:")
     np.set_printoptions(precision=10,suppress=True)
-    print affine
+    print(affine)
     scale, shear, angles, translate, perspective = transformations.decompose_matrix(affine)
-    print ' scale:', scale
-    print ' shear:', shear
-    print ' angles:', angles
-    print ' trans:', translate
-    print ' persp:', perspective
+    print(' scale:', scale)
+    print(' shear:', shear)
+    print(' angles:', angles)
+    print(' trans:', translate)
+    print(' persp:', perspective)
 
 cal.save(cal_file)
 
