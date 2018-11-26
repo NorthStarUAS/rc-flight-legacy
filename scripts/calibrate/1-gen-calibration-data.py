@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import argparse
 import csv
@@ -21,7 +21,6 @@ import transformations
 
 parser = argparse.ArgumentParser(description='magcal')
 parser.add_argument('--flight', required=True, help='load specified aura flight log')
-parser.add_argument('--cal', required=True, help='calibration log directory')
 parser.add_argument('--imu-sn', help='specify imu serial number')
 parser.add_argument('--resample-hz', type=float, default=10.0, help='resample rate (hz)')
 parser.add_argument('--xmin', type=float, help='start time')
@@ -39,11 +38,11 @@ else:
 
 # load the flight data
 data, flight_format = flight_loader.load(args.flight, recal_file)
-print "imu records:", len(data['imu'])
-print "gps records:", len(data['gps'])
-print "filter records:", len(data['gps'])
+print("imu records:", len(data['imu']))
+print("gps records:", len(data['gps']))
+print("filter records:", len(data['gps']))
 if len(data['imu']) == 0:
-    print "not enough data loaded to continue."
+    print("not enough data loaded to continue.")
     quit()
 
 # build the interpolation tables
@@ -59,7 +58,7 @@ imu_sn = None
 if flight_format == 'aura_csv':
     # scan event-0.csv file for additional info
     event_file = os.path.join(args.flight, 'event-0.csv')
-    with open(event_file, 'rb') as fevent:
+    with open(event_file, 'r') as fevent:
         reader = csv.DictReader(fevent)
         for row in reader:
             time = float(row['timestamp'])
@@ -67,45 +66,45 @@ if flight_format == 'aura_csv':
             tokens = msg.split()
             if len(tokens) == 2 and tokens[1] == 'airborne' and not xmin:
                 xmin = time
-                print "airborne (launch) at t =", xmin
+                print("airborne (launch) at t =", xmin)
             elif len(tokens) == 4 and tokens[2] == 'complete:' and tokens[3] == 'launch' and not xmax:
                 # haven't found a max yet, so update min
                 xmin = time
-                print "mission begins at t =", xmin                    
+                print("launch complete at t =", xmin                    )
             elif len(tokens) == 3 and time > 0 and tokens[1] == 'on' and tokens[2] == 'ground' and not xmax:
                 t = time
                 if t - xmin > 60:
                     xmax = time
-                    print "flight complete at t =", xmax
+                    print("flight complete at t =", xmax)
                 else:
-                    print "warning ignoring sub 1 minute hop"
+                    print("warning ignoring sub 1 minute hop")
             elif len(tokens) == 5 and (tokens[0] == 'APM2:' or tokens[0] == 'Aura3:') and tokens[1] == 'Serial' and tokens[2] == 'Number':
                 auto_sn = int(tokens[4])
             elif len(tokens) == 4 and tokens[0] == 'APM2' and tokens[1] == 'Serial' and tokens[2] == 'Number:':
                 auto_sn = int(tokens[3])
 if args.imu_sn:
     imu_sn = args.imu_sn
-    print 'Using serial number from command line:', imu_sn
+    print('Using serial number from command line:', imu_sn)
 elif auto_sn:
     imu_sn = auto_sn
-    print 'Autodetected serial number (APM2):', imu_sn
+    print('Autodetected serial number (APM2):', imu_sn)
 
 if not imu_sn:
-    print 'Cannot continue without an IMU serial number'
+    print('Cannot continue without an IMU serial number')
     quit()
 
 if args.xmin:
     xmin = args.xmin
-    print 'xmin provided:', xmin
+    print('xmin provided:', xmin)
 if not xmin:
-    print "warning no launch event found"
+    print("warning no launch event found")
     xmin = interp.imu_time.min()
     
 if args.xmax:
     xmax = args.xmax
-    print 'xmax provided:', xmax
+    print('xmax provided:', xmax)
 if not xmax:
-    print "warning no land event found"
+    print("warning no land event found")
     xmax = interp.imu_time.max()
 
 # sanity check in case imu data log ends before events.txt
@@ -114,7 +113,7 @@ if xmin < interp.imu_time.min():
 if xmax > interp.imu_time.max():
     xmax = interp.imu_time.max()
     
-print "flight range = %.3f - %.3f (%.3f)" % (xmin, xmax, xmax-xmin)
+print("flight range = %.3f - %.3f (%.3f)" % (xmin, xmax, xmax-xmin))
 trange = xmax - xmin
 
 alt_min = alt_max = data['gps'][0].alt
@@ -122,19 +121,14 @@ for f in data['gps']:
     if f.alt < alt_min: alt_min = f.alt
     if f.alt > alt_max: alt_max = f.alt
 alt_cutoff = alt_min + (alt_max - alt_min) * 0.25
-print "Alt range =", alt_min, alt_max, "(for non-AuraUAS formats) cutoff =", alt_cutoff
+print("Alt range =", alt_min, alt_max, "(for non-AuraUAS formats) cutoff =", alt_cutoff)
 
 # write the IMU temp vs. bias data file
-cal_dir = os.path.join(args.cal, "apm2_" + str(imu_sn))
-print "Calibration directory:", cal_dir
-if not os.path.exists(cal_dir):
-    os.makedirs(cal_dir)
 
-basename = os.path.basename(os.path.abspath(args.flight)) + "-imubias.txt"
-cal_file = os.path.join(cal_dir, basename)
-print "IMU calibration file:", cal_file
+imubias_file = os.path.join(args.flight, "imubias.txt")
+print("IMU bias file:", imubias_file)
 
-f = open(cal_file, 'w')
+f = open(imubias_file, 'w')
 
 min_vel = 7.5                   # mps
 for filt in data['filter']:
@@ -158,15 +152,15 @@ f.close()
 
 base_lat = data['gps'][0].lat
 base_lon = data['gps'][0].lon
-print "flight starts at:", base_lat, base_lon
+print("flight starts at:", base_lat, base_lon)
 gm = geomag.geomag.GeoMag("/usr/lib/python2.7/site-packages/geomag/WMM.COF")
 mag = gm.GeoMag(base_lat, base_lon)
 mag_ned = np.array( [mag.bx, mag.by, mag.bz] )
-print '  raw mag vector:', mag_ned
+print('  raw mag vector:', mag_ned)
 norm = np.linalg.norm(mag_ned)
-print '  norm:', norm
+print('  norm:', norm)
 mag_ned /= norm
-print '  normalized:', mag_ned
+print('  normalized:', mag_ned)
 
 # generate array of sensed mag vector vs. rotated ideal mag vector (at
 # this point we are fully trusting the EKF attitude estimate and the
@@ -175,7 +169,7 @@ print '  normalized:', mag_ned
 sense_data = []
 ideal_data = []
 
-for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
+for x in np.linspace(xmin, xmax, int(trange*args.resample_hz)):
     alt = interp.filter_alt(x)
     phi = interp.filter_phi(x)
     the = interp.filter_the(x)
@@ -191,14 +185,14 @@ for i, x in enumerate( np.linspace(xmin, xmax, trange*args.resample_hz) ):
     hy = interp.imu_hy(x)
     hz = interp.imu_hz(x)
     if abs(hx) > 1000:
-        print "oops:", hx, hy, hz
+        print("oops:", hx, hy, hz)
     mag_sense = np.array([hx, hy, hz])
     # if abs(psi) < 0.1:
     if flight_format == 'aura_csv' or flight_format == 'aura_txt':
         ideal_data.append( mag_ideal[:].tolist() )
         sense_data.append( mag_sense[:].tolist() )
     elif alt >= alt_cutoff:
-        print mag_sense, mag_ideal
+        print(mag_sense, mag_ideal)
         ideal_data.append( mag_ideal[:].tolist() )
         sense_data.append( mag_sense[:].tolist() )
 
@@ -210,26 +204,21 @@ sense_array = np.array(sense_data, dtype=np.float64)
 # using the EKF inertial only solution.
 
 affine = transformations.affine_matrix_from_points(sense_array.T, ideal_array.T)
-print "affine:"
+print("affine:")
 np.set_printoptions(precision=10,suppress=True)
-print affine
+print(affine)
 scale, shear, angles, translate, perspective = transformations.decompose_matrix(affine)
-print ' scale:', scale
-print ' shear:', shear
-print ' angles:', angles
-print ' trans:', translate
-print ' persp:', perspective
+print(' scale:', scale)
+print(' shear:', shear)
+print(' angles:', angles)
+print(' trans:', translate)
+print(' persp:', perspective)
 
-# write calibration data points to file (so we can aggregate over
+# write mag calibration data points to file (so we can aggregate over
 # multiple flights later
-data_dir = os.path.abspath(args.flight)
-cal_dir = os.path.join(args.cal, "apm2_" + str(imu_sn))
-if not os.path.exists(cal_dir):
-    os.makedirs(cal_dir)
 
-filename = os.path.basename(data_dir) + "-mags.txt"
-mags_file = os.path.join(cal_dir, filename)
-print "mags file:", mags_file
+mags_file = os.path.join(args.flight, "mags.txt")
+print("mags file:", mags_file)
 f = open(mags_file, 'w')
 for i in range(sense_array.shape[0]):
     f.write( "%.4f %.4f %.4f %.4f %.4f %.4f\n" %
@@ -252,11 +241,11 @@ af_array = np.array(af_data)
 if args.plot:
     #print sense_array[0]
     norms = np.linalg.norm(sense_array, axis=1)
-    print 'norms:', norms
+    print('norms:', norms)
     norm_array = np.divide(sense_array, np.matrix(norms).T)
-    print 'norm_array', norm_array
-    print 'norm_array[:,0]', np.array(norm_array[:,0].T)[0]
-    print 'ideal_array[:,0]', ideal_array[:,0]
+    print('norm_array', norm_array)
+    print('norm_array[:,0]', np.array(norm_array[:,0].T)[0])
+    print('ideal_array[:,0]', ideal_array[:,0])
     cal_fig, cal_mag = plt.subplots(3, sharex=True)
     cal_mag[0].plot(sense_array[:,0],ideal_array[:,0],'r.',alpha=0.5,label='EKF Estimate')
     cal_mag[0].plot(sense_array[:,0],af_array[:,0],'g.',alpha=0.5,label='Affine Cal')
