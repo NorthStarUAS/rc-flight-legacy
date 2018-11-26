@@ -1177,7 +1177,7 @@ static bool Aura3_send_config() {
     }
 
     if ( aura3_config.hasChild("airdata") ) {
-        pyPropertyNode airdata_section = aura3_+config.getChild("airdata");
+        pyPropertyNode airdata_section = aura3_config.getChild("airdata");
         // fixe me stuff here
     }
     
