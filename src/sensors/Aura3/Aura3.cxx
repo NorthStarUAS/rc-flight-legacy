@@ -203,6 +203,12 @@ static bool write_config_actuators() {
     return true;
 }
 
+static bool write_config_airdata() {
+    write_packet( CONFIG_AIRDATA_PACKET_ID, (uint8_t *)&(config.airdata),
+                  sizeof(config.airdata) );
+    return true;
+}
+
 static bool write_config_led() {
     write_packet( CONFIG_LED_PACKET_ID, (uint8_t *)&(config.led),
                   sizeof(config.led) );
@@ -932,6 +938,14 @@ static void act_gain_defaults() {
     }
 }
 
+// reset airdata to startup defaults
+static void airdata_defaults() {
+    config.airdata.barometer = 0;
+    config.airdata.pitot = 0;
+    config.airdata.swift_baro_addr = 0;
+    config.airdata.swift_pitot_addr = 0;
+}
+
 // reset sas parameters to startup defaults
 static void sas_defaults() {
     config.actuators.sas_rollaxis = false;
@@ -994,6 +1008,7 @@ static bool Aura3_send_config() {
     imu_setup_defaults();
     pwm_defaults();
     act_gain_defaults();
+    airdata_defaults();
     mixing_defaults();
     sas_defaults();
     power_defaults();
@@ -1037,7 +1052,6 @@ static bool Aura3_send_config() {
             config.imu.pin_or_address = imu_node.getLong("cs_pin");
         } else if ( interface == "i2c" ) {
             config.imu.interface = 1;
-            config.imu.pin_or_address = imu_node.getLong("i2c_addr");
         } else {
             printf("Warning: unknown IMU interface = %s\n", interface.c_str());
         }
@@ -1162,10 +1176,15 @@ static bool Aura3_send_config() {
 	}
     }
 
+    if ( aura3_config.hasChild("airdata") ) {
+        pyPropertyNode airdata_section = aura3_+config.getChild("airdata");
+        // fixe me stuff here
+    }
+    
     if ( aura3_config.hasChild("led_pin") ) {
         config.led.pin = aura3_config.getLong("led_pin");
     }
-    
+
     if ( display_on ) {
 	printf("Aura3: transmitting master config ...\n");
     }
@@ -1209,6 +1228,22 @@ static bool Aura3_send_config() {
 	if ( get_Time() > start_time + timeout ) {
 	    if ( display_on ) {
 		printf("Timeout waiting for config actuators ack...\n");
+	    }
+	    return false;
+	}
+    }
+
+    if ( display_on ) {
+	printf("Aura3: transmitting airdata config ...\n");
+    }
+    start_time = get_Time();    
+    write_config_airdata();
+    last_ack_id = 0;
+    while ( (last_ack_id != CONFIG_AIRDATA_PACKET_ID) ) {
+	Aura3_read();
+	if ( get_Time() > start_time + timeout ) {
+	    if ( display_on ) {
+		printf("Timeout waiting for config airdata ack...\n");
 	    }
 	    return false;
 	}

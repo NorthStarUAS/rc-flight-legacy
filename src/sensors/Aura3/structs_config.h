@@ -58,6 +58,14 @@ typedef struct {
     float sas_max_gain;
 } config_act_t;
 
+// Air Data Configuration
+typedef struct {
+    uint8_t barometer;          // 0 = BME280/SPI, 1 = BMP280/I2C, 2 = BFS Swift
+    uint8_t pitot;              // 0 = MS4525, 1 = MS5525, 2 = BFS Swift
+    uint8_t swift_baro_addr;
+    uint8_t swift_pitot_addr;
+} config_airdata_t;
+
 // Power Configuration
 typedef struct {
     bool have_attopilot;
@@ -73,6 +81,7 @@ typedef struct {
     config_master_t master;
     config_imu_t imu;
     config_act_t actuators;
+    config_airdata_t airdata;
     config_power_t power;
     config_led_t led;
 } config_t;
