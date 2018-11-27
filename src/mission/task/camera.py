@@ -13,7 +13,7 @@ class Camera(Task):
         Task.__init__(self)
         self.imu_node = getNode("/sensors/imu", True)
         self.pos_node = getNode("/position", True)
-        self.act_node = getNode("/actuators", True)
+        self.flight_node = getNode("/controls/flight", True)
         self.task_node = getNode("/task", True)
         self.comms_node = getNode( '/comms', True)
         self.name = config_node.getString("name")
@@ -22,7 +22,7 @@ class Camera(Task):
         if config_node.hasChild("trigger"):
             self.trigger_name = config_node.getString("trigger")
         else:
-            self.trigger_name = "channel5"
+            self.trigger_name = "gear"
         if config_node.hasChild("forward_fov_deg"):
             self.forward_fov_deg = config_node.getFloat("forward_fov_deg")
             if self.forward_fov_deg < 10:  self.forward_fov_deg = 10
@@ -62,7 +62,7 @@ class Camera(Task):
             if cur_time > self.trigger_time + 0.1:
                 # release trigger
                 self.trigger_state = False
-                self.act_node.setFloat(self.trigger_name, 0.0)
+                self.flight_node.setFloat(self.trigger_name, 0.0)
             return True
         else:
             if cur_time < self.trigger_time + self.min_interval:
@@ -89,7 +89,7 @@ class Camera(Task):
             self.last_lon = self.pos_node.getFloat('longitude_deg')
             self.trigger_time = cur_time
             self.trigger_state = True
-            self.act_node.setFloat(self.trigger_name, 0.68)
+            self.flight_node.setFloat(self.trigger_name, 0.68)
             comms.events.log("camera", "%.8f %.8f %.1f" % (self.last_lat, self.last_lon, self.pos_node.getFloat('altitude_m')))
             #if self.comms_node.getBool('display_on'):
             #    print "camera: %.1f %.8f %.8f %.1f" % (cur_time, self.last_lat, self.last_lon, self.pos_node.getFloat('altitude_m'))
