@@ -1176,9 +1176,29 @@ static bool Aura3_send_config() {
 	}
     }
 
-    if ( aura3_config.hasChild("airdata") ) {
-        pyPropertyNode airdata_section = aura3_config.getChild("airdata");
-        // fixe me stuff here
+    pyPropertyNode airdata_node
+        = pyGetNode("/config/sensors/airdata_group/airdata", true);
+    if ( airdata_node.hasChild("barometer") ) {
+        string baro = airdata_node.getString("barometer");
+        if ( baro == "bme280" ) {
+            config.airdata.barometer = 0;
+        } else if ( baro == "bmp280" ) {
+            config.airdata.barometer = 1;
+        } else if ( baro == "swift" ) {
+            config.airdata.barometer = 2;
+            config.airdata.swift_baro_addr = airdata_node.getLong("swift_baro_addr");
+        }
+    }
+    if ( airdata_node.hasChild("pitot") ) {
+        string pitot = airdata_node.getString("pitot");
+        if ( pitot == "ms4525" ) {
+            config.airdata.pitot = 0;
+        } else if ( pitot == "ms5525" ) {
+            config.airdata.pitot = 1;
+        } else if ( pitot == "swift" ) {
+            config.airdata.pitot = 2;
+            config.airdata.swift_pitot_addr = airdata_node.getLong("swift_pitot_addr");
+        }
     }
     
     if ( aura3_config.hasChild("led_pin") ) {
