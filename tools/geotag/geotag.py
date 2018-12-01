@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import argparse
 import csv
@@ -23,13 +23,14 @@ parser.add_argument('--flight', required=True, help='AuraUAS flight data log dir
 parser.add_argument('--images', required=True, help='Directory containing the images')
 parser.add_argument('--hz', default=100, type=int, help='sample rate')
 parser.add_argument('--shift-time', type=float, help='manual time shift')
+parser.add_argument('--align-first', action='store_true', help='align first in-flight trigger and first image')
 parser.add_argument('--no-plot', dest='plot', action='store_false', help='do not show correlation plots')
 parser.add_argument('--write', action='store_true', help='update geotags on source images')
 parser.set_defaults(plot=True)
 args = parser.parse_args()
 
 # load flight data
-print 'Loading flight data:', args.flight
+print('Loading flight data:', args.flight)
 data, flight_format = flight_loader.load(args.flight)
 interp = flight_interp.FlightInterpolate()
 interp.build(data)
@@ -40,21 +41,21 @@ airborne = False
 ap = False
 event_file = os.path.join(args.flight, "event-0.csv")
 if os.path.exists(event_file):
-    with open(event_file, 'rb') as fevent:
+    with open(event_file, 'r') as fevent:
         reader = csv.DictReader(fevent)
         for row in reader:
             tokens = row['message'].split()
             if len(tokens) == 2 and tokens[0] == 'mission:' and tokens[1] == 'airborne':
-                print 'airborne @', row['timestamp']
+                print('airborne @', row['timestamp'])
                 airborne = True
             if len(tokens) == 3 and tokens[0] == 'mission:' and tokens[1] == 'on' and tokens[2] == 'ground':
-                print 'on ground @', row['timestamp']
+                print('on ground @', row['timestamp'])
                 airborne = False
             if len(tokens) == 6 and tokens[0] == 'control:' and tokens[4] == 'on':
-                print 'ap on @', row['timestamp']
+                print('ap on @', row['timestamp'])
                 ap = True
             if len(tokens) == 6 and tokens[0] == 'control:' and tokens[4] == 'off':
-                print 'ap off @', row['timestamp']
+                print('ap off @', row['timestamp'])
                 ap = False
             if airborne and ap and len(tokens) == 4 and tokens[0] == 'camera:':
                 triggers.append([ float(row['timestamp']),
@@ -64,11 +65,11 @@ if os.path.exists(event_file):
 
 # generate trigger signal
 if len(triggers) < 1:
-    print 'No camera trigger events found'
+    print('No camera trigger events found')
     quit()
 min_trig = triggers[0][0]
 max_trig = triggers[-1][0]
-print min_trig, max_trig, 'total triggers:', len(triggers)
+print(min_trig, max_trig, 'total triggers:', len(triggers))
 signal = [0.0] * int((max_trig-min_trig)*args.hz + 1)
 for t in triggers:
     time = t[0]
@@ -87,7 +88,7 @@ images = []
 # read image exif timestamp (and convert to unix seconds)
 for f in files:
     name = os.path.join(args.images, f)
-    print name
+    print(name)
     exif = pyexiv2.ImageMetadata(name)
     exif.read()
     # print exif.exif_keys
@@ -100,19 +101,22 @@ for f in files:
     unixtime = dt.strftime('%s')
     images.append([float(unixtime), name])
 
+# sort images by timestamp
+images = sorted(images, key=lambda fields: fields[0])
+
 # generate images signal
 if len(images) < 1:
-    print 'No images found'
+    print('No images found')
     quit()
 min_image = float(images[0][0])
 max_image = float(images[-1][0])
-print min_image, max_image, 'num images:', len(images)
+print(min_image, max_image, 'num images:', len(images))
 signal = [0.0] * int((max_image-min_image)*args.hz + 1)
 width = 4.0                       # seconds
 for i in images:
     time = i[0]
     index = int((time-min_image) * args.hz)
-    for i in range(-int(args.hz*width)/2, int(args.hz*width)/2 + 1):
+    for i in range(-int(args.hz*width*0.5), int(args.hz*width*0.5) + 1):
         x = float(i) * math.pi/(args.hz*width)
         #print i, x, math.cos(x)
         if (index + i) >= 0 and (index + i) < len(signal):
@@ -124,7 +128,7 @@ for i in images:
             # signal[index + i] += val
 images_signal = np.array(signal)
 
-print "running correlation between image and trigger signals"
+print("running correlation between image and trigger signals")
 #ycorr = np.correlate(trigger_signal, images_signal, mode='full')
 ycorr = np.convolve(trigger_signal, images_signal, mode='valid')
 
@@ -132,19 +136,21 @@ if args.shift_time:
     # override correlation result
     shift = args.shift_time
     max_index = shift * args.hz
+elif args.align_first:
+    max_index = 0
 else:
     max_index = np.argmax(ycorr)
     
-print "len triggers:", len(trigger_signal)
-print "len images:", len(images_signal)
-print "max index:", max_index
+print("len triggers:", len(trigger_signal))
+print("len images:", len(images_signal))
+print("max index:", max_index)
 shift = float(max_index) / args.hz
-print "relative time shift: %.2f" % (shift)
+print("relative time shift: %.f" % (shift))
 if len(trigger_signal) < len(images_signal):
     # should be ok
     pass
 else:
-    print "I DON'T KNOW WHAT TO DO HERE ... FIGURE IT OUT!  But might be ok?"
+    print("I DON'T KNOW WHAT TO DO HERE ... FIGURE IT OUT!  But might be ok?")
 
 if args.plot:
     plt.figure(1)
@@ -206,7 +212,7 @@ def closest_trigger(time):
         if diff == None or (d >= 0 and d < diff):
             diff = d
             index = i
-    print '  closest trigger:', triggers[index], 'diff:', diff
+    print('  closest trigger:', triggers[index], 'diff:', diff)
     if diff != None and diff >= 0 and diff <= 10:
         return index
     else:
@@ -227,12 +233,12 @@ with open(output_file, 'w') as csvfile:
     for i in images:
         time = i[0]
         image = i[1]
-        print image
+        print(image)
         log_time = time - min_image - shift + min_trig
-        print image, ' trigger:', log_time
+        print(image, ' trigger:', log_time)
         index = closest_trigger(log_time)
         if index == None:
-            print 'no trigger event found for this image'
+            print('no trigger event found for this image')
             continue
         trigger = triggers[index]
         trigger_time = trigger[0]
@@ -257,16 +263,16 @@ with open(output_file, 'w') as csvfile:
 for i in images:
     time = i[0]
     image = i[1]
-    print image,
-    print '  unix:', time
-    print '  min_image:', min_image
-    print '  shift:', shift
-    print '  min_trigger:', min_trig
+    print(image,)
+    print('  unix:', time)
+    print('  min_image:', min_image)
+    print('  shift:', shift)
+    print('  min_trigger:', min_trig)
     log_time = time - min_image - shift + min_trig
-    print ' trigger:', time - min_image - shift + min_trig
+    print(' trigger:', time - min_image - shift + min_trig)
     index = closest_trigger(log_time)
     if index == None:
-        print 'no trigger event found for this image'
+        print('no trigger event found for this image')
         continue
     trigger = triggers[index]
     trigger_time = trigger[0]
@@ -283,7 +289,7 @@ for i in images:
     psiy = interp.filter_psiy(time)
     yaw_deg = math.atan2(psiy, psix)*r2d
 
-    print lat, interp.filter_lat(trigger_time)*r2d, lon, interp.filter_lon(trigger_time)*r2d, msl, interp.filter_alt(trigger_time)
+    print(lat, interp.filter_lat(trigger_time)*r2d, lon, interp.filter_lon(trigger_time)*r2d, msl, interp.filter_alt(trigger_time))
 
     # update geotag in exif data
     exif = pyexiv2.ImageMetadata(image)
@@ -299,5 +305,5 @@ for i in images:
     if args.write:
         exif.write()
     else:
-        print '    dry run, not writing geotag.'
+        print('    dry run, not writing geotag.')
 
