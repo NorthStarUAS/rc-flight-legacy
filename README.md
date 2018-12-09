@@ -3,7 +3,7 @@
 ## Welcome
 
 Aura-core is the heart of the AuraUAS project.  It is distributed
-under the LGPL license except where noted (see the licenses
+under the MIT license except where noted (see the licenses
 subdirectory for details.)  AuraUAS is an embedded autopilot
 application for unmanned aircraft systems.
 
