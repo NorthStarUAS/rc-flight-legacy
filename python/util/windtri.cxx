@@ -2,8 +2,8 @@
 
 #include "windtri.hxx"
 
-const double d2r = 180.0 / M_PI;
-const double r2d = M_PI / 180.0;
+const double r2d = 180.0 / M_PI;
+const double d2r = M_PI / 180.0;
 const double m2pi = M_PI * 2.0;
 
 // Given a wind speed estimate, true airspeed estimate, wind direction
