@@ -12,7 +12,7 @@
 
 import math
 import numpy as np
-from scipy.optimize import minimize
+# from scipy.optimize import minimize
 
 from props import getNode
 from auracore import wgs84
@@ -125,13 +125,13 @@ def curvature_at_t(t, step):
 # optimization function: find the value of t that corresponds to the
 # point on the curve that is closest to the to the given x, y
 # coordinates.
-def find_best_t(x, y, initial_guess):
-    x0 = [ initial_guess ]
-    bnds = [ (initial_guess, None) ]
-    res = minimize(distance_t2xy, x0, bounds=bnds, args=(x, y), tol=0.01,
-                   options={'disp': False})
-    # print(res)
-    return res.x[0]
+# def find_best_t(x, y, initial_guess):
+#     x0 = [ initial_guess ]
+#     bnds = [ (initial_guess, None) ]
+#     res = minimize(distance_t2xy, x0, bounds=bnds, args=(x, y), tol=0.01,
+#                    options={'disp': False})
+#     # print(res)
+#     return res.x[0]
 
 def find_next_t(x, y, initial_guess, dt):
     t = initial_guess
