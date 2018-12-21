@@ -96,8 +96,12 @@ def update(dt):
     omegaA = sqrt_of_2 * math.pi / L1_period
     VomegaA = gs_mps * omegaA
     course_error = orient_node.getFloat("groundtrack_deg") - target_crs
+    # wrap to +/- 180
     if course_error < -180.0: course_error += 360.0
     if course_error >  180.0: course_error -= 360.0
+    # clamp to +/-90
+    if course_error < -90.0: course_error = -90.0
+    if course_error > 90.0: course_error = 90.0
     targets_node.setFloat( "course_error_deg", course_error )
 
     # accel: is the lateral acceleration we need to compensate for
