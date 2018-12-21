@@ -216,7 +216,7 @@ def wind_heading_error( current_crs_deg, target_crs_deg ):
                                                      current_crs_deg )
     (est_nav_hdg_deg, gs2_kt) = windtri.wind_course( ws_kt, tas_kt, wd_deg,
 		                                     target_crs_deg )
-    # print 'cur gnd:', current_crs_deg, 'target:', target_crs_deg
+    # print('est cur body:', est_cur_hdg_deg, 'est nav body:', est_nav_hdg_deg)
     if est_cur_hdg_deg != None and est_nav_hdg_deg != None:
         # life is good
         # print ' cur:', est_cur_hdg_deg, 'gs1:', gs1_kt
@@ -402,8 +402,9 @@ def update(dt):
             VomegaA = tas_mps * omegaA
             # print 'gt:', groundtrack_deg, 'nc:', nav_course, 'error:', groundtrack_deg - nav_course
             hdg_error = wind_heading_error(groundtrack_deg, nav_course)
-            if hdg_error < -180.0: hdg_error += 360.0
-            if hdg_error > 180.0: hdg_error -= 360.0
+            # clamp to +/-90 so we still get max turn input when flying directly away from the heading.
+            if hdg_error < -90.0: hdg_error = -90.0
+            if hdg_error > 90.0: hdg_error = 90.0
             targets_node.setFloat( 'heading_error_deg', hdg_error )
 
             accel = 2.0 * math.sin(hdg_error * d2r) * VomegaA
