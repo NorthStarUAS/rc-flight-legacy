@@ -1171,7 +1171,7 @@ static bool Aura3_send_config() {
 		config.actuators.sas_tune = sas_section.getBool("enable");
 	    }
 	    if ( display_on ) {
-		printf("sas: global tune %d\n", enable);
+		printf("sas: global tune %d\n", config.actuators.sas_tune);
 	    }
 	}
     }
