@@ -184,8 +184,8 @@ static int Aura3_read();        // forward declaration
 
 static bool wait_for_ack(uint8_t id) {
     double timeout = 0.5;
-    double start_time = get_Time();    
-    uint8_t last_ack_id = 0;
+    double start_time = get_Time();
+    last_ack_id = 0;
     while ( (last_ack_id != id) ) {
 	Aura3_read();
 	if ( get_Time() > start_time + timeout ) {
@@ -1351,7 +1351,12 @@ double Aura3_update() {
     if ( command == "zero_gyros" ) {
         if ( write_command_zero_gyros() ) {
             aura3_node.setString( "command", "" );
+            aura3_node.setString( "command_result", "success: " + command );
         }
+    } else {
+        // unknown command
+        aura3_node.setString( "command", "" );
+        aura3_node.setString( "command_result", "unknown command: " + command );
     }
     
     double cur_time = imu_node.getDouble( "timestamp" );
