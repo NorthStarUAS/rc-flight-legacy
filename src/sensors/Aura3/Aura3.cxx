@@ -32,10 +32,11 @@ using namespace Eigen;
 #include "util/timing.h"
 
 #include "Aura3.hxx"
-#include "structs.h"
-
-#include "setup_msg.h"
 #include "setup_pwm.h"
+#include "setup_sbus.h"
+#include "message_ids.h"
+#include "messages.h"
+#include "messages_config.h"
 
 #define NUM_IMU_SENSORS 10
 #define NUM_ANALOG_INPUTS 6
@@ -180,7 +181,7 @@ static bool write_packet(uint8_t packet_id, uint8_t *payload, uint8_t len) {
 }
 
 static bool write_eeprom() {
-    write_packet( WRITE_EEPROM_PACKET_ID, NULL, 0 );
+    write_packet( CONFIG_WRITE_EEPROM_PACKET_ID, NULL, 0 );
     return true;
 }
 
@@ -1307,7 +1308,7 @@ static bool Aura3_send_config() {
     start_time = get_Time();    
     write_eeprom();
     last_ack_id = 0;
-    while ( (last_ack_id != WRITE_EEPROM_PACKET_ID) ) {
+    while ( (last_ack_id != CONFIG_WRITE_EEPROM_PACKET_ID) ) {
 	Aura3_read();
 	if ( get_Time() > start_time + timeout ) {
 	    if ( display_on ) {
@@ -1337,7 +1338,7 @@ static bool Aura3_act_write() {
     /* len = */ write( fd, buf, 2 );
 
     // packet id (1 byte)
-    buf[0] = FLIGHT_COMMAND_PACKET_ID;
+    buf[0] = COMMAND_INCEPTORS;
     // packet length (1 byte)
     buf[1] = size;
     /* len = */ write( fd, buf, 2 );
@@ -1369,7 +1370,7 @@ static bool Aura3_act_write() {
     /* len = */ write( fd, buf, size );
   
     // check sum (2 bytes)
-    Aura3_cksum( FLIGHT_COMMAND_PACKET_ID, size, buf, size, &cksum0, &cksum1 );
+    Aura3_cksum( COMMAND_INCEPTORS, size, buf, size, &cksum0, &cksum1 );
     buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
     /* len = */ write( fd, buf, 2 );
 

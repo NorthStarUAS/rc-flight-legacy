@@ -1,9 +1,9 @@
 #pragma once
 
-#include "setup_pwm.h"
-#include "setup_sbus.h"
+//#include "setup_pwm.h"
+//#include "setup_sbus.h"
 
-#include "structs_config.h"
+#include "messages_config.h"
 
 #pragma pack(push, 1)           // set alignment to 1 byte boundary
 
