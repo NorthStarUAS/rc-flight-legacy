@@ -208,7 +208,7 @@ class Parametric(Task):
             self.t -= loop_t
 
         (center, radius, direction) = curvature_at_t(self.t, self.step)
-        print('t:', self.t, ' radius: ', radius, direction)
+        #print('t:', self.t, ' radius: ', radius, direction)
 
         if center != None:
             # project center back to lat, lon
