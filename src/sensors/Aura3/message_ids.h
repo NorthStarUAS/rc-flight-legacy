@@ -12,11 +12,10 @@ const uint8_t CONFIG_ACTUATORS_PACKET_ID = 23;
 const uint8_t CONFIG_AIRDATA_PACKET_ID = 24;
 const uint8_t CONFIG_POWER_PACKET_ID = 25;
 const uint8_t CONFIG_LED_PACKET_ID = 26;
-const uint8_t CONFIG_WRITE_EEPROM_PACKET_ID = 27;
 
 const uint8_t COMMAND_INCEPTORS = 40;
 const uint8_t COMMAND_ZERO_GYROS = 41;
-const uint8_t COMMAND_CYCLE_FLIGHT_CONTROLS = 42;
+const uint8_t COMMAND_CYCLE_INCEPTORS = 42;
     
 const uint8_t PILOT_PACKET_ID = 50;
 const uint8_t IMU_PACKET_ID = 51;

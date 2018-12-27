@@ -180,8 +180,21 @@ static bool write_packet(uint8_t packet_id, uint8_t *payload, uint8_t len) {
     return true;
 }
 
-static bool write_eeprom() {
-    write_packet( CONFIG_WRITE_EEPROM_PACKET_ID, NULL, 0 );
+static int Aura3_read();        // forward declaration
+
+static bool wait_for_ack(uint8_t id) {
+    double timeout = 0.5;
+    double start_time = get_Time();    
+    uint8_t last_ack_id = 0;
+    while ( (last_ack_id != id) ) {
+	Aura3_read();
+	if ( get_Time() > start_time + timeout ) {
+	    if ( display_on ) {
+		printf("Timeout waiting for ack...\n");
+	    }
+	    return false;
+	}
+    }
     return true;
 }
 
@@ -189,36 +202,46 @@ static bool write_eeprom() {
 static bool write_config_master() {
     write_packet( CONFIG_MASTER_PACKET_ID, (uint8_t *)&(config.master),
                   sizeof(config.master) );
-    return true;
+    return wait_for_ack(CONFIG_MASTER_PACKET_ID);
 }
 
 static bool write_config_imu() {
     write_packet( CONFIG_IMU_PACKET_ID, (uint8_t *)&(config.imu),
                   sizeof(config.imu) );
-    return true;
+    return wait_for_ack(CONFIG_IMU_PACKET_ID);
 }
 
 static bool write_config_actuators() {
     write_packet( CONFIG_ACTUATORS_PACKET_ID, (uint8_t *)&(config.actuators),
                   sizeof(config.actuators) );
-    return true;
+    return wait_for_ack(CONFIG_ACTUATORS_PACKET_ID);
 }
 
 static bool write_config_airdata() {
     write_packet( CONFIG_AIRDATA_PACKET_ID, (uint8_t *)&(config.airdata),
                   sizeof(config.airdata) );
-    return true;
+    return wait_for_ack(CONFIG_AIRDATA_PACKET_ID);
 }
 
 static bool write_config_led() {
     write_packet( CONFIG_LED_PACKET_ID, (uint8_t *)&(config.led),
                   sizeof(config.led) );
-    return true;
+    return wait_for_ack(CONFIG_LED_PACKET_ID);
 }
 
 static bool write_config_power() {
     write_packet( CONFIG_POWER_PACKET_ID, (uint8_t *)&(config.power),
                   sizeof(config.power) );
+    return wait_for_ack(CONFIG_POWER_PACKET_ID);
+}
+
+static bool write_command_zero_gyros() {
+    write_packet( COMMAND_ZERO_GYROS, NULL, 0 );
+    return wait_for_ack(COMMAND_ZERO_GYROS);
+}
+
+static bool write_command_cycle_inceptors() {
+    write_packet( COMMAND_CYCLE_INCEPTORS, NULL, 0 );
     return true;
 }
 
@@ -768,19 +791,6 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 }
 
 
-#if 0
-static void Aura3_read_tmp() {
-    int len;
-    uint8_t input[16];
-    len = read( fd, input, 1 );
-    while ( len > 0 ) {
-	printf("%c", input[0]);
-	len = read( fd, input, 1 );
-    }
-}
-#endif
-
-
 static int Aura3_read() {
     static int state = 0;
     static int pkt_id = 0;
@@ -892,7 +902,7 @@ static int Aura3_read() {
 		    //        cksum_A, cksum_B, cksum_lo, cksum_hi );
 		}
 	    }
-	    // this is the end of a record, reset state to 0 to start
+	    // This Is the end of a record, reset state to 0 to start
 	    // looking for next record
 	    state = 0;
 	}
@@ -1000,8 +1010,6 @@ static bool Aura3_send_config() {
 	printf("Aura3: building config structure.\n");
     }
 
-    double start_time = 0.0;
-    double timeout = 0.5;
     vector<string> children;
 
     // set all parameters to defaults
@@ -1209,113 +1217,43 @@ static bool Aura3_send_config() {
     if ( display_on ) {
 	printf("Aura3: transmitting master config ...\n");
     }
-    start_time = get_Time();    
-    write_config_master();
-    last_ack_id = 0;
-    while ( (last_ack_id != CONFIG_MASTER_PACKET_ID) ) {
-	Aura3_read();
-	if ( get_Time() > start_time + timeout ) {
-	    if ( display_on ) {
-		printf("Timeout waiting for config master ack...\n");
-	    }
-	    return false;
-	}
+    if ( !write_config_master() ) {
+        return false;
     }
 
     if ( display_on ) {
 	printf("Aura3: transmitting imu config ...\n");
     }
-    start_time = get_Time();    
-    write_config_imu();
-    last_ack_id = 0;
-    while ( (last_ack_id != CONFIG_IMU_PACKET_ID) ) {
-	Aura3_read();
-	if ( get_Time() > start_time + timeout ) {
-	    if ( display_on ) {
-		printf("Timeout waiting for config imu ack...\n");
-	    }
-	    return false;
-	}
+    if ( !write_config_imu() ) {
+        return false;
     }
 
     if ( display_on ) {
 	printf("Aura3: transmitting actuator config ...\n");
     }
-    start_time = get_Time();    
-    write_config_actuators();
-    last_ack_id = 0;
-    while ( (last_ack_id != CONFIG_ACTUATORS_PACKET_ID) ) {
-	Aura3_read();
-	if ( get_Time() > start_time + timeout ) {
-	    if ( display_on ) {
-		printf("Timeout waiting for config actuators ack...\n");
-	    }
-	    return false;
-	}
+    if ( !write_config_actuators() ) {
+        return false;
     }
 
     if ( display_on ) {
 	printf("Aura3: transmitting airdata config ...\n");
     }
-    start_time = get_Time();    
-    write_config_airdata();
-    last_ack_id = 0;
-    while ( (last_ack_id != CONFIG_AIRDATA_PACKET_ID) ) {
-	Aura3_read();
-	if ( get_Time() > start_time + timeout ) {
-	    if ( display_on ) {
-		printf("Timeout waiting for config airdata ack...\n");
-	    }
-	    return false;
-	}
+    if ( !write_config_airdata() ) {
+        return false;
     }
 
     if ( display_on ) {
 	printf("Aura3: transmitting power config ...\n");
     }
-    start_time = get_Time();    
-    write_config_power();
-    last_ack_id = 0;
-    while ( (last_ack_id != CONFIG_POWER_PACKET_ID) ) {
-	Aura3_read();
-	if ( get_Time() > start_time + timeout ) {
-	    if ( display_on ) {
-		printf("Timeout waiting for config power ack...\n");
-	    }
-	    return false;
-	}
+    if ( !write_config_power() ) {
+        return false;
     }
 
     if ( display_on ) {
 	printf("Aura3: transmitting led config ...\n");
     }
-    start_time = get_Time();    
-    write_config_led();
-    last_ack_id = 0;
-    while ( (last_ack_id != CONFIG_LED_PACKET_ID) ) {
-	Aura3_read();
-	if ( get_Time() > start_time + timeout ) {
-	    if ( display_on ) {
-		printf("Timeout waiting for config led ack...\n");
-	    }
-	    return false;
-	}
-    }
-
-    if ( display_on ) {
-	printf("Aura3: requesting save config ...\n");
-    }
-    start_time = get_Time();    
-    write_eeprom();
-    last_ack_id = 0;
-    while ( (last_ack_id != CONFIG_WRITE_EEPROM_PACKET_ID) ) {
-	Aura3_read();
-	if ( get_Time() > start_time + timeout ) {
-	    if ( display_on ) {
-		printf("Timeout waiting for write EEPROM ack...\n");
-	    }
-	    return false;
-	}
+    if ( !write_config_led() ) {
+        return false;
     }
 
     if ( display_on ) {
@@ -1388,6 +1326,7 @@ double Aura3_update() {
     // reading the uart buffer is our signal to run an interation of
     // the main loop.
     double last_time = imu_node.getDouble( "timestamp" );
+
     int bytes_available = 0;
     while ( true ) {
         int pkt_id = Aura3_read();
@@ -1406,9 +1345,16 @@ double Aura3_update() {
     // track communication errors from FMU
     aura3_node.setLong("parse_errors", parse_errors);
     aura3_node.setLong("skipped_frames", skipped_frames);
+
+    // experimental location: write optional zero gyros command back to FMU
+    string command = aura3_node.getString( "command" );
+    if ( command == "zero_gyros" ) {
+        if ( write_command_zero_gyros() ) {
+            aura3_node.setString( "command", "" );
+        }
+    }
     
     double cur_time = imu_node.getDouble( "timestamp" );
-
     return cur_time - last_time;
 }
 
