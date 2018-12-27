@@ -1348,15 +1348,19 @@ double Aura3_update() {
 
     // experimental location: write optional zero gyros command back to FMU
     string command = aura3_node.getString( "command" );
-    if ( command == "zero_gyros" ) {
-        if ( write_command_zero_gyros() ) {
+    if ( command.length() ) {
+        if ( command == "zero_gyros" ) {
+            if ( write_command_zero_gyros() ) {
+                aura3_node.setString( "command", "" );
+                aura3_node.setString( "command_result",
+                                      "success: " + command );
+            }
+        } else {
+            // unknown command
             aura3_node.setString( "command", "" );
-            aura3_node.setString( "command_result", "success: " + command );
+            aura3_node.setString( "command_result",
+                                  "unknown command: " + command );
         }
-    } else {
-        // unknown command
-        aura3_node.setString( "command", "" );
-        aura3_node.setString( "command_result", "unknown command: " + command );
     }
     
     double cur_time = imu_node.getDouble( "timestamp" );
