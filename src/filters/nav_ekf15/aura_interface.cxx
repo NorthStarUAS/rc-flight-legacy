@@ -31,6 +31,8 @@ static pyPropertyNode imu_node;
 static pyPropertyNode gps_node;
 static pyPropertyNode filter_node;
 
+// when false will trigger a nav init if gps is alive and settled
+static bool nav_inited = false;
 
 // update the imu_data and gps_data structures with most recent sensor
 // data prior to calling the filter init or update routines
@@ -121,9 +123,12 @@ void nav_ekf15_init( string output_path, pyPropertyNode *config ) {
 #endif
 }
 
+// trigger an ekf reset
+void nav_ekf15_reset() {
+    nav_inited = false;
+}
 
 bool nav_ekf15_update() {
-    static bool nav_inited = false;
     static double last_gps_time = 0.0;
 
     // fill in the UMN structures
