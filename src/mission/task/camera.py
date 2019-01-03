@@ -13,12 +13,14 @@ class Camera(Task):
         Task.__init__(self)
         self.imu_node = getNode("/sensors/imu", True)
         self.pos_node = getNode("/position", True)
+        self.orient_node = getNode("/orientation", True)
         self.flight_node = getNode("/controls/flight", True)
         self.task_node = getNode("/task", True)
         self.comms_node = getNode( '/comms', True)
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
         self.start_time = 0.0
+        self.max_attitude = 20.0
         if config_node.hasChild("trigger"):
             self.trigger_name = config_node.getString("trigger")
         else:
@@ -72,17 +74,22 @@ class Camera(Task):
                 # print " max interval force trigger"
                 force_trigger = True
 
-        # compute course and distance from previous trigger
-        pos_lon = self.pos_node.getFloat("longitude_deg")
-        pos_lat = self.pos_node.getFloat("latitude_deg")
-        (course_deg, rev_deg, dist_m) = \
-            wgs84.geo_inverse( self.last_lat, self.last_lon, pos_lat, pos_lon )
-        agl = self.pos_node.getFloat('altitude_agl_m')
-        thresh_dist_m = 2 * self.fov2_tan * agl * (1.0 - self.overlap)
-        if dist_m >= thresh_dist_m and self.task_node.getBool('is_airborne'):
-            # if we are flying and have moved far enough
-            # print " distance based trigger:", thresh_dist_m, dist_m
-            force_trigger = True
+        roll_deg = self.orient_node.getFloat("roll_deg")
+        pitch_deg = self.orient_node.getFloat("pitch_deg")
+        if abs(roll_deg) <= self.max_attitude and abs(pitch_deg) <= self.max_attitude:
+            # if aircraft in a level enough configuration: compute
+            # course and distance from previous trigger
+            pos_lon = self.pos_node.getFloat("longitude_deg")
+            pos_lat = self.pos_node.getFloat("latitude_deg")
+            (course_deg, rev_deg, dist_m) = \
+                wgs84.geo_inverse( self.last_lat, self.last_lon,
+                                   pos_lat, pos_lon )
+            agl = self.pos_node.getFloat('altitude_agl_m')
+            thresh_dist_m = 2 * self.fov2_tan * agl * (1.0 - self.overlap)
+            if dist_m >= thresh_dist_m and self.task_node.getBool('is_airborne'):
+                # if we are flying and have moved far enough
+                # print " distance based trigger:", thresh_dist_m, dist_m
+                force_trigger = True
 
         if force_trigger:
             self.last_lat = self.pos_node.getFloat('latitude_deg')
