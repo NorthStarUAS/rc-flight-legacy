@@ -44,7 +44,7 @@ class Camera(Task):
             if self.overlap > 1: self.overlap = 1
         else:
             self.overlap = 0.7
-        self.min_interval = 1.0
+        self.min_interval = 0.5
         self.max_interval = 10.0
         self.trigger_state = False
         self.trigger_time = 0.0
@@ -61,7 +61,7 @@ class Camera(Task):
         cur_time = self.imu_node.getFloat("timestamp")
         force_trigger = False
         if self.trigger_state:
-            if cur_time > self.trigger_time + 0.1:
+            if cur_time > self.trigger_time + 0.3:
                 # release trigger
                 self.trigger_state = False
                 self.flight_node.setFloat(self.trigger_name, 0.0)
