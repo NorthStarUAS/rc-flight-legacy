@@ -65,6 +65,12 @@ class Camera(Task):
                 # release trigger
                 self.trigger_state = False
                 self.flight_node.setFloat(self.trigger_name, 0.0)
+                # camera shutter is triggered on release (after being
+                # depressed for 0.3 seconds) so log the event here.
+                comms.events.log("camera", "%.8f %.8f %.1f" % \
+                                 (self.pos_node.getFloat('latitude_deg'),
+                                  self.pos_node.getFloat('longitude_deg'),
+                                  self.pos_node.getFloat('altitude_m')))
             return True
         else:
             if cur_time < self.trigger_time + self.min_interval:
@@ -97,9 +103,6 @@ class Camera(Task):
             self.trigger_time = cur_time
             self.trigger_state = True
             self.flight_node.setFloat(self.trigger_name, 0.68)
-            comms.events.log("camera", "%.8f %.8f %.1f" % (self.last_lat, self.last_lon, self.pos_node.getFloat('altitude_m')))
-            #if self.comms_node.getBool('display_on'):
-            #    print "camera: %.1f %.8f %.8f %.1f" % (cur_time, self.last_lat, self.last_lon, self.pos_node.getFloat('altitude_m'))
         
     def is_complete(self):
         return False
