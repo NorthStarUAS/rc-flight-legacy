@@ -13,12 +13,14 @@ class Camera(Task):
         Task.__init__(self)
         self.imu_node = getNode("/sensors/imu", True)
         self.pos_node = getNode("/position", True)
+        self.orient_node = getNode("/orientation", True)
         self.flight_node = getNode("/controls/flight", True)
         self.task_node = getNode("/task", True)
         self.comms_node = getNode( '/comms', True)
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
         self.start_time = 0.0
+        self.max_attitude = 20.0
         if config_node.hasChild("trigger"):
             self.trigger_name = config_node.getString("trigger")
         else:
@@ -42,7 +44,7 @@ class Camera(Task):
             if self.overlap > 1: self.overlap = 1
         else:
             self.overlap = 0.7
-        self.min_interval = 1.0
+        self.min_interval = 0.5
         self.max_interval = 10.0
         self.trigger_state = False
         self.trigger_time = 0.0
@@ -59,10 +61,16 @@ class Camera(Task):
         cur_time = self.imu_node.getFloat("timestamp")
         force_trigger = False
         if self.trigger_state:
-            if cur_time > self.trigger_time + 0.1:
+            if cur_time > self.trigger_time + 0.3:
                 # release trigger
                 self.trigger_state = False
                 self.flight_node.setFloat(self.trigger_name, 0.0)
+                # camera shutter is triggered on release (after being
+                # depressed for 0.3 seconds) so log the event here.
+                comms.events.log("camera", "%.8f %.8f %.1f" % \
+                                 (self.pos_node.getFloat('latitude_deg'),
+                                  self.pos_node.getFloat('longitude_deg'),
+                                  self.pos_node.getFloat('altitude_m')))
             return True
         else:
             if cur_time < self.trigger_time + self.min_interval:
@@ -72,17 +80,22 @@ class Camera(Task):
                 # print " max interval force trigger"
                 force_trigger = True
 
-        # compute course and distance from previous trigger
-        pos_lon = self.pos_node.getFloat("longitude_deg")
-        pos_lat = self.pos_node.getFloat("latitude_deg")
-        (course_deg, rev_deg, dist_m) = \
-            wgs84.geo_inverse( self.last_lat, self.last_lon, pos_lat, pos_lon )
-        agl = self.pos_node.getFloat('altitude_agl_m')
-        thresh_dist_m = 2 * self.fov2_tan * agl * (1.0 - self.overlap)
-        if dist_m >= thresh_dist_m and self.task_node.getBool('is_airborne'):
-            # if we are flying and have moved far enough
-            # print " distance based trigger:", thresh_dist_m, dist_m
-            force_trigger = True
+        roll_deg = self.orient_node.getFloat("roll_deg")
+        pitch_deg = self.orient_node.getFloat("pitch_deg")
+        if abs(roll_deg) <= self.max_attitude and abs(pitch_deg) <= self.max_attitude:
+            # if aircraft in a level enough configuration: compute
+            # course and distance from previous trigger
+            pos_lon = self.pos_node.getFloat("longitude_deg")
+            pos_lat = self.pos_node.getFloat("latitude_deg")
+            (course_deg, rev_deg, dist_m) = \
+                wgs84.geo_inverse( self.last_lat, self.last_lon,
+                                   pos_lat, pos_lon )
+            agl = self.pos_node.getFloat('altitude_agl_m')
+            thresh_dist_m = 2 * self.fov2_tan * agl * (1.0 - self.overlap)
+            if dist_m >= thresh_dist_m and self.task_node.getBool('is_airborne'):
+                # if we are flying and have moved far enough
+                # print " distance based trigger:", thresh_dist_m, dist_m
+                force_trigger = True
 
         if force_trigger:
             self.last_lat = self.pos_node.getFloat('latitude_deg')
@@ -90,9 +103,6 @@ class Camera(Task):
             self.trigger_time = cur_time
             self.trigger_state = True
             self.flight_node.setFloat(self.trigger_name, 0.68)
-            comms.events.log("camera", "%.8f %.8f %.1f" % (self.last_lat, self.last_lon, self.pos_node.getFloat('altitude_m')))
-            #if self.comms_node.getBool('display_on'):
-            #    print "camera: %.1f %.8f %.8f %.1f" % (cur_time, self.last_lat, self.last_lon, self.pos_node.getFloat('altitude_m'))
         
     def is_complete(self):
         return False

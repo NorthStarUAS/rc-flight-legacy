@@ -224,6 +224,22 @@ bool Filter_update() {
 
     static int remote_link_count = 0;
     static int logging_count = 0;
+    
+    // experimental: reinit all the ekf's upon request
+    string command = filter_group_node.getString( "command" );
+    bool do_reset = false;
+    if ( command.length() ) {
+        if ( command == "reset" ) {
+            do_reset = true;
+            filter_group_node.setString( "command_result",
+                                         "success: " + command );
+        } else {
+            // unknown command
+            filter_group_node.setString( "command_result",
+                                         "unknown command: " + command );
+        }
+        filter_group_node.setString( "command", "" );
+    }
 
     // traverse configured modules
     for ( unsigned int i = 0; i < sections.size(); i++ ) {
@@ -235,8 +251,14 @@ bool Filter_update() {
 	if ( module == "null" ) {
 	    // do nothing
 	} else if ( module == "nav-ekf15" ) {
+            if ( do_reset ) {
+                nav_ekf15_reset();
+            }
 	    fresh_filter_data = nav_ekf15_update();
 	} else if ( module == "nav-ekf15-mag" ) {
+            if ( do_reset ) {
+                nav_ekf15_mag_reset();
+            }
 	    fresh_filter_data = nav_ekf15_mag_update();
 	}
 	if ( fresh_filter_data ) {
