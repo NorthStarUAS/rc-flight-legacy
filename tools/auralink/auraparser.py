@@ -33,7 +33,7 @@ def validate_cksum(id, size, buf, cksum0, cksum1):
     c1 = (c1 + c0) & 0xff
     # print "c0 =", c0, "c1 =", c1
     for i in range(0, size):
-        c0 = (c0 + ord(buf[i])) & 0xff
+        c0 = (c0 + buf[i]) & 0xff
         c1 = (c1 + c0) & 0xff
         # print "c0 =", c0, "c1 =", c1, '[', ord(buf[i]), ']'
         # print "c0 =", c0, "(", cksum0, ")", "c1 =", c1, "(", cksum1, ")"
@@ -126,18 +126,18 @@ def file_read(buf):
     myeof = False
 
     # scan for sync characters
-    sync0 = ord(buf[counter]); counter += 1
-    sync1 = ord(buf[counter]); counter += 1
+    sync0 = buf[counter]; counter += 1
+    sync1 = buf[counter]; counter += 1
     while (sync0 != comms.serial_parser.START_OF_MSG0 or sync1 != comms.serial_parser.START_OF_MSG1) and counter < len(buf):
         sync0 = sync1
-        sync1 = ord(buf[counter]); counter += 1
+        sync1 = buf[counter]; counter += 1
         print("scanning for start of message:", counter, sync0, sync1)
 
     # print "found start of message ..."
 
     # read message id and size
-    id = ord(buf[counter]); counter += 1
-    size = ord(buf[counter]); counter += 1
+    id = buf[counter]; counter += 1
+    size = buf[counter]; counter += 1
     # print "message =", id, "size =", size
 
     # load message
@@ -147,8 +147,8 @@ def file_read(buf):
         print("ERROR: didn't read enough bytes!")
 
     # read checksum
-    cksum0 = ord(buf[counter]); counter += 1
-    cksum1 = ord(buf[counter]); counter += 1
+    cksum0 = buf[counter]; counter += 1
+    cksum1 = buf[counter]; counter += 1
 
     if validate_cksum(id, size, savebuf, cksum0, cksum1):
         # print "check sum passed"

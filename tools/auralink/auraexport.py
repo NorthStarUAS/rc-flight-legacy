@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # export more real csv with first line column headers
 
@@ -8,11 +8,11 @@ import datetime
 import os
 import sys
 import tempfile
-from progress.bar import Bar
+from tqdm import tqdm
 
 from props import root, getNode
 
-sys.path.append("../src")
+sys.path.append("../../src")
 from comms.packet_id import *
 import comms.packer
 
@@ -75,7 +75,6 @@ def generate_record(category, index):
     elif category == 'event':
         return comms.packer.pack_event_csv(index)
 
-
 argparser = argparse.ArgumentParser(description='aura export')
 argparser.add_argument('--flight', help='load specified flight log')
 argparser.add_argument('--skip-seconds', help='seconds to skip when processing flight log')
@@ -96,15 +95,15 @@ if args.flight:
         filename = os.path.join(args.flight, 'flight.dat.gz')
     else:
         filename = args.flight
-    print "filename:", filename
+    print("filename:", filename)
     if filename.endswith('.gz'):
         (fd, filetmp) = tempfile.mkstemp()
         command = 'zcat ' + filename + ' > ' + filetmp
-        print command
+        print(command)
         os.system(command)
-        fd = open(filetmp, 'r')
+        fd = open(filetmp, 'rb')
     else:
-        fd = open(filename, 'r')
+        fd = open(filename, 'rb')
 
     full = fd.read()
 
@@ -116,13 +115,16 @@ if args.flight:
     size = len(full)
     chunk_size = size / divs
     threshold = chunk_size
-    print 'len of decompressed file:', size
+    print("len of decompressed file:", size)
 
-    bar = Bar('Parsing log file:', max = divs, suffix = '%(percent)d%% (%(eta)ds)')
-
+    print("Parsing log file:")
+    t = tqdm(total=size)
+    last_counter = 0
     while True:
         try:
-            (id, index, counter) = auraparser.file_read(full)
+            (id, index, counter) = auraparser.file_read(full) 
+            t.update(counter-last_counter)
+            last_counter = counter
             if not located:
                 if gps_node.getInt('satellites') >= 5:
                     lat = gps_node.getFloat('latitude_deg')
@@ -140,15 +142,12 @@ if args.flight:
                 data[key] = [ record ]
             if not key in master_headers:
                 master_headers[key] = headers
-            if counter > threshold:
-                threshold += chunk_size
-                bar.next()
         except:
-            bar.finish()
-            print 'end of file'
+            t.close()
+            print("end of file")
             break
 else:
-    print 'A flight log file must be provided'
+    print("A flight log file must be provided")
 
 output_dir = os.path.dirname(os.path.realpath(filename))
 
@@ -164,7 +163,7 @@ for key in sorted(data):
         rate = size / total_time
     else:
         rate = 0.0
-    print '%-10s %5.1f/sec (%7d records)' % (key, rate, size)
+    print('%-10s %5.1f/sec (%7d records)' % (key, rate, size))
     if size == 0:
         continue
     filename = os.path.join(output_dir, key + ".csv")
@@ -177,13 +176,13 @@ for key in sorted(data):
         for row in data[key]:
             writer.writerow(row)
         
-print
-print "Total log time: %.1f min" % (total_time / 60.0)
-print "Flight timer: %.1f min" % (status_node.getFloat('flight_timer') / 60.0)
-print "Autopilot time: %.1f min" % (status_node.getFloat('local_autopilot_timer') / 60.0)
-print "Distance flown: %.2f nm (%.2f km)" % (status_node.getFloat('flight_odometer')*m2nm, status_node.getFloat('flight_odometer')*0.001)
-print "Battery Usage: %.0f mah" % apm2_node.getInt("extern_current_mah")
-print
+print()
+print("Total log time: %.1f min" % (total_time / 60.0))
+print("Flight timer: %.1f min" % (status_node.getFloat('flight_timer') / 60.0))
+print("Autopilot time: %.1f min" % (status_node.getFloat('local_autopilot_timer') / 60.0))
+print("Distance flown: %.2f nm (%.2f km)" % (status_node.getFloat('flight_odometer')*m2nm, status_node.getFloat('flight_odometer')*0.001))
+print("Battery Usage: %.0f mah" % apm2_node.getInt("extern_current_mah"))
+print()
 
 apikey = None
 try:
@@ -192,22 +191,22 @@ try:
     f = open(home + '/.forecastio')
     apikey = f.read().rstrip()
 except:
-    print "you must sign up for a free apikey at forecast.io and insert it as a single line inside a file called ~/.forecastio (with no other text in the file)"
+    print("you must sign up for a free apikey at forecast.io and insert it as a single line inside a file called ~/.forecastio (with no other text in the file)")
 
 if not apikey:
-    print "Cannot lookup weather because no forecastio apikey found."
+    print("Cannot lookup weather because no forecastio apikey found.")
 elif sec < 1:
-    print "Cannot lookup weather because gps didn't report unix time."
+    print("Cannot lookup weather because gps didn't report unix time.")
 else:
-    print
+    print()
     #utc = datetime.timezone(0)
     d = datetime.datetime.utcfromtimestamp(sec)
-    print d.strftime("%Y-%m-%d-%H:%M:%S")
+    print(d.strftime("%Y-%m-%d-%H:%M:%S"))
 
     url = 'https://api.darksky.net/forecast/' + apikey + '/%.8f,%.8f,%.d' % (lat, lon, sec)
 
-    import urllib, json
-    response = urllib.urlopen(url)
+    import urllib.request, json
+    response = urllib.request.urlopen(url)
     data = json.loads(response.read())
     mph2kt = 0.868976
     mb2inhg = 0.0295299830714
@@ -217,22 +216,22 @@ else:
         #    print key, ':', currently[key]
         if 'icon' in currently:
             icon = currently['icon']
-            print 'Summary:', icon
+            print("Summary:", icon)
         if 'temperature' in currently:
             tempF = currently['temperature']
             tempC = (tempF - 32.0) * 5 / 9
-            print 'Temp:', '%.1f F' % tempF, '(%.1f C)' % tempC
+            print("Temp:", "%.1f F" % tempF, "(%.1f C)" % tempC)
         if 'dewPoint' in currently:
             tempF = currently['dewPoint']
             tempC = (tempF - 32.0) * 5 / 9
-            print 'Dewpoint:', '%.1f F' % tempF, '(%.1f C)' % tempC
+            print("Dewpoint:", "%.1f F" % tempF, "(%.1f C)" % tempC)
         if 'humidity' in currently:
             hum = currently['humidity']
-            print 'Humidity:', '%.0f%%' % (hum * 100.0)
+            print("Humidity:", "%.0f%%" % (hum * 100.0))
         if 'pressure' in currently:
             mbar = currently['pressure']
             inhg = mbar * mb2inhg
-            print 'Pressure:', '%.2f inhg' % inhg, '(%.1f mbar)' % mbar
+            print("Pressure:", "%.2f inhg" % inhg, "(%.1f mbar)" % mbar)
         if 'windSpeed' in currently:
             wind_mph = currently['windSpeed']
             wind_kts = wind_mph * mph2kt
@@ -243,10 +242,10 @@ else:
             wind_deg = currently['windBearing']
         else:
             wind_deg = 0
-        print "Wind %d deg @ %.1f kt (%.1f mph) @ " % (wind_deg, wind_kts, wind_mph, )
+        print("Wind %d deg @ %.1f kt (%.1f mph) @ " % (wind_deg, wind_kts, wind_mph, ))
         if 'visibility' in currently:
             vis = currently['visibility']
-            print 'Visibility:', '%.1f miles' % vis
+            print("Visibility:", "%.1f miles" % vis)
         if 'cloudCover' in currently:
             cov = currently['cloudCover']
-            print 'Cloud Cover:', '%.0f%%' % (cov * 100.0)
+            print("Cloud Cover:", "%.0f%%" % (cov * 100.0))
