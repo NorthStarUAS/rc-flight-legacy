@@ -3,7 +3,7 @@
 import argparse
 import csv
 import fileinput
-import geomag
+import geomag                   # pip3 install geomag
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import math
@@ -45,9 +45,8 @@ if len(data['imu']) == 0:
     print("not enough data loaded to continue.")
     quit()
 
-# build the interpolation tables
-interp = flight_interp.FlightInterpolate()
-interp.build(data)
+print("Creating interpolation structures..")
+interp = flight_interp.InterpolationGroup(data)
 
 # read the events-0.csv file to determine when aircraft becomes airborne
 # (so we can ignore preflight values.)  Update: also to read the IMU
@@ -55,39 +54,39 @@ interp.build(data)
 xmin = None
 xmax = None
 imu_sn = None
-if flight_format == 'aura_csv':
-    # scan event-0.csv file for additional info
-    event_file = os.path.join(args.flight, 'event-0.csv')
-    with open(event_file, 'r') as fevent:
-        reader = csv.DictReader(fevent)
-        for row in reader:
-            time = float(row['timestamp'])
-            msg = row['message']
-            tokens = msg.split()
-            if len(tokens) == 2 and tokens[1] == 'airborne' and not xmin:
-                xmin = time
-                print("airborne (launch) at t =", xmin)
-            elif len(tokens) == 4 and tokens[2] == 'complete:' and tokens[3] == 'launch' and not xmax:
-                # haven't found a max yet, so update min
-                xmin = time
-                print("launch complete at t =", xmin                    )
-            elif len(tokens) == 3 and time > 0 and tokens[1] == 'on' and tokens[2] == 'ground' and not xmax:
-                t = time
-                if t - xmin > 60:
-                    xmax = time
-                    print("flight complete at t =", xmax)
-                else:
-                    print("warning ignoring sub 1 minute hop")
-            elif len(tokens) == 5 and (tokens[0] == 'APM2:' or tokens[0] == 'Aura3:') and tokens[1] == 'Serial' and tokens[2] == 'Number':
-                auto_sn = int(tokens[4])
-            elif len(tokens) == 4 and tokens[0] == 'APM2' and tokens[1] == 'Serial' and tokens[2] == 'Number:':
-                auto_sn = int(tokens[3])
+auto_sn = None
+if 'event' in data:
+    # scan events log for additional info
+    for event in data['event']:
+        time = event['time']
+        msg = event['message']
+        #print(time, msg)
+        tokens = msg.split()
+        if len(tokens) == 2 and tokens[1] == 'airborne' and not xmin:
+            xmin = time
+            print("airborne (launch) at t =", xmin)
+        elif len(tokens) == 4 and tokens[2] == 'complete:' and tokens[3] == 'launch' and not xmax:
+            # haven't found a max yet, so update min
+            xmin = time
+            print("launch complete at t =", xmin                    )
+        elif len(tokens) == 3 and time > 0 and tokens[1] == 'on' and tokens[2] == 'ground' and not xmax:
+            t = time
+            if t - xmin > 60:
+                xmax = time
+                print("flight complete at t =", xmax)
+            else:
+                print("warning ignoring sub 1 minute hop")
+        elif len(tokens) == 5 and (tokens[0] == 'APM2:' or tokens[0] == 'Aura3:') and tokens[1] == 'Serial' and tokens[2] == 'Number':
+            auto_sn = int(tokens[4])
+        elif len(tokens) == 4 and tokens[0] == 'APM2' and tokens[1] == 'Serial' and tokens[2] == 'Number:':
+            auto_sn = int(tokens[3])
+
 if args.imu_sn:
     imu_sn = args.imu_sn
     print('Using serial number from command line:', imu_sn)
 elif auto_sn:
     imu_sn = auto_sn
-    print('Autodetected serial number (APM2):', imu_sn)
+    print('Autodetected serial number (AuraUAS):', imu_sn)
 
 if not imu_sn:
     print('Cannot continue without an IMU serial number')
@@ -98,51 +97,55 @@ if args.xmin:
     print('xmin provided:', xmin)
 if not xmin:
     print("warning no launch event found")
-    xmin = interp.imu_time.min()
+    xmin = data['imu'][0]['time']
     
 if args.xmax:
     xmax = args.xmax
     print('xmax provided:', xmax)
 if not xmax:
     print("warning no land event found")
-    xmax = interp.imu_time.max()
+    xmax = data['imu'][-1]['time']
 
 # sanity check in case imu data log ends before events.txt
-if xmin < interp.imu_time.min():
-    xmin = interp.imu_time.min()
-if xmax > interp.imu_time.max():
-    xmax = interp.imu_time.max()
+if xmin < data['imu'][0]['time']:
+    xmin = data['imu'][0]['time']
+if xmax > data['imu'][-1]['time']:
+    xmax = data['imu'][-1]['time']
     
 print("flight range = %.3f - %.3f (%.3f)" % (xmin, xmax, xmax-xmin))
 trange = xmax - xmin
 
-alt_min = alt_max = data['gps'][0].alt
+alt_min = alt_max = data['gps'][0]['alt']
 for f in data['gps']:
-    if f.alt < alt_min: alt_min = f.alt
-    if f.alt > alt_max: alt_max = f.alt
+    if f['alt'] < alt_min: alt_min = f['alt']
+    if f['alt'] > alt_max: alt_max = f['alt']
 alt_cutoff = alt_min + (alt_max - alt_min) * 0.25
 print("Alt range =", alt_min, alt_max, "(for non-AuraUAS formats) cutoff =", alt_cutoff)
 
 # write the IMU temp vs. bias data file
 
-imubias_file = os.path.join(args.flight, "imubias.txt")
+if os.path.isdir(args.flight):
+    imubias_file = os.path.join(args.flight, "imubias.txt")
+else:
+    imubias_file = os.path.join(os.path.dirname(args.flight), "imubias.txt")
 print("IMU bias file:", imubias_file)
 
 f = open(imubias_file, 'w')
 
 min_vel = 7.5                   # mps
 for filt in data['filter']:
-    time = filt.time
+    time = filt['time']
     if time >= xmin and time <= xmax:
         # if we are processing an aura format or we are above
         # cutoff altitude then log entries
         if flight_format == 'aura_csv' or flight_format or 'aura_txt' or alt >= alt_cutoff:
-            vel = math.sqrt(filt.vn*filt.vn + filt.ve*filt.ve)
+            vel = math.sqrt(filt['vn']*filt['vn'] + filt['ve']*filt['ve'])
             if vel >= min_vel:
+                interp_imu = interp.query(filt['time'], 'imu')
                 f.write( "%.3f %.1f %.4f %.4f %.4f %.4f %.4f %.4f\n" %
-                         (filt.time, interp.imu_temp(filt.time),
-                          filt.p_bias, filt.q_bias, filt.r_bias,
-                          filt.ax_bias, filt.ay_bias, filt.az_bias) )
+                         (filt['time'], interp_imu['temp'],
+                          filt['p_bias'], filt['q_bias'], filt['r_bias'],
+                          filt['ax_bias'], filt['ay_bias'], filt['az_bias']) )
 
 f.close()
 
@@ -150,10 +153,12 @@ f.close()
 
 # Determine ideal magnetometer vector in ned coordinates
 
-base_lat = data['gps'][0].lat
-base_lon = data['gps'][0].lon
+base_lat = data['gps'][0]['lat']
+base_lon = data['gps'][0]['lon']
 print("flight starts at:", base_lat, base_lon)
-gm = geomag.geomag.GeoMag("/usr/lib/python2.7/site-packages/geomag/WMM.COF")
+#cof_file = os.path.join(geomag.__path__, "WMM.COF")
+#gm = geomag.geomag.GeoMag(cof_file)
+gm = geomag.geomag.GeoMag()
 mag = gm.GeoMag(base_lat, base_lon)
 mag_ned = np.array( [mag.bx, mag.by, mag.bz] )
 print('  raw mag vector:', mag_ned)
@@ -169,21 +174,20 @@ print('  normalized:', mag_ned)
 sense_data = []
 ideal_data = []
 
-for x in np.linspace(xmin, xmax, int(trange*args.resample_hz)):
-    alt = interp.filter_alt(x)
-    phi = interp.filter_phi(x)
-    the = interp.filter_the(x)
-    psix = interp.filter_psix(x)
-    psiy = interp.filter_psiy(x)
+for t in np.linspace(xmin, xmax, int(trange*args.resample_hz)):
+    filter = interp.query(t, 'filter')
+    imu = interp.query(t, 'imu')
+    psix = filter['psix']
+    psiy = filter['psiy']
     psi = math.atan2(psiy, psix)
     # print phi, the, psi
-    N2B = navpy.angle2dcm(psi, the, phi, input_unit='rad')
+    N2B = navpy.angle2dcm(psi, filter['the'], filter['phi'], input_unit='rad')
     mag_ideal = N2B.dot(mag_ned)
     norm = np.linalg.norm(mag_ideal)
     mag_ideal /= norm
-    hx = interp.imu_hx(x)
-    hy = interp.imu_hy(x)
-    hz = interp.imu_hz(x)
+    hx = imu['hx']
+    hy = imu['hy']
+    hz = imu['hz']
     if abs(hx) > 1000:
         print("oops:", hx, hy, hz)
     mag_sense = np.array([hx, hy, hz])
@@ -191,7 +195,7 @@ for x in np.linspace(xmin, xmax, int(trange*args.resample_hz)):
     if flight_format == 'aura_csv' or flight_format == 'aura_txt':
         ideal_data.append( mag_ideal[:].tolist() )
         sense_data.append( mag_sense[:].tolist() )
-    elif alt >= alt_cutoff:
+    elif filter['alt'] >= alt_cutoff:
         print(mag_sense, mag_ideal)
         ideal_data.append( mag_ideal[:].tolist() )
         sense_data.append( mag_sense[:].tolist() )
@@ -217,7 +221,10 @@ print(' persp:', perspective)
 # write mag calibration data points to file (so we can aggregate over
 # multiple flights later
 
-mags_file = os.path.join(args.flight, "mags.txt")
+if os.path.isdir(args.flight):
+    mags_file = os.path.join(args.flight, "mags.txt")
+else:
+    mags_file = os.path.join(os.path.dirname(args.flight), "mags.txt")
 print("mags file:", mags_file)
 f = open(mags_file, 'w')
 for i in range(sense_array.shape[0]):
