@@ -466,9 +466,9 @@ def pack_filter_csv(index):
     row['vn_ms'] = '%.4f' % filter_node.getFloat('vn_ms')
     row['ve_ms'] = '%.4f' % filter_node.getFloat('ve_ms')
     row['vd_ms'] = '%.4f' % filter_node.getFloat('vd_ms')
-    row['roll_deg'] = '%.2f' % filter_node.getFloat('roll_deg')
-    row['pitch_deg'] = '%.2f' % filter_node.getFloat('pitch_deg')
-    row['heading_deg'] = '%.2f' % filter_node.getFloat('heading_deg')
+    row['roll_deg'] = '%.3f' % filter_node.getFloat('roll_deg')
+    row['pitch_deg'] = '%.3f' % filter_node.getFloat('pitch_deg')
+    row['heading_deg'] = '%.3f' % filter_node.getFloat('heading_deg')
     row['p_bias'] = '%.4f' % filter_node.getFloat('p_bias')
     row['q_bias'] = '%.4f' % filter_node.getFloat('q_bias')
     row['r_bias'] = '%.4f' % filter_node.getFloat('r_bias')
@@ -1123,7 +1123,7 @@ def unpack_event_v1(buf):
     #print 'expected size:', size
     #print 'maybe the message:', buf[10:]
     message = struct.unpack("%ds" % size, buf[10:])
-    #print 'message:', timestamp, message[0]
+    # print('message:', timestamp, message[0])
     
     #result = struct.unpack(event_v1_fmt, buf)
     #index = result[0]
@@ -1140,7 +1140,7 @@ def unpack_event_v1(buf):
         name = parts[-1]
         node.setString(name, value)
     event_node.setFloat("timestamp", timestamp)
-    event_node.setString("message", message[0])
+    event_node.setString("message", message[0].decode())
 
     #print 'end of unpack event'
     return index
