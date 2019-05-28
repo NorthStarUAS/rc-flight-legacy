@@ -3,10 +3,9 @@
 # export more real csv with first line column headers
 
 import argparse
+import csv
 import datetime
-import h5py
 import os
-import pandas as pd
 import sys
 import tempfile
 from tqdm import tqdm
@@ -23,48 +22,31 @@ import auraparser
 
 m2nm   = 0.0005399568034557235 # meters to nautical miles
 
-def generate_path(id, index):
+def logical_category(id):
     if id == GPS_PACKET_V2 or id == GPS_PACKET_V3 or id == GPS_PACKET_V4:
-        category = 'gps'
+        return 'gps'
     elif id == IMU_PACKET_V3 or id == IMU_PACKET_V4:
-        category = 'imu'
+        return 'imu'
     elif id == AIRDATA_PACKET_V5 or id == AIRDATA_PACKET_V6:
-        category = 'air'
+        return 'air'
     elif id == FILTER_PACKET_V2 or id == FILTER_PACKET_V3 \
          or id == FILTER_PACKET_V4:
-        category = 'filter'
+        return 'filter'
     elif id == ACTUATOR_PACKET_V2 or id == ACTUATOR_PACKET_V3:
-        category = 'act'
+        return 'act'
     elif id == id == PILOT_INPUT_PACKET_V2 or id == PILOT_INPUT_PACKET_V3:
-        category = 'pilot'
+        return 'pilot'
     elif id == AP_STATUS_PACKET_V4 or id == AP_STATUS_PACKET_V5 \
          or id == AP_STATUS_PACKET_V6 or id == AP_STATUS_PACKET_V7:
-        category = 'ap'
+        return 'ap'
     elif id == SYSTEM_HEALTH_PACKET_V4 or id == SYSTEM_HEALTH_PACKET_V5:
-        category = 'health'
+        return 'health'
     elif id == PAYLOAD_PACKET_V2 or id == PAYLOAD_PACKET_V3:
-        category = 'payload'
+        return 'payload'
     elif id == EVENT_PACKET_V1:
-        category = 'event'
+        return 'event'
     else:
-        print("Unknown packet id!", id, index)
-        path = '/unknown-packet-id'
-    if category == 'gps' or category == 'imu' or category == 'air' \
-       or category == 'pilot' or category == 'health':
-        basepath = '/sensors/' + category
-    elif category == 'filter':
-        basepath = '/navigation/' + category
-    elif category == 'act':
-        basepath = '/actuators/' + category
-    elif category == 'ap':
-        basepath = '/autopilot'
-    elif category == 'health':
-        basepath = '/health'
-    elif category == 'event':
-        basepath = '/event'
-    if index > 0:
-        basepath += "-%d" % index
-    return category, basepath
+        return 'unknown-packet-id'
 
 # When a binary record of some id is read, it gets parsed into the
 # property tree structure.  The following code simple calls the
@@ -73,25 +55,25 @@ def generate_path(id, index):
 # record.
 def generate_record(category, index):
     if category == 'gps':
-        return comms.packer.pack_gps_dict(index)
+        return comms.packer.pack_gps_csv(index)
     elif category == 'imu':
-        return comms.packer.pack_imu_dict(index)
+        return comms.packer.pack_imu_csv(index)
     elif category == 'air':
-        return comms.packer.pack_airdata_dict(index)
+        return comms.packer.pack_airdata_csv(index)
     elif category == 'filter':
-        return comms.packer.pack_filter_dict(index)
+        return comms.packer.pack_filter_csv(index)
     elif category == 'act':
-        return comms.packer.pack_act_dict(index)
+        return comms.packer.pack_act_csv(index)
     elif category == 'pilot':
-        return comms.packer.pack_pilot_dict(index)
+        return comms.packer.pack_pilot_csv(index)
     elif category == 'ap':
-        return comms.packer.pack_ap_status_dict(index)
+        return comms.packer.pack_ap_status_csv(index)
     elif category == 'health':
-        return comms.packer.pack_system_health_dict(index)
+        return comms.packer.pack_system_health_csv(index)
     elif category == 'payload':
-        return comms.packer.pack_payload_dict(index)
+        return comms.packer.pack_payload_csv(index)
     elif category == 'event':
-        return comms.packer.pack_event_dict(index)
+        return comms.packer.pack_event_csv(index)
 
 argparser = argparse.ArgumentParser(description='aura export')
 argparser.add_argument('--flight', help='load specified flight log')
@@ -150,12 +132,16 @@ if args.flight:
                     sec = gps_node.getFloat('unix_time_sec')
                     located = True
             current.compute_derived_data()
-            category, path = generate_path(id, index)
-            record = generate_record(category, index)
-            if path in data:
-                data[path].append(record)
+            category = logical_category(id)
+            record, headers = generate_record(category, index)
+            key = '%s-%d' % (category, index)
+            # print 'key:', key
+            if key in data:
+                data[key].append(record)
             else:
-                data[path] = [ record ]
+                data[key] = [ record ]
+            if not key in master_headers:
+                master_headers[key] = headers
         except:
             t.close()
             print("end of file")
@@ -171,17 +157,7 @@ status_node = getNode('/status', True)
 total_time = filter_node.getFloat('timestamp')
 apm2_node = getNode("/sensors/APM2", True)
 
-filename = os.path.join(output_dir, "flight.h5")
-f = h5py.File(filename, 'w')
-
-md = f.create_group("/metadata")
-md.attrs["format"] = "AuraUAS"
-md.attrs["version"] = "2.1"
-md.attrs["creator"] = "Curtis L. Olson"
-md.attrs["url"] = "https://www.flightgear.org"
-
 for key in sorted(data):
-    print(key)
     size = len(data[key])
     if total_time > 0.01:
         rate = size / total_time
@@ -190,25 +166,13 @@ for key in sorted(data):
     print('%-10s %5.1f/sec (%7d records)' % (key, rate, size))
     if size == 0:
         continue
-    df = pd.DataFrame(data[key])
-    df.set_index('timestamp', inplace=True, drop=False)
-    for column in df.columns:
-        print(key + '/' + column)
-        print(df[column].values)
-        print(type(df[column].values))
-        if type(df[column].values[0]) != str:
-            f.create_dataset(key + '/' + column, (size, 1),
-                             data=df[column].values,
-                             compression="gzip", compression_opts=9)
-        else:
-            # special str handling
-            dt = h5py.special_dtype(vlen=str)
-            f.create_dataset(key + '/' + column, (size, 1),
-                             data=df[column].values, dtype=dt,
-                             compression="gzip", compression_opts=9)
-
-f.close()
-
+    filename = os.path.join(output_dir, key + ".csv")
+    with open(filename, 'w', encoding='utf8') as csvfile:
+        writer = csv.DictWriter( csvfile, fieldnames=master_headers[key] )
+        writer.writeheader()
+        for row in data[key]:
+            writer.writerow(row)
+        
 print()
 print("Total log time: %.1f min" % (total_time / 60.0))
 print("Flight timer: %.1f min" % (status_node.getFloat('flight_timer') / 60.0))

@@ -141,6 +141,24 @@ def pack_gps_bin(index):
                       node.getInt('fixType'))
     return wrap_packet(GPS_PACKET_V4, buf)
 
+def pack_gps_dict(index):
+    gps_node = getNode('/sensors/gps[%d]' % index, True)
+    row = dict()
+    row['timestamp'] = gps_node.getFloat('timestamp')
+    row['latitude_deg'] = gps_node.getFloat('latitude_deg')
+    row['longitude_deg'] = gps_node.getFloat('longitude_deg')
+    row['altitude_m'] = gps_node.getFloat('altitude_m')
+    row['vn_ms'] = gps_node.getFloat('vn_ms')
+    row['ve_ms'] = gps_node.getFloat('ve_ms')
+    row['vd_ms'] = gps_node.getFloat('vd_ms')
+    row['unix_time_sec'] = gps_node.getFloat('unix_time_sec')
+    row['satellites'] = gps_node.getInt('satellites')
+    row['horiz_accuracy_m'] = gps_node.getFloat('horiz_accuracy_m')
+    row['vert_accuracy_m'] = gps_node.getFloat('vert_accuracy_m')
+    row['pdop'] = gps_node.getFloat('pdop')
+    row['fix_type'] = gps_node.getInt('fixType')
+    return row
+    
 def pack_gps_csv(index):
     gps_node = getNode('/sensors/gps[%d]' % index, True)
     row = dict()
@@ -266,6 +284,23 @@ def pack_imu_bin(index):
                       0)
     return wrap_packet(IMU_PACKET_V4, buf)
 
+def pack_imu_dict(index):
+    imu_node = getNode('/sensors/imu[%d]' % index, True)
+    row = dict()
+    row['timestamp'] = imu_node.getFloat('timestamp')
+    row['p_rad_sec'] = imu_node.getFloat('p_rad_sec')
+    row['q_rad_sec'] = imu_node.getFloat('q_rad_sec')
+    row['r_rad_sec'] = imu_node.getFloat('r_rad_sec')
+    row['ax_mps_sec'] = imu_node.getFloat('ax_mps_sec')
+    row['ay_mps_sec'] = imu_node.getFloat('ay_mps_sec')
+    row['az_mps_sec'] = imu_node.getFloat('az_mps_sec')
+    row['hx'] = imu_node.getFloat('hx')
+    row['hy'] = imu_node.getFloat('hy')
+    row['hz'] = imu_node.getFloat('hz')
+    row['temp_C'] = imu_node.getFloat('temp_C')
+    row['status'] = imu_node.getInt('status')
+    return row
+    
 def pack_imu_csv(index):
     imu_node = getNode('/sensors/imu[%d]' % index, True)
     row = dict()
@@ -357,6 +392,23 @@ def pack_airdata_bin(index):
                       int(wind_node.getFloat("pitot_scale_factor") * 100),
                       node.getInt("status"))
     return wrap_packet(AIRDATA_PACKET_V6, buf)
+
+def pack_airdata_dict(index):
+    airdata_node = getNode('/sensors/airdata[%d]' % index, True)
+    row = dict()
+    row['timestamp'] = airdata_node.getFloat('timestamp')
+    row['pressure_mbar'] = airdata_node.getFloat('pressure_mbar')
+    row['temp_C'] = airdata_node.getFloat('temp_C')
+    row['airspeed_smoothed_kt'] = vel_node.getFloat('airspeed_smoothed_kt')
+    row['altitude_smoothed_m'] = pos_pressure_node.getFloat('altitude_smoothed_m')
+    row['altitude_true_m'] = pos_combined_node.getFloat('altitude_true_m')
+    row['wind_dir_deg'] = wind_node.getFloat('wind_dir_deg')
+    row['wind_speed_kt'] = wind_node.getFloat('wind_speed_kt')
+    row['pitot_scale_factor'] = wind_node.getFloat('pitot_scale_factor')
+    row['tecs_error_total'] = tecs_node.getFloat('error_total')
+    row['tecs_error_diff'] = tecs_node.getFloat('error_diff')
+    row['status'] = airdata_node.getInt('status')
+    return row
 
 def pack_airdata_csv(index):
     airdata_node = getNode('/sensors/airdata[%d]' % index, True)
@@ -455,6 +507,28 @@ def pack_filter_bin(index):
                       remote_link_node.getInt("sequence_num"),
                       0)
     return wrap_packet(FILTER_PACKET_V4, buf)
+
+def pack_filter_dict(index):
+    filter_node = getNode('/filters/filter[%d]' % index, True)
+    row = dict()
+    row['timestamp'] = filter_node.getFloat('timestamp')
+    row['latitude_deg'] = filter_node.getFloat('latitude_deg')
+    row['longitude_deg'] = filter_node.getFloat('longitude_deg')
+    row['altitude_m'] = filter_node.getFloat('altitude_m')
+    row['vn_ms'] = filter_node.getFloat('vn_ms')
+    row['ve_ms'] = filter_node.getFloat('ve_ms')
+    row['vd_ms'] = filter_node.getFloat('vd_ms')
+    row['roll_deg'] = filter_node.getFloat('roll_deg')
+    row['pitch_deg'] = filter_node.getFloat('pitch_deg')
+    row['heading_deg'] = filter_node.getFloat('heading_deg')
+    row['p_bias'] = filter_node.getFloat('p_bias')
+    row['q_bias'] = filter_node.getFloat('q_bias')
+    row['r_bias'] = filter_node.getFloat('r_bias')
+    row['ax_bias'] = filter_node.getFloat('ax_bias')
+    row['ay_bias'] = filter_node.getFloat('ay_bias')
+    row['az_bias'] = filter_node.getFloat('az_bias')
+    row['status'] = filter_node.getInt('status')
+    return row
 
 def pack_filter_csv(index):
     filter_node = getNode('/filters/filter[%d]' % index, True)
@@ -586,6 +660,20 @@ def pack_act_bin(index):
                       0)
     return wrap_packet(ACTUATOR_PACKET_V3, buf)
 
+def pack_act_dict(index):
+    row = dict()
+    row['timestamp'] = act_node.getFloat('timestamp')
+    row['aileron_norm'] = act_node.getFloat('aileron')
+    row['elevator_norm'] = act_node.getFloat('elevator')
+    row['throttle_norm'] = act_node.getFloat('throttle')
+    row['rudder_norm'] = act_node.getFloat('rudder')
+    row['channel5_norm'] = act_node.getFloat('channel5')
+    row['flaps_norm'] = act_node.getFloat('flaps')
+    row['channel7_norm'] = act_node.getFloat('channel7')
+    row['channel8_norm'] = act_node.getFloat('channel8')
+    row['status'] = act_node.getInt('status')
+    return row
+
 def pack_act_csv(index):
     row = dict()
     row['timestamp'] = '%.4f' % act_node.getFloat('timestamp')
@@ -657,6 +745,21 @@ def pack_pilot_bin(index):
                       int(node.getFloatEnum("channel", 7) * 20000),
                       0)
     return wrap_packet(PILOT_INPUT_PACKET_V3, buf)
+
+def pack_pilot_dict(index):
+    pilot_node = getNode('/sensors/pilot_input[%d]' % index, True)
+    row = dict()
+    row['timestamp'] = pilot_node.getFloat('timestamp')
+    row['channel[0]'] = pilot_node.getFloatEnum('channel', 0)
+    row['channel[1]'] = pilot_node.getFloatEnum('channel', 1)
+    row['channel[2]'] = pilot_node.getFloatEnum('channel', 2)
+    row['channel[3]'] = pilot_node.getFloatEnum('channel', 3)
+    row['channel[4]'] = pilot_node.getFloatEnum('channel', 4)
+    row['channel[5]'] = pilot_node.getFloatEnum('channel', 5)
+    row['channel[6]'] = pilot_node.getFloatEnum('channel', 6)
+    row['channel[7]'] = pilot_node.getFloatEnum('channel', 7)
+    row['status'] = pilot_node.getInt('status')
+    return row
 
 def pack_pilot_csv(index):
     pilot_node = getNode('/sensors/pilot_input[%d]' % index, True)
@@ -807,6 +910,22 @@ def pack_ap_status_bin(index):
     # print 'H:', int(round(target_msl_ft)), int(round(ground_m)),
     # int(round(targets_node.getFloat("pitch_deg") * 10)), int(round(targets_node.getFloat("airspeed_kt") * 10)), int(round(task_node.getFloat("flight_timer"))), route_node.getInt("target_waypoint_idx"), wp_index, route_size, 
     return wrap_packet(AP_STATUS_PACKET_V7, buf)
+
+def pack_ap_status_dict(index):
+    # fixme: tecs_target_tot is really zero now because these values
+    # are computed in energy *error* terms
+    row = dict()
+    row['timestamp'] = targets_node.getFloat('timestamp')
+    row['master_switch'] = ap_node.getBool("master_switch")
+    row['pilot_pass_through'] = ap_node.getBool("pilot_pass_through")
+    row['groundtrack_deg'] = targets_node.getFloat('groundtrack_deg')
+    row['roll_deg'] = targets_node.getFloat('roll_deg')
+    row['altitude_msl_ft'] = targets_node.getFloat('altitude_msl_ft')
+    row['pitch_deg'] = targets_node.getFloat('pitch_deg')
+    row['airspeed_kt'] = targets_node.getFloat('airspeed_kt')
+    row['altitude_ground_m'] = pos_node.getFloat("altitude_ground_m")
+    row['tecs_target_tot'] = tecs_node.getFloat("target_total")
+    return row
 
 def pack_ap_status_csv(index):
     # fixme: tecs_target_tot is really zero now because these values
@@ -1024,6 +1143,17 @@ def pack_system_health_bin(index):
                       dekamah)
     return wrap_packet(SYSTEM_HEALTH_PACKET_V5, buf)
 
+def pack_system_health_dict(index):
+    row = dict()
+    row['timestamp'] = status_node.getFloat('frame_time')
+    row['system_load_avg'] = status_node.getFloat('system_load_avg')
+    row['avionics_vcc'] = power_node.getFloat('avionics_vcc')
+    row['main_vcc'] = power_node.getFloat('main_vcc')
+    row['cell_vcc'] = power_node.getFloat('cell_vcc')
+    row['main_amps'] = power_node.getFloat('main_amps')
+    row['total_mah'] = power_node.getFloat('total_mah')
+    return row
+
 def pack_system_health_csv(index):
     row = dict()
     row['timestamp'] = '%.4f' % status_node.getFloat('frame_time')
@@ -1074,6 +1204,12 @@ def pack_payload_bin(index):
                       payload_node.getFloat("trigger_num"))
     return wrap_packet(PAYLOAD_PACKET_V3, buf)
 
+def pack_payload_dict(index):
+    row = dict()
+    row['timestamp'] = payload_node.getFloat('timestamp')
+    row['trigger_num'] = payload_node.getInt('trigger_num')
+    return row
+
 def pack_payload_csv(index):
     row = dict()
     row['timestamp'] = '%.4f' % payload_node.getFloat('timestamp')
@@ -1108,10 +1244,16 @@ def pack_event_bin(message):
                       str.encode(message))
     return wrap_packet(EVENT_PACKET_V1, buf)
 
+def pack_event_dict(index):
+    row = dict()
+    row['timestamp'] = event_node.getFloat('timestamp')
+    row['message'] = event_node.getString('message')
+    return row
+    
 def pack_event_csv(index):
     row = dict()
     row['timestamp'] = '%.4f' % event_node.getFloat('timestamp')
-    row['message'] = '%s' % event_node.getString('message')
+    row['message'] = event_node.getString('message')
     keys = ['timestamp', 'message']
     return row, keys
     
