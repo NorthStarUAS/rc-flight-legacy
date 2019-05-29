@@ -61,7 +61,7 @@ def generate_path(id, index):
     elif category == 'health':
         basepath = '/health'
     elif category == 'event':
-        basepath = '/event'
+        basepath = '/events'
     if index > 0:
         basepath += "-%d" % index
     return category, basepath
@@ -181,7 +181,6 @@ md.attrs["creator"] = "Curtis L. Olson"
 md.attrs["url"] = "https://www.flightgear.org"
 
 for key in sorted(data):
-    print(key)
     size = len(data[key])
     if total_time > 0.01:
         rate = size / total_time
@@ -194,8 +193,8 @@ for key in sorted(data):
     df.set_index('timestamp', inplace=True, drop=False)
     for column in df.columns:
         print(key + '/' + column)
-        print(df[column].values)
-        print(type(df[column].values))
+        #print(df[column].values)
+        #print(type(df[column].values))
         if type(df[column].values[0]) != str:
             f.create_dataset(key + '/' + column, (size, 1),
                              data=df[column].values,
