@@ -196,13 +196,13 @@ for key in sorted(data):
         #print(df[column].values)
         #print(type(df[column].values))
         if type(df[column].values[0]) != str:
-            f.create_dataset(key + '/' + column, (size, 1),
+            f.create_dataset(key + '/' + column,
                              data=df[column].values,
                              compression="gzip", compression_opts=9)
         else:
             # special str handling
             dt = h5py.special_dtype(vlen=str)
-            f.create_dataset(key + '/' + column, (size, 1),
+            f.create_dataset(key + '/' + column,
                              data=df[column].values, dtype=dt,
                              compression="gzip", compression_opts=9)
 
