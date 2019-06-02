@@ -9,9 +9,6 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 import os
-import re
-from scipy import interpolate
-import sys
 
 import navpy
 
@@ -31,13 +28,8 @@ args = parser.parse_args()
 g = 9.81
 r2d = 180.0 / math.pi
 
-if 'recalibrate' in args:
-    recal_file = args.recalibrate
-else:
-    recal_file = None
-
-# load the flight data
-data, flight_format = flight_loader.load(args.flight, recal_file)
+print("Loading flight data:", args.flight)
+data, flight_format = flight_loader.load(args.flight)
 print("imu records:", len(data['imu']))
 print("gps records:", len(data['gps']))
 print("filter records:", len(data['gps']))
@@ -45,6 +37,15 @@ if len(data['imu']) == 0:
     print("not enough data loaded to continue.")
     quit()
 
+dir = os.path.dirname(args.flight)
+imucal_json = os.path.join(dir, "imucal.json")
+if os.path.exists(imucal_json):
+    cal = imucal.Calibration()
+    cal.load(imucal_json)
+    print('back correcting imu data and biases for original raw values.')
+    cal.back_correct(data['imu'], data['filter'])
+
+# this must happen after the back convert
 print("Creating interpolation structures..")
 interp = flight_interp.InterpolationGroup(data)
 
@@ -63,19 +64,19 @@ if 'event' in data:
         #print(time, msg)
         tokens = msg.split()
         if len(tokens) == 2 and tokens[1] == 'airborne' and not xmin:
-            xmin = time
-            print("airborne (launch) at t =", xmin)
+            print("airborne (launch) at t =", time)
+            xmin = time + 30
         elif len(tokens) == 4 and tokens[2] == 'complete:' and tokens[3] == 'launch' and not xmax:
             # haven't found a max yet, so update min
-            xmin = time
-            print("launch complete at t =", xmin                    )
+            print("launch complete at t =", time)
+            xmin = time + 30
         elif len(tokens) == 3 and time > 0 and tokens[1] == 'on' and tokens[2] == 'ground' and not xmax:
             t = time
             if t - xmin > 60:
-                xmax = time
-                print("flight complete at t =", xmax)
+                print("flight complete at t =", time)
+                xmax = time - 1
             else:
-                print("warning ignoring sub 1 minute hop")
+                print("warning ignoring sub 1 minute flight")
         elif len(tokens) == 5 and (tokens[0] == 'APM2:' or tokens[0] == 'Aura3:') and tokens[1] == 'Serial' and tokens[2] == 'Number':
             auto_sn = int(tokens[4])
         elif len(tokens) == 4 and tokens[0] == 'APM2' and tokens[1] == 'Serial' and tokens[2] == 'Number:':
@@ -138,7 +139,7 @@ for filt in data['filter']:
     if time >= xmin and time <= xmax:
         # if we are processing an aura format or we are above
         # cutoff altitude then log entries
-        if flight_format == 'aura_csv' or flight_format or 'aura_txt' or alt >= alt_cutoff:
+        if flight_format == 'aura_csv' or flight_format or 'aura_hdf5' or alt >= alt_cutoff:
             vel = math.sqrt(filt['vn']*filt['vn'] + filt['ve']*filt['ve'])
             if vel >= min_vel:
                 interp_imu = interp.query(filt['time'], 'imu')
@@ -161,7 +162,7 @@ print("flight starts at:", base_lat, base_lon)
 gm = geomag.geomag.GeoMag()
 mag = gm.GeoMag(base_lat, base_lon)
 mag_ned = np.array( [mag.bx, mag.by, mag.bz] )
-print('  raw mag vector:', mag_ned)
+print('  ideal mag vector:', mag_ned)
 norm = np.linalg.norm(mag_ned)
 print('  norm:', norm)
 mag_ned /= norm
@@ -177,6 +178,7 @@ ideal_data = []
 for t in np.linspace(xmin, xmax, int(trange*args.resample_hz)):
     filter = interp.query(t, 'filter')
     imu = interp.query(t, 'imu')
+    # print("imu:", imu)
     psix = filter['psix']
     psiy = filter['psiy']
     psi = math.atan2(psiy, psix)
@@ -192,7 +194,7 @@ for t in np.linspace(xmin, xmax, int(trange*args.resample_hz)):
         print("oops:", hx, hy, hz)
     mag_sense = np.array([hx, hy, hz])
     # if abs(psi) < 0.1:
-    if flight_format == 'aura_csv' or flight_format == 'aura_txt':
+    if flight_format == 'aura_csv' or flight_format == 'aura_hdf5':
         ideal_data.append( mag_ideal[:].tolist() )
         sense_data.append( mag_sense[:].tolist() )
     elif filter['alt'] >= alt_cutoff:
