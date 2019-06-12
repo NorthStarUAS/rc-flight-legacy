@@ -51,8 +51,9 @@ df0_nav = pd.DataFrame(data['filter'])
 df0_nav.set_index('time', inplace=True, drop=False)
 df0_air = pd.DataFrame(data['air'])
 df0_air.set_index('time', inplace=True, drop=False)
-df0_health = pd.DataFrame(data['health'])
-df0_health.set_index('time', inplace=True, drop=False)
+if 'health' in data:
+    df0_health = pd.DataFrame(data['health'])
+    df0_health.set_index('time', inplace=True, drop=False)
 if 'act' in data:
     df0_act = pd.DataFrame(data['act'])
     df0_act.set_index('time', inplace=True, drop=False)
@@ -451,7 +452,8 @@ fig = plt.figure()
 plt.title('Altitude')
 plt.plot(df0_gps['alt'], '-*', label='GPS Sensor', c='g', alpha=.5)
 plt.plot(df0_nav['alt'], label='EKF')
-plt.plot(df0_air['alt_press'], label='Barometer')
+if 'alt_press' in df0_air:
+    plt.plot(df0_air['alt_press'], label='Barometer')
 add_regions(fig.gca(), airborne)
 add_regions(fig.gca(), regions)
 plt.ylabel('Altitude (m)', weight='bold')
@@ -492,12 +494,63 @@ ax1.set_xlabel('Time (secs)', weight='bold')
 ax1.grid()
 ax1.legend()
 
-# System health
-plt.figure()
-plt.title("Avionics VCC")
-plt.plot(df0_health['avionics_vcc'])
-plt.plot(df0_health['main_vcc'])
-plt.plot(df0_health['load_avg'])
-plt.grid()
+if 'health' in data:
+    # System health
+    plt.figure()
+    plt.title("Avionics VCC")
+    if 'avionics_vcc' in df0_health:
+        plt.plot(df0_health['avionics_vcc'])
+    plt.plot(df0_health['main_vcc'])
+    if 'load_avg' in df0_health:
+        plt.plot(df0_health['load_avg'])
+    plt.grid()
+
+print("Computing accel vector magnitude:")
+iter = flight_interp.IterateGroup(data)
+accels = []
+for i in tqdm(range(iter.size())):
+    record = iter.next()
+    imu = record['imu']
+    ax = imu['ax']
+    ay = imu['ay']
+    az = imu['az']
+    norm = np.linalg.norm(np.array([ax, ay, az]))
+    accels.append(norm)
+accels = np.array(accels)
+from skimage import util
+
+
+L = df0_imu['time'].iloc[-1] - df0_imu['time'].iloc[0]
+#L = df0_imu['time'].iloc[-1]
+rate = len(df0_imu['time']) / L
+print(df0_imu['time'].iloc[-1], df0_imu['time'].iloc[0])
+print('time span:', L, 'rate:', rate)
+
+M = 1024
+slices = util.view_as_windows(accels, window_shape=(M,), step=100)
+print("sample shape: ", accels.shape, "sliced sample shape:", slices.shape)
+
+win = np.hanning(M + 1)[:-1]
+slices = slices * win
+
+# for convenience
+slices = slices.T
+
+spectrum = np.fft.fft(slices, axis=0)[:M // 2 + 1:-1]
+spectrum = np.abs(spectrum)
+print(spectrum.shape)
+
+f, ax = plt.subplots()
+
+S = np.abs(spectrum)
+S = 20 * np.log10(S / np.max(S))
+
+ax.imshow(S, origin='lower', cmap='viridis',
+          extent=(df0_imu['time'].iloc[0], df0_imu['time'].iloc[-1], 0, rate / 2))
+ax.axis('tight')
+ax.set_ylabel('Frequency [Hz]')
+ax.set_xlabel('Time [s]');
 
 plt.show()
+
+

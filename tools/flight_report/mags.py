@@ -17,10 +17,12 @@ def estimate(data):
     for i in tqdm(range(iter.size())):
         record = iter.next()
         if len(record):
-            t = record['imu']['time']
-            mag_norm = np.linalg.norm(np.array([record['imu']['hx'],
-                                                record['imu']['hy'],
-                                                record['imu']['hz']]))
+            imu = record['imu']
+            t = imu['time']
+            hx = imu['hx']
+            hy = imu['hy']
+            hz = imu['hz']
+            mag_norm = np.linalg.norm(np.array([hx, hy, hz]))
             if 'act' in record:
                 throttle = record['act']['throttle']
             result.append( { 'time': t,
