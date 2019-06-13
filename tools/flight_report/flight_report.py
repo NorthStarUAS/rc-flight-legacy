@@ -239,7 +239,10 @@ else:
         if 'pressure' in currently:
             mbar = currently['pressure']
             inhg = mbar * mb2inhg
-            f.write("- Pressure: %.2f inhg" % inhg + " (%.1f mbar)" % mbar + "\n")
+        else:
+            mbar = 0
+            inhg = 11.11
+        f.write("- Pressure: %.2f inhg" % inhg + " (%.1f mbar)" % mbar + "\n")
         if 'windSpeed' in currently:
             wind_mph = currently['windSpeed']
             wind_kts = wind_mph * mph2kt
@@ -551,6 +554,17 @@ ax.axis('tight')
 ax.set_ylabel('Frequency [Hz]')
 ax.set_xlabel('Time [s]');
 
+# v2 using scipy's implementation
+from scipy import signal
+
+freqs, times, Sx = signal.spectrogram(accels, fs=rate, window='hanning',
+                                      nperseg=1024, noverlap=M - 100,
+                                      detrend=False, scaling='spectrum')
+
+f, ax = plt.subplots()
+ax.pcolormesh(times, freqs, 10 * np.log10(Sx), cmap='viridis')
+ax.set_ylabel('Frequency [Hz]')
+ax.set_xlabel('Time [s]');
 plt.show()
 
 
