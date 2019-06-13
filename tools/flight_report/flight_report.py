@@ -508,6 +508,13 @@ if 'health' in data:
         plt.plot(df0_health['load_avg'])
     plt.grid()
 
+# Spectogram (of accelerometer normal)
+
+L = df0_imu['time'].iloc[-1] - df0_imu['time'].iloc[0]
+rate = len(df0_imu['time']) / L
+M = 1024
+print("Spectogram time span:", L, "rate:", rate, "window:", M)
+
 print("Computing accel vector magnitude:")
 iter = flight_interp.IterateGroup(data)
 accels = []
@@ -520,45 +527,32 @@ for i in tqdm(range(iter.size())):
     norm = np.linalg.norm(np.array([ax, ay, az]))
     accels.append(norm)
 accels = np.array(accels)
+
+# Version 1.0
+
 from skimage import util
-
-
-L = df0_imu['time'].iloc[-1] - df0_imu['time'].iloc[0]
-#L = df0_imu['time'].iloc[-1]
-rate = len(df0_imu['time']) / L
-print(df0_imu['time'].iloc[-1], df0_imu['time'].iloc[0])
-print('time span:', L, 'rate:', rate)
-
-M = 1024
 slices = util.view_as_windows(accels, window_shape=(M,), step=100)
-print("sample shape: ", accels.shape, "sliced sample shape:", slices.shape)
-
+#print("sample shape: ", accels.shape, "sliced sample shape:", slices.shape)
 win = np.hanning(M + 1)[:-1]
 slices = slices * win
-
-# for convenience
-slices = slices.T
-
+slices = slices.T               # for convenience
 spectrum = np.fft.fft(slices, axis=0)[:M // 2 + 1:-1]
 spectrum = np.abs(spectrum)
-print(spectrum.shape)
-
+#print(spectrum.shape)
 f, ax = plt.subplots()
-
 S = np.abs(spectrum)
 S = 20 * np.log10(S / np.max(S))
-
 ax.imshow(S, origin='lower', cmap='viridis',
           extent=(df0_imu['time'].iloc[0], df0_imu['time'].iloc[-1], 0, rate / 2))
 ax.axis('tight')
 ax.set_ylabel('Frequency [Hz]')
 ax.set_xlabel('Time [s]');
 
-# v2 using scipy's implementation
-from scipy import signal
+# Version 2.0 -- using scipy's implementation (M used from above)
 
+from scipy import signal
 freqs, times, Sx = signal.spectrogram(accels, fs=rate, window='hanning',
-                                      nperseg=1024, noverlap=M - 100,
+                                      nperseg=M, noverlap=M - 25,
                                       detrend=False, scaling='spectrum')
 
 f, ax = plt.subplots()
