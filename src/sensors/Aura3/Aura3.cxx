@@ -1498,7 +1498,7 @@ bool Aura3_airdata_update() {
 	airdata_node.setDouble( "humidity", airdata_packet.baro_hum );
 	airdata_node.setDouble( "diff_pressure_pa", airdata_packet.ext_diff_press_pa );
 	airdata_node.setDouble( "ext_static_press_pa", airdata_packet.ext_static_press_pa );
-        airdata_node.setInt( "error_count", airdata_packet.error-count );
+        airdata_node.setLong( "error_count", airdata_packet.error_count );
 
 	fresh_data = true;
     }

@@ -42,6 +42,7 @@ vel_node = getNode("/velocity", True)
 wind_node = getNode("/filters/wind", True)
 airdata_v5_fmt = "<BdHhhffhHBBB"
 airdata_v6_fmt = "<BfHhhffhHBBB"
+airdata_v7_fmt = "<BfHhhffhHBBHB"
 
 filter_nodes = []
 remote_link_node = getNode("/comms/remote_link", True)
@@ -378,7 +379,7 @@ def pack_airdata_bin(index):
             airdata_nodes.append( getNode(path, True) )
     node = airdata_nodes[index]
     
-    buf = struct.pack(airdata_v6_fmt,
+    buf = struct.pack(airdata_v7_fmt,
                       index,
                       node.getFloat("timestamp"),
                       int(node.getFloat("pressure_mbar") * 10.0),
@@ -390,8 +391,9 @@ def pack_airdata_bin(index):
                       int(wind_node.getFloat("wind_dir_deg") * 100),
                       int(wind_node.getFloat("wind_speed_kt") * 4),
                       int(wind_node.getFloat("pitot_scale_factor") * 100),
+                      node.getInt("error_count"),
                       node.getInt("status"))
-    return wrap_packet(AIRDATA_PACKET_V6, buf)
+    return wrap_packet(AIRDATA_PACKET_V7, buf)
 
 def pack_airdata_dict(index):
     airdata_node = getNode('/sensors/airdata[%d]' % index, True)
@@ -476,6 +478,31 @@ def unpack_airdata_v6(buf):
     wind_node.setFloat("wind_speed_kt", result[9] / 4.0)
     wind_node.setFloat("pitot_scale_factor", result[10] / 100.0)
     node.setInt("status", result[11])
+
+    return index
+
+def unpack_airdata_v7(buf):
+    result = struct.unpack(airdata_v7_fmt, buf)
+    
+    index = result[0]
+    if index >= len(airdata_nodes):
+        for i in range(len(airdata_nodes),index+1):
+            path = '/sensors/airdata[%d]' % i
+            airdata_nodes.append( getNode(path, True) )
+    node = airdata_nodes[index]
+
+    node.setFloat("timestamp", result[1])
+    node.setFloat("pressure_mbar", result[2] / 10.0)
+    node.setFloat("temp_C", result[3] / 100.0)
+    vel_node.setFloat("airspeed_smoothed_kt", result[4] / 100.0)
+    pos_pressure_node.setFloat("altitude_smoothed_m", result[5])
+    pos_combined_node.setFloat("altitude_true_m", result[6])
+    vel_node.setFloat("pressure_vertical_speed_fps", (result[7] / 10.0) / 60.0)
+    wind_node.setFloat("wind_dir_deg", result[8] / 100.0)
+    wind_node.setFloat("wind_speed_kt", result[9] / 4.0)
+    wind_node.setFloat("pitot_scale_factor", result[10] / 100.0)
+    node.setInt("error_count", result[12])
+    node.setInt("status", result[12])
 
     return index
 
