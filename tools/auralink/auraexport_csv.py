@@ -27,7 +27,7 @@ def logical_category(id):
         return 'gps'
     elif id == IMU_PACKET_V3 or id == IMU_PACKET_V4:
         return 'imu'
-    elif id == AIRDATA_PACKET_V5 or id == AIRDATA_PACKET_V6:
+    elif id == AIRDATA_PACKET_V5 or id == AIRDATA_PACKET_V6 or id == AIRDATA_PACKET_V7:
         return 'air'
     elif id == FILTER_PACKET_V2 or id == FILTER_PACKET_V3 \
          or id == FILTER_PACKET_V4:

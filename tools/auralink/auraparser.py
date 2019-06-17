@@ -69,6 +69,8 @@ def parse_msg(id, buf):
         index = comms.packer.unpack_airdata_v5(buf)
     elif id == AIRDATA_PACKET_V6:
         index = comms.packer.unpack_airdata_v6(buf)
+    elif id == AIRDATA_PACKET_V7:
+        index = comms.packer.unpack_airdata_v7(buf)
     elif id == FILTER_PACKET_V2:
         index = comms.packer.unpack_filter_v2(buf)
     elif id == FILTER_PACKET_V3:
