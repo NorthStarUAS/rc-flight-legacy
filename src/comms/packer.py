@@ -501,7 +501,7 @@ def unpack_airdata_v7(buf):
     wind_node.setFloat("wind_dir_deg", result[8] / 100.0)
     wind_node.setFloat("wind_speed_kt", result[9] / 4.0)
     wind_node.setFloat("pitot_scale_factor", result[10] / 100.0)
-    node.setInt("error_count", result[12])
+    node.setInt("error_count", result[11])
     node.setInt("status", result[12])
 
     return index
