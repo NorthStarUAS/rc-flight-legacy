@@ -1346,7 +1346,7 @@ double Aura3_update() {
     aura3_node.setLong("parse_errors", parse_errors);
     aura3_node.setLong("skipped_frames", skipped_frames);
 
-    // experimental location: write optional zero gyros command back to FMU
+    // experimental: write optional zero gyros command back to FMU upon request
     string command = aura3_node.getString( "command" );
     if ( command.length() ) {
         if ( command == "zero_gyros" ) {
@@ -1498,6 +1498,7 @@ bool Aura3_airdata_update() {
 	airdata_node.setDouble( "humidity", airdata_packet.baro_hum );
 	airdata_node.setDouble( "diff_pressure_pa", airdata_packet.ext_diff_press_pa );
 	airdata_node.setDouble( "ext_static_press_pa", airdata_packet.ext_static_press_pa );
+        airdata_node.setInt( "error_count", airdata_packet.error-count );
 
 	fresh_data = true;
     }
