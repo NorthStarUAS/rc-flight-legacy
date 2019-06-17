@@ -69,6 +69,7 @@ typedef struct {
     float ext_diff_press_pa;
     float ext_static_press_pa;
     float ext_temp_C;
+    uint16_t error_count;
 } airdata_packet_t;
 
 // power
