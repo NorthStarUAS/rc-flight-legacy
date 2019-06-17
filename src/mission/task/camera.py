@@ -61,6 +61,7 @@ class Camera(Task):
         cur_time = self.imu_node.getFloat("timestamp")
         force_trigger = False
         if self.trigger_state:
+            # needs to be 0.3 with manual focus
             if cur_time > self.trigger_time + 0.3:
                 # release trigger
                 self.trigger_state = False
