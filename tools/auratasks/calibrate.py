@@ -29,6 +29,12 @@ class Calibrate():
         calibrate = QtGui.QPushButton('Calibrate')
         calibrate.clicked.connect(self.task_calibrate)
         cmd_layout.addWidget(calibrate)
+        reset_ekf = QtGui.QPushButton('Reset EKF')
+        reset_ekf.clicked.connect(self.task_reset_ekf)
+        cmd_layout.addWidget(reset_ekf)
+        zero_gyros = QtGui.QPushButton('Zero Gyros')
+        zero_gyros.clicked.connect(self.task_zero_gyros)
+        cmd_layout.addWidget(zero_gyros)
         cmd_layout.addStretch(1)
 
         toplayout.addStretch(1)
@@ -77,4 +83,20 @@ class Calibrate():
             t.send("send task,calibrate")
         else:
             t.send("set /task/command_request task,calibrate")
+        t.quit()
+
+    def task_reset_ekf(self):
+        print "request reset ekf"
+        self.update()
+        t = fgtelnet.FGTelnet(self.host, self.port)
+        t.send("data")
+        self.send_value(t, "/filters/command", "reset")
+        t.quit()
+
+    def task_zero_gyros(self):
+        print "request reset ekf"
+        self.update()
+        t = fgtelnet.FGTelnet(self.host, self.port)
+        t.send("data")
+        self.send_value(t, "/sensors/Aura3/command", "zero_gyros")
         t.quit()

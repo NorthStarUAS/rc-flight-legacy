@@ -138,7 +138,7 @@ class Chirp():
         self.edit_inject.setCurrentIndex(index)
 
         # send original values to remote
-        self.update()
+        # no # self.update()
 
     # retained in comments as an example for some future tbd function
     # def task_circle(self):
