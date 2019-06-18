@@ -952,6 +952,7 @@ def pack_ap_status_dict(index):
     row['airspeed_kt'] = targets_node.getFloat('airspeed_kt')
     row['altitude_ground_m'] = pos_node.getFloat("altitude_ground_m")
     row['tecs_target_tot'] = tecs_node.getFloat("target_total")
+    row['flight_timer'] = task_node.getFloat("flight_timer")
     return row
 
 def pack_ap_status_csv(index):
