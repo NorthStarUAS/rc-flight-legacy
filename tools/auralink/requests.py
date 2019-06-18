@@ -36,6 +36,9 @@ def gen_requests():
             requests_pending = True
             commands.add('get,/config/specs/battery_mah')
             
+        if specs_node.getString('display_units') == '':
+            requests_pending = True
+            commands.add('get,/config/specs/display_units')
         if specs_node.getString('cruise_kt') == '':
             requests_pending = True
             commands.add('get,/config/specs/cruise_kt')
