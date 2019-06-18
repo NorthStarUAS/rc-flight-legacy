@@ -12,7 +12,7 @@ import os
 
 import navpy
 
-from aurauas.flightdata import flight_loader, flight_interp, imucal
+from aurauas_flightdata import flight_loader, flight_interp, imucal
 
 import transformations
 
@@ -32,7 +32,7 @@ print("Loading flight data:", args.flight)
 data, flight_format = flight_loader.load(args.flight)
 print("imu records:", len(data['imu']))
 print("gps records:", len(data['gps']))
-print("filter records:", len(data['gps']))
+print("filter records:", len(data['filter']))
 if len(data['imu']) == 0:
     print("not enough data loaded to continue.")
     quit()
@@ -49,6 +49,14 @@ if os.path.exists(imucal_json):
 print("Creating interpolation structures..")
 interp = flight_interp.InterpolationGroup(data)
 
+cal = imucal.Calibration()
+flight_dir = os.path.dirname(args.flight)
+cal_file = os.path.join(flight_dir, "imucal.json")
+if os.path.exists(cal_file):
+    cal.load(cal_file)
+    print('back correcting imu data (to get original raw values)')
+    cal.back_correct(data['imu'], data['filter'])
+    
 # read the events-0.csv file to determine when aircraft becomes airborne
 # (so we can ignore preflight values.)  Update: also to read the IMU
 # serial number.
@@ -178,10 +186,11 @@ ideal_data = []
 for t in np.linspace(xmin, xmax, int(trange*args.resample_hz)):
     filter = interp.query(t, 'filter')
     imu = interp.query(t, 'imu')
-    # print("imu:", imu)
-    psix = filter['psix']
-    psiy = filter['psiy']
-    psi = math.atan2(psiy, psix)
+    print("imu:", imu, "filter:", filter)
+    #psix = filter['psix']
+    #psiy = filter['psiy']
+    #psi = math.atan2(psiy, psix)
+    psi = filter['psi']
     # print phi, the, psi
     N2B = navpy.angle2dcm(psi, filter['the'], filter['phi'], input_unit='rad')
     mag_ideal = N2B.dot(mag_ned)
