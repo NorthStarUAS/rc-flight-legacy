@@ -21,7 +21,7 @@ import commands
 import current
 import auraparser
 
-m2nm   = 0.0005399568034557235 # meters to nautical miles
+m2nm = 0.0005399568034557235    # meters to nautical miles
 
 def generate_path(id, index):
     if id == GPS_PACKET_V2 or id == GPS_PACKET_V3 or id == GPS_PACKET_V4:
