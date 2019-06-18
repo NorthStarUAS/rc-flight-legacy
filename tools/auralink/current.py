@@ -74,7 +74,7 @@ def compute_derived_data():
     last_time = current_time
 
     # local 'airborne' helper (not official)
-    if vel_node.getFloat('airspeed_smoothed_kt') > 15:
+    if vel_node.getFloat('airspeed_smoothed_kt') >= 15:
         in_flight = True
     else:
         in_flight = False
