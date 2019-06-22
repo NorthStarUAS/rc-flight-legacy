@@ -136,7 +136,7 @@ class Launch():
         self.rudder_max.setText( str(self.original_values[7]) )
         
         # send original values to remote
-        self.update()
+        # no # self.update()
 
     def task_launch(self):
         print "Launch!"

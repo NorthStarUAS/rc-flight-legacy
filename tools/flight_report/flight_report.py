@@ -21,6 +21,7 @@ from aurauas_flightdata import flight_loader, flight_interp
 
 parser = argparse.ArgumentParser(description='nav filter')
 parser.add_argument('--flight', required=True, help='flight data log')
+parser.add_argument('--wind-time', type=float, help='force a wind re-estimate with this time factor.')
 args = parser.parse_args()
 
 r2d = 180.0 / math.pi
@@ -288,10 +289,11 @@ def add_regions(plot, regions):
 
 
         
-if not 'wind_dir' in data['air'][0]:
+if not 'wind_dir' in data['air'][0] or args.wind_time:
     # run a quick wind estimate
     import wind
-    winds = wind.estimate(data)
+    w = wind.Wind()
+    winds = w.estimate(data, args.wind_time)
     df1_wind = pd.DataFrame(winds)
     time = df1_wind['time']
     wind_dir = df1_wind['wind_deg']
@@ -557,8 +559,23 @@ freqs, times, Sx = signal.spectrogram(accels, fs=rate, window='hanning',
 
 f, ax = plt.subplots()
 ax.pcolormesh(times, freqs, 10 * np.log10(Sx), cmap='viridis')
+ax.set_title('Accelerometer Spectogram')
 ax.set_ylabel('Frequency [Hz]')
 ax.set_xlabel('Time [s]');
+
+# repeat with wind heading
+wd = wind_speed.values
+freqs, times, Sx = signal.spectrogram(wd, fs=rate, window='hanning',
+                                      nperseg=M, noverlap=M - 25,
+                                      detrend=False, scaling='spectrum')
+
+f, ax = plt.subplots()
+ax.pcolormesh(times, freqs, 10 * np.log10(Sx), cmap='viridis')
+ax.set_title('Wind Direction Spectogram')
+ax.set_ylabel('Frequency [Hz]')
+ax.set_xlabel('Time [s]');
+
+
 plt.show()
 
 

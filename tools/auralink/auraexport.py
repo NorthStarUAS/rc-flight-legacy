@@ -21,14 +21,14 @@ import commands
 import current
 import auraparser
 
-m2nm   = 0.0005399568034557235 # meters to nautical miles
+m2nm = 0.0005399568034557235    # meters to nautical miles
 
 def generate_path(id, index):
     if id == GPS_PACKET_V2 or id == GPS_PACKET_V3 or id == GPS_PACKET_V4:
         category = 'gps'
     elif id == IMU_PACKET_V3 or id == IMU_PACKET_V4:
         category = 'imu'
-    elif id == AIRDATA_PACKET_V5 or id == AIRDATA_PACKET_V6:
+    elif id == AIRDATA_PACKET_V5 or id == AIRDATA_PACKET_V6 or id == AIRDATA_PACKET_V7:
         category = 'air'
     elif id == FILTER_PACKET_V2 or id == FILTER_PACKET_V3 \
          or id == FILTER_PACKET_V4:

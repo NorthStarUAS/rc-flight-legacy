@@ -137,7 +137,7 @@ bool GPS_update() {
     // traverse configured modules
     for ( unsigned int i = 0; i < sections.size(); i++ ) {
 	string source = sections[i].getString("source");
-	bool enabled = sections[i].getBool("enable");
+        bool enabled = sections[i].getBool("enable");
 	if ( !enabled ) {
 	    continue;
 	}

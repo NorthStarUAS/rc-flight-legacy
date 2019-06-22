@@ -17,30 +17,19 @@ void print_Time_Resolution()
 
 double get_Time()
 {
-    static struct timespec tstart;
+    static double tstart;
     static bool init = false;
    
+    struct timespec ts_cur;
+    clock_gettime(CLOCK_MONOTONIC, &ts_cur);
+    double tcur = (double)ts_cur.tv_sec + 1.0e-9*(double)ts_cur.tv_nsec;
+
     if ( !init ) {
         init = true;
-        clock_gettime(CLOCK_MONOTONIC,&tstart);
-        return 0.0;
-    }
-
-    struct timespec tcur;
-    clock_gettime(CLOCK_MONOTONIC, &tcur);
-    
-    struct timespec tdiff;
-    if ( (tcur.tv_nsec - tstart.tv_nsec) < 0 ) {
-	tdiff.tv_sec = tcur.tv_sec-tstart.tv_sec-1;
-	tdiff.tv_nsec = 1000000000+tcur.tv_nsec-tstart.tv_nsec;
-    } else {
-	tdiff.tv_sec = tcur.tv_sec-tstart.tv_sec;
-	tdiff.tv_nsec = tcur.tv_nsec-tstart.tv_nsec;
+        tstart = tcur;
     }
     
-    double elapsed = (double)tdiff.tv_sec + 1.0e-9*(double)tdiff.tv_nsec;
-    
-    return elapsed;
+    return tcur - tstart;
 }
 
 double get_RealTime()
