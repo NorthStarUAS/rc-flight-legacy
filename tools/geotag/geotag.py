@@ -9,8 +9,8 @@ import math
 from matplotlib import pyplot as plt 
 import numpy as np
 import os
-from progress.bar import Bar
 import pyexiv2
+from tqdm import tqdm
 
 from aurauas.flightdata import flight_loader, flight_interp
 
@@ -87,9 +87,9 @@ files.sort()
 images = []
 
 # read image exif timestamp (and convert to unix seconds)
-bar = Bar('Scanning image dir:', max = len(files))
+print("Scanning image dir:")
 lasttime = 0.0
-for f in files:
+for f in tqdm(files):
     name = os.path.join(args.images, f)
     #print(name)
     exif = pyexiv2.ImageMetadata(name)
@@ -109,8 +109,6 @@ for f in files:
         unixtime += 0.5
     images.append([unixtime, name])
     lasttime = unixtime
-    bar.next()
-bar.finish()
 
 # sort images by timestamp
 images = sorted(images, key=lambda fields: fields[0])
@@ -155,8 +153,8 @@ else:
 print("len triggers:", len(trigger_signal))
 print("len images:", len(images_signal))
 print("max index:", max_index)
-shift = float(max_index) / args.hz
-print("relative time shift: %.f" % (shift))
+shift = float(max_index) / float(args.hz)
+print("relative time shift: %.3f" % (shift))
 if len(trigger_signal) < len(images_signal):
     # should be ok
     pass
@@ -218,20 +216,28 @@ def decimal_to_dms(decimal):
 start_trigger = 0
 def closest_trigger(time):
     global start_trigger
-    index = 0
-    diff = 1e+99
-    for i, t in enumerate(triggers):
-        d = abs(time - t[0])
-        if i >= start_trigger and d < diff:
-            diff = d
-            index = i
-    print('  closest trigger:', triggers[index], 'diff:', diff)
-    start_trigger = index + 1
-    if diff <= 10:
+    index = start_trigger
+    if abs(time - triggers[index][0]) < 2.0:
+        # close enough just use the next trigger
+        print('  next trigger:', triggers[index], 'diff:', abs(time - triggers[index][0]))
+        start_trigger += 1
         return index
     else:
-        print('Failed to find a good trigger!')
-        return None
+        # hunt for the best/closest trigger
+        diff = 1e+99
+        index = 0
+        for i, t in enumerate(triggers):
+            d = abs(time - t[0])
+            if i >= start_trigger and d < diff:
+                diff = d
+                index = i
+        print('  closest trigger:', triggers[index], 'diff:', diff)
+        start_trigger = index + 1
+        if diff <= 10:
+            return index
+    # fall through
+    print('Failed to find a good trigger!')
+    return None
 
 # traverse the image list and assign the 'official' time / trigger to
 # each image.  This is not exact, but the best we can do with what we

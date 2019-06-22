@@ -532,31 +532,43 @@ accels = np.array(accels)
 
 # Version 1.0
 
-from skimage import util
-slices = util.view_as_windows(accels, window_shape=(M,), step=100)
-#print("sample shape: ", accels.shape, "sliced sample shape:", slices.shape)
-win = np.hanning(M + 1)[:-1]
-slices = slices * win
-slices = slices.T               # for convenience
-spectrum = np.fft.fft(slices, axis=0)[:M // 2 + 1:-1]
-spectrum = np.abs(spectrum)
-#print(spectrum.shape)
+# from skimage import util
+# slices = util.view_as_windows(accels, window_shape=(M,), step=100)
+# #print("sample shape: ", accels.shape, "sliced sample shape:", slices.shape)
+# win = np.hanning(M + 1)[:-1]
+# slices = slices * win
+# slices = slices.T               # for convenience
+# spectrum = np.fft.fft(slices, axis=0)[:M // 2 + 1:-1]
+# spectrum = np.abs(spectrum)
+# #print(spectrum.shape)
+# f, ax = plt.subplots()
+# S = np.abs(spectrum)
+# S = 20 * np.log10(S / np.max(S))
+# ax.imshow(S, origin='lower', cmap='viridis',
+#           extent=(df0_imu['time'].iloc[0], df0_imu['time'].iloc[-1], 0, rate / 2))
+# ax.axis('tight')
+# ax.set_ylabel('Frequency [Hz]')
+# ax.set_xlabel('Time [s]');
+
+# Version 2.0 -- using scipy's implementation (M used from above)
+# Vertical resolution is limited by M.  To expose lower frequencies
+# increase M, but this will reduce horizontal resolution.
+
+M=1024
+from scipy import signal
+freqs, times, Sx = signal.spectrogram(accels, fs=rate, window='hanning',
+                                      nperseg=M, noverlap=M - 100,
+                                      detrend=False, scaling='spectrum')
 f, ax = plt.subplots()
-S = np.abs(spectrum)
-S = 20 * np.log10(S / np.max(S))
-ax.imshow(S, origin='lower', cmap='viridis',
-          extent=(df0_imu['time'].iloc[0], df0_imu['time'].iloc[-1], 0, rate / 2))
-ax.axis('tight')
+ax.pcolormesh(times, freqs, 10 * np.log10(Sx), cmap='viridis')
+ax.set_title("Accelerometer Spectogram")
 ax.set_ylabel('Frequency [Hz]')
 ax.set_xlabel('Time [s]');
 
-# Version 2.0 -- using scipy's implementation (M used from above)
-
-from scipy import signal
-freqs, times, Sx = signal.spectrogram(accels, fs=rate, window='hanning',
-                                      nperseg=M, noverlap=M - 25,
+# pitch
+freqs, times, Sx = signal.spectrogram(df0_imu['r'].values, fs=rate, window='hanning',
+                                      nperseg=M, noverlap=M - 100,
                                       detrend=False, scaling='spectrum')
-
 f, ax = plt.subplots()
 ax.pcolormesh(times, freqs, 10 * np.log10(Sx), cmap='viridis')
 ax.set_title('Accelerometer Spectogram')
