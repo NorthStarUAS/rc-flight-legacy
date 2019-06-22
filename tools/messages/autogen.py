@@ -200,7 +200,19 @@ def gen_python_module():
         result.append("    def __init__(self, msg=None):")
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
-            result.append("        self.%s = None" % f.getString("name"))
+            t = f.getString("type")
+            line = "        self.%s = " % f.getString("name")
+            if t == "double" or t == "float":
+                line += "0.0"
+            elif "int" in t:
+                line += "0"
+            elif t == "bool":
+                line += "False"
+            elif t == "string":
+                line += "\"\""
+            else:
+                line += "None"
+            result.append(line)
         result.append("        if msg:")
         result.append("            self.unpack(msg)")
         result.append("")
