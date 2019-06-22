@@ -50,9 +50,6 @@ def gen_cpp_header():
     result.append("#include <stdint.h>  // uint8_t, et. al.")
     result.append("#include <string.h>  // memcpy()")
     result.append("")
-    result.append("#include <string>")
-    result.append("using std::string;")
-    result.append("")
     result.append("static inline int32_t intround(float f) {")
     result.append("    return (int32_t)(f >= 0.0 ? (f + 0.5) : (f - 0.5));")
     result.append("}")
@@ -84,20 +81,20 @@ def gen_cpp_header():
         result.append("// Id: %d" % m.getInt("id"))
         result.append("// Struct size: %d" % struct_size)
         result.append("// Packed message size: %d" % pack_size)
-        result.append("typedef struct {")
+        result.append("struct %s_%s_t {" % (base, m.getString("name")))
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
             result.append("    %s %s;" % (f.getString("type"), f.getString("name")))
 
         result.append("")
-        result.append("    const uint8_t __id = %s;" % m.getString("id"))
-        result.append("    const uint8_t __len = %d;" % pack_size)
+        result.append("    const uint8_t id = %s;" % m.getString("id"))
+        result.append("    const uint8_t len = %d;" % pack_size)
         result.append("")
         
         if compaction:
             # generate private c packed struct
             result.append("    // internal structure for packing")
-            result.append("    typedef struct {")
+            result.append("    struct {")
             for j in range(m.getLen("fields")):
                 f = m.getChild("fields[%d]" % j)
                 if f.hasChild("pack_type"):
@@ -105,17 +102,16 @@ def gen_cpp_header():
                 else:
                     ptype = f.getString("type")
                 result.append("        %s %s;" % (ptype, f.getString("name")))
-            result.append("    } pack_t;")
+            result.append("    } buf;")
             result.append("")
 
         # generate pack code
-        result.append("    string pack() {")
+        result.append("    uint8_t *pack() {")
         if compaction:
-            result.append("        pack_t p;");
             for j in range(m.getLen("fields")):
                 line = "        ";
                 f = m.getChild("fields[%d]" % j)
-                line += "p.%s = " % f.getString("name")
+                line += "buf.%s = " % f.getString("name")
                 if f.hasChild("pack_type"):
                     ptype = f.getString("pack_type")
                     if ptype[0] == "i":
@@ -130,32 +126,32 @@ def gen_cpp_header():
                     line += "%s" % f.getString("name")
                 line += ";"
                 result.append(line)
-            result.append("        return string( (char *)(&p), %d );" % pack_size)
+            result.append("        return (uint8_t *)(&buf);")
         else:
-            result.append("        return string( (char *)this, %d );" % pack_size)
+            result.append("        return (uint8_t *)this;")
         result.append("    }")
         result.append("")
 
         # generate unpack code
-        result.append("    void unpack(string message) {")
+        result.append("    void unpack(uint8_t *message) {")
         if compaction:
-            result.append("        pack_t *p = (pack_t *)message.data();");
+            result.append("        memcpy(&buf, message, %d);" % struct_size)
             for j in range(m.getLen("fields")):
                 line = "        ";
                 f = m.getChild("fields[%d]" % j)
                 line += f.getString("name")
                 line += " = "
                 if f.hasChild("pack_scale"):
-                    line += "p->%s / (float)%s" % (f.getString("name"), f.getString("pack_scale"))
+                    line += "buf.%s / (float)%s" % (f.getString("name"), f.getString("pack_scale"))
                     ptype = f.getString("pack_type")
                 else:
-                    line += "p->%s" % f.getString("name")
+                    line += "buf.%s" % f.getString("name")
                 line += ";"
                 result.append(line)
         else:
-            result.append("        memcpy(this, message.data(), %d);" % struct_size)
+            result.append("        memcpy(this, message, %d);" % struct_size)
         result.append("    }")
-        result.append("} %s_%s_t;" % (base, m.getString("name")))
+        result.append("};")
         result.append("")
 
     # generate messaging constants
