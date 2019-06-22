@@ -1,0 +1,33 @@
+{
+    "messages": [
+        {
+            "id": 0,
+            "name": "simple_test",
+            "fields": [
+                { "type": "int16_t", "name": "dummy" }
+            ]
+        },
+        {
+            "id": 34,
+            "name": "gps_v4",
+            "desc": "gps message",
+            "fields": [
+                { "type": "uint8_t", "name": "index" },
+                { "type": "float", "name": "time_sec" },
+                { "type": "double", "name": "latitude_deg" },
+                { "type": "double", "name": "longitude_deg" },
+                { "type": "float", "name": "altitude_m" },
+                { "type": "float", "name": "vn_ms", "pack_type": "int16_t", "pack_scale": 100 },
+                { "type": "float", "name": "ve_ms", "pack_type": "int16_t", "pack_scale": 100 },
+                { "type": "float", "name": "vd_ms", "pack_type": "int16_t", "pack_scale": 100 },
+                { "type": "double", "name": "unixtime_sec" },
+                { "type": "uint8_t", "name": "satellites" },
+                { "type": "float", "name": "horiz_accuracy_m", "pack_type": "uint16_t", "pack_scale": 100 },
+                { "type": "float", "name": "vert_accuracy_m", "pack_type": "uint16_t", "pack_scale": 100 },
+                { "type": "float", "name": "pdop", "pack_type": "uint16_t", "pack_scale": 100 },
+                { "type": "uint8_t", "name": "fix_type" }
+            ]
+        }
+    ]
+}
+
