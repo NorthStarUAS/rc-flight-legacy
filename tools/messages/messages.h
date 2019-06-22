@@ -12,6 +12,10 @@ static inline uint32_t uintround(float f) {
     return (int32_t)(f + 0.5);
 }
 
+// Message id constants
+const uint8_t message_id_simple_test = 0;
+const uint8_t message_id_gps_v4 = 34;
+
 // Message: simple_test
 // Id: 0
 // Struct size: 2
@@ -108,11 +112,5 @@ struct message_gps_v4_t {
         fix_type = buf.fix_type;
     }
 };
-
-// Message id constants
-const uint8_t message_id_simple_test = 0;
-const uint8_t message_id_gps_v4 = 34;
-const uint16_t message_max_size = 47;
-
 
 #pragma pack(pop)

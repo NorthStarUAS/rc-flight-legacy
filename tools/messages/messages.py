@@ -1,5 +1,9 @@
 import struct
 
+# Message id constants
+simple_test_id = 0
+gps_v4_id = 34
+
 # Message: simple_test
 # Id: 0
 # Packed message size: 2
@@ -84,8 +88,4 @@ class gps_v4():
         self.horiz_accuracy_m /= 100
         self.vert_accuracy_m /= 100
         self.pdop /= 100
-
-# Message id constants
-simple_test_id = 0
-gps_v4_id = 34
 

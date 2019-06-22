@@ -41,7 +41,6 @@ else:
     base = "message"
 
 def gen_cpp_header():
-    max_size = 0
     result = []
 
     result.append("#pragma once")
@@ -59,6 +58,13 @@ def gen_cpp_header():
     result.append("}")
     result.append("")
 
+    # generate messaging constants
+    result.append("// Message id constants")
+    for i in range(root.getLen("messages")):
+        m = root.getChild("messages[%d]" % i)
+        result.append("const uint8_t %s_id_%s = %s;" % (base, m.getString("name"), m.getString("id")))
+    result.append("")
+    
     for i in range(root.getLen("messages")):
         m = root.getChild("messages[%d]" % i)
         print("Processing:", m.getString("name"))
@@ -73,8 +79,6 @@ def gen_cpp_header():
             else:
                 pack_size += type_size[f.getString("type")]
         compaction = (not struct_size == pack_size)
-        if pack_size > max_size:
-            max_size = pack_size;
 
         # generate public c message struct
         result.append("// Message: %s" % m.getString("name"))
@@ -154,16 +158,6 @@ def gen_cpp_header():
         result.append("};")
         result.append("")
 
-    # generate messaging constants
-    result.append("// Message id constants")
-    for i in range(root.getLen("messages")):
-        m = root.getChild("messages[%d]" % i)
-        result.append("const uint8_t %s_id_%s = %s;" % (base, m.getString("name"), m.getString("id")))
-    result.append("const uint16_t %s_max_size = %d;" % (base, max_size))
-    result.append("")
-    
-
-    result.append("")
     result.append("#pragma pack(pop)")
     return result
 
@@ -173,6 +167,13 @@ def gen_python_module():
     result.append("import struct")
     result.append("")
 
+    # generate message id constants
+    result.append("# Message id constants")
+    for i in range(root.getLen("messages")):
+        m = root.getChild("messages[%d]" % i)
+        result.append("%s_id = %s" % (m.getString("name"), m.getString("id")))
+    result.append("")
+    
     for i in range(root.getLen("messages")):
         m = root.getChild("messages[%d]" % i)
         print("Processing:", m.getString("name"))
@@ -269,13 +270,6 @@ def gen_python_module():
 
         result.append("")
 
-    # generate message id constants
-    result.append("# Message id constants")
-    for i in range(root.getLen("messages")):
-        m = root.getChild("messages[%d]" % i)
-        result.append("%s_id = %s" % (m.getString("name"), m.getString("id")))
-    result.append("")
-    
     return result
 
 do_cpp = True
