@@ -331,13 +331,8 @@ def gen_python_module():
 
 do_cpp = True
 if do_cpp:
+    print("Generating C++ header:")
     code = gen_cpp_header()
-    print()
-    print("Generated C++ code:")
-    print()
-    for line in code:
-        print(line)
-
     f = open("messages.h", "w")
     for line in code:
         f.write(line + "\n")
@@ -345,13 +340,8 @@ if do_cpp:
 
 do_python = True
 if do_python:
+    print("Generating Python3 code:")
     code = gen_python_module()
-    print()
-    print("Generated Python3 code:")
-    print()
-    for line in code:
-        print(line)
-
     f = open("messages.py", "w")
     for line in code:
         f.write(line + "\n")
