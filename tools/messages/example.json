@@ -11,7 +11,10 @@
             "id": 1,
             "name": "array_test",
             "fields": [
-                { "type": "float", "name": "orientation[9]", "pack_type": "int16_t", "pack_scale": 53.3 }
+                { "type": "double", "name": "time" },
+                { "type": "int8_t", "name": "flags[4]" },
+                { "type": "float", "name": "orientation[9]", "pack_type": "int16_t", "pack_scale": 53.3 },
+                { "type": "uint16_t", "name": "something" }
             ]
         },
         {

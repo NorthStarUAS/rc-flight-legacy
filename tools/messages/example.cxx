@@ -43,8 +43,9 @@ int main() {
 
     message_array_test_t at;
     printf("array test size: %d %d\n", at.len, sizeof(at));
-    at.orientation[2] = 3.0;
-    at.orientation[5] = 2.0;
+    for (int i = 0; i < 9; i++ ) {
+        at.orientation[i] = i * 10.0;
+    }
     msg = at.pack();
     message_array_test_t at_recv;
     at_recv.unpack(msg);

@@ -32,3 +32,17 @@ print(gps_recv.__dict__)
 # directly
 gps_recv = messages.gps_v4(msg)
 print(gps_recv.__dict__)
+
+
+# array test
+at = messages.array_test()
+at.time = 14.5
+for i in range(4):
+    at.flags[i] = 10 - i
+for i in range(9):
+    at.orientation[i] = 2 * i - 7.0
+at.something = 16777
+msg = at.pack()
+at_recv = messages.array_test()
+at_recv.unpack(msg)
+print(at_recv.__dict__)

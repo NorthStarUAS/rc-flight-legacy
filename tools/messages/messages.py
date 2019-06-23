@@ -7,16 +7,13 @@ gps_v4_id = 34
 
 # Message: simple_test
 # Id: 0
-# Packed message size: 2
 class simple_test():
     id = 0
-    len = 2
     pack_string = "<h"
 
     def __init__(self, msg=None):
         self.a = 0
-        if msg:
-            self.unpack(msg)
+        if msg: self.unpack(msg)
 
     def pack(self):
         msg = struct.pack(self.pack_string,
@@ -28,32 +25,66 @@ class simple_test():
 
 # Message: array_test
 # Id: 1
-# Packed message size: 2
 class array_test():
     id = 1
-    len = 2
-    pack_string = "<h"
+    pack_string = "<dbbbbhhhhhhhhhH"
 
     def __init__(self, msg=None):
-        self.orientation[9] = 0.0
-        if msg:
-            self.unpack(msg)
+        self.time = 0.0
+        self.flags = [0] * 4
+        self.orientation = [0.0] * 9
+        self.something = 0
+        if msg: self.unpack(msg)
 
     def pack(self):
         msg = struct.pack(self.pack_string,
-                          int(round(self.orientation[9] * 53.3)))
+                          self.time,
+                          self.flags[0],
+                          self.flags[1],
+                          self.flags[2],
+                          self.flags[3],
+                          int(round(self.orientation[0] * 53.3)),
+                          int(round(self.orientation[1] * 53.3)),
+                          int(round(self.orientation[2] * 53.3)),
+                          int(round(self.orientation[3] * 53.3)),
+                          int(round(self.orientation[4] * 53.3)),
+                          int(round(self.orientation[5] * 53.3)),
+                          int(round(self.orientation[6] * 53.3)),
+                          int(round(self.orientation[7] * 53.3)),
+                          int(round(self.orientation[8] * 53.3)),
+                          self.something)
         return msg
 
     def unpack(self, msg):
-        (self.orientation[9],) = struct.unpack(self.pack_string, msg)
-        self.orientation[9] /= 53.3
+        (self.time,
+         self.flags[0],
+         self.flags[1],
+         self.flags[2],
+         self.flags[3],
+         self.orientation[0],
+         self.orientation[1],
+         self.orientation[2],
+         self.orientation[3],
+         self.orientation[4],
+         self.orientation[5],
+         self.orientation[6],
+         self.orientation[7],
+         self.orientation[8],
+         self.something) = struct.unpack(self.pack_string, msg)
+        self.orientation[0] /= 53.3
+        self.orientation[1] /= 53.3
+        self.orientation[2] /= 53.3
+        self.orientation[3] /= 53.3
+        self.orientation[4] /= 53.3
+        self.orientation[5] /= 53.3
+        self.orientation[6] /= 53.3
+        self.orientation[7] /= 53.3
+        self.orientation[8] /= 53.3
 
 # Message: gps_v4
 # Id: 34
-# Packed message size: 47
 class gps_v4():
     id = 34
-    len = 47
     pack_string = "<BfddfhhhdBHHHB"
 
     def __init__(self, msg=None):
@@ -71,8 +102,7 @@ class gps_v4():
         self.vert_accuracy_m = 0.0
         self.pdop = 0.0
         self.fix_type = 0
-        if msg:
-            self.unpack(msg)
+        if msg: self.unpack(msg)
 
     def pack(self):
         msg = struct.pack(self.pack_string,

@@ -45,12 +45,18 @@ struct message_simple_test_t {
 // Message: array_test
 // Id: 1
 struct message_array_test_t {
+    double time;
+    int8_t flags[4];
     float orientation[9];
+    uint16_t something;
 
     // internal structure for packing
     #pragma pack(push, 1)
     struct {
+        double time;
+        int8_t flags[4];
         int16_t orientation[9];
+        uint16_t something;
     } buf;
     #pragma pack(pop)
 
@@ -58,13 +64,19 @@ struct message_array_test_t {
     const uint16_t len = sizeof(buf);
 
     uint8_t *pack() {
+        buf.time = time;
+        for (int i=0; i<4; i++) buf.flags[i] = flags[i];
         for (int i=0; i<9; i++) buf.orientation[i] = intround(orientation[i] * 53.3);
+        buf.something = something;
         return (uint8_t *)(&buf);
     }
 
     void unpack(uint8_t *message) {
         memcpy(&buf, message, len);
+        time = buf.time;
+        for (int i=0; i<4; i++) flags[i] = buf.flags;
         for (int i=0; i<9; i++) orientation[i] = buf.orientation[i] / (float)53.3;
+        something = buf.something;
     }
 };
 
