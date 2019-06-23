@@ -7,7 +7,7 @@ int main() {
     message_simple_test_t st;
     st.a = 1234;
     uint8_t *msg = st.pack();
-    printf("packed length = %d\n", (int)st.len);
+    printf("packed length = %d %d\n", st.len, (int)sizeof(st));
     message_simple_test_t st_recv;
     st_recv.unpack(msg);
     printf("result = %d\n", st_recv.a);
@@ -40,4 +40,15 @@ int main() {
     printf("unpack ve: %f\n", gps_recv.ve_ms);
     printf("unpack vd: %f\n", gps_recv.vd_ms);
     printf("unpack vd: %d\n", gps_recv.satellites);
+
+    message_array_test_t at;
+    printf("array test size: %d %d\n", at.len, sizeof(at));
+    at.orientation[2] = 3.0;
+    at.orientation[5] = 2.0;
+    msg = at.pack();
+    message_array_test_t at_recv;
+    at_recv.unpack(msg);
+    for (int i = 0; i < 9; i++) {
+        printf("orientation[%d] = %.2f\n", i, at_recv.orientation[i]);
+    }
 }

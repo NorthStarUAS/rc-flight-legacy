@@ -1,5 +1,4 @@
 #pragma once
-#pragma pack(push, 1)
 
 #include <stdint.h>  // uint8_t, et. al.
 #include <string.h>  // memcpy()
@@ -14,31 +13,63 @@ static inline uint32_t uintround(float f) {
 
 // Message id constants
 const uint8_t message_id_simple_test = 0;
+const uint8_t message_id_array_test = 1;
 const uint8_t message_id_gps_v4 = 34;
 
 // Message: simple_test
 // Id: 0
-// Struct size: 2
-// Packed message size: 2
 struct message_simple_test_t {
     int16_t a;
 
+    // internal structure for packing
+    #pragma pack(push, 1)
+    struct {
+        int16_t a;
+    } buf;
+    #pragma pack(pop)
+
     const uint8_t id = 0;
-    const uint8_t len = 2;
+    const uint16_t len = sizeof(buf);
 
     uint8_t *pack() {
-        return (uint8_t *)this;
+        buf.a = a;
+        return (uint8_t *)(&buf);
     }
 
     void unpack(uint8_t *message) {
-        memcpy(this, message, 2);
+        memcpy(&buf, message, len);
+        a = buf.a;
+    }
+};
+
+// Message: array_test
+// Id: 1
+struct message_array_test_t {
+    float orientation[9];
+
+    // internal structure for packing
+    #pragma pack(push, 1)
+    struct {
+        int16_t orientation[9];
+    } buf;
+    #pragma pack(pop)
+
+    const uint8_t id = 1;
+    const uint16_t len = sizeof(buf);
+
+    uint8_t *pack() {
+        for (int i=0; i<9; i++) buf.orientation[i] = intround(orientation[i] * 53.3);
+        return (uint8_t *)(&buf);
+    }
+
+    void unpack(uint8_t *message) {
+        memcpy(&buf, message, len);
+        for (int i=0; i<9; i++) orientation[i] = buf.orientation[i] / (float)53.3;
     }
 };
 
 // Message: gps_v4
 // Id: 34
-// Struct size: 59
-// Packed message size: 47
 struct message_gps_v4_t {
     uint8_t index;
     float time_sec;
@@ -55,10 +86,8 @@ struct message_gps_v4_t {
     float pdop;
     uint8_t fix_type;
 
-    const uint8_t id = 34;
-    const uint8_t len = 47;
-
     // internal structure for packing
+    #pragma pack(push, 1)
     struct {
         uint8_t index;
         float time_sec;
@@ -75,6 +104,10 @@ struct message_gps_v4_t {
         uint16_t pdop;
         uint8_t fix_type;
     } buf;
+    #pragma pack(pop)
+
+    const uint8_t id = 34;
+    const uint16_t len = sizeof(buf);
 
     uint8_t *pack() {
         buf.index = index;
@@ -95,7 +128,7 @@ struct message_gps_v4_t {
     }
 
     void unpack(uint8_t *message) {
-        memcpy(&buf, message, 59);
+        memcpy(&buf, message, len);
         index = buf.index;
         time_sec = buf.time_sec;
         latitude_deg = buf.latitude_deg;
@@ -113,4 +146,3 @@ struct message_gps_v4_t {
     }
 };
 
-#pragma pack(pop)

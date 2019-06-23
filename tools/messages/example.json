@@ -8,6 +8,13 @@
             ]
         },
         {
+            "id": 1,
+            "name": "array_test",
+            "fields": [
+                { "type": "float", "name": "orientation[9]", "pack_type": "int16_t", "pack_scale": 53.3 }
+            ]
+        },
+        {
             "id": 34,
             "name": "gps_v4",
             "desc": "gps message",

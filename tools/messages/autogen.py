@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import re
 
 from props import getNode
 import props_json
@@ -35,7 +36,7 @@ type_code = { "double": 'd', "float": 'f',
               "uint8_t": 'B', "int8_t": 'b'
 }
 
-reserved_fields = [ 'buf', 'id', 'len', 'pack_string' ]
+reserved_fields = [ 'buf', 'i', 'id', 'len', 'pack_string' ]
 
 if args.prefix:
     base = args.prefix
@@ -46,7 +47,6 @@ def gen_cpp_header():
     result = []
 
     result.append("#pragma once")
-    result.append("#pragma pack(push, 1)")
     result.append("")
     result.append("#include <stdint.h>  // uint8_t, et. al.")
     result.append("#include <string.h>  // memcpy()")
@@ -70,102 +70,119 @@ def gen_cpp_header():
     for i in range(root.getLen("messages")):
         m = root.getChild("messages[%d]" % i)
         print("Processing:", m.getString("name"))
-        # compute sizes and detect if an extra pack structure is needed
-        struct_size = 0
-        pack_size = 0
+        # quick checks
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
-            struct_size += type_size[f.getString("type")]
-            if f.hasChild("pack_type"):
-                pack_size += type_size[f.getString("pack_type")]
-            else:
-                pack_size += type_size[f.getString("type")]
             name = f.getString("name")
             if name in reserved_fields:
                 print("Error: %s is a reserved field name." % name)
                 print("Aborting.")
                 quit()
-        compaction = (not struct_size == pack_size)
 
         # generate public c message struct
         result.append("// Message: %s" % m.getString("name"))
         result.append("// Id: %d" % m.getInt("id"))
-        result.append("// Struct size: %d" % struct_size)
-        result.append("// Packed message size: %d" % pack_size)
         result.append("struct %s_%s_t {" % (base, m.getString("name")))
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
             result.append("    %s %s;" % (f.getString("type"), f.getString("name")))
-
         result.append("")
+
+        # generate private c packed struct
+        result.append("    // internal structure for packing")
+        result.append("    #pragma pack(push, 1)")
+        result.append("    struct {")
+        for j in range(m.getLen("fields")):
+            f = m.getChild("fields[%d]" % j)
+            if f.hasChild("pack_type"):
+                ptype = f.getString("pack_type")
+            else:
+                ptype = f.getString("type")
+            result.append("        %s %s;" % (ptype, f.getString("name")))
+        result.append("    } buf;")
+        result.append("    #pragma pack(pop)")
+        result.append("")
+
+        # generate built in constants
         result.append("    const uint8_t id = %s;" % m.getString("id"))
-        result.append("    const uint8_t len = %d;" % pack_size)
+        result.append("    const uint16_t len = sizeof(buf);")
         result.append("")
         
-        if compaction:
-            # generate private c packed struct
-            result.append("    // internal structure for packing")
-            result.append("    struct {")
-            for j in range(m.getLen("fields")):
-                f = m.getChild("fields[%d]" % j)
-                if f.hasChild("pack_type"):
-                    ptype = f.getString("pack_type")
-                else:
-                    ptype = f.getString("type")
-                result.append("        %s %s;" % (ptype, f.getString("name")))
-            result.append("    } buf;")
-            result.append("")
-
         # generate pack code
         result.append("    uint8_t *pack() {")
-        if compaction:
-            for j in range(m.getLen("fields")):
-                line = "        ";
-                f = m.getChild("fields[%d]" % j)
-                line += "buf.%s = " % f.getString("name")
-                if f.hasChild("pack_type"):
-                    ptype = f.getString("pack_type")
-                    if ptype[0] == "i":
-                        line += "intround("
-                    else:
-                        line += "uintround("
-                    line += "%s" % f.getString("name")
-                    if f.hasChild("pack_scale"):
-                        line += " * %s" % f.getString("pack_scale")
-                    line += ")"
+        for j in range(m.getLen("fields")):
+            line = "        ";
+            f = m.getChild("fields[%d]" % j)
+            name = f.getString("name")
+            # test for array form: ident[size]
+            parts = re.split('([\w-]+)\[(\d+)\]', name)
+            if len(parts) == 4:
+                name = parts[1]
+                index = int(parts[2])
+            else:
+                index = None
+            if index:
+                line += "for (int i=0; i<%d; i++) " % index
+            line += "buf.%s" % name
+            if index:
+                line += "[i]"
+            line += " = "
+            #line += "buf.%s = " % f.getString("name")
+            if f.hasChild("pack_type"):
+                ptype = f.getString("pack_type")
+                if ptype[0] == "i":
+                    line += "intround("
                 else:
-                    line += "%s" % f.getString("name")
-                line += ";"
-                result.append(line)
-            result.append("        return (uint8_t *)(&buf);")
-        else:
-            result.append("        return (uint8_t *)this;")
+                    line += "uintround("
+                line += "%s" % name
+                if index:
+                    line += "[i]"
+                if f.hasChild("pack_scale"):
+                    line += " * %s" % f.getString("pack_scale")
+                line += ")"
+            else:
+                line += "%s" % name
+                if index:
+                    line += "[i]"
+            line += ";"
+            result.append(line)
+        result.append("        return (uint8_t *)(&buf);")
         result.append("    }")
         result.append("")
 
         # generate unpack code
         result.append("    void unpack(uint8_t *message) {")
-        if compaction:
-            result.append("        memcpy(&buf, message, %d);" % struct_size)
-            for j in range(m.getLen("fields")):
-                line = "        ";
-                f = m.getChild("fields[%d]" % j)
-                line += f.getString("name")
-                line += " = "
-                if f.hasChild("pack_scale"):
-                    line += "buf.%s / (float)%s" % (f.getString("name"), f.getString("pack_scale"))
-                    ptype = f.getString("pack_type")
-                else:
-                    line += "buf.%s" % f.getString("name")
-                line += ";"
-                result.append(line)
-        else:
-            result.append("        memcpy(this, message, %d);" % struct_size)
+        result.append("        memcpy(&buf, message, len);")
+        for j in range(m.getLen("fields")):
+            line = "        ";
+            f = m.getChild("fields[%d]" % j)
+            name = f.getString("name")
+            # test for array form: ident[size]
+            parts = re.split('([\w-]+)\[(\d+)\]', name)
+            if len(parts) == 4:
+                name = parts[1]
+                index = int(parts[2])
+            else:
+                index = None
+            if index:
+                line += "for (int i=0; i<%d; i++) " % index
+            line += name
+            if index:
+                line += "[i]"
+            line += " = "
+            if f.hasChild("pack_scale"):
+                line += "buf.%s" % name
+                if index:
+                    line += "[i]"
+                line += " / (float)%s" % f.getString("pack_scale")
+                ptype = f.getString("pack_type")
+            else:
+                line += "buf.%s" % name
+            line += ";"
+            result.append(line)
         result.append("    }")
         result.append("};")
         result.append("")
-
-    result.append("#pragma pack(pop)")
     return result
 
 def gen_python_module():

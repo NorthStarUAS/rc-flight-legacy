@@ -2,6 +2,7 @@ import struct
 
 # Message id constants
 simple_test_id = 0
+array_test_id = 1
 gps_v4_id = 34
 
 # Message: simple_test
@@ -24,6 +25,28 @@ class simple_test():
 
     def unpack(self, msg):
         (self.a,) = struct.unpack(self.pack_string, msg)
+
+# Message: array_test
+# Id: 1
+# Packed message size: 2
+class array_test():
+    id = 1
+    len = 2
+    pack_string = "<h"
+
+    def __init__(self, msg=None):
+        self.orientation[9] = 0.0
+        if msg:
+            self.unpack(msg)
+
+    def pack(self):
+        msg = struct.pack(self.pack_string,
+                          int(round(self.orientation[9] * 53.3)))
+        return msg
+
+    def unpack(self, msg):
+        (self.orientation[9],) = struct.unpack(self.pack_string, msg)
+        self.orientation[9] /= 53.3
 
 # Message: gps_v4
 # Id: 34
