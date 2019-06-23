@@ -16,9 +16,9 @@ const uint8_t message_id_simple_test = 0;
 const uint8_t message_id_array_test = 1;
 const uint8_t message_id_gps_v4 = 34;
 
-// Message: simple_test
-// Id: 0
+// Message: simple_test (id: 0)
 struct message_simple_test_t {
+    // public fields
     int16_t a;
 
     // internal structure for packing
@@ -42,9 +42,9 @@ struct message_simple_test_t {
     }
 };
 
-// Message: array_test
-// Id: 1
+// Message: array_test (id: 1)
 struct message_array_test_t {
+    // public fields
     double time;
     int8_t flags[4];
     float orientation[9];
@@ -80,9 +80,9 @@ struct message_array_test_t {
     }
 };
 
-// Message: gps_v4
-// Id: 34
+// Message: gps_v4 (id: 34)
 struct message_gps_v4_t {
+    // public fields
     uint8_t index;
     float time_sec;
     double latitude_deg;

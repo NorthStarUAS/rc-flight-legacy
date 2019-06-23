@@ -85,9 +85,9 @@ def gen_cpp_header():
                 quit()
 
         # generate public c message struct
-        result.append("// Message: %s" % m.getString("name"))
-        result.append("// Id: %d" % m.getInt("id"))
+        result.append("// Message: %s (id: %d)" % (m.getString("name"), m.getInt("id")))
         result.append("struct %s_%s_t {" % (base, m.getString("name")))
+        result.append("    // public fields")
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
             result.append("    %s %s;" % (f.getString("type"), f.getString("name")))
