@@ -78,6 +78,11 @@ def gen_cpp_header():
                 pack_size += type_size[f.getString("pack_type")]
             else:
                 pack_size += type_size[f.getString("type")]
+            name = f.getString("name")
+            if name == "id" or name == "len":
+                print("Error: %s is a reserved field name." % name)
+                print("Aborting.")
+                quit()
         compaction = (not struct_size == pack_size)
 
         # generate public c message struct
@@ -189,13 +194,19 @@ def gen_python_module():
                 pack_size += type_size[f.getString("type")]
                 pack_code = type_code[f.getString("type")]
             pack_string += pack_code
+            name = f.getString("name")
+            if name == "id" or name == "len":
+                print("Error: %s is a reserved field name." % name)
+                print("Aborting.")
+                quit()
 
         # generate public c message struct
         result.append("# Message: %s" % m.getString("name"))
         result.append("# Id: %d" % m.getInt("id"))
         result.append("# Packed message size: %d" % pack_size)
         result.append("class %s():" % (m.getString("name")))
-        result.append("    __id = %s" % m.getString("id"))
+        result.append("    id = %s" % m.getString("id"))
+        result.append("    len = %d" % pack_size)
         result.append("    __pack_string = \"%s\"" % pack_string)
         result.append("")
         result.append("    def __init__(self, msg=None):")

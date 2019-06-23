@@ -8,7 +8,8 @@ gps_v4_id = 34
 # Id: 0
 # Packed message size: 2
 class simple_test():
-    __id = 0
+    id = 0
+    len = 2
     __pack_string = "<h"
 
     def __init__(self, msg=None):
@@ -28,7 +29,8 @@ class simple_test():
 # Id: 34
 # Packed message size: 47
 class gps_v4():
-    __id = 34
+    id = 34
+    len = 47
     __pack_string = "<BfddfhhhdBHHHB"
 
     def __init__(self, msg=None):
