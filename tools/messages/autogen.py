@@ -24,12 +24,6 @@ if not root.hasChild("messages"):
     print("No message definition found in:", args.input)
     quit()
 
-type_size = { "double": 8, "float": 4,
-              "uint32_t": 4, "int32_t": 4,
-              "uint16_t": 2, "int16_t": 2,
-              "uint8_t": 1, "int8_t": 1
-}
-
 type_code = { "double": 'd', "float": 'f',
               "uint32_t": 'L', "int32_t": 'l',
               "uint16_t": 'H', "int16_t": 'h',
