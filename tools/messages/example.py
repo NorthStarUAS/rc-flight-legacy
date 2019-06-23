@@ -1,15 +1,15 @@
 import messages
 
 # quick message test
-d = messages.simple_test()
-print('d:', d.__dict__)
-d.dummy = 1234
-msg = d.pack()
+st = messages.simple_test()
+print('st:', st.__dict__)
+st.a = 1234
+msg = st.pack()
 print("msg len:", len(msg))
 
-d_recv = messages.simple_test(msg)
-#d_recv.unpack(msg)
-print("received:", d_recv.dummy)
+st_recv = messages.simple_test(msg)
+#st_recv.unpack(msg)
+print("received:", st_recv.a)
 
 # gps v4 test
 gps = messages.gps_v4()

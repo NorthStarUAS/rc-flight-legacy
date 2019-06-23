@@ -21,7 +21,7 @@ const uint8_t message_id_gps_v4 = 34;
 // Struct size: 2
 // Packed message size: 2
 struct message_simple_test_t {
-    int16_t dummy;
+    int16_t a;
 
     const uint8_t id = 0;
     const uint8_t len = 2;

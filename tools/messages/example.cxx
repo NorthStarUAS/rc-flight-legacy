@@ -5,12 +5,12 @@
 int main() {
     // create a test message
     message_simple_test_t st;
-    st.dummy = 1234;
+    st.a = 1234;
     uint8_t *msg = st.pack();
     printf("packed length = %d\n", (int)st.len);
     message_simple_test_t st_recv;
     st_recv.unpack(msg);
-    printf("result = %d\n", st_recv.dummy);
+    printf("result = %d\n", st_recv.a);
     printf("\n");
 
     // create a gps message

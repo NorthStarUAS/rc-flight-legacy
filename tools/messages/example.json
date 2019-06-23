@@ -4,7 +4,7 @@
             "id": 0,
             "name": "simple_test",
             "fields": [
-                { "type": "int16_t", "name": "dummy" }
+                { "type": "int16_t", "name": "a" }
             ]
         },
         {

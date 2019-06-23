@@ -10,20 +10,20 @@ gps_v4_id = 34
 class simple_test():
     id = 0
     len = 2
-    __pack_string = "<h"
+    pack_string = "<h"
 
     def __init__(self, msg=None):
-        self.dummy = 0
+        self.a = 0
         if msg:
             self.unpack(msg)
 
     def pack(self):
-        msg = struct.pack(self.__pack_string,
-                          self.dummy)
+        msg = struct.pack(self.pack_string,
+                          self.a)
         return msg
 
     def unpack(self, msg):
-        (self.dummy,) = struct.unpack(self.__pack_string, msg)
+        (self.a,) = struct.unpack(self.pack_string, msg)
 
 # Message: gps_v4
 # Id: 34
@@ -31,7 +31,7 @@ class simple_test():
 class gps_v4():
     id = 34
     len = 47
-    __pack_string = "<BfddfhhhdBHHHB"
+    pack_string = "<BfddfhhhdBHHHB"
 
     def __init__(self, msg=None):
         self.index = 0
@@ -52,7 +52,7 @@ class gps_v4():
             self.unpack(msg)
 
     def pack(self):
-        msg = struct.pack(self.__pack_string,
+        msg = struct.pack(self.pack_string,
                           self.index,
                           self.time_sec,
                           self.latitude_deg,
@@ -83,7 +83,7 @@ class gps_v4():
          self.horiz_accuracy_m,
          self.vert_accuracy_m,
          self.pdop,
-         self.fix_type) = struct.unpack(self.__pack_string, msg)
+         self.fix_type) = struct.unpack(self.pack_string, msg)
         self.vn_ms /= 100
         self.ve_ms /= 100
         self.vd_ms /= 100

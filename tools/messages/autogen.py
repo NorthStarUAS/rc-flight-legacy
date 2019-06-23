@@ -35,6 +35,8 @@ type_code = { "double": 'd', "float": 'f',
               "uint8_t": 'B', "int8_t": 'b'
 }
 
+reserved_fields = [ 'buf', 'id', 'len', 'pack_string' ]
+
 if args.prefix:
     base = args.prefix
 else:
@@ -79,7 +81,7 @@ def gen_cpp_header():
             else:
                 pack_size += type_size[f.getString("type")]
             name = f.getString("name")
-            if name == "id" or name == "len":
+            if name in reserved_fields:
                 print("Error: %s is a reserved field name." % name)
                 print("Aborting.")
                 quit()
@@ -195,7 +197,7 @@ def gen_python_module():
                 pack_code = type_code[f.getString("type")]
             pack_string += pack_code
             name = f.getString("name")
-            if name == "id" or name == "len":
+            if name in reserved_fields:
                 print("Error: %s is a reserved field name." % name)
                 print("Aborting.")
                 quit()
@@ -207,7 +209,7 @@ def gen_python_module():
         result.append("class %s():" % (m.getString("name")))
         result.append("    id = %s" % m.getString("id"))
         result.append("    len = %d" % pack_size)
-        result.append("    __pack_string = \"%s\"" % pack_string)
+        result.append("    pack_string = \"%s\"" % pack_string)
         result.append("")
         result.append("    def __init__(self, msg=None):")
         for j in range(m.getLen("fields")):
@@ -231,7 +233,7 @@ def gen_python_module():
 
         # generate pack code
         result.append("    def pack(self):")
-        result.append("        msg = struct.pack(self.__pack_string,")
+        result.append("        msg = struct.pack(self.pack_string,")
         count = m.getLen("fields")
         for j in range(count):
             f = m.getChild("fields[%d]" % j)
@@ -262,7 +264,7 @@ def gen_python_module():
             else:
                 if count == 1:
                     line += ","
-                line += ") = struct.unpack(self.__pack_string, msg)"
+                line += ") = struct.unpack(self.pack_string, msg)"
             result.append(line)
         for j in range(count):
             f = m.getChild("fields[%d]" % j)
