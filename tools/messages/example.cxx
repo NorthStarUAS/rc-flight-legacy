@@ -25,7 +25,7 @@ int main() {
 
     // pack it
     msg = gps.pack();
-    printf("msg id = %d, packed length = %d\n", gps.id, gps.len);
+    printf("msg id = %d, sizeof = %d  packed length = %d\n", gps.id, sizeof(gps), gps.len);
 
     // pretend the serialized message got sent somewhere and now we
     // received it and deserialized it on the other side

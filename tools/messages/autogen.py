@@ -109,8 +109,8 @@ def gen_cpp_header():
         result.append("")
 
         # generate built in constants
-        result.append("    const uint8_t id = %s;" % m.getString("id"))
-        result.append("    const uint16_t len = sizeof(_buf);")
+        result.append("    static const uint8_t id = %s;" % m.getString("id"))
+        result.append("    static const uint16_t len = sizeof(_buf);")
         result.append("")
         
         # generate pack code

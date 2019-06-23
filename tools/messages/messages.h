@@ -28,8 +28,8 @@ struct message_simple_test_t {
     } _buf;
     #pragma pack(pop)
 
-    const uint8_t id = 0;
-    const uint16_t len = sizeof(_buf);
+    static const uint8_t id = 0;
+    static const uint16_t len = sizeof(_buf);
 
     uint8_t *pack() {
         _buf.a = a;
@@ -60,8 +60,8 @@ struct message_array_test_t {
     } _buf;
     #pragma pack(pop)
 
-    const uint8_t id = 1;
-    const uint16_t len = sizeof(_buf);
+    static const uint8_t id = 1;
+    static const uint16_t len = sizeof(_buf);
 
     uint8_t *pack() {
         _buf.time = time;
@@ -118,8 +118,8 @@ struct message_gps_v4_t {
     } _buf;
     #pragma pack(pop)
 
-    const uint8_t id = 34;
-    const uint16_t len = sizeof(_buf);
+    static const uint8_t id = 34;
+    static const uint16_t len = sizeof(_buf);
 
     uint8_t *pack() {
         _buf.index = index;
