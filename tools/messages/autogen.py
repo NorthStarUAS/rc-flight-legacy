@@ -30,7 +30,7 @@ type_code = { "double": 'd', "float": 'f',
               "uint8_t": 'B', "int8_t": 'b'
 }
 
-reserved_fields = [ 'buf', 'i', 'id', 'len', 'pack_string' ]
+reserved_fields = [ 'id', 'len', '_buf', '_i', '_pack_string' ]
 
 if args.prefix:
     base = args.prefix
@@ -104,13 +104,13 @@ def gen_cpp_header():
             else:
                 ptype = f.getString("type")
             result.append("        %s %s;" % (ptype, f.getString("name")))
-        result.append("    } buf;")
+        result.append("    } _buf;")
         result.append("    #pragma pack(pop)")
         result.append("")
 
         # generate built in constants
         result.append("    const uint8_t id = %s;" % m.getString("id"))
-        result.append("    const uint16_t len = sizeof(buf);")
+        result.append("    const uint16_t len = sizeof(_buf);")
         result.append("")
         
         # generate pack code
@@ -120,12 +120,12 @@ def gen_cpp_header():
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
             if index:
-                line += "for (int i=0; i<%d; i++) " % index
-            line += "buf.%s" % name
+                line += "for (int _i=0; _i<%d; _i++) " % index
+            line += "_buf.%s" % name
             if index:
-                line += "[i]"
+                line += "[_i]"
             line += " = "
-            #line += "buf.%s = " % f.getString("name")
+            #line += "_buf.%s = " % f.getString("name")
             if f.hasChild("pack_type"):
                 ptype = f.getString("pack_type")
                 if ptype[0] == "i":
@@ -134,41 +134,43 @@ def gen_cpp_header():
                     line += "uintround("
                 line += "%s" % name
                 if index:
-                    line += "[i]"
+                    line += "[_i]"
                 if f.hasChild("pack_scale"):
                     line += " * %s" % f.getString("pack_scale")
                 line += ")"
             else:
                 line += "%s" % name
                 if index:
-                    line += "[i]"
+                    line += "[_i]"
             line += ";"
             result.append(line)
-        result.append("        return (uint8_t *)(&buf);")
+        result.append("        return (uint8_t *)(&_buf);")
         result.append("    }")
         result.append("")
 
         # generate unpack code
         result.append("    void unpack(uint8_t *message) {")
-        result.append("        memcpy(&buf, message, len);")
+        result.append("        memcpy(&_buf, message, len);")
         for j in range(m.getLen("fields")):
             line = "        ";
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
             if index:
-                line += "for (int i=0; i<%d; i++) " % index
+                line += "for (int _i=0; _i<%d; _i++) " % index
             line += name
             if index:
-                line += "[i]"
+                line += "[_i]"
             line += " = "
             if f.hasChild("pack_scale"):
-                line += "buf.%s" % name
+                line += "_buf.%s" % name
                 if index:
-                    line += "[i]"
+                    line += "[_i]"
                 line += " / (float)%s" % f.getString("pack_scale")
                 ptype = f.getString("pack_type")
             else:
-                line += "buf.%s" % name
+                line += "_buf.%s" % name
+                if index:
+                    line += "[_i]"
             line += ";"
             result.append(line)
         result.append("    }")
@@ -215,9 +217,10 @@ def gen_python_module():
         result.append("# Id: %d" % m.getInt("id"))
         result.append("class %s():" % (m.getString("name")))
         result.append("    id = %s" % m.getString("id"))
-        result.append("    pack_string = \"%s\"" % pack_string)
+        result.append("    _pack_string = \"%s\"" % pack_string)
         result.append("")
         result.append("    def __init__(self, msg=None):")
+        result.append("        # public fields")
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
@@ -238,12 +241,13 @@ def gen_python_module():
             if index:
                 line += "] * %d" % index
             result.append(line)
+        result.append("        # optional")
         result.append("        if msg: self.unpack(msg)")
         result.append("")
 
         # generate pack code
         result.append("    def pack(self):")
-        result.append("        msg = struct.pack(self.pack_string,")
+        result.append("        msg = struct.pack(self._pack_string,")
         count = m.getLen("fields")
         for j in range(count):
             f = m.getChild("fields[%d]" % j)
@@ -292,7 +296,7 @@ def gen_python_module():
                     else:
                         if count == 1:
                             line += ","
-                        line += ") = struct.unpack(self.pack_string, msg)"
+                        line += ") = struct.unpack(self._pack_string, msg)"
                     result.append(line)
             else:
                 if j == 0:
@@ -305,7 +309,7 @@ def gen_python_module():
                 else:
                     if count == 1:
                         line += ","
-                    line += ") = struct.unpack(self.pack_string, msg)"
+                    line += ") = struct.unpack(self._pack_string, msg)"
                 result.append(line)
         for j in range(count):
             f = m.getChild("fields[%d]" % j)

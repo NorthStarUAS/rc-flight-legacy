@@ -25,20 +25,20 @@ struct message_simple_test_t {
     #pragma pack(push, 1)
     struct {
         int16_t a;
-    } buf;
+    } _buf;
     #pragma pack(pop)
 
     const uint8_t id = 0;
-    const uint16_t len = sizeof(buf);
+    const uint16_t len = sizeof(_buf);
 
     uint8_t *pack() {
-        buf.a = a;
-        return (uint8_t *)(&buf);
+        _buf.a = a;
+        return (uint8_t *)(&_buf);
     }
 
     void unpack(uint8_t *message) {
-        memcpy(&buf, message, len);
-        a = buf.a;
+        memcpy(&_buf, message, len);
+        a = _buf.a;
     }
 };
 
@@ -57,26 +57,26 @@ struct message_array_test_t {
         int8_t flags[4];
         int16_t orientation[9];
         uint16_t something;
-    } buf;
+    } _buf;
     #pragma pack(pop)
 
     const uint8_t id = 1;
-    const uint16_t len = sizeof(buf);
+    const uint16_t len = sizeof(_buf);
 
     uint8_t *pack() {
-        buf.time = time;
-        for (int i=0; i<4; i++) buf.flags[i] = flags[i];
-        for (int i=0; i<9; i++) buf.orientation[i] = intround(orientation[i] * 53.3);
-        buf.something = something;
-        return (uint8_t *)(&buf);
+        _buf.time = time;
+        for (int _i=0; _i<4; _i++) _buf.flags[_i] = flags[_i];
+        for (int _i=0; _i<9; _i++) _buf.orientation[_i] = intround(orientation[_i] * 53.3);
+        _buf.something = something;
+        return (uint8_t *)(&_buf);
     }
 
     void unpack(uint8_t *message) {
-        memcpy(&buf, message, len);
-        time = buf.time;
-        for (int i=0; i<4; i++) flags[i] = buf.flags;
-        for (int i=0; i<9; i++) orientation[i] = buf.orientation[i] / (float)53.3;
-        something = buf.something;
+        memcpy(&_buf, message, len);
+        time = _buf.time;
+        for (int _i=0; _i<4; _i++) flags[_i] = _buf.flags[_i];
+        for (int _i=0; _i<9; _i++) orientation[_i] = _buf.orientation[_i] / (float)53.3;
+        something = _buf.something;
     }
 };
 
@@ -115,46 +115,46 @@ struct message_gps_v4_t {
         uint16_t vert_accuracy_m;
         uint16_t pdop;
         uint8_t fix_type;
-    } buf;
+    } _buf;
     #pragma pack(pop)
 
     const uint8_t id = 34;
-    const uint16_t len = sizeof(buf);
+    const uint16_t len = sizeof(_buf);
 
     uint8_t *pack() {
-        buf.index = index;
-        buf.time_sec = time_sec;
-        buf.latitude_deg = latitude_deg;
-        buf.longitude_deg = longitude_deg;
-        buf.altitude_m = altitude_m;
-        buf.vn_ms = intround(vn_ms * 100);
-        buf.ve_ms = intround(ve_ms * 100);
-        buf.vd_ms = intround(vd_ms * 100);
-        buf.unixtime_sec = unixtime_sec;
-        buf.satellites = satellites;
-        buf.horiz_accuracy_m = uintround(horiz_accuracy_m * 100);
-        buf.vert_accuracy_m = uintround(vert_accuracy_m * 100);
-        buf.pdop = uintround(pdop * 100);
-        buf.fix_type = fix_type;
-        return (uint8_t *)(&buf);
+        _buf.index = index;
+        _buf.time_sec = time_sec;
+        _buf.latitude_deg = latitude_deg;
+        _buf.longitude_deg = longitude_deg;
+        _buf.altitude_m = altitude_m;
+        _buf.vn_ms = intround(vn_ms * 100);
+        _buf.ve_ms = intround(ve_ms * 100);
+        _buf.vd_ms = intround(vd_ms * 100);
+        _buf.unixtime_sec = unixtime_sec;
+        _buf.satellites = satellites;
+        _buf.horiz_accuracy_m = uintround(horiz_accuracy_m * 100);
+        _buf.vert_accuracy_m = uintround(vert_accuracy_m * 100);
+        _buf.pdop = uintround(pdop * 100);
+        _buf.fix_type = fix_type;
+        return (uint8_t *)(&_buf);
     }
 
     void unpack(uint8_t *message) {
-        memcpy(&buf, message, len);
-        index = buf.index;
-        time_sec = buf.time_sec;
-        latitude_deg = buf.latitude_deg;
-        longitude_deg = buf.longitude_deg;
-        altitude_m = buf.altitude_m;
-        vn_ms = buf.vn_ms / (float)100;
-        ve_ms = buf.ve_ms / (float)100;
-        vd_ms = buf.vd_ms / (float)100;
-        unixtime_sec = buf.unixtime_sec;
-        satellites = buf.satellites;
-        horiz_accuracy_m = buf.horiz_accuracy_m / (float)100;
-        vert_accuracy_m = buf.vert_accuracy_m / (float)100;
-        pdop = buf.pdop / (float)100;
-        fix_type = buf.fix_type;
+        memcpy(&_buf, message, len);
+        index = _buf.index;
+        time_sec = _buf.time_sec;
+        latitude_deg = _buf.latitude_deg;
+        longitude_deg = _buf.longitude_deg;
+        altitude_m = _buf.altitude_m;
+        vn_ms = _buf.vn_ms / (float)100;
+        ve_ms = _buf.ve_ms / (float)100;
+        vd_ms = _buf.vd_ms / (float)100;
+        unixtime_sec = _buf.unixtime_sec;
+        satellites = _buf.satellites;
+        horiz_accuracy_m = _buf.horiz_accuracy_m / (float)100;
+        vert_accuracy_m = _buf.vert_accuracy_m / (float)100;
+        pdop = _buf.pdop / (float)100;
+        fix_type = _buf.fix_type;
     }
 };
 

@@ -9,35 +9,39 @@ gps_v4_id = 34
 # Id: 0
 class simple_test():
     id = 0
-    pack_string = "<h"
+    _pack_string = "<h"
 
     def __init__(self, msg=None):
+        # public fields
         self.a = 0
+        # optional
         if msg: self.unpack(msg)
 
     def pack(self):
-        msg = struct.pack(self.pack_string,
+        msg = struct.pack(self._pack_string,
                           self.a)
         return msg
 
     def unpack(self, msg):
-        (self.a,) = struct.unpack(self.pack_string, msg)
+        (self.a,) = struct.unpack(self._pack_string, msg)
 
 # Message: array_test
 # Id: 1
 class array_test():
     id = 1
-    pack_string = "<dbbbbhhhhhhhhhH"
+    _pack_string = "<dbbbbhhhhhhhhhH"
 
     def __init__(self, msg=None):
+        # public fields
         self.time = 0.0
         self.flags = [0] * 4
         self.orientation = [0.0] * 9
         self.something = 0
+        # optional
         if msg: self.unpack(msg)
 
     def pack(self):
-        msg = struct.pack(self.pack_string,
+        msg = struct.pack(self._pack_string,
                           self.time,
                           self.flags[0],
                           self.flags[1],
@@ -70,7 +74,7 @@ class array_test():
          self.orientation[6],
          self.orientation[7],
          self.orientation[8],
-         self.something) = struct.unpack(self.pack_string, msg)
+         self.something) = struct.unpack(self._pack_string, msg)
         self.orientation[0] /= 53.3
         self.orientation[1] /= 53.3
         self.orientation[2] /= 53.3
@@ -85,9 +89,10 @@ class array_test():
 # Id: 34
 class gps_v4():
     id = 34
-    pack_string = "<BfddfhhhdBHHHB"
+    _pack_string = "<BfddfhhhdBHHHB"
 
     def __init__(self, msg=None):
+        # public fields
         self.index = 0
         self.time_sec = 0.0
         self.latitude_deg = 0.0
@@ -102,10 +107,11 @@ class gps_v4():
         self.vert_accuracy_m = 0.0
         self.pdop = 0.0
         self.fix_type = 0
+        # optional
         if msg: self.unpack(msg)
 
     def pack(self):
-        msg = struct.pack(self.pack_string,
+        msg = struct.pack(self._pack_string,
                           self.index,
                           self.time_sec,
                           self.latitude_deg,
@@ -136,7 +142,7 @@ class gps_v4():
          self.horiz_accuracy_m,
          self.vert_accuracy_m,
          self.pdop,
-         self.fix_type) = struct.unpack(self.pack_string, msg)
+         self.fix_type) = struct.unpack(self._pack_string, msg)
         self.vn_ms /= 100
         self.ve_ms /= 100
         self.vd_ms /= 100
