@@ -32,6 +32,8 @@ type_code = { "double": 'd', "float": 'f',
 
 reserved_fields = [ 'id', 'len', '_buf', '_i', '_pack_string' ]
 
+basename, ext = os.path.splitext(args.input)
+
 if args.prefix:
     base = args.prefix
 else:
@@ -331,7 +333,7 @@ do_cpp = True
 if do_cpp:
     print("Generating C++ header:")
     code = gen_cpp_header()
-    f = open("messages.h", "w")
+    f = open(basename + ".h", "w")
     for line in code:
         f.write(line + "\n")
     f.close()
@@ -340,7 +342,7 @@ do_python = True
 if do_python:
     print("Generating Python3 code:")
     code = gen_python_module()
-    f = open("messages.py", "w")
+    f = open(basename + ".py", "w")
     for line in code:
         f.write(line + "\n")
     f.close()
