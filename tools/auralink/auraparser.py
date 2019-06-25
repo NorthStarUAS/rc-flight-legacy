@@ -2,6 +2,7 @@ import datetime
 import sys
 
 sys.path.append("../src")
+from comms import aura_messages
 from comms.packet_id import *
 import comms.packer
 import comms.serial_parser
@@ -55,51 +56,51 @@ def new_logfile():
         quit()
 
 def parse_msg(id, buf):
-    if id == GPS_PACKET_V2:
+    if id == aura_messages.gps_v2_id:
         index = comms.packer.unpack_gps_v2(buf)
-    elif id == GPS_PACKET_V3:
+    elif id == aura_messages.gps_v3_id:
         index = comms.packer.unpack_gps_v3(buf)
-    elif id == GPS_PACKET_V4:
+    elif id == aura_messages.gps_v4_id:
         index = comms.packer.unpack_gps_v4(buf)
-    elif id == IMU_PACKET_V3:
+    elif id == aura_messages.imu_v3_id:
         index = comms.packer.unpack_imu_v3(buf)
-    elif id == IMU_PACKET_V4:
+    elif id == aura_messages.imu_v4_id:
         index = comms.packer.unpack_imu_v4(buf)
-    elif id == AIRDATA_PACKET_V5:
+    elif id == aura_messages.airdata_v5_id:
         index = comms.packer.unpack_airdata_v5(buf)
-    elif id == AIRDATA_PACKET_V6:
+    elif id == aura_messages.airdata_v6_id:
         index = comms.packer.unpack_airdata_v6(buf)
-    elif id == AIRDATA_PACKET_V7:
+    elif id == aura_messages.airdata_v7_id:
         index = comms.packer.unpack_airdata_v7(buf)
-    elif id == FILTER_PACKET_V2:
+    elif id == aura_messages.filter_v2_id:
         index = comms.packer.unpack_filter_v2(buf)
-    elif id == FILTER_PACKET_V3:
+    elif id == aura_messages.filter_v3_id:
         index = comms.packer.unpack_filter_v3(buf)
-    elif id == FILTER_PACKET_V4:
+    elif id == aura_messages.filter_v4_id:
         index = comms.packer.unpack_filter_v4(buf)
-    elif id == ACTUATOR_PACKET_V2:
+    elif id == aura_messages.actuator_v2_id:
         index = comms.packer.unpack_act_v2(buf)
-    elif id == ACTUATOR_PACKET_V3:
+    elif id == aura_messages.actuator_v3_id:
         index = comms.packer.unpack_act_v3(buf)
-    elif id == PILOT_INPUT_PACKET_V2:
+    elif id == aura_messages.pilot_v2_id:
         index = comms.packer.unpack_pilot_v2(buf)
-    elif id == PILOT_INPUT_PACKET_V3:
+    elif id == aura_messages.pilot_v3_id:
         index = comms.packer.unpack_pilot_v3(buf)
-    elif id == AP_STATUS_PACKET_V4:
+    elif id == aura_messages.ap_status_v4_id:
         index = comms.packer.unpack_ap_status_v4(buf)
-    elif id == AP_STATUS_PACKET_V5:
+    elif id == aura_messages.ap_status_v5_id:
         index = comms.packer.unpack_ap_status_v5(buf)
-    elif id == AP_STATUS_PACKET_V6:
+    elif id == aura_messages.ap_status_v6_id:
         index = comms.packer.unpack_ap_status_v6(buf)
-    elif id == AP_STATUS_PACKET_V7:
+    elif id == aura_messages.ap_status_v7_id:
         index = comms.packer.unpack_ap_status_v7(buf)
-    elif id == SYSTEM_HEALTH_PACKET_V4:
+    elif id == aura_messages.system_health_v4_id:
         index = comms.packer.unpack_system_health_v4(buf)
-    elif id == SYSTEM_HEALTH_PACKET_V5:
+    elif id == aura_messages.system_health_v5_id:
         index = comms.packer.unpack_system_health_v5(buf)
-    elif id == PAYLOAD_PACKET_V2:
+    elif id == aura_messages.payload_v2_id:
         index = comms.packer.unpack_payload_v2(buf)
-    elif id == PAYLOAD_PACKET_V3:
+    elif id == aura_messages.payload_v3_id:
         index = comms.packer.unpack_payload_v3(buf)
     elif id == EVENT_PACKET_V1:
         index = comms.packer.unpack_event_v1(buf)
