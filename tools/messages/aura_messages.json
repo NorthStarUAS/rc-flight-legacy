@@ -390,7 +390,7 @@
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "double", "name": "timestamp_sec" },
-                { "type": "float", "name": "system_load_average", "pack_type": "uint16_t", "pack_scale": 100 },
+                { "type": "float", "name": "system_load_avg", "pack_type": "uint16_t", "pack_scale": 100 },
                 { "type": "float", "name": "avionics_vcc", "pack_type": "uint16_t", "pack_scale": 1000 },
                 { "type": "float", "name": "main_vcc", "pack_type": "uint16_t", "pack_scale": 1000 },
                 { "type": "float", "name": "cell_vcc", "pack_type": "uint16_t", "pack_scale": 1000 },
@@ -405,7 +405,7 @@
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "float", "name": "timestamp_sec" },
-                { "type": "float", "name": "system_load_average", "pack_type": "uint16_t", "pack_scale": 100 },
+                { "type": "float", "name": "system_load_avg", "pack_type": "uint16_t", "pack_scale": 100 },
                 { "type": "float", "name": "avionics_vcc", "pack_type": "uint16_t", "pack_scale": 1000 },
                 { "type": "float", "name": "main_vcc", "pack_type": "uint16_t", "pack_scale": 1000 },
                 { "type": "float", "name": "cell_vcc", "pack_type": "uint16_t", "pack_scale": 1000 },
