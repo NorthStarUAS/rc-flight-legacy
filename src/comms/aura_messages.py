@@ -1252,7 +1252,7 @@ class system_health_v4():
         # public fields
         self.index = 0
         self.timestamp_sec = 0.0
-        self.system_load_average = 0.0
+        self.system_load_avg = 0.0
         self.avionics_vcc = 0.0
         self.main_vcc = 0.0
         self.cell_vcc = 0.0
@@ -1265,7 +1265,7 @@ class system_health_v4():
         msg = struct.pack(self._pack_string,
                           self.index,
                           self.timestamp_sec,
-                          int(round(self.system_load_average * 100)),
+                          int(round(self.system_load_avg * 100)),
                           int(round(self.avionics_vcc * 1000)),
                           int(round(self.main_vcc * 1000)),
                           int(round(self.cell_vcc * 1000)),
@@ -1276,13 +1276,13 @@ class system_health_v4():
     def unpack(self, msg):
         (self.index,
          self.timestamp_sec,
-         self.system_load_average,
+         self.system_load_avg,
          self.avionics_vcc,
          self.main_vcc,
          self.cell_vcc,
          self.main_amps,
          self.total_mah) = struct.unpack(self._pack_string, msg)
-        self.system_load_average /= 100
+        self.system_load_avg /= 100
         self.avionics_vcc /= 1000
         self.main_vcc /= 1000
         self.cell_vcc /= 1000
@@ -1299,7 +1299,7 @@ class system_health_v5():
         # public fields
         self.index = 0
         self.timestamp_sec = 0.0
-        self.system_load_average = 0.0
+        self.system_load_avg = 0.0
         self.avionics_vcc = 0.0
         self.main_vcc = 0.0
         self.cell_vcc = 0.0
@@ -1312,7 +1312,7 @@ class system_health_v5():
         msg = struct.pack(self._pack_string,
                           self.index,
                           self.timestamp_sec,
-                          int(round(self.system_load_average * 100)),
+                          int(round(self.system_load_avg * 100)),
                           int(round(self.avionics_vcc * 1000)),
                           int(round(self.main_vcc * 1000)),
                           int(round(self.cell_vcc * 1000)),
@@ -1323,13 +1323,13 @@ class system_health_v5():
     def unpack(self, msg):
         (self.index,
          self.timestamp_sec,
-         self.system_load_average,
+         self.system_load_avg,
          self.avionics_vcc,
          self.main_vcc,
          self.cell_vcc,
          self.main_amps,
          self.total_mah) = struct.unpack(self._pack_string, msg)
-        self.system_load_average /= 100
+        self.system_load_avg /= 100
         self.avionics_vcc /= 1000
         self.main_vcc /= 1000
         self.cell_vcc /= 1000

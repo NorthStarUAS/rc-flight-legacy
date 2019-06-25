@@ -362,6 +362,7 @@ def pack_airdata_dict(index):
     row['pitot_scale_factor'] = wind_node.getFloat('pitot_scale_factor')
     row['tecs_error_total'] = tecs_node.getFloat('error_total')
     row['tecs_error_diff'] = tecs_node.getFloat('error_diff')
+    row['error_count'] = airdata_node.getFloat('error_count')
     row['status'] = airdata_node.getInt('status')
     return row
 
@@ -1137,8 +1138,8 @@ def unpack_system_health_v4(buf):
     power_node.setInt("total_mah", health.total_mah)
     return health.index
 
-def unpack_system_health_v4(buf):
-    health = aura_messages.system_health_v4(buf)
+def unpack_system_health_v5(buf):
+    health = aura_messages.system_health_v5(buf)
     status_node.setFloat("frame_time", health.timestamp_sec)
     status_node.setFloat("system_load_avg", health.system_load_avg)
     power_node.setFloat("avionics_vcc", health.avionics_vcc)
