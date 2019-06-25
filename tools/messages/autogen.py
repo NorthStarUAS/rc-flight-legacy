@@ -243,7 +243,7 @@ def gen_python_module():
             if index:
                 line += "] * %d" % index
             result.append(line)
-        result.append("        # optional")
+        result.append("        # unpack if requested")
         result.append("        if msg: self.unpack(msg)")
         result.append("")
 
