@@ -380,7 +380,7 @@
                 { "type": "uint16_t", "name": "route_size" },
                 { "type": "uint8_t", "name": "task_id" },
                 { "type": "uint16_t", "name": "task_attribute" },
-                { "type": "uint8_t", "name": "sequence_number" }
+                { "type": "uint8_t", "name": "sequence_num" }
             ]
         },
         {
@@ -425,8 +425,8 @@
         },
         {
             "id": 42,
-            "name": "payload_v2",
-            "desc": "payload v2 message",
+            "name": "payload_v3",
+            "desc": "payload v3 message",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "float", "name": "timestamp_sec" },
