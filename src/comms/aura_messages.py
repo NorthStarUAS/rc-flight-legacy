@@ -1180,8 +1180,8 @@ class ap_status_v7():
         self.flags = 0
         self.groundtrack_deg = 0.0
         self.roll_deg = 0.0
-        self.altitude_msl_ft = 0
-        self.altitude_ground_m = 0
+        self.altitude_msl_ft = 0.0
+        self.altitude_ground_m = 0.0
         self.pitch_deg = 0.0
         self.airspeed_kt = 0.0
         self.flight_timer = 0
@@ -1203,8 +1203,8 @@ class ap_status_v7():
                           self.flags,
                           int(round(self.groundtrack_deg * 10)),
                           int(round(self.roll_deg * 10)),
-                          self.altitude_msl_ft,
-                          self.altitude_ground_m,
+                          int(round(self.altitude_msl_ft * 1)),
+                          int(round(self.altitude_ground_m * 1)),
                           int(round(self.pitch_deg * 10)),
                           int(round(self.airspeed_kt * 10)),
                           self.flight_timer,
@@ -1239,6 +1239,8 @@ class ap_status_v7():
          self.sequence_num) = struct.unpack(self._pack_string, msg)
         self.groundtrack_deg /= 10
         self.roll_deg /= 10
+        self.altitude_msl_ft /= 1
+        self.altitude_ground_m /= 1
         self.pitch_deg /= 10
         self.airspeed_kt /= 10
 
