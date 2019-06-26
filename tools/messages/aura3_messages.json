@@ -188,10 +188,10 @@
             "id": 54,
             "name": "power",
             "fields": [
-                { "type": "uint16_t", "name": "int_main_v" },
-                { "type": "uint16_t", "name": "avionics_v" },
-                { "type": "uint16_t", "name": "ext_main_v" },
-                { "type": "uint16_t", "name": "ext_main_amp" }
+                { "type": "float", "name": "int_main_v", "pack_type": "uint16_t", "pack_scale": 100 },
+                { "type": "float", "name": "avionics_v" , "pack_type": "uint16_t", "pack_scale": 100 },
+                { "type": "float", "name": "ext_main_v", "pack_type": "uint16_t", "pack_scale": 100  },
+                { "type": "float", "name": "ext_main_amp", "pack_type": "uint16_t", "pack_scale": 100  }
             ]
         },
         {
