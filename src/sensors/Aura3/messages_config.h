@@ -2,7 +2,7 @@
 
 #pragma pack(push,1)            // set alignment to 1 byte boundary
 
-// Master Board Configuratoin
+// Master Board Configuration
 typedef struct {
     uint8_t board;              // 0 = Marmot v1, 1 = Aura v2
 } config_master_t;

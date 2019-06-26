@@ -35,10 +35,15 @@ using namespace Eigen;
 #include "aura3_messages.h"
 #include "setup_pwm.h"
 #include "setup_sbus.h"
-#include "message_ids.h"
-#include "messages.h"
+// #include "message_ids.h"
+// #include "messages.h"
 // #include "messages_config.h"
 
+// FIXME: these should be part of a low level communication code module
+const uint8_t START_OF_MSG0 = 147;
+const uint8_t START_OF_MSG1 = 224;
+
+// FIXME: could be good to be able to define constants in the message.json
 #define NUM_IMU_SENSORS 10
 #define NUM_ANALOG_INPUTS 6
 #define AP_CHANNELS 6
@@ -91,7 +96,9 @@ static ButterworthFilter pitot_filter(2, 100, 0.8);
 static uint32_t parse_errors = 0;
 static uint32_t skipped_frames = 0;
 
-aura_nav_pvt_t nav_pvt;
+message_aura_nav_pvt_t nav_pvt;
+message_airdata_t airdata_packet;
+
 message_config_master_t config_master;
 message_config_imu_t config_imu;
 message_config_actuators_t config_actuators;
@@ -136,7 +143,6 @@ const float magScale = 0.01;
 const float tempScale = 0.01;
 
 
-airdata_packet_t airdata_packet;
 
 
 static void Aura3_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
@@ -638,14 +644,15 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	} else {
 	    printf("Aura3: packet size mismatch in ACK\n");
 	}
-    } else if ( pkt_id == PILOT_PACKET_ID ) {
-	if ( pkt_len == sizeof(pilot_packet_t) ) {
-            pilot_packet_t *pilot_in = (pilot_packet_t *)payload;
+    } else if ( pkt_id == message_pilot_id ) {
+        message_pilot_t pilot;
+	if ( pkt_len == pilot.len ) {
+            pilot.unpack(payload);
 	    pilot_in_timestamp = get_Time();
 	    for ( int i = 0; i < SBUS_CHANNELS; i++ ) {
-		pilot_input[i] = (float)pilot_in->channel[i] / 16384.0;
+		pilot_input[i] = pilot.channel[i];
 	    }
-            pilot_flags = pilot_in->flags;
+            pilot_flags = pilot.flags;
 
 #if 0
 	    if ( display_on ) {
@@ -667,15 +674,15 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 		printf("Aura3: packet size mismatch in pilot input packet\n");
 	    }
 	}
-    } else if ( pkt_id == IMU_PACKET_ID ) {
-	if ( pkt_len == sizeof(imu_packet_t) ) {
-            imu_packet_t *imu = (imu_packet_t *)payload;
+    } else if ( pkt_id == message_imu_raw_id ) {
+        message_imu_raw_t imu;
+	if ( pkt_len == imu.len ) {
+            imu.unpack(payload);
 	    imu_timestamp = get_Time();
-	    imu_micros = imu->micros;
+	    imu_micros = imu.micros;
 	    //printf("%d\n", imu_micros);
-	    
 	    for ( int i = 0; i < NUM_IMU_SENSORS; i++ ) {
-		imu_sensors[i] = imu->channel[i];
+		imu_sensors[i] = imu.channel[i];
 	    }
 
 #if 0
@@ -699,22 +706,22 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 		printf("Aura3: packet size mismatch in imu packet\n");
 	    }
 	}
-    } else if ( pkt_id == GPS_PACKET_ID ) {
-	if ( pkt_len == sizeof(aura_nav_pvt_t) ) {
+    } else if ( pkt_id == message_aura_nav_pvt_id ) {
+	if ( pkt_len == nav_pvt.len ) {
 	    nav_pvt_timestamp = get_Time();
-            nav_pvt = *(aura_nav_pvt_t *)(payload);
+            nav_pvt.unpack(payload);
 	    gps_packet_counter++;
 	    aura3_node.setLong( "gps_packet_count", gps_packet_counter );
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
 		printf("Aura3: packet size mismatch in gps packet\n");
-                printf("got %d, expected %d\n", pkt_len, (int)sizeof(aura_nav_pvt_t));
+                printf("got %d, expected %d\n", pkt_len, nav_pvt.len);
 	    }
 	}
-    } else if ( pkt_id == AIRDATA_PACKET_ID ) {
-	if ( pkt_len == sizeof(airdata_packet_t) ) {
-            airdata_packet = *(airdata_packet_t *)payload;
+    } else if ( pkt_id == message_airdata_id ) {
+	if ( pkt_len == airdata_packet.len ) {
+            airdata_packet.unpack(payload);
 
 	    // if ( display_on ) {
 	    // 	printf("airdata %.3f %.2f %.2f\n", airdata.timestamp,
@@ -730,14 +737,15 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 		printf("Aura3: packet size mismatch in airdata packet\n");
 	    }
 	}
-    } else if ( pkt_id == POWER_PACKET_ID ) {
-	if ( pkt_len == sizeof(power_packet_t) ) {
-            power_packet_t *packet = (power_packet_t *)payload;
+    } else if ( pkt_id == message_power_id ) {
+        message_power_t power;
+	if ( pkt_len == power.len ) {
+            power.unpack(payload);
 
             // we anticipate a 0.01 sec dt value
-            int_main_vcc_filt.update((float)packet->int_main_v / 100.0, 0.01);
-            ext_main_vcc_filt.update((float)packet->ext_main_v / 100.0, 0.01);
-            avionics_vcc_filt.update((float)packet->avionics_v / 100.0, 0.01);
+            int_main_vcc_filt.update((float)power.int_main_v / 100.0, 0.01);
+            ext_main_vcc_filt.update((float)power.ext_main_v / 100.0, 0.01);
+            avionics_vcc_filt.update((float)power.avionics_v / 100.0, 0.01);
 
             power_node.setDouble( "main_vcc", int_main_vcc_filt.get_value() );
             power_node.setDouble( "ext_main_vcc", ext_main_vcc_filt.get_value() );
@@ -747,16 +755,17 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
             float ext_cell_volt = ext_main_vcc_filt.get_value() / (float)battery_cells;
             power_node.setDouble( "cell_vcc", cell_volt );
             power_node.setDouble( "ext_cell_vcc", ext_cell_volt );
-            power_node.setDouble( "main_amps", (float)packet->ext_main_amp / 100.0);
+            power_node.setDouble( "main_amps", (float)power.ext_main_amp / 100.0);
 	} else {
 	    if ( display_on ) {
 		printf("Aura3: packet size mismatch in power packet\n");
 	    }
 	}
-    } else if ( pkt_id == STATUS_INFO_PACKET_ID ) {
+    } else if ( pkt_id == message_status_id ) {
 	static bool first_time = true;
-	if ( pkt_len == sizeof(status_packet_t) ) {
-            status_packet_t *packet = (status_packet_t *)payload;
+        message_status_t msg;
+	if ( pkt_len == msg.len ) {
+            msg.unpack(payload);
 
 #if 0
 	    if ( display_on ) {
@@ -765,23 +774,23 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 #endif
 		      
-	    aura3_node.setLong( "serial_number", packet->serial_number );
-	    aura3_node.setLong( "firmware_rev", packet->firmware_rev );
-	    aura3_node.setLong( "master_hz", packet->master_hz );
-	    aura3_node.setLong( "baud_rate", packet->baud );
-	    aura3_node.setLong( "byte_rate_sec", packet->byte_rate );
+	    aura3_node.setLong( "serial_number", msg.serial_number );
+	    aura3_node.setLong( "firmware_rev", msg.firmware_rev );
+	    aura3_node.setLong( "master_hz", msg.master_hz );
+	    aura3_node.setLong( "baud_rate", msg.baud );
+	    aura3_node.setLong( "byte_rate_sec", msg.byte_rate );
  
 	    if ( first_time ) {
 		// log the data to events.txt
 		first_time = false;
 		char buf[128];
-		snprintf( buf, 32, "Serial Number = %d", packet->serial_number );
+		snprintf( buf, 32, "Serial Number = %d", msg.serial_number );
 		events->log("Aura3", buf );
-		snprintf( buf, 32, "Firmware Revision = %d", packet->firmware_rev );
+		snprintf( buf, 32, "Firmware Revision = %d", msg.firmware_rev );
 		events->log("Aura3", buf );
-		snprintf( buf, 32, "Master Hz = %d", packet->master_hz );
+		snprintf( buf, 32, "Master Hz = %d", msg.master_hz );
 		events->log("Aura3", buf );
-		snprintf( buf, 32, "Baud Rate = %d", packet->baud );
+		snprintf( buf, 32, "Baud Rate = %d", msg.baud );
 		events->log("Aura3", buf );
 	    }
 	} else {
@@ -1304,7 +1313,7 @@ double Aura3_update() {
     int bytes_available = 0;
     while ( true ) {
         int pkt_id = Aura3_read();
-        if ( pkt_id == IMU_PACKET_ID ) {
+        if ( pkt_id == message_imu_raw_id ) {
             ioctl(fd, FIONREAD, &bytes_available);
 	    if ( bytes_available < 256 ) {
                 // a smaller value here means more skipping ahead and
