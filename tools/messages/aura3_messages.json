@@ -114,14 +114,96 @@
             "name": "command_cycle_inceptors",
             "fields": [
             ]
-        }
+        },
         // sensors
+        {
+            "id": 50,
+            "name": "pilot",
+            "desc": "pilot input",
+            "fields": [
+                { "type": "float", "name": "channel[16]", "pack_type": "int16_t", "pack_scale": 16384 },
+                { "type": "uint8_t", "name": "flags" }
+            ]
+        },
+        {
+            "id": 51,
+            "name": "imu_raw",
+            "fields": [
+                { "type": "uint32_t", "name": "micros" },
+                { "type": "int16_t", "name": "channel[10]" }
+            ]
+        },
+        {
+            "id": 52,
+            "name": "aura_nav_pvt",
+            "fields": [
+                { "type": "uint32_t", "name": "iTOW" },
+                { "type": "int16_t", "name": "year" },
+                { "type": "uint8_t", "name": "month" },
+                { "type": "uint8_t", "name": "day" },
+                { "type": "uint8_t", "name": "hour" },
+                { "type": "uint8_t", "name": "min" },
+                { "type": "uint8_t", "name": "sec" },
+                { "type": "uint8_t", "name": "valid" },
+                { "type": "uint32_t", "name": "tAcc" },
+                { "type": "int32_t", "name": "nano" },
+                { "type": "uint8_t", "name": "fixType" },
+                { "type": "uint8_t", "name": "flags" },
+                { "type": "uint8_t", "name": "flags2" },
+                { "type": "uint8_t", "name": "numSV" },
+                { "type": "int32_t", "name": "lon" },
+                { "type": "int32_t", "name": "lat" },
+                { "type": "int32_t", "name": "height" },
+                { "type": "int32_t", "name": "hMSL" },
+                { "type": "uint32_t", "name": "hAcc" },
+                { "type": "uint32_t", "name": "vAcc" },
+                { "type": "int32_t", "name": "velN" },
+                { "type": "int32_t", "name": "velE" },
+                { "type": "int32_t", "name": "velD" },
+                { "type": "uint32_t", "name": "gSpeed" },
+                { "type": "int32_t", "name": "heading" },
+                { "type": "uint32_t", "name": "sAcc" },
+                { "type": "uint32_t", "name": "headingAcc" },
+                { "type": "uint16_t", "name": "pDOP" },
+                { "type": "uint8_t", "name": "reserved[6]" },
+                { "type": "int32_t", "name": "headVeh" },
+                { "type": "int16_t", "name": "magDec" },
+                { "type": "uint16_t", "name": "magAcc" }
+            ]
+        },
+        {
+            "id": 53,
+            "name": "airdata",
+            "fields": [
+                { "type": "float", "name": "baro_press_pa" },
+                { "type": "float", "name": "baro_temp_C" },
+                { "type": "float", "name": "baro_hum" },
+                { "type": "float", "name": "ext_diff_press_pa" },
+                { "type": "float", "name": "ext_static_press_pa" },
+                { "type": "float", "name": "ext_temp_C" },
+                { "type": "uint16_t", "name": "error_count" }
+            ]
+        },
+        {
+            "id": 54,
+            "name": "power",
+            "fields": [
+                { "type": "uint16_t", "name": "int_main_v" },
+                { "type": "uint16_t", "name": "avionics_v" },
+                { "type": "uint16_t", "name": "ext_main_v" },
+                { "type": "uint16_t", "name": "ext_main_amp" }
+            ]
+        },
+        {
+            "id": 55,
+            "name": "status",
+            "fields": [
+                { "type": "uint16_t", "name": "serial_number" },
+                { "type": "uint16_t", "name": "firmware_rev" },
+                { "type": "uint16_t", "name": "master_hz" },
+                { "type": "uint32_t", "name": "baud" },
+                { "type": "uint16_t", "name": "byte_rate" }
+            ]
+        }
     ]
 }
-
-// const uint8_t PILOT_PACKET_ID = 50;
-// const uint8_t IMU_PACKET_ID = 51;
-// const uint8_t GPS_PACKET_ID = 52;
-// const uint8_t AIRDATA_PACKET_ID = 53;
-// const uint8_t POWER_PACKET_ID = 54;
-// const uint8_t STATUS_INFO_PACKET_ID = 55;
