@@ -1184,7 +1184,7 @@ class ap_status_v7():
         self.altitude_ground_m = 0.0
         self.pitch_deg = 0.0
         self.airspeed_kt = 0.0
-        self.flight_timer = 0
+        self.flight_timer = 0.0
         self.target_waypoint_idx = 0
         self.wp_longitude_deg = 0.0
         self.wp_latitude_deg = 0.0
@@ -1207,7 +1207,7 @@ class ap_status_v7():
                           int(round(self.altitude_ground_m * 1)),
                           int(round(self.pitch_deg * 10)),
                           int(round(self.airspeed_kt * 10)),
-                          self.flight_timer,
+                          int(round(self.flight_timer * 1)),
                           self.target_waypoint_idx,
                           self.wp_longitude_deg,
                           self.wp_latitude_deg,
@@ -1243,6 +1243,7 @@ class ap_status_v7():
         self.altitude_ground_m /= 1
         self.pitch_deg /= 10
         self.airspeed_kt /= 10
+        self.flight_timer /= 1
 
 # Message: system_health_v4
 # Id: 19
