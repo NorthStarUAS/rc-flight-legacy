@@ -88,15 +88,15 @@ def pack_gps_bin(index):
     node = gps_nodes[index]
     gps = aura_messages.gps_v4()
     gps.index = index
-    gps.timestamp_sec = node.getFloat("timestamp"),
-    gps.latituded_deg = node.getFloat("latitude_deg"),
-    gps.longitude_deg = node.getFloat("longitude_deg"),
-    gps.altitude_m = node.getFloat("altitude_m"),
+    gps.timestamp_sec = node.getFloat("timestamp")
+    gps.latituded_deg = node.getFloat("latitude_deg")
+    gps.longitude_deg = node.getFloat("longitude_deg")
+    gps.altitude_m = node.getFloat("altitude_m")
     gps.vn_ms = node.getFloat("vn_ms")
     gps.ve_ms = node.getFloat("ve_ms")
     gps.vd_ms = node.getFloat("vd_ms")
-    gps.unixtime_sec = node.getFloat("unix_time_sec"),
-    gps.satellites = node.getInt("satellites"),
+    gps.unixtime_sec = node.getFloat("unix_time_sec")
+    gps.satellites = node.getInt("satellites")
     gps.horiz_accuracy_m = node.getFloat('horiz_accuracy_m')
     gps.vert_accuracy_m = node.getFloat('vert_accuracy_m')
     gps.pdop = node.getFloat('pdop')
@@ -228,15 +228,15 @@ def pack_imu_bin(index):
     
     imu.index = index
     imu.timestamp_sec = imu_timestamp
-    imu.p_rad_sec = node.getFloat("p_rad_sec"),
-    imu.q_rad_sec = node.getFloat("q_rad_sec"),
-    imu.r_rad_sec = node.getFloat("r_rad_sec"),
-    imu.ax_mps_sec = node.getFloat("ax_mps_sec"),
-    imu.ay_mps_sec = node.getFloat("ay_mps_sec"),
-    imu.az_mps_sec = node.getFloat("az_mps_sec"),
-    imu.hx = node.getFloat("hx"),
-    imu.hy = node.getFloat("hy"),
-    imu.hz = node.getFloat("hz"),
+    imu.p_rad_sec = node.getFloat("p_rad_sec")
+    imu.q_rad_sec = node.getFloat("q_rad_sec")
+    imu.r_rad_sec = node.getFloat("r_rad_sec")
+    imu.ax_mps_sec = node.getFloat("ax_mps_sec")
+    imu.ay_mps_sec = node.getFloat("ay_mps_sec")
+    imu.az_mps_sec = node.getFloat("az_mps_sec")
+    imu.hx = node.getFloat("hx")
+    imu.hy = node.getFloat("hy")
+    imu.hz = node.getFloat("hz")
     imu.temp_C = node.getFloat("temp_C")
     imu.status = 0
     buf = imu.pack()
@@ -478,7 +478,7 @@ def pack_filter_bin(index):
     nav.ax_bias = node.getFloat("ax_bias")
     nav.ay_bias = node.getFloat("ay_bias")
     nav.az_bias = node.getFloat("az_bias")
-    nav.sequence_num = remote_link_node.getInt("sequence_num"),
+    nav.sequence_num = remote_link_node.getInt("sequence_num")
     nav.status = 0
     buf = nav.pack()
     return wrap_packet(nav.id, buf)
