@@ -32,11 +32,12 @@ using namespace Eigen;
 #include "util/timing.h"
 
 #include "Aura3.hxx"
+#include "aura3_messages.h"
 #include "setup_pwm.h"
 #include "setup_sbus.h"
 #include "message_ids.h"
 #include "messages.h"
-#include "messages_config.h"
+// #include "messages_config.h"
 
 #define NUM_IMU_SENSORS 10
 #define NUM_ANALOG_INPUTS 6
@@ -91,7 +92,13 @@ static uint32_t parse_errors = 0;
 static uint32_t skipped_frames = 0;
 
 aura_nav_pvt_t nav_pvt;
-config_t config;
+message_config_master_t config_master;
+message_config_imu_t config_imu;
+message_config_actuators_t config_actuators;
+message_config_airdata_t config_airdata;
+message_config_power_t config_power;
+message_config_led_t config_led;
+
 static double nav_pvt_timestamp = 0;
 
 //static LowPassFilter analog_filt[NUM_ANALOG_INPUTS];
@@ -200,49 +207,48 @@ static bool wait_for_ack(uint8_t id) {
 
 
 static bool write_config_master() {
-    write_packet( CONFIG_MASTER_PACKET_ID, (uint8_t *)&(config.master),
-                  sizeof(config.master) );
-    return wait_for_ack(CONFIG_MASTER_PACKET_ID);
+    write_packet( config_master.id, config_master.pack(), config_master.len );
+    return wait_for_ack(config_master.id);
 }
 
 static bool write_config_imu() {
-    write_packet( CONFIG_IMU_PACKET_ID, (uint8_t *)&(config.imu),
-                  sizeof(config.imu) );
-    return wait_for_ack(CONFIG_IMU_PACKET_ID);
+    write_packet( config_imu.id, config_imu.pack(), config_imu.len );
+    return wait_for_ack(config_imu.id);
 }
 
 static bool write_config_actuators() {
-    write_packet( CONFIG_ACTUATORS_PACKET_ID, (uint8_t *)&(config.actuators),
-                  sizeof(config.actuators) );
-    return wait_for_ack(CONFIG_ACTUATORS_PACKET_ID);
+    write_packet( config_actuators.id, config_actuators.pack(),
+                  config_actuators.len );
+    return wait_for_ack(config_actuators.id);
 }
 
 static bool write_config_airdata() {
-    write_packet( CONFIG_AIRDATA_PACKET_ID, (uint8_t *)&(config.airdata),
-                  sizeof(config.airdata) );
-    return wait_for_ack(CONFIG_AIRDATA_PACKET_ID);
+    write_packet( config_airdata.id, config_airdata.pack(),
+                  config_airdata.len );
+    return wait_for_ack(config_airdata.id);
 }
 
 static bool write_config_led() {
-    write_packet( CONFIG_LED_PACKET_ID, (uint8_t *)&(config.led),
-                  sizeof(config.led) );
-    return wait_for_ack(CONFIG_LED_PACKET_ID);
+    write_packet( config_led.id, config_led.pack(), config_led.len );
+    return wait_for_ack(config_led.id);
 }
 
 static bool write_config_power() {
-    write_packet( CONFIG_POWER_PACKET_ID, (uint8_t *)&(config.power),
-                  sizeof(config.power) );
-    return wait_for_ack(CONFIG_POWER_PACKET_ID);
+    write_packet( config_power.id, config_power.pack(),
+                  config_power.len );
+    return wait_for_ack(config_power.id);
 }
 
 static bool write_command_zero_gyros() {
-    write_packet( COMMAND_ZERO_GYROS, NULL, 0 );
-    return wait_for_ack(COMMAND_ZERO_GYROS);
+    message_command_zero_gyros_t cmd;
+    write_packet( cmd.id, cmd.pack(), cmd.len );
+    return wait_for_ack(cmd.id);
 }
 
 static bool write_command_cycle_inceptors() {
-    write_packet( COMMAND_CYCLE_INCEPTORS, NULL, 0 );
-    return true;
+    message_command_cycle_inceptors_t cmd;
+    write_packet( cmd.id, cmd.pack(), cmd.len );
+    return wait_for_ack(cmd.id);
 }
 
 // initialize imu output property nodes 
@@ -619,14 +625,16 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
     static LowPassFilter int_main_vcc_filt(2.0);
     static LowPassFilter ext_main_vcc_filt(2.0);
 
-    if ( pkt_id == CONFIG_ACK_PACKET_ID ) {
-	if ( display_on ) {
-	    printf("Received ACK = %d %d\n", payload[0], payload[1]);
-	}
-	if ( pkt_len == sizeof(ack_packet_t) ) {
-            ack_packet_t *ack = (ack_packet_t *)payload;
-            last_ack_id = ack->command_id;
-	    last_ack_subid = ack->subcommand_id;
+    if ( pkt_id == message_command_ack_id ) {
+        message_command_ack_t ack;
+	if ( pkt_len == ack.len ) {
+            ack.unpack(payload);
+            last_ack_id = ack.command_id;
+	    last_ack_subid = ack.subcommand_id;
+            if ( display_on ) {
+                printf("Received ACK = %d %d\n", ack.command_id,
+                       ack.subcommand_id);
+            }
 	} else {
 	    printf("Aura3: packet size mismatch in ACK\n");
 	}
@@ -918,89 +926,89 @@ static int Aura3_read() {
 
 // master board selector defaults
 void master_defaults() {
-    config.master.board = 0;
+    config_master.board = 0;
 }
 
 // Setup imu defaults:
 // Marmot v1 has mpu9250 on SPI CS line 24
 // Aura v2 has mpu9250 on I2C Addr 0x68
 static void imu_setup_defaults() {
-    config.imu.interface = 0;       // SPI
-    config.imu.pin_or_address = 24; // CS pin
+    config_imu.interface = 0;       // SPI
+    config_imu.pin_or_address = 24; // CS pin
     float ident[] = { 1.0, 0.0, 0.0,
                       0.0, 1.0, 0.0,
                       0.0, 0.0, 1.0};
     for ( int i = 0; i < 9; i++ ) {
-        config.imu.orientation[i] = ident[i];
+        config_imu.orientation[i] = ident[i];
     }
 }
 
 // reset pwm output rates to safe startup defaults
 static void pwm_defaults() {
     for ( int i = 0; i < PWM_CHANNELS; i++ ) {
-         config.actuators.pwm_hz[i] = 50;    
+         config_actuators.pwm_hz[i] = 50;    
     }
 }
 
 // reset actuator gains (reversing) to startup defaults
 static void act_gain_defaults() {
     for ( int i = 0; i < PWM_CHANNELS; i++ ) {
-        config.actuators.act_gain[i] = 1.0;
+        config_actuators.act_gain[i] = 1.0;
     }
 }
 
 // reset airdata to startup defaults
 static void airdata_defaults() {
-    config.airdata.barometer = 0;
-    config.airdata.pitot = 0;
-    config.airdata.swift_baro_addr = 0;
-    config.airdata.swift_pitot_addr = 0;
+    config_airdata.barometer = 0;
+    config_airdata.pitot = 0;
+    config_airdata.swift_baro_addr = 0;
+    config_airdata.swift_pitot_addr = 0;
 }
 
 // reset sas parameters to startup defaults
 static void sas_defaults() {
-    config.actuators.sas_rollaxis = false;
-    config.actuators.sas_pitchaxis = false;
-    config.actuators.sas_yawaxis = false;
-    config.actuators.sas_tune = false;
+    config_actuators.sas_rollaxis = false;
+    config_actuators.sas_pitchaxis = false;
+    config_actuators.sas_yawaxis = false;
+    config_actuators.sas_tune = false;
 
-    config.actuators.sas_rollgain = 0.0;
-    config.actuators.sas_pitchgain = 0.0;
-    config.actuators.sas_yawgain = 0.0;
-    config.actuators.sas_max_gain = 2.0;
+    config_actuators.sas_rollgain = 0.0;
+    config_actuators.sas_pitchgain = 0.0;
+    config_actuators.sas_yawgain = 0.0;
+    config_actuators.sas_max_gain = 2.0;
 };
 
 
 // reset mixing parameters to startup defaults
 static void mixing_defaults() {
-    config.actuators.mix_autocoord = false;
-    config.actuators.mix_throttle_trim = false;
-    config.actuators.mix_flap_trim = false;
-    config.actuators.mix_elevon = false;
-    config.actuators.mix_flaperon = false;
-    config.actuators.mix_vtail = false;
-    config.actuators.mix_diff_thrust = false;
+    config_actuators.mix_autocoord = false;
+    config_actuators.mix_throttle_trim = false;
+    config_actuators.mix_flap_trim = false;
+    config_actuators.mix_elevon = false;
+    config_actuators.mix_flaperon = false;
+    config_actuators.mix_vtail = false;
+    config_actuators.mix_diff_thrust = false;
 
-    config.actuators.mix_Gac = 0.5;       // aileron gain for autocoordination
-    config.actuators.mix_Get = -0.1;      // elevator trim w/ throttle gain
-    config.actuators.mix_Gef = 0.1;       // elevator trim w/ flap gain
+    config_actuators.mix_Gac = 0.5;       // aileron gain for autocoordination
+    config_actuators.mix_Get = -0.1;      // elevator trim w/ throttle gain
+    config_actuators.mix_Gef = 0.1;       // elevator trim w/ flap gain
 
-    config.actuators.mix_Gea = 1.0;       // aileron gain for elevons
-    config.actuators.mix_Gee = 1.0;       // elevator gain for elevons
-    config.actuators.mix_Gfa = 1.0;       // aileron gain for flaperons
-    config.actuators.mix_Gff = 1.0;       // flaps gain for flaperons
-    config.actuators.mix_Gve = 1.0;       // elevator gain for vtail
-    config.actuators.mix_Gvr = 1.0;       // rudder gain for vtail
-    config.actuators.mix_Gtt = 1.0;       // throttle gain for diff thrust
-    config.actuators.mix_Gtr = 0.1;       // rudder gain for diff thrust
+    config_actuators.mix_Gea = 1.0;       // aileron gain for elevons
+    config_actuators.mix_Gee = 1.0;       // elevator gain for elevons
+    config_actuators.mix_Gfa = 1.0;       // aileron gain for flaperons
+    config_actuators.mix_Gff = 1.0;       // flaps gain for flaperons
+    config_actuators.mix_Gve = 1.0;       // elevator gain for vtail
+    config_actuators.mix_Gvr = 1.0;       // rudder gain for vtail
+    config_actuators.mix_Gtt = 1.0;       // throttle gain for diff thrust
+    config_actuators.mix_Gtr = 0.1;       // rudder gain for diff thrust
 };
 
 static void power_defaults() {
-    config.power.have_attopilot = false;
+    config_power.have_attopilot = false;
 }
 
 static void led_defaults() {
-    config.led.pin = 0;
+    config_led.pin = 0;
 }
 
 // send a full configuration to Aura3 and return true only when all
@@ -1028,16 +1036,16 @@ static bool Aura3_send_config() {
     if ( aura3_config.hasChild("board") ) {
         string board = aura3_config.getString("board");
         if ( board == "marmot_v1" ) {
-            config.master.board = 0;
+            config_master.board = 0;
         } else if ( board == "aura_v2" ) {
-            config.master.board = 1;
+            config_master.board = 1;
         } else {
             printf("Warning: no valid PWM pin layout defined.\n");
         }
     }
 
     if ( aura3_config.hasChild("have_attopilot") ) {
-        config.power.have_attopilot = aura3_config.getBool("have_attopilot");
+        config_power.have_attopilot = aura3_config.getBool("have_attopilot");
     }
 
     pyPropertyNode imu_node
@@ -1046,7 +1054,7 @@ static bool Aura3_send_config() {
         int len = imu_node.getLen("orientation");
         if ( len == 9 ) {
             for ( int i = 0; i < len; i++ ) {
-                config.imu.orientation[i] = imu_node.getDouble("orientation", i);
+                config_imu.orientation[i] = imu_node.getDouble("orientation", i);
             }
         } else {
             printf("WARNING: imu orienation improper matrix size\n");
@@ -1057,10 +1065,10 @@ static bool Aura3_send_config() {
     if ( imu_node.hasChild("interface") ) {
         string interface = imu_node.getString("interface");
         if ( interface == "spi" ) {
-            config.imu.interface = 0;
-            config.imu.pin_or_address = imu_node.getLong("cs_pin");
+            config_imu.interface = 0;
+            config_imu.pin_or_address = imu_node.getLong("cs_pin");
         } else if ( interface == "i2c" ) {
-            config.imu.interface = 1;
+            config_imu.interface = 1;
         } else {
             printf("Warning: unknown IMU interface = %s\n", interface.c_str());
         }
@@ -1070,9 +1078,9 @@ static bool Aura3_send_config() {
 	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
     count = pwm_node.getLen("channel");
     for ( int i = 0; i < count; i++ ) {
-        config.actuators.pwm_hz[i] = pwm_node.getLong("channel", i);
+        config_actuators.pwm_hz[i] = pwm_node.getLong("channel", i);
         if ( display_on ) {
-            printf("pwm_hz[%d] = %d\n", i, config.actuators.pwm_hz[i]);
+            printf("pwm_hz[%d] = %d\n", i, config_actuators.pwm_hz[i]);
         }
     }
 
@@ -1080,9 +1088,9 @@ static bool Aura3_send_config() {
 	= pyGetNode("/config/actuators/actuator/gains", true);
     count = gain_node.getLen("channel");
     for ( int i = 0; i < count; i++ ) {
-        config.actuators.act_gain[i] = gain_node.getDouble("channel", i);
+        config_actuators.act_gain[i] = gain_node.getDouble("channel", i);
         if ( display_on ) {
-            printf("act_gain[%d] = %.2f\n", i, config.actuators.act_gain[i]);
+            printf("act_gain[%d] = %.2f\n", i, config_actuators.act_gain[i]);
         }
     }
 
@@ -1108,30 +1116,30 @@ static bool Aura3_send_config() {
 	    if ( mix_node.hasChild("mode") ) {
 		mode = mix_node.getString("mode");
 		if ( mode == "auto_coordination" ) {
-                    config.actuators.mix_autocoord = enable;
-                    config.actuators.mix_Gac = gain1;
+                    config_actuators.mix_autocoord = enable;
+                    config_actuators.mix_Gac = gain1;
 		} else if ( mode == "throttle_trim" ) {
-                    config.actuators.mix_throttle_trim = enable;
-                    config.actuators.mix_Get = gain1;
+                    config_actuators.mix_throttle_trim = enable;
+                    config_actuators.mix_Get = gain1;
 		} else if ( mode == "flap_trim" ) {
-                    config.actuators.mix_flap_trim = enable;
-                    config.actuators.mix_Gef = gain1;
+                    config_actuators.mix_flap_trim = enable;
+                    config_actuators.mix_Gef = gain1;
 		} else if ( mode == "elevon" ) {
-                    config.actuators.mix_elevon = enable;
-                    config.actuators.mix_Gea = gain1;
-                    config.actuators.mix_Gee = gain2;
+                    config_actuators.mix_elevon = enable;
+                    config_actuators.mix_Gea = gain1;
+                    config_actuators.mix_Gee = gain2;
 		} else if ( mode == "flaperon" ) {
-                    config.actuators.mix_flaperon = enable;
-                    config.actuators.mix_Gfa = gain1;
-                    config.actuators.mix_Gff = gain2;
+                    config_actuators.mix_flaperon = enable;
+                    config_actuators.mix_Gfa = gain1;
+                    config_actuators.mix_Gff = gain2;
 		} else if ( mode == "vtail" ) {
-                    config.actuators.mix_vtail = enable;
-                    config.actuators.mix_Gve = gain1;
-                    config.actuators.mix_Gvr = gain2;
+                    config_actuators.mix_vtail = enable;
+                    config_actuators.mix_Gve = gain1;
+                    config_actuators.mix_Gvr = gain2;
 		} else if ( mode == "diff_thrust" ) {
-                    config.actuators.mix_diff_thrust = enable;
-                    config.actuators.mix_Gtt = gain1;
-                    config.actuators.mix_Gtr = gain2;
+                    config_actuators.mix_diff_thrust = enable;
+                    config_actuators.mix_Gtt = gain1;
+                    config_actuators.mix_Gtr = gain2;
 		}
 	    }
 	    if ( display_on ) {
@@ -1160,14 +1168,14 @@ static bool Aura3_send_config() {
 		if ( sas_section.hasChild("mode") ) {
 		    mode = sas_section.getString("mode");
 		    if ( mode == "roll" ) {
-                        config.actuators.sas_rollaxis = enable;
-                        config.actuators.sas_rollgain = gain;
+                        config_actuators.sas_rollaxis = enable;
+                        config_actuators.sas_rollgain = gain;
 		    } else if ( mode == "pitch" ) {
-                        config.actuators.sas_pitchaxis = enable;
-                        config.actuators.sas_pitchgain = gain;
+                        config_actuators.sas_pitchaxis = enable;
+                        config_actuators.sas_pitchgain = gain;
 		    } else if ( mode == "yaw" ) {
-                        config.actuators.sas_yawaxis = enable;
-                        config.actuators.sas_yawgain = gain;
+                        config_actuators.sas_yawaxis = enable;
+                        config_actuators.sas_yawgain = gain;
 		    }
 		}
 		if ( display_on ) {
@@ -1177,10 +1185,10 @@ static bool Aura3_send_config() {
 	} else if ( children[i] == "pilot_tune" ) {
 	    pyPropertyNode sas_section = sas_node.getChild("pilot_tune");
 	    if ( sas_section.hasChild("enable") ) {
-		config.actuators.sas_tune = sas_section.getBool("enable");
+		config_actuators.sas_tune = sas_section.getBool("enable");
 	    }
 	    if ( display_on ) {
-		printf("sas: global tune %d\n", config.actuators.sas_tune);
+		printf("sas: global tune %d\n", config_actuators.sas_tune);
 	    }
 	}
     }
@@ -1190,28 +1198,28 @@ static bool Aura3_send_config() {
     if ( airdata_node.hasChild("barometer") ) {
         string baro = airdata_node.getString("barometer");
         if ( baro == "bme280" ) {
-            config.airdata.barometer = 0;
+            config_airdata.barometer = 0;
         } else if ( baro == "bmp280" ) {
-            config.airdata.barometer = 1;
+            config_airdata.barometer = 1;
         } else if ( baro == "swift" ) {
-            config.airdata.barometer = 2;
-            config.airdata.swift_baro_addr = airdata_node.getLong("swift_baro_addr");
+            config_airdata.barometer = 2;
+            config_airdata.swift_baro_addr = airdata_node.getLong("swift_baro_addr");
         }
     }
     if ( airdata_node.hasChild("pitot") ) {
         string pitot = airdata_node.getString("pitot");
         if ( pitot == "ms4525" ) {
-            config.airdata.pitot = 0;
+            config_airdata.pitot = 0;
         } else if ( pitot == "ms5525" ) {
-            config.airdata.pitot = 1;
+            config_airdata.pitot = 1;
         } else if ( pitot == "swift" ) {
-            config.airdata.pitot = 2;
-            config.airdata.swift_pitot_addr = airdata_node.getLong("swift_pitot_addr");
+            config_airdata.pitot = 2;
+            config_airdata.swift_pitot_addr = airdata_node.getLong("swift_pitot_addr");
         }
     }
     
     if ( aura3_config.hasChild("led_pin") ) {
-        config.led.pin = aura3_config.getLong("led_pin");
+        config_led.pin = aura3_config.getLong("led_pin");
     }
 
     if ( display_on ) {
@@ -1265,54 +1273,20 @@ static bool Aura3_send_config() {
 
 
 static bool Aura3_act_write() {
-    uint8_t buf[256];
-    uint8_t *p = buf;
-    uint8_t cksum0, cksum1;
-    uint8_t size = 2 * AP_CHANNELS;
-    /* int len; */
-
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = COMMAND_INCEPTORS;
-    // packet length (1 byte)
-    buf[1] = size;
-    /* len = */ write( fd, buf, 2 );
-
     // actuator data
     if ( AP_CHANNELS == 6 ) {
-	int val;
-
-	val = act_node.getDouble("throttle") * 16384.0;
-        *(int16_t *)p = val; p += 2;
-
-	val = act_node.getDouble("aileron") * 16384.0;
-        *(int16_t *)p = val; p += 2;
-
-	val = act_node.getDouble("elevator") * 16384.0;
-        *(int16_t *)p = val; p += 2;
-
-	val = act_node.getDouble("rudder") * 16384.0;
-        *(int16_t *)p = val; p += 2;
-
-	val = act_node.getDouble("flaps") * 16384.0;
-        *(int16_t *)p = val; p += 2;
-
-	val = act_node.getDouble("gear") * 16384.0;
-        *(int16_t *)p = val; p += 2;
+        message_command_inceptors_t act;
+	act.channel[0] = act_node.getDouble("throttle");
+	act.channel[1] = act_node.getDouble("aileron");
+	act.channel[2] = act_node.getDouble("elevator");
+	act.channel[3] = act_node.getDouble("rudder");
+	act.channel[4] = act_node.getDouble("flaps");
+	act.channel[5] = act_node.getDouble("gear");
+        write_packet( act.id, act.pack(), act.len );
+        return true;
+    } else {
+        return false;
     }
-
-    // write packet
-    /* len = */ write( fd, buf, size );
-  
-    // check sum (2 bytes)
-    Aura3_cksum( COMMAND_INCEPTORS, size, buf, size, &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    /* len = */ write( fd, buf, 2 );
-
-    return true;
 }
 
 
