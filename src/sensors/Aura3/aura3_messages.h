@@ -676,10 +676,10 @@ struct message_airdata_t {
 // Message: power (id: 54)
 struct message_power_t {
     // public fields
-    uint16_t int_main_v;
-    uint16_t avionics_v;
-    uint16_t ext_main_v;
-    uint16_t ext_main_amp;
+    float int_main_v;
+    float avionics_v;
+    float ext_main_v;
+    float ext_main_amp;
 
     // internal structure for packing
     #pragma pack(push, 1)
@@ -695,19 +695,19 @@ struct message_power_t {
     static const uint16_t len = sizeof(_buf);
 
     uint8_t *pack() {
-        _buf.int_main_v = int_main_v;
-        _buf.avionics_v = avionics_v;
-        _buf.ext_main_v = ext_main_v;
-        _buf.ext_main_amp = ext_main_amp;
+        _buf.int_main_v = uintround(int_main_v * 100);
+        _buf.avionics_v = uintround(avionics_v * 100);
+        _buf.ext_main_v = uintround(ext_main_v * 100);
+        _buf.ext_main_amp = uintround(ext_main_amp * 100);
         return (uint8_t *)(&_buf);
     }
 
     void unpack(uint8_t *message) {
         memcpy(&_buf, message, len);
-        int_main_v = _buf.int_main_v;
-        avionics_v = _buf.avionics_v;
-        ext_main_v = _buf.ext_main_v;
-        ext_main_amp = _buf.ext_main_amp;
+        int_main_v = _buf.int_main_v / (float)100;
+        avionics_v = _buf.avionics_v / (float)100;
+        ext_main_v = _buf.ext_main_v / (float)100;
+        ext_main_amp = _buf.ext_main_amp / (float)100;
     }
 };
 
