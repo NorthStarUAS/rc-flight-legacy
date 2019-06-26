@@ -1,0 +1,127 @@
+{
+    "messages": [
+        // general ack packet
+        {
+            "id": 20,
+            "name": "command_ack",
+            "desc": "acknowledge command completed successfully",
+            "fields": [
+                { "type": "uint8_t", "name": "command_id" },
+                { "type": "uint8_t", "name": "subcommand_id" }
+            ]
+        },
+        // config packets
+        {
+            "id": 21,
+            "name": "config_master",
+            "desc": "master board configuration",
+            "fields": [
+                { "type": "uint8_t", "name": "board", "desc": "0 = Marmot v1, 1 = Aura v2" }
+            ]
+        },
+        {
+            "id": 22,
+            "name": "config_imu",
+            "desc": "IMU configuration",
+            "fields": [
+                { "type": "uint8_t", "name": "interface", "desc": "0 = SPI, 1 = I2C" },
+                { "type": "uint8_t", "name": "pin_or_address", "desc": "SPI CS pin or I2C address" },
+                { "type": "float", "name": "orientation[9]", "desc": "IMU orientation matrix" }
+            ]
+        },
+        {
+            "id": 23,
+            "name": "config_actuators",
+            "desc": "actuator configuration",
+            "fields": [
+                { "type": "uint16_t", "name": "pwm_hz[8]", "desc": "pwm output signal hz, 50hz default for analog servos, maximum rate is servo dependent: digital servos can usually do 200-250hz, analog servos and ESC's typically require 50hz" },
+                { "type": "float", "name": "act_gain[8]", "desc": "actuator gain (reversing/scaling)" },
+                // mixing modes
+                { "type": "bool", "name": "mix_autocoord" },
+                { "type": "bool", "name": "mix_throttle_trim" },
+                { "type": "bool", "name": "mix_flap_trim" },
+                { "type": "bool", "name": "mix_elevon" },
+                { "type": "bool", "name": "mix_flaperon" },
+                { "type": "bool", "name": "mix_vtail" },
+                { "type": "bool", "name": "mix_diff_thrust" },
+                // mixing gains
+                { "type": "float", "name": "mix_Gac", "desc": "aileron gain for autocoordination" },
+                { "type": "float", "name": "mix_Get", "desc": "elevator trim w/ throttle gain" },
+                { "type": "float", "name": "mix_Gef", "desc": "elevator trim w/ flap gain" },
+                { "type": "float", "name": "mix_Gea", "desc": "aileron gain for elevons" },
+                { "type": "float", "name": "mix_Gee", "desc": "elevator gain for elevons" },
+                { "type": "float", "name": "mix_Gfa", "desc": "aileron gain for flaperons" },
+                { "type": "float", "name": "mix_Gff", "desc": "flaps gain for flaperons" },
+                { "type": "float", "name": "mix_Gve", "desc": "elevator gain for vtail" },
+                { "type": "float", "name": "mix_Gvr", "desc": "rudder gain for vtail" },
+                { "type": "float", "name": "mix_Gtt", "desc": "throttle gain for diff thrust" },
+                { "type": "float", "name": "mix_Gtr", "desc": "rudder gain for diff thrust" },
+                // axis damping modes
+                { "type": "bool", "name": "sas_rollaxis" },
+                { "type": "bool", "name": "sas_pitchaxis" },
+                { "type": "bool", "name": "sas_yawaxis" },
+                { "type": "bool", "name": "sas_tune" },
+                // axis damping gains
+                { "type": "float", "name": "sas_rollgain" },
+                { "type": "float", "name": "sas_pitchgain" },
+                { "type": "float", "name": "sas_yawgain" },
+                { "type": "float", "name": "sas_max_gain" }
+            ]
+        },
+        {
+            "id": 24,
+            "name": "config_airdata",
+            "desc": "airdata configuration",
+            "fields": [
+                { "type": "uint8_t", "name": "barometer", "desc": "0 = BME280/SPI, 1 = BMP280/I2C, 2 = BFS Swift" },
+                { "type": "uint8_t", "name": "pitot", "desc": "0 = MS4525, 1 = MS5525, 2 = BFS Swift" },
+                { "type": "uint8_t", "name": "swift_baro_addr" },
+                { "type": "uint8_t", "name": "swift_pitot_addr" }
+            ]
+        },
+        {
+            "id": 25,
+            "name": "config_power",
+            "desc": "power configuration",
+            "fields": [
+                { "type": "bool", "name": "have_attopilot" }
+            ]
+        },
+        {
+            "id": 26,
+            "name": "config_led",
+            "desc": "power configuration",
+            "fields": [
+                { "type": "uint8_t", "name": "pin", "desc": "0 = no LED" }
+            ]
+        },
+        // commands
+        {
+            "id": 40,
+            "name": "command_inceptors",
+            "fields": [
+                { "type": "float", "name": "channel[6]", "pack_type": "int16_t", "pack_scale": 16384 }
+            ]
+        },
+        {
+            "id": 41,
+            "name": "command_zero_gyros",
+            "fields": [
+            ]
+        },
+        {
+            "id": 42,
+            "name": "command_cycle_inceptors",
+            "fields": [
+            ]
+        }
+        // sensors
+    ]
+}
+
+// const uint8_t PILOT_PACKET_ID = 50;
+// const uint8_t IMU_PACKET_ID = 51;
+// const uint8_t GPS_PACKET_ID = 52;
+// const uint8_t AIRDATA_PACKET_ID = 53;
+// const uint8_t POWER_PACKET_ID = 54;
+// const uint8_t STATUS_INFO_PACKET_ID = 55;
