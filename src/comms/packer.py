@@ -89,7 +89,7 @@ def pack_gps_bin(index):
     gps = aura_messages.gps_v4()
     gps.index = index
     gps.timestamp_sec = node.getFloat("timestamp")
-    gps.latituded_deg = node.getFloat("latitude_deg")
+    gps.latitude_deg = node.getFloat("latitude_deg")
     gps.longitude_deg = node.getFloat("longitude_deg")
     gps.altitude_m = node.getFloat("altitude_m")
     gps.vn_ms = node.getFloat("vn_ms")
