@@ -4,6 +4,7 @@
             "id": 16,
             "name": "gps_v2",
             "desc": "gps v2 message",
+            "date": "April 30, 2017",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "double", "name": "timestamp_sec" },
@@ -22,6 +23,7 @@
             "id": 26,
             "name": "gps_v3",
             "desc": "gps v3 message",
+            "date": "April 30, 2017",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "double", "name": "timestamp_sec" },
@@ -43,6 +45,7 @@
             "id": 34,
             "name": "gps_v4",
             "desc": "gps v4 message",
+            "date": "March 21, 2018",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "float", "name": "timestamp_sec" },
@@ -84,6 +87,7 @@
             "id": 35,
             "name": "imu_v4",
             "desc": "imu v4 message",
+            "date": "March 21, 2018",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "float", "name": "timestamp_sec" },
@@ -104,6 +108,7 @@
             "id": 18,
             "name": "airdata_v5",
             "desc": "airdata v5 message",
+            "date": "April 30, 2017",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "double", "name": "timestamp_sec" },
@@ -123,6 +128,7 @@
             "id": 40,
             "name": "airdata_v6",
             "desc": "airdata v6 message",
+            "date": "March 21, 2018",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "float", "name": "timestamp_sec" },
@@ -142,6 +148,7 @@
             "id": 43,
             "name": "airdata_v7",
             "desc": "airdata v7 message",
+            "date": "June 17, 2019",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "float", "name": "timestamp_sec" },
@@ -162,6 +169,7 @@
             "id": 22,
             "name": "filter_v2",
             "desc": "nav filter v2 message",
+            "date": "April 30, 2017",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "double", "name": "timestamp_sec" },
@@ -182,6 +190,7 @@
             "id": 31,
             "name": "filter_v3",
             "desc": "nav filter v3 message",
+            "date": "May 9, 2017",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "double", "name": "timestamp_sec" },
@@ -208,6 +217,7 @@
             "id": 36,
             "name": "filter_v4",
             "desc": "nav filter v4 message",
+            "date": "March 21, 2018",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "float", "name": "timestamp_sec" },
@@ -234,6 +244,7 @@
             "id": 21,
             "name": "actuator_v2",
             "desc": "actuator v2 message",
+            "date": "April 30, 2017",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "double", "name": "timestamp_sec" },
@@ -252,6 +263,7 @@
             "id": 37,
             "name": "actuator_v3",
             "desc": "actuator v3 message",
+            "date": "March 21, 2018",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "float", "name": "timestamp_sec" },
@@ -270,6 +282,7 @@
             "id": 20,
             "name": "pilot_v2",
             "desc": "pilot v2 message",
+            "date": "April 30, 2017",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "double", "name": "timestamp_sec" },
@@ -281,6 +294,7 @@
             "id": 38,
             "name": "pilot_v3",
             "desc": "pilot v3 message",
+            "date": "March 21, 2018",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "float", "name": "timestamp_sec" },
@@ -292,6 +306,7 @@
             "id": 30,
             "name": "ap_status_v4",
             "desc": "autopilot status v4 message",
+            "date": "May 7, 2017",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "double", "name": "timestamp_sec" },
@@ -314,6 +329,7 @@
             "id": 32,
             "name": "ap_status_v5",
             "desc": "autopilot status v5 message",
+            "date": "June 14, 2017",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "double", "name": "timestamp_sec" },
@@ -337,6 +353,7 @@
             "id": 33,
             "name": "ap_status_v6",
             "desc": "autopilot status v6 message",
+            "date": "September 24, 2017",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "double", "name": "timestamp_sec" },
@@ -362,17 +379,18 @@
             "id": 39,
             "name": "ap_status_v7",
             "desc": "autopilot status v7 message",
+            "date": "March 21, 2018",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "float", "name": "timestamp_sec" },
                 { "type": "uint8_t", "name": "flags" },
                 { "type": "float", "name": "groundtrack_deg", "pack_type": "int16_t", "pack_scale": 10 },
                 { "type": "float", "name": "roll_deg", "pack_type": "int16_t", "pack_scale": 10 },
-                { "type": "uint16_t", "name": "altitude_msl_ft" },
-                { "type": "uint16_t", "name": "altitude_ground_m" },
+                { "type": "float", "name": "altitude_msl_ft", "pack_type": "uint16_t", "pack_scale": 1 },
+                { "type": "float", "name": "altitude_ground_m", "pack_type": "uint16_t", "pack_scale": 1 },
                 { "type": "float", "name": "pitch_deg", "pack_type": "int16_t", "pack_scale": 10 },
                 { "type": "float", "name": "airspeed_kt", "pack_type": "int16_t", "pack_scale": 10 },
-                { "type": "uint16_t", "name": "flight_timer" },
+                { "type": "float", "name": "flight_timer", "pack_type": "uint16_t", "pack_scale": 1  },
                 { "type": "uint16_t", "name": "target_waypoint_idx" },
                 { "type": "double", "name": "wp_longitude_deg" },
                 { "type": "double", "name": "wp_latitude_deg" },
@@ -387,6 +405,7 @@
             "id": 19,
             "name": "system_health_v4",
             "desc": "system health v4 message",
+            "date": "April 30, 2017",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "double", "name": "timestamp_sec" },
@@ -402,6 +421,7 @@
             "id": 41,
             "name": "system_health_v5",
             "desc": "system health v5 message",
+            "date": "March 21, 2018",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "float", "name": "timestamp_sec" },
@@ -417,6 +437,7 @@
             "id": 23,
             "name": "payload_v2",
             "desc": "payload v2 message",
+            "date": "April 30, 2017",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "double", "name": "timestamp_sec" },
@@ -427,6 +448,7 @@
             "id": 42,
             "name": "payload_v3",
             "desc": "payload v3 message",
+            "date": "March 21, 2018",
             "fields": [
                 { "type": "uint8_t", "name": "index" },
                 { "type": "float", "name": "timestamp_sec" },
