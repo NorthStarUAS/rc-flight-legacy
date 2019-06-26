@@ -743,9 +743,9 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
             power.unpack(payload);
 
             // we anticipate a 0.01 sec dt value
-            int_main_vcc_filt.update((float)power.int_main_v / 100.0, 0.01);
-            ext_main_vcc_filt.update((float)power.ext_main_v / 100.0, 0.01);
-            avionics_vcc_filt.update((float)power.avionics_v / 100.0, 0.01);
+            int_main_vcc_filt.update((float)power.int_main_v, 0.01);
+            ext_main_vcc_filt.update((float)power.ext_main_v, 0.01);
+            avionics_vcc_filt.update((float)power.avionics_v, 0.01);
 
             power_node.setDouble( "main_vcc", int_main_vcc_filt.get_value() );
             power_node.setDouble( "ext_main_vcc", ext_main_vcc_filt.get_value() );
@@ -755,7 +755,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
             float ext_cell_volt = ext_main_vcc_filt.get_value() / (float)battery_cells;
             power_node.setDouble( "cell_vcc", cell_volt );
             power_node.setDouble( "ext_cell_vcc", ext_cell_volt );
-            power_node.setDouble( "main_amps", (float)power.ext_main_amp / 100.0);
+            power_node.setDouble( "main_amps", (float)power.ext_main_amp);
 	} else {
 	    if ( display_on ) {
 		printf("Aura3: packet size mismatch in power packet\n");
