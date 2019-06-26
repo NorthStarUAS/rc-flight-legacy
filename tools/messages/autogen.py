@@ -27,7 +27,8 @@ if not root.hasChild("messages"):
 type_code = { "double": 'd', "float": 'f',
               "uint32_t": 'L', "int32_t": 'l',
               "uint16_t": 'H', "int16_t": 'h',
-              "uint8_t": 'B', "int8_t": 'b'
+              "uint8_t": 'B', "int8_t": 'b',
+              "bool": 'B'
 }
 
 reserved_fields = [ 'id', 'len', '_buf', '_i', '_pack_string' ]
@@ -71,7 +72,7 @@ def gen_cpp_header():
     result.append("// Message id constants")
     for i in range(root.getLen("messages")):
         m = root.getChild("messages[%d]" % i)
-        result.append("const uint8_t %s_id_%s = %s;" % (base, m.getString("name"), m.getString("id")))
+        result.append("const uint8_t %s_%s_id = %s;" % (base, m.getString("name"), m.getString("id")))
     result.append("")
     
     for i in range(root.getLen("messages")):
