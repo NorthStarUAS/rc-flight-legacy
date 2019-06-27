@@ -5,15 +5,6 @@
 
 #include <pyprops.hxx>
 
-#include <errno.h>		// errno
-#include <fcntl.h>		// open()
-#include <stdio.h>		// printf() et. al.
-#include <termios.h>		// tcgetattr() et. al.
-#include <unistd.h>		// tcgetattr() et. al.
-#include <string.h>		// memset(), strerror()
-#include <math.h>		// M_PI
-#include <sys/ioctl.h>
-
 #include <string>
 #include <sstream>
 using std::string;
@@ -24,6 +15,7 @@ using namespace Eigen;
 
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
+#include "comms/serial_link.hxx"
 #include "init/globals.hxx"
 #include "sensors/cal_temp.hxx"
 #include "util/butter.hxx"
@@ -35,13 +27,6 @@ using namespace Eigen;
 #include "aura3_messages.h"
 #include "setup_pwm.h"
 #include "setup_sbus.h"
-// #include "message_ids.h"
-// #include "messages.h"
-// #include "messages_config.h"
-
-// FIXME: these should be part of a low level communication code module
-const uint8_t START_OF_MSG0 = 147;
-const uint8_t START_OF_MSG1 = 224;
 
 // FIXME: could be good to be able to define constants in the message.json
 #define NUM_IMU_SENSORS 10
@@ -67,9 +52,10 @@ static bool pilot_input_inited = false;
 static bool actuator_inited = false;
 bool Aura3_actuator_configured = false; // externally visible
 
-static int fd = -1;
+static SerialLink serial;
 static string device_name = "/dev/ttyS4";
 static int baud = 500000;
+
 static float volt_div_ratio = 100; // a nonsense value
 static int battery_cells = 4;
 static float pitot_calibrate = 1.0;
@@ -141,404 +127,6 @@ const float accelScale = _g / _accel_lsb_per_dps;
 
 const float magScale = 0.01;
 const float tempScale = 0.01;
-
-
-
-
-static void Aura3_cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
-{
-    uint8_t c0 = 0;
-    uint8_t c1 = 0;
-
-    c0 += hdr1;
-    c1 += c0;
-
-    c0 += hdr2;
-    c1 += c0;
-
-    for ( uint8_t i = 0; i < size; i++ ) {
-        c0 += (uint8_t)buf[i];
-        c1 += c0;
-    }
-
-    *cksum0 = c0;
-    *cksum1 = c1;
-}
-
-static bool write_packet(uint8_t packet_id, uint8_t *payload, uint8_t len) {
-    uint8_t buf[256];
-    uint8_t cksum0, cksum1;
-    
-    // start of message sync bytes
-    buf[0] = START_OF_MSG0; buf[1] = START_OF_MSG1, buf[2] = 0;
-    write( fd, buf, 2 );
-
-    // packet id (1 byte)
-    buf[0] = packet_id;
-
-    // packet length (1 byte)
-    buf[1] = len;
-    write( fd, buf, 2 );
-
-    if ( len > 0 ) {
-        // write payload
-        write( fd, payload, len );
-    }
-    
-    // check sum (2 bytes)
-    Aura3_cksum( packet_id, len, payload, len, &cksum0, &cksum1 );
-    buf[0] = cksum0; buf[1] = cksum1; buf[2] = 0;
-    write( fd, buf, 2 );
-
-    return true;
-}
-
-static int Aura3_read();        // forward declaration
-
-static bool wait_for_ack(uint8_t id) {
-    double timeout = 0.5;
-    double start_time = get_Time();
-    last_ack_id = 0;
-    while ( (last_ack_id != id) ) {
-	Aura3_read();
-	if ( get_Time() > start_time + timeout ) {
-	    if ( display_on ) {
-		printf("Timeout waiting for ack...\n");
-	    }
-	    return false;
-	}
-    }
-    return true;
-}
-
-
-static bool write_config_master() {
-    write_packet( config_master.id, config_master.pack(), config_master.len );
-    return wait_for_ack(config_master.id);
-}
-
-static bool write_config_imu() {
-    write_packet( config_imu.id, config_imu.pack(), config_imu.len );
-    return wait_for_ack(config_imu.id);
-}
-
-static bool write_config_actuators() {
-    write_packet( config_actuators.id, config_actuators.pack(),
-                  config_actuators.len );
-    return wait_for_ack(config_actuators.id);
-}
-
-static bool write_config_airdata() {
-    write_packet( config_airdata.id, config_airdata.pack(),
-                  config_airdata.len );
-    return wait_for_ack(config_airdata.id);
-}
-
-static bool write_config_led() {
-    write_packet( config_led.id, config_led.pack(), config_led.len );
-    return wait_for_ack(config_led.id);
-}
-
-static bool write_config_power() {
-    write_packet( config_power.id, config_power.pack(),
-                  config_power.len );
-    return wait_for_ack(config_power.id);
-}
-
-static bool write_command_zero_gyros() {
-    message_command_zero_gyros_t cmd;
-    write_packet( cmd.id, cmd.pack(), cmd.len );
-    return wait_for_ack(cmd.id);
-}
-
-static bool write_command_cycle_inceptors() {
-    message_command_cycle_inceptors_t cmd;
-    write_packet( cmd.id, cmd.pack(), cmd.len );
-    return wait_for_ack(cmd.id);
-}
-
-// initialize imu output property nodes 
-static void bind_imu_output( string output_node ) {
-    if ( imu_inited ) {
-	return;
-    }
-    imu_node = pyGetNode(output_node, true);
-    imu_inited = true;
-}
-
-
-// initialize gps output property nodes 
-static void bind_gps_output( string output_path ) {
-    if ( gps_inited ) {
-	return;
-    }
-    gps_node = pyGetNode(output_path, true);
-    gps_inited = true;
-}
-
-
-// initialize actuator property nodes 
-static void bind_act_nodes() {
-    if ( actuator_inited ) {
-	return;
-    }
-    act_node = pyGetNode("/actuators", true);
-    actuator_inited = true;
-}
-
-// initialize airdata output property nodes 
-static void bind_airdata_output( string output_path ) {
-    if ( airdata_inited ) {
-	return;
-    }
-    airdata_node = pyGetNode(output_path, true);
-    airdata_inited = true;
-}
-
-
-// initialize pilot output property nodes 
-static void bind_pilot_controls( string output_path ) {
-    if ( pilot_input_inited ) {
-	return;
-    }
-    pilot_node = pyGetNode(output_path, true);
-    pilot_node.setLen("channel", SBUS_CHANNELS, 0.0);
-    pilot_input_inited = true;
-}
-
-
-// send our configured init strings to configure gpsd the way we prefer
-static bool Aura3_open_device( int baud_bits ) {
-    if ( display_on ) {
-	printf("Aura3 Sensor Head on %s @ %d(code) baud\n", device_name.c_str(),
-	       baud_bits);
-    }
-
-    // fd = open( device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
-    fd = open( device_name.c_str(), O_RDWR | O_NOCTTY );
-    if ( fd < 0 ) {
-        fprintf( stderr, "open serial: unable to open %s - %s\n",
-                 device_name.c_str(), strerror(errno) );
-	return false;
-    }
-
-    struct termios config;	// Old Serial Port Settings
-
-    memset(&config, 0, sizeof(config));
-
-    // Save Current Serial Port Settings
-    // tcgetattr(fd,&oldTio); 
-
-    // Configure New Serial Port Settings
-    config.c_cflag     = baud_bits | // bps rate
-                         CS8	 | // 8n1
-                         CLOCAL	 | // local connection, no modem
-                         CREAD;	   // enable receiving chars
-    config.c_iflag     = IGNPAR;   // ignore parity bits
-    config.c_oflag     = 0;
-    config.c_lflag     = 0;
-    config.c_cc[VTIME] = 0;
-    config.c_cc[VMIN]  = 1;	   // block 'read' from returning until at
-                                   // least 1 character is received
-
-    // Flush Serial Port I/O buffer
-    tcflush(fd, TCIOFLUSH);
-
-    // Set New Serial Port Settings
-    int ret = tcsetattr( fd, TCSANOW, &config );
-    if ( ret > 0 ) {
-        fprintf( stderr, "error configuring device: %s - %s\n",
-                 device_name.c_str(), strerror(errno) );
-	return false;
-    }
-
-    // Enable non-blocking IO (one more time for good measure)
-    // fcntl(fd, F_SETFL, O_NONBLOCK);
-
-    // bind main property nodes here for lack of a better place..
-    aura3_node = pyGetNode("/sensors/Aura3", true);
-    power_node = pyGetNode("/sensors/power", true);
-    //analog_node = pyGetNode("/sensors/Aura3/raw_analog", true);
-    //analog_node.setLen("channel", NUM_ANALOG_INPUTS, 0.0);
-    
-    return true;
-}
-
-
-// send our configured init strings to configure gpsd the way we prefer
-static bool Aura3_open() {
-    if ( master_opened ) {
-	return true;
-    }
-
-    aura3_config = pyGetNode("/config/sensors/Aura3", true);
-    config_specs_node = pyGetNode("/config/specs", true);
-
-    //for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
-    //  analog_filt[i].set_time_factor(0.5);
-    //}
-    
-    if ( aura3_config.hasChild("device") ) {
-	device_name = aura3_config.getString("device");
-    }
-    if ( aura3_config.hasChild("baud") ) {
-       baud = aura3_config.getLong("baud");
-    }
-    if ( aura3_config.hasChild("volt_divider_ratio") ) {
-	volt_div_ratio = aura3_config.getDouble("volt_divider_ratio");
-    }
-
-    if ( aura3_config.hasChild("pitot_calibrate_factor") ) {
-	pitot_calibrate = aura3_config.getDouble("pitot_calibrate_factor");
-    }
-    
-    if ( config_specs_node.hasChild("battery_cells") ) {
-	battery_cells = config_specs_node.getLong("battery_cells");
-    }
-    if ( battery_cells < 1 ) { battery_cells = 1; }
-
-    int baud_bits = B500000;
-    if ( baud == 115200 ) {
-	baud_bits = B115200;
-    } else if ( baud == 500000 ) {
-	baud_bits = B500000;
-     } else {
-	printf("unsupported baud rate = %d\n", baud);
-    }
-
-    if ( ! Aura3_open_device( baud_bits ) ) {
-	printf("device open failed ...\n");
-	return false;
-    }
-
-    sleep(1);
-    
-    master_opened = true;
-
-    return true;
-}
-
-
-#if 0
-bool Aura3_init( SGPropertyNode *config ) {
-    printf("Aura3_init()\n");
-
-    bind_input( config );
-
-    bool result = Aura3_open();
-
-    return result;
-}
-#endif
-
-
-bool Aura3_imu_init( string output_path, pyPropertyNode *config ) {
-    if ( ! Aura3_open() ) {
-	return false;
-    }
-
-    bind_imu_output( output_path );
-
-    if ( config->hasChild("calibration") ) {
-	pyPropertyNode cal = config->getChild("calibration");
-	double min_temp = 27.0;
-	double max_temp = 27.0;
-	if ( cal.hasChild("min_temp_C") ) {
-	    min_temp = cal.getDouble("min_temp_C");
-	}
-	if ( cal.hasChild("max_temp_C") ) {
-	    max_temp = cal.getDouble("max_temp_C");
-	}
-	
-	//p_cal.init( cal->getChild("p"), min_temp, max_temp );
-	//q_cal.init( cal->getChild("q"), min_temp, max_temp );
-	//r_cal.init( cal->getChild("r"), min_temp, max_temp );
-	pyPropertyNode ax_node = cal.getChild("ax");
-	ax_cal.init( &ax_node, min_temp, max_temp );
-	pyPropertyNode ay_node = cal.getChild("ay");
-	ay_cal.init( &ay_node, min_temp, max_temp );
-	pyPropertyNode az_node = cal.getChild("az");
-	az_cal.init( &az_node, min_temp, max_temp );
-
-	if ( cal.hasChild("mag_affine") ) {
-	    string tokens_str = cal.getString("mag_affine");
-	    vector<string> tokens = split(tokens_str);
-	    if ( tokens.size() == 16 ) {
-		int r = 0, c = 0;
-		for ( unsigned int i = 0; i < 16; i++ ) {
-		    mag_cal(r,c) = atof(tokens[i].c_str());
-		    c++;
-		    if ( c > 3 ) {
-			c = 0;
-			r++;
-		    }
-		}
-	    } else {
-		printf("ERROR: wrong number of elements for mag_cal affine matrix!\n");
-		mag_cal.setIdentity();
-	    }
-	} else {
-	    mag_cal.setIdentity();
-	}
-	
-	// save the imu calibration parameters with the data file so that
-	// later the original raw sensor values can be derived.
-        write_imu_calibration( &cal );
-    }
-    
-    return true;
-}
-
-
-bool Aura3_gps_init( string output_path, pyPropertyNode *config ) {
-    if ( ! Aura3_open() ) {
-	return false;
-    }
-
-    bind_gps_output( output_path );
-
-    return true;
-}
-
-
-bool Aura3_airdata_init( string output_path ) {
-    if ( ! Aura3_open() ) {
-	return false;
-    }
-
-    bind_airdata_output( output_path );
-
-    return true;
-}
-
-
-bool Aura3_pilot_init( string output_path, pyPropertyNode *config ) {
-    if ( ! Aura3_open() ) {
-	return false;
-    }
-
-    bind_pilot_controls( output_path );
-
-    if ( config->hasChild("channel") ) {
-	for ( int i = 0; i < SBUS_CHANNELS; i++ ) {
-	    pilot_mapping[i] = config->getString("channel", i);
-	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
-	}
-    }
-
-    return true;
-}
-
-
-bool Aura3_act_init( pyPropertyNode *section ) {
-    if ( ! Aura3_open() ) {
-	return false;
-    }
-
-    bind_act_nodes();
-
-    return true;
-}
 
 
 static bool Aura3_imu_update_internal() {
@@ -621,6 +209,7 @@ static bool Aura3_imu_update_internal() {
 
     return true;
 }
+
 
 static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
                          uint8_t *payload )
@@ -808,128 +397,305 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 }
 
 
-static int Aura3_read() {
-    static int state = 0;
-    static int pkt_id = 0;
-    static int pkt_len = 0;
-    static int counter = 0;
-    static uint8_t cksum_A = 0, cksum_B = 0, cksum_lo = 0, cksum_hi = 0;
-    int len;
-    uint8_t input[500];
-    static uint8_t payload[500];
-    int giveup_counter = 0;
-
-    // if ( display_on ) {
-    //    printf("read Aura3, entry state = %d\n", state);
-    // }
-
-    bool new_data = false;
-
-    if ( state == 0 ) {
-	counter = 0;
-	cksum_A = cksum_B = 0;
-	len = read( fd, input, 1 );
-	giveup_counter = 0;
-	while ( len > 0 && input[0] != START_OF_MSG0 && giveup_counter < 100 ) {
-	    // printf("state0: len = %d val = %2X (%c)\n", len, input[0] , input[0]);
-	    len = read( fd, input, 1 );
-	    giveup_counter++;
-	    // fprintf( stderr, "giveup_counter = %d\n", giveup_counter);
-	}
-	if ( len > 0 && input[0] == START_OF_MSG0 ) {
-	    // fprintf( stderr, "read START_OF_MSG0\n");
-	    state++;
-	}
-    }
-    if ( state == 1 ) {
-	len = read( fd, input, 1 );
-	if ( len > 0 ) {
-	    if ( input[0] == START_OF_MSG1 ) {
-		//fprintf( stderr, "read START_OF_MSG1\n");
-		state++;
-	    } else if ( input[0] == START_OF_MSG0 ) {
-		//fprintf( stderr, "read START_OF_MSG0\n");
-	    } else {
-                parse_errors++;
-		state = 0;
+static bool wait_for_ack(uint8_t id) {
+    double timeout = 0.5;
+    double start_time = get_Time();
+    last_ack_id = 0;
+    while ( (last_ack_id != id) ) {
+	if ( serial.update() ) {
+            Aura3_parse( serial.pkt_id, serial.pkt_len, serial.payload );
+        }
+	if ( get_Time() > start_time + timeout ) {
+	    if ( display_on ) {
+		printf("Timeout waiting for ack...\n");
 	    }
+	    return false;
 	}
     }
-    if ( state == 2 ) {
-	len = read( fd, input, 1 );
-	if ( len > 0 ) {
-	    pkt_id = input[0];
-	    cksum_A += input[0];
-	    cksum_B += cksum_A;
-	    //fprintf( stderr, "pkt_id = %d\n", pkt_id );
-	    state++;
-	}
-    }
-    if ( state == 3 ) {
-	len = read( fd, input, 1 );
-	if ( len > 0 ) {
-	    pkt_len = input[0];
-	    if ( pkt_len < 256 ) {
-		//fprintf( stderr, "pkt_len = %d\n", pkt_len );
-		cksum_A += input[0];
-		cksum_B += cksum_A;
-		state++;
-	    } else {
-                parse_errors++;
-		state = 0;
-	    }
-	}
-    }
-    if ( state == 4 ) {
-	len = read( fd, input, 1 );
-	while ( len > 0 ) {
-	    payload[counter++] = input[0];
-	    // fprintf( stderr, "%02X ", input[0] );
-	    cksum_A += input[0];
-	    cksum_B += cksum_A;
-	    if ( counter >= pkt_len ) {
-		break;
-	    }
-	    len = read( fd, input, 1 );
-	}
+    return true;
+}
 
-	if ( counter >= pkt_len ) {
-	    state++;
-	    // fprintf( stderr, "\n" );
-	}
+
+static bool write_config_master() {
+    serial.write_packet( config_master.id, config_master.pack(), config_master.len );
+    return wait_for_ack(config_master.id);
+}
+
+static bool write_config_imu() {
+    serial.write_packet( config_imu.id, config_imu.pack(), config_imu.len );
+    return wait_for_ack(config_imu.id);
+}
+
+static bool write_config_actuators() {
+    serial.write_packet( config_actuators.id, config_actuators.pack(),
+                  config_actuators.len );
+    return wait_for_ack(config_actuators.id);
+}
+
+static bool write_config_airdata() {
+    serial.write_packet( config_airdata.id, config_airdata.pack(),
+                  config_airdata.len );
+    return wait_for_ack(config_airdata.id);
+}
+
+static bool write_config_led() {
+    serial.write_packet( config_led.id, config_led.pack(), config_led.len );
+    return wait_for_ack(config_led.id);
+}
+
+static bool write_config_power() {
+    serial.write_packet( config_power.id, config_power.pack(),
+                  config_power.len );
+    return wait_for_ack(config_power.id);
+}
+
+static bool write_command_zero_gyros() {
+    message_command_zero_gyros_t cmd;
+    serial.write_packet( cmd.id, cmd.pack(), cmd.len );
+    return wait_for_ack(cmd.id);
+}
+
+static bool write_command_cycle_inceptors() {
+    message_command_cycle_inceptors_t cmd;
+    serial.write_packet( cmd.id, cmd.pack(), cmd.len );
+    return wait_for_ack(cmd.id);
+}
+
+// initialize imu output property nodes 
+static void bind_imu_output( string output_node ) {
+    if ( imu_inited ) {
+	return;
     }
-    if ( state == 5 ) {
-	len = read( fd, input, 1 );
-	if ( len > 0 ) {
-	    cksum_lo = input[0];
-	    state++;
-	}
+    imu_node = pyGetNode(output_node, true);
+    imu_inited = true;
+}
+
+
+// initialize gps output property nodes 
+static void bind_gps_output( string output_path ) {
+    if ( gps_inited ) {
+	return;
     }
-    if ( state == 6 ) {
-	len = read( fd, input, 1 );
-	if ( len > 0 ) {
-	    cksum_hi = input[0];
-	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
-		// printf( "checksum passes (%d)\n", pkt_id );
-		new_data = Aura3_parse( pkt_id, pkt_len, payload );
-	    } else {
-                parse_errors++;
-		if ( display_on ) {
-		    // printf("checksum failed %d %d (computed) != %d %d (message)\n",
-		    //        cksum_A, cksum_B, cksum_lo, cksum_hi );
+    gps_node = pyGetNode(output_path, true);
+    gps_inited = true;
+}
+
+
+// initialize actuator property nodes 
+static void bind_act_nodes() {
+    if ( actuator_inited ) {
+	return;
+    }
+    act_node = pyGetNode("/actuators", true);
+    actuator_inited = true;
+}
+
+// initialize airdata output property nodes 
+static void bind_airdata_output( string output_path ) {
+    if ( airdata_inited ) {
+	return;
+    }
+    airdata_node = pyGetNode(output_path, true);
+    airdata_inited = true;
+}
+
+
+// initialize pilot output property nodes 
+static void bind_pilot_controls( string output_path ) {
+    if ( pilot_input_inited ) {
+	return;
+    }
+    pilot_node = pyGetNode(output_path, true);
+    pilot_node.setLen("channel", SBUS_CHANNELS, 0.0);
+    pilot_input_inited = true;
+}
+
+
+// send our configured init strings to configure gpsd the way we prefer
+static bool Aura3_open_device( int baud ) {
+    if ( display_on ) {
+	printf("Aura3 Sensor Head on %s @ %d baud\n", device_name.c_str(),
+	       baud);
+    }
+
+    bool result = serial.open( baud, device_name.c_str() );
+    if ( !result ) {
+        fprintf( stderr, "Error opening serial link to Aura3 device, cannot continue.\n" );
+	return false;
+    }
+
+    // bind main property nodes here for lack of a better place..
+    aura3_node = pyGetNode("/sensors/Aura3", true);
+    power_node = pyGetNode("/sensors/power", true);
+    
+    return true;
+}
+
+
+// send our configured init strings to configure gpsd the way we prefer
+static bool Aura3_open() {
+    if ( master_opened ) {
+	return true;
+    }
+
+    aura3_config = pyGetNode("/config/sensors/Aura3", true);
+    config_specs_node = pyGetNode("/config/specs", true);
+
+    //for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
+    //  analog_filt[i].set_time_factor(0.5);
+    //}
+    
+    if ( aura3_config.hasChild("device") ) {
+	device_name = aura3_config.getString("device");
+    }
+    if ( aura3_config.hasChild("baud") ) {
+       baud = aura3_config.getLong("baud");
+    }
+    if ( aura3_config.hasChild("volt_divider_ratio") ) {
+	volt_div_ratio = aura3_config.getDouble("volt_divider_ratio");
+    }
+
+    if ( aura3_config.hasChild("pitot_calibrate_factor") ) {
+	pitot_calibrate = aura3_config.getDouble("pitot_calibrate_factor");
+    }
+    
+    if ( config_specs_node.hasChild("battery_cells") ) {
+	battery_cells = config_specs_node.getLong("battery_cells");
+    }
+    if ( battery_cells < 1 ) { battery_cells = 1; }
+
+    if ( ! Aura3_open_device( baud ) ) {
+	printf("device open failed ...\n");
+	return false;
+    }
+
+    sleep(1);
+    
+    master_opened = true;
+
+    return true;
+}
+
+
+#if 0
+bool Aura3_init( SGPropertyNode *config ) {
+    printf("Aura3_init()\n");
+
+    bind_input( config );
+
+    bool result = Aura3_open();
+
+    return result;
+}
+#endif
+
+
+bool Aura3_imu_init( string output_path, pyPropertyNode *config ) {
+    if ( ! Aura3_open() ) {
+	return false;
+    }
+
+    bind_imu_output( output_path );
+
+    if ( config->hasChild("calibration") ) {
+	pyPropertyNode cal = config->getChild("calibration");
+	double min_temp = 27.0;
+	double max_temp = 27.0;
+	if ( cal.hasChild("min_temp_C") ) {
+	    min_temp = cal.getDouble("min_temp_C");
+	}
+	if ( cal.hasChild("max_temp_C") ) {
+	    max_temp = cal.getDouble("max_temp_C");
+	}
+	
+	//p_cal.init( cal->getChild("p"), min_temp, max_temp );
+	//q_cal.init( cal->getChild("q"), min_temp, max_temp );
+	//r_cal.init( cal->getChild("r"), min_temp, max_temp );
+	pyPropertyNode ax_node = cal.getChild("ax");
+	ax_cal.init( &ax_node, min_temp, max_temp );
+	pyPropertyNode ay_node = cal.getChild("ay");
+	ay_cal.init( &ay_node, min_temp, max_temp );
+	pyPropertyNode az_node = cal.getChild("az");
+	az_cal.init( &az_node, min_temp, max_temp );
+
+	if ( cal.hasChild("mag_affine") ) {
+	    string tokens_str = cal.getString("mag_affine");
+	    vector<string> tokens = split(tokens_str);
+	    if ( tokens.size() == 16 ) {
+		int r = 0, c = 0;
+		for ( unsigned int i = 0; i < 16; i++ ) {
+		    mag_cal(r,c) = atof(tokens[i].c_str());
+		    c++;
+		    if ( c > 3 ) {
+			c = 0;
+			r++;
+		    }
 		}
+	    } else {
+		printf("ERROR: wrong number of elements for mag_cal affine matrix!\n");
+		mag_cal.setIdentity();
 	    }
-	    // This Is the end of a record, reset state to 0 to start
-	    // looking for next record
-	    state = 0;
+	} else {
+	    mag_cal.setIdentity();
+	}
+	
+	// save the imu calibration parameters with the data file so that
+	// later the original raw sensor values can be derived.
+        write_imu_calibration( &cal );
+    }
+    
+    return true;
+}
+
+
+bool Aura3_gps_init( string output_path, pyPropertyNode *config ) {
+    if ( ! Aura3_open() ) {
+	return false;
+    }
+
+    bind_gps_output( output_path );
+
+    return true;
+}
+
+
+bool Aura3_airdata_init( string output_path ) {
+    if ( ! Aura3_open() ) {
+	return false;
+    }
+
+    bind_airdata_output( output_path );
+
+    return true;
+}
+
+
+bool Aura3_pilot_init( string output_path, pyPropertyNode *config ) {
+    if ( ! Aura3_open() ) {
+	return false;
+    }
+
+    bind_pilot_controls( output_path );
+
+    if ( config->hasChild("channel") ) {
+	for ( int i = 0; i < SBUS_CHANNELS; i++ ) {
+	    pilot_mapping[i] = config->getString("channel", i);
+	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
 	}
     }
 
-    if ( new_data ) {
-	return pkt_id;
-    } else {
-	return 0;
+    return true;
+}
+
+
+bool Aura3_act_init( pyPropertyNode *section ) {
+    if ( ! Aura3_open() ) {
+	return false;
     }
+
+    bind_act_nodes();
+
+    return true;
 }
 
 
@@ -1291,7 +1057,7 @@ static bool Aura3_act_write() {
 	act.channel[3] = act_node.getDouble("rudder");
 	act.channel[4] = act_node.getDouble("flaps");
 	act.channel[5] = act_node.getDouble("gear");
-        write_packet( act.id, act.pack(), act.len );
+        serial.write_packet( act.id, act.pack(), act.len );
         return true;
     } else {
         return false;
@@ -1310,17 +1076,17 @@ double Aura3_update() {
     // the main loop.
     double last_time = imu_node.getDouble( "timestamp" );
 
-    int bytes_available = 0;
     while ( true ) {
-        int pkt_id = Aura3_read();
-        if ( pkt_id == message_imu_raw_id ) {
-            ioctl(fd, FIONREAD, &bytes_available);
-	    if ( bytes_available < 256 ) {
-                // a smaller value here means more skipping ahead and
-                // less catching up.
-		break;
-            } else {
-                skipped_frames++;
+        if ( serial.update() ) {
+            Aura3_parse( serial.pkt_id, serial.pkt_len, serial.payload );
+            if ( serial.pkt_id == message_imu_raw_id ) {
+                if ( serial.bytes_available() < 256 ) {
+                    // a smaller value here means more skipping ahead and
+                    // less catching up.
+                    break;
+                } else {
+                    skipped_frames++;
+                }
             }
         }
     }
@@ -1558,7 +1324,7 @@ bool Aura3_act_update() {
 
 
 void Aura3_close() {
-    close(fd);
+    serial.close();
 
     master_opened = false;
 }
