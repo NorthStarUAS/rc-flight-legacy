@@ -99,7 +99,6 @@ bool SerialLink::update() {
 
     if ( state == 0 ) {
         counter = 0;
-        cksum_A = cksum_B = 0;
         len = read( fd, input, 1 );
         giveup_counter = 0;
         while ( len > 0 && input[0] != START_OF_MSG0 && giveup_counter < 100 ) {
@@ -131,8 +130,6 @@ bool SerialLink::update() {
         len = read( fd, input, 1 );
         if ( len > 0 ) {
             pkt_id = input[0];
-            cksum_A += input[0];
-            cksum_B += cksum_A;
             //fprintf( stderr, "pkt_id = %d\n", pkt_id );
             state++;
         }
@@ -143,8 +140,6 @@ bool SerialLink::update() {
             pkt_len = input[0];
             if ( pkt_len < 256 ) {
                 //fprintf( stderr, "pkt_len = %d\n", pkt_len );
-                cksum_A += input[0];
-                cksum_B += cksum_A;
                 state++;
             } else {
                 parse_errors++;
@@ -157,8 +152,6 @@ bool SerialLink::update() {
         while ( len > 0 ) {
             payload[counter++] = input[0];
             // fprintf( stderr, "%02X ", input[0] );
-            cksum_A += input[0];
-            cksum_B += cksum_A;
             if ( counter >= pkt_len ) {
                 break;
             }
@@ -183,10 +176,7 @@ bool SerialLink::update() {
             cksum_hi = input[0];
             uint8_t cksum0, cksum1;
             checksum( pkt_id, pkt_len, payload, pkt_len, &cksum0, &cksum1 );
-            printf("%02X %02X %02X - %02X %02X %02X\n",
-                   cksum_A, cksum_lo, cksum0,
-                   cksum_B, cksum_hi, cksum1);
-            if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
+            if ( cksum0 == cksum_lo && cksum1 == cksum_hi ) {
                 // printf( "checksum passes (%d)\n", pkt_id );
                 new_data = true;
             } else {
