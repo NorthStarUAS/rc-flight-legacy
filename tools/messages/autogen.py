@@ -31,7 +31,9 @@ type_code = { "double": 'd', "float": 'f',
               "bool": 'B'
 }
 
-reserved_fields = [ 'id', 'len', '_buf', '_i', '_pack_string' ]
+reserved_names = [ 'id', 'len', '_buf', '_i', '_pack_string' ]
+for name in type_code:
+    reserved_names.append(name)
 
 basename, ext = os.path.splitext(args.input)
 
@@ -82,8 +84,8 @@ def gen_cpp_header():
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
             name = f.getString("name")
-            if name in reserved_fields:
-                print("Error: %s is a reserved field name." % name)
+            if name in reserved_names:
+                print("Error: '%s' is reserved and cannot be used as a field name." % name)
                 print("Aborting.")
                 quit()
 
@@ -210,8 +212,8 @@ def gen_python_module():
                 pack_string += pack_code * index
             else:
                 pack_string += pack_code
-            if name in reserved_fields:
-                print("Error: %s is a reserved field name." % name)
+            if name in reserved_names:
+                print("Error: '%s' is reserved and cannot be used as a field name." % name)
                 print("Aborting.")
                 quit()
 
