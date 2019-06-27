@@ -25,7 +25,7 @@ int SerialLink::encode_baud( int baud ) {
     }
 }
 
-void SerialLink::cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
+void SerialLink::checksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 )
 {
     uint8_t c0 = 0;
     uint8_t c1 = 0;
@@ -181,6 +181,11 @@ bool SerialLink::update() {
         len = read( fd, input, 1 );
         if ( len > 0 ) {
             cksum_hi = input[0];
+            uint8_t cksum0, cksum1;
+            checksum( pkt_id, pkt_len, payload, pkt_len, &cksum0, &cksum1 );
+            printf("%02X %02X %02X - %02X %02X %02X\n",
+                   cksum_A, cksum_lo, cksum0,
+                   cksum_B, cksum_hi, cksum1);
             if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
                 // printf( "checksum passes (%d)\n", pkt_id );
                 new_data = true;
@@ -230,7 +235,7 @@ bool SerialLink::write_packet(uint8_t packet_id, uint8_t *payload, uint8_t len) 
     }
     
     // check sum (2 bytes)
-    cksum( packet_id, len, payload, len, &cksum0, &cksum1 );
+    checksum( packet_id, len, payload, len, &cksum0, &cksum1 );
     buf[0] = cksum0;
     write( fd, buf, 1 );
     buf[0] = cksum1;

@@ -19,7 +19,7 @@ private:
     static const uint8_t START_OF_MSG1 = 224;
 
     int encode_baud( int baud );
-    void cksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 );
+    void checksum( uint8_t hdr1, uint8_t hdr2, uint8_t *buf, uint8_t size, uint8_t *cksum0, uint8_t *cksum1 );
 
 public:
 
