@@ -21,6 +21,7 @@ using std::ostringstream;
 using std::string;
 using std::vector;
 
+#include "comms/aura_messages.h"
 #include "comms/logging.hxx"
 #include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
@@ -57,7 +58,9 @@ static pyPropertyNode pos_pressure_node;
 static pyPropertyNode pos_combined_node;
 static pyPropertyNode vel_node;
 static pyPropertyNode task_node;
+static pyPropertyNode wind_node;
 static vector<pyPropertyNode> sections;
+static vector<pyPropertyNode> outputs;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
@@ -81,7 +84,8 @@ void AirData_init() {
     pos_combined_node = pyGetNode("/position/combined", true);
     vel_node = pyGetNode("/velocity", true);
     task_node = pyGetNode("/task", true);
-
+    wind_node = pyGetNode("/filters/wind", true);
+    
     pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
     pyPropertyNode logging_node = pyGetNode("/config/logging", true);
     remote_link_skip = remote_link_node.getDouble("airdata_skip");
@@ -101,6 +105,8 @@ void AirData_init() {
 	}
 	ostringstream output_path;
 	output_path << "/sensors/airdata" << '[' << i << ']';
+        pyPropertyNode output_node = pyGetNode(output_path.str(), true);
+        outputs.push_back(output_node);
 	printf("airdata: %d = %s (%s)\n", i, source.c_str(), output_path.str().c_str());
 	if ( source == "null" ) {
 	    // do nothing
@@ -338,13 +344,25 @@ bool AirData_update() {
 	    }
 	
 	    if ( send_remote_link || send_logging ) {
-		uint8_t buf[256];
-                int size = packer->pack_airdata( i, buf );
+                message_airdata_v7_t air;
+                air.index = i;
+                air.timestamp_sec = outputs[i].getDouble("timestamp");
+                air.pressure_mbar = outputs[i].getDouble("pressure_mbar");
+                air.temp_C = outputs[i].getDouble("temp_C");
+                air.airspeed_smoothed_kt = vel_node.getDouble("airspeed_smoothed_kt");
+                air.altitude_smoothed_m = pos_pressure_node.getDouble("altitude_smoothed_m");
+                air.altitude_true_m = pos_combined_node.getDouble("altitude_true_m");
+                air.pressure_vertical_speed_fps = vel_node.getDouble("pressure_vertical_speed_fps");
+                air.wind_dir_deg = wind_node.getDouble("wind_dir_deg");
+                air.wind_speed_kt = wind_node.getDouble("wind_speed_kt");
+                air.pitot_scale_factor = wind_node.getDouble("pitot_scale_factor");
+                air.error_count = outputs[i].getLong("error_count");
+                air.status = outputs[i].getLong("status");
                 if ( send_remote_link ) {
-                    remote_link->send_message( buf, size );
+                    remote_link->send_message( air.id, air.pack(), air.len );
                 }
                 if ( send_logging ) {
-                    logging->log_message( buf, size );
+                    logging->log_message( air.id, air.pack(), air.len );
                 }
 	    }
 	}
