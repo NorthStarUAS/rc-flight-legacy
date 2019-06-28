@@ -80,7 +80,7 @@ static void bind_properties() {
     targets_node = pyGetNode( "/autopilot/targets", true );
     tecs_node = pyGetNode( "/autopilot/tecs", true );
     task_node = pyGetNode( "/task", true );
-    remote_link_node = pyGetNode( "/config/remote_link", true );
+    remote_link_node = pyGetNode( "/comms/remote_link", true );
     logging_node = pyGetNode( "/config/logging", true );
     comms_node = pyGetNode( "/comms/remote_link", true);
     pilot_node = pyGetNode("/sensors/pilot_input", true);
