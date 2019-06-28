@@ -1143,6 +1143,8 @@ bool Aura3_gps_update() {
 	gps_node.setDouble( "latitude_deg", nav_pvt.lat / 10000000.0 );
 	gps_node.setDouble( "longitude_deg", nav_pvt.lon / 10000000.0 );
 	gps_node.setDouble( "altitude_m", nav_pvt.hMSL / 1000.0 );
+	gps_node.setDouble( "horiz_accuracy_m", nav_pvt.hAcc / 1000.0 );
+	gps_node.setDouble( "vert_accuracy_m", nav_pvt.vAcc / 1000.0 );
 	gps_node.setDouble( "vn_ms", nav_pvt.velN / 1000.0 );
 	gps_node.setDouble( "ve_ms", nav_pvt.velE / 1000.0 );
 	gps_node.setDouble( "vd_ms", nav_pvt.velD / 1000.0 );
