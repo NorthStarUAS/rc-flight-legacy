@@ -223,21 +223,12 @@ void control_update(double dt)
         ap.flight_timer = task_node.getDouble("flight_timer");
         ap.target_waypoint_idx = route_node.getLong("target_waypoint_idx");
 
-        // FIXME: handle the counter dance between the control module
-        // and the packer.  This allows us to trickle down routes to
-        // the ground station, but we don't want onboard logging to
-        // affect the counter state.
-        int counter = remote_link_node.getLong("wp_counter");
-        ap.route_size = active_node.getLong("route_size");
-        if ( counter >= ap.route_size + 2 ) {
-            counter = 0;
-            remote_link_node.setLong("wp_counter", 0);
-        }
-
         double wp_lon = 0.0;
         double wp_lat = 0.0;
         int wp_index = 0;
         uint16_t task_attr = 0;
+        int counter = remote_link_node.getLong("wp_counter");
+        ap.route_size = active_node.getLong("route_size");
         if ( ap.route_size > 0 and counter < ap.route_size ) {
             wp_index = counter;
             ostringstream wp_path;
@@ -278,11 +269,14 @@ void control_update(double dt)
         ap.pack();
 	if ( send_remote_link ) {
 	    remote_link->send_message( ap.id, ap.payload, ap.len );
-	    // do the counter dance with the packer (packer will reset
-	    // the count to zero at the appropriate time.)
-	    int counter = remote_link_node.getLong("wp_counter");
+            
+	    // do the counter increment here (only when sending a
+	    // telemetry packet)
 	    counter++;
-	    remote_link_node.setLong("wp_counter", counter);
+            if ( counter >= ap.route_size + 2 ) {
+                counter = 0;
+            }
+            remote_link_node.setLong("wp_counter", counter);
 	}
 
 	if ( send_logging ) {
