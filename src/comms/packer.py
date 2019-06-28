@@ -852,7 +852,7 @@ def pack_ap_status_bin(index):
 
     ap = aura_messages.ap_status_v7()
     ap.index = index
-    ap.frame_time = status_node.getFloat('frame_time')
+    ap.timestamp_sec = status_node.getFloat('frame_time')
     ap.flags = flags
     ap.groundtrack_deg = targets_node.getFloat("groundtrack_deg")
     ap.roll_deg = targets_node.getFloat("roll_deg")

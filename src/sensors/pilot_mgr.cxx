@@ -146,6 +146,7 @@ bool PilotInput_update() {
                 pilot.channel[6] = outputs[i].getDouble("channel", 6);
                 pilot.channel[7] = outputs[i].getDouble("channel", 7);
                 pilot.status = 0;
+                pilot.pack();
 		if ( send_remote_link ) {
 		    remote_link->send_message( pilot.id, pilot.payload, pilot.len );
 		}
