@@ -22,6 +22,7 @@ using std::ostringstream;
 using std::string;
 using std::vector;
 
+#include "comms/aura_messages.h"
 #include "comms/remote_link.hxx"
 #include "comms/logging.hxx"
 #include "control/control.hxx"
@@ -317,13 +318,24 @@ bool Actuator_update() {
 	    }
 	
 	    if ( send_remote_link || send_logging ) {
-		uint8_t buf[256];
-		int size = packer->pack_actuator( i, buf );
+                message_actuator_v3_t act;
+                act.index = 0;  // always zero for now
+                act.timestamp_sec = act_node.getDouble("timestamp");
+                act.aileron = act_node.getDouble("aileron");
+                act.elevator = act_node.getDouble("elevator");
+                act.throttle = act_node.getDouble("throttle");
+                act.rudder = act_node.getDouble("rudder");
+                act.channel5 = act_node.getDouble("channel5");
+                act.flaps = act_node.getDouble("flaps");
+                act.channel7 = act_node.getDouble("channel7");
+                act.channel8 = act_node.getDouble("channel8");
+                act.status = 0;
+                act.pack();
 		if ( send_remote_link ) {
-		    remote_link->send_message( buf, size );
+		    remote_link->send_message( act.id, act.payload, act.len );
 		}
 		if ( send_logging ) {
-		    logging->log_message( buf, size );
+		    logging->log_message( act.id, act.payload, act.len );
 		}
 	    }
 	}
