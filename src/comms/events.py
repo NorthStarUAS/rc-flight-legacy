@@ -18,5 +18,5 @@ def log(header="", message=""):
     if comms_node.getBool('display_on'):
         print(event_string)
     buf = packer.pack_event_bin(event_string)
-    logging.log_message(buf)
+    logging.log_message_old(buf)
     return True

@@ -112,7 +112,7 @@ class serial_parser():
             input = ser.read(1)
             if len(input):
                 self.cksum_hi = input[0]
-                (cksum0, cksum1) = self.checksum( self.pkt_id, self.payload, self.pkt_len );
+                (cksum0, cksum1) = checksum( self.pkt_id, self.payload, self.pkt_len );
                 # print " cksum_hi:", self.cksum_hi
                 if cksum0 == self.cksum_lo and cksum1 == self.cksum_hi and self.pkt_len > 0:
                     #print "checksum passes:", self.pkt_id, "len:", self.pkt_len

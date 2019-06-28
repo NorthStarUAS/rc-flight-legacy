@@ -50,6 +50,7 @@ static double gps_last_time = -31557600.0; // default to t minus one year old
 
 static pyPropertyNode gps_node;
 static vector<pyPropertyNode> sections;
+static vector<pyPropertyNode> outputs;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
@@ -76,6 +77,8 @@ void GPS_init() {
 	}
 	ostringstream output_path;
 	output_path << "/sensors/gps" << '[' << i << ']';
+        pyPropertyNode output_node = pyGetNode(output_path.str(), true);
+        outputs.push_back(output_node);
 	printf("gps: %d = %s\n", i, source.c_str());
 	if ( source == "null" ) {
 	    // do nothing
@@ -183,19 +186,19 @@ bool GPS_update() {
                 // generate the message
                 message_gps_v4_t gps;
                 gps.index = i;
-                gps.timestamp_sec = sections[i].getDouble("timestamp");
-                gps.latitude_deg = sections[i].getDouble("latitude_deg");
-                gps.longitude_deg = sections[i].getDouble("longitude_deg");
-                gps.altitude_m = sections[i].getDouble("altitude_m");
-                gps.vn_ms = sections[i].getDouble("vn_ms");
-                gps.ve_ms = sections[i].getDouble("ve_ms");
-                gps.vd_ms = sections[i].getDouble("vd_ms");
-                gps.unixtime_sec = sections[i].getDouble("unix_time_sec");
-                gps.satellites = sections[i].getLong("satellites");
-                gps.horiz_accuracy_m = sections[i].getDouble("horiz_accuracy_m");
-                gps.vert_accuracy_m = sections[i].getDouble("vert_accuracy_m");
-                gps.pdop = sections[i].getDouble("pdop");
-                gps.fix_type = sections[i].getLong("fixType");
+                gps.timestamp_sec = outputs[i].getDouble("timestamp");
+                gps.latitude_deg = outputs[i].getDouble("latitude_deg");
+                gps.longitude_deg = outputs[i].getDouble("longitude_deg");
+                gps.altitude_m = outputs[i].getDouble("altitude_m");
+                gps.vn_ms = outputs[i].getDouble("vn_ms");
+                gps.ve_ms = outputs[i].getDouble("ve_ms");
+                gps.vd_ms = outputs[i].getDouble("vd_ms");
+                gps.unixtime_sec = outputs[i].getDouble("unix_time_sec");
+                gps.satellites = outputs[i].getLong("satellites");
+                gps.horiz_accuracy_m = outputs[i].getDouble("horiz_accuracy_m");
+                gps.vert_accuracy_m = outputs[i].getDouble("vert_accuracy_m");
+                gps.pdop = outputs[i].getDouble("pdop");
+                gps.fix_type = outputs[i].getLong("fixType");
 		if ( send_remote_link ) {
 		    remote_link->send_message( gps.id, gps.pack(), gps.len );
 		}
