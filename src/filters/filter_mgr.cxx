@@ -71,9 +71,9 @@ void Filter_init() {
     remote_link_node = pyGetNode("/comms/remote_link", true);
     status_node = pyGetNode("/status", true);
 
-    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
+    pyPropertyNode remote_link_config = pyGetNode("/config/remote_link", true);
     pyPropertyNode logging_node = pyGetNode("/config/logging", true);
-    remote_link_skip = remote_link_node.getLong("filter_skip");
+    remote_link_skip = remote_link_config.getLong("filter_skip");
     logging_skip = logging_node.getLong("filter_skip");
 
     // traverse configured modules

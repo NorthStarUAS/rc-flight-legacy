@@ -53,15 +53,14 @@ static pyModuleBase navigation;
 static AuraAutopilot ap;
 
 
-// property nodes
+// property nodess
 static pyPropertyNode status_node;
 static pyPropertyNode ap_node;
 static pyPropertyNode targets_node;
 static pyPropertyNode tecs_node;
 static pyPropertyNode task_node;
-static pyPropertyNode remote_link_node;
 static pyPropertyNode logging_node;
-static pyPropertyNode comms_node;
+static pyPropertyNode remote_link_node;
 static pyPropertyNode pilot_node;
 static pyPropertyNode flight_node;
 static pyPropertyNode engine_node;
@@ -82,7 +81,6 @@ static void bind_properties() {
     task_node = pyGetNode( "/task", true );
     remote_link_node = pyGetNode( "/comms/remote_link", true );
     logging_node = pyGetNode( "/config/logging", true );
-    comms_node = pyGetNode( "/comms/remote_link", true);
     pilot_node = pyGetNode("/sensors/pilot_input", true);
     flight_node = pyGetNode("/controls/flight", true);
     engine_node = pyGetNode("/controls/engine", true);
@@ -100,7 +98,8 @@ void control_init() {
 
     bind_properties();
 
-    remote_link_skip = remote_link_node.getDouble("autopilot_skip");
+    pyPropertyNode remote_link_config = pyGetNode( "/config/remote_link", true );
+    remote_link_skip = remote_link_config.getDouble("autopilot_skip");
     logging_skip = logging_node.getDouble("autopilot_skip");
 
     // initialize the navigation module
@@ -281,9 +280,9 @@ void control_update(double dt)
 	    remote_link->send_message( ap.id, ap.payload, ap.len );
 	    // do the counter dance with the packer (packer will reset
 	    // the count to zero at the appropriate time.)
-	    int counter = comms_node.getLong("wp_counter");
+	    int counter = remote_link_node.getLong("wp_counter");
 	    counter++;
-	    comms_node.setLong("wp_counter", counter);
+	    remote_link_node.setLong("wp_counter", counter);
 	}
 
 	if ( send_logging ) {
