@@ -188,7 +188,7 @@ def execute_command( command ):
         # print tokens[0], '=', value
         return_msg = 'get: %s,%s' % (tokens[1], value)
         buf = comms.packer.pack_event_bin(return_msg)
-        send_message(buf)
+        send_message_old(buf)
         comms.events.log('get', '%s,%s' % (tokens[1], value))
     elif tokens[0] == 'set' and len(tokens) >= 3:
         if tokens[1][0] == '/':
