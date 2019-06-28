@@ -358,11 +358,12 @@ bool AirData_update() {
                 air.pitot_scale_factor = wind_node.getDouble("pitot_scale_factor");
                 air.error_count = outputs[i].getLong("error_count");
                 air.status = outputs[i].getLong("status");
+                air.pack();
                 if ( send_remote_link ) {
-                    remote_link->send_message( air.id, air.pack(), air.len );
+                    remote_link->send_message( air.id, air.payload, air.len );
                 }
                 if ( send_logging ) {
-                    logging->log_message( air.id, air.pack(), air.len );
+                    logging->log_message( air.id, air.payload, air.len );
                 }
 	    }
 	}

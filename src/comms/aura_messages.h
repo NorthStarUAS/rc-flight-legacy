@@ -12,29 +12,29 @@ static inline uint32_t uintround(float f) {
 }
 
 // Message id constants
-const uint8_t message_id_gps_v2 = 16;
-const uint8_t message_id_gps_v3 = 26;
-const uint8_t message_id_gps_v4 = 34;
-const uint8_t message_id_imu_v3 = 17;
-const uint8_t message_id_imu_v4 = 35;
-const uint8_t message_id_airdata_v5 = 18;
-const uint8_t message_id_airdata_v6 = 40;
-const uint8_t message_id_airdata_v7 = 43;
-const uint8_t message_id_filter_v2 = 22;
-const uint8_t message_id_filter_v3 = 31;
-const uint8_t message_id_filter_v4 = 36;
-const uint8_t message_id_actuator_v2 = 21;
-const uint8_t message_id_actuator_v3 = 37;
-const uint8_t message_id_pilot_v2 = 20;
-const uint8_t message_id_pilot_v3 = 38;
-const uint8_t message_id_ap_status_v4 = 30;
-const uint8_t message_id_ap_status_v5 = 32;
-const uint8_t message_id_ap_status_v6 = 33;
-const uint8_t message_id_ap_status_v7 = 39;
-const uint8_t message_id_system_health_v4 = 19;
-const uint8_t message_id_system_health_v5 = 41;
-const uint8_t message_id_payload_v2 = 23;
-const uint8_t message_id_payload_v3 = 42;
+const uint8_t message_gps_v2_id = 16;
+const uint8_t message_gps_v3_id = 26;
+const uint8_t message_gps_v4_id = 34;
+const uint8_t message_imu_v3_id = 17;
+const uint8_t message_imu_v4_id = 35;
+const uint8_t message_airdata_v5_id = 18;
+const uint8_t message_airdata_v6_id = 40;
+const uint8_t message_airdata_v7_id = 43;
+const uint8_t message_filter_v2_id = 22;
+const uint8_t message_filter_v3_id = 31;
+const uint8_t message_filter_v4_id = 36;
+const uint8_t message_actuator_v2_id = 21;
+const uint8_t message_actuator_v3_id = 37;
+const uint8_t message_pilot_v2_id = 20;
+const uint8_t message_pilot_v3_id = 38;
+const uint8_t message_ap_status_v4_id = 30;
+const uint8_t message_ap_status_v5_id = 32;
+const uint8_t message_ap_status_v6_id = 33;
+const uint8_t message_ap_status_v7_id = 39;
+const uint8_t message_system_health_v4_id = 19;
+const uint8_t message_system_health_v5_id = 41;
+const uint8_t message_payload_v2_id = 23;
+const uint8_t message_payload_v3_id = 42;
 
 // Message: gps_v2 (id: 16)
 struct message_gps_v2_t {
@@ -70,6 +70,7 @@ struct message_gps_v2_t {
 
     static const uint8_t id = 16;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -83,7 +84,8 @@ struct message_gps_v2_t {
         _buf.unixtime_sec = unixtime_sec;
         _buf.satellites = satellites;
         _buf.status = status;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -142,6 +144,7 @@ struct message_gps_v3_t {
 
     static const uint8_t id = 26;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -158,7 +161,8 @@ struct message_gps_v3_t {
         _buf.vert_accuracy_m = uintround(vert_accuracy_m * 100);
         _buf.pdop = uintround(pdop * 100);
         _buf.fix_type = fix_type;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -220,6 +224,7 @@ struct message_gps_v4_t {
 
     static const uint8_t id = 34;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -236,7 +241,8 @@ struct message_gps_v4_t {
         _buf.vert_accuracy_m = uintround(vert_accuracy_m * 100);
         _buf.pdop = uintround(pdop * 100);
         _buf.fix_type = fix_type;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -296,6 +302,7 @@ struct message_imu_v3_t {
 
     static const uint8_t id = 17;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -311,7 +318,8 @@ struct message_imu_v3_t {
         _buf.hz = hz;
         _buf.temp_C = intround(temp_C * 10);
         _buf.status = status;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -370,6 +378,7 @@ struct message_imu_v4_t {
 
     static const uint8_t id = 35;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -385,7 +394,8 @@ struct message_imu_v4_t {
         _buf.hz = hz;
         _buf.temp_C = intround(temp_C * 10);
         _buf.status = status;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -442,6 +452,7 @@ struct message_airdata_v5_t {
 
     static const uint8_t id = 18;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -456,7 +467,8 @@ struct message_airdata_v5_t {
         _buf.wind_speed_kt = uintround(wind_speed_kt * 4);
         _buf.pitot_scale_factor = uintround(pitot_scale_factor * 100);
         _buf.status = status;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -512,6 +524,7 @@ struct message_airdata_v6_t {
 
     static const uint8_t id = 40;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -526,7 +539,8 @@ struct message_airdata_v6_t {
         _buf.wind_speed_kt = uintround(wind_speed_kt * 4);
         _buf.pitot_scale_factor = uintround(pitot_scale_factor * 100);
         _buf.status = status;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -584,6 +598,7 @@ struct message_airdata_v7_t {
 
     static const uint8_t id = 43;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -599,7 +614,8 @@ struct message_airdata_v7_t {
         _buf.pitot_scale_factor = uintround(pitot_scale_factor * 100);
         _buf.error_count = error_count;
         _buf.status = status;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -658,6 +674,7 @@ struct message_filter_v2_t {
 
     static const uint8_t id = 22;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -673,7 +690,8 @@ struct message_filter_v2_t {
         _buf.yaw_deg = intround(yaw_deg * 10);
         _buf.sequence_num = sequence_num;
         _buf.status = status;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -744,6 +762,7 @@ struct message_filter_v3_t {
 
     static const uint8_t id = 31;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -765,7 +784,8 @@ struct message_filter_v3_t {
         _buf.az_bias = intround(az_bias * 1000);
         _buf.sequence_num = sequence_num;
         _buf.status = status;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -842,6 +862,7 @@ struct message_filter_v4_t {
 
     static const uint8_t id = 36;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -863,7 +884,8 @@ struct message_filter_v4_t {
         _buf.az_bias = intround(az_bias * 1000);
         _buf.sequence_num = sequence_num;
         _buf.status = status;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -924,6 +946,7 @@ struct message_actuator_v2_t {
 
     static const uint8_t id = 21;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -937,7 +960,8 @@ struct message_actuator_v2_t {
         _buf.channel7 = intround(channel7 * 20000);
         _buf.channel8 = intround(channel8 * 20000);
         _buf.status = status;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -990,6 +1014,7 @@ struct message_actuator_v3_t {
 
     static const uint8_t id = 37;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -1003,7 +1028,8 @@ struct message_actuator_v3_t {
         _buf.channel7 = intround(channel7 * 20000);
         _buf.channel8 = intround(channel8 * 20000);
         _buf.status = status;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -1042,13 +1068,15 @@ struct message_pilot_v2_t {
 
     static const uint8_t id = 20;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         for (int _i=0; _i<8; _i++) _buf.channel[_i] = intround(channel[_i] * 20000);
         _buf.status = status;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -1080,13 +1108,15 @@ struct message_pilot_v3_t {
 
     static const uint8_t id = 38;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         for (int _i=0; _i<8; _i++) _buf.channel[_i] = intround(channel[_i] * 20000);
         _buf.status = status;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -1140,6 +1170,7 @@ struct message_ap_status_v4_t {
 
     static const uint8_t id = 30;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -1157,7 +1188,8 @@ struct message_ap_status_v4_t {
         _buf.wp_index = wp_index;
         _buf.route_size = route_size;
         _buf.sequence_number = sequence_number;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -1224,6 +1256,7 @@ struct message_ap_status_v5_t {
 
     static const uint8_t id = 32;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -1242,7 +1275,8 @@ struct message_ap_status_v5_t {
         _buf.wp_index = wp_index;
         _buf.route_size = route_size;
         _buf.sequence_number = sequence_number;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -1314,6 +1348,7 @@ struct message_ap_status_v6_t {
 
     static const uint8_t id = 33;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -1334,7 +1369,8 @@ struct message_ap_status_v6_t {
         _buf.task_id = task_id;
         _buf.task_attribute = task_attribute;
         _buf.sequence_number = sequence_number;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -1408,6 +1444,7 @@ struct message_ap_status_v7_t {
 
     static const uint8_t id = 39;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -1428,7 +1465,8 @@ struct message_ap_status_v7_t {
         _buf.task_id = task_id;
         _buf.task_attribute = task_attribute;
         _buf.sequence_num = sequence_num;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -1482,6 +1520,7 @@ struct message_system_health_v4_t {
 
     static const uint8_t id = 19;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -1492,7 +1531,8 @@ struct message_system_health_v4_t {
         _buf.cell_vcc = uintround(cell_vcc * 1000);
         _buf.main_amps = uintround(main_amps * 1000);
         _buf.total_mah = uintround(total_mah * 10);
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -1536,6 +1576,7 @@ struct message_system_health_v5_t {
 
     static const uint8_t id = 41;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
@@ -1546,7 +1587,8 @@ struct message_system_health_v5_t {
         _buf.cell_vcc = uintround(cell_vcc * 1000);
         _buf.main_amps = uintround(main_amps * 1000);
         _buf.total_mah = uintround(total_mah * 10);
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -1580,12 +1622,14 @@ struct message_payload_v2_t {
 
     static const uint8_t id = 23;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.trigger_num = trigger_num;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -1614,12 +1658,14 @@ struct message_payload_v3_t {
 
     static const uint8_t id = 42;
     static const uint16_t len = sizeof(_buf);
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.trigger_num = trigger_num;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {

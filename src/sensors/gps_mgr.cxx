@@ -199,11 +199,12 @@ bool GPS_update() {
                 gps.vert_accuracy_m = outputs[i].getDouble("vert_accuracy_m");
                 gps.pdop = outputs[i].getDouble("pdop");
                 gps.fix_type = outputs[i].getLong("fixType");
+                gps.pack();
 		if ( send_remote_link ) {
-		    remote_link->send_message( gps.id, gps.pack(), gps.len );
+		    remote_link->send_message( gps.id, gps.payload, gps.len );
 		}
 		if ( send_logging ) {
-		    logging->log_message( gps.id, gps.pack(), gps.len );
+		    logging->log_message( gps.id, gps.payload, gps.len );
 		}
 	    }
 	}

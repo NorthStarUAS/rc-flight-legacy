@@ -17,6 +17,7 @@
 using std::string;
 using std::ostringstream;
 
+#include "comms/aura_messages.h"
 #include "comms/remote_link.hxx"
 #include "comms/logging.hxx"
 #include "filters/nav_ekf15/aura_interface.hxx"
@@ -47,8 +48,10 @@ static pyPropertyNode pos_pressure_node;
 static pyPropertyNode pos_combined_node;
 static pyPropertyNode filter_node;
 static pyPropertyNode filter_group_node;
+static pyPropertyNode remote_link_node;
 static pyPropertyNode status_node;
 static vector<pyPropertyNode> sections;
+static vector<pyPropertyNode> outputs;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
@@ -65,6 +68,7 @@ void Filter_init() {
     pos_filter_node = pyGetNode("/position/filter", true);
     pos_pressure_node = pyGetNode("/position/pressure", true);
     pos_combined_node = pyGetNode("/position/combined", true);
+    remote_link_node = pyGetNode("/comms/remote_link", true);
     status_node = pyGetNode("/status", true);
 
     pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
@@ -86,6 +90,8 @@ void Filter_init() {
 	}
 	ostringstream output_path;
 	output_path << "/filters/filter" << '[' << i << ']';
+        pyPropertyNode output_node = pyGetNode(output_path.str(), true);
+        outputs.push_back(output_node);
 	printf("filter: %d = %s\n", i, module.c_str());
 	if ( module == "null" ) {
 	    // do nothing
@@ -284,13 +290,32 @@ bool Filter_update() {
 	}
 	
 	if ( send_remote_link || send_logging ) {
-	    uint8_t buf[256];
-	    int size = packer->pack_filter( i, buf );
+            message_filter_v4_t nav;
+            nav.index = i;
+            nav.timestamp_sec = outputs[i].getDouble("timestamp");
+            nav.latitude_deg = outputs[i].getDouble("latitude_deg");
+            nav.longitude_deg = outputs[i].getDouble("longitude_deg");
+            nav.altitude_m = outputs[i].getDouble("altitude_m");
+            nav.vn_ms = outputs[i].getDouble("vn_ms");
+            nav.ve_ms = outputs[i].getDouble("ve_ms");
+            nav.vd_ms = outputs[i].getDouble("vd_ms");
+            nav.roll_deg = outputs[i].getDouble("roll_deg");
+            nav.pitch_deg = outputs[i].getDouble("pitch_deg");
+            nav.yaw_deg = outputs[i].getDouble("heading_deg");
+            nav.p_bias = outputs[i].getDouble("p_bias");
+            nav.q_bias = outputs[i].getDouble("q_bias");
+            nav.r_bias = outputs[i].getDouble("r_bias");
+            nav.ax_bias = outputs[i].getDouble("ax_bias");
+            nav.ay_bias = outputs[i].getDouble("ay_bias");
+            nav.az_bias = outputs[i].getDouble("az_bias");
+            nav.sequence_num = remote_link_node.getLong("sequence_num");
+            nav.status = 0;
+            nav.pack();
 	    if ( send_remote_link ) {
-		remote_link->send_message( buf, size );
+		remote_link->send_message( nav.id, nav.payload, nav.len );
 	    }
 	    if ( send_logging ) {
-		logging->log_message( buf, size );
+		logging->log_message( nav.id, nav.payload, nav.len );
 	    }
 	}
     }

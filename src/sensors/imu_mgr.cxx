@@ -168,11 +168,12 @@ bool IMU_update() {
                 imu.hz = outputs[i].getDouble("hz");
                 imu.temp_C = outputs[i].getDouble("temp_C");
                 imu.status = 0;
+                imu.pack();
 		if ( send_remote_link ) {
-		    remote_link->send_message( imu.id, imu.pack(), imu.len );
+		    remote_link->send_message( imu.id, imu.payload, imu.len );
 		}
 		if ( send_logging ) {
-		    logging->log_message( imu.id, imu.pack(), imu.len );
+		    logging->log_message( imu.id, imu.payload, imu.len );
 		}
 	    }
 	}

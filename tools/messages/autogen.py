@@ -31,7 +31,8 @@ type_code = { "double": 'd', "float": 'f',
               "bool": 'B'
 }
 
-reserved_names = [ 'id', 'len', '_buf', '_i', '_pack_string' ]
+reserved_names = [ 'id', 'len', 'payload', '_buf', '_i', '_pack_string',
+                   'pack', 'unpack' ]
 for name in type_code:
     reserved_names.append(name)
 
@@ -116,6 +117,7 @@ def gen_cpp_header():
         # generate built in constants
         result.append("    static const uint8_t id = %s;" % m.getString("id"))
         result.append("    static const uint16_t len = sizeof(_buf);")
+        result.append("    uint8_t *payload = NULL;")
         result.append("")
         
         # generate pack code
@@ -149,7 +151,8 @@ def gen_cpp_header():
                     line += "[_i]"
             line += ";"
             result.append(line)
-        result.append("        return (uint8_t *)(&_buf);")
+        result.append("        payload = (uint8_t *)(&_buf);")
+        result.append("        return payload;")
         result.append("    }")
         result.append("")
 
