@@ -8,6 +8,20 @@ import time
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
 
+# wrap payload in header bytes, id, length, payload, and compute checksums
+def wrap_packet( packet_id, payload ):
+    size = len(payload)
+    buf = bytearray()
+    buf.append(START_OF_MSG0)   # start of message sync bytes
+    buf.append(START_OF_MSG1)   # start of message sync bytes
+    buf.append(packet_id)       # packet id (1 byte)
+    buf.append(size)            # packet size (1 byte)
+    buf.extend(payload)         # copy payload
+    (cksum0, cksum1) = compute_cksum( packet_id, payload, size)
+    buf.append(cksum0)          # check sum byte 1
+    buf.append(cksum1)          # check sum byte 2
+    return buf
+    
 class serial_parser():
     def __init__(self):
         self.state = 0
@@ -110,18 +124,4 @@ class serial_parser():
                     self.state = 0
 
         return -1
-    
-    # wrap payload in header bytes, id, length, payload, and compute checksums
-    def wrap_packet( packet_id, payload ):
-        size = len(payload)
-        buf = bytearray()
-        buf.append(START_OF_MSG0)   # start of message sync bytes
-        buf.append(START_OF_MSG1)   # start of message sync bytes
-        buf.append(packet_id)       # packet id (1 byte)
-        buf.append(size)            # packet size (1 byte)
-        buf.extend(payload)         # copy payload
-        (cksum0, cksum1) = compute_cksum( packet_id, payload, size)
-        buf.append(cksum0)          # check sum byte 1
-        buf.append(cksum1)          # check sum byte 2
-        return buf
     

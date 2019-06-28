@@ -97,18 +97,19 @@ def send_message_old( data ):
 # append the request data to a fifo buffer if space available.  A
 # separate function will flush the data in even chunks to avoid
 # saturating the telemetry link.
-def send_message( data ):
+def send_message( pkt_id, payload ):
     global serial_buf
     if ser == None:
         # remote serial link not available
         return False
-        
-    if len(serial_buf) + len(data) <= max_serial_buffer:
-        serial_buf.extend(data)
+
+    msg = comms.serial_parser.wrap_packet(pkt_id, payload)
+    if len(serial_buf) + len(msg) <= max_serial_buffer:
+        serial_buf.extend(msg)
         return True
     else:
         if comms_node.getBool('display_on'):
-            print('remote link serial buffer overflow, size:', len(serial_buf), 'add:', len(data), 'limit:', max_serial_buffer)
+            print('remote link serial buffer overflow, size:', len(serial_buf), 'add:', len(msg), 'limit:', max_serial_buffer)
         return False
 
 route_request = []
