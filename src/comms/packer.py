@@ -1093,13 +1093,13 @@ def unpack_ap_status_v7(buf):
 def pack_system_health_bin(index):
     health = aura_messages.system_health_v5()
     health.index = index
-    health.timestamp_sec = status_node.getFloat('frame_time')
+    health.timestamp_sec = status_node.getFloat("frame_time")
     health.system_load_avg = status_node.getFloat("system_load_avg")
     health.avionics_vcc = power_node.getFloat("avionics_vcc")
     health.main_vcc = power_node.getFloat("main_vcc")
     health.cell_vcc = power_node.getFloat("cell_vcc")
     health.main_amps = power_node.getFloat("main_amps")
-    health.main_mah = power_node.getFloat("total_mah")
+    health.total_mah = power_node.getFloat("total_mah")
     buf = health.pack()
     return wrap_packet(health.id, buf)
 
