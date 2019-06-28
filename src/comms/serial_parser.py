@@ -8,6 +8,23 @@ import time
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
 
+# simple 2-byte checksum
+def checksum(id, buf, size):
+    c0 = 0
+    c1 = 0
+    c0 = (c0 + id) & 0xff
+    c1 = (c1 + c0) & 0xff
+    #print("c0 =", c0, "c1 =", c1)
+    c0 = (c0 + size) & 0xff
+    c1 = (c1 + c0) & 0xff
+    #print("c0 =", c0, "c1 =", c1)
+    for i in range(0, size):
+        c0 = (c0 + buf[i]) & 0xff
+        c1 = (c1 + c0) & 0xff
+        #print("c0 =", c0, "c1 =", c1, i, '[', buf[i], ']')
+    #print("c0 =", c0, "c1 =", c1)
+    return (c0, c1)
+
 # wrap payload in header bytes, id, length, payload, and compute checksums
 def wrap_packet( packet_id, payload ):
     size = len(payload)
@@ -17,7 +34,7 @@ def wrap_packet( packet_id, payload ):
     buf.append(packet_id)       # packet id (1 byte)
     buf.append(size)            # packet size (1 byte)
     buf.extend(payload)         # copy payload
-    (cksum0, cksum1) = compute_cksum( packet_id, payload, size)
+    (cksum0, cksum1) = checksum( packet_id, payload, size)
     buf.append(cksum0)          # check sum byte 1
     buf.append(cksum1)          # check sum byte 2
     return buf
@@ -31,23 +48,6 @@ class serial_parser():
         self.cksum_lo = 0
         self.cksum_hi = 0
         self.payload = bytearray()
-
-    # simple 2-byte checksum
-    def checksum(self, id, buf, size):
-        c0 = 0
-        c1 = 0
-        c0 = (c0 + id) & 0xff
-        c1 = (c1 + c0) & 0xff
-        #print("c0 =", c0, "c1 =", c1)
-        c0 = (c0 + size) & 0xff
-        c1 = (c1 + c0) & 0xff
-        #print("c0 =", c0, "c1 =", c1)
-        for i in range(0, size):
-            c0 = (c0 + buf[i]) & 0xff
-            c1 = (c1 + c0) & 0xff
-            #print("c0 =", c0, "c1 =", c1, i, '[', buf[i], ']')
-        #print("c0 =", c0, "c1 =", c1)
-        return (c0, c1)
 
     def read(self, ser):
         start_time = time.time()    # sec
