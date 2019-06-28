@@ -12,6 +12,7 @@
 
 #include <cstdio>
 
+#include "comms/aura_messages.h"
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
 #include "comms/remote_link.hxx"
@@ -19,6 +20,9 @@
 
 #include "payload_mgr.hxx"
 
+// fixme: these shouldn't really be here in static/global space
+static pyPropertyNode status_node;
+static pyPropertyNode payload_node;
 
 UGPayloadMgr::UGPayloadMgr():
     remote_link_skip(0),
@@ -45,6 +49,8 @@ void UGPayloadMgr::init() {
     pyPropertyNode logging_node = pyGetNode("/config/logging", true);
     remote_link_skip = remote_link_node.getDouble("payload_skip");
     logging_skip = logging_node.getDouble("payload_skip");
+    status_node = pyGetNode( "/status", true );
+    payload_node = pyGetNode("/payload", true);
 }
 
 
@@ -67,13 +73,16 @@ bool UGPayloadMgr::update() {
 	}
 	
 	if ( send_remote_link || send_logging ) {
-	    uint8_t buf[256];
-	    int size = packer->pack_payload( 0, buf );
+            message_payload_v3_t payload;
+            payload.index =  0;
+            payload.timestamp_sec = status_node.getDouble("frame_time");
+            payload.trigger_num = payload_node.getDouble("trigger_num");
+            payload.pack();
 	    if ( send_remote_link ) {
-		remote_link->send_message( buf, size );
+		remote_link->send_message( payload.id, payload.payload, payload.len );
 	    }
 	    if ( send_logging ) {
-		logging->log_message( buf, size );
+		logging->log_message( payload.id, payload.payload, payload.len );
 	    }
 	}
 	

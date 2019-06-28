@@ -113,9 +113,9 @@ class serial_parser():
             if len(input):
                 self.cksum_hi = input[0]
                 (cksum0, cksum1) = checksum( self.pkt_id, self.payload, self.pkt_len );
-                # print " cksum_hi:", self.cksum_hi
+                # print(" cksum_hi:", self.cksum_hi)
                 if cksum0 == self.cksum_lo and cksum1 == self.cksum_hi and self.pkt_len > 0:
-                    print("checksum passes:", self.pkt_id, "len:", self.pkt_len)
+                    # print("checksum passes:", self.pkt_id, "len:", self.pkt_len)
                     self.state = 0
                     return self.pkt_id
                 else:

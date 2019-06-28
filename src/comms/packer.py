@@ -80,30 +80,6 @@ def wrap_packet( packet_id, payload ):
     buf.append(cksum1)          # check sum byte 2
     return buf
     
-def pack_gps_bin(index):
-    if index >= len(gps_nodes):
-        for i in range(len(gps_nodes),index+1):
-            path = '/sensors/gps[%d]' % i
-            gps_nodes.append( getNode(path, True) )
-    node = gps_nodes[index]
-    gps = aura_messages.gps_v4()
-    gps.index = index
-    gps.timestamp_sec = node.getFloat("timestamp")
-    gps.latitude_deg = node.getFloat("latitude_deg")
-    gps.longitude_deg = node.getFloat("longitude_deg")
-    gps.altitude_m = node.getFloat("altitude_m")
-    gps.vn_ms = node.getFloat("vn_ms")
-    gps.ve_ms = node.getFloat("ve_ms")
-    gps.vd_ms = node.getFloat("vd_ms")
-    gps.unixtime_sec = node.getFloat("unix_time_sec")
-    gps.satellites = node.getInt("satellites")
-    gps.horiz_accuracy_m = node.getFloat("horiz_accuracy_m")
-    gps.vert_accuracy_m = node.getFloat("vert_accuracy_m")
-    gps.pdop = node.getFloat("pdop")
-    gps.fix_type = node.getInt("fixType")
-    buf = gps.pack()
-    return wrap_packet(gps.id, buf)
-
 def pack_gps_dict(index):
     gps_node = getNode('/sensors/gps[%d]' % index, True)
     row = dict()
@@ -214,34 +190,6 @@ def unpack_gps_v4(buf):
     node.setInt("status", 0)
     return gps.index
 
-def pack_imu_bin(index):
-    global imu_timestamp
-    
-    if index >= len(imu_nodes):
-        for i in range(len(imu_nodes),index+1):
-            path = '/sensors/imu[%d]' % i
-            imu_nodes.append( getNode(path, True) )
-    node = imu_nodes[index]
-    
-    imu = aura_messages.imu_v4()
-    imu_timestamp = node.getFloat("timestamp")
-    
-    imu.index = index
-    imu.timestamp_sec = imu_timestamp
-    imu.p_rad_sec = node.getFloat("p_rad_sec")
-    imu.q_rad_sec = node.getFloat("q_rad_sec")
-    imu.r_rad_sec = node.getFloat("r_rad_sec")
-    imu.ax_mps_sec = node.getFloat("ax_mps_sec")
-    imu.ay_mps_sec = node.getFloat("ay_mps_sec")
-    imu.az_mps_sec = node.getFloat("az_mps_sec")
-    imu.hx = node.getFloat("hx")
-    imu.hy = node.getFloat("hy")
-    imu.hz = node.getFloat("hz")
-    imu.temp_C = node.getFloat("temp_C")
-    imu.status = 0
-    buf = imu.pack()
-    return wrap_packet(imu.id, buf)
-
 def pack_imu_dict(index):
     imu_node = getNode('/sensors/imu[%d]' % index, True)
     row = dict()
@@ -324,29 +272,6 @@ def unpack_imu_v4(buf):
     node.setFloat("temp_C", imu.temp_C)
     node.setInt("status", imu.status)
     return imu.index
-
-def pack_airdata_bin(index):
-    if index >= len(airdata_nodes):
-        for i in range(len(airdata_nodes),index+1):
-            path = '/sensors/airdata[%d]' % i
-            airdata_nodes.append( getNode(path, True) )
-    node = airdata_nodes[index]
-    air = aura_messages.airdata_v7()
-    air.index = index
-    air.timestamp_sec = node.getFloat("timestamp")
-    air.pressure_mbar = node.getFloat("pressure_mbar")
-    air.temp_C = node.getFloat("temp_C")
-    air.airspeed_smoothed_kt = vel_node.getFloat("airspeed_smoothed_kt")
-    air.altitude_smoothed_m = pos_pressure_node.getFloat("altitude_smoothed_m")
-    air.altitude_true_m = pos_combined_node.getFloat("altitude_true_m")
-    air.pressure_vertical_speed_fps = vel_node.getFloat("pressure_vertical_speed_fps")
-    air.wind_dir_deg = wind_node.getFloat("wind_dir_deg")
-    air.wind_speed_kt = wind_node.getFloat("wind_speed_kt")
-    air.pitot_scale_factor = wind_node.getFloat("pitot_scale_factor")
-    air.error_count = node.getInt("error_count")
-    air.status = node.getInt("status")
-    buf = air.pack()
-    return wrap_packet(air.id, buf)
 
 def pack_airdata_dict(index):
     airdata_node = getNode('/sensors/airdata[%d]' % index, True)
@@ -453,35 +378,6 @@ def unpack_airdata_v7(buf):
     node.setInt("error_count", air.error_count)
     node.setInt("status", air.status)
     return air.index
-
-def pack_filter_bin(index):
-    if index >= len(filter_nodes):
-        for i in range(len(filter_nodes),index+1):
-            path = '/filters/filter[%d]' % i
-            filter_nodes.append( getNode(path, True) )
-    node = filter_nodes[index]
-    nav = aura_messages.filter_v4()
-    nav.index = index
-    nav.timestamp_sec = node.getFloat("timestamp")
-    nav.latitude_deg = node.getFloat("latitude_deg")
-    nav.longitude_deg = node.getFloat("longitude_deg")
-    nav.altitude_m = node.getFloat("altitude_m")
-    nav.vn_ms = node.getFloat("vn_ms")
-    nav.ve_ms = node.getFloat("ve_ms")
-    nav.vd_ms = node.getFloat("vd_ms")
-    nav.roll_deg = node.getFloat("roll_deg")
-    nav.pitch_deg = node.getFloat("pitch_deg")
-    nav.heading_deg = node.getFloat("heading_deg")
-    nav.p_bias = node.getFloat("p_bias")
-    nav.q_bias = node.getFloat("q_bias")
-    nav.r_bias = node.getFloat("r_bias")
-    nav.ax_bias = node.getFloat("ax_bias")
-    nav.ay_bias = node.getFloat("ay_bias")
-    nav.az_bias = node.getFloat("az_bias")
-    nav.sequence_num = remote_link_node.getInt("sequence_num")
-    nav.status = 0
-    buf = nav.pack()
-    return wrap_packet(nav.id, buf)
 
 def pack_filter_dict(index):
     filter_node = getNode('/filters/filter[%d]' % index, True)
@@ -615,23 +511,6 @@ def unpack_filter_v4(buf):
 
     return nav.index
 
-def pack_act_bin(index):
-    if index > 0: return
-    act = aura_messages.actuator_v3()
-    act.index = 0               # always zero for now
-    act.timestamp_sec = act_node.getFloat("timestamp")
-    act.aileron = act_node.getFloat("aileron")
-    act.elevator = act_node.getFloat("elevator")
-    act.throttle = act_node.getFloat("throttle")
-    act.rudder = act_node.getFloat("rudder")
-    act.channel5 = act_node.getFloat("channel5")
-    act.flaps = act_node.getFloat("flaps")
-    act.channel7 = act_node.getFloat("channel7")
-    act.channel8 = act_node.getFloat("channel8")
-    act.status = 0
-    buf = act.pack()
-    return wrap_packet(act.id, buf)
-
 def pack_act_dict(index):
     row = dict()
     row['timestamp'] = act_node.getFloat('timestamp')
@@ -690,29 +569,6 @@ def unpack_act_v3(buf):
     act_node.setFloat("channel8", act.channel8)
     act_node.setInt("status", act.status)
     return act.index
-
-def pack_pilot_bin(index):
-    if index >= len(pilot_nodes):
-        for i in range(len(pilot_nodes),index+1):
-            path = '/sensors/pilot_input[%d]' % i
-            node = getNode(path, True)
-            node.setLen("channel", NUM_ACTUATORS, 0.0)
-            pilot_nodes.append( node )
-    node = pilot_nodes[index]
-    pilot = aura_messages.pilot_v3()
-    pilot.index = index
-    pilot.timestamp_sec = node.getFloat("timestamp")
-    pilot.channel[0] = node.getFloatEnum("channel", 0)
-    pilot.channel[1] = node.getFloatEnum("channel", 1)
-    pilot.channel[2] = node.getFloatEnum("channel", 2)
-    pilot.channel[3] = node.getFloatEnum("channel", 3)
-    pilot.channel[4] = node.getFloatEnum("channel", 4)
-    pilot.channel[5] = node.getFloatEnum("channel", 5)
-    pilot.channel[6] = node.getFloatEnum("channel", 6)
-    pilot.channel[7] = node.getFloatEnum("channel", 7)
-    pilot.status = 0
-    buf = pilot.pack()
-    return wrap_packet(pilot.id, buf)
 
 def pack_pilot_dict(index):
     pilot_node = getNode('/sensors/pilot_input[%d]' % index, True)
@@ -792,85 +648,6 @@ def unpack_pilot_v3(buf):
     node.setInt("status", pilot.status)
 
     return pilot.index
-
-def pack_ap_status_bin(index):
-    # status flags (up to 8 could be supported)
-    flags = 0
-    if ap_node.getBool("master_switch"):
-        flags |= (1 << 0)
-    if ap_node.getBool("pilot_pass_through"):
-        flags |= (1 << 1)
-    
-    # handle the counter dance between the control module and the
-    # packer.  This allows us to trickle down routes to the ground
-    # station, but we don't want onboard logging to affect the counter
-    # state.
-    counter = remote_link_node.getInt("wp_counter")
-    route_size = active_node.getInt("route_size")
-    if counter >= route_size + 2:
-        counter = 0
-        remote_link_node.setInt("wp_counter", 0)
-
-    target_agl_ft = targets_node.getFloat("altitude_agl_ft")
-    ground_m = pos_node.getFloat("altitude_ground_m")
-    # if pressure based ...
-    #   error_m = pos_pressure_node.getFloat("pressure_error_m")
-    #   target_msl_ft = (ground_m + error_m) * m2ft + target_agl_ft
-    # else:
-    target_msl_ft = ground_m * m2ft + target_agl_ft
-
-    wp_lon = 0.0
-    wp_lat = 0.0
-    task_attr = 0
-    if route_size > 0 and counter < route_size:
-        wp_index = counter
-        wp_node = active_node.getChild('wpt[%d]' % wp_index)
-        if wp_node != None:
-            wp_lon = wp_node.getFloat("longitude_deg")
-            wp_lat = wp_node.getFloat("latitude_deg")
-    elif counter == route_size:
-        wp_lon = circle_node.getFloat("longitude_deg")
-        wp_lat = circle_node.getFloat("latitude_deg")
-        wp_index = 65534
-        task_attr = int(round(circle_node.getFloat("radius_m") * 10))
-        if task_attr > 32767: task_attr = 32767
-    elif counter == route_size + 1:
-        wp_lon = home_node.getFloat("longitude_deg")
-        wp_lat = home_node.getFloat("latitude_deg")
-        wp_index = 65535
-    
-    task_id = 0                 # code for unknown or not set
-    if task_node.getString("current_task_id") == 'circle':
-        task_id = 1
-    elif task_node.getString("current_task_id") == 'parametric':
-        # draw like it's a circle
-        task_id = 1
-    elif task_node.getString("current_task_id") == 'route':
-        task_id = 2
-    elif task_node.getString("current_task_id") == 'land':
-        task_id = 3
-
-    ap = aura_messages.ap_status_v7()
-    ap.index = index
-    ap.timestamp_sec = status_node.getFloat('frame_time')
-    ap.flags = flags
-    ap.groundtrack_deg = targets_node.getFloat("groundtrack_deg")
-    ap.roll_deg = targets_node.getFloat("roll_deg")
-    ap.altitude_msl_ft = target_msl_ft
-    ap.altitude_ground_m = ground_m
-    ap.pitch_deg = targets_node.getFloat("pitch_deg")
-    ap.airspeed_kt = targets_node.getFloat("airspeed_kt")
-    ap.flight_timer = task_node.getFloat("flight_timer")
-    ap.target_waypoint_idx = route_node.getInt("target_waypoint_idx")
-    ap.wp_longitude_deg = wp_lon
-    ap.wp_latitude_deg = wp_lat
-    ap.wp_index = wp_index
-    ap.route_size = route_size
-    ap.task_id = task_id
-    ap.task_attribute = task_attr
-    ap.sequence_num = remote_link_node.getInt("sequence_num")
-    buf = ap.pack()
-    return wrap_packet(ap.id, buf)
 
 def pack_ap_status_dict(index):
     # fixme: tecs_target_tot is really zero now because these values
@@ -1090,19 +867,6 @@ def unpack_ap_status_v7(buf):
 
     return index
 
-def pack_system_health_bin(index):
-    health = aura_messages.system_health_v5()
-    health.index = index
-    health.timestamp_sec = status_node.getFloat("frame_time")
-    health.system_load_avg = status_node.getFloat("system_load_avg")
-    health.avionics_vcc = power_node.getFloat("avionics_vcc")
-    health.main_vcc = power_node.getFloat("main_vcc")
-    health.cell_vcc = power_node.getFloat("cell_vcc")
-    health.main_amps = power_node.getFloat("main_amps")
-    health.total_mah = power_node.getFloat("total_mah")
-    buf = health.pack()
-    return wrap_packet(health.id, buf)
-
 def pack_system_health_dict(index):
     row = dict()
     row['timestamp'] = status_node.getFloat('frame_time')
@@ -1148,14 +912,6 @@ def unpack_system_health_v5(buf):
     power_node.setFloat("main_amps", health.main_amps)
     power_node.setInt("total_mah", health.total_mah)
     return health.index
-
-def pack_payload_bin(index):
-    payload = aura_messages.payload_v3()
-    pyaload.index =  index
-    payload.timestamp_sec = status_node.getFloat('frame_time')
-    payload.trigger_num = payload_node.getFloat("trigger_num")
-    buf = payload.pack()
-    return wrap_packet(payload.id, buf)
 
 def pack_payload_dict(index):
     row = dict()
