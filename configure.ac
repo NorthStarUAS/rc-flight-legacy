@@ -95,7 +95,6 @@ AC_CONFIG_FILES([ \
         src/sensors/Aura3/Makefile \
         src/util/Makefile \
         utils/Makefile \
-        utils/admin/Makefile \
         utils/autohome/Makefile \
         utils/benchmarks/Makefile \
         utils/dynamichome/Makefile \

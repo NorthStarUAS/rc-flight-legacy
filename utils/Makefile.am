@@ -1,5 +1,4 @@
 SUBDIRS = \
-	admin \
 	autohome \
 	benchmarks \
 	uartlogger \

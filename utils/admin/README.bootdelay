@@ -1,8 +1,0 @@
-The prevent the boot from being stopped, and boot immediately:
-
-    uboot# setenv bootdelay 0
-
-To restore default behavior (so you can adjust boot paramaters, etc.)
-From inside Linux as root:
-
-    linux-root# fw_setenv bootdelay 5
