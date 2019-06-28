@@ -21,6 +21,7 @@ using std::ostringstream;
 using std::string;
 using std::vector;
 
+#include "comms/aura_messages.h"
 #include "comms/logging.hxx"
 #include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
@@ -43,6 +44,7 @@ static pyPropertyNode flight_node;
 static pyPropertyNode engine_node;
 static pyPropertyNode ap_node;
 static vector<pyPropertyNode> sections;
+static vector<pyPropertyNode> outputs;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
@@ -72,6 +74,8 @@ void PilotInput_init() {
 	}
 	ostringstream output_path;
 	output_path << "/sensors/pilot_input" << '[' << i << ']';
+        pyPropertyNode output_node = pyGetNode(output_path.str(), true);
+        outputs.push_back(output_node);
 	printf("pilot: %d = %s\n", i, source.c_str());
 	if ( source == "null" ) {
 	    // do nothing
@@ -130,13 +134,23 @@ bool PilotInput_update() {
 	    }
 	
 	    if ( send_remote_link || send_logging ) {
-		uint8_t buf[256];
-		int size = packer->pack_pilot( i, buf );
+                message_pilot_v3_t pilot;
+                pilot.index = i;
+                pilot.timestamp_sec = outputs[i].getDouble("timestamp");
+                pilot.channel[0] = outputs[i].getDouble("channel", 0);
+                pilot.channel[1] = outputs[i].getDouble("channel", 1);
+                pilot.channel[2] = outputs[i].getDouble("channel", 2);
+                pilot.channel[3] = outputs[i].getDouble("channel", 3);
+                pilot.channel[4] = outputs[i].getDouble("channel", 4);
+                pilot.channel[5] = outputs[i].getDouble("channel", 5);
+                pilot.channel[6] = outputs[i].getDouble("channel", 6);
+                pilot.channel[7] = outputs[i].getDouble("channel", 7);
+                pilot.status = 0;
 		if ( send_remote_link ) {
-		    remote_link->send_message( buf, size );
+		    remote_link->send_message( pilot.id, pilot.payload, pilot.len );
 		}
 		if ( send_logging ) {
-		    logging->log_message( buf, size );
+		    logging->log_message( pilot.id, pilot.payload, pilot.len );
 		}
 	    }
 	}
