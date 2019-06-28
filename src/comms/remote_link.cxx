@@ -7,6 +7,29 @@ pyModuleRemoteLink::pyModuleRemoteLink()
 }
 
 void pyModuleRemoteLink::send_message( uint8_t *buf, int size ) {
+    printf("fixme old send_message call ...\n");
+    if (pModuleObj == NULL) {
+	printf("ERROR: import logging module failed\n");
+	return;
+    }
+    PyObject *pFuncLog = PyObject_GetAttrString(pModuleObj, "send_message_old");
+    if ( pFuncLog == NULL || ! PyCallable_Check(pFuncLog) ) {
+	if ( PyErr_Occurred() ) PyErr_Print();
+	printf("ERROR: cannot find function 'send_message()'\n");
+	return;
+    }
+    PyObject *pResult = PyObject_CallFunction(pFuncLog, (char *)"y#", buf, size);
+    if (pResult != NULL) {
+	Py_DECREF(pResult);
+	return;
+    } else {
+	PyErr_Print();
+	printf("ERROR: call failed\n");
+	return;
+    }
+}
+
+void pyModuleRemoteLink::send_message( int id, uint8_t *buf, int len ) {
     if (pModuleObj == NULL) {
 	printf("ERROR: import logging module failed\n");
 	return;
@@ -17,7 +40,7 @@ void pyModuleRemoteLink::send_message( uint8_t *buf, int size ) {
 	printf("ERROR: cannot find function 'send_message()'\n");
 	return;
     }
-    PyObject *pResult = PyObject_CallFunction(pFuncLog, (char *)"y#", buf, size);
+    PyObject *pResult = PyObject_CallFunction(pFuncLog, (char *)"iy#", id, buf, len);
     if (pResult != NULL) {
 	Py_DECREF(pResult);
 	return;

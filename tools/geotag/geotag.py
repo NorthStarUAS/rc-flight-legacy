@@ -12,7 +12,7 @@ import os
 import pyexiv2
 from tqdm import tqdm
 
-from aurauas.flightdata import flight_loader, flight_interp
+from aurauas_flightdata import flight_loader, flight_interp
 
 # helpful constants
 d2r = math.pi / 180.0
@@ -27,6 +27,7 @@ parser.add_argument('--shift-time', type=float, help='manual time shift')
 parser.add_argument('--align-first', action='store_true', help='align first in-flight trigger and first image')
 parser.add_argument('--no-plot', dest='plot', action='store_false', help='do not show correlation plots')
 parser.add_argument('--write', action='store_true', help='update geotags on source images')
+parser.add_argument('--force-ap-flag-on', action='store_true', help='force ap flag on')
 parser.set_defaults(plot=True)
 args = parser.parse_args()
 
@@ -39,7 +40,7 @@ interp.build(data)
 # load camera triggers (from the events file)
 triggers = []
 airborne = False
-ap = False
+ap = args.force_ap_flag_on
 event_file = os.path.join(args.flight, "event-0.csv")
 if os.path.exists(event_file):
     with open(event_file, 'r') as fevent:

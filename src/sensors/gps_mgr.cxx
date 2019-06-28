@@ -22,6 +22,7 @@ using std::ostringstream;
 using std::string;
 using std::vector;
 
+#include "comms/aura_messages.h"
 #include "comms/display.hxx"
 #include "comms/logging.hxx"
 #include "comms/remote_link.hxx"
@@ -179,13 +180,27 @@ bool GPS_update() {
 	    }
 	
 	    if ( send_remote_link || send_logging ) {
-		uint8_t buf[256];
-		int size = packer->pack_gps( i, buf );
+                // generate the message
+                message_gps_v4_t gps;
+                gps.index = i;
+                gps.timestamp_sec = sections[i].getDouble("timestamp");
+                gps.latitude_deg = sections[i].getDouble("latitude_deg");
+                gps.longitude_deg = sections[i].getDouble("longitude_deg");
+                gps.altitude_m = sections[i].getDouble("altitude_m");
+                gps.vn_ms = sections[i].getDouble("vn_ms");
+                gps.ve_ms = sections[i].getDouble("ve_ms");
+                gps.vd_ms = sections[i].getDouble("vd_ms");
+                gps.unixtime_sec = sections[i].getDouble("unix_time_sec");
+                gps.satellites = sections[i].getLong("satellites");
+                gps.horiz_accuracy_m = sections[i].getDouble("horiz_accuracy_m");
+                gps.vert_accuracy_m = sections[i].getDouble("vert_accuracy_m");
+                gps.pdop = sections[i].getDouble("pdop");
+                gps.fix_type = sections[i].getLong("fixType");
 		if ( send_remote_link ) {
-		    remote_link->send_message( buf, size );
+		    remote_link->send_message( gps.id, gps.pack(), gps.len );
 		}
 		if ( send_logging ) {
-		    logging->log_message( buf, size );
+		    logging->log_message( gps.id, gps.pack(), gps.len );
 		}
 	    }
 	}

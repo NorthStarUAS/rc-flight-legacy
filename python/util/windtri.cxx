@@ -2,9 +2,10 @@
 
 #include "windtri.hxx"
 
-const double r2d = 180.0 / M_PI;
-const double d2r = M_PI / 180.0;
-const double m2pi = M_PI * 2.0;
+static const double pi = 3.141592653589793;
+static const double d2r = pi / 180.0;
+static const double r2d = 180.0 / pi;
+static const double m2pi = pi * 2.0;
 
 // Given a wind speed estimate, true airspeed estimate, wind direction
 // estimate, and a desired course to fly, then compute a true heading to
@@ -21,13 +22,16 @@ py::tuple wind_course( double ws_kt, double tas_kt, double wd_deg,
     double gs_kt = 0.0;
     double hd_deg = 0.0;
     if ( tas_kt > 0.1 ) {
-	// printf("ws=%.1f tas=%.1f wd=%.1f crs=%.1f\n", ws, tas, wd, crs);
+	// printf("ws=%.1f tas=%.1f wd=%.1f crs=%.1f\n", ws_kt, tas_kt, wd_deg, crs_deg);
+        // printf("wd=%.4f crs=%.4f\n", wd, crs);
+        // printf("wd-crs=%.4f\n", wd-crs);
+        // printf("sin(wd-crs)=%.4f\n", sin(wd-crs));
 	double swc = (ws_kt/tas_kt)*sin(wd-crs);
-	// printf("swc=%.2f\n", swc);
+	// printf("swc=%.4f\n", swc);
 	if ( fabs(swc) > 1.0 ) {
 	    // course cannot be flown, wind too strong
 	    // point nose into estimated wind and "kite" as best we can
-	    hd = wd + M_PI;
+	    hd = wd + pi;
 	    if ( hd > m2pi ) { hd -= m2pi; }
 	} else {
 	    hd = crs + asin(swc);

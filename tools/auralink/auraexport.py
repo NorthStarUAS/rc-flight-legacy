@@ -138,7 +138,7 @@ if args.flight:
     t = tqdm(total=size)
     last_counter = 0
     while True:
-        #try:
+        try:
             (id, index, counter) = auraparser.file_read(full) 
             t.update(counter-last_counter)
             last_counter = counter
@@ -155,10 +155,10 @@ if args.flight:
                 data[path].append(record)
             else:
                 data[path] = [ record ]
-        #except:
-        #    t.close()
-        #    print("end of file")
-        #    break
+        except:
+            t.close()
+            print("end of file")
+            break
 else:
     print("A flight log file must be provided")
 

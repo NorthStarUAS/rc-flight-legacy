@@ -21,6 +21,7 @@ public:
     bool close();
 
     void log_message( uint8_t *buf, int size );
+    void log_message( int id, uint8_t *buf, int len );
 
     void write_configs();
 };
