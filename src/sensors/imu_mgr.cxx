@@ -18,6 +18,7 @@ using std::ostringstream;
 using std::string;
 using std::vector;
 
+#include "comms/aura_messages.h"
 #include "comms/logging.hxx"
 #include "comms/remote_link.hxx"
 #include "include/globaldefs.h"
@@ -43,6 +44,7 @@ static double imu_last_time = -31557600.0; // default to t minus one year old
 
 static pyPropertyNode imu_node;
 static vector<pyPropertyNode> sections;
+static vector<pyPropertyNode> outputs;
 
 static int remote_link_skip = 0;
 static int logging_skip = 0;
@@ -76,6 +78,8 @@ void IMU_init() {
 	}
 	ostringstream output_path;
 	output_path << "/sensors/imu" << '[' << i << ']';
+        pyPropertyNode output_node = pyGetNode(output_path.str(), true);
+        outputs.push_back(output_node);
 	printf("imu: %d = %s\n", i, source.c_str());
 	if ( source == "null" ) {
 	    // do nothing
@@ -149,13 +153,26 @@ bool IMU_update() {
 	    }
 	
 	    if ( send_remote_link || send_logging ) {
-		uint8_t buf[256];
-		int size = packer->pack_imu( i, buf );
+                // generate the message
+                message_imu_v4_t imu;
+                imu.index = i;
+                imu.timestamp_sec = outputs[i].getDouble("timestamp");
+                imu.p_rad_sec = outputs[i].getDouble("p_rad_sec");
+                imu.q_rad_sec = outputs[i].getDouble("q_rad_sec");
+                imu.r_rad_sec = outputs[i].getDouble("r_rad_sec");
+                imu.ax_mps_sec = outputs[i].getDouble("ax_mps_sec");
+                imu.ay_mps_sec = outputs[i].getDouble("ay_mps_sec");
+                imu.az_mps_sec = outputs[i].getDouble("az_mps_sec");
+                imu.hx = outputs[i].getDouble("hx");
+                imu.hy = outputs[i].getDouble("hy");
+                imu.hz = outputs[i].getDouble("hz");
+                imu.temp_C = outputs[i].getDouble("temp_C");
+                imu.status = 0;
 		if ( send_remote_link ) {
-		    remote_link->send_message( buf, size );
+		    remote_link->send_message( imu.id, imu.pack(), imu.len );
 		}
 		if ( send_logging ) {
-		    logging->log_message( buf, size );
+		    logging->log_message( imu.id, imu.pack(), imu.len );
 		}
 	    }
 	}
