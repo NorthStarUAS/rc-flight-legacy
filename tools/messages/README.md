@@ -25,12 +25,6 @@ system to remain lean and focused.
 * example.cxx: An example C++ host program.
 * example.py: An example python host program.
 
-Because the system is designed to be lean, there is not a huge amount
-of validation and run time checks inserted into the code.  It is the
-responsibility of the developer/integrator to test the systems end to
-end and make sure there aren't any python errors or data conversion
-anomalies.
-
 ## Why is this important?
 
 * Hand crafted messaging system can be fragile, difficult to maintain,
