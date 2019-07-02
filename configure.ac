@@ -5,7 +5,7 @@ dnl Require at least automake 2.52
 AC_PREREQ(2.52)
 
 dnl Initialize the autoconf system (provide project name and version)
-AC_INIT([aura-core], [2.1])
+AC_INIT([aura-core], [2.2])
 
 dnl Sanity check of the distribution
 AC_CONFIG_SRCDIR([src/init/globals.hxx])
