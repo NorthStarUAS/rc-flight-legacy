@@ -3,6 +3,7 @@ import serial
 from props import getNode
 import props_json
 
+from comms import aura_messages
 import comms.events
 import comms.packer
 import comms.serial_parser
@@ -252,7 +253,7 @@ def read_link_command():
     
     pkt_id = parser.read(ser)
     if pkt_id == aura_messages.command_v1_id:
-        cmd = aura_messages.commman_v1(parser.payload)
+        cmd = aura_messages.command_v1(parser.payload)
         return cmd.sequence, cmd.message
     else:
         return -1, ''
@@ -264,14 +265,13 @@ last_sequence_num = -1
 def command():
     global last_sequence_num
     
-    sequence, command_bytes = read_link_command()
+    sequence, command = read_link_command()
     if sequence < 0:
         return False
     
     # ignore repeated commands (including roll over logic)
     if sequence != last_sequence_num:
 	# execute command
-        command = command_bytes.decode()
         comms.events.log( 'remote command',
                           "executed: (%d) %s" % (sequence, command) )
         execute_command( command )
