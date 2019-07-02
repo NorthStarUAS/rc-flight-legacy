@@ -24,6 +24,9 @@ system_health_v4_id = 19
 system_health_v5_id = 41
 payload_v2_id = 23
 payload_v3_id = 42
+event_v1_id = 27
+event_v2_id = 44
+command_v1_id = 28
 
 # Message: gps_v2
 # Id: 16
@@ -1390,4 +1393,94 @@ class payload_v3():
         (self.index,
          self.timestamp_sec,
          self.trigger_num) = struct.unpack(self._pack_string, msg)
+
+# Message: event_v1
+# Id: 27
+class event_v1():
+    id = 27
+    _pack_string = "<BdB"
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.timestamp_sec = 0.0
+        self.message = ""
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = struct.pack(self._pack_string,
+                          self.index,
+                          self.timestamp_sec,
+                          len(self.message))
+        msg += str.encode(self.message)
+        return msg
+
+    def unpack(self, msg):
+        base_len = struct.calcsize(self._pack_string)
+        extra = msg[base_len:]
+        msg = msg[:base_len]
+        (self.index,
+         self.timestamp_sec,
+         self.message_len) = struct.unpack(self._pack_string, msg)
+        self.message = extra[:self.message_len].decode()
+        extra = extra[self.message_len:]
+
+# Message: event_v2
+# Id: 44
+class event_v2():
+    id = 44
+    _pack_string = "<fB"
+
+    def __init__(self, msg=None):
+        # public fields
+        self.timestamp_sec = 0.0
+        self.message = ""
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = struct.pack(self._pack_string,
+                          self.timestamp_sec,
+                          len(self.message))
+        msg += str.encode(self.message)
+        return msg
+
+    def unpack(self, msg):
+        base_len = struct.calcsize(self._pack_string)
+        extra = msg[base_len:]
+        msg = msg[:base_len]
+        (self.timestamp_sec,
+         self.message_len) = struct.unpack(self._pack_string, msg)
+        self.message = extra[:self.message_len].decode()
+        extra = extra[self.message_len:]
+
+# Message: command_v1
+# Id: 28
+class command_v1():
+    id = 28
+    _pack_string = "<BB"
+
+    def __init__(self, msg=None):
+        # public fields
+        self.sequence = 0
+        self.message = ""
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = struct.pack(self._pack_string,
+                          self.sequence,
+                          len(self.message))
+        msg += str.encode(self.message)
+        return msg
+
+    def unpack(self, msg):
+        base_len = struct.calcsize(self._pack_string)
+        extra = msg[base_len:]
+        msg = msg[:base_len]
+        (self.sequence,
+         self.message_len) = struct.unpack(self._pack_string, msg)
+        self.message = extra[:self.message_len].decode()
+        extra = extra[self.message_len:]
 

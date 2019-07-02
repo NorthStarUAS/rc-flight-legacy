@@ -65,28 +65,6 @@ bool pyModuleLogging::close()
     return true;
 }
 
-void pyModuleLogging::log_message( uint8_t *buf, int size ) {
-    if (pModuleObj == NULL) {
-	printf("ERROR: import logging module failed\n");
-	return;
-    }
-    PyObject *pFuncLog = PyObject_GetAttrString(pModuleObj, "log_message_old");
-    if ( pFuncLog == NULL || ! PyCallable_Check(pFuncLog) ) {
-	if ( PyErr_Occurred() ) PyErr_Print();
-	printf("ERROR: cannot find function 'log_message()'\n");
-	return;
-    }
-    PyObject *pResult = PyObject_CallFunction(pFuncLog, (char *)"y#", buf, size);
-    if (pResult != NULL) {
-	Py_DECREF(pResult);
-	return;
-    } else {
-	PyErr_Print();
-	printf("ERROR: call failed\n");
-	return;
-    }
-}
-
 void pyModuleLogging::log_message( int id, uint8_t *buf, int len ) {
     if (pModuleObj == NULL) {
 	printf("ERROR: import logging module failed\n");

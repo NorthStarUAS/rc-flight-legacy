@@ -21,7 +21,6 @@ public:
     ~pyModuleRemoteLink() {}
 
     // bool open();
-    void send_message( uint8_t *buf, int size );
     void send_message( int id, uint8_t *buf, int len );
     bool command();
     bool flush_serial();

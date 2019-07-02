@@ -102,8 +102,10 @@ def parse_msg(id, buf):
         index = comms.packer.unpack_payload_v2(buf)
     elif id == aura_messages.payload_v3_id:
         index = comms.packer.unpack_payload_v3(buf)
-    elif id == EVENT_PACKET_V1:
+    elif id == aura_messages.event_v1_id:
         index = comms.packer.unpack_event_v1(buf)
+    elif id == aura_messages.event_v2_id:
+        index = comms.packer.unpack_event_v2(buf)
     else:
         print("Unknown packet id:", id)
         index = 0

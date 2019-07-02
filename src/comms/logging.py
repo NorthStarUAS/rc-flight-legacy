@@ -120,15 +120,6 @@ def close():
 def log_queue( data ):
     log_buffer.append(data)
 
-def log_message_old( buf ):
-    if enable_file:
-        log_queue( buf )
-
-    if enable_udp:
-        result = sock.sendto(buf, (udp_host, udp_port))
-        if result != len(buf):
-            print('error transmitting udp log packet')
-
 def log_message( pkt_id, payload ):
     msg = comms.serial_parser.wrap_packet(pkt_id, payload)
     

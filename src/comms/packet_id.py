@@ -6,6 +6,4 @@
 # changing or reusing numbers to maximize backwards compatibility with
 # older binary log files.
 
-EVENT_PACKET_V1 = 27
-COMMAND_PACKET_V1 = 28
 REMOTE_JOYSTICK_V1 = 29

@@ -43,7 +43,7 @@ def generate_path(id, index):
         category = 'health'
     elif id == aura_messages.payload_v2_id or id == aura_messages.payload_v3_id:
         category = 'payload'
-    elif id == EVENT_PACKET_V1:
+    elif id == aura_messages.event_v1_id or id == aura_messages.event_v2_id:
         category = 'event'
     else:
         print("Unknown packet id!", id, index)

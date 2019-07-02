@@ -79,24 +79,6 @@ def flush_serial():
 # append the request data to a fifo buffer if space available.  A
 # separate function will flush the data in even chunks to avoid
 # saturating the telemetry link.
-def send_message_old( data ):
-    global serial_buf
-    print("fixme: python: old send_message()")
-    if ser == None:
-        # remote serial link not available
-        return False
-        
-    if len(serial_buf) + len(data) <= max_serial_buffer:
-        serial_buf.extend(data)
-        return True
-    else:
-        if comms_node.getBool('display_on'):
-            print('remote link serial buffer overflow, size:', len(serial_buf), 'add:', len(data), 'limit:', max_serial_buffer)
-        return False
-
-# append the request data to a fifo buffer if space available.  A
-# separate function will flush the data in even chunks to avoid
-# saturating the telemetry link.
 def send_message( pkt_id, payload ):
     global serial_buf
     if ser == None:
@@ -187,8 +169,10 @@ def execute_command( command ):
         if value == '': value = 'undefined'
         # print tokens[0], '=', value
         return_msg = 'get: %s,%s' % (tokens[1], value)
-        buf = comms.packer.pack_event_bin(return_msg)
-        send_message_old(buf)
+        event = aura_messages.event_v2()
+        event.message = return_msg
+        buf = event.pack()
+        send_message(event.id, buf)
         comms.events.log('get', '%s,%s' % (tokens[1], value))
     elif tokens[0] == 'set' and len(tokens) >= 3:
         if tokens[1][0] == '/':

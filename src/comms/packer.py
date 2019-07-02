@@ -961,18 +961,8 @@ def pack_event_csv(index):
     return row, keys
     
 def unpack_event_v1(buf):
-    #print 'buf len:', len(buf)
-    # unpack without knowing full size
-    (index, timestamp, size) = struct.unpack("<BdB", buf[:10])
-    #print 'unpack header len:', struct.calcsize("<BdB")
-    #print 'expected size:', size
-    #print 'maybe the message:', buf[10:]
-    message = struct.unpack("%ds" % size, buf[10:])
-    # print('message:', timestamp, message[0])
-    
-    #result = struct.unpack(event_v1_fmt, buf)
-    #index = result[0]
-    m = re.match('get: (.*)$', message[0].decode())
+    event = aura_messages.event_v1(buf)
+    m = re.match('get: (.*)$', event.message)
     if m:
         (prop, value) = m.group(1).split(',')
         # print prop, value
@@ -984,11 +974,27 @@ def unpack_event_v1(buf):
         node = getNode(node_path, True)
         name = parts[-1]
         node.setString(name, value)
-    event_node.setFloat("timestamp", timestamp)
-    event_node.setString("message", message[0].decode())
+    event_node.setFloat("timestamp", event.timestamp_sec)
+    event_node.setString("message", event.message)
+    return event.index
 
-    #print 'end of unpack event'
-    return index
+def unpack_event_v2(buf):
+    event = aura_messages.event_v2(buf)
+    m = re.match('get: (.*)$', event.message)
+    if m:
+        (prop, value) = m.group(1).split(',')
+        # print prop, value
+        # absolute path
+        parts = prop.split('/')
+        node_path = '/'.join(parts[0:-1])
+        if node_path == '':
+            node_path = '/'
+        node = getNode(node_path, True)
+        name = parts[-1]
+        node.setString(name, value)
+    event_node.setFloat("timestamp", event.timestamp_sec)
+    event_node.setString("message", event.message)
+    return 0
 
 def pack_command_bin(sequence, message):
     if len(message) > 255:

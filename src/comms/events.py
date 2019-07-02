@@ -1,6 +1,7 @@
 from props import getNode
 import props_json
 
+from comms import aura_messages
 import comms.logging as logging
 import comms.packer as packer
 
@@ -17,6 +18,8 @@ def log(header="", message=""):
     event_string = '%s: %s' % (header, message)
     if comms_node.getBool('display_on'):
         print(event_string)
-    buf = packer.pack_event_bin(event_string)
-    logging.log_message_old(buf)
+    event = aura_messages.event_v2()
+    event.message = event_string
+    buf = event.pack()
+    logging.log_message(event.id, buf)
     return True

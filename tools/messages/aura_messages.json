@@ -454,6 +454,37 @@
                 { "type": "float", "name": "timestamp_sec" },
                 { "type": "uint16_t", "name": "trigger_num" }
             ]
+        },
+        {
+            "id": 27,
+            "name": "event_v1",
+            "desc": "event v1 message",
+            "date": "March 21, 2018",
+            "fields": [
+                { "type": "uint8_t", "name": "index" },
+                { "type": "double", "name": "timestamp_sec" },
+                { "type": "string", "name": "message" }
+            ]
+        },
+        {
+            "id": 44,
+            "name": "event_v2",
+            "desc": "event v2 message",
+            "date": "July 2, 2019",
+            "fields": [
+                { "type": "float", "name": "timestamp_sec" },
+                { "type": "string", "name": "message" }
+            ]
+        },
+        {
+            "id": 28,
+            "name": "command_v1",
+            "desc": "command v1 message",
+            "date": "March 21, 2018",
+            "fields": [
+                { "type": "uint8_t", "name": "sequence" },
+                { "type": "string", "name": "message" }
+            ]
         }
     ]
 }
