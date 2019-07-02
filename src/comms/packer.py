@@ -938,15 +938,6 @@ def unpack_payload_v3(buf):
     payload_node.setInt("trigger_num", payload.trigger_num)
     return payload.index
 
-def pack_event_bin(message):
-    global imu_timestamp
-
-    # support an index value, but for now it will always be zero
-    event_v1_fmt = '<BdB%ds' % len(message)
-    buf = struct.pack(event_v1_fmt, 0, imu_timestamp, len(message),
-                      str.encode(message))
-    return wrap_packet(EVENT_PACKET_V1, buf)
-
 def pack_event_dict(index):
     row = dict()
     row['timestamp'] = event_node.getFloat('timestamp')
@@ -995,19 +986,3 @@ def unpack_event_v2(buf):
     event_node.setFloat("timestamp", event.timestamp_sec)
     event_node.setString("message", event.message)
     return 0
-
-def pack_command_bin(sequence, message):
-    if len(message) > 255:
-        print("Error: command message too long, len =", len(message))
-        message = 'command too long'
-    # support an index value, but for now it will always be zero
-    command_v1_fmt = '<BB%ds' % len(message)
-    buf = struct.pack(command_v1_fmt, sequence & 0xFF, len(message), message)
-    return wrap_packet(COMMAND_PACKET_V1, buf)
-
-def unpack_command_v1(buf):
-    # unpack without knowing full size
-    (sequence, size) = struct.unpack("<BB", buf[:2])
-    message = struct.unpack("%ds" % size, buf[2:])
-    return sequence, message[0]
-

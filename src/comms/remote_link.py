@@ -251,9 +251,9 @@ def read_link_command():
         return -1, ''
     
     pkt_id = parser.read(ser)
-    if pkt_id == comms.packer.COMMAND_PACKET_V1:
-        seq, message = comms.packer.unpack_command_v1(parser.payload)
-        return seq, message
+    if pkt_id == aura_messages.command_v1_id:
+        cmd = aura_messages.commman_v1(parser.payload)
+        return cmd.sequence, cmd.message
     else:
         return -1, ''
 
