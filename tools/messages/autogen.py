@@ -33,8 +33,7 @@ type_code = { "double": 'd', "float": 'f',
 
 reserved_names = [ 'id', 'len', 'payload', '_buf', '_i', '_pack_string',
                    'pack', 'unpack' ]
-for name in type_code:
-    reserved_names.append(name)
+reserved_names += list(type_code.keys())
 
 basename, ext = os.path.splitext(args.input)
 
