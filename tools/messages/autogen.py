@@ -28,7 +28,7 @@ type_code = { "double": 'd', "float": 'f',
               "uint32_t": 'L', "int32_t": 'l',
               "uint16_t": 'H', "int16_t": 'h',
               "uint8_t": 'B', "int8_t": 'b',
-              "bool": 'B'
+              "bool": 'B', "string": 'B'
 }
 
 reserved_names = [ 'id', 'len', 'payload', '_buf', '_i', '_pack_string',
@@ -82,6 +82,7 @@ def gen_cpp_header():
         m = root.getChild("messages[%d]" % i)
         print("Processing:", m.getString("name"))
         # quick checks
+        has_dynamic_string = False
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
             name = f.getString("name")
@@ -96,7 +97,10 @@ def gen_cpp_header():
         result.append("    // public fields")
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
-            result.append("    %s %s;" % (f.getString("type"), f.getString("name")))
+            if f.getString("type") != "string":
+                result.append("    %s %s;" % (f.getString("type"), f.getString("name")))
+            else:
+                result.append("    // %s %s;  // not supported" % (f.getString("type"), f.getString("name")))
         result.append("")
 
         # generate private c packed struct
@@ -105,30 +109,46 @@ def gen_cpp_header():
         result.append("    struct {")
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
+            (name, index) = field_name_helper(f)
             if f.hasChild("pack_type"):
                 ptype = f.getString("pack_type")
+            elif f.getString("type") == "string":
+                ptype = "uint8_t"
             else:
                 ptype = f.getString("type")
-            result.append("        %s %s;" % (ptype, f.getString("name")))
+            line = "        %s %s" % (ptype, name)
+            if f.getString("type") == "string":
+                line += "_len"
+            if index:
+                line += "[%d]" % index
+            line += ";"
+            result.append(line)
         result.append("    } _buf;")
         result.append("    #pragma pack(pop)")
         result.append("")
 
         # generate built in constants
+        result.append("    // public info fields")
         result.append("    static const uint8_t id = %s;" % m.getString("id"))
-        result.append("    static const uint16_t len = sizeof(_buf);")
+        result.append("    uint16_t len = 0;")
         result.append("    uint8_t *payload = NULL;")
         result.append("")
         
         # generate pack code
         result.append("    uint8_t *pack() {")
+        result.append("        len = sizeof(_buf);")
         for j in range(m.getLen("fields")):
             line = "        ";
             f = m.getChild("fields[%d]" % j)
+            if f.getString("type") == "string":
+                # not supported yet
+                line += "// (not supported) "
             (name, index) = field_name_helper(f)
             if index:
                 line += "for (int _i=0; _i<%d; _i++) " % index
             line += "_buf.%s" % name
+            if f.getString("type") == "string":
+                line += "_len"
             if index:
                 line += "[_i]"
             line += " = "
@@ -149,6 +169,8 @@ def gen_cpp_header():
                 line += "%s" % name
                 if index:
                     line += "[_i]"
+                if f.getString("type") == "string":
+                    line += ".length()"
             line += ";"
             result.append(line)
         result.append("        payload = (uint8_t *)(&_buf);")
@@ -162,6 +184,8 @@ def gen_cpp_header():
         for j in range(m.getLen("fields")):
             line = "        ";
             f = m.getChild("fields[%d]" % j)
+            if f.getString("type") == "string":
+                line += "// (not supported) "
             (name, index) = field_name_helper(f)
             if index:
                 line += "for (int _i=0; _i<%d; _i++) " % index
@@ -204,6 +228,7 @@ def gen_python_module():
         print("Processing:", m.getString("name"))
         # generate python pack string and sanity check
         pack_string = "<"       # little endian byte order
+        has_dynamic_string = False
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
@@ -244,6 +269,7 @@ def gen_python_module():
                 line += "False"
             elif t == "string":
                 line += "\"\""
+                has_dynamic_string = True
             else:
                 line += "None"
             if index:
@@ -265,6 +291,8 @@ def gen_python_module():
                     line = "                          "
                     if f.hasChild("pack_scale"):
                         line += "int(round(self.%s[%d] * %s))" % (name, k, f.getString("pack_scale"))
+                    elif f.getString("type") == "string":
+                        line += "len(self.%s[%d])" % (name, k)
                     else:
                         line += "self.%s[%d]" % (name, k)
                     if j < count - 1 or k < index - 1:
@@ -276,6 +304,8 @@ def gen_python_module():
                 line = "                          "
                 if f.hasChild("pack_scale"):
                     line += "int(round(self.%s * %s))" % (name, f.getString("pack_scale"))
+                elif f.getString("type") == "string":
+                    line += "len(self.%s)" % (name)
                 else:
                     line += "self.%s" % f.getString("name")
                 if j < count - 1:
@@ -283,12 +313,32 @@ def gen_python_module():
                 else:
                     line += ")"
                 result.append(line)
-                
+        # append string data if needed
+        for j in range(count):
+            f = m.getChild("fields[%d]" % j)
+            (name, index) = field_name_helper(f)
+            if index:
+                for k in range(index):
+                    if f.getString("type") == "string":
+                        result.append("        msg += str.encode(self.%s[%d])" % (name, k))
+            else:
+                if f.getString("type") == "string":
+                    result.append("        msg += str.encode(self.%s)" % name)
+                        
         result.append("        return msg")
         result.append("")
 
         # generate unpack code
         result.append("    def unpack(self, msg):")
+        if has_dynamic_string:
+            result.append("        base_len = struct.calcsize(self._pack_string)")
+            result.append("        extra = msg[base_len:]")
+            result.append("        msg = msg[:base_len]")
+            for j in range(count):
+                f = m.getChild("fields[%d]" % j)
+                (name, index) = field_name_helper(f)
+                if index:
+                    result.append("        self.%s_len = [0] * %d" % (name, index))
         for j in range(count):
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
@@ -298,7 +348,10 @@ def gen_python_module():
                         line = "        ("
                     else:
                         line = "         "
-                    line += "self.%s[%d]" % (name, k)
+                    line += "self.%s" % name
+                    if f.getString("type") == "string":
+                        line += "_len"
+                    line += "[%d]" % k
                     if j < count - 1 or k < index - 1:
                         line += ","
                     else:
@@ -312,6 +365,8 @@ def gen_python_module():
                 else:
                     line = "         "
                 line += "self.%s" % name
+                if f.getString("type") == "string":
+                    line += "_len"
                 if j < count - 1:
                     line += ","
                 else:
@@ -331,12 +386,24 @@ def gen_python_module():
                 if f.hasChild("pack_scale"):
                     line = "        self.%s /= %s" % (name, f.getString("pack_scale"))
                     result.append(line)
+        if has_dynamic_string:
+            for j in range(count):
+                f = m.getChild("fields[%d]" % j)
+                (name, index) = field_name_helper(f)
+                if index:
+                    for k in range(index):
+                        if f.getString("type") == "string":
+                            result.append("        self.%s[%d] = extra[:self.%s_len[%d]].decode()" % (name, k, name, k))
+                            result.append("        extra = extra[self.%s_len[%d]:]" % (name, k))
+                else:
+                    if f.getString("type") == "string":
+                        result.append("        self.%s = extra[:self.%s_len].decode()" % (name, name))
+                        result.append("        extra = extra[self.%s_len:]" % name)
         result.append("")
 
     return result
 
-do_cpp = True
-if do_cpp:
+if True:
     print("Generating C++ header:")
     code = gen_cpp_header()
     f = open(basename + ".h", "w")
@@ -344,8 +411,7 @@ if do_cpp:
         f.write(line + "\n")
     f.close()
 
-do_python = True
-if do_python:
+if True:
     print("Generating Python3 code:")
     code = gen_python_module()
     f = open(basename + ".py", "w")

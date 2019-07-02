@@ -3,6 +3,7 @@ import struct
 # Message id constants
 simple_test_id = 0
 array_test_id = 1
+dynamic_string_test_id = 2
 gps_v4_id = 34
 
 # Message: simple_test
@@ -14,7 +15,7 @@ class simple_test():
     def __init__(self, msg=None):
         # public fields
         self.a = 0
-        # optional
+        # unpack if requested
         if msg: self.unpack(msg)
 
     def pack(self):
@@ -37,7 +38,7 @@ class array_test():
         self.flags = [0] * 4
         self.orientation = [0.0] * 9
         self.something = 0
-        # optional
+        # unpack if requested
         if msg: self.unpack(msg)
 
     def pack(self):
@@ -85,6 +86,63 @@ class array_test():
         self.orientation[7] /= 53.3
         self.orientation[8] /= 53.3
 
+# Message: dynamic_string_test
+# Id: 2
+class dynamic_string_test():
+    id = 2
+    _pack_string = "<dBHBBBBB"
+
+    def __init__(self, msg=None):
+        # public fields
+        self.time = 0.0
+        self.event = ""
+        self.counter = 0
+        self.args = [""] * 4
+        self.status = False
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = struct.pack(self._pack_string,
+                          self.time,
+                          len(self.event),
+                          self.counter,
+                          len(self.args[0]),
+                          len(self.args[1]),
+                          len(self.args[2]),
+                          len(self.args[3]),
+                          self.status)
+        msg += str.encode(self.event)
+        msg += str.encode(self.args[0])
+        msg += str.encode(self.args[1])
+        msg += str.encode(self.args[2])
+        msg += str.encode(self.args[3])
+        return msg
+
+    def unpack(self, msg):
+        base_len = struct.calcsize(self._pack_string)
+        extra = msg[base_len:]
+        msg = msg[:base_len]
+        self.args_len = [0] * 4
+        (self.time,
+         self.event_len,
+         self.counter,
+         self.args_len[0],
+         self.args_len[1],
+         self.args_len[2],
+         self.args_len[3],
+         self.status) = struct.unpack(self._pack_string, msg)
+        self.event = extra[:self.event_len].decode()
+        extra = extra[self.event_len:]
+        self.args[0] = extra[:self.args_len[0]].decode()
+        extra = extra[self.args_len[0]:]
+        self.args[1] = extra[:self.args_len[1]].decode()
+        extra = extra[self.args_len[1]:]
+        self.args[2] = extra[:self.args_len[2]].decode()
+        extra = extra[self.args_len[2]:]
+        self.args[3] = extra[:self.args_len[3]].decode()
+        extra = extra[self.args_len[3]:]
+
 # Message: gps_v4
 # Id: 34
 class gps_v4():
@@ -107,7 +165,7 @@ class gps_v4():
         self.vert_accuracy_m = 0.0
         self.pdop = 0.0
         self.fix_type = 0
-        # optional
+        # unpack if requested
         if msg: self.unpack(msg)
 
     def pack(self):

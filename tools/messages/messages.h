@@ -12,9 +12,10 @@ static inline uint32_t uintround(float f) {
 }
 
 // Message id constants
-const uint8_t message_id_simple_test = 0;
-const uint8_t message_id_array_test = 1;
-const uint8_t message_id_gps_v4 = 34;
+const uint8_t message_simple_test_id = 0;
+const uint8_t message_array_test_id = 1;
+const uint8_t message_dynamic_string_test_id = 2;
+const uint8_t message_gps_v4_id = 34;
 
 // Message: simple_test (id: 0)
 struct message_simple_test_t {
@@ -28,12 +29,16 @@ struct message_simple_test_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 0;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.a = a;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -60,15 +65,19 @@ struct message_array_test_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 1;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.time = time;
         for (int _i=0; _i<4; _i++) _buf.flags[_i] = flags[_i];
         for (int _i=0; _i<9; _i++) _buf.orientation[_i] = intround(orientation[_i] * 53.3);
         _buf.something = something;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {
@@ -77,6 +86,52 @@ struct message_array_test_t {
         for (int _i=0; _i<4; _i++) flags[_i] = _buf.flags[_i];
         for (int _i=0; _i<9; _i++) orientation[_i] = _buf.orientation[_i] / (float)53.3;
         something = _buf.something;
+    }
+};
+
+// Message: dynamic_string_test (id: 2)
+struct message_dynamic_string_test_t {
+    // public fields
+    double time;
+    // string event;  // not supported
+    uint16_t counter;
+    // string args[4];  // not supported
+    bool status;
+
+    // internal structure for packing
+    #pragma pack(push, 1)
+    struct {
+        double time;
+        uint8_t event_len;
+        uint16_t counter;
+        uint8_t args_len[4];
+        bool status;
+    } _buf;
+    #pragma pack(pop)
+
+    // public info fields
+    static const uint8_t id = 2;
+    uint16_t len = 0;
+    uint8_t *payload = NULL;
+
+    uint8_t *pack() {
+        len = sizeof(_buf);
+        _buf.time = time;
+        // (not supported) _buf.event_len = event.length();
+        _buf.counter = counter;
+        // (not supported) for (int _i=0; _i<4; _i++) _buf.args_len[_i] = args[_i].length();
+        _buf.status = status;
+        payload = (uint8_t *)(&_buf);
+        return payload;
+    }
+
+    void unpack(uint8_t *message) {
+        memcpy(&_buf, message, len);
+        time = _buf.time;
+        // (not supported) event = _buf.event;
+        counter = _buf.counter;
+        // (not supported) for (int _i=0; _i<4; _i++) args[_i] = _buf.args[_i];
+        status = _buf.status;
     }
 };
 
@@ -118,10 +173,13 @@ struct message_gps_v4_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 34;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
+    uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.time_sec = time_sec;
         _buf.latitude_deg = latitude_deg;
@@ -136,7 +194,8 @@ struct message_gps_v4_t {
         _buf.vert_accuracy_m = uintround(vert_accuracy_m * 100);
         _buf.pdop = uintround(pdop * 100);
         _buf.fix_type = fix_type;
-        return (uint8_t *)(&_buf);
+        payload = (uint8_t *)(&_buf);
+        return payload;
     }
 
     void unpack(uint8_t *message) {

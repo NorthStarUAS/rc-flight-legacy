@@ -18,6 +18,17 @@
             ]
         },
         {
+            "id": 2,
+            "name": "dynamic_string_test",
+            "fields": [
+                { "type": "double", "name": "time" },
+                { "type": "string", "name": "event" },
+                { "type": "uint16_t", "name": "counter" },
+                { "type": "string", "name": "args[4]" },
+                { "type": "bool", "name": "status" }
+            ]
+        },
+          {
             "id": 34,
             "name": "gps_v4",
             "desc": "gps message",

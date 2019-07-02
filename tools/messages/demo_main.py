@@ -33,7 +33,6 @@ print(gps_recv.__dict__)
 gps_recv = messages.gps_v4(msg)
 print(gps_recv.__dict__)
 
-
 # array test
 at = messages.array_test()
 at.time = 14.5
@@ -46,3 +45,18 @@ msg = at.pack()
 at_recv = messages.array_test()
 at_recv.unpack(msg)
 print(at_recv.__dict__)
+
+# variable length string test
+vs = messages.dynamic_string_test()
+vs.time = 42.987654321
+vs.event = "hello, this is a test"
+vs.counter = 4567
+vs.args[0] = "a1"
+vs.args[1] = "b2"
+vs.args[2] = "c3"
+vs.args[3] = "d4"
+msg = vs.pack()
+print("len(msg):", len(msg))
+vs_recv = messages.dynamic_string_test()
+vs_recv.unpack(msg)
+print("vs_recv:", vs_recv.__dict__)
