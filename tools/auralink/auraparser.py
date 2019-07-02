@@ -3,7 +3,6 @@ import sys
 
 sys.path.append("../src")
 from comms import aura_messages
-from comms.packet_id import *
 import comms.packer
 import comms.serial_parser
 
