@@ -6,7 +6,7 @@ import sys
 sys.path.append("../../src")
 from comms import aura_messages
 import comms.packer
-import comms.serialparser
+import comms.serial_parser
 
 filter_node = getNode('/filters/filter', True)
 remote_link_node = getNode('/comms/remote_link', True)
@@ -77,7 +77,7 @@ def update(serial):
 
 def add(command):
     print('command queue:', command)
-    cmd_queue.append(str.encode(command))
+    cmd_queue.append(command)
 
 def cmd_queue_size():
     return len(cmd_queue)
