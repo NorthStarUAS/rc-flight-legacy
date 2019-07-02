@@ -8,7 +8,6 @@ import socket
 from props import getNode
 import props_json
 
-from comms.packet_id import *
 import comms.serial_parser
 
 # global variables for data file logging

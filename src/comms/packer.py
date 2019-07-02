@@ -3,7 +3,6 @@ import struct
 
 from props import getNode
 
-from comms.packet_id import *
 from comms import aura_messages
 
 # FIXME: we are hard coding status flag to zero in many places which
