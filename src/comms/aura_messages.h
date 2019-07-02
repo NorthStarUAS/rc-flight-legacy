@@ -35,6 +35,9 @@ const uint8_t message_system_health_v4_id = 19;
 const uint8_t message_system_health_v5_id = 41;
 const uint8_t message_payload_v2_id = 23;
 const uint8_t message_payload_v3_id = 42;
+const uint8_t message_event_v1_id = 27;
+const uint8_t message_event_v2_id = 44;
+const uint8_t message_command_v1_id = 28;
 
 // Message: gps_v2 (id: 16)
 struct message_gps_v2_t {
@@ -68,11 +71,13 @@ struct message_gps_v2_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 16;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.latitude_deg = latitude_deg;
@@ -142,11 +147,13 @@ struct message_gps_v3_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 26;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.latitude_deg = latitude_deg;
@@ -222,11 +229,13 @@ struct message_gps_v4_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 34;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.latitude_deg = latitude_deg;
@@ -300,11 +309,13 @@ struct message_imu_v3_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 17;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.p_rad_sec = p_rad_sec;
@@ -376,11 +387,13 @@ struct message_imu_v4_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 35;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.p_rad_sec = p_rad_sec;
@@ -450,11 +463,13 @@ struct message_airdata_v5_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 18;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.pressure_mbar = uintround(pressure_mbar * 10);
@@ -522,11 +537,13 @@ struct message_airdata_v6_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 40;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.pressure_mbar = uintround(pressure_mbar * 10);
@@ -596,11 +613,13 @@ struct message_airdata_v7_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 43;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.pressure_mbar = uintround(pressure_mbar * 10);
@@ -672,11 +691,13 @@ struct message_filter_v2_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 22;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.latitude_deg = latitude_deg;
@@ -760,11 +781,13 @@ struct message_filter_v3_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 31;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.latitude_deg = latitude_deg;
@@ -860,11 +883,13 @@ struct message_filter_v4_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 36;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.latitude_deg = latitude_deg;
@@ -944,11 +969,13 @@ struct message_actuator_v2_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 21;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.aileron = intround(aileron * 20000);
@@ -1012,11 +1039,13 @@ struct message_actuator_v3_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 37;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.aileron = intround(aileron * 20000);
@@ -1066,11 +1095,13 @@ struct message_pilot_v2_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 20;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         for (int _i=0; _i<8; _i++) _buf.channel[_i] = intround(channel[_i] * 20000);
@@ -1106,11 +1137,13 @@ struct message_pilot_v3_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 38;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         for (int _i=0; _i<8; _i++) _buf.channel[_i] = intround(channel[_i] * 20000);
@@ -1168,11 +1201,13 @@ struct message_ap_status_v4_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 30;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.groundtrack_deg = intround(groundtrack_deg * 10);
@@ -1254,11 +1289,13 @@ struct message_ap_status_v5_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 32;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.flags = flags;
@@ -1346,11 +1383,13 @@ struct message_ap_status_v6_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 33;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.flags = flags;
@@ -1442,11 +1481,13 @@ struct message_ap_status_v7_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 39;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.flags = flags;
@@ -1518,11 +1559,13 @@ struct message_system_health_v4_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 19;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.system_load_avg = uintround(system_load_avg * 100);
@@ -1574,11 +1617,13 @@ struct message_system_health_v5_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 41;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.system_load_avg = uintround(system_load_avg * 100);
@@ -1620,11 +1665,13 @@ struct message_payload_v2_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 23;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.trigger_num = trigger_num;
@@ -1656,11 +1703,13 @@ struct message_payload_v3_t {
     } _buf;
     #pragma pack(pop)
 
+    // public info fields
     static const uint8_t id = 42;
-    static const uint16_t len = sizeof(_buf);
+    uint16_t len = 0;
     uint8_t *payload = NULL;
 
     uint8_t *pack() {
+        len = sizeof(_buf);
         _buf.index = index;
         _buf.timestamp_sec = timestamp_sec;
         _buf.trigger_num = trigger_num;
@@ -1673,6 +1722,112 @@ struct message_payload_v3_t {
         index = _buf.index;
         timestamp_sec = _buf.timestamp_sec;
         trigger_num = _buf.trigger_num;
+    }
+};
+
+// Message: event_v1 (id: 27)
+struct message_event_v1_t {
+    // public fields
+    uint8_t index;
+    double timestamp_sec;
+    // string message;  // not supported
+
+    // internal structure for packing
+    #pragma pack(push, 1)
+    struct {
+        uint8_t index;
+        double timestamp_sec;
+        uint8_t message_len;
+    } _buf;
+    #pragma pack(pop)
+
+    // public info fields
+    static const uint8_t id = 27;
+    uint16_t len = 0;
+    uint8_t *payload = NULL;
+
+    uint8_t *pack() {
+        len = sizeof(_buf);
+        _buf.index = index;
+        _buf.timestamp_sec = timestamp_sec;
+        // (not supported) _buf.message_len = message.length();
+        payload = (uint8_t *)(&_buf);
+        return payload;
+    }
+
+    void unpack(uint8_t *message) {
+        memcpy(&_buf, message, len);
+        index = _buf.index;
+        timestamp_sec = _buf.timestamp_sec;
+        // (not supported) message = _buf.message;
+    }
+};
+
+// Message: event_v2 (id: 44)
+struct message_event_v2_t {
+    // public fields
+    float timestamp_sec;
+    // string message;  // not supported
+
+    // internal structure for packing
+    #pragma pack(push, 1)
+    struct {
+        float timestamp_sec;
+        uint8_t message_len;
+    } _buf;
+    #pragma pack(pop)
+
+    // public info fields
+    static const uint8_t id = 44;
+    uint16_t len = 0;
+    uint8_t *payload = NULL;
+
+    uint8_t *pack() {
+        len = sizeof(_buf);
+        _buf.timestamp_sec = timestamp_sec;
+        // (not supported) _buf.message_len = message.length();
+        payload = (uint8_t *)(&_buf);
+        return payload;
+    }
+
+    void unpack(uint8_t *message) {
+        memcpy(&_buf, message, len);
+        timestamp_sec = _buf.timestamp_sec;
+        // (not supported) message = _buf.message;
+    }
+};
+
+// Message: command_v1 (id: 28)
+struct message_command_v1_t {
+    // public fields
+    uint8_t sequence;
+    // string message;  // not supported
+
+    // internal structure for packing
+    #pragma pack(push, 1)
+    struct {
+        uint8_t sequence;
+        uint8_t message_len;
+    } _buf;
+    #pragma pack(pop)
+
+    // public info fields
+    static const uint8_t id = 28;
+    uint16_t len = 0;
+    uint8_t *payload = NULL;
+
+    uint8_t *pack() {
+        len = sizeof(_buf);
+        _buf.sequence = sequence;
+        // (not supported) _buf.message_len = message.length();
+        payload = (uint8_t *)(&_buf);
+        return payload;
+    }
+
+    void unpack(uint8_t *message) {
+        memcpy(&_buf, message, len);
+        sequence = _buf.sequence;
+        // (not supported) message = _buf.message;
     }
 };
 
