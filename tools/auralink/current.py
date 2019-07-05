@@ -91,6 +91,10 @@ def compute_derived_data():
 
     # estimate distance traveled from filter velocity and dt
     if in_flight:
+        if not status_node.getBool('onboard_flight_time'):
+            ft = status_node.getFloat('flight_timer')
+            ft += dt
+            status_node.setFloat('flight_timer', ft)
         od = status_node.getFloat('flight_odometer')
         od += vel_ms * dt
         status_node.setFloat('flight_odometer', od)
