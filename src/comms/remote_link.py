@@ -254,7 +254,7 @@ def read_link_command():
     pkt_id = parser.read(ser)
     if pkt_id == aura_messages.command_v1_id:
         cmd = aura_messages.command_v1(parser.payload)
-        return cmd.sequence, cmd.message
+        return cmd.sequence_num, cmd.message
     else:
         return -1, ''
 
@@ -265,20 +265,20 @@ last_sequence_num = -1
 def command():
     global last_sequence_num
     
-    sequence, command = read_link_command()
+    sequence_num, command = read_link_command()
     if sequence < 0:
         return False
     
     # ignore repeated commands (including roll over logic)
-    if sequence != last_sequence_num:
+    if sequence_num != last_sequence_num:
 	# execute command
         comms.events.log( 'remote command',
-                          "executed: (%d) %s" % (sequence, command) )
+                          "executed: (%d) %s" % (sequence_num, command) )
         execute_command( command )
 
         # register that we've received this message correctly
-        remote_link_node.setInt( 'sequence_num', sequence )
-        last_sequence_num = sequence
+        remote_link_node.setInt( 'sequence_num', sequence_num )
+        last_sequence_num = sequence_num
         timestamp = status_node.getFloat('frame_time')
         remote_link_node.setFloat( 'last_message_sec', timestamp )
 
