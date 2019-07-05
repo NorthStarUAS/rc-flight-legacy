@@ -417,47 +417,55 @@ static bool wait_for_ack(uint8_t id) {
 
 
 static bool write_config_master() {
-    serial.write_packet( config_master.id, config_master.pack(), config_master.len );
+    config_master.pack()
+    serial.write_packet( config_master.id, config_master.payload, config_master.len );
     return wait_for_ack(config_master.id);
 }
 
 static bool write_config_imu() {
-    serial.write_packet( config_imu.id, config_imu.pack(), config_imu.len );
+    config_imu.pack();
+    serial.write_packet( config_imu.id, config_imu.payload, config_imu.len );
     return wait_for_ack(config_imu.id);
 }
 
 static bool write_config_actuators() {
-    serial.write_packet( config_actuators.id, config_actuators.pack(),
+    config_actuators.pack();
+    serial.write_packet( config_actuators.id, config_actuators.payload,
                   config_actuators.len );
     return wait_for_ack(config_actuators.id);
 }
 
 static bool write_config_airdata() {
-    serial.write_packet( config_airdata.id, config_airdata.pack(),
+    config_airdata.pack();
+    serial.write_packet( config_airdata.id, config_airdata.payload,
                   config_airdata.len );
     return wait_for_ack(config_airdata.id);
 }
 
 static bool write_config_led() {
-    serial.write_packet( config_led.id, config_led.pack(), config_led.len );
+    config_led.pack();
+    serial.write_packet( config_led.id, config_led.payload, config_led.len );
     return wait_for_ack(config_led.id);
 }
 
 static bool write_config_power() {
-    serial.write_packet( config_power.id, config_power.pack(),
+    config_power.pack();
+    serial.write_packet( config_power.id, config_power.payload,
                   config_power.len );
     return wait_for_ack(config_power.id);
 }
 
 static bool write_command_zero_gyros() {
     message_command_zero_gyros_t cmd;
-    serial.write_packet( cmd.id, cmd.pack(), cmd.len );
+    cmd.pack();
+    serial.write_packet( cmd.id, cmd.payload, cmd.len );
     return wait_for_ack(cmd.id);
 }
 
 static bool write_command_cycle_inceptors() {
     message_command_cycle_inceptors_t cmd;
-    serial.write_packet( cmd.id, cmd.pack(), cmd.len );
+    cmd.pack();
+    serial.write_packet( cmd.id, cmd.payload, cmd.len );
     return wait_for_ack(cmd.id);
 }
 
@@ -1057,7 +1065,8 @@ static bool Aura3_act_write() {
 	act.channel[3] = act_node.getDouble("rudder");
 	act.channel[4] = act_node.getDouble("flaps");
 	act.channel[5] = act_node.getDouble("gear");
-        serial.write_packet( act.id, act.pack(), act.len );
+        act.pack();
+        serial.write_packet( act.id, act.payload, act.len );
         return true;
     } else {
         return false;
