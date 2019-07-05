@@ -222,8 +222,8 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 
     if ( pkt_id == message_command_ack_id ) {
         message_command_ack_t ack;
+        ack.unpack(payload, pkt_len);
 	if ( pkt_len == ack.len ) {
-            ack.unpack(payload, ack.len);
             last_ack_id = ack.command_id;
 	    last_ack_subid = ack.subcommand_id;
             if ( display_on ) {
@@ -235,8 +235,8 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	}
     } else if ( pkt_id == message_pilot_id ) {
         message_pilot_t pilot;
+        pilot.unpack(payload, pkt_len);
 	if ( pkt_len == pilot.len ) {
-            pilot.unpack(payload, pilot.len);
 	    pilot_in_timestamp = get_Time();
 	    for ( int i = 0; i < SBUS_CHANNELS; i++ ) {
 		pilot_input[i] = pilot.channel[i];
@@ -265,8 +265,8 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	}
     } else if ( pkt_id == message_imu_raw_id ) {
         message_imu_raw_t imu;
+        imu.unpack(payload, pkt_len);
 	if ( pkt_len == imu.len ) {
-            imu.unpack(payload, imu.len);
 	    imu_timestamp = get_Time();
 	    imu_micros = imu.micros;
 	    //printf("%d\n", imu_micros);
@@ -296,9 +296,9 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	}
     } else if ( pkt_id == message_aura_nav_pvt_id ) {
+        nav_pvt.unpack(payload, pkt_len);
 	if ( pkt_len == nav_pvt.len ) {
 	    nav_pvt_timestamp = get_Time();
-            nav_pvt.unpack(payload, nav_pvt.len);
 	    gps_packet_counter++;
 	    aura3_node.setLong( "gps_packet_count", gps_packet_counter );
 	    new_data = true;
@@ -309,9 +309,8 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	}
     } else if ( pkt_id == message_airdata_id ) {
+        airdata.unpack(payload, pkt_len);
 	if ( pkt_len == airdata.len ) {
-            airdata.unpack(payload, airdata.len);
-
 	    // if ( display_on ) {
 	    // 	printf("airdata %.3f %.2f %.2f\n", airdata.timestamp,
 	    // 		airdata.temp_C, airdata.diff_pres_pa);
@@ -328,8 +327,8 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	}
     } else if ( pkt_id == message_power_id ) {
         message_power_t power;
+        power.unpack(payload, pkt_len);
 	if ( pkt_len == power.len ) {
-            power.unpack(payload, power.len);
 
             // we anticipate a 0.01 sec dt value
             int_main_vcc_filt.update((float)power.int_main_v, 0.01);
@@ -353,16 +352,12 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
     } else if ( pkt_id == message_status_id ) {
 	static bool first_time = true;
         message_status_t msg;
+        msg.unpack(payload, pkt_len);
 	if ( pkt_len == msg.len ) {
-            msg.unpack(payload, msg.len);
-
-#if 0
-	    if ( display_on ) {
-		printf("info %d %d %d %d\n", serial_num, firmware_rev,
-		       master_hz, baud_rate);
-	    }
-#endif
-		      
+	    // if ( display_on ) {
+            //  printf("info %d %d %d %d\n", serial_num, firmware_rev,
+            //         master_hz, baud_rate);
+	    // }
 	    aura3_node.setLong( "serial_number", msg.serial_number );
 	    aura3_node.setLong( "firmware_rev", msg.firmware_rev );
 	    aura3_node.setLong( "master_hz", msg.master_hz );
@@ -417,7 +412,7 @@ static bool wait_for_ack(uint8_t id) {
 
 
 static bool write_config_master() {
-    config_master.pack()
+    config_master.pack();
     serial.write_packet( config_master.id, config_master.payload, config_master.len );
     return wait_for_ack(config_master.id);
 }
