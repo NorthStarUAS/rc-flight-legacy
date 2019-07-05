@@ -445,7 +445,8 @@ def unpack_filter_v2(buf):
     node.setFloat("roll_deg", nav.roll_deg)
     node.setFloat("pitch_deg", nav.pitch_deg)
     node.setFloat("heading_deg", nav.yaw_deg)
-    remote_link_node.setInt("sequence_num", nav.sequence_num)
+    if nav.sequence_num >= 1:
+        remote_link_node.setInt("sequence_num", nav.sequence_num)
     node.setInt("status", nav.status)
 
     return nav.index
@@ -475,7 +476,8 @@ def unpack_filter_v3(buf):
     node.setFloat("ax_bias", nav.ax_bias)
     node.setFloat("ay_bias", nav.ay_bias)
     node.setFloat("az_bias", nav.az_bias)
-    remote_link_node.setInt("sequence_num", nav.sequence_num)
+    if nav.sequence_num >= 1:
+        remote_link_node.setInt("sequence_num", nav.sequence_num)
     node.setInt("status", nav.status)
 
     return nav.index
@@ -505,7 +507,8 @@ def unpack_filter_v4(buf):
     node.setFloat("ax_bias", nav.ax_bias)
     node.setFloat("ay_bias", nav.ay_bias)
     node.setFloat("az_bias", nav.az_bias)
-    remote_link_node.setInt("sequence_num", nav.sequence_num)
+    if nav.sequence_num >= 1:
+        remote_link_node.setInt("sequence_num", nav.sequence_num)
     node.setInt("status", nav.status)
 
     return nav.index
@@ -715,7 +718,8 @@ def unpack_ap_status_v4(buf):
         home_node.setFloat("longitude_deg", wp_lon)
         home_node.setFloat("latitude_deg", wp_lat)
     active_node.setInt("route_size", route_size)
-    remote_link_node.setInt("sequence_num", result[14])
+    if result[14] >= 1:
+        remote_link_node.setInt("sequence_num", result[14])
 
     return index
 
@@ -752,7 +756,8 @@ def unpack_ap_status_v5(buf):
         home_node.setFloat("longitude_deg", wp_lon)
         home_node.setFloat("latitude_deg", wp_lat)
     active_node.setInt("route_size", route_size)
-    remote_link_node.setInt("sequence_num", result[15])
+    if result[15] >= 1:
+        remote_link_node.setInt("sequence_num", result[15])
 
     return index
 
@@ -807,7 +812,8 @@ def unpack_ap_status_v6(buf):
         task_node.setString("current_task_id", "unknown");
                 
     active_node.setInt("route_size", route_size)
-    remote_link_node.setInt("sequence_num", result[17])
+    if result[17] >= 1:
+        remote_link_node.setInt("sequence_num", result[17])
 
     return index
 
@@ -862,7 +868,8 @@ def unpack_ap_status_v7(buf):
         task_node.setString("current_task_id", "unknown");
                 
     active_node.setInt("route_size", route_size)
-    remote_link_node.setInt("sequence_num", ap.sequence_num)
+    if ap.sequence_num >= 1:
+        remote_link_node.setInt("sequence_num", ap.sequence_num)
 
     return index
 
