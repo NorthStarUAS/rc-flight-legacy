@@ -70,18 +70,37 @@ def gen_cpp_header():
     result.append("}")
     result.append("")
 
-    # generate messaging constants
+    # generate messaging constants (and quick checks)
+    has_dynamic_string = False
     result.append("// Message id constants")
     for i in range(root.getLen("messages")):
         m = root.getChild("messages[%d]" % i)
         result.append("const uint8_t %s_%s_id = %s;" % (base, m.getString("name"), m.getString("id")))
+        # quick checks
+        for j in range(m.getLen("fields")):
+            f = m.getChild("fields[%d]" % j)
+            name = f.getString("name")
+            if name in reserved_names:
+                print("Error: '%s' is reserved and cannot be used as a field name." % name)
+                print("Aborting.")
+                quit()
+            if f.getString("type") == "string":
+                has_dynamic_string = True
     result.append("")
+
+    result.append("// max of one byte used to store message len")
+    result.append("static const uint8_t message_max_len = 255;")
+    result.append("");
     
+    if has_dynamic_string:
+        result.append("#include <string>")
+        result.append("using std::string;")
+        result.append("")
+        
     for i in range(root.getLen("messages")):
         m = root.getChild("messages[%d]" % i)
         print("Processing:", m.getString("name"))
         # quick checks
-        has_dynamic_string = False
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
             name = f.getString("name")
@@ -96,17 +115,16 @@ def gen_cpp_header():
         result.append("    // public fields")
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
-            if f.getString("type") != "string":
-                result.append("    %s %s;" % (f.getString("type"), f.getString("name")))
-            else:
-                result.append("    // %s %s;  // not supported" % (f.getString("type"), f.getString("name")))
+            result.append("    %s %s;" % (f.getString("type"), f.getString("name")))
         result.append("")
 
         # generate private c packed struct
         result.append("    // internal structure for packing")
+        result.append("    uint8_t payload[message_max_len];")
         result.append("    #pragma pack(push, 1)")
-        result.append("    struct {")
-        for j in range(m.getLen("fields")):
+        result.append("    struct _compact_t {")
+        count = m.getLen("fields")
+        for j in range(count):
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
             if f.hasChild("pack_type"):
@@ -122,7 +140,7 @@ def gen_cpp_header():
                 line += "[%d]" % index
             line += ";"
             result.append(line)
-        result.append("    } _buf;")
+        result.append("    };")
         result.append("    #pragma pack(pop)")
         result.append("")
 
@@ -130,22 +148,39 @@ def gen_cpp_header():
         result.append("    // public info fields")
         result.append("    static const uint8_t id = %s;" % m.getString("id"))
         result.append("    uint16_t len = 0;")
-        result.append("    uint8_t *payload = NULL;")
         result.append("")
         
         # generate pack code
-        result.append("    uint8_t *pack() {")
-        result.append("        len = sizeof(_buf);")
-        for j in range(m.getLen("fields")):
+        result.append("    bool pack() {")
+        result.append("        len = sizeof(_compact_t);")
+        
+        # it's c, so we have to add some attempt at a size sanity check
+        result.append("        // size sanity check")
+        result.append("        int size = len;")
+        for j in range(count):
+            f = m.getChild("fields[%d]" % j)
+            (name, index) = field_name_helper(f)
+            if index:
+                for k in range(index):
+                    if f.getString("type") == "string":
+                        result.append("        size += %s[%d].length();" % (name, k));
+            else:
+                if f.getString("type") == "string":
+                    result.append("        size += %s.length();" % name)
+        result.append("        if ( size > message_max_len ) {")
+        result.append("            return false;")
+        result.append("        }")
+
+        # copy values
+        result.append("        // copy values")
+        result.append("        _compact_t *_buf = (_compact_t *)payload;")
+        for j in range(count):
             line = "        ";
             f = m.getChild("fields[%d]" % j)
-            if f.getString("type") == "string":
-                # not supported yet
-                line += "// (not supported) "
             (name, index) = field_name_helper(f)
             if index:
                 line += "for (int _i=0; _i<%d; _i++) " % index
-            line += "_buf.%s" % name
+            line += "_buf->%s" % name
             if f.getString("type") == "string":
                 line += "_len"
             if index:
@@ -172,38 +207,68 @@ def gen_cpp_header():
                     line += ".length()"
             line += ";"
             result.append(line)
-        result.append("        payload = (uint8_t *)(&_buf);")
-        result.append("        return payload;")
+        # append string data if needed
+        for j in range(count):
+            f = m.getChild("fields[%d]" % j)
+            (name, index) = field_name_helper(f)
+            if index:
+                for k in range(index):
+                    if f.getString("type") == "string":
+                        result.append("        memcpy(&(payload[len]), %s[%d].c_str(), %s[%d].length());" % (name, k, name, k))
+                        result.append("        len += %s[%d].length();" % (name, k));
+            else:
+                if f.getString("type") == "string":
+                    result.append("        memcpy(&(payload[len]), %s.c_str(), %s.length());" % (name, name))
+                    result.append("        len += %s.length();" % name)
+        result.append("        return true;")
         result.append("    }")
         result.append("")
 
         # generate unpack code
-        result.append("    void unpack(uint8_t *message) {")
-        result.append("        memcpy(&_buf, message, len);")
-        for j in range(m.getLen("fields")):
+        result.append("    bool unpack(uint8_t *external_message, int message_size) {")
+        result.append("        if ( message_size > message_max_len ) {")
+        result.append("            return false;")
+        result.append("        }")
+        result.append("        memcpy(payload, external_message, message_size);")
+        result.append("        _compact_t *_buf = (_compact_t *)payload;");
+        result.append("        len = sizeof(_compact_t);")
+        for j in range(count):
             line = "        ";
             f = m.getChild("fields[%d]" % j)
-            if f.getString("type") == "string":
-                line += "// (not supported) "
+            if f.getString("type") != "string":
+                (name, index) = field_name_helper(f)
+                if index:
+                    line += "for (int _i=0; _i<%d; _i++) " % index
+                line += name
+                if index:
+                    line += "[_i]"
+                line += " = "
+                if f.hasChild("pack_scale"):
+                    line += "_buf->%s" % name
+                    if index:
+                        line += "[_i]"
+                    line += " / (float)%s" % f.getString("pack_scale")
+                    ptype = f.getString("pack_type")
+                else:
+                    line += "_buf->%s" % name
+                    if index:
+                        line += "[_i]"
+                line += ";"
+                result.append(line)
+        # unpack string data if needed
+        for j in range(count):
+            f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
             if index:
-                line += "for (int _i=0; _i<%d; _i++) " % index
-            line += name
-            if index:
-                line += "[_i]"
-            line += " = "
-            if f.hasChild("pack_scale"):
-                line += "_buf.%s" % name
-                if index:
-                    line += "[_i]"
-                line += " / (float)%s" % f.getString("pack_scale")
-                ptype = f.getString("pack_type")
+                for k in range(index):
+                    if f.getString("type") == "string":
+                        result.append("        %s[%d] = string((char *)&(payload[len]), _buf->%s_len[%d]);" % (name, k, name, k))
+                        result.append("        len += _buf->%s_len[%d];" % (name, k))
             else:
-                line += "_buf.%s" % name
-                if index:
-                    line += "[_i]"
-            line += ";"
-            result.append(line)
+                if f.getString("type") == "string":
+                    result.append("        %s = string((char *)&(payload[len]), _buf->%s_len);" % (name, name))
+                    result.append("        len += _buf->%s_len;" % name)
+        result.append("        return true;")
         result.append("    }")
         result.append("};")
         result.append("")
@@ -385,19 +450,19 @@ def gen_python_module():
                 if f.hasChild("pack_scale"):
                     line = "        self.%s /= %s" % (name, f.getString("pack_scale"))
                     result.append(line)
-        if has_dynamic_string:
-            for j in range(count):
-                f = m.getChild("fields[%d]" % j)
-                (name, index) = field_name_helper(f)
-                if index:
-                    for k in range(index):
-                        if f.getString("type") == "string":
-                            result.append("        self.%s[%d] = extra[:self.%s_len[%d]].decode()" % (name, k, name, k))
-                            result.append("        extra = extra[self.%s_len[%d]:]" % (name, k))
-                else:
+        # unpack string data if needed
+        for j in range(count):
+            f = m.getChild("fields[%d]" % j)
+            (name, index) = field_name_helper(f)
+            if index:
+                for k in range(index):
                     if f.getString("type") == "string":
-                        result.append("        self.%s = extra[:self.%s_len].decode()" % (name, name))
-                        result.append("        extra = extra[self.%s_len:]" % name)
+                        result.append("        self.%s[%d] = extra[:self.%s_len[%d]].decode()" % (name, k, name, k))
+                        result.append("        extra = extra[self.%s_len[%d]:]" % (name, k))
+            else:
+                if f.getString("type") == "string":
+                    result.append("        self.%s = extra[:self.%s_len].decode()" % (name, name))
+                    result.append("        extra = extra[self.%s_len:]" % name)
         result.append("")
 
     return result
