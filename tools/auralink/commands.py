@@ -20,10 +20,10 @@ last_sent_time = 0.0
 last_received_time = 0.0
 
 # package and send the serial command, returns number of bytes written
-def serial_send(serial, sequence, command):
-    print('writing:', sequence, command)
+def serial_send(serial, sequence_num, command):
+    print('writing:', sequence_num, command)
     cmd = aura_messages.command_v1()
-    cmd.sequence = sequence
+    cmd.sequence_num = sequence_num
     cmd.message = command
     buf = cmd.pack()
     packet = comms.serial_parser.wrap_packet(cmd.id, buf)
@@ -41,10 +41,10 @@ def update(serial):
     global prime_state
 
     # look at the remote's report of last message received from base
-    sequence = remote_link_node.getInt('sequence_num')
-    if sequence != cmd_recv_index:
+    sequence_num = remote_link_node.getInt('sequence_num')
+    if sequence_num != cmd_recv_index:
         last_received_time = time.time()
-        cmd_recv_index = sequence
+        cmd_recv_index = sequence_num
         print("received ack:", cmd_recv_index)
 
     # if current command has been received, advance to next command
@@ -52,7 +52,9 @@ def update(serial):
         if len(cmd_queue):
             if not prime_state:
                 cmd_queue.pop(0)
-                cmd_send_index = (cmd_send_index + 1) & 0xff
+                cmd_send_index++
+                if cmd_send_index > 255:
+                    cmd_send_index = 1
             else:
                 prime_state = False
 
