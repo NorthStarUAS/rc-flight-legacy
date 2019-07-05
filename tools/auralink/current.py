@@ -29,7 +29,6 @@ def compute_tecs():
     mass_kg = tecs_config_node.getFloat("mass_kg")
     if mass_kg < 0.01:
         mass_kg = 3.0
-    wt = tecs_config_node.getFloat("weight_tot")
     if tecs_config_node.hasChild("weight_bal"):
         wb = tecs_config_node.getFloat("weight_bal")
     else:
@@ -48,7 +47,7 @@ def compute_tecs():
     error_pot = target_pot - energy_pot
     error_kin = target_kin - energy_kin
     # print filter_node.getFloat('timestamp'), 'target_alt:', target_alt_m, 'tgt_pot:', target_pot, 'E_pot:', energy_pot, 'Err_kin:', error_kin, 'Err_pot:', error_pot
-    error_total = wt * error_pot + (2.0 - wt) * error_kin
+    error_total = error_pot + error_kin
     error_bal =  (2.0 - wb) * error_kin - wb * error_pot
 
     tecs_node.setFloat("energy_total", energy_pot + energy_kin )
