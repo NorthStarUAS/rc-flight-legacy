@@ -266,7 +266,7 @@ def command():
     global last_sequence_num
     
     sequence_num, command = read_link_command()
-    if sequence < 0:
+    if sequence_num < 0:
         return False
     
     # ignore repeated commands (including roll over logic)
