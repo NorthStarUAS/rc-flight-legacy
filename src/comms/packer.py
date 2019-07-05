@@ -840,6 +840,7 @@ def unpack_ap_status_v7(buf):
     targets_node.setFloat("pitch_deg", ap.pitch_deg)
     targets_node.setFloat("airspeed_kt", ap.airspeed_kt)
     status_node.setFloat("flight_timer", ap.flight_timer)
+    status_node.setBool("onboard_flight_timer", True)
     if route_size != active_node.getInt("route_size"):
         # route size change, zero all the waypoint coordinates
         for i in range(active_node.getInt("route_size")):
@@ -977,10 +978,11 @@ def unpack_event_v1(buf):
 
 def unpack_event_v2(buf):
     event = aura_messages.event_v2(buf)
+    remote_link_node.setInt("sequence_num", event.sequence_num)
     m = re.match('get: (.*)$', event.message)
     if m:
         (prop, value) = m.group(1).split(',')
-        # print prop, value
+        # print(prop, value)
         # absolute path
         parts = prop.split('/')
         node_path = '/'.join(parts[0:-1])

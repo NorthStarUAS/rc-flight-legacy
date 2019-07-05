@@ -52,7 +52,7 @@ def update(serial):
         if len(cmd_queue):
             if not prime_state:
                 cmd_queue.pop(0)
-                cmd_send_index++
+                cmd_send_index += 1
                 if cmd_send_index > 255:
                     cmd_send_index = 1
             else:
