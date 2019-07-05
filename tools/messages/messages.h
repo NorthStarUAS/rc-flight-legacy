@@ -17,33 +17,51 @@ const uint8_t message_array_test_id = 1;
 const uint8_t message_dynamic_string_test_id = 2;
 const uint8_t message_gps_v4_id = 34;
 
+// max of one byte used to store message len
+static const uint8_t message_max_len = 255;
+
+#include <string>
+using std::string;
+
 // Message: simple_test (id: 0)
 struct message_simple_test_t {
     // public fields
     int16_t a;
 
     // internal structure for packing
+    uint8_t payload[message_max_len];
     #pragma pack(push, 1)
-    struct {
+    struct _compact_t {
         int16_t a;
-    } _buf;
+    };
     #pragma pack(pop)
 
     // public info fields
     static const uint8_t id = 0;
     uint16_t len = 0;
-    uint8_t *payload = NULL;
 
-    uint8_t *pack() {
-        len = sizeof(_buf);
-        _buf.a = a;
-        payload = (uint8_t *)(&_buf);
-        return payload;
+    bool pack() {
+        len = sizeof(_compact_t);
+        // size sanity check
+        int size = len;
+        if ( size > message_max_len ) {
+            return false;
+        }
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        _buf->a = a;
+        return true;
     }
 
-    void unpack(uint8_t *message) {
-        memcpy(&_buf, message, len);
-        a = _buf.a;
+    bool unpack(uint8_t *external_message, int message_size) {
+        if ( message_size > message_max_len ) {
+            return false;
+        }
+        memcpy(payload, external_message, message_size);
+        _compact_t *_buf = (_compact_t *)payload;
+        len = sizeof(_compact_t);
+        a = _buf->a;
+        return true;
     }
 };
 
@@ -56,36 +74,48 @@ struct message_array_test_t {
     uint16_t something;
 
     // internal structure for packing
+    uint8_t payload[message_max_len];
     #pragma pack(push, 1)
-    struct {
+    struct _compact_t {
         double time;
         int8_t flags[4];
         int16_t orientation[9];
         uint16_t something;
-    } _buf;
+    };
     #pragma pack(pop)
 
     // public info fields
     static const uint8_t id = 1;
     uint16_t len = 0;
-    uint8_t *payload = NULL;
 
-    uint8_t *pack() {
-        len = sizeof(_buf);
-        _buf.time = time;
-        for (int _i=0; _i<4; _i++) _buf.flags[_i] = flags[_i];
-        for (int _i=0; _i<9; _i++) _buf.orientation[_i] = intround(orientation[_i] * 53.3);
-        _buf.something = something;
-        payload = (uint8_t *)(&_buf);
-        return payload;
+    bool pack() {
+        len = sizeof(_compact_t);
+        // size sanity check
+        int size = len;
+        if ( size > message_max_len ) {
+            return false;
+        }
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        _buf->time = time;
+        for (int _i=0; _i<4; _i++) _buf->flags[_i] = flags[_i];
+        for (int _i=0; _i<9; _i++) _buf->orientation[_i] = intround(orientation[_i] * 53.3);
+        _buf->something = something;
+        return true;
     }
 
-    void unpack(uint8_t *message) {
-        memcpy(&_buf, message, len);
-        time = _buf.time;
-        for (int _i=0; _i<4; _i++) flags[_i] = _buf.flags[_i];
-        for (int _i=0; _i<9; _i++) orientation[_i] = _buf.orientation[_i] / (float)53.3;
-        something = _buf.something;
+    bool unpack(uint8_t *external_message, int message_size) {
+        if ( message_size > message_max_len ) {
+            return false;
+        }
+        memcpy(payload, external_message, message_size);
+        _compact_t *_buf = (_compact_t *)payload;
+        len = sizeof(_compact_t);
+        time = _buf->time;
+        for (int _i=0; _i<4; _i++) flags[_i] = _buf->flags[_i];
+        for (int _i=0; _i<9; _i++) orientation[_i] = _buf->orientation[_i] / (float)53.3;
+        something = _buf->something;
+        return true;
     }
 };
 
@@ -93,45 +123,80 @@ struct message_array_test_t {
 struct message_dynamic_string_test_t {
     // public fields
     double time;
-    // string event;  // not supported
+    string event;
     uint16_t counter;
-    // string args[4];  // not supported
+    string args[4];
     bool status;
 
     // internal structure for packing
+    uint8_t payload[message_max_len];
     #pragma pack(push, 1)
-    struct {
+    struct _compact_t {
         double time;
         uint8_t event_len;
         uint16_t counter;
         uint8_t args_len[4];
         bool status;
-    } _buf;
+    };
     #pragma pack(pop)
 
     // public info fields
     static const uint8_t id = 2;
     uint16_t len = 0;
-    uint8_t *payload = NULL;
 
-    uint8_t *pack() {
-        len = sizeof(_buf);
-        _buf.time = time;
-        // (not supported) _buf.event_len = event.length();
-        _buf.counter = counter;
-        // (not supported) for (int _i=0; _i<4; _i++) _buf.args_len[_i] = args[_i].length();
-        _buf.status = status;
-        payload = (uint8_t *)(&_buf);
-        return payload;
+    bool pack() {
+        len = sizeof(_compact_t);
+        // size sanity check
+        int size = len;
+        size += event.length();
+        size += args[0].length();
+        size += args[1].length();
+        size += args[2].length();
+        size += args[3].length();
+        if ( size > message_max_len ) {
+            return false;
+        }
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        _buf->time = time;
+        _buf->event_len = event.length();
+        _buf->counter = counter;
+        for (int _i=0; _i<4; _i++) _buf->args_len[_i] = args[_i].length();
+        _buf->status = status;
+        memcpy(&(payload[len]), event.c_str(), event.length());
+        len += event.length();
+        memcpy(&(payload[len]), args[0].c_str(), args[0].length());
+        len += args[0].length();
+        memcpy(&(payload[len]), args[1].c_str(), args[1].length());
+        len += args[1].length();
+        memcpy(&(payload[len]), args[2].c_str(), args[2].length());
+        len += args[2].length();
+        memcpy(&(payload[len]), args[3].c_str(), args[3].length());
+        len += args[3].length();
+        return true;
     }
 
-    void unpack(uint8_t *message) {
-        memcpy(&_buf, message, len);
-        time = _buf.time;
-        // (not supported) event = _buf.event;
-        counter = _buf.counter;
-        // (not supported) for (int _i=0; _i<4; _i++) args[_i] = _buf.args[_i];
-        status = _buf.status;
+    bool unpack(uint8_t *external_message, int message_size) {
+        if ( message_size > message_max_len ) {
+            return false;
+        }
+        memcpy(payload, external_message, message_size);
+        _compact_t *_buf = (_compact_t *)payload;
+        len = sizeof(_compact_t);
+        time = _buf->time;
+        counter = _buf->counter;
+        status = _buf->status;
+        event = string((char *)&(payload[len]), _buf->event_len);
+        len += _buf->event_len;
+        args[0] = string((char *)&(payload[len]), _buf->args_len[0]);
+        len += _buf->args_len[0];
+        args[1] = string((char *)&(payload[len]), _buf->args_len[1]);
+        len += _buf->args_len[1];
+        args[2] = string((char *)&(payload[len]), _buf->args_len[2]);
+        len += _buf->args_len[2];
+        args[3] = string((char *)&(payload[len]), _buf->args_len[3]);
+        len += _buf->args_len[3];
+        return true;
     }
 };
 
@@ -154,8 +219,9 @@ struct message_gps_v4_t {
     uint8_t fix_type;
 
     // internal structure for packing
+    uint8_t payload[message_max_len];
     #pragma pack(push, 1)
-    struct {
+    struct _compact_t {
         uint8_t index;
         float time_sec;
         double latitude_deg;
@@ -170,50 +236,61 @@ struct message_gps_v4_t {
         uint16_t vert_accuracy_m;
         uint16_t pdop;
         uint8_t fix_type;
-    } _buf;
+    };
     #pragma pack(pop)
 
     // public info fields
     static const uint8_t id = 34;
     uint16_t len = 0;
-    uint8_t *payload = NULL;
 
-    uint8_t *pack() {
-        len = sizeof(_buf);
-        _buf.index = index;
-        _buf.time_sec = time_sec;
-        _buf.latitude_deg = latitude_deg;
-        _buf.longitude_deg = longitude_deg;
-        _buf.altitude_m = altitude_m;
-        _buf.vn_ms = intround(vn_ms * 100);
-        _buf.ve_ms = intround(ve_ms * 100);
-        _buf.vd_ms = intround(vd_ms * 100);
-        _buf.unixtime_sec = unixtime_sec;
-        _buf.satellites = satellites;
-        _buf.horiz_accuracy_m = uintround(horiz_accuracy_m * 100);
-        _buf.vert_accuracy_m = uintround(vert_accuracy_m * 100);
-        _buf.pdop = uintround(pdop * 100);
-        _buf.fix_type = fix_type;
-        payload = (uint8_t *)(&_buf);
-        return payload;
+    bool pack() {
+        len = sizeof(_compact_t);
+        // size sanity check
+        int size = len;
+        if ( size > message_max_len ) {
+            return false;
+        }
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        _buf->index = index;
+        _buf->time_sec = time_sec;
+        _buf->latitude_deg = latitude_deg;
+        _buf->longitude_deg = longitude_deg;
+        _buf->altitude_m = altitude_m;
+        _buf->vn_ms = intround(vn_ms * 100);
+        _buf->ve_ms = intround(ve_ms * 100);
+        _buf->vd_ms = intround(vd_ms * 100);
+        _buf->unixtime_sec = unixtime_sec;
+        _buf->satellites = satellites;
+        _buf->horiz_accuracy_m = uintround(horiz_accuracy_m * 100);
+        _buf->vert_accuracy_m = uintround(vert_accuracy_m * 100);
+        _buf->pdop = uintround(pdop * 100);
+        _buf->fix_type = fix_type;
+        return true;
     }
 
-    void unpack(uint8_t *message) {
-        memcpy(&_buf, message, len);
-        index = _buf.index;
-        time_sec = _buf.time_sec;
-        latitude_deg = _buf.latitude_deg;
-        longitude_deg = _buf.longitude_deg;
-        altitude_m = _buf.altitude_m;
-        vn_ms = _buf.vn_ms / (float)100;
-        ve_ms = _buf.ve_ms / (float)100;
-        vd_ms = _buf.vd_ms / (float)100;
-        unixtime_sec = _buf.unixtime_sec;
-        satellites = _buf.satellites;
-        horiz_accuracy_m = _buf.horiz_accuracy_m / (float)100;
-        vert_accuracy_m = _buf.vert_accuracy_m / (float)100;
-        pdop = _buf.pdop / (float)100;
-        fix_type = _buf.fix_type;
+    bool unpack(uint8_t *external_message, int message_size) {
+        if ( message_size > message_max_len ) {
+            return false;
+        }
+        memcpy(payload, external_message, message_size);
+        _compact_t *_buf = (_compact_t *)payload;
+        len = sizeof(_compact_t);
+        index = _buf->index;
+        time_sec = _buf->time_sec;
+        latitude_deg = _buf->latitude_deg;
+        longitude_deg = _buf->longitude_deg;
+        altitude_m = _buf->altitude_m;
+        vn_ms = _buf->vn_ms / (float)100;
+        ve_ms = _buf->ve_ms / (float)100;
+        vd_ms = _buf->vd_ms / (float)100;
+        unixtime_sec = _buf->unixtime_sec;
+        satellites = _buf->satellites;
+        horiz_accuracy_m = _buf->horiz_accuracy_m / (float)100;
+        vert_accuracy_m = _buf->vert_accuracy_m / (float)100;
+        pdop = _buf->pdop / (float)100;
+        fix_type = _buf->fix_type;
+        return true;
     }
 };
 
