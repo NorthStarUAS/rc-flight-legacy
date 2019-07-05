@@ -6,10 +6,10 @@ int main() {
     // create a test message
     message_simple_test_t st;
     st.a = 1234;
-    uint8_t *msg = st.pack();
+    st.pack();
     printf("packed length = %d %d\n", st.len, (int)sizeof(st));
     message_simple_test_t st_recv;
-    st_recv.unpack(msg);
+    st_recv.unpack(st.payload, st.len);
     printf("result = %d\n", st_recv.a);
     printf("\n");
 
@@ -24,32 +24,60 @@ int main() {
     gps.satellites = 9;
 
     // pack it
-    msg = gps.pack();
-    printf("msg id = %d, sizeof = %d  packed length = %d\n", gps.id, sizeof(gps), gps.len);
+    if ( !gps.pack() ) {
+        printf("gps pack failed\n");
+    } else {
+        printf("msg id = %d, sizeof = %d  packed length = %d\n", gps.id, sizeof(gps), gps.len);
 
-    // pretend the serialized message got sent somewhere and now we
-    // received it and deserialized it on the other side
-    message_gps_v4_t gps_recv;
-    gps_recv.unpack(msg);
+        // pretend the serialized message got sent somewhere and now we
+        // received it and deserialized it on the other side
+        message_gps_v4_t gps_recv;
+        gps_recv.unpack(gps.payload, gps.len);
 
-    // let's see what we got
-    printf("unpack lat: %f\n", gps_recv.latitude_deg);
-    printf("unpack lon: %f\n", gps_recv.longitude_deg);
-    printf("unpack alt: %f\n", gps_recv.altitude_m);
-    printf("unpack vn: %f\n", gps_recv.vn_ms);
-    printf("unpack ve: %f\n", gps_recv.ve_ms);
-    printf("unpack vd: %f\n", gps_recv.vd_ms);
-    printf("unpack vd: %d\n", gps_recv.satellites);
-
+        // let's see what we got
+        printf("unpack lat: %f\n", gps_recv.latitude_deg);
+        printf("unpack lon: %f\n", gps_recv.longitude_deg);
+        printf("unpack alt: %f\n", gps_recv.altitude_m);
+        printf("unpack vn: %f\n", gps_recv.vn_ms);
+        printf("unpack ve: %f\n", gps_recv.ve_ms);
+        printf("unpack vd: %f\n", gps_recv.vd_ms);
+        printf("unpack vd: %d\n", gps_recv.satellites);
+    }
+    
     message_array_test_t at;
     printf("array test size: %d %d\n", at.len, sizeof(at));
     for (int i = 0; i < 9; i++ ) {
         at.orientation[i] = i * 10.0;
     }
-    msg = at.pack();
+    at.pack();
     message_array_test_t at_recv;
-    at_recv.unpack(msg);
+    at_recv.unpack(at.payload, at.len);
     for (int i = 0; i < 9; i++) {
         printf("orientation[%d] = %.2f\n", i, at_recv.orientation[i]);
+    }
+
+    // variable length string test
+    message_dynamic_string_test_t vs;
+    vs.time = 42.987654321;
+    vs.event = "hello, this is a test                                                                          dsd                             dsd                                                                                                     ";
+    vs.counter = 4567;
+    vs.args[0] = "a1";
+    vs.args[1] = "b2";
+    vs.args[2] = "c3";
+    vs.args[3] = "d4";
+    if ( !vs.pack() ) {
+        printf("variable length pack failed (too big)\n");
+    } else {
+        printf("len(vs): %d\n", vs.len);
+        message_dynamic_string_test_t vs_recv;
+        vs_recv.unpack(vs.payload, vs.len);
+        printf("vs_recv:\n");
+        printf("  time: %f\n", vs_recv.time);
+        printf("  event: %s\n", vs_recv.event.c_str());
+        printf("  counter: %d\n", vs_recv.counter);
+        printf("  args[0]: %s\n", vs_recv.args[0].c_str());
+        printf("  args[1]: %s\n", vs_recv.args[1].c_str());
+        printf("  args[2]: %s\n", vs_recv.args[2].c_str());
+        printf("  args[3]: %s\n", vs_recv.args[3].c_str());
     }
 }
