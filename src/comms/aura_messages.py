@@ -982,7 +982,7 @@ class ap_status_v4():
         self.wp_latitude_deg = 0.0
         self.wp_index = 0
         self.route_size = 0
-        self.sequence_number = 0
+        self.sequence_num = 0
         # unpack if requested
         if msg: self.unpack(msg)
 
@@ -1002,7 +1002,7 @@ class ap_status_v4():
                           self.wp_latitude_deg,
                           self.wp_index,
                           self.route_size,
-                          self.sequence_number)
+                          self.sequence_num)
         return msg
 
     def unpack(self, msg):
@@ -1020,7 +1020,7 @@ class ap_status_v4():
          self.wp_latitude_deg,
          self.wp_index,
          self.route_size,
-         self.sequence_number) = struct.unpack(self._pack_string, msg)
+         self.sequence_num) = struct.unpack(self._pack_string, msg)
         self.groundtrack_deg /= 10
         self.roll_deg /= 10
         self.pitch_deg /= 10
@@ -1049,7 +1049,7 @@ class ap_status_v5():
         self.wp_latitude_deg = 0.0
         self.wp_index = 0
         self.route_size = 0
-        self.sequence_number = 0
+        self.sequence_num = 0
         # unpack if requested
         if msg: self.unpack(msg)
 
@@ -1070,7 +1070,7 @@ class ap_status_v5():
                           self.wp_latitude_deg,
                           self.wp_index,
                           self.route_size,
-                          self.sequence_number)
+                          self.sequence_num)
         return msg
 
     def unpack(self, msg):
@@ -1089,7 +1089,7 @@ class ap_status_v5():
          self.wp_latitude_deg,
          self.wp_index,
          self.route_size,
-         self.sequence_number) = struct.unpack(self._pack_string, msg)
+         self.sequence_num) = struct.unpack(self._pack_string, msg)
         self.groundtrack_deg /= 10
         self.roll_deg /= 10
         self.pitch_deg /= 10
@@ -1120,7 +1120,7 @@ class ap_status_v6():
         self.route_size = 0
         self.task_id = 0
         self.task_attribute = 0
-        self.sequence_number = 0
+        self.sequence_num = 0
         # unpack if requested
         if msg: self.unpack(msg)
 
@@ -1143,7 +1143,7 @@ class ap_status_v6():
                           self.route_size,
                           self.task_id,
                           self.task_attribute,
-                          self.sequence_number)
+                          self.sequence_num)
         return msg
 
     def unpack(self, msg):
@@ -1164,7 +1164,7 @@ class ap_status_v6():
          self.route_size,
          self.task_id,
          self.task_attribute,
-         self.sequence_number) = struct.unpack(self._pack_string, msg)
+         self.sequence_num) = struct.unpack(self._pack_string, msg)
         self.groundtrack_deg /= 10
         self.roll_deg /= 10
         self.pitch_deg /= 10
@@ -1430,11 +1430,12 @@ class event_v1():
 # Id: 44
 class event_v2():
     id = 44
-    _pack_string = "<fB"
+    _pack_string = "<fBB"
 
     def __init__(self, msg=None):
         # public fields
         self.timestamp_sec = 0.0
+        self.sequence_num = 0
         self.message = ""
         # unpack if requested
         if msg: self.unpack(msg)
@@ -1442,6 +1443,7 @@ class event_v2():
     def pack(self):
         msg = struct.pack(self._pack_string,
                           self.timestamp_sec,
+                          self.sequence_num,
                           len(self.message))
         msg += str.encode(self.message)
         return msg
@@ -1451,6 +1453,7 @@ class event_v2():
         extra = msg[base_len:]
         msg = msg[:base_len]
         (self.timestamp_sec,
+         self.sequence_num,
          self.message_len) = struct.unpack(self._pack_string, msg)
         self.message = extra[:self.message_len].decode()
         extra = extra[self.message_len:]
@@ -1463,14 +1466,14 @@ class command_v1():
 
     def __init__(self, msg=None):
         # public fields
-        self.sequence = 0
+        self.sequence_num = 0
         self.message = ""
         # unpack if requested
         if msg: self.unpack(msg)
 
     def pack(self):
         msg = struct.pack(self._pack_string,
-                          self.sequence,
+                          self.sequence_num,
                           len(self.message))
         msg += str.encode(self.message)
         return msg
@@ -1479,7 +1482,7 @@ class command_v1():
         base_len = struct.calcsize(self._pack_string)
         extra = msg[base_len:]
         msg = msg[:base_len]
-        (self.sequence,
+        (self.sequence_num,
          self.message_len) = struct.unpack(self._pack_string, msg)
         self.message = extra[:self.message_len].decode()
         extra = extra[self.message_len:]
