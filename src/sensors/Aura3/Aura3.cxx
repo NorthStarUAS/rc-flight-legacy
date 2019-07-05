@@ -83,7 +83,7 @@ static uint32_t parse_errors = 0;
 static uint32_t skipped_frames = 0;
 
 message_aura_nav_pvt_t nav_pvt;
-message_airdata_t airdata_packet;
+message_airdata_t airdata;
 
 message_config_master_t config_master;
 message_config_imu_t config_imu;
@@ -223,7 +223,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
     if ( pkt_id == message_command_ack_id ) {
         message_command_ack_t ack;
 	if ( pkt_len == ack.len ) {
-            ack.unpack(payload);
+            ack.unpack(payload, ack.len);
             last_ack_id = ack.command_id;
 	    last_ack_subid = ack.subcommand_id;
             if ( display_on ) {
@@ -236,7 +236,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
     } else if ( pkt_id == message_pilot_id ) {
         message_pilot_t pilot;
 	if ( pkt_len == pilot.len ) {
-            pilot.unpack(payload);
+            pilot.unpack(payload, pilot.len);
 	    pilot_in_timestamp = get_Time();
 	    for ( int i = 0; i < SBUS_CHANNELS; i++ ) {
 		pilot_input[i] = pilot.channel[i];
@@ -266,7 +266,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
     } else if ( pkt_id == message_imu_raw_id ) {
         message_imu_raw_t imu;
 	if ( pkt_len == imu.len ) {
-            imu.unpack(payload);
+            imu.unpack(payload, imu.len);
 	    imu_timestamp = get_Time();
 	    imu_micros = imu.micros;
 	    //printf("%d\n", imu_micros);
@@ -298,7 +298,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
     } else if ( pkt_id == message_aura_nav_pvt_id ) {
 	if ( pkt_len == nav_pvt.len ) {
 	    nav_pvt_timestamp = get_Time();
-            nav_pvt.unpack(payload);
+            nav_pvt.unpack(payload, nav_pvt.len);
 	    gps_packet_counter++;
 	    aura3_node.setLong( "gps_packet_count", gps_packet_counter );
 	    new_data = true;
@@ -309,8 +309,8 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    }
 	}
     } else if ( pkt_id == message_airdata_id ) {
-	if ( pkt_len == airdata_packet.len ) {
-            airdata_packet.unpack(payload);
+	if ( pkt_len == airdata.len ) {
+            airdata.unpack(payload, airdata.len);
 
 	    // if ( display_on ) {
 	    // 	printf("airdata %.3f %.2f %.2f\n", airdata.timestamp,
@@ -329,7 +329,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
     } else if ( pkt_id == message_power_id ) {
         message_power_t power;
 	if ( pkt_len == power.len ) {
-            power.unpack(payload);
+            power.unpack(payload, power.len);
 
             // we anticipate a 0.01 sec dt value
             int_main_vcc_filt.update((float)power.int_main_v, 0.01);
@@ -354,7 +354,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	static bool first_time = true;
         message_status_t msg;
 	if ( pkt_len == msg.len ) {
-            msg.unpack(payload);
+            msg.unpack(payload, msg.len);
 
 #if 0
 	    if ( display_on ) {
@@ -1187,11 +1187,11 @@ bool Aura3_airdata_update() {
     if ( airdata_inited ) {
 	double cur_time = imu_timestamp;
 
-	float pitot_butter = pitot_filter.update(airdata_packet.ext_diff_press_pa);
+	float pitot_butter = pitot_filter.update(airdata.ext_diff_press_pa);
         
 	if ( ! airspeed_inited ) {
 	    if ( airspeed_zero_start_time > 0.0 ) {
-		pitot_sum += airdata_packet.ext_diff_press_pa;
+		pitot_sum += airdata.ext_diff_press_pa;
 		pitot_count++;
 		pitot_offset = pitot_sum / (double)pitot_count;
 		/* printf("a1 raw=%.1f filt=%.1f a1 off=%.1f a1 sum=%.1f a1 count=%d\n",
@@ -1241,15 +1241,15 @@ bool Aura3_airdata_update() {
 	float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
 	airdata_node.setDouble( "airspeed_mps", airspeed_mps );
 	airdata_node.setDouble( "airspeed_kt", airspeed_kt );
-	airdata_node.setDouble( "temp_C", airdata_packet.ext_temp_C );
+	airdata_node.setDouble( "temp_C", airdata.ext_temp_C );
 
 	// publish sensor values
-	airdata_node.setDouble( "pressure_mbar", airdata_packet.baro_press_pa / 100.0 );
-	airdata_node.setDouble( "bme_temp_C", airdata_packet.baro_temp_C );
-	airdata_node.setDouble( "humidity", airdata_packet.baro_hum );
-	airdata_node.setDouble( "diff_pressure_pa", airdata_packet.ext_diff_press_pa );
-	airdata_node.setDouble( "ext_static_press_pa", airdata_packet.ext_static_press_pa );
-        airdata_node.setLong( "error_count", airdata_packet.error_count );
+	airdata_node.setDouble( "pressure_mbar", airdata.baro_press_pa / 100.0 );
+	airdata_node.setDouble( "bme_temp_C", airdata.baro_temp_C );
+	airdata_node.setDouble( "humidity", airdata.baro_hum );
+	airdata_node.setDouble( "diff_pressure_pa", airdata.ext_diff_press_pa );
+	airdata_node.setDouble( "ext_static_press_pa", airdata.ext_static_press_pa );
+        airdata_node.setLong( "error_count", airdata.error_count );
 
 	fresh_data = true;
     }
