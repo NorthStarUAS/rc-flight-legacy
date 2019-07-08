@@ -33,8 +33,8 @@ const uint8_t message_status_id = 55;
 static const uint8_t message_max_len = 255;
 
 static const uint8_t PWM_CHANNELS = 8;  // number of pwm output channels
-static const uint16_t SERVO_FREQ_HZ = 50;  // default servo pwm frequency (hz)
 static const uint8_t SBUS_CHANNELS = 16;  // number of sbus channels
+static const uint8_t AP_CHANNELS = 6;  // number of sbus channels
 
 // Message: command_ack (id: 20)
 struct message_command_ack_t {
@@ -465,13 +465,13 @@ struct message_config_led_t {
 // Message: command_inceptors (id: 40)
 struct message_command_inceptors_t {
     // public fields
-    float channel[6];
+    float channel[AP_CHANNELS];
 
     // internal structure for packing
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
-        int16_t channel[6];
+        int16_t channel[AP_CHANNELS];
     };
     #pragma pack(pop)
 
@@ -488,7 +488,7 @@ struct message_command_inceptors_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
-        for (int _i=0; _i<6; _i++) _buf->channel[_i] = intround(channel[_i] * 16384);
+        for (int _i=0; _i<AP_CHANNELS; _i++) _buf->channel[_i] = intround(channel[_i] * 16384);
         return true;
     }
 
@@ -499,7 +499,7 @@ struct message_command_inceptors_t {
         memcpy(payload, external_message, message_size);
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
-        for (int _i=0; _i<6; _i++) channel[_i] = _buf->channel[_i] / (float)16384;
+        for (int _i=0; _i<AP_CHANNELS; _i++) channel[_i] = _buf->channel[_i] / (float)16384;
         return true;
     }
 };

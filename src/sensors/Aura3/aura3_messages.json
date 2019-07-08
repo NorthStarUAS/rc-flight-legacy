@@ -1,8 +1,8 @@
 {
     "constants": [
         { "type": "uint8_t", "name": "PWM_CHANNELS", "value": 8, "desc": "number of pwm output channels" },
-        { "type": "uint16_t", "name": "SERVO_FREQ_HZ", "value": 50, "desc": "default servo pwm frequency (hz)" },
-        { "type": "uint8_t", "name": "SBUS_CHANNELS", "value": 16, "desc": "number of sbus channels" }
+        { "type": "uint8_t", "name": "SBUS_CHANNELS", "value": 16, "desc": "number of sbus channels" },
+        { "type": "uint8_t", "name": "AP_CHANNELS", "value": 6, "desc": "number of sbus channels" }
     ],
     "messages": [
         // general ack packet
@@ -105,7 +105,7 @@
             "id": 40,
             "name": "command_inceptors",
             "fields": [
-                { "type": "float", "name": "channel[6]", "pack_type": "int16_t", "pack_scale": 16384 }
+                { "type": "float", "name": "channel[AP_CHANNELS]", "pack_type": "int16_t", "pack_scale": 16384 }
             ]
         },
         {
