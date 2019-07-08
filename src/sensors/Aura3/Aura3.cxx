@@ -61,9 +61,9 @@ static int last_ack_id = 0;
 static int last_ack_subid = 0;
 
 static double pilot_in_timestamp = 0.0;
-static float pilot_input[SBUS_CHANNELS]; // internal stash
+static float pilot_input[message_sbus_channels]; // internal stash
 static uint8_t pilot_flags = 0x00;
-static string pilot_mapping[SBUS_CHANNELS]; // channel->name mapping
+static string pilot_mapping[message_sbus_channels]; // channel->name mapping
 
 static double imu_timestamp = 0.0;
 static uint32_t imu_micros = 0;
@@ -235,7 +235,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
         pilot.unpack(payload, pkt_len);
 	if ( pkt_len == pilot.len ) {
 	    pilot_in_timestamp = get_Time();
-	    for ( int i = 0; i < SBUS_CHANNELS; i++ ) {
+	    for ( int i = 0; i < message_sbus_channels; i++ ) {
 		pilot_input[i] = pilot.channel[i];
 	    }
             pilot_flags = pilot.flags;
@@ -506,7 +506,7 @@ static void bind_pilot_controls( string output_path ) {
 	return;
     }
     pilot_node = pyGetNode(output_path, true);
-    pilot_node.setLen("channel", SBUS_CHANNELS, 0.0);
+    pilot_node.setLen("channel", message_sbus_channels, 0.0);
     pilot_input_inited = true;
 }
 
@@ -678,7 +678,7 @@ bool Aura3_pilot_init( string output_path, pyPropertyNode *config ) {
     bind_pilot_controls( output_path );
 
     if ( config->hasChild("channel") ) {
-	for ( int i = 0; i < SBUS_CHANNELS; i++ ) {
+	for ( int i = 0; i < message_sbus_channels; i++ ) {
 	    pilot_mapping[i] = config->getString("channel", i);
 	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
 	}
@@ -720,14 +720,14 @@ static void imu_setup_defaults() {
 
 // reset pwm output rates to safe startup defaults
 static void pwm_defaults() {
-    for ( int i = 0; i < PWM_CHANNELS; i++ ) {
+    for ( int i = 0; i < message_pwm_channels; i++ ) {
          config_actuators.pwm_hz[i] = 50;    
     }
 }
 
 // reset actuator gains (reversing) to startup defaults
 static void act_gain_defaults() {
-    for ( int i = 0; i < PWM_CHANNELS; i++ ) {
+    for ( int i = 0; i < message_pwm_channels; i++ ) {
         config_actuators.act_gain[i] = 1.0;
     }
 }
@@ -1049,7 +1049,7 @@ static bool Aura3_send_config() {
 
 static bool Aura3_act_write() {
     // actuator data
-    if ( AP_CHANNELS == 6 ) {
+    if ( message_ap_channels == 6 ) {
         message_command_inceptors_t act;
 	act.channel[0] = act_node.getDouble("throttle");
 	act.channel[1] = act_node.getDouble("aileron");
@@ -1277,7 +1277,7 @@ bool Aura3_pilot_update() {
 
     pilot_node.setDouble( "timestamp", pilot_in_timestamp );
 
-    for ( int i = 0; i < SBUS_CHANNELS; i++ ) {
+    for ( int i = 0; i < message_sbus_channels; i++ ) {
 	val = pilot_input[i];
 	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
 	pilot_node.setDouble( "channel", i, val );

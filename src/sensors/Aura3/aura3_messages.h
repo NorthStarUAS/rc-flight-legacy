@@ -32,9 +32,9 @@ const uint8_t message_status_id = 55;
 // max of one byte used to store message len
 static const uint8_t message_max_len = 255;
 
-static const uint8_t PWM_CHANNELS = 8;  // number of pwm output channels
-static const uint8_t SBUS_CHANNELS = 16;  // number of sbus channels
-static const uint8_t AP_CHANNELS = 6;  // number of sbus channels
+static const uint8_t message_pwm_channels = 8;  // number of pwm output channels
+static const uint8_t message_sbus_channels = 16;  // number of sbus channels
+static const uint8_t message_ap_channels = 6;  // number of sbus channels
 
 // Message: command_ack (id: 20)
 struct message_command_ack_t {
@@ -177,8 +177,8 @@ struct message_config_imu_t {
 // Message: config_actuators (id: 23)
 struct message_config_actuators_t {
     // public fields
-    uint16_t pwm_hz[PWM_CHANNELS];
-    float act_gain[PWM_CHANNELS];
+    uint16_t pwm_hz[message_pwm_channels];
+    float act_gain[message_pwm_channels];
     bool mix_autocoord;
     bool mix_throttle_trim;
     bool mix_flap_trim;
@@ -210,8 +210,8 @@ struct message_config_actuators_t {
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
-        uint16_t pwm_hz[PWM_CHANNELS];
-        float act_gain[PWM_CHANNELS];
+        uint16_t pwm_hz[message_pwm_channels];
+        float act_gain[message_pwm_channels];
         bool mix_autocoord;
         bool mix_throttle_trim;
         bool mix_flap_trim;
@@ -254,8 +254,8 @@ struct message_config_actuators_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
-        for (int _i=0; _i<PWM_CHANNELS; _i++) _buf->pwm_hz[_i] = pwm_hz[_i];
-        for (int _i=0; _i<PWM_CHANNELS; _i++) _buf->act_gain[_i] = act_gain[_i];
+        for (int _i=0; _i<message_pwm_channels; _i++) _buf->pwm_hz[_i] = pwm_hz[_i];
+        for (int _i=0; _i<message_pwm_channels; _i++) _buf->act_gain[_i] = act_gain[_i];
         _buf->mix_autocoord = mix_autocoord;
         _buf->mix_throttle_trim = mix_throttle_trim;
         _buf->mix_flap_trim = mix_flap_trim;
@@ -292,8 +292,8 @@ struct message_config_actuators_t {
         memcpy(payload, external_message, message_size);
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
-        for (int _i=0; _i<PWM_CHANNELS; _i++) pwm_hz[_i] = _buf->pwm_hz[_i];
-        for (int _i=0; _i<PWM_CHANNELS; _i++) act_gain[_i] = _buf->act_gain[_i];
+        for (int _i=0; _i<message_pwm_channels; _i++) pwm_hz[_i] = _buf->pwm_hz[_i];
+        for (int _i=0; _i<message_pwm_channels; _i++) act_gain[_i] = _buf->act_gain[_i];
         mix_autocoord = _buf->mix_autocoord;
         mix_throttle_trim = _buf->mix_throttle_trim;
         mix_flap_trim = _buf->mix_flap_trim;
@@ -465,13 +465,13 @@ struct message_config_led_t {
 // Message: command_inceptors (id: 40)
 struct message_command_inceptors_t {
     // public fields
-    float channel[AP_CHANNELS];
+    float channel[message_ap_channels];
 
     // internal structure for packing
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
-        int16_t channel[AP_CHANNELS];
+        int16_t channel[message_ap_channels];
     };
     #pragma pack(pop)
 
@@ -488,7 +488,7 @@ struct message_command_inceptors_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
-        for (int _i=0; _i<AP_CHANNELS; _i++) _buf->channel[_i] = intround(channel[_i] * 16384);
+        for (int _i=0; _i<message_ap_channels; _i++) _buf->channel[_i] = intround(channel[_i] * 16384);
         return true;
     }
 
@@ -499,7 +499,7 @@ struct message_command_inceptors_t {
         memcpy(payload, external_message, message_size);
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
-        for (int _i=0; _i<AP_CHANNELS; _i++) channel[_i] = _buf->channel[_i] / (float)16384;
+        for (int _i=0; _i<message_ap_channels; _i++) channel[_i] = _buf->channel[_i] / (float)16384;
         return true;
     }
 };
@@ -583,14 +583,14 @@ struct message_command_cycle_inceptors_t {
 // Message: pilot (id: 50)
 struct message_pilot_t {
     // public fields
-    float channel[SBUS_CHANNELS];
+    float channel[message_sbus_channels];
     uint8_t flags;
 
     // internal structure for packing
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
-        int16_t channel[SBUS_CHANNELS];
+        int16_t channel[message_sbus_channels];
         uint8_t flags;
     };
     #pragma pack(pop)
@@ -608,7 +608,7 @@ struct message_pilot_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
-        for (int _i=0; _i<SBUS_CHANNELS; _i++) _buf->channel[_i] = intround(channel[_i] * 16384);
+        for (int _i=0; _i<message_sbus_channels; _i++) _buf->channel[_i] = intround(channel[_i] * 16384);
         _buf->flags = flags;
         return true;
     }
@@ -620,7 +620,7 @@ struct message_pilot_t {
         memcpy(payload, external_message, message_size);
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
-        for (int _i=0; _i<SBUS_CHANNELS; _i++) channel[_i] = _buf->channel[_i] / (float)16384;
+        for (int _i=0; _i<message_sbus_channels; _i++) channel[_i] = _buf->channel[_i] / (float)16384;
         flags = _buf->flags;
         return true;
     }
