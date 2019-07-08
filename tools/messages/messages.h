@@ -23,6 +23,9 @@ static const uint8_t message_max_len = 255;
 #include <string>
 using std::string;
 
+static const uint8_t max_flags = 4;  // flags
+static const uint8_t max_args = 4;  // args
+
 // Message: simple_test (id: 0)
 struct message_simple_test_t {
     // public fields
@@ -69,7 +72,7 @@ struct message_simple_test_t {
 struct message_array_test_t {
     // public fields
     double time;
-    int8_t flags[4];
+    int8_t flags[max_flags];
     float orientation[9];
     uint16_t something;
 
@@ -78,7 +81,7 @@ struct message_array_test_t {
     #pragma pack(push, 1)
     struct _compact_t {
         double time;
-        int8_t flags[4];
+        int8_t flags[max_flags];
         int16_t orientation[9];
         uint16_t something;
     };
@@ -98,7 +101,7 @@ struct message_array_test_t {
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
         _buf->time = time;
-        for (int _i=0; _i<4; _i++) _buf->flags[_i] = flags[_i];
+        for (int _i=0; _i<max_flags; _i++) _buf->flags[_i] = flags[_i];
         for (int _i=0; _i<9; _i++) _buf->orientation[_i] = intround(orientation[_i] * 53.3);
         _buf->something = something;
         return true;
@@ -112,7 +115,7 @@ struct message_array_test_t {
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
         time = _buf->time;
-        for (int _i=0; _i<4; _i++) flags[_i] = _buf->flags[_i];
+        for (int _i=0; _i<max_flags; _i++) flags[_i] = _buf->flags[_i];
         for (int _i=0; _i<9; _i++) orientation[_i] = _buf->orientation[_i] / (float)53.3;
         something = _buf->something;
         return true;
@@ -125,7 +128,7 @@ struct message_dynamic_string_test_t {
     double time;
     string event;
     uint16_t counter;
-    string args[4];
+    string args[max_args];
     bool status;
 
     // internal structure for packing
@@ -135,7 +138,7 @@ struct message_dynamic_string_test_t {
         double time;
         uint8_t event_len;
         uint16_t counter;
-        uint8_t args_len[4];
+        uint8_t args_len[max_args];
         bool status;
     };
     #pragma pack(pop)
@@ -149,10 +152,7 @@ struct message_dynamic_string_test_t {
         // size sanity check
         int size = len;
         size += event.length();
-        size += args[0].length();
-        size += args[1].length();
-        size += args[2].length();
-        size += args[3].length();
+        for (int _i=0; _i<max_args; _i++) size += args[_i].length();
         if ( size > message_max_len ) {
             return false;
         }
@@ -161,18 +161,14 @@ struct message_dynamic_string_test_t {
         _buf->time = time;
         _buf->event_len = event.length();
         _buf->counter = counter;
-        for (int _i=0; _i<4; _i++) _buf->args_len[_i] = args[_i].length();
+        for (int _i=0; _i<max_args; _i++) _buf->args_len[_i] = args[_i].length();
         _buf->status = status;
         memcpy(&(payload[len]), event.c_str(), event.length());
         len += event.length();
-        memcpy(&(payload[len]), args[0].c_str(), args[0].length());
-        len += args[0].length();
-        memcpy(&(payload[len]), args[1].c_str(), args[1].length());
-        len += args[1].length();
-        memcpy(&(payload[len]), args[2].c_str(), args[2].length());
-        len += args[2].length();
-        memcpy(&(payload[len]), args[3].c_str(), args[3].length());
-        len += args[3].length();
+        for (int _i=0; _i<max_args; _i++) {
+            memcpy(&(payload[len]), args[_i].c_str(), args[_i].length());
+            len += args[_i].length();
+        }
         return true;
     }
 
@@ -188,14 +184,10 @@ struct message_dynamic_string_test_t {
         status = _buf->status;
         event = string((char *)&(payload[len]), _buf->event_len);
         len += _buf->event_len;
-        args[0] = string((char *)&(payload[len]), _buf->args_len[0]);
-        len += _buf->args_len[0];
-        args[1] = string((char *)&(payload[len]), _buf->args_len[1]);
-        len += _buf->args_len[1];
-        args[2] = string((char *)&(payload[len]), _buf->args_len[2]);
-        len += _buf->args_len[2];
-        args[3] = string((char *)&(payload[len]), _buf->args_len[3]);
-        len += _buf->args_len[3];
+        for (int _i=0; _i<max_args; _i++) {
+            args[_i] = string((char *)&(payload[len]), _buf->args_len[_i]);
+            len += _buf->args_len[_i];
+        }
         return true;
     }
 };

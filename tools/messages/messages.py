@@ -6,6 +6,9 @@ array_test_id = 1
 dynamic_string_test_id = 2
 gps_v4_id = 34
 
+max_flags = 4  # flags
+max_args = 4  # args
+
 # Message: simple_test
 # Id: 0
 class simple_test():
@@ -35,7 +38,7 @@ class array_test():
     def __init__(self, msg=None):
         # public fields
         self.time = 0.0
-        self.flags = [0] * 4
+        self.flags = [0] * max_flags
         self.orientation = [0.0] * 9
         self.something = 0
         # unpack if requested
@@ -97,7 +100,7 @@ class dynamic_string_test():
         self.time = 0.0
         self.event = ""
         self.counter = 0
-        self.args = [""] * 4
+        self.args = [""] * max_args
         self.status = False
         # unpack if requested
         if msg: self.unpack(msg)
@@ -123,7 +126,7 @@ class dynamic_string_test():
         base_len = struct.calcsize(self._pack_string)
         extra = msg[base_len:]
         msg = msg[:base_len]
-        self.args_len = [0] * 4
+        self.args_len = [0] * max_args
         (self.time,
          self.event_len,
          self.counter,

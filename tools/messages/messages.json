@@ -1,4 +1,8 @@
 {
+    "constants": [
+        { "type": "uint8_t", "name": "max_flags", "value": 4, "desc": "flags" },
+        { "type": "uint8_t", "name": "max_args", "value": 4, "desc": "args" }
+    ],
     "messages": [
         {
             "id": 0,
@@ -12,7 +16,7 @@
             "name": "array_test",
             "fields": [
                 { "type": "double", "name": "time" },
-                { "type": "int8_t", "name": "flags[4]" },
+                { "type": "int8_t", "name": "flags[max_flags]" },
                 { "type": "float", "name": "orientation[9]", "pack_type": "int16_t", "pack_scale": 53.3 },
                 { "type": "uint16_t", "name": "something" }
             ]
@@ -24,7 +28,7 @@
                 { "type": "double", "name": "time" },
                 { "type": "string", "name": "event" },
                 { "type": "uint16_t", "name": "counter" },
-                { "type": "string", "name": "args[4]" },
+                { "type": "string", "name": "args[max_args]" },
                 { "type": "bool", "name": "status" }
             ]
         },

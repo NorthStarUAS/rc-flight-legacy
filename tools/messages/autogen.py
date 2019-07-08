@@ -45,10 +45,11 @@ else:
 def field_name_helper(f):
     name = f.getString("name")
     # test for array form: ident[size]
-    parts = re.split('([\w-]+)\[(\d+)\]', name)
+    parts = re.split('([\w]+)\[(\w+)\]', name)
+    print("parts:", parts)
     if len(parts) == 4:
         name = parts[1]
-        index = int(parts[2])
+        index = parts[2]
     else:
         index = None
     return (name, index)
@@ -70,7 +71,7 @@ def gen_cpp_header():
     result.append("}")
     result.append("")
 
-    # generate messaging constants (and quick checks)
+    # generate message id constants (and quick checks)
     has_dynamic_string = False
     result.append("// Message id constants")
     for i in range(root.getLen("messages")):
@@ -96,7 +97,15 @@ def gen_cpp_header():
         result.append("#include <string>")
         result.append("using std::string;")
         result.append("")
-        
+
+    for i in range(root.getLen("constants")):
+        m = root.getChild("constants[%d]" % i)
+        line = "static const %s %s = %s;" % (m.getString("type"), m.getString("name"), m.getString("value"))
+        if m.hasChild("desc") != "":
+            line += "  // %s" % m.getString("desc")
+        result.append(line)
+    result.append("")
+    
     for i in range(root.getLen("messages")):
         m = root.getChild("messages[%d]" % i)
         print("Processing:", m.getString("name"))
@@ -137,7 +146,7 @@ def gen_cpp_header():
             if f.getString("type") == "string":
                 line += "_len"
             if index:
-                line += "[%d]" % index
+                line += "[%s]" % index
             line += ";"
             result.append(line)
         result.append("    };")
@@ -161,9 +170,8 @@ def gen_cpp_header():
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
             if index:
-                for k in range(index):
-                    if f.getString("type") == "string":
-                        result.append("        size += %s[%d].length();" % (name, k));
+                if f.getString("type") == "string":
+                    result.append("        for (int _i=0; _i<%s; _i++) size += %s[_i].length();" % (index, name))
             else:
                 if f.getString("type") == "string":
                     result.append("        size += %s.length();" % name)
@@ -179,7 +187,7 @@ def gen_cpp_header():
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
             if index:
-                line += "for (int _i=0; _i<%d; _i++) " % index
+                line += "for (int _i=0; _i<%s; _i++) " % index
             line += "_buf->%s" % name
             if f.getString("type") == "string":
                 line += "_len"
@@ -212,10 +220,11 @@ def gen_cpp_header():
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
             if index:
-                for k in range(index):
-                    if f.getString("type") == "string":
-                        result.append("        memcpy(&(payload[len]), %s[%d].c_str(), %s[%d].length());" % (name, k, name, k))
-                        result.append("        len += %s[%d].length();" % (name, k));
+                if f.getString("type") == "string":
+                    result.append("        for (int _i=0; _i<%s; _i++) {" % index)
+                    result.append("            memcpy(&(payload[len]), %s[_i].c_str(), %s[_i].length());" % (name, name))
+                    result.append("            len += %s[_i].length();" % name)
+                    result.append("        }")
             else:
                 if f.getString("type") == "string":
                     result.append("        memcpy(&(payload[len]), %s.c_str(), %s.length());" % (name, name))
@@ -238,7 +247,7 @@ def gen_cpp_header():
             if f.getString("type") != "string":
                 (name, index) = field_name_helper(f)
                 if index:
-                    line += "for (int _i=0; _i<%d; _i++) " % index
+                    line += "for (int _i=0; _i<%s; _i++) " % index
                 line += name
                 if index:
                     line += "[_i]"
@@ -260,10 +269,11 @@ def gen_cpp_header():
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
             if index:
-                for k in range(index):
-                    if f.getString("type") == "string":
-                        result.append("        %s[%d] = string((char *)&(payload[len]), _buf->%s_len[%d]);" % (name, k, name, k))
-                        result.append("        len += _buf->%s_len[%d];" % (name, k))
+                if f.getString("type") == "string":
+                    result.append("        for (int _i=0; _i<%s; _i++) {" % index)
+                    result.append("            %s[_i] = string((char *)&(payload[len]), _buf->%s_len[_i]);" % (name, name))
+                    result.append("            len += _buf->%s_len[_i];" % name)
+                    result.append("        }")
             else:
                 if f.getString("type") == "string":
                     result.append("        %s = string((char *)&(payload[len]), _buf->%s_len);" % (name, name))
@@ -286,6 +296,16 @@ def gen_python_module():
         m = root.getChild("messages[%d]" % i)
         result.append("%s_id = %s" % (m.getString("name"), m.getString("id")))
     result.append("")
+
+    constants_dict = {}
+    for i in range(root.getLen("constants")):
+        m = root.getChild("constants[%d]" % i)
+        constants_dict[m.getString("name")] = m.getInt("value")
+        line = "%s = %s" % (m.getString("name"), m.getString("value"))
+        if m.hasChild("desc") != "":
+            line += "  # %s" % m.getString("desc")
+        result.append(line)
+    result.append("")
     
     for i in range(root.getLen("messages")):
         m = root.getChild("messages[%d]" % i)
@@ -301,7 +321,10 @@ def gen_python_module():
             else:
                 pack_code = type_code[f.getString("type")]
             if index:
-                pack_string += pack_code * index
+                if index in constants_dict:
+                    pack_string += pack_code * constants_dict[index]
+                else:
+                    pack_string += pack_code * int(index)
             else:
                 pack_string += pack_code
             if name in reserved_names:
@@ -337,7 +360,7 @@ def gen_python_module():
             else:
                 line += "None"
             if index:
-                line += "] * %d" % index
+                line += "] * %s" % index
             result.append(line)
         result.append("        # unpack if requested")
         result.append("        if msg: self.unpack(msg)")
@@ -351,6 +374,10 @@ def gen_python_module():
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
             if index:
+                if index in constants_dict:
+                    index = int(constants_dict[index])
+                else:
+                    index = int(index)
                 for k in range(index):
                     line = "                          "
                     if f.hasChild("pack_scale"):
@@ -382,6 +409,10 @@ def gen_python_module():
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
             if index:
+                if index in constants_dict:
+                    index = int(constants_dict[index])
+                else:
+                    index = int(index)
                 for k in range(index):
                     if f.getString("type") == "string":
                         result.append("        msg += str.encode(self.%s[%d])" % (name, k))
@@ -402,11 +433,15 @@ def gen_python_module():
                 f = m.getChild("fields[%d]" % j)
                 (name, index) = field_name_helper(f)
                 if index:
-                    result.append("        self.%s_len = [0] * %d" % (name, index))
+                    result.append("        self.%s_len = [0] * %s" % (name, index))
         for j in range(count):
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
             if index:
+                if index in constants_dict:
+                    index = int(constants_dict[index])
+                else:
+                    index = int(index)
                 for k in range(index):
                     if j == 0 and k == 0:
                         line = "        ("
@@ -442,6 +477,10 @@ def gen_python_module():
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
             if index:
+                if index in constants_dict:
+                    index = int(constants_dict[index])
+                else:
+                    index = int(index)
                 for k in range(index):
                     if f.hasChild("pack_scale"):
                         line = "        self.%s[%d] /= %s" % (name, k, f.getString("pack_scale"))
@@ -455,6 +494,10 @@ def gen_python_module():
             f = m.getChild("fields[%d]" % j)
             (name, index) = field_name_helper(f)
             if index:
+                if index in constants_dict:
+                    index = int(constants_dict[index])
+                else:
+                    index = int(index)
                 for k in range(index):
                     if f.getString("type") == "string":
                         result.append("        self.%s[%d] = extra[:self.%s_len[%d]].decode()" % (name, k, name, k))
