@@ -1,4 +1,9 @@
 {
+    "constants": [
+        { "type": "uint8_t", "name": "PWM_CHANNELS", "value": 8, "desc": "number of pwm output channels" },
+        { "type": "uint16_t", "name": "SERVO_FREQ_HZ", "value": 50, "desc": "default servo pwm frequency (hz)" },
+        { "type": "uint8_t", "name": "SBUS_CHANNELS", "value": 16, "desc": "number of sbus channels" }
+    ],
     "messages": [
         // general ack packet
         {
@@ -34,8 +39,8 @@
             "name": "config_actuators",
             "desc": "actuator configuration",
             "fields": [
-                { "type": "uint16_t", "name": "pwm_hz[8]", "desc": "pwm output signal hz, 50hz default for analog servos, maximum rate is servo dependent: digital servos can usually do 200-250hz, analog servos and ESC's typically require 50hz" },
-                { "type": "float", "name": "act_gain[8]", "desc": "actuator gain (reversing/scaling)" },
+                { "type": "uint16_t", "name": "pwm_hz[PWM_CHANNELS]", "desc": "pwm output signal hz, 50hz default for analog servos, maximum rate is servo dependent: digital servos can usually do 200-250hz, analog servos and ESC's typically require 50hz" },
+                { "type": "float", "name": "act_gain[PWM_CHANNELS]", "desc": "actuator gain (reversing/scaling)" },
                 // mixing modes
                 { "type": "bool", "name": "mix_autocoord" },
                 { "type": "bool", "name": "mix_throttle_trim" },
@@ -121,7 +126,7 @@
             "name": "pilot",
             "desc": "pilot input",
             "fields": [
-                { "type": "float", "name": "channel[16]", "pack_type": "int16_t", "pack_scale": 16384 },
+                { "type": "float", "name": "channel[SBUS_CHANNELS]", "pack_type": "int16_t", "pack_scale": 16384 },
                 { "type": "uint8_t", "name": "flags" }
             ]
         },

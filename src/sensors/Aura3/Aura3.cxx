@@ -25,8 +25,6 @@ using namespace Eigen;
 
 #include "Aura3.hxx"
 #include "aura3_messages.h"
-#include "setup_pwm.h"
-#include "setup_sbus.h"
 
 // FIXME: could be good to be able to define constants in the message.json
 #define NUM_IMU_SENSORS 10
