@@ -29,7 +29,6 @@ using namespace Eigen;
 // FIXME: could be good to be able to define constants in the message.json
 #define NUM_IMU_SENSORS 10
 #define NUM_ANALOG_INPUTS 6
-#define AP_CHANNELS 6
 
 static pyPropertyNode aura3_node;
 static pyPropertyNode power_node;
