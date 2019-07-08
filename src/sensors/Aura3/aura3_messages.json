@@ -1,0 +1,209 @@
+{
+    "messages": [
+        // general ack packet
+        {
+            "id": 20,
+            "name": "command_ack",
+            "desc": "acknowledge command completed successfully",
+            "fields": [
+                { "type": "uint8_t", "name": "command_id" },
+                { "type": "uint8_t", "name": "subcommand_id" }
+            ]
+        },
+        // config packets
+        {
+            "id": 21,
+            "name": "config_master",
+            "desc": "master board configuration",
+            "fields": [
+                { "type": "uint8_t", "name": "board", "desc": "0 = Marmot v1, 1 = Aura v2" }
+            ]
+        },
+        {
+            "id": 22,
+            "name": "config_imu",
+            "desc": "IMU configuration",
+            "fields": [
+                { "type": "uint8_t", "name": "interface", "desc": "0 = SPI, 1 = I2C" },
+                { "type": "uint8_t", "name": "pin_or_address", "desc": "SPI CS pin or I2C address" },
+                { "type": "float", "name": "orientation[9]", "desc": "IMU orientation matrix" }
+            ]
+        },
+        {
+            "id": 23,
+            "name": "config_actuators",
+            "desc": "actuator configuration",
+            "fields": [
+                { "type": "uint16_t", "name": "pwm_hz[8]", "desc": "pwm output signal hz, 50hz default for analog servos, maximum rate is servo dependent: digital servos can usually do 200-250hz, analog servos and ESC's typically require 50hz" },
+                { "type": "float", "name": "act_gain[8]", "desc": "actuator gain (reversing/scaling)" },
+                // mixing modes
+                { "type": "bool", "name": "mix_autocoord" },
+                { "type": "bool", "name": "mix_throttle_trim" },
+                { "type": "bool", "name": "mix_flap_trim" },
+                { "type": "bool", "name": "mix_elevon" },
+                { "type": "bool", "name": "mix_flaperon" },
+                { "type": "bool", "name": "mix_vtail" },
+                { "type": "bool", "name": "mix_diff_thrust" },
+                // mixing gains
+                { "type": "float", "name": "mix_Gac", "desc": "aileron gain for autocoordination" },
+                { "type": "float", "name": "mix_Get", "desc": "elevator trim w/ throttle gain" },
+                { "type": "float", "name": "mix_Gef", "desc": "elevator trim w/ flap gain" },
+                { "type": "float", "name": "mix_Gea", "desc": "aileron gain for elevons" },
+                { "type": "float", "name": "mix_Gee", "desc": "elevator gain for elevons" },
+                { "type": "float", "name": "mix_Gfa", "desc": "aileron gain for flaperons" },
+                { "type": "float", "name": "mix_Gff", "desc": "flaps gain for flaperons" },
+                { "type": "float", "name": "mix_Gve", "desc": "elevator gain for vtail" },
+                { "type": "float", "name": "mix_Gvr", "desc": "rudder gain for vtail" },
+                { "type": "float", "name": "mix_Gtt", "desc": "throttle gain for diff thrust" },
+                { "type": "float", "name": "mix_Gtr", "desc": "rudder gain for diff thrust" },
+                // axis damping modes
+                { "type": "bool", "name": "sas_rollaxis" },
+                { "type": "bool", "name": "sas_pitchaxis" },
+                { "type": "bool", "name": "sas_yawaxis" },
+                { "type": "bool", "name": "sas_tune" },
+                // axis damping gains
+                { "type": "float", "name": "sas_rollgain" },
+                { "type": "float", "name": "sas_pitchgain" },
+                { "type": "float", "name": "sas_yawgain" },
+                { "type": "float", "name": "sas_max_gain" }
+            ]
+        },
+        {
+            "id": 24,
+            "name": "config_airdata",
+            "desc": "airdata configuration",
+            "fields": [
+                { "type": "uint8_t", "name": "barometer", "desc": "0 = BME280/SPI, 1 = BMP280/I2C, 2 = BFS Swift" },
+                { "type": "uint8_t", "name": "pitot", "desc": "0 = MS4525, 1 = MS5525, 2 = BFS Swift" },
+                { "type": "uint8_t", "name": "swift_baro_addr" },
+                { "type": "uint8_t", "name": "swift_pitot_addr" }
+            ]
+        },
+        {
+            "id": 25,
+            "name": "config_power",
+            "desc": "power configuration",
+            "fields": [
+                { "type": "bool", "name": "have_attopilot" }
+            ]
+        },
+        {
+            "id": 26,
+            "name": "config_led",
+            "desc": "power configuration",
+            "fields": [
+                { "type": "uint8_t", "name": "pin", "desc": "0 = no LED" }
+            ]
+        },
+        // commands
+        {
+            "id": 40,
+            "name": "command_inceptors",
+            "fields": [
+                { "type": "float", "name": "channel[6]", "pack_type": "int16_t", "pack_scale": 16384 }
+            ]
+        },
+        {
+            "id": 41,
+            "name": "command_zero_gyros",
+            "fields": [
+            ]
+        },
+        {
+            "id": 42,
+            "name": "command_cycle_inceptors",
+            "fields": [
+            ]
+        },
+        // sensors
+        {
+            "id": 50,
+            "name": "pilot",
+            "desc": "pilot input",
+            "fields": [
+                { "type": "float", "name": "channel[16]", "pack_type": "int16_t", "pack_scale": 16384 },
+                { "type": "uint8_t", "name": "flags" }
+            ]
+        },
+        {
+            "id": 51,
+            "name": "imu_raw",
+            "fields": [
+                { "type": "uint32_t", "name": "micros" },
+                { "type": "int16_t", "name": "channel[10]" }
+            ]
+        },
+        {
+            "id": 52,
+            "name": "aura_nav_pvt",
+            "fields": [
+                { "type": "uint32_t", "name": "iTOW" },
+                { "type": "int16_t", "name": "year" },
+                { "type": "uint8_t", "name": "month" },
+                { "type": "uint8_t", "name": "day" },
+                { "type": "uint8_t", "name": "hour" },
+                { "type": "uint8_t", "name": "min" },
+                { "type": "uint8_t", "name": "sec" },
+                { "type": "uint8_t", "name": "valid" },
+                { "type": "uint32_t", "name": "tAcc" },
+                { "type": "int32_t", "name": "nano" },
+                { "type": "uint8_t", "name": "fixType" },
+                { "type": "uint8_t", "name": "flags" },
+                { "type": "uint8_t", "name": "flags2" },
+                { "type": "uint8_t", "name": "numSV" },
+                { "type": "int32_t", "name": "lon" },
+                { "type": "int32_t", "name": "lat" },
+                { "type": "int32_t", "name": "height" },
+                { "type": "int32_t", "name": "hMSL" },
+                { "type": "uint32_t", "name": "hAcc" },
+                { "type": "uint32_t", "name": "vAcc" },
+                { "type": "int32_t", "name": "velN" },
+                { "type": "int32_t", "name": "velE" },
+                { "type": "int32_t", "name": "velD" },
+                { "type": "uint32_t", "name": "gSpeed" },
+                { "type": "int32_t", "name": "heading" },
+                { "type": "uint32_t", "name": "sAcc" },
+                { "type": "uint32_t", "name": "headingAcc" },
+                { "type": "uint16_t", "name": "pDOP" },
+                { "type": "uint8_t", "name": "reserved[6]" },
+                { "type": "int32_t", "name": "headVeh" },
+                { "type": "int16_t", "name": "magDec" },
+                { "type": "uint16_t", "name": "magAcc" }
+            ]
+        },
+        {
+            "id": 53,
+            "name": "airdata",
+            "fields": [
+                { "type": "float", "name": "baro_press_pa" },
+                { "type": "float", "name": "baro_temp_C" },
+                { "type": "float", "name": "baro_hum" },
+                { "type": "float", "name": "ext_diff_press_pa" },
+                { "type": "float", "name": "ext_static_press_pa" },
+                { "type": "float", "name": "ext_temp_C" },
+                { "type": "uint16_t", "name": "error_count" }
+            ]
+        },
+        {
+            "id": 54,
+            "name": "power",
+            "fields": [
+                { "type": "float", "name": "int_main_v", "pack_type": "uint16_t", "pack_scale": 100 },
+                { "type": "float", "name": "avionics_v" , "pack_type": "uint16_t", "pack_scale": 100 },
+                { "type": "float", "name": "ext_main_v", "pack_type": "uint16_t", "pack_scale": 100  },
+                { "type": "float", "name": "ext_main_amp", "pack_type": "uint16_t", "pack_scale": 100  }
+            ]
+        },
+        {
+            "id": 55,
+            "name": "status",
+            "fields": [
+                { "type": "uint16_t", "name": "serial_number" },
+                { "type": "uint16_t", "name": "firmware_rev" },
+                { "type": "uint16_t", "name": "master_hz" },
+                { "type": "uint32_t", "name": "baud" },
+                { "type": "uint16_t", "name": "byte_rate" }
+            ]
+        }
+    ]
+}
