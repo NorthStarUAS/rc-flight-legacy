@@ -46,7 +46,7 @@ def field_name_helper(f):
     name = f.getString("name")
     # test for array form: ident[size]
     parts = re.split('([\w]+)\[(\w+)\]', name)
-    print("parts:", parts)
+    # print("parts:", parts)
     if len(parts) == 4:
         name = parts[1]
         index = parts[2]
@@ -98,13 +98,33 @@ def gen_cpp_header():
         result.append("using std::string;")
         result.append("")
 
-    for i in range(root.getLen("constants")):
-        m = root.getChild("constants[%d]" % i)
-        line = "static const %s %s = %s;" % (m.getString("type"), m.getString("name"), m.getString("value"))
-        if m.hasChild("desc") != "":
-            line += "  // %s" % m.getString("desc")
-        result.append(line)
-    result.append("")
+    if root.getLen("constants"):
+        result.append("// Constants")
+        for i in range(root.getLen("constants")):
+            m = root.getChild("constants[%d]" % i)
+            line = "static const %s %s = %s;" % (m.getString("type"), m.getString("name"), m.getString("value"))
+            if m.hasChild("desc") != "":
+                line += "  // %s" % m.getString("desc")
+            result.append(line)
+        result.append("")
+
+    enum_dict = {}
+    if root.getLen("enums"):
+        result.append("// Enums")
+        for i in range(root.getLen("enums")):
+            m = root.getChild("enums[%d]" % i)
+            enum_dict[m.getString("name")] = 1
+            result.append("enum class %s {" % m.getString("name"))
+            for j in range(m.getLen("identifiers")):
+                f = m.getChild("identifiers[%d]" % j)
+                line = "    %s = %d" % (f.getString("name"), j)
+                if j < m.getLen("identifiers") - 1:
+                    line += ","
+                if f.hasChild("desc"):
+                    line += "  // %s" % f.getChild("desc")
+                result.append(line)
+            result.append("};")
+        result.append("")
     
     for i in range(root.getLen("messages")):
         m = root.getChild("messages[%d]" % i)
@@ -139,6 +159,8 @@ def gen_cpp_header():
             if f.hasChild("pack_type"):
                 ptype = f.getString("pack_type")
             elif f.getString("type") == "string":
+                ptype = "uint8_t"
+            elif f.getString("type") in enum_dict:
                 ptype = "uint8_t"
             else:
                 ptype = f.getString("type")
@@ -208,6 +230,8 @@ def gen_cpp_header():
                     line += " * %s" % f.getString("pack_scale")
                 line += ")"
             else:
+                if f.getString("type") in enum_dict:
+                    line += "(uint8_t)"
                 line += "%s" % name
                 if index:
                     line += "[_i]"
@@ -259,6 +283,8 @@ def gen_cpp_header():
                     line += " / (float)%s" % f.getString("pack_scale")
                     ptype = f.getString("pack_type")
                 else:
+                    if f.getString("type") in enum_dict:
+                        line += "(%s)" % f.getString("type")                    
                     line += "_buf->%s" % name
                     if index:
                         line += "[_i]"
@@ -298,14 +324,30 @@ def gen_python_module():
     result.append("")
 
     constants_dict = {}
-    for i in range(root.getLen("constants")):
-        m = root.getChild("constants[%d]" % i)
-        constants_dict[m.getString("name")] = m.getInt("value")
-        line = "%s = %s" % (m.getString("name"), m.getString("value"))
-        if m.hasChild("desc") != "":
-            line += "  # %s" % m.getString("desc")
-        result.append(line)
-    result.append("")
+    if root.getLen("constants"):
+        result.append("# Constants")
+        for i in range(root.getLen("constants")):
+            m = root.getChild("constants[%d]" % i)
+            constants_dict[m.getString("name")] = m.getInt("value")
+            line = "%s = %s" % (m.getString("name"), m.getString("value"))
+            if m.hasChild("desc") != "":
+                line += "  # %s" % m.getString("desc")
+            result.append(line)
+        result.append("")
+    
+    enum_dict = {}
+    if root.getLen("enums"):
+        result.append("# Enums")
+        for i in range(root.getLen("enums")):
+            m = root.getChild("enums[%d]" % i)
+            enum_dict[m.getString("name")] = 1
+            for j in range(m.getLen("identifiers")):
+                f = m.getChild("identifiers[%d]" % j)
+                line = "%s_%s = %d" % (m.getString("name"), f.getString("name"), j)
+                if f.hasChild("desc"):
+                    line += "  # %s" % f.getChild("desc")
+                result.append(line)
+        result.append("")
     
     for i in range(root.getLen("messages")):
         m = root.getChild("messages[%d]" % i)
@@ -318,6 +360,8 @@ def gen_python_module():
             (name, index) = field_name_helper(f)
             if f.hasChild("pack_type"):
                 pack_code = type_code[f.getString("pack_type")]
+            elif f.getString("type") in enum_dict:
+                pack_code = "B"
             else:
                 pack_code = type_code[f.getString("type")]
             if index:
@@ -351,6 +395,8 @@ def gen_python_module():
             if t == "double" or t == "float":
                 line += "0.0"
             elif "int" in t:
+                line += "0"
+            elif t in enum_dict:
                 line += "0"
             elif t == "bool":
                 line += "False"
