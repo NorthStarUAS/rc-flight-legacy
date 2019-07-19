@@ -52,11 +52,26 @@ def field_name_helper(f):
 def gen_cpp_header():
     result = []
 
+    # test if any messages use "string"
+    has_dynamic_string = False
+    for i in range(root.getLen("messages")):
+        m = root.getChild("messages[%d]" % i)
+        # quick checks
+        for j in range(m.getLen("fields")):
+            f = m.getChild("fields[%d]" % j)
+            name = f.getString("name")
+            if f.getString("type") == "string":
+                has_dynamic_string = True
+                
     result.append("#pragma once")
     result.append("")
     result.append("#include <stdint.h>  // uint8_t, et. al.")
     result.append("#include <string.h>  // memcpy()")
     result.append("")
+    if has_dynamic_string:
+        result.append("#include <string>")
+        result.append("using std::string;")
+        result.append("")
     result.append("namespace %s {" % args.namespace)
     result.append("")
     result.append("static inline int32_t intround(float f) {")
@@ -69,7 +84,6 @@ def gen_cpp_header():
     result.append("")
 
     # generate message id constants (and quick checks)
-    has_dynamic_string = False
     result.append("// Message id constants")
     for i in range(root.getLen("messages")):
         m = root.getChild("messages[%d]" % i)
@@ -82,19 +96,12 @@ def gen_cpp_header():
                 print("Error: '%s' is reserved and cannot be used as a field name." % name)
                 print("Aborting.")
                 quit()
-            if f.getString("type") == "string":
-                has_dynamic_string = True
     result.append("")
 
     result.append("// max of one byte used to store message len")
     result.append("static const uint8_t message_max_len = 255;")
     result.append("");
     
-    if has_dynamic_string:
-        result.append("#include <string>")
-        result.append("using std::string;")
-        result.append("")
-
     if root.getLen("constants"):
         result.append("// Constants")
         for i in range(root.getLen("constants")):
