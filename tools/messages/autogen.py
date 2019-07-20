@@ -148,7 +148,11 @@ def gen_cpp_header():
         result.append("    // public fields")
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
-            result.append("    %s %s;" % (f.getString("type"), f.getString("name")))
+            line = "    %s %s" % (f.getString("type"), f.getString("name"))
+            if f.hasChild("default"):
+                line += " = %s" % f.getString("default")
+            line += ";"
+            result.append(line)
         result.append("")
 
         # generate private c packed struct
@@ -397,7 +401,9 @@ def gen_python_module():
             line = "        self.%s = " % name
             if index:
                 line += "["
-            if t == "double" or t == "float":
+            if f.hasChild("default"):
+                line += f.getString("default")
+            elif t == "double" or t == "float":
                 line += "0.0"
             elif "int" in t:
                 line += "0"
