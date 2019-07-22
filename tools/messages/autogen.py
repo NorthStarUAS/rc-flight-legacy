@@ -37,6 +37,16 @@ reserved_names += list(type_code.keys())
 
 basename, ext = os.path.splitext(args.input)
 
+# assign id numbers to message names
+id_dict = {}
+next_id = 10
+for i in range(root.getLen("messages")):
+    m = root.getChild("messages[%d]" % i)
+    if m.hasChild("id"):
+        next_id = m.getInt("id")
+    id_dict[m.getString("name")] = next_id
+    next_id += 1
+    
 def field_name_helper(f):
     name = f.getString("name")
     # test for array form: ident[size]
@@ -87,7 +97,8 @@ def gen_cpp_header():
     result.append("// Message id constants")
     for i in range(root.getLen("messages")):
         m = root.getChild("messages[%d]" % i)
-        result.append("const uint8_t %s_id = %s;" % (m.getString("name"), m.getString("id")))
+        id = id_dict[m.getString("name")]
+        result.append("const uint8_t %s_id = %d;" % (m.getString("name"), id))
         # quick checks
         for j in range(m.getLen("fields")):
             f = m.getChild("fields[%d]" % j)
@@ -143,7 +154,8 @@ def gen_cpp_header():
                 quit()
 
         # generate public c message struct
-        result.append("// Message: %s (id: %d)" % (m.getString("name"), m.getInt("id")))
+        id = id_dict[m.getString("name")]
+        result.append("// Message: %s (id: %d)" % (m.getString("name"), id))
         result.append("struct %s_t {" % (m.getString("name")))
         result.append("    // public fields")
         for j in range(m.getLen("fields")):
@@ -185,7 +197,8 @@ def gen_cpp_header():
 
         # generate built in constants
         result.append("    // public info fields")
-        result.append("    static const uint8_t id = %s;" % m.getString("id"))
+        id = id_dict[m.getString("name")]
+        result.append("    static const uint8_t id = %s;" % id)
         result.append("    uint16_t len = 0;")
         result.append("")
         
@@ -329,7 +342,8 @@ def gen_python_module():
     result.append("# Message id constants")
     for i in range(root.getLen("messages")):
         m = root.getChild("messages[%d]" % i)
-        result.append("%s_id = %s" % (m.getString("name"), m.getString("id")))
+        id = id_dict[m.getString("name")]
+        result.append("%s_id = %s" % (m.getString("name"), id))
     result.append("")
 
     constants_dict = {}
@@ -386,10 +400,11 @@ def gen_python_module():
                 quit()
 
         # generate public message class
+        id = id_dict[m.getString("name")]
         result.append("# Message: %s" % m.getString("name"))
-        result.append("# Id: %d" % m.getInt("id"))
+        result.append("# Id: %d" % id)
         result.append("class %s():" % (m.getString("name")))
-        result.append("    id = %s" % m.getString("id"))
+        result.append("    id = %s" % id)
         result.append("    _pack_string = \"%s\"" % pack_string)
         result.append("")
         result.append("    def __init__(self, msg=None):")
