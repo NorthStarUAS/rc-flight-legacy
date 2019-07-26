@@ -25,6 +25,7 @@ if not root.hasChild("messages"):
     quit()
 
 type_code = { "double": 'd', "float": 'f',
+              "uint64_t": "Q", "int64_t": "q",
               "uint32_t": 'L', "int32_t": 'l',
               "uint16_t": 'H', "int16_t": 'h',
               "uint8_t": 'B', "int8_t": 'b',
