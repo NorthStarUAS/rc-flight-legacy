@@ -200,7 +200,7 @@ def gen_cpp_header():
         result.append("    // public info fields")
         id = id_dict[m.getString("name")]
         result.append("    static const uint8_t id = %s;" % id)
-        result.append("    uint16_t len = 0;")
+        result.append("    int len = 0;")
         result.append("")
         
         # generate pack code
