@@ -4,10 +4,24 @@ import struct
 simple_test_id = 0
 array_test_id = 1
 dynamic_string_test_id = 2
+enum_test_id = 3
 gps_v4_id = 34
 
+# Constants
 max_flags = 4  # flags
 max_args = 4  # args
+
+# Enums
+enum_sequence1_enum1 = 0
+enum_sequence1_enum2 = 1  # None
+enum_sequence1_enum3 = 2
+enum_sequence1_enum4 = 3
+enum_sequence1_enum5 = 4
+enum_sequence2_enum1a = 0
+enum_sequence2_enum2a = 1
+enum_sequence2_enum3a = 2
+enum_sequence2_enum4a = 3
+enum_sequence2_enum5a = 4
 
 # Message: simple_test
 # Id: 0
@@ -145,6 +159,26 @@ class dynamic_string_test():
         extra = extra[self.args_len[2]:]
         self.args[3] = extra[:self.args_len[3]].decode()
         extra = extra[self.args_len[3]:]
+
+# Message: enum_test
+# Id: 3
+class enum_test():
+    id = 3
+    _pack_string = "<B"
+
+    def __init__(self, msg=None):
+        # public fields
+        self.time = 0
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = struct.pack(self._pack_string,
+                          self.time)
+        return msg
+
+    def unpack(self, msg):
+        (self.time,) = struct.unpack(self._pack_string, msg)
 
 # Message: gps_v4
 # Id: 34

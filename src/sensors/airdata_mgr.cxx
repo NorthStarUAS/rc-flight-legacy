@@ -344,7 +344,7 @@ bool AirData_update() {
 	    }
 	
 	    if ( send_remote_link || send_logging ) {
-                message_airdata_v7_t air;
+                message::airdata_v7_t air;
                 air.index = i;
                 air.timestamp_sec = outputs[i].getDouble("timestamp");
                 air.pressure_mbar = outputs[i].getDouble("pressure_mbar");

@@ -73,7 +73,7 @@ bool UGPayloadMgr::update() {
 	}
 	
 	if ( send_remote_link || send_logging ) {
-            message_payload_v3_t payload;
+            message::payload_v3_t payload;
             payload.index =  0;
             payload.timestamp_sec = status_node.getDouble("frame_time");
             payload.trigger_num = payload_node.getDouble("trigger_num");

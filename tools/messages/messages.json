@@ -3,6 +3,30 @@
         { "type": "uint8_t", "name": "max_flags", "value": 4, "desc": "flags" },
         { "type": "uint8_t", "name": "max_args", "value": 4, "desc": "args" }
     ],
+
+    "enums": [
+        {
+            "name": "enum_sequence1",
+            "identifiers": [
+                { "name": "enum1" },
+                { "name": "enum2", "desc": "a description" },
+                { "name": "enum3" },
+                { "name": "enum4" },
+                { "name": "enum5" }
+            ]
+        },
+        {
+            "name": "enum_sequence2",
+            "identifiers": [
+                { "name": "enum1a" },
+                { "name": "enum2a" },
+                { "name": "enum3a" },
+                { "name": "enum4a" },
+                { "name": "enum5a" }
+            ]
+        }
+    ],
+    
     "messages": [
         {
             "id": 0,
@@ -32,7 +56,14 @@
                 { "type": "bool", "name": "status" }
             ]
         },
-          {
+        {
+            "id": 3,
+            "name": "enum_test",
+            "fields": [
+                { "type": "enum_sequence1", "name": "time" }
+            ]
+        },
+        {
             "id": 34,
             "name": "gps_v4",
             "desc": "gps message",

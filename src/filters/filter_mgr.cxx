@@ -290,7 +290,7 @@ bool Filter_update() {
 	}
 	
 	if ( send_remote_link || send_logging ) {
-            message_filter_v4_t nav;
+            message::filter_v4_t nav;
             nav.index = i;
             nav.timestamp_sec = outputs[i].getDouble("timestamp");
             nav.latitude_deg = outputs[i].getDouble("latitude_deg");

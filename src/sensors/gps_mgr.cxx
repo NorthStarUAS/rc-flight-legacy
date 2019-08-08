@@ -184,7 +184,7 @@ bool GPS_update() {
 	
 	    if ( send_remote_link || send_logging ) {
                 // generate the message
-                message_gps_v4_t gps;
+                message::gps_v4_t gps;
                 gps.index = i;
                 gps.timestamp_sec = outputs[i].getDouble("timestamp");
                 gps.latitude_deg = outputs[i].getDouble("latitude_deg");

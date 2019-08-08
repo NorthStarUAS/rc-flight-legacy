@@ -197,7 +197,7 @@ void control_update(double dt)
     }
 	
     if ( send_remote_link || send_logging ) {
-        message_ap_status_v7_t ap;
+        message::ap_status_v7_t ap;
         ap.index = 0;     // always 0 for now
         ap.timestamp_sec = status_node.getDouble("frame_time");
         // status flags (up to 8 could be supported)

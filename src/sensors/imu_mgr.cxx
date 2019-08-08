@@ -154,7 +154,7 @@ bool IMU_update() {
 	
 	    if ( send_remote_link || send_logging ) {
                 // generate the message
-                message_imu_v4_t imu;
+                message::imu_v4_t imu;
                 imu.index = i;
                 imu.timestamp_sec = outputs[i].getDouble("timestamp");
                 imu.p_rad_sec = outputs[i].getDouble("p_rad_sec");

@@ -134,7 +134,7 @@ bool PilotInput_update() {
 	    }
 	
 	    if ( send_remote_link || send_logging ) {
-                message_pilot_v3_t pilot;
+                message::pilot_v3_t pilot;
                 pilot.index = i;
                 pilot.timestamp_sec = outputs[i].getDouble("timestamp");
                 pilot.channel[0] = outputs[i].getDouble("channel", 0);

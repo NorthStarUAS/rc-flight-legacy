@@ -223,9 +223,10 @@ def gen_cpp_header():
         result.append("            return false;")
         result.append("        }")
 
-        # copy values
-        result.append("        // copy values")
-        result.append("        _compact_t *_buf = (_compact_t *)payload;")
+        if count > 0:
+            # copy values
+            result.append("        // copy values")
+            result.append("        _compact_t *_buf = (_compact_t *)payload;")
         for j in range(count):
             line = "        ";
             f = m.getChild("fields[%d]" % j)
@@ -285,7 +286,8 @@ def gen_cpp_header():
         result.append("            return false;")
         result.append("        }")
         result.append("        memcpy(payload, external_message, message_size);")
-        result.append("        _compact_t *_buf = (_compact_t *)payload;");
+        if count > 0:
+            result.append("        _compact_t *_buf = (_compact_t *)payload;");
         result.append("        len = sizeof(_compact_t);")
         for j in range(count):
             line = "        ";

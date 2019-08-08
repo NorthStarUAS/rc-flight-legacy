@@ -3,6 +3,8 @@
 #include <stdint.h>  // uint8_t, et. al.
 #include <string.h>  // memcpy()
 
+namespace message {
+
 static inline int32_t intround(float f) {
     return (int32_t)(f >= 0.0 ? (f + 0.5) : (f - 0.5));
 }
@@ -12,32 +14,33 @@ static inline uint32_t uintround(float f) {
 }
 
 // Message id constants
-const uint8_t message_command_ack_id = 20;
-const uint8_t message_config_master_id = 21;
-const uint8_t message_config_imu_id = 22;
-const uint8_t message_config_actuators_id = 23;
-const uint8_t message_config_airdata_id = 24;
-const uint8_t message_config_power_id = 25;
-const uint8_t message_config_led_id = 26;
-const uint8_t message_command_inceptors_id = 40;
-const uint8_t message_command_zero_gyros_id = 41;
-const uint8_t message_command_cycle_inceptors_id = 42;
-const uint8_t message_pilot_id = 50;
-const uint8_t message_imu_raw_id = 51;
-const uint8_t message_aura_nav_pvt_id = 52;
-const uint8_t message_airdata_id = 53;
-const uint8_t message_power_id = 54;
-const uint8_t message_status_id = 55;
+const uint8_t command_ack_id = 20;
+const uint8_t config_master_id = 21;
+const uint8_t config_imu_id = 22;
+const uint8_t config_actuators_id = 23;
+const uint8_t config_airdata_id = 24;
+const uint8_t config_power_id = 25;
+const uint8_t config_led_id = 26;
+const uint8_t command_inceptors_id = 40;
+const uint8_t command_zero_gyros_id = 41;
+const uint8_t command_cycle_inceptors_id = 42;
+const uint8_t pilot_id = 50;
+const uint8_t imu_raw_id = 51;
+const uint8_t aura_nav_pvt_id = 52;
+const uint8_t airdata_id = 53;
+const uint8_t power_id = 54;
+const uint8_t status_id = 55;
 
 // max of one byte used to store message len
 static const uint8_t message_max_len = 255;
 
-static const uint8_t message_pwm_channels = 8;  // number of pwm output channels
-static const uint8_t message_sbus_channels = 16;  // number of sbus channels
-static const uint8_t message_ap_channels = 6;  // number of sbus channels
+// Constants
+static const uint8_t pwm_channels = 8;  // number of pwm output channels
+static const uint8_t sbus_channels = 16;  // number of sbus channels
+static const uint8_t ap_channels = 6;  // number of sbus channels
 
 // Message: command_ack (id: 20)
-struct message_command_ack_t {
+struct command_ack_t {
     // public fields
     uint8_t command_id;
     uint8_t subcommand_id;
@@ -53,7 +56,7 @@ struct message_command_ack_t {
 
     // public info fields
     static const uint8_t id = 20;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -83,7 +86,7 @@ struct message_command_ack_t {
 };
 
 // Message: config_master (id: 21)
-struct message_config_master_t {
+struct config_master_t {
     // public fields
     uint8_t board;
 
@@ -97,7 +100,7 @@ struct message_config_master_t {
 
     // public info fields
     static const uint8_t id = 21;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -125,7 +128,7 @@ struct message_config_master_t {
 };
 
 // Message: config_imu (id: 22)
-struct message_config_imu_t {
+struct config_imu_t {
     // public fields
     uint8_t interface;
     uint8_t pin_or_address;
@@ -143,7 +146,7 @@ struct message_config_imu_t {
 
     // public info fields
     static const uint8_t id = 22;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -175,10 +178,10 @@ struct message_config_imu_t {
 };
 
 // Message: config_actuators (id: 23)
-struct message_config_actuators_t {
+struct config_actuators_t {
     // public fields
-    uint16_t pwm_hz[message_pwm_channels];
-    float act_gain[message_pwm_channels];
+    uint16_t pwm_hz[pwm_channels];
+    float act_gain[pwm_channels];
     bool mix_autocoord;
     bool mix_throttle_trim;
     bool mix_flap_trim;
@@ -210,8 +213,8 @@ struct message_config_actuators_t {
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
-        uint16_t pwm_hz[message_pwm_channels];
-        float act_gain[message_pwm_channels];
+        uint16_t pwm_hz[pwm_channels];
+        float act_gain[pwm_channels];
         bool mix_autocoord;
         bool mix_throttle_trim;
         bool mix_flap_trim;
@@ -243,7 +246,7 @@ struct message_config_actuators_t {
 
     // public info fields
     static const uint8_t id = 23;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -254,8 +257,8 @@ struct message_config_actuators_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
-        for (int _i=0; _i<message_pwm_channels; _i++) _buf->pwm_hz[_i] = pwm_hz[_i];
-        for (int _i=0; _i<message_pwm_channels; _i++) _buf->act_gain[_i] = act_gain[_i];
+        for (int _i=0; _i<pwm_channels; _i++) _buf->pwm_hz[_i] = pwm_hz[_i];
+        for (int _i=0; _i<pwm_channels; _i++) _buf->act_gain[_i] = act_gain[_i];
         _buf->mix_autocoord = mix_autocoord;
         _buf->mix_throttle_trim = mix_throttle_trim;
         _buf->mix_flap_trim = mix_flap_trim;
@@ -292,8 +295,8 @@ struct message_config_actuators_t {
         memcpy(payload, external_message, message_size);
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
-        for (int _i=0; _i<message_pwm_channels; _i++) pwm_hz[_i] = _buf->pwm_hz[_i];
-        for (int _i=0; _i<message_pwm_channels; _i++) act_gain[_i] = _buf->act_gain[_i];
+        for (int _i=0; _i<pwm_channels; _i++) pwm_hz[_i] = _buf->pwm_hz[_i];
+        for (int _i=0; _i<pwm_channels; _i++) act_gain[_i] = _buf->act_gain[_i];
         mix_autocoord = _buf->mix_autocoord;
         mix_throttle_trim = _buf->mix_throttle_trim;
         mix_flap_trim = _buf->mix_flap_trim;
@@ -325,7 +328,7 @@ struct message_config_actuators_t {
 };
 
 // Message: config_airdata (id: 24)
-struct message_config_airdata_t {
+struct config_airdata_t {
     // public fields
     uint8_t barometer;
     uint8_t pitot;
@@ -345,7 +348,7 @@ struct message_config_airdata_t {
 
     // public info fields
     static const uint8_t id = 24;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -379,7 +382,7 @@ struct message_config_airdata_t {
 };
 
 // Message: config_power (id: 25)
-struct message_config_power_t {
+struct config_power_t {
     // public fields
     bool have_attopilot;
 
@@ -393,7 +396,7 @@ struct message_config_power_t {
 
     // public info fields
     static const uint8_t id = 25;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -421,7 +424,7 @@ struct message_config_power_t {
 };
 
 // Message: config_led (id: 26)
-struct message_config_led_t {
+struct config_led_t {
     // public fields
     uint8_t pin;
 
@@ -435,7 +438,7 @@ struct message_config_led_t {
 
     // public info fields
     static const uint8_t id = 26;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -463,21 +466,21 @@ struct message_config_led_t {
 };
 
 // Message: command_inceptors (id: 40)
-struct message_command_inceptors_t {
+struct command_inceptors_t {
     // public fields
-    float channel[message_ap_channels];
+    float channel[ap_channels];
 
     // internal structure for packing
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
-        int16_t channel[message_ap_channels];
+        int16_t channel[ap_channels];
     };
     #pragma pack(pop)
 
     // public info fields
     static const uint8_t id = 40;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -488,7 +491,7 @@ struct message_command_inceptors_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
-        for (int _i=0; _i<message_ap_channels; _i++) _buf->channel[_i] = intround(channel[_i] * 16384);
+        for (int _i=0; _i<ap_channels; _i++) _buf->channel[_i] = intround(channel[_i] * 16384);
         return true;
     }
 
@@ -499,13 +502,13 @@ struct message_command_inceptors_t {
         memcpy(payload, external_message, message_size);
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
-        for (int _i=0; _i<message_ap_channels; _i++) channel[_i] = _buf->channel[_i] / (float)16384;
+        for (int _i=0; _i<ap_channels; _i++) channel[_i] = _buf->channel[_i] / (float)16384;
         return true;
     }
 };
 
 // Message: command_zero_gyros (id: 41)
-struct message_command_zero_gyros_t {
+struct command_zero_gyros_t {
     // public fields
 
     // internal structure for packing
@@ -517,7 +520,7 @@ struct message_command_zero_gyros_t {
 
     // public info fields
     static const uint8_t id = 41;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -526,8 +529,6 @@ struct message_command_zero_gyros_t {
         if ( size > message_max_len ) {
             return false;
         }
-        // copy values
-        _compact_t *_buf = (_compact_t *)payload;
         return true;
     }
 
@@ -536,14 +537,13 @@ struct message_command_zero_gyros_t {
             return false;
         }
         memcpy(payload, external_message, message_size);
-        _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
         return true;
     }
 };
 
 // Message: command_cycle_inceptors (id: 42)
-struct message_command_cycle_inceptors_t {
+struct command_cycle_inceptors_t {
     // public fields
 
     // internal structure for packing
@@ -555,7 +555,7 @@ struct message_command_cycle_inceptors_t {
 
     // public info fields
     static const uint8_t id = 42;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -564,8 +564,6 @@ struct message_command_cycle_inceptors_t {
         if ( size > message_max_len ) {
             return false;
         }
-        // copy values
-        _compact_t *_buf = (_compact_t *)payload;
         return true;
     }
 
@@ -574,30 +572,29 @@ struct message_command_cycle_inceptors_t {
             return false;
         }
         memcpy(payload, external_message, message_size);
-        _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
         return true;
     }
 };
 
 // Message: pilot (id: 50)
-struct message_pilot_t {
+struct pilot_t {
     // public fields
-    float channel[message_sbus_channels];
+    float channel[sbus_channels];
     uint8_t flags;
 
     // internal structure for packing
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
-        int16_t channel[message_sbus_channels];
+        int16_t channel[sbus_channels];
         uint8_t flags;
     };
     #pragma pack(pop)
 
     // public info fields
     static const uint8_t id = 50;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -608,7 +605,7 @@ struct message_pilot_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
-        for (int _i=0; _i<message_sbus_channels; _i++) _buf->channel[_i] = intround(channel[_i] * 16384);
+        for (int _i=0; _i<sbus_channels; _i++) _buf->channel[_i] = intround(channel[_i] * 16384);
         _buf->flags = flags;
         return true;
     }
@@ -620,14 +617,14 @@ struct message_pilot_t {
         memcpy(payload, external_message, message_size);
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
-        for (int _i=0; _i<message_sbus_channels; _i++) channel[_i] = _buf->channel[_i] / (float)16384;
+        for (int _i=0; _i<sbus_channels; _i++) channel[_i] = _buf->channel[_i] / (float)16384;
         flags = _buf->flags;
         return true;
     }
 };
 
 // Message: imu_raw (id: 51)
-struct message_imu_raw_t {
+struct imu_raw_t {
     // public fields
     uint32_t micros;
     int16_t channel[10];
@@ -643,7 +640,7 @@ struct message_imu_raw_t {
 
     // public info fields
     static const uint8_t id = 51;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -673,7 +670,7 @@ struct message_imu_raw_t {
 };
 
 // Message: aura_nav_pvt (id: 52)
-struct message_aura_nav_pvt_t {
+struct aura_nav_pvt_t {
     // public fields
     uint32_t iTOW;
     int16_t year;
@@ -749,7 +746,7 @@ struct message_aura_nav_pvt_t {
 
     // public info fields
     static const uint8_t id = 52;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -839,7 +836,7 @@ struct message_aura_nav_pvt_t {
 };
 
 // Message: airdata (id: 53)
-struct message_airdata_t {
+struct airdata_t {
     // public fields
     float baro_press_pa;
     float baro_temp_C;
@@ -865,7 +862,7 @@ struct message_airdata_t {
 
     // public info fields
     static const uint8_t id = 53;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -905,7 +902,7 @@ struct message_airdata_t {
 };
 
 // Message: power (id: 54)
-struct message_power_t {
+struct power_t {
     // public fields
     float int_main_v;
     float avionics_v;
@@ -925,7 +922,7 @@ struct message_power_t {
 
     // public info fields
     static const uint8_t id = 54;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -959,7 +956,7 @@ struct message_power_t {
 };
 
 // Message: status (id: 55)
-struct message_status_t {
+struct status_t {
     // public fields
     uint16_t serial_number;
     uint16_t firmware_rev;
@@ -981,7 +978,7 @@ struct message_status_t {
 
     // public info fields
     static const uint8_t id = 55;
-    uint16_t len = 0;
+    int len = 0;
 
     bool pack() {
         len = sizeof(_compact_t);
@@ -1016,3 +1013,4 @@ struct message_status_t {
     }
 };
 
+} // namespace message

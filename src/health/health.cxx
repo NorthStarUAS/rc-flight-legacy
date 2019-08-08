@@ -39,7 +39,7 @@ bool health_init() {
 bool health_update() {
     loadavg_update();
 
-    message_system_health_v5_t health;
+    message::system_health_v5_t health;
     health.index = 0;
     health.timestamp_sec = status_node.getDouble("frame_time");
     health.system_load_avg = status_node.getDouble("system_load_avg");

@@ -61,9 +61,9 @@ static int last_ack_id = 0;
 static int last_ack_subid = 0;
 
 static double pilot_in_timestamp = 0.0;
-static float pilot_input[message_sbus_channels]; // internal stash
+static float pilot_input[message::sbus_channels]; // internal stash
 static uint8_t pilot_flags = 0x00;
-static string pilot_mapping[message_sbus_channels]; // channel->name mapping
+static string pilot_mapping[message::sbus_channels]; // channel->name mapping
 
 static double imu_timestamp = 0.0;
 static uint32_t imu_micros = 0;
@@ -79,15 +79,15 @@ static ButterworthFilter pitot_filter(2, 100, 0.8);
 static uint32_t parse_errors = 0;
 static uint32_t skipped_frames = 0;
 
-message_aura_nav_pvt_t nav_pvt;
-message_airdata_t airdata;
+message::aura_nav_pvt_t nav_pvt;
+message::airdata_t airdata;
 
-message_config_master_t config_master;
-message_config_imu_t config_imu;
-message_config_actuators_t config_actuators;
-message_config_airdata_t config_airdata;
-message_config_power_t config_power;
-message_config_led_t config_led;
+message::config_master_t config_master;
+message::config_imu_t config_imu;
+message::config_actuators_t config_actuators;
+message::config_airdata_t config_airdata;
+message::config_power_t config_power;
+message::config_led_t config_led;
 
 static double nav_pvt_timestamp = 0;
 
@@ -217,8 +217,8 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
     static LowPassFilter int_main_vcc_filt(2.0);
     static LowPassFilter ext_main_vcc_filt(2.0);
 
-    if ( pkt_id == message_command_ack_id ) {
-        message_command_ack_t ack;
+    if ( pkt_id == message::command_ack_id ) {
+        message::command_ack_t ack;
         ack.unpack(payload, pkt_len);
 	if ( pkt_len == ack.len ) {
             last_ack_id = ack.command_id;
@@ -230,12 +230,12 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	} else {
 	    printf("Aura3: packet size mismatch in ACK\n");
 	}
-    } else if ( pkt_id == message_pilot_id ) {
-        message_pilot_t pilot;
+    } else if ( pkt_id == message::pilot_id ) {
+        message::pilot_t pilot;
         pilot.unpack(payload, pkt_len);
 	if ( pkt_len == pilot.len ) {
 	    pilot_in_timestamp = get_Time();
-	    for ( int i = 0; i < message_sbus_channels; i++ ) {
+	    for ( int i = 0; i < message::sbus_channels; i++ ) {
 		pilot_input[i] = pilot.channel[i];
 	    }
             pilot_flags = pilot.flags;
@@ -260,8 +260,8 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 		printf("Aura3: packet size mismatch in pilot input packet\n");
 	    }
 	}
-    } else if ( pkt_id == message_imu_raw_id ) {
-        message_imu_raw_t imu;
+    } else if ( pkt_id == message::imu_raw_id ) {
+        message::imu_raw_t imu;
         imu.unpack(payload, pkt_len);
 	if ( pkt_len == imu.len ) {
 	    imu_timestamp = get_Time();
@@ -292,7 +292,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 		printf("Aura3: packet size mismatch in imu packet\n");
 	    }
 	}
-    } else if ( pkt_id == message_aura_nav_pvt_id ) {
+    } else if ( pkt_id == message::aura_nav_pvt_id ) {
         nav_pvt.unpack(payload, pkt_len);
 	if ( pkt_len == nav_pvt.len ) {
 	    nav_pvt_timestamp = get_Time();
@@ -305,7 +305,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
                 printf("got %d, expected %d\n", pkt_len, nav_pvt.len);
 	    }
 	}
-    } else if ( pkt_id == message_airdata_id ) {
+    } else if ( pkt_id == message::airdata_id ) {
         airdata.unpack(payload, pkt_len);
 	if ( pkt_len == airdata.len ) {
 	    // if ( display_on ) {
@@ -322,8 +322,8 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 		printf("Aura3: packet size mismatch in airdata packet\n");
 	    }
 	}
-    } else if ( pkt_id == message_power_id ) {
-        message_power_t power;
+    } else if ( pkt_id == message::power_id ) {
+        message::power_t power;
         power.unpack(payload, pkt_len);
 	if ( pkt_len == power.len ) {
 
@@ -346,9 +346,9 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 		printf("Aura3: packet size mismatch in power packet\n");
 	    }
 	}
-    } else if ( pkt_id == message_status_id ) {
+    } else if ( pkt_id == message::status_id ) {
 	static bool first_time = true;
-        message_status_t msg;
+        message::status_t msg;
         msg.unpack(payload, pkt_len);
 	if ( pkt_len == msg.len ) {
 	    // if ( display_on ) {
@@ -448,14 +448,14 @@ static bool write_config_power() {
 }
 
 static bool write_command_zero_gyros() {
-    message_command_zero_gyros_t cmd;
+    message::command_zero_gyros_t cmd;
     cmd.pack();
     serial.write_packet( cmd.id, cmd.payload, cmd.len );
     return wait_for_ack(cmd.id);
 }
 
 static bool write_command_cycle_inceptors() {
-    message_command_cycle_inceptors_t cmd;
+    message::command_cycle_inceptors_t cmd;
     cmd.pack();
     serial.write_packet( cmd.id, cmd.payload, cmd.len );
     return wait_for_ack(cmd.id);
@@ -506,7 +506,7 @@ static void bind_pilot_controls( string output_path ) {
 	return;
     }
     pilot_node = pyGetNode(output_path, true);
-    pilot_node.setLen("channel", message_sbus_channels, 0.0);
+    pilot_node.setLen("channel", message::sbus_channels, 0.0);
     pilot_input_inited = true;
 }
 
@@ -678,7 +678,7 @@ bool Aura3_pilot_init( string output_path, pyPropertyNode *config ) {
     bind_pilot_controls( output_path );
 
     if ( config->hasChild("channel") ) {
-	for ( int i = 0; i < message_sbus_channels; i++ ) {
+	for ( int i = 0; i < message::sbus_channels; i++ ) {
 	    pilot_mapping[i] = config->getString("channel", i);
 	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
 	}
@@ -720,14 +720,14 @@ static void imu_setup_defaults() {
 
 // reset pwm output rates to safe startup defaults
 static void pwm_defaults() {
-    for ( int i = 0; i < message_pwm_channels; i++ ) {
+    for ( int i = 0; i < message::pwm_channels; i++ ) {
          config_actuators.pwm_hz[i] = 50;    
     }
 }
 
 // reset actuator gains (reversing) to startup defaults
 static void act_gain_defaults() {
-    for ( int i = 0; i < message_pwm_channels; i++ ) {
+    for ( int i = 0; i < message::pwm_channels; i++ ) {
         config_actuators.act_gain[i] = 1.0;
     }
 }
@@ -1049,8 +1049,8 @@ static bool Aura3_send_config() {
 
 static bool Aura3_act_write() {
     // actuator data
-    if ( message_ap_channels == 6 ) {
-        message_command_inceptors_t act;
+    if ( message::ap_channels == 6 ) {
+        message::command_inceptors_t act;
 	act.channel[0] = act_node.getDouble("throttle");
 	act.channel[1] = act_node.getDouble("aileron");
 	act.channel[2] = act_node.getDouble("elevator");
@@ -1080,7 +1080,7 @@ double Aura3_update() {
     while ( true ) {
         if ( serial.update() ) {
             Aura3_parse( serial.pkt_id, serial.pkt_len, serial.payload );
-            if ( serial.pkt_id == message_imu_raw_id ) {
+            if ( serial.pkt_id == message::imu_raw_id ) {
                 if ( serial.bytes_available() < 256 ) {
                     // a smaller value here means more skipping ahead and
                     // less catching up.
@@ -1277,7 +1277,7 @@ bool Aura3_pilot_update() {
 
     pilot_node.setDouble( "timestamp", pilot_in_timestamp );
 
-    for ( int i = 0; i < message_sbus_channels; i++ ) {
+    for ( int i = 0; i < message::sbus_channels; i++ ) {
 	val = pilot_input[i];
 	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
 	pilot_node.setDouble( "channel", i, val );

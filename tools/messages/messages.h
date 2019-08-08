@@ -3,6 +3,11 @@
 #include <stdint.h>  // uint8_t, et. al.
 #include <string.h>  // memcpy()
 
+#include <string>
+using std::string;
+
+namespace message {
+
 static inline int32_t intround(float f) {
     return (int32_t)(f >= 0.0 ? (f + 0.5) : (f - 0.5));
 }
@@ -12,22 +17,37 @@ static inline uint32_t uintround(float f) {
 }
 
 // Message id constants
-const uint8_t message_simple_test_id = 0;
-const uint8_t message_array_test_id = 1;
-const uint8_t message_dynamic_string_test_id = 2;
-const uint8_t message_gps_v4_id = 34;
+const uint8_t simple_test_id = 0;
+const uint8_t array_test_id = 1;
+const uint8_t dynamic_string_test_id = 2;
+const uint8_t enum_test_id = 3;
+const uint8_t gps_v4_id = 34;
 
 // max of one byte used to store message len
 static const uint8_t message_max_len = 255;
 
-#include <string>
-using std::string;
-
+// Constants
 static const uint8_t max_flags = 4;  // flags
 static const uint8_t max_args = 4;  // args
 
+// Enums
+enum class enum_sequence1 {
+    enum1 = 0,
+    enum2 = 1,  // None
+    enum3 = 2,
+    enum4 = 3,
+    enum5 = 4
+};
+enum class enum_sequence2 {
+    enum1a = 0,
+    enum2a = 1,
+    enum3a = 2,
+    enum4a = 3,
+    enum5a = 4
+};
+
 // Message: simple_test (id: 0)
-struct message_simple_test_t {
+struct simple_test_t {
     // public fields
     int16_t a;
 
@@ -69,7 +89,7 @@ struct message_simple_test_t {
 };
 
 // Message: array_test (id: 1)
-struct message_array_test_t {
+struct array_test_t {
     // public fields
     double time;
     int8_t flags[max_flags];
@@ -123,7 +143,7 @@ struct message_array_test_t {
 };
 
 // Message: dynamic_string_test (id: 2)
-struct message_dynamic_string_test_t {
+struct dynamic_string_test_t {
     // public fields
     double time;
     string event;
@@ -192,8 +212,50 @@ struct message_dynamic_string_test_t {
     }
 };
 
+// Message: enum_test (id: 3)
+struct enum_test_t {
+    // public fields
+    enum_sequence1 time;
+
+    // internal structure for packing
+    uint8_t payload[message_max_len];
+    #pragma pack(push, 1)
+    struct _compact_t {
+        uint8_t time;
+    };
+    #pragma pack(pop)
+
+    // public info fields
+    static const uint8_t id = 3;
+    uint16_t len = 0;
+
+    bool pack() {
+        len = sizeof(_compact_t);
+        // size sanity check
+        int size = len;
+        if ( size > message_max_len ) {
+            return false;
+        }
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        _buf->time = (uint8_t)time;
+        return true;
+    }
+
+    bool unpack(uint8_t *external_message, int message_size) {
+        if ( message_size > message_max_len ) {
+            return false;
+        }
+        memcpy(payload, external_message, message_size);
+        _compact_t *_buf = (_compact_t *)payload;
+        len = sizeof(_compact_t);
+        time = (enum_sequence1)_buf->time;
+        return true;
+    }
+};
+
 // Message: gps_v4 (id: 34)
-struct message_gps_v4_t {
+struct gps_v4_t {
     // public fields
     uint8_t index;
     float time_sec;
@@ -286,3 +348,4 @@ struct message_gps_v4_t {
     }
 };
 
+} // namespace message

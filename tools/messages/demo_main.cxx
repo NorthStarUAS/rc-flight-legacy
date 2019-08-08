@@ -4,17 +4,17 @@
 
 int main() {
     // create a test message
-    message_simple_test_t st;
+    message::simple_test_t st;
     st.a = 1234;
     st.pack();
     printf("packed length = %d %d\n", st.len, (int)sizeof(st));
-    message_simple_test_t st_recv;
+    message::simple_test_t st_recv;
     st_recv.unpack(st.payload, st.len);
     printf("result = %d\n", st_recv.a);
     printf("\n");
 
     // create a gps message
-    message_gps_v4_t gps;
+    message::gps_v4_t gps;
     gps.latitude_deg = 43.241;
     gps.longitude_deg = -93.520;
     gps.altitude_m = 278.5;
@@ -31,7 +31,7 @@ int main() {
 
         // pretend the serialized message got sent somewhere and now we
         // received it and deserialized it on the other side
-        message_gps_v4_t gps_recv;
+        message::gps_v4_t gps_recv;
         gps_recv.unpack(gps.payload, gps.len);
 
         // let's see what we got
@@ -44,20 +44,20 @@ int main() {
         printf("unpack vd: %d\n", gps_recv.satellites);
     }
     
-    message_array_test_t at;
+    message::array_test_t at;
     printf("array test size: %d %d\n", at.len, sizeof(at));
     for (int i = 0; i < 9; i++ ) {
         at.orientation[i] = i * 10.0;
     }
     at.pack();
-    message_array_test_t at_recv;
+    message::array_test_t at_recv;
     at_recv.unpack(at.payload, at.len);
     for (int i = 0; i < 9; i++) {
         printf("orientation[%d] = %.2f\n", i, at_recv.orientation[i]);
     }
 
     // variable length string test
-    message_dynamic_string_test_t vs;
+    message::dynamic_string_test_t vs;
     vs.time = 42.987654321;
     vs.event = "hello, this is a test                                                                          dsd                             dsd                                                                                                     ";
     vs.counter = 4567;
@@ -69,7 +69,7 @@ int main() {
         printf("variable length pack failed (too big)\n");
     } else {
         printf("len(vs): %d\n", vs.len);
-        message_dynamic_string_test_t vs_recv;
+        message::dynamic_string_test_t vs_recv;
         vs_recv.unpack(vs.payload, vs.len);
         printf("vs_recv:\n");
         printf("  time: %f\n", vs_recv.time);

@@ -318,7 +318,7 @@ bool Actuator_update() {
 	    }
 	
 	    if ( send_remote_link || send_logging ) {
-                message_actuator_v3_t act;
+                message::actuator_v3_t act;
                 act.index = 0;  // always zero for now
                 act.timestamp_sec = act_node.getDouble("timestamp");
                 act.aileron = act_node.getDouble("aileron");
