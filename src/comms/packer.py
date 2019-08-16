@@ -671,6 +671,7 @@ def pack_ap_status_dict(index):
     row['target_waypoint_idx'] = route_node.getInt("target_waypoint_idx")
     route_size = active_node.getInt("route_size")
     row['route_size'] = route_size
+    row['task_attrib'] = 0.0
     if wp_counter < route_size:
         wp_node = active_node.getChild('wpt[%d]' % wp_counter, True)
         row['wpt_index'] = wp_counter
@@ -680,6 +681,7 @@ def pack_ap_status_dict(index):
         row['wpt_index'] = 65534
         row['wpt_longitude_deg'] = circle_node.getFloat("longitude_deg")
         row['wpt_latitude_deg'] = circle_node.getFloat("latitude_deg")
+        row['task_attrib'] = int(round(circle_node.getFloat("radius_m") * 10))
     elif wp_counter == route_size + 1:
         row['wpt_index'] = 65535
         row['wpt_longitude_deg'] = home_node.getFloat("longitude_deg")
@@ -850,7 +852,7 @@ def unpack_ap_status_v7(buf):
     route_size = ap.route_size
     task_id = ap.task_id
     task_attrib = ap.task_attribute
-    
+
     targets_node.setFloat("timestamp", ap.timestamp_sec)
     flags = ap.flags
     ap_node.setBool("master_switch", flags & (1<<0))
