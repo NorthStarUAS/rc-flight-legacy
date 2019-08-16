@@ -651,7 +651,9 @@ def unpack_pilot_v3(buf):
 
     return pilot.index
 
+wp_counter = 0
 def pack_ap_status_dict(index):
+    global wp_counter
     # fixme: tecs_target_tot is really zero now because these values
     # are computed in energy *error* terms
     row = dict()
@@ -666,6 +668,26 @@ def pack_ap_status_dict(index):
     row['altitude_ground_m'] = pos_node.getFloat("altitude_ground_m")
     row['tecs_target_tot'] = tecs_node.getFloat("target_total")
     row['flight_timer'] = task_node.getFloat("flight_timer")
+    row['target_waypoint_idx'] = route_node.getInt("target_waypoint_idx")
+    route_size = active_node.getInt("route_size")
+    row['route_size'] = route_size
+    if wp_counter < route_size:
+        wp_node = active_node.getChild('wpt[%d]' % wp_counter, True)
+        row['wpt_index'] = wp_counter
+        row['wpt_longitude_deg'] = wp_node.getFloat("longitude_deg")
+        row['wpt_latitude_deg'] = wp_node.getFloat("latitude_deg")
+    elif wp_counter == route_size:
+        row['wpt_index'] = 65534
+        row['wpt_longitude_deg'] = circle_node.getFloat("longitude_deg")
+        row['wpt_latitude_deg'] = circle_node.getFloat("latitude_deg")
+    elif wp_counter == route_size + 1:
+        row['wpt_index'] = 65535
+        row['wpt_longitude_deg'] = home_node.getFloat("longitude_deg")
+        row['wpt_latitude_deg'] = home_node.getFloat("latitude_deg")
+    row['current_task_id'] = task_node.getString("current_task_id")
+    wp_counter += 1
+    if wp_counter >= route_size + 2:
+        wp_counter = 0
     return row
 
 def pack_ap_status_csv(index):
