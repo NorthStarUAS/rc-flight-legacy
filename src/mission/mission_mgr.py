@@ -10,6 +10,7 @@ import mission.task.flaps_mgr
 import mission.task.home_mgr
 import mission.task.idle
 import mission.task.land2
+import mission.task.land3
 import mission.task.launch
 import mission.task.lost_link
 import mission.task.mode_mgr
@@ -54,6 +55,8 @@ class MissionMgr:
             result = mission.task.idle.Idle(config_node)
         elif task_name == 'land':
             result = mission.task.land2.Land(config_node)
+        elif task_name == 'land3':
+            result = mission.task.land3.Land(config_node)
         elif task_name == 'launch':
             result = mission.task.launch.Launch(config_node)
         elif task_name == 'lost_link':
