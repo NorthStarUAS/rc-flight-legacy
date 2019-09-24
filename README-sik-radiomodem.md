@@ -33,6 +33,11 @@ inteference, then setup unique pairs of id's here.
     RTS3=25
     ATS3=25
 
+Set maximum tx power code to 20 (100mw)
+
+    RTS4=20
+    ATS4=20
+    
 Turn off mavlink packet injection (assuming we aren't a mavlink based system):
 
     RTS6=0
