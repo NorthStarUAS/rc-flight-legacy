@@ -56,14 +56,14 @@ From: http://robotic-controls.com/learn/beaglebone/beaglebone-internet-over-usb-
 On the BeagleBone side:
 
     # /sbin/route add default gw 192.168.7.1
-    # echo "nameserver 8.8.8.8" > /etc/resolv.conf
+      echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 On the host:
 
     # iptables --flush
-    # iptables --table nat --flush
-    # iptables --delete-chain
-    # iptables --table nat --delete-chain
+      iptables --table nat --flush
+      iptables --delete-chain
+      iptables --table nat --delete-chain
 
 On the Linux (Fedora) computer. (Note: on my system the wifi interface
 is wlp3s0, the usb interface to the beaglebone is enp0s20u1)
@@ -145,7 +145,7 @@ something that was removed and is no longer needed.)
 
 Install extra required and/or useful things
 
-    apt install telnet minicom python-lxml python-serial libeigen3-dev zlib1g-dev rapidjson-dev
+    apt install telnet minicom python3-lxml python3-serial libeigen3-dev zlib1g-dev rapidjson-dev python3-pybind11 python3-numpy python3-scipy
 
 Force highest performance mode (already the default in debian >= 9)
 
@@ -185,9 +185,16 @@ finding the software repositories on the web: https://github.com/AuraUAS
 
 Build/install aura-props package:
 
-    cd aura-props/
+    cd aura-props/python
     ./setup.py build
     sudo ./setup.py install
+
+    cd aura-props/library
+    ./autogen.sh
+    <follow instructrions>
+    cd build
+    make
+    sudo make install
   
 Tip: how to setup a swap partition to 'temporarily' increase the
 available RAM.  This might be useful for running a really big task
