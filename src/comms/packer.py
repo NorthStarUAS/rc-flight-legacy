@@ -724,27 +724,34 @@ def unpack_ap_status_v4(buf):
     return index
 
 def unpack_ap_status_v5(buf):
-    result = struct.unpack(ap_status_v5_fmt, buf)
+    ap = aura_messages.ap_status_v5(buf)
 
-    index = result[0]
+    index = ap.index
 
-    wp_lon = result[11]
-    wp_lat = result[12]
-    wp_index = result[13]
-    route_size = result[14]
+    wp_lon = ap.wp_longitude_deg
+    wp_lat = ap.wp_latitude_deg
+    wp_index = ap.wp_index
+    route_size = ap.route_size
     
-    targets_node.setFloat("timestamp", result[1])
-    flags = result[2]
+    targets_node.setFloat("timestamp", ap.timestamp_sec)
+    flags = ap.flags
     ap_node.setBool("master_switch", flags & (1<<0))
     ap_node.setBool("pilot_pass_through", flags & (1<<1))
-    targets_node.setFloat("groundtrack_deg", result[3] / 10.0)
-    targets_node.setFloat("roll_deg", result[4] / 10.0)
-    targets_node.setFloat("altitude_msl_ft", result[5])
-    pos_node.setFloat("altitude_ground_m", result[6])
-    targets_node.setFloat("pitch_deg", result[7] / 10.0)
-    targets_node.setFloat("airspeed_kt", result[8] / 10.0)
-    status_node.setFloat("flight_timer", result[9])
-    route_node.setInt("target_waypoint_idx", result[10])
+    targets_node.setFloat("groundtrack_deg", ap.groundtrack_deg)
+    targets_node.setFloat("roll_deg", ap.roll_deg)
+    targets_node.setFloat("altitude_msl_ft", ap.altitude_msl_ft)
+    pos_node.setFloat("altitude_ground_m", ap.altitude_ground_m)
+    targets_node.setFloat("pitch_deg", ap.pitch_deg)
+    targets_node.setFloat("airspeed_kt", ap.airspeed_kt)
+    status_node.setFloat("flight_timer", ap.flight_timer)
+    status_node.setBool("onboard_flight_timer", True)
+    if route_size != active_node.getInt("route_size"):
+        # route size change, zero all the waypoint coordinates
+        for i in range(active_node.getInt("route_size")):
+            wp_node = active_node.getChild('wpt[%d]' % i, True)
+            wp_node.setFloat("longitude_deg", 0)
+            wp_node.setFloat("latitude_deg", 0)
+    route_node.setInt("target_waypoint_idx", ap.target_waypoint_idx)
     if wp_index < route_size:
         wp_node = active_node.getChild('wpt[%d]' % wp_index, True)
         wp_node.setFloat("longitude_deg", wp_lon)
@@ -755,42 +762,44 @@ def unpack_ap_status_v5(buf):
     elif wp_index == 65535:
         home_node.setFloat("longitude_deg", wp_lon)
         home_node.setFloat("latitude_deg", wp_lat)
+                
     active_node.setInt("route_size", route_size)
-    if result[15] >= 1:
-        remote_link_node.setInt("sequence_num", result[15])
+    if ap.sequence_num >= 1:
+        remote_link_node.setInt("sequence_num", ap.sequence_num)
 
     return index
 
 def unpack_ap_status_v6(buf):
-    result = struct.unpack(ap_status_v6_fmt, buf)
+    ap = aura_messages.ap_status_v6(buf)
 
-    index = result[0]
+    index = ap.index
 
-    wp_lon = result[11]
-    wp_lat = result[12]
-    wp_index = result[13]
-    route_size = result[14]
-    task_id = result[15]
-    task_attrib = result[16]
+    wp_lon = ap.wp_longitude_deg
+    wp_lat = ap.wp_latitude_deg
+    wp_index = ap.wp_index
+    route_size = ap.route_size
+    task_id = ap.task_id
+    task_attrib = ap.task_attribute
     
-    targets_node.setFloat("timestamp", result[1])
-    flags = result[2]
+    targets_node.setFloat("timestamp", ap.timestamp_sec)
+    flags = ap.flags
     ap_node.setBool("master_switch", flags & (1<<0))
     ap_node.setBool("pilot_pass_through", flags & (1<<1))
-    targets_node.setFloat("groundtrack_deg", result[3] / 10.0)
-    targets_node.setFloat("roll_deg", result[4] / 10.0)
-    targets_node.setFloat("altitude_msl_ft", result[5])
-    pos_node.setFloat("altitude_ground_m", result[6])
-    targets_node.setFloat("pitch_deg", result[7] / 10.0)
-    targets_node.setFloat("airspeed_kt", result[8] / 10.0)
-    status_node.setFloat("flight_timer", result[9])
+    targets_node.setFloat("groundtrack_deg", ap.groundtrack_deg)
+    targets_node.setFloat("roll_deg", ap.roll_deg)
+    targets_node.setFloat("altitude_msl_ft", ap.altitude_msl_ft)
+    pos_node.setFloat("altitude_ground_m", ap.altitude_ground_m)
+    targets_node.setFloat("pitch_deg", ap.pitch_deg)
+    targets_node.setFloat("airspeed_kt", ap.airspeed_kt)
+    status_node.setFloat("flight_timer", ap.flight_timer)
+    status_node.setBool("onboard_flight_timer", True)
     if route_size != active_node.getInt("route_size"):
         # route size change, zero all the waypoint coordinates
         for i in range(active_node.getInt("route_size")):
             wp_node = active_node.getChild('wpt[%d]' % i, True)
             wp_node.setFloat("longitude_deg", 0)
             wp_node.setFloat("latitude_deg", 0)
-    route_node.setInt("target_waypoint_idx", result[10])
+    route_node.setInt("target_waypoint_idx", ap.target_waypoint_idx)
     if wp_index < route_size:
         wp_node = active_node.getChild('wpt[%d]' % wp_index, True)
         wp_node.setFloat("longitude_deg", wp_lon)
@@ -812,8 +821,8 @@ def unpack_ap_status_v6(buf):
         task_node.setString("current_task_id", "unknown");
                 
     active_node.setInt("route_size", route_size)
-    if result[17] >= 1:
-        remote_link_node.setInt("sequence_num", result[17])
+    if ap.sequence_num >= 1:
+        remote_link_node.setInt("sequence_num", ap.sequence_num)
 
     return index
 
