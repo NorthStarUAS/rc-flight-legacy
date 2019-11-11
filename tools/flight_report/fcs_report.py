@@ -28,6 +28,8 @@ r2d = 180.0 / math.pi
 d2r = math.pi / 180.0
 m2nm = 0.0005399568034557235    # meters to nautical miles
 mps2kt = 1.94384               # m/s to kts
+ft2m = 0.3048
+m2ft = 1.0 / ft2m
 
 path = args.flight
 data, flight_format = flight_loader.load(path)
@@ -61,7 +63,10 @@ if 'act' in data:
 if 'pilot' in data:
     df0_pilot = pd.DataFrame(data['pilot'])
     df0_pilot.set_index('time', inplace=True, drop=False)
-
+if 'ap' in data:
+    df0_ap = pd.DataFrame(data['ap'])
+    df0_ap.set_index('time', inplace=True, drop=False)
+    
 launch_sec = None
 mission = None
 land_sec = None
@@ -162,117 +167,6 @@ for i in tqdm(range(iter.size())):
 # catch a truncated flight log
 if startA > 0.0:
     airborne.append([startA, air['time'], "Airborne"])
-            
-# Generate markdown report
-f = open("report.md", "w")
-
-plotname = os.path.basename(args.flight.rstrip('/'))
-
-f.write("# Flight Report\n")
-f.write("\n")
-f.write("## Summary\n")
-f.write("- File: %s\n" % plotname)
-d = datetime.datetime.utcfromtimestamp( data['gps'][0]['unix_sec'] )
-f.write("- Date: %s (UTC)\n" % d.strftime("%Y-%m-%d %H:%M:%S"))
-f.write("- Log time: %.1f minutes\n" % (log_time / 60.0))
-f.write("- Flight time: %.1f minutes\n" % (flight_time / 60.0))
-if ap_time > 0.0:
-    f.write("- Autopilot time: %.1f minutes\n" % (ap_time / 60.0))
-if odometer > 0.0:
-    f.write("- Flight distance: %.2f nm (%.2f km)\n" % (odometer*m2nm, odometer/1000.0))
-if odometer > 0.0 and flight_time > 0.0:
-    gs_mps = odometer / flight_time
-    f.write("- Average ground speed: %.1f kts (%.1f m/s)\n" % (gs_mps * mps2kt, gs_mps))
-if total_mah > 0.0:
-    f.write("- Total Battery: " + "%0f" % total_mah + " (mah)\n")
-f.write("\n")
-
-# Weather Summary
-
-apikey = None
-try:
-    from os.path import expanduser
-    home = expanduser("~")
-    fio = open(home + '/.forecastio')
-    apikey = fio.read().rstrip()
-    fio.close()
-except:
-    print("you must sign up for a free apikey at forecast.io and insert it as a single line inside a file called ~/.forecastio (with no other text in the file)")
-
-unix_sec = data['gps'][0]['unix_sec']
-lat = data['gps'][0]['lat']
-lon = data['gps'][0]['lon']
-
-if not apikey:
-    print("Cannot lookup weather because no forecastio apikey found.")
-elif unix_sec < 1:
-    print("Cannot lookup weather because gps didn't report unix time.")
-else:
-    f.write("## Weather\n")
-    d = datetime.datetime.utcfromtimestamp(unix_sec)
-    print(d.strftime("%Y-%m-%d-%H:%M:%S"))
-
-    url = 'https://api.darksky.net/forecast/' + apikey + '/%.8f,%.8f,%.d' % (lat, lon, unix_sec)
-
-    import urllib.request, json
-    response = urllib.request.urlopen(url)
-    wx = json.loads(response.read())
-    mph2kt = 0.868976
-    mb2inhg = 0.0295299830714
-    if 'currently' in wx:
-        currently = wx['currently']
-        #for key in currently:
-        #    print key, ':', currently[key]
-        if 'icon' in currently:
-            icon = currently['icon']
-            f.write("- Conditions: " + icon + "\n")
-        if 'temperature' in currently:
-            tempF = currently['temperature']
-            tempC = (tempF - 32.0) * 5 / 9
-            f.write("- Temperature: %.1f F" % tempF + " (%.1f C)" % tempC + "\n")
-        if 'dewPoint' in currently:
-            dewF = currently['dewPoint']
-            dewC = (dewF - 32.0) * 5 / 9
-            f.write("- Dewpoint: %.1f F" % dewF + " (%.1f C)" % dewC + "\n")
-        if 'humidity' in currently:
-            hum = currently['humidity']
-            f.write("- Humidity: %.0f%%" % (hum * 100.0) + "\n")
-        if 'pressure' in currently:
-            mbar = currently['pressure']
-            inhg = mbar * mb2inhg
-        else:
-            mbar = 0
-            inhg = 11.11
-        f.write("- Pressure: %.2f inhg" % inhg + " (%.1f mbar)" % mbar + "\n")
-        if 'windSpeed' in currently:
-            wind_mph = currently['windSpeed']
-            wind_kts = wind_mph * mph2kt
-        else:
-            wind_mph = 0
-            wind_kts = 0
-        if 'windBearing' in currently:
-            wind_deg = currently['windBearing']
-        else:
-            wind_deg = 0
-        f.write("- Wind %d deg @ %.1f kt (%.1f mph)" % (wind_deg, wind_kts, wind_mph) + "\n")
-        if 'visibility' in currently:
-            vis = currently['visibility']
-            f.write("- Visibility: %.1f miles" % vis + "\n")
-        if 'cloudCover' in currently:
-            cov = currently['cloudCover']
-            f.write("- Cloud Cover: %.0f%%" % (cov * 100.0) + "\n")
-        f.write("- METAR: KXYZ " + d.strftime("%d%H%M") + "Z" +
-                " %03d%02dKT" % (round(wind_deg/10)*10, wind_kts) +
-                " " + ("%.1f" % vis).rstrip('0').rstrip(".") + "SM" +
-                " " + ("%.0f" % tempC).replace('-', 'M') + "/" +
-                ("%.0f" % dewC).replace('-', 'M') +
-                " A%.0f=\n" % (inhg*100)
-        )
-    f.write("\n")
-
-# end of written report
-f.close()
-
 
 # add a shaded time region(s) to plot
 blend = matplotlib.transforms.blended_transform_factory
@@ -286,8 +180,6 @@ def add_regions(plot, regions):
         plot.text(region[0], 0.5, region[2], transform=trans,
                   verticalalignment='center',
                   rotation=90, color=colors[i % len(colors)])
-
-
         
 if not 'wind_dir' in data['air'][0] or args.wind_time:
     # run a quick wind estimate
@@ -304,41 +196,43 @@ else:
     wind_dir = df0_air['wind_dir']
     wind_speed = df0_air['wind_speed']
     pitot_scale = df0_air['pitot_scale']
-    
-wind_fig, (ax0, ax1) = plt.subplots(2, 1, sharex=True)
-ax0.set_title("Winds Aloft")
-ax0.set_ylabel("Heading (degrees)", weight='bold')
-ax0.plot(time, wind_dir)
-add_regions(ax0, airborne)
-ax0.grid()
-ax1.set_xlabel("Time (secs)", weight='bold')
-ax1.set_ylabel("Speed (kts)", weight='bold')
-ax1.plot(time, wind_speed, label="Wind Speed")
-ax1.plot(time, pitot_scale, label="Pitot Scale")
-add_regions(ax1, airborne)
-ax1.grid()
+
+# TECS Total Energy
+print("Computing total energy:")
+iter = flight_interp.IterateGroup(data)
+tecs_totals = []
+for i in tqdm(range(iter.size())):
+    record = iter.next()
+    if 'air' in record and 'ap' in record:
+        air = record['air']
+        ap = record['ap']
+        total = ap['tecs_target_tot'] - air['tecs_error_total']
+        tecs_totals.append({ 'time': air['time'],
+                             'tecs_total': total })
+    else:
+        print("Ooops in fcs_report.py, tecs total energy")
+df1_tecs = pd.DataFrame(tecs_totals)
+df1_tecs.set_index('time', inplace=True, drop=False)
+
+fig, ax1 = plt.subplots()
+ax1.set_title("TECS Total Energy")
+ax1.plot(df0_ap['alt'], label="Target Alt (MSL)")
+ax1.plot(df0_nav['alt']*m2ft, label='EKF Altitude (MSL)')
+ax1.plot(df0_ap['speed']*10, label="Target Airspeed (Kts*10)")
+ax1.plot(df0_air['airspeed']*10, label="Airspeed (Kts*10)")
+ax1.plot(df0_ap['tecs_target_tot']/10, label="TECS Target Total (/10)")
+ax1.plot(df1_tecs['tecs_total']/10, label="TECS Total (/10)")
+ax1.set_xlabel("Time (secs)", weight="bold")
 ax1.legend()
+ax1.grid()
 
-# How bad are your magnetometers?
-import mags
-result = mags.estimate(data)
-df1_mags = pd.DataFrame(result)
-plt.figure()
-plt.title("Magnetometer Norm vs. Throttle")
-plt.plot(df1_mags['time'], df1_mags['throttle'])
-avg = df1_mags['mag_norm'].mean()
-plt.plot(df1_mags['time'], df1_mags['mag_norm']/avg)
-plt.xlabel("Time (secs)", weight='bold')
-plt.ylabel("Mag Norm", weight='bold')
-plt.legend()
-plt.grid()
-
-plt.figure()
-plt.title("Magnetometer Norm vs. Throttle Correlation")
-plt.plot(df1_mags['throttle'], df1_mags['mag_norm']/avg, '*')
-plt.xlabel("Throttle (norm)", weight='bold')
-plt.ylabel("Magnetometer norm", weight='bold')
-plt.grid()
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+ax2.set_ylabel('AP Throttle (norm)')  # we already handled the x-label with ax1
+ax2.plot(df0_act['throttle'], label="AP Throttle")
+ax2.tick_params(axis='y')
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+add_regions(ax1, airborne)
+add_regions(ax1, regions)
 
 # IMU plots
 imu_fig, (ax0, ax1) = plt.subplots(2, 1, sharex=True)
@@ -368,7 +262,8 @@ att_fig, (ax0, ax1, ax2) = plt.subplots(3, 1, sharex=True)
 
 ax0.set_title("Attitude Angles")
 ax0.set_ylabel('Roll (deg)', weight='bold')
-ax0.plot(np.rad2deg(df0_nav['phi']))
+ax0.plot(df0_ap['roll'], label="Target Roll (deg)")
+ax0.plot(np.rad2deg(df0_nav['phi']), label="Actual Roll (deg)")
 add_regions(ax0, airborne)
 add_regions(ax0, regions)
 ax0.grid()
@@ -562,29 +457,6 @@ ax.pcolormesh(times, freqs, 10 * np.log10(Sx), cmap='viridis')
 ax.set_title("Accelerometer Spectogram")
 ax.set_ylabel('Frequency [Hz]')
 ax.set_xlabel('Time [s]');
-
-# pitch
-freqs, times, Sx = signal.spectrogram(df0_imu['r'].values, fs=rate, window='hanning',
-                                      nperseg=M, noverlap=M - 100,
-                                      detrend=False, scaling='spectrum')
-f, ax = plt.subplots()
-ax.pcolormesh(times, freqs, 10 * np.log10(Sx), cmap='viridis')
-ax.set_title('Yaw Rate Spectogram (why?)')
-ax.set_ylabel('Frequency [Hz]')
-ax.set_xlabel('Time [s]');
-
-if False:
-    # repeat with wind heading
-    wd = wind_speed.values
-    freqs, times, Sx = signal.spectrogram(wd, fs=rate, window='hanning',
-                                          nperseg=M, noverlap=M - 25,
-                                          detrend=False, scaling='spectrum')
-
-    f, ax = plt.subplots()
-    ax.pcolormesh(times, freqs, 10 * np.log10(Sx), cmap='viridis')
-    ax.set_title('Wind Direction Spectogram')
-    ax.set_ylabel('Frequency [Hz]')
-    ax.set_xlabel('Time [s]');
 
 plt.show()
 
