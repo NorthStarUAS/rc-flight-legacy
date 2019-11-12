@@ -7,7 +7,6 @@ Author: Curtis L. Olson, University of Minnesota
 """
 
 import argparse
-import datetime
 import math
 from matplotlib import pyplot as plt
 import matplotlib.transforms
@@ -70,8 +69,6 @@ if 'ap' in data:
 launch_sec = None
 mission = None
 land_sec = None
-odometer = 0.0
-flight_time = 0.0
 log_time = data['imu'][-1]['time'] - data['imu'][0]['time']
 
 # Scan events log if it exists
@@ -117,10 +114,6 @@ if 'event' in data:
 # Iterate through the flight and collect some stats
 print("Collecting flight stats:")
 in_flight = False
-ap_time = 0.0
-ap_enabled = False
-last_time = 0.0
-total_mah = 0.0
 airborne = []
 startA = 0.0
 iter = flight_interp.IterateGroup(data)
@@ -141,29 +134,6 @@ for i in tqdm(range(iter.size())):
             in_flight = True
         elif in_flight and air['airspeed'] <= 10:
             in_flight = False
-    if 'pilot' in record:
-        pilot = record['pilot']
-        if pilot['auto_manual'] > 0.0:
-            ap_enabled = True
-        else:
-            ap_enable = False
-    if 'health' in record:
-        health = record['health']
-        if 'total_mah' in health:
-            total_mah = health['total_mah']
-    if 'filter' in record:
-        nav = record['filter']
-        current_time = nav['time']
-        dt = current_time - last_time
-        last_time = current_time
-        if in_flight:
-            flight_time += dt
-            vn = nav['vn']
-            ve = nav['ve']
-            vel_ms = math.sqrt(vn*vn + ve*ve)
-            odometer += vel_ms * dt
-        if in_flight and ap_enabled:
-            ap_time += dt
 # catch a truncated flight log
 if startA > 0.0:
     airborne.append([startA, air['time'], "Airborne"])
@@ -338,5 +308,3 @@ if 'health' in data:
     plt.grid()
 
 plt.show()
-
-
