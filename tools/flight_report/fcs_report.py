@@ -197,42 +197,6 @@ else:
     wind_speed = df0_air['wind_speed']
     pitot_scale = df0_air['pitot_scale']
 
-# TECS Total Energy
-print("Computing total energy:")
-iter = flight_interp.IterateGroup(data)
-tecs_totals = []
-for i in tqdm(range(iter.size())):
-    record = iter.next()
-    if 'air' in record and 'ap' in record:
-        air = record['air']
-        ap = record['ap']
-        total = ap['tecs_target_tot'] - air['tecs_error_total']
-        tecs_totals.append({ 'time': air['time'],
-                             'tecs_total': total })
-    else:
-        print("Ooops in fcs_report.py, tecs total energy")
-df1_tecs = pd.DataFrame(tecs_totals)
-df1_tecs.set_index('time', inplace=True, drop=False)
-
-fig, ax1 = plt.subplots()
-ax1.set_title("TECS Total Energy")
-ax1.plot(df0_ap['alt'], label="Target Alt (MSL)")
-ax1.plot(df0_nav['alt']*m2ft, label='EKF Altitude (MSL)')
-ax1.plot(df0_ap['speed']*10, label="Target Airspeed (Kts*10)")
-ax1.plot(df0_air['airspeed']*10, label="Airspeed (Kts*10)")
-ax1.plot(df0_ap['tecs_target_tot']/10, label="TECS Target Total (/10)")
-ax1.plot(df1_tecs['tecs_total']/10, label="TECS Total (/10)")
-ax1.set_xlabel("Time (secs)", weight="bold")
-ax1.legend()
-ax1.grid()
-add_regions(ax1, airborne)
-add_regions(ax1, regions)
-ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-ax2.set_ylabel('AP Throttle (norm)')  # we already handled the x-label with ax1
-ax2.plot(df0_act['throttle'], label="AP Throttle")
-ax2.tick_params(axis='y')
-fig.tight_layout()  # otherwise the right y-label is slightly clipped
-
 # IMU plots
 imu_fig, (ax0, ax1) = plt.subplots(2, 1, sharex=True)
 
@@ -259,7 +223,6 @@ ax1.legend()
 # Roll Attitude
 fig, (ax1, ax2) = plt.subplots(2,1, sharex=True)
 ax1.set_title('Roll Angle (Positive Right)')
-ax1.set_xlabel('Time (sec)', weight='bold')
 ax1.set_ylabel('Roll (deg)', weight='bold')
 ax1.plot(df0_ap['roll'], label="Target Roll (deg)")
 ax1.plot(np.rad2deg(df0_nav['phi']), label="Actual Roll (deg)")
@@ -267,6 +230,7 @@ ax1.legend()
 ax1.grid()
 add_regions(ax1, airborne)
 add_regions(ax1, regions)
+ax2.set_xlabel('Time (sec)', weight='bold')
 ax2.set_ylabel('AP Aileron (norm)')
 ax2.plot(df0_act['aileron'], label="AP Aileron")
 ax2.legend()
@@ -275,7 +239,6 @@ ax2.grid()
 # Pitch Attitude
 fig, (ax1, ax2) = plt.subplots(2,1, sharex=True)
 ax1.set_title('Pitch Angle')
-ax1.set_xlabel('Time (sec)', weight='bold')
 ax1.set_ylabel('Pitch (deg)', weight='bold')
 ax1.plot(df0_ap['pitch'], label="Target Pitch (deg)")
 ax1.plot(np.rad2deg(df0_nav['the']), label="Actual Pitch (deg)")
@@ -283,6 +246,7 @@ ax1.legend()
 ax1.grid()
 add_regions(ax1, airborne)
 add_regions(ax1, regions)
+ax2.set_xlabel('Time (sec)', weight='bold')
 ax2.set_ylabel('AP Elevator (norm)')
 ax2.plot(df0_act['elevator'], label="AP Elevator (Positive Down)")
 ax2.legend()
@@ -291,126 +255,76 @@ ax2.grid()
 # Yaw (body)
 fig, (ax1, ax2) = plt.subplots(2,1, sharex=True)
 ax1.set_title('Yaw Angle (True)')
-ax1.set_xlabel('Time (sec)', weight='bold')
 ax1.set_ylabel('Yaw (deg)', weight='bold')
-ax1.plot(df0_ap['hdg'], label="Target Pitch (deg)")
+ax1.plot(df0_ap['hdg'], label="Target Yaw (deg)")
 ax1.plot(np.mod(np.rad2deg(df0_nav['psi']), 360), label="Actual Yaw (deg)")
 ax1.legend()
 ax1.grid()
 add_regions(ax1, airborne)
 add_regions(ax1, regions)
+ax2.set_xlabel('Time (sec)', weight='bold')
 ax2.set_ylabel('AP Target Roll (deg)')
 ax2.plot(df0_ap['roll'], label="AP Target Roll (Positive Right)")
 ax2.legend()
 ax2.grid()
 
-# Velocities
-fig, (ax0, ax1, ax2) = plt.subplots(3,1, sharex=True)
+# TECS Total Energy
+print("Computing total energy:")
+iter = flight_interp.IterateGroup(data)
+tecs_totals = []
+for i in tqdm(range(iter.size())):
+    record = iter.next()
+    if 'air' in record and 'ap' in record:
+        air = record['air']
+        ap = record['ap']
+        total = ap['tecs_target_tot'] - air['tecs_error_total']
+        tecs_totals.append({ 'time': air['time'],
+                             'tecs_total': total })
+    else:
+        # do we care?
+        pass
+df1_tecs = pd.DataFrame(tecs_totals)
+df1_tecs.set_index('time', inplace=True, drop=False)
 
-ax0.set_title("NED Velocities")
-ax0.set_ylabel('vn (m/s)', weight='bold')
-ax0.plot(df0_gps['vn'], '-*', label='GPS Sensor', c='g', alpha=.5)
-ax0.plot(df0_nav['vn'], label='EKF')
-add_regions(ax0, airborne)
-add_regions(ax0, regions)
-ax0.grid()
-
-ax1.set_ylabel('ve (m/s)', weight='bold')
-ax1.plot(df0_gps['ve'], '-*', label='GPS Sensor', c='g', alpha=.5)
-ax1.plot(df0_nav['ve'], label='EKF')
+fig, (ax1, ax2, ax3) = plt.subplots(3,1, sharex=True)
+ax1.set_title("'Total Energy' Control System")
+ax1.set_ylabel("Altitude")
+lns1 = ax1.plot(df0_ap['alt'], label="Target Alt (MSL)")
+lns2 = ax1.plot(df0_nav['alt']*m2ft, label='EKF Altitude (MSL)')
+ax1b = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+ax1b._get_lines.prop_cycler = ax1._get_lines.prop_cycler
+ax1b.set_ylabel('Airspeed')
+lns3 = ax1b.plot(df0_ap['speed'], label="Target Airspeed (Kts)")
+lns4 = ax1b.plot(df0_air['airspeed'], label="Airspeed (Kts)")
+ax1b.tick_params(axis='y')
 add_regions(ax1, airborne)
 add_regions(ax1, regions)
+lns = lns1+lns2+lns3+lns4
+labs = [l.get_label() for l in lns]
+ax1.legend(lns, labs)
 ax1.grid()
 
-ax2.set_ylabel('vd (m/s)', weight='bold')
-ax2.plot(df0_gps['vd'], '-*', label='GPS Sensor', c='g', alpha=.5)
-ax2.plot(df0_nav['vd'], label='EKF')
-add_regions(ax2, airborne)
-add_regions(ax2, regions)
-ax2.set_xlabel('Time (secs)', weight='bold')
+ax2.set_ylabel("Energy")
+ax2.plot(df0_ap['tecs_target_tot'], label="TECS Target Total")
+ax2.plot(df1_tecs['tecs_total'], label="TECS Total Energy")
+ax2.plot(df0_air['tecs_error_diff'], label="TECS Energy Balance Error")
+ax2.legend()
 ax2.grid()
-ax2.legend(loc=0)
 
-if 'temp' in df0_air:
-    plt.figure()
-    plt.title("Air Temp")
-    plt.plot(df0_air['temp'])
-    plt.grid()
+ax3.set_xlabel("Time (secs)", weight="bold")
+ax3.set_ylabel('AP Throttle (norm)')  # we already handled the x-label with ax1
+lns1 = ax3.plot(df0_act['throttle'], label="AP Throttle")
+lns2 = ax3.plot(df0_act['elevator'], label="AP Elevator (Positive Down)")
+ax3b = ax3.twinx()  # instantiate a second axes that shares the same x-axis
+ax3b._get_lines.prop_cycler = ax3._get_lines.prop_cycler
+ax3b.set_ylabel('Angle')
+lns3 = ax3b.plot(df0_ap['pitch'], label="AP Pitch (deg)")
+lns = lns1+lns2+lns3
+labs = [l.get_label() for l in lns]
+ax3.legend(lns, labs)
+ax3.grid()
 
-plt.figure()
-plt.title("Airspeed (kt)")
-plt.plot(df0_air['airspeed'])
-plt.grid()
-
-if 'alt_press' in df0_air:
-    plt.figure()
-    plt.title("Altitude (press)")
-    plt.plot(df0_air['alt_press'])
-    plt.grid()
-
-if 'pilot' in data:
-    fig = plt.figure()
-    plt.title("Pilot Inputs (sbus)")
-    plt.plot(df0_pilot['auto_manual']+0.05, label='auto')
-    if 'throttle_safety' in df0_pilot:
-        plt.plot(df0_pilot['throttle_safety']+0.1, label='safety')
-    plt.plot(df0_pilot['throttle'], label='throttle')
-    plt.plot(df0_pilot['aileron'], label='aileron')
-    plt.plot(df0_pilot['elevator'], label='elevator')
-    plt.plot(df0_pilot['rudder'], label='rudder')
-    plt.plot(df0_pilot['flaps'], label='flaps')
-    plt.plot(df0_pilot['aux1'], label='aux1')
-    add_regions(fig.gca(), airborne)
-    add_regions(fig.gca(), regions)
-    plt.legend()
-    plt.grid()
-
-# Altitude
-fig = plt.figure()
-plt.title('Altitude')
-plt.plot(df0_gps['alt'], '-*', label='GPS Sensor', c='g', alpha=.5)
-plt.plot(df0_nav['alt'], label='EKF')
-if 'alt_press' in df0_air:
-    plt.plot(df0_air['alt_press'], label='Barometer')
-add_regions(fig.gca(), airborne)
-add_regions(fig.gca(), regions)
-plt.ylabel('Altitude (m)', weight='bold')
-plt.legend(loc=0)
-plt.grid()
-
-# Top down flight track plot
-plt.figure()
-plt.title('Ground track')
-plt.ylabel('Latitude (degrees)', weight='bold')
-plt.xlabel('Longitude (degrees)', weight='bold')
-plt.plot(df0_gps['lon'], df0_gps['lat'], '*', label='GPS Sensor', c='g', alpha=.5)
-plt.plot(np.rad2deg(df0_nav['lon']), np.rad2deg(df0_nav['lat']), label='EKF')
-plt.grid()
-plt.legend(loc=0)
-
-# Biases
-bias_fig, (ax0, ax1) = plt.subplots(2, 1, sharex=True)
-
-# Gyro Biases
-ax0.set_title("IMU Biases")
-ax0.set_ylabel('Gyros (deg/s)', weight='bold')
-ax0.plot(np.rad2deg(df0_nav['p_bias']), label='p bias')
-ax0.plot(np.rad2deg(df0_nav['q_bias']), label='q bias')
-ax0.plot(np.rad2deg(df0_nav['r_bias']), label='r bias')
-add_regions(ax0, airborne)
-add_regions(ax0, regions)
-ax0.grid()
-ax0.legend()
-
-ax1.set_ylabel('Accels (m/s^2)', weight='bold')
-ax1.plot(df0_nav['ax_bias'], label='ax bias')
-ax1.plot(df0_nav['ay_bias'], label='ay bias')
-ax1.plot(df0_nav['az_bias'], label='az bias')
-add_regions(ax1, airborne)
-add_regions(ax1, regions)
-ax1.set_xlabel('Time (secs)', weight='bold')
-ax1.grid()
-ax1.legend()
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
 
 if 'health' in data:
     # System health
@@ -422,61 +336,6 @@ if 'health' in data:
     if 'load_avg' in df0_health:
         plt.plot(df0_health['load_avg'])
     plt.grid()
-
-# Spectogram (of accelerometer normal)
-
-L = df0_imu['time'].iloc[-1] - df0_imu['time'].iloc[0]
-rate = len(df0_imu['time']) / L
-M = 1024
-print("Spectogram time span:", L, "rate:", rate, "window:", M)
-
-print("Computing accel vector magnitude:")
-iter = flight_interp.IterateGroup(data)
-accels = []
-for i in tqdm(range(iter.size())):
-    record = iter.next()
-    imu = record['imu']
-    ax = imu['ax']
-    ay = imu['ay']
-    az = imu['az']
-    norm = np.linalg.norm(np.array([ax, ay, az]))
-    accels.append(norm)
-accels = np.array(accels)
-
-# Version 1.0
-
-# from skimage import util
-# slices = util.view_as_windows(accels, window_shape=(M,), step=100)
-# #print("sample shape: ", accels.shape, "sliced sample shape:", slices.shape)
-# win = np.hanning(M + 1)[:-1]
-# slices = slices * win
-# slices = slices.T               # for convenience
-# spectrum = np.fft.fft(slices, axis=0)[:M // 2 + 1:-1]
-# spectrum = np.abs(spectrum)
-# #print(spectrum.shape)
-# f, ax = plt.subplots()
-# S = np.abs(spectrum)
-# S = 20 * np.log10(S / np.max(S))
-# ax.imshow(S, origin='lower', cmap='viridis',
-#           extent=(df0_imu['time'].iloc[0], df0_imu['time'].iloc[-1], 0, rate / 2))
-# ax.axis('tight')
-# ax.set_ylabel('Frequency [Hz]')
-# ax.set_xlabel('Time [s]');
-
-# Version 2.0 -- using scipy's implementation (M used from above)
-# Vertical resolution is limited by M.  To expose lower frequencies
-# increase M, but this will reduce horizontal resolution.
-
-M=1024
-from scipy import signal
-freqs, times, Sx = signal.spectrogram(accels, fs=rate, window='hanning',
-                                      nperseg=M, noverlap=M - 100,
-                                      detrend=False, scaling='spectrum')
-f, ax = plt.subplots()
-ax.pcolormesh(times, freqs, 10 * np.log10(Sx), cmap='viridis')
-ax.set_title("Accelerometer Spectogram")
-ax.set_ylabel('Frequency [Hz]')
-ax.set_xlabel('Time [s]');
 
 plt.show()
 
