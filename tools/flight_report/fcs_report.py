@@ -247,54 +247,56 @@ for i in tqdm(range(iter.size())):
     if 'air' in record and 'ap' in record:
         air = record['air']
         ap = record['ap']
-        total = ap['tecs_target_tot'] - air['tecs_error_total']
-        tecs_totals.append({ 'time': air['time'],
-                             'tecs_total': total })
+        if 'tecs_target_tot' in ap and 'tecs_error_total' in air:
+            total = ap['tecs_target_tot'] - air['tecs_error_total']
+            tecs_totals.append({ 'time': air['time'],
+                                 'tecs_total': total })
     else:
         # do we care?
         pass
-df1_tecs = pd.DataFrame(tecs_totals)
-df1_tecs.set_index('time', inplace=True, drop=False)
+if len(tecs_totals):
+    df1_tecs = pd.DataFrame(tecs_totals)
+    df1_tecs.set_index('time', inplace=True, drop=False)
 
-fig, (ax1, ax2, ax3) = plt.subplots(3,1, sharex=True)
-ax1.set_title("'Total Energy' Control System")
-ax1.set_ylabel("Altitude")
-lns1 = ax1.plot(df0_ap['alt'], label="Target Alt (MSL)")
-lns2 = ax1.plot(df0_nav['alt']*m2ft, label='EKF Altitude (MSL)')
-ax1b = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-ax1b._get_lines.prop_cycler = ax1._get_lines.prop_cycler
-ax1b.set_ylabel('Airspeed')
-lns3 = ax1b.plot(df0_ap['speed'], label="Target Airspeed (Kts)")
-lns4 = ax1b.plot(df0_air['airspeed'], label="Airspeed (Kts)")
-ax1b.tick_params(axis='y')
-add_regions(ax1, airborne)
-add_regions(ax1, regions)
-lns = lns1+lns2+lns3+lns4
-labs = [l.get_label() for l in lns]
-ax1.legend(lns, labs)
-ax1.grid()
+    fig, (ax1, ax2, ax3) = plt.subplots(3,1, sharex=True)
+    ax1.set_title("'Total Energy' Control System")
+    ax1.set_ylabel("Altitude")
+    lns1 = ax1.plot(df0_ap['alt'], label="Target Alt (MSL)")
+    lns2 = ax1.plot(df0_nav['alt']*m2ft, label='EKF Altitude (MSL)')
+    ax1b = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+    ax1b._get_lines.prop_cycler = ax1._get_lines.prop_cycler
+    ax1b.set_ylabel('Airspeed')
+    lns3 = ax1b.plot(df0_ap['speed'], label="Target Airspeed (Kts)")
+    lns4 = ax1b.plot(df0_air['airspeed'], label="Airspeed (Kts)")
+    ax1b.tick_params(axis='y')
+    add_regions(ax1, airborne)
+    add_regions(ax1, regions)
+    lns = lns1+lns2+lns3+lns4
+    labs = [l.get_label() for l in lns]
+    ax1.legend(lns, labs)
+    ax1.grid()
 
-ax2.set_ylabel("Energy")
-ax2.plot(df0_ap['tecs_target_tot'], label="TECS Target Total")
-ax2.plot(df1_tecs['tecs_total'], label="TECS Total Energy")
-ax2.plot(df0_air['tecs_error_diff'], label="TECS Energy Balance Error")
-ax2.legend()
-ax2.grid()
+    ax2.set_ylabel("Energy")
+    ax2.plot(df0_ap['tecs_target_tot'], label="TECS Target Total")
+    ax2.plot(df1_tecs['tecs_total'], label="TECS Total Energy")
+    ax2.plot(df0_air['tecs_error_diff'], label="TECS Energy Balance Error")
+    ax2.legend()
+    ax2.grid()
 
-ax3.set_xlabel("Time (secs)", weight="bold")
-ax3.set_ylabel('AP Throttle (norm)')  # we already handled the x-label with ax1
-lns1 = ax3.plot(df0_act['throttle'], label="AP Throttle")
-lns2 = ax3.plot(df0_act['elevator'], label="AP Elevator (Positive Down)")
-ax3b = ax3.twinx()  # instantiate a second axes that shares the same x-axis
-ax3b._get_lines.prop_cycler = ax3._get_lines.prop_cycler
-ax3b.set_ylabel('Angle')
-lns3 = ax3b.plot(df0_ap['pitch'], label="AP Pitch (deg)")
-lns = lns1+lns2+lns3
-labs = [l.get_label() for l in lns]
-ax3.legend(lns, labs)
-ax3.grid()
+    ax3.set_xlabel("Time (secs)", weight="bold")
+    ax3.set_ylabel('AP Throttle (norm)')  # we already handled the x-label with ax1
+    lns1 = ax3.plot(df0_act['throttle'], label="AP Throttle")
+    lns2 = ax3.plot(df0_act['elevator'], label="AP Elevator (Positive Down)")
+    ax3b = ax3.twinx()  # instantiate a second axes that shares the same x-axis
+    ax3b._get_lines.prop_cycler = ax3._get_lines.prop_cycler
+    ax3b.set_ylabel('Angle')
+    lns3 = ax3b.plot(df0_ap['pitch'], label="AP Pitch (deg)")
+    lns = lns1+lns2+lns3
+    labs = [l.get_label() for l in lns]
+    ax3.legend(lns, labs)
+    ax3.grid()
 
-fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
 
 if 'health' in data:
     # System health

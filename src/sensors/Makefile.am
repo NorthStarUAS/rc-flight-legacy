@@ -3,24 +3,24 @@ SUBDIRS = Aura3
 noinst_LIBRARIES = libsensors.a
 
 libsensors_a_SOURCES = \
-	airdata_mgr.cxx airdata_mgr.hxx \
-	airdata_bolder.cxx airdata_bolder.hxx \
-	cal_temp.hxx cal_temp.cxx \
-        imu_mgr.cxx imu_mgr.hxx \
-	imu_vn100_uart.cxx imu_vn100_uart.hxx \
-	imu_vn100_spi.cxx imu_vn100_spi.hxx \
-	gps_mgr.cxx gps_mgr.hxx \
-	gps_gpsd.cxx gps_gpsd.hxx \
-	gps_ublox6.cxx gps_ublox6.hxx \
-	gps_ublox8.cxx gps_ublox8.hxx \
-	pilot_mgr.cxx pilot_mgr.hxx \
-	APM2.cxx APM2.hxx \
-	FGFS.cxx FGFS.hxx \
-	ugfile.cxx ugfile.hxx
+	airdata_mgr.cpp airdata_mgr.h \
+	airdata_bolder.cpp airdata_bolder.h \
+	cal_temp.h cal_temp.cpp \
+        imu_mgr.cpp imu_mgr.h \
+	imu_vn100_uart.cpp imu_vn100_uart.h \
+	imu_vn100_spi.cpp imu_vn100_spi.h \
+	gps_mgr.cpp gps_mgr.h \
+	gps_gpsd.cpp gps_gpsd.h \
+	gps_ublox6.cpp gps_ublox6.h \
+	gps_ublox8.cpp gps_ublox8.h \
+	pilot_mgr.cpp pilot_mgr.h \
+	APM2.cpp APM2.h \
+	FGFS.cpp FGFS.h \
+	ugfile.cpp ugfile.h
 
 bin_PROGRAMS = ublox-config
 
-ublox_config_SOURCES = gps_ublox_config.cxx
+ublox_config_SOURCES = gps_ublox_config.cpp
 
 ublox_config_LDADD = ../util/libutil.a
 

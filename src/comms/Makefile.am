@@ -1,10 +1,10 @@
 noinst_LIBRARIES = libcomms.a
 
 libcomms_a_SOURCES = \
-	display.cxx display.hxx \
-	events.cxx events.hxx \
-	logging.cxx logging.hxx \
-	remote_link.cxx remote_link.hxx \
-	serial_link.cxx serial_link.hxx
+	display.cpp display.h \
+	events.cpp events.h \
+	logging.cpp logging.h \
+	remote_link.cpp remote_link.h \
+	serial_link.cpp serial_link.h
 
 AM_CPPFLAGS = $(PYTHON_INCLUDES) -I$(VPATH)/.. -I$(VPATH)/../..

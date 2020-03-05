@@ -1,10 +1,10 @@
 noinst_PROGRAMS = uartserv
 
 uartserv_SOURCES = \
-	uartserv.cxx \
-	netbuffer.cxx netbuffer.hxx \
-        netChannel.cxx netChannel.h \
-	serial.cxx serial.hxx
+	uartserv.cpp \
+	netbuffer.cpp netbuffer.h \
+        netChannel.cpp netChannel.h \
+	serial.cpp serial.h
 
 uartserv_LDADD = \
         ../../src/comms/libcomms.a \

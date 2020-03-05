@@ -52,6 +52,7 @@ def compute_tecs():
 
     tecs_node.setFloat("energy_total", energy_pot + energy_kin )
     tecs_node.setFloat("target_total", target_pot + target_kin )
+    tecs_node.setFloat("error_total", error_total)
     tecs_node.setFloat("error_diff", error_bal)
 
 def compute_derived_data():

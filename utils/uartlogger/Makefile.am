@@ -1,7 +1,7 @@
 noinst_PROGRAMS = uartlogger
 
 uartlogger_SOURCES = \
-	uartlogger.cxx
+	uartlogger.cpp
 
 uartlogger_LDADD = 
 

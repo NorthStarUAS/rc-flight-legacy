@@ -1,21 +1,21 @@
 noinst_LIBRARIES = libutil.a
 
 libutil_a_SOURCES = \
-	butter.cxx butter.hxx \
+	butter.cpp butter.h \
 	coremag.c coremag.h \
-	geodesy.cxx geodesy.hxx \
-	linearfit.cxx linearfit.hxx \
-	lowpass.cxx lowpass.hxx \
-	myprof.cxx myprof.h \
-	poly1d.hxx \
-	sg_path.cxx sg_path.hxx \
-	strutils.hxx strutils.cxx \
+	geodesy.cpp geodesy.h \
+	linearfit.cpp linearfit.h \
+	lowpass.cpp lowpass.h \
+	myprof.cpp myprof.h \
+	poly1d.h \
+	sg_path.cpp sg_path.h \
+	strutils.cpp strutils.h \
         timing.cpp timing.h \
-        netSocket.cxx netSocket.h ul.h
+        netSocket.cpp netSocket.h ul.h
 
 AM_CPPFLAGS = $(PYTHON_INCLUDES) -I$(VPATH)/.. -I$(VPATH)/../..
 
 noinst_PROGRAMS = butter_test # geodesy_test
 
-butter_test_SOURCES = butter_test.cxx
+butter_test_SOURCES = butter_test.cpp
 butter_test_LDADD = libutil.a

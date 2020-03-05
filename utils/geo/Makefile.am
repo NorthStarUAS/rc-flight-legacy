@@ -4,7 +4,7 @@ EXTRA_DIST =
 
 noinst_PROGRAMS = demo1
 
-demo1_SOURCES = demo1.cxx
+demo1_SOURCES = demo1.cpp
 
 demo1_LDADD = \
 	../../src/math/libmath.a \

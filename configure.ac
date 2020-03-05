@@ -8,7 +8,7 @@ dnl Initialize the autoconf system (provide project name and version)
 AC_INIT([aura-core], [2.2])
 
 dnl Sanity check of the distribution
-AC_CONFIG_SRCDIR([src/init/globals.hxx])
+AC_CONFIG_SRCDIR([src/init/globals.h])
 
 dnl Initialize the automake system
 AM_INIT_AUTOMAKE

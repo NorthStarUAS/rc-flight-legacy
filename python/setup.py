@@ -13,13 +13,13 @@ setup(name='auracore',
       ext_modules=[
           Extension('auracore.wgs84',
                     define_macros=[('HAVE_PYBIND11', '1')],
-                    sources=['util/wgs84.cxx'],
-                    depends=['util/wgs84.hxx']
+                    sources=['util/wgs84.cpp'],
+                    depends=['util/wgs84.h']
           ),
           Extension('auracore.windtri',
                     define_macros=[('HAVE_PYBIND11', '1')],
-                    sources=['util/windtri.cxx'],
-                    depends=['util/windtri.hxx']
+                    sources=['util/windtri.cpp'],
+                    depends=['util/windtri.h']
           )
       ]
       )

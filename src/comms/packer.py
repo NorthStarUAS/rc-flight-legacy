@@ -14,8 +14,6 @@ m2ft = 1.0 / ft2m
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
 
-imu_timestamp = 0.0
-
 gps_nodes = []
 imu_nodes = []
 airdata_nodes = []
@@ -287,6 +285,7 @@ def pack_airdata_dict(index):
     row['tecs_error_total'] = tecs_node.getFloat('error_total')
     row['tecs_error_diff'] = tecs_node.getFloat('error_diff')
     row['error_count'] = airdata_node.getFloat('error_count')
+    # print('airdata error:', row['error_count'])
     row['status'] = airdata_node.getInt('status')
     return row
 
@@ -980,7 +979,11 @@ def unpack_payload_v3(buf):
 
 def pack_event_dict(index):
     row = dict()
-    row['timestamp'] = event_node.getFloat('timestamp')
+    timestamp = event_node.getFloat('timestamp')
+    if timestamp < 0.001:
+        imu_node = getNode('/sensors/imu[0]', True)
+        timestamp = imu_node.getFloat('timestamp')
+    row['timestamp'] = timestamp
     row['message'] = event_node.getString('message')
     return row
     

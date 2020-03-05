@@ -1,7 +1,7 @@
 bin_PROGRAMS = aura
 
 aura_SOURCES = \
-	aura.cxx
+	aura.cpp
 
 aura_LDADD = \
 	../actuators/libactuators.a \

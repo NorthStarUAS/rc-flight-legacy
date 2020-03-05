@@ -1,5 +1,5 @@
-// coremag.cxx -- compute local magnetic variation given position,
-//                altitude, and date
+// coremag.c -- compute local magnetic variation given position,
+//              altitude, and date
 //
 // This is an implementation of the NIMA (formerly DMA) WMM2000
 //

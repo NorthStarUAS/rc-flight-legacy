@@ -2,7 +2,7 @@
 noinst_PROGRAMS = dynamichome
 
 dynamichome_SOURCES = \
-	main.cxx
+	main.cpp
 
 dynamichome_LDADD = \
 	$(top_builddir)/src/comms/libcomms.a \
@@ -10,7 +10,7 @@ dynamichome_LDADD = \
 	$(top_builddir)/src/util/libutil.a
 
 #shadowpoint_SOURCES = \
-#	shadowpoint.cxx
+#	shadowpoint.cpp
 
 #shadowpoint_LDADD = \
 #	-lsgmath -lsgio -lsgephem -lsgtiming -lsgmisc -lsgstructure -lplibnet -lsgdebug
