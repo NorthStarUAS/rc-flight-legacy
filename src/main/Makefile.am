@@ -13,6 +13,7 @@ aura_LDADD = \
 	../payload/libpayload.a \
 	../sensors/libsensors.a \
 	../sensors/Aura3/libAura3.a \
+	../sensors/Aura4/libAura4.a \
 	../init/libinit.a \
 	../control/libcontrol.a \
 	../comms/libcomms.a \

@@ -34,6 +34,7 @@ using std::vector;
 #include "act_fgfs.h"
 #include "sensors/APM2.h"
 #include "sensors/Aura3/Aura3.h"
+#include "sensors/Aura4/Aura4.h"
 
 #include "act_mgr.h"
 
@@ -110,6 +111,17 @@ void Actuator_init() {
 	    while ( ! Aura3_actuator_configured ) {
 		usleep(250000);
 		Aura3_act_update();
+	    }
+	} else if ( module == "Aura4" ) {
+	    Aura4_act_init( &section );
+	    // don't go anywhere until the acuator is configured.
+	    // this will also force the Aura3 into binary mode as soon
+	    // as it starts seeing our binary config packets coming
+	    // in.
+	    Aura4_act_update();
+	    while ( ! Aura4_actuator_configured ) {
+		usleep(250000);
+		Aura4_act_update();
 	    }
 	} else if ( module == "fgfs" ) {
 	    fgfs_act_init( &section );
@@ -298,6 +310,10 @@ bool Actuator_update() {
             debug_act2.start();
 	    Aura3_act_update();
             debug_act2.stop();
+	} else if ( module == "Aura4" ) {
+            debug_act2.start();
+	    Aura4_act_update();
+            debug_act2.stop();
 	} else if ( module == "fgfs" ) {
 	    fgfs_act_update();
 	} else {
@@ -373,6 +389,8 @@ void Actuators_close() {
 	    APM2_act_close();
 	} else if ( module == "Aura3" ) {
 	    Aura3_act_close();
+	} else if ( module == "Aura4" ) {
+	    Aura4_act_close();
 	} else if ( module == "fgfs" ) {
 	    fgfs_act_close();
 	} else {

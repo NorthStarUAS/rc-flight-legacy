@@ -1,6 +1,6 @@
 //
-// FILE: Aura3.cpp
-// DESCRIPTION: interact with Aura3 (Teensy/Pika) sensor head
+// FILE: Aura4.cpp
+// DESCRIPTION: interact with Aura4 (Teensy/Pika) sensor head
 //
 
 #include <pyprops.h>
@@ -23,8 +23,8 @@ using namespace Eigen;
 #include "util/lowpass.h"
 #include "util/timing.h"
 
-#include "Aura3.h"
-#include "aura3_messages.h"
+#include "Aura4.h"
+#include "aura4_messages.h"
 
 // FIXME: could be good to be able to define constants in the message.json
 #define NUM_IMU_SENSORS 10
@@ -47,7 +47,7 @@ static bool gps_inited = false;
 static bool airdata_inited = false;
 static bool pilot_input_inited = false;
 static bool actuator_inited = false;
-bool Aura3_actuator_configured = false; // externally visible
+bool Aura4_actuator_configured = false; // externally visible
 
 static SerialLink serial;
 static string device_name = "/dev/ttyS4";
@@ -126,7 +126,7 @@ const float magScale = 0.01;
 const float tempScale = 0.01;
 
 
-static bool Aura3_imu_update_internal() {
+static bool Aura4_imu_update_internal() {
     static double last_bias_update = 0.0;
     
     if ( imu_inited ) {
@@ -157,15 +157,15 @@ static bool Aura3_imu_update_internal() {
 
 	// timestamp dance: this is a little jig that I do to make a
 	// more consistent time stamp that still is in the host
-	// reference frame.  Assumes the Aura3 clock drifts relative to
-	// host clock.  Assumes the Aura3 imu stamp dt is very stable.
+	// reference frame.  Assumes the Aura4 clock drifts relative to
+	// host clock.  Assumes the Aura4 imu stamp dt is very stable.
 	// Assumes the host system is not-real time and there may be
 	// momentary external disruptions to execution. The code
-	// estimates the error (difference) between Aura3 clock and
-	// host clock.  Then builds a real time linear fit of Aura3
+	// estimates the error (difference) between Aura4 clock and
+	// host clock.  Then builds a real time linear fit of Aura4
 	// clock versus difference with the host.  This linear fit is
 	// used to estimate the current error (smoothly), add that to
-	// the Aura3 clock and derive a more regular/stable IMU time
+	// the Aura4 clock and derive a more regular/stable IMU time
 	// stamp (versus just sampling current host time.)
 	
 	// imu_micros &= 0xffffff; // 24 bits = 16.7 microseconds roll over
@@ -174,7 +174,7 @@ static bool Aura3_imu_update_internal() {
 	double imu_remote_sec = (double)imu_micros / 1000000.0;
 	double diff = imu_timestamp - imu_remote_sec;
 	if ( last_imu_micros > imu_micros ) {
-	    events->log("Aura3", "micros() rolled over\n");
+	    events->log("Aura4", "micros() rolled over\n");
 	    imu_offset.reset();
 	}
 	imu_offset.update(imu_remote_sec, diff);
@@ -208,7 +208,7 @@ static bool Aura3_imu_update_internal() {
 }
 
 
-static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
+static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
                          uint8_t *payload )
 {
     bool new_data = false;
@@ -228,7 +228,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
                        ack.subcommand_id);
             }
 	} else {
-	    printf("Aura3: packet size mismatch in ACK\n");
+	    printf("Aura4: packet size mismatch in ACK\n");
 	}
     } else if ( pkt_id == message::pilot_id ) {
         message::pilot_t pilot;
@@ -257,7 +257,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("Aura3: packet size mismatch in pilot input packet\n");
+		printf("Aura4: packet size mismatch in pilot input packet\n");
 	    }
 	}
     } else if ( pkt_id == message::imu_raw_id ) {
@@ -284,12 +284,12 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    aura3_node.setLong( "imu_packet_count", imu_packet_counter );
 
 	    // update the propery tree and timestamps
-	    Aura3_imu_update_internal();
+	    Aura4_imu_update_internal();
 
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("Aura3: packet size mismatch in imu packet\n");
+		printf("Aura4: packet size mismatch in imu packet\n");
 	    }
 	}
     } else if ( pkt_id == message::aura_nav_pvt_id ) {
@@ -301,7 +301,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("Aura3: packet size mismatch in gps packet\n");
+		printf("Aura4: packet size mismatch in gps packet\n");
                 printf("got %d, expected %d\n", pkt_len, nav_pvt.len);
 	    }
 	}
@@ -319,7 +319,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
-		printf("Aura3: packet size mismatch in airdata packet\n");
+		printf("Aura4: packet size mismatch in airdata packet\n");
 	    }
 	}
     } else if ( pkt_id == message::power_id ) {
@@ -343,7 +343,7 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
             power_node.setDouble( "main_amps", (float)power.ext_main_amp);
 	} else {
 	    if ( display_on ) {
-		printf("Aura3: packet size mismatch in power packet\n");
+		printf("Aura4: packet size mismatch in power packet\n");
 	    }
 	}
     } else if ( pkt_id == message::status_id ) {
@@ -366,22 +366,22 @@ static bool Aura3_parse( uint8_t pkt_id, uint8_t pkt_len,
 		first_time = false;
 		char buf[128];
 		snprintf( buf, 32, "Serial Number = %d", msg.serial_number );
-		events->log("Aura3", buf );
+		events->log("Aura4", buf );
 		snprintf( buf, 32, "Firmware Revision = %d", msg.firmware_rev );
-		events->log("Aura3", buf );
+		events->log("Aura4", buf );
 		snprintf( buf, 32, "Master Hz = %d", msg.master_hz );
-		events->log("Aura3", buf );
+		events->log("Aura4", buf );
 		snprintf( buf, 32, "Baud Rate = %d", msg.baud );
-		events->log("Aura3", buf );
+		events->log("Aura4", buf );
 	    }
 	} else {
 	    if ( display_on ) {
-		printf("Aura3: packet size mismatch in status packet\n");
+		printf("Aura4: packet size mismatch in status packet\n");
 	    }
 	}
     } else {
 	if ( display_on ) {
-	    printf("Aura3: unknown packet id = %d\n", pkt_id);
+	    printf("Aura4: unknown packet id = %d\n", pkt_id);
 	}
     }
 
@@ -395,7 +395,7 @@ static bool wait_for_ack(uint8_t id) {
     last_ack_id = 0;
     while ( (last_ack_id != id) ) {
 	if ( serial.update() ) {
-            Aura3_parse( serial.pkt_id, serial.pkt_len, serial.payload );
+            Aura4_parse( serial.pkt_id, serial.pkt_len, serial.payload );
         }
 	if ( get_Time() > start_time + timeout ) {
 	    if ( display_on ) {
@@ -512,20 +512,20 @@ static void bind_pilot_controls( string output_path ) {
 
 
 // send our configured init strings to configure gpsd the way we prefer
-static bool Aura3_open_device( int baud ) {
+static bool Aura4_open_device( int baud ) {
     if ( display_on ) {
-	printf("Aura3 Sensor Head on %s @ %d baud\n", device_name.c_str(),
+	printf("Aura4 Sensor Head on %s @ %d baud\n", device_name.c_str(),
 	       baud);
     }
 
     bool result = serial.open( baud, device_name.c_str() );
     if ( !result ) {
-        fprintf( stderr, "Error opening serial link to Aura3 device, cannot continue.\n" );
+        fprintf( stderr, "Error opening serial link to Aura4 device, cannot continue.\n" );
 	return false;
     }
 
     // bind main property nodes here for lack of a better place..
-    aura3_node = pyGetNode("/sensors/Aura3", true);
+    aura3_node = pyGetNode("/sensors/Aura4", true);
     power_node = pyGetNode("/sensors/power", true);
     
     return true;
@@ -533,12 +533,12 @@ static bool Aura3_open_device( int baud ) {
 
 
 // send our configured init strings to configure gpsd the way we prefer
-static bool Aura3_open() {
+static bool Aura4_open() {
     if ( master_opened ) {
 	return true;
     }
 
-    aura3_config = pyGetNode("/config/sensors/Aura3", true);
+    aura3_config = pyGetNode("/config/sensors/Aura4", true);
     config_specs_node = pyGetNode("/config/specs", true);
 
     //for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
@@ -564,7 +564,7 @@ static bool Aura3_open() {
     }
     if ( battery_cells < 1 ) { battery_cells = 1; }
 
-    if ( ! Aura3_open_device( baud ) ) {
+    if ( ! Aura4_open_device( baud ) ) {
 	printf("device open failed ...\n");
 	return false;
     }
@@ -578,20 +578,20 @@ static bool Aura3_open() {
 
 
 #if 0
-bool Aura3_init( SGPropertyNode *config ) {
-    printf("Aura3_init()\n");
+bool Aura4_init( SGPropertyNode *config ) {
+    printf("Aura4_init()\n");
 
     bind_input( config );
 
-    bool result = Aura3_open();
+    bool result = Aura4_open();
 
     return result;
 }
 #endif
 
 
-bool Aura3_imu_init( string output_path, pyPropertyNode *config ) {
-    if ( ! Aura3_open() ) {
+bool Aura4_imu_init( string output_path, pyPropertyNode *config ) {
+    if ( ! Aura4_open() ) {
 	return false;
     }
 
@@ -648,8 +648,8 @@ bool Aura3_imu_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-bool Aura3_gps_init( string output_path, pyPropertyNode *config ) {
-    if ( ! Aura3_open() ) {
+bool Aura4_gps_init( string output_path, pyPropertyNode *config ) {
+    if ( ! Aura4_open() ) {
 	return false;
     }
 
@@ -659,8 +659,8 @@ bool Aura3_gps_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-bool Aura3_airdata_init( string output_path ) {
-    if ( ! Aura3_open() ) {
+bool Aura4_airdata_init( string output_path ) {
+    if ( ! Aura4_open() ) {
 	return false;
     }
 
@@ -670,8 +670,8 @@ bool Aura3_airdata_init( string output_path ) {
 }
 
 
-bool Aura3_pilot_init( string output_path, pyPropertyNode *config ) {
-    if ( ! Aura3_open() ) {
+bool Aura4_pilot_init( string output_path, pyPropertyNode *config ) {
+    if ( ! Aura4_open() ) {
 	return false;
     }
 
@@ -688,8 +688,8 @@ bool Aura3_pilot_init( string output_path, pyPropertyNode *config ) {
 }
 
 
-bool Aura3_act_init( pyPropertyNode *section ) {
-    if ( ! Aura3_open() ) {
+bool Aura4_act_init( pyPropertyNode *section ) {
+    if ( ! Aura4_open() ) {
 	return false;
     }
 
@@ -786,11 +786,11 @@ static void led_defaults() {
     config_led.pin = 0;
 }
 
-// send a full configuration to Aura3 and return true only when all
+// send a full configuration to Aura4 and return true only when all
 // parameters are acknowledged.
-static bool Aura3_send_config() {
+static bool Aura4_send_config() {
     if ( display_on ) {
-	printf("Aura3: building config structure.\n");
+	printf("Aura4: building config structure.\n");
     }
 
     vector<string> children;
@@ -998,56 +998,56 @@ static bool Aura3_send_config() {
     }
 
     if ( display_on ) {
-	printf("Aura3: transmitting master config ...\n");
+	printf("Aura4: transmitting master config ...\n");
     }
     if ( !write_config_master() ) {
         return false;
     }
 
     if ( display_on ) {
-	printf("Aura3: transmitting imu config ...\n");
+	printf("Aura4: transmitting imu config ...\n");
     }
     if ( !write_config_imu() ) {
         return false;
     }
 
     if ( display_on ) {
-	printf("Aura3: transmitting actuator config ...\n");
+	printf("Aura4: transmitting actuator config ...\n");
     }
     if ( !write_config_actuators() ) {
         return false;
     }
 
     if ( display_on ) {
-	printf("Aura3: transmitting airdata config ...\n");
+	printf("Aura4: transmitting airdata config ...\n");
     }
     if ( !write_config_airdata() ) {
         return false;
     }
 
     if ( display_on ) {
-	printf("Aura3: transmitting power config ...\n");
+	printf("Aura4: transmitting power config ...\n");
     }
     if ( !write_config_power() ) {
         return false;
     }
 
     if ( display_on ) {
-	printf("Aura3: transmitting led config ...\n");
+	printf("Aura4: transmitting led config ...\n");
     }
     if ( !write_config_led() ) {
         return false;
     }
 
     if ( display_on ) {
-	printf("Aura3_send_config(): end\n");
+	printf("Aura4_send_config(): end\n");
     }
 
     return true;
 }
 
 
-static bool Aura3_act_write() {
+static bool Aura4_act_write() {
     // actuator data
     if ( message::ap_channels == 6 ) {
         message::command_inceptors_t act;
@@ -1066,11 +1066,11 @@ static bool Aura3_act_write() {
 }
 
 
-// Read Aura3 packets using IMU packet as the main timing reference.
+// Read Aura4 packets using IMU packet as the main timing reference.
 // Returns the dt from the IMU perspective, not the localhost
 // perspective.  This should generally be far more accurate and
 // consistent.
-double Aura3_update() {
+double Aura4_update() {
     // read packets until we receive an IMU packet and the uart buffer
     // is mostly empty.  The IMU packet (combined with being caught up
     // reading the uart buffer is our signal to run an interation of
@@ -1079,7 +1079,7 @@ double Aura3_update() {
 
     while ( true ) {
         if ( serial.update() ) {
-            Aura3_parse( serial.pkt_id, serial.pkt_len, serial.payload );
+            Aura4_parse( serial.pkt_id, serial.pkt_len, serial.payload );
             if ( serial.pkt_id == message::imu_raw_id ) {
                 if ( serial.bytes_available() < 256 ) {
                     // a smaller value here means more skipping ahead and
@@ -1121,12 +1121,12 @@ double Aura3_update() {
 // this keeps the imu_mgr happy, but the real work to update the
 // property tree is performed right away when we receive and parse the
 // packet.
-bool Aura3_imu_update() {
+bool Aura4_imu_update() {
     return true;
 }
 
 
-bool Aura3_gps_update() {
+bool Aura4_gps_update() {
     static double last_timestamp = 0.0;
     
     if ( !gps_inited ) {
@@ -1178,7 +1178,7 @@ bool Aura3_gps_update() {
 }
 
 
-bool Aura3_airdata_update() {
+bool Aura4_airdata_update() {
     bool fresh_data = false;
     static double pitot_sum = 0.0;
     static int pitot_count = 0;
@@ -1222,7 +1222,7 @@ bool Aura3_airdata_update() {
 	// The MPXV5004DP has a full scale span of 3.9V, Maximum
 	// pressure reading is 0.57psi (4000Pa)
 
-	// Example (Aura3): With a 10bit ADC (Aura3) we record a value
+	// Example (Aura4): With a 10bit ADC (Aura4) we record a value
 	// of 230 (0-1024) at zero velocity.  The sensor saturates at
 	// a value of about 1017 (4000psi).  Thus:
 
@@ -1262,13 +1262,13 @@ bool Aura3_airdata_update() {
 // force an airspeed zero calibration (ideally with the aircraft on
 // the ground with the pitot tube perpendicular to the prevailing
 // wind.)
-void Aura3_airdata_zero_airspeed() {
+void Aura4_airdata_zero_airspeed() {
     airspeed_inited = false;
     airspeed_zero_start_time = 0.0;
 }
 
 
-bool Aura3_pilot_update() {
+bool Aura4_pilot_update() {
     if ( !pilot_input_inited ) {
 	return false;
     }
@@ -1310,49 +1310,49 @@ bool Aura3_pilot_update() {
 }
 
 
-bool Aura3_act_update() {
+bool Aura4_act_update() {
     if ( !actuator_inited ) {
 	return false;
     }
 
-    if ( !Aura3_actuator_configured ) {
-	Aura3_actuator_configured = Aura3_send_config();
+    if ( !Aura4_actuator_configured ) {
+	Aura4_actuator_configured = Aura4_send_config();
     }
     
-    // send actuator commands to Aura3 servo subsystem
-    Aura3_act_write();
+    // send actuator commands to Aura4 servo subsystem
+    Aura4_act_write();
 
     return true;
 }
 
 
-void Aura3_close() {
+void Aura4_close() {
     serial.close();
 
     master_opened = false;
 }
 
 
-void Aura3_imu_close() {
-    Aura3_close();
+void Aura4_imu_close() {
+    Aura4_close();
 }
 
 
-void Aura3_gps_close() {
-    Aura3_close();
+void Aura4_gps_close() {
+    Aura4_close();
 }
 
 
-void Aura3_airdata_close() {
-    Aura3_close();
+void Aura4_airdata_close() {
+    Aura4_close();
 }
 
 
-void Aura3_pilot_close() {
-    Aura3_close();
+void Aura4_pilot_close() {
+    Aura4_close();
 }
 
 
-void Aura3_act_close() {
-    Aura3_close();
+void Aura4_act_close() {
+    Aura4_close();
 }

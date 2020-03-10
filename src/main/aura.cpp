@@ -48,6 +48,7 @@ using std::string;
 // update() routine
 #include "sensors/APM2.h"
 #include "sensors/Aura3/Aura3.h"
+#include "sensors/Aura4/Aura4.h"
 #include "sensors/FGFS.h"
 
 // sync modes
@@ -55,6 +56,7 @@ enum SyncMode {
     SYNC_NONE,
     SYNC_APM2,
     SYNC_AURA3,
+    SYNC_AURA4,
     SYNC_FGFS
 };
 
@@ -108,6 +110,8 @@ void main_work_loop()
 	dt = APM2_update();
     } else if ( sync_source == SYNC_AURA3 ) {
 	dt = Aura3_update();
+    } else if ( sync_source == SYNC_AURA4 ) {
+	dt = Aura4_update();
     } else if ( sync_source == SYNC_FGFS ) {
 	dt = FGFS_update();
     }
@@ -370,6 +374,8 @@ int main( int argc, char **argv )
 	    sync_source = SYNC_APM2;
         } else if ( source == "Aura3" ) {
 	    sync_source = SYNC_AURA3;
+        } else if ( source == "Aura4" ) {
+	    sync_source = SYNC_AURA4;
 	} else if ( source == "fgfs" ) {
 	    sync_source = SYNC_FGFS;
 	}

@@ -93,6 +93,7 @@ AC_CONFIG_FILES([ \
         src/payload/Makefile \
         src/sensors/Makefile \
         src/sensors/Aura3/Makefile \
+        src/sensors/Aura4/Makefile \
         src/util/Makefile \
         utils/Makefile \
         utils/autohome/Makefile \

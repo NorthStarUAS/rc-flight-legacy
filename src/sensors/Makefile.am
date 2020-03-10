@@ -1,4 +1,4 @@
-SUBDIRS = Aura3
+SUBDIRS = Aura3 Aura4
 
 noinst_LIBRARIES = libsensors.a
 
