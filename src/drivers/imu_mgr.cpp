@@ -26,13 +26,13 @@ using std::vector;
 #include "util/myprof.h"
 #include "util/timing.h"
 
-#include "sensors/APM2.h"
-#include "sensors/Aura3/Aura3.h"
-#include "sensors/Aura4/Aura4.h"
-#include "sensors/FGFS.h"
-#include "sensors/imu_vn100_spi.h"
-#include "sensors/imu_vn100_uart.h"
-#include "sensors/ugfile.h"
+#include "drivers/APM2.h"
+#include "drivers/Aura3/Aura3.h"
+#include "drivers/Aura4/Aura4.h"
+#include "drivers/FGFS.h"
+#include "drivers/imu_vn100_spi.h"
+#include "drivers/imu_vn100_uart.h"
+#include "drivers/ugfile.h"
 
 #include "imu_mgr.h"
 

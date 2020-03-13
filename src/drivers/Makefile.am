@@ -3,6 +3,8 @@ SUBDIRS = Aura3 Aura4
 noinst_LIBRARIES = libsensors.a
 
 libsensors_a_SOURCES = \
+	driver.h \
+	driver_mgr.cpp driver_mgr.h \
 	airdata_mgr.cpp airdata_mgr.h \
 	airdata_bolder.cpp airdata_bolder.h \
 	cal_temp.h cal_temp.cpp \

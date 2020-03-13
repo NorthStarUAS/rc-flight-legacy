@@ -1,12 +1,12 @@
 SUBDIRS = \
 	actuators \
-	filters \
 	comms \
 	control \
+	drivers \
+	filters \
 	health \
 	include \
 	init \
 	payload \
 	util \
-	sensors \
 	main

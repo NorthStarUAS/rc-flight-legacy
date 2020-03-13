@@ -48,12 +48,8 @@ public:
 
     bool build();
 
-protected:
-
-    typedef vector<APComponent *> comp_list;
-
 private:
 
     bool serviceable;
-    comp_list components;
+    vector<APComponent *> components;
 };

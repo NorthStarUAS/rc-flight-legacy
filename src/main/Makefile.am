@@ -11,9 +11,9 @@ aura_LDADD = \
 	../filters/nav_common/libnav_common.a \
 	../health/libhealth.a \
 	../payload/libpayload.a \
-	../sensors/libsensors.a \
-	../sensors/Aura3/libAura3.a \
-	../sensors/Aura4/libAura4.a \
+	../drivers/libsensors.a \
+	../drivers/Aura3/libAura3.a \
+	../drivers/Aura4/libAura4.a \
 	../init/libinit.a \
 	../control/libcontrol.a \
 	../comms/libcomms.a \

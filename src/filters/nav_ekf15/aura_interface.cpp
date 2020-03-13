@@ -9,7 +9,7 @@
 #include <string.h>
 
 #include "include/globaldefs.h"
-#include "sensors/gps_mgr.h"
+#include "drivers/gps_mgr.h"
 
 #include "../nav_common/constants.h"
 

@@ -35,10 +35,10 @@ using std::string;
 #include "health/health.h"
 #include "init/globals.h"
 #include "payload/payload_mgr.h"
-#include "sensors/airdata_mgr.h"
-#include "sensors/imu_mgr.h"
-#include "sensors/gps_mgr.h"
-#include "sensors/pilot_mgr.h"
+#include "drivers/airdata_mgr.h"
+#include "drivers/imu_mgr.h"
+#include "drivers/gps_mgr.h"
+#include "drivers/pilot_mgr.h"
 #include "util/myprof.h"
 #include "util/netSocket.h"	// netInit()
 #include "util/sg_path.h"
@@ -46,10 +46,10 @@ using std::string;
 
 // we include the sensors here that support syncing from their main
 // update() routine
-#include "sensors/APM2.h"
-#include "sensors/Aura3/Aura3.h"
-#include "sensors/Aura4/Aura4.h"
-#include "sensors/FGFS.h"
+#include "drivers/APM2.h"
+#include "drivers/Aura3/Aura3.h"
+#include "drivers/Aura4/Aura4.h"
+#include "drivers/FGFS.h"
 
 // sync modes
 enum SyncMode {

@@ -24,8 +24,8 @@ using namespace Eigen;
 
 #include "comms/display.h"
 #include "comms/logging.h"
+#include "drivers/cal_temp.h"
 #include "init/globals.h"
-#include "sensors/cal_temp.h"
 #include "util/butter.h"
 #include "util/linearfit.h"
 #include "util/lowpass.h"

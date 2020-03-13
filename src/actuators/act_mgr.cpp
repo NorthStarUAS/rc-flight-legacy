@@ -32,9 +32,9 @@ using std::vector;
 #include "util/timing.h"
 
 #include "act_fgfs.h"
-#include "sensors/APM2.h"
-#include "sensors/Aura3/Aura3.h"
-#include "sensors/Aura4/Aura4.h"
+#include "drivers/APM2.h"
+#include "drivers/Aura3/Aura3.h"
+#include "drivers/Aura4/Aura4.h"
 
 #include "act_mgr.h"
 

@@ -80,20 +80,20 @@ AC_CONFIG_FILES([ \
 	Makefile \
         src/Makefile \
         src/actuators/Makefile \
+        src/drivers/Makefile \
+        src/drivers/Aura3/Makefile \
+        src/drivers/Aura4/Makefile \
+        src/comms/Makefile \
+        src/control/Makefile \
         src/filters/Makefile \
         src/filters/nav_common/Makefile \
         src/filters/nav_ekf15/Makefile \
         src/filters/nav_ekf15_mag/Makefile \
-        src/comms/Makefile \
-        src/control/Makefile \
         src/health/Makefile \
         src/include/Makefile \
         src/init/Makefile \
 	src/main/Makefile \
         src/payload/Makefile \
-        src/sensors/Makefile \
-        src/sensors/Aura3/Makefile \
-        src/sensors/Aura4/Makefile \
         src/util/Makefile \
         utils/Makefile \
         utils/autohome/Makefile \
