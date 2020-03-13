@@ -11,6 +11,8 @@ class DriverMgr {
     
 public:
     DriverMgr();
+    void init();
+    void update();
     
 private:
     vector<Driver *> drivers;
