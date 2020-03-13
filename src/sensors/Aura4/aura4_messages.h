@@ -14,23 +14,27 @@ static inline uint32_t uintround(float f) {
 }
 
 // Message id constants
-const uint8_t command_ack_id = 20;
-const uint8_t config_master_id = 21;
-const uint8_t config_imu_id = 22;
-const uint8_t config_actuators_id = 23;
-const uint8_t config_airdata_id = 24;
-const uint8_t config_power_id = 25;
-const uint8_t config_led_id = 26;
-const uint8_t command_inceptors_id = 40;
-const uint8_t command_zero_gyros_id = 41;
-const uint8_t command_cycle_inceptors_id = 42;
-const uint8_t pilot_id = 50;
-const uint8_t imu_raw_id = 51;
-const uint8_t aura_nav_pvt_id = 52;
-const uint8_t airdata_id = 53;
-const uint8_t power_id = 54;
-const uint8_t status_id = 55;
-const uint8_t ekf_id = 56;
+const uint8_t command_ack_id = 10;
+const uint8_t config_master_id = 11;
+const uint8_t config_imu_id = 12;
+const uint8_t config_stab_damping_id = 13;
+const uint8_t config_pwm_id = 14;
+const uint8_t config_mixer_id = 15;
+const uint8_t config_mix_matrix_id = 16;
+const uint8_t config_airdata_id = 17;
+const uint8_t config_power_id = 18;
+const uint8_t config_led_id = 19;
+const uint8_t command_inceptors_id = 20;
+const uint8_t command_zero_gyros_id = 21;
+const uint8_t command_reset_ekf_id = 22;
+const uint8_t command_cycle_inceptors_id = 23;
+const uint8_t pilot_id = 24;
+const uint8_t imu_raw_id = 25;
+const uint8_t aura_nav_pvt_id = 26;
+const uint8_t airdata_id = 27;
+const uint8_t power_id = 28;
+const uint8_t status_id = 29;
+const uint8_t ekf_id = 30;
 
 // max of one byte used to store message len
 static const uint8_t message_max_len = 255;
@@ -39,8 +43,9 @@ static const uint8_t message_max_len = 255;
 static const uint8_t pwm_channels = 8;  // number of pwm output channels
 static const uint8_t sbus_channels = 16;  // number of sbus channels
 static const uint8_t ap_channels = 6;  // number of sbus channels
+static const uint8_t mix_matrix_size = 64;  // 8 x 8 mix matrix
 
-// Message: command_ack (id: 20)
+// Message: command_ack (id: 10)
 struct command_ack_t {
     // public fields
     uint8_t command_id;
@@ -56,7 +61,7 @@ struct command_ack_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 20;
+    static const uint8_t id = 10;
     int len = 0;
 
     bool pack() {
@@ -86,7 +91,7 @@ struct command_ack_t {
     }
 };
 
-// Message: config_master (id: 21)
+// Message: config_master (id: 11)
 struct config_master_t {
     // public fields
     uint8_t board;
@@ -100,7 +105,7 @@ struct config_master_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 21;
+    static const uint8_t id = 11;
     int len = 0;
 
     bool pack() {
@@ -128,7 +133,7 @@ struct config_master_t {
     }
 };
 
-// Message: config_imu (id: 22)
+// Message: config_imu (id: 12)
 struct config_imu_t {
     // public fields
     uint8_t interface;
@@ -146,7 +151,7 @@ struct config_imu_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 22;
+    static const uint8_t id = 12;
     int len = 0;
 
     bool pack() {
@@ -178,29 +183,9 @@ struct config_imu_t {
     }
 };
 
-// Message: config_actuators (id: 23)
-struct config_actuators_t {
+// Message: config_stab_damping (id: 13)
+struct config_stab_damping_t {
     // public fields
-    uint16_t pwm_hz[pwm_channels];
-    float act_gain[pwm_channels];
-    bool mix_autocoord;
-    bool mix_throttle_trim;
-    bool mix_flap_trim;
-    bool mix_elevon;
-    bool mix_flaperon;
-    bool mix_vtail;
-    bool mix_diff_thrust;
-    float mix_Gac;
-    float mix_Get;
-    float mix_Gef;
-    float mix_Gea;
-    float mix_Gee;
-    float mix_Gfa;
-    float mix_Gff;
-    float mix_Gve;
-    float mix_Gvr;
-    float mix_Gtt;
-    float mix_Gtr;
     bool sas_rollaxis;
     bool sas_pitchaxis;
     bool sas_yawaxis;
@@ -214,26 +199,6 @@ struct config_actuators_t {
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
-        uint16_t pwm_hz[pwm_channels];
-        float act_gain[pwm_channels];
-        bool mix_autocoord;
-        bool mix_throttle_trim;
-        bool mix_flap_trim;
-        bool mix_elevon;
-        bool mix_flaperon;
-        bool mix_vtail;
-        bool mix_diff_thrust;
-        float mix_Gac;
-        float mix_Get;
-        float mix_Gef;
-        float mix_Gea;
-        float mix_Gee;
-        float mix_Gfa;
-        float mix_Gff;
-        float mix_Gve;
-        float mix_Gvr;
-        float mix_Gtt;
-        float mix_Gtr;
         bool sas_rollaxis;
         bool sas_pitchaxis;
         bool sas_yawaxis;
@@ -246,7 +211,7 @@ struct config_actuators_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 23;
+    static const uint8_t id = 13;
     int len = 0;
 
     bool pack() {
@@ -258,26 +223,6 @@ struct config_actuators_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
-        for (int _i=0; _i<pwm_channels; _i++) _buf->pwm_hz[_i] = pwm_hz[_i];
-        for (int _i=0; _i<pwm_channels; _i++) _buf->act_gain[_i] = act_gain[_i];
-        _buf->mix_autocoord = mix_autocoord;
-        _buf->mix_throttle_trim = mix_throttle_trim;
-        _buf->mix_flap_trim = mix_flap_trim;
-        _buf->mix_elevon = mix_elevon;
-        _buf->mix_flaperon = mix_flaperon;
-        _buf->mix_vtail = mix_vtail;
-        _buf->mix_diff_thrust = mix_diff_thrust;
-        _buf->mix_Gac = mix_Gac;
-        _buf->mix_Get = mix_Get;
-        _buf->mix_Gef = mix_Gef;
-        _buf->mix_Gea = mix_Gea;
-        _buf->mix_Gee = mix_Gee;
-        _buf->mix_Gfa = mix_Gfa;
-        _buf->mix_Gff = mix_Gff;
-        _buf->mix_Gve = mix_Gve;
-        _buf->mix_Gvr = mix_Gvr;
-        _buf->mix_Gtt = mix_Gtt;
-        _buf->mix_Gtr = mix_Gtr;
         _buf->sas_rollaxis = sas_rollaxis;
         _buf->sas_pitchaxis = sas_pitchaxis;
         _buf->sas_yawaxis = sas_yawaxis;
@@ -296,8 +241,152 @@ struct config_actuators_t {
         memcpy(payload, external_message, message_size);
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
+        sas_rollaxis = _buf->sas_rollaxis;
+        sas_pitchaxis = _buf->sas_pitchaxis;
+        sas_yawaxis = _buf->sas_yawaxis;
+        sas_tune = _buf->sas_tune;
+        sas_rollgain = _buf->sas_rollgain;
+        sas_pitchgain = _buf->sas_pitchgain;
+        sas_yawgain = _buf->sas_yawgain;
+        sas_max_gain = _buf->sas_max_gain;
+        return true;
+    }
+};
+
+// Message: config_pwm (id: 14)
+struct config_pwm_t {
+    // public fields
+    uint16_t pwm_hz[pwm_channels];
+    float act_gain[pwm_channels];
+
+    // internal structure for packing
+    uint8_t payload[message_max_len];
+    #pragma pack(push, 1)
+    struct _compact_t {
+        uint16_t pwm_hz[pwm_channels];
+        float act_gain[pwm_channels];
+    };
+    #pragma pack(pop)
+
+    // public info fields
+    static const uint8_t id = 14;
+    int len = 0;
+
+    bool pack() {
+        len = sizeof(_compact_t);
+        // size sanity check
+        int size = len;
+        if ( size > message_max_len ) {
+            return false;
+        }
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        for (int _i=0; _i<pwm_channels; _i++) _buf->pwm_hz[_i] = pwm_hz[_i];
+        for (int _i=0; _i<pwm_channels; _i++) _buf->act_gain[_i] = act_gain[_i];
+        return true;
+    }
+
+    bool unpack(uint8_t *external_message, int message_size) {
+        if ( message_size > message_max_len ) {
+            return false;
+        }
+        memcpy(payload, external_message, message_size);
+        _compact_t *_buf = (_compact_t *)payload;
+        len = sizeof(_compact_t);
         for (int _i=0; _i<pwm_channels; _i++) pwm_hz[_i] = _buf->pwm_hz[_i];
         for (int _i=0; _i<pwm_channels; _i++) act_gain[_i] = _buf->act_gain[_i];
+        return true;
+    }
+};
+
+// Message: config_mixer (id: 15)
+struct config_mixer_t {
+    // public fields
+    bool mix_autocoord;
+    bool mix_throttle_trim;
+    bool mix_flap_trim;
+    bool mix_elevon;
+    bool mix_flaperon;
+    bool mix_vtail;
+    bool mix_diff_thrust;
+    float mix_Gac;
+    float mix_Get;
+    float mix_Gef;
+    float mix_Gea;
+    float mix_Gee;
+    float mix_Gfa;
+    float mix_Gff;
+    float mix_Gve;
+    float mix_Gvr;
+    float mix_Gtt;
+    float mix_Gtr;
+
+    // internal structure for packing
+    uint8_t payload[message_max_len];
+    #pragma pack(push, 1)
+    struct _compact_t {
+        bool mix_autocoord;
+        bool mix_throttle_trim;
+        bool mix_flap_trim;
+        bool mix_elevon;
+        bool mix_flaperon;
+        bool mix_vtail;
+        bool mix_diff_thrust;
+        float mix_Gac;
+        float mix_Get;
+        float mix_Gef;
+        float mix_Gea;
+        float mix_Gee;
+        float mix_Gfa;
+        float mix_Gff;
+        float mix_Gve;
+        float mix_Gvr;
+        float mix_Gtt;
+        float mix_Gtr;
+    };
+    #pragma pack(pop)
+
+    // public info fields
+    static const uint8_t id = 15;
+    int len = 0;
+
+    bool pack() {
+        len = sizeof(_compact_t);
+        // size sanity check
+        int size = len;
+        if ( size > message_max_len ) {
+            return false;
+        }
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        _buf->mix_autocoord = mix_autocoord;
+        _buf->mix_throttle_trim = mix_throttle_trim;
+        _buf->mix_flap_trim = mix_flap_trim;
+        _buf->mix_elevon = mix_elevon;
+        _buf->mix_flaperon = mix_flaperon;
+        _buf->mix_vtail = mix_vtail;
+        _buf->mix_diff_thrust = mix_diff_thrust;
+        _buf->mix_Gac = mix_Gac;
+        _buf->mix_Get = mix_Get;
+        _buf->mix_Gef = mix_Gef;
+        _buf->mix_Gea = mix_Gea;
+        _buf->mix_Gee = mix_Gee;
+        _buf->mix_Gfa = mix_Gfa;
+        _buf->mix_Gff = mix_Gff;
+        _buf->mix_Gve = mix_Gve;
+        _buf->mix_Gvr = mix_Gvr;
+        _buf->mix_Gtt = mix_Gtt;
+        _buf->mix_Gtr = mix_Gtr;
+        return true;
+    }
+
+    bool unpack(uint8_t *external_message, int message_size) {
+        if ( message_size > message_max_len ) {
+            return false;
+        }
+        memcpy(payload, external_message, message_size);
+        _compact_t *_buf = (_compact_t *)payload;
+        len = sizeof(_compact_t);
         mix_autocoord = _buf->mix_autocoord;
         mix_throttle_trim = _buf->mix_throttle_trim;
         mix_flap_trim = _buf->mix_flap_trim;
@@ -316,19 +405,53 @@ struct config_actuators_t {
         mix_Gvr = _buf->mix_Gvr;
         mix_Gtt = _buf->mix_Gtt;
         mix_Gtr = _buf->mix_Gtr;
-        sas_rollaxis = _buf->sas_rollaxis;
-        sas_pitchaxis = _buf->sas_pitchaxis;
-        sas_yawaxis = _buf->sas_yawaxis;
-        sas_tune = _buf->sas_tune;
-        sas_rollgain = _buf->sas_rollgain;
-        sas_pitchgain = _buf->sas_pitchgain;
-        sas_yawgain = _buf->sas_yawgain;
-        sas_max_gain = _buf->sas_max_gain;
         return true;
     }
 };
 
-// Message: config_airdata (id: 24)
+// Message: config_mix_matrix (id: 16)
+struct config_mix_matrix_t {
+    // public fields
+    float matrix[mix_matrix_size];
+
+    // internal structure for packing
+    uint8_t payload[message_max_len];
+    #pragma pack(push, 1)
+    struct _compact_t {
+        int16_t matrix[mix_matrix_size];
+    };
+    #pragma pack(pop)
+
+    // public info fields
+    static const uint8_t id = 16;
+    int len = 0;
+
+    bool pack() {
+        len = sizeof(_compact_t);
+        // size sanity check
+        int size = len;
+        if ( size > message_max_len ) {
+            return false;
+        }
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        for (int _i=0; _i<mix_matrix_size; _i++) _buf->matrix[_i] = intround(matrix[_i] * 16384);
+        return true;
+    }
+
+    bool unpack(uint8_t *external_message, int message_size) {
+        if ( message_size > message_max_len ) {
+            return false;
+        }
+        memcpy(payload, external_message, message_size);
+        _compact_t *_buf = (_compact_t *)payload;
+        len = sizeof(_compact_t);
+        for (int _i=0; _i<mix_matrix_size; _i++) matrix[_i] = _buf->matrix[_i] / (float)16384;
+        return true;
+    }
+};
+
+// Message: config_airdata (id: 17)
 struct config_airdata_t {
     // public fields
     uint8_t barometer;
@@ -348,7 +471,7 @@ struct config_airdata_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 24;
+    static const uint8_t id = 17;
     int len = 0;
 
     bool pack() {
@@ -382,7 +505,7 @@ struct config_airdata_t {
     }
 };
 
-// Message: config_power (id: 25)
+// Message: config_power (id: 18)
 struct config_power_t {
     // public fields
     bool have_attopilot;
@@ -396,7 +519,7 @@ struct config_power_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 25;
+    static const uint8_t id = 18;
     int len = 0;
 
     bool pack() {
@@ -424,7 +547,7 @@ struct config_power_t {
     }
 };
 
-// Message: config_led (id: 26)
+// Message: config_led (id: 19)
 struct config_led_t {
     // public fields
     uint8_t pin;
@@ -438,7 +561,7 @@ struct config_led_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 26;
+    static const uint8_t id = 19;
     int len = 0;
 
     bool pack() {
@@ -466,7 +589,7 @@ struct config_led_t {
     }
 };
 
-// Message: command_inceptors (id: 40)
+// Message: command_inceptors (id: 20)
 struct command_inceptors_t {
     // public fields
     float channel[ap_channels];
@@ -480,7 +603,7 @@ struct command_inceptors_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 40;
+    static const uint8_t id = 20;
     int len = 0;
 
     bool pack() {
@@ -508,7 +631,7 @@ struct command_inceptors_t {
     }
 };
 
-// Message: command_zero_gyros (id: 41)
+// Message: command_zero_gyros (id: 21)
 struct command_zero_gyros_t {
     // public fields
 
@@ -520,7 +643,7 @@ struct command_zero_gyros_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 41;
+    static const uint8_t id = 21;
     int len = 0;
 
     bool pack() {
@@ -543,7 +666,42 @@ struct command_zero_gyros_t {
     }
 };
 
-// Message: command_cycle_inceptors (id: 42)
+// Message: command_reset_ekf (id: 22)
+struct command_reset_ekf_t {
+    // public fields
+
+    // internal structure for packing
+    uint8_t payload[message_max_len];
+    #pragma pack(push, 1)
+    struct _compact_t {
+    };
+    #pragma pack(pop)
+
+    // public info fields
+    static const uint8_t id = 22;
+    int len = 0;
+
+    bool pack() {
+        len = sizeof(_compact_t);
+        // size sanity check
+        int size = len;
+        if ( size > message_max_len ) {
+            return false;
+        }
+        return true;
+    }
+
+    bool unpack(uint8_t *external_message, int message_size) {
+        if ( message_size > message_max_len ) {
+            return false;
+        }
+        memcpy(payload, external_message, message_size);
+        len = sizeof(_compact_t);
+        return true;
+    }
+};
+
+// Message: command_cycle_inceptors (id: 23)
 struct command_cycle_inceptors_t {
     // public fields
 
@@ -555,7 +713,7 @@ struct command_cycle_inceptors_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 42;
+    static const uint8_t id = 23;
     int len = 0;
 
     bool pack() {
@@ -578,7 +736,7 @@ struct command_cycle_inceptors_t {
     }
 };
 
-// Message: pilot (id: 50)
+// Message: pilot (id: 24)
 struct pilot_t {
     // public fields
     float channel[sbus_channels];
@@ -594,7 +752,7 @@ struct pilot_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 50;
+    static const uint8_t id = 24;
     int len = 0;
 
     bool pack() {
@@ -624,7 +782,7 @@ struct pilot_t {
     }
 };
 
-// Message: imu_raw (id: 51)
+// Message: imu_raw (id: 25)
 struct imu_raw_t {
     // public fields
     uint32_t micros;
@@ -640,7 +798,7 @@ struct imu_raw_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 51;
+    static const uint8_t id = 25;
     int len = 0;
 
     bool pack() {
@@ -670,7 +828,7 @@ struct imu_raw_t {
     }
 };
 
-// Message: aura_nav_pvt (id: 52)
+// Message: aura_nav_pvt (id: 26)
 struct aura_nav_pvt_t {
     // public fields
     uint32_t iTOW;
@@ -746,7 +904,7 @@ struct aura_nav_pvt_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 52;
+    static const uint8_t id = 26;
     int len = 0;
 
     bool pack() {
@@ -836,7 +994,7 @@ struct aura_nav_pvt_t {
     }
 };
 
-// Message: airdata (id: 53)
+// Message: airdata (id: 27)
 struct airdata_t {
     // public fields
     float baro_press_pa;
@@ -862,7 +1020,7 @@ struct airdata_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 53;
+    static const uint8_t id = 27;
     int len = 0;
 
     bool pack() {
@@ -902,7 +1060,7 @@ struct airdata_t {
     }
 };
 
-// Message: power (id: 54)
+// Message: power (id: 28)
 struct power_t {
     // public fields
     float int_main_v;
@@ -922,7 +1080,7 @@ struct power_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 54;
+    static const uint8_t id = 28;
     int len = 0;
 
     bool pack() {
@@ -956,7 +1114,7 @@ struct power_t {
     }
 };
 
-// Message: status (id: 55)
+// Message: status (id: 29)
 struct status_t {
     // public fields
     uint16_t serial_number;
@@ -978,7 +1136,7 @@ struct status_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 55;
+    static const uint8_t id = 29;
     int len = 0;
 
     bool pack() {
@@ -1014,7 +1172,7 @@ struct status_t {
     }
 };
 
-// Message: ekf (id: 56)
+// Message: ekf (id: 30)
 struct ekf_t {
     // public fields
     uint32_t micros;
@@ -1046,7 +1204,7 @@ struct ekf_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 56;
+    static const uint8_t id = 30;
     int len = 0;
 
     bool pack() {

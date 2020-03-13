@@ -2,12 +2,13 @@
     "constants": [
         { "type": "uint8_t", "name": "pwm_channels", "value": 8, "desc": "number of pwm output channels" },
         { "type": "uint8_t", "name": "sbus_channels", "value": 16, "desc": "number of sbus channels" },
-        { "type": "uint8_t", "name": "ap_channels", "value": 6, "desc": "number of sbus channels" }
+        { "type": "uint8_t", "name": "ap_channels", "value": 6, "desc": "number of sbus channels" },
+        { "type": "uint8_t", "name": "mix_matrix_size", "value": 64, "desc": "8 x 8 mix matrix" }
     ],
     "messages": [
         // general ack packet
         {
-            "id": 20,
+            "id": 10,
             "name": "command_ack",
             "desc": "acknowledge command completed successfully",
             "fields": [
@@ -17,7 +18,6 @@
         },
         // config packets
         {
-            "id": 21,
             "name": "config_master",
             "desc": "master board configuration",
             "fields": [
@@ -25,7 +25,6 @@
             ]
         },
         {
-            "id": 22,
             "name": "config_imu",
             "desc": "IMU configuration",
             "fields": [
@@ -35,12 +34,33 @@
             ]
         },
         {
-            "id": 23,
-            "name": "config_actuators",
-            "desc": "actuator configuration",
+            "name": "config_stab_damping",
+            "desc": "stability damping",
+            "fields": [
+                // axis damping modes
+                { "type": "bool", "name": "sas_rollaxis" },
+                { "type": "bool", "name": "sas_pitchaxis" },
+                { "type": "bool", "name": "sas_yawaxis" },
+                { "type": "bool", "name": "sas_tune" },
+                // axis damping gains
+                { "type": "float", "name": "sas_rollgain" },
+                { "type": "float", "name": "sas_pitchgain" },
+                { "type": "float", "name": "sas_yawgain" },
+                { "type": "float", "name": "sas_max_gain" }
+            ]
+        },
+        {
+            "name": "config_pwm",
+            "desc": "pwm configuration",
             "fields": [
                 { "type": "uint16_t", "name": "pwm_hz[pwm_channels]", "desc": "pwm output signal hz, 50hz default for analog servos, maximum rate is servo dependent: digital servos can usually do 200-250hz, analog servos and ESC's typically require 50hz" },
-                { "type": "float", "name": "act_gain[pwm_channels]", "desc": "actuator gain (reversing/scaling)" },
+                { "type": "float", "name": "act_gain[pwm_channels]", "desc": "actuator gain (reversing/scaling)" }
+            ]
+        },
+        {
+            "name": "config_mixer",
+            "desc": "mixer logical level configuration",
+            "fields": [
                 // mixing modes
                 { "type": "bool", "name": "mix_autocoord" },
                 { "type": "bool", "name": "mix_throttle_trim" },
@@ -60,21 +80,17 @@
                 { "type": "float", "name": "mix_Gve", "desc": "elevator gain for vtail" },
                 { "type": "float", "name": "mix_Gvr", "desc": "rudder gain for vtail" },
                 { "type": "float", "name": "mix_Gtt", "desc": "throttle gain for diff thrust" },
-                { "type": "float", "name": "mix_Gtr", "desc": "rudder gain for diff thrust" },
-                // axis damping modes
-                { "type": "bool", "name": "sas_rollaxis" },
-                { "type": "bool", "name": "sas_pitchaxis" },
-                { "type": "bool", "name": "sas_yawaxis" },
-                { "type": "bool", "name": "sas_tune" },
-                // axis damping gains
-                { "type": "float", "name": "sas_rollgain" },
-                { "type": "float", "name": "sas_pitchgain" },
-                { "type": "float", "name": "sas_yawgain" },
-                { "type": "float", "name": "sas_max_gain" }
+                { "type": "float", "name": "mix_Gtr", "desc": "rudder gain for diff thrust" }
             ]
         },
         {
-            "id": 24,
+            "name": "config_mix_matrix",
+            "desc": "configure mixer matrix directly",
+            "fields": [
+                { "type": "float", "name": "matrix[mix_matrix_size]", "pack_type": "int16_t", "pack_scale": 16384 }
+            ]
+        },
+        {
             "name": "config_airdata",
             "desc": "airdata configuration",
             "fields": [
@@ -85,7 +101,6 @@
             ]
         },
         {
-            "id": 25,
             "name": "config_power",
             "desc": "power configuration",
             "fields": [
@@ -93,7 +108,6 @@
             ]
         },
         {
-            "id": 26,
             "name": "config_led",
             "desc": "power configuration",
             "fields": [
@@ -102,27 +116,28 @@
         },
         // commands
         {
-            "id": 40,
             "name": "command_inceptors",
             "fields": [
                 { "type": "float", "name": "channel[ap_channels]", "pack_type": "int16_t", "pack_scale": 16384 }
             ]
         },
         {
-            "id": 41,
             "name": "command_zero_gyros",
             "fields": [
             ]
         },
         {
-            "id": 42,
+            "name": "command_reset_ekf",
+            "fields": [
+            ]
+        },
+        {
             "name": "command_cycle_inceptors",
             "fields": [
             ]
         },
         // sensors
         {
-            "id": 50,
             "name": "pilot",
             "desc": "pilot input",
             "fields": [
@@ -131,7 +146,6 @@
             ]
         },
         {
-            "id": 51,
             "name": "imu_raw",
             "fields": [
                 { "type": "uint32_t", "name": "micros" },
@@ -139,7 +153,6 @@
             ]
         },
         {
-            "id": 52,
             "name": "aura_nav_pvt",
             "fields": [
                 { "type": "uint32_t", "name": "iTOW" },
@@ -177,7 +190,6 @@
             ]
         },
         {
-            "id": 53,
             "name": "airdata",
             "fields": [
                 { "type": "float", "name": "baro_press_pa" },
@@ -190,7 +202,6 @@
             ]
         },
         {
-            "id": 54,
             "name": "power",
             "fields": [
                 { "type": "float", "name": "int_main_v", "pack_type": "uint16_t", "pack_scale": 100 },
@@ -200,7 +211,6 @@
             ]
         },
         {
-            "id": 55,
             "name": "status",
             "fields": [
                 { "type": "uint16_t", "name": "serial_number" },
@@ -211,7 +221,6 @@
             ]
         },
         {
-            "id": 56,
             "name": "ekf",
             "fields": [
                 { "type": "uint32_t", "name": "micros" },

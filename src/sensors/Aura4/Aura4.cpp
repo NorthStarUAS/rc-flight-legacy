@@ -84,10 +84,12 @@ static message::airdata_t airdata;
 
 static message::config_master_t config_master;
 static message::config_imu_t config_imu;
-static message::config_actuators_t config_actuators;
+static message::config_mixer_t config_mixer;
+static message::config_pwm_t config_pwm;
 static message::config_airdata_t config_airdata;
 static message::config_power_t config_power;
 static message::config_led_t config_led;
+static message::config_stab_damping_t config_stab;
 
 static double nav_pvt_timestamp = 0;
 
@@ -420,11 +422,18 @@ static bool write_config_imu() {
     return wait_for_ack(config_imu.id);
 }
 
-static bool write_config_actuators() {
-    config_actuators.pack();
-    serial.write_packet( config_actuators.id, config_actuators.payload,
-                  config_actuators.len );
-    return wait_for_ack(config_actuators.id);
+static bool write_config_mixer() {
+    config_mixer.pack();
+    serial.write_packet( config_mixer.id, config_mixer.payload,
+                  config_mixer.len );
+    return wait_for_ack(config_mixer.id);
+}
+
+static bool write_config_pwm() {
+    config_pwm.pack();
+    serial.write_packet( config_pwm.id, config_pwm.payload,
+                  config_pwm.len );
+    return wait_for_ack(config_pwm.id);
 }
 
 static bool write_config_airdata() {
@@ -445,6 +454,13 @@ static bool write_config_power() {
     serial.write_packet( config_power.id, config_power.payload,
                   config_power.len );
     return wait_for_ack(config_power.id);
+}
+
+static bool write_config_stab() {
+    config_stab.pack();
+    serial.write_packet( config_stab.id, config_stab.payload,
+                  config_stab.len );
+    return wait_for_ack(config_stab.id);
 }
 
 static bool write_command_zero_gyros() {
@@ -721,14 +737,8 @@ static void imu_setup_defaults() {
 // reset pwm output rates to safe startup defaults
 static void pwm_defaults() {
     for ( int i = 0; i < message::pwm_channels; i++ ) {
-         config_actuators.pwm_hz[i] = 50;    
-    }
-}
-
-// reset actuator gains (reversing) to startup defaults
-static void act_gain_defaults() {
-    for ( int i = 0; i < message::pwm_channels; i++ ) {
-        config_actuators.act_gain[i] = 1.0;
+         config_pwm.pwm_hz[i] = 50;    
+         config_pwm.act_gain[i] = 1.0;
     }
 }
 
@@ -741,41 +751,41 @@ static void airdata_defaults() {
 }
 
 // reset sas parameters to startup defaults
-static void sas_defaults() {
-    config_actuators.sas_rollaxis = false;
-    config_actuators.sas_pitchaxis = false;
-    config_actuators.sas_yawaxis = false;
-    config_actuators.sas_tune = false;
+static void stability_defaults() {
+    config_stab.sas_rollaxis = false;
+    config_stab.sas_pitchaxis = false;
+    config_stab.sas_yawaxis = false;
+    config_stab.sas_tune = false;
 
-    config_actuators.sas_rollgain = 0.0;
-    config_actuators.sas_pitchgain = 0.0;
-    config_actuators.sas_yawgain = 0.0;
-    config_actuators.sas_max_gain = 2.0;
+    config_stab.sas_rollgain = 0.0;
+    config_stab.sas_pitchgain = 0.0;
+    config_stab.sas_yawgain = 0.0;
+    config_stab.sas_max_gain = 2.0;
 };
 
 
 // reset mixing parameters to startup defaults
-static void mixing_defaults() {
-    config_actuators.mix_autocoord = false;
-    config_actuators.mix_throttle_trim = false;
-    config_actuators.mix_flap_trim = false;
-    config_actuators.mix_elevon = false;
-    config_actuators.mix_flaperon = false;
-    config_actuators.mix_vtail = false;
-    config_actuators.mix_diff_thrust = false;
+static void mixer_defaults() {
+    config_mixer.mix_autocoord = false;
+    config_mixer.mix_throttle_trim = false;
+    config_mixer.mix_flap_trim = false;
+    config_mixer.mix_elevon = false;
+    config_mixer.mix_flaperon = false;
+    config_mixer.mix_vtail = false;
+    config_mixer.mix_diff_thrust = false;
 
-    config_actuators.mix_Gac = 0.5;       // aileron gain for autocoordination
-    config_actuators.mix_Get = -0.1;      // elevator trim w/ throttle gain
-    config_actuators.mix_Gef = 0.1;       // elevator trim w/ flap gain
+    config_mixer.mix_Gac = 0.5;       // aileron gain for autocoordination
+    config_mixer.mix_Get = -0.1;      // elevator trim w/ throttle gain
+    config_mixer.mix_Gef = 0.1;       // elevator trim w/ flap gain
 
-    config_actuators.mix_Gea = 1.0;       // aileron gain for elevons
-    config_actuators.mix_Gee = 1.0;       // elevator gain for elevons
-    config_actuators.mix_Gfa = 1.0;       // aileron gain for flaperons
-    config_actuators.mix_Gff = 1.0;       // flaps gain for flaperons
-    config_actuators.mix_Gve = 1.0;       // elevator gain for vtail
-    config_actuators.mix_Gvr = 1.0;       // rudder gain for vtail
-    config_actuators.mix_Gtt = 1.0;       // throttle gain for diff thrust
-    config_actuators.mix_Gtr = 0.1;       // rudder gain for diff thrust
+    config_mixer.mix_Gea = 1.0;       // aileron gain for elevons
+    config_mixer.mix_Gee = 1.0;       // elevator gain for elevons
+    config_mixer.mix_Gfa = 1.0;       // aileron gain for flaperons
+    config_mixer.mix_Gff = 1.0;       // flaps gain for flaperons
+    config_mixer.mix_Gve = 1.0;       // elevator gain for vtail
+    config_mixer.mix_Gvr = 1.0;       // rudder gain for vtail
+    config_mixer.mix_Gtt = 1.0;       // throttle gain for diff thrust
+    config_mixer.mix_Gtr = 0.1;       // rudder gain for diff thrust
 };
 
 static void power_defaults() {
@@ -799,12 +809,11 @@ static bool Aura4_send_config() {
     master_defaults();
     imu_setup_defaults();
     pwm_defaults();
-    act_gain_defaults();
     airdata_defaults();
-    mixing_defaults();
-    sas_defaults();
+    mixer_defaults();
     power_defaults();
     led_defaults();
+    stability_defaults();
 
     int count;
 
@@ -853,9 +862,9 @@ static bool Aura4_send_config() {
 	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
     count = pwm_node.getLen("channel");
     for ( int i = 0; i < count; i++ ) {
-        config_actuators.pwm_hz[i] = pwm_node.getLong("channel", i);
+        config_pwm.pwm_hz[i] = pwm_node.getLong("channel", i);
         if ( display_on ) {
-            printf("pwm_hz[%d] = %d\n", i, config_actuators.pwm_hz[i]);
+            printf("pwm_hz[%d] = %d\n", i, config_pwm.pwm_hz[i]);
         }
     }
 
@@ -863,22 +872,22 @@ static bool Aura4_send_config() {
 	= pyGetNode("/config/actuators/actuator/gains", true);
     count = gain_node.getLen("channel");
     for ( int i = 0; i < count; i++ ) {
-        config_actuators.act_gain[i] = gain_node.getDouble("channel", i);
+        config_pwm.act_gain[i] = gain_node.getDouble("channel", i);
         if ( display_on ) {
-            printf("act_gain[%d] = %.2f\n", i, config_actuators.act_gain[i]);
+            printf("act_gain[%d] = %.2f\n", i, config_pwm.act_gain[i]);
         }
     }
 
-    pyPropertyNode mixing_node
+    pyPropertyNode mixer_node
 	= pyGetNode("/config/actuators/actuator/mixing", true);
-    count = mixing_node.getLen("mix");
+    count = mixer_node.getLen("mix");
     if ( count ) {
 	for ( int i = 0; i < count; i++ ) {
 	    string mode = "";
 	    bool enable = false;
 	    float gain1 = 0.0;
 	    float gain2 = 0.0;
-	    pyPropertyNode mix_node = mixing_node.getChild("mix", i, true);
+	    pyPropertyNode mix_node = mixer_node.getChild("mix", i, true);
 	    if ( mix_node.hasChild("enable") ) {
 		enable = mix_node.getBool("enable");
 	    }
@@ -891,30 +900,30 @@ static bool Aura4_send_config() {
 	    if ( mix_node.hasChild("mode") ) {
 		mode = mix_node.getString("mode");
 		if ( mode == "auto_coordination" ) {
-                    config_actuators.mix_autocoord = enable;
-                    config_actuators.mix_Gac = gain1;
+                    config_mixer.mix_autocoord = enable;
+                    config_mixer.mix_Gac = gain1;
 		} else if ( mode == "throttle_trim" ) {
-                    config_actuators.mix_throttle_trim = enable;
-                    config_actuators.mix_Get = gain1;
+                    config_mixer.mix_throttle_trim = enable;
+                    config_mixer.mix_Get = gain1;
 		} else if ( mode == "flap_trim" ) {
-                    config_actuators.mix_flap_trim = enable;
-                    config_actuators.mix_Gef = gain1;
+                    config_mixer.mix_flap_trim = enable;
+                    config_mixer.mix_Gef = gain1;
 		} else if ( mode == "elevon" ) {
-                    config_actuators.mix_elevon = enable;
-                    config_actuators.mix_Gea = gain1;
-                    config_actuators.mix_Gee = gain2;
+                    config_mixer.mix_elevon = enable;
+                    config_mixer.mix_Gea = gain1;
+                    config_mixer.mix_Gee = gain2;
 		} else if ( mode == "flaperon" ) {
-                    config_actuators.mix_flaperon = enable;
-                    config_actuators.mix_Gfa = gain1;
-                    config_actuators.mix_Gff = gain2;
+                    config_mixer.mix_flaperon = enable;
+                    config_mixer.mix_Gfa = gain1;
+                    config_mixer.mix_Gff = gain2;
 		} else if ( mode == "vtail" ) {
-                    config_actuators.mix_vtail = enable;
-                    config_actuators.mix_Gve = gain1;
-                    config_actuators.mix_Gvr = gain2;
+                    config_mixer.mix_vtail = enable;
+                    config_mixer.mix_Gve = gain1;
+                    config_mixer.mix_Gvr = gain2;
 		} else if ( mode == "diff_thrust" ) {
-                    config_actuators.mix_diff_thrust = enable;
-                    config_actuators.mix_Gtt = gain1;
-                    config_actuators.mix_Gtr = gain2;
+                    config_mixer.mix_diff_thrust = enable;
+                    config_mixer.mix_Gtt = gain1;
+                    config_mixer.mix_Gtr = gain2;
 		}
 	    }
 	    if ( display_on ) {
@@ -943,14 +952,14 @@ static bool Aura4_send_config() {
 		if ( sas_section.hasChild("mode") ) {
 		    mode = sas_section.getString("mode");
 		    if ( mode == "roll" ) {
-                        config_actuators.sas_rollaxis = enable;
-                        config_actuators.sas_rollgain = gain;
+                        config_stab.sas_rollaxis = enable;
+                        config_stab.sas_rollgain = gain;
 		    } else if ( mode == "pitch" ) {
-                        config_actuators.sas_pitchaxis = enable;
-                        config_actuators.sas_pitchgain = gain;
+                        config_stab.sas_pitchaxis = enable;
+                        config_stab.sas_pitchgain = gain;
 		    } else if ( mode == "yaw" ) {
-                        config_actuators.sas_yawaxis = enable;
-                        config_actuators.sas_yawgain = gain;
+                        config_stab.sas_yawaxis = enable;
+                        config_stab.sas_yawgain = gain;
 		    }
 		}
 		if ( display_on ) {
@@ -960,10 +969,10 @@ static bool Aura4_send_config() {
 	} else if ( children[i] == "pilot_tune" ) {
 	    pyPropertyNode sas_section = sas_node.getChild("pilot_tune");
 	    if ( sas_section.hasChild("enable") ) {
-		config_actuators.sas_tune = sas_section.getBool("enable");
+		config_stab.sas_tune = sas_section.getBool("enable");
 	    }
 	    if ( display_on ) {
-		printf("sas: global tune %d\n", config_actuators.sas_tune);
+		printf("sas: global tune %d\n", config_stab.sas_tune);
 	    }
 	}
     }
@@ -1012,9 +1021,16 @@ static bool Aura4_send_config() {
     }
 
     if ( display_on ) {
-	printf("Aura4: transmitting actuator config ...\n");
+	printf("Aura4: transmitting pwm config ...\n");
     }
-    if ( !write_config_actuators() ) {
+    if ( !write_config_pwm() ) {
+        return false;
+    }
+
+    if ( display_on ) {
+	printf("Aura4: transmitting mixer config ...\n");
+    }
+    if ( !write_config_mixer() ) {
         return false;
     }
 
@@ -1036,6 +1052,13 @@ static bool Aura4_send_config() {
 	printf("Aura4: transmitting led config ...\n");
     }
     if ( !write_config_led() ) {
+        return false;
+    }
+
+    if ( display_on ) {
+	printf("Aura4: transmitting stability damping config ...\n");
+    }
+    if ( !write_config_stab() ) {
         return false;
     }
 
