@@ -307,6 +307,8 @@ static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
                 printf("got %d, expected %d\n", pkt_len, nav_pvt.len);
 	    }
 	}
+    } else if ( pkt_id == message::ekf_id ) {
+        // ekf message, just toss silently for the moment
     } else if ( pkt_id == message::airdata_id ) {
         airdata.unpack(payload, pkt_len);
 	if ( pkt_len == airdata.len ) {
