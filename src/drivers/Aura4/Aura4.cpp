@@ -18,7 +18,6 @@ using namespace Eigen;
 
 #include "comms/display.h"
 #include "comms/logging.h"
-#include "comms/serial_link.h"
 #include "drivers/cal_temp.h"
 #include "init/globals.h"
 #include "util/butter.h"
@@ -29,23 +28,9 @@ using namespace Eigen;
 #include "Aura4.h"
 
 // FIXME: could be good to be able to define constants in the message.json
-#define NUM_IMU_SENSORS 10
-#define NUM_ANALOG_INPUTS 6
-
-static pyPropertyNode aura4_node;
-static pyPropertyNode power_node;
-static pyPropertyNode imu_node;
-static pyPropertyNode gps_node;
-static pyPropertyNode pilot_node;
-static pyPropertyNode act_node;
-static pyPropertyNode airdata_node;
-//static pyPropertyNode analog_node;
-static pyPropertyNode aura4_config;
-static pyPropertyNode config_specs_node;
+const int NUM_IMU_SENSORS = 10;
 
 bool Aura4_actuator_configured = false; // externally visible
-
-static SerialLink serial;
 
 static int battery_cells = 4;
 static float pitot_calibrate = 1.0;
@@ -85,9 +70,6 @@ static message::config_led_t config_led;
 static message::config_stab_damping_t config_stab;
 
 static double nav_pvt_timestamp = 0;
-
-//static LowPassFilter analog_filt[NUM_ANALOG_INPUTS];
-//static float analog[NUM_ANALOG_INPUTS];
 
 static bool airspeed_inited = false;
 static double airspeed_zero_start_time = 0.0;
@@ -992,23 +974,6 @@ bool Aura4_t::send_config() {
 }
 
 
-static bool Aura4_act_write() {
-    // actuator data
-    if ( message::ap_channels == 6 ) {
-        message::command_inceptors_t act;
-	act.channel[0] = act_node.getDouble("throttle");
-	act.channel[1] = act_node.getDouble("aileron");
-	act.channel[2] = act_node.getDouble("elevator");
-	act.channel[3] = act_node.getDouble("rudder");
-	act.channel[4] = act_node.getDouble("flaps");
-	act.channel[5] = act_node.getDouble("gear");
-        act.pack();
-        serial.write_packet( act.id, act.payload, act.len );
-        return true;
-    } else {
-        return false;
-    }
-}
 
 
 // Read Aura4 packets using IMU packet as the main timing reference.
@@ -1063,7 +1028,7 @@ double Aura4_t::update() {
 }
 
 
-bool Aura4_gps_update() {
+bool Aura4_t::update_gps() {
     static double last_timestamp = 0.0;
     
     if ( nav_pvt_timestamp > last_timestamp ) {
@@ -1111,7 +1076,7 @@ bool Aura4_gps_update() {
 }
 
 
-bool Aura4_airdata_update() {
+bool Aura4_t::update_airdata() {
     bool fresh_data = false;
     static double pitot_sum = 0.0;
     static int pitot_count = 0;
@@ -1199,7 +1164,7 @@ void Aura4_airdata_zero_airspeed() {
 }
 
 
-bool Aura4_pilot_update() {
+bool Aura4_t::update_pilot() {
     float val;
 
     pilot_node.setDouble( "timestamp", pilot_in_timestamp );
@@ -1239,31 +1204,26 @@ bool Aura4_pilot_update() {
 
 bool Aura4_t::update_actuators() {
     if ( !Aura4_actuator_configured ) {
+        // send configuration
 	Aura4_actuator_configured = send_config();
+    } else {
+        // send actuator commands to Aura4 servo subsystem
+        if ( message::ap_channels == 6 ) {
+            message::command_inceptors_t act;
+            act.channel[0] = act_node.getDouble("throttle");
+            act.channel[1] = act_node.getDouble("aileron");
+            act.channel[2] = act_node.getDouble("elevator");
+            act.channel[3] = act_node.getDouble("rudder");
+            act.channel[4] = act_node.getDouble("flaps");
+            act.channel[5] = act_node.getDouble("gear");
+            act.pack();
+            serial.write_packet( act.id, act.payload, act.len );
+        }
     }
-    
-    // send actuator commands to Aura4 servo subsystem
-    Aura4_act_write();
-
     return true;
 }
 
 
-void Aura4_close() {
+void Aura4_t::close() {
     serial.close();
-}
-
-
-void Aura4_airdata_close() {
-    Aura4_close();
-}
-
-
-void Aura4_pilot_close() {
-    Aura4_close();
-}
-
-
-void Aura4_act_close() {
-    Aura4_close();
 }

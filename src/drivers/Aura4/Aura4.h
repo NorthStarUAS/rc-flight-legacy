@@ -7,8 +7,8 @@
 
 #include <pyprops.h>
 
+#include "comms/serial_link.h"
 #include "drivers/driver.h"
-
 #include "include/globaldefs.h" /* fixme, get rid of? */
 
 #include "aura4_messages.h"
@@ -22,11 +22,22 @@ public:
     void read() {}
     void process() {}
     void write() {}
-    void close() {}
+    void close();
 
 private:
+    pyPropertyNode aura4_node;
+    pyPropertyNode power_node;
+    pyPropertyNode imu_node;
+    pyPropertyNode gps_node;
+    pyPropertyNode pilot_node;
+    pyPropertyNode act_node;
+    pyPropertyNode airdata_node;
+    pyPropertyNode aura4_config;
+    pyPropertyNode config_specs_node;
+    
     string device_name = "/dev/ttyS4";
     int baud = 500000;
+    SerialLink serial;
     
     void info( const char* format, ... );
     void hard_error( const char*format, ... );
@@ -38,6 +49,7 @@ private:
     void init_pilot( pyPropertyNode *config );
     void init_actuators( pyPropertyNode *config );
 
+    bool parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload );
     bool send_config();
     bool write_config_master();
     bool write_config_imu();
@@ -53,9 +65,11 @@ private:
     bool wait_for_ack(uint8_t id);
 
     double update();
-    bool parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload );
+    bool update_airdata();
+    bool update_gps();
     bool update_imu( message::imu_raw_t *imu );
-
+    bool update_pilot();
+    
     bool update_actuators();
 };
 
