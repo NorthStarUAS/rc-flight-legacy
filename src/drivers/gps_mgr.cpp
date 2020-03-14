@@ -38,7 +38,6 @@ using std::vector;
 #include "gps_gpsd.h"
 #include "gps_ublox6.h"
 #include "gps_ublox8.h"
-#include "ugfile.h"
 
 #include "gps_mgr.h"
 
@@ -88,8 +87,6 @@ void GPS_init() {
 	    Aura3_gps_init( output_path.str(), &section_node );
 	} else if ( source == "fgfs" ) {
 	    fgfs_gps_init( output_path.str(), &section_node );
-	} else if ( source == "file" ) {
-	    ugfile_gps_init( output_path.str(), &section_node );
 	} else if ( source == "gpsd" ) {
 	    gpsd_init( output_path.str(), &section_node );
 	} else if ( source == "ublox6" ) {
@@ -156,8 +153,6 @@ bool GPS_update() {
 	    fresh_data = Aura3_gps_update();
 	} else if ( source == "fgfs" ) {
 	    fresh_data = fgfs_gps_update();
-	} else if ( source == "file" ) {
-	    fresh_data = ugfile_get_gps();
 	} else if ( source == "gpsd" ) {
 	    fresh_data = gpsd_get_gps();
 	} else if ( source == "ublox6" ) {
@@ -305,8 +300,6 @@ void GPS_close() {
 	    Aura3_gps_close();
 	} else if ( source == "fgfs" ) {
 	    fgfs_gps_close();
-	} else if ( source == "file" ) {
-	    ugfile_close();
 	} else if ( source == "gpsd" ) {
 	    // fixme
 	} else if ( source == "ublox6" ) {

@@ -29,9 +29,6 @@ using std::vector;
 #include "drivers/APM2.h"
 #include "drivers/Aura3/Aura3.h"
 #include "drivers/FGFS.h"
-#include "drivers/imu_vn100_spi.h"
-#include "drivers/imu_vn100_uart.h"
-#include "drivers/ugfile.h"
 
 #include "imu_mgr.h"
 
@@ -89,12 +86,6 @@ void IMU_init() {
 	    Aura3_imu_init( output_path.str(), &section );
 	} else if ( source == "fgfs" ) {
 	    fgfs_imu_init( output_path.str(), &section );
-	} else if ( source == "file" ) {
-	    ugfile_imu_init( output_path.str(), &section );
-	} else if ( source == "vn100" ) {
-	    imu_vn100_uart_init( output_path.str(), &section );
-	} else if ( source == "vn100-spi" ) {
-	    imu_vn100_spi_init( output_path.str(), &section );
 	} else {
 	    printf("Unknown imu source = '%s' in config file\n",
 		   source.c_str());
@@ -128,13 +119,6 @@ bool IMU_update() {
 	    fresh_data = Aura3_imu_update();
 	} else if ( source == "fgfs" ) {
 	    fresh_data = fgfs_imu_update();
-	} else if ( source == "file" ) {
-	    ugfile_read();
-	    fresh_data = ugfile_get_imu();
-	} else if ( source == "vn100" ) {
-	    fresh_data = imu_vn100_uart_get();
-	} else if ( source == "vn100-spi" ) {
-	    fresh_data = imu_vn100_spi_get();
 	} else {
 	    printf("Unknown imu source = '%s' in config file\n",
 		   source.c_str());
@@ -216,12 +200,6 @@ void IMU_close() {
 	    Aura3_imu_close();
 	} else if ( source == "fgfs" ) {
 	    fgfs_imu_close();
-	} else if ( source == "file" ) {
-	    ugfile_close();
-	} else if ( source == "vn100" ) {
-	    imu_vn100_uart_close();
-	} else if ( source == "vn100-spi" ) {
-	    imu_vn100_spi_close();
 	} else {
 	    printf("Unknown imu source = '%s' in config file\n",
 		   source.c_str());

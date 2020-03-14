@@ -124,7 +124,6 @@ void main_work_loop()
     
     main_prof.start();
     
-    
     static double display_timer = get_Time();
     static int health_counter = 0;
 
