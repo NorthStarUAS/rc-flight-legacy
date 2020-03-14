@@ -27,7 +27,6 @@ using namespace Eigen;
 #include "util/timing.h"
 
 #include "Aura4.h"
-#include "aura4_messages.h"
 
 // FIXME: could be good to be able to define constants in the message.json
 #define NUM_IMU_SENSORS 10
@@ -44,7 +43,6 @@ static pyPropertyNode airdata_node;
 static pyPropertyNode aura4_config;
 static pyPropertyNode config_specs_node;
 
-static bool actuator_inited = false;
 bool Aura4_actuator_configured = false; // externally visible
 
 static SerialLink serial;
@@ -62,7 +60,7 @@ static string pilot_mapping[message::sbus_channels]; // channel->name mapping
 
 static double imu_timestamp = 0.0;
 static uint32_t imu_micros = 0;
-static int16_t imu_sensors[NUM_IMU_SENSORS];
+//static int16_t imu_sensors[NUM_IMU_SENSORS];
 
 static LinearFitFilter imu_offset(200.0, 0.01);
 
@@ -129,6 +127,18 @@ static string get_next_path( const char *path, const char *base ) {
     output_path << path << "/" << base << '[' << len << ']';
     printf("  new path: %s\n", output_path.str().c_str());
     return output_path.str();
+}
+
+//fixme: temporary
+static void info( const char *format, ... ) {
+    if ( display_on ) {
+        printf("Aura4: ");
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
+        printf("\n");
+    }
 }
 
 void Aura4_t::info( const char *format, ... ) {
@@ -206,6 +216,13 @@ void Aura4_t::init( pyPropertyNode *config ) {
         init_pilot( &pilot_config );
     } else {
         hard_error("no pilot configuration\n");
+    }
+
+    if ( config->hasChild("actuators") ) {
+        pyPropertyNode act_config = config->getChild("actuators");
+        init_actuators( &act_config );
+    } else {
+        hard_error("no actuator configuration\n");
     }
 
     sleep(1);
@@ -308,23 +325,30 @@ void Aura4_t::init_pilot( pyPropertyNode *config ) {
     pilot_node.setLen("channel", message::sbus_channels, 0.0);
 }
 
-static bool Aura4_imu_update_internal() {
+void Aura4_t::init_actuators( pyPropertyNode *config ) {
+    act_node = pyGetNode("/actuators", true);
+}
+
+bool Aura4_t::update_imu( message::imu_raw_t *imu ) {
     static double last_bias_update = 0.0;
     
+    imu_timestamp = get_Time();
+    imu_micros = imu->micros;
+
     float p_raw = 0.0, q_raw = 0.0, r_raw = 0.0;
     float ax_raw = 0.0, ay_raw = 0.0, az_raw = 0.0;
     float hx_raw = 0.0, hy_raw = 0.0, hz_raw = 0.0;
-    ax_raw = (float)imu_sensors[0] * accelScale;
-    ay_raw = (float)imu_sensors[1] * accelScale;
-    az_raw = (float)imu_sensors[2] * accelScale;
-    p_raw = (float)imu_sensors[3] * gyroScale;
-    q_raw = (float)imu_sensors[4] * gyroScale;
-    r_raw = (float)imu_sensors[5] * gyroScale;
-    hx_raw = (float)imu_sensors[6] * magScale;
-    hy_raw = (float)imu_sensors[7] * magScale;
-    hz_raw = (float)imu_sensors[8] * magScale;
+    ax_raw = (float)imu->channel[0] * accelScale;
+    ay_raw = (float)imu->channel[1] * accelScale;
+    az_raw = (float)imu->channel[2] * accelScale;
+    p_raw = (float)imu->channel[3] * gyroScale;
+    q_raw = (float)imu->channel[4] * gyroScale;
+    r_raw = (float)imu->channel[5] * gyroScale;
+    hx_raw = (float)imu->channel[6] * magScale;
+    hy_raw = (float)imu->channel[7] * magScale;
+    hz_raw = (float)imu->channel[8] * magScale;
 
-    float temp_C = (float)imu_sensors[9] * tempScale;
+    float temp_C = (float)imu->channel[9] * tempScale;
 
     if ( imu_timestamp > last_bias_update + 5.0 ) {
         //imu_p_bias_node.setDouble( p_cal.get_bias( temp_C ) );
@@ -388,9 +412,7 @@ static bool Aura4_imu_update_internal() {
 }
 
 
-static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
-                         uint8_t *payload )
-{
+bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
     bool new_data = false;
 
     static LowPassFilter avionics_vcc_filt(2.0);
@@ -403,10 +425,7 @@ static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
 	if ( pkt_len == ack.len ) {
             last_ack_id = ack.command_id;
 	    last_ack_subid = ack.subcommand_id;
-            if ( display_on ) {
-                printf("Received ACK = %d %d\n", ack.command_id,
-                       ack.subcommand_id);
-            }
+            info("Received ACK = %d %d", ack.command_id, ack.subcommand_id);
 	} else {
 	    printf("Aura4: packet size mismatch in ACK\n");
 	}
@@ -421,14 +440,12 @@ static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
             pilot_flags = pilot.flags;
 
 #if 0
-	    if ( display_on ) {
-		printf("%5.2f %5.2f %4.2f %5.2f %d\n",
-		       pilot_aileron_node.getDouble(),
-		       pilot_elevator_node.getDouble(),
-		       pilot_throttle_node.getDouble(),
-		       pilot_rudder_node.getDouble(),
-		       pilot_manual_node->getLong());
-	    }
+            into("%5.2f %5.2f %4.2f %5.2f %d\n",
+                 pilot_aileron_node.getDouble(),
+                 pilot_elevator_node.getDouble(),
+                 pilot_throttle_node.getDouble(),
+                 pilot_rudder_node.getDouble(),
+                 pilot_manual_node->getLong());
 #endif
 
 	    pilot_packet_counter++;
@@ -436,41 +453,18 @@ static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
 
 	    new_data = true;
 	} else {
-	    if ( display_on ) {
-		printf("Aura4: packet size mismatch in pilot input packet\n");
-	    }
+            info("packet size mismatch in pilot input packet");
 	}
     } else if ( pkt_id == message::imu_raw_id ) {
         message::imu_raw_t imu;
         imu.unpack(payload, pkt_len);
 	if ( pkt_len == imu.len ) {
-	    imu_timestamp = get_Time();
-	    imu_micros = imu.micros;
-	    //printf("%d\n", imu_micros);
-	    for ( int i = 0; i < NUM_IMU_SENSORS; i++ ) {
-		imu_sensors[i] = imu.channel[i];
-	    }
-
-#if 0
-	    if ( display_on ) {
-		for ( int i = 0; i < NUM_IMU_SENSORS; i++ ) {
-		    printf("%d ", imu_sensors[i]);
-		}
-		printf("\n");
-	    }
-#endif
-		      
+            update_imu(&imu);
 	    imu_packet_counter++;
 	    aura4_node.setLong( "imu_packet_count", imu_packet_counter );
-
-	    // update the propery tree and timestamps
-	    Aura4_imu_update_internal();
-
 	    new_data = true;
 	} else {
-	    if ( display_on ) {
-		printf("Aura4: packet size mismatch in imu packet\n");
-	    }
+            info("packet size mismatch in imu packet");
 	}
     } else if ( pkt_id == message::aura_nav_pvt_id ) {
         nav_pvt.unpack(payload, pkt_len);
@@ -480,29 +474,20 @@ static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    aura4_node.setLong( "gps_packet_count", gps_packet_counter );
 	    new_data = true;
 	} else {
-	    if ( display_on ) {
-		printf("Aura4: packet size mismatch in gps packet\n");
-                printf("got %d, expected %d\n", pkt_len, nav_pvt.len);
-	    }
+            info("packet size mismatch in gps packet");
+            info("got %d, expected %d", pkt_len, nav_pvt.len);
 	}
     } else if ( pkt_id == message::ekf_id ) {
         // ekf message, just toss silently for the moment
     } else if ( pkt_id == message::airdata_id ) {
         airdata.unpack(payload, pkt_len);
 	if ( pkt_len == airdata.len ) {
-	    // if ( display_on ) {
-	    // 	printf("airdata %.3f %.2f %.2f\n", airdata.timestamp,
-	    // 		airdata.temp_C, airdata.diff_pres_pa);
-	    // }
-		      
 	    airdata_packet_counter++;
 	    aura4_node.setLong( "airdata_packet_count", airdata_packet_counter );
 
 	    new_data = true;
 	} else {
-	    if ( display_on ) {
-		printf("Aura4: packet size mismatch in airdata packet\n");
-	    }
+            info("packet size mismatch in airdata packet");
 	}
     } else if ( pkt_id == message::power_id ) {
         message::power_t power;
@@ -524,19 +509,13 @@ static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
             power_node.setDouble( "ext_cell_vcc", ext_cell_volt );
             power_node.setDouble( "main_amps", (float)power.ext_main_amp);
 	} else {
-	    if ( display_on ) {
-		printf("Aura4: packet size mismatch in power packet\n");
-	    }
+            info("packet size mismatch in power packet");
 	}
     } else if ( pkt_id == message::status_id ) {
 	static bool first_time = true;
         message::status_t msg;
         msg.unpack(payload, pkt_len);
 	if ( pkt_len == msg.len ) {
-	    // if ( display_on ) {
-            //  printf("info %d %d %d %d\n", serial_num, firmware_rev,
-            //         master_hz, baud_rate);
-	    // }
 	    aura4_node.setLong( "serial_number", msg.serial_number );
 	    aura4_node.setLong( "firmware_rev", msg.firmware_rev );
 	    aura4_node.setLong( "master_hz", msg.master_hz );
@@ -557,32 +536,26 @@ static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
 		events->log("Aura4", buf );
 	    }
 	} else {
-	    if ( display_on ) {
-		printf("Aura4: packet size mismatch in status packet\n");
-	    }
+            info("packet size mismatch in status packet");
 	}
     } else {
-	if ( display_on ) {
-	    printf("Aura4: unknown packet id = %d\n", pkt_id);
-	}
+        info("unknown packet id = %d", pkt_id);
     }
 
     return new_data;
 }
 
 
-static bool wait_for_ack(uint8_t id) {
+bool Aura4_t::wait_for_ack(uint8_t id) {
     double timeout = 0.5;
     double start_time = get_Time();
     last_ack_id = 0;
     while ( (last_ack_id != id) ) {
 	if ( serial.update() ) {
-            Aura4_parse( serial.pkt_id, serial.pkt_len, serial.payload );
+            parse( serial.pkt_id, serial.pkt_len, serial.payload );
         }
 	if ( get_Time() > start_time + timeout ) {
-	    if ( display_on ) {
-		printf("Timeout waiting for ack...\n");
-	    }
+            info("timeout waiting for ack...");
 	    return false;
 	}
     }
@@ -590,67 +563,74 @@ static bool wait_for_ack(uint8_t id) {
 }
 
 
-static bool write_config_master() {
+bool Aura4_t::write_config_master() {
     config_master.pack();
     serial.write_packet( config_master.id, config_master.payload, config_master.len );
     return wait_for_ack(config_master.id);
 }
 
-static bool write_config_imu() {
+bool Aura4_t::write_config_imu() {
     config_imu.pack();
     serial.write_packet( config_imu.id, config_imu.payload, config_imu.len );
     return wait_for_ack(config_imu.id);
 }
 
-static bool write_config_mixer() {
+bool Aura4_t::write_config_mixer() {
     config_mixer.pack();
     serial.write_packet( config_mixer.id, config_mixer.payload,
                          config_mixer.len );
     return wait_for_ack(config_mixer.id);
 }
 
-static bool write_config_pwm() {
+bool Aura4_t::write_config_pwm() {
     config_pwm.pack();
     serial.write_packet( config_pwm.id, config_pwm.payload,
                   config_pwm.len );
     return wait_for_ack(config_pwm.id);
 }
 
-static bool write_config_airdata() {
+bool Aura4_t::write_config_airdata() {
     config_airdata.pack();
     serial.write_packet( config_airdata.id, config_airdata.payload,
                   config_airdata.len );
     return wait_for_ack(config_airdata.id);
 }
 
-static bool write_config_led() {
+bool Aura4_t::write_config_led() {
     config_led.pack();
     serial.write_packet( config_led.id, config_led.payload, config_led.len );
     return wait_for_ack(config_led.id);
 }
 
-static bool write_config_power() {
+bool Aura4_t::write_config_power() {
     config_power.pack();
     serial.write_packet( config_power.id, config_power.payload,
                   config_power.len );
     return wait_for_ack(config_power.id);
 }
 
-static bool write_config_stab() {
+bool Aura4_t::write_config_stab() {
     config_stab.pack();
     serial.write_packet( config_stab.id, config_stab.payload,
                   config_stab.len );
     return wait_for_ack(config_stab.id);
 }
 
-static bool write_command_zero_gyros() {
+bool Aura4_t::write_command_zero_gyros() {
     message::command_zero_gyros_t cmd;
     cmd.pack();
     serial.write_packet( cmd.id, cmd.payload, cmd.len );
     return wait_for_ack(cmd.id);
 }
 
-static bool write_command_cycle_inceptors() {
+bool Aura4_t::write_command_reset_ekf() {
+    message::command_reset_ekf_t cmd;
+    cmd.pack();
+    serial.write_packet( cmd.id, cmd.payload, cmd.len );
+    return wait_for_ack(cmd.id);
+}
+
+bool Aura4_t::write_command_cycle_inceptors() {
     message::command_cycle_inceptors_t cmd;
     cmd.pack();
     serial.write_packet( cmd.id, cmd.payload, cmd.len );
@@ -664,25 +644,10 @@ static void bind_gps_output( string output_path ) {
 
 // initialize actuator property nodes 
 static void bind_act_nodes() {
-    if ( actuator_inited ) {
-	return;
-    }
-    act_node = pyGetNode("/actuators", true);
-    actuator_inited = true;
 }
 
 // initialize pilot output property nodes 
 static void bind_pilot_controls( string output_path ) {
-}
-
-
-bool Aura4_imu_init( string output_path, pyPropertyNode *config ) {
-    return true;
-}
-
-
-bool Aura4_gps_init( string output_path, pyPropertyNode *config ) {
-    return true;
 }
 
 
@@ -786,10 +751,8 @@ static void led_defaults() {
 
 // send a full configuration to Aura4 and return true only when all
 // parameters are acknowledged.
-static bool Aura4_send_config() {
-    if ( display_on ) {
-	printf("Aura4: building config structure.\n");
-    }
+bool Aura4_t::send_config() {
+    info("building config structure.");
 
     vector<string> children;
 
@@ -851,9 +814,7 @@ static bool Aura4_send_config() {
     count = pwm_node.getLen("channel");
     for ( int i = 0; i < count; i++ ) {
         config_pwm.pwm_hz[i] = pwm_node.getLong("channel", i);
-        if ( display_on ) {
-            printf("pwm_hz[%d] = %d\n", i, config_pwm.pwm_hz[i]);
-        }
+        info("pwm_hz[%d] = %d", i, config_pwm.pwm_hz[i]);
     }
 
     pyPropertyNode gain_node
@@ -861,9 +822,7 @@ static bool Aura4_send_config() {
     count = gain_node.getLen("channel");
     for ( int i = 0; i < count; i++ ) {
         config_pwm.act_gain[i] = gain_node.getDouble("channel", i);
-        if ( display_on ) {
-            printf("act_gain[%d] = %.2f\n", i, config_pwm.act_gain[i]);
-        }
+        info("act_gain[%d] = %.2f", i, config_pwm.act_gain[i]);
     }
 
     pyPropertyNode mixer_node
@@ -914,10 +873,7 @@ static bool Aura4_send_config() {
                     config_mixer.mix_Gtr = gain2;
 		}
 	    }
-	    if ( display_on ) {
-		printf("mix: %s %d %.2f %.2f\n", mode.c_str(), enable,
-		       gain1, gain2);
-	    }
+            info("mix: %s %d %.2f %.2f", mode.c_str(), enable, gain1, gain2);
 	}
     }
 
@@ -950,18 +906,14 @@ static bool Aura4_send_config() {
                         config_stab.sas_yawgain = gain;
 		    }
 		}
-		if ( display_on ) {
-		    printf("sas: %s %d %.2f\n", mode.c_str(), enable, gain);
-		}
+                info("sas: %s %d %.2f", mode.c_str(), enable, gain);
 	    }
 	} else if ( children[i] == "pilot_tune" ) {
 	    pyPropertyNode sas_section = sas_node.getChild("pilot_tune");
 	    if ( sas_section.hasChild("enable") ) {
 		config_stab.sas_tune = sas_section.getBool("enable");
 	    }
-	    if ( display_on ) {
-		printf("sas: global tune %d\n", config_stab.sas_tune);
-	    }
+            info("sas global tune %d", config_stab.sas_tune);
 	}
     }
 
@@ -994,65 +946,47 @@ static bool Aura4_send_config() {
         config_led.pin = aura4_config.getLong("led_pin");
     }
 
-    if ( display_on ) {
-	printf("Aura4: transmitting master config ...\n");
-    }
+    info("transmitting master config ...");
     if ( !write_config_master() ) {
         return false;
     }
 
-    if ( display_on ) {
-	printf("Aura4: transmitting imu config ...\n");
-    }
+    info("transmitting imu config ...");
     if ( !write_config_imu() ) {
         return false;
     }
 
-    if ( display_on ) {
-	printf("Aura4: transmitting pwm config ...\n");
-    }
+    info("transmitting pwm config ...");
     if ( !write_config_pwm() ) {
         return false;
     }
 
-    if ( display_on ) {
-	printf("Aura4: transmitting mixer config ...\n");
-    }
+    printf("transmitting mixer config ...");
     if ( !write_config_mixer() ) {
         return false;
     }
 
-    if ( display_on ) {
-	printf("Aura4: transmitting airdata config ...\n");
-    }
+    info("transmitting airdata config ...");
     if ( !write_config_airdata() ) {
         return false;
     }
 
-    if ( display_on ) {
-	printf("Aura4: transmitting power config ...\n");
-    }
+    info("transmitting power config ...");
     if ( !write_config_power() ) {
         return false;
     }
 
-    if ( display_on ) {
-	printf("Aura4: transmitting led config ...\n");
-    }
+    info("transmitting led config ...");
     if ( !write_config_led() ) {
         return false;
     }
 
-    if ( display_on ) {
-	printf("Aura4: transmitting stability damping config ...\n");
-    }
+    info("transmitting stability damping config ...");
     if ( !write_config_stab() ) {
         return false;
     }
 
-    if ( display_on ) {
-	printf("Aura4_send_config(): end\n");
-    }
+    info("send_config() finished");
 
     return true;
 }
@@ -1081,7 +1015,7 @@ static bool Aura4_act_write() {
 // Returns the dt from the IMU perspective, not the localhost
 // perspective.  This should generally be far more accurate and
 // consistent.
-double Aura4_update() {
+double Aura4_t::update() {
     // read packets until we receive an IMU packet and the uart buffer
     // is mostly empty.  The IMU packet (combined with being caught up
     // reading the uart buffer is our signal to run an interation of
@@ -1090,7 +1024,7 @@ double Aura4_update() {
 
     while ( true ) {
         if ( serial.update() ) {
-            Aura4_parse( serial.pkt_id, serial.pkt_len, serial.payload );
+            parse( serial.pkt_id, serial.pkt_len, serial.payload );
             if ( serial.pkt_id == message::imu_raw_id ) {
                 if ( serial.bytes_available() < 256 ) {
                     // a smaller value here means more skipping ahead and
@@ -1107,7 +1041,7 @@ double Aura4_update() {
     aura4_node.setLong("parse_errors", parse_errors);
     aura4_node.setLong("skipped_frames", skipped_frames);
 
-    // experimental: write optional zero gyros command back to FMU upon request
+    // relay optional zero gyros command back to FMU upon request
     string command = aura4_node.getString( "command" );
     if ( command.length() ) {
         if ( command == "zero_gyros" ) {
@@ -1126,14 +1060,6 @@ double Aura4_update() {
     
     double cur_time = imu_node.getDouble( "timestamp" );
     return cur_time - last_time;
-}
-
-
-// this keeps the imu_mgr happy, but the real work to update the
-// property tree is performed right away when we receive and parse the
-// packet.
-bool Aura4_imu_update() {
-    return true;
 }
 
 
@@ -1311,13 +1237,9 @@ bool Aura4_pilot_update() {
 }
 
 
-bool Aura4_act_update() {
-    if ( !actuator_inited ) {
-	return false;
-    }
-
+bool Aura4_t::update_actuators() {
     if ( !Aura4_actuator_configured ) {
-	Aura4_actuator_configured = Aura4_send_config();
+	Aura4_actuator_configured = send_config();
     }
     
     // send actuator commands to Aura4 servo subsystem
@@ -1329,16 +1251,6 @@ bool Aura4_act_update() {
 
 void Aura4_close() {
     serial.close();
-}
-
-
-void Aura4_imu_close() {
-    Aura4_close();
-}
-
-
-void Aura4_gps_close() {
-    Aura4_close();
 }
 
 

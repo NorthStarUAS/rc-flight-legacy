@@ -11,6 +11,8 @@
 
 #include "include/globaldefs.h" /* fixme, get rid of? */
 
+#include "aura4_messages.h"
+
 class Aura4_t: public driver_t {
     
 public:
@@ -28,12 +30,33 @@ private:
     
     void info( const char* format, ... );
     void hard_error( const char*format, ... );
+    
     bool open( pyPropertyNode *config );
     void init_airdata( pyPropertyNode *config );
     void init_gps( pyPropertyNode *config );
     void init_imu( pyPropertyNode *config );
     void init_pilot( pyPropertyNode *config );
-    
+    void init_actuators( pyPropertyNode *config );
+
+    bool send_config();
+    bool write_config_master();
+    bool write_config_imu();
+    bool write_config_mixer();
+    bool write_config_pwm();
+    bool write_config_airdata();
+    bool write_config_led();
+    bool write_config_power();
+    bool write_config_stab();
+    bool write_command_zero_gyros();
+    bool write_command_cycle_inceptors();
+    bool write_command_reset_ekf();
+    bool wait_for_ack(uint8_t id);
+
+    double update();
+    bool parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload );
+    bool update_imu( message::imu_raw_t *imu );
+
+    bool update_actuators();
 };
 
 // function prototypes
@@ -41,10 +64,6 @@ private:
 double Aura4_update();
 void Aura4_close();
 bool Aura4_request_baud( uint32_t baud );
-
-bool Aura4_imu_init( string output_path, pyPropertyNode *config );
-bool Aura4_imu_update();
-void Aura4_imu_close();
 
 bool Aura4_gps_init( string output_path, pyPropertyNode *config  );
 bool Aura4_gps_update();

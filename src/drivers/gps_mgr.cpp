@@ -34,7 +34,6 @@ using std::vector;
 
 #include "APM2.h"
 #include "Aura3/Aura3.h"
-#include "Aura4/Aura4.h"
 #include "FGFS.h"
 #include "gps_gpsd.h"
 #include "gps_ublox6.h"
@@ -87,8 +86,6 @@ void GPS_init() {
 	    APM2_gps_init( output_path.str(), &section_node );
 	} else if ( source == "Aura3" ) {
 	    Aura3_gps_init( output_path.str(), &section_node );
-	} else if ( source == "Aura4" ) {
-	    Aura4_gps_init( output_path.str(), &section_node );
 	} else if ( source == "fgfs" ) {
 	    fgfs_gps_init( output_path.str(), &section_node );
 	} else if ( source == "file" ) {
@@ -157,8 +154,6 @@ bool GPS_update() {
 	    fresh_data = APM2_gps_update();
 	} else if ( source == "Aura3" ) {
 	    fresh_data = Aura3_gps_update();
-	} else if ( source == "Aura4" ) {
-	    fresh_data = Aura4_gps_update();
 	} else if ( source == "fgfs" ) {
 	    fresh_data = fgfs_gps_update();
 	} else if ( source == "file" ) {
@@ -308,8 +303,6 @@ void GPS_close() {
 	    APM2_gps_close();
 	} else if ( source == "Aura3" ) {
 	    Aura3_gps_close();
-	} else if ( source == "Aura4" ) {
-	    Aura4_gps_close();
 	} else if ( source == "fgfs" ) {
 	    fgfs_gps_close();
 	} else if ( source == "file" ) {

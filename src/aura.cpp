@@ -112,10 +112,12 @@ void main_work_loop()
     } else if ( sync_source == SYNC_AURA3 ) {
 	dt = Aura3_update();
     } else if ( sync_source == SYNC_AURA4 ) {
-	dt = Aura4_update();
+	// dt = Aura4_update();
     } else if ( sync_source == SYNC_FGFS ) {
 	dt = FGFS_update();
     }
+    // fixme: need to account for dt and sync in new driver architecture
+    driver_mgr.read();
     status_node.setDouble("frame_time", imu_node.getDouble( "timestamp" ));
     status_node.setDouble("dt", dt);
     sync_prof.stop();

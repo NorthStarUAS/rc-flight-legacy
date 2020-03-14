@@ -32,7 +32,6 @@ using std::vector;
 #include "airdata_bolder.h"
 #include "APM2.h"
 #include "Aura3/Aura3.h"
-#include "Aura4/Aura4.h"
 #include "FGFS.h"
 
 #include "airdata_mgr.h"
@@ -117,8 +116,6 @@ void AirData_init() {
 	    APM2_airdata_init( output_path.str() );
 	} else if ( source == "Aura3" ) {
 	    Aura3_airdata_init( output_path.str() );
-	} else if ( source == "Aura4" ) {
-	    Aura4_airdata_init( output_path.str() );
 	} else if ( source == "fgfs" ) {
 	    fgfs_airdata_init( output_path.str() );
 	} else {
@@ -328,8 +325,6 @@ bool AirData_update() {
 	    fresh_data = APM2_airdata_update();
 	} else if ( source == "Aura3" ) {
 	    fresh_data = Aura3_airdata_update();
-	} else if ( source == "Aura4" ) {
-	    fresh_data = Aura4_airdata_update();
 	} else if ( source == "fgfs" ) {
 	    fresh_data = fgfs_airdata_update();
 	} else {
@@ -419,8 +414,6 @@ void AirData_calibrate() {
 	    APM2_airdata_zero_airspeed();
 	} else if ( source == "Aura3" ) {
 	    Aura3_airdata_zero_airspeed();
-	} else if ( source == "Aura4" ) {
-	    Aura4_airdata_zero_airspeed();
 	} else if ( source == "fgfs" ) {
 	    // do nothing
 	} else {
@@ -449,8 +442,6 @@ void AirData_close() {
 	    APM2_airdata_close();
 	} else if ( source == "Aura3" ) {
 	    Aura3_airdata_close();
-	} else if ( source == "Aura4" ) {
-	    Aura4_airdata_close();
 	} else if ( source == "fgfs" ) {
 	    // nop
 	} else {

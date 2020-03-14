@@ -30,7 +30,6 @@ using std::vector;
 
 #include "APM2.h"
 #include "Aura3/Aura3.h"
-#include "Aura4/Aura4.h"
 #include "FGFS.h"
 
 #include "pilot_mgr.h"
@@ -84,8 +83,6 @@ void PilotInput_init() {
 	    APM2_pilot_init( output_path.str(), &section );
 	} else if ( source == "Aura3" ) {
 	    Aura3_pilot_init( output_path.str(), &section );
-	} else if ( source == "Aura4" ) {
-	    Aura4_pilot_init( output_path.str(), &section );
 	} else if ( source == "fgfs" ) {
 	    fgfs_pilot_init( output_path.str(), &section );
 	} else {
@@ -117,8 +114,6 @@ bool PilotInput_update() {
 	    fresh_data = APM2_pilot_update();
 	} else if ( source == "Aura3" ) {
 	    fresh_data = Aura3_pilot_update();
-	} else if ( source == "Aura4" ) {
-	    fresh_data = Aura4_pilot_update();
 	} else if ( source == "fgfs" ) {
 	    fresh_data = fgfs_pilot_update();
 	} else {
@@ -210,8 +205,6 @@ void PilotInput_close() {
 	    APM2_pilot_close();
 	} else if ( source == "Aura3" ) {
 	    Aura3_pilot_close();
-	} else if ( source == "Aura4" ) {
-	    Aura4_pilot_close();
 	} else if ( source == "fgfs" ) {
 	    fgfs_pilot_close();
 	} else {
