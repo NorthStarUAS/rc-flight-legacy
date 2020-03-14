@@ -127,6 +127,8 @@ const float accelScale = _g / _accel_lsb_per_dps;
 const float magScale = 0.01;
 const float tempScale = 0.01;
 
+void Aura4_t::init( pyPropertyNode *config ) {
+}
 
 static bool Aura4_imu_update_internal() {
     static double last_bias_update = 0.0;

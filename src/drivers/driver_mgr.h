@@ -17,7 +17,7 @@ public:
     void update();
     
 private:
-    pyPropertyNode config_node;
+    pyPropertyNode drivers_node;
     vector<driver_t *> drivers;
 };
 

@@ -13,12 +13,13 @@
 
 class Aura4_t: public driver_t {
 public:
-    Aura4_t();
-    ~Aura4_t();
+    Aura4_t() {}
+    ~Aura4_t() {}
     void init( pyPropertyNode *config );
-    void read();
-    void wrte();
-    void close();
+    void read() {}
+    void process() {}
+    void write() {}
+    void close() {}
 };
 
 // function prototypes
