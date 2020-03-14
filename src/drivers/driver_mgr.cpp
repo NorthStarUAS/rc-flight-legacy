@@ -13,7 +13,7 @@ void driver_mgr_t::init() {
     vector<string> children = drivers_node.getChildren();
     printf("Found %d driver sections\n", (int)children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
-        printf("%s\n", children[i].c_str());
+        printf("Initializing device: %s\n", children[i].c_str());
 	pyPropertyNode section_node = drivers_node.getChild(children[i].c_str());
         if ( children[i] == "Aura4" ) {
             driver_t *d = new Aura4_t();
@@ -23,7 +23,28 @@ void driver_mgr_t::init() {
     }
 }
 
-void driver_mgr_t::update() {
+void driver_mgr_t::read() {
+    for ( unsigned int i = 0; i < drivers.size(); i++ ) {
+        drivers[i]->read();
+    }
+}
+
+void driver_mgr_t::process() {
+    for ( unsigned int i = 0; i < drivers.size(); i++ ) {
+        drivers[i]->process();
+    }
+}
+
+void driver_mgr_t::write() {
+    for ( unsigned int i = 0; i < drivers.size(); i++ ) {
+        drivers[i]->write();
+    }
+}
+
+void driver_mgr_t::close() {
+    for ( unsigned int i = 0; i < drivers.size(); i++ ) {
+        drivers[i]->close();
+    }
 }
 
 // global shared instance

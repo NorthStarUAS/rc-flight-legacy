@@ -37,4 +37,5 @@ public:
     int bytes_available();
     bool write_packet(uint8_t packet_id, uint8_t *payload, uint8_t len);
     bool close();
+    bool is_open() { return fd >= 0; }
 };

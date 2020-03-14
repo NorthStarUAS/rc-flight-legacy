@@ -14,8 +14,11 @@ class driver_mgr_t {
 public:
     driver_mgr_t();
     void init();
-    void update();
-    
+    void read();
+    void process();
+    void write();
+    void close();
+
 private:
     pyPropertyNode drivers_node;
     vector<driver_t *> drivers;

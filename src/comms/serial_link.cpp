@@ -240,5 +240,6 @@ bool SerialLink::close() {
         fprintf( stderr, "unable to close serial: %s\n", strerror(errno) );
 	return false;
     }
+    fd = -1;
     return true;
 }

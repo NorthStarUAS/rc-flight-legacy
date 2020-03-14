@@ -5,6 +5,9 @@
 
 #include <pyprops.h>
 
+#include <stdarg.h>
+#include <stdlib.h>             // exit()
+
 #include <string>
 #include <sstream>
 using std::string;
@@ -30,7 +33,7 @@ using namespace Eigen;
 #define NUM_IMU_SENSORS 10
 #define NUM_ANALOG_INPUTS 6
 
-static pyPropertyNode aura3_node;
+static pyPropertyNode aura4_node;
 static pyPropertyNode power_node;
 static pyPropertyNode imu_node;
 static pyPropertyNode gps_node;
@@ -38,22 +41,14 @@ static pyPropertyNode pilot_node;
 static pyPropertyNode act_node;
 static pyPropertyNode airdata_node;
 //static pyPropertyNode analog_node;
-static pyPropertyNode aura3_config;
+static pyPropertyNode aura4_config;
 static pyPropertyNode config_specs_node;
 
-static bool master_opened = false;
-static bool imu_inited = false;
-static bool gps_inited = false;
-static bool airdata_inited = false;
-static bool pilot_input_inited = false;
 static bool actuator_inited = false;
 bool Aura4_actuator_configured = false; // externally visible
 
 static SerialLink serial;
-static string device_name = "/dev/ttyS4";
-static int baud = 500000;
 
-static float volt_div_ratio = 100; // a nonsense value
 static int battery_cells = 4;
 static float pitot_calibrate = 1.0;
 
@@ -99,9 +94,6 @@ static double nav_pvt_timestamp = 0;
 static bool airspeed_inited = false;
 static double airspeed_zero_start_time = 0.0;
 
-//static AuraCalTemp p_cal;
-//static AuraCalTemp q_cal;
-//static AuraCalTemp r_cal;
 static AuraCalTemp ax_cal;
 static AuraCalTemp ay_cal;
 static AuraCalTemp az_cal;
@@ -127,86 +119,270 @@ const float accelScale = _g / _accel_lsb_per_dps;
 const float magScale = 0.01;
 const float tempScale = 0.01;
 
+
+// fixme: this could go in a central location for general use
+static string get_next_path( const char *path, const char *base ) {
+    pyPropertyNode node = pyGetNode(path, true);
+    int len = node.getLen(base);
+    node.setLen(base, len + 1);
+    ostringstream output_path;
+    output_path << path << "/" << base << '[' << len << ']';
+    printf("  new path: %s\n", output_path.str().c_str());
+    return output_path.str();
+}
+
+void Aura4_t::info( const char *format, ... ) {
+    if ( display_on ) {
+        printf("Aura4: ");
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
+        printf("\n");
+    }
+}
+
+void Aura4_t::hard_error( const char *format, ... ) {
+    printf("Aura4 hard error: ");
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+    printf("\n");
+    printf("Cannot continue.");
+    exit(-1);
+}
+
 void Aura4_t::init( pyPropertyNode *config ) {
+    // bind main property nodes
+    aura4_node = pyGetNode("/sensors/Aura4", true);
+    power_node = pyGetNode("/sensors/power", true);
+
+    if ( true ) {               // fixme: move or delete
+        // initialize property nodes and configurable values
+        aura4_config = pyGetNode("/config/sensors/Aura4", true);
+        config_specs_node = pyGetNode("/config/specs", true);
+
+        if ( aura4_config.hasChild("pitot_calibrate_factor") ) {
+            pitot_calibrate = aura4_config.getDouble("pitot_calibrate_factor");
+        }
+    
+        if ( config_specs_node.hasChild("battery_cells") ) {
+            battery_cells = config_specs_node.getLong("battery_cells");
+        }
+        if ( battery_cells < 1 ) { battery_cells = 1; }
+    }
+    
+    if ( config->hasChild("board") ) {
+        pyPropertyNode board_config = config->getChild("board");
+        open( &board_config );
+    } else {
+        hard_error("no board defined\n");
+    }
+
+    if ( config->hasChild("airdata") ) {
+        pyPropertyNode airdata_config = config->getChild("airdata");
+        init_airdata( &airdata_config );
+    } else {
+        hard_error("no airdata configuration\n");
+    }
+    
+    if ( config->hasChild("gps") ) {
+        pyPropertyNode gps_config = config->getChild("gps");
+        init_gps( &gps_config );
+    } else {
+        hard_error("no gps configuration\n");
+    }
+    
+    if ( config->hasChild("imu") ) {
+        pyPropertyNode imu_config = config->getChild("imu");
+        init_imu( &imu_config );
+    } else {
+        hard_error("no imu configuration\n");
+    }
+
+    if ( config->hasChild("pilot_input") ) {
+        pyPropertyNode pilot_config = config->getChild("pilot");
+        init_pilot( &pilot_config );
+    } else {
+        hard_error("no pilot configuration\n");
+    }
+
+    sleep(1);
+}
+
+bool Aura4_t::open( pyPropertyNode *config ) {
+    if ( config->hasChild("device") ) {
+	device_name = config->getString("device");
+    }
+    if ( config->hasChild("baud") ) {
+       baud = config->getLong("baud");
+    }
+    
+    if ( serial.is_open() ) {
+        info("device already open");
+        return true;
+    } else {
+        info("device on %s @ %d baud", device_name.c_str(), baud);
+    }
+
+    bool result = serial.open( baud, device_name.c_str() );
+    if ( !result ) {
+        hard_error("Error opening serial link to Aura4 device");
+    }
+
+    return true;
+}
+
+void Aura4_t::init_airdata( pyPropertyNode *config ) {
+    string output_path = get_next_path("/sensors", "airdata");
+    airdata_node = pyGetNode(output_path.c_str(), true);
+}
+
+void Aura4_t::init_gps( pyPropertyNode *config ) {
+    string output_path = get_next_path("/sensors", "gps");
+    gps_node = pyGetNode(output_path.c_str(), true);
+}
+
+void Aura4_t::init_imu( pyPropertyNode *config ) {
+    string output_path = get_next_path("/sensors", "imu");
+    imu_node = pyGetNode(output_path.c_str(), true);
+
+    if ( config->hasChild("calibration") ) {
+	pyPropertyNode cal = config->getChild("calibration");
+	double min_temp = 27.0;
+	double max_temp = 27.0;
+	if ( cal.hasChild("min_temp_C") ) {
+	    min_temp = cal.getDouble("min_temp_C");
+	}
+	if ( cal.hasChild("max_temp_C") ) {
+	    max_temp = cal.getDouble("max_temp_C");
+	}
+	
+	//p_cal.init( cal->getChild("p"), min_temp, max_temp );
+	//q_cal.init( cal->getChild("q"), min_temp, max_temp );
+	//r_cal.init( cal->getChild("r"), min_temp, max_temp );
+	pyPropertyNode ax_node = cal.getChild("ax");
+	ax_cal.init( &ax_node, min_temp, max_temp );
+	pyPropertyNode ay_node = cal.getChild("ay");
+	ay_cal.init( &ay_node, min_temp, max_temp );
+	pyPropertyNode az_node = cal.getChild("az");
+	az_cal.init( &az_node, min_temp, max_temp );
+
+	if ( cal.hasChild("mag_affine") ) {
+	    string tokens_str = cal.getString("mag_affine");
+	    vector<string> tokens = split(tokens_str);
+	    if ( tokens.size() == 16 ) {
+		int r = 0, c = 0;
+		for ( unsigned int i = 0; i < 16; i++ ) {
+		    mag_cal(r,c) = atof(tokens[i].c_str());
+		    c++;
+		    if ( c > 3 ) {
+			c = 0;
+			r++;
+		    }
+		}
+	    } else {
+		printf("ERROR: wrong number of elements for mag_cal affine matrix!\n");
+		mag_cal.setIdentity();
+	    }
+	} else {
+	    mag_cal.setIdentity();
+	}
+	
+	// save the imu calibration parameters with the data file so that
+	// later the original raw sensor values can be derived.
+        write_imu_calibration( &cal );
+    }
+}
+
+void Aura4_t::init_pilot( pyPropertyNode *config ) {
+    string output_path = get_next_path("/sensors", "pilot");
+    pilot_node = pyGetNode(output_path.c_str(), true);
+    if ( config->hasChild("channel") ) {
+	for ( int i = 0; i < message::sbus_channels; i++ ) {
+	    pilot_mapping[i] = config->getString("channel", i);
+	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
+	}
+    }
+    pilot_node.setLen("channel", message::sbus_channels, 0.0);
 }
 
 static bool Aura4_imu_update_internal() {
     static double last_bias_update = 0.0;
     
-    if ( imu_inited ) {
-        float p_raw = 0.0, q_raw = 0.0, r_raw = 0.0;
-        float ax_raw = 0.0, ay_raw = 0.0, az_raw = 0.0;
-        float hx_raw = 0.0, hy_raw = 0.0, hz_raw = 0.0;
-        ax_raw = (float)imu_sensors[0] * accelScale;
-        ay_raw = (float)imu_sensors[1] * accelScale;
-        az_raw = (float)imu_sensors[2] * accelScale;
-        p_raw = (float)imu_sensors[3] * gyroScale;
-        q_raw = (float)imu_sensors[4] * gyroScale;
-        r_raw = (float)imu_sensors[5] * gyroScale;
-        hx_raw = (float)imu_sensors[6] * magScale;
-        hy_raw = (float)imu_sensors[7] * magScale;
-        hz_raw = (float)imu_sensors[8] * magScale;
+    float p_raw = 0.0, q_raw = 0.0, r_raw = 0.0;
+    float ax_raw = 0.0, ay_raw = 0.0, az_raw = 0.0;
+    float hx_raw = 0.0, hy_raw = 0.0, hz_raw = 0.0;
+    ax_raw = (float)imu_sensors[0] * accelScale;
+    ay_raw = (float)imu_sensors[1] * accelScale;
+    az_raw = (float)imu_sensors[2] * accelScale;
+    p_raw = (float)imu_sensors[3] * gyroScale;
+    q_raw = (float)imu_sensors[4] * gyroScale;
+    r_raw = (float)imu_sensors[5] * gyroScale;
+    hx_raw = (float)imu_sensors[6] * magScale;
+    hy_raw = (float)imu_sensors[7] * magScale;
+    hz_raw = (float)imu_sensors[8] * magScale;
 
-        float temp_C = (float)imu_sensors[9] * tempScale;
+    float temp_C = (float)imu_sensors[9] * tempScale;
 
-	if ( imu_timestamp > last_bias_update + 5.0 ) {
-	    //imu_p_bias_node.setDouble( p_cal.get_bias( temp_C ) );
-	    //imu_q_bias_node.setDouble( q_cal.get_bias( temp_C ) );
-	    //imu_r_bias_node.setDouble( r_cal.eval_bias( temp_C ) );
-	    imu_node.setDouble( "ax_bias", ax_cal.get_bias( temp_C ) );
-	    imu_node.setDouble( "ay_bias", ay_cal.get_bias( temp_C ) );
-	    imu_node.setDouble( "az_bias", az_cal.get_bias( temp_C ) );
-	    last_bias_update = imu_timestamp;
-	}
-
-	// timestamp dance: this is a little jig that I do to make a
-	// more consistent time stamp that still is in the host
-	// reference frame.  Assumes the Aura4 clock drifts relative to
-	// host clock.  Assumes the Aura4 imu stamp dt is very stable.
-	// Assumes the host system is not-real time and there may be
-	// momentary external disruptions to execution. The code
-	// estimates the error (difference) between Aura4 clock and
-	// host clock.  Then builds a real time linear fit of Aura4
-	// clock versus difference with the host.  This linear fit is
-	// used to estimate the current error (smoothly), add that to
-	// the Aura4 clock and derive a more regular/stable IMU time
-	// stamp (versus just sampling current host time.)
-	
-	// imu_micros &= 0xffffff; // 24 bits = 16.7 microseconds roll over
-	
-	static uint32_t last_imu_micros = 0;
-	double imu_remote_sec = (double)imu_micros / 1000000.0;
-	double diff = imu_timestamp - imu_remote_sec;
-	if ( last_imu_micros > imu_micros ) {
-	    events->log("Aura4", "micros() rolled over\n");
-	    imu_offset.reset();
-	}
-	imu_offset.update(imu_remote_sec, diff);
-	double fit_diff = imu_offset.get_value(imu_remote_sec);
-	// printf("fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
-	//        fit_diff, diff, imu_remote_sec + fit_diff );
-
-	last_imu_micros = imu_micros;
-	
-	imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
-	imu_node.setLong( "imu_micros", imu_micros );
-	imu_node.setDouble( "imu_sec", (double)imu_micros / 1000000.0 );
-	imu_node.setDouble( "p_rad_sec", p_raw );
-	imu_node.setDouble( "q_rad_sec", q_raw );
-	imu_node.setDouble( "r_rad_sec", r_raw );
-	imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
-	imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
-	imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
-	imu_node.setDouble( "hx_raw", hx_raw );
-	imu_node.setDouble( "hy_raw", hy_raw );
-	imu_node.setDouble( "hz_raw", hz_raw );
-	Vector4d hs((double)hx_raw, (double)hy_raw, (double)hz_raw, 1.0);
-	Vector4d hc = mag_cal * hs;
-	imu_node.setDouble( "hx", hc(0) );
-	imu_node.setDouble( "hy", hc(1) );
-	imu_node.setDouble( "hz", hc(2) );
-	imu_node.setDouble( "temp_C", temp_C );
+    if ( imu_timestamp > last_bias_update + 5.0 ) {
+        //imu_p_bias_node.setDouble( p_cal.get_bias( temp_C ) );
+        //imu_q_bias_node.setDouble( q_cal.get_bias( temp_C ) );
+        //imu_r_bias_node.setDouble( r_cal.eval_bias( temp_C ) );
+        imu_node.setDouble( "ax_bias", ax_cal.get_bias( temp_C ) );
+        imu_node.setDouble( "ay_bias", ay_cal.get_bias( temp_C ) );
+        imu_node.setDouble( "az_bias", az_cal.get_bias( temp_C ) );
+        last_bias_update = imu_timestamp;
     }
+
+    // timestamp dance: this is a little jig that I do to make a
+    // more consistent time stamp that still is in the host
+    // reference frame.  Assumes the Aura4 clock drifts relative to
+    // host clock.  Assumes the Aura4 imu stamp dt is very stable.
+    // Assumes the host system is not-real time and there may be
+    // momentary external disruptions to execution. The code
+    // estimates the error (difference) between Aura4 clock and
+    // host clock.  Then builds a real time linear fit of Aura4
+    // clock versus difference with the host.  This linear fit is
+    // used to estimate the current error (smoothly), add that to
+    // the Aura4 clock and derive a more regular/stable IMU time
+    // stamp (versus just sampling current host time.)
+	
+    // imu_micros &= 0xffffff; // 24 bits = 16.7 microseconds roll over
+	
+    static uint32_t last_imu_micros = 0;
+    double imu_remote_sec = (double)imu_micros / 1000000.0;
+    double diff = imu_timestamp - imu_remote_sec;
+    if ( last_imu_micros > imu_micros ) {
+        events->log("Aura4", "micros() rolled over\n");
+        imu_offset.reset();
+    }
+    imu_offset.update(imu_remote_sec, diff);
+    double fit_diff = imu_offset.get_value(imu_remote_sec);
+    // printf("fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
+    //        fit_diff, diff, imu_remote_sec + fit_diff );
+
+    last_imu_micros = imu_micros;
+	
+    imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
+    imu_node.setLong( "imu_micros", imu_micros );
+    imu_node.setDouble( "imu_sec", (double)imu_micros / 1000000.0 );
+    imu_node.setDouble( "p_rad_sec", p_raw );
+    imu_node.setDouble( "q_rad_sec", q_raw );
+    imu_node.setDouble( "r_rad_sec", r_raw );
+    imu_node.setDouble( "ax_mps_sec", ax_cal.calibrate(ax_raw, temp_C) );
+    imu_node.setDouble( "ay_mps_sec", ay_cal.calibrate(ay_raw, temp_C) );
+    imu_node.setDouble( "az_mps_sec", az_cal.calibrate(az_raw, temp_C) );
+    imu_node.setDouble( "hx_raw", hx_raw );
+    imu_node.setDouble( "hy_raw", hy_raw );
+    imu_node.setDouble( "hz_raw", hz_raw );
+    Vector4d hs((double)hx_raw, (double)hy_raw, (double)hz_raw, 1.0);
+    Vector4d hc = mag_cal * hs;
+    imu_node.setDouble( "hx", hc(0) );
+    imu_node.setDouble( "hy", hc(1) );
+    imu_node.setDouble( "hz", hc(2) );
+    imu_node.setDouble( "temp_C", temp_C );
 
     return true;
 }
@@ -256,7 +432,7 @@ static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
 #endif
 
 	    pilot_packet_counter++;
-	    aura3_node.setLong( "pilot_packet_count", pilot_packet_counter );
+	    aura4_node.setLong( "pilot_packet_count", pilot_packet_counter );
 
 	    new_data = true;
 	} else {
@@ -285,7 +461,7 @@ static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
 #endif
 		      
 	    imu_packet_counter++;
-	    aura3_node.setLong( "imu_packet_count", imu_packet_counter );
+	    aura4_node.setLong( "imu_packet_count", imu_packet_counter );
 
 	    // update the propery tree and timestamps
 	    Aura4_imu_update_internal();
@@ -301,7 +477,7 @@ static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
 	if ( pkt_len == nav_pvt.len ) {
 	    nav_pvt_timestamp = get_Time();
 	    gps_packet_counter++;
-	    aura3_node.setLong( "gps_packet_count", gps_packet_counter );
+	    aura4_node.setLong( "gps_packet_count", gps_packet_counter );
 	    new_data = true;
 	} else {
 	    if ( display_on ) {
@@ -320,7 +496,7 @@ static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
 	    // }
 		      
 	    airdata_packet_counter++;
-	    aura3_node.setLong( "airdata_packet_count", airdata_packet_counter );
+	    aura4_node.setLong( "airdata_packet_count", airdata_packet_counter );
 
 	    new_data = true;
 	} else {
@@ -361,11 +537,11 @@ static bool Aura4_parse( uint8_t pkt_id, uint8_t pkt_len,
             //  printf("info %d %d %d %d\n", serial_num, firmware_rev,
             //         master_hz, baud_rate);
 	    // }
-	    aura3_node.setLong( "serial_number", msg.serial_number );
-	    aura3_node.setLong( "firmware_rev", msg.firmware_rev );
-	    aura3_node.setLong( "master_hz", msg.master_hz );
-	    aura3_node.setLong( "baud_rate", msg.baud );
-	    aura3_node.setLong( "byte_rate_sec", msg.byte_rate );
+	    aura4_node.setLong( "serial_number", msg.serial_number );
+	    aura4_node.setLong( "firmware_rev", msg.firmware_rev );
+	    aura4_node.setLong( "master_hz", msg.master_hz );
+	    aura4_node.setLong( "baud_rate", msg.baud );
+	    aura4_node.setLong( "byte_rate_sec", msg.byte_rate );
  
 	    if ( first_time ) {
 		// log the data to events.txt
@@ -481,23 +657,8 @@ static bool write_command_cycle_inceptors() {
     return wait_for_ack(cmd.id);
 }
 
-// initialize imu output property nodes 
-static void bind_imu_output( string output_node ) {
-    if ( imu_inited ) {
-	return;
-    }
-    imu_node = pyGetNode(output_node, true);
-    imu_inited = true;
-}
-
-
 // initialize gps output property nodes 
 static void bind_gps_output( string output_path ) {
-    if ( gps_inited ) {
-	return;
-    }
-    gps_node = pyGetNode(output_path, true);
-    gps_inited = true;
 }
 
 
@@ -510,209 +671,32 @@ static void bind_act_nodes() {
     actuator_inited = true;
 }
 
-// initialize airdata output property nodes 
-static void bind_airdata_output( string output_path ) {
-    if ( airdata_inited ) {
-	return;
-    }
-    airdata_node = pyGetNode(output_path, true);
-    airdata_inited = true;
-}
-
-
 // initialize pilot output property nodes 
 static void bind_pilot_controls( string output_path ) {
-    if ( pilot_input_inited ) {
-	return;
-    }
-    pilot_node = pyGetNode(output_path, true);
-    pilot_node.setLen("channel", message::sbus_channels, 0.0);
-    pilot_input_inited = true;
 }
-
-
-// send our configured init strings to configure gpsd the way we prefer
-static bool Aura4_open_device( int baud ) {
-    if ( display_on ) {
-	printf("Aura4 Sensor Head on %s @ %d baud\n", device_name.c_str(),
-	       baud);
-    }
-
-    bool result = serial.open( baud, device_name.c_str() );
-    if ( !result ) {
-        fprintf( stderr, "Error opening serial link to Aura4 device, cannot continue.\n" );
-	return false;
-    }
-
-    // bind main property nodes here for lack of a better place..
-    aura3_node = pyGetNode("/sensors/Aura4", true);
-    power_node = pyGetNode("/sensors/power", true);
-    
-    return true;
-}
-
-
-// send our configured init strings to configure gpsd the way we prefer
-static bool Aura4_open() {
-    if ( master_opened ) {
-	return true;
-    }
-
-    aura3_config = pyGetNode("/config/sensors/Aura4", true);
-    config_specs_node = pyGetNode("/config/specs", true);
-
-    //for ( int i = 0; i < NUM_ANALOG_INPUTS; i++ ) {
-    //  analog_filt[i].set_time_factor(0.5);
-    //}
-    
-    if ( aura3_config.hasChild("device") ) {
-	device_name = aura3_config.getString("device");
-    }
-    if ( aura3_config.hasChild("baud") ) {
-       baud = aura3_config.getLong("baud");
-    }
-    if ( aura3_config.hasChild("volt_divider_ratio") ) {
-	volt_div_ratio = aura3_config.getDouble("volt_divider_ratio");
-    }
-
-    if ( aura3_config.hasChild("pitot_calibrate_factor") ) {
-	pitot_calibrate = aura3_config.getDouble("pitot_calibrate_factor");
-    }
-    
-    if ( config_specs_node.hasChild("battery_cells") ) {
-	battery_cells = config_specs_node.getLong("battery_cells");
-    }
-    if ( battery_cells < 1 ) { battery_cells = 1; }
-
-    if ( ! Aura4_open_device( baud ) ) {
-	printf("device open failed ...\n");
-	return false;
-    }
-
-    sleep(1);
-    
-    master_opened = true;
-
-    return true;
-}
-
-
-#if 0
-bool Aura4_init( SGPropertyNode *config ) {
-    printf("Aura4_init()\n");
-
-    bind_input( config );
-
-    bool result = Aura4_open();
-
-    return result;
-}
-#endif
 
 
 bool Aura4_imu_init( string output_path, pyPropertyNode *config ) {
-    if ( ! Aura4_open() ) {
-	return false;
-    }
-
-    bind_imu_output( output_path );
-
-    if ( config->hasChild("calibration") ) {
-	pyPropertyNode cal = config->getChild("calibration");
-	double min_temp = 27.0;
-	double max_temp = 27.0;
-	if ( cal.hasChild("min_temp_C") ) {
-	    min_temp = cal.getDouble("min_temp_C");
-	}
-	if ( cal.hasChild("max_temp_C") ) {
-	    max_temp = cal.getDouble("max_temp_C");
-	}
-	
-	//p_cal.init( cal->getChild("p"), min_temp, max_temp );
-	//q_cal.init( cal->getChild("q"), min_temp, max_temp );
-	//r_cal.init( cal->getChild("r"), min_temp, max_temp );
-	pyPropertyNode ax_node = cal.getChild("ax");
-	ax_cal.init( &ax_node, min_temp, max_temp );
-	pyPropertyNode ay_node = cal.getChild("ay");
-	ay_cal.init( &ay_node, min_temp, max_temp );
-	pyPropertyNode az_node = cal.getChild("az");
-	az_cal.init( &az_node, min_temp, max_temp );
-
-	if ( cal.hasChild("mag_affine") ) {
-	    string tokens_str = cal.getString("mag_affine");
-	    vector<string> tokens = split(tokens_str);
-	    if ( tokens.size() == 16 ) {
-		int r = 0, c = 0;
-		for ( unsigned int i = 0; i < 16; i++ ) {
-		    mag_cal(r,c) = atof(tokens[i].c_str());
-		    c++;
-		    if ( c > 3 ) {
-			c = 0;
-			r++;
-		    }
-		}
-	    } else {
-		printf("ERROR: wrong number of elements for mag_cal affine matrix!\n");
-		mag_cal.setIdentity();
-	    }
-	} else {
-	    mag_cal.setIdentity();
-	}
-	
-	// save the imu calibration parameters with the data file so that
-	// later the original raw sensor values can be derived.
-        write_imu_calibration( &cal );
-    }
-    
     return true;
 }
 
 
 bool Aura4_gps_init( string output_path, pyPropertyNode *config ) {
-    if ( ! Aura4_open() ) {
-	return false;
-    }
-
-    bind_gps_output( output_path );
-
     return true;
 }
 
 
 bool Aura4_airdata_init( string output_path ) {
-    if ( ! Aura4_open() ) {
-	return false;
-    }
-
-    bind_airdata_output( output_path );
-
     return true;
 }
 
 
 bool Aura4_pilot_init( string output_path, pyPropertyNode *config ) {
-    if ( ! Aura4_open() ) {
-	return false;
-    }
-
-    bind_pilot_controls( output_path );
-
-    if ( config->hasChild("channel") ) {
-	for ( int i = 0; i < message::sbus_channels; i++ ) {
-	    pilot_mapping[i] = config->getString("channel", i);
-	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
-	}
-    }
-
     return true;
 }
 
 
 bool Aura4_act_init( pyPropertyNode *section ) {
-    if ( ! Aura4_open() ) {
-	return false;
-    }
-
     bind_act_nodes();
 
     return true;
@@ -821,8 +805,8 @@ static bool Aura4_send_config() {
 
     int count;
 
-    if ( aura3_config.hasChild("board") ) {
-        string board = aura3_config.getString("board");
+    if ( aura4_config.hasChild("board") ) {
+        string board = aura4_config.getString("board");
         if ( board == "marmot_v1" ) {
             config_master.board = 0;
         } else if ( board == "aura_v2" ) {
@@ -832,8 +816,8 @@ static bool Aura4_send_config() {
         }
     }
 
-    if ( aura3_config.hasChild("have_attopilot") ) {
-        config_power.have_attopilot = aura3_config.getBool("have_attopilot");
+    if ( aura4_config.hasChild("have_attopilot") ) {
+        config_power.have_attopilot = aura4_config.getBool("have_attopilot");
     }
 
     pyPropertyNode imu_node
@@ -1006,8 +990,8 @@ static bool Aura4_send_config() {
         }
     }
     
-    if ( aura3_config.hasChild("led_pin") ) {
-        config_led.pin = aura3_config.getLong("led_pin");
+    if ( aura4_config.hasChild("led_pin") ) {
+        config_led.pin = aura4_config.getLong("led_pin");
     }
 
     if ( display_on ) {
@@ -1120,22 +1104,22 @@ double Aura4_update() {
     }
 
     // track communication errors from FMU
-    aura3_node.setLong("parse_errors", parse_errors);
-    aura3_node.setLong("skipped_frames", skipped_frames);
+    aura4_node.setLong("parse_errors", parse_errors);
+    aura4_node.setLong("skipped_frames", skipped_frames);
 
     // experimental: write optional zero gyros command back to FMU upon request
-    string command = aura3_node.getString( "command" );
+    string command = aura4_node.getString( "command" );
     if ( command.length() ) {
         if ( command == "zero_gyros" ) {
             if ( write_command_zero_gyros() ) {
-                aura3_node.setString( "command", "" );
-                aura3_node.setString( "command_result",
+                aura4_node.setString( "command", "" );
+                aura4_node.setString( "command_result",
                                       "success: " + command );
             }
         } else {
             // unknown command
-            aura3_node.setString( "command", "" );
-            aura3_node.setString( "command_result",
+            aura4_node.setString( "command", "" );
+            aura4_node.setString( "command_result",
                                   "unknown command: " + command );
         }
     }
@@ -1156,10 +1140,6 @@ bool Aura4_imu_update() {
 bool Aura4_gps_update() {
     static double last_timestamp = 0.0;
     
-    if ( !gps_inited ) {
-	return false;
-    }
-
     if ( nav_pvt_timestamp > last_timestamp ) {
 	gps_node.setDouble( "timestamp", nav_pvt_timestamp );
 	gps_node.setLong( "year", nav_pvt.year );
@@ -1212,75 +1192,73 @@ bool Aura4_airdata_update() {
     static float pitot_offset = 0.0;
     static LowPassFilter pitot_filt(0.2);
 
-    if ( airdata_inited ) {
-	double cur_time = imu_timestamp;
+    double cur_time = imu_timestamp;
 
-	float pitot_butter = pitot_filter.update(airdata.ext_diff_press_pa);
+    float pitot_butter = pitot_filter.update(airdata.ext_diff_press_pa);
         
-	if ( ! airspeed_inited ) {
-	    if ( airspeed_zero_start_time > 0.0 ) {
-		pitot_sum += airdata.ext_diff_press_pa;
-		pitot_count++;
-		pitot_offset = pitot_sum / (double)pitot_count;
-		/* printf("a1 raw=%.1f filt=%.1f a1 off=%.1f a1 sum=%.1f a1 count=%d\n",
-		   analog[0], pitot_filt.get_value(), pitot_offset, pitot_sum,
-		   pitot_count); */
-	    } else {
-		airspeed_zero_start_time = get_Time();
-		pitot_sum = 0.0;
-		pitot_count = 0;
-	    }
-	    if ( cur_time > airspeed_zero_start_time + 10.0 ) {
-		//printf("pitot_offset = %.2f\n", pitot_offset);
-		airspeed_inited = true;
-	    }
-	}
-
-	airdata_node.setDouble( "timestamp", cur_time );
-
-	// basic pressure to airspeed formula: v = sqrt((2/p) * q)
-	// where v = velocity, q = dynamic pressure (pitot tube sensor
-	// value), and p = air density.
-
-	// if p is specified in kg/m^3 (value = 1.225) and if q is
-	// specified in Pa (N/m^2) where 1 psi == 6900 Pa, then the
-	// velocity will be in meters per second.
-
-	// The MPXV5004DP has a full scale span of 3.9V, Maximum
-	// pressure reading is 0.57psi (4000Pa)
-
-	// Example (Aura4): With a 10bit ADC (Aura4) we record a value
-	// of 230 (0-1024) at zero velocity.  The sensor saturates at
-	// a value of about 1017 (4000psi).  Thus:
-
-	// Pa = (ADC - 230) * 5.083
-	// Airspeed(mps) = sqrt( (2/1.225) * Pa )
-
-	// This yields a theoretical maximum speed sensor reading of
-	// about 81mps (156 kts)
-
-	// choose between using raw pitot value or filtered pitot value
-	// float pitot = airdata.diff_pres_pa;
-	float pitot = pitot_butter;
-	
-	float Pa = (pitot - pitot_offset);
-	if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
-	float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
-	float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
-	airdata_node.setDouble( "airspeed_mps", airspeed_mps );
-	airdata_node.setDouble( "airspeed_kt", airspeed_kt );
-	airdata_node.setDouble( "temp_C", airdata.ext_temp_C );
-
-	// publish sensor values
-	airdata_node.setDouble( "pressure_mbar", airdata.baro_press_pa / 100.0 );
-	airdata_node.setDouble( "bme_temp_C", airdata.baro_temp_C );
-	airdata_node.setDouble( "humidity", airdata.baro_hum );
-	airdata_node.setDouble( "diff_pressure_pa", airdata.ext_diff_press_pa );
-	airdata_node.setDouble( "ext_static_press_pa", airdata.ext_static_press_pa );
-        airdata_node.setLong( "error_count", airdata.error_count );
-
-	fresh_data = true;
+    if ( ! airspeed_inited ) {
+        if ( airspeed_zero_start_time > 0.0 ) {
+            pitot_sum += airdata.ext_diff_press_pa;
+            pitot_count++;
+            pitot_offset = pitot_sum / (double)pitot_count;
+            /* printf("a1 raw=%.1f filt=%.1f a1 off=%.1f a1 sum=%.1f a1 count=%d\n",
+               analog[0], pitot_filt.get_value(), pitot_offset, pitot_sum,
+               pitot_count); */
+        } else {
+            airspeed_zero_start_time = get_Time();
+            pitot_sum = 0.0;
+            pitot_count = 0;
+        }
+        if ( cur_time > airspeed_zero_start_time + 10.0 ) {
+            //printf("pitot_offset = %.2f\n", pitot_offset);
+            airspeed_inited = true;
+        }
     }
+
+    airdata_node.setDouble( "timestamp", cur_time );
+
+    // basic pressure to airspeed formula: v = sqrt((2/p) * q)
+    // where v = velocity, q = dynamic pressure (pitot tube sensor
+    // value), and p = air density.
+
+    // if p is specified in kg/m^3 (value = 1.225) and if q is
+    // specified in Pa (N/m^2) where 1 psi == 6900 Pa, then the
+    // velocity will be in meters per second.
+
+    // The MPXV5004DP has a full scale span of 3.9V, Maximum
+    // pressure reading is 0.57psi (4000Pa)
+
+    // Example (Aura4): With a 10bit ADC (Aura4) we record a value
+    // of 230 (0-1024) at zero velocity.  The sensor saturates at
+    // a value of about 1017 (4000psi).  Thus:
+
+    // Pa = (ADC - 230) * 5.083
+    // Airspeed(mps) = sqrt( (2/1.225) * Pa )
+
+    // This yields a theoretical maximum speed sensor reading of
+    // about 81mps (156 kts)
+
+    // choose between using raw pitot value or filtered pitot value
+    // float pitot = airdata.diff_pres_pa;
+    float pitot = pitot_butter;
+	
+    float Pa = (pitot - pitot_offset);
+    if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
+    float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
+    float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
+    airdata_node.setDouble( "airspeed_mps", airspeed_mps );
+    airdata_node.setDouble( "airspeed_kt", airspeed_kt );
+    airdata_node.setDouble( "temp_C", airdata.ext_temp_C );
+
+    // publish sensor values
+    airdata_node.setDouble( "pressure_mbar", airdata.baro_press_pa / 100.0 );
+    airdata_node.setDouble( "bme_temp_C", airdata.baro_temp_C );
+    airdata_node.setDouble( "humidity", airdata.baro_hum );
+    airdata_node.setDouble( "diff_pressure_pa", airdata.ext_diff_press_pa );
+    airdata_node.setDouble( "ext_static_press_pa", airdata.ext_static_press_pa );
+    airdata_node.setLong( "error_count", airdata.error_count );
+
+    fresh_data = true;
 
     return fresh_data;
 }
@@ -1296,10 +1274,6 @@ void Aura4_airdata_zero_airspeed() {
 
 
 bool Aura4_pilot_update() {
-    if ( !pilot_input_inited ) {
-	return false;
-    }
-
     float val;
 
     pilot_node.setDouble( "timestamp", pilot_in_timestamp );
@@ -1355,8 +1329,6 @@ bool Aura4_act_update() {
 
 void Aura4_close() {
     serial.close();
-
-    master_opened = false;
 }
 
 

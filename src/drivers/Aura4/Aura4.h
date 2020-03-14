@@ -12,6 +12,7 @@
 #include "include/globaldefs.h" /* fixme, get rid of? */
 
 class Aura4_t: public driver_t {
+    
 public:
     Aura4_t() {}
     ~Aura4_t() {}
@@ -20,6 +21,19 @@ public:
     void process() {}
     void write() {}
     void close() {}
+
+private:
+    string device_name = "/dev/ttyS4";
+    int baud = 500000;
+    
+    void info( const char* format, ... );
+    void hard_error( const char*format, ... );
+    bool open( pyPropertyNode *config );
+    void init_airdata( pyPropertyNode *config );
+    void init_gps( pyPropertyNode *config );
+    void init_imu( pyPropertyNode *config );
+    void init_pilot( pyPropertyNode *config );
+    
 };
 
 // function prototypes
@@ -51,4 +65,5 @@ void Aura4_pilot_close();
 bool Aura4_act_init( pyPropertyNode *config );
 bool Aura4_act_update();
 void Aura4_act_close();
+
 extern bool Aura4_actuator_configured;
