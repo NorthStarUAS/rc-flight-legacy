@@ -5,15 +5,20 @@
 #include <vector>
 using std::vector;
 
+#include <pyprops.h>
+
 #include "driver.h"
 
-class DriverMgr {
+class driver_mgr_t {
     
 public:
-    DriverMgr();
+    driver_mgr_t();
     void init();
     void update();
     
 private:
-    vector<Driver *> drivers;
+    pyPropertyNode config_node;
+    vector<driver_t *> drivers;
 };
+
+extern driver_mgr_t driver_mgr;

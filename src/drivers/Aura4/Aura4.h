@@ -7,8 +7,19 @@
 
 #include <pyprops.h>
 
-#include "include/globaldefs.h"
+#include "drivers/driver.h"
 
+#include "include/globaldefs.h" /* fixme, get rid of? */
+
+class Aura4_t: public driver_t {
+public:
+    Aura4_t();
+    ~Aura4_t();
+    void init( pyPropertyNode *config );
+    void read();
+    void wrte();
+    void close();
+};
 
 // function prototypes
 

@@ -1,8 +1,8 @@
 SUBDIRS = Aura3 Aura4
 
-noinst_LIBRARIES = libsensors.a
+noinst_LIBRARIES = libdrivers.a
 
-libsensors_a_SOURCES = \
+libdrivers_a_SOURCES = \
 	driver.h \
 	driver_mgr.cpp driver_mgr.h \
 	airdata_mgr.cpp airdata_mgr.h \

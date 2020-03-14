@@ -31,6 +31,7 @@ using std::string;
 #include "comms/remote_link.h"
 #include "control/cas.h"
 #include "control/control.h"
+#include "drivers/driver_mgr.h"
 #include "filters/filter_mgr.h"
 #include "health/health.h"
 #include "init/globals.h"
@@ -410,6 +411,9 @@ int main( int argc, char **argv )
     // initialize required aura-core structures
     AuraCoreInit();
 
+    // initialize the drivers
+    driver_mgr.init();
+    
     // Initialize communication with the selected IMU
     IMU_init();
 
