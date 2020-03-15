@@ -3,6 +3,12 @@
 // DESCRIPTION: interact with Aura4 (Teensy/Pika) sensor head
 //
 
+// TODO:
+// - clean up static variables in methods
+// - clean up global static variables
+// - parse ekf packet
+// - write actuators
+
 #include <pyprops.h>
 
 #include <stdarg.h>
@@ -43,8 +49,6 @@ static LinearFitFilter imu_offset(200.0, 0.01);
 
 static uint32_t parse_errors = 0;
 static uint32_t skipped_frames = 0;
-
-static double nav_pvt_timestamp = 0;
 
 static bool airspeed_inited = false;
 static double airspeed_zero_start_time = 0.0;
@@ -404,9 +408,10 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
             info("packet size mismatch in imu packet");
 	}
     } else if ( pkt_id == message::aura_nav_pvt_id ) {
+        message::aura_nav_pvt_t nav_pvt;
         nav_pvt.unpack(payload, pkt_len);
 	if ( pkt_len == nav_pvt.len ) {
-	    nav_pvt_timestamp = get_Time();
+            update_gps(&nav_pvt);
 	    gps_packet_counter++;
 	    aura4_node.setLong( "gps_packet_count", gps_packet_counter );
 	    new_data = true;
@@ -417,11 +422,12 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
     } else if ( pkt_id == message::ekf_id ) {
         // ekf message, just toss silently for the moment
     } else if ( pkt_id == message::airdata_id ) {
+        message::airdata_t airdata;
         airdata.unpack(payload, pkt_len);
 	if ( pkt_len == airdata.len ) {
+            update_airdata(&airdata);
 	    airdata_packet_counter++;
 	    aura4_node.setLong( "airdata_packet_count", airdata_packet_counter );
-
 	    new_data = true;
 	} else {
             info("packet size mismatch in airdata packet");
@@ -954,55 +960,48 @@ void Aura4_t::read() {
 }
 
 
-bool Aura4_t::update_gps() {
-    static double last_timestamp = 0.0;
-    
-    if ( nav_pvt_timestamp > last_timestamp ) {
-	gps_node.setDouble( "timestamp", nav_pvt_timestamp );
-	gps_node.setLong( "year", nav_pvt.year );
-	gps_node.setLong( "month", nav_pvt.month );
-	gps_node.setLong( "day", nav_pvt.day );
-	gps_node.setLong( "hour", nav_pvt.hour );
-	gps_node.setLong( "min", nav_pvt.min );
-	gps_node.setLong( "sec", nav_pvt.sec );
-	gps_node.setDouble( "latitude_deg", nav_pvt.lat / 10000000.0 );
-	gps_node.setDouble( "longitude_deg", nav_pvt.lon / 10000000.0 );
-	gps_node.setDouble( "altitude_m", nav_pvt.hMSL / 1000.0 );
-	gps_node.setDouble( "horiz_accuracy_m", nav_pvt.hAcc / 1000.0 );
-	gps_node.setDouble( "vert_accuracy_m", nav_pvt.vAcc / 1000.0 );
-	gps_node.setDouble( "vn_ms", nav_pvt.velN / 1000.0 );
-	gps_node.setDouble( "ve_ms", nav_pvt.velE / 1000.0 );
-	gps_node.setDouble( "vd_ms", nav_pvt.velD / 1000.0 );
-	gps_node.setLong( "satellites", nav_pvt.numSV);
-	gps_node.setDouble( "pdop", nav_pvt.pDOP / 100.0 );
-        gps_node.setLong( "fixType", nav_pvt.fixType );
-        // backwards compatibility
-	if ( nav_pvt.fixType == 0 ) {
-	    gps_node.setLong( "status", 0 );
-	} else if ( nav_pvt.fixType == 1 || nav_pvt.fixType == 2 ) {
-	    gps_node.setLong( "status", 1 );
-	} else if ( nav_pvt.fixType == 3 ) {
-	    gps_node.setLong( "status", 2 );
-	}
-        struct tm gps_time;
-	gps_time.tm_sec = nav_pvt.sec;
-	gps_time.tm_min = nav_pvt.min;
-	gps_time.tm_hour = nav_pvt.hour;
-	gps_time.tm_mday = nav_pvt.day;
-	gps_time.tm_mon = nav_pvt.month - 1;
-	gps_time.tm_year = nav_pvt.year - 1900;
-	double unix_sec = (double)mktime( &gps_time ) - timezone;
-	unix_sec += nav_pvt.nano / 1000000000.0;
-	gps_node.setDouble( "unix_time_sec", unix_sec );
-	last_timestamp = nav_pvt_timestamp;
-	return true;
-    } else {
-	return false;
+bool Aura4_t::update_gps( message::aura_nav_pvt_t *nav_pvt ) {
+    gps_node.setDouble( "timestamp", get_Time() );
+    gps_node.setLong( "year", nav_pvt->year );
+    gps_node.setLong( "month", nav_pvt->month );
+    gps_node.setLong( "day", nav_pvt->day );
+    gps_node.setLong( "hour", nav_pvt->hour );
+    gps_node.setLong( "min", nav_pvt->min );
+    gps_node.setLong( "sec", nav_pvt->sec );
+    gps_node.setDouble( "latitude_deg", nav_pvt->lat / 10000000.0 );
+    gps_node.setDouble( "longitude_deg", nav_pvt->lon / 10000000.0 );
+    gps_node.setDouble( "altitude_m", nav_pvt->hMSL / 1000.0 );
+    gps_node.setDouble( "horiz_accuracy_m", nav_pvt->hAcc / 1000.0 );
+    gps_node.setDouble( "vert_accuracy_m", nav_pvt->vAcc / 1000.0 );
+    gps_node.setDouble( "vn_ms", nav_pvt->velN / 1000.0 );
+    gps_node.setDouble( "ve_ms", nav_pvt->velE / 1000.0 );
+    gps_node.setDouble( "vd_ms", nav_pvt->velD / 1000.0 );
+    gps_node.setLong( "satellites", nav_pvt->numSV);
+    gps_node.setDouble( "pdop", nav_pvt->pDOP / 100.0 );
+    gps_node.setLong( "fixType", nav_pvt->fixType );
+    // backwards compatibility
+    if ( nav_pvt->fixType == 0 ) {
+        gps_node.setLong( "status", 0 );
+    } else if ( nav_pvt->fixType == 1 || nav_pvt->fixType == 2 ) {
+        gps_node.setLong( "status", 1 );
+    } else if ( nav_pvt->fixType == 3 ) {
+        gps_node.setLong( "status", 2 );
     }
+    struct tm gps_time;
+    gps_time.tm_sec = nav_pvt->sec;
+    gps_time.tm_min = nav_pvt->min;
+    gps_time.tm_hour = nav_pvt->hour;
+    gps_time.tm_mday = nav_pvt->day;
+    gps_time.tm_mon = nav_pvt->month - 1;
+    gps_time.tm_year = nav_pvt->year - 1900;
+    double unix_sec = (double)mktime( &gps_time ) - timezone;
+    unix_sec += nav_pvt->nano / 1000000000.0;
+    gps_node.setDouble( "unix_time_sec", unix_sec );
+    return true;
 }
 
 
-bool Aura4_t::update_airdata() {
+bool Aura4_t::update_airdata( message::airdata_t *airdata ) {
     bool fresh_data = false;
     static double pitot_sum = 0.0;
     static int pitot_count = 0;
@@ -1011,11 +1010,11 @@ bool Aura4_t::update_airdata() {
 
     double cur_time = imu_timestamp;
 
-    float pitot_butter = pitot_filter.update(airdata.ext_diff_press_pa);
+    float pitot_butter = pitot_filter.update(airdata->ext_diff_press_pa);
         
     if ( ! airspeed_inited ) {
         if ( airspeed_zero_start_time > 0.0 ) {
-            pitot_sum += airdata.ext_diff_press_pa;
+            pitot_sum += airdata->ext_diff_press_pa;
             pitot_count++;
             pitot_offset = pitot_sum / (double)pitot_count;
             /* printf("a1 raw=%.1f filt=%.1f a1 off=%.1f a1 sum=%.1f a1 count=%d\n",
@@ -1056,7 +1055,7 @@ bool Aura4_t::update_airdata() {
     // about 81mps (156 kts)
 
     // choose between using raw pitot value or filtered pitot value
-    // float pitot = airdata.diff_pres_pa;
+    // float pitot = airdata->diff_pres_pa;
     float pitot = pitot_butter;
 	
     float Pa = (pitot - pitot_offset);
@@ -1065,15 +1064,15 @@ bool Aura4_t::update_airdata() {
     float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
     airdata_node.setDouble( "airspeed_mps", airspeed_mps );
     airdata_node.setDouble( "airspeed_kt", airspeed_kt );
-    airdata_node.setDouble( "temp_C", airdata.ext_temp_C );
+    airdata_node.setDouble( "temp_C", airdata->ext_temp_C );
 
     // publish sensor values
-    airdata_node.setDouble( "pressure_mbar", airdata.baro_press_pa / 100.0 );
-    airdata_node.setDouble( "bme_temp_C", airdata.baro_temp_C );
-    airdata_node.setDouble( "humidity", airdata.baro_hum );
-    airdata_node.setDouble( "diff_pressure_pa", airdata.ext_diff_press_pa );
-    airdata_node.setDouble( "ext_static_press_pa", airdata.ext_static_press_pa );
-    airdata_node.setLong( "error_count", airdata.error_count );
+    airdata_node.setDouble( "pressure_mbar", airdata->baro_press_pa / 100.0 );
+    airdata_node.setDouble( "bme_temp_C", airdata->baro_temp_C );
+    airdata_node.setDouble( "humidity", airdata->baro_hum );
+    airdata_node.setDouble( "diff_pressure_pa", airdata->ext_diff_press_pa );
+    airdata_node.setDouble( "ext_static_press_pa", airdata->ext_static_press_pa );
+    airdata_node.setLong( "error_count", airdata->error_count );
 
     fresh_data = true;
 

@@ -47,8 +47,6 @@ private:
     ButterworthFilter pitot_filter = ButterworthFilter(2, 100, 0.8);
     int battery_cells = 4;
     
-    message::aura_nav_pvt_t nav_pvt;
-    message::airdata_t airdata;
     message::config_master_t config_master;
     message::config_imu_t config_imu;
     message::config_mixer_t config_mixer;
@@ -61,7 +59,6 @@ private:
     LowPassFilter avionics_vcc_filt = LowPassFilter(2.0);
     LowPassFilter int_main_vcc_filt = LowPassFilter(2.0);
     LowPassFilter ext_main_vcc_filt = LowPassFilter(2.0);
-
 
     void info( const char* format, ... );
     void hard_error( const char*format, ... );
@@ -97,8 +94,8 @@ private:
     bool write_command_reset_ekf();
     bool wait_for_ack(uint8_t id);
 
-    bool update_airdata();
-    bool update_gps();
+    bool update_airdata( message::airdata_t *airdata );
+    bool update_gps( message::aura_nav_pvt_t *nav_pvt );
     bool update_imu( message::imu_raw_t *imu );
     bool update_pilot( message::pilot_t *pilot );
     
