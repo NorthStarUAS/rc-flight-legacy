@@ -89,18 +89,6 @@ static string get_next_path( const char *path, const char *base ) {
     return output_path.str();
 }
 
-//fixme: temporary
-static void info( const char *format, ... ) {
-    if ( display_on ) {
-        printf("Aura4: ");
-        va_list args;
-        va_start(args, format);
-        vprintf(format, args);
-        va_end(args);
-        printf("\n");
-    }
-}
-
 void Aura4_t::info( const char *format, ... ) {
     if ( display_on ) {
         printf("Aura4: ");
@@ -925,14 +913,17 @@ bool Aura4_t::send_config() {
 // perspective.  This should generally be far more accurate and
 // consistent.
 void Aura4_t::read() {
-    info("aura4 read()");
-    
     // read packets until we receive an IMU packet and the uart buffer
     // is mostly empty.  The IMU packet (combined with being caught up
     // reading the uart buffer is our signal to run an interation of
     // the main loop.
     double last_time = imu_node.getDouble( "timestamp" );
 
+    // try sending the configuration if not yet successful
+    if ( !configuration_sent ) {
+	configuration_sent = send_config();
+    }
+    
     while ( true ) {
         if ( serial.update() ) {
             parse( serial.pkt_id, serial.pkt_len, serial.payload );
