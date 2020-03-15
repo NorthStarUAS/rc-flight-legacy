@@ -11,6 +11,7 @@
 #include "drivers/driver.h"
 #include "include/globaldefs.h" /* fixme, get rid of? */
 #include "util/butter.h"
+#include "util/lowpass.h"
 
 #include "aura4_messages.h"
 
@@ -57,6 +58,11 @@ private:
     message::config_led_t config_led;
     message::config_stab_damping_t config_stab;
     
+    LowPassFilter avionics_vcc_filt = LowPassFilter(2.0);
+    LowPassFilter int_main_vcc_filt = LowPassFilter(2.0);
+    LowPassFilter ext_main_vcc_filt = LowPassFilter(2.0);
+
+
     void info( const char* format, ... );
     void hard_error( const char*format, ... );
     
@@ -94,7 +100,7 @@ private:
     bool update_airdata();
     bool update_gps();
     bool update_imu( message::imu_raw_t *imu );
-    bool update_pilot();
+    bool update_pilot( message::pilot_t *pilot );
     
     bool update_actuators();
 };

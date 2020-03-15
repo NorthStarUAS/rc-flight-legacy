@@ -21,7 +21,6 @@ using namespace Eigen;
 #include "drivers/cal_temp.h"
 #include "init/globals.h"
 #include "util/linearfit.h"
-#include "util/lowpass.h"
 #include "util/timing.h"
 
 #include "Aura4.h"
@@ -29,8 +28,6 @@ using namespace Eigen;
 // FIXME: could be good to be able to define constants in the message.json
 const int NUM_IMU_SENSORS = 10;
 
-static double pilot_in_timestamp = 0.0;
-static float pilot_input[message::sbus_channels]; // internal stash
 static uint8_t pilot_flags = 0x00;
 static string pilot_mapping[message::sbus_channels]; // channel->name mapping
 
@@ -79,12 +76,22 @@ const float tempScale = 0.01;
 
 
 // fixme: this could go in a central location for general use
-static string get_next_path( const char *path, const char *base ) {
+static string get_next_path( const char *path, const char *base,
+                             bool primary )
+{
     pyPropertyNode node = pyGetNode(path, true);
     int len = node.getLen(base);
-    node.setLen(base, len + 1);
+    if ( primary and len > 0 ) {
+        // nop
+    } else {
+        node.setLen(base, len + 1);
+    }
     ostringstream output_path;
-    output_path << path << "/" << base << '[' << len << ']';
+    if ( primary ) {
+        output_path << path << "/" << base << "[0]";
+    } else {
+        output_path << path << "/" << base << '[' << len << ']';
+    }
     printf("  new path: %s\n", output_path.str().c_str());
     return output_path.str();
 }
@@ -201,17 +208,17 @@ bool Aura4_t::open( pyPropertyNode *config ) {
 }
 
 void Aura4_t::init_airdata( pyPropertyNode *config ) {
-    string output_path = get_next_path("/sensors", "airdata");
+    string output_path = get_next_path("/sensors", "airdata", true);
     airdata_node = pyGetNode(output_path.c_str(), true);
 }
 
 void Aura4_t::init_gps( pyPropertyNode *config ) {
-    string output_path = get_next_path("/sensors", "gps");
+    string output_path = get_next_path("/sensors", "gps", true);
     gps_node = pyGetNode(output_path.c_str(), true);
 }
 
 void Aura4_t::init_imu( pyPropertyNode *config ) {
-    string output_path = get_next_path("/sensors", "imu");
+    string output_path = get_next_path("/sensors", "imu", true);
     imu_node = pyGetNode(output_path.c_str(), true);
 
     if ( config->hasChild("calibration") ) {
@@ -263,7 +270,7 @@ void Aura4_t::init_imu( pyPropertyNode *config ) {
 }
 
 void Aura4_t::init_pilot( pyPropertyNode *config ) {
-    string output_path = get_next_path("/sensors", "pilot");
+    string output_path = get_next_path("/sensors", "pilot", true);
     pilot_node = pyGetNode(output_path.c_str(), true);
     if ( config->hasChild("channel") ) {
 	for ( int i = 0; i < message::sbus_channels; i++ ) {
@@ -364,10 +371,6 @@ bool Aura4_t::update_imu( message::imu_raw_t *imu ) {
 bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
     bool new_data = false;
 
-    static LowPassFilter avionics_vcc_filt(2.0);
-    static LowPassFilter int_main_vcc_filt(2.0);
-    static LowPassFilter ext_main_vcc_filt(2.0);
-
     if ( pkt_id == message::command_ack_id ) {
         message::command_ack_t ack;
         ack.unpack(payload, pkt_len);
@@ -382,24 +385,9 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
         message::pilot_t pilot;
         pilot.unpack(payload, pkt_len);
 	if ( pkt_len == pilot.len ) {
-	    pilot_in_timestamp = get_Time();
-	    for ( int i = 0; i < message::sbus_channels; i++ ) {
-		pilot_input[i] = pilot.channel[i];
-	    }
-            pilot_flags = pilot.flags;
-
-#if 0
-            into("%5.2f %5.2f %4.2f %5.2f %d\n",
-                 pilot_aileron_node.getDouble(),
-                 pilot_elevator_node.getDouble(),
-                 pilot_throttle_node.getDouble(),
-                 pilot_rudder_node.getDouble(),
-                 pilot_manual_node->getLong());
-#endif
-
+            update_pilot( &pilot );
 	    pilot_packet_counter++;
 	    aura4_node.setLong( "pilot_packet_count", pilot_packet_counter );
-
 	    new_data = true;
 	} else {
             info("packet size mismatch in pilot input packet");
@@ -1102,13 +1090,14 @@ void Aura4_airdata_zero_airspeed() {
 }
 
 
-bool Aura4_t::update_pilot() {
+bool Aura4_t::update_pilot( message::pilot_t *pilot ) {
     float val;
 
-    pilot_node.setDouble( "timestamp", pilot_in_timestamp );
+    pilot_flags = pilot->flags;
+    pilot_node.setDouble( "timestamp", get_Time() );
 
     for ( int i = 0; i < message::sbus_channels; i++ ) {
-	val = pilot_input[i];
+	val = pilot->channel[i];
 	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
 	pilot_node.setDouble( "channel", i, val );
     }
