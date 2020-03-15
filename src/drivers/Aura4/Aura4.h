@@ -20,7 +20,7 @@ public:
     Aura4_t() {}
     ~Aura4_t() {}
     void init( pyPropertyNode *config );
-    void read() {}
+    void read();
     void process() {}
     void write() {}
     void close();
@@ -91,7 +91,6 @@ private:
     bool write_command_reset_ekf();
     bool wait_for_ack(uint8_t id);
 
-    double update();
     bool update_airdata();
     bool update_gps();
     bool update_imu( message::imu_raw_t *imu );

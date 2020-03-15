@@ -178,12 +178,13 @@ void Aura4_t::init( pyPropertyNode *config ) {
         hard_error("no pilot configuration\n");
     }
 
-    if ( config->hasChild("actuators") ) {
-        pyPropertyNode act_config = config->getChild("actuators");
-        init_actuators( &act_config );
-    } else {
-        hard_error("no actuator configuration\n");
-    }
+    // fixme: stuff should go here?
+    // if ( config->hasChild("actuators") ) {
+    //     pyPropertyNode act_config = config->getChild("actuators");
+    //     init_actuators( &act_config );
+    // } else {
+    //     hard_error("no actuator configuration\n");
+    // }
 
     sleep(1);
 }
@@ -697,19 +698,19 @@ bool Aura4_t::send_config() {
 
     int count;
 
-    if ( aura4_config.hasChild("board") ) {
-        string board = aura4_config.getString("board");
-        if ( board == "marmot_v1" ) {
-            config_master.board = 0;
-        } else if ( board == "aura_v2" ) {
-            config_master.board = 1;
-        } else {
-            printf("Warning: no valid PWM pin layout defined.\n");
-        }
+    pyPropertyNode board_node = aura4_config.getChild("board", true);
+    string board = aura4_config.getString("board");
+    if ( board == "marmot_v1" ) {
+        config_master.board = 0;
+    } else if ( board == "aura_v2" ) {
+        config_master.board = 1;
+    } else {
+        printf("Warning: no valid PWM pin layout defined.\n");
     }
 
-    if ( aura4_config.hasChild("have_attopilot") ) {
-        config_power.have_attopilot = aura4_config.getBool("have_attopilot");
+    pyPropertyNode power_node = aura4_config.getChild("power", true);
+    if ( power_node.hasChild("have_attopilot") ) {
+        config_power.have_attopilot = power_node.getBool("have_attopilot");
     }
 
     pyPropertyNode imu_node
@@ -745,9 +746,8 @@ bool Aura4_t::send_config() {
         config_pwm.pwm_hz[i] = pwm_node.getLong("channel", i);
         info("pwm_hz[%d] = %d", i, config_pwm.pwm_hz[i]);
     }
-
     pyPropertyNode gain_node
-	= pyGetNode("/config/actuators/actuator/gains", true);
+	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
     count = gain_node.getLen("channel");
     for ( int i = 0; i < count; i++ ) {
         config_pwm.act_gain[i] = gain_node.getDouble("channel", i);
@@ -924,7 +924,9 @@ bool Aura4_t::send_config() {
 // Returns the dt from the IMU perspective, not the localhost
 // perspective.  This should generally be far more accurate and
 // consistent.
-double Aura4_t::update() {
+void Aura4_t::read() {
+    info("aura4 read()");
+    
     // read packets until we receive an IMU packet and the uart buffer
     // is mostly empty.  The IMU packet (combined with being caught up
     // reading the uart buffer is our signal to run an interation of
@@ -968,7 +970,8 @@ double Aura4_t::update() {
     }
     
     double cur_time = imu_node.getDouble( "timestamp" );
-    return cur_time - last_time;
+    double dt = cur_time - last_time;
+    // return cur_time - last_time;
 }
 
 

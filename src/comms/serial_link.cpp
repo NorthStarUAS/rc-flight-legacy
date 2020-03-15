@@ -91,9 +91,7 @@ bool SerialLink::update() {
     uint8_t input[2];
     int giveup_counter = 0;
 
-    // if ( display_on ) {
-    //    printf("read Aura3, entry state = %d\n", state);
-    // }
+    // printf("update() entry state = %d\n", state);
 
     bool new_data = false;
 
