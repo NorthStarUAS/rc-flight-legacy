@@ -1,4 +1,4 @@
-//
+ //
 // FILE: Aura4.cpp
 // DESCRIPTION: interact with Aura4 (Teensy/Pika) sensor head
 //
@@ -20,7 +20,6 @@ using namespace Eigen;
 #include "comms/logging.h"
 #include "drivers/cal_temp.h"
 #include "init/globals.h"
-#include "util/butter.h"
 #include "util/linearfit.h"
 #include "util/lowpass.h"
 #include "util/timing.h"
@@ -29,14 +28,6 @@ using namespace Eigen;
 
 // FIXME: could be good to be able to define constants in the message.json
 const int NUM_IMU_SENSORS = 10;
-
-bool Aura4_actuator_configured = false; // externally visible
-
-static int battery_cells = 4;
-static float pitot_calibrate = 1.0;
-
-static int last_ack_id = 0;
-static int last_ack_subid = 0;
 
 static double pilot_in_timestamp = 0.0;
 static float pilot_input[message::sbus_channels]; // internal stash
@@ -52,22 +43,9 @@ static LinearFitFilter imu_offset(200.0, 0.01);
 // 2nd order filter, 100hz sample rate expected, 3rd field is cutoff freq.
 // higher freq value == noisier, a value near 1 hz should work well
 // for airspeed.
-static ButterworthFilter pitot_filter(2, 100, 0.8);
 
 static uint32_t parse_errors = 0;
 static uint32_t skipped_frames = 0;
-
-static message::aura_nav_pvt_t nav_pvt;
-static message::airdata_t airdata;
-
-static message::config_master_t config_master;
-static message::config_imu_t config_imu;
-static message::config_mixer_t config_mixer;
-static message::config_pwm_t config_pwm;
-static message::config_airdata_t config_airdata;
-static message::config_power_t config_power;
-static message::config_led_t config_led;
-static message::config_stab_damping_t config_stab;
 
 static double nav_pvt_timestamp = 0;
 
@@ -153,14 +131,14 @@ void Aura4_t::init( pyPropertyNode *config ) {
     if ( true ) {               // fixme: move or delete
         // initialize property nodes and configurable values
         aura4_config = pyGetNode("/config/sensors/Aura4", true);
-        config_specs_node = pyGetNode("/config/specs", true);
 
         if ( aura4_config.hasChild("pitot_calibrate_factor") ) {
             pitot_calibrate = aura4_config.getDouble("pitot_calibrate_factor");
         }
-    
-        if ( config_specs_node.hasChild("battery_cells") ) {
-            battery_cells = config_specs_node.getLong("battery_cells");
+
+        pyPropertyNode specs_node = pyGetNode("/config/specs", true);
+        if ( specs_node.hasChild("battery_cells") ) {
+            battery_cells = specs_node.getLong("battery_cells");
         }
         if ( battery_cells < 1 ) { battery_cells = 1; }
     }
@@ -619,46 +597,15 @@ bool Aura4_t::write_command_cycle_inceptors() {
     return wait_for_ack(cmd.id);
 }
 
-// initialize gps output property nodes 
-static void bind_gps_output( string output_path ) {
-}
-
-
-// initialize actuator property nodes 
-static void bind_act_nodes() {
-}
-
-// initialize pilot output property nodes 
-static void bind_pilot_controls( string output_path ) {
-}
-
-
-bool Aura4_airdata_init( string output_path ) {
-    return true;
-}
-
-
-bool Aura4_pilot_init( string output_path, pyPropertyNode *config ) {
-    return true;
-}
-
-
-bool Aura4_act_init( pyPropertyNode *section ) {
-    bind_act_nodes();
-
-    return true;
-}
-
-
 // master board selector defaults
-static void master_defaults() {
+void Aura4_t::master_defaults() {
     config_master.board = 0;
 }
 
 // Setup imu defaults:
 // Marmot v1 has mpu9250 on SPI CS line 24
 // Aura v2 has mpu9250 on I2C Addr 0x68
-static void imu_setup_defaults() {
+void Aura4_t::imu_setup_defaults() {
     config_imu.interface = 0;       // SPI
     config_imu.pin_or_address = 24; // CS pin
     float ident[] = { 1.0, 0.0, 0.0,
@@ -670,7 +617,7 @@ static void imu_setup_defaults() {
 }
 
 // reset pwm output rates to safe startup defaults
-static void pwm_defaults() {
+void Aura4_t::pwm_defaults() {
     for ( int i = 0; i < message::pwm_channels; i++ ) {
          config_pwm.pwm_hz[i] = 50;    
          config_pwm.act_gain[i] = 1.0;
@@ -678,7 +625,7 @@ static void pwm_defaults() {
 }
 
 // reset airdata to startup defaults
-static void airdata_defaults() {
+void Aura4_t::airdata_defaults() {
     config_airdata.barometer = 0;
     config_airdata.pitot = 0;
     config_airdata.swift_baro_addr = 0;
@@ -686,7 +633,7 @@ static void airdata_defaults() {
 }
 
 // reset sas parameters to startup defaults
-static void stability_defaults() {
+void Aura4_t::stability_defaults() {
     config_stab.sas_rollaxis = false;
     config_stab.sas_pitchaxis = false;
     config_stab.sas_yawaxis = false;
@@ -700,7 +647,7 @@ static void stability_defaults() {
 
 
 // reset mixing parameters to startup defaults
-static void mixer_defaults() {
+void Aura4_t::mixer_defaults() {
     config_mixer.mix_autocoord = false;
     config_mixer.mix_throttle_trim = false;
     config_mixer.mix_flap_trim = false;
@@ -723,11 +670,11 @@ static void mixer_defaults() {
     config_mixer.mix_Gtr = 0.1;       // rudder gain for diff thrust
 };
 
-static void power_defaults() {
+void Aura4_t::power_defaults() {
     config_power.have_attopilot = false;
 }
 
-static void led_defaults() {
+void Aura4_t::led_defaults() {
     config_led.pin = 0;
 }
 
@@ -973,9 +920,6 @@ bool Aura4_t::send_config() {
     return true;
 }
 
-
-
-
 // Read Aura4 packets using IMU packet as the main timing reference.
 // Returns the dt from the IMU perspective, not the localhost
 // perspective.  This should generally be far more accurate and
@@ -1203,9 +1147,9 @@ bool Aura4_t::update_pilot() {
 
 
 bool Aura4_t::update_actuators() {
-    if ( !Aura4_actuator_configured ) {
+    if ( !configuration_sent ) {
         // send configuration
-	Aura4_actuator_configured = send_config();
+	configuration_sent = send_config();
     } else {
         // send actuator commands to Aura4 servo subsystem
         if ( message::ap_channels == 6 ) {

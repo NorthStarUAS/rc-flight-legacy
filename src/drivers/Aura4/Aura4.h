@@ -10,6 +10,7 @@
 #include "comms/serial_link.h"
 #include "drivers/driver.h"
 #include "include/globaldefs.h" /* fixme, get rid of? */
+#include "util/butter.h"
 
 #include "aura4_messages.h"
 
@@ -33,11 +34,28 @@ private:
     pyPropertyNode act_node;
     pyPropertyNode airdata_node;
     pyPropertyNode aura4_config;
-    pyPropertyNode config_specs_node;
     
     string device_name = "/dev/ttyS4";
     int baud = 500000;
     SerialLink serial;
+    bool configuration_sent = false;
+    int last_ack_id = 0;
+    int last_ack_subid = 0;
+
+    float pitot_calibrate = 1.0;
+    ButterworthFilter pitot_filter = ButterworthFilter(2, 100, 0.8);
+    int battery_cells = 4;
+    
+    message::aura_nav_pvt_t nav_pvt;
+    message::airdata_t airdata;
+    message::config_master_t config_master;
+    message::config_imu_t config_imu;
+    message::config_mixer_t config_mixer;
+    message::config_pwm_t config_pwm;
+    message::config_airdata_t config_airdata;
+    message::config_power_t config_power;
+    message::config_led_t config_led;
+    message::config_stab_damping_t config_stab;
     
     void info( const char* format, ... );
     void hard_error( const char*format, ... );
@@ -49,6 +67,15 @@ private:
     void init_pilot( pyPropertyNode *config );
     void init_actuators( pyPropertyNode *config );
 
+    void master_defaults();
+    void airdata_defaults();
+    void imu_setup_defaults();
+    void led_defaults();
+    void mixer_defaults();
+    void power_defaults();
+    void pwm_defaults();
+    void stability_defaults();
+    
     bool parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload );
     bool send_config();
     bool write_config_master();
@@ -72,31 +99,3 @@ private:
     
     bool update_actuators();
 };
-
-// function prototypes
-
-double Aura4_update();
-void Aura4_close();
-bool Aura4_request_baud( uint32_t baud );
-
-bool Aura4_gps_init( string output_path, pyPropertyNode *config  );
-bool Aura4_gps_update();
-void Aura4_gps_close();
-
-bool Aura4_airdata_init( string output_path );
-bool Aura4_airdata_update();
-// force an airspeed zero calibration (ideally with the aircraft on
-// the ground with the pitot tube perpendicular to the prevailing
-// wind.)
-void Aura4_airdata_zero_airspeed();
-void Aura4_airdata_close();
-
-bool Aura4_pilot_init( string output_path, pyPropertyNode *config );
-bool Aura4_pilot_update();
-void Aura4_pilot_close();
-
-bool Aura4_act_init( pyPropertyNode *config );
-bool Aura4_act_update();
-void Aura4_act_close();
-
-extern bool Aura4_actuator_configured;
