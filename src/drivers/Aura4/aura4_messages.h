@@ -15,15 +15,15 @@ static inline uint32_t uintround(float f) {
 
 // Message id constants
 const uint8_t command_ack_id = 10;
-const uint8_t config_master_id = 11;
-const uint8_t config_imu_id = 12;
-const uint8_t config_stab_damping_id = 13;
-const uint8_t config_pwm_id = 14;
+const uint8_t config_airdata_id = 11;
+const uint8_t config_board_id = 12;
+const uint8_t config_ekf_id = 13;
+const uint8_t config_imu_id = 14;
 const uint8_t config_mixer_id = 15;
-const uint8_t config_mix_matrix_id = 16;
-const uint8_t config_airdata_id = 17;
-const uint8_t config_power_id = 18;
-const uint8_t config_led_id = 19;
+const uint8_t config_mixer_matrix_id = 16;
+const uint8_t config_power_id = 17;
+const uint8_t config_pwm_id = 18;
+const uint8_t config_stability_damping_id = 19;
 const uint8_t command_inceptors_id = 20;
 const uint8_t command_zero_gyros_id = 21;
 const uint8_t command_reset_ekf_id = 22;
@@ -91,16 +91,22 @@ struct command_ack_t {
     }
 };
 
-// Message: config_master (id: 11)
-struct config_master_t {
+// Message: config_airdata (id: 11)
+struct config_airdata_t {
     // public fields
-    uint8_t board;
+    uint8_t barometer;
+    uint8_t pitot;
+    uint8_t swift_baro_addr;
+    uint8_t swift_pitot_addr;
 
     // internal structure for packing
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
-        uint8_t board;
+        uint8_t barometer;
+        uint8_t pitot;
+        uint8_t swift_baro_addr;
+        uint8_t swift_pitot_addr;
     };
     #pragma pack(pop)
 
@@ -117,7 +123,58 @@ struct config_master_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
+        _buf->barometer = barometer;
+        _buf->pitot = pitot;
+        _buf->swift_baro_addr = swift_baro_addr;
+        _buf->swift_pitot_addr = swift_pitot_addr;
+        return true;
+    }
+
+    bool unpack(uint8_t *external_message, int message_size) {
+        if ( message_size > message_max_len ) {
+            return false;
+        }
+        memcpy(payload, external_message, message_size);
+        _compact_t *_buf = (_compact_t *)payload;
+        len = sizeof(_compact_t);
+        barometer = _buf->barometer;
+        pitot = _buf->pitot;
+        swift_baro_addr = _buf->swift_baro_addr;
+        swift_pitot_addr = _buf->swift_pitot_addr;
+        return true;
+    }
+};
+
+// Message: config_board (id: 12)
+struct config_board_t {
+    // public fields
+    uint8_t board;
+    uint8_t led_pin;
+
+    // internal structure for packing
+    uint8_t payload[message_max_len];
+    #pragma pack(push, 1)
+    struct _compact_t {
+        uint8_t board;
+        uint8_t led_pin;
+    };
+    #pragma pack(pop)
+
+    // public info fields
+    static const uint8_t id = 12;
+    int len = 0;
+
+    bool pack() {
+        len = sizeof(_compact_t);
+        // size sanity check
+        int size = len;
+        if ( size > message_max_len ) {
+            return false;
+        }
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
         _buf->board = board;
+        _buf->led_pin = led_pin;
         return true;
     }
 
@@ -129,11 +186,94 @@ struct config_master_t {
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
         board = _buf->board;
+        led_pin = _buf->led_pin;
         return true;
     }
 };
 
-// Message: config_imu (id: 12)
+// Message: config_ekf (id: 13)
+struct config_ekf_t {
+    // public fields
+    float sig_w_accel;
+    float sig_w_gyro;
+    float sig_a_d;
+    float tau_a;
+    float sig_g_d;
+    float tau_g;
+    float sig_gps_p_ne;
+    float sig_gps_p_d;
+    float sig_gps_v_ne;
+    float sig_gps_v_d;
+    float sig_mag;
+
+    // internal structure for packing
+    uint8_t payload[message_max_len];
+    #pragma pack(push, 1)
+    struct _compact_t {
+        float sig_w_accel;
+        float sig_w_gyro;
+        float sig_a_d;
+        float tau_a;
+        float sig_g_d;
+        float tau_g;
+        float sig_gps_p_ne;
+        float sig_gps_p_d;
+        float sig_gps_v_ne;
+        float sig_gps_v_d;
+        float sig_mag;
+    };
+    #pragma pack(pop)
+
+    // public info fields
+    static const uint8_t id = 13;
+    int len = 0;
+
+    bool pack() {
+        len = sizeof(_compact_t);
+        // size sanity check
+        int size = len;
+        if ( size > message_max_len ) {
+            return false;
+        }
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        _buf->sig_w_accel = sig_w_accel;
+        _buf->sig_w_gyro = sig_w_gyro;
+        _buf->sig_a_d = sig_a_d;
+        _buf->tau_a = tau_a;
+        _buf->sig_g_d = sig_g_d;
+        _buf->tau_g = tau_g;
+        _buf->sig_gps_p_ne = sig_gps_p_ne;
+        _buf->sig_gps_p_d = sig_gps_p_d;
+        _buf->sig_gps_v_ne = sig_gps_v_ne;
+        _buf->sig_gps_v_d = sig_gps_v_d;
+        _buf->sig_mag = sig_mag;
+        return true;
+    }
+
+    bool unpack(uint8_t *external_message, int message_size) {
+        if ( message_size > message_max_len ) {
+            return false;
+        }
+        memcpy(payload, external_message, message_size);
+        _compact_t *_buf = (_compact_t *)payload;
+        len = sizeof(_compact_t);
+        sig_w_accel = _buf->sig_w_accel;
+        sig_w_gyro = _buf->sig_w_gyro;
+        sig_a_d = _buf->sig_a_d;
+        tau_a = _buf->tau_a;
+        sig_g_d = _buf->sig_g_d;
+        tau_g = _buf->tau_g;
+        sig_gps_p_ne = _buf->sig_gps_p_ne;
+        sig_gps_p_d = _buf->sig_gps_p_d;
+        sig_gps_v_ne = _buf->sig_gps_v_ne;
+        sig_gps_v_d = _buf->sig_gps_v_d;
+        sig_mag = _buf->sig_mag;
+        return true;
+    }
+};
+
+// Message: config_imu (id: 14)
 struct config_imu_t {
     // public fields
     uint8_t interface;
@@ -151,7 +291,7 @@ struct config_imu_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 12;
+    static const uint8_t id = 14;
     int len = 0;
 
     bool pack() {
@@ -179,122 +319,6 @@ struct config_imu_t {
         interface = _buf->interface;
         pin_or_address = _buf->pin_or_address;
         for (int _i=0; _i<9; _i++) orientation[_i] = _buf->orientation[_i];
-        return true;
-    }
-};
-
-// Message: config_stab_damping (id: 13)
-struct config_stab_damping_t {
-    // public fields
-    bool sas_rollaxis;
-    bool sas_pitchaxis;
-    bool sas_yawaxis;
-    bool sas_tune;
-    float sas_rollgain;
-    float sas_pitchgain;
-    float sas_yawgain;
-    float sas_max_gain;
-
-    // internal structure for packing
-    uint8_t payload[message_max_len];
-    #pragma pack(push, 1)
-    struct _compact_t {
-        bool sas_rollaxis;
-        bool sas_pitchaxis;
-        bool sas_yawaxis;
-        bool sas_tune;
-        float sas_rollgain;
-        float sas_pitchgain;
-        float sas_yawgain;
-        float sas_max_gain;
-    };
-    #pragma pack(pop)
-
-    // public info fields
-    static const uint8_t id = 13;
-    int len = 0;
-
-    bool pack() {
-        len = sizeof(_compact_t);
-        // size sanity check
-        int size = len;
-        if ( size > message_max_len ) {
-            return false;
-        }
-        // copy values
-        _compact_t *_buf = (_compact_t *)payload;
-        _buf->sas_rollaxis = sas_rollaxis;
-        _buf->sas_pitchaxis = sas_pitchaxis;
-        _buf->sas_yawaxis = sas_yawaxis;
-        _buf->sas_tune = sas_tune;
-        _buf->sas_rollgain = sas_rollgain;
-        _buf->sas_pitchgain = sas_pitchgain;
-        _buf->sas_yawgain = sas_yawgain;
-        _buf->sas_max_gain = sas_max_gain;
-        return true;
-    }
-
-    bool unpack(uint8_t *external_message, int message_size) {
-        if ( message_size > message_max_len ) {
-            return false;
-        }
-        memcpy(payload, external_message, message_size);
-        _compact_t *_buf = (_compact_t *)payload;
-        len = sizeof(_compact_t);
-        sas_rollaxis = _buf->sas_rollaxis;
-        sas_pitchaxis = _buf->sas_pitchaxis;
-        sas_yawaxis = _buf->sas_yawaxis;
-        sas_tune = _buf->sas_tune;
-        sas_rollgain = _buf->sas_rollgain;
-        sas_pitchgain = _buf->sas_pitchgain;
-        sas_yawgain = _buf->sas_yawgain;
-        sas_max_gain = _buf->sas_max_gain;
-        return true;
-    }
-};
-
-// Message: config_pwm (id: 14)
-struct config_pwm_t {
-    // public fields
-    uint16_t pwm_hz[pwm_channels];
-    float act_gain[pwm_channels];
-
-    // internal structure for packing
-    uint8_t payload[message_max_len];
-    #pragma pack(push, 1)
-    struct _compact_t {
-        uint16_t pwm_hz[pwm_channels];
-        float act_gain[pwm_channels];
-    };
-    #pragma pack(pop)
-
-    // public info fields
-    static const uint8_t id = 14;
-    int len = 0;
-
-    bool pack() {
-        len = sizeof(_compact_t);
-        // size sanity check
-        int size = len;
-        if ( size > message_max_len ) {
-            return false;
-        }
-        // copy values
-        _compact_t *_buf = (_compact_t *)payload;
-        for (int _i=0; _i<pwm_channels; _i++) _buf->pwm_hz[_i] = pwm_hz[_i];
-        for (int _i=0; _i<pwm_channels; _i++) _buf->act_gain[_i] = act_gain[_i];
-        return true;
-    }
-
-    bool unpack(uint8_t *external_message, int message_size) {
-        if ( message_size > message_max_len ) {
-            return false;
-        }
-        memcpy(payload, external_message, message_size);
-        _compact_t *_buf = (_compact_t *)payload;
-        len = sizeof(_compact_t);
-        for (int _i=0; _i<pwm_channels; _i++) pwm_hz[_i] = _buf->pwm_hz[_i];
-        for (int _i=0; _i<pwm_channels; _i++) act_gain[_i] = _buf->act_gain[_i];
         return true;
     }
 };
@@ -409,8 +433,8 @@ struct config_mixer_t {
     }
 };
 
-// Message: config_mix_matrix (id: 16)
-struct config_mix_matrix_t {
+// Message: config_mixer_matrix (id: 16)
+struct config_mixer_matrix_t {
     // public fields
     float matrix[mix_matrix_size];
 
@@ -451,61 +475,7 @@ struct config_mix_matrix_t {
     }
 };
 
-// Message: config_airdata (id: 17)
-struct config_airdata_t {
-    // public fields
-    uint8_t barometer;
-    uint8_t pitot;
-    uint8_t swift_baro_addr;
-    uint8_t swift_pitot_addr;
-
-    // internal structure for packing
-    uint8_t payload[message_max_len];
-    #pragma pack(push, 1)
-    struct _compact_t {
-        uint8_t barometer;
-        uint8_t pitot;
-        uint8_t swift_baro_addr;
-        uint8_t swift_pitot_addr;
-    };
-    #pragma pack(pop)
-
-    // public info fields
-    static const uint8_t id = 17;
-    int len = 0;
-
-    bool pack() {
-        len = sizeof(_compact_t);
-        // size sanity check
-        int size = len;
-        if ( size > message_max_len ) {
-            return false;
-        }
-        // copy values
-        _compact_t *_buf = (_compact_t *)payload;
-        _buf->barometer = barometer;
-        _buf->pitot = pitot;
-        _buf->swift_baro_addr = swift_baro_addr;
-        _buf->swift_pitot_addr = swift_pitot_addr;
-        return true;
-    }
-
-    bool unpack(uint8_t *external_message, int message_size) {
-        if ( message_size > message_max_len ) {
-            return false;
-        }
-        memcpy(payload, external_message, message_size);
-        _compact_t *_buf = (_compact_t *)payload;
-        len = sizeof(_compact_t);
-        barometer = _buf->barometer;
-        pitot = _buf->pitot;
-        swift_baro_addr = _buf->swift_baro_addr;
-        swift_pitot_addr = _buf->swift_pitot_addr;
-        return true;
-    }
-};
-
-// Message: config_power (id: 18)
+// Message: config_power (id: 17)
 struct config_power_t {
     // public fields
     bool have_attopilot;
@@ -519,7 +489,7 @@ struct config_power_t {
     #pragma pack(pop)
 
     // public info fields
-    static const uint8_t id = 18;
+    static const uint8_t id = 17;
     int len = 0;
 
     bool pack() {
@@ -547,16 +517,76 @@ struct config_power_t {
     }
 };
 
-// Message: config_led (id: 19)
-struct config_led_t {
+// Message: config_pwm (id: 18)
+struct config_pwm_t {
     // public fields
-    uint8_t pin;
+    uint16_t pwm_hz[pwm_channels];
+    float act_gain[pwm_channels];
 
     // internal structure for packing
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
-        uint8_t pin;
+        uint16_t pwm_hz[pwm_channels];
+        float act_gain[pwm_channels];
+    };
+    #pragma pack(pop)
+
+    // public info fields
+    static const uint8_t id = 18;
+    int len = 0;
+
+    bool pack() {
+        len = sizeof(_compact_t);
+        // size sanity check
+        int size = len;
+        if ( size > message_max_len ) {
+            return false;
+        }
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        for (int _i=0; _i<pwm_channels; _i++) _buf->pwm_hz[_i] = pwm_hz[_i];
+        for (int _i=0; _i<pwm_channels; _i++) _buf->act_gain[_i] = act_gain[_i];
+        return true;
+    }
+
+    bool unpack(uint8_t *external_message, int message_size) {
+        if ( message_size > message_max_len ) {
+            return false;
+        }
+        memcpy(payload, external_message, message_size);
+        _compact_t *_buf = (_compact_t *)payload;
+        len = sizeof(_compact_t);
+        for (int _i=0; _i<pwm_channels; _i++) pwm_hz[_i] = _buf->pwm_hz[_i];
+        for (int _i=0; _i<pwm_channels; _i++) act_gain[_i] = _buf->act_gain[_i];
+        return true;
+    }
+};
+
+// Message: config_stability_damping (id: 19)
+struct config_stability_damping_t {
+    // public fields
+    bool sas_rollaxis;
+    bool sas_pitchaxis;
+    bool sas_yawaxis;
+    bool sas_tune;
+    float sas_rollgain;
+    float sas_pitchgain;
+    float sas_yawgain;
+    float sas_max_gain;
+
+    // internal structure for packing
+    uint8_t payload[message_max_len];
+    #pragma pack(push, 1)
+    struct _compact_t {
+        bool sas_rollaxis;
+        bool sas_pitchaxis;
+        bool sas_yawaxis;
+        bool sas_tune;
+        float sas_rollgain;
+        float sas_pitchgain;
+        float sas_yawgain;
+        float sas_max_gain;
     };
     #pragma pack(pop)
 
@@ -573,7 +603,14 @@ struct config_led_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
-        _buf->pin = pin;
+        _buf->sas_rollaxis = sas_rollaxis;
+        _buf->sas_pitchaxis = sas_pitchaxis;
+        _buf->sas_yawaxis = sas_yawaxis;
+        _buf->sas_tune = sas_tune;
+        _buf->sas_rollgain = sas_rollgain;
+        _buf->sas_pitchgain = sas_pitchgain;
+        _buf->sas_yawgain = sas_yawgain;
+        _buf->sas_max_gain = sas_max_gain;
         return true;
     }
 
@@ -584,7 +621,14 @@ struct config_led_t {
         memcpy(payload, external_message, message_size);
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
-        pin = _buf->pin;
+        sas_rollaxis = _buf->sas_rollaxis;
+        sas_pitchaxis = _buf->sas_pitchaxis;
+        sas_yawaxis = _buf->sas_yawaxis;
+        sas_tune = _buf->sas_tune;
+        sas_rollgain = _buf->sas_rollgain;
+        sas_pitchgain = _buf->sas_pitchgain;
+        sas_yawgain = _buf->sas_yawgain;
+        sas_max_gain = _buf->sas_max_gain;
         return true;
     }
 };

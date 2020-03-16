@@ -4,9 +4,10 @@
 //
 
 // TODO:
-// - straighten out what I'm doing with imu timestamp dance
-// - straighten out what I'm doing with skipped frames
-// - gps age?
+// - (for now ok) straighten out what I'm doing with imu timestamp dance
+// - (for now ok) straighten out what I'm doing with skipped frames
+// - (for now ok) gps age?
+// - send ekf config
 // - parse ekf packet
 // - write actuators
 // - deal with how to choose output paths in property tree
@@ -241,10 +242,6 @@ void Aura4_t::init_actuators( pyPropertyNode *config ) {
 bool Aura4_t::update_imu( message::imu_raw_t *imu ) {
     imu_timestamp = get_Time();
     
-    // FIXME: could be good to be able to define constants in the
-    // message.json
-    const int NUM_IMU_SENSORS = 10;
-
     // pulled from aura-sensors/src/imu.cpp
     const float _pi = 3.14159265358979323846;
     const float _g = 9.807;
@@ -470,10 +467,16 @@ bool Aura4_t::wait_for_ack(uint8_t id) {
 }
 
 
-bool Aura4_t::write_config_master() {
-    config_master.pack();
-    serial.write_packet( config_master.id, config_master.payload, config_master.len );
-    return wait_for_ack(config_master.id);
+bool Aura4_t::write_config_board() {
+    config_board.pack();
+    serial.write_packet( config_board.id, config_board.payload, config_board.len );
+    return wait_for_ack(config_board.id);
+}
+
+bool Aura4_t::write_config_ekf() {
+    config_ekf.pack();
+    serial.write_packet( config_ekf.id, config_ekf.payload, config_ekf.len );
+    return wait_for_ack(config_ekf.id);
 }
 
 bool Aura4_t::write_config_imu() {
@@ -501,12 +504,6 @@ bool Aura4_t::write_config_airdata() {
     serial.write_packet( config_airdata.id, config_airdata.payload,
                   config_airdata.len );
     return wait_for_ack(config_airdata.id);
-}
-
-bool Aura4_t::write_config_led() {
-    config_led.pack();
-    serial.write_packet( config_led.id, config_led.payload, config_led.len );
-    return wait_for_ack(config_led.id);
 }
 
 bool Aura4_t::write_config_power() {
@@ -545,8 +542,24 @@ bool Aura4_t::write_command_cycle_inceptors() {
 }
 
 // master board selector defaults
-void Aura4_t::master_defaults() {
-    config_master.board = 0;
+void Aura4_t::board_defaults() {
+    config_board.board = 0;
+    config_board.led_pin = 0;
+}
+
+// ekf defaults
+void Aura4_t::ekf_defaults() {
+    config_ekf.sig_w_accel = 0.05;
+    config_ekf.sig_w_gyro = 0.00175;
+    config_ekf.sig_a_d = 0.01;
+    config_ekf.tau_a = 100.0;
+    config_ekf.sig_g_d = 0.00025;
+    config_ekf.tau_g = 50.0;
+    config_ekf.sig_gps_p_ne = 3.0;
+    config_ekf.sig_gps_p_d = 6.0;
+    config_ekf.sig_gps_v_ne = 1.0;
+    config_ekf.sig_gps_v_d = 3.0;
+    config_ekf.sig_mag = 0.3;
 }
 
 // Setup imu defaults:
@@ -621,10 +634,6 @@ void Aura4_t::power_defaults() {
     config_power.have_attopilot = false;
 }
 
-void Aura4_t::led_defaults() {
-    config_led.pin = 0;
-}
-
 // send a full configuration to Aura4 and return true only when all
 // parameters are acknowledged.
 bool Aura4_t::send_config() {
@@ -633,13 +642,12 @@ bool Aura4_t::send_config() {
     vector<string> children;
 
     // set all parameters to defaults
-    master_defaults();
+    board_defaults();
     imu_setup_defaults();
     pwm_defaults();
     airdata_defaults();
     mixer_defaults();
     power_defaults();
-    led_defaults();
     stability_defaults();
 
     int count;
@@ -647,11 +655,14 @@ bool Aura4_t::send_config() {
     pyPropertyNode board_node = aura4_config.getChild("board", true);
     string board = aura4_config.getString("board");
     if ( board == "marmot_v1" ) {
-        config_master.board = 0;
+        config_board.board = 0;
     } else if ( board == "aura_v2" ) {
-        config_master.board = 1;
+        config_board.board = 1;
     } else {
         printf("Warning: no valid PWM pin layout defined.\n");
+    }
+    if ( aura4_config.hasChild("led_pin") ) {
+        config_board.led_pin = aura4_config.getLong("led_pin");
     }
 
     pyPropertyNode power_node = aura4_config.getChild("power", true);
@@ -816,13 +827,51 @@ bool Aura4_t::send_config() {
             config_airdata.swift_pitot_addr = airdata_node.getLong("swift_pitot_addr");
         }
     }
+
+    if ( aura4_node.hasChild("ekf") ) {
+        pyPropertyNode ekf_node = aura4_node.getChild("ekf");
+        if ( ekf_node.hasChild("sig_w_accel") ) {
+            config_ekf.sig_w_accel = ekf_node.getDouble("sig_w_accel");
+        }
+        if ( ekf_node.hasChild("sig_w_gyro") ) {
+            config_ekf.sig_w_gyro = ekf_node.getDouble("sig_w_gyro");
+        }
+        if ( ekf_node.hasChild("sig_a_d") ) {
+            config_ekf.sig_a_d = ekf_node.getDouble("sig_a_d");
+        }
+        if ( ekf_node.hasChild("tau_a") ) {
+            config_ekf.tau_a = ekf_node.getDouble("tau_a");
+        }
+        if ( ekf_node.hasChild("sig_g_d") ) {
+            config_ekf.sig_g_d = ekf_node.getDouble("sig_g_d");
+        }
+        if ( ekf_node.hasChild("tau_g") ) {
+            config_ekf.tau_g = ekf_node.getDouble("tau_g");
+        }
+        if ( ekf_node.hasChild("sig_gps_p_ne") ) {
+            config_ekf.sig_gps_p_ne = ekf_node.getDouble("sig_gps_p_ne");
+        }
+        if ( ekf_node.hasChild("sig_gps_p_d") ) {
+            config_ekf.sig_gps_p_d = ekf_node.getDouble("sig_gps_p_d");
+        }
+        if ( ekf_node.hasChild("sig_gps_v_ne") ) {
+            config_ekf.sig_gps_v_ne = ekf_node.getDouble("sig_gps_v_ne");
+        }
+        if ( ekf_node.hasChild("sig_gps_v_d") ) {
+            config_ekf.sig_gps_v_d = ekf_node.getDouble("sig_gps_v_d");
+        }
+        if ( ekf_node.hasChild("sig_mag") ) {
+            config_ekf.sig_mag = ekf_node.getDouble("sig_mag");
+        }
+    }
     
-    if ( aura4_config.hasChild("led_pin") ) {
-        config_led.pin = aura4_config.getLong("led_pin");
+    info("transmitting master config ...");
+    if ( !write_config_board() ) {
+        return false;
     }
 
-    info("transmitting master config ...");
-    if ( !write_config_master() ) {
+    info("transmitting ekf config ...");
+    if ( !write_config_ekf() ) {
         return false;
     }
 
@@ -848,11 +897,6 @@ bool Aura4_t::send_config() {
 
     info("transmitting power config ...");
     if ( !write_config_power() ) {
-        return false;
-    }
-
-    info("transmitting led config ...");
-    if ( !write_config_led() ) {
         return false;
     }
 

@@ -18,10 +18,38 @@
         },
         // config packets
         {
-            "name": "config_master",
+            "name": "config_airdata",
+            "desc": "airdata configuration",
+            "fields": [
+                { "type": "uint8_t", "name": "barometer", "desc": "0 = BME280/SPI, 1 = BMP280/I2C, 2 = BFS Swift" },
+                { "type": "uint8_t", "name": "pitot", "desc": "0 = MS4525, 1 = MS5525, 2 = BFS Swift" },
+                { "type": "uint8_t", "name": "swift_baro_addr" },
+                { "type": "uint8_t", "name": "swift_pitot_addr" }
+            ]
+        },
+        {
+            "name": "config_board",
             "desc": "master board configuration",
             "fields": [
-                { "type": "uint8_t", "name": "board", "desc": "0 = Marmot v1, 1 = Aura v2" }
+                { "type": "uint8_t", "name": "board", "desc": "0 = Marmot v1, 1 = Aura v2" },
+                { "type": "uint8_t", "name": "led_pin", "desc": "0 = no LED" }
+            ]
+        },
+        {
+            "name": "config_ekf",
+            "desc": "EKF NAV/INS configuration",
+            "fields": [
+                { "type": "float", "name": "sig_w_accel", "desc": "stddev of acceleromter noise (m/s^2)" },
+                { "type": "float", "name": "sig_w_gyro", "desc": "stddev of gyro noise (rad/s)" },
+                { "type": "float", "name": "sig_a_d", "desc": "stddev of accelerometer markov bias" },
+                { "type": "float", "name": "tau_a", "desc": "correlation time or time constance of b_{ad}" },
+                { "type": "float", "name": "sig_g_d", "desc": "stddev of correlated gyro bias" },
+                { "type": "float", "name": "tau_g", "desc": "correlation time or time constance of b_{gd}" },
+                { "type": "float", "name": "sig_gps_p_ne", "desc": "stddev of horizontal gps pos measurement noise (m)" },
+                { "type": "float", "name": "sig_gps_p_d", "desc": "stddev of vertical gps pos measurement noise (m)" },
+                { "type": "float", "name": "sig_gps_v_ne", "desc": "stddev of horizontal gps vel measurement noise (m/s)" },
+                { "type": "float", "name": "sig_gps_v_d", "desc": "stddev of vertical gps vel measurement noise (m/s)" },
+                { "type": "float", "name": "sig_mag", "desc": "stddev of magnetometer measurement noise (normalized relative to a unit vector)" }
             ]
         },
         {
@@ -31,30 +59,6 @@
                 { "type": "uint8_t", "name": "interface", "desc": "0 = SPI, 1 = I2C" },
                 { "type": "uint8_t", "name": "pin_or_address", "desc": "SPI CS pin or I2C address" },
                 { "type": "float", "name": "orientation[9]", "desc": "IMU orientation matrix" }
-            ]
-        },
-        {
-            "name": "config_stab_damping",
-            "desc": "stability damping",
-            "fields": [
-                // axis damping modes
-                { "type": "bool", "name": "sas_rollaxis" },
-                { "type": "bool", "name": "sas_pitchaxis" },
-                { "type": "bool", "name": "sas_yawaxis" },
-                { "type": "bool", "name": "sas_tune" },
-                // axis damping gains
-                { "type": "float", "name": "sas_rollgain" },
-                { "type": "float", "name": "sas_pitchgain" },
-                { "type": "float", "name": "sas_yawgain" },
-                { "type": "float", "name": "sas_max_gain" }
-            ]
-        },
-        {
-            "name": "config_pwm",
-            "desc": "pwm configuration",
-            "fields": [
-                { "type": "uint16_t", "name": "pwm_hz[pwm_channels]", "desc": "pwm output signal hz, 50hz default for analog servos, maximum rate is servo dependent: digital servos can usually do 200-250hz, analog servos and ESC's typically require 50hz" },
-                { "type": "float", "name": "act_gain[pwm_channels]", "desc": "actuator gain (reversing/scaling)" }
             ]
         },
         {
@@ -84,20 +88,10 @@
             ]
         },
         {
-            "name": "config_mix_matrix",
+            "name": "config_mixer_matrix",
             "desc": "configure mixer matrix directly",
             "fields": [
                 { "type": "float", "name": "matrix[mix_matrix_size]", "pack_type": "int16_t", "pack_scale": 16384 }
-            ]
-        },
-        {
-            "name": "config_airdata",
-            "desc": "airdata configuration",
-            "fields": [
-                { "type": "uint8_t", "name": "barometer", "desc": "0 = BME280/SPI, 1 = BMP280/I2C, 2 = BFS Swift" },
-                { "type": "uint8_t", "name": "pitot", "desc": "0 = MS4525, 1 = MS5525, 2 = BFS Swift" },
-                { "type": "uint8_t", "name": "swift_baro_addr" },
-                { "type": "uint8_t", "name": "swift_pitot_addr" }
             ]
         },
         {
@@ -108,10 +102,27 @@
             ]
         },
         {
-            "name": "config_led",
-            "desc": "power configuration",
+            "name": "config_pwm",
+            "desc": "pwm configuration",
             "fields": [
-                { "type": "uint8_t", "name": "pin", "desc": "0 = no LED" }
+                { "type": "uint16_t", "name": "pwm_hz[pwm_channels]", "desc": "pwm output signal hz, 50hz default for analog servos, maximum rate is servo dependent: digital servos can usually do 200-250hz, analog servos and ESC's typically require 50hz" },
+                { "type": "float", "name": "act_gain[pwm_channels]", "desc": "actuator gain (reversing/scaling)" }
+            ]
+        },
+        {
+            "name": "config_stability_damping",
+            "desc": "stability damping",
+            "fields": [
+                // axis damping modes
+                { "type": "bool", "name": "sas_rollaxis" },
+                { "type": "bool", "name": "sas_pitchaxis" },
+                { "type": "bool", "name": "sas_yawaxis" },
+                { "type": "bool", "name": "sas_tune" },
+                // axis damping gains
+                { "type": "float", "name": "sas_rollgain" },
+                { "type": "float", "name": "sas_pitchgain" },
+                { "type": "float", "name": "sas_yawgain" },
+                { "type": "float", "name": "sas_max_gain" }
             ]
         },
         // commands
