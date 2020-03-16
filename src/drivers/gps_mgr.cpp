@@ -315,5 +315,5 @@ void GPS_close() {
 
 
 double GPS_age() {
-    return get_Time() - gps_last_time;
+    return get_Time() - gps_node.getDouble("timestamp");
 }
