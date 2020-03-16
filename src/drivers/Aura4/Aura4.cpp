@@ -868,7 +868,7 @@ bool Aura4_t::send_config() {
 // Returns the dt from the IMU perspective, not the localhost
 // perspective.  This should generally be far more accurate and
 // consistent.
-void Aura4_t::read() {
+float Aura4_t::read() {
     // read packets until we receive an IMU packet and the uart buffer
     // is mostly empty.  The IMU packet (combined with being caught up
     // reading the uart buffer is our signal to run an interation of
@@ -917,8 +917,8 @@ void Aura4_t::read() {
     }
     
     double cur_time = imu_node.getDouble( "timestamp" );
-    double dt = cur_time - last_time;
-    // return cur_time - last_time;
+    float dt = cur_time - last_time;
+    return dt;
 }
 
 

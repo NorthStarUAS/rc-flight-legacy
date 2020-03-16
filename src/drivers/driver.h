@@ -10,7 +10,7 @@ public:
     virtual ~driver_t() {}
     
     virtual void init( pyPropertyNode *config ) = 0;
-    virtual void read() = 0;
+    virtual float read() = 0;
     virtual void process() = 0;
     virtual void write() = 0;
     virtual void close() = 0;

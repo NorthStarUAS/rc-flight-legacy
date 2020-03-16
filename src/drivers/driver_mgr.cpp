@@ -23,10 +23,15 @@ void driver_mgr_t::init() {
     }
 }
 
-void driver_mgr_t::read() {
+float driver_mgr_t::read() {
+    float master_dt = 0.0;
     for ( unsigned int i = 0; i < drivers.size(); i++ ) {
-        drivers[i]->read();
+        float dt = drivers[i]->read();
+        if (i == 0) {
+            master_dt = dt;
+        }
     }
+    return master_dt;
 }
 
 void driver_mgr_t::process() {

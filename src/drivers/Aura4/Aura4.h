@@ -27,7 +27,7 @@ public:
     Aura4_t() {}
     ~Aura4_t() {}
     void init( pyPropertyNode *config );
-    void read();
+    float read();
     void process() {}
     void write() {}
     void close();

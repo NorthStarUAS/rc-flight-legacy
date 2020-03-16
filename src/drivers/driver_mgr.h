@@ -14,7 +14,7 @@ class driver_mgr_t {
 public:
     driver_mgr_t();
     void init();
-    void read();
+    float read();
     void process();
     void write();
     void close();

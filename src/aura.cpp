@@ -117,7 +117,7 @@ void main_work_loop()
 	dt = FGFS_update();
     }
     // fixme: need to account for dt and sync in new driver architecture
-    driver_mgr.read();
+    dt = driver_mgr.read();
     status_node.setDouble("frame_time", imu_node.getDouble( "timestamp" ));
     status_node.setDouble("dt", dt);
     sync_prof.stop();
