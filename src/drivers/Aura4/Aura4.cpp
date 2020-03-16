@@ -851,7 +851,7 @@ bool Aura4_t::send_config() {
         return false;
     }
 
-    printf("transmitting mixer config ...");
+    info("transmitting mixer config ...");
     config_mixer.pack();
     if ( !write_config_message(config_mixer.id, config_mixer.payload, config_mixer.len) ) {
         return false;
