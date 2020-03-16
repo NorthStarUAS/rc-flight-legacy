@@ -153,10 +153,7 @@ void main_work_loop()
     //
     // State Estimation section
     //
-    
-    if ( fresh_imu_data ) {
-	Filter_update();
-    }
+    Filter_update();
 
     // check gps data age.  The nav filter continues to run, but the
     // results are marked as NotValid if the most recent gps data
