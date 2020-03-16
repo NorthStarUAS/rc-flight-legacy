@@ -23,6 +23,7 @@ using namespace Eigen;
 class Aura4_t: public driver_t {
     
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     Aura4_t() {}
     ~Aura4_t() {}
     void init( pyPropertyNode *config );
