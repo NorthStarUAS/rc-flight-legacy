@@ -28,24 +28,6 @@ using std::ostringstream;
 
 #include "Aura4.h"
 
-// FIXME: could be good to be able to define constants in the message.json
-const int NUM_IMU_SENSORS = 10;
-
-// pulled from aura-sensors/src/imu.cpp
-const float _pi = 3.14159265358979323846;
-const float _g = 9.807;
-const float _d2r = _pi / 180.0;
-
-const float _gyro_lsb_per_dps = 32767.5 / 500;  // -500 to +500 spread across 65535
-const float gyroScale = _d2r / _gyro_lsb_per_dps;
-
-const float _accel_lsb_per_dps = 32767.5 / 8;   // -4g to +4g spread across 65535
-const float accelScale = _g / _accel_lsb_per_dps;
-
-const float magScale = 0.01;
-const float tempScale = 0.01;
-
-
 // fixme: this could go in a central location for general use
 static string get_next_path( const char *path, const char *base,
                              bool primary )
@@ -258,6 +240,26 @@ void Aura4_t::init_actuators( pyPropertyNode *config ) {
 
 bool Aura4_t::update_imu( message::imu_raw_t *imu ) {
     imu_timestamp = get_Time();
+    
+    // FIXME: could be good to be able to define constants in the
+    // message.json
+    const int NUM_IMU_SENSORS = 10;
+
+    // pulled from aura-sensors/src/imu.cpp
+    const float _pi = 3.14159265358979323846;
+    const float _g = 9.807;
+    const float _d2r = _pi / 180.0;
+
+    // -500 to +500 spread across 65535
+    const float _gyro_lsb_per_dps = 32767.5 / 500;
+    const float gyroScale = _d2r / _gyro_lsb_per_dps;
+    
+    // -4g to +4g spread across 65535
+    const float _accel_lsb_per_dps = 32767.5 / 8;
+    const float accelScale = _g / _accel_lsb_per_dps;
+
+    const float magScale = 0.01;
+    const float tempScale = 0.01;
 
     float p_raw = 0.0, q_raw = 0.0, r_raw = 0.0;
     float ax_raw = 0.0, ay_raw = 0.0, az_raw = 0.0;

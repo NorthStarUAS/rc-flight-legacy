@@ -10,6 +10,3 @@
 void IMU_init();
 bool IMU_update();
 void IMU_close();
-
-// return imu data age in seconds
-double IMU_age();

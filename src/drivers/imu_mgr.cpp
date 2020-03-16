@@ -206,8 +206,3 @@ void IMU_close() {
 	}
     }
 }
-
-
-double IMU_age() {
-    return get_Time() - imu_last_time;
-}

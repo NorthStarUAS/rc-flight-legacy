@@ -104,9 +104,9 @@ void main_work_loop()
     sync_prof.start();
     double dt = 0.0;
     if ( sync_source == SYNC_NONE ) {
-	if ( display_on ) {
-	    printf("No main loop sync source discovered.\n");
-	}
+	//if ( display_on ) {
+	//    printf("No main loop sync source discovered.\n");
+	//}
     } else if ( sync_source == SYNC_APM2 ) {
 	dt = APM2_update();
     } else if ( sync_source == SYNC_AURA3 ) {
