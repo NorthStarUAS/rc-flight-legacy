@@ -7,7 +7,8 @@
 // - (for now ok) straighten out what I'm doing with imu timestamp dance
 // - (for now ok) straighten out what I'm doing with skipped frames
 // - (for now ok) gps age?
-// - send ekf config
+// - (ok) send ekf config
+// - figure out how to deal with accel/mag calibration if ekf is remote 
 // - parse ekf packet
 // - write actuators
 // - deal with how to choose output paths in property tree
@@ -466,58 +467,9 @@ bool Aura4_t::wait_for_ack(uint8_t id) {
     return true;
 }
 
-
-bool Aura4_t::write_config_board() {
-    config_board.pack();
-    serial.write_packet( config_board.id, config_board.payload, config_board.len );
-    return wait_for_ack(config_board.id);
-}
-
-bool Aura4_t::write_config_ekf() {
-    config_ekf.pack();
-    serial.write_packet( config_ekf.id, config_ekf.payload, config_ekf.len );
-    return wait_for_ack(config_ekf.id);
-}
-
-bool Aura4_t::write_config_imu() {
-    config_imu.pack();
-    serial.write_packet( config_imu.id, config_imu.payload, config_imu.len );
-    return wait_for_ack(config_imu.id);
-}
-
-bool Aura4_t::write_config_mixer() {
-    config_mixer.pack();
-    serial.write_packet( config_mixer.id, config_mixer.payload,
-                         config_mixer.len );
-    return wait_for_ack(config_mixer.id);
-}
-
-bool Aura4_t::write_config_pwm() {
-    config_pwm.pack();
-    serial.write_packet( config_pwm.id, config_pwm.payload,
-                  config_pwm.len );
-    return wait_for_ack(config_pwm.id);
-}
-
-bool Aura4_t::write_config_airdata() {
-    config_airdata.pack();
-    serial.write_packet( config_airdata.id, config_airdata.payload,
-                  config_airdata.len );
-    return wait_for_ack(config_airdata.id);
-}
-
-bool Aura4_t::write_config_power() {
-    config_power.pack();
-    serial.write_packet( config_power.id, config_power.payload,
-                  config_power.len );
-    return wait_for_ack(config_power.id);
-}
-
-bool Aura4_t::write_config_stab() {
-    config_stab.pack();
-    serial.write_packet( config_stab.id, config_stab.payload,
-                  config_stab.len );
-    return wait_for_ack(config_stab.id);
+bool Aura4_t::write_config_message(int id, uint8_t *payload, int len) {
+    serial.write_packet( id, payload, len );
+    return wait_for_ack(id);
 }
 
 bool Aura4_t::write_command_zero_gyros() {
@@ -541,114 +493,124 @@ bool Aura4_t::write_command_cycle_inceptors() {
     return wait_for_ack(cmd.id);
 }
 
+// reset airdata to startup defaults
+static void airdata_defaults( message::config_airdata_t *config_airdata ) {
+    config_airdata->barometer = 0;
+    config_airdata->pitot = 0;
+    config_airdata->swift_baro_addr = 0;
+    config_airdata->swift_pitot_addr = 0;
+}
+
 // master board selector defaults
-void Aura4_t::board_defaults() {
-    config_board.board = 0;
-    config_board.led_pin = 0;
+static void board_defaults( message::config_board_t *config_board ) {
+    config_board->board = 0;
+    config_board->led_pin = 0;
 }
 
 // ekf defaults
-void Aura4_t::ekf_defaults() {
-    config_ekf.sig_w_accel = 0.05;
-    config_ekf.sig_w_gyro = 0.00175;
-    config_ekf.sig_a_d = 0.01;
-    config_ekf.tau_a = 100.0;
-    config_ekf.sig_g_d = 0.00025;
-    config_ekf.tau_g = 50.0;
-    config_ekf.sig_gps_p_ne = 3.0;
-    config_ekf.sig_gps_p_d = 6.0;
-    config_ekf.sig_gps_v_ne = 1.0;
-    config_ekf.sig_gps_v_d = 3.0;
-    config_ekf.sig_mag = 0.3;
+static void ekf_defaults( message::config_ekf_t *config_ekf ) {
+    config_ekf->sig_w_accel = 0.05;
+    config_ekf->sig_w_gyro = 0.00175;
+    config_ekf->sig_a_d = 0.01;
+    config_ekf->tau_a = 100.0;
+    config_ekf->sig_g_d = 0.00025;
+    config_ekf->tau_g = 50.0;
+    config_ekf->sig_gps_p_ne = 3.0;
+    config_ekf->sig_gps_p_d = 6.0;
+    config_ekf->sig_gps_v_ne = 1.0;
+    config_ekf->sig_gps_v_d = 3.0;
+    config_ekf->sig_mag = 0.3;
 }
 
 // Setup imu defaults:
 // Marmot v1 has mpu9250 on SPI CS line 24
 // Aura v2 has mpu9250 on I2C Addr 0x68
-void Aura4_t::imu_setup_defaults() {
-    config_imu.interface = 0;       // SPI
-    config_imu.pin_or_address = 24; // CS pin
+static void imu_defaults( message::config_imu_t *config_imu ) {
+    config_imu->interface = 0;       // SPI
+    config_imu->pin_or_address = 24; // CS pin
     float ident[] = { 1.0, 0.0, 0.0,
                       0.0, 1.0, 0.0,
                       0.0, 0.0, 1.0};
     for ( int i = 0; i < 9; i++ ) {
-        config_imu.orientation[i] = ident[i];
+        config_imu->orientation[i] = ident[i];
     }
 }
 
 // reset pwm output rates to safe startup defaults
-void Aura4_t::pwm_defaults() {
+static void pwm_defaults( message::config_pwm_t *config_pwm ) {
     for ( int i = 0; i < message::pwm_channels; i++ ) {
-         config_pwm.pwm_hz[i] = 50;    
-         config_pwm.act_gain[i] = 1.0;
+         config_pwm->pwm_hz[i] = 50;    
+         config_pwm->act_gain[i] = 1.0;
     }
 }
 
-// reset airdata to startup defaults
-void Aura4_t::airdata_defaults() {
-    config_airdata.barometer = 0;
-    config_airdata.pitot = 0;
-    config_airdata.swift_baro_addr = 0;
-    config_airdata.swift_pitot_addr = 0;
+// reset mixing parameters to startup defaults
+static void mixer_defaults( message::config_mixer_t *config_mixer ) {
+    config_mixer->mix_autocoord = false;
+    config_mixer->mix_throttle_trim = false;
+    config_mixer->mix_flap_trim = false;
+    config_mixer->mix_elevon = false;
+    config_mixer->mix_flaperon = false;
+    config_mixer->mix_vtail = false;
+    config_mixer->mix_diff_thrust = false;
+
+    config_mixer->mix_Gac = 0.5;       // aileron gain for autocoordination
+    config_mixer->mix_Get = -0.1;      // elevator trim w/ throttle gain
+    config_mixer->mix_Gef = 0.1;       // elevator trim w/ flap gain
+
+    config_mixer->mix_Gea = 1.0;       // aileron gain for elevons
+    config_mixer->mix_Gee = 1.0;       // elevator gain for elevons
+    config_mixer->mix_Gfa = 1.0;       // aileron gain for flaperons
+    config_mixer->mix_Gff = 1.0;       // flaps gain for flaperons
+    config_mixer->mix_Gve = 1.0;       // elevator gain for vtail
+    config_mixer->mix_Gvr = 1.0;       // rudder gain for vtail
+    config_mixer->mix_Gtt = 1.0;       // throttle gain for diff thrust
+    config_mixer->mix_Gtr = 0.1;       // rudder gain for diff thrust
+};
+
+static void power_defaults( message::config_power_t *config_power ) {
+    config_power->have_attopilot = false;
 }
 
 // reset sas parameters to startup defaults
-void Aura4_t::stability_defaults() {
-    config_stab.sas_rollaxis = false;
-    config_stab.sas_pitchaxis = false;
-    config_stab.sas_yawaxis = false;
-    config_stab.sas_tune = false;
+static void stability_defaults( message::config_stability_damping_t *config_stab ) {
+    config_stab->sas_rollaxis = false;
+    config_stab->sas_pitchaxis = false;
+    config_stab->sas_yawaxis = false;
+    config_stab->sas_tune = false;
 
-    config_stab.sas_rollgain = 0.0;
-    config_stab.sas_pitchgain = 0.0;
-    config_stab.sas_yawgain = 0.0;
-    config_stab.sas_max_gain = 2.0;
+    config_stab->sas_rollgain = 0.0;
+    config_stab->sas_pitchgain = 0.0;
+    config_stab->sas_yawgain = 0.0;
+    config_stab->sas_max_gain = 2.0;
 };
 
-
-// reset mixing parameters to startup defaults
-void Aura4_t::mixer_defaults() {
-    config_mixer.mix_autocoord = false;
-    config_mixer.mix_throttle_trim = false;
-    config_mixer.mix_flap_trim = false;
-    config_mixer.mix_elevon = false;
-    config_mixer.mix_flaperon = false;
-    config_mixer.mix_vtail = false;
-    config_mixer.mix_diff_thrust = false;
-
-    config_mixer.mix_Gac = 0.5;       // aileron gain for autocoordination
-    config_mixer.mix_Get = -0.1;      // elevator trim w/ throttle gain
-    config_mixer.mix_Gef = 0.1;       // elevator trim w/ flap gain
-
-    config_mixer.mix_Gea = 1.0;       // aileron gain for elevons
-    config_mixer.mix_Gee = 1.0;       // elevator gain for elevons
-    config_mixer.mix_Gfa = 1.0;       // aileron gain for flaperons
-    config_mixer.mix_Gff = 1.0;       // flaps gain for flaperons
-    config_mixer.mix_Gve = 1.0;       // elevator gain for vtail
-    config_mixer.mix_Gvr = 1.0;       // rudder gain for vtail
-    config_mixer.mix_Gtt = 1.0;       // throttle gain for diff thrust
-    config_mixer.mix_Gtr = 0.1;       // rudder gain for diff thrust
-};
-
-void Aura4_t::power_defaults() {
-    config_power.have_attopilot = false;
-}
 
 // send a full configuration to Aura4 and return true only when all
 // parameters are acknowledged.
 bool Aura4_t::send_config() {
+    message::config_airdata_t config_airdata;
+    message::config_board_t config_board;
+    message::config_ekf_t config_ekf;
+    message::config_imu_t config_imu;
+    message::config_mixer_t config_mixer;
+    message::config_power_t config_power;
+    message::config_pwm_t config_pwm;
+    message::config_stability_damping_t config_stab;
+    
     info("building config structure.");
 
     vector<string> children;
 
     // set all parameters to defaults
-    board_defaults();
-    imu_setup_defaults();
-    pwm_defaults();
-    airdata_defaults();
-    mixer_defaults();
-    power_defaults();
-    stability_defaults();
+    airdata_defaults(&config_airdata);
+    board_defaults(&config_board);
+    ekf_defaults(&config_ekf);
+    imu_defaults(&config_imu);
+    pwm_defaults(&config_pwm);
+    mixer_defaults(&config_mixer);
+    power_defaults(&config_power);
+    stability_defaults(&config_stab);
 
     int count;
 
@@ -865,43 +827,51 @@ bool Aura4_t::send_config() {
         }
     }
     
-    info("transmitting master config ...");
-    if ( !write_config_board() ) {
+    info("transmitting airdata config ...");
+    config_airdata.pack();
+    if ( !write_config_message(config_airdata.id, config_airdata.payload, config_airdata.len ) ) {
+        return false;
+    }
+
+    info("transmitting board config ...");
+    config_board.pack();
+    if ( !write_config_message(config_board.id, config_board.payload, config_board.len) ) {
         return false;
     }
 
     info("transmitting ekf config ...");
-    if ( !write_config_ekf() ) {
+    config_ekf.pack();
+    if ( !write_config_message(config_ekf.id, config_ekf.payload, config_ekf.len) ) {
         return false;
     }
 
     info("transmitting imu config ...");
-    if ( !write_config_imu() ) {
-        return false;
-    }
-
-    info("transmitting pwm config ...");
-    if ( !write_config_pwm() ) {
+    config_imu.pack();
+    if ( !write_config_message(config_imu.id, config_imu.payload, config_imu.len) ) {
         return false;
     }
 
     printf("transmitting mixer config ...");
-    if ( !write_config_mixer() ) {
-        return false;
-    }
-
-    info("transmitting airdata config ...");
-    if ( !write_config_airdata() ) {
+    config_mixer.pack();
+    if ( !write_config_message(config_mixer.id, config_mixer.payload, config_mixer.len) ) {
         return false;
     }
 
     info("transmitting power config ...");
-    if ( !write_config_power() ) {
+    config_power.pack();
+    if ( !write_config_message(config_power.id, config_power.payload, config_power.len) ) {
+        return false;
+    }
+
+    info("transmitting pwm config ...");
+    config_pwm.pack();
+    if ( !write_config_message(config_pwm.id, config_pwm.payload, config_pwm.len) ) {
         return false;
     }
 
     info("transmitting stability damping config ...");
-    if ( !write_config_stab() ) {
+    config_stab.pack();
+    if ( !write_config_message(config_stab.id, config_stab.payload, config_stab.len) ) {
         return false;
     }
 
