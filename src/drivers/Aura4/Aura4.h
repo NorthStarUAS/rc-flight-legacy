@@ -5,12 +5,17 @@
 
 #pragma once
 
+#include <eigen3/Eigen/Core>
+using namespace Eigen;
+
 #include <pyprops.h>
 
 #include "comms/serial_link.h"
+#include "drivers/cal_temp.h"
 #include "drivers/driver.h"
 #include "include/globaldefs.h" /* fixme, get rid of? */
 #include "util/butter.h"
+#include "util/linearfit.h"
 #include "util/lowpass.h"
 
 #include "aura4_messages.h"
@@ -42,10 +47,42 @@ private:
     bool configuration_sent = false;
     int last_ack_id = 0;
     int last_ack_subid = 0;
+    uint32_t parse_errors = 0;
+    uint32_t skipped_frames = 0;
+    uint32_t pilot_packet_counter = 0;
+    uint32_t imu_packet_counter = 0;
+    uint32_t gps_packet_counter = 0;
+    uint32_t airdata_packet_counter = 0;
 
+    bool airspeed_inited = false;
+    double airspeed_zero_start_time = 0.0;
     float pitot_calibrate = 1.0;
+    // 2nd order filter, 100hz sample rate expected, 3rd field is
+    // cutoff freq.  higher freq value == noisier, a value near 1 hz
+    // should work well for airspeed.
     ButterworthFilter pitot_filter = ButterworthFilter(2, 100, 0.8);
+    double pitot_sum = 0.0;
+    int pitot_count = 0;
+    float pitot_offset = 0.0;
+    LowPassFilter pitot_filt = LowPassFilter(0.2);
+    
+    double imu_timestamp = 0.0;
+    uint32_t last_imu_micros = 0;
+    LinearFitFilter imu_offset = LinearFitFilter(200.0, 0.01);
+    AuraCalTemp ax_cal;
+    AuraCalTemp ay_cal;
+    AuraCalTemp az_cal;
+    Matrix4d mag_cal;
+    double last_bias_update = 0.0;
+
+    string pilot_mapping[message::sbus_channels]; // channel->name mapping
+    
     int battery_cells = 4;
+    LowPassFilter avionics_vcc_filt = LowPassFilter(2.0);
+    LowPassFilter int_main_vcc_filt = LowPassFilter(2.0);
+    LowPassFilter ext_main_vcc_filt = LowPassFilter(2.0);
+
+    bool first_status_message = false;
     
     message::config_master_t config_master;
     message::config_imu_t config_imu;
@@ -56,10 +93,6 @@ private:
     message::config_led_t config_led;
     message::config_stab_damping_t config_stab;
     
-    LowPassFilter avionics_vcc_filt = LowPassFilter(2.0);
-    LowPassFilter int_main_vcc_filt = LowPassFilter(2.0);
-    LowPassFilter ext_main_vcc_filt = LowPassFilter(2.0);
-
     void info( const char* format, ... );
     void hard_error( const char*format, ... );
     
@@ -99,5 +132,6 @@ private:
     bool update_imu( message::imu_raw_t *imu );
     bool update_pilot( message::pilot_t *pilot );
     
+    void airdata_zero_airspeed();
     bool update_actuators();
 };

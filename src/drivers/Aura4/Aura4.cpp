@@ -1,13 +1,15 @@
  //
 // FILE: Aura4.cpp
-// DESCRIPTION: interact with Aura4 (Teensy/Pika) sensor head
+// DESCRIPTION: interact with Aura4 FMU
 //
 
 // TODO:
-// - clean up static variables in methods
-// - clean up global static variables
+// - straighten out what I'm doing with imu timestamp dance
+// - straighten out what I'm doing with skipped frames
+// - gps age?
 // - parse ekf packet
 // - write actuators
+// - deal with how to choose output paths in property tree
 
 #include <pyprops.h>
 
@@ -19,14 +21,9 @@
 using std::string;
 using std::ostringstream;
 
-#include <eigen3/Eigen/Core>
-using namespace Eigen;
-
 #include "comms/display.h"
 #include "comms/logging.h"
-#include "drivers/cal_temp.h"
 #include "init/globals.h"
-#include "util/linearfit.h"
 #include "util/timing.h"
 
 #include "Aura4.h"
@@ -34,37 +31,7 @@ using namespace Eigen;
 // FIXME: could be good to be able to define constants in the message.json
 const int NUM_IMU_SENSORS = 10;
 
-static uint8_t pilot_flags = 0x00;
-static string pilot_mapping[message::sbus_channels]; // channel->name mapping
-
-static double imu_timestamp = 0.0;
-static uint32_t imu_micros = 0;
-//static int16_t imu_sensors[NUM_IMU_SENSORS];
-
-static LinearFitFilter imu_offset(200.0, 0.01);
-
-// 2nd order filter, 100hz sample rate expected, 3rd field is cutoff freq.
-// higher freq value == noisier, a value near 1 hz should work well
-// for airspeed.
-
-static uint32_t parse_errors = 0;
-static uint32_t skipped_frames = 0;
-
-static bool airspeed_inited = false;
-static double airspeed_zero_start_time = 0.0;
-
-static AuraCalTemp ax_cal;
-static AuraCalTemp ay_cal;
-static AuraCalTemp az_cal;
-static Matrix4d mag_cal;
-
-static uint32_t pilot_packet_counter = 0;
-static uint32_t imu_packet_counter = 0;
-static uint32_t gps_packet_counter = 0;
-static uint32_t airdata_packet_counter = 0;
-//static uint32_t analog_packet_counter = 0;
-
-// pulled from aura-sensors.ino
+// pulled from aura-sensors/src/imu.cpp
 const float _pi = 3.14159265358979323846;
 const float _g = 9.807;
 const float _d2r = _pi / 180.0;
@@ -290,10 +257,7 @@ void Aura4_t::init_actuators( pyPropertyNode *config ) {
 }
 
 bool Aura4_t::update_imu( message::imu_raw_t *imu ) {
-    static double last_bias_update = 0.0;
-    
     imu_timestamp = get_Time();
-    imu_micros = imu->micros;
 
     float p_raw = 0.0, q_raw = 0.0, r_raw = 0.0;
     float ax_raw = 0.0, ay_raw = 0.0, az_raw = 0.0;
@@ -333,12 +297,11 @@ bool Aura4_t::update_imu( message::imu_raw_t *imu ) {
     // the Aura4 clock and derive a more regular/stable IMU time
     // stamp (versus just sampling current host time.)
 	
-    // imu_micros &= 0xffffff; // 24 bits = 16.7 microseconds roll over
+    // imu->micros &= 0xffffff; // 24 bits = 16.7 microseconds roll over
 	
-    static uint32_t last_imu_micros = 0;
-    double imu_remote_sec = (double)imu_micros / 1000000.0;
+    double imu_remote_sec = (double)imu->micros / 1000000.0;
     double diff = imu_timestamp - imu_remote_sec;
-    if ( last_imu_micros > imu_micros ) {
+    if ( last_imu_micros > imu->micros ) {
         events->log("Aura4", "micros() rolled over\n");
         imu_offset.reset();
     }
@@ -347,11 +310,11 @@ bool Aura4_t::update_imu( message::imu_raw_t *imu ) {
     // printf("fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
     //        fit_diff, diff, imu_remote_sec + fit_diff );
 
-    last_imu_micros = imu_micros;
+    last_imu_micros = imu->micros;
 	
     imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
-    imu_node.setLong( "imu_micros", imu_micros );
-    imu_node.setDouble( "imu_sec", (double)imu_micros / 1000000.0 );
+    imu_node.setLong( "imu->micros", imu->micros );
+    imu_node.setDouble( "imu_sec", (double)imu->micros / 1000000.0 );
     imu_node.setDouble( "p_rad_sec", p_raw );
     imu_node.setDouble( "q_rad_sec", q_raw );
     imu_node.setDouble( "r_rad_sec", r_raw );
@@ -455,7 +418,6 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
             info("packet size mismatch in power packet");
 	}
     } else if ( pkt_id == message::status_id ) {
-	static bool first_time = true;
         message::status_t msg;
         msg.unpack(payload, pkt_len);
 	if ( pkt_len == msg.len ) {
@@ -465,9 +427,9 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
 	    aura4_node.setLong( "baud_rate", msg.baud );
 	    aura4_node.setLong( "byte_rate_sec", msg.byte_rate );
  
-	    if ( first_time ) {
+	    if ( first_status_message ) {
 		// log the data to events.txt
-		first_time = false;
+		first_status_message = false;
 		char buf[128];
 		snprintf( buf, 32, "Serial Number = %d", msg.serial_number );
 		events->log("Aura4", buf );
@@ -1003,12 +965,6 @@ bool Aura4_t::update_gps( message::aura_nav_pvt_t *nav_pvt ) {
 
 bool Aura4_t::update_airdata( message::airdata_t *airdata ) {
     bool fresh_data = false;
-    static double pitot_sum = 0.0;
-    static int pitot_count = 0;
-    static float pitot_offset = 0.0;
-    static LowPassFilter pitot_filt(0.2);
-
-    double cur_time = imu_timestamp;
 
     float pitot_butter = pitot_filter.update(airdata->ext_diff_press_pa);
         
@@ -1025,13 +981,13 @@ bool Aura4_t::update_airdata( message::airdata_t *airdata ) {
             pitot_sum = 0.0;
             pitot_count = 0;
         }
-        if ( cur_time > airspeed_zero_start_time + 10.0 ) {
+        if ( imu_timestamp > airspeed_zero_start_time + 10.0 ) {
             //printf("pitot_offset = %.2f\n", pitot_offset);
             airspeed_inited = true;
         }
     }
 
-    airdata_node.setDouble( "timestamp", cur_time );
+    airdata_node.setDouble( "timestamp", imu_timestamp );
 
     // basic pressure to airspeed formula: v = sqrt((2/p) * q)
     // where v = velocity, q = dynamic pressure (pitot tube sensor
@@ -1083,7 +1039,7 @@ bool Aura4_t::update_airdata( message::airdata_t *airdata ) {
 // force an airspeed zero calibration (ideally with the aircraft on
 // the ground with the pitot tube perpendicular to the prevailing
 // wind.)
-void Aura4_airdata_zero_airspeed() {
+void Aura4_t::airdata_zero_airspeed() {
     airspeed_inited = false;
     airspeed_zero_start_time = 0.0;
 }
@@ -1092,7 +1048,6 @@ void Aura4_airdata_zero_airspeed() {
 bool Aura4_t::update_pilot( message::pilot_t *pilot ) {
     float val;
 
-    pilot_flags = pilot->flags;
     pilot_node.setDouble( "timestamp", get_Time() );
 
     for ( int i = 0; i < message::sbus_channels; i++ ) {
@@ -1102,23 +1057,23 @@ bool Aura4_t::update_pilot( message::pilot_t *pilot ) {
     }
 
     // sbus ch17 (channel[16])
-    if ( pilot_flags & 0x01 ) {
+    if ( pilot->flags & 0x01 ) {
         pilot_node.setDouble( "channel", 16, 1.0 );
     } else {
         pilot_node.setDouble( "channel", 16, 0.0 );
     }
     // sbus ch18 (channel[17])
-    if ( pilot_flags & (1 << 1) ) {
+    if ( pilot->flags & (1 << 1) ) {
         pilot_node.setDouble( "channel", 17, 1.0 );
     } else {
         pilot_node.setDouble( "channel", 17, 0.0 );
     }
-    if ( pilot_flags & (1 << 2) ) {
+    if ( pilot->flags & (1 << 2) ) {
         pilot_node.setBool( "frame_lost", true );
     } else {
         pilot_node.setBool( "frame_lost", false );
     }
-    if ( pilot_flags & (1 << 3) ) {
+    if ( pilot->flags & (1 << 3) ) {
         pilot_node.setBool( "fail_safe", true );
     } else {
         pilot_node.setBool( "fail_safe", false );
