@@ -167,6 +167,11 @@ void Aura4_t::init_airdata( pyPropertyNode *config ) {
     airdata_node = pyGetNode(output_path.c_str(), true);
 }
 
+void Aura4_t::init_ekf( pyPropertyNode *config ) {
+    string output_path = get_next_path("/filters", "filter", true);
+    ekf_node = pyGetNode(output_path.c_str(), true);
+}
+
 void Aura4_t::init_gps( pyPropertyNode *config ) {
     string output_path = get_next_path("/sensors", "gps", true);
     gps_node = pyGetNode(output_path.c_str(), true);
@@ -348,28 +353,28 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
 	} else {
 	    printf("Aura4: packet size mismatch in ACK\n");
 	}
-    } else if ( pkt_id == message::pilot_id ) {
-        message::pilot_t pilot;
-        pilot.unpack(payload, pkt_len);
-	if ( pkt_len == pilot.len ) {
-            update_pilot( &pilot );
-	    pilot_packet_counter++;
-	    aura4_node.setLong( "pilot_packet_count", pilot_packet_counter );
+    } else if ( pkt_id == message::airdata_id ) {
+        message::airdata_t airdata;
+        airdata.unpack(payload, pkt_len);
+	if ( pkt_len == airdata.len ) {
+            update_airdata(&airdata);
+	    airdata_packet_counter++;
+	    aura4_node.setLong( "airdata_packet_count", airdata_packet_counter );
 	    new_data = true;
 	} else {
-            info("packet size mismatch in pilot input packet");
+            info("packet size mismatch in airdata packet");
 	}
-    } else if ( pkt_id == message::imu_raw_id ) {
-        message::imu_raw_t imu;
-        imu.unpack(payload, pkt_len);
-	if ( pkt_len == imu.len ) {
-            update_imu(&imu);
-	    imu_packet_counter++;
-	    aura4_node.setLong( "imu_packet_count", imu_packet_counter );
-	    new_data = true;
-	} else {
-            info("packet size mismatch in imu packet");
-	}
+    } else if ( pkt_id == message::ekf_id ) {
+        message::ekf_t ekf;
+        ekf.unpack(payload, pkt_len);
+        if ( pkt_len == ekf.len ) {
+            update_ekf(&ekf);
+            ekf_packet_counter++;
+            aura4_node.setLong( "ekf_packet_count", ekf_packet_counter );
+            new_data = true;
+        } else {
+            info("packet size mismatch in ekf packet");
+        }
     } else if ( pkt_id == message::aura_nav_pvt_id ) {
         message::aura_nav_pvt_t nav_pvt;
         nav_pvt.unpack(payload, pkt_len);
@@ -382,18 +387,27 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
             info("packet size mismatch in gps packet");
             info("got %d, expected %d", pkt_len, nav_pvt.len);
 	}
-    } else if ( pkt_id == message::ekf_id ) {
-        // ekf message, just toss silently for the moment
-    } else if ( pkt_id == message::airdata_id ) {
-        message::airdata_t airdata;
-        airdata.unpack(payload, pkt_len);
-	if ( pkt_len == airdata.len ) {
-            update_airdata(&airdata);
-	    airdata_packet_counter++;
-	    aura4_node.setLong( "airdata_packet_count", airdata_packet_counter );
+    } else if ( pkt_id == message::imu_raw_id ) {
+        message::imu_raw_t imu;
+        imu.unpack(payload, pkt_len);
+	if ( pkt_len == imu.len ) {
+            update_imu(&imu);
+	    imu_packet_counter++;
+	    aura4_node.setLong( "imu_packet_count", imu_packet_counter );
 	    new_data = true;
 	} else {
-            info("packet size mismatch in airdata packet");
+            info("packet size mismatch in imu packet");
+	}
+    } else if ( pkt_id == message::pilot_id ) {
+        message::pilot_t pilot;
+        pilot.unpack(payload, pkt_len);
+	if ( pkt_len == pilot.len ) {
+            update_pilot( &pilot );
+	    pilot_packet_counter++;
+	    aura4_node.setLong( "pilot_packet_count", pilot_packet_counter );
+	    new_data = true;
+	} else {
+            info("packet size mismatch in pilot input packet");
 	}
     } else if ( pkt_id == message::power_id ) {
         message::power_t power;
@@ -533,6 +547,18 @@ static void imu_defaults( message::config_imu_t *config_imu ) {
                       0.0, 0.0, 1.0};
     for ( int i = 0; i < 9; i++ ) {
         config_imu->orientation[i] = ident[i];
+    }
+    config_imu->min_temp = 15.0;
+    config_imu->max_temp = 15.0;
+    for ( int i = 0; i < 3; i++ ) {
+        config_imu->ax_coeff[i] = 0.0;
+    }
+    float mag_affine[] = { 1.0, 0.0, 0.0, 0.0,
+                           0.0, 1.0, 0.0, 0.0,
+                           0.0, 0.0, 1.0, 0.0,
+                           0.0, 0.0, 0.0, 1.0 };
+    for ( int i = 0; i < 16; i++ ) {
+        config_imu->mag_affine[i] = mag_affine[i];
     }
 }
 
@@ -937,6 +963,31 @@ float Aura4_t::read() {
     return dt;
 }
 
+
+bool Aura4_t::update_ekf( message::ekf_t *ekf ) {
+    const double R2D = 180 / M_PI;
+    const double F2M = 0.3048;
+    const double M2F = 1 / F2M;
+    /*FIXME*/ ekf_node.setDouble( "timestamp", ekf->micros );
+    ekf_node.setDouble( "latitude_deg", ekf->lat_rad * R2D );
+    ekf_node.setDouble( "longitude_deg", ekf->lon_rad * R2D );
+    ekf_node.setDouble( "altitude_m", ekf->altitude_m );
+    ekf_node.setDouble( "vn_ms", ekf->vn_ms );
+    ekf_node.setDouble( "ve_ms", ekf->ve_ms );
+    ekf_node.setDouble( "vd_ms", ekf->vd_ms );
+    ekf_node.setDouble( "roll_deg", ekf->phi_rad * R2D );
+    ekf_node.setDouble( "pitch_deg", ekf->the_rad * R2D );
+    ekf_node.setDouble( "heading_deg", ekf->psi_rad * R2D );
+    /*FIXME: we want the biases as well*/
+    /*FIXME:move the following to filter_mgr?*/
+    ekf_node.setDouble( "altitude_ft", ekf->altitude_m * M2F );
+    ekf_node.setDouble( "groundtrack_deg",
+                        90 - atan2(ekf->vn_ms, ekf->ve_ms) * R2D );
+    double gs_ms = sqrt(ekf->vn_ms * ekf->vn_ms + ekf->ve_ms * ekf->ve_ms);
+    ekf_node.setDouble( "groundspeed_ms", gs_ms );
+    ekf_node.setDouble( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
+    ekf_node.setDouble( "vertical_speed_fps", -ekf->vd_ms * M2F );
+}
 
 bool Aura4_t::update_gps( message::aura_nav_pvt_t *nav_pvt ) {
     gps_node.setDouble( "timestamp", get_Time() );

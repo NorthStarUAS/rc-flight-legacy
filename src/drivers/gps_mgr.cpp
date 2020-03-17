@@ -56,6 +56,8 @@ static int logging_skip = 0;
 
 void GPS_init() {
     gps_node = pyGetNode("/sensors/gps", true);
+    // init master gps timestamp to one year ago
+    gps_node.setDouble("timestamp", -31557600.0);
     
     pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
     pyPropertyNode logging_node = pyGetNode("/config/logging", true);
