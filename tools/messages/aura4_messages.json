@@ -111,7 +111,7 @@
             "name": "config_pwm",
             "desc": "pwm configuration",
             "fields": [
-                { "type": "uint16_t", "name": "pwm_hz[pwm_channels]", "desc": "pwm output signal hz, 50hz default for analog servos, maximum rate is servo dependent: digital servos can usually do 200-250hz, analog servos and ESC's typically require 50hz" },
+                { "type": "uint16_t", "name": "pwm_hz", "desc": "pwm output signal hz, 50hz default for analog servos, maximum rate is servo dependent: digital servos can usually do 200-250hz, analog servos and ESC's typically require 50hz" },
                 { "type": "float", "name": "act_gain[pwm_channels]", "desc": "actuator gain (reversing/scaling)" }
             ]
         },

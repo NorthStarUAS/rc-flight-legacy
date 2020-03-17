@@ -544,14 +544,14 @@ struct config_power_t {
 // Message: config_pwm (id: 18)
 struct config_pwm_t {
     // public fields
-    uint16_t pwm_hz[pwm_channels];
+    uint16_t pwm_hz;
     float act_gain[pwm_channels];
 
     // internal structure for packing
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
-        uint16_t pwm_hz[pwm_channels];
+        uint16_t pwm_hz;
         float act_gain[pwm_channels];
     };
     #pragma pack(pop)
@@ -569,7 +569,7 @@ struct config_pwm_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
-        for (int _i=0; _i<pwm_channels; _i++) _buf->pwm_hz[_i] = pwm_hz[_i];
+        _buf->pwm_hz = pwm_hz;
         for (int _i=0; _i<pwm_channels; _i++) _buf->act_gain[_i] = act_gain[_i];
         return true;
     }
@@ -581,7 +581,7 @@ struct config_pwm_t {
         memcpy(payload, external_message, message_size);
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
-        for (int _i=0; _i<pwm_channels; _i++) pwm_hz[_i] = _buf->pwm_hz[_i];
+        pwm_hz = _buf->pwm_hz;
         for (int _i=0; _i<pwm_channels; _i++) act_gain[_i] = _buf->act_gain[_i];
         return true;
     }

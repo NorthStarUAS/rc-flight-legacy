@@ -565,7 +565,7 @@ static void imu_defaults( message::config_imu_t *config_imu ) {
 // reset pwm output rates to safe startup defaults
 static void pwm_defaults( message::config_pwm_t *config_pwm ) {
     for ( int i = 0; i < message::pwm_channels; i++ ) {
-         config_pwm->pwm_hz[i] = 50;    
+         config_pwm->pwm_hz = 50;    
          config_pwm->act_gain[i] = 1.0;
     }
 }
@@ -641,7 +641,7 @@ bool Aura4_t::send_config() {
     int count;
 
     pyPropertyNode board_node = aura4_config.getChild("board", true);
-    string board = aura4_config.getString("board");
+    string board = board_node.getString("board");
     if ( board == "marmot_v1" ) {
         config_board.board = 0;
     } else if ( board == "aura_v2" ) {
@@ -649,7 +649,7 @@ bool Aura4_t::send_config() {
     } else {
         printf("Warning: no valid PWM pin layout defined.\n");
     }
-    if ( aura4_config.hasChild("led_pin") ) {
+    if ( board_node.hasChild("led_pin") ) {
         config_board.led_pin = aura4_config.getLong("led_pin");
     }
 
@@ -658,8 +658,7 @@ bool Aura4_t::send_config() {
         config_power.have_attopilot = power_node.getBool("have_attopilot");
     }
 
-    pyPropertyNode imu_node
-        = pyGetNode("/config/sensors/imu_group/imu", true);
+    pyPropertyNode imu_node = aura4_config.getChild("imu", true);
     if ( imu_node.hasChild("orientation") ) {
         int len = imu_node.getLen("orientation");
         if ( len == 9 ) {
@@ -684,23 +683,16 @@ bool Aura4_t::send_config() {
         }
     }
             
-    pyPropertyNode pwm_node
-	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
-    count = pwm_node.getLen("channel");
+    pyPropertyNode pwm_node = aura4_config.getChild("pwm", true);
+    config_pwm.pwm_hz = pwm_node.getLong("pwm_hz");
+    info("pwm_hz = %d", config_pwm.pwm_hz);
+    count = pwm_node.getLen("gains");
     for ( int i = 0; i < count; i++ ) {
-        config_pwm.pwm_hz[i] = pwm_node.getLong("channel", i);
-        info("pwm_hz[%d] = %d", i, config_pwm.pwm_hz[i]);
-    }
-    pyPropertyNode gain_node
-	= pyGetNode("/config/actuators/actuator/pwm_rates", true);
-    count = gain_node.getLen("channel");
-    for ( int i = 0; i < count; i++ ) {
-        config_pwm.act_gain[i] = gain_node.getDouble("channel", i);
+        config_pwm.act_gain[i] = pwm_node.getDouble("gains", i);
         info("act_gain[%d] = %.2f", i, config_pwm.act_gain[i]);
     }
 
-    pyPropertyNode mixer_node
-	= pyGetNode("/config/actuators/actuator/mixing", true);
+    pyPropertyNode mixer_node = aura4_config.getChild("mixer");
     count = mixer_node.getLen("mix");
     if ( count ) {
 	for ( int i = 0; i < count; i++ ) {
@@ -751,24 +743,24 @@ bool Aura4_t::send_config() {
 	}
     }
 
-    pyPropertyNode sas_node = pyGetNode("/config/actuators/actuator/sas", true);
-    children = sas_node.getChildren(false);
+    pyPropertyNode stab_node = aura4_config.getChild("stability_damper");
+    children = stab_node.getChildren(false);
     count = (int)children.size();
     for ( int i = 0; i < count; ++i ) {
 	string mode = "";
 	bool enable = false;
 	float gain = 0.0;
 	if ( children[i] == "axis" ) {
-	    for ( int j = 0; j < sas_node.getLen("axis"); j++ ) {
-		pyPropertyNode sas_section = sas_node.getChild("axis", j);
-		if ( sas_section.hasChild("enable") ) {
-		    enable = sas_section.getBool("enable");
+	    for ( int j = 0; j < stab_node.getLen("axis"); j++ ) {
+		pyPropertyNode stab_section = stab_node.getChild("axis", j);
+		if ( stab_section.hasChild("enable") ) {
+		    enable = stab_section.getBool("enable");
 		}
-		if ( sas_section.hasChild("gain") ) {
-		    gain = sas_section.getDouble("gain");
+		if ( stab_section.hasChild("gain") ) {
+		    gain = stab_section.getDouble("gain");
 		}
-		if ( sas_section.hasChild("mode") ) {
-		    mode = sas_section.getString("mode");
+		if ( stab_section.hasChild("mode") ) {
+		    mode = stab_section.getString("mode");
 		    if ( mode == "roll" ) {
                         config_stab.sas_rollaxis = enable;
                         config_stab.sas_rollgain = gain;
@@ -783,16 +775,15 @@ bool Aura4_t::send_config() {
                 info("sas: %s %d %.2f", mode.c_str(), enable, gain);
 	    }
 	} else if ( children[i] == "pilot_tune" ) {
-	    pyPropertyNode sas_section = sas_node.getChild("pilot_tune");
-	    if ( sas_section.hasChild("enable") ) {
-		config_stab.sas_tune = sas_section.getBool("enable");
+	    pyPropertyNode stab_section = stab_node.getChild("pilot_tune");
+	    if ( stab_section.hasChild("enable") ) {
+		config_stab.sas_tune = stab_section.getBool("enable");
 	    }
             info("sas global tune %d", config_stab.sas_tune);
 	}
     }
 
-    pyPropertyNode airdata_node
-        = pyGetNode("/config/sensors/airdata_group/airdata", true);
+    pyPropertyNode airdata_node = aura4_config.getChild("airdata");
     if ( airdata_node.hasChild("barometer") ) {
         string baro = airdata_node.getString("barometer");
         if ( baro == "bme280" ) {
