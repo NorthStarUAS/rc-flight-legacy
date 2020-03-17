@@ -107,6 +107,13 @@ void Aura4_t::init( pyPropertyNode *config ) {
         hard_error("no airdata configuration\n");
     }
     
+    if ( config->hasChild("ekf") ) {
+        pyPropertyNode ekf_config = config->getChild("ekf");
+        init_ekf( &ekf_config );
+    } else {
+        hard_error("no ekf configuration\n");
+    }
+    
     if ( config->hasChild("gps") ) {
         pyPropertyNode gps_config = config->getChild("gps");
         init_gps( &gps_config );
