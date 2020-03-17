@@ -972,10 +972,19 @@ bool Aura4_t::update_ekf( message::ekf_t *ekf ) {
     ekf_node.setDouble( "vn_ms", ekf->vn_ms );
     ekf_node.setDouble( "ve_ms", ekf->ve_ms );
     ekf_node.setDouble( "vd_ms", ekf->vd_ms );
+    ekf_node.setDouble( "phi_rad", ekf->phi_rad );
+    ekf_node.setDouble( "the_rad", ekf->the_rad );
+    ekf_node.setDouble( "psi_rad", ekf->psi_rad );
     ekf_node.setDouble( "roll_deg", ekf->phi_rad * R2D );
     ekf_node.setDouble( "pitch_deg", ekf->the_rad * R2D );
     ekf_node.setDouble( "heading_deg", ekf->psi_rad * R2D );
-    /*FIXME: we want the biases as well*/
+    ekf_node.setDouble( "p_bias", ekf->p_bias );
+    ekf_node.setDouble( "q_bias", ekf->q_bias );
+    ekf_node.setDouble( "r_bias", ekf->r_bias );
+    ekf_node.setDouble( "ax_bias", ekf->ax_bias );
+    ekf_node.setDouble( "ay_bias", ekf->ay_bias );
+    ekf_node.setDouble( "az_bias", ekf->az_bias );
+    
     /*FIXME:move the following to filter_mgr?*/
     ekf_node.setDouble( "altitude_ft", ekf->altitude_m * M2F );
     ekf_node.setDouble( "groundtrack_deg",

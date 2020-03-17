@@ -244,12 +244,18 @@
                 { "type": "double", "name": "lat_rad" },
                 { "type": "double", "name": "lon_rad" },
                 { "type": "float", "name": "altitude_m" },
-                { "type": "float", "name": "vn_ms", "pack_type": "int16_t", "pack_scale": 100 },
-                { "type": "float", "name": "ve_ms", "pack_type": "int16_t", "pack_scale": 100 },
-                { "type": "float", "name": "vd_ms", "pack_type": "int16_t", "pack_scale": 100 },
-                { "type": "float", "name": "phi_rad", "pack_type": "int16_t", "pack_scale": 90 },
-                { "type": "float", "name": "the_rad", "pack_type": "int16_t", "pack_scale": 90 },
-                { "type": "float", "name": "psi_rad", "pack_type": "int16_t", "pack_scale": 90 }
+                { "type": "float", "name": "vn_ms" },
+                { "type": "float", "name": "ve_ms" },
+                { "type": "float", "name": "vd_ms" },
+                { "type": "float", "name": "phi_rad" },
+                { "type": "float", "name": "the_rad" },
+                { "type": "float", "name": "psi_rad" },
+                { "type": "float", "name": "p_bias" },
+                { "type": "float", "name": "q_bias" },
+                { "type": "float", "name": "r_bias" },
+                { "type": "float", "name": "ax_bias" },
+                { "type": "float", "name": "ay_bias" },
+                { "type": "float", "name": "az_bias" }
             ]
         }
     ]
