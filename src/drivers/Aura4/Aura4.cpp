@@ -77,12 +77,11 @@ void Aura4_t::init( pyPropertyNode *config ) {
     // bind main property nodes
     aura4_node = pyGetNode("/sensors/Aura4", true);
     power_node = pyGetNode("/sensors/power", true);
-
+    aura4_config = *config;
+    
     if ( true ) {               // fixme: move or delete
-        // initialize property nodes and configurable values
-        aura4_config = pyGetNode("/config/sensors/Aura4", true);
-
-        if ( aura4_config.hasChild("pitot_calibrate_factor") ) {
+        printf("warning the next code needs to be fixed!!!\n");
+        if ( config->hasChild("pitot_calibrate_factor") ) {
             pitot_calibrate = aura4_config.getDouble("pitot_calibrate_factor");
         }
 
@@ -635,7 +634,7 @@ bool Aura4_t::send_config() {
 
     vector<string> children;
 
-    // set all parameters to defaults
+    // set all message parameters to defaults
     airdata_defaults(&config_airdata);
     board_defaults(&config_board);
     ekf_defaults(&config_ekf);
@@ -648,16 +647,16 @@ bool Aura4_t::send_config() {
     int count;
 
     pyPropertyNode board_node = aura4_config.getChild("board", true);
-    string board = board_node.getString("board");
-    if ( board == "marmot_v1" ) {
+    string name = board_node.getString("name");
+    if ( name == "marmot_v1" ) {
         config_board.board = 0;
-    } else if ( board == "aura_v2" ) {
+    } else if ( name == "aura_v2" ) {
         config_board.board = 1;
     } else {
         printf("Warning: no valid PWM pin layout defined.\n");
     }
     if ( board_node.hasChild("led_pin") ) {
-        config_board.led_pin = aura4_config.getLong("led_pin");
+        config_board.led_pin = board_node.getLong("led_pin");
     }
 
     pyPropertyNode power_node = aura4_config.getChild("power", true);
