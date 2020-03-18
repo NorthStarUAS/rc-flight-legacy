@@ -679,6 +679,42 @@ bool Aura4_t::send_config() {
         } else {
             printf("WARNING: imu orienation improper matrix size\n");
         }
+        if ( imu_node.hasChild("calibration") ) {
+            pyPropertyNode cal = imu_node.getChild("calibration");
+            double min_temp = 27.0;
+            double max_temp = 27.0;
+            if ( cal.hasChild("min_temp_C") ) {
+                min_temp = cal.getDouble("min_temp_C");
+            }
+            if ( cal.hasChild("max_temp_C") ) {
+                max_temp = cal.getDouble("max_temp_C");
+            }
+            if ( cal.getLen("ax_calib") == 3 ) {
+                for ( int i = 0; i < 3; i++ ) {
+                    config_imu.ax_coeff[i] = cal.getDouble("ax_calib", i);
+                }
+            }
+            if ( cal.getLen("ay_calib") == 3 ) {
+                for ( int i = 0; i < 3; i++ ) {
+                    config_imu.ay_coeff[i] = cal.getDouble("ay_calib", i);
+                }
+            }
+            if ( cal.getLen("az_calib") == 3 ) {
+                for ( int i = 0; i < 3; i++ ) {
+                    config_imu.az_coeff[i] = cal.getDouble("az_calib", i);
+                }
+            }
+            
+            if ( cal.getLen("mag_affine") == 16 ) {
+                int r = 0, c = 0;
+                for ( unsigned int i = 0; i < 16; i++ ) {
+                    config_imu.mag_affine[i] = cal.getDouble("mag_affine", i);
+                }
+            } else {
+                info("ERROR: wrong number of elements for mag_cal affine matrix!\n");
+                mag_cal.setIdentity();
+            }
+        }
     } else {
         printf("Note: no imu orientation defined, default is identity matrix\n");
     }
