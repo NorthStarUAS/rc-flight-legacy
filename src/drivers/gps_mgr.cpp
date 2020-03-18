@@ -1,4 +1,4 @@
-/**
+ /**
  * \file: gps_mgr.cpp
  *
  * Front end management interface for reading GPS data.
@@ -44,8 +44,6 @@ using std::vector;
 //
 // Global variables
 //
-
-static double gps_last_time = -31557600.0; // default to t minus one year old
 
 static pyPropertyNode gps_node;
 static vector<pyPropertyNode> sections;
@@ -210,9 +208,6 @@ bool GPS_update() {
     gps_prof.stop();
 
     if ( fresh_data ) {
-	// for computing gps data age
-	gps_last_time = gps_node.getDouble("timestamp");
-
         remote_link_count--;
         logging_count--;
     }

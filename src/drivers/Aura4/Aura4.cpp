@@ -9,9 +9,9 @@
 // - (for now ok) gps age?
 // - (ok) send ekf config
 // - figure out how to deal with accel/mag calibration if ekf is remote 
-// - parse ekf packet
+// - (ok) parse ekf packet
 // - write actuators
-// - deal with how to choose output paths in property tree
+// - deal with how to arbitrate output path enumeration in property tree
 
 #include <pyprops.h>
 
@@ -197,16 +197,26 @@ void Aura4_t::init_imu( pyPropertyNode *config ) {
 	if ( cal.hasChild("max_temp_C") ) {
 	    max_temp = cal.getDouble("max_temp_C");
 	}
-	
-	//p_cal.init( cal->getChild("p"), min_temp, max_temp );
-	//q_cal.init( cal->getChild("q"), min_temp, max_temp );
-	//r_cal.init( cal->getChild("r"), min_temp, max_temp );
-	pyPropertyNode ax_node = cal.getChild("ax");
-	ax_cal.init( &ax_node, min_temp, max_temp );
-	pyPropertyNode ay_node = cal.getChild("ay");
-	ay_cal.init( &ay_node, min_temp, max_temp );
-	pyPropertyNode az_node = cal.getChild("az");
-	az_cal.init( &az_node, min_temp, max_temp );
+
+        vector<double> calib;
+        if ( cal.getLen("ax_calib") == 3 ) {
+            for ( int i = 0; i < 3; i++ ) {
+                calib.push_back( cal.getDouble("ax_calib", i) );
+            }
+            ax_cal.init( calib, min_temp, max_temp );
+        }
+        if ( cal.getLen("ay_calib") == 3 ) {
+            for ( int i = 0; i < 3; i++ ) {
+                calib[i] = cal.getDouble("ay_calib", i);
+            }
+            ay_cal.init( calib, min_temp, max_temp );
+        }
+        if ( cal.getLen("az_calib") == 3 ) {
+            for ( int i = 0; i < 3; i++ ) {
+                calib[i] = cal.getDouble("az_calib", i);
+            }
+            az_cal.init( calib, min_temp, max_temp );
+        }
 
 	if ( cal.hasChild("mag_affine") ) {
 	    string tokens_str = cal.getString("mag_affine");

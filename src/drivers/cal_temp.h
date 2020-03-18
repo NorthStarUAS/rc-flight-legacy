@@ -33,7 +33,6 @@ private:
     float _max_temp;		// temp (C)
     
     AuraPoly1d bias;
-    AuraPoly1d scale;
 
     void defaults();
 
@@ -42,7 +41,7 @@ public:
     AuraCalTemp();
     ~AuraCalTemp();
 
-    void init( pyPropertyNode *config, float min_temp, float max_temp );
+    void init( vector<double> calib, float min_temp, float max_temp );
 
     inline float get_bias( float temp )  {
 	if ( temp < _min_temp ) { temp = _min_temp; }
@@ -50,16 +49,9 @@ public:
 	return bias.eval(temp);
     }
 
-    inline float get_scale( float temp )  {
-	if ( temp < _min_temp ) { temp = _min_temp; }
-	if ( temp > _max_temp ) { temp = _max_temp; }
-	return scale.eval(temp);
-    }
-    
     inline float calibrate( float x, float temp ) {
 	float b = get_bias( temp );
-	float s = get_scale( temp );
-	// printf("sensor @ %.1f: %.3f -> %.3f\n", temp, x, (x - bias) * scale);
-	return (x - b) * s;
+	// printf("sensor @ %.1f: %.3f -> %.3f\n", temp, x, x - bias);
+	return x - b;
     }
 };

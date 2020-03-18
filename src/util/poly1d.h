@@ -36,23 +36,6 @@ public:
             _coeffs[0] = 1.0; // y = 1*x + 0; y = x
 	}
     }
-    AuraPoly1d( string coeffs_str ) {
-	//printf("poly1d: %s\n", coeffs_str.c_str());
-	if ( coeffs_str != "" ) {
-	    vector<string> tokens = split( coeffs_str );
-	    _coeffs.clear();
-	    for ( unsigned int i = 0; i < tokens.size(); i++ ) {
-		//printf(" %s\n", tokens[i].c_str());
-		_coeffs.push_back( atof(tokens[i].c_str()) );
-	    }
-	} else {
-	    _coeffs = vector<double>(2,0);
-            _coeffs[0] = 1.0; // y = 1*x + 0; y = x
-	}
-	//printf(" -> ");
-	//print();
-    }
-
     
     ~AuraPoly1d() { }
 

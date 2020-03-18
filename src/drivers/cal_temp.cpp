@@ -22,10 +22,7 @@ void AuraCalTemp::defaults()
     _max_temp = 27.0;
 
     vector<double> bias_coeffs(3,0);
-    vector<double> scale_coeffs(3,0);
-    scale_coeffs[2] = 1.0;
     bias = AuraPoly1d(bias_coeffs);
-    scale = AuraPoly1d(scale_coeffs);
 }
 
 
@@ -42,23 +39,15 @@ AuraCalTemp::~AuraCalTemp()
 
 
 // load parameters from specified property subtree
-void AuraCalTemp::init( pyPropertyNode *config, float min_temp, float max_temp )
+void AuraCalTemp::init( vector<double> bias_coeffs, float min_temp, float max_temp )
 {
     defaults();
 
     _min_temp = min_temp;
     _max_temp = max_temp;
-    
-    if ( config->hasChild("bias") ) {
-	bias = AuraPoly1d(config->getString("bias"));
-	bias.print();
-    }
-    if ( config->hasChild("scale") ) {
-	scale = AuraPoly1d(config->getString("scale"));
-	scale.print();
-    }
-    // printf("bias = %.6f %.6f %.6f, scale = %.4f\n",
-    //        bias[0], bias[1], bias[2], scale);
+    bias = AuraPoly1d(bias_coeffs);
+    bias.print();
+    // printf("bias = %.6f %.6f %.6f\n", bias[0], bias[1], bias[2]);
 }
 
 

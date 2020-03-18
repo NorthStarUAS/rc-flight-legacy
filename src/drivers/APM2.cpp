@@ -676,7 +676,9 @@ bool APM2_imu_init( string output_path, pyPropertyNode *config ) {
 	if ( cal.hasChild("max_temp_C") ) {
 	    max_temp = cal.getDouble("max_temp_C");
 	}
-	
+
+        printf("\nFIXME!!!!!!!!!!!!!!!!!!!!!\n\n");
+        #if 0
 	//p_cal.init( cal->getChild("p"), min_temp, max_temp );
 	//q_cal.init( cal->getChild("q"), min_temp, max_temp );
 	//r_cal.init( cal->getChild("r"), min_temp, max_temp );
@@ -686,7 +688,8 @@ bool APM2_imu_init( string output_path, pyPropertyNode *config ) {
 	ay_cal.init( &ay_node, min_temp, max_temp );
 	pyPropertyNode az_node = cal.getChild("az");
 	az_cal.init( &az_node, min_temp, max_temp );
-
+        #endif
+        
 	if ( cal.hasChild("mag_affine") ) {
 	    string tokens_str = cal.getString("mag_affine");
 	    vector<string> tokens = split(tokens_str);
