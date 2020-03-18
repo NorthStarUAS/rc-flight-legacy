@@ -23,16 +23,14 @@
 #pragma once
 
 #include <pyprops.h>
-#include "util/poly1d.h"
 
 class AuraCalTemp {
 
 private:
 
-    float _min_temp;		// temp (C)
-    float _max_temp;		// temp (C)
-    
-    AuraPoly1d bias;
+    float min_temp;		// temp (C)
+    float max_temp;		// temp (C)
+    float coeffs[3];            // polygon coeffs
 
     void defaults();
 
@@ -41,17 +39,16 @@ public:
     AuraCalTemp();
     ~AuraCalTemp();
 
-    void init( vector<double> calib, float min_temp, float max_temp );
+    void init( float calib[3], float min, float max );
 
     inline float get_bias( float temp )  {
-	if ( temp < _min_temp ) { temp = _min_temp; }
-	if ( temp > _max_temp ) { temp = _max_temp; }
-	return bias.eval(temp);
+	if ( temp < min_temp ) { temp = min_temp; }
+	if ( temp > max_temp ) { temp = max_temp; }
+        return coeffs[0] + coeffs[1]*temp + coeffs[2]*temp*temp;
     }
 
     inline float calibrate( float x, float temp ) {
-	float b = get_bias( temp );
 	// printf("sensor @ %.1f: %.3f -> %.3f\n", temp, x, x - bias);
-	return x - b;
+	return x - get_bias(temp);
     }
 };

@@ -14,6 +14,9 @@
 using std::string;
 using std::vector;
 
+#include <eigen3/Eigen/Core>
+using namespace Eigen;
+
 #include "util/strutils.h"
 
 class AuraPoly1d {

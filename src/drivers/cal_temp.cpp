@@ -18,11 +18,11 @@
 // set parameters to default zero bias and 1.0 scaling factor
 void AuraCalTemp::defaults()
 {
-    _min_temp = 27.0;
-    _max_temp = 27.0;
-
-    vector<double> bias_coeffs(3,0);
-    bias = AuraPoly1d(bias_coeffs);
+    min_temp = 27.0;
+    max_temp = 27.0;
+    coeffs[0] = 1.0;
+    coeffs[1] = 0.0;
+    coeffs[2] = 0.0;
 }
 
 
@@ -39,15 +39,14 @@ AuraCalTemp::~AuraCalTemp()
 
 
 // load parameters from specified property subtree
-void AuraCalTemp::init( vector<double> bias_coeffs, float min_temp, float max_temp )
+void AuraCalTemp::init( float calib[3], float min_temp, float max_temp )
 {
-    defaults();
-
-    _min_temp = min_temp;
-    _max_temp = max_temp;
-    bias = AuraPoly1d(bias_coeffs);
-    bias.print();
-    // printf("bias = %.6f %.6f %.6f\n", bias[0], bias[1], bias[2]);
+    min_temp = min_temp;
+    max_temp = max_temp;
+    for ( int i = 0; i < 3; i++ ) {
+        coeffs[i] = calib[i];
+    }
+    printf("temp cal: %.6f %.6f %.6f\n", coeffs[0], coeffs[1], coeffs[2]);
 }
 
 

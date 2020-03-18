@@ -198,10 +198,10 @@ void Aura4_t::init_imu( pyPropertyNode *config ) {
 	    max_temp = cal.getDouble("max_temp_C");
 	}
 
-        vector<double> calib;
+        float calib[3];
         if ( cal.getLen("ax_calib") == 3 ) {
             for ( int i = 0; i < 3; i++ ) {
-                calib.push_back( cal.getDouble("ax_calib", i) );
+                calib[i] = cal.getDouble("ax_calib", i);
             }
             ax_cal.init( calib, min_temp, max_temp );
         }
@@ -218,26 +218,21 @@ void Aura4_t::init_imu( pyPropertyNode *config ) {
             az_cal.init( calib, min_temp, max_temp );
         }
 
-	if ( cal.hasChild("mag_affine") ) {
-	    string tokens_str = cal.getString("mag_affine");
-	    vector<string> tokens = split(tokens_str);
-	    if ( tokens.size() == 16 ) {
-		int r = 0, c = 0;
-		for ( unsigned int i = 0; i < 16; i++ ) {
-		    mag_cal(r,c) = atof(tokens[i].c_str());
-		    c++;
-		    if ( c > 3 ) {
-			c = 0;
-			r++;
-		    }
-		}
-	    } else {
-		printf("ERROR: wrong number of elements for mag_cal affine matrix!\n");
-		mag_cal.setIdentity();
-	    }
-	} else {
-	    mag_cal.setIdentity();
-	}
+	if ( cal.getLen("mag_affine") == 16 ) {
+            int r = 0, c = 0;
+            for ( unsigned int i = 0; i < 16; i++ ) {
+                mag_cal(r,c) = cal.getDouble("mag_affine", i);
+                // FIXME: there has got to be a better way than this
+                c++;
+                if ( c > 3 ) {
+                    c = 0;
+                    r++;
+                }
+            }
+        } else {
+            info("ERROR: wrong number of elements for mag_cal affine matrix!\n");
+            mag_cal.setIdentity();
+        }
 	
 	// save the imu calibration parameters with the data file so that
 	// later the original raw sensor values can be derived.

@@ -29,6 +29,7 @@ using namespace Eigen;
 #include "util/butter.h"
 #include "util/linearfit.h"
 #include "util/lowpass.h"
+#include "util/strutils.h"
 #include "util/timing.h"
 
 #include "APM2.h"
