@@ -559,8 +559,8 @@ static void imu_defaults( message::config_imu_t *config_imu ) {
     for ( int i = 0; i < 9; i++ ) {
         config_imu->orientation[i] = ident[i];
     }
-    config_imu->min_temp = 15.0;
-    config_imu->max_temp = 15.0;
+    config_imu->min_temp = 27.0;
+    config_imu->max_temp = 27.0;
     for ( int i = 0; i < 3; i++ ) {
         config_imu->ax_coeff[i] = 0.0;
     }
@@ -681,13 +681,11 @@ bool Aura4_t::send_config() {
         }
         if ( imu_node.hasChild("calibration") ) {
             pyPropertyNode cal = imu_node.getChild("calibration");
-            double min_temp = 27.0;
-            double max_temp = 27.0;
             if ( cal.hasChild("min_temp_C") ) {
-                min_temp = cal.getDouble("min_temp_C");
+                config_imu.min_temp = cal.getDouble("min_temp_C");
             }
             if ( cal.hasChild("max_temp_C") ) {
-                max_temp = cal.getDouble("max_temp_C");
+                config_imu.max_temp = cal.getDouble("max_temp_C");
             }
             if ( cal.getLen("ax_calib") == 3 ) {
                 for ( int i = 0; i < 3; i++ ) {
