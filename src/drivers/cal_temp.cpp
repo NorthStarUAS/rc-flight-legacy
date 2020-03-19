@@ -7,11 +7,7 @@
  *
  */
 
-#include <pyprops.h>
-
 #include <stdio.h>
-
-#include "util/strutils.h"
 
 #include "cal_temp.h"
 
