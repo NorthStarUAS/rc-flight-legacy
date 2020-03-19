@@ -163,10 +163,11 @@
             ]
         },
         {
-            "name": "imu_raw",
+            "name": "imu",
             "fields": [
                 { "type": "uint32_t", "name": "micros" },
-                { "type": "int16_t", "name": "channel[10]" }
+                { "type": "int16_t", "name": "nocal[6]" },
+                { "type": "int16_t", "name": "cal[10]" }
             ]
         },
         {

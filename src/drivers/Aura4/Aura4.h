@@ -11,7 +11,6 @@ using namespace Eigen;
 #include <pyprops.h>
 
 #include "comms/serial_link.h"
-#include "drivers/cal_temp.h"
 #include "drivers/driver.h"
 #include "include/globaldefs.h" /* fixme, get rid of? */
 #include "util/butter.h"
@@ -72,11 +71,6 @@ private:
     double imu_timestamp = 0.0;
     uint32_t last_imu_micros = 0;
     LinearFitFilter imu_offset = LinearFitFilter(200.0, 0.01);
-    AuraCalTemp ax_cal;
-    AuraCalTemp ay_cal;
-    AuraCalTemp az_cal;
-    Matrix4d mag_cal;
-    double last_bias_update = 0.0;
 
     string pilot_mapping[message::sbus_channels]; // channel->name mapping
     
@@ -109,7 +103,7 @@ private:
     bool update_airdata( message::airdata_t *airdata );
     bool update_ekf( message::ekf_t *ekf );
     bool update_gps( message::aura_nav_pvt_t *nav_pvt );
-    bool update_imu( message::imu_raw_t *imu );
+    bool update_imu( message::imu_t *imu );
     bool update_pilot( message::pilot_t *pilot );
     
     void airdata_zero_airspeed();

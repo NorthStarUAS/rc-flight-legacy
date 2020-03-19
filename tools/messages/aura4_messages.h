@@ -29,7 +29,7 @@ const uint8_t command_zero_gyros_id = 21;
 const uint8_t command_reset_ekf_id = 22;
 const uint8_t command_cycle_inceptors_id = 23;
 const uint8_t pilot_id = 24;
-const uint8_t imu_raw_id = 25;
+const uint8_t imu_id = 25;
 const uint8_t aura_nav_pvt_id = 26;
 const uint8_t airdata_id = 27;
 const uint8_t power_id = 28;
@@ -850,18 +850,20 @@ struct pilot_t {
     }
 };
 
-// Message: imu_raw (id: 25)
-struct imu_raw_t {
+// Message: imu (id: 25)
+struct imu_t {
     // public fields
     uint32_t micros;
-    int16_t channel[10];
+    int16_t nocal[6];
+    int16_t cal[10];
 
     // internal structure for packing
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
         uint32_t micros;
-        int16_t channel[10];
+        int16_t nocal[6];
+        int16_t cal[10];
     };
     #pragma pack(pop)
 
@@ -879,7 +881,8 @@ struct imu_raw_t {
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
         _buf->micros = micros;
-        for (int _i=0; _i<10; _i++) _buf->channel[_i] = channel[_i];
+        for (int _i=0; _i<6; _i++) _buf->nocal[_i] = nocal[_i];
+        for (int _i=0; _i<10; _i++) _buf->cal[_i] = cal[_i];
         return true;
     }
 
@@ -891,7 +894,8 @@ struct imu_raw_t {
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
         micros = _buf->micros;
-        for (int _i=0; _i<10; _i++) channel[_i] = _buf->channel[_i];
+        for (int _i=0; _i<6; _i++) nocal[_i] = _buf->nocal[_i];
+        for (int _i=0; _i<10; _i++) cal[_i] = _buf->cal[_i];
         return true;
     }
 };
