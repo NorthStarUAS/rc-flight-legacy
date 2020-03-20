@@ -37,7 +37,6 @@ using std::string;
 #include "init/globals.h"
 #include "payload/payload_mgr.h"
 #include "drivers/airdata_mgr.h"
-#include "drivers/imu_mgr.h"
 #include "drivers/gps_mgr.h"
 #include "drivers/pilot_mgr.h"
 #include "util/myprof.h"
@@ -135,11 +134,8 @@ void main_work_loop()
     health_counter++;
 
     //
-    // Sensor input section
+    // Sensor input section (deprecating)
     //
-
-    // Fetch the next data packet from the IMU.
-    bool fresh_imu_data = IMU_update();
 
     // Fetch air data if available
     AirData_update();
@@ -182,10 +178,6 @@ void main_work_loop()
 
     // check for incoming command data
     remote_link->command();
-
-    // dribble a bit more out of the serial port if there is
-    // something pending
-    remote_link->flush_serial();
 
     //
     // Read commands from telnet interface
@@ -248,8 +240,8 @@ void main_work_loop()
     // Remote telemetry section
     //
 
-    // dribble pending bytes down the serial port
-    remote_link->flush_serial();
+    // generate needed messages and dribble pending bytes down the serial port
+    remote_link->update();
 
     main_prof.stop();
 }
@@ -412,9 +404,6 @@ int main( int argc, char **argv )
     // initialize the drivers
     driver_mgr.init();
     
-    // Initialize communication with the selected IMU
-    IMU_init();
-
     // Initialize communication with the selected air data sensor
     AirData_init();
 
@@ -463,7 +452,6 @@ int main( int argc, char **argv )
 
     // close and exit
     Filter_close();
-    IMU_close();
     GPS_close();
     AirData_close();
     PilotInput_close();

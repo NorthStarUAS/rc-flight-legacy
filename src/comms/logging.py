@@ -111,6 +111,14 @@ def init():
             enable_udp = True
     return True
 
+# write all pending data and flush
+def write_messages():
+    if len(log_buffer):
+        for data in log_buffer:
+            fdata.write(data)
+        del log_buffer[:]
+        fdata.flush()
+
 def close():
     # close files
     fdata.close()
@@ -130,13 +138,19 @@ def log_message( pkt_id, payload ):
         if result != len(msg):
             print('error transmitting udp log packet')
 
-# write all pending data and flush
+# build and log messages as needed
+imu_skip = logging_node.getInt("imu_skip")
+imu_count = random.randint(0,imu_skip)
+def process_messages():
+    global imu_count
+    if imu_count <= 0:
+        imu_count = imu_skip
+        msg = packer.packer.pack_imu_v4()
+        log_message(msg.id, msg.payload)
+            
 def update():
-    if len(log_buffer):
-        for data in log_buffer:
-            fdata.write(data)
-        del log_buffer[:]
-        fdata.flush()
+    process_messages()
+    write_messages();
 
 # write out the imu calibration parameters associated with this data
 # (this allows us to later rederive the original raw sensor values.)

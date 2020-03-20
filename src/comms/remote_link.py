@@ -95,6 +95,20 @@ def send_message( pkt_id, payload ):
             print('remote link serial buffer overflow, size:', len(serial_buf), 'add:', len(msg), 'limit:', max_serial_buffer)
         return False
 
+# build and send messages as needed
+imu_skip = remote_link_config.getInt("imu_skip")
+imu_count = random.randint(0,imu_skip)
+def process_messages():
+    global imu_count
+    if imu_count <= 0:
+        imu_count = imu_skip
+        msg = packer.packer.pack_imu_v4()
+        send_message(msg.id, msg.payload)
+        
+def update():
+    process_messages()
+    flush_serial();
+  
 route_request = []
 survey_request = {}
 def execute_command( command ):

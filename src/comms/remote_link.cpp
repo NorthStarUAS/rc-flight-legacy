@@ -57,16 +57,16 @@ bool pyModuleRemoteLink::command()
 }
 
 
-bool pyModuleRemoteLink::flush_serial()
+bool pyModuleRemoteLink::update()
 {
     if (pModuleObj == NULL) {
 	printf("ERROR: remote_link.init() failed\n");
 	return false;
     }
-    PyObject *pFuncOpen = PyObject_GetAttrString(pModuleObj, "flush_serial");
+    PyObject *pFuncOpen = PyObject_GetAttrString(pModuleObj, "update");
     if ( pFuncOpen == NULL || ! PyCallable_Check(pFuncOpen) ) {
 	if ( PyErr_Occurred() ) PyErr_Print();
-	printf("ERROR: cannot find function 'flush_serial()'\n");
+	printf("ERROR: cannot find function 'update()'\n");
 	return false;
     }
 

@@ -30,8 +30,6 @@
 using std::string;
 using std::ostringstream;
 
-#include "comms/logging.h"
-
 #include "ap.h"
 #include "dig_filter.h"
 #include "dtss.h"

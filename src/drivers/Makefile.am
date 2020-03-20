@@ -8,7 +8,6 @@ libdrivers_a_SOURCES = \
 	airdata_mgr.cpp airdata_mgr.h \
 	airdata_bolder.cpp airdata_bolder.h \
 	cal_temp.h cal_temp.cpp \
-        imu_mgr.cpp imu_mgr.h \
 	gps_mgr.cpp gps_mgr.h \
 	gps_gpsd.cpp gps_gpsd.h \
 	gps_ublox6.cpp gps_ublox6.h \

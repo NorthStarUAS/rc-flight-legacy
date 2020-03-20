@@ -8,8 +8,9 @@
 // - (for now ok) straighten out what I'm doing with skipped frames
 // - (for now ok) gps age?
 // - (ok) send ekf config
-// - figure out how to deal with accel/mag calibration if ekf is remote 
+// - (ok) figure out how to deal with accel/mag calibration if ekf is remote 
 // - (ok) parse ekf packet
+// - need to log cal and nocal imu values
 // - write actuators
 // - deal with how to arbitrate output path enumeration in property tree
 

@@ -3,7 +3,6 @@ import props_json
 
 from comms import aura_messages
 import comms.logging as logging
-import comms.packer as packer
 
 comms_node = getNode('/comms', True)
 status_node = getNode( '/status', True)
