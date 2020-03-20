@@ -102,7 +102,7 @@ class Packer():
             self.airdata.wind_dir_deg = wind_node.getFloat("wind_dir_deg")
             self.airdata.wind_speed_kt = wind_node.getFloat("wind_speed_kt")
             self.airdata.pitot_scale_factor = wind_node.getFloat("pitot_scale_factor")
-            self.airdata.error_count = airdata_node.getint("error_count")
+            self.airdata.error_count = airdata_node.getInt("error_count")
             self.airdata.status = airdata_node.getInt("status")
         return self.airdata.pack()
 
