@@ -213,8 +213,7 @@ class Packer():
             self.imu.hz = imu_node.getFloat('hz')
             self.imu.temp_C = imu_node.getFloat('temp_C')
             self.imu.status = imu_node.getInt('status')
-            self.imu.pack()
-        return self.imu
+        return self.imu.pack()
 
     def pack_imu_dict(self, index):
         imu_node = getNode('/sensors/imu[%d]' % index, True)
