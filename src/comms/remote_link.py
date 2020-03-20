@@ -6,7 +6,7 @@ import props_json
 
 from comms import aura_messages
 import comms.events
-import comms.packer.packer as packer
+from comms.packer import packer
 import comms.serial_parser
 
 import survey.survey

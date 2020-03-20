@@ -9,7 +9,7 @@ import socket
 from props import getNode
 import props_json
 
-import comms.packer.packer as packer
+from comms.packer import packer
 import comms.serial_parser
 
 # global variables for data file logging
