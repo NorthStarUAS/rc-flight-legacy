@@ -97,7 +97,7 @@ def send_message( pkt_id, payload ):
         return False
 
 # build and send messages as needed
-airdata_skip = logging_node.getInt("airdata_skip")
+airdata_skip = remote_link_config.getInt("airdata_skip")
 airdata_count = random.randint(0, airdata_skip)
 imu_skip = remote_link_config.getInt("imu_skip")
 imu_count = random.randint(0, imu_skip)

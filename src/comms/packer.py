@@ -300,7 +300,7 @@ class Packer():
         return imu.index
 
     def pack_airdata_v7(self):
-        airdata_time = airdata_node.getFloat('timestamp')
+        airdata_time = airdata_node.getFloat("timestamp")
         if airdata_time > self.last_airdata_time:
             self.last_airdata_time = airdata_time
             self.airdata.index = 0
@@ -317,7 +317,7 @@ class Packer():
             self.airdata.status = airdata_node.getInt("status")
         return self.airdata.pack()
 
-     def pack_airdata_dict(self, index):
+    def pack_airdata_dict(self, index):
         airdata_node = getNode('/sensors/airdata[%d]' % index, True)
         row = dict()
         row['timestamp'] = airdata_node.getFloat('timestamp')
