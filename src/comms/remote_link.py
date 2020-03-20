@@ -6,7 +6,7 @@ import props_json
 
 from comms import aura_messages
 import comms.events
-import comms.packer
+import comms.packer.packer as packer
 import comms.serial_parser
 
 import survey.survey
@@ -103,8 +103,8 @@ def process_messages():
     global imu_count
     if imu_count <= 0:
         imu_count = imu_skip
-        buf = comms.packer.packer.pack_imu_v4()
-        send_message(msg.id, buf)
+        buf = packer.pack_imu_v4()
+        send_message(packer.imu.id, buf)
         
 def update():
     process_messages()

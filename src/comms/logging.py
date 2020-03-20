@@ -9,7 +9,7 @@ import socket
 from props import getNode
 import props_json
 
-import comms.packer
+import comms.packer.packer as packer
 import comms.serial_parser
 
 # global variables for data file logging
@@ -147,8 +147,8 @@ def process_messages():
     global imu_count
     if imu_count <= 0:
         imu_count = imu_skip
-        buf = comms.packer.packer.pack_imu_v4()
-        log_message(msg.id, buf)
+        buf = packer.pack_imu_v4()
+        log_message(packer.imu.id, buf)
             
 def update():
     process_messages()
