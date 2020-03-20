@@ -105,6 +105,7 @@ imu_skip = remote_link_config.getInt("imu_skip")
 imu_count = random.randint(0, imu_skip)
 def process_messages():
     global airdata_count
+    global gps_count
     global imu_count
     if airdata_count <= 0:
         airdata_count = airdata_skip
