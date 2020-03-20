@@ -2,12 +2,14 @@
 
 import gzip
 import os
+import random
 import re
 import socket
 
 from props import getNode
 import props_json
 
+import comms.packer
 import comms.serial_parser
 
 # global variables for data file logging
@@ -145,7 +147,7 @@ def process_messages():
     global imu_count
     if imu_count <= 0:
         imu_count = imu_skip
-        msg = packer.packer.pack_imu_v4()
+        msg = comms.packer.packer.pack_imu_v4()
         log_message(msg.id, msg.payload)
             
 def update():

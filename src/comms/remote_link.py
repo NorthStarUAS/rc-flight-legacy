@@ -1,3 +1,4 @@
+import random
 import re
 import serial
 from props import getNode
@@ -102,7 +103,7 @@ def process_messages():
     global imu_count
     if imu_count <= 0:
         imu_count = imu_skip
-        msg = packer.packer.pack_imu_v4()
+        msg = comms.packer.packer.pack_imu_v4()
         send_message(msg.id, msg.payload)
         
 def update():
