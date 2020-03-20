@@ -21,9 +21,6 @@ using std::ostringstream;
 using std::string;
 using std::vector;
 
-#include "comms/aura_messages.h"
-#include "comms/logging.h"
-#include "comms/remote_link.h"
 #include "include/globaldefs.h"
 #include "init/globals.h"
 #include "util/lowpass.h"
@@ -62,9 +59,6 @@ static pyPropertyNode wind_node;
 static vector<pyPropertyNode> sections;
 static vector<pyPropertyNode> outputs;
 
-static int remote_link_skip = 0;
-static int logging_skip = 0;
-
 static myprofile debug2b1;
 static myprofile debug2b2;
 
@@ -76,7 +70,7 @@ void AirData_init() {
     debug2b1.set_name("debug2b1 airdata update");
     debug2b2.set_name("debug2b2 airdata console link");
 
-    // airdata_node = pyGetNode("/sensors/airdata", true);
+    airdata_node = pyGetNode("/sensors/airdata", true);
     sensors_node = pyGetNode("/sensors", true);
     filter_node = pyGetNode("/filters/filter", true);
     pos_filter_node = pyGetNode("/position/filter", true);
@@ -85,59 +79,7 @@ void AirData_init() {
     vel_node = pyGetNode("/velocity", true);
     task_node = pyGetNode("/task", true);
     wind_node = pyGetNode("/filters/wind", true);
-    
-    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
-    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
-    remote_link_skip = remote_link_node.getDouble("airdata_skip");
-    logging_skip = logging_node.getDouble("airdata_skip");
-
-    // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/sensors/airdata_group", true);
-    vector<string> children = group_node.getChildren();
-    printf("Found %d airdata sections\n", (int)children.size());
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	sections.push_back(section);
-	string source = section.getString("source");
-	bool enabled = section.getBool("enable");
-	if ( !enabled ) {
-	    continue;
-	}
-	ostringstream output_path;
-	output_path << "/sensors/airdata" << '[' << i << ']';
-        pyPropertyNode output_node = pyGetNode(output_path.str(), true);
-        outputs.push_back(output_node);
-	printf("airdata: %d = %s (%s)\n", i, source.c_str(), output_path.str().c_str());
-	if ( source == "null" ) {
-	    // do nothing
-	} else if ( source == "airdata_bolder" ) {
-	    airdata_bolder_init( output_path.str(), &section);
-	} else if ( source == "APM2" ) {
-	    APM2_airdata_init( output_path.str() );
-	} else if ( source == "Aura3" ) {
-	    Aura3_airdata_init( output_path.str() );
-	} else if ( source == "fgfs" ) {
-	    fgfs_airdata_init( output_path.str() );
-	} else {
-	    printf("Unknown air data source = '%s' in config file\n",
-		   source.c_str());
-	}
-
-        if ( section.getBool("primary") ) {
-            // this section claims to be primary
-            if ( airdata_node.isNull() ) {
-                // no other section has claimed primary yet.
-                airdata_node = pyGetNode(output_path.str(), true);
-            }
-        }
-    }
-
-    if ( airdata_node.isNull() ) {
-        // no one claimed primary, set to default index [0]
-        airdata_node = pyGetNode("/sensors/airdata", true);
-    }
 }
-
 
 static void update_pressure_helpers() {
     static float pressure_alt_filt_last = 0.0;
@@ -307,82 +249,11 @@ bool AirData_update() {
 
     bool fresh_data = false;
 
-    static int remote_link_count = 0;
-    static int logging_count = 0;
-
-    // traverse configured modules
-    for ( unsigned int i = 0; i < sections.size(); i++ ) {
-	string source = sections[i].getString("source");
-	bool enabled = sections[i].getBool("enable");
-	if ( !enabled ) {
-	    continue;
-	}
-	if ( source == "null" ) {
-	    // do nothing
-	} else if ( source == "airdata_bolder" ) {
-	    fresh_data = airdata_bolder_update();
-	} else if ( source == "APM2" ) {
-	    fresh_data = APM2_airdata_update();
-	} else if ( source == "Aura3" ) {
-	    fresh_data = Aura3_airdata_update();
-	} else if ( source == "fgfs" ) {
-	    fresh_data = fgfs_airdata_update();
-	} else {
-	    printf("Unknown air data source = '%s' in config file\n",
-		   source.c_str());
-	}
-	if ( fresh_data ) {
-	    bool send_remote_link = false;
-	    if ( remote_link_count < 0 ) {
-		send_remote_link = true;
-		remote_link_count = remote_link_skip;
-	    }
-	
-	    bool send_logging = false;
-	    if ( logging_count < 0 ) {
-		send_logging = true;
-	    }
-	
-	    if ( send_remote_link || send_logging ) {
-                message::airdata_v7_t air;
-                air.index = i;
-                air.timestamp_sec = outputs[i].getDouble("timestamp");
-                air.pressure_mbar = outputs[i].getDouble("pressure_mbar");
-                air.temp_C = outputs[i].getDouble("temp_C");
-                air.airspeed_smoothed_kt = vel_node.getDouble("airspeed_smoothed_kt");
-                air.altitude_smoothed_m = pos_pressure_node.getDouble("altitude_smoothed_m");
-                air.altitude_true_m = pos_combined_node.getDouble("altitude_true_m");
-                air.pressure_vertical_speed_fps = vel_node.getDouble("pressure_vertical_speed_fps");
-                air.wind_dir_deg = wind_node.getDouble("wind_dir_deg");
-                air.wind_speed_kt = wind_node.getDouble("wind_speed_kt");
-                air.pitot_scale_factor = wind_node.getDouble("pitot_scale_factor");
-                air.error_count = outputs[i].getLong("error_count");
-                air.status = outputs[i].getLong("status");
-                air.pack();
-                if ( send_remote_link ) {
-                    remote_link->send_message( air.id, air.payload, air.len );
-                }
-                if ( send_logging ) {
-                    logging->log_message( air.id, air.payload, air.len );
-                }
-	    }
-	}
-    }
-
     // these are computed from the primary airdata sensor
     update_pressure_helpers();
 
-    if ( logging_count < 0 ) {
-	logging_count = logging_skip;
-    }
-	
     debug2b1.stop();
     debug2b2.start();
-
-    if ( fresh_data ) {
-        remote_link_count--;
-        logging_count--;
-    }
 
     // check for and respond to an airdata calibrate request
     if (sensors_node.getBool("airdata_calibrate") ) {
@@ -429,24 +300,4 @@ void AirData_calibrate() {
 
 
 void AirData_close() {
-    // traverse configured modules
-    for ( unsigned int i = 0; i < sections.size(); i++ ) {
-	string source = sections[i].getString("source");
-	bool enabled = sections[i].getBool("enable");
-	if ( !enabled ) {
-	    continue;
-	}
-	if ( source == "null" ) {
-	    // do nothing
-	} else if ( source == "APM2" ) {
-	    APM2_airdata_close();
-	} else if ( source == "Aura3" ) {
-	    Aura3_airdata_close();
-	} else if ( source == "fgfs" ) {
-	    // nop
-	} else {
-	    printf("Unknown air data source = '%s' in config file\n",
-		   source.c_str());
-	}
-    }
 }

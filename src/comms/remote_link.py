@@ -97,10 +97,17 @@ def send_message( pkt_id, payload ):
         return False
 
 # build and send messages as needed
+airdata_skip = logging_node.getInt("airdata_skip")
+airdata_count = random.randint(0, airdata_skip)
 imu_skip = remote_link_config.getInt("imu_skip")
-imu_count = random.randint(0,imu_skip)
+imu_count = random.randint(0, imu_skip)
 def process_messages():
+    global airdata_count
     global imu_count
+    if airdata_count <= 0:
+        airdata_count = airdata_skip
+        buf = packer.pack_airdata_v7()
+        send_message(packer.airdata.id, buf)
     if imu_count <= 0:
         imu_count = imu_skip
         buf = packer.pack_imu_v4()

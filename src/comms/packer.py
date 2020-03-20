@@ -18,8 +18,8 @@ START_OF_MSG0 = 147
 START_OF_MSG1 = 224
     
 gps_nodes = []
-imu_nodes = []
-airdata_nodes = []
+airdata_node = getNode("/sensors/airdata[0]", True)
+imu_node = getNode("/sensors/imu[0]", True)
 pos_node = getNode("/position", True)
 pos_pressure_node = getNode("/position/pressure", True)
 pos_combined_node = getNode("/position/combined", True)
@@ -78,7 +78,9 @@ def wrap_packet( self, packet_id, payload ):
     return buf
 
 class Packer():
+    airdata = aura_messages.airdata_v7()
     imu = aura_messages.imu_v4()
+    last_airdata_time = 0.0
     last_imu_time = 0.0;
     
     def __init__(self):
@@ -196,7 +198,6 @@ class Packer():
 
     # only support primary imu for now
     def pack_imu_v4(self):
-        imu_node = getNode("/sensors/imu[0]", True)
         imu_time = imu_node.getFloat('timestamp')
         if imu_time > self.last_imu_time:
             self.last_imu_time = imu_time
@@ -298,7 +299,25 @@ class Packer():
         node.setInt("status", imu.status)
         return imu.index
 
-    def pack_airdata_dict(self, index):
+    def pack_airdata_v7(self):
+        airdata_time = airdata_node.getFloat('timestamp')
+        if airdata_time > self.last_airdata_time:
+            self.last_airdata_time = airdata_time
+            self.airdata.index = 0
+            self.airdata.timestamp_sec = airdata_time
+            self.airdata.pressure_mbar = airdata_node.getFloat("pressure_mbar")
+            self.airdata.temp_C = airdata_node.getFloat("temp_C")
+            self.airdata.airspeed_smoothed_kt = vel_node.getFloat("airspeed_smoothed_kt")
+            self.airdata.altitude_true_m = pos_combined_node.getFloat("altitude_true_m")
+            self.airdata.pressure_vertical_speed_fps = vel_node.getFloat("pressure_vertical_speed_fps")
+            self.airdata.wind_dir_deg = wind_node.getFloat("wind_dir_deg")
+            self.airdata.wind_speed_kt = wind_node.getFloat("wind_speed_kt")
+            self.airdata.pitot_scale_factor = wind_node.getFloat("pitot_scale_factor")
+            self.airdata.error_count = airdata_node.getint("error_count")
+            self.airdata.status = airdata_node.getInt("status")
+        return self.airdata.pack()
+
+     def pack_airdata_dict(self, index):
         airdata_node = getNode('/sensors/airdata[%d]' % index, True)
         row = dict()
         row['timestamp'] = airdata_node.getFloat('timestamp')
