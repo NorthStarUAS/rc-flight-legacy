@@ -147,8 +147,8 @@ def process_messages():
     global imu_count
     if imu_count <= 0:
         imu_count = imu_skip
-        msg = comms.packer.packer.pack_imu_v4()
-        log_message(msg.id, msg.payload)
+        buf = comms.packer.packer.pack_imu_v4()
+        log_message(msg.id, buf)
             
 def update():
     process_messages()

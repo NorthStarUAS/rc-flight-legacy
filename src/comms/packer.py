@@ -200,7 +200,7 @@ class Packer():
         imu_time = imu_node.getFloat('timestamp')
         if imu_time > self.last_imu_time:
             self.last_imu_time = imu_time
-            self.imu.index = index
+            self.imu.index = 0
             self.imu.timestamp_sec = imu_time
             self.imu.p_rad_sec = imu_node.getFloat('p_rad_sec')
             self.imu.q_rad_sec = imu_node.getFloat('q_rad_sec')
