@@ -1,6 +1,7 @@
 #include <string>
 using std::string;
 
+#include "util/myprof.h"
 #include "drivers/Aura4/Aura4.h"
 #include "driver_mgr.h"
 
@@ -24,6 +25,7 @@ void driver_mgr_t::init() {
 }
 
 float driver_mgr_t::read() {
+    driver_prof.start();
     float master_dt = 0.0;
     for ( unsigned int i = 0; i < drivers.size(); i++ ) {
         float dt = drivers[i]->read();
@@ -31,6 +33,7 @@ float driver_mgr_t::read() {
             master_dt = dt;
         }
     }
+    driver_prof.stop();
     return master_dt;
 }
 

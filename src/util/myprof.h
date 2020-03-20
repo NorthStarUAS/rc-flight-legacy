@@ -36,8 +36,8 @@ public:
 
 
 // global profiling structures
-extern myprofile imu_prof;
 extern myprofile air_prof;
+extern myprofile driver_prof;
 extern myprofile pilot_prof;
 extern myprofile filter_prof;
 extern myprofile mission_prof;
