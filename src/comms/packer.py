@@ -78,9 +78,9 @@ def wrap_packet( self, packet_id, payload ):
     return buf
 
 class Packer():
-    airdata = aura_messages.airdata_v7()
-    gps = aura_messages.gps_v4()
-    imu = aura_messages.imu_v4()
+    airdata_buf = None
+    gps_buf = None
+    imu_buf = None
     last_airdata_time = 0.0
     last_gps_time = 0.0
     last_imu_time = 0.0;
@@ -88,23 +88,25 @@ class Packer():
     def __init__(self):
         pass
 
-    def pack_airdata_bin(self):
+    def pack_airdata_bin(self, use_cached=False):
         airdata_time = airdata_node.getFloat("timestamp")
-        if airdata_time > self.last_airdata_time:
+        if not use_cached and airdata_time > self.last_airdata_time:
+            airdata = aura_messages.airdata_v7()
             self.last_airdata_time = airdata_time
-            self.airdata.index = 0
-            self.airdata.timestamp_sec = airdata_time
-            self.airdata.pressure_mbar = airdata_node.getFloat("pressure_mbar")
-            self.airdata.temp_C = airdata_node.getFloat("temp_C")
-            self.airdata.airspeed_smoothed_kt = vel_node.getFloat("airspeed_smoothed_kt")
-            self.airdata.altitude_true_m = pos_combined_node.getFloat("altitude_true_m")
-            self.airdata.pressure_vertical_speed_fps = vel_node.getFloat("pressure_vertical_speed_fps")
-            self.airdata.wind_dir_deg = wind_node.getFloat("wind_dir_deg")
-            self.airdata.wind_speed_kt = wind_node.getFloat("wind_speed_kt")
-            self.airdata.pitot_scale_factor = wind_node.getFloat("pitot_scale_factor")
-            self.airdata.error_count = airdata_node.getInt("error_count")
-            self.airdata.status = airdata_node.getInt("status")
-        return self.airdata.pack()
+            airdata.index = 0
+            airdata.timestamp_sec = airdata_time
+            airdata.pressure_mbar = airdata_node.getFloat("pressure_mbar")
+            airdata.temp_C = airdata_node.getFloat("temp_C")
+            airdata.airspeed_smoothed_kt = vel_node.getFloat("airspeed_smoothed_kt")
+            airdata.altitude_true_m = pos_combined_node.getFloat("altitude_true_m")
+            airdata.pressure_vertical_speed_fps = vel_node.getFloat("pressure_vertical_speed_fps")
+            airdata.wind_dir_deg = wind_node.getFloat("wind_dir_deg")
+            airdata.wind_speed_kt = wind_node.getFloat("wind_speed_kt")
+            airdata.pitot_scale_factor = wind_node.getFloat("pitot_scale_factor")
+            airdata.error_count = airdata_node.getInt("error_count")
+            airdata.status = airdata_node.getInt("status")
+            self.airdata_buf = airdata.pack()
+        return self.airdata_buf
 
     def pack_airdata_dict(self, index):
         airdata_node = getNode('/sensors/airdata[%d]' % index, True)
@@ -213,25 +215,28 @@ class Packer():
         node.setInt("status", air.status)
         return air.index
 
-    def pack_gps_bin(self):
+    # FIXME: think about how we are dealing with skips and gps's lower rate?
+    def pack_gps_bin(self, use_cached=False):
         gps_time = gps_node.getFloat("timestamp")
-        if gps_time > self.last_gps_time:
+        if not use_cached and gps_time > self.last_gps_time:
+            gps = aura_messages.gps_v4()
             self.last_gps_time = gps_time
-            self.gps.index = 0
-            self.gps.timestamp_sec = gps_time
-            self.gps.latitude_deg = gps_node.getFloat("latitude_deg")
-            self.gps.longitude_deg = gps_node.getFloat("longitude_deg")
-            self.gps.altitude_m = gps_node.getFloat("altitude_m")
-            self.gps.vn_ms = gps_node.getFloat("vn_ms")
-            self.gps.ve_ms = gps_node.getFloat("ve_ms")
-            self.gps.vd_ms = gps_node.getFloat("vd_ms")
-            self.gps.unixtime_sec = gps_node.getFloat("unix_time_sec")
-            self.gps.satellites = gps_node.getInt("satellites")
-            self.gps.horiz_accuracy_m = gps_node.getFloat("horiz_accuracy_m")
-            self.gps.vert_accuracy_m = gps_node.getFloat("vert_accuracy_m")
-            self.gps.pdop = gps_node.getFloat("pdop")
-            self.gps.fix_type = gps_node.getInt("FixType")
-        return self.gps.pack()
+            gps.index = 0
+            gps.timestamp_sec = gps_time
+            gps.latitude_deg = gps_node.getFloat("latitude_deg")
+            gps.longitude_deg = gps_node.getFloat("longitude_deg")
+            gps.altitude_m = gps_node.getFloat("altitude_m")
+            gps.vn_ms = gps_node.getFloat("vn_ms")
+            gps.ve_ms = gps_node.getFloat("ve_ms")
+            gps.vd_ms = gps_node.getFloat("vd_ms")
+            gps.unixtime_sec = gps_node.getFloat("unix_time_sec")
+            gps.satellites = gps_node.getInt("satellites")
+            gps.horiz_accuracy_m = gps_node.getFloat("horiz_accuracy_m")
+            gps.vert_accuracy_m = gps_node.getFloat("vert_accuracy_m")
+            gps.pdop = gps_node.getFloat("pdop")
+            gps.fix_type = gps_node.getInt("FixType")
+            self.gps_buf = gps.pack()
+        return self.gps_buf
 
     def pack_gps_dict(self, index):
         gps_node = getNode('/sensors/gps[%d]' % index, True)
@@ -344,24 +349,26 @@ class Packer():
         return gps.index
 
     # only support primary imu for now
-    def pack_imu_bin(self):
+    def pack_imu_bin(self, use_cached=False):
         imu_time = imu_node.getFloat('timestamp')
-        if imu_time > self.last_imu_time:
+        if not use_cached and imu_time > self.last_imu_time:
+            imu = aura_messages.imu_v5()
             self.last_imu_time = imu_time
-            self.imu.index = 0
-            self.imu.timestamp_sec = imu_time
-            self.imu.p_rad_sec = imu_node.getFloat('p_rad_sec')
-            self.imu.q_rad_sec = imu_node.getFloat('q_rad_sec')
-            self.imu.r_rad_sec = imu_node.getFloat('r_rad_sec')
-            self.imu.ax_mps_sec = imu_node.getFloat('ax_mps_sec')
-            self.imu.ay_mps_sec = imu_node.getFloat('ay_mps_sec')
-            self.imu.az_mps_sec = imu_node.getFloat('az_mps_sec')
-            self.imu.hx = imu_node.getFloat('hx')
-            self.imu.hy = imu_node.getFloat('hy')
-            self.imu.hz = imu_node.getFloat('hz')
-            self.imu.temp_C = imu_node.getFloat('temp_C')
-            self.imu.status = imu_node.getInt('status')
-        return self.imu.pack()
+            imu.index = 0
+            imu.timestamp_sec = imu_time
+            imu.p_rad_sec = imu_node.getFloat('p_rad_sec')
+            imu.q_rad_sec = imu_node.getFloat('q_rad_sec')
+            imu.r_rad_sec = imu_node.getFloat('r_rad_sec')
+            imu.ax_mps_sec = imu_node.getFloat('ax_mps_sec')
+            imu.ay_mps_sec = imu_node.getFloat('ay_mps_sec')
+            imu.az_mps_sec = imu_node.getFloat('az_mps_sec')
+            imu.hx = imu_node.getFloat('hx')
+            imu.hy = imu_node.getFloat('hy')
+            imu.hz = imu_node.getFloat('hz')
+            imu.temp_C = imu_node.getFloat('temp_C')
+            imu.status = imu_node.getInt('status')
+            self.imu_buf = imu.pack()
+        return self.imu_buf
 
     def pack_imu_dict(self, index):
         imu_node = getNode('/sensors/imu[%d]' % index, True)

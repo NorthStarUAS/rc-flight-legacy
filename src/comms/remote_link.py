@@ -109,15 +109,15 @@ def process_messages():
     global imu_count
     if airdata_count <= 0:
         airdata_count = airdata_skip
-        buf = packer.pack_airdata_bin()
+        buf = packer.pack_airdata_bin(use_cached=True)
         send_message(packer.airdata.id, buf)
     if imu_count <= 0:
         imu_count = imu_skip
-        buf = packer.pack_imu_bin()
+        buf = packer.pack_imu_bin(use_cached=True)
         send_message(packer.imu.id, buf)
     if gps_count <= 0:
         gps_count = gps_skip
-        buf = packer.pack_gps_bin()
+        buf = packer.pack_gps_bin(use_cached=True)
         send_message(packer.gps.id, buf)
         
 def update():
