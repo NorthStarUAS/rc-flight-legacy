@@ -79,7 +79,6 @@ void myprofile::stats() {
 
 // global profiling structures
 myprofile imu_prof;
-myprofile gps_prof;
 myprofile air_prof;
 myprofile pilot_prof;
 myprofile filter_prof;

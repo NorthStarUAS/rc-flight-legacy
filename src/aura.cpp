@@ -218,7 +218,6 @@ void main_work_loop()
 	display_timer += 2.0;
 	display->status_summary();
 	imu_prof.stats();
-	gps_prof.stats();
 	air_prof.stats();
 	filter_prof.stats();
 	mission_prof.stats();
@@ -286,7 +285,6 @@ int main( int argc, char **argv )
 
     // initialize profiling names
     imu_prof.set_name("imu");
-    gps_prof.set_name("gps");
     air_prof.set_name("airdata");
     pilot_prof.set_name("pilot");
     filter_prof.set_name("filter");
@@ -302,7 +300,6 @@ int main( int argc, char **argv )
     main_prof.enable();
 
     imu_prof.enable();
-    gps_prof.enable();
     filter_prof.enable();
     control_prof.enable();
     air_prof.enable();
@@ -452,12 +449,7 @@ int main( int argc, char **argv )
 
     // close and exit
     Filter_close();
-    GPS_close();
-    AirData_close();
     PilotInput_close();
-    // if ( enable_pointing ) {
-    // 	ati_pointing_close();
-    // }
     payload_mgr.close();
     control_close();
     Actuator_close();

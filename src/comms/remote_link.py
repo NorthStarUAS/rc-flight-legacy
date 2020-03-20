@@ -96,9 +96,11 @@ def send_message( pkt_id, payload ):
             print('remote link serial buffer overflow, size:', len(serial_buf), 'add:', len(msg), 'limit:', max_serial_buffer)
         return False
 
-# build and send messages as needed
+# build messages and send them as needed
 airdata_skip = remote_link_config.getInt("airdata_skip")
 airdata_count = random.randint(0, airdata_skip)
+gps_skip = remote_link_config.getInt("gps_skip")
+gps_count = random.randint(0, gps_skip)
 imu_skip = remote_link_config.getInt("imu_skip")
 imu_count = random.randint(0, imu_skip)
 def process_messages():
@@ -106,12 +108,16 @@ def process_messages():
     global imu_count
     if airdata_count <= 0:
         airdata_count = airdata_skip
-        buf = packer.pack_airdata_v7()
+        buf = packer.pack_airdata_bin()
         send_message(packer.airdata.id, buf)
     if imu_count <= 0:
         imu_count = imu_skip
-        buf = packer.pack_imu_v4()
+        buf = packer.pack_imu_bin()
         send_message(packer.imu.id, buf)
+    if gps_count <= 0:
+        gps_count = gps_skip
+        buf = packer.pack_gps_bin()
+        send_message(packer.gps.id, buf)
         
 def update():
     process_messages()

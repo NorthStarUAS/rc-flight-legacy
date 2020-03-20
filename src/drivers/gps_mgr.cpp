@@ -24,8 +24,6 @@ using std::vector;
 
 #include "comms/aura_messages.h"
 #include "comms/display.h"
-#include "comms/logging.h"
-#include "comms/remote_link.h"
 #include "include/globaldefs.h"
 #include "init/globals.h"
 #include "util/coremag.h"
@@ -49,55 +47,11 @@ static pyPropertyNode gps_node;
 static vector<pyPropertyNode> sections;
 static vector<pyPropertyNode> outputs;
 
-static int remote_link_skip = 0;
-static int logging_skip = 0;
 
 void GPS_init() {
     gps_node = pyGetNode("/sensors/gps", true);
     // init master gps timestamp to one year ago
     gps_node.setDouble("timestamp", -31557600.0);
-    
-    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
-    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
-    remote_link_skip = remote_link_node.getDouble("gps_skip");
-    logging_skip = logging_node.getDouble("gps_skip");
-
-    // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/sensors/gps_group", true);
-    vector<string> children = group_node.getChildren();
-    printf("Found %d gps sections\n", (int)children.size());
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section_node = group_node.getChild(children[i].c_str());
-	sections.push_back(section_node);
-	string source = section_node.getString("source");
-	bool enabled = section_node.getBool("enable");
-	if ( !enabled ) {
-	    continue;
-	}
-	ostringstream output_path;
-	output_path << "/sensors/gps" << '[' << i << ']';
-        pyPropertyNode output_node = pyGetNode(output_path.str(), true);
-        outputs.push_back(output_node);
-	printf("gps: %d = %s\n", i, source.c_str());
-	if ( source == "null" ) {
-	    // do nothing
-	} else if ( source == "APM2" ) {
-	    APM2_gps_init( output_path.str(), &section_node );
-	} else if ( source == "Aura3" ) {
-	    Aura3_gps_init( output_path.str(), &section_node );
-	} else if ( source == "fgfs" ) {
-	    fgfs_gps_init( output_path.str(), &section_node );
-	} else if ( source == "gpsd" ) {
-	    gpsd_init( output_path.str(), &section_node );
-	} else if ( source == "ublox6" ) {
-	    gps_ublox6_init( output_path.str(), &section_node );
-	} else if ( source == "ublox8" ) {
-	    gps_ublox8_init( output_path.str(), &section_node );
-	} else {
-	    printf("Unknown gps source = '%s' in config file\n",
-		   source.c_str());
-	}
-    }
 }
 
 
@@ -127,91 +81,9 @@ static void compute_magvar() {
 
 
 bool GPS_update() {
-    gps_prof.start();
-
-    bool fresh_data = false;
     static int gps_state = 0;
 
-    static int remote_link_count = 0;
-    static int logging_count = 0;
-
-    // traverse configured modules
-    for ( unsigned int i = 0; i < sections.size(); i++ ) {
-	string source = sections[i].getString("source");
-        bool enabled = sections[i].getBool("enable");
-	if ( !enabled ) {
-	    continue;
-	}
-
-	// printf("i = %d  name = %s source = %s\n",
-	//	   i, name.c_str(), source.c_str());
-	if ( source == "null" ) {
-	    // do nothing
-	} else if ( source == "APM2" ) {
-	    fresh_data = APM2_gps_update();
-	} else if ( source == "Aura3" ) {
-	    fresh_data = Aura3_gps_update();
-	} else if ( source == "fgfs" ) {
-	    fresh_data = fgfs_gps_update();
-	} else if ( source == "gpsd" ) {
-	    fresh_data = gpsd_get_gps();
-	} else if ( source == "ublox6" ) {
-	    fresh_data = gps_ublox6_update();
-	} else if ( source == "ublox8" ) {
-	    fresh_data = gps_ublox8_update();
-	} else {
-	    printf("Unknown gps source = '%s' in config file\n",
-		   source.c_str());
-	}
-	
-	if ( fresh_data ) {
-	    bool send_remote_link = false;
-	    if ( remote_link_count < 0 ) {
-		send_remote_link = true;
-		remote_link_count = remote_link_skip;
-	    }
-	
-	    bool send_logging = false;
-	    if ( logging_count < 0 ) {
-		send_logging = true;
-		logging_count = logging_skip;
-	    }
-	
-	    if ( send_remote_link || send_logging ) {
-                // generate the message
-                message::gps_v4_t gps;
-                gps.index = i;
-                gps.timestamp_sec = outputs[i].getDouble("timestamp");
-                gps.latitude_deg = outputs[i].getDouble("latitude_deg");
-                gps.longitude_deg = outputs[i].getDouble("longitude_deg");
-                gps.altitude_m = outputs[i].getDouble("altitude_m");
-                gps.vn_ms = outputs[i].getDouble("vn_ms");
-                gps.ve_ms = outputs[i].getDouble("ve_ms");
-                gps.vd_ms = outputs[i].getDouble("vd_ms");
-                gps.unixtime_sec = outputs[i].getDouble("unix_time_sec");
-                gps.satellites = outputs[i].getLong("satellites");
-                gps.horiz_accuracy_m = outputs[i].getDouble("horiz_accuracy_m");
-                gps.vert_accuracy_m = outputs[i].getDouble("vert_accuracy_m");
-                gps.pdop = outputs[i].getDouble("pdop");
-                gps.fix_type = outputs[i].getLong("fixType");
-                gps.pack();
-		if ( send_remote_link ) {
-		    remote_link->send_message( gps.id, gps.payload, gps.len );
-		}
-		if ( send_logging ) {
-		    logging->log_message( gps.id, gps.payload, gps.len );
-		}
-	    }
-	}
-    }
-
-    gps_prof.stop();
-
-    if ( fresh_data ) {
-        remote_link_count--;
-        logging_count--;
-    }
-    
+    // FIXME: should this be "fixType" == 3?
     if ( gps_node.getLong("status") == 2 && !gps_state ) {
 	const double gps_settle = 10.0;
 	static double gps_acq_time = gps_node.getDouble("timestamp");
@@ -274,42 +146,8 @@ bool GPS_update() {
 
     gps_node.setDouble("data_age", GPS_age());
     
-    return fresh_data;
+    return true;
 }
-
-
-void GPS_close() {
-
-    // traverse configured modules
-    for ( unsigned int i = 0; i < sections.size(); i++ ) {
-	string source = sections[i].getString("source");
-	bool enabled = sections[i].getBool("enable");
-	if ( !enabled ) {
-	    continue;
-	}
-	//printf("i = %d  name = %s source = %s\n",
-	//       i, name.c_str(), source.c_str());
-	if ( source == "null" ) {
-	    // do nothing
-	} else if ( source == "APM2" ) {
-	    APM2_gps_close();
-	} else if ( source == "Aura3" ) {
-	    Aura3_gps_close();
-	} else if ( source == "fgfs" ) {
-	    fgfs_gps_close();
-	} else if ( source == "gpsd" ) {
-	    // fixme
-	} else if ( source == "ublox6" ) {
-	    gps_ublox6_close();
-	} else if ( source == "ublox8" ) {
-	    gps_ublox8_close();
-	} else {
-	    printf("Unknown gps source = '%s' in config file\n",
-		   source.c_str());
-	}
-    }
-}
-
 
 double GPS_age() {
     return get_Time() - gps_node.getDouble("timestamp");

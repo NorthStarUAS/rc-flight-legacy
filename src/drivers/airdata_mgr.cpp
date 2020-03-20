@@ -14,10 +14,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <sstream>
 #include <string>
 #include <vector>
-using std::ostringstream;
 using std::string;
 using std::vector;
 
@@ -26,7 +24,6 @@ using std::vector;
 #include "util/lowpass.h"
 #include "util/myprof.h"
 
-#include "airdata_bolder.h"
 #include "APM2.h"
 #include "Aura3/Aura3.h"
 #include "FGFS.h"
@@ -269,6 +266,7 @@ bool AirData_update() {
 }
 
 
+// FIXME!!!  How do we get an airdata calibration message pushed back upstream to the driver???
 void AirData_calibrate() {
     // traverse configured modules
     for ( unsigned int i = 0; i < sections.size(); i++ ) {
@@ -279,8 +277,6 @@ void AirData_calibrate() {
 	}
 	if ( source == "null" ) {
 	    // do nothing
-	} else if ( source == "airdata_bolder" ) {
-	    airdata_bolder_zero_airspeed();
 	} else if ( source == "APM2" ) {
 	    APM2_airdata_zero_airspeed();
 	} else if ( source == "Aura3" ) {
@@ -296,8 +292,4 @@ void AirData_calibrate() {
     // starting with current values
     airdata_calibrated = false;
     alt_error_calibrated = false;
-}
-
-
-void AirData_close() {
 }

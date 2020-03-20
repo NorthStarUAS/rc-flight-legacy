@@ -6,7 +6,6 @@ libdrivers_a_SOURCES = \
 	driver.h \
 	driver_mgr.cpp driver_mgr.h \
 	airdata_mgr.cpp airdata_mgr.h \
-	airdata_bolder.cpp airdata_bolder.h \
 	cal_temp.h cal_temp.cpp \
 	gps_mgr.cpp gps_mgr.h \
 	gps_gpsd.cpp gps_gpsd.h \

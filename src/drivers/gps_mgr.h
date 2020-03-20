@@ -11,7 +11,6 @@
 
 void GPS_init();
 bool GPS_update();
-void GPS_close();
 
 // return gps data age in seconds
 double GPS_age();

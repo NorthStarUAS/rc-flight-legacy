@@ -17,8 +17,8 @@ m2ft = 1.0 / ft2m
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
     
-gps_nodes = []
 airdata_node = getNode("/sensors/airdata[0]", True)
+gps_node = getNode("/sensors/gps[0]", True)
 imu_node = getNode("/sensors/imu[0]", True)
 pos_node = getNode("/position", True)
 pos_pressure_node = getNode("/position/pressure", True)
@@ -79,227 +79,16 @@ def wrap_packet( self, packet_id, payload ):
 
 class Packer():
     airdata = aura_messages.airdata_v7()
+    gps = aura_messages.gps_v4()
     imu = aura_messages.imu_v4()
     last_airdata_time = 0.0
+    last_gps_time = 0.0
     last_imu_time = 0.0;
     
     def __init__(self):
         pass
 
-    def pack_gps_dict(self, index):
-        gps_node = getNode('/sensors/gps[%d]' % index, True)
-        row = dict()
-        row['timestamp'] = gps_node.getFloat('timestamp')
-        row['latitude_deg'] = gps_node.getFloat('latitude_deg')
-        row['longitude_deg'] = gps_node.getFloat('longitude_deg')
-        row['altitude_m'] = gps_node.getFloat('altitude_m')
-        row['vn_ms'] = gps_node.getFloat('vn_ms')
-        row['ve_ms'] = gps_node.getFloat('ve_ms')
-        row['vd_ms'] = gps_node.getFloat('vd_ms')
-        row['unix_time_sec'] = gps_node.getFloat('unix_time_sec')
-        row['satellites'] = gps_node.getInt('satellites')
-        row['horiz_accuracy_m'] = gps_node.getFloat('horiz_accuracy_m')
-        row['vert_accuracy_m'] = gps_node.getFloat('vert_accuracy_m')
-        row['pdop'] = gps_node.getFloat('pdop')
-        row['fix_type'] = gps_node.getInt('fixType')
-        return row
-
-    def pack_gps_csv(self, index):
-        gps_node = getNode('/sensors/gps[%d]' % index, True)
-        row = dict()
-        row['timestamp'] = '%.4f' % gps_node.getFloat('timestamp')
-        row['latitude_deg'] = '%.10f' % gps_node.getFloat('latitude_deg')
-        row['longitude_deg'] = '%.10f' % gps_node.getFloat('longitude_deg')
-        row['altitude_m'] = '%.2f' % gps_node.getFloat('altitude_m')
-        row['vn_ms'] = '%.4f' % gps_node.getFloat('vn_ms')
-        row['ve_ms'] = '%.4f' % gps_node.getFloat('ve_ms')
-        row['vd_ms'] = '%.4f' % gps_node.getFloat('vd_ms')
-        row['unix_time_sec'] = '%.3f' % gps_node.getFloat('unix_time_sec')
-        row['satellites'] = '%d' % gps_node.getInt('satellites')
-        row['horiz_accuracy_m'] = '%.2f' % gps_node.getFloat('horiz_accuracy_m')
-        row['vert_accuracy_m'] = '%.2f' % gps_node.getFloat('vert_accuracy_m')
-        row['pdop'] = '%.2f' % gps_node.getFloat('pdop')
-        row['fix_type'] = '%d' % gps_node.getInt('fixType')
-        keys =['timestamp', 'latitude_deg', 'longitude_deg', 'altitude_m',
-               'vn_ms', 've_ms', 'vd_ms', 'unix_time_sec', 'satellites',
-               'horiz_accuracy_m', 'vert_accuracy_m', 'pdop', 'fix_type']
-        return row, keys
-
-    def unpack_gps_v2(self, buf):
-        gps = aura_messages.gps_v2(buf)
-
-        if gps.index >= len(gps_nodes):
-            for i in range(len(gps_nodes), gps.index+1):
-                path = '/sensors/gps[%d]' % i
-                gps_nodes.append( getNode(path, True) )
-        node = gps_nodes[gps.index]
-
-        node.setFloat("timestamp", gps.timestamp_sec)
-        node.setFloat("latitude_deg", gps.latitude_deg)
-        node.setFloat("longitude_deg", gps.longitude_deg)
-        node.setFloat("altitude_m", gps.altitude_m)
-        node.setFloat("vn_ms", gps.vn_ms)
-        node.setFloat("ve_ms", gps.ve_ms)
-        node.setFloat("vd_ms", gps.vd_ms)
-        node.setFloat("unix_time_sec", gps.unixtime_sec)
-        node.setInt("satellites", gps.satellites)
-        node.setInt("status", 0)
-        return gps.index
-
-    def unpack_gps_v3(self, buf):
-        gps = aura_messages.gps_v3(buf)
-
-        if gps.index >= len(gps_nodes):
-            for i in range(len(gps_nodes), gps.index+1):
-                path = '/sensors/gps[%d]' % i
-                gps_nodes.append( getNode(path, True) )
-        node = gps_nodes[gps.index]
-
-        node.setFloat("timestamp", gps.timestamp_sec)
-        node.setFloat("latitude_deg", gps.latitude_deg)
-        node.setFloat("longitude_deg", gps.longitude_deg)
-        node.setFloat("altitude_m", gps.altitude_m)
-        node.setFloat("vn_ms", gps.vn_ms)
-        node.setFloat("ve_ms", gps.ve_ms)
-        node.setFloat("vd_ms", gps.vd_ms)
-        node.setFloat("unix_time_sec", gps.unixtime_sec)
-        node.setInt("satellites", gps.satellites)
-        node.setFloat('horiz_accuracy_m', gps.horiz_accuracy_m)
-        node.setFloat('vert_accuracy_m', gps.vert_accuracy_m)
-        node.setFloat('pdop', gps.pdop)
-        node.setInt('fixType', gps.fix_type)
-        node.setInt("status", 0)
-        return gps.index
-
-    def unpack_gps_v4(self, buf):
-        gps = aura_messages.gps_v4(buf)
-
-        if gps.index >= len(gps_nodes):
-            for i in range(len(gps_nodes), gps.index+1):
-                path = '/sensors/gps[%d]' % i
-                gps_nodes.append( getNode(path, True) )
-        node = gps_nodes[gps.index]
-
-        node.setFloat("timestamp", gps.timestamp_sec)
-        node.setFloat("latitude_deg", gps.latitude_deg)
-        node.setFloat("longitude_deg", gps.longitude_deg)
-        node.setFloat("altitude_m", gps.altitude_m)
-        node.setFloat("vn_ms", gps.vn_ms)
-        node.setFloat("ve_ms", gps.ve_ms)
-        node.setFloat("vd_ms", gps.vd_ms)
-        node.setFloat("unix_time_sec", gps.unixtime_sec)
-        node.setInt("satellites", gps.satellites)
-        node.setFloat('horiz_accuracy_m', gps.horiz_accuracy_m)
-        node.setFloat('vert_accuracy_m', gps.vert_accuracy_m)
-        node.setFloat('pdop', gps.pdop)
-        node.setInt('fixType', gps.fix_type)
-        node.setInt("status", 0)
-        return gps.index
-
-    # only support primary imu for now
-    def pack_imu_v4(self):
-        imu_time = imu_node.getFloat('timestamp')
-        if imu_time > self.last_imu_time:
-            self.last_imu_time = imu_time
-            self.imu.index = 0
-            self.imu.timestamp_sec = imu_time
-            self.imu.p_rad_sec = imu_node.getFloat('p_rad_sec')
-            self.imu.q_rad_sec = imu_node.getFloat('q_rad_sec')
-            self.imu.r_rad_sec = imu_node.getFloat('r_rad_sec')
-            self.imu.ax_mps_sec = imu_node.getFloat('ax_mps_sec')
-            self.imu.ay_mps_sec = imu_node.getFloat('ay_mps_sec')
-            self.imu.az_mps_sec = imu_node.getFloat('az_mps_sec')
-            self.imu.hx = imu_node.getFloat('hx')
-            self.imu.hy = imu_node.getFloat('hy')
-            self.imu.hz = imu_node.getFloat('hz')
-            self.imu.temp_C = imu_node.getFloat('temp_C')
-            self.imu.status = imu_node.getInt('status')
-        return self.imu.pack()
-
-    def pack_imu_dict(self, index):
-        imu_node = getNode('/sensors/imu[%d]' % index, True)
-        row = dict()
-        row['timestamp'] = imu_node.getFloat('timestamp')
-        row['p_rad_sec'] = imu_node.getFloat('p_rad_sec')
-        row['q_rad_sec'] = imu_node.getFloat('q_rad_sec')
-        row['r_rad_sec'] = imu_node.getFloat('r_rad_sec')
-        row['ax_mps_sec'] = imu_node.getFloat('ax_mps_sec')
-        row['ay_mps_sec'] = imu_node.getFloat('ay_mps_sec')
-        row['az_mps_sec'] = imu_node.getFloat('az_mps_sec')
-        row['hx'] = imu_node.getFloat('hx')
-        row['hy'] = imu_node.getFloat('hy')
-        row['hz'] = imu_node.getFloat('hz')
-        row['temp_C'] = imu_node.getFloat('temp_C')
-        row['status'] = imu_node.getInt('status')
-        return row
-
-    def pack_imu_csv(self, index):
-        imu_node = getNode('/sensors/imu[%d]' % index, True)
-        row = dict()
-        row['timestamp'] = '%.4f' % imu_node.getFloat('timestamp')
-        row['p_rad_sec'] = '%.4f' % imu_node.getFloat('p_rad_sec')
-        row['q_rad_sec'] = '%.4f' % imu_node.getFloat('q_rad_sec')
-        row['r_rad_sec'] = '%.4f' % imu_node.getFloat('r_rad_sec')
-        row['ax_mps_sec'] = '%.4f' % imu_node.getFloat('ax_mps_sec')
-        row['ay_mps_sec'] = '%.4f' % imu_node.getFloat('ay_mps_sec')
-        row['az_mps_sec'] = '%.4f' % imu_node.getFloat('az_mps_sec')
-        row['hx'] = '%.3f' % imu_node.getFloat('hx')
-        row['hy'] = '%.3f' % imu_node.getFloat('hy')
-        row['hz'] = '%.3f' % imu_node.getFloat('hz')
-        row['temp_C'] = '%.1f' % imu_node.getFloat('temp_C')
-        row['status'] = '%d' % imu_node.getInt('status')
-        keys = ['timestamp', 'p_rad_sec', 'q_rad_sec', 'r_rad_sec',
-                'ax_mps_sec', 'ay_mps_sec', 'az_mps_sec',
-                'hx', 'hy', 'hz', 'temp_C', 'status']
-        return row, keys
-
-    def unpack_imu_v3(self, buf):
-        imu = aura_messages.imu_v3(buf)
-
-        if imu.index >= len(imu_nodes):
-            for i in range(len(imu_nodes),imu.index+1):
-                path = '/sensors/imu[%d]' % i
-                imu_nodes.append( getNode(path, True) )
-        node = imu_nodes[imu.index]
-
-        node.setFloat("timestamp", imu.timestamp_sec)
-        node.setFloat("p_rad_sec", imu.p_rad_sec)
-        node.setFloat("q_rad_sec", imu.q_rad_sec)
-        node.setFloat("r_rad_sec", imu.r_rad_sec)
-        node.setFloat("ax_mps_sec", imu.ax_mps_sec)
-        node.setFloat("ay_mps_sec", imu.ay_mps_sec)
-        node.setFloat("az_mps_sec", imu.az_mps_sec)
-        node.setFloat("hx", imu.hx)
-        node.setFloat("hy", imu.hy)
-        node.setFloat("hz", imu.hz)
-        node.setFloat("temp_C", imu.temp_C)
-        node.setInt("status", imu.status)
-        return imu.index
-
-    def unpack_imu_v4(self, buf):
-        imu = aura_messages.imu_v4(buf)
-
-        if imu.index >= len(imu_nodes):
-            for i in range(len(imu_nodes),imu.index+1):
-                path = '/sensors/imu[%d]' % i
-                imu_nodes.append( getNode(path, True) )
-        node = imu_nodes[imu.index]
-
-        node.setFloat("timestamp", imu.timestamp_sec)
-        node.setFloat("p_rad_sec", imu.p_rad_sec)
-        node.setFloat("q_rad_sec", imu.q_rad_sec)
-        node.setFloat("r_rad_sec", imu.r_rad_sec)
-        node.setFloat("ax_mps_sec", imu.ax_mps_sec)
-        node.setFloat("ay_mps_sec", imu.ay_mps_sec)
-        node.setFloat("az_mps_sec", imu.az_mps_sec)
-        node.setFloat("hx", imu.hx)
-        node.setFloat("hy", imu.hy)
-        node.setFloat("hz", imu.hz)
-        node.setFloat("temp_C", imu.temp_C)
-        node.setInt("status", imu.status)
-        return imu.index
-
-    def pack_airdata_v7(self):
+    def pack_airdata_bin(self):
         airdata_time = airdata_node.getFloat("timestamp")
         if airdata_time > self.last_airdata_time:
             self.last_airdata_time = airdata_time
@@ -423,6 +212,239 @@ class Packer():
         node.setInt("error_count", air.error_count)
         node.setInt("status", air.status)
         return air.index
+
+    def pack_gps_bin(self):
+        gps_time = gps_node.getFloat("timestamp")
+        if gps_time > self.last_gps_time:
+            self.last_gps_time = gps_time
+            self.gps.index = 0
+            self.gps.timestamp_sec = gps_time
+            self.gps.latitude_deg = gps_node.getFloat("latitude_deg")
+            self.gps.longitude_deg = gps_node.getFloat("longitude_deg")
+            self.gps.altitude_m = gps_node.getFloat("altitude_m")
+            self.gps.vn_ms = gps_node.getFloat("vn_ms")
+            self.gps.ve_ms = gps_node.getFloat("ve_ms")
+            self.gps.vd_ms = gps_node.getFloat("vd_ms")
+            self.gps.unixtime_sec = gps_node.getFloat("unix_time_sec")
+            self.gps.satellites = gps_node.getInt("satellites")
+            self.gps.horiz_accuracy_m = gps_node.getFloat("horiz_accuracy_m")
+            self.gps.vert_accuracy_m = gps_node.getFloat("vert_accuracy_m")
+            self.gps.pdop = gps_node.getFloat("pdop")
+            self.gps.fix_type = gps_node.getInt("FixType")
+        return self.gps.pack()
+
+    def pack_gps_dict(self, index):
+        gps_node = getNode('/sensors/gps[%d]' % index, True)
+        row = dict()
+        row['timestamp'] = gps_node.getFloat('timestamp')
+        row['latitude_deg'] = gps_node.getFloat('latitude_deg')
+        row['longitude_deg'] = gps_node.getFloat('longitude_deg')
+        row['altitude_m'] = gps_node.getFloat('altitude_m')
+        row['vn_ms'] = gps_node.getFloat('vn_ms')
+        row['ve_ms'] = gps_node.getFloat('ve_ms')
+        row['vd_ms'] = gps_node.getFloat('vd_ms')
+        row['unix_time_sec'] = gps_node.getFloat('unix_time_sec')
+        row['satellites'] = gps_node.getInt('satellites')
+        row['horiz_accuracy_m'] = gps_node.getFloat('horiz_accuracy_m')
+        row['vert_accuracy_m'] = gps_node.getFloat('vert_accuracy_m')
+        row['pdop'] = gps_node.getFloat('pdop')
+        row['fix_type'] = gps_node.getInt('fixType')
+        return row
+
+    def pack_gps_csv(self, index):
+        gps_node = getNode('/sensors/gps[%d]' % index, True)
+        row = dict()
+        row['timestamp'] = '%.4f' % gps_node.getFloat('timestamp')
+        row['latitude_deg'] = '%.10f' % gps_node.getFloat('latitude_deg')
+        row['longitude_deg'] = '%.10f' % gps_node.getFloat('longitude_deg')
+        row['altitude_m'] = '%.2f' % gps_node.getFloat('altitude_m')
+        row['vn_ms'] = '%.4f' % gps_node.getFloat('vn_ms')
+        row['ve_ms'] = '%.4f' % gps_node.getFloat('ve_ms')
+        row['vd_ms'] = '%.4f' % gps_node.getFloat('vd_ms')
+        row['unix_time_sec'] = '%.3f' % gps_node.getFloat('unix_time_sec')
+        row['satellites'] = '%d' % gps_node.getInt('satellites')
+        row['horiz_accuracy_m'] = '%.2f' % gps_node.getFloat('horiz_accuracy_m')
+        row['vert_accuracy_m'] = '%.2f' % gps_node.getFloat('vert_accuracy_m')
+        row['pdop'] = '%.2f' % gps_node.getFloat('pdop')
+        row['fix_type'] = '%d' % gps_node.getInt('fixType')
+        keys =['timestamp', 'latitude_deg', 'longitude_deg', 'altitude_m',
+               'vn_ms', 've_ms', 'vd_ms', 'unix_time_sec', 'satellites',
+               'horiz_accuracy_m', 'vert_accuracy_m', 'pdop', 'fix_type']
+        return row, keys
+
+    def unpack_gps_v2(self, buf):
+        gps = aura_messages.gps_v2(buf)
+
+        if gps.index >= len(gps_nodes):
+            for i in range(len(gps_nodes), gps.index+1):
+                path = '/sensors/gps[%d]' % i
+                gps_nodes.append( getNode(path, True) )
+        node = gps_nodes[gps.index]
+
+        node.setFloat("timestamp", gps.timestamp_sec)
+        node.setFloat("latitude_deg", gps.latitude_deg)
+        node.setFloat("longitude_deg", gps.longitude_deg)
+        node.setFloat("altitude_m", gps.altitude_m)
+        node.setFloat("vn_ms", gps.vn_ms)
+        node.setFloat("ve_ms", gps.ve_ms)
+        node.setFloat("vd_ms", gps.vd_ms)
+        node.setFloat("unix_time_sec", gps.unixtime_sec)
+        node.setInt("satellites", gps.satellites)
+        node.setInt("status", 0)
+        return gps.index
+
+    def unpack_gps_v3(self, buf):
+        gps = aura_messages.gps_v3(buf)
+
+        if gps.index >= len(gps_nodes):
+            for i in range(len(gps_nodes), gps.index+1):
+                path = '/sensors/gps[%d]' % i
+                gps_nodes.append( getNode(path, True) )
+        node = gps_nodes[gps.index]
+
+        node.setFloat("timestamp", gps.timestamp_sec)
+        node.setFloat("latitude_deg", gps.latitude_deg)
+        node.setFloat("longitude_deg", gps.longitude_deg)
+        node.setFloat("altitude_m", gps.altitude_m)
+        node.setFloat("vn_ms", gps.vn_ms)
+        node.setFloat("ve_ms", gps.ve_ms)
+        node.setFloat("vd_ms", gps.vd_ms)
+        node.setFloat("unix_time_sec", gps.unixtime_sec)
+        node.setInt("satellites", gps.satellites)
+        node.setFloat('horiz_accuracy_m', gps.horiz_accuracy_m)
+        node.setFloat('vert_accuracy_m', gps.vert_accuracy_m)
+        node.setFloat('pdop', gps.pdop)
+        node.setInt('fixType', gps.fix_type)
+        node.setInt("status", 0)
+        return gps.index
+
+    def unpack_gps_v4(self, buf):
+        gps = aura_messages.gps_v4(buf)
+
+        if gps.index >= len(gps_nodes):
+            for i in range(len(gps_nodes), gps.index+1):
+                path = '/sensors/gps[%d]' % i
+                gps_nodes.append( getNode(path, True) )
+        node = gps_nodes[gps.index]
+
+        node.setFloat("timestamp", gps.timestamp_sec)
+        node.setFloat("latitude_deg", gps.latitude_deg)
+        node.setFloat("longitude_deg", gps.longitude_deg)
+        node.setFloat("altitude_m", gps.altitude_m)
+        node.setFloat("vn_ms", gps.vn_ms)
+        node.setFloat("ve_ms", gps.ve_ms)
+        node.setFloat("vd_ms", gps.vd_ms)
+        node.setFloat("unix_time_sec", gps.unixtime_sec)
+        node.setInt("satellites", gps.satellites)
+        node.setFloat('horiz_accuracy_m', gps.horiz_accuracy_m)
+        node.setFloat('vert_accuracy_m', gps.vert_accuracy_m)
+        node.setFloat('pdop', gps.pdop)
+        node.setInt('fixType', gps.fix_type)
+        node.setInt("status", 0)
+        return gps.index
+
+    # only support primary imu for now
+    def pack_imu_bin(self):
+        imu_time = imu_node.getFloat('timestamp')
+        if imu_time > self.last_imu_time:
+            self.last_imu_time = imu_time
+            self.imu.index = 0
+            self.imu.timestamp_sec = imu_time
+            self.imu.p_rad_sec = imu_node.getFloat('p_rad_sec')
+            self.imu.q_rad_sec = imu_node.getFloat('q_rad_sec')
+            self.imu.r_rad_sec = imu_node.getFloat('r_rad_sec')
+            self.imu.ax_mps_sec = imu_node.getFloat('ax_mps_sec')
+            self.imu.ay_mps_sec = imu_node.getFloat('ay_mps_sec')
+            self.imu.az_mps_sec = imu_node.getFloat('az_mps_sec')
+            self.imu.hx = imu_node.getFloat('hx')
+            self.imu.hy = imu_node.getFloat('hy')
+            self.imu.hz = imu_node.getFloat('hz')
+            self.imu.temp_C = imu_node.getFloat('temp_C')
+            self.imu.status = imu_node.getInt('status')
+        return self.imu.pack()
+
+    def pack_imu_dict(self, index):
+        imu_node = getNode('/sensors/imu[%d]' % index, True)
+        row = dict()
+        row['timestamp'] = imu_node.getFloat('timestamp')
+        row['p_rad_sec'] = imu_node.getFloat('p_rad_sec')
+        row['q_rad_sec'] = imu_node.getFloat('q_rad_sec')
+        row['r_rad_sec'] = imu_node.getFloat('r_rad_sec')
+        row['ax_mps_sec'] = imu_node.getFloat('ax_mps_sec')
+        row['ay_mps_sec'] = imu_node.getFloat('ay_mps_sec')
+        row['az_mps_sec'] = imu_node.getFloat('az_mps_sec')
+        row['hx'] = imu_node.getFloat('hx')
+        row['hy'] = imu_node.getFloat('hy')
+        row['hz'] = imu_node.getFloat('hz')
+        row['temp_C'] = imu_node.getFloat('temp_C')
+        row['status'] = imu_node.getInt('status')
+        return row
+
+    def pack_imu_csv(self, index):
+        imu_node = getNode('/sensors/imu[%d]' % index, True)
+        row = dict()
+        row['timestamp'] = '%.4f' % imu_node.getFloat('timestamp')
+        row['p_rad_sec'] = '%.4f' % imu_node.getFloat('p_rad_sec')
+        row['q_rad_sec'] = '%.4f' % imu_node.getFloat('q_rad_sec')
+        row['r_rad_sec'] = '%.4f' % imu_node.getFloat('r_rad_sec')
+        row['ax_mps_sec'] = '%.4f' % imu_node.getFloat('ax_mps_sec')
+        row['ay_mps_sec'] = '%.4f' % imu_node.getFloat('ay_mps_sec')
+        row['az_mps_sec'] = '%.4f' % imu_node.getFloat('az_mps_sec')
+        row['hx'] = '%.3f' % imu_node.getFloat('hx')
+        row['hy'] = '%.3f' % imu_node.getFloat('hy')
+        row['hz'] = '%.3f' % imu_node.getFloat('hz')
+        row['temp_C'] = '%.1f' % imu_node.getFloat('temp_C')
+        row['status'] = '%d' % imu_node.getInt('status')
+        keys = ['timestamp', 'p_rad_sec', 'q_rad_sec', 'r_rad_sec',
+                'ax_mps_sec', 'ay_mps_sec', 'az_mps_sec',
+                'hx', 'hy', 'hz', 'temp_C', 'status']
+        return row, keys
+
+    def unpack_imu_v3(self, buf):
+        imu = aura_messages.imu_v3(buf)
+
+        if imu.index >= len(imu_nodes):
+            for i in range(len(imu_nodes),imu.index+1):
+                path = '/sensors/imu[%d]' % i
+                imu_nodes.append( getNode(path, True) )
+        node = imu_nodes[imu.index]
+
+        node.setFloat("timestamp", imu.timestamp_sec)
+        node.setFloat("p_rad_sec", imu.p_rad_sec)
+        node.setFloat("q_rad_sec", imu.q_rad_sec)
+        node.setFloat("r_rad_sec", imu.r_rad_sec)
+        node.setFloat("ax_mps_sec", imu.ax_mps_sec)
+        node.setFloat("ay_mps_sec", imu.ay_mps_sec)
+        node.setFloat("az_mps_sec", imu.az_mps_sec)
+        node.setFloat("hx", imu.hx)
+        node.setFloat("hy", imu.hy)
+        node.setFloat("hz", imu.hz)
+        node.setFloat("temp_C", imu.temp_C)
+        node.setInt("status", imu.status)
+        return imu.index
+
+    def unpack_imu_v4(self, buf):
+        imu = aura_messages.imu_v4(buf)
+
+        if imu.index >= len(imu_nodes):
+            for i in range(len(imu_nodes),imu.index+1):
+                path = '/sensors/imu[%d]' % i
+                imu_nodes.append( getNode(path, True) )
+        node = imu_nodes[imu.index]
+
+        node.setFloat("timestamp", imu.timestamp_sec)
+        node.setFloat("p_rad_sec", imu.p_rad_sec)
+        node.setFloat("q_rad_sec", imu.q_rad_sec)
+        node.setFloat("r_rad_sec", imu.r_rad_sec)
+        node.setFloat("ax_mps_sec", imu.ax_mps_sec)
+        node.setFloat("ay_mps_sec", imu.ay_mps_sec)
+        node.setFloat("az_mps_sec", imu.az_mps_sec)
+        node.setFloat("hx", imu.hx)
+        node.setFloat("hy", imu.hy)
+        node.setFloat("hz", imu.hz)
+        node.setFloat("temp_C", imu.temp_C)
+        node.setInt("status", imu.status)
+        return imu.index
 
     def pack_filter_dict(self, index):
         filter_node = getNode('/filters/filter[%d]' % index, True)
