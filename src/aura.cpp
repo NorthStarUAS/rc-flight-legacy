@@ -286,7 +286,6 @@ int main( int argc, char **argv )
     // initialize profiling names
     air_prof.set_name("airdata");
     driver_prof.set_name("drivers");
-    pilot_prof.set_name("pilot");
     filter_prof.set_name("filter");
     mission_prof.set_name("mission");
     control_prof.set_name("control");

@@ -51,66 +51,10 @@ void PilotInput_init() {
     flight_node = pyGetNode("/controls/flight", true);
     engine_node = pyGetNode("/controls/engine", true);
     ap_node = pyGetNode("/autopilot", true);
-    
-    // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/sensors/pilot_inputs", true);
-    vector<string> children = group_node.getChildren();
-    printf("Found %d pilot sections\n", (int)children.size());
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	sections.push_back(section);
-	string source = section.getString("source");
-	bool enabled = section.getBool("enable");
-	if ( !enabled ) {
-	    continue;
-	}
-	ostringstream output_path;
-	output_path << "/sensors/pilot_input" << '[' << i << ']';
-        pyPropertyNode output_node = pyGetNode(output_path.str(), true);
-        outputs.push_back(output_node);
-	printf("pilot: %d = %s\n", i, source.c_str());
-	if ( source == "null" ) {
-	    // do nothing
-	} else if ( source == "APM2" ) {
-	    APM2_pilot_init( output_path.str(), &section );
-	} else if ( source == "Aura3" ) {
-	    Aura3_pilot_init( output_path.str(), &section );
-	} else if ( source == "fgfs" ) {
-	    fgfs_pilot_init( output_path.str(), &section );
-	} else {
-	    printf("Unknown pilot input source = '%s' in config file\n",
-		   source.c_str());
-	}
-    }
 }
 
 
 bool PilotInput_update() {
-    pilot_prof.start();
-
-    bool fresh_data = false;
-
-    // traverse configured modules
-    for ( unsigned int i = 0; i < sections.size(); i++ ) {
-	string source = sections[i].getString("source");
-	bool enabled = sections[i].getBool("enable");
-	if ( !enabled ) {
-	    continue;
-	}
-	if ( source == "null" ) {
-	    // do nothing
-	} else if ( source == "APM2" ) {
-	    fresh_data = APM2_pilot_update();
-	} else if ( source == "Aura3" ) {
-	    fresh_data = Aura3_pilot_update();
-	} else if ( source == "fgfs" ) {
-	    fresh_data = fgfs_pilot_update();
-	} else {
-	    printf("Unknown pilot input source = '%s' in config file\n",
-		   source.c_str());
-	}
-    }
-
     // log receiver fail safe changes
     static bool last_fail_safe = false;
     if ( pilot_node.getBool("fail_safe") != last_fail_safe ) {
@@ -133,10 +77,5 @@ bool PilotInput_update() {
         flight_node.setDouble( "rudder", pilot_node.getDouble("rudder") );
         flight_node.setDouble( "flaps", pilot_node.getDouble("flaps") );
     }
-
-    pilot_prof.stop();
-
-    return fresh_data;
+    return true;
 }
-
-

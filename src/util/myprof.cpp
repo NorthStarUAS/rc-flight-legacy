@@ -80,7 +80,6 @@ void myprofile::stats() {
 // global profiling structures
 myprofile air_prof;
 myprofile driver_prof;
-myprofile pilot_prof;
 myprofile filter_prof;
 myprofile mission_prof;
 myprofile control_prof;
