@@ -154,8 +154,14 @@ static void publish_values() {
     vel_node.setDouble( "vd_ms", filter_node.getDouble("vd_ms") );
     filter_group_node.setDouble( "timestamp",
 				 filter_node.getDouble("timestamp") );
-    status_node.setString( "navigation",
-			   filter_node.getString("navigation") );
+    int status = filter_node.getLong("status");
+    if ( status == 0 ) {
+        status_node.setString( "navigation", "invalid" );
+    } else if ( status == 1 ) {
+        status_node.setString( "navigation", "no_gps" );
+    } else if ( status == 2 ) {
+        status_node.setString( "navigation", "ok" );
+    }
     bool use_filter = true;
     bool use_gps = !use_filter;
     if ( use_filter ) {

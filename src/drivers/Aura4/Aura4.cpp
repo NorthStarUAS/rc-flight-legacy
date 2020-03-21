@@ -974,6 +974,7 @@ bool Aura4_t::update_ekf( message::ekf_t *ekf ) {
     ekf_node.setDouble( "ax_bias", ekf->ax_bias );
     ekf_node.setDouble( "ay_bias", ekf->ay_bias );
     ekf_node.setDouble( "az_bias", ekf->az_bias );
+    ekf_node.setLong("status", ekf->status );
     
     /*FIXME:move the following to filter_mgr?*/
     ekf_node.setDouble( "altitude_ft", ekf->altitude_m * M2F );

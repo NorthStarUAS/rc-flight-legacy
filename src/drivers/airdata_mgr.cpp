@@ -159,7 +159,7 @@ static void update_pressure_helpers() {
     //
 
     if ( !alt_error_calibrated ) {
-	if ( filter_node.getString("navigation") == "valid" ) {
+	if ( filter_node.getString("navigation") == "ok" ) {
 	    alt_error_calibrated = true;
 	    Ps_filt_err.init( filter_alt_m - Ps );
 	}

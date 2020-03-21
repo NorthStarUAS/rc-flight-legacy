@@ -1263,6 +1263,7 @@ struct ekf_t {
     float ax_bias;
     float ay_bias;
     float az_bias;
+    uint8_t status;
 
     // internal structure for packing
     uint8_t payload[message_max_len];
@@ -1284,6 +1285,7 @@ struct ekf_t {
         float ax_bias;
         float ay_bias;
         float az_bias;
+        uint8_t status;
     };
     #pragma pack(pop)
 
@@ -1316,6 +1318,7 @@ struct ekf_t {
         _buf->ax_bias = ax_bias;
         _buf->ay_bias = ay_bias;
         _buf->az_bias = az_bias;
+        _buf->status = status;
         return true;
     }
 
@@ -1342,6 +1345,7 @@ struct ekf_t {
         ax_bias = _buf->ax_bias;
         ay_bias = _buf->ay_bias;
         az_bias = _buf->az_bias;
+        status = _buf->status;
         return true;
     }
 };

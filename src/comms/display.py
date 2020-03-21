@@ -63,17 +63,16 @@ def status_summary():
         else:
             print('[gps  ]: age =', gps_node.getFloat('data_age'))
 
-        if filter_node.getString('navigation') == 'valid':
-            print('[filt ]:lon = %.6f lat = %.6f alt = %.1f[m]' % \
-                  (filter_node.getFloat('longitude_deg'),
-                   filter_node.getFloat('latitude_deg'),
-                   filter_node.getFloat('altitude_m'))	)
-            print('[filt ]:phi = %5.1f the = %5.1f psi = %5.1f [deg]' % \
-                  (orient_node.getFloat('roll_deg'),
-                   orient_node.getFloat('pitch_deg'),
-                   orient_node.getFloat('heading_deg')))
-        else:
-            print('[filt ]:[No Valid Data]')
+        filter_status = filter_node.getString("navigation")
+        print("[filt ]:[%s] " % filter_status, end='')
+        print("lon = %.6f lat = %.6f alt = %.1f[m]" % \
+              (filter_node.getFloat("longitude_deg"),
+               filter_node.getFloat("latitude_deg"),
+               filter_node.getFloat("altitude_m"), end = ''))
+        print("phi = %4.1f the = %4.1f psi = %5.1f [deg]" % \
+              (orient_node.getFloat("roll_deg"),
+               orient_node.getFloat("pitch_deg"),
+               orient_node.getFloat("heading_deg")))
 
         print('[act  ]:%.2f %.2f %.2f %.2f %.2f' % \
               (act_node.getFloat('aileron'),

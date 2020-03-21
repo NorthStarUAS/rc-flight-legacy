@@ -256,7 +256,8 @@
                 { "type": "float", "name": "r_bias" },
                 { "type": "float", "name": "ax_bias" },
                 { "type": "float", "name": "ay_bias" },
-                { "type": "float", "name": "az_bias" }
+                { "type": "float", "name": "az_bias" },
+                { "type": "uint8_t", "name": "status" }
             ]
         }
     ]
