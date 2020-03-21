@@ -13,9 +13,7 @@
 
 #include <stdio.h>
 #include <string>
-#include <sstream>
 using std::string;
-using std::ostringstream;
 
 #include "comms/aura_messages.h"
 #include "comms/remote_link.h"
@@ -25,6 +23,7 @@ using std::ostringstream;
 #include "include/globaldefs.h"
 #include "init/globals.h"
 #include "util/myprof.h"
+#include "util/props_helper.h"
 
 #include "ground.h"
 #include "wind.h"
@@ -88,17 +87,16 @@ void Filter_init() {
 	if ( !enabled ) {
 	    continue;
 	}
-	ostringstream output_path;
-	output_path << "/filters/filter" << '[' << i << ']';
-        pyPropertyNode output_node = pyGetNode(output_path.str(), true);
+        string output_path = get_next_path("/filters/", "filter");
+        pyPropertyNode output_node = pyGetNode(output_path, true);
         outputs.push_back(output_node);
 	printf("filter: %d = %s\n", i, module.c_str());
 	if ( module == "null" ) {
 	    // do nothing
 	} else if ( module == "nav-ekf15" ) {
-	    nav_ekf15_init( output_path.str(), &section );
+	    nav_ekf15_init( output_path, &section );
 	} else if ( module == "nav-ekf15-mag" ) {
-	    nav_ekf15_mag_init( output_path.str(), &section );
+	    nav_ekf15_mag_init( output_path, &section );
 	} else {
 	    printf("Unknown filter = '%s' in config file\n",
 		   module.c_str());

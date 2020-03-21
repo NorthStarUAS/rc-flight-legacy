@@ -8,6 +8,7 @@ libutil_a_SOURCES = \
 	lowpass.cpp lowpass.h \
 	myprof.cpp myprof.h \
 	poly1d.h \
+	props_helper.cpp proper_helper.h \
 	sg_path.cpp sg_path.h \
 	strutils.cpp strutils.h \
         timing.cpp timing.h \
