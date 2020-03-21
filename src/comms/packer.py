@@ -655,9 +655,9 @@ class Packer():
         if not use_cached and pilot_time > self.last_pilot_time:
             self.last_pilot_time = pilot_time
             self.pilot.index = 0
-            self.pilot.timestamp_sec = imu_time
+            self.pilot.timestamp_sec = pilot_time
             for i in range(8):
-                self.pilot.channel[i] = pilot_node.getFloat("channel", i)
+                self.pilot.channel[i] = pilot_node.getFloatEnum("channel", i)
             self.pilot.status = 0
             self.pilot_buf = self.pilot.pack()
         return self.pilot_buf
