@@ -68,7 +68,7 @@ def status_summary():
         print("lon = %.6f lat = %.6f alt = %.1f[m]" % \
               (filter_node.getFloat("longitude_deg"),
                filter_node.getFloat("latitude_deg"),
-               filter_node.getFloat("altitude_m"), end = ''))
+               filter_node.getFloat("altitude_m")), end = '')
         print("phi = %4.1f the = %4.1f psi = %5.1f [deg]" % \
               (orient_node.getFloat("roll_deg"),
                orient_node.getFloat("pitch_deg"),
