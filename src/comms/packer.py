@@ -89,6 +89,7 @@ class Packer():
     last_airdata_time = 0.0
     last_gps_time = 0.0
     last_imu_time = 0.0;
+    last_pilot_time = 0.0;
     
     def __init__(self):
         pass
