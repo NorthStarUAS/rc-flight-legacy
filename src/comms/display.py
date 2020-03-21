@@ -63,7 +63,7 @@ def status_summary():
         else:
             print('[gps  ]: age =', gps_node.getFloat('data_age'))
 
-        filter_status = filter_node.getString("navigation")
+        filter_status = status_node.getString("navigation")
         print("[filt ]:[%s] " % filter_status, end='')
         print("pos = %.6f %.6f %.1f " % \
               (filter_node.getFloat("longitude_deg"),

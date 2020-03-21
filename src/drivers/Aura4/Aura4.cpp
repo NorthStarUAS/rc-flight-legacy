@@ -658,7 +658,7 @@ bool Aura4_t::send_config() {
             if ( cal.getLen("mag_affine") == 16 ) {
                 for ( unsigned int i = 0; i < 16; i++ ) {
                     config_imu.mag_affine[i] = cal.getDouble("mag_affine", i);
-                    printf("mag: %.4f\n", config_imu.mag_affine[i]);
+                    //printf("mag: %.4f\n", config_imu.mag_affine[i]);
                 }
             } else {
                 info("ERROR: wrong number of elements for mag_cal affine matrix!\n");
