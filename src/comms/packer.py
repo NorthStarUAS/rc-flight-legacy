@@ -20,6 +20,7 @@ START_OF_MSG1 = 224
 airdata_node = getNode("/sensors/airdata[0]", True)
 gps_node = getNode("/sensors/gps[0]", True)
 imu_node = getNode("/sensors/imu[0]", True)
+pilot_node = getNode("/sensors/pilot_input", True)
 pos_node = getNode("/position", True)
 pos_pressure_node = getNode("/position/pressure", True)
 pos_combined_node = getNode("/position/combined", True)
@@ -30,7 +31,6 @@ remote_link_node = getNode("/comms/remote_link", True)
 
 NUM_ACTUATORS = 8
 act_node = getNode("/actuators", True)
-pilot_nodes = []
 
 status_node = getNode("/status", True)
 ap_node = getNode("/autopilot", True)
@@ -81,9 +81,11 @@ class Packer():
     airdata = aura_messages.airdata_v7()
     gps = aura_messages.gps_v4()
     imu = aura_messages.imu_v4()
+    pilot = aura_messages.pilot_v3()
     airdata_buf = None
     gps_buf = None
     imu_buf = None
+    pilot_buf = None
     last_airdata_time = 0.0
     last_gps_time = 0.0
     last_imu_time = 0.0;
@@ -646,6 +648,18 @@ class Packer():
         act_node.setFloat("channel8", act.channel8)
         act_node.setInt("status", act.status)
         return act.index
+
+    def pack_pilot_bin(self, use_cached=False):
+        pilot_time = pilot_node.getFloat('timestamp')
+        if not use_cached and pilot_time > self.last_pilot_time:
+            self.last_pilot_time = pilot_time
+            self.pilot.index = 0
+            self.pilot.timestamp_sec = imu_time
+            for i in range(8):
+                self.pilot.channel[i] = pilot_node.getFloat("channel", i)
+            self.pilot.status = 0
+            self.pilot_buf = self.pilot.pack()
+        return self.pilot_buf
 
     def pack_pilot_dict(self, index):
         pilot_node = getNode('/sensors/pilot_input[%d]' % index, True)

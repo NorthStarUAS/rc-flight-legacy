@@ -449,7 +449,6 @@ int main( int argc, char **argv )
 
     // close and exit
     Filter_close();
-    PilotInput_close();
     payload_mgr.close();
     control_close();
     Actuator_close();

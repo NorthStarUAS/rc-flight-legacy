@@ -11,4 +11,3 @@
 
 void PilotInput_init();
 bool PilotInput_update();
-void PilotInput_close();

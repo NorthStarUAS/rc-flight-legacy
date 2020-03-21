@@ -103,10 +103,13 @@ gps_skip = remote_link_config.getInt("gps_skip")
 gps_count = random.randint(0, gps_skip)
 imu_skip = remote_link_config.getInt("imu_skip")
 imu_count = random.randint(0, imu_skip)
+pilot_skip = remote_link_config.getInt("pilot_skip")
+pilot_count = random.randint(0, pilot_skip)
 def process_messages():
     global airdata_count
     global gps_count
     global imu_count
+    global pilot_count
     if airdata_count <= 0:
         airdata_count = airdata_skip
         buf = packer.pack_airdata_bin(use_cached=True)
@@ -119,6 +122,10 @@ def process_messages():
         gps_count = gps_skip
         buf = packer.pack_gps_bin(use_cached=True)
         send_message(packer.gps.id, buf)
+    if pilot_count <= 0:
+        pilot_count = pilot_skip
+        buf = packer.pack_pilot_bin(use_cached=True)
+        send_message(packer.pilot.id, buf)
         
 def update():
     process_messages()
