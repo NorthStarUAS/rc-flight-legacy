@@ -273,15 +273,6 @@ bool Filter_update() {
             }
 	    fresh_filter_data = nav_ekf15_mag_update();
 	}
-	if ( fresh_filter_data ) {
-	    if ( i == 0 ) {
-		// only for primary filter
-		update_euler_rates();
-		update_ground(imu_dt);
-		update_wind(imu_dt);
-		publish_values();
-	    }
-	}
 
 	bool send_remote_link = false;
 	if ( remote_link_count < 0 ) {
@@ -325,6 +316,12 @@ bool Filter_update() {
 	    }
 	}
     }
+
+    // only for primary filter
+    update_euler_rates();
+    update_ground(imu_dt);
+    update_wind(imu_dt);
+    publish_values();
 
     filter_prof.stop();
 

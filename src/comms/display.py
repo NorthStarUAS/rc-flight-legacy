@@ -54,7 +54,7 @@ def status_summary():
                    gps_node.getInt('hour'),
                    gps_node.getInt('min'),
                    gps_node.getInt('sec')))
-            print('[gps  ]:lon = %.6f lat = %.6f alt = %.1f[m] sats = %ld, age = %.2f' % \
+            print('[gps  ]: pos = %.6f %.6f %.1fm sats = %ld, age = %.2f' % \
                   (gps_node.getFloat('longitude_deg'),
                    gps_node.getFloat('latitude_deg'),
                    gps_node.getFloat('altitude_m'),
@@ -65,11 +65,11 @@ def status_summary():
 
         filter_status = filter_node.getString("navigation")
         print("[filt ]:[%s] " % filter_status, end='')
-        print("lon = %.6f lat = %.6f alt = %.1f[m]" % \
+        print("pos = %.6f %.6f %.1f " % \
               (filter_node.getFloat("longitude_deg"),
                filter_node.getFloat("latitude_deg"),
                filter_node.getFloat("altitude_m")), end = '')
-        print("phi = %4.1f the = %4.1f psi = %5.1f [deg]" % \
+        print("RPY = %4.1f %4.1f %5.1f (deg)" % \
               (orient_node.getFloat("roll_deg"),
                orient_node.getFloat("pitch_deg"),
                orient_node.getFloat("heading_deg")))
