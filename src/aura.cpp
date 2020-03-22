@@ -110,10 +110,8 @@ void main_work_loop()
 	dt = APM2_update();
     } else if ( sync_source == SYNC_AURA3 ) {
 	dt = Aura3_update();
-    } else if ( sync_source == SYNC_AURA4 ) {
-	// dt = Aura4_update();
     } else if ( sync_source == SYNC_FGFS ) {
-	dt = FGFS_update();
+	// dt = FGFS_update();
     }
 
     dt = driver_mgr.read();

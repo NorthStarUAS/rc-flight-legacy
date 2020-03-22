@@ -27,7 +27,6 @@ using std::vector;
 #include "init/globals.h"
 #include "util/timing.h"
 
-#include "act_fgfs.h"
 #include "drivers/APM2.h"
 #include "drivers/Aura3/Aura3.h"
 
@@ -92,8 +91,6 @@ void Actuator_init() {
 		usleep(250000);
 		Aura3_act_update();
 	    }
-	} else if ( module == "fgfs" ) {
-	    fgfs_act_init( &section );
 	} else {
 	    printf("Unknown actuator = '%s' in config file\n",
 		   module.c_str());
@@ -266,8 +263,6 @@ bool Actuator_update() {
 	    APM2_act_update();
 	} else if ( module == "Aura3" ) {
 	    Aura3_act_update();
-	} else if ( module == "fgfs" ) {
-	    fgfs_act_update();
 	} else {
 	    printf("Unknown actuator = '%s' in config file\n",
 		   module.c_str());
@@ -292,8 +287,6 @@ void Actuators_close() {
 	    APM2_act_close();
 	} else if ( module == "Aura3" ) {
 	    Aura3_act_close();
-	} else if ( module == "fgfs" ) {
-	    fgfs_act_close();
 	} else {
 	    printf("Unknown actuator = '%s' in config file\n",
 		   module.c_str());

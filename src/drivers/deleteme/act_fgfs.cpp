@@ -28,14 +28,14 @@ static pyPropertyNode pos_node;
 static pyPropertyNode route_node;
 
 // initialize fgfs_gps input property nodes
-static void bind_input( pyPropertyNode *config ) {
-    if ( config->hasChild("host") ) {
-	hostname = config->getString("host");
-    }
-    if ( config->hasChild("port") ) {
-	port = config->getLong("port");
-    }
-}
+// static void bind_input( pyPropertyNode *config ) {
+//     if ( config->hasChild("host") ) {
+// 	hostname = config->getString("host");
+//     }
+//     if ( config->hasChild("port") ) {
+// 	port = config->getLong("port");
+//     }
+// }
 
 
 /// initialize actuator property nodes 
@@ -49,29 +49,29 @@ static void bind_act_nodes() {
 
 
 // function prototypes
-bool fgfs_act_init( pyPropertyNode *config ) {
-    printf("actuator_init()\n");
+// bool fgfs_act_init( pyPropertyNode *config ) {
+//     printf("actuator_init()\n");
 
-    bind_input( config );
-    bind_act_nodes();
+//     //bind_input( config );
+//     bind_act_nodes();
 
-    // open a UDP socket
-    if ( ! sock.open( false ) ) {
-	printf("Error opening imu input socket\n");
-	return false;
-    }
+//     // open a UDP socket
+//     if ( ! sock.open( false ) ) {
+// 	printf("Error opening imu input socket\n");
+// 	return false;
+//     }
 
-    // connect ...
-    if ( sock.connect( hostname.c_str(), port ) == -1 ) {
-	printf("error connecting to %s:%d\n", hostname.c_str(), port);
-	return false;
-    }
+//     // connect ...
+//     if ( sock.connect( hostname.c_str(), port ) == -1 ) {
+// 	printf("error connecting to %s:%d\n", hostname.c_str(), port);
+// 	return false;
+//     }
 
-    // don't block
-    sock.setBlocking( false );
+//     // don't block
+//     sock.setBlocking( false );
 
-    return true;
-}
+//     return true;
+// }
 
 
 // swap big/little endian bytes

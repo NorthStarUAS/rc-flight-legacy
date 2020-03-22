@@ -5,21 +5,53 @@
 
 #pragma once
 
-// function prototypes
-double FGFS_update();
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
+using namespace Eigen;
 
-bool fgfs_imu_init( string output_path, pyPropertyNode *config );
-bool fgfs_imu_update();
-void fgfs_imu_close();
+#include "drivers/driver.h"
+#include "util/netSocket.h"
 
-bool fgfs_airdata_init( string output_path );
-bool fgfs_airdata_update();
-void fgfs_airdata_close();
+class fgfs_t: public driver_t {
+    
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    fgfs_t() {}
+    ~fgfs_t() {}
+    void init( pyPropertyNode *config );
+    float read();
+    void process() {}
+    void write();
+    void close();
+    
+private:
+    pyPropertyNode act_node;
+    pyPropertyNode airdata_node;
+    pyPropertyNode gps_node;
+    pyPropertyNode imu_node;
+    pyPropertyNode orient_node;
+    pyPropertyNode pos_node;
+    pyPropertyNode power_node;
+    pyPropertyNode route_node;
+    pyPropertyNode targets_node;
 
-bool fgfs_gps_init( string output_path, pyPropertyNode *config );
-bool fgfs_gps_update();
-void fgfs_gps_close();
+    netSocket sock_act;
+    netSocket sock_imu;
+    netSocket sock_gps;
 
-bool fgfs_pilot_init( string output_path, pyPropertyNode *config );
-bool fgfs_pilot_update();
-void fgfs_pilot_close();
+    Vector3f mag_ned;
+    Quaternionf q_N2B;
+    Matrix3f C_N2B;
+    
+    int battery_cells = 4;
+    
+    void info( const char* format, ... );
+    void hard_error( const char*format, ... );
+    
+    void init_act( pyPropertyNode *config );
+    void init_airdata( pyPropertyNode *config );
+    void init_gps( pyPropertyNode *config );
+    void init_imu( pyPropertyNode *config );
+    bool update_gps();
+    bool update_imu();
+};

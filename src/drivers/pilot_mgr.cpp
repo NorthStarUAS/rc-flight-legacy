@@ -30,7 +30,6 @@ using std::vector;
 
 #include "APM2.h"
 #include "Aura3/Aura3.h"
-#include "FGFS.h"
 
 #include "pilot_mgr.h"
 

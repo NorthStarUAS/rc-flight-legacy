@@ -8,148 +8,19 @@
 #include <stdlib.h>		// drand48()
 #include <sys/ioctl.h>
 
-#include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/Geometry>
-using namespace Eigen;
 #include <iostream>
 using std::cout;
 using std::endl;
 
+#include "comms/display.h"
 #include "filters/nav_common/coremag.h"
 #include "filters/nav_common/nav_functions.h"
-#include "util/netSocket.h"
+#include "util/props_helper.h"
 #include "util/timing.h"
 
 #include "FGFS.h"
 
-
-static netSocket sock_imu;
-static netSocket sock_gps;
-
-static int port_imu = 0;
-static int port_gps = 0;
-
-// property nodes
-static pyPropertyNode imu_node;
-static pyPropertyNode gps_node;
-static pyPropertyNode airdata_node;
-static pyPropertyNode act_node;
-static pyPropertyNode power_node;
-static pyPropertyNode config_specs_node;
-
-static bool airdata_inited = false;
-
 static const float D2R = M_PI / 180.0;
-
-Vector3f mag_ned;
-Quaternionf q_N2B;
-Matrix3f C_N2B;
-
-// initialize fgfs_imu input property nodes
-static void bind_imu_input( pyPropertyNode *config ) {
-    if ( config->hasChild("port") ) {
-	port_imu = config->getLong("port");
-    }
-}
-
-
-// initialize fgfs_gps input property nodes
-static void bind_gps_input( pyPropertyNode *config ) {
-    if ( config->hasChild("port") ) {
-	port_gps = config->getLong("port");
-    }
-}
-
-
-// initialize imu output property nodes 
-static void bind_imu_output( string output_path ) {
-    imu_node = pyGetNode(output_path, true);
-    act_node = pyGetNode("/actuators", true);
-    config_specs_node = pyGetNode("/config/specs", true);
-    power_node = pyGetNode("/sensors/power", true);
-    // set initial fake value
-    power_node.setDouble( "avionics_vcc", 5.05 );
-}
-
-
-// initialize gps output property nodes 
-static void bind_gps_output( string output_path ) {
-    gps_node = pyGetNode(output_path, true);
-}
-
-
-// initialize airdata output property nodes 
-static void bind_airdata_output( string output_path ) {
-    airdata_node = pyGetNode(output_path, true);
-
-    // set initial fake value
-    airdata_node.setDouble( "temp_degC", 15.0 );
-
-    airdata_inited = true;
-}
-
-
-// function prototypes
-bool fgfs_imu_init( string output_path, pyPropertyNode *config ) {
-    bind_imu_input( config );
-    bind_imu_output( output_path );
-
-    // open a UDP socket
-    if ( ! sock_imu.open( false ) ) {
-	printf("Error opening imu input socket\n");
-	return false;
-    }
-
-    // bind ...
-    if ( sock_imu.bind( "", port_imu ) == -1 ) {
-	printf("error binding to port %d\n", port_imu );
-	return false;
-    }
-
-#if 0 // we are using blocking for main loop sync now
-    // don't block waiting for input
-    sock_imu.setBlocking( false );
-#endif
-    
-    return true;
-}
-
-
-bool fgfs_airdata_init( string output_path ) {
-    bind_airdata_output( output_path );
-
-    return true;
-}
-
-
-// function prototypes
-bool fgfs_gps_init( string output_path, pyPropertyNode *config ) {
-    bind_gps_input( config );
-    bind_gps_output( output_path );
-
-    // open a UDP socket
-    if ( ! sock_gps.open( false ) ) {
-	printf("Error opening imu input socket\n");
-	return false;
-    }
-
-    // bind ...
-    if ( sock_gps.bind( "", port_gps ) == -1 ) {
-	printf("error binding to port %d\n", port_gps );
-	return false;
-    }
-
-    // don't block waiting for input
-    sock_gps.setBlocking( false );
-
-    return true;
-}
-
-
-bool fgfs_pilot_init( string output_path, pyPropertyNode *config ) {
-    return true;
-}
-
 
 // swap big/little endian bytes
 static void my_swap( uint8_t *buf, int index, int count )
@@ -163,8 +34,212 @@ static void my_swap( uint8_t *buf, int index, int count )
     }
 }
 
+void fgfs_t::info( const char *format, ... ) {
+    if ( display_on ) {
+        printf("fgfs: ");
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
+        printf("\n");
+    }
+}
 
-static bool fgfs_imu_sync_update() {
+void fgfs_t::hard_error( const char *format, ... ) {
+    printf("fgfs hard error: ");
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+    printf("\n");
+    printf("Cannot continue.");
+    exit(-1);
+}
+
+void fgfs_t::init_airdata( pyPropertyNode *config ) {
+    string output_path = get_next_path("/sensors", "airdata", true);
+    airdata_node = pyGetNode(output_path.c_str(), true);
+}
+
+void fgfs_t::init_act( pyPropertyNode *config ) {
+    string hostname = "";
+    if ( config->hasChild("hostname") ) {
+    } else {
+        hard_error("no actuator hostname specified in driver config.");
+    }
+    int port = -1;
+    if ( config->hasChild("port") ) {
+        port = config->getLong("port");
+    } else {
+        hard_error("no actuator port specified in driver config.");
+    }
+    
+    string output_path = get_next_path("/sensors", "gps", true);
+    gps_node = pyGetNode(output_path.c_str(), true);
+
+    // open a UDP socket
+    if ( ! sock_act.open( false ) ) {
+	hard_error("Error opening actuator output socket");
+    }
+
+    // connect
+    if ( sock_act.connect( hostname.c_str(), port ) == -1 ) {
+	hard_error("error connecting to %s:%d\n", hostname.c_str(), port);
+    }
+    
+    // don't block waiting for input
+    sock_act.setBlocking( false );
+}
+
+void fgfs_t::init_gps( pyPropertyNode *config ) {
+    int port = -1;
+    if ( config->hasChild("port") ) {
+        port = config->getLong("port");
+    } else {
+        hard_error("no gps port specified in driver config.");
+    }
+    
+    // open a UDP socket
+    if ( ! sock_gps.open( false ) ) {
+	hard_error("Error opening gps input socket");
+    }
+
+    // bind ...
+    if ( sock_gps.bind( "", port ) == -1 ) {
+	hard_error("error binding to gps port %d\n", port );
+    }
+
+    // don't block waiting for input
+    sock_gps.setBlocking( false );
+}
+
+void fgfs_t::init_imu( pyPropertyNode *config ) {
+    int port = -1;
+    if ( config->hasChild("port") ) {
+        port = config->getLong("port");
+    } else {
+        hard_error("no imu port specified in driver config.");
+    }
+        
+    string output_path = get_next_path("/sensors", "imu", true);
+    imu_node = pyGetNode(output_path.c_str(), true);
+    
+    // open a UDP socket
+    if ( ! sock_imu.open( false ) ) {
+	hard_error("Error opening imu input socket");
+    }
+
+    // bind ...
+    if ( sock_imu.bind( "", port ) == -1 ) {
+	hard_error("error binding to imu port %d", port );
+    }
+
+#if 0 // we are using blocking for main loop sync now
+    // don't block waiting for input
+    sock_imu.setBlocking( false );
+#endif
+}
+
+void fgfs_t::init( pyPropertyNode *config ) {
+    act_node = pyGetNode("/actuators", true);
+    orient_node = pyGetNode("/orientation", true);
+    pos_node = pyGetNode("/position", true);
+    power_node = pyGetNode("/sensors/power", true);
+    power_node.setDouble( "avionics_vcc", 5.05 ); // set initial fake value
+    route_node = pyGetNode("/task/route", true);    
+    targets_node = pyGetNode("/autopilot/targets", true);
+    
+    if ( config->hasChild("actuators") ) {
+        pyPropertyNode act_config = config->getChild("actuators");
+        init_act(&act_config);
+    }        
+    if ( config->hasChild("airdata") ) {
+        pyPropertyNode airdata_config = config->getChild("airdata");
+        init_airdata(&airdata_config);
+    }        
+    if ( config->hasChild("gps") ) {
+        pyPropertyNode gps_config = config->getChild("gps");
+        init_gps(&gps_config);
+    }        
+    if ( config->hasChild("imu") ) {
+        pyPropertyNode imu_config = config->getChild("imu");
+        init_imu(&imu_config);
+    }
+    
+    airdata_node.setDouble( "temp_degC", 15.0 ); // set initial fake value
+    pyPropertyNode specs_node = pyGetNode("/config/specs", true);
+    if ( specs_node.hasChild("battery_cells") ) {
+        battery_cells = specs_node.getLong("battery_cells");
+        if ( battery_cells < 1 ) { battery_cells = 4; }
+    }
+}
+
+bool fgfs_t::update_gps() {
+    const int fgfs_gps_size = 40;
+    uint8_t packet_buf[fgfs_gps_size];
+
+    bool fresh_data = false;
+
+    int result;
+    while ( (result = sock_gps.recv(packet_buf, fgfs_gps_size, 0))
+	    == fgfs_gps_size )
+    {
+	fresh_data = true;
+
+	if ( ulIsLittleEndian ) {
+	    my_swap( packet_buf, 0, 8 );
+	    my_swap( packet_buf, 8, 8 );
+	    my_swap( packet_buf, 16, 8 );
+	    my_swap( packet_buf, 24, 4 );
+	    my_swap( packet_buf, 28, 4 );
+	    my_swap( packet_buf, 32, 4 );
+	    my_swap( packet_buf, 36, 4 );
+	}
+
+	uint8_t *buf = packet_buf;
+	double time = *(double *)buf; buf += 8;
+	double lat = *(double *)buf; buf += 8;
+	double lon = *(double *)buf; buf += 8;
+	float alt = *(float *)buf; buf += 4;
+	float vn = *(float *)buf; buf += 4;
+	float ve = *(float *)buf; buf += 4;
+	float vd = *(float *)buf; buf += 4;
+
+        if ( false ) {
+            // add some random white noise
+            double vel_noise = 0.1;
+            double vel_offset = vel_noise * 0.5;
+            vn += drand48()*vel_noise - vel_offset;
+            ve += drand48()*vel_noise - vel_offset;
+            vd += drand48()*vel_noise - vel_offset;
+        }
+        
+        // compute ideal magnetic vector in ned frame
+        long int jd = now_to_julian_days();
+        double field[6];
+        calc_magvar( lat*D2R, lon*D2R, alt / 1000.0, jd, field );
+        mag_ned(0) = field[3];
+        mag_ned(1) = field[4];
+        mag_ned(2) = field[5];
+        mag_ned.normalize();
+        // cout << "mag vector (ned): " << mag_ned(0) << " " << mag_ned(1) << " " << mag_ned(2) << endl;
+        
+	gps_node.setDouble( "timestamp", get_Time() );
+	gps_node.setDouble( "latitude_deg", lat );
+	gps_node.setDouble( "longitude_deg", lon );
+	gps_node.setDouble( "altitude_m", alt );
+	gps_node.setDouble( "vn_ms", vn );
+	gps_node.setDouble( "ve_ms", ve );
+	gps_node.setDouble( "vd_ms", vd );
+	gps_node.setLong( "satellites", 8 ); // fake a solid number
+	gps_node.setDouble( "unix_time_sec", time );
+	gps_node.setLong( "status", 2 ); // valid fix
+    }
+
+    return fresh_data;
+}
+
+bool fgfs_t::update_imu() {
     const int fgfs_imu_size = 52;
     uint8_t packet_buf[fgfs_imu_size];
 
@@ -242,26 +317,22 @@ static bool fgfs_imu_sync_update() {
 	imu_node.setDouble( "pitch_truth", pitch_truth );
 	imu_node.setDouble( "yaw_truth", yaw_truth );
 
-	if ( airdata_inited ) {
-	    airdata_node.setDouble( "timestamp", cur_time );
-	    airdata_node.setDouble( "airspeed_kt", airspeed );
-	    const double inhg2mbar = 33.8638866667;
-	    airdata_node.setDouble( "pressure_mbar", pressure * inhg2mbar );
+        airdata_node.setDouble( "timestamp", cur_time );
+        airdata_node.setDouble( "airspeed_kt", airspeed );
+        const double inhg2mbar = 33.8638866667;
+        airdata_node.setDouble( "pressure_mbar", pressure * inhg2mbar );
 
-	    // fake volt/amp values here for no better place to do it
-	    static double last_time = cur_time;
-	    static double mah = 0.0;
-	    double thr = act_node.getDouble("throttle");
-	    power_node.setDouble("main_vcc", 16.0 - thr);
-            int cells = config_specs_node.getLong("battery_cells");
-            if ( cells < 1 ) { cells = 4; }
-            power_node.setDouble("cell_vcc", (16.0 - thr) / cells);
-	    power_node.setDouble("main_amps", thr * 12.0);
-	    double dt = cur_time - last_time;
-	    mah += thr*75.0 * (1000.0/3600.0) * dt;
-	    last_time = cur_time;
-	    power_node.setDouble( "total_mah", mah );
-	}
+        // fake volt/amp values here for no better place to do it
+        static double last_time = cur_time;
+        static double mah = 0.0;
+        double thr = act_node.getDouble("throttle");
+        power_node.setDouble("main_vcc", 16.0 - thr);
+        power_node.setDouble("cell_vcc", (16.0 - thr) / battery_cells);
+        power_node.setDouble("main_amps", thr * 12.0);
+        double dt = cur_time - last_time;
+        mah += thr*75.0 * (1000.0/3600.0) * dt;
+        last_time = cur_time;
+        power_node.setDouble( "total_mah", mah );
     }
 
     return fresh_data;
@@ -271,15 +342,17 @@ static bool fgfs_imu_sync_update() {
 // Returns the dt from the IMU perspective, not the localhost
 // perspective.  This should generally be far more accurate and
 // consistent.
-double FGFS_update() {
+float fgfs_t::read() {
+    printf("fgfs read()\n");
     // read packets until we receive an IMU packet and the socket
     // buffer is empty.  The IMU packet (combined with being caught up
     // reading the buffer is our signal to run an interation of the
     // main loop.
     double last_time = imu_node.getDouble( "timestamp" );
     int bytes_available = 0;
+    update_gps();
     while ( true ) {
-        fgfs_imu_sync_update();
+        update_imu();
 	ioctl(sock_imu.getHandle(), FIONREAD, &bytes_available);
 	if ( !bytes_available ) {
 	    break;
@@ -292,113 +365,114 @@ double FGFS_update() {
     return cur_time - last_time;
 }
 
+void fgfs_t::write() {
+    printf("fgfs write()\n");
+    const double F2M = 0.3048;
+    const double M2F = 1 / F2M;
+    
+    // additional autopilot target nodes (note this is a hack, but we
+    // are sending data back to FG in this module so it makes some
+    // sense to include autopilot targets.)
 
-// called by imu_mgr, will always be true because the main loop sync
-// actually takes care of the work and there will always be (by
-// definition) fresh imu data when the imu_mgr calls this routine.
-bool fgfs_imu_update() {
-    return true;
-}
+    const int fgfs_act_size = 76;
+    uint8_t packet_buf[fgfs_act_size];
+    uint8_t *buf = packet_buf;
 
-bool fgfs_airdata_update() {
-    bool fresh_data = false;
+    double time = act_node.getDouble("timestamp");
+    *(double *)buf = time; buf += 8;
 
-    static double last_time = 0.0;
-    double cur_time = airdata_node.getDouble("timestamp");
+    float ail = act_node.getDouble("aileron");
+    *(float *)buf = ail; buf += 4;
 
-    if ( cur_time > last_time ) {
-	fresh_data = true;
+    float ele = act_node.getDouble("elevator");
+    *(float *)buf = ele; buf += 4;
+
+    float thr = act_node.getDouble("throttle");
+    *(float *)buf = thr; buf += 4;
+
+    float rud = act_node.getDouble("rudder");
+    *(float *)buf = rud; buf += 4;
+
+    float ch5 = act_node.getDouble("channel5");
+    *(float *)buf = ch5; buf += 4;
+
+    float ch6 = act_node.getDouble("channel6");
+    *(float *)buf = ch6; buf += 4;
+
+    float ch7 = act_node.getDouble("channel7");
+    *(float *)buf = ch7; buf += 4;
+
+    float ch8 = act_node.getDouble("channel8");
+    *(float *)buf = ch8; buf += 4;
+
+    float bank = targets_node.getDouble("roll_deg") * 100 + 18000.0;
+    *(float *)buf = bank; buf += 4;
+
+    float pitch = targets_node.getDouble("pitch_deg") * 100 + 9000.0;
+    *(float *)buf = pitch; buf += 4;
+
+    float target_track_offset = targets_node.getDouble("groundtrack_deg")
+	- orient_node.getDouble("heading_deg");
+    if ( target_track_offset < -180 ) { target_track_offset += 360.0; }
+    if ( target_track_offset > 180 ) { target_track_offset -= 360.0; }
+    float hdg = target_track_offset * 100 + 36000.0;
+    *(float *)buf = hdg; buf += 4;
+
+    // FIXME: no longer used so wasted 4 bytes ...
+    float climb = targets_node.getDouble("climb_rate_fps") * 1000 + 100000.0;
+    *(float *)buf = climb; buf += 4;
+
+    float alt_agl_ft = targets_node.getDouble("altitude_agl_ft");
+    float ground_m = pos_node.getDouble("altitude_ground_m");
+    float alt_msl_ft = (ground_m * M2F + alt_agl_ft) * 100.0;
+    *(float *)buf = alt_msl_ft; buf += 4;
+
+    float speed = targets_node.getDouble("target_speed_kt") * 100;
+    *(float *)buf = speed; buf += 4;
+
+    float track_offset = orient_node.getDouble("groundtrack_deg")
+	- orient_node.getDouble("heading_deg");
+    if ( track_offset < -180 ) { track_offset += 360.0; }
+    if ( track_offset > 180 ) { track_offset -= 360.0; }
+    float offset = track_offset * 100 + 36000.0;
+    *(float *)buf = offset; buf += 4;
+
+    float dist = route_node.getDouble("wp_dist_m") / 10.0;
+    *(float *)buf = dist; buf += 4;
+
+    float eta = route_node.getDouble("wp_eta_sec");
+    *(float *)buf = eta; buf += 4;
+
+    if ( ulIsLittleEndian ) {
+	my_swap( packet_buf, 0, 8 );
+	my_swap( packet_buf, 8, 4 );
+	my_swap( packet_buf, 12, 4 );
+	my_swap( packet_buf, 16, 4 );
+	my_swap( packet_buf, 20, 4 );
+	my_swap( packet_buf, 24, 4 );
+	my_swap( packet_buf, 28, 4 );
+	my_swap( packet_buf, 32, 4 );
+	my_swap( packet_buf, 36, 4 );
+	my_swap( packet_buf, 40, 4 );
+	my_swap( packet_buf, 44, 4 );
+	my_swap( packet_buf, 48, 4 );
+	my_swap( packet_buf, 52, 4 );
+	my_swap( packet_buf, 56, 4 );
+	my_swap( packet_buf, 60, 4 );
+	my_swap( packet_buf, 64, 4 );
+	my_swap( packet_buf, 68, 4 );
+	my_swap( packet_buf, 72, 4 );
     }
 
-    last_time = cur_time;
-
-    return fresh_data;
-}
-
-
-bool fgfs_gps_update() {
-    const int fgfs_gps_size = 40;
-    uint8_t packet_buf[fgfs_gps_size];
-
-    bool fresh_data = false;
-
-    int result;
-    while ( (result = sock_gps.recv(packet_buf, fgfs_gps_size, 0))
-	    == fgfs_gps_size )
-    {
-	fresh_data = true;
-
-	if ( ulIsLittleEndian ) {
-	    my_swap( packet_buf, 0, 8 );
-	    my_swap( packet_buf, 8, 8 );
-	    my_swap( packet_buf, 16, 8 );
-	    my_swap( packet_buf, 24, 4 );
-	    my_swap( packet_buf, 28, 4 );
-	    my_swap( packet_buf, 32, 4 );
-	    my_swap( packet_buf, 36, 4 );
-	}
-
-	uint8_t *buf = packet_buf;
-	double time = *(double *)buf; buf += 8;
-	double lat = *(double *)buf; buf += 8;
-	double lon = *(double *)buf; buf += 8;
-	float alt = *(float *)buf; buf += 4;
-	float vn = *(float *)buf; buf += 4;
-	float ve = *(float *)buf; buf += 4;
-	float vd = *(float *)buf; buf += 4;
-
-        if ( false ) {
-            // add some random white noise
-            double vel_noise = 0.1;
-            double vel_offset = vel_noise * 0.5;
-            vn += drand48()*vel_noise - vel_offset;
-            ve += drand48()*vel_noise - vel_offset;
-            vd += drand48()*vel_noise - vel_offset;
-        }
-        
-        // compute ideal magnetic vector in ned frame
-        long int jd = now_to_julian_days();
-        double field[6];
-        calc_magvar( lat*D2R, lon*D2R, alt / 1000.0, jd, field );
-        mag_ned(0) = field[3];
-        mag_ned(1) = field[4];
-        mag_ned(2) = field[5];
-        mag_ned.normalize();
-        // cout << "mag vector (ned): " << mag_ned(0) << " " << mag_ned(1) << " " << mag_ned(2) << endl;
-        
-	gps_node.setDouble( "timestamp", get_Time() );
-	gps_node.setDouble( "latitude_deg", lat );
-	gps_node.setDouble( "longitude_deg", lon );
-	gps_node.setDouble( "altitude_m", alt );
-	gps_node.setDouble( "vn_ms", vn );
-	gps_node.setDouble( "ve_ms", ve );
-	gps_node.setDouble( "vd_ms", vd );
-	gps_node.setLong( "satellites", 8 ); // fake a solid number
-	gps_node.setDouble( "unix_time_sec", time );
-	gps_node.setLong( "status", 2 ); // valid fix
+    int result = sock_act.send( packet_buf, fgfs_act_size, 0 );
+    if ( result != fgfs_act_size ) {
+	info("unable to write full actuator packet.");
     }
-
-    return fresh_data;
 }
 
 
-bool fgfs_pilot_update() {
-    return true;
-}
-
-
-void fgfs_imu_close() {
-    sock_imu.close();
-}
-
-void fgfs_airdata_close() {
-    // no op
-}
-
-void fgfs_gps_close() {
+void fgfs_t::close() {
+    sock_act.close();
     sock_gps.close();
-}
-
-void fgfs_pilot_close() {
-    // no op
+    sock_imu.close();
 }
