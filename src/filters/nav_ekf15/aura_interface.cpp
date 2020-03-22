@@ -77,9 +77,9 @@ static void umn2props(void) {
 	 nav_data.err_type == TU_only ||
 	 nav_data.err_type == gps_aided )
     {
-	filter_node.setString( "navigation", "valid" );
+	filter_node.setLong( "status", 2 );
     } else {
-	filter_node.setString( "navigation", "invalid" );
+	filter_node.setLong( "status", 1 );
     }
 
     filter_node.setDouble( "p_bias", nav_data.gbx );

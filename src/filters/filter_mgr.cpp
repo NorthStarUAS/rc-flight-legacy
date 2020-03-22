@@ -87,7 +87,12 @@ void Filter_init() {
 	if ( !enabled ) {
 	    continue;
 	}
-        string output_path = get_next_path("/filters", "filter");
+        string output_path = "";
+        if ( section.getBool("make_primary") ) {
+            output_path = get_next_path("/filters", "filter", true);
+        } else {
+            output_path = get_next_path("/filters", "filter");
+        }            
         pyPropertyNode output_node = pyGetNode(output_path, true);
         outputs.push_back(output_node);
 	printf("filter: %d = %s\n", i, module.c_str());

@@ -12,8 +12,12 @@ string get_next_path( const char *path, const char *base,
 {
     pyPropertyNode node = pyGetNode(path, true);
     int len = node.getLen(base);
-    if ( primary and len > 0 ) {
-        // nop
+    if ( primary ) {
+        if ( len > 1 ) {
+            // nop
+        } else {
+            node.setLen(base, 1);
+        }
     } else {
         node.setLen(base, len + 1);
     }
