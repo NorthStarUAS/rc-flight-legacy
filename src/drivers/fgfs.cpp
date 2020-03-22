@@ -18,7 +18,7 @@ using std::endl;
 #include "util/props_helper.h"
 #include "util/timing.h"
 
-#include "FGFS.h"
+#include "fgfs.h"
 
 static const float D2R = M_PI / 180.0;
 

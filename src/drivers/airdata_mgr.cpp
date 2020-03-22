@@ -26,7 +26,6 @@ using std::vector;
 
 #include "APM2.h"
 #include "Aura3/Aura3.h"
-#include "FGFS.h"
 
 #include "airdata_mgr.h"
 
@@ -281,8 +280,6 @@ void AirData_calibrate() {
 	    APM2_airdata_zero_airspeed();
 	} else if ( source == "Aura3" ) {
 	    Aura3_airdata_zero_airspeed();
-	} else if ( source == "fgfs" ) {
-	    // do nothing
 	} else {
 	    printf("Unknown air data source = '%s' in config file\n",
 		   source.c_str());
