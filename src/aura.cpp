@@ -451,7 +451,6 @@ int main( int argc, char **argv )
     Filter_close();
     payload_mgr.close();
     control_close();
-    Actuator_close();
     logging->close();
 }
 

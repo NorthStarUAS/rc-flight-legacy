@@ -12,5 +12,4 @@
 #pragma once
 
 void Actuator_init();
-bool Actuator_update();
-void Actuator_close();
+void Actuator_update();

@@ -10,25 +10,15 @@
 
 #include <pyprops.h>
 
-#include <math.h>
-#include <string.h>
 #include <stdio.h>
-#include <unistd.h>
 
-#include <sstream>
 #include <string>
-#include <vector>
-using std::ostringstream;
 using std::string;
-using std::vector;
 
 #include "control/control.h"
 #include "include/globaldefs.h"
 #include "init/globals.h"
 #include "util/timing.h"
-
-#include "drivers/APM2.h"
-#include "drivers/Aura3/Aura3.h"
 
 #include "act_mgr.h"
 
@@ -43,7 +33,6 @@ static pyPropertyNode pilot_node;
 static pyPropertyNode act_node;
 static pyPropertyNode ap_node;
 static pyPropertyNode excite_node;
-static vector<pyPropertyNode> sections;
 
 void Actuator_init() {
     // bind properties
@@ -53,49 +42,6 @@ void Actuator_init() {
     pilot_node = pyGetNode("/sensors/pilot_input", true);
     act_node = pyGetNode("/actuators", true);
     ap_node = pyGetNode("/autopilot", true);
-    
-    // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/actuators", true);
-    vector<string> children = group_node.getChildren();
-    printf("Found %d actuator sections\n", (int)children.size());
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
-	sections.push_back(section);
-	string module = section.getString("module");
-	bool enabled = section.getBool("enable");
-	if ( !enabled ) {
-	    continue;
-	}
-	printf("actuator: %d = %s\n", i, module.c_str());
-	if ( module == "null" ) {
-	    // do nothing
-	} else if ( module == "APM2" ) {
-	    APM2_act_init( &section );
-	    // don't go anywhere until the acuator is configured.
-	    // this will also force the APM2 into binary mode as soon
-	    // as it starts seeing our binary config packets coming
-	    // in.
-	    APM2_act_update();
-	    while ( ! APM2_actuator_configured ) {
-		usleep(250000);
-		APM2_act_update();
-	    }
-	} else if ( module == "Aura3" ) {
-	    Aura3_act_init( &section );
-	    // don't go anywhere until the acuator is configured.
-	    // this will also force the Aura3 into binary mode as soon
-	    // as it starts seeing our binary config packets coming
-	    // in.
-	    Aura3_act_update();
-	    while ( ! Aura3_actuator_configured ) {
-		usleep(250000);
-		Aura3_act_update();
-	    }
-	} else {
-	    printf("Unknown actuator = '%s' in config file\n",
-		   module.c_str());
-	}
-    }
 }
 
 
@@ -243,53 +189,9 @@ static void set_actuator_values() {
 }
 
 
-bool Actuator_update() {
-    // printf("Actuator_update()\n");
-
-    // time stamp for logging
+void Actuator_update() {
+    // set time stamp for logging
     act_node.setDouble( "timestamp", get_Time() );
+
     set_actuator_values();
-    
-    // traverse configured modules
-    for ( unsigned int i = 0; i < sections.size(); i++ ) {
-	string module = sections[i].getString("module");
-	bool enabled = sections[i].getBool("enable");
-	if ( !enabled ) {
-	    continue;
-	}
-	if ( module == "null" ) {
-	    // do nothing
-	} else if ( module == "APM2" ) {
-	    APM2_act_update();
-	} else if ( module == "Aura3" ) {
-	    Aura3_act_update();
-	} else {
-	    printf("Unknown actuator = '%s' in config file\n",
-		   module.c_str());
-	}
-    }
-    
-    return true;
-}
-
-
-void Actuators_close() {
-    // traverse configured modules
-    for ( unsigned int i = 0; i < sections.size(); i++ ) {
-	string module = sections[i].getString("module");
-	bool enabled = sections[i].getBool("enable");
-	if ( !enabled ) {
-	    continue;
-	}
-	if ( module == "null" ) {
-	    // do nothing
-	} else if ( module == "APM2" ) {
-	    APM2_act_close();
-	} else if ( module == "Aura3" ) {
-	    Aura3_act_close();
-	} else {
-	    printf("Unknown actuator = '%s' in config file\n",
-		   module.c_str());
-	}
-    }
 }
