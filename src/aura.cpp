@@ -46,13 +46,11 @@ using std::string;
 
 // we include the sensors here that support syncing from their main
 // update() routine
-#include "drivers/APM2.h"
 #include "drivers/Aura3/Aura3.h"
 
 // sync modes
 enum SyncMode {
     SYNC_NONE,
-    SYNC_APM2,
     SYNC_AURA3
 };
 
@@ -102,8 +100,6 @@ void main_work_loop()
 	//if ( display_on ) {
 	//    printf("No main loop sync source discovered.\n");
 	//}
-    } else if ( sync_source == SYNC_APM2 ) {
-	dt = APM2_update();
     } else if ( sync_source == SYNC_AURA3 ) {
 	dt = Aura3_update();
     }
@@ -352,9 +348,7 @@ int main( int argc, char **argv )
     p = pyGetNode("/config/sensors/imu_group/imu", true);
     if ( p.hasChild("source") ) {
 	string source = p.getString("source");
-	if ( source == "APM2" ) {
-	    sync_source = SYNC_APM2;
-        } else if ( source == "Aura3" ) {
+        if ( source == "Aura3" ) {
 	    sync_source = SYNC_AURA3;
 	}
     }

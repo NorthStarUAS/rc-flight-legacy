@@ -24,7 +24,6 @@ using std::vector;
 #include "util/lowpass.h"
 #include "util/myprof.h"
 
-#include "APM2.h"
 #include "Aura3/Aura3.h"
 
 #include "airdata_mgr.h"
@@ -276,8 +275,6 @@ void AirData_calibrate() {
 	}
 	if ( source == "null" ) {
 	    // do nothing
-	} else if ( source == "APM2" ) {
-	    APM2_airdata_zero_airspeed();
 	} else if ( source == "Aura3" ) {
 	    Aura3_airdata_zero_airspeed();
 	} else {

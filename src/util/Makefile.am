@@ -2,6 +2,7 @@ noinst_LIBRARIES = libutil.a
 
 libutil_a_SOURCES = \
 	butter.cpp butter.h \
+	cal_temp.h cal_temp.cpp \
 	coremag.c coremag.h \
 	geodesy.cpp geodesy.h \
 	linearfit.cpp linearfit.h \
