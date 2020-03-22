@@ -115,8 +115,9 @@ void main_work_loop()
     } else if ( sync_source == SYNC_FGFS ) {
 	dt = FGFS_update();
     }
-    // fixme: need to account for dt and sync in new driver architecture
+
     dt = driver_mgr.read();
+    
     status_node.setDouble("frame_time", imu_node.getDouble( "timestamp" ));
     status_node.setDouble("dt", dt);
     sync_prof.stop();
@@ -171,6 +172,8 @@ void main_work_loop()
     control_prof.stop();
 
     Actuator_update();
+
+    driver_mgr.write();
 
     //
     // External Command section

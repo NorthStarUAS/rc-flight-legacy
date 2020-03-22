@@ -115,14 +115,6 @@ void Aura4_t::init( pyPropertyNode *config ) {
         hard_error("no pilot configuration\n");
     }
 
-    // fixme: stuff should go here?
-    // if ( config->hasChild("actuators") ) {
-    //     pyPropertyNode act_config = config->getChild("actuators");
-    //     init_actuators( &act_config );
-    // } else {
-    //     hard_error("no actuator configuration\n");
-    // }
-
     sleep(1);
 }
 
@@ -1127,7 +1119,7 @@ bool Aura4_t::update_pilot( message::pilot_t *pilot ) {
 }
 
 
-bool Aura4_t::update_actuators() {
+void Aura4_t::write() {
     if ( !configuration_sent ) {
         // send configuration
 	configuration_sent = send_config();
@@ -1145,7 +1137,6 @@ bool Aura4_t::update_actuators() {
             serial.write_packet( act.id, act.payload, act.len );
         }
     }
-    return true;
 }
 
 

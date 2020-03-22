@@ -28,7 +28,7 @@ public:
     void init( pyPropertyNode *config );
     float read();
     void process() {}
-    void write() {}
+    void write();
     void close();
 
 private:
@@ -107,5 +107,4 @@ private:
     bool update_pilot( message::pilot_t *pilot );
     
     void airdata_zero_airspeed();
-    bool update_actuators();
 };
