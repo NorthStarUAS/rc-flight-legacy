@@ -154,10 +154,6 @@ void fgfs_t::init( pyPropertyNode *config ) {
         pyPropertyNode act_config = config->getChild("actuators");
         init_act(&act_config);
     }        
-    if ( config->hasChild("airdata") ) {
-        pyPropertyNode airdata_config = config->getChild("airdata");
-        init_airdata(&airdata_config);
-    }        
     if ( config->hasChild("gps") ) {
         pyPropertyNode gps_config = config->getChild("gps");
         init_gps(&gps_config);
@@ -165,6 +161,8 @@ void fgfs_t::init( pyPropertyNode *config ) {
     if ( config->hasChild("imu") ) {
         pyPropertyNode imu_config = config->getChild("imu");
         init_imu(&imu_config);
+        pyPropertyNode airdata_config = config->getChild("airdata");
+        init_airdata(&airdata_config);
     }
     
     airdata_node.setDouble( "temp_degC", 15.0 ); // set initial fake value

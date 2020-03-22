@@ -62,7 +62,7 @@ void Filter_init() {
     pos_node = pyGetNode("/position", true);
     orient_node = pyGetNode("/orientation", true);
     vel_node = pyGetNode("/velocity", true);
-    filter_node = pyGetNode("/filters/filter", true);
+    filter_node = pyGetNode("/filters/filter[0]", true);
     filter_group_node = pyGetNode("/filters", true);
     pos_filter_node = pyGetNode("/position/filter", true);
     pos_pressure_node = pyGetNode("/position/pressure", true);
@@ -321,11 +321,13 @@ bool Filter_update() {
     }
 
     // only for primary filter
-    update_euler_rates();
-    update_ground(imu_dt);
-    update_wind(imu_dt);
-    publish_values();
-
+    if ( filter_node.getLong("status") == 2 ) {
+        update_euler_rates();
+        update_ground(imu_dt);
+        update_wind(imu_dt);
+        publish_values();
+    }
+    
     filter_prof.stop();
 
     if ( fresh_filter_data ) {

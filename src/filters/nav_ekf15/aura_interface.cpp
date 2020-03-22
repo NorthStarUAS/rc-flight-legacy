@@ -106,7 +106,7 @@ void nav_ekf15_init( string output_path, pyPropertyNode *config ) {
     imu_node = pyGetNode("/sensors/imu", true);
     gps_node = pyGetNode("/sensors/gps", true);
     filter_node = pyGetNode(output_path, true);
-    filter_node.setString( "navigation", "invalid" );
+    filter_node.setLong( "status", 0 );
 
 #if 0
     // set tuning value for specific gps and imu noise characteristics
