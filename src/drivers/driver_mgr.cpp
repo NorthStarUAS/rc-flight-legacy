@@ -3,6 +3,7 @@ using std::string;
 
 #include "util/myprof.h"
 #include "drivers/Aura4/Aura4.h"
+#include "drivers/fgfs.h"
 #include "driver_mgr.h"
 
 driver_mgr_t::driver_mgr_t() {
@@ -18,6 +19,10 @@ void driver_mgr_t::init() {
 	pyPropertyNode section_node = drivers_node.getChild(children[i].c_str());
         if ( children[i] == "Aura4" ) {
             driver_t *d = new Aura4_t();
+            d->init(&section_node);
+            drivers.push_back(d);
+        } else if ( children[i] == "fgfs" ) {
+            driver_t *d = new fgfs_t();
             d->init(&section_node);
             drivers.push_back(d);
         }

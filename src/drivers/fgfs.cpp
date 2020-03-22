@@ -63,7 +63,8 @@ void fgfs_t::init_airdata( pyPropertyNode *config ) {
 
 void fgfs_t::init_act( pyPropertyNode *config ) {
     string hostname = "";
-    if ( config->hasChild("hostname") ) {
+    if ( config->hasChild("host") ) {
+        hostname = config->getString("host");
     } else {
         hard_error("no actuator hostname specified in driver config.");
     }
@@ -343,7 +344,6 @@ bool fgfs_t::update_imu() {
 // perspective.  This should generally be far more accurate and
 // consistent.
 float fgfs_t::read() {
-    printf("fgfs read()\n");
     // read packets until we receive an IMU packet and the socket
     // buffer is empty.  The IMU packet (combined with being caught up
     // reading the buffer is our signal to run an interation of the
@@ -366,7 +366,6 @@ float fgfs_t::read() {
 }
 
 void fgfs_t::write() {
-    printf("fgfs write()\n");
     const double F2M = 0.3048;
     const double M2F = 1 / F2M;
     
