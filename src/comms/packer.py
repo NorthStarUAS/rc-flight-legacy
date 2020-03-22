@@ -226,7 +226,7 @@ class Packer():
     # FIXME: think about how we are dealing with skips and gps's lower rate?
     def pack_gps_bin(self, use_cached=False):
         gps_time = gps_node.getFloat("timestamp")
-        if not use_cached and gps_time > self.last_gps_time:
+        if (not use_cached and gps_time > self.last_gps_time) or self.gps_buf is None:
             self.last_gps_time = gps_time
             self.gps.index = 0
             self.gps.timestamp_sec = gps_time

@@ -154,6 +154,10 @@ void control_update(double dt)
     static int remote_link_count = 0;
     static int logging_count = 0;
 
+    // sanity check
+    if ( dt > 1.0 ) { dt = 0.01; }
+    if ( dt < 0.00001 ) { dt = 0.01; }
+    
     // call for a global fcs component reset when activating ap master
     // switch
     static bool last_master_switch = false;
