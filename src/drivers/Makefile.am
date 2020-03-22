@@ -1,4 +1,4 @@
-SUBDIRS = Aura3 Aura4
+SUBDIRS = Aura4
 
 noinst_LIBRARIES = libdrivers.a
 

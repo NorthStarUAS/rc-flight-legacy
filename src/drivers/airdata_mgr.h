@@ -11,4 +11,3 @@
 
 void AirData_init();
 bool AirData_update();
-void AirData_calibrate();

@@ -11,6 +11,7 @@ driver_mgr_t::driver_mgr_t() {
 }
 
 void driver_mgr_t::init() {
+    sensors_node = pyGetNode("/sensors", true);
     drivers_node = pyGetNode("/config/drivers", true);
     vector<string> children = drivers_node.getChildren();
     printf("Found %d driver sections\n", (int)children.size());
@@ -57,6 +58,16 @@ void driver_mgr_t::write() {
 void driver_mgr_t::close() {
     for ( unsigned int i = 0; i < drivers.size(); i++ ) {
         drivers[i]->close();
+    }
+}
+
+void driver_mgr_t::send_commands() {
+    // check for and respond to an airdata calibrate request
+    if (sensors_node.getBool("airdata_calibrate") ) {
+	sensors_node.setBool("airdata_calibrate", false);
+        for ( unsigned int i = 0; i < drivers.size(); i++ ) {
+            drivers[i]->command("airdata_calibrate");
+        }
     }
 }
 

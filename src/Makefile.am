@@ -24,7 +24,6 @@ aura_LDADD = \
 	health/libhealth.a \
 	payload/libpayload.a \
 	drivers/libdrivers.a \
-	drivers/Aura3/libAura3.a \
 	drivers/Aura4/libAura4.a \
 	init/libinit.a \
 	control/libcontrol.a \

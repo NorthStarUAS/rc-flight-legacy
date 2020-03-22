@@ -81,7 +81,6 @@ AC_CONFIG_FILES([ \
         src/Makefile \
         src/actuators/Makefile \
         src/drivers/Makefile \
-        src/drivers/Aura3/Makefile \
         src/drivers/Aura4/Makefile \
         src/comms/Makefile \
         src/control/Makefile \

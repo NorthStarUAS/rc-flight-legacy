@@ -24,8 +24,6 @@ using std::vector;
 #include "util/lowpass.h"
 #include "util/myprof.h"
 
-#include "Aura3/Aura3.h"
-
 #include "airdata_mgr.h"
 
 //
@@ -238,8 +236,6 @@ static void update_pressure_helpers() {
 
 
 bool AirData_update() {
-    debug2b1.start();
-
     air_prof.start();
 
     bool fresh_data = false;
@@ -247,43 +243,7 @@ bool AirData_update() {
     // these are computed from the primary airdata sensor
     update_pressure_helpers();
 
-    debug2b1.stop();
-    debug2b2.start();
-
-    // check for and respond to an airdata calibrate request
-    if (sensors_node.getBool("airdata_calibrate") ) {
-	sensors_node.setBool("airdata_calibrate", false);
-	AirData_calibrate();
-    }
-    
-    debug2b2.stop();
-
     air_prof.stop();
 
     return fresh_data;
-}
-
-
-// FIXME!!!  How do we get an airdata calibration message pushed back upstream to the driver???
-void AirData_calibrate() {
-    // traverse configured modules
-    for ( unsigned int i = 0; i < sections.size(); i++ ) {
-	string source = sections[i].getString("source");
-	bool enabled = sections[i].getBool("enable");
-	if ( !enabled ) {
-	    continue;
-	}
-	if ( source == "null" ) {
-	    // do nothing
-	} else if ( source == "Aura3" ) {
-	    Aura3_airdata_zero_airspeed();
-	} else {
-	    printf("Unknown air data source = '%s' in config file\n",
-		   source.c_str());
-	}
-    }
-    // mark these as requiring calibrate so they will be reinited
-    // starting with current values
-    airdata_calibrated = false;
-    alt_error_calibrated = false;
 }

@@ -23,6 +23,7 @@ public:
     void process() {}
     void write();
     void close();
+    void command( const char *cmd ) {}
     
 private:
     pyPropertyNode act_node;

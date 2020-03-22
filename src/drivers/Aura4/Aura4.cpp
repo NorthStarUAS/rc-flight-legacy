@@ -1143,3 +1143,9 @@ void Aura4_t::write() {
 void Aura4_t::close() {
     serial.close();
 }
+
+void Aura4_t::command( const char *cmd ) {
+    if ( (string)cmd == "airdata_calibrate" ) {
+        airdata_zero_airspeed();
+    }
+}
