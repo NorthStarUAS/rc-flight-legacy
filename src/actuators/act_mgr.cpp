@@ -22,13 +22,9 @@ using std::ostringstream;
 using std::string;
 using std::vector;
 
-#include "comms/aura_messages.h"
-#include "comms/remote_link.h"
-#include "comms/logging.h"
 #include "control/control.h"
 #include "include/globaldefs.h"
 #include "init/globals.h"
-#include "util/myprof.h"
 #include "util/timing.h"
 
 #include "act_fgfs.h"
@@ -50,17 +46,7 @@ static pyPropertyNode ap_node;
 static pyPropertyNode excite_node;
 static vector<pyPropertyNode> sections;
 
-static myprofile debug_act1;
-static myprofile debug_act2;
-
-static int remote_link_skip = 0;
-static int logging_skip = 0;
-
-
 void Actuator_init() {
-    debug_act1.set_name("debug_act1 act update and output");
-    debug_act2.set_name("debug_act2 act console logging");
-
     // bind properties
     flight_node = pyGetNode("/controls/flight", true);
     engine_node = pyGetNode("/controls/engine", true);
@@ -69,11 +55,6 @@ void Actuator_init() {
     act_node = pyGetNode("/actuators", true);
     ap_node = pyGetNode("/autopilot", true);
     
-    pyPropertyNode remote_link_node = pyGetNode("/config/remote_link", true);
-    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
-    remote_link_skip = remote_link_node.getDouble("actuator_skip");
-    logging_skip = logging_node.getDouble("actuator_skip");
-
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/actuators", true);
     vector<string> children = group_node.getChildren();
@@ -266,21 +247,12 @@ static void set_actuator_values() {
 
 
 bool Actuator_update() {
-    debug_act1.start();
-
     // printf("Actuator_update()\n");
 
     // time stamp for logging
     act_node.setDouble( "timestamp", get_Time() );
     set_actuator_values();
     
-    debug_act1.stop();
-
-    static int remote_link_count = 0;
-    static int logging_count = 0;
-
-    bool fresh_data = true; // always true
-
     // traverse configured modules
     for ( unsigned int i = 0; i < sections.size(); i++ ) {
 	string module = sections[i].getString("module");
@@ -291,70 +263,17 @@ bool Actuator_update() {
 	if ( module == "null" ) {
 	    // do nothing
 	} else if ( module == "APM2" ) {
-            debug_act2.start();
 	    APM2_act_update();
-            debug_act2.stop();
 	} else if ( module == "Aura3" ) {
-            debug_act2.start();
 	    Aura3_act_update();
-            debug_act2.stop();
 	} else if ( module == "fgfs" ) {
 	    fgfs_act_update();
 	} else {
 	    printf("Unknown actuator = '%s' in config file\n",
 		   module.c_str());
 	}
-	if ( fresh_data ) {
-	    bool send_remote_link = false;
-	    if ( remote_link_count < 0 ) {
-		send_remote_link = true;
-		remote_link_count = remote_link_skip;
-	    }
-	
-	    bool send_logging = false;
-	    if ( logging_count < 0 ) {
-		send_logging = true;
-		logging_count = logging_skip;
-	    }
-	
-	    if ( send_remote_link || send_logging ) {
-                message::actuator_v3_t act;
-                act.index = 0;  // always zero for now
-                act.timestamp_sec = act_node.getDouble("timestamp");
-                act.aileron = act_node.getDouble("aileron");
-                act.elevator = act_node.getDouble("elevator");
-                act.throttle = act_node.getDouble("throttle");
-                act.rudder = act_node.getDouble("rudder");
-                act.channel5 = act_node.getDouble("channel5");
-                act.flaps = act_node.getDouble("flaps");
-                act.channel7 = act_node.getDouble("channel7");
-                act.channel8 = act_node.getDouble("channel8");
-                act.status = 0;
-                act.pack();
-		if ( send_remote_link ) {
-		    remote_link->send_message( act.id, act.payload, act.len );
-		}
-		if ( send_logging ) {
-		    logging->log_message( act.id, act.payload, act.len );
-		}
-	    }
-	}
     }
-
-
-    if ( fresh_data ) {
-        remote_link_count--;
-        logging_count--;
-    }
-
-    // static int dcount = 0;
-    // dcount++;
-    // if ( dcount > 200 ) {
-    //     debug_act1.stats();
-    //     debug_act2.stats();
-    //     dcount = 0;
-    // }
-
+    
     return true;
 }
 

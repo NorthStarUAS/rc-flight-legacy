@@ -78,18 +78,21 @@ def wrap_packet( self, packet_id, payload ):
     return buf
 
 class Packer():
+    act = aura_messages.actuator_v3()
     airdata = aura_messages.airdata_v7()
     gps = aura_messages.gps_v4()
     imu = aura_messages.imu_v4()
     pilot = aura_messages.pilot_v3()
+    act_buf = None
     airdata_buf = None
     gps_buf = None
     imu_buf = None
     pilot_buf = None
+    last_act_time = -1.0
     last_airdata_time = -1.0
     last_gps_time = -1.0
-    last_imu_time = -1.0;
-    last_pilot_time = -1.0;
+    last_imu_time = -1.0
+    last_pilot_time = -1.0
     
     def __init__(self):
         pass
@@ -591,6 +594,24 @@ class Packer():
 
         return nav.index
 
+    def pack_act_bin(self, use_cached=False):
+        act_time = act_node.getFloat('timestamp')
+        if not use_cached and act_time > self.last_act_time:
+            self.last_act_time = act_time
+            self.act.index = 0
+            self.act.timestamp_sec = act_time
+            self.act.aileron = act_node.getFloat("aileron")
+            self.act.elevator = act_node.getFloat("elevator")
+            self.act.throttle = act_node.getFloat("throttle")
+            self.act.rudder = act_node.getFloat("rudder")
+            self.act.channel5 = act_node.getFloat("channel5")
+            self.act.flaps = act_node.getFloat("flaps")
+            self.act.channel7 = act_node.getFloat("channel7")
+            self.act.channel8 = act_node.getFloat("channel8")
+            self.act.status = 0
+            self.act_buf = self.act.pack()
+        return self.act_buf
+
     def pack_act_dict(self, index):
         row = dict()
         row['timestamp'] = act_node.getFloat('timestamp')
@@ -926,13 +947,13 @@ class Packer():
             home_node.setFloat("longitude_deg", wp_lon)
             home_node.setFloat("latitude_deg", wp_lat)
         if task_id == 1:
-            task_node.setString("current_task_id", "circle");
+            task_node.setString("current_task_id", "circle")
         elif task_id == 2:
-            task_node.setString("current_task_id", "route");
+            task_node.setString("current_task_id", "route")
         elif task_id == 3:
-            task_node.setString("current_task_id", "land");
+            task_node.setString("current_task_id", "land")
         else:
-            task_node.setString("current_task_id", "unknown");
+            task_node.setString("current_task_id", "unknown")
 
         active_node.setInt("route_size", route_size)
         if ap.sequence_num >= 1:
@@ -983,13 +1004,13 @@ class Packer():
             home_node.setFloat("longitude_deg", wp_lon)
             home_node.setFloat("latitude_deg", wp_lat)
         if task_id == 1:
-            task_node.setString("current_task_id", "circle");
+            task_node.setString("current_task_id", "circle")
         elif task_id == 2:
-            task_node.setString("current_task_id", "route");
+            task_node.setString("current_task_id", "route")
         elif task_id == 3:
-            task_node.setString("current_task_id", "land");
+            task_node.setString("current_task_id", "land")
         else:
-            task_node.setString("current_task_id", "unknown");
+            task_node.setString("current_task_id", "unknown")
 
         active_node.setInt("route_size", route_size)
         if ap.sequence_num >= 1:

@@ -97,6 +97,8 @@ def send_message( pkt_id, payload ):
         return False
 
 # build messages and send them as needed
+act_skip = remote_link_config.getInt("actuator_skip")
+act_count = random.randint(0, act_skip)
 airdata_skip = remote_link_config.getInt("airdata_skip")
 airdata_count = random.randint(0, airdata_skip)
 gps_skip = remote_link_config.getInt("gps_skip")
@@ -106,10 +108,15 @@ imu_count = random.randint(0, imu_skip)
 pilot_skip = remote_link_config.getInt("pilot_skip")
 pilot_count = random.randint(0, pilot_skip)
 def process_messages():
+    global act_count
     global airdata_count
     global gps_count
     global imu_count
     global pilot_count
+    if act_count <= 0:
+        act_count = act_skip
+        buf = packer.pack_act_bin(use_cached=True)
+        send_message(packer.act.id, buf)
     if airdata_count <= 0:
         airdata_count = airdata_skip
         buf = packer.pack_airdata_bin(use_cached=True)

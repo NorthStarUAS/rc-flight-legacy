@@ -141,6 +141,9 @@ def log_message( pkt_id, payload ):
             print('error transmitting udp log packet')
 
 # build messages and log them as needed
+
+act_skip = logging_node.getInt("actuator_skip")
+act_count = random.randint(0, act_skip)
 airdata_skip = logging_node.getInt("airdata_skip")
 airdata_count = random.randint(0, airdata_skip)
 gps_skip = logging_node.getInt("gps_skip")
@@ -149,11 +152,17 @@ imu_skip = logging_node.getInt("imu_skip")
 imu_count = random.randint(0, imu_skip)
 pilot_skip = logging_node.getInt("pilot_skip")
 pilot_count = random.randint(0, pilot_skip)
+
 def process_messages():
+    global act_count
     global airdata_count
     global gps_count
     global imu_count
     global pilot_count
+    if act_count <= 0:
+        act_count = act_skip
+        buf = packer.pack_act_bin()
+        log_message(packer.act.id, buf)
     if airdata_count <= 0:
         airdata_count = airdata_skip
         buf = packer.pack_airdata_bin()
