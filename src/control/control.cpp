@@ -19,54 +19,19 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 
-#include <pyprops.h>
-
 #include <stdio.h>
-#include <sys/time.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <unistd.h>
 
-#include <sstream>
-#include <string>
-using std::ostringstream;
-using std::string;
-
-#include "comms/aura_messages.h"
 #include "comms/display.h"
-#include "include/globaldefs.h"
 #include "init/globals.h"
-#include <pymodule.h>
+#include "util/myprof.h"
 
-#include "include/util.h"
-#include "ap.h"
 #include "tecs.h"
-
 #include "control.h"
 
+void control_t::init() {
+    // initialize the autopilot class and build the structures from the
+    // configuration file values
 
-// global variables
-static pyModuleBase navigation;
-static AuraAutopilot ap;
-
-
-// property nodess
-static pyPropertyNode status_node;
-static pyPropertyNode ap_node;
-static pyPropertyNode targets_node;
-static pyPropertyNode tecs_node;
-static pyPropertyNode task_node;
-static pyPropertyNode pilot_node;
-static pyPropertyNode flight_node;
-static pyPropertyNode engine_node;
-static pyPropertyNode route_node;
-static pyPropertyNode active_node;
-static pyPropertyNode home_node;
-static pyPropertyNode circle_node;
-static pyPropertyNode pos_node;
-
-static void bind_properties() {
     status_node = pyGetNode( "/status", true );
     ap_node = pyGetNode( "/autopilot", true );
     targets_node = pyGetNode( "/autopilot/targets", true );
@@ -80,14 +45,6 @@ static void bind_properties() {
     home_node = pyGetNode("/task/home", true);
     circle_node = pyGetNode("/task/circle", true);
     pos_node = pyGetNode("/position", true);
-}
-
-
-void control_init() {
-    // initialize the autopilot class and build the structures from the
-    // configuration file values
-
-    bind_properties();
 
     // initialize the navigation module
     navigation.init("control.navigation");
@@ -101,16 +58,15 @@ void control_init() {
     }
 }
 
-
 // send a reset signal to all ap modules that support it.  This gives each
 // component a chance to update it's state to reset for current conditions,
 // eliminate transients, etc.
-void control_reset() {
+void control_t::reset() {
     events->log("controls", "global reset called");
     ap.reset();
 }
 
-static void copy_pilot_inputs() {
+void control_t::copy_pilot_inputs() {
     // This function copies the pilot inputs to the flight/engine
     // outputs.  This creates a manual pass through mode.  Consider
     // that manaul pass-through is handled with less latency directly
@@ -135,8 +91,9 @@ static void copy_pilot_inputs() {
     engine_node.setDouble("throttle", throttle );
 }
 
-
-void control_update(double dt) {
+void control_t::update(float dt) {
+    control_prof.start();
+    
     // sanity check
     if ( dt > 1.0 ) { dt = 0.01; }
     if ( dt < 0.00001 ) { dt = 0.01; }
@@ -147,7 +104,7 @@ void control_update(double dt) {
     bool master_switch = ap_node.getBool("master_switch");
     if ( master_switch != last_master_switch ) {
 	if ( ap_node.getBool("master_switch") ) {
-            control_reset();    // transient mitigation
+            reset();            // reset the ap; transient mitigation
 	}
 	last_master_switch = ap_node.getBool("master_switch");
     }
@@ -170,9 +127,9 @@ void control_update(double dt) {
     if ( !master_switch or pass_through ) {
         copy_pilot_inputs();
     }
+
+    control_prof.stop();
 }
 
-
-void control_close() {
-  // nothing to see here, move along ...
-}
+// global shared instance
+control_t control;

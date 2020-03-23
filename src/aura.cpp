@@ -135,9 +135,7 @@ void main_work_loop()
 	cas.update();
     }
 
-    control_prof.start();
-    control_update(dt);
-    control_prof.stop();
+    control.update( dt );
 
     // convert logical flight controls into physical actuator outputs
     actuators.update();
@@ -379,7 +377,7 @@ int main( int argc, char **argv )
     // }
 
     // initialize the autopilot
-    control_init();
+    control.init();
 
     // initialize the actuator output
     actuators.init();
@@ -403,7 +401,6 @@ int main( int argc, char **argv )
 
     // close and exit
     Filter_close();
-    control_close();
     logging->close();
 }
 
