@@ -25,6 +25,7 @@ pilot_node = getNode("/sensors/pilot_input", True)
 pos_node = getNode("/position", True)
 pos_pressure_node = getNode("/position/pressure", True)
 pos_combined_node = getNode("/position/combined", True)
+power_node = getNode("/sensors/power", True)
 vel_node = getNode("/velocity", True)
 wind_node = getNode("/filters/wind", True)
 remote_link_node = getNode("/comms/remote_link", True)
@@ -82,18 +83,21 @@ class Packer():
     airdata = aura_messages.airdata_v7()
     filter = aura_messages.filter_v4()
     gps = aura_messages.gps_v4()
+    health = aura_messages.system_health_v5()
     imu = aura_messages.imu_v4()
     pilot = aura_messages.pilot_v3()
     act_buf = None
     airdata_buf = None
     filter_buf = None
     gps_buf = None
+    health_buf = None
     imu_buf = None
     pilot_buf = None
     last_act_time = -1.0
     last_airdata_time = -1.0
     last_filter_time = -1.0
     last_gps_time = -1.0
+    last_health_time = -1.0
     last_imu_time = -1.0
     last_pilot_time = -1.0
     
@@ -1046,6 +1050,21 @@ class Packer():
             remote_link_node.setInt("sequence_num", ap.sequence_num)
 
         return index
+
+    def pack_health_bin(self, use_cached=False):
+        health_time = status_node.getFloat('frame_time')
+        if not use_cached and health_time > self.last_health_time:
+            self.last_health_time = health_time
+            self.health.index = 0
+            self.health.timestamp_sec = health_time
+            self.health.system_load_avg = power_node.getFloat("system_load_avg")
+            self.health.avionics_vcc = power_node.getFloat("avionics_vcc")
+            self.health.main_vcc = health_node.getFloat("main_vcc")
+            self.health.cell_vcc = health_node.getFloat("cell_vcc")
+            self.health.main_amps = health_node.getFloat("main_amps")
+            self.health.total_mah = health_node.getFloat("total_mah")
+            self.health_buf = self.health.pack()
+        return self.health_buf
 
     def pack_system_health_dict(self, index):
         row = dict()

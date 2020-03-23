@@ -105,6 +105,8 @@ filter_skip = remote_link_config.getInt("filter_skip")
 filter_count = random.randint(0, filter_skip)
 gps_skip = remote_link_config.getInt("gps_skip")
 gps_count = random.randint(0, gps_skip)
+health_skip = remote_link_config.getInt("health_skip")
+health_count = random.randint(0, health_skip)
 imu_skip = remote_link_config.getInt("imu_skip")
 imu_count = random.randint(0, imu_skip)
 pilot_skip = remote_link_config.getInt("pilot_skip")
@@ -114,6 +116,7 @@ def process_messages():
     global airdata_count
     global filter_count
     global gps_count
+    global health_count
     global imu_count
     global pilot_count
     if act_count <= 0:
@@ -124,10 +127,6 @@ def process_messages():
         airdata_count = airdata_skip
         buf = packer.pack_airdata_bin(use_cached=True)
         send_message(packer.airdata.id, buf)
-    if imu_count <= 0:
-        imu_count = imu_skip
-        buf = packer.pack_imu_bin(use_cached=True)
-        send_message(packer.imu.id, buf)
     if filter_count <= 0:
         filter_count = filter_skip
         buf = packer.pack_filter_bin(use_cached=True)
@@ -136,6 +135,14 @@ def process_messages():
         gps_count = gps_skip
         buf = packer.pack_gps_bin(use_cached=True)
         send_message(packer.gps.id, buf)
+    if health_count <= 0:
+        health_count = health_skip
+        buf = packer.pack_health_bin(use_cached=True)
+        send_message(packer.health.id, buf)
+    if imu_count <= 0:
+        imu_count = imu_skip
+        buf = packer.pack_imu_bin(use_cached=True)
+        send_message(packer.imu.id, buf)
     if pilot_count <= 0:
         pilot_count = pilot_skip
         buf = packer.pack_pilot_bin(use_cached=True)

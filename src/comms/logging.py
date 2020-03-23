@@ -150,6 +150,8 @@ filter_skip = logging_node.getInt("filter_skip")
 filter_count = random.randint(0, filter_skip)
 gps_skip = logging_node.getInt("gps_skip")
 gps_count = random.randint(0, gps_skip)
+health_skip = logging_node.getInt("health_skip")
+health_count = random.randint(0, health_skip)
 imu_skip = logging_node.getInt("imu_skip")
 imu_count = random.randint(0, imu_skip)
 pilot_skip = logging_node.getInt("pilot_skip")
@@ -160,6 +162,7 @@ def process_messages():
     global airdata_count
     global filter_count
     global gps_count
+    global health_count
     global imu_count
     global pilot_count
     if act_count <= 0:
@@ -178,6 +181,10 @@ def process_messages():
         gps_count = gps_skip
         buf = packer.pack_gps_bin()
         log_message(packer.gps.id, buf)
+    if health_count <= 0:
+        health_count = health_skip
+        buf = packer.pack_health_bin()
+        log_message(packer.health.id, buf)
     if imu_count <= 0:
         imu_count = imu_skip
         buf = packer.pack_imu_bin()

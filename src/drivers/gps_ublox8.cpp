@@ -27,7 +27,6 @@ using std::string;
 #include "include/globaldefs.h"
 
 #include "comms/display.h"
-#include "comms/logging.h"
 #include "init/globals.h"
 #include "util/strutils.h"
 #include "util/timing.h"

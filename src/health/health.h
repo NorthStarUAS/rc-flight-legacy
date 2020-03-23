@@ -2,5 +2,5 @@
 
 #pragma once
 
-bool health_init();
-bool health_update();
+void health_init();
+void health_update();

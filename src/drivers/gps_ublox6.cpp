@@ -30,10 +30,7 @@ using namespace Eigen;
 #include "include/globaldefs.h"
 
 #include "comms/display.h"
-#include "comms/logging.h"
 #include "init/globals.h"
-//#include "math/SGMath.h"
-//#include "math/SGGeodesy.h"
 #include "util/geodesy.h"
 #include "util/strutils.h"
 #include "util/timing.h"
