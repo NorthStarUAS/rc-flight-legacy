@@ -7,8 +7,7 @@ SUBDIRS = \
 	filters \
 	health \
 	include \
-	init \
-	payload
+	init
 
 bin_PROGRAMS = aura
 
@@ -22,7 +21,6 @@ aura_LDADD = \
 	filters/nav_ekf15_mag/libnav_ekf15_mag.a \
 	filters/nav_common/libnav_common.a \
 	health/libhealth.a \
-	payload/libpayload.a \
 	drivers/libdrivers.a \
 	drivers/Aura4/libAura4.a \
 	init/libinit.a \

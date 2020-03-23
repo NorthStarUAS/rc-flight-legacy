@@ -434,6 +434,7 @@
             ]
         },
         {
+            // depricate
             "id": 23,
             "name": "payload_v2",
             "desc": "payload v2 message",
@@ -445,6 +446,7 @@
             ]
         },
         {
+            // depricate
             "id": 42,
             "name": "payload_v3",
             "desc": "payload v3 message",

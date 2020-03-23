@@ -91,7 +91,6 @@ AC_CONFIG_FILES([ \
         src/health/Makefile \
         src/include/Makefile \
         src/init/Makefile \
-        src/payload/Makefile \
         src/util/Makefile \
         utils/Makefile \
         utils/autohome/Makefile \

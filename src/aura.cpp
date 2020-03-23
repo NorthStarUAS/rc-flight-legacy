@@ -35,7 +35,6 @@ using std::string;
 #include "filters/filter_mgr.h"
 #include "health/health.h"
 #include "init/globals.h"
-#include "payload/payload_mgr.h"
 #include "drivers/airdata_mgr.h"
 #include "drivers/gps_mgr.h"
 #include "drivers/pilot_mgr.h"
@@ -185,8 +184,6 @@ void main_work_loop()
 	health_update();
 	health_prof.stop();
     }
-
-    payload_mgr.update();
 
     // sensor summary display @ 2 second interval
     if ( display_on && get_Time() >= display_timer + 2.0 ) {
@@ -375,9 +372,6 @@ int main( int argc, char **argv )
     // init system health and status monitor
     health_init();
 
-    // init payload manager
-    payload_mgr.init();
-
     // if ( enable_pointing ) {
     // 	// initialize pointing module
     // 	ati_pointing_init();
@@ -408,7 +402,6 @@ int main( int argc, char **argv )
 
     // close and exit
     Filter_close();
-    payload_mgr.close();
     control_close();
     logging->close();
 }
