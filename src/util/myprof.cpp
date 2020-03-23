@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 
-#include "comms/logging.h"
 #include "init/globals.h"
 #include "timing.h"
 #include "myprof.h"

@@ -4,24 +4,9 @@
 
 using std::string;
 
-
 class myprofile {
 
-private:
-
-    int count;
-    double init_time;
-    double start_time;
-    double end_time;
-    double min_interval;
-    double max_interval;
-    double last_interval;
-    double sum_time;
-    string name;
-    bool enabled;
-
 public:
-
     myprofile();
     ~myprofile();
 
@@ -32,6 +17,18 @@ public:
     inline double get_last_interval() { return last_interval; }
     inline void enable() { enabled = true; }
     inline void disable() { enabled = false; }
+    
+private:
+    int count;
+    double init_time;
+    double start_time;
+    double end_time;
+    double min_interval;
+    double max_interval;
+    double last_interval;
+    double sum_time;
+    string name;
+    bool enabled;
 };
 
 

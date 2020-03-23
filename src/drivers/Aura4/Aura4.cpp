@@ -25,7 +25,6 @@ using std::string;
 using std::ostringstream;
 
 #include "comms/display.h"
-#include "comms/logging.h"
 #include "init/globals.h"
 #include "util/props_helper.h"
 #include "util/timing.h"

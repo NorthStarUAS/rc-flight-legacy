@@ -21,9 +21,6 @@ using std::ostringstream;
 using std::string;
 using std::vector;
 
-#include "comms/aura_messages.h"
-#include "comms/logging.h"
-#include "comms/remote_link.h"
 #include "include/globaldefs.h"
 #include "init/globals.h"
 #include "util/myprof.h"

@@ -14,7 +14,6 @@ using std::ostringstream;
 using namespace Eigen;
 
 #include "comms/display.h"
-#include "comms/logging.h"
 #include "comms/serial_link.h"
 #include "init/globals.h"
 #include "util/butter.h"
