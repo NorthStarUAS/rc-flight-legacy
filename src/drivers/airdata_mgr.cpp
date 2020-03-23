@@ -234,16 +234,11 @@ static void update_pressure_helpers() {
 
 }
 
-
-bool AirData_update() {
-    air_prof.start();
-
-    bool fresh_data = false;
+void AirData_update() {
+    airdata_prof.start();
 
     // these are computed from the primary airdata sensor
     update_pressure_helpers();
 
-    air_prof.stop();
-
-    return fresh_data;
+    airdata_prof.stop();
 }

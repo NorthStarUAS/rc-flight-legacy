@@ -36,7 +36,7 @@ public:
 
 
 // global profiling structures
-extern myprofile air_prof;
+extern myprofile airdata_prof;
 extern myprofile driver_prof;
 extern myprofile filter_prof;
 extern myprofile mission_prof;

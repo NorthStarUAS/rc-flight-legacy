@@ -78,7 +78,7 @@ void myprofile::stats() {
 
 
 // global profiling structures
-myprofile air_prof;
+myprofile airdata_prof;
 myprofile driver_prof;
 myprofile filter_prof;
 myprofile mission_prof;

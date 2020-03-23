@@ -189,7 +189,7 @@ void main_work_loop()
     if ( display_on && get_Time() >= display_timer + 2.0 ) {
 	display_timer += 2.0;
 	display->status_summary();
-	air_prof.stats();
+	airdata_prof.stats();
 	driver_prof.stats();
 	filter_prof.stats();
 	mission_prof.stats();
@@ -256,7 +256,7 @@ int main( int argc, char **argv )
     imu_node = pyGetNode("/sensors/imu", true);
 
     // initialize profiling names
-    air_prof.set_name("airdata");
+    airdata_prof.set_name("airdata");
     driver_prof.set_name("drivers");
     filter_prof.set_name("filter");
     mission_prof.set_name("mission");
@@ -272,7 +272,7 @@ int main( int argc, char **argv )
 
     filter_prof.enable();
     control_prof.enable();
-    air_prof.enable();
+    airdata_prof.enable();
     driver_prof.enable();
     datalog_prof.enable();
     
