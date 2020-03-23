@@ -93,14 +93,10 @@ void main_work_loop()
     main_prof.start();
     
     static double display_timer = get_Time();
-    static int health_counter = 0;
 
     static int count = 0;
-
     count++;
     // printf ("timer expired %d times\n", count);
-
-    health_counter++;
 
     //
     // Sensor input section (deprecating)
@@ -172,17 +168,8 @@ void main_work_loop()
     }
     mission_prof.stop();
 
-    //
-    // Data logging and Telemetry dump section
-    //
-
-    // health status (update at 10hz)
-    if ( health_counter >= (HEARTBEAT_HZ / 10) ) {
-	health_prof.start();
-	health_counter = 0;
-	health_update();
-	health_prof.stop();
-    }
+    // health status
+    health.update();
 
     // sensor summary display @ 2 second interval
     if ( display_on && get_Time() >= display_timer + 2.0 ) {
@@ -369,7 +356,7 @@ int main( int argc, char **argv )
     Filter_init();
 
     // init system health and status monitor
-    health_init();
+    health.init();
 
     // if ( enable_pointing ) {
     // 	// initialize pointing module

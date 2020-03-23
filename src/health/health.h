@@ -2,5 +2,10 @@
 
 #pragma once
 
-void health_init();
-void health_update();
+class health_t {
+public:
+    void init();
+    void update();
+};
+
+extern health_t health;
