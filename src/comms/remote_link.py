@@ -15,6 +15,7 @@ status_node = getNode( '/status', True)
 route_node = getNode( '/task/route', True )
 task_node = getNode( '/task', True )
 home_node = getNode( '/task/home', True )
+active_node = getNode("/task/route/active", True)
 targets_node = getNode( '/autopilot/targets', True )
 comms_node = getNode( '/comms', True)
 
@@ -101,6 +102,8 @@ act_skip = remote_link_config.getInt("actuator_skip")
 act_count = random.randint(0, act_skip)
 airdata_skip = remote_link_config.getInt("airdata_skip")
 airdata_count = random.randint(0, airdata_skip)
+ap_skip = remote_link_config.getInt("autopilot_skip")
+ap_count = random.randint(0, ap_skip)
 filter_skip = remote_link_config.getInt("filter_skip")
 filter_count = random.randint(0, filter_skip)
 gps_skip = remote_link_config.getInt("gps_skip")
@@ -114,6 +117,7 @@ pilot_count = random.randint(0, pilot_skip)
 def process_messages():
     global act_count
     global airdata_count
+    global ap_count
     global filter_count
     global gps_count
     global health_count
@@ -127,6 +131,17 @@ def process_messages():
         airdata_count = airdata_skip
         buf = packer.pack_airdata_bin(use_cached=True)
         send_message(packer.airdata.id, buf)
+    if ap_count <= 0:
+        ap_count = ap_skip
+        buf = packer.pack_ap_status_bin(use_cached=True)
+        send_message(packer.ap.id, buf)
+        # here is where we do the delicate counter increment dance
+        # (vs. packer.py)
+        route_size = active_node.getInt("route_size")
+        counter = remote_link_node.getLong("wp_counter") + 1
+        if counter >= route_size + 2:
+            counter = 0
+            remote_link_node.setLong("wp_counter", counter) 
     if filter_count <= 0:
         filter_count = filter_skip
         buf = packer.pack_filter_bin(use_cached=True)

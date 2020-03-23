@@ -79,6 +79,7 @@ def wrap_packet( self, packet_id, payload ):
     return buf
 
 class Packer():
+    ap = aura_messages.ap_status_v7()
     act = aura_messages.actuator_v3()
     airdata = aura_messages.airdata_v7()
     filter = aura_messages.filter_v4()
@@ -86,6 +87,7 @@ class Packer():
     health = aura_messages.system_health_v5()
     imu = aura_messages.imu_v4()
     pilot = aura_messages.pilot_v3()
+    ap_buf = None
     act_buf = None
     airdata_buf = None
     filter_buf = None
@@ -93,6 +95,7 @@ class Packer():
     health_buf = None
     imu_buf = None
     pilot_buf = None
+    last_ap_time = -1.0
     last_act_time = -1.0
     last_airdata_time = -1.0
     last_filter_time = -1.0
@@ -794,6 +797,74 @@ class Packer():
         node.setInt("status", pilot.status)
 
         return pilot.index
+
+    def pack_ap_status_bin(self, use_cached=False):
+        ap_time = status_node.getFloat("frame_time")
+        if not use_cached and ap_time > self.last_ap_time:
+            self.last_ap_time = ap_time
+            self.ap.index = 0
+            self.ap.timestamp_sec = ap_time
+            # status flags (up to 8 could be supported)
+            self.ap.flags = 0
+            if ap_node.getBool("master_switch"):
+                self.ap.flags += 1 # |= (1 << 0)
+            if ap_node.getBool("pilot_pass_through"):
+                self.ap.flags += 2 # |= (1 << 1)
+            self.ap.groundtrack_deg = targets_node.getFloat("groundtrack_deg")
+            self.ap.roll_deg = targets_node.getFloat("roll_deg")
+            target_agl_ft = targets_node.getFloat("altitude_agl_ft")
+            ground_m = pos_node.getFloat("altitude_ground_m")
+            # if pressure based:
+            #   error_m = pos_pressure_node.getFloat("pressure_error_m")
+            #   target_msl_ft = (ground_m + error_m) * m2ft + target_agl_ft
+            # else: ...
+            self.ap.altitude_msl_ft = ground_m * m2ft + target_agl_ft
+            self.ap.altitude_ground_m = ground_m
+            self.ap.pitch_deg = targets_node.getFloat("pitch_deg")
+            self.ap.airspeed_kt = targets_node.getFloat("airspeed_kt")
+            self.ap.flight_timer = task_node.getFloat("flight_timer")
+            self.ap.target_waypoint_idx = route_node.getLong("target_waypoint_idx")
+
+            self.ap.task_attr = 0
+            # wp_counter will get incremented externally in the
+            # remote_link message sender because each time we send a
+            # serial message to the remote ground station is when we
+            # want to advance to the next waypoint.
+            counter = remote_link_node.getLong("wp_counter")
+            self.ap.wp_wp_lon = 0.0
+            self.ap.wp_wp_lat = 0.0
+            self.ap.wp_wp_index = 0
+            self.ap.route_size = active_node.getInt("route_size")
+            if self.ap.route_size > 0 and counter < self.ap.route_size:
+                self.ap.wp_index = counter
+                wp_path = "wpt[%d]" % wp_index
+                wp_node = active_node.getChild(wp_path, True)
+                self.ap.wp_lon = wp_node.getFloat("longitude_deg")
+                self.ap.wp_lat = wp_node.getFloat("latitude_deg")
+            elif counter == self.ap.route_size:
+                self.ap.wp_lon = circle_node.getFloat("longitude_deg")
+                self.ap.wp_lat = circle_node.getFloat("latitude_deg")
+                self.ap.wp_index = 65534
+                self.ap.task_attr = int(round(circle_node.getFloat("radius_m") * 10))
+                if self.ap.task_attr > 32767: self.ap.task_attr = 32767
+            elif counter == self.ap.route_size + 1:
+                self.ap.wp_lon = home_node.getFloat("longitude_deg")
+                self.ap.wp_lat = home_node.getFloat("latitude_deg")
+                self.ap.wp_index = 65535
+        
+            self.ap.task_id = 0 # code for unknown or not set
+            if task_node.getString("current_task_id") == "circle":
+                self.ap.task_id = 1
+            elif task_node.getString("current_task_id") == "parametric":
+                # draw like it's a circle
+                self.ap.task_id = 1
+            elif task_node.getString("current_task_id") == "route":
+                self.ap.task_id = 2
+            elif task_node.getString("current_task_id") == "land":
+                self.ap.task_id = 3
+            self.ap.sequence_num = remote_link_node.getInt("sequence_num")
+            self.ap_buf = self.ap.pack()
+        return self.ap_buf
 
     wp_counter = 0
     def pack_ap_status_dict(self, index):
