@@ -101,6 +101,8 @@ act_skip = remote_link_config.getInt("actuator_skip")
 act_count = random.randint(0, act_skip)
 airdata_skip = remote_link_config.getInt("airdata_skip")
 airdata_count = random.randint(0, airdata_skip)
+filter_skip = remote_link_config.getInt("filter_skip")
+filter_count = random.randint(0, filter_skip)
 gps_skip = remote_link_config.getInt("gps_skip")
 gps_count = random.randint(0, gps_skip)
 imu_skip = remote_link_config.getInt("imu_skip")
@@ -110,6 +112,7 @@ pilot_count = random.randint(0, pilot_skip)
 def process_messages():
     global act_count
     global airdata_count
+    global filter_count
     global gps_count
     global imu_count
     global pilot_count
@@ -125,6 +128,10 @@ def process_messages():
         imu_count = imu_skip
         buf = packer.pack_imu_bin(use_cached=True)
         send_message(packer.imu.id, buf)
+    if filter_count <= 0:
+        filter_count = filter_skip
+        buf = packer.pack_filter_bin(use_cached=True)
+        send_message(packer.filter.id, buf)
     if gps_count <= 0:
         gps_count = gps_skip
         buf = packer.pack_gps_bin(use_cached=True)

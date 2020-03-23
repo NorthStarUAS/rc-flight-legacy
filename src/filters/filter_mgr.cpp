@@ -15,9 +15,6 @@
 #include <string>
 using std::string;
 
-#include "comms/aura_messages.h"
-#include "comms/remote_link.h"
-#include "comms/logging.h"
 #include "filters/nav_ekf15/aura_interface.h"
 #include "filters/nav_ekf15_mag/aura_interface.h"
 #include "include/globaldefs.h"
@@ -47,13 +44,9 @@ static pyPropertyNode pos_pressure_node;
 static pyPropertyNode pos_combined_node;
 static pyPropertyNode filter_node;
 static pyPropertyNode filter_group_node;
-static pyPropertyNode remote_link_node;
 static pyPropertyNode status_node;
 static vector<pyPropertyNode> sections;
 static vector<pyPropertyNode> outputs;
-
-static int remote_link_skip = 0;
-static int logging_skip = 0;
 
 void Filter_init() {
     // initialize imu property nodes
@@ -67,13 +60,7 @@ void Filter_init() {
     pos_filter_node = pyGetNode("/position/filter", true);
     pos_pressure_node = pyGetNode("/position/pressure", true);
     pos_combined_node = pyGetNode("/position/combined", true);
-    remote_link_node = pyGetNode("/comms/remote_link", true);
     status_node = pyGetNode("/status", true);
-
-    pyPropertyNode remote_link_config = pyGetNode("/config/remote_link", true);
-    pyPropertyNode logging_node = pyGetNode("/config/logging", true);
-    remote_link_skip = remote_link_config.getLong("filter_skip");
-    logging_skip = logging_node.getLong("filter_skip");
 
     // traverse configured modules
     pyPropertyNode group_node = pyGetNode("/config/filters", true);
@@ -237,9 +224,6 @@ bool Filter_update() {
     if ( imu_dt > 1.0 ) { imu_dt = 0.01; }
     if ( imu_dt < 0.0 ) { imu_dt = 0.01; }
 
-    static int remote_link_count = 0;
-    static int logging_count = 0;
-    
     // experimental: reinit all the ekf's upon request
     string command = filter_group_node.getString( "command" );
     bool do_reset = false;
@@ -276,50 +260,8 @@ bool Filter_update() {
             }
 	    fresh_filter_data = nav_ekf15_mag_update();
 	}
-
-	bool send_remote_link = false;
-	if ( remote_link_count < 0 ) {
-	    send_remote_link = true;
-	    remote_link_count = remote_link_skip;
-	}
-	
-	bool send_logging = false;
-	if ( logging_count < 0 ) {
-	    send_logging = true;
-	    logging_count = logging_skip;
-	}
-	
-	if ( send_remote_link || send_logging ) {
-            message::filter_v4_t nav;
-            nav.index = i;
-            nav.timestamp_sec = outputs[i].getDouble("timestamp");
-            nav.latitude_deg = outputs[i].getDouble("latitude_deg");
-            nav.longitude_deg = outputs[i].getDouble("longitude_deg");
-            nav.altitude_m = outputs[i].getDouble("altitude_m");
-            nav.vn_ms = outputs[i].getDouble("vn_ms");
-            nav.ve_ms = outputs[i].getDouble("ve_ms");
-            nav.vd_ms = outputs[i].getDouble("vd_ms");
-            nav.roll_deg = outputs[i].getDouble("roll_deg");
-            nav.pitch_deg = outputs[i].getDouble("pitch_deg");
-            nav.yaw_deg = outputs[i].getDouble("heading_deg");
-            nav.p_bias = outputs[i].getDouble("p_bias");
-            nav.q_bias = outputs[i].getDouble("q_bias");
-            nav.r_bias = outputs[i].getDouble("r_bias");
-            nav.ax_bias = outputs[i].getDouble("ax_bias");
-            nav.ay_bias = outputs[i].getDouble("ay_bias");
-            nav.az_bias = outputs[i].getDouble("az_bias");
-            nav.sequence_num = remote_link_node.getLong("sequence_num");
-            nav.status = 0;
-            nav.pack();
-	    if ( send_remote_link ) {
-		remote_link->send_message( nav.id, nav.payload, nav.len );
-	    }
-	    if ( send_logging ) {
-		logging->log_message( nav.id, nav.payload, nav.len );
-	    }
-	}
     }
-
+    
     // only for primary filter
     if ( filter_node.getLong("status") == 2 ) {
         update_euler_rates();
@@ -330,11 +272,6 @@ bool Filter_update() {
     
     filter_prof.stop();
 
-    if ( fresh_filter_data ) {
-        remote_link_count--;
-        logging_count--;
-    }
-	     
     last_imu_time = imu_time;
 
 #if 0

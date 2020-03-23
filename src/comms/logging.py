@@ -146,6 +146,8 @@ act_skip = logging_node.getInt("actuator_skip")
 act_count = random.randint(0, act_skip)
 airdata_skip = logging_node.getInt("airdata_skip")
 airdata_count = random.randint(0, airdata_skip)
+filter_skip = logging_node.getInt("filter_skip")
+filter_count = random.randint(0, filter_skip)
 gps_skip = logging_node.getInt("gps_skip")
 gps_count = random.randint(0, gps_skip)
 imu_skip = logging_node.getInt("imu_skip")
@@ -156,6 +158,7 @@ pilot_count = random.randint(0, pilot_skip)
 def process_messages():
     global act_count
     global airdata_count
+    global filter_count
     global gps_count
     global imu_count
     global pilot_count
@@ -167,6 +170,10 @@ def process_messages():
         airdata_count = airdata_skip
         buf = packer.pack_airdata_bin()
         log_message(packer.airdata.id, buf)
+    if filter_count <= 0:
+        filter_count = filter_skip
+        buf = packer.pack_filter_bin()
+        log_message(packer.filter.id, buf)
     if gps_count <= 0:
         gps_count = gps_skip
         buf = packer.pack_gps_bin()

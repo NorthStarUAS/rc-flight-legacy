@@ -18,6 +18,7 @@ START_OF_MSG0 = 147
 START_OF_MSG1 = 224
     
 airdata_node = getNode("/sensors/airdata[0]", True)
+filter_node = getNode("/filters/filter", True)
 gps_node = getNode("/sensors/gps[0]", True)
 imu_node = getNode("/sensors/imu[0]", True)
 pilot_node = getNode("/sensors/pilot_input", True)
@@ -26,7 +27,6 @@ pos_pressure_node = getNode("/position/pressure", True)
 pos_combined_node = getNode("/position/combined", True)
 vel_node = getNode("/velocity", True)
 wind_node = getNode("/filters/wind", True)
-filter_nodes = []
 remote_link_node = getNode("/comms/remote_link", True)
 
 NUM_ACTUATORS = 8
@@ -80,16 +80,19 @@ def wrap_packet( self, packet_id, payload ):
 class Packer():
     act = aura_messages.actuator_v3()
     airdata = aura_messages.airdata_v7()
+    filter = aura_messages.filter_v4()
     gps = aura_messages.gps_v4()
     imu = aura_messages.imu_v4()
     pilot = aura_messages.pilot_v3()
     act_buf = None
     airdata_buf = None
+    filter_buf = None
     gps_buf = None
     imu_buf = None
     pilot_buf = None
     last_act_time = -1.0
     last_airdata_time = -1.0
+    last_filter_time = -1.0
     last_gps_time = -1.0
     last_imu_time = -1.0
     last_pilot_time = -1.0
@@ -458,6 +461,32 @@ class Packer():
         node.setFloat("temp_C", imu.temp_C)
         node.setInt("status", imu.status)
         return imu.index
+
+    def pack_filter_bin(self, use_cached=False):
+        filter_time = filter_node.getFloat("timestamp")
+        if (not use_cached and filter_time > self.last_filter_time) or self.filter_buf is None:
+            self.last_filter_time = filter_time
+            self.filter.index = 0
+            self.filter.timestamp_sec = filter_time
+            self.filter.latitude_deg = filter_node.getFloat("latitude_deg")
+            self.filter.longitude_deg = filter_node.getFloat("longitude_deg")
+            self.filter.altitude_m = filter_node.getFloat("altitude_m")
+            self.filter.vn_ms = filter_node.getFloat("vn_ms")
+            self.filter.ve_ms = filter_node.getFloat("ve_ms")
+            self.filter.vd_ms = filter_node.getFloat("vd_ms")
+            self.filter.roll_deg = filter_node.getFloat("roll_deg")
+            self.filter.pitch_deg = filter_node.getFloat("pitch_deg")
+            self.filter.yaw_deg = filter_node.getFloat("yaw_deg")
+            self.filter.p_bias = filter_node.getFloat("p_bias")
+            self.filter.q_bias = filter_node.getFloat("q_bias")
+            self.filter.r_bias = filter_node.getFloat("r_bias") 
+            self.filter.ax_bias = filter_node.getFloat("ax_bias")
+            self.filter.ay_bias = filter_node.getFloat("ay_bias")
+            self.filter.az_bias = filter_node.getFloat("az_bias")
+            self.filter.sequence_num = remote_link_node.getInt("sequence_num")
+            self.filter.status = filter_node.getInt("status")
+            self.filter_buf = self.filter.pack()
+        return self.filter_buf
 
     def pack_filter_dict(self, index):
         filter_node = getNode('/filters/filter[%d]' % index, True)
