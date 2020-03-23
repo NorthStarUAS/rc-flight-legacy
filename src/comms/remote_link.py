@@ -138,10 +138,10 @@ def process_messages():
         # here is where we do the delicate counter increment dance
         # (vs. packer.py)
         route_size = active_node.getInt("route_size")
-        counter = remote_link_node.getLong("wp_counter") + 1
+        counter = remote_link_node.getInt("wp_counter") + 1
         if counter >= route_size + 2:
             counter = 0
-            remote_link_node.setLong("wp_counter", counter) 
+            remote_link_node.setInt("wp_counter", counter) 
     if filter_count <= 0:
         filter_count = filter_skip
         buf = packer.pack_filter_bin(use_cached=True)

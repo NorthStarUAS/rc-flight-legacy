@@ -823,21 +823,21 @@ class Packer():
             self.ap.pitch_deg = targets_node.getFloat("pitch_deg")
             self.ap.airspeed_kt = targets_node.getFloat("airspeed_kt")
             self.ap.flight_timer = task_node.getFloat("flight_timer")
-            self.ap.target_waypoint_idx = route_node.getLong("target_waypoint_idx")
+            self.ap.target_waypoint_idx = route_node.getInt("target_waypoint_idx")
 
             self.ap.task_attr = 0
             # wp_counter will get incremented externally in the
             # remote_link message sender because each time we send a
             # serial message to the remote ground station is when we
             # want to advance to the next waypoint.
-            counter = remote_link_node.getLong("wp_counter")
+            counter = remote_link_node.getInt("wp_counter")
             self.ap.wp_wp_lon = 0.0
             self.ap.wp_wp_lat = 0.0
             self.ap.wp_wp_index = 0
             self.ap.route_size = active_node.getInt("route_size")
             if self.ap.route_size > 0 and counter < self.ap.route_size:
                 self.ap.wp_index = counter
-                wp_path = "wpt[%d]" % wp_index
+                wp_path = "wpt[%d]" % self.ap.wp_index
                 wp_node = active_node.getChild(wp_path, True)
                 self.ap.wp_lon = wp_node.getFloat("longitude_deg")
                 self.ap.wp_lat = wp_node.getFloat("latitude_deg")
