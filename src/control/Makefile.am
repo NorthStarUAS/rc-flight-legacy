@@ -1,6 +1,7 @@
 noinst_LIBRARIES = libcontrol.a
 
 libcontrol_a_SOURCES = \
+	actuators.cpp actuators.h \
 	ap.cpp ap.h \
 	cas.cpp cas.h \
 	component.h \

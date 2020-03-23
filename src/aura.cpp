@@ -25,10 +25,10 @@ using std::string;
 
 #include "include/aura_config.h"
 
-#include "actuators/act_mgr.h"
 #include "comms/display.h"
 #include "comms/logging.h"
 #include "comms/remote_link.h"
+#include "control/actuators.h"
 #include "control/cas.h"
 #include "control/control.h"
 #include "drivers/driver_mgr.h"
@@ -139,7 +139,8 @@ void main_work_loop()
     control_update(dt);
     control_prof.stop();
 
-    Actuator_update();
+    // convert logical flight controls into physical actuator outputs
+    actuators.update();
 
     driver_mgr.write();
 
@@ -380,8 +381,8 @@ int main( int argc, char **argv )
     // initialize the autopilot
     control_init();
 
-    // initialize the actuators
-    Actuator_init();
+    // initialize the actuator output
+    actuators.init();
 
     if ( enable_cas ) {
 	// initialize the cas system

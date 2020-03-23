@@ -1,40 +1,20 @@
 /**
- * \file: act_mgr.cpp
+ * \file: actuators.cpp
  *
- * Front end management interface for output actuators
+ * convert logical flight controls into physical actuator outputs
  *
- * Copyright (C) 2009 - Curtis L. Olson curtolson@flightgear.org
- *
- * $Id: act_mgr.cpp,v 1.3 2009/08/25 15:04:01 curt Exp $
+ * Copyright (C) 2009-2020 Curtis L. Olson curtolson@flightgear.org
  */
-
-#include <pyprops.h>
 
 #include <stdio.h>
 
 #include <string>
 using std::string;
 
-#include "control/control.h"
-#include "include/globaldefs.h"
-#include "init/globals.h"
 #include "util/timing.h"
+#include "actuators.h"
 
-#include "act_mgr.h"
-
-//
-// Global variables
-//
-
-// property nodes
-static pyPropertyNode flight_node;
-static pyPropertyNode engine_node;
-static pyPropertyNode pilot_node;
-static pyPropertyNode act_node;
-static pyPropertyNode ap_node;
-static pyPropertyNode excite_node;
-
-void Actuator_init() {
+void actuators_t::init() {
     // bind properties
     flight_node = pyGetNode("/controls/flight", true);
     engine_node = pyGetNode("/controls/engine", true);
@@ -44,8 +24,10 @@ void Actuator_init() {
     ap_node = pyGetNode("/autopilot", true);
 }
 
+void actuators_t::update() {
+    // set time stamp for logging
+    act_node.setDouble( "timestamp", get_Time() );
 
-static void set_actuator_values() {
     float aileron = flight_node.getDouble("aileron");
     act_node.setDouble( "aileron", aileron );
 
@@ -188,10 +170,5 @@ static void set_actuator_values() {
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
 }
 
-
-void Actuator_update() {
-    // set time stamp for logging
-    act_node.setDouble( "timestamp", get_Time() );
-
-    set_actuator_values();
-}
+// global shared instance
+actuators_t actuators;

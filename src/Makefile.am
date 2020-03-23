@@ -1,6 +1,5 @@
 SUBDIRS = \
 	util \
-	actuators \
 	comms \
 	control \
 	drivers \
@@ -15,7 +14,6 @@ aura_SOURCES = \
 	aura.cpp
 
 aura_LDADD = \
-	actuators/libactuators.a \
 	filters/libfilters.a \
 	filters/nav_ekf15/libnav_ekf15.a \
 	filters/nav_ekf15_mag/libnav_ekf15_mag.a \

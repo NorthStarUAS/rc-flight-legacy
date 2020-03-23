@@ -79,7 +79,6 @@ AM_CONFIG_HEADER(src/include/aura_config.h)
 AC_CONFIG_FILES([ \
 	Makefile \
         src/Makefile \
-        src/actuators/Makefile \
         src/drivers/Makefile \
         src/drivers/Aura4/Makefile \
         src/comms/Makefile \

@@ -187,7 +187,7 @@ void control_update(double dt)
     if ( !master_switch or pass_through ) {
         copy_pilot_inputs();
     }
-    
+
     bool send_remote_link = false;
     if ( remote_link_count < 0 ) {
 	send_remote_link = true;
