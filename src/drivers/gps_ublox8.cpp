@@ -30,7 +30,6 @@ using std::string;
 #include "init/globals.h"
 #include "util/strutils.h"
 #include "util/timing.h"
-#include "gps_mgr.h"
 
 #include "gps_ublox8.h"
 

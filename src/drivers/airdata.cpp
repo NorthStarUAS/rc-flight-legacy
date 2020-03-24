@@ -32,11 +32,10 @@ void airdata_helper_t::init() {
     wind_node = pyGetNode("/filters/wind", true);
 }
 
+// 1. ground altitude, 2. error between pressure altitude and gps altitude
 void airdata_helper_t::update() {
     airdata_prof.start();
 
-    static float pressure_alt_filt_last = 0.0;
-    static double last_time = 0.0;
     double cur_time = airdata_node.getDouble("timestamp");
 
     double dt = cur_time - last_time;

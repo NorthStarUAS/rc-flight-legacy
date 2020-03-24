@@ -35,9 +35,11 @@ private:
     LowPassFilter Ps_filt_err = LowPassFilter( 300.0 );
     LowPassFilter climb_filt = LowPassFilter( 1.0 );
 
-    // 1. ground altitude, 2. error between pressure altitude and gps altitude
     bool airdata_calibrated = false;
     bool alt_error_calibrated = false;
+    float pressure_alt_filt_last = 0.0;
+    double last_time = 0.0;
+
     float true_alt_m = 0.0;
 };
 

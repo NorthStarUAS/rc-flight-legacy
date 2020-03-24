@@ -15,14 +15,9 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include <sstream>
 #include <string>
-#include <vector>
-using std::ostringstream;
 using std::string;
-using std::vector;
 
-#include "comms/aura_messages.h"
 #include "comms/display.h"
 #include "include/globaldefs.h"
 #include "init/globals.h"
@@ -33,25 +28,17 @@ using std::vector;
 #include "gps_ublox6.h"
 #include "gps_ublox8.h"
 
-#include "gps_mgr.h"
-
-//
-// Global variables
-//
-
-static pyPropertyNode gps_node;
-static vector<pyPropertyNode> sections;
-static vector<pyPropertyNode> outputs;
+#include "gps.h"
 
 
-void GPS_init() {
+void gps_helper_t::init() {
     gps_node = pyGetNode("/sensors/gps", true);
     // init master gps timestamp to one year ago
     gps_node.setDouble("timestamp", -31557600.0);
 }
 
 
-static void compute_magvar() {
+void gps_helper_t::compute_magvar() {
     double magvar_rad = 0.0;
 
     pyPropertyNode config_node = pyGetNode("/config", true);
@@ -75,8 +62,11 @@ static void compute_magvar() {
     gps_node.setDouble( "magvar_deg", magvar_rad * SG_RADIANS_TO_DEGREES );
 }
 
+double gps_helper_t::gps_age() {
+    return get_Time() - gps_node.getDouble("timestamp");
+}
 
-bool GPS_update() {
+void gps_helper_t::update() {
     static int gps_state = 0;
 
     // FIXME: should this be "fixType" == 3?
@@ -140,11 +130,8 @@ bool GPS_update() {
 	}
     }
 
-    gps_node.setDouble("data_age", GPS_age());
-    
-    return true;
+    gps_node.setDouble("data_age", gps_age());
 }
 
-double GPS_age() {
-    return get_Time() - gps_node.getDouble("timestamp");
-}
+// global shared instance
+gps_helper_t gps_helper;

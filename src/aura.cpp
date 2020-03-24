@@ -33,7 +33,7 @@ using std::string;
 #include "control/control.h"
 #include "drivers/driver_mgr.h"
 #include "drivers/airdata.h"
-#include "drivers/gps_mgr.h"
+#include "drivers/gps.h"
 #include "drivers/pilot_mgr.h"
 #include "filters/filter_mgr.h"
 #include "health/health.h"
@@ -98,15 +98,9 @@ void main_work_loop()
     count++;
     // printf ("timer expired %d times\n", count);
 
-    //
-    // Sensor input section (deprecating)
-    //
-
-    // compute pressure based derived values
-    airdata_helper.update();
-
-    // Fetch GPS data if available.
-    GPS_update();
+    // extra sensor processing section
+    airdata_helper.update();  // compute pressure based derived values
+    gps_helper.update();      // gps age (and setting host clock)
 
     // Fetch Pilot Inputs
     PilotInput_update();
@@ -119,7 +113,7 @@ void main_work_loop()
     // check gps data age.  The nav filter continues to run, but the
     // results are marked as NotValid if the most recent gps data
     // becomes too old.
-    if ( GPS_age() > gps_timeout_sec ) {
+    if ( gps_helper.gps_age() > gps_timeout_sec ) {
 	status_node.setString("navigation", "invalid");
     }
 
@@ -336,11 +330,9 @@ int main( int argc, char **argv )
     // initialize the drivers
     driver_mgr.init();
     
-    // pressure helpers
+    // data helpers
     airdata_helper.init();
-
-    // Initialize communication with the selected GPS
-    GPS_init();
+    gps_helper.init();
 
     // Initialize communication with pilot input sensor
     PilotInput_init();

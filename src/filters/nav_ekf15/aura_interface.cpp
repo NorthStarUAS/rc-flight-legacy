@@ -9,7 +9,6 @@
 #include <string.h>
 
 #include "include/globaldefs.h"
-#include "drivers/gps_mgr.h"
 
 #include "../nav_common/constants.h"
 
@@ -142,7 +141,7 @@ bool nav_ekf15_update() {
         }
         nav_data = filter.get_nav();
     } else {
-	if ( GPS_age() < 1.0 && gps_node.getBool("settle") ) {
+	if ( gps_node.getDouble("data_age") < 1.0 && gps_node.getBool("settle") ) {
 	    filter.init( imu_data, gps_data );
             nav_data = filter.get_nav();
 	    nav_inited = true;

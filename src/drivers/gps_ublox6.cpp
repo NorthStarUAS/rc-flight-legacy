@@ -34,7 +34,6 @@ using namespace Eigen;
 #include "util/geodesy.h"
 #include "util/strutils.h"
 #include "util/timing.h"
-#include "gps_mgr.h"
 
 #include "gps_ublox6.h"
 
