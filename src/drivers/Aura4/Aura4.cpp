@@ -146,8 +146,12 @@ void Aura4_t::init_airdata( pyPropertyNode *config ) {
 }
 
 void Aura4_t::init_ekf( pyPropertyNode *config ) {
-    string output_path = get_next_path("/filters", "filter", true);
-    ekf_node = pyGetNode(output_path.c_str(), true);
+    if ( config->hasChild("enable") and config->getBool("enable") ) {
+        string output_path = get_next_path("/filters", "filter", true);
+        ekf_node = pyGetNode(output_path.c_str(), true);
+    } else {
+        ekf_node = aura4_node.getChild("aura4_ekf_disabled", true);
+    }
 }
 
 void Aura4_t::init_gps( pyPropertyNode *config ) {
