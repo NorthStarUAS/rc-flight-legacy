@@ -52,17 +52,11 @@ static pyPropertyNode wind_node;
 static vector<pyPropertyNode> sections;
 static vector<pyPropertyNode> outputs;
 
-static myprofile debug2b1;
-static myprofile debug2b2;
-
 // 1. ground altitude, 2. error between pressure altitude and gps altitude
 static bool airdata_calibrated = false;
 static bool alt_error_calibrated = false;
     
 void AirData_init() {
-    debug2b1.set_name("debug2b1 airdata update");
-    debug2b2.set_name("debug2b2 airdata console link");
-
     airdata_node = pyGetNode("/sensors/airdata", true);
     sensors_node = pyGetNode("/sensors", true);
     filter_node = pyGetNode("/filters/filter", true);

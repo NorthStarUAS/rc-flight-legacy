@@ -10,9 +10,9 @@
 // - (ok) send ekf config
 // - (ok) figure out how to deal with accel/mag calibration if ekf is remote 
 // - (ok) parse ekf packet
+// - (ok) write actuators
+// - (ok--for now) deal with how to arbitrate output path enumeration in property tree
 // - need to log cal and nocal imu values
-// - write actuators
-// - deal with how to arbitrate output path enumeration in property tree
 
 #include <pyprops.h>
 
@@ -955,6 +955,7 @@ bool Aura4_t::update_ekf( message::ekf_t *ekf ) {
     ekf_node.setDouble( "groundspeed_ms", gs_ms );
     ekf_node.setDouble( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
     ekf_node.setDouble( "vertical_speed_fps", -ekf->vd_ms * M2F );
+    return true;
 }
 
 bool Aura4_t::update_gps( message::aura_nav_pvt_t *nav_pvt ) {

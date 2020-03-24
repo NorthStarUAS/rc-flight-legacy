@@ -252,20 +252,13 @@ int main( int argc, char **argv )
     sync_prof.set_name("sync");
     main_prof.set_name("main");
 
-    // only enable sync and main by default
     sync_prof.enable();
     main_prof.enable();
-
     filter_prof.enable();
     control_prof.enable();
     airdata_prof.enable();
     driver_prof.enable();
     datalog_prof.enable();
-    
-    if ( display_on ) {
-	printf("Main clock resolution:\n");
-	print_Time_Resolution();
-    }
     
     // load master config file
     SGPath master( root );
