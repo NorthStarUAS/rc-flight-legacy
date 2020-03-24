@@ -8,7 +8,6 @@ libdrivers_a_SOURCES = \
 	airdata.cpp airdata.h \
 	fgfs.cpp fgfs.h \
 	gps_mgr.cpp gps_mgr.h \
-	gps_gpsd.cpp gps_gpsd.h \
 	gps_ublox6.cpp gps_ublox6.h \
 	gps_ublox8.cpp gps_ublox8.h \
 	pilot_mgr.cpp pilot_mgr.h

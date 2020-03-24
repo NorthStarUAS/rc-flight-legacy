@@ -25,8 +25,6 @@ using std::vector;
 #include "init/globals.h"
 #include "util/myprof.h"
 
-#include "Aura3/Aura3.h"
-
 #include "pilot_mgr.h"
 
 //

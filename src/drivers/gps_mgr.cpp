@@ -30,8 +30,6 @@ using std::vector;
 #include "util/myprof.h"
 #include "util/timing.h"
 
-#include "Aura3/Aura3.h"
-#include "gps_gpsd.h"
 #include "gps_ublox6.h"
 #include "gps_ublox8.h"
 
