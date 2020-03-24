@@ -194,6 +194,7 @@ struct config_board_t {
 // Message: config_ekf (id: 13)
 struct config_ekf_t {
     // public fields
+    bool enable;
     float sig_w_accel;
     float sig_w_gyro;
     float sig_a_d;
@@ -210,6 +211,7 @@ struct config_ekf_t {
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
+        bool enable;
         float sig_w_accel;
         float sig_w_gyro;
         float sig_a_d;
@@ -237,6 +239,7 @@ struct config_ekf_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
+        _buf->enable = enable;
         _buf->sig_w_accel = sig_w_accel;
         _buf->sig_w_gyro = sig_w_gyro;
         _buf->sig_a_d = sig_a_d;
@@ -258,6 +261,7 @@ struct config_ekf_t {
         memcpy(payload, external_message, message_size);
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
+        enable = _buf->enable;
         sig_w_accel = _buf->sig_w_accel;
         sig_w_gyro = _buf->sig_w_gyro;
         sig_a_d = _buf->sig_a_d;

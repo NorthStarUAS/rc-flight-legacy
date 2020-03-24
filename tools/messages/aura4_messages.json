@@ -39,6 +39,7 @@
             "name": "config_ekf",
             "desc": "EKF NAV/INS configuration",
             "fields": [
+                { "type": "bool", "name": "enable", "desc": "enable/disable remote ekf" },
                 { "type": "float", "name": "sig_w_accel", "desc": "stddev of acceleromter noise (m/s^2)" },
                 { "type": "float", "name": "sig_w_gyro", "desc": "stddev of gyro noise (rad/s)" },
                 { "type": "float", "name": "sig_a_d", "desc": "stddev of accelerometer markov bias" },

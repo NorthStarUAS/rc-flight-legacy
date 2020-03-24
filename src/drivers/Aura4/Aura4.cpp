@@ -457,6 +457,7 @@ static void board_defaults( message::config_board_t *config_board ) {
 
 // ekf defaults
 static void ekf_defaults( message::config_ekf_t *config_ekf ) {
+    config_ekf->enable = true;
     config_ekf->sig_w_accel = 0.05;
     config_ekf->sig_w_gyro = 0.00175;
     config_ekf->sig_a_d = 0.01;
@@ -776,6 +777,9 @@ bool Aura4_t::send_config() {
 
     if ( aura4_node.hasChild("ekf") ) {
         pyPropertyNode ekf_node = aura4_node.getChild("ekf");
+        if ( ekf_node.hasChild("enable") ) {
+            config_ekf.enable = ekf_node.getBool("enable");
+        }
         if ( ekf_node.hasChild("sig_w_accel") ) {
             config_ekf.sig_w_accel = ekf_node.getDouble("sig_w_accel");
         }
@@ -883,7 +887,7 @@ float Aura4_t::read() {
     while ( true ) {
         if ( serial.update() ) {
             parse( serial.pkt_id, serial.pkt_len, serial.payload );
-            if ( serial.pkt_id == message::ekf_id ) {
+            if ( serial.pkt_id == message::imu_id ) {
                 if ( serial.bytes_available() < 256 ) {
                     // a smaller value here means more skipping ahead and
                     // less catching up.
