@@ -8,55 +8,19 @@
  */
 
 
-#include <pyprops.h>
-
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <string>
-#include <vector>
 using std::string;
-using std::vector;
 
 #include "include/globaldefs.h"
-#include "init/globals.h"
-#include "util/lowpass.h"
 #include "util/myprof.h"
 
-#include "airdata_mgr.h"
+#include "airdata.h"
 
-//
-// Global variables
-//
-
-// initial values are the 'time factor'
-static LowPassFilter pressure_alt_filt( 0.1 );
-static LowPassFilter ground_alt_filt( 30.0 );
-static LowPassFilter airspeed_filt( 0.1 );
-static LowPassFilter Ps_filt_err( 300.0 );
-static LowPassFilter climb_filt( 1.0 );
-
-static float true_alt_m = 0.0;
-
-// property nodes
-static pyPropertyNode airdata_node;
-static pyPropertyNode sensors_node;
-static pyPropertyNode filter_node;
-static pyPropertyNode pos_filter_node;
-static pyPropertyNode pos_pressure_node;
-static pyPropertyNode pos_combined_node;
-static pyPropertyNode vel_node;
-static pyPropertyNode task_node;
-static pyPropertyNode wind_node;
-static vector<pyPropertyNode> sections;
-static vector<pyPropertyNode> outputs;
-
-// 1. ground altitude, 2. error between pressure altitude and gps altitude
-static bool airdata_calibrated = false;
-static bool alt_error_calibrated = false;
-    
-void AirData_init() {
+void airdata_helper_t::init() {
     airdata_node = pyGetNode("/sensors/airdata", true);
     sensors_node = pyGetNode("/sensors", true);
     filter_node = pyGetNode("/filters/filter", true);
@@ -68,7 +32,9 @@ void AirData_init() {
     wind_node = pyGetNode("/filters/wind", true);
 }
 
-static void update_pressure_helpers() {
+void airdata_helper_t::update() {
+    airdata_prof.start();
+
     static float pressure_alt_filt_last = 0.0;
     static double last_time = 0.0;
     double cur_time = airdata_node.getDouble("timestamp");
@@ -226,13 +192,8 @@ static void update_pressure_helpers() {
     printf("y = %.2f + %.2f * x\n", a0, a1);
 #endif
 
-}
-
-void AirData_update() {
-    airdata_prof.start();
-
-    // these are computed from the primary airdata sensor
-    update_pressure_helpers();
-
     airdata_prof.stop();
 }
+
+// global shared instance
+airdata_helper_t airdata_helper;

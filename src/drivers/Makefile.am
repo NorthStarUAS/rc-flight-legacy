@@ -5,7 +5,7 @@ noinst_LIBRARIES = libdrivers.a
 libdrivers_a_SOURCES = \
 	driver.h \
 	driver_mgr.cpp driver_mgr.h \
-	airdata_mgr.cpp airdata_mgr.h \
+	airdata.cpp airdata.h \
 	fgfs.cpp fgfs.h \
 	gps_mgr.cpp gps_mgr.h \
 	gps_gpsd.cpp gps_gpsd.h \

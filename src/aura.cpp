@@ -32,12 +32,12 @@ using std::string;
 #include "control/cas.h"
 #include "control/control.h"
 #include "drivers/driver_mgr.h"
+#include "drivers/airdata.h"
+#include "drivers/gps_mgr.h"
+#include "drivers/pilot_mgr.h"
 #include "filters/filter_mgr.h"
 #include "health/health.h"
 #include "init/globals.h"
-#include "drivers/airdata_mgr.h"
-#include "drivers/gps_mgr.h"
-#include "drivers/pilot_mgr.h"
 #include "util/myprof.h"
 #include "util/netSocket.h"	// netInit()
 #include "util/sg_path.h"
@@ -102,8 +102,8 @@ void main_work_loop()
     // Sensor input section (deprecating)
     //
 
-    // Fetch air data if available
-    AirData_update();
+    // compute pressure based derived values
+    airdata_helper.update();
 
     // Fetch GPS data if available.
     GPS_update();
@@ -336,8 +336,8 @@ int main( int argc, char **argv )
     // initialize the drivers
     driver_mgr.init();
     
-    // Initialize communication with the selected air data sensor
-    AirData_init();
+    // pressure helpers
+    airdata_helper.init();
 
     // Initialize communication with the selected GPS
     GPS_init();
