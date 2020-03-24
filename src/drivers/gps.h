@@ -17,6 +17,9 @@ public:
     
 private:
     pyPropertyNode gps_node;
+    int gps_state = 0;
+    double gps_acq_time = 0.0;
+    double last_time = 0.0;
 
     void compute_magvar();
 };

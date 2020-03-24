@@ -10,7 +10,6 @@
 
 #include <pyprops.h>
 
-#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
@@ -20,23 +19,16 @@ using std::string;
 
 #include "comms/display.h"
 #include "include/globaldefs.h"
-#include "init/globals.h"
 #include "util/coremag.h"
-#include "util/myprof.h"
 #include "util/timing.h"
 
-#include "gps_ublox6.h"
-#include "gps_ublox8.h"
-
 #include "gps.h"
-
 
 void gps_helper_t::init() {
     gps_node = pyGetNode("/sensors/gps", true);
     // init master gps timestamp to one year ago
     gps_node.setDouble("timestamp", -31557600.0);
 }
-
 
 void gps_helper_t::compute_magvar() {
     double magvar_rad = 0.0;
@@ -67,14 +59,13 @@ double gps_helper_t::gps_age() {
 }
 
 void gps_helper_t::update() {
-    static int gps_state = 0;
-
     // FIXME: should this be "fixType" == 3?
     if ( gps_node.getLong("status") == 2 && !gps_state ) {
 	const double gps_settle = 10.0;
-	static double gps_acq_time = gps_node.getDouble("timestamp");
-	static double last_time = 0.0;
 	double cur_time = gps_node.getDouble("timestamp");
+        if ( gps_acq_time < 0.01 ) {
+            gps_acq_time = cur_time;
+        }
 	// if ( display_on ) {
 	//     printf("gps first aquired = %.3f  cur time = %.3f\n",
 	//	   gps_acq_time, cur_time);
