@@ -1,53 +1,30 @@
 /**
- * \file: pilot_mgr.cpp
+ * \file: pilot.cpp
  *
- * Front end management interface for reading pilot input.
+ * Pilot input helper
  *
- * Copyright (C) 2010 - Curtis L. Olson curtolson@flightgear.org
+ * Copyright (C) 2010-2020 Curtis L. Olson curtolson@flightgear.org
  *
  */
 
 
 #include <pyprops.h>
 
-#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
-#include <sstream>
-#include <string>
-#include <vector>
-using std::ostringstream;
-using std::string;
-using std::vector;
-
-#include "include/globaldefs.h"
 #include "init/globals.h"
-#include "util/myprof.h"
 
-#include "pilot_mgr.h"
+#include "pilot.h"
 
-//
-// Global variables
-//
-
-// property nodes
-static pyPropertyNode pilot_node;
-static pyPropertyNode flight_node;
-static pyPropertyNode engine_node;
-static pyPropertyNode ap_node;
-static vector<pyPropertyNode> sections;
-static vector<pyPropertyNode> outputs;
-
-void PilotInput_init() {
+void pilot_helper_t::init() {
     pilot_node = pyGetNode("/sensors/pilot_input", true);
     flight_node = pyGetNode("/controls/flight", true);
     engine_node = pyGetNode("/controls/engine", true);
     ap_node = pyGetNode("/autopilot", true);
 }
 
-
-bool PilotInput_update() {
+void pilot_helper_t::update() {
     // log receiver fail safe changes
     static bool last_fail_safe = false;
     if ( pilot_node.getBool("fail_safe") != last_fail_safe ) {
@@ -70,5 +47,7 @@ bool PilotInput_update() {
         flight_node.setDouble( "rudder", pilot_node.getDouble("rudder") );
         flight_node.setDouble( "flaps", pilot_node.getDouble("flaps") );
     }
-    return true;
 }
+
+// global shared instance
+pilot_helper_t pilot_helper;

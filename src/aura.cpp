@@ -34,7 +34,7 @@ using std::string;
 #include "drivers/driver_mgr.h"
 #include "drivers/airdata.h"
 #include "drivers/gps.h"
-#include "drivers/pilot_mgr.h"
+#include "drivers/pilot.h"
 #include "filters/filter_mgr.h"
 #include "health/health.h"
 #include "init/globals.h"
@@ -101,9 +101,7 @@ void main_work_loop()
     // extra sensor processing section
     airdata_helper.update();  // compute pressure based derived values
     gps_helper.update();      // gps age (and setting host clock)
-
-    // Fetch Pilot Inputs
-    PilotInput_update();
+    pilot_helper.update();    // log auto/manual changes, transient reduction
 
     //
     // State Estimation section
@@ -333,9 +331,7 @@ int main( int argc, char **argv )
     // data helpers
     airdata_helper.init();
     gps_helper.init();
-
-    // Initialize communication with pilot input sensor
-    PilotInput_init();
+    pilot_helper.init();
 
     // Initialize any defined filter modules
     Filter_init();

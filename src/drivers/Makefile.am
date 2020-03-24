@@ -8,9 +8,9 @@ libdrivers_a_SOURCES = \
 	airdata.cpp airdata.h \
 	fgfs.cpp fgfs.h \
 	gps.cpp gps.h \
+	pilot.cpp pilot.h \
 	gps_ublox6.cpp gps_ublox6.h \
-	gps_ublox8.cpp gps_ublox8.h \
-	pilot_mgr.cpp pilot_mgr.h
+	gps_ublox8.cpp gps_ublox8.h
 
 bin_PROGRAMS = ublox-config
 
