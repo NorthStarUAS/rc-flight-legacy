@@ -108,7 +108,7 @@ void Aura4_t::init( pyPropertyNode *config ) {
     }
 
     if ( config->hasChild("pilot_input") ) {
-        pyPropertyNode pilot_config = config->getChild("pilot");
+        pyPropertyNode pilot_config = config->getChild("pilot_input");
         init_pilot( &pilot_config );
     } else {
         hard_error("no pilot configuration\n");
@@ -172,7 +172,7 @@ void Aura4_t::init_imu( pyPropertyNode *config ) {
 }
 
 void Aura4_t::init_pilot( pyPropertyNode *config ) {
-    string output_path = get_next_path("/sensors", "pilot", true);
+    string output_path = get_next_path("/sensors", "pilot_input", true);
     pilot_node = pyGetNode(output_path.c_str(), true);
     if ( config->hasChild("channel") ) {
 	for ( int i = 0; i < message::sbus_channels; i++ ) {
