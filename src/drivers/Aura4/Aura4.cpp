@@ -114,6 +114,9 @@ void Aura4_t::init( pyPropertyNode *config ) {
         hard_error("no pilot configuration\n");
     }
 
+    // fixme: should we have a config section to trigger this
+    init_actuators(NULL);
+    
     sleep(1);
 }
 
