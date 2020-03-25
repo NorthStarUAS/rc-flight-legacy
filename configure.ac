@@ -91,6 +91,7 @@ AC_CONFIG_FILES([ \
         src/include/Makefile \
         src/init/Makefile \
         src/util/Makefile \
+        tools/gps_config/Makefile \
         utils/Makefile \
         utils/autohome/Makefile \
         utils/benchmarks/Makefile \
