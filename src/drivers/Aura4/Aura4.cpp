@@ -1128,22 +1128,17 @@ bool Aura4_t::update_pilot( message::pilot_t *pilot ) {
 
 
 void Aura4_t::write() {
-    if ( !configuration_sent ) {
-        // send configuration
-	configuration_sent = send_config();
-    } else {
-        // send actuator commands to Aura4 servo subsystem
-        if ( message::ap_channels == 6 ) {
-            message::command_inceptors_t act;
-            act.channel[0] = act_node.getDouble("throttle");
-            act.channel[1] = act_node.getDouble("aileron");
-            act.channel[2] = act_node.getDouble("elevator");
-            act.channel[3] = act_node.getDouble("rudder");
-            act.channel[4] = act_node.getDouble("flaps");
-            act.channel[5] = act_node.getDouble("gear");
-            act.pack();
-            serial.write_packet( act.id, act.payload, act.len );
-        }
+    // send actuator commands to Aura4 servo subsystem
+    if ( message::ap_channels == 6 ) {
+        message::command_inceptors_t act;
+        act.channel[0] = act_node.getDouble("throttle");
+        act.channel[1] = act_node.getDouble("aileron");
+        act.channel[2] = act_node.getDouble("elevator");
+        act.channel[3] = act_node.getDouble("rudder");
+        act.channel[4] = act_node.getDouble("flaps");
+        act.channel[5] = act_node.getDouble("gear");
+        act.pack();
+        serial.write_packet( act.id, act.payload, act.len );
     }
 }
 
