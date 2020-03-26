@@ -1134,10 +1134,10 @@ class Packer():
             self.health.timestamp_sec = health_time
             self.health.system_load_avg = power_node.getFloat("system_load_avg")
             self.health.avionics_vcc = power_node.getFloat("avionics_vcc")
-            self.health.main_vcc = health_node.getFloat("main_vcc")
-            self.health.cell_vcc = health_node.getFloat("cell_vcc")
-            self.health.main_amps = health_node.getFloat("main_amps")
-            self.health.total_mah = health_node.getFloat("total_mah")
+            self.health.main_vcc = power_node.getFloat("main_vcc")
+            self.health.cell_vcc = power_node.getFloat("cell_vcc")
+            self.health.main_amps = power_node.getFloat("main_amps")
+            self.health.total_mah = power_node.getFloat("total_mah")
             self.health_buf = self.health.pack()
         return self.health_buf
 
