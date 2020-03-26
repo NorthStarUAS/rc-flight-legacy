@@ -1323,7 +1323,7 @@ class system_health_v5():
                           int(round(self.main_vcc * 1000)),
                           int(round(self.cell_vcc * 1000)),
                           int(round(self.main_amps * 1000)),
-                          int(round(self.total_mah * 10)))
+                          int(round(self.total_mah * 0.1)))
         return msg
 
     def unpack(self, msg):
@@ -1340,7 +1340,7 @@ class system_health_v5():
         self.main_vcc /= 1000
         self.cell_vcc /= 1000
         self.main_amps /= 1000
-        self.total_mah /= 10
+        self.total_mah /= 0.1
 
 # Message: payload_v2
 # Id: 23
