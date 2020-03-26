@@ -68,7 +68,7 @@ def flush_serial():
         write_len = bytes_per_frame
     if write_len:
         bytes_written = ser.write( serial_buf[:write_len] )
-        # print 'avail = %d  written = %d' % (len(serial_buf), bytes_written)
+        # print("avail = %d  written = %d" % (len(serial_buf), bytes_written))
         if bytes_written < 0:
             # perror('serial write')
             pass
@@ -126,42 +126,58 @@ def process_messages():
     if act_count <= 0:
         act_count = act_skip
         buf = packer.pack_act_bin(use_cached=True)
-        send_message(packer.act.id, buf)
+        if not buf is None and len(buf):
+            send_message(packer.act.id, buf)
     if airdata_count <= 0:
         airdata_count = airdata_skip
         buf = packer.pack_airdata_bin(use_cached=True)
-        send_message(packer.airdata.id, buf)
+        if not buf is None and len(buf):
+            send_message(packer.airdata.id, buf)
     if ap_count <= 0:
         ap_count = ap_skip
         buf = packer.pack_ap_status_bin(use_cached=True)
-        send_message(packer.ap.id, buf)
-        # here is where we do the delicate counter increment dance
-        # (vs. packer.py)
-        route_size = active_node.getInt("route_size")
-        counter = remote_link_node.getInt("wp_counter") + 1
-        if counter >= route_size + 2:
-            counter = 0
-            remote_link_node.setInt("wp_counter", counter) 
+        if not buf is None and len(buf):
+            send_message(packer.ap.id, buf)
+            # here is where we do the delicate counter increment dance
+            # (vs. packer.py)
+            route_size = active_node.getInt("route_size")
+            counter = remote_link_node.getInt("wp_counter") + 1
+            if counter >= route_size + 2:
+                counter = 0
+                remote_link_node.setInt("wp_counter", counter) 
     if filter_count <= 0:
         filter_count = filter_skip
         buf = packer.pack_filter_bin(use_cached=True)
-        send_message(packer.filter.id, buf)
+        if not buf is None and len(buf):
+            send_message(packer.filter.id, buf)
     if gps_count <= 0:
         gps_count = gps_skip
         buf = packer.pack_gps_bin(use_cached=True)
-        send_message(packer.gps.id, buf)
+        if not buf is None and len(buf):
+            send_message(packer.gps.id, buf)
     if health_count <= 0:
         health_count = health_skip
         buf = packer.pack_health_bin(use_cached=True)
-        send_message(packer.health.id, buf)
+        if not buf is None and len(buf):
+            send_message(packer.health.id, buf)
     if imu_count <= 0:
         imu_count = imu_skip
         buf = packer.pack_imu_bin(use_cached=True)
-        send_message(packer.imu.id, buf)
+        if not buf is None and len(buf):
+            send_message(packer.imu.id, buf)
     if pilot_count <= 0:
         pilot_count = pilot_skip
         buf = packer.pack_pilot_bin(use_cached=True)
-        send_message(packer.pilot.id, buf)
+        if not buf is None and len(buf):
+            send_message(packer.pilot.id, buf)
+    act_count -= 1
+    airdata_count -= 1
+    ap_count -= 1
+    filter_count -= 1
+    gps_count -= 1
+    health_count -= 1
+    imu_count -= 1
+    pilot_count -= 1
         
 def update():
     process_messages()

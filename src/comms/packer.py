@@ -236,7 +236,9 @@ class Packer():
     # FIXME: think about how we are dealing with skips and gps's lower rate?
     def pack_gps_bin(self, use_cached=False):
         gps_time = gps_node.getFloat("timestamp")
-        if (not use_cached and gps_time > self.last_gps_time) or self.gps_buf is None:
+        if use_cache:
+            return self.gps_buf
+        elif (gps_time > self.last_gps_time) or self.gps_buf is None:
             self.last_gps_time = gps_time
             self.gps.index = 0
             self.gps.timestamp_sec = gps_time
@@ -257,7 +259,9 @@ class Packer():
             self.gps.pdop = gps_node.getFloat("pdop")
             self.gps.fix_type = gps_node.getInt("FixType")
             self.gps_buf = self.gps.pack()
-        return self.gps_buf
+            return self.gps_buf
+        else:
+            return None
 
     def pack_gps_dict(self, index):
         gps_node = getNode('/sensors/gps[%d]' % index, True)

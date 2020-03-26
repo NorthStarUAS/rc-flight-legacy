@@ -171,36 +171,52 @@ def process_messages():
     if act_count <= 0:
         act_count = act_skip
         buf = packer.pack_act_bin()
-        log_message(packer.act.id, buf)
+        if not buf is None and len(buf):
+            log_message(packer.act.id, buf)
     if airdata_count <= 0:
         airdata_count = airdata_skip
         buf = packer.pack_airdata_bin()
-        log_message(packer.airdata.id, buf)
+        if not buf is None and len(buf):
+            log_message(packer.airdata.id, buf)
     if ap_count <= 0:
         ap_count = ap_skip
         buf = packer.pack_ap_status_bin()
-        log_message(packer.ap.id, buf)
+        if not buf is None and len(buf):
+            log_message(packer.ap.id, buf)
     if filter_count <= 0:
         filter_count = filter_skip
         buf = packer.pack_filter_bin()
-        log_message(packer.filter.id, buf)
+        if not buf is None and len(buf):
+            log_message(packer.filter.id, buf)
     if gps_count <= 0:
         gps_count = gps_skip
         buf = packer.pack_gps_bin()
-        log_message(packer.gps.id, buf)
+        if not buf is None and len(buf):
+            log_message(packer.gps.id, buf)
     if health_count <= 0:
         health_count = health_skip
         buf = packer.pack_health_bin()
-        log_message(packer.health.id, buf)
+        if not buf is None and len(buf):
+            log_message(packer.health.id, buf)
     if imu_count <= 0:
         imu_count = imu_skip
         buf = packer.pack_imu_bin()
-        log_message(packer.imu.id, buf)
+        if not buf is None and len(buf):
+            log_message(packer.imu.id, buf)
     if pilot_count <= 0:
         pilot_count = pilot_skip
         buf = packer.pack_pilot_bin()
-        log_message(packer.pilot.id, buf)
-            
+        if not buf is None and len(buf):
+            log_message(packer.pilot.id, buf)
+    act_count -= 1
+    airdata_count -= 1
+    ap_count -= 1
+    filter_count -= 1
+    gps_count -= 1
+    health_count -= 1
+    imu_count -= 1
+    pilot_count -= 1
+    
 def update():
     process_messages()
     write_messages();
