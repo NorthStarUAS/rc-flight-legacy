@@ -475,7 +475,7 @@ class Packer():
             self.filter.vd_ms = filter_node.getFloat("vd_ms")
             self.filter.roll_deg = filter_node.getFloat("roll_deg")
             self.filter.pitch_deg = filter_node.getFloat("pitch_deg")
-            self.filter.yaw_deg = filter_node.getFloat("yaw_deg")
+            self.filter.yaw_deg = filter_node.getFloat("heading_deg")
             self.filter.p_bias = filter_node.getFloat("p_bias")
             self.filter.q_bias = filter_node.getFloat("q_bias")
             self.filter.r_bias = filter_node.getFloat("r_bias") 
