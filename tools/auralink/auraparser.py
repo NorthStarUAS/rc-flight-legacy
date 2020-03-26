@@ -3,7 +3,7 @@ import sys
 
 sys.path.append("../src")
 from comms import aura_messages
-import comms.packer
+from comms.packer import packer
 import comms.serial_parser
 
 parser = None
@@ -56,55 +56,55 @@ def new_logfile():
 
 def parse_msg(id, buf):
     if id == aura_messages.gps_v2_id:
-        index = comms.packer.unpack_gps_v2(buf)
+        index = packer.unpack_gps_v2(buf)
     elif id == aura_messages.gps_v3_id:
-        index = comms.packer.unpack_gps_v3(buf)
+        index = packer.unpack_gps_v3(buf)
     elif id == aura_messages.gps_v4_id:
-        index = comms.packer.unpack_gps_v4(buf)
+        index = packer.unpack_gps_v4(buf)
     elif id == aura_messages.imu_v3_id:
-        index = comms.packer.unpack_imu_v3(buf)
+        index = packer.unpack_imu_v3(buf)
     elif id == aura_messages.imu_v4_id:
-        index = comms.packer.unpack_imu_v4(buf)
+        index = packer.unpack_imu_v4(buf)
     elif id == aura_messages.airdata_v5_id:
-        index = comms.packer.unpack_airdata_v5(buf)
+        index = packer.unpack_airdata_v5(buf)
     elif id == aura_messages.airdata_v6_id:
-        index = comms.packer.unpack_airdata_v6(buf)
+        index = packer.unpack_airdata_v6(buf)
     elif id == aura_messages.airdata_v7_id:
-        index = comms.packer.unpack_airdata_v7(buf)
+        index = packer.unpack_airdata_v7(buf)
     elif id == aura_messages.filter_v2_id:
-        index = comms.packer.unpack_filter_v2(buf)
+        index = packer.unpack_filter_v2(buf)
     elif id == aura_messages.filter_v3_id:
-        index = comms.packer.unpack_filter_v3(buf)
+        index = packer.unpack_filter_v3(buf)
     elif id == aura_messages.filter_v4_id:
-        index = comms.packer.unpack_filter_v4(buf)
+        index = packer.unpack_filter_v4(buf)
     elif id == aura_messages.actuator_v2_id:
-        index = comms.packer.unpack_act_v2(buf)
+        index = packer.unpack_act_v2(buf)
     elif id == aura_messages.actuator_v3_id:
-        index = comms.packer.unpack_act_v3(buf)
+        index = packer.unpack_act_v3(buf)
     elif id == aura_messages.pilot_v2_id:
-        index = comms.packer.unpack_pilot_v2(buf)
+        index = packer.unpack_pilot_v2(buf)
     elif id == aura_messages.pilot_v3_id:
-        index = comms.packer.unpack_pilot_v3(buf)
+        index = packer.unpack_pilot_v3(buf)
     elif id == aura_messages.ap_status_v4_id:
-        index = comms.packer.unpack_ap_status_v4(buf)
+        index = packer.unpack_ap_status_v4(buf)
     elif id == aura_messages.ap_status_v5_id:
-        index = comms.packer.unpack_ap_status_v5(buf)
+        index = packer.unpack_ap_status_v5(buf)
     elif id == aura_messages.ap_status_v6_id:
-        index = comms.packer.unpack_ap_status_v6(buf)
+        index = packer.unpack_ap_status_v6(buf)
     elif id == aura_messages.ap_status_v7_id:
-        index = comms.packer.unpack_ap_status_v7(buf)
+        index = packer.unpack_ap_status_v7(buf)
     elif id == aura_messages.system_health_v4_id:
-        index = comms.packer.unpack_system_health_v4(buf)
+        index = packer.unpack_system_health_v4(buf)
     elif id == aura_messages.system_health_v5_id:
-        index = comms.packer.unpack_system_health_v5(buf)
+        index = packer.unpack_system_health_v5(buf)
     elif id == aura_messages.payload_v2_id:
-        index = comms.packer.unpack_payload_v2(buf)
+        index = packer.unpack_payload_v2(buf)
     elif id == aura_messages.payload_v3_id:
-        index = comms.packer.unpack_payload_v3(buf)
+        index = packer.unpack_payload_v3(buf)
     elif id == aura_messages.event_v1_id:
-        index = comms.packer.unpack_event_v1(buf)
+        index = packer.unpack_event_v1(buf)
     elif id == aura_messages.event_v2_id:
-        index = comms.packer.unpack_event_v2(buf)
+        index = packer.unpack_event_v2(buf)
     else:
         print("Unknown packet id:", id)
         index = 0
