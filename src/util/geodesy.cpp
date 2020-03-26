@@ -13,9 +13,9 @@ using namespace Eigen;
 #define _POLRAD (EQURAD * _SQUASH)
 
 #define E2 fabs(1 - _SQUASH*_SQUASH)
-static double a = EQURAD;
+// static double a = EQURAD;
 static double ra2 = 1/(EQURAD*EQURAD);
-//static double e = sqrt(E2);
+// static double e = sqrt(E2);
 static double e2 = E2;
 static double e4 = E2*E2;
 

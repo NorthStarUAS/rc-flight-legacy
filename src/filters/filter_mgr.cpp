@@ -75,7 +75,7 @@ void Filter_init() {
 	    continue;
 	}
         string output_path = "";
-        if ( section.getBool("make_primary") ) {
+        if ( section.getBool("primary") ) {
             output_path = get_next_path("/filters", "filter", true);
         } else {
             output_path = get_next_path("/filters", "filter");

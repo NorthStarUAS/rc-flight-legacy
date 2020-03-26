@@ -249,10 +249,10 @@ class Packer():
             self.gps.unixtime_sec = gps_node.getFloat("unix_time_sec")
             self.gps.satellites = gps_node.getInt("satellites")
             hacc = gps_node.getFloat("horiz_accuracy_m")
-            if hacc > 30000: hacc = 30000
+            if hacc > 655: hacc = 655
             self.gps.horiz_accuracy_m = hacc
             vacc = gps_node.getFloat("vert_accuracy_m")
-            if vacc > 30000: vacc = 30000
+            if vacc > 655: vacc = 655
             self.gps.vert_accuracy_m = vacc
             self.gps.pdop = gps_node.getFloat("pdop")
             self.gps.fix_type = gps_node.getInt("FixType")
