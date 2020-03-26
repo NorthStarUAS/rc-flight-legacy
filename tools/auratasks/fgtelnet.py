@@ -2,7 +2,6 @@ from telnetlib import Telnet
 import sys
 import socket
 import re
-from string import split, join
 import time
 
 __all__ = ["FlightGear"]
@@ -14,7 +13,7 @@ class FGTelnet(Telnet):
         try:
             Telnet.__init__(self,host,port)
         except:
-            print "Cannot connect to:", host, port
+            print("Cannot connect to:", host, port)
         self.prompt = []
         self.prompt.append( re.compile('/[^>]*> ') )
         self.timeout = 2
@@ -69,7 +68,7 @@ class FGTelnet(Telnet):
         try:
             Telnet.write(self, cmd)
         except:
-            print "Telnet.write() failed"
+            print("Telnet.write() failed")
 
 
     # read one response line from remote server
@@ -85,14 +84,14 @@ class FGTelnet(Telnet):
         try:
             Telnet.write(self, cmd)
         except:
-            print "Telnet.write() failed"
+            print("Telnet.write() failed")
 
     # Internal: get a response from FlightGear
     def _getresp(self):
         (i,match,resp) = Telnet.expect(self, self.prompt, self.timeout)
         # Remove the terminating prompt.
         # Everything preceding it is the response.
-        return split(resp, '\n')[:-1]
+        return resp.split('\n')[:-1]
 
 class FlightGear:
     """FlightGear interface class.
@@ -114,11 +113,7 @@ class FlightGear:
     """
 
     def __init__( self, host = 'localhost', port = 5500 ):
-        try:
-            self.telnet = FGTelnet(host,port)
-        except socket.error, msg:
-            self.telnet = None
-            raise socket.error, msg
+        self.telnet = FGTelnet(host,port)
 
     def __del__(self):
         # Ensure telnet connection is closed cleanly.

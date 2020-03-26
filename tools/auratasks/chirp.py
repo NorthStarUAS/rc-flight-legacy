@@ -1,5 +1,5 @@
 import math
-from PyQt4 import QtGui, QtCore
+from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout, QTabWidget, QFrame, QHBoxLayout, QPushButton, QLabel, QFormLayout, QLineEdit
 import subprocess
 
 from combobox_nowheel import QComboBoxNoWheel
@@ -17,25 +17,25 @@ class Chirp():
         self.changefunc()
 
     def make_page(self):
-        toppage = QtGui.QFrame()
-        toplayout = QtGui.QVBoxLayout()
+        toppage = QFrame()
+        toplayout = QVBoxLayout()
         toppage.setLayout(toplayout)
 
-        page = QtGui.QFrame()
-        layout = QtGui.QFormLayout()
+        page = QFrame()
+        layout = QFormLayout()
         page.setLayout( layout )
         toplayout.addWidget( page )
 
-        self.edit_start_freq = QtGui.QLineEdit()
+        self.edit_start_freq = QLineEdit()
         self.edit_start_freq.setFixedWidth(350)
         self.edit_start_freq.textChanged.connect(self.onChange)
-        self.edit_end_freq = QtGui.QLineEdit()
+        self.edit_end_freq = QLineEdit()
         self.edit_end_freq.setFixedWidth(350)
         self.edit_end_freq.textChanged.connect(self.onChange)
-        self.edit_duration = QtGui.QLineEdit()
+        self.edit_duration = QLineEdit()
         self.edit_duration.setFixedWidth(350)
         self.edit_duration.textChanged.connect(self.onChange)
-        self.edit_ampl = QtGui.QLineEdit()
+        self.edit_ampl = QLineEdit()
         self.edit_ampl.setFixedWidth(350)
         self.edit_ampl.textChanged.connect(self.onChange)
         self.edit_inject = QComboBoxNoWheel()
@@ -54,32 +54,32 @@ class Chirp():
         layout.addRow( "<b>Injection Point:</b>", self.edit_inject )
 
         # 'Parameter' button bar
-        param_group = QtGui.QFrame()
+        param_group = QFrame()
         toplayout.addWidget(param_group)
-        param_layout = QtGui.QHBoxLayout()
+        param_layout = QHBoxLayout()
         param_group.setLayout( param_layout )
-        param_layout.addWidget( QtGui.QLabel("<b>Chirp Parameters:</b> ") )
-        update = QtGui.QPushButton('Update')
+        param_layout.addWidget( QLabel("<b>Chirp Parameters:</b> ") )
+        update = QPushButton('Update')
         update.clicked.connect(self.update)
         param_layout.addWidget(update)
-        revert = QtGui.QPushButton('Revert')
+        revert = QPushButton('Revert')
         revert.clicked.connect(self.revert)
         param_layout.addWidget(revert)
         param_layout.addStretch(1)
 
         # 'Command' button bar
-        cmd_group = QtGui.QFrame()
+        cmd_group = QFrame()
         toplayout.addWidget(cmd_group)
-        cmd_layout = QtGui.QHBoxLayout()
+        cmd_layout = QHBoxLayout()
         cmd_group.setLayout( cmd_layout )
-        cmd_layout.addWidget( QtGui.QLabel("<b>Task Commands: (set params, then engage with physical switch)</b> ") )
-        # circle = QtGui.QPushButton('Circle Here')
+        cmd_layout.addWidget( QLabel("<b>Task Commands: (set params, then engage with physical switch)</b> ") )
+        # circle = QPushButton('Circle Here')
         # circle.clicked.connect(self.task_circle)
         # cmd_layout.addWidget(circle)
-        # home = QtGui.QPushButton('Go Home (and Circle)')
+        # home = QPushButton('Go Home (and Circle)')
         # home.clicked.connect(self.task_home)
         # cmd_layout.addWidget(home)
-        # resume = QtGui.QPushButton('Resume Route')
+        # resume = QPushButton('Resume Route')
         # resume.clicked.connect(self.task_resume)
         # cmd_layout.addWidget(resume)
         cmd_layout.addStretch(1)
@@ -98,15 +98,15 @@ class Chirp():
         if len(val):
             if self.port != 6499:
                 command = "send set," + prop + "," + str(val)
-                print command
+                print(command)
                 t.send(command)
             else:
                 command = "set " + prop + " " + str(val)
-                print command
+                print(command)
                 t.send(command)
 
     def update(self):
-        print "update circle hold params"
+        print("update chirp params")
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
         start_str = self.edit_start_freq.text()
@@ -127,7 +127,7 @@ class Chirp():
         t.quit()
 
     def revert(self):
-        print str(self.original_values)
+        print(str(self.original_values))
         # revert form
         self.edit_start_freq.setText( self.original_values[0] )
         self.edit_end_freq.setText( self.original_values[1] )
@@ -142,7 +142,7 @@ class Chirp():
 
     # retained in comments as an example for some future tbd function
     # def task_circle(self):
-    #     print "request circle hold at current location"
+    #     print("request circle hold at current location")
     #     t = fgtelnet.FGTelnet(self.host, self.port)
     #     t.send("data")
     #     if self.port != 6499:

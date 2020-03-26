@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -15,7 +15,8 @@ started: June 2016
 
 import os.path
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore
+from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout, QTabWidget, QFrame, QHBoxLayout, QPushButton, QLabel, QFormLayout, QLineEdit
 import threading
 from collections import deque
 import time
@@ -28,10 +29,11 @@ from land import Land
 from launch import Launch
 from preflight import Preflight
 from calibrate import Calibrate
+from parametric import Parametric
 
 import fgtelnet
 
-class Tuner(QtGui.QWidget):
+class Tuner(QWidget):
     def __init__(self, host="localhost", port=6499):
         super(Tuner, self).__init__()
         self.default_title = "Aura Tasks"
@@ -44,27 +46,27 @@ class Tuner(QtGui.QWidget):
 
     def initUI(self):
         self.setWindowTitle( self.default_title )
-        layout = QtGui.QVBoxLayout()
+        layout = QVBoxLayout()
         self.setLayout(layout)
 
         # Main work area
-        self.tabs = QtGui.QTabWidget()
+        self.tabs = QTabWidget()
         layout.addWidget( self.tabs )
 
         #self.overview = Overview(changefunc=self.onChange)
         #self.tabs.addTab( self.overview.get_widget(), "Overview" );
 
         # 'File' button bar
-        file_group = QtGui.QFrame()
+        file_group = QFrame()
         layout.addWidget(file_group)
-        file_layout = QtGui.QHBoxLayout()
+        file_layout = QHBoxLayout()
         file_group.setLayout( file_layout )
 
-        save = QtGui.QPushButton('Save')
+        save = QPushButton('Save')
         save.clicked.connect(self.save)
         file_layout.addWidget(save)
 
-        quit = QtGui.QPushButton('Quit')
+        quit = QPushButton('Quit')
         quit.clicked.connect(self.quit)
         file_layout.addWidget(quit)
 
@@ -74,7 +76,7 @@ class Tuner(QtGui.QWidget):
         self.show()
 
     def load(self, host="localhost", port=6499):
-        print "Tuner.load " + str(port)
+        print("Tuner.load " + str(port))
 
         # Calibrate page
         self.calibrate = Calibrate(changefunc=self.onChange, host=host,
@@ -98,18 +100,22 @@ class Tuner(QtGui.QWidget):
         self.chirp = Chirp(changefunc=self.onChange, host=host, port=port)
         self.tabs.addTab( self.chirp.get_widget(), "Chirp" )
 
+        # Parametric page
+        self.para = Parametric(changefunc=self.onChange, host=host, port=port)
+        self.tabs.addTab( self.para.get_widget(), "Parametric" )
+
         # Land page
         self.land = Land(changefunc=self.onChange, host=host, port=port)
         self.tabs.addTab( self.land.get_widget(), "Land" )
 
     def save(self):
-        print "called for save, but does nothing yet"
+        print("called for save, but does nothing yet")
 
     def quit(self):
         QtCore.QCoreApplication.instance().quit()
 
     def onChange(self):
-        #print "parent onChange() called!"
+        #print("parent onChange() called!")
         #result = self.rebuildTabNames()
         #if result:
         #    self.rebuildWingLists()
@@ -123,7 +129,7 @@ class Tuner(QtGui.QWidget):
 
 
 def usage():
-    print "Usage: " + sys.argv[0]
+    print("Usage: " + sys.argv[0])
 
 def main():
     host = "localhost"
@@ -131,7 +137,7 @@ def main():
     #host = "192.168.1.64"
     port = 5050
 
-    app = QtGui.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     filename = ""
     if len(sys.argv) > 1:
         usage()

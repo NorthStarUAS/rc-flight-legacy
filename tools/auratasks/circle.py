@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout, QTabWidget, QFrame, QHBoxLayout, QPushButton, QLabel, QFormLayout, QLineEdit
 import subprocess
 
 from combobox_nowheel import QComboBoxNoWheel
@@ -16,19 +16,19 @@ class Circle():
         self.changefunc()
 
     def make_page(self):
-        toppage = QtGui.QFrame()
-        toplayout = QtGui.QVBoxLayout()
+        toppage = QFrame()
+        toplayout = QVBoxLayout()
         toppage.setLayout(toplayout)
 
-        page = QtGui.QFrame()
-        layout = QtGui.QFormLayout()
+        page = QFrame()
+        layout = QFormLayout()
         page.setLayout( layout )
         toplayout.addWidget( page )
 
-        self.edit_alt = QtGui.QLineEdit()
+        self.edit_alt = QLineEdit()
         self.edit_alt.setFixedWidth(350)
         self.edit_alt.textChanged.connect(self.onChange)
-        self.edit_speed = QtGui.QLineEdit()
+        self.edit_speed = QLineEdit()
         self.edit_speed.setFixedWidth(350)
         self.edit_speed.textChanged.connect(self.onChange)
         self.edit_direction = QComboBoxNoWheel()
@@ -36,7 +36,7 @@ class Circle():
         self.edit_direction.addItem('left')
         self.edit_direction.addItem('right')
         self.edit_direction.currentIndexChanged.connect(self.onChange)
-        self.edit_radius = QtGui.QLineEdit()
+        self.edit_radius = QLineEdit()
         self.edit_radius.setFixedWidth(350)
         self.edit_radius.textChanged.connect(self.onChange)
 
@@ -46,29 +46,29 @@ class Circle():
         layout.addRow( "<b>Radius (m):</b>", self.edit_radius )
 
         # 'Parameter' button bar
-        param_group = QtGui.QFrame()
+        param_group = QFrame()
         toplayout.addWidget(param_group)
-        param_layout = QtGui.QHBoxLayout()
+        param_layout = QHBoxLayout()
         param_group.setLayout( param_layout )
-        param_layout.addWidget( QtGui.QLabel("<b>Circling Parameters:</b> ") )
-        update = QtGui.QPushButton('Update')
+        param_layout.addWidget( QLabel("<b>Circling Parameters:</b> ") )
+        update = QPushButton('Update')
         update.clicked.connect(self.update)
         param_layout.addWidget(update)
-        revert = QtGui.QPushButton('Revert')
+        revert = QPushButton('Revert')
         revert.clicked.connect(self.revert)
         param_layout.addWidget(revert)
         param_layout.addStretch(1)
 
         # 'Command' button bar
-        cmd_group = QtGui.QFrame()
+        cmd_group = QFrame()
         toplayout.addWidget(cmd_group)
-        cmd_layout = QtGui.QHBoxLayout()
+        cmd_layout = QHBoxLayout()
         cmd_group.setLayout( cmd_layout )
-        cmd_layout.addWidget( QtGui.QLabel("<b>Task Commands:</b> ") )
-        circle = QtGui.QPushButton('Circle Here')
+        cmd_layout.addWidget( QLabel("<b>Task Commands:</b> ") )
+        circle = QPushButton('Circle Here')
         circle.clicked.connect(self.task_circle)
         cmd_layout.addWidget(circle)
-        home = QtGui.QPushButton('Go Home (and Circle)')
+        home = QPushButton('Go Home (and Circle)')
         home.clicked.connect(self.task_home)
         cmd_layout.addWidget(home)
         cmd_layout.addStretch(1)
@@ -87,15 +87,15 @@ class Circle():
         if len(val):
             if self.port != 6499:
                 command = "send set," + prop + "," + str(val)
-                print command
+                print(command)
                 t.send(command)
             else:
                 command = "set " + prop + " " + str(val)
-                print command
+                print(command)
                 t.send(command)
 
     def update(self):
-        print "update circle hold params"
+        print("update circle hold params")
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
         self.send_value(t, "/autopilot/targets/altitude_agl_ft",
@@ -109,7 +109,7 @@ class Circle():
         t.quit()
 
     def revert(self):
-        print str(self.original_values)
+        print(str(self.original_values))
         # revert form
         self.edit_alt.setText( self.original_values[0] )
         self.edit_speed.setText( self.original_values[1] )
@@ -122,7 +122,7 @@ class Circle():
         self.update()
 
     def task_circle(self):
-        print "request circle hold at current location"
+        print("request circle hold at current location")
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
         if self.port != 6499:
@@ -132,7 +132,7 @@ class Circle():
         t.quit()
 
     def task_home(self):
-        print "request circle hold at home"
+        print("request circle hold at home")
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
         if self.port != 6499:

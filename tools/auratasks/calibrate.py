@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout, QTabWidget, QFrame, QHBoxLayout, QPushButton, QLabel
 import subprocess
 
 from combobox_nowheel import QComboBoxNoWheel
@@ -16,23 +16,23 @@ class Calibrate():
         self.changefunc()
 
     def make_page(self):
-        toppage = QtGui.QFrame()
-        toplayout = QtGui.QVBoxLayout()
+        toppage = QFrame()
+        toplayout = QVBoxLayout()
         toppage.setLayout(toplayout)
 
         # 'Command' button bar
-        cmd_group = QtGui.QFrame()
+        cmd_group = QFrame()
         toplayout.addWidget(cmd_group)
-        cmd_layout = QtGui.QHBoxLayout()
+        cmd_layout = QHBoxLayout()
         cmd_group.setLayout( cmd_layout )
-        cmd_layout.addWidget( QtGui.QLabel("<b>Commands:</b> ") )
-        calibrate = QtGui.QPushButton('Calibrate')
+        cmd_layout.addWidget( QLabel("<b>Commands:</b> ") )
+        calibrate = QPushButton('Calibrate')
         calibrate.clicked.connect(self.task_calibrate)
         cmd_layout.addWidget(calibrate)
-        reset_ekf = QtGui.QPushButton('Reset EKF')
+        reset_ekf = QPushButton('Reset EKF')
         reset_ekf.clicked.connect(self.task_reset_ekf)
         cmd_layout.addWidget(reset_ekf)
-        zero_gyros = QtGui.QPushButton('Zero Gyros')
+        zero_gyros = QPushButton('Zero Gyros')
         zero_gyros.clicked.connect(self.task_zero_gyros)
         cmd_layout.addWidget(zero_gyros)
         cmd_layout.addStretch(1)
@@ -51,15 +51,15 @@ class Calibrate():
         if len(val):
             if self.port != 6499:
                 command = "send set," + prop + "," + str(val)
-                print command
+                print(command)
                 t.send(command)
             else:
                 command = "set " + prop + " " + str(val)
-                print command
+                print(command)
                 t.send(command)
 
     def update(self):
-        print "update parameters"
+        print("update parameters")
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
         #self.send_value(t, "/task/preflight/duration_sec",
@@ -67,7 +67,7 @@ class Calibrate():
         t.quit()
 
     def revert(self):
-        print str(self.original_values)
+        print(str(self.original_values))
         # revert form
         #self.edit_duration.setText( self.original_values[0] )
 
@@ -75,7 +75,7 @@ class Calibrate():
         self.update()
 
     def task_calibrate(self):
-        print "request calibreate task"
+        print("request calibreate task")
         self.update()
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
@@ -86,7 +86,7 @@ class Calibrate():
         t.quit()
 
     def task_reset_ekf(self):
-        print "request reset ekf"
+        print("request reset ekf")
         self.update()
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
@@ -94,7 +94,7 @@ class Calibrate():
         t.quit()
 
     def task_zero_gyros(self):
-        print "request reset ekf"
+        print("request reset ekf")
         self.update()
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")

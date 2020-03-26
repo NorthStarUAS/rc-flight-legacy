@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout, QTabWidget, QFrame, QHBoxLayout, QPushButton, QLabel, QFormLayout, QLineEdit
 import subprocess
 
 from combobox_nowheel import QComboBoxNoWheel
@@ -16,28 +16,28 @@ class Launch():
         self.changefunc()
 
     def make_page(self):
-        toppage = QtGui.QFrame()
-        toplayout = QtGui.QVBoxLayout()
+        toppage = QFrame()
+        toplayout = QVBoxLayout()
         toppage.setLayout(toplayout)
 
-        page = QtGui.QFrame()
-        layout = QtGui.QFormLayout()
+        page = QFrame()
+        layout = QFormLayout()
         page.setLayout( layout )
         toplayout.addWidget( page )
 
-        self.edit_speed = QtGui.QLineEdit()
+        self.edit_speed = QLineEdit()
         self.edit_speed.setFixedWidth(350)
         self.edit_speed.textChanged.connect(self.onChange)
-        self.edit_completion_agl = QtGui.QLineEdit()
+        self.edit_completion_agl = QLineEdit()
         self.edit_completion_agl.setFixedWidth(350)
         self.edit_completion_agl.textChanged.connect(self.onChange)
-        self.edit_mission_agl = QtGui.QLineEdit()
+        self.edit_mission_agl = QLineEdit()
         self.edit_mission_agl.setFixedWidth(350)
         self.edit_mission_agl.textChanged.connect(self.onChange)
-        self.edit_roll_gain = QtGui.QLineEdit()
+        self.edit_roll_gain = QLineEdit()
         self.edit_roll_gain.setFixedWidth(350)
         self.edit_roll_gain.textChanged.connect(self.onChange)
-        self.edit_roll_limit = QtGui.QLineEdit()
+        self.edit_roll_limit = QLineEdit()
         self.edit_roll_limit.setFixedWidth(350)
         self.edit_roll_limit.textChanged.connect(self.onChange)
         self.edit_rudder_enable = QComboBoxNoWheel()
@@ -45,10 +45,10 @@ class Launch():
         self.edit_rudder_enable.addItem('False')
         self.edit_rudder_enable.addItem('True')
         self.edit_rudder_enable.currentIndexChanged.connect(self.onChange)
-        self.edit_rudder_gain = QtGui.QLineEdit()
+        self.edit_rudder_gain = QLineEdit()
         self.edit_rudder_gain.setFixedWidth(350)
         self.edit_rudder_gain.textChanged.connect(self.onChange)
-        self.rudder_max = QtGui.QLineEdit()
+        self.rudder_max = QLineEdit()
         self.rudder_max.setFixedWidth(350)
         self.rudder_max.textChanged.connect(self.onChange)
 
@@ -62,18 +62,18 @@ class Launch():
         layout.addRow( "<b>Rudder Max (norm):</b>", self.rudder_max )
 
         # 'Command' button bar
-        cmd_group = QtGui.QFrame()
+        cmd_group = QFrame()
         toplayout.addWidget(cmd_group)
-        cmd_layout = QtGui.QHBoxLayout()
+        cmd_layout = QHBoxLayout()
         cmd_group.setLayout( cmd_layout )
-        cmd_layout.addWidget( QtGui.QLabel("<b>Commands:</b> ") )
-        update = QtGui.QPushButton('Update')
+        cmd_layout.addWidget( QLabel("<b>Commands:</b> ") )
+        update = QPushButton('Update')
         update.clicked.connect(self.update)
         cmd_layout.addWidget(update)
-        revert = QtGui.QPushButton('Revert')
+        revert = QPushButton('Revert')
         revert.clicked.connect(self.revert)
         cmd_layout.addWidget(revert)
-        launch = QtGui.QPushButton('Launch Now!')
+        launch = QPushButton('Launch Now!')
         launch.clicked.connect(self.task_launch)
         cmd_layout.addWidget(launch)
         cmd_layout.addStretch(1)
@@ -92,15 +92,15 @@ class Launch():
         if len(val):
             if self.port != 6499:
                 command = "send set," + prop + "," + str(val)
-                print command
+                print(command)
                 t.send(command)
             else:
                 command = "set " + prop + " " + str(val)
-                print command
+                print(command)
                 t.send(command)
 
     def update(self):
-        print "update launch params"
+        print("update launch params")
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
         self.send_value(t, "/task/launch/speed_kt",
@@ -122,7 +122,7 @@ class Launch():
         t.quit()
 
     def revert(self):
-        print str(self.original_values)
+        print(str(self.original_values))
         # revert form
         self.edit_speed.setText( self.original_values[0] )
         self.edit_completion_agl.setText( self.original_values[1] )
@@ -139,7 +139,7 @@ class Launch():
         # no # self.update()
 
     def task_launch(self):
-        print "Launch!"
+        print("Launch!")
 
         # send over current launching configuration
         self.update()
@@ -153,7 +153,7 @@ class Launch():
         t.quit()
 
     def task_resume(self):
-        print "Resume route ..."
+        print("Resume route ...")
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
         if self.port != 6499:

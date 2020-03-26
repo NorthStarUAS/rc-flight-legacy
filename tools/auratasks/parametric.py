@@ -1,15 +1,15 @@
-from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout, QTabWidget, QFrame, QHBoxLayout, QPushButton, QLabel, QFormLayout, QLineEdit
+from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout, QTabWidget, QFrame, QHBoxLayout, QPushButton, QLabel
 import subprocess
 
 from combobox_nowheel import QComboBoxNoWheel
 import fgtelnet
 
-class Preflight():
+class Parametric():
     def __init__(self, changefunc, host="localhost", port=6499):
         self.changefunc = changefunc
         self.host = host
         self.port = port
-        self.original_values = [ "60" ]
+        self.original_values = []
         self.container = self.make_page()
 
     def onChange(self):
@@ -20,26 +20,15 @@ class Preflight():
         toplayout = QVBoxLayout()
         toppage.setLayout(toplayout)
 
-        page = QFrame()
-        layout = QFormLayout()
-        page.setLayout( layout )
-        toplayout.addWidget( page )
-
-        self.edit_duration = QLineEdit()
-        self.edit_duration.setFixedWidth(350)
-        self.edit_duration.textChanged.connect(self.onChange)
-
-        layout.addRow( "<b>Duration (sec):</b>", self.edit_duration )
-
         # 'Command' button bar
         cmd_group = QFrame()
         toplayout.addWidget(cmd_group)
         cmd_layout = QHBoxLayout()
         cmd_group.setLayout( cmd_layout )
         cmd_layout.addWidget( QLabel("<b>Commands:</b> ") )
-        preflight = QPushButton('Preflight mode')
-        preflight.clicked.connect(self.task_preflight)
-        cmd_layout.addWidget(preflight)
+        gofly = QPushButton('Fly Parametric Path')
+        gofly.clicked.connect(self.task_gofly)
+        cmd_layout.addWidget(gofly)
         cmd_layout.addStretch(1)
 
         toplayout.addStretch(1)
@@ -67,25 +56,25 @@ class Preflight():
         print("update parameters")
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
-        self.send_value(t, "/task/preflight/duration_sec",
-                        self.edit_duration.text())
+        #self.send_value(t, "/task/preflight/duration_sec",
+        #                self.edit_duration.text())
         t.quit()
 
     def revert(self):
         print(str(self.original_values))
         # revert form
-        self.edit_duration.setText( self.original_values[0] )
+        #self.edit_duration.setText( self.original_values[0] )
 
         # send original values to remote
         self.update()
 
-    def task_preflight(self):
-        print("request preflight mode")
+    def task_gofly(self):
+        print("request parametric path")
         self.update()
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
         if self.port != 6499:
-            t.send("send task,preflight")
+            t.send("send task,parametric")
         else:
-            t.send("set /task/command_request task,preflight")
+            t.send("set /task/command_request task,parametric")
         t.quit()
