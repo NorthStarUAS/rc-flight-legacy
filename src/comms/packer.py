@@ -169,11 +169,9 @@ class Packer():
     def unpack_airdata_v5(self, buf):
         air = aura_messages.airdata_v5(buf)
 
-        if air.index >= len(airdata_nodes):
-            for i in range(len(airdata_nodes), air.index+1):
-                path = '/sensors/airdata[%d]' % i
-                airdata_nodes.append( getNode(path, True) )
-        node = airdata_nodes[air.index]
+        if air.index > 0:
+            printf("Warning: airdata index > 0 not supported")
+        node = airdata_node
 
         node.setFloat("timestamp", air.timestamp_sec)
         node.setFloat("pressure_mbar", air.pressure_mbar)
@@ -191,11 +189,9 @@ class Packer():
     def unpack_airdata_v6(self, buf):
         air = aura_messages.airdata_v6(buf)
 
-        if air.index >= len(airdata_nodes):
-            for i in range(len(airdata_nodes), air.index+1):
-                path = '/sensors/airdata[%d]' % i
-                airdata_nodes.append( getNode(path, True) )
-        node = airdata_nodes[air.index]
+        if air.index > 0:
+            printf("Warning: airdata index > 0 not supported")
+        node = airdata_node
 
         node.setFloat("timestamp", air.timestamp_sec)
         node.setFloat("pressure_mbar", air.pressure_mbar)
@@ -213,11 +209,9 @@ class Packer():
     def unpack_airdata_v7(self, buf):
         air = aura_messages.airdata_v7(buf)
 
-        if air.index >= len(airdata_nodes):
-            for i in range(len(airdata_nodes), air.index+1):
-                path = '/sensors/airdata[%d]' % i
-                airdata_nodes.append( getNode(path, True) )
-        node = airdata_nodes[air.index]
+        if air.index > 0:
+            printf("Warning: airdata index > 0 not supported")
+        node = airdata_node
 
         node.setFloat("timestamp", air.timestamp_sec)
         node.setFloat("pressure_mbar", air.pressure_mbar)
@@ -236,7 +230,7 @@ class Packer():
     # FIXME: think about how we are dealing with skips and gps's lower rate?
     def pack_gps_bin(self, use_cached=False):
         gps_time = gps_node.getFloat("timestamp")
-        if use_cache:
+        if use_cached:
             return self.gps_buf
         elif (gps_time > self.last_gps_time) or self.gps_buf is None:
             self.last_gps_time = gps_time
@@ -305,11 +299,9 @@ class Packer():
     def unpack_gps_v2(self, buf):
         gps = aura_messages.gps_v2(buf)
 
-        if gps.index >= len(gps_nodes):
-            for i in range(len(gps_nodes), gps.index+1):
-                path = '/sensors/gps[%d]' % i
-                gps_nodes.append( getNode(path, True) )
-        node = gps_nodes[gps.index]
+        if gps.index > 0:
+            printf("Warning: gps index > 0 not supported")
+        node = gps_node
 
         node.setFloat("timestamp", gps.timestamp_sec)
         node.setFloat("latitude_deg", gps.latitude_deg)
@@ -326,11 +318,9 @@ class Packer():
     def unpack_gps_v3(self, buf):
         gps = aura_messages.gps_v3(buf)
 
-        if gps.index >= len(gps_nodes):
-            for i in range(len(gps_nodes), gps.index+1):
-                path = '/sensors/gps[%d]' % i
-                gps_nodes.append( getNode(path, True) )
-        node = gps_nodes[gps.index]
+        if gps.index > 0:
+            printf("Warning: gps index > 0 not supported")
+        node = gps_node
 
         node.setFloat("timestamp", gps.timestamp_sec)
         node.setFloat("latitude_deg", gps.latitude_deg)
@@ -351,11 +341,9 @@ class Packer():
     def unpack_gps_v4(self, buf):
         gps = aura_messages.gps_v4(buf)
 
-        if gps.index >= len(gps_nodes):
-            for i in range(len(gps_nodes), gps.index+1):
-                path = '/sensors/gps[%d]' % i
-                gps_nodes.append( getNode(path, True) )
-        node = gps_nodes[gps.index]
+        if gps.index > 0:
+            printf("Warning: gps index > 0 not supported")
+        node = gps_node
 
         node.setFloat("timestamp", gps.timestamp_sec)
         node.setFloat("latitude_deg", gps.latitude_deg)
@@ -434,11 +422,9 @@ class Packer():
     def unpack_imu_v3(self, buf):
         imu = aura_messages.imu_v3(buf)
 
-        if imu.index >= len(imu_nodes):
-            for i in range(len(imu_nodes),imu.index+1):
-                path = '/sensors/imu[%d]' % i
-                imu_nodes.append( getNode(path, True) )
-        node = imu_nodes[imu.index]
+        if imu.index > 0:
+            printf("Warning: imu index > 0 not supported")
+        node = imu_node
 
         node.setFloat("timestamp", imu.timestamp_sec)
         node.setFloat("p_rad_sec", imu.p_rad_sec)
@@ -457,11 +443,9 @@ class Packer():
     def unpack_imu_v4(self, buf):
         imu = aura_messages.imu_v4(buf)
 
-        if imu.index >= len(imu_nodes):
-            for i in range(len(imu_nodes),imu.index+1):
-                path = '/sensors/imu[%d]' % i
-                imu_nodes.append( getNode(path, True) )
-        node = imu_nodes[imu.index]
+        if imu.index > 0:
+            printf("Warning: imu index > 0 not supported")
+        node = imu_node
 
         node.setFloat("timestamp", imu.timestamp_sec)
         node.setFloat("p_rad_sec", imu.p_rad_sec)
@@ -554,11 +538,9 @@ class Packer():
     def unpack_filter_v2(self, buf):
         nav = aura_messages.filter_v2(buf)
 
-        if nav.index >= len(filter_nodes):
-            for i in range(len(filter_nodes), nav.index+1):
-                path = '/filters/filter[%d]' % i
-                filter_nodes.append( getNode(path, True) )
-        node = filter_nodes[nav.index]
+        if nav.index > 0:
+            printf("Warning: nav index > 0 not supported")
+        node = filter_node
 
         node.setFloat("timestamp", nav.timestamp_sec)
         node.setFloat("latitude_deg", nav.latitude_deg)
@@ -579,11 +561,9 @@ class Packer():
     def unpack_filter_v3(self, buf):
         nav = aura_messages.filter_v3(buf)
 
-        if nav.index >= len(filter_nodes):
-            for i in range(len(filter_nodes), nav.index+1):
-                path = '/filters/filter[%d]' % i
-                filter_nodes.append( getNode(path, True) )
-        node = filter_nodes[nav.index]
+        if nav.index > 0:
+            printf("Warning: nav index > 0 not supported")
+        node = filter_node
 
         node.setFloat("timestamp", nav.timestamp_sec)
         node.setFloat("latitude_deg", nav.latitude_deg)
@@ -610,11 +590,9 @@ class Packer():
     def unpack_filter_v4(self, buf):
         nav = aura_messages.filter_v4(buf)
 
-        if nav.index >= len(filter_nodes):
-            for i in range(len(filter_nodes), nav.index+1):
-                path = '/filters/filter[%d]' % i
-                filter_nodes.append( getNode(path, True) )
-        node = filter_nodes[nav.index]
+        if nav.index > 0:
+            printf("Warning: nav index > 0 not supported")
+        node = filter_node
 
         node.setFloat("timestamp", nav.timestamp_sec)
         node.setFloat("latitude_deg", nav.latitude_deg)
@@ -763,12 +741,9 @@ class Packer():
     def unpack_pilot_v2(self, buf):
         pilot = aura_messages.pilot_v2(buf)
 
-        if pilot.index >= len(pilot_nodes):
-            for i in range(len(pilot_nodes), pilot.index+1):
-                node = getNode('/sensors/pilot_input[%d]' % i, True)
-                node.setLen("channel", NUM_ACTUATORS, 0.0)
-                pilot_nodes.append( node )
-        node = pilot_nodes[pilot.index]
+        if pilot.index > 0:
+            printf("Warning: pilot index > 0 not supported")
+        node = pilot_node
 
         node.setFloat("timestamp", pilot.timestamp_sec)
         node.setFloatEnum("channel", 0, pilot.channel[0])
@@ -786,12 +761,9 @@ class Packer():
     def unpack_pilot_v3(self, buf):
         pilot = aura_messages.pilot_v3(buf)
 
-        if pilot.index >= len(pilot_nodes):
-            for i in range(len(pilot_nodes), pilot.index+1):
-                node = getNode('/sensors/pilot_input[%d]' % i, True)
-                node.setLen("channel", NUM_ACTUATORS, 0.0)
-                pilot_nodes.append( node )
-        node = pilot_nodes[pilot.index]
+        if pilot.index > 0:
+            printf("Warning: pilot index > 0 not supported")
+        node = pilot_node
 
         node.setFloat("timestamp", pilot.timestamp_sec)
         node.setFloatEnum("channel", 0, pilot.channel[0])
