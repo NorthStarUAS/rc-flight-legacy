@@ -811,25 +811,25 @@ class Packer():
             # serial message to the remote ground station is when we
             # want to advance to the next waypoint.
             counter = remote_link_node.getInt("wp_counter")
-            self.ap.wp_wp_lon = 0.0
-            self.ap.wp_wp_lat = 0.0
-            self.ap.wp_wp_index = 0
+            self.ap.wp_longitude_deg = 0.0
+            self.ap.wp_latitude_deg = 0.0
+            self.ap.wp_index = 0
             self.ap.route_size = active_node.getInt("route_size")
             if self.ap.route_size > 0 and counter < self.ap.route_size:
                 self.ap.wp_index = counter
                 wp_path = "wpt[%d]" % self.ap.wp_index
                 wp_node = active_node.getChild(wp_path, True)
-                self.ap.wp_lon = wp_node.getFloat("longitude_deg")
-                self.ap.wp_lat = wp_node.getFloat("latitude_deg")
+                self.ap.wp_longitude_deg = wp_node.getFloat("longitude_deg")
+                self.ap.wp_latitude_deg = wp_node.getFloat("latitude_deg")
             elif counter == self.ap.route_size:
-                self.ap.wp_lon = circle_node.getFloat("longitude_deg")
-                self.ap.wp_lat = circle_node.getFloat("latitude_deg")
+                self.ap.wp_longitude_deg = circle_node.getFloat("longitude_deg")
+                self.ap.wp_latitude_deg = circle_node.getFloat("latitude_deg")
                 self.ap.wp_index = 65534
                 self.ap.task_attr = int(round(circle_node.getFloat("radius_m") * 10))
                 if self.ap.task_attr > 32767: self.ap.task_attr = 32767
             elif counter == self.ap.route_size + 1:
-                self.ap.wp_lon = home_node.getFloat("longitude_deg")
-                self.ap.wp_lat = home_node.getFloat("latitude_deg")
+                self.ap.wp_longitude_deg = home_node.getFloat("longitude_deg")
+                self.ap.wp_latitude_deg = home_node.getFloat("latitude_deg")
                 self.ap.wp_index = 65535
         
             self.ap.task_id = 0 # code for unknown or not set
