@@ -21,6 +21,16 @@ g = 9.81
 
 last_time = 0.0
 
+# crude battery % interpolation model
+# 100 - 4.2
+# 83% - 3.8
+# 27% - 3.65
+# 0%  - 3.5
+batv = [ 3.5, 3.65, 3.8, 4.2 ]
+batp = [ 0.0, 0.27, 0.83, 1.0 ]
+from scipy.interpolate import interp1d
+batf = interp1d(batv, batp)
+
 def compute_tecs():
     if filter_node.getFloat('timestamp') < 0.01:
         # do nothing if filter not inited
@@ -110,5 +120,9 @@ def compute_derived_data():
     watts = volts * amps
     power_node.setFloat("main_watts", watts)
 
+    cell_volts = power_node.getFloat("cell_vcc")
+    batt_perc = batf(cell_volts)
+    power_node.setFloat("battery_perc", batt_perc)
+    
     # TECS
     compute_tecs()
