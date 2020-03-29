@@ -481,7 +481,7 @@ class Packer():
         node.setInt("status", imu.status)
         return imu.index
 
-    def pack_imu_v5(self, buf):
+    def unpack_imu_v5(self, buf):
         imu = aura_messages.imu_v5(buf)
 
         if imu.index > 0:
