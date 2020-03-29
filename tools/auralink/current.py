@@ -26,8 +26,8 @@ last_time = 0.0
 # 83% - 3.8
 # 27% - 3.65
 # 0%  - 3.5
-batv = [ 3.5, 3.65, 3.8, 4.2 ]
-batp = [ 0.0, 0.27, 0.83, 1.0 ]
+batv = [ 3.3, 3.50, 3.65, 3.80, 4.20 ]
+batp = [ 0.0, 0.05, 0.27, 0.83, 1.00 ]
 from scipy.interpolate import interp1d
 batf = interp1d(batv, batp)
 
@@ -121,6 +121,8 @@ def compute_derived_data():
     power_node.setFloat("main_watts", watts)
 
     cell_volts = power_node.getFloat("cell_vcc")
+    if cell_volts < 3.3: cell_volts = 3.3
+    if cell_votls > 4.2: cell_volts = 4.2
     batt_perc = batf(cell_volts)
     power_node.setFloat("battery_perc", batt_perc)
     
