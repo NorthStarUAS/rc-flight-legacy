@@ -21,13 +21,13 @@ public:
 private:
     pyPropertyNode airdata_node;
     pyPropertyNode sensors_node;
-    pyPropertyNode filter_node;
     pyPropertyNode pos_filter_node;
     pyPropertyNode pos_pressure_node;
     pyPropertyNode pos_combined_node;
-    pyPropertyNode vel_node;
+    pyPropertyNode status_node;
     pyPropertyNode task_node;
     pyPropertyNode wind_node;
+    pyPropertyNode vel_node;
     
     LowPassFilter pressure_alt_filt = LowPassFilter( 0.1 );
     LowPassFilter ground_alt_filt = LowPassFilter( 30.0 );

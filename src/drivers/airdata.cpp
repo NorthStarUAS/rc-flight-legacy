@@ -23,12 +23,12 @@ using std::string;
 void airdata_helper_t::init() {
     airdata_node = pyGetNode("/sensors/airdata", true);
     sensors_node = pyGetNode("/sensors", true);
-    filter_node = pyGetNode("/filters/filter", true);
     pos_filter_node = pyGetNode("/position/filter", true);
     pos_pressure_node = pyGetNode("/position/pressure", true);
     pos_combined_node = pyGetNode("/position/combined", true);
-    vel_node = pyGetNode("/velocity", true);
+    status_node = pyGetNode("/status", true);
     task_node = pyGetNode("/task", true);
+    vel_node = pyGetNode("/velocity", true);
     wind_node = pyGetNode("/filters/wind", true);
 }
 
@@ -114,7 +114,7 @@ void airdata_helper_t::update() {
     //
 
     if ( !alt_error_calibrated ) {
-	if ( filter_node.getString("navigation") == "ok" ) {
+	if ( status_node.getString("navigation") == "ok" ) {
 	    alt_error_calibrated = true;
 	    Ps_filt_err.init( filter_alt_m - Ps );
 	}
