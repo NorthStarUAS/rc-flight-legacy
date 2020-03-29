@@ -230,10 +230,16 @@ else:
             tempF = currently['temperature']
             tempC = (tempF - 32.0) * 5 / 9
             f.write("- Temperature: %.1f F" % tempF + " (%.1f C)" % tempC + "\n")
+        else:
+            tempF = 0.0
+            tempC = 0.0
         if 'dewPoint' in currently:
             dewF = currently['dewPoint']
             dewC = (dewF - 32.0) * 5 / 9
             f.write("- Dewpoint: %.1f F" % dewF + " (%.1f C)" % dewC + "\n")
+        else:
+            dewF = 0.0
+            dewC = 0.0
         if 'humidity' in currently:
             hum = currently['humidity']
             f.write("- Humidity: %.0f%%" % (hum * 100.0) + "\n")
@@ -258,6 +264,8 @@ else:
         if 'visibility' in currently:
             vis = currently['visibility']
             f.write("- Visibility: %.1f miles" % vis + "\n")
+        else:
+            vis = 10
         if 'cloudCover' in currently:
             cov = currently['cloudCover']
             f.write("- Cloud Cover: %.0f%%" % (cov * 100.0) + "\n")
