@@ -122,7 +122,7 @@ def compute_derived_data():
 
     cell_volts = power_node.getFloat("cell_vcc")
     if cell_volts < 3.3: cell_volts = 3.3
-    if cell_votls > 4.2: cell_volts = 4.2
+    if cell_volts > 4.2: cell_volts = 4.2
     batt_perc = batf(cell_volts)
     power_node.setFloat("battery_perc", batt_perc)
     
