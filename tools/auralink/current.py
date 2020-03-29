@@ -30,6 +30,7 @@ batv = [ 3.3, 3.50, 3.65, 3.80, 4.20 ]
 batp = [ 0.0, 0.05, 0.27, 0.83, 1.00 ]
 from scipy.interpolate import interp1d
 batf = interp1d(batv, batp)
+filt_perc = 1.0
 
 def compute_tecs():
     if filter_node.getFloat('timestamp') < 0.01:
@@ -124,7 +125,11 @@ def compute_derived_data():
     if cell_volts < 3.3: cell_volts = 3.3
     if cell_volts > 4.2: cell_volts = 4.2
     batt_perc = batf(cell_volts)
-    power_node.setFloat("battery_perc", batt_perc)
+    if filt_perc is None:
+        filt_perc = batt_perc
+    else:
+        filt_perc = 0.999 * filt_perc + 0.001 * batt_perc
+    power_node.setFloat("battery_perc", filt_perc)
     
     # TECS
     compute_tecs()
