@@ -116,6 +116,7 @@ class Packer():
             self.airdata.pressure_mbar = airdata_node.getFloat("pressure_mbar")
             self.airdata.temp_C = airdata_node.getFloat("temp_C")
             self.airdata.airspeed_smoothed_kt = vel_node.getFloat("airspeed_smoothed_kt")
+            self.airdata.altitude_smoothed_m = pos_pressure_node.getFloat('altitude_smoothed_m')
             self.airdata.altitude_true_m = pos_combined_node.getFloat("altitude_true_m")
             self.airdata.pressure_vertical_speed_fps = vel_node.getFloat("pressure_vertical_speed_fps")
             self.airdata.wind_dir_deg = wind_node.getFloat("wind_dir_deg")
