@@ -15,7 +15,7 @@ from props import root, getNode
 
 sys.path.append("../../src")
 from comms import aura_messages
-import comms.packer
+from comms.packer import packer
 
 import commands
 import current
@@ -26,7 +26,7 @@ m2nm = 0.0005399568034557235    # meters to nautical miles
 def generate_path(id, index):
     if id == aura_messages.gps_v2_id or id == aura_messages.gps_v3_id or id == aura_messages.gps_v4_id:
         category = 'gps'
-    elif id == aura_messages.imu_v3_id or id == aura_messages.imu_v4_id:
+    elif id == aura_messages.imu_v3_id or id == aura_messages.imu_v4_id or id == aura_messages.imu_v5_id:
         category = 'imu'
     elif id == aura_messages.airdata_v5_id or id == aura_messages.airdata_v6_id or id == aura_messages.airdata_v7_id:
         category = 'air'
@@ -71,25 +71,25 @@ def generate_path(id, index):
 # record.
 def generate_record(category, index):
     if category == 'gps':
-        return comms.packer.pack_gps_dict(index)
+        return packer.pack_gps_dict(index)
     elif category == 'imu':
-        return comms.packer.pack_imu_dict(index)
+        return packer.pack_imu_dict(index)
     elif category == 'air':
-        return comms.packer.pack_airdata_dict(index)
+        return packer.pack_airdata_dict(index)
     elif category == 'filter':
-        return comms.packer.pack_filter_dict(index)
+        return packer.pack_filter_dict(index)
     elif category == 'act':
-        return comms.packer.pack_act_dict(index)
+        return packer.pack_act_dict(index)
     elif category == 'pilot':
-        return comms.packer.pack_pilot_dict(index)
+        return packer.pack_pilot_dict(index)
     elif category == 'ap':
-        return comms.packer.pack_ap_status_dict(index)
+        return packer.pack_ap_status_dict(index)
     elif category == 'health':
-        return comms.packer.pack_system_health_dict(index)
+        return packer.pack_system_health_dict(index)
     elif category == 'payload':
-        return comms.packer.pack_payload_dict(index)
+        return packer.pack_payload_dict(index)
     elif category == 'event':
-        return comms.packer.pack_event_dict(index)
+        return packer.pack_event_dict(index)
 
 argparser = argparse.ArgumentParser(description='aura export')
 argparser.add_argument('--flight', help='load specified flight log')

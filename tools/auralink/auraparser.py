@@ -65,6 +65,8 @@ def parse_msg(id, buf):
         index = packer.unpack_imu_v3(buf)
     elif id == aura_messages.imu_v4_id:
         index = packer.unpack_imu_v4(buf)
+    elif id == aura_messages.imu_v5_id:
+        index = packer.unpack_imu_v5(buf)
     elif id == aura_messages.airdata_v5_id:
         index = packer.unpack_airdata_v5(buf)
     elif id == aura_messages.airdata_v6_id:

@@ -6,6 +6,7 @@ gps_v3_id = 26
 gps_v4_id = 34
 imu_v3_id = 17
 imu_v4_id = 35
+imu_v5_id = 45
 airdata_v5_id = 18
 airdata_v6_id = 40
 airdata_v7_id = 43
@@ -321,6 +322,81 @@ class imu_v4():
          self.hx,
          self.hy,
          self.hz,
+         self.temp_C,
+         self.status) = struct.unpack(self._pack_string, msg)
+        self.temp_C /= 10
+
+# Message: imu_v5
+# Id: 45
+class imu_v5():
+    id = 45
+    _pack_string = "<BffffffffffffffffhB"
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.timestamp_sec = 0.0
+        self.p_rad_sec = 0.0
+        self.q_rad_sec = 0.0
+        self.r_rad_sec = 0.0
+        self.ax_mps_sec = 0.0
+        self.ay_mps_sec = 0.0
+        self.az_mps_sec = 0.0
+        self.hx = 0.0
+        self.hy = 0.0
+        self.hz = 0.0
+        self.ax_nocal = 0.0
+        self.ay_nocal = 0.0
+        self.az_nocal = 0.0
+        self.hx_nocal = 0.0
+        self.hy_nocal = 0.0
+        self.hz_nocal = 0.0
+        self.temp_C = 0.0
+        self.status = 0
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = struct.pack(self._pack_string,
+                          self.index,
+                          self.timestamp_sec,
+                          self.p_rad_sec,
+                          self.q_rad_sec,
+                          self.r_rad_sec,
+                          self.ax_mps_sec,
+                          self.ay_mps_sec,
+                          self.az_mps_sec,
+                          self.hx,
+                          self.hy,
+                          self.hz,
+                          self.ax_nocal,
+                          self.ay_nocal,
+                          self.az_nocal,
+                          self.hx_nocal,
+                          self.hy_nocal,
+                          self.hz_nocal,
+                          int(round(self.temp_C * 10)),
+                          self.status)
+        return msg
+
+    def unpack(self, msg):
+        (self.index,
+         self.timestamp_sec,
+         self.p_rad_sec,
+         self.q_rad_sec,
+         self.r_rad_sec,
+         self.ax_mps_sec,
+         self.ay_mps_sec,
+         self.az_mps_sec,
+         self.hx,
+         self.hy,
+         self.hz,
+         self.ax_nocal,
+         self.ay_nocal,
+         self.az_nocal,
+         self.hx_nocal,
+         self.hy_nocal,
+         self.hz_nocal,
          self.temp_C,
          self.status) = struct.unpack(self._pack_string, msg)
         self.temp_C /= 10

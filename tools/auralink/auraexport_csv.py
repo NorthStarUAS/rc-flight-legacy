@@ -26,7 +26,7 @@ m2nm   = 0.0005399568034557235 # meters to nautical miles
 def logical_category(id):
     if id == aura_messages.gps_v2_id or id == aura_messages.gps_v3_id or id == aura_messages.gps_v4_id:
         return 'gps'
-    elif id == aura_messages.imu_v3_id or id == aura_messages.imu_v4_id:
+    elif id == aura_messages.imu_v3_id or id == aura_messages.imu_v4_id or id == aura_messages.imu_v5_id:
         return 'imu'
     elif id == aura_messages.airdata_v5_id or id == aura_messages.airdata_v6_id or id == aura_messages.airdata_v7_id:
         return 'air'

@@ -25,7 +25,7 @@ public:
     void write_configs();
 };
 
-// sort of a hack for now, but pure C let's me pass in a property node
-// pointer without having to figure out how to propagate that to the
-// python system.
+// sort of a hack for now, but doing this in pure C let's me pass in a
+// property node pointer without having to figure out how to propagate
+// that to the python system.
 bool write_imu_calibration( pyPropertyNode *config );

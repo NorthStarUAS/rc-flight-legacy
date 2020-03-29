@@ -85,7 +85,7 @@ class Packer():
     filter = aura_messages.filter_v4()
     gps = aura_messages.gps_v4()
     health = aura_messages.system_health_v5()
-    imu = aura_messages.imu_v4()
+    imu = aura_messages.imu_v5()
     pilot = aura_messages.pilot_v3()
     ap_buf = None
     act_buf = None
@@ -377,6 +377,12 @@ class Packer():
             self.imu.hx = imu_node.getFloat('hx')
             self.imu.hy = imu_node.getFloat('hy')
             self.imu.hz = imu_node.getFloat('hz')
+            self.imu.ax_nocal = imu_node.getFloat('ax_nocal')
+            self.imu.ay_nocal = imu_node.getFloat('ay_nocal')
+            self.imu.az_nocal = imu_node.getFloat('az_nocal')
+            self.imu.hx_nocal = imu_node.getFloat('hx_nocal')
+            self.imu.hy_nocal = imu_node.getFloat('hy_nocal')
+            self.imu.hz_nocal = imu_node.getFloat('hz_nocal')
             self.imu.temp_C = imu_node.getFloat('temp_C')
             self.imu.status = imu_node.getInt('status')
             self.imu_buf = self.imu.pack()
@@ -457,6 +463,33 @@ class Packer():
         node.setFloat("hx", imu.hx)
         node.setFloat("hy", imu.hy)
         node.setFloat("hz", imu.hz)
+        node.setFloat("temp_C", imu.temp_C)
+        node.setInt("status", imu.status)
+        return imu.index
+
+    def pack_imu_v5(self, buf):
+        imu = aura_messages.imu_v5(buf)
+
+        if imu.index > 0:
+            printf("Warning: imu index > 0 not supported")
+        node = imu_node
+
+        node.setFloat("timestamp", imu.timestamp_sec)
+        node.setFloat("p_rad_sec", imu.p_rad_sec)
+        node.setFloat("q_rad_sec", imu.q_rad_sec)
+        node.setFloat("r_rad_sec", imu.r_rad_sec)
+        node.setFloat("ax_mps_sec", imu.ax_mps_sec)
+        node.setFloat("ay_mps_sec", imu.ay_mps_sec)
+        node.setFloat("az_mps_sec", imu.az_mps_sec)
+        node.setFloat("hx", imu.hx)
+        node.setFloat("hy", imu.hy)
+        node.setFloat("hz", imu.hz)
+        node.setFloat("ax_nocal", imu.ax_nocal)
+        node.setFloat("ay_nocal", imu.ay_nocal)
+        node.setFloat("az_nocal", imu.az_nocal)
+        node.setFloat("hx_nocal", imu.hx_nocal)
+        node.setFloat("hy_nocal", imu.hy_nocal)
+        node.setFloat("hz_nocal", imu.hz_nocal)
         node.setFloat("temp_C", imu.temp_C)
         node.setInt("status", imu.status)
         return imu.index
@@ -848,7 +881,6 @@ class Packer():
 
     wp_counter = 0
     def pack_ap_status_dict(self, index):
-        global wp_counter
         # fixme: tecs_target_tot is really zero now because these values
         # are computed in energy *error* terms
         row = dict()
@@ -867,24 +899,24 @@ class Packer():
         route_size = active_node.getInt("route_size")
         row['route_size'] = route_size
         row['task_attrib'] = 0.0
-        if wp_counter < route_size:
-            wp_node = active_node.getChild('wpt[%d]' % wp_counter, True)
-            row['wpt_index'] = wp_counter
+        if self.wp_counter < route_size:
+            wp_node = active_node.getChild('wpt[%d]' % self.wp_counter, True)
+            row['wpt_index'] = self.wp_counter
             row['wpt_longitude_deg'] = wp_node.getFloat("longitude_deg")
             row['wpt_latitude_deg'] = wp_node.getFloat("latitude_deg")
-        elif wp_counter == route_size:
+        elif self.wp_counter == route_size:
             row['wpt_index'] = 65534
             row['wpt_longitude_deg'] = circle_node.getFloat("longitude_deg")
             row['wpt_latitude_deg'] = circle_node.getFloat("latitude_deg")
             row['task_attrib'] = int(round(circle_node.getFloat("radius_m") * 10))
-        elif wp_counter == route_size + 1:
+        elif self.wp_counter == route_size + 1:
             row['wpt_index'] = 65535
             row['wpt_longitude_deg'] = home_node.getFloat("longitude_deg")
             row['wpt_latitude_deg'] = home_node.getFloat("latitude_deg")
         row['current_task_id'] = task_node.getString("current_task_id")
-        wp_counter += 1
-        if wp_counter >= route_size + 2:
-            wp_counter = 0
+        self.wp_counter += 1
+        if self.wp_counter >= route_size + 2:
+            self.wp_counter = 0
         return row
 
     def pack_ap_status_csv(self, index):

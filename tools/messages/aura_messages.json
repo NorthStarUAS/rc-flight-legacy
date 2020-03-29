@@ -105,6 +105,33 @@
             ]
         },
         {
+            "id": 45,
+            "name": "imu_v5",
+            "desc": "imu v5 message",
+            "date": "March 29, 2020",
+            "fields": [
+                { "type": "uint8_t", "name": "index" },
+                { "type": "float", "name": "timestamp_sec" },
+                { "type": "float", "name": "p_rad_sec" },
+                { "type": "float", "name": "q_rad_sec" },
+                { "type": "float", "name": "r_rad_sec" },
+                { "type": "float", "name": "ax_mps_sec" },
+                { "type": "float", "name": "ay_mps_sec" },
+                { "type": "float", "name": "az_mps_sec" },
+                { "type": "float", "name": "hx" },
+                { "type": "float", "name": "hy" },
+                { "type": "float", "name": "hz" },
+                { "type": "float", "name": "ax_nocal" },
+                { "type": "float", "name": "ay_nocal" },
+                { "type": "float", "name": "az_nocal" },
+                { "type": "float", "name": "hx_nocal" },
+                { "type": "float", "name": "hy_nocal" },
+                { "type": "float", "name": "hz_nocal" },
+                { "type": "float", "name": "temp_C", "pack_type": "int16_t", "pack_scale": 10 },
+                { "type": "uint8_t", "name": "status" }
+            ]
+        },
+        {
             "id": 18,
             "name": "airdata_v5",
             "desc": "airdata v5 message",
