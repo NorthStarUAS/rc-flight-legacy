@@ -92,7 +92,7 @@ def generate_record(category, index):
         return packer.pack_event_dict(index)
 
 argparser = argparse.ArgumentParser(description='aura export')
-argparser.add_argument('--flight', help='load specified flight log')
+argparser.add_argument('flight', help='load specified flight log')
 argparser.add_argument('--skip-seconds', help='seconds to skip when processing flight log')
 
 args = argparser.parse_args()
@@ -134,7 +134,7 @@ if args.flight:
     print("len of decompressed file:", size)
 
     print("Parsing log file:")
-    t = tqdm(total=size)
+    t = tqdm(total=size, smoothing=0.05)
     last_counter = 0
     while True:
         try:
