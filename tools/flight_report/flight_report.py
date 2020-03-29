@@ -563,15 +563,16 @@ ax.set_title("Accelerometer Spectogram")
 ax.set_ylabel('Frequency [Hz]')
 ax.set_xlabel('Time [s]');
 
-# pitch
-freqs, times, Sx = signal.spectrogram(df0_imu['r'].values, fs=rate, window='hanning',
-                                      nperseg=M, noverlap=M - 100,
-                                      detrend=False, scaling='spectrum')
-f, ax = plt.subplots()
-ax.pcolormesh(times, freqs, 10 * np.log10(Sx), cmap='viridis')
-ax.set_title('Yaw Rate Spectogram (why?)')
-ax.set_ylabel('Frequency [Hz]')
-ax.set_xlabel('Time [s]');
+if False:
+    # yaw
+    freqs, times, Sx = signal.spectrogram(df0_imu['r'].values, fs=rate, window='hanning',
+                                          nperseg=M, noverlap=M - 100,
+                                          detrend=False, scaling='spectrum')
+    f, ax = plt.subplots()
+    ax.pcolormesh(times, freqs, 10 * np.log10(Sx), cmap='viridis')
+    ax.set_title('Yaw Rate Spectogram (why?)')
+    ax.set_ylabel('Frequency [Hz]')
+    ax.set_xlabel('Time [s]');
 
 if False:
     # repeat with wind heading
