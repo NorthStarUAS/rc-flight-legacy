@@ -125,6 +125,7 @@ def compute_derived_data():
     if cell_volts < 3.3: cell_volts = 3.3
     if cell_volts > 4.2: cell_volts = 4.2
     batt_perc = batf(cell_volts)
+    global filt_perc
     if filt_perc is None:
         filt_perc = batt_perc
     else:
