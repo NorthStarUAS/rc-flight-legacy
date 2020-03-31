@@ -19,7 +19,7 @@ using std::string;
 
 #include "comms/display.h"
 #include "include/globaldefs.h"
-#include "util/coremag.h"
+#include "filters/nav_common/coremag.h"
 #include "util/timing.h"
 
 #include "gps.h"
