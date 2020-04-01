@@ -265,7 +265,7 @@ bool Aura4_t::update_imu( message::imu_t *imu ) {
     last_imu_micros = imu->micros;
 	
     imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
-    imu_node.setLong( "imu->micros", imu->micros );
+    imu_node.setLong( "imu_micros", imu->micros );
     imu_node.setDouble( "imu_sec", (double)imu->micros / 1000000.0 );
     imu_node.setDouble( "p_rad_sec", p_cal );
     imu_node.setDouble( "q_rad_sec", q_cal );
@@ -955,7 +955,14 @@ bool Aura4_t::update_ekf( message::ekf_t *ekf ) {
     const double R2D = 180 / M_PI;
     const double F2M = 0.3048;
     const double M2F = 1 / F2M;
-    /*FIXME*/ ekf_node.setDouble( "timestamp", ekf->micros );
+    // do a little dance to estimate the ekf timestamp in seconds
+    long int imu_micros = imu_node.getLong("imu_micros");
+    long int diff_micros = ekf->micros - imu_micros;
+    if ( diff_micros < 0 ) { diff_micros = 0; } // don't puke on wraparound
+    double timestamp = imu_node.getDouble("timestamp")
+        + (float)diff_micros / 1000.0;
+    ekf_node.setDouble( "timestamp", timestamp );
+    ekf_node.setLong( "ekf_micros", ekf->micros );
     ekf_node.setDouble( "latitude_deg", ekf->lat_rad * R2D );
     ekf_node.setDouble( "longitude_deg", ekf->lon_rad * R2D );
     ekf_node.setDouble( "altitude_m", ekf->altitude_m );
