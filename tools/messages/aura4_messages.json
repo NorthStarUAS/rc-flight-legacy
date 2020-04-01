@@ -5,6 +5,17 @@
         { "type": "uint8_t", "name": "ap_channels", "value": 6, "desc": "number of sbus channels" },
         { "type": "uint8_t", "name": "mix_matrix_size", "value": 64, "desc": "8 x 8 mix matrix" }
     ],
+    
+    "enums": [
+        { "name": "enum_nav",
+          "identifiers": [
+              { "name": "none", "desc": "disable nav filter" },
+              { "name": "nav15", "desc": "15-state ins/gps filter" },
+              { "name": "nav15_mag", "desc": "15-state ins/gps/mag filter" }
+          ]
+        }
+    ],
+ 
     "messages": [
         // general ack packet
         {
@@ -39,7 +50,7 @@
             "name": "config_ekf",
             "desc": "EKF NAV/INS configuration",
             "fields": [
-                { "type": "bool", "name": "enable", "desc": "enable/disable remote ekf" },
+                { "type": "enum_nav", "name": "select", "desc": "none/nav15/nav15_mag" },
                 { "type": "float", "name": "sig_w_accel", "desc": "stddev of acceleromter noise (m/s^2)" },
                 { "type": "float", "name": "sig_w_gyro", "desc": "stddev of gyro noise (rad/s)" },
                 { "type": "float", "name": "sig_a_d", "desc": "stddev of accelerometer markov bias" },

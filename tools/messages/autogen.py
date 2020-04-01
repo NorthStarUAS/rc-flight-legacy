@@ -8,7 +8,7 @@ from props import getNode
 import props_json
 
 parser = argparse.ArgumentParser(description='autogen messages code.')
-parser.add_argument('--input', required=True, help='message definition file')
+parser.add_argument('input', help='message definition file')
 parser.add_argument('--namespace', default="message", help='optional namespace (for C++)')
 args = parser.parse_args()
 
@@ -137,7 +137,7 @@ def gen_cpp_header():
                 if j < m.getLen("identifiers") - 1:
                     line += ","
                 if f.hasChild("desc"):
-                    line += "  // %s" % f.getChild("desc")
+                    line += "  // %s" % f.getString("desc")
                 result.append(line)
             result.append("};")
         result.append("")

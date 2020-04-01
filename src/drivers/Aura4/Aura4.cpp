@@ -42,7 +42,7 @@ void Aura4_t::info( const char *format, ... ) {
     }
 }
 
-void Aura4_t::hard_error( const char *format, ... ) {
+void Aura4_t::hard_fail( const char *format, ... ) {
     printf("Aura4 hard error: ");
     va_list args;
     va_start(args, format);
@@ -76,42 +76,42 @@ void Aura4_t::init( pyPropertyNode *config ) {
         pyPropertyNode board_config = config->getChild("board");
         open( &board_config );
     } else {
-        hard_error("no board defined\n");
+        hard_fail("no board defined\n");
     }
 
     if ( config->hasChild("airdata") ) {
         pyPropertyNode airdata_config = config->getChild("airdata");
         init_airdata( &airdata_config );
     } else {
-        hard_error("no airdata configuration\n");
+        hard_fail("no airdata configuration\n");
     }
     
     if ( config->hasChild("ekf") ) {
         pyPropertyNode ekf_config = config->getChild("ekf");
         init_ekf( &ekf_config );
     } else {
-        hard_error("no ekf configuration\n");
+        hard_fail("no ekf configuration\n");
     }
     
     if ( config->hasChild("gps") ) {
         pyPropertyNode gps_config = config->getChild("gps");
         init_gps( &gps_config );
     } else {
-        hard_error("no gps configuration\n");
+        hard_fail("no gps configuration\n");
     }
     
     if ( config->hasChild("imu") ) {
         pyPropertyNode imu_config = config->getChild("imu");
         init_imu( &imu_config );
     } else {
-        hard_error("no imu configuration\n");
+        hard_fail("no imu configuration\n");
     }
 
     if ( config->hasChild("pilot_input") ) {
         pyPropertyNode pilot_config = config->getChild("pilot_input");
         init_pilot( &pilot_config );
     } else {
-        hard_error("no pilot configuration\n");
+        hard_fail("no pilot configuration\n");
     }
 
     // fixme: should we have a config section to trigger this
@@ -137,7 +137,7 @@ bool Aura4_t::open( pyPropertyNode *config ) {
 
     bool result = serial.open( baud, device_name.c_str() );
     if ( !result ) {
-        hard_error("Error opening serial link to Aura4 device");
+        hard_fail("Error opening serial link to Aura4 device");
     }
 
     return true;
@@ -464,7 +464,7 @@ static void board_defaults( message::config_board_t *config_board ) {
 
 // ekf defaults
 static void ekf_defaults( message::config_ekf_t *config_ekf ) {
-    config_ekf->enable = true;
+    config_ekf->select = message::enum_nav::none;
     config_ekf->sig_w_accel = 0.05;
     config_ekf->sig_w_gyro = 0.00175;
     config_ekf->sig_a_d = 0.01;
@@ -784,8 +784,17 @@ bool Aura4_t::send_config() {
 
     if ( aura4_node.hasChild("ekf") ) {
         pyPropertyNode ekf_node = aura4_node.getChild("ekf");
-        if ( ekf_node.hasChild("enable") ) {
-            config_ekf.enable = ekf_node.getBool("enable");
+        if ( ekf_node.hasChild("select") ) {
+            string val = ekf_node.getString("select");
+            if ( val == "none" ) {
+                config_ekf.select = message::enum_nav::none;
+            } else if ( val == "nav15" ) {
+                config_ekf.select = message::enum_nav::nav15;
+            } else if ( val == "nav15_mag" ) {
+                config_ekf.select = message::enum_nav::nav15_mag;
+            } else {
+                hard_fail("bad nav/ekf selection: %s", val.c_str());
+            }
         }
         if ( ekf_node.hasChild("sig_w_accel") ) {
             config_ekf.sig_w_accel = ekf_node.getDouble("sig_w_accel");

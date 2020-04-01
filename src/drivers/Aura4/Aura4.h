@@ -83,7 +83,7 @@ private:
     bool first_status_message = false;
     
     void info( const char* format, ... );
-    void hard_error( const char*format, ... );
+    void hard_fail( const char*format, ... );
     
     bool open( pyPropertyNode *config );
     void init_airdata( pyPropertyNode *config );
