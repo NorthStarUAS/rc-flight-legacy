@@ -203,7 +203,7 @@ def process_messages():
             log_message(packer.gps.id, buf)
     if health_count < 0:
         health_count = health_skip
-        buf = packer.pack_health_bin()
+        buf = packer.pack_system_health_bin()
         if not buf is None and len(buf):
             log_message(packer.health.id, buf)
     if imu_count < 0:

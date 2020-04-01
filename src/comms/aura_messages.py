@@ -23,6 +23,7 @@ ap_status_v6_id = 33
 ap_status_v7_id = 39
 system_health_v4_id = 19
 system_health_v5_id = 41
+system_health_v6_id = 46
 payload_v2_id = 23
 payload_v3_id = 42
 event_v1_id = 27
@@ -1406,6 +1407,56 @@ class system_health_v5():
         (self.index,
          self.timestamp_sec,
          self.system_load_avg,
+         self.avionics_vcc,
+         self.main_vcc,
+         self.cell_vcc,
+         self.main_amps,
+         self.total_mah) = struct.unpack(self._pack_string, msg)
+        self.system_load_avg /= 100
+        self.avionics_vcc /= 1000
+        self.main_vcc /= 1000
+        self.cell_vcc /= 1000
+        self.main_amps /= 1000
+        self.total_mah /= 0.1
+
+# Message: system_health_v6
+# Id: 46
+class system_health_v6():
+    id = 46
+    _pack_string = "<BfHHHHHHH"
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.timestamp_sec = 0.0
+        self.system_load_avg = 0.0
+        self.fmu_timer_misses = 0
+        self.avionics_vcc = 0.0
+        self.main_vcc = 0.0
+        self.cell_vcc = 0.0
+        self.main_amps = 0.0
+        self.total_mah = 0.0
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = struct.pack(self._pack_string,
+                          self.index,
+                          self.timestamp_sec,
+                          int(round(self.system_load_avg * 100)),
+                          self.fmu_timer_misses,
+                          int(round(self.avionics_vcc * 1000)),
+                          int(round(self.main_vcc * 1000)),
+                          int(round(self.cell_vcc * 1000)),
+                          int(round(self.main_amps * 1000)),
+                          int(round(self.total_mah * 0.1)))
+        return msg
+
+    def unpack(self, msg):
+        (self.index,
+         self.timestamp_sec,
+         self.system_load_avg,
+         self.fmu_timer_misses,
          self.avionics_vcc,
          self.main_vcc,
          self.cell_vcc,

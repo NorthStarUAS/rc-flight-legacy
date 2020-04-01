@@ -1205,6 +1205,7 @@ struct status_t {
     uint16_t master_hz;
     uint32_t baud;
     uint16_t byte_rate;
+    uint16_t timer_misses;
 
     // internal structure for packing
     uint8_t payload[message_max_len];
@@ -1215,6 +1216,7 @@ struct status_t {
         uint16_t master_hz;
         uint32_t baud;
         uint16_t byte_rate;
+        uint16_t timer_misses;
     };
     #pragma pack(pop)
 
@@ -1236,6 +1238,7 @@ struct status_t {
         _buf->master_hz = master_hz;
         _buf->baud = baud;
         _buf->byte_rate = byte_rate;
+        _buf->timer_misses = timer_misses;
         return true;
     }
 
@@ -1251,6 +1254,7 @@ struct status_t {
         master_hz = _buf->master_hz;
         baud = _buf->baud;
         byte_rate = _buf->byte_rate;
+        timer_misses = _buf->timer_misses;
         return true;
     }
 };

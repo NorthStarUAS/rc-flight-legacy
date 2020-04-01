@@ -247,7 +247,8 @@
                 { "type": "uint16_t", "name": "firmware_rev" },
                 { "type": "uint16_t", "name": "master_hz" },
                 { "type": "uint32_t", "name": "baud" },
-                { "type": "uint16_t", "name": "byte_rate" }
+                { "type": "uint16_t", "name": "byte_rate" },
+                { "type": "uint16_t", "name": "timer_misses" }
             ]
         },
         {

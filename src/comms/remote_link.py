@@ -165,7 +165,7 @@ def process_messages():
             send_message(packer.gps.id, buf)
     if health_count < 0:
         health_count = health_skip
-        buf = packer.pack_health_bin(use_cached=True)
+        buf = packer.pack_system_health_bin(use_cached=True)
         if not buf is None and len(buf):
             send_message(packer.health.id, buf)
     if imu_count < 0:

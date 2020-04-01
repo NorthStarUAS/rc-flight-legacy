@@ -38,7 +38,7 @@ def generate_path(id, index):
         category = 'pilot'
     elif id == aura_messages.ap_status_v4_id or id == aura_messages.ap_status_v5_id or id == aura_messages.ap_status_v6_id or id == aura_messages.ap_status_v7_id:
         category = 'ap'
-    elif id == aura_messages.system_health_v4_id or id == aura_messages.system_health_v5_id:
+    elif id == aura_messages.system_health_v4_id or id == aura_messages.system_health_v5_id or id == aura_messages.system_health_v6_id:
         category = 'health'
     elif id == aura_messages.payload_v2_id or id == aura_messages.payload_v3_id:
         category = 'payload'

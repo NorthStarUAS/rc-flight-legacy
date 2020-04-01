@@ -42,6 +42,7 @@ private:
     pyPropertyNode pilot_node;
     pyPropertyNode power_node;
     pyPropertyNode act_node;
+    pyPropertyNode status_node;
     
     string device_name = "/dev/ttyS4";
     int baud = 500000;

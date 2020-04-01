@@ -84,7 +84,7 @@ class Packer():
     airdata = aura_messages.airdata_v7()
     filter = aura_messages.filter_v4()
     gps = aura_messages.gps_v4()
-    health = aura_messages.system_health_v5()
+    health = aura_messages.system_health_v6()
     imu = aura_messages.imu_v5()
     pilot = aura_messages.pilot_v3()
     ap_buf = None
@@ -1148,13 +1148,14 @@ class Packer():
 
         return index
 
-    def pack_health_bin(self, use_cached=False):
+    def pack_system_health_bin(self, use_cached=False):
         health_time = status_node.getFloat('frame_time')
         if not use_cached and health_time > self.last_health_time:
             self.last_health_time = health_time
             self.health.index = 0
             self.health.timestamp_sec = health_time
-            self.health.system_load_avg = power_node.getFloat("system_load_avg")
+            self.health.system_load_avg = status_node.getFloat("system_load_avg")
+            self.health.fmu_timer_misses = status_node.getFloat("fmu_timer_misses")
             self.health.avionics_vcc = power_node.getFloat("avionics_vcc")
             self.health.main_vcc = power_node.getFloat("main_vcc")
             self.health.cell_vcc = power_node.getFloat("cell_vcc")
@@ -1167,6 +1168,7 @@ class Packer():
         row = dict()
         row['timestamp'] = status_node.getFloat('frame_time')
         row['system_load_avg'] = status_node.getFloat('system_load_avg')
+        row['fmu_timer_misses'] = status_node.getFloat('fmu_timer_misses')
         row['avionics_vcc'] = power_node.getFloat('avionics_vcc')
         row['main_vcc'] = power_node.getFloat('main_vcc')
         row['cell_vcc'] = power_node.getFloat('cell_vcc')
@@ -1202,6 +1204,18 @@ class Packer():
         health = aura_messages.system_health_v5(buf)
         status_node.setFloat("frame_time", health.timestamp_sec)
         status_node.setFloat("system_load_avg", health.system_load_avg)
+        power_node.setFloat("avionics_vcc", health.avionics_vcc)
+        power_node.setFloat("main_vcc", health.main_vcc)
+        power_node.setFloat("cell_vcc", health.cell_vcc)
+        power_node.setFloat("main_amps", health.main_amps)
+        power_node.setInt("total_mah", health.total_mah)
+        return health.index
+
+    def unpack_system_health_v6(self, buf):
+        health = aura_messages.system_health_v5(buf)
+        status_node.setFloat("frame_time", health.timestamp_sec)
+        status_node.setFloat("system_load_avg", health.system_load_avg)
+        status_node.setLong("fmu_timer_misses", health.timer_misses)
         power_node.setFloat("avionics_vcc", health.avionics_vcc)
         power_node.setFloat("main_vcc", health.main_vcc)
         power_node.setFloat("cell_vcc", health.cell_vcc)

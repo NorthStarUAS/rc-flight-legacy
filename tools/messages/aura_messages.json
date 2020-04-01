@@ -461,6 +461,23 @@
             ]
         },
         {
+            "id": 46,
+            "name": "system_health_v6",
+            "desc": "system health v6 message",
+            "date": "April 1, 2020",
+            "fields": [
+                { "type": "uint8_t", "name": "index" },
+                { "type": "float", "name": "timestamp_sec" },
+                { "type": "float", "name": "system_load_avg", "pack_type": "uint16_t", "pack_scale": 100 },
+                { "type": "uint16_t", "name": "fmu_timer_misses" },
+                { "type": "float", "name": "avionics_vcc", "pack_type": "uint16_t", "pack_scale": 1000 },
+                { "type": "float", "name": "main_vcc", "pack_type": "uint16_t", "pack_scale": 1000 },
+                { "type": "float", "name": "cell_vcc", "pack_type": "uint16_t", "pack_scale": 1000 },
+                { "type": "float", "name": "main_amps", "pack_type": "uint16_t", "pack_scale": 1000 },
+                { "type": "float", "name": "total_mah", "pack_type": "uint16_t", "pack_scale": 0.1 }
+            ]
+        },
+        {
             // depricate
             "id": 23,
             "name": "payload_v2",

@@ -12,7 +12,7 @@
 // - (ok) parse ekf packet
 // - (ok) write actuators
 // - (ok--for now) deal with how to arbitrate output path enumeration in property tree
-// - need to log cal and nocal imu values
+// - (ok) need to log cal and nocal imu values
 
 #include <pyprops.h>
 
@@ -57,6 +57,7 @@ void Aura4_t::init( pyPropertyNode *config ) {
     // bind main property nodes
     aura4_node = pyGetNode("/sensors/Aura4", true);
     power_node = pyGetNode("/sensors/power", true);
+    status_node = pyGetNode("/status", true);
     aura4_config = *config;
     
     if ( true ) {               // fixme: move or delete
@@ -381,6 +382,7 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
 	    aura4_node.setLong( "master_hz", msg.master_hz );
 	    aura4_node.setLong( "baud_rate", msg.baud );
 	    aura4_node.setLong( "byte_rate_sec", msg.byte_rate );
+            status_node.setLong( "fmu_timer_misses", msg.timer_misses );
  
 	    if ( first_status_message ) {
 		// log the data to events.txt

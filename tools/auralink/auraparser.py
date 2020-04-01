@@ -99,6 +99,8 @@ def parse_msg(id, buf):
         index = packer.unpack_system_health_v4(buf)
     elif id == aura_messages.system_health_v5_id:
         index = packer.unpack_system_health_v5(buf)
+    elif id == aura_messages.system_health_v6_id:
+        index = packer.unpack_system_health_v6(buf)
     elif id == aura_messages.payload_v2_id:
         index = packer.unpack_payload_v2(buf)
     elif id == aura_messages.payload_v3_id:
