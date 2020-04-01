@@ -797,10 +797,13 @@ bool Aura4_t::send_config() {
             string val = ekf_node.getString("select");
             if ( val == "none" ) {
                 config_ekf.select = message::enum_nav::none;
+                info("ekf selected: none");
             } else if ( val == "nav15" ) {
                 config_ekf.select = message::enum_nav::nav15;
+                info("ekf selected: nav15");
             } else if ( val == "nav15_mag" ) {
                 config_ekf.select = message::enum_nav::nav15_mag;
+                info("ekf selected: nav15_mag");
             } else {
                 hard_fail("bad nav/ekf selection: %s", val.c_str());
             }
