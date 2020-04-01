@@ -784,8 +784,8 @@ bool Aura4_t::send_config() {
         }
     }
 
-    if ( aura4_node.hasChild("ekf") ) {
-        pyPropertyNode ekf_node = aura4_node.getChild("ekf");
+    if ( aura4_config.hasChild("ekf") ) {
+        pyPropertyNode ekf_node = aura4_config.getChild("ekf");
         if ( ekf_node.hasChild("select") ) {
             string val = ekf_node.getString("select");
             if ( val == "none" ) {
