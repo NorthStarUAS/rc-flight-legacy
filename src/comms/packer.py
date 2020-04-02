@@ -82,7 +82,7 @@ class Packer():
     ap = aura_messages.ap_status_v7()
     act = aura_messages.actuator_v3()
     airdata = aura_messages.airdata_v7()
-    filter = aura_messages.filter_v4()
+    filter = aura_messages.filter_v5()
     gps = aura_messages.gps_v4()
     health = aura_messages.system_health_v6()
     imu = aura_messages.imu_v5()
