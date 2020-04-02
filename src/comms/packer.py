@@ -529,6 +529,9 @@ class Packer():
             self.filter.ax_bias = filter_node.getFloat("ax_bias")
             self.filter.ay_bias = filter_node.getFloat("ay_bias")
             self.filter.az_bias = filter_node.getFloat("az_bias")
+            self.filter.max_pos_cov = filter_node.getFloat("max_pos_cov")
+            self.filter.max_vel_cov = filter_node.getFloat("max_vel_cov")
+            self.filter.max_att_cov = filter_node.getFloat("max_att_cov")
             self.filter.sequence_num = remote_link_node.getInt("sequence_num")
             self.filter.status = filter_node.getInt("status")
             self.filter_buf = self.filter.pack()
@@ -553,6 +556,9 @@ class Packer():
         row['ax_bias'] = filter_node.getFloat('ax_bias')
         row['ay_bias'] = filter_node.getFloat('ay_bias')
         row['az_bias'] = filter_node.getFloat('az_bias')
+        row['max_pos_cov'] = filter_node.getFloat('max_pos_cov')
+        row['max_vel_cov'] = filter_node.getFloat('max_vel_cov')
+        row['max_att_cov'] = filter_node.getFloat('max_att_cov')
         row['status'] = filter_node.getInt('status')
         return row
 
@@ -581,29 +587,6 @@ class Packer():
                 'p_bias', 'q_bias', 'r_bias', 'ax_bias', 'ay_bias', 'az_bias',
                 'status']
         return row, keys
-
-    def unpack_filter_v2(self, buf):
-        nav = aura_messages.filter_v2(buf)
-
-        if nav.index > 0:
-            printf("Warning: nav index > 0 not supported")
-        node = filter_node
-
-        node.setFloat("timestamp", nav.timestamp_sec)
-        node.setFloat("latitude_deg", nav.latitude_deg)
-        node.setFloat("longitude_deg", nav.longitude_deg)
-        node.setFloat("altitude_m", nav.altitude_m)
-        node.setFloat("vn_ms", nav.vn_ms)
-        node.setFloat("ve_ms", nav.ve_ms)
-        node.setFloat("vd_ms", nav.vd_ms)
-        node.setFloat("roll_deg", nav.roll_deg)
-        node.setFloat("pitch_deg", nav.pitch_deg)
-        node.setFloat("heading_deg", nav.yaw_deg)
-        if nav.sequence_num >= 1:
-            remote_link_node.setInt("sequence_num", nav.sequence_num)
-        node.setInt("status", nav.status)
-
-        return nav.index
 
     def unpack_filter_v3(self, buf):
         nav = aura_messages.filter_v3(buf)
@@ -657,6 +640,38 @@ class Packer():
         node.setFloat("ax_bias", nav.ax_bias)
         node.setFloat("ay_bias", nav.ay_bias)
         node.setFloat("az_bias", nav.az_bias)
+        if nav.sequence_num >= 1:
+            remote_link_node.setInt("sequence_num", nav.sequence_num)
+        node.setInt("status", nav.status)
+
+        return nav.index
+
+    def unpack_filter_v5(self, buf):
+        nav = aura_messages.filter_v5(buf)
+
+        if nav.index > 0:
+            printf("Warning: nav index > 0 not supported")
+        node = filter_node
+
+        node.setFloat("timestamp", nav.timestamp_sec)
+        node.setFloat("latitude_deg", nav.latitude_deg)
+        node.setFloat("longitude_deg", nav.longitude_deg)
+        node.setFloat("altitude_m", nav.altitude_m)
+        node.setFloat("vn_ms", nav.vn_ms)
+        node.setFloat("ve_ms", nav.ve_ms)
+        node.setFloat("vd_ms", nav.vd_ms)
+        node.setFloat("roll_deg", nav.roll_deg)
+        node.setFloat("pitch_deg", nav.pitch_deg)
+        node.setFloat("heading_deg", nav.yaw_deg)
+        node.setFloat("p_bias", nav.p_bias)
+        node.setFloat("q_bias", nav.q_bias)
+        node.setFloat("r_bias", nav.r_bias)
+        node.setFloat("ax_bias", nav.ax_bias)
+        node.setFloat("ay_bias", nav.ay_bias)
+        node.setFloat("az_bias", nav.az_bias)
+        node.setFloat("max_pos_cov", nav.max_pos_cov)
+        node.setFloat("max_vel_cov", nav.max_vel_cov)
+        node.setFloat("max_att_cov", nav.max_att_cov)
         if nav.sequence_num >= 1:
             remote_link_node.setInt("sequence_num", nav.sequence_num)
         node.setInt("status", nav.status)

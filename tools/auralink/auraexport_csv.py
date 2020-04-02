@@ -30,7 +30,7 @@ def logical_category(id):
         return 'imu'
     elif id == aura_messages.airdata_v5_id or id == aura_messages.airdata_v6_id or id == aura_messages.airdata_v7_id:
         return 'air'
-    elif id == aura_messages.filter_v2_id or id == aura_messages.filter_v3_id or id == aura_messages.filter_v4_id:
+    elif id == aura_messages.filter_v3_id or id == aura_messages.filter_v4_id or id == aura_messages.filter_v5_id:
         return 'filter'
     elif id == aura_messages.actuator_v2_id or id == aura_messages.actuator_v3_id:
         return 'act'

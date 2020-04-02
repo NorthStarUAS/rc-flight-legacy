@@ -10,9 +10,9 @@ imu_v5_id = 45
 airdata_v5_id = 18
 airdata_v6_id = 40
 airdata_v7_id = 43
-filter_v2_id = 22
 filter_v3_id = 31
 filter_v4_id = 36
+filter_v5_id = 47
 actuator_v2_id = 21
 actuator_v3_id = 37
 pilot_v2_id = 20
@@ -585,68 +585,6 @@ class airdata_v7():
         self.wind_speed_kt /= 4
         self.pitot_scale_factor /= 100
 
-# Message: filter_v2
-# Id: 22
-class filter_v2():
-    id = 22
-    _pack_string = "<BdddfhhhhhhBB"
-
-    def __init__(self, msg=None):
-        # public fields
-        self.index = 0
-        self.timestamp_sec = 0.0
-        self.latitude_deg = 0.0
-        self.longitude_deg = 0.0
-        self.altitude_m = 0.0
-        self.vn_ms = 0.0
-        self.ve_ms = 0.0
-        self.vd_ms = 0.0
-        self.roll_deg = 0.0
-        self.pitch_deg = 0.0
-        self.yaw_deg = 0.0
-        self.sequence_num = 0
-        self.status = 0
-        # unpack if requested
-        if msg: self.unpack(msg)
-
-    def pack(self):
-        msg = struct.pack(self._pack_string,
-                          self.index,
-                          self.timestamp_sec,
-                          self.latitude_deg,
-                          self.longitude_deg,
-                          self.altitude_m,
-                          int(round(self.vn_ms * 100)),
-                          int(round(self.ve_ms * 100)),
-                          int(round(self.vd_ms * 100)),
-                          int(round(self.roll_deg * 10)),
-                          int(round(self.pitch_deg * 10)),
-                          int(round(self.yaw_deg * 10)),
-                          self.sequence_num,
-                          self.status)
-        return msg
-
-    def unpack(self, msg):
-        (self.index,
-         self.timestamp_sec,
-         self.latitude_deg,
-         self.longitude_deg,
-         self.altitude_m,
-         self.vn_ms,
-         self.ve_ms,
-         self.vd_ms,
-         self.roll_deg,
-         self.pitch_deg,
-         self.yaw_deg,
-         self.sequence_num,
-         self.status) = struct.unpack(self._pack_string, msg)
-        self.vn_ms /= 100
-        self.ve_ms /= 100
-        self.vd_ms /= 100
-        self.roll_deg /= 10
-        self.pitch_deg /= 10
-        self.yaw_deg /= 10
-
 # Message: filter_v3
 # Id: 31
 class filter_v3():
@@ -818,6 +756,104 @@ class filter_v4():
         self.ax_bias /= 1000
         self.ay_bias /= 1000
         self.az_bias /= 1000
+
+# Message: filter_v5
+# Id: 47
+class filter_v5():
+    id = 47
+    _pack_string = "<BfddfhhhhhhhhhhhhHHHBB"
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.timestamp_sec = 0.0
+        self.latitude_deg = 0.0
+        self.longitude_deg = 0.0
+        self.altitude_m = 0.0
+        self.vn_ms = 0.0
+        self.ve_ms = 0.0
+        self.vd_ms = 0.0
+        self.roll_deg = 0.0
+        self.pitch_deg = 0.0
+        self.yaw_deg = 0.0
+        self.p_bias = 0.0
+        self.q_bias = 0.0
+        self.r_bias = 0.0
+        self.ax_bias = 0.0
+        self.ay_bias = 0.0
+        self.az_bias = 0.0
+        self.max_pos_cov = 0.0
+        self.max_vel_cov = 0.0
+        self.max_att_cov = 0.0
+        self.sequence_num = 0
+        self.status = 0
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = struct.pack(self._pack_string,
+                          self.index,
+                          self.timestamp_sec,
+                          self.latitude_deg,
+                          self.longitude_deg,
+                          self.altitude_m,
+                          int(round(self.vn_ms * 100)),
+                          int(round(self.ve_ms * 100)),
+                          int(round(self.vd_ms * 100)),
+                          int(round(self.roll_deg * 10)),
+                          int(round(self.pitch_deg * 10)),
+                          int(round(self.yaw_deg * 10)),
+                          int(round(self.p_bias * 10000)),
+                          int(round(self.q_bias * 10000)),
+                          int(round(self.r_bias * 10000)),
+                          int(round(self.ax_bias * 1000)),
+                          int(round(self.ay_bias * 1000)),
+                          int(round(self.az_bias * 1000)),
+                          int(round(self.max_pos_cov * 100)),
+                          int(round(self.max_vel_cov * 1000)),
+                          int(round(self.max_att_cov * 10000)),
+                          self.sequence_num,
+                          self.status)
+        return msg
+
+    def unpack(self, msg):
+        (self.index,
+         self.timestamp_sec,
+         self.latitude_deg,
+         self.longitude_deg,
+         self.altitude_m,
+         self.vn_ms,
+         self.ve_ms,
+         self.vd_ms,
+         self.roll_deg,
+         self.pitch_deg,
+         self.yaw_deg,
+         self.p_bias,
+         self.q_bias,
+         self.r_bias,
+         self.ax_bias,
+         self.ay_bias,
+         self.az_bias,
+         self.max_pos_cov,
+         self.max_vel_cov,
+         self.max_att_cov,
+         self.sequence_num,
+         self.status) = struct.unpack(self._pack_string, msg)
+        self.vn_ms /= 100
+        self.ve_ms /= 100
+        self.vd_ms /= 100
+        self.roll_deg /= 10
+        self.pitch_deg /= 10
+        self.yaw_deg /= 10
+        self.p_bias /= 10000
+        self.q_bias /= 10000
+        self.r_bias /= 10000
+        self.ax_bias /= 1000
+        self.ay_bias /= 1000
+        self.az_bias /= 1000
+        self.max_pos_cov /= 100
+        self.max_vel_cov /= 1000
+        self.max_att_cov /= 10000
 
 # Message: actuator_v2
 # Id: 21

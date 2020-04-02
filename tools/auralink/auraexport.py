@@ -30,7 +30,7 @@ def generate_path(id, index):
         category = 'imu'
     elif id == aura_messages.airdata_v5_id or id == aura_messages.airdata_v6_id or id == aura_messages.airdata_v7_id:
         category = 'air'
-    elif id == aura_messages.filter_v2_id or id == aura_messages.filter_v3_id or id == aura_messages.filter_v4_id:
+    elif id == aura_messages.filter_v3_id or id == aura_messages.filter_v4_id or id == aura_messages.filter_v5_id:
         category = 'filter'
     elif id == aura_messages.actuator_v2_id or id == aura_messages.actuator_v3_id:
         category = 'act'

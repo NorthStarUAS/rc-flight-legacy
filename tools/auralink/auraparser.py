@@ -73,12 +73,12 @@ def parse_msg(id, buf):
         index = packer.unpack_airdata_v6(buf)
     elif id == aura_messages.airdata_v7_id:
         index = packer.unpack_airdata_v7(buf)
-    elif id == aura_messages.filter_v2_id:
-        index = packer.unpack_filter_v2(buf)
     elif id == aura_messages.filter_v3_id:
         index = packer.unpack_filter_v3(buf)
     elif id == aura_messages.filter_v4_id:
         index = packer.unpack_filter_v4(buf)
+    elif id == aura_messages.filter_v5_id:
+        index = packer.unpack_filter_v5(buf)
     elif id == aura_messages.actuator_v2_id:
         index = packer.unpack_act_v2(buf)
     elif id == aura_messages.actuator_v3_id:
