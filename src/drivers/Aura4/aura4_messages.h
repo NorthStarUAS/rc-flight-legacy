@@ -1278,6 +1278,9 @@ struct ekf_t {
     float ax_bias;
     float ay_bias;
     float az_bias;
+    float max_pos_cov;
+    float max_vel_cov;
+    float max_att_cov;
     uint8_t status;
 
     // internal structure for packing
@@ -1300,6 +1303,9 @@ struct ekf_t {
         float ax_bias;
         float ay_bias;
         float az_bias;
+        uint16_t max_pos_cov;
+        uint16_t max_vel_cov;
+        uint16_t max_att_cov;
         uint8_t status;
     };
     #pragma pack(pop)
@@ -1333,6 +1339,9 @@ struct ekf_t {
         _buf->ax_bias = ax_bias;
         _buf->ay_bias = ay_bias;
         _buf->az_bias = az_bias;
+        _buf->max_pos_cov = uintround(max_pos_cov * 100);
+        _buf->max_vel_cov = uintround(max_vel_cov * 1000);
+        _buf->max_att_cov = uintround(max_att_cov * 10000);
         _buf->status = status;
         return true;
     }
@@ -1360,6 +1369,9 @@ struct ekf_t {
         ax_bias = _buf->ax_bias;
         ay_bias = _buf->ay_bias;
         az_bias = _buf->az_bias;
+        max_pos_cov = _buf->max_pos_cov / (float)100;
+        max_vel_cov = _buf->max_vel_cov / (float)1000;
+        max_att_cov = _buf->max_att_cov / (float)10000;
         status = _buf->status;
         return true;
     }

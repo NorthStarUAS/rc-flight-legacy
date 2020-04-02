@@ -984,6 +984,9 @@ bool Aura4_t::update_ekf( message::ekf_t *ekf ) {
     ekf_node.setDouble( "ax_bias", ekf->ax_bias );
     ekf_node.setDouble( "ay_bias", ekf->ay_bias );
     ekf_node.setDouble( "az_bias", ekf->az_bias );
+    ekf_node.setDouble( "max_pos_cov", ekf->max_pos_cov );
+    ekf_node.setDouble( "max_vel_cov", ekf->max_vel_cov );
+    ekf_node.setDouble( "max_att_cov", ekf->max_att_cov );
     ekf_node.setLong("status", ekf->status );
     
     /*FIXME:move the following to filter_mgr?*/

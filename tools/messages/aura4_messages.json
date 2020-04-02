@@ -270,6 +270,9 @@
                 { "type": "float", "name": "ax_bias" },
                 { "type": "float", "name": "ay_bias" },
                 { "type": "float", "name": "az_bias" },
+                { "type": "float", "name": "max_pos_cov", "pack_type": "uint16_t", "pack_scale": 100 },
+                { "type": "float", "name": "max_vel_cov", "pack_type": "uint16_t", "pack_scale": 1000 },
+                { "type": "float", "name": "max_att_cov", "pack_type": "uint16_t", "pack_scale": 10000 },
                 { "type": "uint8_t", "name": "status" }
             ]
         }
