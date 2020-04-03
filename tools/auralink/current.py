@@ -91,6 +91,7 @@ def compute_derived_data():
         in_flight = True
     else:
         in_flight = False
+    status_node.setBool("in_flight", in_flight)
     
     # local autopilot timer
     ap_enabled = False
