@@ -940,6 +940,12 @@ float Aura4_t::read() {
                 aura4_node.setString( "command_result",
                                       "success: " + command );
             }
+        } else if ( command == "reset_ekf" ) {
+            if ( write_command_reset_ekf() ) {
+                aura4_node.setString( "command", "" );
+                aura4_node.setString( "command_result",
+                                      "success: " + command );
+            }
         } else {
             // unknown command
             aura4_node.setString( "command", "" );
