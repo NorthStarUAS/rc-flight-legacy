@@ -130,7 +130,7 @@ def compute_derived_data():
     if filt_perc is None:
         filt_perc = batt_perc
     else:
-        filt_perc = 0.999 * filt_perc + 0.001 * batt_perc
+        filt_perc = 0.9995 * filt_perc + 0.0005 * batt_perc
     power_node.setFloat("battery_perc", filt_perc)
     
     # TECS
