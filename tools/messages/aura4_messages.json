@@ -177,7 +177,7 @@
         {
             "name": "imu",
             "fields": [
-                { "type": "uint32_t", "name": "micros" },
+                { "type": "uint32_t", "name": "millis" },
                 { "type": "int16_t", "name": "nocal[6]" },
                 { "type": "int16_t", "name": "cal[10]" }
             ]
@@ -254,7 +254,7 @@
         {
             "name": "ekf",
             "fields": [
-                { "type": "uint32_t", "name": "micros" },
+                { "type": "uint32_t", "name": "millis" },
                 { "type": "double", "name": "lat_rad" },
                 { "type": "double", "name": "lon_rad" },
                 { "type": "float", "name": "altitude_m" },

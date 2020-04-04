@@ -864,7 +864,7 @@ struct pilot_t {
 // Message: imu (id: 25)
 struct imu_t {
     // public fields
-    uint32_t micros;
+    uint32_t millis;
     int16_t nocal[6];
     int16_t cal[10];
 
@@ -872,7 +872,7 @@ struct imu_t {
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
-        uint32_t micros;
+        uint32_t millis;
         int16_t nocal[6];
         int16_t cal[10];
     };
@@ -891,7 +891,7 @@ struct imu_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
-        _buf->micros = micros;
+        _buf->millis = millis;
         for (int _i=0; _i<6; _i++) _buf->nocal[_i] = nocal[_i];
         for (int _i=0; _i<10; _i++) _buf->cal[_i] = cal[_i];
         return true;
@@ -904,7 +904,7 @@ struct imu_t {
         memcpy(payload, external_message, message_size);
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
-        micros = _buf->micros;
+        millis = _buf->millis;
         for (int _i=0; _i<6; _i++) nocal[_i] = _buf->nocal[_i];
         for (int _i=0; _i<10; _i++) cal[_i] = _buf->cal[_i];
         return true;
@@ -1262,7 +1262,7 @@ struct status_t {
 // Message: ekf (id: 30)
 struct ekf_t {
     // public fields
-    uint32_t micros;
+    uint32_t millis;
     double lat_rad;
     double lon_rad;
     float altitude_m;
@@ -1287,7 +1287,7 @@ struct ekf_t {
     uint8_t payload[message_max_len];
     #pragma pack(push, 1)
     struct _compact_t {
-        uint32_t micros;
+        uint32_t millis;
         double lat_rad;
         double lon_rad;
         float altitude_m;
@@ -1323,7 +1323,7 @@ struct ekf_t {
         }
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
-        _buf->micros = micros;
+        _buf->millis = millis;
         _buf->lat_rad = lat_rad;
         _buf->lon_rad = lon_rad;
         _buf->altitude_m = altitude_m;
@@ -1353,7 +1353,7 @@ struct ekf_t {
         memcpy(payload, external_message, message_size);
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
-        micros = _buf->micros;
+        millis = _buf->millis;
         lat_rad = _buf->lat_rad;
         lon_rad = _buf->lon_rad;
         altitude_m = _buf->altitude_m;

@@ -250,11 +250,12 @@ bool Aura4_t::update_imu( message::imu_t *imu ) {
     // stamp (versus just sampling current host time.)
 	
     // imu->micros &= 0xffffff; // 24 bits = 16.7 microseconds roll over
+    // imu->micros &= 0xffffff; // 24 bits = 16.7 microseconds roll over
 	
-    double imu_remote_sec = (double)imu->micros / 1000000.0;
+    double imu_remote_sec = (double)imu->millis / 1000.0;
     double diff = imu_timestamp - imu_remote_sec;
-    if ( last_imu_micros > imu->micros ) {
-        events->log("Aura4", "micros() rolled over\n");
+    if ( last_imu_millis > imu->millis ) {
+        events->log("Aura4", "millis() rolled over\n");
         imu_offset.reset();
     }
     imu_offset.update(imu_remote_sec, diff);
@@ -262,11 +263,11 @@ bool Aura4_t::update_imu( message::imu_t *imu ) {
     // printf("fit_diff = %.6f  diff = %.6f  ts = %.6f\n",
     //        fit_diff, diff, imu_remote_sec + fit_diff );
 
-    last_imu_micros = imu->micros;
+    last_imu_millis = imu->millis;
 	
     imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
-    imu_node.setLong( "imu_micros", imu->micros );
-    imu_node.setDouble( "imu_sec", (double)imu->micros / 1000000.0 );
+    imu_node.setLong( "imu_millis", imu->millis );
+    imu_node.setDouble( "imu_sec", (double)imu->millis / 1000.0 );
     imu_node.setDouble( "p_rad_sec", p_cal );
     imu_node.setDouble( "q_rad_sec", q_cal );
     imu_node.setDouble( "r_rad_sec", r_cal );
@@ -965,13 +966,13 @@ bool Aura4_t::update_ekf( message::ekf_t *ekf ) {
     const double F2M = 0.3048;
     const double M2F = 1 / F2M;
     // do a little dance to estimate the ekf timestamp in seconds
-    long int imu_micros = imu_node.getLong("imu_micros");
-    long int diff_micros = ekf->micros - imu_micros;
-    if ( diff_micros < 0 ) { diff_micros = 0; } // don't puke on wraparound
+    long int imu_millis = imu_node.getLong("imu_millis");
+    long int diff_millis = ekf->millis - imu_millis;
+    if ( diff_millis < 0 ) { diff_millis = 0; } // don't puke on wraparound
     double timestamp = imu_node.getDouble("timestamp")
-        + (float)diff_micros / 1000.0;
+        + (float)diff_millis / 1000.0;
     ekf_node.setDouble( "timestamp", timestamp );
-    ekf_node.setLong( "ekf_micros", ekf->micros );
+    ekf_node.setLong( "ekf_millis", ekf->millis );
     ekf_node.setDouble( "latitude_deg", ekf->lat_rad * R2D );
     ekf_node.setDouble( "longitude_deg", ekf->lon_rad * R2D );
     ekf_node.setDouble( "altitude_m", ekf->altitude_m );

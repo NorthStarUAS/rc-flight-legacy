@@ -71,7 +71,7 @@ private:
     LowPassFilter pitot_filt = LowPassFilter(0.2);
     
     double imu_timestamp = 0.0;
-    uint32_t last_imu_micros = 0;
+    uint32_t last_imu_millis = 0;
     LinearFitFilter imu_offset = LinearFitFilter(200.0, 0.01);
 
     string pilot_mapping[message::sbus_channels]; // channel->name mapping
