@@ -151,6 +151,7 @@ class MissionMgr:
         for task in self.global_tasks:
             if task.name == name:
                 return task
+        comms.events.log("mission", "global task not found: " + name)
         return None
 
     def front_seq_task(self):
@@ -171,6 +172,7 @@ class MissionMgr:
         for task in self.seq_tasks:
             if task.name == name:
                 return task
+        comms.events.log("mission", "sequential task not found: " + name)
         return None
 
     def find_standby_task(self, name):
@@ -178,6 +180,7 @@ class MissionMgr:
             for task in self.standby_tasks:
                 if task.name == name:
                     return task
+        comms.events.log("mission", "standby task not found: " + name)
         return None
 
     def find_standby_task_by_nickname(self, nickname):
