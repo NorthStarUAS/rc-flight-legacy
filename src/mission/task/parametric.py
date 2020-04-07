@@ -26,69 +26,10 @@ import mission.task.state
 # loop distance (may need to be adjusted for each specific parametric function)
 loop_t = math.pi * 2
 r2d = 180/math.pi
-half_width = 250
-half_height = 75
-vertical = 50
-
-# parameterized functions for x and y
-loop_t = math.pi * 2
-def simple_func(t):
-    x = math.sin(t)
-    y = math.sin(2*t)
-    return ( half_width * x, half_height * y )
-
-# Lemniscate of Bernoulli
-# https://en.wikipedia.org/wiki/Lemniscate_of_Bernoulli
 sqrt2 = math.sqrt(2)
-def lemniscate(t):
-    sint = math.sin(t)
-    cost = math.cos(t)
-    x = cost / (sint * sint + 1.0)
-    y = 2 * sqrt2 * cost*sint / (sint * sint + 1.0)
-    return ( half_width * x, half_height * y )
+ft2m = 0.3048
+m2ft = 1.0 / ft2m
 
-# Rhodonea (Rose) function
-# https://en.wikipedia.org/wiki/Rose_(mathematics)
-# k = petal coefficient
-# if k is odd then k is the number of petals
-# if k is even then k is half the number of petals
-# if k is a half-integer (e.g. 1/2, 3/2, 5/2), the curve will be
-#    rose-shaped with 4k petals.
-# see the web link for more details on k
-loopt = 2*math.pi
-def rose(t):
-    k = 2
-    x = math.cos(k*t) * math.cos(t)
-    y = math.cos(k*t) * math.sin(t)
-    return ( half_width * x, half_width * y )
-    
-#func = simple_func
-#func = lemniscate
-func = rose
-
-# distance from specified point to value of curve at 't'
-def distance_t2xy(t, x, y):
-    (fx, fy) = func(t)
-    dx = x - fx
-    dy = y - fy
-    return dx*dx + dy*dy
-
-# distance 2d distance between two t values
-def distance_t2t(t1, t2):
-    (x1, y1) = func(t1)
-    (x2, y2) = func(t2)
-    dx = x2 - x1; dy = y2 - y1
-    return math.sqrt(dx*dx + dy*dy)
-
-# return an estimate of the tangent heading at point t
-def tangent_at_t(t, step):
-    t1 = t - step
-    t2 = t + step
-    (x1, y1) = func(t1)
-    (x2, y2) = func(t2)
-    dx = x2 - x1; dy = y2 - y1
-    return math.pi*0.5 - math.atan2(dy, dx)
-    
 def define_circle(p1, p2, p3):
     """
     Returns the center and radius of the circle passing the given 3 points.
@@ -113,15 +54,6 @@ def define_circle(p1, p2, p3):
     radius = np.sqrt((cx - p1[0])**2 + (cy - p1[1])**2)
     return ((cx, cy), radius, direction)
 
-# return an estimate of the radius of curvature at point t
-def curvature_at_t(t, step):
-    t1 = t - step
-    t2 = t + step
-    p1 = func(t1)
-    p2 = func(t)
-    p3 = func(t2)
-    return define_circle(p1, p2, p3)
-    
 # optimization function: find the value of t that corresponds to the
 # point on the curve that is closest to the to the given x, y
 # coordinates.
@@ -132,18 +64,6 @@ def curvature_at_t(t, step):
 #                    options={'disp': False})
 #     # print(res)
 #     return res.x[0]
-
-def find_next_t(x, y, initial_guess, dt):
-    t = initial_guess
-    d = distance_t2xy(t, x, y)
-    while True:
-        min_dist = d
-        min_t = t
-        t += dt
-        d = distance_t2xy(t, x, y)
-        if d > min_dist:
-            break
-    return min_t
 
 
 class Parametric(Task):
@@ -158,16 +78,27 @@ class Parametric(Task):
         self.tecs_node = getNode("/config/autopilot/TECS", True)
 
         self.t = 0.0
-        self.direction = "left"
-        self.radius_m = 100.0
         
         self.name = config_node.getString("name")
-        if config_node.hasChild("direction"):
-            # only override the default if a value is given
-            self.direction = config_node.getString("direction")
+        self.function = self.rose
+        if config_node.getString("function") == "simple":
+            self.function = self.simple_func
+        if config_node.getString("function") == "rose":
+            self.function = self.rose
+        if config_node.getString("function") == "lemniscate":
+            self.function = self.lemniscate
+        self.radius_m = 200.0
         if config_node.hasChild("radius_m"):
-            # only override the default if a value is given
             self.radius_m = config_node.getFloat("radius_m")
+        self.vertical_m = 20.0
+        if config_node.hasChild("vertical_m"):
+            self.vertical_m = config_node.getFloat("vertical_m")
+        self.min_kt = self.tecs_node.getFloat("min_kt")
+        if config_node.hasChild("min_kt"):
+            self.min_kt = config_node.getFloat("min_kt")
+        self.max_kt = self.tecs_node.getFloat("max_kt")
+        if config_node.hasChild("max_kt"):
+            self.max_kt = config_node.getFloat("max_kt")
             
         # estimate the distance of the route (assuming loop_t is set correctly!)
         steps = 1000
@@ -176,10 +107,83 @@ class Parametric(Task):
         t2 = t1 + self.step
         self.loop_dist = 0.0
         while t2 <= loop_t + 0.5*self.step:
-            self.loop_dist += distance_t2t(t1, t2)
+            self.loop_dist += self.distance_t2t(t1, t2)
             t1 = t2
             t2 += self.step
         print('route distance is approximately:', self.loop_dist)
+
+    # parameterized functions for x and y
+    def simple_func(self, t):
+        x = math.sin(t)
+        y = math.sin(2*t)
+        return ( self.radius_m * x, self.radius_m * y )
+
+    # Lemniscate of Bernoulli
+    # https://en.wikipedia.org/wiki/Lemniscate_of_Bernoulli
+    def lemniscate(self, t):
+        sint = math.sin(t)
+        cost = math.cos(t)
+        x = cost / (sint * sint + 1.0)
+        y = 2 * sqrt2 * cost*sint / (sint * sint + 1.0)
+        return ( self.radius_m * x, self.radius_m * y )
+
+    # Rhodonea (Rose) function
+    # https://en.wikipedia.org/wiki/Rose_(mathematics)
+    # k = petal coefficient
+    # if k is odd then k is the number of petals
+    # if k is even then k is half the number of petals
+    # if k is a half-integer (e.g. 1/2, 3/2, 5/2), the curve will be
+    #    rose-shaped with 4k petals.
+    # see the web link for more details on k
+    def rose(self, t):
+        k = 2
+        x = math.cos(k*t) * math.cos(t)
+        y = math.cos(k*t) * math.sin(t)
+        return ( self.radius_m * x, self.radius_m * y )
+
+    # distance from specified point to value of curve at 't'
+    def distance_t2xy(self, t, x, y):
+        (fx, fy) = self.function(t)
+        dx = x - fx
+        dy = y - fy
+        return dx*dx + dy*dy
+
+    # distance 2d distance between two t values
+    def distance_t2t(self, t1, t2):
+        (x1, y1) = self.function(t1)
+        (x2, y2) = self.function(t2)
+        dx = x2 - x1; dy = y2 - y1
+        return math.sqrt(dx*dx + dy*dy)
+
+    # return an estimate of the tangent heading at point t
+    def tangent_at_t(self, t, step):
+        t1 = t - step
+        t2 = t + step
+        (x1, y1) = self.function(t1)
+        (x2, y2) = self.function(t2)
+        dx = x2 - x1; dy = y2 - y1
+        return math.pi*0.5 - math.atan2(dy, dx)
+    
+    # return an estimate of the radius of curvature at point t
+    def curvature_at_t(self, t, step):
+        t1 = t - step
+        t2 = t + step
+        p1 = self.function(t1)
+        p2 = self.function(t)
+        p3 = self.function(t2)
+        return define_circle(p1, p2, p3)
+    
+    def find_next_t(self, x, y, initial_guess, dt):
+        t = initial_guess
+        d = self.distance_t2xy(t, x, y)
+        while True:
+            min_dist = d
+            min_t = t
+            t += dt
+            d = self.distance_t2xy(t, x, y)
+            if d > min_dist:
+                break
+        return min_t
 
     def activate(self):
         self.active = True
@@ -202,12 +206,12 @@ class Parametric(Task):
         y_m = self.home_node.getFloat("y_m")
 
         #self.t = find_best_t(x_m, y_m, initial_guess=self.t)
-        self.t = find_next_t(x_m, y_m, initial_guess=self.t,
-                             dt=1.0/self.loop_dist)
+        self.t = self.find_next_t(x_m, y_m, initial_guess=self.t,
+                                  dt=1.0/self.loop_dist)
         if self.t > loop_t:
             self.t -= loop_t
 
-        (center, radius, direction) = curvature_at_t(self.t, self.step)
+        (center, radius, direction) = self.curvature_at_t(self.t, self.step)
         #print('t:', self.t, ' radius: ', radius, direction)
 
         if center != None:
@@ -224,19 +228,16 @@ class Parametric(Task):
             self.circle_node.setFloat('radius_m', radius)
 
             # adjust target altitude to be swoopy
-            x = self.home_node.getFloat('dist_m')
-            factor = math.sqrt(vertical) / half_width
-            h = factor*factor * x*x
-            self.targets_node.setFloat('altitude_agl_ft', 200 + h)
+            ratio = self.home_node.getFloat('dist_m') / self.radius_m
+            h_m = ratio*ratio * self.vertical_m
+            self.targets_node.setFloat('altitude_agl_ft', 200 + h_m*m2ft)
 
             # adjust target airspeed to be swoopy
-            min = self.tecs_node.getFloat("min_kt")
-            max = self.tecs_node.getFloat("max_kt")
-            range = max - min
-            v = range / (half_width*half_width) * x*x
-            airspeed_kt = max - v
-            if airspeed_kt < min:
-                airspeed_kt = min
+            range = self.max_kt - self.min_kt
+            v = ratio*ratio * range
+            airspeed_kt = self.max_kt - v
+            if airspeed_kt < self.min_kt:
+                airspeed_kt = self.min_kt
             self.targets_node.setFloat("airspeed_kt", airspeed_kt)
             
     def is_complete(self):
