@@ -36,7 +36,6 @@ class Launch(Task):
         self.relhdg = 0.0
 
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
         self.completion_agl_ft = config_node.getFloat("completion_agl_ft")
         self.mission_agl_ft = config_node.getFloat("mission_agl_ft")
         self.target_speed_kt = config_node.getFloat("speed_kt")

@@ -17,7 +17,6 @@ class ThrottleSafety(Task):
         self.act_node.setBool("throttle_safety", True)
         
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
         if config_node.hasChild("safety_mode"):
             self.safety_mode = config_node.getString('safety_mode')
 

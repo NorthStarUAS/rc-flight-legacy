@@ -14,7 +14,6 @@ class ModeMgr(Task):
         Task.__init__(self)
 
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
 
         self.ap_node = getNode("/autopilot", True)
         self.locks_node = getNode("/autopilot/locks", True)

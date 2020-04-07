@@ -17,7 +17,6 @@ class Idle(Task):
         self.ap_node = getNode("/autopilot", True)
         self.engine_node = getNode("/controls/engine", True)
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
 
     def activate(self):
         self.active = True

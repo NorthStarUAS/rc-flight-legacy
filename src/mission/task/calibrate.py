@@ -12,7 +12,6 @@ class Calibrate(Task):
         self.task_node = getNode("/task", True)
         self.completed = False
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
 
     def activate(self):
         self.active = True

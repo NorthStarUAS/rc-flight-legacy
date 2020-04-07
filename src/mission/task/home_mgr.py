@@ -21,7 +21,6 @@ class HomeMgr(Task):
         self.startup_node = getNode("/task/startup", True)
         self.gps_node = getNode("/sensors/gps", True)
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
 
     def activate(self):
         self.active = True
@@ -58,6 +57,10 @@ class HomeMgr(Task):
             self.home_node.setFloat("dist_m", dist_m)
             
             # a mini cartesian (2d) system relative to home in meters
+            
+            # FIXME: the parametric task is the only thing that uses this
+            # so why not put this code over into the parametric.py module?
+            
             theta = rev_deg * d2r
             x = math.sin(theta) * dist_m
             y = math.cos(theta) * dist_m

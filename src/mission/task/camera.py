@@ -18,7 +18,6 @@ class Camera(Task):
         self.task_node = getNode("/task", True)
         self.comms_node = getNode( '/comms', True)
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
         self.start_time = 0.0
         self.max_attitude = 20.0
         if config_node.hasChild("trigger"):

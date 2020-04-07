@@ -12,7 +12,6 @@ class Chirp(Task):
         self.chirp_node = getNode("/task/chirp", True)
         self.signal_node = getNode("/controls/signal", True)
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
         self.start_time = 0.0
         self.k = 0.0
         # rad/sec is hz*2*pi

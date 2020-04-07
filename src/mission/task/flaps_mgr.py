@@ -10,7 +10,6 @@ class FlapsMgr(Task):
         self.imu_node = getNode("/sensors/imu", True)
         
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
         if config_node.hasChild("speed_secs"):
             self.speed_secs = float(config_node.getString("speed_secs"))
             if self.speed_secs < 1.0:

@@ -151,7 +151,6 @@ class Switches(Task):
         self.switches = []
         
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
 
         children = config_node.getChildren(expand=True)
         #print "switches task children:", children

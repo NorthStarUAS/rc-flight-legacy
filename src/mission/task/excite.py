@@ -27,7 +27,6 @@ class Excite(Task):
         self.config_node = config_node
         self.excite_node = getNode("/task/excite", True)
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
         self.index = 0
         self.start_time = 0.0
         self.type = ''

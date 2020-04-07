@@ -19,7 +19,6 @@ class IsAirborne(Task):
         self.on_alt_agl_ft = 0.0
         self.on_airspeed_kt = 0.0
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
         self.off_alt_agl_ft = config_node.getFloat("off_alt_agl_ft")
         self.off_airspeed_kt = config_node.getFloat("off_airspeed_kt")
         self.on_alt_agl_ft = config_node.getFloat("on_alt_agl_ft")

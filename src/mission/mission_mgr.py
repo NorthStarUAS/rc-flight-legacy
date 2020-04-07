@@ -180,13 +180,6 @@ class MissionMgr:
         comms.events.log("mission", "standby task not found: " + name)
         return None
 
-    def find_standby_task_by_nickname(self, nickname):
-        if nickname != "":
-            for task in self.standby_tasks:
-                if task.nickname == nickname:
-                    return task
-        return None
-
     def process_command_request(self):
         command = self.task_node.getString("command_request")
         result = "successful: " + command # let's be optimistic!
@@ -227,23 +220,21 @@ class MissionMgr:
             self.task_node.setString("command_request", "")
             self.task_node.setString("command_result", result)
 
+    # lookup the home location and request a circle task at that
+    # point.  There should always be a home location defined, but if
+    # not, the fallback is to circle the current position.
     def request_task_home(self):
-        nickname = "circle_home"
-        task = None
-
-        # sanity check, are we already in the requested state
-        if len(self.seq_tasks):
-            task = self.seq_tasks[0]
-            if task.nickname == nickname:
-                return
-
-        task = self.find_standby_task_by_nickname(nickname)
-        if task:
-            # activate task
-            self.push_seq_task(task)
-            task.activate()
-        # FIXME: elif display_on:
-        #    print "oops, couldn't find 'circle-home' task"
+        lon_deg = None
+        lat_deg = None
+        if self.home_node.hasChild("longitude_deg"):
+            tmp = self.home_node.getFloat("longitude_deg")
+            if abs(tmp) > 0.01:
+                lon_deg = tmp
+        if self.home_node.hasChild("latitude_deg"):
+            tmp = self.home_node.getFloat("latitude_deg")
+            if abs(tmp) > 0.01:
+                lat_deg = tmp
+        self.request_task_circle(lon_deg, lat_deg)
 
 
     def request_task_circle(self, lon_deg=None, lat_deg=None):
@@ -261,20 +252,16 @@ class MissionMgr:
         self.circle_standby_node.setFloat( "longitude_deg", lon )
         self.circle_standby_node.setFloat( "latitude_deg", lat )
         
-        nickname = "circle_target"
-
         # sanity check, are we already running the requested task
-        if len(self.seq_tasks) and self.seq_tasks[0].nickname == nickname:
+        if len(self.seq_tasks) and self.seq_tasks[0].name == "circle":
             self.seq_tasks[0].update_parameters()
             comms.events.log("mission", "updating circle parameters")
         else:
             # activate task
-            task = self.find_standby_task_by_nickname( nickname )
+            task = self.find_standby_task( "circle" )
             if task:
                 self.push_seq_task(task)
                 task.activate()
-            else:
-                comms.events.log("mission", "cannot find circle task")
 
     def request_task_idle(self):
         # sanity check, are we already in the requested state

@@ -19,7 +19,6 @@ class Route(Task):
         self.speed_kt = 30.0
 
         self.name = config_node.getString('name')
-        self.nickname = config_node.getString('nickname')
         self.coord_path = config_node.getString('coord_path')
         self.alt_agl_ft = config_node.getFloat('altitude_agl_ft')
         self.speed_kt = config_node.getFloat('speed_kt')

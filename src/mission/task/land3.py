@@ -34,7 +34,6 @@ class Land(Task):
 
         # get task configuration parameters
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
         self.lateral_offset_m = config_node.getFloat("lateral_offset_m")
         self.glideslope_deg = config_node.getFloat("glideslope_deg")
         if self.glideslope_deg < 0.01:

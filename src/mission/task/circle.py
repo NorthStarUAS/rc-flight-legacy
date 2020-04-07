@@ -24,7 +24,6 @@ class Circle(Task):
         self.target_speed_kt = 0.0
         
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
         self.coord_path = config_node.getString("coord_path")
         if config_node.hasChild("direction"):
             # only override the default if a value is given

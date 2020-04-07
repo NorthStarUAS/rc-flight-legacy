@@ -17,7 +17,6 @@ class Preflight(Task):
         self.timer = 0.0
         self.duration_sec = 60.0
         self.name = config_node.getString("name")
-        self.nickname = config_node.getString("nickname")
 
         # copy to /task/preflight
         if config_node.hasChild("duration_sec"):
