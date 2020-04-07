@@ -1,3 +1,12 @@
+# lost_link.py: monitors messages from the ground station and flags an
+# alert when too much time has elapsed since the last received
+# message.  If airborne at this time, request the circle home task
+# which sends the aircraft home to circle.  The operator much chose
+# the next course of action after link is successfully resumed.
+# Otherwise the assumption is that once returned home and circling,
+# the operator could take over manual control and land the aircraft
+# manually.
+
 import mission.mission_mgr
 from props import getNode
 
