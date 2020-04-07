@@ -36,11 +36,11 @@ class Land(Task):
         self.name = config_node.getString("name")
         self.lateral_offset_m = config_node.getFloat("lateral_offset_m")
         self.glideslope_deg = config_node.getFloat("glideslope_deg")
-        if self.glideslope_deg < 0.01:
-            self.glideslope_deg = 6.0
+        if self.glideslope_deg < 3:
+            self.glideslope_deg = 3.0
         self.turn_radius_m = config_node.getFloat("turn_radius_m")
-        if self.turn_radius_m < 1.0:
-            self.turn_radius_m = 75.0
+        if self.turn_radius_m < 50.0:
+            self.turn_radius_m = 50.0
         self.direction = config_node.getString("direction")
         if self.direction == "":
             self.direction = "left"
@@ -176,8 +176,6 @@ class Land(Task):
             if control.route.dist_valid:
                 self.dist_rem_m = self.route_node.getFloat("dist_remaining_m")
 
-        # fixme: compute target altitudes better
-        
         # compute glideslope/target elevation
         alt_m = self.dist_rem_m * math.tan(self.glideslope_rad)
         # print ' ', mode, "dist = %.1f alt = %.1f" % (self.dist_rem_m, alt_m)
@@ -315,8 +313,21 @@ class Land(Task):
             self.side = 1.0
         self.final_heading_deg = self.home_node.getFloat("azimuth_deg")
 
-        # final leg length
-        self.final_leg_m = 4.0 * self.turn_radius_m + self.extend_final_leg_m
+        # final leg length: compute horizontal distance to 175' at the
+        # configured glideslope angle
+        min_alt = 175
+        tan_gs = math.tan(self.glideslope_deg*d2r)
+        if tan_gs > 0:
+            hdist_m = (min_alt / tan_gs) * ft2m
+            #print("hdist_m:", hdist_m)
+            half_circle_m = self.turn_radius_m * math.pi
+            #print("half_circle_m:", half_circle_m)
+            self.final_leg_m = hdist_m - half_circle_m + self.extend_final_leg_m
+            if self.final_leg_m < 50:
+                self.final_leg_m = 50
+        else:
+            self.final_leg_m = 4.0 * self.turn_radius_m + self.extend_final_leg_m
+        print("final_leg_m:", self.final_leg_m)
 
         # touchdown point
         hdg = (self.final_heading_deg + 90 * math.copysign(1, self.lateral_offset_m)) % 360
