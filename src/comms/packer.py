@@ -41,7 +41,7 @@ task_node = getNode("/task", True)
 route_node = getNode("/task/route", True)
 active_node = getNode("/task/route/active", True)
 home_node = getNode("/task/home", True)
-circle_node = getNode("/task/circle", True)
+circle_node = getNode("/task/circle/active", True)
 
 power_node = getNode("/sensors/power", True)
 payload_node = getNode("/payload", True)
@@ -867,7 +867,7 @@ class Packer():
             self.ap.flight_timer = task_node.getFloat("flight_timer")
             self.ap.target_waypoint_idx = route_node.getInt("target_waypoint_idx")
 
-            self.ap.task_attr = 0
+            self.ap.task_attribute = 0
             # wp_counter will get incremented externally in the
             # remote_link message sender because each time we send a
             # serial message to the remote ground station is when we
@@ -887,8 +887,8 @@ class Packer():
                 self.ap.wp_longitude_deg = circle_node.getFloat("longitude_deg")
                 self.ap.wp_latitude_deg = circle_node.getFloat("latitude_deg")
                 self.ap.wp_index = 65534
-                self.ap.task_attr = int(round(circle_node.getFloat("radius_m") * 10))
-                if self.ap.task_attr > 32767: self.ap.task_attr = 32767
+                self.ap.task_attribute = int(round(circle_node.getFloat("radius_m") * 10))
+                if self.ap.task_attribute > 32767: self.ap.task_attribute = 32767
             elif counter == self.ap.route_size + 1:
                 self.ap.wp_longitude_deg = home_node.getFloat("longitude_deg")
                 self.ap.wp_latitude_deg = home_node.getFloat("latitude_deg")
@@ -927,7 +927,7 @@ class Packer():
         row['target_waypoint_idx'] = route_node.getInt("target_waypoint_idx")
         route_size = active_node.getInt("route_size")
         row['route_size'] = route_size
-        row['task_attrib'] = 0.0
+        row['task_attribute'] = 0.0
         if self.wp_counter < route_size:
             wp_node = active_node.getChild('wpt[%d]' % self.wp_counter, True)
             row['wpt_index'] = self.wp_counter
@@ -937,7 +937,7 @@ class Packer():
             row['wpt_index'] = 65534
             row['wpt_longitude_deg'] = circle_node.getFloat("longitude_deg")
             row['wpt_latitude_deg'] = circle_node.getFloat("latitude_deg")
-            row['task_attrib'] = int(round(circle_node.getFloat("radius_m") * 10))
+            row['task_attribute'] = int(round(circle_node.getFloat("radius_m") * 10))
         elif self.wp_counter == route_size + 1:
             row['wpt_index'] = 65535
             row['wpt_longitude_deg'] = home_node.getFloat("longitude_deg")

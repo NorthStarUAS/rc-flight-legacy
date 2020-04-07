@@ -34,17 +34,9 @@ void control_t::init() {
 
     status_node = pyGetNode( "/status", true );
     ap_node = pyGetNode( "/autopilot", true );
-    targets_node = pyGetNode( "/autopilot/targets", true );
-    tecs_node = pyGetNode( "/autopilot/tecs", true );
-    task_node = pyGetNode( "/task", true );
     pilot_node = pyGetNode("/sensors/pilot_input", true);
     flight_node = pyGetNode("/controls/flight", true);
     engine_node = pyGetNode("/controls/engine", true);
-    route_node = pyGetNode("/task/route", true);
-    active_node = pyGetNode("/task/route/active", true);
-    home_node = pyGetNode("/task/home", true);
-    circle_node = pyGetNode("/task/circle", true);
-    pos_node = pyGetNode("/position", true);
 
     // initialize the navigation module
     navigation.init("control.navigation");

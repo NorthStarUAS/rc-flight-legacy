@@ -9,7 +9,6 @@ import mission.task.excite
 import mission.task.flaps_mgr
 import mission.task.home_mgr
 import mission.task.idle
-import mission.task.land2
 import mission.task.land3
 import mission.task.launch
 import mission.task.lost_link
@@ -28,7 +27,7 @@ class MissionMgr:
         self.pos_node = getNode("/position", True)
         self.task_node = getNode("/task", True)
         self.preflight_node = getNode("/task/preflight", True)
-        self.circle_node = getNode("/task/circle", True)
+        self.circle_node = getNode("/task/circle/active", True)
         self.home_node = getNode("/task/home", True)
         self.wind_node = getNode("/filters/wind", True)
         self.global_tasks = []
@@ -54,8 +53,6 @@ class MissionMgr:
         elif task_name == 'idle':
             result = mission.task.idle.Idle(config_node)
         elif task_name == 'land':
-            result = mission.task.land2.Land(config_node)
-        elif task_name == 'land3':
             result = mission.task.land3.Land(config_node)
         elif task_name == 'launch':
             result = mission.task.launch.Launch(config_node)
@@ -280,47 +277,6 @@ class MissionMgr:
         # FIXME else if display_on:
         #    print "oops, couldn't find task by nickname:", nickname
 
-
-    def request_task_circle_descent(self, lon_deg, lat_deg,
-                                    radius_m, direction,
-                                    exit_agl_ft, exit_heading_deg):
-        lon = 0.0
-        lat = 0.0
-        if lon_deg == None or lat_deg == None:
-            # no coordinates specified, use current position
-            lon = self.pos_node.getFloat("longitude_deg")
-            lat = self.pos_node.getFloat("latitude_deg")
-        else:
-            lon = float(lon_deg)
-            lat = float(lat_deg)
-
-        nickname = "circle_descent"
-        task = None
-
-        # sanity check, are we already in the requested state
-        if len(self.seq_tasks):
-            task = self.seq_tasks[0]
-            if task.nickname != nickname:
-                task = self.find_standby_task_by_nickname( nickname )
-                if task:
-                    # activate task
-                    self.push_seq_task(task)
-                    task.activate()
-
-                    # setup the target coordinates
-                    self.circle_node.setFloat( "longitude_deg", lon )
-                    self.circle_node.setFloat( "latitude_deg", lat )
-
-                    # circle configuration
-                    self.circle_node.setFloat("radius_m", radius_m)
-                    self.circle_node.setString("direction", direction)
-
-                    # set the exit condition settings
-                    task.exit_agl_ft = exit_agl_ft
-                    task.exit_heading_deg = exit_heading_deg
-
-        # FIXME else if display_on:
-        #    print "oops, couldn't find task by nickname:", nickname
 
     def request_task_idle(self):
         # sanity check, are we already in the requested state

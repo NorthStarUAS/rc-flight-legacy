@@ -19,7 +19,7 @@ class Land(Task):
         self.task_node = getNode("/task", True)
         self.home_node = getNode("/task/home", True)
         self.land_node = getNode("/task/land", True)
-        self.circle_node = getNode("/task/circle", True)
+        self.circle_node = getNode("/task/circle/active", True)
         self.route_node = getNode("/task/route", True)
         self.ap_node = getNode("/autopilot", True)
         self.nav_node = getNode("/navigation", True)
@@ -147,8 +147,12 @@ class Land(Task):
                     self.circle_capture = True
 
             # compute portion of circle remaining to tangent point
-            current_crs = (course_deg + self.side * 90) % 360
-            circle_pos = (current_crs - self.final_heading_deg + 180) % 360 - 180
+            current_crs = course_deg + self.side * 90
+            if current_crs > 360.0: current_crs -= 360.0
+            if current_crs < 0.0: current_crs += 360.0
+            circle_pos = (self.final_heading_deg - current_crs) * self.side
+            if circle_pos < -180.0: circle_pos += 360.0
+            if circle_pos > 180.0: circle_pos -= 360.0
             # print 'circle_pos:', self.orient_node.getFloat('groundtrack_deg'), current_crs, self.final_heading_deg, circle_pos
             angle_rem_rad = math.pi
             if self.circle_capture and circle_pos > -10:
@@ -313,7 +317,7 @@ class Land(Task):
         self.final_heading_deg = self.home_node.getFloat("azimuth_deg")
 
         # final leg length
-        self.final_leg_m = 3.0 * self.turn_radius_m + self.extend_final_leg_m
+        self.final_leg_m = 4.0 * self.turn_radius_m + self.extend_final_leg_m
 
         # touchdown point
         hdg = (self.final_heading_deg + 90 * math.copysign(1, self.lateral_offset_m)) % 360

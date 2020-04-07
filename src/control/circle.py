@@ -10,7 +10,7 @@ r2d = 180.0 / math.pi
 sqrt_of_2 = math.sqrt(2.0)
 gravity = 9.81                  # m/sec^2
 
-circle_node = getNode("/task/circle", True)
+circle_node = getNode("/task/circle/active", True)
 pos_node = getNode("/position", True)
 vel_node = getNode("/velocity", True)
 orient_node = getNode("/orientation", True)
@@ -50,6 +50,8 @@ def update(dt):
         # current position.  (sanity fallback)
         circle_node.setFloat("longitude_deg", pos_lon)
         circle_node.setFloat("latitude_deg", pos_lat)
+        circle_node.setFloat("radius_m", 100.0)
+        circle_node.setString("direction", "left")
         center_lon = pos_lon
         center_lat = pos_lat
 

@@ -11,7 +11,7 @@ class Circle(Task):
         Task.__init__(self)
         self.pos_node = getNode("/position", True)
         self.orient_node = getNode("/orientation", True)
-        self.circle_node = getNode("/task/circle", True)
+        self.circle_node = getNode("/task/circle/active", True)
         self.ap_node = getNode("/autopilot", True)
         self.nav_node = getNode("/navigation", True)
         self.targets_node = getNode("/autopilot/targets", True)
@@ -21,8 +21,6 @@ class Circle(Task):
         self.radius_m = 100.0
         self.target_agl_ft = 0.0
         self.target_speed_kt = 0.0
-        self.exit_agl_ft = 0.0
-        self.exit_heading_deg = 0.0
         
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
@@ -79,27 +77,7 @@ class Circle(Task):
                                     self.coord_node.getFloat("latitude_deg"))
         
     def is_complete(self):
-        done = False
-        # exit agl and exit heading specified
-        if self.exit_agl_ft > 0.0:
-            do_exit = True
-            alt_agl_ft = self.pos_node.getFloat("altitude_agl_ft")
-            if alt_agl_ft - self.exit_agl_ft > 25.0:
-                # not low enough
-                do_exit = False
-            heading_deg = self.orient_node.getFloat("groundtrack_deg")
-            if heading_deg < 0.0:
-                heading_deg += 360.0
-            hdg_error = heading_deg - self.exit_heading_deg
-            if hdg_error < -180.0:
-                hdg_error += 360.0
-            if hdg_error > 180.0:
-                hdg_error -= 360.0
-            if abs(hdg_error) > 10.0:
-                # not close enough
-                do_exit = False
-            done = do_exit
-        return done
+        return False
     
     def close(self):
         # restore the previous state

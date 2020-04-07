@@ -7,7 +7,7 @@ from props import getNode
 ap_node = getNode('/autopilot', True)
 nav_node = getNode('/navigation', True)
 targets_node = getNode('/autopilot/targets', True)
-circle_node = getNode('/task/circle', True)
+circle_node = getNode('/task/circle/active', True)
 
 class State():
     # copy a snapshot of the current state
@@ -56,5 +56,3 @@ def restore():
     saved_state = stack.pop()
     saved_state.restore()
     
-        
-        

@@ -1052,7 +1052,7 @@ static bool Aura3_send_config() {
 
 static bool Aura3_act_write() {
     // actuator data
-    if ( message::ap_channels == 6 ) {
+    if ( message::ap_channels = 6 ) {
         message::command_inceptors_t act;
 	act.channel[0] = act_node.getDouble("throttle");
 	act.channel[1] = act_node.getDouble("aileron");

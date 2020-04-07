@@ -151,7 +151,7 @@ class Parametric(Task):
         Task.__init__(self)
         self.pos_node = getNode("/position", True)
         self.home_node = getNode("/task/home", True)
-        self.circle_node = getNode("/task/circle", True)
+        self.circle_node = getNode("/task/circle/active", True)
         self.ap_node = getNode("/autopilot", True)
         self.targets_node = getNode("/autopilot/targets", True)
         self.nav_node = getNode("/navigation", True)
