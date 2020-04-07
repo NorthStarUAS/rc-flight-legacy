@@ -1,3 +1,7 @@
+# home_mgr.py: set the home location to the current location as soon
+# as there is valid information to do this.  Compute distance,
+# heading, and x, y components to home.
+
 import math
 
 from props import getNode

@@ -31,6 +31,10 @@ def update(dt):
     direction = 1.0
     if direction_str == "right":
         direction = -1.0
+    elif direction_str == "left":
+        direction = 1.0
+    else:
+        circle_node.setString("direction", "left")
 
     if pos_node.hasChild("longitude_deg") and \
          pos_node.hasChild("latitude_deg"):
@@ -72,6 +76,7 @@ def update(dt):
         if radius_m < 35: radius_m = 35
     else:
         radius_m = 100
+        circle_node.setFloat("radius_m", 100.0)
 
     # compute a target ground course based on our actual radius
     # distance

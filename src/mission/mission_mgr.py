@@ -27,7 +27,7 @@ class MissionMgr:
         self.pos_node = getNode("/position", True)
         self.task_node = getNode("/task", True)
         self.preflight_node = getNode("/task/preflight", True)
-        self.circle_node = getNode("/task/circle/active", True)
+        self.circle_standby_node = getNode("/task/circle/standby", True)
         self.home_node = getNode("/task/home", True)
         self.wind_node = getNode("/filters/wind", True)
         self.global_tasks = []
@@ -257,26 +257,24 @@ class MissionMgr:
             lon = float(lon_deg)
             lat = float(lat_deg)
 
-        nickname = "circle_target"
-        task = None
-
-        # sanity check, are we already in the requested state
-        if len(self.seq_tasks):
-            task = self.seq_tasks[0]
-            if task.nickname != nickname:
-                task = self.find_standby_task_by_nickname( nickname )
-                if task:
-                    # activate task
-                    self.push_seq_task(task)
-                    task.activate()
-
         # setup the target coordinates
-        self.circle_node.setFloat( "longitude_deg", lon )
-        self.circle_node.setFloat( "latitude_deg", lat )
+        self.circle_standby_node.setFloat( "longitude_deg", lon )
+        self.circle_standby_node.setFloat( "latitude_deg", lat )
+        
+        nickname = "circle_target"
 
-        # FIXME else if display_on:
-        #    print "oops, couldn't find task by nickname:", nickname
-
+        # sanity check, are we already running the requested task
+        if len(self.seq_tasks) and self.seq_tasks[0].nickname == nickname:
+            self.seq_tasks[0].update_parameters()
+            comms.events.log("mission", "updating circle parameters")
+        else:
+            # activate task
+            task = self.find_standby_task_by_nickname( nickname )
+            if task:
+                self.push_seq_task(task)
+                task.activate()
+            else:
+                comms.events.log("mission", "cannot find circle task")
 
     def request_task_idle(self):
         # sanity check, are we already in the requested state

@@ -11,7 +11,8 @@ class Circle(Task):
         Task.__init__(self)
         self.pos_node = getNode("/position", True)
         self.orient_node = getNode("/orientation", True)
-        self.circle_node = getNode("/task/circle/active", True)
+        self.circle_active_node = getNode("/task/circle/active", True)
+        self.circle_standby_node = getNode("/task/circle/standby", True)
         self.ap_node = getNode("/autopilot", True)
         self.nav_node = getNode("/navigation", True)
         self.targets_node = getNode("/autopilot/targets", True)
@@ -40,6 +41,26 @@ class Circle(Task):
         else:
             self.coord_node = None
 
+    def update_parameters(self):
+        # copy from standby values
+        if self.circle_standby_node.hasChild("longitude_deg"):
+            lon_deg = self.circle_standby_node.getFloat("longitude_deg")
+            if abs(lon_deg) > 0.01:
+                self.circle_active_node.setFloat("longitude_deg", lon_deg)
+        if self.circle_standby_node.hasChild("latitude_deg"):
+            lat_deg = self.circle_standby_node.getFloat("latitude_deg")
+            if abs(lat_deg) > 0.01:
+                self.circle_active_node.setFloat("latitude_deg", lat_deg)
+        if self.circle_standby_node.hasChild("radius_m"):
+            radius_m = self.circle_standby_node.getFloat("radius_m")
+            if abs(radius_m) > 25:
+                self.circle_active_node.setFloat("radius_m", radius_m)
+        if self.circle_standby_node.hasChild("direction"):
+            dir = self.circle_standby_node.getString("direction")
+            if len(dir):
+                self.circle_active_node.setString("direction", dir)
+            
+        
     def activate(self):
         self.active = True
 
@@ -59,6 +80,8 @@ class Circle(Task):
             # self.saved_speed_kt = self.targets_node.getFloat("airspeed_kt")
             self.targets_node.setFloat("airspeed_kt", self.target_speed_kt)
 
+        self.update_parameters()
+        
         # set modes
         self.ap_node.setString("mode", "basic+tecs")
         self.nav_node.setString("mode", "circle")
