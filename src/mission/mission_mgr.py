@@ -113,7 +113,7 @@ class MissionMgr:
             self.seq_tasks[0].activate()
 
     def update(self, dt):
-        self.process_command_request()
+        self.process_command()
 
         # run all tasks in the global queue
         for task in self.global_tasks:
@@ -180,8 +180,8 @@ class MissionMgr:
         comms.events.log("mission", "standby task not found: " + name)
         return None
 
-    def process_command_request(self):
-        command = self.task_node.getString("command_request")
+    def process_command(self):
+        command = self.task_node.getString("command")
         result = "successful: " + command # let's be optimistic!
         if len(command):
             tokens = command.split(",")
@@ -217,7 +217,7 @@ class MissionMgr:
                 self.pop_seq_task()
             else:
                 result = "syntax error: " + command # bummer
-            self.task_node.setString("command_request", "")
+            self.task_node.setString("command", "")
             self.task_node.setString("command_result", result)
 
     # lookup the home location and request a circle task at that

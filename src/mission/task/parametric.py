@@ -24,7 +24,6 @@ import mission.task.state
 # various support code and values for parameterized functions
 
 # loop distance (may need to be adjusted for each specific parametric function)
-loop_t = math.pi * 2
 r2d = 180/math.pi
 sqrt2 = math.sqrt(2)
 ft2m = 0.3048
@@ -100,7 +99,9 @@ class Parametric(Task):
         if config_node.hasChild("max_kt"):
             self.max_kt = config_node.getFloat("max_kt")
             
-        # estimate the distance of the route (assuming loop_t is set correctly!)
+        # estimate a dt that roughly approximates 1 meter (doesn't
+        # have to be perfect)
+        loop_t = math.pi * 2
         steps = 1000
         self.step = loop_t / float(steps)
         t1 = 0
@@ -110,7 +111,9 @@ class Parametric(Task):
             self.loop_dist += self.distance_t2t(t1, t2)
             t1 = t2
             t2 += self.step
-        print('route distance is approximately:', self.loop_dist)
+        print("parametric: 2*pi distance is approximately:", self.loop_dist)
+        self.para_dt = 1.0 / self.loop_dist
+        print("parametric: dt (approx 1m):", self.para_dt)
 
     # parameterized functions for x and y
     def simple_func(self, t):
@@ -136,7 +139,7 @@ class Parametric(Task):
     #    rose-shaped with 4k petals.
     # see the web link for more details on k
     def rose(self, t):
-        k = 2
+        k = 2.1
         x = math.cos(k*t) * math.cos(t)
         y = math.cos(k*t) * math.sin(t)
         return ( self.radius_m * x, self.radius_m * y )
@@ -173,13 +176,13 @@ class Parametric(Task):
         p3 = self.function(t2)
         return define_circle(p1, p2, p3)
     
-    def find_next_t(self, x, y, initial_guess, dt):
+    def find_next_t(self, x, y, initial_guess):
         t = initial_guess
         d = self.distance_t2xy(t, x, y)
         while True:
             min_dist = d
             min_t = t
-            t += dt
+            t += self.para_dt
             d = self.distance_t2xy(t, x, y)
             if d > min_dist:
                 break
@@ -206,11 +209,7 @@ class Parametric(Task):
         y_m = self.home_node.getFloat("y_m")
 
         #self.t = find_best_t(x_m, y_m, initial_guess=self.t)
-        self.t = self.find_next_t(x_m, y_m, initial_guess=self.t,
-                                  dt=1.0/self.loop_dist)
-        if self.t > loop_t:
-            self.t -= loop_t
-
+        self.t = self.find_next_t(x_m, y_m, initial_guess=self.t)
         (center, radius, direction) = self.curvature_at_t(self.t, self.step)
         #print('t:', self.t, ' radius: ', radius, direction)
 
@@ -229,6 +228,8 @@ class Parametric(Task):
 
             # adjust target altitude to be swoopy
             ratio = self.home_node.getFloat('dist_m') / self.radius_m
+            if ratio > 1.0:
+                ratio = 1.0
             h_m = ratio*ratio * self.vertical_m
             self.targets_node.setFloat('altitude_agl_ft', 200 + h_m*m2ft)
 

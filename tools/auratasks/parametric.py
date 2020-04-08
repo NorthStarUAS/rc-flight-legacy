@@ -76,5 +76,5 @@ class Parametric():
         if self.port != 6499:
             t.send("send task,parametric")
         else:
-            t.send("set /task/command_request task,parametric")
+            t.send("set /task/command task,parametric")
         t.quit()

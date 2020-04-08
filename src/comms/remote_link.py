@@ -213,7 +213,7 @@ def execute_command( command ):
         route_request += tokens[1:]
     elif tokens[0] == 'route_end' and len(tokens) == 1:
         route_node.setString( 'route_request', ','.join(route_request) )
-        task_node.setString( 'command_request', 'task,route' )
+        task_node.setString( 'command', 'task,route' )
     elif tokens[0] == 'survey_start' and len(tokens) == 7:
         for i, tok in enumerate(tokens):
             if tokens[i] == 'undefined':
@@ -232,7 +232,7 @@ def execute_command( command ):
     elif tokens[0] == 'survey_end' and len(tokens) == 1:
         survey.survey.do_survey(survey_request)
     elif tokens[0] == 'task':
-        task_node.setString( 'command_request', command )
+        task_node.setString( 'command', command )
     elif tokens[0] == 'ap' and len(tokens) == 3:
         # specify an autopilot target
         if tokens[1] == 'agl-ft':

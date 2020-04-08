@@ -82,7 +82,7 @@ class Calibrate():
         if self.port != 6499:
             t.send("send task,calibrate")
         else:
-            t.send("set /task/command_request task,calibrate")
+            t.send("set /task/command task,calibrate")
         t.quit()
 
     def task_reset_ekf(self):

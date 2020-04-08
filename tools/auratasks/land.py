@@ -225,7 +225,7 @@ class Land():
         if self.port != 6499:
             cmd = 'send ' + cmd
         else:
-            cmd = 'set /task/command_request ' + cmd
+            cmd = 'set /task/command ' + cmd
         print('sending:', cmd)
         t.send(str(cmd))
         t.quit()
@@ -237,5 +237,5 @@ class Land():
         if self.port != 6499:
             t.send("send task,resume")
         else:
-            t.send("set /task/command_request task,resume")
+            t.send("set /task/command task,resume")
         t.quit()

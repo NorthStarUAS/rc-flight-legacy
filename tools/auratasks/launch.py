@@ -149,7 +149,7 @@ class Launch():
         if self.port != 6499:
             t.send(str("send task,launch"))
         else:
-            t.send("set /task/command_request task,launch")
+            t.send("set /task/command task,launch")
         t.quit()
 
     def task_resume(self):
@@ -159,5 +159,5 @@ class Launch():
         if self.port != 6499:
             t.send("send task,resume")
         else:
-            t.send("set /task/command_request task,resume")
+            t.send("set /task/command task,resume")
         t.quit()

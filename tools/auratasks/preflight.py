@@ -87,5 +87,5 @@ class Preflight():
         if self.port != 6499:
             t.send("send task,preflight")
         else:
-            t.send("set /task/command_request task,preflight")
+            t.send("set /task/command task,preflight")
         t.quit()

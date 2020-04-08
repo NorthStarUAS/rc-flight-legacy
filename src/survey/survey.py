@@ -93,7 +93,7 @@ def do_survey( request ):
     control.route.swap()
 
     # request a task change
-    task_node.setString( 'command_request', 'task,route' )
+    task_node.setString( 'command', 'task,route' )
 
     # dribble
     control.route.dribble(reset=True)
