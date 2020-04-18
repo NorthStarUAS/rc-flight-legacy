@@ -436,7 +436,8 @@ class Packer():
         row['status'] = '%d' % imu_node.getInt('status')
         keys = ['timestamp', 'p_rad_sec', 'q_rad_sec', 'r_rad_sec',
                 'ax_mps_sec', 'ay_mps_sec', 'az_mps_sec',
-                'hx', 'hy', 'hz', 'temp_C', 'status']
+                'hx', 'hy', 'hz', 'ax_nocal', 'ay_nocal', 'az_nocal',
+                'hx_nocal', 'hy_nocal', 'hz_nocal', 'temp_C', 'status']
         return row, keys
 
     def unpack_imu_v3(self, buf):
