@@ -23,7 +23,6 @@ public:
 
 private:
     pyPropertyNode sensors_node;
-    pyPropertyNode drivers_node;
     vector<driver_t *> drivers;
 };
 

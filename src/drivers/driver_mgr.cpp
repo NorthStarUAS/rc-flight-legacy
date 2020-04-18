@@ -1,9 +1,12 @@
 #include <string>
+#include <sstream>
 using std::string;
+using std::ostringstream;
 
 #include "util/myprof.h"
 #include "drivers/Aura4/Aura4.h"
 #include "drivers/fgfs.h"
+#include "drivers/lightware.h"
 #include "driver_mgr.h"
 
 driver_mgr_t::driver_mgr_t() {
@@ -12,18 +15,27 @@ driver_mgr_t::driver_mgr_t() {
 
 void driver_mgr_t::init() {
     sensors_node = pyGetNode("/sensors", true);
-    drivers_node = pyGetNode("/config/drivers", true);
-    vector<string> children = drivers_node.getChildren();
-    printf("Found %d driver sections\n", (int)children.size());
-    for ( unsigned int i = 0; i < children.size(); i++ ) {
-        printf("Initializing device: %s\n", children[i].c_str());
-	pyPropertyNode section_node = drivers_node.getChild(children[i].c_str());
-        if ( children[i] == "Aura4" ) {
+    pyPropertyNode config_node = pyGetNode("/config", true);
+    unsigned int len = config_node.getLen("drivers");
+    printf("Found %d driver sections\n", len);
+    for ( unsigned int i = 0; i < len; i++ ) {
+        ostringstream child;
+        child << "drivers[" << i << "]";
+        printf("Initializing device: %s\n", child.str().c_str());
+	pyPropertyNode driver_node = config_node.getChild(child.str().c_str());
+        if ( driver_node.hasChild("Aura4") ) {
+            pyPropertyNode section_node = driver_node.getChild("Aura4");
             driver_t *d = new Aura4_t();
             d->init(&section_node);
             drivers.push_back(d);
-        } else if ( children[i] == "fgfs" ) {
+        } else if ( driver_node.hasChild("fgfs") ) {
+            pyPropertyNode section_node = driver_node.getChild("fgfs");
             driver_t *d = new fgfs_t();
+            d->init(&section_node);
+            drivers.push_back(d);
+        } else if ( driver_node.hasChild("lightware") ) {
+            pyPropertyNode section_node = driver_node.getChild("lightware");
+            driver_t *d = new lightware_t();
             d->init(&section_node);
             drivers.push_back(d);
         }
