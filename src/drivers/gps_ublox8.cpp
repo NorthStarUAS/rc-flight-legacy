@@ -99,7 +99,7 @@ static bool gps_ublox8_open() {
     config.c_lflag     = 0;
     config.c_cc[VTIME] = 0;
     config.c_cc[VMIN]  = 0;	   // block 'read' from returning until at
-                                   // least 1 character is received
+                                   // least 0 character is received
 
     // Flush Serial Port I/O buffer
     tcflush(fd, TCIOFLUSH);
