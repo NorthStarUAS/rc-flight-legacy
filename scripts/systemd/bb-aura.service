@@ -4,7 +4,7 @@ After=syslog.target network.target
 
 [Service] 
 Type=simple 
-ExecStart=/usr/local/AuraUAS/bin/bb-aura.sh 
+ExecStart=/usr/local/bin/bb-aura.sh 
 
 [Install] 
 WantedBy=multi-user.target

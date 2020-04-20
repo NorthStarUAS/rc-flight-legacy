@@ -1,7 +1,7 @@
 #!/bin/bash
 
-PREFIX=/usr/local/AuraUAS
-SOURCE=/home/aura/Source/aura-core
+PREFIX=/usr/local
+SOURCE=/home/aura/Source
 echo "starting aura autopilot with prefex=$PREFIX"
 
 # nice range is -20 to 20 with -20 being the highest priority.  -10 should be
@@ -9,4 +9,4 @@ echo "starting aura autopilot with prefex=$PREFIX"
 # exactly what we want.
 NICE=-20
 
-nice -n $NICE $PREFIX/bin/aura --python_path $SOURCE/src --config $PREFIX/config > /var/log/aura.log
+nice -n $NICE $PREFIX/bin/aura --python_path $SOURCE/aura-core/src --config $SOURCE/aura-config/config > /var/log/aura.log
