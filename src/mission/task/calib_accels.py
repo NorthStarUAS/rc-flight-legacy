@@ -1,0 +1,74 @@
+from props import getNode
+
+import comms.events
+from mission.task.task import Task
+from mission.task.lowpass import LowPass
+
+# state key:
+#   0 = not started
+#   1 = rightside up
+#   2 = upside down
+#   3 = nose down
+#   4 = nose up
+#   5 = right wing down
+#   6 = right wing up
+#   7 = complete ok
+#   8 = complete failed
+
+class CalibrateAccels(Task):
+    def __init__(self, config_node):
+        Task.__init__(self)
+        self.imu_node = getNode("/sensors/imu", True)
+        self.state = 0
+        self.ax_slow = LowPass(time_factor=2.0) 
+        self.ax_fast = LowPass(time_factor=0.2) 
+        self.ay_slow = LowPass(time_factor=2.0) 
+        self.ay_fast = LowPass(time_factor=0.2) 
+        self.az_slow = LowPass(time_factor=2.0) 
+        self.az_fast = LowPass(time_factor=0.2) 
+
+    def activate(self):
+        self.active = True
+        comms.events.log("calibrate accels", "active")
+
+    def detect_up(self):
+        ax = self.imu_node.getFloat("ax_nocal")
+        if ax > 8: return "x-pos"    # nose up
+        elif ax < -8: return "x-neg" # nose down
+        ay = self.imu_node.getFloat("ay_nocal")
+        if ay > 8: return "y-pos"    # right wing down
+        elif ay < -8: return "y-neg" # right wing up
+        az = self.imu_node.getFloat("az_nocal")
+        if az > 8: return "z-pos"    # up side down
+        elif az < -8: return "z-neg" # right side up
+        return "none"                # no dominate axis up
+
+    def update(self, dt):
+        if not self.active:
+            return False
+
+        # update filters
+        ax = self.imu_node.getFloat("ax_nocal")
+        ay = self.imu_node.getFloat("ay_nocal")
+        az = self.imu_node.getFloat("az_nocal")
+        self.ax_slow.update(ax, dt)
+        self.ax_fast.update(ax, dt)
+        self.ay_slow.update(ay, dt)
+        self.ay_fast.update(ay, dt)
+        self.az_slow.update(az, dt)
+        self.az_fast.update(az, dt)
+
+        print(self.detect_up(), 'slow-fast: %.3f %.3f %.3f' % (self.ax_slow.filter_value - self.ax_fast.filter_value, self.ay_slow.filter_value - self.ay_fast.filter_value, self.az_slow.filter_value - self.az_fast.filter_value))
+              
+        if self.state == 0:
+            # opportunity to initialize stuff
+            self.state += 1
+        elif self.state == 1:
+            pass
+        
+    def is_complete(self):
+        return False
+
+    def close(self):
+        self.active = False
+        return True

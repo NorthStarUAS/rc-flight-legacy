@@ -2,20 +2,21 @@ from props import getNode
 
 import comms.events
 
-import mission.task.is_airborne
+import mission.task.calib_accels
+import mission.task.calibrate
 import mission.task.camera
 import mission.task.circle
 import mission.task.excite
 import mission.task.flaps_mgr
 import mission.task.home_mgr
 import mission.task.idle
+import mission.task.is_airborne
 import mission.task.land3
 import mission.task.launch
 import mission.task.lost_link
 import mission.task.mode_mgr
 import mission.task.parametric
 import mission.task.preflight
-import mission.task.calibrate
 import mission.task.route
 import mission.task.switches
 import mission.task.throttle_safety
@@ -38,8 +39,8 @@ class MissionMgr:
         result = None
         task_name = config_node.name
         print("  make_task():", task_name)
-        if task_name == 'is_airborne':
-            result = mission.task.is_airborne.IsAirborne(config_node)
+        if task_name == 'calib_accels':
+            result = mission.task.calib_accels.CalibrateAccels(config_node)
         elif task_name == 'camera':
             result = mission.task.camera.Camera(config_node)
         elif task_name == 'circle':
@@ -52,6 +53,8 @@ class MissionMgr:
             result = mission.task.home_mgr.HomeMgr(config_node)
         elif task_name == 'idle':
             result = mission.task.idle.Idle(config_node)
+        if task_name == 'is_airborne':
+            result = mission.task.is_airborne.IsAirborne(config_node)
         elif task_name == 'land':
             result = mission.task.land3.Land(config_node)
         elif task_name == 'launch':
