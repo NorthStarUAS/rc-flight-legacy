@@ -17,6 +17,7 @@ from mission.task.lowpass import LowPass
 #   6 = right wing down
 #   7 = complete ok
 #   8 = complete failed
+
 def affine_matrix_from_points(v0, v1, shear=True, scale=True, usesvd=True, usesparse=True):
     """Return affine transform matrix to register two point sets.
 
@@ -131,7 +132,6 @@ def affine_matrix_from_points(v0, v1, shear=True, scale=True, usesvd=True, usesp
     M /= M[ndims, ndims]
     return M
 
-
 class CalibrateAccels(Task):
     def __init__(self, config_node):
         Task.__init__(self)
@@ -151,12 +151,18 @@ class CalibrateAccels(Task):
                      [  0.0,  -9.81,  0.0 ],
                      [  0.0,   9.81,  0.0 ] ]
         self.meas = list(self.ref) # copy
+        self.checked = {}
         
     def activate(self):
         self.active = True
+        self.armed = False
+        self.checked = {}
         comms.events.log("calibrate accels", "active")
 
-    def detect_up(self, ax, ay, az):
+    def detect_up(self):
+        ax = self.ax_fast.filter_value
+        ay = self.ay_fast.filter_value
+        az = self.az_fast.filter_value
         if ax > 8: return "x-pos"    # nose up
         elif ax < -8: return "x-neg" # nose down
         if ay > 8: return "y-pos"    # right wing down
@@ -165,6 +171,15 @@ class CalibrateAccels(Task):
         elif az < -8: return "z-neg" # right side up
         return "none"                # no dominate axis up
 
+    def new_axis(self):
+        up_axis = self.detect_up()
+        if up_axis == "none":
+            return False
+        elif up_axis in self.checked:
+            return False
+        else:
+            return True
+        
     def update(self, dt):
         if not self.active:
             return False
@@ -190,66 +205,71 @@ class CalibrateAccels(Task):
         else:
             stable = False
             
-        dir = self.detect_up(self.ax_fast.filter_value,
-                             self.ay_fast.filter_value,
-                             self.az_fast.filter_value)
-        if dir == "none":
+        up_axis = self.detect_up()
+        if up_axis == "none":
             self.armed = True
-        print("orient:", dir, "armed:", self.armed, " slow-fast: %.3f" % d, " stable:", stable)
+        print("up axis:", up_axis, "armed:", self.armed, " slow-fast: %.3f" % d, " stable:", stable)
               
         if self.state == 0:
             print("Place level and right side up - stable:", stable)
-            if self.armed and stable:
+            if self.armed and stable and self.new_axis():
                 self.meas[self.state] = [ self.ax_fast.filter_value,
                                           self.ay_fast.filter_value,
                                           self.az_fast.filter_value ]
+                self.checked[up_axis] = True
                 self.state += 1
                 self.armed = False
         elif self.state == 1:
             print("Place up side down - stable:", stable)
-            if self.armed and stable:
+            if self.armed and stable and self.new_axis():
                 self.meas[self.state] = [ self.ax_fast.filter_value,
                                           self.ay_fast.filter_value,
                                           self.az_fast.filter_value ]
+                self.checked[up_axis] = True
                 self.state += 1
                 self.armed = False
         elif self.state == 2:
             print("Place nose down - stable:", stable)
-            if self.armed and stable:
+            if self.armed and stable and self.new_axis():
                 self.meas[self.state] = [ self.ax_fast.filter_value,
                                           self.ay_fast.filter_value,
                                           self.az_fast.filter_value ]
+                self.checked[up_axis] = True
                 self.state += 1
                 self.armed = False
         elif self.state == 3:
             print("Place nose up - stable:", stable)
-            if self.armed and stable:
+            if self.armed and stable and self.new_axis():
                 self.meas[self.state] = [ self.ax_fast.filter_value,
                                           self.ay_fast.filter_value,
                                           self.az_fast.filter_value ]
+                self.checked[up_axis] = True
                 self.state += 1
                 self.armed = False
         elif self.state == 4:
             print("Place right wing down - stable:", stable)
-            if self.armed and stable:
+            if self.armed and stable and self.new_axis():
                 self.meas[self.state] = [ self.ax_fast.filter_value,
                                           self.ay_fast.filter_value,
                                           self.az_fast.filter_value ]
+                self.checked[up_axis] = True
                 self.state += 1
                 self.armed = False
         elif self.state == 5:
             print("Place right wing up - stable:", stable)
-            if self.armed and stable:
+            if self.armed and stable and self.new_axis():
                 self.meas[self.state] = [ self.ax_fast.filter_value,
                                           self.ay_fast.filter_value,
                                           self.az_fast.filter_value ]
+                self.checked[up_axis] = True
                 self.state += 1
                 self.armed = False
 
         v0 = numpy.array(self.meas, dtype=numpy.float64, copy=True).T
         v1 = numpy.array(self.ref, dtype=numpy.float64, copy=True).T
-        M = affine_matrix_from_points(v0, v1, shear=False)
-        print(M)
+        M = affine_matrix_from_points(v0, v1, shear=False, scale=False)
+        R = M[:3,:3]
+        print(R * R.T)
                                   
     def is_complete(self):
         return False
