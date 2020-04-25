@@ -283,22 +283,22 @@ class CalibrateAccels(Task):
                 print(R)
                 # R should be orthogonal/normalized here
                 # check if any row column doesn't have an element close to 1
-                if abs(np.max(R[0])) < 0.9:
+                if np.max(np.abs(R[0])) < 0.9:
                     print("bad row 1")
                     self.state += 2
-                elif abs(np.max(R[1])) < 0.9:
+                elif np.max(np.abs(R[1])) < 0.9:
                     print("bad row 2")
                     self.state += 2
-                elif abs(np.max(R[2])) < 0.9:
+                elif np.max(np.abs(R[2])) < 0.9:
                     print("bad row 3")
                     self.state += 2
-                elif abs(np.max(R[:,0])) < 0.9:
+                elif np.max(np.abs(R[:,0])) < 0.9:
                     print("bad column 1")
                     self.state += 2
-                elif abs(np.max(R[:,1])) < 0.9:
+                elif np.max(np.abs(R[:,1])) < 0.9:
                     print("bad column 2")
                     self.state += 2
-                elif abs(np.max(R[:,2])) < 0.9:
+                elif np.max(np.abs(R[:,2])) < 0.9:
                     print("bad column 3")
                     self.state += 2
                 else:
