@@ -7,6 +7,7 @@ using std::ostringstream;
 #include "drivers/Aura4/Aura4.h"
 #include "drivers/fgfs.h"
 #include "drivers/lightware.h"
+#include "drivers/maestro.h"
 #include "driver_mgr.h"
 
 driver_mgr_t::driver_mgr_t() {
@@ -36,6 +37,11 @@ void driver_mgr_t::init() {
         } else if ( driver_node.hasChild("lightware") ) {
             pyPropertyNode section_node = driver_node.getChild("lightware");
             driver_t *d = new lightware_t();
+            d->init(&section_node);
+            drivers.push_back(d);
+        } else if ( driver_node.hasChild("maestro") ) {
+            pyPropertyNode section_node = driver_node.getChild("maestro");
+            driver_t *d = new maestro_t();
             d->init(&section_node);
             drivers.push_back(d);
         }

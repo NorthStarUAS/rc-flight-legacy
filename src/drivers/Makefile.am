@@ -9,6 +9,7 @@ libdrivers_a_SOURCES = \
 	fgfs.cpp fgfs.h \
 	gps.cpp gps.h \
 	lightware.cpp lightware.h \
+	maestro.cpp maestro.h \
 	pilot.cpp pilot.h \
 	gps_ublox6.cpp gps_ublox6.h \
 	gps_ublox8.cpp gps_ublox8.h
