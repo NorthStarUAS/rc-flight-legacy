@@ -282,7 +282,7 @@ class CalibrateAccels(Task):
                 M = affine_matrix_from_points(v0, v1, shear=False, scale=False)
                 R = M[:3,:3]
                 print(R @ R.T)
-                print(R)
+                print("R:\n", R)
                 # R should be orthogonal/normalized here
                 # check if any row column doesn't have an element close to 1
                 if np.max(np.abs(R[0])) < 0.9:
@@ -306,7 +306,7 @@ class CalibrateAccels(Task):
                 else:
                     # nothing bad detected, save results and goto success state
                     self.R = R
-                    self.T = M[:,:4][:3] # 1st 3 elements of the 4th column
+                    self.T = M[:,3] # translation vector
                     self.state += 1
         elif self.state == 7:
             # calibration complete, success, report!
@@ -344,6 +344,9 @@ class CalibrateAccels(Task):
                 calib_node.setFloatEnum("orientation", i, final.flatten()[i])
             calib_node.setFloat("calibration_mean", mean)
             calib_node.setFloat("calibration_std", std)
+            calib_node.setFloat("ax_bias", self.T[0])
+            calib_node.setFloat("ay_bias", self.T[1])
+            calib_node.setFloat("az_bias", self.T[2])
             logging_node = getNode("/config/logging", True)
             dir = logging_node.getString("flight_dir")
             props_json.save(os.path.join(dir, "imu_calib.json"), calib_node)
