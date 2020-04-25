@@ -211,7 +211,8 @@ class CalibrateAccels(Task):
         up_axis = self.detect_up()
         if up_axis == "none":
             self.armed = True
-        print("up axis:", up_axis, "armed:", self.armed, " slow-fast: %.3f" % d, " stable:", stable)
+        if self.state < 6:
+            print("up axis:", up_axis, "armed:", self.armed, " slow-fast: %.3f" % d, " stable:", stable)
               
         if self.state == 0:
             print("Place level and right side up - stable:", stable)
@@ -269,7 +270,8 @@ class CalibrateAccels(Task):
                 self.armed = False
         elif self.state == 6:
             # did we measure 6 unique axes?
-            if len(self.state) != 6:
+            if len(self.checked) != 6:
+                print("Somehow didn't calibrate 6 orientations. :-(")
                 self.state += 2
             else:
                 # compute affine rotation fit
@@ -278,19 +280,26 @@ class CalibrateAccels(Task):
                 M = affine_matrix_from_points(v0, v1, shear=False, scale=False)
                 R = M[:3,:3]
                 print(R @ R.T)
+                print(R)
                 # R should be orthogonal/normalized here
                 # check if any row column doesn't have an element close to 1
                 if abs(np.max(R[0])) < 0.9:
+                    print("bad row 1")
                     self.state += 2
                 elif abs(np.max(R[1])) < 0.9:
+                    print("bad row 2")
                     self.state += 2
                 elif abs(np.max(R[2])) < 0.9:
+                    print("bad row 3")
                     self.state += 2
                 elif abs(np.max(R[:,0])) < 0.9:
+                    print("bad column 1")
                     self.state += 2
                 elif abs(np.max(R[:,1])) < 0.9:
+                    print("bad column 2")
                     self.state += 2
                 elif abs(np.max(R[:,2])) < 0.9:
+                    print("bad column 3")
                     self.state += 2
                 else:
                     # nothing bad detected, save results and goto success state
@@ -299,6 +308,7 @@ class CalibrateAccels(Task):
                     self.state += 1
         elif self.state == 7:
             # calibration complete, success!
+            print("calibration succeeded")
             # consider current orientation matrix if it exists
             if self.config_imu_node and self.config_imu_node.hasChild("orientation"):
                 current = []
@@ -315,6 +325,7 @@ class CalibrateAccels(Task):
             print(current @ R)
         elif self.state == 8:
             # calibration complete, but failed. :-(
+            print("calibration failed")
             pass            
 
     def is_complete(self):
