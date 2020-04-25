@@ -1,7 +1,9 @@
 import math
 import numpy as np
+import os
 
 from props import getNode, PropertyNode
+import props_json
 
 import comms.events
 from mission.task.task import Task
@@ -327,7 +329,7 @@ class CalibrateAccels(Task):
             # as if this wasn't already fancy enough, get even fancier!
             errors = []
             for i, v in enumerate(self.meas):
-                v1 = v @ final
+                v1 = v @ self.R
                 v0 = self.ref[i]
                 err = np.linalg.norm(v0 - v1)
                 errors.append(err)
@@ -342,7 +344,7 @@ class CalibrateAccels(Task):
                 calib_node.setFloatEnum("orientation", i, final.flatten()[i])
             calib_node.setFloat("calibration_mean", mean)
             calib_node.setFloat("calibration_std", std)
-            logging_node = getNode("/config/logging", true)
+            logging_node = getNode("/config/logging", True)
             dir = logging_node.getString("flight_dir")
             props_json.save(os.path.join(dir, "imu_calib.json"), calib_node)
         elif self.state == 8:
