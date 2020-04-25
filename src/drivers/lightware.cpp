@@ -1,5 +1,4 @@
 #include <fcntl.h>		// open()
-//#include <stdio.h>		// printf() et. al.
 #include <termios.h>		// tcgetattr() et. al.
 
 #include "util/strutils.h"
