@@ -307,22 +307,35 @@ class CalibrateAccels(Task):
                     self.T = M[:,:4][:3] # 1st 3 elements of the 4th column
                     self.state += 1
         elif self.state == 7:
-            # calibration complete, success!
+            # calibration complete, success, report!
             print("calibration succeeded")
             # consider current orientation matrix if it exists
             if self.config_imu_node and self.config_imu_node.hasChild("orientation"):
                 current = []
                 for i in range(9):
                     current.append(self.config_imu_node.getFloatEnum("orientation", i))
-                    current = np.array(current).reshape(3,3)
+                current = np.array(current).reshape(3,3)
             else:
                 current = np.eye(3)
             print("current:")
             print(current)
             print("R:")
-            print(R)
+            print(self.R)
             print("Final:")
-            print(current @ R)
+            final = current @ self.R
+            print(final)
+            # as if this wasn't already fancy enough, get even fancier!
+            errors = []
+            for i, v in enumerate(self.meas):
+                v1 = final @ v
+                v0 = self.ref[i]
+                err = np.linalg.norm(v0 - v1)
+                errors.append(err)
+            print("errors:", errors)
+            mean = np.mean(errors)
+            std = np.std(errors)
+            print("calibration mean:", mean, " std:", std)
+            self.state += 2
         elif self.state == 8:
             # calibration complete, but failed. :-(
             print("calibration failed")
