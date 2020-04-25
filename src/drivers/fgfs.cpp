@@ -309,9 +309,15 @@ bool fgfs_t::update_imu() {
 	imu_node.setDouble( "ax_mps_sec", nav(0) );
 	imu_node.setDouble( "ay_mps_sec", nav(1) );
 	imu_node.setDouble( "az_mps_sec", nav(2) );
+	imu_node.setDouble( "ax_nocal", nav(0) );
+	imu_node.setDouble( "ay_nocal", nav(1) );
+	imu_node.setDouble( "az_nocal", nav(2) );
 	imu_node.setDouble( "hx", mag_body(0) );
 	imu_node.setDouble( "hy", mag_body(1) );
 	imu_node.setDouble( "hz", mag_body(2) );
+	imu_node.setDouble( "hx_nocal", mag_body(0) );
+	imu_node.setDouble( "hy_nocal", mag_body(1) );
+	imu_node.setDouble( "hz_nocal", mag_body(2) );
 	imu_node.setDouble( "roll_truth", roll_truth );
 	imu_node.setDouble( "pitch_truth", pitch_truth );
 	imu_node.setDouble( "yaw_truth", yaw_truth );
