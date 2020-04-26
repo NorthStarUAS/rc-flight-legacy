@@ -8,6 +8,7 @@ import props_json
 import comms.events
 from mission.task.task import Task
 from mission.task.lowpass import LowPass
+from mission.task.matutil import affine_matrix_from_points, decompose_matrix
 
 g = 9.81                        # gravity
 
@@ -21,120 +22,6 @@ g = 9.81                        # gravity
 #   6 = sanity check
 #   7 = complete ok
 #   8 = complete failed
-
-def affine_matrix_from_points(v0, v1, shear=True, scale=True, usesvd=True, usesparse=True):
-    """Return affine transform matrix to register two point sets.
-
-    v0 and v1 are shape (ndims, \*) arrays of at least ndims non-homogeneous
-    coordinates, where ndims is the dimensionality of the coordinate space.
-
-    If shear is False, a similarity transformation matrix is returned.
-    If also scale is False, a rigid/Euclidean transformation matrix
-    is returned.
-
-    By default the algorithm by Hartley and Zissermann [15] is used.
-    If usesvd is True, similarity and Euclidean transformation matrices
-    are calculated by minimizing the weighted sum of squared deviations
-    (RMSD) according to the algorithm by Kabsch [8].
-    Otherwise, and if ndims is 3, the quaternion based algorithm by Horn [9]
-    is used, which is slower when using this Python implementation.
-
-    The returned matrix performs rotation, translation and uniform scaling
-    (if specified).
-
-    >>> v0 = [[0, 1031, 1031, 0], [0, 0, 1600, 1600]]
-    >>> v1 = [[675, 826, 826, 677], [55, 52, 281, 277]]
-    >>> affine_matrix_from_points(v0, v1)
-    array([[   0.14549,    0.00062,  675.50008],
-           [   0.00048,    0.14094,   53.24971],
-           [   0.     ,    0.     ,    1.     ]])
-    >>> T = translation_matrix(np.random.random(3)-0.5)
-    >>> R = random_rotation_matrix(np.random.random(3))
-    >>> S = scale_matrix(random.random())
-    >>> M = concatenate_matrices(T, R, S)
-    >>> v0 = (np.random.rand(4, 100) - 0.5) * 20
-    >>> v0[3] = 1
-    >>> v1 = np.dot(M, v0)
-    >>> v0[:3] += np.random.normal(0, 1e-8, 300).reshape(3, -1)
-    >>> M = affine_matrix_from_points(v0[:3], v1[:3])
-    >>> np.allclose(v1, np.dot(M, v0))
-    True
-
-    More examples in superimposition_matrix()
-
-    """
-    v0 = np.array(v0, dtype=np.float64, copy=True)
-    v1 = np.array(v1, dtype=np.float64, copy=True)
-
-    # print( "v0.shape = %s" % str(v0.shape))
-    # print( "v1.shape = %s" % str(v1.shape))
-    # print( "v0.shape[1] = %s" % str(v0.shape[1]))
-    ndims = v0.shape[0]
-    if ndims < 2 or v0.shape[1] < ndims or v0.shape != v1.shape:
-        raise ValueError("input arrays are of wrong shape or type")
-
-    # move centroids to origin
-    t0 = -np.mean(v0, axis=1)
-    M0 = np.identity(ndims+1)
-    M0[:ndims, ndims] = t0
-    v0 += t0.reshape(ndims, 1)
-    t1 = -np.mean(v1, axis=1)
-    M1 = np.identity(ndims+1)
-    M1[:ndims, ndims] = t1
-    v1 += t1.reshape(ndims, 1)
-
-    if shear:
-        # Affine transformation
-        A = np.concatenate((v0, v1), axis=0)
-        if usesparse:
-            u, s, vh = scipy.sparse.linalg.svds(A.T, k=3)
-        else:
-            u, s, vh = np.linalg.svd(A.T)
-        vh = vh[:ndims].T
-        B = vh[:ndims]
-        C = vh[ndims:2*ndims]
-        t = np.dot(C, np.linalg.pinv(B))
-        t = np.concatenate((t, np.zeros((ndims, 1))), axis=1)
-        M = np.vstack((t, ((0.0,)*ndims) + (1.0,)))
-    elif usesvd or ndims != 3:
-        # Rigid transformation via SVD of covariance matrix
-        u, s, vh = np.linalg.svd(np.dot(v1, v0.T))
-        # rotation matrix from SVD orthonormal bases
-        R = np.dot(u, vh)
-        if np.linalg.det(R) < 0.0:
-            # R does not constitute right handed system
-            R -= np.outer(u[:, ndims-1], vh[ndims-1, :]*2.0)
-            s[-1] *= -1.0
-        # homogeneous transformation matrix
-        M = np.identity(ndims+1)
-        M[:ndims, :ndims] = R
-    else:
-        # Rigid transformation matrix via quaternion
-        # compute symmetric matrix N
-        xx, yy, zz = np.sum(v0 * v1, axis=1)
-        xy, yz, zx = np.sum(v0 * np.roll(v1, -1, axis=0), axis=1)
-        xz, yx, zy = np.sum(v0 * np.roll(v1, -2, axis=0), axis=1)
-        N = [[xx+yy+zz, 0.0,      0.0,      0.0],
-             [yz-zy,    xx-yy-zz, 0.0,      0.0],
-             [zx-xz,    xy+yx,    yy-xx-zz, 0.0],
-             [xy-yx,    zx+xz,    yz+zy,    zz-xx-yy]]
-        # quaternion: eigenvector corresponding to most positive eigenvalue
-        w, V = np.linalg.eigh(N)
-        q = V[:, np.argmax(w)]
-        q /= vector_norm(q)  # unit quaternion
-        # homogeneous transformation matrix
-        M = quaternion_matrix(q)
-
-    if scale and not shear:
-        # Affine transformation; scale is ratio of RMS deviations from centroid
-        v0 *= v0
-        v1 *= v1
-        M[:ndims, :ndims] *= math.sqrt(np.sum(v1) / np.sum(v0))
-
-    # move centroids back
-    M = np.dot(np.linalg.inv(M1), np.dot(M, M0))
-    M /= M[ndims, ndims]
-    return M
 
 class CalibrateAccels(Task):
     def __init__(self, config_node):
@@ -279,7 +166,7 @@ class CalibrateAccels(Task):
                 # compute affine rotation fit
                 v0 = np.array(self.meas, dtype=np.float64, copy=True).T
                 v1 = np.array(self.ref, dtype=np.float64, copy=True).T
-                M = affine_matrix_from_points(v0, v1, shear=False, scale=False)
+                M = affine_matrix_from_points(v0, v1, shear=False, scale=True)
                 R = M[:3,:3]
                 print(R @ R.T)
                 print("R:\n", R)
@@ -305,6 +192,13 @@ class CalibrateAccels(Task):
                     self.state += 2
                 else:
                     # nothing bad detected, save results and goto success state
+                    scale, shear, angles, translate, perspective = decompose_matrix(M)
+                    print("scale:", scale)
+                    print("shear:", shear)
+                    print("angles:", angles)
+                    print("translate:", translate)
+                    print("perspective:", perspective)
+                        
                     self.R = R
                     self.T = M[:,3] # translation vector
                     self.state += 1
@@ -329,6 +223,7 @@ class CalibrateAccels(Task):
             # as if this wasn't already fancy enough, get even fancier!
             errors = []
             for i, v in enumerate(self.meas):
+                print("measure:", i, v)
                 v1 = v @ self.R
                 v0 = self.ref[i]
                 err = np.linalg.norm(v0 - v1)
