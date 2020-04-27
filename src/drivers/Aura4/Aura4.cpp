@@ -620,52 +620,52 @@ bool Aura4_t::send_config() {
 
     pyPropertyNode imu_node = aura4_config.getChild("imu", true);
     if ( imu_node.hasChild("calibration") ) {
-        pyPropertyNode cal = imu_node.getChild("calibration");
-        if ( imu_node.hasChild("strapdown") ) {
-            int len = imu_node.getLen("strapdown");
+        pyPropertyNode cal_node = imu_node.getChild("calibration");
+        if ( cal_node.hasChild("strapdown") ) {
+            int len = cal_node.getLen("strapdown");
             if ( len == 9 ) {
                 for ( int i = 0; i < len; i++ ) {
-                    config_imu.strapdown_calib[i] = imu_node.getDouble("strapdown", i);
+                    config_imu.strapdown_calib[i] = cal_node.getDouble("strapdown", i);
                 }
             } else {
                 printf("WARNING: imu strapdown_calib improper matrix size\n");
             }
         }
-        if ( cal.getLen("accel_scale") == 3 ) {
+        if ( cal_node.getLen("accel_scale") == 3 ) {
             for ( int i = 0; i < 3; i++ ) {
-                config_imu.accel_scale[i] = cal.getDouble("accel_scale", i);
+                config_imu.accel_scale[i] = cal_node.getDouble("accel_scale", i);
             }
         }
-        if ( cal.getLen("accel_translate") == 3 ) {
+        if ( cal_node.getLen("accel_translate") == 3 ) {
             for ( int i = 0; i < 3; i++ ) {
-                config_imu.accel_translate[i] = cal.getDouble("accel_translate", i);
+                config_imu.accel_translate[i] = cal_node.getDouble("accel_translate", i);
             }
         }
-        // if ( cal.hasChild("min_temp_C") ) {
-        //     config_imu.min_temp = cal.getDouble("min_temp_C");
+        // if ( cal_node.hasChild("min_temp_C") ) {
+        //     config_imu.min_temp = cal_node.getDouble("min_temp_C");
         // }
-        // if ( cal.hasChild("max_temp_C") ) {
-        //     config_imu.max_temp = cal.getDouble("max_temp_C");
+        // if ( cal_node.hasChild("max_temp_C") ) {
+        //     config_imu.max_temp = cal_node.getDouble("max_temp_C");
         // }
-        // if ( cal.getLen("ax_calib") == 3 ) {
+        // if ( cal_node.getLen("ax_calib") == 3 ) {
         //     for ( int i = 0; i < 3; i++ ) {
-        //         config_imu.ax_coeff[i] = cal.getDouble("ax_calib", i);
+        //         config_imu.ax_coeff[i] = cal_node.getDouble("ax_calib", i);
         //     }
         // }
-        // if ( cal.getLen("ay_calib") == 3 ) {
+        // if ( cal_node.getLen("ay_calib") == 3 ) {
         //     for ( int i = 0; i < 3; i++ ) {
-        //         config_imu.ay_coeff[i] = cal.getDouble("ay_calib", i);
+        //         config_imu.ay_coeff[i] = cal_node.getDouble("ay_calib", i);
         //     }
         // }
-        // if ( cal.getLen("az_calib") == 3 ) {
+        // if ( cal_node.getLen("az_calib") == 3 ) {
         //     for ( int i = 0; i < 3; i++ ) {
-        //         config_imu.az_coeff[i] = cal.getDouble("az_calib", i);
+        //         config_imu.az_coeff[i] = cal_node.getDouble("az_calib", i);
         //     }
         // }
             
-        if ( cal.getLen("mag_affine") == 16 ) {
+        if ( cal_node.getLen("mag_affine") == 16 ) {
             for ( unsigned int i = 0; i < 16; i++ ) {
-                config_imu.mag_affine[i] = cal.getDouble("mag_affine", i);
+                config_imu.mag_affine[i] = cal_node.getDouble("mag_affine", i);
                 //printf("mag: %.4f\n", config_imu.mag_affine[i]);
             }
         } else {
