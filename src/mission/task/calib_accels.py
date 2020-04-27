@@ -8,7 +8,7 @@ import props_json
 import comms.events
 from mission.task.task import Task
 from mission.task.lowpass import LowPass
-from mission.task.matutil import affine_matrix_from_points, decompose_matrix
+import mission.task.transformations as tr
 
 g = 9.81                        # gravity
 
@@ -166,7 +166,8 @@ class CalibrateAccels(Task):
                 # compute affine rotation fit
                 v0 = np.array(self.meas, dtype=np.float64, copy=True).T
                 v1 = np.array(self.ref, dtype=np.float64, copy=True).T
-                M = affine_matrix_from_points(v0, v1, shear=False, scale=True)
+                M = tr.affine_matrix_from_points(v0, v1, shear=False, scale=True)
+                print("M:", M)
                 R = M[:3,:3]
                 print(R @ R.T)
                 print("R:\n", R)
@@ -192,7 +193,7 @@ class CalibrateAccels(Task):
                     self.state += 2
                 else:
                     # nothing bad detected, save results and goto success state
-                    scale, shear, angles, translate, perspective = decompose_matrix(M)
+                    scale, shear, angles, translate, perspective = tr.decompose_matrix(M)
                     print("scale:", scale)
                     print("shear:", shear)
                     print("angles:", angles)
@@ -201,9 +202,17 @@ class CalibrateAccels(Task):
 
                     # recompose the original affine matrix with:
                     # translate @ rotate @ scale
+                    T = tr.translation_matrix(translate)
+                    R = tr.euler_matrix(*angles)
+                    S = tr.scale_matrix(scale[0])
+                    print("T:\n", T)
+                    print("R:\n", R)
+                    print("S:\n", S)
+                    print("R @ R.T:\n", R @ R.T)
+                    recompose = T @ R @ S
+                    print("recompose:\n", recompose)
                     
                     self.R = R
-                    self.T = M[:,3] # translation vector
                     self.state += 1
         elif self.state == 7:
             # calibration complete, success, report!
