@@ -236,15 +236,19 @@ class CalibrateAccels(Task):
             std = np.std(errors)
             print("calibration mean:", mean, " std:", std)
             self.state += 2
-            calib_node = PropertyNode()
-            calib_node.setLen("orientation", 9)
+            node = PropertyNode()
+            calib_node.getChild("calibration", True)
+            calib_node.setLen("stapdown", 9)
             for i in range(9):
-                calib_node.setFloatEnum("orientation", i, final.flatten()[i])
+                calib_node.setFloatEnum("strapdown", i, final.flatten()[i])
             calib_node.setFloat("calibration_mean", mean)
             calib_node.setFloat("calibration_std", std)
-            calib_node.setFloat("ax_bias", self.T[0])
-            calib_node.setFloat("ay_bias", self.T[1])
-            calib_node.setFloat("az_bias", self.T[2])
+            calib_node.setLen("accel_scale", 3)
+            for i in range(3):
+                calib_node.setFloat("accel_scale", i, scale[i,i])
+            calib_node.setLen("accel_translate", 3)
+            for i in range(3):
+                calib_node.setFloat("accel_translate", i, translate[3,i])
             logging_node = getNode("/config/logging", True)
             dir = logging_node.getString("flight_dir")
             props_json.save(os.path.join(dir, "imu_calib.json"), calib_node)
