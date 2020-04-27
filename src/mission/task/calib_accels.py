@@ -166,13 +166,28 @@ class CalibrateAccels(Task):
                 # compute affine rotation fit
                 v0 = np.array(self.meas, dtype=np.float64, copy=True).T
                 v1 = np.array(self.ref, dtype=np.float64, copy=True).T
-                M = tr.affine_matrix_from_points(v0, v1, shear=False, scale=True)
-                print("M:", M)
-                R = M[:3,:3]
-                print(R @ R.T)
-                print("R:\n", R)
-                # R should be orthogonal/normalized here
-                # check if any row column doesn't have an element close to 1
+                self.accel_affine = tr.affine_matrix_from_points(v0, v1, shear=False, scale=True)
+                print("accel_affine:", self.accel_affine)
+                self.scale, shear, angles, self.translate, perspective = tr.decompose_matrix(self.accel_affine)
+                print("scale:", self.scale)
+                print("shear:", shear)
+                print("angles:", angles)
+                print("translate:", self.translate)
+                print("perspective:", perspective)
+
+                # recompose the original affine matrix with:
+                # translate @ rotate @ scale
+                T = tr.translation_matrix(self.translate)
+                self.R = tr.euler_matrix(*angles)
+                S = tr.scale_matrix(self.scale[0])
+                print("T:\n", T)
+                print("R:\n", self.R)
+                print("S:\n", S)
+                print("R @ R.T:\n", self.R @ self.R.T)
+                recompose = T @ self.R @ S
+                print("recompose:\n", recompose)
+                # check rotation matrix, if any row or column doesn't
+                # have an element close to 1, then bomb
                 if np.max(np.abs(R[0])) < 0.9:
                     print("bad row 1")
                     self.state += 2
@@ -192,40 +207,20 @@ class CalibrateAccels(Task):
                     print("bad column 3")
                     self.state += 2
                 else:
-                    # nothing bad detected, save results and goto success state
-                    scale, shear, angles, translate, perspective = tr.decompose_matrix(M)
-                    print("scale:", scale)
-                    print("shear:", shear)
-                    print("angles:", angles)
-                    print("translate:", translate)
-                    print("perspective:", perspective)
-
-                    # recompose the original affine matrix with:
-                    # translate @ rotate @ scale
-                    T = tr.translation_matrix(translate)
-                    R = tr.euler_matrix(*angles)
-                    S = tr.scale_matrix(scale[0])
-                    print("T:\n", T)
-                    print("R:\n", R)
-                    print("S:\n", S)
-                    print("R @ R.T:\n", R @ R.T)
-                    recompose = T @ R @ S
-                    print("recompose:\n", recompose)
-                    
-                    self.R = R
+                    # nothing bad detected, goto success state
                     self.state += 1
         elif self.state == 7:
             # calibration complete, success, report!
             print("calibration succeeded")
-            print("R:")
+            print("strapdown calibration:")
             print(self.R)
             # as if this wasn't already fancy enough, get even fancier!
             errors = []
             for i, v in enumerate(self.meas):
                 print("measure:", i, v)
-                v1 = v @ self.R
+                v1 = np.hstack((v, 1)) @ self.accel_affine
                 v0 = self.ref[i]
-                err = np.linalg.norm(v0 - v1)
+                err = np.linalg.norm(v0 - v1[:3])
                 errors.append(err)
             print("errors:", errors)
             mean = np.mean(errors)
