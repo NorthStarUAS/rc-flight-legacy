@@ -217,12 +217,12 @@ bool Aura4_t::update_imu( message::imu_t *imu ) {
     const float magScale = 0.01;
     const float tempScale = 0.01;
 
-    float ax_nocal = (float)imu->nocal[0] * accelScale;
-    float ay_nocal = (float)imu->nocal[1] * accelScale;
-    float az_nocal = (float)imu->nocal[2] * accelScale;
-    float hx_nocal = (float)imu->nocal[3] * magScale;
-    float hy_nocal = (float)imu->nocal[4] * magScale;
-    float hz_nocal = (float)imu->nocal[5] * magScale;
+    float ax_raw = (float)imu->raw[0] * accelScale;
+    float ay_raw = (float)imu->raw[1] * accelScale;
+    float az_raw = (float)imu->raw[2] * accelScale;
+    float hx_raw = (float)imu->raw[3] * magScale;
+    float hy_raw = (float)imu->raw[4] * magScale;
+    float hz_raw = (float)imu->raw[5] * magScale;
 
     float ax_cal = (float)imu->cal[0] * accelScale;
     float ay_cal = (float)imu->cal[1] * accelScale;
@@ -277,12 +277,12 @@ bool Aura4_t::update_imu( message::imu_t *imu ) {
     imu_node.setDouble( "hx", hx_cal );
     imu_node.setDouble( "hy", hy_cal );
     imu_node.setDouble( "hz", hz_cal );
-    imu_node.setDouble( "ax_nocal", ax_nocal );
-    imu_node.setDouble( "ay_nocal", ay_nocal );
-    imu_node.setDouble( "az_nocal", az_nocal );
-    imu_node.setDouble( "hx_nocal", hx_nocal );
-    imu_node.setDouble( "hy_nocal", hy_nocal );
-    imu_node.setDouble( "hz_nocal", hz_nocal );
+    imu_node.setDouble( "ax_raw", ax_raw );
+    imu_node.setDouble( "ay_raw", ay_raw );
+    imu_node.setDouble( "az_raw", az_raw );
+    imu_node.setDouble( "hx_raw", hx_raw );
+    imu_node.setDouble( "hy_raw", hy_raw );
+    imu_node.setDouble( "hz_raw", hz_raw );
     imu_node.setDouble( "temp_C", temp_C );
 
     return true;
@@ -498,13 +498,21 @@ static void imu_defaults( message::config_imu_t *config_imu ) {
                       0.0, 1.0, 0.0,
                       0.0, 0.0, 1.0};
     for ( int i = 0; i < 9; i++ ) {
-        config_imu->orientation[i] = ident[i];
+        config_imu->strapdown_calib[i] = ident[i];
     }
-    config_imu->min_temp = 27.0;
-    config_imu->max_temp = 27.0;
     for ( int i = 0; i < 3; i++ ) {
-        config_imu->ax_coeff[i] = 0.0;
+        config_imu->accel_scale[i] = 1.0;
     }
+    for ( int i = 0; i < 3; i++ ) {
+        config_imu->accel_translate[i] = 0.0;
+    }
+    // config_imu->min_temp = 27.0;
+    // config_imu->max_temp = 27.0;
+    // for ( int i = 0; i < 3; i++ ) {
+    //     config_imu->ax_coeff[i] = 0.0;
+    //     config_imu->ay_coeff[i] = 0.0;
+    //     config_imu->az_coeff[i] = 0.0;
+    // }
     float mag_affine[] = { 1.0, 0.0, 0.0, 0.0,
                            0.0, 1.0, 0.0, 0.0,
                            0.0, 0.0, 1.0, 0.0,
@@ -611,47 +619,57 @@ bool Aura4_t::send_config() {
     }
 
     pyPropertyNode imu_node = aura4_config.getChild("imu", true);
-    if ( imu_node.hasChild("orientation") ) {
-        int len = imu_node.getLen("orientation");
-        if ( len == 9 ) {
-            for ( int i = 0; i < len; i++ ) {
-                config_imu.orientation[i] = imu_node.getDouble("orientation", i);
-            }
-        } else {
-            printf("WARNING: imu orienation improper matrix size\n");
-        }
-        if ( imu_node.hasChild("calibration") ) {
-            pyPropertyNode cal = imu_node.getChild("calibration");
-            if ( cal.hasChild("min_temp_C") ) {
-                config_imu.min_temp = cal.getDouble("min_temp_C");
-            }
-            if ( cal.hasChild("max_temp_C") ) {
-                config_imu.max_temp = cal.getDouble("max_temp_C");
-            }
-            if ( cal.getLen("ax_calib") == 3 ) {
-                for ( int i = 0; i < 3; i++ ) {
-                    config_imu.ax_coeff[i] = cal.getDouble("ax_calib", i);
-                }
-            }
-            if ( cal.getLen("ay_calib") == 3 ) {
-                for ( int i = 0; i < 3; i++ ) {
-                    config_imu.ay_coeff[i] = cal.getDouble("ay_calib", i);
-                }
-            }
-            if ( cal.getLen("az_calib") == 3 ) {
-                for ( int i = 0; i < 3; i++ ) {
-                    config_imu.az_coeff[i] = cal.getDouble("az_calib", i);
-                }
-            }
-            
-            if ( cal.getLen("mag_affine") == 16 ) {
-                for ( unsigned int i = 0; i < 16; i++ ) {
-                    config_imu.mag_affine[i] = cal.getDouble("mag_affine", i);
-                    //printf("mag: %.4f\n", config_imu.mag_affine[i]);
+    if ( imu_node.hasChild("calibration") ) {
+        pyPropertyNode cal = imu_node.getChild("calibration");
+        if ( imu_node.hasChild("strapdown") ) {
+            int len = imu_node.getLen("strapdown");
+            if ( len == 9 ) {
+                for ( int i = 0; i < len; i++ ) {
+                    config_imu.strapdown_calib[i] = imu_node.getDouble("strapdown", i);
                 }
             } else {
-                info("ERROR: wrong number of elements for mag_cal affine matrix!\n");
+                printf("WARNING: imu strapdown_calib improper matrix size\n");
             }
+        }
+        if ( cal.getLen("accel_scale") == 3 ) {
+            for ( int i = 0; i < 3; i++ ) {
+                config_imu.accel_scale[i] = cal.getDouble("accel_scale", i);
+            }
+        }
+        if ( cal.getLen("accel_translate") == 3 ) {
+            for ( int i = 0; i < 3; i++ ) {
+                config_imu.accel_translate[i] = cal.getDouble("accel_translate", i);
+            }
+        }
+        // if ( cal.hasChild("min_temp_C") ) {
+        //     config_imu.min_temp = cal.getDouble("min_temp_C");
+        // }
+        // if ( cal.hasChild("max_temp_C") ) {
+        //     config_imu.max_temp = cal.getDouble("max_temp_C");
+        // }
+        // if ( cal.getLen("ax_calib") == 3 ) {
+        //     for ( int i = 0; i < 3; i++ ) {
+        //         config_imu.ax_coeff[i] = cal.getDouble("ax_calib", i);
+        //     }
+        // }
+        // if ( cal.getLen("ay_calib") == 3 ) {
+        //     for ( int i = 0; i < 3; i++ ) {
+        //         config_imu.ay_coeff[i] = cal.getDouble("ay_calib", i);
+        //     }
+        // }
+        // if ( cal.getLen("az_calib") == 3 ) {
+        //     for ( int i = 0; i < 3; i++ ) {
+        //         config_imu.az_coeff[i] = cal.getDouble("az_calib", i);
+        //     }
+        // }
+            
+        if ( cal.getLen("mag_affine") == 16 ) {
+            for ( unsigned int i = 0; i < 16; i++ ) {
+                config_imu.mag_affine[i] = cal.getDouble("mag_affine", i);
+                //printf("mag: %.4f\n", config_imu.mag_affine[i]);
+            }
+        } else {
+            info("ERROR: wrong number of elements for mag_cal affine matrix!\n");
         }
     } else {
         printf("Note: no imu orientation defined, default is identity matrix\n");

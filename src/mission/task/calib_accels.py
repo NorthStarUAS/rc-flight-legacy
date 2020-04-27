@@ -198,7 +198,10 @@ class CalibrateAccels(Task):
                     print("angles:", angles)
                     print("translate:", translate)
                     print("perspective:", perspective)
-                        
+
+                    # recompose the original affine matrix with:
+                    # translate @ rotate @ scale
+                    
                     self.R = R
                     self.T = M[:,3] # translation vector
                     self.state += 1
