@@ -77,9 +77,9 @@ class CalibrateAccels(Task):
             return False
 
         # update filters
-        ax = self.imu_node.getFloat("ax_nocal")
-        ay = self.imu_node.getFloat("ay_nocal")
-        az = self.imu_node.getFloat("az_nocal")
+        ax = self.imu_node.getFloat("ax_raw")
+        ay = self.imu_node.getFloat("ay_raw")
+        az = self.imu_node.getFloat("az_raw")
         self.ax_slow.update(ax, dt)
         self.ax_fast.update(ax, dt)
         self.ay_slow.update(ay, dt)
@@ -208,21 +208,8 @@ class CalibrateAccels(Task):
         elif self.state == 7:
             # calibration complete, success, report!
             print("calibration succeeded")
-            # consider current orientation matrix if it exists
-            if self.config_imu_node and self.config_imu_node.hasChild("orientation"):
-                current = []
-                for i in range(9):
-                    current.append(self.config_imu_node.getFloatEnum("orientation", i))
-                current = np.array(current).reshape(3,3)
-            else:
-                current = np.eye(3)
-            print("current:")
-            print(current)
             print("R:")
             print(self.R)
-            final = current @ self.R
-            print("Final:")
-            print(final)
             # as if this wasn't already fancy enough, get even fancier!
             errors = []
             for i, v in enumerate(self.meas):
@@ -237,10 +224,10 @@ class CalibrateAccels(Task):
             print("calibration mean:", mean, " std:", std)
             self.state += 2
             node = PropertyNode()
-            calib_node.getChild("calibration", True)
+            calib_node = node.getChild("calibration", True)
             calib_node.setLen("stapdown", 9)
             for i in range(9):
-                calib_node.setFloatEnum("strapdown", i, final.flatten()[i])
+                calib_node.setFloatEnum("strapdown", i, self.R.flatten()[i])
             calib_node.setFloat("calibration_mean", mean)
             calib_node.setFloat("calibration_std", std)
             calib_node.setLen("accel_scale", 3)
