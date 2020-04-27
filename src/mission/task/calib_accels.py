@@ -188,22 +188,22 @@ class CalibrateAccels(Task):
                 print("recompose:\n", recompose)
                 # check rotation matrix, if any row or column doesn't
                 # have an element close to 1, then bomb
-                if np.max(np.abs(R[0])) < 0.9:
+                if np.max(np.abs(self.R[0])) < 0.9:
                     print("bad row 1")
                     self.state += 2
-                elif np.max(np.abs(R[1])) < 0.9:
+                elif np.max(np.abs(self.R[1])) < 0.9:
                     print("bad row 2")
                     self.state += 2
-                elif np.max(np.abs(R[2])) < 0.9:
+                elif np.max(np.abs(self.R[2])) < 0.9:
                     print("bad row 3")
                     self.state += 2
-                elif np.max(np.abs(R[:,0])) < 0.9:
+                elif np.max(np.abs(self.R[:,0])) < 0.9:
                     print("bad column 1")
                     self.state += 2
-                elif np.max(np.abs(R[:,1])) < 0.9:
+                elif np.max(np.abs(self.R[:,1])) < 0.9:
                     print("bad column 2")
                     self.state += 2
-                elif np.max(np.abs(R[:,2])) < 0.9:
+                elif np.max(np.abs(self.R[:,2])) < 0.9:
                     print("bad column 3")
                     self.state += 2
                 else:
@@ -236,10 +236,10 @@ class CalibrateAccels(Task):
             calib_node.setFloat("calibration_std", std)
             calib_node.setLen("accel_scale", 3)
             for i in range(3):
-                calib_node.setFloat("accel_scale", i, scale[i,i])
+                calib_node.setFloat("accel_scale", i, self.scale[i,i])
             calib_node.setLen("accel_translate", 3)
             for i in range(3):
-                calib_node.setFloat("accel_translate", i, translate[3,i])
+                calib_node.setFloat("accel_translate", i, self.translate[3,i])
             logging_node = getNode("/config/logging", True)
             dir = logging_node.getString("flight_dir")
             props_json.save(os.path.join(dir, "imu_calib.json"), calib_node)
