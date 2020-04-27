@@ -218,7 +218,7 @@ class CalibrateAccels(Task):
             errors = []
             for i, v in enumerate(self.meas):
                 print("measure:", i, v)
-                v1 = np.hstack((v, 1)) @ self.accel_affine
+                v1 =  self.accel_affine @ np.hstack((v, 1))
                 v0 = self.ref[i]
                 err = np.linalg.norm(v0 - v1[:3])
                 errors.append(err)
@@ -236,10 +236,10 @@ class CalibrateAccels(Task):
             calib_node.setFloat("calibration_std", std)
             calib_node.setLen("accel_scale", 3)
             for i in range(3):
-                calib_node.setFloat("accel_scale", i, self.scale[i,i])
+                calib_node.setFloatEnum("accel_scale", i, self.scale[i])
             calib_node.setLen("accel_translate", 3)
             for i in range(3):
-                calib_node.setFloat("accel_translate", i, self.translate[3,i])
+                calib_node.setFloatEnum("accel_translate", i, self.translate[i])
             logging_node = getNode("/config/logging", True)
             dir = logging_node.getString("flight_dir")
             props_json.save(os.path.join(dir, "imu_calib.json"), calib_node)
