@@ -229,7 +229,7 @@ class CalibrateAccels(Task):
             self.state += 2
             node = PropertyNode()
             calib_node = node.getChild("calibration", True)
-            calib_node.setLen("stapdown", 9)
+            calib_node.setLen("strapdown", 9)
             for i in range(9):
                 calib_node.setFloatEnum("strapdown", i, self.R.flatten()[i])
             calib_node.setFloat("calibration_mean", mean)
@@ -242,7 +242,7 @@ class CalibrateAccels(Task):
                 calib_node.setFloatEnum("accel_translate", i, self.translate[i])
             logging_node = getNode("/config/logging", True)
             dir = logging_node.getString("flight_dir")
-            props_json.save(os.path.join(dir, "imu_calib.json"), calib_node)
+            props_json.save(os.path.join(dir, "imu_calib.json"), node)
         elif self.state == 8:
             # calibration complete, but failed. :-(
             print("calibration failed")
