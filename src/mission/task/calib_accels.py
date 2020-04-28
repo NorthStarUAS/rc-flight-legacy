@@ -166,8 +166,8 @@ class CalibrateAccels(Task):
                 # compute affine rotation fit
                 v0 = np.array(self.meas, dtype=np.float64, copy=True).T
                 v1 = np.array(self.ref, dtype=np.float64, copy=True).T
-                self.accel_affine = tr.affine_matrix_from_points(v0, v1, shear=False, scale=True)
-                print("accel_affine:", self.accel_affine)
+                self.accel_affine = tr.affine_matrix_from_points(v0, v1, shear=True, scale=True)
+                print("accel_affine:\n", self.accel_affine)
                 self.scale, shear, angles, self.translate, perspective = tr.decompose_matrix(self.accel_affine)
                 print("scale:", self.scale)
                 print("shear:", shear)
@@ -179,7 +179,7 @@ class CalibrateAccels(Task):
                 # translate @ rotate @ scale
                 T = tr.translation_matrix(self.translate)
                 self.R = tr.euler_matrix(*angles)
-                S = tr.scale_matrix(self.scale[0])
+                S = np.diag([self.scale[0], self.scale[1], self.scale[2], 1.0])
                 print("T:\n", T)
                 print("R:\n", self.R)
                 print("S:\n", S)
@@ -231,9 +231,9 @@ class CalibrateAccels(Task):
             calib_node = node.getChild("calibration", True)
             calib_node.setLen("strapdown", 9)
             for i in range(9):
-                calib_node.setFloatEnum("strapdown", i, self.R.flatten()[i])
-            calib_node.setFloat("calibration_mean", mean)
-            calib_node.setFloat("calibration_std", std)
+                calib_node.setFloatEnum("strapdown", i, self.R[:3,:3].flatten()[i])
+            calib_node.setFloat("fit_mean", mean)
+            calib_node.setFloat("fit_std", std)
             calib_node.setLen("accel_scale", 3)
             for i in range(3):
                 calib_node.setFloatEnum("accel_scale", i, self.scale[i])
