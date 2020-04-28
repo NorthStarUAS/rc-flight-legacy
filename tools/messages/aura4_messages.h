@@ -289,12 +289,9 @@ struct config_imu_t {
     // public fields
     uint8_t interface;
     uint8_t pin_or_address;
-    float orientation[9];
-    float min_temp;
-    float max_temp;
-    float ax_coeff[3];
-    float ay_coeff[3];
-    float az_coeff[3];
+    float strapdown_calib[9];
+    float accel_scale[3];
+    float accel_translate[3];
     float mag_affine[16];
 
     // internal structure for packing
@@ -303,12 +300,9 @@ struct config_imu_t {
     struct _compact_t {
         uint8_t interface;
         uint8_t pin_or_address;
-        float orientation[9];
-        int16_t min_temp;
-        int16_t max_temp;
-        float ax_coeff[3];
-        float ay_coeff[3];
-        float az_coeff[3];
+        float strapdown_calib[9];
+        float accel_scale[3];
+        float accel_translate[3];
         float mag_affine[16];
     };
     #pragma pack(pop)
@@ -328,12 +322,9 @@ struct config_imu_t {
         _compact_t *_buf = (_compact_t *)payload;
         _buf->interface = interface;
         _buf->pin_or_address = pin_or_address;
-        for (int _i=0; _i<9; _i++) _buf->orientation[_i] = orientation[_i];
-        _buf->min_temp = intround(min_temp * 100);
-        _buf->max_temp = intround(max_temp * 100);
-        for (int _i=0; _i<3; _i++) _buf->ax_coeff[_i] = ax_coeff[_i];
-        for (int _i=0; _i<3; _i++) _buf->ay_coeff[_i] = ay_coeff[_i];
-        for (int _i=0; _i<3; _i++) _buf->az_coeff[_i] = az_coeff[_i];
+        for (int _i=0; _i<9; _i++) _buf->strapdown_calib[_i] = strapdown_calib[_i];
+        for (int _i=0; _i<3; _i++) _buf->accel_scale[_i] = accel_scale[_i];
+        for (int _i=0; _i<3; _i++) _buf->accel_translate[_i] = accel_translate[_i];
         for (int _i=0; _i<16; _i++) _buf->mag_affine[_i] = mag_affine[_i];
         return true;
     }
@@ -347,12 +338,9 @@ struct config_imu_t {
         len = sizeof(_compact_t);
         interface = _buf->interface;
         pin_or_address = _buf->pin_or_address;
-        for (int _i=0; _i<9; _i++) orientation[_i] = _buf->orientation[_i];
-        min_temp = _buf->min_temp / (float)100;
-        max_temp = _buf->max_temp / (float)100;
-        for (int _i=0; _i<3; _i++) ax_coeff[_i] = _buf->ax_coeff[_i];
-        for (int _i=0; _i<3; _i++) ay_coeff[_i] = _buf->ay_coeff[_i];
-        for (int _i=0; _i<3; _i++) az_coeff[_i] = _buf->az_coeff[_i];
+        for (int _i=0; _i<9; _i++) strapdown_calib[_i] = _buf->strapdown_calib[_i];
+        for (int _i=0; _i<3; _i++) accel_scale[_i] = _buf->accel_scale[_i];
+        for (int _i=0; _i<3; _i++) accel_translate[_i] = _buf->accel_translate[_i];
         for (int _i=0; _i<16; _i++) mag_affine[_i] = _buf->mag_affine[_i];
         return true;
     }
@@ -865,7 +853,7 @@ struct pilot_t {
 struct imu_t {
     // public fields
     uint32_t millis;
-    int16_t nocal[6];
+    int16_t raw[6];
     int16_t cal[10];
 
     // internal structure for packing
@@ -873,7 +861,7 @@ struct imu_t {
     #pragma pack(push, 1)
     struct _compact_t {
         uint32_t millis;
-        int16_t nocal[6];
+        int16_t raw[6];
         int16_t cal[10];
     };
     #pragma pack(pop)
@@ -892,7 +880,7 @@ struct imu_t {
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
         _buf->millis = millis;
-        for (int _i=0; _i<6; _i++) _buf->nocal[_i] = nocal[_i];
+        for (int _i=0; _i<6; _i++) _buf->raw[_i] = raw[_i];
         for (int _i=0; _i<10; _i++) _buf->cal[_i] = cal[_i];
         return true;
     }
@@ -905,7 +893,7 @@ struct imu_t {
         _compact_t *_buf = (_compact_t *)payload;
         len = sizeof(_compact_t);
         millis = _buf->millis;
-        for (int _i=0; _i<6; _i++) nocal[_i] = _buf->nocal[_i];
+        for (int _i=0; _i<6; _i++) raw[_i] = _buf->raw[_i];
         for (int _i=0; _i<10; _i++) cal[_i] = _buf->cal[_i];
         return true;
     }
