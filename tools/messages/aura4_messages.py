@@ -166,7 +166,7 @@ class config_ekf():
 # Id: 14
 class config_imu():
     id = 14
-    _pack_string = "<BBfffffffffffffffffffffffffffffff"
+    _pack_string = "<BBfffffffffffffffffffffffffff"
 
     def __init__(self, msg=None):
         # public fields
@@ -175,7 +175,8 @@ class config_imu():
         self.strapdown_calib = [0.0] * 9
         self.accel_scale = [0.0] * 3
         self.accel_translate = [0.0] * 3
-        self.mag_affine = [0.0] * 16
+        self.mag_b = [0.0] * 3
+        self.mag_A_1 = [0.0] * 9
         # unpack if requested
         if msg: self.unpack(msg)
 
@@ -198,22 +199,18 @@ class config_imu():
                           self.accel_translate[0],
                           self.accel_translate[1],
                           self.accel_translate[2],
-                          self.mag_affine[0],
-                          self.mag_affine[1],
-                          self.mag_affine[2],
-                          self.mag_affine[3],
-                          self.mag_affine[4],
-                          self.mag_affine[5],
-                          self.mag_affine[6],
-                          self.mag_affine[7],
-                          self.mag_affine[8],
-                          self.mag_affine[9],
-                          self.mag_affine[10],
-                          self.mag_affine[11],
-                          self.mag_affine[12],
-                          self.mag_affine[13],
-                          self.mag_affine[14],
-                          self.mag_affine[15])
+                          self.mag_b[0],
+                          self.mag_b[1],
+                          self.mag_b[2],
+                          self.mag_A_1[0],
+                          self.mag_A_1[1],
+                          self.mag_A_1[2],
+                          self.mag_A_1[3],
+                          self.mag_A_1[4],
+                          self.mag_A_1[5],
+                          self.mag_A_1[6],
+                          self.mag_A_1[7],
+                          self.mag_A_1[8])
         return msg
 
     def unpack(self, msg):
@@ -234,22 +231,18 @@ class config_imu():
          self.accel_translate[0],
          self.accel_translate[1],
          self.accel_translate[2],
-         self.mag_affine[0],
-         self.mag_affine[1],
-         self.mag_affine[2],
-         self.mag_affine[3],
-         self.mag_affine[4],
-         self.mag_affine[5],
-         self.mag_affine[6],
-         self.mag_affine[7],
-         self.mag_affine[8],
-         self.mag_affine[9],
-         self.mag_affine[10],
-         self.mag_affine[11],
-         self.mag_affine[12],
-         self.mag_affine[13],
-         self.mag_affine[14],
-         self.mag_affine[15]) = struct.unpack(self._pack_string, msg)
+         self.mag_b[0],
+         self.mag_b[1],
+         self.mag_b[2],
+         self.mag_A_1[0],
+         self.mag_A_1[1],
+         self.mag_A_1[2],
+         self.mag_A_1[3],
+         self.mag_A_1[4],
+         self.mag_A_1[5],
+         self.mag_A_1[6],
+         self.mag_A_1[7],
+         self.mag_A_1[8]) = struct.unpack(self._pack_string, msg)
 
 # Message: config_mixer
 # Id: 15

@@ -292,7 +292,8 @@ struct config_imu_t {
     float strapdown_calib[9];
     float accel_scale[3];
     float accel_translate[3];
-    float mag_affine[16];
+    float mag_b[3];
+    float mag_A_1[9];
 
     // internal structure for packing
     uint8_t payload[message_max_len];
@@ -303,7 +304,8 @@ struct config_imu_t {
         float strapdown_calib[9];
         float accel_scale[3];
         float accel_translate[3];
-        float mag_affine[16];
+        float mag_b[3];
+        float mag_A_1[9];
     };
     #pragma pack(pop)
 
@@ -325,7 +327,8 @@ struct config_imu_t {
         for (int _i=0; _i<9; _i++) _buf->strapdown_calib[_i] = strapdown_calib[_i];
         for (int _i=0; _i<3; _i++) _buf->accel_scale[_i] = accel_scale[_i];
         for (int _i=0; _i<3; _i++) _buf->accel_translate[_i] = accel_translate[_i];
-        for (int _i=0; _i<16; _i++) _buf->mag_affine[_i] = mag_affine[_i];
+        for (int _i=0; _i<3; _i++) _buf->mag_b[_i] = mag_b[_i];
+        for (int _i=0; _i<9; _i++) _buf->mag_A_1[_i] = mag_A_1[_i];
         return true;
     }
 
@@ -341,7 +344,8 @@ struct config_imu_t {
         for (int _i=0; _i<9; _i++) strapdown_calib[_i] = _buf->strapdown_calib[_i];
         for (int _i=0; _i<3; _i++) accel_scale[_i] = _buf->accel_scale[_i];
         for (int _i=0; _i<3; _i++) accel_translate[_i] = _buf->accel_translate[_i];
-        for (int _i=0; _i<16; _i++) mag_affine[_i] = _buf->mag_affine[_i];
+        for (int _i=0; _i<3; _i++) mag_b[_i] = _buf->mag_b[_i];
+        for (int _i=0; _i<9; _i++) mag_A_1[_i] = _buf->mag_A_1[_i];
         return true;
     }
 };
