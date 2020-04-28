@@ -227,13 +227,12 @@ class CalibrateAccels(Task):
             std = np.std(errors)
             print("calibration mean:", mean, " std:", std)
             self.state += 2
-            node = PropertyNode()
-            calib_node = node.getChild("calibration", True)
+            calib_node = imu_calib_node.getChild("calibration", True)
             calib_node.setLen("strapdown", 9)
             for i in range(9):
                 calib_node.setFloatEnum("strapdown", i, self.R[:3,:3].flatten()[i])
-            calib_node.setFloat("fit_mean", mean)
-            calib_node.setFloat("fit_std", std)
+            calib_node.setFloat("accel_fit_mean", mean)
+            calib_node.setFloat("accel_fit_std", std)
             calib_node.setLen("accel_scale", 3)
             for i in range(3):
                 calib_node.setFloatEnum("accel_scale", i, self.scale[i])
