@@ -513,12 +513,15 @@ static void imu_defaults( message::config_imu_t *config_imu ) {
     //     config_imu->ay_coeff[i] = 0.0;
     //     config_imu->az_coeff[i] = 0.0;
     // }
-    float mag_affine[] = { 1.0, 0.0, 0.0, 0.0,
-                           0.0, 1.0, 0.0, 0.0,
-                           0.0, 0.0, 1.0, 0.0,
-                           0.0, 0.0, 0.0, 1.0 };
-    for ( int i = 0; i < 16; i++ ) {
-        config_imu->mag_affine[i] = mag_affine[i];
+    float mag_b[] = { 0.0, 0.0, 0.0 };
+    for ( int i = 0; i < 3; i++ ) {
+        config_imu->mag_b[i] = mag_b[i];
+    }
+    float mag_A_1[] = { 1.0, 0.0, 0.0,
+                        0.0, 1.0, 0.0,
+                        0.0, 0.0, 1.0 };
+    for ( int i = 0; i < 9; i++ ) {
+        config_imu->mag_A_1[i] = mag_A_1[i];
     }
 }
 
@@ -663,13 +666,19 @@ bool Aura4_t::send_config() {
         //     }
         // }
             
-        if ( cal_node.getLen("mag_affine") == 16 ) {
-            for ( unsigned int i = 0; i < 16; i++ ) {
-                config_imu.mag_affine[i] = cal_node.getDouble("mag_affine", i);
-                //printf("mag: %.4f\n", config_imu.mag_affine[i]);
+        if ( cal_node.getLen("mag_b") == 3 ) {
+            for ( unsigned int i = 0; i < 3; i++ ) {
+                config_imu.mag_b[i] = cal_node.getDouble("mag_b", i);
             }
         } else {
-            info("ERROR: wrong number of elements for mag_cal affine matrix!\n");
+            info("ERROR: wrong number of elements for mag_b vector!\n");
+        }
+        if ( cal_node.getLen("mag_A_1") == 9 ) {
+            for ( unsigned int i = 0; i < 9; i++ ) {
+                config_imu.mag_A_1[i] = cal_node.getDouble("mag_A_1", i);
+            }
+        } else {
+            info("ERROR: wrong number of elements for mag_A_1 matrix!\n");
         }
     } else {
         printf("Note: no imu orientation defined, default is identity matrix\n");
