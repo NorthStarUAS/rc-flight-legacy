@@ -241,7 +241,7 @@ class CalibrateAccels(Task):
                 calib_node.setFloatEnum("accel_translate", i, self.translate[i])
             logging_node = getNode("/config/logging", True)
             dir = logging_node.getString("flight_dir")
-            props_json.save(os.path.join(dir, "imu_calib.json"), node)
+            props_json.save(os.path.join(dir, "imu_calib.json"), calib_node)
         elif self.state == 8:
             # calibration complete, but failed. :-(
             print("calibration failed")

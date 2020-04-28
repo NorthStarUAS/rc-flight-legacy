@@ -202,11 +202,12 @@ class CalibrateMagnetometer(Task):
                 A1_h = np.eye(4)
                 A1_h[:3,:3] = self.A_1
                 self.mag_affine = A1_h @ T # this is the correct order
-                self.scale, shear, angles, self.translate, perspective = tr.decompose_matrix(self.mag_affine)
-                print("scale:", self.scale)
+                print("mag_affine:\n", self.mag_affine)
+                scale, shear, angles, translate, perspective = tr.decompose_matrix(mag_affine)
+                print("scale:", scale)
                 print("shear:", shear)
                 print("angles:", angles)
-                print("translate:", self.translate)
+                print("translate:", translate)
                 print("perspective:", perspective)
                 # fixme what can we look at to sanity check?
                 # nothing bad detected, goto success state
@@ -215,7 +216,6 @@ class CalibrateMagnetometer(Task):
             # calibration complete, success, report!
             print("calibration succeeded")
             print("magnetometer calibration:")
-            print(self.mag_affine)
             # as if this wasn't already fancy enough, get even fancier!
             errors = []
             for i, v in enumerate(self.samples):
@@ -224,12 +224,15 @@ class CalibrateMagnetometer(Task):
                 print(v, v1[:3])
             self.state += 2
             calib_node = self.config_imu_node.getChild("calibration", True)
-            calib_node.setLen("mag_affine", 16)
-            for i in range(16):
-                calib_node.setFloatEnum("mag_affine", i, self.mag_affine.flatten()[i])
+            calib_node.setLen("mag_b", 3)
+            for i in range(3):
+                calib_node.setFloatEnum("mag_b", i, self.mag_b.flatten()[i])
+            calib_node.setLen("mag_A_1", 9)
+            for i in range(9):
+                calib_node.setFloatEnum("mag_A_1", i, self.mag_A_1.flatten()[i])
             logging_node = getNode("/config/logging", True)
             dir = logging_node.getString("flight_dir")
-            props_json.save(os.path.join(dir, "imu_calib.json"), node)
+            props_json.save(os.path.join(dir, "imu_calib.json"), calib_node)
         elif self.state == 5:
             # calibration complete, but failed. :-(
             print("calibration failed")
