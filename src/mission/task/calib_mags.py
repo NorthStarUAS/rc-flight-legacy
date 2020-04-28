@@ -198,7 +198,7 @@ class CalibrateMagnetometer(Task):
                 print("A_1:\n", self.A_1)
                 
                 # assemble the mag calibration matrix
-                T = tr.translation_matrix(-self.b)
+                T = tr.translation_matrix(-self.b.flatten())
                 A1_h = np.eye(4)
                 A1_h[:3,:3] = self.A_1
                 self.mag_affine = T @ A1_h
@@ -215,36 +215,22 @@ class CalibrateMagnetometer(Task):
             # calibration complete, success, report!
             print("calibration succeeded")
             print("magnetometer calibration:")
-            print(self.R)
+            print(self.mag_affine)
             # as if this wasn't already fancy enough, get even fancier!
             errors = []
-            for i, v in enumerate(self.meas):
-                print("measure:", i, v)
-                v1 =  self.accel_affine @ np.hstack((v, 1))
-                v0 = self.ref[i]
-                err = np.linalg.norm(v0 - v1[:3])
-                errors.append(err)
-            print("errors:", errors)
-            mean = np.mean(errors)
-            std = np.std(errors)
-            print("calibration mean:", mean, " std:", std)
+            for i, v in enumerate(self.samples):
+                print("sample:", i, v)
+                v1 =  self.mag_affine @ np.hstack((v, 1))
+                print(v, v1[:3])
             self.state += 2
             node = PropertyNode()
             calib_node = node.getChild("calibration", True)
-            calib_node.setLen("strapdown", 9)
-            for i in range(9):
-                calib_node.setFloatEnum("strapdown", i, self.R[:3,:3].flatten()[i])
-            calib_node.setFloat("fit_mean", mean)
-            calib_node.setFloat("fit_std", std)
-            calib_node.setLen("accel_scale", 3)
-            for i in range(3):
-                calib_node.setFloatEnum("accel_scale", i, self.scale[i])
-            calib_node.setLen("accel_translate", 3)
-            for i in range(3):
-                calib_node.setFloatEnum("accel_translate", i, self.translate[i])
+            calib_node.setLen("mag_affine", 16)
+            for i in range(16):
+                calib_node.setFloatEnum("mag_affine", i, self.R[:4,:4].flatten()[i])
             logging_node = getNode("/config/logging", True)
             dir = logging_node.getString("flight_dir")
-            # props_json.save(os.path.join(dir, "imu_calib.json"), node)
+            props_json.save(os.path.join(dir, "mag_calib.json"), node)
         elif self.state == 5:
             # calibration complete, but failed. :-(
             print("calibration failed")
