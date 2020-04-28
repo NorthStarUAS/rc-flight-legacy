@@ -14,7 +14,7 @@ import mission.task.transformations as tr
 # state key:
 #   0 = spin level
 #   1 = spin nose down
-#   2 = spin right wing up
+#   2 = spin right wing down
 #   3 = sanity check
 #   4 = complete ok
 #   5 = complete failed
@@ -170,7 +170,7 @@ class CalibrateMagnetometer(Task):
                 self.armed = False
                 self.rot = 0.0
         elif self.state == 2:
-            print("Spin 360 while holding right wing up")
+            print("Spin 360 while holding right wing down")
             if self.armed and self.detect_up() == "y-neg":
                 self.rot += self.q_filt.filter_value * dt
                 self.samples.append( [hx_raw, hy_raw, hz_raw] )
@@ -203,7 +203,7 @@ class CalibrateMagnetometer(Task):
                 A1_h[:3,:3] = self.A_1
                 self.mag_affine = A1_h @ T # this is the correct order
                 print("mag_affine:\n", self.mag_affine)
-                scale, shear, angles, translate, perspective = tr.decompose_matrix(mag_affine)
+                scale, shear, angles, translate, perspective = tr.decompose_matrix(self.mag_affine)
                 print("scale:", scale)
                 print("shear:", shear)
                 print("angles:", angles)
@@ -226,10 +226,10 @@ class CalibrateMagnetometer(Task):
             calib_node = self.config_imu_node.getChild("calibration", True)
             calib_node.setLen("mag_b", 3)
             for i in range(3):
-                calib_node.setFloatEnum("mag_b", i, self.mag_b.flatten()[i])
+                calib_node.setFloatEnum("mag_b", i, self.b.flatten()[i])
             calib_node.setLen("mag_A_1", 9)
             for i in range(9):
-                calib_node.setFloatEnum("mag_A_1", i, self.mag_A_1.flatten()[i])
+                calib_node.setFloatEnum("mag_A_1", i, self.A_1.flatten()[i])
             logging_node = getNode("/config/logging", True)
             dir = logging_node.getString("flight_dir")
             props_json.save(os.path.join(dir, "imu_calib.json"), calib_node)
