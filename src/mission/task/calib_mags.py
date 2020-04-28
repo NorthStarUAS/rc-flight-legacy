@@ -96,7 +96,7 @@ class CalibrateMagnetometer(Task):
         self.ax_filt = LowPass(time_factor=0.2)
         self.ay_filt = LowPass(time_factor=0.2)
         self.az_filt = LowPass(time_factor=0.2)
-        self.F   = F
+        self.F   = 1.0          # fitted/output intensity
         self.b   = np.zeros([3, 1])
         self.A_1 = np.eye(3)
 
@@ -197,56 +197,24 @@ class CalibrateMagnetometer(Task):
                 print("b:\n", self.b)
                 print("A_1:\n", self.A_1)
                 
-                # compute affine rotation fit
-                v0 = np.array(self.meas, dtype=np.float64, copy=True).T
-                v1 = np.array(self.ref, dtype=np.float64, copy=True).T
-                self.accel_affine = tr.affine_matrix_from_points(v0, v1, shear=True, scale=True)
-                print("accel_affine:\n", self.accel_affine)
-                self.scale, shear, angles, self.translate, perspective = tr.decompose_matrix(self.accel_affine)
+                # assemble the mag calibration matrix
+                T = tr.translation_matrix(-self.b)
+                A1_h = np.eye(4)
+                A1_h[:3,:3] = self.A_1
+                self.mag_affine = T @ A1_h
+                self.scale, shear, angles, self.translate, perspective = tr.decompose_matrix(self.mag_affine)
                 print("scale:", self.scale)
                 print("shear:", shear)
                 print("angles:", angles)
                 print("translate:", self.translate)
                 print("perspective:", perspective)
-
-                # recompose the original affine matrix with:
-                # translate @ rotate @ scale
-                T = tr.translation_matrix(self.translate)
-                self.R = tr.euler_matrix(*angles)
-                S = np.diag([self.scale[0], self.scale[1], self.scale[2], 1.0])
-                print("T:\n", T)
-                print("R:\n", self.R)
-                print("S:\n", S)
-                print("R @ R.T:\n", self.R @ self.R.T)
-                recompose = T @ self.R @ S
-                print("recompose:\n", recompose)
-                # check rotation matrix, if any row or column doesn't
-                # have an element close to 1, then bomb
-                if np.max(np.abs(self.R[0])) < 0.9:
-                    print("bad row 1")
-                    self.state += 2
-                elif np.max(np.abs(self.R[1])) < 0.9:
-                    print("bad row 2")
-                    self.state += 2
-                elif np.max(np.abs(self.R[2])) < 0.9:
-                    print("bad row 3")
-                    self.state += 2
-                elif np.max(np.abs(self.R[:,0])) < 0.9:
-                    print("bad column 1")
-                    self.state += 2
-                elif np.max(np.abs(self.R[:,1])) < 0.9:
-                    print("bad column 2")
-                    self.state += 2
-                elif np.max(np.abs(self.R[:,2])) < 0.9:
-                    print("bad column 3")
-                    self.state += 2
-                else:
-                    # nothing bad detected, goto success state
-                    self.state += 1
+                # fixme what can we look at to sanity check?
+                # nothing bad detected, goto success state
+                self.state += 1
         elif self.state == 4:
             # calibration complete, success, report!
             print("calibration succeeded")
-            print("strapdown calibration:")
+            print("magnetometer calibration:")
             print(self.R)
             # as if this wasn't already fancy enough, get even fancier!
             errors = []
