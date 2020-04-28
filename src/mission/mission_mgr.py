@@ -36,6 +36,8 @@ class MissionMgr:
         self.standby_tasks = []
 
     def make_task(self, config_node):
+        if not config_node.hasChild("name"):
+            return None
         result = None
         task_name = config_node.name
         print("  make_task():", task_name)
