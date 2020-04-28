@@ -8,6 +8,7 @@ import props_json
 
 import comms.events
 from mission.task.task import Task
+from mission.task.lowpass import LowPass
 import mission.task.transformations as tr
 
 # state key:
@@ -18,7 +19,7 @@ import mission.task.transformations as tr
 #   4 = complete ok
 #   5 = complete failed
 
-def __ellipsoid_fit(s):
+def ellipsoid_fit(s):
     ''' Estimate ellipsoid parameters from a set of points.
 
         Parameters
@@ -94,7 +95,7 @@ class CalibrateMagnetometer(Task):
         self.r_filt = LowPass(time_factor=0.1) 
         self.ax_filt = LowPass(time_factor=0.5) 
         self.ay_filt = LowPass(time_factor=0.5) 
-        self.az_fast = LowPass(time_factor=0.5)
+        self.az_filt = LowPass(time_factor=0.5)
 
     def activate(self):
         self.active = True
@@ -149,25 +150,28 @@ class CalibrateMagnetometer(Task):
             if self.armed and self.detect_up() == "z-neg":
                 self.rot += self.r_filt.filter_value * dt
                 self.samples.append( [hx_raw, hy_raw, hz_raw] )
-            if abs(self.rot) > 2.1 * math.pi
+            if abs(self.rot) > 2.1 * math.pi:
                 self.state += 1
                 self.armed = False
+                self.rot = 0.0
         elif self.state == 1:
             print("Spin 360 while holding nose down")
             if self.armed and self.detect_up() == "x-neg":
                 self.rot += self.p_filt.filter_value * dt
                 self.samples.append( [hx_raw, hy_raw, hz_raw] )
-            if abs(self.rot) > 2.1 * math.pi
+            if abs(self.rot) > 2.1 * math.pi:
                 self.state += 1
                 self.armed = False
+                self.rot = 0.0
         elif self.state == 2:
             print("Spin 360 while holding right wing up")
             if self.armed and self.detect_up() == "y-neg":
                 self.rot += self.q_filt.filter_value * dt
                 self.samples.append( [hx_raw, hy_raw, hz_raw] )
-            if abs(self.rot) > 2.1 * math.pi
+            if abs(self.rot) > 2.1 * math.pi:
                 self.state += 1
                 self.armed = False
+                self.rot = 0.0
         elif self.state == 3:
             # did we measure a bunch of samples?
             if len(self.samples) < 100:
