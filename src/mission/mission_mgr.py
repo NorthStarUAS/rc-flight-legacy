@@ -3,6 +3,7 @@ from props import getNode
 import comms.events
 
 import mission.task.calib_accels
+import mission.task.calib_mags
 import mission.task.calibrate
 import mission.task.camera
 import mission.task.circle
@@ -43,6 +44,8 @@ class MissionMgr:
         print("  make_task():", task_name)
         if task_name == 'calib_accels':
             result = mission.task.calib_accels.CalibrateAccels(config_node)
+        elif task_name == 'calib_mags':
+            result = mission.task.calib_mags.CalibrateMagnetometer(config_node)
         elif task_name == 'camera':
             result = mission.task.camera.Camera(config_node)
         elif task_name == 'circle':
