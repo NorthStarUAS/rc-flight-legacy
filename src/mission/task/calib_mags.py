@@ -90,12 +90,15 @@ class CalibrateMagnetometer(Task):
         self.state = 0
         self.armed = False
         self.samples = []
-        self.p_filt = LowPass(time_factor=0.1) 
-        self.q_filt = LowPass(time_factor=0.1) 
-        self.r_filt = LowPass(time_factor=0.1) 
-        self.ax_filt = LowPass(time_factor=0.5) 
-        self.ay_filt = LowPass(time_factor=0.5) 
-        self.az_filt = LowPass(time_factor=0.5)
+        self.p_filt = LowPass(time_factor=0.1)
+        self.q_filt = LowPass(time_factor=0.1)
+        self.r_filt = LowPass(time_factor=0.1)
+        self.ax_filt = LowPass(time_factor=0.2)
+        self.ay_filt = LowPass(time_factor=0.2)
+        self.az_filt = LowPass(time_factor=0.2)
+        self.F   = F
+        self.b   = np.zeros([3, 1])
+        self.A_1 = np.eye(3)
 
     def activate(self):
         self.active = True
@@ -137,6 +140,9 @@ class CalibrateMagnetometer(Task):
         self.ay_filt.update(ay, dt)
         self.az_filt.update(az, dt)
 
+        spin = 0.2*math.pi
+        #spin = 2.01*math.pi
+        
         up_axis = self.detect_up()
         if up_axis == "none":
             self.armed = True
@@ -150,7 +156,7 @@ class CalibrateMagnetometer(Task):
             if self.armed and self.detect_up() == "z-neg":
                 self.rot += self.r_filt.filter_value * dt
                 self.samples.append( [hx_raw, hy_raw, hz_raw] )
-            if abs(self.rot) > 2.1 * math.pi:
+            if abs(self.rot) > spin:
                 self.state += 1
                 self.armed = False
                 self.rot = 0.0
@@ -159,7 +165,7 @@ class CalibrateMagnetometer(Task):
             if self.armed and self.detect_up() == "x-neg":
                 self.rot += self.p_filt.filter_value * dt
                 self.samples.append( [hx_raw, hy_raw, hz_raw] )
-            if abs(self.rot) > 2.1 * math.pi:
+            if abs(self.rot) > spin:
                 self.state += 1
                 self.armed = False
                 self.rot = 0.0
@@ -168,7 +174,7 @@ class CalibrateMagnetometer(Task):
             if self.armed and self.detect_up() == "y-neg":
                 self.rot += self.q_filt.filter_value * dt
                 self.samples.append( [hx_raw, hy_raw, hz_raw] )
-            if abs(self.rot) > 2.1 * math.pi:
+            if abs(self.rot) > spin:
                 self.state += 1
                 self.armed = False
                 self.rot = 0.0
