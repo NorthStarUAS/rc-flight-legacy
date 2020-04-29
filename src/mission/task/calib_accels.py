@@ -211,9 +211,9 @@ class CalibrateAccels(Task):
                     self.state += 1
         elif self.state == 7:
             # calibration complete, success, report!
-            print("calibration succeeded")
-            print("strapdown calibration:")
-            print(self.R)
+            comms.events.log("calibrate accels", "calibration succeeded.")
+            #print("strapdown calibration:")
+            #print(self.R)
             # as if this wasn't already fancy enough, get even fancier!
             errors = []
             for i, v in enumerate(self.meas):
@@ -222,10 +222,10 @@ class CalibrateAccels(Task):
                 v0 = self.ref[i]
                 err = np.linalg.norm(v0 - v1[:3])
                 errors.append(err)
-            print("errors:", errors)
+            #print("errors:", errors)
             mean = np.mean(errors)
             std = np.std(errors)
-            print("calibration mean:", mean, " std:", std)
+            #print("calibration mean:", mean, " std:", std)
             self.state += 2
             calib_node = imu_calib_node.getChild("calibration", True)
             calib_node.setLen("strapdown", 9)
@@ -239,11 +239,13 @@ class CalibrateAccels(Task):
             calib_node.setLen("accel_translate", 3)
             for i in range(3):
                 calib_node.setFloatEnum("accel_translate", i, self.translate[i])
-            home = os.path.expanduser{"~")
-            props_json.save(os.path.join(home, "imu_calibration.json"), calib_node)
+            home = os.path.expanduser("~")
+            filename = os.path.join(home, "imu_calibration.json")
+            props_json.save(filename, calib_node)
+            comms.events.log("calibrate accels", "saved results to: " + filename)
         elif self.state == 8:
             # calibration complete, but failed. :-(
-            print("calibration failed")
+            comms.events.log("calibrate accels", "calibration FAILED!")
             pass            
 
     def is_complete(self):

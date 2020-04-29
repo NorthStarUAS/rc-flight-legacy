@@ -19,7 +19,48 @@ import mission.task.transformations as tr
 #   4 = complete ok
 #   5 = complete failed
 
-def ellipsoid_fit(s):
+# http://www.mathworks.com/matlabcentral/fileexchange/24693-ellipsoid-fit
+# for arbitrary axes
+def ellipsoid_fit(X):
+    x = X[:, 0]
+    y = X[:, 1]
+    z = X[:, 2]
+    D = np.array([x * x + y * y - 2 * z * z,
+                 x * x + z * z - 2 * y * y,
+                 2 * x * y,
+                 2 * x * z,
+                 2 * y * z,
+                 2 * x,
+                 2 * y,
+                 2 * z,
+                 1 - 0 * x])
+    d2 = np.array(x * x + y * y + z * z).T # rhs for LLSQ
+    u = np.linalg.solve(D.dot(D.T), D.dot(d2))
+    a = np.array([u[0] + 1 * u[1] - 1])
+    b = np.array([u[0] - 2 * u[1] - 1])
+    c = np.array([u[1] - 2 * u[0] - 1])
+    v = np.concatenate([a, b, c, u[2:]], axis=0).flatten()
+    A = np.array([[v[0], v[3], v[4], v[6]],
+                  [v[3], v[1], v[5], v[7]],
+                  [v[4], v[5], v[2], v[8]],
+                  [v[6], v[7], v[8], v[9]]])
+
+    center = np.linalg.solve(- A[:3, :3], v[6:9])
+
+    translation_matrix = np.eye(4)
+    translation_matrix[3, :3] = center.T
+
+    R = translation_matrix.dot(A).dot(translation_matrix.T)
+
+    evals, evecs = np.linalg.eig(R[:3, :3] / -R[3, 3])
+    evecs = evecs.T
+
+    radii = np.sqrt(1. / np.abs(evals))
+    radii *= np.sign(evals)
+
+    return center, evecs, radii, v
+
+def ellipsoid_fit1(s):
     ''' Estimate ellipsoid parameters from a set of points.
 
         Parameters
@@ -184,10 +225,16 @@ class CalibrateMagnetometer(Task):
                 print("Somehow didn't get many samples. :-(")
                 self.state += 2
             else:
+                center, evecs, radii, v = ellipsoid_fit(s)
+                print("center:\n", center)
+                print("evecs:\n", evecs)
+                print("radii:\n", radii)
+                print("v:\n", v)
+                
                 # ellipsoid fit with our sample data
                 s = np.array(self.samples).T
-                M, n, d = ellipsoid_fit(s)
-
+                M, n, d = ellipsoid_fit1(s)
+                
                 # calibration parameters.  Note: some implementations
                 # of sqrtm return complex type, taking real
                 M_1 = linalg.inv(M)
@@ -217,11 +264,10 @@ class CalibrateMagnetometer(Task):
             print("calibration succeeded")
             print("magnetometer calibration:")
             # as if this wasn't already fancy enough, get even fancier!
-            errors = []
             for i, v in enumerate(self.samples):
-                print("sample:", i, v)
+                #print("sample:", i, v)
                 v1 =  self.mag_affine @ np.hstack((v, 1))
-                print(v, v1[:3])
+                #print(v, v1[:3])
             self.state += 2
             calib_node = self.config_imu_node.getChild("calibration", True)
             calib_node.setLen("mag_b", 3)
@@ -230,7 +276,7 @@ class CalibrateMagnetometer(Task):
             calib_node.setLen("mag_A_1", 9)
             for i in range(9):
                 calib_node.setFloatEnum("mag_A_1", i, self.A_1.flatten()[i])
-            home = os.path.expanduser{"~")
+            home = os.path.expanduser("~")
             props_json.save(os.path.join(home, "imu_calibration.json"), calib_node)
         elif self.state == 5:
             # calibration complete, but failed. :-(
