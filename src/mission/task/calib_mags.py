@@ -230,9 +230,8 @@ class CalibrateMagnetometer(Task):
             calib_node.setLen("mag_A_1", 9)
             for i in range(9):
                 calib_node.setFloatEnum("mag_A_1", i, self.A_1.flatten()[i])
-            logging_node = getNode("/config/logging", True)
-            dir = logging_node.getString("flight_dir")
-            props_json.save(os.path.join(dir, "imu_calib.json"), calib_node)
+            home = os.path.expanduser{"~")
+            props_json.save(os.path.join(home, "imu_calibration.json"), calib_node)
         elif self.state == 5:
             # calibration complete, but failed. :-(
             print("calibration failed")
