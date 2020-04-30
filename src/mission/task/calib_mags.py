@@ -21,7 +21,7 @@ import mission.task.transformations as tr
 
 # http://www.mathworks.com/matlabcentral/fileexchange/24693-ellipsoid-fit
 # for arbitrary axes
-def ellipsoid_fit(X):
+def ellipsoid_fit2(X):
     x = X[:, 0]
     y = X[:, 1]
     z = X[:, 2]
@@ -60,7 +60,9 @@ def ellipsoid_fit(X):
 
     return center, evecs, radii, v
 
-def ellipsoid_fit1(s):
+def ellipsoid_fit(s):
+    # https://teslabs.com/articles/magnetometer-calibration/
+    
     ''' Estimate ellipsoid parameters from a set of points.
 
         Parameters
@@ -146,18 +148,22 @@ class CalibrateMagnetometer(Task):
         self.armed = False
         self.samples = []
         self.rot = 0.0
+        self.axis_time = { "x-pos": 0, "x-neg": 0,
+                           "y-pos": 0, "y-neg": 0,
+                           "z-pos": 0, "z-neg": 0 }
         comms.events.log("calibrate magnetometer", "active")
 
     def detect_up(self):
+        threshold = 6
         ax = self.ax_filt.filter_value
         ay = self.ay_filt.filter_value
         az = self.az_filt.filter_value
-        if ax > 8: return "x-pos"    # nose up
-        elif ax < -8: return "x-neg" # nose down
-        if ay > 8: return "y-pos"    # right wing down
-        elif ay < -8: return "y-neg" # right wing up
-        if az > 8: return "z-pos"    # up side down
-        elif az < -8: return "z-neg" # right side up
+        if ax > threshold: return "x-pos"    # nose up
+        elif ax < -threshold: return "x-neg" # nose down
+        if ay > threshold: return "y-pos"    # right wing down
+        elif ay < -threshold: return "y-neg" # right wing up
+        if az > threshold: return "z-pos"    # up side down
+        elif az < -threshold: return "z-neg" # right side up
         return "none"                # no dominate axis up
     
     def update(self, dt):
@@ -191,34 +197,48 @@ class CalibrateMagnetometer(Task):
             
         if self.state < 3:
             print("up axis:", up_axis, "armed:", self.armed, " rot: %0f" % self.rot)
-              
+        sample_time = 5
+        
         if self.state == 0:
-            print("Spin 360 while holding level")
-            if self.armed and self.detect_up() == "z-neg":
-                self.rot += self.r_filt.filter_value * dt
-                self.samples.append( [hx_raw, hy_raw, hz_raw] )
-            if abs(self.rot) > spin:
-                self.state += 1
-                self.armed = False
-                self.rot = 0.0
-        elif self.state == 1:
-            print("Spin 360 while holding nose down")
-            if self.armed and self.detect_up() == "x-neg":
-                self.rot += self.p_filt.filter_value * dt
-                self.samples.append( [hx_raw, hy_raw, hz_raw] )
-            if abs(self.rot) > spin:
-                self.state += 1
-                self.armed = False
-                self.rot = 0.0
-        elif self.state == 2:
-            print("Spin 360 while holding right wing down")
-            if self.armed and self.detect_up() == "y-neg":
-                self.rot += self.q_filt.filter_value * dt
-                self.samples.append( [hx_raw, hy_raw, hz_raw] )
-            if abs(self.rot) > spin:
-                self.state += 1
-                self.armed = False
-                self.rot = 0.0
+            if self.armed:
+                if self.axis_time[up_axis] < sample_time:
+                    self.samples.append( [hx_raw, hy_raw, hz_raw] )
+                axis_time[up_axis] += dt
+            done = True
+            for key in self.axis_time:
+                if self.axis_time[key] < sample_time:
+                    print("need more:", key)
+                    done = False
+                    breeak
+            if done:
+                self.state = 3
+        # if self.state == 0:
+        #     print("Spin 360 while holding level")
+        #     if self.armed and self.detect_up() == "z-neg":
+        #         self.rot += self.r_filt.filter_value * dt
+        #         self.samples.append( [hx_raw, hy_raw, hz_raw] )
+        #     if abs(self.rot) > spin:
+        #         self.state += 1
+        #         self.armed = False
+        #         self.rot = 0.0
+        # elif self.state == 1:
+        #     print("Spin 360 while holding nose down")
+        #     if self.armed and self.detect_up() == "x-neg":
+        #         self.rot += self.p_filt.filter_value * dt
+        #         self.samples.append( [hx_raw, hy_raw, hz_raw] )
+        #     if abs(self.rot) > spin:
+        #         self.state += 1
+        #         self.armed = False
+        #         self.rot = 0.0
+        # elif self.state == 2:
+        #     print("Spin 360 while holding right wing down")
+        #     if self.armed and self.detect_up() == "y-neg":
+        #         self.rot += self.q_filt.filter_value * dt
+        #         self.samples.append( [hx_raw, hy_raw, hz_raw] )
+        #     if abs(self.rot) > spin:
+        #         self.state += 1
+        #         self.armed = False
+        #         self.rot = 0.0
         elif self.state == 3:
             # did we measure a bunch of samples?
             if len(self.samples) < 100:
