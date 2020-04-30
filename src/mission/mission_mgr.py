@@ -40,45 +40,45 @@ class MissionMgr:
         if not config_node.hasChild("name"):
             return None
         result = None
-        task_name = config_node.name
+        task_name = config_node.getString("name")
         print("  make_task():", task_name)
-        if task_name == 'calib_accels':
+        if task_name == "calib_accels":
             result = mission.task.calib_accels.CalibrateAccels(config_node)
-        elif task_name == 'calib_mags':
+        elif task_name == "calib_mags":
             result = mission.task.calib_mags.CalibrateMagnetometer(config_node)
-        elif task_name == 'camera':
+        elif task_name == "camera":
             result = mission.task.camera.Camera(config_node)
-        elif task_name == 'circle':
+        elif task_name == "circle":
             result = mission.task.circle.Circle(config_node)
-        elif task_name == 'excite':
+        elif task_name == "excite":
             result = mission.task.excite.Excite(config_node)
-        elif task_name == 'flaps_manager':
+        elif task_name == "flaps_manager":
             result = mission.task.flaps_mgr.FlapsMgr(config_node)
-        elif task_name == 'home_manager':
+        elif task_name == "home_manager":
             result = mission.task.home_mgr.HomeMgr(config_node)
-        elif task_name == 'idle':
+        elif task_name == "idle":
             result = mission.task.idle.Idle(config_node)
-        if task_name == 'is_airborne':
+        if task_name == "is_airborne":
             result = mission.task.is_airborne.IsAirborne(config_node)
-        elif task_name == 'land':
+        elif task_name == "land":
             result = mission.task.land3.Land(config_node)
-        elif task_name == 'launch':
+        elif task_name == "launch":
             result = mission.task.launch.Launch(config_node)
-        elif task_name == 'lost_link':
+        elif task_name == "lost_link":
             result = mission.task.lost_link.LostLink(config_node)
-        elif task_name == 'mode_manager':
+        elif task_name == "mode_manager":
             result = mission.task.mode_mgr.ModeMgr(config_node)
-        elif task_name == 'parametric':
+        elif task_name == "parametric":
             result = mission.task.parametric.Parametric(config_node)
-        elif task_name == 'preflight':
+        elif task_name == "preflight":
             result = mission.task.preflight.Preflight(config_node)
-        elif task_name == 'calibrate':
+        elif task_name == "calibrate":
             result = mission.task.calibrate.Calibrate(config_node)
-        elif task_name == 'route':
+        elif task_name == "route":
             result = mission.task.route.Route(config_node)
-        elif task_name == 'switches':
+        elif task_name == "switches":
             result = mission.task.switches.Switches(config_node)
-        elif task_name == 'throttle_safety':
+        elif task_name == "throttle_safety":
             result = mission.task.throttle_safety.ThrottleSafety(config_node)
         else:
             print("mission_mgr: unknown task name:", task_name)
