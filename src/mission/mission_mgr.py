@@ -41,7 +41,7 @@ class MissionMgr:
             return None
         result = None
         task_name = config_node.getString("name")
-        print("  make_task():", task_name)
+        print("  make_task(): '%s'" % task_name)
         if task_name == "calib_accels":
             result = mission.task.calib_accels.CalibrateAccels(config_node)
         elif task_name == "calib_mags":
@@ -58,7 +58,7 @@ class MissionMgr:
             result = mission.task.home_mgr.HomeMgr(config_node)
         elif task_name == "idle":
             result = mission.task.idle.Idle(config_node)
-        if task_name == "is_airborne":
+        elif task_name == "is_airborne":
             result = mission.task.is_airborne.IsAirborne(config_node)
         elif task_name == "land":
             result = mission.task.land3.Land(config_node)
