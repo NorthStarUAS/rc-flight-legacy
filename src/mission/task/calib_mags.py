@@ -152,9 +152,11 @@ class CalibrateMagnetometer(Task):
                            "y-pos": 0, "y-neg": 0,
                            "z-pos": 0, "z-neg": 0 }
         comms.events.log("calibrate magnetometer", "active")
+        self.min = [ 1000, 1000, 1000 ]    # debug
+        self.max = [ -1000, -1000, -1000 ] # debug
 
     def detect_up(self):
-        threshold = 6
+        threshold = 8
         ax = self.ax_filt.filter_value
         ay = self.ay_filt.filter_value
         az = self.az_filt.filter_value
@@ -200,16 +202,23 @@ class CalibrateMagnetometer(Task):
         sample_time = 5
         
         if self.state == 0:
-            if self.armed:
+            if self.armed and up_axis != "none":
                 if self.axis_time[up_axis] < sample_time:
                     self.samples.append( [hx_raw, hy_raw, hz_raw] )
-                axis_time[up_axis] += dt
+                    if hx_raw < self.min[0]: self.min[0] = hx_raw
+                    if hx_raw > self.max[0]: self.max[0] = hx_raw
+                    if hy_raw < self.min[1]: self.min[1] = hy_raw
+                    if hy_raw > self.max[1]: self.max[1] = hy_raw
+                    if hz_raw < self.min[2]: self.min[2] = hz_raw
+                    if hz_raw > self.max[2]: self.max[2] = hz_raw
+                    print(self.min, self.max)
+                self.axis_time[up_axis] += dt
             done = True
             for key in self.axis_time:
                 if self.axis_time[key] < sample_time:
                     print("need more:", key)
                     done = False
-                    breeak
+                    break
             if done:
                 self.state = 3
         # if self.state == 0:
@@ -245,15 +254,15 @@ class CalibrateMagnetometer(Task):
                 print("Somehow didn't get many samples. :-(")
                 self.state += 2
             else:
-                center, evecs, radii, v = ellipsoid_fit(s)
-                print("center:\n", center)
-                print("evecs:\n", evecs)
-                print("radii:\n", radii)
-                print("v:\n", v)
+                # center, evecs, radii, v = ellipsoid_fit(s)
+                # print("center:\n", center)
+                # print("evecs:\n", evecs)
+                # print("radii:\n", radii)
+                # print("v:\n", v)
                 
                 # ellipsoid fit with our sample data
                 s = np.array(self.samples).T
-                M, n, d = ellipsoid_fit1(s)
+                M, n, d = ellipsoid_fit(s)
                 
                 # calibration parameters.  Note: some implementations
                 # of sqrtm return complex type, taking real
