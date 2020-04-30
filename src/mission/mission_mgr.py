@@ -149,7 +149,7 @@ class MissionMgr:
                     comms.events.log("mission", "next task: " + task.name)
         if not len(self.seq_tasks):
             # sequential queue is empty so request the idle task
-            self.request_task_idle()
+            self.request_task("idle")
         return True
 
     def find_global_task(self, name):
@@ -197,14 +197,12 @@ class MissionMgr:
             # sequential task queue (prioritizing over what was
             # previously happening.)  The 'resume' task will pop the
             # task off and resume the original task if it exists.
-            if len(tokens) == 2 and tokens[1] == "home":
-                self.request_task_home()
-            elif len(tokens) == 2 and tokens[1] == "circle":
+            if len(tokens) == 2 and tokens[1] == "circle":
                 self.request_task_circle()
             elif len(tokens) == 4 and tokens[1] == "circle":
                 self.request_task_circle( tokens[2], tokens[3] )
-            elif len(tokens) == 2 and tokens[1] == "idle":
-                self.request_task_idle()
+            elif len(tokens) == 2 and tokens[1] == "home":
+                self.request_task_home()
             elif len(tokens) == 2 and tokens[1] == "resume":
                 self.request_task_resume()
             elif len(tokens) == 2 and tokens[1] == "land":
@@ -213,20 +211,32 @@ class MissionMgr:
             elif len(tokens) == 3 and tokens[1] == "land":
                 hdg_deg = float(tokens[2])
                 self.request_task_land(hdg_deg)
-            elif len(tokens) == 3 and tokens[1] == "preflight":
-                self.request_task_preflight(tokens[2])
-            elif len(tokens) == 2 and tokens[1] == "calibrate":
-                self.request_task_calibrate()
-            elif len(tokens) == 2 and tokens[1] == "route":
-                self.request_task_route()
-            elif len(tokens) == 2 and tokens[1] == "parametric":
-                self.request_task_parametric()
             elif len(tokens) == 2 and tokens[1] == "pop":
                 self.pop_seq_task()
+            elif len(tokens) == 3 and tokens[1] == "preflight":
+                self.request_task_preflight(tokens[2])
+            elif len(tokens) == 2:
+                # catch all simple tasks with no parameters or extra
+                # setup logic
+                self.request_task(tokens[1])
             else:
                 result = "syntax error: " + command # bummer
             self.task_node.setString("command", "")
             self.task_node.setString("command_result", result)
+
+    def request_task(self, name):
+        # sanity check, are we already in the requested state
+        if len(self.seq_tasks):
+            task = self.seq_tasks[0]
+            if task.name == name:
+                return
+        task = self.find_standby_task(name)
+        if task:
+            # activate task
+            self.push_seq_task(task)
+            task.activate()
+        else:
+            comms.events.log("mission", "cannot find requested standby task: " + name)
 
     # lookup the home location and request a circle task at that
     # point.  There should always be a home location defined, but if
@@ -271,21 +281,6 @@ class MissionMgr:
                 self.push_seq_task(task)
                 task.activate()
 
-    def request_task_idle(self):
-        # sanity check, are we already in the requested state
-        if len(self.seq_tasks):
-            task = self.seq_tasks[0]
-            if task.name == "idle":
-                return
-
-        task = self.find_standby_task( "idle" )
-        if task:
-            # activate task
-            self.push_seq_task(task)
-            task.activate()
-        # FIXME else if display_on:
-        #    print "oops, couldn't find 'idle' task"
-
     def request_task_resume(self):
         # look for any 'circle-coord' task at the front of the sequential
         # queue and remove it if it exists
@@ -310,21 +305,6 @@ class MissionMgr:
         # FIXME else if display_on:
         #    print "oops, couldn't find 'preflight' task"
 
-    def request_task_calibrate(self):
-        # sanity check, are we already in the requested state
-        if len(self.seq_tasks):
-            task = self.seq_tasks[0]
-            if task.name == "calibrate":
-                return
-        task = self.find_standby_task("calibrate")
-        if task:
-            # activate task
-            self.push_seq_task(task)
-            task.activate()
-        else:
-            # FIXME else if display_on:
-            print("oops, couldn't find 'calibrate' task")
-
     def request_task_land(self, final_heading_deg):
         # sanity check, are we already in the requested state
         if len(self.seq_tasks):
@@ -340,32 +320,6 @@ class MissionMgr:
         self.home_node.setFloat( "azimuth_deg", final_heading_deg )
         self.push_seq_task(task)
         task.activate()
-
-    def request_task_route(self):
-        # sanity check, are we already in the requested state
-        if len(self.seq_tasks):
-            task = self.seq_tasks[0]
-            if task.name == "route":
-                return
-        task = self.find_standby_task( "route" )
-        if task:
-            # activate task
-            self.push_seq_task(task)
-            task.activate()
-        # FIXME else if display_on:
-        #    print "oops, couldn't find 'route' task"
-
-    def request_task_parametric(self):
-        # sanity check, are we already in the requested state
-        if len(self.seq_tasks):
-            task = self.seq_tasks[0]
-            if task.name == "parametric":
-                return
-        task = self.find_standby_task( "parametric" )
-        if task:
-            # activate task
-            self.push_seq_task(task)
-            task.activate()
             
 m = MissionMgr()
 

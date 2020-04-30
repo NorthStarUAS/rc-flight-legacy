@@ -12,12 +12,10 @@ from mission.task.lowpass import LowPass
 import mission.task.transformations as tr
 
 # state key:
-#   0 = spin level
-#   1 = spin nose down
-#   2 = spin right wing down
-#   3 = sanity check
-#   4 = complete ok
-#   5 = complete failed
+#   0 = spend 5 seconds moving around at each major (6) orientation
+#   1 = sanity check
+#   2 = complete ok
+#   3 = complete failed
 
 # http://www.mathworks.com/matlabcentral/fileexchange/24693-ellipsoid-fit
 # for arbitrary axes
@@ -197,7 +195,7 @@ class CalibrateMagnetometer(Task):
             self.armed = True
             self.rot = 0.0
             
-        if self.state < 3:
+        if self.state < 1:
             print("up axis:", up_axis, "armed:", self.armed, " rot: %0f" % self.rot)
         sample_time = 5
         
@@ -220,35 +218,8 @@ class CalibrateMagnetometer(Task):
                     done = False
                     break
             if done:
-                self.state = 3
-        # if self.state == 0:
-        #     print("Spin 360 while holding level")
-        #     if self.armed and self.detect_up() == "z-neg":
-        #         self.rot += self.r_filt.filter_value * dt
-        #         self.samples.append( [hx_raw, hy_raw, hz_raw] )
-        #     if abs(self.rot) > spin:
-        #         self.state += 1
-        #         self.armed = False
-        #         self.rot = 0.0
-        # elif self.state == 1:
-        #     print("Spin 360 while holding nose down")
-        #     if self.armed and self.detect_up() == "x-neg":
-        #         self.rot += self.p_filt.filter_value * dt
-        #         self.samples.append( [hx_raw, hy_raw, hz_raw] )
-        #     if abs(self.rot) > spin:
-        #         self.state += 1
-        #         self.armed = False
-        #         self.rot = 0.0
-        # elif self.state == 2:
-        #     print("Spin 360 while holding right wing down")
-        #     if self.armed and self.detect_up() == "y-neg":
-        #         self.rot += self.q_filt.filter_value * dt
-        #         self.samples.append( [hx_raw, hy_raw, hz_raw] )
-        #     if abs(self.rot) > spin:
-        #         self.state += 1
-        #         self.armed = False
-        #         self.rot = 0.0
-        elif self.state == 3:
+                self.state += 1
+        elif self.state == 1:
             # did we measure a bunch of samples?
             if len(self.samples) < 100:
                 print("Somehow didn't get many samples. :-(")
@@ -288,7 +259,7 @@ class CalibrateMagnetometer(Task):
                 # fixme what can we look at to sanity check?
                 # nothing bad detected, goto success state
                 self.state += 1
-        elif self.state == 4:
+        elif self.state == 2:
             # calibration complete, success, report!
             print("calibration succeeded")
             print("magnetometer calibration:")
@@ -307,7 +278,7 @@ class CalibrateMagnetometer(Task):
                 calib_node.setFloatEnum("mag_A_1", i, self.A_1.flatten()[i])
             home = os.path.expanduser("~")
             props_json.save(os.path.join(home, "imu_calibration.json"), calib_node)
-        elif self.state == 5:
+        elif self.state == 3:
             # calibration complete, but failed. :-(
             print("calibration failed")
             pass            
