@@ -218,7 +218,7 @@ class MissionMgr:
             elif len(tokens) == 2:
                 # catch all simple tasks with no parameters or extra
                 # setup logic
-                self.request_task(tokens[1])
+                result = self.request_task(tokens[1])
             else:
                 result = "syntax error: " + command # bummer
             self.task_node.setString("command", "")
@@ -229,14 +229,16 @@ class MissionMgr:
         if len(self.seq_tasks):
             task = self.seq_tasks[0]
             if task.name == name:
-                return
+                return "task already running: " + name
         task = self.find_standby_task(name)
         if task:
             # activate task
             self.push_seq_task(task)
             task.activate()
+            return "successful: " + name
         else:
             comms.events.log("mission", "cannot find requested standby task: " + name)
+            return "task not found: " + name
 
     # lookup the home location and request a circle task at that
     # point.  There should always be a home location defined, but if

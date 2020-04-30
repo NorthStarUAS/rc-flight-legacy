@@ -187,9 +187,6 @@ class CalibrateMagnetometer(Task):
         self.ay_filt.update(ay, dt)
         self.az_filt.update(az, dt)
 
-        spin = 0.2*math.pi
-        #spin = 2.01*math.pi
-        
         up_axis = self.detect_up()
         if up_axis == "none":
             self.armed = True
