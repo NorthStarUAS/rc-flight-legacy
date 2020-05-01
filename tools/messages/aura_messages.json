@@ -121,12 +121,12 @@
                 { "type": "float", "name": "hx" },
                 { "type": "float", "name": "hy" },
                 { "type": "float", "name": "hz" },
-                { "type": "float", "name": "ax_nocal" },
-                { "type": "float", "name": "ay_nocal" },
-                { "type": "float", "name": "az_nocal" },
-                { "type": "float", "name": "hx_nocal" },
-                { "type": "float", "name": "hy_nocal" },
-                { "type": "float", "name": "hz_nocal" },
+                { "type": "float", "name": "ax_raw" },
+                { "type": "float", "name": "ay_raw" },
+                { "type": "float", "name": "az_raw" },
+                { "type": "float", "name": "hx_raw" },
+                { "type": "float", "name": "hy_raw" },
+                { "type": "float", "name": "hz_raw" },
                 { "type": "float", "name": "temp_C", "pack_type": "int16_t", "pack_scale": 10 },
                 { "type": "uint8_t", "name": "status" }
             ]
