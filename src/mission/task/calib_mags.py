@@ -89,7 +89,7 @@ class CalibrateMagnetometer(Task):
         self.name = config_node.getString("name")
         self.imu_node = getNode("/sensors/imu", True)
         self.config_imu_node = getNode("/config/drivers/Aura4/imu", True)
-        self.task_config_node = getNode("/task/config", True)
+        self.task_calib_node = getNode("/task/calibrate", True)
         self.state = 0
         self.armed = False
         self.samples = []
@@ -248,7 +248,7 @@ class CalibrateMagnetometer(Task):
             pass            
 
     def is_complete(self):
-        if self.state == 2 or self.state == 3
+        if self.state == 2 or self.state == 3:
             # free sample memory
             self.samples = []
             return True
