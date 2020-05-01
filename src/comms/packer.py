@@ -403,12 +403,12 @@ class Packer():
         row['hx'] = imu_node.getFloat('hx')
         row['hy'] = imu_node.getFloat('hy')
         row['hz'] = imu_node.getFloat('hz')
-        row['ax_nocal'] = imu_node.getFloat('ax_nocal')
-        row['ay_nocal'] = imu_node.getFloat('ay_nocal')
-        row['az_nocal'] = imu_node.getFloat('az_nocal')
-        row['hx_nocal'] = imu_node.getFloat('hx_nocal')
-        row['hy_nocal'] = imu_node.getFloat('hy_nocal')
-        row['hz_nocal'] = imu_node.getFloat('hz_nocal')
+        row['ax_raw'] = imu_node.getFloat('ax_raw')
+        row['ay_raw'] = imu_node.getFloat('ay_raw')
+        row['az_raw'] = imu_node.getFloat('az_raw')
+        row['hx_raw'] = imu_node.getFloat('hx_raw')
+        row['hy_raw'] = imu_node.getFloat('hy_raw')
+        row['hz_raw'] = imu_node.getFloat('hz_raw')
         row['temp_C'] = imu_node.getFloat('temp_C')
         row['status'] = imu_node.getInt('status')
         return row
@@ -426,18 +426,18 @@ class Packer():
         row['hx'] = '%.3f' % imu_node.getFloat('hx')
         row['hy'] = '%.3f' % imu_node.getFloat('hy')
         row['hz'] = '%.3f' % imu_node.getFloat('hz')
-        row['ax_nocal'] = '%.4f' % imu_node.getFloat('ax_nocal')
-        row['ay_nocal'] = '%.4f' % imu_node.getFloat('ay_nocal')
-        row['az_nocal'] = '%.4f' % imu_node.getFloat('az_nocal')
-        row['hx_nocal'] = '%.3f' % imu_node.getFloat('hx_nocal')
-        row['hy_nocal'] = '%.3f' % imu_node.getFloat('hy_nocal')
-        row['hz_nocal'] = '%.3f' % imu_node.getFloat('hz_nocal')
+        row['ax_raw'] = '%.4f' % imu_node.getFloat('ax_raw')
+        row['ay_raw'] = '%.4f' % imu_node.getFloat('ay_raw')
+        row['az_raw'] = '%.4f' % imu_node.getFloat('az_raw')
+        row['hx_raw'] = '%.3f' % imu_node.getFloat('hx_raw')
+        row['hy_raw'] = '%.3f' % imu_node.getFloat('hy_raw')
+        row['hz_raw'] = '%.3f' % imu_node.getFloat('hz_raw')
         row['temp_C'] = '%.1f' % imu_node.getFloat('temp_C')
         row['status'] = '%d' % imu_node.getInt('status')
         keys = ['timestamp', 'p_rad_sec', 'q_rad_sec', 'r_rad_sec',
                 'ax_mps_sec', 'ay_mps_sec', 'az_mps_sec',
-                'hx', 'hy', 'hz', 'ax_nocal', 'ay_nocal', 'az_nocal',
-                'hx_nocal', 'hy_nocal', 'hz_nocal', 'temp_C', 'status']
+                'hx', 'hy', 'hz', 'ax_raw', 'ay_raw', 'az_raw',
+                'hx_raw', 'hy_raw', 'hz_raw', 'temp_C', 'status']
         return row, keys
 
     def unpack_imu_v3(self, buf):
@@ -499,12 +499,12 @@ class Packer():
         node.setFloat("hx", imu.hx)
         node.setFloat("hy", imu.hy)
         node.setFloat("hz", imu.hz)
-        node.setFloat("ax_nocal", imu.ax_nocal)
-        node.setFloat("ay_nocal", imu.ay_nocal)
-        node.setFloat("az_nocal", imu.az_nocal)
-        node.setFloat("hx_nocal", imu.hx_nocal)
-        node.setFloat("hy_nocal", imu.hy_nocal)
-        node.setFloat("hz_nocal", imu.hz_nocal)
+        node.setFloat("ax_raw", imu.ax_raw)
+        node.setFloat("ay_raw", imu.ay_raw)
+        node.setFloat("az_raw", imu.az_raw)
+        node.setFloat("hx_raw", imu.hx_raw)
+        node.setFloat("hy_raw", imu.hy_raw)
+        node.setFloat("hz_raw", imu.hz_raw)
         node.setFloat("temp_C", imu.temp_C)
         node.setInt("status", imu.status)
         return imu.index
@@ -868,7 +868,11 @@ class Packer():
             self.ap.flight_timer = task_node.getFloat("flight_timer")
             self.ap.target_waypoint_idx = route_node.getInt("target_waypoint_idx")
 
+            # Note: task_attribute is an overloaded (uint16_t) field!
+            # There will be a better way figured out sometime in the
+            # future.
             self.ap.task_attribute = 0
+            
             # wp_counter will get incremented externally in the
             # remote_link message sender because each time we send a
             # serial message to the remote ground station is when we
@@ -894,17 +898,25 @@ class Packer():
                 self.ap.wp_longitude_deg = home_node.getFloat("longitude_deg")
                 self.ap.wp_latitude_deg = home_node.getFloat("latitude_deg")
                 self.ap.wp_index = 65535
-        
+
+            # these id codes are ad-hoc and someday in the future
+            # could be more formalized
             self.ap.task_id = 0 # code for unknown or not set
-            if task_node.getString("current_task_id") == "circle":
+            if task_node.getString("current_task") == "circle":
                 self.ap.task_id = 1
-            elif task_node.getString("current_task_id") == "parametric":
+            elif task_node.getString("current_task") == "parametric":
                 # draw like it's a circle
                 self.ap.task_id = 1
-            elif task_node.getString("current_task_id") == "route":
+            elif task_node.getString("current_task") == "route":
                 self.ap.task_id = 2
-            elif task_node.getString("current_task_id") == "land":
+            elif task_node.getString("current_task") == "land":
                 self.ap.task_id = 3
+            elif task_node.getString("current_task") == "calib_accels":
+                self.ap.task_id = 4
+            elif task_node.getString("current_task") == "calib_home":
+                self.ap.task_id = 5
+            elif task_node.getString("current_task") == "calib_mags":
+                self.ap.task_id = 6
             self.ap.sequence_num = remote_link_node.getInt("sequence_num")
             self.ap_buf = self.ap.pack()
         return self.ap_buf
@@ -943,7 +955,7 @@ class Packer():
             row['wpt_index'] = 65535
             row['wpt_longitude_deg'] = home_node.getFloat("longitude_deg")
             row['wpt_latitude_deg'] = home_node.getFloat("latitude_deg")
-        row['current_task_id'] = task_node.getString("current_task_id")
+        row['current_task'] = task_node.getString("current_task")
         self.wp_counter += 1
         if self.wp_counter >= route_size + 2:
             self.wp_counter = 0
@@ -1093,13 +1105,13 @@ class Packer():
             home_node.setFloat("longitude_deg", wp_lon)
             home_node.setFloat("latitude_deg", wp_lat)
         if task_id == 1:
-            task_node.setString("current_task_id", "circle")
+            task_node.setString("current_task", "circle")
         elif task_id == 2:
-            task_node.setString("current_task_id", "route")
+            task_node.setString("current_task", "route")
         elif task_id == 3:
-            task_node.setString("current_task_id", "land")
+            task_node.setString("current_task", "land")
         else:
-            task_node.setString("current_task_id", "unknown")
+            task_node.setString("current_task", "unknown")
 
         active_node.setInt("route_size", route_size)
         if ap.sequence_num >= 1:
@@ -1150,13 +1162,13 @@ class Packer():
             home_node.setFloat("longitude_deg", wp_lon)
             home_node.setFloat("latitude_deg", wp_lat)
         if task_id == 1:
-            task_node.setString("current_task_id", "circle")
+            task_node.setString("current_task", "circle")
         elif task_id == 2:
-            task_node.setString("current_task_id", "route")
+            task_node.setString("current_task", "route")
         elif task_id == 3:
-            task_node.setString("current_task_id", "land")
+            task_node.setString("current_task", "land")
         else:
-            task_node.setString("current_task_id", "unknown")
+            task_node.setString("current_task", "unknown")
 
         active_node.setInt("route_size", route_size)
         if ap.sequence_num >= 1:

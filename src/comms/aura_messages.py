@@ -346,12 +346,12 @@ class imu_v5():
         self.hx = 0.0
         self.hy = 0.0
         self.hz = 0.0
-        self.ax_nocal = 0.0
-        self.ay_nocal = 0.0
-        self.az_nocal = 0.0
-        self.hx_nocal = 0.0
-        self.hy_nocal = 0.0
-        self.hz_nocal = 0.0
+        self.ax_raw = 0.0
+        self.ay_raw = 0.0
+        self.az_raw = 0.0
+        self.hx_raw = 0.0
+        self.hy_raw = 0.0
+        self.hz_raw = 0.0
         self.temp_C = 0.0
         self.status = 0
         # unpack if requested
@@ -370,12 +370,12 @@ class imu_v5():
                           self.hx,
                           self.hy,
                           self.hz,
-                          self.ax_nocal,
-                          self.ay_nocal,
-                          self.az_nocal,
-                          self.hx_nocal,
-                          self.hy_nocal,
-                          self.hz_nocal,
+                          self.ax_raw,
+                          self.ay_raw,
+                          self.az_raw,
+                          self.hx_raw,
+                          self.hy_raw,
+                          self.hz_raw,
                           int(round(self.temp_C * 10)),
                           self.status)
         return msg
@@ -392,12 +392,12 @@ class imu_v5():
          self.hx,
          self.hy,
          self.hz,
-         self.ax_nocal,
-         self.ay_nocal,
-         self.az_nocal,
-         self.hx_nocal,
-         self.hy_nocal,
-         self.hz_nocal,
+         self.ax_raw,
+         self.ay_raw,
+         self.az_raw,
+         self.hx_raw,
+         self.hy_raw,
+         self.hz_raw,
          self.temp_C,
          self.status) = struct.unpack(self._pack_string, msg)
         self.temp_C /= 10
