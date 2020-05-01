@@ -6,6 +6,7 @@ from scipy import linalg
 from props import getNode, PropertyNode
 import props_json
 
+import comms.display
 import comms.events
 from mission.task.task import Task
 from mission.task.lowpass import LowPass
@@ -14,49 +15,8 @@ import mission.task.transformations as tr
 # state key:
 #   0 = spend 5 seconds moving around at each major (6) orientation
 #   1 = sanity check
-#   2 = complete ok
+#   2 = complete success
 #   3 = complete failed
-
-# http://www.mathworks.com/matlabcentral/fileexchange/24693-ellipsoid-fit
-# for arbitrary axes
-def ellipsoid_fit2(X):
-    x = X[:, 0]
-    y = X[:, 1]
-    z = X[:, 2]
-    D = np.array([x * x + y * y - 2 * z * z,
-                 x * x + z * z - 2 * y * y,
-                 2 * x * y,
-                 2 * x * z,
-                 2 * y * z,
-                 2 * x,
-                 2 * y,
-                 2 * z,
-                 1 - 0 * x])
-    d2 = np.array(x * x + y * y + z * z).T # rhs for LLSQ
-    u = np.linalg.solve(D.dot(D.T), D.dot(d2))
-    a = np.array([u[0] + 1 * u[1] - 1])
-    b = np.array([u[0] - 2 * u[1] - 1])
-    c = np.array([u[1] - 2 * u[0] - 1])
-    v = np.concatenate([a, b, c, u[2:]], axis=0).flatten()
-    A = np.array([[v[0], v[3], v[4], v[6]],
-                  [v[3], v[1], v[5], v[7]],
-                  [v[4], v[5], v[2], v[8]],
-                  [v[6], v[7], v[8], v[9]]])
-
-    center = np.linalg.solve(- A[:3, :3], v[6:9])
-
-    translation_matrix = np.eye(4)
-    translation_matrix[3, :3] = center.T
-
-    R = translation_matrix.dot(A).dot(translation_matrix.T)
-
-    evals, evecs = np.linalg.eig(R[:3, :3] / -R[3, 3])
-    evecs = evecs.T
-
-    radii = np.sqrt(1. / np.abs(evals))
-    radii *= np.sign(evals)
-
-    return center, evecs, radii, v
 
 def ellipsoid_fit(s):
     # https://teslabs.com/articles/magnetometer-calibration/
@@ -128,7 +88,8 @@ class CalibrateMagnetometer(Task):
         Task.__init__(self)
         self.name = config_node.getString("name")
         self.imu_node = getNode("/sensors/imu", True)
-        self.config_imu_node = getNode("/config/drivers/Aura4/imu")
+        self.config_imu_node = getNode("/config/drivers/Aura4/imu", True)
+        self.task_config_node = getNode("/task/config", True)
         self.state = 0
         self.armed = False
         self.samples = []
@@ -150,6 +111,9 @@ class CalibrateMagnetometer(Task):
         self.axis_time = { "x-pos": 0, "x-neg": 0,
                            "y-pos": 0, "y-neg": 0,
                            "z-pos": 0, "z-neg": 0 }
+        self.axis_hint = { "x-pos": "nose up", "x-neg": "nose down",
+                           "y-pos": "right wing down", "y-neg": "right wing up",
+                           "z-pos": "upside down", "z-neg": "right side up" }
         comms.events.log("calibrate magnetometer", "active")
         self.min = [ 1000, 1000, 1000 ]    # debug
         self.max = [ -1000, -1000, -1000 ] # debug
@@ -212,7 +176,9 @@ class CalibrateMagnetometer(Task):
             done = True
             for key in self.axis_time:
                 if self.axis_time[key] < sample_time:
-                    print("need more:", key)
+                    message = "need more: " + self.axis_hint[key]
+                    self.task_calib_node.setString("mag_status", message)
+                    comms.display.show(message)
                     done = False
                     break
             if done:
@@ -282,7 +248,12 @@ class CalibrateMagnetometer(Task):
             pass            
 
     def is_complete(self):
-        return False
+        if self.state == 2 or self.state == 3
+            # free sample memory
+            self.samples = []
+            return True
+        else:
+            return False
 
     def close(self):
         self.active = False
