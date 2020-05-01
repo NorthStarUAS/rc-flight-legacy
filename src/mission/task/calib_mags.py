@@ -112,7 +112,7 @@ class CalibrateMagnetometer(Task):
                            "y-pos": 0, "y-neg": 0,
                            "z-pos": 0, "z-neg": 0 }
         self.axis_hint = { "x-pos": "nose up", "x-neg": "nose down",
-                           "y-pos": "right wing down", "y-neg": "right wing up",
+                           "y-pos": "right wing up", "y-neg": "right wing down",
                            "z-pos": "upside down", "z-neg": "right side up" }
         comms.events.log("calibrate magnetometer", "active")
         self.min = [ 1000, 1000, 1000 ]    # debug
@@ -125,8 +125,8 @@ class CalibrateMagnetometer(Task):
         az = self.az_filt.filter_value
         if ax > threshold: return "x-pos"    # nose up
         elif ax < -threshold: return "x-neg" # nose down
-        if ay > threshold: return "y-pos"    # right wing down
-        elif ay < -threshold: return "y-neg" # right wing up
+        if ay > threshold: return "y-pos"    # right wing up
+        elif ay < -threshold: return "y-neg" # right wing down
         if az > threshold: return "z-pos"    # up side down
         elif az < -threshold: return "z-neg" # right side up
         return "none"                # no dominate axis up
@@ -242,10 +242,14 @@ class CalibrateMagnetometer(Task):
                 calib_node.setFloatEnum("mag_A_1", i, self.A_1.flatten()[i])
             home = os.path.expanduser("~")
             props_json.save(os.path.join(home, "imu_calibration.json"), calib_node)
+            message = "mag calibration succeeded"
+            self.task_calib_node.setString("mag_status", message)
+            comms.display.show(message)
         elif self.state == 3:
             # calibration complete, but failed. :-(
-            print("calibration failed")
-            pass            
+            message = "mag calibration failed"
+            self.task_calib_node.setString("mag_status", message)
+            comms.display.show(message)
 
     def is_complete(self):
         if self.state == 2 or self.state == 3:
