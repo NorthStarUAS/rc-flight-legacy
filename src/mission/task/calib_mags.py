@@ -113,7 +113,7 @@ class CalibrateMagnetometer(Task):
                            "z-pos": 0, "z-neg": 0 }
         self.axis_hint = { "x-pos": "nose up", "x-neg": "nose down",
                            "y-pos": "right wing up", "y-neg": "right wing down",
-                           "z-pos": "upside down", "z-neg": "right side up" }
+                           "z-pos": "upside down", "z-neg": "top up" }
         comms.events.log("calibrate magnetometer", "active")
         self.min = [ 1000, 1000, 1000 ]    # debug
         self.max = [ -1000, -1000, -1000 ] # debug
@@ -224,7 +224,7 @@ class CalibrateMagnetometer(Task):
                 # nothing bad detected, goto success state
                 self.state += 1
         elif self.state == 2:
-            # calibration complete, success, report!
+            # calibration complete, success, save, report!
             print("calibration succeeded")
             print("magnetometer calibration:")
             # as if this wasn't already fancy enough, get even fancier!
@@ -245,14 +245,16 @@ class CalibrateMagnetometer(Task):
             message = "mag calibration succeeded"
             self.task_calib_node.setString("mag_status", message)
             comms.display.show(message)
+            self.state += 2
         elif self.state == 3:
-            # calibration complete, but failed. :-(
+            # calibration complete, failed, sad face. :-(
             message = "mag calibration failed"
             self.task_calib_node.setString("mag_status", message)
             comms.display.show(message)
+            self.state += 1
 
     def is_complete(self):
-        if self.state == 2 or self.state == 3:
+        if self.state >= 4:
             # free sample memory
             self.samples = []
             return True
