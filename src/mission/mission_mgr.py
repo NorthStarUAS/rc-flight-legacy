@@ -2,25 +2,25 @@ from props import getNode
 
 import comms.events
 
-import mission.task.calib_accels
-import mission.task.calib_home
-import mission.task.calib_mags
-import mission.task.camera
-import mission.task.circle
-import mission.task.excite
-import mission.task.flaps_mgr
-import mission.task.home_mgr
-import mission.task.idle
-import mission.task.is_airborne
-import mission.task.land3
-import mission.task.launch
-import mission.task.lost_link
-import mission.task.mode_mgr
-import mission.task.parametric
-import mission.task.preflight
-import mission.task.route
-import mission.task.switches
-import mission.task.throttle_safety
+from mission.task import calib_accels
+from mission.task import calib_home
+from mission.task import calib_mags
+from mission.task import camera
+from mission.task import circle
+from mission.task import excite
+from mission.task import flaps_mgr
+from mission.task import home_mgr
+from mission.task import idle
+from mission.task import is_airborne
+from mission.task import land3
+from mission.task import launch
+from mission.task import lost_link
+from mission.task import mode_mgr
+from mission.task import parametric
+from mission.task import preflight
+from mission.task import route
+from mission.task import switches
+from mission.task import throttle_safety
 
 class MissionMgr:
     def __init__(self):
@@ -43,43 +43,43 @@ class MissionMgr:
         task_name = config_node.getString("name")
         print("  make_task(): '%s'" % task_name)
         if task_name == "calib_accels":
-            result = mission.task.calib_accels.CalibrateAccels(config_node)
+            result = calib_accels.CalibrateAccels(config_node)
         elif task_name == "calib_home":
-            result = mission.task.calib_home.Calibrate(config_node)
+            result = calib_home.Calibrate(config_node)
         elif task_name == "calib_mags":
-            result = mission.task.calib_mags.CalibrateMagnetometer(config_node)
+            result = calib_mags.CalibrateMagnetometer(config_node)
         elif task_name == "camera":
-            result = mission.task.camera.Camera(config_node)
+            result = camera.Camera(config_node)
         elif task_name == "circle":
-            result = mission.task.circle.Circle(config_node)
+            result = circle.Circle(config_node)
         elif task_name == "excite":
-            result = mission.task.excite.Excite(config_node)
+            result = excite.Excite(config_node)
         elif task_name == "flaps_manager":
-            result = mission.task.flaps_mgr.FlapsMgr(config_node)
+            result = flaps_mgr.FlapsMgr(config_node)
         elif task_name == "home_manager":
-            result = mission.task.home_mgr.HomeMgr(config_node)
+            result = home_mgr.HomeMgr(config_node)
         elif task_name == "idle":
-            result = mission.task.idle.Idle(config_node)
+            result = idle.Idle(config_node)
         elif task_name == "is_airborne":
-            result = mission.task.is_airborne.IsAirborne(config_node)
+            result = is_airborne.IsAirborne(config_node)
         elif task_name == "land":
-            result = mission.task.land3.Land(config_node)
+            result = land3.Land(config_node)
         elif task_name == "launch":
-            result = mission.task.launch.Launch(config_node)
+            result = launch.Launch(config_node)
         elif task_name == "lost_link":
-            result = mission.task.lost_link.LostLink(config_node)
+            result = lost_link.LostLink(config_node)
         elif task_name == "mode_manager":
-            result = mission.task.mode_mgr.ModeMgr(config_node)
+            result = mode_mgr.ModeMgr(config_node)
         elif task_name == "parametric":
-            result = mission.task.parametric.Parametric(config_node)
+            result = parametric.Parametric(config_node)
         elif task_name == "preflight":
-            result = mission.task.preflight.Preflight(config_node)
+            result = preflight.Preflight(config_node)
         elif task_name == "route":
-            result = mission.task.route.Route(config_node)
+            result = route.Route(config_node)
         elif task_name == "switches":
-            result = mission.task.switches.Switches(config_node)
+            result = switches.Switches(config_node)
         elif task_name == "throttle_safety":
-            result = mission.task.throttle_safety.ThrottleSafety(config_node)
+            result = throttle_safety.ThrottleSafety(config_node)
         else:
             print("mission_mgr: unknown task name:", task_name)
         return result
@@ -197,28 +197,28 @@ class MissionMgr:
             # sequential task queue (prioritizing over what was
             # previously happening.)  The 'resume' task will pop the
             # task off and resume the original task if it exists.
-            if len(tokens) == 2 and tokens[1] == "circle":
+            if len(tokens) == 1 and tokens[0] == "circle":
                 self.request_task_circle()
-            elif len(tokens) == 4 and tokens[1] == "circle":
-                self.request_task_circle( tokens[2], tokens[3] )
-            elif len(tokens) == 2 and tokens[1] == "home":
+            elif len(tokens) == 3 and tokens[0] == "circle":
+                self.request_task_circle( tokens[1], tokens[2] )
+            elif len(tokens) == 1 and tokens[0] == "home":
                 self.request_task_home()
-            elif len(tokens) == 2 and tokens[1] == "resume":
+            elif len(tokens) == 1 and tokens[0] == "resume":
                 self.request_task_resume()
-            elif len(tokens) == 2 and tokens[1] == "land":
+            elif len(tokens) == 1 and tokens[0] == "land":
                 hdg_deg = self.wind_node.getFloat("wind_dir_deg")
                 self.request_task_land(hdg_deg)
-            elif len(tokens) == 3 and tokens[1] == "land":
-                hdg_deg = float(tokens[2])
+            elif len(tokens) == 2 and tokens[0] == "land":
+                hdg_deg = float(tokens[1])
                 self.request_task_land(hdg_deg)
-            elif len(tokens) == 2 and tokens[1] == "pop":
+            elif len(tokens) == 1 and tokens[1] == "pop":
                 self.pop_seq_task()
-            elif len(tokens) == 3 and tokens[1] == "preflight":
-                self.request_task_preflight(tokens[2])
-            elif len(tokens) == 2:
+            elif len(tokens) == 2 and tokens[1] == "preflight":
+                self.request_task_preflight(tokens[1])
+            elif len(tokens) == 1:
                 # catch all simple tasks with no parameters or extra
                 # setup logic
-                result = self.request_task(tokens[1])
+                result = self.request_task(tokens[0])
             else:
                 result = "syntax error: " + command # bummer
             self.task_node.setString("command", "")
