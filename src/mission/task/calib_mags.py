@@ -126,6 +126,7 @@ def ellipsoid_fit(s):
 class CalibrateMagnetometer(Task):
     def __init__(self, config_node):
         Task.__init__(self)
+        self.name = config_node.getString("name")
         self.imu_node = getNode("/sensors/imu", True)
         self.config_imu_node = getNode("/config/drivers/Aura4/imu")
         self.state = 0
