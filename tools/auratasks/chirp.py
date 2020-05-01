@@ -148,5 +148,5 @@ class Chirp():
     #     if self.port != 6499:
     #         t.send("send task,circle")
     #     else:
-    #         t.send("set /task/command task,circle")
+    #         t.send("set /task/command circle")
     #     t.quit()

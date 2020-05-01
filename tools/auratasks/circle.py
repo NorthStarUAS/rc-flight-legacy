@@ -128,7 +128,7 @@ class Circle():
         if self.port != 6499:
             t.send("send task,circle")
         else:
-            t.send("set /task/command task,circle")
+            t.send("set /task/command circle")
         t.quit()
 
     def task_home(self):
@@ -138,6 +138,6 @@ class Circle():
         if self.port != 6499:
             t.send("send task,home")
         else:
-            t.send("set /task/command task,home")
+            t.send("set /task/command home")
         t.quit()
 

@@ -232,7 +232,7 @@ def execute_command( command ):
     elif tokens[0] == 'survey_end' and len(tokens) == 1:
         survey.survey.do_survey(survey_request)
     elif tokens[0] == 'task' and len(tokens) > 1:
-        task_node.setString( 'command', tokens[1:] )
+        task_node.setString( 'command', ",".join(tokens[1:]) )
     elif tokens[0] == 'ap' and len(tokens) == 3:
         # specify an autopilot target
         if tokens[1] == 'agl-ft':

@@ -147,9 +147,9 @@ class Launch():
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
         if self.port != 6499:
-            t.send(str("send task,launch"))
+            t.send("send task,launch")
         else:
-            t.send("set /task/command task,launch")
+            t.send("set /task/command launch")
         t.quit()
 
     def task_resume(self):
@@ -159,5 +159,5 @@ class Launch():
         if self.port != 6499:
             t.send("send task,resume")
         else:
-            t.send("set /task/command task,resume")
+            t.send("set /task/command resume")
         t.quit()

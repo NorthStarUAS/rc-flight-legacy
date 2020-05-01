@@ -218,12 +218,12 @@ class Land():
 
         t = fgtelnet.FGTelnet(self.host, self.port)
         t.send("data")
-        cmd = "task,land"
+        cmd = "land"
         az = self.edit_rwy_hdg.text()
         if len(az):
             cmd += "," + az
         if self.port != 6499:
-            cmd = 'send ' + cmd
+            cmd = 'send task,' + cmd
         else:
             cmd = 'set /task/command ' + cmd
         print('sending:', cmd)
@@ -237,5 +237,5 @@ class Land():
         if self.port != 6499:
             t.send("send task,resume")
         else:
-            t.send("set /task/command task,resume")
+            t.send("set /task/command resume")
         t.quit()

@@ -211,7 +211,7 @@ class MissionMgr:
             elif len(tokens) == 2 and tokens[0] == "land":
                 hdg_deg = float(tokens[1])
                 self.request_task_land(hdg_deg)
-            elif len(tokens) == 1 and tokens[1] == "pop":
+            elif len(tokens) == 1 and tokens[0] == "pop":
                 self.pop_seq_task()
             elif len(tokens) == 2 and tokens[1] == "preflight":
                 self.request_task_preflight(tokens[1])

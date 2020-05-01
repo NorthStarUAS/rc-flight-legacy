@@ -14,8 +14,7 @@ from props import root, getNode
 
 sys.path.append("../../src")
 from comms import aura_messages
-from comms.packet_id import *
-import comms.packer
+from comms.packer import packer
 
 import commands
 import current
@@ -42,7 +41,7 @@ def logical_category(id):
         return 'health'
     elif id == aura_messages.payload_v2_id or id == aura_messages.payload_v3_id:
         return 'payload'
-    elif id == EVENT_PACKET_V1:
+    elif id == aura_messages.event_v1_id or id == aura_messages.event_v2_id:
         return 'event'
     else:
         return 'unknown-packet-id'
@@ -54,28 +53,28 @@ def logical_category(id):
 # record.
 def generate_record(category, index):
     if category == 'gps':
-        return comms.packer.pack_gps_csv(index)
+        return packer.pack_gps_csv(index)
     elif category == 'imu':
-        return comms.packer.pack_imu_csv(index)
+        return packer.pack_imu_csv(index)
     elif category == 'air':
-        return comms.packer.pack_airdata_csv(index)
+        return packer.pack_airdata_csv(index)
     elif category == 'filter':
-        return comms.packer.pack_filter_csv(index)
+        return packer.pack_filter_csv(index)
     elif category == 'act':
-        return comms.packer.pack_act_csv(index)
+        return packer.pack_act_csv(index)
     elif category == 'pilot':
-        return comms.packer.pack_pilot_csv(index)
+        return packer.pack_pilot_csv(index)
     elif category == 'ap':
-        return comms.packer.pack_ap_status_csv(index)
+        return packer.pack_ap_status_csv(index)
     elif category == 'health':
-        return comms.packer.pack_system_health_csv(index)
+        return packer.pack_system_health_csv(index)
     elif category == 'payload':
-        return comms.packer.pack_payload_csv(index)
+        return packer.pack_payload_csv(index)
     elif category == 'event':
-        return comms.packer.pack_event_csv(index)
+        return packer.pack_event_csv(index)
 
 argparser = argparse.ArgumentParser(description='aura export')
-argparser.add_argument('--flight', help='load specified flight log')
+argparser.add_argument('flight', help='load specified flight log')
 argparser.add_argument('--skip-seconds', help='seconds to skip when processing flight log')
 
 args = argparser.parse_args()

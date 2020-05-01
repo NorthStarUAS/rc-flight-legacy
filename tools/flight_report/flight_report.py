@@ -441,6 +441,22 @@ if 'alt_press' in df0_air:
     plt.plot(df0_air['alt_press'])
     plt.grid()
 
+if 'act' in data:
+    fig = plt.figure()
+    plt.title("Effectors")
+    plt.plot(df0_pilot['auto_manual']+0.05, label='auto')
+    if 'throttle_safety' in df0_pilot:
+        plt.plot(df0_pilot['throttle_safety']+0.1, label='safety')
+    plt.plot(df0_act['throttle'], label='throttle')
+    plt.plot(df0_act['aileron'], label='aileron')
+    plt.plot(df0_act['elevator'], label='elevator')
+    plt.plot(df0_act['rudder'], label='rudder')
+    plt.plot(df0_act['flaps'], label='flaps')
+    add_regions(fig.gca(), airborne)
+    add_regions(fig.gca(), regions)
+    plt.legend()
+    plt.grid()
+
 if 'pilot' in data:
     fig = plt.figure()
     plt.title("Pilot Inputs (sbus)")
