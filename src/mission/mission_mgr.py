@@ -3,8 +3,8 @@ from props import getNode
 import comms.events
 
 import mission.task.calib_accels
+import mission.task.calib_home
 import mission.task.calib_mags
-import mission.task.calibrate
 import mission.task.camera
 import mission.task.circle
 import mission.task.excite
@@ -44,6 +44,8 @@ class MissionMgr:
         print("  make_task(): '%s'" % task_name)
         if task_name == "calib_accels":
             result = mission.task.calib_accels.CalibrateAccels(config_node)
+        elif task_name == "calib_home":
+            result = mission.task.calib_home.Calibrate(config_node)
         elif task_name == "calib_mags":
             result = mission.task.calib_mags.CalibrateMagnetometer(config_node)
         elif task_name == "camera":
@@ -72,8 +74,6 @@ class MissionMgr:
             result = mission.task.parametric.Parametric(config_node)
         elif task_name == "preflight":
             result = mission.task.preflight.Preflight(config_node)
-        elif task_name == "calibrate":
-            result = mission.task.calibrate.Calibrate(config_node)
         elif task_name == "route":
             result = mission.task.route.Route(config_node)
         elif task_name == "switches":
@@ -130,7 +130,7 @@ class MissionMgr:
         if len(self.seq_tasks):
             # run the first task in the sequential queue
             task = self.seq_tasks[0]
-            self.task_node.setString("current_task_id", task.name)
+            self.task_node.setString("current_task", task.name)
             task.update(dt)
             if task.is_complete():
                 # current task is complete, close it and pop it off the list
