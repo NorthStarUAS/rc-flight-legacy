@@ -18,6 +18,8 @@ bool maestro_t::open( const char *device_name ) {
 
 void maestro_t::init( pyPropertyNode *config ) {
     act_node = pyGetNode("/actuators", true);
+    ap_node = pyGetNode("/autopilot", true);
+    pilot_node = pyGetNode("/sensors/pilot_input", true);
     if ( config->hasChild("device") ) {
         string device = config->getString("device");
         if ( open(device.c_str()) ) {
@@ -28,9 +30,18 @@ void maestro_t::init( pyPropertyNode *config ) {
     } else {
         printf("no maestro device specified\n");
     }
+    if ( config->hasChild("gains") and config->getLen("gains") == 6 ) {
+        for ( int i = 0; i < maestro_channels; i++ ) {
+            gains[i] = config->getDouble("gains", i);
+            printf("maestro: ch[%d] gain = %.2f\n", i, gains[i]);
+        }
+    }
 }
 
 void maestro_t::write_channel(int ch, float norm, bool symmetrical) {
+    // honor gain (i.e. for servo reversing)
+    norm *= gains[ch];
+    
     // target value is 1/4 us, so center (1500) would have a value of
     // 6000 for a symmetrical channel
     int target = 1500.0 * 4;
@@ -48,7 +59,15 @@ void maestro_t::write_channel(int ch, float norm, bool symmetrical) {
 }
 
 void maestro_t::write() {
-    write_channel(0, act_node.getDouble("throttle"), false);
+    float throttle = 0.0;
+    if ( pilot_node.getDouble("throttle_safety") < -0.3 and !pilot_node.getBool("fail_safe") ) {
+        if ( ap_node.getBool("master_switch") ) {
+	    throttle = act_node.getDouble("throttle");
+	} else {
+            throttle = pilot_node.getDouble("throttle");
+	}
+    }
+    write_channel(0, throttle, true);
     write_channel(1, act_node.getDouble("aileron"), true);
     write_channel(2, act_node.getDouble("elevator"), true);
     write_channel(3, act_node.getDouble("rudder"), true);

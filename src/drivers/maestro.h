@@ -24,9 +24,12 @@ public:
     void command( const char *cmd ) {}
 
 private:
-    const int maestro_channels = 6;
     pyPropertyNode act_node;
+    pyPropertyNode ap_node;
+    pyPropertyNode pilot_node;
+    static const int maestro_channels = 6;
     int fd = -1;
+    float gains[maestro_channels] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     bool open( const char *device_name );
     void write_channel(int ch, float norm, bool symmetrical);
 };
