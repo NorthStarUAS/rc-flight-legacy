@@ -119,7 +119,7 @@ class CalibrateMagnetometer(Task):
         self.max = [ -1000, -1000, -1000 ] # debug
 
     def detect_up(self):
-        threshold = 8
+        threshold = 7.5
         ax = self.ax_filt.filter_value
         ay = self.ay_filt.filter_value
         az = self.az_filt.filter_value
@@ -228,10 +228,23 @@ class CalibrateMagnetometer(Task):
             print("calibration succeeded")
             print("magnetometer calibration:")
             # as if this wasn't already fancy enough, get even fancier!
+            mapped = []
             for i, v in enumerate(self.samples):
                 #print("sample:", i, v)
-                v1 =  self.mag_affine @ np.hstack((v, 1))
-                #print(v, v1[:3])
+                v1 = self.mag_affine @ np.hstack((v, 1))
+                v2 = self.A_1 @ (np.array(v) - self.b.flatten())
+                #print(v, v1[:3], v2)
+                mapped.append(v2)
+            print("samples:")
+            samples = np.array(self.samples)
+            print("x range:", np.min(samples[:,0]), np.max(samples[:,0]))
+            print("y range:", np.min(samples[:,1]), np.max(samples[:,1]))
+            print("z range:", np.min(samples[:,2]), np.max(samples[:,2]))
+            print("mapped:")
+            mapped = np.array(mapped)
+            print("x range:", np.min(mapped[:,0]), np.max(mapped[:,0]))
+            print("y range:", np.min(mapped[:,1]), np.max(mapped[:,1]))
+            print("z range:", np.min(mapped[:,2]), np.max(mapped[:,2]))
             self.state += 2
             calib_node = self.config_imu_node.getChild("calibration", True)
             calib_node.setLen("mag_b", 3)

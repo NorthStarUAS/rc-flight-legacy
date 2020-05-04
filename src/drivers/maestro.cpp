@@ -67,6 +67,8 @@ void maestro_t::write() {
             throttle = pilot_node.getDouble("throttle");
 	}
     }
+    // hardcoded hack: tie throttle gain to channel[4] switch position
+    gains[0] = pilot_node.getDouble("channel", 4);
     write_channel(0, throttle, true);
     write_channel(1, act_node.getDouble("aileron"), true);
     write_channel(2, act_node.getDouble("elevator"), true);
