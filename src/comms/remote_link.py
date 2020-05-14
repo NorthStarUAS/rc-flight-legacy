@@ -1,6 +1,8 @@
 import random
 import re
 import serial
+import time
+
 from props import getNode
 import props_json
 
@@ -36,17 +38,19 @@ def init():
     global link_open
     
     device = remote_link_config.getString('device')
-    try:
-        ser = serial.Serial(port=device, baudrate=115200, timeout=0, writeTimeout=0)
-        parser = comms.serial_parser.serial_parser()
-    except Exception as e:
-        print('Opening remote link failed:', device)
-        print(e)
-        return False
+    while not link_open:
+        try:
+            ser = serial.Serial(port=device, baudrate=115200, timeout=0, writeTimeout=0)
+            parser = comms.serial_parser.serial_parser()
+            link_open = True
+        except Exception as e:
+            print('Opening remote link failed:', device)
+            print(e)
+            print("sleeping ...")
+            time.sleep(1)
 
     if comms_node.getBool('display_on'):
         print('remote link:', device)
-    link_open = True
 
     remote_link_node.setInt('sequence_num', 0)
     if not remote_link_config.getInt('write_bytes_per_frame'):
