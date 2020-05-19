@@ -73,8 +73,7 @@
                 { "type": "float", "name": "strapdown_calib[9]", "desc": "Rotation matrix representing strapdown mounting error" },
                 { "type": "float", "name": "accel_scale[3]", "desc": "Accelerometer scaling correction" },
                 { "type": "float", "name": "accel_translate[3]", "desc": "Accelerometer translation correction" },
-                { "type": "float", "name": "mag_b[3]", "desc": "magnetometer b vector" },
-                { "type": "float", "name": "mag_A_1[9]", "desc": "magnetometer A_1  matrix" }
+                { "type": "float", "name": "mag_affine[16]", "desc": "magnetometer affine calibration matrix" }
             ]
         },
         {
