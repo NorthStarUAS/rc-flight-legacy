@@ -15,8 +15,8 @@ import mission.task.transformations as tr
 # state key:
 #   0 = spend 5 seconds moving around at each major (6) orientation
 #   1 = sanity check
-#   2 = complete success
-#   3 = complete failed
+#   2 = completed, success
+#   3 = completed, failed
 
 def ellipsoid_fit(s):
     # https://teslabs.com/articles/magnetometer-calibration/
@@ -247,12 +247,9 @@ class CalibrateMagnetometer(Task):
             print("z range:", np.min(mapped[:,2]), np.max(mapped[:,2]))
             self.state += 2
             calib_node = self.config_imu_node.getChild("calibration", True)
-            calib_node.setLen("mag_b", 3)
-            for i in range(3):
-                calib_node.setFloatEnum("mag_b", i, self.b.flatten()[i])
-            calib_node.setLen("mag_A_1", 9)
-            for i in range(9):
-                calib_node.setFloatEnum("mag_A_1", i, self.A_1.flatten()[i])
+            calib_node.setLen("mag_affine", 16)
+            for i in range(16):
+                calib_node.setFloatEnum("mag_affine", i, self.mag_affine.flatten()[i])
             home = os.path.expanduser("~")
             props_json.save(os.path.join(home, "imu_calibration.json"), calib_node)
             message = "mag calibration succeeded"
