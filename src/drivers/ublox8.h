@@ -38,8 +38,3 @@ private:
     bool parse_msg( uint8_t msg_class, uint8_t msg_id,
                     uint16_t payload_length, uint8_t *payload );
 };
-
-/* #include "include/globaldefs.h" */
-
-/* void gps_ublox8_init( string output_path, pyPropertyNode *config ); */
-/* bool gps_ublox8_update(); */

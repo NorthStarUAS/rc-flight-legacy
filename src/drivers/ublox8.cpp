@@ -34,7 +34,7 @@ using std::string;
 #include "ublox8.h"
 
 #pragma pack(push, 1)           // set alignment to 1 byte boundary
-struct ublox8_nav_pvt_t {
+struct nav_pvt_t {
     uint32_t iTOW;
     int16_t year;
     uint8_t month;
@@ -147,20 +147,6 @@ void ublox8_t::init( pyPropertyNode *config ) {
 
 static int gps_fix_value = 0;
 
-// swap big/little endian bytes
-static void my_swap( uint8_t *buf, int index, int count ) {
-#if defined( __powerpc__ )
-    int i;
-    uint8_t tmp;
-    for ( i = 0; i < count / 2; ++i ) {
-        tmp = buf[index+i];
-        buf[index+i] = buf[index+count-i-1];
-        buf[index+count-i-1] = tmp;
-    }
-#endif
-}
-
-
 bool ublox8_t::parse_msg( uint8_t msg_class, uint8_t msg_id,
                           uint16_t payload_length, uint8_t *payload )
 {
@@ -175,8 +161,8 @@ bool ublox8_t::parse_msg( uint8_t msg_class, uint8_t msg_id,
 	// pos/vel to lla pos/ned vel.
     } else if ( msg_class == 0x01 && msg_id == 0x07 ) {
         // NAV-PVT
-        if ( payload_length == sizeof(ublox8_nav_pvt_t) )  {
-            ublox8_nav_pvt_t data;
+        if ( payload_length == sizeof(nav_pvt_t) )  {
+            nav_pvt_t data;
             memcpy( &data, payload, payload_length );
 
             gps_fix_value = data.fixType;
@@ -234,8 +220,6 @@ bool ublox8_t::parse_msg( uint8_t msg_class, uint8_t msg_id,
 	// code history) for a nav-timeutc parser
     } else if ( msg_class == 0x01 && msg_id == 0x30 ) {
 	// NAV-SVINFO (partial parse)
-	my_swap( payload, 0, 4);
-
 	uint8_t *p = payload;
 	// uint32_t iTOW = *((uint32_t *)(p+0));
 	uint8_t numCh = p[4];
