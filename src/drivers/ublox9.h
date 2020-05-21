@@ -28,6 +28,8 @@ public:
 private:
     pyPropertyNode gps_node;
     int fd = -1;
+    static const int max_payload = 2048;
+    uint8_t payload[max_payload];
     int state = 0;
     int msg_class = 0, msg_id = 0;
     int length_lo = 0, length_hi = 0, payload_length = 0;
@@ -35,6 +37,5 @@ private:
     uint8_t cksum_A = 0, cksum_B = 0, cksum_lo = 0, cksum_hi = 0;
     bool open( const char *device_name, const int baud );
     bool read_ublox9();
-    bool parse_msg( uint8_t msg_class, uint8_t msg_id,
-                    uint16_t payload_length, uint8_t *payload );
+    bool parse_msg();
 };

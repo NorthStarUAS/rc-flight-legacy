@@ -68,6 +68,33 @@ struct nav_pvt_t {
     int16_t magDec;
     uint16_t magAcc;
 };
+struct rxm_raw_head_t {
+    double rcvTow;
+    uint16_t week;
+    int8_t leapS;
+    uint8_t numMeas;
+    uint8_t recStat;
+    uint8_t version;
+    uint8_t reserved1_1;
+    uint8_t reserved1_2;
+};
+struct rxm_raw_record_t {
+    double prMes;
+    double cpMes;
+    float doMes;
+    uint8_t gnssId;
+    uint8_t svId;
+    uint8_t sigId;
+    uint8_t freqId;
+    uint16_t locktime;
+    uint8_t cno;
+    uint8_t prStdev;
+    uint8_t cpStdev;
+    uint8_t doStdev;
+    uint8_t trkStat;
+    uint8_t reserved2;
+};
+
 # pragma pack(pop)              // restore original alignment
 
 bool ublox9_t::open( const char *device_name, const int baud ) {
@@ -147,23 +174,7 @@ void ublox9_t::init( pyPropertyNode *config ) {
 
 static int gps_fix_value = 0;
 
-// swap big/little endian bytes
-static void my_swap( uint8_t *buf, int index, int count ) {
-#if defined( __powerpc__ )
-    int i;
-    uint8_t tmp;
-    for ( i = 0; i < count / 2; ++i ) {
-        tmp = buf[index+i];
-        buf[index+i] = buf[index+count-i-1];
-        buf[index+count-i-1] = tmp;
-    }
-#endif
-}
-
-
-bool ublox9_t::parse_msg( uint8_t msg_class, uint8_t msg_id,
-                          uint16_t payload_length, uint8_t *payload )
-{
+bool ublox9_t::parse_msg() {
     bool new_position = false;
 
     if ( msg_class == 0x01 && msg_id == 0x02 ) {
@@ -234,8 +245,6 @@ bool ublox9_t::parse_msg( uint8_t msg_class, uint8_t msg_id,
 	// code history) for a nav-timeutc parser
     } else if ( msg_class == 0x01 && msg_id == 0x30 ) {
 	// NAV-SVINFO (partial parse)
-	my_swap( payload, 0, 4);
-
 	uint8_t *p = payload;
 	// uint32_t iTOW = *((uint32_t *)(p+0));
 	uint8_t numCh = p[4];
@@ -256,6 +265,28 @@ bool ublox9_t::parse_msg( uint8_t msg_class, uint8_t msg_id,
 		printf("Satellite count = %d/%d\n", satUsed, numCh);
 	    }
 	}
+    } else if ( msg_class == 0x02 && msg_id == 0x13 ) {
+        // RXM-SFRBX (Broadcast Navigation Data Subframe)
+    } else if ( msg_class == 0x02 && msg_id == 0x15 ) {
+        // RXM-RAWX (Multi-GNSS Raw Measurement Data)
+        // (for now just show that we can decode the message)
+        printf("RXM-RAWX\n");
+        rxm_raw_head_t *p = (rxm_raw_head_t *)payload;
+        printf("rcvTow: %f\n", p->rcvTow);
+        printf("numMeas: %d\n", p->numMeas);
+        int size = sizeof(rxm_raw_head_t) + p->numMeas * sizeof(rxm_raw_record_t);
+        // printf("Message size: %d (actual: %d)\n", size, payload_length);
+        if ( size == payload_length ) {
+            for ( int i = 0; i < p->numMeas; i++ ) {
+                uint8_t *base = (uint8_t *)p + sizeof(rxm_raw_head_t) + i*sizeof(rxm_raw_record_t);
+                rxm_raw_record_t *r = (rxm_raw_record_t *)base;
+                printf("  id: %d pr: %f\n", r->svId, r->prMes);
+            }
+        } else {
+            printf("RXM-RAWX problem decoding message or message length: %d %d %d\n", p->numMeas, size, payload_length);
+}
+
+        
     } else {
         printf("ublox9: unknown - msg class = %d  msg id = %d\n",
                msg_class, msg_id);
@@ -265,10 +296,8 @@ bool ublox9_t::parse_msg( uint8_t msg_class, uint8_t msg_id,
 }
 
 bool ublox9_t::read_ublox9() {
-    static const int max_payload = 2048;
     int len;
     uint8_t input[500];
-    static uint8_t payload[max_payload];
 
     // printf("read ublox9, entry state = %d\n", state);
 
@@ -375,8 +404,7 @@ bool ublox9_t::read_ublox9() {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// fprintf( stderr, "checksum passes (%d)!\n", msg_id );
-		new_position = parse_msg( msg_class, msg_id,
-                                          payload_length, payload );
+		new_position = parse_msg();
 		state++;
 	    } else {
 		if ( display_on && 0 ) {
