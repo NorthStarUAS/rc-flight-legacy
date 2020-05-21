@@ -27,6 +27,7 @@ using std::string;
 
 #include "comms/display.h"
 #include "init/globals.h"
+#include "util/props_helper.h"
 #include "util/strutils.h"
 #include "util/timing.h"
 
@@ -74,7 +75,7 @@ bool ublox8_t::open( const char *device_name, const int baud ) {
 	printf("ublox8 on %s (%d baud)\n", device_name, baud);
     }
 
-    fd = open( device_name, O_RDWR | O_NOCTTY | O_NONBLOCK );
+    fd = ::open( device_name, O_RDWR | O_NOCTTY | O_NONBLOCK );
     if ( fd < 0 ) {
         fprintf( stderr, "open serial: unable to open %s - %s\n",
                  device_name, strerror(errno) );
@@ -128,7 +129,8 @@ bool ublox8_t::open( const char *device_name, const int baud ) {
 }
 
 void ublox8_t::init( pyPropertyNode *config ) {
-    gps_node = pyGetNode("/sensors/gps", true);
+    string output_path = get_next_path("/sensors", "gps", false);
+    gps_node = pyGetNode(output_path.c_str(), true);
     if ( config->hasChild("device") ) {
         string device = config->getString("device");
         int baud = config->getLong("baud");
@@ -255,26 +257,18 @@ bool ublox8_t::parse_msg( uint8_t msg_class, uint8_t msg_id,
 	    }
 	}
     } else {
-	if ( display_on && 0 ) {
-	    if ( gps_fix_value < 3 ) {
-		printf("ublox8 msg class = %d  msg id = %d\n",
-		       msg_class, msg_id);
-	    }
-	}
+        printf("ublox8: unknown - msg class = %d  msg id = %d\n",
+               msg_class, msg_id);
     }
 
     return new_position;
 }
 
 bool ublox8_t::read_ublox8() {
-    static int state = 0;
-    static int msg_class = 0, msg_id = 0;
-    static int length_lo = 0, length_hi = 0, payload_length = 0;
-    static int counter = 0;
-    static uint8_t cksum_A = 0, cksum_B = 0, cksum_lo = 0, cksum_hi = 0;
+    static const int max_payload = 2048;
     int len;
     uint8_t input[500];
-    static uint8_t payload[500];
+    static uint8_t payload[max_payload];
 
     // printf("read ublox8, entry state = %d\n", state);
 
@@ -343,7 +337,7 @@ bool ublox8_t::read_ublox8() {
 	    cksum_B += cksum_A;
 	    payload_length = length_hi*256 + length_lo;
 	    // fprintf( stderr, "payload len = %d\n", payload_length );
-	    if ( payload_length > 400 ) {
+	    if ( payload_length > max_payload ) {
 		state = 0;
 	    } else {
 		state++;
@@ -403,7 +397,6 @@ bool ublox8_t::read_ublox8() {
 float ublox8_t::read() {
     // run an iteration of the ublox scanner/parser
     read_ublox8();
-
     return 0.0;
 }
 

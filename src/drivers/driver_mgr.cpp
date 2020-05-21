@@ -45,6 +45,11 @@ void driver_mgr_t::init() {
             driver_t *d = new maestro_t();
             d->init(&section_node);
             drivers.push_back(d);
+        } else if ( driver_node.hasChild("ublox8") ) {
+            pyPropertyNode section_node = driver_node.getChild("ublox8");
+            driver_t *d = new ublox8_t();
+            d->init(&section_node);
+            drivers.push_back(d);
         }
     }
 }
