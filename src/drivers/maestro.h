@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include <string>
-using std::string;
-
 #include <pyprops.h>
 
 #include "drivers/driver.h"

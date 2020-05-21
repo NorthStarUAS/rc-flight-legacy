@@ -8,6 +8,7 @@ using std::ostringstream;
 #include "drivers/fgfs.h"
 #include "drivers/lightware.h"
 #include "drivers/maestro.h"
+#include "drivers/ublox8.h"
 #include "driver_mgr.h"
 
 driver_mgr_t::driver_mgr_t() {

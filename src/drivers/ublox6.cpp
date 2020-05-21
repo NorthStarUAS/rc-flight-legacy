@@ -1,7 +1,7 @@
 /**
- * \file: gps_ublox8.cpp
+ * \file: gps_ublox6.cpp
  *
- * u-blox 7 protocol driver
+ * u-blox 6 protocol driver
  *
  * Copyright (C) 2012 - Curtis L. Olson - curtolson@flightgear.org
  *
@@ -21,17 +21,21 @@
 #include <sys/time.h>		// gettimeofday()
 #include <time.h>
 #include <string>
-
 using std::string;
+
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
+using namespace Eigen;
 
 #include "include/globaldefs.h"
 
 #include "comms/display.h"
 #include "init/globals.h"
+#include "util/geodesy.h"
 #include "util/strutils.h"
 #include "util/timing.h"
 
-#include "gps_ublox8.h"
+#include "ublox6.h"
 
 
 // property nodes
@@ -39,7 +43,7 @@ static pyPropertyNode gps_node;
 
 static int fd = -1;
 static string device_name = "/dev/ttyS0";
-static int baud = 115200;
+static int baud = 57600;
 static int gps_fix_value = 0;
 
 // initialize gpsd input property nodes
@@ -60,9 +64,9 @@ static void bind_output( string output_node ) {
 
 
 // send our configured init strings to configure gpsd the way we prefer
-static bool gps_ublox8_open() {
+static bool gps_ublox6_open() {
     if ( display_on ) {
-	printf("ublox8 on %s\n", device_name.c_str());
+	printf("ublox6 on %s\n", device_name.c_str());
     }
 
     fd = open( device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
@@ -86,7 +90,7 @@ static bool gps_ublox8_open() {
     } else if ( baud == 9600 ) {
 	config_baud = B9600;
     } else {
-	fprintf( stderr, "ublox8 baud rate (%d) unsupported by driver, using back to 115200.\n", baud);
+	fprintf( stderr, "ublox6 baud rate (%d) unsupported by driver, using back to 115200.\n", baud);
     }
 
     // Configure New Serial Port Settings
@@ -99,7 +103,7 @@ static bool gps_ublox8_open() {
     config.c_lflag     = 0;
     config.c_cc[VTIME] = 0;
     config.c_cc[VMIN]  = 0;	   // block 'read' from returning until at
-                                   // least 0 character is received
+                                   // least 1 character is received
 
     // Flush Serial Port I/O buffer
     tcflush(fd, TCIOFLUSH);
@@ -119,10 +123,10 @@ static bool gps_ublox8_open() {
 }
 
 
-void gps_ublox8_init( string output_node, pyPropertyNode *config ) {
+void gps_ublox6_init( string output_node, pyPropertyNode *config ) {
     bind_input( config );
     bind_output( output_node );
-    gps_ublox8_open();
+    gps_ublox6_open();
 }
 
 
@@ -140,72 +144,83 @@ static void my_swap( uint8_t *buf, int index, int count ) {
 }
 
 
-static bool parse_ublox8_msg( uint8_t msg_class, uint8_t msg_id,
+static bool parse_ublox6_msg( uint8_t msg_class, uint8_t msg_id,
 			      uint16_t payload_length, uint8_t *payload )
 {
     bool new_position = false;
     static bool set_system_time = false;
 
     if ( msg_class == 0x01 && msg_id == 0x02 ) {
-	// NAV-POSLLH: Please refer to the ublox6 driver (here or in the
-	// code history) for a nav-posllh parser
-    } else if ( msg_class == 0x01 && msg_id == 0x06 ) {
-	// NAV-SOL: Please refer to the ublox6 driver (here or in the
-	// code history) for a nav-sol parser that transforms eced
-	// pos/vel to lla pos/ned vel.
-    } else if ( msg_class == 0x01 && msg_id == 0x07 ) {
-	// NAV-PVT
+	// NAV-POSLLH
 	my_swap( payload, 0, 4);
-	my_swap( payload, 4, 2);
+	my_swap( payload, 4, 4);
+	my_swap( payload, 8, 4);
 	my_swap( payload, 12, 4);
 	my_swap( payload, 16, 4);
+	my_swap( payload, 20, 4);
+	my_swap( payload, 24, 4);
+
+	uint8_t *p = payload;
+	uint32_t iTOW = *((uint32_t *)p+0);
+	int32_t lon = *((int32_t *)(p+4));
+	int32_t lat = *((int32_t *)(p+8));
+	int32_t height = *((int32_t *)(p+12));
+	int32_t hMSL = *((int32_t *)(p+16));
+	// uint32_t hAcc = *((uint32_t *)(p+20));
+	// uint32_t vAcc = *((uint32_t *)(p+24));
+	if ( display_on && 0 ) {
+	    if ( gps_fix_value < 3 ) {
+		printf("nav-posllh (%d) %d %d %d %d\n",
+		       iTOW, lon, lat, height, hMSL);
+	    }
+	}
+    } else if ( msg_class == 0x01 && msg_id == 0x06 ) {
+	// NAV-SOL
+	my_swap( payload, 0, 4);
+	my_swap( payload, 4, 4);
+	my_swap( payload, 8, 2);
+	my_swap( payload, 12, 4);
+	my_swap( payload, 16, 4);
+	my_swap( payload, 20, 4);
 	my_swap( payload, 24, 4);
 	my_swap( payload, 28, 4);
 	my_swap( payload, 32, 4);
 	my_swap( payload, 36, 4);
 	my_swap( payload, 40, 4);
-	my_swap( payload, 44, 4);
-	my_swap( payload, 48, 4);
-	my_swap( payload, 52, 4);
-	my_swap( payload, 56, 4);
-	my_swap( payload, 60, 4);
-	my_swap( payload, 64, 4);
-	my_swap( payload, 68, 4);
-	my_swap( payload, 72, 4);
-	my_swap( payload, 76, 2);
-	my_swap( payload, 78, 2);
-	my_swap( payload, 80, 4);
+	my_swap( payload, 44, 2);
 
 	uint8_t *p = payload;
-	uint32_t iTOW = *((uint32_t *)p+0);
-	int16_t year = *((uint16_t *)(p+4));
-	uint8_t month = p[6];
-	uint8_t day = p[7];
-	uint8_t hour = p[8];
-	uint8_t min = p[9];
-	uint8_t sec = p[10];
-	uint8_t valid = p[11];
-	uint32_t tAcc = *((uint32_t *)(p+12));
-	int32_t nano = *((int32_t *)(p+16));
-	uint8_t fixType = p[20];
-	uint8_t flags = p[21];
-	uint8_t numSV = p[23];
-	int32_t lon = *((int32_t *)(p+24));
-	int32_t lat = *((int32_t *)(p+28));
-	int32_t height = *((int32_t *)(p+32));
-	int32_t hMSL = *((int32_t *)(p+36));
-	uint32_t hAcc = *((uint32_t *)(p+40));
-	uint32_t vAcc = *((uint32_t *)(p+44));
-	int32_t velN = *((int32_t *)(p+48));
-	int32_t velE = *((int32_t *)(p+52));
-	int32_t velD = *((int32_t *)(p+56));
-	uint32_t gSpeed = *((uint32_t *)(p+60));
-	int32_t heading = *((int32_t *)(p+64));
-	uint32_t sAcc = *((uint32_t *)(p+68));
-	uint32_t headingAcc = *((uint32_t *)(p+72));
-	uint16_t pDOP = *((uint16_t *)(p+76));
+	uint32_t iTOW = *((uint32_t *)(p+0));
+	int32_t fTOW = *((int32_t *)(p+4));
+	int16_t week = *((int16_t *)(p+8));
+	uint8_t gpsFix = p[10];
+	// uint8_t flags = p[11];
+	int32_t ecefX = *((int32_t *)(p+12));
+	int32_t ecefY = *((int32_t *)(p+16));
+	int32_t ecefZ = *((int32_t *)(p+20));
+	// uint32_t pAcc = *((uint32_t *)(p+24));
+	int32_t ecefVX = *((int32_t *)(p+28));
+	int32_t ecefVY = *((int32_t *)(p+32));
+	int32_t ecefVZ = *((int32_t *)(p+36));
+	// uint32_t sAcc = *((uint32_t *)(p+40));
+	// uint16_t pDOP = *((uint16_t *)(p+44));
+	uint8_t numSV = p[47];
+	if ( display_on && 0 ) {
+	    if ( gps_fix_value < 3 ) {
+		printf("nav-sol (%d) %d %d %d %d %d [ %d %d %d ]\n",
+		       gpsFix, iTOW, fTOW, ecefX, ecefY, ecefZ,
+		       ecefVX, ecefVY, ecefVZ);
+	    }
+	}
+	Vector3d ecef( ecefX / 100.0, ecefY / 100.0, ecefZ / 100.0 );
+	Vector3d wgs84 = ecef2lla_for_ublox6(ecef);
+	Quaterniond ecef2ned = fromLonLatRad(wgs84[1], wgs84[0]);
+	Vector3d vel_ecef( ecefVX / 100.0, ecefVY / 100.0, ecefVZ / 100.0 );
+	Vector3d vel_ned = quat_backtransform(ecef2ned, vel_ecef);
+	// printf("my vel ned = %.2f %.2f %.2f\n", vel_ned.x(), vel_ned.y(), vel_ned.z());
 
- 	gps_fix_value = fixType;
+ 	gps_node.setLong( "satellites", numSV );
+ 	gps_fix_value = gpsFix;
 	if ( gps_fix_value == 0 ) {
 	    gps_node.setLong( "status", 0 );
 	} else if ( gps_fix_value == 1 || gps_fix_value == 2 ) {
@@ -213,48 +228,125 @@ static bool parse_ublox8_msg( uint8_t msg_class, uint8_t msg_id,
 	} else if ( gps_fix_value == 3 ) {
 	    gps_node.setLong( "status", 2 );
 	}
-	// printf("fix: %d lon: %.8f lat: %.8f\n", fixType, (double)lon, (double)lat);
 
-	if ( fixType == 3 ) {
-	    // gps thinks we have a good 3d fix so flag our data good.
- 	    new_position = true;
+	if ( fabs(ecefX) > 650000000
+	     || fabs(ecefY) > 650000000
+	     || fabs(ecefZ) > 650000000 ) {
+	    // earth radius is about 6371km (637,100,000 cm).  If one
+	    // of the ecef coordinates is beyond this radius we know
+	    // we have bad data.  This means we won't toss data until
+	    // above about 423,000' MSL
+	    events->log( "ublox6", "received bogus ecef data" );
+	} else if ( wgs84[2] > 60000 ) {
+	    // sanity check: assume altitude > 60k meters (200k feet) is bad
+	} else if ( wgs84[2] < -1000 ) {
+	    // sanity check: assume altitude < -1000 meters (-3000 feet) is bad
+	} else if ( gpsFix == 3 ) {
+	    // passed basic sanity checks and gps is reporting a 3d fix
+	    new_position = true;
+	    gps_node.setDouble( "timestamp", get_Time() );
+	    gps_node.setDouble( "latitude_deg", wgs84[0] * 180.0 / M_PI );
+	    gps_node.setDouble( "longitude_deg", wgs84[1] * 180.0 / M_PI );
+	    gps_node.setDouble( "altitude_m", wgs84[2] );
+	    gps_node.setDouble( "vn_ms", vel_ned.x() );
+	    gps_node.setDouble( "ve_ms", vel_ned.y() );
+	    gps_node.setDouble( "vd_ms", vel_ned.z() );
+	    // printf("        %.10f %.10f %.2f - %.2f %.2f %.2f\n",
+	    //        wgs84.getLatitudeDeg(),
+	    //        wgs84.getLongitudeDeg(),
+	    //        wgs84.getElevationM(),
+	    //        vel_ned.x(), vel_ned.y(), vel_ned.z() );
+
+	    double julianDate = (week * 7.0) + 
+		(0.001 * iTOW) / 86400.0 +  //86400 = seconds in 1 day
+		2444244.5; // 2444244.5 Julian date of GPS epoch (Jan 5 1980 at midnight)
+	    julianDate = julianDate - 2440587.5; // Subtract Julian Date of Unix Epoch (Jan 1 1970)
+
+	    double unixSecs = julianDate * 86400.0;
+	    //double unixFract = unixSecs - floor(unixSecs);
+	    //struct timeval time;
+	    gps_node.setDouble( "unix_time_sec", unixSecs );
+#if 0
+	    if ( unixSecs > 1263154775 && !set_system_time) {
+		printf("Setting system time to %.3f\n", unixSecs);
+		set_system_time = true;
+		time.tv_sec = floor(unixSecs);
+		time.tv_usec = floor(unixFract * 1000000.);
+		settimeofday(&time, NULL);
+	    }
+#endif
 	}
-
-	gps_node.setDouble( "timestamp", get_Time() );
-
-	struct tm gps_time;
-	gps_time.tm_sec = sec;
-	gps_time.tm_min = min;
-	gps_time.tm_hour = hour;
-	gps_time.tm_mday = day;
-	gps_time.tm_mon = month - 1;
-	gps_time.tm_year = year - 1900;
-	double unix_sec = (double)mktime( &gps_time ) - timezone;
-	unix_sec += nano / 1000000000.0;
-	gps_node.setDouble( "unix_time_sec", unix_sec );
-	gps_node.setDouble( "time_accuracy_ns", tAcc );
-	    
-	gps_node.setLong( "satellites", numSV );
-	    
-	gps_node.setDouble( "latitude_deg", (double)lat / 10000000.0);
-	gps_node.setDouble( "longitude_deg", (double)lon / 10000000.0);
-	gps_node.setDouble( "altitude_m", (float)hMSL / 1000.0 );
-	gps_node.setDouble( "vn_ms", (float)velN / 1000.0 );
-	gps_node.setDouble( "ve_ms", (float)velE / 1000.0 );
-	gps_node.setDouble( "vd_ms", (float)velD / 1000.0 );
-	gps_node.setDouble( "horiz_accuracy_m", hAcc / 1000.0 );
-	gps_node.setDouble( "vert_accuracy_m", vAcc / 1000.0 );
-	gps_node.setDouble( "groundspeed_ms", gSpeed / 1000.0 );
-	gps_node.setDouble( "groundtrack_deg", heading / 100000.0 );
-	gps_node.setDouble( "heading_accuracy_deg", headingAcc / 100000.0 );
-	gps_node.setDouble( "pdop", pDOP / 100.0 );
-	gps_node.setLong( "fixType", fixType);
    } else if ( msg_class == 0x01 && msg_id == 0x12 ) {
-	// NAV-VELNED: Please refer to the ublox6 driver (here or in the
-	// code history) for a nav-velned parser
+	// NAV-VELNED
+	my_swap( payload, 0, 4);
+	my_swap( payload, 4, 4);
+	my_swap( payload, 8, 4);
+	my_swap( payload, 12, 4);
+	my_swap( payload, 16, 4);
+	my_swap( payload, 20, 4);
+	my_swap( payload, 24, 4);
+	my_swap( payload, 28, 4);
+	my_swap( payload, 32, 4);
+
+	uint8_t *p = payload;
+	uint32_t iTOW = *((uint32_t *)p+0);
+	int32_t velN = *((int32_t *)(p+4));
+	int32_t velE = *((int32_t *)(p+8));
+	int32_t velD = *((int32_t *)(p+12));
+	uint32_t speed = *((uint32_t *)(p+16));
+	// uint32_t gspeed = *((uint32_t *)(p+20));
+	int32_t heading = *((int32_t *)(p+24));
+	// uint32_t sAcc = *((uint32_t *)(p+28));
+	// uint32_t cAcc = *((uint32_t *)(p+32));
+	if ( display_on && 0 ) {
+	    if ( gps_fix_value < 3 ) {
+		printf("nav-velned (%d) %.2f %.2f %.2f s = %.2f h = %.2f\n",
+		       iTOW, velN / 100.0, velE / 100.0, velD / 100.0,
+		       speed / 100.0, heading / 100000.0);
+	    }
+	}
     } else if ( msg_class == 0x01 && msg_id == 0x21 ) {
-	// NAV-TIMEUTC: Please refer to the ublox6 driver (here or in the
-	// code history) for a nav-timeutc parser
+	// NAV-TIMEUTC
+	my_swap( payload, 0, 4);
+	my_swap( payload, 4, 4);
+	my_swap( payload, 8, 4);
+	my_swap( payload, 12, 2);
+
+	uint8_t *p = payload;
+	uint32_t iTOW = *((uint32_t *)(p+0));
+	// uint32_t tAcc = *((uint32_t *)(p+4));
+	int32_t nano = *((int32_t *)(p+8));
+	int16_t year = *((int16_t *)(p+12));
+	uint8_t month = p[14];
+	uint8_t day = p[15];
+	uint8_t hour = p[16];
+	uint8_t min = p[17];
+	uint8_t sec = p[18];
+	uint8_t valid = p[19];
+	if ( display_on && 0 ) {
+	    if ( gps_fix_value < 3 ) {
+		printf("nav-timeutc (%d) %02x %04d/%02d/%02d %02d:%02d:%02d\n",
+		       iTOW, valid, year, month, day, hour, min, sec);
+	    }
+	}
+	if ( !set_system_time && year > 2009 ) {
+	    set_system_time = true;
+	    printf("set system clock: nav-timeutc (%d) %02x %04d/%02d/%02d %02d:%02d:%02d\n",
+		   iTOW, valid, year, month, day, hour, min, sec);
+	    struct tm gps_time;
+	    gps_time.tm_sec = sec;
+	    gps_time.tm_min = min;
+	    gps_time.tm_hour = hour;
+	    gps_time.tm_mday = day;
+	    gps_time.tm_mon = month - 1;
+	    gps_time.tm_year = year - 1900;
+	    time_t unix_sec = mktime( &gps_time ) - timezone;
+	    printf("gps->unix time = %d\n", (int)unix_sec);
+	    struct timeval fulltime;
+	    fulltime.tv_sec = unix_sec;
+	    fulltime.tv_usec = nano / 1000;
+	    settimeofday( &fulltime, NULL );
+	}
     } else if ( msg_class == 0x01 && msg_id == 0x30 ) {
 	// NAV-SVINFO (partial parse)
 	my_swap( payload, 0, 4);
@@ -282,7 +374,7 @@ static bool parse_ublox8_msg( uint8_t msg_class, uint8_t msg_id,
     } else {
 	if ( display_on && 0 ) {
 	    if ( gps_fix_value < 3 ) {
-		printf("ublox8 msg class = %d  msg id = %d\n",
+		printf("ublox6 msg class = %d  msg id = %d\n",
 		       msg_class, msg_id);
 	    }
 	}
@@ -291,7 +383,7 @@ static bool parse_ublox8_msg( uint8_t msg_class, uint8_t msg_id,
     return new_position;
 }
 
-static bool read_ublox8() {
+static bool read_ublox6() {
     static int state = 0;
     static int msg_class = 0, msg_id = 0;
     static int length_lo = 0, length_hi = 0, payload_length = 0;
@@ -301,7 +393,7 @@ static bool read_ublox8() {
     uint8_t input[500];
     static uint8_t payload[500];
 
-    // printf("read ublox8, entry state = %d\n", state);
+    // printf("read ublox6, entry state = %d\n", state);
 
     bool new_position = false;
 
@@ -406,7 +498,7 @@ static bool read_ublox8() {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// fprintf( stderr, "checksum passes (%d)!\n", msg_id );
-		new_position = parse_ublox8_msg( msg_class, msg_id,
+		new_position = parse_ublox6_msg( msg_class, msg_id,
 						 payload_length, payload );
 		state++;
 	    } else {
@@ -425,13 +517,13 @@ static bool read_ublox8() {
 }
 
 
-bool gps_ublox8_update() {
+bool gps_ublox6_update() {
     // run an iteration of the ublox scanner/parser
-    bool gps_data_valid = read_ublox8();
+    bool gps_data_valid = read_ublox6();
 
     return gps_data_valid;
-}
+ }
 
 
-void gps_ublox8_close() {
+void gps_ublox6_close() {
 }
