@@ -28,11 +28,13 @@ public:
 private:
     pyPropertyNode gps_node;
     int fd = -1;
-    bool open( const char *device_name );
+    bool open( const char *device_name, const int baud );
+    bool read_ublox8();
+    bool parse_msg( uint8_t msg_class, uint8_t msg_id,
+                    uint16_t payload_length, uint8_t *payload );
 };
 
 /* #include "include/globaldefs.h" */
 
 /* void gps_ublox8_init( string output_path, pyPropertyNode *config ); */
 /* bool gps_ublox8_update(); */
-/* void gps_ublox8_close(); */
