@@ -379,6 +379,14 @@ def update(dt):
 
                 # printf('direct=%.1f angle=%.1f nav=%.1f L1=%.1f xtrack=%.1f wangle=%.1f nav_dist=%.1f\n', direct_course, angle, nav_course, L1_dist, xtrack_m, wangle, nav_dist_m)
 
+            gs_mps = vel_node.getFloat('groundspeed_ms')
+            if gs_mps > 0.1 and abs(nav_dist_m) > 0.1:
+                wp_eta_sec = nav_dist_m / gs_mps
+            else:
+                wp_eta_sec = 0.0
+            route_node.setFloat( 'wp_eta_sec', dist_m / gs_mps )
+            route_node.setFloat( 'wp_dist_m', direct_dist )
+                
             if nav_course < 0.0: nav_course += 360.0
             if nav_course > 360.0: nav_course -= 360.0
 
@@ -429,11 +437,11 @@ def update(dt):
 
             # logic to mark completion of leg and move to next leg.
             if completion_mode == 'loop':
-                if nav_dist_m < 50.0:
+                if wp_eta_sec < 1.0:
                     acquired = True
                     increment_current_wp()
             elif completion_mode == 'circle_last_wpt':
-                if nav_dist_m < 50.0:
+                if wp_eta_sec < 1.0:
                     acquired = True
                     if current_wp < len(active_route) - 1:
                         increment_current_wp()
@@ -444,7 +452,7 @@ def update(dt):
                         #   wp.get_target_lat(),
                         #   0.0, 0.0)
             elif completion_mode == 'extend_last_leg':
-                if nav_dist_m < 50.0:
+                if wp_eta_sec < 1.0:
                     acquired = True
                     if current_wp < len(active_route) - 1:
                         increment_current_wp()
@@ -468,14 +476,6 @@ def update(dt):
 
         # FIXME: need to go to circle mode somehow here!!!!
         # mission_mgr.request_task_circle()
-
-    route_node.setFloat('wp_dist_m', direct_dist)
-
-    gs_mps = vel_node.getFloat('groundspeed_ms')
-    if gs_mps > 0.1:
-        route_node.setFloat('wp_eta_sec', direct_dist / gs_mps)
-    else:
-        route_node.setFloat('wp_eta_sec', 0.0)
 
     # dribble active route into property tree
     dribble()
