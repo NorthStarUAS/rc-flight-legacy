@@ -111,10 +111,10 @@ class Tuner(QtGui.QWidget):
             print node_name
             node = root.getChild(node_name)
             comp_type = node.getString('module')
-            if comp_type == 'pid_component':
+            if comp_type == 'pid':
                 pid = Component(index=i, changefunc=self.onChange, host=host,
                                 port=port, type="pid")
-            elif comp_type == 'pid_vel_component':
+            elif comp_type == 'pid_velocity':
                 pid = Component(index=i, changefunc=self.onChange, host=host,
                                 port=port, type="vel")
             elif comp_type == 'summer':
