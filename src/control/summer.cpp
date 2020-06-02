@@ -33,7 +33,7 @@ AuraSummer::AuraSummer ( string config_path )
     // enable
     pyPropertyNode node = component_node.getChild( "enable", true );
     children = node.getChildren();
-    printf("enables: %ld prop(s)\n", children.size());
+    printf("enables: %d prop(s)\n", children.size());
     for ( unsigned int i = 0; i < children.size(); ++i ) {
 	if ( children[i].substr(0,4) == "prop" ) {
 	    string enable_prop = node.getString(children[i].c_str());
@@ -128,10 +128,14 @@ void AuraSummer::update( double dt ) {
 	    sum += val;
 	    if (debug) printf("  %s = %.3f\n", input_attr[i].c_str(), val);
 	}
-	double u_min = config_node.getDouble("u_min");
-	double u_max = config_node.getDouble("u_max");
-	if ( sum < u_min ) { sum = u_min; }
-	if ( sum > u_max ) { sum = u_max; }
+	if ( config_node.hasChild("u_min") ) {
+	    double u_min = config_node.getDouble("u_min");
+	    if ( sum < u_min ) { sum = u_min; }
+	}
+	if ( config_node.hasChild("u_max") ) {
+	    double u_max = config_node.getDouble("u_max");
+	    if ( sum > u_max ) { sum = u_max; }
+	}
 	if (debug) printf("  sum = %.3f\n", sum);
 	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
 	    output_node[i].setDouble( output_attr[i].c_str(), sum );
