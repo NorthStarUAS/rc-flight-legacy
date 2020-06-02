@@ -20,6 +20,8 @@
 //
 
 
+#include <math.h>
+
 #include <pyprops.h>
 
 #include "pid.h"
@@ -142,6 +144,18 @@ void AuraPID::update( double dt ) {
     }
                       
     double error = r_n - y_n;
+
+    string wrap = component_node.getString("wrap");
+    if ( wrap == "180" ) {
+        // wrap error (by +/- 360 degrees to put the result in [-180, 180]
+        if ( error < -180 ) { error += 360; }
+        if ( error > 180 ) { error -= 360; }
+    } else if ( wrap == "pi" ) {
+        // wrap error (by +/- 2*pi degrees to put the result in [-pi, pi]
+        if ( error < -M_PI ) { error += 2*M_PI; }
+        if ( error > M_PI ) { error -= 2*M_PI; }
+    }
+    
     if ( debug ) printf("input = %.3f reference = %.3f error = %.3f\n",
 			y_n, r_n, error);
 
