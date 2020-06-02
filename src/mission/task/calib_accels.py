@@ -106,7 +106,7 @@ class CalibrateAccels(Task):
             print("up axis:", up_axis, "armed:", self.armed, " slow-fast: %.3f" % d, " stable:", stable)
 
         if not self.armed:
-            self.task_node.setInt("calib_state", -1)
+            self.task_node.setInt("calib_state", 99)
         else:
             self.task_node.setInt("calib_state", self.state)
             

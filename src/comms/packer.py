@@ -1172,6 +1172,26 @@ class Packer():
         elif task_id == 4:
             task_node.setString("current_task", "calib_accels")
             task_node.setInt("calib_state", task_attrib)
+            if task_attrib == 0:
+                task_node.setString("calib_message", "place level, right side up")
+            elif task_attrib == 1:
+                task_node.setString("calib_message", "place upside down")
+            elif task_attrib == 2:
+                task_node.setString("calib_message", "place nose down")
+            elif task_attrib == 3:
+                task_node.setString("calib_message", "place nose up")
+            elif task_attrib == 4:
+                task_node.setString("calib_message", "place right wing down")
+            elif task_attrib == 5:
+                task_node.setString("calib_message", "place right wing up")
+            elif task_attrib == 6:
+                task_node.setString("calib_message", "computing calibration")
+            elif task_attrib == 7:
+                task_node.setString("calib_message", "accel calibration success")
+            elif task_attrib == 8:
+                task_node.setString("calib_message", "error, accel calibration failed")
+            elif task_attrib == 99:
+                task_node.setString("calib_message", "move 45 degrees off axis to arm")
         elif task_id == 5:
             task_node.setString("current_task", "calib_home")
         elif task_id == 6:
