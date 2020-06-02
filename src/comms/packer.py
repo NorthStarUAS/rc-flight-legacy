@@ -913,10 +913,12 @@ class Packer():
                 self.ap.task_id = 3
             elif task_node.getString("current_task") == "calib_accels":
                 self.ap.task_id = 4
+                self.ap.task_attribute = task_node.getInt("calib_state")
             elif task_node.getString("current_task") == "calib_home":
                 self.ap.task_id = 5
             elif task_node.getString("current_task") == "calib_mags":
                 self.ap.task_id = 6
+                self.ap.task_attribute = task_node.getInt("calib_state")
             self.ap.sequence_num = remote_link_node.getInt("sequence_num")
             self.ap_buf = self.ap.pack()
         return self.ap_buf
@@ -1167,6 +1169,14 @@ class Packer():
             task_node.setString("current_task", "route")
         elif task_id == 3:
             task_node.setString("current_task", "land")
+        elif task_id == 4:
+            task_node.setString("current_task", "calib_accels")
+            task_node.setInt("calib_state", task_attrib)
+        elif task_id == 5:
+            task_node.setString("current_task", "calib_home")
+        elif task_id == 6:
+            task_node.setString("current_task", "calib_mags")
+            task_node.setInt("calib_state", task_attrib)
         else:
             task_node.setString("current_task", "unknown")
 
