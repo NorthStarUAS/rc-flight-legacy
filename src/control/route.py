@@ -426,15 +426,6 @@ def update(dt):
                 target_bank_deg = bank_limit_deg + bank_bias_deg
             targets_node.setFloat( 'roll_deg', target_bank_deg )
 
-            # another heading error for surface vehicle steering
-            heading_deg = orient_node.getFloat('heading_deg')
-            surface_error = nav_course - heading_deg
-            if surface_error < -180:
-                surface_error += 360
-            if surface_error > 180:
-                surface_error -= 360
-            targets_node.setFloat( "surface_error_deg", surface_error )
-            
             # estimate distance remaining to completion of route
             if dist_valid:
                 dist_remaining_m = nav_dist_m + \
