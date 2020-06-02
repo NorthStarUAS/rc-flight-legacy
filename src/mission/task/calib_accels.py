@@ -30,11 +30,11 @@ class CalibrateAccels(Task):
         self.imu_node = getNode("/sensors/imu", True)
         self.config_imu_node = getNode("/config/drivers/Aura4/imu")
         self.state = 0
-        self.ax_slow = LowPass(time_factor=2.0) 
+        self.ax_slow = LowPass(time_factor=1.0) 
         self.ax_fast = LowPass(time_factor=0.2) 
-        self.ay_slow = LowPass(time_factor=2.0) 
+        self.ay_slow = LowPass(time_factor=1.0) 
         self.ay_fast = LowPass(time_factor=0.2) 
-        self.az_slow = LowPass(time_factor=2.0) 
+        self.az_slow = LowPass(time_factor=1.0) 
         self.az_fast = LowPass(time_factor=0.2)
         self.armed = False
         self.ref = [ [  0,  0, -g ],
