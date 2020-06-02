@@ -12,12 +12,12 @@ import os
 
 import navpy
 
-from aurauas_flightdata import flight_loader, flight_interp
+from aurauas_flightdata import flight_loader, flight_interp, imucal
 
 import transformations
 
 parser = argparse.ArgumentParser(description='magcal')
-parser.add_argument('flight', help='load specified aura flight log')
+parser.add_argument('--flight', required=True, help='load specified aura flight log')
 parser.add_argument('--imu-sn', help='specify imu serial number')
 parser.add_argument('--resample-hz', type=float, default=10.0, help='resample rate (hz)')
 parser.add_argument('--xmin', type=float, help='start time')
@@ -39,22 +39,23 @@ if len(data['imu']) == 0:
 
 dir = os.path.dirname(args.flight)
 imucal_json = os.path.join(dir, "imucal.json")
-# if os.path.exists(imucal_json):
-#     cal = imucal.Calibration()
-#     cal.load(imucal_json)
-#     print('back correcting imu data and biases for original raw values.')
-#     cal.back_correct(data['imu'], data['filter'])
+if os.path.exists(imucal_json):
+    cal = imucal.Calibration()
+    cal.load(imucal_json)
+    print('back correcting imu data and biases for original raw values.')
+    cal.back_correct(data['imu'], data['filter'])
 
+# this must happen after the back convert
 print("Creating interpolation structures..")
 interp = flight_interp.InterpolationGroup(data)
 
-#cal = imucal.Calibration()
+cal = imucal.Calibration()
 flight_dir = os.path.dirname(args.flight)
 cal_file = os.path.join(flight_dir, "imucal.json")
-# if os.path.exists(cal_file):
-#     cal.load(cal_file)
-#     print('back correcting imu data (to get original raw values)')
-#     cal.back_correct(data['imu'], data['filter'])
+if os.path.exists(cal_file):
+    cal.load(cal_file)
+    print('back correcting imu data (to get original raw values)')
+    cal.back_correct(data['imu'], data['filter'])
     
 # read the events-0.csv file to determine when aircraft becomes airborne
 # (so we can ignore preflight values.)  Update: also to read the IMU
@@ -64,12 +65,11 @@ xmax = None
 imu_sn = None
 auto_sn = None
 if 'event' in data:
-    print("Have event data")
     # scan events log for additional info
     for event in data['event']:
         time = event['time']
         msg = event['message']
-        # print(time, msg)
+        #print(time, msg)
         tokens = msg.split()
         if len(tokens) == 2 and tokens[1] == 'airborne' and not xmin:
             print("airborne (launch) at t =", time)
@@ -186,7 +186,7 @@ ideal_data = []
 for t in np.linspace(xmin, xmax, int(trange*args.resample_hz)):
     filter = interp.query(t, 'filter')
     imu = interp.query(t, 'imu')
-    #print("imu:", imu, "filter:", filter)
+    print("imu:", imu, "filter:", filter)
     #psix = filter['psix']
     #psiy = filter['psiy']
     #psi = math.atan2(psiy, psix)
@@ -196,12 +196,12 @@ for t in np.linspace(xmin, xmax, int(trange*args.resample_hz)):
     mag_ideal = N2B.dot(mag_ned)
     norm = np.linalg.norm(mag_ideal)
     mag_ideal /= norm
-    hx_raw = imu['hx_raw']
-    hy_raw = imu['hy_raw']
-    hz_raw = imu['hz_raw']
-    if abs(hx_raw) > 1000:
-        print("oops:", hx_raw, hy_raw, hz_raw)
-    mag_sense = np.array([hx_raw, hy_raw, hz_raw])
+    hx = imu['hx']
+    hy = imu['hy']
+    hz = imu['hz']
+    if abs(hx) > 1000:
+        print("oops:", hx, hy, hz)
+    mag_sense = np.array([hx, hy, hz])
     # if abs(psi) < 0.1:
     if flight_format == 'aura_csv' or flight_format == 'aura_hdf5':
         ideal_data.append( mag_ideal[:].tolist() )

@@ -323,7 +323,7 @@ def update(dt):
             angle_rad = angle * d2r
             xtrack_m = math.sin(angle_rad) * direct_dist
             dist_m = math.cos(angle_rad) * direct_dist
-            # print 'direct_dist = %.1f angle = %.1f dist_m = %.1f\n' % (direct_dist, angle, dist_m)
+            # print("lc: %.1f  dc: %.1f  a: %.1f  xc: %.1f  dd: %.1f" % (leg_course, direct_course, angle, xtrack_m, direct_dist))
             route_node.setFloat( 'xtrack_dist_m', xtrack_m )
             route_node.setFloat( 'projected_dist_m', dist_m )
 
@@ -369,6 +369,7 @@ def update(dt):
                     nav_course = direct_course + angle - 90.0 + wangle
                 else:
                     nav_course = direct_course + angle + 90.0 - wangle
+                # print("x: %.1f  dc: %.1f  a: %.1f  wa: %.1f  nc: %.1f" % (xtrack_m, direct_course, angle, wangle, nav_course))
                 if acquired:
                     nav_dist_m = dist_m
                 else:
@@ -379,6 +380,14 @@ def update(dt):
 
                 # printf('direct=%.1f angle=%.1f nav=%.1f L1=%.1f xtrack=%.1f wangle=%.1f nav_dist=%.1f\n', direct_course, angle, nav_course, L1_dist, xtrack_m, wangle, nav_dist_m)
 
+            gs_mps = vel_node.getFloat('groundspeed_ms')
+            if gs_mps > 0.1 and abs(nav_dist_m) > 0.1:
+                wp_eta_sec = nav_dist_m / gs_mps
+            else:
+                wp_eta_sec = 99.0 # just any sorta big value
+            route_node.setFloat( 'wp_eta_sec', dist_m / gs_mps )
+            route_node.setFloat( 'wp_dist_m', direct_dist )
+                
             if nav_course < 0.0: nav_course += 360.0
             if nav_course > 360.0: nav_course -= 360.0
 
@@ -405,7 +414,7 @@ def update(dt):
             # clamp to +/-90 so we still get max turn input when flying directly away from the heading.
             if hdg_error < -90.0: hdg_error = -90.0
             if hdg_error > 90.0: hdg_error = 90.0
-            targets_node.setFloat( 'heading_error_deg', hdg_error )
+            targets_node.setFloat( 'wind_heading_error_deg', hdg_error )
 
             accel = 2.0 * math.sin(hdg_error * d2r) * VomegaA
 
@@ -429,11 +438,11 @@ def update(dt):
 
             # logic to mark completion of leg and move to next leg.
             if completion_mode == 'loop':
-                if nav_dist_m < 50.0:
+                if wp_eta_sec < 1.0:
                     acquired = True
                     increment_current_wp()
             elif completion_mode == 'circle_last_wpt':
-                if nav_dist_m < 50.0:
+                if wp_eta_sec < 1.0:
                     acquired = True
                     if current_wp < len(active_route) - 1:
                         increment_current_wp()
@@ -444,7 +453,7 @@ def update(dt):
                         #   wp.get_target_lat(),
                         #   0.0, 0.0)
             elif completion_mode == 'extend_last_leg':
-                if nav_dist_m < 50.0:
+                if wp_eta_sec < 1.0:
                     acquired = True
                     if current_wp < len(active_route) - 1:
                         increment_current_wp()
@@ -468,14 +477,6 @@ def update(dt):
 
         # FIXME: need to go to circle mode somehow here!!!!
         # mission_mgr.request_task_circle()
-
-    route_node.setFloat('wp_dist_m', direct_dist)
-
-    gs_mps = vel_node.getFloat('groundspeed_ms')
-    if gs_mps > 0.1:
-        route_node.setFloat('wp_eta_sec', direct_dist / gs_mps)
-    else:
-        route_node.setFloat('wp_eta_sec', 0.0)
 
     # dribble active route into property tree
     dribble()

@@ -76,15 +76,15 @@ bool AuraAutopilot::build() {
 	    ostringstream config_path;
 	    config_path << "/config/autopilot/" << children[i];
 	    string module = component.getString("module");
-	    if ( module == "pid_vel_component" ) {
-		APComponent *c
-		    = new AuraPIDVel( config_path.str() );
-		components.push_back( c );
-	    } else if ( module == "pid_component" ) {
+            if ( module == "pid" ) {
 		APComponent *c
 		    = new AuraPID( config_path.str() );
 		components.push_back( c );
-	    } else if ( module == "dtss_component" ) {
+	    } else if ( module == "pid_velocity" ) {
+		APComponent *c
+		    = new AuraPIDVel( config_path.str() );
+		components.push_back( c );
+	    } else if ( module == "dtss" ) {
 		APComponent *c
 		    = new AuraDTSS( config_path.str() );
 		components.push_back( c );

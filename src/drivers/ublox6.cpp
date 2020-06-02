@@ -35,7 +35,7 @@ using namespace Eigen;
 #include "util/strutils.h"
 #include "util/timing.h"
 
-#include "gps_ublox6.h"
+#include "ublox6.h"
 
 
 // property nodes

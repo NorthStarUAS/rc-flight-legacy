@@ -11,7 +11,8 @@ libdrivers_a_SOURCES = \
 	lightware.cpp lightware.h \
 	maestro.cpp maestro.h \
 	pilot.cpp pilot.h \
-	gps_ublox6.cpp gps_ublox6.h \
-	gps_ublox8.cpp gps_ublox8.h
+	ublox6.cpp ublox6.h \
+	ublox8.cpp ublox8.h \
+	ublox9.cpp ublox9.h
 
 AM_CPPFLAGS = $(PYTHON_INCLUDES) -I$(VPATH)/.. -I$(VPATH)/../..
