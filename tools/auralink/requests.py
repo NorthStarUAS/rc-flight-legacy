@@ -29,6 +29,9 @@ def gen_requests():
             requests_pending = True
             commands.add('get,/config/identity/serial_number')
             
+        if specs_node.getString('vehicle_class') == '':
+            requests_pending = True
+            commands.add('get,/config/specs/vehicle_class')
         if specs_node.getString('battery_cells') == '':
             requests_pending = True
             commands.add('get,/config/specs/battery_cells')
