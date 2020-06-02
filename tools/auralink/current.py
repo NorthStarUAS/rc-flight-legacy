@@ -113,6 +113,11 @@ def compute_derived_data():
         od += vel_ms * dt
         status_node.setFloat('flight_odometer', od)
 
+    throttle_timer = status_node.getFloat("throttle_timer")
+    if pilot_node.getFloatEnum("channel", 2) > 0.1:
+        throttle_timer += dt
+    status_node.setFloat("throttle_timer", throttle_timer)
+        
     # autopilot error metrics
     roll_error = targets_node.getFloat('roll_deg') - filter_node.getFloat('roll_deg')
     #print 'error %.4f,%.1f' % (filter_node.getFloat('timestamp'), roll_error)
