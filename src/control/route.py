@@ -323,7 +323,7 @@ def update(dt):
             angle_rad = angle * d2r
             xtrack_m = math.sin(angle_rad) * direct_dist
             dist_m = math.cos(angle_rad) * direct_dist
-            # print 'direct_dist = %.1f angle = %.1f dist_m = %.1f\n' % (direct_dist, angle, dist_m)
+            # print("lc: %.1f  dc: %.1f  a: %.1f  xc: %.1f  dd: %.1f" % (leg_course, direct_course, angle, xtrack_m, direct_dist))
             route_node.setFloat( 'xtrack_dist_m', xtrack_m )
             route_node.setFloat( 'projected_dist_m', dist_m )
 
@@ -369,6 +369,7 @@ def update(dt):
                     nav_course = direct_course + angle - 90.0 + wangle
                 else:
                     nav_course = direct_course + angle + 90.0 - wangle
+                # print("x: %.1f  dc: %.1f  a: %.1f  wa: %.1f  nc: %.1f" % (xtrack_m, direct_course, angle, wangle, nav_course))
                 if acquired:
                     nav_dist_m = dist_m
                 else:
@@ -383,7 +384,7 @@ def update(dt):
             if gs_mps > 0.1 and abs(nav_dist_m) > 0.1:
                 wp_eta_sec = nav_dist_m / gs_mps
             else:
-                wp_eta_sec = 0.0
+                wp_eta_sec = 99.0 # just any sorta big value
             route_node.setFloat( 'wp_eta_sec', dist_m / gs_mps )
             route_node.setFloat( 'wp_dist_m', direct_dist )
                 
