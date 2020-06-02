@@ -38,6 +38,9 @@ def init():
     global link_open
     
     device = remote_link_config.getString('device')
+    if not len(device):
+        return
+
     while not link_open:
         try:
             ser = serial.Serial(port=device, baudrate=115200, timeout=0, writeTimeout=0)
@@ -46,7 +49,7 @@ def init():
         except Exception as e:
             print('Opening remote link failed:', device)
             print(e)
-            print("sleeping ...")
+            print("sleeping 1 ...")
             time.sleep(1)
 
     if comms_node.getBool('display_on'):
