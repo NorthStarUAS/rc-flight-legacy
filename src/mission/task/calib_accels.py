@@ -29,6 +29,7 @@ class CalibrateAccels(Task):
         self.name = config_node.getString("name")
         self.imu_node = getNode("/sensors/imu", True)
         self.config_imu_node = getNode("/config/drivers/Aura4/imu")
+        self.task_node = getNode("/task", True)
         self.state = 0
         self.ax_slow = LowPass(time_factor=1.0) 
         self.ax_fast = LowPass(time_factor=0.2) 
@@ -103,7 +104,12 @@ class CalibrateAccels(Task):
             self.armed = True
         if self.state < 6:
             print("up axis:", up_axis, "armed:", self.armed, " slow-fast: %.3f" % d, " stable:", stable)
-              
+
+        if not self.armed:
+            self.task_node.setInt("calib_state", -1)
+        else:
+            self.task_node.setInt("calib_state", self.state)
+            
         if self.state == 0:
             print("Place level and right side up - stable:", stable)
             if self.armed and stable and self.new_axis():
