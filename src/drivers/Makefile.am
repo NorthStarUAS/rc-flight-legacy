@@ -8,6 +8,7 @@ libdrivers_a_SOURCES = \
 	airdata.cpp airdata.h \
 	fgfs.cpp fgfs.h \
 	gps.cpp gps.h \
+	gps_gpsd.cpp gps_gpsd.h \
 	lightware.cpp lightware.h \
 	maestro.cpp maestro.h \
 	pilot.cpp pilot.h \

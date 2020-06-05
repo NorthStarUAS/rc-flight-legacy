@@ -8,6 +8,7 @@ using std::ostringstream;
 #include "drivers/fgfs.h"
 #include "drivers/lightware.h"
 #include "drivers/maestro.h"
+#include "drivers/gps_gpsd.h"
 #include "drivers/ublox8.h"
 #include "drivers/ublox9.h"
 #include "driver_mgr.h"
@@ -49,6 +50,11 @@ void driver_mgr_t::init() {
         } else if ( driver_node.hasChild("ublox8") ) {
             pyPropertyNode section_node = driver_node.getChild("ublox8");
             driver_t *d = new ublox8_t();
+            d->init(&section_node);
+            drivers.push_back(d);
+        } else if ( driver_node.hasChild("gpsd") ) {
+            pyPropertyNode section_node = driver_node.getChild("gpsd");
+            driver_t *d = new gpsd_t();
             d->init(&section_node);
             drivers.push_back(d);
         } else if ( driver_node.hasChild("ublox9") ) {
