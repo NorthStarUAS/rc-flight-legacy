@@ -20,6 +20,7 @@ START_OF_MSG1 = 224
 airdata_node = getNode("/sensors/airdata[0]", True)
 filter_node = getNode("/filters/filter", True)
 gps_node = getNode("/sensors/gps[0]", True)
+gpsraw_node = getNode("/sensors/gps_raw[0]", True)
 imu_node = getNode("/sensors/imu[0]", True)
 pilot_node = getNode("/sensors/pilot_input", True)
 pos_node = getNode("/position", True)
@@ -84,6 +85,7 @@ class Packer():
     airdata = aura_messages.airdata_v7()
     filter = aura_messages.filter_v5()
     gps = aura_messages.gps_v4()
+    gpsraw = aura_messages.gps_raw_v1()
     health = aura_messages.system_health_v6()
     imu = aura_messages.imu_v5()
     pilot = aura_messages.pilot_v3()
@@ -92,6 +94,7 @@ class Packer():
     airdata_buf = None
     filter_buf = None
     gps_buf = None
+    gpsraw_buf = None
     health_buf = None
     imu_buf = None
     pilot_buf = None
@@ -100,6 +103,7 @@ class Packer():
     last_airdata_time = -1.0
     last_filter_time = -1.0
     last_gps_time = -1.0
+    last_gpsraw_time = -1.0
     last_health_time = -1.0
     last_imu_time = -1.0
     last_pilot_time = -1.0
@@ -363,6 +367,67 @@ class Packer():
         node.setInt("status", 0)
         return gps.index
 
+    def pack_gpsraw_bin(self, use_cached=False):
+        gpsraw_time = gpsraw_node.getFloat("timestamp")
+        raw_num = gpsraw_node.getInt("raw_num")
+        if use_cached:
+            return self.gpsraw_buf
+        elif (gpsraw_time > self.last_gpsraw_time) and raw_num > 0 or self.gpsraw_buf is None:
+            self.last_gpsraw_time = gpsraw_time
+            counter = 0
+            self.gpsraw.index = 0
+            self.gpsraw.timestamp_sec = gpsraw_time
+            for i in range(raw_num):
+                sat_path = "raw_satellite[%d]" % i
+                sat_node = gpsraw_node.getChild(sat_path, True)
+                gnssid = sat_node.getInt("gnssid")
+                if gnssid == 0:
+                    # gps constellation
+                    self.gpsraw.svid[counter] = sat_node.getInt("svid")
+                    self.gpsraw.pseudorange[counter] = sat_node.getFloat("pseudorange")
+                    self.gpsraw.doppler[counter] = sat_node.getFloat("doppler")
+                    counter += 1
+            self.gpsraw.num_sats = counter
+            self.gpsraw_buf = self.gpsraw.pack()
+            return self.gpsraw_buf
+        else:
+            return None
+
+    def pack_gpsraw_dict(self, index):
+        row = dict()
+        row['timestamp'] = gpsraw_node.getFloat('timestamp')
+        raw_num = gpsraw_node.getInt("raw_num")
+        row["num_sats"] = raw_num
+        for i in range(aura_messages.max_raw_sats):
+            if i < raw_num:
+                sat_path = "raw_satellite[%d]" % i
+                sat_node = gpsraw_node.getChild(sat_path, True)
+                gnssid = sat_node.getInt("gnssid")
+                row["svid[%d]" % i] = sat_node.getInt("svid")
+                row["pseudorange[%d]" % i] = sat_node.getFloat("pseudorange")
+                row["doppler[%d]" % i] = sat_node.getFloat("doppler")
+            else:
+                row["svid[%d]" % i] = -1
+                row["pseudorange[%d]" % i] = 0.0
+                row["doppler[%d]" % i] = 0.0
+        print(row)
+        return row
+
+    def unpack_gpsraw_v1(self, buf):
+        gpsraw = aura_messages.gps_raw_v1(buf)
+
+        if gpsraw.index > 0:
+            printf("Warning: gpsraw index > 0 not supported")
+        gpsraw_node.setFloat("timestamp", gpsraw.timestamp_sec)
+        gpsraw_node.setInt("raw_num", gpsraw.num_sats)
+        for i in range(gpsraw.num_sats):
+            sat_path = "raw_satellite[%d]" % i
+            sat_node = gpsraw_node.getChild(sat_path, True)
+            sat_node.setInt("svid", gpsraw.svid[i])
+            sat_node.setInt("pseudorange", gpsraw.pseudorange[i])
+            sat_node.setInt("doppler", gpsraw.doppler[i])
+        return 0
+    
     # only support primary imu for now
     def pack_imu_bin(self, use_cached=False):
         imu_time = imu_node.getFloat('timestamp')
