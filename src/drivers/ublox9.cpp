@@ -94,7 +94,16 @@ struct rxm_raw_record_t {
     uint8_t trkStat;
     uint8_t reserved2;
 };
-
+struct rxm_sfrbx_head_t {
+    uint8_t gnssId;
+    uint8_t svId;
+    uint8_t reserved1;
+    uint8_t freqId;
+    uint8_t numWords;
+    uint8_t chn;
+    uint8_t version;
+    uint8_t reserve2;
+};
 # pragma pack(pop)              // restore original alignment
 
 bool ublox9_t::open( const char *device_name, const int baud ) {
@@ -267,20 +276,28 @@ bool ublox9_t::parse_msg() {
 	}
     } else if ( msg_class == 0x02 && msg_id == 0x13 ) {
         // RXM-SFRBX (Broadcast Navigation Data Subframe)
+        // Ref (page 55): https://www.u-blox.com/sites/default/files/ZED-F9P_IntegrationManual_%28UBX-18010802%29.pdf
+        // https://berthub.eu/articles/posts/galileo-notes/
+        printf("RXM-SFRBX\n");
+        rxm_sfrbx_head_t *p = (rxm_sfrbx_head_t *)payload;
+        printf("gnssId: %d  svId: %d  numWords: %d  chn: %d  version: %d\n",
+               p->gnssId, p->svId, p->numWords, p->chn, p->version);
+        int size = sizeof(rxm_sfrbx_head_t) + p->numWords * 4;
+        printf("Message size: %d (actual: %d)\n", size, payload_length);
     } else if ( msg_class == 0x02 && msg_id == 0x15 ) {
         // RXM-RAWX (Multi-GNSS Raw Measurement Data)
         // (for now just show that we can decode the message)
-        printf("RXM-RAWX\n");
+        // printf("RXM-RAWX\n");
         rxm_raw_head_t *p = (rxm_raw_head_t *)payload;
-        printf("rcvTow: %f\n", p->rcvTow);
-        printf("numMeas: %d\n", p->numMeas);
+        // printf("rcvTow: %f\n", p->rcvTow);
+        // printf("numMeas: %d\n", p->numMeas);
         int size = sizeof(rxm_raw_head_t) + p->numMeas * sizeof(rxm_raw_record_t);
         // printf("Message size: %d (actual: %d)\n", size, payload_length);
         if ( size == payload_length ) {
             for ( int i = 0; i < p->numMeas; i++ ) {
                 uint8_t *base = (uint8_t *)p + sizeof(rxm_raw_head_t) + i*sizeof(rxm_raw_record_t);
                 rxm_raw_record_t *r = (rxm_raw_record_t *)base;
-                printf("  id: %d pr: %f\n", r->svId, r->prMes);
+                // printf("  id: %d pr: %f\n", r->svId, r->prMes);
             }
         } else {
             printf("RXM-RAWX problem decoding message or message length: %d %d %d\n", p->numMeas, size, payload_length);
