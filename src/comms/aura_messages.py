@@ -4,6 +4,7 @@ import struct
 gps_v2_id = 16
 gps_v3_id = 26
 gps_v4_id = 34
+gps_raw_v1_id = 48
 imu_v3_id = 17
 imu_v4_id = 35
 imu_v5_id = 45
@@ -29,6 +30,9 @@ payload_v3_id = 42
 event_v1_id = 27
 event_v2_id = 44
 command_v1_id = 28
+
+# Constants
+max_raw_sats = 12  # maximum array size to store satellite raw data
 
 # Message: gps_v2
 # Id: 16
@@ -212,6 +216,107 @@ class gps_v4():
         self.horiz_accuracy_m /= 100
         self.vert_accuracy_m /= 100
         self.pdop /= 100
+
+# Message: gps_raw_v1
+# Id: 48
+class gps_raw_v1():
+    id = 48
+    _pack_string = "<BfBBBBBBBBBBBBBdddddddddddddddddddddddd"
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.timestamp_sec = 0.0
+        self.num_sats = 0
+        self.svid = [0] * max_raw_sats
+        self.pseudorange = [0.0] * max_raw_sats
+        self.doppler = [0.0] * max_raw_sats
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = struct.pack(self._pack_string,
+                          self.index,
+                          self.timestamp_sec,
+                          self.num_sats,
+                          self.svid[0],
+                          self.svid[1],
+                          self.svid[2],
+                          self.svid[3],
+                          self.svid[4],
+                          self.svid[5],
+                          self.svid[6],
+                          self.svid[7],
+                          self.svid[8],
+                          self.svid[9],
+                          self.svid[10],
+                          self.svid[11],
+                          self.pseudorange[0],
+                          self.pseudorange[1],
+                          self.pseudorange[2],
+                          self.pseudorange[3],
+                          self.pseudorange[4],
+                          self.pseudorange[5],
+                          self.pseudorange[6],
+                          self.pseudorange[7],
+                          self.pseudorange[8],
+                          self.pseudorange[9],
+                          self.pseudorange[10],
+                          self.pseudorange[11],
+                          self.doppler[0],
+                          self.doppler[1],
+                          self.doppler[2],
+                          self.doppler[3],
+                          self.doppler[4],
+                          self.doppler[5],
+                          self.doppler[6],
+                          self.doppler[7],
+                          self.doppler[8],
+                          self.doppler[9],
+                          self.doppler[10],
+                          self.doppler[11])
+        return msg
+
+    def unpack(self, msg):
+        (self.index,
+         self.timestamp_sec,
+         self.num_sats,
+         self.svid[0],
+         self.svid[1],
+         self.svid[2],
+         self.svid[3],
+         self.svid[4],
+         self.svid[5],
+         self.svid[6],
+         self.svid[7],
+         self.svid[8],
+         self.svid[9],
+         self.svid[10],
+         self.svid[11],
+         self.pseudorange[0],
+         self.pseudorange[1],
+         self.pseudorange[2],
+         self.pseudorange[3],
+         self.pseudorange[4],
+         self.pseudorange[5],
+         self.pseudorange[6],
+         self.pseudorange[7],
+         self.pseudorange[8],
+         self.pseudorange[9],
+         self.pseudorange[10],
+         self.pseudorange[11],
+         self.doppler[0],
+         self.doppler[1],
+         self.doppler[2],
+         self.doppler[3],
+         self.doppler[4],
+         self.doppler[5],
+         self.doppler[6],
+         self.doppler[7],
+         self.doppler[8],
+         self.doppler[9],
+         self.doppler[10],
+         self.doppler[11]) = struct.unpack(self._pack_string, msg)
 
 # Message: imu_v3
 # Id: 17
