@@ -201,6 +201,9 @@ def process_messages():
         buf = packer.pack_gps_bin()
         if not buf is None and len(buf):
             log_message(packer.gps.id, buf)
+    buf = packer.pack_gpsraw_bin()
+    if not buf is None and len(buf):
+        log_message(packer.gpsraw.id, buf)
     if health_count < 0:
         health_count = health_skip
         buf = packer.pack_system_health_bin()
