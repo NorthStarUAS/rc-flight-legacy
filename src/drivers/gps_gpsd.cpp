@@ -1,6 +1,7 @@
 #include "math.h"
 #include "rapidjson/document.h"
 #include "time.h"
+#include "util/sg_path.h"
 
 #include "gps_gpsd.h"
 
@@ -73,7 +74,9 @@ void gpsd_t::init( pyPropertyNode *config ) {
     }
     string output_path = get_next_path("/sensors", "gps", primary);
     gps_node = pyGetNode(output_path.c_str(), true);
-    raw_node = gps_node.getChild("sats_raw", true);
+    string raw_path = get_next_path("/sensors", "gps_raw");
+    raw_node = pyGetNode(raw_path.c_str(), true);
+    ephem_node = raw_node.getChild("ephemeris", true);
 }
 
 bool gpsd_t::parse_message(const string message) {
@@ -157,6 +160,7 @@ bool gpsd_t::parse_message(const string message) {
         if ( d.HasMember("rawdata") ) {
             const rapidjson::Value& raw = d["rawdata"];
             if ( raw.IsArray() ) {
+                raw_node.setLong("raw_num", raw.Size());
                 for (rapidjson::SizeType i = 0; i < raw.Size(); i++) {
                     int gnssid = -1;
                     int svid = -1;
@@ -178,17 +182,21 @@ bool gpsd_t::parse_message(const string message) {
                     if ( raw[i].HasMember("doppler") ) {
                         doppler = raw[i]["doppler"].GetDouble();
                     }
-                    pyPropertyNode node = raw_node.getChild(id_str.c_str(), true);
-                    if ( ! node.hasChild("frame1") ) {
-                        node.setBool("frame1", false);
+                    if ( gnssid == 0 ) {
+                        pyPropertyNode ephem = ephem_node.getChild(id_str.c_str(), true);
+                        if ( ! ephem.hasChild("frame1") ) {
+                            ephem.setBool("frame1", false);
+                        }
+                        if ( ! ephem.hasChild("frame2") ) {
+                            ephem.setBool("frame2", false);
+                        }
+                        if ( ! ephem.hasChild("frame3") ) {
+                            ephem.setBool("frame3", false);
+                        }
                     }
-                    if ( ! node.hasChild("frame2") ) {
-                        node.setBool("frame2", false);
-                    }
-                    if ( ! node.hasChild("frame3") ) {
-                        node.setBool("frame3", false);
-                    }
+                    pyPropertyNode node = raw_node.getChild("raw_satellite", i, true);
                     node.setLong("gnssid", gnssid);
+                    node.setLong("svid", svid);
                     if ( gnssid == 0 ) {
                         node.setString("constellation", "gps");
                     } else if ( gnssid == 1 ) {
@@ -219,7 +227,7 @@ bool gpsd_t::parse_message(const string message) {
             id_str = "0-";
             id_str += std::to_string(tSV);
         }
-        pyPropertyNode node = raw_node.getChild(id_str.c_str(), true);
+        pyPropertyNode node = ephem_node.getChild(id_str.c_str(), true);
         int frame = 0;
         if ( d.HasMember("TOW17") ) {
             node.setLong( "TOW17", d["TOW17"].GetInt() );
@@ -330,6 +338,15 @@ bool gpsd_t::parse_message(const string message) {
                 node.setDouble("Omegad", e3["Omegad"].GetDouble());
             }
         }
+        // save ephemeris as a json file (at most every 60 seconds)
+        double t = get_Time();
+        if ( t > ephem_write_time + 60 ) {
+            pyPropertyNode logging_node = pyGetNode( "/config/logging", true );
+            SGPath jsonfile = logging_node.getString("flight_dir");
+            jsonfile.append( "ephemeris.json" );
+            writeJSON(jsonfile.str(), &ephem_node);
+            ephem_write_time = t;
+        }            
     } else {
         printf("gpsd: unhandled class = %s\n", msg_class.c_str());
         printf("parse: %s\n", message.c_str());

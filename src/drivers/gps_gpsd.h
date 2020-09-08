@@ -31,6 +31,7 @@ public:
 private:
     pyPropertyNode gps_node;
     pyPropertyNode raw_node;
+    pyPropertyNode ephem_node;
     int port = 2947;
     string host = "localhost";
     string init_string = "?WATCH={\"enable\":true,\"json\":true,\"scaled\":true}";
@@ -38,6 +39,7 @@ private:
     bool socket_connected = false;
     double last_init_time = 0.0;
     string json_buffer = "";
+    double ephem_write_time = 0;
     void connect();
     void send_init();
     bool process_buffer();
