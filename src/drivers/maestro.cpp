@@ -59,6 +59,15 @@ void maestro_t::write_channel(int ch, float norm, bool symmetrical) {
 }
 
 void maestro_t::write() {
+
+    /*static int skip = 0;
+    if ( skip < 3 ) {
+	skip++;
+	return;
+    } else {
+	skip = 0;
+    }*/
+
     float throttle = 0.0;
     if ( pilot_node.getDouble("throttle_safety") < -0.3 and !pilot_node.getBool("fail_safe") ) {
         if ( ap_node.getBool("master_switch") ) {
@@ -71,10 +80,10 @@ void maestro_t::write() {
     gains[0] = pilot_node.getDouble("channel", 4);
     write_channel(0, throttle, true);
     write_channel(1, act_node.getDouble("aileron"), true);
-    write_channel(2, act_node.getDouble("elevator"), true);
-    write_channel(3, act_node.getDouble("rudder"), true);
-    write_channel(4, act_node.getDouble("flaps"), true);
-    write_channel(5, act_node.getDouble("gear"), true);
+    write_channel(2, pilot_node.getDouble("rudder"), true);
+    // write_channel(3, act_node.getDouble("rudder"), true);
+    // write_channel(4, act_node.getDouble("flaps"), true);
+    // write_channel(5, act_node.getDouble("gear"), true);
 }
 
 void maestro_t::close() {
