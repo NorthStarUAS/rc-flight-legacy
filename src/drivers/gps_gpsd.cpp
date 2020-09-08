@@ -74,7 +74,7 @@ void gpsd_t::init( pyPropertyNode *config ) {
     }
     string output_path = get_next_path("/sensors", "gps", primary);
     gps_node = pyGetNode(output_path.c_str(), true);
-    string raw_path = get_next_path("/sensors", "gps_raw");
+    string raw_path = get_next_path("/sensors", "gps_raw", true);
     raw_node = pyGetNode(raw_path.c_str(), true);
     ephem_node = raw_node.getChild("ephemeris", true);
 }
@@ -161,6 +161,7 @@ bool gpsd_t::parse_message(const string message) {
             const rapidjson::Value& raw = d["rawdata"];
             if ( raw.IsArray() ) {
                 raw_node.setLong("raw_num", raw.Size());
+                raw_node.setDouble( "timestamp", get_Time() );
                 for (rapidjson::SizeType i = 0; i < raw.Size(); i++) {
                     int gnssid = -1;
                     int svid = -1;
