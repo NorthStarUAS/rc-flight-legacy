@@ -19,6 +19,7 @@ from rcUAS import airdata_helper, gps_helper
 
 from comms import display, telnet
 from drivers import pilot_helper
+from mission import mission_mgr
 from util import myprof, timer
 
 # #include <python_sys.h>
@@ -45,7 +46,6 @@ from util import myprof, timer
 # #include "control/actuators.h"
 # #include "control/cas.h"
 # #include "control/control.h"
-# #include "drivers/pilot.h"
 # #include "filters/filter_mgr.h"
 # #include "health/health.h"
 # #include "init/globals.h"
@@ -60,7 +60,6 @@ from util import myprof, timer
 
 # static const int HEARTBEAT_HZ = 100;  // master clock rate
 
-# static bool enable_mission = true;    // mission mgr module enabled/disabled
 # static bool enable_cas     = false;   // cas module enabled/disabled
 # static bool enable_pointing = false;  // pan/tilt pointing module
 # static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
@@ -130,7 +129,7 @@ def main_work_loop():
 #     // convert logical flight controls into physical actuator outputs
 #     actuators.update();
 
-#     driver_mgr.write();
+    drivers.write()
 
 #     // send any extra commands (like requests to recalibrate something)
 #     driver_mgr.send_commands();
@@ -150,15 +149,10 @@ def main_work_loop():
 #     // 	ati_pointing_update( dt );
 #     // }
 
-#     //
-#     // Mission and Task section
-#     //
-
-#     mission_prof.start();
-#     if ( enable_mission ) {
-# 	mission_mgr->update(dt);
-#     }
-#     mission_prof.stop();
+    # Mission and Task section
+    myprof.mission_prof.start();
+    mission.update(dt);
+    myprof.mission_prof.stop();
 
 #     // health status
 #     health.update();
@@ -208,6 +202,7 @@ drivers = driver_mgr.driver_mgr()
 airdata = airdata_helper.airdata_helper()
 gps = gps_helper.gps_helper()
 pilot = pilot_helper.pilot_helper()
+mission = mission_mgr.MissionMgr()
 
 # load master config file
 config_file = os.path.join( args.config, "main.json")
@@ -224,13 +219,7 @@ else:
     print("Cannot continue without a valid configuration, sorry.")
     exit(-1)
 
-#     // extract configuration values from the property tree (which is
-#     // now populated with the master config.xml data.  Do this before
-#     // the command line processing so that any options specified on
-#     // the command line will override what is in the config.xml file.
-
 #     pyPropertyNode p;
-
 #     p = pyGetNode("/config/pointing", true);
 #     if ( p.hasChild("enable") ){
 # 	printf("Pointing = %s\n", p.getString("enable").c_str());
@@ -241,11 +230,6 @@ else:
 if config_node.hasChild("gps_timeout_sec"):
     gps_timeout_sec = config_node.getFloat("gps_timeout_sec")
     print("gps timeout = %.1f" % gps_timeout_sec)
-
-#     p = pyGetNode("/config/mission", true);
-#     if ( p.hasChild("enable") ) {
-# 	enable_mission = p.getBool("enable");
-#     }
 
 if args.verbose:
     comms_node.setBool("display_on", True)
@@ -298,6 +282,7 @@ pilot.init()
 # 	// initialize the cas system
 # 	cas.init();
 #     }
+mission.init()
 
 #     // intialize random number generator
 #     srandom( time(NULL) );

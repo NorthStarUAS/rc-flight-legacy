@@ -35,7 +35,7 @@ class Profile():
         
         # log situations where a module took longer that 0.10 sec to execute
         if last_interval > 0.10:
-            msg = "t1 = %.3f t2 = %.3f int = %.3f" % (start_time, stop_time, last_interval)
+            msg = "t1 = %.3f t2 = %.3f int = %.3f" % (self.start_time, stop_time, last_interval)
             events.log(self.name, msg )
 
         if last_interval < self.min_interval:
