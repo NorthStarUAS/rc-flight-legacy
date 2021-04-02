@@ -8,6 +8,9 @@
  */
 
 
+#include <pybind11/pybind11.h>
+namespace py = pybind11;
+
 #include <pyprops.h>
 
 #include <stdio.h>
@@ -18,6 +21,7 @@
 #include "pilot.h"
 
 void pilot_helper_t::init() {
+    pyPropsInit();
     pilot_node = pyGetNode("/sensors/pilot_input", true);
     flight_node = pyGetNode("/controls/flight", true);
     engine_node = pyGetNode("/controls/engine", true);
@@ -49,5 +53,10 @@ void pilot_helper_t::update() {
     }
 }
 
-// global shared instance
-pilot_helper_t pilot_helper;
+PYBIND11_MODULE(pilot_helper, m) {
+    py::class_<pilot_helper_t>(m, "pilot_helper")
+        .def(py::init<>())
+        .def("init", &pilot_helper_t::init)
+        .def("update", &pilot_helper_t::update)
+    ;
+}

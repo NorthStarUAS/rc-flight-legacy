@@ -18,6 +18,7 @@ from rcUAS import driver_mgr
 from rcUAS import airdata_helper, gps_helper
 
 from comms import display
+from drivers import pilot_helper
 from util import myprof, timer
 
 # #include <python_sys.h>
@@ -87,8 +88,6 @@ def main_work_loop():
 
     myprof.driver_prof.start()
     dt = drivers.read()
-    #gps = getNode("/sensors/imu")
-    #print(gps.getFloat("timestamp"), timer.get_pytime())
     myprof.driver_prof.stop()
     
 #     status_node.setDouble("frame_time", imu_node.getDouble( "timestamp" ));
@@ -107,19 +106,18 @@ def main_work_loop():
     myprof.airdata_prof.stop()
 
     gps.update(display_on)    # computes gps age (and sets host clock)
-#     pilot_helper.update();    // log auto/manual changes, transient reduction
+    pilot.update()            # log auto/manual changes, transient reduction
 
 #     //
 #     // State Estimation section
 #     //
 #     Filter_update();
 
-#     // check gps data age.  The nav filter continues to run, but the
-#     // results are marked as NotValid if the most recent gps data
-#     // becomes too old.
-#     if ( gps_helper.gps_age() > gps_timeout_sec ) {
-# 	status_node.setString("navigation", "invalid");
-#     }
+    # check gps data age.  The nav filter continues to run, but the
+    # results are marked as NotValid if the most recent gps data
+    # becomes too old.
+    if gps.gps_age() > gps_timeout_sec:
+        status_node.setString("navigation", "invalid")
 
 #     //
 #     // Core Flight Control section
@@ -213,6 +211,7 @@ imu_node = getNode("/sensors/imu", True)
 drivers = driver_mgr.driver_mgr()
 airdata = airdata_helper.airdata_helper()
 gps = gps_helper.gps_helper()
+pilot = pilot_helper.pilot_helper()
 
 # load master config file
 config_file = os.path.join( args.config, "main.json")
@@ -243,11 +242,9 @@ else:
 # 	printf("Pointing = %d\n", enable_pointing);
 #     }
 
-#     p = pyGetNode("/config", true);
-#     if ( p.hasChild("gps_timeout_sec") ) {
-# 	gps_timeout_sec = p.getDouble("gps_timeout_sec");
-#     }
-#     printf("gps timeout = %.1f\n", gps_timeout_sec);
+if config_node.hasChild("gps_timeout_sec"):
+    gps_timeout_sec = config_node.getFloat("gps_timeout_sec")
+    print("gps timeout = %.1f" % gps_timeout_sec)
 
 #     p = pyGetNode("/config/mission", true);
 #     if ( p.hasChild("enable") ) {
@@ -281,8 +278,8 @@ drivers.init()
 
 # data helpers
 airdata.init()
-gps.init();
-#     pilot_helper.init();
+gps.init()
+pilot.init()
 
 #     // Initialize any defined filter modules
 #     Filter_init();

@@ -11,7 +11,6 @@ libdrivers_a_SOURCES = \
 	gps_gpsd.cpp gps_gpsd.h \
 	lightware.cpp lightware.h \
 	maestro.cpp maestro.h \
-	pilot.cpp pilot.h \
 	raw_sat.h raw_sat.cpp \
 	ublox6.cpp ublox6.h \
 	ublox8.cpp ublox8.h \

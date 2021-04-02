@@ -21,4 +21,3 @@ private:
     pyPropertyNode ap_node;
 };
 
-extern pilot_helper_t pilot_helper;

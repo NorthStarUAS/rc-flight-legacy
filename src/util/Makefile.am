@@ -6,7 +6,6 @@ libutil_a_SOURCES = \
 	geodesy.cpp geodesy.h \
 	linearfit.cpp linearfit.h \
 	lowpass.cpp lowpass.h \
-	myprof.cpp myprof.h \
 	poly1d.h \
 	props_helper.cpp proper_helper.h \
 	sg_path.cpp sg_path.h \

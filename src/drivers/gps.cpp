@@ -131,6 +131,7 @@ PYBIND11_MODULE(gps_helper, m) {
     py::class_<gps_helper_t>(m, "gps_helper")
         .def(py::init<>())
         .def("init", &gps_helper_t::init)
-        .def("update", &gps_helper_t::update)
-    ;
+        .def("update", &gps_helper_t::update) 
+        .def("gps_age", &gps_helper_t::gps_age)
+   ;
 }
