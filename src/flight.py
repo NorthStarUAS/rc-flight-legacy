@@ -16,6 +16,8 @@ import props_json
 
 from rcUAS import driver_mgr
 
+from util import myprof
+
 # #include <python_sys.h>
 # #include <pyprops.h>
 
@@ -74,7 +76,6 @@ parser.add_argument("--config", required=True, help="path to config tree")
 parser.add_argument("--display", action="store_true", help="enable additional console display messages")
 args = parser.parse_args()
 
-
 def main_work_loop():
 #     // update display_on variable
 #     display_on = comms_node.getBool("display_on");
@@ -83,9 +84,12 @@ def main_work_loop():
 #     sync_prof.start();
 #     double dt = 0.0;
 
-#     driver_prof.start();
+    myprof.driver_prof.start()
     dt = drivers.read()
-#     driver_prof.stop();
+    #gps = getNode("/sensors/imu")
+    #print(gps.getFloat("timestamp"), timer.get_pytime())
+    myprof.driver_prof.stop()
+    myprof.driver_prof.stats()
     
 #     status_node.setDouble("frame_time", imu_node.getDouble( "timestamp" ));
 #     status_node.setDouble("dt", dt);
@@ -199,40 +203,21 @@ def main_work_loop():
 
 # Initialization Section
 
-comms_node = getNode("/comms", True);
-status_node = getNode("/status", True);
-status_node.setFloat("frame_time", 0.0);
-imu_node = getNode("/sensors/imu", True);
+comms_node = getNode("/comms", True)
+status_node = getNode("/status", True)
+status_node.setFloat("frame_time", 0.0)
+imu_node = getNode("/sensors/imu", True)
 
 drivers = driver_mgr.driver_mgr()
 
-#     // initialize profiling names
-#     airdata_prof.set_name("airdata");
-#     driver_prof.set_name("drivers");
-#     filter_prof.set_name("filter");
-#     mission_prof.set_name("mission");
-#     control_prof.set_name("control");
-#     health_prof.set_name("health");
-#     datalog_prof.set_name("logger");
-#     sync_prof.set_name("sync");
-#     main_prof.set_name("main");
-
-#     sync_prof.enable();
-#     main_prof.enable();
-#     filter_prof.enable();
-#     control_prof.enable();
-#     airdata_prof.enable();
-#     driver_prof.enable();
-#     datalog_prof.enable();
-    
 # load master config file
 config_file = os.path.join( args.config, "main.json")
 result = props_json.load(config_file, root)
 if result:
     print("Loaded master configuration file:", config_file)
     if args.display:
-        root.pretty_print();
-    config_node = getNode("/config");
+        root.pretty_print()
+    config_node = getNode("/config")
     config_node.setString("path", args.config)
 else:
     print("*** Cannot load master config file:", config_file)
