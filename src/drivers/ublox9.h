@@ -27,6 +27,7 @@ public:
 
 private:
     pyPropertyNode gps_node;
+    int gps_fix_value = 0;
     int fd = -1;
     static const int max_payload = 2048;
     uint8_t payload[max_payload];

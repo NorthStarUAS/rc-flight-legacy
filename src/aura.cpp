@@ -84,7 +84,9 @@ void main_work_loop()
     sync_prof.start();
     double dt = 0.0;
 
+    driver_prof.start();
     dt = driver_mgr.read();
+    driver_prof.stop();
     
     status_node.setDouble("frame_time", imu_node.getDouble( "timestamp" ));
     status_node.setDouble("dt", dt);

@@ -15,4 +15,6 @@ public:
     virtual void write() = 0;
     virtual void close() = 0;
     virtual void command(const char *cmd) = 0;
+
+    bool verbose = false;
 };

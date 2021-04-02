@@ -12,6 +12,7 @@ libdrivers_a_SOURCES = \
 	lightware.cpp lightware.h \
 	maestro.cpp maestro.h \
 	pilot.cpp pilot.h \
+	raw_sat.h raw_sat.cpp \
 	ublox6.cpp ublox6.h \
 	ublox8.cpp ublox8.h \
 	ublox9.cpp ublox9.h

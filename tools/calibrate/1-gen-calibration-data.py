@@ -160,6 +160,19 @@ f.close()
 
 # Now on to the magnetometer ...
 
+def gen_func( coeffs, min, max, steps ):
+    if abs(max-min) < 0.0001:
+        max = min + 0.1
+    xvals = []
+    yvals = []
+    step = (max - min) / steps
+    func = np.poly1d(coeffs)
+    for x in np.arange(min, max+step, step):
+        y = func(x)
+        xvals.append(x)
+        yvals.append(y)
+    return xvals, yvals
+
 # Determine ideal magnetometer vector in ned coordinates
 
 base_lat = data['gps'][0]['lat']
@@ -218,7 +231,8 @@ sense_array = np.array(sense_data, dtype=np.float64)
 # this is our best estimate of the ideal magnetometer calibration
 # using the EKF inertial only solution.
 
-affine = transformations.affine_matrix_from_points(sense_array.T, ideal_array.T)
+affine = transformations.affine_matrix_from_points(sense_array.T, ideal_array.T, shear=True, scale=True)
+
 print("affine:")
 np.set_printoptions(precision=10,suppress=True)
 print(affine)
@@ -244,6 +258,17 @@ for i in range(sense_array.shape[0]):
               ideal_array[i][0], ideal_array[i][1], ideal_array[i][2]))
 f.close()
 
+# explore a simpler linear calibration aproach where each axis is
+# calibrated independently.
+
+xfit, xres, _, _, _ = np.polyfit( sense_array[:,0], ideal_array[:,0], 1, full=True )
+yfit, xres, _, _, _ = np.polyfit( sense_array[:,1], ideal_array[:,1], 1, full=True )
+zfit, xres, _, _, _ = np.polyfit( sense_array[:,2], ideal_array[:,2], 1, full=True )
+print("xfit:", xfit)
+print("yfit:", yfit)
+print("zfit:", zfit)
+maxrange = np.max(np.abs(sense_array))
+
 # generate affine mapping
 af_data = []
 for i, s in enumerate(sense_array):
@@ -267,6 +292,8 @@ if args.plot:
     cal_fig, cal_mag = plt.subplots(3, sharex=True)
     cal_mag[0].plot(sense_array[:,0],ideal_array[:,0],'r.',alpha=0.5,label='EKF Estimate')
     cal_mag[0].plot(sense_array[:,0],af_array[:,0],'g.',alpha=0.5,label='Affine Cal')
+    xvals, yvals = gen_func(xfit, -maxrange, maxrange, 100)
+    cal_mag[0].plot(xvals, yvals, label="Linear fit")
     cal_mag[0].set_xlabel('(hx) Sensed Mag')
     cal_mag[0].set_ylabel('(hx) Ideal Mag Est')
     cal_mag[0].set_title('Magnetometer Calibration')
@@ -274,11 +301,15 @@ if args.plot:
 
     cal_mag[1].plot(sense_array[:,1],ideal_array[:,1],'r.',alpha=0.5,label='hy')
     cal_mag[1].plot(sense_array[:,1],af_array[:,1],'g.',alpha=0.5,label='hy')
+    xvals, yvals = gen_func(yfit, -maxrange, maxrange, 100)
+    cal_mag[1].plot(xvals, yvals, label="Linear fit")
     cal_mag[1].set_xlabel('(hy) Sensed Mag')
     cal_mag[1].set_ylabel('(hy) Ideal Mag Est')
 
     cal_mag[2].plot(sense_array[:,2],ideal_array[:,2],'r.',alpha=0.5,label='hz')
     cal_mag[2].plot(sense_array[:,2],af_array[:,2],'g.',alpha=0.5,label='hz')
+    xvals, yvals = gen_func(zfit, -maxrange, maxrange, 100)
+    cal_mag[2].plot(xvals, yvals, label="Linear fit")
     cal_mag[2].set_xlabel('(hz) Sensed Mag')
     cal_mag[2].set_ylabel('(hz) Ideal Mag')
 

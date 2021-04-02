@@ -20,13 +20,10 @@
 #include <sys/time.h>		// gettimeofday()
 #include <time.h>
 #include <string>
-
 using std::string;
 
 #include "include/globaldefs.h"
 
-#include "comms/display.h"
-#include "init/globals.h"
 #include "util/props_helper.h"
 #include "util/strutils.h"
 #include "util/timing.h"
@@ -107,7 +104,7 @@ struct rxm_sfrbx_head_t {
 # pragma pack(pop)              // restore original alignment
 
 bool ublox9_t::open( const char *device_name, const int baud ) {
-    if ( display_on ) {
+    if ( verbose ) {
 	printf("ublox9 on %s (%d baud)\n", device_name, baud);
     }
 
@@ -179,9 +176,6 @@ void ublox9_t::init( pyPropertyNode *config ) {
         printf("no ublox9 device specified\n");
     }
 }
-
-
-static int gps_fix_value = 0;
 
 bool ublox9_t::parse_msg() {
     bool new_position = false;
@@ -269,7 +263,7 @@ bool ublox9_t::parse_msg() {
 	    }
 	}
  	// gps_satellites_node.setLong( satUsed );
-	if ( display_on && 0 ) {
+	if ( verbose && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("Satellite count = %d/%d\n", satUsed, numCh);
 	    }
@@ -424,7 +418,7 @@ bool ublox9_t::read_ublox9() {
 		new_position = parse_msg();
 		state++;
 	    } else {
-		if ( display_on && 0 ) {
+		if ( verbose && 0 ) {
 		    printf("checksum failed %d %d (computed) != %d %d (message)\n",
 			   cksum_A, cksum_B, cksum_lo, cksum_hi );
 		}
@@ -438,13 +432,11 @@ bool ublox9_t::read_ublox9() {
     return new_position;
 }
 
-
 float ublox9_t::read() {
     // run an iteration of the ublox scanner/parser
     read_ublox9();
     return 0.0;
 }
-
 
 void ublox9_t::close() {
     ::close(fd);

@@ -25,8 +25,6 @@ using std::string;
 
 #include "include/globaldefs.h"
 
-#include "comms/display.h"
-#include "init/globals.h"
 #include "util/props_helper.h"
 #include "util/strutils.h"
 #include "util/timing.h"
@@ -71,7 +69,7 @@ struct nav_pvt_t {
 # pragma pack(pop)              // restore original alignment
 
 bool ublox8_t::open( const char *device_name, const int baud ) {
-    if ( display_on ) {
+    if ( verbose ) {
 	printf("ublox8 on %s (%d baud)\n", device_name, baud);
     }
 
@@ -235,7 +233,7 @@ bool ublox8_t::parse_msg( uint8_t msg_class, uint8_t msg_id,
 	    }
 	}
  	// gps_satellites_node.setLong( satUsed );
-	if ( display_on && 0 ) {
+	if ( verbose && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("Satellite count = %d/%d\n", satUsed, numCh);
 	    }
@@ -363,7 +361,7 @@ bool ublox8_t::read_ublox8() {
                                           payload_length, payload );
 		state++;
 	    } else {
-		if ( display_on && 0 ) {
+		if ( verbose && 0 ) {
 		    printf("checksum failed %d %d (computed) != %d %d (message)\n",
 			   cksum_A, cksum_B, cksum_lo, cksum_hi );
 		}

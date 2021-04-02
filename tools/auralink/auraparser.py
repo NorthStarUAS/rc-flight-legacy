@@ -61,6 +61,8 @@ def parse_msg(id, buf):
         index = packer.unpack_gps_v3(buf)
     elif id == aura_messages.gps_v4_id:
         index = packer.unpack_gps_v4(buf)
+    elif id == aura_messages.gps_raw_v1_id:
+        index = packer.unpack_gpsraw_v1(buf)
     elif id == aura_messages.imu_v3_id:
         index = packer.unpack_imu_v3(buf)
     elif id == aura_messages.imu_v4_id:

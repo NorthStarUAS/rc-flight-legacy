@@ -24,15 +24,14 @@
 using std::string;
 using std::ostringstream;
 
-#include "comms/display.h"
-#include "init/globals.h"
+//#include "init/globals.h"
 #include "util/props_helper.h"
 #include "util/timing.h"
 
 #include "Aura4.h"
 
 void Aura4_t::info( const char *format, ... ) {
-    if ( display_on ) {
+    if ( verbose ) {
         printf("Aura4: ");
         va_list args;
         va_start(args, format);
@@ -59,6 +58,9 @@ void Aura4_t::init( pyPropertyNode *config ) {
     power_node = pyGetNode("/sensors/power", true);
     status_node = pyGetNode("/status", true);
     aura4_config = *config;
+
+    printf("Aura4 driver init(): event logging broken!\n");
+    printf("Aura4 driver init(): write imu calibration broken!\n");
     
     if ( true ) {               // fixme: move or delete
         printf("warning the next code needs to be fixed!!!\n");
@@ -174,12 +176,13 @@ void Aura4_t::init_imu( pyPropertyNode *config ) {
     string output_path = get_next_path("/sensors", "imu", true);
     imu_node = pyGetNode(output_path.c_str(), true);
 
-    if ( config->hasChild("calibration") ) {
-	pyPropertyNode cal = config->getChild("calibration");
-	// save the imu calibration parameters with the data file so that
-	// later the original raw sensor values can be derived.
-        write_imu_calibration( &cal );
-    }
+    // FIXME:
+    // if ( config->hasChild("calibration") ) {
+    //     pyPropertyNode cal = config->getChild("calibration");
+    //     // save the imu calibration parameters with the data file so that
+    //     // later the original raw sensor values can be derived.
+    //     write_imu_calibration( &cal );
+    // }
 }
 
 void Aura4_t::init_pilot( pyPropertyNode *config ) {
@@ -255,7 +258,7 @@ bool Aura4_t::update_imu( message::imu_t *imu ) {
     double imu_remote_sec = (double)imu->millis / 1000.0;
     double diff = imu_timestamp - imu_remote_sec;
     if ( last_imu_millis > imu->millis ) {
-        events->log("Aura4", "millis() rolled over\n");
+        // FIXME: events->log("Aura4", "millis() rolled over\n");
         imu_offset.reset();
     }
     imu_offset.update(imu_remote_sec, diff);
@@ -391,20 +394,21 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
 	    aura4_node.setLong( "baud_rate", msg.baud );
 	    aura4_node.setLong( "byte_rate_sec", msg.byte_rate );
             status_node.setLong( "fmu_timer_misses", msg.timer_misses );
- 
-	    if ( first_status_message ) {
-		// log the data to events.txt
-		first_status_message = false;
-		char buf[128];
-		snprintf( buf, 32, "Serial Number = %d", msg.serial_number );
-		events->log("Aura4", buf );
-		snprintf( buf, 32, "Firmware Revision = %d", msg.firmware_rev );
-		events->log("Aura4", buf );
-		snprintf( buf, 32, "Master Hz = %d", msg.master_hz );
-		events->log("Aura4", buf );
-		snprintf( buf, 32, "Baud Rate = %d", msg.baud );
-		events->log("Aura4", buf );
-	    }
+
+            // FIXME:
+	    // if ( first_status_message ) {
+	    //     // log the data to events.txt
+	    //     first_status_message = false;
+	    //     char buf[128];
+	    //     snprintf( buf, 32, "Serial Number = %d", msg.serial_number );
+	    //     events->log("Aura4", buf );
+	    //     snprintf( buf, 32, "Firmware Revision = %d", msg.firmware_rev );
+	    //     events->log("Aura4", buf );
+	    //     snprintf( buf, 32, "Master Hz = %d", msg.master_hz );
+	    //     events->log("Aura4", buf );
+	    //     snprintf( buf, 32, "Baud Rate = %d", msg.baud );
+	    //     events->log("Aura4", buf );
+	    // }
 	} else {
             info("packet size mismatch in status packet");
 	}

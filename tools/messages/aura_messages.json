@@ -1,4 +1,7 @@
 {
+    "constants": [
+        { "type": "uint8_t", "name": "max_raw_sats", "value": 12, "desc": "maximum array size to store satellite raw data" } 
+    ],
     "messages": [
         {
             "id": 16,
@@ -61,6 +64,22 @@
                 { "type": "float", "name": "vert_accuracy_m", "pack_type": "uint16_t", "pack_scale": 100 },
                 { "type": "float", "name": "pdop", "pack_type": "uint16_t", "pack_scale": 100 },
                 { "type": "uint8_t", "name": "fix_type" }
+            ]
+        },
+        {
+            // lots of things I don't like about this message, but it is a starting point to help move other code forward
+            "id": 48,
+            "name": "gps_raw_v1",
+            "desc": "gps raw v1 message",
+            "date": "August 5, 2020",
+            "fields": [
+                { "type": "uint8_t", "name": "index" },
+                { "type": "float", "name": "timestamp_sec" },
+                { "type": "double", "name": "receiver_tow" },
+                { "type": "uint8_t", "name": "num_sats" },
+                { "type": "uint8_t", "name": "svid[max_raw_sats]" },
+                { "type": "double", "name": "pseudorange[max_raw_sats]" },
+                { "type": "double", "name": "doppler[max_raw_sats]" }
             ]
         },
         {

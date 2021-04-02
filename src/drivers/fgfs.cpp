@@ -12,7 +12,6 @@
 using std::cout;
 using std::endl;
 
-#include "comms/display.h"
 #include "filters/nav_common/coremag.h"
 #include "filters/nav_common/nav_functions.h"
 #include "util/props_helper.h"
@@ -35,7 +34,7 @@ static void my_swap( uint8_t *buf, int index, int count )
 }
 
 void fgfs_t::info( const char *format, ... ) {
-    if ( display_on ) {
+    if ( verbose ) {
         printf("fgfs: ");
         va_list args;
         va_start(args, format);

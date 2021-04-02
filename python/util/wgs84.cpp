@@ -262,10 +262,9 @@ py::tuple py_geo_inverse_wgs84(double lat1, double lon1, double lat2, double lon
 
 
 #ifdef HAVE_PYBIND11
-  PYBIND11_PLUGIN(wgs84) {
-      py::module m("wgs84", "wgs84 routines for python");
-      m.def("geo_direct", &py_geo_direct_wgs84);
-      m.def("geo_inverse", &py_geo_inverse_wgs84);
-      return m.ptr();
+PYBIND11_MODULE(wgs84, m) {
+    m.doc() = "wgs84 routines for python";
+    m.def("geo_direct", &py_geo_direct_wgs84);
+    m.def("geo_inverse", &py_geo_inverse_wgs84);
   }
 #endif // HAVE_PYBIND11

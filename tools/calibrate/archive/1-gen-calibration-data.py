@@ -17,7 +17,7 @@ from aurauas_flightdata import flight_loader, flight_interp, imucal
 import transformations
 
 parser = argparse.ArgumentParser(description='magcal')
-parser.add_argument('--flight', required=True, help='load specified aura flight log')
+parser.add_argument('flight', help='load specified aura flight log')
 parser.add_argument('--imu-sn', help='specify imu serial number')
 parser.add_argument('--resample-hz', type=float, default=10.0, help='resample rate (hz)')
 parser.add_argument('--xmin', type=float, help='start time')

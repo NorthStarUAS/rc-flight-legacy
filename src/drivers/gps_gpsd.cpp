@@ -4,26 +4,31 @@
 #include "util/sg_path.h"
 
 #include "gps_gpsd.h"
+#include "raw_sat.h"
+
+#include <iostream>
+using std::cout;
+using std::endl;
 
 // connect to gpsd
 void gpsd_t::connect() {
     // make sure it's closed
     gpsd_sock.close();
 
-    if ( display_on ) {
+    if ( verbose ) {
 	printf("Attempting to connect to gpsd @ %s:%d ... ",
 	       host.c_str(), port);
     }
 
     if ( ! gpsd_sock.open( true ) ) {
-	if ( display_on ) {
+	if ( verbose ) {
 	    printf("error opening gpsd socket\n");
 	}
 	return;
     }
     
     if (gpsd_sock.connect( host.c_str(), port ) < 0) {
-	if ( display_on ) {
+	if ( verbose ) {
 	    printf("error connecting to gpsd\n");
 	}
 	return;
@@ -35,7 +40,7 @@ void gpsd_t::connect() {
 
     send_init();
 
-    if ( display_on ) {
+    if ( verbose ) {
 	printf("success!\n");
     }
 }
@@ -47,7 +52,7 @@ void gpsd_t::send_init() {
     }
 
     if ( init_string != "" ) {
-	if ( display_on ) {
+	if ( verbose ) {
 	    printf("sending to gpsd: %s\n", init_string.c_str());
 	}
 	if ( gpsd_sock.send( init_string.c_str(), init_string.length() ) < 0 ) {
@@ -80,7 +85,7 @@ void gpsd_t::init( pyPropertyNode *config ) {
 }
 
 bool gpsd_t::parse_message(const string message) {
-    // printf("parse: %s\n", message.c_str());
+    //printf("parse: %s\n", message.c_str());
     rapidjson::Document d;
     d.Parse(message.c_str());
     if ( !d.HasMember("class") ) {
@@ -94,7 +99,8 @@ bool gpsd_t::parse_message(const string message) {
         if ( d.HasMember("time") ) {
             string time_str = d["time"].GetString();
             struct tm t;
-            char* ptr = strptime(time_str.c_str(), "%FT%T", &t);
+            char* ptr = strptime(time_str.c_str(), "%Y-%m-%dT%H:%M:%S", &t);
+            // printf("hour: %d min: %d sec: %d\n", t.tm_hour, t.tm_min, t.tm_sec);
             if ( ptr == nullptr ) {
                 printf("gpsd: unable to parse time string = %s\n",
                        time_str.c_str());
@@ -102,11 +108,17 @@ bool gpsd_t::parse_message(const string message) {
                 double t2 = timegm(&t); // UTC
                 if ( *ptr ) {
                     double fraction = atof(ptr);
+                    // printf("fraction: %f\n", fraction);
                     t2 += fraction;
                 }
                 gps_node.setDouble( "unix_time_sec", t2 );
                 gps_node.setDouble( "timestamp", get_Time() );
+                // printf("%s %f\n", time_str.c_str(), t2);
             }
+        }
+        if ( d.HasMember("leapseconds") ) {
+            leapseconds = d["leapseconds"].GetDouble();
+            gps_node.setDouble( "leapseconds", leapseconds );
         }
         if ( d.HasMember("lat") ) {
             gps_node.setDouble( "latitude_deg", d["lat"].GetDouble() );
@@ -150,11 +162,13 @@ bool gpsd_t::parse_message(const string message) {
             gps_node.setLong( "satellites", num_sats );
         }
     } else if ( msg_class == "RAW" ) {
-        double timestamp = 0.0;
+        double receiver_timestamp = 0.0;
         if ( d.HasMember("time") ) {
-            timestamp = d["time"].GetDouble();
+            // FIXME: these values need to be kept separate because a double
+            // will lose precision in nanoseconds which affects accuracy!
+            receiver_timestamp = d["time"].GetDouble();
             if ( d.HasMember("nsec") ) {
-                timestamp += d["nsec"].GetDouble() / 1000000.0;
+                receiver_timestamp += d["nsec"].GetDouble() / 1000000000.0;
             }
         }
         if ( d.HasMember("rawdata") ) {
@@ -162,9 +176,20 @@ bool gpsd_t::parse_message(const string message) {
             if ( raw.IsArray() ) {
                 raw_node.setLong("raw_num", raw.Size());
                 raw_node.setDouble( "timestamp", get_Time() );
+                raw_node.setDouble( "receiver_timestamp", receiver_timestamp);
+                /* FIXME: */ double gps_seconds = receiver_timestamp - (315964800.0 - leapseconds);
+                // /* FIXME: */ double gps_seconds = receiver_timestamp - (315964800.0 + leapseconds);
+                // /* FIXME */ double gps_seconds = receiver_timestamp - 315964800.0;
+                double tow = fmod(gps_seconds, 604800);
+                printf("receiver timestamp: %.3f tow: %.3f\n", receiver_timestamp, tow);
+                raw_node.setDouble("receiver_tow", tow);
+                MatrixXd gnss(12,8);
+                gnss.setZero();
+                int mcount = 0;
                 for (rapidjson::SizeType i = 0; i < raw.Size(); i++) {
                     int gnssid = -1;
                     int svid = -1;
+                    bool l1c = false;
                     double pr = 0.0;
                     double doppler = 0.0;
                     string id_str = "";
@@ -177,8 +202,21 @@ bool gpsd_t::parse_message(const string message) {
                         id_str += "-";
                         id_str += std::to_string(svid);
                     }
+                    if ( raw[i].HasMember("obs") ) {
+                        // printf("%s\n", raw[i]["obs"].GetString());
+                        if ( (string)(raw[i]["obs"].GetString()) == "L1C" ) {
+                            l1c = true;
+                        }
+                    }
                     if ( raw[i].HasMember("pseudorange") ) {
                         pr = raw[i]["pseudorange"].GetDouble();
+                        {
+                            // hack/test fixme/delete me
+                            // test if modeling clock error helps position?
+                            const double c = 299792458; // Speed of light in m/s
+                            pr -= c*0.01;
+                        }
+
                     }
                     if ( raw[i].HasMember("doppler") ) {
                         doppler = raw[i]["doppler"].GetDouble();
@@ -194,10 +232,34 @@ bool gpsd_t::parse_message(const string message) {
                         if ( ! ephem.hasChild("frame3") ) {
                             ephem.setBool("frame3", false);
                         }
+                        if ( l1c ) {
+                            if (clockBiasEst_m != clockBiasEst_m) {
+                                // catch nans
+                                clockBiasEst_m = 0.0;
+                            }
+                            const double c = 299792458; // Speed of light in m/s
+
+                            // correct pseudorange for clockbias (est) m
+                            pr -= clockBiasEst_m;
+                            double sat_trans_tow = tow + clockBiasEst_m/c - pr/c;
+                            // /*combine terms*/ double sat_trans_tow = tow - (2*clockBiasEst_m - pr)/c;
+                            
+                            VectorXd posvel = dump_sat_pos(svid, sat_trans_tow, pr, doppler, ephem);
+                            if ( posvel.size() == 8 ) {
+                                // cout << "gnss:" << gnss << endl;
+                                Vector3d me(-248211.09, -4500083.91, 4498382.30);
+                                Vector3d diff = me - posvel.segment<3>(2);
+                                double dist = sqrt(diff[0]*diff[0] + diff[1]*diff[1] + diff[2]*diff[2]);
+                                printf("svid: %d pr %.2f geo %.2f diff: %.0f cbe: %.0f\n", svid, pr, dist, pr-dist, clockBiasEst_m);
+                                gnss.row(mcount) = posvel;
+                                mcount++;
+                            }
+                        }
                     }
                     pyPropertyNode node = raw_node.getChild("raw_satellite", i, true);
                     node.setLong("gnssid", gnssid);
                     node.setLong("svid", svid);
+                    node.setBool("L1C", l1c);
                     if ( gnssid == 0 ) {
                         node.setString("constellation", "gps");
                     } else if ( gnssid == 1 ) {
@@ -215,7 +277,27 @@ bool gpsd_t::parse_message(const string message) {
                     }
                     node.setDouble("pseudorange", pr);
                     node.setDouble("doppler", doppler);
-                    node.setDouble("timestamp", timestamp);
+                }
+                if ( mcount >= 4 ) {
+                    MatrixXd final_gnss(mcount,8);
+                    final_gnss = gnss.block(0,0,mcount,8);
+                    cout << "final gnss:" << final_gnss << endl;
+                    pEst_E_m = Vector3d(0, 0, 0);
+                    vEst_E_mps = Vector3d(0, 0, 0);
+                    double clockBias_m = 0;
+                    double clockRateBias_mps = 0;
+                    GNSS_LS_pos_vel(final_gnss, pEst_E_m, vEst_E_mps, clockBias_m, clockRateBias_mps);
+                    clockBiasEst_m += clockBias_m;
+                    //clockBiasEst_m = clockBias_m;
+                    printf("pos ecef: %.2f %.2f %.2f  cb: %.1f cbe: %.0f\n",
+                           pEst_E_m[0], pEst_E_m[1], pEst_E_m[2], clockBias_m,
+                           clockBiasEst_m);
+                    Vector3d lla = E2D(pEst_E_m);
+                    printf("receiver pos lla: %.8f %.8f %.1f\n", lla[0]*180.0/M_PI, lla[1]*180.0/M_PI, lla[2]);
+                    // Vector3d me(-248211.09, -4500083.91, 4498382.30);
+                    // GNSS_clock_bias(final_gnss, me);
+                } else {
+                    printf("waiting for enough ephemeris and satellite data...\n");
                 }
             }
         }
@@ -411,7 +493,7 @@ float gpsd_t::read() {
         json_buffer += buf;
     }
     if ( errno != EAGAIN ) {
-	if ( display_on ) {
+	if ( verbose ) {
 	    perror("gpsd_sock.recv()");
 	}
 	socket_connected = false;
@@ -433,4 +515,48 @@ float gpsd_t::read() {
 void gpsd_t::close() {
     gpsd_sock.close();
     socket_connected = false;
+}
+
+VectorXd gpsd_t::dump_sat_pos(int svid, double tow, double pr, double doppler,
+                              pyPropertyNode ephem) {
+    VectorXd posvel;
+    // if ( ephem.getBool("frame1") and ephem.getBool("frame2")
+    //      and ephem.getBool("frame3") ) {
+    //     posvel = EphemerisData2Satecef( tow, 0 /*TOW*/, 0 /*L2*/, 0 /*week no*/, 0 /*l2_flag*/, 0 /*sv_acc*/, 0 /*sv_health*/,
+    //                                     0 /*t_gd*/, 0 /*iodc*/, 0 /*t_oc*/, 0 /*a_f2*/, 0 /*a_f1*/, 0 /*a_f0*/,
+    //                                     0 /*iode*/, ephem.getDouble("Crs"), ephem.getDouble("deltan")*M_PI, ephem.getDouble("M0")*M_PI, ephem.getDouble("Cuc"), ephem.getDouble("e"), ephem.getDouble("Cus"),
+    //                                     ephem.getDouble("sqrtA"), ephem.getDouble("toe"), ephem.getDouble("Cic"), ephem.getDouble("Omega0")*M_PI, ephem.getDouble("Cis"), ephem.getDouble("i0")*M_PI, ephem.getDouble("Crc"),
+    //                                     ephem.getDouble("omega")*M_PI, ephem.getDouble("Omegad")*M_PI, ephem.getDouble("IDOT")*M_PI );
+    //     cout << "sat: " << svid << " pos/vel: " << posvel << endl;
+    // }
+    
+    if ( ephem.getBool("frame1") and ephem.getBool("frame2")
+         and ephem.getBool("frame3") ) {
+        GNSS_raw_measurement gnss;
+        gnss.timestamp = tow;
+        gnss.pseudorange = pr;
+        gnss.doppler = doppler;
+        gnss.Crs = ephem.getDouble("Crs");
+        gnss.deltan = ephem.getDouble("deltan")*M_PI;
+        gnss.M0 = ephem.getDouble("M0")*M_PI;
+        gnss.Cuc = ephem.getDouble("Cuc");
+        gnss.e = ephem.getDouble("e");
+        gnss.Cus = ephem.getDouble("Cus");
+        gnss.sqrtA = ephem.getDouble("sqrtA");
+        gnss.toe = ephem.getDouble("toe");
+        gnss.Cic = ephem.getDouble("Cic");
+        gnss.Omega0 = ephem.getDouble("Omega0")*M_PI;
+        gnss.Cis = ephem.getDouble("Cis");
+        gnss.i0 = ephem.getDouble("i0")*M_PI;
+        gnss.Crc = ephem.getDouble("Crc");
+        gnss.omega = ephem.getDouble("omega")*M_PI;
+        gnss.Omegad = ephem.getDouble("Omegad")*M_PI;
+        gnss.IDOT = ephem.getDouble("IDOT")*M_PI;
+        posvel = EphemerisData2PosVelClock(gnss);
+        // cout << "sat: " << svid << " pos/vel: " << posvel << endl;
+        Vector3d ecef = posvel.segment<3>(2);
+        Vector3d lla = E2D(ecef);
+        printf("sat %d lla: %.8f %.8f %.1f\n", svid, lla[0]*180.0/M_PI, lla[1]*180.0/M_PI, lla[2]);
+    }
+    return posvel;
 }

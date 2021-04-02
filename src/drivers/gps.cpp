@@ -17,7 +17,6 @@
 #include <string>
 using std::string;
 
-#include "comms/display.h"
 #include "include/globaldefs.h"
 #include "filters/nav_common/coremag.h"
 #include "util/timing.h"
@@ -58,7 +57,7 @@ double gps_helper_t::gps_age() {
     return get_Time() - gps_node.getDouble("timestamp");
 }
 
-void gps_helper_t::update() {
+void gps_helper_t::update(bool verbose) {
     // FIXME: should this be "fixType" == 3?
     if ( gps_node.getLong("status") == 2 && !gps_state ) {
 	const double gps_settle = 10.0;
@@ -66,7 +65,7 @@ void gps_helper_t::update() {
         if ( gps_acq_time < 0.01 ) {
             gps_acq_time = cur_time;
         }
-	// if ( display_on ) {
+	// if ( verbose ) {
 	//     printf("gps first aquired = %.3f  cur time = %.3f\n",
 	//	   gps_acq_time, cur_time);
 	// }
@@ -94,7 +93,7 @@ void gps_helper_t::update() {
 		newtime.tv_sec = gps_clock;
 		newtime.tv_usec = (gps_clock - (double)newtime.tv_sec)
 		    * 1000000;
-		if ( display_on ) {
+		if ( verbose ) {
 		    printf("System clock: %.2f\n", system_clock);
 		    printf("GPS clock: %.2f\n", gps_clock);
 		    printf("Setting system clock to sec: %ld usec: %ld\n",
@@ -106,12 +105,12 @@ void gps_helper_t::update() {
 		}
 	    }
 
-	    if ( display_on ) {
+	    if ( verbose ) {
 		printf("[gps_mgr] gps ready, magvar = %.2f (deg)\n",
 		       gps_node.getDouble("magvar_deg") );
 	    }
 	} else {
-	    if ( display_on ) {
+	    if ( verbose ) {
 		if ( cur_time - last_time >= 1.0 ) {
 		    printf( "[gps_mgr] gps ready in %.1f seconds.\n",
 			    gps_settle - (cur_time - gps_acq_time) );

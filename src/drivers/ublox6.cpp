@@ -29,50 +29,49 @@ using namespace Eigen;
 
 #include "include/globaldefs.h"
 
-#include "comms/display.h"
-#include "init/globals.h"
+//#include "init/globals.h"
 #include "util/geodesy.h"
+#include "util/props_helper.h"
 #include "util/strutils.h"
 #include "util/timing.h"
 
 #include "ublox6.h"
 
+// // property nodes
+// static pyPropertyNode gps_node;
 
-// property nodes
-static pyPropertyNode gps_node;
+// static int fd = -1;
+// static string device_name = "/dev/ttyS0";
+// static int baud = 57600;
+// static int gps_fix_value = 0;
 
-static int fd = -1;
-static string device_name = "/dev/ttyS0";
-static int baud = 57600;
-static int gps_fix_value = 0;
-
-// initialize gpsd input property nodes
-static void bind_input( pyPropertyNode *config ) {
-    if ( config->hasChild("device") ) {
-	device_name = config->getString("device");
-    }
-    if ( config->hasChild("baud") ) {
-	baud = config->getLong("baud");
-    }
-}
+// // initialize gpsd input property nodes
+// static void bind_input( pyPropertyNode *config ) {
+//     if ( config->hasChild("device") ) {
+// 	device_name = config->getString("device");
+//     }
+//     if ( config->hasChild("baud") ) {
+// 	baud = config->getLong("baud");
+//     }
+// }
 
 
 // initialize gpsd output property nodes 
-static void bind_output( string output_node ) {
-    gps_node = pyGetNode(output_node, true);
-}
+// static void bind_output( string output_node ) {
+//     gps_node = pyGetNode(output_node, true);
+// }
 
 
 // send our configured init strings to configure gpsd the way we prefer
-static bool gps_ublox6_open() {
-    if ( display_on ) {
-	printf("ublox6 on %s\n", device_name.c_str());
+bool ublox6_t::open( const char *device_name, const int baud ) {
+    if ( verbose ) {
+	printf("ublox6 on %s (%d baud)\n", device_name, baud);
     }
 
-    fd = open( device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK );
+    fd = ::open( device_name, O_RDWR | O_NOCTTY | O_NONBLOCK );
     if ( fd < 0 ) {
         fprintf( stderr, "open serial: unable to open %s - %s\n",
-                 device_name.c_str(), strerror(errno) );
+                 device_name, strerror(errno) );
 	return false;
     }
 
@@ -112,7 +111,7 @@ static bool gps_ublox6_open() {
     int ret = tcsetattr( fd, TCSANOW, &config );
     if ( ret > 0 ) {
         fprintf( stderr, "error configuring device: %s - %s\n",
-                 device_name.c_str(), strerror(errno) );
+                 device_name, strerror(errno) );
 	return false;
     }
 
@@ -122,13 +121,21 @@ static bool gps_ublox6_open() {
     return true;
 }
 
-
-void gps_ublox6_init( string output_node, pyPropertyNode *config ) {
-    bind_input( config );
-    bind_output( output_node );
-    gps_ublox6_open();
+void ublox6_t::init( pyPropertyNode *config ) {
+    string output_path = get_next_path("/sensors", "gps", false);
+    gps_node = pyGetNode(output_path.c_str(), true);
+    if ( config->hasChild("device") ) {
+        string device = config->getString("device");
+        int baud = config->getLong("baud");
+        if ( open(device.c_str(), baud) ) {
+            printf("ublox6 device opened: %s\n", device.c_str());
+        } else {
+            printf("unable to open ublox6 device: %s\n", device.c_str());
+        }
+    } else {
+        printf("no ublox6 device specified\n");
+    }
 }
-
 
 // swap big/little endian bytes
 static void my_swap( uint8_t *buf, int index, int count ) {
@@ -144,9 +151,7 @@ static void my_swap( uint8_t *buf, int index, int count ) {
 }
 
 
-static bool parse_ublox6_msg( uint8_t msg_class, uint8_t msg_id,
-			      uint16_t payload_length, uint8_t *payload )
-{
+bool ublox6_t::parse_msg() {
     bool new_position = false;
     static bool set_system_time = false;
 
@@ -168,7 +173,7 @@ static bool parse_ublox6_msg( uint8_t msg_class, uint8_t msg_id,
 	int32_t hMSL = *((int32_t *)(p+16));
 	// uint32_t hAcc = *((uint32_t *)(p+20));
 	// uint32_t vAcc = *((uint32_t *)(p+24));
-	if ( display_on && 0 ) {
+	if ( verbose && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("nav-posllh (%d) %d %d %d %d\n",
 		       iTOW, lon, lat, height, hMSL);
@@ -205,7 +210,7 @@ static bool parse_ublox6_msg( uint8_t msg_class, uint8_t msg_id,
 	// uint32_t sAcc = *((uint32_t *)(p+40));
 	// uint16_t pDOP = *((uint16_t *)(p+44));
 	uint8_t numSV = p[47];
-	if ( display_on && 0 ) {
+	if ( verbose && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("nav-sol (%d) %d %d %d %d %d [ %d %d %d ]\n",
 		       gpsFix, iTOW, fTOW, ecefX, ecefY, ecefZ,
@@ -236,7 +241,7 @@ static bool parse_ublox6_msg( uint8_t msg_class, uint8_t msg_id,
 	    // of the ecef coordinates is beyond this radius we know
 	    // we have bad data.  This means we won't toss data until
 	    // above about 423,000' MSL
-	    events->log( "ublox6", "received bogus ecef data" );
+	    // FIXME: events->log( "ublox6", "received bogus ecef data" );
 	} else if ( wgs84[2] > 60000 ) {
 	    // sanity check: assume altitude > 60k meters (200k feet) is bad
 	} else if ( wgs84[2] < -1000 ) {
@@ -298,7 +303,7 @@ static bool parse_ublox6_msg( uint8_t msg_class, uint8_t msg_id,
 	int32_t heading = *((int32_t *)(p+24));
 	// uint32_t sAcc = *((uint32_t *)(p+28));
 	// uint32_t cAcc = *((uint32_t *)(p+32));
-	if ( display_on && 0 ) {
+	if ( verbose && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("nav-velned (%d) %.2f %.2f %.2f s = %.2f h = %.2f\n",
 		       iTOW, velN / 100.0, velE / 100.0, velD / 100.0,
@@ -323,7 +328,7 @@ static bool parse_ublox6_msg( uint8_t msg_class, uint8_t msg_id,
 	uint8_t min = p[17];
 	uint8_t sec = p[18];
 	uint8_t valid = p[19];
-	if ( display_on && 0 ) {
+	if ( verbose && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("nav-timeutc (%d) %02x %04d/%02d/%02d %02d:%02d:%02d\n",
 		       iTOW, valid, year, month, day, hour, min, sec);
@@ -366,13 +371,13 @@ static bool parse_ublox6_msg( uint8_t msg_class, uint8_t msg_id,
 	    }
 	}
  	// gps_satellites_node.setLong( satUsed );
-	if ( display_on && 0 ) {
+	if ( verbose && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("Satellite count = %d/%d\n", satUsed, numCh);
 	    }
 	}
     } else {
-	if ( display_on && 0 ) {
+	if ( verbose && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("ublox6 msg class = %d  msg id = %d\n",
 		       msg_class, msg_id);
@@ -383,15 +388,15 @@ static bool parse_ublox6_msg( uint8_t msg_class, uint8_t msg_id,
     return new_position;
 }
 
-static bool read_ublox6() {
-    static int state = 0;
-    static int msg_class = 0, msg_id = 0;
-    static int length_lo = 0, length_hi = 0, payload_length = 0;
-    static int counter = 0;
-    static uint8_t cksum_A = 0, cksum_B = 0, cksum_lo = 0, cksum_hi = 0;
+bool ublox6_t::read_ublox6() {
+    // static int state = 0;
+    // static int msg_class = 0, msg_id = 0;
+    // static int length_lo = 0, length_hi = 0, payload_length = 0;
+    // static int counter = 0;
+    // static uint8_t cksum_A = 0, cksum_B = 0, cksum_lo = 0, cksum_hi = 0;
     int len;
     uint8_t input[500];
-    static uint8_t payload[500];
+    // static uint8_t payload[500];
 
     // printf("read ublox6, entry state = %d\n", state);
 
@@ -400,10 +405,10 @@ static bool read_ublox6() {
     if ( state == 0 ) {
 	counter = 0;
 	cksum_A = cksum_B = 0;
-	len = read( fd, input, 1 );
+	len = ::read( fd, input, 1 );
 	while ( len > 0 && input[0] != 0xB5 ) {
 	    // fprintf( stderr, "state0: len = %d val = %2X\n", len, input[0] );
-	    len = read( fd, input, 1 );
+	    len = ::read( fd, input, 1 );
 	}
 	if ( len > 0 && input[0] == 0xB5 ) {
 	    // fprintf( stderr, "read 0xB5\n");
@@ -411,7 +416,7 @@ static bool read_ublox6() {
 	}
     }
     if ( state == 1 ) {
-	len = read( fd, input, 1 );
+	len = ::read( fd, input, 1 );
 	if ( len > 0 ) {
 	    if ( input[0] == 0x62 ) {
 		// fprintf( stderr, "read 0x62\n");
@@ -424,7 +429,7 @@ static bool read_ublox6() {
 	}
     }
     if ( state == 2 ) {
-	len = read( fd, input, 1 );
+	len = ::read( fd, input, 1 );
 	if ( len > 0 ) {
 	    msg_class = input[0];
 	    cksum_A += input[0];
@@ -434,7 +439,7 @@ static bool read_ublox6() {
 	}
     }
     if ( state == 3 ) {
-	len = read( fd, input, 1 );
+	len = ::read( fd, input, 1 );
 	if ( len > 0 ) {
 	    msg_id = input[0];
 	    cksum_A += input[0];
@@ -444,7 +449,7 @@ static bool read_ublox6() {
 	}
     }
     if ( state == 4 ) {
-	len = read( fd, input, 1 );
+	len = ::read( fd, input, 1 );
 	if ( len > 0 ) {
 	    length_lo = input[0];
 	    cksum_A += input[0];
@@ -453,7 +458,7 @@ static bool read_ublox6() {
 	}
     }
     if ( state == 5 ) {
-	len = read( fd, input, 1 );
+	len = ::read( fd, input, 1 );
 	if ( len > 0 ) {
 	    length_hi = input[0];
 	    cksum_A += input[0];
@@ -468,7 +473,7 @@ static bool read_ublox6() {
 	}
     }
     if ( state == 6 ) {
-	len = read( fd, input, 1 );
+	len = ::read( fd, input, 1 );
 	while ( len > 0 ) {
 	    payload[counter++] = input[0];
 	    //fprintf( stderr, "%02X ", input[0] );
@@ -477,7 +482,7 @@ static bool read_ublox6() {
 	    if ( counter >= payload_length ) {
 		break;
 	    }
-	    len = read( fd, input, 1 );
+	    len = ::read( fd, input, 1 );
 	}
 
 	if ( counter >= payload_length ) {
@@ -486,23 +491,22 @@ static bool read_ublox6() {
 	}
     }
     if ( state == 7 ) {
-	len = read( fd, input, 1 );
+	len = ::read( fd, input, 1 );
 	if ( len > 0 ) {
 	    cksum_lo = input[0];
 	    state++;
 	}
     }
     if ( state == 8 ) {
-	len = read( fd, input, 1 );
+	len = ::read( fd, input, 1 );
 	if ( len > 0 ) {
 	    cksum_hi = input[0];
 	    if ( cksum_A == cksum_lo && cksum_B == cksum_hi ) {
 		// fprintf( stderr, "checksum passes (%d)!\n", msg_id );
-		new_position = parse_ublox6_msg( msg_class, msg_id,
-						 payload_length, payload );
+		new_position = parse_msg();
 		state++;
 	    } else {
-		if ( display_on && 0 ) {
+		if ( verbose && 0 ) {
 		    printf("checksum failed %d %d (computed) != %d %d (message)\n",
 			   cksum_A, cksum_B, cksum_lo, cksum_hi );
 		}
@@ -516,14 +520,12 @@ static bool read_ublox6() {
     return new_position;
 }
 
-
-bool gps_ublox6_update() {
+float ublox6_t::read() {
     // run an iteration of the ublox scanner/parser
-    bool gps_data_valid = read_ublox6();
+    read_ublox6();
+    return 0.0;
+}
 
-    return gps_data_valid;
- }
-
-
-void gps_ublox6_close() {
+void ublox6_t::close() {
+    ::close(fd);
 }

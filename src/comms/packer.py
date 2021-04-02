@@ -377,6 +377,7 @@ class Packer():
             counter = 0
             self.gpsraw.index = 0
             self.gpsraw.timestamp_sec = gpsraw_time
+            self.gpsraw.receiver_tow = gpsraw_node.getFloat("receiver_tow")
             for i in range(raw_num):
                 sat_path = "raw_satellite[%d]" % i
                 sat_node = gpsraw_node.getChild(sat_path, True)
@@ -396,6 +397,7 @@ class Packer():
     def pack_gpsraw_dict(self, index):
         row = dict()
         row['timestamp'] = gpsraw_node.getFloat('timestamp')
+        row['receiver_tow'] = gpsraw_node.getFloat("receiver_tow")
         raw_num = gpsraw_node.getInt("raw_num")
         row["num_sats"] = raw_num
         for i in range(aura_messages.max_raw_sats):
@@ -420,6 +422,7 @@ class Packer():
             printf("Warning: gpsraw index > 0 not supported")
         gpsraw_node.setFloat("timestamp", gpsraw.timestamp_sec)
         gpsraw_node.setInt("raw_num", gpsraw.num_sats)
+        gpsraw_node.setFloat("receiver_tow", gpsraw.receiver_tow)
         for i in range(gpsraw.num_sats):
             sat_path = "raw_satellite[%d]" % i
             sat_node = gpsraw_node.getChild(sat_path, True)

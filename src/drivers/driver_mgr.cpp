@@ -1,9 +1,13 @@
+#include <pybind11/pybind11.h>
+namespace py = pybind11;
+
 #include <string>
 #include <sstream>
 using std::string;
 using std::ostringstream;
 
-#include "util/myprof.h"
+#include <python_sys.h>
+
 #include "drivers/Aura4/Aura4.h"
 #include "drivers/fgfs.h"
 #include "drivers/lightware.h"
@@ -18,6 +22,13 @@ driver_mgr_t::driver_mgr_t() {
 }
 
 void driver_mgr_t::init() {
+    /* FIXME: is this the best place for props init(), we don't want
+       this to be called multiple times although maybe that doesn't
+       hurt anything */
+    pyPropsInit();
+    // destroy things in the correct order
+    atexit(AuraPythonCleanup);
+    
     sensors_node = pyGetNode("/sensors", true);
     pyPropertyNode config_node = pyGetNode("/config", true);
     unsigned int len = config_node.getLen("drivers");
@@ -67,7 +78,6 @@ void driver_mgr_t::init() {
 }
 
 float driver_mgr_t::read() {
-    driver_prof.start();
     float master_dt = 0.0;
     for ( unsigned int i = 0; i < drivers.size(); i++ ) {
         float dt = drivers[i]->read();
@@ -75,7 +85,6 @@ float driver_mgr_t::read() {
             master_dt = dt;
         }
     }
-    driver_prof.stop();
     return master_dt;
 }
 
@@ -109,3 +118,15 @@ void driver_mgr_t::send_commands() {
 
 // global shared instance
 driver_mgr_t driver_mgr;
+
+PYBIND11_MODULE(driver_mgr, m) {
+    py::class_<driver_mgr_t>(m, "driver_mgr")
+        .def(py::init<>())
+        .def("init", &driver_mgr_t::init)
+        .def("read", &driver_mgr_t::read)
+        .def("process", &driver_mgr_t::process)
+        .def("write", &driver_mgr_t::write)
+        .def("close", &driver_mgr_t::close)
+        .def("send_commands", &driver_mgr_t::send_commands)
+    ;
+}

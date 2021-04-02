@@ -26,6 +26,8 @@ m2nm = 0.0005399568034557235    # meters to nautical miles
 def generate_path(id, index):
     if id == aura_messages.gps_v2_id or id == aura_messages.gps_v3_id or id == aura_messages.gps_v4_id:
         category = 'gps'
+    elif id == aura_messages.gps_raw_v1_id:
+        category = 'gpsraw'
     elif id == aura_messages.imu_v3_id or id == aura_messages.imu_v4_id or id == aura_messages.imu_v5_id:
         category = 'imu'
     elif id == aura_messages.airdata_v5_id or id == aura_messages.airdata_v6_id or id == aura_messages.airdata_v7_id:
@@ -47,8 +49,8 @@ def generate_path(id, index):
     else:
         print("Unknown packet id!", id, index)
         path = '/unknown-packet-id'
-    if category == 'gps' or category == 'imu' or category == 'air' \
-       or category == 'pilot' or category == 'health':
+    if category == 'gps' or category == 'gpsraw' or category == 'imu' \
+       or category == 'air' or category == 'pilot' or category == 'health':
         basepath = '/sensors/' + category
     elif category == 'filter':
         basepath = '/navigation/' + category
@@ -72,6 +74,8 @@ def generate_path(id, index):
 def generate_record(category, index):
     if category == 'gps':
         return packer.pack_gps_dict(index)
+    elif category == 'gpsraw':
+        return packer.pack_gpsraw_dict(index)
     elif category == 'imu':
         return packer.pack_imu_dict(index)
     elif category == 'air':
@@ -154,7 +158,7 @@ if args.flight:
                 data[path].append(record)
             else:
                 data[path] = [ record ]
-        except:
+        except IndexError:
             t.close()
             print("end of file")
             break

@@ -10,12 +10,12 @@ using namespace Eigen;
 
 #include <pyprops.h>
 
-#include "comms/serial_link.h"
 #include "drivers/driver.h"
 #include "include/globaldefs.h" /* fixme, get rid of? */
 #include "util/butter.h"
 #include "util/linearfit.h"
 #include "util/lowpass.h"
+#include "util/serial_link.h"
 
 #include "aura4_messages.h"
 

@@ -10,6 +10,7 @@ libutil_a_SOURCES = \
 	poly1d.h \
 	props_helper.cpp proper_helper.h \
 	sg_path.cpp sg_path.h \
+	serial_link.h serial_link.cpp \
 	strutils.cpp strutils.h \
         timing.cpp timing.h \
         netSocket.cpp netSocket.h ul.h

@@ -12,7 +12,7 @@
 class gps_helper_t {
 public:
     void init();
-    void update();
+    void update(bool verbose=false);
     double gps_age();           // seconds
     
 private:

@@ -409,6 +409,7 @@ def gen_python_module():
         result.append("class %s():" % (m.getString("name")))
         result.append("    id = %s" % id)
         result.append("    _pack_string = \"%s\"" % pack_string)
+        result.append("    _struct = struct.Struct(_pack_string)")
         result.append("")
         result.append("    def __init__(self, msg=None):")
         result.append("        # public fields")
@@ -443,7 +444,7 @@ def gen_python_module():
 
         # generate pack code
         result.append("    def pack(self):")
-        result.append("        msg = struct.pack(self._pack_string,")
+        result.append("        msg = self._struct.pack(")
         count = m.getLen("fields")
         for j in range(count):
             f = m.getChild("fields[%d]" % j)
@@ -454,7 +455,7 @@ def gen_python_module():
                 else:
                     index = int(index)
                 for k in range(index):
-                    line = "                          "
+                    line = "                  "
                     if f.hasChild("pack_scale"):
                         line += "int(round(self.%s[%d] * %s))" % (name, k, f.getString("pack_scale"))
                     elif f.getString("type") == "string":
@@ -467,7 +468,7 @@ def gen_python_module():
                         line += ")"
                     result.append(line)
             else:
-                line = "                          "
+                line = "                  "
                 if f.hasChild("pack_scale"):
                     line += "int(round(self.%s * %s))" % (name, f.getString("pack_scale"))
                 elif f.getString("type") == "string":
@@ -531,7 +532,7 @@ def gen_python_module():
                     else:
                         if count == 1:
                             line += ","
-                        line += ") = struct.unpack(self._pack_string, msg)"
+                        line += ") = self._struct.unpack(msg)"
                     result.append(line)
             else:
                 if j == 0:
@@ -546,7 +547,7 @@ def gen_python_module():
                 else:
                     if count == 1:
                         line += ","
-                    line += ") = struct.unpack(self._pack_string, msg)"
+                    line += ") = self._struct.unpack(msg)"
                 result.append(line)
         for j in range(count):
             f = m.getChild("fields[%d]" % j)

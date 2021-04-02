@@ -49,9 +49,8 @@ py::tuple wind_course( double ws_kt, double tas_kt, double wd_deg,
 
 
 #ifdef HAVE_PYBIND11
-  PYBIND11_PLUGIN(windtri) {
-      py::module m("windtri", "wind triangle calcs for python");
-      m.def("wind_course", &wind_course);
-      return m.ptr();
-  }
+PYBIND11_MODULE(windtri, m) {
+    m.doc() = "wind triangle calcs for python";
+    m.def("wind_course", &wind_course);
+}
 #endif // HAVE_PYBIND11

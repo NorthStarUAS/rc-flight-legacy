@@ -2,13 +2,15 @@
 
 February 15, 2018:  Last tested with bone-debian-9.3 (28 January, 2018)
 
-## Update your beaglebone to the newest root image:
+## Update your beaglebone to the newest "flasher" debian image for
+   beaglebone:
 
     https://beagleboard.org/latest-images
 
 To create an updater sd card from a linux host (example):
 
-    dd if=bone-debian-9.3-iot-armhf-2018-01-28-4gb.img of=/dev/sdd bs=1M
+    unxz bone-eMMC-flasher-debian-10.3-iot-armhf-2020-04-06-4gb.img.xz 
+    dd if=bone-eMMC-flasher-debian-10.3-iot-armhf-2020-04-06-4gb.img of=/dev/make/sure/this/is/the/right/one bs=1M
 
 Important note: if booting a beaglebone from sd card, it may still
 have an older uboot loaded in the mmc image and that may not support
@@ -44,7 +46,19 @@ Boot the newly flashed beaglebone and login as debian/temppwd
       password: aura
       Full Name []: AuraUAS
     # usermod -aG admin aura
-      
+
+## Beaglebone can live on ethernet or wifi or tether through a host computer
+
+    WIFI: cat /etc/network/interfaces
+    connmanctl
+    connmanctl> tether wifi off
+    connmanctl> enable wifi
+    connmanctl> scan wifi
+    connmanctl> services
+    connmanctl> agent on
+    connmanctl> connect wifi_*_managed_psk
+    connmanctl> quit
+
 ## Setup host/beaglebone Network Relay
 
 The beaglebone can route through the usb net connection to the wide
@@ -80,28 +94,14 @@ On my home desktop:
 
 Network config: (required before beaglebone dns lookups will actually work)
 
-Fedora < 27:
-
-    -> Select usb ethernet interface
-    -> Select gear icon for settings.
-    -> Select identity
-    -> Firewall Zone -> trusted
-    -> Finally, turn off usb ethernet and reactivate it.
-    
 Fedora >= 27
 
     -> Install/launch firewall gnome app
     -> select usb interface
     -> select trusted zone
 
-## Configure the Beaglebone 9.3 (iot/non-gui) (stretch) setup:
+## Configure the Beaglebone 10.3 (iot/non-gui) (stretch) setup:
 
-Edit /boot/uEnv.txt: (only for debian < 9)
-
-    # AuraUAS
-    cape_disable=bone_capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
-    cape_enable=bone_capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
-    
 Remove wicd (if gui image)
 
     apt remove python-wicd wicd-cli wicd wicd-curses wicd-daemon wicd-gtk
@@ -145,7 +145,11 @@ something that was removed and is no longer needed.)
 
 Install extra required and/or useful things
 
-    apt install telnet minicom python3-lxml python3-serial libeigen3-dev zlib1g-dev rapidjson-dev python3-pybind11 python3-numpy python3-scipy
+    apt install telnet minicom python3-lxml python3-serial libeigen3-dev zlib1g-dev rapidjson-dev python3-pybind11
+
+Probably already installed:
+
+    apt install python3-numpy python3-scipy
 
 Force highest performance mode (already the default in debian >= 9)
 
@@ -179,9 +183,9 @@ finding the software repositories on the web: https://github.com/AuraUAS
 
     aura$ mkdir Source
     aura$ cd Source
-    aura$ git clone https://github.com/AuraUAS/aura-props.git
-    aura$ git clone https://github.com/AuraUAS/aura-config.git
-    aura$ git clone https://github.com/AuraUAS/aura-core.git 
+    aura$ git clone https://github.com/RiceCreekUAS/aura-props.git
+    aura$ git clone https://github.com/RiceCreekUAS/aura-config.git
+    aura$ git clone https://github.com/RiceCreekUAS/aura-core.git
 
 Build/install aura-props package:
 
@@ -213,23 +217,24 @@ Don't forget to remove the swap file (to free up a big chunk of disk space):
 
 Build/install aura-core package
 
-    sudo mkdir /usr/local/AuraUAS
-    sudo chown aura.aura /usr/local/AuraUAS
-  
+    cd aura-core/python
+    ./setup.py build
+    sudo ./setup.py install
+
     cd aura-core
     ./autogen.sh
     mkdir build; cd build
-    ../configure --prefix=/usr/local/AuraUAS CFLAGS="-Wall -O3" CXXFLAGS="-Wall -O3"
+    ../configure CFLAGS="-Wall -O3" CXXFLAGS="-Wall -O3"
     make
-    make install
+    sudo make install
 
 Setup FlightData directory
 
-    mkdir /usr/local/AuraUAS/FlightData
+    mkdir /home/aura/FlightData
   
 AuraUAS Configuration
 
-    ln -s /home/aura/Source/aura-config/config /usr/local/AuraUAS/config
+    ln -s /home/aura/Source/aura-config/config /home/aura/config
     cd ~/Source/aura-config/config
     ln -s main-<aircraft_name>.json main.json
 
@@ -238,13 +243,13 @@ imu info is updating at minimum, overall update rates, load avg if gps
 connected, verify gps position and ekf orientation
 
     cd
-    /usr/local/AuraUAS/bin/aura --python_path /home/aura/Source/aura-core/src --config /usr/local/AuraUAS/config/ --display on
+    /usr/local/bin/aura --python_path /home/aura/Source/aura-core/src --config /home/aura/config --display on
   
 Setup the systemd autorun scripts:
 
     See .../aura-core/scripts/systemd/
 
-Enable beaglebone uarts.  Note, source:  https://electronics.trev.id.au/2018/02/09/get-uart-serial-ports-working-beaglebone-black/
+/Not needed anymore?/ Enable beaglebone uarts.  Note, source:  https://electronics.trev.id.au/2018/02/09/get-uart-serial-ports-working-beaglebone-black/
 
     # UART1 (beaglebone black)
     config-pin p9.24 uart
