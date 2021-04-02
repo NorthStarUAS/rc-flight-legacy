@@ -17,7 +17,7 @@ import props_json
 from rcUAS import driver_mgr
 from rcUAS import airdata_helper, gps_helper
 
-from comms import display, telnet
+from comms import display, logging, remote_link, telnet
 from drivers import pilot_helper
 from mission import mission_mgr
 from util import myprof, timer
@@ -41,33 +41,19 @@ from util import myprof, timer
 
 # #include "include/aura_config.h"
 
-# #include "comms/logging.h"
-# #include "comms/remote_link.h"
 # #include "control/actuators.h"
 # #include "control/cas.h"
 # #include "control/control.h"
 # #include "filters/filter_mgr.h"
 # #include "health/health.h"
 # #include "init/globals.h"
-# #include "util/myprof.h"
 # #include "util/netSocket.h"	// netInit()
 # #include "util/sg_path.h"
-# #include "util/timing.h"
 
-# //
-# // Configuration settings
-# //
-
-# static const int HEARTBEAT_HZ = 100;  // master clock rate
+# configuration settings
 
 # static bool enable_cas     = false;   // cas module enabled/disabled
 # static bool enable_pointing = false;  // pan/tilt pointing module
-# static double gps_timeout_sec = 9.0;  // nav algorithm gps timeout
-
-# // property nodes
-# static pyPropertyNode imu_node;
-# static pyPropertyNode status_node;
-# static pyPropertyNode comms_node;
 
 parser = argparse.ArgumentParser(description="Rice Creak UAS main flight code")
 parser.add_argument("--config", required=True, help="path to config tree")
@@ -81,24 +67,16 @@ def main_work_loop():
     global display_timer
     display_on = comms_node.getBool("display_on");
     
-#     // read the sensors until we receive an IMU packet
-#     sync_prof.start();
-#     double dt = 0.0;
-
+    # read an entire frame of sensors data
     myprof.driver_prof.start()
     dt = drivers.read()
     myprof.driver_prof.stop()
     
-#     status_node.setDouble("frame_time", imu_node.getDouble( "timestamp" ));
-#     status_node.setDouble("dt", dt);
-#     sync_prof.stop();
+    myprof.main_prof.start()
     
-#     main_prof.start();
+    status_node.setFloat("frame_time", imu_node.getFloat("timestamp"))
+    status_node.setFloat("dt", dt)
     
-#     static int count = 0;
-#     count++;
-#     // printf ("timer expired %d times\n", count);
-
     # extra sensor processing section
     myprof.helper_prof.start()
     airdata.update()
@@ -129,17 +107,14 @@ def main_work_loop():
 #     // convert logical flight controls into physical actuator outputs
 #     actuators.update();
 
+    # write commands back to drivers
     drivers.write()
 
-#     // send any extra commands (like requests to recalibrate something)
-#     driver_mgr.send_commands();
+    # send any extra commands (like requests to recalibrate something)
+    drivers.send_commands()
     
-#     //
-#     // External Command section
-#     //
-
-#     // check for incoming command data
-#     remote_link->command();
+    # check for incoming command data
+    remote_link.command()
 
     # Read commands from telnet interface
     telnet.update()
@@ -150,9 +125,9 @@ def main_work_loop():
 #     // }
 
     # Mission and Task section
-    myprof.mission_prof.start();
-    mission.update(dt);
-    myprof.mission_prof.stop();
+    myprof.mission_prof.start()
+    mission.update(dt)
+    myprof.mission_prof.stop()
 
 #     // health status
 #     health.update();
@@ -168,25 +143,17 @@ def main_work_loop():
         myprof.control_prof.stats()
         myprof.health_prof.stats()
         myprof.datalog_prof.stats()
-        myprof.sync_prof.stats()
         myprof.main_prof.stats()
 
-#     // flush of logging stream (update at full rate)
-#     if ( true ) {
-# 	datalog_prof.start();
-#         logging->update();
-# 	datalog_prof.stop();
-#     }
+    # flush of log stream
+    myprof.datalog_prof.start()
+    logging.update()
+    myprof.datalog_prof.stop()
 
-#     //
-#     // Remote telemetry section
-#     //
+    # generate needed messages and dribble pending bytes down the serial port
+    remote_link.update()
 
-#     // generate needed messages and dribble pending bytes down the serial port
-#     remote_link->update();
-
-#     main_prof.stop();
-# }
+    myprof.main_prof.stop()
 
 
 # Initialization Section
@@ -254,6 +221,11 @@ if args.verbose:
 #     // initialize required aura-core structures
 #     AuraCoreInit();
 
+# initalize communication modules first thing after loading config
+logging.init()
+remote_link.init()
+telnet.init()
+
 drivers.init()
 
 # data helpers
@@ -284,21 +256,18 @@ pilot.init()
 #     }
 mission.init()
 
-#     // intialize random number generator
-#     srandom( time(NULL) );
-
-#     // log the master config tree
-#     logging->write_configs();
-telnet.init()
     
+# log the master config tree
+logging.write_configs()
+
 print("Everything is initized ... enter main work loop.");
 
 while True:
-    main_work_loop();
+    main_work_loop()
 
-#     // close and exit
-#     Filter_close();
-#     logging->close();
-# }
+# close and exit
+# Filter_close()
+logging.close()
+
 
 
