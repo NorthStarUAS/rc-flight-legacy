@@ -12,6 +12,39 @@ setup(
     author_email="curtolson@flightgear.org",
     url="https://github.com/RiceCreekUAS",
     ext_modules=[
+        Extension("rcUAS.control_mgr",
+                  define_macros=[("HAVE_PYBIND11", "1")],
+                  sources=[
+                      "src/control/actuators.cpp",
+                      "src/control/ap.cpp",
+                      "src/control/cas.cpp",
+                      "src/control/control.cpp",
+                      "src/control/dig_filter.cpp",
+                      "src/control/dtss.cpp",
+                      "src/control/pid.cpp",
+                      "src/control/pid_vel.cpp",
+                      "src/control/predictor.cpp",
+                      "src/control/summer.cpp",
+                      "src/control/tecs.cpp",
+                      "src/util/timing.cpp"
+                  ],
+                  depends=[
+                      "src/control/actuators.h",
+                      "src/control/ap.h",
+                      "src/control/cas.h",
+                      "src/control/control.h",
+                      "src/control/dig_filter.h",
+                      "src/control/dtss.h",
+                      "src/control/pid.h",
+                      "src/control/pid_vel.h",
+                      "src/control/predictor.h",
+                      "src/control/summer.h",
+                      "src/control/tecs.h",
+                      "src/util/timing.h"
+                  ],
+                  include_dirs=["src"],
+                  extra_objects=["/usr/local/lib/libpyprops.a"]
+                  ),
         Extension("rcUAS.driver_mgr",
                   define_macros=[("HAVE_PYBIND11", "1")],
                   sources=[

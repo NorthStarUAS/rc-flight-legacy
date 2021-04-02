@@ -25,7 +25,6 @@
 #include <math.h>		// fabs()
 #include <stdio.h>
 
-#include "comms/display.h"
 #include "util/timing.h"
 
 #include "cas.h"
@@ -109,7 +108,7 @@ void UGCAS::update() {
 	    elev_dz = (elev_max - elev_min) / 2.0;
 	} else {
 	    stats_ready = true;
-	    if ( display_on ) {
+	    if ( false ) {
 		printf("center ail = %.3f dead zone = %.3f\n",
 		       ail_center, ail_dz);
 		printf("center elev = %.3f dead zone = %.3f\n",

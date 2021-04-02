@@ -34,4 +34,3 @@ private:
     void copy_pilot_inputs();
 };
 
-extern control_t control;

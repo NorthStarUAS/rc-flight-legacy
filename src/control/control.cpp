@@ -19,16 +19,19 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 
+#include <pybind11/pybind11.h>
+namespace py = pybind11;
+
 #include <stdio.h>
 
-#include "comms/display.h"
-#include "init/globals.h"
-#include "util/myprof.h"
+// #include "init/globals.h"
 
 #include "tecs.h"
 #include "control.h"
 
 void control_t::init() {
+    pyPropsInit();              // first things first
+    
     // initialize the autopilot class and build the structures from the
     // configuration file values
 
@@ -45,16 +48,14 @@ void control_t::init() {
     // tree config (/config/autopilot)
     ap.init();
 
-    if ( display_on ) {
-	printf("Autopilot initialized\n");
-    }
+    printf("Autopilot initialized\n");
 }
 
 // send a reset signal to all ap modules that support it.  This gives each
 // component a chance to update it's state to reset for current conditions,
 // eliminate transients, etc.
 void control_t::reset() {
-    events->log("controls", "global reset called");
+    // FIXME: events->log("controls", "global reset called");
     ap.reset();
 }
 
@@ -84,8 +85,6 @@ void control_t::copy_pilot_inputs() {
 }
 
 void control_t::update(float dt) {
-    control_prof.start();
-    
     // sanity check
     if ( dt > 1.0 ) { dt = 0.01; }
     if ( dt < 0.00001 ) { dt = 0.01; }
@@ -119,9 +118,12 @@ void control_t::update(float dt) {
     if ( !master_switch or pass_through ) {
         copy_pilot_inputs();
     }
-
-    control_prof.stop();
 }
 
-// global shared instance
-control_t control;
+PYBIND11_MODULE(control_mgr, m) {
+    py::class_<control_t>(m, "control_mgr")
+        .def(py::init<>())
+        .def("init", &control_t::init)
+        .def("update", &control_t::update)
+    ;
+}
