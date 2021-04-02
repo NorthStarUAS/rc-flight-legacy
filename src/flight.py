@@ -14,10 +14,11 @@ import os
 from props import getNode, root
 import props_json
 
-from rcUAS import airdata_helper
 from rcUAS import driver_mgr
+from rcUAS import airdata_helper, gps_helper
 
-from util import myprof
+from comms import display
+from util import myprof, timer
 
 # #include <python_sys.h>
 # #include <pyprops.h>
@@ -38,15 +39,11 @@ from util import myprof
 
 # #include "include/aura_config.h"
 
-# #include "comms/display.h"
 # #include "comms/logging.h"
 # #include "comms/remote_link.h"
 # #include "control/actuators.h"
 # #include "control/cas.h"
 # #include "control/control.h"
-# #include "drivers/driver_mgr.h"
-# #include "drivers/airdata.h"
-# #include "drivers/gps.h"
 # #include "drivers/pilot.h"
 # #include "filters/filter_mgr.h"
 # #include "health/health.h"
@@ -74,12 +71,15 @@ from util import myprof
 
 parser = argparse.ArgumentParser(description="Rice Creak UAS main flight code")
 parser.add_argument("--config", required=True, help="path to config tree")
-parser.add_argument("--display", action="store_true", help="enable additional console display messages")
+parser.add_argument("--verbose", action="store_true", help="enable additional console verbocity")
 args = parser.parse_args()
 
+display_timer = timer.get_pytime()
 def main_work_loop():
-#     // update display_on variable
-#     display_on = comms_node.getBool("display_on");
+    # update display_on variable
+    global display_on
+    global display_timer
+    display_on = comms_node.getBool("display_on");
     
 #     // read the sensors until we receive an IMU packet
 #     sync_prof.start();
@@ -90,7 +90,6 @@ def main_work_loop():
     #gps = getNode("/sensors/imu")
     #print(gps.getFloat("timestamp"), timer.get_pytime())
     myprof.driver_prof.stop()
-    myprof.driver_prof.stats()
     
 #     status_node.setDouble("frame_time", imu_node.getDouble( "timestamp" ));
 #     status_node.setDouble("dt", dt);
@@ -98,8 +97,6 @@ def main_work_loop():
     
 #     main_prof.start();
     
-#     static double display_timer = get_Time();
-
 #     static int count = 0;
 #     count++;
 #     // printf ("timer expired %d times\n", count);
@@ -108,7 +105,8 @@ def main_work_loop():
     myprof.airdata_prof.start()
     airdata.update()
     myprof.airdata_prof.stop()
-#     gps_helper.update();      // gps age (and setting host clock)
+
+    gps.update(display_on)    # computes gps age (and sets host clock)
 #     pilot_helper.update();    // log auto/manual changes, transient reduction
 
 #     //
@@ -171,20 +169,19 @@ def main_work_loop():
 #     // health status
 #     health.update();
 
-#     // sensor summary display @ 2 second interval
-#     if ( display_on && get_Time() >= display_timer + 2.0 ) {
-# 	display_timer += 2.0;
-# 	display->status_summary();
-# 	airdata_prof.stats();
-# 	driver_prof.stats();
-# 	filter_prof.stats();
-# 	mission_prof.stats();
-# 	control_prof.stats();
-# 	health_prof.stats();
-# 	datalog_prof.stats();
-# 	sync_prof.stats();
-# 	main_prof.stats();
-#     }
+    # sensor summary display @ 2 second interval
+    if display_on and timer.get_pytime() >= display_timer + 2:
+        display_timer += 2
+        display.status_summary()
+        myprof.airdata_prof.stats()
+        myprof.driver_prof.stats()
+        myprof.filter_prof.stats()
+        myprof.mission_prof.stats()
+        myprof.control_prof.stats()
+        myprof.health_prof.stats()
+        myprof.datalog_prof.stats()
+        myprof.sync_prof.stats()
+        myprof.main_prof.stats()
 
 #     // flush of logging stream (update at full rate)
 #     if ( true ) {
@@ -206,20 +203,23 @@ def main_work_loop():
 
 # Initialization Section
 
+display_on = False
+
 comms_node = getNode("/comms", True)
 status_node = getNode("/status", True)
 status_node.setFloat("frame_time", 0.0)
 imu_node = getNode("/sensors/imu", True)
 
-airdata = airdata_helper.airdata_helper()
 drivers = driver_mgr.driver_mgr()
+airdata = airdata_helper.airdata_helper()
+gps = gps_helper.gps_helper()
 
 # load master config file
 config_file = os.path.join( args.config, "main.json")
 result = props_json.load(config_file, root)
 if result:
     print("Loaded master configuration file:", config_file)
-    if args.display:
+    if args.verbose:
         root.pretty_print()
     config_node = getNode("/config")
     config_node.setString("path", args.config)
@@ -254,18 +254,12 @@ else:
 # 	enable_mission = p.getBool("enable");
 #     }
 
+if args.verbose:
+    comms_node.setBool("display_on", True)
+
 #     // Parse the command line: pass #2 allows command line options to
 #     // override config file options
 #     for ( iarg = 1; iarg < argc; iarg++ ) {
-#         if ( !strcmp(argv[iarg],"--display") ) {
-#             ++iarg;
-#             if ( !strcmp(argv[iarg], "on") ) {
-# 		display_on = true;
-# 	    }
-#             if ( !strcmp(argv[iarg], "off") ) {
-# 		display_on = false;
-# 	    }
-#             comms_node.setBool("display_on", display_on);
 #         } else if ( !strcmp(argv[iarg], "--config" )  ) {
 #    	    // considered earlier in first pass
 #             ++iarg;
@@ -284,12 +278,10 @@ else:
 #     AuraCoreInit();
 
 drivers.init()
-print("drivers inited")
 
 # data helpers
 airdata.init()
-print("airdata inited")
-#     gps_helper.init();
+gps.init();
 #     pilot_helper.init();
 
 #     // Initialize any defined filter modules

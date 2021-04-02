@@ -8,6 +8,9 @@
  */
 
 
+#include <pybind11/pybind11.h>
+namespace py = pybind11;
+
 #include <pyprops.h>
 
 #include <stdio.h>
@@ -24,6 +27,7 @@ using std::string;
 #include "gps.h"
 
 void gps_helper_t::init() {
+    pyPropsInit();
     gps_node = pyGetNode("/sensors/gps", true);
     // init master gps timestamp to one year ago
     gps_node.setDouble("timestamp", -31557600.0);
@@ -123,5 +127,10 @@ void gps_helper_t::update(bool verbose) {
     gps_node.setDouble("data_age", gps_age());
 }
 
-// global shared instance
-gps_helper_t gps_helper;
+PYBIND11_MODULE(gps_helper, m) {
+    py::class_<gps_helper_t>(m, "gps_helper")
+        .def(py::init<>())
+        .def("init", &gps_helper_t::init)
+        .def("update", &gps_helper_t::update)
+    ;
+}

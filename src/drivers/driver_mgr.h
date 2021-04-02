@@ -25,5 +25,3 @@ private:
     pyPropertyNode sensors_node;
     vector<driver_t *> drivers;
 };
-
-//extern driver_mgr_t driver_mgr;

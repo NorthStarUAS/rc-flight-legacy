@@ -44,7 +44,7 @@ class Profile():
             self.max_interval = last_interval
 
     def stats(self):
-        if not self.enabled:
+        if not self.enabled or self.init_time is None:
             return
     
         total_time = timer.get_pytime() - self.init_time

@@ -12,19 +12,6 @@ setup(
     author_email="curtolson@flightgear.org",
     url="https://github.com/RiceCreekUAS",
     ext_modules=[
-        Extension("rcUAS.airdata_helper",
-                  define_macros=[("HAVE_PYBIND11", "1")],
-                  sources=[
-                      "src/drivers/airdata.cpp",
-                      "src/util/lowpass.cpp"
-                  ],
-                  depends=[
-                      "src/drivers/airdata.h",
-                      "src/util/lowpass.h"
-                  ],
-                  include_dirs=["src"],
-                  extra_objects=["/usr/local/lib/libpyprops.a"]
-                  ),
         Extension("rcUAS.driver_mgr",
                   define_macros=[("HAVE_PYBIND11", "1")],
                   sources=[
@@ -75,6 +62,34 @@ setup(
                       "src/util/serial_link.h",
                       "src/util/sg_path.h",
                       "src/util/strutils.h",
+                      "src/util/timing.h"
+                  ],
+                  include_dirs=["src"],
+                  extra_objects=["/usr/local/lib/libpyprops.a"]
+                  ),
+        Extension("rcUAS.airdata_helper",
+                  define_macros=[("HAVE_PYBIND11", "1")],
+                  sources=[
+                      "src/drivers/airdata.cpp",
+                      "src/util/lowpass.cpp"
+                  ],
+                  depends=[
+                      "src/drivers/airdata.h",
+                      "src/util/lowpass.h"
+                  ],
+                  include_dirs=["src"],
+                  extra_objects=["/usr/local/lib/libpyprops.a"]
+                  ),
+        Extension("rcUAS.gps_helper",
+                  define_macros=[("HAVE_PYBIND11", "1")],
+                  sources=[
+                      "src/drivers/gps.cpp",
+                      "src/filters/nav_common/coremag.c",
+                      "src/util/timing.cpp"
+                  ],
+                  depends=[
+                      "src/drivers/gps.h",
+                      "src/filters/nav_common/coremag.h",
                       "src/util/timing.h"
                   ],
                   include_dirs=["src"],

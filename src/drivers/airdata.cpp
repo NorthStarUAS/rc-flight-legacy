@@ -192,9 +192,6 @@ void airdata_helper_t::update() {
 #endif
 }
 
-// global shared instance
-//airdata_helper_t airdata_helper;
-
 PYBIND11_MODULE(airdata_helper, m) {
     py::class_<airdata_helper_t>(m, "airdata_helper")
         .def(py::init<>())
