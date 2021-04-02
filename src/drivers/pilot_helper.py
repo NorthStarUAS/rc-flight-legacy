@@ -27,7 +27,7 @@ class pilot_helper():
         # allows the AP to seed it's components with trimmed values
         # and improve continuity when switching from manual to AP
         # mode.
-        if self.ap_node.getBool("master_switch"):
+        if not self.ap_node.getBool("master_switch"):
             self.flight_node.setFloat("aileron", self.pilot_node.getFloat("aileron"))
             self.flight_node.setFloat("elevator", self.pilot_node.getFloat("elevator"))
             self.engine_node.setFloat("throttle", self.pilot_node.getFloat("throttle"))
