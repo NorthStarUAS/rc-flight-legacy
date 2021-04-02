@@ -19,33 +19,14 @@ from rcUAS import airdata_helper, gps_helper
 
 from comms import display, logging, remote_link, telnet
 from drivers import pilot_helper
+from health import health
 from mission import mission_mgr
 from util import myprof, timer
-
-# #include <python_sys.h>
-# #include <pyprops.h>
-
-# #include <stdio.h>
-# #include <sys/types.h>
-
-# #include <sys/stat.h>
-# #include <fcntl.h>
-# #include <sys/time.h>
-# #include <stdlib.h>
-# #include <string.h>
-# #include <sys/resource.h>
-# #include <unistd.h>
-
-# #include <string>
-# using std::string;
-
-# #include "include/aura_config.h"
 
 # #include "control/actuators.h"
 # #include "control/cas.h"
 # #include "control/control.h"
 # #include "filters/filter_mgr.h"
-# #include "health/health.h"
 # #include "init/globals.h"
 # #include "util/netSocket.h"	// netInit()
 # #include "util/sg_path.h"
@@ -129,8 +110,8 @@ def main_work_loop():
     mission.update(dt)
     myprof.mission_prof.stop()
 
-#     // health status
-#     health.update();
+    # health status
+    health.update()
 
     # sensor summary display @ 2 second interval
     if display_on and timer.get_pytime() >= display_timer + 2:
@@ -164,12 +145,6 @@ comms_node = getNode("/comms", True)
 status_node = getNode("/status", True)
 status_node.setFloat("frame_time", 0.0)
 imu_node = getNode("/sensors/imu", True)
-
-drivers = driver_mgr.driver_mgr()
-airdata = airdata_helper.airdata_helper()
-gps = gps_helper.gps_helper()
-pilot = pilot_helper.pilot_helper()
-mission = mission_mgr.MissionMgr()
 
 # load master config file
 config_file = os.path.join( args.config, "main.json")
@@ -221,6 +196,13 @@ if args.verbose:
 #     // initialize required aura-core structures
 #     AuraCoreInit();
 
+# create class instances
+drivers = driver_mgr.driver_mgr()
+airdata = airdata_helper.airdata_helper()
+gps = gps_helper.gps_helper()
+pilot = pilot_helper.pilot_helper()
+mission = mission_mgr.MissionMgr()
+
 # initalize communication modules first thing after loading config
 logging.init()
 remote_link.init()
@@ -233,11 +215,11 @@ airdata.init()
 gps.init()
 pilot.init()
 
+# health monitor
+health.init()
+
 #     // Initialize any defined filter modules
 #     Filter_init();
-
-#     // init system health and status monitor
-#     health.init();
 
 #     // if ( enable_pointing ) {
 #     // 	// initialize pointing module
@@ -250,12 +232,10 @@ pilot.init()
 #     // initialize the actuator output
 #     actuators.init();
 
-#     if ( enable_cas ) {
-# 	// initialize the cas system
-# 	cas.init();
-#     }
-mission.init()
+# if enable_cas:
+#     cas.init()
 
+mission.init()
     
 # log the master config tree
 logging.write_configs()
@@ -268,6 +248,3 @@ while True:
 # close and exit
 # Filter_close()
 logging.close()
-
-
-

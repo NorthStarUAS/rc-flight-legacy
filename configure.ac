@@ -87,7 +87,6 @@ AC_CONFIG_FILES([ \
         src/filters/nav_common/Makefile \
         src/filters/nav_ekf15/Makefile \
         src/filters/nav_ekf15_mag/Makefile \
-        src/health/Makefile \
         src/include/Makefile \
         src/init/Makefile \
         src/util/Makefile \

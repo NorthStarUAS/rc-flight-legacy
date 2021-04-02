@@ -4,7 +4,6 @@ SUBDIRS = \
 	control \
 	drivers \
 	filters \
-	health \
 	include \
 	init
 
