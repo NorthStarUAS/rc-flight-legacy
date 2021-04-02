@@ -8,6 +8,8 @@
  * $Id: adns_mgr.cpp,v 1.6 2009/05/15 17:04:56 curt Exp $
  */
 
+#include <pybind11/pybind11.h>
+namespace py = pybind11;
 
 #include <pyprops.h>
 
@@ -19,7 +21,6 @@ using std::string;
 #include "filters/nav_ekf15_mag/aura_interface.h"
 #include "include/globaldefs.h"
 #include "init/globals.h"
-#include "util/myprof.h"
 #include "util/props_helper.h"
 
 #include "ground.h"
@@ -49,6 +50,8 @@ static vector<pyPropertyNode> sections;
 static vector<pyPropertyNode> outputs;
 
 void Filter_init() {
+    pyPropsInit();              // first thing
+    
     // initialize imu property nodes
     imu_node = pyGetNode("/sensors/imu", true);
     gps_node = pyGetNode("/sensors/gps", true);
@@ -214,8 +217,6 @@ static void publish_values() {
 }
 
 bool Filter_update() {
-    filter_prof.start();
-
     double imu_time = imu_node.getDouble("timestamp");
     double imu_dt = imu_time - last_imu_time;
     bool fresh_filter_data = false;
@@ -270,8 +271,6 @@ bool Filter_update() {
         publish_values();
     }
     
-    filter_prof.stop();
-
     last_imu_time = imu_time;
 
 #if 0
@@ -301,3 +300,12 @@ void Filter_close() {
 	}
     }
 }
+
+#ifdef HAVE_PYBIND11
+PYBIND11_MODULE(filter_mgr, m) {
+    m.doc() = "ins/gns ekf (filter) manager";
+    m.def("init", &Filter_init);
+    m.def("update", &Filter_update);
+    m.def("close", &Filter_close);
+  }
+#endif // HAVE_PYBIND11

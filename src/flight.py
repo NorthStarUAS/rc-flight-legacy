@@ -14,7 +14,7 @@ import os
 from props import getNode, root
 import props_json
 
-from rcUAS import driver_mgr
+from rcUAS import driver_mgr, filter_mgr
 from rcUAS import airdata_helper, gps_helper
 
 from comms import display, logging, remote_link, telnet
@@ -26,15 +26,14 @@ from util import myprof, timer
 # #include "control/actuators.h"
 # #include "control/cas.h"
 # #include "control/control.h"
-# #include "filters/filter_mgr.h"
 # #include "init/globals.h"
 # #include "util/netSocket.h"	// netInit()
 # #include "util/sg_path.h"
 
 # configuration settings
 
-# static bool enable_cas     = false;   // cas module enabled/disabled
-# static bool enable_pointing = false;  // pan/tilt pointing module
+# enable_cas = False       # cas module enabled/disabled
+# enable_pointing = false  # pan/tilt pointing module
 
 parser = argparse.ArgumentParser(description="Rice Creak UAS main flight code")
 parser.add_argument("--config", required=True, help="path to config tree")
@@ -70,18 +69,17 @@ def main_work_loop():
         status_node.setString("navigation", "invalid")
     myprof.helper_prof.stop()
 
-#     //
-#     // State Estimation section
-#     //
-#     Filter_update();
+    # State estimation/fusion section
+    myprof.filter_prof.start()
+    filter_mgr.update();
+    myprof.filter_prof.stop()
 
 #     //
 #     // Core Flight Control section
 #     //
 
-#     if ( enable_cas ) {
-# 	cas.update();
-#     }
+    # if enable_cas:
+    #     cas.update()
 
 #     control.update( dt );
 
@@ -100,10 +98,8 @@ def main_work_loop():
     # Read commands from telnet interface
     telnet.update()
 
-#     // if ( enable_pointing ) {
-#     // 	// Update pointing module
-#     // 	ati_pointing_update( dt );
-#     // }
+    # if enable_pointing:
+    #     ati_pointing_update( dt )
 
     # Mission and Task section
     myprof.mission_prof.start()
@@ -176,26 +172,6 @@ if config_node.hasChild("gps_timeout_sec"):
 if args.verbose:
     comms_node.setBool("display_on", True)
 
-#     // Parse the command line: pass #2 allows command line options to
-#     // override config file options
-#     for ( iarg = 1; iarg < argc; iarg++ ) {
-#         } else if ( !strcmp(argv[iarg], "--config" )  ) {
-#    	    // considered earlier in first pass
-#             ++iarg;
-#         } else if ( !strcmp(argv[iarg], "--python_path" )  ) {
-#    	    // considered earlier in first pass
-#             ++iarg;
-#         } else if ( !strcmp(argv[iarg], "--help") ) {
-#             usage(argv[0]);
-#         } else {
-#             printf("Unknown option \"%s\"\n", argv[iarg]);
-#             usage(argv[0]);
-#         }
-#     }
-
-#     // initialize required aura-core structures
-#     AuraCoreInit();
-
 # create class instances
 drivers = driver_mgr.driver_mgr()
 airdata = airdata_helper.airdata_helper()
@@ -218,13 +194,12 @@ pilot.init()
 # health monitor
 health.init()
 
-#     // Initialize any defined filter modules
-#     Filter_init();
+# Initialize any defined filter modules
+filter_mgr.init()
 
-#     // if ( enable_pointing ) {
-#     // 	// initialize pointing module
-#     // 	ati_pointing_init();
-#     // }
+# if enable_pointing:
+#     # initialize pointing module
+#     ati_pointing_init()
 
 #     // initialize the autopilot
 #     control.init();
@@ -246,5 +221,5 @@ while True:
     main_work_loop()
 
 # close and exit
-# Filter_close()
+filter_mgr.close()
 logging.close()

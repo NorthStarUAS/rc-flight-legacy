@@ -95,6 +95,37 @@ setup(
                   include_dirs=["src"],
                   extra_objects=["/usr/local/lib/libpyprops.a"]
                   ),
+        Extension("rcUAS.filter_mgr",
+                  define_macros=[("HAVE_PYBIND11", "1")],
+                  sources=[
+                      "src/filters/filter_mgr.cpp",
+                      "src/filters/ground.cpp",
+                      "src/filters/wind.cpp",
+                      "src/filters/nav_ekf15/aura_interface.cpp",
+                      "src/filters/nav_ekf15/EKF_15state.cpp",
+                      "src/filters/nav_ekf15_mag/aura_interface.cpp",
+                      "src/filters/nav_ekf15_mag/EKF_15state.cpp",
+                      "src/filters/nav_common/coremag.c",
+                      "src/filters/nav_common/nav_functions.cpp",
+                      "src/util/lowpass.cpp",
+                      "src/util/props_helper.cpp"
+                  ],
+                  depends=[
+                      "src/filters/filter_mgr.h",
+                      "src/filters/ground.h",
+                      "src/filters/wind.h",
+                      "src/filters/nav_ekf15/aura_interface.h",
+                      "src/filters/nav_ekf15/EKF_15state.h",
+                      "src/filters/nav_ekf15_mag/aura_interface.h",
+                      "src/filters/nav_ekf15_mag/EKF_15state.h",
+                      "src/filters/nav_common/coremag.h",
+                      "src/filters/nav_common/nav_functions.h",
+                      "src/util/lowpass.h",
+                      "src/util/props_helper.h"
+                  ],
+                  include_dirs=["src"],
+                  extra_objects=["/usr/local/lib/libpyprops.a"]
+                  ),
         Extension("rcUAS.wgs84",
                   define_macros=[("HAVE_PYBIND11", "1")],
                   sources=["python/util/wgs84.cpp"],
