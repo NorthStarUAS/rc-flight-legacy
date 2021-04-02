@@ -13,10 +13,10 @@ sudo cp setup-uarts.service /lib/systemd/
 sudo ln /lib/systemd/bb-aura.service /etc/systemd/system/
 sudo ln /lib/systemd/setup-uarts.service /etc/systemd/system/
 
-sudo systemctl daemon-reload 
+sudo systemctl daemon-reload
 
-sudo systemctl start bb-aura.service 
-sudo systemctl start setup-uarts.service 
+sudo systemctl start bb-aura.service
+sudo systemctl start setup-uarts.service
 
 sudo systemctl enable bb-aura.service
 sudo systemctl enable setup-uarts.service
@@ -41,4 +41,3 @@ Troubleshooting:
   cape_enable=capemgr.enable_partno=BB-UART1,BB-UART2,BB-UART4
   # disable hdmi (generates gps interference)
   cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
-
