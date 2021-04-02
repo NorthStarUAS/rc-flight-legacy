@@ -17,7 +17,7 @@ import props_json
 from rcUAS import driver_mgr
 from rcUAS import airdata_helper, gps_helper
 
-from comms import display
+from comms import display, telnet
 from drivers import pilot_helper
 from util import myprof, timer
 
@@ -101,23 +101,21 @@ def main_work_loop():
 #     // printf ("timer expired %d times\n", count);
 
     # extra sensor processing section
-    myprof.airdata_prof.start()
+    myprof.helper_prof.start()
     airdata.update()
-    myprof.airdata_prof.stop()
-
     gps.update(display_on)    # computes gps age (and sets host clock)
     pilot.update()            # log auto/manual changes, transient reduction
-
-#     //
-#     // State Estimation section
-#     //
-#     Filter_update();
-
     # check gps data age.  The nav filter continues to run, but the
     # results are marked as NotValid if the most recent gps data
     # becomes too old.
     if gps.gps_age() > gps_timeout_sec:
         status_node.setString("navigation", "invalid")
+    myprof.helper_prof.stop()
+
+#     //
+#     // State Estimation section
+#     //
+#     Filter_update();
 
 #     //
 #     // Core Flight Control section
@@ -144,10 +142,8 @@ def main_work_loop():
 #     // check for incoming command data
 #     remote_link->command();
 
-#     //
-#     // Read commands from telnet interface
-#     //
-#     telnet->update(0);
+    # Read commands from telnet interface
+    telnet.update()
 
 #     // if ( enable_pointing ) {
 #     // 	// Update pointing module
@@ -171,8 +167,8 @@ def main_work_loop():
     if display_on and timer.get_pytime() >= display_timer + 2:
         display_timer += 2
         display.status_summary()
-        myprof.airdata_prof.stats()
         myprof.driver_prof.stats()
+        myprof.helper_prof.stats()
         myprof.filter_prof.stats()
         myprof.mission_prof.stats()
         myprof.control_prof.stats()
@@ -308,6 +304,7 @@ pilot.init()
 
 #     // log the master config tree
 #     logging->write_configs();
+telnet.init()
     
 print("Everything is initized ... enter main work loop.");
 

@@ -57,12 +57,12 @@ class Profile():
         self.enabled = True
         
 # global profiling structures
-airdata_prof = Profile("airdata")
+control_prof = Profile("control")
+datalog_prof = Profile("logger")
 driver_prof = Profile("drivers")
 filter_prof = Profile("filter")
-mission_prof = Profile("mission")
-control_prof = Profile("control")
+helper_prof = Profile("helper")
 health_prof = Profile("health")
-datalog_prof = Profile("logger")
 main_prof = Profile("main")
+mission_prof = Profile("mission")
 sync_prof = Profile("sync")

@@ -289,7 +289,6 @@ def init(port=6499):
     else:
         telnet_enabled = False
 
-def update(dt=0):
-    # dt is unused but makes pyModuleBase happy
+def update():
     if telnet_enabled:
         asyncore.loop(timeout=0, count=1)
