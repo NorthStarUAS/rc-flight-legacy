@@ -14,6 +14,7 @@ import os
 from props import getNode, root
 import props_json
 
+from rcUAS import airdata_helper
 from rcUAS import driver_mgr
 
 from util import myprof
@@ -103,8 +104,10 @@ def main_work_loop():
 #     count++;
 #     // printf ("timer expired %d times\n", count);
 
-#     // extra sensor processing section
-#     airdata_helper.update();  // compute pressure based derived values
+    # extra sensor processing section
+    myprof.airdata_prof.start()
+    airdata.update()
+    myprof.airdata_prof.stop()
 #     gps_helper.update();      // gps age (and setting host clock)
 #     pilot_helper.update();    // log auto/manual changes, transient reduction
 
@@ -208,6 +211,7 @@ status_node = getNode("/status", True)
 status_node.setFloat("frame_time", 0.0)
 imu_node = getNode("/sensors/imu", True)
 
+airdata = airdata_helper.airdata_helper()
 drivers = driver_mgr.driver_mgr()
 
 # load master config file
@@ -280,9 +284,11 @@ else:
 #     AuraCoreInit();
 
 drivers.init()
-    
-#     // data helpers
-#     airdata_helper.init();
+print("drivers inited")
+
+# data helpers
+airdata.init()
+print("airdata inited")
 #     gps_helper.init();
 #     pilot_helper.init();
 

@@ -7,6 +7,8 @@
  *
  */
 
+#include <pybind11/pybind11.h>
+namespace py = pybind11;
 
 #include <math.h>
 #include <stdio.h>
@@ -16,11 +18,11 @@
 using std::string;
 
 #include "include/globaldefs.h"
-#include "util/myprof.h"
 
 #include "airdata.h"
 
 void airdata_helper_t::init() {
+    pyPropsInit();
     airdata_node = pyGetNode("/sensors/airdata", true);
     sensors_node = pyGetNode("/sensors", true);
     pos_filter_node = pyGetNode("/position/filter", true);
@@ -34,8 +36,6 @@ void airdata_helper_t::init() {
 
 // 1. ground altitude, 2. error between pressure altitude and gps altitude
 void airdata_helper_t::update() {
-    airdata_prof.start();
-
     double cur_time = airdata_node.getDouble("timestamp");
 
     double dt = cur_time - last_time;
@@ -190,9 +190,15 @@ void airdata_helper_t::update() {
     double a0 = (sum_y - a1*sum_x) / n;
     printf("y = %.2f + %.2f * x\n", a0, a1);
 #endif
-
-    airdata_prof.stop();
 }
 
 // global shared instance
-airdata_helper_t airdata_helper;
+//airdata_helper_t airdata_helper;
+
+PYBIND11_MODULE(airdata_helper, m) {
+    py::class_<airdata_helper_t>(m, "airdata_helper")
+        .def(py::init<>())
+        .def("init", &airdata_helper_t::init)
+        .def("update", &airdata_helper_t::update)
+    ;
+}

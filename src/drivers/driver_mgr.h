@@ -26,4 +26,4 @@ private:
     vector<driver_t *> drivers;
 };
 
-extern driver_mgr_t driver_mgr;
+//extern driver_mgr_t driver_mgr;

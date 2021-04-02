@@ -117,7 +117,7 @@ void driver_mgr_t::send_commands() {
 }
 
 // global shared instance
-driver_mgr_t driver_mgr;
+//driver_mgr_t driver_mgr;
 
 PYBIND11_MODULE(driver_mgr, m) {
     py::class_<driver_mgr_t>(m, "driver_mgr")

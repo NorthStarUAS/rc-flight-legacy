@@ -12,6 +12,19 @@ setup(
     author_email="curtolson@flightgear.org",
     url="https://github.com/RiceCreekUAS",
     ext_modules=[
+        Extension("rcUAS.airdata_helper",
+                  define_macros=[("HAVE_PYBIND11", "1")],
+                  sources=[
+                      "src/drivers/airdata.cpp",
+                      "src/util/lowpass.cpp"
+                  ],
+                  depends=[
+                      "src/drivers/airdata.h",
+                      "src/util/lowpass.h"
+                  ],
+                  include_dirs=["src"],
+                  extra_objects=["/usr/local/lib/libpyprops.a"]
+                  ),
         Extension("rcUAS.driver_mgr",
                   define_macros=[("HAVE_PYBIND11", "1")],
                   sources=[

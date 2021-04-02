@@ -43,4 +43,4 @@ private:
     float true_alt_m = 0.0;
 };
 
-extern airdata_helper_t airdata_helper;
+//extern airdata_helper_t airdata_helper;
