@@ -25,5 +25,3 @@ public:
     void init();
     void update();
 };
-
-extern actuators_t actuators;

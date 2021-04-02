@@ -12,10 +12,22 @@ setup(
     author_email="curtolson@flightgear.org",
     url="https://github.com/RiceCreekUAS",
     ext_modules=[
-        Extension("rcUAS.control_mgr",
+        Extension("rcUAS.actuator_mgr",
                   define_macros=[("HAVE_PYBIND11", "1")],
                   sources=[
                       "src/control/actuators.cpp",
+                      "src/util/timing.cpp"
+                  ],
+                  depends=[
+                      "src/control/actuators.h",
+                      "src/util/timing.h"
+                  ],
+                  include_dirs=["src"],
+                  extra_objects=["/usr/local/lib/libpyprops.a"]
+                  ),
+        Extension("rcUAS.control_mgr",
+                  define_macros=[("HAVE_PYBIND11", "1")],
+                  sources=[
                       "src/control/ap.cpp",
                       "src/control/cas.cpp",
                       "src/control/control.cpp",
@@ -29,7 +41,6 @@ setup(
                       "src/util/timing.cpp"
                   ],
                   depends=[
-                      "src/control/actuators.h",
                       "src/control/ap.h",
                       "src/control/cas.h",
                       "src/control/control.h",

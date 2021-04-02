@@ -14,7 +14,7 @@ import os
 from props import getNode, root
 import props_json
 
-from rcUAS import control_mgr, driver_mgr, filter_mgr
+from rcUAS import actuator_mgr, control_mgr, driver_mgr, filter_mgr
 from rcUAS import airdata_helper, gps_helper
 
 from comms import display, logging, remote_link, telnet
@@ -23,7 +23,6 @@ from health import health
 from mission import mission_mgr
 from util import myprof, timer
 
-# #include "control/actuators.h"
 # #include "init/globals.h"
 # #include "util/netSocket.h"	// netInit()
 # #include "util/sg_path.h"
@@ -72,9 +71,7 @@ def main_work_loop():
     filter_mgr.update();
     myprof.filter_prof.stop()
 
-#     //
-#     // Core Flight Control section
-#     //
+    # flight Control section
 
     # if enable_cas:
     #     cas.update()
@@ -83,8 +80,8 @@ def main_work_loop():
     control.update( dt )
     myprof.control_prof.stop()
 
-#     // convert logical flight controls into physical actuator outputs
-#     actuators.update();
+    # convert logical flight controls into physical actuator outputs
+    actuators.update()
 
     # write commands back to drivers
     drivers.write()
@@ -173,6 +170,7 @@ if args.verbose:
     comms_node.setBool("display_on", True)
 
 # create class instances
+actuators = actuator_mgr.actuator_mgr()
 control = control_mgr.control_mgr()
 drivers = driver_mgr.driver_mgr()
 airdata = airdata_helper.airdata_helper()
@@ -199,14 +197,13 @@ health.init()
 filter_mgr.init()
 
 # if enable_pointing:
-#     # initialize pointing module
 #     ati_pointing_init()
 
 # initialize the autopilot
 control.init()
 
-#     // initialize the actuator output
-#     actuators.init();
+# initialize the actuator output
+actuators.init()
 
 # if enable_cas:
 #     cas.init()

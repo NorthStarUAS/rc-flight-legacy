@@ -6,6 +6,9 @@
  * Copyright (C) 2009-2020 Curtis L. Olson curtolson@flightgear.org
  */
 
+#include <pybind11/pybind11.h>
+namespace py = pybind11;
+
 #include <stdio.h>
 
 #include <string>
@@ -15,6 +18,7 @@ using std::string;
 #include "actuators.h"
 
 void actuators_t::init() {
+    pyPropsInit();              // first things first
     // bind properties
     flight_node = pyGetNode("/controls/flight", true);
     engine_node = pyGetNode("/controls/engine", true);
@@ -170,5 +174,10 @@ void actuators_t::update() {
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
 }
 
-// global shared instance
-actuators_t actuators;
+PYBIND11_MODULE(actuator_mgr, m) {
+    py::class_<actuators_t>(m, "actuator_mgr")
+        .def(py::init<>())
+        .def("init", &actuators_t::init)
+        .def("update", &actuators_t::update)
+    ;
+}
