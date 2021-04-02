@@ -15,8 +15,7 @@ import comms.serial_parser
 # global variables for data file logging
 log_buffer = []
 fdata = None
-
-logging_node = getNode('/config/logging')
+logging_node = None
 
 enable_file = False             # log to file enabled/disabled
 enable_udp = False              # log to a udp port enabled/disabled
@@ -30,6 +29,23 @@ udp_host = "127.0.0.1"
 
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
+
+# act_skip = 0
+# act_count = 0
+# airdata_skip = 0
+# airdata_count = 0
+# ap_skip = 0
+# ap_count = 0
+# filter_skip = 0
+# filter_count = 0
+# gps_skip = 0
+# gps_count = 0
+# health_skip = 0
+# health_count = 0
+# imu_skip = 0
+# imu_count = 0
+# pilot_skip = 0
+# pilot_count = 
 
 # scan the base path for fltNNNN directories.  Return the biggest
 # flight number
@@ -92,12 +108,15 @@ def init_udp_logging():
     return True
 
 def init():
-    global log_path
-    global udp_host
-    global udp_port
     global enable_file
     global enable_udp
     
+    global logging_node
+    logging_node = getNode("/config/logging", True)
+
+    global log_path
+    global udp_host
+    global udp_port
     log_path = logging_node.getString('path')
     udp_host = logging_node.getString('hostname')
     udp_port = logging_node.getInt('port')
@@ -111,6 +130,40 @@ def init():
     if udp_host != '' and udp_port > 0:
         if init_udp_logging():
             enable_udp = True
+
+    global act_skip
+    global act_count
+    global airdata_skip
+    global airdata_count
+    global ap_skip
+    global ap_count
+    global filter_skip
+    global filter_count
+    global gps_skip
+    global gps_count
+    global health_skip
+    global health_count
+    global imu_skip
+    global imu_count
+    global pilot_skip
+    global pilot_count
+    act_skip = logging_node.getInt("actuator_skip")
+    act_count = random.randint(0, act_skip)
+    airdata_skip = logging_node.getInt("airdata_skip")
+    airdata_count = random.randint(0, airdata_skip)
+    ap_skip = logging_node.getInt("autopilot_skip")
+    ap_count = random.randint(0, ap_skip)
+    filter_skip = logging_node.getInt("filter_skip")
+    filter_count = random.randint(0, filter_skip)
+    gps_skip = logging_node.getInt("gps_skip")
+    gps_count = random.randint(0, gps_skip)
+    health_skip = logging_node.getInt("health_skip")
+    health_count = random.randint(0, health_skip)
+    imu_skip = logging_node.getInt("imu_skip")
+    imu_count = random.randint(0, imu_skip)
+    pilot_skip = logging_node.getInt("pilot_skip")
+    pilot_count = random.randint(0, pilot_skip)
+            
     return True
 
 # write all pending data and flush
@@ -141,24 +194,6 @@ def log_message( pkt_id, payload ):
             print('error transmitting udp log packet')
 
 # build messages and log them as needed
-
-act_skip = logging_node.getInt("actuator_skip")
-act_count = random.randint(0, act_skip)
-airdata_skip = logging_node.getInt("airdata_skip")
-airdata_count = random.randint(0, airdata_skip)
-ap_skip = logging_node.getInt("autopilot_skip")
-ap_count = random.randint(0, ap_skip)
-filter_skip = logging_node.getInt("filter_skip")
-filter_count = random.randint(0, filter_skip)
-gps_skip = logging_node.getInt("gps_skip")
-gps_count = random.randint(0, gps_skip)
-health_skip = logging_node.getInt("health_skip")
-health_count = random.randint(0, health_skip)
-imu_skip = logging_node.getInt("imu_skip")
-imu_count = random.randint(0, imu_skip)
-pilot_skip = logging_node.getInt("pilot_skip")
-pilot_count = random.randint(0, pilot_skip)
-
 def process_messages():
     global act_count
     global airdata_count
