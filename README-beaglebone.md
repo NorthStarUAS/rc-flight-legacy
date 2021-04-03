@@ -200,12 +200,12 @@ Build/install aura-props package:
     make
     sudo make install
   
-Tip: how to setup a swap partition to 'temporarily' increase the
-available RAM.  This might be useful for running a really big task
-(but at the expense of performance.)
+Tip: how to setup a swap partition to temporarily increase the
+available RAM for compiling python modules. Feel free to increase the
+size (count) of the swap partition if needed.
 
     sudo mkdir -p /var/cache/swap/
-    sudo dd if=/dev/zero of=/var/cache/swap/swapfile bs=1M count=768 (size in MB)
+    sudo dd if=/dev/zero of=/var/cache/swap/swapfile bs=1M count=256 # count=size in MB
     sudo chmod 0600 /var/cache/swap/swapfile
     sudo mkswap /var/cache/swap/swapfile
     sudo swapon /var/cache/swap/swapfile
@@ -217,16 +217,9 @@ Don't forget to remove the swap file (to free up a big chunk of disk space):
 
 Build/install aura-core package
 
-    cd aura-core/python
+    cd aura-core
     ./setup.py build
     sudo ./setup.py install
-
-    cd aura-core
-    ./autogen.sh
-    mkdir build; cd build
-    ../configure CFLAGS="-Wall -O3" CXXFLAGS="-Wall -O3"
-    make
-    sudo make install
 
 Setup FlightData directory
 
