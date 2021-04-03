@@ -256,8 +256,11 @@ def process_messages():
             log_message(packer.pilot.id, buf)
     
 def update():
-    process_messages()
-    write_messages();
+    try:
+        process_messages()
+        write_messages();
+    except Exception as e:
+        print("logging errer:", str(e))
 
 # write out the imu calibration parameters associated with this data
 # (this allows us to later rederive the original raw sensor values.)
