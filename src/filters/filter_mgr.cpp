@@ -20,7 +20,6 @@ using std::string;
 #include "filters/nav_ekf15/aura_interface.h"
 #include "filters/nav_ekf15_mag/aura_interface.h"
 #include "include/globaldefs.h"
-#include "init/globals.h"
 #include "util/props_helper.h"
 
 #include "ground.h"
