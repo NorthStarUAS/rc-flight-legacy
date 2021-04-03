@@ -100,7 +100,7 @@ def main_work_loop():
 
     # Mission and Task section
     myprof.mission_prof.start()
-    mission.update(dt)
+    mission_mgr.update(dt)
     myprof.mission_prof.stop()
 
     # health status
@@ -154,13 +154,13 @@ else:
     print("Cannot continue without a valid configuration, sorry.")
     exit(-1)
 
-#     pyPropertyNode p;
-#     p = pyGetNode("/config/pointing", true);
-#     if ( p.hasChild("enable") ){
-# 	printf("Pointing = %s\n", p.getString("enable").c_str());
-# 	enable_pointing = p.getBool("enable");
-# 	printf("Pointing = %d\n", enable_pointing);
-#     }
+#  pyPropertyNode p;
+#  p = pyGetNode("/config/pointing", true);
+#  if ( p.hasChild("enable") ){
+#      printf("Pointing = %s\n", p.getString("enable").c_str());
+#      enable_pointing = p.getBool("enable");
+#      printf("Pointing = %d\n", enable_pointing);
+#  }
 
 if config_node.hasChild("gps_timeout_sec"):
     gps_timeout_sec = config_node.getFloat("gps_timeout_sec")
@@ -176,7 +176,6 @@ drivers = driver_mgr.driver_mgr()
 airdata = airdata_helper.airdata_helper()
 gps = gps_helper.gps_helper()
 pilot = pilot_helper.pilot_helper()
-mission = mission_mgr.MissionMgr()
 
 # initalize communication modules first thing after loading config
 logging.init()
@@ -208,7 +207,7 @@ actuators.init()
 # if enable_cas:
 #     cas.init()
 
-mission.init()
+mission_mgr.init()
     
 # log the master config tree
 logging.write_configs()
