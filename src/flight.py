@@ -103,7 +103,7 @@ def init():
     # save the master config tree with the flight data
     logging.write_configs()
 
-    print("Everything is initized ... enter main work loop.");
+    print("Initialization complete.");
 
 display_timer = timer.get_pytime()
 def update():
@@ -201,6 +201,7 @@ def update():
 # the data rate from the driver module dictates the main loop update
 # rate.
 init()
+print("Entering main update loop...")
 while True:
     update()
 
