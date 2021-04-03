@@ -10,6 +10,13 @@ application for unmanned aircraft systems.
 * [Watch AuraUAS in action, raw and unedited](https://www.youtube.com/channel/UC_AWqZyWYvnA-h9MMcbNYyA)
 * [Visit my blog for a variety of AuraUAS related projects and background information](http://gallinazo.flightgear.org/)
 
+We know you have your choice in autopilots, so we appreciate you
+flying with us!  The focus here is simplicity and understandability
+without sacrificing performance and quality.  There is a very heavy
+emphasis on writing as much of the code as possible in pure python.
+There is a limited number of supported environemnts and sensors to
+avoid complicating the architecture and build system.
+
 Aura-core includes:
 
 * An advanced 15-state EKF (extended kalman filter) developed by the
@@ -50,20 +57,23 @@ Aura-core includes:
 
 ## Configure/Compiling
 
-Aura-core uses the automake/autoconf tool set and is built like many
-popular open-source projects.
+Aura-core is built with the python setup.py tools.  Under the hood
+there are several critical C++ modules that are packaged and wrapped
+for python.
 
-1. Run: "./autogen.sh" in the top source directory.
+1. Run: "./setup.py build" in the top level directory.
 
-2. Make a subdirectory called build (you can have multiple build
-   directories setup with different build options, for example,
-   supporting different architectures, debug vs. optimized release
-   builds, profiling builds, etc.)
+<wait a while>
 
-3. Run "../configure CFLAGS="-Wall -O3" CXXFLAGS="-Wall -O3"
+2. Run: "sudo ./setup.py install"
 
-4. Run "make"
-
+Special note: if you find your pi or beaglebone is getting crushed
+during the compile and running out of memory, consider setting up a
+swap partition [temporarily] during the compile.  Instructions are in
+the README-beaglebone.md file.  This can really improve your native
+compile experience if you are building directly on the embedded
+comptuer.  Don't forget to remove the swap partition when you are
+finished building because it burns a lot of your avialable disk space.
 
 ## Development Philosophy
 
