@@ -30,23 +30,6 @@ udp_host = "127.0.0.1"
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
 
-# act_skip = 0
-# act_count = 0
-# airdata_skip = 0
-# airdata_count = 0
-# ap_skip = 0
-# ap_count = 0
-# filter_skip = 0
-# filter_count = 0
-# gps_skip = 0
-# gps_count = 0
-# health_skip = 0
-# health_count = 0
-# imu_skip = 0
-# imu_count = 0
-# pilot_skip = 0
-# pilot_count = 
-
 # scan the base path for fltNNNN directories.  Return the biggest
 # flight number
 def max_flight_num():
