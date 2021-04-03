@@ -23,10 +23,10 @@
 
 using std::string;
 
-#include "include/globaldefs.h"
+//#include "include/globaldefs.h"
 
-#include "util/strutils.h"
-#include "util/timing.h"
+#include "strutils.h"
+#include "timing.h"
 
 
 static int fd = -1;
