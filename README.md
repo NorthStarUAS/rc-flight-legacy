@@ -10,11 +10,11 @@ application for unmanned aircraft systems.
 * [Watch AuraUAS in action, raw and unedited](https://www.youtube.com/channel/UC_AWqZyWYvnA-h9MMcbNYyA)
 * [Visit my blog for a variety of AuraUAS related projects and background information](http://gallinazo.flightgear.org/)
 
-We know you have a choice in autopilots, so we appreciate you
-flying with us!  The focus here is simplicity and understandability
-without sacrificing performance and quality.  There is a very heavy
+We know you have a choice in autopilots, so we appreciate you flying
+with us!  The focus here is simplicity and understandability without
+sacrificing performance and quality.  There is a very intentional
 emphasis on writing as much of the code as possible in pure python.
-There is a limited number of supported environemnts and sensors to
+There is a limited number of supported environments and sensors to
 avoid complicating the architecture and build system.
 
 Aura-core includes:
