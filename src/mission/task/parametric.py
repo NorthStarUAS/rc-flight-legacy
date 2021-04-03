@@ -15,7 +15,7 @@ import numpy as np
 # from scipy.optimize import minimize
 
 from props import getNode
-from auracore import wgs84
+from rcUAS import wgs84
 
 import comms.events
 from mission.task.task import Task

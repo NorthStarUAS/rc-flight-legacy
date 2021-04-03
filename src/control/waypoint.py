@@ -1,5 +1,5 @@
 from props import getNode
-from auracore import wgs84
+from rcUAS import wgs84
 
 class Waypoint:
     def __init__(self):

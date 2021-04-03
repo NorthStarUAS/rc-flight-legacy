@@ -193,7 +193,6 @@ def update():
 
     myprof.main_prof.stop()
 
-    
 # Here is the top level main program.  In arduino style, we call the
 # init() function once and then loop the update() function forever.
 #

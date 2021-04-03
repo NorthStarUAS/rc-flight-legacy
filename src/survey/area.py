@@ -3,7 +3,7 @@ from __future__ import division
 
 import math
 
-from auracore import wgs84
+from rcUAS import wgs84
 
 import survey.point as point
 import survey.vector as vector

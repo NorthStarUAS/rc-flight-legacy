@@ -1,8 +1,7 @@
 import math
 
 from props import getNode
-from auracore import wgs84
-from auracore import windtri
+from rcUAS import wgs84, windtri
 
 import comms.events
 import control.waypoint as waypoint

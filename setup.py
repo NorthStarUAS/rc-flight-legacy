@@ -172,13 +172,13 @@ setup(
                   ),
         Extension("rcUAS.wgs84",
                   define_macros=[("HAVE_PYBIND11", "1")],
-                  sources=["python/util/wgs84.cpp"],
-                  depends=["python/util/wgs84.h"]
+                  sources=["src/util/wgs84.cpp"],
+                  depends=["src/util/wgs84.h"]
                   ),
         Extension("rcUAS.windtri",
                   define_macros=[("HAVE_PYBIND11", "1")],
-                  sources=["python/util/windtri.cpp"],
-                  depends=["python/util/windtri.h"]
+                  sources=["src/util/windtri.cpp"],
+                  depends=["src/util/windtri.h"]
                   )
     ]
 )
