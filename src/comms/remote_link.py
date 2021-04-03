@@ -37,6 +37,39 @@ def init():
     global parser
     global link_open
     
+    global act_skip
+    global act_count
+    global airdata_skip
+    global airdata_count
+    global ap_skip
+    global ap_count
+    global filter_skip
+    global filter_count
+    global gps_skip
+    global gps_count
+    global health_skip
+    global health_count
+    global imu_skip
+    global imu_count
+    global pilot_skip
+    global pilot_count
+    act_skip = remote_link_config.getInt("actuator_skip")
+    act_count = random.randint(0, act_skip)
+    airdata_skip = remote_link_config.getInt("airdata_skip")
+    airdata_count = random.randint(0, airdata_skip)
+    ap_skip = remote_link_config.getInt("autopilot_skip")
+    ap_count = random.randint(0, ap_skip)
+    filter_skip = remote_link_config.getInt("filter_skip")
+    filter_count = random.randint(0, filter_skip)
+    gps_skip = remote_link_config.getInt("gps_skip")
+    gps_count = random.randint(0, gps_skip)
+    health_skip = remote_link_config.getInt("health_skip")
+    health_count = random.randint(0, health_skip)
+    imu_skip = remote_link_config.getInt("imu_skip")
+    imu_count = random.randint(0, imu_skip)
+    pilot_skip = remote_link_config.getInt("pilot_skip")
+    pilot_count = random.randint(0, pilot_skip)
+
     device = remote_link_config.getString('device')
     if not len(device):
         return
@@ -105,22 +138,6 @@ def send_message( pkt_id, payload ):
         return False
 
 # build messages and send them as needed
-act_skip = remote_link_config.getInt("actuator_skip")
-act_count = random.randint(0, act_skip)
-airdata_skip = remote_link_config.getInt("airdata_skip")
-airdata_count = random.randint(0, airdata_skip)
-ap_skip = remote_link_config.getInt("autopilot_skip")
-ap_count = random.randint(0, ap_skip)
-filter_skip = remote_link_config.getInt("filter_skip")
-filter_count = random.randint(0, filter_skip)
-gps_skip = remote_link_config.getInt("gps_skip")
-gps_count = random.randint(0, gps_skip)
-health_skip = remote_link_config.getInt("health_skip")
-health_count = random.randint(0, health_skip)
-imu_skip = remote_link_config.getInt("imu_skip")
-imu_count = random.randint(0, imu_skip)
-pilot_skip = remote_link_config.getInt("pilot_skip")
-pilot_count = random.randint(0, pilot_skip)
 def process_messages():
     global act_count
     global airdata_count
