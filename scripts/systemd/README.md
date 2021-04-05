@@ -1,24 +1,26 @@
-# configure a beaglebone (systemd) system to automatically start the aura
-# autopilot
+# Automatic startup on boot
+
+configure a beaglebone (systemd) system to automatically start the
+Rice Creek UAS flight control app when booted.
 
 /usr/local/bin should already exist
-sudo cp bb-aura.sh /usr/local/bin
+sudo cp bb-flight.sh /usr/local/bin
 sudo cp setup-uarts.sh /usr/local/bin
 
-sudo cp bb-aura.service /lib/systemd/
+sudo cp bb-flight.service /lib/systemd/
 sudo cp setup-uarts.service /lib/systemd/
 
 # note this needs to be a hard link, systemctl enable will refuse if it's a
 # symbolic (-s) link.
-sudo ln /lib/systemd/bb-aura.service /etc/systemd/system/
+sudo ln /lib/systemd/bb-flight.service /etc/systemd/system/
 sudo ln /lib/systemd/setup-uarts.service /etc/systemd/system/
 
 sudo systemctl daemon-reload
 
-sudo systemctl start bb-aura.service
+sudo systemctl start bb-flight.service
 sudo systemctl start setup-uarts.service
 
-sudo systemctl enable bb-aura.service
+sudo systemctl enable bb-flight.service
 sudo systemctl enable setup-uarts.service
 
 Troubleshooting:

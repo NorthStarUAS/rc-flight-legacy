@@ -1,10 +1,10 @@
 [Unit] 
-Description=Run the ugear autopilot application
+Description=Run the Rice Creek UAS flight app
 After=syslog.target network.target 
 
 [Service] 
 Type=simple 
-ExecStart=/usr/local/bin/bb-aura.sh 
+ExecStart=/usr/local/bin/bb-flight.sh 
 
 [Install] 
 WantedBy=multi-user.target
