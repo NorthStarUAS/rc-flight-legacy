@@ -1258,6 +1258,8 @@ class Packer():
                 task_node.setString("calib_message", "accel calibration success")
             elif task_attrib == 8:
                 task_node.setString("calib_message", "error, accel calibration failed")
+            elif task_attrib == 9:
+                task_node.setString("calib_message", "finished successfully!")
             elif task_attrib == 99:
                 task_node.setString("calib_message", "move 45 degrees off axis to arm")
         elif task_id == 5:
