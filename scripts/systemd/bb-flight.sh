@@ -3,7 +3,8 @@
 RUNAS=aura
 HOME=`eval echo ~$RUNAS`
 SOURCE=$HOME/Source
-RUNLOG=`mktemp -u -p $HOME -t auralog.XXXX`
+RUNLOG=`mktemp -u -p $HOME -t flight-log.XXXX`
+COMMAND="$SOURCE/rc-flight/src/flight.py --config $HOME/config"
 
 # nice range is -20 to 20 with -20 being the highest priority.  -10 should be
 # a good balanced number.  -20 could be a little selfish, but that might be
@@ -22,10 +23,10 @@ NICE=-20
 
 nice -n $NICE sudo -i -u $RUNAS -g dialout bash << EOF
 
-echo "Running aura autopilot as $RUNAS"
+echo "Running rice creek flight controller as $RUNAS"
 echo "Source: $SOURCE"
 echo "Runlog: $RUNLOG"
-
-$SOURCE/aura-core/build/src/aura --python_path $SOURCE/aura-core/src --config $SOURCE/aura-config/config > $RUNLOG
+echo "Command: $COMMAND"
+$COMMAND > $RUNLOG
 
 EOF
