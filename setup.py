@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
-# a quick first hack/test
+# script to build and install all the required C++ modules as python
+# extensions.  Depends on pybind11 and rc-props as the connecting glue
+# between python and C++.
 
 from setuptools import setup, Extension
 
