@@ -8,6 +8,7 @@ from props import getNode
 import comms.events
 import mission.mission_mgr
 from mission.task.task import Task
+from mission.task import fcsmode
 import mission.task.state
 
 class Idle(Task):
@@ -27,7 +28,7 @@ class Idle(Task):
         # if not in the air, set a simple flight control mode that
         # does not touch the throttle, and set throttle to idle.
         if not self.task_node.getBool("is_airborne"):
-            self.ap_node.setString("mode", "basic")
+            fcsmode.set("basic")
             self.engine_node.setFloat("throttle", 0.0)
             
         comms.events.log("mission", "idle")

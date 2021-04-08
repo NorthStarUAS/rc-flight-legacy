@@ -4,6 +4,7 @@ from props import getNode
 
 import comms.events
 from mission.task.task import Task
+from mission.task import fcsmode
 
 r2d = 180.0 / math.pi
 
@@ -15,7 +16,6 @@ class Launch(Task):
         self.task_node = getNode("/task", True)
         self.pos_node = getNode("/position", True)
         self.vel_node = getNode("/velocity", True)
-        self.orient_node = getNode("/orientation", True)
         self.targets_node = getNode("/autopilot/targets", True)
         self.imu_node = getNode("/sensors/imu", True)
         self.flight_node = getNode("/controls/flight", True)
@@ -54,9 +54,9 @@ class Launch(Task):
         # start with roll control only, we fix elevator to neutral until
         # flight speeds come up and steer the rudder directly
         if self.target_pitch_deg is None:
-            self.ap_node.setString("mode", "roll");
+            fcsmode.set("roll");
         else:
-            self.ap_node.setString("mode", "roll+pitch")
+            fcsmode.set("roll+pitch")
             self.targets_node.setFloat("pitch_deg", self.target_pitch_deg)
         self.targets_node.setFloat("roll_deg", 0.0)
         self.targets_node.setFloat("altitude_agl_ft", self.mission_agl_ft)
@@ -142,8 +142,8 @@ class Launch(Task):
                (self.vel_node.getFloat("airspeed_kt") > self.target_speed_kt):
                 # we are flying or we've reached our flying/climbout
                 # airspeed: switch to normal flight mode
-                self.targets_node.setFloat("pitch_deg", self.orient_node.getFloat("pitch_deg"))
-                self.ap_node.setString("mode", "basic+tecs")
+                if fcsmode.get() != "basic+tecs":
+                    fcsmode.set("basic+tecs")
 
         self.last_ap_master = self.ap_node.getBool("master_switch")
 

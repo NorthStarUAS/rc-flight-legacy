@@ -4,6 +4,7 @@ from props import getNode
 
 import comms.events
 from mission.task.task import Task
+from mission.task import fcsmode
 import mission.task.state
 
 class Circle(Task):
@@ -13,7 +14,6 @@ class Circle(Task):
         self.orient_node = getNode("/orientation", True)
         self.circle_active_node = getNode("/task/circle/active", True)
         self.circle_standby_node = getNode("/task/circle/standby", True)
-        self.ap_node = getNode("/autopilot", True)
         self.nav_node = getNode("/navigation", True)
         self.targets_node = getNode("/autopilot/targets", True)
 
@@ -51,13 +51,13 @@ class Circle(Task):
     def activate(self):
         self.active = True
 
-        # save existing state
+        # save current state
         mission.task.state.save(modes=True, circle=True, targets=False)
         
         self.update_parameters()
         
         # set modes
-        self.ap_node.setString("mode", "basic+tecs")
+        fcsmode.set("basic+tecs")
         self.nav_node.setString("mode", "circle")
         comms.events.log("mission", "circle")
     
@@ -68,7 +68,7 @@ class Circle(Task):
         return False
     
     def close(self):
-        # restore the previous state
+        # restore previous state
         mission.task.state.restore()
 
         self.active = False

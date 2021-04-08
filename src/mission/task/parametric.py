@@ -19,6 +19,7 @@ from rcUAS import wgs84
 
 import comms.events
 from mission.task.task import Task
+from mission.task import fcsmode
 import mission.task.state
 
 # various support code and values for parameterized functions
@@ -71,7 +72,6 @@ class Parametric(Task):
         self.pos_node = getNode("/position", True)
         self.home_node = getNode("/task/home", True)
         self.circle_node = getNode("/task/circle/active", True)
-        self.ap_node = getNode("/autopilot", True)
         self.targets_node = getNode("/autopilot/targets", True)
         self.nav_node = getNode("/navigation", True)
         self.tecs_node = getNode("/config/autopilot/TECS", True)
@@ -195,7 +195,7 @@ class Parametric(Task):
         mission.task.state.save(modes=True, circle=True, targets=True)
         
         # set modes
-        self.ap_node.setString("mode", "basic+tecs")
+        fcsmode.set("basic+tecs")
         self.nav_node.setString("mode", "circle")
         comms.events.log("mission", "parametric path")
     

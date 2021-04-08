@@ -9,13 +9,13 @@ from mission.task import camera
 from mission.task import circle
 from mission.task import excite
 from mission.task import flaps_mgr
+from mission.task import glide
 from mission.task import home_mgr
 from mission.task import idle
 from mission.task import is_airborne
 from mission.task import land3
 from mission.task import launch
 from mission.task import lost_link
-from mission.task import mode_mgr
 from mission.task import parametric
 from mission.task import preflight
 from mission.task import route
@@ -24,6 +24,7 @@ from mission.task import throttle_safety
 
 class MissionMgr:
     def __init__(self):
+        self.ap_node = getNode("/autopilot/targets", True)
         self.targets_node = getNode("/autopilot/targets", True)
         self.missions_node = getNode("/config/mission", True)
         self.pos_node = getNode("/position", True)
@@ -35,6 +36,7 @@ class MissionMgr:
         self.global_tasks = []
         self.seq_tasks = []
         self.standby_tasks = []
+        self.last_master_switch = False
 
     def make_task(self, config_node):
         if not config_node.hasChild("name"):
@@ -56,6 +58,8 @@ class MissionMgr:
             result = excite.Excite(config_node)
         elif task_name == "flaps_manager":
             result = flaps_mgr.FlapsMgr(config_node)
+        elif task_name == "glide":
+            result = glide.GlideTest(config_node)
         elif task_name == "home_manager":
             result = home_mgr.HomeMgr(config_node)
         elif task_name == "idle":
@@ -68,8 +72,6 @@ class MissionMgr:
             result = launch.Launch(config_node)
         elif task_name == "lost_link":
             result = lost_link.LostLink(config_node)
-        elif task_name == "mode_manager":
-            result = mode_mgr.ModeMgr(config_node)
         elif task_name == "parametric":
             result = parametric.Parametric(config_node)
         elif task_name == "preflight":
@@ -150,6 +152,16 @@ class MissionMgr:
         if not len(self.seq_tasks):
             # sequential queue is empty so request the idle task
             self.request_task("idle")
+
+        # (for lack of a better place to do this) log master_switch changes
+        master_switch = self.ap_node.getBool('master_switch')
+        if master_switch != self.last_master_switch:
+            if master_switch:
+                comms.events.log('mission', 'ap master switch: on (auto)')
+            else:
+                comms.events.log('mission', 'ap master switch: off (manual)')
+            self.last_master_switch = master_switch
+
         return True
 
     def find_global_task(self, name):

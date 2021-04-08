@@ -4,7 +4,8 @@
 
 from props import getNode
 
-ap_node = getNode('/autopilot', True)
+from mission.task import fcsmode
+
 nav_node = getNode('/navigation', True)
 targets_node = getNode('/autopilot/targets', True)
 circle_node = getNode('/task/circle/active', True)
@@ -14,7 +15,7 @@ class State():
     def __init__(self, save_modes, save_circle, save_targets):
         self.modes = {}
         if save_modes:
-            self.modes['fcs'] = ap_node.getString('mode')
+            self.modes['fcs'] = fcsmode.get()
             self.modes['nav'] = nav_node.getString('mode')
         
         self.circle = {}
@@ -30,9 +31,9 @@ class State():
             self.targets['speed_kt'] = targets_node.getFloat("airspeed_kt")
 
     # restore the saved state to the running system
-    def restore():
+    def restore(self):
         if len(self.modes):
-            ap_node.setString("mode", self.modes['fcs'])
+            fcsmode.set(self.modes['fcs'])
             nav_node.setString("mode", self.modes['nav'])
         if len(self.circle):
             circle_node.setFloat("longitude_deg", self.circle['lon_deg'])

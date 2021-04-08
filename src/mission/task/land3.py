@@ -6,6 +6,7 @@ from rcUAS import wgs84
 import comms.events
 import control.route
 from mission.task.task import Task
+from mission.task import fcsmode
 import mission.task.state
 
 d2r = math.pi / 180.0
@@ -21,7 +22,6 @@ class Land(Task):
         self.land_node = getNode("/task/land", True)
         self.circle_node = getNode("/task/circle/active", True)
         self.route_node = getNode("/task/route", True)
-        self.ap_node = getNode("/autopilot", True)
         self.nav_node = getNode("/navigation", True)
         self.pos_node = getNode("/position", True)
         self.vel_node = getNode("/velocity", True)
@@ -89,7 +89,7 @@ class Land(Task):
         # Save existing state
         mission.task.state.save(modes=True, circle=True, targets=True)
         
-        self.ap_node.setString("mode", "basic+tecs")
+        fcsmode.set("basic+tecs")
         self.nav_node.setString("mode", "circle")
         self.targets_node.setFloat("airspeed_kt",
                                    self.land_node.getFloat("approach_speed_kt"))
@@ -243,7 +243,7 @@ class Land(Task):
             self.approach_throttle = self.engine_node.getFloat("throttle")
             self.approach_pitch = self.targets_node.getFloat("pitch_deg")
             self.flare_pitch_range = self.approach_pitch - self.flare_pitch_deg
-            self.ap_node.setString("mode", "basic")
+            fcsmode.set("basic")
 
         if self.flare:
             if self.flare_seconds > 0.01:

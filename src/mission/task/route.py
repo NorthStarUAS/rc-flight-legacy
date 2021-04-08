@@ -5,6 +5,7 @@ from props import getNode
 import comms.events
 import control.route
 from mission.task.task import Task
+from mission.task import fcsmode
 import mission.task.state
 
 class Route(Task):
@@ -38,7 +39,7 @@ class Route(Task):
         mission.task.state.save(modes=True, targets=True)
 
         # set modes
-        self.ap_node.setString('mode', 'basic+tecs')
+        fcsmode.set("basic+tecs")
         self.nav_node.setString('mode', 'route')
 
         if self.alt_agl_ft > 0.1:

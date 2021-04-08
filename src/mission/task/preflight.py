@@ -2,6 +2,7 @@ from props import getNode
 
 import comms.events
 from mission.task.task import Task
+from mission.task import fcsmode
 import mission.task.state
 
 class Preflight(Task):
@@ -9,7 +10,6 @@ class Preflight(Task):
         Task.__init__(self)
         self.task_node = getNode("/task", True)
         self.preflight_node = getNode("/task/preflight", True)
-        self.ap_node = getNode("/autopilot", True)
         self.targets_node = getNode("/autopilot/targets", True)
         self.imu_node = getNode("/sensors/imu", True)
         self.flight_node = getNode("/controls/flight", True)
@@ -31,7 +31,7 @@ class Preflight(Task):
 
         if not self.task_node.getBool("is_airborne"):
             # set fcs mode to roll+pitch, aka vanity mode? :-)
-            self.ap_node.setString("mode", "roll+pitch")
+            fcsmode.set("roll+pitch")
             self.targets_node.setFloat("roll_deg", 0.0)
             self.targets_node.setFloat("pitch_deg", 0.0)
             self.flight_node.setFloat("flaps_setpoint", 0.0)
