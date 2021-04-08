@@ -7,20 +7,16 @@ from mission.task.task import Task
 from mission.task import fcsmode
 import mission.task.state
 
-# this task generates various excitation signals (chirps, doublets,
-# multi-sines) which can then be applied to various control inputs.
-# The expectation is that these excitations will be overlaid on top of
-# the autopilot outputs which will lead to some 'flighting' but the
-# aircraft will stay on condition better and there still should be
-# enough excitation for all the post flight analysis.
-
-# 'self.index' implements an experiment indexing scheme.  This enables
-# the operator to queue an arbitarily long sequence of different
-# excitations that can be run in sequence automatically.  Anticipating
-# some external source could set the experiment number, we need to
-# validate the index before using it.  Also anticipating the external
-# source could be a transmitter toggle switch, the index will wrap
-# around when it exceeds the allowable values.
+# this task flies a series of glide tests.  The config specifies max
+# and min pitch angles and a pitch angle step.  Also a top and bottom
+# altitude (agl).  The system will climb to the top altitude, set the
+# starting pitch angle and hold that (throttle off) until the aircraft
+# glides down to the bottom altitude.  It will then climb back up
+# increment (or decrement) the pitch angle, and repeat through tthe
+# whole pitch angle sweep range.
+#
+# navigation control is unaffected, so the aircraft could be put in a
+# very large radius (200-300m) circle hold during the entire maneuver.
 
 class GlideTest(Task):
     def __init__(self, config_node):
