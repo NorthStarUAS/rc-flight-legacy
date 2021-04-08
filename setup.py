@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # script to build and install all the required C++ modules as python
 # extensions.  Depends on pybind11 and rc-props as the connecting glue

@@ -12,6 +12,3 @@ install-sh
 missing
 py-compile
 src/include/ugear_config.h.in
-build_linux-pc
-build_overo-oe
-build_gumstix-oe
