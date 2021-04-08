@@ -27,7 +27,6 @@ class GlideTest(Task):
         self.glide_node = getNode("/task/glide", True)
         self.pos_node = getNode("/position", True)
         self.name = config_node.getString("name")
-        self.start_time = 0.0
         self.running = False
         self.last_enable = True # so we don't start out with a enable event
 
@@ -57,7 +56,6 @@ class GlideTest(Task):
         if self.pitch < self.pitch_end and self.pitch_incr < 0:
             self.pitch_incr = -self.pitch_incr
 
-        self.glide_node.setString("state", "")
         self.glide_node.setFloat("pitch", self.pitch)
 
         # configure initial climb to top altitude
@@ -72,12 +70,10 @@ class GlideTest(Task):
         # restore previous state
         mission.task.state.restore()
         if abort:
-            # only log an event if the abort happens when the
-            # glide is running
+            # ended early by operator
             comms.events.log("glide", "aborted by operator")
         else:
-            # experiment ran to completion, increment experiment
-            # index.
+            # experiment ran to completion
             comms.events.log("glide sequence", "completed")
         self.running = False
         self.glide_node.setBool("enable", False)
