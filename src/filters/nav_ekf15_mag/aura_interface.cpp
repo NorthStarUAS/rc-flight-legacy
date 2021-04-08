@@ -88,6 +88,22 @@ static void umn2props(void) {
     filter_node.setDouble( "ay_bias", nav_data.aby );
     filter_node.setDouble( "az_bias", nav_data.abz );
     
+    float max_pos_cov = nav_data.Pp0;
+    if ( nav_data.Pp1 > max_pos_cov ) { max_pos_cov = nav_data.Pp1; }
+    if ( nav_data.Pp2 > max_pos_cov ) { max_pos_cov = nav_data.Pp2; }
+    if ( max_pos_cov > 655.0 ) { max_pos_cov = 655.0; }
+    float max_vel_cov = nav_data.Pv0;
+    if ( nav_data.Pv1 > max_vel_cov ) { max_vel_cov = nav_data.Pv1; }
+    if ( nav_data.Pv2 > max_vel_cov ) { max_vel_cov = nav_data.Pv2; }
+    if ( max_vel_cov > 65.5 ) { max_vel_cov = 65.5; }
+    float max_att_cov = nav_data.Pa0;
+    if ( nav_data.Pa1 > max_att_cov ) { max_att_cov = nav_data.Pa1; }
+    if ( nav_data.Pa2 > max_att_cov ) { max_att_cov = nav_data.Pa2; }
+    if ( max_att_cov > 6.55 ) { max_vel_cov = 6.55; }
+    filter_node.setDouble( "max_pos_cov", max_pos_cov );
+    filter_node.setDouble( "max_vel_cov", max_vel_cov );
+    filter_node.setDouble( "max_att_cov", max_att_cov );
+    
     filter_node.setDouble( "altitude_ft",
 			   nav_data.alt * M2F );
     filter_node.setDouble( "groundtrack_deg",
