@@ -27,7 +27,7 @@ void driver_mgr_t::init() {
        hurt anything */
     pyPropsInit();
     // destroy things in the correct order
-    atexit(AuraPythonCleanup);
+    atexit(rcPythonCleanup);
     
     sensors_node = pyGetNode("/sensors", true);
     pyPropertyNode config_node = pyGetNode("/config", true);
