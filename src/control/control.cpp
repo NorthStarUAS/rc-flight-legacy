@@ -24,8 +24,6 @@ namespace py = pybind11;
 
 #include <stdio.h>
 
-// #include "init/globals.h"
-
 #include "tecs.h"
 #include "control.h"
 
