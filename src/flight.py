@@ -202,7 +202,10 @@ def update():
 init()
 print("Entering main update loop...")
 while True:
-    update()
+    try:
+        update()
+    except Exception as e:
+        print("Main loop encountered an exception:", str(e))
 
 # close and exit
 filter_mgr.close()
