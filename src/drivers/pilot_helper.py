@@ -18,9 +18,9 @@ class pilot_helper():
     def update(self):
         # log receiver fail safe changes
         if self.pilot_node.getBool("fail_safe") != self.last_fail_safe:
-            msg = "Receiver fail safe = %d" % pilot_node.getBool("fail_safe")
+            msg = "Receiver fail safe = %d" % self.pilot_node.getBool("fail_safe")
             events.log("Aura", msg );
-            self.last_fail_safe = pilot_node.getBool("fail_safe")
+            self.last_fail_safe = self.pilot_node.getBool("fail_safe")
 
         # Only in manual mode, do copy the pilot inputs to the main AP
         # outputs.  This puts the pilot inputs in a standard place and
