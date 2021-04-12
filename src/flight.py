@@ -10,6 +10,7 @@
 
 import argparse
 import os
+import traceback
 
 from props import getNode, root
 import props_json
@@ -206,6 +207,7 @@ while True:
         update()
     except Exception as e:
         print("Main loop encountered an exception:", str(e))
+        traceback.print_exc()
 
 # close and exit
 filter_mgr.close()
