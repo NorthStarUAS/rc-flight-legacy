@@ -1,7 +1,7 @@
 #pragma once
 
 #include <pyprops.h>
-#include <pymodule.h>
+//#include <pymodule.h>
 
 #include "ap.h"
 
@@ -14,7 +14,7 @@ public:
     void update( float dt );
 
 private:
-    pyModuleBase navigation;
+    //pyModuleBase navigation;
     AuraAutopilot ap;
     
     pyPropertyNode status_node;

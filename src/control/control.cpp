@@ -40,7 +40,7 @@ void control_t::init() {
     engine_node = pyGetNode("/controls/engine", true);
 
     // initialize the navigation module
-    navigation.init("control.navigation");
+    // navigation.init("control.navigation");
     
     // initialize and build the autopilot controller from the property
     // tree config (/config/autopilot)
@@ -102,7 +102,7 @@ void control_t::update(float dt) {
     update_tecs();
 
     // navigation update (circle or route heading)
-    navigation.update(dt);
+    // navigation.update(dt);
 
     // update the autopilot stages (even in manual flight mode.)  This
     // keeps the differential value up to date, tracks manual inputs,

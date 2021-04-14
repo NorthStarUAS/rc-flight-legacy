@@ -21,6 +21,7 @@ from rcUAS import airdata_helper, gps_helper
 
 # Pure python modules
 from comms import display, logging, remote_link, telnet
+from control import navigation
 from drivers import pilot_helper
 from health import health
 from mission import mission_mgr
@@ -94,6 +95,7 @@ def init():
 
     # autopilot, flight control modules
     control.init()
+    navigation.init()
 
     # effectors
     actuators.init()
@@ -142,7 +144,8 @@ def update():
 
     # flight control
     myprof.control_prof.start()
-    control.update( dt )
+    navigation.update(dt)
+    control.update(dt)
     myprof.control_prof.stop()
 
     # convert logical flight controls into physical actuator outputs
