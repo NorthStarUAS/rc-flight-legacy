@@ -1,12 +1,18 @@
 # Omega2 Notes
 
-This is my pile of unorganized scriblings related to compiling things
-for the Onion Omega2 ... with the eventual goal of getting the AuraUAS
-system built for the Omega2.  The sticking point currently is needing
-to get Python.h and libpython2.7.so into the cross compiler
-environment.  This should be straightforward, but is bombing for some
-reason (Fedora 27?  Newer version of Python?  Some other devel tree
-change that happened and no one testing Python since?)
+Original Idea & Problem: This is my pile of unorganized scriblings
+related to compiling things for the Onion Omega2 ... with the eventual
+goal of getting the AuraUAS system built for the Omega2.  The sticking
+point currently is needing to get Python.h and libpython2.7.so into
+the cross compiler environment.  This should be straightforward, but
+is bombing for some reason (Fedora 27?  Newer version of Python?  Some
+other devel tree change that happened and no one testing Python
+since?)
+
+Update: I was able to get the ground station link/server script to run
+on the omega2. That is interesting if the omega2 would serve as a
+standalone link/server box that would then serve to any wifi connected
+devices.
 
 ## Using the cross compiler once it has been compiled
 
