@@ -9,6 +9,7 @@ using std::ostringstream;
 #include <python_sys.h>
 
 #include "drivers/Aura4/Aura4.h"
+#include "drivers/rcfmu/rcfmu.h"
 #include "drivers/fgfs.h"
 #include "drivers/lightware.h"
 #include "drivers/maestro.h"
@@ -41,6 +42,11 @@ void driver_mgr_t::init() {
         if ( driver_node.hasChild("Aura4") ) {
             pyPropertyNode section_node = driver_node.getChild("Aura4");
             driver_t *d = new Aura4_t();
+            d->init(&section_node);
+            drivers.push_back(d);
+        } else if ( driver_node.hasChild("rcfmu") ) {
+            pyPropertyNode section_node = driver_node.getChild("rcfmu");
+            driver_t *d = new rcfmu_t();
             d->init(&section_node);
             drivers.push_back(d);
         } else if ( driver_node.hasChild("fgfs") ) {

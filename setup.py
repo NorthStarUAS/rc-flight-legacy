@@ -62,6 +62,8 @@ setup(
                   define_macros=[("HAVE_PYBIND11", "1")],
                   sources=[
                       "src/drivers/Aura4/Aura4.cpp",
+                      "src/drivers/rcfmu/rcfmu.cpp",
+                      "src/drivers/rcfmu/serial_link2.cpp",
                       "src/drivers/driver_mgr.cpp",
                       "src/drivers/fgfs.cpp",
                       "src/drivers/gps_gpsd.cpp",
@@ -87,6 +89,9 @@ setup(
                   depends=[
                       "src/drivers/Aura4/aura4_messages.h",
                       "src/drivers/Aura4/Aura4.h",
+                      "src/drivers/rcfmu/rcfmu.h",
+                      "src/drivers/rcfmu/rcfmu_messages.h",
+                      "src/drivers/rcfmu/serial_link2.h",
                       "src/drivers/driver.h",
                       "src/drivers/driver_mgr.h",
                       "src/drivers/fgfs.h",
