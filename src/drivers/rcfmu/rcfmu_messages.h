@@ -35,7 +35,7 @@ const uint8_t command_reset_ekf_id = 14;
 const uint8_t command_cycle_inceptors_id = 15;
 const uint8_t pilot_id = 16;
 const uint8_t imu_id = 17;
-const uint8_t aura_nav_pvt_id = 18;
+const uint8_t gps_id = 18;
 const uint8_t airdata_id = 19;
 const uint8_t power_id = 20;
 const uint8_t status_id = 21;
@@ -389,78 +389,42 @@ public:
     }
 };
 
-// Message: aura_nav_pvt (id: 18)
-class aura_nav_pvt_t {
+// Message: gps (id: 18)
+class gps_t {
 public:
 
-    uint32_t iTOW;
-    int16_t year;
-    uint8_t month;
-    uint8_t day;
-    uint8_t hour;
-    uint8_t min;
-    uint8_t sec;
-    uint8_t valid;
-    uint32_t tAcc;
-    int32_t nano;
-    uint8_t fixType;
-    uint8_t flags;
-    uint8_t flags2;
-    uint8_t numSV;
-    int32_t lon;
-    int32_t lat;
-    int32_t height;
-    int32_t hMSL;
-    uint32_t hAcc;
-    uint32_t vAcc;
-    int32_t velN;
-    int32_t velE;
-    int32_t velD;
-    uint32_t gSpeed;
-    int32_t heading;
-    uint32_t sAcc;
-    uint32_t headingAcc;
-    uint16_t pDOP;
-    uint8_t reserved[6];
-    int32_t headVeh;
-    int16_t magDec;
-    uint16_t magAcc;
+    uint32_t millis;
+    double unix_sec;
+    uint8_t num_sats;
+    uint8_t status;
+    int32_t longitude_raw;
+    int32_t latitude_raw;
+    float altitude_m;
+    float vn_mps;
+    float ve_mps;
+    float vd_mps;
+    float hAcc;
+    float vAcc;
+    float hdop;
+    float vdop;
 
     // internal structure for packing
     #pragma pack(push, 1)
     struct _compact_t {
-        uint32_t iTOW;
-        int16_t year;
-        uint8_t month;
-        uint8_t day;
-        uint8_t hour;
-        uint8_t min;
-        uint8_t sec;
-        uint8_t valid;
-        uint32_t tAcc;
-        int32_t nano;
-        uint8_t fixType;
-        uint8_t flags;
-        uint8_t flags2;
-        uint8_t numSV;
-        int32_t lon;
-        int32_t lat;
-        int32_t height;
-        int32_t hMSL;
-        uint32_t hAcc;
-        uint32_t vAcc;
-        int32_t velN;
-        int32_t velE;
-        int32_t velD;
-        uint32_t gSpeed;
-        int32_t heading;
-        uint32_t sAcc;
-        uint32_t headingAcc;
-        uint16_t pDOP;
-        uint8_t reserved[6];
-        int32_t headVeh;
-        int16_t magDec;
-        uint16_t magAcc;
+        uint32_t millis;
+        double unix_sec;
+        uint8_t num_sats;
+        uint8_t status;
+        int32_t longitude_raw;
+        int32_t latitude_raw;
+        float altitude_m;
+        float vn_mps;
+        float ve_mps;
+        float vd_mps;
+        float hAcc;
+        float vAcc;
+        float hdop;
+        float vdop;
     };
     #pragma pack(pop)
 
@@ -469,7 +433,7 @@ public:
     uint8_t *payload = nullptr;
     int len = 0;
 
-    ~aura_nav_pvt_t() {
+    ~gps_t() {
         free(payload);
     }
 
@@ -480,76 +444,40 @@ public:
         payload = (uint8_t *)REALLOC(payload, size);
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
-        _buf->iTOW = iTOW;
-        _buf->year = year;
-        _buf->month = month;
-        _buf->day = day;
-        _buf->hour = hour;
-        _buf->min = min;
-        _buf->sec = sec;
-        _buf->valid = valid;
-        _buf->tAcc = tAcc;
-        _buf->nano = nano;
-        _buf->fixType = fixType;
-        _buf->flags = flags;
-        _buf->flags2 = flags2;
-        _buf->numSV = numSV;
-        _buf->lon = lon;
-        _buf->lat = lat;
-        _buf->height = height;
-        _buf->hMSL = hMSL;
+        _buf->millis = millis;
+        _buf->unix_sec = unix_sec;
+        _buf->num_sats = num_sats;
+        _buf->status = status;
+        _buf->longitude_raw = longitude_raw;
+        _buf->latitude_raw = latitude_raw;
+        _buf->altitude_m = altitude_m;
+        _buf->vn_mps = vn_mps;
+        _buf->ve_mps = ve_mps;
+        _buf->vd_mps = vd_mps;
         _buf->hAcc = hAcc;
         _buf->vAcc = vAcc;
-        _buf->velN = velN;
-        _buf->velE = velE;
-        _buf->velD = velD;
-        _buf->gSpeed = gSpeed;
-        _buf->heading = heading;
-        _buf->sAcc = sAcc;
-        _buf->headingAcc = headingAcc;
-        _buf->pDOP = pDOP;
-        for (int _i=0; _i<6; _i++) _buf->reserved[_i] = reserved[_i];
-        _buf->headVeh = headVeh;
-        _buf->magDec = magDec;
-        _buf->magAcc = magAcc;
+        _buf->hdop = hdop;
+        _buf->vdop = vdop;
         return true;
     }
 
     bool unpack(uint8_t *external_message, int message_size) {
         _compact_t *_buf = (_compact_t *)external_message;
         len = sizeof(_compact_t);
-        iTOW = _buf->iTOW;
-        year = _buf->year;
-        month = _buf->month;
-        day = _buf->day;
-        hour = _buf->hour;
-        min = _buf->min;
-        sec = _buf->sec;
-        valid = _buf->valid;
-        tAcc = _buf->tAcc;
-        nano = _buf->nano;
-        fixType = _buf->fixType;
-        flags = _buf->flags;
-        flags2 = _buf->flags2;
-        numSV = _buf->numSV;
-        lon = _buf->lon;
-        lat = _buf->lat;
-        height = _buf->height;
-        hMSL = _buf->hMSL;
+        millis = _buf->millis;
+        unix_sec = _buf->unix_sec;
+        num_sats = _buf->num_sats;
+        status = _buf->status;
+        longitude_raw = _buf->longitude_raw;
+        latitude_raw = _buf->latitude_raw;
+        altitude_m = _buf->altitude_m;
+        vn_mps = _buf->vn_mps;
+        ve_mps = _buf->ve_mps;
+        vd_mps = _buf->vd_mps;
         hAcc = _buf->hAcc;
         vAcc = _buf->vAcc;
-        velN = _buf->velN;
-        velE = _buf->velE;
-        velD = _buf->velD;
-        gSpeed = _buf->gSpeed;
-        heading = _buf->heading;
-        sAcc = _buf->sAcc;
-        headingAcc = _buf->headingAcc;
-        pDOP = _buf->pDOP;
-        for (int _i=0; _i<6; _i++) reserved[_i] = _buf->reserved[_i];
-        headVeh = _buf->headVeh;
-        magDec = _buf->magDec;
-        magAcc = _buf->magAcc;
+        hdop = _buf->hdop;
+        vdop = _buf->vdop;
         return true;
     }
 };

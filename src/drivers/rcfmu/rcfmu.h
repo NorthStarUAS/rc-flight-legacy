@@ -105,7 +105,7 @@ private:
 
     bool update_airdata( rcfmu_message::airdata_t *airdata );
     bool update_ekf( rcfmu_message::ekf_t *ekf );
-    bool update_gps( rcfmu_message::aura_nav_pvt_t *nav_pvt );
+    bool update_gps( rcfmu_message::gps_t *gps );
     bool update_imu( rcfmu_message::imu_t *imu );
     bool update_pilot( rcfmu_message::pilot_t *pilot );
     

@@ -327,17 +327,18 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
         } else {
             info("packet size mismatch in ekf packet");
         }
-    } else if ( pkt_id == rcfmu_message::aura_nav_pvt_id ) {
-        rcfmu_message::aura_nav_pvt_t nav_pvt;
-        nav_pvt.unpack(payload, pkt_len);
-	if ( pkt_len == nav_pvt.len ) {
-            update_gps(&nav_pvt);
+    } else if ( pkt_id == rcfmu_message::gps_id ) {
+        rcfmu_message::gps_t gps;
+        gps.unpack(payload, pkt_len);
+	if ( pkt_len == gps.len ) {
+            update_gps(&gps);
 	    gps_packet_counter++;
+            // fixme: node name
 	    aura4_node.setLong( "gps_packet_count", gps_packet_counter );
 	    new_data = true;
 	} else {
             info("packet size mismatch in gps packet");
-            info("got %d, expected %d", pkt_len, nav_pvt.len);
+            info("got %d, expected %d", pkt_len, gps.len);
 	}
     } else if ( pkt_id == rcfmu_message::imu_id ) {
         rcfmu_message::imu_t imu;
@@ -578,43 +579,30 @@ bool rcfmu_t::update_ekf( rcfmu_message::ekf_t *ekf ) {
     return true;
 }
 
-bool rcfmu_t::update_gps( rcfmu_message::aura_nav_pvt_t *nav_pvt ) {
+bool rcfmu_t::update_gps( rcfmu_message::gps_t *gps ) {
     gps_node.setDouble( "timestamp", get_Time() );
-    gps_node.setLong( "year", nav_pvt->year );
-    gps_node.setLong( "month", nav_pvt->month );
-    gps_node.setLong( "day", nav_pvt->day );
-    gps_node.setLong( "hour", nav_pvt->hour );
-    gps_node.setLong( "min", nav_pvt->min );
-    gps_node.setLong( "sec", nav_pvt->sec );
-    gps_node.setDouble( "latitude_deg", nav_pvt->lat / 10000000.0 );
-    gps_node.setDouble( "longitude_deg", nav_pvt->lon / 10000000.0 );
-    gps_node.setDouble( "altitude_m", nav_pvt->hMSL / 1000.0 );
-    gps_node.setDouble( "horiz_accuracy_m", nav_pvt->hAcc / 1000.0 );
-    gps_node.setDouble( "vert_accuracy_m", nav_pvt->vAcc / 1000.0 );
-    gps_node.setDouble( "vn_ms", nav_pvt->velN / 1000.0 );
-    gps_node.setDouble( "ve_ms", nav_pvt->velE / 1000.0 );
-    gps_node.setDouble( "vd_ms", nav_pvt->velD / 1000.0 );
-    gps_node.setLong( "satellites", nav_pvt->numSV);
-    gps_node.setDouble( "pdop", nav_pvt->pDOP / 100.0 );
-    gps_node.setLong( "fixType", nav_pvt->fixType );
+    gps_node.setDouble( "unix_time_sec", gps->unix_sec );
+    gps_node.setLong( "satellites", gps->num_sats );
+    gps_node.setLong( "fixType", gps->status );
+    gps_node.setDouble( "latitude_deg", gps->latitude_raw / 10000000.0 );
+    gps_node.setDouble( "longitude_deg", gps->longitude_raw / 10000000.0 );
+    gps_node.setDouble( "altitude_m", gps->altitude_m );
+    // fixme: node property units name?
+    gps_node.setDouble( "vn_ms", gps->vn_mps );
+    gps_node.setDouble( "ve_ms", gps->ve_mps );
+    gps_node.setDouble( "vd_ms", gps->vd_mps );
+    gps_node.setDouble( "horiz_accuracy_m", gps->hAcc );
+    gps_node.setDouble( "vert_accuracy_m", gps->vAcc );
+    gps_node.setDouble( "hdop", gps->hdop );
+    gps_node.setDouble( "vdop", gps->vdop );
     // backwards compatibility
-    if ( nav_pvt->fixType == 0 ) {
+    if ( gps->status == 0 ) {
         gps_node.setLong( "status", 0 );
-    } else if ( nav_pvt->fixType == 1 || nav_pvt->fixType == 2 ) {
+    } else if ( gps->status == 1 || gps->status == 2 ) {
         gps_node.setLong( "status", 1 );
-    } else if ( nav_pvt->fixType == 3 ) {
+    } else if ( gps->status == 3 ) {
         gps_node.setLong( "status", 2 );
     }
-    struct tm gps_time;
-    gps_time.tm_sec = nav_pvt->sec;
-    gps_time.tm_min = nav_pvt->min;
-    gps_time.tm_hour = nav_pvt->hour;
-    gps_time.tm_mday = nav_pvt->day;
-    gps_time.tm_mon = nav_pvt->month - 1;
-    gps_time.tm_year = nav_pvt->year - 1900;
-    double unix_sec = (double)mktime( &gps_time ) - timezone;
-    unix_sec += nav_pvt->nano / 1000000000.0;
-    gps_node.setDouble( "unix_time_sec", unix_sec );
     return true;
 }
 
