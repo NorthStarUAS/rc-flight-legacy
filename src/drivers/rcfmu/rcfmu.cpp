@@ -582,7 +582,12 @@ bool rcfmu_t::update_ekf( rcfmu_message::ekf_t *ekf ) {
 
 bool rcfmu_t::update_gps( rcfmu_message::gps_t *gps ) {
     gps_node.setDouble( "timestamp", get_Time() );
-    gps_node.setDouble( "unix_time_sec", gps->unix_sec );
+    gps_node.setDouble( "unix_time_usec", gps->unix_usec );
+    gps_node.setDouble( "unix_time_sec", (double)gps->unix_usec / 1000000.0 );
+    // for ( int i = 0; i < 8; i++ ) {
+    //     printf("%02X ", *(uint8_t *)(&(gps->unix_usec) + i));
+    // }
+    // printf(" %ldf\n", gps->unix_usec);
     gps_node.setLong( "satellites", gps->num_sats );
     gps_node.setLong( "fixType", gps->status );
     gps_node.setDouble( "latitude_deg", gps->latitude_raw / 10000000.0 );
@@ -606,7 +611,7 @@ bool rcfmu_t::update_gps( rcfmu_message::gps_t *gps ) {
     }
     // generate broken-down time
     struct tm *tm;
-    time_t time_sec = (unsigned int)gps->unix_sec;
+    time_t time_sec = gps->unix_usec / 1000000U;
     tm = gmtime(&time_sec);
     gps_node.setLong("year", tm->tm_year + 1900);
     gps_node.setLong("month", tm->tm_mon + 1);

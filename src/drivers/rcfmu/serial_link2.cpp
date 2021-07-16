@@ -154,7 +154,7 @@ bool SerialLink2::update() {
                 // fprintf( stderr, "packet lo: %d hi: %d\n", pkt_len_lo, pkt_len_hi);
                 pkt_len = pkt_len_hi << 8 | pkt_len_lo;
                 if ( pkt_len > 4096 ) {
-                    fprintf( stderr, "nonsense packet size, skipping.\n");
+                    fprintf( stderr, "nonsense packet size (%d) for id: %d, skipping.\n", pkt_len, pkt_id);
                     parse_errors++;
                     state = 0;
                 } else {

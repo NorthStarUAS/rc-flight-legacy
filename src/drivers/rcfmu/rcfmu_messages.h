@@ -394,7 +394,7 @@ class gps_t {
 public:
 
     uint32_t millis;
-    double unix_sec;
+    uint64_t unix_usec;
     uint8_t num_sats;
     uint8_t status;
     int32_t longitude_raw;
@@ -412,7 +412,7 @@ public:
     #pragma pack(push, 1)
     struct _compact_t {
         uint32_t millis;
-        double unix_sec;
+        uint64_t unix_usec;
         uint8_t num_sats;
         uint8_t status;
         int32_t longitude_raw;
@@ -445,7 +445,7 @@ public:
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
         _buf->millis = millis;
-        _buf->unix_sec = unix_sec;
+        _buf->unix_usec = unix_usec;
         _buf->num_sats = num_sats;
         _buf->status = status;
         _buf->longitude_raw = longitude_raw;
@@ -465,7 +465,7 @@ public:
         _compact_t *_buf = (_compact_t *)external_message;
         len = sizeof(_compact_t);
         millis = _buf->millis;
-        unix_sec = _buf->unix_sec;
+        unix_usec = _buf->unix_usec;
         num_sats = _buf->num_sats;
         status = _buf->status;
         longitude_raw = _buf->longitude_raw;
