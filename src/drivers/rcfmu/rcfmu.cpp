@@ -18,6 +18,7 @@
 
 #include <stdarg.h>
 #include <stdlib.h>             // exit()
+#include <time.h>               // gmtime()
 
 #include <string>
 #include <sstream>
@@ -603,6 +604,17 @@ bool rcfmu_t::update_gps( rcfmu_message::gps_t *gps ) {
     } else if ( gps->status == 3 ) {
         gps_node.setLong( "status", 2 );
     }
+    // generate broken-down time
+    struct tm *tm;
+    time_t time_sec = (unsigned int)gps->unix_sec;
+    tm = gmtime(&time_sec);
+    gps_node.setLong("year", tm->tm_year + 1900);
+    gps_node.setLong("month", tm->tm_mon + 1);
+    gps_node.setLong("day", tm->tm_mday);
+    gps_node.setLong("hour", tm->tm_hour);
+    gps_node.setLong("min", tm->tm_min);
+    gps_node.setLong("sec", tm->tm_sec);
+
     return true;
 }
 
