@@ -196,45 +196,82 @@ def process_messages():
     pilot_count -= 1
     if act_count < 0:
         act_count = act_skip
-        buf = packer.pack_act_bin()
+        buf = None
+        try:
+            buf = packer.pack_act_bin()
+        except Exception as e:
+            print("pack_act_bin() error:", str(e))
         if not buf is None and len(buf):
             log_message(packer.act.id, buf)
     if airdata_count < 0:
         airdata_count = airdata_skip
-        buf = packer.pack_airdata_bin()
+        buf = None
+        try:
+            buf = packer.pack_airdata_bin()
+        except Exception as e:
+            print("pack_airdata_bin() error:", str(e))
         if not buf is None and len(buf):
             log_message(packer.airdata.id, buf)
     if ap_count < 0:
         ap_count = ap_skip
-        buf = packer.pack_ap_status_bin()
+        buf = None
+        try:
+            buf = packer.pack_ap_status_bin()
+        except Exception as e:
+            print("pack_ap_status_bin() error:", str(e))
         if not buf is None and len(buf):
             log_message(packer.ap.id, buf)
     if filter_count < 0:
         filter_count = filter_skip
-        buf = packer.pack_filter_bin()
+        buf = None
+        try:
+            buf = packer.pack_filter_bin()
+        except Exception as e:
+            print("pack_filter_bin() error:", str(e))
         if not buf is None and len(buf):
             log_message(packer.filter.id, buf)
     if gps_count < 0:
         gps_count = gps_skip
-        buf = packer.pack_gps_bin()
+        buf = None
+        try:
+            buf = packer.pack_gps_bin()
+        except Exception as e:
+            print("pack_gps_bin() error:", str(e))
         if not buf is None and len(buf):
             log_message(packer.gps.id, buf)
-    buf = packer.pack_gpsraw_bin()
-    if not buf is None and len(buf):
-        log_message(packer.gpsraw.id, buf)
+    if False:
+        buf = None:
+        try:
+            buf = packer.pack_gpsraw_bin()
+        except Exception as e:
+            print("pack_gpsraw_bin() error:", str(e))
+        if not buf is None and len(buf):
+            log_message(packer.gpsraw.id, buf)
     if health_count < 0:
         health_count = health_skip
-        buf = packer.pack_system_health_bin()
+        buf = None
+        try:
+            buf = packer.pack_system_health_bin()
+        except Exception as e:
+            print("pack_system_health_bin() error:", str(e))
         if not buf is None and len(buf):
             log_message(packer.health.id, buf)
     if imu_count < 0:
         imu_count = imu_skip
-        buf = packer.pack_imu_bin()
+        buf = None
+        try:
+            buf = packer.pack_imu_bin()
+        except Exception as e:
+            print("pack_imu_bin() error:", str(e))
         if not buf is None and len(buf):
             log_message(packer.imu.id, buf)
     if pilot_count < 0:
         pilot_count = pilot_skip
-        buf = packer.pack_pilot_bin()
+        buf = None
+        try:
+            buf = packer.pack_pilot_bin()
+        except Exception as e:
+            print("pack_pilot_bin() error:", str(e))
         if not buf is None and len(buf):
             log_message(packer.pilot.id, buf)
     
@@ -243,7 +280,7 @@ def update():
         process_messages()
         write_messages();
     except Exception as e:
-        print("logging errer:", str(e))
+        print("logging error:", str(e))
 
 # write out the imu calibration parameters associated with this data
 # (this allows us to later rederive the original raw sensor values.)
