@@ -9,25 +9,25 @@
 
 #pragma once
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include "util/lowpass.h"
 
 class airdata_helper_t {
 public:
-    void init();
+    void init(DocPointerWrapper d);
     void update();
 
 private:
-    pyPropertyNode airdata_node;
-    pyPropertyNode sensors_node;
-    pyPropertyNode pos_filter_node;
-    pyPropertyNode pos_pressure_node;
-    pyPropertyNode pos_combined_node;
-    pyPropertyNode status_node;
-    pyPropertyNode task_node;
-    pyPropertyNode wind_node;
-    pyPropertyNode vel_node;
+    PropertyNode airdata_node;
+    PropertyNode sensors_node;
+    PropertyNode pos_filter_node;
+    PropertyNode pos_pressure_node;
+    PropertyNode pos_combined_node;
+    PropertyNode status_node;
+    PropertyNode task_node;
+    PropertyNode wind_node;
+    PropertyNode vel_node;
     
     LowPassFilter pressure_alt_filt = LowPassFilter( 0.1 );
     LowPassFilter ground_alt_filt = LowPassFilter( 30.0 );

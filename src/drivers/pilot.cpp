@@ -11,8 +11,6 @@
 #include <pybind11/pybind11.h>
 namespace py = pybind11;
 
-#include <pyprops.h>
-
 #include <stdio.h>
 #include <string.h>
 
@@ -20,12 +18,13 @@ namespace py = pybind11;
 
 #include "pilot.h"
 
-void pilot_helper_t::init() {
-    pyPropsInit();
-    pilot_node = pyGetNode("/sensors/pilot_input", true);
-    flight_node = pyGetNode("/controls/flight", true);
-    engine_node = pyGetNode("/controls/engine", true);
-    ap_node = pyGetNode("/autopilot", true);
+void pilot_helper_t::init(DocPointerWrapper d) {
+    PropertyNode("/").set_Document(d);
+
+    pilot_node = PropertyNode("/sensors/pilot_input", true);
+    flight_node = PropertyNode("/controls/flight", true);
+    engine_node = PropertyNode("/controls/engine", true);
+    ap_node = PropertyNode("/autopilot", true);
 }
 
 void pilot_helper_t::update() {
@@ -45,11 +44,11 @@ void pilot_helper_t::update() {
     // values and improve continuity when switching from manual to
     // AP mode.
     if ( ! ap_node.getBool("master_switch") ) {
-        flight_node.setDouble( "aileron", pilot_node.getDouble("aileron") );
-        flight_node.setDouble( "elevator", pilot_node.getDouble("elevator") );
-        engine_node.setDouble( "throttle", pilot_node.getDouble("throttle") );
-        flight_node.setDouble( "rudder", pilot_node.getDouble("rudder") );
-        flight_node.setDouble( "flaps", pilot_node.getDouble("flaps") );
+        flight_node.setFloat( "aileron", pilot_node.getFloat("aileron") );
+        flight_node.setFloat( "elevator", pilot_node.getFloat("elevator") );
+        engine_node.setFloat( "throttle", pilot_node.getFloat("throttle") );
+        flight_node.setFloat( "rudder", pilot_node.getFloat("rudder") );
+        flight_node.setFloat( "flaps", pilot_node.getFloat("flaps") );
     }
 }
 

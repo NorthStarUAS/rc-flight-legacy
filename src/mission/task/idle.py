@@ -3,7 +3,7 @@
 # flying, it means the mission manager ran out of things to do and has
 # requested a circle hold over the current position.
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 import mission.mission_mgr
@@ -14,9 +14,9 @@ import mission.task.state
 class Idle(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.task_node = getNode("/task", True)
-        self.ap_node = getNode("/autopilot", True)
-        self.engine_node = getNode("/controls/engine", True)
+        self.task_node = PropertyNode("/task", True)
+        self.ap_node = PropertyNode("/autopilot", True)
+        self.engine_node = PropertyNode("/controls/engine", True)
         self.name = config_node.getString("name")
 
     def activate(self):

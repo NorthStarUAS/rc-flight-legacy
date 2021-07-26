@@ -20,7 +20,7 @@
 //
 
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -56,60 +56,40 @@ void AuraAutopilot::reset() {
 
 
 bool AuraAutopilot::build() {
-    pyPropertyNode config_props = pyGetNode( "/config/autopilot", true );
-
-    // FIXME: we have always depended on the order of children
-    // components here to ensure PID stages are run in the correct
-    // order, however that is a bad thing to assume ... especially now
-    // with pyprops!!!
-    vector <string> children = config_props.getChildren();
-    for ( unsigned int i = 0; i < children.size(); ++i ) {
-	pyPropertyNode component = config_props.getChild(children[i].c_str(),
-							 true);
-        printf("ap stage: %s\n", children[i].c_str());
-	string name = children[i];
-	size_t pos = name.find("[");
-	if ( pos != string::npos ) {
-	    name = name.substr(0, pos);
-	}
-	if ( name == "component" ) {
-	    ostringstream config_path;
-	    config_path << "/config/autopilot/" << children[i];
-	    string module = component.getString("module");
-            if ( module == "pid" ) {
-		APComponent *c
-		    = new AuraPID( config_path.str() );
-		components.push_back( c );
-	    } else if ( module == "pid_velocity" ) {
-		APComponent *c
-		    = new AuraPIDVel( config_path.str() );
-		components.push_back( c );
-	    } else if ( module == "dtss" ) {
-		APComponent *c
-		    = new AuraDTSS( config_path.str() );
-		components.push_back( c );
-	    } else if ( module == "predict_simple" ) {
-		APComponent *c
-		    = new AuraPredictor( config_path.str() );
-		components.push_back( c );
-	    } else if ( module == "filter" ) {
-		APComponent *c
-		    = new AuraDigitalFilter( config_path.str() );
-		components.push_back( c );
-	    } else if ( module == "summer" ) {
-		APComponent *c
-		    = new AuraSummer( config_path.str() );
-		components.push_back( c );
-	    } else {
-		printf("Unknown AP module name: %s\n", module.c_str());
-		return false;
-	    }
-	} else if ( name == "L1_controller" ) {
-	    // configuration placeholder, we don't do anything here.
-	} else if ( name == "TECS" ) {
-            // configuration placeholder, we don't do anything here.
-         } else {
-	    printf("Unknown top level section: %s\n", children[i].c_str() );
+    PropertyNode config_node = PropertyNode("/config/autopilot", true);
+    for ( int i = 0; i < config_node.getLen("component"); i++ ) {
+        printf("Number of components: %d (i: %d)\n", config_node.getLen("component"), i);
+        string child_name = "component/" + std::to_string(i);
+	PropertyNode component = config_node.getChild(child_name.c_str(), true);
+        printf("ap stage: %s\n", child_name.c_str());
+        string config_path = "/config/autopilot/" + child_name;
+        string module = component.getString("module");
+        if ( module == "pid" ) {
+            APComponent *c
+                = new AuraPID( config_path );
+            components.push_back( c );
+        } else if ( module == "pid_velocity" ) {
+            APComponent *c
+                = new AuraPIDVel( config_path );
+            components.push_back( c );
+        } else if ( module == "dtss" ) {
+            APComponent *c
+                = new AuraDTSS( config_path );
+            components.push_back( c );
+        } else if ( module == "predict_simple" ) {
+            APComponent *c
+                = new AuraPredictor( config_path );
+            components.push_back( c );
+        } else if ( module == "filter" ) {
+            APComponent *c
+                = new AuraDigitalFilter( config_path );
+            components.push_back( c );
+        } else if ( module == "summer" ) {
+            APComponent *c
+                = new AuraSummer( config_path );
+            components.push_back( c );
+        } else {
+            printf("Unknown AP module name: %s\n", module.c_str());
             return false;
         }
     }
@@ -136,4 +116,3 @@ void AuraAutopilot::update( double dt ) {
         components[i]->update( dt );
     }
 }
-

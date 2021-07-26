@@ -3,8 +3,7 @@ import re
 import serial
 import time
 
-from props import getNode
-import props_json
+from PropertyTree import PropertyNode
 
 from comms import aura_messages
 import comms.events
@@ -13,16 +12,16 @@ import comms.serial_parser
 
 import survey.survey
 
-status_node = getNode( '/status', True)
-route_node = getNode( '/task/route', True )
-task_node = getNode( '/task', True )
-home_node = getNode( '/task/home', True )
-active_node = getNode("/task/route/active", True)
-targets_node = getNode( '/autopilot/targets', True )
-comms_node = getNode( '/comms', True)
+status_node = PropertyNode( '/status', True)
+route_node = PropertyNode( '/task/route', True )
+task_node = PropertyNode( '/task', True )
+home_node = PropertyNode( '/task/home', True )
+active_node = PropertyNode("/task/route/active", True)
+targets_node = PropertyNode( '/autopilot/targets', True )
+comms_node = PropertyNode( '/comms', True)
 
-remote_link_config = getNode('/config/remote_link', True)
-remote_link_node = getNode('/comms/remote_link', True)
+remote_link_config = PropertyNode('/config/remote_link', True)
+remote_link_node = PropertyNode('/comms/remote_link', True)
 
 remote_link_on = False    # link to remote operator station
 ser = None
@@ -70,9 +69,10 @@ def init():
     pilot_skip = remote_link_config.getInt("pilot_skip")
     pilot_count = random.randint(0, pilot_skip)
 
-    device = remote_link_config.getString('device')
-    if not len(device):
-        return
+    if remote_link_config.hasChild("device"):
+        device = remote_link_config.getString("device")
+    else:
+        return;
 
     while not link_open:
         try:
@@ -227,8 +227,8 @@ def execute_command( command ):
         lat = float( tokens[2] )
         # alt_ft = float( tokens[3] )
         azimuth_deg = float( tokens[4] )
-        home_node.setFloat( 'longitude_deg', lon )
-        home_node.setFloat( 'latitude_deg', lat )
+        home_node.setDouble( 'longitude_deg', lon )
+        home_node.setDouble( 'latitude_deg', lat )
         home_node.setFloat( 'azimuth_deg', azimuth_deg )
         home_node.setBool( 'valid', True )
     elif tokens[0] == 'route' and len(tokens) >= 5:
@@ -276,7 +276,7 @@ def execute_command( command ):
         node_path = '/'.join(parts[0:-1])
         if node_path == '':
             node_path = '/'
-        node = getNode(node_path, True)
+        node = PropertyNode(node_path, True)
         name = parts[-1]
         value = node.getString(name)
         if value == '': value = 'undefined'
@@ -294,7 +294,7 @@ def execute_command( command ):
             node_path = '/'.join(parts[0:-1])
             if node_path == '':
                 node_path = '/'
-            node = getNode(node_path, True)
+            node = PropertyNode(node_path, True)
             name = parts[-1]
             value = ' '.join(tokens[2:])
             done = False
@@ -332,10 +332,10 @@ def execute_command( command ):
     elif tokens[0] == 'la' and len(tokens) == 5:
         if tokens[1] == 'ned':
 	    # set ned-vector lookat mode
-            point_node = getNode('/pointing', True)
+            point_node = PropertyNode('/pointing', True)
             point_node.setString('lookat_mode', 'ned_vector')
 	    # specify new lookat ned coordinates
-            vector_node = getNode('/pointing/vector', True)
+            vector_node = PropertyNode('/pointing/vector', True)
             north = float( tokens[2] )
             east = float( tokens[3] )
             down = float( tokens[4] )
@@ -344,15 +344,15 @@ def execute_command( command ):
             vector_node.setFloat( 'down', down )
         elif tokens[1] == 'wgs84':
             # set wgs84 lookat mode
-            point_node = getNode('/pointing', True)
+            point_node = PropertyNode('/pointing', True)
             point_node.setString('lookat_mode', 'wgs84')
             # specify new lookat ned coordinates
-            wgs84_node = getNode('/pointing/wgs84', True)
-            pos_node = getNode('/position', True)
+            wgs84_node = PropertyNode('/pointing/wgs84', True)
+            pos_node = PropertyNode('/position', True)
             lon = float( tokens[2] )
             lat = float( tokens[3] )
-            wgs84_node.setFloat( 'longitude_deg', lon )
-            wgs84_node.setFloat( 'latitude_deg', lat )
+            wgs84_node.setDouble( 'longitude_deg', lon )
+            wgs84_node.setDouble( 'latitude_deg', lat )
             ground = pos_node.getFloat('altitude_ground_m')
             wgs84_node.setFloat( 'altitude_m', ground )
 
@@ -391,8 +391,8 @@ def command():
         # register that we've received this message correctly
         remote_link_node.setInt( 'sequence_num', sequence_num )
         last_sequence_num = sequence_num
-        timestamp = status_node.getFloat('frame_time')
-        remote_link_node.setFloat( 'last_message_sec', timestamp )
+        timestamp = status_node.getDouble('frame_time')
+        remote_link_node.setDouble( 'last_message_sec', timestamp )
 
     return True
 
@@ -404,7 +404,7 @@ def decode_fcs_update(command):
         # remove initial keyword if it exists
         del tokens[0]
 
-    ap_config = getNode( '/config/autopilot', True )
+    ap_config = PropertyNode( '/config/autopilot', True )
 
     i = int(tokens[0])
     component = ap_config.getChild('component[%d]' % i)

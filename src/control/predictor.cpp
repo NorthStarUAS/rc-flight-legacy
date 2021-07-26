@@ -1,4 +1,4 @@
-// predictor.cpp - predict a future sensor value
+ // predictor.cpp - predict a future sensor value
 //
 // Copyright (C) 2004-2017  Curtis L. Olson  - curtolson@flightgear.org
 //
@@ -18,7 +18,7 @@
 //
 
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include "predictor.h"
 
@@ -32,11 +32,11 @@ AuraPredictor::AuraPredictor ( string config_path ):
 {
     size_t pos;
 
-    component_node = pyGetNode(config_path);
+    component_node = PropertyNode(config_path);
     vector <string> children;
     
     // enable
-    pyPropertyNode node = component_node.getChild( "enable", true );
+    PropertyNode node = component_node.getChild( "enable", true );
     children = node.getChildren();
     printf("enables: %ld prop(s)\n", children.size());
     for ( unsigned int i = 0; i < children.size(); ++i ) {
@@ -47,7 +47,7 @@ AuraPredictor::AuraPredictor ( string config_path ):
 	    if ( pos != string::npos ) {
 		string path = enable_prop.substr(0, pos);
 		string attr = enable_prop.substr(pos+1);
-		pyPropertyNode en_node = pyGetNode( path, true );
+		PropertyNode en_node = PropertyNode( path, true );
 		enables_node.push_back( en_node );
 		enables_attr.push_back( attr );
 	    } else {
@@ -67,14 +67,14 @@ AuraPredictor::AuraPredictor ( string config_path ):
     if ( pos != string::npos ) {
 	string path = input_prop.substr(0, pos);
 	input_attr = input_prop.substr(pos+1);
-	input_node = pyGetNode( path, true );
+	input_node = PropertyNode( path, true );
     }
 
     if ( component_node.hasChild("seconds") ) {
-	seconds = component_node.getDouble("seconds");
+	seconds = component_node.getFloat("seconds");
     }
     if ( component_node.hasChild("filter_gain") ) {
-	filter_gain = component_node.getDouble("filter_gain");
+	filter_gain = component_node.getFloat("filter_gain");
     }
     
     // output
@@ -87,7 +87,7 @@ AuraPredictor::AuraPredictor ( string config_path ):
 	    if ( pos != string::npos ) {
 		string path = output_prop.substr(0, pos);
 		string attr = output_prop.substr(pos+1);
-		pyPropertyNode onode = pyGetNode( path, true );
+		PropertyNode onode = PropertyNode( path, true );
 		output_node.push_back( onode );
 		output_attr.push_back( attr );
 	    } else {
@@ -128,7 +128,7 @@ void AuraPredictor::update( double dt ) {
         }
     }
 
-    ivalue = input_node.getDouble(input_attr.c_str());
+    ivalue = input_node.getFloat(input_attr.c_str());
 
     if ( enabled ) {
         // first time initialize average
@@ -149,7 +149,7 @@ void AuraPredictor::update( double dt ) {
 
 	    // Copy the result to the output node(s)
 	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-		output_node[i].setDouble( output_attr[i].c_str(), output );
+		output_node[i].setFloat( output_attr[i].c_str(), output );
 	    }
         }
         last_value = ivalue;

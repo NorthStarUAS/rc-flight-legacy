@@ -2,8 +2,7 @@ import math
 import numpy as np
 import os
 
-from props import getNode, PropertyNode
-import props_json
+from PropertyTree import PropertyNode
 
 import comms.events
 from mission.task.task import Task
@@ -27,9 +26,9 @@ class CalibrateAccels(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.name = config_node.getString("name")
-        self.imu_node = getNode("/sensors/imu", True)
-        self.config_imu_node = getNode("/config/drivers/Aura4/imu", True)
-        self.task_node = getNode("/task", True)
+        self.imu_node = PropertyNode("/sensors/imu/0", True)
+        self.config_imu_node = PropertyNode("/config/drivers/Aura4/imu", True)
+        self.task_node = PropertyNode("/task", True)
         self.state = 0
         self.ax_slow = LowPass(time_factor=1.0) 
         self.ax_fast = LowPass(time_factor=0.2) 
@@ -248,7 +247,7 @@ class CalibrateAccels(Task):
                 calib_node.setFloatEnum("accel_translate", i, self.translate[i])
             home = os.path.expanduser("~")
             filename = os.path.join(home, "imu_calibration.json")
-            props_json.save(filename, calib_node)
+            calib_node.save(filename)
             comms.events.log("calibrate accels", "saved results to: " + filename)
         elif self.state == 8:
             # calibration complete, but failed. :-(

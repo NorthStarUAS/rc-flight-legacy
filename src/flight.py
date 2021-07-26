@@ -12,8 +12,30 @@ import argparse
 import os
 import traceback
 
-from props import getNode, root
-import props_json
+# v2 property tree
+from PropertyTree import PropertyNode
+
+parser = argparse.ArgumentParser(description="Rice Creak UAS flight code")
+parser.add_argument("--config", required=True, help="path to config tree")
+parser.add_argument("--verbose", action="store_true", help="enable additional console verbocity")
+args = parser.parse_args()
+
+# load master config file before main program modules (so we win the
+# race to building the config tree)
+root = PropertyNode("/")
+config_file = os.path.join( args.config, "main.json")
+result = root.load(config_file)
+if result:
+    print("Loaded master configuration file:", config_file)
+    if args.verbose:
+        root.pretty_print()
+    config_node = PropertyNode("/config")
+    config_node.setString("path", args.config)
+else:
+    print("*** Cannot load master config file:", config_file)
+    print()
+    print("Cannot continue without a valid configuration, sorry.")
+    exit(-1)
 
 # C++ modules
 from rcUAS import actuator_mgr, control_mgr, driver_mgr, filter_mgr
@@ -27,30 +49,10 @@ from health import health
 from mission import mission_mgr
 from util import myprof, timer
 
-parser = argparse.ArgumentParser(description="Rice Creak UAS flight code")
-parser.add_argument("--config", required=True, help="path to config tree")
-parser.add_argument("--verbose", action="store_true", help="enable additional console verbocity")
-args = parser.parse_args()
-
-# load master config file
-config_file = os.path.join( args.config, "main.json")
-result = props_json.load(config_file, root)
-if result:
-    print("Loaded master configuration file:", config_file)
-    if args.verbose:
-        root.pretty_print()
-    config_node = getNode("/config")
-    config_node.setString("path", args.config)
-else:
-    print("*** Cannot load master config file:", config_file)
-    print()
-    print("Cannot continue without a valid configuration, sorry.")
-    exit(-1)
-
 # shared property nodes
-comms_node = getNode("/comms", True)
-imu_node = getNode("/sensors/imu", True)
-status_node = getNode("/status", True)
+comms_node = PropertyNode("/comms")
+imu_node = PropertyNode("/sensors/imu/0")
+status_node = PropertyNode("/status")
 status_node.setFloat("frame_time", 0.0)
 
 # create singleton class instances
@@ -71,34 +73,39 @@ if config_node.hasChild("gps_timeout_sec"):
 
 # module initialization
 def init():
+    # for sharing the property tree with C++ modules
+    doc = root.get_Document()
+    
     # communication modules
+    print("logging config:")
+    PropertyNode("/").pretty_print()
     logging.init()
     remote_link.init()
     telnet.init()
 
     # hardware
-    drivers.init()
+    drivers.init(doc)
 
     # sensor processing helpers
-    airdata.init()
-    gps.init()
+    airdata.init(doc)
+    gps.init(doc)
     pilot.init()
 
     # health monitor
     health.init()
 
     # sensor fusion, ins/gns, ekf, wind
-    filter_mgr.init()
+    filter_mgr.init(doc)
 
     # if enable_pointing:
     #     ati_pointing_init()
 
     # autopilot, flight control modules
-    control.init()
+    control.init(doc)
     navigation.init()
 
     # effectors
-    actuators.init()
+    actuators.init(doc)
 
     # mission and task system
     mission_mgr.init()
@@ -129,7 +136,7 @@ def update():
     airdata.update()
     gps.update(display_on)    # computes gps age (optionally sets host clock)
     pilot.update()            # log auto/manual changes, transient reduction
-    
+
     # check gps data age.  The nav filter continues to run, but the
     # results are marked as invalid if the most recent gps data
     # becomes too old.

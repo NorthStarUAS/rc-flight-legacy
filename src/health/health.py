@@ -7,11 +7,11 @@
 # closer to their data source or usage.
 
 import os
-from props import getNode
+from PropertyTree import PropertyNode
 
 def init():
     global status_node
-    status_node = getNode("/status", True)
+    status_node = PropertyNode("/status", True)
 
 def update():
     load = os.getloadavg()

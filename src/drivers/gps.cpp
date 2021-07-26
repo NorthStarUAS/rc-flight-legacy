@@ -11,7 +11,7 @@
 #include <pybind11/pybind11.h>
 namespace py = pybind11;
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -26,9 +26,10 @@ using std::string;
 
 #include "gps.h"
 
-void gps_helper_t::init() {
-    pyPropsInit();
-    gps_node = pyGetNode("/sensors/gps", true);
+void gps_helper_t::init(DocPointerWrapper d) {
+    PropertyNode("/").set_Document(d);
+
+    gps_node = PropertyNode("/sensors/gps", true);
     // init master gps timestamp to one year ago
     gps_node.setDouble("timestamp", -31557600.0);
 }
@@ -36,25 +37,25 @@ void gps_helper_t::init() {
 void gps_helper_t::compute_magvar() {
     double magvar_rad = 0.0;
 
-    pyPropertyNode config_node = pyGetNode("/config", true);
+    PropertyNode config_node = PropertyNode("/config", true);
     
     if ( ! config_node.hasChild("magvar_deg") ||
 	 config_node.getString("magvar_deg") == "auto" )
     {
-	long int jd = unixdate_to_julian_days( gps_node.getLong("unix_time_sec") );
+	long int jd = unixdate_to_julian_days( gps_node.getDouble("unix_time_sec") );
 	double field[6];
 	magvar_rad
 	    = calc_magvar( gps_node.getDouble("latitude_deg")
 			   * SGD_DEGREES_TO_RADIANS,
 			   gps_node.getDouble("longitude_deg")
 			   * SGD_DEGREES_TO_RADIANS,
-			   gps_node.getDouble("altitude_m") / 1000.0,
+			   gps_node.getFloat("altitude_m") / 1000.0,
 			   jd, field );
     } else {
-	magvar_rad = config_node.getDouble("magvar_deg")
+	magvar_rad = config_node.getFloat("magvar_deg")
 	    * SGD_DEGREES_TO_RADIANS;
     }
-    gps_node.setDouble( "magvar_deg", magvar_rad * SG_RADIANS_TO_DEGREES );
+    gps_node.setFloat( "magvar_deg", magvar_rad * SG_RADIANS_TO_DEGREES );
 }
 
 double gps_helper_t::gps_age() {
@@ -63,7 +64,7 @@ double gps_helper_t::gps_age() {
 
 void gps_helper_t::update(bool verbose) {
     // FIXME: should this be "fixType" == 3?
-    if ( gps_node.getLong("status") == 2 && !gps_state ) {
+    if ( gps_node.getInt("status") == 2 && !gps_state ) {
 	const double gps_settle = 10.0;
 	double cur_time = gps_node.getDouble("timestamp");
         if ( gps_acq_time < 0.01 ) {
@@ -111,7 +112,7 @@ void gps_helper_t::update(bool verbose) {
 
 	    if ( verbose ) {
 		printf("[gps_mgr] gps ready, magvar = %.2f (deg)\n",
-		       gps_node.getDouble("magvar_deg") );
+		       gps_node.getFloat("magvar_deg") );
 	    }
 	} else {
 	    if ( verbose ) {
@@ -124,7 +125,7 @@ void gps_helper_t::update(bool verbose) {
 	}
     }
 
-    gps_node.setDouble("data_age", gps_age());
+    gps_node.setFloat("data_age", gps_age());
 }
 
 PYBIND11_MODULE(gps_helper, m) {

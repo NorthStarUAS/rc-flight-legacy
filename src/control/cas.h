@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include <string>
 #include <vector>
@@ -47,13 +47,13 @@ public:
 private:
 
     // property nodes
-    pyPropertyNode config_node;
-    pyPropertyNode pilot_node;
-    pyPropertyNode cas_aileron_node;
-    pyPropertyNode cas_elevator_node;
-    pyPropertyNode targets_node;
-    pyPropertyNode flight_node;
-    pyPropertyNode engine_node;
+    PropertyNode config_node;
+    PropertyNode pilot_node;
+    PropertyNode cas_aileron_node;
+    PropertyNode cas_elevator_node;
+    PropertyNode targets_node;
+    PropertyNode flight_node;
+    PropertyNode engine_node;
     
     ugCASMode cas_mode;
 

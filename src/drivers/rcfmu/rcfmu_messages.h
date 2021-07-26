@@ -16,6 +16,8 @@
 #include <string>
 using std::string;
 
+#include "props2.h"  // github.com/RiceCreekUAS/props/v2
+
 namespace rcfmu_message {
 
 static inline int32_t intround(float f) {
@@ -97,6 +99,32 @@ public:
         subcommand_id = _buf->subcommand_id;
         return true;
     }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+        node.setUInt("command_id", command_id);
+        node.setUInt("subcommand_id", subcommand_id);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
+        command_id = node.getUInt("command_id");
+        subcommand_id = node.getUInt("subcommand_id");
+    }
 };
 
 // Message: config_json (id: 11)
@@ -150,6 +178,32 @@ public:
         len += _buf->json_len;
         return true;
     }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+        node.setString("path", path);
+        node.setString("json", json);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
+        path = node.getString("path");
+        json = node.getString("json");
+    }
 };
 
 // Message: command_inceptors (id: 12)
@@ -191,6 +245,30 @@ public:
         for (int _i=0; _i<ap_channels; _i++) channel[_i] = _buf->channel[_i] / (float)16384;
         return true;
     }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+        for (int _i=0; _i<ap_channels; _i++) node.setFloat("channel", _i, channel[_i]);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
+        for (int _i=0; _i<ap_channels; _i++) channel[_i] = node.getFloat("channel", _i);
+    }
 };
 
 // Message: command_zero_gyros (id: 13)
@@ -224,6 +302,28 @@ public:
     bool unpack(uint8_t *external_message, int message_size) {
         len = sizeof(_compact_t);
         return true;
+    }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
     }
 };
 
@@ -259,6 +359,28 @@ public:
         len = sizeof(_compact_t);
         return true;
     }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
+    }
 };
 
 // Message: command_cycle_inceptors (id: 15)
@@ -292,6 +414,28 @@ public:
     bool unpack(uint8_t *external_message, int message_size) {
         len = sizeof(_compact_t);
         return true;
+    }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
     }
 };
 
@@ -338,6 +482,32 @@ public:
         flags = _buf->flags;
         return true;
     }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+        for (int _i=0; _i<sbus_channels; _i++) node.setFloat("channel", _i, channel[_i]);
+        node.setUInt("flags", flags);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
+        for (int _i=0; _i<sbus_channels; _i++) channel[_i] = node.getFloat("channel", _i);
+        flags = node.getUInt("flags");
+    }
 };
 
 // Message: imu (id: 17)
@@ -345,15 +515,43 @@ class imu_t {
 public:
 
     uint32_t millis;
-    int16_t raw[6];
-    int16_t cal[10];
+    float ax_raw;
+    float ay_raw;
+    float az_raw;
+    float hx_raw;
+    float hy_raw;
+    float hz_raw;
+    float ax_mps2;
+    float ay_mps2;
+    float az_mps2;
+    float p_rps;
+    float q_rps;
+    float r_rps;
+    float hx;
+    float hy;
+    float hz;
+    float temp_C;
 
     // internal structure for packing
     #pragma pack(push, 1)
     struct _compact_t {
         uint32_t millis;
-        int16_t raw[6];
-        int16_t cal[10];
+        int16_t ax_raw;
+        int16_t ay_raw;
+        int16_t az_raw;
+        int16_t hx_raw;
+        int16_t hy_raw;
+        int16_t hz_raw;
+        int16_t ax_mps2;
+        int16_t ay_mps2;
+        int16_t az_mps2;
+        int16_t p_rps;
+        int16_t q_rps;
+        int16_t r_rps;
+        int16_t hx;
+        int16_t hy;
+        int16_t hz;
+        int16_t temp_C;
     };
     #pragma pack(pop)
 
@@ -374,8 +572,22 @@ public:
         // copy values
         _compact_t *_buf = (_compact_t *)payload;
         _buf->millis = millis;
-        for (int _i=0; _i<6; _i++) _buf->raw[_i] = raw[_i];
-        for (int _i=0; _i<10; _i++) _buf->cal[_i] = cal[_i];
+        _buf->ax_raw = intround(ax_raw * 835.296217);
+        _buf->ay_raw = intround(ay_raw * 835.296217);
+        _buf->az_raw = intround(az_raw * 835.296217);
+        _buf->hx_raw = intround(hx_raw * 30000);
+        _buf->hy_raw = intround(hy_raw * 30000);
+        _buf->hz_raw = intround(hz_raw * 30000);
+        _buf->ax_mps2 = intround(ax_mps2 * 835.296217);
+        _buf->ay_mps2 = intround(ay_mps2 * 835.296217);
+        _buf->az_mps2 = intround(az_mps2 * 835.296217);
+        _buf->p_rps = intround(p_rps * 3754.82165);
+        _buf->q_rps = intround(q_rps * 3754.82165);
+        _buf->r_rps = intround(r_rps * 3754.82165);
+        _buf->hx = intround(hx * 30000);
+        _buf->hy = intround(hy * 30000);
+        _buf->hz = intround(hz * 30000);
+        _buf->temp_C = intround(temp_C * 250);
         return true;
     }
 
@@ -383,9 +595,79 @@ public:
         _compact_t *_buf = (_compact_t *)external_message;
         len = sizeof(_compact_t);
         millis = _buf->millis;
-        for (int _i=0; _i<6; _i++) raw[_i] = _buf->raw[_i];
-        for (int _i=0; _i<10; _i++) cal[_i] = _buf->cal[_i];
+        ax_raw = _buf->ax_raw / (float)835.296217;
+        ay_raw = _buf->ay_raw / (float)835.296217;
+        az_raw = _buf->az_raw / (float)835.296217;
+        hx_raw = _buf->hx_raw / (float)30000;
+        hy_raw = _buf->hy_raw / (float)30000;
+        hz_raw = _buf->hz_raw / (float)30000;
+        ax_mps2 = _buf->ax_mps2 / (float)835.296217;
+        ay_mps2 = _buf->ay_mps2 / (float)835.296217;
+        az_mps2 = _buf->az_mps2 / (float)835.296217;
+        p_rps = _buf->p_rps / (float)3754.82165;
+        q_rps = _buf->q_rps / (float)3754.82165;
+        r_rps = _buf->r_rps / (float)3754.82165;
+        hx = _buf->hx / (float)30000;
+        hy = _buf->hy / (float)30000;
+        hz = _buf->hz / (float)30000;
+        temp_C = _buf->temp_C / (float)250;
         return true;
+    }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+        node.setUInt("millis", millis);
+        node.setFloat("ax_raw", ax_raw);
+        node.setFloat("ay_raw", ay_raw);
+        node.setFloat("az_raw", az_raw);
+        node.setFloat("hx_raw", hx_raw);
+        node.setFloat("hy_raw", hy_raw);
+        node.setFloat("hz_raw", hz_raw);
+        node.setFloat("ax_mps2", ax_mps2);
+        node.setFloat("ay_mps2", ay_mps2);
+        node.setFloat("az_mps2", az_mps2);
+        node.setFloat("p_rps", p_rps);
+        node.setFloat("q_rps", q_rps);
+        node.setFloat("r_rps", r_rps);
+        node.setFloat("hx", hx);
+        node.setFloat("hy", hy);
+        node.setFloat("hz", hz);
+        node.setFloat("temp_C", temp_C);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
+        millis = node.getUInt("millis");
+        ax_raw = node.getFloat("ax_raw");
+        ay_raw = node.getFloat("ay_raw");
+        az_raw = node.getFloat("az_raw");
+        hx_raw = node.getFloat("hx_raw");
+        hy_raw = node.getFloat("hy_raw");
+        hz_raw = node.getFloat("hz_raw");
+        ax_mps2 = node.getFloat("ax_mps2");
+        ay_mps2 = node.getFloat("ay_mps2");
+        az_mps2 = node.getFloat("az_mps2");
+        p_rps = node.getFloat("p_rps");
+        q_rps = node.getFloat("q_rps");
+        r_rps = node.getFloat("r_rps");
+        hx = node.getFloat("hx");
+        hy = node.getFloat("hy");
+        hz = node.getFloat("hz");
+        temp_C = node.getFloat("temp_C");
     }
 };
 
@@ -480,6 +762,56 @@ public:
         vdop = _buf->vdop;
         return true;
     }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+        node.setUInt("millis", millis);
+        node.setUInt64("unix_usec", unix_usec);
+        node.setUInt("num_sats", num_sats);
+        node.setUInt("status", status);
+        node.setInt("longitude_raw", longitude_raw);
+        node.setInt("latitude_raw", latitude_raw);
+        node.setFloat("altitude_m", altitude_m);
+        node.setFloat("vn_mps", vn_mps);
+        node.setFloat("ve_mps", ve_mps);
+        node.setFloat("vd_mps", vd_mps);
+        node.setFloat("hAcc", hAcc);
+        node.setFloat("vAcc", vAcc);
+        node.setFloat("hdop", hdop);
+        node.setFloat("vdop", vdop);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
+        millis = node.getUInt("millis");
+        unix_usec = node.getUInt64("unix_usec");
+        num_sats = node.getUInt("num_sats");
+        status = node.getUInt("status");
+        longitude_raw = node.getInt("longitude_raw");
+        latitude_raw = node.getInt("latitude_raw");
+        altitude_m = node.getFloat("altitude_m");
+        vn_mps = node.getFloat("vn_mps");
+        ve_mps = node.getFloat("ve_mps");
+        vd_mps = node.getFloat("vd_mps");
+        hAcc = node.getFloat("hAcc");
+        vAcc = node.getFloat("vAcc");
+        hdop = node.getFloat("hdop");
+        vdop = node.getFloat("vdop");
+    }
 };
 
 // Message: airdata (id: 19)
@@ -545,6 +877,42 @@ public:
         error_count = _buf->error_count;
         return true;
     }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+        node.setFloat("baro_press_pa", baro_press_pa);
+        node.setFloat("baro_temp_C", baro_temp_C);
+        node.setFloat("baro_hum", baro_hum);
+        node.setFloat("ext_diff_press_pa", ext_diff_press_pa);
+        node.setFloat("ext_static_press_pa", ext_static_press_pa);
+        node.setFloat("ext_temp_C", ext_temp_C);
+        node.setUInt("error_count", error_count);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
+        baro_press_pa = node.getFloat("baro_press_pa");
+        baro_temp_C = node.getFloat("baro_temp_C");
+        baro_hum = node.getFloat("baro_hum");
+        ext_diff_press_pa = node.getFloat("ext_diff_press_pa");
+        ext_static_press_pa = node.getFloat("ext_static_press_pa");
+        ext_temp_C = node.getFloat("ext_temp_C");
+        error_count = node.getUInt("error_count");
+    }
 };
 
 // Message: power (id: 20)
@@ -597,6 +965,36 @@ public:
         ext_main_v = _buf->ext_main_v / (float)100;
         ext_main_amp = _buf->ext_main_amp / (float)100;
         return true;
+    }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+        node.setFloat("int_main_v", int_main_v);
+        node.setFloat("avionics_v", avionics_v);
+        node.setFloat("ext_main_v", ext_main_v);
+        node.setFloat("ext_main_amp", ext_main_amp);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
+        int_main_v = node.getFloat("int_main_v");
+        avionics_v = node.getFloat("avionics_v");
+        ext_main_v = node.getFloat("ext_main_v");
+        ext_main_amp = node.getFloat("ext_main_amp");
     }
 };
 
@@ -658,6 +1056,40 @@ public:
         byte_rate = _buf->byte_rate;
         timer_misses = _buf->timer_misses;
         return true;
+    }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+        node.setUInt("serial_number", serial_number);
+        node.setUInt("firmware_rev", firmware_rev);
+        node.setUInt("master_hz", master_hz);
+        node.setUInt("baud", baud);
+        node.setUInt("byte_rate", byte_rate);
+        node.setUInt("timer_misses", timer_misses);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
+        serial_number = node.getUInt("serial_number");
+        firmware_rev = node.getUInt("firmware_rev");
+        master_hz = node.getUInt("master_hz");
+        baud = node.getUInt("baud");
+        byte_rate = node.getUInt("byte_rate");
+        timer_misses = node.getUInt("timer_misses");
     }
 };
 
@@ -775,6 +1207,68 @@ public:
         max_att_cov = _buf->max_att_cov / (float)10000;
         status = _buf->status;
         return true;
+    }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+        node.setUInt("millis", millis);
+        node.setDouble("lat_rad", lat_rad);
+        node.setDouble("lon_rad", lon_rad);
+        node.setFloat("altitude_m", altitude_m);
+        node.setFloat("vn_ms", vn_ms);
+        node.setFloat("ve_ms", ve_ms);
+        node.setFloat("vd_ms", vd_ms);
+        node.setFloat("phi_rad", phi_rad);
+        node.setFloat("the_rad", the_rad);
+        node.setFloat("psi_rad", psi_rad);
+        node.setFloat("p_bias", p_bias);
+        node.setFloat("q_bias", q_bias);
+        node.setFloat("r_bias", r_bias);
+        node.setFloat("ax_bias", ax_bias);
+        node.setFloat("ay_bias", ay_bias);
+        node.setFloat("az_bias", az_bias);
+        node.setFloat("max_pos_cov", max_pos_cov);
+        node.setFloat("max_vel_cov", max_vel_cov);
+        node.setFloat("max_att_cov", max_att_cov);
+        node.setUInt("status", status);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node = PropertyNode(_path.c_str(), true);
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
+        millis = node.getUInt("millis");
+        lat_rad = node.getDouble("lat_rad");
+        lon_rad = node.getDouble("lon_rad");
+        altitude_m = node.getFloat("altitude_m");
+        vn_ms = node.getFloat("vn_ms");
+        ve_ms = node.getFloat("ve_ms");
+        vd_ms = node.getFloat("vd_ms");
+        phi_rad = node.getFloat("phi_rad");
+        the_rad = node.getFloat("the_rad");
+        psi_rad = node.getFloat("psi_rad");
+        p_bias = node.getFloat("p_bias");
+        q_bias = node.getFloat("q_bias");
+        r_bias = node.getFloat("r_bias");
+        ax_bias = node.getFloat("ax_bias");
+        ay_bias = node.getFloat("ay_bias");
+        az_bias = node.getFloat("az_bias");
+        max_pos_cov = node.getFloat("max_pos_cov");
+        max_vel_cov = node.getFloat("max_vel_cov");
+        max_att_cov = node.getFloat("max_att_cov");
+        status = node.getUInt("status");
     }
 };
 

@@ -1,4 +1,4 @@
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 
@@ -24,15 +24,15 @@ from mission.task import throttle_safety
 
 class MissionMgr:
     def __init__(self):
-        self.ap_node = getNode("/autopilot/targets", True)
-        self.targets_node = getNode("/autopilot/targets", True)
-        self.missions_node = getNode("/config/mission", True)
-        self.pos_node = getNode("/position", True)
-        self.task_node = getNode("/task", True)
-        self.preflight_node = getNode("/task/preflight", True)
-        self.circle_standby_node = getNode("/task/circle/standby", True)
-        self.home_node = getNode("/task/home", True)
-        self.wind_node = getNode("/filters/wind", True)
+        self.ap_node = PropertyNode("/autopilot/targets", True)
+        self.targets_node = PropertyNode("/autopilot/targets", True)
+        self.missions_node = PropertyNode("/config/mission", True)
+        self.pos_node = PropertyNode("/position", True)
+        self.task_node = PropertyNode("/task", True)
+        self.preflight_node = PropertyNode("/task/preflight", True)
+        self.circle_standby_node = PropertyNode("/task/circle/standby", True)
+        self.home_node = PropertyNode("/task/home", True)
+        self.wind_node = PropertyNode("/filters/wind", True)
         self.global_tasks = []
         self.seq_tasks = []
         self.standby_tasks = []
@@ -89,30 +89,30 @@ class MissionMgr:
     def init(self):
         print("global_tasks:")
         global_node = self.missions_node.getChild("global_tasks", True)
-        if global_node:
-            for name in global_node.getChildren():
-                config_node = global_node.getChild(name)
-                task = self.make_task(config_node)
-                if task != None:
-                    self.global_tasks.append( task )
+        num = global_node.getLen("task")
+        for i in range(num):
+            config_node = global_node.getChild("task/%d" % i, True)
+            task = self.make_task(config_node)
+            if task != None:
+                self.global_tasks.append( task )
 
         print("sequential_tasks:")
         seq_node = self.missions_node.getChild("sequential_tasks", True)
-        if seq_node:
-            for name in seq_node.getChildren():
-                config_node = seq_node.getChild(name)
-                task = self.make_task(config_node)
-                if task != None:
-                    self.seq_tasks.append( task )
+        num = seq_node.getLen("task")
+        for i in range(num):
+            config_node = seq_node.getChild("task/%d" % i, True)
+            task = self.make_task(config_node)
+            if task != None:
+                self.seq_tasks.append( task )
 
         print("standby_tasks:")
         standby_node = self.missions_node.getChild("standby_tasks", True)
-        if standby_node:
-            for name in standby_node.getChildren():
-                config_node = standby_node.getChild(name)
-                task = self.make_task(config_node)
-                if task != None:
-                    self.standby_tasks.append( task )
+        num = standby_node.getLen("task")
+        for i in range(num):
+            config_node = standby_node.getChild("task/%d" % i, True)
+            task = self.make_task(config_node)
+            if task != None:
+                self.standby_tasks.append( task )
 
         # activate all the tasks in the global queue
         for task in self.global_tasks:
@@ -259,11 +259,11 @@ class MissionMgr:
         lon_deg = None
         lat_deg = None
         if self.home_node.hasChild("longitude_deg"):
-            tmp = self.home_node.getFloat("longitude_deg")
+            tmp = self.home_node.getDouble("longitude_deg")
             if abs(tmp) > 0.01:
                 lon_deg = tmp
         if self.home_node.hasChild("latitude_deg"):
-            tmp = self.home_node.getFloat("latitude_deg")
+            tmp = self.home_node.getDouble("latitude_deg")
             if abs(tmp) > 0.01:
                 lat_deg = tmp
         self.request_task_circle(lon_deg, lat_deg)
@@ -274,15 +274,15 @@ class MissionMgr:
         lat = 0.0
         if lon_deg == None or lat_deg == None:
             # no coordinates specified, use current position
-            lon = self.pos_node.getFloat("longitude_deg")
-            lat = self.pos_node.getFloat("latitude_deg")
+            lon = self.pos_node.getDouble("longitude_deg")
+            lat = self.pos_node.getDouble("latitude_deg")
         else:
             lon = float(lon_deg)
             lat = float(lat_deg)
 
         # setup the target coordinates
-        self.circle_standby_node.setFloat( "longitude_deg", lon )
-        self.circle_standby_node.setFloat( "latitude_deg", lat )
+        self.circle_standby_node.setDouble( "longitude_deg", lon )
+        self.circle_standby_node.setDouble( "latitude_deg", lat )
         
         # sanity check, are we already running the requested task
         if len(self.seq_tasks) and self.seq_tasks[0].name == "circle":

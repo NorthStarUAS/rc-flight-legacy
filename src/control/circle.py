@@ -1,6 +1,6 @@
 import math
 
-from props import getNode
+from PropertyTree import PropertyNode
 from rcUAS import wgs84
 
 import comms.events
@@ -10,13 +10,13 @@ r2d = 180.0 / math.pi
 sqrt_of_2 = math.sqrt(2.0)
 gravity = 9.81                  # m/sec^2
 
-circle_node = getNode("/task/circle/active", True)
-pos_node = getNode("/position", True)
-vel_node = getNode("/velocity", True)
-orient_node = getNode("/orientation", True)
-route_node = getNode("/task/route", True)
-L1_node = getNode("/config/autopilot/L1_controller", True)
-targets_node = getNode("/autopilot/targets", True)
+circle_node = PropertyNode("/task/circle/active", True)
+pos_node = PropertyNode("/position", True)
+vel_node = PropertyNode("/velocity", True)
+orient_node = PropertyNode("/orientation", True)
+route_node = PropertyNode("/task/route", True)
+L1_node = PropertyNode("/config/autopilot/L1_controller", True)
+targets_node = PropertyNode("/autopilot/targets", True)
 
 def init():
     # sanity check, set some conservative values if none are
@@ -38,8 +38,8 @@ def update(dt):
 
     if pos_node.hasChild("longitude_deg") and \
          pos_node.hasChild("latitude_deg"):
-        pos_lon = pos_node.getFloat("longitude_deg")
-        pos_lat = pos_node.getFloat("latitude_deg")
+        pos_lon = pos_node.getDouble("longitude_deg")
+        pos_lat = pos_node.getDouble("latitude_deg")
     else:
         # no valid current position, bail out.
         return
@@ -47,13 +47,13 @@ def update(dt):
     if circle_node.hasChild("longitude_deg") and \
        circle_node.hasChild("latitude_deg"):
         # we have a valid circle center
-        center_lon = circle_node.getFloat("longitude_deg")
-        center_lat = circle_node.getFloat("latitude_deg")
+        center_lon = circle_node.getDouble("longitude_deg")
+        center_lat = circle_node.getDouble("latitude_deg")
     else:
         # we have a valid position, but no valid circle center, use
         # current position.  (sanity fallback)
-        circle_node.setFloat("longitude_deg", pos_lon)
-        circle_node.setFloat("latitude_deg", pos_lat)
+        circle_node.setDouble("longitude_deg", pos_lon)
+        circle_node.setDouble("latitude_deg", pos_lat)
         circle_node.setFloat("radius_m", 100.0)
         circle_node.setString("direction", "left")
         center_lon = pos_lon

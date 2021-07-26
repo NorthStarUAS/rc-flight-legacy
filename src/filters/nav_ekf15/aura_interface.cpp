@@ -3,8 +3,6 @@
 //
 
 
-#include <pyprops.h>
-
 #include <math.h>
 #include <string.h>
 
@@ -26,9 +24,9 @@ static GPSdata gps_data;
 static NAVdata nav_data;
 
 // property nodes
-static pyPropertyNode imu_node;
-static pyPropertyNode gps_node;
-static pyPropertyNode filter_node;
+static PropertyNode imu_node;
+static PropertyNode gps_node;
+static PropertyNode filter_node;
 
 // when false will trigger a nav init if gps is alive and settled
 static bool nav_inited = false;
@@ -63,30 +61,30 @@ static void umn2props(void) {
     if ( psi < 0 ) { psi += M_PI*2.0; }
     if ( psi > M_PI*2.0 ) { psi -= M_PI*2.0; }
     filter_node.setDouble( "timestamp", imu_data.time );
-    filter_node.setDouble( "roll_deg", nav_data.phi * R2D );
-    filter_node.setDouble( "pitch_deg", nav_data.the * R2D );
-    filter_node.setDouble( "heading_deg", psi * R2D );
+    filter_node.setFloat( "roll_deg", nav_data.phi * R2D );
+    filter_node.setFloat( "pitch_deg", nav_data.the * R2D );
+    filter_node.setFloat( "heading_deg", psi * R2D );
     filter_node.setDouble( "latitude_deg", nav_data.lat * R2D );
     filter_node.setDouble( "longitude_deg", nav_data.lon * R2D );
-    filter_node.setDouble( "altitude_m", nav_data.alt );
-    filter_node.setDouble( "vn_ms", nav_data.vn );
-    filter_node.setDouble( "ve_ms", nav_data.ve );
-    filter_node.setDouble( "vd_ms", nav_data.vd );
+    filter_node.setFloat( "altitude_m", nav_data.alt );
+    filter_node.setFloat( "vn_ms", nav_data.vn );
+    filter_node.setFloat( "ve_ms", nav_data.ve );
+    filter_node.setFloat( "vd_ms", nav_data.vd );
     if ( nav_data.err_type == data_valid ||
 	 nav_data.err_type == TU_only ||
 	 nav_data.err_type == gps_aided )
     {
-	filter_node.setLong( "status", 2 );
+	filter_node.setInt( "status", 2 );
     } else {
-	filter_node.setLong( "status", 1 );
+	filter_node.setInt( "status", 1 );
     }
 
-    filter_node.setDouble( "p_bias", nav_data.gbx );
-    filter_node.setDouble( "q_bias", nav_data.gby );
-    filter_node.setDouble( "r_bias", nav_data.gbz );
-    filter_node.setDouble( "ax_bias", nav_data.abx );
-    filter_node.setDouble( "ay_bias", nav_data.aby );
-    filter_node.setDouble( "az_bias", nav_data.abz );
+    filter_node.setFloat( "p_bias", nav_data.gbx );
+    filter_node.setFloat( "q_bias", nav_data.gby );
+    filter_node.setFloat( "r_bias", nav_data.gbz );
+    filter_node.setFloat( "ax_bias", nav_data.abx );
+    filter_node.setFloat( "ay_bias", nav_data.aby );
+    filter_node.setFloat( "az_bias", nav_data.abz );
     
     float max_pos_cov = nav_data.Pp0;
     if ( nav_data.Pp1 > max_pos_cov ) { max_pos_cov = nav_data.Pp1; }
@@ -100,28 +98,28 @@ static void umn2props(void) {
     if ( nav_data.Pa1 > max_att_cov ) { max_att_cov = nav_data.Pa1; }
     if ( nav_data.Pa2 > max_att_cov ) { max_att_cov = nav_data.Pa2; }
     if ( max_att_cov > 6.55 ) { max_vel_cov = 6.55; }
-    filter_node.setDouble( "max_pos_cov", max_pos_cov );
-    filter_node.setDouble( "max_vel_cov", max_vel_cov );
-    filter_node.setDouble( "max_att_cov", max_att_cov );
+    filter_node.setFloat( "max_pos_cov", max_pos_cov );
+    filter_node.setFloat( "max_vel_cov", max_vel_cov );
+    filter_node.setFloat( "max_att_cov", max_att_cov );
     
-    filter_node.setDouble( "altitude_ft",
+    filter_node.setFloat( "altitude_ft",
 			   nav_data.alt * M2F );
-    filter_node.setDouble( "groundtrack_deg",
+    filter_node.setFloat( "groundtrack_deg",
 			   90 - atan2(nav_data.vn, nav_data.ve) * R2D );
     double gs_ms = sqrt(nav_data.vn * nav_data.vn + nav_data.ve * nav_data.ve);
-    filter_node.setDouble( "groundspeed_ms", gs_ms );
-    filter_node.setDouble( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
-    filter_node.setDouble( "vertical_speed_fps",
+    filter_node.setFloat( "groundspeed_ms", gs_ms );
+    filter_node.setFloat( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
+    filter_node.setFloat( "vertical_speed_fps",
 			   -nav_data.vd * M2F );
 }
 
 
-void nav_ekf15_init( string output_path, pyPropertyNode *config ) {
+void nav_ekf15_init( string output_path, PropertyNode *config ) {
     // initialize property nodes
-    imu_node = pyGetNode("/sensors/imu", true);
-    gps_node = pyGetNode("/sensors/gps", true);
-    filter_node = pyGetNode(output_path, true);
-    filter_node.setLong( "status", 0 );
+    imu_node = PropertyNode("/sensors/imu", true);
+    gps_node = PropertyNode("/sensors/gps", true);
+    filter_node = PropertyNode(output_path, true);
+    filter_node.setInt( "status", 0 );
 
 #if 0
     // set tuning value for specific gps and imu noise characteristics

@@ -1,4 +1,4 @@
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 from mission.task.task import Task
@@ -6,8 +6,8 @@ from mission.task.task import Task
 class FlapsMgr(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.flight_node = getNode("/controls/flight", True)
-        self.imu_node = getNode("/sensors/imu", True)
+        self.flight_node = PropertyNode("/controls/flight", True)
+        self.imu_node = PropertyNode("/sensors/imu/0", True)
         
         self.name = config_node.getString("name")
         if config_node.hasChild("speed_secs"):

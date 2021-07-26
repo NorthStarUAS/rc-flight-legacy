@@ -7,8 +7,6 @@
  *
  */
 
-#include <pyprops.h>
-
 #include <errno.h>		// errno
 #include <math.h>		// sin() cos()
 #include <sys/types.h>		// open()
@@ -29,38 +27,12 @@ using namespace Eigen;
 
 #include "include/globaldefs.h"
 
-//#include "init/globals.h"
 #include "util/geodesy.h"
 #include "util/props_helper.h"
 #include "util/strutils.h"
 #include "util/timing.h"
 
 #include "ublox6.h"
-
-// // property nodes
-// static pyPropertyNode gps_node;
-
-// static int fd = -1;
-// static string device_name = "/dev/ttyS0";
-// static int baud = 57600;
-// static int gps_fix_value = 0;
-
-// // initialize gpsd input property nodes
-// static void bind_input( pyPropertyNode *config ) {
-//     if ( config->hasChild("device") ) {
-// 	device_name = config->getString("device");
-//     }
-//     if ( config->hasChild("baud") ) {
-// 	baud = config->getLong("baud");
-//     }
-// }
-
-
-// initialize gpsd output property nodes 
-// static void bind_output( string output_node ) {
-//     gps_node = pyGetNode(output_node, true);
-// }
-
 
 // send our configured init strings to configure gpsd the way we prefer
 bool ublox6_t::open( const char *device_name, const int baud ) {
@@ -121,12 +93,12 @@ bool ublox6_t::open( const char *device_name, const int baud ) {
     return true;
 }
 
-void ublox6_t::init( pyPropertyNode *config ) {
+void ublox6_t::init( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "gps", false);
-    gps_node = pyGetNode(output_path.c_str(), true);
+    gps_node = PropertyNode(output_path.c_str(), true);
     if ( config->hasChild("device") ) {
         string device = config->getString("device");
-        int baud = config->getLong("baud");
+        int baud = config->getInt("baud");
         if ( open(device.c_str(), baud) ) {
             printf("ublox6 device opened: %s\n", device.c_str());
         } else {
@@ -224,14 +196,14 @@ bool ublox6_t::parse_msg() {
 	Vector3d vel_ned = quat_backtransform(ecef2ned, vel_ecef);
 	// printf("my vel ned = %.2f %.2f %.2f\n", vel_ned.x(), vel_ned.y(), vel_ned.z());
 
- 	gps_node.setLong( "satellites", numSV );
+ 	gps_node.setInt( "satellites", numSV );
  	gps_fix_value = gpsFix;
 	if ( gps_fix_value == 0 ) {
-	    gps_node.setLong( "status", 0 );
+	    gps_node.setInt( "status", 0 );
 	} else if ( gps_fix_value == 1 || gps_fix_value == 2 ) {
-	    gps_node.setLong( "status", 1 );
+	    gps_node.setInt( "status", 1 );
 	} else if ( gps_fix_value == 3 ) {
-	    gps_node.setLong( "status", 2 );
+	    gps_node.setInt( "status", 2 );
 	}
 
 	if ( fabs(ecefX) > 650000000
@@ -252,10 +224,10 @@ bool ublox6_t::parse_msg() {
 	    gps_node.setDouble( "timestamp", get_Time() );
 	    gps_node.setDouble( "latitude_deg", wgs84[0] * 180.0 / M_PI );
 	    gps_node.setDouble( "longitude_deg", wgs84[1] * 180.0 / M_PI );
-	    gps_node.setDouble( "altitude_m", wgs84[2] );
-	    gps_node.setDouble( "vn_ms", vel_ned.x() );
-	    gps_node.setDouble( "ve_ms", vel_ned.y() );
-	    gps_node.setDouble( "vd_ms", vel_ned.z() );
+	    gps_node.setFloat( "altitude_m", wgs84[2] );
+	    gps_node.setFloat( "vn_ms", vel_ned.x() );
+	    gps_node.setFloat( "ve_ms", vel_ned.y() );
+	    gps_node.setFloat( "vd_ms", vel_ned.z() );
 	    // printf("        %.10f %.10f %.2f - %.2f %.2f %.2f\n",
 	    //        wgs84.getLatitudeDeg(),
 	    //        wgs84.getLongitudeDeg(),
@@ -370,7 +342,7 @@ bool ublox6_t::parse_msg() {
 		satUsed++;
 	    }
 	}
- 	// gps_satellites_node.setLong( satUsed );
+ 	// gps_satellites_node.setInt satUsed );
 	if ( verbose && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("Satellite count = %d/%d\n", satUsed, numCh);

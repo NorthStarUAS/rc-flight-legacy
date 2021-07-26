@@ -29,7 +29,7 @@ class AuraSummer : public APComponent {
 
 private:
     // support multiple input nodes
-    vector <pyPropertyNode> input_node;
+    vector <PropertyNode> input_node;
     vector <string> input_attr;
 
     // debug flag

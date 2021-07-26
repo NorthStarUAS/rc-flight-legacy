@@ -3,8 +3,6 @@
 // DESCRIPTION: aquire live sensor data from an running copy of Flightgear
 //
 
-#include <pyprops.h>
-
 #include <stdlib.h>		// drand48()
 #include <sys/ioctl.h>
 
@@ -55,12 +53,12 @@ void fgfs_t::hard_error( const char *format, ... ) {
     exit(-1);
 }
 
-void fgfs_t::init_airdata( pyPropertyNode *config ) {
+void fgfs_t::init_airdata( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "airdata", true);
-    airdata_node = pyGetNode(output_path.c_str(), true);
+    airdata_node = PropertyNode(output_path.c_str(), true);
 }
 
-void fgfs_t::init_act( pyPropertyNode *config ) {
+void fgfs_t::init_act( PropertyNode *config ) {
     string hostname = "";
     if ( config->hasChild("host") ) {
         hostname = config->getString("host");
@@ -69,13 +67,13 @@ void fgfs_t::init_act( pyPropertyNode *config ) {
     }
     int port = -1;
     if ( config->hasChild("port") ) {
-        port = config->getLong("port");
+        port = config->getInt("port");
     } else {
         hard_error("no actuator port specified in driver config.");
     }
     
     string output_path = get_next_path("/sensors", "gps", true);
-    gps_node = pyGetNode(output_path.c_str(), true);
+    gps_node = PropertyNode(output_path.c_str(), true);
 
     // open a UDP socket
     if ( ! sock_act.open( false ) ) {
@@ -91,10 +89,10 @@ void fgfs_t::init_act( pyPropertyNode *config ) {
     sock_act.setBlocking( false );
 }
 
-void fgfs_t::init_gps( pyPropertyNode *config ) {
+void fgfs_t::init_gps( PropertyNode *config ) {
     int port = -1;
     if ( config->hasChild("port") ) {
-        port = config->getLong("port");
+        port = config->getInt("port");
     } else {
         hard_error("no gps port specified in driver config.");
     }
@@ -113,16 +111,16 @@ void fgfs_t::init_gps( pyPropertyNode *config ) {
     sock_gps.setBlocking( false );
 }
 
-void fgfs_t::init_imu( pyPropertyNode *config ) {
+void fgfs_t::init_imu( PropertyNode *config ) {
     int port = -1;
     if ( config->hasChild("port") ) {
-        port = config->getLong("port");
+        port = config->getInt("port");
     } else {
         hard_error("no imu port specified in driver config.");
     }
         
     string output_path = get_next_path("/sensors", "imu", true);
-    imu_node = pyGetNode(output_path.c_str(), true);
+    imu_node = PropertyNode(output_path.c_str(), true);
     
     // open a UDP socket
     if ( ! sock_imu.open( false ) ) {
@@ -140,34 +138,35 @@ void fgfs_t::init_imu( pyPropertyNode *config ) {
 #endif
 }
 
-void fgfs_t::init( pyPropertyNode *config ) {
-    act_node = pyGetNode("/actuators", true);
-    orient_node = pyGetNode("/orientation", true);
-    pos_node = pyGetNode("/position", true);
-    power_node = pyGetNode("/sensors/power", true);
+void fgfs_t::init( PropertyNode *config ) {
+    printf("fgfs driver init config:\n");
+    act_node = PropertyNode("/actuators", true);
+    orient_node = PropertyNode("/orientation", true);
+    pos_node = PropertyNode("/position", true);
+    power_node = PropertyNode("/sensors/power", true);
     power_node.setDouble( "avionics_vcc", 5.05 ); // set initial fake value
-    route_node = pyGetNode("/task/route", true);    
-    targets_node = pyGetNode("/autopilot/targets", true);
+    route_node = PropertyNode("/task/route", true);    
+    targets_node = PropertyNode("/autopilot/targets", true);
     
     if ( config->hasChild("actuators") ) {
-        pyPropertyNode act_config = config->getChild("actuators");
+        PropertyNode act_config = config->getChild("actuators");
         init_act(&act_config);
     }        
     if ( config->hasChild("gps") ) {
-        pyPropertyNode gps_config = config->getChild("gps");
+        PropertyNode gps_config = config->getChild("gps");
         init_gps(&gps_config);
     }        
     if ( config->hasChild("imu") ) {
-        pyPropertyNode imu_config = config->getChild("imu");
+        PropertyNode imu_config = config->getChild("imu");
         init_imu(&imu_config);
-        pyPropertyNode airdata_config = config->getChild("airdata");
+        PropertyNode airdata_config = config->getChild("airdata");
         init_airdata(&airdata_config);
     }
     
     airdata_node.setDouble( "temp_degC", 15.0 ); // set initial fake value
-    pyPropertyNode specs_node = pyGetNode("/config/specs", true);
+    PropertyNode specs_node = PropertyNode("/config/specs", true);
     if ( specs_node.hasChild("battery_cells") ) {
-        battery_cells = specs_node.getLong("battery_cells");
+        battery_cells = specs_node.getInt("battery_cells");
         if ( battery_cells < 1 ) { battery_cells = 4; }
     }
 }
@@ -225,13 +224,13 @@ bool fgfs_t::update_gps() {
 	gps_node.setDouble( "timestamp", get_Time() );
 	gps_node.setDouble( "latitude_deg", lat );
 	gps_node.setDouble( "longitude_deg", lon );
-	gps_node.setDouble( "altitude_m", alt );
-	gps_node.setDouble( "vn_ms", vn );
-	gps_node.setDouble( "ve_ms", ve );
-	gps_node.setDouble( "vd_ms", vd );
-	gps_node.setLong( "satellites", 8 ); // fake a solid number
+	gps_node.setFloat( "altitude_m", alt );
+	gps_node.setFloat( "vn_ms", vn );
+	gps_node.setFloat( "ve_ms", ve );
+	gps_node.setFloat( "vd_ms", vd );
+	gps_node.setInt( "satellites", 8 ); // fake a solid number
 	gps_node.setDouble( "unix_time_sec", time );
-	gps_node.setLong( "status", 2 ); // valid fix
+	gps_node.setInt( "status", 2 ); // valid fix
     }
 
     return fresh_data;

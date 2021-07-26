@@ -6,7 +6,7 @@ import asyncore
 import socket
 import re
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 #import commands
 
@@ -18,12 +18,12 @@ class ChatHandler(asynchat.async_chat):
         self.path = '/'
         self.prompt = True
 
-        self.imu_node = getNode("/sensors/imu", True)
-        self.targets_node = getNode("/autopilot/targets", True)
-        self.filter_node = getNode("/filters/filter", True)
-        self.act_node = getNode("/actuators/actuator", True)
-        self.vel_node = getNode("/velocity", True)
-        self.pos_comb_node = getNode("/position/combined", True)
+        self.imu_node = PropertyNode("/sensors/imu", True)
+        self.targets_node = PropertyNode("/autopilot/targets", True)
+        self.filter_node = PropertyNode("/filters/filter", True)
+        self.act_node = PropertyNode("/actuators/actuator", True)
+        self.vel_node = PropertyNode("/velocity", True)
+        self.pos_comb_node = PropertyNode("/position/combined", True)
 
     def collect_incoming_data(self, data):
         self.buffer.append(data.decode())
@@ -79,21 +79,21 @@ class ChatHandler(asynchat.async_chat):
                     else:
                         newpath = self.path + '/' + tokens[1]
             newpath = self.normalize_path(newpath)
-            node = getNode(newpath)
-            if node:
-                children = node.getChildren(expand=False)
+            node = PropertyNode(newpath, False)
+            if not node.isNull():
+                children = node.getChildren(False)
                 for child in children:
-                    if node.isEnum(child):
+                    if node.isArray(child):
                         line = ''
                         for i in range(node.getLen(child)):
-                            if node.isLeaf(child):
-                                value = node.getStringEnum(child, i)
-                                line += '%s[%d]' % (child, i)
+                            if node.isValue(child):
+                                value = node.getString(child, i)
+                                line += '%s/%d' % (child, i)
                                 line += ' =\t\"' + value + '"\t' + '\n'
                             else:
-                                line += '%s[%d]/' % (child, i) + '\n'
+                                line += '%s/%d' % (child, i) + '\n'
                     else:
-                        if node.isLeaf(child):
+                        if node.isValue(child):
                             value = node.getString(child)
                             line = child + ' =\t\"' + value + '"\t' + '\n'
                         else:
@@ -112,7 +112,7 @@ class ChatHandler(asynchat.async_chat):
                     else:
                         newpath = self.path + '/' + tokens[1]
             newpath = self.normalize_path(newpath)
-            node = getNode(newpath)
+            node = PropertyNode(newpath)
             if node:
                 self.my_push('path ok: ' + newpath + '\n')
                 self.path = newpath
@@ -134,10 +134,10 @@ class ChatHandler(asynchat.async_chat):
                     tmppath = '/'.join(tmp[0:-1])
                     if tmppath == '':
                         tmppath = '/'
-                    node = getNode(tmppath, True)
+                    node = PropertyNode(tmppath, True)
                     name = tmp[-1]
                 else:
-                    node = getNode(self.path, True)
+                    node = PropertyNode(self.path, True)
                     name = tokens[1]
                 value = node.getString(name)
                 if self.prompt:
@@ -160,10 +160,10 @@ class ChatHandler(asynchat.async_chat):
                     tmppath = '/'.join(tmp[0:-1])
                     if tmppath == '':
                         tmppath = '/'
-                    node = getNode(tmppath, True)
+                    node = PropertyNode(tmppath, True)
                     name = tmp[-1]
                 else:
-                    node = getNode(self.path, True)
+                    node = PropertyNode(self.path, True)
                     name = tokens[1]
                 value = ' '.join(tokens[2:])
 
@@ -280,8 +280,9 @@ telnet_enabled = False
 def init(port=6499):
     global telnet_enabled
 
-    telnet_node = getNode( '/config/telnet', True )
+    telnet_node = PropertyNode( '/config/telnet', True )
     port = telnet_node.getInt('port')
+    print("telnet port:", port)
     if port:
         server = ChatServer('localhost', port)
         telnet_enabled = True

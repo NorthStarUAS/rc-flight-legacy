@@ -114,10 +114,10 @@ bool SerialLink::update() {
         len = read( fd, input, 1 );
         if ( len > 0 ) {
             if ( input[0] == START_OF_MSG1 ) {
-                //fprintf( stderr, "read START_OF_MSG1\n");
+                // fprintf( stderr, "read START_OF_MSG1\n");
                 state++;
             } else if ( input[0] == START_OF_MSG0 ) {
-                //fprintf( stderr, "read START_OF_MSG0\n");
+                // fprintf( stderr, "read START_OF_MSG0\n");
             } else {
                 parse_errors++;
                 state = 0;
@@ -128,7 +128,7 @@ bool SerialLink::update() {
         len = read( fd, input, 1 );
         if ( len > 0 ) {
             pkt_id = input[0];
-            //fprintf( stderr, "pkt_id = %d\n", pkt_id );
+            // fprintf( stderr, "pkt_id = %d\n", pkt_id );
             state++;
         }
     }
@@ -137,7 +137,7 @@ bool SerialLink::update() {
         if ( len > 0 ) {
             pkt_len = input[0];
             if ( pkt_len < 256 ) {
-                //fprintf( stderr, "pkt_len = %d\n", pkt_len );
+                // fprintf( stderr, "pkt_len = %d\n", pkt_len );
                 state++;
             } else {
                 parse_errors++;
@@ -179,10 +179,11 @@ bool SerialLink::update() {
                 new_data = true;
             } else {
                 parse_errors++;
-                //if ( display_on ) {
-                    // printf("checksum failed %d %d (computed) != %d %d (message)\n",
-                    //        cksum_A, cksum_B, cksum_lo, cksum_hi );
-                //}
+                // printf( "checksum failed\n");
+                // if ( display_on ) {
+                //     printf("checksum failed %d %d (computed) != %d %d (message)\n",
+                //            cksum_A, cksum_B, cksum_lo, cksum_hi );
+                // }
             }
             // This Is the end of a record, reset state to 0 to start
             // looking for next record

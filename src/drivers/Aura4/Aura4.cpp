@@ -14,10 +14,9 @@
 // - (ok--for now) deal with how to arbitrate output path enumeration in property tree
 // - (ok) need to log cal and nocal imu values
 
-#include <pyprops.h>
-
 #include <stdarg.h>
 #include <stdlib.h>             // exit()
+#include <unistd.h>             // sleep()
 
 #include <string>
 #include <sstream>
@@ -52,11 +51,11 @@ void Aura4_t::hard_fail( const char *format, ... ) {
     exit(-1);
 }
 
-void Aura4_t::init( pyPropertyNode *config ) {
+void Aura4_t::init( PropertyNode *config ) {
     // bind main property nodes
-    aura4_node = pyGetNode("/sensors/Aura4", true);
-    power_node = pyGetNode("/sensors/power", true);
-    status_node = pyGetNode("/status", true);
+    aura4_node = PropertyNode("/sensors/Aura4", true);
+    power_node = PropertyNode("/sensors/power", true);
+    status_node = PropertyNode("/status", true);
     aura4_config = *config;
 
     printf("Aura4 driver init(): event logging broken!\n");
@@ -68,50 +67,50 @@ void Aura4_t::init( pyPropertyNode *config ) {
             pitot_calibrate = aura4_config.getDouble("pitot_calibrate_factor");
         }
 
-        pyPropertyNode specs_node = pyGetNode("/config/specs", true);
+        PropertyNode specs_node = PropertyNode("/config/specs", true);
         if ( specs_node.hasChild("battery_cells") ) {
-            battery_cells = specs_node.getLong("battery_cells");
+            battery_cells = specs_node.getInt("battery_cells");
         }
         if ( battery_cells < 1 ) { battery_cells = 1; }
     }
     
     if ( config->hasChild("board") ) {
-        pyPropertyNode board_config = config->getChild("board");
+        PropertyNode board_config = config->getChild("board");
         open( &board_config );
     } else {
         hard_fail("no board defined\n");
     }
 
     if ( config->hasChild("airdata") ) {
-        pyPropertyNode airdata_config = config->getChild("airdata");
+        PropertyNode airdata_config = config->getChild("airdata");
         init_airdata( &airdata_config );
     } else {
         hard_fail("no airdata configuration\n");
     }
     
     if ( config->hasChild("ekf") ) {
-        pyPropertyNode ekf_config = config->getChild("ekf");
+        PropertyNode ekf_config = config->getChild("ekf");
         init_ekf( &ekf_config );
     } else {
         hard_fail("no ekf configuration\n");
     }
     
     if ( config->hasChild("gps") ) {
-        pyPropertyNode gps_config = config->getChild("gps");
+        PropertyNode gps_config = config->getChild("gps");
         init_gps( &gps_config );
     } else {
         hard_fail("no gps configuration\n");
     }
     
     if ( config->hasChild("imu") ) {
-        pyPropertyNode imu_config = config->getChild("imu");
+        PropertyNode imu_config = config->getChild("imu");
         init_imu( &imu_config );
     } else {
         hard_fail("no imu configuration\n");
     }
 
     if ( config->hasChild("pilot_input") ) {
-        pyPropertyNode pilot_config = config->getChild("pilot_input");
+        PropertyNode pilot_config = config->getChild("pilot_input");
         init_pilot( &pilot_config );
     } else {
         hard_fail("no pilot configuration\n");
@@ -123,12 +122,12 @@ void Aura4_t::init( pyPropertyNode *config ) {
     sleep(1);
 }
 
-bool Aura4_t::open( pyPropertyNode *config ) {
+bool Aura4_t::open( PropertyNode *config ) {
     if ( config->hasChild("device") ) {
 	device_name = config->getString("device");
     }
     if ( config->hasChild("baud") ) {
-       baud = config->getLong("baud");
+       baud = config->getInt("baud");
     }
     
     if ( serial.is_open() ) {
@@ -146,17 +145,17 @@ bool Aura4_t::open( pyPropertyNode *config ) {
     return true;
 }
 
-void Aura4_t::init_airdata( pyPropertyNode *config ) {
+void Aura4_t::init_airdata( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "airdata", true);
-    airdata_node = pyGetNode(output_path.c_str(), true);
+    airdata_node = PropertyNode(output_path.c_str(), true);
 }
 
-void Aura4_t::init_ekf( pyPropertyNode *config ) {
+void Aura4_t::init_ekf( PropertyNode *config ) {
     if ( config->hasChild("select") ) {
         string val = config->getString("select");
         if ( val == "nav15" or val == "nav15_mag" ) {
             string output_path = get_next_path("/filters", "filter", true);
-            ekf_node = pyGetNode(output_path.c_str(), true);
+            ekf_node = PropertyNode(output_path.c_str(), true);
         } else if ( val == "none" ) {
             ekf_node = aura4_node.getChild("aura4_ekf_disabled", true);
         } else {
@@ -167,38 +166,38 @@ void Aura4_t::init_ekf( pyPropertyNode *config ) {
     }
 }
 
-void Aura4_t::init_gps( pyPropertyNode *config ) {
+void Aura4_t::init_gps( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "gps", true);
-    gps_node = pyGetNode(output_path.c_str(), true);
+    gps_node = PropertyNode(output_path.c_str(), true);
 }
 
-void Aura4_t::init_imu( pyPropertyNode *config ) {
+void Aura4_t::init_imu( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "imu", true);
-    imu_node = pyGetNode(output_path.c_str(), true);
+    imu_node = PropertyNode(output_path.c_str(), true);
 
     // FIXME:
     // if ( config->hasChild("calibration") ) {
-    //     pyPropertyNode cal = config->getChild("calibration");
+    //     PropertyNode cal = config->getChild("calibration");
     //     // save the imu calibration parameters with the data file so that
     //     // later the original raw sensor values can be derived.
     //     write_imu_calibration( &cal );
     // }
 }
 
-void Aura4_t::init_pilot( pyPropertyNode *config ) {
+void Aura4_t::init_pilot( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "pilot_input", true);
-    pilot_node = pyGetNode(output_path.c_str(), true);
+    pilot_node = PropertyNode(output_path.c_str(), true);
     if ( config->hasChild("channel") ) {
 	for ( int i = 0; i < message::sbus_channels; i++ ) {
 	    pilot_mapping[i] = config->getString("channel", i);
 	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
 	}
     }
-    pilot_node.setLen("channel", message::sbus_channels, 0.0);
+    // pilot_node.setLen("channel", message::sbus_channels, 0.0);
 }
 
-void Aura4_t::init_actuators( pyPropertyNode *config ) {
-    act_node = pyGetNode("/actuators", true);
+void Aura4_t::init_actuators( PropertyNode *config ) {
+    act_node = PropertyNode("/actuators", true);
 }
 
 bool Aura4_t::update_imu( message::imu_t *imu ) {
@@ -269,24 +268,24 @@ bool Aura4_t::update_imu( message::imu_t *imu ) {
     last_imu_millis = imu->millis;
 	
     imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
-    imu_node.setLong( "imu_millis", imu->millis );
+    imu_node.setInt( "imu_millis", imu->millis );
     imu_node.setDouble( "imu_sec", (double)imu->millis / 1000.0 );
-    imu_node.setDouble( "p_rad_sec", p_cal );
-    imu_node.setDouble( "q_rad_sec", q_cal );
-    imu_node.setDouble( "r_rad_sec", r_cal );
-    imu_node.setDouble( "ax_mps_sec", ax_cal );
-    imu_node.setDouble( "ay_mps_sec", ay_cal );
-    imu_node.setDouble( "az_mps_sec", az_cal );
-    imu_node.setDouble( "hx", hx_cal );
-    imu_node.setDouble( "hy", hy_cal );
-    imu_node.setDouble( "hz", hz_cal );
-    imu_node.setDouble( "ax_raw", ax_raw );
-    imu_node.setDouble( "ay_raw", ay_raw );
-    imu_node.setDouble( "az_raw", az_raw );
-    imu_node.setDouble( "hx_raw", hx_raw );
-    imu_node.setDouble( "hy_raw", hy_raw );
-    imu_node.setDouble( "hz_raw", hz_raw );
-    imu_node.setDouble( "temp_C", temp_C );
+    imu_node.setFloat( "p_rad_sec", p_cal );
+    imu_node.setFloat( "q_rad_sec", q_cal );
+    imu_node.setFloat( "r_rad_sec", r_cal );
+    imu_node.setFloat( "ax_mps_sec", ax_cal );
+    imu_node.setFloat( "ay_mps_sec", ay_cal );
+    imu_node.setFloat( "az_mps_sec", az_cal );
+    imu_node.setFloat( "hx", hx_cal );
+    imu_node.setFloat( "hy", hy_cal );
+    imu_node.setFloat( "hz", hz_cal );
+    imu_node.setFloat( "ax_raw", ax_raw );
+    imu_node.setFloat( "ay_raw", ay_raw );
+    imu_node.setFloat( "az_raw", az_raw );
+    imu_node.setFloat( "hx_raw", hx_raw );
+    imu_node.setFloat( "hy_raw", hy_raw );
+    imu_node.setFloat( "hz_raw", hz_raw );
+    imu_node.setFloat( "temp_C", temp_C );
 
     return true;
 }
@@ -311,7 +310,7 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
 	if ( pkt_len == airdata.len ) {
             update_airdata(&airdata);
 	    airdata_packet_counter++;
-	    aura4_node.setLong( "airdata_packet_count", airdata_packet_counter );
+	    aura4_node.setInt( "airdata_packet_count", airdata_packet_counter );
 	    new_data = true;
 	} else {
             info("packet size mismatch in airdata packet");
@@ -322,7 +321,7 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
         if ( pkt_len == ekf.len ) {
             update_ekf(&ekf);
             ekf_packet_counter++;
-            aura4_node.setLong( "ekf_packet_count", ekf_packet_counter );
+            aura4_node.setInt( "ekf_packet_count", ekf_packet_counter );
             new_data = true;
         } else {
             info("packet size mismatch in ekf packet");
@@ -333,7 +332,7 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
 	if ( pkt_len == nav_pvt.len ) {
             update_gps(&nav_pvt);
 	    gps_packet_counter++;
-	    aura4_node.setLong( "gps_packet_count", gps_packet_counter );
+	    aura4_node.setInt( "gps_packet_count", gps_packet_counter );
 	    new_data = true;
 	} else {
             info("packet size mismatch in gps packet");
@@ -345,7 +344,7 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
 	if ( pkt_len == imu.len ) {
             update_imu(&imu);
 	    imu_packet_counter++;
-	    aura4_node.setLong( "imu_packet_count",
+	    aura4_node.setInt( "imu_packet_count",
                                 imu_packet_counter );
 	    new_data = true;
 	} else {
@@ -357,7 +356,7 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
 	if ( pkt_len == pilot.len ) {
             update_pilot( &pilot );
 	    pilot_packet_counter++;
-	    aura4_node.setLong( "pilot_packet_count", pilot_packet_counter );
+	    aura4_node.setInt( "pilot_packet_count", pilot_packet_counter );
 	    new_data = true;
 	} else {
             info("packet size mismatch in pilot input packet");
@@ -372,15 +371,15 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
             ext_main_vcc_filt.update((float)power.ext_main_v, 0.01);
             avionics_vcc_filt.update((float)power.avionics_v, 0.01);
 
-            power_node.setDouble( "main_vcc", int_main_vcc_filt.get_value() );
-            power_node.setDouble( "ext_main_vcc", ext_main_vcc_filt.get_value() );
-            power_node.setDouble( "avionics_vcc", avionics_vcc_filt.get_value() );
+            power_node.setFloat( "main_vcc", int_main_vcc_filt.get_value() );
+            power_node.setFloat( "ext_main_vcc", ext_main_vcc_filt.get_value() );
+            power_node.setFloat( "avionics_vcc", avionics_vcc_filt.get_value() );
 
             float cell_volt = int_main_vcc_filt.get_value() / (float)battery_cells;
             float ext_cell_volt = ext_main_vcc_filt.get_value() / (float)battery_cells;
-            power_node.setDouble( "cell_vcc", cell_volt );
-            power_node.setDouble( "ext_cell_vcc", ext_cell_volt );
-            power_node.setDouble( "main_amps", (float)power.ext_main_amp);
+            power_node.setFloat( "cell_vcc", cell_volt );
+            power_node.setFloat( "ext_cell_vcc", ext_cell_volt );
+            power_node.setFloat( "main_amps", (float)power.ext_main_amp);
 	} else {
             info("packet size mismatch in power packet");
 	}
@@ -388,12 +387,12 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
         message::status_t msg;
         msg.unpack(payload, pkt_len);
 	if ( pkt_len == msg.len ) {
-	    aura4_node.setLong( "serial_number", msg.serial_number );
-	    aura4_node.setLong( "firmware_rev", msg.firmware_rev );
-	    aura4_node.setLong( "master_hz", msg.master_hz );
-	    aura4_node.setLong( "baud_rate", msg.baud );
-	    aura4_node.setLong( "byte_rate_sec", msg.byte_rate );
-            status_node.setLong( "fmu_timer_misses", msg.timer_misses );
+	    aura4_node.setInt( "serial_number", msg.serial_number );
+	    aura4_node.setInt( "firmware_rev", msg.firmware_rev );
+	    aura4_node.setInt( "master_hz", msg.master_hz );
+	    aura4_node.setInt( "baud_rate", msg.baud );
+	    aura4_node.setInt( "byte_rate_sec", msg.byte_rate );
+            status_node.setInt( "fmu_timer_misses", msg.timer_misses );
 
             // FIXME:
 	    // if ( first_status_message ) {
@@ -597,7 +596,7 @@ bool Aura4_t::send_config() {
 
     int count;
 
-    pyPropertyNode board_node = aura4_config.getChild("board", true);
+    PropertyNode board_node = aura4_config.getChild("board", true);
     string name = board_node.getString("name");
     if ( name == "marmot_v1" ) {
         config_board.board = 0;
@@ -607,17 +606,17 @@ bool Aura4_t::send_config() {
         printf("Warning: no valid PWM pin layout defined.\n");
     }
     if ( board_node.hasChild("led_pin") ) {
-        config_board.led_pin = board_node.getLong("led_pin");
+        config_board.led_pin = board_node.getInt("led_pin");
     }
 
-    pyPropertyNode power_node = aura4_config.getChild("power", true);
+    PropertyNode power_node = aura4_config.getChild("power", true);
     if ( power_node.hasChild("have_attopilot") ) {
         config_power.have_attopilot = power_node.getBool("have_attopilot");
     }
 
-    pyPropertyNode imu_node = aura4_config.getChild("imu", true);
+    PropertyNode imu_node = aura4_config.getChild("imu", true);
     if ( imu_node.hasChild("calibration") ) {
-        pyPropertyNode cal_node = imu_node.getChild("calibration");
+        PropertyNode cal_node = imu_node.getChild("calibration");
         if ( cal_node.hasChild("strapdown") ) {
             int len = cal_node.getLen("strapdown");
             if ( len == 9 ) {
@@ -653,7 +652,7 @@ bool Aura4_t::send_config() {
         string interface = imu_node.getString("interface");
         if ( interface == "spi" ) {
             config_imu.interface = 0;
-            config_imu.pin_or_address = imu_node.getLong("cs_pin");
+            config_imu.pin_or_address = imu_node.getInt("cs_pin");
         } else if ( interface == "i2c" ) {
             config_imu.interface = 1;
         } else {
@@ -661,8 +660,8 @@ bool Aura4_t::send_config() {
         }
     }
             
-    pyPropertyNode pwm_node = aura4_config.getChild("pwm", true);
-    config_pwm.pwm_hz = pwm_node.getLong("pwm_hz");
+    PropertyNode pwm_node = aura4_config.getChild("pwm", true);
+    config_pwm.pwm_hz = pwm_node.getInt("pwm_hz");
     info("pwm_hz = %d", config_pwm.pwm_hz);
     count = pwm_node.getLen("gains");
     for ( int i = 0; i < count; i++ ) {
@@ -670,7 +669,7 @@ bool Aura4_t::send_config() {
         info("act_gain[%d] = %.2f", i, config_pwm.act_gain[i]);
     }
 
-    pyPropertyNode mixer_node = aura4_config.getChild("mixer");
+    PropertyNode mixer_node = aura4_config.getChild("mixer");
     count = mixer_node.getLen("mix");
     if ( count ) {
 	for ( int i = 0; i < count; i++ ) {
@@ -678,7 +677,8 @@ bool Aura4_t::send_config() {
 	    bool enable = false;
 	    float gain1 = 0.0;
 	    float gain2 = 0.0;
-	    pyPropertyNode mix_node = mixer_node.getChild("mix", i, true);
+            string child_name = "mix/" + std::to_string(i);
+	    PropertyNode mix_node = mixer_node.getChild(child_name.c_str(), true);
 	    if ( mix_node.hasChild("enable") ) {
 		enable = mix_node.getBool("enable");
 	    }
@@ -721,7 +721,7 @@ bool Aura4_t::send_config() {
 	}
     }
 
-    pyPropertyNode stab_node = aura4_config.getChild("stability_damper");
+    PropertyNode stab_node = aura4_config.getChild("stability_damper");
     children = stab_node.getChildren(false);
     count = (int)children.size();
     for ( int i = 0; i < count; ++i ) {
@@ -730,7 +730,7 @@ bool Aura4_t::send_config() {
 	float gain = 0.0;
 	if ( children[i] == "axis" ) {
 	    for ( int j = 0; j < stab_node.getLen("axis"); j++ ) {
-		pyPropertyNode stab_section = stab_node.getChild("axis", j);
+		PropertyNode stab_section = stab_node.getChild("axis", j);
 		if ( stab_section.hasChild("enable") ) {
 		    enable = stab_section.getBool("enable");
 		}
@@ -753,7 +753,7 @@ bool Aura4_t::send_config() {
                 info("sas: %s %d %.2f", mode.c_str(), enable, gain);
 	    }
 	} else if ( children[i] == "pilot_tune" ) {
-	    pyPropertyNode stab_section = stab_node.getChild("pilot_tune");
+	    PropertyNode stab_section = stab_node.getChild("pilot_tune");
 	    if ( stab_section.hasChild("enable") ) {
 		config_stab.sas_tune = stab_section.getBool("enable");
 	    }
@@ -761,7 +761,7 @@ bool Aura4_t::send_config() {
 	}
     }
 
-    pyPropertyNode airdata_node = aura4_config.getChild("airdata");
+    PropertyNode airdata_node = aura4_config.getChild("airdata");
     if ( airdata_node.hasChild("barometer") ) {
         string baro = airdata_node.getString("barometer");
         if ( baro == "bme280" ) {
@@ -770,7 +770,7 @@ bool Aura4_t::send_config() {
             config_airdata.barometer = 1;
         } else if ( baro == "swift" ) {
             config_airdata.barometer = 2;
-            config_airdata.swift_baro_addr = airdata_node.getLong("swift_baro_addr");
+            config_airdata.swift_baro_addr = airdata_node.getInt("swift_baro_addr");
         }
     }
     if ( airdata_node.hasChild("pitot") ) {
@@ -781,12 +781,12 @@ bool Aura4_t::send_config() {
             config_airdata.pitot = 1;
         } else if ( pitot == "swift" ) {
             config_airdata.pitot = 2;
-            config_airdata.swift_pitot_addr = airdata_node.getLong("swift_pitot_addr");
+            config_airdata.swift_pitot_addr = airdata_node.getInt("swift_pitot_addr");
         }
     }
 
     if ( aura4_config.hasChild("ekf") ) {
-        pyPropertyNode ekf_node = aura4_config.getChild("ekf");
+        PropertyNode ekf_node = aura4_config.getChild("ekf");
         if ( ekf_node.hasChild("select") ) {
             string val = ekf_node.getString("select");
             if ( val == "none" ) {
@@ -922,8 +922,8 @@ float Aura4_t::read() {
     }
 
     // track communication errors from FMU
-    aura4_node.setLong("parse_errors", parse_errors);
-    aura4_node.setLong("skipped_frames", skipped_frames);
+    aura4_node.setInt("parse_errors", serial.parse_errors);
+    aura4_node.setInt("skipped_frames", skipped_frames);
 
     // relay optional zero gyros command back to FMU upon request
     string command = aura4_node.getString( "command" );
@@ -959,73 +959,73 @@ bool Aura4_t::update_ekf( message::ekf_t *ekf ) {
     const double F2M = 0.3048;
     const double M2F = 1 / F2M;
     // do a little dance to estimate the ekf timestamp in seconds
-    long int imu_millis = imu_node.getLong("imu_millis");
+    long int imu_millis = imu_node.getInt("imu_millis");
     long int diff_millis = ekf->millis - imu_millis;
     if ( diff_millis < 0 ) { diff_millis = 0; } // don't puke on wraparound
     double timestamp = imu_node.getDouble("timestamp")
         + (float)diff_millis / 1000.0;
     ekf_node.setDouble( "timestamp", timestamp );
-    ekf_node.setLong( "ekf_millis", ekf->millis );
+    ekf_node.setInt( "ekf_millis", ekf->millis );
     ekf_node.setDouble( "latitude_deg", ekf->lat_rad * R2D );
     ekf_node.setDouble( "longitude_deg", ekf->lon_rad * R2D );
-    ekf_node.setDouble( "altitude_m", ekf->altitude_m );
-    ekf_node.setDouble( "vn_ms", ekf->vn_ms );
-    ekf_node.setDouble( "ve_ms", ekf->ve_ms );
-    ekf_node.setDouble( "vd_ms", ekf->vd_ms );
-    ekf_node.setDouble( "phi_rad", ekf->phi_rad );
-    ekf_node.setDouble( "the_rad", ekf->the_rad );
-    ekf_node.setDouble( "psi_rad", ekf->psi_rad );
-    ekf_node.setDouble( "roll_deg", ekf->phi_rad * R2D );
-    ekf_node.setDouble( "pitch_deg", ekf->the_rad * R2D );
-    ekf_node.setDouble( "heading_deg", ekf->psi_rad * R2D );
-    ekf_node.setDouble( "p_bias", ekf->p_bias );
-    ekf_node.setDouble( "q_bias", ekf->q_bias );
-    ekf_node.setDouble( "r_bias", ekf->r_bias );
-    ekf_node.setDouble( "ax_bias", ekf->ax_bias );
-    ekf_node.setDouble( "ay_bias", ekf->ay_bias );
-    ekf_node.setDouble( "az_bias", ekf->az_bias );
-    ekf_node.setDouble( "max_pos_cov", ekf->max_pos_cov );
-    ekf_node.setDouble( "max_vel_cov", ekf->max_vel_cov );
-    ekf_node.setDouble( "max_att_cov", ekf->max_att_cov );
-    ekf_node.setLong("status", ekf->status );
+    ekf_node.setFloat( "altitude_m", ekf->altitude_m );
+    ekf_node.setFloat( "vn_ms", ekf->vn_ms );
+    ekf_node.setFloat( "ve_ms", ekf->ve_ms );
+    ekf_node.setFloat( "vd_ms", ekf->vd_ms );
+    ekf_node.setFloat( "phi_rad", ekf->phi_rad );
+    ekf_node.setFloat( "the_rad", ekf->the_rad );
+    ekf_node.setFloat( "psi_rad", ekf->psi_rad );
+    ekf_node.setFloat( "roll_deg", ekf->phi_rad * R2D );
+    ekf_node.setFloat( "pitch_deg", ekf->the_rad * R2D );
+    ekf_node.setFloat( "heading_deg", ekf->psi_rad * R2D );
+    ekf_node.setFloat( "p_bias", ekf->p_bias );
+    ekf_node.setFloat( "q_bias", ekf->q_bias );
+    ekf_node.setFloat( "r_bias", ekf->r_bias );
+    ekf_node.setFloat( "ax_bias", ekf->ax_bias );
+    ekf_node.setFloat( "ay_bias", ekf->ay_bias );
+    ekf_node.setFloat( "az_bias", ekf->az_bias );
+    ekf_node.setFloat( "max_pos_cov", ekf->max_pos_cov );
+    ekf_node.setFloat( "max_vel_cov", ekf->max_vel_cov );
+    ekf_node.setFloat( "max_att_cov", ekf->max_att_cov );
+    ekf_node.setInt("status", ekf->status );
     
     /*FIXME:move the following to filter_mgr?*/
-    ekf_node.setDouble( "altitude_ft", ekf->altitude_m * M2F );
-    ekf_node.setDouble( "groundtrack_deg",
+    ekf_node.setFloat( "altitude_ft", ekf->altitude_m * M2F );
+    ekf_node.setFloat( "groundtrack_deg",
                         90 - atan2(ekf->vn_ms, ekf->ve_ms) * R2D );
     double gs_ms = sqrt(ekf->vn_ms * ekf->vn_ms + ekf->ve_ms * ekf->ve_ms);
-    ekf_node.setDouble( "groundspeed_ms", gs_ms );
-    ekf_node.setDouble( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
-    ekf_node.setDouble( "vertical_speed_fps", -ekf->vd_ms * M2F );
+    ekf_node.setFloat( "groundspeed_ms", gs_ms );
+    ekf_node.setFloat( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
+    ekf_node.setFloat( "vertical_speed_fps", -ekf->vd_ms * M2F );
     return true;
 }
 
 bool Aura4_t::update_gps( message::aura_nav_pvt_t *nav_pvt ) {
     gps_node.setDouble( "timestamp", get_Time() );
-    gps_node.setLong( "year", nav_pvt->year );
-    gps_node.setLong( "month", nav_pvt->month );
-    gps_node.setLong( "day", nav_pvt->day );
-    gps_node.setLong( "hour", nav_pvt->hour );
-    gps_node.setLong( "min", nav_pvt->min );
-    gps_node.setLong( "sec", nav_pvt->sec );
+    gps_node.setInt( "year", nav_pvt->year );
+    gps_node.setInt( "month", nav_pvt->month );
+    gps_node.setInt( "day", nav_pvt->day );
+    gps_node.setInt( "hour", nav_pvt->hour );
+    gps_node.setInt( "min", nav_pvt->min );
+    gps_node.setInt( "sec", nav_pvt->sec );
     gps_node.setDouble( "latitude_deg", nav_pvt->lat / 10000000.0 );
     gps_node.setDouble( "longitude_deg", nav_pvt->lon / 10000000.0 );
-    gps_node.setDouble( "altitude_m", nav_pvt->hMSL / 1000.0 );
-    gps_node.setDouble( "horiz_accuracy_m", nav_pvt->hAcc / 1000.0 );
-    gps_node.setDouble( "vert_accuracy_m", nav_pvt->vAcc / 1000.0 );
-    gps_node.setDouble( "vn_ms", nav_pvt->velN / 1000.0 );
-    gps_node.setDouble( "ve_ms", nav_pvt->velE / 1000.0 );
-    gps_node.setDouble( "vd_ms", nav_pvt->velD / 1000.0 );
-    gps_node.setLong( "satellites", nav_pvt->numSV);
-    gps_node.setDouble( "pdop", nav_pvt->pDOP / 100.0 );
-    gps_node.setLong( "fixType", nav_pvt->fixType );
+    gps_node.setFloat( "altitude_m", nav_pvt->hMSL / 1000.0 );
+    gps_node.setFloat( "horiz_accuracy_m", nav_pvt->hAcc / 1000.0 );
+    gps_node.setFloat( "vert_accuracy_m", nav_pvt->vAcc / 1000.0 );
+    gps_node.setFloat( "vn_ms", nav_pvt->velN / 1000.0 );
+    gps_node.setFloat( "ve_ms", nav_pvt->velE / 1000.0 );
+    gps_node.setFloat( "vd_ms", nav_pvt->velD / 1000.0 );
+    gps_node.setInt( "satellites", nav_pvt->numSV);
+    gps_node.setFloat( "pdop", nav_pvt->pDOP / 100.0 );
+    gps_node.setInt( "fixType", nav_pvt->fixType );
     // backwards compatibility
     if ( nav_pvt->fixType == 0 ) {
-        gps_node.setLong( "status", 0 );
+        gps_node.setInt( "status", 0 );
     } else if ( nav_pvt->fixType == 1 || nav_pvt->fixType == 2 ) {
-        gps_node.setLong( "status", 1 );
+        gps_node.setInt( "status", 1 );
     } else if ( nav_pvt->fixType == 3 ) {
-        gps_node.setLong( "status", 2 );
+        gps_node.setInt( "status", 2 );
     }
     struct tm gps_time;
     gps_time.tm_sec = nav_pvt->sec;
@@ -1096,17 +1096,17 @@ bool Aura4_t::update_airdata( message::airdata_t *airdata ) {
     if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
     float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
     float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
-    airdata_node.setDouble( "airspeed_mps", airspeed_mps );
-    airdata_node.setDouble( "airspeed_kt", airspeed_kt );
-    airdata_node.setDouble( "temp_C", airdata->ext_temp_C );
+    airdata_node.setFloat( "airspeed_mps", airspeed_mps );
+    airdata_node.setFloat( "airspeed_kt", airspeed_kt );
+    airdata_node.setFloat( "temp_C", airdata->ext_temp_C );
 
     // publish sensor values
-    airdata_node.setDouble( "pressure_mbar", airdata->baro_press_pa / 100.0 );
-    airdata_node.setDouble( "bme_temp_C", airdata->baro_temp_C );
-    airdata_node.setDouble( "humidity", airdata->baro_hum );
-    airdata_node.setDouble( "diff_pressure_pa", airdata->ext_diff_press_pa );
-    airdata_node.setDouble( "ext_static_press_pa", airdata->ext_static_press_pa );
-    airdata_node.setLong( "error_count", airdata->error_count );
+    airdata_node.setFloat( "pressure_mbar", airdata->baro_press_pa / 100.0 );
+    airdata_node.setFloat( "bme_temp_C", airdata->baro_temp_C );
+    airdata_node.setFloat( "humidity", airdata->baro_hum );
+    airdata_node.setFloat( "diff_pressure_pa", airdata->ext_diff_press_pa );
+    airdata_node.setFloat( "ext_static_press_pa", airdata->ext_static_press_pa );
+    airdata_node.setInt( "error_count", airdata->error_count );
 
     fresh_data = true;
 
@@ -1130,21 +1130,21 @@ bool Aura4_t::update_pilot( message::pilot_t *pilot ) {
 
     for ( int i = 0; i < message::sbus_channels; i++ ) {
 	val = pilot->channel[i];
-	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
-	pilot_node.setDouble( "channel", i, val );
+	pilot_node.setFloat( pilot_mapping[i].c_str(), val );
+	pilot_node.setFloat( "channel", i, val );
     }
 
     // sbus ch17 (channel[16])
     if ( pilot->flags & 0x01 ) {
-        pilot_node.setDouble( "channel", 16, 1.0 );
+        pilot_node.setFloat( "channel", 16, 1.0 );
     } else {
-        pilot_node.setDouble( "channel", 16, 0.0 );
+        pilot_node.setFloat( "channel", 16, 0.0 );
     }
     // sbus ch18 (channel[17])
     if ( pilot->flags & (1 << 1) ) {
-        pilot_node.setDouble( "channel", 17, 1.0 );
+        pilot_node.setFloat( "channel", 17, 1.0 );
     } else {
-        pilot_node.setDouble( "channel", 17, 0.0 );
+        pilot_node.setFloat( "channel", 17, 0.0 );
     }
     if ( pilot->flags & (1 << 2) ) {
         pilot_node.setBool( "frame_lost", true );

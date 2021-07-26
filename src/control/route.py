@@ -1,6 +1,6 @@
 import math
 
-from props import getNode
+from PropertyTree import PropertyNode
 from rcUAS import wgs84, windtri
 
 import comms.events
@@ -12,17 +12,17 @@ kt2mps = 0.5144444444444444444
 sqrt_of_2 = math.sqrt(2.0)
 gravity = 9.81                  # m/sec^2
 
-route_node = getNode('/task/route', True)
-pos_node = getNode('/position', True)
-vel_node = getNode('/velocity', True)
-orient_node = getNode('/orientation', True)
-home_node = getNode('/task/home', True)
-active_route_node = getNode('/task/route/active', True)
-L1_node = getNode('/config/autopilot/L1_controller', True)
-targets_node = getNode('/autopilot/targets', True)
-gps_node = getNode('/sensors/gps', True)
-comms_node = getNode('/comms', True)
-wind_node = getNode('/filters/wind', True)
+route_node = PropertyNode('/task/route', True)
+pos_node = PropertyNode('/position', True)
+vel_node = PropertyNode('/velocity', True)
+orient_node = PropertyNode('/orientation', True)
+home_node = PropertyNode('/task/home', True)
+active_route_node = PropertyNode('/task/route/active', True)
+L1_node = PropertyNode('/config/autopilot/L1_controller', True)
+targets_node = PropertyNode('/autopilot/targets', True)
+gps_node = PropertyNode('/sensors/gps', True)
+comms_node = PropertyNode('/comms', True)
+wind_node = PropertyNode('/filters/wind', True)
 
 active_route = []        # actual routes
 standby_route = []
@@ -54,22 +54,12 @@ def init():
 def build(config_node):
     global standby_route
     standby_route = []       # clear standby route
-    for child_name in config_node.getChildren():
-        if child_name == 'name':
-            # ignore this for now
-            pass                
-        elif child_name[:3] == 'wpt':
-            child = config_node.getChild(child_name)
-            wp = waypoint.Waypoint()
-            wp.build(child)
-            standby_route.append(wp)
-        elif child_name == 'enable':
-            # we do nothing on this tag right now, fixme: remove
-            # this tag from all routes?
-            pass
-        else:
-            print('Unknown top level section:', child_name)
-            return False
+    num = config_node.getLen("wpt")
+    for i in range(num):
+        child = config_node.getChild("wpt/%d" % i, True)
+        wp = waypoint.Waypoint()
+        wp.build(child)
+        standby_route.append(wp)
     print('loaded %d waypoints' % len(standby_route))
     return True
 
@@ -151,8 +141,8 @@ def dribble(reset=False):
         wp = active_route[wp_counter]
         wp_str = 'wpt[%d]' % wp_counter
         wp_node = active_route_node.getChild(wp_str, True)
-        wp_node.setFloat("longitude_deg", wp.lon_deg)
-        wp_node.setFloat("latitude_deg", wp.lat_deg)
+        wp_node.setDouble("longitude_deg", wp.lon_deg)
+        wp_node.setDouble("latitude_deg", wp.lat_deg)
 
         if wp_counter < route_size - 1:
             # compute leg course and distance
@@ -168,8 +158,8 @@ def reposition(force=False):
     global last_lat
     global last_az
     
-    home_lon = home_node.getFloat("longitude_deg");
-    home_lat = home_node.getFloat("latitude_deg");
+    home_lon = home_node.getDouble("longitude_deg");
+    home_lat = home_node.getDouble("latitude_deg");
     home_az = home_node.getFloat("azimuth_deg");
 
     if ( force or abs(home_lon - last_lon) > 0.000001 or
@@ -299,8 +289,8 @@ def update(dt):
             wp = get_current_wp()
 
             # compute direct-to course and distance
-            pos_lon = pos_node.getFloat("longitude_deg")
-            pos_lat = pos_node.getFloat("latitude_deg")
+            pos_lon = pos_node.getDouble("longitude_deg")
+            pos_lat = pos_node.getDouble("latitude_deg")
             (direct_course, rev_course, direct_dist) = \
                 wgs84.geo_inverse( pos_lat, pos_lon, wp.lat_deg, wp.lon_deg )
             #print pos_lat, pos_lon, ":", wp.lat_deg, wp.lon_deg

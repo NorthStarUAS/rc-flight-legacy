@@ -27,21 +27,18 @@ namespace py = pybind11;
 #include "tecs.h"
 #include "control.h"
 
-void control_t::init() {
-    pyPropsInit();              // first things first
+void control_t::init(DocPointerWrapper d) {
+    PropertyNode("/").set_Document(d);
     
     // initialize the autopilot class and build the structures from the
     // configuration file values
 
-    status_node = pyGetNode( "/status", true );
-    ap_node = pyGetNode( "/autopilot", true );
-    pilot_node = pyGetNode("/sensors/pilot_input", true);
-    flight_node = pyGetNode("/controls/flight", true);
-    engine_node = pyGetNode("/controls/engine", true);
+    status_node = PropertyNode( "/status", true );
+    ap_node = PropertyNode( "/autopilot", true );
+    pilot_node = PropertyNode("/sensors/pilot_input", true);
+    flight_node = PropertyNode("/controls/flight", true);
+    engine_node = PropertyNode("/controls/engine", true);
 
-    // initialize the navigation module
-    // navigation.init("control.navigation");
-    
     // initialize and build the autopilot controller from the property
     // tree config (/config/autopilot)
     ap.init();
@@ -63,23 +60,23 @@ void control_t::copy_pilot_inputs() {
     // that manaul pass-through is handled with less latency directly
     // on APM2/BFS/Aura3 hardware if available.
     
-    float aileron = pilot_node.getDouble("aileron");
-    flight_node.setDouble( "aileron", aileron );
+    float aileron = pilot_node.getFloat("aileron");
+    flight_node.setFloat( "aileron", aileron );
 
-    float elevator = pilot_node.getDouble("elevator");
-    flight_node.setDouble( "elevator", elevator );
+    float elevator = pilot_node.getFloat("elevator");
+    flight_node.setFloat( "elevator", elevator );
 
-    float rudder = pilot_node.getDouble("rudder");
-    flight_node.setDouble( "rudder", rudder );
+    float rudder = pilot_node.getFloat("rudder");
+    flight_node.setFloat( "rudder", rudder );
 
-    double flaps = pilot_node.getDouble("flaps");
-    flight_node.setDouble("flaps", flaps );
+    double flaps = pilot_node.getFloat("flaps");
+    flight_node.setFloat("flaps", flaps );
 
-    double gear = pilot_node.getDouble("gear");
-    flight_node.setDouble("gear", gear );
+    double gear = pilot_node.getFloat("gear");
+    flight_node.setFloat("gear", gear );
 
-    double throttle = pilot_node.getDouble("throttle");
-    engine_node.setDouble("throttle", throttle );
+    double throttle = pilot_node.getFloat("throttle");
+    engine_node.setFloat("throttle", throttle );
 }
 
 void control_t::update(float dt) {
@@ -100,16 +97,13 @@ void control_t::update(float dt) {
     
     // update tecs (total energy) values and error metrics
     update_tecs();
-
-    // navigation update (circle or route heading)
-    // navigation.update(dt);
-
+    
     // update the autopilot stages (even in manual flight mode.)  This
     // keeps the differential value up to date, tracks manual inputs,
     // and keeps more continuity in the flight when the mode is
     // switched to autopilot.
     ap.update( dt );
-
+    
     // copy pilot inputs to flight control outputs with not in
     // autopilot mode or in a pilot_pass_through mode
     bool pass_through = ap_node.getBool("pilot_pass_through");

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include "drivers/driver.h"
 
@@ -13,7 +13,7 @@ class maestro_t: public driver_t {
 public:
     maestro_t() {}
     ~maestro_t() {}
-    void init( pyPropertyNode *config );
+    void init( PropertyNode *config );
     float read() { return 0.0; }
     void process() {}
     void write();
@@ -21,9 +21,9 @@ public:
     void command( const char *cmd ) {}
 
 private:
-    pyPropertyNode act_node;
-    pyPropertyNode ap_node;
-    pyPropertyNode pilot_node;
+    PropertyNode act_node;
+    PropertyNode ap_node;
+    PropertyNode pilot_node;
     static const int maestro_channels = 6;
     int fd = -1;
     float gains[maestro_channels] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};

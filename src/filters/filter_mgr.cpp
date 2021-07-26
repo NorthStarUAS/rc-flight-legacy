@@ -11,7 +11,7 @@
 #include <pybind11/pybind11.h>
 namespace py = pybind11;
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include <stdio.h>
 #include <string>
@@ -34,42 +34,43 @@ using std::string;
 static double last_imu_time = 0.0;
 
 // property nodes
-static pyPropertyNode imu_node;
-static pyPropertyNode gps_node;
-static pyPropertyNode pos_node;
-static pyPropertyNode orient_node;
-static pyPropertyNode vel_node;
-static pyPropertyNode pos_filter_node;
-static pyPropertyNode pos_pressure_node;
-static pyPropertyNode pos_combined_node;
-static pyPropertyNode filter_node;
-static pyPropertyNode filter_group_node;
-static pyPropertyNode status_node;
-static vector<pyPropertyNode> sections;
-static vector<pyPropertyNode> outputs;
+static PropertyNode imu_node;
+static PropertyNode gps_node;
+static PropertyNode pos_node;
+static PropertyNode orient_node;
+static PropertyNode vel_node;
+static PropertyNode pos_filter_node;
+static PropertyNode pos_pressure_node;
+static PropertyNode pos_combined_node;
+static PropertyNode filter_node;
+static PropertyNode filter_group_node;
+static PropertyNode status_node;
+static vector<PropertyNode> sections;
+static vector<PropertyNode> outputs;
 
-void Filter_init() {
-    pyPropsInit();              // first thing
+void Filter_init(DocPointerWrapper d) {
+    // Initialize Document for props2
+    PropertyNode("/").set_Document(d);
     
     // initialize imu property nodes
-    imu_node = pyGetNode("/sensors/imu", true);
-    gps_node = pyGetNode("/sensors/gps", true);
-    pos_node = pyGetNode("/position", true);
-    orient_node = pyGetNode("/orientation", true);
-    vel_node = pyGetNode("/velocity", true);
-    filter_node = pyGetNode("/filters/filter[0]", true);
-    filter_group_node = pyGetNode("/filters", true);
-    pos_filter_node = pyGetNode("/position/filter", true);
-    pos_pressure_node = pyGetNode("/position/pressure", true);
-    pos_combined_node = pyGetNode("/position/combined", true);
-    status_node = pyGetNode("/status", true);
+    imu_node = PropertyNode("/sensors/imu", true);
+    gps_node = PropertyNode("/sensors/gps", true);
+    pos_node = PropertyNode("/position", true);
+    orient_node = PropertyNode("/orientation", true);
+    vel_node = PropertyNode("/velocity", true);
+    filter_node = PropertyNode("/filters/filter[0]", true);
+    filter_group_node = PropertyNode("/filters", true);
+    pos_filter_node = PropertyNode("/position/filter", true);
+    pos_pressure_node = PropertyNode("/position/pressure", true);
+    pos_combined_node = PropertyNode("/position/combined", true);
+    status_node = PropertyNode("/status", true);
 
     // traverse configured modules
-    pyPropertyNode group_node = pyGetNode("/config/filters", true);
+    PropertyNode group_node = PropertyNode("/config/filters", true);
     vector<string> children = group_node.getChildren();
     printf("Found %d filter sections\n", (int)children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
-	pyPropertyNode section = group_node.getChild(children[i].c_str());
+	PropertyNode section = group_node.getChild(children[i].c_str());
 	sections.push_back(section);
 	string module = section.getString("module");
 	bool enabled = section.getBool("enable");
@@ -82,7 +83,7 @@ void Filter_init() {
         } else {
             output_path = get_next_path("/filters", "filter");
         }            
-        pyPropertyNode output_node = pyGetNode(output_path, true);
+        PropertyNode output_node = PropertyNode(output_path, true);
         outputs.push_back(output_node);
 	printf("filter: %d = %s\n", i, module.c_str());
 	if ( module == "null" ) {
@@ -146,7 +147,7 @@ static void publish_values() {
     vel_node.setDouble( "vd_ms", filter_node.getDouble("vd_ms") );
     filter_group_node.setDouble( "timestamp",
 				 filter_node.getDouble("timestamp") );
-    int status = filter_node.getLong("status");
+    int status = filter_node.getInt("status");
     if ( status == 0 ) {
         status_node.setString( "navigation", "invalid" );
     } else if ( status == 1 ) {
@@ -263,7 +264,7 @@ bool Filter_update() {
     }
     
     // only for primary filter
-    if ( filter_node.getLong("status") == 2 ) {
+    if ( filter_node.getInt("status") == 2 ) {
         update_euler_rates();
         update_ground(imu_dt);
         update_wind(imu_dt);

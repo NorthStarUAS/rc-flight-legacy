@@ -9,14 +9,16 @@
 
 #pragma once
 
+#include <props2.h>
+
 class gps_helper_t {
 public:
-    void init();
+    void init(DocPointerWrapper d);
     void update(bool verbose=false);
     double gps_age();           // seconds
     
 private:
-    pyPropertyNode gps_node;
+    PropertyNode gps_node;
     int gps_state = 0;
     double gps_acq_time = 0.0;
     double last_time = 0.0;

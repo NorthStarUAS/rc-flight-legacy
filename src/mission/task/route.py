@@ -1,6 +1,6 @@
 import math
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 import control.route
@@ -11,10 +11,10 @@ import mission.task.state
 class Route(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.route_node = getNode('/task/route', True)
-        self.ap_node = getNode('/autopilot', True)
-        self.nav_node = getNode("/navigation", True)
-        self.targets_node = getNode('/autopilot/targets', True)
+        self.route_node = PropertyNode('/task/route', True)
+        self.ap_node = PropertyNode('/autopilot', True)
+        self.nav_node = PropertyNode("/navigation", True)
+        self.targets_node = PropertyNode('/autopilot/targets', True)
 
         self.alt_agl_ft = 0.0
         self.speed_kt = 30.0
@@ -54,22 +54,12 @@ class Route(Task):
     # build route from a property tree node
     def build(self, config_node):
         self.standby_route = []       # clear standby route
-        for child_name in config_node.getChildren():
-            if child_name == 'name':
-                # ignore this for now
-                pass                
-            elif child_name[:3] == 'wpt':
-                child = config_node.getChild(child_name)
-                wp = waypoint.Waypoint()
-                wp.build(child)
-                self.standby_route.append(wp)
-            elif child_name == 'enable':
-                # we do nothing on this tag right now, fixme: remove
-                # this tag from all routes?
-                pass
-            else:
-                print('Unknown top level section:', child_name)
-                return False
+        num = config_node.getLen("wpt")
+        for i in range(num):
+            child = config_node.getChild("wpt/%d" % i, True)
+            wp = waypoint.Waypoint()
+            wp.build(child)
+            self.standby_route.append(wp)
         print('loaded %d waypoints' % len(self.standby_route))
         return True
 

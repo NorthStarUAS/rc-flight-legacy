@@ -1,6 +1,6 @@
 import math
 
-from props import getNode
+from PropertyTree import PropertyNode
 from rcUAS import wgs84
 
 import comms.events
@@ -11,12 +11,12 @@ d2r = math.pi / 180.0
 class Camera(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.imu_node = getNode("/sensors/imu", True)
-        self.pos_node = getNode("/position", True)
-        self.orient_node = getNode("/orientation", True)
-        self.flight_node = getNode("/controls/flight", True)
-        self.task_node = getNode("/task", True)
-        self.comms_node = getNode( '/comms', True)
+        self.imu_node = PropertyNode("/sensors/imu/0", True)
+        self.pos_node = PropertyNode("/position", True)
+        self.orient_node = PropertyNode("/orientation", True)
+        self.flight_node = PropertyNode("/controls/flight", True)
+        self.task_node = PropertyNode("/task", True)
+        self.comms_node = PropertyNode( '/comms', True)
         self.name = config_node.getString("name")
         self.start_time = 0.0
         self.max_attitude = 20.0
@@ -57,7 +57,7 @@ class Camera(Task):
         if not self.active:
             return False
 
-        cur_time = self.imu_node.getFloat("timestamp")
+        cur_time = self.imu_node.getDouble("timestamp")
         force_trigger = False
         if self.trigger_state:
             # needs to be 0.3 with manual focus
@@ -68,8 +68,8 @@ class Camera(Task):
                 # camera shutter is triggered on release (after being
                 # depressed for 0.3 seconds) so log the event here.
                 comms.events.log("camera", "%.8f %.8f %.1f" % \
-                                 (self.pos_node.getFloat('latitude_deg'),
-                                  self.pos_node.getFloat('longitude_deg'),
+                                 (self.pos_node.getDouble('latitude_deg'),
+                                  self.pos_node.getDouble('longitude_deg'),
                                   self.pos_node.getFloat('altitude_m')))
             return True
         else:
@@ -85,8 +85,8 @@ class Camera(Task):
         if abs(roll_deg) <= self.max_attitude and abs(pitch_deg) <= self.max_attitude:
             # if aircraft in a level enough configuration: compute
             # course and distance from previous trigger
-            pos_lon = self.pos_node.getFloat("longitude_deg")
-            pos_lat = self.pos_node.getFloat("latitude_deg")
+            pos_lon = self.pos_node.getDouble("longitude_deg")
+            pos_lat = self.pos_node.getDouble("latitude_deg")
             (course_deg, rev_deg, dist_m) = \
                 wgs84.geo_inverse( self.last_lat, self.last_lon,
                                    pos_lat, pos_lon )
@@ -98,8 +98,8 @@ class Camera(Task):
                 force_trigger = True
 
         if force_trigger:
-            self.last_lat = self.pos_node.getFloat('latitude_deg')
-            self.last_lon = self.pos_node.getFloat('longitude_deg')
+            self.last_lat = self.pos_node.getDouble('latitude_deg')
+            self.last_lon = self.pos_node.getDouble('longitude_deg')
             self.trigger_time = cur_time
             self.trigger_state = True
             self.flight_node.setFloat(self.trigger_name, 0.68)

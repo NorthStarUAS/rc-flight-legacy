@@ -10,7 +10,7 @@
 #include <eigen3/Eigen/Core>
 using namespace Eigen;
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include "drivers/driver.h"
 #include "include/globaldefs.h" /* fixme, get rid of? */
@@ -24,10 +24,9 @@ using namespace Eigen;
 class rcfmu_t: public driver_t {
     
 public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     rcfmu_t() {}
     ~rcfmu_t() {}
-    void init( pyPropertyNode *config );
+    void init( PropertyNode *config );
     float read();
     void process() {}
     void write();
@@ -35,16 +34,16 @@ public:
     void command(const char *cmd);
 
 private:
-    pyPropertyNode aura4_config;
-    pyPropertyNode aura4_node;
-    pyPropertyNode airdata_node;
-    pyPropertyNode ekf_node;
-    pyPropertyNode gps_node;
-    pyPropertyNode imu_node;
-    pyPropertyNode pilot_node;
-    pyPropertyNode power_node;
-    pyPropertyNode act_node;
-    pyPropertyNode status_node;
+    PropertyNode aura4_config;
+    PropertyNode aura4_node;
+    PropertyNode airdata_node;
+    PropertyNode ekf_node;
+    PropertyNode gps_node;
+    PropertyNode imu_node;
+    PropertyNode pilot_node;
+    PropertyNode power_node;
+    PropertyNode act_node;
+    PropertyNode status_node;
     
     string device_name = "/dev/ttyS4";
     int baud = 500000;
@@ -87,13 +86,13 @@ private:
     void info( const char* format, ... );
     void hard_fail( const char*format, ... );
     
-    bool open( pyPropertyNode *config );
-    void init_airdata( pyPropertyNode *config );
-    void init_ekf( pyPropertyNode *config );
-    void init_gps( pyPropertyNode *config );
-    void init_imu( pyPropertyNode *config );
-    void init_pilot( pyPropertyNode *config );
-    void init_actuators( pyPropertyNode *config );
+    bool open( PropertyNode *config );
+    void init_airdata( PropertyNode *config );
+    void init_ekf( PropertyNode *config );
+    void init_gps( PropertyNode *config );
+    void init_imu( PropertyNode *config );
+    void init_pilot( PropertyNode *config );
+    void init_actuators( PropertyNode *config );
 
     bool parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload );
     bool send_config();

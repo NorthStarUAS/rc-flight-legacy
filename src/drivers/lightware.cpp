@@ -1,4 +1,5 @@
 #include <fcntl.h>		// open()
+#include <unistd.h>             // read(), write()
 #include <termios.h>		// tcgetattr() et. al.
 
 #include "util/strutils.h"
@@ -16,8 +17,8 @@ bool lightware_t::open( const char *device_name ) {
     return true;
 }
 
-void lightware_t::init( pyPropertyNode *config ) {
-    pos_node = pyGetNode("/position", true);
+void lightware_t::init( PropertyNode *config ) {
+    pos_node = PropertyNode("/position", true);
     if ( config->hasChild("device") ) {
         string device = config->getString("device");
         if ( open(device.c_str()) ) {

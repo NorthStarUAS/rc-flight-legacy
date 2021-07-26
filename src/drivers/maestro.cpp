@@ -1,4 +1,5 @@
 #include <fcntl.h>		// open()
+#include <unistd.h>             // read(), write()
 #include <termios.h>		// tcgetattr() et. al.
 
 #include "util/strutils.h"
@@ -16,10 +17,10 @@ bool maestro_t::open( const char *device_name ) {
     return true;
 }
 
-void maestro_t::init( pyPropertyNode *config ) {
-    act_node = pyGetNode("/actuators", true);
-    ap_node = pyGetNode("/autopilot", true);
-    pilot_node = pyGetNode("/sensors/pilot_input", true);
+void maestro_t::init( PropertyNode *config ) {
+    act_node = PropertyNode("/actuators", true);
+    ap_node = PropertyNode("/autopilot", true);
+    pilot_node = PropertyNode("/sensors/pilot_input", true);
     if ( config->hasChild("device") ) {
         string device = config->getString("device");
         if ( open(device.c_str()) ) {

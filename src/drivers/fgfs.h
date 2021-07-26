@@ -9,16 +9,18 @@
 #include <eigen3/Eigen/Geometry>
 using namespace Eigen;
 
+#include "props2.h"
+
 #include "drivers/driver.h"
 #include "util/netSocket.h"
 
 class fgfs_t: public driver_t {
     
 public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    //EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     fgfs_t() {}
     ~fgfs_t() {}
-    void init( pyPropertyNode *config );
+    void init( PropertyNode *config );
     float read();
     void process() {}
     void write();
@@ -26,15 +28,15 @@ public:
     void command( const char *cmd ) {}
     
 private:
-    pyPropertyNode act_node;
-    pyPropertyNode airdata_node;
-    pyPropertyNode gps_node;
-    pyPropertyNode imu_node;
-    pyPropertyNode orient_node;
-    pyPropertyNode pos_node;
-    pyPropertyNode power_node;
-    pyPropertyNode route_node;
-    pyPropertyNode targets_node;
+    PropertyNode act_node;
+    PropertyNode airdata_node;
+    PropertyNode gps_node;
+    PropertyNode imu_node;
+    PropertyNode orient_node;
+    PropertyNode pos_node;
+    PropertyNode power_node;
+    PropertyNode route_node;
+    PropertyNode targets_node;
 
     netSocket sock_act;
     netSocket sock_imu;
@@ -49,10 +51,10 @@ private:
     void info( const char* format, ... );
     void hard_error( const char*format, ... );
     
-    void init_act( pyPropertyNode *config );
-    void init_airdata( pyPropertyNode *config );
-    void init_gps( pyPropertyNode *config );
-    void init_imu( pyPropertyNode *config );
+    void init_act( PropertyNode *config );
+    void init_airdata( PropertyNode *config );
+    void init_gps( PropertyNode *config );
+    void init_imu( PropertyNode *config );
     bool update_gps();
     bool update_imu();
 };

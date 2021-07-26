@@ -63,9 +63,9 @@ void gpsd_t::send_init() {
     last_init_time = get_Time();
 }
 
-void gpsd_t::init( pyPropertyNode *config ) {
+void gpsd_t::init( PropertyNode *config ) {
     if ( config->hasChild("port") ) {
-	port = config->getLong("port");
+	port = config->getInt("port");
     }
     if ( config->hasChild("host") ) {
 	host = config->getString("host");
@@ -78,9 +78,9 @@ void gpsd_t::init( pyPropertyNode *config ) {
         primary = config->getBool("primary");
     }
     string output_path = get_next_path("/sensors", "gps", primary);
-    gps_node = pyGetNode(output_path.c_str(), true);
+    gps_node = PropertyNode(output_path.c_str(), true);
     string raw_path = get_next_path("/sensors", "gps_raw", true);
-    raw_node = pyGetNode(raw_path.c_str(), true);
+    raw_node = PropertyNode(raw_path.c_str(), true);
     ephem_node = raw_node.getChild("ephemeris", true);
 }
 
@@ -144,7 +144,7 @@ bool gpsd_t::parse_message(const string message) {
             gps_node.setDouble( "vd_ms", -d["climb"].GetFloat() );
         }
         if ( d.HasMember("mode") ) {
-            gps_node.setLong( "fixType", d["mode"].GetInt() );
+            gps_node.setInt( "fixType", d["mode"].GetInt() );
         }
     } else if ( msg_class == "SKY" ) {
         if ( d.HasMember("satellites") ) {
@@ -159,7 +159,7 @@ bool gpsd_t::parse_message(const string message) {
                     }
                 }
             }
-            gps_node.setLong( "satellites", num_sats );
+            gps_node.setInt( "satellites", num_sats );
         }
     } else if ( msg_class == "RAW" ) {
         double receiver_timestamp = 0.0;
@@ -174,7 +174,7 @@ bool gpsd_t::parse_message(const string message) {
         if ( d.HasMember("rawdata") ) {
             const rapidjson::Value& raw = d["rawdata"];
             if ( raw.IsArray() ) {
-                raw_node.setLong("raw_num", raw.Size());
+                raw_node.setInt("raw_num", raw.Size());
                 raw_node.setDouble( "timestamp", get_Time() );
                 raw_node.setDouble( "receiver_timestamp", receiver_timestamp);
                 /* FIXME: */ double gps_seconds = receiver_timestamp - (315964800.0 - leapseconds);
@@ -222,7 +222,7 @@ bool gpsd_t::parse_message(const string message) {
                         doppler = raw[i]["doppler"].GetDouble();
                     }
                     if ( gnssid == 0 ) {
-                        pyPropertyNode ephem = ephem_node.getChild(id_str.c_str(), true);
+                        PropertyNode ephem = ephem_node.getChild(id_str.c_str(), true);
                         if ( ! ephem.hasChild("frame1") ) {
                             ephem.setBool("frame1", false);
                         }
@@ -256,9 +256,10 @@ bool gpsd_t::parse_message(const string message) {
                             }
                         }
                     }
-                    pyPropertyNode node = raw_node.getChild("raw_satellite", i, true);
-                    node.setLong("gnssid", gnssid);
-                    node.setLong("svid", svid);
+                    string sat_name = "raw_satellite/" + std::to_string(i);
+                    PropertyNode node = raw_node.getChild(sat_name.c_str(), true);
+                    node.setInt("gnssid", gnssid);
+                    node.setInt("svid", svid);
                     node.setBool("L1C", l1c);
                     if ( gnssid == 0 ) {
                         node.setString("constellation", "gps");
@@ -310,10 +311,10 @@ bool gpsd_t::parse_message(const string message) {
             id_str = "0-";
             id_str += std::to_string(tSV);
         }
-        pyPropertyNode node = ephem_node.getChild(id_str.c_str(), true);
+        PropertyNode node = ephem_node.getChild(id_str.c_str(), true);
         int frame = 0;
         if ( d.HasMember("TOW17") ) {
-            node.setLong( "TOW17", d["TOW17"].GetInt() );
+            node.setInt( "TOW17", d["TOW17"].GetInt() );
         }
         if ( d.HasMember("frame") ) {
             frame = d["frame"].GetInt();
@@ -322,28 +323,28 @@ bool gpsd_t::parse_message(const string message) {
             node.setBool("frame1", true);
             const rapidjson::Value& e1 = d["EPHEM1"];
             if ( e1.HasMember("WN") ) {
-                node.setLong("WN", e1["WN"].GetInt());
+                node.setInt("WN", e1["WN"].GetInt());
             }
             if ( e1.HasMember("IODC") ) {
-                node.setLong("IODC", e1["IODC"].GetInt());
+                node.setInt("IODC", e1["IODC"].GetInt());
             }
             if ( e1.HasMember("L2") ) {
-                node.setLong("L2", e1["L2"].GetInt());
+                node.setInt("L2", e1["L2"].GetInt());
             }
             if ( e1.HasMember("ura") ) {
-                node.setLong("ura", e1["ura"].GetInt());
+                node.setInt("ura", e1["ura"].GetInt());
             }
             if ( e1.HasMember("hlth") ) {
-                node.setLong("hlth", e1["hlth"].GetInt());
+                node.setInt("hlth", e1["hlth"].GetInt());
             }
             if ( e1.HasMember("L2P") ) {
-                node.setLong("L2P", e1["L2P"].GetInt());
+                node.setInt("L2P", e1["L2P"].GetInt());
             }
             if ( e1.HasMember("Tgd") ) {
                 node.setDouble("Tgd", e1["Tgd"].GetDouble());
             }
             if ( e1.HasMember("toc") ) {
-                node.setLong("toc", e1["toc"].GetInt());
+                node.setInt("toc", e1["toc"].GetInt());
             }
             if ( e1.HasMember("af2") ) {
                 node.setDouble("af2", e1["af2"].GetDouble());
@@ -358,7 +359,7 @@ bool gpsd_t::parse_message(const string message) {
             node.setBool("frame2", true);
             const rapidjson::Value& e2 = d["EPHEM2"];
             if ( e2.HasMember("IODE") ) {
-                node.setLong("IODE", e2["IODE"].GetInt());
+                node.setInt("IODE", e2["IODE"].GetInt());
             }
             if ( e2.HasMember("Crs") ) {
                 node.setDouble("Crs", e2["Crs"].GetDouble());
@@ -382,19 +383,19 @@ bool gpsd_t::parse_message(const string message) {
                 node.setDouble("sqrtA", e2["sqrtA"].GetDouble());
             }
             if ( e2.HasMember("toe") ) {
-                node.setLong("toe", e2["toe"].GetInt());
+                node.setInt("toe", e2["toe"].GetInt());
             }
             if ( e2.HasMember("FIT") ) {
-                node.setLong("FIT", e2["FIT"].GetInt());
+                node.setInt("FIT", e2["FIT"].GetInt());
             }
             if ( e2.HasMember("AODO") ) {
-                node.setLong("AODO", e2["AODO"].GetInt());
+                node.setInt("AODO", e2["AODO"].GetInt());
             }
         } else if ( frame == 3 and d.HasMember("EPHEM3") ) {
             node.setBool("frame3", true);
             const rapidjson::Value& e3 = d["EPHEM3"];
             if ( e3.HasMember("IODE") ) {
-                node.setLong("IODE", e3["IODE"].GetInt());
+                node.setInt("IODE", e3["IODE"].GetInt());
             }
             if ( e3.HasMember("IDOT") ) {
                 node.setDouble("IDOT", e3["IDOT"].GetDouble());
@@ -424,10 +425,10 @@ bool gpsd_t::parse_message(const string message) {
         // save ephemeris as a json file (at most every 60 seconds)
         double t = get_Time();
         if ( t > ephem_write_time + 60 ) {
-            pyPropertyNode logging_node = pyGetNode( "/config/logging", true );
+            PropertyNode logging_node = PropertyNode( "/config/logging", true );
             SGPath jsonfile = logging_node.getString("flight_dir");
             jsonfile.append( "ephemeris.json" );
-            writeJSON(jsonfile.str(), &ephem_node);
+            ephem_node.save(jsonfile.c_str());
             ephem_write_time = t;
         }            
     } else {
@@ -518,7 +519,7 @@ void gpsd_t::close() {
 }
 
 VectorXd gpsd_t::dump_sat_pos(int svid, double tow, double pr, double doppler,
-                              pyPropertyNode ephem) {
+                              PropertyNode ephem) {
     VectorXd posvel;
     // if ( ephem.getBool("frame1") and ephem.getBool("frame2")
     //      and ephem.getBool("frame3") ) {

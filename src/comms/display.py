@@ -1,22 +1,22 @@
 import math
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 r2d = 180.0 / math.pi
 
 # initialize property nodes
-comms_node = getNode('/comms', True)
-imu_node = getNode('/sensors/imu', True)
-gps_node = getNode('/sensors/gps', True)
-velocity_node = getNode('/velocity', True)
-filter_node = getNode('/filters/filter', True)
-orient_node = getNode('/orientation', True)
-pos_pressure_node = getNode('/position/pressure', True)
-act_node = getNode('/actuators', True)
-remote_link_node = getNode('/comms/remote_link', True)
-route_node = getNode('/task/route', True)
-status_node = getNode('/status', True)
-power_node = getNode('/sensors/power', True)
+comms_node = PropertyNode('/comms', True)
+imu_node = PropertyNode('/sensors/imu/0', True)
+gps_node = PropertyNode('/sensors/gps/0', True)
+velocity_node = PropertyNode('/velocity', True)
+filter_node = PropertyNode('/filters/filter/0', True)
+orient_node = PropertyNode('/orientation', True)
+pos_pressure_node = PropertyNode('/position/pressure', True)
+act_node = PropertyNode('/actuators', True)
+remote_link_node = PropertyNode('/comms/remote_link', True)
+route_node = PropertyNode('/task/route', True)
+status_node = PropertyNode('/status', True)
+power_node = PropertyNode('/sensors/power', True)
 
 # make the C++ interface happy
 def init():
@@ -55,8 +55,8 @@ def status_summary():
                    gps_node.getInt('min'),
                    gps_node.getInt('sec')))
             print('[gps  ]: pos = %.6f %.6f %.1fm sats = %ld, age = %.2f' % \
-                  (gps_node.getFloat('longitude_deg'),
-                   gps_node.getFloat('latitude_deg'),
+                  (gps_node.getDouble('longitude_deg'),
+                   gps_node.getDouble('latitude_deg'),
                    gps_node.getFloat('altitude_m'),
                    gps_node.getInt('satellites'),
                    gps_node.getFloat('data_age')))
@@ -66,8 +66,8 @@ def status_summary():
         filter_status = status_node.getString("navigation")
         print("[filt ]:[%s] " % filter_status, end='')
         print("pos = %.6f %.6f %.1f " % \
-              (filter_node.getFloat("longitude_deg"),
-               filter_node.getFloat("latitude_deg"),
+              (filter_node.getDouble("longitude_deg"),
+               filter_node.getDouble("latitude_deg"),
                filter_node.getFloat("altitude_m")), end = '')
         print("RPY = %4.1f %4.1f %5.1f (deg)" % \
               (orient_node.getFloat("roll_deg"),

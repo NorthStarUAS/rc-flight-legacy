@@ -3,12 +3,12 @@
 
 import re
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 
-ap_node = getNode("/autopilot", True)
-locks_node = getNode("/autopilot/locks", True)
+ap_node = PropertyNode("/autopilot", True)
+locks_node = PropertyNode("/autopilot/locks", True)
 
 def get():
     return ap_node.getString("mode")

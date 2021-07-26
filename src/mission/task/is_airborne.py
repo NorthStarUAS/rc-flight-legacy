@@ -1,7 +1,7 @@
 # determine if aircraft if airborne or on the ground and time the
 # airborne seconds
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 from mission.task.task import Task
@@ -9,10 +9,10 @@ from mission.task.task import Task
 class IsAirborne(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.pos_node = getNode("/position", True)
-        self.vel_node = getNode("/velocity", True)
-        self.task_node = getNode("/task", True)
-        self.status_node = getNode("/status", True)
+        self.pos_node = PropertyNode("/position", True)
+        self.vel_node = PropertyNode("/velocity", True)
+        self.task_node = PropertyNode("/task", True)
+        self.status_node = PropertyNode("/status", True)
         self.is_airborne = False
         self.off_alt_agl_ft = 0.0
         self.off_airspeed_kt = 0.0
@@ -48,7 +48,7 @@ class IsAirborne(Task):
             if cond:
                 self.is_airborne = True
                 self.task_node.setBool("is_airborne", True)
-                self.flight_start = self.status_node.getFloat('frame_time')
+                self.flight_start = self.status_node.getDouble('frame_time')
                 comms.events.log("mission", "airborne")
         else:
             # if all conditions under their threshold, we are on the ground
@@ -63,17 +63,17 @@ class IsAirborne(Task):
                 self.is_airborne = False
                 self.task_node.setBool("is_airborne", False)
                 # on ground, accumulate the elapsed airborne time
-                elapsed = self.status_node.getFloat('frame_time') - self.flight_start
+                elapsed = self.status_node.getDouble('frame_time') - self.flight_start
                 self.flight_accum += elapsed
                 comms.events.log("mission", "on ground")
 
         # compute total time aloft
         if self.is_airborne:
             flight_time = self.flight_accum + \
-                          self.status_node.getFloat('frame_time') - self.flight_start
+                          self.status_node.getDouble('frame_time') - self.flight_start
         else:
             flight_time = self.flight_accum
-        self.task_node.setFloat('flight_timer', flight_time)
+        self.task_node.setDouble('flight_timer', flight_time)
 
     def is_complete(self):
         return False

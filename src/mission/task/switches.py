@@ -22,7 +22,7 @@
 import os
 import re
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 from mission.task.task import Task
@@ -40,7 +40,7 @@ class Switch():
         if switch_node.hasChild("input"):
             prop_name = switch_node.getString("input")
             (input_path, self.input_name) = os.path.split(prop_name)
-            self.input_node = getNode(input_path, True)
+            self.input_node = PropertyNode(input_path, True)
             print("  input_path:", prop_name)
         else:
             self.valid = False
@@ -48,7 +48,7 @@ class Switch():
         if switch_node.hasChild("output"):
             prop_name = switch_node.getString("output")
             (output_path, self.output_name) = os.path.split(prop_name)
-            self.output_node = getNode(output_path, True)
+            self.output_node = PropertyNode(output_path, True)
             print("  output_path:", prop_name)
         elif self.output_type == 'choice':
             # ok with no output prop
@@ -63,14 +63,14 @@ class Switch():
             print('  switch choice, found:', self.states, 'choices')
             if self.states > 0:
                 for i in range(self.states):
-                    output = switch_node.getStringEnum('outputs', i)
+                    output = switch_node.getString('outputs', i)
                     print('    output:', output)
                     (node_name, key_name) = os.path.split(output)
-                    self.choice_nodes.append( getNode(node_name, True) )
+                    self.choice_nodes.append( PropertyNode(node_name, True) )
                     self.choice_keys.append( key_name )
             else:
                 self.states = 1
-                self.choice_nodes.append( getNode("autopilot", True) )
+                self.choice_nodes.append( PropertyNode("autopilot", True) )
                 self.choice_keys.append( 'switch_config_error' )
                 
         self.enums = []
@@ -79,7 +79,7 @@ class Switch():
             #print 'found:', self.states, 'enums'
             if self.states > 0:
                 for i in range(self.states):
-                    enum = switch_node.getStringEnum('enumerate', i)
+                    enum = switch_node.getString('enumerate', i)
                     #print ' enum:', enum
                     self.enums.append(enum)
             else:
@@ -151,14 +151,11 @@ class Switches(Task):
         self.switches = []
         
         self.name = config_node.getString("name")
-
-        children = config_node.getChildren(expand=True)
-        #print "switches task children:", children
-        for child_name in children:
-            if re.match("switch", child_name):
-                switch = Switch(config_node.getChild(child_name))
-                #print switch.__dict__
-                self.switches.append(switch)        
+        num = config_node.getLen("switch")
+        for i in range(num):
+            switch = Switch(config_node.getChild("switch/%d" % i, True))
+            #print switch.__dict__
+            self.switches.append(switch)        
 
     def activate(self):
         self.active = True

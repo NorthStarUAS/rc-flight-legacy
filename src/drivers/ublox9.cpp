@@ -1,7 +1,7 @@
 /**
  * \file: gps_ublox9.cpp
  *
- * u-blox 8 protocol driver
+ * u-blox 9 protocol driver
  *
  * Copyright (C) 2012 - 2020 Curtis L. Olson - curtolson@flightgear.org
  *
@@ -161,12 +161,12 @@ bool ublox9_t::open( const char *device_name, const int baud ) {
     return true;
 }
 
-void ublox9_t::init( pyPropertyNode *config ) {
+void ublox9_t::init( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "gps", false);
-    gps_node = pyGetNode(output_path.c_str(), true);
+    gps_node = PropertyNode(output_path.c_str(), true);
     if ( config->hasChild("device") ) {
         string device = config->getString("device");
-        int baud = config->getLong("baud");
+        int baud = config->getInt("baud");
         if ( open(device.c_str(), baud) ) {
             printf("ublox9 device opened: %s\n", device.c_str());
         } else {
@@ -195,11 +195,11 @@ bool ublox9_t::parse_msg() {
 
             gps_fix_value = data.fixType;
             if ( gps_fix_value == 0 ) {
-                gps_node.setLong( "status", 0 );
+                gps_node.setInt( "status", 0 );
             } else if ( gps_fix_value == 1 || gps_fix_value == 2 ) {
-                gps_node.setLong( "status", 1 );
+                gps_node.setInt( "status", 1 );
             } else if ( gps_fix_value == 3 ) {
-                gps_node.setLong( "status", 2 );
+                gps_node.setInt( "status", 2 );
             }
             // printf("fix: %d lon: %.8f lat: %.8f\n", fixType, (double)lon, (double)lat);
 
@@ -222,21 +222,21 @@ bool ublox9_t::parse_msg() {
             gps_node.setDouble( "unix_time_sec", unix_sec );
             gps_node.setDouble( "time_accuracy_ns", data.tAcc );
 	    
-            gps_node.setLong( "satellites", data.numSV );
+            gps_node.setInt( "satellites", data.numSV );
 	    
             gps_node.setDouble( "latitude_deg", (double)data.lat / 10000000.0);
             gps_node.setDouble( "longitude_deg", (double)data.lon / 10000000.0);
-            gps_node.setDouble( "altitude_m", (float)data.hMSL / 1000.0 );
-            gps_node.setDouble( "vn_ms", (float)data.velN / 1000.0 );
-            gps_node.setDouble( "ve_ms", (float)data.velE / 1000.0 );
-            gps_node.setDouble( "vd_ms", (float)data.velD / 1000.0 );
-            gps_node.setDouble( "horiz_accuracy_m", data.hAcc / 1000.0 );
-            gps_node.setDouble( "vert_accuracy_m", data.vAcc / 1000.0 );
-            gps_node.setDouble( "groundspeed_ms", data.gSpeed / 1000.0 );
-            gps_node.setDouble( "groundtrack_deg", data.heading / 100000.0 );
-            gps_node.setDouble( "heading_accuracy_deg", data.headingAcc / 100000.0 );
-            gps_node.setDouble( "pdop", data.pDOP / 100.0 );
-            gps_node.setLong( "fixType", data.fixType);
+            gps_node.setFloat( "altitude_m", (float)data.hMSL / 1000.0 );
+            gps_node.setFloat( "vn_ms", (float)data.velN / 1000.0 );
+            gps_node.setFloat( "ve_ms", (float)data.velE / 1000.0 );
+            gps_node.setFloat( "vd_ms", (float)data.velD / 1000.0 );
+            gps_node.setFloat( "horiz_accuracy_m", data.hAcc / 1000.0 );
+            gps_node.setFloat( "vert_accuracy_m", data.vAcc / 1000.0 );
+            gps_node.setFloat( "groundspeed_ms", data.gSpeed / 1000.0 );
+            gps_node.setFloat( "groundtrack_deg", data.heading / 100000.0 );
+            gps_node.setFloat( "heading_accuracy_deg", data.headingAcc / 100000.0 );
+            gps_node.setFloat( "pdop", data.pDOP / 100.0 );
+            gps_node.setInt( "fixType", data.fixType);
         } else {
             printf("NAV-PVT message size mismatch!\n");
         }
@@ -262,7 +262,7 @@ bool ublox9_t::parse_msg() {
 		satUsed++;
 	    }
 	}
- 	// gps_satellites_node.setLong( satUsed );
+ 	// gps_satellites_node.setInt( satUsed );
 	if ( verbose && 0 ) {
 	    if ( gps_fix_value < 3 ) {
 		printf("Satellite count = %d/%d\n", satUsed, numCh);

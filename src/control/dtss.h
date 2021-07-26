@@ -46,11 +46,11 @@ private:
     MatrixXd A, B, C, D;
     MatrixXd M, S, T, F, G;
     
-    vector <pyPropertyNode> inputs_node;
+    vector <PropertyNode> inputs_node;
     vector <string> inputs_attr;
     VectorXd z_trim;
     
-    vector <pyPropertyNode> outputs_node;
+    vector <PropertyNode> outputs_node;
     vector <string> outputs_attr;
 
     vector <double> u_min;

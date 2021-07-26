@@ -1,11 +1,10 @@
-from props import getNode
-import props_json
+from PropertyTree import PropertyNode
 
 from comms import aura_messages
 import comms.logging as logging
 
-comms_node = getNode('/comms', True)
-status_node = getNode( '/status', True)
+comms_node = PropertyNode('/comms', True)
+status_node = PropertyNode( '/status', True)
 
 def init():
     return True

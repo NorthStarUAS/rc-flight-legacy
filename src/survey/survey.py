@@ -1,6 +1,6 @@
 import math
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 import control.route
 import control.waypoint
@@ -12,9 +12,9 @@ import survey.area as area
 ft2m = 0.3048
 d2r = math.pi / 180.0
 
-wind_node = getNode("/filters/wind", True)
-task_node = getNode( '/task', True )
-targets_node = getNode( '/autopilot/targets', True )
+wind_node = PropertyNode("/filters/wind", True)
+task_node = PropertyNode( '/task', True )
+targets_node = PropertyNode( '/autopilot/targets', True )
 
 def do_survey( request ):
     # validate the inputs

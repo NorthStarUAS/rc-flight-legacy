@@ -14,11 +14,12 @@
 // - (ok--for now) deal with how to arbitrate output path enumeration in property tree
 // - (ok) need to log cal and nocal imu values
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include <stdarg.h>
 #include <stdlib.h>             // exit()
 #include <time.h>               // gmtime()
+#include <unistd.h>             // sleep()
 
 #include <string>
 #include <sstream>
@@ -53,11 +54,11 @@ void rcfmu_t::hard_fail( const char *format, ... ) {
     exit(-1);
 }
 
-void rcfmu_t::init( pyPropertyNode *config ) {
+void rcfmu_t::init( PropertyNode *config ) {
     // bind main property nodes
-    aura4_node = pyGetNode("/sensors/rcfmu", true);
-    power_node = pyGetNode("/sensors/power", true);
-    status_node = pyGetNode("/status", true);
+    aura4_node = PropertyNode("/sensors/rcfmu", true);
+    power_node = PropertyNode("/sensors/power", true);
+    status_node = PropertyNode("/status", true);
     aura4_config = *config;
 
     printf("rcfmu driver init(): event logging broken!\n");
@@ -66,53 +67,53 @@ void rcfmu_t::init( pyPropertyNode *config ) {
     if ( true ) {               // fixme: move or delete
         printf("warning the next code needs to be fixed!!!\n");
         if ( config->hasChild("pitot_calibrate_factor") ) {
-            pitot_calibrate = aura4_config.getDouble("pitot_calibrate_factor");
+            pitot_calibrate = aura4_config.getFloat("pitot_calibrate_factor");
         }
 
-        pyPropertyNode specs_node = pyGetNode("/config/specs", true);
+        PropertyNode specs_node = PropertyNode("/config/specs", true);
         if ( specs_node.hasChild("battery_cells") ) {
-            battery_cells = specs_node.getLong("battery_cells");
+            battery_cells = specs_node.getInt("battery_cells");
         }
         if ( battery_cells < 1 ) { battery_cells = 1; }
     }
 
     if ( config->hasChild("board") ) {
-        pyPropertyNode board_config = config->getChild("board");
+        PropertyNode board_config = config->getChild("board");
         open( &board_config );
     } else {
         hard_fail("no board defined\n");
     }
     
     if ( config->hasChild("airdata") ) {
-        pyPropertyNode airdata_config = config->getChild("airdata");
+        PropertyNode airdata_config = config->getChild("airdata");
         init_airdata( &airdata_config );
     } else {
         hard_fail("no airdata configuration\n");
     }
     
     if ( config->hasChild("ekf") ) {
-        pyPropertyNode ekf_config = config->getChild("ekf");
+        PropertyNode ekf_config = config->getChild("ekf");
         init_ekf( &ekf_config );
     } else {
         hard_fail("no ekf configuration\n");
     }
     
     if ( config->hasChild("gps") ) {
-        pyPropertyNode gps_config = config->getChild("gps");
+        PropertyNode gps_config = config->getChild("gps");
         init_gps( &gps_config );
     } else {
         hard_fail("no gps configuration\n");
     }
     
     if ( config->hasChild("imu") ) {
-        pyPropertyNode imu_config = config->getChild("imu");
+        PropertyNode imu_config = config->getChild("imu");
         init_imu( &imu_config );
     } else {
         hard_fail("no imu configuration\n");
     }
 
     if ( config->hasChild("pilot_input") ) {
-        pyPropertyNode pilot_config = config->getChild("pilot_input");
+        PropertyNode pilot_config = config->getChild("pilot_input");
         init_pilot( &pilot_config );
     } else {
         hard_fail("no pilot configuration\n");
@@ -124,12 +125,12 @@ void rcfmu_t::init( pyPropertyNode *config ) {
     sleep(1);
 }
 
-bool rcfmu_t::open( pyPropertyNode *config ) {
+bool rcfmu_t::open( PropertyNode *config ) {
     if ( config->hasChild("device") ) {
 	device_name = config->getString("device");
     }
     if ( config->hasChild("baud") ) {
-       baud = config->getLong("baud");
+       baud = config->getInt("baud");
     }
     
     if ( serial.is_open() ) {
@@ -147,17 +148,17 @@ bool rcfmu_t::open( pyPropertyNode *config ) {
     return true;
 }
 
-void rcfmu_t::init_airdata( pyPropertyNode *config ) {
+void rcfmu_t::init_airdata( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "airdata", true);
-    airdata_node = pyGetNode(output_path.c_str(), true);
+    airdata_node = PropertyNode(output_path.c_str(), true);
 }
 
-void rcfmu_t::init_ekf( pyPropertyNode *config ) {
+void rcfmu_t::init_ekf( PropertyNode *config ) {
     if ( config->hasChild("select") ) {
         string val = config->getString("select");
         if ( val == "nav15" or val == "nav15_mag" ) {
             string output_path = get_next_path("/filters", "filter", true);
-            ekf_node = pyGetNode(output_path.c_str(), true);
+            ekf_node = PropertyNode(output_path.c_str(), true);
         } else if ( val == "none" ) {
             ekf_node = aura4_node.getChild("aura4_ekf_disabled", true);
         } else {
@@ -168,77 +169,61 @@ void rcfmu_t::init_ekf( pyPropertyNode *config ) {
     }
 }
 
-void rcfmu_t::init_gps( pyPropertyNode *config ) {
+void rcfmu_t::init_gps( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "gps", true);
-    gps_node = pyGetNode(output_path.c_str(), true);
+    gps_node = PropertyNode(output_path.c_str(), true);
 }
 
-void rcfmu_t::init_imu( pyPropertyNode *config ) {
+void rcfmu_t::init_imu( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "imu", true);
-    imu_node = pyGetNode(output_path.c_str(), true);
+    imu_node = PropertyNode(output_path.c_str(), true);
 
     // FIXME:
     // if ( config->hasChild("calibration") ) {
-    //     pyPropertyNode cal = config->getChild("calibration");
+    //     PropertyNode cal = config->getChild("calibration");
     //     // save the imu calibration parameters with the data file so that
     //     // later the original raw sensor values can be derived.
     //     write_imu_calibration( &cal );
     // }
 }
 
-void rcfmu_t::init_pilot( pyPropertyNode *config ) {
+void rcfmu_t::init_pilot( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "pilot_input", true);
-    pilot_node = pyGetNode(output_path.c_str(), true);
+    pilot_node = PropertyNode(output_path.c_str(), true);
     if ( config->hasChild("channel") ) {
 	for ( int i = 0; i < rcfmu_message::sbus_channels; i++ ) {
 	    pilot_mapping[i] = config->getString("channel", i);
 	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
 	}
     }
-    pilot_node.setLen("channel", rcfmu_message::sbus_channels, 0.0);
+    // pilot_node.setLen("channel", rcfmu_message::sbus_channels, 0.0);
 }
 
-void rcfmu_t::init_actuators( pyPropertyNode *config ) {
-    act_node = pyGetNode("/actuators", true);
+void rcfmu_t::init_actuators( PropertyNode *config ) {
+    act_node = PropertyNode("/actuators", true);
 }
 
 bool rcfmu_t::update_imu( rcfmu_message::imu_t *imu ) {
     imu_timestamp = get_Time();
-    
-    // pulled from aura-sensors/src/imu.cpp
-    const float _pi = 3.14159265358979323846;
-    const float _g = 9.807;
-    const float _d2r = _pi / 180.0;
 
-    // -500 to +500 spread across 65535
-    const float _gyro_lsb_per_dps = 32767.5 / 500;
-    const float gyroScale = _d2r / _gyro_lsb_per_dps;
-    
-    // -4g to +4g spread across 65535
-    const float _accel_lsb_per_dps = 32767.5 / 8;
-    const float accelScale = _g / _accel_lsb_per_dps;
+    float ax_raw = imu->ax_raw;
+    float ay_raw = imu->ay_raw;
+    float az_raw = imu->az_raw;
+    float hx_raw = imu->hx_raw;
+    float hy_raw = imu->hy_raw;
+    float hz_raw = imu->hz_raw;
 
-    const float magScale = 0.01;
-    const float tempScale = 0.01;
+    float ax_cal = imu->ax_mps2;
+    float ay_cal = imu->ay_mps2;
+    float az_cal = imu->az_mps2;
+    float p_cal = imu->p_rps;
+    float q_cal = imu->q_rps;
+    float r_cal = imu->r_rps;
+    float hx_cal = imu->hx;
+    float hy_cal = imu->hy;
+    float hz_cal = imu->hz;
 
-    float ax_raw = (float)imu->raw[0] * accelScale;
-    float ay_raw = (float)imu->raw[1] * accelScale;
-    float az_raw = (float)imu->raw[2] * accelScale;
-    float hx_raw = (float)imu->raw[3] * magScale;
-    float hy_raw = (float)imu->raw[4] * magScale;
-    float hz_raw = (float)imu->raw[5] * magScale;
-
-    float ax_cal = (float)imu->cal[0] * accelScale;
-    float ay_cal = (float)imu->cal[1] * accelScale;
-    float az_cal = (float)imu->cal[2] * accelScale;
-    float p_cal = (float)imu->cal[3] * gyroScale;
-    float q_cal = (float)imu->cal[4] * gyroScale;
-    float r_cal = (float)imu->cal[5] * gyroScale;
-    float hx_cal = (float)imu->cal[6] * magScale;
-    float hy_cal = (float)imu->cal[7] * magScale;
-    float hz_cal = (float)imu->cal[8] * magScale;
-
-    float temp_C = (float)imu->cal[9] * tempScale;
+    float temp_C = imu->temp_C;
 
     // timestamp dance: this is a little jig that I do to make a
     // more consistent time stamp that still is in the host
@@ -270,24 +255,24 @@ bool rcfmu_t::update_imu( rcfmu_message::imu_t *imu ) {
     last_imu_millis = imu->millis;
 	
     imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
-    imu_node.setLong( "imu_millis", imu->millis );
+    imu_node.setInt( "imu_millis", imu->millis );
     imu_node.setDouble( "imu_sec", (double)imu->millis / 1000.0 );
-    imu_node.setDouble( "p_rad_sec", p_cal );
-    imu_node.setDouble( "q_rad_sec", q_cal );
-    imu_node.setDouble( "r_rad_sec", r_cal );
-    imu_node.setDouble( "ax_mps_sec", ax_cal );
-    imu_node.setDouble( "ay_mps_sec", ay_cal );
-    imu_node.setDouble( "az_mps_sec", az_cal );
-    imu_node.setDouble( "hx", hx_cal );
-    imu_node.setDouble( "hy", hy_cal );
-    imu_node.setDouble( "hz", hz_cal );
-    imu_node.setDouble( "ax_raw", ax_raw );
-    imu_node.setDouble( "ay_raw", ay_raw );
-    imu_node.setDouble( "az_raw", az_raw );
-    imu_node.setDouble( "hx_raw", hx_raw );
-    imu_node.setDouble( "hy_raw", hy_raw );
-    imu_node.setDouble( "hz_raw", hz_raw );
-    imu_node.setDouble( "temp_C", temp_C );
+    imu_node.setFloat( "p_rad_sec", p_cal );
+    imu_node.setFloat( "q_rad_sec", q_cal );
+    imu_node.setFloat( "r_rad_sec", r_cal );
+    imu_node.setFloat( "ax_mps_sec", ax_cal );
+    imu_node.setFloat( "ay_mps_sec", ay_cal );
+    imu_node.setFloat( "az_mps_sec", az_cal );
+    imu_node.setFloat( "hx", hx_cal );
+    imu_node.setFloat( "hy", hy_cal );
+    imu_node.setFloat( "hz", hz_cal );
+    imu_node.setFloat( "ax_raw", ax_raw );
+    imu_node.setFloat( "ay_raw", ay_raw );
+    imu_node.setFloat( "az_raw", az_raw );
+    imu_node.setFloat( "hx_raw", hx_raw );
+    imu_node.setFloat( "hy_raw", hy_raw );
+    imu_node.setFloat( "hz_raw", hz_raw );
+    imu_node.setFloat( "temp_C", temp_C );
 
     return true;
 }
@@ -312,7 +297,7 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 	if ( pkt_len == airdata.len ) {
             update_airdata(&airdata);
 	    airdata_packet_counter++;
-	    aura4_node.setLong( "airdata_packet_count", airdata_packet_counter );
+	    aura4_node.setInt( "airdata_packet_count", airdata_packet_counter );
 	    new_data = true;
 	} else {
             info("packet size mismatch in airdata packet");
@@ -323,7 +308,7 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
         if ( pkt_len == ekf.len ) {
             update_ekf(&ekf);
             ekf_packet_counter++;
-            aura4_node.setLong( "ekf_packet_count", ekf_packet_counter );
+            aura4_node.setInt( "ekf_packet_count", ekf_packet_counter );
             new_data = true;
         } else {
             info("packet size mismatch in ekf packet");
@@ -335,7 +320,7 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
             update_gps(&gps);
 	    gps_packet_counter++;
             // fixme: node name
-	    aura4_node.setLong( "gps_packet_count", gps_packet_counter );
+	    aura4_node.setInt( "gps_packet_count", gps_packet_counter );
 	    new_data = true;
 	} else {
             info("packet size mismatch in gps packet");
@@ -347,7 +332,7 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 	if ( pkt_len == imu.len ) {
             update_imu(&imu);
 	    imu_packet_counter++;
-	    aura4_node.setLong( "imu_packet_count",
+	    aura4_node.setInt( "imu_packet_count",
                                 imu_packet_counter );
 	    new_data = true;
 	} else {
@@ -359,7 +344,7 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 	if ( pkt_len == pilot.len ) {
             update_pilot( &pilot );
 	    pilot_packet_counter++;
-	    aura4_node.setLong( "pilot_packet_count", pilot_packet_counter );
+	    aura4_node.setInt( "pilot_packet_count", pilot_packet_counter );
 	    new_data = true;
 	} else {
             info("packet size mismatch in pilot input packet");
@@ -374,15 +359,15 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
             ext_main_vcc_filt.update((float)power.ext_main_v, 0.01);
             avionics_vcc_filt.update((float)power.avionics_v, 0.01);
 
-            power_node.setDouble( "main_vcc", int_main_vcc_filt.get_value() );
-            power_node.setDouble( "ext_main_vcc", ext_main_vcc_filt.get_value() );
-            power_node.setDouble( "avionics_vcc", avionics_vcc_filt.get_value() );
+            power_node.setFloat( "main_vcc", int_main_vcc_filt.get_value() );
+            power_node.setFloat( "ext_main_vcc", ext_main_vcc_filt.get_value() );
+            power_node.setFloat( "avionics_vcc", avionics_vcc_filt.get_value() );
 
             float cell_volt = int_main_vcc_filt.get_value() / (float)battery_cells;
             float ext_cell_volt = ext_main_vcc_filt.get_value() / (float)battery_cells;
-            power_node.setDouble( "cell_vcc", cell_volt );
-            power_node.setDouble( "ext_cell_vcc", ext_cell_volt );
-            power_node.setDouble( "main_amps", (float)power.ext_main_amp);
+            power_node.setFloat( "cell_vcc", cell_volt );
+            power_node.setFloat( "ext_cell_vcc", ext_cell_volt );
+            power_node.setFloat( "main_amps", (float)power.ext_main_amp);
 	} else {
             info("packet size mismatch in power packet");
 	}
@@ -390,12 +375,12 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
         rcfmu_message::status_t msg;
         msg.unpack(payload, pkt_len);
 	if ( pkt_len == msg.len ) {
-	    aura4_node.setLong( "serial_number", msg.serial_number );
-	    aura4_node.setLong( "firmware_rev", msg.firmware_rev );
-	    aura4_node.setLong( "master_hz", msg.master_hz );
-	    aura4_node.setLong( "baud_rate", msg.baud );
-	    aura4_node.setLong( "byte_rate_sec", msg.byte_rate );
-            status_node.setLong( "fmu_timer_misses", msg.timer_misses );
+	    aura4_node.setInt( "serial_number", msg.serial_number );
+	    aura4_node.setInt( "firmware_rev", msg.firmware_rev );
+	    aura4_node.setInt( "master_hz", msg.master_hz );
+	    aura4_node.setInt( "baud_rate", msg.baud );
+	    aura4_node.setInt( "byte_rate_sec", msg.byte_rate );
+            status_node.setInt( "fmu_timer_misses", msg.timer_misses );
 
             // FIXME:
 	    // if ( first_status_message ) {
@@ -502,8 +487,8 @@ float rcfmu_t::read() {
     }
 
     // track communication errors from FMU
-    aura4_node.setLong("parse_errors", serial.parse_errors);
-    aura4_node.setLong("skipped_frames", skipped_frames);
+    aura4_node.setInt("parse_errors", serial.parse_errors);
+    aura4_node.setInt("skipped_frames", skipped_frames);
 
     // relay optional zero gyros command back to FMU upon request
     string command = aura4_node.getString( "command" );
@@ -539,44 +524,44 @@ bool rcfmu_t::update_ekf( rcfmu_message::ekf_t *ekf ) {
     const double F2M = 0.3048;
     const double M2F = 1 / F2M;
     // do a little dance to estimate the ekf timestamp in seconds
-    long int imu_millis = imu_node.getLong("imu_millis");
-    long int diff_millis = ekf->millis - imu_millis;
+    int imu_millis = imu_node.getInt("imu_millis");
+    int diff_millis = ekf->millis - imu_millis;
     if ( diff_millis < 0 ) { diff_millis = 0; } // don't puke on wraparound
     double timestamp = imu_node.getDouble("timestamp")
         + (float)diff_millis / 1000.0;
     ekf_node.setDouble( "timestamp", timestamp );
-    ekf_node.setLong( "ekf_millis", ekf->millis );
+    ekf_node.setInt( "ekf_millis", ekf->millis );
     ekf_node.setDouble( "latitude_deg", ekf->lat_rad * R2D );
     ekf_node.setDouble( "longitude_deg", ekf->lon_rad * R2D );
-    ekf_node.setDouble( "altitude_m", ekf->altitude_m );
-    ekf_node.setDouble( "vn_ms", ekf->vn_ms );
-    ekf_node.setDouble( "ve_ms", ekf->ve_ms );
-    ekf_node.setDouble( "vd_ms", ekf->vd_ms );
-    ekf_node.setDouble( "phi_rad", ekf->phi_rad );
-    ekf_node.setDouble( "the_rad", ekf->the_rad );
-    ekf_node.setDouble( "psi_rad", ekf->psi_rad );
-    ekf_node.setDouble( "roll_deg", ekf->phi_rad * R2D );
-    ekf_node.setDouble( "pitch_deg", ekf->the_rad * R2D );
-    ekf_node.setDouble( "heading_deg", ekf->psi_rad * R2D );
-    ekf_node.setDouble( "p_bias", ekf->p_bias );
-    ekf_node.setDouble( "q_bias", ekf->q_bias );
-    ekf_node.setDouble( "r_bias", ekf->r_bias );
-    ekf_node.setDouble( "ax_bias", ekf->ax_bias );
-    ekf_node.setDouble( "ay_bias", ekf->ay_bias );
-    ekf_node.setDouble( "az_bias", ekf->az_bias );
-    ekf_node.setDouble( "max_pos_cov", ekf->max_pos_cov );
-    ekf_node.setDouble( "max_vel_cov", ekf->max_vel_cov );
-    ekf_node.setDouble( "max_att_cov", ekf->max_att_cov );
-    ekf_node.setLong("status", ekf->status );
+    ekf_node.setFloat( "altitude_m", ekf->altitude_m );
+    ekf_node.setFloat( "vn_ms", ekf->vn_ms );
+    ekf_node.setFloat( "ve_ms", ekf->ve_ms );
+    ekf_node.setFloat( "vd_ms", ekf->vd_ms );
+    ekf_node.setFloat( "phi_rad", ekf->phi_rad );
+    ekf_node.setFloat( "the_rad", ekf->the_rad );
+    ekf_node.setFloat( "psi_rad", ekf->psi_rad );
+    ekf_node.setFloat( "roll_deg", ekf->phi_rad * R2D );
+    ekf_node.setFloat( "pitch_deg", ekf->the_rad * R2D );
+    ekf_node.setFloat( "heading_deg", ekf->psi_rad * R2D );
+    ekf_node.setFloat( "p_bias", ekf->p_bias );
+    ekf_node.setFloat( "q_bias", ekf->q_bias );
+    ekf_node.setFloat( "r_bias", ekf->r_bias );
+    ekf_node.setFloat( "ax_bias", ekf->ax_bias );
+    ekf_node.setFloat( "ay_bias", ekf->ay_bias );
+    ekf_node.setFloat( "az_bias", ekf->az_bias );
+    ekf_node.setFloat( "max_pos_cov", ekf->max_pos_cov );
+    ekf_node.setFloat( "max_vel_cov", ekf->max_vel_cov );
+    ekf_node.setFloat( "max_att_cov", ekf->max_att_cov );
+    ekf_node.setInt("status", ekf->status );
     
     /*FIXME:move the following to filter_mgr?*/
-    ekf_node.setDouble( "altitude_ft", ekf->altitude_m * M2F );
-    ekf_node.setDouble( "groundtrack_deg",
+    ekf_node.setFloat( "altitude_ft", ekf->altitude_m * M2F );
+    ekf_node.setFloat( "groundtrack_deg",
                         90 - atan2(ekf->vn_ms, ekf->ve_ms) * R2D );
     double gs_ms = sqrt(ekf->vn_ms * ekf->vn_ms + ekf->ve_ms * ekf->ve_ms);
-    ekf_node.setDouble( "groundspeed_ms", gs_ms );
-    ekf_node.setDouble( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
-    ekf_node.setDouble( "vertical_speed_fps", -ekf->vd_ms * M2F );
+    ekf_node.setFloat( "groundspeed_ms", gs_ms );
+    ekf_node.setFloat( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
+    ekf_node.setFloat( "vertical_speed_fps", -ekf->vd_ms * M2F );
     return true;
 }
 
@@ -588,37 +573,37 @@ bool rcfmu_t::update_gps( rcfmu_message::gps_t *gps ) {
     //     printf("%02X ", *(uint8_t *)(&(gps->unix_usec) + i));
     // }
     // printf(" %ldf\n", gps->unix_usec);
-    gps_node.setLong( "satellites", gps->num_sats );
-    gps_node.setLong( "fixType", gps->status );
+    gps_node.setInt( "satellites", gps->num_sats );
+    gps_node.setInt( "fixType", gps->status );
     gps_node.setDouble( "latitude_deg", gps->latitude_raw / 10000000.0 );
     gps_node.setDouble( "longitude_deg", gps->longitude_raw / 10000000.0 );
-    gps_node.setDouble( "altitude_m", gps->altitude_m );
+    gps_node.setFloat( "altitude_m", gps->altitude_m );
     // fixme: node property units name?
-    gps_node.setDouble( "vn_ms", gps->vn_mps );
-    gps_node.setDouble( "ve_ms", gps->ve_mps );
-    gps_node.setDouble( "vd_ms", gps->vd_mps );
-    gps_node.setDouble( "horiz_accuracy_m", gps->hAcc );
-    gps_node.setDouble( "vert_accuracy_m", gps->vAcc );
-    gps_node.setDouble( "hdop", gps->hdop );
-    gps_node.setDouble( "vdop", gps->vdop );
+    gps_node.setFloat( "vn_ms", gps->vn_mps );
+    gps_node.setFloat( "ve_ms", gps->ve_mps );
+    gps_node.setFloat( "vd_ms", gps->vd_mps );
+    gps_node.setFloat( "horiz_accuracy_m", gps->hAcc );
+    gps_node.setFloat( "vert_accuracy_m", gps->vAcc );
+    gps_node.setFloat( "hdop", gps->hdop );
+    gps_node.setFloat( "vdop", gps->vdop );
     // backwards compatibility
     if ( gps->status == 0 ) {
-        gps_node.setLong( "status", 0 );
+        gps_node.setInt( "status", 0 );
     } else if ( gps->status == 1 || gps->status == 2 ) {
-        gps_node.setLong( "status", 1 );
+        gps_node.setInt( "status", 1 );
     } else if ( gps->status == 3 ) {
-        gps_node.setLong( "status", 2 );
+        gps_node.setInt( "status", 2 );
     }
     // generate broken-down time
     struct tm *tm;
     time_t time_sec = gps->unix_usec / 1000000U;
     tm = gmtime(&time_sec);
-    gps_node.setLong("year", tm->tm_year + 1900);
-    gps_node.setLong("month", tm->tm_mon + 1);
-    gps_node.setLong("day", tm->tm_mday);
-    gps_node.setLong("hour", tm->tm_hour);
-    gps_node.setLong("min", tm->tm_min);
-    gps_node.setLong("sec", tm->tm_sec);
+    gps_node.setInt("year", tm->tm_year + 1900);
+    gps_node.setInt("month", tm->tm_mon + 1);
+    gps_node.setInt("day", tm->tm_mday);
+    gps_node.setInt("hour", tm->tm_hour);
+    gps_node.setInt("min", tm->tm_min);
+    gps_node.setInt("sec", tm->tm_sec);
 
     return true;
 }
@@ -679,17 +664,17 @@ bool rcfmu_t::update_airdata( rcfmu_message::airdata_t *airdata ) {
     if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
     float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
     float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
-    airdata_node.setDouble( "airspeed_mps", airspeed_mps );
-    airdata_node.setDouble( "airspeed_kt", airspeed_kt );
-    airdata_node.setDouble( "temp_C", airdata->ext_temp_C );
+    airdata_node.setFloat( "airspeed_mps", airspeed_mps );
+    airdata_node.setFloat( "airspeed_kt", airspeed_kt );
+    airdata_node.setFloat( "temp_C", airdata->ext_temp_C );
 
     // publish sensor values
-    airdata_node.setDouble( "pressure_mbar", airdata->baro_press_pa / 100.0 );
-    airdata_node.setDouble( "bme_temp_C", airdata->baro_temp_C );
-    airdata_node.setDouble( "humidity", airdata->baro_hum );
-    airdata_node.setDouble( "diff_pressure_pa", airdata->ext_diff_press_pa );
-    airdata_node.setDouble( "ext_static_press_pa", airdata->ext_static_press_pa );
-    airdata_node.setLong( "error_count", airdata->error_count );
+    airdata_node.setFloat( "pressure_mbar", airdata->baro_press_pa / 100.0 );
+    airdata_node.setFloat( "bme_temp_C", airdata->baro_temp_C );
+    airdata_node.setFloat( "humidity", airdata->baro_hum );
+    airdata_node.setFloat( "diff_pressure_pa", airdata->ext_diff_press_pa );
+    airdata_node.setFloat( "ext_static_press_pa", airdata->ext_static_press_pa );
+    airdata_node.setInt( "error_count", airdata->error_count );
 
     fresh_data = true;
 
@@ -713,21 +698,21 @@ bool rcfmu_t::update_pilot( rcfmu_message::pilot_t *pilot ) {
 
     for ( int i = 0; i < rcfmu_message::sbus_channels; i++ ) {
 	val = pilot->channel[i];
-	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
-	pilot_node.setDouble( "channel", i, val );
+	pilot_node.setFloat( pilot_mapping[i].c_str(), val );
+	pilot_node.setFloat( "channel", i, val );
     }
 
     // sbus ch17 (channel[16])
     if ( pilot->flags & 0x01 ) {
-        pilot_node.setDouble( "channel", 16, 1.0 );
+        pilot_node.setFloat( "channel", 16, 1.0 );
     } else {
-        pilot_node.setDouble( "channel", 16, 0.0 );
+        pilot_node.setFloat( "channel", 16, 0.0 );
     }
     // sbus ch18 (channel[17])
     if ( pilot->flags & (1 << 1) ) {
-        pilot_node.setDouble( "channel", 17, 1.0 );
+        pilot_node.setFloat( "channel", 17, 1.0 );
     } else {
-        pilot_node.setDouble( "channel", 17, 0.0 );
+        pilot_node.setFloat( "channel", 17, 0.0 );
     }
     if ( pilot->flags & (1 << 2) ) {
         pilot_node.setBool( "frame_lost", true );
@@ -748,12 +733,12 @@ void rcfmu_t::write() {
     // send actuator commands to rcfmu servo subsystem
     if ( rcfmu_message::ap_channels == 6 ) {
         rcfmu_message::command_inceptors_t act;
-        act.channel[0] = act_node.getDouble("throttle");
-        act.channel[1] = act_node.getDouble("aileron");
-        act.channel[2] = act_node.getDouble("elevator");
-        act.channel[3] = act_node.getDouble("rudder");
-        act.channel[4] = act_node.getDouble("flaps");
-        act.channel[5] = act_node.getDouble("gear");
+        act.channel[0] = act_node.getFloat("throttle");
+        act.channel[1] = act_node.getFloat("aileron");
+        act.channel[2] = act_node.getFloat("elevator");
+        act.channel[3] = act_node.getFloat("rudder");
+        act.channel[4] = act_node.getFloat("flaps");
+        act.channel[5] = act_node.getFloat("gear");
         act.pack();
         serial.write_packet( act.id, act.payload, act.len );
     }

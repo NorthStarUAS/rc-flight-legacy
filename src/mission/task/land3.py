@@ -1,6 +1,6 @@
 import math
 
-from props import getNode
+from PropertyTree import PropertyNode
 from rcUAS import wgs84
 
 import comms.events
@@ -17,20 +17,20 @@ m2ft = 1.0 / ft2m
 class Land(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.task_node = getNode("/task", True)
-        self.home_node = getNode("/task/home", True)
-        self.land_node = getNode("/task/land", True)
-        self.circle_node = getNode("/task/circle/active", True)
-        self.route_node = getNode("/task/route", True)
-        self.nav_node = getNode("/navigation", True)
-        self.pos_node = getNode("/position", True)
-        self.vel_node = getNode("/velocity", True)
-        self.orient_node = getNode("/orientation", True)
-        self.flight_node = getNode("/controls/flight", True)
-        self.engine_node = getNode("/controls/engine", True)
-        self.imu_node = getNode("/sensors/imu", True)
-        self.targets_node = getNode("/autopilot/targets", True)
-        self.pilot_node = getNode("/sensors/pilot_input", True)
+        self.task_node = PropertyNode("/task", True)
+        self.home_node = PropertyNode("/task/home", True)
+        self.land_node = PropertyNode("/task/land", True)
+        self.circle_node = PropertyNode("/task/circle/active", True)
+        self.route_node = PropertyNode("/task/route", True)
+        self.nav_node = PropertyNode("/navigation", True)
+        self.pos_node = PropertyNode("/position", True)
+        self.vel_node = PropertyNode("/velocity", True)
+        self.orient_node = PropertyNode("/orientation", True)
+        self.flight_node = PropertyNode("/controls/flight", True)
+        self.engine_node = PropertyNode("/controls/engine", True)
+        self.imu_node = PropertyNode("/sensors/imu/0", True)
+        self.targets_node = PropertyNode("/autopilot/targets", True)
+        self.pilot_node = PropertyNode("/sensors/pilot_input", True)
 
         # get task configuration parameters
         self.name = config_node.getString("name")
@@ -128,10 +128,10 @@ class Land(Task):
         mode = self.nav_node.getString('mode')
         if mode == 'circle':
             # circle descent portion of the approach
-            pos_lon = self.pos_node.getFloat("longitude_deg")
-            pos_lat = self.pos_node.getFloat("latitude_deg")
-            center_lon = self.circle_node.getFloat("longitude_deg")
-            center_lat = self.circle_node.getFloat("latitude_deg")
+            pos_lon = self.pos_node.getDouble("longitude_deg")
+            pos_lat = self.pos_node.getDouble("latitude_deg")
+            center_lon = self.circle_node.getDouble("longitude_deg")
+            center_lat = self.circle_node.getDouble("latitude_deg")
             # compute course and distance to center of target circle
             (course_deg, rev_deg, cur_dist_m) = \
                 wgs84.geo_inverse( center_lat, center_lon, pos_lat, pos_lon )
@@ -239,7 +239,7 @@ class Land(Task):
             # definition.)
             comms.events.log("land", "start flare")
             self.flare = True
-            self.flare_start_time = self.imu_node.getFloat("timestamp")
+            self.flare_start_time = self.imu_node.getDouble("timestamp")
             self.approach_throttle = self.engine_node.getFloat("throttle")
             self.approach_pitch = self.targets_node.getFloat("pitch_deg")
             self.flare_pitch_range = self.approach_pitch - self.flare_pitch_deg
@@ -247,7 +247,7 @@ class Land(Task):
 
         if self.flare:
             if self.flare_seconds > 0.01:
-                elapsed = self.imu_node.getFloat("timestamp") - self.flare_start_time
+                elapsed = self.imu_node.getDouble("timestamp") - self.flare_start_time
                 percent = elapsed / self.flare_seconds
                 if percent > 1.0:
                     percent = 1.0
@@ -332,8 +332,8 @@ class Land(Task):
         # touchdown point
         hdg = (self.final_heading_deg + 90 * math.copysign(1, self.lateral_offset_m)) % 360
         (tgt_lat, tgt_lon, az2) = \
-            wgs84.geo_direct( self.home_node.getFloat("latitude_deg"),
-                              self.home_node.getFloat("longitude_deg"),
+            wgs84.geo_direct( self.home_node.getDouble("latitude_deg"),
+                              self.home_node.getDouble("longitude_deg"),
                               hdg, abs(self.lateral_offset_m) )
 
         # tangent point
@@ -347,8 +347,8 @@ class Land(Task):
             wgs84.geo_direct( tan_lat, tan_lon, hdg, self.turn_radius_m )
         
         # configure circle task
-        self.circle_node.setFloat('latitude_deg', cc_lat)
-        self.circle_node.setFloat('longitude_deg', cc_lon)
+        self.circle_node.setDouble('latitude_deg', cc_lat)
+        self.circle_node.setDouble('longitude_deg', cc_lon)
         self.circle_node.setString('direction', dir)
         self.circle_node.setFloat('radius_m', self.turn_radius_m)
 

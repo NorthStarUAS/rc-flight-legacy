@@ -22,13 +22,10 @@
 
 #pragma once
 
-#include <pyprops.h>
-
 #include <vector>
 using std::vector;
 
 #include "component.h"
-
 
 /**
  * Model an autopilot system.

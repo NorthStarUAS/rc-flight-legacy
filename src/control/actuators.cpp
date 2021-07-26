@@ -17,36 +17,37 @@ using std::string;
 #include "util/timing.h"
 #include "actuators.h"
 
-void actuators_t::init() {
-    pyPropsInit();              // first things first
+void actuators_t::init(DocPointerWrapper d) {
+    PropertyNode("/").set_Document(d);
+ 
     // bind properties
-    flight_node = pyGetNode("/controls/flight", true);
-    engine_node = pyGetNode("/controls/engine", true);
-    excite_node = pyGetNode("/task/excite", true);
-    pilot_node = pyGetNode("/sensors/pilot_input", true);
-    act_node = pyGetNode("/actuators", true);
-    ap_node = pyGetNode("/autopilot", true);
+    flight_node = PropertyNode("/controls/flight", true);
+    engine_node = PropertyNode("/controls/engine", true);
+    excite_node = PropertyNode("/task/excite", true);
+    pilot_node = PropertyNode("/sensors/pilot_input", true);
+    act_node = PropertyNode("/actuators", true);
+    ap_node = PropertyNode("/autopilot", true);
 }
 
 void actuators_t::update() {
     // set time stamp for logging
     act_node.setDouble( "timestamp", get_Time() );
 
-    float aileron = flight_node.getDouble("aileron");
-    act_node.setDouble( "aileron", aileron );
+    float aileron = flight_node.getFloat("aileron");
+    act_node.setFloat( "aileron", aileron );
 
-    float elevator = flight_node.getDouble("elevator");
-    act_node.setDouble( "elevator", elevator );
+    float elevator = flight_node.getFloat("elevator");
+    act_node.setFloat( "elevator", elevator );
 
     // rudder
-    float rudder = flight_node.getDouble("rudder");
-    act_node.setDouble( "rudder", rudder );
+    float rudder = flight_node.getFloat("rudder");
+    act_node.setFloat( "rudder", rudder );
 
-    double flaps = flight_node.getDouble("flaps");
-    act_node.setDouble("flaps", flaps );
+    double flaps = flight_node.getFloat("flaps");
+    act_node.setFloat("flaps", flaps );
 
-    double gear = flight_node.getDouble("gear");
-    act_node.setDouble("gear", gear );
+    double gear = flight_node.getFloat("gear");
+    act_node.setFloat("gear", gear );
 
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!
@@ -104,18 +105,18 @@ void actuators_t::update() {
 
     // throttle
 
-    double throttle = engine_node.getDouble("throttle");
-    act_node.setDouble("throttle", throttle );
+    double throttle = engine_node.getFloat("throttle");
+    act_node.setFloat("throttle", throttle );
 
     // add in excitation signals if excitation task is running
     if ( excite_node.getBool("running") ) {
         float signal = 0.0;
         string target = "";
-        int n = excite_node.getLong("channels");
+        int n = excite_node.getInt("channels");
         for ( int i = 0; i < n; i++ ) {
-            signal = excite_node.getDouble("signal", i);
+            signal = excite_node.getFloat("signal", i);
             target = excite_node.getString("target", i);
-            float act_val = act_node.getDouble(target.c_str());
+            float act_val = act_node.getFloat(target.c_str());
             act_val += signal;
             if ( target == "throttle" ) {
                 if ( act_val < 0.0 ) { act_val = 0.0; }
@@ -123,7 +124,7 @@ void actuators_t::update() {
                 if ( act_val < -1.0 ) { act_val = -1.0; }
             }
             if ( act_val > 1.0 ) { act_val = 1.0; }
-            act_node.setDouble(target.c_str(), act_val);
+            act_node.setFloat(target.c_str(), act_val);
         }
     }
     
@@ -136,17 +137,17 @@ void actuators_t::update() {
 
 	    static int sas_throttle_state = 0;
 	    if ( sas_throttle_state == 0 ) {
-		if ( engine_node.getDouble("throttle") < 0.05 ) {
+		if ( engine_node.getFloat("throttle") < 0.05 ) {
 		    // wait for zero throttle
 		    sas_throttle_state = 1;
 		}
 	    } else if ( sas_throttle_state == 1 ) {
-		if ( engine_node.getDouble("throttle") > 0.95 ) {
+		if ( engine_node.getFloat("throttle") > 0.95 ) {
 		    // next wait for full throttle
 		    sas_throttle_state = 2;
 		}
 	    } else if ( sas_throttle_state == 2 ) {
-		if ( engine_node.getDouble("throttle") < 0.05 ) {
+		if ( engine_node.getFloat("throttle") < 0.05 ) {
 		    // next wait for zero throttle again.  Throttle pass
 		    // through is now live, even under 100' AGL
 		    sas_throttle_state = 3;
@@ -163,11 +164,11 @@ void actuators_t::update() {
     // started up.
     if ( ! sas_throttle_override ) {
 	if ( act_node.getBool("throttle_safety") ) {
-	    act_node.setDouble("throttle", 0.0 );
+	    act_node.setFloat("throttle", 0.0 );
 	}
     }
 
-    // printf("throttle = %.2f %d\n", throttle_out_node.getDouble(),
+    // printf("throttle = %.2f %d\n", throttle_out_node.getFloat(),
     //        servo_out.chn[2]);
 
     // CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!! CAUTION!!!

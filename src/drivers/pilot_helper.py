@@ -1,6 +1,6 @@
 # pilot_helper.py
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 from comms import events
 
@@ -10,10 +10,10 @@ class pilot_helper():
         pass
     
     def init(self):
-        self.pilot_node = getNode("/sensors/pilot_input", True)
-        self.flight_node = getNode("/controls/flight", True)
-        self.engine_node = getNode("/controls/engine", True)
-        self.ap_node = getNode("/autopilot", True)
+        self.pilot_node = PropertyNode("/sensors/pilot_input", True)
+        self.flight_node = PropertyNode("/controls/flight", True)
+        self.engine_node = PropertyNode("/controls/engine", True)
+        self.ap_node = PropertyNode("/autopilot", True)
 
     def update(self):
         # log receiver fail safe changes

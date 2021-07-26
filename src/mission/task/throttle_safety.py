@@ -1,4 +1,4 @@
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 from mission.task.task import Task
@@ -6,9 +6,9 @@ from mission.task.task import Task
 class ThrottleSafety(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.act_node = getNode("/actuators", True)
-        self.gps_node = getNode("/sensors/gps", True)
-        self.task_node = getNode("/task", True)
+        self.act_node = PropertyNode("/actuators", True)
+        self.gps_node = PropertyNode("/sensors/gps/0", True)
+        self.task_node = PropertyNode("/task", True)
         
         # initial defaults are locked down (this is kind of a big deal!)
         self.master_safety = True

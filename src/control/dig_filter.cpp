@@ -18,7 +18,8 @@
 //
 
 
-#include <pyprops.h>
+#include <math.h>               // fabs()
+#include <props2.h>
 
 #include "dig_filter.h"
 
@@ -28,11 +29,11 @@ AuraDigitalFilter::AuraDigitalFilter( string config_path )
     size_t pos;
     samples = 1;
 
-    component_node = pyGetNode(config_path, true);
+    component_node = PropertyNode(config_path, true);
     vector <string> children;
     
     // enable
-    pyPropertyNode node = component_node.getChild( "enable", true );
+    PropertyNode node = component_node.getChild( "enable", true );
     children = node.getChildren();
     printf("enables: %ld prop(s)\n", children.size());
     for ( unsigned int i = 0; i < children.size(); ++i ) {
@@ -43,7 +44,7 @@ AuraDigitalFilter::AuraDigitalFilter( string config_path )
 	    if ( pos != string::npos ) {
 		string path = enable_prop.substr(0, pos);
 		string attr = enable_prop.substr(pos+1);
-		pyPropertyNode en_node = pyGetNode( path, true );
+		PropertyNode en_node = PropertyNode( path, true );
 		enables_node.push_back( en_node );
 		enables_attr.push_back( attr );
 	    } else {
@@ -63,7 +64,7 @@ AuraDigitalFilter::AuraDigitalFilter( string config_path )
     if ( pos != string::npos ) {
 	string path = input_prop.substr(0, pos);
 	input_attr = input_prop.substr(pos+1);
-	input_node = pyGetNode( path, true );
+	input_node = PropertyNode( path, true );
     }
 
     if ( component_node.hasChild("type") ) {
@@ -79,13 +80,13 @@ AuraDigitalFilter::AuraDigitalFilter( string config_path )
 	}
     }
     if ( component_node.hasChild("filter_time") ) {
-	Tf = component_node.getDouble("filter_time");
+	Tf = component_node.getFloat("filter_time");
     }
     if ( component_node.hasChild("samples") ) {
-	samples = component_node.getLong("samples");
+	samples = component_node.getInt("samples");
     }
     if ( component_node.hasChild("max_rate_of_change") ) {
-	rateOfChange = component_node.getDouble("max_rate_of_change");
+	rateOfChange = component_node.getFloat("max_rate_of_change");
     }
 
     // output
@@ -98,7 +99,7 @@ AuraDigitalFilter::AuraDigitalFilter( string config_path )
 	    if ( pos != string::npos ) {
 		string path = output_prop.substr(0, pos);
 		string attr = output_prop.substr(pos+1);
-		pyPropertyNode onode = pyGetNode( path, true );
+		PropertyNode onode = PropertyNode( path, true );
 		output_node.push_back( onode );
 		output_attr.push_back( attr );
 	    } else {
@@ -129,7 +130,7 @@ void AuraDigitalFilter::update(double dt)
         }
     }
 
-    input.push_front( input_node.getDouble(input_attr.c_str()) );
+    input.push_front( input_node.getFloat(input_attr.c_str()) );
     input.resize(samples + 1, 0.0);
 
     if ( enabled && dt > 0.0 ) {
@@ -146,7 +147,7 @@ void AuraDigitalFilter::update(double dt)
             output.push_front(alpha * input[0] + 
                               (1 - alpha) * output[0]);
 	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-		output_node[i].setDouble( output_attr[i].c_str(), output[0] );
+		output_node[i].setFloat( output_attr[i].c_str(), output[0] );
 	    }
             output.resize(1);
         } 
@@ -157,7 +158,7 @@ void AuraDigitalFilter::update(double dt)
                               2 * (1 - alpha) * output[0] -
                               (1 - alpha) * (1 - alpha) * output[1]);
  	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-		output_node[i].setDouble( output_attr[i].c_str(), output[0] );
+		output_node[i].setFloat( output_attr[i].c_str(), output[0] );
 	    }
             output.resize(2);
         }
@@ -166,7 +167,7 @@ void AuraDigitalFilter::update(double dt)
             output.push_front(output[0] + 
                               (input[0] - input.back()) / samples);
  	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-		output_node[i].setDouble( output_attr[i].c_str(), output[0] );
+		output_node[i].setFloat( output_attr[i].c_str(), output[0] );
 	    }
             output.resize(1);
         }
@@ -188,7 +189,7 @@ void AuraDigitalFilter::update(double dt)
             }
 
  	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-		output_node[i].setDouble( output_attr[i].c_str(), output[0] );
+		output_node[i].setFloat( output_attr[i].c_str(), output[0] );
 	    }
 	    output.resize(1);
         }

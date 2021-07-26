@@ -1,4 +1,3 @@
-from props import getNode
 from rcUAS import wgs84
 
 class Waypoint:

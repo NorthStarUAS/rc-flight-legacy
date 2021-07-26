@@ -3,8 +3,7 @@ import numpy as np
 import os
 from scipy import linalg
 
-from props import getNode, PropertyNode
-import props_json
+from PropertyTree import PropertyNode
 
 import comms.display
 import comms.events
@@ -87,9 +86,9 @@ class CalibrateMagnetometer(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.name = config_node.getString("name")
-        self.imu_node = getNode("/sensors/imu", True)
-        self.config_imu_node = getNode("/config/drivers/Aura4/imu", True)
-        self.task_calib_node = getNode("/task/calibrate", True)
+        self.imu_node = PropertyNode("/sensors/imu/0", True)
+        self.config_imu_node = PropertyNode("/config/drivers/Aura4/imu", True)
+        self.task_calib_node = PropertyNode("/task/calibrate", True)
         self.state = 0
         self.armed = False
         self.samples = []
@@ -251,7 +250,7 @@ class CalibrateMagnetometer(Task):
             for i in range(16):
                 calib_node.setFloatEnum("mag_affine", i, self.mag_affine.flatten()[i])
             home = os.path.expanduser("~")
-            props_json.save(os.path.join(home, "imu_calibration.json"), calib_node)
+            calib_node.save(os.path.join(home, "imu_calibration.json"))
             message = "mag calibration succeeded"
             self.task_calib_node.setString("mag_status", message)
             comms.display.show(message)

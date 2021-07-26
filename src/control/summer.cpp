@@ -18,20 +18,19 @@
 //
 
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include "summer.h"
-
 
 AuraSummer::AuraSummer ( string config_path )
 {
     size_t pos;
 
-    component_node = pyGetNode(config_path);
+    component_node = PropertyNode(config_path);
     vector <string> children;
     
     // enable
-    pyPropertyNode node = component_node.getChild( "enable", true );
+    PropertyNode node = component_node.getChild( "enable", true );
     children = node.getChildren();
     printf("enables: %d prop(s)\n", children.size());
     for ( unsigned int i = 0; i < children.size(); ++i ) {
@@ -42,7 +41,7 @@ AuraSummer::AuraSummer ( string config_path )
 	    if ( pos != string::npos ) {
 		string path = enable_prop.substr(0, pos);
 		string attr = enable_prop.substr(pos+1);
-		pyPropertyNode en_node = pyGetNode( path, true );
+		PropertyNode en_node = PropertyNode( path, true );
 		enables_node.push_back( en_node );
 		enables_attr.push_back( attr );
 	    } else {
@@ -65,7 +64,7 @@ AuraSummer::AuraSummer ( string config_path )
 	    if ( pos != string::npos ) {
 		string path = input_prop.substr(0, pos);
 		string attr = input_prop.substr(pos+1);
-		pyPropertyNode onode = pyGetNode( path, true );
+		PropertyNode onode = PropertyNode( path, true );
 		input_node.push_back( onode );
 		input_attr.push_back( attr );
 	    } else {
@@ -88,7 +87,7 @@ AuraSummer::AuraSummer ( string config_path )
 	    if ( pos != string::npos ) {
 		string path = output_prop.substr(0, pos);
 		string attr = output_prop.substr(pos+1);
-		pyPropertyNode onode = pyGetNode( path, true );
+		PropertyNode onode = PropertyNode( path, true );
 		output_node.push_back( onode );
 		output_attr.push_back( attr );
 	    } else {
@@ -124,21 +123,21 @@ void AuraSummer::update( double dt ) {
 	if ( debug ) printf("Updating %s\n", get_name().c_str());
 	double sum = 0.0;
 	for ( unsigned int i = 0; i < input_node.size(); i++ ) {
-	    double val = input_node[i].getDouble( input_attr[i].c_str() );
+	    double val = input_node[i].getFloat( input_attr[i].c_str() );
 	    sum += val;
 	    if (debug) printf("  %s = %.3f\n", input_attr[i].c_str(), val);
 	}
 	if ( config_node.hasChild("u_min") ) {
-	    double u_min = config_node.getDouble("u_min");
+	    double u_min = config_node.getFloat("u_min");
 	    if ( sum < u_min ) { sum = u_min; }
 	}
 	if ( config_node.hasChild("u_max") ) {
-	    double u_max = config_node.getDouble("u_max");
+	    double u_max = config_node.getFloat("u_max");
 	    if ( sum > u_max ) { sum = u_max; }
 	}
 	if (debug) printf("  sum = %.3f\n", sum);
 	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-	    output_node[i].setDouble( output_attr[i].c_str(), sum );
+	    output_node[i].setFloat( output_attr[i].c_str(), sum );
 	}
     }
 }

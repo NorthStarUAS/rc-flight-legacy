@@ -6,8 +6,7 @@ import random
 import re
 import socket
 
-from props import getNode
-import props_json
+from PropertyTree import PropertyNode
 
 from comms.packer import packer
 import comms.serial_parser
@@ -95,7 +94,7 @@ def init():
     global enable_udp
     
     global logging_node
-    logging_node = getNode("/config/logging", True)
+    logging_node = PropertyNode("/config/logging", True)
 
     global log_path
     global udp_host
@@ -240,7 +239,7 @@ def process_messages():
         if not buf is None and len(buf):
             log_message(packer.gps.id, buf)
     if False:
-        buf = None:
+        buf = None
         try:
             buf = packer.pack_gpsraw_bin()
         except Exception as e:
@@ -286,18 +285,18 @@ def update():
 # (this allows us to later rederive the original raw sensor values.)
 def log_imu_calibration( config ):
     os.path.join(flight_dir, 'imucal.json' )
-    props_json.save( config, jsonfile )
+    config.save( jsonfile )
     return True
 
 # write several config files to the flight directory so that the data
 # can be paired with important configuration settings.
 def write_configs():
-    config = getNode("/config", True)
+    config = PropertyNode("/config", True)
     file = os.path.join(flight_dir, 'master-config.json')
-    props_json.save(file, config)
+    config.save(file)
     
-    config = getNode("/config/autopilot", True)
+    config = PropertyNode("/config/autopilot", True)
     file = os.path.join(flight_dir, 'ap-config.json')
-    props_json.save(file, config)
+    config.save(file)
 
     

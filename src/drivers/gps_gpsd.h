@@ -10,7 +10,7 @@ using std::string;
 #include <eigen3/Eigen/Core>
 using namespace Eigen;
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include "util/netSocket.h"
 #include "util/props_helper.h"
@@ -26,7 +26,7 @@ public:
         vEst_E_mps = Vector3d(0, 0, 0);
     }
     ~gpsd_t() {}
-    void init( pyPropertyNode *config );
+    void init( PropertyNode *config );
     float read();
     void process() {}
     void write() {}
@@ -34,9 +34,9 @@ public:
     void command( const char *cmd ) {}
 
 private:
-    pyPropertyNode gps_node;
-    pyPropertyNode raw_node;
-    pyPropertyNode ephem_node;
+    PropertyNode gps_node;
+    PropertyNode raw_node;
+    PropertyNode ephem_node;
     int port = 2947;
     string host = "localhost";
     string init_string = "?WATCH={\"enable\":true,\"json\":true,\"scaled\":true}";
@@ -54,5 +54,5 @@ private:
     bool process_buffer();
     bool parse_message(const string message);
     VectorXd dump_sat_pos(int svid, double tow, double pr, double doppler,
-                          pyPropertyNode ephem);
+                          PropertyNode ephem);
 };

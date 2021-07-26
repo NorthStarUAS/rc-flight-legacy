@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include "drivers/driver.h"
 
@@ -18,7 +18,7 @@ class ublox6_t: public driver_t {
 public:
     ublox6_t() {}
     ~ublox6_t() {}
-    void init( pyPropertyNode *config );
+    void init( PropertyNode *config );
     float read();
     void process() {}
     void write() {};
@@ -26,7 +26,7 @@ public:
     void command( const char *cmd ) {}
 
  private:
-    pyPropertyNode gps_node;
+    PropertyNode gps_node;
     int gps_fix_value = 0;
     int fd = -1;
     static const int max_payload = 2048;
@@ -41,6 +41,6 @@ public:
     bool parse_msg();
 };
  
-//void gps_ublox6_init( string output_path, pyPropertyNode *config );
+//void gps_ublox6_init( string output_path, PropertyNode *config );
 //bool gps_ublox6_update();
 //void gps_ublox6_close();

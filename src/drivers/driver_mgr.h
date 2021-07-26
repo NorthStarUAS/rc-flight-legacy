@@ -5,7 +5,7 @@
 #include <vector>
 using std::vector;
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include "driver.h"
 
@@ -14,7 +14,7 @@ class driver_mgr_t {
 public:
     driver_mgr_t();
     ~driver_mgr_t() {}
-    void init();
+    void init(DocPointerWrapper d);
     float read();
     void process();
     void write();
@@ -22,6 +22,6 @@ public:
     void send_commands();
 
 private:
-    pyPropertyNode sensors_node;
+    PropertyNode sensors_node;
     vector<driver_t *> drivers;
 };

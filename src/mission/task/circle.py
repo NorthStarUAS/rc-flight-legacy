@@ -1,6 +1,6 @@
 import math
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 from mission.task.task import Task
@@ -10,12 +10,12 @@ import mission.task.state
 class Circle(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.pos_node = getNode("/position", True)
-        self.orient_node = getNode("/orientation", True)
-        self.circle_active_node = getNode("/task/circle/active", True)
-        self.circle_standby_node = getNode("/task/circle/standby", True)
-        self.nav_node = getNode("/navigation", True)
-        self.targets_node = getNode("/autopilot/targets", True)
+        self.pos_node = PropertyNode("/position", True)
+        self.orient_node = PropertyNode("/orientation", True)
+        self.circle_active_node = PropertyNode("/task/circle/active", True)
+        self.circle_standby_node = PropertyNode("/task/circle/standby", True)
+        self.nav_node = PropertyNode("/navigation", True)
+        self.targets_node = PropertyNode("/autopilot/targets", True)
 
         self.direction = "left"
         self.radius_m = 100.0
@@ -31,13 +31,13 @@ class Circle(Task):
     def update_parameters(self):
         # copy from standby values
         if self.circle_standby_node.hasChild("longitude_deg"):
-            lon_deg = self.circle_standby_node.getFloat("longitude_deg")
+            lon_deg = self.circle_standby_node.getDouble("longitude_deg")
             if abs(lon_deg) > 0.01:
-                self.circle_active_node.setFloat("longitude_deg", lon_deg)
+                self.circle_active_node.setDouble("longitude_deg", lon_deg)
         if self.circle_standby_node.hasChild("latitude_deg"):
-            lat_deg = self.circle_standby_node.getFloat("latitude_deg")
+            lat_deg = self.circle_standby_node.getDouble("latitude_deg")
             if abs(lat_deg) > 0.01:
-                self.circle_active_node.setFloat("latitude_deg", lat_deg)
+                self.circle_active_node.setDouble("latitude_deg", lat_deg)
         if self.circle_standby_node.hasChild("radius_m"):
             radius_m = self.circle_standby_node.getFloat("radius_m")
             if abs(radius_m) > 25:

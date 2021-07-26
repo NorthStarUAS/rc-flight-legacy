@@ -1,11 +1,11 @@
 # high level navigation modes
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 import control.circle as circle
 import control.route as route
 
-nav_node = getNode("/navigation", True)
+nav_node = PropertyNode("/navigation", True)
 
 def init():
     circle.init()

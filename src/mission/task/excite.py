@@ -1,6 +1,6 @@
 import math
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 from mission.task.task import Task
@@ -23,9 +23,9 @@ from mission.task.task import Task
 class Excite(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.imu_node = getNode("/sensors/imu", True)
+        self.imu_node = PropertyNode("/sensors/imu/0", True)
         self.config_node = config_node
-        self.excite_node = getNode("/task/excite", True)
+        self.excite_node = PropertyNode("/task/excite", True)
         self.name = config_node.getString("name")
         self.index = 0
         self.start_time = 0.0
@@ -128,7 +128,7 @@ class Excite(Task):
             n_coeffs = n / self.channels
             self.scale = math.sqrt(1.0 / n_coeffs)
                 
-        self.start_time = self.imu_node.getFloat("timestamp")
+        self.start_time = self.imu_node.getDouble("timestamp")
         self.running = True
 
         comms.events.log("excite", event_log)
@@ -197,7 +197,7 @@ class Excite(Task):
         if not self.active:
             return False
 
-        cur_time = self.imu_node.getFloat("timestamp")
+        cur_time = self.imu_node.getDouble("timestamp")
 
         # test for start trigger
         trigger = self.excite_node.getBool("trigger")

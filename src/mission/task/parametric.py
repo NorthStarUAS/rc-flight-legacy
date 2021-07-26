@@ -14,7 +14,7 @@ import math
 import numpy as np
 # from scipy.optimize import minimize
 
-from props import getNode
+from PropertyTree import PropertyNode
 from rcUAS import wgs84
 
 import comms.events
@@ -69,12 +69,12 @@ def define_circle(p1, p2, p3):
 class Parametric(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.pos_node = getNode("/position", True)
-        self.home_node = getNode("/task/home", True)
-        self.circle_node = getNode("/task/circle/active", True)
-        self.targets_node = getNode("/autopilot/targets", True)
-        self.nav_node = getNode("/navigation", True)
-        self.tecs_node = getNode("/config/autopilot/TECS", True)
+        self.pos_node = PropertyNode("/position", True)
+        self.home_node = PropertyNode("/task/home", True)
+        self.circle_node = PropertyNode("/task/circle/active", True)
+        self.targets_node = PropertyNode("/autopilot/targets", True)
+        self.nav_node = PropertyNode("/navigation", True)
+        self.tecs_node = PropertyNode("/config/autopilot/TECS", True)
 
         self.t = 0.0
         
@@ -218,11 +218,11 @@ class Parametric(Task):
             offset_dist = math.sqrt(center[0]*center[0] + center[1]*center[1])
             circle_offset_deg = 90 - math.atan2(center[1], center[0]) * r2d
             (cc_lat, cc_lon, az2) = \
-                wgs84.geo_direct( self.home_node.getFloat("latitude_deg"),
-                                  self.home_node.getFloat("longitude_deg"),
+                wgs84.geo_direct( self.home_node.getDouble("latitude_deg"),
+                                  self.home_node.getDouble("longitude_deg"),
                                   circle_offset_deg, offset_dist )
-            self.circle_node.setFloat('latitude_deg', cc_lat)
-            self.circle_node.setFloat('longitude_deg', cc_lon)
+            self.circle_node.setDouble('latitude_deg', cc_lat)
+            self.circle_node.setDouble('longitude_deg', cc_lon)
             self.circle_node.setString('direction', direction)
             self.circle_node.setFloat('radius_m', radius)
 

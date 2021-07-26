@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include <string>
 #include <vector>
@@ -37,25 +37,25 @@ class APComponent {
 
 protected:
 
-    pyPropertyNode component_node;
+    PropertyNode component_node;
     
-    vector <pyPropertyNode> enables_node;
+    vector <PropertyNode> enables_node;
     vector <string> enables_attr;
 
     bool honor_passive;
     bool enabled;
 
-    pyPropertyNode input_node;
+    PropertyNode input_node;
     string input_attr;
     
-    pyPropertyNode ref_node;
+    PropertyNode ref_node;
     string ref_attr;
     string ref_value;
   
-    vector <pyPropertyNode> output_node;
+    vector <PropertyNode> output_node;
     vector <string> output_attr;
 
-    pyPropertyNode config_node;
+    PropertyNode config_node;
 
 public:
 

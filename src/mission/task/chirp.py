@@ -1,6 +1,6 @@
 import math
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 from mission.task.task import Task
@@ -8,9 +8,9 @@ from mission.task.task import Task
 class Chirp(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.imu_node = getNode("/sensors/imu", True)
-        self.chirp_node = getNode("/task/chirp", True)
-        self.signal_node = getNode("/controls/signal", True)
+        self.imu_node = PropertyNode("/sensors/imu/0", True)
+        self.chirp_node = PropertyNode("/task/chirp", True)
+        self.signal_node = PropertyNode("/controls/signal", True)
         self.name = config_node.getString("name")
         self.start_time = 0.0
         self.k = 0.0
@@ -65,7 +65,7 @@ class Chirp(Task):
             self.freq_end = self.chirp_node.getFloat("freq_end_rad_sec")
             self.dur_sec = self.chirp_node.getFloat("duration_sec")
             self.amplitude = self.chirp_node.getFloat("amplitude")
-            self.start_time = self.imu_node.getFloat("timestamp")
+            self.start_time = self.imu_node.getDouble("timestamp")
             self.k = (self.freq_end - self.freq_start) / (2 * self.dur_sec)
             self.running = True
             comms.events.log("chirp", self.signal_node.getString("inject"))
@@ -79,7 +79,7 @@ class Chirp(Task):
                 comms.events.log("chirp", "aborted by operator")
             self.running = False
             
-        cur_time = self.imu_node.getFloat("timestamp")
+        cur_time = self.imu_node.getDouble("timestamp")
         if cur_time > self.start_time + self.dur_sec and self.running:
             comms.events.log("chirp", "end freq %.2f rad/sec" % self.freq_end)
             self.running = False
@@ -97,7 +97,7 @@ class Chirp(Task):
         self.last_trigger = trigger
         
     def is_complete(self):
-        cur_time = self.imu_node.getFloat("timestamp")
+        cur_time = self.imu_node.getDouble("timestamp")
         if cur_time > self.start_time + self.dur_sec:
             comms.events.log("chirp", "complete %.2f rad/sec" % self.freq_end)
             return True

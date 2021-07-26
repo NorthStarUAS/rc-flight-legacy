@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include "drivers/driver.h"
 
@@ -18,7 +18,7 @@ class ublox8_t: public driver_t {
 public:
     ublox8_t() {}
     ~ublox8_t() {}
-    void init( pyPropertyNode *config );
+    void init( PropertyNode *config );
     float read();
     void process() {}
     void write() {};
@@ -26,7 +26,7 @@ public:
     void command( const char *cmd ) {}
 
 private:
-    pyPropertyNode gps_node;
+    PropertyNode gps_node;
     int fd = -1;
     int state = 0;
     int msg_class = 0, msg_id = 0;

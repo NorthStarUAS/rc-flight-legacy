@@ -11,6 +11,8 @@
 
 #pragma once
 
-void Filter_init();
+#include <props2.h>
+
+void Filter_init(DocPointerWrapper d);
 bool Filter_update();
 void Filter_close();

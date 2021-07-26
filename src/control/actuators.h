@@ -8,20 +8,20 @@
 
 #pragma once
 
-#include <pyprops.h>
+#include <props2.h>
 
 class actuators_t {
 private:
-    pyPropertyNode flight_node;
-    pyPropertyNode engine_node;
-    pyPropertyNode pilot_node;
-    pyPropertyNode act_node;
-    pyPropertyNode ap_node;
-    pyPropertyNode excite_node;
+    PropertyNode flight_node;
+    PropertyNode engine_node;
+    PropertyNode pilot_node;
+    PropertyNode act_node;
+    PropertyNode ap_node;
+    PropertyNode excite_node;
     
 public:
     actuators_t() {}
     ~actuators_t() {}
-    void init();
+    void init(DocPointerWrapper d);
     void update();
 };

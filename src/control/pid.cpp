@@ -22,7 +22,7 @@
 
 #include <math.h>
 
-#include <pyprops.h>
+#include <props2.h>
 
 #include "pid.h"
 
@@ -38,32 +38,27 @@ AuraPID::AuraPID( string config_path ):
 {
     size_t pos;
 
-    component_node = pyGetNode(config_path, true);
+    component_node = PropertyNode(config_path, true);
     vector <string> children;
 
     // enable
-    pyPropertyNode node = component_node.getChild( "enable", true );
+    PropertyNode node = component_node.getChild( "enable", true );
     children = node.getChildren();
-    printf("enables: %ld prop(s)\n", children.size());
-    for ( unsigned int i = 0; i < children.size(); ++i ) {
-	if ( children[i].substr(0,4) == "prop" ) {
-	    string enable_prop = node.getString(children[i].c_str());
-            printf("  %s\n", enable_prop.c_str());
-	    pos = enable_prop.rfind("/");
-	    if ( pos != string::npos ) {
-		string path = enable_prop.substr(0, pos);
-		string attr = enable_prop.substr(pos+1);
-		pyPropertyNode en_node = pyGetNode( path, true );
-		enables_node.push_back( en_node );
-		enables_attr.push_back( attr );
-	    } else {
-		printf("WARNING: requested bad enable path: %s\n",
-		       enable_prop.c_str());
-	    }
-	} else {
-	    printf("WARNING: unknown tag in enable section: %s\n",
-		   children[i].c_str());
-	}
+    printf("enables: %d prop(s)\n", children.size());
+    for ( unsigned int i = 0; i < node.getLen("prop"); i++ ) {
+        string enable_prop = node.getString("prop", i);
+        printf("  %s\n", enable_prop.c_str());
+        pos = enable_prop.rfind("/");
+        if ( pos != string::npos ) {
+            string path = enable_prop.substr(0, pos);
+            string attr = enable_prop.substr(pos+1);
+            PropertyNode en_node = PropertyNode( path, true );
+            enables_node.push_back( en_node );
+            enables_attr.push_back( attr );
+        } else {
+            printf("WARNING: requested bad enable path: %s\n",
+                   enable_prop.c_str());
+        }
     }
 
     // input
@@ -73,7 +68,7 @@ AuraPID::AuraPID( string config_path ):
     if ( pos != string::npos ) {
 	string path = input_prop.substr(0, pos);
 	input_attr = input_prop.substr(pos+1);
-	input_node = pyGetNode( path, true );
+	input_node = PropertyNode( path, true );
     }
 
     // reference
@@ -85,7 +80,7 @@ AuraPID::AuraPID( string config_path ):
 	string path = ref_prop.substr(0, pos);
 	ref_attr = ref_prop.substr(pos+1);
 	// printf("path = %s attr = %s\n", path.c_str(), ref_attr.c_str());
-	ref_node = pyGetNode( path, true );
+	ref_node = PropertyNode( path, true );
     }
 
     // output
@@ -98,7 +93,7 @@ AuraPID::AuraPID( string config_path ):
 	    if ( pos != string::npos ) {
 		string path = output_prop.substr(0, pos);
 		string attr = output_prop.substr(pos+1);
-		pyPropertyNode onode = pyGetNode( path, true );
+		PropertyNode onode = PropertyNode( path, true );
 		output_node.push_back( onode );
 		output_attr.push_back( attr );
 	    } else {
@@ -133,14 +128,14 @@ void AuraPID::update( double dt ) {
 
     bool debug = component_node.getBool("debug");
     if ( debug ) printf("Updating %s\n", get_name().c_str());
-    y_n = input_node.getDouble(input_attr.c_str());
+    y_n = input_node.getFloat(input_attr.c_str());
 
     double r_n = 0.0;
     if ( ref_value != "" ) {
 	// printf("nonzero ref_value\n");
 	r_n = atof(ref_value.c_str());
     } else {
-	r_n = ref_node.getDouble(ref_attr.c_str());
+	r_n = ref_node.getFloat(ref_attr.c_str());
     }
                       
     double error = r_n - y_n;
@@ -159,13 +154,13 @@ void AuraPID::update( double dt ) {
     if ( debug ) printf("input = %.3f reference = %.3f error = %.3f\n",
 			y_n, r_n, error);
 
-    double u_trim = config_node.getDouble("u_trim");
-    double u_min = config_node.getDouble("u_min");
-    double u_max = config_node.getDouble("u_max");
+    double u_trim = config_node.getFloat("u_trim");
+    double u_min = config_node.getFloat("u_min");
+    double u_max = config_node.getFloat("u_max");
 
-    double Kp = config_node.getDouble("Kp");
-    double Ti = config_node.getDouble("Ti");
-    double Td = config_node.getDouble("Td");
+    double Kp = config_node.getFloat("Kp");
+    double Ti = config_node.getFloat("Ti");
+    double Td = config_node.getFloat("Td");
     double Ki = 0.0;
     if ( Ti > 0.0001 ) {
 	Ki = Kp / Ti;
@@ -187,10 +182,10 @@ void AuraPID::update( double dt ) {
     // iterm) then unset the do_reset flag.
     if ( do_reset ) {
         if ( Ti > 0.0001 ) {
-            double u_n = output_node[0].getDouble(output_attr[0].c_str());
+            double u_n = output_node[0].getFloat(output_attr[0].c_str());
             // and clip
-            double u_min = config_node.getDouble("u_min");
-            double u_max = config_node.getDouble("u_max");
+            double u_min = config_node.getFloat("u_min");
+            double u_max = config_node.getFloat("u_max");
             if ( u_n < u_min ) { u_n = u_min; }
             if ( u_n > u_max ) { u_n = u_max; }
             iterm = u_n - pterm;
@@ -231,9 +226,7 @@ void AuraPID::update( double dt ) {
     } else {
 	// Copy the result to the output node(s)
 	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-	    output_node[i].setDouble( output_attr[i].c_str(), output );
+	    output_node[i].setFloat( output_attr[i].c_str(), output );
 	}
     }
 }
-
-

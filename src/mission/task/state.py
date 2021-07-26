@@ -2,13 +2,13 @@
 # this is used by tasks that wish change system state when they are activated
 # and restore the previous state when they complete.
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 from mission.task import fcsmode
 
-nav_node = getNode('/navigation', True)
-targets_node = getNode('/autopilot/targets', True)
-circle_node = getNode('/task/circle/active', True)
+nav_node = PropertyNode('/navigation', True)
+targets_node = PropertyNode('/autopilot/targets', True)
+circle_node = PropertyNode('/task/circle/active', True)
 
 class State():
     # copy a snapshot of the current state
@@ -20,8 +20,8 @@ class State():
         
         self.circle = {}
         if save_circle:
-            self.circle['lon_deg'] = circle_node.getFloat("longitude_deg")
-            self.circle['lat_deg'] = circle_node.getFloat("latitude_deg")
+            self.circle['lon_deg'] = circle_node.getDouble("longitude_deg")
+            self.circle['lat_deg'] = circle_node.getDouble("latitude_deg")
             self.circle['direction'] = circle_node.getString("direction")
             self.circle['radius_m'] = circle_node.getFloat("radius_m")
             
@@ -36,8 +36,8 @@ class State():
             fcsmode.set(self.modes['fcs'])
             nav_node.setString("mode", self.modes['nav'])
         if len(self.circle):
-            circle_node.setFloat("longitude_deg", self.circle['lon_deg'])
-            circle_node.setFloat("latitude_deg", self.circle['lat_deg'])
+            circle_node.setDouble("longitude_deg", self.circle['lon_deg'])
+            circle_node.setDouble("latitude_deg", self.circle['lat_deg'])
             circle_node.setString("direction", self.circle['direction'])
             circle_node.setFloat("radius_m", self.circle['radius_m'])
         if len(self.targets):

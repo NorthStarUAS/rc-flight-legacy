@@ -8,7 +8,7 @@
 # manually.
 
 import mission.mission_mgr
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 from mission.task.task import Task
@@ -16,11 +16,11 @@ from mission.task.task import Task
 class LostLink(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.status_node = getNode("/status", True)
-        self.task_node = getNode("/task", True)
-        self.home_node = getNode("/task/home", True)
-        self.targets_node = getNode("/autopilot/targets", True)
-        self.remote_link_node = getNode("/comms/remote_link", True)
+        self.status_node = PropertyNode("/status", True)
+        self.task_node = PropertyNode("/task", True)
+        self.home_node = PropertyNode("/task/home", True)
+        self.targets_node = PropertyNode("/autopilot/targets", True)
+        self.remote_link_node = PropertyNode("/comms/remote_link", True)
         self.remote_link_node.setString("link", "inactive")
         self.link_state = False
         self.push_task = ""
@@ -43,12 +43,12 @@ class LostLink(Task):
         # fallback in case we can't find the push_task or other desired
         # actions?
 
-        last_message_sec = self.remote_link_node.getFloat("last_message_sec")
+        last_message_sec = self.remote_link_node.getDouble("last_message_sec")
         if last_message_sec < 0.00001:
             # likely zero, likely never received a message from GCS yet
             return
         
-        current_time = self.status_node.getFloat("frame_time")
+        current_time = self.status_node.getDouble("frame_time")
         message_age = current_time - last_message_sec
         # print "update lost link task, msg age = %.1f timeout=%.1f" % \
         #       (message_age, self.timeout_sec)

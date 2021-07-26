@@ -1,4 +1,4 @@
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 from mission.task.task import Task
@@ -8,11 +8,11 @@ import mission.task.state
 class Preflight(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.task_node = getNode("/task", True)
-        self.preflight_node = getNode("/task/preflight", True)
-        self.targets_node = getNode("/autopilot/targets", True)
-        self.imu_node = getNode("/sensors/imu", True)
-        self.flight_node = getNode("/controls/flight", True)
+        self.task_node = PropertyNode("/task", True)
+        self.preflight_node = PropertyNode("/task/preflight", True)
+        self.targets_node = PropertyNode("/autopilot/targets", True)
+        self.imu_node = PropertyNode("/sensors/imu/0", True)
+        self.flight_node = PropertyNode("/controls/flight", True)
         #self.saved_fcs_mode = ""
         self.timer = 0.0
         self.duration_sec = 60.0

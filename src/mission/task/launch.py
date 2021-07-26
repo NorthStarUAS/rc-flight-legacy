@@ -1,6 +1,6 @@
 import math
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 from mission.task.task import Task
@@ -12,14 +12,14 @@ class Launch(Task):
     def __init__(self, config_node):
         Task.__init__(self)
 
-        self.ap_node = getNode("/autopilot", True)
-        self.task_node = getNode("/task", True)
-        self.pos_node = getNode("/position", True)
-        self.vel_node = getNode("/velocity", True)
-        self.targets_node = getNode("/autopilot/targets", True)
-        self.imu_node = getNode("/sensors/imu", True)
-        self.flight_node = getNode("/controls/flight", True)
-        self.engine_node = getNode("/controls/engine", True)
+        self.ap_node = PropertyNode("/autopilot", True)
+        self.task_node = PropertyNode("/task", True)
+        self.pos_node = PropertyNode("/position", True)
+        self.vel_node = PropertyNode("/velocity", True)
+        self.targets_node = PropertyNode("/autopilot/targets", True)
+        self.imu_node = PropertyNode("/sensors/imu/0", True)
+        self.flight_node = PropertyNode("/controls/flight", True)
+        self.engine_node = PropertyNode("/controls/engine", True)
 
         self.complete_agl_ft = 150.0
         self.mission_agl_ft = 300.0

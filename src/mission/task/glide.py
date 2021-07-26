@@ -1,6 +1,6 @@
 import math
 
-from props import getNode
+from PropertyTree import PropertyNode
 
 import comms.events
 from mission.task.task import Task
@@ -21,11 +21,11 @@ import mission.task.state
 class GlideTest(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.targets_node = getNode("/autopilot/targets", True)
+        self.targets_node = PropertyNode("/autopilot/targets", True)
         self.config_node = config_node
-        self.engine_node = getNode("/controls/engine", True)
-        self.glide_node = getNode("/task/glide", True)
-        self.pos_node = getNode("/position", True)
+        self.engine_node = PropertyNode("/controls/engine", True)
+        self.glide_node = PropertyNode("/task/glide", True)
+        self.pos_node = PropertyNode("/position", True)
         self.name = config_node.getString("name")
         self.running = False
         self.last_enable = True # so we don't start out with a enable event

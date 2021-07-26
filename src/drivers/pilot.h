@@ -9,15 +9,17 @@
 
 #pragma once
 
+#include <props2.h>
+
 class pilot_helper_t {
 public:
-    void init();
+    void init(DocPointerWrapper d);
     void update();
 
 private:
-    pyPropertyNode pilot_node;
-    pyPropertyNode flight_node;
-    pyPropertyNode engine_node;
-    pyPropertyNode ap_node;
+    PropertyNode pilot_node;
+    PropertyNode flight_node;
+    PropertyNode engine_node;
+    PropertyNode ap_node;
 };
 
