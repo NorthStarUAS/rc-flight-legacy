@@ -53,12 +53,12 @@ void Filter_init(DocPointerWrapper d) {
     PropertyNode("/").set_Document(d);
     
     // initialize imu property nodes
-    imu_node = PropertyNode("/sensors/imu", true);
-    gps_node = PropertyNode("/sensors/gps", true);
+    imu_node = PropertyNode("/sensors/imu/0", true);
+    gps_node = PropertyNode("/sensors/gps/0", true);
     pos_node = PropertyNode("/position", true);
     orient_node = PropertyNode("/orientation", true);
     vel_node = PropertyNode("/velocity", true);
-    filter_node = PropertyNode("/filters/filter[0]", true);
+    filter_node = PropertyNode("/filters/filter/0", true);
     filter_group_node = PropertyNode("/filters", true);
     pos_filter_node = PropertyNode("/position/filter", true);
     pos_pressure_node = PropertyNode("/position/pressure", true);

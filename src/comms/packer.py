@@ -831,7 +831,7 @@ class Packer():
             self.pilot.index = 0
             self.pilot.timestamp_sec = pilot_time
             for i in range(8):
-                self.pilot.channel[i] = pilot_node.getFloatEnum("channel", i)
+                self.pilot.channel[i] = pilot_node.getFloat("channel", i)
             self.pilot.status = 0
             self.pilot_buf = self.pilot.pack()
         return self.pilot_buf
@@ -840,14 +840,14 @@ class Packer():
         pilot_node = PropertyNode('/sensors/pilot_input[%d]' % index, True)
         row = dict()
         row['timestamp'] = pilot_node.getDouble('timestamp')
-        row['channel[0]'] = pilot_node.getFloatEnum('channel', 0)
-        row['channel[1]'] = pilot_node.getFloatEnum('channel', 1)
-        row['channel[2]'] = pilot_node.getFloatEnum('channel', 2)
-        row['channel[3]'] = pilot_node.getFloatEnum('channel', 3)
-        row['channel[4]'] = pilot_node.getFloatEnum('channel', 4)
-        row['channel[5]'] = pilot_node.getFloatEnum('channel', 5)
-        row['channel[6]'] = pilot_node.getFloatEnum('channel', 6)
-        row['channel[7]'] = pilot_node.getFloatEnum('channel', 7)
+        row['channel[0]'] = pilot_node.getFloat('channel', 0)
+        row['channel[1]'] = pilot_node.getFloat('channel', 1)
+        row['channel[2]'] = pilot_node.getFloat('channel', 2)
+        row['channel[3]'] = pilot_node.getFloat('channel', 3)
+        row['channel[4]'] = pilot_node.getFloat('channel', 4)
+        row['channel[5]'] = pilot_node.getFloat('channel', 5)
+        row['channel[6]'] = pilot_node.getFloat('channel', 6)
+        row['channel[7]'] = pilot_node.getFloat('channel', 7)
         row['status'] = pilot_node.getInt('status')
         return row
 
@@ -855,14 +855,14 @@ class Packer():
         pilot_node = PropertyNode('/sensors/pilot_input[%d]' % index, True)
         row = dict()
         row['timestamp'] = '%.4f' % pilot_node.getDouble('timestamp')
-        row['channel[0]'] = '%.3f' % pilot_node.getFloatEnum('channel', 0)
-        row['channel[1]'] = '%.3f' % pilot_node.getFloatEnum('channel', 1)
-        row['channel[2]'] = '%.3f' % pilot_node.getFloatEnum('channel', 2)
-        row['channel[3]'] = '%.3f' % pilot_node.getFloatEnum('channel', 3)
-        row['channel[4]'] = '%.3f' % pilot_node.getFloatEnum('channel', 4)
-        row['channel[5]'] = '%.3f' % pilot_node.getFloatEnum('channel', 5)
-        row['channel[6]'] = '%.3f' % pilot_node.getFloatEnum('channel', 6)
-        row['channel[7]'] = '%.3f' % pilot_node.getFloatEnum('channel', 7)
+        row['channel[0]'] = '%.3f' % pilot_node.getFloat('channel', 0)
+        row['channel[1]'] = '%.3f' % pilot_node.getFloat('channel', 1)
+        row['channel[2]'] = '%.3f' % pilot_node.getFloat('channel', 2)
+        row['channel[3]'] = '%.3f' % pilot_node.getFloat('channel', 3)
+        row['channel[4]'] = '%.3f' % pilot_node.getFloat('channel', 4)
+        row['channel[5]'] = '%.3f' % pilot_node.getFloat('channel', 5)
+        row['channel[6]'] = '%.3f' % pilot_node.getFloat('channel', 6)
+        row['channel[7]'] = '%.3f' % pilot_node.getFloat('channel', 7)
         row['status'] = '%d' % pilot_node.getInt('status')
         keys = ['timestamp', 'channel[0]', 'channel[1]', 'channel[2]',
                 'channel[3]', 'channel[4]', 'channel[5]', 'channel[6]',
@@ -877,14 +877,14 @@ class Packer():
         node = pilot_node
 
         node.setDouble("timestamp", pilot.timestamp_sec)
-        node.setFloatEnum("channel", 0, pilot.channel[0])
-        node.setFloatEnum("channel", 1, pilot.channel[1])
-        node.setFloatEnum("channel", 2, pilot.channel[2])
-        node.setFloatEnum("channel", 3, pilot.channel[3])
-        node.setFloatEnum("channel", 4, pilot.channel[4])
-        node.setFloatEnum("channel", 5, pilot.channel[5])
-        node.setFloatEnum("channel", 6, pilot.channel[6])
-        node.setFloatEnum("channel", 7, pilot.channel[7])
+        node.setFloat("channel", 0, pilot.channel[0])
+        node.setFloat("channel", 1, pilot.channel[1])
+        node.setFloat("channel", 2, pilot.channel[2])
+        node.setFloat("channel", 3, pilot.channel[3])
+        node.setFloat("channel", 4, pilot.channel[4])
+        node.setFloat("channel", 5, pilot.channel[5])
+        node.setFloat("channel", 6, pilot.channel[6])
+        node.setFloat("channel", 7, pilot.channel[7])
         node.setInt("status", pilot.status)
 
         return pilot.index
@@ -897,14 +897,14 @@ class Packer():
         node = pilot_node
 
         node.setDouble("timestamp", pilot.timestamp_sec)
-        node.setFloatEnum("channel", 0, pilot.channel[0])
-        node.setFloatEnum("channel", 1, pilot.channel[1])
-        node.setFloatEnum("channel", 2, pilot.channel[2])
-        node.setFloatEnum("channel", 3, pilot.channel[3])
-        node.setFloatEnum("channel", 4, pilot.channel[4])
-        node.setFloatEnum("channel", 5, pilot.channel[5])
-        node.setFloatEnum("channel", 6, pilot.channel[6])
-        node.setFloatEnum("channel", 7, pilot.channel[7])
+        node.setFloat("channel", 0, pilot.channel[0])
+        node.setFloat("channel", 1, pilot.channel[1])
+        node.setFloat("channel", 2, pilot.channel[2])
+        node.setFloat("channel", 3, pilot.channel[3])
+        node.setFloat("channel", 4, pilot.channel[4])
+        node.setFloat("channel", 5, pilot.channel[5])
+        node.setFloat("channel", 6, pilot.channel[6])
+        node.setFloat("channel", 7, pilot.channel[7])
         node.setInt("status", pilot.status)
 
         return pilot.index
