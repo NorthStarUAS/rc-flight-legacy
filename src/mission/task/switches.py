@@ -106,7 +106,7 @@ class Switch():
             return
 
         #print "switch update:"
-        input_val = self.input_node.getFloat(self.input_name)
+        input_val = self.input_node.getDouble(self.input_name)
         if self.invert:
             input_val = -input_val
         if input_val < self.min: input_val = self.min

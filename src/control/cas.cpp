@@ -79,8 +79,8 @@ void UGCAS::update() {
     static double elev_pos_span = 1.0;
     static double elev_neg_span = 1.0;
 
-    double aileron = pilot_node.getFloat("aileron");
-    double elevator = pilot_node.getFloat("elevator");
+    double aileron = pilot_node.getDouble("aileron");
+    double elevator = pilot_node.getDouble("elevator");
 
     if ( ! stats_ready ) {
 	if ( start_time < 0.0 ) {
@@ -112,17 +112,17 @@ void UGCAS::update() {
 	    }
 	}
     } else {
-	ail_max = cas_aileron_node.getFloat("max");
-	ail_min = cas_aileron_node.getFloat("min");
-	ail_center = cas_aileron_node.getFloat("center");
-	ail_dz = cas_aileron_node.getFloat("dead_zone");
+	ail_max = cas_aileron_node.getDouble("max");
+	ail_min = cas_aileron_node.getDouble("min");
+	ail_center = cas_aileron_node.getDouble("center");
+	ail_dz = cas_aileron_node.getDouble("dead_zone");
 	ail_pos_span = ail_max - (ail_center + ail_dz);
 	ail_neg_span = (ail_center - ail_dz) - ail_min;
 
-	elev_max = cas_elevator_node.getFloat("max");
-	elev_min = cas_elevator_node.getFloat("min");
-	elev_center = cas_elevator_node.getFloat("center");
-	elev_dz = cas_elevator_node.getFloat("dead_zone");
+	elev_max = cas_elevator_node.getDouble("max");
+	elev_min = cas_elevator_node.getDouble("min");
+	elev_center = cas_elevator_node.getDouble("center");
+	elev_dz = cas_elevator_node.getDouble("dead_zone");
 	elev_pos_span = elev_max - (elev_center + elev_dz);
 	elev_neg_span = (elev_center - elev_dz) - elev_min;
     }
@@ -139,11 +139,11 @@ void UGCAS::update() {
     if ( roll_cmd < 0 ) { roll_sign = -1; roll_cmd *= -1.0; }
 
     double roll_delta = 0.0;
-    double new_roll = targets_node.getFloat("roll_deg");
+    double new_roll = targets_node.getDouble("roll_deg");
     if ( fabs(roll_cmd) > 0.001 ) {
 	// pilot is inputing a roll command
 	roll_delta = roll_sign * roll_cmd
-	    * cas_aileron_node.getFloat("full_rate_degps") * dt;
+	    * cas_aileron_node.getDouble("full_rate_degps") * dt;
     } else {
 	// pilot stick is centered
 	if ( fabs(new_roll) <= 10.0 ) {
@@ -161,7 +161,7 @@ void UGCAS::update() {
     new_roll += roll_delta;
     if ( new_roll < -45.0 ) { new_roll = -45.0; }
     if ( new_roll > 45.0 ) { new_roll = 45.0; }
-    targets_node.setFloat( "roll_deg", new_roll );
+    targets_node.setDouble( "roll_deg", new_roll );
 
     double pitch_cmd = 0.0;
     if ( elevator >= elev_center + elev_dz ) {
@@ -175,13 +175,13 @@ void UGCAS::update() {
     if ( pitch_cmd < 0 ) { pitch_sign = -1; pitch_cmd *= -1.0; }
 
     double pitch_delta = pitch_sign * pitch_cmd /* * pitch_cmd */
-	* cas_elevator_node.getFloat("full_rate_degps") * dt;
+	* cas_elevator_node.getDouble("full_rate_degps") * dt;
 
     double new_pitch_base
-	= targets_node.getFloat("pitch_base_deg") + pitch_delta;
+	= targets_node.getDouble("pitch_base_deg") + pitch_delta;
     if ( new_pitch_base < -15.0 ) { new_pitch_base = -15.0; }
     if ( new_pitch_base > 15.0 ) { new_pitch_base = 15.0; }
-    targets_node.setFloat( "pitch_base_deg", new_pitch_base );
+    targets_node.setDouble( "pitch_base_deg", new_pitch_base );
 
     // map throttle [0 ... 1] to [-mp ... mp] for throttle pitch offset
     // where mp is the max pitch bias.  This "simulates" the natural
@@ -189,13 +189,13 @@ void UGCAS::update() {
     // manipulated.
     const double mp = 4.0; 	// degrees throttle pitch bias
     double pitch_throttle_delta
-	= (pilot_node.getFloat("throttle") * 2.0 - 1.0) * mp;
+	= (pilot_node.getDouble("throttle") * 2.0 - 1.0) * mp;
     double new_pitch = new_pitch_base + pitch_throttle_delta;
-    targets_node.setFloat( "pitch_deg", new_pitch );
+    targets_node.setDouble( "pitch_deg", new_pitch );
 
     // this is a hard coded hack, but pass through throttle and rudder here
-    engine_node.setFloat( "throttle", pilot_node.getFloat("throttle") );
-    flight_node.setFloat( "rudder", pilot_node.getFloat("rudder") );
+    engine_node.setDouble( "throttle", pilot_node.getDouble("throttle") );
+    flight_node.setDouble( "rudder", pilot_node.getDouble("rudder") );
 
 #if 0
     static int ii = 0;

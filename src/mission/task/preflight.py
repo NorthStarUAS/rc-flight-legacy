@@ -19,8 +19,8 @@ class Preflight(Task):
 
         # copy to /task/preflight
         if config_node.hasChild("duration_sec"):
-            self.duration_sec = config_node.getFloat("duration_sec")
-        self.preflight_node.setFloat("duration_sec", self.duration_sec)
+            self.duration_sec = config_node.getDouble("duration_sec")
+        self.preflight_node.setDouble("duration_sec", self.duration_sec)
 
     def activate(self):
         self.active = True
@@ -31,15 +31,15 @@ class Preflight(Task):
         if not self.task_node.getBool("is_airborne"):
             # set fcs mode to roll+pitch, aka vanity mode? :-)
             fcsmode.set("roll+pitch")
-            self.targets_node.setFloat("roll_deg", 0.0)
-            self.targets_node.setFloat("pitch_deg", 0.0)
-            self.flight_node.setFloat("flaps_setpoint", 0.0)
+            self.targets_node.setDouble("roll_deg", 0.0)
+            self.targets_node.setDouble("pitch_deg", 0.0)
+            self.flight_node.setDouble("flaps_setpoint", 0.0)
             # reset timer
             self.timer = 0.0
         else:
             # we are airborne, don't change modes and configure timer
             # to be already expired
-            self.timer = self.preflight_node.getFloat("duration_sec") + 1.0
+            self.timer = self.preflight_node.getDouble("duration_sec") + 1.0
         comms.events.log("mission", "preflight")
 
     def update(self, dt):
@@ -53,7 +53,7 @@ class Preflight(Task):
         # complete when timer expires or we sense we are airborne
         # (sanity check!)
         done = False
-        if self.timer >= self.preflight_node.getFloat("duration_sec") or \
+        if self.timer >= self.preflight_node.getDouble("duration_sec") or \
            self.task_node.getBool("is_airborne"):
             done = True
         return done

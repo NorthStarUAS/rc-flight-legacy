@@ -44,11 +44,11 @@ void pilot_helper_t::update() {
     // values and improve continuity when switching from manual to
     // AP mode.
     if ( ! ap_node.getBool("master_switch") ) {
-        flight_node.setFloat( "aileron", pilot_node.getFloat("aileron") );
-        flight_node.setFloat( "elevator", pilot_node.getFloat("elevator") );
-        engine_node.setFloat( "throttle", pilot_node.getFloat("throttle") );
-        flight_node.setFloat( "rudder", pilot_node.getFloat("rudder") );
-        flight_node.setFloat( "flaps", pilot_node.getFloat("flaps") );
+        flight_node.setDouble( "aileron", pilot_node.getDouble("aileron") );
+        flight_node.setDouble( "elevator", pilot_node.getDouble("elevator") );
+        engine_node.setDouble( "throttle", pilot_node.getDouble("throttle") );
+        flight_node.setDouble( "rudder", pilot_node.getDouble("rudder") );
+        flight_node.setDouble( "flaps", pilot_node.getDouble("flaps") );
     }
 }
 

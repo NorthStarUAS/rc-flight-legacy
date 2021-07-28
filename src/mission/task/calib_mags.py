@@ -135,15 +135,15 @@ class CalibrateMagnetometer(Task):
             return False
 
         # update filters
-        p = self.imu_node.getFloat("p_rad_sec")
-        q = self.imu_node.getFloat("q_rad_sec")
-        r = self.imu_node.getFloat("r_rad_sec")
-        ax = self.imu_node.getFloat("ax_mps_sec")
-        ay = self.imu_node.getFloat("ay_mps_sec")
-        az = self.imu_node.getFloat("az_mps_sec")
-        hx_raw = self.imu_node.getFloat("hx_raw")
-        hy_raw = self.imu_node.getFloat("hy_raw")
-        hz_raw = self.imu_node.getFloat("hz_raw")
+        p = self.imu_node.getDouble("p_rad_sec")
+        q = self.imu_node.getDouble("q_rad_sec")
+        r = self.imu_node.getDouble("r_rad_sec")
+        ax = self.imu_node.getDouble("ax_mps_sec")
+        ay = self.imu_node.getDouble("ay_mps_sec")
+        az = self.imu_node.getDouble("az_mps_sec")
+        hx_raw = self.imu_node.getDouble("hx_raw")
+        hy_raw = self.imu_node.getDouble("hy_raw")
+        hz_raw = self.imu_node.getDouble("hz_raw")
         self.p_filt.update(p, dt)
         self.q_filt.update(q, dt)
         self.r_filt.update(r, dt)
@@ -248,7 +248,7 @@ class CalibrateMagnetometer(Task):
             calib_node = self.config_imu_node.getChild("calibration")
             calib_node.setLen("mag_affine", 16)
             for i in range(16):
-                calib_node.setFloat("mag_affine", i, self.mag_affine.flatten()[i])
+                calib_node.setDouble("mag_affine", i, self.mag_affine.flatten()[i])
             home = os.path.expanduser("~")
             calib_node.save(os.path.join(home, "imu_calibration.json"))
             message = "mag calibration succeeded"

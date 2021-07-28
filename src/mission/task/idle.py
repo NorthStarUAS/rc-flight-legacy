@@ -29,7 +29,7 @@ class Idle(Task):
         # does not touch the throttle, and set throttle to idle.
         if not self.task_node.getBool("is_airborne"):
             fcsmode.set("basic")
-            self.engine_node.setFloat("throttle", 0.0)
+            self.engine_node.setDouble("throttle", 0.0)
             
         comms.events.log("mission", "idle")
 

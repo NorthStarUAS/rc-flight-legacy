@@ -71,10 +71,10 @@ AuraPredictor::AuraPredictor ( string config_path ):
     }
 
     if ( component_node.hasChild("seconds") ) {
-	seconds = component_node.getFloat("seconds");
+	seconds = component_node.getDouble("seconds");
     }
     if ( component_node.hasChild("filter_gain") ) {
-	filter_gain = component_node.getFloat("filter_gain");
+	filter_gain = component_node.getDouble("filter_gain");
     }
     
     // output
@@ -128,7 +128,7 @@ void AuraPredictor::update( double dt ) {
         }
     }
 
-    ivalue = input_node.getFloat(input_attr.c_str());
+    ivalue = input_node.getDouble(input_attr.c_str());
 
     if ( enabled ) {
         // first time initialize average
@@ -149,7 +149,7 @@ void AuraPredictor::update( double dt ) {
 
 	    // Copy the result to the output node(s)
 	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-		output_node[i].setFloat( output_attr[i].c_str(), output );
+		output_node[i].setDouble( output_attr[i].c_str(), output );
 	    }
         }
         last_value = ivalue;

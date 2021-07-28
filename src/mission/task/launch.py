@@ -36,18 +36,18 @@ class Launch(Task):
         self.relhdg = 0.0
 
         self.name = config_node.getString("name")
-        self.completion_agl_ft = config_node.getFloat("completion_agl_ft")
-        self.mission_agl_ft = config_node.getFloat("mission_agl_ft")
-        self.target_speed_kt = config_node.getFloat("speed_kt")
-        self.roll_gain = config_node.getFloat("roll_gain")
-        self.roll_limit = config_node.getFloat("roll_limit")
+        self.completion_agl_ft = config_node.getDouble("completion_agl_ft")
+        self.mission_agl_ft = config_node.getDouble("mission_agl_ft")
+        self.target_speed_kt = config_node.getDouble("speed_kt")
+        self.roll_gain = config_node.getDouble("roll_gain")
+        self.roll_limit = config_node.getDouble("roll_limit")
         self.rudder_enable = config_node.getBool("rudder_enable")
-        self.rudder_gain = config_node.getFloat("rudder_gain")
-        self.rudder_max = config_node.getFloat("rudder_max")
-        self.flaps = config_node.getFloat("flaps")
+        self.rudder_gain = config_node.getDouble("rudder_gain")
+        self.rudder_max = config_node.getDouble("rudder_max")
+        self.flaps = config_node.getDouble("flaps")
         self.target_pitch_deg = None
         if config_node.hasChild("target_pitch_deg"):
-            self.target_pitch_deg = config_node.getFloat("target_pitch_deg")
+            self.target_pitch_deg = config_node.getDouble("target_pitch_deg")
 
     def activate(self):
         self.active = True
@@ -57,10 +57,10 @@ class Launch(Task):
             fcsmode.set("roll");
         else:
             fcsmode.set("roll+pitch")
-            self.targets_node.setFloat("pitch_deg", self.target_pitch_deg)
-        self.targets_node.setFloat("roll_deg", 0.0)
-        self.targets_node.setFloat("altitude_agl_ft", self.mission_agl_ft)
-        self.targets_node.setFloat("airspeed_kt", self.target_speed_kt)
+            self.targets_node.setDouble("pitch_deg", self.target_pitch_deg)
+        self.targets_node.setDouble("roll_deg", 0.0)
+        self.targets_node.setDouble("altitude_agl_ft", self.mission_agl_ft)
+        self.targets_node.setDouble("airspeed_kt", self.target_speed_kt)
 
     def update(self, dt):
         if not self.active:
@@ -80,21 +80,21 @@ class Launch(Task):
                 # reset states when engaging AP mode
                 self.relhdg = 0.0
                 self.control_limit = 1.0
-                self.flight_node.setFloat("flaps_setpoint", self.flaps)
+                self.flight_node.setDouble("flaps_setpoint", self.flaps)
                 if not is_airborne:
                     # if engaging on the ground, start with zero throttle
-                    self.engine_node.setFloat("throttle", 0.0)
+                    self.engine_node.setDouble("throttle", 0.0)
 
             if not is_airborne:
                 # run up throttle over the specified interval
-                throttle = self.engine_node.getFloat("throttle")
+                throttle = self.engine_node.getDouble("throttle")
                 throttle += dt / throttle_time_sec
                 if throttle > 1.0:
                     throttle = 1.0
-                self.engine_node.setFloat("throttle", throttle)
+                self.engine_node.setDouble("throttle", throttle)
 
             # estimate short term heading
-            self.relhdg += self.imu_node.getFloat("r_rad_sec") * r2d * dt
+            self.relhdg += self.imu_node.getDouble("r_rad_sec") * r2d * dt
 
             # I am not clamping heading to +/- 180 here.  The
             # rational is that if we turn more than 180 beyond our
@@ -129,17 +129,17 @@ class Launch(Task):
                     rudder = -steer_limit
                 if rudder > steer_limit:
                     rudder = steer_limit
-                self.flight_node.setFloat("rudder", rudder)
+                self.flight_node.setDouble("rudder", rudder)
 
             roll = -self.relhdg * self.roll_gain
             if roll < -self.roll_limit:
                 roll = -self.roll_limit
             if roll > self.roll_limit:
                 roll = self.roll_limit
-            self.targets_node.setFloat("roll_deg", roll)
+            self.targets_node.setDouble("roll_deg", roll)
 
             if is_airborne or \
-               (self.vel_node.getFloat("airspeed_kt") > self.target_speed_kt):
+               (self.vel_node.getDouble("airspeed_kt") > self.target_speed_kt):
                 # we are flying or we've reached our flying/climbout
                 # airspeed: switch to normal flight mode
                 if fcsmode.get() != "basic+tecs":
@@ -148,15 +148,15 @@ class Launch(Task):
         self.last_ap_master = self.ap_node.getBool("master_switch")
 
     def is_complete(self):
-        if self.pos_node.getFloat("altitude_agl_ft") >= self.complete_agl_ft:
+        if self.pos_node.getDouble("altitude_agl_ft") >= self.complete_agl_ft:
             # raise flaps
-            self.flight_node.setFloat("flaps_setpoint", 0.0)
+            self.flight_node.setDouble("flaps_setpoint", 0.0)
 
             # just in case we get to the completion altitude before
             # we've feathered out the rudder input, let's leave the
             # rudder centered.
             if self.rudder_enable:
-                self.flight_node.setFloat("rudder", 0.0)
+                self.flight_node.setDouble("rudder", 0.0)
 
             return True
         else:

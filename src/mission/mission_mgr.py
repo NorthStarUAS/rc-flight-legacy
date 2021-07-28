@@ -218,7 +218,7 @@ class MissionMgr:
             elif len(tokens) == 1 and tokens[0] == "resume":
                 self.request_task_resume()
             elif len(tokens) == 1 and tokens[0] == "land":
-                hdg_deg = self.wind_node.getFloat("wind_dir_deg")
+                hdg_deg = self.wind_node.getDouble("wind_dir_deg")
                 self.request_task_land(hdg_deg)
             elif len(tokens) == 2 and tokens[0] == "land":
                 hdg_deg = float(tokens[1])
@@ -310,7 +310,7 @@ class MissionMgr:
             task = self.seq_tasks[0]
             if task.name == "preflight":
                 return
-        self.preflight_node.setFloat("duration_sec", duration)
+        self.preflight_node.setDouble("duration_sec", duration)
         task = self.find_standby_task( "preflight" )
         if task:
             # activate task
@@ -331,7 +331,7 @@ class MissionMgr:
             #     print "oops, couldn't find 'land' task"
             return
         # push landing task onto the todo list (and activate)
-        self.home_node.setFloat( "azimuth_deg", final_heading_deg )
+        self.home_node.setDouble( "azimuth_deg", final_heading_deg )
         self.push_seq_task(task)
         task.activate()
             

@@ -23,12 +23,12 @@ class State():
             self.circle["lon_deg"] = circle_node.getDouble("longitude_deg")
             self.circle["lat_deg"] = circle_node.getDouble("latitude_deg")
             self.circle["direction"] = circle_node.getString("direction")
-            self.circle["radius_m"] = circle_node.getFloat("radius_m")
+            self.circle["radius_m"] = circle_node.getDouble("radius_m")
             
         self.targets = {}
         if save_targets:
-            self.targets["agl_ft"] = targets_node.getFloat("altitude_agl_ft")
-            self.targets["speed_kt"] = targets_node.getFloat("airspeed_kt")
+            self.targets["agl_ft"] = targets_node.getDouble("altitude_agl_ft")
+            self.targets["speed_kt"] = targets_node.getDouble("airspeed_kt")
 
     # restore the saved state to the running system
     def restore(self):
@@ -39,10 +39,10 @@ class State():
             circle_node.setDouble("longitude_deg", self.circle["lon_deg"])
             circle_node.setDouble("latitude_deg", self.circle["lat_deg"])
             circle_node.setString("direction", self.circle["direction"])
-            circle_node.setFloat("radius_m", self.circle["radius_m"])
+            circle_node.setDouble("radius_m", self.circle["radius_m"])
         if len(self.targets):
-            targets_node.setFloat("altitude_agl_ft", self.targets["agl_ft"])
-            targets_node.setFloat("airspeed_kt", self.targets["speed_kt"])
+            targets_node.setDouble("altitude_agl_ft", self.targets["agl_ft"])
+            targets_node.setDouble("airspeed_kt", self.targets["speed_kt"])
 
 
 # define the stack

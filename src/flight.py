@@ -53,7 +53,7 @@ from util import myprof, timer
 comms_node = PropertyNode("/comms")
 imu_node = PropertyNode("/sensors/imu/0")
 status_node = PropertyNode("/status")
-status_node.setFloat("frame_time", 0.0)
+status_node.setDouble("frame_time", 0.0)
 
 # create singleton class instances
 actuators = actuator_mgr.actuator_mgr()
@@ -68,7 +68,7 @@ if args.verbose:
     comms_node.setBool("display_on", True)
 
 if config_node.hasChild("gps_timeout_sec"):
-    gps_timeout_sec = config_node.getFloat("gps_timeout_sec")
+    gps_timeout_sec = config_node.getDouble("gps_timeout_sec")
     print("gps timeout = %.1f" % gps_timeout_sec)
 
 # module initialization
@@ -128,8 +128,8 @@ def update():
     
     myprof.main_prof.start()
     
-    status_node.setFloat("frame_time", imu_node.getFloat("timestamp"))
-    status_node.setFloat("dt", dt)
+    status_node.setDouble("frame_time", imu_node.getDouble("timestamp"))
+    status_node.setDouble("dt", dt)
     
     # extra sensor processing section
     myprof.helper_prof.start()

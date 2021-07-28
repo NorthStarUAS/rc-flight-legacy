@@ -224,10 +224,10 @@ bool fgfs_t::update_gps() {
 	gps_node.setDouble( "timestamp", get_Time() );
 	gps_node.setDouble( "latitude_deg", lat );
 	gps_node.setDouble( "longitude_deg", lon );
-	gps_node.setFloat( "altitude_m", alt );
-	gps_node.setFloat( "vn_ms", vn );
-	gps_node.setFloat( "ve_ms", ve );
-	gps_node.setFloat( "vd_ms", vd );
+	gps_node.setDouble( "altitude_m", alt );
+	gps_node.setDouble( "vn_ms", vn );
+	gps_node.setDouble( "ve_ms", ve );
+	gps_node.setDouble( "vd_ms", vd );
 	gps_node.setInt( "satellites", 8 ); // fake a solid number
 	gps_node.setDouble( "unix_time_sec", time );
 	gps_node.setInt( "status", 2 ); // valid fix

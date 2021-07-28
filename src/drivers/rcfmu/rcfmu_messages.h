@@ -104,7 +104,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         msg2props(node);
     }
 
@@ -117,7 +117,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         props2msg(node);
     }
 
@@ -183,7 +183,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         msg2props(node);
     }
 
@@ -196,7 +196,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         props2msg(node);
     }
 
@@ -250,24 +250,24 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         msg2props(node);
     }
 
     void msg2props(PropertyNode node) {
-        for (int _i=0; _i<ap_channels; _i++) node.setFloat("channel", _i, channel[_i]);
+        for (int _i=0; _i<ap_channels; _i++) node.setDouble("channel", _i, channel[_i]);
     }
 
     void props2msg(string _path, int _index = -1) {
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         props2msg(node);
     }
 
     void props2msg(PropertyNode node) {
-        for (int _i=0; _i<ap_channels; _i++) channel[_i] = node.getFloat("channel", _i);
+        for (int _i=0; _i<ap_channels; _i++) channel[_i] = node.getDouble("channel", _i);
     }
 };
 
@@ -308,7 +308,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         msg2props(node);
     }
 
@@ -319,7 +319,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         props2msg(node);
     }
 
@@ -364,7 +364,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         msg2props(node);
     }
 
@@ -375,7 +375,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         props2msg(node);
     }
 
@@ -420,7 +420,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         msg2props(node);
     }
 
@@ -431,7 +431,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         props2msg(node);
     }
 
@@ -487,12 +487,12 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         msg2props(node);
     }
 
     void msg2props(PropertyNode node) {
-        for (int _i=0; _i<sbus_channels; _i++) node.setFloat("channel", _i, channel[_i]);
+        for (int _i=0; _i<sbus_channels; _i++) node.setDouble("channel", _i, channel[_i]);
         node.setUInt("flags", flags);
     }
 
@@ -500,12 +500,12 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         props2msg(node);
     }
 
     void props2msg(PropertyNode node) {
-        for (int _i=0; _i<sbus_channels; _i++) channel[_i] = node.getFloat("channel", _i);
+        for (int _i=0; _i<sbus_channels; _i++) channel[_i] = node.getDouble("channel", _i);
         flags = node.getUInt("flags");
     }
 };
@@ -618,56 +618,56 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         msg2props(node);
     }
 
     void msg2props(PropertyNode node) {
         node.setUInt("millis", millis);
-        node.setFloat("ax_raw", ax_raw);
-        node.setFloat("ay_raw", ay_raw);
-        node.setFloat("az_raw", az_raw);
-        node.setFloat("hx_raw", hx_raw);
-        node.setFloat("hy_raw", hy_raw);
-        node.setFloat("hz_raw", hz_raw);
-        node.setFloat("ax_mps2", ax_mps2);
-        node.setFloat("ay_mps2", ay_mps2);
-        node.setFloat("az_mps2", az_mps2);
-        node.setFloat("p_rps", p_rps);
-        node.setFloat("q_rps", q_rps);
-        node.setFloat("r_rps", r_rps);
-        node.setFloat("hx", hx);
-        node.setFloat("hy", hy);
-        node.setFloat("hz", hz);
-        node.setFloat("temp_C", temp_C);
+        node.setDouble("ax_raw", ax_raw);
+        node.setDouble("ay_raw", ay_raw);
+        node.setDouble("az_raw", az_raw);
+        node.setDouble("hx_raw", hx_raw);
+        node.setDouble("hy_raw", hy_raw);
+        node.setDouble("hz_raw", hz_raw);
+        node.setDouble("ax_mps2", ax_mps2);
+        node.setDouble("ay_mps2", ay_mps2);
+        node.setDouble("az_mps2", az_mps2);
+        node.setDouble("p_rps", p_rps);
+        node.setDouble("q_rps", q_rps);
+        node.setDouble("r_rps", r_rps);
+        node.setDouble("hx", hx);
+        node.setDouble("hy", hy);
+        node.setDouble("hz", hz);
+        node.setDouble("temp_C", temp_C);
     }
 
     void props2msg(string _path, int _index = -1) {
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         props2msg(node);
     }
 
     void props2msg(PropertyNode node) {
         millis = node.getUInt("millis");
-        ax_raw = node.getFloat("ax_raw");
-        ay_raw = node.getFloat("ay_raw");
-        az_raw = node.getFloat("az_raw");
-        hx_raw = node.getFloat("hx_raw");
-        hy_raw = node.getFloat("hy_raw");
-        hz_raw = node.getFloat("hz_raw");
-        ax_mps2 = node.getFloat("ax_mps2");
-        ay_mps2 = node.getFloat("ay_mps2");
-        az_mps2 = node.getFloat("az_mps2");
-        p_rps = node.getFloat("p_rps");
-        q_rps = node.getFloat("q_rps");
-        r_rps = node.getFloat("r_rps");
-        hx = node.getFloat("hx");
-        hy = node.getFloat("hy");
-        hz = node.getFloat("hz");
-        temp_C = node.getFloat("temp_C");
+        ax_raw = node.getDouble("ax_raw");
+        ay_raw = node.getDouble("ay_raw");
+        az_raw = node.getDouble("az_raw");
+        hx_raw = node.getDouble("hx_raw");
+        hy_raw = node.getDouble("hy_raw");
+        hz_raw = node.getDouble("hz_raw");
+        ax_mps2 = node.getDouble("ax_mps2");
+        ay_mps2 = node.getDouble("ay_mps2");
+        az_mps2 = node.getDouble("az_mps2");
+        p_rps = node.getDouble("p_rps");
+        q_rps = node.getDouble("q_rps");
+        r_rps = node.getDouble("r_rps");
+        hx = node.getDouble("hx");
+        hy = node.getDouble("hy");
+        hz = node.getDouble("hz");
+        temp_C = node.getDouble("temp_C");
     }
 };
 
@@ -767,7 +767,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         msg2props(node);
     }
 
@@ -778,21 +778,21 @@ public:
         node.setUInt("status", status);
         node.setInt("longitude_raw", longitude_raw);
         node.setInt("latitude_raw", latitude_raw);
-        node.setFloat("altitude_m", altitude_m);
-        node.setFloat("vn_mps", vn_mps);
-        node.setFloat("ve_mps", ve_mps);
-        node.setFloat("vd_mps", vd_mps);
-        node.setFloat("hAcc", hAcc);
-        node.setFloat("vAcc", vAcc);
-        node.setFloat("hdop", hdop);
-        node.setFloat("vdop", vdop);
+        node.setDouble("altitude_m", altitude_m);
+        node.setDouble("vn_mps", vn_mps);
+        node.setDouble("ve_mps", ve_mps);
+        node.setDouble("vd_mps", vd_mps);
+        node.setDouble("hAcc", hAcc);
+        node.setDouble("vAcc", vAcc);
+        node.setDouble("hdop", hdop);
+        node.setDouble("vdop", vdop);
     }
 
     void props2msg(string _path, int _index = -1) {
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         props2msg(node);
     }
 
@@ -803,14 +803,14 @@ public:
         status = node.getUInt("status");
         longitude_raw = node.getInt("longitude_raw");
         latitude_raw = node.getInt("latitude_raw");
-        altitude_m = node.getFloat("altitude_m");
-        vn_mps = node.getFloat("vn_mps");
-        ve_mps = node.getFloat("ve_mps");
-        vd_mps = node.getFloat("vd_mps");
-        hAcc = node.getFloat("hAcc");
-        vAcc = node.getFloat("vAcc");
-        hdop = node.getFloat("hdop");
-        vdop = node.getFloat("vdop");
+        altitude_m = node.getDouble("altitude_m");
+        vn_mps = node.getDouble("vn_mps");
+        ve_mps = node.getDouble("ve_mps");
+        vd_mps = node.getDouble("vd_mps");
+        hAcc = node.getDouble("hAcc");
+        vAcc = node.getDouble("vAcc");
+        hdop = node.getDouble("hdop");
+        vdop = node.getDouble("vdop");
     }
 };
 
@@ -882,17 +882,17 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         msg2props(node);
     }
 
     void msg2props(PropertyNode node) {
-        node.setFloat("baro_press_pa", baro_press_pa);
-        node.setFloat("baro_temp_C", baro_temp_C);
-        node.setFloat("baro_hum", baro_hum);
-        node.setFloat("ext_diff_press_pa", ext_diff_press_pa);
-        node.setFloat("ext_static_press_pa", ext_static_press_pa);
-        node.setFloat("ext_temp_C", ext_temp_C);
+        node.setDouble("baro_press_pa", baro_press_pa);
+        node.setDouble("baro_temp_C", baro_temp_C);
+        node.setDouble("baro_hum", baro_hum);
+        node.setDouble("ext_diff_press_pa", ext_diff_press_pa);
+        node.setDouble("ext_static_press_pa", ext_static_press_pa);
+        node.setDouble("ext_temp_C", ext_temp_C);
         node.setUInt("error_count", error_count);
     }
 
@@ -900,17 +900,17 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         props2msg(node);
     }
 
     void props2msg(PropertyNode node) {
-        baro_press_pa = node.getFloat("baro_press_pa");
-        baro_temp_C = node.getFloat("baro_temp_C");
-        baro_hum = node.getFloat("baro_hum");
-        ext_diff_press_pa = node.getFloat("ext_diff_press_pa");
-        ext_static_press_pa = node.getFloat("ext_static_press_pa");
-        ext_temp_C = node.getFloat("ext_temp_C");
+        baro_press_pa = node.getDouble("baro_press_pa");
+        baro_temp_C = node.getDouble("baro_temp_C");
+        baro_hum = node.getDouble("baro_hum");
+        ext_diff_press_pa = node.getDouble("ext_diff_press_pa");
+        ext_static_press_pa = node.getDouble("ext_static_press_pa");
+        ext_temp_C = node.getDouble("ext_temp_C");
         error_count = node.getUInt("error_count");
     }
 };
@@ -971,30 +971,30 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         msg2props(node);
     }
 
     void msg2props(PropertyNode node) {
-        node.setFloat("int_main_v", int_main_v);
-        node.setFloat("avionics_v", avionics_v);
-        node.setFloat("ext_main_v", ext_main_v);
-        node.setFloat("ext_main_amp", ext_main_amp);
+        node.setDouble("int_main_v", int_main_v);
+        node.setDouble("avionics_v", avionics_v);
+        node.setDouble("ext_main_v", ext_main_v);
+        node.setDouble("ext_main_amp", ext_main_amp);
     }
 
     void props2msg(string _path, int _index = -1) {
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         props2msg(node);
     }
 
     void props2msg(PropertyNode node) {
-        int_main_v = node.getFloat("int_main_v");
-        avionics_v = node.getFloat("avionics_v");
-        ext_main_v = node.getFloat("ext_main_v");
-        ext_main_amp = node.getFloat("ext_main_amp");
+        int_main_v = node.getDouble("int_main_v");
+        avionics_v = node.getDouble("avionics_v");
+        ext_main_v = node.getDouble("ext_main_v");
+        ext_main_amp = node.getDouble("ext_main_amp");
     }
 };
 
@@ -1062,7 +1062,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         msg2props(node);
     }
 
@@ -1079,7 +1079,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         props2msg(node);
     }
 
@@ -1213,7 +1213,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         msg2props(node);
     }
 
@@ -1221,22 +1221,22 @@ public:
         node.setUInt("millis", millis);
         node.setDouble("lat_rad", lat_rad);
         node.setDouble("lon_rad", lon_rad);
-        node.setFloat("altitude_m", altitude_m);
-        node.setFloat("vn_ms", vn_ms);
-        node.setFloat("ve_ms", ve_ms);
-        node.setFloat("vd_ms", vd_ms);
-        node.setFloat("phi_rad", phi_rad);
-        node.setFloat("the_rad", the_rad);
-        node.setFloat("psi_rad", psi_rad);
-        node.setFloat("p_bias", p_bias);
-        node.setFloat("q_bias", q_bias);
-        node.setFloat("r_bias", r_bias);
-        node.setFloat("ax_bias", ax_bias);
-        node.setFloat("ay_bias", ay_bias);
-        node.setFloat("az_bias", az_bias);
-        node.setFloat("max_pos_cov", max_pos_cov);
-        node.setFloat("max_vel_cov", max_vel_cov);
-        node.setFloat("max_att_cov", max_att_cov);
+        node.setDouble("altitude_m", altitude_m);
+        node.setDouble("vn_ms", vn_ms);
+        node.setDouble("ve_ms", ve_ms);
+        node.setDouble("vd_ms", vd_ms);
+        node.setDouble("phi_rad", phi_rad);
+        node.setDouble("the_rad", the_rad);
+        node.setDouble("psi_rad", psi_rad);
+        node.setDouble("p_bias", p_bias);
+        node.setDouble("q_bias", q_bias);
+        node.setDouble("r_bias", r_bias);
+        node.setDouble("ax_bias", ax_bias);
+        node.setDouble("ay_bias", ay_bias);
+        node.setDouble("az_bias", az_bias);
+        node.setDouble("max_pos_cov", max_pos_cov);
+        node.setDouble("max_vel_cov", max_vel_cov);
+        node.setDouble("max_att_cov", max_att_cov);
         node.setUInt("status", status);
     }
 
@@ -1244,7 +1244,7 @@ public:
         if ( _index >= 0 ) {
             _path += "/" + std::to_string(_index);
         }
-        PropertyNode node = PropertyNode(_path.c_str(), true);
+        PropertyNode node(_path.c_str());
         props2msg(node);
     }
 
@@ -1252,22 +1252,22 @@ public:
         millis = node.getUInt("millis");
         lat_rad = node.getDouble("lat_rad");
         lon_rad = node.getDouble("lon_rad");
-        altitude_m = node.getFloat("altitude_m");
-        vn_ms = node.getFloat("vn_ms");
-        ve_ms = node.getFloat("ve_ms");
-        vd_ms = node.getFloat("vd_ms");
-        phi_rad = node.getFloat("phi_rad");
-        the_rad = node.getFloat("the_rad");
-        psi_rad = node.getFloat("psi_rad");
-        p_bias = node.getFloat("p_bias");
-        q_bias = node.getFloat("q_bias");
-        r_bias = node.getFloat("r_bias");
-        ax_bias = node.getFloat("ax_bias");
-        ay_bias = node.getFloat("ay_bias");
-        az_bias = node.getFloat("az_bias");
-        max_pos_cov = node.getFloat("max_pos_cov");
-        max_vel_cov = node.getFloat("max_vel_cov");
-        max_att_cov = node.getFloat("max_att_cov");
+        altitude_m = node.getDouble("altitude_m");
+        vn_ms = node.getDouble("vn_ms");
+        ve_ms = node.getDouble("ve_ms");
+        vd_ms = node.getDouble("vd_ms");
+        phi_rad = node.getDouble("phi_rad");
+        the_rad = node.getDouble("the_rad");
+        psi_rad = node.getDouble("psi_rad");
+        p_bias = node.getDouble("p_bias");
+        q_bias = node.getDouble("q_bias");
+        r_bias = node.getDouble("r_bias");
+        ax_bias = node.getDouble("ax_bias");
+        ay_bias = node.getDouble("ay_bias");
+        az_bias = node.getDouble("az_bias");
+        max_pos_cov = node.getDouble("max_pos_cov");
+        max_vel_cov = node.getDouble("max_vel_cov");
+        max_att_cov = node.getDouble("max_att_cov");
         status = node.getUInt("status");
     }
 };

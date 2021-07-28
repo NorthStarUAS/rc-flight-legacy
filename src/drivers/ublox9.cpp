@@ -226,16 +226,16 @@ bool ublox9_t::parse_msg() {
 	    
             gps_node.setDouble( "latitude_deg", (double)data.lat / 10000000.0);
             gps_node.setDouble( "longitude_deg", (double)data.lon / 10000000.0);
-            gps_node.setFloat( "altitude_m", (float)data.hMSL / 1000.0 );
-            gps_node.setFloat( "vn_ms", (float)data.velN / 1000.0 );
-            gps_node.setFloat( "ve_ms", (float)data.velE / 1000.0 );
-            gps_node.setFloat( "vd_ms", (float)data.velD / 1000.0 );
-            gps_node.setFloat( "horiz_accuracy_m", data.hAcc / 1000.0 );
-            gps_node.setFloat( "vert_accuracy_m", data.vAcc / 1000.0 );
-            gps_node.setFloat( "groundspeed_ms", data.gSpeed / 1000.0 );
-            gps_node.setFloat( "groundtrack_deg", data.heading / 100000.0 );
-            gps_node.setFloat( "heading_accuracy_deg", data.headingAcc / 100000.0 );
-            gps_node.setFloat( "pdop", data.pDOP / 100.0 );
+            gps_node.setDouble( "altitude_m", (float)data.hMSL / 1000.0 );
+            gps_node.setDouble( "vn_ms", (float)data.velN / 1000.0 );
+            gps_node.setDouble( "ve_ms", (float)data.velE / 1000.0 );
+            gps_node.setDouble( "vd_ms", (float)data.velD / 1000.0 );
+            gps_node.setDouble( "horiz_accuracy_m", data.hAcc / 1000.0 );
+            gps_node.setDouble( "vert_accuracy_m", data.vAcc / 1000.0 );
+            gps_node.setDouble( "groundspeed_ms", data.gSpeed / 1000.0 );
+            gps_node.setDouble( "groundtrack_deg", data.heading / 100000.0 );
+            gps_node.setDouble( "heading_accuracy_deg", data.headingAcc / 100000.0 );
+            gps_node.setDouble( "pdop", data.pDOP / 100.0 );
             gps_node.setInt( "fixType", data.fixType);
         } else {
             printf("NAV-PVT message size mismatch!\n");

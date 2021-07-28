@@ -19,10 +19,10 @@ class IsAirborne(Task):
         self.on_alt_agl_ft = 0.0
         self.on_airspeed_kt = 0.0
         self.name = config_node.getString("name")
-        self.off_alt_agl_ft = config_node.getFloat("off_alt_agl_ft")
-        self.off_airspeed_kt = config_node.getFloat("off_airspeed_kt")
-        self.on_alt_agl_ft = config_node.getFloat("on_alt_agl_ft")
-        self.on_airspeed_kt = config_node.getFloat("on_airspeed_kt")
+        self.off_alt_agl_ft = config_node.getDouble("off_alt_agl_ft")
+        self.off_airspeed_kt = config_node.getDouble("off_airspeed_kt")
+        self.on_alt_agl_ft = config_node.getDouble("on_alt_agl_ft")
+        self.on_airspeed_kt = config_node.getDouble("on_airspeed_kt")
         self.flight_accum = 0.0
         self.flight_start = 0.0
 
@@ -40,10 +40,10 @@ class IsAirborne(Task):
             # become airborne
             cond = True
             if self.off_alt_agl_ft > 0.001 and \
-               self.pos_node.getFloat("altitude_agl_ft") < self.off_alt_agl_ft:
+               self.pos_node.getDouble("altitude_agl_ft") < self.off_alt_agl_ft:
                 cond = False
             if self.off_airspeed_kt > 0.001 and \
-               self.vel_node.getFloat("airspeed_kt") < self.off_airspeed_kt:
+               self.vel_node.getDouble("airspeed_kt") < self.off_airspeed_kt:
                 cond = False
             if cond:
                 self.is_airborne = True
@@ -54,10 +54,10 @@ class IsAirborne(Task):
             # if all conditions under their threshold, we are on the ground
             cond = True
             if self.on_alt_agl_ft > 0.001 and \
-               self.pos_node.getFloat("altitude_agl_ft") > self.on_alt_agl_ft:
+               self.pos_node.getDouble("altitude_agl_ft") > self.on_alt_agl_ft:
                 cond = False
             if self.on_airspeed_kt > 0.001 and \
-               self.vel_node.getFloat("airspeed_kt") > self.on_airspeed_kt:
+               self.vel_node.getDouble("airspeed_kt") > self.on_airspeed_kt:
                 cond = False
             if cond:
                 self.is_airborne = False

@@ -25,20 +25,20 @@ class Camera(Task):
         else:
             self.trigger_name = "gear"
         if config_node.hasChild("forward_fov_deg"):
-            self.forward_fov_deg = config_node.getFloat("forward_fov_deg")
+            self.forward_fov_deg = config_node.getDouble("forward_fov_deg")
             if self.forward_fov_deg < 10:  self.forward_fov_deg = 10
             if self.forward_fov_deg > 170: self.forward_fov_deg = 170
         else:
             self.forward_fov_deg = 60
         self.fov2_tan = math.tan(self.forward_fov_deg*0.5 * d2r)
         if config_node.hasChild("lateral_fov_deg"):
-            self.lateral_fov_deg = config_node.getFloat("lateral_fov_deg")
+            self.lateral_fov_deg = config_node.getDouble("lateral_fov_deg")
             if self.lateral_fov_deg < 10:  self.lateral_fov_deg = 10
             if self.lateral_fov_deg > 170: self.lateral_fov_deg = 170
         else:
             self.lateral_fov_deg = 60
         if config_node.hasChild("overlap"):
-            self.overlap = config_node.getFloat("overlap")
+            self.overlap = config_node.getDouble("overlap")
             if self.overlap < 0:  self.overlap = 0
             if self.overlap > 1: self.overlap = 1
         else:
@@ -64,13 +64,13 @@ class Camera(Task):
             if cur_time > self.trigger_time + 0.3:
                 # release trigger
                 self.trigger_state = False
-                self.flight_node.setFloat(self.trigger_name, 0.0)
+                self.flight_node.setDouble(self.trigger_name, 0.0)
                 # camera shutter is triggered on release (after being
                 # depressed for 0.3 seconds) so log the event here.
                 comms.events.log("camera", "%.8f %.8f %.1f" % \
                                  (self.pos_node.getDouble('latitude_deg'),
                                   self.pos_node.getDouble('longitude_deg'),
-                                  self.pos_node.getFloat('altitude_m')))
+                                  self.pos_node.getDouble('altitude_m')))
             return True
         else:
             if cur_time < self.trigger_time + self.min_interval:
@@ -80,8 +80,8 @@ class Camera(Task):
                 # print " max interval force trigger"
                 force_trigger = True
 
-        roll_deg = self.orient_node.getFloat("roll_deg")
-        pitch_deg = self.orient_node.getFloat("pitch_deg")
+        roll_deg = self.orient_node.getDouble("roll_deg")
+        pitch_deg = self.orient_node.getDouble("pitch_deg")
         if abs(roll_deg) <= self.max_attitude and abs(pitch_deg) <= self.max_attitude:
             # if aircraft in a level enough configuration: compute
             # course and distance from previous trigger
@@ -90,7 +90,7 @@ class Camera(Task):
             (course_deg, rev_deg, dist_m) = \
                 wgs84.geo_inverse( self.last_lat, self.last_lon,
                                    pos_lat, pos_lon )
-            agl = self.pos_node.getFloat('altitude_agl_m')
+            agl = self.pos_node.getDouble('altitude_agl_m')
             thresh_dist_m = 2 * self.fov2_tan * agl * (1.0 - self.overlap)
             if dist_m >= thresh_dist_m and self.task_node.getBool('is_airborne'):
                 # if we are flying and have moved far enough
@@ -102,7 +102,7 @@ class Camera(Task):
             self.last_lon = self.pos_node.getDouble('longitude_deg')
             self.trigger_time = cur_time
             self.trigger_state = True
-            self.flight_node.setFloat(self.trigger_name, 0.68)
+            self.flight_node.setDouble(self.trigger_name, 0.68)
         
     def is_complete(self):
         return False

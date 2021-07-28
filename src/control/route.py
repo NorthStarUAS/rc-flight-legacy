@@ -38,12 +38,12 @@ dist_valid = False
 def init():
     # sanity check, set some conservative values if none are
     # provided in the autopilot config
-    if L1_node.getFloat('bank_limit_deg') < 0.1:
-        L1_node.setFloat('bank_limit_deg', 25.0)
-    if L1_node.getFloat('period') < 0.1:
-        L1_node.setFloat('period', 25.0)
-    if L1_node.getFloat('damping') < 0.1:
-        L1_node.setFloat('damping', 0.7)
+    if L1_node.getDouble('bank_limit_deg') < 0.1:
+        L1_node.setDouble('bank_limit_deg', 25.0)
+    if L1_node.getDouble('period') < 0.1:
+        L1_node.setDouble('period', 25.0)
+    if L1_node.getDouble('damping') < 0.1:
+        L1_node.setDouble('damping', 0.7)
 
     # defaults
     route_node.setString('follow_mode', 'leader');
@@ -161,7 +161,7 @@ def reposition(force=False):
     
     home_lon = home_node.getDouble("longitude_deg");
     home_lat = home_node.getDouble("latitude_deg");
-    home_az = home_node.getFloat("azimuth_deg");
+    home_az = home_node.getDouble("azimuth_deg");
 
     if ( force or abs(home_lon - last_lon) > 0.000001 or
          abs(home_lat - last_lat) > 0.000001 or
@@ -199,9 +199,9 @@ def get_remaining_distance_from_next_waypoint():
 # about the relative heading error, so this function will produce the
 # 'correct' heading error.
 def wind_heading_error( current_crs_deg, target_crs_deg ):
-    ws_kt = wind_node.getFloat("wind_speed_kt")
-    tas_kt = wind_node.getFloat("true_airspeed_kt")
-    wd_deg = wind_node.getFloat("wind_dir_deg")
+    ws_kt = wind_node.getDouble("wind_speed_kt")
+    tas_kt = wind_node.getDouble("true_airspeed_kt")
+    wd_deg = wind_node.getDouble("wind_dir_deg")
     (est_cur_hdg_deg, gs1_kt) = windtri.wind_course( ws_kt, tas_kt, wd_deg,
                                                      current_crs_deg )
     (est_nav_hdg_deg, gs2_kt) = windtri.wind_course( ws_kt, tas_kt, wd_deg,
@@ -222,11 +222,11 @@ def wind_heading_error( current_crs_deg, target_crs_deg ):
         
         # point to next waypoint (probably less good than pointing into
         # the wind.)
-        # hdg_error = orient_node.getFloat('heading_deg') - target_crs_deg
+        # hdg_error = orient_node.getDouble('heading_deg') - target_crs_deg
 
         # point to wind (will probably slide laterally due to some
         # inevitable assymetries in bank angle verus turn rate):
-        hdg_error = orient_node.getFloat('heading_deg') - wd_deg
+        hdg_error = orient_node.getDouble('heading_deg') - wd_deg
 
     if hdg_error < -180: hdg_error += 360
     if hdg_error > 180: hdg_error -= 360
@@ -258,7 +258,7 @@ def update(dt):
 
     route_node.setInt('route_size', len(active_route))
     if len(active_route) > 0:
-        if gps_node.getFloat("data_age") < 10.0:
+        if gps_node.getDouble("data_age") < 10.0:
             # track current waypoint of route (only!) if we have
             # recent gps data
 
@@ -279,11 +279,11 @@ def update(dt):
                     route_node.setString('start_mode', 'first_wpt')
                     route_node.setString('follow_mode', 'direct')
 
-            L1_period = L1_node.getFloat('period')
-            L1_damping = L1_node.getFloat('damping')
-            gs_mps = vel_node.getFloat('groundspeed_ms')
-            groundtrack_deg = orient_node.getFloat('groundtrack_deg')
-            tas_kt = wind_node.getFloat("true_airspeed_kt")
+            L1_period = L1_node.getDouble('period')
+            L1_damping = L1_node.getDouble('damping')
+            gs_mps = vel_node.getDouble('groundspeed_ms')
+            groundtrack_deg = orient_node.getDouble('groundtrack_deg')
+            tas_kt = wind_node.getDouble("true_airspeed_kt")
             tas_mps = tas_kt * kt2mps
 
             prev = get_previous_wp()
@@ -314,8 +314,8 @@ def update(dt):
             xtrack_m = math.sin(angle_rad) * direct_dist
             dist_m = math.cos(angle_rad) * direct_dist
             # print("lc: %.1f  dc: %.1f  a: %.1f  xc: %.1f  dd: %.1f" % (leg_course, direct_course, angle, xtrack_m, direct_dist))
-            route_node.setFloat( 'xtrack_dist_m', xtrack_m )
-            route_node.setFloat( 'projected_dist_m', dist_m )
+            route_node.setDouble( 'xtrack_dist_m', xtrack_m )
+            route_node.setDouble( 'projected_dist_m', dist_m )
 
             # default distance for waypoint acquisition = direct
             # distance to the target waypoint.  This can be
@@ -370,23 +370,23 @@ def update(dt):
 
                 # printf('direct=%.1f angle=%.1f nav=%.1f L1=%.1f xtrack=%.1f wangle=%.1f nav_dist=%.1f\n', direct_course, angle, nav_course, L1_dist, xtrack_m, wangle, nav_dist_m)
 
-            gs_mps = vel_node.getFloat('groundspeed_ms')
+            gs_mps = vel_node.getDouble('groundspeed_ms')
             if gs_mps > 0.1 and abs(nav_dist_m) > 0.1:
                 wp_eta_sec = nav_dist_m / gs_mps
             else:
                 wp_eta_sec = 99.0 # just any sorta big value
-            route_node.setFloat( 'wp_eta_sec', dist_m / gs_mps )
-            route_node.setFloat( 'wp_dist_m', direct_dist )
+            route_node.setDouble( 'wp_eta_sec', dist_m / gs_mps )
+            route_node.setDouble( 'wp_dist_m', direct_dist )
                 
             if nav_course < 0.0: nav_course += 360.0
             if nav_course > 360.0: nav_course -= 360.0
 
-            targets_node.setFloat( 'groundtrack_deg', nav_course )
+            targets_node.setDouble( 'groundtrack_deg', nav_course )
 
             # allow a crude fudge factor for non-straight airframes or
             # imu mounting errors.  This is essentially the bank angle
             # that yields zero turn rate
-            bank_bias_deg = L1_node.getFloat("bank_bias_deg");
+            bank_bias_deg = L1_node.getDouble("bank_bias_deg");
 
             # target bank angle computed here
             target_bank_deg = 0.0
@@ -396,7 +396,7 @@ def update(dt):
             # error, thus Vomega is computed with tas_mps, not gs_mps
             omegaA = sqrt_of_2 * math.pi / L1_period
             #VomegaA = gs_mps * omegaA
-            #course_error = orient_node.getFloat('groundtrack_deg') \
+            #course_error = orient_node.getDouble('groundtrack_deg') \
             #               - nav_course
             VomegaA = tas_mps * omegaA
             # print 'gt:', groundtrack_deg, 'nc:', nav_course, 'error:', groundtrack_deg - nav_course
@@ -404,24 +404,24 @@ def update(dt):
             # clamp to +/-90 so we still get max turn input when flying directly away from the heading.
             if hdg_error < -90.0: hdg_error = -90.0
             if hdg_error > 90.0: hdg_error = 90.0
-            targets_node.setFloat( 'wind_heading_error_deg', hdg_error )
+            targets_node.setDouble( 'wind_heading_error_deg', hdg_error )
 
             accel = 2.0 * math.sin(hdg_error * d2r) * VomegaA
 
             target_bank_deg = -math.atan( accel / gravity )*r2d + bank_bias_deg
             
-            bank_limit_deg = L1_node.getFloat('bank_limit_deg')
+            bank_limit_deg = L1_node.getDouble('bank_limit_deg')
             if target_bank_deg < -bank_limit_deg + bank_bias_deg:
                 target_bank_deg = -bank_limit_deg + bank_bias_deg
             if target_bank_deg > bank_limit_deg + bank_bias_deg:
                 target_bank_deg = bank_limit_deg + bank_bias_deg
-            targets_node.setFloat( 'roll_deg', target_bank_deg )
+            targets_node.setDouble( 'roll_deg', target_bank_deg )
 
             # estimate distance remaining to completion of route
             if dist_valid:
                 dist_remaining_m = nav_dist_m + \
                                    get_remaining_distance_from_next_waypoint()
-                route_node.setFloat('dist_remaining_m', dist_remaining_m)
+                route_node.setDouble('dist_remaining_m', dist_remaining_m)
 
             #if comms_node.getBool('display_on'):
             #    print 'next leg: %.1f  to end: %.1f  wpt=%d of %d' % (nav_dist_m, dist_remaining_m, current_wp, len(active_route))

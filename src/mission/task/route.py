@@ -21,8 +21,8 @@ class Route(Task):
 
         self.name = config_node.getString("name")
         self.coord_path = config_node.getString("coord_path")
-        self.alt_agl_ft = config_node.getFloat("altitude_agl_ft")
-        self.speed_kt = config_node.getFloat("speed_kt")
+        self.alt_agl_ft = config_node.getDouble("altitude_agl_ft")
+        self.speed_kt = config_node.getDouble("speed_kt")
 
         # load a route if included in config tree
         if control.route.build(config_node):
@@ -43,7 +43,7 @@ class Route(Task):
         self.nav_node.setString("mode", "route")
 
         if self.alt_agl_ft > 0.1:
-            self.targets_node.setFloat("altitude_agl_ft", self.alt_agl_ft)
+            self.targets_node.setDouble("altitude_agl_ft", self.alt_agl_ft)
 
         self.route_node.setString("follow_mode", "leader");
         self.route_node.setString("start_mode", "first_wpt");

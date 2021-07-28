@@ -112,16 +112,16 @@ AuraPIDVel::AuraPIDVel( string config_path ):
     // config
     config_node = component_node.getChild( "config" );
     if ( config_node.hasChild("Ts") ) {
-	desiredTs = config_node.getFloat("Ts");
+	desiredTs = config_node.getDouble("Ts");
     }
             
     if ( !config_node.hasChild("beta") ) {
 	// create with default value
-	config_node.setFloat( "beta", 1.0 );
+	config_node.setDouble( "beta", 1.0 );
     }
     if ( !config_node.hasChild("alpha") ) {
 	// create with default value
-	config_node.setFloat( "alpha", 0.1 );
+	config_node.setDouble( "alpha", 0.1 );
     }
 }
 
@@ -214,19 +214,19 @@ void AuraPIDVel::update( double dt ) {
         if ( debug ) printf("Updating %s Ts = %.2f", get_name().c_str(), Ts );
 
         double y_n = 0.0;
-	y_n = input_node.getFloat(input_attr.c_str());
+	y_n = input_node.getDouble(input_attr.c_str());
 
         double r_n = 0.0;
 	if ( ref_value != "" ) {
 	    r_n = atof(ref_value.c_str());
 	} else {
-            r_n = ref_node.getFloat(ref_attr.c_str());
+            r_n = ref_node.getDouble(ref_attr.c_str());
 	}
                       
         if ( debug ) printf("  input = %.3f ref = %.3f\n", y_n, r_n );
 
         // Calculates proportional error:
-        ep_n = config_node.getFloat("beta") * (r_n - y_n);
+        ep_n = config_node.getDouble("beta") * (r_n - y_n);
         if ( debug ) {
 	    printf( "  ep_n = %.3f", ep_n);
 	    printf( "  ep_n_1 = %.3f", ep_n_1);
@@ -237,13 +237,13 @@ void AuraPIDVel::update( double dt ) {
         if ( debug ) printf( " e_n = %.3f", e_n);
 
         // Calculates derivate error:
-        ed_n = config_node.getFloat("gamma") * r_n - y_n;
+        ed_n = config_node.getDouble("gamma") * r_n - y_n;
         if ( debug ) printf(" ed_n = %.3f", ed_n);
 
-	double Td = config_node.getFloat("Td");
+	double Td = config_node.getDouble("Td");
         if ( Td > 0.0 ) {
             // Calculates filter time:
-            Tf = config_node.getFloat("alpha") * Td;
+            Tf = config_node.getDouble("alpha") * Td;
             if ( debug ) printf(" Tf = %.3f", Tf);
 
             // Filters the derivate error:
@@ -255,8 +255,8 @@ void AuraPIDVel::update( double dt ) {
         }
 
         // Calculates the incremental output:
-	double Ti = config_node.getFloat("Ti");
-	double Kp = config_node.getFloat("Kp");
+	double Ti = config_node.getDouble("Ti");
+	double Kp = config_node.getDouble("Kp");
         if ( Ti > 0.0 ) {
             delta_u_n = Kp * ( (ep_n - ep_n_1)
                                + ((Ts/Ti) * e_n)
@@ -272,8 +272,8 @@ void AuraPIDVel::update( double dt ) {
         }
 
         // Integrator anti-windup logic:
-	double u_min = config_node.getFloat("u_min");
-	double u_max = config_node.getFloat("u_max");
+	double u_min = config_node.getDouble("u_min");
+	double u_max = config_node.getDouble("u_max");
         if ( delta_u_n > (u_max - u_n_1) ) {
             delta_u_n = u_max - u_n_1;
             if ( debug ) printf(" max saturation\n");
@@ -296,17 +296,17 @@ void AuraPIDVel::update( double dt ) {
     if ( enabled ) {
 	// Copy the result to the output node(s)
 	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-	    output_node[i].setFloat( output_attr[i].c_str(), u_n );
+	    output_node[i].setDouble( output_attr[i].c_str(), u_n );
 	}
     } else if ( output_node.size() > 0 ) {
 	// Mirror the output value while we are not enabled so there
 	// is less of a continuity break when this module is enabled
 
 	// pull output value from the corresponding property tree value
-	u_n = output_node[0].getFloat(output_attr[0].c_str());
+	u_n = output_node[0].getDouble(output_attr[0].c_str());
 	// and clip
-	double u_min = config_node.getFloat("u_min");
-	double u_max = config_node.getFloat("u_max");
+	double u_min = config_node.getDouble("u_min");
+	double u_max = config_node.getDouble("u_max");
  	if ( u_n < u_min ) { u_n = u_min; }
 	if ( u_n > u_max ) { u_n = u_max; }
 	u_n_1 = u_n;

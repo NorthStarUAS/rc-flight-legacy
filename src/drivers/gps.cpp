@@ -49,13 +49,13 @@ void gps_helper_t::compute_magvar() {
 			   * SGD_DEGREES_TO_RADIANS,
 			   gps_node.getDouble("longitude_deg")
 			   * SGD_DEGREES_TO_RADIANS,
-			   gps_node.getFloat("altitude_m") / 1000.0,
+			   gps_node.getDouble("altitude_m") / 1000.0,
 			   jd, field );
     } else {
-	magvar_rad = config_node.getFloat("magvar_deg")
+	magvar_rad = config_node.getDouble("magvar_deg")
 	    * SGD_DEGREES_TO_RADIANS;
     }
-    gps_node.setFloat( "magvar_deg", magvar_rad * SG_RADIANS_TO_DEGREES );
+    gps_node.setDouble( "magvar_deg", magvar_rad * SG_RADIANS_TO_DEGREES );
 }
 
 double gps_helper_t::gps_age() {
@@ -112,7 +112,7 @@ void gps_helper_t::update(bool verbose) {
 
 	    if ( verbose ) {
 		printf("[gps_mgr] gps ready, magvar = %.2f (deg)\n",
-		       gps_node.getFloat("magvar_deg") );
+		       gps_node.getDouble("magvar_deg") );
 	    }
 	} else {
 	    if ( verbose ) {
@@ -125,7 +125,7 @@ void gps_helper_t::update(bool verbose) {
 	}
     }
 
-    gps_node.setFloat("data_age", gps_age());
+    gps_node.setDouble("data_age", gps_age());
 }
 
 PYBIND11_MODULE(gps_helper, m) {

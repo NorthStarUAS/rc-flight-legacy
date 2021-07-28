@@ -61,15 +61,15 @@ static void umn2props(void) {
     if ( psi < 0 ) { psi += M_PI*2.0; }
     if ( psi > M_PI*2.0 ) { psi -= M_PI*2.0; }
     filter_node.setDouble( "timestamp", imu_data.time );
-    filter_node.setFloat( "roll_deg", nav_data.phi * R2D );
-    filter_node.setFloat( "pitch_deg", nav_data.the * R2D );
-    filter_node.setFloat( "heading_deg", psi * R2D );
+    filter_node.setDouble( "roll_deg", nav_data.phi * R2D );
+    filter_node.setDouble( "pitch_deg", nav_data.the * R2D );
+    filter_node.setDouble( "heading_deg", psi * R2D );
     filter_node.setDouble( "latitude_deg", nav_data.lat * R2D );
     filter_node.setDouble( "longitude_deg", nav_data.lon * R2D );
-    filter_node.setFloat( "altitude_m", nav_data.alt );
-    filter_node.setFloat( "vn_ms", nav_data.vn );
-    filter_node.setFloat( "ve_ms", nav_data.ve );
-    filter_node.setFloat( "vd_ms", nav_data.vd );
+    filter_node.setDouble( "altitude_m", nav_data.alt );
+    filter_node.setDouble( "vn_ms", nav_data.vn );
+    filter_node.setDouble( "ve_ms", nav_data.ve );
+    filter_node.setDouble( "vd_ms", nav_data.vd );
     if ( nav_data.err_type == data_valid ||
 	 nav_data.err_type == TU_only ||
 	 nav_data.err_type == gps_aided )
@@ -79,12 +79,12 @@ static void umn2props(void) {
 	filter_node.setString( "navigation", "invalid" );
     }
 
-    filter_node.setFloat( "p_bias", nav_data.gbx );
-    filter_node.setFloat( "q_bias", nav_data.gby );
-    filter_node.setFloat( "r_bias", nav_data.gbz );
-    filter_node.setFloat( "ax_bias", nav_data.abx );
-    filter_node.setFloat( "ay_bias", nav_data.aby );
-    filter_node.setFloat( "az_bias", nav_data.abz );
+    filter_node.setDouble( "p_bias", nav_data.gbx );
+    filter_node.setDouble( "q_bias", nav_data.gby );
+    filter_node.setDouble( "r_bias", nav_data.gbz );
+    filter_node.setDouble( "ax_bias", nav_data.abx );
+    filter_node.setDouble( "ay_bias", nav_data.aby );
+    filter_node.setDouble( "az_bias", nav_data.abz );
     
     float max_pos_cov = nav_data.Pp0;
     if ( nav_data.Pp1 > max_pos_cov ) { max_pos_cov = nav_data.Pp1; }
@@ -98,18 +98,18 @@ static void umn2props(void) {
     if ( nav_data.Pa1 > max_att_cov ) { max_att_cov = nav_data.Pa1; }
     if ( nav_data.Pa2 > max_att_cov ) { max_att_cov = nav_data.Pa2; }
     if ( max_att_cov > 6.55 ) { max_vel_cov = 6.55; }
-    filter_node.setFloat( "max_pos_cov", max_pos_cov );
-    filter_node.setFloat( "max_vel_cov", max_vel_cov );
-    filter_node.setFloat( "max_att_cov", max_att_cov );
+    filter_node.setDouble( "max_pos_cov", max_pos_cov );
+    filter_node.setDouble( "max_vel_cov", max_vel_cov );
+    filter_node.setDouble( "max_att_cov", max_att_cov );
     
-    filter_node.setFloat( "altitude_ft",
+    filter_node.setDouble( "altitude_ft",
 			   nav_data.alt * M2F );
-    filter_node.setFloat( "groundtrack_deg",
+    filter_node.setDouble( "groundtrack_deg",
 			   90 - atan2(nav_data.vn, nav_data.ve) * R2D );
     double gs_ms = sqrt(nav_data.vn * nav_data.vn + nav_data.ve * nav_data.ve);
-    filter_node.setFloat( "groundspeed_ms", gs_ms );
-    filter_node.setFloat( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
-    filter_node.setFloat( "vertical_speed_fps",
+    filter_node.setDouble( "groundspeed_ms", gs_ms );
+    filter_node.setDouble( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
+    filter_node.setDouble( "vertical_speed_fps",
 			   -nav_data.vd * M2F );
 }
 

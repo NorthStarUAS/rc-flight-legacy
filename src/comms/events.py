@@ -18,7 +18,7 @@ def log(header="", message=""):
     if comms_node.getBool("display_on"):
         print(event_string)
     event = aura_messages.event_v2()
-    event.timestamp_sec = status_node.getFloat("frame_time")
+    event.timestamp_sec = status_node.getDouble("frame_time")
     event.message = event_string
     buf = event.pack()
     logging.log_message(event.id, buf)

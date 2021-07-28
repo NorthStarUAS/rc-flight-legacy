@@ -35,26 +35,26 @@ class ChatHandler(asynchat.async_chat):
         self.buffer = []
 
     def gen_fcs_nav_string(self):
-        result = [ self.targets_node.getFloat('groundtrack_deg'),
-                   self.targets_node.getFloat('roll_deg'),
-                   self.filter_node.getFloat('heading_deg'),
-                   self.filter_node.getFloat('roll_deg'),
-                   self.act_node.getFloatEnum('channel', 0) ]
+        result = [ self.targets_node.getDouble('groundtrack_deg'),
+                   self.targets_node.getDouble('roll_deg'),
+                   self.filter_node.getDouble('heading_deg'),
+                   self.filter_node.getDouble('roll_deg'),
+                   self.act_node.getDoubleEnum('channel', 0) ]
         return ','.join(map(str, result))
 
     def gen_fcs_speed_string(self):
-        result = [ self.targets_node.getFloat('airspeed_kt'),
-                   self.targets_node.getFloat('pitch_deg'),
-                   self.vel_node.getFloat('airspeed_smoothed_kt'),
-                   self.filter_node.getFloat('pitch_deg'),
-                   self.act_node.getFloatEnum('channel', 1) ]
+        result = [ self.targets_node.getDouble('airspeed_kt'),
+                   self.targets_node.getDouble('pitch_deg'),
+                   self.vel_node.getDouble('airspeed_smoothed_kt'),
+                   self.filter_node.getDouble('pitch_deg'),
+                   self.act_node.getDoubleEnum('channel', 1) ]
         return ','.join(map(str, result))
 
     def gen_fcs_altitude_string(self):
         m2ft = 1.0 / 0.3048
-        result = [ self.targets_node.getFloat('altitude_msl_ft'),
-                   self.pos_comb_node.getFloat('altitude_true_m') * m2ft,
-                   self.act_node.getFloatEnum('channel', 2) ]
+        result = [ self.targets_node.getDouble('altitude_msl_ft'),
+                   self.pos_comb_node.getDouble('altitude_true_m') * m2ft,
+                   self.act_node.getDoubleEnum('channel', 2) ]
         return ','.join(map(str, result))
 
     def my_push(self, msg):
@@ -180,7 +180,7 @@ class ChatHandler(asynchat.async_chat):
                     result = re.match('[-+]?\d*\.\d+', value)
                     if result and result.group(0) == value:
                         print('float:', value)
-                        node.setFloat(name, float(value))
+                        node.setDouble(name, float(value))
                         done = True
                 # test for bool
                 if not done:

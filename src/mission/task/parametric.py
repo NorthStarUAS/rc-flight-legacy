@@ -88,16 +88,16 @@ class Parametric(Task):
             self.function = self.lemniscate
         self.radius_m = 200.0
         if config_node.hasChild("radius_m"):
-            self.radius_m = config_node.getFloat("radius_m")
+            self.radius_m = config_node.getDouble("radius_m")
         self.vertical_m = 20.0
         if config_node.hasChild("vertical_m"):
-            self.vertical_m = config_node.getFloat("vertical_m")
-        self.min_kt = self.tecs_node.getFloat("min_kt")
+            self.vertical_m = config_node.getDouble("vertical_m")
+        self.min_kt = self.tecs_node.getDouble("min_kt")
         if config_node.hasChild("min_kt"):
-            self.min_kt = config_node.getFloat("min_kt")
-        self.max_kt = self.tecs_node.getFloat("max_kt")
+            self.min_kt = config_node.getDouble("min_kt")
+        self.max_kt = self.tecs_node.getDouble("max_kt")
         if config_node.hasChild("max_kt"):
-            self.max_kt = config_node.getFloat("max_kt")
+            self.max_kt = config_node.getDouble("max_kt")
             
         # estimate a dt that roughly approximates 1 meter (doesn't
         # have to be perfect)
@@ -205,8 +205,8 @@ class Parametric(Task):
 
         # home manager provides current position in a mini 2d
         # cartesian coordinate system relative to home.
-        x_m = self.home_node.getFloat("x_m")
-        y_m = self.home_node.getFloat("y_m")
+        x_m = self.home_node.getDouble("x_m")
+        y_m = self.home_node.getDouble("y_m")
 
         #self.t = find_best_t(x_m, y_m, initial_guess=self.t)
         self.t = self.find_next_t(x_m, y_m, initial_guess=self.t)
@@ -224,14 +224,14 @@ class Parametric(Task):
             self.circle_node.setDouble('latitude_deg', cc_lat)
             self.circle_node.setDouble('longitude_deg', cc_lon)
             self.circle_node.setString('direction', direction)
-            self.circle_node.setFloat('radius_m', radius)
+            self.circle_node.setDouble('radius_m', radius)
 
             # adjust target altitude to be swoopy
-            ratio = self.home_node.getFloat('dist_m') / self.radius_m
+            ratio = self.home_node.getDouble('dist_m') / self.radius_m
             if ratio > 1.0:
                 ratio = 1.0
             h_m = ratio*ratio * self.vertical_m
-            self.targets_node.setFloat('altitude_agl_ft', 200 + h_m*m2ft)
+            self.targets_node.setDouble('altitude_agl_ft', 200 + h_m*m2ft)
 
             # adjust target airspeed to be swoopy
             range = self.max_kt - self.min_kt
@@ -239,7 +239,7 @@ class Parametric(Task):
             airspeed_kt = self.max_kt - v
             if airspeed_kt < self.min_kt:
                 airspeed_kt = self.min_kt
-            self.targets_node.setFloat("airspeed_kt", airspeed_kt)
+            self.targets_node.setDouble("airspeed_kt", airspeed_kt)
             
     def is_complete(self):
         return False

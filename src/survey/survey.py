@@ -56,9 +56,9 @@ def do_survey( request ):
 
     # convert to cartesian coordinates
     # advance direction is upwind by default
-    if wind_node.getFloat('wind_speed_kt') > 2:
-        advance_dir = vector.Vector( wind_node.getFloat('wind_east_mps'),
-                                     wind_node.getFloat('wind_north_mps') )
+    if wind_node.getDouble('wind_speed_kt') > 2:
+        advance_dir = vector.Vector( wind_node.getDouble('wind_east_mps'),
+                                     wind_node.getDouble('wind_north_mps') )
     else:
         # little or no wind
         advance_dir = vector.Vector(0, 1) # north
@@ -68,7 +68,7 @@ def do_survey( request ):
         # autoset target altitude if the value is reasonably sane
         # (otherwise leave it up to the operator to set the altitude
         # from the gcs)
-        targets_node.setFloat( 'altitude_agl_ft', agl_ft )
+        targets_node.setDouble( 'altitude_agl_ft', agl_ft )
     agl_m = agl_ft * ft2m
 
     # compute sidelap step in m

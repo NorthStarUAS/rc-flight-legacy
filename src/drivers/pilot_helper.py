@@ -28,8 +28,8 @@ class pilot_helper():
         # and improve continuity when switching from manual to AP
         # mode.
         if not self.ap_node.getBool("master_switch"):
-            self.flight_node.setFloat("aileron", self.pilot_node.getFloat("aileron"))
-            self.flight_node.setFloat("elevator", self.pilot_node.getFloat("elevator"))
-            self.engine_node.setFloat("throttle", self.pilot_node.getFloat("throttle"))
-            self.flight_node.setFloat("rudder", self.pilot_node.getFloat("rudder"))
-            self.flight_node.setFloat("flaps", self.pilot_node.getFloat("flaps"))
+            self.flight_node.setDouble("aileron", self.pilot_node.getDouble("aileron"))
+            self.flight_node.setDouble("elevator", self.pilot_node.getDouble("elevator"))
+            self.engine_node.setDouble("throttle", self.pilot_node.getDouble("throttle"))
+            self.flight_node.setDouble("rudder", self.pilot_node.getDouble("rudder"))
+            self.flight_node.setDouble("flaps", self.pilot_node.getDouble("flaps"))

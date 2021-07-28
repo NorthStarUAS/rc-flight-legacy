@@ -64,12 +64,12 @@ class Excite(Task):
         # excitation.  For pulse and doublet duration is the length of
         # one unit.
         if self.type == "oms" or self.type == "chirp":
-            self.dur_sec = self.exp_node.getFloat("duration_sec")
+            self.dur_sec = self.exp_node.getDouble("duration_sec")
             if self.dur_sec < 1:  self.dur_sec = 1
             if self.dur_sec > 100: self.dur_sec = 100
             event_log += ' ' + str(self.dur_sec)
         else:
-            unit_sec = self.exp_node.getFloat("duration_sec")
+            unit_sec = self.exp_node.getDouble("duration_sec")
             if self.type == "pulse":
                 self.dur_sec = unit_sec
             elif self.type == "doublet":
@@ -83,7 +83,7 @@ class Excite(Task):
         self.amplitude = []
         n = self.exp_node.getLen("amplitude")
         for i in range(n):
-            v = self.exp_node.getFloatEnum("amplitude", i)
+            v = self.exp_node.getDoubleEnum("amplitude", i)
             self.amplitude.append(v)
         event_log += ' ' + 'ampl: ' + str(self.amplitude)
         
@@ -92,7 +92,7 @@ class Excite(Task):
             self.freq_start = []
             n = self.exp_node.getLen("freq_start_rad_sec")
             for i in range(n):
-                v = self.exp_node.getFloatEnum("freq_start_rad_sec", i)
+                v = self.exp_node.getDoubleEnum("freq_start_rad_sec", i)
                 if v < 0.1:   v = 0.1
                 if v > 100.0: v = 100.0
                 self.freq_start.append(v)
@@ -101,7 +101,7 @@ class Excite(Task):
             self.freq_end = []
             n = self.exp_node.getLen("freq_end_rad_sec")
             for i in range(n):
-                v = self.exp_node.getFloatEnum("freq_end_rad_sec", i)
+                v = self.exp_node.getDoubleEnum("freq_end_rad_sec", i)
                 if v < 0.1:   v = 0.1
                 if v > 100.0: v = 100.0
                 self.freq_end.append(v)
@@ -117,12 +117,12 @@ class Excite(Task):
             self.freq_rps = []
             n = self.exp_node.getLen("freq_rps")
             for i in range(n):
-                v = self.exp_node.getFloatEnum("freq_rps", i)
+                v = self.exp_node.getDoubleEnum("freq_rps", i)
                 self.freq_rps.append(v)
             self.phase_rad = []
             n = self.exp_node.getLen("phase_rad")
             for i in range(n):
-                v = self.exp_node.getFloatEnum("phase_rad", i)
+                v = self.exp_node.getDoubleEnum("phase_rad", i)
                 self.phase_rad.append(v)
             
             n_coeffs = n / self.channels
@@ -139,7 +139,7 @@ class Excite(Task):
 
     def update_experiment(self, t):
         progress = t / self.dur_sec
-        self.excite_node.setFloat("progress", progress)
+        self.excite_node.setDouble("progress", progress)
         for i in range(self.channels):
             signal = 0.0
             if self.type == 'pulse':
@@ -174,23 +174,23 @@ class Excite(Task):
                 for j in range(n*i, n*i+n):
                     signal += self.scale * self.amplitude[j] \
                               * math.cos(self.freq_rps[j] * t + self.phase_rad[j])
-            self.excite_node.setFloatEnum("signal", i, signal)
+            self.excite_node.setDoubleEnum("signal", i, signal)
 
     def end_experiment(self, abort=False):
         if abort:
             # only log an event if the abort happens when the
             # excitation is running
-            self.excite_node.setFloat("progress", 0.0)
+            self.excite_node.setDouble("progress", 0.0)
             comms.events.log("excite", "aborted by operator")
         else:
             # experiment ran to completion, increment experiment
             # index.
-            self.excite_node.setFloat("progress", 1.0)
+            self.excite_node.setDouble("progress", 1.0)
             self.index += 1
             comms.events.log("excite", "completed")
         n = len(self.target)
         for i in range(n):
-            self.excite_node.setFloatEnum("signal", i, 0.0)
+            self.excite_node.setDoubleEnum("signal", i, 0.0)
         self.running = False
 
     def update(self, dt):

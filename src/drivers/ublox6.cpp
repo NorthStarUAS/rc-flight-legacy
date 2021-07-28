@@ -224,10 +224,10 @@ bool ublox6_t::parse_msg() {
 	    gps_node.setDouble( "timestamp", get_Time() );
 	    gps_node.setDouble( "latitude_deg", wgs84[0] * 180.0 / M_PI );
 	    gps_node.setDouble( "longitude_deg", wgs84[1] * 180.0 / M_PI );
-	    gps_node.setFloat( "altitude_m", wgs84[2] );
-	    gps_node.setFloat( "vn_ms", vel_ned.x() );
-	    gps_node.setFloat( "ve_ms", vel_ned.y() );
-	    gps_node.setFloat( "vd_ms", vel_ned.z() );
+	    gps_node.setDouble( "altitude_m", wgs84[2] );
+	    gps_node.setDouble( "vn_ms", vel_ned.x() );
+	    gps_node.setDouble( "ve_ms", vel_ned.y() );
+	    gps_node.setDouble( "vd_ms", vel_ned.z() );
 	    // printf("        %.10f %.10f %.2f - %.2f %.2f %.2f\n",
 	    //        wgs84.getLatitudeDeg(),
 	    //        wgs84.getLongitudeDeg(),

@@ -21,28 +21,28 @@ class Chirp(Task):
             if self.freq_start > 100.0: self.freq_start = 100.0
         else:
             self.freq_start = 6.2830
-        self.chirp_node.setFloat("freq_start_rad_sec", self.freq_start)
+        self.chirp_node.setDouble("freq_start_rad_sec", self.freq_start)
         if config_node.hasChild("freq_end_rad_sec"):
             self.freq_end = float(config_node.getString("freq_end_rad_sec"))
             if self.freq_end < 0.1:  self.freq_end = 0.1
             if self.freq_end > 100.0: self.freq_end = 100.0
         else:
             self.freq_end = 62.83
-        self.chirp_node.setFloat("freq_end_rad_sec", self.freq_end)
+        self.chirp_node.setDouble("freq_end_rad_sec", self.freq_end)
         if config_node.hasChild("duration_sec"):
             self.dur_sec = float(config_node.getString("duration_sec"))
             if self.dur_sec < 1:  self.dur_sec = 1
             if self.dur_sec > 100: self.dur_sec = 100
         else:
             self.dur_sec = 20            
-        self.chirp_node.setFloat("duration_sec", self.dur_sec)
+        self.chirp_node.setDouble("duration_sec", self.dur_sec)
         if config_node.hasChild("amplitude"):
             self.amplitude = float(config_node.getString("amplitude"))
             if self.amplitude < 0.001:  self.amplitude = 0.001
             if self.amplitude > 1: self.amplitude = 1
         else:
             self.amplitude = 0.1
-        self.chirp_node.setFloat("amplitude", self.amplitude)
+        self.chirp_node.setDouble("amplitude", self.amplitude)
         if config_node.hasChild("inject"):
             self.inject = config_node.getString("inject")
         else:
@@ -61,10 +61,10 @@ class Chirp(Task):
         # test for start trigger
         trigger = self.chirp_node.getBool("trigger")
         if trigger and not self.last_trigger:
-            self.freq_start = self.chirp_node.getFloat("freq_start_rad_sec")
-            self.freq_end = self.chirp_node.getFloat("freq_end_rad_sec")
-            self.dur_sec = self.chirp_node.getFloat("duration_sec")
-            self.amplitude = self.chirp_node.getFloat("amplitude")
+            self.freq_start = self.chirp_node.getDouble("freq_start_rad_sec")
+            self.freq_end = self.chirp_node.getDouble("freq_end_rad_sec")
+            self.dur_sec = self.chirp_node.getDouble("duration_sec")
+            self.amplitude = self.chirp_node.getDouble("amplitude")
             self.start_time = self.imu_node.getDouble("timestamp")
             self.k = (self.freq_end - self.freq_start) / (2 * self.dur_sec)
             self.running = True
@@ -87,11 +87,11 @@ class Chirp(Task):
         if self.running:
             t = cur_time - self.start_time
             chirp = self.amplitude * math.sin(self.freq_start*t + self.k*t*t)
-            self.signal_node.setFloat("value", chirp)
-            self.signal_node.setFloat("progress", t)
+            self.signal_node.setDouble("value", chirp)
+            self.signal_node.setDouble("progress", t)
         else:
-            self.signal_node.setFloat("value", 0.0)
-            self.signal_node.setFloat("progress", 0.0)
+            self.signal_node.setDouble("value", 0.0)
+            self.signal_node.setDouble("progress", 0.0)
 
         self.signal_node.setBool("running", self.running)
         self.last_trigger = trigger

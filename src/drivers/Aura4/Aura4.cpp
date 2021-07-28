@@ -270,22 +270,22 @@ bool Aura4_t::update_imu( message::imu_t *imu ) {
     imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
     imu_node.setInt( "imu_millis", imu->millis );
     imu_node.setDouble( "imu_sec", (double)imu->millis / 1000.0 );
-    imu_node.setFloat( "p_rad_sec", p_cal );
-    imu_node.setFloat( "q_rad_sec", q_cal );
-    imu_node.setFloat( "r_rad_sec", r_cal );
-    imu_node.setFloat( "ax_mps_sec", ax_cal );
-    imu_node.setFloat( "ay_mps_sec", ay_cal );
-    imu_node.setFloat( "az_mps_sec", az_cal );
-    imu_node.setFloat( "hx", hx_cal );
-    imu_node.setFloat( "hy", hy_cal );
-    imu_node.setFloat( "hz", hz_cal );
-    imu_node.setFloat( "ax_raw", ax_raw );
-    imu_node.setFloat( "ay_raw", ay_raw );
-    imu_node.setFloat( "az_raw", az_raw );
-    imu_node.setFloat( "hx_raw", hx_raw );
-    imu_node.setFloat( "hy_raw", hy_raw );
-    imu_node.setFloat( "hz_raw", hz_raw );
-    imu_node.setFloat( "temp_C", temp_C );
+    imu_node.setDouble( "p_rad_sec", p_cal );
+    imu_node.setDouble( "q_rad_sec", q_cal );
+    imu_node.setDouble( "r_rad_sec", r_cal );
+    imu_node.setDouble( "ax_mps_sec", ax_cal );
+    imu_node.setDouble( "ay_mps_sec", ay_cal );
+    imu_node.setDouble( "az_mps_sec", az_cal );
+    imu_node.setDouble( "hx", hx_cal );
+    imu_node.setDouble( "hy", hy_cal );
+    imu_node.setDouble( "hz", hz_cal );
+    imu_node.setDouble( "ax_raw", ax_raw );
+    imu_node.setDouble( "ay_raw", ay_raw );
+    imu_node.setDouble( "az_raw", az_raw );
+    imu_node.setDouble( "hx_raw", hx_raw );
+    imu_node.setDouble( "hy_raw", hy_raw );
+    imu_node.setDouble( "hz_raw", hz_raw );
+    imu_node.setDouble( "temp_C", temp_C );
 
     return true;
 }
@@ -371,15 +371,15 @@ bool Aura4_t::parse( uint8_t pkt_id, uint8_t pkt_len, uint8_t *payload ) {
             ext_main_vcc_filt.update((float)power.ext_main_v, 0.01);
             avionics_vcc_filt.update((float)power.avionics_v, 0.01);
 
-            power_node.setFloat( "main_vcc", int_main_vcc_filt.get_value() );
-            power_node.setFloat( "ext_main_vcc", ext_main_vcc_filt.get_value() );
-            power_node.setFloat( "avionics_vcc", avionics_vcc_filt.get_value() );
+            power_node.setDouble( "main_vcc", int_main_vcc_filt.get_value() );
+            power_node.setDouble( "ext_main_vcc", ext_main_vcc_filt.get_value() );
+            power_node.setDouble( "avionics_vcc", avionics_vcc_filt.get_value() );
 
             float cell_volt = int_main_vcc_filt.get_value() / (float)battery_cells;
             float ext_cell_volt = ext_main_vcc_filt.get_value() / (float)battery_cells;
-            power_node.setFloat( "cell_vcc", cell_volt );
-            power_node.setFloat( "ext_cell_vcc", ext_cell_volt );
-            power_node.setFloat( "main_amps", (float)power.ext_main_amp);
+            power_node.setDouble( "cell_vcc", cell_volt );
+            power_node.setDouble( "ext_cell_vcc", ext_cell_volt );
+            power_node.setDouble( "main_amps", (float)power.ext_main_amp);
 	} else {
             info("packet size mismatch in power packet");
 	}
@@ -968,35 +968,35 @@ bool Aura4_t::update_ekf( message::ekf_t *ekf ) {
     ekf_node.setInt( "ekf_millis", ekf->millis );
     ekf_node.setDouble( "latitude_deg", ekf->lat_rad * R2D );
     ekf_node.setDouble( "longitude_deg", ekf->lon_rad * R2D );
-    ekf_node.setFloat( "altitude_m", ekf->altitude_m );
-    ekf_node.setFloat( "vn_ms", ekf->vn_ms );
-    ekf_node.setFloat( "ve_ms", ekf->ve_ms );
-    ekf_node.setFloat( "vd_ms", ekf->vd_ms );
-    ekf_node.setFloat( "phi_rad", ekf->phi_rad );
-    ekf_node.setFloat( "the_rad", ekf->the_rad );
-    ekf_node.setFloat( "psi_rad", ekf->psi_rad );
-    ekf_node.setFloat( "roll_deg", ekf->phi_rad * R2D );
-    ekf_node.setFloat( "pitch_deg", ekf->the_rad * R2D );
-    ekf_node.setFloat( "heading_deg", ekf->psi_rad * R2D );
-    ekf_node.setFloat( "p_bias", ekf->p_bias );
-    ekf_node.setFloat( "q_bias", ekf->q_bias );
-    ekf_node.setFloat( "r_bias", ekf->r_bias );
-    ekf_node.setFloat( "ax_bias", ekf->ax_bias );
-    ekf_node.setFloat( "ay_bias", ekf->ay_bias );
-    ekf_node.setFloat( "az_bias", ekf->az_bias );
-    ekf_node.setFloat( "max_pos_cov", ekf->max_pos_cov );
-    ekf_node.setFloat( "max_vel_cov", ekf->max_vel_cov );
-    ekf_node.setFloat( "max_att_cov", ekf->max_att_cov );
+    ekf_node.setDouble( "altitude_m", ekf->altitude_m );
+    ekf_node.setDouble( "vn_ms", ekf->vn_ms );
+    ekf_node.setDouble( "ve_ms", ekf->ve_ms );
+    ekf_node.setDouble( "vd_ms", ekf->vd_ms );
+    ekf_node.setDouble( "phi_rad", ekf->phi_rad );
+    ekf_node.setDouble( "the_rad", ekf->the_rad );
+    ekf_node.setDouble( "psi_rad", ekf->psi_rad );
+    ekf_node.setDouble( "roll_deg", ekf->phi_rad * R2D );
+    ekf_node.setDouble( "pitch_deg", ekf->the_rad * R2D );
+    ekf_node.setDouble( "heading_deg", ekf->psi_rad * R2D );
+    ekf_node.setDouble( "p_bias", ekf->p_bias );
+    ekf_node.setDouble( "q_bias", ekf->q_bias );
+    ekf_node.setDouble( "r_bias", ekf->r_bias );
+    ekf_node.setDouble( "ax_bias", ekf->ax_bias );
+    ekf_node.setDouble( "ay_bias", ekf->ay_bias );
+    ekf_node.setDouble( "az_bias", ekf->az_bias );
+    ekf_node.setDouble( "max_pos_cov", ekf->max_pos_cov );
+    ekf_node.setDouble( "max_vel_cov", ekf->max_vel_cov );
+    ekf_node.setDouble( "max_att_cov", ekf->max_att_cov );
     ekf_node.setInt("status", ekf->status );
     
     /*FIXME:move the following to filter_mgr?*/
-    ekf_node.setFloat( "altitude_ft", ekf->altitude_m * M2F );
-    ekf_node.setFloat( "groundtrack_deg",
+    ekf_node.setDouble( "altitude_ft", ekf->altitude_m * M2F );
+    ekf_node.setDouble( "groundtrack_deg",
                         90 - atan2(ekf->vn_ms, ekf->ve_ms) * R2D );
     double gs_ms = sqrt(ekf->vn_ms * ekf->vn_ms + ekf->ve_ms * ekf->ve_ms);
-    ekf_node.setFloat( "groundspeed_ms", gs_ms );
-    ekf_node.setFloat( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
-    ekf_node.setFloat( "vertical_speed_fps", -ekf->vd_ms * M2F );
+    ekf_node.setDouble( "groundspeed_ms", gs_ms );
+    ekf_node.setDouble( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
+    ekf_node.setDouble( "vertical_speed_fps", -ekf->vd_ms * M2F );
     return true;
 }
 
@@ -1010,14 +1010,14 @@ bool Aura4_t::update_gps( message::aura_nav_pvt_t *nav_pvt ) {
     gps_node.setInt( "sec", nav_pvt->sec );
     gps_node.setDouble( "latitude_deg", nav_pvt->lat / 10000000.0 );
     gps_node.setDouble( "longitude_deg", nav_pvt->lon / 10000000.0 );
-    gps_node.setFloat( "altitude_m", nav_pvt->hMSL / 1000.0 );
-    gps_node.setFloat( "horiz_accuracy_m", nav_pvt->hAcc / 1000.0 );
-    gps_node.setFloat( "vert_accuracy_m", nav_pvt->vAcc / 1000.0 );
-    gps_node.setFloat( "vn_ms", nav_pvt->velN / 1000.0 );
-    gps_node.setFloat( "ve_ms", nav_pvt->velE / 1000.0 );
-    gps_node.setFloat( "vd_ms", nav_pvt->velD / 1000.0 );
+    gps_node.setDouble( "altitude_m", nav_pvt->hMSL / 1000.0 );
+    gps_node.setDouble( "horiz_accuracy_m", nav_pvt->hAcc / 1000.0 );
+    gps_node.setDouble( "vert_accuracy_m", nav_pvt->vAcc / 1000.0 );
+    gps_node.setDouble( "vn_ms", nav_pvt->velN / 1000.0 );
+    gps_node.setDouble( "ve_ms", nav_pvt->velE / 1000.0 );
+    gps_node.setDouble( "vd_ms", nav_pvt->velD / 1000.0 );
     gps_node.setInt( "satellites", nav_pvt->numSV);
-    gps_node.setFloat( "pdop", nav_pvt->pDOP / 100.0 );
+    gps_node.setDouble( "pdop", nav_pvt->pDOP / 100.0 );
     gps_node.setInt( "fixType", nav_pvt->fixType );
     // backwards compatibility
     if ( nav_pvt->fixType == 0 ) {
@@ -1096,16 +1096,16 @@ bool Aura4_t::update_airdata( message::airdata_t *airdata ) {
     if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
     float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
     float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
-    airdata_node.setFloat( "airspeed_mps", airspeed_mps );
-    airdata_node.setFloat( "airspeed_kt", airspeed_kt );
-    airdata_node.setFloat( "temp_C", airdata->ext_temp_C );
+    airdata_node.setDouble( "airspeed_mps", airspeed_mps );
+    airdata_node.setDouble( "airspeed_kt", airspeed_kt );
+    airdata_node.setDouble( "temp_C", airdata->ext_temp_C );
 
     // publish sensor values
-    airdata_node.setFloat( "pressure_mbar", airdata->baro_press_pa / 100.0 );
-    airdata_node.setFloat( "bme_temp_C", airdata->baro_temp_C );
-    airdata_node.setFloat( "humidity", airdata->baro_hum );
-    airdata_node.setFloat( "diff_pressure_pa", airdata->ext_diff_press_pa );
-    airdata_node.setFloat( "ext_static_press_pa", airdata->ext_static_press_pa );
+    airdata_node.setDouble( "pressure_mbar", airdata->baro_press_pa / 100.0 );
+    airdata_node.setDouble( "bme_temp_C", airdata->baro_temp_C );
+    airdata_node.setDouble( "humidity", airdata->baro_hum );
+    airdata_node.setDouble( "diff_pressure_pa", airdata->ext_diff_press_pa );
+    airdata_node.setDouble( "ext_static_press_pa", airdata->ext_static_press_pa );
     airdata_node.setInt( "error_count", airdata->error_count );
 
     fresh_data = true;
@@ -1130,21 +1130,21 @@ bool Aura4_t::update_pilot( message::pilot_t *pilot ) {
 
     for ( int i = 0; i < message::sbus_channels; i++ ) {
 	val = pilot->channel[i];
-	pilot_node.setFloat( pilot_mapping[i].c_str(), val );
-	pilot_node.setFloat( "channel", i, val );
+	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
+	pilot_node.setDouble( "channel", i, val );
     }
 
     // sbus ch17 (channel[16])
     if ( pilot->flags & 0x01 ) {
-        pilot_node.setFloat( "channel", 16, 1.0 );
+        pilot_node.setDouble( "channel", 16, 1.0 );
     } else {
-        pilot_node.setFloat( "channel", 16, 0.0 );
+        pilot_node.setDouble( "channel", 16, 0.0 );
     }
     // sbus ch18 (channel[17])
     if ( pilot->flags & (1 << 1) ) {
-        pilot_node.setFloat( "channel", 17, 1.0 );
+        pilot_node.setDouble( "channel", 17, 1.0 );
     } else {
-        pilot_node.setFloat( "channel", 17, 0.0 );
+        pilot_node.setDouble( "channel", 17, 0.0 );
     }
     if ( pilot->flags & (1 << 2) ) {
         pilot_node.setBool( "frame_lost", true );

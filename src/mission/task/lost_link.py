@@ -25,7 +25,7 @@ class LostLink(Task):
         self.link_state = False
         self.push_task = ""
         self.name = config_node.getString("name")
-        self.timeout_sec = config_node.getFloat("timeout_sec")
+        self.timeout_sec = config_node.getDouble("timeout_sec")
         if self.timeout_sec < 1.0:
             # set a sane default if none provided
             self.timetout_sec = 60.0
@@ -64,9 +64,9 @@ class LostLink(Task):
                     mission.mission_mgr.m.request_task_home()
                     # sanity check on transit altitude (boost to 200'
                     # agl if below that)
-                    target_agl = self.targets_node.getFloat("altitude_agl_ft")
+                    target_agl = self.targets_node.getDouble("altitude_agl_ft")
                     if target_agl < 200.0:
-                        self.targets_node.setFloat("altitude_agl_ft", 200.0)
+                        self.targets_node.setDouble("altitude_agl_ft", 200.0)
         else:
             # good link state
             if not self.link_state:

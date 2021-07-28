@@ -60,23 +60,23 @@ void control_t::copy_pilot_inputs() {
     // that manaul pass-through is handled with less latency directly
     // on APM2/BFS/Aura3 hardware if available.
     
-    float aileron = pilot_node.getFloat("aileron");
-    flight_node.setFloat( "aileron", aileron );
+    float aileron = pilot_node.getDouble("aileron");
+    flight_node.setDouble( "aileron", aileron );
 
-    float elevator = pilot_node.getFloat("elevator");
-    flight_node.setFloat( "elevator", elevator );
+    float elevator = pilot_node.getDouble("elevator");
+    flight_node.setDouble( "elevator", elevator );
 
-    float rudder = pilot_node.getFloat("rudder");
-    flight_node.setFloat( "rudder", rudder );
+    float rudder = pilot_node.getDouble("rudder");
+    flight_node.setDouble( "rudder", rudder );
 
-    double flaps = pilot_node.getFloat("flaps");
-    flight_node.setFloat("flaps", flaps );
+    double flaps = pilot_node.getDouble("flaps");
+    flight_node.setDouble("flaps", flaps );
 
-    double gear = pilot_node.getFloat("gear");
-    flight_node.setFloat("gear", gear );
+    double gear = pilot_node.getDouble("gear");
+    flight_node.setDouble("gear", gear );
 
-    double throttle = pilot_node.getFloat("throttle");
-    engine_node.setFloat("throttle", throttle );
+    double throttle = pilot_node.getDouble("throttle");
+    engine_node.setDouble("throttle", throttle );
 }
 
 void control_t::update(float dt) {

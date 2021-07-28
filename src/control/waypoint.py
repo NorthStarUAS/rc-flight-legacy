@@ -17,10 +17,10 @@ class Waypoint:
             self.lat_deg = config.getDouble("lat_deg")
             self.mode = 'absolute'
         if config.hasChild("heading_deg"):
-            self.hdg_deg = config.getFloat("heading_deg")
+            self.hdg_deg = config.getDouble("heading_deg")
             self.mode = 'relative'
         if config.hasChild("dist_m"):
-            self.dist_m = config.getFloat("dist_m")
+            self.dist_m = config.getDouble("dist_m")
             self.mode = 'relative'
         if self.mode == None:
             print("Error in route waypoint config logic:")

@@ -80,13 +80,13 @@ AuraDigitalFilter::AuraDigitalFilter( string config_path )
 	}
     }
     if ( component_node.hasChild("filter_time") ) {
-	Tf = component_node.getFloat("filter_time");
+	Tf = component_node.getDouble("filter_time");
     }
     if ( component_node.hasChild("samples") ) {
 	samples = component_node.getInt("samples");
     }
     if ( component_node.hasChild("max_rate_of_change") ) {
-	rateOfChange = component_node.getFloat("max_rate_of_change");
+	rateOfChange = component_node.getDouble("max_rate_of_change");
     }
 
     // output
@@ -130,7 +130,7 @@ void AuraDigitalFilter::update(double dt)
         }
     }
 
-    input.push_front( input_node.getFloat(input_attr.c_str()) );
+    input.push_front( input_node.getDouble(input_attr.c_str()) );
     input.resize(samples + 1, 0.0);
 
     if ( enabled && dt > 0.0 ) {
@@ -147,7 +147,7 @@ void AuraDigitalFilter::update(double dt)
             output.push_front(alpha * input[0] + 
                               (1 - alpha) * output[0]);
 	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-		output_node[i].setFloat( output_attr[i].c_str(), output[0] );
+		output_node[i].setDouble( output_attr[i].c_str(), output[0] );
 	    }
             output.resize(1);
         } 
@@ -158,7 +158,7 @@ void AuraDigitalFilter::update(double dt)
                               2 * (1 - alpha) * output[0] -
                               (1 - alpha) * (1 - alpha) * output[1]);
  	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-		output_node[i].setFloat( output_attr[i].c_str(), output[0] );
+		output_node[i].setDouble( output_attr[i].c_str(), output[0] );
 	    }
             output.resize(2);
         }
@@ -167,7 +167,7 @@ void AuraDigitalFilter::update(double dt)
             output.push_front(output[0] + 
                               (input[0] - input.back()) / samples);
  	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-		output_node[i].setFloat( output_attr[i].c_str(), output[0] );
+		output_node[i].setDouble( output_attr[i].c_str(), output[0] );
 	    }
             output.resize(1);
         }
@@ -189,7 +189,7 @@ void AuraDigitalFilter::update(double dt)
             }
 
  	    for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-		output_node[i].setFloat( output_attr[i].c_str(), output[0] );
+		output_node[i].setDouble( output_attr[i].c_str(), output[0] );
 	    }
 	    output.resize(1);
         }

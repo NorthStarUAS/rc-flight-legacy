@@ -123,21 +123,21 @@ void AuraSummer::update( double dt ) {
 	if ( debug ) printf("Updating %s\n", get_name().c_str());
 	double sum = 0.0;
 	for ( unsigned int i = 0; i < input_node.size(); i++ ) {
-	    double val = input_node[i].getFloat( input_attr[i].c_str() );
+	    double val = input_node[i].getDouble( input_attr[i].c_str() );
 	    sum += val;
 	    if (debug) printf("  %s = %.3f\n", input_attr[i].c_str(), val);
 	}
 	if ( config_node.hasChild("u_min") ) {
-	    double u_min = config_node.getFloat("u_min");
+	    double u_min = config_node.getDouble("u_min");
 	    if ( sum < u_min ) { sum = u_min; }
 	}
 	if ( config_node.hasChild("u_max") ) {
-	    double u_max = config_node.getFloat("u_max");
+	    double u_max = config_node.getDouble("u_max");
 	    if ( sum > u_max ) { sum = u_max; }
 	}
 	if (debug) printf("  sum = %.3f\n", sum);
 	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-	    output_node[i].setFloat( output_attr[i].c_str(), sum );
+	    output_node[i].setDouble( output_attr[i].c_str(), sum );
 	}
     }
 }

@@ -35,40 +35,40 @@ class Land(Task):
         # get task configuration parameters
         self.name = config_node.getString("name")
         self.nickname = config_node.getString("nickname")
-        self.lateral_offset_m = config_node.getFloat("lateral_offset_m")
-        self.glideslope_deg = config_node.getFloat("glideslope_deg")
+        self.lateral_offset_m = config_node.getDouble("lateral_offset_m")
+        self.glideslope_deg = config_node.getDouble("glideslope_deg")
         if self.glideslope_deg < 0.01:
             self.glideslope_deg = 6.0
-        self.turn_radius_m = config_node.getFloat("turn_radius_m")
+        self.turn_radius_m = config_node.getDouble("turn_radius_m")
         if self.turn_radius_m < 1.0:
             self.turn_radius_m = 75.0
         self.direction = config_node.getString("direction")
         if self.direction == "":
             self.direction = "left"
-        self.extend_final_leg_m = config_node.getFloat("extend_final_leg_m")
-        self.alt_bias_ft = config_node.getFloat("alt_bias_ft")
-        self.approach_speed_kt = config_node.getFloat("approach_speed_kt")
+        self.extend_final_leg_m = config_node.getDouble("extend_final_leg_m")
+        self.alt_bias_ft = config_node.getDouble("alt_bias_ft")
+        self.approach_speed_kt = config_node.getDouble("approach_speed_kt")
         if self.approach_speed_kt < 0.1:
             self.approach_speed_kt = 25.0
-        self.flare_pitch_deg = config_node.getFloat("flare_pitch_deg")
-        self.flare_seconds = config_node.getFloat("flare_seconds")
+        self.flare_pitch_deg = config_node.getDouble("flare_pitch_deg")
+        self.flare_seconds = config_node.getDouble("flare_seconds")
         if self.flare_seconds < 0.1:
             self.flare_seconds = 5.0
         if config_node.hasChild("flaps"):
-            self.flaps = config_node.getFloat("flaps")
+            self.flaps = config_node.getDouble("flaps")
         else:
             self.flaps = 0.0
 
         # copy to /task/land
-        self.land_node.setFloat("lateral_offset_m", self.lateral_offset_m)
-        self.land_node.setFloat("glideslope_deg", self.glideslope_deg)
-        self.land_node.setFloat("turn_radius_m", self.turn_radius_m)
+        self.land_node.setDouble("lateral_offset_m", self.lateral_offset_m)
+        self.land_node.setDouble("glideslope_deg", self.glideslope_deg)
+        self.land_node.setDouble("turn_radius_m", self.turn_radius_m)
         self.land_node.setString("direction", self.direction)
-        self.land_node.setFloat("extend_final_leg_m", self.extend_final_leg_m)
-        self.land_node.setFloat("altitude_bias_ft", self.alt_bias_ft)
-        self.land_node.setFloat("approach_speed_kt", self.approach_speed_kt)
-        self.land_node.setFloat("flare_pitch_deg", self.flare_pitch_deg)
-        self.land_node.setFloat("flare_seconds", self.flare_seconds)
+        self.land_node.setDouble("extend_final_leg_m", self.extend_final_leg_m)
+        self.land_node.setDouble("altitude_bias_ft", self.alt_bias_ft)
+        self.land_node.setDouble("approach_speed_kt", self.approach_speed_kt)
+        self.land_node.setDouble("flare_pitch_deg", self.flare_pitch_deg)
+        self.land_node.setDouble("flare_seconds", self.flare_seconds)
 
         self.side = -1.0
         self.flare = False
@@ -92,9 +92,9 @@ class Land(Task):
         
         self.ap_node.setString("mode", "basic+tecs")
         self.nav_node.setString("mode", "circle")
-        self.targets_node.setFloat("airspeed_kt",
-                                   self.land_node.getFloat("approach_speed_kt"))
-        self.flight_node.setFloat("flaps_setpoint", self.flaps)
+        self.targets_node.setDouble("airspeed_kt",
+                                   self.land_node.getDouble("approach_speed_kt"))
+        self.flight_node.setDouble("flaps_setpoint", self.flaps)
 
         # start at the beginning of the route (in case we inherit a
         # partially flown approach from earlier in the flight)
@@ -122,13 +122,13 @@ class Land(Task):
         if not self.active:
             return False
 
-        self.glideslope_rad = self.land_node.getFloat("glideslope_deg") * d2r
-        self.extend_final_leg_m = self.land_node.getFloat("extend_final_leg_m")
-        self.alt_bias_ft = self.land_node.getFloat("altitude_bias_ft")
+        self.glideslope_rad = self.land_node.getDouble("glideslope_deg") * d2r
+        self.extend_final_leg_m = self.land_node.getDouble("extend_final_leg_m")
+        self.alt_bias_ft = self.land_node.getDouble("altitude_bias_ft")
 
         # add ability for pilot to bias the glideslope altitude using
         # stick/elevator (negative elevator is up.)
-        self.alt_bias_ft += -self.pilot_node.getFloat("elevator") * 25.0
+        self.alt_bias_ft += -self.pilot_node.getDouble("elevator") * 25.0
 
         # compute minimum 'safe' altitude
         safe_dist_m = math.pi * self.turn_radius_m + self.final_leg_m
@@ -141,10 +141,10 @@ class Land(Task):
         mode = self.nav_node.getString('mode')
         if mode == 'circle':
             # circle descent portion of the approach
-            pos_lon = self.pos_node.getFloat("longitude_deg")
-            pos_lat = self.pos_node.getFloat("latitude_deg")
-            center_lon = self.circle_node.getFloat("longitude_deg")
-            center_lat = self.circle_node.getFloat("latitude_deg")
+            pos_lon = self.pos_node.getDouble("longitude_deg")
+            pos_lat = self.pos_node.getDouble("latitude_deg")
+            center_lon = self.circle_node.getDouble("longitude_deg")
+            center_lat = self.circle_node.getDouble("latitude_deg")
             # compute course and distance to center of target circle
             (course_deg, rev_deg, cur_dist_m) = \
                 wgs84.geo_inverse( center_lat, center_lon, pos_lat, pos_lon )
@@ -165,7 +165,7 @@ class Land(Task):
             circle_pos = current_crs - self.final_heading_deg
             if circle_pos < -180.0: circle_pos += 360.0
             if circle_pos > 180.0: circle_pos -= 360.0
-            # print 'circle_pos:', self.orient_node.getFloat('groundtrack_deg'), current_crs, self.final_heading_deg, circle_pos
+            # print 'circle_pos:', self.orient_node.getDouble('groundtrack_deg'), current_crs, self.final_heading_deg, circle_pos
             angle_rem_rad = math.pi
             if self.circle_capture and circle_pos > -10:
                 # circling, captured circle, and within 180 degrees
@@ -187,15 +187,15 @@ class Land(Task):
         else:
             # on final approach
             if control.route.dist_valid:
-                self.dist_rem_m = self.route_node.getFloat("dist_remaining_m")
+                self.dist_rem_m = self.route_node.getDouble("dist_remaining_m")
 
         # compute glideslope/target elevation
         alt_m = self.dist_rem_m * math.tan(self.glideslope_rad)
         # print ' ', mode, "dist = %.1f alt = %.1f" % (self.dist_rem_m, alt_m)
 
         # Compute target altitude.
-        cur_alt = self.pos_node.getFloat("altitude_agl_ft")
-        cur_target_alt = self.targets_node.getFloat("altitude_agl_ft")
+        cur_alt = self.pos_node.getDouble("altitude_agl_ft")
+        cur_target_alt = self.targets_node.getDouble("altitude_agl_ft")
         new_target_alt = alt_m * m2ft + self.alt_bias_ft
 
         # prior to glide slope capture, never allow target altitude
@@ -211,7 +211,7 @@ class Land(Task):
         if new_target_alt > cur_target_alt:
             new_target_alt = cur_target_alt
 
-        self.targets_node.setFloat("altitude_agl_ft", new_target_alt)
+        self.targets_node.setDouble("altitude_agl_ft", new_target_alt)
 
         # compute error metrics relative to ideal glide slope
         alt_error_ft = cur_alt - (alt_m * m2ft + self.alt_bias_ft)
@@ -229,7 +229,7 @@ class Land(Task):
 
         # compute time to touchdown at current ground speed (assuming the
         # navigation system has lined us up properly
-        ground_speed_ms = self.vel_node.getFloat("groundspeed_ms")
+        ground_speed_ms = self.vel_node.getDouble("groundspeed_ms")
         if ground_speed_ms > 0.01:
             seconds_to_touchdown = self.dist_rem_m / ground_speed_ms
         else:
@@ -238,9 +238,9 @@ class Land(Task):
         #print "dist_rem_m = %.1f gs = %.1f secs = %.1f" % \
         #    (self.dist_rem_m, ground_speed_ms, seconds_to_touchdown)
 
-        # approach_speed_kt = approach_speed_node.getFloat()
-        self.flare_pitch_deg = self.land_node.getFloat("flare_pitch_deg")
-        self.flare_seconds = self.land_node.getFloat("flare_seconds")
+        # approach_speed_kt = approach_speed_node.getDouble()
+        self.flare_pitch_deg = self.land_node.getDouble("flare_pitch_deg")
+        self.flare_seconds = self.land_node.getDouble("flare_seconds")
 
         if seconds_to_touchdown <= self.flare_seconds and not self.flare:
             # within x seconds of touchdown horizontally.  Note these
@@ -252,22 +252,22 @@ class Land(Task):
             # definition.)
             comms.events.log("land", "start flare")
             self.flare = True
-            self.flare_start_time = self.imu_node.getFloat("timestamp")
-            self.approach_throttle = self.engine_node.getFloat("throttle")
-            self.approach_pitch = self.targets_node.getFloat("pitch_deg")
+            self.flare_start_time = self.imu_node.getDouble("timestamp")
+            self.approach_throttle = self.engine_node.getDouble("throttle")
+            self.approach_pitch = self.targets_node.getDouble("pitch_deg")
             self.flare_pitch_range = self.approach_pitch - self.flare_pitch_deg
             self.ap_node.setString("mode", "basic")
 
         if self.flare:
             if self.flare_seconds > 0.01:
-                elapsed = self.imu_node.getFloat("timestamp") - self.flare_start_time
+                elapsed = self.imu_node.getDouble("timestamp") - self.flare_start_time
                 percent = elapsed / self.flare_seconds
                 if percent > 1.0:
                     percent = 1.0
-                self.targets_node.setFloat("pitch_deg",
+                self.targets_node.setDouble("pitch_deg",
                                            self.approach_pitch
                                            - percent * self.flare_pitch_range)
-                self.engine_node.setFloat("throttle",
+                self.engine_node.setDouble("throttle",
                                           self.approach_throttle * (1.0 - percent))
                 #printf("FLARE: elapsed=%.1f percent=%.2f speed=%.1f throttle=%.1f",
                 #       elapsed, percent,
@@ -275,8 +275,8 @@ class Land(Task):
                 #       self.approach_throttle * (1.0 - percent))
             else:
                 # printf("FLARE!!!!\n")
-                self.targets_node.setFloat("pitch_deg", self.flare_pitch_deg)
-                self.engine_node.setFloat("throttle", 0.0)
+                self.targets_node.setDouble("pitch_deg", self.flare_pitch_deg)
+                self.engine_node.setDouble("throttle", 0.0)
 
         # if ( display_on ) {
         #    printf("land dist = %.0f target alt = %.0f\n",
@@ -300,7 +300,7 @@ class Land(Task):
     def close(self):
         # restore the previous state
         mission.task.state.restore()
-        self.flight_node.setFloat("flaps_setpoint", 0.0)
+        self.flight_node.setDouble("flaps_setpoint", 0.0)
         
         self.active = False
         return True
@@ -315,16 +315,16 @@ class Land(Task):
         # managed by this task.
 
         # fetch parameters
-        self.turn_radius_m = self.land_node.getFloat("turn_radius_m")
-        self.extend_final_leg_m = self.land_node.getFloat("extend_final_leg_m")
-        self.lateral_offset_m = self.land_node.getFloat("lateral_offset_m")
+        self.turn_radius_m = self.land_node.getDouble("turn_radius_m")
+        self.extend_final_leg_m = self.land_node.getDouble("extend_final_leg_m")
+        self.lateral_offset_m = self.land_node.getDouble("lateral_offset_m")
         self.side = -1.0
         dir = self.land_node.getString("direction")
         if dir == "left":
             self.side = -1.0
         elif dir == "right":
             self.side = 1.0
-        self.final_heading_deg = self.home_node.getFloat("azimuth_deg")
+        self.final_heading_deg = self.home_node.getDouble("azimuth_deg")
 
         # final leg length
         self.final_leg_m = 2.0 * self.turn_radius_m + self.extend_final_leg_m
@@ -340,15 +340,15 @@ class Land(Task):
             circle_offset_deg -= 360.0
         #print "circle_offset_deg:", circle_offset_deg
         (cc_lat, cc_lon, az2) = \
-            wgs84.geo_direct( self.home_node.getFloat("latitude_deg"),
-                              self.home_node.getFloat("longitude_deg"),
+            wgs84.geo_direct( self.home_node.getDouble("latitude_deg"),
+                              self.home_node.getDouble("longitude_deg"),
                               circle_offset_deg, offset_dist )
 
         # configure circle task
-        self.circle_node.setFloat('latitude_deg', cc_lat)
-        self.circle_node.setFloat('longitude_deg', cc_lon)
+        self.circle_node.setDouble('latitude_deg', cc_lat)
+        self.circle_node.setDouble('longitude_deg', cc_lon)
         self.circle_node.setString('direction', dir)
-        self.circle_node.setFloat('radius_m', self.turn_radius_m)
+        self.circle_node.setDouble('radius_m', self.turn_radius_m)
 
         # create and request approach route
         # start of final leg point
@@ -367,6 +367,6 @@ class Land(Task):
 
         # seed route dist_remaining_m value so it is not zero or left
         # over from previous route.
-        self.route_node.setFloat("dist_remaining_m", self.final_leg_m)
+        self.route_node.setDouble("dist_remaining_m", self.final_leg_m)
 
         return True

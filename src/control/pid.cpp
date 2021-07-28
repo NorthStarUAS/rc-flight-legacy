@@ -129,14 +129,14 @@ void AuraPID::update( double dt ) {
 
     bool debug = component_node.getBool("debug");
     if ( debug ) printf("Updating %s\n", get_name().c_str());
-    y_n = input_node.getFloat(input_attr.c_str());
+    y_n = input_node.getDouble(input_attr.c_str());
 
     double r_n = 0.0;
     if ( ref_value != "" ) {
 	// printf("nonzero ref_value\n");
 	r_n = atof(ref_value.c_str());
     } else {
-	r_n = ref_node.getFloat(ref_attr.c_str());
+	r_n = ref_node.getDouble(ref_attr.c_str());
     }
                       
     double error = r_n - y_n;
@@ -155,13 +155,13 @@ void AuraPID::update( double dt ) {
     if ( debug ) printf("input = %.3f reference = %.3f error = %.3f\n",
 			y_n, r_n, error);
 
-    double u_trim = config_node.getFloat("u_trim");
-    double u_min = config_node.getFloat("u_min");
-    double u_max = config_node.getFloat("u_max");
+    double u_trim = config_node.getDouble("u_trim");
+    double u_min = config_node.getDouble("u_min");
+    double u_max = config_node.getDouble("u_max");
 
-    double Kp = config_node.getFloat("Kp");
-    double Ti = config_node.getFloat("Ti");
-    double Td = config_node.getFloat("Td");
+    double Kp = config_node.getDouble("Kp");
+    double Ti = config_node.getDouble("Ti");
+    double Td = config_node.getDouble("Td");
     double Ki = 0.0;
     if ( Ti > 0.0001 ) {
 	Ki = Kp / Ti;
@@ -183,10 +183,10 @@ void AuraPID::update( double dt ) {
     // iterm) then unset the do_reset flag.
     if ( do_reset ) {
         if ( Ti > 0.0001 ) {
-            double u_n = output_node[0].getFloat(output_attr[0].c_str());
+            double u_n = output_node[0].getDouble(output_attr[0].c_str());
             // and clip
-            double u_min = config_node.getFloat("u_min");
-            double u_max = config_node.getFloat("u_max");
+            double u_min = config_node.getDouble("u_min");
+            double u_max = config_node.getDouble("u_max");
             if ( u_n < u_min ) { u_n = u_min; }
             if ( u_n > u_max ) { u_n = u_max; }
             iterm = u_n - pterm;
@@ -227,7 +227,7 @@ void AuraPID::update( double dt ) {
     } else {
 	// Copy the result to the output node(s)
 	for ( unsigned int i = 0; i < output_node.size(); i++ ) {
-	    output_node[i].setFloat( output_attr[i].c_str(), output );
+	    output_node[i].setDouble( output_attr[i].c_str(), output );
 	}
     }
 }

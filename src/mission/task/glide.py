@@ -38,17 +38,17 @@ class GlideTest(Task):
         mission.task.state.save(modes=True, circle=False, targets=False)
 
         # read config
-        self.top_altitude = self.config_node.getFloat("top_agl_ft")
+        self.top_altitude = self.config_node.getDouble("top_agl_ft")
         if self.top_altitude < 200: self.top_altitude = 200
-        self.bot_altitude = self.config_node.getFloat("bottom_agl_ft")
+        self.bot_altitude = self.config_node.getDouble("bottom_agl_ft")
         if self.bot_altitude < 100: self.bot_altitude = 100
-        self.pitch = self.config_node.getFloat("pitch_start_deg")
+        self.pitch = self.config_node.getDouble("pitch_start_deg")
         if self.pitch > 10: self.pitch = 10
         if self.pitch < -20: self.pitch = -20
-        self.pitch_end = self.config_node.getFloat("pitch_end_deg")
+        self.pitch_end = self.config_node.getDouble("pitch_end_deg")
         if self.pitch_end > 10: self.pitch_end = 10
         if self.pitch_end < -20: self.pitch_end = -20
-        self.pitch_incr = self.config_node.getFloat("pitch_increment")
+        self.pitch_incr = self.config_node.getDouble("pitch_increment")
         if abs(self.pitch_incr) <= 0.01: self.pitch_incr = 1
         # correct sign of increment value if needed
         if self.pitch > self.pitch_end and self.pitch_incr > 0:
@@ -56,10 +56,10 @@ class GlideTest(Task):
         if self.pitch < self.pitch_end and self.pitch_incr < 0:
             self.pitch_incr = -self.pitch_incr
 
-        self.glide_node.setFloat("pitch", self.pitch)
+        self.glide_node.setDouble("pitch", self.pitch)
 
         # configure initial climb to top altitude
-        self.targets_node.setFloat("altitude_agl_ft", self.top_altitude)
+        self.targets_node.setDouble("altitude_agl_ft", self.top_altitude)
         fcsmode.set("basic+tecs")
 
         self.running = True
@@ -99,7 +99,7 @@ class GlideTest(Task):
                 self.end_experiment()
 
             # monitor for state transitions
-            alt = self.pos_node.getFloat("altitude_agl_ft")
+            alt = self.pos_node.getDouble("altitude_agl_ft")
             if alt < self.bot_altitude + 10:
                 if fcsmode.get() != "basic+tecs":
                     fcsmode.set("basic+tecs")
@@ -108,9 +108,9 @@ class GlideTest(Task):
             if alt > self.top_altitude - 10:
                 if fcsmode.get() != "basic" :
                     fcsmode.set("basic")
-                    self.glide_node.setFloat("pitch", self.pitch)
-                    self.targets_node.setFloat("pitch_deg", self.pitch)
-                    self.engine_node.setFloat("throttle", 0.0)
+                    self.glide_node.setDouble("pitch", self.pitch)
+                    self.targets_node.setDouble("pitch_deg", self.pitch)
+                    self.engine_node.setDouble("throttle", 0.0)
                     comms.events.log("glide", "start decent pitch = " + str(self.pitch))
 
         self.glide_node.setBool("running", self.running)

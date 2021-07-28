@@ -93,7 +93,7 @@ AuraDTSS::AuraDTSS( string config_path ):
         printf("WARNING: wrong number of elements for z_trim vector: %d\n", len);
     } else {
         for ( unsigned int i = 0; i < len; ++i ) {
-            z_trim(i) = component_node.getFloat("z_trim", i);
+            z_trim(i) = component_node.getDouble("z_trim", i);
         }
     }
     
@@ -107,9 +107,9 @@ AuraDTSS::AuraDTSS( string config_path ):
         PropertyNode child = component_node.getChild( child_name.c_str() );
         string output_prop = child.getString("prop");        
         pos = output_prop.rfind("/");
-        double min = child.getFloat("u_min");  
-        double max = child.getFloat("u_max");
-        double trim = child.getFloat("u_trim");
+        double min = child.getDouble("u_min");  
+        double max = child.getDouble("u_max");
+        double trim = child.getDouble("u_trim");
         printf("  %s [%.2f, %.2f]\n", output_prop.c_str(), min, max);
         if ( pos != string::npos ) {
             string path = output_prop.substr(0, pos);
@@ -136,7 +136,7 @@ AuraDTSS::AuraDTSS( string config_path ):
     A = MatrixXd(nx, nx);
     for ( unsigned int r = 0; r < nx; ++r ) {
         for ( unsigned int c = 0; c < nx; ++c ) {
-            A(r,c) = component_node.getFloat("A", r*nx + c);
+            A(r,c) = component_node.getDouble("A", r*nx + c);
         }
     }
     std::cout << A << std::endl;
@@ -149,7 +149,7 @@ AuraDTSS::AuraDTSS( string config_path ):
     B = MatrixXd(nx, nz);
     for ( unsigned int r = 0; r < nx; ++r ) {
         for ( unsigned int c = 0; c < nz; ++c ) {
-            B(r,c) = component_node.getFloat("B", r*nz + c);
+            B(r,c) = component_node.getDouble("B", r*nz + c);
         }
     }
     std::cout << B << std::endl;
@@ -162,7 +162,7 @@ AuraDTSS::AuraDTSS( string config_path ):
     C = MatrixXd(nu, nx);
     for ( unsigned int r = 0; r < nu; ++r ) {
         for ( unsigned int c = 0; c < nx; ++c ) {
-            C(r,c) = component_node.getFloat("C", r*nx + c);
+            C(r,c) = component_node.getDouble("C", r*nx + c);
         }
     }
     std::cout << C << std::endl;
@@ -175,7 +175,7 @@ AuraDTSS::AuraDTSS( string config_path ):
     D = MatrixXd(nu, nz);
     for ( unsigned int r = 0; r < nu; ++r ) {
         for ( unsigned int c = 0; c < nz; ++c ) {
-            D(r,c) = component_node.getFloat("D", r*nz + c);
+            D(r,c) = component_node.getDouble("D", r*nz + c);
         }
     }
     std::cout << D << std::endl;
@@ -241,13 +241,13 @@ void AuraDTSS::update( double dt ) {
         do_reset = false;
         x.setZero();
         for ( unsigned int i = 0; i < nz; ++i ) {
-            z(i) = inputs_node[i].getFloat(inputs_attr[i].c_str());
+            z(i) = inputs_node[i].getDouble(inputs_attr[i].c_str());
         }
         u = C*x + D*(z - z_trim);
     } else {
         x = F*x + G*(z - z_trim);
         for ( unsigned int i = 0; i < nz; ++i ) {
-            z(i) = inputs_node[i].getFloat(inputs_attr[i].c_str());
+            z(i) = inputs_node[i].getDouble(inputs_attr[i].c_str());
         }
         u = C*x + D*(z - z_trim);
     }
@@ -266,7 +266,7 @@ void AuraDTSS::update( double dt ) {
             double value = u(i) + u_trim[i];
             if ( value < u_min[i] ) { value = u_min[i]; }
             if ( value > u_max[i] ) { value = u_max[i]; }
-            outputs_node[i].setFloat( outputs_attr[i].c_str(), value );
+            outputs_node[i].setDouble( outputs_attr[i].c_str(), value );
         }
     }
 }

@@ -78,9 +78,9 @@ class CalibrateAccels(Task):
             return False
 
         # update filters
-        ax = self.imu_node.getFloat("ax_raw")
-        ay = self.imu_node.getFloat("ay_raw")
-        az = self.imu_node.getFloat("az_raw")
+        ax = self.imu_node.getDouble("ax_raw")
+        ay = self.imu_node.getDouble("ay_raw")
+        az = self.imu_node.getDouble("az_raw")
         self.ax_slow.update(ax, dt)
         self.ax_fast.update(ax, dt)
         self.ay_slow.update(ay, dt)
@@ -236,15 +236,15 @@ class CalibrateAccels(Task):
             calib_node = self.config_imu_node.getChild("calibration")
             calib_node.setLen("strapdown", 9)
             for i in range(9):
-                calib_node.setFloat("strapdown", i, self.R[:3,:3].flatten()[i])
-            calib_node.setFloat("accel_fit_mean", mean)
-            calib_node.setFloat("accel_fit_std", std)
+                calib_node.setDouble("strapdown", i, self.R[:3,:3].flatten()[i])
+            calib_node.setDouble("accel_fit_mean", mean)
+            calib_node.setDouble("accel_fit_std", std)
             calib_node.setLen("accel_scale", 3)
             for i in range(3):
-                calib_node.setFloat("accel_scale", i, self.scale[i])
+                calib_node.setDouble("accel_scale", i, self.scale[i])
             calib_node.setLen("accel_translate", 3)
             for i in range(3):
-                calib_node.setFloat("accel_translate", i, self.translate[i])
+                calib_node.setDouble("accel_translate", i, self.translate[i])
             home = os.path.expanduser("~")
             filename = os.path.join(home, "imu_calibration.json")
             calib_node.save(filename)

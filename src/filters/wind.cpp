@@ -27,7 +27,7 @@ void init_wind() {
     vel_node = PropertyNode( "/velocity" );
     wind_node = PropertyNode( "/filters/wind" );
     
-    wind_node.setFloat( "pitot_scale_factor", 1.0 );
+    wind_node.setDouble( "pitot_scale_factor", 1.0 );
 
     pitot_scale_filt.init(1.0);
 }
@@ -36,7 +36,7 @@ void init_wind() {
 // onboard wind estimate (requires airspeed, true heading, and ground
 // velocity vector)
 void update_wind( double dt ) {
-    double airspeed_kt = airdata_node.getFloat("airspeed_kt");
+    double airspeed_kt = airdata_node.getDouble("airspeed_kt");
     if ( ! task_node.getBool("is_airborne") ) {
 	// System predicts we are not flying.  The wind estimation
 	// code only works in flight.
@@ -44,12 +44,12 @@ void update_wind( double dt ) {
     }
 
     double psi = SGD_PI_2
-	- orient_node.getFloat("heading_deg") * SG_DEGREES_TO_RADIANS;
+	- orient_node.getDouble("heading_deg") * SG_DEGREES_TO_RADIANS;
     double pitot_scale = pitot_scale_filt.get_value();
     double ue = cos(psi) * (airspeed_kt * pitot_scale * SG_KT_TO_MPS);
     double un = sin(psi) * (airspeed_kt * pitot_scale * SG_KT_TO_MPS);
-    double we = ue - filter_node.getFloat("ve_ms");
-    double wn = un - filter_node.getFloat("vn_ms");
+    double we = ue - filter_node.getDouble("ve_ms");
+    double wn = un - filter_node.getDouble("vn_ms");
 
     //static double filt_we = 0.0, filt_wn = 0.0;
     //filt_we = 0.9998 * filt_we + 0.0002 * we;
@@ -66,23 +66,23 @@ void update_wind( double dt ) {
     double wind_speed_kt = sqrt( we_filt_val*we_filt_val
 				 + wn_filt_val*wn_filt_val ) * SG_MPS_TO_KT;
 
-    wind_node.setFloat( "wind_speed_kt", wind_speed_kt );
-    wind_node.setFloat( "wind_dir_deg", wind_deg );
-    wind_node.setFloat( "wind_east_mps", we_filt_val );
-    wind_node.setFloat( "wind_north_mps", wn_filt_val );
+    wind_node.setDouble( "wind_speed_kt", wind_speed_kt );
+    wind_node.setDouble( "wind_dir_deg", wind_deg );
+    wind_node.setDouble( "wind_east_mps", we_filt_val );
+    wind_node.setDouble( "wind_north_mps", wn_filt_val );
 
     // estimate pitot tube bias
-    double true_e = we_filt_val + filter_node.getFloat("ve_ms");
-    double true_n = wn_filt_val + filter_node.getFloat("vn_ms");
+    double true_e = we_filt_val + filter_node.getDouble("ve_ms");
+    double true_n = wn_filt_val + filter_node.getDouble("vn_ms");
 
     double true_deg = 90 - atan2( true_n, true_e ) * SGD_RADIANS_TO_DEGREES;
     if ( true_deg < 0 ) { true_deg += 360.0; }
     double true_speed_kt = sqrt( true_e*true_e + true_n*true_n ) * SG_MPS_TO_KT;
 
-    wind_node.setFloat( "true_airspeed_kt", true_speed_kt );
-    wind_node.setFloat( "true_heading_deg", true_deg );
-    wind_node.setFloat( "true_airspeed_east_mps", true_e );
-    wind_node.setFloat( "true_airspeed_north_mps", true_n );
+    wind_node.setDouble( "true_airspeed_kt", true_speed_kt );
+    wind_node.setDouble( "true_heading_deg", true_deg );
+    wind_node.setDouble( "true_airspeed_east_mps", true_e );
+    wind_node.setDouble( "true_airspeed_north_mps", true_n );
 
     double ps = 1.0;
     if ( airspeed_kt > 1.0 ) {
@@ -93,7 +93,7 @@ void update_wind( double dt ) {
     }
 
     pitot_scale_filt.update(ps, dt);
-    wind_node.setFloat( "pitot_scale_factor", pitot_scale_filt.get_value() );
+    wind_node.setDouble( "pitot_scale_factor", pitot_scale_filt.get_value() );
 
     // if ( display_on ) {
     //   printf("true: %.2f kt  %.1f deg (scale = %.4f)\n", true_speed_kt, true_deg, pitot_scale_filt);
@@ -106,6 +106,6 @@ void update_wind( double dt ) {
     if ( groundtrack_est_deg < 0 ) { groundtrack_est_deg += 360.0; }
     double groundspeed_est_ms = sqrt( ve_est*ve_est + vn_est*vn_est );
     // double groundspeed_est_kt = groundspeed_est_ms * SG_MPS_TO_KT;
-    vel_node.setFloat( "groundspeed_est_ms", groundspeed_est_ms );
-    orient_node.setFloat( "groundtrack_est_deg", groundtrack_est_deg );
+    vel_node.setDouble( "groundspeed_est_ms", groundspeed_est_ms );
+    orient_node.setDouble( "groundtrack_est_deg", groundtrack_est_deg );
 }

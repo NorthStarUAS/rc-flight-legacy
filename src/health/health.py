@@ -15,4 +15,4 @@ def init():
 
 def update():
     load = os.getloadavg()
-    status_node.setFloat("system_load_avg", load[0])
+    status_node.setDouble("system_load_avg", load[0])

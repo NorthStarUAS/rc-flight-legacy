@@ -26,7 +26,7 @@ class Circle(Task):
             self.direction = config_node.getString("direction")
         if config_node.hasChild("radius_m"):
             # only override the default if a value is given
-            self.radius_m = config_node.getFloat("radius_m")
+            self.radius_m = config_node.getDouble("radius_m")
 
     def update_parameters(self):
         # copy from standby values
@@ -39,9 +39,9 @@ class Circle(Task):
             if abs(lat_deg) > 0.01:
                 self.circle_active_node.setDouble("latitude_deg", lat_deg)
         if self.circle_standby_node.hasChild("radius_m"):
-            radius_m = self.circle_standby_node.getFloat("radius_m")
+            radius_m = self.circle_standby_node.getDouble("radius_m")
             if abs(radius_m) > 25:
-                self.circle_active_node.setFloat("radius_m", radius_m)
+                self.circle_active_node.setDouble("radius_m", radius_m)
         if self.circle_standby_node.hasChild("direction"):
             dir = self.circle_standby_node.getString("direction")
             if len(dir):

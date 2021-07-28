@@ -25,14 +25,14 @@ class FlapsMgr(Task):
         if not self.active:
             return False
 
-        target_value = self.flight_node.getFloat("flaps_setpoint")
-        current_value = self.flight_node.getFloat("flaps")
+        target_value = self.flight_node.getDouble("flaps_setpoint")
+        current_value = self.flight_node.getDouble("flaps")
         df = target_value - current_value
         max = dt / self.speed_secs
         if df > max: df = max
         if df < -max: df = -max
         current_value += df
-        self.flight_node.setFloat("flaps", current_value)
+        self.flight_node.setDouble("flaps", current_value)
 
     def is_complete(self):
         return False

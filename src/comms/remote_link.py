@@ -229,7 +229,7 @@ def execute_command( command ):
         azimuth_deg = float( tokens[4] )
         home_node.setDouble( "longitude_deg", lon )
         home_node.setDouble( "latitude_deg", lat )
-        home_node.setFloat( "azimuth_deg", azimuth_deg )
+        home_node.setDouble( "azimuth_deg", azimuth_deg )
         home_node.setBool( "valid", True )
     elif tokens[0] == "route" and len(tokens) >= 5:
         route_request = tokens[1:]
@@ -261,13 +261,13 @@ def execute_command( command ):
         # specify an autopilot target
         if tokens[1] == "agl-ft":
             agl_ft = float( tokens[2] )
-            targets_node.setFloat( "altitude_agl_ft", agl_ft )
+            targets_node.setDouble( "altitude_agl_ft", agl_ft )
         elif tokens[1] == "msl-ft":
             msl_ft = float( tokens[2] )
-            targets_node.setFloat( "target_msl_ft", msl_ft )
+            targets_node.setDouble( "target_msl_ft", msl_ft )
         elif tokens[1] == "speed-kt":
             speed_kt = float( tokens[2] )
-            targets_node.setFloat( "airspeed_kt", speed_kt )
+            targets_node.setDouble( "airspeed_kt", speed_kt )
     elif tokens[0] == "fcs-update":
         decode_fcs_update( command )
     elif tokens[0] == "get" and len(tokens) == 2:
@@ -310,7 +310,7 @@ def execute_command( command ):
                 result = re.match("[-+]?\d*\.\d+", value)
                 if result and result.group(0) == value:
                     print("float:", value)
-                    node.setFloat(name, float(value))
+                    node.setDouble(name, float(value))
                     done = True
             # test for bool
             if not done:
@@ -339,9 +339,9 @@ def execute_command( command ):
             north = float( tokens[2] )
             east = float( tokens[3] )
             down = float( tokens[4] )
-            vector_node.setFloat( "north", north )
-            vector_node.setFloat( "east", east )
-            vector_node.setFloat( "down", down )
+            vector_node.setDouble( "north", north )
+            vector_node.setDouble( "east", east )
+            vector_node.setDouble( "down", down )
         elif tokens[1] == "wgs84":
             # set wgs84 lookat mode
             point_node = PropertyNode("/pointing")
@@ -353,8 +353,8 @@ def execute_command( command ):
             lat = float( tokens[3] )
             wgs84_node.setDouble( "longitude_deg", lon )
             wgs84_node.setDouble( "latitude_deg", lat )
-            ground = pos_node.getFloat("altitude_ground_m")
-            wgs84_node.setFloat( "altitude_m", ground )
+            ground = pos_node.getDouble("altitude_ground_m")
+            wgs84_node.setDouble( "altitude_m", ground )
 
 def read_link_command():
     global ser
@@ -416,22 +416,22 @@ def decode_fcs_update(command):
         return False
 
     if len(tokens) == 7:
-        config.setFloat( "Kp", float(tokens[1]) )
-        config.setFloat( "Ti", float(tokens[2]) )
-        config.setFloat( "Td", float(tokens[3]) )
-        config.setFloat( "u_min", float(tokens[4]) )
-        config.setFloat( "u_max", float(tokens[5]) )
-        config.setFloat( "u_trim", float(tokens[6]) )
+        config.setDouble( "Kp", float(tokens[1]) )
+        config.setDouble( "Ti", float(tokens[2]) )
+        config.setDouble( "Td", float(tokens[3]) )
+        config.setDouble( "u_min", float(tokens[4]) )
+        config.setDouble( "u_max", float(tokens[5]) )
+        config.setDouble( "u_trim", float(tokens[6]) )
     elif len(tokens) == 10:
-        config.setFloat( "Kp", float(tokens[1]) )
-        config.setFloat( "beta", float(tokens[2]) )
-        config.setFloat( "alpha", float(tokens[3]) )
-        config.setFloat( "gamma", float(tokens[4]) )
-        config.setFloat( "Ti", float(tokens[5]) )
-        config.setFloat( "Td", float(tokens[6]) )
-        config.setFloat( "u_min", float(tokens[7]) )
-        config.setFloat( "u_max", float(tokens[8]) )
-        config.setFloat( "u_trim", float(tokens[6]) )
+        config.setDouble( "Kp", float(tokens[1]) )
+        config.setDouble( "beta", float(tokens[2]) )
+        config.setDouble( "alpha", float(tokens[3]) )
+        config.setDouble( "gamma", float(tokens[4]) )
+        config.setDouble( "Ti", float(tokens[5]) )
+        config.setDouble( "Td", float(tokens[6]) )
+        config.setDouble( "u_min", float(tokens[7]) )
+        config.setDouble( "u_max", float(tokens[8]) )
+        config.setDouble( "u_trim", float(tokens[6]) )
     else:
         return False
 

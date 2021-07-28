@@ -61,7 +61,7 @@ void airdata_helper_t::update() {
     // T = h*0.0065 / ((P0/P)^(1/5.257) - 1) - 273.15
 
     const double P0 = 1013.25;	// standard sea level pressure
-    double P = airdata_node.getFloat("pressure_mbar"); // sensed pressure
+    double P = airdata_node.getDouble("pressure_mbar"); // sensed pressure
     if ( P < 0.1 ) {
         P = P0;
     }
@@ -77,15 +77,15 @@ void airdata_helper_t::update() {
     // Compute altitude on a standard day
     double tmp1 = pow((P0/P), 1.0/5.257) - 1.0;
     double alt_m = (tmp1 * (T + 273.15)) / 0.0065;
-    pos_pressure_node.setFloat( "altitude_m", alt_m );
+    pos_pressure_node.setDouble( "altitude_m", alt_m );
 
     //
     // 2. Filter/Smooth Altitude and airspeed to reduce noise
     //
 
-    float Pt = airdata_node.getFloat("airspeed_kt");
-    float Ps = alt_m; /* pressure_alt_node.getFloat(); */
-    float filter_alt_m = pos_filter_node.getFloat("altitude_m");
+    float Pt = airdata_node.getDouble("airspeed_kt");
+    float Ps = alt_m; /* pressure_alt_node.getDouble(); */
+    float filter_alt_m = pos_filter_node.getDouble("altitude_m");
 
     if ( !airdata_calibrated ) {
 	airdata_calibrated = true;
@@ -104,10 +104,10 @@ void airdata_helper_t::update() {
     }
 
     // publish values
-    vel_node.setFloat( "airspeed_kt", Pt /* raw */ );
-    vel_node.setFloat( "airspeed_smoothed_kt", airspeed_filt.get_value() );
-    pos_pressure_node.setFloat( "altitude_smoothed_m", pressure_alt_filt.get_value() );
-    pos_pressure_node.setFloat( "altitude_ground_m", ground_alt_filt.get_value() );
+    vel_node.setDouble( "airspeed_kt", Pt /* raw */ );
+    vel_node.setDouble( "airspeed_smoothed_kt", airspeed_filt.get_value() );
+    pos_pressure_node.setDouble( "altitude_smoothed_m", pressure_alt_filt.get_value() );
+    pos_pressure_node.setDouble( "altitude_ground_m", ground_alt_filt.get_value() );
 
     //
     // 3. Compute a filtered error difference between gps altitude and
@@ -128,7 +128,7 @@ void airdata_helper_t::update() {
 
     // true altitude estimate - filter ground average is our best
     // estimate of true agl if altitude has not changed recently.
-    double true_agl_m = true_alt_m - pos_filter_node.getFloat("altitude_ground_m");
+    double true_agl_m = true_alt_m - pos_filter_node.getDouble("altitude_ground_m");
 
     //
     // 4. Compute some other stuff
@@ -147,21 +147,21 @@ void airdata_helper_t::update() {
     last_time = cur_time;
 
     // publish values to property tree
-    pos_pressure_node.setFloat( "pressure_error_m", Ps_filt_err.get_value() );
-    pos_combined_node.setFloat( "altitude_true_m", true_alt_m );
-    pos_combined_node.setFloat( "altitude_true_ft",
+    pos_pressure_node.setDouble( "pressure_error_m", Ps_filt_err.get_value() );
+    pos_combined_node.setDouble( "altitude_true_m", true_alt_m );
+    pos_combined_node.setDouble( "altitude_true_ft",
 				 true_alt_m * SG_METER_TO_FEET );
-    pos_combined_node.setFloat( "altitude_agl_m", true_agl_m );
-    pos_combined_node.setFloat( "altitude_agl_ft",
+    pos_combined_node.setDouble( "altitude_agl_m", true_agl_m );
+    pos_combined_node.setDouble( "altitude_agl_ft",
 				 true_agl_m * SG_METER_TO_FEET );
-    pos_pressure_node.setFloat( "altitude_agl_m",
+    pos_pressure_node.setDouble( "altitude_agl_m",
 				 pressure_alt_filt.get_value()
 				 - ground_alt_filt.get_value() );
-    pos_pressure_node.setFloat( "altitude_agl_ft",
+    pos_pressure_node.setDouble( "altitude_agl_ft",
 				 (pressure_alt_filt.get_value()
 				  - ground_alt_filt.get_value() )
 				 * SG_METER_TO_FEET );
-    vel_node.setFloat( "pressure_vertical_speed_fps",
+    vel_node.setDouble( "pressure_vertical_speed_fps",
 			climb_filt.get_value() * SG_METER_TO_FEET );
 
     // printf("Ps = %.1f nav = %.1f bld = %.1f vsi = %.2f\n",
@@ -176,7 +176,7 @@ void airdata_helper_t::update() {
     static double sum_y2 = 0.0;
     static double sum_xy = 0.0;
 
-    double x = throttle.getFloat();
+    double x = throttle.getDouble();
     double y = climb_filt.get_value() * SG_METER_TO_FEET * 60.0; // fpm
     double n = 6000.0;		// 100hz * 60 sec
     double nfact = (n-1.0)/n;

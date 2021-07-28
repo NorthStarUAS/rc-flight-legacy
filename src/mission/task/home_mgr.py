@@ -29,19 +29,19 @@ class HomeMgr(Task):
         if not self.active:
             return False
         if not self.home_node.getBool("valid"):
-            if self.gps_node.getFloat("gps_age") < 1.0 and \
+            if self.gps_node.getDouble("gps_age") < 1.0 and \
                self.gps_node.getBool("settle"):
                 # Save current position as startup position
                 self.startup_node.setDouble("longitude_deg", self.gps_node.getDouble("longitude_deg"))
                 self.startup_node.setDouble("latitude_deg", self.gps_node.getDouble("latitude_deg"))
-                self.startup_node.setFloat("altitude_m", self.gps_node.getFloat("altitude_m"))
+                self.startup_node.setDouble("altitude_m", self.gps_node.getDouble("altitude_m"))
                 self.startup_node.setBool("valid", True)
 
                 # Set initial "home" position.
                 self.home_node.setDouble("longitude_deg", self.gps_node.getDouble("longitude_deg"))
                 self.home_node.setDouble("latitude_deg", self.gps_node.getDouble("latitude_deg"))
-                self.home_node.setFloat("altitude_m", self.gps_node.getFloat("altitude_m"))
-                self.home_node.setFloat("azimuth_deg", 0.0)
+                self.home_node.setDouble("altitude_m", self.gps_node.getDouble("altitude_m"))
+                self.home_node.setDouble("azimuth_deg", 0.0)
                 self.home_node.setBool("valid", True)
         else:
             current = (self.pos_node.getDouble("latitude_deg"),
@@ -53,8 +53,8 @@ class HomeMgr(Task):
                                    self.pos_node.getDouble("longitude_deg"),
                                    self.home_node.getDouble("latitude_deg"),
                                    self.home_node.getDouble("longitude_deg") )
-            self.home_node.setFloat("course_deg", course_deg)
-            self.home_node.setFloat("dist_m", dist_m)
+            self.home_node.setDouble("course_deg", course_deg)
+            self.home_node.setDouble("dist_m", dist_m)
             
             # a mini cartesian (2d) system relative to home in meters
             
@@ -64,8 +64,8 @@ class HomeMgr(Task):
             theta = rev_deg * d2r
             x = math.sin(theta) * dist_m
             y = math.cos(theta) * dist_m
-            self.home_node.setFloat("x_m", x)
-            self.home_node.setFloat("y_m", y)
+            self.home_node.setDouble("x_m", x)
+            self.home_node.setDouble("y_m", y)
         return True
     
     def is_complete(self):
