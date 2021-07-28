@@ -32,11 +32,11 @@ AuraDTSS::AuraDTSS( string config_path ):
     size_t pos;
     unsigned int len;
     
-    component_node = PropertyNode(config_path, true);
+    component_node = PropertyNode( config_path );
     vector <string> children;
 
     // enable
-    PropertyNode node = component_node.getChild( "enable", true );
+    PropertyNode node = component_node.getChild( "enable" );
     children = node.getChildren();
     printf("enables: %ld prop(s)\n", children.size());
     for ( unsigned int i = 0; i < children.size(); ++i ) {
@@ -47,7 +47,7 @@ AuraDTSS::AuraDTSS( string config_path ):
 	    if ( pos != string::npos ) {
 		string path = enable_prop.substr(0, pos);
 		string attr = enable_prop.substr(pos+1);
-		PropertyNode en_node = PropertyNode( path, true );
+		PropertyNode en_node( path );
 		enables_node.push_back( en_node );
 		enables_attr.push_back( attr );
 	    } else {
@@ -61,7 +61,7 @@ AuraDTSS::AuraDTSS( string config_path ):
     }
     
     // inputs
-    node = component_node.getChild( "inputs", true );
+    node = component_node.getChild( "inputs" );
     children = node.getChildren();
     nz = children.size();
     printf("dtss: %ld input(s)\n", children.size());
@@ -73,7 +73,7 @@ AuraDTSS::AuraDTSS( string config_path ):
 	    if ( pos != string::npos ) {
 		string path = input_prop.substr(0, pos);
 		string attr = input_prop.substr(pos+1);
-		PropertyNode inode = PropertyNode( path, true );
+		PropertyNode inode( path );
 		inputs_node.push_back( inode );
 		inputs_attr.push_back( attr );
 	    } else {
@@ -98,13 +98,13 @@ AuraDTSS::AuraDTSS( string config_path ):
     }
     
     // outputs
-    node = component_node.getChild( "outputs", true );
+    node = component_node.getChild( "outputs" );
     children = node.getChildren();
     nu = component_node.getLen( "outputs" );
     printf("dtss: %d output(s)\n", nu);
     for ( unsigned int i = 0; i < nu; ++i ) {
         string child_name = "outputs/" + std::to_string(i);
-        PropertyNode child = component_node.getChild(child_name.c_str(), true );
+        PropertyNode child = component_node.getChild( child_name.c_str() );
         string output_prop = child.getString("prop");        
         pos = output_prop.rfind("/");
         double min = child.getFloat("u_min");  
@@ -114,7 +114,7 @@ AuraDTSS::AuraDTSS( string config_path ):
         if ( pos != string::npos ) {
             string path = output_prop.substr(0, pos);
             string attr = output_prop.substr(pos+1);
-            PropertyNode onode = PropertyNode( path, true );
+            PropertyNode onode( path );
             outputs_node.push_back( onode );
             outputs_attr.push_back( attr );
             u_min.push_back( min );
@@ -196,7 +196,7 @@ AuraDTSS::AuraDTSS( string config_path ):
     G = MatrixXd(nx, nz);
 
     // config
-    config_node = component_node.getChild( "config", true );
+    config_node = component_node.getChild( "config" );
 }
 
 

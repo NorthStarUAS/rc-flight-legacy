@@ -12,17 +12,17 @@ kt2mps = 0.5144444444444444444
 sqrt_of_2 = math.sqrt(2.0)
 gravity = 9.81                  # m/sec^2
 
-route_node = PropertyNode('/task/route', True)
-pos_node = PropertyNode('/position', True)
-vel_node = PropertyNode('/velocity', True)
-orient_node = PropertyNode('/orientation', True)
-home_node = PropertyNode('/task/home', True)
-active_route_node = PropertyNode('/task/route/active', True)
-L1_node = PropertyNode('/config/autopilot/L1_controller', True)
-targets_node = PropertyNode('/autopilot/targets', True)
-gps_node = PropertyNode('/sensors/gps', True)
-comms_node = PropertyNode('/comms', True)
-wind_node = PropertyNode('/filters/wind', True)
+route_node = PropertyNode('/task/route')
+pos_node = PropertyNode('/position')
+vel_node = PropertyNode('/velocity')
+orient_node = PropertyNode('/orientation')
+home_node = PropertyNode('/task/home')
+active_route_node = PropertyNode('/task/route/active')
+L1_node = PropertyNode('/config/autopilot/L1_controller')
+targets_node = PropertyNode('/autopilot/targets')
+gps_node = PropertyNode('/sensors/gps')
+comms_node = PropertyNode('/comms')
+wind_node = PropertyNode('/filters/wind')
 
 active_route = []        # actual routes
 standby_route = []
@@ -56,7 +56,7 @@ def build(config_node):
     standby_route = []       # clear standby route
     num = config_node.getLen("wpt")
     for i in range(num):
-        child = config_node.getChild("wpt/%d" % i, True)
+        child = config_node.getChild("wpt/%d" % i)
         wp = waypoint.Waypoint()
         wp.build(child)
         standby_route.append(wp)
@@ -140,7 +140,7 @@ def dribble(reset=False):
             dist_valid = True
         wp = active_route[wp_counter]
         wp_str = 'wpt[%d]' % wp_counter
-        wp_node = active_route_node.getChild(wp_str, True)
+        wp_node = active_route_node.getChild(wp_str)
         wp_node.setDouble("longitude_deg", wp.lon_deg)
         wp_node.setDouble("latitude_deg", wp.lat_deg)
 

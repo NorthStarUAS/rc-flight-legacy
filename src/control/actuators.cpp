@@ -21,12 +21,12 @@ void actuators_t::init(DocPointerWrapper d) {
     PropertyNode("/").set_Document(d);
  
     // bind properties
-    flight_node = PropertyNode("/controls/flight", true);
-    engine_node = PropertyNode("/controls/engine", true);
-    excite_node = PropertyNode("/task/excite", true);
-    pilot_node = PropertyNode("/sensors/pilot_input", true);
-    act_node = PropertyNode("/actuators", true);
-    ap_node = PropertyNode("/autopilot", true);
+    flight_node = PropertyNode( "/controls/flight" );
+    engine_node = PropertyNode( "/controls/engine" );
+    excite_node = PropertyNode( "/task/excite" );
+    pilot_node = PropertyNode( "/sensors/pilot_input" );
+    act_node = PropertyNode( "/actuators" );
+    ap_node = PropertyNode( "/autopilot" );
 }
 
 void actuators_t::update() {

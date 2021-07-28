@@ -24,15 +24,15 @@ from mission.task import throttle_safety
 
 class MissionMgr:
     def __init__(self):
-        self.ap_node = PropertyNode("/autopilot/targets", True)
-        self.targets_node = PropertyNode("/autopilot/targets", True)
-        self.missions_node = PropertyNode("/config/mission", True)
-        self.pos_node = PropertyNode("/position", True)
-        self.task_node = PropertyNode("/task", True)
-        self.preflight_node = PropertyNode("/task/preflight", True)
-        self.circle_standby_node = PropertyNode("/task/circle/standby", True)
-        self.home_node = PropertyNode("/task/home", True)
-        self.wind_node = PropertyNode("/filters/wind", True)
+        self.ap_node = PropertyNode("/autopilot/targets")
+        self.targets_node = PropertyNode("/autopilot/targets")
+        self.missions_node = PropertyNode("/config/mission")
+        self.pos_node = PropertyNode("/position")
+        self.task_node = PropertyNode("/task")
+        self.preflight_node = PropertyNode("/task/preflight")
+        self.circle_standby_node = PropertyNode("/task/circle/standby")
+        self.home_node = PropertyNode("/task/home")
+        self.wind_node = PropertyNode("/filters/wind")
         self.global_tasks = []
         self.seq_tasks = []
         self.standby_tasks = []
@@ -88,28 +88,28 @@ class MissionMgr:
 
     def init(self):
         print("global_tasks:")
-        global_node = self.missions_node.getChild("global_tasks", True)
+        global_node = self.missions_node.getChild("global_tasks")
         num = global_node.getLen("task")
         for i in range(num):
-            config_node = global_node.getChild("task/%d" % i, True)
+            config_node = global_node.getChild("task/%d" % i)
             task = self.make_task(config_node)
             if task != None:
                 self.global_tasks.append( task )
 
         print("sequential_tasks:")
-        seq_node = self.missions_node.getChild("sequential_tasks", True)
+        seq_node = self.missions_node.getChild("sequential_tasks")
         num = seq_node.getLen("task")
         for i in range(num):
-            config_node = seq_node.getChild("task/%d" % i, True)
+            config_node = seq_node.getChild("task/%d" % i)
             task = self.make_task(config_node)
             if task != None:
                 self.seq_tasks.append( task )
 
         print("standby_tasks:")
-        standby_node = self.missions_node.getChild("standby_tasks", True)
+        standby_node = self.missions_node.getChild("standby_tasks")
         num = standby_node.getLen("task")
         for i in range(num):
-            config_node = standby_node.getChild("task/%d" % i, True)
+            config_node = standby_node.getChild("task/%d" % i)
             task = self.make_task(config_node)
             if task != None:
                 self.standby_tasks.append( task )

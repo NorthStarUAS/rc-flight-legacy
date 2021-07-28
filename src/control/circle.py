@@ -10,13 +10,13 @@ r2d = 180.0 / math.pi
 sqrt_of_2 = math.sqrt(2.0)
 gravity = 9.81                  # m/sec^2
 
-circle_node = PropertyNode("/task/circle/active", True)
-pos_node = PropertyNode("/position", True)
-vel_node = PropertyNode("/velocity", True)
-orient_node = PropertyNode("/orientation", True)
-route_node = PropertyNode("/task/route", True)
-L1_node = PropertyNode("/config/autopilot/L1_controller", True)
-targets_node = PropertyNode("/autopilot/targets", True)
+circle_node = PropertyNode("/task/circle/active")
+pos_node = PropertyNode("/position")
+vel_node = PropertyNode("/velocity")
+orient_node = PropertyNode("/orientation")
+route_node = PropertyNode("/task/route")
+L1_node = PropertyNode("/config/autopilot/L1_controller")
+targets_node = PropertyNode("/autopilot/targets")
 
 def init():
     # sanity check, set some conservative values if none are

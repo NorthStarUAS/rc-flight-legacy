@@ -55,7 +55,7 @@ void fgfs_t::hard_error( const char *format, ... ) {
 
 void fgfs_t::init_airdata( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "airdata", true);
-    airdata_node = PropertyNode(output_path.c_str(), true);
+    airdata_node = PropertyNode( output_path.c_str() );
 }
 
 void fgfs_t::init_act( PropertyNode *config ) {
@@ -73,7 +73,7 @@ void fgfs_t::init_act( PropertyNode *config ) {
     }
     
     string output_path = get_next_path("/sensors", "gps", true);
-    gps_node = PropertyNode(output_path.c_str(), true);
+    gps_node = PropertyNode( output_path.c_str() );
 
     // open a UDP socket
     if ( ! sock_act.open( false ) ) {
@@ -120,7 +120,7 @@ void fgfs_t::init_imu( PropertyNode *config ) {
     }
         
     string output_path = get_next_path("/sensors", "imu", true);
-    imu_node = PropertyNode(output_path.c_str(), true);
+    imu_node = PropertyNode( output_path.c_str() );
     
     // open a UDP socket
     if ( ! sock_imu.open( false ) ) {
@@ -140,31 +140,31 @@ void fgfs_t::init_imu( PropertyNode *config ) {
 
 void fgfs_t::init( PropertyNode *config ) {
     printf("fgfs driver init config:\n");
-    act_node = PropertyNode("/actuators", true);
-    orient_node = PropertyNode("/orientation", true);
-    pos_node = PropertyNode("/position", true);
-    power_node = PropertyNode("/sensors/power", true);
+    act_node = PropertyNode( "/actuators" );
+    orient_node = PropertyNode( "/orientation" );
+    pos_node = PropertyNode( "/position" );
+    power_node = PropertyNode( "/sensors/power" );
     power_node.setDouble( "avionics_vcc", 5.05 ); // set initial fake value
-    route_node = PropertyNode("/task/route", true);    
-    targets_node = PropertyNode("/autopilot/targets", true);
+    route_node = PropertyNode( "/task/route" );    
+    targets_node = PropertyNode( "/autopilot/targets" );
     
     if ( config->hasChild("actuators") ) {
-        PropertyNode act_config = config->getChild("actuators");
+        PropertyNode act_config = config->getChild( "actuators" );
         init_act(&act_config);
     }        
     if ( config->hasChild("gps") ) {
-        PropertyNode gps_config = config->getChild("gps");
+        PropertyNode gps_config = config->getChild( "gps" );
         init_gps(&gps_config);
     }        
     if ( config->hasChild("imu") ) {
-        PropertyNode imu_config = config->getChild("imu");
+        PropertyNode imu_config = config->getChild( "imu" );
         init_imu(&imu_config);
-        PropertyNode airdata_config = config->getChild("airdata");
+        PropertyNode airdata_config = config->getChild( "airdata" );
         init_airdata(&airdata_config);
     }
     
     airdata_node.setDouble( "temp_degC", 15.0 ); // set initial fake value
-    PropertyNode specs_node = PropertyNode("/config/specs", true);
+    PropertyNode specs_node( "/config/specs" );
     if ( specs_node.hasChild("battery_cells") ) {
         battery_cells = specs_node.getInt("battery_cells");
         if ( battery_cells < 1 ) { battery_cells = 4; }

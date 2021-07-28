@@ -94,7 +94,7 @@ def init():
     global enable_udp
     
     global logging_node
-    logging_node = PropertyNode("/config/logging", True)
+    logging_node = PropertyNode("/config/logging")
 
     global log_path
     global udp_host
@@ -291,11 +291,11 @@ def log_imu_calibration( config ):
 # write several config files to the flight directory so that the data
 # can be paired with important configuration settings.
 def write_configs():
-    config = PropertyNode("/config", True)
+    config = PropertyNode("/config")
     file = os.path.join(flight_dir, 'master-config.json')
     config.save(file)
     
-    config = PropertyNode("/config/autopilot", True)
+    config = PropertyNode("/config/autopilot")
     file = os.path.join(flight_dir, 'ap-config.json')
     config.save(file)
 

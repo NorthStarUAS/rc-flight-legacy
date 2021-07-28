@@ -40,13 +40,13 @@ UGCAS::~UGCAS() {
 
 // bind property nodes
 void UGCAS::bind() {
-    config_node = PropertyNode("/config", true);
-    pilot_node = PropertyNode("/sensors/pilot_input", true);
-    cas_aileron_node = PropertyNode("/config/cas/aileron", true);
-    cas_elevator_node = PropertyNode("/config/cas/elevator", true);
-    targets_node = PropertyNode("/autopilot/targets", true);
-    flight_node = PropertyNode("/controls/flight", true);
-    engine_node = PropertyNode("/controls/engine", true);
+    config_node = PropertyNode( "/config" );
+    pilot_node = PropertyNode( "/sensors/pilot_input" );
+    cas_aileron_node = PropertyNode( "/config/cas/aileron" );
+    cas_elevator_node = PropertyNode( "/config/cas/elevator" );
+    targets_node = PropertyNode( "/autopilot/targets" );
+    flight_node = PropertyNode( "/controls/flight" );
+    engine_node = PropertyNode( "/controls/engine" );
 }
 
 // initialize CAS system

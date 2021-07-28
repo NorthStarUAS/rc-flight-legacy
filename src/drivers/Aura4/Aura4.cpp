@@ -53,9 +53,9 @@ void Aura4_t::hard_fail( const char *format, ... ) {
 
 void Aura4_t::init( PropertyNode *config ) {
     // bind main property nodes
-    aura4_node = PropertyNode("/sensors/Aura4", true);
-    power_node = PropertyNode("/sensors/power", true);
-    status_node = PropertyNode("/status", true);
+    aura4_node = PropertyNode( "/sensors/Aura4" );
+    power_node = PropertyNode( "/sensors/power" );
+    status_node = PropertyNode( "/status" );
     aura4_config = *config;
 
     printf("Aura4 driver init(): event logging broken!\n");
@@ -67,7 +67,7 @@ void Aura4_t::init( PropertyNode *config ) {
             pitot_calibrate = aura4_config.getDouble("pitot_calibrate_factor");
         }
 
-        PropertyNode specs_node = PropertyNode("/config/specs", true);
+        PropertyNode specs_node( "/config/specs" );
         if ( specs_node.hasChild("battery_cells") ) {
             battery_cells = specs_node.getInt("battery_cells");
         }
@@ -75,42 +75,42 @@ void Aura4_t::init( PropertyNode *config ) {
     }
     
     if ( config->hasChild("board") ) {
-        PropertyNode board_config = config->getChild("board");
+        PropertyNode board_config = config->getChild( "board" );
         open( &board_config );
     } else {
         hard_fail("no board defined\n");
     }
 
     if ( config->hasChild("airdata") ) {
-        PropertyNode airdata_config = config->getChild("airdata");
+        PropertyNode airdata_config = config->getChild( "airdata" );
         init_airdata( &airdata_config );
     } else {
         hard_fail("no airdata configuration\n");
     }
     
     if ( config->hasChild("ekf") ) {
-        PropertyNode ekf_config = config->getChild("ekf");
+        PropertyNode ekf_config = config->getChild( "ekf" );
         init_ekf( &ekf_config );
     } else {
         hard_fail("no ekf configuration\n");
     }
     
     if ( config->hasChild("gps") ) {
-        PropertyNode gps_config = config->getChild("gps");
+        PropertyNode gps_config = config->getChild( "gps" );
         init_gps( &gps_config );
     } else {
         hard_fail("no gps configuration\n");
     }
     
     if ( config->hasChild("imu") ) {
-        PropertyNode imu_config = config->getChild("imu");
+        PropertyNode imu_config = config->getChild( "imu" );
         init_imu( &imu_config );
     } else {
         hard_fail("no imu configuration\n");
     }
 
     if ( config->hasChild("pilot_input") ) {
-        PropertyNode pilot_config = config->getChild("pilot_input");
+        PropertyNode pilot_config = config->getChild( "pilot_input" );
         init_pilot( &pilot_config );
     } else {
         hard_fail("no pilot configuration\n");
@@ -147,7 +147,7 @@ bool Aura4_t::open( PropertyNode *config ) {
 
 void Aura4_t::init_airdata( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "airdata", true);
-    airdata_node = PropertyNode(output_path.c_str(), true);
+    airdata_node = PropertyNode( output_path.c_str() );
 }
 
 void Aura4_t::init_ekf( PropertyNode *config ) {
@@ -155,25 +155,25 @@ void Aura4_t::init_ekf( PropertyNode *config ) {
         string val = config->getString("select");
         if ( val == "nav15" or val == "nav15_mag" ) {
             string output_path = get_next_path("/filters", "filter", true);
-            ekf_node = PropertyNode(output_path.c_str(), true);
+            ekf_node = PropertyNode( output_path.c_str() );
         } else if ( val == "none" ) {
-            ekf_node = aura4_node.getChild("aura4_ekf_disabled", true);
+            ekf_node = aura4_node.getChild( "aura4_ekf_disabled" );
         } else {
             hard_fail("bad nav/ekf selection: %s", val.c_str());
         }
     } else {
-        ekf_node = aura4_node.getChild("aura4_ekf_disabled", true);
+        ekf_node = aura4_node.getChild( "aura4_ekf_disabled" );
     }
 }
 
 void Aura4_t::init_gps( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "gps", true);
-    gps_node = PropertyNode(output_path.c_str(), true);
+    gps_node = PropertyNode( output_path.c_str() );
 }
 
 void Aura4_t::init_imu( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "imu", true);
-    imu_node = PropertyNode(output_path.c_str(), true);
+    imu_node = PropertyNode( output_path.c_str() );
 
     // FIXME:
     // if ( config->hasChild("calibration") ) {
@@ -186,7 +186,7 @@ void Aura4_t::init_imu( PropertyNode *config ) {
 
 void Aura4_t::init_pilot( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "pilot_input", true);
-    pilot_node = PropertyNode(output_path.c_str(), true);
+    pilot_node = PropertyNode( output_path.c_str() );
     if ( config->hasChild("channel") ) {
 	for ( int i = 0; i < message::sbus_channels; i++ ) {
 	    pilot_mapping[i] = config->getString("channel", i);
@@ -197,7 +197,7 @@ void Aura4_t::init_pilot( PropertyNode *config ) {
 }
 
 void Aura4_t::init_actuators( PropertyNode *config ) {
-    act_node = PropertyNode("/actuators", true);
+    act_node = PropertyNode( "/actuators" );
 }
 
 bool Aura4_t::update_imu( message::imu_t *imu ) {
@@ -596,7 +596,7 @@ bool Aura4_t::send_config() {
 
     int count;
 
-    PropertyNode board_node = aura4_config.getChild("board", true);
+    PropertyNode board_node = aura4_config.getChild( "board" );
     string name = board_node.getString("name");
     if ( name == "marmot_v1" ) {
         config_board.board = 0;
@@ -609,14 +609,14 @@ bool Aura4_t::send_config() {
         config_board.led_pin = board_node.getInt("led_pin");
     }
 
-    PropertyNode power_node = aura4_config.getChild("power", true);
+    PropertyNode power_node = aura4_config.getChild( "power" );
     if ( power_node.hasChild("have_attopilot") ) {
         config_power.have_attopilot = power_node.getBool("have_attopilot");
     }
 
-    PropertyNode imu_node = aura4_config.getChild("imu", true);
+    PropertyNode imu_node = aura4_config.getChild( "imu" );
     if ( imu_node.hasChild("calibration") ) {
-        PropertyNode cal_node = imu_node.getChild("calibration");
+        PropertyNode cal_node = imu_node.getChild( "calibration" );
         if ( cal_node.hasChild("strapdown") ) {
             int len = cal_node.getLen("strapdown");
             if ( len == 9 ) {
@@ -660,7 +660,7 @@ bool Aura4_t::send_config() {
         }
     }
             
-    PropertyNode pwm_node = aura4_config.getChild("pwm", true);
+    PropertyNode pwm_node = aura4_config.getChild( "pwm" );
     config_pwm.pwm_hz = pwm_node.getInt("pwm_hz");
     info("pwm_hz = %d", config_pwm.pwm_hz);
     count = pwm_node.getLen("gains");
@@ -669,8 +669,8 @@ bool Aura4_t::send_config() {
         info("act_gain[%d] = %.2f", i, config_pwm.act_gain[i]);
     }
 
-    PropertyNode mixer_node = aura4_config.getChild("mixer");
-    count = mixer_node.getLen("mix");
+    PropertyNode mixer_node = aura4_config.getChild( "mixer" );
+    count = mixer_node.getLen( "mix" );
     if ( count ) {
 	for ( int i = 0; i < count; i++ ) {
 	    string mode = "";
@@ -678,7 +678,7 @@ bool Aura4_t::send_config() {
 	    float gain1 = 0.0;
 	    float gain2 = 0.0;
             string child_name = "mix/" + std::to_string(i);
-	    PropertyNode mix_node = mixer_node.getChild(child_name.c_str(), true);
+	    PropertyNode mix_node = mixer_node.getChild( child_name.c_str() );
 	    if ( mix_node.hasChild("enable") ) {
 		enable = mix_node.getBool("enable");
 	    }
@@ -721,7 +721,7 @@ bool Aura4_t::send_config() {
 	}
     }
 
-    PropertyNode stab_node = aura4_config.getChild("stability_damper");
+    PropertyNode stab_node = aura4_config.getChild( "stability_damper" );
     children = stab_node.getChildren(false);
     count = (int)children.size();
     for ( int i = 0; i < count; ++i ) {
@@ -753,7 +753,7 @@ bool Aura4_t::send_config() {
                 info("sas: %s %d %.2f", mode.c_str(), enable, gain);
 	    }
 	} else if ( children[i] == "pilot_tune" ) {
-	    PropertyNode stab_section = stab_node.getChild("pilot_tune");
+	    PropertyNode stab_section = stab_node.getChild( "pilot_tune" );
 	    if ( stab_section.hasChild("enable") ) {
 		config_stab.sas_tune = stab_section.getBool("enable");
 	    }
@@ -761,7 +761,7 @@ bool Aura4_t::send_config() {
 	}
     }
 
-    PropertyNode airdata_node = aura4_config.getChild("airdata");
+    PropertyNode airdata_node = aura4_config.getChild( "airdata" );
     if ( airdata_node.hasChild("barometer") ) {
         string baro = airdata_node.getString("barometer");
         if ( baro == "bme280" ) {
@@ -786,7 +786,7 @@ bool Aura4_t::send_config() {
     }
 
     if ( aura4_config.hasChild("ekf") ) {
-        PropertyNode ekf_node = aura4_config.getChild("ekf");
+        PropertyNode ekf_node = aura4_config.getChild( "ekf" );
         if ( ekf_node.hasChild("select") ) {
             string val = ekf_node.getString("select");
             if ( val == "none" ) {

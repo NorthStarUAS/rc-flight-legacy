@@ -11,7 +11,7 @@ from PropertyTree import PropertyNode
 
 def init():
     global status_node
-    status_node = PropertyNode("/status", True)
+    status_node = PropertyNode("/status")
 
 def update():
     load = os.getloadavg()

@@ -8,12 +8,11 @@ import mission.task.state
 class Preflight(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.task_node = PropertyNode("/task", True)
-        self.preflight_node = PropertyNode("/task/preflight", True)
-        self.targets_node = PropertyNode("/autopilot/targets", True)
-        self.imu_node = PropertyNode("/sensors/imu/0", True)
-        self.flight_node = PropertyNode("/controls/flight", True)
-        #self.saved_fcs_mode = ""
+        self.task_node = PropertyNode("/task")
+        self.preflight_node = PropertyNode("/task/preflight")
+        self.targets_node = PropertyNode("/autopilot/targets")
+        self.imu_node = PropertyNode("/sensors/imu/0")
+        self.flight_node = PropertyNode("/controls/flight")
         self.timer = 0.0
         self.duration_sec = 60.0
         self.name = config_node.getString("name")

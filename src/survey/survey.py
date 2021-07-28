@@ -12,9 +12,9 @@ import survey.area as area
 ft2m = 0.3048
 d2r = math.pi / 180.0
 
-wind_node = PropertyNode("/filters/wind", True)
-task_node = PropertyNode( '/task', True )
-targets_node = PropertyNode( '/autopilot/targets', True )
+wind_node = PropertyNode("/filters/wind")
+task_node = PropertyNode("/task")
+targets_node = PropertyNode("/autopilot/targets")
 
 def do_survey( request ):
     # validate the inputs

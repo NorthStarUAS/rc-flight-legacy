@@ -18,9 +18,9 @@ bool maestro_t::open( const char *device_name ) {
 }
 
 void maestro_t::init( PropertyNode *config ) {
-    act_node = PropertyNode("/actuators", true);
-    ap_node = PropertyNode("/autopilot", true);
-    pilot_node = PropertyNode("/sensors/pilot_input", true);
+    act_node = PropertyNode( "/actuators" );
+    ap_node = PropertyNode( "/autopilot" );
+    pilot_node = PropertyNode( "/sensors/pilot_input" );
     if ( config->hasChild("device") ) {
         string device = config->getString("device");
         if ( open(device.c_str()) ) {

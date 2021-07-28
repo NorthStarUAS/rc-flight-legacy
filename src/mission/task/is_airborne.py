@@ -9,10 +9,10 @@ from mission.task.task import Task
 class IsAirborne(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.pos_node = PropertyNode("/position", True)
-        self.vel_node = PropertyNode("/velocity", True)
-        self.task_node = PropertyNode("/task", True)
-        self.status_node = PropertyNode("/status", True)
+        self.pos_node = PropertyNode("/position")
+        self.vel_node = PropertyNode("/velocity")
+        self.task_node = PropertyNode("/task")
+        self.status_node = PropertyNode("/status")
         self.is_airborne = False
         self.off_alt_agl_ft = 0.0
         self.off_airspeed_kt = 0.0

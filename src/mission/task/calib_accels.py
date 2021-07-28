@@ -26,9 +26,9 @@ class CalibrateAccels(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.name = config_node.getString("name")
-        self.imu_node = PropertyNode("/sensors/imu/0", True)
-        self.config_imu_node = PropertyNode("/config/drivers/Aura4/imu", True)
-        self.task_node = PropertyNode("/task", True)
+        self.imu_node = PropertyNode("/sensors/imu/0")
+        self.config_imu_node = PropertyNode("/config/drivers/Aura4/imu")
+        self.task_node = PropertyNode("/task")
         self.state = 0
         self.ax_slow = LowPass(time_factor=1.0) 
         self.ax_fast = LowPass(time_factor=0.2) 
@@ -233,7 +233,7 @@ class CalibrateAccels(Task):
             std = np.std(errors)
             #print("calibration mean:", mean, " std:", std)
             self.state += 2
-            calib_node = self.config_imu_node.getChild("calibration", True)
+            calib_node = self.config_imu_node.getChild("calibration")
             calib_node.setLen("strapdown", 9)
             for i in range(9):
                 calib_node.setFloatEnum("strapdown", i, self.R[:3,:3].flatten()[i])

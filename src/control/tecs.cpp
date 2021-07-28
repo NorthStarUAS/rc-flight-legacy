@@ -48,11 +48,11 @@ static bool tecs_inited = false;
 static const float g = 9.81;
 
 static void init_tecs() {
-    pos_node = PropertyNode( "/position", true);
-    vel_node = PropertyNode( "/velocity", true);
-    targets_node = PropertyNode( "/autopilot/targets", true);
-    tecs_node = PropertyNode( "/autopilot/tecs", true);
-    tecs_config_node = PropertyNode( "/config/autopilot/TECS", true);
+    pos_node = PropertyNode( "/position" );
+    vel_node = PropertyNode( "/velocity" );
+    targets_node = PropertyNode( "/autopilot/targets" );
+    tecs_node = PropertyNode( "/autopilot/tecs" );
+    tecs_config_node = PropertyNode( "/config/autopilot/TECS" );
 
     // quick sanity check
     if ( tecs_config_node.getFloat("mass_kg") < 0.01 ) {

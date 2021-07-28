@@ -8,7 +8,7 @@ using std::ostringstream;
 #include "props_helper.h"
 
 string get_next_path( const char *path, const char *base, bool primary ) {
-    PropertyNode node = PropertyNode(path, true);
+    PropertyNode node( path );
     int len = node.getLen(base);
     string output_path = (string)path + "/" + base + "/";
     if ( primary ) {

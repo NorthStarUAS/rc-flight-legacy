@@ -18,7 +18,7 @@ bool lightware_t::open( const char *device_name ) {
 }
 
 void lightware_t::init( PropertyNode *config ) {
-    pos_node = PropertyNode("/position", true);
+    pos_node = PropertyNode( "/position" );
     if ( config->hasChild("device") ) {
         string device = config->getString("device");
         if ( open(device.c_str()) ) {

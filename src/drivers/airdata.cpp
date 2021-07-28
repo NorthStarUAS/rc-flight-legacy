@@ -24,15 +24,15 @@ using std::string;
 void airdata_helper_t::init(DocPointerWrapper d) {
     PropertyNode("/").set_Document(d);
     
-    airdata_node = PropertyNode("/sensors/airdata", true);
-    sensors_node = PropertyNode("/sensors", true);
-    pos_filter_node = PropertyNode("/position/filter", true);
-    pos_pressure_node = PropertyNode("/position/pressure", true);
-    pos_combined_node = PropertyNode("/position/combined", true);
-    status_node = PropertyNode("/status", true);
-    task_node = PropertyNode("/task", true);
-    vel_node = PropertyNode("/velocity", true);
-    wind_node = PropertyNode("/filters/wind", true);
+    airdata_node = PropertyNode( "/sensors/airdata" );
+    sensors_node = PropertyNode( "/sensors" );
+    pos_filter_node = PropertyNode( "/position/filter/0" );
+    pos_pressure_node = PropertyNode( "/position/pressure" );
+    pos_combined_node = PropertyNode( "/position/combined" );
+    status_node = PropertyNode( "/status" );
+    task_node = PropertyNode( "/task" );
+    vel_node = PropertyNode( "/velocity" );
+    wind_node = PropertyNode( "/filters/wind" );
 }
 
 // 1. ground altitude, 2. error between pressure altitude and gps altitude
@@ -168,8 +168,8 @@ void airdata_helper_t::update() {
     //        pressure_alt_filt, navpacket.alt, true_alt_m, climb_filt.get_value());
 
 #if 0
-    // experimental section ... try to estimate thermal activity ...
-    static SGPropertyNode *throttle = PropertyNode("/controls/engine/throttle", true);
+    // experimental section ... estimate thermal activity ... ?
+    static PropertyNode *throttle = PropertyNode("/controls/engine/throttle");
     static double sum_x = 0.0;
     static double sum_y = 0.0;
     static double sum_x2 = 0.0;

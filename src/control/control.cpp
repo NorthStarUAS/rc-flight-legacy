@@ -33,11 +33,11 @@ void control_t::init(DocPointerWrapper d) {
     // initialize the autopilot class and build the structures from the
     // configuration file values
 
-    status_node = PropertyNode( "/status", true );
-    ap_node = PropertyNode( "/autopilot", true );
-    pilot_node = PropertyNode("/sensors/pilot_input", true);
-    flight_node = PropertyNode("/controls/flight", true);
-    engine_node = PropertyNode("/controls/engine", true);
+    status_node = PropertyNode( "/status" );
+    ap_node = PropertyNode( "/autopilot" );
+    pilot_node = PropertyNode( "/sensors/pilot_input" );
+    flight_node = PropertyNode( "/controls/flight" );
+    engine_node = PropertyNode( "/controls/engine" );
 
     // initialize and build the autopilot controller from the property
     // tree config (/config/autopilot)

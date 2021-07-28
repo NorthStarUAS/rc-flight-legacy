@@ -12,16 +12,16 @@ import comms.serial_parser
 
 import survey.survey
 
-status_node = PropertyNode( '/status', True)
-route_node = PropertyNode( '/task/route', True )
-task_node = PropertyNode( '/task', True )
-home_node = PropertyNode( '/task/home', True )
-active_node = PropertyNode("/task/route/active", True)
-targets_node = PropertyNode( '/autopilot/targets', True )
-comms_node = PropertyNode( '/comms', True)
+status_node = PropertyNode("/status")
+route_node = PropertyNode("/task/route")
+task_node = PropertyNode("/task")
+home_node = PropertyNode("/task/home")
+active_node = PropertyNode("/task/route/active")
+targets_node = PropertyNode("/autopilot/targets")
+comms_node = PropertyNode("/comms")
 
-remote_link_config = PropertyNode('/config/remote_link', True)
-remote_link_node = PropertyNode('/comms/remote_link', True)
+remote_link_config = PropertyNode("/config/remote_link")
+remote_link_node = PropertyNode("/comms/remote_link")
 
 remote_link_on = False    # link to remote operator station
 ser = None
@@ -80,17 +80,17 @@ def init():
             parser = comms.serial_parser.serial_parser()
             link_open = True
         except Exception as e:
-            print('Opening remote link failed:', device)
+            print("Opening remote link failed:", device)
             print(e)
             print("sleeping 1 ...")
             time.sleep(1)
 
-    if comms_node.getBool('display_on'):
-        print('remote link:', device)
+    if comms_node.getBool("display_on"):
+        print("remote link:", device)
 
-    remote_link_node.setInt('sequence_num', 0)
-    if not remote_link_config.getInt('write_bytes_per_frame'):
-        remote_link_config.setInt('write_bytes_per_frame', 12)
+    remote_link_node.setInt("sequence_num", 0)
+    if not remote_link_config.getInt("write_bytes_per_frame"):
+        remote_link_config.setInt("write_bytes_per_frame", 12)
 
 # write as many bytes out of the serial_buf to the uart as the
 # driver will accept.
@@ -102,7 +102,7 @@ def flush_serial():
 
     # write a constrained chunk of available bytes per frame to avoid
     # overflowing the system serial port buffer
-    bytes_per_frame = remote_link_config.getInt('write_bytes_per_frame')
+    bytes_per_frame = remote_link_config.getInt("write_bytes_per_frame")
     write_len = len(serial_buf)
     if write_len > bytes_per_frame:
         write_len = bytes_per_frame
@@ -110,7 +110,7 @@ def flush_serial():
         bytes_written = ser.write( serial_buf[:write_len] )
         # print("avail = %d  written = %d" % (len(serial_buf), bytes_written))
         if bytes_written < 0:
-            # perror('serial write')
+            # perror("serial write")
             pass
         elif bytes_written == 0:
             # nothing was written
@@ -133,8 +133,8 @@ def send_message( pkt_id, payload ):
         serial_buf.extend(msg)
         return True
     else:
-        if comms_node.getBool('display_on'):
-            print('remote link serial buffer overflow, size:', len(serial_buf), 'add:', len(msg), 'limit:', max_serial_buffer)
+        if comms_node.getBool("display_on"):
+            print("remote link serial buffer overflow, size:", len(serial_buf), "add:", len(msg), "limit:", max_serial_buffer)
         return False
 
 # build messages and send them as needed
@@ -213,114 +213,114 @@ def execute_command( command ):
     global route_request
     global survey_request
 
-    if command == '':
+    if command == "":
         # no valid tokens
         return
 
-    tokens = command.split(',')
-    if tokens[0] == 'hb' and len(tokens) == 1:
+    tokens = command.split(",")
+    if tokens[0] == "hb" and len(tokens) == 1:
         # heart beat, no action needed
         pass
-    elif tokens[0] == 'home' and len(tokens) == 5:
+    elif tokens[0] == "home" and len(tokens) == 5:
         # specify new home location
         lon = float( tokens[1] )
         lat = float( tokens[2] )
         # alt_ft = float( tokens[3] )
         azimuth_deg = float( tokens[4] )
-        home_node.setDouble( 'longitude_deg', lon )
-        home_node.setDouble( 'latitude_deg', lat )
-        home_node.setFloat( 'azimuth_deg', azimuth_deg )
-        home_node.setBool( 'valid', True )
-    elif tokens[0] == 'route' and len(tokens) >= 5:
+        home_node.setDouble( "longitude_deg", lon )
+        home_node.setDouble( "latitude_deg", lat )
+        home_node.setFloat( "azimuth_deg", azimuth_deg )
+        home_node.setBool( "valid", True )
+    elif tokens[0] == "route" and len(tokens) >= 5:
         route_request = tokens[1:]
-    elif tokens[0] == 'route_cont' and len(tokens) >= 5:
+    elif tokens[0] == "route_cont" and len(tokens) >= 5:
         route_request += tokens[1:]
-    elif tokens[0] == 'route_end' and len(tokens) == 1:
-        route_node.setString( 'route_request', ','.join(route_request) )
-        task_node.setString( 'command', 'route' )
-    elif tokens[0] == 'survey_start' and len(tokens) == 7:
+    elif tokens[0] == "route_end" and len(tokens) == 1:
+        route_node.setString( "route_request", ",".join(route_request) )
+        task_node.setString( "command", "route" )
+    elif tokens[0] == "survey_start" and len(tokens) == 7:
         for i, tok in enumerate(tokens):
-            if tokens[i] == 'undefined':
+            if tokens[i] == "undefined":
                 tokens[i] = 0.0
-        survey_request['agl_ft'] = float( tokens[1] )
-        survey_request['extend_m'] = float( tokens[2] )
-        survey_request['overlap_perc'] = float( tokens[3] )
-        survey_request['sidelap_perc'] = float( tokens[4] )
-        survey_request['forward_fov'] = float( tokens[5] )
-        survey_request['lateral_fov'] = float( tokens[6] )
-        survey_request['area'] = []
-    elif tokens[0] == 'survey_cont' and len(tokens) > 2:
+        survey_request["agl_ft"] = float( tokens[1] )
+        survey_request["extend_m"] = float( tokens[2] )
+        survey_request["overlap_perc"] = float( tokens[3] )
+        survey_request["sidelap_perc"] = float( tokens[4] )
+        survey_request["forward_fov"] = float( tokens[5] )
+        survey_request["lateral_fov"] = float( tokens[6] )
+        survey_request["area"] = []
+    elif tokens[0] == "survey_cont" and len(tokens) > 2:
         for i in range(1, len(tokens), 2):
             wpt = ( float(tokens[i]), float(tokens[i+1]) )
-            survey_request['area'].append( wpt )            
-    elif tokens[0] == 'survey_end' and len(tokens) == 1:
+            survey_request["area"].append( wpt )            
+    elif tokens[0] == "survey_end" and len(tokens) == 1:
         survey.survey.do_survey(survey_request)
-    elif tokens[0] == 'task' and len(tokens) > 1:
-        task_node.setString( 'command', ",".join(tokens[1:]) )
-    elif tokens[0] == 'ap' and len(tokens) == 3:
+    elif tokens[0] == "task" and len(tokens) > 1:
+        task_node.setString( "command", ",".join(tokens[1:]) )
+    elif tokens[0] == "ap" and len(tokens) == 3:
         # specify an autopilot target
-        if tokens[1] == 'agl-ft':
+        if tokens[1] == "agl-ft":
             agl_ft = float( tokens[2] )
-            targets_node.setFloat( 'altitude_agl_ft', agl_ft )
-        elif tokens[1] == 'msl-ft':
+            targets_node.setFloat( "altitude_agl_ft", agl_ft )
+        elif tokens[1] == "msl-ft":
             msl_ft = float( tokens[2] )
-            targets_node.setFloat( 'target_msl_ft', msl_ft )
-        elif tokens[1] == 'speed-kt':
+            targets_node.setFloat( "target_msl_ft", msl_ft )
+        elif tokens[1] == "speed-kt":
             speed_kt = float( tokens[2] )
-            targets_node.setFloat( 'airspeed_kt', speed_kt )
-    elif tokens[0] == 'fcs-update':
+            targets_node.setFloat( "airspeed_kt", speed_kt )
+    elif tokens[0] == "fcs-update":
         decode_fcs_update( command )
-    elif tokens[0] == 'get' and len(tokens) == 2:
+    elif tokens[0] == "get" and len(tokens) == 2:
         # absolute path
-        parts = tokens[1].split('/')
-        node_path = '/'.join(parts[0:-1])
-        if node_path == '':
-            node_path = '/'
-        node = PropertyNode(node_path, True)
+        parts = tokens[1].split("/")
+        node_path = "/".join(parts[0:-1])
+        if node_path == "":
+            node_path = "/"
+        node = PropertyNode(node_path)
         name = parts[-1]
         value = node.getString(name)
-        if value == '': value = 'undefined'
-        # print tokens[0], '=', value
-        return_msg = 'get: %s,%s' % (tokens[1], value)
+        if value == "": value = "undefined"
+        # print tokens[0], "=", value
+        return_msg = "get: %s,%s" % (tokens[1], value)
         event = aura_messages.event_v2()
         event.message = return_msg
         buf = event.pack()
         send_message(event.id, buf)
-        comms.events.log('get', '%s,%s' % (tokens[1], value))
-    elif tokens[0] == 'set' and len(tokens) >= 3:
-        if tokens[1][0] == '/':
+        comms.events.log("get", "%s,%s" % (tokens[1], value))
+    elif tokens[0] == "set" and len(tokens) >= 3:
+        if tokens[1][0] == "/":
             # absolute path
-            parts = tokens[1].split('/')
-            node_path = '/'.join(parts[0:-1])
-            if node_path == '':
-                node_path = '/'
-            node = PropertyNode(node_path, True)
+            parts = tokens[1].split("/")
+            node_path = "/".join(parts[0:-1])
+            if node_path == "":
+                node_path = "/"
+            node = PropertyNode(node_path)
             name = parts[-1]
-            value = ' '.join(tokens[2:])
+            value = " ".join(tokens[2:])
             done = False
             # test for int
             if not done:
-                result = re.match('[-+]?\d+', value)
+                result = re.match("[-+]?\d+", value)
                 if result and result.group(0) == value:
-                    print('int:', value)
+                    print("int:", value)
                     node.setInt(name, int(value))
                     done = True
             # test for float
             if not done:
-                result = re.match('[-+]?\d*\.\d+', value)
+                result = re.match("[-+]?\d*\.\d+", value)
                 if result and result.group(0) == value:
-                    print('float:', value)
+                    print("float:", value)
                     node.setFloat(name, float(value))
                     done = True
             # test for bool
             if not done:
-                if value == 'True' or value == 'true':
-                    print('bool:', True)
+                if value == "True" or value == "true":
+                    print("bool:", True)
                     node.setBool(name, True)
                     done = True
             if not done:
-                if value == 'False' or value == 'false':
-                    print('bool:', False)
+                if value == "False" or value == "false":
+                    print("bool:", False)
                     node.setBool(name, False)
                     done = True
             # fall back to string
@@ -329,46 +329,46 @@ def execute_command( command ):
         else:
             # expecting a full path name to set
             pass
-    elif tokens[0] == 'la' and len(tokens) == 5:
-        if tokens[1] == 'ned':
+    elif tokens[0] == "la" and len(tokens) == 5:
+        if tokens[1] == "ned":
 	    # set ned-vector lookat mode
-            point_node = PropertyNode('/pointing', True)
-            point_node.setString('lookat_mode', 'ned_vector')
+            point_node = PropertyNode("/pointing")
+            point_node.setString("lookat_mode", "ned_vector")
 	    # specify new lookat ned coordinates
-            vector_node = PropertyNode('/pointing/vector', True)
+            vector_node = PropertyNode("/pointing/vector")
             north = float( tokens[2] )
             east = float( tokens[3] )
             down = float( tokens[4] )
-            vector_node.setFloat( 'north', north )
-            vector_node.setFloat( 'east', east )
-            vector_node.setFloat( 'down', down )
-        elif tokens[1] == 'wgs84':
+            vector_node.setFloat( "north", north )
+            vector_node.setFloat( "east", east )
+            vector_node.setFloat( "down", down )
+        elif tokens[1] == "wgs84":
             # set wgs84 lookat mode
-            point_node = PropertyNode('/pointing', True)
-            point_node.setString('lookat_mode', 'wgs84')
+            point_node = PropertyNode("/pointing")
+            point_node.setString("lookat_mode", "wgs84")
             # specify new lookat ned coordinates
-            wgs84_node = PropertyNode('/pointing/wgs84', True)
-            pos_node = PropertyNode('/position', True)
+            wgs84_node = PropertyNode("/pointing/wgs84")
+            pos_node = PropertyNode("/position")
             lon = float( tokens[2] )
             lat = float( tokens[3] )
-            wgs84_node.setDouble( 'longitude_deg', lon )
-            wgs84_node.setDouble( 'latitude_deg', lat )
-            ground = pos_node.getFloat('altitude_ground_m')
-            wgs84_node.setFloat( 'altitude_m', ground )
+            wgs84_node.setDouble( "longitude_deg", lon )
+            wgs84_node.setDouble( "latitude_deg", lat )
+            ground = pos_node.getFloat("altitude_ground_m")
+            wgs84_node.setFloat( "altitude_m", ground )
 
 def read_link_command():
     global ser
     
     if parser == None:
         # remote link open failed
-        return -1, ''
+        return -1, ""
     
     pkt_id = parser.read(ser)
     if pkt_id == aura_messages.command_v1_id:
         cmd = aura_messages.command_v1(parser.payload)
         return cmd.sequence_num, cmd.message
     else:
-        return -1, ''
+        return -1, ""
 
 
 # read, parse, and execute incomming commands, return True if a valid
@@ -384,54 +384,54 @@ def command():
     # ignore repeated commands (including roll over logic)
     if sequence_num != last_sequence_num:
 	# execute command
-        comms.events.log( 'remote command',
+        comms.events.log( "remote command",
                           "executed: (%d) %s" % (sequence_num, command) )
         execute_command( command )
 
-        # register that we've received this message correctly
-        remote_link_node.setInt( 'sequence_num', sequence_num )
+        # register that we"ve received this message correctly
+        remote_link_node.setInt( "sequence_num", sequence_num )
         last_sequence_num = sequence_num
-        timestamp = status_node.getDouble('frame_time')
-        remote_link_node.setDouble( 'last_message_sec', timestamp )
+        timestamp = status_node.getDouble("frame_time")
+        remote_link_node.setDouble( "last_message_sec", timestamp )
 
     return True
 
 def decode_fcs_update(command):
-    tokens = command.split(',')
+    tokens = command.split(",")
 
     # valid sizes will be 7 or 10 at this point
-    if tokens[0] == 'fcs-update' and len(tokens) >= 7:
+    if tokens[0] == "fcs-update" and len(tokens) >= 7:
         # remove initial keyword if it exists
         del tokens[0]
 
-    ap_config = PropertyNode( '/config/autopilot', True )
+    ap_config = PropertyNode("/config/autopilot")
 
     i = int(tokens[0])
-    component = ap_config.getChild('component[%d]' % i)
+    component = ap_config.getChild("component[%d]" % i)
     if not component:
         return False
 
-    config = component.getChild('config')
+    config = component.getChild("config")
     if not config:
         return False
 
     if len(tokens) == 7:
-        config.setFloat( 'Kp', float(tokens[1]) )
-        config.setFloat( 'Ti', float(tokens[2]) )
-        config.setFloat( 'Td', float(tokens[3]) )
-        config.setFloat( 'u_min', float(tokens[4]) )
-        config.setFloat( 'u_max', float(tokens[5]) )
-        config.setFloat( 'u_trim', float(tokens[6]) )
+        config.setFloat( "Kp", float(tokens[1]) )
+        config.setFloat( "Ti", float(tokens[2]) )
+        config.setFloat( "Td", float(tokens[3]) )
+        config.setFloat( "u_min", float(tokens[4]) )
+        config.setFloat( "u_max", float(tokens[5]) )
+        config.setFloat( "u_trim", float(tokens[6]) )
     elif len(tokens) == 10:
-        config.setFloat( 'Kp', float(tokens[1]) )
-        config.setFloat( 'beta', float(tokens[2]) )
-        config.setFloat( 'alpha', float(tokens[3]) )
-        config.setFloat( 'gamma', float(tokens[4]) )
-        config.setFloat( 'Ti', float(tokens[5]) )
-        config.setFloat( 'Td', float(tokens[6]) )
-        config.setFloat( 'u_min', float(tokens[7]) )
-        config.setFloat( 'u_max', float(tokens[8]) )
-        config.setFloat( 'u_trim', float(tokens[6]) )
+        config.setFloat( "Kp", float(tokens[1]) )
+        config.setFloat( "beta", float(tokens[2]) )
+        config.setFloat( "alpha", float(tokens[3]) )
+        config.setFloat( "gamma", float(tokens[4]) )
+        config.setFloat( "Ti", float(tokens[5]) )
+        config.setFloat( "Td", float(tokens[6]) )
+        config.setFloat( "u_min", float(tokens[7]) )
+        config.setFloat( "u_max", float(tokens[8]) )
+        config.setFloat( "u_trim", float(tokens[6]) )
     else:
         return False
 

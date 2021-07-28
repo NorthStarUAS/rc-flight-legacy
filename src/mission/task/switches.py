@@ -40,7 +40,7 @@ class Switch():
         if switch_node.hasChild("input"):
             prop_name = switch_node.getString("input")
             (input_path, self.input_name) = os.path.split(prop_name)
-            self.input_node = PropertyNode(input_path, True)
+            self.input_node = PropertyNode(input_path)
             print("  input_path:", prop_name)
         else:
             self.valid = False
@@ -48,7 +48,7 @@ class Switch():
         if switch_node.hasChild("output"):
             prop_name = switch_node.getString("output")
             (output_path, self.output_name) = os.path.split(prop_name)
-            self.output_node = PropertyNode(output_path, True)
+            self.output_node = PropertyNode(output_path)
             print("  output_path:", prop_name)
         elif self.output_type == 'choice':
             # ok with no output prop
@@ -66,11 +66,11 @@ class Switch():
                     output = switch_node.getString('outputs', i)
                     print('    output:', output)
                     (node_name, key_name) = os.path.split(output)
-                    self.choice_nodes.append( PropertyNode(node_name, True) )
+                    self.choice_nodes.append( PropertyNode(node_name) )
                     self.choice_keys.append( key_name )
             else:
                 self.states = 1
-                self.choice_nodes.append( PropertyNode("autopilot", True) )
+                self.choice_nodes.append( PropertyNode("autopilot") )
                 self.choice_keys.append( 'switch_config_error' )
                 
         self.enums = []
@@ -153,7 +153,7 @@ class Switches(Task):
         self.name = config_node.getString("name")
         num = config_node.getLen("switch")
         for i in range(num):
-            switch = Switch(config_node.getChild("switch/%d" % i, True))
+            switch = Switch(config_node.getChild("switch/%d" % i))
             #print switch.__dict__
             self.switches.append(switch)        
 

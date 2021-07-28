@@ -5,7 +5,7 @@ from PropertyTree import PropertyNode
 import control.circle as circle
 import control.route as route
 
-nav_node = PropertyNode("/navigation", True)
+nav_node = PropertyNode("/navigation")
 
 def init():
     circle.init()

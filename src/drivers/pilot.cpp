@@ -21,10 +21,10 @@ namespace py = pybind11;
 void pilot_helper_t::init(DocPointerWrapper d) {
     PropertyNode("/").set_Document(d);
 
-    pilot_node = PropertyNode("/sensors/pilot_input", true);
-    flight_node = PropertyNode("/controls/flight", true);
-    engine_node = PropertyNode("/controls/engine", true);
-    ap_node = PropertyNode("/autopilot", true);
+    pilot_node = PropertyNode( "/sensors/pilot_input" );
+    flight_node = PropertyNode( "/controls/flight" );
+    engine_node = PropertyNode( "/controls/engine" );
+    ap_node = PropertyNode( "/autopilot" );
 }
 
 void pilot_helper_t::update() {

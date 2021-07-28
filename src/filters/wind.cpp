@@ -20,12 +20,12 @@ static LowPassFilter pitot_scale_filt( 30.0 );
 
 // initialize wind estimator variables
 void init_wind() {
-    airdata_node = PropertyNode("/sensors/airdata", true);
-    filter_node = PropertyNode("/filters/filter", true);
-    orient_node = PropertyNode("/orientation", true);
-    task_node = PropertyNode("/task", true);
-    vel_node = PropertyNode("/velocity", true);
-    wind_node = PropertyNode("/filters/wind", true);
+    airdata_node = PropertyNode( "/sensors/airdata" );
+    filter_node = PropertyNode( "/filters/filter" );
+    orient_node = PropertyNode( "/orientation" );
+    task_node = PropertyNode( "/task" );
+    vel_node = PropertyNode( "/velocity" );
+    wind_node = PropertyNode( "/filters/wind" );
     
     wind_node.setFloat( "pitot_scale_factor", 1.0 );
 

@@ -14,9 +14,9 @@ static bool ground_alt_calibrated = false;
 
 // initialize ground estimator variables
 void init_ground() {
-    filter_node = PropertyNode("/filters/filter", true);
-    pos_filter_node = PropertyNode("/position/filter", true);
-    task_node = PropertyNode("/task", true);
+    filter_node = PropertyNode( "/filters/filter" );
+    pos_filter_node = PropertyNode( "/position/filter" );
+    task_node = PropertyNode( "/task" );
 }
 
 void update_ground(double dt) {

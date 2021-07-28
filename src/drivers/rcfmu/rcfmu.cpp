@@ -56,9 +56,9 @@ void rcfmu_t::hard_fail( const char *format, ... ) {
 
 void rcfmu_t::init( PropertyNode *config ) {
     // bind main property nodes
-    aura4_node = PropertyNode("/sensors/rcfmu", true);
-    power_node = PropertyNode("/sensors/power", true);
-    status_node = PropertyNode("/status", true);
+    aura4_node = PropertyNode( "/sensors/rcfmu" );
+    power_node = PropertyNode( "/sensors/power" );
+    status_node = PropertyNode( "/status" );
     aura4_config = *config;
 
     printf("rcfmu driver init(): event logging broken!\n");
@@ -70,7 +70,7 @@ void rcfmu_t::init( PropertyNode *config ) {
             pitot_calibrate = aura4_config.getFloat("pitot_calibrate_factor");
         }
 
-        PropertyNode specs_node = PropertyNode("/config/specs", true);
+        PropertyNode specs_node( "/config/specs" );
         if ( specs_node.hasChild("battery_cells") ) {
             battery_cells = specs_node.getInt("battery_cells");
         }
@@ -78,42 +78,42 @@ void rcfmu_t::init( PropertyNode *config ) {
     }
 
     if ( config->hasChild("board") ) {
-        PropertyNode board_config = config->getChild("board");
+        PropertyNode board_config = config->getChild( "board" );
         open( &board_config );
     } else {
         hard_fail("no board defined\n");
     }
     
     if ( config->hasChild("airdata") ) {
-        PropertyNode airdata_config = config->getChild("airdata");
+        PropertyNode airdata_config = config->getChild( "airdata" );
         init_airdata( &airdata_config );
     } else {
         hard_fail("no airdata configuration\n");
     }
     
     if ( config->hasChild("ekf") ) {
-        PropertyNode ekf_config = config->getChild("ekf");
+        PropertyNode ekf_config = config->getChild( "ekf" );
         init_ekf( &ekf_config );
     } else {
         hard_fail("no ekf configuration\n");
     }
     
     if ( config->hasChild("gps") ) {
-        PropertyNode gps_config = config->getChild("gps");
+        PropertyNode gps_config = config->getChild( "gps" );
         init_gps( &gps_config );
     } else {
         hard_fail("no gps configuration\n");
     }
     
     if ( config->hasChild("imu") ) {
-        PropertyNode imu_config = config->getChild("imu");
+        PropertyNode imu_config = config->getChild( "imu" );
         init_imu( &imu_config );
     } else {
         hard_fail("no imu configuration\n");
     }
 
     if ( config->hasChild("pilot_input") ) {
-        PropertyNode pilot_config = config->getChild("pilot_input");
+        PropertyNode pilot_config = config->getChild( "pilot_input" );
         init_pilot( &pilot_config );
     } else {
         hard_fail("no pilot configuration\n");
@@ -150,7 +150,7 @@ bool rcfmu_t::open( PropertyNode *config ) {
 
 void rcfmu_t::init_airdata( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "airdata", true);
-    airdata_node = PropertyNode(output_path.c_str(), true);
+    airdata_node = PropertyNode( output_path.c_str() );
 }
 
 void rcfmu_t::init_ekf( PropertyNode *config ) {
@@ -158,29 +158,31 @@ void rcfmu_t::init_ekf( PropertyNode *config ) {
         string val = config->getString("select");
         if ( val == "nav15" or val == "nav15_mag" ) {
             string output_path = get_next_path("/filters", "filter", true);
-            ekf_node = PropertyNode(output_path.c_str(), true);
+            ekf_node = PropertyNode( output_path.c_str() );
         } else if ( val == "none" ) {
-            ekf_node = aura4_node.getChild("aura4_ekf_disabled", true);
+            // FIXME
+            ekf_node = aura4_node.getChild( "aura4_ekf_disabled" );
         } else {
             hard_fail("bad nav/ekf selection: %s", val.c_str());
         }
     } else {
-        ekf_node = aura4_node.getChild("aura4_ekf_disabled", true);
+        // FIXME
+        ekf_node = aura4_node.getChild( "aura4_ekf_disabled" );
     }
 }
 
 void rcfmu_t::init_gps( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "gps", true);
-    gps_node = PropertyNode(output_path.c_str(), true);
+    gps_node = PropertyNode( output_path.c_str() );
 }
 
 void rcfmu_t::init_imu( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "imu", true);
-    imu_node = PropertyNode(output_path.c_str(), true);
+    imu_node = PropertyNode( output_path.c_str() );
 
     // FIXME:
     // if ( config->hasChild("calibration") ) {
-    //     PropertyNode cal = config->getChild("calibration");
+    //     PropertyNode cal = config->getChild( "calibration" );
     //     // save the imu calibration parameters with the data file so that
     //     // later the original raw sensor values can be derived.
     //     write_imu_calibration( &cal );
@@ -189,7 +191,7 @@ void rcfmu_t::init_imu( PropertyNode *config ) {
 
 void rcfmu_t::init_pilot( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "pilot_input", true);
-    pilot_node = PropertyNode(output_path.c_str(), true);
+    pilot_node = PropertyNode( output_path.c_str() );
     if ( config->hasChild("channel") ) {
 	for ( int i = 0; i < rcfmu_message::sbus_channels; i++ ) {
 	    pilot_mapping[i] = config->getString("channel", i);
@@ -200,7 +202,7 @@ void rcfmu_t::init_pilot( PropertyNode *config ) {
 }
 
 void rcfmu_t::init_actuators( PropertyNode *config ) {
-    act_node = PropertyNode("/actuators", true);
+    act_node = PropertyNode( "/actuators" );
 }
 
 bool rcfmu_t::update_imu( rcfmu_message::imu_t *imu ) {

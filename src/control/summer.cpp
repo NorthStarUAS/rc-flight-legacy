@@ -26,11 +26,11 @@ AuraSummer::AuraSummer ( string config_path )
 {
     size_t pos;
 
-    component_node = PropertyNode(config_path);
+    component_node = PropertyNode( config_path );
     vector <string> children;
     
     // enable
-    PropertyNode node = component_node.getChild( "enable", true );
+    PropertyNode node = component_node.getChild( "enable" );
     children = node.getChildren();
     printf("enables: %d prop(s)\n", children.size());
     for ( unsigned int i = 0; i < children.size(); ++i ) {
@@ -41,7 +41,7 @@ AuraSummer::AuraSummer ( string config_path )
 	    if ( pos != string::npos ) {
 		string path = enable_prop.substr(0, pos);
 		string attr = enable_prop.substr(pos+1);
-		PropertyNode en_node = PropertyNode( path, true );
+		PropertyNode en_node( path );
 		enables_node.push_back( en_node );
 		enables_attr.push_back( attr );
 	    } else {
@@ -55,7 +55,7 @@ AuraSummer::AuraSummer ( string config_path )
     }
     
     // input
-    node = component_node.getChild( "input", true );
+    node = component_node.getChild( "input" );
     children = node.getChildren();
     for ( unsigned int i = 0; i < children.size(); ++i ) {
 	if ( children[i].substr(0,4) == "prop" ) {
@@ -64,7 +64,7 @@ AuraSummer::AuraSummer ( string config_path )
 	    if ( pos != string::npos ) {
 		string path = input_prop.substr(0, pos);
 		string attr = input_prop.substr(pos+1);
-		PropertyNode onode = PropertyNode( path, true );
+		PropertyNode onode( path );
 		input_node.push_back( onode );
 		input_attr.push_back( attr );
 	    } else {
@@ -78,7 +78,7 @@ AuraSummer::AuraSummer ( string config_path )
     }
 
     // output
-    node = component_node.getChild( "output", true );
+    node = component_node.getChild( "output" );
     children = node.getChildren();
     for ( unsigned int i = 0; i < children.size(); ++i ) {
 	if ( children[i].substr(0,4) == "prop" ) {
@@ -87,7 +87,7 @@ AuraSummer::AuraSummer ( string config_path )
 	    if ( pos != string::npos ) {
 		string path = output_prop.substr(0, pos);
 		string attr = output_prop.substr(pos+1);
-		PropertyNode onode = PropertyNode( path, true );
+		PropertyNode onode( path );
 		output_node.push_back( onode );
 		output_attr.push_back( attr );
 	    } else {
@@ -101,7 +101,7 @@ AuraSummer::AuraSummer ( string config_path )
     }
     
     // config
-    config_node = component_node.getChild( "config", true );
+    config_node = component_node.getChild( "config" );
 }
 
 void AuraSummer::reset() {

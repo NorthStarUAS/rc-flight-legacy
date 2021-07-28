@@ -86,9 +86,9 @@ class CalibrateMagnetometer(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.name = config_node.getString("name")
-        self.imu_node = PropertyNode("/sensors/imu/0", True)
-        self.config_imu_node = PropertyNode("/config/drivers/Aura4/imu", True)
-        self.task_calib_node = PropertyNode("/task/calibrate", True)
+        self.imu_node = PropertyNode("/sensors/imu/0")
+        self.config_imu_node = PropertyNode("/config/drivers/Aura4/imu")
+        self.task_calib_node = PropertyNode("/task/calibrate")
         self.state = 0
         self.armed = False
         self.samples = []
@@ -245,7 +245,7 @@ class CalibrateMagnetometer(Task):
             print("y range:", np.min(mapped[:,1]), np.max(mapped[:,1]))
             print("z range:", np.min(mapped[:,2]), np.max(mapped[:,2]))
             self.state += 2
-            calib_node = self.config_imu_node.getChild("calibration", True)
+            calib_node = self.config_imu_node.getChild("calibration")
             calib_node.setLen("mag_affine", 16)
             for i in range(16):
                 calib_node.setFloatEnum("mag_affine", i, self.mag_affine.flatten()[i])

@@ -8,9 +8,9 @@ from mission.task.task import Task
 class Chirp(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.imu_node = PropertyNode("/sensors/imu/0", True)
-        self.chirp_node = PropertyNode("/task/chirp", True)
-        self.signal_node = PropertyNode("/controls/signal", True)
+        self.imu_node = PropertyNode("/sensors/imu/0")
+        self.chirp_node = PropertyNode("/task/chirp")
+        self.signal_node = PropertyNode("/controls/signal")
         self.name = config_node.getString("name")
         self.start_time = 0.0
         self.k = 0.0

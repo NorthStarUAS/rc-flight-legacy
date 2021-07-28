@@ -14,9 +14,9 @@ import mission.task.state
 class Idle(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.task_node = PropertyNode("/task", True)
-        self.ap_node = PropertyNode("/autopilot", True)
-        self.engine_node = PropertyNode("/controls/engine", True)
+        self.task_node = PropertyNode("/task")
+        self.ap_node = PropertyNode("/autopilot")
+        self.engine_node = PropertyNode("/controls/engine")
         self.name = config_node.getString("name")
 
     def activate(self):

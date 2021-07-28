@@ -25,51 +25,51 @@ void driver_mgr_t::init(DocPointerWrapper d) {
     printf("set document: %p\n", d.doc);
     PropertyNode("/").set_Document(d);
     
-    sensors_node = PropertyNode("/sensors", true);
-    PropertyNode config_node = PropertyNode("/config", true);
+    sensors_node = PropertyNode( "/sensors" );
+    PropertyNode config_node( "/config" );
     unsigned int len = config_node.getLen("drivers");
     printf("Found %d driver sections\n", len);
     for ( unsigned int i = 0; i < len; i++ ) {
         string child = "drivers/" + std::to_string(i);
         printf("Initializing device: %s\n", child.c_str());
-	PropertyNode driver_node = config_node.getChild(child.c_str());
+	PropertyNode driver_node = config_node.getChild( child.c_str() );
         if ( driver_node.hasChild("Aura4") ) {
-            PropertyNode section_node = driver_node.getChild("Aura4");
+            PropertyNode section_node = driver_node.getChild( "Aura4" );
             driver_t *d = new Aura4_t();
             d->init(&section_node);
             drivers.push_back(d);
         } else if ( driver_node.hasChild("rcfmu") ) {
-            PropertyNode section_node = driver_node.getChild("rcfmu");
+            PropertyNode section_node = driver_node.getChild( "rcfmu" );
             driver_t *d = new rcfmu_t();
             d->init(&section_node);
             drivers.push_back(d);
         } else if ( driver_node.hasChild("fgfs") ) {
-            PropertyNode section_node = driver_node.getChild("fgfs");
+            PropertyNode section_node = driver_node.getChild( "fgfs" );
             driver_t *d = new fgfs_t();
             d->init(&section_node);
             drivers.push_back(d);
         } else if ( driver_node.hasChild("lightware") ) {
-            PropertyNode section_node = driver_node.getChild("lightware");
+            PropertyNode section_node = driver_node.getChild( "lightware" );
             driver_t *d = new lightware_t();
             d->init(&section_node);
             drivers.push_back(d);
         } else if ( driver_node.hasChild("maestro") ) {
-            PropertyNode section_node = driver_node.getChild("maestro");
+            PropertyNode section_node = driver_node.getChild( "maestro" );
             driver_t *d = new maestro_t();
             d->init(&section_node);
             drivers.push_back(d);
         } else if ( driver_node.hasChild("ublox8") ) {
-            PropertyNode section_node = driver_node.getChild("ublox8");
+            PropertyNode section_node = driver_node.getChild( "ublox8" );
             driver_t *d = new ublox8_t();
             d->init(&section_node);
             drivers.push_back(d);
         } else if ( driver_node.hasChild("gpsd") ) {
-            PropertyNode section_node = driver_node.getChild("gpsd");
+            PropertyNode section_node = driver_node.getChild( "gpsd" );
             driver_t *d = new gpsd_t();
             d->init(&section_node);
             drivers.push_back(d);
         } else if ( driver_node.hasChild("ublox9") ) {
-            PropertyNode section_node = driver_node.getChild("ublox9");
+            PropertyNode section_node = driver_node.getChild( "ublox9" );
             driver_t *d = new ublox9_t();
             d->init(&section_node);
             drivers.push_back(d);

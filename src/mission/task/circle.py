@@ -10,12 +10,12 @@ import mission.task.state
 class Circle(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.pos_node = PropertyNode("/position", True)
-        self.orient_node = PropertyNode("/orientation", True)
-        self.circle_active_node = PropertyNode("/task/circle/active", True)
-        self.circle_standby_node = PropertyNode("/task/circle/standby", True)
-        self.nav_node = PropertyNode("/navigation", True)
-        self.targets_node = PropertyNode("/autopilot/targets", True)
+        self.pos_node = PropertyNode("/position")
+        self.orient_node = PropertyNode("/orientation")
+        self.circle_active_node = PropertyNode("/task/circle/active")
+        self.circle_standby_node = PropertyNode("/task/circle/standby")
+        self.nav_node = PropertyNode("/navigation")
+        self.targets_node = PropertyNode("/autopilot/targets")
 
         self.direction = "left"
         self.radius_m = 100.0

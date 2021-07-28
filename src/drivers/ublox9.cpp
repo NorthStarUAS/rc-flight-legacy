@@ -163,7 +163,7 @@ bool ublox9_t::open( const char *device_name, const int baud ) {
 
 void ublox9_t::init( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "gps", false);
-    gps_node = PropertyNode(output_path.c_str(), true);
+    gps_node = PropertyNode( output_path.c_str() );
     if ( config->hasChild("device") ) {
         string device = config->getString("device");
         int baud = config->getInt("baud");

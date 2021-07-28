@@ -6,9 +6,9 @@ from mission.task.task import Task
 class ThrottleSafety(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.act_node = PropertyNode("/actuators", True)
-        self.gps_node = PropertyNode("/sensors/gps/0", True)
-        self.task_node = PropertyNode("/task", True)
+        self.act_node = PropertyNode("/actuators")
+        self.gps_node = PropertyNode("/sensors/gps/0")
+        self.task_node = PropertyNode("/task")
         
         # initial defaults are locked down (this is kind of a big deal!)
         self.master_safety = True

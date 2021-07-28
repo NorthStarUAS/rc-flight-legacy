@@ -29,7 +29,7 @@ using std::string;
 void gps_helper_t::init(DocPointerWrapper d) {
     PropertyNode("/").set_Document(d);
 
-    gps_node = PropertyNode("/sensors/gps", true);
+    gps_node = PropertyNode( "/sensors/gps" );
     // init master gps timestamp to one year ago
     gps_node.setDouble("timestamp", -31557600.0);
 }
@@ -37,7 +37,7 @@ void gps_helper_t::init(DocPointerWrapper d) {
 void gps_helper_t::compute_magvar() {
     double magvar_rad = 0.0;
 
-    PropertyNode config_node = PropertyNode("/config", true);
+    PropertyNode config_node( "/config" );
     
     if ( ! config_node.hasChild("magvar_deg") ||
 	 config_node.getString("magvar_deg") == "auto" )

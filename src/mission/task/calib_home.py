@@ -6,10 +6,10 @@ from mission.task.task import Task
 class Calibrate(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.sensors_node = PropertyNode("/sensors", True)
-        self.gps_node = PropertyNode("/sensors/gps/0", True)
-        self.home_node = PropertyNode("/task/home", True)
-        self.task_node = PropertyNode("/task", True)
+        self.sensors_node = PropertyNode("/sensors")
+        self.gps_node = PropertyNode("/sensors/gps/0")
+        self.home_node = PropertyNode("/task/home")
+        self.task_node = PropertyNode("/task")
         self.completed = False
         self.name = config_node.getString("name")
 

@@ -12,14 +12,14 @@ class Launch(Task):
     def __init__(self, config_node):
         Task.__init__(self)
 
-        self.ap_node = PropertyNode("/autopilot", True)
-        self.task_node = PropertyNode("/task", True)
-        self.pos_node = PropertyNode("/position", True)
-        self.vel_node = PropertyNode("/velocity", True)
-        self.targets_node = PropertyNode("/autopilot/targets", True)
-        self.imu_node = PropertyNode("/sensors/imu/0", True)
-        self.flight_node = PropertyNode("/controls/flight", True)
-        self.engine_node = PropertyNode("/controls/engine", True)
+        self.ap_node = PropertyNode("/autopilot")
+        self.task_node = PropertyNode("/task")
+        self.pos_node = PropertyNode("/position")
+        self.vel_node = PropertyNode("/velocity")
+        self.targets_node = PropertyNode("/autopilot/targets")
+        self.imu_node = PropertyNode("/sensors/imu/0")
+        self.flight_node = PropertyNode("/controls/flight")
+        self.engine_node = PropertyNode("/controls/engine")
 
         self.complete_agl_ft = 150.0
         self.mission_agl_ft = 300.0

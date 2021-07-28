@@ -18,12 +18,12 @@ class ChatHandler(asynchat.async_chat):
         self.path = '/'
         self.prompt = True
 
-        self.imu_node = PropertyNode("/sensors/imu", True)
-        self.targets_node = PropertyNode("/autopilot/targets", True)
-        self.filter_node = PropertyNode("/filters/filter", True)
-        self.act_node = PropertyNode("/actuators/actuator", True)
-        self.vel_node = PropertyNode("/velocity", True)
-        self.pos_comb_node = PropertyNode("/position/combined", True)
+        self.imu_node = PropertyNode("/sensors/imu/0")
+        self.targets_node = PropertyNode("/autopilot/targets")
+        self.filter_node = PropertyNode("/filters/filter/0")
+        self.act_node = PropertyNode("/actuators/actuator")
+        self.vel_node = PropertyNode("/velocity")
+        self.pos_comb_node = PropertyNode("/position/combined")
 
     def collect_incoming_data(self, data):
         self.buffer.append(data.decode())
@@ -134,10 +134,10 @@ class ChatHandler(asynchat.async_chat):
                     tmppath = '/'.join(tmp[0:-1])
                     if tmppath == '':
                         tmppath = '/'
-                    node = PropertyNode(tmppath, True)
+                    node = PropertyNode(tmppath)
                     name = tmp[-1]
                 else:
-                    node = PropertyNode(self.path, True)
+                    node = PropertyNode(self.path)
                     name = tokens[1]
                 value = node.getString(name)
                 if self.prompt:
@@ -160,10 +160,10 @@ class ChatHandler(asynchat.async_chat):
                     tmppath = '/'.join(tmp[0:-1])
                     if tmppath == '':
                         tmppath = '/'
-                    node = PropertyNode(tmppath, True)
+                    node = PropertyNode(tmppath)
                     name = tmp[-1]
                 else:
-                    node = PropertyNode(self.path, True)
+                    node = PropertyNode(self.path)
                     name = tokens[1]
                 value = ' '.join(tokens[2:])
 
@@ -280,7 +280,7 @@ telnet_enabled = False
 def init(port=6499):
     global telnet_enabled
 
-    telnet_node = PropertyNode( '/config/telnet', True )
+    telnet_node = PropertyNode('/config/telnet')
     port = telnet_node.getInt('port')
     print("telnet port:", port)
     if port:

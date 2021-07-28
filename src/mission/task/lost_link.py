@@ -16,11 +16,11 @@ from mission.task.task import Task
 class LostLink(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.status_node = PropertyNode("/status", True)
-        self.task_node = PropertyNode("/task", True)
-        self.home_node = PropertyNode("/task/home", True)
-        self.targets_node = PropertyNode("/autopilot/targets", True)
-        self.remote_link_node = PropertyNode("/comms/remote_link", True)
+        self.status_node = PropertyNode("/status")
+        self.task_node = PropertyNode("/task")
+        self.home_node = PropertyNode("/task/home")
+        self.targets_node = PropertyNode("/autopilot/targets")
+        self.remote_link_node = PropertyNode("/comms/remote_link")
         self.remote_link_node.setString("link", "inactive")
         self.link_state = False
         self.push_task = ""

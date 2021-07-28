@@ -116,23 +116,23 @@ static void umn2props(void) {
 
 void nav_ekf15_mag_init( string output_path, PropertyNode *config ) {
     // initialize property nodes
-    imu_node = PropertyNode("/sensors/imu/0", true);
-    gps_node = PropertyNode("/sensors/gps/0", true);
-    filter_node = PropertyNode(output_path, true);
+    imu_node = PropertyNode( "/sensors/imu/0" );
+    gps_node = PropertyNode( "/sensors/gps/0" );
+    filter_node = PropertyNode( output_path );
     filter_node.setString( "navigation", "invalid" );
 
 #if 0
     // set tuning value for specific gps and imu noise characteristics
-    cov_gps_hpos_node = config.getChild("cov-gps-hpos", 0, true);
-    cov_gps_vpos_node = config.getChild("cov-gps-vpos", 0, true);
-    cov_gps_hvel_node = config.getChild("cov-gps-hvel", 0, true);
-    cov_gps_vvel_node = config.getChild("cov-gps-vvel", 0, true);
-    sigma_w_f_node = config.getChild("sigma-w-f", 0, true);
-    sigma_w_g_node = config.getChild("sigma-w-g", 0, true);
-    sigma_c_f_node = config.getChild("sigma-c-f", 0, true);
-    sigma_c_g_node = config.getChild("sigma-c-g", 0, true);
-    tau_f_node = config.getChild("tau-f", 0, true);
-    tau_g_node = config.getChild("tau-g", 0, true);
+    cov_gps_hpos_node = config.getChild("cov-gps-hpos");
+    cov_gps_vpos_node = config.getChild("cov-gps-vpos");
+    cov_gps_hvel_node = config.getChild("cov-gps-hvel");
+    cov_gps_vvel_node = config.getChild("cov-gps-vvel");
+    sigma_w_f_node = config.getChild("sigma-w-f");
+    sigma_w_g_node = config.getChild("sigma-w-g");
+    sigma_c_f_node = config.getChild("sigma-c-f");
+    sigma_c_g_node = config.getChild("sigma-c-g");
+    tau_f_node = config.getChild("tau-f");
+    tau_g_node = config.getChild("tau-g");
 #endif
 }
 

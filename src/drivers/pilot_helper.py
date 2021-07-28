@@ -10,10 +10,10 @@ class pilot_helper():
         pass
     
     def init(self):
-        self.pilot_node = PropertyNode("/sensors/pilot_input", True)
-        self.flight_node = PropertyNode("/controls/flight", True)
-        self.engine_node = PropertyNode("/controls/engine", True)
-        self.ap_node = PropertyNode("/autopilot", True)
+        self.pilot_node = PropertyNode("/sensors/pilot_input")
+        self.flight_node = PropertyNode("/controls/flight")
+        self.engine_node = PropertyNode("/controls/engine")
+        self.ap_node = PropertyNode("/autopilot")
 
     def update(self):
         # log receiver fail safe changes

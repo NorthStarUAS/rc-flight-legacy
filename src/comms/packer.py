@@ -17,36 +17,36 @@ m2ft = 1.0 / ft2m
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
     
-airdata_node = PropertyNode("/sensors/airdata/0", True)
-filter_node = PropertyNode("/filters/filter", True)
-gps_node = PropertyNode("/sensors/gps/0", True)
-gpsraw_node = PropertyNode("/sensors/gps_raw/0", True)
-imu_node = PropertyNode("/sensors/imu/0", True)
-pilot_node = PropertyNode("/sensors/pilot_input", True)
-pos_node = PropertyNode("/position", True)
-pos_pressure_node = PropertyNode("/position/pressure", True)
-pos_combined_node = PropertyNode("/position/combined", True)
-power_node = PropertyNode("/sensors/power", True)
-vel_node = PropertyNode("/velocity", True)
-wind_node = PropertyNode("/filters/wind", True)
-remote_link_node = PropertyNode("/comms/remote_link", True)
+airdata_node = PropertyNode("/sensors/airdata/0")
+filter_node = PropertyNode("/filters/filter/0")
+gps_node = PropertyNode("/sensors/gps/0")
+gpsraw_node = PropertyNode("/sensors/gps_raw/0")
+imu_node = PropertyNode("/sensors/imu/0")
+pilot_node = PropertyNode("/sensors/pilot_input")
+pos_node = PropertyNode("/position")
+pos_pressure_node = PropertyNode("/position/pressure")
+pos_combined_node = PropertyNode("/position/combined")
+power_node = PropertyNode("/sensors/power")
+vel_node = PropertyNode("/velocity")
+wind_node = PropertyNode("/filters/wind")
+remote_link_node = PropertyNode("/comms/remote_link")
 
 NUM_ACTUATORS = 8
-act_node = PropertyNode("/actuators", True)
+act_node = PropertyNode("/actuators")
 
-status_node = PropertyNode("/status", True)
-ap_node = PropertyNode("/autopilot", True)
-targets_node = PropertyNode("/autopilot/targets", True)
-tecs_node = PropertyNode("/autopilot/tecs", True)
-task_node = PropertyNode("/task", True)
-route_node = PropertyNode("/task/route", True)
-active_node = PropertyNode("/task/route/active", True)
-home_node = PropertyNode("/task/home", True)
-circle_node = PropertyNode("/task/circle/active", True)
+status_node = PropertyNode("/status")
+ap_node = PropertyNode("/autopilot")
+targets_node = PropertyNode("/autopilot/targets")
+tecs_node = PropertyNode("/autopilot/tecs")
+task_node = PropertyNode("/task")
+route_node = PropertyNode("/task/route")
+active_node = PropertyNode("/task/route/active")
+home_node = PropertyNode("/task/home")
+circle_node = PropertyNode("/task/circle/active")
 
-power_node = PropertyNode("/sensors/power", True)
-payload_node = PropertyNode("/payload", True)
-event_node = PropertyNode("/status/event", True)
+power_node = PropertyNode("/sensors/power")
+payload_node = PropertyNode("/payload")
+event_node = PropertyNode("/status/event")
 
 # simple 2-byte checksum
 def compute_cksum(self, id, buf, size):
@@ -132,7 +132,7 @@ class Packer():
         return self.airdata_buf
 
     def pack_airdata_dict(self, index):
-        airdata_node = PropertyNode('/sensors/airdata/%d' % index, True)
+        airdata_node = PropertyNode('/sensors/airdata/%d' % index)
         row = dict()
         row['timestamp'] = airdata_node.getDouble('timestamp')
         row['pressure_mbar'] = airdata_node.getFloat('pressure_mbar')
@@ -152,7 +152,7 @@ class Packer():
         return row
 
     def pack_airdata_csv(self, index):
-        airdata_node = PropertyNode('/sensors/airdata/%d' % index, True)
+        airdata_node = PropertyNode('/sensors/airdata/%d' % index)
         row = dict()
         row['timestamp'] = '%.4f' % airdata_node.getDouble('timestamp')
         row['pressure_mbar'] = '%.1f' % airdata_node.getFloat('pressure_mbar')
@@ -264,7 +264,7 @@ class Packer():
             return None
 
     def pack_gps_dict(self, index):
-        gps_node = PropertyNode('/sensors/gps/%d' % index, True)
+        gps_node = PropertyNode('/sensors/gps/%d' % index)
         row = dict()
         row['timestamp'] = gps_node.getDouble('timestamp')
         row['latitude_deg'] = gps_node.getDouble('latitude_deg')
@@ -282,7 +282,7 @@ class Packer():
         return row
 
     def pack_gps_csv(self, index):
-        gps_node = PropertyNode('/sensors/gps/%d' % index, True)
+        gps_node = PropertyNode('/sensors/gps/%d' % index)
         row = dict()
         row['timestamp'] = '%.4f' % gps_node.getDouble('timestamp')
         row['latitude_deg'] = '%.10f' % gps_node.getDouble('latitude_deg')
@@ -380,7 +380,7 @@ class Packer():
             self.gpsraw.receiver_tow = gpsraw_node.getFloat("receiver_tow")
             for i in range(raw_num):
                 sat_path = "raw_satellite[%d]" % i
-                sat_node = gpsraw_node.getChild(sat_path, True)
+                sat_node = gpsraw_node.getChild(sat_path)
                 gnssid = sat_node.getInt("gnssid")
                 if gnssid == 0:
                     # gps constellation
@@ -403,7 +403,7 @@ class Packer():
         for i in range(aura_messages.max_raw_sats):
             if i < raw_num:
                 sat_path = "raw_satellite[%d]" % i
-                sat_node = gpsraw_node.getChild(sat_path, True)
+                sat_node = gpsraw_node.getChild(sat_path)
                 gnssid = sat_node.getInt("gnssid")
                 row["svid[%d]" % i] = sat_node.getInt("svid")
                 row["pseudorange[%d]" % i] = sat_node.getFloat("pseudorange")
@@ -425,7 +425,7 @@ class Packer():
         gpsraw_node.setFloat("receiver_tow", gpsraw.receiver_tow)
         for i in range(gpsraw.num_sats):
             sat_path = "raw_satellite[%d]" % i
-            sat_node = gpsraw_node.getChild(sat_path, True)
+            sat_node = gpsraw_node.getChild(sat_path)
             sat_node.setInt("svid", gpsraw.svid[i])
             sat_node.setInt("pseudorange", gpsraw.pseudorange[i])
             sat_node.setInt("doppler", gpsraw.doppler[i])
@@ -459,7 +459,7 @@ class Packer():
         return self.imu_buf
 
     def pack_imu_dict(self, index):
-        imu_node = PropertyNode('/sensors/imu/%d' % index, True)
+        imu_node = PropertyNode('/sensors/imu/%d' % index)
         row = dict()
         row['timestamp'] = imu_node.getDouble('timestamp')
         row['p_rad_sec'] = imu_node.getFloat('p_rad_sec')
@@ -482,7 +482,7 @@ class Packer():
         return row
 
     def pack_imu_csv(self, index):
-        imu_node = PropertyNode('/sensors/imu/%d' % index, True)
+        imu_node = PropertyNode('/sensors/imu/%d' % index)
         row = dict()
         row['timestamp'] = '%.4f' % imu_node.getDouble('timestamp')
         row['p_rad_sec'] = '%.4f' % imu_node.getFloat('p_rad_sec')
@@ -607,7 +607,7 @@ class Packer():
         return self.filter_buf
 
     def pack_filter_dict(self, index):
-        filter_node = PropertyNode('/filters/filter/%d' % index, True)
+        filter_node = PropertyNode('/filters/filter/%d' % index)
         row = dict()
         row['timestamp'] = filter_node.getDouble('timestamp')
         row['latitude_deg'] = filter_node.getDouble('latitude_deg')
@@ -632,7 +632,7 @@ class Packer():
         return row
 
     def pack_filter_csv(self, index):
-        filter_node = PropertyNode('/filters/filter/%d' % index, True)
+        filter_node = PropertyNode('/filters/filter/%d' % index)
         row = dict()
         row['timestamp'] = '%.4f' % filter_node.getDouble('timestamp')
         row['latitude_deg'] = '%.10f' % filter_node.getDouble('latitude_deg')
@@ -837,7 +837,7 @@ class Packer():
         return self.pilot_buf
 
     def pack_pilot_dict(self, index):
-        pilot_node = PropertyNode('/sensors/pilot_input/%d' % index, True)
+        pilot_node = PropertyNode('/sensors/pilot_input/%d' % index)
         row = dict()
         row['timestamp'] = pilot_node.getDouble('timestamp')
         row['channel[0]'] = pilot_node.getFloat('channel', 0)
@@ -852,7 +852,7 @@ class Packer():
         return row
 
     def pack_pilot_csv(self, index):
-        pilot_node = PropertyNode('/sensors/pilot_input/%d' % index, True)
+        pilot_node = PropertyNode('/sensors/pilot_input/%d' % index)
         row = dict()
         row['timestamp'] = '%.4f' % pilot_node.getDouble('timestamp')
         row['channel[0]'] = '%.3f' % pilot_node.getFloat('channel', 0)
@@ -953,7 +953,7 @@ class Packer():
             if self.ap.route_size > 0 and counter < self.ap.route_size:
                 self.ap.wp_index = counter
                 wp_path = "wpt/%d" % self.ap.wp_index
-                wp_node = active_node.getChild(wp_path, True)
+                wp_node = active_node.getChild(wp_path)
                 self.ap.wp_longitude_deg = wp_node.getDouble("longitude_deg")
                 self.ap.wp_latitude_deg = wp_node.getDouble("latitude_deg")
             elif counter == self.ap.route_size:
@@ -1012,7 +1012,7 @@ class Packer():
         row['route_size'] = route_size
         row['task_attribute'] = 0.0
         if self.wp_counter < route_size:
-            wp_node = active_node.getChild('wpt/%d' % self.wp_counter, True)
+            wp_node = active_node.getChild('wpt/%d' % self.wp_counter)
             row['wpt_index'] = self.wp_counter
             row['wpt_longitude_deg'] = wp_node.getDouble("longitude_deg")
             row['wpt_latitude_deg'] = wp_node.getDouble("latitude_deg")
@@ -1071,7 +1071,7 @@ class Packer():
         status_node.setFloat("flight_timer", result[8])
         route_node.setInt("target_waypoint_idx", result[9])
         if wp_index < route_size:
-            wp_node = active_node.getChild('wpt/%d' % wp_index, True)
+            wp_node = active_node.getChild('wpt/%d' % wp_index)
             wp_node.setDouble("longitude_deg", wp_lon)
             wp_node.setDouble("latitude_deg", wp_lat)
         elif wp_index == 65534:
@@ -1111,12 +1111,12 @@ class Packer():
         if route_size != active_node.getInt("route_size"):
             # route size change, zero all the waypoint coordinates
             for i in range(active_node.getInt("route_size")):
-                wp_node = active_node.getChild('wpt/%d' % i, True)
+                wp_node = active_node.getChild('wpt/%d' % i)
                 wp_node.setDouble("longitude_deg", 0)
                 wp_node.setDouble("latitude_deg", 0)
         route_node.setInt("target_waypoint_idx", ap.target_waypoint_idx)
         if wp_index < route_size:
-            wp_node = active_node.getChild('wpt/%d' % wp_index, True)
+            wp_node = active_node.getChild('wpt/%d' % wp_index)
             wp_node.setDouble("longitude_deg", wp_lon)
             wp_node.setDouble("latitude_deg", wp_lat)
         elif wp_index == 65534:
@@ -1159,12 +1159,12 @@ class Packer():
         if route_size != active_node.getInt("route_size"):
             # route size change, zero all the waypoint coordinates
             for i in range(active_node.getInt("route_size")):
-                wp_node = active_node.getChild('wpt/%d' % i, True)
+                wp_node = active_node.getChild('wpt/%d' % i)
                 wp_node.setDouble("longitude_deg", 0)
                 wp_node.setDouble("latitude_deg", 0)
         route_node.setInt("target_waypoint_idx", ap.target_waypoint_idx)
         if wp_index < route_size:
-            wp_node = active_node.getChild('wpt/%d' % wp_index, True)
+            wp_node = active_node.getChild('wpt/%d' % wp_index)
             wp_node.setDouble("longitude_deg", wp_lon)
             wp_node.setDouble("latitude_deg", wp_lat)
         elif wp_index == 65534:
@@ -1216,12 +1216,12 @@ class Packer():
         if route_size != active_node.getInt("route_size"):
             # route size change, zero all the waypoint coordinates
             for i in range(active_node.getInt("route_size")):
-                wp_node = active_node.getChild('wpt/%d' % i, True)
+                wp_node = active_node.getChild('wpt/%d' % i)
                 wp_node.setDouble("longitude_deg", 0)
                 wp_node.setDouble("latitude_deg", 0)
         route_node.setInt("target_waypoint_idx", ap.target_waypoint_idx)
         if wp_index < route_size:
-            wp_node = active_node.getChild('wpt/%d' % wp_index, True)
+            wp_node = active_node.getChild('wpt/%d' % wp_index)
             wp_node.setDouble("longitude_deg", wp_lon)
             wp_node.setDouble("latitude_deg", wp_lat)
         elif wp_index == 65534:
@@ -1380,7 +1380,7 @@ class Packer():
         row = dict()
         timestamp = event_node.getDouble('timestamp')
         if timestamp < 0.001:
-            imu_node = PropertyNode('/sensors/imu/0', True)
+            imu_node = PropertyNode('/sensors/imu/0')
             timestamp = imu_node.getDouble('timestamp')
         row['timestamp'] = timestamp
         row['message'] = event_node.getString('message')
@@ -1404,7 +1404,7 @@ class Packer():
             node_path = '/'.join(parts[0:-1])
             if node_path == '':
                 node_path = '/'
-            node = PropertyNode(node_path, True)
+            node = PropertyNode(node_path)
             name = parts[-1]
             node.setString(name, value)
         event_node.setDouble("timestamp", event.timestamp_sec)
@@ -1423,7 +1423,7 @@ class Packer():
             node_path = '/'.join(parts[0:-1])
             if node_path == '':
                 node_path = '/'
-            node = PropertyNode(node_path, True)
+            node = PropertyNode(node_path)
             name = parts[-1]
             node.setString(name, value)
         event_node.setDouble("timestamp", event.timestamp_sec)

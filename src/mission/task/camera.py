@@ -11,12 +11,12 @@ d2r = math.pi / 180.0
 class Camera(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.imu_node = PropertyNode("/sensors/imu/0", True)
-        self.pos_node = PropertyNode("/position", True)
-        self.orient_node = PropertyNode("/orientation", True)
-        self.flight_node = PropertyNode("/controls/flight", True)
-        self.task_node = PropertyNode("/task", True)
-        self.comms_node = PropertyNode( '/comms', True)
+        self.imu_node = PropertyNode("/sensors/imu/0")
+        self.pos_node = PropertyNode("/position")
+        self.orient_node = PropertyNode("/orientation")
+        self.flight_node = PropertyNode("/controls/flight")
+        self.task_node = PropertyNode("/task")
+        self.comms_node = PropertyNode("/comms")
         self.name = config_node.getString("name")
         self.start_time = 0.0
         self.max_attitude = 20.0

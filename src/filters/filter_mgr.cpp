@@ -53,24 +53,24 @@ void Filter_init(DocPointerWrapper d) {
     PropertyNode("/").set_Document(d);
     
     // initialize imu property nodes
-    imu_node = PropertyNode("/sensors/imu/0", true);
-    gps_node = PropertyNode("/sensors/gps/0", true);
-    pos_node = PropertyNode("/position", true);
-    orient_node = PropertyNode("/orientation", true);
-    vel_node = PropertyNode("/velocity", true);
-    filter_node = PropertyNode("/filters/filter/0", true);
-    filter_group_node = PropertyNode("/filters", true);
-    pos_filter_node = PropertyNode("/position/filter", true);
-    pos_pressure_node = PropertyNode("/position/pressure", true);
-    pos_combined_node = PropertyNode("/position/combined", true);
-    status_node = PropertyNode("/status", true);
+    imu_node = PropertyNode( "/sensors/imu/0" );
+    gps_node = PropertyNode( "/sensors/gps/0" );
+    pos_node = PropertyNode( "/position" );
+    orient_node = PropertyNode( "/orientation" );
+    vel_node = PropertyNode( "/velocity" );
+    filter_node = PropertyNode( "/filters/filter/0" );
+    filter_group_node = PropertyNode( "/filters" );
+    pos_filter_node = PropertyNode( "/position/filter" );
+    pos_pressure_node = PropertyNode( "/position/pressure" );
+    pos_combined_node = PropertyNode( "/position/combined" );
+    status_node = PropertyNode( "/status" );
 
     // traverse configured modules
-    PropertyNode group_node = PropertyNode("/config/filters", true);
+    PropertyNode group_node( "/config/filters" );
     vector<string> children = group_node.getChildren();
     printf("Found %d filter sections\n", (int)children.size());
     for ( unsigned int i = 0; i < children.size(); i++ ) {
-	PropertyNode section = group_node.getChild(children[i].c_str());
+	PropertyNode section = group_node.getChild( children[i].c_str() );
 	sections.push_back(section);
 	string module = section.getString("module");
 	bool enabled = section.getBool("enable");
@@ -83,7 +83,7 @@ void Filter_init(DocPointerWrapper d) {
         } else {
             output_path = get_next_path("/filters", "filter");
         }            
-        PropertyNode output_node = PropertyNode(output_path, true);
+        PropertyNode output_node( output_path );
         outputs.push_back(output_node);
 	printf("filter: %d = %s\n", i, module.c_str());
 	if ( module == "null" ) {

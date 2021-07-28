@@ -69,12 +69,12 @@ def define_circle(p1, p2, p3):
 class Parametric(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.pos_node = PropertyNode("/position", True)
-        self.home_node = PropertyNode("/task/home", True)
-        self.circle_node = PropertyNode("/task/circle/active", True)
-        self.targets_node = PropertyNode("/autopilot/targets", True)
-        self.nav_node = PropertyNode("/navigation", True)
-        self.tecs_node = PropertyNode("/config/autopilot/TECS", True)
+        self.pos_node = PropertyNode("/position")
+        self.home_node = PropertyNode("/task/home")
+        self.circle_node = PropertyNode("/task/circle/active")
+        self.targets_node = PropertyNode("/autopilot/targets")
+        self.nav_node = PropertyNode("/navigation")
+        self.tecs_node = PropertyNode("/config/autopilot/TECS")
 
         self.t = 0.0
         

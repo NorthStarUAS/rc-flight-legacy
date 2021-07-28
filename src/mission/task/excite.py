@@ -23,9 +23,9 @@ from mission.task.task import Task
 class Excite(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.imu_node = PropertyNode("/sensors/imu/0", True)
+        self.imu_node = PropertyNode("/sensors/imu/0")
         self.config_node = config_node
-        self.excite_node = PropertyNode("/task/excite", True)
+        self.excite_node = PropertyNode("/task/excite")
         self.name = config_node.getString("name")
         self.index = 0
         self.start_time = 0.0

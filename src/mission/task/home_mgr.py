@@ -15,11 +15,11 @@ d2r = math.pi / 180.0
 class HomeMgr(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.pos_node = PropertyNode("/position", True)
-        self.home_node = PropertyNode("/task/home", True)
+        self.pos_node = PropertyNode("/position")
+        self.home_node = PropertyNode("/task/home")
         self.home_node.setBool("valid", False)
-        self.startup_node = PropertyNode("/task/startup", True)
-        self.gps_node = PropertyNode("/sensors/gps/0", True)
+        self.startup_node = PropertyNode("/task/startup")
+        self.gps_node = PropertyNode("/sensors/gps/0")
         self.name = config_node.getString("name")
 
     def activate(self):
