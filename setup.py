@@ -25,7 +25,7 @@ setup(
                       "src/util/timing.h"
                   ],
                   include_dirs=["src"],
-                  extra_objects=["/usr/local/lib/libpyprops.a"]
+                  extra_objects=["/usr/local/lib/libprops2.a"]
                   ),
         Extension("rcUAS.control_mgr",
                   define_macros=[("HAVE_PYBIND11", "1")],
@@ -56,7 +56,7 @@ setup(
                       "src/util/timing.h"
                   ],
                   include_dirs=["src"],
-                  extra_objects=["/usr/local/lib/libpyprops.a"]
+                  extra_objects=["/usr/local/lib/libprops2.a"]
                   ),
         Extension("rcUAS.driver_mgr",
                   define_macros=[("HAVE_PYBIND11", "1")],
@@ -116,7 +116,7 @@ setup(
                       "src/util/timing.h"
                   ],
                   include_dirs=["src"],
-                  extra_objects=["/usr/local/lib/libpyprops.a"]
+                  extra_objects=["/usr/local/lib/libprops2.a"]
                   ),
         Extension("rcUAS.airdata_helper",
                   define_macros=[("HAVE_PYBIND11", "1")],
@@ -129,7 +129,7 @@ setup(
                       "src/util/lowpass.h"
                   ],
                   include_dirs=["src"],
-                  extra_objects=["/usr/local/lib/libpyprops.a"]
+                  extra_objects=["/usr/local/lib/libprops2.a"]
                   ),
         Extension("rcUAS.gps_helper",
                   define_macros=[("HAVE_PYBIND11", "1")],
@@ -144,7 +144,7 @@ setup(
                       "src/util/timing.h"
                   ],
                   include_dirs=["src"],
-                  extra_objects=["/usr/local/lib/libpyprops.a"]
+                  extra_objects=["/usr/local/lib/libprops2.a"]
                   ),
         Extension("rcUAS.filter_mgr",
                   define_macros=[("HAVE_PYBIND11", "1")],
@@ -175,7 +175,7 @@ setup(
                       "src/util/props_helper.h"
                   ],
                   include_dirs=["src"],
-                  extra_objects=["/usr/local/lib/libpyprops.a"]
+                  extra_objects=["/usr/local/lib/libprops2.a"]
                   ),
         Extension("rcUAS.wgs84",
                   define_macros=[("HAVE_PYBIND11", "1")],

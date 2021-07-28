@@ -116,8 +116,8 @@ static void umn2props(void) {
 
 void nav_ekf15_init( string output_path, PropertyNode *config ) {
     // initialize property nodes
-    imu_node = PropertyNode("/sensors/imu", true);
-    gps_node = PropertyNode("/sensors/gps", true);
+    imu_node = PropertyNode("/sensors/imu/0", true);
+    gps_node = PropertyNode("/sensors/gps/0", true);
     filter_node = PropertyNode(output_path, true);
     filter_node.setInt( "status", 0 );
 

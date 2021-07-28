@@ -16,10 +16,10 @@ import os
 import pandas as pd
 from tqdm import tqdm
 
-from aurauas_flightdata import flight_loader, flight_interp
+from rcUAS_flightdata import flight_loader, flight_interp
 
 parser = argparse.ArgumentParser(description='nav filter')
-parser.add_argument('--flight', required=True, help='flight data log')
+parser.add_argument('flight', help='flight data log')
 parser.add_argument('--wind-time', type=float, help='force a wind re-estimate with this time factor.')
 args = parser.parse_args()
 

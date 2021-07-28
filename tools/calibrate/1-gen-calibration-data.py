@@ -12,7 +12,7 @@ import os
 
 import navpy
 
-from aurauas_flightdata import flight_loader, flight_interp
+from rcUAS_flightdata import flight_loader, flight_interp
 
 import transformations
 

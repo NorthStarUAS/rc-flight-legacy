@@ -1,5 +1,8 @@
-ugear TODO
-==============
+TODO - this file is really old and a lot of these things aren't much
+of a priority, or don't really make as much sense as before, or need
+to be reworded, reprioritized.
+
+======
 
 - Compute airdata climb rate at sensor level (or pass it along if the sensor
   already computes this.)
@@ -20,14 +23,10 @@ ugear TODO
   gps, our nav estimate has likely diverged, and we are starting to
   get desperate.
 
-- Resolve #include "dir/file.h" vs. <dir/file.h> vs. "file.h"
-
 - Add support for a "notes" file that will contain time/date (?) in
   the file name and be able to contain arbitrary time stamped messages
   from the ground station.  This file will be saved onboard the UAS
   along side all the other data.
-
-- have "home" location selection write an entry to debug.txt
 
 - Add update rate (ahrs/nav/etc.) values to the health structure so the
   ground station can evaluate the performance of the onboard computer.
@@ -37,12 +36,15 @@ ugear TODO
   a problem caused by timing pauses caused by trying to do too much
   data logging.)  It still may be a good idea as a safety.
 
-- ground station sends up true date so gumstix can set it's clock
+x have "home" location selection write an entry to debug.txt
+
+x ground station sends up true date so gumstix can set it's clock
   properly (?) -- low priority.  Maybe we could send this as a message
   in the early startup so it can get logged someplace if we are doing
   onboard logging.  This will disappear as an issue anyway when we
   migrate away from the MNAV.
 
+x Resolve #include "dir/file.h" vs. <dir/file.h> vs. "file.h"
 
 x Add support for a primary route and a standby route.  Support
   external commands to clear the stby route, upload new waypoints, and

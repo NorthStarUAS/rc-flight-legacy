@@ -17,7 +17,7 @@ import os
 import pandas as pd
 from tqdm import tqdm
 
-from aurauas_flightdata import flight_loader, flight_interp
+from rcUAS_flightdata import flight_loader, flight_interp
 
 parser = argparse.ArgumentParser(description='nav filter')
 parser.add_argument('flight', help='flight data log')
@@ -37,6 +37,7 @@ imu_dt = (data['imu'][-1]['time'] - data['imu'][0]['time']) \
     / float(len(data['imu']))
 print("imu dt: %.3f" % imu_dt)
 print("gps records:", len(data['gps']))
+print("ekf records:", len(data['filter']))
 if 'air' in data:
     print("airdata records:", len(data['air']))
 if len(data['imu']) == 0 and len(data['gps']) == 0:
@@ -55,10 +56,10 @@ df0_air.set_index('time', inplace=True, drop=False)
 if 'health' in data:
     df0_health = pd.DataFrame(data['health'])
     df0_health.set_index('time', inplace=True, drop=False)
-if 'act' in data:
+if 'act' in data and len(data['act']):
     df0_act = pd.DataFrame(data['act'])
     df0_act.set_index('time', inplace=True, drop=False)
-if 'pilot' in data:
+if 'pilot' in data and len(data['pilot']):
     df0_pilot = pd.DataFrame(data['pilot'])
     df0_pilot.set_index('time', inplace=True, drop=False)
 
@@ -295,38 +296,93 @@ def add_regions(plot, regions):
                   verticalalignment='center',
                   rotation=90, color=colors[i % len(colors)])
 
-
-        
-if not 'wind_dir' in data['air'][0] or args.wind_time:
+time = None
+if False or not 'wind_dir' in data['air'][0] or args.wind_time:
     # run a quick wind estimate
     import wind
     w = wind.Wind()
     winds = w.estimate(data, args.wind_time)
-    df1_wind = pd.DataFrame(winds)
-    time = df1_wind['time']
-    wind_dir = df1_wind['wind_deg']
-    wind_speed = df1_wind['wind_kt']
-    pitot_scale = df1_wind['pitot_scale']
+    if len(winds):
+        df1_wind = pd.DataFrame(winds)
+        time = df1_wind['time']
+        wind_dir = df1_wind['wind_deg']
+        wind_speed = df1_wind['wind_kt']
+        pitot_scale = df1_wind['pitot_scale']
 else:
+    print("not right now")
     time = df0_air['time']
     wind_dir = df0_air['wind_dir']
     wind_speed = df0_air['wind_speed']
     pitot_scale = df0_air['pitot_scale']
-    
-wind_fig, (ax0, ax1) = plt.subplots(2, 1, sharex=True)
-ax0.set_title("Winds Aloft")
-ax0.set_ylabel("Heading (degrees)", weight='bold')
-ax0.plot(time, wind_dir)
-add_regions(ax0, airborne)
-ax0.grid()
-ax1.set_xlabel("Time (secs)", weight='bold')
-ax1.set_ylabel("Speed (kts)", weight='bold')
-ax1.plot(time, wind_speed, label="Wind Speed")
-ax1.plot(time, pitot_scale, label="Pitot Scale")
-add_regions(ax1, airborne)
-ax1.grid()
-ax1.legend()
 
+if not time is None:
+    wind_fig, (ax0, ax1) = plt.subplots(2, 1, sharex=True)
+    ax0.set_title("Winds Aloft")
+    ax0.set_ylabel("Heading (degrees)", weight='bold')
+    ax0.plot(time, wind_dir)
+    add_regions(ax0, airborne)
+    ax0.grid()
+    ax1.set_xlabel("Time (secs)", weight='bold')
+    ax1.set_ylabel("Speed (kts)", weight='bold')
+    ax1.plot(time, wind_speed, label="Wind Speed")
+    ax1.plot(time, pitot_scale, label="Pitot Scale")
+    add_regions(ax1, airborne)
+    ax1.grid()
+    ax1.legend()
+
+    if False:
+        # test an idea for thermal detection
+        import wind
+        w = wind.Wind()
+        winds = w.estimate(data, args.wind_time)
+        df1_wind = pd.DataFrame(winds)
+        time = df1_wind['time']
+        long_wn = df1_wind['long_wn']
+        long_we = df1_wind['long_we']
+        short_wn = df1_wind['short_wn']
+        short_we = df1_wind['short_we']
+        psi_error = df1_wind['psi_error']
+        ps = df1_wind['ps']
+        phi = df1_wind['phi']
+
+        plt.figure() 
+        plt.title("Ground velocity vectors")
+        plt.ylabel("Velocity m/s", weight='bold')
+        plt.plot(df0_nav['ve'], df0_nav['vn'], label='velocity vector')
+        plt.legend() 
+
+        plt.figure() 
+        plt.title("phi vs. ps")
+        plt.plot(phi, ps, '*', label='phi vs ps')
+        plt.legend()
+
+        plt.figure()
+        plt.title("Thermal Detection Test")
+        plt.ylabel("Velocity m/s", weight='bold')
+        plt.plot(time, long_wn, label="long wn")
+        plt.plot(time, long_we, label="long we")
+        plt.plot(time, short_wn, label="short wn")
+        plt.plot(time, short_we, label="short we")
+        plt.plot(time, psi_error*r2d, label="psi error (deg)")
+        plt.xlabel("Time (secs)", weight='bold')
+        plt.legend()
+
+        plt.figure()
+        plt.title("North wind versus ground vel")
+        plt.ylabel("Velocity m/s", weight='bold')
+        plt.plot(time, short_wn, label="short wn")
+        plt.plot(df0_nav['ve'], label="ve")
+        plt.xlabel("Time (secs)", weight='bold')
+        plt.legend()
+
+        plt.figure()
+        plt.title("Wind east versus ground vel")
+        plt.ylabel("Velocity m/s", weight='bold')
+        plt.plot(time, short_we, label="short we")
+        plt.plot(df0_nav['vn'], label="vn")
+        plt.xlabel("Time (secs)", weight='bold')
+        plt.legend()
+    
 # How bad are your magnetometers?
 import mags
 result = mags.estimate(data)
@@ -441,7 +497,7 @@ if 'alt_press' in df0_air:
     plt.plot(df0_air['alt_press'])
     plt.grid()
 
-if 'act' in data:
+if 'act' in data and 'pilot' in data:
     fig = plt.figure()
     plt.title("Effectors")
     plt.plot(df0_pilot['auto_manual']+0.05, label='auto')
@@ -494,6 +550,7 @@ plt.ylabel('Latitude (degrees)', weight='bold')
 plt.xlabel('Longitude (degrees)', weight='bold')
 plt.plot(df0_gps['lon'], df0_gps['lat'], '*', label='GPS Sensor', c='g', alpha=.5)
 plt.plot(np.rad2deg(df0_nav['lon']), np.rad2deg(df0_nav['lat']), label='EKF')
+plt.axis("equal")
 plt.grid()
 plt.legend(loc=0)
 
@@ -526,10 +583,11 @@ if 'health' in data:
     plt.figure()
     plt.title("Avionics VCC")
     if 'avionics_vcc' in df0_health:
-        plt.plot(df0_health['avionics_vcc'])
-    plt.plot(df0_health['main_vcc'])
+        plt.plot(df0_health['avionics_vcc'], label="Avionics V")
+    plt.plot(df0_health['main_vcc'], label="Main battery V")
     if 'load_avg' in df0_health:
-        plt.plot(df0_health['load_avg'])
+        plt.plot(df0_health['load_avg'], label="Load avg")
+    plt.legend()
     plt.grid()
 
 # Spectogram (of accelerometer normal)

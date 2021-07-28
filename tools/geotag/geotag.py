@@ -12,7 +12,7 @@ import os
 import pyexiv2
 from tqdm import tqdm
 
-from aurauas_flightdata import flight_loader, flight_interp
+from rcUAS_flightdata import flight_loader, flight_interp
 
 # helpful constants
 d2r = math.pi / 180.0

@@ -27,6 +27,6 @@ echo "Running rice creek flight controller as $RUNAS"
 echo "Source: $SOURCE"
 echo "Runlog: $RUNLOG"
 echo "Command: $COMMAND"
-$COMMAND > $RUNLOG
+stdbuf -oL $COMMAND 2>&1 > $RUNLOG
 
 EOF

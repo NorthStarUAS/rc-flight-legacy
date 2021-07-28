@@ -132,7 +132,7 @@ class Packer():
         return self.airdata_buf
 
     def pack_airdata_dict(self, index):
-        airdata_node = PropertyNode('/sensors/airdata[%d]' % index, True)
+        airdata_node = PropertyNode('/sensors/airdata/%d' % index, True)
         row = dict()
         row['timestamp'] = airdata_node.getDouble('timestamp')
         row['pressure_mbar'] = airdata_node.getFloat('pressure_mbar')
@@ -152,7 +152,7 @@ class Packer():
         return row
 
     def pack_airdata_csv(self, index):
-        airdata_node = PropertyNode('/sensors/airdata[%d]' % index, True)
+        airdata_node = PropertyNode('/sensors/airdata/%d' % index, True)
         row = dict()
         row['timestamp'] = '%.4f' % airdata_node.getDouble('timestamp')
         row['pressure_mbar'] = '%.1f' % airdata_node.getFloat('pressure_mbar')
@@ -264,7 +264,7 @@ class Packer():
             return None
 
     def pack_gps_dict(self, index):
-        gps_node = PropertyNode('/sensors/gps[%d]' % index, True)
+        gps_node = PropertyNode('/sensors/gps/%d' % index, True)
         row = dict()
         row['timestamp'] = gps_node.getDouble('timestamp')
         row['latitude_deg'] = gps_node.getDouble('latitude_deg')
@@ -282,7 +282,7 @@ class Packer():
         return row
 
     def pack_gps_csv(self, index):
-        gps_node = PropertyNode('/sensors/gps[%d]' % index, True)
+        gps_node = PropertyNode('/sensors/gps/%d' % index, True)
         row = dict()
         row['timestamp'] = '%.4f' % gps_node.getDouble('timestamp')
         row['latitude_deg'] = '%.10f' % gps_node.getDouble('latitude_deg')
@@ -459,7 +459,7 @@ class Packer():
         return self.imu_buf
 
     def pack_imu_dict(self, index):
-        imu_node = PropertyNode('/sensors/imu[%d]' % index, True)
+        imu_node = PropertyNode('/sensors/imu/%d' % index, True)
         row = dict()
         row['timestamp'] = imu_node.getDouble('timestamp')
         row['p_rad_sec'] = imu_node.getFloat('p_rad_sec')
@@ -482,7 +482,7 @@ class Packer():
         return row
 
     def pack_imu_csv(self, index):
-        imu_node = PropertyNode('/sensors/imu[%d]' % index, True)
+        imu_node = PropertyNode('/sensors/imu/%d' % index, True)
         row = dict()
         row['timestamp'] = '%.4f' % imu_node.getDouble('timestamp')
         row['p_rad_sec'] = '%.4f' % imu_node.getFloat('p_rad_sec')
@@ -607,7 +607,7 @@ class Packer():
         return self.filter_buf
 
     def pack_filter_dict(self, index):
-        filter_node = PropertyNode('/filters/filter[%d]' % index, True)
+        filter_node = PropertyNode('/filters/filter/%d' % index, True)
         row = dict()
         row['timestamp'] = filter_node.getDouble('timestamp')
         row['latitude_deg'] = filter_node.getDouble('latitude_deg')
@@ -632,7 +632,7 @@ class Packer():
         return row
 
     def pack_filter_csv(self, index):
-        filter_node = PropertyNode('/filters/filter[%d]' % index, True)
+        filter_node = PropertyNode('/filters/filter/%d' % index, True)
         row = dict()
         row['timestamp'] = '%.4f' % filter_node.getDouble('timestamp')
         row['latitude_deg'] = '%.10f' % filter_node.getDouble('latitude_deg')
@@ -837,7 +837,7 @@ class Packer():
         return self.pilot_buf
 
     def pack_pilot_dict(self, index):
-        pilot_node = PropertyNode('/sensors/pilot_input[%d]' % index, True)
+        pilot_node = PropertyNode('/sensors/pilot_input/%d' % index, True)
         row = dict()
         row['timestamp'] = pilot_node.getDouble('timestamp')
         row['channel[0]'] = pilot_node.getFloat('channel', 0)
@@ -852,7 +852,7 @@ class Packer():
         return row
 
     def pack_pilot_csv(self, index):
-        pilot_node = PropertyNode('/sensors/pilot_input[%d]' % index, True)
+        pilot_node = PropertyNode('/sensors/pilot_input/%d' % index, True)
         row = dict()
         row['timestamp'] = '%.4f' % pilot_node.getDouble('timestamp')
         row['channel[0]'] = '%.3f' % pilot_node.getFloat('channel', 0)
@@ -952,7 +952,7 @@ class Packer():
             self.ap.route_size = active_node.getInt("route_size")
             if self.ap.route_size > 0 and counter < self.ap.route_size:
                 self.ap.wp_index = counter
-                wp_path = "wpt[%d]" % self.ap.wp_index
+                wp_path = "wpt/%d" % self.ap.wp_index
                 wp_node = active_node.getChild(wp_path, True)
                 self.ap.wp_longitude_deg = wp_node.getDouble("longitude_deg")
                 self.ap.wp_latitude_deg = wp_node.getDouble("latitude_deg")
@@ -1012,7 +1012,7 @@ class Packer():
         row['route_size'] = route_size
         row['task_attribute'] = 0.0
         if self.wp_counter < route_size:
-            wp_node = active_node.getChild('wpt[%d]' % self.wp_counter, True)
+            wp_node = active_node.getChild('wpt/%d' % self.wp_counter, True)
             row['wpt_index'] = self.wp_counter
             row['wpt_longitude_deg'] = wp_node.getDouble("longitude_deg")
             row['wpt_latitude_deg'] = wp_node.getDouble("latitude_deg")
@@ -1071,7 +1071,7 @@ class Packer():
         status_node.setFloat("flight_timer", result[8])
         route_node.setInt("target_waypoint_idx", result[9])
         if wp_index < route_size:
-            wp_node = active_node.getChild('wpt[%d]' % wp_index, True)
+            wp_node = active_node.getChild('wpt/%d' % wp_index, True)
             wp_node.setDouble("longitude_deg", wp_lon)
             wp_node.setDouble("latitude_deg", wp_lat)
         elif wp_index == 65534:
@@ -1111,12 +1111,12 @@ class Packer():
         if route_size != active_node.getInt("route_size"):
             # route size change, zero all the waypoint coordinates
             for i in range(active_node.getInt("route_size")):
-                wp_node = active_node.getChild('wpt[%d]' % i, True)
+                wp_node = active_node.getChild('wpt/%d' % i, True)
                 wp_node.setDouble("longitude_deg", 0)
                 wp_node.setDouble("latitude_deg", 0)
         route_node.setInt("target_waypoint_idx", ap.target_waypoint_idx)
         if wp_index < route_size:
-            wp_node = active_node.getChild('wpt[%d]' % wp_index, True)
+            wp_node = active_node.getChild('wpt/%d' % wp_index, True)
             wp_node.setDouble("longitude_deg", wp_lon)
             wp_node.setDouble("latitude_deg", wp_lat)
         elif wp_index == 65534:
@@ -1159,12 +1159,12 @@ class Packer():
         if route_size != active_node.getInt("route_size"):
             # route size change, zero all the waypoint coordinates
             for i in range(active_node.getInt("route_size")):
-                wp_node = active_node.getChild('wpt[%d]' % i, True)
+                wp_node = active_node.getChild('wpt/%d' % i, True)
                 wp_node.setDouble("longitude_deg", 0)
                 wp_node.setDouble("latitude_deg", 0)
         route_node.setInt("target_waypoint_idx", ap.target_waypoint_idx)
         if wp_index < route_size:
-            wp_node = active_node.getChild('wpt[%d]' % wp_index, True)
+            wp_node = active_node.getChild('wpt/%d' % wp_index, True)
             wp_node.setDouble("longitude_deg", wp_lon)
             wp_node.setDouble("latitude_deg", wp_lat)
         elif wp_index == 65534:
@@ -1216,12 +1216,12 @@ class Packer():
         if route_size != active_node.getInt("route_size"):
             # route size change, zero all the waypoint coordinates
             for i in range(active_node.getInt("route_size")):
-                wp_node = active_node.getChild('wpt[%d]' % i, True)
+                wp_node = active_node.getChild('wpt/%d' % i, True)
                 wp_node.setDouble("longitude_deg", 0)
                 wp_node.setDouble("latitude_deg", 0)
         route_node.setInt("target_waypoint_idx", ap.target_waypoint_idx)
         if wp_index < route_size:
-            wp_node = active_node.getChild('wpt[%d]' % wp_index, True)
+            wp_node = active_node.getChild('wpt/%d' % wp_index, True)
             wp_node.setDouble("longitude_deg", wp_lon)
             wp_node.setDouble("latitude_deg", wp_lat)
         elif wp_index == 65534:
