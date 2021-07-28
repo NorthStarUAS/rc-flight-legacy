@@ -139,7 +139,8 @@ def dribble(reset=False):
             wp_counter = 0
             dist_valid = True
         wp = active_route[wp_counter]
-        wp_str = 'wpt[%d]' % wp_counter
+        # fixme: do we want to do a PropertyNode() lookup here?
+        wp_str = 'wpt/%d' % wp_counter
         wp_node = active_route_node.getChild(wp_str)
         wp_node.setDouble("longitude_deg", wp.lon_deg)
         wp_node.setDouble("latitude_deg", wp.lat_deg)
