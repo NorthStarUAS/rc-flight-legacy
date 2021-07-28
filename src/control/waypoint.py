@@ -11,10 +11,10 @@ class Waypoint:
 
     def build(self, config):
         if config.hasChild("lon_deg"):
-            self.lon_deg = config.getFloat("lon_deg")
+            self.lon_deg = config.getDouble("lon_deg")
             self.mode = 'absolute'
         if config.hasChild("lat_deg"):
-            self.lat_deg = config.getFloat("lat_deg")
+            self.lat_deg = config.getDouble("lat_deg")
             self.mode = 'absolute'
         if config.hasChild("heading_deg"):
             self.hdg_deg = config.getFloat("heading_deg")

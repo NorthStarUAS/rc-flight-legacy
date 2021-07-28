@@ -236,15 +236,15 @@ class CalibrateAccels(Task):
             calib_node = self.config_imu_node.getChild("calibration")
             calib_node.setLen("strapdown", 9)
             for i in range(9):
-                calib_node.setFloatEnum("strapdown", i, self.R[:3,:3].flatten()[i])
+                calib_node.setFloat("strapdown", i, self.R[:3,:3].flatten()[i])
             calib_node.setFloat("accel_fit_mean", mean)
             calib_node.setFloat("accel_fit_std", std)
             calib_node.setLen("accel_scale", 3)
             for i in range(3):
-                calib_node.setFloatEnum("accel_scale", i, self.scale[i])
+                calib_node.setFloat("accel_scale", i, self.scale[i])
             calib_node.setLen("accel_translate", 3)
             for i in range(3):
-                calib_node.setFloatEnum("accel_translate", i, self.translate[i])
+                calib_node.setFloat("accel_translate", i, self.translate[i])
             home = os.path.expanduser("~")
             filename = os.path.join(home, "imu_calibration.json")
             calib_node.save(filename)

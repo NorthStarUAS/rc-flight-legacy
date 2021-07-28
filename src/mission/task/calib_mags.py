@@ -248,7 +248,7 @@ class CalibrateMagnetometer(Task):
             calib_node = self.config_imu_node.getChild("calibration")
             calib_node.setLen("mag_affine", 16)
             for i in range(16):
-                calib_node.setFloatEnum("mag_affine", i, self.mag_affine.flatten()[i])
+                calib_node.setFloat("mag_affine", i, self.mag_affine.flatten()[i])
             home = os.path.expanduser("~")
             calib_node.save(os.path.join(home, "imu_calibration.json"))
             message = "mag calibration succeeded"
