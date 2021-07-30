@@ -115,9 +115,9 @@ static void update_euler_rates() {
     // http://www.princeton.edu/~stengel/MAE331Lecture9.pdf
     // http://www.mathworks.com/help/aeroblks/customvariablemass6dofeulerangles.html
 
-    double p = imu_node.getDouble("p_rad_sec");
-    double q = imu_node.getDouble("q_rad_sec");
-    double r = imu_node.getDouble("r_rad_sec");
+    double p = imu_node.getDouble("p_rps");
+    double q = imu_node.getDouble("q_rps");
+    double r = imu_node.getDouble("r_rps");
 
     if ( SGD_PI_2 - fabs(the) > 0.00001 ) {
 	double phi_dot = p + q * sin(phi) * tan(the) + r * cos(phi) * tan(the);
@@ -127,9 +127,9 @@ static void update_euler_rates() {
 	orient_node.setDouble("the_dot_rad_sec", the_dot);
 	orient_node.setDouble("psi_dot_rad_sec", psi_dot);
 	/* printf("dt=%.3f q=%.3f q(ned)=%.3f phi(dot)=%.3f\n",
-	   dt,imu_node.getDouble("q_rad_sec"), dq/dt, phi_dot);  */
+	   dt,imu_node.getDouble("q_rps"), dq/dt, phi_dot);  */
 	/* printf("%.3f %.3f %.3f %.3f\n",
-	   cur_time,imu_node.getDouble("q_rad_sec"), dq/dt, the_dot); */
+	   cur_time,imu_node.getDouble("q_rps"), dq/dt, the_dot); */
    }
 }
 

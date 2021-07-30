@@ -207,25 +207,7 @@ void rcfmu_t::init_actuators( PropertyNode *config ) {
 
 bool rcfmu_t::update_imu( rcfmu_message::imu_t *imu ) {
     imu_timestamp = get_Time();
-
-    float ax_raw = imu->ax_raw;
-    float ay_raw = imu->ay_raw;
-    float az_raw = imu->az_raw;
-    float hx_raw = imu->hx_raw;
-    float hy_raw = imu->hy_raw;
-    float hz_raw = imu->hz_raw;
-
-    float ax_cal = imu->ax_mps2;
-    float ay_cal = imu->ay_mps2;
-    float az_cal = imu->az_mps2;
-    float p_cal = imu->p_rps;
-    float q_cal = imu->q_rps;
-    float r_cal = imu->r_rps;
-    float hx_cal = imu->hx;
-    float hy_cal = imu->hy;
-    float hz_cal = imu->hz;
-
-    float temp_C = imu->temp_C;
+    imu->props2msg(imu_node);
 
     // timestamp dance: this is a little jig that I do to make a
     // more consistent time stamp that still is in the host
@@ -257,24 +239,7 @@ bool rcfmu_t::update_imu( rcfmu_message::imu_t *imu ) {
     last_imu_millis = imu->millis;
 	
     imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
-    imu_node.setInt( "imu_millis", imu->millis );
     imu_node.setDouble( "imu_sec", (double)imu->millis / 1000.0 );
-    imu_node.setDouble( "p_rad_sec", p_cal );
-    imu_node.setDouble( "q_rad_sec", q_cal );
-    imu_node.setDouble( "r_rad_sec", r_cal );
-    imu_node.setDouble( "ax_mps_sec", ax_cal );
-    imu_node.setDouble( "ay_mps_sec", ay_cal );
-    imu_node.setDouble( "az_mps_sec", az_cal );
-    imu_node.setDouble( "hx", hx_cal );
-    imu_node.setDouble( "hy", hy_cal );
-    imu_node.setDouble( "hz", hz_cal );
-    imu_node.setDouble( "ax_raw", ax_raw );
-    imu_node.setDouble( "ay_raw", ay_raw );
-    imu_node.setDouble( "az_raw", az_raw );
-    imu_node.setDouble( "hx_raw", hx_raw );
-    imu_node.setDouble( "hy_raw", hy_raw );
-    imu_node.setDouble( "hz_raw", hz_raw );
-    imu_node.setDouble( "temp_C", temp_C );
 
     return true;
 }
@@ -526,7 +491,7 @@ bool rcfmu_t::update_ekf( rcfmu_message::ekf_t *ekf ) {
     const double F2M = 0.3048;
     const double M2F = 1 / F2M;
     // do a little dance to estimate the ekf timestamp in seconds
-    int imu_millis = imu_node.getInt("imu_millis");
+    int imu_millis = imu_node.getInt("millis");
     int diff_millis = ekf->millis - imu_millis;
     if ( diff_millis < 0 ) { diff_millis = 0; } // don't puke on wraparound
     double timestamp = imu_node.getDouble("timestamp")

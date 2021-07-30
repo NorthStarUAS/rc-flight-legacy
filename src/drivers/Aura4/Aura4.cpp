@@ -268,14 +268,14 @@ bool Aura4_t::update_imu( message::imu_t *imu ) {
     last_imu_millis = imu->millis;
 	
     imu_node.setDouble( "timestamp", imu_remote_sec + fit_diff );
-    imu_node.setInt( "imu_millis", imu->millis );
+    imu_node.setInt( "millis", imu->millis );
     imu_node.setDouble( "imu_sec", (double)imu->millis / 1000.0 );
-    imu_node.setDouble( "p_rad_sec", p_cal );
-    imu_node.setDouble( "q_rad_sec", q_cal );
-    imu_node.setDouble( "r_rad_sec", r_cal );
-    imu_node.setDouble( "ax_mps_sec", ax_cal );
-    imu_node.setDouble( "ay_mps_sec", ay_cal );
-    imu_node.setDouble( "az_mps_sec", az_cal );
+    imu_node.setDouble( "p_rps", p_cal );
+    imu_node.setDouble( "q_rps", q_cal );
+    imu_node.setDouble( "r_rps", r_cal );
+    imu_node.setDouble( "ax_mps2", ax_cal );
+    imu_node.setDouble( "ay_mps2", ay_cal );
+    imu_node.setDouble( "az_mps2", az_cal );
     imu_node.setDouble( "hx", hx_cal );
     imu_node.setDouble( "hy", hy_cal );
     imu_node.setDouble( "hz", hz_cal );
@@ -959,7 +959,7 @@ bool Aura4_t::update_ekf( message::ekf_t *ekf ) {
     const double F2M = 0.3048;
     const double M2F = 1 / F2M;
     // do a little dance to estimate the ekf timestamp in seconds
-    long int imu_millis = imu_node.getInt("imu_millis");
+    long int imu_millis = imu_node.getInt("millis");
     long int diff_millis = ekf->millis - imu_millis;
     if ( diff_millis < 0 ) { diff_millis = 0; } // don't puke on wraparound
     double timestamp = imu_node.getDouble("timestamp")

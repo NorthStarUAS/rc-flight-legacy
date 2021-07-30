@@ -135,12 +135,12 @@ class CalibrateMagnetometer(Task):
             return False
 
         # update filters
-        p = self.imu_node.getDouble("p_rad_sec")
-        q = self.imu_node.getDouble("q_rad_sec")
-        r = self.imu_node.getDouble("r_rad_sec")
-        ax = self.imu_node.getDouble("ax_mps_sec")
-        ay = self.imu_node.getDouble("ay_mps_sec")
-        az = self.imu_node.getDouble("az_mps_sec")
+        p = self.imu_node.getDouble("p_rps")
+        q = self.imu_node.getDouble("q_rps")
+        r = self.imu_node.getDouble("r_rps")
+        ax = self.imu_node.getDouble("ax_mps2")
+        ay = self.imu_node.getDouble("ay_mps2")
+        az = self.imu_node.getDouble("az_mps2")
         hx_raw = self.imu_node.getDouble("hx_raw")
         hy_raw = self.imu_node.getDouble("hy_raw")
         hz_raw = self.imu_node.getDouble("hz_raw")

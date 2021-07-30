@@ -94,7 +94,7 @@ class Launch(Task):
                 self.engine_node.setDouble("throttle", throttle)
 
             # estimate short term heading
-            self.relhdg += self.imu_node.getDouble("r_rad_sec") * r2d * dt
+            self.relhdg += self.imu_node.getDouble("r_rps") * r2d * dt
 
             # I am not clamping heading to +/- 180 here.  The
             # rational is that if we turn more than 180 beyond our

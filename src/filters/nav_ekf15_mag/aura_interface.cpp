@@ -35,12 +35,12 @@ static bool nav_inited = false;
 // data prior to calling the filter init or update routines
 static void props2umn(void) {
     imu_data.time = imu_node.getDouble("timestamp");
-    imu_data.p = imu_node.getDouble("p_rad_sec");
-    imu_data.q = imu_node.getDouble("q_rad_sec");
-    imu_data.r = imu_node.getDouble("r_rad_sec");
-    imu_data.ax = imu_node.getDouble("ax_mps_sec");
-    imu_data.ay = imu_node.getDouble("ay_mps_sec");
-    imu_data.az = imu_node.getDouble("az_mps_sec");
+    imu_data.p = imu_node.getDouble("p_rps");
+    imu_data.q = imu_node.getDouble("q_rps");
+    imu_data.r = imu_node.getDouble("r_rps");
+    imu_data.ax = imu_node.getDouble("ax_mps2");
+    imu_data.ay = imu_node.getDouble("ay_mps2");
+    imu_data.az = imu_node.getDouble("az_mps2");
     imu_data.hx = imu_node.getDouble("hx");
     imu_data.hy = imu_node.getDouble("hy");
     imu_data.hz = imu_node.getDouble("hz");

@@ -14,6 +14,7 @@ import traceback
 
 # v2 property tree
 from PropertyTree import PropertyNode
+root = PropertyNode("/")
 
 parser = argparse.ArgumentParser(description="Rice Creak UAS flight code")
 parser.add_argument("--config", required=True, help="path to config tree")
