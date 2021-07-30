@@ -1,14 +1,14 @@
-# aura-core
+# Rice Creek USA high level flight controller (rc-flight)
 
 ## Welcome
 
-Aura-core is the heart of the AuraUAS project.  It is distributed
-under the MIT license except where noted (see the licenses
-subdirectory for details.)  AuraUAS is an embedded autopilot
-application for unmanned aircraft systems.
+rc-flight is the high level flight controller for the Rice Creek UAS
+project.  It is distributed under the MIT license except where noted
+(see the licenses subdirectory for details.)  rc-flight is an embedded
+autopilot application for unmanned aircraft systems.
 
-* [Watch AuraUAS in action, raw and unedited](https://www.youtube.com/channel/UC_AWqZyWYvnA-h9MMcbNYyA)
-* [Visit my blog for a variety of AuraUAS related projects and background information](http://gallinazo.flightgear.org/)
+* [Watch rc-flight in action, raw and unedited](https://www.youtube.com/channel/UC_AWqZyWYvnA-h9MMcbNYyA)
+* [Visit my blog for a variety of rc-flight (formerly AuraUAS) related projects and background information](http://gallinazo.flightgear.org/)
 
 We know you have a choice in autopilots, so we appreciate you flying
 with us!  The focus here is simplicity and understandability without
@@ -17,7 +17,7 @@ emphasis on writing as much of the code as possible in pure python.
 There is a limited number of supported environments and sensors to
 avoid complicating the architecture and build system.
 
-Aura-core includes:
+rc-flight includes:
 
 * An advanced 15-state EKF (extended kalman filter) developed by the
   University of Minnesota Aerospace Engineering Department.
@@ -26,8 +26,8 @@ Aura-core includes:
 
 * A sophisticated route management and waypoint following system.
 
-* A sophisticated circle hold system that holds precise circles even
-  in strong winds.
+* A circle hold system that holds precise circles even in strong
+  winds.
 
 * A flexible/configurable PID-based control system.  Several
   controller options are available including a classic PID controller
@@ -42,22 +42,24 @@ Aura-core includes:
 * Flexible device driver system.
 
 * Property system: a system for managing and sharing hierarchically
-  organized data between program modules and scripts.
+  organized data between program modules and scripts.  The proprety
+  system enables shared state (and communication) between C++ and
+  python modules within a single hybrid application.
 
-* Native python script execution and integration on board.
+* Native python script execution and integration on board the host
+  flight controll (usually a beaglebone for my projects.)
 
 * Flexible actuator support.
 
 * Great circle distance and heading math.
 
-* Self learning IMU temperature calibration system.
+* Self learning IMU temperature and magnetometer calibration system.
 
 * System and health monitoring
 
-
 ## Configure/Compiling
 
-Aura-core is built with the python setup.py tools.  Under the hood
+rc-flight is built with the python setup.py tools.  Under the hood
 there are several critical C++ modules that are packaged and wrapped
 for python.
 
@@ -134,22 +136,31 @@ are endless feature changes and improvements to be made.
 
 Immediate development goals include:
 
-* Support for structured hdf5 data log export.
+* recently the fmu firmware was ported from arduino to ardupilot's
+  chibios-based AP_HAL to eliminate the need for custom in-house
+  hardware development.  The next step is to integrate all the changes
+  into an airplane and flight validate this big change.
 
-* Python 3 port.  This is mostly completed, but needs further
-  end-to-end testing to catch any lingering issues.  The main
-  challenge involved python3's switch from C-style strings to 'wide'
-  strings, with the addition of bytearrray() to cover the need for
-  C-style strings.  This led to quite a few changes in the C++/python
-  hybrid API code.  In addition, some of the low level message parsing
-  code needed rework.
+* allow the fmu to optionally run the configurable pid controllers.
 
-* [done!] Implement a hand-thrown auto-launch task.  This is written
+* allow the fmu to manage telemetry and logging.
+
+* longer term my hope is to migrate all the C++ specific code directly
+  onto the fmu with enough basic functionaly to support common tasks.
+  The rc-flight code then will act more like a host (or companion)
+  computer for managing higher level mission tasks or doing
+  experimental tasks "offboard".
+
+* [done] Support for structured hdf5 data log export.
+
+* [done] Python 3 port.
+
+* [done] Implement a hand-thrown auto-launch task.  This is written
   as a python task (within the python-based mission system) and
   produces very very solid and stable launch results for hand thrown
   airplanes (such as a Skywalker or Talon.)
 
-* [done!] Add support for computing survey routes on board the aircraft.  (The
+* [done] Add support for computing survey routes on board the aircraft.  (The
   issue here is the brittleness and time required to send 100's of
   waypoints up to an aircraft over a radio modem link.  Instead we can
   just send the area to be covered and some camera parameters and the
