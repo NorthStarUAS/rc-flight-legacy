@@ -1,4 +1,4 @@
-# Rice Creek USA high level flight controller (rc-flight)
+# Rice Creek UAS high level flight controller (rc-flight)
 
 ## Welcome
 
