@@ -560,6 +560,17 @@
                 { "type": "uint8_t", "name": "sequence_num" },
                 { "type": "string", "name": "message" }
             ]
+        },
+        {
+            "id": 49,
+            "name": "stream_v1",
+            "desc": "STREAM v1 message",
+            "date": "August 17, 2021",
+            "fields": [
+                { "type": "float", "name": "sigma1" },
+                { "type": "float", "name": "sigma2" },
+                { "type": "float", "name": "sigma3" }
+            ]
         }
     ]
 }
