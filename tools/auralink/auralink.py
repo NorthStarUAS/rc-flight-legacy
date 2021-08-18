@@ -3,8 +3,6 @@
 import argparse
 import serial
 
-from props import root, getNode
-
 import commands
 import current
 import auraparser

@@ -5,7 +5,7 @@ import tornado
 import tornado.httpserver
 import tornado.websocket
 
-from props import root, getNode
+from PropertyTree import PropertyNode
 import props_json
 
 import commands
@@ -23,11 +23,9 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         if command == 'get':
             if args == 'full_json':
                 commands.remote_lost_link_predict()
-                dict_mirror = {}
-                root.setBool("main_magic", True)
-                props_json.buildDict(dict_mirror, root)
-                self.write_message(json.dumps(dict_mirror, separators=(',',':'),
-                                              sort_keys=True) + '\r\n')
+                PropertyNode("/").setBool("main_magic", True)
+                # print(len(PropertyNode("/").write_as_string()))
+                self.write_message(PropertyNode("/").write_as_string() + '\r\n')
         elif command == 'send':
             # request relay 'args' string up to aircraft
             commands.add(str(args))
@@ -49,24 +47,24 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
     def bind_props(self):
         print('binding property nodes')
-        self.gps_node = getNode('/sensors/gps[0]', True)
-        self.imu_node = getNode('/sensors/imu', True)
-        self.airdata_node = getNode('/sensors/airdata', True)
-        self.pilot_node = getNode('/sensors/pilot_input', True)
-        self.filter_node = getNode('/filters/filter', True)
-        self.pos_combined_node = getNode('/position/combined', True)
-        self.velocity_node = getNode('/velocity', True)
-        self.act_node = getNode('/actuators/actuator', True)
-        self.ap_node = getNode('/autopilot', True)
-        self.targets_node = getNode('/autopilot/targets', True)
-        self.route_node = getNode('/task/route', True)
-        self.active_node = getNode('/task/route/active', True)
-        self.home_node = getNode('/task/home', True)
-        self.circle_node = getNode('/task/circle', True)
-        self.status_node = getNode('/status', True)
-        self.cam_node = getNode('/payload/camera', True) 
-        self.wind_node = getNode('/filters/wind', True) 
-        self.apm2_node = getNode('/sensors/APM2', True) 
+        self.gps_node = PropertyNode('/sensors/gps/0')
+        self.imu_node = PropertyNode('/sensors/imu/0')
+        self.airdata_node = PropertyNode('/sensors/airdata')
+        self.pilot_node = PropertyNode('/sensors/pilot_input')
+        self.filter_node = PropertyNode('/filters/filter')
+        self.pos_combined_node = PropertyNode('/position/combined')
+        self.velocity_node = PropertyNode('/velocity')
+        self.act_node = PropertyNode('/actuators/actuator')
+        self.ap_node = PropertyNode('/autopilot')
+        self.targets_node = PropertyNode('/autopilot/targets')
+        self.route_node = PropertyNode('/task/route')
+        self.active_node = PropertyNode('/task/route/active')
+        self.home_node = PropertyNode('/task/home')
+        self.circle_node = PropertyNode('/task/circle')
+        self.status_node = PropertyNode('/status')
+        self.cam_node = PropertyNode('/payload/camera') 
+        self.wind_node = PropertyNode('/filters/wind') 
+        self.apm2_node = PropertyNode('/sensors/APM2') 
    
 def nullfunc():
     pass

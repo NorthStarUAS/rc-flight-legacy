@@ -6,7 +6,7 @@ import asyncore
 import socket
 import re
 
-from props import root, getNode
+from PropertyTree import PropertyNode
 
 import commands
 
@@ -18,12 +18,12 @@ class ChatHandler(asynchat.async_chat):
         self.path = '/'
         self.prompt = True
 
-        self.imu_node = getNode("/sensors/imu", True)
-        self.targets_node = getNode("/autopilot/targets", True)
-        self.filter_node = getNode("/filters/filter", True)
-        self.act_node = getNode("/actuators/actuator", True)
-        self.vel_node = getNode("/velocity", True)
-        self.pos_comb_node = getNode("/position/combined", True)
+        self.imu_node = PropertyNode("/sensors/imu/0")
+        self.targets_node = PropertyNode("/autopilot/targets")
+        self.filter_node = PropertyNode("/filters/filter/0")
+        self.act_node = PropertyNode("/actuators/actuator")
+        self.vel_node = PropertyNode("/velocity")
+        self.pos_comb_node = PropertyNode("/position/combined")
 
     def collect_incoming_data(self, data):
         print('collect:', data)
@@ -36,26 +36,26 @@ class ChatHandler(asynchat.async_chat):
         self.buffer = []
 
     def gen_fcs_nav_string(self):
-        result = [ self.targets_node.getFloat('groundtrack_deg'),
-                   self.targets_node.getFloat('roll_deg'),
-                   self.filter_node.getFloat('heading_deg'),
-                   self.filter_node.getFloat('roll_deg'),
-                   self.act_node.getFloatEnum('channel', 0) ]
+        result = [ self.targets_node.getDouble('groundtrack_deg'),
+                   self.targets_node.getDouble('roll_deg'),
+                   self.filter_node.getDouble('heading_deg'),
+                   self.filter_node.getDouble('roll_deg'),
+                   self.act_node.getDouble('channel', 0) ]
         return ','.join(map(str, result))
 
     def gen_fcs_speed_string(self):
-        result = [ self.targets_node.getFloat('airspeed_kt'),
-                   self.targets_node.getFloat('pitch_deg'),
-                   self.vel_node.getFloat('airspeed_smoothed_kt'),
-                   self.filter_node.getFloat('pitch_deg'),
-                   self.act_node.getFloatEnum('channel', 1) ]
+        result = [ self.targets_node.getDouble('airspeed_kt'),
+                   self.targets_node.getDouble('pitch_deg'),
+                   self.vel_node.getDouble('airspeed_smoothed_kt'),
+                   self.filter_node.getDouble('pitch_deg'),
+                   self.act_node.getDouble('channel', 1) ]
         return ','.join(map(str, result))
 
     def gen_fcs_altitude_string(self):
         m2ft = 1.0 / 0.3048
-        result = [ self.targets_node.getFloat('altitude_msl_ft'),
-                   self.pos_comb_node.getFloat('altitude_true_m') * m2ft,
-                   self.act_node.getFloatEnum('channel', 2) ]
+        result = [ self.targets_node.getDouble('altitude_msl_ft'),
+                   self.pos_comb_node.getDouble('altitude_true_m') * m2ft,
+                   self.act_node.getDouble('channel', 2) ]
         return ','.join(map(str, result))
 
     def my_push(self, msg):
@@ -80,18 +80,25 @@ class ChatHandler(asynchat.async_chat):
                     else:
                         newpath = self.path + '/' + tokens[1]
             newpath = self.normalize_path(newpath)
-            node = getNode(newpath)
-            if node:
-                children = node.getChildren(True)
+            node = PropertyNode(newpath, False)
+            if not node.isNull():
+                children = node.getChildren(False)
                 for child in children:
-                    line = child
-                    if node.isLeaf(child):
-                        if self.prompt:
-                            value = node.getString(child)
-                            line = line + ' =\t\"' + value + '"\t'
+                    if node.isArray(child):
+                        line = ''
+                        for i in range(node.getLen(child)):
+                            if node.isValue(child):
+                                value = node.getString(child, i)
+                                line += '%s/%d' % (child, i)
+                                line += ' =\t\"' + value + '"\t' + '\n'
+                            else:
+                                line += '%s/%d' % (child, i) + '\n'
                     else:
-                        line += '/'
-                    line += '\n'
+                        if node.isValue(child):
+                            value = node.getString(child)
+                            line = child + ' =\t\"' + value + '"\t' + '\n'
+                        else:
+                            line = child + '/' + '\n'
                     self.my_push(line)
             else:
                 self.my_push('Error: ' + newpath + ' not found\n')
@@ -106,7 +113,7 @@ class ChatHandler(asynchat.async_chat):
                     else:
                         newpath = self.path + '/' + tokens[1]
             newpath = self.normalize_path(newpath)
-            node = getNode(newpath)
+            node = PropertyNode(newpath, False)
             if node:
                 self.my_push('path ok: ' + newpath + '\n')
                 self.path = newpath
@@ -128,10 +135,10 @@ class ChatHandler(asynchat.async_chat):
                     tmppath = '/'.join(tmp[0:-1])
                     if tmppath == '':
                         tmppath = '/'
-                    node = getNode(tmppath, True)
+                    node = PropertyNode(tmppath)
                     name = tmp[-1]
                 else:
-                    node = getNode(self.path, True)
+                    node = PropertyNode(self.path)
                     name = tokens[1]
                 value = node.getString(name)
                 if self.prompt:
@@ -154,10 +161,10 @@ class ChatHandler(asynchat.async_chat):
                     tmppath = '/'.join(tmp[0:-1])
                     if tmppath == '':
                         tmppath = '/'
-                    node = getNode(tmppath, True)
+                    node = PropertyNode(tmppath)
                     name = tmp[-1]
                 else:
-                    node = getNode(self.path, True)
+                    node = PropertyNode(self.path)
                     name = tokens[1]
                 value = ' '.join(tokens[2:])
                 node.setString(name, value)
@@ -199,16 +206,16 @@ class ChatHandler(asynchat.async_chat):
                     tmp = tokens[1]
                     tmp += " = "
                 if tokens[1] == "heading":
-                    tmp = str(self.imu_node.getFloat('timestamp')) + ','
+                    tmp = str(self.imu_node.getDouble('timestamp')) + ','
                     tmp += self.gen_fcs_nav_string()
                 elif tokens[1] == "speed":
-                    tmp = str(self.imu_node.getFloat('timestamp')) + ','
+                    tmp = str(self.imu_node.getDouble('timestamp')) + ','
                     tmp += self.gen_fcs_speed_string()
                 elif tokens[1] == "altitude":
-                    tmp = str(self.imu_node.getFloat('timestamp')) + ','
+                    tmp = str(self.imu_node.getDouble('timestamp')) + ','
                     tmp += self.gen_fcs_altitude_string()
                 elif tokens[1] == "all":
-                    tmp = str(self.imu_node.getFloat('timestamp')) + ','
+                    tmp = str(self.imu_node.getDouble('timestamp')) + ','
                     tmp += self.gen_fcs_nav_string()
                     tmp += ","
                     tmp += self.gen_fcs_speed_string()

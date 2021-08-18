@@ -1,12 +1,12 @@
 # generate requests for information we want but don't yet have
 
-from props import root, getNode
+from PropertyTree import PropertyNode
 
 import commands
 
-ident_node = getNode('/config/identity', True)
-specs_node = getNode('/config/specs', True)
-tecs_config_node = getNode('/config/autopilot/TECS', True)
+ident_node = PropertyNode('/config/identity')
+specs_node = PropertyNode('/config/specs')
+tecs_config_node = PropertyNode('/config/autopilot/TECS')
 
 requests_pending = True
 def gen_requests():

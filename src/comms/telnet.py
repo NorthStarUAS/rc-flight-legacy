@@ -39,7 +39,7 @@ class ChatHandler(asynchat.async_chat):
                    self.targets_node.getDouble('roll_deg'),
                    self.filter_node.getDouble('heading_deg'),
                    self.filter_node.getDouble('roll_deg'),
-                   self.act_node.getDoubleEnum('channel', 0) ]
+                   self.act_node.getDouble('channel', 0) ]
         return ','.join(map(str, result))
 
     def gen_fcs_speed_string(self):
@@ -47,14 +47,14 @@ class ChatHandler(asynchat.async_chat):
                    self.targets_node.getDouble('pitch_deg'),
                    self.vel_node.getDouble('airspeed_smoothed_kt'),
                    self.filter_node.getDouble('pitch_deg'),
-                   self.act_node.getDoubleEnum('channel', 1) ]
+                   self.act_node.getDouble('channel', 1) ]
         return ','.join(map(str, result))
 
     def gen_fcs_altitude_string(self):
         m2ft = 1.0 / 0.3048
         result = [ self.targets_node.getDouble('altitude_msl_ft'),
                    self.pos_comb_node.getDouble('altitude_true_m') * m2ft,
-                   self.act_node.getDoubleEnum('channel', 2) ]
+                   self.act_node.getDouble('channel', 2) ]
         return ','.join(map(str, result))
 
     def my_push(self, msg):
@@ -112,7 +112,7 @@ class ChatHandler(asynchat.async_chat):
                     else:
                         newpath = self.path + '/' + tokens[1]
             newpath = self.normalize_path(newpath)
-            node = PropertyNode(newpath)
+            node = PropertyNode(newpath, False)
             if node:
                 self.my_push('path ok: ' + newpath + '\n')
                 self.path = newpath

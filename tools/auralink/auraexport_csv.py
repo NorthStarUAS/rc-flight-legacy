@@ -10,7 +10,7 @@ import sys
 import tempfile
 from tqdm import tqdm
 
-from props import root, getNode
+from PropertyTree import PropertyNode
 
 sys.path.append("../../src")
 from comms import aura_messages
@@ -82,7 +82,7 @@ args = argparser.parse_args()
 data = {}
 master_headers = {}
 
-gps_node = getNode('/sensors/gps', True)
+gps_node = PropertyNode('/sensors/gps/0')
 located = False
 lon = 0.0
 lat = 0.0
@@ -150,10 +150,10 @@ else:
 output_dir = os.path.dirname(os.path.realpath(filename))
 
 # last recorded time stamp
-filter_node = getNode('/filters/filter', True)
-status_node = getNode('/status', True)
+filter_node = PropertyNode('/filters/filter/0')
+status_node = PropertyNode('/status')
 total_time = filter_node.getFloat('timestamp')
-apm2_node = getNode("/sensors/APM2", True)
+apm2_node = PropertyNode("/sensors/APM2")
 
 for key in sorted(data):
     size = len(data[key])

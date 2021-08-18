@@ -1,3 +1,4 @@
+import math
 import re
 import struct
 
@@ -30,6 +31,7 @@ power_node = PropertyNode("/sensors/power")
 vel_node = PropertyNode("/velocity")
 wind_node = PropertyNode("/filters/wind")
 remote_link_node = PropertyNode("/comms/remote_link")
+stream_node = PropertyNode("/stream")
 
 NUM_ACTUATORS = 8
 act_node = PropertyNode("/actuators")
@@ -183,6 +185,10 @@ class Packer():
         node.setDouble("pressure_mbar", air.pressure_mbar)
         node.setDouble("temp_C", air.temp_C)
         vel_node.setDouble("airspeed_smoothed_kt", air.airspeed_smoothed_kt)
+        if math.isnan(air.altitude_smoothed_m):
+            air.altitude_smoothed_m = 0.0
+        if math.isnan(air.altitude_true_m):
+            air.altitude_true_m = 0.0
         pos_pressure_node.setDouble("altitude_smoothed_m", air.altitude_smoothed_m)
         pos_combined_node.setDouble("altitude_true_m", air.altitude_true_m)
         vel_node.setDouble("pressure_vertical_speed_fps", air.pressure_vertical_speed_fps)
@@ -203,6 +209,10 @@ class Packer():
         node.setDouble("pressure_mbar", air.pressure_mbar)
         node.setDouble("temp_C", air.temp_C)
         vel_node.setDouble("airspeed_smoothed_kt", air.airspeed_smoothed_kt)
+        if math.isnan(air.altitude_smoothed_m):
+            air.altitude_smoothed_m = 0.0
+        if math.isnan(air.altitude_true_m):
+            air.altitude_true_m = 0.0
         pos_pressure_node.setDouble("altitude_smoothed_m", air.altitude_smoothed_m)
         pos_combined_node.setDouble("altitude_true_m", air.altitude_true_m)
         vel_node.setDouble("pressure_vertical_speed_fps", air.pressure_vertical_speed_fps)
@@ -223,6 +233,10 @@ class Packer():
         node.setDouble("pressure_mbar", air.pressure_mbar)
         node.setDouble("temp_C", air.temp_C)
         vel_node.setDouble("airspeed_smoothed_kt", air.airspeed_smoothed_kt)
+        if math.isnan(air.altitude_smoothed_m):
+            air.altitude_smoothed_m = 0.0
+        if math.isnan(air.altitude_true_m):
+            air.altitude_true_m = 0.0
         pos_pressure_node.setDouble("altitude_smoothed_m", air.altitude_smoothed_m)
         pos_combined_node.setDouble("altitude_true_m", air.altitude_true_m)
         vel_node.setDouble("pressure_vertical_speed_fps", air.pressure_vertical_speed_fps)
@@ -877,14 +891,14 @@ class Packer():
         node = pilot_node
 
         node.setDouble("timestamp", pilot.timestamp_sec)
-        node.setDouble("channel", 0, pilot.channel[0])
-        node.setDouble("channel", 1, pilot.channel[1])
-        node.setDouble("channel", 2, pilot.channel[2])
-        node.setDouble("channel", 3, pilot.channel[3])
-        node.setDouble("channel", 4, pilot.channel[4])
-        node.setDouble("channel", 5, pilot.channel[5])
-        node.setDouble("channel", 6, pilot.channel[6])
-        node.setDouble("channel", 7, pilot.channel[7])
+        node.setDouble("channel", pilot.channel[0], 0)
+        node.setDouble("channel", pilot.channel[1], 1)
+        node.setDouble("channel", pilot.channel[2], 2)
+        node.setDouble("channel", pilot.channel[3], 3)
+        node.setDouble("channel", pilot.channel[4], 4)
+        node.setDouble("channel", pilot.channel[5], 5)
+        node.setDouble("channel", pilot.channel[6], 6)
+        node.setDouble("channel", pilot.channel[7], 7)
         node.setInt("status", pilot.status)
 
         return pilot.index
@@ -897,14 +911,14 @@ class Packer():
         node = pilot_node
 
         node.setDouble("timestamp", pilot.timestamp_sec)
-        node.setDouble("channel", 0, pilot.channel[0])
-        node.setDouble("channel", 1, pilot.channel[1])
-        node.setDouble("channel", 2, pilot.channel[2])
-        node.setDouble("channel", 3, pilot.channel[3])
-        node.setDouble("channel", 4, pilot.channel[4])
-        node.setDouble("channel", 5, pilot.channel[5])
-        node.setDouble("channel", 6, pilot.channel[6])
-        node.setDouble("channel", 7, pilot.channel[7])
+        node.setDouble("channel", pilot.channel[0], 0)
+        node.setDouble("channel", pilot.channel[1], 1)
+        node.setDouble("channel", pilot.channel[2], 2)
+        node.setDouble("channel", pilot.channel[3], 3)
+        node.setDouble("channel", pilot.channel[4], 4)
+        node.setDouble("channel", pilot.channel[5], 5)
+        node.setDouble("channel", pilot.channel[6], 6)
+        node.setDouble("channel", pilot.channel[7], 7)
         node.setInt("status", pilot.status)
 
         return pilot.index
@@ -1336,7 +1350,7 @@ class Packer():
         power_node.setDouble("main_vcc", health.main_vcc)
         power_node.setDouble("cell_vcc", health.cell_vcc)
         power_node.setDouble("main_amps", health.main_amps)
-        power_node.setInt("total_mah", health.total_mah)
+        power_node.setInt("total_mah", int(health.total_mah))
         return health.index
 
     def unpack_system_health_v6(self, buf):
@@ -1428,6 +1442,20 @@ class Packer():
             node.setString(name, value)
         event_node.setDouble("timestamp", event.timestamp_sec)
         event_node.setString("message", event.message)
+        return 0
+
+    def unpack_stream_v1(self, buf):
+        print("unpacking STREAM")
+        stream = aura_messages.stream_v1(buf)
+        if math.isnan(stream.sigma1):
+            stream.sigma1 = 0.0
+        if math.isnan(stream.sigma2):
+            stream.sigma2 = 0.0
+        if math.isnan(stream.sigma3):
+            stream.sigma3 = 0.0
+        stream_node.setDouble("sigma1", stream.sigma1)
+        stream_node.setDouble("sigma2", stream.sigma2)
+        stream_node.setDouble("sigma3", stream.sigma3)
         return 0
 
 packer = Packer()

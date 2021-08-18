@@ -1,6 +1,6 @@
 import time
 
-from props import root, getNode
+from PropertyTree import PropertyNode
 
 import sys
 sys.path.append("../../src")
@@ -8,8 +8,8 @@ from comms import aura_messages
 import comms.packer
 import comms.serial_parser
 
-filter_node = getNode('/filters/filter', True)
-remote_link_node = getNode('/comms/remote_link', True)
+filter_node = PropertyNode('/filters/filter')
+remote_link_node = PropertyNode('/comms/remote_link')
 
 cmd_send_index = 1
 cmd_recv_index = 0
