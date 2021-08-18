@@ -111,8 +111,6 @@ def parse_msg(id, buf):
         index = packer.unpack_event_v1(buf)
     elif id == aura_messages.event_v2_id:
         index = packer.unpack_event_v2(buf)
-    elif id == aura_messages.stream_v1_id:
-        index = packer.unpack_stream_v1(buf)
     else:
         print("Unknown packet id:", id)
         index = 0

@@ -1444,18 +1444,4 @@ class Packer():
         event_node.setString("message", event.message)
         return 0
 
-    def unpack_stream_v1(self, buf):
-        print("unpacking STREAM")
-        stream = aura_messages.stream_v1(buf)
-        if math.isnan(stream.sigma1):
-            stream.sigma1 = 0.0
-        if math.isnan(stream.sigma2):
-            stream.sigma2 = 0.0
-        if math.isnan(stream.sigma3):
-            stream.sigma3 = 0.0
-        stream_node.setDouble("sigma1", stream.sigma1)
-        stream_node.setDouble("sigma2", stream.sigma2)
-        stream_node.setDouble("sigma3", stream.sigma3)
-        return 0
-
 packer = Packer()

@@ -30,7 +30,6 @@ payload_v3_id = 42
 event_v1_id = 27
 event_v2_id = 44
 command_v1_id = 28
-stream_v1_id = 49
 
 # Constants
 max_raw_sats = 12  # maximum array size to store satellite raw data
@@ -1787,31 +1786,3 @@ class command_v1():
          self.message_len) = self._struct.unpack(msg)
         self.message = extra[:self.message_len].decode()
         extra = extra[self.message_len:]
-
-# Message: stream_v1
-# Id: 49
-class stream_v1():
-    id = 49
-    _pack_string = "<fff"
-    _struct = struct.Struct(_pack_string)
-
-    def __init__(self, msg=None):
-        # public fields
-        self.sigma1 = 0.0
-        self.sigma2 = 0.0
-        self.sigma3 = 0.0
-        # unpack if requested
-        if msg: self.unpack(msg)
-
-    def pack(self):
-        msg = self._struct.pack(
-                  self.sigma1,
-                  self.sigma2,
-                  self.sigma3)
-        return msg
-
-    def unpack(self, msg):
-        (self.sigma1,
-         self.sigma2,
-         self.sigma3) = self._struct.unpack(msg)
-
