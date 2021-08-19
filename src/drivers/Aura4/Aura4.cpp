@@ -1131,20 +1131,20 @@ bool Aura4_t::update_pilot( message::pilot_t *pilot ) {
     for ( int i = 0; i < message::sbus_channels; i++ ) {
 	val = pilot->channel[i];
 	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
-	pilot_node.setDouble( "channel", i, val );
+	pilot_node.setDouble( "channel", val, i );
     }
 
     // sbus ch17 (channel[16])
     if ( pilot->flags & 0x01 ) {
-        pilot_node.setDouble( "channel", 16, 1.0 );
+        pilot_node.setDouble( "channel", 1.0, 16 );
     } else {
-        pilot_node.setDouble( "channel", 16, 0.0 );
+        pilot_node.setDouble( "channel", 0.0, 16 );
     }
     // sbus ch18 (channel[17])
     if ( pilot->flags & (1 << 1) ) {
-        pilot_node.setDouble( "channel", 17, 1.0 );
+        pilot_node.setDouble( "channel", 1.0, 17 );
     } else {
-        pilot_node.setDouble( "channel", 17, 0.0 );
+        pilot_node.setDouble( "channel", 0.0, 17 );
     }
     if ( pilot->flags & (1 << 2) ) {
         pilot_node.setBool( "frame_lost", true );

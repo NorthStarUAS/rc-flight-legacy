@@ -43,8 +43,8 @@ class Calibration():
             print cal_file + ": load error:\n" + str(sys.exc_info()[1])
             return False
         
-        self.min_temp = config.getFloat('min_temp_C')
-        self.max_temp = config.getFloat('max_temp_C')
+        self.min_temp = config.getDouble('min_temp_C')
+        self.max_temp = config.getDouble('max_temp_C')
         
         node = config.getChild('p')
         if node:
@@ -115,8 +115,8 @@ class Calibration():
     # save a configuration file
     def save(self, cal_file):
         config = PropertyNode()
-        config.setFloat('min_temp_C', self.min_temp)
-        config.setFloat('max_temp_C', self.max_temp)
+        config.setDouble('min_temp_C', self.min_temp)
+        config.setDouble('max_temp_C', self.max_temp)
 
         node = config.getChild('p', create=True)
         p = self.p_bias
