@@ -207,7 +207,7 @@ void rcfmu_t::init_actuators( PropertyNode *config ) {
 
 bool rcfmu_t::update_imu( rcfmu_message::imu_t *imu ) {
     imu_timestamp = get_Time();
-    imu->props2msg(imu_node);
+    imu->msg2props(imu_node);
 
     // timestamp dance: this is a little jig that I do to make a
     // more consistent time stamp that still is in the host
