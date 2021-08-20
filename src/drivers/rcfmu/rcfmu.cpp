@@ -194,7 +194,9 @@ void rcfmu_t::init_pilot( PropertyNode *config ) {
     if ( config->hasChild("channel") ) {
 	for ( int i = 0; i < rcfmu_message::sbus_channels; i++ ) {
 	    pilot_mapping[i] = config->getString("channel", i);
-	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
+            if ( pilot_mapping[i] != "" ) {
+                printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
+            }
 	}
     }
     // pilot_node.setLen("channel", rcfmu_message::sbus_channels, 0.0);
@@ -664,8 +666,10 @@ bool rcfmu_t::update_pilot( rcfmu_message::pilot_t *pilot ) {
 
     for ( int i = 0; i < rcfmu_message::sbus_channels; i++ ) {
 	val = pilot->channel[i];
-	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
-	pilot_node.setDouble( "channel", val, i );
+        pilot_node.setDouble( "channel", val, i );
+        if ( pilot_mapping[i] != "" ) {
+            pilot_node.setDouble( pilot_mapping[i].c_str(), val );
+        }
     }
 
     // sbus ch17 (channel[16])

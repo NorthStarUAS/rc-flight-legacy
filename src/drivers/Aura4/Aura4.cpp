@@ -189,7 +189,9 @@ void Aura4_t::init_pilot( PropertyNode *config ) {
     if ( config->hasChild("channel") ) {
 	for ( int i = 0; i < message::sbus_channels; i++ ) {
 	    pilot_mapping[i] = config->getString("channel", i);
-	    printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
+            if ( pilot_mapping[i] != "" ) {
+                printf("pilot input: channel %d maps to %s\n", i, pilot_mapping[i].c_str());
+            }
 	}
     }
     // pilot_node.setLen("channel", message::sbus_channels, 0.0);
@@ -1129,8 +1131,10 @@ bool Aura4_t::update_pilot( message::pilot_t *pilot ) {
 
     for ( int i = 0; i < message::sbus_channels; i++ ) {
 	val = pilot->channel[i];
-	pilot_node.setDouble( pilot_mapping[i].c_str(), val );
 	pilot_node.setDouble( "channel", val, i );
+        if ( pilot_mapping[i] != "" ) {
+            pilot_node.setDouble( pilot_mapping[i].c_str(), val );
+        }
     }
 
     // sbus ch17 (channel[16])
