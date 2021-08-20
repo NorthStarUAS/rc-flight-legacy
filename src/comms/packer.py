@@ -851,7 +851,7 @@ class Packer():
         return self.pilot_buf
 
     def pack_pilot_dict(self, index):
-        pilot_node = PropertyNode('/sensors/pilot_input/%d' % index)
+        pilot_node = PropertyNode('/sensors/pilot_input' % index)
         row = dict()
         row['timestamp'] = pilot_node.getDouble('timestamp')
         row['channel[0]'] = pilot_node.getDouble('channel', 0)
@@ -866,7 +866,7 @@ class Packer():
         return row
 
     def pack_pilot_csv(self, index):
-        pilot_node = PropertyNode('/sensors/pilot_input/%d' % index)
+        pilot_node = PropertyNode('/sensors/pilot_input' % index)
         row = dict()
         row['timestamp'] = '%.4f' % pilot_node.getDouble('timestamp')
         row['channel[0]'] = '%.3f' % pilot_node.getDouble('channel', 0)
@@ -888,18 +888,17 @@ class Packer():
 
         if pilot.index > 0:
             printf("Warning: pilot index > 0 not supported")
-        node = pilot_node
 
-        node.setDouble("timestamp", pilot.timestamp_sec)
-        node.setDouble("channel", pilot.channel[0], 0)
-        node.setDouble("channel", pilot.channel[1], 1)
-        node.setDouble("channel", pilot.channel[2], 2)
-        node.setDouble("channel", pilot.channel[3], 3)
-        node.setDouble("channel", pilot.channel[4], 4)
-        node.setDouble("channel", pilot.channel[5], 5)
-        node.setDouble("channel", pilot.channel[6], 6)
-        node.setDouble("channel", pilot.channel[7], 7)
-        node.setInt("status", pilot.status)
+        pilot_node.setDouble("timestamp", pilot.timestamp_sec)
+        pilot_node.setDouble("channel", pilot.channel[0], 0)
+        pilot_node.setDouble("channel", pilot.channel[1], 1)
+        pilot_node.setDouble("channel", pilot.channel[2], 2)
+        pilot_node.setDouble("channel", pilot.channel[3], 3)
+        pilot_node.setDouble("channel", pilot.channel[4], 4)
+        pilot_node.setDouble("channel", pilot.channel[5], 5)
+        pilot_node.setDouble("channel", pilot.channel[6], 6)
+        pilot_node.setDouble("channel", pilot.channel[7], 7)
+        pilot_node.setInt("status", pilot.status)
 
         return pilot.index
 
@@ -908,18 +907,17 @@ class Packer():
 
         if pilot.index > 0:
             printf("Warning: pilot index > 0 not supported")
-        node = pilot_node
 
-        node.setDouble("timestamp", pilot.timestamp_sec)
-        node.setDouble("channel", pilot.channel[0], 0)
-        node.setDouble("channel", pilot.channel[1], 1)
-        node.setDouble("channel", pilot.channel[2], 2)
-        node.setDouble("channel", pilot.channel[3], 3)
-        node.setDouble("channel", pilot.channel[4], 4)
-        node.setDouble("channel", pilot.channel[5], 5)
-        node.setDouble("channel", pilot.channel[6], 6)
-        node.setDouble("channel", pilot.channel[7], 7)
-        node.setInt("status", pilot.status)
+        pilot_node.setDouble("timestamp", pilot.timestamp_sec)
+        pilot_node.setDouble("channel", pilot.channel[0], 0)
+        pilot_node.setDouble("channel", pilot.channel[1], 1)
+        pilot_node.setDouble("channel", pilot.channel[2], 2)
+        pilot_node.setDouble("channel", pilot.channel[3], 3)
+        pilot_node.setDouble("channel", pilot.channel[4], 4)
+        pilot_node.setDouble("channel", pilot.channel[5], 5)
+        pilot_node.setDouble("channel", pilot.channel[6], 6)
+        pilot_node.setDouble("channel", pilot.channel[7], 7)
+        pilot_node.setInt("status", pilot.status)
 
         return pilot.index
 

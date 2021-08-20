@@ -190,8 +190,7 @@ void rcfmu_t::init_imu( PropertyNode *config ) {
 }
 
 void rcfmu_t::init_pilot( PropertyNode *config ) {
-    string output_path = get_next_path("/sensors", "pilot_input", true);
-    pilot_node = PropertyNode( output_path.c_str() );
+    pilot_node = PropertyNode("/sensors/pilot_input");
     if ( config->hasChild("channel") ) {
 	for ( int i = 0; i < rcfmu_message::sbus_channels; i++ ) {
 	    pilot_mapping[i] = config->getString("channel", i);
