@@ -86,12 +86,12 @@ class ChatHandler(asynchat.async_chat):
                     if node.isArray(child):
                         line = ''
                         for i in range(node.getLen(child)):
-                            if node.isValue(child):
+                            if node.isValue(child, i):
                                 value = node.getString(child, i)
-                                line += '%s/%d' % (child, i)
+                                line += "%s/%d" % (child, i)
                                 line += ' =\t\"' + value + '"\t' + '\n'
                             else:
-                                line += '%s/%d' % (child, i) + '\n'
+                                line += "%s/%d/" % (child, i) + '\n'
                     else:
                         if node.isValue(child):
                             value = node.getString(child)
