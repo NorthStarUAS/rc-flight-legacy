@@ -178,7 +178,7 @@ class Packer():
         air = aura_messages.airdata_v5(buf)
 
         if air.index > 0:
-            printf("Warning: airdata index > 0 not supported")
+            print("Warning: airdata index > 0 not supported")
         node = airdata_node
 
         node.setDouble("timestamp", air.timestamp_sec)
@@ -202,7 +202,7 @@ class Packer():
         air = aura_messages.airdata_v6(buf)
 
         if air.index > 0:
-            printf("Warning: airdata index > 0 not supported")
+            print("Warning: airdata index > 0 not supported")
         node = airdata_node
 
         node.setDouble("timestamp", air.timestamp_sec)
@@ -226,7 +226,7 @@ class Packer():
         air = aura_messages.airdata_v7(buf)
 
         if air.index > 0:
-            printf("Warning: airdata index > 0 not supported")
+            print("Warning: airdata index > 0 not supported")
         node = airdata_node
 
         node.setDouble("timestamp", air.timestamp_sec)
@@ -320,7 +320,7 @@ class Packer():
         gps = aura_messages.gps_v2(buf)
 
         if gps.index > 0:
-            printf("Warning: gps index > 0 not supported")
+            print("Warning: gps index > 0 not supported")
         node = gps_node
 
         node.setDouble("timestamp", gps.timestamp_sec)
@@ -339,7 +339,7 @@ class Packer():
         gps = aura_messages.gps_v3(buf)
 
         if gps.index > 0:
-            printf("Warning: gps index > 0 not supported")
+            print("Warning: gps index > 0 not supported")
         node = gps_node
 
         node.setDouble("timestamp", gps.timestamp_sec)
@@ -362,7 +362,7 @@ class Packer():
         gps = aura_messages.gps_v4(buf)
 
         if gps.index > 0:
-            printf("Warning: gps index > 0 not supported")
+            print("Warning: gps index > 0 not supported")
         node = gps_node
 
         node.setDouble("timestamp", gps.timestamp_sec)
@@ -433,7 +433,7 @@ class Packer():
         gpsraw = aura_messages.gps_raw_v1(buf)
 
         if gpsraw.index > 0:
-            printf("Warning: gpsraw index > 0 not supported")
+            print("Warning: gpsraw index > 0 not supported")
         gpsraw_node.setDouble("timestamp", gpsraw.timestamp_sec)
         gpsraw_node.setInt("raw_num", gpsraw.num_sats)
         gpsraw_node.setDouble("receiver_tow", gpsraw.receiver_tow)
@@ -526,7 +526,7 @@ class Packer():
         imu = aura_messages.imu_v3(buf)
 
         if imu.index > 0:
-            printf("Warning: imu index > 0 not supported")
+            print("Warning: imu index > 0 not supported")
         node = imu_node
 
         node.setDouble("timestamp", imu.timestamp_sec)
@@ -547,7 +547,7 @@ class Packer():
         imu = aura_messages.imu_v4(buf)
 
         if imu.index > 0:
-            printf("Warning: imu index > 0 not supported")
+            print("Warning: imu index > 0 not supported")
         node = imu_node
 
         node.setDouble("timestamp", imu.timestamp_sec)
@@ -568,7 +568,7 @@ class Packer():
         imu = aura_messages.imu_v5(buf)
 
         if imu.index > 0:
-            printf("Warning: imu index > 0 not supported")
+            print("Warning: imu index > 0 not supported")
         node = imu_node
 
         node.setDouble("timestamp", imu.timestamp_sec)
@@ -675,7 +675,7 @@ class Packer():
         nav = aura_messages.filter_v3(buf)
 
         if nav.index > 0:
-            printf("Warning: nav index > 0 not supported")
+            print("Warning: nav index > 0 not supported")
         node = filter_node
 
         node.setDouble("timestamp", nav.timestamp_sec)
@@ -704,7 +704,7 @@ class Packer():
         nav = aura_messages.filter_v4(buf)
 
         if nav.index > 0:
-            printf("Warning: nav index > 0 not supported")
+            print("Warning: nav index > 0 not supported")
         node = filter_node
 
         node.setDouble("timestamp", nav.timestamp_sec)
@@ -733,7 +733,7 @@ class Packer():
         nav = aura_messages.filter_v5(buf)
 
         if nav.index > 0:
-            printf("Warning: nav index > 0 not supported")
+            print("Warning: nav index > 0 not supported")
         node = filter_node
 
         node.setDouble("timestamp", nav.timestamp_sec)
@@ -887,7 +887,7 @@ class Packer():
         pilot = aura_messages.pilot_v2(buf)
 
         if pilot.index > 0:
-            printf("Warning: pilot index > 0 not supported")
+            print("Warning: pilot index > 0 not supported")
 
         pilot_node.setDouble("timestamp", pilot.timestamp_sec)
         pilot_node.setDouble("channel", pilot.channel[0], 0)
@@ -906,7 +906,7 @@ class Packer():
         pilot = aura_messages.pilot_v3(buf)
 
         if pilot.index > 0:
-            printf("Warning: pilot index > 0 not supported")
+            print("Warning: pilot index > 0 not supported")
 
         pilot_node.setDouble("timestamp", pilot.timestamp_sec)
         pilot_node.setDouble("channel", pilot.channel[0], 0)
@@ -1360,7 +1360,7 @@ class Packer():
         power_node.setDouble("main_vcc", health.main_vcc)
         power_node.setDouble("cell_vcc", health.cell_vcc)
         power_node.setDouble("main_amps", health.main_amps)
-        power_node.setInt("total_mah", health.total_mah)
+        power_node.setInt("total_mah", int(health.total_mah))
         return health.index
 
     def pack_payload_dict(self, index):
