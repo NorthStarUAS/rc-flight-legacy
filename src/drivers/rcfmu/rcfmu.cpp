@@ -147,7 +147,7 @@ void rcfmu_t::init_airdata( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "airdata", true);
     airdata_node = PropertyNode( output_path.c_str() );
     if ( config->hasChild("pitot_calibrate_factor") ) {
-        pitot_calibrate = rcfmu_config.getDouble("pitot_calibrate_factor");
+        pitot_calibrate = config->getDouble("pitot_calibrate_factor");
     }
 }
 
@@ -622,7 +622,6 @@ bool rcfmu_t::update_airdata( rcfmu_message::airdata_t *airdata ) {
 	
     float Pa = (pitot - pitot_offset);
     if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
-    printf("pitot calibrate: %.3f\n", pitot_calibrate);
     float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
     float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
     airdata_node.setDouble( "airspeed_mps", airspeed_mps );
