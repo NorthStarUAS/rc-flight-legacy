@@ -851,7 +851,7 @@ class Packer():
         return self.pilot_buf
 
     def pack_pilot_dict(self, index):
-        pilot_node = PropertyNode('/sensors/pilot_input' % index)
+        pilot_node = PropertyNode('/sensors/pilot_input')
         row = dict()
         row['timestamp'] = pilot_node.getDouble('timestamp')
         row['channel[0]'] = pilot_node.getDouble('channel', 0)
@@ -866,7 +866,7 @@ class Packer():
         return row
 
     def pack_pilot_csv(self, index):
-        pilot_node = PropertyNode('/sensors/pilot_input' % index)
+        pilot_node = PropertyNode('/sensors/pilot_input')
         row = dict()
         row['timestamp'] = '%.4f' % pilot_node.getDouble('timestamp')
         row['channel[0]'] = '%.3f' % pilot_node.getDouble('channel', 0)
