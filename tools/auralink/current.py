@@ -3,7 +3,7 @@ import math
 from PropertyTree import PropertyNode
 
 airdata_node = PropertyNode('/sensors/airdata')
-filter_node = PropertyNode('/filters/filter[0]')
+filter_node = PropertyNode('/filters/filter/0')
 pilot_node = PropertyNode('/sensors/pilot_input')
 status_node = PropertyNode('/status')
 pos_node = PropertyNode("/position")
