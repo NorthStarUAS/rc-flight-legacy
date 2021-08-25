@@ -56,20 +56,15 @@ void rcfmu_t::hard_fail( const char *format, ... ) {
 
 void rcfmu_t::init( PropertyNode *config ) {
     // bind main property nodes
-    aura4_node = PropertyNode( "/sensors/rcfmu" );
+    rcfmu_node = PropertyNode( "/sensors/rcfmu" );
     power_node = PropertyNode( "/sensors/power" );
     status_node = PropertyNode( "/status" );
-    aura4_config = *config;
+    rcfmu_config = *config;
 
     printf("rcfmu driver init(): event logging broken!\n");
     printf("rcfmu driver init(): write imu calibration broken!\n");
     
     if ( true ) {               // fixme: move or delete
-        printf("warning the next code needs to be fixed!!!\n");
-        if ( config->hasChild("pitot_calibrate_factor") ) {
-            pitot_calibrate = aura4_config.getDouble("pitot_calibrate_factor");
-        }
-
         PropertyNode specs_node( "/config/specs" );
         if ( specs_node.hasChild("battery_cells") ) {
             battery_cells = specs_node.getInt("battery_cells");
@@ -151,9 +146,14 @@ bool rcfmu_t::open( PropertyNode *config ) {
 void rcfmu_t::init_airdata( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "airdata", true);
     airdata_node = PropertyNode( output_path.c_str() );
+    if ( config->hasChild("pitot_calibrate_factor") ) {
+        pitot_calibrate = rcfmu_config.getDouble("pitot_calibrate_factor");
+    }
 }
 
 void rcfmu_t::init_ekf( PropertyNode *config ) {
+    // fixme: how do we configure parameters?  saved onboard the
+    // rc-fmu-ap for now?
     if ( config->hasChild("select") ) {
         string val = config->getString("select");
         if ( val == "nav15" or val == "nav15_mag" ) {
@@ -161,13 +161,13 @@ void rcfmu_t::init_ekf( PropertyNode *config ) {
             ekf_node = PropertyNode( output_path.c_str() );
         } else if ( val == "none" ) {
             // FIXME
-            ekf_node = aura4_node.getChild( "aura4_ekf_disabled" );
+            ekf_node = rcfmu_node.getChild( "aura4_ekf_disabled" );
         } else {
             hard_fail("bad nav/ekf selection: %s", val.c_str());
         }
     } else {
         // FIXME
-        ekf_node = aura4_node.getChild( "aura4_ekf_disabled" );
+        ekf_node = rcfmu_node.getChild( "aura4_ekf_disabled" );
     }
 }
 
@@ -179,14 +179,6 @@ void rcfmu_t::init_gps( PropertyNode *config ) {
 void rcfmu_t::init_imu( PropertyNode *config ) {
     string output_path = get_next_path("/sensors", "imu", true);
     imu_node = PropertyNode( output_path.c_str() );
-
-    // FIXME:
-    // if ( config->hasChild("calibration") ) {
-    //     PropertyNode cal = config->getChild( "calibration" );
-    //     // save the imu calibration parameters with the data file so that
-    //     // later the original raw sensor values can be derived.
-    //     write_imu_calibration( &cal );
-    // }
 }
 
 void rcfmu_t::init_pilot( PropertyNode *config ) {
@@ -265,7 +257,7 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 	if ( pkt_len == airdata.len ) {
             update_airdata(&airdata);
 	    airdata_packet_counter++;
-	    aura4_node.setInt( "airdata_packet_count", airdata_packet_counter );
+	    rcfmu_node.setInt( "airdata_packet_count", airdata_packet_counter );
 	    new_data = true;
 	} else {
             info("packet size mismatch in airdata packet");
@@ -276,7 +268,7 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
         if ( pkt_len == ekf.len ) {
             update_ekf(&ekf);
             ekf_packet_counter++;
-            aura4_node.setInt( "ekf_packet_count", ekf_packet_counter );
+            rcfmu_node.setInt( "ekf_packet_count", ekf_packet_counter );
             new_data = true;
         } else {
             info("packet size mismatch in ekf packet");
@@ -288,7 +280,7 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
             update_gps(&gps);
 	    gps_packet_counter++;
             // fixme: node name
-	    aura4_node.setInt( "gps_packet_count", gps_packet_counter );
+	    rcfmu_node.setInt( "gps_packet_count", gps_packet_counter );
 	    new_data = true;
 	} else {
             info("packet size mismatch in gps packet");
@@ -300,7 +292,7 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 	if ( pkt_len == imu.len ) {
             update_imu(&imu);
 	    imu_packet_counter++;
-	    aura4_node.setInt( "imu_packet_count",
+	    rcfmu_node.setInt( "imu_packet_count",
                                 imu_packet_counter );
 	    new_data = true;
 	} else {
@@ -312,7 +304,7 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 	if ( pkt_len == pilot.len ) {
             update_pilot( &pilot );
 	    pilot_packet_counter++;
-	    aura4_node.setInt( "pilot_packet_count", pilot_packet_counter );
+	    rcfmu_node.setInt( "pilot_packet_count", pilot_packet_counter );
 	    new_data = true;
 	} else {
             info("packet size mismatch in pilot input packet");
@@ -343,11 +335,11 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
         rcfmu_message::status_t msg;
         msg.unpack(payload, pkt_len);
 	if ( pkt_len == msg.len ) {
-	    aura4_node.setInt( "serial_number", msg.serial_number );
-	    aura4_node.setInt( "firmware_rev", msg.firmware_rev );
-	    aura4_node.setInt( "master_hz", msg.master_hz );
-	    aura4_node.setInt( "baud_rate", msg.baud );
-	    aura4_node.setInt( "byte_rate_sec", msg.byte_rate );
+	    rcfmu_node.setInt( "serial_number", msg.serial_number );
+	    rcfmu_node.setInt( "firmware_rev", msg.firmware_rev );
+	    rcfmu_node.setInt( "master_hz", msg.master_hz );
+	    rcfmu_node.setInt( "baud_rate", msg.baud );
+	    rcfmu_node.setInt( "byte_rate_sec", msg.byte_rate );
             status_node.setInt( "fmu_timer_misses", msg.timer_misses );
 
             // FIXME:
@@ -455,28 +447,28 @@ float rcfmu_t::read() {
     }
 
     // track communication errors from FMU
-    aura4_node.setInt("parse_errors", serial.parse_errors);
-    aura4_node.setInt("skipped_frames", skipped_frames);
+    rcfmu_node.setInt("parse_errors", serial.parse_errors);
+    rcfmu_node.setInt("skipped_frames", skipped_frames);
 
     // relay optional zero gyros command back to FMU upon request
-    string command = aura4_node.getString( "command" );
+    string command = rcfmu_node.getString( "command" );
     if ( command.length() ) {
         if ( command == "zero_gyros" ) {
             if ( write_command_zero_gyros() ) {
-                aura4_node.setString( "command", "" );
-                aura4_node.setString( "command_result",
+                rcfmu_node.setString( "command", "" );
+                rcfmu_node.setString( "command_result",
                                       "success: " + command );
             }
         } else if ( command == "reset_ekf" ) {
             if ( write_command_reset_ekf() ) {
-                aura4_node.setString( "command", "" );
-                aura4_node.setString( "command_result",
+                rcfmu_node.setString( "command", "" );
+                rcfmu_node.setString( "command_result",
                                       "success: " + command );
             }
         } else {
             // unknown command
-            aura4_node.setString( "command", "" );
-            aura4_node.setString( "command_result",
+            rcfmu_node.setString( "command", "" );
+            rcfmu_node.setString( "command_result",
                                   "unknown command: " + command );
         }
     }
@@ -630,6 +622,7 @@ bool rcfmu_t::update_airdata( rcfmu_message::airdata_t *airdata ) {
 	
     float Pa = (pitot - pitot_offset);
     if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
+    printf("pitot calibrate: %.3f\n", pitot_calibrate);
     float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
     float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
     airdata_node.setDouble( "airspeed_mps", airspeed_mps );

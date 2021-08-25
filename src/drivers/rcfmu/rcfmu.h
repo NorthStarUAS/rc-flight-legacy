@@ -34,8 +34,8 @@ public:
     void command(const char *cmd);
 
 private:
-    PropertyNode aura4_config;
-    PropertyNode aura4_node;
+    PropertyNode rcfmu_config;
+    PropertyNode rcfmu_node;
     PropertyNode airdata_node;
     PropertyNode ekf_node;
     PropertyNode gps_node;
