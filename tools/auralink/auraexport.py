@@ -170,7 +170,7 @@ output_dir = os.path.dirname(os.path.realpath(filename))
 # last recorded time stamp
 filter_node = PropertyNode('/filters/filter/0')
 status_node = PropertyNode('/status')
-total_time = filter_node.getFloat('timestamp')
+total_time = filter_node.getDouble('timestamp')
 apm2_node = PropertyNode("/sensors/APM2")
 
 filename = os.path.join(output_dir, "flight.h5")
