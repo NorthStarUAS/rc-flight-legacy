@@ -126,12 +126,12 @@ def update():
     myprof.driver_prof.start()
     dt = drivers.read()
     myprof.driver_prof.stop()
-    
+
     myprof.main_prof.start()
-    
+
     status_node.setDouble("frame_time", imu_node.getDouble("timestamp"))
     status_node.setDouble("dt", dt)
-    
+
     # extra sensor processing section
     myprof.helper_prof.start()
     airdata.update()
