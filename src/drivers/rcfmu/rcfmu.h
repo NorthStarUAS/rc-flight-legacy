@@ -80,6 +80,8 @@ private:
     LowPassFilter avionics_vcc_filt = LowPassFilter(2.0);
     LowPassFilter int_main_vcc_filt = LowPassFilter(2.0);
     LowPassFilter ext_main_vcc_filt = LowPassFilter(2.0);
+    float total_mah = 0.0;
+    float mah_last_time = 0.0;
 
     bool first_status_message = false;
     

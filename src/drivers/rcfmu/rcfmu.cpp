@@ -328,6 +328,18 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
             power_node.setDouble( "cell_vcc", cell_volt );
             power_node.setDouble( "ext_cell_vcc", ext_cell_volt );
             power_node.setDouble( "main_amps", (float)power.ext_main_amp);
+            if ( mah_last_time > 0 ) {
+                float cur_time = get_Time();
+                float dt = cur_time - mah_last_time;
+                if ( dt > 0.0 ) {
+                    // 0.2777 is 1000/3600 (conversion to milli-amp hours)
+                    total_mah += (float)power.ext_main_amp * dt * 0.277777778;
+                    power_node.setDouble( "total_mah", total_mah);
+                }
+                mah_last_time = cur_time;
+            } else {
+                mah_last_time = get_Time();
+            }
 	} else {
             info("packet size mismatch in power packet");
 	}
