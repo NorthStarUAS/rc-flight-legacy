@@ -5,7 +5,7 @@ import time
 
 from PropertyTree import PropertyNode
 
-from comms import aura_messages
+from comms import rc_messages
 import comms.events
 from comms.packer import packer
 import comms.serial_parser
@@ -282,7 +282,7 @@ def execute_command( command ):
         if value == "": value = "undefined"
         # print tokens[0], "=", value
         return_msg = "get: %s,%s" % (tokens[1], value)
-        event = aura_messages.event_v2()
+        event = rc_messages.event_v2()
         event.message = return_msg
         buf = event.pack()
         send_message(event.id, buf)
@@ -364,8 +364,8 @@ def read_link_command():
         return -1, ""
     
     pkt_id = parser.read(ser)
-    if pkt_id == aura_messages.command_v1_id:
-        cmd = aura_messages.command_v1(parser.payload)
+    if pkt_id == rc_messages.command_v1_id:
+        cmd = rc_messages.command_v1(parser.payload)
         return cmd.sequence_num, cmd.message
     else:
         return -1, ""

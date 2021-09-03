@@ -4,7 +4,7 @@ import struct
 
 from PropertyTree import PropertyNode
 
-from comms import aura_messages
+from comms import rc_messages
 
 # FIXME: we are hard coding status flag to zero in many places which
 # means we aren't using them properly (and/or wasting bytes)
@@ -82,15 +82,15 @@ def wrap_packet( self, packet_id, payload ):
     return buf
 
 class Packer():
-    ap = aura_messages.ap_status_v7()
-    act = aura_messages.actuator_v3()
-    airdata = aura_messages.airdata_v7()
-    filter = aura_messages.filter_v5()
-    gps = aura_messages.gps_v4()
-    gpsraw = aura_messages.gps_raw_v1()
-    health = aura_messages.system_health_v6()
-    imu = aura_messages.imu_v5()
-    pilot = aura_messages.pilot_v3()
+    ap = rc_messages.ap_status_v7()
+    act = rc_messages.actuator_v3()
+    airdata = rc_messages.airdata_v7()
+    filter = rc_messages.filter_v5()
+    gps = rc_messages.gps_v4()
+    gpsraw = rc_messages.gps_raw_v1()
+    health = rc_messages.system_health_v6()
+    imu = rc_messages.imu_v5()
+    pilot = rc_messages.pilot_v3()
     ap_buf = None
     act_buf = None
     airdata_buf = None
@@ -175,7 +175,7 @@ class Packer():
         return row, keys
 
     def unpack_airdata_v5(self, buf):
-        air = aura_messages.airdata_v5(buf)
+        air = rc_messages.airdata_v5(buf)
 
         if air.index > 0:
             print("Warning: airdata index > 0 not supported")
@@ -199,7 +199,7 @@ class Packer():
         return air.index
 
     def unpack_airdata_v6(self, buf):
-        air = aura_messages.airdata_v6(buf)
+        air = rc_messages.airdata_v6(buf)
 
         if air.index > 0:
             print("Warning: airdata index > 0 not supported")
@@ -223,7 +223,7 @@ class Packer():
         return air.index
 
     def unpack_airdata_v7(self, buf):
-        air = aura_messages.airdata_v7(buf)
+        air = rc_messages.airdata_v7(buf)
 
         if air.index > 0:
             print("Warning: airdata index > 0 not supported")
@@ -316,27 +316,8 @@ class Packer():
                'horiz_accuracy_m', 'vert_accuracy_m', 'pdop', 'fix_type']
         return row, keys
 
-    def unpack_gps_v2(self, buf):
-        gps = aura_messages.gps_v2(buf)
-
-        if gps.index > 0:
-            print("Warning: gps index > 0 not supported")
-        node = gps_node
-
-        node.setDouble("timestamp", gps.timestamp_sec)
-        node.setDouble("latitude_deg", gps.latitude_deg)
-        node.setDouble("longitude_deg", gps.longitude_deg)
-        node.setDouble("altitude_m", gps.altitude_m)
-        node.setDouble("vn_ms", gps.vn_ms)
-        node.setDouble("ve_ms", gps.ve_ms)
-        node.setDouble("vd_ms", gps.vd_ms)
-        node.setDouble("unix_time_sec", gps.unixtime_sec)
-        node.setInt("satellites", gps.satellites)
-        node.setInt("status", 0)
-        return gps.index
-
     def unpack_gps_v3(self, buf):
-        gps = aura_messages.gps_v3(buf)
+        gps = rc_messages.gps_v3(buf)
 
         if gps.index > 0:
             print("Warning: gps index > 0 not supported")
@@ -359,7 +340,7 @@ class Packer():
         return gps.index
 
     def unpack_gps_v4(self, buf):
-        gps = aura_messages.gps_v4(buf)
+        gps = rc_messages.gps_v4(buf)
 
         if gps.index > 0:
             print("Warning: gps index > 0 not supported")
@@ -379,6 +360,18 @@ class Packer():
         node.setDouble('pdop', gps.pdop)
         node.setInt('fixType', gps.fix_type)
         node.setInt("status", 0)
+        return gps.index
+
+    def unpack_gps_v5(self, buf):
+        gps = rc_messages.gps_v5(buf)
+
+        if gps.index > 0:
+            print("Warning: gps index > 0 not supported")
+        gps.msg2props(gps_node)
+        gps_node.setDouble("timestamp", gps.millis / 1000.0)
+        gps_node.setDouble("unix_time_sec", gps.unix_usec / 1000000.0)
+        gps_node.setDouble("latitude_deg", gps.latitude_raw / 10000000.0 )
+        gps_node.setDouble("longitude_deg", gps.longitude_raw / 10000000.0)
         return gps.index
 
     def pack_gpsraw_bin(self, use_cached=False):
@@ -414,7 +407,7 @@ class Packer():
         row['receiver_tow'] = gpsraw_node.getDouble("receiver_tow")
         raw_num = gpsraw_node.getInt("raw_num")
         row["num_sats"] = raw_num
-        for i in range(aura_messages.max_raw_sats):
+        for i in range(rc_messages.max_raw_sats):
             if i < raw_num:
                 sat_path = "raw_satellite[%d]" % i
                 sat_node = gpsraw_node.getChild(sat_path)
@@ -430,7 +423,7 @@ class Packer():
         return row
 
     def unpack_gpsraw_v1(self, buf):
-        gpsraw = aura_messages.gps_raw_v1(buf)
+        gpsraw = rc_messages.gps_raw_v1(buf)
 
         if gpsraw.index > 0:
             print("Warning: gpsraw index > 0 not supported")
@@ -522,29 +515,8 @@ class Packer():
                 'hx_raw', 'hy_raw', 'hz_raw', 'temp_C', 'status']
         return row, keys
 
-    def unpack_imu_v3(self, buf):
-        imu = aura_messages.imu_v3(buf)
-
-        if imu.index > 0:
-            print("Warning: imu index > 0 not supported")
-        node = imu_node
-
-        node.setDouble("timestamp", imu.timestamp_sec)
-        node.setDouble("p_rps", imu.p_rad_sec)
-        node.setDouble("q_rps", imu.q_rad_sec)
-        node.setDouble("r_rps", imu.r_rad_sec)
-        node.setDouble("ax_mps2", imu.ax_mps_sec)
-        node.setDouble("ay_mps2", imu.ay_mps_sec)
-        node.setDouble("az_mps2", imu.az_mps_sec)
-        node.setDouble("hx", imu.hx)
-        node.setDouble("hy", imu.hy)
-        node.setDouble("hz", imu.hz)
-        node.setDouble("temp_C", imu.temp_C)
-        node.setInt("status", imu.status)
-        return imu.index
-
     def unpack_imu_v4(self, buf):
-        imu = aura_messages.imu_v4(buf)
+        imu = rc_messages.imu_v4(buf)
 
         if imu.index > 0:
             print("Warning: imu index > 0 not supported")
@@ -565,7 +537,7 @@ class Packer():
         return imu.index
 
     def unpack_imu_v5(self, buf):
-        imu = aura_messages.imu_v5(buf)
+        imu = rc_messages.imu_v5(buf)
 
         if imu.index > 0:
             print("Warning: imu index > 0 not supported")
@@ -589,6 +561,14 @@ class Packer():
         node.setDouble("hz_raw", imu.hz_raw)
         node.setDouble("temp_C", imu.temp_C)
         node.setInt("status", imu.status)
+        return imu.index
+
+    def unpack_imu_v6(self, buf):
+        imu = rc_messages.imu_v6(buf)
+
+        if imu.index > 0:
+            print("Warning: imu index > 0 not supported")
+        imu.msg2props(imu_node)
         return imu.index
 
     def pack_filter_bin(self, use_cached=False):
@@ -672,7 +652,7 @@ class Packer():
         return row, keys
 
     def unpack_filter_v3(self, buf):
-        nav = aura_messages.filter_v3(buf)
+        nav = rc_messages.filter_v3(buf)
 
         if nav.index > 0:
             print("Warning: nav index > 0 not supported")
@@ -701,7 +681,7 @@ class Packer():
         return nav.index
 
     def unpack_filter_v4(self, buf):
-        nav = aura_messages.filter_v4(buf)
+        nav = rc_messages.filter_v4(buf)
 
         if nav.index > 0:
             print("Warning: nav index > 0 not supported")
@@ -730,7 +710,7 @@ class Packer():
         return nav.index
 
     def unpack_filter_v5(self, buf):
-        nav = aura_messages.filter_v5(buf)
+        nav = rc_messages.filter_v5(buf)
 
         if nav.index > 0:
             print("Warning: nav index > 0 not supported")
@@ -811,7 +791,7 @@ class Packer():
         return row, keys
 
     def unpack_act_v2(self, buf):
-        act = aura_messages.actuator_v2(buf)
+        act = rc_messages.actuator_v2(buf)
         act_node.setDouble("timestamp", act.timestamp_sec)
         act_node.setDouble("aileron", act.aileron)
         act_node.setDouble("elevator", act.elevator)
@@ -825,7 +805,7 @@ class Packer():
         return act.index
 
     def unpack_act_v3(self, buf):
-        act = aura_messages.actuator_v3(buf)
+        act = rc_messages.actuator_v3(buf)
         act_node.setDouble("timestamp", act.timestamp_sec)
         act_node.setDouble("aileron", act.aileron)
         act_node.setDouble("elevator", act.elevator)
@@ -884,7 +864,7 @@ class Packer():
         return row, keys
 
     def unpack_pilot_v2(self, buf):
-        pilot = aura_messages.pilot_v2(buf)
+        pilot = rc_messages.pilot_v2(buf)
 
         if pilot.index > 0:
             print("Warning: pilot index > 0 not supported")
@@ -903,7 +883,7 @@ class Packer():
         return pilot.index
 
     def unpack_pilot_v3(self, buf):
-        pilot = aura_messages.pilot_v3(buf)
+        pilot = rc_messages.pilot_v3(buf)
 
         if pilot.index > 0:
             print("Warning: pilot index > 0 not supported")
@@ -1099,7 +1079,7 @@ class Packer():
         return index
 
     def unpack_ap_status_v5(self, buf):
-        ap = aura_messages.ap_status_v5(buf)
+        ap = rc_messages.ap_status_v5(buf)
 
         index = ap.index
 
@@ -1145,7 +1125,7 @@ class Packer():
         return index
 
     def unpack_ap_status_v6(self, buf):
-        ap = aura_messages.ap_status_v6(buf)
+        ap = rc_messages.ap_status_v6(buf)
 
         index = ap.index
 
@@ -1202,7 +1182,7 @@ class Packer():
         return index
 
     def unpack_ap_status_v7(self, buf):
-        ap = aura_messages.ap_status_v7(buf)
+        ap = rc_messages.ap_status_v7(buf)
 
         index = ap.index
 
@@ -1330,7 +1310,7 @@ class Packer():
         return row, keys
 
     def unpack_system_health_v4(self, buf):
-        health = aura_messages.system_health_v4(buf)
+        health = rc_messages.system_health_v4(buf)
         status_node.setDouble("frame_time", health.timestamp_sec)
         status_node.setDouble("system_load_avg", health.system_load_avg)
         power_node.setDouble("avionics_vcc", health.avionics_vcc)
@@ -1341,7 +1321,7 @@ class Packer():
         return health.index
 
     def unpack_system_health_v5(self, buf):
-        health = aura_messages.system_health_v5(buf)
+        health = rc_messages.system_health_v5(buf)
         status_node.setDouble("frame_time", health.timestamp_sec)
         status_node.setDouble("system_load_avg", health.system_load_avg)
         power_node.setDouble("avionics_vcc", health.avionics_vcc)
@@ -1352,7 +1332,7 @@ class Packer():
         return health.index
 
     def unpack_system_health_v6(self, buf):
-        health = aura_messages.system_health_v6(buf)
+        health = rc_messages.system_health_v6(buf)
         status_node.setDouble("frame_time", health.timestamp_sec)
         status_node.setDouble("system_load_avg", health.system_load_avg)
         status_node.setInt("fmu_timer_misses", health.fmu_timer_misses)
@@ -1377,13 +1357,13 @@ class Packer():
         return row, keys
 
     def unpack_payload_v2(self, buf):
-        payload = aura_messages.payload_v2(buf)
+        payload = rc_messages.payload_v2(buf)
         payload_node.setDouble("timestamp", payload.timestamp_sec)
         payload_node.setInt("trigger_num", payload.trigger_num)
         return payload.index
 
     def unpack_payload_v3(self, buf):
-        payload = aura_messages.payload_v3(buf)
+        payload = rc_messages.payload_v3(buf)
         payload_node.setDouble("timestamp", payload.timestamp_sec)
         payload_node.setInt("trigger_num", payload.trigger_num)
         return payload.index
@@ -1406,7 +1386,7 @@ class Packer():
         return row, keys
 
     def unpack_event_v1(self, buf):
-        event = aura_messages.event_v1(buf)
+        event = rc_messages.event_v1(buf)
         m = re.match('get: (.*)$', event.message)
         if m:
             (prop, value) = m.group(1).split(',')
@@ -1424,7 +1404,7 @@ class Packer():
         return event.index
 
     def unpack_event_v2(self, buf):
-        event = aura_messages.event_v2(buf)
+        event = rc_messages.event_v2(buf)
         remote_link_node.setInt("sequence_num", event.sequence_num)
         m = re.match('get: (.*)$', event.message)
         if m:
