@@ -12,13 +12,15 @@ imu_v6_id = 50
 airdata_v5_id = 18
 airdata_v6_id = 40
 airdata_v7_id = 43
-filter_v3_id = 31
 filter_v4_id = 36
 filter_v5_id = 47
+nav_v6_id = 52
+nav_metrics_v6_id = 53
 actuator_v2_id = 21
 actuator_v3_id = 37
 pilot_v2_id = 20
 pilot_v3_id = 38
+pilot_v4_id = 51
 ap_status_v4_id = 30
 ap_status_v5_id = 32
 ap_status_v6_id = 33
@@ -33,6 +35,7 @@ event_v2_id = 44
 command_v1_id = 28
 
 # Constants
+sbus_channels = 16  # number of sbus channels
 max_raw_sats = 12  # maximum array size to store satellite raw data
 
 # Message: gps_v3
@@ -1064,135 +1067,6 @@ class airdata_v7():
         error_count = node.getUInt("error_count")
         status = node.getUInt("status")
 
-# Message: filter_v3
-# Id: 31
-class filter_v3():
-    id = 31
-    _pack_string = "<BdddfhhhhhhhhhhhhBB"
-    _struct = struct.Struct(_pack_string)
-
-    def __init__(self, msg=None):
-        # public fields
-        self.index = 0
-        self.timestamp_sec = 0.0
-        self.latitude_deg = 0.0
-        self.longitude_deg = 0.0
-        self.altitude_m = 0.0
-        self.vn_ms = 0.0
-        self.ve_ms = 0.0
-        self.vd_ms = 0.0
-        self.roll_deg = 0.0
-        self.pitch_deg = 0.0
-        self.yaw_deg = 0.0
-        self.p_bias = 0.0
-        self.q_bias = 0.0
-        self.r_bias = 0.0
-        self.ax_bias = 0.0
-        self.ay_bias = 0.0
-        self.az_bias = 0.0
-        self.sequence_num = 0
-        self.status = 0
-        # unpack if requested
-        if msg: self.unpack(msg)
-
-    def pack(self):
-        msg = self._struct.pack(
-                  self.index,
-                  self.timestamp_sec,
-                  self.latitude_deg,
-                  self.longitude_deg,
-                  self.altitude_m,
-                  int(round(self.vn_ms * 100.0)),
-                  int(round(self.ve_ms * 100.0)),
-                  int(round(self.vd_ms * 100.0)),
-                  int(round(self.roll_deg * 10.0)),
-                  int(round(self.pitch_deg * 10.0)),
-                  int(round(self.yaw_deg * 10.0)),
-                  int(round(self.p_bias * 10000.0)),
-                  int(round(self.q_bias * 10000.0)),
-                  int(round(self.r_bias * 10000.0)),
-                  int(round(self.ax_bias * 1000.0)),
-                  int(round(self.ay_bias * 1000.0)),
-                  int(round(self.az_bias * 1000.0)),
-                  self.sequence_num,
-                  self.status)
-        return msg
-
-    def unpack(self, msg):
-        (self.index,
-         self.timestamp_sec,
-         self.latitude_deg,
-         self.longitude_deg,
-         self.altitude_m,
-         self.vn_ms,
-         self.ve_ms,
-         self.vd_ms,
-         self.roll_deg,
-         self.pitch_deg,
-         self.yaw_deg,
-         self.p_bias,
-         self.q_bias,
-         self.r_bias,
-         self.ax_bias,
-         self.ay_bias,
-         self.az_bias,
-         self.sequence_num,
-         self.status) = self._struct.unpack(msg)
-        self.vn_ms /= 100.0
-        self.ve_ms /= 100.0
-        self.vd_ms /= 100.0
-        self.roll_deg /= 10.0
-        self.pitch_deg /= 10.0
-        self.yaw_deg /= 10.0
-        self.p_bias /= 10000.0
-        self.q_bias /= 10000.0
-        self.r_bias /= 10000.0
-        self.ax_bias /= 1000.0
-        self.ay_bias /= 1000.0
-        self.az_bias /= 1000.0
-
-    def msg2props(self, node):
-        node.setUInt("index", self.index)
-        node.setDouble("timestamp_sec", self.timestamp_sec)
-        node.setDouble("latitude_deg", self.latitude_deg)
-        node.setDouble("longitude_deg", self.longitude_deg)
-        node.setDouble("altitude_m", self.altitude_m)
-        node.setDouble("vn_ms", self.vn_ms)
-        node.setDouble("ve_ms", self.ve_ms)
-        node.setDouble("vd_ms", self.vd_ms)
-        node.setDouble("roll_deg", self.roll_deg)
-        node.setDouble("pitch_deg", self.pitch_deg)
-        node.setDouble("yaw_deg", self.yaw_deg)
-        node.setDouble("p_bias", self.p_bias)
-        node.setDouble("q_bias", self.q_bias)
-        node.setDouble("r_bias", self.r_bias)
-        node.setDouble("ax_bias", self.ax_bias)
-        node.setDouble("ay_bias", self.ay_bias)
-        node.setDouble("az_bias", self.az_bias)
-        node.setUInt("sequence_num", self.sequence_num)
-        node.setUInt("status", self.status)
-
-    def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        latitude_deg = node.getDouble("latitude_deg")
-        longitude_deg = node.getDouble("longitude_deg")
-        altitude_m = node.getDouble("altitude_m")
-        vn_ms = node.getDouble("vn_ms")
-        ve_ms = node.getDouble("ve_ms")
-        vd_ms = node.getDouble("vd_ms")
-        roll_deg = node.getDouble("roll_deg")
-        pitch_deg = node.getDouble("pitch_deg")
-        yaw_deg = node.getDouble("yaw_deg")
-        p_bias = node.getDouble("p_bias")
-        q_bias = node.getDouble("q_bias")
-        r_bias = node.getDouble("r_bias")
-        ax_bias = node.getDouble("ax_bias")
-        ay_bias = node.getDouble("ay_bias")
-        az_bias = node.getDouble("az_bias")
-        sequence_num = node.getUInt("sequence_num")
-        status = node.getUInt("status")
-
 # Message: filter_v4
 # Id: 36
 class filter_v4():
@@ -1468,6 +1342,221 @@ class filter_v5():
         max_att_cov = node.getDouble("max_att_cov")
         sequence_num = node.getUInt("sequence_num")
         status = node.getUInt("status")
+
+# Message: nav_v6
+# Id: 52
+class nav_v6():
+    id = 52
+    _pack_string = "<BLllfhhhhhhBB"
+    _struct = struct.Struct(_pack_string)
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.millis = 0
+        self.latitude_raw = 0
+        self.longitude_raw = 0
+        self.altitude_m = 0.0
+        self.vn_mps = 0.0
+        self.ve_mps = 0.0
+        self.vd_mps = 0.0
+        self.roll_deg = 0.0
+        self.pitch_deg = 0.0
+        self.yaw_deg = 0.0
+        self.sequence_num = 0
+        self.status = 0
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = self._struct.pack(
+                  self.index,
+                  self.millis,
+                  self.latitude_raw,
+                  self.longitude_raw,
+                  self.altitude_m,
+                  int(round(self.vn_mps * 100.0)),
+                  int(round(self.ve_mps * 100.0)),
+                  int(round(self.vd_mps * 100.0)),
+                  int(round(self.roll_deg * 50.0)),
+                  int(round(self.pitch_deg * 50.0)),
+                  int(round(self.yaw_deg * 50.0)),
+                  self.sequence_num,
+                  self.status)
+        return msg
+
+    def unpack(self, msg):
+        (self.index,
+         self.millis,
+         self.latitude_raw,
+         self.longitude_raw,
+         self.altitude_m,
+         self.vn_mps,
+         self.ve_mps,
+         self.vd_mps,
+         self.roll_deg,
+         self.pitch_deg,
+         self.yaw_deg,
+         self.sequence_num,
+         self.status) = self._struct.unpack(msg)
+        self.vn_mps /= 100.0
+        self.ve_mps /= 100.0
+        self.vd_mps /= 100.0
+        self.roll_deg /= 50.0
+        self.pitch_deg /= 50.0
+        self.yaw_deg /= 50.0
+
+    def msg2props(self, node):
+        node.setUInt("index", self.index)
+        node.setUInt("millis", self.millis)
+        node.setInt("latitude_raw", self.latitude_raw)
+        node.setInt("longitude_raw", self.longitude_raw)
+        node.setDouble("altitude_m", self.altitude_m)
+        node.setDouble("vn_mps", self.vn_mps)
+        node.setDouble("ve_mps", self.ve_mps)
+        node.setDouble("vd_mps", self.vd_mps)
+        node.setDouble("roll_deg", self.roll_deg)
+        node.setDouble("pitch_deg", self.pitch_deg)
+        node.setDouble("yaw_deg", self.yaw_deg)
+        node.setUInt("sequence_num", self.sequence_num)
+        node.setUInt("status", self.status)
+
+    def props2msg(self, node):
+        index = node.getUInt("index")
+        millis = node.getUInt("millis")
+        latitude_raw = node.getInt("latitude_raw")
+        longitude_raw = node.getInt("longitude_raw")
+        altitude_m = node.getDouble("altitude_m")
+        vn_mps = node.getDouble("vn_mps")
+        ve_mps = node.getDouble("ve_mps")
+        vd_mps = node.getDouble("vd_mps")
+        roll_deg = node.getDouble("roll_deg")
+        pitch_deg = node.getDouble("pitch_deg")
+        yaw_deg = node.getDouble("yaw_deg")
+        sequence_num = node.getUInt("sequence_num")
+        status = node.getUInt("status")
+
+# Message: nav_metrics_v6
+# Id: 53
+class nav_metrics_v6():
+    id = 53
+    _pack_string = "<BLhhhhhhHHHHHHHHH"
+    _struct = struct.Struct(_pack_string)
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.metrics_millis = 0
+        self.p_bias = 0.0
+        self.q_bias = 0.0
+        self.r_bias = 0.0
+        self.ax_bias = 0.0
+        self.ay_bias = 0.0
+        self.az_bias = 0.0
+        self.Pp0 = 0.0
+        self.Pp1 = 0.0
+        self.Pp2 = 0.0
+        self.Pv0 = 0.0
+        self.Pv1 = 0.0
+        self.Pv2 = 0.0
+        self.Pa0 = 0.0
+        self.Pa1 = 0.0
+        self.Pa2 = 0.0
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = self._struct.pack(
+                  self.index,
+                  self.metrics_millis,
+                  int(round(self.p_bias * 10000.0)),
+                  int(round(self.q_bias * 10000.0)),
+                  int(round(self.r_bias * 10000.0)),
+                  int(round(self.ax_bias * 1000.0)),
+                  int(round(self.ay_bias * 1000.0)),
+                  int(round(self.az_bias * 1000.0)),
+                  int(round(self.Pp0 * 100.0)),
+                  int(round(self.Pp1 * 100.0)),
+                  int(round(self.Pp2 * 100.0)),
+                  int(round(self.Pv0 * 1000.0)),
+                  int(round(self.Pv1 * 1000.0)),
+                  int(round(self.Pv2 * 1000.0)),
+                  int(round(self.Pa0 * 10000.0)),
+                  int(round(self.Pa1 * 10000.0)),
+                  int(round(self.Pa2 * 10000.0)))
+        return msg
+
+    def unpack(self, msg):
+        (self.index,
+         self.metrics_millis,
+         self.p_bias,
+         self.q_bias,
+         self.r_bias,
+         self.ax_bias,
+         self.ay_bias,
+         self.az_bias,
+         self.Pp0,
+         self.Pp1,
+         self.Pp2,
+         self.Pv0,
+         self.Pv1,
+         self.Pv2,
+         self.Pa0,
+         self.Pa1,
+         self.Pa2) = self._struct.unpack(msg)
+        self.p_bias /= 10000.0
+        self.q_bias /= 10000.0
+        self.r_bias /= 10000.0
+        self.ax_bias /= 1000.0
+        self.ay_bias /= 1000.0
+        self.az_bias /= 1000.0
+        self.Pp0 /= 100.0
+        self.Pp1 /= 100.0
+        self.Pp2 /= 100.0
+        self.Pv0 /= 1000.0
+        self.Pv1 /= 1000.0
+        self.Pv2 /= 1000.0
+        self.Pa0 /= 10000.0
+        self.Pa1 /= 10000.0
+        self.Pa2 /= 10000.0
+
+    def msg2props(self, node):
+        node.setUInt("index", self.index)
+        node.setUInt("metrics_millis", self.metrics_millis)
+        node.setDouble("p_bias", self.p_bias)
+        node.setDouble("q_bias", self.q_bias)
+        node.setDouble("r_bias", self.r_bias)
+        node.setDouble("ax_bias", self.ax_bias)
+        node.setDouble("ay_bias", self.ay_bias)
+        node.setDouble("az_bias", self.az_bias)
+        node.setDouble("Pp0", self.Pp0)
+        node.setDouble("Pp1", self.Pp1)
+        node.setDouble("Pp2", self.Pp2)
+        node.setDouble("Pv0", self.Pv0)
+        node.setDouble("Pv1", self.Pv1)
+        node.setDouble("Pv2", self.Pv2)
+        node.setDouble("Pa0", self.Pa0)
+        node.setDouble("Pa1", self.Pa1)
+        node.setDouble("Pa2", self.Pa2)
+
+    def props2msg(self, node):
+        index = node.getUInt("index")
+        metrics_millis = node.getUInt("metrics_millis")
+        p_bias = node.getDouble("p_bias")
+        q_bias = node.getDouble("q_bias")
+        r_bias = node.getDouble("r_bias")
+        ax_bias = node.getDouble("ax_bias")
+        ay_bias = node.getDouble("ay_bias")
+        az_bias = node.getDouble("az_bias")
+        Pp0 = node.getDouble("Pp0")
+        Pp1 = node.getDouble("Pp1")
+        Pp2 = node.getDouble("Pp2")
+        Pv0 = node.getDouble("Pv0")
+        Pv1 = node.getDouble("Pv1")
+        Pv2 = node.getDouble("Pv2")
+        Pa0 = node.getDouble("Pa0")
+        Pa1 = node.getDouble("Pa1")
+        Pa2 = node.getDouble("Pa2")
 
 # Message: actuator_v2
 # Id: 21
@@ -1766,6 +1855,94 @@ class pilot_v3():
         timestamp_sec = node.getDouble("timestamp_sec")
         for _i in range(8): channel[_i] = node.getDouble("channel", _i)
         status = node.getUInt("status")
+
+# Message: pilot_v4
+# Id: 51
+class pilot_v4():
+    id = 51
+    _pack_string = "<BLhhhhhhhhhhhhhhhhB"
+    _struct = struct.Struct(_pack_string)
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.millis = 0
+        self.channel = [0.0] * sbus_channels
+        self.failsafe = 0
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = self._struct.pack(
+                  self.index,
+                  self.millis,
+                  int(round(self.channel[0] * 20000.0)),
+                  int(round(self.channel[1] * 20000.0)),
+                  int(round(self.channel[2] * 20000.0)),
+                  int(round(self.channel[3] * 20000.0)),
+                  int(round(self.channel[4] * 20000.0)),
+                  int(round(self.channel[5] * 20000.0)),
+                  int(round(self.channel[6] * 20000.0)),
+                  int(round(self.channel[7] * 20000.0)),
+                  int(round(self.channel[8] * 20000.0)),
+                  int(round(self.channel[9] * 20000.0)),
+                  int(round(self.channel[10] * 20000.0)),
+                  int(round(self.channel[11] * 20000.0)),
+                  int(round(self.channel[12] * 20000.0)),
+                  int(round(self.channel[13] * 20000.0)),
+                  int(round(self.channel[14] * 20000.0)),
+                  int(round(self.channel[15] * 20000.0)),
+                  self.failsafe)
+        return msg
+
+    def unpack(self, msg):
+        (self.index,
+         self.millis,
+         self.channel[0],
+         self.channel[1],
+         self.channel[2],
+         self.channel[3],
+         self.channel[4],
+         self.channel[5],
+         self.channel[6],
+         self.channel[7],
+         self.channel[8],
+         self.channel[9],
+         self.channel[10],
+         self.channel[11],
+         self.channel[12],
+         self.channel[13],
+         self.channel[14],
+         self.channel[15],
+         self.failsafe) = self._struct.unpack(msg)
+        self.channel[0] /= 20000.0
+        self.channel[1] /= 20000.0
+        self.channel[2] /= 20000.0
+        self.channel[3] /= 20000.0
+        self.channel[4] /= 20000.0
+        self.channel[5] /= 20000.0
+        self.channel[6] /= 20000.0
+        self.channel[7] /= 20000.0
+        self.channel[8] /= 20000.0
+        self.channel[9] /= 20000.0
+        self.channel[10] /= 20000.0
+        self.channel[11] /= 20000.0
+        self.channel[12] /= 20000.0
+        self.channel[13] /= 20000.0
+        self.channel[14] /= 20000.0
+        self.channel[15] /= 20000.0
+
+    def msg2props(self, node):
+        node.setUInt("index", self.index)
+        node.setUInt("millis", self.millis)
+        for _i in range(sbus_channels): node.setDouble("channel", self.channel[_i], _i)
+        node.setUInt("failsafe", self.failsafe)
+
+    def props2msg(self, node):
+        index = node.getUInt("index")
+        millis = node.getUInt("millis")
+        for _i in range(sbus_channels): channel[_i] = node.getDouble("channel", _i)
+        failsafe = node.getUInt("failsafe")
 
 # Message: ap_status_v4
 # Id: 30

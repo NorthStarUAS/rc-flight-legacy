@@ -19,7 +19,7 @@ START_OF_MSG0 = 147
 START_OF_MSG1 = 224
     
 airdata_node = PropertyNode("/sensors/airdata/0")
-filter_node = PropertyNode("/filters/filter/0")
+nav_node = PropertyNode("/filters/filter/0")
 gps_node = PropertyNode("/sensors/gps/0")
 gpsraw_node = PropertyNode("/sensors/gps_raw/0")
 imu_node = PropertyNode("/sensors/imu/0")
@@ -364,7 +364,6 @@ class Packer():
 
     def unpack_gps_v5(self, buf):
         gps = rc_messages.gps_v5(buf)
-
         if gps.index > 0:
             print("Warning: gps index > 0 not supported")
         gps.msg2props(gps_node)
@@ -569,123 +568,95 @@ class Packer():
         if imu.index > 0:
             print("Warning: imu index > 0 not supported")
         imu.msg2props(imu_node)
+        imu_node.setDouble("timestamp", imu.millis / 1000.0)
         return imu.index
 
     def pack_filter_bin(self, use_cached=False):
-        filter_time = filter_node.getDouble("timestamp")
+        filter_time = nav_node.getDouble("timestamp")
         if (not use_cached and filter_time > self.last_filter_time) or self.filter_buf is None:
             self.last_filter_time = filter_time
             self.filter.index = 0
             self.filter.timestamp_sec = filter_time
-            self.filter.latitude_deg = filter_node.getDouble("latitude_deg")
-            self.filter.longitude_deg = filter_node.getDouble("longitude_deg")
-            self.filter.altitude_m = filter_node.getDouble("altitude_m")
-            self.filter.vn_ms = filter_node.getDouble("vn_ms")
-            self.filter.ve_ms = filter_node.getDouble("ve_ms")
-            self.filter.vd_ms = filter_node.getDouble("vd_ms")
-            self.filter.roll_deg = filter_node.getDouble("roll_deg")
-            self.filter.pitch_deg = filter_node.getDouble("pitch_deg")
-            self.filter.yaw_deg = filter_node.getDouble("heading_deg")
-            self.filter.p_bias = filter_node.getDouble("p_bias")
-            self.filter.q_bias = filter_node.getDouble("q_bias")
-            self.filter.r_bias = filter_node.getDouble("r_bias") 
-            self.filter.ax_bias = filter_node.getDouble("ax_bias")
-            self.filter.ay_bias = filter_node.getDouble("ay_bias")
-            self.filter.az_bias = filter_node.getDouble("az_bias")
-            self.filter.max_pos_cov = filter_node.getDouble("max_pos_cov")
-            self.filter.max_vel_cov = filter_node.getDouble("max_vel_cov")
-            self.filter.max_att_cov = filter_node.getDouble("max_att_cov")
+            self.filter.latitude_deg = nav_node.getDouble("latitude_deg")
+            self.filter.longitude_deg = nav_node.getDouble("longitude_deg")
+            self.filter.altitude_m = nav_node.getDouble("altitude_m")
+            self.filter.vn_ms = nav_node.getDouble("vn_ms")
+            self.filter.ve_ms = nav_node.getDouble("ve_ms")
+            self.filter.vd_ms = nav_node.getDouble("vd_ms")
+            self.filter.roll_deg = nav_node.getDouble("roll_deg")
+            self.filter.pitch_deg = nav_node.getDouble("pitch_deg")
+            self.filter.yaw_deg = nav_node.getDouble("heading_deg")
+            self.filter.p_bias = nav_node.getDouble("p_bias")
+            self.filter.q_bias = nav_node.getDouble("q_bias")
+            self.filter.r_bias = nav_node.getDouble("r_bias") 
+            self.filter.ax_bias = nav_node.getDouble("ax_bias")
+            self.filter.ay_bias = nav_node.getDouble("ay_bias")
+            self.filter.az_bias = nav_node.getDouble("az_bias")
+            self.filter.max_pos_cov = nav_node.getDouble("max_pos_cov")
+            self.filter.max_vel_cov = nav_node.getDouble("max_vel_cov")
+            self.filter.max_att_cov = nav_node.getDouble("max_att_cov")
             self.filter.sequence_num = remote_link_node.getInt("sequence_num")
-            self.filter.status = filter_node.getInt("status")
+            self.filter.status = nav_node.getInt("status")
             self.filter_buf = self.filter.pack()
         return self.filter_buf
 
     def pack_filter_dict(self, index):
-        filter_node = PropertyNode('/filters/filter/%d' % index)
+        nav_node = PropertyNode('/filters/filter/%d' % index)
         row = dict()
-        row['timestamp'] = filter_node.getDouble('timestamp')
-        row['latitude_deg'] = filter_node.getDouble('latitude_deg')
-        row['longitude_deg'] = filter_node.getDouble('longitude_deg')
-        row['altitude_m'] = filter_node.getDouble('altitude_m')
-        row['vn_ms'] = filter_node.getDouble('vn_ms')
-        row['ve_ms'] = filter_node.getDouble('ve_ms')
-        row['vd_ms'] = filter_node.getDouble('vd_ms')
-        row['roll_deg'] = filter_node.getDouble('roll_deg')
-        row['pitch_deg'] = filter_node.getDouble('pitch_deg')
-        row['heading_deg'] = filter_node.getDouble('heading_deg')
-        row['p_bias'] = filter_node.getDouble('p_bias')
-        row['q_bias'] = filter_node.getDouble('q_bias')
-        row['r_bias'] = filter_node.getDouble('r_bias')
-        row['ax_bias'] = filter_node.getDouble('ax_bias')
-        row['ay_bias'] = filter_node.getDouble('ay_bias')
-        row['az_bias'] = filter_node.getDouble('az_bias')
-        row['max_pos_cov'] = filter_node.getDouble('max_pos_cov')
-        row['max_vel_cov'] = filter_node.getDouble('max_vel_cov')
-        row['max_att_cov'] = filter_node.getDouble('max_att_cov')
-        row['status'] = filter_node.getInt('status')
+        row['timestamp'] = nav_node.getDouble('timestamp')
+        row['latitude_deg'] = nav_node.getDouble('latitude_deg')
+        row['longitude_deg'] = nav_node.getDouble('longitude_deg')
+        row['altitude_m'] = nav_node.getDouble('altitude_m')
+        row['vn_ms'] = nav_node.getDouble('vn_ms')
+        row['ve_ms'] = nav_node.getDouble('ve_ms')
+        row['vd_ms'] = nav_node.getDouble('vd_ms')
+        row['roll_deg'] = nav_node.getDouble('roll_deg')
+        row['pitch_deg'] = nav_node.getDouble('pitch_deg')
+        row['heading_deg'] = nav_node.getDouble('heading_deg')
+        row['p_bias'] = nav_node.getDouble('p_bias')
+        row['q_bias'] = nav_node.getDouble('q_bias')
+        row['r_bias'] = nav_node.getDouble('r_bias')
+        row['ax_bias'] = nav_node.getDouble('ax_bias')
+        row['ay_bias'] = nav_node.getDouble('ay_bias')
+        row['az_bias'] = nav_node.getDouble('az_bias')
+        row['max_pos_cov'] = nav_node.getDouble('max_pos_cov')
+        row['max_vel_cov'] = nav_node.getDouble('max_vel_cov')
+        row['max_att_cov'] = nav_node.getDouble('max_att_cov')
+        row['status'] = nav_node.getInt('status')
         return row
 
     def pack_filter_csv(self, index):
-        filter_node = PropertyNode('/filters/filter/%d' % index)
+        nav_node = PropertyNode('/filters/filter/%d' % index)
         row = dict()
-        row['timestamp'] = '%.4f' % filter_node.getDouble('timestamp')
-        row['latitude_deg'] = '%.10f' % filter_node.getDouble('latitude_deg')
-        row['longitude_deg'] = '%.10f' % filter_node.getDouble('longitude_deg')
-        row['altitude_m'] = '%.2f' % filter_node.getDouble('altitude_m')
-        row['vn_ms'] = '%.4f' % filter_node.getDouble('vn_ms')
-        row['ve_ms'] = '%.4f' % filter_node.getDouble('ve_ms')
-        row['vd_ms'] = '%.4f' % filter_node.getDouble('vd_ms')
-        row['roll_deg'] = '%.3f' % filter_node.getDouble('roll_deg')
-        row['pitch_deg'] = '%.3f' % filter_node.getDouble('pitch_deg')
-        row['heading_deg'] = '%.3f' % filter_node.getDouble('heading_deg')
-        row['p_bias'] = '%.4f' % filter_node.getDouble('p_bias')
-        row['q_bias'] = '%.4f' % filter_node.getDouble('q_bias')
-        row['r_bias'] = '%.4f' % filter_node.getDouble('r_bias')
-        row['ax_bias'] = '%.3f' % filter_node.getDouble('ax_bias')
-        row['ay_bias'] = '%.3f' % filter_node.getDouble('ay_bias')
-        row['az_bias'] = '%.3f' % filter_node.getDouble('az_bias')
-        row['status'] = '%d' % filter_node.getInt('status')
+        row['timestamp'] = '%.4f' % nav_node.getDouble('timestamp')
+        row['latitude_deg'] = '%.10f' % nav_node.getDouble('latitude_deg')
+        row['longitude_deg'] = '%.10f' % nav_node.getDouble('longitude_deg')
+        row['altitude_m'] = '%.2f' % nav_node.getDouble('altitude_m')
+        row['vn_ms'] = '%.4f' % nav_node.getDouble('vn_ms')
+        row['ve_ms'] = '%.4f' % nav_node.getDouble('ve_ms')
+        row['vd_ms'] = '%.4f' % nav_node.getDouble('vd_ms')
+        row['roll_deg'] = '%.3f' % nav_node.getDouble('roll_deg')
+        row['pitch_deg'] = '%.3f' % nav_node.getDouble('pitch_deg')
+        row['heading_deg'] = '%.3f' % nav_node.getDouble('heading_deg')
+        row['p_bias'] = '%.4f' % nav_node.getDouble('p_bias')
+        row['q_bias'] = '%.4f' % nav_node.getDouble('q_bias')
+        row['r_bias'] = '%.4f' % nav_node.getDouble('r_bias')
+        row['ax_bias'] = '%.3f' % nav_node.getDouble('ax_bias')
+        row['ay_bias'] = '%.3f' % nav_node.getDouble('ay_bias')
+        row['az_bias'] = '%.3f' % nav_node.getDouble('az_bias')
+        row['status'] = '%d' % nav_node.getInt('status')
         keys = ['timestamp', 'latitude_deg', 'longitude_deg', 'altitude_m',
                 'vn_ms', 've_ms', 'vd_ms', 'roll_deg', 'pitch_deg', 'heading_deg',
                 'p_bias', 'q_bias', 'r_bias', 'ax_bias', 'ay_bias', 'az_bias',
                 'status']
         return row, keys
 
-    def unpack_filter_v3(self, buf):
-        nav = rc_messages.filter_v3(buf)
-
-        if nav.index > 0:
-            print("Warning: nav index > 0 not supported")
-        node = filter_node
-
-        node.setDouble("timestamp", nav.timestamp_sec)
-        node.setDouble("latitude_deg", nav.latitude_deg)
-        node.setDouble("longitude_deg", nav.longitude_deg)
-        node.setDouble("altitude_m", nav.altitude_m)
-        node.setDouble("vn_ms", nav.vn_ms)
-        node.setDouble("ve_ms", nav.ve_ms)
-        node.setDouble("vd_ms", nav.vd_ms)
-        node.setDouble("roll_deg", nav.roll_deg)
-        node.setDouble("pitch_deg", nav.pitch_deg)
-        node.setDouble("heading_deg", nav.yaw_deg)
-        node.setDouble("p_bias", nav.p_bias)
-        node.setDouble("q_bias", nav.q_bias)
-        node.setDouble("r_bias", nav.r_bias)
-        node.setDouble("ax_bias", nav.ax_bias)
-        node.setDouble("ay_bias", nav.ay_bias)
-        node.setDouble("az_bias", nav.az_bias)
-        if nav.sequence_num >= 1:
-            remote_link_node.setInt("sequence_num", nav.sequence_num)
-        node.setInt("status", nav.status)
-
-        return nav.index
-
     def unpack_filter_v4(self, buf):
         nav = rc_messages.filter_v4(buf)
 
         if nav.index > 0:
             print("Warning: nav index > 0 not supported")
-        node = filter_node
+        node = nav_node
 
         node.setDouble("timestamp", nav.timestamp_sec)
         node.setDouble("latitude_deg", nav.latitude_deg)
@@ -714,7 +685,7 @@ class Packer():
 
         if nav.index > 0:
             print("Warning: nav index > 0 not supported")
-        node = filter_node
+        node = nav_node
 
         node.setDouble("timestamp", nav.timestamp_sec)
         node.setDouble("latitude_deg", nav.latitude_deg)
@@ -740,6 +711,25 @@ class Packer():
         node.setInt("status", nav.status)
 
         return nav.index
+
+    def unpack_nav_v6(self, buf):
+        nav = rc_messages.nav_v6(buf)
+        if nav.index > 0:
+            print("Warning: nav index > 0 not supported")
+        nav.msg2props(nav_node)
+        nav_node.setDouble("timestamp", nav.millis / 1000.0)
+        nav_node.setDouble("latitude_deg", nav.latitude_raw / 10000000.0 )
+        nav_node.setDouble("longitude_deg", nav.longitude_raw / 10000000.0)
+        if nav.sequence_num >= 1:
+            remote_link_node.setInt("sequence_num", nav.sequence_num)
+        return nav.index
+
+    def unpack_nav_metrics_v6(self, buf):
+        metrics = rc_messages.nav_metrics_v6(buf)
+        if metrics.index > 0:
+            print("Warning: nav metrics index > 0 not supported")
+        metrics.msg2props(nav_node)
+        return metrics.index
 
     def pack_act_bin(self, use_cached=False):
         act_time = act_node.getDouble('timestamp')
@@ -899,6 +889,15 @@ class Packer():
         pilot_node.setDouble("channel", pilot.channel[7], 7)
         pilot_node.setInt("status", pilot.status)
 
+        return pilot.index
+
+    def unpack_pilot_v4(self, buf):
+        pilot = rc_messages.pilot_v4(buf)
+
+        if pilot.index > 0:
+            print("Warning: pilot index > 0 not supported")
+        pilot.msg2props(pilot_node)
+        pilot_node.setDouble("timestamp", pilot.millis / 1000.0)
         return pilot.index
 
     def pack_ap_status_bin(self, use_cached=False):

@@ -75,12 +75,14 @@ def parse_msg(id, buf):
         index = packer.unpack_airdata_v6(buf)
     elif id == rc_messages.airdata_v7_id:
         index = packer.unpack_airdata_v7(buf)
-    elif id == rc_messages.filter_v3_id:
-        index = packer.unpack_filter_v3(buf)
     elif id == rc_messages.filter_v4_id:
         index = packer.unpack_filter_v4(buf)
     elif id == rc_messages.filter_v5_id:
         index = packer.unpack_filter_v5(buf)
+    elif id == rc_messages.nav_v6_id:
+        index = packer.unpack_nav_v6(buf)
+    elif id == rc_messages.nav_metrics_v6_id:
+        index = packer.unpack_nav_metrics_v6(buf)
     elif id == rc_messages.actuator_v2_id:
         index = packer.unpack_act_v2(buf)
     elif id == rc_messages.actuator_v3_id:
@@ -89,6 +91,8 @@ def parse_msg(id, buf):
         index = packer.unpack_pilot_v2(buf)
     elif id == rc_messages.pilot_v3_id:
         index = packer.unpack_pilot_v3(buf)
+    elif id == rc_messages.pilot_v4_id:
+        index = packer.unpack_pilot_v4(buf)
     elif id == rc_messages.ap_status_v4_id:
         index = packer.unpack_ap_status_v4(buf)
     elif id == rc_messages.ap_status_v5_id:
