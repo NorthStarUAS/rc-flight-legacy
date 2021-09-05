@@ -21,7 +21,6 @@ START_OF_MSG1 = 224
 airdata_node = PropertyNode("/sensors/airdata/0")
 nav_node = PropertyNode("/filters/filter/0")
 gps_node = PropertyNode("/sensors/gps/0")
-gpsraw_node = PropertyNode("/sensors/gps_raw/0")
 imu_node = PropertyNode("/sensors/imu/0")
 pilot_node = PropertyNode("/sensors/pilot_input")
 pos_node = PropertyNode("/position")
@@ -87,7 +86,6 @@ class Packer():
     airdata = rc_messages.airdata_v7()
     filter = rc_messages.filter_v5()
     gps = rc_messages.gps_v4()
-    gpsraw = rc_messages.gps_raw_v1()
     health = rc_messages.system_health_v6()
     imu = rc_messages.imu_v5()
     pilot = rc_messages.pilot_v3()
@@ -96,7 +94,6 @@ class Packer():
     airdata_buf = None
     filter_buf = None
     gps_buf = None
-    gpsraw_buf = None
     health_buf = None
     imu_buf = None
     pilot_buf = None
@@ -105,7 +102,6 @@ class Packer():
     last_airdata_time = -1.0
     last_filter_time = -1.0
     last_gps_time = -1.0
-    last_gpsraw_time = -1.0
     last_health_time = -1.0
     last_imu_time = -1.0
     last_pilot_time = -1.0
@@ -357,70 +353,6 @@ class Packer():
         gps_node.setDouble("longitude_deg", gps.longitude_raw / 10000000.0)
         return gps.index
 
-    def pack_gpsraw_bin(self, use_cached=False):
-        gpsraw_time = gpsraw_node.getDouble("timestamp")
-        raw_num = gpsraw_node.getInt("raw_num")
-        if use_cached:
-            return self.gpsraw_buf
-        elif (gpsraw_time > self.last_gpsraw_time) and raw_num > 0 or self.gpsraw_buf is None:
-            self.last_gpsraw_time = gpsraw_time
-            counter = 0
-            self.gpsraw.index = 0
-            self.gpsraw.timestamp_sec = gpsraw_time
-            self.gpsraw.receiver_tow = gpsraw_node.getDouble("receiver_tow")
-            for i in range(raw_num):
-                sat_path = "raw_satellite[%d]" % i
-                sat_node = gpsraw_node.getChild(sat_path)
-                gnssid = sat_node.getInt("gnssid")
-                if gnssid == 0:
-                    # gps constellation
-                    self.gpsraw.svid[counter] = sat_node.getInt("svid")
-                    self.gpsraw.pseudorange[counter] = sat_node.getDouble("pseudorange")
-                    self.gpsraw.doppler[counter] = sat_node.getDouble("doppler")
-                    counter += 1
-            self.gpsraw.num_sats = counter
-            self.gpsraw_buf = self.gpsraw.pack()
-            return self.gpsraw_buf
-        else:
-            return None
-
-    def pack_gpsraw_dict(self, index):
-        row = dict()
-        row['timestamp'] = gpsraw_node.getDouble('timestamp')
-        row['receiver_tow'] = gpsraw_node.getDouble("receiver_tow")
-        raw_num = gpsraw_node.getInt("raw_num")
-        row["num_sats"] = raw_num
-        for i in range(rc_messages.max_raw_sats):
-            if i < raw_num:
-                sat_path = "raw_satellite[%d]" % i
-                sat_node = gpsraw_node.getChild(sat_path)
-                gnssid = sat_node.getInt("gnssid")
-                row["svid[%d]" % i] = sat_node.getInt("svid")
-                row["pseudorange[%d]" % i] = sat_node.getDouble("pseudorange")
-                row["doppler[%d]" % i] = sat_node.getDouble("doppler")
-            else:
-                row["svid[%d]" % i] = -1
-                row["pseudorange[%d]" % i] = 0.0
-                row["doppler[%d]" % i] = 0.0
-        print(row)
-        return row
-
-    def unpack_gpsraw_v1(self, buf):
-        gpsraw = rc_messages.gps_raw_v1(buf)
-
-        if gpsraw.index > 0:
-            print("Warning: gpsraw index > 0 not supported")
-        gpsraw_node.setDouble("timestamp", gpsraw.timestamp_sec)
-        gpsraw_node.setInt("raw_num", gpsraw.num_sats)
-        gpsraw_node.setDouble("receiver_tow", gpsraw.receiver_tow)
-        for i in range(gpsraw.num_sats):
-            sat_path = "raw_satellite[%d]" % i
-            sat_node = gpsraw_node.getChild(sat_path)
-            sat_node.setInt("svid", gpsraw.svid[i])
-            sat_node.setInt("pseudorange", gpsraw.pseudorange[i])
-            sat_node.setInt("doppler", gpsraw.doppler[i])
-        return 0
-    
     # only support primary imu for now
     def pack_imu_bin(self, use_cached=False):
         imu_time = imu_node.getDouble('timestamp')
@@ -1322,6 +1254,24 @@ class Packer():
 
     def unpack_system_health_v6(self, buf):
         health = rc_messages.system_health_v6(buf)
+        status_node.setDouble("frame_time", health.timestamp_sec)
+        status_node.setDouble("system_load_avg", health.system_load_avg)
+        status_node.setInt("fmu_timer_misses", health.fmu_timer_misses)
+        power_node.setDouble("avionics_vcc", health.avionics_vcc)
+        power_node.setDouble("main_vcc", health.main_vcc)
+        power_node.setDouble("cell_vcc", health.cell_vcc)
+        power_node.setDouble("main_amps", health.main_amps)
+        power_node.setInt("total_mah", int(health.total_mah))
+        return health.index
+
+    def unpack_status_v7(self, buf):
+        status = rc_messages.status_v7(buf)
+        if status.index > 0:
+            print("Warning: status index > 0 not supported")
+        status.msg2props(status_node)
+        status_node.setDouble("timestamp", status.millis / 1000.0)
+        return status.index
+
         status_node.setDouble("frame_time", health.timestamp_sec)
         status_node.setDouble("system_load_avg", health.system_load_avg)
         status_node.setInt("fmu_timer_misses", health.fmu_timer_misses)

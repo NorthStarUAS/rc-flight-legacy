@@ -25,9 +25,9 @@ ap_status_v4_id = 30
 ap_status_v5_id = 32
 ap_status_v6_id = 33
 ap_status_v7_id = 39
-system_health_v4_id = 19
 system_health_v5_id = 41
 system_health_v6_id = 46
+status_v7_id = 56
 event_v1_id = 27
 event_v2_id = 44
 command_v1_id = 28
@@ -2322,74 +2322,6 @@ class ap_status_v7():
         task_attribute = node.getUInt("task_attribute")
         sequence_num = node.getUInt("sequence_num")
 
-# Message: system_health_v4
-# Id: 19
-class system_health_v4():
-    id = 19
-    _pack_string = "<BdHHHHHH"
-    _struct = struct.Struct(_pack_string)
-
-    def __init__(self, msg=None):
-        # public fields
-        self.index = 0
-        self.timestamp_sec = 0.0
-        self.system_load_avg = 0.0
-        self.avionics_vcc = 0.0
-        self.main_vcc = 0.0
-        self.cell_vcc = 0.0
-        self.main_amps = 0.0
-        self.total_mah = 0.0
-        # unpack if requested
-        if msg: self.unpack(msg)
-
-    def pack(self):
-        msg = self._struct.pack(
-                  self.index,
-                  self.timestamp_sec,
-                  int(round(self.system_load_avg * 100.0)),
-                  int(round(self.avionics_vcc * 1000.0)),
-                  int(round(self.main_vcc * 1000.0)),
-                  int(round(self.cell_vcc * 1000.0)),
-                  int(round(self.main_amps * 1000.0)),
-                  int(round(self.total_mah * 10.0)))
-        return msg
-
-    def unpack(self, msg):
-        (self.index,
-         self.timestamp_sec,
-         self.system_load_avg,
-         self.avionics_vcc,
-         self.main_vcc,
-         self.cell_vcc,
-         self.main_amps,
-         self.total_mah) = self._struct.unpack(msg)
-        self.system_load_avg /= 100.0
-        self.avionics_vcc /= 1000.0
-        self.main_vcc /= 1000.0
-        self.cell_vcc /= 1000.0
-        self.main_amps /= 1000.0
-        self.total_mah /= 10.0
-
-    def msg2props(self, node):
-        node.setUInt("index", self.index)
-        node.setDouble("timestamp_sec", self.timestamp_sec)
-        node.setDouble("system_load_avg", self.system_load_avg)
-        node.setDouble("avionics_vcc", self.avionics_vcc)
-        node.setDouble("main_vcc", self.main_vcc)
-        node.setDouble("cell_vcc", self.cell_vcc)
-        node.setDouble("main_amps", self.main_amps)
-        node.setDouble("total_mah", self.total_mah)
-
-    def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        system_load_avg = node.getDouble("system_load_avg")
-        avionics_vcc = node.getDouble("avionics_vcc")
-        main_vcc = node.getDouble("main_vcc")
-        cell_vcc = node.getDouble("cell_vcc")
-        main_amps = node.getDouble("main_amps")
-        total_mah = node.getDouble("total_mah")
-
 # Message: system_health_v5
 # Id: 41
 class system_health_v5():
@@ -2530,6 +2462,73 @@ class system_health_v6():
         cell_vcc = node.getDouble("cell_vcc")
         main_amps = node.getDouble("main_amps")
         total_mah = node.getDouble("total_mah")
+
+# Message: status_v7
+# Id: 56
+class status_v7():
+    id = 56
+    _pack_string = "<BLHHBLLHH"
+    _struct = struct.Struct(_pack_string)
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.millis = 0
+        self.serial_number = 0
+        self.firmware_rev = 0
+        self.master_hz = 0
+        self.baud = 0
+        self.available_memory = 0
+        self.byte_rate = 0
+        self.main_loop_timer_misses = 0
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = self._struct.pack(
+                  self.index,
+                  self.millis,
+                  self.serial_number,
+                  self.firmware_rev,
+                  self.master_hz,
+                  self.baud,
+                  self.available_memory,
+                  self.byte_rate,
+                  self.main_loop_timer_misses)
+        return msg
+
+    def unpack(self, msg):
+        (self.index,
+         self.millis,
+         self.serial_number,
+         self.firmware_rev,
+         self.master_hz,
+         self.baud,
+         self.available_memory,
+         self.byte_rate,
+         self.main_loop_timer_misses) = self._struct.unpack(msg)
+
+    def msg2props(self, node):
+        node.setUInt("index", self.index)
+        node.setUInt("millis", self.millis)
+        node.setUInt("serial_number", self.serial_number)
+        node.setUInt("firmware_rev", self.firmware_rev)
+        node.setUInt("master_hz", self.master_hz)
+        node.setUInt("baud", self.baud)
+        node.setUInt("available_memory", self.available_memory)
+        node.setUInt("byte_rate", self.byte_rate)
+        node.setUInt("main_loop_timer_misses", self.main_loop_timer_misses)
+
+    def props2msg(self, node):
+        index = node.getUInt("index")
+        millis = node.getUInt("millis")
+        serial_number = node.getUInt("serial_number")
+        firmware_rev = node.getUInt("firmware_rev")
+        master_hz = node.getUInt("master_hz")
+        baud = node.getUInt("baud")
+        available_memory = node.getUInt("available_memory")
+        byte_rate = node.getUInt("byte_rate")
+        main_loop_timer_misses = node.getUInt("main_loop_timer_misses")
 
 # Message: event_v1
 # Id: 27

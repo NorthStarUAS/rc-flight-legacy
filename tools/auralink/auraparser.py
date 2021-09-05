@@ -61,8 +61,6 @@ def parse_msg(id, buf):
         index = packer.unpack_gps_v4(buf)
     elif id == rc_messages.gps_v5_id:
         index = packer.unpack_gps_v5(buf)
-    elif id == rc_messages.gps_raw_v1_id:
-        index = packer.unpack_gpsraw_v1(buf)
     elif id == rc_messages.imu_v4_id:
         index = packer.unpack_imu_v4(buf)
     elif id == rc_messages.imu_v5_id:
@@ -103,12 +101,12 @@ def parse_msg(id, buf):
         index = packer.unpack_ap_status_v6(buf)
     elif id == rc_messages.ap_status_v7_id:
         index = packer.unpack_ap_status_v7(buf)
-    elif id == rc_messages.system_health_v4_id:
-        index = packer.unpack_system_health_v4(buf)
     elif id == rc_messages.system_health_v5_id:
         index = packer.unpack_system_health_v5(buf)
     elif id == rc_messages.system_health_v6_id:
         index = packer.unpack_system_health_v6(buf)
+    elif id == rc_messages.status_v7_id:
+        index = packer.unpack_status_v7(buf)
     elif id == rc_messages.payload_v2_id:
         index = packer.unpack_payload_v2(buf)
     elif id == rc_messages.payload_v3_id:
