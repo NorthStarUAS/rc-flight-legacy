@@ -48,8 +48,8 @@ void update_wind( double dt ) {
     double pitot_scale = pitot_scale_filt.get_value();
     double ue = cos(psi) * (airspeed_kt * pitot_scale * SG_KT_TO_MPS);
     double un = sin(psi) * (airspeed_kt * pitot_scale * SG_KT_TO_MPS);
-    double we = ue - filter_node.getDouble("ve_ms");
-    double wn = un - filter_node.getDouble("vn_ms");
+    double we = ue - filter_node.getDouble("ve_mps");
+    double wn = un - filter_node.getDouble("vn_mps");
 
     //static double filt_we = 0.0, filt_wn = 0.0;
     //filt_we = 0.9998 * filt_we + 0.0002 * we;
@@ -72,8 +72,8 @@ void update_wind( double dt ) {
     wind_node.setDouble( "wind_north_mps", wn_filt_val );
 
     // estimate pitot tube bias
-    double true_e = we_filt_val + filter_node.getDouble("ve_ms");
-    double true_n = wn_filt_val + filter_node.getDouble("vn_ms");
+    double true_e = we_filt_val + filter_node.getDouble("ve_mps");
+    double true_n = wn_filt_val + filter_node.getDouble("vn_mps");
 
     double true_deg = 90 - atan2( true_n, true_e ) * SGD_RADIANS_TO_DEGREES;
     if ( true_deg < 0 ) { true_deg += 360.0; }

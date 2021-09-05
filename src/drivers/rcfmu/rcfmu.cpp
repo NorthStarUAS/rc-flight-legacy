@@ -252,8 +252,8 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 	} else {
 	    printf("rcfmu: packet size mismatch in ACK\n");
 	}
-    } else if ( pkt_id == rcfmu_message::airdata_id ) {
-        rcfmu_message::airdata_t airdata;
+    } else if ( pkt_id == rc_message::airdata_v8_id ) {
+        rc_message::airdata_v8_t airdata;
         airdata.unpack(payload, pkt_len);
 	if ( pkt_len == airdata.len ) {
             update_airdata(&airdata);
@@ -263,16 +263,28 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 	} else {
             info("packet size mismatch in airdata packet");
 	}
-    } else if ( pkt_id == rcfmu_message::ekf_id ) {
-        rcfmu_message::ekf_t ekf;
-        ekf.unpack(payload, pkt_len);
-        if ( pkt_len == ekf.len ) {
-            update_ekf(&ekf);
-            ekf_packet_counter++;
-            rcfmu_node.setInt( "ekf_packet_count", ekf_packet_counter );
+    } else if ( pkt_id == rc_message::nav_v6_id ) {
+        rc_message::nav_v6_t nav_msg;
+        nav_msg.unpack(payload, pkt_len);
+        if ( pkt_len == nav_msg.len ) {
+            update_nav(&nav_msg);
+            nav_packet_counter++;
+            rcfmu_node.setInt( "nav_packet_count", nav_packet_counter );
             new_data = true;
         } else {
-            info("packet size mismatch in ekf packet");
+            info("packet size mismatch in nav packet");
+        }
+    } else if ( pkt_id == rc_message::nav_metrics_v6_id ) {
+        rc_message::nav_metrics_v6_t metrics_msg;
+        metrics_msg.unpack(payload, pkt_len);
+        if ( pkt_len == metrics_msg.len ) {
+            metrics_msg.msg2props(ekf_node);
+            nav_metrics_packet_counter++;
+            rcfmu_node.setInt( "nav_metrics_packet_count",
+                               nav_metrics_packet_counter );
+            new_data = true;
+        } else {
+            info("packet size mismatch in nav packet");
         }
     } else if ( pkt_id == rc_message::gps_v5_id ) {
         rc_message::gps_v5_t gps_msg;
@@ -311,53 +323,37 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 	} else {
             info("packet size mismatch in pilot input packet");
 	}
-    } else if ( pkt_id == rcfmu_message::power_id ) {
-        rcfmu_message::power_t power;
+    } else if ( pkt_id == rc_message::power_v1_id ) {
+        rc_message::power_v1_t power;
         power.unpack(payload, pkt_len);
 	if ( pkt_len == power.len ) {
+            power.msg2props(power_node);
 
+            // FIXME: filter on sending side!?!
+            
             // we anticipate a 0.01 sec dt value
-            int_main_vcc_filt.update((float)power.int_main_v, 0.01);
-            ext_main_vcc_filt.update((float)power.ext_main_v, 0.01);
-            avionics_vcc_filt.update((float)power.avionics_v, 0.01);
+            //int_main_vcc_filt.update((float)power.int_main_v, 0.01);
+            //ext_main_vcc_filt.update((float)power.ext_main_v, 0.01);
+            //avionics_vcc_filt.update((float)power.avionics_v, 0.01);
 
-            power_node.setDouble( "main_vcc", int_main_vcc_filt.get_value() );
-            power_node.setDouble( "ext_main_vcc", ext_main_vcc_filt.get_value() );
-            power_node.setDouble( "avionics_vcc", avionics_vcc_filt.get_value() );
+            //power_node.setDouble( "main_vcc", int_main_vcc_filt.get_value() );
+            //power_node.setDouble( "ext_main_vcc", ext_main_vcc_filt.get_value() );
+            //power_node.setDouble( "avionics_vcc", avionics_vcc_filt.get_value() );
 
-            float cell_volt = int_main_vcc_filt.get_value() / (float)battery_cells;
-            float ext_cell_volt = ext_main_vcc_filt.get_value() / (float)battery_cells;
-            power_node.setDouble( "cell_vcc", cell_volt );
-            power_node.setDouble( "ext_cell_vcc", ext_cell_volt );
-            power_node.setDouble( "main_amps", (float)power.ext_main_amp);
+            // FIXME: cell volts computed on sending side
+            // float cell_volt = power.int_main_vcc_filt.get_value() / (float)battery_cells;
+            // float ext_cell_volt = ext_main_vcc_filt.get_value() / (float)battery_cells;
+            //power_node.setDouble( "cell_vcc", cell_volt );
+            //power_node.setDouble( "ext_cell_vcc", ext_cell_volt );
+            //power_node.setDouble( "main_amps", (float)power.ext_main_amp);
 	} else {
             info("packet size mismatch in power packet");
 	}
-    } else if ( pkt_id == rcfmu_message::status_id ) {
-        rcfmu_message::status_t msg;
+    } else if ( pkt_id == rc_message::status_v7_id ) {
+        rc_message::status_v7_t msg;
         msg.unpack(payload, pkt_len);
-	if ( pkt_len == msg.len ) {
-	    rcfmu_node.setInt( "seriall_number", msg.serial_number );
-	    rcfmu_node.setInt( "firmware_rev", msg.firmware_rev );
-	    rcfmu_node.setInt( "master_hz", msg.master_hz );
-	    rcfmu_node.setInt( "baud_rate", msg.baud );
-	    rcfmu_node.setInt( "byte_rate_sec", msg.byte_rate );
-            status_node.setInt( "fmu_timer_misses", msg.timer_misses );
-
-            // FIXME:
-	    // if ( first_status_message ) {
-	    //     // log the data to events.txt
-	    //     first_status_message = false;
-	    //     char buf[128];
-	    //     snprintf( buf, 32, "Serial Number = %d", msg.serial_number );
-	    //     events->log("rcfmu", buf );
-	    //     snprintf( buf, 32, "Firmware Revision = %d", msg.firmware_rev );
-	    //     events->log("rcfmu", buf );
-	    //     snprintf( buf, 32, "Master Hz = %d", msg.master_hz );
-	    //     events->log("rcfmu", buf );
-	    //     snprintf( buf, 32, "Baud Rate = %d", msg.baud );
-	    //     events->log("rcfmu", buf );
-	    // }
+        if ( pkt_len == msg.len ) {
+            msg.msg2props(rcfmu_node);
 	} else {
             info("packet size mismatch in status packet");
 	}
@@ -481,49 +477,24 @@ float rcfmu_t::read() {
 }
 
 
-bool rcfmu_t::update_ekf( rcfmu_message::ekf_t *ekf ) {
-    const double R2D = 180 / M_PI;
+bool rcfmu_t::update_nav( rc_message::nav_v6_t *nav ) {
+    const double R2D = 180.0 / M_PI;
     const double F2M = 0.3048;
     const double M2F = 1 / F2M;
-    // do a little dance to estimate the ekf timestamp in seconds
-    int imu_millis = imu_node.getInt("millis");
-    int diff_millis = ekf->millis - imu_millis;
-    if ( diff_millis < 0 ) { diff_millis = 0; } // don't puke on wraparound
-    double timestamp = imu_node.getDouble("timestamp")
-        + (float)diff_millis / 1000.0;
-    ekf_node.setDouble( "timestamp", timestamp );
-    ekf_node.setInt( "ekf_millis", ekf->millis );
-    ekf_node.setDouble( "latitude_deg", ekf->lat_rad * R2D );
-    ekf_node.setDouble( "longitude_deg", ekf->lon_rad * R2D );
-    ekf_node.setDouble( "altitude_m", ekf->altitude_m );
-    ekf_node.setDouble( "vn_ms", ekf->vn_ms );
-    ekf_node.setDouble( "ve_ms", ekf->ve_ms );
-    ekf_node.setDouble( "vd_ms", ekf->vd_ms );
-    ekf_node.setDouble( "phi_rad", ekf->phi_rad );
-    ekf_node.setDouble( "the_rad", ekf->the_rad );
-    ekf_node.setDouble( "psi_rad", ekf->psi_rad );
-    ekf_node.setDouble( "roll_deg", ekf->phi_rad * R2D );
-    ekf_node.setDouble( "pitch_deg", ekf->the_rad * R2D );
-    ekf_node.setDouble( "heading_deg", ekf->psi_rad * R2D );
-    ekf_node.setDouble( "p_bias", ekf->p_bias );
-    ekf_node.setDouble( "q_bias", ekf->q_bias );
-    ekf_node.setDouble( "r_bias", ekf->r_bias );
-    ekf_node.setDouble( "ax_bias", ekf->ax_bias );
-    ekf_node.setDouble( "ay_bias", ekf->ay_bias );
-    ekf_node.setDouble( "az_bias", ekf->az_bias );
-    ekf_node.setDouble( "max_pos_cov", ekf->max_pos_cov );
-    ekf_node.setDouble( "max_vel_cov", ekf->max_vel_cov );
-    ekf_node.setDouble( "max_att_cov", ekf->max_att_cov );
-    ekf_node.setInt("status", ekf->status );
-    
-    /*FIXME:move the following to filter_mgr?*/
-    ekf_node.setDouble( "altitude_ft", ekf->altitude_m * M2F );
+
+    nav->msg2props(ekf_node);
+    ekf_node.setDouble("timestamp", nav->millis / 1000.0);
+    ekf_node.setDouble("latitude_deg", nav->latitude_raw / 10000000.0 );
+    ekf_node.setDouble("longitude_deg", nav->longitude_raw / 10000000.0);
+
+    // FIXME: move the following to filter_mgr?
+    ekf_node.setDouble( "altitude_ft", nav->altitude_m * M2F );
     ekf_node.setDouble( "groundtrack_deg",
-                        90 - atan2(ekf->vn_ms, ekf->ve_ms) * R2D );
-    double gs_ms = sqrt(ekf->vn_ms * ekf->vn_ms + ekf->ve_ms * ekf->ve_ms);
-    ekf_node.setDouble( "groundspeed_ms", gs_ms );
-    ekf_node.setDouble( "groundspeed_kt", gs_ms * SG_MPS_TO_KT );
-    ekf_node.setDouble( "vertical_speed_fps", -ekf->vd_ms * M2F );
+                        90 - atan2(nav->vn_mps, nav->ve_mps) * R2D );
+    double gs_mps = sqrt(nav->vn_mps * nav->vn_mps + nav->ve_mps * nav->ve_mps);
+    ekf_node.setDouble( "groundspeed_ms", gs_mps );
+    ekf_node.setDouble( "groundspeed_kt", gs_mps * SG_MPS_TO_KT );
+    ekf_node.setDouble( "vertical_speed_fps", -nav->vd_mps * M2F );
     return true;
 }
 
@@ -549,31 +520,32 @@ bool rcfmu_t::update_gps( rc_message::gps_v5_t *gps ) {
 }
 
 
-bool rcfmu_t::update_airdata( rcfmu_message::airdata_t *airdata ) {
+bool rcfmu_t::update_airdata( rc_message::airdata_v8_t *airdata ) {
     bool fresh_data = false;
-
-    float pitot_butter = pitot_filter.update(airdata->ext_diff_press_pa);
+    airdata->msg2props(airdata_node);
+    
+    float pitot_butter = pitot_filter.update(airdata->diff_press_pa);
         
     if ( ! airspeed_inited ) {
         if ( airspeed_zero_start_time > 0.0 ) {
-            pitot_sum += airdata->ext_diff_press_pa;
+            pitot_sum += airdata->diff_press_pa;
             pitot_count++;
             pitot_offset = pitot_sum / (double)pitot_count;
             /* printf("a1 raw=%.1f filt=%.1f a1 off=%.1f a1 sum=%.1f a1 count=%d\n",
                analog[0], pitot_filt.get_value(), pitot_offset, pitot_sum,
                pitot_count); */
         } else {
-            airspeed_zero_start_time = get_Time();
+            airspeed_zero_start_time = airdata->millis;
             pitot_sum = 0.0;
             pitot_count = 0;
         }
-        if ( imu_timestamp > airspeed_zero_start_time + 10.0 ) {
+        if ( airdata->millis > airspeed_zero_start_time + 10.0 * 1000 ) {
             //printf("pitot_offset = %.2f\n", pitot_offset);
             airspeed_inited = true;
         }
     }
 
-    airdata_node.setDouble( "timestamp", imu_timestamp );
+    airdata_node.setDouble( "timestamp", airdata->millis / 1000.0 );
 
     // basic pressure to airspeed formula: v = sqrt((2/p) * q)
     // where v = velocity, q = dynamic pressure (pitot tube sensor
@@ -606,15 +578,9 @@ bool rcfmu_t::update_airdata( rcfmu_message::airdata_t *airdata ) {
     float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
     airdata_node.setDouble( "airspeed_mps", airspeed_mps );
     airdata_node.setDouble( "airspeed_kt", airspeed_kt );
-    airdata_node.setDouble( "temp_C", airdata->ext_temp_C );
 
     // publish sensor values
     airdata_node.setDouble( "pressure_mbar", airdata->baro_press_pa / 100.0 );
-    airdata_node.setDouble( "bme_temp_C", airdata->baro_temp_C );
-    airdata_node.setDouble( "humidity", airdata->baro_hum );
-    airdata_node.setDouble( "diff_pressure_pa", airdata->ext_diff_press_pa );
-    airdata_node.setDouble( "ext_static_press_pa", airdata->ext_static_press_pa );
-    airdata_node.setInt( "error_count", airdata->error_count );
 
     fresh_data = true;
 

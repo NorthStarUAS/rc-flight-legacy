@@ -3772,13 +3772,13 @@ public:
 class command_v1_t {
 public:
 
-    uint8_t sequence_num;
+    uint16_t sequence_num;
     string message;
 
     // internal structure for packing
     #pragma pack(push, 1)
     struct _compact_t {
-        uint8_t sequence_num;
+        uint16_t sequence_num;
         uint16_t message_len;
     };
     #pragma pack(pop)

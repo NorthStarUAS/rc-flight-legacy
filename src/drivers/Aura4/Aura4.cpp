@@ -970,9 +970,9 @@ bool Aura4_t::update_ekf( message::ekf_t *ekf ) {
     ekf_node.setDouble( "latitude_deg", ekf->lat_rad * R2D );
     ekf_node.setDouble( "longitude_deg", ekf->lon_rad * R2D );
     ekf_node.setDouble( "altitude_m", ekf->altitude_m );
-    ekf_node.setDouble( "vn_ms", ekf->vn_ms );
-    ekf_node.setDouble( "ve_ms", ekf->ve_ms );
-    ekf_node.setDouble( "vd_ms", ekf->vd_ms );
+    ekf_node.setDouble( "vn_mps", ekf->vn_ms );
+    ekf_node.setDouble( "ve_mps", ekf->ve_ms );
+    ekf_node.setDouble( "vd_mps", ekf->vd_ms );
     ekf_node.setDouble( "phi_rad", ekf->phi_rad );
     ekf_node.setDouble( "the_rad", ekf->the_rad );
     ekf_node.setDouble( "psi_rad", ekf->psi_rad );

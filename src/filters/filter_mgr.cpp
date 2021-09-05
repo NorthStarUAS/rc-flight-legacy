@@ -142,9 +142,9 @@ static void publish_values() {
     pos_node.setDouble( "longitude_deg", filter_node.getDouble("longitude_deg") );
     pos_filter_node.setDouble("altitude_m", filter_node.getDouble("altitude_m"));
     pos_filter_node.setDouble("altitude_ft", filter_node.getDouble("altitude_ft"));
-    vel_node.setDouble( "vn_ms", filter_node.getDouble("vn_ms") );
-    vel_node.setDouble( "ve_ms", filter_node.getDouble("ve_ms") );
-    vel_node.setDouble( "vd_ms", filter_node.getDouble("vd_ms") );
+    vel_node.setDouble( "vn_mps", filter_node.getDouble("vn_mps") );
+    vel_node.setDouble( "ve_mps", filter_node.getDouble("ve_mps") );
+    vel_node.setDouble( "vd_mps", filter_node.getDouble("vd_mps") );
     filter_group_node.setDouble( "timestamp",
 				 filter_node.getDouble("timestamp") );
     int status = filter_node.getInt("status");
@@ -164,8 +164,8 @@ static void publish_values() {
 			    filter_node.getDouble("groundspeed_ms") );
     } else if ( use_gps ) {
 	const double R2D = 57.295779513082323;
-	double vn = gps_node.getDouble("vn_ms");
-	double ve = gps_node.getDouble("ve_ms");
+	double vn = gps_node.getDouble("vn_mps");
+	double ve = gps_node.getDouble("ve_mps");
 	filter_node.setDouble( "groundtrack_deg", 90 - atan2(vn, ve) * R2D );
 	filter_node.setDouble( "groundspeed_ms", sqrt(vn*vn + ve*ve) );
     }

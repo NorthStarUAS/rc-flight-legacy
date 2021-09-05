@@ -227,9 +227,9 @@ bool ublox9_t::parse_msg() {
             gps_node.setDouble( "latitude_deg", (double)data.lat / 10000000.0);
             gps_node.setDouble( "longitude_deg", (double)data.lon / 10000000.0);
             gps_node.setDouble( "altitude_m", (float)data.hMSL / 1000.0 );
-            gps_node.setDouble( "vn_ms", (float)data.velN / 1000.0 );
-            gps_node.setDouble( "ve_ms", (float)data.velE / 1000.0 );
-            gps_node.setDouble( "vd_ms", (float)data.velD / 1000.0 );
+            gps_node.setDouble( "vn_mps", (float)data.velN / 1000.0 );
+            gps_node.setDouble( "ve_mps", (float)data.velE / 1000.0 );
+            gps_node.setDouble( "vd_mps", (float)data.velD / 1000.0 );
             gps_node.setDouble( "horiz_accuracy_m", data.hAcc / 1000.0 );
             gps_node.setDouble( "vert_accuracy_m", data.vAcc / 1000.0 );
             gps_node.setDouble( "groundspeed_ms", data.gSpeed / 1000.0 );

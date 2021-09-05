@@ -49,9 +49,9 @@ static void props2umn(void) {
     gps_data.lat = gps_node.getDouble("latitude_deg");
     gps_data.lon = gps_node.getDouble("longitude_deg");
     gps_data.alt = gps_node.getDouble("altitude_m");
-    gps_data.vn = gps_node.getDouble("vn_ms");
-    gps_data.ve = gps_node.getDouble("ve_ms");
-    gps_data.vd = gps_node.getDouble("vd_ms");
+    gps_data.vn = gps_node.getDouble("vn_mps");
+    gps_data.ve = gps_node.getDouble("ve_mps");
+    gps_data.vd = gps_node.getDouble("vd_mps");
 }
 
 // update the property tree values from the nav_data structure
@@ -67,9 +67,9 @@ static void umn2props(void) {
     filter_node.setDouble( "latitude_deg", nav_data.lat * R2D );
     filter_node.setDouble( "longitude_deg", nav_data.lon * R2D );
     filter_node.setDouble( "altitude_m", nav_data.alt );
-    filter_node.setDouble( "vn_ms", nav_data.vn );
-    filter_node.setDouble( "ve_ms", nav_data.ve );
-    filter_node.setDouble( "vd_ms", nav_data.vd );
+    filter_node.setDouble( "vn_mps", nav_data.vn );
+    filter_node.setDouble( "ve_mps", nav_data.ve );
+    filter_node.setDouble( "vd_mps", nav_data.vd );
     if ( nav_data.err_type == data_valid ||
 	 nav_data.err_type == TU_only ||
 	 nav_data.err_type == gps_aided )

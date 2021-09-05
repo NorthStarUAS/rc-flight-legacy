@@ -2620,7 +2620,7 @@ class event_v2():
 # Id: 28
 class command_v1():
     id = 28
-    _pack_string = "<BH"
+    _pack_string = "<HH"
     _struct = struct.Struct(_pack_string)
 
     def __init__(self, msg=None):

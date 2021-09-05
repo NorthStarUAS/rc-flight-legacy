@@ -54,7 +54,8 @@ private:
     int last_ack_subid = 0;
     uint32_t skipped_frames = 0;
     uint32_t airdata_packet_counter = 0;
-    uint32_t ekf_packet_counter = 0;
+    uint32_t nav_packet_counter = 0;
+    uint32_t nav_metrics_packet_counter = 0;
     uint32_t gps_packet_counter = 0;
     uint32_t imu_packet_counter = 0;
     uint32_t pilot_packet_counter = 0;
@@ -103,8 +104,8 @@ private:
     bool write_command_reset_ekf();
     bool wait_for_ack(uint8_t id);
 
-    bool update_airdata( rcfmu_message::airdata_t *airdata );
-    bool update_ekf( rcfmu_message::ekf_t *ekf );
+    bool update_airdata( rc_message::airdata_v8_t *airdata );
+    bool update_nav( rc_message::nav_v6_t *nav );
     bool update_gps( rc_message::gps_v5_t *gps );
     bool update_imu( rc_message::imu_v6_t *imu );
     
