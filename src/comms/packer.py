@@ -876,12 +876,19 @@ class Packer():
 
     def unpack_pilot_v4(self, buf):
         pilot = rc_messages.pilot_v4(buf)
-
         if pilot.index > 0:
             print("Warning: pilot index > 0 not supported")
         pilot.msg2props(pilot_node)
         pilot_node.setDouble("timestamp", pilot.millis / 1000.0)
         return pilot.index
+
+    def unpack_power_v1(self, buf):
+        power = rc_messages.power_v1(buf)
+        if power.index > 0:
+            print("Warning: power index > 0 not supported")
+        power.msg2props(power_node)
+        power_node.setDouble("timestamp", power.millis / 1000.0)
+        return power.index
 
     def pack_ap_status_bin(self, use_cached=False):
         ap_time = status_node.getDouble("frame_time")

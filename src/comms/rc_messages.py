@@ -5,7 +5,6 @@ from PropertyTree import PropertyNode
 gps_v3_id = 26
 gps_v4_id = 34
 gps_v5_id = 49
-gps_raw_v1_id = 48
 imu_v4_id = 35
 imu_v5_id = 45
 imu_v6_id = 50
@@ -21,6 +20,7 @@ actuator_v3_id = 37
 pilot_v2_id = 20
 pilot_v3_id = 38
 pilot_v4_id = 51
+power_v1_id = 55
 ap_status_v4_id = 30
 ap_status_v5_id = 32
 ap_status_v6_id = 33
@@ -28,15 +28,12 @@ ap_status_v7_id = 39
 system_health_v4_id = 19
 system_health_v5_id = 41
 system_health_v6_id = 46
-payload_v2_id = 23
-payload_v3_id = 42
 event_v1_id = 27
 event_v2_id = 44
 command_v1_id = 28
 
 # Constants
 sbus_channels = 16  # number of sbus channels
-max_raw_sats = 12  # maximum array size to store satellite raw data
 
 # Message: gps_v3
 # Id: 26
@@ -337,129 +334,6 @@ class gps_v5():
         vAcc_m = node.getDouble("vAcc_m")
         hdop = node.getDouble("hdop")
         vdop = node.getDouble("vdop")
-
-# Message: gps_raw_v1
-# Id: 48
-class gps_raw_v1():
-    id = 48
-    _pack_string = "<BfdBBBBBBBBBBBBBdddddddddddddddddddddddd"
-    _struct = struct.Struct(_pack_string)
-
-    def __init__(self, msg=None):
-        # public fields
-        self.index = 0
-        self.timestamp_sec = 0.0
-        self.receiver_tow = 0.0
-        self.num_sats = 0
-        self.svid = [0] * max_raw_sats
-        self.pseudorange = [0.0] * max_raw_sats
-        self.doppler = [0.0] * max_raw_sats
-        # unpack if requested
-        if msg: self.unpack(msg)
-
-    def pack(self):
-        msg = self._struct.pack(
-                  self.index,
-                  self.timestamp_sec,
-                  self.receiver_tow,
-                  self.num_sats,
-                  self.svid[0],
-                  self.svid[1],
-                  self.svid[2],
-                  self.svid[3],
-                  self.svid[4],
-                  self.svid[5],
-                  self.svid[6],
-                  self.svid[7],
-                  self.svid[8],
-                  self.svid[9],
-                  self.svid[10],
-                  self.svid[11],
-                  self.pseudorange[0],
-                  self.pseudorange[1],
-                  self.pseudorange[2],
-                  self.pseudorange[3],
-                  self.pseudorange[4],
-                  self.pseudorange[5],
-                  self.pseudorange[6],
-                  self.pseudorange[7],
-                  self.pseudorange[8],
-                  self.pseudorange[9],
-                  self.pseudorange[10],
-                  self.pseudorange[11],
-                  self.doppler[0],
-                  self.doppler[1],
-                  self.doppler[2],
-                  self.doppler[3],
-                  self.doppler[4],
-                  self.doppler[5],
-                  self.doppler[6],
-                  self.doppler[7],
-                  self.doppler[8],
-                  self.doppler[9],
-                  self.doppler[10],
-                  self.doppler[11])
-        return msg
-
-    def unpack(self, msg):
-        (self.index,
-         self.timestamp_sec,
-         self.receiver_tow,
-         self.num_sats,
-         self.svid[0],
-         self.svid[1],
-         self.svid[2],
-         self.svid[3],
-         self.svid[4],
-         self.svid[5],
-         self.svid[6],
-         self.svid[7],
-         self.svid[8],
-         self.svid[9],
-         self.svid[10],
-         self.svid[11],
-         self.pseudorange[0],
-         self.pseudorange[1],
-         self.pseudorange[2],
-         self.pseudorange[3],
-         self.pseudorange[4],
-         self.pseudorange[5],
-         self.pseudorange[6],
-         self.pseudorange[7],
-         self.pseudorange[8],
-         self.pseudorange[9],
-         self.pseudorange[10],
-         self.pseudorange[11],
-         self.doppler[0],
-         self.doppler[1],
-         self.doppler[2],
-         self.doppler[3],
-         self.doppler[4],
-         self.doppler[5],
-         self.doppler[6],
-         self.doppler[7],
-         self.doppler[8],
-         self.doppler[9],
-         self.doppler[10],
-         self.doppler[11]) = self._struct.unpack(msg)
-
-    def msg2props(self, node):
-        node.setUInt("index", self.index)
-        node.setDouble("timestamp_sec", self.timestamp_sec)
-        node.setDouble("receiver_tow", self.receiver_tow)
-        node.setUInt("num_sats", self.num_sats)
-        for _i in range(max_raw_sats): node.setUInt("svid", self.svid[_i], _i)
-        for _i in range(max_raw_sats): node.setDouble("pseudorange", self.pseudorange[_i], _i)
-        for _i in range(max_raw_sats): node.setDouble("doppler", self.doppler[_i], _i)
-
-    def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        receiver_tow = node.getDouble("receiver_tow")
-        num_sats = node.getUInt("num_sats")
-        for _i in range(max_raw_sats): svid[_i] = node.getUInt("svid", _i)
-        for _i in range(max_raw_sats): pseudorange[_i] = node.getDouble("pseudorange", _i)
-        for _i in range(max_raw_sats): doppler[_i] = node.getDouble("doppler", _i)
 
 # Message: imu_v4
 # Id: 35
@@ -1944,6 +1818,68 @@ class pilot_v4():
         for _i in range(sbus_channels): channel[_i] = node.getDouble("channel", _i)
         failsafe = node.getUInt("failsafe")
 
+# Message: power_v1
+# Id: 55
+class power_v1():
+    id = 55
+    _pack_string = "<BLHHHHH"
+    _struct = struct.Struct(_pack_string)
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.millis = 0
+        self.avionics_vcc = 0.0
+        self.main_vcc = 0.0
+        self.cell_vcc = 0.0
+        self.main_amps = 0.0
+        self.total_mah = 0.0
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = self._struct.pack(
+                  self.index,
+                  self.millis,
+                  int(round(self.avionics_vcc * 1000.0)),
+                  int(round(self.main_vcc * 1000.0)),
+                  int(round(self.cell_vcc * 1000.0)),
+                  int(round(self.main_amps * 1000.0)),
+                  int(round(self.total_mah * 0.5)))
+        return msg
+
+    def unpack(self, msg):
+        (self.index,
+         self.millis,
+         self.avionics_vcc,
+         self.main_vcc,
+         self.cell_vcc,
+         self.main_amps,
+         self.total_mah) = self._struct.unpack(msg)
+        self.avionics_vcc /= 1000.0
+        self.main_vcc /= 1000.0
+        self.cell_vcc /= 1000.0
+        self.main_amps /= 1000.0
+        self.total_mah /= 0.5
+
+    def msg2props(self, node):
+        node.setUInt("index", self.index)
+        node.setUInt("millis", self.millis)
+        node.setDouble("avionics_vcc", self.avionics_vcc)
+        node.setDouble("main_vcc", self.main_vcc)
+        node.setDouble("cell_vcc", self.cell_vcc)
+        node.setDouble("main_amps", self.main_amps)
+        node.setDouble("total_mah", self.total_mah)
+
+    def props2msg(self, node):
+        index = node.getUInt("index")
+        millis = node.getUInt("millis")
+        avionics_vcc = node.getDouble("avionics_vcc")
+        main_vcc = node.getDouble("main_vcc")
+        cell_vcc = node.getDouble("cell_vcc")
+        main_amps = node.getDouble("main_amps")
+        total_mah = node.getDouble("total_mah")
+
 # Message: ap_status_v4
 # Id: 30
 class ap_status_v4():
@@ -2594,80 +2530,6 @@ class system_health_v6():
         cell_vcc = node.getDouble("cell_vcc")
         main_amps = node.getDouble("main_amps")
         total_mah = node.getDouble("total_mah")
-
-# Message: payload_v2
-# Id: 23
-class payload_v2():
-    id = 23
-    _pack_string = "<BdH"
-    _struct = struct.Struct(_pack_string)
-
-    def __init__(self, msg=None):
-        # public fields
-        self.index = 0
-        self.timestamp_sec = 0.0
-        self.trigger_num = 0
-        # unpack if requested
-        if msg: self.unpack(msg)
-
-    def pack(self):
-        msg = self._struct.pack(
-                  self.index,
-                  self.timestamp_sec,
-                  self.trigger_num)
-        return msg
-
-    def unpack(self, msg):
-        (self.index,
-         self.timestamp_sec,
-         self.trigger_num) = self._struct.unpack(msg)
-
-    def msg2props(self, node):
-        node.setUInt("index", self.index)
-        node.setDouble("timestamp_sec", self.timestamp_sec)
-        node.setUInt("trigger_num", self.trigger_num)
-
-    def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        trigger_num = node.getUInt("trigger_num")
-
-# Message: payload_v3
-# Id: 42
-class payload_v3():
-    id = 42
-    _pack_string = "<BfH"
-    _struct = struct.Struct(_pack_string)
-
-    def __init__(self, msg=None):
-        # public fields
-        self.index = 0
-        self.timestamp_sec = 0.0
-        self.trigger_num = 0
-        # unpack if requested
-        if msg: self.unpack(msg)
-
-    def pack(self):
-        msg = self._struct.pack(
-                  self.index,
-                  self.timestamp_sec,
-                  self.trigger_num)
-        return msg
-
-    def unpack(self, msg):
-        (self.index,
-         self.timestamp_sec,
-         self.trigger_num) = self._struct.unpack(msg)
-
-    def msg2props(self, node):
-        node.setUInt("index", self.index)
-        node.setDouble("timestamp_sec", self.timestamp_sec)
-        node.setUInt("trigger_num", self.trigger_num)
-
-    def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        trigger_num = node.getUInt("trigger_num")
 
 # Message: event_v1
 # Id: 27
