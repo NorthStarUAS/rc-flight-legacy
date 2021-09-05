@@ -196,7 +196,7 @@ bool ublox6_t::parse_msg() {
 	Vector3d vel_ned = quat_backtransform(ecef2ned, vel_ecef);
 	// printf("my vel ned = %.2f %.2f %.2f\n", vel_ned.x(), vel_ned.y(), vel_ned.z());
 
- 	gps_node.setInt( "satellites", numSV );
+ 	gps_node.setInt( "num_sats", numSV );
  	gps_fix_value = gpsFix;
 	if ( gps_fix_value == 0 ) {
 	    gps_node.setInt( "status", 0 );

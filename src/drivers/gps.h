@@ -18,6 +18,7 @@ public:
     double gps_age();           // seconds
     
 private:
+    PropertyNode imu_node;
     PropertyNode gps_node;
     int gps_state = 0;
     double gps_acq_time = 0.0;

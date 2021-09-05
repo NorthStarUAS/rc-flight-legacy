@@ -19,7 +19,8 @@ using namespace Eigen;
 #include "util/lowpass.h"
 
 #include "serial_link2.h"
-#include "rcfmu_messages.h"
+#include "rc_messages.h"
+#include "rcfmu_messages.h"     // work towards deprecating
 
 class rcfmu_t: public driver_t {
     
@@ -104,9 +105,8 @@ private:
 
     bool update_airdata( rcfmu_message::airdata_t *airdata );
     bool update_ekf( rcfmu_message::ekf_t *ekf );
-    bool update_gps( rcfmu_message::gps_t *gps );
-    bool update_imu( rcfmu_message::imu_t *imu );
-    bool update_pilot( rcfmu_message::pilot_t *pilot );
+    bool update_gps( rc_message::gps_v5_t *gps );
+    bool update_imu( rc_message::imu_v6_t *imu );
     
     void airdata_zero_airspeed();
 };

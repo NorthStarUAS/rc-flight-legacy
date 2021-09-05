@@ -190,7 +190,7 @@ bool ublox8_t::parse_msg( uint8_t msg_class, uint8_t msg_id,
             gps_node.setDouble( "unix_time_sec", unix_sec );
             gps_node.setDouble( "time_accuracy_ns", data.tAcc );
 	    
-            gps_node.setInt( "satellites", data.numSV );
+            gps_node.setInt( "num_sats", data.numSV );
 	    
             gps_node.setDouble( "latitude_deg", (double)data.lat / 10000000.0);
             gps_node.setDouble( "longitude_deg", (double)data.lon / 10000000.0);

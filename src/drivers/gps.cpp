@@ -29,6 +29,7 @@ using std::string;
 void gps_helper_t::init(DocPointerWrapper d) {
     PropertyNode("/").set_Document(d);
 
+    imu_node = PropertyNode( "/sensors/imu" );
     gps_node = PropertyNode( "/sensors/gps" );
     // init master gps timestamp to one year ago
     gps_node.setDouble("timestamp", -31557600.0);
@@ -59,7 +60,7 @@ void gps_helper_t::compute_magvar() {
 }
 
 double gps_helper_t::gps_age() {
-    return get_Time() - gps_node.getDouble("timestamp");
+    return imu_node.getDouble("imu_sec") - gps_node.getDouble("timestamp");
 }
 
 void gps_helper_t::update(bool verbose) {

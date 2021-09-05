@@ -1017,7 +1017,7 @@ bool Aura4_t::update_gps( message::aura_nav_pvt_t *nav_pvt ) {
     gps_node.setDouble( "vn_ms", nav_pvt->velN / 1000.0 );
     gps_node.setDouble( "ve_ms", nav_pvt->velE / 1000.0 );
     gps_node.setDouble( "vd_ms", nav_pvt->velD / 1000.0 );
-    gps_node.setInt( "satellites", nav_pvt->numSV);
+    gps_node.setInt( "num_sats", nav_pvt->numSV);
     gps_node.setDouble( "pdop", nav_pvt->pDOP / 100.0 );
     gps_node.setInt( "fixType", nav_pvt->fixType );
     // backwards compatibility
@@ -1077,11 +1077,11 @@ bool Aura4_t::update_airdata( message::airdata_t *airdata ) {
     // velocity will be in meters per second.
 
     // The MPXV5004DP has a full scale span of 3.9V, Maximum
-    // pressure reading is 0.57psi (4000Pa)
+    // pressure reading is 0.57 psi (4000 Pa)
 
     // Example (Aura4): With a 10bit ADC (Aura4) we record a value
     // of 230 (0-1024) at zero velocity.  The sensor saturates at
-    // a value of about 1017 (4000psi).  Thus:
+    // a value of about 1017 (4000 pa).  Thus:
 
     // Pa = (ADC - 230) * 5.083
     // Airspeed(mps) = sqrt( (2/1.225) * Pa )

@@ -222,7 +222,7 @@ bool ublox9_t::parse_msg() {
             gps_node.setDouble( "unix_time_sec", unix_sec );
             gps_node.setDouble( "time_accuracy_ns", data.tAcc );
 	    
-            gps_node.setInt( "satellites", data.numSV );
+            gps_node.setInt( "num_sats", data.numSV );
 	    
             gps_node.setDouble( "latitude_deg", (double)data.lat / 10000000.0);
             gps_node.setDouble( "longitude_deg", (double)data.lon / 10000000.0);

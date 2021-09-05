@@ -55,6 +55,9 @@ void rcfmu_t::hard_fail( const char *format, ... ) {
 }
 
 void rcfmu_t::init( PropertyNode *config ) {
+    PropertyNode comms_node("/comms");
+    verbose = comms_node.getBool("display_on");
+    
     // bind main property nodes
     rcfmu_node = PropertyNode( "/sensors/rcfmu" );
     power_node = PropertyNode( "/sensors/power" );
@@ -191,14 +194,13 @@ void rcfmu_t::init_pilot( PropertyNode *config ) {
             }
 	}
     }
-    // pilot_node.setLen("channel", rcfmu_message::sbus_channels, 0.0);
 }
 
 void rcfmu_t::init_actuators( PropertyNode *config ) {
     act_node = PropertyNode( "/actuators" );
 }
 
-bool rcfmu_t::update_imu( rcfmu_message::imu_t *imu ) {
+bool rcfmu_t::update_imu( rc_message::imu_v6_t *imu ) {
     imu_timestamp = get_Time();
     imu->msg2props(imu_node);
 
@@ -240,7 +242,6 @@ bool rcfmu_t::update_imu( rcfmu_message::imu_t *imu ) {
 
 bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
     bool new_data = false;
-
     if ( pkt_id == rcfmu_message::command_ack_id ) {
         rcfmu_message::command_ack_t ack;
         ack.unpack(payload, pkt_len);
@@ -273,24 +274,24 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
         } else {
             info("packet size mismatch in ekf packet");
         }
-    } else if ( pkt_id == rcfmu_message::gps_id ) {
-        rcfmu_message::gps_t gps;
-        gps.unpack(payload, pkt_len);
-	if ( pkt_len == gps.len ) {
-            update_gps(&gps);
+    } else if ( pkt_id == rc_message::gps_v5_id ) {
+        rc_message::gps_v5_t gps_msg;
+        gps_msg.unpack(payload, pkt_len);
+	if ( pkt_len == gps_msg.len ) {
+            update_gps(&gps_msg);
 	    gps_packet_counter++;
             // fixme: node name
 	    rcfmu_node.setInt( "gps_packet_count", gps_packet_counter );
 	    new_data = true;
 	} else {
             info("packet size mismatch in gps packet");
-            info("got %d, expected %d", pkt_len, gps.len);
+            info("got %d, expected %d", pkt_len, gps_msg.len);
 	}
-    } else if ( pkt_id == rcfmu_message::imu_id ) {
-        rcfmu_message::imu_t imu;
-        imu.unpack(payload, pkt_len);
-	if ( pkt_len == imu.len ) {
-            update_imu(&imu);
+    } else if ( pkt_id == rc_message::imu_v6_id ) {
+        rc_message::imu_v6_t imu_msg;
+        imu_msg.unpack(payload, pkt_len);
+	if ( pkt_len == imu_msg.len ) {
+            update_imu(&imu_msg);
 	    imu_packet_counter++;
 	    rcfmu_node.setInt( "imu_packet_count",
                                 imu_packet_counter );
@@ -298,11 +299,12 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 	} else {
             info("packet size mismatch in imu packet");
 	}
-    } else if ( pkt_id == rcfmu_message::pilot_id ) {
-        rcfmu_message::pilot_t pilot;
-        pilot.unpack(payload, pkt_len);
-	if ( pkt_len == pilot.len ) {
-            update_pilot( &pilot );
+    } else if ( pkt_id == rc_message::pilot_v4_id ) {
+        rc_message::pilot_v4_t pilot_msg;
+        pilot_msg.unpack(payload, pkt_len);
+	if ( pkt_len == pilot_msg.len ) {
+            pilot_msg.msg2props(pilot_node);
+            pilot_node.setDouble("timestamp", pilot_msg.millis / 1000.0);
 	    pilot_packet_counter++;
 	    rcfmu_node.setInt( "pilot_packet_count", pilot_packet_counter );
 	    new_data = true;
@@ -335,7 +337,7 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
         rcfmu_message::status_t msg;
         msg.unpack(payload, pkt_len);
 	if ( pkt_len == msg.len ) {
-	    rcfmu_node.setInt( "serial_number", msg.serial_number );
+	    rcfmu_node.setInt( "seriall_number", msg.serial_number );
 	    rcfmu_node.setInt( "firmware_rev", msg.firmware_rev );
 	    rcfmu_node.setInt( "master_hz", msg.master_hz );
 	    rcfmu_node.setInt( "baud_rate", msg.baud );
@@ -434,7 +436,7 @@ float rcfmu_t::read() {
     while ( true ) {
         if ( serial.update() ) {
             parse( serial.pkt_id, serial.pkt_len, serial.payload );
-            if ( serial.pkt_id == rcfmu_message::imu_id ) {
+            if ( serial.pkt_id == rc_message::imu_v6_id ) {
                 if ( serial.bytes_available() < 256 ) {
                     // a smaller value here means more skipping ahead and
                     // less catching up.
@@ -525,35 +527,13 @@ bool rcfmu_t::update_ekf( rcfmu_message::ekf_t *ekf ) {
     return true;
 }
 
-bool rcfmu_t::update_gps( rcfmu_message::gps_t *gps ) {
-    gps_node.setDouble( "timestamp", get_Time() );
-    gps_node.setDouble( "unix_time_usec", gps->unix_usec );
-    gps_node.setDouble( "unix_time_sec", (double)gps->unix_usec / 1000000.0 );
-    // for ( int i = 0; i < 8; i++ ) {
-    //     printf("%02X ", *(uint8_t *)(&(gps->unix_usec) + i));
-    // }
-    // printf(" %ldf\n", gps->unix_usec);
-    gps_node.setInt( "satellites", gps->num_sats );
-    gps_node.setInt( "fixType", gps->status );
-    gps_node.setDouble( "latitude_deg", gps->latitude_raw / 10000000.0 );
-    gps_node.setDouble( "longitude_deg", gps->longitude_raw / 10000000.0 );
-    gps_node.setDouble( "altitude_m", gps->altitude_m );
-    // fixme: node property units name?
-    gps_node.setDouble( "vn_ms", gps->vn_mps );
-    gps_node.setDouble( "ve_ms", gps->ve_mps );
-    gps_node.setDouble( "vd_ms", gps->vd_mps );
-    gps_node.setDouble( "horiz_accuracy_m", gps->hAcc );
-    gps_node.setDouble( "vert_accuracy_m", gps->vAcc );
-    gps_node.setDouble( "hdop", gps->hdop );
-    gps_node.setDouble( "vdop", gps->vdop );
-    // backwards compatibility
-    if ( gps->status == 0 ) {
-        gps_node.setInt( "status", 0 );
-    } else if ( gps->status == 1 || gps->status == 2 ) {
-        gps_node.setInt( "status", 1 );
-    } else if ( gps->status == 3 ) {
-        gps_node.setInt( "status", 2 );
-    }
+bool rcfmu_t::update_gps( rc_message::gps_v5_t *gps ) {
+    gps->msg2props(gps_node);
+    gps_node.setDouble("timestamp", gps->millis / 1000.0);
+    gps_node.setDouble("unix_time_sec", gps->unix_usec / 1000000.0);
+    gps_node.setDouble("latitude_deg", gps->latitude_raw / 10000000.0 );
+    gps_node.setDouble("longitude_deg", gps->longitude_raw / 10000000.0);
+ 
     // generate broken-down time
     struct tm *tm;
     time_t time_sec = gps->unix_usec / 1000000U;
@@ -604,11 +584,11 @@ bool rcfmu_t::update_airdata( rcfmu_message::airdata_t *airdata ) {
     // velocity will be in meters per second.
 
     // The MPXV5004DP has a full scale span of 3.9V, Maximum
-    // pressure reading is 0.57psi (4000Pa)
+    // pressure reading is 0.57 psi (4000 Pa)
 
     // Example (rcfmu): With a 10bit ADC (rcfmu) we record a value
     // of 230 (0-1024) at zero velocity.  The sensor saturates at
-    // a value of about 1017 (4000psi).  Thus:
+    // a value of about 1017 (4000 pa).  Thus:
 
     // Pa = (ADC - 230) * 5.083
     // Airspeed(mps) = sqrt( (2/1.225) * Pa )
@@ -641,7 +621,6 @@ bool rcfmu_t::update_airdata( rcfmu_message::airdata_t *airdata ) {
     return fresh_data;
 }
 
-
 // force an airspeed zero calibration (ideally with the aircraft on
 // the ground with the pitot tube perpendicular to the prevailing
 // wind.)
@@ -649,47 +628,6 @@ void rcfmu_t::airdata_zero_airspeed() {
     airspeed_inited = false;
     airspeed_zero_start_time = 0.0;
 }
-
-
-bool rcfmu_t::update_pilot( rcfmu_message::pilot_t *pilot ) {
-    float val;
-
-    pilot_node.setDouble( "timestamp", get_Time() );
-
-    for ( int i = 0; i < rcfmu_message::sbus_channels; i++ ) {
-	val = pilot->channel[i];
-        pilot_node.setDouble( "channel", val, i );
-        if ( pilot_mapping[i] != "" ) {
-            pilot_node.setDouble( pilot_mapping[i].c_str(), val );
-        }
-    }
-
-    // sbus ch17 (channel[16])
-    if ( pilot->flags & 0x01 ) {
-        pilot_node.setDouble( "channel", 1.0, 16 );
-    } else {
-        pilot_node.setDouble( "channel", 0.0, 16 );
-    }
-    // sbus ch18 (channel[17])
-    if ( pilot->flags & (1 << 1) ) {
-        pilot_node.setDouble( "channel", 1.0, 17 );
-    } else {
-        pilot_node.setDouble( "channel", 0.0, 17 );
-    }
-    if ( pilot->flags & (1 << 2) ) {
-        pilot_node.setBool( "frame_lost", true );
-    } else {
-        pilot_node.setBool( "frame_lost", false );
-    }
-    if ( pilot->flags & (1 << 3) ) {
-        pilot_node.setBool( "fail_safe", true );
-    } else {
-        pilot_node.setBool( "fail_safe", false );
-    }
-
-    return true;
-}
-
 
 void rcfmu_t::write() {
     // send actuator commands to rcfmu servo subsystem

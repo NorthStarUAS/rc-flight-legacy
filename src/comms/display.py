@@ -57,7 +57,7 @@ def status_summary():
               (gps_node.getDouble("longitude_deg"),
                gps_node.getDouble("latitude_deg"),
                gps_node.getDouble("altitude_m"),
-               gps_node.getInt("satellites"),
+               gps_node.getInt("num_sats"),
                gps_node.getDouble("data_age")))
     else:
         print("[gps  ]: age =", gps_node.getDouble("data_age"))

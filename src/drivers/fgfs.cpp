@@ -228,7 +228,7 @@ bool fgfs_t::update_gps() {
 	gps_node.setDouble( "vn_ms", vn );
 	gps_node.setDouble( "ve_ms", ve );
 	gps_node.setDouble( "vd_ms", vd );
-	gps_node.setInt( "satellites", 8 ); // fake a solid number
+	gps_node.setInt( "num_sats", 8 ); // fake a solid number
 	gps_node.setDouble( "unix_time_sec", time );
 	gps_node.setInt( "status", 2 ); // valid fix
     }
