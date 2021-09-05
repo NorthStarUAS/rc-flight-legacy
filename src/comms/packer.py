@@ -174,30 +174,6 @@ class Packer():
                 'tecs_error_total', 'tecs_error_diff', 'status']
         return row, keys
 
-    def unpack_airdata_v5(self, buf):
-        air = rc_messages.airdata_v5(buf)
-
-        if air.index > 0:
-            print("Warning: airdata index > 0 not supported")
-        node = airdata_node
-
-        node.setDouble("timestamp", air.timestamp_sec)
-        node.setDouble("pressure_mbar", air.pressure_mbar)
-        node.setDouble("temp_C", air.temp_C)
-        vel_node.setDouble("airspeed_smoothed_kt", air.airspeed_smoothed_kt)
-        if math.isnan(air.altitude_smoothed_m):
-            air.altitude_smoothed_m = 0.0
-        if math.isnan(air.altitude_true_m):
-            air.altitude_true_m = 0.0
-        pos_pressure_node.setDouble("altitude_smoothed_m", air.altitude_smoothed_m)
-        pos_combined_node.setDouble("altitude_true_m", air.altitude_true_m)
-        vel_node.setDouble("pressure_vertical_speed_fps", air.pressure_vertical_speed_fps)
-        wind_node.setDouble("wind_dir_deg", air.wind_dir_deg)
-        wind_node.setDouble("wind_speed_kt", air.wind_speed_kt)
-        wind_node.setDouble("pitot_scale_factor", air.pitot_scale_factor)
-        node.setInt("status", air.status)
-        return air.index
-
     def unpack_airdata_v6(self, buf):
         air = rc_messages.airdata_v6(buf)
 
@@ -245,6 +221,14 @@ class Packer():
         wind_node.setDouble("pitot_scale_factor", air.pitot_scale_factor)
         node.setInt("error_count", air.error_count)
         node.setInt("status", air.status)
+        return air.index
+
+    def unpack_airdata_v8(self, buf):
+        air = rc_messages.airdata_v8(buf)
+        if air.index > 0:
+            print("Warning: airdata index > 0 not supported")
+        air.msg2props(airdata_node)
+        airdata_node.setDouble("timestamp", air.millis / 1000.0)
         return air.index
 
     # FIXME: think about how we are dealing with skips and gps's lower rate?
@@ -564,7 +548,6 @@ class Packer():
 
     def unpack_imu_v6(self, buf):
         imu = rc_messages.imu_v6(buf)
-
         if imu.index > 0:
             print("Warning: imu index > 0 not supported")
         imu.msg2props(imu_node)

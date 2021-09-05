@@ -69,12 +69,12 @@ def parse_msg(id, buf):
         index = packer.unpack_imu_v5(buf)
     elif id == rc_messages.imu_v6_id:
         index = packer.unpack_imu_v6(buf)
-    elif id == rc_messages.airdata_v5_id:
-        index = packer.unpack_airdata_v5(buf)
     elif id == rc_messages.airdata_v6_id:
         index = packer.unpack_airdata_v6(buf)
     elif id == rc_messages.airdata_v7_id:
         index = packer.unpack_airdata_v7(buf)
+    elif id == rc_messages.airdata_v8_id:
+        index = packer.unpack_airdata_v8(buf)
     elif id == rc_messages.filter_v4_id:
         index = packer.unpack_filter_v4(buf)
     elif id == rc_messages.filter_v5_id:

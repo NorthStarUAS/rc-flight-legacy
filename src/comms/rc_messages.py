@@ -9,9 +9,9 @@ gps_raw_v1_id = 48
 imu_v4_id = 35
 imu_v5_id = 45
 imu_v6_id = 50
-airdata_v5_id = 18
 airdata_v6_id = 40
 airdata_v7_id = 43
+airdata_v8_id = 54
 filter_v4_id = 36
 filter_v5_id = 47
 nav_v6_id = 52
@@ -795,95 +795,6 @@ class imu_v6():
         hz = node.getDouble("hz")
         temp_C = node.getDouble("temp_C")
 
-# Message: airdata_v5
-# Id: 18
-class airdata_v5():
-    id = 18
-    _pack_string = "<BdHhhffhHBBB"
-    _struct = struct.Struct(_pack_string)
-
-    def __init__(self, msg=None):
-        # public fields
-        self.index = 0
-        self.timestamp_sec = 0.0
-        self.pressure_mbar = 0.0
-        self.temp_C = 0.0
-        self.airspeed_smoothed_kt = 0.0
-        self.altitude_smoothed_m = 0.0
-        self.altitude_true_m = 0.0
-        self.pressure_vertical_speed_fps = 0.0
-        self.wind_dir_deg = 0.0
-        self.wind_speed_kt = 0.0
-        self.pitot_scale_factor = 0.0
-        self.status = 0
-        # unpack if requested
-        if msg: self.unpack(msg)
-
-    def pack(self):
-        msg = self._struct.pack(
-                  self.index,
-                  self.timestamp_sec,
-                  int(round(self.pressure_mbar * 10.0)),
-                  int(round(self.temp_C * 100.0)),
-                  int(round(self.airspeed_smoothed_kt * 100.0)),
-                  self.altitude_smoothed_m,
-                  self.altitude_true_m,
-                  int(round(self.pressure_vertical_speed_fps * 600.0)),
-                  int(round(self.wind_dir_deg * 100.0)),
-                  int(round(self.wind_speed_kt * 4.0)),
-                  int(round(self.pitot_scale_factor * 100.0)),
-                  self.status)
-        return msg
-
-    def unpack(self, msg):
-        (self.index,
-         self.timestamp_sec,
-         self.pressure_mbar,
-         self.temp_C,
-         self.airspeed_smoothed_kt,
-         self.altitude_smoothed_m,
-         self.altitude_true_m,
-         self.pressure_vertical_speed_fps,
-         self.wind_dir_deg,
-         self.wind_speed_kt,
-         self.pitot_scale_factor,
-         self.status) = self._struct.unpack(msg)
-        self.pressure_mbar /= 10.0
-        self.temp_C /= 100.0
-        self.airspeed_smoothed_kt /= 100.0
-        self.pressure_vertical_speed_fps /= 600.0
-        self.wind_dir_deg /= 100.0
-        self.wind_speed_kt /= 4.0
-        self.pitot_scale_factor /= 100.0
-
-    def msg2props(self, node):
-        node.setUInt("index", self.index)
-        node.setDouble("timestamp_sec", self.timestamp_sec)
-        node.setDouble("pressure_mbar", self.pressure_mbar)
-        node.setDouble("temp_C", self.temp_C)
-        node.setDouble("airspeed_smoothed_kt", self.airspeed_smoothed_kt)
-        node.setDouble("altitude_smoothed_m", self.altitude_smoothed_m)
-        node.setDouble("altitude_true_m", self.altitude_true_m)
-        node.setDouble("pressure_vertical_speed_fps", self.pressure_vertical_speed_fps)
-        node.setDouble("wind_dir_deg", self.wind_dir_deg)
-        node.setDouble("wind_speed_kt", self.wind_speed_kt)
-        node.setDouble("pitot_scale_factor", self.pitot_scale_factor)
-        node.setUInt("status", self.status)
-
-    def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        pressure_mbar = node.getDouble("pressure_mbar")
-        temp_C = node.getDouble("temp_C")
-        airspeed_smoothed_kt = node.getDouble("airspeed_smoothed_kt")
-        altitude_smoothed_m = node.getDouble("altitude_smoothed_m")
-        altitude_true_m = node.getDouble("altitude_true_m")
-        pressure_vertical_speed_fps = node.getDouble("pressure_vertical_speed_fps")
-        wind_dir_deg = node.getDouble("wind_dir_deg")
-        wind_speed_kt = node.getDouble("wind_speed_kt")
-        pitot_scale_factor = node.getDouble("pitot_scale_factor")
-        status = node.getUInt("status")
-
 # Message: airdata_v6
 # Id: 40
 class airdata_v6():
@@ -1066,6 +977,95 @@ class airdata_v7():
         pitot_scale_factor = node.getDouble("pitot_scale_factor")
         error_count = node.getUInt("error_count")
         status = node.getUInt("status")
+
+# Message: airdata_v8
+# Id: 54
+class airdata_v8():
+    id = 54
+    _pack_string = "<BLHHhhffHBBH"
+    _struct = struct.Struct(_pack_string)
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.millis = 0
+        self.baro_press_pa = 0.0
+        self.diff_press_pa = 0.0
+        self.air_temp_C = 0.0
+        self.airspeed_smoothed_kt = 0.0
+        self.altitude_smoothed_m = 0.0
+        self.altitude_true_m = 0.0
+        self.wind_dir_deg = 0.0
+        self.wind_speed_kt = 0.0
+        self.pitot_scale_factor = 0.0
+        self.error_count = 0
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = self._struct.pack(
+                  self.index,
+                  self.millis,
+                  int(round(self.baro_press_pa * 0.5)),
+                  int(round(self.diff_press_pa * 10.0)),
+                  int(round(self.air_temp_C * 250.0)),
+                  int(round(self.airspeed_smoothed_kt * 100.0)),
+                  self.altitude_smoothed_m,
+                  self.altitude_true_m,
+                  int(round(self.wind_dir_deg * 100.0)),
+                  int(round(self.wind_speed_kt * 5.0)),
+                  int(round(self.pitot_scale_factor * 100.0)),
+                  self.error_count)
+        return msg
+
+    def unpack(self, msg):
+        (self.index,
+         self.millis,
+         self.baro_press_pa,
+         self.diff_press_pa,
+         self.air_temp_C,
+         self.airspeed_smoothed_kt,
+         self.altitude_smoothed_m,
+         self.altitude_true_m,
+         self.wind_dir_deg,
+         self.wind_speed_kt,
+         self.pitot_scale_factor,
+         self.error_count) = self._struct.unpack(msg)
+        self.baro_press_pa /= 0.5
+        self.diff_press_pa /= 10.0
+        self.air_temp_C /= 250.0
+        self.airspeed_smoothed_kt /= 100.0
+        self.wind_dir_deg /= 100.0
+        self.wind_speed_kt /= 5.0
+        self.pitot_scale_factor /= 100.0
+
+    def msg2props(self, node):
+        node.setUInt("index", self.index)
+        node.setUInt("millis", self.millis)
+        node.setDouble("baro_press_pa", self.baro_press_pa)
+        node.setDouble("diff_press_pa", self.diff_press_pa)
+        node.setDouble("air_temp_C", self.air_temp_C)
+        node.setDouble("airspeed_smoothed_kt", self.airspeed_smoothed_kt)
+        node.setDouble("altitude_smoothed_m", self.altitude_smoothed_m)
+        node.setDouble("altitude_true_m", self.altitude_true_m)
+        node.setDouble("wind_dir_deg", self.wind_dir_deg)
+        node.setDouble("wind_speed_kt", self.wind_speed_kt)
+        node.setDouble("pitot_scale_factor", self.pitot_scale_factor)
+        node.setUInt("error_count", self.error_count)
+
+    def props2msg(self, node):
+        index = node.getUInt("index")
+        millis = node.getUInt("millis")
+        baro_press_pa = node.getDouble("baro_press_pa")
+        diff_press_pa = node.getDouble("diff_press_pa")
+        air_temp_C = node.getDouble("air_temp_C")
+        airspeed_smoothed_kt = node.getDouble("airspeed_smoothed_kt")
+        altitude_smoothed_m = node.getDouble("altitude_smoothed_m")
+        altitude_true_m = node.getDouble("altitude_true_m")
+        wind_dir_deg = node.getDouble("wind_dir_deg")
+        wind_speed_kt = node.getDouble("wind_speed_kt")
+        pitot_scale_factor = node.getDouble("pitot_scale_factor")
+        error_count = node.getUInt("error_count")
 
 # Message: filter_v4
 # Id: 36
