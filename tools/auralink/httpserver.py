@@ -24,8 +24,8 @@ class WSHandler(tornado.websocket.WebSocketHandler):
             if args == 'full_json':
                 commands.remote_lost_link_predict()
                 PropertyNode("/").setBool("main_magic", True)
-                # print(len(PropertyNode("/").write_as_string()))
-                self.write_message(PropertyNode("/").write_as_string() + '\r\n')
+                # print(len(PropertyNode("/").get_json_string()))
+                self.write_message(PropertyNode("/").get_json_string() + '\r\n')
         elif command == 'send':
             # request relay 'args' string up to aircraft
             commands.add(str(args))

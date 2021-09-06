@@ -1361,4 +1361,23 @@ class Packer():
         event_node.setString("message", event.message)
         return 0
 
+    def unpack_command_v1(self, buf):
+        command = rc_messages.command_v1(buf)
+        pos1 = command.message.find(" ")
+        pos2 = command.message.find(" ", pos1+1)
+        path = command.message[pos1+1:pos2]
+        json = command.message[pos2+1:len(command.message)]
+        print(path)
+        print(json)
+        node = PropertyNode(path)
+        if not node.set_json_string(json):
+            print("json string parsing/setting failed")
+        return 0
+
+    def unpack_ack_v1(self, buf):
+        ack = rc_messages.ack_v1(buf)
+        if ack.result > 0:
+            remote_link_node.setInt("sequence_num", ack.sequence_num)
+        return 0
+
 packer = Packer()

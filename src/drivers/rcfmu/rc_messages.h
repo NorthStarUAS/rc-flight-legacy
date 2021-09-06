@@ -44,6 +44,7 @@ const uint8_t nav_v6_id = 52;
 const uint8_t nav_metrics_v6_id = 53;
 const uint8_t actuator_v2_id = 21;
 const uint8_t actuator_v3_id = 37;
+const uint8_t inceptors_v4_id = 58;
 const uint8_t pilot_v2_id = 20;
 const uint8_t pilot_v3_id = 38;
 const uint8_t pilot_v4_id = 51;
@@ -62,6 +63,7 @@ const uint8_t ack_v1_id = 57;
 
 // Constants
 static const uint8_t sbus_channels = 16;  // number of sbus channels
+static const uint8_t ap_channels = 6;  // number of sbus channels
 
 // Message: gps_v3 (id: 26)
 class gps_v3_t {
@@ -2283,6 +2285,83 @@ public:
         channel7 = node.getDouble("channel7");
         channel8 = node.getDouble("channel8");
         status = node.getUInt("status");
+    }
+};
+
+// Message: inceptors_v4 (id: 58)
+class inceptors_v4_t {
+public:
+
+    uint8_t index;
+    uint32_t millis;
+    float channel[ap_channels];
+
+    // internal structure for packing
+    #pragma pack(push, 1)
+    struct _compact_t {
+        uint8_t index;
+        uint32_t millis;
+        int16_t channel[ap_channels];
+    };
+    #pragma pack(pop)
+
+    // id, ptr to payload and len
+    static const uint8_t id = 58;
+    uint8_t *payload = nullptr;
+    int len = 0;
+
+    ~inceptors_v4_t() {
+        free(payload);
+    }
+
+    bool pack() {
+        len = sizeof(_compact_t);
+        // compute dynamic packet size (if neede)
+        int size = len;
+        payload = (uint8_t *)REALLOC(payload, size);
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        _buf->index = index;
+        _buf->millis = millis;
+        for (int _i=0; _i<ap_channels; _i++) _buf->channel[_i] = intround(channel[_i] * 2000.0);
+        return true;
+    }
+
+    bool unpack(uint8_t *external_message, int message_size) {
+        _compact_t *_buf = (_compact_t *)external_message;
+        len = sizeof(_compact_t);
+        index = _buf->index;
+        millis = _buf->millis;
+        for (int _i=0; _i<ap_channels; _i++) channel[_i] = _buf->channel[_i] / (float)2000.0;
+        return true;
+    }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node(_path.c_str());
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+        node.setUInt("index", index);
+        node.setUInt("millis", millis);
+        for (int _i=0; _i<ap_channels; _i++) node.setDouble("channel", channel[_i], _i);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node(_path.c_str());
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
+        index = node.getUInt("index");
+        millis = node.getUInt("millis");
+        for (int _i=0; _i<ap_channels; _i++) channel[_i] = node.getDouble("channel", _i);
     }
 };
 

@@ -566,17 +566,17 @@ void rcfmu_t::airdata_zero_airspeed() {
 
 void rcfmu_t::write() {
     // send actuator commands to rcfmu servo subsystem
-    if ( rcfmu_message::ap_channels == 6 ) {
-        rcfmu_message::command_inceptors_t act;
-        act.channel[0] = act_node.getDouble("throttle");
-        act.channel[1] = act_node.getDouble("aileron");
-        act.channel[2] = act_node.getDouble("elevator");
-        act.channel[3] = act_node.getDouble("rudder");
-        act.channel[4] = act_node.getDouble("flaps");
-        act.channel[5] = act_node.getDouble("gear");
-        act.pack();
-        serial.write_packet( act.id, act.payload, act.len );
-    }
+    rc_message::inceptors_v4_t inceptors;
+    inceptors.index = 0;
+    inceptors.millis = imu_node.getUInt("millis");
+    inceptors.channel[0] = act_node.getDouble("throttle");
+    inceptors.channel[1] = act_node.getDouble("aileron");
+    inceptors.channel[2] = act_node.getDouble("elevator");
+    inceptors.channel[3] = act_node.getDouble("rudder");
+    inceptors.channel[4] = act_node.getDouble("flaps");
+    inceptors.channel[5] = act_node.getDouble("gear");
+    inceptors.pack();
+    serial.write_packet( inceptors.id, inceptors.payload, inceptors.len );
 }
 
 

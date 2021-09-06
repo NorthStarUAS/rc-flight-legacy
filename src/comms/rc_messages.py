@@ -17,6 +17,7 @@ nav_v6_id = 52
 nav_metrics_v6_id = 53
 actuator_v2_id = 21
 actuator_v3_id = 37
+inceptors_v4_id = 58
 pilot_v2_id = 20
 pilot_v3_id = 38
 pilot_v4_id = 51
@@ -35,6 +36,7 @@ ack_v1_id = 57
 
 # Constants
 sbus_channels = 16  # number of sbus channels
+ap_channels = 6  # number of sbus channels
 
 # Message: gps_v3
 # Id: 26
@@ -1602,6 +1604,59 @@ class actuator_v3():
         channel7 = node.getDouble("channel7")
         channel8 = node.getDouble("channel8")
         status = node.getUInt("status")
+
+# Message: inceptors_v4
+# Id: 58
+class inceptors_v4():
+    id = 58
+    _pack_string = "<BLhhhhhh"
+    _struct = struct.Struct(_pack_string)
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.millis = 0
+        self.channel = [0.0] * ap_channels
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = self._struct.pack(
+                  self.index,
+                  self.millis,
+                  int(round(self.channel[0] * 2000.0)),
+                  int(round(self.channel[1] * 2000.0)),
+                  int(round(self.channel[2] * 2000.0)),
+                  int(round(self.channel[3] * 2000.0)),
+                  int(round(self.channel[4] * 2000.0)),
+                  int(round(self.channel[5] * 2000.0)))
+        return msg
+
+    def unpack(self, msg):
+        (self.index,
+         self.millis,
+         self.channel[0],
+         self.channel[1],
+         self.channel[2],
+         self.channel[3],
+         self.channel[4],
+         self.channel[5]) = self._struct.unpack(msg)
+        self.channel[0] /= 2000.0
+        self.channel[1] /= 2000.0
+        self.channel[2] /= 2000.0
+        self.channel[3] /= 2000.0
+        self.channel[4] /= 2000.0
+        self.channel[5] /= 2000.0
+
+    def msg2props(self, node):
+        node.setUInt("index", self.index)
+        node.setUInt("millis", self.millis)
+        for _i in range(ap_channels): node.setDouble("channel", self.channel[_i], _i)
+
+    def props2msg(self, node):
+        index = node.getUInt("index")
+        millis = node.getUInt("millis")
+        for _i in range(ap_channels): channel[_i] = node.getDouble("channel", _i)
 
 # Message: pilot_v2
 # Id: 20

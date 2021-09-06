@@ -107,14 +107,14 @@ def parse_msg(id, buf):
         index = packer.unpack_system_health_v6(buf)
     elif id == rc_messages.status_v7_id:
         index = packer.unpack_status_v7(buf)
-    elif id == rc_messages.payload_v2_id:
-        index = packer.unpack_payload_v2(buf)
-    elif id == rc_messages.payload_v3_id:
-        index = packer.unpack_payload_v3(buf)
     elif id == rc_messages.event_v1_id:
         index = packer.unpack_event_v1(buf)
     elif id == rc_messages.event_v2_id:
         index = packer.unpack_event_v2(buf)
+    elif id == rc_messages.command_v1_id:
+        index = packer.unpack_command_v1(buf)
+    elif id == rc_messages.ack_v1_id:
+        index = packer.unpack_ack_v1(buf)
     else:
         print("Unknown packet id:", id)
         index = 0

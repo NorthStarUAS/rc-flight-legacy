@@ -4,7 +4,7 @@ from PropertyTree import PropertyNode
 
 import sys
 sys.path.append("../../src")
-from comms import aura_messages
+from comms import rc_messages
 import comms.packer
 import comms.serial_parser
 
@@ -22,7 +22,7 @@ last_received_time = 0.0
 # package and send the serial command, returns number of bytes written
 def serial_send(serial, sequence_num, command):
     print('writing:', sequence_num, command)
-    cmd = aura_messages.command_v1()
+    cmd = rc_messages.command_v1()
     cmd.sequence_num = sequence_num
     cmd.message = command
     buf = cmd.pack()
