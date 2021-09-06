@@ -58,6 +58,7 @@ const uint8_t status_v7_id = 56;
 const uint8_t event_v1_id = 27;
 const uint8_t event_v2_id = 44;
 const uint8_t command_v1_id = 28;
+const uint8_t ack_v1_id = 57;
 
 // Constants
 static const uint8_t sbus_channels = 16;  // number of sbus channels
@@ -3840,6 +3841,77 @@ public:
     void props2msg(PropertyNode node) {
         sequence_num = node.getUInt("sequence_num");
         message = node.getString("message");
+    }
+};
+
+// Message: ack_v1 (id: 57)
+class ack_v1_t {
+public:
+
+    uint16_t sequence_num;
+    uint8_t result;
+
+    // internal structure for packing
+    #pragma pack(push, 1)
+    struct _compact_t {
+        uint16_t sequence_num;
+        uint8_t result;
+    };
+    #pragma pack(pop)
+
+    // id, ptr to payload and len
+    static const uint8_t id = 57;
+    uint8_t *payload = nullptr;
+    int len = 0;
+
+    ~ack_v1_t() {
+        free(payload);
+    }
+
+    bool pack() {
+        len = sizeof(_compact_t);
+        // compute dynamic packet size (if neede)
+        int size = len;
+        payload = (uint8_t *)REALLOC(payload, size);
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        _buf->sequence_num = sequence_num;
+        _buf->result = result;
+        return true;
+    }
+
+    bool unpack(uint8_t *external_message, int message_size) {
+        _compact_t *_buf = (_compact_t *)external_message;
+        len = sizeof(_compact_t);
+        sequence_num = _buf->sequence_num;
+        result = _buf->result;
+        return true;
+    }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node(_path.c_str());
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode node) {
+        node.setUInt("sequence_num", sequence_num);
+        node.setUInt("result", result);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node(_path.c_str());
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode node) {
+        sequence_num = node.getUInt("sequence_num");
+        result = node.getUInt("result");
     }
 };
 

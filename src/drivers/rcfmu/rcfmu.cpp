@@ -242,13 +242,13 @@ bool rcfmu_t::update_imu( rc_message::imu_v6_t *imu ) {
 
 bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
     bool new_data = false;
-    if ( pkt_id == rcfmu_message::command_ack_id ) {
-        rcfmu_message::command_ack_t ack;
+    if ( pkt_id == rc_message::ack_v1_id ) {
+        rc_message::ack_v1_t ack;
         ack.unpack(payload, pkt_len);
 	if ( pkt_len == ack.len ) {
-            last_ack_id = ack.command_id;
-	    last_ack_subid = ack.subcommand_id;
-            info("Received ACK = %d %d", ack.command_id, ack.subcommand_id);
+            last_ack_sequence = ack.sequence_num;
+	    last_ack_result = ack.result;
+            info("Received ACK = sequence: %d  result: %d", ack.sequence_num, ack.result);
 	} else {
 	    printf("rcfmu: packet size mismatch in ACK\n");
 	}
@@ -365,11 +365,10 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 }
 
 
-bool rcfmu_t::wait_for_ack(uint8_t id) {
+bool rcfmu_t::wait_for_ack(uint16_t sequence_num) {
     double timeout = 0.5;
     double start_time = get_Time();
-    last_ack_id = 0;
-    while ( (last_ack_id != id) ) {
+    while ( (last_ack_sequence != sequence_num) ) {
 	if ( serial.update() ) {
             parse( serial.pkt_id, serial.pkt_len, serial.payload );
         }
@@ -386,31 +385,16 @@ bool rcfmu_t::write_config_message(int id, uint8_t *payload, int len) {
     return wait_for_ack(id);
 }
 
-bool rcfmu_t::write_command_zero_gyros() {
-    rcfmu_message::command_zero_gyros_t cmd;
+bool rcfmu_t::write_command(string message) {
+    rc_message::command_v1_t cmd;
+    cmd.sequence_num = command_seq_num;
+    cmd.message = message;
     cmd.pack();
     serial.write_packet( cmd.id, cmd.payload, cmd.len );
-    return wait_for_ack(cmd.id);
-}
-
-bool rcfmu_t::write_command_reset_ekf() {
-    rcfmu_message::command_reset_ekf_t cmd;
-    cmd.pack();
-    serial.write_packet( cmd.id, cmd.payload, cmd.len );
-    return wait_for_ack(cmd.id);
-}
-
-bool rcfmu_t::write_command_cycle_inceptors() {
-    rcfmu_message::command_cycle_inceptors_t cmd;
-    cmd.pack();
-    serial.write_packet( cmd.id, cmd.payload, cmd.len );
-    return wait_for_ack(cmd.id);
-}
-
-// send a full configuration to rcfmu and return true only when all
-// parameters are acknowledged.
-bool rcfmu_t::send_config() {
-    return true;
+    command_seq_num++;
+    last_ack_sequence = 0;
+    last_ack_result = 0;
+    return wait_for_ack(cmd.sequence_num);
 }
 
 // Read rcfmu packets using IMU packet as the main timing reference.
@@ -424,11 +408,6 @@ float rcfmu_t::read() {
     // the main loop.
     double last_time = imu_node.getDouble( "timestamp" );
 
-    // try sending the configuration if not yet successful
-    if ( !configuration_sent ) {
-	configuration_sent = send_config();
-    }
-    
     while ( true ) {
         if ( serial.update() ) {
             parse( serial.pkt_id, serial.pkt_len, serial.payload );
@@ -448,27 +427,17 @@ float rcfmu_t::read() {
     rcfmu_node.setInt("parse_errors", serial.parse_errors);
     rcfmu_node.setInt("skipped_frames", skipped_frames);
 
-    // relay optional zero gyros command back to FMU upon request
+    // relay optional commands to FMU upon request
     string command = rcfmu_node.getString( "command" );
     if ( command.length() ) {
-        if ( command == "zero_gyros" ) {
-            if ( write_command_zero_gyros() ) {
-                rcfmu_node.setString( "command", "" );
-                rcfmu_node.setString( "command_result",
-                                      "success: " + command );
-            }
-        } else if ( command == "reset_ekf" ) {
-            if ( write_command_reset_ekf() ) {
-                rcfmu_node.setString( "command", "" );
-                rcfmu_node.setString( "command_result",
-                                      "success: " + command );
-            }
+        if ( write_command(command) ) {
+            rcfmu_node.setString( "command_ack", command + ": true" );
+            rcfmu_node.setInt( "command_result", last_ack_result );
         } else {
-            // unknown command
-            rcfmu_node.setString( "command", "" );
-            rcfmu_node.setString( "command_result",
-                                  "unknown command: " + command );
+            rcfmu_node.setString( "command_ack", command + ": false" );
+            rcfmu_node.setInt( "command_result", last_ack_result );
         }
+        rcfmu_node.setString( "command", "" );
     }
     
     double cur_time = imu_node.getDouble( "timestamp" );

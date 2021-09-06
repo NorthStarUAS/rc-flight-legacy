@@ -31,6 +31,7 @@ status_v7_id = 56
 event_v1_id = 27
 event_v2_id = 44
 command_v1_id = 28
+ack_v1_id = 57
 
 # Constants
 sbus_channels = 16  # number of sbus channels
@@ -2653,4 +2654,36 @@ class command_v1():
     def props2msg(self, node):
         sequence_num = node.getUInt("sequence_num")
         message = node.getString("message")
+
+# Message: ack_v1
+# Id: 57
+class ack_v1():
+    id = 57
+    _pack_string = "<HB"
+    _struct = struct.Struct(_pack_string)
+
+    def __init__(self, msg=None):
+        # public fields
+        self.sequence_num = 0
+        self.result = 0
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = self._struct.pack(
+                  self.sequence_num,
+                  self.result)
+        return msg
+
+    def unpack(self, msg):
+        (self.sequence_num,
+         self.result) = self._struct.unpack(msg)
+
+    def msg2props(self, node):
+        node.setUInt("sequence_num", self.sequence_num)
+        node.setUInt("result", self.result)
+
+    def props2msg(self, node):
+        sequence_num = node.getUInt("sequence_num")
+        result = node.getUInt("result")
 

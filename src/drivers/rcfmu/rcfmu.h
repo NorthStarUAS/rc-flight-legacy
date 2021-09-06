@@ -50,8 +50,9 @@ private:
     int baud = 500000;
     SerialLink2 serial;
     bool configuration_sent = false;
-    int last_ack_id = 0;
-    int last_ack_subid = 0;
+    uint32_t command_seq_num = 1;
+    uint16_t last_ack_sequence = 0;
+    uint8_t last_ack_result = 0;
     uint32_t skipped_frames = 0;
     uint32_t airdata_packet_counter = 0;
     uint32_t nav_packet_counter = 0;
@@ -97,12 +98,9 @@ private:
     void init_actuators( PropertyNode *config );
 
     bool parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload );
-    bool send_config();
     bool write_config_message(int id, uint8_t *payload, int len);
-    bool write_command_zero_gyros();
-    bool write_command_cycle_inceptors();
-    bool write_command_reset_ekf();
-    bool wait_for_ack(uint8_t id);
+    bool write_command(string command);
+    bool wait_for_ack(uint16_t sequence_num);
 
     bool update_airdata( rc_message::airdata_v8_t *airdata );
     bool update_nav( rc_message::nav_v6_t *nav );

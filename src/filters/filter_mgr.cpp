@@ -137,7 +137,8 @@ static void update_euler_rates() {
 static void publish_values() {
     orient_node.setDouble( "roll_deg", filter_node.getDouble("roll_deg") );
     orient_node.setDouble( "pitch_deg", filter_node.getDouble("pitch_deg") );
-    orient_node.setDouble( "heading_deg", filter_node.getDouble("heading_deg") );
+    orient_node.setDouble( "yaw_deg", filter_node.getDouble("yaw_deg") );
+    orient_node.setDouble( "heading_deg", filter_node.getDouble("yaw_deg") );
     pos_node.setDouble( "latitude_deg", filter_node.getDouble("latitude_deg") );
     pos_node.setDouble( "longitude_deg", filter_node.getDouble("longitude_deg") );
     pos_filter_node.setDouble("altitude_m", filter_node.getDouble("altitude_m"));
