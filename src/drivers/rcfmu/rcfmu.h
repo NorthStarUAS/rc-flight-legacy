@@ -37,14 +37,24 @@ public:
 private:
     PropertyNode rcfmu_config;
     PropertyNode rcfmu_node;
+    PropertyNode act_node;
+    PropertyNode active_node;
     PropertyNode airdata_node;
+    PropertyNode ap_node;
+    PropertyNode circle_node;
     PropertyNode ekf_node;
     PropertyNode gps_node;
+    PropertyNode home_node;
     PropertyNode imu_node;
     PropertyNode pilot_node;
+    PropertyNode pos_node;
     PropertyNode power_node;
-    PropertyNode act_node;
+    PropertyNode remote_link_node;
+    PropertyNode route_node;
     PropertyNode status_node;
+    PropertyNode switches_node;
+    PropertyNode targets_node;
+    PropertyNode task_node;
     
     string device_name = "/dev/ttyS4";
     int baud = 500000;

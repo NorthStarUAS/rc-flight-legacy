@@ -32,6 +32,10 @@ using std::ostringstream;
 
 #include "rcfmu.h"
 
+static inline int32_t intround(float f) {
+    return (int32_t)(f >= 0.0 ? (f + 0.5) : (f - 0.5));
+}
+
 void rcfmu_t::info( const char *format, ... ) {
     if ( verbose ) {
         printf("rcfmu: ");
@@ -60,8 +64,21 @@ void rcfmu_t::init( PropertyNode *config ) {
     
     // bind main property nodes
     rcfmu_node = PropertyNode( "/sensors/rcfmu" );
+    active_node = PropertyNode("/task/route/active");
+
+    ap_node = PropertyNode("/autopilot");
+    circle_node = PropertyNode("/task/circle/active");
+    home_node = PropertyNode("/task/home");
+    pos_node = PropertyNode("/position");
     power_node = PropertyNode( "/sensors/power" );
+    remote_link_node = PropertyNode("/comms/remote_link");
+    route_node = PropertyNode("/task/route");
+
     status_node = PropertyNode( "/status" );
+    switches_node = PropertyNode( "/switches" );
+    targets_node = PropertyNode("/autopilot/targets");
+    task_node = PropertyNode("/task");
+
     rcfmu_config = *config;
 
     printf("rcfmu driver init(): event logging broken!\n");
@@ -317,6 +334,8 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 	if ( pkt_len == pilot_msg.len ) {
             pilot_msg.msg2props(pilot_node);
             pilot_node.setDouble("timestamp", pilot_msg.millis / 1000.0);
+            switches_node.setBool("master-switch", pilot_msg.master_switch);
+            switches_node.setBool("throttle-safety", pilot_msg.throttle_safety);
 	    pilot_packet_counter++;
 	    rcfmu_node.setInt( "pilot_packet_count", pilot_packet_counter );
 	    new_data = true;
@@ -565,7 +584,7 @@ void rcfmu_t::airdata_zero_airspeed() {
 }
 
 void rcfmu_t::write() {
-    // send actuator commands to rcfmu servo subsystem
+    // send actuator commands to fmu
     rc_message::inceptors_v4_t inceptors;
     inceptors.index = 0;
     inceptors.millis = imu_node.getUInt("millis");
@@ -577,8 +596,57 @@ void rcfmu_t::write() {
     inceptors.channel[5] = act_node.getDouble("gear");
     inceptors.pack();
     serial.write_packet( inceptors.id, inceptors.payload, inceptors.len );
-}
 
+    // send autopilot targets to fmu
+    rc_message::ap_targets_v1_t ap_msg;
+    ap_msg.props2msg(targets_node);
+    ap_msg.millis = imu_node.getUInt("millis");
+    ap_msg.pack();
+    serial.write_packet( ap_msg.id, ap_msg.payload, ap_msg.len );
+    
+    rc_message::mission_v1_t mission;
+    mission.millis = imu_node.getUInt("millis");
+    mission.flight_timer = task_node.getDouble("flight_timer");
+
+    mission.task_name = task_node.getString("current_task");
+    mission.target_waypoint_idx = route_node.getInt("target_waypoint_idx");
+
+    // Note: task_attribute is an overloaded (uint16_t) field!  There
+    // will be a better way figured out sometime in the future.
+    mission.task_attribute = 0;
+            
+    // wp_counter will get incremented externally in the remote_link
+    // message sender because each time we send a serial message to
+    // the remote ground station is when we want to advance to the
+    // next waypoint.
+    int counter = remote_link_node.getInt("wp_counter");
+    mission.wp_longitude_raw = 0;
+    mission.wp_latitude_raw = 0;
+    mission.wp_index = 0;
+    mission.route_size = active_node.getInt("route_size");
+    if ( mission.route_size > 0 and counter < mission.route_size ) {
+        mission.wp_index = counter;
+        string wp_path = "wpt/" + std::to_string(mission.wp_index);
+        PropertyNode wp_node = active_node.getChild(wp_path.c_str());
+        mission.wp_longitude_raw = intround(wp_node.getDouble("longitude_deg") * 10000000);
+        mission.wp_latitude_raw = intround(wp_node.getDouble("latitude_deg") * 10000000);
+    } else if ( counter == mission.route_size ) {
+        mission.wp_longitude_raw = intround(circle_node.getDouble("longitude_deg") * 10000000);
+        mission.wp_latitude_raw = intround(circle_node.getDouble("latitude_deg") * 10000000);
+        mission.wp_index = 65534;
+        mission.task_attribute = int(round(circle_node.getDouble("radius_m") * 10));
+        if ( mission.task_attribute > 32767 ) {
+            mission.task_attribute = 32767;
+        }
+    } else if ( counter == mission.route_size + 1 ) {
+        mission.wp_longitude_raw = intround(home_node.getDouble("longitude_deg") * 10000000);
+        mission.wp_latitude_raw = intround(home_node.getDouble("latitude_deg") * 10000000);
+        mission.wp_index = 65535;
+    }
+
+    mission.pack();
+    serial.write_packet( mission.id, mission.payload, mission.len );
+}
 
 void rcfmu_t::close() {
     serial.close();

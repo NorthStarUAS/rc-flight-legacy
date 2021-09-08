@@ -49,10 +49,10 @@ const uint8_t pilot_v2_id = 20;
 const uint8_t pilot_v3_id = 38;
 const uint8_t pilot_v4_id = 51;
 const uint8_t power_v1_id = 55;
-const uint8_t ap_status_v4_id = 30;
-const uint8_t ap_status_v5_id = 32;
 const uint8_t ap_status_v6_id = 33;
 const uint8_t ap_status_v7_id = 39;
+const uint8_t ap_targets_v1_id = 59;
+const uint8_t mission_v1_id = 60;
 const uint8_t system_health_v5_id = 41;
 const uint8_t system_health_v6_id = 46;
 const uint8_t status_v7_id = 56;
@@ -165,7 +165,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setDouble("latitude_deg", latitude_deg);
@@ -190,7 +190,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         latitude_deg = node.getDouble("latitude_deg");
@@ -308,7 +308,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setDouble("latitude_deg", latitude_deg);
@@ -333,7 +333,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         latitude_deg = node.getDouble("latitude_deg");
@@ -455,7 +455,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setUInt("millis", millis);
         node.setUInt64("unix_usec", unix_usec);
@@ -481,7 +481,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         millis = node.getUInt("millis");
         unix_usec = node.getUInt64("unix_usec");
@@ -596,7 +596,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setDouble("p_rad_sec", p_rad_sec);
@@ -620,7 +620,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         p_rad_sec = node.getDouble("p_rad_sec");
@@ -757,7 +757,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setDouble("p_rad_sec", p_rad_sec);
@@ -787,7 +787,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         p_rad_sec = node.getDouble("p_rad_sec");
@@ -926,7 +926,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setUInt("millis", millis);
         node.setDouble("ax_raw", ax_raw);
@@ -955,7 +955,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         millis = node.getUInt("millis");
         ax_raw = node.getDouble("ax_raw");
@@ -1069,7 +1069,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setDouble("pressure_mbar", pressure_mbar);
@@ -1092,7 +1092,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         pressure_mbar = node.getDouble("pressure_mbar");
@@ -1204,7 +1204,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setDouble("pressure_mbar", pressure_mbar);
@@ -1228,7 +1228,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         pressure_mbar = node.getDouble("pressure_mbar");
@@ -1337,7 +1337,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setUInt("millis", millis);
         node.setDouble("baro_press_pa", baro_press_pa);
@@ -1360,7 +1360,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         millis = node.getUInt("millis");
         baro_press_pa = node.getDouble("baro_press_pa");
@@ -1496,7 +1496,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setDouble("latitude_deg", latitude_deg);
@@ -1526,7 +1526,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         latitude_deg = node.getDouble("latitude_deg");
@@ -1681,7 +1681,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setDouble("latitude_deg", latitude_deg);
@@ -1714,7 +1714,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         latitude_deg = node.getDouble("latitude_deg");
@@ -1836,7 +1836,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setUInt("millis", millis);
         node.setInt("latitude_raw", latitude_raw);
@@ -1860,7 +1860,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         millis = node.getUInt("millis");
         latitude_raw = node.getInt("latitude_raw");
@@ -1989,7 +1989,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setUInt("metrics_millis", metrics_millis);
         node.setDouble("p_bias", p_bias);
@@ -2017,7 +2017,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         metrics_millis = node.getUInt("metrics_millis");
         p_bias = node.getDouble("p_bias");
@@ -2126,7 +2126,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setDouble("aileron", aileron);
@@ -2148,7 +2148,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         aileron = node.getDouble("aileron");
@@ -2251,7 +2251,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setDouble("aileron", aileron);
@@ -2273,7 +2273,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         aileron = node.getDouble("aileron");
@@ -2344,7 +2344,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setUInt("millis", millis);
         for (int _i=0; _i<ap_channels; _i++) node.setDouble("channel", channel[_i], _i);
@@ -2358,7 +2358,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         millis = node.getUInt("millis");
         for (int _i=0; _i<ap_channels; _i++) channel[_i] = node.getDouble("channel", _i);
@@ -2425,7 +2425,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         for (int _i=0; _i<8; _i++) node.setDouble("channel", channel[_i], _i);
@@ -2440,7 +2440,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         for (int _i=0; _i<8; _i++) channel[_i] = node.getDouble("channel", _i);
@@ -2508,7 +2508,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         for (int _i=0; _i<8; _i++) node.setDouble("channel", channel[_i], _i);
@@ -2523,7 +2523,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         for (int _i=0; _i<8; _i++) channel[_i] = node.getDouble("channel", _i);
@@ -2539,6 +2539,8 @@ public:
     uint32_t millis;
     float channel[sbus_channels];
     uint8_t failsafe;
+    uint8_t master_switch;
+    uint8_t throttle_safety;
 
     // internal structure for packing
     #pragma pack(push, 1)
@@ -2547,6 +2549,8 @@ public:
         uint32_t millis;
         int16_t channel[sbus_channels];
         uint8_t failsafe;
+        uint8_t master_switch;
+        uint8_t throttle_safety;
     };
     #pragma pack(pop)
 
@@ -2570,6 +2574,8 @@ public:
         _buf->millis = millis;
         for (int _i=0; _i<sbus_channels; _i++) _buf->channel[_i] = intround(channel[_i] * 20000.0);
         _buf->failsafe = failsafe;
+        _buf->master_switch = master_switch;
+        _buf->throttle_safety = throttle_safety;
         return true;
     }
 
@@ -2580,6 +2586,8 @@ public:
         millis = _buf->millis;
         for (int _i=0; _i<sbus_channels; _i++) channel[_i] = _buf->channel[_i] / (float)20000.0;
         failsafe = _buf->failsafe;
+        master_switch = _buf->master_switch;
+        throttle_safety = _buf->throttle_safety;
         return true;
     }
 
@@ -2591,11 +2599,13 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setUInt("millis", millis);
         for (int _i=0; _i<sbus_channels; _i++) node.setDouble("channel", channel[_i], _i);
         node.setUInt("failsafe", failsafe);
+        node.setUInt("master_switch", master_switch);
+        node.setUInt("throttle_safety", throttle_safety);
     }
 
     void props2msg(string _path, int _index = -1) {
@@ -2606,11 +2616,13 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         millis = node.getUInt("millis");
         for (int _i=0; _i<sbus_channels; _i++) channel[_i] = node.getDouble("channel", _i);
         failsafe = node.getUInt("failsafe");
+        master_switch = node.getUInt("master_switch");
+        throttle_safety = node.getUInt("throttle_safety");
     }
 };
 
@@ -2686,7 +2698,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setUInt("millis", millis);
         node.setDouble("avionics_vcc", avionics_vcc);
@@ -2704,7 +2716,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         millis = node.getUInt("millis");
         avionics_vcc = node.getDouble("avionics_vcc");
@@ -2712,310 +2724,6 @@ public:
         cell_vcc = node.getDouble("cell_vcc");
         main_amps = node.getDouble("main_amps");
         total_mah = node.getDouble("total_mah");
-    }
-};
-
-// Message: ap_status_v4 (id: 30)
-class ap_status_v4_t {
-public:
-
-    uint8_t index;
-    double timestamp_sec;
-    float groundtrack_deg;
-    float roll_deg;
-    uint16_t altitude_msl_ft;
-    uint16_t altitude_ground_m;
-    float pitch_deg;
-    float airspeed_kt;
-    uint16_t flight_timer;
-    uint16_t target_waypoint_idx;
-    double wp_longitude_deg;
-    double wp_latitude_deg;
-    uint16_t wp_index;
-    uint16_t route_size;
-    uint8_t sequence_num;
-
-    // internal structure for packing
-    #pragma pack(push, 1)
-    struct _compact_t {
-        uint8_t index;
-        double timestamp_sec;
-        int16_t groundtrack_deg;
-        int16_t roll_deg;
-        uint16_t altitude_msl_ft;
-        uint16_t altitude_ground_m;
-        int16_t pitch_deg;
-        int16_t airspeed_kt;
-        uint16_t flight_timer;
-        uint16_t target_waypoint_idx;
-        double wp_longitude_deg;
-        double wp_latitude_deg;
-        uint16_t wp_index;
-        uint16_t route_size;
-        uint8_t sequence_num;
-    };
-    #pragma pack(pop)
-
-    // id, ptr to payload and len
-    static const uint8_t id = 30;
-    uint8_t *payload = nullptr;
-    int len = 0;
-
-    ~ap_status_v4_t() {
-        free(payload);
-    }
-
-    bool pack() {
-        len = sizeof(_compact_t);
-        // compute dynamic packet size (if neede)
-        int size = len;
-        payload = (uint8_t *)REALLOC(payload, size);
-        // copy values
-        _compact_t *_buf = (_compact_t *)payload;
-        _buf->index = index;
-        _buf->timestamp_sec = timestamp_sec;
-        _buf->groundtrack_deg = intround(groundtrack_deg * 10.0);
-        _buf->roll_deg = intround(roll_deg * 10.0);
-        _buf->altitude_msl_ft = altitude_msl_ft;
-        _buf->altitude_ground_m = altitude_ground_m;
-        _buf->pitch_deg = intround(pitch_deg * 10.0);
-        _buf->airspeed_kt = intround(airspeed_kt * 10.0);
-        _buf->flight_timer = flight_timer;
-        _buf->target_waypoint_idx = target_waypoint_idx;
-        _buf->wp_longitude_deg = wp_longitude_deg;
-        _buf->wp_latitude_deg = wp_latitude_deg;
-        _buf->wp_index = wp_index;
-        _buf->route_size = route_size;
-        _buf->sequence_num = sequence_num;
-        return true;
-    }
-
-    bool unpack(uint8_t *external_message, int message_size) {
-        _compact_t *_buf = (_compact_t *)external_message;
-        len = sizeof(_compact_t);
-        index = _buf->index;
-        timestamp_sec = _buf->timestamp_sec;
-        groundtrack_deg = _buf->groundtrack_deg / (float)10.0;
-        roll_deg = _buf->roll_deg / (float)10.0;
-        altitude_msl_ft = _buf->altitude_msl_ft;
-        altitude_ground_m = _buf->altitude_ground_m;
-        pitch_deg = _buf->pitch_deg / (float)10.0;
-        airspeed_kt = _buf->airspeed_kt / (float)10.0;
-        flight_timer = _buf->flight_timer;
-        target_waypoint_idx = _buf->target_waypoint_idx;
-        wp_longitude_deg = _buf->wp_longitude_deg;
-        wp_latitude_deg = _buf->wp_latitude_deg;
-        wp_index = _buf->wp_index;
-        route_size = _buf->route_size;
-        sequence_num = _buf->sequence_num;
-        return true;
-    }
-
-    void msg2props(string _path, int _index = -1) {
-        if ( _index >= 0 ) {
-            _path += "/" + std::to_string(_index);
-        }
-        PropertyNode node(_path.c_str());
-        msg2props(node);
-    }
-
-    void msg2props(PropertyNode node) {
-        node.setUInt("index", index);
-        node.setDouble("timestamp_sec", timestamp_sec);
-        node.setDouble("groundtrack_deg", groundtrack_deg);
-        node.setDouble("roll_deg", roll_deg);
-        node.setUInt("altitude_msl_ft", altitude_msl_ft);
-        node.setUInt("altitude_ground_m", altitude_ground_m);
-        node.setDouble("pitch_deg", pitch_deg);
-        node.setDouble("airspeed_kt", airspeed_kt);
-        node.setUInt("flight_timer", flight_timer);
-        node.setUInt("target_waypoint_idx", target_waypoint_idx);
-        node.setDouble("wp_longitude_deg", wp_longitude_deg);
-        node.setDouble("wp_latitude_deg", wp_latitude_deg);
-        node.setUInt("wp_index", wp_index);
-        node.setUInt("route_size", route_size);
-        node.setUInt("sequence_num", sequence_num);
-    }
-
-    void props2msg(string _path, int _index = -1) {
-        if ( _index >= 0 ) {
-            _path += "/" + std::to_string(_index);
-        }
-        PropertyNode node(_path.c_str());
-        props2msg(node);
-    }
-
-    void props2msg(PropertyNode node) {
-        index = node.getUInt("index");
-        timestamp_sec = node.getDouble("timestamp_sec");
-        groundtrack_deg = node.getDouble("groundtrack_deg");
-        roll_deg = node.getDouble("roll_deg");
-        altitude_msl_ft = node.getUInt("altitude_msl_ft");
-        altitude_ground_m = node.getUInt("altitude_ground_m");
-        pitch_deg = node.getDouble("pitch_deg");
-        airspeed_kt = node.getDouble("airspeed_kt");
-        flight_timer = node.getUInt("flight_timer");
-        target_waypoint_idx = node.getUInt("target_waypoint_idx");
-        wp_longitude_deg = node.getDouble("wp_longitude_deg");
-        wp_latitude_deg = node.getDouble("wp_latitude_deg");
-        wp_index = node.getUInt("wp_index");
-        route_size = node.getUInt("route_size");
-        sequence_num = node.getUInt("sequence_num");
-    }
-};
-
-// Message: ap_status_v5 (id: 32)
-class ap_status_v5_t {
-public:
-
-    uint8_t index;
-    double timestamp_sec;
-    uint8_t flags;
-    float groundtrack_deg;
-    float roll_deg;
-    uint16_t altitude_msl_ft;
-    uint16_t altitude_ground_m;
-    float pitch_deg;
-    float airspeed_kt;
-    uint16_t flight_timer;
-    uint16_t target_waypoint_idx;
-    double wp_longitude_deg;
-    double wp_latitude_deg;
-    uint16_t wp_index;
-    uint16_t route_size;
-    uint8_t sequence_num;
-
-    // internal structure for packing
-    #pragma pack(push, 1)
-    struct _compact_t {
-        uint8_t index;
-        double timestamp_sec;
-        uint8_t flags;
-        int16_t groundtrack_deg;
-        int16_t roll_deg;
-        uint16_t altitude_msl_ft;
-        uint16_t altitude_ground_m;
-        int16_t pitch_deg;
-        int16_t airspeed_kt;
-        uint16_t flight_timer;
-        uint16_t target_waypoint_idx;
-        double wp_longitude_deg;
-        double wp_latitude_deg;
-        uint16_t wp_index;
-        uint16_t route_size;
-        uint8_t sequence_num;
-    };
-    #pragma pack(pop)
-
-    // id, ptr to payload and len
-    static const uint8_t id = 32;
-    uint8_t *payload = nullptr;
-    int len = 0;
-
-    ~ap_status_v5_t() {
-        free(payload);
-    }
-
-    bool pack() {
-        len = sizeof(_compact_t);
-        // compute dynamic packet size (if neede)
-        int size = len;
-        payload = (uint8_t *)REALLOC(payload, size);
-        // copy values
-        _compact_t *_buf = (_compact_t *)payload;
-        _buf->index = index;
-        _buf->timestamp_sec = timestamp_sec;
-        _buf->flags = flags;
-        _buf->groundtrack_deg = intround(groundtrack_deg * 10.0);
-        _buf->roll_deg = intround(roll_deg * 10.0);
-        _buf->altitude_msl_ft = altitude_msl_ft;
-        _buf->altitude_ground_m = altitude_ground_m;
-        _buf->pitch_deg = intround(pitch_deg * 10.0);
-        _buf->airspeed_kt = intround(airspeed_kt * 10.0);
-        _buf->flight_timer = flight_timer;
-        _buf->target_waypoint_idx = target_waypoint_idx;
-        _buf->wp_longitude_deg = wp_longitude_deg;
-        _buf->wp_latitude_deg = wp_latitude_deg;
-        _buf->wp_index = wp_index;
-        _buf->route_size = route_size;
-        _buf->sequence_num = sequence_num;
-        return true;
-    }
-
-    bool unpack(uint8_t *external_message, int message_size) {
-        _compact_t *_buf = (_compact_t *)external_message;
-        len = sizeof(_compact_t);
-        index = _buf->index;
-        timestamp_sec = _buf->timestamp_sec;
-        flags = _buf->flags;
-        groundtrack_deg = _buf->groundtrack_deg / (float)10.0;
-        roll_deg = _buf->roll_deg / (float)10.0;
-        altitude_msl_ft = _buf->altitude_msl_ft;
-        altitude_ground_m = _buf->altitude_ground_m;
-        pitch_deg = _buf->pitch_deg / (float)10.0;
-        airspeed_kt = _buf->airspeed_kt / (float)10.0;
-        flight_timer = _buf->flight_timer;
-        target_waypoint_idx = _buf->target_waypoint_idx;
-        wp_longitude_deg = _buf->wp_longitude_deg;
-        wp_latitude_deg = _buf->wp_latitude_deg;
-        wp_index = _buf->wp_index;
-        route_size = _buf->route_size;
-        sequence_num = _buf->sequence_num;
-        return true;
-    }
-
-    void msg2props(string _path, int _index = -1) {
-        if ( _index >= 0 ) {
-            _path += "/" + std::to_string(_index);
-        }
-        PropertyNode node(_path.c_str());
-        msg2props(node);
-    }
-
-    void msg2props(PropertyNode node) {
-        node.setUInt("index", index);
-        node.setDouble("timestamp_sec", timestamp_sec);
-        node.setUInt("flags", flags);
-        node.setDouble("groundtrack_deg", groundtrack_deg);
-        node.setDouble("roll_deg", roll_deg);
-        node.setUInt("altitude_msl_ft", altitude_msl_ft);
-        node.setUInt("altitude_ground_m", altitude_ground_m);
-        node.setDouble("pitch_deg", pitch_deg);
-        node.setDouble("airspeed_kt", airspeed_kt);
-        node.setUInt("flight_timer", flight_timer);
-        node.setUInt("target_waypoint_idx", target_waypoint_idx);
-        node.setDouble("wp_longitude_deg", wp_longitude_deg);
-        node.setDouble("wp_latitude_deg", wp_latitude_deg);
-        node.setUInt("wp_index", wp_index);
-        node.setUInt("route_size", route_size);
-        node.setUInt("sequence_num", sequence_num);
-    }
-
-    void props2msg(string _path, int _index = -1) {
-        if ( _index >= 0 ) {
-            _path += "/" + std::to_string(_index);
-        }
-        PropertyNode node(_path.c_str());
-        props2msg(node);
-    }
-
-    void props2msg(PropertyNode node) {
-        index = node.getUInt("index");
-        timestamp_sec = node.getDouble("timestamp_sec");
-        flags = node.getUInt("flags");
-        groundtrack_deg = node.getDouble("groundtrack_deg");
-        roll_deg = node.getDouble("roll_deg");
-        altitude_msl_ft = node.getUInt("altitude_msl_ft");
-        altitude_ground_m = node.getUInt("altitude_ground_m");
-        pitch_deg = node.getDouble("pitch_deg");
-        airspeed_kt = node.getDouble("airspeed_kt");
-        flight_timer = node.getUInt("flight_timer");
-        target_waypoint_idx = node.getUInt("target_waypoint_idx");
-        wp_longitude_deg = node.getDouble("wp_longitude_deg");
-        wp_latitude_deg = node.getDouble("wp_latitude_deg");
-        wp_index = node.getUInt("wp_index");
-        route_size = node.getUInt("route_size");
-        sequence_num = node.getUInt("sequence_num");
     }
 };
 
@@ -3135,7 +2843,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setUInt("flags", flags);
@@ -3164,7 +2872,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         flags = node.getUInt("flags");
@@ -3302,7 +3010,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setUInt("flags", flags);
@@ -3331,7 +3039,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         flags = node.getUInt("flags");
@@ -3350,6 +3058,230 @@ public:
         task_id = node.getUInt("task_id");
         task_attribute = node.getUInt("task_attribute");
         sequence_num = node.getUInt("sequence_num");
+    }
+};
+
+// Message: ap_targets_v1 (id: 59)
+class ap_targets_v1_t {
+public:
+
+    uint8_t index;
+    uint32_t millis;
+    float groundtrack_deg;
+    float altitude_ground_m;
+    float airspeed_kt;
+    float roll_deg;
+    float pitch_deg;
+
+    // internal structure for packing
+    #pragma pack(push, 1)
+    struct _compact_t {
+        uint8_t index;
+        uint32_t millis;
+        int16_t groundtrack_deg;
+        uint16_t altitude_ground_m;
+        int16_t airspeed_kt;
+        int16_t roll_deg;
+        int16_t pitch_deg;
+    };
+    #pragma pack(pop)
+
+    // id, ptr to payload and len
+    static const uint8_t id = 59;
+    uint8_t *payload = nullptr;
+    int len = 0;
+
+    ~ap_targets_v1_t() {
+        free(payload);
+    }
+
+    bool pack() {
+        len = sizeof(_compact_t);
+        // compute dynamic packet size (if neede)
+        int size = len;
+        payload = (uint8_t *)REALLOC(payload, size);
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        _buf->index = index;
+        _buf->millis = millis;
+        _buf->groundtrack_deg = intround(groundtrack_deg * 10.0);
+        _buf->altitude_ground_m = uintround(altitude_ground_m * 1.0);
+        _buf->airspeed_kt = intround(airspeed_kt * 10.0);
+        _buf->roll_deg = intround(roll_deg * 10.0);
+        _buf->pitch_deg = intround(pitch_deg * 10.0);
+        return true;
+    }
+
+    bool unpack(uint8_t *external_message, int message_size) {
+        _compact_t *_buf = (_compact_t *)external_message;
+        len = sizeof(_compact_t);
+        index = _buf->index;
+        millis = _buf->millis;
+        groundtrack_deg = _buf->groundtrack_deg / (float)10.0;
+        altitude_ground_m = _buf->altitude_ground_m / (float)1.0;
+        airspeed_kt = _buf->airspeed_kt / (float)10.0;
+        roll_deg = _buf->roll_deg / (float)10.0;
+        pitch_deg = _buf->pitch_deg / (float)10.0;
+        return true;
+    }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node(_path.c_str());
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode &node) {
+        node.setUInt("index", index);
+        node.setUInt("millis", millis);
+        node.setDouble("groundtrack_deg", groundtrack_deg);
+        node.setDouble("altitude_ground_m", altitude_ground_m);
+        node.setDouble("airspeed_kt", airspeed_kt);
+        node.setDouble("roll_deg", roll_deg);
+        node.setDouble("pitch_deg", pitch_deg);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node(_path.c_str());
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode &node) {
+        index = node.getUInt("index");
+        millis = node.getUInt("millis");
+        groundtrack_deg = node.getDouble("groundtrack_deg");
+        altitude_ground_m = node.getDouble("altitude_ground_m");
+        airspeed_kt = node.getDouble("airspeed_kt");
+        roll_deg = node.getDouble("roll_deg");
+        pitch_deg = node.getDouble("pitch_deg");
+    }
+};
+
+// Message: mission_v1 (id: 60)
+class mission_v1_t {
+public:
+
+    uint8_t index;
+    uint32_t millis;
+    float flight_timer;
+    string task_name;
+    uint16_t task_attribute;
+    uint16_t route_size;
+    uint16_t target_waypoint_idx;
+    uint16_t wp_index;
+    int32_t wp_longitude_raw;
+    int32_t wp_latitude_raw;
+
+    // internal structure for packing
+    #pragma pack(push, 1)
+    struct _compact_t {
+        uint8_t index;
+        uint32_t millis;
+        uint16_t flight_timer;
+        uint16_t task_name_len;
+        uint16_t task_attribute;
+        uint16_t route_size;
+        uint16_t target_waypoint_idx;
+        uint16_t wp_index;
+        int32_t wp_longitude_raw;
+        int32_t wp_latitude_raw;
+    };
+    #pragma pack(pop)
+
+    // id, ptr to payload and len
+    static const uint8_t id = 60;
+    uint8_t *payload = nullptr;
+    int len = 0;
+
+    ~mission_v1_t() {
+        free(payload);
+    }
+
+    bool pack() {
+        len = sizeof(_compact_t);
+        // compute dynamic packet size (if neede)
+        int size = len;
+        size += task_name.length();
+        payload = (uint8_t *)REALLOC(payload, size);
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        _buf->index = index;
+        _buf->millis = millis;
+        _buf->flight_timer = uintround(flight_timer * 1.0);
+        _buf->task_name_len = task_name.length();
+        _buf->task_attribute = task_attribute;
+        _buf->route_size = route_size;
+        _buf->target_waypoint_idx = target_waypoint_idx;
+        _buf->wp_index = wp_index;
+        _buf->wp_longitude_raw = wp_longitude_raw;
+        _buf->wp_latitude_raw = wp_latitude_raw;
+        memcpy(&(payload[len]), task_name.c_str(), task_name.length());
+        len += task_name.length();
+        return true;
+    }
+
+    bool unpack(uint8_t *external_message, int message_size) {
+        _compact_t *_buf = (_compact_t *)external_message;
+        len = sizeof(_compact_t);
+        index = _buf->index;
+        millis = _buf->millis;
+        flight_timer = _buf->flight_timer / (float)1.0;
+        task_attribute = _buf->task_attribute;
+        route_size = _buf->route_size;
+        target_waypoint_idx = _buf->target_waypoint_idx;
+        wp_index = _buf->wp_index;
+        wp_longitude_raw = _buf->wp_longitude_raw;
+        wp_latitude_raw = _buf->wp_latitude_raw;
+        task_name = string((char *)&(external_message[len]), _buf->task_name_len);
+        len += _buf->task_name_len;
+        return true;
+    }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node(_path.c_str());
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode &node) {
+        node.setUInt("index", index);
+        node.setUInt("millis", millis);
+        node.setDouble("flight_timer", flight_timer);
+        node.setString("task_name", task_name);
+        node.setUInt("task_attribute", task_attribute);
+        node.setUInt("route_size", route_size);
+        node.setUInt("target_waypoint_idx", target_waypoint_idx);
+        node.setUInt("wp_index", wp_index);
+        node.setInt("wp_longitude_raw", wp_longitude_raw);
+        node.setInt("wp_latitude_raw", wp_latitude_raw);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node(_path.c_str());
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode &node) {
+        index = node.getUInt("index");
+        millis = node.getUInt("millis");
+        flight_timer = node.getDouble("flight_timer");
+        task_name = node.getString("task_name");
+        task_attribute = node.getUInt("task_attribute");
+        route_size = node.getUInt("route_size");
+        target_waypoint_idx = node.getUInt("target_waypoint_idx");
+        wp_index = node.getUInt("wp_index");
+        wp_longitude_raw = node.getInt("wp_longitude_raw");
+        wp_latitude_raw = node.getInt("wp_latitude_raw");
     }
 };
 
@@ -3429,7 +3361,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setDouble("system_load_avg", system_load_avg);
@@ -3448,7 +3380,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         system_load_avg = node.getDouble("system_load_avg");
@@ -3540,7 +3472,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setDouble("system_load_avg", system_load_avg);
@@ -3560,7 +3492,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         system_load_avg = node.getDouble("system_load_avg");
@@ -3653,7 +3585,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setUInt("millis", millis);
         node.setUInt("serial_number", serial_number);
@@ -3673,7 +3605,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         millis = node.getUInt("millis");
         serial_number = node.getUInt("serial_number");
@@ -3746,7 +3678,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setString("message", message);
@@ -3760,7 +3692,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         timestamp_sec = node.getDouble("timestamp_sec");
         message = node.getString("message");
@@ -3827,7 +3759,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setDouble("timestamp_sec", timestamp_sec);
         node.setUInt("sequence_num", sequence_num);
         node.setString("message", message);
@@ -3841,7 +3773,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         timestamp_sec = node.getDouble("timestamp_sec");
         sequence_num = node.getUInt("sequence_num");
         message = node.getString("message");
@@ -3904,7 +3836,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("sequence_num", sequence_num);
         node.setString("message", message);
     }
@@ -3917,7 +3849,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         sequence_num = node.getUInt("sequence_num");
         message = node.getString("message");
     }
@@ -3975,7 +3907,7 @@ public:
         msg2props(node);
     }
 
-    void msg2props(PropertyNode node) {
+    void msg2props(PropertyNode &node) {
         node.setUInt("sequence_num", sequence_num);
         node.setUInt("result", result);
     }
@@ -3988,7 +3920,7 @@ public:
         props2msg(node);
     }
 
-    void props2msg(PropertyNode node) {
+    void props2msg(PropertyNode &node) {
         sequence_num = node.getUInt("sequence_num");
         result = node.getUInt("result");
     }
