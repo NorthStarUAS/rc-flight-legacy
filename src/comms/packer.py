@@ -832,8 +832,6 @@ class Packer():
             self.ap.flags = 0
             if ap_node.getBool("master_switch"):
                 self.ap.flags += 1 # |= (1 << 0)
-            if ap_node.getBool("pilot_pass_through"):
-                self.ap.flags += 2 # |= (1 << 1)
             self.ap.groundtrack_deg = targets_node.getDouble("groundtrack_deg")
             self.ap.roll_deg = targets_node.getDouble("roll_deg")
             target_agl_ft = targets_node.getDouble("altitude_agl_ft")
@@ -911,7 +909,6 @@ class Packer():
         row = dict()
         row['timestamp'] = targets_node.getDouble('timestamp')
         row['master_switch'] = ap_node.getBool("master_switch")
-        row['pilot_pass_through'] = ap_node.getBool("pilot_pass_through")
         row['groundtrack_deg'] = targets_node.getDouble('groundtrack_deg')
         row['roll_deg'] = targets_node.getDouble('roll_deg')
         row['altitude_msl_ft'] = targets_node.getDouble('altitude_msl_ft')
@@ -950,7 +947,6 @@ class Packer():
         row = dict()
         row['timestamp'] = '%.4f' % targets_node.getDouble('timestamp')
         row['master_switch'] = '%d' % ap_node.getBool("master_switch")
-        row['pilot_pass_through'] = '%d' % ap_node.getBool("pilot_pass_through")
         row['groundtrack_deg'] = '%.2f' % targets_node.getDouble('groundtrack_deg')
         row['roll_deg'] = '%.2f' % targets_node.getDouble('roll_deg')
         row['altitude_msl_ft'] = '%.2f' % targets_node.getDouble('altitude_msl_ft')
@@ -958,92 +954,11 @@ class Packer():
         row['airspeed_kt'] = '%.1f' % targets_node.getDouble('airspeed_kt')
         row['altitude_ground_m'] = '%.1f' % pos_node.getDouble("altitude_ground_m")
         row['tecs_target_tot'] = '%.4f' % tecs_node.getDouble("target_total")
-        keys = ['timestamp', 'master_switch', 'pilot_pass_through',
+        keys = ['timestamp', 'master_switch',
                 'groundtrack_deg', 'roll_deg', 'altitude_msl_ft', 'pitch_deg',
                 'airspeed_kt', 'altitude_ground_m',
                 'tecs_target_tot']
         return row, keys
-
-    def unpack_ap_status_v4(self, buf):
-        result = struct.unpack(ap_status_v4_fmt, buf)
-
-        index = result[0]
-
-        wp_lon = result[10]
-        wp_lat = result[11]
-        wp_index = result[12]
-        route_size = result[13]
-
-        targets_node.setDouble("timestamp", result[1])
-        targets_node.setDouble("groundtrack_deg", result[2] / 10.0)
-        targets_node.setDouble("roll_deg", result[3] / 10.0)
-        targets_node.setDouble("altitude_msl_ft", result[4])
-        pos_node.setDouble("altitude_ground_m", result[5])
-        targets_node.setDouble("pitch_deg", result[6] / 10.0)
-        targets_node.setDouble("airspeed_kt", result[7] / 10.0)
-        status_node.setDouble("flight_timer", result[8])
-        route_node.setInt("target_waypoint_idx", result[9])
-        if wp_index < route_size:
-            wp_node = active_node.getChild('wpt/%d' % wp_index)
-            wp_node.setDouble("longitude_deg", wp_lon)
-            wp_node.setDouble("latitude_deg", wp_lat)
-        elif wp_index == 65534:
-            circle_node.setDouble("longitude_deg", wp_lon)
-            circle_node.setDouble("latitude_deg", wp_lat)
-        elif wp_index == 65535:
-            home_node.setDouble("longitude_deg", wp_lon)
-            home_node.setDouble("latitude_deg", wp_lat)
-        active_node.setInt("route_size", route_size)
-        if result[14] >= 1:
-            remote_link_node.setInt("sequence_num", result[14])
-
-        return index
-
-    def unpack_ap_status_v5(self, buf):
-        ap = rc_messages.ap_status_v5(buf)
-
-        index = ap.index
-
-        wp_lon = ap.wp_longitude_deg
-        wp_lat = ap.wp_latitude_deg
-        wp_index = ap.wp_index
-        route_size = ap.route_size
-
-        targets_node.setDouble("timestamp", ap.timestamp_sec)
-        flags = ap.flags
-        ap_node.setBool("master_switch", flags & (1<<0))
-        ap_node.setBool("pilot_pass_through", flags & (1<<1))
-        targets_node.setDouble("groundtrack_deg", ap.groundtrack_deg)
-        targets_node.setDouble("roll_deg", ap.roll_deg)
-        targets_node.setDouble("altitude_msl_ft", ap.altitude_msl_ft)
-        pos_node.setDouble("altitude_ground_m", ap.altitude_ground_m)
-        targets_node.setDouble("pitch_deg", ap.pitch_deg)
-        targets_node.setDouble("airspeed_kt", ap.airspeed_kt)
-        status_node.setDouble("flight_timer", ap.flight_timer)
-        status_node.setBool("onboard_flight_timer", True)
-        if route_size != active_node.getInt("route_size"):
-            # route size change, zero all the waypoint coordinates
-            for i in range(active_node.getInt("route_size")):
-                wp_node = active_node.getChild('wpt/%d' % i)
-                wp_node.setDouble("longitude_deg", 0)
-                wp_node.setDouble("latitude_deg", 0)
-        route_node.setInt("target_waypoint_idx", ap.target_waypoint_idx)
-        if wp_index < route_size:
-            wp_node = active_node.getChild('wpt/%d' % wp_index)
-            wp_node.setDouble("longitude_deg", wp_lon)
-            wp_node.setDouble("latitude_deg", wp_lat)
-        elif wp_index == 65534:
-            circle_node.setDouble("longitude_deg", wp_lon)
-            circle_node.setDouble("latitude_deg", wp_lat)
-        elif wp_index == 65535:
-            home_node.setDouble("longitude_deg", wp_lon)
-            home_node.setDouble("latitude_deg", wp_lat)
-
-        active_node.setInt("route_size", route_size)
-        if ap.sequence_num >= 1:
-            remote_link_node.setInt("sequence_num", ap.sequence_num)
-
-        return index
 
     def unpack_ap_status_v6(self, buf):
         ap = rc_messages.ap_status_v6(buf)
@@ -1188,6 +1103,13 @@ class Packer():
             remote_link_node.setInt("sequence_num", ap.sequence_num)
 
         return index
+
+    def unpack_ap_targets_v1(self, buf):
+        ap = rc_messages.ap_targets_v1(buf)
+        ap.msg2props(targets_node)
+        flags = ap.flags
+        ap_node.setBool("master_switch", flags & (1<<0))
+        return 0
 
     def pack_system_health_bin(self, use_cached=False):
         health_time = status_node.getDouble('frame_time')

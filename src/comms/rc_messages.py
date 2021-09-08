@@ -22,10 +22,10 @@ pilot_v2_id = 20
 pilot_v3_id = 38
 pilot_v4_id = 51
 power_v1_id = 55
-ap_status_v4_id = 30
-ap_status_v5_id = 32
 ap_status_v6_id = 33
 ap_status_v7_id = 39
+ap_targets_v1_id = 59
+mission_v1_id = 60
 system_health_v5_id = 41
 system_health_v6_id = 46
 status_v7_id = 56
@@ -1790,7 +1790,7 @@ class pilot_v3():
 # Id: 51
 class pilot_v4():
     id = 51
-    _pack_string = "<BLhhhhhhhhhhhhhhhhB"
+    _pack_string = "<BLhhhhhhhhhhhhhhhhBBB"
     _struct = struct.Struct(_pack_string)
 
     def __init__(self, msg=None):
@@ -1799,6 +1799,8 @@ class pilot_v4():
         self.millis = 0
         self.channel = [0.0] * sbus_channels
         self.failsafe = 0
+        self.master_switch = 0
+        self.throttle_safety = 0
         # unpack if requested
         if msg: self.unpack(msg)
 
@@ -1822,7 +1824,9 @@ class pilot_v4():
                   int(round(self.channel[13] * 20000.0)),
                   int(round(self.channel[14] * 20000.0)),
                   int(round(self.channel[15] * 20000.0)),
-                  self.failsafe)
+                  self.failsafe,
+                  self.master_switch,
+                  self.throttle_safety)
         return msg
 
     def unpack(self, msg):
@@ -1844,7 +1848,9 @@ class pilot_v4():
          self.channel[13],
          self.channel[14],
          self.channel[15],
-         self.failsafe) = self._struct.unpack(msg)
+         self.failsafe,
+         self.master_switch,
+         self.throttle_safety) = self._struct.unpack(msg)
         self.channel[0] /= 20000.0
         self.channel[1] /= 20000.0
         self.channel[2] /= 20000.0
@@ -1867,12 +1873,16 @@ class pilot_v4():
         node.setUInt("millis", self.millis)
         for _i in range(sbus_channels): node.setDouble("channel", self.channel[_i], _i)
         node.setUInt("failsafe", self.failsafe)
+        node.setUInt("master_switch", self.master_switch)
+        node.setUInt("throttle_safety", self.throttle_safety)
 
     def props2msg(self, node):
         index = node.getUInt("index")
         millis = node.getUInt("millis")
         for _i in range(sbus_channels): channel[_i] = node.getDouble("channel", _i)
         failsafe = node.getUInt("failsafe")
+        master_switch = node.getUInt("master_switch")
+        throttle_safety = node.getUInt("throttle_safety")
 
 # Message: power_v1
 # Id: 55
@@ -1935,213 +1945,6 @@ class power_v1():
         cell_vcc = node.getDouble("cell_vcc")
         main_amps = node.getDouble("main_amps")
         total_mah = node.getDouble("total_mah")
-
-# Message: ap_status_v4
-# Id: 30
-class ap_status_v4():
-    id = 30
-    _pack_string = "<BdhhHHhhHHddHHB"
-    _struct = struct.Struct(_pack_string)
-
-    def __init__(self, msg=None):
-        # public fields
-        self.index = 0
-        self.timestamp_sec = 0.0
-        self.groundtrack_deg = 0.0
-        self.roll_deg = 0.0
-        self.altitude_msl_ft = 0
-        self.altitude_ground_m = 0
-        self.pitch_deg = 0.0
-        self.airspeed_kt = 0.0
-        self.flight_timer = 0
-        self.target_waypoint_idx = 0
-        self.wp_longitude_deg = 0.0
-        self.wp_latitude_deg = 0.0
-        self.wp_index = 0
-        self.route_size = 0
-        self.sequence_num = 0
-        # unpack if requested
-        if msg: self.unpack(msg)
-
-    def pack(self):
-        msg = self._struct.pack(
-                  self.index,
-                  self.timestamp_sec,
-                  int(round(self.groundtrack_deg * 10.0)),
-                  int(round(self.roll_deg * 10.0)),
-                  self.altitude_msl_ft,
-                  self.altitude_ground_m,
-                  int(round(self.pitch_deg * 10.0)),
-                  int(round(self.airspeed_kt * 10.0)),
-                  self.flight_timer,
-                  self.target_waypoint_idx,
-                  self.wp_longitude_deg,
-                  self.wp_latitude_deg,
-                  self.wp_index,
-                  self.route_size,
-                  self.sequence_num)
-        return msg
-
-    def unpack(self, msg):
-        (self.index,
-         self.timestamp_sec,
-         self.groundtrack_deg,
-         self.roll_deg,
-         self.altitude_msl_ft,
-         self.altitude_ground_m,
-         self.pitch_deg,
-         self.airspeed_kt,
-         self.flight_timer,
-         self.target_waypoint_idx,
-         self.wp_longitude_deg,
-         self.wp_latitude_deg,
-         self.wp_index,
-         self.route_size,
-         self.sequence_num) = self._struct.unpack(msg)
-        self.groundtrack_deg /= 10.0
-        self.roll_deg /= 10.0
-        self.pitch_deg /= 10.0
-        self.airspeed_kt /= 10.0
-
-    def msg2props(self, node):
-        node.setUInt("index", self.index)
-        node.setDouble("timestamp_sec", self.timestamp_sec)
-        node.setDouble("groundtrack_deg", self.groundtrack_deg)
-        node.setDouble("roll_deg", self.roll_deg)
-        node.setUInt("altitude_msl_ft", self.altitude_msl_ft)
-        node.setUInt("altitude_ground_m", self.altitude_ground_m)
-        node.setDouble("pitch_deg", self.pitch_deg)
-        node.setDouble("airspeed_kt", self.airspeed_kt)
-        node.setUInt("flight_timer", self.flight_timer)
-        node.setUInt("target_waypoint_idx", self.target_waypoint_idx)
-        node.setDouble("wp_longitude_deg", self.wp_longitude_deg)
-        node.setDouble("wp_latitude_deg", self.wp_latitude_deg)
-        node.setUInt("wp_index", self.wp_index)
-        node.setUInt("route_size", self.route_size)
-        node.setUInt("sequence_num", self.sequence_num)
-
-    def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        groundtrack_deg = node.getDouble("groundtrack_deg")
-        roll_deg = node.getDouble("roll_deg")
-        altitude_msl_ft = node.getUInt("altitude_msl_ft")
-        altitude_ground_m = node.getUInt("altitude_ground_m")
-        pitch_deg = node.getDouble("pitch_deg")
-        airspeed_kt = node.getDouble("airspeed_kt")
-        flight_timer = node.getUInt("flight_timer")
-        target_waypoint_idx = node.getUInt("target_waypoint_idx")
-        wp_longitude_deg = node.getDouble("wp_longitude_deg")
-        wp_latitude_deg = node.getDouble("wp_latitude_deg")
-        wp_index = node.getUInt("wp_index")
-        route_size = node.getUInt("route_size")
-        sequence_num = node.getUInt("sequence_num")
-
-# Message: ap_status_v5
-# Id: 32
-class ap_status_v5():
-    id = 32
-    _pack_string = "<BdBhhHHhhHHddHHB"
-    _struct = struct.Struct(_pack_string)
-
-    def __init__(self, msg=None):
-        # public fields
-        self.index = 0
-        self.timestamp_sec = 0.0
-        self.flags = 0
-        self.groundtrack_deg = 0.0
-        self.roll_deg = 0.0
-        self.altitude_msl_ft = 0
-        self.altitude_ground_m = 0
-        self.pitch_deg = 0.0
-        self.airspeed_kt = 0.0
-        self.flight_timer = 0
-        self.target_waypoint_idx = 0
-        self.wp_longitude_deg = 0.0
-        self.wp_latitude_deg = 0.0
-        self.wp_index = 0
-        self.route_size = 0
-        self.sequence_num = 0
-        # unpack if requested
-        if msg: self.unpack(msg)
-
-    def pack(self):
-        msg = self._struct.pack(
-                  self.index,
-                  self.timestamp_sec,
-                  self.flags,
-                  int(round(self.groundtrack_deg * 10.0)),
-                  int(round(self.roll_deg * 10.0)),
-                  self.altitude_msl_ft,
-                  self.altitude_ground_m,
-                  int(round(self.pitch_deg * 10.0)),
-                  int(round(self.airspeed_kt * 10.0)),
-                  self.flight_timer,
-                  self.target_waypoint_idx,
-                  self.wp_longitude_deg,
-                  self.wp_latitude_deg,
-                  self.wp_index,
-                  self.route_size,
-                  self.sequence_num)
-        return msg
-
-    def unpack(self, msg):
-        (self.index,
-         self.timestamp_sec,
-         self.flags,
-         self.groundtrack_deg,
-         self.roll_deg,
-         self.altitude_msl_ft,
-         self.altitude_ground_m,
-         self.pitch_deg,
-         self.airspeed_kt,
-         self.flight_timer,
-         self.target_waypoint_idx,
-         self.wp_longitude_deg,
-         self.wp_latitude_deg,
-         self.wp_index,
-         self.route_size,
-         self.sequence_num) = self._struct.unpack(msg)
-        self.groundtrack_deg /= 10.0
-        self.roll_deg /= 10.0
-        self.pitch_deg /= 10.0
-        self.airspeed_kt /= 10.0
-
-    def msg2props(self, node):
-        node.setUInt("index", self.index)
-        node.setDouble("timestamp_sec", self.timestamp_sec)
-        node.setUInt("flags", self.flags)
-        node.setDouble("groundtrack_deg", self.groundtrack_deg)
-        node.setDouble("roll_deg", self.roll_deg)
-        node.setUInt("altitude_msl_ft", self.altitude_msl_ft)
-        node.setUInt("altitude_ground_m", self.altitude_ground_m)
-        node.setDouble("pitch_deg", self.pitch_deg)
-        node.setDouble("airspeed_kt", self.airspeed_kt)
-        node.setUInt("flight_timer", self.flight_timer)
-        node.setUInt("target_waypoint_idx", self.target_waypoint_idx)
-        node.setDouble("wp_longitude_deg", self.wp_longitude_deg)
-        node.setDouble("wp_latitude_deg", self.wp_latitude_deg)
-        node.setUInt("wp_index", self.wp_index)
-        node.setUInt("route_size", self.route_size)
-        node.setUInt("sequence_num", self.sequence_num)
-
-    def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        flags = node.getUInt("flags")
-        groundtrack_deg = node.getDouble("groundtrack_deg")
-        roll_deg = node.getDouble("roll_deg")
-        altitude_msl_ft = node.getUInt("altitude_msl_ft")
-        altitude_ground_m = node.getUInt("altitude_ground_m")
-        pitch_deg = node.getDouble("pitch_deg")
-        airspeed_kt = node.getDouble("airspeed_kt")
-        flight_timer = node.getUInt("flight_timer")
-        target_waypoint_idx = node.getUInt("target_waypoint_idx")
-        wp_longitude_deg = node.getDouble("wp_longitude_deg")
-        wp_latitude_deg = node.getDouble("wp_latitude_deg")
-        wp_index = node.getUInt("wp_index")
-        route_size = node.getUInt("route_size")
-        sequence_num = node.getUInt("sequence_num")
 
 # Message: ap_status_v6
 # Id: 33
@@ -2377,6 +2180,147 @@ class ap_status_v7():
         task_id = node.getUInt("task_id")
         task_attribute = node.getUInt("task_attribute")
         sequence_num = node.getUInt("sequence_num")
+
+# Message: ap_targets_v1
+# Id: 59
+class ap_targets_v1():
+    id = 59
+    _pack_string = "<BLhHhhh"
+    _struct = struct.Struct(_pack_string)
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.millis = 0
+        self.groundtrack_deg = 0.0
+        self.altitude_ground_m = 0.0
+        self.airspeed_kt = 0.0
+        self.roll_deg = 0.0
+        self.pitch_deg = 0.0
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = self._struct.pack(
+                  self.index,
+                  self.millis,
+                  int(round(self.groundtrack_deg * 10.0)),
+                  int(round(self.altitude_ground_m * 1.0)),
+                  int(round(self.airspeed_kt * 10.0)),
+                  int(round(self.roll_deg * 10.0)),
+                  int(round(self.pitch_deg * 10.0)))
+        return msg
+
+    def unpack(self, msg):
+        (self.index,
+         self.millis,
+         self.groundtrack_deg,
+         self.altitude_ground_m,
+         self.airspeed_kt,
+         self.roll_deg,
+         self.pitch_deg) = self._struct.unpack(msg)
+        self.groundtrack_deg /= 10.0
+        self.altitude_ground_m /= 1.0
+        self.airspeed_kt /= 10.0
+        self.roll_deg /= 10.0
+        self.pitch_deg /= 10.0
+
+    def msg2props(self, node):
+        node.setUInt("index", self.index)
+        node.setUInt("millis", self.millis)
+        node.setDouble("groundtrack_deg", self.groundtrack_deg)
+        node.setDouble("altitude_ground_m", self.altitude_ground_m)
+        node.setDouble("airspeed_kt", self.airspeed_kt)
+        node.setDouble("roll_deg", self.roll_deg)
+        node.setDouble("pitch_deg", self.pitch_deg)
+
+    def props2msg(self, node):
+        index = node.getUInt("index")
+        millis = node.getUInt("millis")
+        groundtrack_deg = node.getDouble("groundtrack_deg")
+        altitude_ground_m = node.getDouble("altitude_ground_m")
+        airspeed_kt = node.getDouble("airspeed_kt")
+        roll_deg = node.getDouble("roll_deg")
+        pitch_deg = node.getDouble("pitch_deg")
+
+# Message: mission_v1
+# Id: 60
+class mission_v1():
+    id = 60
+    _pack_string = "<BLHHHHHHll"
+    _struct = struct.Struct(_pack_string)
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.millis = 0
+        self.flight_timer = 0.0
+        self.task_name = ""
+        self.task_attribute = 0
+        self.route_size = 0
+        self.target_waypoint_idx = 0
+        self.wp_index = 0
+        self.wp_longitude_raw = 0
+        self.wp_latitude_raw = 0
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = self._struct.pack(
+                  self.index,
+                  self.millis,
+                  int(round(self.flight_timer * 1.0)),
+                  len(self.task_name),
+                  self.task_attribute,
+                  self.route_size,
+                  self.target_waypoint_idx,
+                  self.wp_index,
+                  self.wp_longitude_raw,
+                  self.wp_latitude_raw)
+        msg += str.encode(self.task_name)
+        return msg
+
+    def unpack(self, msg):
+        base_len = struct.calcsize(self._pack_string)
+        extra = msg[base_len:]
+        msg = msg[:base_len]
+        (self.index,
+         self.millis,
+         self.flight_timer,
+         self.task_name_len,
+         self.task_attribute,
+         self.route_size,
+         self.target_waypoint_idx,
+         self.wp_index,
+         self.wp_longitude_raw,
+         self.wp_latitude_raw) = self._struct.unpack(msg)
+        self.flight_timer /= 1.0
+        self.task_name = extra[:self.task_name_len].decode()
+        extra = extra[self.task_name_len:]
+
+    def msg2props(self, node):
+        node.setUInt("index", self.index)
+        node.setUInt("millis", self.millis)
+        node.setDouble("flight_timer", self.flight_timer)
+        node.setString("task_name", self.task_name)
+        node.setUInt("task_attribute", self.task_attribute)
+        node.setUInt("route_size", self.route_size)
+        node.setUInt("target_waypoint_idx", self.target_waypoint_idx)
+        node.setUInt("wp_index", self.wp_index)
+        node.setInt("wp_longitude_raw", self.wp_longitude_raw)
+        node.setInt("wp_latitude_raw", self.wp_latitude_raw)
+
+    def props2msg(self, node):
+        index = node.getUInt("index")
+        millis = node.getUInt("millis")
+        flight_timer = node.getDouble("flight_timer")
+        task_name = node.getString("task_name")
+        task_attribute = node.getUInt("task_attribute")
+        route_size = node.getUInt("route_size")
+        target_waypoint_idx = node.getUInt("target_waypoint_idx")
+        wp_index = node.getUInt("wp_index")
+        wp_longitude_raw = node.getInt("wp_longitude_raw")
+        wp_latitude_raw = node.getInt("wp_latitude_raw")
 
 # Message: system_health_v5
 # Id: 41
