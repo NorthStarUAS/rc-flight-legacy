@@ -104,10 +104,9 @@ void control_t::update(float dt) {
     // switched to autopilot.
     ap.update( dt );
     
-    // copy pilot inputs to flight control outputs with not in
-    // autopilot mode or in a pilot_pass_through mode
-    bool pass_through = ap_node.getBool("pilot_pass_through");
-    if ( !master_switch or pass_through ) {
+    // copy pilot inputs to flight control outputs when not in
+    // autopilot mode
+    if ( !master_switch ) {
         copy_pilot_inputs();
     }
 }
