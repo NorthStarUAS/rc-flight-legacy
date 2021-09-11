@@ -31,6 +31,7 @@ vel_node = PropertyNode("/velocity")
 wind_node = PropertyNode("/filters/wind")
 remote_link_node = PropertyNode("/comms/remote_link")
 stream_node = PropertyNode("/stream")
+switches_node = PropertyNode("/switches")
 
 NUM_ACTUATORS = 8
 act_node = PropertyNode("/actuators")
@@ -812,6 +813,9 @@ class Packer():
             print("Warning: pilot index > 0 not supported")
         pilot.msg2props(pilot_node)
         pilot_node.setDouble("timestamp", pilot.millis / 1000.0)
+        switches_node.setBool("master_switch", pilot.master_switch)
+        switches_node.setBool("throttle_safety", pilot.throttle_safety)
+
         return pilot.index
 
     def unpack_power_v1(self, buf):
@@ -1107,9 +1111,42 @@ class Packer():
     def unpack_ap_targets_v1(self, buf):
         ap = rc_messages.ap_targets_v1(buf)
         ap.msg2props(targets_node)
-        flags = ap.flags
-        ap_node.setBool("master_switch", flags & (1<<0))
         return 0
+
+    def unpack_mission_v1(self, buf):
+        mission = rc_messages.mission_v1(buf)
+
+        index = mission.index
+
+        wp_lon = mission.wp_longitude_raw / 10000000.0
+        wp_lat = mission.wp_latitude_raw / 10000000.0
+        wp_index = mission.wp_index
+        route_size = mission.route_size
+        status_node.setDouble("flight_timer", mission.flight_timer)
+        status_node.setBool("onboard_flight_timer", True)
+        if route_size != active_node.getInt("route_size"):
+            # route size change, zero all the waypoint coordinates
+            for i in range(active_node.getInt("route_size")):
+                wp_node = active_node.getChild('wpt/%d' % i)
+                wp_node.setDouble("longitude_deg", 0)
+                wp_node.setDouble("latitude_deg", 0)
+        route_node.setInt("target_waypoint_idx", mission.target_waypoint_idx)
+        if wp_index < route_size:
+            wp_node = active_node.getChild('wpt/%d' % wp_index)
+            wp_node.setDouble("longitude_deg", wp_lon)
+            wp_node.setDouble("latitude_deg", wp_lat)
+        elif wp_index == 65534:
+            circle_node.setDouble("longitude_deg", wp_lon)
+            circle_node.setDouble("latitude_deg", wp_lat)
+            circle_node.setDouble("radius_m", mission.task_attribute / 10.0)
+        elif wp_index == 65535:
+            home_node.setDouble("longitude_deg", wp_lon)
+            home_node.setDouble("latitude_deg", wp_lat)
+        task_node.setString("current_task", mission.task_name)
+
+        active_node.setInt("route_size", route_size)
+
+        return index
 
     def pack_system_health_bin(self, use_cached=False):
         health_time = status_node.getDouble('frame_time')
