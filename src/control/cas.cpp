@@ -47,6 +47,7 @@ void UGCAS::bind() {
     targets_node = PropertyNode( "/autopilot/targets" );
     flight_node = PropertyNode( "/controls/flight" );
     engine_node = PropertyNode( "/controls/engine" );
+    switches_node = PropertyNode( "/switches" );
 }
 
 // initialize CAS system
@@ -59,7 +60,7 @@ void UGCAS::update() {
     double dt = current_time - last_time;
     last_time = current_time;
 
-    if ( !targets_node.getBool("master_switch") ) {
+    if ( !switches_node.getBool("master_switch") ) {
 	// fcs master switch off, exit
 	return;
     }

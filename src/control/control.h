@@ -28,6 +28,7 @@ private:
     PropertyNode home_node;
     PropertyNode circle_node;
     PropertyNode pos_node;
+    PropertyNode switches_node;
 
     void copy_pilot_inputs();
 };

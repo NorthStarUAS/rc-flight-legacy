@@ -38,6 +38,7 @@ void control_t::init(DocPointerWrapper d) {
     pilot_node = PropertyNode( "/sensors/pilot_input" );
     flight_node = PropertyNode( "/controls/flight" );
     engine_node = PropertyNode( "/controls/engine" );
+    switches_node = PropertyNode( "/switches" );
 
     // initialize and build the autopilot controller from the property
     // tree config (/config/autopilot)
@@ -87,12 +88,12 @@ void control_t::update(float dt) {
     // call for a global fcs component reset when activating ap master
     // switch
     static bool last_master_switch = false;
-    bool master_switch = ap_node.getBool("master_switch");
+    bool master_switch = switches_node.getBool("master_switch");
     if ( master_switch != last_master_switch ) {
-	if ( ap_node.getBool("master_switch") ) {
+	if ( switches_node.getBool("master_switch") ) {
             reset();            // reset the ap; transient mitigation
 	}
-	last_master_switch = ap_node.getBool("master_switch");
+	last_master_switch = switches_node.getBool("master_switch");
     }
     
     // update tecs (total energy) values and error metrics

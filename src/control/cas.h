@@ -54,6 +54,7 @@ private:
     PropertyNode targets_node;
     PropertyNode flight_node;
     PropertyNode engine_node;
+    PropertyNode switches_node;
     
     ugCASMode cas_mode;
 
