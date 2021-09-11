@@ -93,14 +93,14 @@ def parse_msg(id, buf):
         index = packer.unpack_pilot_v4(buf)
     elif id == rc_messages.power_v1_id:
         index = packer.unpack_power_v1(buf)
-    elif id == rc_messages.ap_status_v4_id:
-        index = packer.unpack_ap_status_v4(buf)
-    elif id == rc_messages.ap_status_v5_id:
-        index = packer.unpack_ap_status_v5(buf)
     elif id == rc_messages.ap_status_v6_id:
         index = packer.unpack_ap_status_v6(buf)
     elif id == rc_messages.ap_status_v7_id:
         index = packer.unpack_ap_status_v7(buf)
+    elif id == rc_messages.ap_targets_v1_id:
+        index = packer.unpack_ap_targets_v1(buf)
+    elif id == rc_messages.mission_v1_id:
+        index = packer.unpack_mission_v1(buf)
     elif id == rc_messages.system_health_v5_id:
         index = packer.unpack_system_health_v5(buf)
     elif id == rc_messages.system_health_v6_id:
