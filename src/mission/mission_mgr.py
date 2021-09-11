@@ -24,10 +24,10 @@ from mission.task import throttle_safety
 
 class MissionMgr:
     def __init__(self):
-        self.ap_node = PropertyNode("/autopilot/targets")
         self.targets_node = PropertyNode("/autopilot/targets")
         self.missions_node = PropertyNode("/config/mission")
         self.pos_node = PropertyNode("/position")
+        self.switches_node = PropertyNode("/switches")
         self.task_node = PropertyNode("/task")
         self.preflight_node = PropertyNode("/task/preflight")
         self.circle_standby_node = PropertyNode("/task/circle/standby")
@@ -154,7 +154,7 @@ class MissionMgr:
             self.request_task("idle")
 
         # (for lack of a better place to do this) log master_switch changes
-        master_switch = self.ap_node.getBool('master_switch')
+        master_switch = self.switches_node.getBool('master_switch')
         if master_switch != self.last_master_switch:
             if master_switch:
                 comms.events.log('mission', 'ap master switch: on (auto)')

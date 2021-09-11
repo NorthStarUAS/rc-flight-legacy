@@ -12,10 +12,10 @@ class Launch(Task):
     def __init__(self, config_node):
         Task.__init__(self)
 
-        self.ap_node = PropertyNode("/autopilot")
         self.task_node = PropertyNode("/task")
         self.pos_node = PropertyNode("/position")
         self.vel_node = PropertyNode("/velocity")
+        self.switches_node = PropertyNode("/switches")
         self.targets_node = PropertyNode("/autopilot/targets")
         self.imu_node = PropertyNode("/sensors/imu/0")
         self.flight_node = PropertyNode("/controls/flight")
@@ -75,7 +75,7 @@ class Launch(Task):
         # zero) when autopilot mode is engaged and steer that error to
         # zero with the rudder until flying/climbing
 
-        if self.ap_node.getBool("master_switch"):
+        if self.switches_node.getBool("master_switch"):
             if not self.last_ap_master:
                 # reset states when engaging AP mode
                 self.relhdg = 0.0
@@ -145,7 +145,7 @@ class Launch(Task):
                 if fcsmode.get() != "basic+tecs":
                     fcsmode.set("basic+tecs")
 
-        self.last_ap_master = self.ap_node.getBool("master_switch")
+        self.last_ap_master = self.switches_node.getBool("master_switch")
 
     def is_complete(self):
         if self.pos_node.getDouble("altitude_agl_ft") >= self.complete_agl_ft:
