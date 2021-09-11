@@ -13,7 +13,7 @@ class pilot_helper():
         self.pilot_node = PropertyNode("/sensors/pilot_input")
         self.flight_node = PropertyNode("/controls/flight")
         self.engine_node = PropertyNode("/controls/engine")
-        self.ap_node = PropertyNode("/autopilot")
+        self.switches_node = PropertyNode("/autopilot")
 
     def update(self):
         # log receiver fail safe changes
@@ -27,7 +27,7 @@ class pilot_helper():
         # allows the AP to seed it's components with trimmed values
         # and improve continuity when switching from manual to AP
         # mode.
-        if not self.ap_node.getBool("master_switch"):
+        if not self.switches_node.getBool("master_switch"):
             self.flight_node.setDouble("aileron", self.pilot_node.getDouble("aileron"))
             self.flight_node.setDouble("elevator", self.pilot_node.getDouble("elevator"))
             self.engine_node.setDouble("throttle", self.pilot_node.getDouble("throttle"))

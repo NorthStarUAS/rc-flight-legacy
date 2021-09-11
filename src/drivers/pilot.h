@@ -20,6 +20,6 @@ private:
     PropertyNode pilot_node;
     PropertyNode flight_node;
     PropertyNode engine_node;
-    PropertyNode ap_node;
+    PropertyNode switches_node;
 };
 

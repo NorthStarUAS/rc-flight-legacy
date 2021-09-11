@@ -22,8 +22,9 @@ public:
 
 private:
     PropertyNode act_node;
-    PropertyNode ap_node;
     PropertyNode pilot_node;
+    PropertyNode switches_node;
+
     static const int maestro_channels = 6;
     int fd = -1;
     float gains[maestro_channels] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};

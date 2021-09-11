@@ -24,7 +24,7 @@ void pilot_helper_t::init(DocPointerWrapper d) {
     pilot_node = PropertyNode( "/sensors/pilot_input" );
     flight_node = PropertyNode( "/controls/flight" );
     engine_node = PropertyNode( "/controls/engine" );
-    ap_node = PropertyNode( "/autopilot" );
+    switches_node = PropertyNode( "/switches" );
 }
 
 void pilot_helper_t::update() {
@@ -43,7 +43,7 @@ void pilot_helper_t::update() {
     // and allows the AP to seed it's components with trimmed
     // values and improve continuity when switching from manual to
     // AP mode.
-    if ( ! ap_node.getBool("master_switch") ) {
+    if ( ! switches_node.getBool("master_switch") ) {
         flight_node.setDouble( "aileron", pilot_node.getDouble("aileron") );
         flight_node.setDouble( "elevator", pilot_node.getDouble("elevator") );
         engine_node.setDouble( "throttle", pilot_node.getDouble("throttle") );

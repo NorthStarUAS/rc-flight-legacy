@@ -334,8 +334,8 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 	if ( pkt_len == pilot_msg.len ) {
             pilot_msg.msg2props(pilot_node);
             pilot_node.setDouble("timestamp", pilot_msg.millis / 1000.0);
-            switches_node.setBool("master-switch", pilot_msg.master_switch);
-            switches_node.setBool("throttle-safety", pilot_msg.throttle_safety);
+            switches_node.setBool("master_switch", pilot_msg.master_switch);
+            switches_node.setBool("throttle_safety", pilot_msg.throttle_safety);
 	    pilot_packet_counter++;
 	    rcfmu_node.setInt( "pilot_packet_count", pilot_packet_counter );
 	    new_data = true;
