@@ -166,8 +166,7 @@ def update():
     drivers.send_commands()
     
     # check for incoming operator commands
-    remote_link.process_commands_new()
-    #remote_link.command()
+    remote_link.update()
 
     # read commands from telnet interface
     telnet.update()
@@ -187,9 +186,6 @@ def update():
     myprof.datalog_prof.start()
     logging.update()
     myprof.datalog_prof.stop()
-
-    # generate needed messages and dribble pending bytes down the serial port
-    remote_link.update()
 
     # sensor summary display @ 2 second interval
     if display_on and timer.get_pytime() >= display_timer + 2:
