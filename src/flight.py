@@ -43,7 +43,7 @@ from rcUAS import actuator_mgr, control_mgr, driver_mgr, filter_mgr
 from rcUAS import airdata_helper, gps_helper
 
 # Pure python modules
-from comms import display, logging, remote_link, telnet
+from comms import display, logging, remote_command, telnet
 from control import navigation
 from drivers import pilot_helper
 from health import health
@@ -81,7 +81,7 @@ def init():
     print("logging config:")
     PropertyNode("/").pretty_print()
     logging.init()
-    remote_link.init()
+    remote_command.init()
     telnet.init()
 
     # hardware
@@ -165,8 +165,8 @@ def update():
     # send any extra commands (like requests to recalibrate something)
     drivers.send_commands()
     
-    # check for incoming operator commands
-    remote_link.update()
+    # check for incoming commands
+    remote_command.update()
 
     # read commands from telnet interface
     telnet.update()
