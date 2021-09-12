@@ -16,14 +16,11 @@ active_node = PropertyNode("/task/route/active")
 targets_node = PropertyNode("/autopilot/targets")
 comms_node = PropertyNode("/comms")
 
-# set up the remote link
+# set up the remote command processor
 def init():
     pass
     
 def update():
-    process_commands()
-
-def process_commands():
     len = comms_node.getLen("commands")
     for i in range(len):
         command = comms_node.getString("commands", i)
