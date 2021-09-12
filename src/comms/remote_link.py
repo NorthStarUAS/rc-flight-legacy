@@ -206,7 +206,16 @@ def process_messages():
 def update():
     process_messages()
     flush_serial();
-  
+
+def process_commands_new():
+    len = comms_node.getLen("commands")
+    for i in range(len):
+        command = comms_node.getString("commands", i)
+        if command != "":
+            print("command:", command)
+            execute_command(command)
+            comms_node.setString("commands", "", i)
+    
 route_request = []
 survey_request = {}
 def execute_command( command ):

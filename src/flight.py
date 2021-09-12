@@ -166,7 +166,8 @@ def update():
     drivers.send_commands()
     
     # check for incoming operator commands
-    remote_link.command()
+    remote_link.process_commands_new()
+    #remote_link.command()
 
     # read commands from telnet interface
     telnet.update()
