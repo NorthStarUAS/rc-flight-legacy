@@ -374,8 +374,8 @@ def update(dt):
             if gs_mps > 0.1 and abs(nav_dist_m) > 0.1:
                 wp_eta_sec = nav_dist_m / gs_mps
             else:
-                wp_eta_sec = 99.0 # just any sorta big value
-            route_node.setDouble( 'wp_eta_sec', dist_m / gs_mps )
+                wp_eta_sec = 999  # just any sorta big value
+            route_node.setDouble( 'wp_eta_sec', wp_eta_sec )
             route_node.setDouble( 'wp_dist_m', direct_dist )
                 
             if nav_course < 0.0: nav_course += 360.0
