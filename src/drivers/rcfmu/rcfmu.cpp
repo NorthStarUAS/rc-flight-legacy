@@ -59,7 +59,7 @@ void rcfmu_t::hard_fail( const char *format, ... ) {
 }
 
 void rcfmu_t::init( PropertyNode *config ) {
-    PropertyNode comms_node("/comms");
+    comms_node = PropertyNode("/comms");
     verbose = comms_node.getBool("display_on");
     
     // bind main property nodes
@@ -136,6 +136,8 @@ void rcfmu_t::init( PropertyNode *config ) {
 
     // fixme: should we have a config section to trigger this
     init_actuators(NULL);
+
+    mission_limiter = RateLimiter(2.5);
     
     sleep(1);
 }
@@ -269,6 +271,17 @@ bool rcfmu_t::parse( uint8_t pkt_id, uint16_t pkt_len, uint8_t *payload ) {
 	} else {
 	    printf("rcfmu: packet size mismatch in ACK\n");
 	}
+    } else if ( pkt_id == rc_message::command_v1_id ) {
+        rc_message::command_v1_t msg;
+        msg.unpack(payload, pkt_len);
+        int len = comms_node.getLen("commands");
+        int last_valid = -1;
+        for ( int i = 0; i < len; i++ ) {
+            if ( comms_node.getString("commands", i) != "" ) {
+                last_valid = i;
+            }
+        }
+        comms_node.setString("commands", msg.message, last_valid+1);
     } else if ( pkt_id == rc_message::airdata_v8_id ) {
         rc_message::airdata_v8_t airdata;
         airdata.unpack(payload, pkt_len);
@@ -492,7 +505,8 @@ bool rcfmu_t::update_gps( rc_message::gps_v5_t *gps ) {
     gps_node.setDouble("unix_time_sec", gps->unix_usec / 1000000.0);
     gps_node.setDouble("latitude_deg", gps->latitude_raw / 10000000.0 );
     gps_node.setDouble("longitude_deg", gps->longitude_raw / 10000000.0);
- 
+    gps_node.setBool("settle", true);
+    
     // generate broken-down time
     struct tm *tm;
     time_t time_sec = gps->unix_usec / 1000000U;
@@ -603,49 +617,55 @@ void rcfmu_t::write() {
     ap_msg.millis = imu_node.getUInt("millis");
     ap_msg.pack();
     serial.write_packet( ap_msg.id, ap_msg.payload, ap_msg.len );
-    
-    rc_message::mission_v1_t mission;
-    mission.millis = imu_node.getUInt("millis");
-    mission.flight_timer = task_node.getDouble("flight_timer");
 
-    mission.task_name = task_node.getString("current_task");
-    mission.target_waypoint_idx = route_node.getInt("target_waypoint_idx");
+    if ( mission_limiter.update() ) {
+        rc_message::mission_v1_t mission;
+        mission.millis = imu_node.getUInt("millis");
+        mission.flight_timer = task_node.getDouble("flight_timer");
 
-    // Note: task_attribute is an overloaded (uint16_t) field!  There
-    // will be a better way figured out sometime in the future.
-    mission.task_attribute = 0;
+        mission.task_name = task_node.getString("current_task");
+        mission.target_waypoint_idx = route_node.getInt("target_waypoint_idx");
+
+        // Note: task_attribute is an overloaded (uint16_t) field!  There
+        // will be a better way figured out sometime in the future.
+        mission.task_attribute = 0;
             
-    // wp_counter will get incremented externally in the remote_link
-    // message sender because each time we send a serial message to
-    // the remote ground station is when we want to advance to the
-    // next waypoint.
-    int counter = remote_link_node.getInt("wp_counter");
-    mission.wp_longitude_raw = 0;
-    mission.wp_latitude_raw = 0;
-    mission.wp_index = 0;
-    mission.route_size = active_node.getInt("route_size");
-    if ( mission.route_size > 0 and counter < mission.route_size ) {
-        mission.wp_index = counter;
-        string wp_path = "wpt/" + std::to_string(mission.wp_index);
-        PropertyNode wp_node = active_node.getChild(wp_path.c_str());
-        mission.wp_longitude_raw = intround(wp_node.getDouble("longitude_deg") * 10000000);
-        mission.wp_latitude_raw = intround(wp_node.getDouble("latitude_deg") * 10000000);
-    } else if ( counter == mission.route_size ) {
-        mission.wp_longitude_raw = intround(circle_node.getDouble("longitude_deg") * 10000000);
-        mission.wp_latitude_raw = intround(circle_node.getDouble("latitude_deg") * 10000000);
-        mission.wp_index = 65534;
-        mission.task_attribute = int(round(circle_node.getDouble("radius_m") * 10));
-        if ( mission.task_attribute > 32767 ) {
-            mission.task_attribute = 32767;
+        // wp_counter will get incremented externally in the remote_link
+        // message sender because each time we send a serial message to
+        // the remote ground station is when we want to advance to the
+        // next waypoint.
+        mission.wp_longitude_raw = 0;
+        mission.wp_latitude_raw = 0;
+        mission.wp_index = 0;
+        mission.route_size = active_node.getInt("route_size");
+        if ( mission.route_size > 0 and wp_counter < mission.route_size ) {
+            mission.wp_index = wp_counter;
+            string wp_path = "wpt/" + std::to_string(mission.wp_index);
+            PropertyNode wp_node = active_node.getChild(wp_path.c_str());
+            mission.wp_longitude_raw = intround(wp_node.getDouble("longitude_deg") * 10000000);
+            mission.wp_latitude_raw = intround(wp_node.getDouble("latitude_deg") * 10000000);
+        } else if ( wp_counter == mission.route_size ) {
+            mission.wp_longitude_raw = intround(circle_node.getDouble("longitude_deg") * 10000000);
+            mission.wp_latitude_raw = intround(circle_node.getDouble("latitude_deg") * 10000000);
+            mission.wp_index = 65534;
+            mission.task_attribute = int(round(circle_node.getDouble("radius_m") * 10));
+            if ( mission.task_attribute > 32767 ) {
+                mission.task_attribute = 32767;
+            }
+        } else if ( wp_counter == mission.route_size + 1 ) {
+            mission.wp_longitude_raw = intround(home_node.getDouble("longitude_deg") * 10000000);
+            mission.wp_latitude_raw = intround(home_node.getDouble("latitude_deg") * 10000000);
+            mission.wp_index = 65535;
         }
-    } else if ( counter == mission.route_size + 1 ) {
-        mission.wp_longitude_raw = intround(home_node.getDouble("longitude_deg") * 10000000);
-        mission.wp_latitude_raw = intround(home_node.getDouble("latitude_deg") * 10000000);
-        mission.wp_index = 65535;
-    }
 
-    mission.pack();
-    serial.write_packet( mission.id, mission.payload, mission.len );
+        mission.pack();
+        serial.write_packet( mission.id, mission.payload, mission.len );
+
+        wp_counter++;
+        if ( wp_counter >= mission.route_size + 2 ) {
+            wp_counter = 0;
+        }
+    }
 }
 
 void rcfmu_t::close() {

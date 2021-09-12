@@ -17,6 +17,7 @@ using namespace Eigen;
 #include "util/butter.h"
 #include "util/linearfit.h"
 #include "util/lowpass.h"
+#include "util/ratelimiter.h"
 
 #include "serial_link2.h"
 #include "rc_messages.h"
@@ -42,6 +43,7 @@ private:
     PropertyNode airdata_node;
     PropertyNode ap_node;
     PropertyNode circle_node;
+    PropertyNode comms_node;
     PropertyNode ekf_node;
     PropertyNode gps_node;
     PropertyNode home_node;
@@ -95,6 +97,9 @@ private:
     LowPassFilter ext_main_vcc_filt = LowPassFilter(2.0);
 
     bool first_status_message = false;
+
+    int wp_counter = 0;
+    RateLimiter mission_limiter;
     
     void info( const char* format, ... );
     void hard_fail( const char*format, ... );
