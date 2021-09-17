@@ -37,7 +37,7 @@
 
 // input/output nodes
 static PropertyNode pos_node;
-static PropertyNode vel_node;
+static PropertyNode airdata_node;
 static PropertyNode specs_node;
 static PropertyNode targets_node;
 static PropertyNode tecs_node;
@@ -48,8 +48,8 @@ static bool tecs_inited = false;
 static const float g = 9.81;
 
 static void init_tecs() {
+    airdata_node = PropertyNode( "/sensors/airdata" );
     pos_node = PropertyNode( "/position" );
-    vel_node = PropertyNode( "/velocity" );
     targets_node = PropertyNode( "/autopilot/targets" );
     tecs_node = PropertyNode( "/autopilot/tecs" );
     tecs_config_node = PropertyNode( "/config/autopilot/TECS" );
@@ -75,7 +75,7 @@ void update_tecs() {
 
     // Current energy
     double alt_m = pos_node.getDouble("altitude_agl_m");
-    double vel_mps = vel_node.getDouble("airspeed_smoothed_kt") * SG_KT_TO_MPS;
+    double vel_mps = airdata_node.getDouble("airspeed_mps");
     double energy_pot = mass_kg * g * alt_m;
     double energy_kin = 0.5 * mass_kg * vel_mps * vel_mps;
     tecs_node.setDouble("energy_pot", energy_pot);
