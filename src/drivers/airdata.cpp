@@ -26,7 +26,7 @@ void airdata_helper_t::init(DocPointerWrapper d) {
     
     airdata_node = PropertyNode( "/sensors/airdata" );
     sensors_node = PropertyNode( "/sensors" );
-    pos_filter_node = PropertyNode( "/position/filter/0" );
+    pos_filter_node = PropertyNode( "/position/filter" );
     pos_pressure_node = PropertyNode( "/position/pressure" );
     pos_combined_node = PropertyNode( "/position/combined" );
     status_node = PropertyNode( "/status" );
