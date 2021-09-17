@@ -166,8 +166,7 @@ bool rcfmu_t::open( PropertyNode *config ) {
 }
 
 void rcfmu_t::init_airdata( PropertyNode *config ) {
-    string output_path = get_next_path("/sensors", "airdata", true);
-    airdata_node = PropertyNode( output_path.c_str() );
+    airdata_node = PropertyNode( "/sensors/airdata" );
     if ( config->hasChild("pitot_calibrate_factor") ) {
         pitot_calibrate = config->getDouble("pitot_calibrate_factor");
     }
@@ -577,13 +576,13 @@ bool rcfmu_t::update_airdata( rc_message::airdata_v8_t *airdata ) {
     float Pa = (pitot - pitot_offset);
     if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
     float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
-    float airspeed_kt = airspeed_mps * SG_MPS_TO_KT;
     airdata_node.setDouble( "airspeed_mps", airspeed_mps );
-    airdata_node.setDouble( "airspeed_kt", airspeed_kt );
 
     // publish sensor values
     airdata_node.setDouble( "pressure_mbar", airdata->baro_press_pa / 100.0 );
 
+    pos_node.setDouble( "altitude_ground_m", airdata->altitude_ground_m);
+    
     fresh_data = true;
 
     return fresh_data;
