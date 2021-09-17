@@ -26,6 +26,7 @@ def update():
         command = comms_node.getString("commands", i)
         if command != "":
             print("command:", command)
+            comms.events.log("command: %s" % command)
             execute_command(command)
             comms_node.setString("commands", "", i)
     
@@ -104,11 +105,7 @@ def execute_command( command ):
         if value == "": value = "undefined"
         # print tokens[0], "=", value
         return_msg = "get: %s,%s" % (tokens[1], value)
-        event = rc_messages.event_v2()
-        event.message = return_msg
-        buf = event.pack()
-        send_message(event.id, buf)
-        comms.events.log("get", "%s,%s" % (tokens[1], value))
+        # send_message(event.id, buf)
     elif tokens[0] == "set" and len(tokens) >= 3:
         if tokens[1][0] == "/":
             # absolute path

@@ -859,7 +859,7 @@ class airdata_v7():
 # Id: 54
 class airdata_v8():
     id = 54
-    _pack_string = "<BLHHhhffHBBH"
+    _pack_string = "<BLHHhhfffBLHBBH"
     _struct = struct.Struct(_pack_string)
 
     def __init__(self, msg=None):
@@ -869,11 +869,14 @@ class airdata_v8():
         self.baro_press_pa = 0.0
         self.diff_press_pa = 0.0
         self.air_temp_C = 0.0
-        self.airspeed_smoothed_kt = 0.0
-        self.altitude_smoothed_m = 0.0
+        self.airspeed_mps = 0.0
+        self.altitude_agl_m = 0.0
         self.altitude_true_m = 0.0
+        self.altitude_ground_m = 0.0
+        self.is_airborne = 0
+        self.flight_timer_millis = 0
         self.wind_dir_deg = 0.0
-        self.wind_speed_kt = 0.0
+        self.wind_speed_mps = 0.0
         self.pitot_scale_factor = 0.0
         self.error_count = 0
         # unpack if requested
@@ -886,11 +889,14 @@ class airdata_v8():
                   int(round(self.baro_press_pa * 0.5)),
                   int(round(self.diff_press_pa * 10.0)),
                   int(round(self.air_temp_C * 250.0)),
-                  int(round(self.airspeed_smoothed_kt * 100.0)),
-                  self.altitude_smoothed_m,
+                  int(round(self.airspeed_mps * 100.0)),
+                  self.altitude_agl_m,
                   self.altitude_true_m,
+                  self.altitude_ground_m,
+                  self.is_airborne,
+                  self.flight_timer_millis,
                   int(round(self.wind_dir_deg * 100.0)),
-                  int(round(self.wind_speed_kt * 5.0)),
+                  int(round(self.wind_speed_mps * 10.0)),
                   int(round(self.pitot_scale_factor * 100.0)),
                   self.error_count)
         return msg
@@ -901,19 +907,22 @@ class airdata_v8():
          self.baro_press_pa,
          self.diff_press_pa,
          self.air_temp_C,
-         self.airspeed_smoothed_kt,
-         self.altitude_smoothed_m,
+         self.airspeed_mps,
+         self.altitude_agl_m,
          self.altitude_true_m,
+         self.altitude_ground_m,
+         self.is_airborne,
+         self.flight_timer_millis,
          self.wind_dir_deg,
-         self.wind_speed_kt,
+         self.wind_speed_mps,
          self.pitot_scale_factor,
          self.error_count) = self._struct.unpack(msg)
         self.baro_press_pa /= 0.5
         self.diff_press_pa /= 10.0
         self.air_temp_C /= 250.0
-        self.airspeed_smoothed_kt /= 100.0
+        self.airspeed_mps /= 100.0
         self.wind_dir_deg /= 100.0
-        self.wind_speed_kt /= 5.0
+        self.wind_speed_mps /= 10.0
         self.pitot_scale_factor /= 100.0
 
     def msg2props(self, node):
@@ -922,11 +931,14 @@ class airdata_v8():
         node.setDouble("baro_press_pa", self.baro_press_pa)
         node.setDouble("diff_press_pa", self.diff_press_pa)
         node.setDouble("air_temp_C", self.air_temp_C)
-        node.setDouble("airspeed_smoothed_kt", self.airspeed_smoothed_kt)
-        node.setDouble("altitude_smoothed_m", self.altitude_smoothed_m)
+        node.setDouble("airspeed_mps", self.airspeed_mps)
+        node.setDouble("altitude_agl_m", self.altitude_agl_m)
         node.setDouble("altitude_true_m", self.altitude_true_m)
+        node.setDouble("altitude_ground_m", self.altitude_ground_m)
+        node.setUInt("is_airborne", self.is_airborne)
+        node.setUInt("flight_timer_millis", self.flight_timer_millis)
         node.setDouble("wind_dir_deg", self.wind_dir_deg)
-        node.setDouble("wind_speed_kt", self.wind_speed_kt)
+        node.setDouble("wind_speed_mps", self.wind_speed_mps)
         node.setDouble("pitot_scale_factor", self.pitot_scale_factor)
         node.setUInt("error_count", self.error_count)
 
@@ -936,11 +948,14 @@ class airdata_v8():
         baro_press_pa = node.getDouble("baro_press_pa")
         diff_press_pa = node.getDouble("diff_press_pa")
         air_temp_C = node.getDouble("air_temp_C")
-        airspeed_smoothed_kt = node.getDouble("airspeed_smoothed_kt")
-        altitude_smoothed_m = node.getDouble("altitude_smoothed_m")
+        airspeed_mps = node.getDouble("airspeed_mps")
+        altitude_agl_m = node.getDouble("altitude_agl_m")
         altitude_true_m = node.getDouble("altitude_true_m")
+        altitude_ground_m = node.getDouble("altitude_ground_m")
+        is_airborne = node.getUInt("is_airborne")
+        flight_timer_millis = node.getUInt("flight_timer_millis")
         wind_dir_deg = node.getDouble("wind_dir_deg")
-        wind_speed_kt = node.getDouble("wind_speed_kt")
+        wind_speed_mps = node.getDouble("wind_speed_mps")
         pitot_scale_factor = node.getDouble("pitot_scale_factor")
         error_count = node.getUInt("error_count")
 
@@ -2193,7 +2208,7 @@ class ap_targets_v1():
         self.index = 0
         self.millis = 0
         self.groundtrack_deg = 0.0
-        self.altitude_ground_m = 0.0
+        self.altitude_msl_ft = 0.0
         self.airspeed_kt = 0.0
         self.roll_deg = 0.0
         self.pitch_deg = 0.0
@@ -2205,7 +2220,7 @@ class ap_targets_v1():
                   self.index,
                   self.millis,
                   int(round(self.groundtrack_deg * 10.0)),
-                  int(round(self.altitude_ground_m * 1.0)),
+                  int(round(self.altitude_msl_ft * 1.0)),
                   int(round(self.airspeed_kt * 10.0)),
                   int(round(self.roll_deg * 10.0)),
                   int(round(self.pitch_deg * 10.0)))
@@ -2215,12 +2230,12 @@ class ap_targets_v1():
         (self.index,
          self.millis,
          self.groundtrack_deg,
-         self.altitude_ground_m,
+         self.altitude_msl_ft,
          self.airspeed_kt,
          self.roll_deg,
          self.pitch_deg) = self._struct.unpack(msg)
         self.groundtrack_deg /= 10.0
-        self.altitude_ground_m /= 1.0
+        self.altitude_msl_ft /= 1.0
         self.airspeed_kt /= 10.0
         self.roll_deg /= 10.0
         self.pitch_deg /= 10.0
@@ -2229,7 +2244,7 @@ class ap_targets_v1():
         node.setUInt("index", self.index)
         node.setUInt("millis", self.millis)
         node.setDouble("groundtrack_deg", self.groundtrack_deg)
-        node.setDouble("altitude_ground_m", self.altitude_ground_m)
+        node.setDouble("altitude_msl_ft", self.altitude_msl_ft)
         node.setDouble("airspeed_kt", self.airspeed_kt)
         node.setDouble("roll_deg", self.roll_deg)
         node.setDouble("pitch_deg", self.pitch_deg)
@@ -2238,7 +2253,7 @@ class ap_targets_v1():
         index = node.getUInt("index")
         millis = node.getUInt("millis")
         groundtrack_deg = node.getDouble("groundtrack_deg")
-        altitude_ground_m = node.getDouble("altitude_ground_m")
+        altitude_msl_ft = node.getDouble("altitude_msl_ft")
         airspeed_kt = node.getDouble("airspeed_kt")
         roll_deg = node.getDouble("roll_deg")
         pitch_deg = node.getDouble("pitch_deg")
@@ -2247,13 +2262,14 @@ class ap_targets_v1():
 # Id: 60
 class mission_v1():
     id = 60
-    _pack_string = "<BLHHHHHHll"
+    _pack_string = "<BLBHHHHHHll"
     _struct = struct.Struct(_pack_string)
 
     def __init__(self, msg=None):
         # public fields
         self.index = 0
         self.millis = 0
+        self.is_airborne = 0
         self.flight_timer = 0.0
         self.task_name = ""
         self.task_attribute = 0
@@ -2269,6 +2285,7 @@ class mission_v1():
         msg = self._struct.pack(
                   self.index,
                   self.millis,
+                  self.is_airborne,
                   int(round(self.flight_timer * 1.0)),
                   len(self.task_name),
                   self.task_attribute,
@@ -2286,6 +2303,7 @@ class mission_v1():
         msg = msg[:base_len]
         (self.index,
          self.millis,
+         self.is_airborne,
          self.flight_timer,
          self.task_name_len,
          self.task_attribute,
@@ -2301,6 +2319,7 @@ class mission_v1():
     def msg2props(self, node):
         node.setUInt("index", self.index)
         node.setUInt("millis", self.millis)
+        node.setUInt("is_airborne", self.is_airborne)
         node.setDouble("flight_timer", self.flight_timer)
         node.setString("task_name", self.task_name)
         node.setUInt("task_attribute", self.task_attribute)
@@ -2313,6 +2332,7 @@ class mission_v1():
     def props2msg(self, node):
         index = node.getUInt("index")
         millis = node.getUInt("millis")
+        is_airborne = node.getUInt("is_airborne")
         flight_timer = node.getDouble("flight_timer")
         task_name = node.getString("task_name")
         task_attribute = node.getUInt("task_attribute")

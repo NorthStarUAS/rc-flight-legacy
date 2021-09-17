@@ -18,7 +18,7 @@ m2ft = 1.0 / ft2m
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
     
-airdata_node = PropertyNode("/sensors/airdata/0")
+airdata_node = PropertyNode("/sensors/airdata")
 nav_node = PropertyNode("/filters/filter/0")
 gps_node = PropertyNode("/sensors/gps/0")
 imu_node = PropertyNode("/sensors/imu/0")
@@ -226,6 +226,7 @@ class Packer():
             print("Warning: airdata index > 0 not supported")
         air.msg2props(airdata_node)
         airdata_node.setDouble("timestamp", air.millis / 1000.0)
+        pos_node.setDouble("altitude_ground_m", air.altitude_ground_m)
         return air.index
 
     # FIXME: think about how we are dealing with skips and gps's lower rate?
