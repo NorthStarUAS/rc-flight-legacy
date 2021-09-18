@@ -73,6 +73,8 @@ def parse_msg(id, buf):
         index = packer.unpack_airdata_v7(buf)
     elif id == rc_messages.airdata_v8_id:
         index = packer.unpack_airdata_v8(buf)
+    elif id == rc_messages.effectors_v1_id:
+        index = packer.unpack_effectors_v1(buf)
     elif id == rc_messages.filter_v4_id:
         index = packer.unpack_filter_v4(buf)
     elif id == rc_messages.filter_v5_id:

@@ -44,7 +44,7 @@ def compute_tecs():
         wb = tecs_config_node.getDouble("weight_bal")
     else:
         wb = 1.0
-    # fixem:
+    # fixme:
     wb = 0.0
     alt_m = filter_node.getDouble("altitude_m")
     vel_mps = vel_node.getDouble("airspeed_smoothed_kt") * kt2mps
