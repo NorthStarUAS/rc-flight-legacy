@@ -17,10 +17,11 @@ nav_v6_id = 52
 nav_metrics_v6_id = 53
 actuator_v2_id = 21
 actuator_v3_id = 37
-inceptors_v4_id = 58
+effectors_v1_id = 61
 pilot_v2_id = 20
 pilot_v3_id = 38
 pilot_v4_id = 51
+inceptors_v1_id = 62
 power_v1_id = 55
 ap_status_v6_id = 33
 ap_status_v7_id = 39
@@ -1620,18 +1621,18 @@ class actuator_v3():
         channel8 = node.getDouble("channel8")
         status = node.getUInt("status")
 
-# Message: inceptors_v4
-# Id: 58
-class inceptors_v4():
-    id = 58
-    _pack_string = "<BLhhhhhh"
+# Message: effectors_v1
+# Id: 61
+class effectors_v1():
+    id = 61
+    _pack_string = "<BLhhhhhhhh"
     _struct = struct.Struct(_pack_string)
 
     def __init__(self, msg=None):
         # public fields
         self.index = 0
         self.millis = 0
-        self.channel = [0.0] * ap_channels
+        self.channel = [0.0] * 8
         # unpack if requested
         if msg: self.unpack(msg)
 
@@ -1639,12 +1640,14 @@ class inceptors_v4():
         msg = self._struct.pack(
                   self.index,
                   self.millis,
-                  int(round(self.channel[0] * 2000.0)),
-                  int(round(self.channel[1] * 2000.0)),
-                  int(round(self.channel[2] * 2000.0)),
-                  int(round(self.channel[3] * 2000.0)),
-                  int(round(self.channel[4] * 2000.0)),
-                  int(round(self.channel[5] * 2000.0)))
+                  int(round(self.channel[0] * 20000.0)),
+                  int(round(self.channel[1] * 20000.0)),
+                  int(round(self.channel[2] * 20000.0)),
+                  int(round(self.channel[3] * 20000.0)),
+                  int(round(self.channel[4] * 20000.0)),
+                  int(round(self.channel[5] * 20000.0)),
+                  int(round(self.channel[6] * 20000.0)),
+                  int(round(self.channel[7] * 20000.0)))
         return msg
 
     def unpack(self, msg):
@@ -1655,23 +1658,27 @@ class inceptors_v4():
          self.channel[2],
          self.channel[3],
          self.channel[4],
-         self.channel[5]) = self._struct.unpack(msg)
-        self.channel[0] /= 2000.0
-        self.channel[1] /= 2000.0
-        self.channel[2] /= 2000.0
-        self.channel[3] /= 2000.0
-        self.channel[4] /= 2000.0
-        self.channel[5] /= 2000.0
+         self.channel[5],
+         self.channel[6],
+         self.channel[7]) = self._struct.unpack(msg)
+        self.channel[0] /= 20000.0
+        self.channel[1] /= 20000.0
+        self.channel[2] /= 20000.0
+        self.channel[3] /= 20000.0
+        self.channel[4] /= 20000.0
+        self.channel[5] /= 20000.0
+        self.channel[6] /= 20000.0
+        self.channel[7] /= 20000.0
 
     def msg2props(self, node):
         node.setUInt("index", self.index)
         node.setUInt("millis", self.millis)
-        for _i in range(ap_channels): node.setDouble("channel", self.channel[_i], _i)
+        for _i in range(8): node.setDouble("channel", self.channel[_i], _i)
 
     def props2msg(self, node):
         index = node.getUInt("index")
         millis = node.getUInt("millis")
-        for _i in range(ap_channels): channel[_i] = node.getDouble("channel", _i)
+        for _i in range(8): channel[_i] = node.getDouble("channel", _i)
 
 # Message: pilot_v2
 # Id: 20
@@ -1898,6 +1905,59 @@ class pilot_v4():
         failsafe = node.getUInt("failsafe")
         master_switch = node.getUInt("master_switch")
         throttle_safety = node.getUInt("throttle_safety")
+
+# Message: inceptors_v1
+# Id: 62
+class inceptors_v1():
+    id = 62
+    _pack_string = "<BLhhhhhh"
+    _struct = struct.Struct(_pack_string)
+
+    def __init__(self, msg=None):
+        # public fields
+        self.index = 0
+        self.millis = 0
+        self.channel = [0.0] * ap_channels
+        # unpack if requested
+        if msg: self.unpack(msg)
+
+    def pack(self):
+        msg = self._struct.pack(
+                  self.index,
+                  self.millis,
+                  int(round(self.channel[0] * 2000.0)),
+                  int(round(self.channel[1] * 2000.0)),
+                  int(round(self.channel[2] * 2000.0)),
+                  int(round(self.channel[3] * 2000.0)),
+                  int(round(self.channel[4] * 2000.0)),
+                  int(round(self.channel[5] * 2000.0)))
+        return msg
+
+    def unpack(self, msg):
+        (self.index,
+         self.millis,
+         self.channel[0],
+         self.channel[1],
+         self.channel[2],
+         self.channel[3],
+         self.channel[4],
+         self.channel[5]) = self._struct.unpack(msg)
+        self.channel[0] /= 2000.0
+        self.channel[1] /= 2000.0
+        self.channel[2] /= 2000.0
+        self.channel[3] /= 2000.0
+        self.channel[4] /= 2000.0
+        self.channel[5] /= 2000.0
+
+    def msg2props(self, node):
+        node.setUInt("index", self.index)
+        node.setUInt("millis", self.millis)
+        for _i in range(ap_channels): node.setDouble("channel", self.channel[_i], _i)
+
+    def props2msg(self, node):
+        index = node.getUInt("index")
+        millis = node.getUInt("millis")
+        for _i in range(ap_channels): channel[_i] = node.getDouble("channel", _i)
 
 # Message: power_v1
 # Id: 55
@@ -2208,7 +2268,7 @@ class ap_targets_v1():
         self.index = 0
         self.millis = 0
         self.groundtrack_deg = 0.0
-        self.altitude_msl_ft = 0.0
+        self.altitude_agl_ft = 0.0
         self.airspeed_kt = 0.0
         self.roll_deg = 0.0
         self.pitch_deg = 0.0
@@ -2220,7 +2280,7 @@ class ap_targets_v1():
                   self.index,
                   self.millis,
                   int(round(self.groundtrack_deg * 10.0)),
-                  int(round(self.altitude_msl_ft * 1.0)),
+                  int(round(self.altitude_agl_ft * 10.0)),
                   int(round(self.airspeed_kt * 10.0)),
                   int(round(self.roll_deg * 10.0)),
                   int(round(self.pitch_deg * 10.0)))
@@ -2230,12 +2290,12 @@ class ap_targets_v1():
         (self.index,
          self.millis,
          self.groundtrack_deg,
-         self.altitude_msl_ft,
+         self.altitude_agl_ft,
          self.airspeed_kt,
          self.roll_deg,
          self.pitch_deg) = self._struct.unpack(msg)
         self.groundtrack_deg /= 10.0
-        self.altitude_msl_ft /= 1.0
+        self.altitude_agl_ft /= 10.0
         self.airspeed_kt /= 10.0
         self.roll_deg /= 10.0
         self.pitch_deg /= 10.0
@@ -2244,7 +2304,7 @@ class ap_targets_v1():
         node.setUInt("index", self.index)
         node.setUInt("millis", self.millis)
         node.setDouble("groundtrack_deg", self.groundtrack_deg)
-        node.setDouble("altitude_msl_ft", self.altitude_msl_ft)
+        node.setDouble("altitude_agl_ft", self.altitude_agl_ft)
         node.setDouble("airspeed_kt", self.airspeed_kt)
         node.setDouble("roll_deg", self.roll_deg)
         node.setDouble("pitch_deg", self.pitch_deg)
@@ -2253,7 +2313,7 @@ class ap_targets_v1():
         index = node.getUInt("index")
         millis = node.getUInt("millis")
         groundtrack_deg = node.getDouble("groundtrack_deg")
-        altitude_msl_ft = node.getDouble("altitude_msl_ft")
+        altitude_agl_ft = node.getDouble("altitude_agl_ft")
         airspeed_kt = node.getDouble("airspeed_kt")
         roll_deg = node.getDouble("roll_deg")
         pitch_deg = node.getDouble("pitch_deg")

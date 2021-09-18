@@ -19,6 +19,7 @@ START_OF_MSG0 = 147
 START_OF_MSG1 = 224
     
 airdata_node = PropertyNode("/sensors/airdata")
+effectors_node = PropertyNode("/effectors")
 nav_node = PropertyNode("/filters/filter/0")
 gps_node = PropertyNode("/sensors/gps/0")
 imu_node = PropertyNode("/sensors/imu/0")
@@ -724,6 +725,17 @@ class Packer():
         act_node.setDouble("channel8", act.channel8)
         act_node.setInt("status", act.status)
         return act.index
+
+    def unpack_effectors_v1(self, buf):
+        eff = rc_messages.effectors_v1(buf)
+        eff.msg2props(effectors_node)
+        effectors_node.setDouble("aileron", eff.channel[1])
+        effectors_node.setDouble("elevator", eff.channel[2])
+        effectors_node.setDouble("throttle", eff.channel[0])
+        effectors_node.setDouble("rudder", eff.channel[3])
+        effectors_node.setDouble("flaps", eff.channel[4])
+        effectors_node.setDouble("gear", eff.channel[5])
+        return eff.index
 
     def pack_pilot_bin(self, use_cached=False):
         pilot_time = pilot_node.getDouble('timestamp')

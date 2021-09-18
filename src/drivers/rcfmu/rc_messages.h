@@ -44,10 +44,11 @@ const uint8_t nav_v6_id = 52;
 const uint8_t nav_metrics_v6_id = 53;
 const uint8_t actuator_v2_id = 21;
 const uint8_t actuator_v3_id = 37;
-const uint8_t inceptors_v4_id = 58;
+const uint8_t effectors_v1_id = 61;
 const uint8_t pilot_v2_id = 20;
 const uint8_t pilot_v3_id = 38;
 const uint8_t pilot_v4_id = 51;
+const uint8_t inceptors_v1_id = 62;
 const uint8_t power_v1_id = 55;
 const uint8_t ap_status_v6_id = 33;
 const uint8_t ap_status_v7_id = 39;
@@ -2306,29 +2307,29 @@ public:
     }
 };
 
-// Message: inceptors_v4 (id: 58)
-class inceptors_v4_t {
+// Message: effectors_v1 (id: 61)
+class effectors_v1_t {
 public:
 
     uint8_t index;
     uint32_t millis;
-    float channel[ap_channels];
+    float channel[8];
 
     // internal structure for packing
     #pragma pack(push, 1)
     struct _compact_t {
         uint8_t index;
         uint32_t millis;
-        int16_t channel[ap_channels];
+        int16_t channel[8];
     };
     #pragma pack(pop)
 
     // id, ptr to payload and len
-    static const uint8_t id = 58;
+    static const uint8_t id = 61;
     uint8_t *payload = nullptr;
     int len = 0;
 
-    ~inceptors_v4_t() {
+    ~effectors_v1_t() {
         free(payload);
     }
 
@@ -2341,7 +2342,7 @@ public:
         _compact_t *_buf = (_compact_t *)payload;
         _buf->index = index;
         _buf->millis = millis;
-        for (int _i=0; _i<ap_channels; _i++) _buf->channel[_i] = intround(channel[_i] * 2000.0);
+        for (int _i=0; _i<8; _i++) _buf->channel[_i] = intround(channel[_i] * 20000.0);
         return true;
     }
 
@@ -2350,7 +2351,7 @@ public:
         len = sizeof(_compact_t);
         index = _buf->index;
         millis = _buf->millis;
-        for (int _i=0; _i<ap_channels; _i++) channel[_i] = _buf->channel[_i] / (float)2000.0;
+        for (int _i=0; _i<8; _i++) channel[_i] = _buf->channel[_i] / (float)20000.0;
         return true;
     }
 
@@ -2365,7 +2366,7 @@ public:
     void msg2props(PropertyNode &node) {
         node.setUInt("index", index);
         node.setUInt("millis", millis);
-        for (int _i=0; _i<ap_channels; _i++) node.setDouble("channel", channel[_i], _i);
+        for (int _i=0; _i<8; _i++) node.setDouble("channel", channel[_i], _i);
     }
 
     void props2msg(string _path, int _index = -1) {
@@ -2379,7 +2380,7 @@ public:
     void props2msg(PropertyNode &node) {
         index = node.getUInt("index");
         millis = node.getUInt("millis");
-        for (int _i=0; _i<ap_channels; _i++) channel[_i] = node.getDouble("channel", _i);
+        for (int _i=0; _i<8; _i++) channel[_i] = node.getDouble("channel", _i);
     }
 };
 
@@ -2641,6 +2642,83 @@ public:
         failsafe = node.getUInt("failsafe");
         master_switch = node.getUInt("master_switch");
         throttle_safety = node.getUInt("throttle_safety");
+    }
+};
+
+// Message: inceptors_v1 (id: 62)
+class inceptors_v1_t {
+public:
+
+    uint8_t index;
+    uint32_t millis;
+    float channel[ap_channels];
+
+    // internal structure for packing
+    #pragma pack(push, 1)
+    struct _compact_t {
+        uint8_t index;
+        uint32_t millis;
+        int16_t channel[ap_channels];
+    };
+    #pragma pack(pop)
+
+    // id, ptr to payload and len
+    static const uint8_t id = 62;
+    uint8_t *payload = nullptr;
+    int len = 0;
+
+    ~inceptors_v1_t() {
+        free(payload);
+    }
+
+    bool pack() {
+        len = sizeof(_compact_t);
+        // compute dynamic packet size (if neede)
+        int size = len;
+        payload = (uint8_t *)REALLOC(payload, size);
+        // copy values
+        _compact_t *_buf = (_compact_t *)payload;
+        _buf->index = index;
+        _buf->millis = millis;
+        for (int _i=0; _i<ap_channels; _i++) _buf->channel[_i] = intround(channel[_i] * 2000.0);
+        return true;
+    }
+
+    bool unpack(uint8_t *external_message, int message_size) {
+        _compact_t *_buf = (_compact_t *)external_message;
+        len = sizeof(_compact_t);
+        index = _buf->index;
+        millis = _buf->millis;
+        for (int _i=0; _i<ap_channels; _i++) channel[_i] = _buf->channel[_i] / (float)2000.0;
+        return true;
+    }
+
+    void msg2props(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node(_path.c_str());
+        msg2props(node);
+    }
+
+    void msg2props(PropertyNode &node) {
+        node.setUInt("index", index);
+        node.setUInt("millis", millis);
+        for (int _i=0; _i<ap_channels; _i++) node.setDouble("channel", channel[_i], _i);
+    }
+
+    void props2msg(string _path, int _index = -1) {
+        if ( _index >= 0 ) {
+            _path += "/" + std::to_string(_index);
+        }
+        PropertyNode node(_path.c_str());
+        props2msg(node);
+    }
+
+    void props2msg(PropertyNode &node) {
+        index = node.getUInt("index");
+        millis = node.getUInt("millis");
+        for (int _i=0; _i<ap_channels; _i++) channel[_i] = node.getDouble("channel", _i);
     }
 };
 
@@ -3086,7 +3164,7 @@ public:
     uint8_t index;
     uint32_t millis;
     float groundtrack_deg;
-    float altitude_msl_ft;
+    float altitude_agl_ft;
     float airspeed_kt;
     float roll_deg;
     float pitch_deg;
@@ -3097,7 +3175,7 @@ public:
         uint8_t index;
         uint32_t millis;
         int16_t groundtrack_deg;
-        uint16_t altitude_msl_ft;
+        uint16_t altitude_agl_ft;
         int16_t airspeed_kt;
         int16_t roll_deg;
         int16_t pitch_deg;
@@ -3123,7 +3201,7 @@ public:
         _buf->index = index;
         _buf->millis = millis;
         _buf->groundtrack_deg = intround(groundtrack_deg * 10.0);
-        _buf->altitude_msl_ft = uintround(altitude_msl_ft * 1.0);
+        _buf->altitude_agl_ft = uintround(altitude_agl_ft * 10.0);
         _buf->airspeed_kt = intround(airspeed_kt * 10.0);
         _buf->roll_deg = intround(roll_deg * 10.0);
         _buf->pitch_deg = intround(pitch_deg * 10.0);
@@ -3136,7 +3214,7 @@ public:
         index = _buf->index;
         millis = _buf->millis;
         groundtrack_deg = _buf->groundtrack_deg / (float)10.0;
-        altitude_msl_ft = _buf->altitude_msl_ft / (float)1.0;
+        altitude_agl_ft = _buf->altitude_agl_ft / (float)10.0;
         airspeed_kt = _buf->airspeed_kt / (float)10.0;
         roll_deg = _buf->roll_deg / (float)10.0;
         pitch_deg = _buf->pitch_deg / (float)10.0;
@@ -3155,7 +3233,7 @@ public:
         node.setUInt("index", index);
         node.setUInt("millis", millis);
         node.setDouble("groundtrack_deg", groundtrack_deg);
-        node.setDouble("altitude_msl_ft", altitude_msl_ft);
+        node.setDouble("altitude_agl_ft", altitude_agl_ft);
         node.setDouble("airspeed_kt", airspeed_kt);
         node.setDouble("roll_deg", roll_deg);
         node.setDouble("pitch_deg", pitch_deg);
@@ -3173,7 +3251,7 @@ public:
         index = node.getUInt("index");
         millis = node.getUInt("millis");
         groundtrack_deg = node.getDouble("groundtrack_deg");
-        altitude_msl_ft = node.getDouble("altitude_msl_ft");
+        altitude_agl_ft = node.getDouble("altitude_agl_ft");
         airspeed_kt = node.getDouble("airspeed_kt");
         roll_deg = node.getDouble("roll_deg");
         pitch_deg = node.getDouble("pitch_deg");

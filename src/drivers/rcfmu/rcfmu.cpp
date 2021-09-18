@@ -598,7 +598,7 @@ void rcfmu_t::airdata_zero_airspeed() {
 
 void rcfmu_t::write() {
     // send actuator commands to fmu
-    rc_message::inceptors_v4_t inceptors;
+    rc_message::inceptors_v1_t inceptors;
     inceptors.index = 0;
     inceptors.millis = imu_node.getUInt("millis");
     inceptors.channel[0] = act_node.getDouble("throttle");
