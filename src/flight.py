@@ -40,7 +40,7 @@ else:
 
 # C++ modules
 from rcUAS import actuator_mgr, control_mgr, driver_mgr, filter_mgr
-from rcUAS import airdata_helper, gps_helper
+from rcUAS import gps_helper
 
 # Pure python modules
 from comms import display, logging, remote_command, telnet
@@ -60,7 +60,6 @@ status_node.setDouble("frame_time", 0.0)
 actuators = actuator_mgr.actuator_mgr()
 control = control_mgr.control_mgr()
 drivers = driver_mgr.driver_mgr()
-airdata = airdata_helper.airdata_helper()
 gps = gps_helper.gps_helper()
 pilot = pilot_helper.pilot_helper()
 
@@ -88,7 +87,6 @@ def init():
     drivers.init(doc)
 
     # sensor processing helpers
-    airdata.init(doc)
     gps.init(doc)
     pilot.init()
 
@@ -134,7 +132,6 @@ def update():
     
     # extra sensor processing section
     myprof.helper_prof.start()
-    airdata.update()
     gps.update(display_on)    # computes gps age (optionally sets host clock)
     pilot.update()            # log auto/manual changes, transient reduction
 

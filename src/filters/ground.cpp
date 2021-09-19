@@ -34,9 +34,4 @@ void update_ground(double dt) {
 	pos_filter_node.setDouble( "altitude_ground_m",
                                   ground_alt_filt.get_value() );
     }
-
-    float agl_m = filter_node.getDouble( "altitude_m" )
-	- ground_alt_filt.get_value();
-    pos_filter_node.setDouble( "altitude_agl_m", agl_m );
-    pos_filter_node.setDouble( "altitude_agl_ft", agl_m * SG_METER_TO_FEET );
 }

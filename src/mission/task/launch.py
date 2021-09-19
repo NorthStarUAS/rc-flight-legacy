@@ -7,6 +7,8 @@ from mission.task.task import Task
 from mission.task import fcsmode
 
 r2d = 180.0 / math.pi
+ft2m = 0.3048
+m2ft = 1.0 / ft2m
 
 class Launch(Task):
     def __init__(self, config_node):
@@ -148,7 +150,7 @@ class Launch(Task):
         self.last_ap_master = self.switches_node.getBool("master_switch")
 
     def is_complete(self):
-        if self.pos_node.getDouble("altitude_agl_ft") >= self.complete_agl_ft:
+        if self.pos_node.getDouble("altitude_agl_m") * m2ft >= self.complete_agl_ft:
             # raise flaps
             self.flight_node.setDouble("flaps_setpoint", 0.0)
 

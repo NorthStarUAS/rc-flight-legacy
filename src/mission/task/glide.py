@@ -18,6 +18,9 @@ import mission.task.state
 # navigation control is unaffected, so the aircraft could be put in a
 # very large radius (200-300m) circle hold during the entire maneuver.
 
+ft2m = 0.3048
+m2ft = 1.0 / ft2m
+
 class GlideTest(Task):
     def __init__(self, config_node):
         Task.__init__(self)
@@ -99,7 +102,7 @@ class GlideTest(Task):
                 self.end_experiment()
 
             # monitor for state transitions
-            alt = self.pos_node.getDouble("altitude_agl_ft")
+            alt = self.pos_node.getDouble("altitude_agl_m") * m2ft
             if alt < self.bot_altitude + 10:
                 if fcsmode.get() != "basic+tecs":
                     fcsmode.set("basic+tecs")

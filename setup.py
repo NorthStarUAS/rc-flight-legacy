@@ -120,19 +120,6 @@ setup(
                   include_dirs=["src"],
                   extra_objects=["/usr/local/lib/libprops2.a"]
                   ),
-        Extension("rcUAS.airdata_helper",
-                  define_macros=[("HAVE_PYBIND11", "1")],
-                  sources=[
-                      "src/drivers/airdata.cpp",
-                      "src/util/lowpass.cpp"
-                  ],
-                  depends=[
-                      "src/drivers/airdata.h",
-                      "src/util/lowpass.h"
-                  ],
-                  include_dirs=["src"],
-                  extra_objects=["/usr/local/lib/libprops2.a"]
-                  ),
         Extension("rcUAS.gps_helper",
                   define_macros=[("HAVE_PYBIND11", "1")],
                   sources=[

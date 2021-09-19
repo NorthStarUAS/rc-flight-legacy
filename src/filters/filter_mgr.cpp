@@ -34,6 +34,7 @@ using std::string;
 static double last_imu_time = 0.0;
 
 // property nodes
+static PropertyNode airdata_node;
 static PropertyNode imu_node;
 static PropertyNode gps_node;
 static PropertyNode pos_node;
@@ -53,6 +54,7 @@ void Filter_init(SharedStateWrapper d) {
     PropertyNode("/").set_shared_state(d);
     
     // initialize imu property nodes
+    airdata_node = PropertyNode( "/sensors/airdata" );
     imu_node = PropertyNode( "/sensors/imu/0" );
     gps_node = PropertyNode( "/sensors/gps/0" );
     pos_node = PropertyNode( "/position" );
@@ -207,14 +209,8 @@ static void publish_values() {
     // be adversely affected (significantly) by gps altitude errors.
     pos_node.setDouble( "altitude_m",
 			pos_filter_node.getDouble("altitude_m") );
-    pos_node.setDouble( "altitude_ft",
-			pos_filter_node.getDouble("altitude_ft") );
     pos_node.setDouble( "altitude_agl_m",
-			pos_filter_node.getDouble("altitude_agl_m") );
-    pos_node.setDouble( "altitude_agl_ft",
-			pos_filter_node.getDouble("altitude_agl_ft") );
-    pos_node.setDouble( "altitude_ground_m",
-			pos_filter_node.getDouble("altitude_ground_m") );
+			filter_node.getDouble("altitude_m") - airdata_node.getDouble("altitude_ground_m") );
 }
 
 bool Filter_update() {

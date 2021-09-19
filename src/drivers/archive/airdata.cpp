@@ -37,6 +37,8 @@ void airdata_helper_t::init(SharedStateWrapper d) {
 
 // 1. ground altitude, 2. error between pressure altitude and gps altitude
 void airdata_helper_t::update() {
+    return;                     // want everything computed on the fmu now
+    
     double cur_time = airdata_node.getDouble("timestamp");
 
     double dt = cur_time - last_time;

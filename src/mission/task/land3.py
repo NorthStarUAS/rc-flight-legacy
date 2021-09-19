@@ -181,7 +181,7 @@ class Land(Task):
         # print ' ', mode, "dist = %.1f alt = %.1f" % (self.dist_rem_m, alt_m)
 
         # Compute target altitude.
-        cur_alt = self.pos_node.getDouble("altitude_agl_ft")
+        cur_alt = self.pos_node.getDouble("altitude_agl_m") * m2ft
         cur_target_alt = self.targets_node.getDouble("altitude_agl_ft")
         new_target_alt = alt_m * m2ft + self.alt_bias_ft
 

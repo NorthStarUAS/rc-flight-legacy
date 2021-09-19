@@ -12,7 +12,7 @@ from mission.task import flaps_mgr
 from mission.task import glide
 from mission.task import home_mgr
 from mission.task import idle
-from mission.task import is_airborne
+#from mission.task import is_airborne
 from mission.task import land3
 from mission.task import launch
 from mission.task import lost_link
@@ -64,8 +64,8 @@ class MissionMgr:
             result = home_mgr.HomeMgr(config_node)
         elif task_name == "idle":
             result = idle.Idle(config_node)
-        elif task_name == "is_airborne":
-            result = is_airborne.IsAirborne(config_node)
+        #elif task_name == "is_airborne":
+        #    result = is_airborne.IsAirborne(config_node)
         elif task_name == "land":
             result = land3.Land(config_node)
         elif task_name == "launch":
