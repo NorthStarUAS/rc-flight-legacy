@@ -22,6 +22,6 @@ private:
 public:
     actuators_t() {}
     ~actuators_t() {}
-    void init(DocPointerWrapper d);
+    void init(SharedStateWrapper d);
     void update();
 };

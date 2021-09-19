@@ -48,9 +48,9 @@ static PropertyNode status_node;
 static vector<PropertyNode> sections;
 static vector<PropertyNode> outputs;
 
-void Filter_init(DocPointerWrapper d) {
+void Filter_init(SharedStateWrapper d) {
     // Initialize Document for props2
-    PropertyNode("/").set_Document(d);
+    PropertyNode("/").set_shared_state(d);
     
     // initialize imu property nodes
     imu_node = PropertyNode( "/sensors/imu/0" );

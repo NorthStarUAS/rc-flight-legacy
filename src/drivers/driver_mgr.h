@@ -14,7 +14,7 @@ class driver_mgr_t {
 public:
     driver_mgr_t();
     ~driver_mgr_t() {}
-    void init(DocPointerWrapper d);
+    void init(SharedStateWrapper d);
     float read();
     void process();
     void write();

@@ -75,7 +75,7 @@ if config_node.hasChild("gps_timeout_sec"):
 # module initialization
 def init():
     # for sharing the property tree with C++ modules
-    doc = root.get_Document()
+    doc = root.get_shared_state()
     
     # communication modules
     print("logging config:")

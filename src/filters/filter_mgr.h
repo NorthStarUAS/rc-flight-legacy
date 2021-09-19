@@ -13,6 +13,6 @@
 
 #include <props2.h>
 
-void Filter_init(DocPointerWrapper d);
+void Filter_init(SharedStateWrapper d);
 bool Filter_update();
 void Filter_close();

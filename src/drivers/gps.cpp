@@ -26,8 +26,8 @@ using std::string;
 
 #include "gps.h"
 
-void gps_helper_t::init(DocPointerWrapper d) {
-    PropertyNode("/").set_Document(d);
+void gps_helper_t::init(SharedStateWrapper d) {
+    PropertyNode("/").set_shared_state(d);
 
     imu_node = PropertyNode( "/sensors/imu" );
     gps_node = PropertyNode( "/sensors/gps" );

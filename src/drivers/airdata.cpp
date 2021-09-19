@@ -21,8 +21,8 @@ using std::string;
 
 #include "airdata.h"
 
-void airdata_helper_t::init(DocPointerWrapper d) {
-    PropertyNode("/").set_Document(d);
+void airdata_helper_t::init(SharedStateWrapper d) {
+    PropertyNode("/").set_shared_state(d);
     
     airdata_node = PropertyNode( "/sensors/airdata" );
     sensors_node = PropertyNode( "/sensors" );

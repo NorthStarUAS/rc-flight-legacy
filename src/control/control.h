@@ -8,7 +8,7 @@ class control_t {
 public:
     control_t() {};
     ~control_t() {};
-    void init(DocPointerWrapper d);
+    void init(SharedStateWrapper d);
     void reset();
     void update( float dt );
 

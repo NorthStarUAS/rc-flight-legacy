@@ -17,8 +17,8 @@ using std::string;
 #include "util/timing.h"
 #include "actuators.h"
 
-void actuators_t::init(DocPointerWrapper d) {
-    PropertyNode("/").set_Document(d);
+void actuators_t::init(SharedStateWrapper d) {
+    PropertyNode("/").set_shared_state(d);
  
     // bind properties
     flight_node = PropertyNode( "/controls/flight" );

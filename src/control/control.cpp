@@ -27,8 +27,8 @@ namespace py = pybind11;
 #include "tecs.h"
 #include "control.h"
 
-void control_t::init(DocPointerWrapper d) {
-    PropertyNode("/").set_Document(d);
+void control_t::init(SharedStateWrapper d) {
+    PropertyNode("/").set_shared_state(d);
     
     // initialize the autopilot class and build the structures from the
     // configuration file values

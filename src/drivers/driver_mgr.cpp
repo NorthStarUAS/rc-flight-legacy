@@ -20,10 +20,10 @@ driver_mgr_t::driver_mgr_t() {
     drivers.clear();
 }
 
-void driver_mgr_t::init(DocPointerWrapper d) {
+void driver_mgr_t::init(SharedStateWrapper d) {
     // Initialize Document for props2
     printf("set document: %p\n", d.doc);
-    PropertyNode("/").set_Document(d);
+    PropertyNode("/").set_shared_state(d);
     
     sensors_node = PropertyNode( "/sensors" );
     PropertyNode config_node( "/config" );
