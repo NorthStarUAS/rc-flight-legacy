@@ -64,7 +64,7 @@ class Launch(Task):
             self.targets_node.setDouble("pitch_deg", self.target_pitch_deg)
         self.targets_node.setDouble("roll_deg", 0.0)
         self.targets_node.setDouble("altitude_agl_ft", self.mission_agl_ft)
-        self.targets_node.setDouble("airspeed_kt", self.target_speed_mps)*mps2kt
+        self.targets_node.setDouble("airspeed_kt", self.target_speed_mps*mps2kt)
 
     def update(self, dt):
         if not self.active:
