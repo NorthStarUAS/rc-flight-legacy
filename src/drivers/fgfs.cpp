@@ -338,6 +338,9 @@ bool fgfs_t::update_imu() {
             airdata_node.setDouble("altitude_ground_m",
                                    gps_node.getDouble("altitude_m"));
         }
+        double agl = gps_node.getDouble("altitude_m")
+            - airdata_node.getDouble("altitude_ground_m");
+        airdata_node.setDouble("altitude_agl_m", agl);
         
         // fake volt/amp values here for no better place to do it
         static double last_time = cur_time;
