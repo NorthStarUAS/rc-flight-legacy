@@ -73,7 +73,7 @@ class Launch(Task):
         throttle_time_sec = 2.0 # hard code for now (fixme: move to config)
         feather_time = 5.0      # fixme: make this a configurable option
 
-        is_airborne = self.task_node.getBool("is_airborne")
+        is_airborne = self.airdata_node.getBool("is_airborne")
 
         # For wheeled take offs, track relative heading (initialized to
         # zero) when autopilot mode is engaged and steer that error to

@@ -14,7 +14,7 @@ import mission.task.state
 class Idle(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.task_node = PropertyNode("/task")
+        self.airdata_node = PropertyNode("/sensors/airdata")
         self.ap_node = PropertyNode("/autopilot")
         self.engine_node = PropertyNode("/controls/engine")
         self.name = config_node.getString("name")
@@ -27,7 +27,7 @@ class Idle(Task):
 
         # if not in the air, set a simple flight control mode that
         # does not touch the throttle, and set throttle to idle.
-        if not self.task_node.getBool("is_airborne"):
+        if not self.airdata_node.getBool("is_airborne"):
             fcsmode.set("basic")
             self.engine_node.setDouble("throttle", 0.0)
             
@@ -39,7 +39,7 @@ class Idle(Task):
 
         # If we are in the air, push a circle hold on the front of the
         # seq task queue
-        if self.task_node.getBool("is_airborne"):
+        if self.airdata_node.getBool("is_airborne"):
             # request a circle hold if we are in the air
             mission.mission_mgr.m.request_task_circle()
 
