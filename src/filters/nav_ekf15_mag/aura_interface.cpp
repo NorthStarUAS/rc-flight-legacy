@@ -63,7 +63,7 @@ static void umn2props(void) {
     filter_node.setDouble( "timestamp", imu_data.time );
     filter_node.setDouble( "roll_deg", nav_data.phi * R2D );
     filter_node.setDouble( "pitch_deg", nav_data.the * R2D );
-    filter_node.setDouble( "heading_deg", psi * R2D );
+    filter_node.setDouble( "yaw_deg", psi * R2D );
     filter_node.setDouble( "latitude_deg", nav_data.lat * R2D );
     filter_node.setDouble( "longitude_deg", nav_data.lon * R2D );
     filter_node.setDouble( "altitude_m", nav_data.alt );
