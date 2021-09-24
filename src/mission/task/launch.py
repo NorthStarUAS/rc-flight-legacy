@@ -26,7 +26,7 @@ class Launch(Task):
 
         self.complete_agl_ft = 150.0
         self.mission_agl_ft = 300.0
-        self.target_speed_mps = 10 # FIXME: update config file too!
+        self.target_speed_mps = 15 # FIXME: update config file too!
         self.roll_gain = 0.5
         self.roll_limit = 5.0
         self.rudder_enable = False
