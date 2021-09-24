@@ -18,6 +18,7 @@ using std::endl;
 #include "fgfs.h"
 
 static const float D2R = M_PI / 180.0;
+static const double kt2mps = 0.5144444444444444444;
 
 // swap big/little endian bytes
 static void my_swap( uint8_t *buf, int index, int count )
@@ -321,10 +322,23 @@ bool fgfs_t::update_imu() {
 	imu_node.setDouble( "yaw_truth", yaw_truth );
 
         airdata_node.setDouble( "timestamp", cur_time );
-        airdata_node.setDouble( "airspeed_kt", airspeed );
+        airdata_node.setDouble( "airspeed_mps", airspeed * kt2mps );
         const double inhg2mbar = 33.8638866667;
         airdata_node.setDouble( "pressure_mbar", pressure * inhg2mbar );
-
+        if ( airspeed < 15 ) {
+            airdata_node.setBool( "is_airborne", false );
+        } else {
+            airdata_node.setBool( "is_airborne", true );
+        }
+        double vn = gps_node.getDouble("vn_mps");
+        double ve = gps_node.getDouble("ve_mps");
+        double vd = gps_node.getDouble("vd_mps");
+        double v = sqrt(vn*vn + ve*ve + vd*vd);
+        if ( v < 1 ) {
+            airdata_node.setDouble("altitude_ground_m",
+                                   gps_node.getDouble("altitude_m"));
+        }
+        
         // fake volt/amp values here for no better place to do it
         static double last_time = cur_time;
         static double mah = 0.0;
