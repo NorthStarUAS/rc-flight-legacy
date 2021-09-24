@@ -9,14 +9,15 @@ from mission.task import fcsmode
 r2d = 180.0 / math.pi
 ft2m = 0.3048
 m2ft = 1.0 / ft2m
+kt2mps = 0.5144444444444444444
+mps2kt = 1.0 / kt2mps
 
 class Launch(Task):
     def __init__(self, config_node):
         Task.__init__(self)
 
         self.task_node = PropertyNode("/task")
-        self.pos_node = PropertyNode("/position")
-        self.vel_node = PropertyNode("/velocity")
+        self.airdata_node = PropertyNode("/sensors/airdata")
         self.switches_node = PropertyNode("/switches")
         self.targets_node = PropertyNode("/autopilot/targets")
         self.imu_node = PropertyNode("/sensors/imu/0")
@@ -25,7 +26,7 @@ class Launch(Task):
 
         self.complete_agl_ft = 150.0
         self.mission_agl_ft = 300.0
-        self.target_speed_kt = 25.0
+        self.target_speed_mps = 10 # FIXME: update config file too!
         self.roll_gain = 0.5
         self.roll_limit = 5.0
         self.rudder_enable = False
@@ -40,7 +41,8 @@ class Launch(Task):
         self.name = config_node.getString("name")
         self.completion_agl_ft = config_node.getDouble("completion_agl_ft")
         self.mission_agl_ft = config_node.getDouble("mission_agl_ft")
-        self.target_speed_kt = config_node.getDouble("speed_kt")
+        if config_node.hasChild("speed_mps"):
+            self.target_speed_mps = config_node.getDouble("speed_mps")
         self.roll_gain = config_node.getDouble("roll_gain")
         self.roll_limit = config_node.getDouble("roll_limit")
         self.rudder_enable = config_node.getBool("rudder_enable")
@@ -62,7 +64,7 @@ class Launch(Task):
             self.targets_node.setDouble("pitch_deg", self.target_pitch_deg)
         self.targets_node.setDouble("roll_deg", 0.0)
         self.targets_node.setDouble("altitude_agl_ft", self.mission_agl_ft)
-        self.targets_node.setDouble("airspeed_kt", self.target_speed_kt)
+        self.targets_node.setDouble("airspeed_kt", self.target_speed_mps)*mps2kt
 
     def update(self, dt):
         if not self.active:
@@ -141,7 +143,7 @@ class Launch(Task):
             self.targets_node.setDouble("roll_deg", roll)
 
             if is_airborne or \
-               (self.vel_node.getDouble("airspeed_kt") > self.target_speed_kt):
+               (self.airdata_node.getDouble("airspeed_mps") > self.target_speed_mps):
                 # we are flying or we've reached our flying/climbout
                 # airspeed: switch to normal flight mode
                 if fcsmode.get() != "basic+tecs":
@@ -150,7 +152,7 @@ class Launch(Task):
         self.last_ap_master = self.switches_node.getBool("master_switch")
 
     def is_complete(self):
-        if self.pos_node.getDouble("altitude_agl_m") * m2ft >= self.complete_agl_ft:
+        if self.airdata_node.getDouble("altitude_agl_m") * m2ft >= self.complete_agl_ft:
             # raise flaps
             self.flight_node.setDouble("flaps_setpoint", 0.0)
 
