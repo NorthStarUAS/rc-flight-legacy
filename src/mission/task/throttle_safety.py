@@ -7,8 +7,8 @@ class ThrottleSafety(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.act_node = PropertyNode("/actuators")
+        self.airdata_node = PropertyNode("/sensors/airdata")
         self.gps_node = PropertyNode("/sensors/gps/0")
-        self.task_node = PropertyNode("/task")
         
         # initial defaults are locked down (this is kind of a big deal!)
         self.master_safety = True
@@ -28,7 +28,7 @@ class ThrottleSafety(Task):
         if not self.active:
             return False
 
-        is_airborne = self.task_node.getBool("is_airborne")
+        is_airborne = self.airdata_node.getBool("is_airborne")
         if not self.airborne_latch and is_airborne:
             self.airborne_latch = True
             

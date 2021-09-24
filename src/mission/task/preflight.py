@@ -8,7 +8,7 @@ import mission.task.state
 class Preflight(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.task_node = PropertyNode("/task")
+        self.airdata_node = PropertyNode("/sensors/airdata")
         self.preflight_node = PropertyNode("/task/preflight")
         self.targets_node = PropertyNode("/autopilot/targets")
         self.imu_node = PropertyNode("/sensors/imu/0")
@@ -28,7 +28,7 @@ class Preflight(Task):
         # save existing state
         mission.task.state.save(modes=True)
 
-        if not self.task_node.getBool("is_airborne"):
+        if not self.airdata_node.getBool("is_airborne"):
             # set fcs mode to roll+pitch, aka vanity mode? :-)
             fcsmode.set("roll+pitch")
             self.targets_node.setDouble("roll_deg", 0.0)
@@ -54,7 +54,7 @@ class Preflight(Task):
         # (sanity check!)
         done = False
         if self.timer >= self.preflight_node.getDouble("duration_sec") or \
-           self.task_node.getBool("is_airborne"):
+           self.airdata_node.getBool("is_airborne"):
             done = True
         return done
 

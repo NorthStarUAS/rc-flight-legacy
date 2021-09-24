@@ -7,9 +7,9 @@ class Calibrate(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.sensors_node = PropertyNode("/sensors")
+        self.airdata_node = PropertyNode("/sensors/airdata")
         self.gps_node = PropertyNode("/sensors/gps/0")
         self.home_node = PropertyNode("/task/home")
-        self.task_node = PropertyNode("/task")
         self.completed = False
         self.name = config_node.getString("name")
 
@@ -22,7 +22,7 @@ class Calibrate(Task):
         if not self.active:
             return False
 
-        if self.task_node.getBool("is_airborne"):
+        if self.airdata_node.getBool("is_airborne"):
             # do nothing if we are airborne
             pass
         else:

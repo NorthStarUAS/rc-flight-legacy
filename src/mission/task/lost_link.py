@@ -17,7 +17,7 @@ class LostLink(Task):
     def __init__(self, config_node):
         Task.__init__(self)
         self.status_node = PropertyNode("/status")
-        self.task_node = PropertyNode("/task")
+        self.airdata_node = PropertyNode("/sensors/airdata")
         self.home_node = PropertyNode("/task/home")
         self.targets_node = PropertyNode("/autopilot/targets")
         self.remote_link_node = PropertyNode("/comms/remote_link")
@@ -59,7 +59,7 @@ class LostLink(Task):
                 self.remote_link_node.setString("link", "lost")
                 comms.events.log("comms", "link timed out (lost) last_message=%.1f timeout_sec=%.1f" % (last_message_sec, self.timeout_sec))
                 # do lost link action here (iff airborne)
-                if self.task_node.getBool("is_airborne"):
+                if self.airdata_node.getBool("is_airborne"):
                     comms.events.log("lost_link", "circle home")
                     mission.mission_mgr.m.request_task_home()
                     # sanity check on transit altitude (boost to 200'

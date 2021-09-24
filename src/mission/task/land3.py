@@ -17,7 +17,7 @@ m2ft = 1.0 / ft2m
 class Land(Task):
     def __init__(self, config_node):
         Task.__init__(self)
-        self.task_node = PropertyNode("/task")
+        self.airdata_node = PropertyNode("/sensors/airdata")
         self.home_node = PropertyNode("/task/home")
         self.land_node = PropertyNode("/task/land")
         self.circle_node = PropertyNode("/task/circle/active")
@@ -277,7 +277,7 @@ class Land(Task):
         # ... otherwise we jump back to route or circle or whatever we
         # were doing before when this finishes.
         # Maybe request idle task? or pop all task and the push idle task?
-        if self.task_node.getBool("is_airborne"):
+        if self.airdata_node.getBool("is_airborne"):
             return False
         else:
             # FIXME: task is to land and we are on the ground, let's say we
