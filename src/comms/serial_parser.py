@@ -105,14 +105,17 @@ class serial_parser():
                 self.pkt_len_hi = input[0]
                 self.pkt_len = self.pkt_len_hi*256 + self.pkt_len_lo
                 #print(" pkt_len:", self.pkt_len)
-                # print " payload =",
-                self.state += 1
+                if self.pkt_len > 2048:
+                    print("bogus packet len:", self.pkt_len)
+                    self.state = 0
+                else:
+                    # print " payload =",
+                    self.state += 1
         if self.state == 5:
             input = ser.read(1)
             while len(input):
                 self.counter += 1
                 self.payload.append(input[0])
-                # print "%02X" % input[0],
                 if self.counter >= self.pkt_len:
                     self.state += 1
                     # print ""
