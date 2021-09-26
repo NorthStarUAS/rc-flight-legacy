@@ -105,7 +105,7 @@ class serial_parser():
                 self.pkt_len_hi = input[0]
                 self.pkt_len = self.pkt_len_hi*256 + self.pkt_len_lo
                 #print(" pkt_len:", self.pkt_len)
-                if self.pkt_len > 2048:
+                if self.pkt_len > 4096:
                     print("bogus packet len:", self.pkt_len)
                     self.state = 0
                 else:
