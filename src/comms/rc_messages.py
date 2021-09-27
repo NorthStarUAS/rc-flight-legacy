@@ -122,20 +122,20 @@ class gps_v3():
         node.setUInt("fix_type", self.fix_type)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        latitude_deg = node.getDouble("latitude_deg")
-        longitude_deg = node.getDouble("longitude_deg")
-        altitude_m = node.getDouble("altitude_m")
-        vn_ms = node.getDouble("vn_ms")
-        ve_ms = node.getDouble("ve_ms")
-        vd_ms = node.getDouble("vd_ms")
-        unixtime_sec = node.getDouble("unixtime_sec")
-        satellites = node.getUInt("satellites")
-        horiz_accuracy_m = node.getDouble("horiz_accuracy_m")
-        vert_accuracy_m = node.getDouble("vert_accuracy_m")
-        pdop = node.getDouble("pdop")
-        fix_type = node.getUInt("fix_type")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.latitude_deg = node.getDouble("latitude_deg")
+        self.longitude_deg = node.getDouble("longitude_deg")
+        self.altitude_m = node.getDouble("altitude_m")
+        self.vn_ms = node.getDouble("vn_ms")
+        self.ve_ms = node.getDouble("ve_ms")
+        self.vd_ms = node.getDouble("vd_ms")
+        self.unixtime_sec = node.getDouble("unixtime_sec")
+        self.satellites = node.getUInt("satellites")
+        self.horiz_accuracy_m = node.getDouble("horiz_accuracy_m")
+        self.vert_accuracy_m = node.getDouble("vert_accuracy_m")
+        self.pdop = node.getDouble("pdop")
+        self.fix_type = node.getUInt("fix_type")
 
 # Message: gps_v4
 # Id: 34
@@ -220,20 +220,20 @@ class gps_v4():
         node.setUInt("fix_type", self.fix_type)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        latitude_deg = node.getDouble("latitude_deg")
-        longitude_deg = node.getDouble("longitude_deg")
-        altitude_m = node.getDouble("altitude_m")
-        vn_ms = node.getDouble("vn_ms")
-        ve_ms = node.getDouble("ve_ms")
-        vd_ms = node.getDouble("vd_ms")
-        unixtime_sec = node.getDouble("unixtime_sec")
-        satellites = node.getUInt("satellites")
-        horiz_accuracy_m = node.getDouble("horiz_accuracy_m")
-        vert_accuracy_m = node.getDouble("vert_accuracy_m")
-        pdop = node.getDouble("pdop")
-        fix_type = node.getUInt("fix_type")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.latitude_deg = node.getDouble("latitude_deg")
+        self.longitude_deg = node.getDouble("longitude_deg")
+        self.altitude_m = node.getDouble("altitude_m")
+        self.vn_ms = node.getDouble("vn_ms")
+        self.ve_ms = node.getDouble("ve_ms")
+        self.vd_ms = node.getDouble("vd_ms")
+        self.unixtime_sec = node.getDouble("unixtime_sec")
+        self.satellites = node.getUInt("satellites")
+        self.horiz_accuracy_m = node.getDouble("horiz_accuracy_m")
+        self.vert_accuracy_m = node.getDouble("vert_accuracy_m")
+        self.pdop = node.getDouble("pdop")
+        self.fix_type = node.getUInt("fix_type")
 
 # Message: gps_v5
 # Id: 49
@@ -323,21 +323,21 @@ class gps_v5():
         node.setDouble("vdop", self.vdop)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        millis = node.getUInt("millis")
-        unix_usec = node.getUInt64("unix_usec")
-        num_sats = node.getUInt("num_sats")
-        status = node.getUInt("status")
-        longitude_raw = node.getInt("longitude_raw")
-        latitude_raw = node.getInt("latitude_raw")
-        altitude_m = node.getDouble("altitude_m")
-        vn_mps = node.getDouble("vn_mps")
-        ve_mps = node.getDouble("ve_mps")
-        vd_mps = node.getDouble("vd_mps")
-        hAcc_m = node.getDouble("hAcc_m")
-        vAcc_m = node.getDouble("vAcc_m")
-        hdop = node.getDouble("hdop")
-        vdop = node.getDouble("vdop")
+        self.index = node.getUInt("index")
+        self.millis = node.getUInt("millis")
+        self.unix_usec = node.getUInt64("unix_usec")
+        self.num_sats = node.getUInt("num_sats")
+        self.status = node.getUInt("status")
+        self.longitude_raw = node.getInt("longitude_raw")
+        self.latitude_raw = node.getInt("latitude_raw")
+        self.altitude_m = node.getDouble("altitude_m")
+        self.vn_mps = node.getDouble("vn_mps")
+        self.ve_mps = node.getDouble("ve_mps")
+        self.vd_mps = node.getDouble("vd_mps")
+        self.hAcc_m = node.getDouble("hAcc_m")
+        self.vAcc_m = node.getDouble("vAcc_m")
+        self.hdop = node.getDouble("hdop")
+        self.vdop = node.getDouble("vdop")
 
 # Message: imu_v4
 # Id: 35
@@ -413,19 +413,19 @@ class imu_v4():
         node.setUInt("status", self.status)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        p_rad_sec = node.getDouble("p_rad_sec")
-        q_rad_sec = node.getDouble("q_rad_sec")
-        r_rad_sec = node.getDouble("r_rad_sec")
-        ax_mps_sec = node.getDouble("ax_mps_sec")
-        ay_mps_sec = node.getDouble("ay_mps_sec")
-        az_mps_sec = node.getDouble("az_mps_sec")
-        hx = node.getDouble("hx")
-        hy = node.getDouble("hy")
-        hz = node.getDouble("hz")
-        temp_C = node.getDouble("temp_C")
-        status = node.getUInt("status")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.p_rad_sec = node.getDouble("p_rad_sec")
+        self.q_rad_sec = node.getDouble("q_rad_sec")
+        self.r_rad_sec = node.getDouble("r_rad_sec")
+        self.ax_mps_sec = node.getDouble("ax_mps_sec")
+        self.ay_mps_sec = node.getDouble("ay_mps_sec")
+        self.az_mps_sec = node.getDouble("az_mps_sec")
+        self.hx = node.getDouble("hx")
+        self.hy = node.getDouble("hy")
+        self.hz = node.getDouble("hz")
+        self.temp_C = node.getDouble("temp_C")
+        self.status = node.getUInt("status")
 
 # Message: imu_v5
 # Id: 45
@@ -525,25 +525,25 @@ class imu_v5():
         node.setUInt("status", self.status)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        p_rad_sec = node.getDouble("p_rad_sec")
-        q_rad_sec = node.getDouble("q_rad_sec")
-        r_rad_sec = node.getDouble("r_rad_sec")
-        ax_mps_sec = node.getDouble("ax_mps_sec")
-        ay_mps_sec = node.getDouble("ay_mps_sec")
-        az_mps_sec = node.getDouble("az_mps_sec")
-        hx = node.getDouble("hx")
-        hy = node.getDouble("hy")
-        hz = node.getDouble("hz")
-        ax_raw = node.getDouble("ax_raw")
-        ay_raw = node.getDouble("ay_raw")
-        az_raw = node.getDouble("az_raw")
-        hx_raw = node.getDouble("hx_raw")
-        hy_raw = node.getDouble("hy_raw")
-        hz_raw = node.getDouble("hz_raw")
-        temp_C = node.getDouble("temp_C")
-        status = node.getUInt("status")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.p_rad_sec = node.getDouble("p_rad_sec")
+        self.q_rad_sec = node.getDouble("q_rad_sec")
+        self.r_rad_sec = node.getDouble("r_rad_sec")
+        self.ax_mps_sec = node.getDouble("ax_mps_sec")
+        self.ay_mps_sec = node.getDouble("ay_mps_sec")
+        self.az_mps_sec = node.getDouble("az_mps_sec")
+        self.hx = node.getDouble("hx")
+        self.hy = node.getDouble("hy")
+        self.hz = node.getDouble("hz")
+        self.ax_raw = node.getDouble("ax_raw")
+        self.ay_raw = node.getDouble("ay_raw")
+        self.az_raw = node.getDouble("az_raw")
+        self.hx_raw = node.getDouble("hx_raw")
+        self.hy_raw = node.getDouble("hy_raw")
+        self.hz_raw = node.getDouble("hz_raw")
+        self.temp_C = node.getDouble("temp_C")
+        self.status = node.getUInt("status")
 
 # Message: imu_v6
 # Id: 50
@@ -654,24 +654,24 @@ class imu_v6():
         node.setDouble("temp_C", self.temp_C)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        millis = node.getUInt("millis")
-        ax_raw = node.getDouble("ax_raw")
-        ay_raw = node.getDouble("ay_raw")
-        az_raw = node.getDouble("az_raw")
-        hx_raw = node.getDouble("hx_raw")
-        hy_raw = node.getDouble("hy_raw")
-        hz_raw = node.getDouble("hz_raw")
-        ax_mps2 = node.getDouble("ax_mps2")
-        ay_mps2 = node.getDouble("ay_mps2")
-        az_mps2 = node.getDouble("az_mps2")
-        p_rps = node.getDouble("p_rps")
-        q_rps = node.getDouble("q_rps")
-        r_rps = node.getDouble("r_rps")
-        hx = node.getDouble("hx")
-        hy = node.getDouble("hy")
-        hz = node.getDouble("hz")
-        temp_C = node.getDouble("temp_C")
+        self.index = node.getUInt("index")
+        self.millis = node.getUInt("millis")
+        self.ax_raw = node.getDouble("ax_raw")
+        self.ay_raw = node.getDouble("ay_raw")
+        self.az_raw = node.getDouble("az_raw")
+        self.hx_raw = node.getDouble("hx_raw")
+        self.hy_raw = node.getDouble("hy_raw")
+        self.hz_raw = node.getDouble("hz_raw")
+        self.ax_mps2 = node.getDouble("ax_mps2")
+        self.ay_mps2 = node.getDouble("ay_mps2")
+        self.az_mps2 = node.getDouble("az_mps2")
+        self.p_rps = node.getDouble("p_rps")
+        self.q_rps = node.getDouble("q_rps")
+        self.r_rps = node.getDouble("r_rps")
+        self.hx = node.getDouble("hx")
+        self.hy = node.getDouble("hy")
+        self.hz = node.getDouble("hz")
+        self.temp_C = node.getDouble("temp_C")
 
 # Message: airdata_v6
 # Id: 40
@@ -749,18 +749,18 @@ class airdata_v6():
         node.setUInt("status", self.status)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        pressure_mbar = node.getDouble("pressure_mbar")
-        temp_C = node.getDouble("temp_C")
-        airspeed_smoothed_kt = node.getDouble("airspeed_smoothed_kt")
-        altitude_smoothed_m = node.getDouble("altitude_smoothed_m")
-        altitude_true_m = node.getDouble("altitude_true_m")
-        pressure_vertical_speed_fps = node.getDouble("pressure_vertical_speed_fps")
-        wind_dir_deg = node.getDouble("wind_dir_deg")
-        wind_speed_kt = node.getDouble("wind_speed_kt")
-        pitot_scale_factor = node.getDouble("pitot_scale_factor")
-        status = node.getUInt("status")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.pressure_mbar = node.getDouble("pressure_mbar")
+        self.temp_C = node.getDouble("temp_C")
+        self.airspeed_smoothed_kt = node.getDouble("airspeed_smoothed_kt")
+        self.altitude_smoothed_m = node.getDouble("altitude_smoothed_m")
+        self.altitude_true_m = node.getDouble("altitude_true_m")
+        self.pressure_vertical_speed_fps = node.getDouble("pressure_vertical_speed_fps")
+        self.wind_dir_deg = node.getDouble("wind_dir_deg")
+        self.wind_speed_kt = node.getDouble("wind_speed_kt")
+        self.pitot_scale_factor = node.getDouble("pitot_scale_factor")
+        self.status = node.getUInt("status")
 
 # Message: airdata_v7
 # Id: 43
@@ -842,19 +842,19 @@ class airdata_v7():
         node.setUInt("status", self.status)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        pressure_mbar = node.getDouble("pressure_mbar")
-        temp_C = node.getDouble("temp_C")
-        airspeed_smoothed_kt = node.getDouble("airspeed_smoothed_kt")
-        altitude_smoothed_m = node.getDouble("altitude_smoothed_m")
-        altitude_true_m = node.getDouble("altitude_true_m")
-        pressure_vertical_speed_fps = node.getDouble("pressure_vertical_speed_fps")
-        wind_dir_deg = node.getDouble("wind_dir_deg")
-        wind_speed_kt = node.getDouble("wind_speed_kt")
-        pitot_scale_factor = node.getDouble("pitot_scale_factor")
-        error_count = node.getUInt("error_count")
-        status = node.getUInt("status")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.pressure_mbar = node.getDouble("pressure_mbar")
+        self.temp_C = node.getDouble("temp_C")
+        self.airspeed_smoothed_kt = node.getDouble("airspeed_smoothed_kt")
+        self.altitude_smoothed_m = node.getDouble("altitude_smoothed_m")
+        self.altitude_true_m = node.getDouble("altitude_true_m")
+        self.pressure_vertical_speed_fps = node.getDouble("pressure_vertical_speed_fps")
+        self.wind_dir_deg = node.getDouble("wind_dir_deg")
+        self.wind_speed_kt = node.getDouble("wind_speed_kt")
+        self.pitot_scale_factor = node.getDouble("pitot_scale_factor")
+        self.error_count = node.getUInt("error_count")
+        self.status = node.getUInt("status")
 
 # Message: airdata_v8
 # Id: 54
@@ -944,21 +944,21 @@ class airdata_v8():
         node.setUInt("error_count", self.error_count)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        millis = node.getUInt("millis")
-        baro_press_pa = node.getDouble("baro_press_pa")
-        diff_press_pa = node.getDouble("diff_press_pa")
-        air_temp_C = node.getDouble("air_temp_C")
-        airspeed_mps = node.getDouble("airspeed_mps")
-        altitude_agl_m = node.getDouble("altitude_agl_m")
-        altitude_true_m = node.getDouble("altitude_true_m")
-        altitude_ground_m = node.getDouble("altitude_ground_m")
-        is_airborne = node.getUInt("is_airborne")
-        flight_timer_millis = node.getUInt("flight_timer_millis")
-        wind_dir_deg = node.getDouble("wind_dir_deg")
-        wind_speed_mps = node.getDouble("wind_speed_mps")
-        pitot_scale_factor = node.getDouble("pitot_scale_factor")
-        error_count = node.getUInt("error_count")
+        self.index = node.getUInt("index")
+        self.millis = node.getUInt("millis")
+        self.baro_press_pa = node.getDouble("baro_press_pa")
+        self.diff_press_pa = node.getDouble("diff_press_pa")
+        self.air_temp_C = node.getDouble("air_temp_C")
+        self.airspeed_mps = node.getDouble("airspeed_mps")
+        self.altitude_agl_m = node.getDouble("altitude_agl_m")
+        self.altitude_true_m = node.getDouble("altitude_true_m")
+        self.altitude_ground_m = node.getDouble("altitude_ground_m")
+        self.is_airborne = node.getUInt("is_airborne")
+        self.flight_timer_millis = node.getUInt("flight_timer_millis")
+        self.wind_dir_deg = node.getDouble("wind_dir_deg")
+        self.wind_speed_mps = node.getDouble("wind_speed_mps")
+        self.pitot_scale_factor = node.getDouble("pitot_scale_factor")
+        self.error_count = node.getUInt("error_count")
 
 # Message: filter_v4
 # Id: 36
@@ -1069,25 +1069,25 @@ class filter_v4():
         node.setUInt("status", self.status)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        latitude_deg = node.getDouble("latitude_deg")
-        longitude_deg = node.getDouble("longitude_deg")
-        altitude_m = node.getDouble("altitude_m")
-        vn_ms = node.getDouble("vn_ms")
-        ve_ms = node.getDouble("ve_ms")
-        vd_ms = node.getDouble("vd_ms")
-        roll_deg = node.getDouble("roll_deg")
-        pitch_deg = node.getDouble("pitch_deg")
-        yaw_deg = node.getDouble("yaw_deg")
-        p_bias = node.getDouble("p_bias")
-        q_bias = node.getDouble("q_bias")
-        r_bias = node.getDouble("r_bias")
-        ax_bias = node.getDouble("ax_bias")
-        ay_bias = node.getDouble("ay_bias")
-        az_bias = node.getDouble("az_bias")
-        sequence_num = node.getUInt("sequence_num")
-        status = node.getUInt("status")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.latitude_deg = node.getDouble("latitude_deg")
+        self.longitude_deg = node.getDouble("longitude_deg")
+        self.altitude_m = node.getDouble("altitude_m")
+        self.vn_ms = node.getDouble("vn_ms")
+        self.ve_ms = node.getDouble("ve_ms")
+        self.vd_ms = node.getDouble("vd_ms")
+        self.roll_deg = node.getDouble("roll_deg")
+        self.pitch_deg = node.getDouble("pitch_deg")
+        self.yaw_deg = node.getDouble("yaw_deg")
+        self.p_bias = node.getDouble("p_bias")
+        self.q_bias = node.getDouble("q_bias")
+        self.r_bias = node.getDouble("r_bias")
+        self.ax_bias = node.getDouble("ax_bias")
+        self.ay_bias = node.getDouble("ay_bias")
+        self.az_bias = node.getDouble("az_bias")
+        self.sequence_num = node.getUInt("sequence_num")
+        self.status = node.getUInt("status")
 
 # Message: filter_v5
 # Id: 47
@@ -1213,28 +1213,28 @@ class filter_v5():
         node.setUInt("status", self.status)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        latitude_deg = node.getDouble("latitude_deg")
-        longitude_deg = node.getDouble("longitude_deg")
-        altitude_m = node.getDouble("altitude_m")
-        vn_ms = node.getDouble("vn_ms")
-        ve_ms = node.getDouble("ve_ms")
-        vd_ms = node.getDouble("vd_ms")
-        roll_deg = node.getDouble("roll_deg")
-        pitch_deg = node.getDouble("pitch_deg")
-        yaw_deg = node.getDouble("yaw_deg")
-        p_bias = node.getDouble("p_bias")
-        q_bias = node.getDouble("q_bias")
-        r_bias = node.getDouble("r_bias")
-        ax_bias = node.getDouble("ax_bias")
-        ay_bias = node.getDouble("ay_bias")
-        az_bias = node.getDouble("az_bias")
-        max_pos_cov = node.getDouble("max_pos_cov")
-        max_vel_cov = node.getDouble("max_vel_cov")
-        max_att_cov = node.getDouble("max_att_cov")
-        sequence_num = node.getUInt("sequence_num")
-        status = node.getUInt("status")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.latitude_deg = node.getDouble("latitude_deg")
+        self.longitude_deg = node.getDouble("longitude_deg")
+        self.altitude_m = node.getDouble("altitude_m")
+        self.vn_ms = node.getDouble("vn_ms")
+        self.ve_ms = node.getDouble("ve_ms")
+        self.vd_ms = node.getDouble("vd_ms")
+        self.roll_deg = node.getDouble("roll_deg")
+        self.pitch_deg = node.getDouble("pitch_deg")
+        self.yaw_deg = node.getDouble("yaw_deg")
+        self.p_bias = node.getDouble("p_bias")
+        self.q_bias = node.getDouble("q_bias")
+        self.r_bias = node.getDouble("r_bias")
+        self.ax_bias = node.getDouble("ax_bias")
+        self.ay_bias = node.getDouble("ay_bias")
+        self.az_bias = node.getDouble("az_bias")
+        self.max_pos_cov = node.getDouble("max_pos_cov")
+        self.max_vel_cov = node.getDouble("max_vel_cov")
+        self.max_att_cov = node.getDouble("max_att_cov")
+        self.sequence_num = node.getUInt("sequence_num")
+        self.status = node.getUInt("status")
 
 # Message: nav_v6
 # Id: 52
@@ -1315,19 +1315,19 @@ class nav_v6():
         node.setUInt("status", self.status)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        millis = node.getUInt("millis")
-        latitude_raw = node.getInt("latitude_raw")
-        longitude_raw = node.getInt("longitude_raw")
-        altitude_m = node.getDouble("altitude_m")
-        vn_mps = node.getDouble("vn_mps")
-        ve_mps = node.getDouble("ve_mps")
-        vd_mps = node.getDouble("vd_mps")
-        roll_deg = node.getDouble("roll_deg")
-        pitch_deg = node.getDouble("pitch_deg")
-        yaw_deg = node.getDouble("yaw_deg")
-        sequence_num = node.getUInt("sequence_num")
-        status = node.getUInt("status")
+        self.index = node.getUInt("index")
+        self.millis = node.getUInt("millis")
+        self.latitude_raw = node.getInt("latitude_raw")
+        self.longitude_raw = node.getInt("longitude_raw")
+        self.altitude_m = node.getDouble("altitude_m")
+        self.vn_mps = node.getDouble("vn_mps")
+        self.ve_mps = node.getDouble("ve_mps")
+        self.vd_mps = node.getDouble("vd_mps")
+        self.roll_deg = node.getDouble("roll_deg")
+        self.pitch_deg = node.getDouble("pitch_deg")
+        self.yaw_deg = node.getDouble("yaw_deg")
+        self.sequence_num = node.getUInt("sequence_num")
+        self.status = node.getUInt("status")
 
 # Message: nav_metrics_v6
 # Id: 53
@@ -1433,23 +1433,23 @@ class nav_metrics_v6():
         node.setDouble("Pa2", self.Pa2)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        metrics_millis = node.getUInt("metrics_millis")
-        p_bias = node.getDouble("p_bias")
-        q_bias = node.getDouble("q_bias")
-        r_bias = node.getDouble("r_bias")
-        ax_bias = node.getDouble("ax_bias")
-        ay_bias = node.getDouble("ay_bias")
-        az_bias = node.getDouble("az_bias")
-        Pp0 = node.getDouble("Pp0")
-        Pp1 = node.getDouble("Pp1")
-        Pp2 = node.getDouble("Pp2")
-        Pv0 = node.getDouble("Pv0")
-        Pv1 = node.getDouble("Pv1")
-        Pv2 = node.getDouble("Pv2")
-        Pa0 = node.getDouble("Pa0")
-        Pa1 = node.getDouble("Pa1")
-        Pa2 = node.getDouble("Pa2")
+        self.index = node.getUInt("index")
+        self.metrics_millis = node.getUInt("metrics_millis")
+        self.p_bias = node.getDouble("p_bias")
+        self.q_bias = node.getDouble("q_bias")
+        self.r_bias = node.getDouble("r_bias")
+        self.ax_bias = node.getDouble("ax_bias")
+        self.ay_bias = node.getDouble("ay_bias")
+        self.az_bias = node.getDouble("az_bias")
+        self.Pp0 = node.getDouble("Pp0")
+        self.Pp1 = node.getDouble("Pp1")
+        self.Pp2 = node.getDouble("Pp2")
+        self.Pv0 = node.getDouble("Pv0")
+        self.Pv1 = node.getDouble("Pv1")
+        self.Pv2 = node.getDouble("Pv2")
+        self.Pa0 = node.getDouble("Pa0")
+        self.Pa1 = node.getDouble("Pa1")
+        self.Pa2 = node.getDouble("Pa2")
 
 # Message: actuator_v2
 # Id: 21
@@ -1524,17 +1524,17 @@ class actuator_v2():
         node.setUInt("status", self.status)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        aileron = node.getDouble("aileron")
-        elevator = node.getDouble("elevator")
-        throttle = node.getDouble("throttle")
-        rudder = node.getDouble("rudder")
-        channel5 = node.getDouble("channel5")
-        flaps = node.getDouble("flaps")
-        channel7 = node.getDouble("channel7")
-        channel8 = node.getDouble("channel8")
-        status = node.getUInt("status")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.aileron = node.getDouble("aileron")
+        self.elevator = node.getDouble("elevator")
+        self.throttle = node.getDouble("throttle")
+        self.rudder = node.getDouble("rudder")
+        self.channel5 = node.getDouble("channel5")
+        self.flaps = node.getDouble("flaps")
+        self.channel7 = node.getDouble("channel7")
+        self.channel8 = node.getDouble("channel8")
+        self.status = node.getUInt("status")
 
 # Message: actuator_v3
 # Id: 37
@@ -1609,17 +1609,17 @@ class actuator_v3():
         node.setUInt("status", self.status)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        aileron = node.getDouble("aileron")
-        elevator = node.getDouble("elevator")
-        throttle = node.getDouble("throttle")
-        rudder = node.getDouble("rudder")
-        channel5 = node.getDouble("channel5")
-        flaps = node.getDouble("flaps")
-        channel7 = node.getDouble("channel7")
-        channel8 = node.getDouble("channel8")
-        status = node.getUInt("status")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.aileron = node.getDouble("aileron")
+        self.elevator = node.getDouble("elevator")
+        self.throttle = node.getDouble("throttle")
+        self.rudder = node.getDouble("rudder")
+        self.channel5 = node.getDouble("channel5")
+        self.flaps = node.getDouble("flaps")
+        self.channel7 = node.getDouble("channel7")
+        self.channel8 = node.getDouble("channel8")
+        self.status = node.getUInt("status")
 
 # Message: effectors_v1
 # Id: 61
@@ -1676,9 +1676,9 @@ class effectors_v1():
         for _i in range(8): node.setDouble("channel", self.channel[_i], _i)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        millis = node.getUInt("millis")
-        for _i in range(8): channel[_i] = node.getDouble("channel", _i)
+        self.index = node.getUInt("index")
+        self.millis = node.getUInt("millis")
+        for _i in range(8): self.channel[_i] = node.getDouble("channel", _i)
 
 # Message: pilot_v2
 # Id: 20
@@ -1739,10 +1739,10 @@ class pilot_v2():
         node.setUInt("status", self.status)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        for _i in range(8): channel[_i] = node.getDouble("channel", _i)
-        status = node.getUInt("status")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        for _i in range(8): self.channel[_i] = node.getDouble("channel", _i)
+        self.status = node.getUInt("status")
 
 # Message: pilot_v3
 # Id: 38
@@ -1803,10 +1803,10 @@ class pilot_v3():
         node.setUInt("status", self.status)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        for _i in range(8): channel[_i] = node.getDouble("channel", _i)
-        status = node.getUInt("status")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        for _i in range(8): self.channel[_i] = node.getDouble("channel", _i)
+        self.status = node.getUInt("status")
 
 # Message: pilot_v4
 # Id: 51
@@ -1899,12 +1899,12 @@ class pilot_v4():
         node.setUInt("throttle_safety", self.throttle_safety)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        millis = node.getUInt("millis")
-        for _i in range(sbus_channels): channel[_i] = node.getDouble("channel", _i)
-        failsafe = node.getUInt("failsafe")
-        master_switch = node.getUInt("master_switch")
-        throttle_safety = node.getUInt("throttle_safety")
+        self.index = node.getUInt("index")
+        self.millis = node.getUInt("millis")
+        for _i in range(sbus_channels): self.channel[_i] = node.getDouble("channel", _i)
+        self.failsafe = node.getUInt("failsafe")
+        self.master_switch = node.getUInt("master_switch")
+        self.throttle_safety = node.getUInt("throttle_safety")
 
 # Message: inceptors_v1
 # Id: 62
@@ -1955,9 +1955,9 @@ class inceptors_v1():
         for _i in range(ap_channels): node.setDouble("channel", self.channel[_i], _i)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        millis = node.getUInt("millis")
-        for _i in range(ap_channels): channel[_i] = node.getDouble("channel", _i)
+        self.index = node.getUInt("index")
+        self.millis = node.getUInt("millis")
+        for _i in range(ap_channels): self.channel[_i] = node.getDouble("channel", _i)
 
 # Message: power_v1
 # Id: 55
@@ -2013,13 +2013,13 @@ class power_v1():
         node.setDouble("total_mah", self.total_mah)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        millis = node.getUInt("millis")
-        avionics_vcc = node.getDouble("avionics_vcc")
-        main_vcc = node.getDouble("main_vcc")
-        cell_vcc = node.getDouble("cell_vcc")
-        main_amps = node.getDouble("main_amps")
-        total_mah = node.getDouble("total_mah")
+        self.index = node.getUInt("index")
+        self.millis = node.getUInt("millis")
+        self.avionics_vcc = node.getDouble("avionics_vcc")
+        self.main_vcc = node.getDouble("main_vcc")
+        self.cell_vcc = node.getDouble("cell_vcc")
+        self.main_amps = node.getDouble("main_amps")
+        self.total_mah = node.getDouble("total_mah")
 
 # Message: ap_status_v6
 # Id: 33
@@ -2118,24 +2118,24 @@ class ap_status_v6():
         node.setUInt("sequence_num", self.sequence_num)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        flags = node.getUInt("flags")
-        groundtrack_deg = node.getDouble("groundtrack_deg")
-        roll_deg = node.getDouble("roll_deg")
-        altitude_msl_ft = node.getUInt("altitude_msl_ft")
-        altitude_ground_m = node.getUInt("altitude_ground_m")
-        pitch_deg = node.getDouble("pitch_deg")
-        airspeed_kt = node.getDouble("airspeed_kt")
-        flight_timer = node.getUInt("flight_timer")
-        target_waypoint_idx = node.getUInt("target_waypoint_idx")
-        wp_longitude_deg = node.getDouble("wp_longitude_deg")
-        wp_latitude_deg = node.getDouble("wp_latitude_deg")
-        wp_index = node.getUInt("wp_index")
-        route_size = node.getUInt("route_size")
-        task_id = node.getUInt("task_id")
-        task_attribute = node.getUInt("task_attribute")
-        sequence_num = node.getUInt("sequence_num")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.flags = node.getUInt("flags")
+        self.groundtrack_deg = node.getDouble("groundtrack_deg")
+        self.roll_deg = node.getDouble("roll_deg")
+        self.altitude_msl_ft = node.getUInt("altitude_msl_ft")
+        self.altitude_ground_m = node.getUInt("altitude_ground_m")
+        self.pitch_deg = node.getDouble("pitch_deg")
+        self.airspeed_kt = node.getDouble("airspeed_kt")
+        self.flight_timer = node.getUInt("flight_timer")
+        self.target_waypoint_idx = node.getUInt("target_waypoint_idx")
+        self.wp_longitude_deg = node.getDouble("wp_longitude_deg")
+        self.wp_latitude_deg = node.getDouble("wp_latitude_deg")
+        self.wp_index = node.getUInt("wp_index")
+        self.route_size = node.getUInt("route_size")
+        self.task_id = node.getUInt("task_id")
+        self.task_attribute = node.getUInt("task_attribute")
+        self.sequence_num = node.getUInt("sequence_num")
 
 # Message: ap_status_v7
 # Id: 39
@@ -2237,24 +2237,24 @@ class ap_status_v7():
         node.setUInt("sequence_num", self.sequence_num)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        flags = node.getUInt("flags")
-        groundtrack_deg = node.getDouble("groundtrack_deg")
-        roll_deg = node.getDouble("roll_deg")
-        altitude_msl_ft = node.getDouble("altitude_msl_ft")
-        altitude_ground_m = node.getDouble("altitude_ground_m")
-        pitch_deg = node.getDouble("pitch_deg")
-        airspeed_kt = node.getDouble("airspeed_kt")
-        flight_timer = node.getDouble("flight_timer")
-        target_waypoint_idx = node.getUInt("target_waypoint_idx")
-        wp_longitude_deg = node.getDouble("wp_longitude_deg")
-        wp_latitude_deg = node.getDouble("wp_latitude_deg")
-        wp_index = node.getUInt("wp_index")
-        route_size = node.getUInt("route_size")
-        task_id = node.getUInt("task_id")
-        task_attribute = node.getUInt("task_attribute")
-        sequence_num = node.getUInt("sequence_num")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.flags = node.getUInt("flags")
+        self.groundtrack_deg = node.getDouble("groundtrack_deg")
+        self.roll_deg = node.getDouble("roll_deg")
+        self.altitude_msl_ft = node.getDouble("altitude_msl_ft")
+        self.altitude_ground_m = node.getDouble("altitude_ground_m")
+        self.pitch_deg = node.getDouble("pitch_deg")
+        self.airspeed_kt = node.getDouble("airspeed_kt")
+        self.flight_timer = node.getDouble("flight_timer")
+        self.target_waypoint_idx = node.getUInt("target_waypoint_idx")
+        self.wp_longitude_deg = node.getDouble("wp_longitude_deg")
+        self.wp_latitude_deg = node.getDouble("wp_latitude_deg")
+        self.wp_index = node.getUInt("wp_index")
+        self.route_size = node.getUInt("route_size")
+        self.task_id = node.getUInt("task_id")
+        self.task_attribute = node.getUInt("task_attribute")
+        self.sequence_num = node.getUInt("sequence_num")
 
 # Message: ap_targets_v1
 # Id: 59
@@ -2310,13 +2310,13 @@ class ap_targets_v1():
         node.setDouble("pitch_deg", self.pitch_deg)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        millis = node.getUInt("millis")
-        groundtrack_deg = node.getDouble("groundtrack_deg")
-        altitude_agl_ft = node.getDouble("altitude_agl_ft")
-        airspeed_kt = node.getDouble("airspeed_kt")
-        roll_deg = node.getDouble("roll_deg")
-        pitch_deg = node.getDouble("pitch_deg")
+        self.index = node.getUInt("index")
+        self.millis = node.getUInt("millis")
+        self.groundtrack_deg = node.getDouble("groundtrack_deg")
+        self.altitude_agl_ft = node.getDouble("altitude_agl_ft")
+        self.airspeed_kt = node.getDouble("airspeed_kt")
+        self.roll_deg = node.getDouble("roll_deg")
+        self.pitch_deg = node.getDouble("pitch_deg")
 
 # Message: mission_v1
 # Id: 60
@@ -2390,17 +2390,17 @@ class mission_v1():
         node.setInt("wp_latitude_raw", self.wp_latitude_raw)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        millis = node.getUInt("millis")
-        is_airborne = node.getUInt("is_airborne")
-        flight_timer = node.getDouble("flight_timer")
-        task_name = node.getString("task_name")
-        task_attribute = node.getUInt("task_attribute")
-        route_size = node.getUInt("route_size")
-        target_waypoint_idx = node.getUInt("target_waypoint_idx")
-        wp_index = node.getUInt("wp_index")
-        wp_longitude_raw = node.getInt("wp_longitude_raw")
-        wp_latitude_raw = node.getInt("wp_latitude_raw")
+        self.index = node.getUInt("index")
+        self.millis = node.getUInt("millis")
+        self.is_airborne = node.getUInt("is_airborne")
+        self.flight_timer = node.getDouble("flight_timer")
+        self.task_name = node.getString("task_name")
+        self.task_attribute = node.getUInt("task_attribute")
+        self.route_size = node.getUInt("route_size")
+        self.target_waypoint_idx = node.getUInt("target_waypoint_idx")
+        self.wp_index = node.getUInt("wp_index")
+        self.wp_longitude_raw = node.getInt("wp_longitude_raw")
+        self.wp_latitude_raw = node.getInt("wp_latitude_raw")
 
 # Message: system_health_v5
 # Id: 41
@@ -2461,14 +2461,14 @@ class system_health_v5():
         node.setDouble("total_mah", self.total_mah)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        system_load_avg = node.getDouble("system_load_avg")
-        avionics_vcc = node.getDouble("avionics_vcc")
-        main_vcc = node.getDouble("main_vcc")
-        cell_vcc = node.getDouble("cell_vcc")
-        main_amps = node.getDouble("main_amps")
-        total_mah = node.getDouble("total_mah")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.system_load_avg = node.getDouble("system_load_avg")
+        self.avionics_vcc = node.getDouble("avionics_vcc")
+        self.main_vcc = node.getDouble("main_vcc")
+        self.cell_vcc = node.getDouble("cell_vcc")
+        self.main_amps = node.getDouble("main_amps")
+        self.total_mah = node.getDouble("total_mah")
 
 # Message: system_health_v6
 # Id: 46
@@ -2533,15 +2533,15 @@ class system_health_v6():
         node.setDouble("total_mah", self.total_mah)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        system_load_avg = node.getDouble("system_load_avg")
-        fmu_timer_misses = node.getUInt("fmu_timer_misses")
-        avionics_vcc = node.getDouble("avionics_vcc")
-        main_vcc = node.getDouble("main_vcc")
-        cell_vcc = node.getDouble("cell_vcc")
-        main_amps = node.getDouble("main_amps")
-        total_mah = node.getDouble("total_mah")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.system_load_avg = node.getDouble("system_load_avg")
+        self.fmu_timer_misses = node.getUInt("fmu_timer_misses")
+        self.avionics_vcc = node.getDouble("avionics_vcc")
+        self.main_vcc = node.getDouble("main_vcc")
+        self.cell_vcc = node.getDouble("cell_vcc")
+        self.main_amps = node.getDouble("main_amps")
+        self.total_mah = node.getDouble("total_mah")
 
 # Message: status_v7
 # Id: 56
@@ -2600,15 +2600,15 @@ class status_v7():
         node.setUInt("main_loop_timer_misses", self.main_loop_timer_misses)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        millis = node.getUInt("millis")
-        serial_number = node.getUInt("serial_number")
-        firmware_rev = node.getUInt("firmware_rev")
-        master_hz = node.getUInt("master_hz")
-        baud = node.getUInt("baud")
-        available_memory = node.getUInt("available_memory")
-        byte_rate = node.getUInt("byte_rate")
-        main_loop_timer_misses = node.getUInt("main_loop_timer_misses")
+        self.index = node.getUInt("index")
+        self.millis = node.getUInt("millis")
+        self.serial_number = node.getUInt("serial_number")
+        self.firmware_rev = node.getUInt("firmware_rev")
+        self.master_hz = node.getUInt("master_hz")
+        self.baud = node.getUInt("baud")
+        self.available_memory = node.getUInt("available_memory")
+        self.byte_rate = node.getUInt("byte_rate")
+        self.main_loop_timer_misses = node.getUInt("main_loop_timer_misses")
 
 # Message: event_v1
 # Id: 27
@@ -2649,9 +2649,9 @@ class event_v1():
         node.setString("message", self.message)
 
     def props2msg(self, node):
-        index = node.getUInt("index")
-        timestamp_sec = node.getDouble("timestamp_sec")
-        message = node.getString("message")
+        self.index = node.getUInt("index")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.message = node.getString("message")
 
 # Message: event_v2
 # Id: 44
@@ -2692,9 +2692,9 @@ class event_v2():
         node.setString("message", self.message)
 
     def props2msg(self, node):
-        timestamp_sec = node.getDouble("timestamp_sec")
-        sequence_num = node.getUInt("sequence_num")
-        message = node.getString("message")
+        self.timestamp_sec = node.getDouble("timestamp_sec")
+        self.sequence_num = node.getUInt("sequence_num")
+        self.message = node.getString("message")
 
 # Message: command_v1
 # Id: 28
@@ -2731,8 +2731,8 @@ class command_v1():
         node.setString("message", self.message)
 
     def props2msg(self, node):
-        sequence_num = node.getUInt("sequence_num")
-        message = node.getString("message")
+        self.sequence_num = node.getUInt("sequence_num")
+        self.message = node.getString("message")
 
 # Message: ack_v1
 # Id: 57
@@ -2763,6 +2763,6 @@ class ack_v1():
         node.setUInt("result", self.result)
 
     def props2msg(self, node):
-        sequence_num = node.getUInt("sequence_num")
-        result = node.getUInt("result")
+        self.sequence_num = node.getUInt("sequence_num")
+        self.result = node.getUInt("result")
 

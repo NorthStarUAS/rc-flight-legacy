@@ -194,6 +194,7 @@ def process_messages():
     imu_count -= 1
     pilot_count -= 1
     if act_count < 0:
+        # fixme this exists on the fmu now...
         act_count = act_skip
         buf = None
         try:
@@ -224,11 +225,11 @@ def process_messages():
         filter_count = filter_skip
         buf = None
         try:
-            buf = packer.pack_filter_bin()
+            buf = packer.pack_nav_bin()
         except Exception as e:
-            print("pack_filter_bin() error:", str(e))
+            print("pack_nav_bin() error:", str(e))
         if not buf is None and len(buf):
-            log_message(packer.filter.id, buf)
+            log_message(packer.nav.id, buf)
     if gps_count < 0:
         gps_count = gps_skip
         buf = None
@@ -268,11 +269,11 @@ def process_messages():
         pilot_count = pilot_skip
         buf = None
         try:
-            buf = packer.pack_pilot_bin()
+            buf = packer.pack_inceptors_bin()
         except Exception as e:
-            print("pack_pilot_bin() error:", str(e))
+            print("pack_inceptors_bin() error:", str(e))
         if not buf is None and len(buf):
-            log_message(packer.pilot.id, buf)
+            log_message(packer.incep.id, buf)
     
 def update():
     try:

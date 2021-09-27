@@ -64,7 +64,7 @@ def compute_cksum(self, id, buf, size):
     for i in range(0, size):
         c0 = (c0 + buf[i]) & 0xff
         c1 = (c1 + c0) & 0xff
-        #print("c0 =", c0, "c1 =", c1, i, '[', buf[i], ']')
+        #print("c0 =", c0, "c1 =", c1, i, "[", buf[i], "]")
     #print("c0 =", c0, "c1 =", c1)
     return (c0, c1)
 
@@ -85,27 +85,32 @@ def wrap_packet( self, packet_id, payload ):
 class Packer():
     ap = rc_messages.ap_status_v7()
     act = rc_messages.actuator_v3()
-    airdata = rc_messages.airdata_v7()
-    filter = rc_messages.filter_v5()
-    gps = rc_messages.gps_v4()
+    airdata = rc_messages.airdata_v8()
+    nav = rc_messages.nav_v6()
+    nav_metrics = rc_messages.nav_metrics_v6()
+    gps = rc_messages.gps_v5()
     health = rc_messages.system_health_v6()
-    imu = rc_messages.imu_v5()
+    imu = rc_messages.imu_v6()
+    incep = rc_messages.inceptors_v1()
     pilot = rc_messages.pilot_v3()
     ap_buf = None
     act_buf = None
     airdata_buf = None
-    filter_buf = None
+    nav_buf = None
     gps_buf = None
     health_buf = None
     imu_buf = None
+    incep_buf = None
     pilot_buf = None
     last_ap_time = -1.0
     last_act_time = -1.0
     last_airdata_time = -1.0
-    last_filter_time = -1.0
+    last_nav_time = -1.0
+    last_nav_metrics_time = -1.0
     last_gps_time = -1.0
     last_health_time = -1.0
     last_imu_time = -1.0
+    last_incep_time = -1.0
     last_pilot_time = -1.0
     
     def __init__(self):
@@ -115,62 +120,32 @@ class Packer():
         airdata_time = airdata_node.getDouble("timestamp")
         if not use_cached and airdata_time > self.last_airdata_time:
             self.last_airdata_time = airdata_time
-            self.airdata.index = 0
-            self.airdata.timestamp_sec = airdata_time
-            self.airdata.pressure_mbar = airdata_node.getDouble("pressure_mbar")
-            self.airdata.temp_C = airdata_node.getDouble("temp_C")
-            self.airdata.airspeed_smoothed_kt = vel_node.getDouble("airspeed_smoothed_kt")
-            self.airdata.altitude_smoothed_m = pos_pressure_node.getDouble('altitude_smoothed_m')
-            self.airdata.altitude_true_m = pos_combined_node.getDouble("altitude_true_m")
-            self.airdata.pressure_vertical_speed_fps = vel_node.getDouble("pressure_vertical_speed_fps")
-            self.airdata.wind_dir_deg = wind_node.getDouble("wind_dir_deg")
-            self.airdata.wind_speed_kt = wind_node.getDouble("wind_speed_kt")
-            self.airdata.pitot_scale_factor = wind_node.getDouble("pitot_scale_factor")
-            self.airdata.error_count = airdata_node.getInt("error_count")
-            self.airdata.status = airdata_node.getInt("status")
+            self.airdata.props2msg(airdata_node)
             self.airdata_buf = self.airdata.pack()
         return self.airdata_buf
 
     def pack_airdata_dict(self, index):
-        airdata_node = PropertyNode('/sensors/airdata/%d' % index)
+        airdata_node = PropertyNode("/sensors/airdata")
         row = dict()
-        row['timestamp'] = airdata_node.getDouble('timestamp')
-        row['pressure_mbar'] = airdata_node.getDouble('pressure_mbar')
-        row['temp_C'] = airdata_node.getDouble('temp_C')
-        row['airspeed_smoothed_kt'] = vel_node.getDouble('airspeed_smoothed_kt')
-        row['altitude_smoothed_m'] = pos_pressure_node.getDouble('altitude_smoothed_m')
-        row['altitude_true_m'] = pos_combined_node.getDouble('altitude_true_m')
-        row["pressure_vertical_speed_fps"] = vel_node.getDouble("pressure_vertical_speed_fps")
-        row['wind_dir_deg'] = wind_node.getDouble('wind_dir_deg')
-        row['wind_speed_kt'] = wind_node.getDouble('wind_speed_kt')
-        row['pitot_scale_factor'] = wind_node.getDouble('pitot_scale_factor')
-        row['tecs_error_total'] = tecs_node.getDouble('error_total')
-        row['tecs_error_diff'] = tecs_node.getDouble('error_diff')
-        row['error_count'] = airdata_node.getDouble('error_count')
-        # print('airdata error:', row['error_count'])
-        row['status'] = airdata_node.getInt('status')
+        row["millis"] = airdata_node.getUInt("millis")
+        row["baro_press_pa"] = airdata_node.getDouble("baro_press_pa")
+        row["diff_press_pa"] = airdata_node.getDouble("diff_press_pa")
+        row["air_temp_C"] = airdata_node.getDouble("air_temp_C")
+        row["airspeed_mps"] = airdata_node.getDouble("airspeed_mps")
+        row["altitude_agl_m"] = airdata_node.getDouble("altitude_agl_m")
+        row["altitude_true_m"] = airdata_node.getDouble("altitude_true_m")
+        row["altitude_ground_m"] = airdata_node.getDouble("altitude_ground_m")
+        row["is_airborne"] = airdata_node.getUInt("is_airborne")
+        row["flight_timer_millis"] = airdata_node.getUInt("flight_timer_millis")
+        row["wind_dir_deg"] = airdata_node.getDouble("wind_dir_deg")
+        row["wind_speed_mps"] = airdata_node.getDouble("wind_speed_mps")
+        row["pitot_scale_factor"] = airdata_node.getDouble("pitot_scale_factor")
+        row["error_count"] = airdata_node.getUInt("error_count")
+        #row["tecs_error_total"] = tecs_node.getDouble("error_total")
+        #row["tecs_error_diff"] = tecs_node.getDouble("error_diff")
+        # print("airdata error:", row["error_count"])
+        row["status"] = airdata_node.getInt("status")
         return row
-
-    def pack_airdata_csv(self, index):
-        airdata_node = PropertyNode('/sensors/airdata/%d' % index)
-        row = dict()
-        row['timestamp'] = '%.4f' % airdata_node.getDouble('timestamp')
-        row['pressure_mbar'] = '%.1f' % airdata_node.getDouble('pressure_mbar')
-        row['temp_C'] = '%.1f' % airdata_node.getDouble('temp_C')
-        row['airspeed_smoothed_kt'] = '%.1f' % vel_node.getDouble('airspeed_smoothed_kt')
-        row['altitude_smoothed_m'] = '%.2f' % pos_pressure_node.getDouble('altitude_smoothed_m')
-        row['altitude_true_m'] = '%.2f' % pos_combined_node.getDouble('altitude_true_m')
-        row['wind_dir_deg'] = '%.1f' % wind_node.getDouble('wind_dir_deg')
-        row['wind_speed_kt'] = '%.1f' % wind_node.getDouble('wind_speed_kt')
-        row['pitot_scale_factor'] = '%.2f' % wind_node.getDouble('pitot_scale_factor')
-        row['tecs_error_total'] = '%.2f' % tecs_node.getDouble('error_total')
-        row['tecs_error_diff'] = '%.2f' % tecs_node.getDouble('error_diff')
-        row['status'] = '%d' % airdata_node.getInt('status')
-        keys = ['timestamp', 'pressure_mbar', 'temp_C', 'airspeed_smoothed_kt',
-                'altitude_smoothed_m', 'altitude_true_m',
-                'wind_dir_deg', 'wind_speed_kt', 'pitot_scale_factor',
-                'tecs_error_total', 'tecs_error_diff', 'status']
-        return row, keys
 
     def unpack_airdata_v6(self, buf):
         air = rc_messages.airdata_v6(buf)
@@ -230,74 +205,38 @@ class Packer():
         pos_node.setDouble("altitude_ground_m", air.altitude_ground_m)
         return air.index
 
-    # FIXME: think about how we are dealing with skips and gps's lower rate?
+    # FIXME: think about how we are dealing with skips and gps lower rate?
     def pack_gps_bin(self, use_cached=False):
         gps_time = gps_node.getDouble("timestamp")
         if use_cached:
             return self.gps_buf
         elif (gps_time > self.last_gps_time) or self.gps_buf is None:
             self.last_gps_time = gps_time
-            self.gps.index = 0
-            self.gps.timestamp_sec = gps_time
-            self.gps.latitude_deg = gps_node.getDouble("latitude_deg")
-            self.gps.longitude_deg = gps_node.getDouble("longitude_deg")
-            self.gps.altitude_m = gps_node.getDouble("altitude_m")
-            self.gps.vn_ms = gps_node.getDouble("vn_ms")
-            self.gps.ve_ms = gps_node.getDouble("ve_ms")
-            self.gps.vd_ms = gps_node.getDouble("vd_ms")
-            self.gps.unixtime_sec = gps_node.getDouble("unix_time_sec")
-            self.gps.satellites = gps_node.getInt("satellites")
-            hacc = gps_node.getDouble("horiz_accuracy_m")
-            if hacc > 655: hacc = 655
-            self.gps.horiz_accuracy_m = hacc
-            vacc = gps_node.getDouble("vert_accuracy_m")
-            if vacc > 655: vacc = 655
-            self.gps.vert_accuracy_m = vacc
-            self.gps.pdop = gps_node.getDouble("pdop")
-            self.gps.fix_type = gps_node.getInt("FixType")
+            self.gps.props2msg(gps_node)
             self.gps_buf = self.gps.pack()
             return self.gps_buf
         else:
             return None
 
     def pack_gps_dict(self, index):
-        gps_node = PropertyNode('/sensors/gps/%d' % index)
+        gps_node = PropertyNode("/sensors/gps/%d" % index)
         row = dict()
-        row['timestamp'] = gps_node.getDouble('timestamp')
-        row['latitude_deg'] = gps_node.getDouble('latitude_deg')
-        row['longitude_deg'] = gps_node.getDouble('longitude_deg')
-        row['altitude_m'] = gps_node.getDouble('altitude_m')
-        row['vn_ms'] = gps_node.getDouble('vn_ms')
-        row['ve_ms'] = gps_node.getDouble('ve_ms')
-        row['vd_ms'] = gps_node.getDouble('vd_ms')
-        row['unix_time_sec'] = gps_node.getDouble('unix_time_sec')
-        row['satellites'] = gps_node.getInt('satellites')
-        row['horiz_accuracy_m'] = gps_node.getDouble('horiz_accuracy_m')
-        row['vert_accuracy_m'] = gps_node.getDouble('vert_accuracy_m')
-        row['pdop'] = gps_node.getDouble('pdop')
-        row['fix_type'] = gps_node.getInt('fixType')
+        row["index"] = gps_node.getUInt("index")
+        row["millis"] = gps_node.getUInt("millis")
+        row["unix_usec"] = gps_node.getUInt64("unix_usec")
+        row["num_sats"] = gps_node.getUInt("num_sats")
+        row["status"] = gps_node.getUInt("status")
+        row["longitude_raw"] = gps_node.getInt("longitude_raw")
+        row["latitude_raw"] = gps_node.getInt("latitude_raw")
+        row["altitude_m"] = gps_node.getDouble("altitude_m")
+        row["vn_mps"] = gps_node.getDouble("vn_mps")
+        row["ve_mps"] = gps_node.getDouble("ve_mps")
+        row["vd_mps"] = gps_node.getDouble("vd_mps")
+        row["hAcc_m"] = gps_node.getDouble("hAcc_m")
+        row["vAcc_m"] = gps_node.getDouble("vAcc_m")
+        row["hdop"] = gps_node.getDouble("hdop")
+        row["vdop"] = gps_node.getDouble("vdop")
         return row
-
-    def pack_gps_csv(self, index):
-        gps_node = PropertyNode('/sensors/gps/%d' % index)
-        row = dict()
-        row['timestamp'] = '%.4f' % gps_node.getDouble('timestamp')
-        row['latitude_deg'] = '%.10f' % gps_node.getDouble('latitude_deg')
-        row['longitude_deg'] = '%.10f' % gps_node.getDouble('longitude_deg')
-        row['altitude_m'] = '%.2f' % gps_node.getDouble('altitude_m')
-        row['vn_ms'] = '%.4f' % gps_node.getDouble('vn_ms')
-        row['ve_ms'] = '%.4f' % gps_node.getDouble('ve_ms')
-        row['vd_ms'] = '%.4f' % gps_node.getDouble('vd_ms')
-        row['unix_time_sec'] = '%.3f' % gps_node.getDouble('unix_time_sec')
-        row['satellites'] = '%d' % gps_node.getInt('satellites')
-        row['horiz_accuracy_m'] = '%.2f' % gps_node.getDouble('horiz_accuracy_m')
-        row['vert_accuracy_m'] = '%.2f' % gps_node.getDouble('vert_accuracy_m')
-        row['pdop'] = '%.2f' % gps_node.getDouble('pdop')
-        row['fix_type'] = '%d' % gps_node.getInt('fixType')
-        keys =['timestamp', 'latitude_deg', 'longitude_deg', 'altitude_m',
-               'vn_ms', 've_ms', 'vd_ms', 'unix_time_sec', 'satellites',
-               'horiz_accuracy_m', 'vert_accuracy_m', 'pdop', 'fix_type']
-        return row, keys
 
     def unpack_gps_v3(self, buf):
         gps = rc_messages.gps_v3(buf)
@@ -315,10 +254,10 @@ class Packer():
         node.setDouble("vd_ms", gps.vd_ms)
         node.setDouble("unix_time_sec", gps.unixtime_sec)
         node.setInt("satellites", gps.satellites)
-        node.setDouble('horiz_accuracy_m', gps.horiz_accuracy_m)
-        node.setDouble('vert_accuracy_m', gps.vert_accuracy_m)
-        node.setDouble('pdop', gps.pdop)
-        node.setInt('fixType', gps.fix_type)
+        node.setDouble("horiz_accuracy_m", gps.horiz_accuracy_m)
+        node.setDouble("vert_accuracy_m", gps.vert_accuracy_m)
+        node.setDouble("pdop", gps.pdop)
+        node.setInt("fixType", gps.fix_type)
         node.setInt("status", 0)
         return gps.index
 
@@ -338,10 +277,10 @@ class Packer():
         node.setDouble("vd_ms", gps.vd_ms)
         node.setDouble("unix_time_sec", gps.unixtime_sec)
         node.setInt("satellites", gps.satellites)
-        node.setDouble('horiz_accuracy_m', gps.horiz_accuracy_m)
-        node.setDouble('vert_accuracy_m', gps.vert_accuracy_m)
-        node.setDouble('pdop', gps.pdop)
-        node.setInt('fixType', gps.fix_type)
+        node.setDouble("horiz_accuracy_m", gps.horiz_accuracy_m)
+        node.setDouble("vert_accuracy_m", gps.vert_accuracy_m)
+        node.setDouble("pdop", gps.pdop)
+        node.setInt("fixType", gps.fix_type)
         node.setInt("status", 0)
         return gps.index
 
@@ -358,80 +297,35 @@ class Packer():
 
     # only support primary imu for now
     def pack_imu_bin(self, use_cached=False):
-        imu_time = imu_node.getDouble('timestamp')
+        imu_time = imu_node.getDouble("timestamp")
         if not use_cached and imu_time > self.last_imu_time:
             self.last_imu_time = imu_time
-            self.imu.index = 0
-            self.imu.timestamp_sec = imu_time
-            self.imu.p_rad_sec = imu_node.getDouble('p_rps')
-            self.imu.q_rad_sec = imu_node.getDouble('q_rps')
-            self.imu.r_rad_sec = imu_node.getDouble('r_rps')
-            self.imu.ax_mps_sec = imu_node.getDouble('ax_mps2')
-            self.imu.ay_mps_sec = imu_node.getDouble('ay_mps2')
-            self.imu.az_mps_sec = imu_node.getDouble('az_mps2')
-            self.imu.hx = imu_node.getDouble('hx')
-            self.imu.hy = imu_node.getDouble('hy')
-            self.imu.hz = imu_node.getDouble('hz')
-            self.imu.ax_raw = imu_node.getDouble('ax_raw')
-            self.imu.ay_raw = imu_node.getDouble('ay_raw')
-            self.imu.az_raw = imu_node.getDouble('az_raw')
-            self.imu.hx_raw = imu_node.getDouble('hx_raw')
-            self.imu.hy_raw = imu_node.getDouble('hy_raw')
-            self.imu.hz_raw = imu_node.getDouble('hz_raw')
-            self.imu.temp_C = imu_node.getDouble('temp_C')
-            self.imu.status = imu_node.getInt('status')
+            self.imu.props2msg(imu_node)
             self.imu_buf = self.imu.pack()
         return self.imu_buf
 
     def pack_imu_dict(self, index):
-        imu_node = PropertyNode('/sensors/imu/%d' % index)
+        imu_node = PropertyNode("/sensors/imu/%d" % index)
         row = dict()
-        row['timestamp'] = imu_node.getDouble('timestamp')
-        row['p_rad_sec'] = imu_node.getDouble('p_rps')
-        row['q_rad_sec'] = imu_node.getDouble('q_rps')
-        row['r_rad_sec'] = imu_node.getDouble('r_rps')
-        row['ax_mps_sec'] = imu_node.getDouble('ax_mps2')
-        row['ay_mps_sec'] = imu_node.getDouble('ay_mps2')
-        row['az_mps_sec'] = imu_node.getDouble('az_mps2')
-        row['hx'] = imu_node.getDouble('hx')
-        row['hy'] = imu_node.getDouble('hy')
-        row['hz'] = imu_node.getDouble('hz')
-        row['ax_raw'] = imu_node.getDouble('ax_raw')
-        row['ay_raw'] = imu_node.getDouble('ay_raw')
-        row['az_raw'] = imu_node.getDouble('az_raw')
-        row['hx_raw'] = imu_node.getDouble('hx_raw')
-        row['hy_raw'] = imu_node.getDouble('hy_raw')
-        row['hz_raw'] = imu_node.getDouble('hz_raw')
-        row['temp_C'] = imu_node.getDouble('temp_C')
-        row['status'] = imu_node.getInt('status')
+        row["index"] = imu_node.getUInt("index")
+        row["millis"] = imu_node.getUInt("millis")
+        row["ax_raw"] = imu_node.getDouble("ax_raw")
+        row["ay_raw"] = imu_node.getDouble("ay_raw")
+        row["az_raw"] = imu_node.getDouble("az_raw")
+        row["hx_raw"] = imu_node.getDouble("hx_raw")
+        row["hy_raw"] = imu_node.getDouble("hy_raw")
+        row["hz_raw"] = imu_node.getDouble("hz_raw")
+        row["ax_mps2"] = imu_node.getDouble("ax_mps2")
+        row["ay_mps2"] = imu_node.getDouble("ay_mps2")
+        row["az_mps2"] = imu_node.getDouble("az_mps2")
+        row["p_rps"] = imu_node.getDouble("p_rps")
+        row["q_rps"] = imu_node.getDouble("q_rps")
+        row["r_rps"] = imu_node.getDouble("r_rps")
+        row["hx"] = imu_node.getDouble("hx")
+        row["hy"] = imu_node.getDouble("hy")
+        row["hz"] = imu_node.getDouble("hz")
+        row["temp_C"] = imu_node.getDouble("temp_C")
         return row
-
-    def pack_imu_csv(self, index):
-        imu_node = PropertyNode('/sensors/imu/%d' % index)
-        row = dict()
-        row['timestamp'] = '%.4f' % imu_node.getDouble('timestamp')
-        row['p_rad_sec'] = '%.4f' % imu_node.getDouble('p_rps')
-        row['q_rad_sec'] = '%.4f' % imu_node.getDouble('q_rps')
-        row['r_rad_sec'] = '%.4f' % imu_node.getDouble('r_rps')
-        row['ax_mps_sec'] = '%.4f' % imu_node.getDouble('ax_mps2')
-        row['ay_mps_sec'] = '%.4f' % imu_node.getDouble('ay_mps2')
-        row['az_mps_sec'] = '%.4f' % imu_node.getDouble('az_mps2')
-        row['hx'] = '%.3f' % imu_node.getDouble('hx')
-        row['hy'] = '%.3f' % imu_node.getDouble('hy')
-        row['hz'] = '%.3f' % imu_node.getDouble('hz')
-        row['ax_raw'] = '%.4f' % imu_node.getDouble('ax_raw')
-        row['ay_raw'] = '%.4f' % imu_node.getDouble('ay_raw')
-        row['az_raw'] = '%.4f' % imu_node.getDouble('az_raw')
-        row['hx_raw'] = '%.3f' % imu_node.getDouble('hx_raw')
-        row['hy_raw'] = '%.3f' % imu_node.getDouble('hy_raw')
-        row['hz_raw'] = '%.3f' % imu_node.getDouble('hz_raw')
-        row['temp_C'] = '%.1f' % imu_node.getDouble('temp_C')
-        row['status'] = '%d' % imu_node.getInt('status')
-        keys = ['timestamp', 'p_rad_sec', 'q_rad_sec', 'r_rad_sec',
-                'ax_mps_sec', 'ay_mps_sec', 'az_mps_sec',
-                'hx', 'hy', 'hz', 'ax_raw', 'ay_raw', 'az_raw',
-                'hx_raw', 'hy_raw', 'hz_raw', 'temp_C', 'status']
-        return row, keys
 
     def unpack_imu_v4(self, buf):
         imu = rc_messages.imu_v4(buf)
@@ -489,86 +383,32 @@ class Packer():
         imu_node.setDouble("timestamp", imu.millis / 1000.0)
         return imu.index
 
-    def pack_filter_bin(self, use_cached=False):
-        filter_time = nav_node.getDouble("timestamp")
-        if (not use_cached and filter_time > self.last_filter_time) or self.filter_buf is None:
-            self.last_filter_time = filter_time
-            self.filter.index = 0
-            self.filter.timestamp_sec = filter_time
-            self.filter.latitude_deg = nav_node.getDouble("latitude_deg")
-            self.filter.longitude_deg = nav_node.getDouble("longitude_deg")
-            self.filter.altitude_m = nav_node.getDouble("altitude_m")
-            self.filter.vn_ms = nav_node.getDouble("vn_ms")
-            self.filter.ve_ms = nav_node.getDouble("ve_ms")
-            self.filter.vd_ms = nav_node.getDouble("vd_ms")
-            self.filter.roll_deg = nav_node.getDouble("roll_deg")
-            self.filter.pitch_deg = nav_node.getDouble("pitch_deg")
-            self.filter.yaw_deg = nav_node.getDouble("heading_deg")
-            self.filter.p_bias = nav_node.getDouble("p_bias")
-            self.filter.q_bias = nav_node.getDouble("q_bias")
-            self.filter.r_bias = nav_node.getDouble("r_bias") 
-            self.filter.ax_bias = nav_node.getDouble("ax_bias")
-            self.filter.ay_bias = nav_node.getDouble("ay_bias")
-            self.filter.az_bias = nav_node.getDouble("az_bias")
-            self.filter.max_pos_cov = nav_node.getDouble("max_pos_cov")
-            self.filter.max_vel_cov = nav_node.getDouble("max_vel_cov")
-            self.filter.max_att_cov = nav_node.getDouble("max_att_cov")
-            self.filter.sequence_num = remote_link_node.getInt("sequence_num")
-            self.filter.status = nav_node.getInt("status")
-            self.filter_buf = self.filter.pack()
-        return self.filter_buf
+    def pack_nav_bin(self, use_cached=False):
+        nav_time = nav_node.getDouble("timestamp")
+        if (not use_cached and nav_time > self.last_nav_time) or self.nav_buf is None:
+            self.last_nav_time = nav_time
+            self.nav.props2msg(nav_node)
+            self.nav_buf = self.nav.pack()
+        return self.nav_buf
 
-    def pack_filter_dict(self, index):
-        nav_node = PropertyNode('/filters/filter/%d' % index)
+    def pack_nav_dict(self, index):
+        nav_node = PropertyNode("/filters/filter/%d" % index)
         row = dict()
-        row['timestamp'] = nav_node.getDouble('timestamp')
-        row['latitude_deg'] = nav_node.getDouble('latitude_deg')
-        row['longitude_deg'] = nav_node.getDouble('longitude_deg')
-        row['altitude_m'] = nav_node.getDouble('altitude_m')
-        row['vn_ms'] = nav_node.getDouble('vn_ms')
-        row['ve_ms'] = nav_node.getDouble('ve_ms')
-        row['vd_ms'] = nav_node.getDouble('vd_ms')
-        row['roll_deg'] = nav_node.getDouble('roll_deg')
-        row['pitch_deg'] = nav_node.getDouble('pitch_deg')
-        row['heading_deg'] = nav_node.getDouble('heading_deg')
-        row['p_bias'] = nav_node.getDouble('p_bias')
-        row['q_bias'] = nav_node.getDouble('q_bias')
-        row['r_bias'] = nav_node.getDouble('r_bias')
-        row['ax_bias'] = nav_node.getDouble('ax_bias')
-        row['ay_bias'] = nav_node.getDouble('ay_bias')
-        row['az_bias'] = nav_node.getDouble('az_bias')
-        row['max_pos_cov'] = nav_node.getDouble('max_pos_cov')
-        row['max_vel_cov'] = nav_node.getDouble('max_vel_cov')
-        row['max_att_cov'] = nav_node.getDouble('max_att_cov')
-        row['status'] = nav_node.getInt('status')
+        row["index"] = nav_node.getUInt("index")
+        row["millis"] = nav_node.getUInt("millis")
+        row["latitude_raw"] = nav_node.getInt("latitude_raw")
+        row["longitude_raw"] = nav_node.getInt("longitude_raw")
+        row["altitude_m"] = nav_node.getDouble("altitude_m")
+        row["vn_mps"] = nav_node.getDouble("vn_mps")
+        row["ve_mps"] = nav_node.getDouble("ve_mps")
+        row["vd_mps"] = nav_node.getDouble("vd_mps")
+        row["roll_deg"] = nav_node.getDouble("roll_deg")
+        row["pitch_deg"] = nav_node.getDouble("pitch_deg")
+        row["yaw_deg"] = nav_node.getDouble("yaw_deg")
+        row["sequence_num"] = nav_node.getUInt("sequence_num")
+        row["status"] = nav_node.getUInt("status")
         return row
-
-    def pack_filter_csv(self, index):
-        nav_node = PropertyNode('/filters/filter/%d' % index)
-        row = dict()
-        row['timestamp'] = '%.4f' % nav_node.getDouble('timestamp')
-        row['latitude_deg'] = '%.10f' % nav_node.getDouble('latitude_deg')
-        row['longitude_deg'] = '%.10f' % nav_node.getDouble('longitude_deg')
-        row['altitude_m'] = '%.2f' % nav_node.getDouble('altitude_m')
-        row['vn_ms'] = '%.4f' % nav_node.getDouble('vn_ms')
-        row['ve_ms'] = '%.4f' % nav_node.getDouble('ve_ms')
-        row['vd_ms'] = '%.4f' % nav_node.getDouble('vd_ms')
-        row['roll_deg'] = '%.3f' % nav_node.getDouble('roll_deg')
-        row['pitch_deg'] = '%.3f' % nav_node.getDouble('pitch_deg')
-        row['heading_deg'] = '%.3f' % nav_node.getDouble('heading_deg')
-        row['p_bias'] = '%.4f' % nav_node.getDouble('p_bias')
-        row['q_bias'] = '%.4f' % nav_node.getDouble('q_bias')
-        row['r_bias'] = '%.4f' % nav_node.getDouble('r_bias')
-        row['ax_bias'] = '%.3f' % nav_node.getDouble('ax_bias')
-        row['ay_bias'] = '%.3f' % nav_node.getDouble('ay_bias')
-        row['az_bias'] = '%.3f' % nav_node.getDouble('az_bias')
-        row['status'] = '%d' % nav_node.getInt('status')
-        keys = ['timestamp', 'latitude_deg', 'longitude_deg', 'altitude_m',
-                'vn_ms', 've_ms', 'vd_ms', 'roll_deg', 'pitch_deg', 'heading_deg',
-                'p_bias', 'q_bias', 'r_bias', 'ax_bias', 'ay_bias', 'az_bias',
-                'status']
-        return row, keys
-
+    
     def unpack_filter_v4(self, buf):
         nav = rc_messages.filter_v4(buf)
 
@@ -642,6 +482,16 @@ class Packer():
             remote_link_node.setInt("sequence_num", nav.sequence_num)
         return nav.index
 
+    def pack_nav_metrics_bin(self, use_cached=False):
+        nav_metrics_time = nav_node.getDouble("timestamp")
+        if (not use_cached and nav_metrics_time > self.last_nav_metrics_time) or self.nav_metrics_buf is None:
+            self.last_nav_metrics_time = nav_metrics_time
+            self.nav_metrics.props2msg(nav_node)
+            self.nav_metrics_buf = self.nav_metrics.pack()
+        return self.nav_metrics_buf
+
+    # fixme: do nav metrics dict message
+
     def unpack_nav_metrics_v6(self, buf):
         metrics = rc_messages.nav_metrics_v6(buf)
         if metrics.index > 0:
@@ -649,6 +499,8 @@ class Packer():
         metrics.msg2props(nav_node)
         return metrics.index
 
+    # fixme: effectors?
+    
     def pack_act_bin(self, use_cached=False):
         act_time = act_node.getDouble('timestamp')
         if not use_cached and act_time > self.last_act_time:
@@ -680,23 +532,6 @@ class Packer():
         row['channel8_norm'] = act_node.getDouble('channel8')
         row['status'] = act_node.getInt('status')
         return row
-
-    def pack_act_csv(self, index):
-        row = dict()
-        row['timestamp'] = '%.4f' % act_node.getDouble('timestamp')
-        row['aileron_norm'] = '%.4f' % act_node.getDouble('aileron')
-        row['elevator_norm'] = '%.4f' % act_node.getDouble('elevator')
-        row['throttle_norm'] = '%.4f' % act_node.getDouble('throttle')
-        row['rudder_norm'] = '%.4f' % act_node.getDouble('rudder')
-        row['channel5_norm'] = '%.4f' % act_node.getDouble('channel5')
-        row['flaps_norm'] = '%.4f' % act_node.getDouble('flaps')
-        row['channel7_norm'] = '%.4f' % act_node.getDouble('channel7')
-        row['channel8_norm'] = '%.4f' % act_node.getDouble('channel8')
-        row['status'] = '%d' % act_node.getInt('status')
-        keys = ['timestamp', 'aileron_norm', 'elevator_norm', 'throttle_norm',
-                'rudder_norm', 'channel5_norm', 'flaps_norm', 'channel7_norm',
-                'channel8_norm', 'status']
-        return row, keys
 
     def unpack_act_v2(self, buf):
         act = rc_messages.actuator_v2(buf)
@@ -737,17 +572,13 @@ class Packer():
         effectors_node.setDouble("gear", eff.channel[5])
         return eff.index
 
-    def pack_pilot_bin(self, use_cached=False):
-        pilot_time = pilot_node.getDouble('timestamp')
-        if not use_cached and pilot_time > self.last_pilot_time:
-            self.last_pilot_time = pilot_time
-            self.pilot.index = 0
-            self.pilot.timestamp_sec = pilot_time
-            for i in range(8):
-                self.pilot.channel[i] = pilot_node.getDouble("channel", i)
-            self.pilot.status = 0
-            self.pilot_buf = self.pilot.pack()
-        return self.pilot_buf
+    def pack_inceptors_bin(self, use_cached=False):
+        incep_time = pilot_node.getDouble("timestamp")
+        if not use_cached and incep_time > self.last_incep_time:
+            self.last_incep_time = incep_time
+            self.incep.props2msg(pilot_node)
+            self.incep_buf = self.incep.pack()
+        return self.incep_buf
 
     def pack_pilot_dict(self, index):
         pilot_node = PropertyNode('/sensors/pilot_input')
@@ -763,24 +594,6 @@ class Packer():
         row['channel[7]'] = pilot_node.getDouble('channel', 7)
         row['status'] = pilot_node.getInt('status')
         return row
-
-    def pack_pilot_csv(self, index):
-        pilot_node = PropertyNode('/sensors/pilot_input')
-        row = dict()
-        row['timestamp'] = '%.4f' % pilot_node.getDouble('timestamp')
-        row['channel[0]'] = '%.3f' % pilot_node.getDouble('channel', 0)
-        row['channel[1]'] = '%.3f' % pilot_node.getDouble('channel', 1)
-        row['channel[2]'] = '%.3f' % pilot_node.getDouble('channel', 2)
-        row['channel[3]'] = '%.3f' % pilot_node.getDouble('channel', 3)
-        row['channel[4]'] = '%.3f' % pilot_node.getDouble('channel', 4)
-        row['channel[5]'] = '%.3f' % pilot_node.getDouble('channel', 5)
-        row['channel[6]'] = '%.3f' % pilot_node.getDouble('channel', 6)
-        row['channel[7]'] = '%.3f' % pilot_node.getDouble('channel', 7)
-        row['status'] = '%d' % pilot_node.getInt('status')
-        keys = ['timestamp', 'channel[0]', 'channel[1]', 'channel[2]',
-                'channel[3]', 'channel[4]', 'channel[5]', 'channel[6]',
-                'channel[7]', 'status']
-        return row, keys
 
     def unpack_pilot_v2(self, buf):
         pilot = rc_messages.pilot_v2(buf)
@@ -957,25 +770,6 @@ class Packer():
         if self.wp_counter >= route_size + 2:
             self.wp_counter = 0
         return row
-
-    def pack_ap_status_csv(self, index):
-        # fixme: tecs_target_tot is really zero now because these values
-        # are computed in energy *error* terms
-        row = dict()
-        row['timestamp'] = '%.4f' % targets_node.getDouble('timestamp')
-        row['master_switch'] = '%d' % ap_node.getBool("master_switch")
-        row['groundtrack_deg'] = '%.2f' % targets_node.getDouble('groundtrack_deg')
-        row['roll_deg'] = '%.2f' % targets_node.getDouble('roll_deg')
-        row['altitude_msl_ft'] = '%.2f' % targets_node.getDouble('altitude_msl_ft')
-        row['pitch_deg'] = '%.2f' % targets_node.getDouble('pitch_deg')
-        row['airspeed_kt'] = '%.1f' % targets_node.getDouble('airspeed_kt')
-        row['altitude_ground_m'] = '%.1f' % pos_node.getDouble("altitude_ground_m")
-        row['tecs_target_tot'] = '%.4f' % tecs_node.getDouble("target_total")
-        keys = ['timestamp', 'master_switch',
-                'groundtrack_deg', 'roll_deg', 'altitude_msl_ft', 'pitch_deg',
-                'airspeed_kt', 'altitude_ground_m',
-                'tecs_target_tot']
-        return row, keys
 
     def unpack_ap_status_v6(self, buf):
         ap = rc_messages.ap_status_v6(buf)
@@ -1189,19 +983,6 @@ class Packer():
         row['total_mah'] = power_node.getDouble('total_mah')
         return row
 
-    def pack_system_health_csv(self, index):
-        row = dict()
-        row['timestamp'] = '%.4f' % status_node.getDouble('frame_time')
-        row['system_load_avg'] = '%.2f' % status_node.getDouble('system_load_avg')
-        row['avionics_vcc'] = '%.2f' % power_node.getDouble('avionics_vcc')
-        row['main_vcc'] = '%.2f' % power_node.getDouble('main_vcc')
-        row['cell_vcc'] = '%.2f' % power_node.getDouble('cell_vcc')
-        row['main_amps'] = '%.2f' % power_node.getDouble('main_amps')
-        row['total_mah'] = '%.0f' % power_node.getDouble('total_mah')
-        keys = ['timestamp', 'system_load_avg', 'avionics_vcc', 'main_vcc',
-                'cell_vcc', 'main_amps', 'total_mah']
-        return row, keys
-
     def unpack_system_health_v4(self, buf):
         health = rc_messages.system_health_v4(buf)
         status_node.setDouble("frame_time", health.timestamp_sec)
@@ -1260,13 +1041,6 @@ class Packer():
         row['trigger_num'] = payload_node.getInt('trigger_num')
         return row
 
-    def pack_payload_csv(self, index):
-        row = dict()
-        row['timestamp'] = '%.4f' % payload_node.getDouble('timestamp')
-        row['trigger_num'] = '%d' % payload_node.getInt('trigger_num')
-        keys = ['timestamp', 'trigger_num']
-        return row, keys
-
     def unpack_payload_v2(self, buf):
         payload = rc_messages.payload_v2(buf)
         payload_node.setDouble("timestamp", payload.timestamp_sec)
@@ -1288,13 +1062,6 @@ class Packer():
         row['timestamp'] = timestamp
         row['message'] = event_node.getString('message')
         return row
-
-    def pack_event_csv(self, index):
-        row = dict()
-        row['timestamp'] = '%.4f' % event_node.getDouble('timestamp')
-        row['message'] = event_node.getString('message')
-        keys = ['timestamp', 'message']
-        return row, keys
 
     def unpack_event_v1(self, buf):
         event = rc_messages.event_v1(buf)
