@@ -96,6 +96,8 @@ def parse_msg(id, buf):
         index = packer.unpack_pilot_v3(buf)
     elif id == rc_messages.pilot_v4_id:
         index = packer.unpack_pilot_v4(buf)
+    elif id == rc_messages.inceptors_v1_id:
+        index = packer.unpack_inceptors_v1(buf)
     elif id == rc_messages.power_v1_id:
         index = packer.unpack_power_v1(buf)
     elif id == rc_messages.ap_status_v6_id:

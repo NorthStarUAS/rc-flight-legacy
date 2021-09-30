@@ -28,6 +28,7 @@ effectors_node = PropertyNode("/effectors")
 nav_node = PropertyNode("/filters/filter/0")
 gps_node = PropertyNode("/sensors/gps/0")
 imu_node = PropertyNode("/sensors/imu/0")
+inceptors_node = PropertyNode("/inceptors")
 pilot_node = PropertyNode("/sensors/pilot_input")
 pos_node = PropertyNode("/position")
 pos_pressure_node = PropertyNode("/position/pressure")
@@ -133,6 +134,7 @@ class Packer():
         airdata_node = PropertyNode("/sensors/airdata")
         row = dict()
         row["millis"] = airdata_node.getUInt("millis")
+        row["timestamp"] = airdata_node.getUInt("timestamp")
         row["baro_press_pa"] = airdata_node.getDouble("baro_press_pa")
         row["diff_press_pa"] = airdata_node.getDouble("diff_press_pa")
         row["air_temp_C"] = airdata_node.getDouble("air_temp_C")
@@ -227,6 +229,7 @@ class Packer():
         gps_node = PropertyNode("/sensors/gps/%d" % index)
         row = dict()
         row["index"] = gps_node.getUInt("index")
+        row["timestamp"] = gps_node.getUInt("timestamp")
         row["millis"] = gps_node.getUInt("millis")
         row["unix_usec"] = gps_node.getUInt64("unix_usec")
         row["num_sats"] = gps_node.getUInt("num_sats")
@@ -313,6 +316,7 @@ class Packer():
         imu_node = PropertyNode("/sensors/imu/%d" % index)
         row = dict()
         row["index"] = imu_node.getUInt("index")
+        row["timestamp"] = imu_node.getUInt("timestamp")
         row["millis"] = imu_node.getUInt("millis")
         row["ax_raw"] = imu_node.getDouble("ax_raw")
         row["ay_raw"] = imu_node.getDouble("ay_raw")
@@ -401,6 +405,7 @@ class Packer():
         row = dict()
         row["index"] = nav_node.getUInt("index")
         row["millis"] = nav_node.getUInt("millis")
+        row["timestamp"] = nav_node.getUInt("timestamp")
         row["latitude_raw"] = nav_node.getInt("latitude_raw")
         row["longitude_raw"] = nav_node.getInt("longitude_raw")
         row["altitude_m"] = nav_node.getDouble("altitude_m")
@@ -488,7 +493,7 @@ class Packer():
         # FIXME: should this code be here?
         nav_node.setDouble( "groundtrack_deg",
                             90 - math.atan2(nav.vn_mps, nav.ve_mps) * r2d )
-        gs_mps = sqrt(nav.vn_mps*nav.vn_mps + nav.ve_mps*nav.ve_mps)
+        gs_mps = math.sqrt(nav.vn_mps*nav.vn_mps + nav.ve_mps*nav.ve_mps)
         nav_node.setDouble( "groundspeed_ms", gs_mps )
         nav_node.setDouble( "groundspeed_kt", gs_mps * mps2kt )
         return nav.index
@@ -584,12 +589,31 @@ class Packer():
         return eff.index
 
     def pack_inceptors_bin(self, use_cached=False):
-        incep_time = pilot_node.getDouble("timestamp")
+        incep_time = inceptors_node.getDouble("timestamp")
         if not use_cached and incep_time > self.last_incep_time:
             self.last_incep_time = incep_time
             self.incep.props2msg(pilot_node)
             self.incep_buf = self.incep.pack()
         return self.incep_buf
+
+    def pack_inceptors_dict(self, index):
+        row = dict()
+        row["timestamp"] = inceptors_node.getDouble("timestamp")
+        row["channel[0]"] = inceptors_node.getDouble("channel", 0)
+        row["channel[1]"] = inceptors_node.getDouble("channel", 1)
+        row["channel[2]"] = inceptors_node.getDouble("channel", 2)
+        row["channel[3]"] = inceptors_node.getDouble("channel", 3)
+        row["channel[4]"] = inceptors_node.getDouble("channel", 4)
+        row["channel[5]"] = inceptors_node.getDouble("channel", 5)
+        return row
+    
+    def unpack_inceptors_v1(self, buf):
+        incep = rc_messages.inceptors_v1(buf)
+        if incep.index > 0:
+            print("Warning: incep index > 0 not supported")
+        incep.msg2props(inceptors_node)
+        inceptors_node.setDouble("timestamp", incep.millis / 1000.0)
+        return incep.index
 
     def pack_pilot_dict(self, index):
         pilot_node = PropertyNode('/sensors/pilot_input')

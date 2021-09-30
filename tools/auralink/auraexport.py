@@ -14,7 +14,7 @@ from tqdm import tqdm
 from PropertyTree import PropertyNode
 
 sys.path.append("../../src")
-from comms import aura_messages
+from comms import rc_messages
 from comms.packer import packer
 
 import commands
@@ -24,38 +24,38 @@ import auraparser
 m2nm = 0.0005399568034557235    # meters to nautical miles
 
 def generate_path(id, index):
-    if id == aura_messages.gps_v2_id or id == aura_messages.gps_v3_id or id == aura_messages.gps_v4_id:
+    if id in [rc_messages.gps_v3_id, rc_messages.gps_v4_id, rc_messages.gps_v5_id]:
         category = 'gps'
-    elif id == aura_messages.gps_raw_v1_id:
-        category = 'gpsraw'
-    elif id == aura_messages.imu_v3_id or id == aura_messages.imu_v4_id or id == aura_messages.imu_v5_id:
+    elif id in [rc_messages.imu_v4_id, rc_messages.imu_v5_id, rc_messages.imu_v6_id]:
         category = 'imu'
-    elif id == aura_messages.airdata_v5_id or id == aura_messages.airdata_v6_id or id == aura_messages.airdata_v7_id:
+    elif id in [rc_messages.airdata_v6_id, rc_messages.airdata_v7_id, rc_messages.airdata_v8_id]:
         category = 'air'
-    elif id == aura_messages.filter_v3_id or id == aura_messages.filter_v4_id or id == aura_messages.filter_v5_id:
+    elif id in [rc_messages.filter_v4_id, rc_messages.filter_v5_id, rc_messages.nav_v6_id]:
         category = 'filter'
-    elif id == aura_messages.actuator_v2_id or id == aura_messages.actuator_v3_id:
+    elif id == rc_messages.actuator_v2_id or id == rc_messages.actuator_v3_id:
         category = 'act'
-    elif id == id == aura_messages.pilot_v2_id or id == aura_messages.pilot_v3_id:
+    elif id in [rc_messages.pilot_v2_id, rc_messages.pilot_v3_id, rc_messages.pilot_v4_id]:
         category = 'pilot'
-    elif id == aura_messages.ap_status_v4_id or id == aura_messages.ap_status_v5_id or id == aura_messages.ap_status_v6_id or id == aura_messages.ap_status_v7_id:
+    elif id in [rc_messages.inceptors_v1_id]:
+        category = 'inceptors'
+    elif id in [rc_messages.ap_status_v6_id, rc_messages.ap_status_v7_id, rc_messages.ap_targets_v1_id]:
         category = 'ap'
-    elif id == aura_messages.system_health_v4_id or id == aura_messages.system_health_v5_id or id == aura_messages.system_health_v6_id:
+    elif id in [rc_messages.system_health_v5_id, rc_messages.system_health_v6_id, rc_messages.status_v7_id]:
         category = 'health'
-    elif id == aura_messages.payload_v2_id or id == aura_messages.payload_v3_id:
-        category = 'payload'
-    elif id == aura_messages.event_v1_id or id == aura_messages.event_v2_id:
+    elif id == rc_messages.event_v1_id or id == rc_messages.event_v2_id:
         category = 'event'
     else:
         print("Unknown packet id!", id, index)
         path = '/unknown-packet-id'
-    if category == 'gps' or category == 'gpsraw' or category == 'imu' \
+    if category == 'gps' or category == 'imu' \
        or category == 'air' or category == 'pilot' or category == 'health':
         basepath = '/sensors/' + category
     elif category == 'filter':
         basepath = '/navigation/' + category
     elif category == 'act':
         basepath = '/actuators/' + category
+    elif category == 'inceptors':
+        basepath = '/inceptors'
     elif category == 'ap':
         basepath = '/autopilot'
     elif category == 'health':
@@ -74,26 +74,28 @@ def generate_path(id, index):
 def generate_record(category, index):
     if category == 'gps':
         return packer.pack_gps_dict(index)
-    elif category == 'gpsraw':
-        return packer.pack_gpsraw_dict(index)
     elif category == 'imu':
         return packer.pack_imu_dict(index)
     elif category == 'air':
         return packer.pack_airdata_dict(index)
     elif category == 'filter':
-        return packer.pack_filter_dict(index)
+        return packer.pack_nav_dict(index)
     elif category == 'act':
         return packer.pack_act_dict(index)
     elif category == 'pilot':
         return packer.pack_pilot_dict(index)
     elif category == 'ap':
         return packer.pack_ap_status_dict(index)
+    elif category == 'inceptors':
+        return packer.pack_inceptors_dict(index)
     elif category == 'health':
         return packer.pack_system_health_dict(index)
     elif category == 'payload':
         return packer.pack_payload_dict(index)
     elif category == 'event':
         return packer.pack_event_dict(index)
+    else:
+        print("generate_record, unknown category:", category)
 
 argparser = argparse.ArgumentParser(description='aura export')
 argparser.add_argument('flight', help='load specified flight log')
@@ -142,7 +144,7 @@ if args.flight:
     last_counter = 0
     while True:
         try:
-            (id, index, counter) = auraparser.file_read(full) 
+            (id, index, counter) = auraparser.file_read(full)
             t.update(counter-last_counter)
             last_counter = counter
             if not located:
