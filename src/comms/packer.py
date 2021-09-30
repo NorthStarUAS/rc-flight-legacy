@@ -15,6 +15,11 @@ from comms import rc_messages
 ft2m = 0.3048
 m2ft = 1.0 / ft2m
 
+r2d = 180.0 / math.pi
+
+kt2mps = 0.5144444444444444444
+mps2kt = 1.0 / kt2mps
+
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
     
@@ -480,6 +485,12 @@ class Packer():
         nav_node.setDouble("longitude_deg", nav.longitude_raw / 10000000.0)
         if nav.sequence_num >= 1:
             remote_link_node.setInt("sequence_num", nav.sequence_num)
+        # FIXME: should this code be here?
+        nav_node.setDouble( "groundtrack_deg",
+                            90 - math.atan2(nav.vn_mps, nav.ve_mps) * r2d )
+        gs_mps = sqrt(nav.vn_mps*nav.vn_mps + nav.ve_mps*nav.ve_mps)
+        nav_node.setDouble( "groundspeed_ms", gs_mps )
+        nav_node.setDouble( "groundspeed_kt", gs_mps * mps2kt )
         return nav.index
 
     def pack_nav_metrics_bin(self, use_cached=False):

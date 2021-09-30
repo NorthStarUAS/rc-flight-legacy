@@ -1,0 +1,39 @@
+#include <props2.h>
+
+#include "include/globaldefs.h"
+#include "util/lowpass.h"
+
+static PropertyNode filter_node;
+static PropertyNode pos_filter_node;
+static PropertyNode task_node;
+
+// initial values are the 'time factor'
+static LowPassFilter ground_alt_filt( 30.0 );
+
+static bool ground_alt_calibrated = false;
+
+// initialize ground estimator variables
+void init_ground() {
+    filter_node = PropertyNode( "/filters/filter" );
+    pos_filter_node = PropertyNode( "/position/filter" );
+    task_node = PropertyNode( "/task" );
+}
+
+void update_ground(double dt) {
+    return;                     // let fmu compute this now
+    
+    // determine ground reference altitude.  Average filter altitude
+    // over the most recent 30 seconds that we are !is_airborne
+    if ( !ground_alt_calibrated ) {
+	ground_alt_calibrated = true;
+	ground_alt_filt.init( filter_node.getDouble("altitude_m") );
+    }
+
+    if ( ! task_node.getBool("is_airborne") ) {
+	// ground reference altitude averaged current altitude over
+	// first 30 seconds while on the ground
+	ground_alt_filt.update( filter_node.getDouble("altitude_m"), dt );
+	pos_filter_node.setDouble( "altitude_ground_m",
+                                  ground_alt_filt.get_value() );
+    }
+}
