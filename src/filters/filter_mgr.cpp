@@ -22,7 +22,7 @@ using std::string;
 #include "include/globaldefs.h"
 #include "util/props_helper.h"
 
-#include "ground.h"
+// #include "ground.h"
 #include "wind.h"
 
 #include "filter_mgr.h"
@@ -101,7 +101,7 @@ void Filter_init(SharedStateWrapper d) {
     }
 
     // initialize ground estimator
-    init_ground();
+    // init_ground();
     
     // initialize wind estimator
     init_wind();
@@ -263,7 +263,7 @@ bool Filter_update() {
     // only for primary filter
     if ( filter_node.getInt("status") == 2 ) {
         update_euler_rates();
-        update_ground(imu_dt);
+        // update_ground(imu_dt);
         update_wind(imu_dt);
         publish_values();
     }
