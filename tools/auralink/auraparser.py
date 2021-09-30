@@ -23,16 +23,19 @@ def update(ser):
                 parser.cksum_lo, parser.cksum_hi)
 
 # simple 2-byte checksum
-def validate_cksum(id, size, buf, cksum0, cksum1):
+def validate_cksum(id, len_lo, len_hi, buf, cksum0, cksum1):
     c0 = 0
     c1 = 0
     c0 = (c0 + id) & 0xff
     c1 = (c1 + c0) & 0xff
     # print "c0 =", c0, "c1 =", c1
-    c0 = (c0 + size) & 0xff
+    c0 = (c0 + len_lo) & 0xff
     c1 = (c1 + c0) & 0xff
-    # print "c0 =", c0, "c1 =", c1
-    for i in range(0, size):
+    #print("c0 =", c0, "c1 =", c1)
+    c0 = (c0 + len_hi) & 0xff
+    c1 = (c1 + c0) & 0xff
+    #print("c0 =", c0, "c1 =", c1)
+    for i in range(0, len_hi*256+len_lo):
         c0 = (c0 + buf[i]) & 0xff
         c1 = (c1 + c0) & 0xff
         # print "c0 =", c0, "c1 =", c1, '[', ord(buf[i]), ']'
@@ -153,8 +156,10 @@ def file_read(buf):
 
     # read message id and size
     id = buf[counter]; counter += 1
-    size = buf[counter]; counter += 1
-    # print "message =", id, "size =", size
+    pkt_len_lo = buf[counter]; counter += 1
+    pkt_len_hi = buf[counter]; counter += 1
+    size = pkt_len_hi*256 + pkt_len_lo
+    # print("message =", id, "size =", size)
 
     # load message
     try:
@@ -166,7 +171,7 @@ def file_read(buf):
     cksum0 = buf[counter]; counter += 1
     cksum1 = buf[counter]; counter += 1
 
-    if validate_cksum(id, size, savebuf, cksum0, cksum1):
+    if validate_cksum(id, pkt_len_lo, pkt_len_hi, savebuf, cksum0, cksum1):
         # print "check sum passed"
         index = parse_msg(id, savebuf)
         return (id, index, counter)

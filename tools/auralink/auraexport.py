@@ -146,7 +146,8 @@ if args.flight:
             t.update(counter-last_counter)
             last_counter = counter
             if not located:
-                if gps_node.getInt('satellites') >= 5:
+                gps_node.pretty_print()
+                if gps_node.getInt('num_sats') >= 5:
                     lat = gps_node.getDouble('latitude_deg')
                     lon = gps_node.getDouble('longitude_deg')
                     sec = gps_node.getDouble('unix_time_sec')
