@@ -157,7 +157,13 @@ bool rcfmu_t::open( PropertyNode *config ) {
         info("device on %s @ %d baud", device_name.c_str(), baud);
     }
 
-    bool result = serial.open( baud, device_name.c_str() );
+    bool result = false;
+    int count = 0;
+    while ( !result and count < 120 ) {
+        info("rcfmu device not open ... %.1f", get_Time());
+        sleep(1);
+        result = serial.open( baud, device_name.c_str() );
+    }
     if ( !result ) {
         hard_fail("Error opening serial link to rcfmu device");
     }
@@ -576,7 +582,7 @@ bool rcfmu_t::update_airdata( rc_message::airdata_v8_t *airdata ) {
     float Pa = (pitot - pitot_offset);
     if ( Pa < 0.0 ) { Pa = 0.0; } // avoid sqrt(neg_number) situation
     float airspeed_mps = sqrt( 2*Pa / 1.225 ) * pitot_calibrate;
-    airdata_node.setDouble( "airspeed_mps", airspeed_mps );
+    // airdata_node.setDouble( "airspeed_mps", airspeed_mps );
 
     // publish sensor values
     airdata_node.setDouble( "pressure_mbar", airdata->baro_press_pa / 100.0 );
