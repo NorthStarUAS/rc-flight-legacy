@@ -64,6 +64,7 @@ void driver_mgr_t::init(SharedStateWrapper d) {
             d->init(&section_node);
             drivers.push_back(d);
         } else if ( driver_node.hasChild("gpsd") ) {
+            printf("initializing gpsd\n");
             PropertyNode section_node = driver_node.getChild( "gpsd" );
             driver_t *d = new gpsd_t();
             d->init(&section_node);

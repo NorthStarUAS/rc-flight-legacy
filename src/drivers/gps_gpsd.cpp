@@ -64,6 +64,7 @@ void gpsd_t::send_init() {
 }
 
 void gpsd_t::init( PropertyNode *config ) {
+    printf("gpsd_t::init()\n");
     if ( config->hasChild("port") ) {
 	port = config->getInt("port");
     }
@@ -82,6 +83,7 @@ void gpsd_t::init( PropertyNode *config ) {
     string raw_path = get_next_path("/sensors", "gps_raw", true);
     raw_node = PropertyNode(raw_path.c_str(), true);
     ephem_node = raw_node.getChild("ephemeris", true);
+    verbose = true;
 }
 
 bool gpsd_t::parse_message(const string message) {
@@ -138,10 +140,10 @@ bool gpsd_t::parse_message(const string message) {
             speed_mps = d["speed"].GetFloat();
         }
         float angle_rad = (90.0 - course_deg) * M_PI/180.0;
-        gps_node.setDouble( "vn_ms", sin(angle_rad) * speed_mps );
-        gps_node.setDouble( "ve_ms", cos(angle_rad) * speed_mps );
+        gps_node.setDouble( "vn_mps", sin(angle_rad) * speed_mps );
+        gps_node.setDouble( "ve_mps", cos(angle_rad) * speed_mps );
         if ( d.HasMember("climb") ) {
-            gps_node.setDouble( "vd_ms", -d["climb"].GetFloat() );
+            gps_node.setDouble( "vd_mps", -d["climb"].GetFloat() );
         }
         if ( d.HasMember("mode") ) {
             gps_node.setInt( "fixType", d["mode"].GetInt() );
@@ -210,13 +212,6 @@ bool gpsd_t::parse_message(const string message) {
                     }
                     if ( raw[i].HasMember("pseudorange") ) {
                         pr = raw[i]["pseudorange"].GetDouble();
-                        {
-                            // hack/test fixme/delete me
-                            // test if modeling clock error helps position?
-                            const double c = 299792458; // Speed of light in m/s
-                            pr -= c*0.01;
-                        }
-
                     }
                     if ( raw[i].HasMember("doppler") ) {
                         doppler = raw[i]["doppler"].GetDouble();
@@ -239,11 +234,15 @@ bool gpsd_t::parse_message(const string message) {
                             }
                             const double c = 299792458; // Speed of light in m/s
 
-                            // correct pseudorange for clockbias (est) m
-                            pr -= clockBiasEst_m;
-                            double sat_trans_tow = tow + clockBiasEst_m/c - pr/c;
+                            double sat_trans_tow = tow;
+                            if ( true ) {
+                                // correct pseudorange for clockbias (est) m
+                                pr -= clockBiasEst_m;
+                                // sat_trans_tow = tow + clockBiasEst_m/c - pr/c;
+                                sat_trans_tow = tow + clockBiasEst_m/c;
                             // /*combine terms*/ double sat_trans_tow = tow - (2*clockBiasEst_m - pr)/c;
-                            
+                            }
+                            // pr -= clockBiasEst_m;
                             VectorXd posvel = dump_sat_pos(svid, sat_trans_tow, pr, doppler, ephem);
                             if ( posvel.size() == 8 ) {
                                 // cout << "gnss:" << gnss << endl;
@@ -289,13 +288,18 @@ bool gpsd_t::parse_message(const string message) {
                     double clockRateBias_mps = 0;
                     GNSS_LS_pos_vel(final_gnss, pEst_E_m, vEst_E_mps, clockBias_m, clockRateBias_mps);
                     clockBiasEst_m += clockBias_m;
-                    //clockBiasEst_m = clockBias_m;
+                    // clockBiasEst_m = clockBias_m;
                     printf("pos ecef: %.2f %.2f %.2f  cb: %.1f cbe: %.0f\n",
                            pEst_E_m[0], pEst_E_m[1], pEst_E_m[2], clockBias_m,
                            clockBiasEst_m);
                     Vector3d lla = E2D(pEst_E_m);
                     printf("receiver pos lla: %.8f %.8f %.1f\n", lla[0]*180.0/M_PI, lla[1]*180.0/M_PI, lla[2]);
-                    // Vector3d me(-248211.09, -4500083.91, 4498382.30);
+                    // Vector3d me(-248211.09, -4500083.91, 4498382.30); //home
+                    Vector3d me(-254847.40, -4512496.87, 4485627.85);//uavlab
+                    Vector3d diff = me - pEst_E_m;
+                    double dist = sqrt(diff[0]*diff[0] + diff[1]*diff[1] + diff[2]*diff[2]);
+                    printf("position error %.2f m\n", dist);
+                    
                     // GNSS_clock_bias(final_gnss, me);
                 } else {
                     printf("waiting for enough ephemeris and satellite data...\n");
@@ -534,7 +538,12 @@ VectorXd gpsd_t::dump_sat_pos(int svid, double tow, double pr, double doppler,
     if ( ephem.getBool("frame1") and ephem.getBool("frame2")
          and ephem.getBool("frame3") ) {
         GNSS_raw_measurement gnss;
+	gnss.gnssid = svid;
         gnss.timestamp = tow;
+	gnss.toc = ephem.getDouble("toc");
+	gnss.af0 = ephem.getDouble("af0");
+	gnss.af1 = ephem.getDouble("af1");
+	gnss.af2 = ephem.getDouble("af2");
         gnss.pseudorange = pr;
         gnss.doppler = doppler;
         gnss.Crs = ephem.getDouble("Crs");
@@ -556,7 +565,11 @@ VectorXd gpsd_t::dump_sat_pos(int svid, double tow, double pr, double doppler,
         posvel = EphemerisData2PosVelClock(gnss);
         // cout << "sat: " << svid << " pos/vel: " << posvel << endl;
         Vector3d ecef = posvel.segment<3>(2);
+        Vector3d vel_ecef = posvel.segment<3>(5);
         Vector3d lla = E2D(ecef);
+        printf("sat %d pos: %.2f %.2f %.2f vel: %.2f %.2f %2f\n",
+               svid, ecef[0], ecef[1], ecef[2],
+               vel_ecef[0], vel_ecef[1], vel_ecef[2]);
         printf("sat %d lla: %.8f %.8f %.1f\n", svid, lla[0]*180.0/M_PI, lla[1]*180.0/M_PI, lla[2]);
     }
     return posvel;

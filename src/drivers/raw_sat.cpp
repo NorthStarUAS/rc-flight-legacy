@@ -245,9 +245,12 @@ VectorXd EphemerisData2PosVelClock(GNSS_raw_measurement gnss_raw_measurement)
     // pg. 104-105, Also Grove  p335-338
 
     // Process subframe 1,2,3 information
+    printf("  sqrta: %.8f\n", gnss_raw_measurement.sqrtA);
     double A_semiMajorAxis = gnss_raw_measurement.sqrtA*gnss_raw_measurement.sqrtA;        // Semi-major axis
+    printf("  a: %.8f\n", A_semiMajorAxis);
     double n_0_computedMeanMotion = sqrt(MU / (A_semiMajorAxis*A_semiMajorAxis*A_semiMajorAxis)); // Computed mean motion
     double n_correctedMeanMotion = n_0_computedMeanMotion + gnss_raw_measurement.deltan;// Corrected mean motion
+    printf("  ma_dot: %.20f\n", n_correctedMeanMotion);
     double e_eccentricity = gnss_raw_measurement.e; // Eccentricity
     //double phi_k_argumentOfLattitude;   // Argument of latitude
     double M_0_trueAnomalyAtRef = gnss_raw_measurement.M0;
@@ -268,6 +271,7 @@ VectorXd EphemerisData2PosVelClock(GNSS_raw_measurement gnss_raw_measurement)
 
     // Compute the time from the ephemeris reference epoch
     double t_k_timeFromReferenceEpoch = gnss_raw_measurement.timestamp - t_OE;
+    printf("  time: %.2f toe: %.2f tdiff: %.2f\n", gnss_raw_measurement.timestamp, t_OE, t_k_timeFromReferenceEpoch);
     // Correct that time for end-of-week crossovers
     if (t_k_timeFromReferenceEpoch > 302400)
     {
@@ -280,6 +284,8 @@ VectorXd EphemerisData2PosVelClock(GNSS_raw_measurement gnss_raw_measurement)
 
     // Compute the mean anomaly
     double M_k_meanAnomaly = M_0_trueAnomalyAtRef + n_correctedMeanMotion * t_k_timeFromReferenceEpoch;
+    printf("  m0: %.20f\n", M_0_trueAnomalyAtRef);
+    printf("  ma: %.20f\n", M_k_meanAnomaly);
 
     // Below, we iteratively solve for E_k_eccentricAnomaly using Newton-Raphson method
     double solutionError = 1000000.;
@@ -306,16 +312,18 @@ VectorXd EphemerisData2PosVelClock(GNSS_raw_measurement gnss_raw_measurement)
         //     std::cout<< "Iteration #: " << iterationCount << " Error: " << solutionError << std::endl;
         //   }
     }
+    printf("  ea: %.20f\n", E_k_eccentricAnomaly);
     double cos_E_k = cos(E_k_eccentricAnomaly);
     double sin_E_k = sin(E_k_eccentricAnomaly);
     double nu_k_trueAnomaly = atan2(
-        (sqrt(1.0 - pow(e_eccentricity, 2)) * sin_E_k) /
+        (sqrt(1.0 - e_eccentricity*e_eccentricity) * sin_E_k) /
             (1.0 - (e_eccentricity * cos_E_k)),
         (cos_E_k - e_eccentricity) /
             (1.0 - e_eccentricity * cos_E_k));
 
     double phi_k_argumentOfLatitude = nu_k_trueAnomaly + omega_argumentOfPerigee;
-
+    printf("  al: %.20f\n", phi_k_argumentOfLatitude);
+ 
     // Compute the corrective 2nd order terms
     double sin2PhiK = sin(2.0 * phi_k_argumentOfLatitude);
     double cos2PhiK = cos(2.0 * phi_k_argumentOfLatitude);
@@ -326,19 +334,24 @@ VectorXd EphemerisData2PosVelClock(GNSS_raw_measurement gnss_raw_measurement)
 
     // Now compute the updated corrected orbital elements
     double u_argumentOfLat = phi_k_argumentOfLatitude + deltaU_argumentOfLatCorrection;
+    printf("  cal: %.20f\n", u_argumentOfLat);
     double r_radius = (A_semiMajorAxis * (1.0 - (e_eccentricity * cos_E_k))) + deltaR_radiusCorrection;
+    printf("  r: %.20f\n", r_radius);
     double i_inclination =
         i_0_inclinationAtRef +
         (iDot_rateOfInclination * t_k_timeFromReferenceEpoch) +
         deltaI_inclinationCorrection;
+    printf("  inc: %.20f\n", i_inclination);
 
     // Compute the satellite position within the orbital plane
     double xPositionOrbitalPlane = r_radius * cos(u_argumentOfLat);
     double yPositionOrbitalPlane = r_radius * sin(u_argumentOfLat);
+    printf("  x: %.20f y: %.20f\n", xPositionOrbitalPlane, yPositionOrbitalPlane);
     double omegaK_longitudeAscendingNode =
         omega0_longitudeofAscendingNodeofOrbitPlane +
         ((omegaDot_argumentOfPerigee - OMEGA_DOT_EARTH) * t_k_timeFromReferenceEpoch) -
         (OMEGA_DOT_EARTH * t_OE);
+    printf("  om: %.20f\n", omegaK_longitudeAscendingNode);
 
     double sinOmegaK = sin(omegaK_longitudeAscendingNode);
     double cosOmegaK = cos(omegaK_longitudeAscendingNode);
@@ -349,6 +362,7 @@ VectorXd EphemerisData2PosVelClock(GNSS_raw_measurement gnss_raw_measurement)
     double x = (xPositionOrbitalPlane * cosOmegaK) - (yPositionOrbitalPlane * cosIK * sinOmegaK);
     double y = (xPositionOrbitalPlane * sinOmegaK) + (yPositionOrbitalPlane * cosIK * cosOmegaK);
     double z = (yPositionOrbitalPlane * sinIK);
+    printf("  xyz: %.2f %.2f %.2f\n", x, y, z);
 
     // ECEF velocity calculation:
     double E_dot_k_eccentricAnomaly = n_correctedMeanMotion / (1.0 - (e_eccentricity * cos_E_k));     // Eq.(8.21)
@@ -388,7 +402,8 @@ VectorXd EphemerisData2PosVelClock(GNSS_raw_measurement gnss_raw_measurement)
     double deltatsv = (gnss_raw_measurement.af0
                        + gnss_raw_measurement.af1*toff +
                        gnss_raw_measurement.af2*toff*toff + deltatr);
-    // printf("sv %d: %.2f m deltatsv = %.f sec\n", gnss_raw_measurement.gnssid, deltatsv*c, deltatsv);
+    printf("sv %d: toc: %.8f toff: %.8f %.2f m deltatsv = %.f sec\n",
+	   gnss_raw_measurement.gnssid, gnss_raw_measurement.toc, toff, deltatsv*c, deltatsv);
     /* printf("deltatr %e deltatsv %e Tgd %.e\n"
            "URE %s Health %s", deltatr, deltatsv, ephm['Tgd'], ura2ure[ephm['ura']],
            health_str[ephm['hlth'] & 0x1f])) */
@@ -397,7 +412,7 @@ VectorXd EphemerisData2PosVelClock(GNSS_raw_measurement gnss_raw_measurement)
     double lambda = (2 * c) / 1575.4282e6;  // L1 according ublox8
     // https://www.u-blox.com/sites/default/files/products/documents/u-blox8-M8_ReceiverDescrPrtSpec_%28UBX-13003221%29.pdf
     double PseudorangeRate = lambda * gnss_raw_measurement.doppler;
-    pos_vel_ecef_clock << gnss_raw_measurement.pseudorange, PseudorangeRate, x, y, z, vx, vy, vz;
+    pos_vel_ecef_clock << gnss_raw_measurement.pseudorange + deltatsv*c, PseudorangeRate, x, y, z, vx, vy, vz;
     // cout << x << y << y << endl;
 
     return pos_vel_ecef_clock;
