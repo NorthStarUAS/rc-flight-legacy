@@ -5,6 +5,7 @@
 
 #include <stdlib.h>		// drand48()
 #include <sys/ioctl.h>
+#include <time.h>
 
 #include <iostream>
 using std::cout;
@@ -195,7 +196,7 @@ bool fgfs_t::update_gps() {
 	}
 
 	uint8_t *buf = packet_buf;
-	double time = *(double *)buf; buf += 8;
+	double millis = *(double *)buf*1000; buf += 8;
 	double lat = *(double *)buf; buf += 8;
 	double lon = *(double *)buf; buf += 8;
 	float alt = *(float *)buf; buf += 4;
@@ -223,6 +224,7 @@ bool fgfs_t::update_gps() {
         // cout << "mag vector (ned): " << mag_ned(0) << " " << mag_ned(1) << " " << mag_ned(2) << endl;
         
 	gps_node.setDouble( "timestamp", get_Time() );
+        gps_node.setUInt("millis", get_Time()*1000);
 	gps_node.setDouble( "latitude_deg", lat );
 	gps_node.setDouble( "longitude_deg", lon );
 	gps_node.setDouble( "altitude_m", alt );
@@ -230,7 +232,8 @@ bool fgfs_t::update_gps() {
 	gps_node.setDouble( "ve_mps", ve );
 	gps_node.setDouble( "vd_mps", vd );
 	gps_node.setInt( "num_sats", 8 ); // fake a solid number
-	gps_node.setDouble( "unix_time_sec", time );
+        gps_node.setUInt64("unix_usec", time(NULL) * 1000000);
+	gps_node.setDouble( "unix_time_sec", time(NULL) );
 	gps_node.setInt( "status", 2 ); // valid fix
     }
 
@@ -302,6 +305,7 @@ bool fgfs_t::update_imu() {
 
 	double cur_time = get_Time();
 	imu_node.setDouble( "timestamp", cur_time );
+        imu_node.setUInt("millis", cur_time*1000);
 	imu_node.setDouble( "p_rps", ngv(0) );
 	imu_node.setDouble( "q_rps", ngv(1) );
 	imu_node.setDouble( "r_rps", ngv(2) );
@@ -322,6 +326,7 @@ bool fgfs_t::update_imu() {
 	imu_node.setDouble( "yaw_truth", yaw_truth );
 
         airdata_node.setDouble( "timestamp", cur_time );
+        gps_node.setUInt("millis", cur_time*1000);
         airdata_node.setDouble( "airspeed_mps", airspeed * kt2mps );
         const double inhg2mbar = 33.8638866667;
         airdata_node.setDouble( "pressure_mbar", pressure * inhg2mbar );

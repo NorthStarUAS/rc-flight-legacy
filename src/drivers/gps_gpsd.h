@@ -21,10 +21,7 @@ using namespace Eigen;
 class gpsd_t: public driver_t {
     
 public:
-    gpsd_t() {
-        pEst_E_m = Vector3d(0, 0, 0);
-        vEst_E_mps = Vector3d(0, 0, 0);
-    }
+    gpsd_t() {}
     ~gpsd_t() {}
     void init( PropertyNode *config );
     float read();
@@ -40,9 +37,6 @@ private:
     int port = 2947;
     string host = "localhost";
     string init_string = "?WATCH={\"enable\":true,\"json\":true,\"scaled\":true}";
-    Vector3d pEst_E_m, vEst_E_mps;
-    double clockBiasEst_m=0;
-
     netSocket gpsd_sock;
     bool socket_connected = false;
     double last_init_time = 0.0;
