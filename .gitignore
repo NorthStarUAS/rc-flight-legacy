@@ -1,6 +1,7 @@
 *~
 *Makefile.in
-*.pyc
+#*.pyc
+build/
 aclocal.m4
 autom4te.cache/
 compile
