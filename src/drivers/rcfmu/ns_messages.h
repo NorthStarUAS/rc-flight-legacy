@@ -18,7 +18,7 @@ using std::string;
 
 #include "props2.h"  // github.com/RiceCreekUAS/props/v2
 
-namespace rc_message {
+namespace ns_message {
 
 static inline int32_t intround(float f) {
     return (int32_t)(f >= 0.0 ? (f + 0.5) : (f - 0.5));
@@ -45,7 +45,6 @@ const uint8_t nav_metrics_v6_id = 53;
 const uint8_t actuator_v2_id = 21;
 const uint8_t actuator_v3_id = 37;
 const uint8_t effectors_v1_id = 61;
-const uint8_t pilot_v2_id = 20;
 const uint8_t pilot_v3_id = 38;
 const uint8_t pilot_v4_id = 51;
 const uint8_t inceptors_v1_id = 62;
@@ -2384,89 +2383,6 @@ public:
     }
 };
 
-// Message: pilot_v2 (id: 20)
-class pilot_v2_t {
-public:
-
-    uint8_t index;
-    double timestamp_sec;
-    float channel[8];
-    uint8_t status;
-
-    // internal structure for packing
-    #pragma pack(push, 1)
-    struct _compact_t {
-        uint8_t index;
-        double timestamp_sec;
-        int16_t channel[8];
-        uint8_t status;
-    };
-    #pragma pack(pop)
-
-    // id, ptr to payload and len
-    static const uint8_t id = 20;
-    uint8_t *payload = nullptr;
-    int len = 0;
-
-    ~pilot_v2_t() {
-        free(payload);
-    }
-
-    bool pack() {
-        len = sizeof(_compact_t);
-        // compute dynamic packet size (if neede)
-        int size = len;
-        payload = (uint8_t *)REALLOC(payload, size);
-        // copy values
-        _compact_t *_buf = (_compact_t *)payload;
-        _buf->index = index;
-        _buf->timestamp_sec = timestamp_sec;
-        for (int _i=0; _i<8; _i++) _buf->channel[_i] = intround(channel[_i] * 20000.0);
-        _buf->status = status;
-        return true;
-    }
-
-    bool unpack(uint8_t *external_message, int message_size) {
-        _compact_t *_buf = (_compact_t *)external_message;
-        len = sizeof(_compact_t);
-        index = _buf->index;
-        timestamp_sec = _buf->timestamp_sec;
-        for (int _i=0; _i<8; _i++) channel[_i] = _buf->channel[_i] / (float)20000.0;
-        status = _buf->status;
-        return true;
-    }
-
-    void msg2props(string _path, int _index = -1) {
-        if ( _index >= 0 ) {
-            _path += "/" + std::to_string(_index);
-        }
-        PropertyNode node(_path.c_str());
-        msg2props(node);
-    }
-
-    void msg2props(PropertyNode &node) {
-        node.setUInt("index", index);
-        node.setDouble("timestamp_sec", timestamp_sec);
-        for (int _i=0; _i<8; _i++) node.setDouble("channel", channel[_i], _i);
-        node.setUInt("status", status);
-    }
-
-    void props2msg(string _path, int _index = -1) {
-        if ( _index >= 0 ) {
-            _path += "/" + std::to_string(_index);
-        }
-        PropertyNode node(_path.c_str());
-        props2msg(node);
-    }
-
-    void props2msg(PropertyNode &node) {
-        index = node.getUInt("index");
-        timestamp_sec = node.getDouble("timestamp_sec");
-        for (int _i=0; _i<8; _i++) channel[_i] = node.getDouble("channel", _i);
-        status = node.getUInt("status");
-    }
-};
-
 // Message: pilot_v3 (id: 38)
 class pilot_v3_t {
 public:
@@ -4028,4 +3944,4 @@ public:
     }
 };
 
-} // namespace rc_message
+} // namespace ns_message

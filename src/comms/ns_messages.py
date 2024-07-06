@@ -18,7 +18,6 @@ nav_metrics_v6_id = 53
 actuator_v2_id = 21
 actuator_v3_id = 37
 effectors_v1_id = 61
-pilot_v2_id = 20
 pilot_v3_id = 38
 pilot_v4_id = 51
 inceptors_v1_id = 62
@@ -1679,70 +1678,6 @@ class effectors_v1():
         self.index = node.getUInt("index")
         self.millis = node.getUInt("millis")
         for _i in range(8): self.channel[_i] = node.getDouble("channel", _i)
-
-# Message: pilot_v2
-# Id: 20
-class pilot_v2():
-    id = 20
-    _pack_string = "<BdhhhhhhhhB"
-    _struct = struct.Struct(_pack_string)
-
-    def __init__(self, msg=None):
-        # public fields
-        self.index = 0
-        self.timestamp_sec = 0.0
-        self.channel = [0.0] * 8
-        self.status = 0
-        # unpack if requested
-        if msg: self.unpack(msg)
-
-    def pack(self):
-        msg = self._struct.pack(
-                  self.index,
-                  self.timestamp_sec,
-                  int(round(self.channel[0] * 20000.0)),
-                  int(round(self.channel[1] * 20000.0)),
-                  int(round(self.channel[2] * 20000.0)),
-                  int(round(self.channel[3] * 20000.0)),
-                  int(round(self.channel[4] * 20000.0)),
-                  int(round(self.channel[5] * 20000.0)),
-                  int(round(self.channel[6] * 20000.0)),
-                  int(round(self.channel[7] * 20000.0)),
-                  self.status)
-        return msg
-
-    def unpack(self, msg):
-        (self.index,
-         self.timestamp_sec,
-         self.channel[0],
-         self.channel[1],
-         self.channel[2],
-         self.channel[3],
-         self.channel[4],
-         self.channel[5],
-         self.channel[6],
-         self.channel[7],
-         self.status) = self._struct.unpack(msg)
-        self.channel[0] /= 20000.0
-        self.channel[1] /= 20000.0
-        self.channel[2] /= 20000.0
-        self.channel[3] /= 20000.0
-        self.channel[4] /= 20000.0
-        self.channel[5] /= 20000.0
-        self.channel[6] /= 20000.0
-        self.channel[7] /= 20000.0
-
-    def msg2props(self, node):
-        node.setUInt("index", self.index)
-        node.setDouble("timestamp_sec", self.timestamp_sec)
-        for _i in range(8): node.setDouble("channel", self.channel[_i], _i)
-        node.setUInt("status", self.status)
-
-    def props2msg(self, node):
-        self.index = node.getUInt("index")
-        self.timestamp_sec = node.getDouble("timestamp_sec")
-        for _i in range(8): self.channel[_i] = node.getDouble("channel", _i)
-        self.status = node.getUInt("status")
 
 # Message: pilot_v3
 # Id: 38
