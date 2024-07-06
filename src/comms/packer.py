@@ -4,7 +4,7 @@ import struct
 
 from PropertyTree import PropertyNode
 
-from comms import rc_messages
+from comms import ns_messages
 
 # FIXME: we are hard coding status flag to zero in many places which
 # means we aren't using them properly (and/or wasting bytes)
@@ -22,7 +22,7 @@ mps2kt = 1.0 / kt2mps
 
 START_OF_MSG0 = 147
 START_OF_MSG1 = 224
-    
+
 airdata_node = PropertyNode("/sensors/airdata")
 effectors_node = PropertyNode("/effectors")
 nav_node = PropertyNode("/filters/filter/0")
@@ -89,16 +89,16 @@ def wrap_packet( self, packet_id, payload ):
     return buf
 
 class Packer():
-    ap = rc_messages.ap_status_v7()
-    act = rc_messages.actuator_v3()
-    airdata = rc_messages.airdata_v8()
-    nav = rc_messages.nav_v6()
-    nav_metrics = rc_messages.nav_metrics_v6()
-    gps = rc_messages.gps_v5()
-    health = rc_messages.system_health_v6()
-    imu = rc_messages.imu_v6()
-    incep = rc_messages.inceptors_v1()
-    pilot = rc_messages.pilot_v3()
+    ap = ns_messages.ap_status_v7()
+    act = ns_messages.actuator_v3()
+    airdata = ns_messages.airdata_v8()
+    nav = ns_messages.nav_v6()
+    nav_metrics = ns_messages.nav_metrics_v6()
+    gps = ns_messages.gps_v5()
+    health = ns_messages.system_health_v6()
+    imu = ns_messages.imu_v6()
+    incep = ns_messages.inceptors_v1()
+    pilot = ns_messages.pilot_v3()
     ap_buf = None
     act_buf = None
     airdata_buf = None
@@ -118,7 +118,7 @@ class Packer():
     last_imu_time = -1.0
     last_incep_time = -1.0
     last_pilot_time = -1.0
-    
+
     def __init__(self):
         pass
 
@@ -155,7 +155,7 @@ class Packer():
         return row
 
     def unpack_airdata_v6(self, buf):
-        air = rc_messages.airdata_v6(buf)
+        air = ns_messages.airdata_v6(buf)
 
         if air.index > 0:
             print("Warning: airdata index > 0 not supported")
@@ -179,7 +179,7 @@ class Packer():
         return air.index
 
     def unpack_airdata_v7(self, buf):
-        air = rc_messages.airdata_v7(buf)
+        air = ns_messages.airdata_v7(buf)
 
         if air.index > 0:
             print("Warning: airdata index > 0 not supported")
@@ -204,7 +204,7 @@ class Packer():
         return air.index
 
     def unpack_airdata_v8(self, buf):
-        air = rc_messages.airdata_v8(buf)
+        air = ns_messages.airdata_v8(buf)
         if air.index > 0:
             print("Warning: airdata index > 0 not supported")
         air.msg2props(airdata_node)
@@ -247,7 +247,7 @@ class Packer():
         return row
 
     def unpack_gps_v3(self, buf):
-        gps = rc_messages.gps_v3(buf)
+        gps = ns_messages.gps_v3(buf)
 
         if gps.index > 0:
             print("Warning: gps index > 0 not supported")
@@ -270,7 +270,7 @@ class Packer():
         return gps.index
 
     def unpack_gps_v4(self, buf):
-        gps = rc_messages.gps_v4(buf)
+        gps = ns_messages.gps_v4(buf)
 
         if gps.index > 0:
             print("Warning: gps index > 0 not supported")
@@ -293,7 +293,7 @@ class Packer():
         return gps.index
 
     def unpack_gps_v5(self, buf):
-        gps = rc_messages.gps_v5(buf)
+        gps = ns_messages.gps_v5(buf)
         if gps.index > 0:
             print("Warning: gps index > 0 not supported")
         gps.msg2props(gps_node)
@@ -337,7 +337,7 @@ class Packer():
         return row
 
     def unpack_imu_v4(self, buf):
-        imu = rc_messages.imu_v4(buf)
+        imu = ns_messages.imu_v4(buf)
 
         if imu.index > 0:
             print("Warning: imu index > 0 not supported")
@@ -358,7 +358,7 @@ class Packer():
         return imu.index
 
     def unpack_imu_v5(self, buf):
-        imu = rc_messages.imu_v5(buf)
+        imu = ns_messages.imu_v5(buf)
 
         if imu.index > 0:
             print("Warning: imu index > 0 not supported")
@@ -385,7 +385,7 @@ class Packer():
         return imu.index
 
     def unpack_imu_v6(self, buf):
-        imu = rc_messages.imu_v6(buf)
+        imu = ns_messages.imu_v6(buf)
         if imu.index > 0:
             print("Warning: imu index > 0 not supported")
         imu.msg2props(imu_node)
@@ -418,9 +418,9 @@ class Packer():
         row["sequence_num"] = nav_node.getUInt("sequence_num")
         row["status"] = nav_node.getUInt("status")
         return row
-    
+
     def unpack_filter_v4(self, buf):
-        nav = rc_messages.filter_v4(buf)
+        nav = ns_messages.filter_v4(buf)
 
         if nav.index > 0:
             print("Warning: nav index > 0 not supported")
@@ -449,7 +449,7 @@ class Packer():
         return nav.index
 
     def unpack_filter_v5(self, buf):
-        nav = rc_messages.filter_v5(buf)
+        nav = ns_messages.filter_v5(buf)
 
         if nav.index > 0:
             print("Warning: nav index > 0 not supported")
@@ -481,7 +481,7 @@ class Packer():
         return nav.index
 
     def unpack_nav_v6(self, buf):
-        nav = rc_messages.nav_v6(buf)
+        nav = ns_messages.nav_v6(buf)
         if nav.index > 0:
             print("Warning: nav index > 0 not supported")
         nav.msg2props(nav_node)
@@ -509,14 +509,14 @@ class Packer():
     # fixme: do nav metrics dict message
 
     def unpack_nav_metrics_v6(self, buf):
-        metrics = rc_messages.nav_metrics_v6(buf)
+        metrics = ns_messages.nav_metrics_v6(buf)
         if metrics.index > 0:
             print("Warning: nav metrics index > 0 not supported")
         metrics.msg2props(nav_node)
         return metrics.index
 
     # fixme: effectors?
-    
+
     def pack_act_bin(self, use_cached=False):
         act_time = act_node.getDouble('timestamp')
         if not use_cached and act_time > self.last_act_time:
@@ -550,7 +550,7 @@ class Packer():
         return row
 
     def unpack_act_v2(self, buf):
-        act = rc_messages.actuator_v2(buf)
+        act = ns_messages.actuator_v2(buf)
         act_node.setDouble("timestamp", act.timestamp_sec)
         act_node.setDouble("aileron", act.aileron)
         act_node.setDouble("elevator", act.elevator)
@@ -564,7 +564,7 @@ class Packer():
         return act.index
 
     def unpack_act_v3(self, buf):
-        act = rc_messages.actuator_v3(buf)
+        act = ns_messages.actuator_v3(buf)
         act_node.setDouble("timestamp", act.timestamp_sec)
         act_node.setDouble("aileron", act.aileron)
         act_node.setDouble("elevator", act.elevator)
@@ -578,7 +578,7 @@ class Packer():
         return act.index
 
     def unpack_effectors_v1(self, buf):
-        eff = rc_messages.effectors_v1(buf)
+        eff = ns_messages.effectors_v1(buf)
         eff.msg2props(effectors_node)
         effectors_node.setDouble("aileron", eff.channel[1])
         effectors_node.setDouble("elevator", eff.channel[2])
@@ -606,9 +606,9 @@ class Packer():
         row["channel[4]"] = inceptors_node.getDouble("channel", 4)
         row["channel[5]"] = inceptors_node.getDouble("channel", 5)
         return row
-    
+
     def unpack_inceptors_v1(self, buf):
-        incep = rc_messages.inceptors_v1(buf)
+        incep = ns_messages.inceptors_v1(buf)
         if incep.index > 0:
             print("Warning: incep index > 0 not supported")
         incep.msg2props(inceptors_node)
@@ -631,7 +631,7 @@ class Packer():
         return row
 
     def unpack_pilot_v2(self, buf):
-        pilot = rc_messages.pilot_v2(buf)
+        pilot = ns_messages.pilot_v2(buf)
 
         if pilot.index > 0:
             print("Warning: pilot index > 0 not supported")
@@ -650,7 +650,7 @@ class Packer():
         return pilot.index
 
     def unpack_pilot_v3(self, buf):
-        pilot = rc_messages.pilot_v3(buf)
+        pilot = ns_messages.pilot_v3(buf)
 
         if pilot.index > 0:
             print("Warning: pilot index > 0 not supported")
@@ -669,7 +669,7 @@ class Packer():
         return pilot.index
 
     def unpack_pilot_v4(self, buf):
-        pilot = rc_messages.pilot_v4(buf)
+        pilot = ns_messages.pilot_v4(buf)
         if pilot.index > 0:
             print("Warning: pilot index > 0 not supported")
         pilot.msg2props(pilot_node)
@@ -680,7 +680,7 @@ class Packer():
         return pilot.index
 
     def unpack_power_v1(self, buf):
-        power = rc_messages.power_v1(buf)
+        power = ns_messages.power_v1(buf)
         if power.index > 0:
             print("Warning: power index > 0 not supported")
         power.msg2props(power_node)
@@ -716,7 +716,7 @@ class Packer():
             # There will be a better way figured out sometime in the
             # future.
             self.ap.task_attribute = 0
-            
+
             # wp_counter will get incremented externally in the
             # remote_link message sender because each time we send a
             # serial message to the remote ground station is when we
@@ -807,7 +807,7 @@ class Packer():
         return row
 
     def unpack_ap_status_v6(self, buf):
-        ap = rc_messages.ap_status_v6(buf)
+        ap = ns_messages.ap_status_v6(buf)
 
         index = ap.index
 
@@ -864,7 +864,7 @@ class Packer():
         return index
 
     def unpack_ap_status_v7(self, buf):
-        ap = rc_messages.ap_status_v7(buf)
+        ap = ns_messages.ap_status_v7(buf)
 
         index = ap.index
 
@@ -951,12 +951,12 @@ class Packer():
         return index
 
     def unpack_ap_targets_v1(self, buf):
-        ap = rc_messages.ap_targets_v1(buf)
+        ap = ns_messages.ap_targets_v1(buf)
         ap.msg2props(targets_node)
         return 0
 
     def unpack_mission_v1(self, buf):
-        mission = rc_messages.mission_v1(buf)
+        mission = ns_messages.mission_v1(buf)
 
         index = mission.index
 
@@ -1019,7 +1019,7 @@ class Packer():
         return row
 
     def unpack_system_health_v4(self, buf):
-        health = rc_messages.system_health_v4(buf)
+        health = ns_messages.system_health_v4(buf)
         status_node.setDouble("frame_time", health.timestamp_sec)
         status_node.setDouble("system_load_avg", health.system_load_avg)
         power_node.setDouble("avionics_vcc", health.avionics_vcc)
@@ -1030,7 +1030,7 @@ class Packer():
         return health.index
 
     def unpack_system_health_v5(self, buf):
-        health = rc_messages.system_health_v5(buf)
+        health = ns_messages.system_health_v5(buf)
         status_node.setDouble("frame_time", health.timestamp_sec)
         status_node.setDouble("system_load_avg", health.system_load_avg)
         power_node.setDouble("avionics_vcc", health.avionics_vcc)
@@ -1041,7 +1041,7 @@ class Packer():
         return health.index
 
     def unpack_system_health_v6(self, buf):
-        health = rc_messages.system_health_v6(buf)
+        health = ns_messages.system_health_v6(buf)
         status_node.setDouble("frame_time", health.timestamp_sec)
         status_node.setDouble("system_load_avg", health.system_load_avg)
         status_node.setInt("fmu_timer_misses", health.fmu_timer_misses)
@@ -1053,7 +1053,7 @@ class Packer():
         return health.index
 
     def unpack_status_v7(self, buf):
-        status = rc_messages.status_v7(buf)
+        status = ns_messages.status_v7(buf)
         if status.index > 0:
             print("Warning: status index > 0 not supported")
         status.msg2props(status_node)
@@ -1077,13 +1077,13 @@ class Packer():
         return row
 
     def unpack_payload_v2(self, buf):
-        payload = rc_messages.payload_v2(buf)
+        payload = ns_messages.payload_v2(buf)
         payload_node.setDouble("timestamp", payload.timestamp_sec)
         payload_node.setInt("trigger_num", payload.trigger_num)
         return payload.index
 
     def unpack_payload_v3(self, buf):
-        payload = rc_messages.payload_v3(buf)
+        payload = ns_messages.payload_v3(buf)
         payload_node.setDouble("timestamp", payload.timestamp_sec)
         payload_node.setInt("trigger_num", payload.trigger_num)
         return payload.index
@@ -1099,7 +1099,7 @@ class Packer():
         return row
 
     def unpack_event_v1(self, buf):
-        event = rc_messages.event_v1(buf)
+        event = ns_messages.event_v1(buf)
         m = re.match('get: (.*)$', event.message)
         if m:
             (prop, value) = m.group(1).split(',')
@@ -1117,7 +1117,7 @@ class Packer():
         return event.index
 
     def unpack_event_v2(self, buf):
-        event = rc_messages.event_v2(buf)
+        event = ns_messages.event_v2(buf)
         remote_link_node.setInt("sequence_num", event.sequence_num)
         m = re.match('get: (.*)$', event.message)
         if m:
@@ -1136,7 +1136,7 @@ class Packer():
         return 0
 
     def unpack_command_v1(self, buf):
-        command = rc_messages.command_v1(buf)
+        command = ns_messages.command_v1(buf)
         pos1 = command.message.find(" ")
         pos2 = command.message.find(" ", pos1+1)
         path = command.message[pos1+1:pos2]
@@ -1149,7 +1149,7 @@ class Packer():
         return 0
 
     def unpack_ack_v1(self, buf):
-        ack = rc_messages.ack_v1(buf)
+        ack = ns_messages.ack_v1(buf)
         if ack.result > 0:
             remote_link_node.setInt("sequence_num", ack.sequence_num)
         return 0

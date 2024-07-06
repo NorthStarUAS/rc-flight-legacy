@@ -14,7 +14,7 @@ from tqdm import tqdm
 from PropertyTree import PropertyNode
 
 sys.path.append("../../src")
-from comms import rc_messages
+from comms import ns_messages
 from comms.packer import packer
 
 import commands
@@ -24,25 +24,25 @@ import auraparser
 m2nm = 0.0005399568034557235    # meters to nautical miles
 
 def generate_path(id, index):
-    if id in [rc_messages.gps_v3_id, rc_messages.gps_v4_id, rc_messages.gps_v5_id]:
+    if id in [ns_messages.gps_v3_id, ns_messages.gps_v4_id, ns_messages.gps_v5_id]:
         category = 'gps'
-    elif id in [rc_messages.imu_v4_id, rc_messages.imu_v5_id, rc_messages.imu_v6_id]:
+    elif id in [ns_messages.imu_v4_id, ns_messages.imu_v5_id, ns_messages.imu_v6_id]:
         category = 'imu'
-    elif id in [rc_messages.airdata_v6_id, rc_messages.airdata_v7_id, rc_messages.airdata_v8_id]:
+    elif id in [ns_messages.airdata_v6_id, ns_messages.airdata_v7_id, ns_messages.airdata_v8_id]:
         category = 'air'
-    elif id in [rc_messages.filter_v4_id, rc_messages.filter_v5_id, rc_messages.nav_v6_id]:
+    elif id in [ns_messages.filter_v4_id, ns_messages.filter_v5_id, ns_messages.nav_v6_id]:
         category = 'filter'
-    elif id == rc_messages.actuator_v2_id or id == rc_messages.actuator_v3_id:
+    elif id == ns_messages.actuator_v2_id or id == ns_messages.actuator_v3_id:
         category = 'act'
-    elif id in [rc_messages.pilot_v2_id, rc_messages.pilot_v3_id, rc_messages.pilot_v4_id]:
+    elif id in [ns_messages.pilot_v2_id, ns_messages.pilot_v3_id, ns_messages.pilot_v4_id]:
         category = 'pilot'
-    elif id in [rc_messages.inceptors_v1_id]:
+    elif id in [ns_messages.inceptors_v1_id]:
         category = 'inceptors'
-    elif id in [rc_messages.ap_status_v6_id, rc_messages.ap_status_v7_id, rc_messages.ap_targets_v1_id]:
+    elif id in [ns_messages.ap_status_v6_id, ns_messages.ap_status_v7_id, ns_messages.ap_targets_v1_id]:
         category = 'ap'
-    elif id in [rc_messages.system_health_v5_id, rc_messages.system_health_v6_id, rc_messages.status_v7_id]:
+    elif id in [ns_messages.system_health_v5_id, ns_messages.system_health_v6_id, ns_messages.status_v7_id]:
         category = 'health'
-    elif id == rc_messages.event_v1_id or id == rc_messages.event_v2_id:
+    elif id == ns_messages.event_v1_id or id == ns_messages.event_v2_id:
         category = 'event'
     else:
         print("Unknown packet id!", id, index)
@@ -132,7 +132,7 @@ if args.flight:
     if filename.endswith('.gz'):
         # remove temporary file name
         os.remove(filetmp)
-        
+
     divs = 500
     size = len(full)
     chunk_size = size / divs
@@ -174,6 +174,7 @@ output_dir = os.path.dirname(os.path.realpath(filename))
 filter_node = PropertyNode('/filters/filter/0')
 status_node = PropertyNode('/status')
 total_time = filter_node.getDouble('timestamp')
+filter_node.pretty_print()
 apm2_node = PropertyNode("/sensors/APM2")
 
 filename = os.path.join(output_dir, "flight.h5")
@@ -215,9 +216,11 @@ f.close()
 
 print()
 print("Total log time: %.1f min" % (total_time / 60.0))
-print("Flight timer: %.1f min" % (status_node.getDouble('flight_timer') / 60.0))
-print("Autopilot time: %.1f min" % (status_node.getDouble('local_autopilot_timer') / 60.0))
-print("Distance flown: %.2f nm (%.2f km)" % (status_node.getDouble('flight_odometer')*m2nm, status_node.getDouble('flight_odometer')*0.001))
+print("Flight timer: %.1f min" % (status_node.getDouble("flight_timer") / 60.0))
+print("Autopilot timer: %.1f min" % (status_node.getDouble("ap_timer") / 60.0))
+print("Throttle timer: %.1f min" % (status_node.getDouble("throttle_timer") / 60.0))
+od = status_node.getDouble('odometer_m')
+print("Distance flown: %.2f nm (%.2f km)" % (od*m2nm, od*0.001))
 print("Battery Usage: %.0f mah" % apm2_node.getInt("extern_current_mah"))
 print()
 

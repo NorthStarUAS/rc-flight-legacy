@@ -20,11 +20,11 @@ using namespace Eigen;
 #include "util/ratelimiter.h"
 
 #include "serial_link2.h"
-#include "rc_messages.h"
+#include "ns_messages.h"
 #include "rcfmu_messages.h"     // work towards deprecating
 
 class rcfmu_t: public driver_t {
-    
+
 public:
     rcfmu_t() {}
     ~rcfmu_t() {}
@@ -57,7 +57,7 @@ private:
     PropertyNode switches_node;
     PropertyNode targets_node;
     PropertyNode task_node;
-    
+
     string device_name = "/dev/ttyS4";
     int baud = 500000;
     SerialLink2 serial;
@@ -84,13 +84,13 @@ private:
     int pitot_count = 0;
     float pitot_offset = 0.0;
     LowPassFilter pitot_filt = LowPassFilter(0.2);
-    
+
     double imu_timestamp = 0.0;
     uint32_t last_imu_millis = 0;
     LinearFitFilter imu_offset = LinearFitFilter(200.0, 0.01);
 
     string pilot_mapping[rcfmu_message::sbus_channels]; // channel->name mapping
-    
+
     int battery_cells = 4;
     LowPassFilter avionics_vcc_filt = LowPassFilter(2.0);
     LowPassFilter int_main_vcc_filt = LowPassFilter(2.0);
@@ -100,10 +100,10 @@ private:
 
     int wp_counter = 0;
     RateLimiter mission_limiter;
-    
+
     void info( const char* format, ... );
     void hard_fail( const char*format, ... );
-    
+
     bool open( PropertyNode *config );
     void init_airdata( PropertyNode *config );
     void init_ekf( PropertyNode *config );
@@ -121,6 +121,6 @@ private:
     bool update_nav( rc_message::nav_v6_t *nav );
     bool update_gps( rc_message::gps_v5_t *gps );
     bool update_imu( rc_message::imu_v6_t *imu );
-    
+
     void airdata_zero_airspeed();
 };

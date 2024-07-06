@@ -1,12 +1,8 @@
-import random
 import re
-import time
 
 from PropertyTree import PropertyNode
 
-from comms import rc_messages
 import comms.events
-
 import survey.survey
 
 route_node = PropertyNode("/task/route")
@@ -19,7 +15,7 @@ comms_node = PropertyNode("/comms")
 # set up the remote command processor
 def init():
     pass
-    
+
 def update():
     len = comms_node.getLen("commands")
     for i in range(len):
@@ -29,7 +25,7 @@ def update():
             comms.events.log("command: %s" % command)
             execute_command(command)
             comms_node.setString("commands", "", i)
-    
+
 route_request = []
 survey_request = {}
 def execute_command( command ):
@@ -75,7 +71,7 @@ def execute_command( command ):
     elif tokens[0] == "survey_cont" and len(tokens) > 2:
         for i in range(1, len(tokens), 2):
             wpt = ( float(tokens[i]), float(tokens[i+1]) )
-            survey_request["area"].append( wpt )            
+            survey_request["area"].append( wpt )
     elif tokens[0] == "survey_end" and len(tokens) == 1:
         survey.survey.do_survey(survey_request)
     elif tokens[0] == "task" and len(tokens) > 1:

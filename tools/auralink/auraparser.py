@@ -2,7 +2,7 @@ import datetime
 import sys
 
 sys.path.append("../src")
-from comms import rc_messages
+from comms import ns_messages
 from comms.packer import packer
 import comms.serial_parser
 
@@ -58,69 +58,69 @@ def new_logfile():
         quit()
 
 def parse_msg(id, buf):
-    if id == rc_messages.gps_v3_id:
+    if id == ns_messages.gps_v3_id:
         index = packer.unpack_gps_v3(buf)
-    elif id == rc_messages.gps_v4_id:
+    elif id == ns_messages.gps_v4_id:
         index = packer.unpack_gps_v4(buf)
-    elif id == rc_messages.gps_v5_id:
+    elif id == ns_messages.gps_v5_id:
         index = packer.unpack_gps_v5(buf)
-    elif id == rc_messages.imu_v4_id:
+    elif id == ns_messages.imu_v4_id:
         index = packer.unpack_imu_v4(buf)
-    elif id == rc_messages.imu_v5_id:
+    elif id == ns_messages.imu_v5_id:
         index = packer.unpack_imu_v5(buf)
-    elif id == rc_messages.imu_v6_id:
+    elif id == ns_messages.imu_v6_id:
         index = packer.unpack_imu_v6(buf)
-    elif id == rc_messages.airdata_v6_id:
+    elif id == ns_messages.airdata_v6_id:
         index = packer.unpack_airdata_v6(buf)
-    elif id == rc_messages.airdata_v7_id:
+    elif id == ns_messages.airdata_v7_id:
         index = packer.unpack_airdata_v7(buf)
-    elif id == rc_messages.airdata_v8_id:
+    elif id == ns_messages.airdata_v8_id:
         index = packer.unpack_airdata_v8(buf)
-    elif id == rc_messages.effectors_v1_id:
+    elif id == ns_messages.effectors_v1_id:
         index = packer.unpack_effectors_v1(buf)
-    elif id == rc_messages.filter_v4_id:
+    elif id == ns_messages.filter_v4_id:
         index = packer.unpack_filter_v4(buf)
-    elif id == rc_messages.filter_v5_id:
+    elif id == ns_messages.filter_v5_id:
         index = packer.unpack_filter_v5(buf)
-    elif id == rc_messages.nav_v6_id:
+    elif id == ns_messages.nav_v6_id:
         index = packer.unpack_nav_v6(buf)
-    elif id == rc_messages.nav_metrics_v6_id:
+    elif id == ns_messages.nav_metrics_v6_id:
         index = packer.unpack_nav_metrics_v6(buf)
-    elif id == rc_messages.actuator_v2_id:
+    elif id == ns_messages.actuator_v2_id:
         index = packer.unpack_act_v2(buf)
-    elif id == rc_messages.actuator_v3_id:
+    elif id == ns_messages.actuator_v3_id:
         index = packer.unpack_act_v3(buf)
-    elif id == rc_messages.pilot_v2_id:
+    elif id == ns_messages.pilot_v2_id:
         index = packer.unpack_pilot_v2(buf)
-    elif id == rc_messages.pilot_v3_id:
+    elif id == ns_messages.pilot_v3_id:
         index = packer.unpack_pilot_v3(buf)
-    elif id == rc_messages.pilot_v4_id:
+    elif id == ns_messages.pilot_v4_id:
         index = packer.unpack_pilot_v4(buf)
-    elif id == rc_messages.inceptors_v1_id:
+    elif id == ns_messages.inceptors_v1_id:
         index = packer.unpack_inceptors_v1(buf)
-    elif id == rc_messages.power_v1_id:
+    elif id == ns_messages.power_v1_id:
         index = packer.unpack_power_v1(buf)
-    elif id == rc_messages.ap_status_v6_id:
+    elif id == ns_messages.ap_status_v6_id:
         index = packer.unpack_ap_status_v6(buf)
-    elif id == rc_messages.ap_status_v7_id:
+    elif id == ns_messages.ap_status_v7_id:
         index = packer.unpack_ap_status_v7(buf)
-    elif id == rc_messages.ap_targets_v1_id:
+    elif id == ns_messages.ap_targets_v1_id:
         index = packer.unpack_ap_targets_v1(buf)
-    elif id == rc_messages.mission_v1_id:
+    elif id == ns_messages.mission_v1_id:
         index = packer.unpack_mission_v1(buf)
-    elif id == rc_messages.system_health_v5_id:
+    elif id == ns_messages.system_health_v5_id:
         index = packer.unpack_system_health_v5(buf)
-    elif id == rc_messages.system_health_v6_id:
+    elif id == ns_messages.system_health_v6_id:
         index = packer.unpack_system_health_v6(buf)
-    elif id == rc_messages.status_v7_id:
+    elif id == ns_messages.status_v7_id:
         index = packer.unpack_status_v7(buf)
-    elif id == rc_messages.event_v1_id:
+    elif id == ns_messages.event_v1_id:
         index = packer.unpack_event_v1(buf)
-    elif id == rc_messages.event_v2_id:
+    elif id == ns_messages.event_v2_id:
         index = packer.unpack_event_v2(buf)
-    elif id == rc_messages.command_v1_id:
+    elif id == ns_messages.command_v1_id:
         index = packer.unpack_command_v1(buf)
-    elif id == rc_messages.ack_v1_id:
+    elif id == ns_messages.ack_v1_id:
         index = packer.unpack_ack_v1(buf)
     else:
         print("Unknown packet id:", id)
