@@ -1,6 +1,4 @@
-*~
 *Makefile.in
-#*.pyc
 build/
 aclocal.m4
 autom4te.cache/
@@ -13,3 +11,4 @@ install-sh
 missing
 py-compile
 src/include/ugear_config.h.in
+**/flt0*/
