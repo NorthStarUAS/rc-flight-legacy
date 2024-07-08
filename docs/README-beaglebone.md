@@ -49,8 +49,12 @@ Boot the newly flashed beaglebone and login as debian/temppwd
 
 ## Beaglebone can live on ethernet or wifi or tether through a host computer
 
+    # connmanctl
+    
+    ETH0:
+    connmanctl> disable ethernet
+    
     WIFI: cat /etc/network/interfaces
-    connmanctl
     connmanctl> tether wifi off
     connmanctl> enable wifi
     connmanctl> scan wifi
@@ -106,7 +110,7 @@ Remove wicd (if gui image)
 
     apt remove python-wicd wicd-cli wicd wicd-curses wicd-daemon wicd-gtk
 
-Ethernet setup.
+Ethernet setup (see connmantctl section now!)
 
 - Note 1: enabling eth0 can generate some gps interference close to
   the beaglebone, so use caution and sufficient antenna separation if
@@ -114,7 +118,7 @@ Ethernet setup.
 - Note 2: enabling eth0 without it plugged in can introduce extra boot
   delays.
 
-    vi /etc/network/interfaces
+    vi /etc/network/interfaces (no, see connmanctl disable ethernet)
 
 Remove stuff we don't need that could cause performance disruptions
 
