@@ -61,6 +61,7 @@ static void umn2props(void) {
     if ( psi < 0 ) { psi += M_PI*2.0; }
     if ( psi > M_PI*2.0 ) { psi -= M_PI*2.0; }
     filter_node.setDouble( "timestamp", imu_data.time );
+    filter_node.setUInt( "millis", imu_data.time * 1000 );
     filter_node.setDouble( "roll_deg", nav_data.phi * R2D );
     filter_node.setDouble( "pitch_deg", nav_data.the * R2D );
     filter_node.setDouble( "yaw_deg", psi * R2D );
