@@ -44,8 +44,8 @@ def wrap_packet( packet_id, payload ):
     buf.append(cksum0)          # check sum byte 1
     buf.append(cksum1)          # check sum byte 2
     return buf
-    
-class serial_parser():
+
+class serial_link():
     def __init__(self):
         self.state = 0
         self.pkt_id = 0
@@ -143,4 +143,4 @@ class serial_parser():
                     self.state = 0
 
         return -1
-    
+

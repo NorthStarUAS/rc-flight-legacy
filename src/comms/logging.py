@@ -9,7 +9,7 @@ import socket
 from PropertyTree import PropertyNode
 
 from comms.packer import packer
-import comms.serial_parser
+import comms.serial_link
 
 # global variables for data file logging
 log_buffer = []
@@ -50,7 +50,7 @@ def init_file_logging():
     global enable_file
     global fdata
     global flight_dir
-    
+
     print('Log path:', log_path)
 
     # find the biggest flight number logged so far
@@ -92,7 +92,7 @@ def init_udp_logging():
 def init():
     global enable_file
     global enable_udp
-    
+
     global logging_node
     logging_node = PropertyNode("/config/logging")
 
@@ -102,7 +102,7 @@ def init():
     log_path = logging_node.getString('path')
     udp_host = logging_node.getString('hostname')
     udp_port = logging_node.getInt('port')
-    
+
     if log_path != '':
         if init_file_logging():
             enable_file = True      # success
@@ -145,7 +145,7 @@ def init():
     imu_count = random.randint(0, imu_skip)
     pilot_skip = logging_node.getInt("pilot_skip")
     pilot_count = random.randint(0, pilot_skip)
-            
+
     return True
 
 # write all pending data and flush
@@ -165,8 +165,8 @@ def log_queue( data ):
     log_buffer.append(data)
 
 def log_message( pkt_id, payload ):
-    msg = comms.serial_parser.wrap_packet(pkt_id, payload)
-    
+    msg = comms.serial_link.wrap_packet(pkt_id, payload)
+
     if enable_file:
         log_queue( msg )
 
@@ -274,7 +274,7 @@ def process_messages():
             print("pack_inceptors_bin() error:", str(e))
         if not buf is None and len(buf):
             log_message(packer.incep.id, buf)
-    
+
 def update():
     try:
         process_messages()
@@ -295,9 +295,9 @@ def write_configs():
     config = PropertyNode("/config")
     file = os.path.join(flight_dir, 'master-config.json')
     config.save(file)
-    
+
     config = PropertyNode("/config/autopilot")
     file = os.path.join(flight_dir, 'ap-config.json')
     config.save(file)
 
-    
+

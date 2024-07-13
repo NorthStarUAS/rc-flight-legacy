@@ -4,14 +4,14 @@ import sys
 sys.path.append("../src")
 from comms import ns_messages
 from comms.packer import packer
-import comms.serial_parser
+import comms.serial_link
 
 parser = None
 f = None
 
 def init():
     global parser
-    parser = comms.serial_parser.serial_parser()
+    parser = comms.serial_link.serial_link()
     new_logfile()
 
 def update(ser):
@@ -131,8 +131,8 @@ def parse_msg(id, buf):
     return index
 
 def log_msg(f, pkt_id, pkt_len, payload, cksum_lo, cksum_hi):
-    f.write(bytes([comms.serial_parser.START_OF_MSG0]))
-    f.write(bytes([comms.serial_parser.START_OF_MSG1]))
+    f.write(bytes([comms.serial_link.START_OF_MSG0]))
+    f.write(bytes([comms.serial_link.START_OF_MSG1]))
     f.write(bytes([pkt_id]))
     f.write(bytes([pkt_len]))
     f.write(payload)
@@ -149,7 +149,7 @@ def file_read(buf):
     # scan for sync characters
     sync0 = buf[counter]; counter += 1
     sync1 = buf[counter]; counter += 1
-    while (sync0 != comms.serial_parser.START_OF_MSG0 or sync1 != comms.serial_parser.START_OF_MSG1) and counter < len(buf):
+    while (sync0 != comms.serial_link.START_OF_MSG0 or sync1 != comms.serial_link.START_OF_MSG1) and counter < len(buf):
         sync0 = sync1
         sync1 = buf[counter]; counter += 1
         print("scanning for start of message:", counter, sync0, sync1)
